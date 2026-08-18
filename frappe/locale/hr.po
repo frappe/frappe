@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:38+0000\n"
-"PO-Revision-Date: 2026-08-17 19:39\n"
+"PO-Revision-Date: 2026-08-18 19:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -2734,7 +2734,7 @@ msgstr "Datoteka ikone s nastavkom .ico. Trebala bi biti 16 x 16 px. Generirano 
 
 #: frappe/core/doctype/custom_icon/custom_icon.js:28
 msgid "An icon named {0} already ships with the desk, and it takes precedence."
-msgstr ""
+msgstr "Ikona naziva {0} već je uključena u radnom prostoru i ima prednost."
 
 #: frappe/templates/includes/oauth_confirmation.html:165
 msgid "An unexpected error occurred while authorizing {}."
@@ -3630,7 +3630,7 @@ msgstr "Autorizacijski Kod"
 
 #: frappe/integrations/oauth2.py:101
 msgid "Authorization POST requests must use application/x-www-form-urlencoded"
-msgstr ""
+msgstr "POST zahtjevi za autorizaciju moraju koristiti application/x-www-form-urlencoded"
 
 #. Label of the authorization_uri (Small Text) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -4149,7 +4149,7 @@ msgstr "Barkod"
 #: frappe/public/js/print_format_builder/utils.js:127
 #: frappe/utils/typst_emitter.py:180 frappe/utils/typst_emitter.py:189
 msgid "Barcode (non-QR)"
-msgstr ""
+msgstr "Barkod (ne QR)"
 
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -4276,7 +4276,7 @@ msgstr "Prije Potvrde"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:8
 msgid "Begin typing for results."
-msgstr ""
+msgstr "Počni tipkati za rezultate."
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
@@ -4800,7 +4800,7 @@ msgstr "Mogu se navesti samo tipovi dokumenata koji su povezani sa tipom korisni
 
 #: frappe/contacts/address_and_contact.py:23
 msgid "Can only unlink an Address or a Contact"
-msgstr ""
+msgstr "Možete prekinuti vezu samo s Adresom ili Kontaktom"
 
 #: frappe/desk/form/document_follow.py:61
 msgid "Can't follow since changes are not tracked."
@@ -4812,7 +4812,7 @@ msgstr "Nije moguće preimenovati {0} u {1} jer {0} ne postoji."
 
 #: frappe/www/qrcode.html:66
 msgid "Can't scan the code?"
-msgstr ""
+msgstr "Ne možete skenirati kȏd?"
 
 #. Label of the cancel (Check) field in DocType 'Custom DocPerm'
 #. Label of the cancel (Check) field in DocType 'DocPerm'
@@ -5497,15 +5497,15 @@ msgstr "Odaberite koje tipove obavijesti želite primati e-poštom. Neodabrani t
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:10
 msgid "Chromium"
-msgstr ""
+msgstr "Chromium"
 
 #: frappe/utils/print_format_generator.py:423
 msgid "Chromium renderer unavailable"
-msgstr ""
+msgstr "Chromium renderer nedostupan"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:19
 msgid "Chromium unavailable: this format uses a Typst block."
-msgstr ""
+msgstr "Chromium nedostupan: ovaj format koristi Typst blok."
 
 #: frappe/core/doctype/data_import/importer.py:1109
 msgid "Circular parent reference for {0}"
@@ -5602,11 +5602,11 @@ msgstr "Kliknite polje za uređivanje njegovih nadjačavanja izgleda"
 
 #: frappe/templates/emails/login_with_email_link.html:3
 msgid "Click below to login."
-msgstr ""
+msgstr "Klikni ispod za prijavu."
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "Click below to reset your password."
-msgstr ""
+msgstr "Klikni ispod da poništite lozinku."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:167
 msgid "Click here"
@@ -6194,7 +6194,7 @@ msgstr "Završi Postavljanje"
 
 #: frappe/templates/emails/new_user.html:7
 msgid "Complete registration"
-msgstr ""
+msgstr "Dovrši registraciju"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Background Task'
@@ -6619,7 +6619,7 @@ msgstr "Sadržaj mora biti JSON objekt"
 
 #: frappe/core/doctype/custom_icon/custom_icon.py:37
 msgid "Content must be a single <svg> element"
-msgstr ""
+msgstr "Sadržaj mora biti jedan <svg> element"
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:44
 msgid "Content must be valid JSON"
@@ -6737,7 +6737,7 @@ msgstr "Kopiraj u Međuspremnik"
 
 #: frappe/www/qrcode.html:82
 msgid "Copy to clipboard"
-msgstr ""
+msgstr "Kopiraj u međuspremnik"
 
 #: frappe/core/doctype/user/user.js:524
 msgid "Copy token to clipboard"
@@ -6774,7 +6774,7 @@ msgstr "Nije moguće pronaći {0}"
 
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:187
 msgid "Could not load this image"
-msgstr ""
+msgstr "Nije moguće učitati ovu sliku"
 
 #: frappe/core/doctype/role/role.js:71
 msgid "Could not load this section. Please refresh the page."
@@ -7288,7 +7288,7 @@ msgstr "Prilagođeni CSS"
 #: frappe/public/js/print_format_builder/utils.js:88
 #: frappe/utils/typst_emitter.py:132
 msgid "Custom CSS on the format"
-msgstr ""
+msgstr "Prilagođeni CSS u formatu"
 
 #. Label of the custom_configuration_section (Section Break) field in DocType
 #. 'Number Card'
@@ -7371,17 +7371,17 @@ msgstr "Prilagođena HTML Pomoć"
 
 #: frappe/public/js/print_format_builder/utils.js:119
 msgid "Custom HTML block"
-msgstr ""
+msgstr "Prilagođeni HTML blok"
 
 #: frappe/public/js/print_format_builder/utils.js:86
 #: frappe/utils/typst_emitter.py:126
 msgid "Custom HTML format"
-msgstr ""
+msgstr "Prilagođeni HTML format"
 
 #. Name of a DocType
 #: frappe/core/doctype/custom_icon/custom_icon.json
 msgid "Custom Icon"
-msgstr ""
+msgstr "Prilagođena ikona"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:116
 msgid "Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"
@@ -8312,7 +8312,7 @@ msgstr "Izbriši Natpisnu Tablu"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:288
 msgid "Delete Row"
-msgstr ""
+msgstr "Izbriši Red"
 
 #: frappe/public/js/form_builder/components/Section.vue:129
 msgctxt "Title of confirmation dialog"
@@ -8326,7 +8326,7 @@ msgstr "Izbriši Karticu"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:290
 msgid "Delete Table"
-msgstr ""
+msgstr "Izbriši Tablicu"
 
 #: frappe/public/js/frappe/form/grid.js:130
 msgid "Delete all"
@@ -10315,7 +10315,7 @@ msgstr "Uredi Prečicu"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:523
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:551
 msgid "Edit Typst"
-msgstr ""
+msgstr "Uredi Typst"
 
 #. Label of the edit_values (Button) field in DocType 'Web Page Block'
 #. Label of the edit_navbar_template_values (Button) field in DocType 'Website
@@ -10752,7 +10752,7 @@ msgstr "Kod Ugradnje kopiran"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:39
 msgid "Empty Typst block"
-msgstr ""
+msgstr "Prazan Typst blok"
 
 #: frappe/database/query.py:2566
 msgid "Empty alias is not allowed"
@@ -11200,11 +11200,11 @@ msgstr "Unesi naziv polja za valutu ili predmemoriranu vrijednost (npr. Company:
 
 #: frappe/templates/emails/verification_code.html:3
 msgid "Enter this code to complete your login."
-msgstr ""
+msgstr "Unesi ovaj kod za dovršetak prijave."
 
 #: frappe/www/qrcode.html:67
 msgid "Enter this setup key manually:"
-msgstr ""
+msgstr "Unesite ovaj ključ postavki ručno:"
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
@@ -12160,7 +12160,7 @@ msgstr "Prodložak Polja"
 
 #: frappe/public/js/print_format_builder/utils.js:120
 msgid "Field Template (Jinja HTML)"
-msgstr ""
+msgstr "Predložak Polja (Jinja HTML)"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:189
 msgid "Field Templates"
@@ -12179,7 +12179,7 @@ msgstr "Polje \\u201c{0}\\u201d više ne postoji na {1}"
 #: frappe/public/js/print_format_builder/utils.js:134
 #: frappe/utils/typst_emitter.py:230
 msgid "Field color Typst can't render: {0}"
-msgstr ""
+msgstr "Boja polja koju Typst ne može prikazati: {0}"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:143
 msgid "Field label"
@@ -13171,7 +13171,7 @@ msgstr "Format Podataka"
 #: frappe/public/js/print_format_builder/utils.js:91
 #: frappe/utils/typst_emitter.py:150
 msgid "Format color Typst can't render: {0}"
-msgstr ""
+msgstr "Format boje koju Typst ne može prikazati: {0}"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:605
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:607
@@ -14316,7 +14316,7 @@ msgstr "Zdravo {0}"
 
 #: frappe/templates/emails/new_user.html:4
 msgid "Hi {0}, an account has been created for you at {1}. Before you can log in, you'll need to set your password."
-msgstr ""
+msgstr "Pozdrav {0}, izrađen vam je račun na {1}. Prije nego što se prijavite, morat ćete postaviti lozinku."
 
 #. Label of the hidden (Check) field in DocType 'DocField'
 #. Label of the hidden (Check) field in DocType 'DocType Action'
@@ -14701,7 +14701,7 @@ msgstr "IP Adresa"
 
 #: frappe/templates/emails/administrator_logged_in.html:4
 msgid "IP address:"
-msgstr ""
+msgstr "IP adresa:"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the icon (Data) field in DocType 'DocType'
@@ -14744,11 +14744,11 @@ msgstr "Slika Ikone"
 #. Label of the icon_name (Data) field in DocType 'Custom Icon'
 #: frappe/core/doctype/custom_icon/custom_icon.json
 msgid "Icon Name"
-msgstr ""
+msgstr "Naziv Ikone"
 
 #: frappe/core/doctype/custom_icon/custom_icon.py:33
 msgid "Icon Name can only contain letters, numbers, hyphens and underscores"
-msgstr ""
+msgstr "Naziv Ikone može sadržavati samo slova, brojeve, crtice i podcrte"
 
 #. Label of the icon_style (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
@@ -14979,11 +14979,11 @@ msgstr "Ako je ova e-pošta registrirana kod nas, poslali smo joj upute za reset
 
 #: frappe/templates/emails/administrator_logged_in.html:5
 msgid "If this was you:"
-msgstr ""
+msgstr "Ako ste ovo bili vi:"
 
 #: frappe/templates/emails/administrator_logged_in.html:6
 msgid "If this wasn't you:"
-msgstr ""
+msgstr "Ako ovo niste bili vi:"
 
 #. Description of the 'Fetch on Save if Empty' (Check) field in DocType
 #. 'DocField'
@@ -15002,7 +15002,7 @@ msgstr "Ako nije odabrano, vrijednost će se uvijek ponovo preuzeti prilikom spr
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "If unset, cron jobs run on the default queue."
-msgstr ""
+msgstr "Ako nije postavljeno, cron poslovi se izvršavaju u standardnom redu čekanja."
 
 #. Label of the if_owner (Check) field in DocType 'Custom DocPerm'
 #. Label of the if_owner (Check) field in DocType 'DocPerm'
@@ -15025,15 +15025,15 @@ msgstr "Ako učitavate nove zapise, ostavite kolonu \"ime\" (ID) praznom."
 
 #: frappe/templates/emails/verification_code.html:5
 msgid "If you didn't request this code, you can safely ignore this email."
-msgstr ""
+msgstr "Ako niste zatražili ovaj kod, možete slobodno zanemariti ovu e-poštu."
 
 #: frappe/templates/emails/login_with_email_link.html:11
 msgid "If you didn't request this, you can safely ignore this email. Your account is safe."
-msgstr ""
+msgstr "Ako ovo niste tražili, možete slobodno zanemariti ovu e-poštu. Vaš račun je siguran."
 
 #: frappe/templates/emails/password_reset.html:11
 msgid "If you didn't request this, you can safely ignore this email. Your password won't be changed."
-msgstr ""
+msgstr "Ako ovo niste zatražili, možete slobodno zanemariti ovu e-poštu. Vaša lozinka neće biti promijenjena."
 
 #: frappe/utils/password.py:240
 msgid "If you have recently restored the site, you may need to copy the site_config.json containing the original encryption key."
@@ -15046,11 +15046,11 @@ msgstr "Ako ovo postaviš, pojaviće se unos u padajućem meniju nadređenog pro
 
 #: frappe/templates/emails/new_user.html:13
 msgid "If you weren't expecting this account, you can safely ignore this email."
-msgstr ""
+msgstr "Ako niste očekivali ovaj račun, možete slobodno zanemariti ovu e-poštu."
 
 #: frappe/templates/emails/user_invitation.html:4
 msgid "If you weren't expecting this, you can safely ignore this email."
-msgstr ""
+msgstr "Ako ovo niste očekivali, možete slobodno zanemariti ovu e-poštu."
 
 #. Description of the 'Delimiter Options' (Data) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -15720,11 +15720,11 @@ msgstr "Umetni Kolonu Ispred {0}"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:287
 msgid "Insert Column Left"
-msgstr ""
+msgstr "Umetni Stupac Lijevo"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:286
 msgid "Insert Column Right"
-msgstr ""
+msgstr "Umetni Stupac Desno"
 
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:82
 msgid "Insert Image in Markdown"
@@ -15737,11 +15737,11 @@ msgstr "Umetni Nove Zapise"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:284
 msgid "Insert Row Above"
-msgstr ""
+msgstr "Umetni Red Iznad"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:285
 msgid "Insert Row Below"
-msgstr ""
+msgstr "Umetni Red Ispod"
 
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -15750,7 +15750,7 @@ msgstr "Umetni Stil"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:283
 msgid "Insert Table"
-msgstr ""
+msgstr "Umetni Tablicu"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:318
 msgid "Insert image"
@@ -16109,12 +16109,12 @@ msgstr "Nevažeća Tranzicija"
 
 #: frappe/utils/typst_emitter.py:799
 msgid "Invalid Typst block"
-msgstr ""
+msgstr "Nevažeći Typst blok"
 
 #: frappe/printing/doctype/print_format/print_format.py:220
 #: frappe/printing/doctype/print_format/print_format.py:227
 msgid "Invalid Typst markup"
-msgstr ""
+msgstr "Nevažeći Typst markup"
 
 #: frappe/core/doctype/file/file.py:315
 #: frappe/public/js/frappe/widgets/widget_dialog.js:695
@@ -16685,11 +16685,11 @@ msgstr "Je Standard"
 
 #: frappe/templates/emails/verification_code.html:3
 msgid "It expires in 1 minute."
-msgstr ""
+msgstr "Ističe za 1 minutu."
 
 #: frappe/templates/emails/verification_code.html:3
 msgid "It expires in {0} minutes."
-msgstr ""
+msgstr "Ističe za {0} minuta."
 
 #: frappe/core/doctype/file/utils.py:168 frappe/utils/file_manager.py:310
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
@@ -17695,21 +17695,21 @@ msgstr "Zaglavlje u HTML-u"
 #: frappe/public/js/print_format_builder/utils.js:100
 #: frappe/utils/typst_emitter.py:204
 msgid "Letterhead footer with HTML content"
-msgstr ""
+msgstr "Podnožje zaglavlja sa HTML sadržajem"
 
 #: frappe/public/js/print_format_builder/utils.js:97
 #: frappe/utils/typst_emitter.py:201
 msgid "Letterhead with HTML content"
-msgstr ""
+msgstr "Zaglavlje sa HTML sadržajem"
 
 #: frappe/utils/typst_emitter.py:207
 msgid "Letterhead with a remote image URL"
-msgstr ""
+msgstr "Zaglavlje s eksterinim URL-om slike"
 
 #: frappe/public/js/print_format_builder/utils.js:94
 #: frappe/utils/typst_emitter.py:198
 msgid "Letterhead with custom CSS"
-msgstr ""
+msgstr "Zaglavlje s prilagođenim CSS-om"
 
 #. Label of the permlevel (Int) field in DocType 'Custom DocPerm'
 #. Label of the permlevel (Int) field in DocType 'DocPerm'
@@ -20089,7 +20089,7 @@ msgstr "Popis nizova koji predstavljaju načine kontaktiranja osoba odgovornih z
 
 #: frappe/templates/emails/administrator_logged_in.html:1
 msgid "New login to the Administrator account"
-msgstr ""
+msgstr "Nova prijava na račun Administratora"
 
 #: frappe/www/update-password.html:111
 msgid "New password cannot be same as old password"
@@ -20521,7 +20521,7 @@ msgstr "Još nije zabilježena nikakva aktivnost."
 
 #: frappe/public/js/frappe/form/templates/address_list.html:28
 msgid "No addresses added yet"
-msgstr ""
+msgstr "Još nije dodana nijedna adresa"
 
 #: frappe/email/doctype/notification/notification.js:246
 msgid "No alerts for today"
@@ -20581,7 +20581,7 @@ msgstr "Još nema komentara."
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:46
 msgid "No contact details"
-msgstr ""
+msgstr "Nema kontaktnih detalja"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:54
 msgid "No contacts added yet"
@@ -20694,7 +20694,7 @@ msgstr "Nema slike — postavite je u panelu"
 
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:315
 msgid "No letter head"
-msgstr ""
+msgstr "Nema zaglavlja"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:347
 msgid "No matching entries in the current results"
@@ -21070,7 +21070,7 @@ msgstr "Nije Korišteno"
 #: frappe/public/js/print_format_builder/utils.js:87
 #: frappe/utils/typst_emitter.py:129
 msgid "Not a builder format"
-msgstr ""
+msgstr "Nije format web uređivača"
 
 #: frappe/utils/csvutils.py:106
 msgid "Not a valid Comma Separated Value (CSV File)"
@@ -21294,7 +21294,7 @@ msgstr "Preferencija Tipa Obavijesti"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:165
 msgid "Notification categories"
-msgstr ""
+msgstr "Kategorije obavijesti"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:9
 msgid "Notification sent to"
@@ -22192,7 +22192,7 @@ msgstr "Opcije nisu postavljene za polje veze {0}"
 #: frappe/templates/emails/password_reset.html:8
 #: frappe/templates/emails/user_invitation.html:9
 msgid "Or copy and paste:"
-msgstr ""
+msgstr "Ili kopiraj i zalijepi:"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -22362,7 +22362,7 @@ msgstr "PDF Širina Stranice (u mm)"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:4
 msgid "PDF Renderer"
-msgstr ""
+msgstr "PDF Renderer"
 
 #. Label of the pdf_settings (Section Break) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -22371,7 +22371,7 @@ msgstr "PDF Postavke"
 
 #: frappe/utils/print_format.py:131 frappe/utils/print_format_generator.py:472
 msgid "PDF encryption is not supported by the Typst renderer"
-msgstr ""
+msgstr "PDF enkripcija nije podržana od strane Typst renderera"
 
 #: frappe/utils/print_format.py:419
 msgid "PDF generation failed"
@@ -23634,7 +23634,7 @@ msgstr "Podesite mapiranje pisača za ovaj format ispisivanja u postavkama pisa�
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.js:25
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:33
 msgid "Please set at least one filter: User or DocType"
-msgstr ""
+msgstr "Postavi barem jedan filter: Korisnik ili DocType"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1558
 msgid "Please set filters"
@@ -24915,7 +24915,7 @@ msgstr "Postavka Direktnog Ispisivanja"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:450
 msgid "Raw Typst markup"
-msgstr ""
+msgstr "Sirovi Typst markup"
 
 #: frappe/desk/doctype/console_log/console_log.js:6
 msgid "Re-Run in Console"
@@ -25615,7 +25615,7 @@ msgstr "Podsjetnik postavljen na {0}"
 #: frappe/public/js/print_format_builder/utils.js:131
 #: frappe/utils/typst_emitter.py:217
 msgid "Remote image URL"
-msgstr ""
+msgstr "URL eksterne slike"
 
 #: frappe/core/doctype/role/role.js:221 frappe/core/doctype/role/role.js:512
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:70
@@ -26291,7 +26291,7 @@ msgstr "Vrati na Standard"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Reset password"
-msgstr ""
+msgstr "Poništi lozinku"
 
 #: frappe/public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
@@ -27067,7 +27067,7 @@ msgstr "USPJEH, NEUSPJEH, ODGODI"
 #. Label of the svg (Code) field in DocType 'Custom Icon'
 #: frappe/core/doctype/custom_icon/custom_icon.json
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 #: frappe/public/js/frappe/color_picker/color_picker.js:23
 msgid "SWATCHES"
@@ -28785,7 +28785,7 @@ msgstr "Postavi put do funkcije s popisa dozvoljenih koja će vratiti podatke za
 
 #: frappe/templates/emails/two_factor_setup.html:2
 msgid "Set up your authenticator app"
-msgstr ""
+msgstr "Postavi aplikaciju za autentifikaciju"
 
 #. Description of the 'Is App Disabled' (Check) field in DocType 'Custom
 #. DocPerm'
@@ -30919,7 +30919,7 @@ msgstr "Prebacite se na Korisničku Podršku"
 
 #: frappe/public/js/print_format_builder/stores/index.js:452
 msgid "Switched back to Chromium: {0}"
-msgstr ""
+msgstr "Prebačeno natrag na Chromium: {0}"
 
 #: frappe/core/page/component_explorer/component_explorer.js:561
 msgid "Switched to {0}"
@@ -31653,7 +31653,7 @@ msgstr "<strong>Status Dokumenta</strong> je poništen za sve statuse na <strong
 
 #: frappe/templates/emails/administrator_logged_in.html:6
 msgid "The Administrator account may be compromised. Change the Administrator password immediately."
-msgstr ""
+msgstr "Administratorski račun je možda kompromitiran. Odmah promijenite administratorsku lozinku."
 
 #: frappe/templates/emails/auto_repeat_fail.html:3
 msgid "The Auto Repeat for this document has been disabled."
@@ -31700,19 +31700,19 @@ msgstr "Ključ URL Guranog Relejnog Servera (`push_relay_server_url`) nedostaje 
 
 #: frappe/utils/typst_emitter.py:798
 msgid "The Typst block could not render its template: {0}"
-msgstr ""
+msgstr "Typst blok nije mogao renderirati predložak: {0}"
 
 #: frappe/printing/doctype/print_format/print_format.py:226
 msgid "The Typst block in {0} does not compile: {1}"
-msgstr ""
+msgstr "Typst blok {0} se ne kompajlira: {1}"
 
 #: frappe/printing/doctype/print_format/print_format.py:219
 msgid "The Typst block in {0} has a template error: {1}"
-msgstr ""
+msgstr "Typst blok {0} ima pogrešku predloška: {1}"
 
 #: frappe/utils/typst_emitter.py:939
 msgid "The Typst renderer cannot embed this image: {0}"
-msgstr ""
+msgstr "Typst renderer ne može ugraditi ovu sliku: {0}"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:370
 msgid "The User record for this request has been auto-deleted due to inactivity by system admins."
@@ -31827,12 +31827,12 @@ msgstr "Sljedeće konfigurirane IMAP mape nisu pronađene ili nisu dostupne na s
 #: frappe/templates/emails/login_with_email_link.html:3
 #: frappe/templates/emails/password_reset.html:3
 msgid "The link expires in 1 minute."
-msgstr ""
+msgstr "Poveznica istječe za 1 minutu."
 
 #: frappe/templates/emails/login_with_email_link.html:3
 #: frappe/templates/emails/password_reset.html:3
 msgid "The link expires in {0} minutes."
-msgstr ""
+msgstr "Poveznica istječe za {0} minuta."
 
 #: frappe/www/login.py:197
 msgid "The link you trying to login is invalid or expired."
@@ -32042,7 +32042,7 @@ msgstr "Ne postoji zadatak pod nazivom \"{}\""
 
 #: frappe/templates/emails/administrator_logged_in.html:5
 msgid "There is nothing else you need to do."
-msgstr ""
+msgstr "Ne trebaš ništa drugo učiniti."
 
 #: frappe/core/doctype/file/file.py:814 frappe/utils/file_manager.py:371
 msgid "There is some problem with the file url: {0}"
@@ -32171,7 +32171,7 @@ msgstr "Ova radnja je dozvoljena samo za {}"
 
 #: frappe/public/js/print_format_builder/stores/index.js:445
 msgid "This can't be saved with a Typst block: {0}"
-msgstr ""
+msgstr "Ovo se ne može spremiti s Typst blokom: {0}"
 
 #: frappe/public/js/frappe/form/toolbar.js:129
 #: frappe/public/js/frappe/model/model.js:772
@@ -32301,11 +32301,11 @@ msgstr "Ova formu nije moguće uređivati zbog Radnog Toka."
 
 #: frappe/utils/print_format_generator.py:468
 msgid "This format can no longer render through Typst: {0}"
-msgstr ""
+msgstr "Ovaj format se više ne može renderirati putem Typsta: {0}"
 
 #: frappe/printing/doctype/print_format/print_format.py:178
 msgid "This format cannot use the Typst renderer: {0}"
-msgstr ""
+msgstr "Ovaj format ne može koristiti Typst renderer: {0}"
 
 #. Description of the 'Is Default' (Check) field in DocType 'Address Template'
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -32314,11 +32314,11 @@ msgstr "Ovaj format se koristi ako format specifičan za zemlju nije pronađen"
 
 #: frappe/printing/doctype/print_format/print_format.py:171
 msgid "This format uses a Typst block, so its PDF Renderer must be Typst."
-msgstr ""
+msgstr "Ovaj format koristi Typst blok, tako da njegov PDF Renderer mora biti Typst."
 
 #: frappe/utils/print_format_generator.py:420
 msgid "This format uses a Typst block, which only the Typst renderer can print. Set the PDF Renderer to Typst or remove the block."
-msgstr ""
+msgstr "Ovaj format koristi Typst blok koji može ispisati samo Typst renderer. Postavite PDF Renderer na Typst ili uklonite blok."
 
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.py:54
 msgid "This geolocation provider is not supported yet."
@@ -32332,15 +32332,15 @@ msgstr "Ovo ide iznad projekcije slajdova."
 
 #: frappe/templates/emails/user_invitation.html:4
 msgid "This invitation expires in 1 day."
-msgstr ""
+msgstr "Ova pozivnica istječe za 1 dan."
 
 #: frappe/templates/emails/user_invitation.html:4
 msgid "This invitation expires in {0} days."
-msgstr ""
+msgstr "Ova pozivnica istječe za {0} dana."
 
 #: frappe/templates/emails/user_invitation_expired.html:1
 msgid "This invitation has expired"
-msgstr ""
+msgstr "Ova je pozivnica istekla"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2461
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
@@ -33479,7 +33479,7 @@ msgstr "Upiši svoj odgovor ovdje..."
 
 #: frappe/public/js/frappe/ui/awesomplete.js:7
 msgid "Type {0} or more characters for results."
-msgstr ""
+msgstr "Ukucaj {0} ili više znakova za rezultate."
 
 #: frappe/core/doctype/data_export/exporter.py:144
 msgid "Type:"
@@ -33497,32 +33497,32 @@ msgstr "Tipovi (iste opcije, četiri izgleda)"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:444
 msgid "Typst"
-msgstr ""
+msgstr "Typst"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:12
 msgid "Typst (fast)"
-msgstr ""
+msgstr "Typst (brzo)"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:554
 msgid "Typst Markup"
-msgstr ""
+msgstr "Typst Markup"
 
 #: frappe/printing/doctype/print_format/print_format.py:172
 msgid "Typst block requires the Typst renderer"
-msgstr ""
+msgstr "Typst blok zahtijeva Typst renderer"
 
 #: frappe/templates/print_format/macros/Typst.html:2
 msgid "Typst block — content appears in the PDF"
-msgstr ""
+msgstr "Typst blok— sadržaj se pojavljuje u PDF-u"
 
 #: frappe/printing/doctype/print_format/print_format.py:179
 #: frappe/utils/print_format_generator.py:469 frappe/utils/typst_emitter.py:940
 msgid "Typst renderer unavailable"
-msgstr ""
+msgstr "Typst renderer nedostupan"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:16
 msgid "Typst unavailable:"
-msgstr ""
+msgstr "Typst nedostupan:"
 
 #. Label of the ui_tour (Check) field in DocType 'Form Tour'
 #. Label of the ui_tour (Check) field in DocType 'Form Tour Step'
@@ -33791,11 +33791,11 @@ msgstr "Nepoznato kodiranje datoteke. Pokušano koristiti: {0}"
 
 #: frappe/public/js/frappe/utils/address_and_contact.js:190
 msgid "Unlink {0}"
-msgstr ""
+msgstr "Prekini vezu {0}"
 
 #: frappe/public/js/frappe/utils/address_and_contact.js:260
 msgid "Unlink {0} {1} from {2}?"
-msgstr ""
+msgstr "Prekini vezu {0} {1} s {2}?"
 
 #: frappe/core/doctype/submission_queue/submission_queue.js:7
 msgid "Unlock Reference Document"
@@ -33838,7 +33838,7 @@ msgstr "Poništi Odabir Svih"
 
 #: frappe/public/js/frappe/utils/address_and_contact.js:184
 msgid "Unset as Primary"
-msgstr ""
+msgstr "Ukloni kao Primarni"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -33898,11 +33898,11 @@ msgstr "Odjeljak bez naslova"
 
 #: frappe/utils/typst_emitter.py:161
 msgid "Untranslatable CSS on {0}: {1}"
-msgstr ""
+msgstr "Neprevodivi CSS na {0}: {1}"
 
 #: frappe/public/js/print_format_builder/utils.js:117
 msgid "Untranslatable CSS: {0}"
-msgstr ""
+msgstr "Neprevodivi CSS: {0}"
 
 #: frappe/core/doctype/file/file.js:40
 msgid "Unzip"
@@ -33922,7 +33922,7 @@ msgstr "Nadolazeći Događaji za Danas"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:591
 msgid "Upcoming events"
-msgstr ""
+msgstr "Nadolazeći događaji"
 
 #. Option for the 'Import Action' (Select) field in DocType 'Data Import Log'
 #. Label of the update (Button) field in DocType 'Document Naming Settings'
@@ -34251,7 +34251,7 @@ msgstr "Koristi ovo, na primjer, ako sva poslana e-poåta također treba poslati
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:555
 msgid "Use {0} for values from the document."
-msgstr ""
+msgstr "Koristi {0} za vrijednosti iz dokumenta."
 
 #: frappe/website/doctype/web_form_request/web_form_request_list.js:9
 msgid "Used"
@@ -36085,7 +36085,7 @@ msgstr "Piši"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:235
 msgid "Write Typst here. Use {0} for values from the document. Check the PDF preview to see the result."
-msgstr ""
+msgstr "Ovdje pišite Typst. Koristi {0} za vrijednosti iz dokumenta. Provjeri PDF pregled da vidite rezultat."
 
 #: frappe/model/base_document.py:1167
 msgid "Wrong Fetch From value"
@@ -36626,7 +36626,7 @@ msgstr "Dostigli ste ograničenje veličine reda u tabeli baze podataka: {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:398
 msgid "You have no new notifications"
-msgstr ""
+msgstr "Nemate novih obavijesti"
 
 #: frappe/public/js/frappe/form/grid.js:1492
 #: frappe/public/js/frappe/list/bulk_operations.js:451
@@ -36655,7 +36655,7 @@ msgstr "Zadnji put ste uređivali ovo"
 
 #: frappe/desk/form/activity.py:126
 msgid "You last edited this document"
-msgstr ""
+msgstr "Zadnje ste uređivali ovaj dokument"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:445
 msgid "You must add atleast one link."
@@ -36821,7 +36821,7 @@ msgstr "Bit ćete preusmjereni na:"
 
 #: frappe/templates/emails/user_invitation.html:1
 msgid "You're invited to join {0}"
-msgstr ""
+msgstr "Pozvani ste da se pridružite {0}"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:118
 msgid "You've been invited to join {0}"
@@ -36903,15 +36903,15 @@ msgstr "Vaša forma je uspješno ažurirana"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:1
 msgid "Your invitation has been cancelled"
-msgstr ""
+msgstr "Vaša je pozivnica otkazana"
 
 #: frappe/templates/emails/user_invitation_expired.html:3
 msgid "Your invitation to join {0} is no longer valid. Ask your team to send a new invitation if you'd still like to join."
-msgstr ""
+msgstr "Vaša pozivnica za pridruživanje {0} više nije važeća. Zamolite svoj tim da vam pošalje novu pozivnicu ako se i dalje želite pridružiti."
 
 #: frappe/templates/emails/user_invitation_cancelled.html:3
 msgid "Your invitation to join {0} was cancelled by the site administrator. If this was a mistake, reach out to your team to request a new invitation."
-msgstr ""
+msgstr "Vaš poziv za pridruživanje {0} otkazao je administrator stranice. Ako je to bila pogreška, obratite se svom timu kako biste zatražili novi poziv."
 
 #: frappe/templates/emails/new_user.html:5
 msgid "Your login ID is:"
@@ -36961,7 +36961,7 @@ msgstr "Vaša sesija je istekla, prijavite se ponovo da nastavite."
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Your verification code"
-msgstr ""
+msgstr "Vaš verifikacijski kod"
 
 #: frappe/utils/data.py:1573
 msgid "Zero"
@@ -38260,7 +38260,7 @@ msgstr "{0} ima nevažeću notaciju povratnog aluzija: {1}"
 
 #: frappe/templates/emails/user_invitation.html:3
 msgid "{0} has invited you to join {1}."
-msgstr ""
+msgstr "{0} vas je pozvao/la da se pridružite {1}."
 
 #: frappe/email/queue.py:124
 msgid "{0} has left the conversation in {1} {2}"
@@ -38561,7 +38561,7 @@ msgstr "{0} je zadnji put uredio ovo"
 
 #: frappe/desk/form/activity.py:127
 msgid "{0} last edited this document"
-msgstr ""
+msgstr "{0} zadnji put uređivao/la ovaj dokument"
 
 #: frappe/desk/form/activity.py:224
 msgid "{0} liked"
@@ -38728,7 +38728,7 @@ msgstr "{0} ograničeni dokumenti"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:14
 msgid "{0} results found"
-msgstr ""
+msgstr "{0} pronađenih rezultata"
 
 #: frappe/public/js/frappe/roles_editor.js:93
 msgid "{0} role does not have permission on any doctype"
@@ -38822,7 +38822,7 @@ msgstr "{0} je prekinuo(la) dijeljenje ovog dokumenta sa {1}"
 
 #: frappe/public/js/frappe/utils/address_and_contact.js:278
 msgid "{0} unlinked"
-msgstr ""
+msgstr "{0} nepovezano"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:447
 msgid "{0} unread notifications"
@@ -38912,7 +38912,7 @@ msgstr "{0}, Red {1}"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:22
 msgid "{0}, list item {1} of {2}"
-msgstr ""
+msgstr "{0}, popisa {1} od {2}"
 
 #: frappe/utils/data.py:1594
 msgctxt "Money in words"
