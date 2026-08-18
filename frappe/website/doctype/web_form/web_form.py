@@ -909,7 +909,6 @@ def check_webform_perm(doctype, name):
 
 
 @frappe.whitelist(allow_guest=True)
-@frappe.read_only()
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
@@ -978,7 +977,6 @@ def get_web_form_list(
 
 
 @frappe.whitelist(allow_guest=True)
-@frappe.read_only()
 def get_form_data(
 	doctype: str,
 	docname: str | None = None,

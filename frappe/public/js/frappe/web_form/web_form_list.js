@@ -131,7 +131,6 @@ export default class WebFormList {
 			};
 		} else {
 			args = {
-				type: "GET",
 				method: "frappe.www.list.get_list_data",
 				args: {
 					doctype: this.doctype,
@@ -376,7 +375,6 @@ export default class WebFormList {
 		if (!this.settings.allow_delete) return;
 		frappe
 			.call({
-				type: "DELETE",
 				method: "frappe.website.doctype.web_form.web_form.delete_multiple",
 				args: {
 					web_form_name: this.web_form_name,
