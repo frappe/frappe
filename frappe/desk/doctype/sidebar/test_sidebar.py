@@ -175,6 +175,28 @@ def module_resolvable_on_disk(module, app="frappe"):
 			frappe.local.app_modules[app].remove(scrubbed)
 
 
+def user_with_roles(email: str, roles: list[str]) -> str:
+	"""A user holding exactly `roles` and nothing else.
+
+	Built rather than picked out of the test records: a shared user carries whatever roles other
+	suites needed, so a test claiming "this user does not hold X" is really asserting the state
+	of the bench. Reset on every call, because a previous run may have left roles on it.
+	"""
+	if frappe.db.exists("User", email):
+		frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+
+	frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": email,
+			"first_name": email.split("@")[0],
+			"send_welcome_email": 0,
+			"roles": [{"role": role} for role in roles],
+		}
+	).insert(ignore_permissions=True)
+	return email
+
+
 class TestItemIdentity(IntegrationTestCase):
 	"""What makes two sidebar rows the same item, and what that identity is made of.
 
@@ -568,7 +590,9 @@ class TestSidebarStandard(IntegrationTestCase):
 		"""The old `Workspace Manager` gate is gone: developer mode is the whole gate, and what
 		is left is the doctype's own permissions. A System Manager holds no `Workspace Manager`
 		role and is refused nothing here."""
-		self.enterContext(self.set_user("test@example.com"))
+		self.enterContext(
+			self.set_user(user_with_roles("test-sidebar-sysmanager@example.com", ["System Manager"]))
+		)
 		self.assertNotIn("Workspace Manager", frappe.get_roles())
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
@@ -695,12 +719,7 @@ class TestSidebarIsAppContent(IntegrationTestCase):
 		Made here rather than picked out of the test records: the shared ones carry whatever
 		roles other suites needed, and this test's whole claim is about holding none.
 		"""
-		email = "test-sidebar-nobody@example.com"
-		if not frappe.db.exists("User", email):
-			frappe.get_doc({"doctype": "User", "email": email, "first_name": "Nobody"}).insert(
-				ignore_permissions=True
-			)
-		return email
+		return user_with_roles("test-sidebar-nobody@example.com", [])
 
 	def test_a_desk_user_may_only_read_a_sidebar(self):
 		"""An ordinary desk user reads the sidebar the app shipped and writes their own delta
