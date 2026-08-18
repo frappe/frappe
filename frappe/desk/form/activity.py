@@ -3,6 +3,7 @@
 
 import json
 import re
+from json import JSONDecodeError
 
 import frappe
 import frappe.utils
@@ -31,8 +32,6 @@ def get_activity_timeline(
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 	user_info: dict = {}  # cache user lookups
 
-	if isinstance(visible_types, str):
-		visible_types = frappe.parse_json(visible_types)
 	visible, version_fields = parse_visible_types(visible_types)
 
 	def show(*types: str) -> bool:
@@ -65,22 +64,37 @@ def get_activity_timeline(
 
 
 def parse_visible_types(visible_types) -> tuple[set[str] | None, list[str] | None]:
-	"""["email", {"version": ["status"]}] → (type set, version-field allowlist)."""
+	"""["email", {"version": ["status"]}] → (type set, version-field allowlist).
+
+	Unknown type and field names are left alone; a malformed shape is rejected, since
+	silently reinterpreting it would hide activity the caller expected to see.
+	"""
+	if isinstance(visible_types, str):
+		# form/query transport delivers arguments as JSON strings
+		try:
+			visible_types = frappe.parse_json(visible_types)
+		except JSONDecodeError:
+			frappe.throw(_("visible_types is not valid JSON: {0}").format(visible_types))
 	if not visible_types:
 		return None, None
+	if not isinstance(visible_types, list):
+		frappe.throw(_("visible_types must be a list"))
+
 	types: set[str] = set()
 	version_fields = None
-	# client-supplied: entries must be strings, field lists must be lists of strings
 	for entry in visible_types:
-		if isinstance(entry, dict):
-			for activity_type, fields in entry.items():
-				types.add(activity_type)
-				if activity_type == "version" and isinstance(fields, list):
-					version_fields = [f for f in fields if isinstance(f, str)]
-		elif isinstance(entry, str):
+		if isinstance(entry, str):
 			types.add(entry)
-	# an all-malformed list must mean "no filter", not "show nothing"
-	return types or None, version_fields
+		elif isinstance(entry, dict):
+			for activity_type, fields in entry.items():
+				if not isinstance(fields, list):
+					frappe.throw(_("visible_types fields for {0} must be a list").format(activity_type))
+				types.add(activity_type)
+				if activity_type == "version":
+					version_fields = fields
+		else:
+			frappe.throw(_("visible_types entries must be strings or {type: [fields]} maps"))
+	return types, version_fields
 
 
 @frappe.whitelist()
