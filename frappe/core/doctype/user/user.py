@@ -651,11 +651,17 @@ class User(Document):
 		# Delete user's List Filters
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
-		# Delete the user's own sidebar arrangements. Whole documents rather than rows: they
-		# carry a child table, and deleting them is what clears the cached set of layers.
-		# The site layer (`user` blank) is nobody's personal preference and stays.
-		for name in frappe.get_all("Custom Sidebar", filters={"user": self.name}, pluck="name"):
-			frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
+		# Delete the user's own navigation arrangements -- their sidebar layers and their dock.
+		# Whole documents rather than rows: they carry a child table, and deleting them is what
+		# clears the cached set of layers. The site layer (`user` blank) is nobody's personal
+		# preference and stays.
+		#
+		# Both doctypes are in `ignore_links_on_delete`, so nothing would have complained about
+		# the rows being left behind -- and `Dock` is uniquely keyed on `user`, so a leftover
+		# layer would be handed straight to the next person created with this same id.
+		for doctype in ("Custom Sidebar", "Dock"):
+			for name in frappe.get_all(doctype, filters={"user": self.name}, pluck="name"):
+				frappe.delete_doc(doctype, name, ignore_permissions=True, force=True)
 
 		# Remove user from Note's Seen By table
 		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])
