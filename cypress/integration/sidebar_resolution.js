@@ -17,12 +17,20 @@ context("Cold-entry sidebar resolution", () => {
 	});
 
 	// An entity's home is decided against this payload; `items` only ever needs `link_to` here.
+	//
+	// A module maps to its links, or to `{ links, computed }` when the test needs to say the
+	// sidebar was built from the module's contents rather than shipped by an app.
 	const payload = (sidebars) =>
 		Object.fromEntries(
-			Object.entries(sidebars).map(([module, links]) => [
-				module,
-				{ module, items: links.map((link_to) => ({ link_to })) },
-			])
+			Object.entries(sidebars).map(([module, value]) => {
+				const { links = [], computed = 0 } = Array.isArray(value)
+					? { links: value }
+					: value;
+				return [
+					module,
+					{ module, computed, items: links.map((link_to) => ({ link_to })) },
+				];
+			})
 		);
 
 	// Resolve `route` against a synthetic world, restoring the real one afterwards so the desk this
@@ -37,6 +45,7 @@ context("Cold-entry sidebar resolution", () => {
 			dashboards = [],
 			heirs = {},
 			persisted,
+			sticky,
 			route,
 		},
 		then
@@ -68,7 +77,12 @@ context("Cold-entry sidebar resolution", () => {
 			const sidebar = Object.create(win.frappe.ui.Sidebar.prototype);
 			let resolved;
 			try {
-				resolved = sidebar.resolve_initial_sidebar(route);
+				// `sticky` names what step 1 is given directly, which is what the navigation path
+				// passes; omitting it goes through the cold-entry door and reads localStorage.
+				resolved =
+					sticky === undefined
+						? sidebar.resolve_initial_sidebar(route)
+						: sidebar.resolve_sidebar_for(route, sticky);
 			} finally {
 				frappe.boot.module_sidebars = real.module_sidebars;
 				frappe.boot.entity_module = real.entity_module;
@@ -433,6 +447,76 @@ context("Cold-entry sidebar resolution", () => {
 				frappe.get_meta = real_get_meta;
 				frappe.boot.module_sidebars = real_sidebars;
 			}
+		});
+	});
+
+	// One ladder, whichever door you came in by. These used to be two: navigating jumped straight
+	// to the first sidebar linking the entity, so the same document opened in different shells
+	// depending on whether you clicked through to it or pasted its URL.
+	context("navigating and arriving cold agree", () => {
+		// HR lists Employee and owns it; Setup merely links it. Whoever is asking, HR wins.
+		const world = {
+			sidebars: { Setup: ["Employee", "Company"], HR: ["Employee"] },
+			metas: { Employee: { module: "HR" } },
+			route: ["List", "Employee"],
+		};
+
+		it("prefers the entity's own module when arriving cold", () => {
+			resolve({ ...world, persisted: null }, (resolved) => {
+				expect(resolved.sidebar).to.equal("HR");
+			});
+		});
+
+		it("prefers the entity's own module when navigating from another sidebar", () => {
+			// `sticky` is the sidebar on screen. It does not link Employee, so it cannot hold you,
+			// and the ladder has to run the same steps it runs for a cold entry.
+			resolve({ ...world, sticky: "Website" }, (resolved) => {
+				expect(resolved.sidebar).to.equal("HR");
+			});
+		});
+
+		it("still holds you where you are when that sidebar links the entity", () => {
+			resolve({ ...world, sticky: "Setup" }, (resolved) => {
+				expect(resolved.sidebar).to.equal("Setup");
+			});
+		});
+
+		it("resolves with no sticky at all, which is what the second pass does", () => {
+			resolve({ ...world, sticky: null }, (resolved) => {
+				expect(resolved.sidebar).to.equal("HR");
+			});
+		});
+	});
+
+	// A computed sidebar lists what its module holds, capped at COMPUTED_DOCTYPE_LIMIT. An entity
+	// missing from one was never left out on purpose, so it must not be read as a decision.
+	context("a display limit is not a decision", () => {
+		const capped = {
+			sidebars: {
+				// HR's sidebar is computed and Employee did not fit under the cap
+				HR: { links: ["Attendance"], computed: 1 },
+				Setup: ["Employee"],
+			},
+			metas: { Employee: { module: "HR" } },
+			route: ["List", "Employee"],
+		};
+
+		it("keeps the entity in its own module even though the sidebar does not list it", () => {
+			resolve({ ...capped, sticky: null }, (resolved) => {
+				expect(resolved.sidebar).to.equal("HR");
+				expect(resolved.reason).to.contain("display limit");
+			});
+		});
+
+		it("gives it away when the same sidebar was shipped by an app", () => {
+			// identical world, except somebody chose these items -- so the absence means something
+			const shipped = {
+				...capped,
+				sidebars: { HR: ["Attendance"], Setup: ["Employee"] },
+			};
+			resolve({ ...shipped, sticky: null }, (resolved) => {
+				expect(resolved.sidebar).to.equal("Setup");
+			});
 		});
 	});
 });
