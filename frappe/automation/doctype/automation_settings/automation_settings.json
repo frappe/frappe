@@ -11,6 +11,7 @@
   "reliability_section",
   "failure_threshold",
   "stale_running_minutes",
+  "max_attempts",
   "column_break_reliability",
   "drain_seconds",
   "commit_every",
@@ -62,6 +63,14 @@
    "fieldname": "stale_running_minutes",
    "fieldtype": "Int",
    "label": "Stale Running Minutes",
+   "non_negative": 1
+  },
+  {
+   "default": "3",
+   "description": "How many times a claimed row is retried when its run fails outside the flow's own steps, before the row is marked Failed.",
+   "fieldname": "max_attempts",
+   "fieldtype": "Int",
+   "label": "Maximum Attempts",
    "non_negative": 1
   },
   {
@@ -132,7 +141,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-08-15 21:48:23.635552",
+ "modified": "2026-08-18 18:52:57.661314",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Settings",
