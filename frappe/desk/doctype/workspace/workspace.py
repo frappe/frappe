@@ -906,5 +906,20 @@ def get_page_list(fields, filters):
 	return frappe.get_all("Workspace", fields=fields, filters=filters, order_by="sequence_id asc")
 
 
-def is_workspace_manager():
-	return "Workspace Manager" in frappe.get_roles()
+def is_workspace_manager(user: str | None = None) -> bool:
+	"""Whether `user` may curate navigation for everyone.
+
+	The one definition. The sidebar's layers and the dock's both gate on this, and both used to
+	carry a copy of it -- two functions of the same name and the same body, in three files, which
+	is three places to change the day the rule changes.
+
+	`Workspace Manager`, not System Manager: the two roles do not imply each other, and the
+	holder of the role literally named for curating navigation is the one who should be doing it.
+	"""
+	return "Workspace Manager" in frappe.get_roles(user)
+
+
+def check_workspace_manager(message: str) -> None:
+	"""Refuse anyone who is not one, with a message saying what they were trying to do."""
+	if not is_workspace_manager():
+		frappe.throw(message, frappe.PermissionError)

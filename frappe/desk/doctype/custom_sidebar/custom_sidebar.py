@@ -8,6 +8,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	is_linked,
 	item_key,
 )
+from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
@@ -533,22 +534,6 @@ def _reset(module: str, user: str | None):
 # ---------------------------------------------------------------------------------------
 # Who may touch which layer
 # ---------------------------------------------------------------------------------------
-
-
-def is_workspace_manager(user: str | None = None) -> bool:
-	return "Workspace Manager" in frappe.get_roles(user)
-
-
-def check_workspace_manager(message: str) -> None:
-	"""The gate on every site layer.
-
-	`Workspace Manager`, not System Manager: the two roles do not imply each other, and the
-	holder of the role literally named for curating navigation is the one who should be
-	curating navigation. It is granted to nobody by default, which is a tighter answer to "a
-	plain Desk User must not touch the site layer" than System Manager would be.
-	"""
-	if not is_workspace_manager():
-		frappe.throw(message, frappe.PermissionError)
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):

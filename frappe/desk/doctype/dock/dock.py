@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_workspace_manager, is_workspace_manager
+from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
