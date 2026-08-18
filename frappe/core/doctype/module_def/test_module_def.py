@@ -14,6 +14,7 @@ from frappe.installer import (
 	reclaim_module_name_for_its_app,
 	release_custom_module_placements,
 	rename_conflicting_custom_module,
+	sync_module_defs,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.utils.modules import get_module_placement
@@ -227,3 +228,56 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 		with custom_module("Test Undeclared Module") as module:
 			self.assertIsNone(reclaim_module_name_for_its_app(module))
 			self.assertTrue(frappe.db.exists("Module Def", module))
+
+
+class TestSyncGivesEveryDeclaredModuleARow(IntegrationTestCase):
+	"""`sync_module_defs` runs on every migrate, ahead of the patches, so a module an app added
+	after that app was installed exists by the time anything tries to link to it."""
+
+	def setUp(self):
+		super().setUp()
+		# a non-custom insert runs `on_update`, which writes `modules.txt` and creates a folder
+		# when developer_mode is on -- a test has no business touching the working tree
+		patcher = patch.dict(frappe.local.conf, {"developer_mode": 0})
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def test_an_app_module_that_lost_its_placement_gets_it_back(self):
+		"""`app_name` is what lists a module in an app's dock, so a blank one is a module no
+		dock reaches. The app that declares it is what the sync is already iterating over."""
+		# rollback is class-scoped, so a failure here would hand every later test an unplaced
+		# `Core` -- restoring it cannot be left to the function under test
+		placement = frappe.db.get_value("Module Def", "Core", "app_name")
+		self.addCleanup(
+			frappe.db.set_value, "Module Def", "Core", "app_name", placement, update_modified=False
+		)
+
+		frappe.db.set_value("Module Def", "Core", "app_name", None, update_modified=False)
+
+		sync_module_defs()
+
+		self.assertEqual(frappe.db.get_value("Module Def", "Core", "app_name"), "frappe")
+
+	def test_a_module_two_apps_declare_is_added_once(self):
+		"""Nothing stops two `modules.txt` from naming the same module. The row the first pass
+		inserts has to be visible to the second, or the module is reported as added twice and
+		put through a rename against itself."""
+		module = "Test Twice Declared Module"
+		self.addCleanup(frappe.delete_doc, "Module Def", module, force=True, ignore_missing=True)
+
+		apps = frappe.get_installed_apps()
+		declaring, real_module_list = apps[0], frappe.get_module_list
+
+		def declares(app):
+			return [module] if app == declaring else real_module_list(app)
+
+		with (
+			# the real list with one app repeated -- replacing it instead would strip the other
+			# installed apps, and plenty of cached lookups expect those to be there
+			patch("frappe.get_installed_apps", return_value=[*apps, declaring]),
+			patch("frappe.get_module_list", side_effect=declares),
+		):
+			added = sync_module_defs()
+
+		self.assertEqual(added.count(module), 1, "a module declared twice was added twice")
+		self.assertEqual(frappe.db.get_value("Module Def", module, "app_name"), declaring)

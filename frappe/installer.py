@@ -18,7 +18,7 @@ from semantic_version import Version
 import frappe
 from frappe import _
 from frappe.defaults import _clear_cache
-from frappe.utils import cint, is_git_url
+from frappe.utils import cint, comma_and, is_git_url
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
 
@@ -908,11 +908,15 @@ def sync_module_defs() -> list[str]:
 	migrate it would put a site's custom module through a rename check on every run.
 
 	An existing row is touched in one case only: an app's own module with no `app_name` is
-	given one. That is a row with no dock placement, which is a row nobody can reach, and this
-	loop is already holding the answer -- the same fill `ModuleDef.validate_placement` does on
-	save, for rows that are never saved. A row naming a *different* app is left alone: two apps
-	claiming one module name is a conflict to resolve deliberately, not by whichever app this
-	loop reaches last.
+	given one, because a row with no placement is a row no dock lists. Treat this as insurance,
+	not a live repair -- nothing clears a non-custom module's `app_name`, so on a healthy site
+	the branch never fires. It earns its place by costing nothing: `app_name` is already in
+	`existing`, and the write happens only when it is empty. `ModuleDef.validate_placement`
+	fills the same field on save; this covers the rows that are never saved. A repaired row is
+	printed rather than returned -- the return value is what the site gained, not what it fixed.
+
+	A row naming a *different* app is left alone: two apps claiming one module name is a
+	conflict to resolve deliberately, not by whichever app this loop reaches last.
 
 	**Deliberately additive.** A module dropped from `modules.txt` keeps its row: deleting one
 	cascades through `DocType.module` and every link to it, and an app temporarily renaming a
@@ -925,19 +929,19 @@ def sync_module_defs() -> list[str]:
 	"""
 	existing = {row.name: row for row in frappe.get_all("Module Def", fields=["name", "app_name", "custom"])}
 
-	added = []
+	added, repaired = [], []
 	for app in frappe.get_installed_apps():
 		for module in frappe.get_module_list(app):
 			row = existing.get(module)
 			# an app's module already has its row; only a *custom* module holding the name is
 			# something to act on
 			if row and not row.custom:
-				# ...except a row with no placement at all, which is unreachable: `app_name` is
-				# what lists a module in an app's dock, and for an app's own module it is not a
-				# choice but a fact this loop already knows.
+				# `db.set_value` skips `on_update`, so nothing clears the module cache here --
+				# safe only because migrate clears it once, at the end.
 				if not row.app_name:
 					frappe.db.set_value("Module Def", module, "app_name", app, update_modified=False)
 					row.app_name = app  # so a second app declaring the name does not take it
+					repaired.append(module)
 				continue
 
 			rename_conflicting_custom_module(module, app)
@@ -946,7 +950,13 @@ def sync_module_defs() -> list[str]:
 			doc.app_name = app
 			doc.module_name = module
 			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+			# `existing` has to keep up: a second app declaring this same module must see the
+			# row it just gained, or it counts as added twice and renames against itself
+			existing[module] = doc
 			added.append(module)
+
+	if repaired:
+		print(f"Placed modules that had no app: {comma_and(repaired, add_quotes=False)}")
 
 	return added
 
