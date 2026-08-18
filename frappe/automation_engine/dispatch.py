@@ -51,9 +51,13 @@ def run_automations(doc, method):
 
 def _dispatch_allowed() -> bool:
 	flags = frappe.flags
-	if not settings.is_enabled():
+	# Flags first, because they are free and settings is not: reading the Single imports its
+	# controller, and during install the DocType row does not exist yet, so the import resolves
+	# to the wrong module and raises. Nothing should dispatch during install/patch/migrate
+	# anyway, so the database is never touched on those paths.
+	if flags.in_install or flags.in_patch or flags.in_migrate:
 		return False
-	return not (flags.in_install or flags.in_patch or flags.in_migrate)
+	return settings.is_enabled()
 
 
 def _log_depth_refusal(doc, max_depth):
