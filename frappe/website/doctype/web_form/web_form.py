@@ -721,9 +721,6 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
-	web_form = frappe.get_cached_doc("Web Form", web_form_name)
-	ensure_guest_key_link_doctype_allowed(web_form, field.options)
-
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
