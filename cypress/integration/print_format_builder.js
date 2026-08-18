@@ -102,18 +102,25 @@ context("Print Format Builder — create flow", () => {
 			cy.findByRole("button", { name: "Create" }).click();
 		});
 
+		// the form route carries the created doc's real name — read it back instead
+		// of trusting the typed string (cy.type can drop characters)
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/\/(app|desk)\/print-format\//
+			/\/(app|desk)\/print-format\/(?!view\/)/
 		);
-		cy.call("frappe.client.get_value", {
-			doctype: "Print Format",
-			filters: { name: PF_NAME },
-			fieldname: ["custom_format", "print_format_builder_beta", "html"],
-		}).then((r) => {
-			expect(Number(r.message.custom_format)).to.equal(1);
-			expect(Number(r.message.print_format_builder_beta)).to.equal(0);
-			expect(r.message.html).to.contain("print-format");
+		cy.location("pathname").then((path) => {
+			const created = decodeURIComponent(path.split("/").pop());
+			expect(created).to.contain("Cypress PF");
+			PF_NAME = created;
+			cy.call("frappe.client.get_value", {
+				doctype: "Print Format",
+				filters: { name: created },
+				fieldname: ["custom_format", "print_format_builder_beta", "html"],
+			}).then((r) => {
+				expect(Number(r.message.custom_format)).to.equal(1);
+				expect(Number(r.message.print_format_builder_beta)).to.equal(0);
+				expect(r.message.html).to.contain("print-format");
+			});
 		});
 	});
 
@@ -131,17 +138,24 @@ context("Print Format Builder — create flow", () => {
 			cy.findByRole("button", { name: "Create" }).click();
 		});
 
+		// the builder route carries the created doc's real name — read it back instead
+		// of trusting the typed string (cy.type can drop characters)
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
 			/\/(app|desk)\/print-format-builder\//
 		);
-		cy.call("frappe.client.get_value", {
-			doctype: "Print Format",
-			filters: { name: PF_NAME },
-			fieldname: ["custom_format", "print_format_builder_beta"],
-		}).then((r) => {
-			expect(Number(r.message.custom_format)).to.equal(0);
-			expect(Number(r.message.print_format_builder_beta)).to.equal(1);
+		cy.location("pathname").then((path) => {
+			const created = decodeURIComponent(path.split("/").pop());
+			expect(created).to.contain("Cypress PF");
+			PF_NAME = created;
+			cy.call("frappe.client.get_value", {
+				doctype: "Print Format",
+				filters: { name: created },
+				fieldname: ["custom_format", "print_format_builder_beta"],
+			}).then((r) => {
+				expect(Number(r.message.custom_format)).to.equal(0);
+				expect(Number(r.message.print_format_builder_beta)).to.equal(1);
+			});
 		});
 	});
 
