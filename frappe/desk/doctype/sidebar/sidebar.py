@@ -145,7 +145,10 @@ class Sidebar(Document, DeskViews):
 
 		try:
 			frappe.get_module_path(self.module)
-		except Exception:
+		except (frappe.DoesNotExistError, ImportError):
+			# `get_module_app` throws rather than returns, so the message it queued would reach
+			# the user alongside ours and say the same thing twice, in framework words.
+			frappe.clear_last_message()
 			frappe.throw(
 				_(
 					"Module {0} has no folder in an app, so a standard sidebar cannot be written to it."
@@ -199,7 +202,11 @@ class Sidebar(Document, DeskViews):
 
 		try:
 			return os.path.exists(self.exported_file_path())
-		except Exception:
+		except (frappe.DoesNotExistError, ImportError):
+			# No module folder, so no file. `get_module_app` says so by throwing and queueing a
+			# message, which would otherwise surface as an error beside `mark_as_standard`'s own
+			# success alert.
+			frappe.clear_last_message()
 			return False
 
 
@@ -569,17 +576,13 @@ def get_module_info(module_name: str) -> dict:
 			entity, filters=filters, fields=fieldnames, pluck=pluck, order_by="creation asc"
 		)
 
-	# with no workspace to lead with, the doctypes are the module's landing content
-	if not module_info.get("Workspace"):
-		module_info = {
-			"DocType": module_info.get("DocType"),
-			"Workspace": module_info.get("Workspace"),
-			"Report": module_info.get("Report"),
-			"Dashboard": module_info.get("Dashboard"),
-			"Page": module_info.get("Page"),
-		}
-
 	module_info["DocType"] = (module_info.get("DocType") or [])[:COMPUTED_DOCTYPE_LIMIT]
+
+	# `generate_items` walks this in insertion order, so the order here *is* the sidebar's. With
+	# no workspace to lead with, the doctypes are the module's landing content and go first.
+	if not module_info["Workspace"]:
+		module_info = {"DocType": module_info["DocType"], **module_info}
+
 	return module_info
 
 

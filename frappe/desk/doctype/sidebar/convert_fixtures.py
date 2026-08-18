@@ -115,7 +115,10 @@ def convert_app(app: str, dry_run: bool = False) -> list[dict]:
 	for module in sorted(by_module):
 		try:
 			path = export_path(module)
-		except Exception:
+		except (frappe.DoesNotExistError, ImportError):
+			# the fixture names a module this app has no folder for, so there is nowhere to
+			# write it; anything else here is a real failure and should not be reported as one
+			frappe.clear_last_message()
 			results.append({"module": module, "path": None, "state": "no folder"})
 			continue
 
