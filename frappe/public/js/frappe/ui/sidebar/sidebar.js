@@ -446,22 +446,10 @@ frappe.ui.Sidebar = class Sidebar {
 						frappe.ui.toolbar.clear_cache();
 					},
 				},
-				...frappe.boot.navbar_settings.settings_dropdown
-					.filter((item) => !item.hidden)
-					.map((item) => {
-						const mapped = {
-							name: item.name,
-							label: item.item_label,
-							icon: item.icon,
-							condition: item.condition,
-						};
-						if (item.item_type === "Route") {
-							mapped.url = item.route;
-						} else if (item.item_type === "Action") {
-							mapped.onClick = () => frappe.utils.eval(item.action);
-						}
-						return mapped;
-					}),
+				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
+					...item,
+					label: item.item_label,
+				})),
 				{ is_divider: true },
 				{
 					name: "logout",
