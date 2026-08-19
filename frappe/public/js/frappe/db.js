@@ -128,7 +128,7 @@ frappe.db = {
 			{ cache }
 		);
 	},
-	get_link_options(doctype, txt = "", filters = {}) {
+	get_link_options(doctype, txt = "", filters = {}, page_length) {
 		return new Promise((resolve) => {
 			frappe.call({
 				type: "GET",
@@ -137,6 +137,7 @@ frappe.db = {
 					doctype,
 					txt,
 					filters,
+					...(page_length ? { page_length } : {}),
 				},
 				callback(r) {
 					resolve(r.message);
