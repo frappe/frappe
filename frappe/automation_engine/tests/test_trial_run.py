@@ -26,7 +26,8 @@ def committing_action():
 
 	def execute(target, params, context):
 		result = original(target, params, context)
-		frappe.db.commit()
+		# nosemgrep: the trial must be rolled back from a committed baseline to prove it leaves nothing.
+		frappe.db.commit()  # nosemgrep
 		return result
 
 	handler.execute = execute
