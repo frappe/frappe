@@ -192,12 +192,24 @@ def new_site(
 	default=False,
 	help="Ignore the validations and downgrade warnings. This action is not recommended",
 )
-@click.option("--encryption-key", help="Backup encryption key")
+@click.option(
+	"--encryption-key",
+	envvar="FRAPPE_BACKUP_ENCRYPTION_KEY",
+	show_envvar=True,
+	help="Backup encryption key",
+)
+@click.option(
+	"--non-interactive",
+	is_flag=True,
+	default=False,
+	help="Fail instead of prompting for a missing encryption key",
+)
 @pass_context
 def restore(
 	context: CliCtxObj,
 	sql_file_path,
 	encryption_key=None,
+	non_interactive=False,
 	db_root_username=None,
 	db_root_password=None,
 	db_name=None,
@@ -220,6 +232,7 @@ def restore(
 			site=site,
 			sql_file_path=sql_file_path,
 			encryption_key=encryption_key,
+			non_interactive=non_interactive,
 			db_root_username=db_root_username,
 			db_root_password=db_root_password,
 			verbose=context.verbose or verbose,
@@ -236,6 +249,7 @@ def _restore(
 	site=None,
 	sql_file_path=None,
 	encryption_key=None,
+	non_interactive=False,
 	db_root_username=None,
 	db_root_password=None,
 	verbose=None,
@@ -286,7 +300,7 @@ def _restore(
 
 	if is_encrypted:
 		_phase("Decrypting backup", colour="yellow")
-		encryption_key = _get_encryption_key(provided_key=encryption_key)
+		encryption_key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
 
 		with decrypt_backup(sql_file_path, encryption_key):
 			# Rollback on unsuccessful decryption
@@ -403,9 +417,20 @@ def restore_backup(
 	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 )
 @click.option("--verbose", "-v", is_flag=True)
-@click.option("--encryption-key", help="Backup encryption key")
+@click.option(
+	"--encryption-key",
+	envvar="FRAPPE_BACKUP_ENCRYPTION_KEY",
+	show_envvar=True,
+	help="Backup encryption key",
+)
+@click.option(
+	"--non-interactive",
+	is_flag=True,
+	default=False,
+	help="Fail instead of prompting for a missing encryption key",
+)
 @pass_context
-def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=None):
+def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=None, non_interactive=False):
 	from frappe.installer import is_partial, partial_restore
 	from frappe.utils.backups import decrypt_backup
 
@@ -424,7 +449,7 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 		sys.exit(1)
 
 	if "AES" in out.decode().split(":")[-1].strip():
-		key = _get_encryption_key(provided_key=encryption_key)
+		key = _get_encryption_key(provided_key=encryption_key, non_interactive=non_interactive)
 
 		with decrypt_backup(sql_file_path, key):
 			if not is_partial(sql_file_path):
@@ -453,7 +478,7 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 	frappe.destroy()
 
 
-def _get_encryption_key(provided_key: str | None = None) -> str:
+def _get_encryption_key(provided_key: str | None = None, non_interactive: bool = False) -> str:
 	from frappe.utils.backups import get_encryption_key
 
 	if provided_key:
@@ -464,7 +489,8 @@ def _get_encryption_key(provided_key: str | None = None) -> str:
 		click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
 		return site_config_key
 
-	if sys.__stdin__ and sys.__stdin__.isatty():
+	may_prompt = not non_interactive and not os.environ.get("CI")
+	if may_prompt and sys.__stdin__ and sys.__stdin__.isatty():
 		click.secho("Encryption key is required to decrypt the backup file.", fg="yellow")
 		if prompted_key := getpass.getpass("Enter encryption key: "):
 			return prompted_key
