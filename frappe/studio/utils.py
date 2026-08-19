@@ -13,6 +13,27 @@ def camel_case_to_kebab_case(text, remove_spaces=False):
 	return text
 
 
+def walk_blocks(blocks):
+	"""Yield every block dict in a blocks tree, descending into children and slot content.
+	Accepts a JSON string, a single block dict, or a list of blocks."""
+	if isinstance(blocks, str):
+		blocks = frappe.parse_json(blocks or "[]")
+	if isinstance(blocks, dict):
+		blocks = [blocks]
+
+	stack = list(blocks or [])
+	while stack:
+		block = stack.pop()
+		if not isinstance(block, dict):
+			continue
+		yield block
+		stack.extend(block.get("children") or [])
+		for slot in (block.get("componentSlots") or {}).values():
+			content = slot.get("slotContent")
+			if isinstance(content, list):
+				stack.extend(content)
+
+
 def has_page_write_perm(message: str | None = None):
 	"""Decorator to check if user has permission to edit Studio Page.
 

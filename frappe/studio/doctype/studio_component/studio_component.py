@@ -9,6 +9,7 @@ from frappe.model.naming import append_number_if_name_exists
 
 from studio.export import delete_file, parse_json
 from studio.realtime import publish_doc_change
+from studio.utils import walk_blocks
 
 
 class StudioComponent(Document):
@@ -58,63 +59,64 @@ class StudioComponent(Document):
 COMPONENT_INPUT_FIELDS = ("input_name", "type", "description", "options", "required", "default")
 
 
-def get_component_data(component) -> dict:
-	return {
-		"name": component.name,
-		"component_name": component.component_name,
-		"component_id": component.component_id,
-		"block": component.block,
-		"is_disabled": component.is_disabled,
-		"inputs": [
-			{"name": row.name, **{field: row.get(field) for field in COMPONENT_INPUT_FIELDS}}
-			for row in component.inputs
-		],
-	}
-
-
 def get_components_for_blocks(blocks) -> list[dict]:
 	"""Definitions of every component a blocks tree renders, including components
 	nested inside other components' blocks, so the renderer gets the whole page in
 	one payload (see get_page). This is the only way component definitions reach
 	users without Studio roles — visibility follows page visibility; the editor
-	reads components through the standard document API under DocType permissions."""
-	pending = extract_component_names(blocks)
-	seen = set()
+	reads components through the standard document API under DocType permissions.
+
+	Fetched in bulk, one round per nesting level, so queries scale with component
+	depth rather than component count."""
 	components = []
-	while pending:
-		name = pending.pop()
-		if name in seen:
-			continue
-		seen.add(name)
-		if not frappe.db.exists("Studio Component", name):
-			continue  # dangling reference; the renderer shows its missing-component fallback
-		component = frappe.get_cached_doc("Studio Component", name)
-		components.append(get_component_data(component))
-		pending |= extract_component_names(component.block)
+	requested = set()
+	to_fetch = extract_component_names(blocks)
+	while to_fetch:
+		# dangling references drop out of the fetch; the renderer shows its
+		# missing-component fallback for them
+		components += fetch_component_batch(to_fetch)
+		requested |= to_fetch
+		to_fetch = nested_component_names(components) - requested
+	return components
+
+
+def nested_component_names(components) -> set[str]:
+	"""Component names referenced inside the given components' own blocks."""
+	names = set()
+	for component in components:
+		names |= extract_component_names(component["block"])
+	return names
+
+
+def fetch_component_batch(names: set[str]) -> list[dict]:
+	"""One query for the component docs, one for all their input rows."""
+	components = frappe.get_all(
+		"Studio Component",
+		filters={"name": ["in", names]},
+		fields=["name", "component_name", "component_id", "block", "is_disabled"],
+	)
+	if not components:
+		return []
+
+	inputs_by_component = {}
+	input_rows = frappe.get_all(
+		"Studio Component Input",
+		filters={"parenttype": "Studio Component", "parent": ["in", [c.name for c in components]]},
+		fields=["name", "parent", *COMPONENT_INPUT_FIELDS],
+		order_by="idx asc",
+	)
+	for row in input_rows:
+		inputs_by_component.setdefault(row.pop("parent"), []).append(row)
+
+	for component in components:
+		component["inputs"] = inputs_by_component.get(component.name, [])
 	return components
 
 
 def extract_component_names(blocks) -> set[str]:
-	"""Docnames of Studio Components referenced anywhere in a blocks tree (children + slots)."""
-	components = set()
-
-	def walk(block):
-		if not isinstance(block, dict):
-			return
-		if block.get("isStudioComponent") and block.get("componentName"):
-			components.add(block.get("componentName"))
-		for child in block.get("children") or []:
-			walk(child)
-		for slot in (block.get("componentSlots") or {}).values():
-			content = slot.get("slotContent")
-			if isinstance(content, list):
-				for slot_child in content:
-					walk(slot_child)
-
-	if isinstance(blocks, str):
-		blocks = frappe.parse_json(blocks or "[]")
-	if isinstance(blocks, dict):
-		blocks = [blocks]
-	for block in blocks or []:
-		walk(block)
-	return components
+	"""Docnames of Studio Components referenced anywhere in a blocks tree."""
+	return {
+		block["componentName"]
+		for block in walk_blocks(blocks)
+		if block.get("isStudioComponent") and block.get("componentName")
+	}
