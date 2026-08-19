@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-11 18:26\n"
+"PO-Revision-Date: 2026-08-19 20:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -272,7 +272,7 @@ msgstr "<b>{0}</b> nije važeći URL"
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr "<div class=\"alert\">Ne ažuriraj jer to može pokvariti vaš obrazac. Koristite Prilagodi Prikaz Obrasca i Prilagođena polja da postavi svojstva!</div>"
+msgstr "<div class=\"alert\">Ne ažuriraj jer to može pokvariti vaš obrazac. Koristi Prilagodi Prikaz Obrasca i Prilagođena polja da se postave svojstva!</div>"
 
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
@@ -718,7 +718,7 @@ msgid "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 "</ul>\n"
 "<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
 msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
-"<p>Uslovi bi trebali biti napisani u jednostavnom Pythonu. Koristite samo svojstva dostupna u obrascu.</p>\n"
+"<p>Uslovi bi trebali biti napisani u jednostavnom Pythonu. Koristi samo svojstva dostupna u obrascu.</p>\n"
 "<p>Dopuštene funkcije:\n"
 "</p><ul>\n"
 "<li>frappe.db.get_value</li>\n"
@@ -4500,7 +4500,7 @@ msgstr "Nije moguće uređivati standardne nadzorne ploče"
 
 #: frappe/email/doctype/notification/notification.py:127
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
-msgstr "Nije moguće uređivati standardno obavještenje. Za uređivanje, onemogućite ovo i duplicirajte"
+msgstr "Nije moguće uređivati standardno obavještenje. Za uređivanje, onemogućite ovo i dupliraj"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:378
 msgid "Cannot edit Standard charts"
@@ -4508,7 +4508,7 @@ msgstr "Nije moguće uređivati standardne grafikone"
 
 #: frappe/core/doctype/report/report.py:73
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
-msgstr "Nije moguće uređivati standardni izvještaj. Molimo duplicirajte i izradi novi izvještaj"
+msgstr "Nije moguće uređivati standardni izvještaj. Molimo dupliraj i izradi novi izvještaj"
 
 #: frappe/model/document.py:918
 msgid "Cannot edit cancelled document"
@@ -6183,11 +6183,11 @@ msgstr "Izradi ili uredite radni tok"
 
 #: frappe/public/js/frappe/list/list_view.js:514
 msgid "Create your first {0}"
-msgstr "Izradi svoj prvi {0}"
+msgstr "Izradi prvi {0}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
-msgstr "Izradi svoj radni tok vizuelno koristeći Alat za izradu radnog toka."
+msgstr "Izradi radni tok vizuelno koristeći Alat za izradu radnog toka."
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -8637,7 +8637,7 @@ msgstr "Duplikat trenutnog reda"
 
 #: frappe/public/js/form_builder/components/Field.vue:247
 msgid "Duplicate field"
-msgstr "Dupliciraj polje"
+msgstr "Dupliraj polje"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1035
 msgid "Duplicate of {0} named as {1} is created successfully"
@@ -14933,7 +14933,7 @@ msgstr "Lijevo"
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Left Bottom"
-msgstr "Lijevo dolje"
+msgstr "Lijevo niže"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -16954,7 +16954,7 @@ msgstr "Vrati se na početnu stranicu"
 #: frappe/public/js/frappe/list/list_view.js:1189
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list down"
-msgstr "Kreći se po listi prema dolje"
+msgstr "Kreći se po listi prema niže"
 
 #: frappe/public/js/frappe/list/list_view.js:1196
 msgctxt "Description of a list view shortcut"
@@ -17615,7 +17615,7 @@ msgstr "Nema neuspjelih dnevnika"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:388
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr "Nisu pronađena polja koja se mogu koristiti kao kolona Oglasne Table. Koristite obrazac za prilagođavanje da dodate prilagođeno polje tipa \"Odaberi\"."
+msgstr "Nisu pronađena polja koja se mogu koristiti kao kolona Oglasne Table. Koristi obrazac za prilagođavanje da dodate prilagođeno polje tipa \"Odaberi\"."
 
 #: frappe/utils/file_manager.py:144
 msgid "No file attached"
@@ -18025,7 +18025,7 @@ msgstr "Ništa za ažuriranje"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Notification"
-msgstr "Obavijest"
+msgstr "Obavještenje"
 
 #. Name of a DocType
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -18254,7 +18254,7 @@ msgstr "Opseg OAuth"
 
 #: frappe/email/doctype/email_account/email_account.js:197
 msgid "OAuth has been enabled but not authorised. Please use \"Authorise API Access\" button to do the same."
-msgstr "OAuth je omogućen, ali nije ovlašten. Koristite dugme \"Odobri pristup API-ju\" da učinite isto."
+msgstr "OAuth je omogućen, ali nije ovlašten. Koristi dugme \"Odobri pristup API-ju\" da učinite isto."
 
 #: frappe/templates/includes/oauth_confirmation.html:39
 msgid "OK"
@@ -28851,7 +28851,7 @@ msgstr "Učitavanje na Google disk"
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 #, python-format
 msgid "Use % for any non empty value."
-msgstr "Koristite % za bilo koju vrijednost koja nije prazna."
+msgstr "Koristi % za bilo koju vrijednost koja nije prazna."
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -28861,7 +28861,7 @@ msgstr "Za lozinku koristite ASCII kodiranje"
 #. Label of a Check field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Use First Day of Period"
-msgstr "Koristite prvi dan perioda"
+msgstr "Koristi prvi dan perioda"
 
 #. Label of a Check field in DocType 'Email Template'
 #: frappe/email/doctype/email_template/email_template.json
@@ -28914,11 +28914,11 @@ msgstr "Koristi TLS"
 
 #: frappe/utils/password_strength.py:187
 msgid "Use a few uncommon words together."
-msgstr "Koristite nekoliko neuobičajenih riječi zajedno."
+msgstr "Koristi nekoliko neuobičajenih riječi zajedno."
 
 #: frappe/utils/password_strength.py:34
 msgid "Use a few words, avoid common phrases."
-msgstr "Koristite nekoliko riječi, izbjegavajte uobičajene fraze."
+msgstr "Koristi nekoliko riječi, izbjegavajte uobičajene fraze."
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -28931,12 +28931,12 @@ msgstr "Upotreba podupita ili funkcije je ograničena"
 
 #: frappe/printing/page/print/print.js:281
 msgid "Use the new Print Format Builder"
-msgstr "Koristite novi alat za izradu formata za ispis"
+msgstr "Koristi novi alat za izradu formata za ispis"
 
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Use this fieldname to generate title"
-msgstr "Koristite ovo ime polja za izradu naslova"
+msgstr "Koristi ovo ime polja za izradu naslova"
 
 #. Description of the 'Always BCC Address' (Data) field in DocType 'Email
 #. Account'
@@ -31496,7 +31496,7 @@ msgstr "chevron-gore"
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "circle-arrow-down"
-msgstr "krug-strelica-dolje"
+msgstr "krug-strelica-niže"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
