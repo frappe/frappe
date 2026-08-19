@@ -425,7 +425,12 @@ const useStudioStore = defineStore("store", () => {
 					activePage.value = await fetchPage(selectedPage.value!)
 					setAppPages(activeApp.value!.name)
 					openPageInBrowser(activeApp.value!, activePage.value!)
-					toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
+					const buildError = data?.message?.build_error
+					if (buildError) {
+						showBuildErrorToast(buildError, "App published, but the build failed")
+					} else {
+						toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
+					}
 				},
 				onError(error: any) {
 					toast.error("Failed to publish the app", {
@@ -517,14 +522,29 @@ const useStudioStore = defineStore("store", () => {
 			name: activeApp.value.name,
 			method: "generate_app_build",
 		}, {
-			onSuccess() {
-				toast.success("App build generated")
+			onSuccess(data: any) {
+				const buildError = data?.message?.build_error
+				if (buildError) {
+					showBuildErrorToast(buildError)
+				} else {
+					toast.success("App build generated")
+				}
 			},
 			onError(error: any) {
 				toast.warning("Skipped app build due to errors", {
 					description: error?.messages?.join(", "),
 					duration: Infinity,
 				})
+			},
+		})
+	}
+
+	function showBuildErrorToast(buildError: { error_log: string }, title: string = "App build failed") {
+		toast.warning(title, {
+			duration: Infinity,
+			action: {
+				label: "View Error Log",
+				onClick: () => window.open(`/app/error-log/${buildError.error_log}`, "_blank"),
 			},
 		})
 	}

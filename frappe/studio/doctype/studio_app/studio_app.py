@@ -164,7 +164,9 @@ class StudioApp(WebsiteGenerator):
 		delete_folder(old_path)
 
 	@frappe.whitelist()
-	def generate_app_build(self):
+	def generate_app_build(self) -> dict:
+		"""Build the app bundle. Failures are logged to an Error Log and returned as
+		`build_error` instead of raised, so callers can surface them in the UI."""
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
 
@@ -174,8 +176,16 @@ class StudioApp(WebsiteGenerator):
 			StudioAppBuilder(
 				studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
 			).build()
+			return {"build_error": None}
 		except Exception as e:
-			raise Exception(f"Build process failed: {str(e)}")
+			return {"build_error": self._log_build_failure(e)}
+
+	def _log_build_failure(self, exception: Exception) -> dict:
+		error_log = frappe.log_error(
+			title=f"Studio app build failed: {self.name}",
+			message=getattr(exception, "output", None) or frappe.get_traceback(),
+		)
+		return {"error_log": error_log.name}
 
 	@frappe.whitelist()
 	def publish_app(self):
@@ -184,12 +194,7 @@ class StudioApp(WebsiteGenerator):
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.publish()
 
-		try:
-			self.generate_app_build()
-		except Exception:
-			pass
-
-		return {"published_pages": len(pages)}
+		return {"published_pages": len(pages), **self.generate_app_build()}
 
 	@frappe.whitelist()
 	def unpublish_app(self):
