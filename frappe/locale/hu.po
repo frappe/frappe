@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:38+0000\n"
-"PO-Revision-Date: 2026-08-18 19:49\n"
+"PO-Revision-Date: 2026-08-19 20:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -12692,7 +12692,7 @@ msgstr "A hét első napja"
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:217
 #: frappe/www/complete_signup.html:15
 msgid "First Name"
-msgstr "Vezetéknév"
+msgstr "Keresztnév"
 
 #: frappe/core/doctype/error_log/error_log.js:65
 msgid "First Seen"
