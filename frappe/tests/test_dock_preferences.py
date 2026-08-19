@@ -7,8 +7,10 @@ from contextlib import ExitStack, contextmanager
 from unittest.mock import patch
 
 import frappe
+from frappe.boot import get_app_modules, get_module_sidebars
 from frappe.desk.doctype.dock.dock import (
 	check_dock_hooks,
+	create_module,
 	get_site_dock,
 	get_site_dock_layer,
 	get_user_dock,
@@ -18,6 +20,7 @@ from frappe.desk.doctype.dock.dock import (
 	save_site_dock,
 	save_user_dock,
 )
+from frappe.desk.doctype.sidebar.sidebar import DEFAULT_HEADER_ICON, resolve_sidebar
 from frappe.desk.doctype.sidebar.test_sidebar import developer_mode, make_sidebar, sidebarless_module
 from frappe.tests import IntegrationTestCase
 
@@ -1142,3 +1145,149 @@ class TestTheHookIsChecked(IntegrationTestCase):
 	def test_the_frameworks_own_fragment_is_clean(self):
 		"""The check is only worth running if what we ship passes it."""
 		self.assertEqual(check_dock_hooks(), [])
+
+
+class TestMakingAModule(IntegrationTestCase):
+	"""A module the site adds for itself, from the dock that will list it."""
+
+	NAME = "Test Dock Made Module"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.wipe()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		self.wipe()
+
+	def wipe(self):
+		# the page first: a module's page outlives the module, and deleting the module leaves one
+		# behind for the next test to trip over
+		frappe.delete_doc("Workspace", self.NAME, force=True, ignore_missing=True)
+		frappe.delete_doc("Module Def", self.NAME, force=True, ignore_missing=True)
+		frappe.clear_cache()
+
+	def test_a_new_module_arrives_with_a_workspace_and_a_sidebar(self):
+		"""The workspace is not a nicety: a module whose sidebar comes out empty is dropped from
+		the payload entirely, so a module made without one would be a module that never appears
+		on the dock it was made from."""
+		answer = create_module(self.NAME, app="frappe")
+
+		self.assertTrue(frappe.db.exists("Module Def", self.NAME))
+		workspace = frappe.get_doc("Workspace", self.NAME)
+		self.assertEqual(workspace.module, self.NAME)
+		self.assertTrue(workspace.public)
+
+		# ... which is what makes the module navigable, and so present at all
+		sidebar = resolve_sidebar(self.NAME, "Administrator")
+		self.assertIsNotNone(sidebar)
+		self.assertEqual(
+			[(item["link_type"], item["link_to"]) for item in sidebar.items],
+			[("Workspace", self.NAME)],
+		)
+
+		# and the manager is handed what it needs to draw the module without a reload: the entry
+		# the dock now offers, and the desk state the write invalidated -- the workspace list
+		# included, since a page the boot has never heard of is one the desk cannot place
+		self.assertEqual(answer["entry"], {"type": "Sidebar", "name": self.NAME})
+		self.assertIn(self.NAME, answer["module_sidebars"])
+		self.assertIn(self.NAME, [page.name for page in answer["workspace_pages"]["pages"]])
+		self.assertIn(
+			{"type": "Sidebar", "name": self.NAME},
+			next(app["dock"] for app in answer["app_data"] if app["app_name"] == "frappe"),
+		)
+
+	def test_the_icon_it_was_given_is_the_icon_the_dock_draws_it_with(self):
+		"""A module has nowhere to keep an icon, so the one chosen while adding it is kept on the
+		page it opens on -- which is exactly where a computed sidebar reads its header icon."""
+		create_module(self.NAME, app="frappe", icon="box")
+
+		self.assertEqual(frappe.db.get_value("Workspace", self.NAME, "icon"), "box")
+		self.assertEqual(get_module_sidebars()[self.NAME]["header_icon"], "box")
+
+	def test_a_module_given_no_icon_keeps_the_standard_one(self):
+		create_module(self.NAME, app="frappe")
+
+		self.assertEqual(get_module_sidebars()[self.NAME]["header_icon"], DEFAULT_HEADER_ICON)
+
+	def test_the_app_it_was_made_from_is_the_dock_that_lists_it(self):
+		"""`app_name` is placement and nothing else, and placement is what a dock is."""
+		create_module(self.NAME, app="frappe")
+
+		self.assertIn(self.NAME, get_app_modules("frappe"))
+
+	def test_a_module_made_with_no_app_stands_on_its_own(self):
+		"""Nowhere to place it is a real answer -- the module is on the desktop as its own tile
+		rather than in somebody's dock."""
+		create_module(self.NAME)
+
+		self.assertIsNone(frappe.db.get_value("Module Def", self.NAME, "app_name"))
+		self.assertNotIn(self.NAME, get_app_modules("frappe"))
+
+	def test_making_a_module_again_takes_its_old_page_back(self):
+		"""Deleting a module leaves its page behind -- `ModuleDef.on_trash` takes navigation and
+		leaves content alone -- so the name would otherwise be held by a page nothing can reach,
+		and the module could never be made again under the name it had."""
+		create_module(self.NAME, app="frappe")
+		frappe.db.set_value("Workspace", self.NAME, "content", '[{"type": "header"}]')
+		frappe.delete_doc("Module Def", self.NAME, force=True)
+
+		create_module(self.NAME, app="frappe", icon="box")
+
+		# the page it had is the page it has, content and all
+		self.assertEqual(frappe.db.count("Workspace", {"name": self.NAME}), 1)
+		self.assertEqual(frappe.db.get_value("Workspace", self.NAME, "content"), '[{"type": "header"}]')
+		# ... and the icon chosen this time is the module's icon now
+		self.assertEqual(frappe.db.get_value("Workspace", self.NAME, "icon"), "box")
+
+	def test_a_page_belonging_to_something_else_still_holds_the_name(self):
+		"""Only the module's own page is adopted. Anything else under that name is somebody's
+		work, and a module that took it would be taking a page nobody offered."""
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"label": self.NAME,
+				"title": self.NAME,
+				# `Workspace.module` is mandatory, so a page always belongs to some module -- and
+				# one belonging to another module is the case this is about
+				"module": "Desk",
+				"public": 1,
+				"content": "[]",
+			}
+		).insert()
+
+		self.assertRaises(frappe.ValidationError, create_module, self.NAME, app="frappe")
+
+	def test_a_name_that_is_already_taken_is_refused(self):
+		"""Both halves are named after the module, so both names have to be free -- and the
+		refusal names the thing rather than the doctype whose key it clashed with."""
+		create_module(self.NAME, app="frappe")
+
+		self.assertRaises(frappe.ValidationError, create_module, self.NAME, app="frappe")
+
+	def test_a_module_needs_a_name(self):
+		self.assertRaises(frappe.ValidationError, create_module, "   ")
+
+	def test_making_a_module_needs_the_shared_curation_right(self):
+		"""It is site content, and everybody boots it -- so it is the same right the site layer
+		of every arrangement is behind."""
+		user = "test-dock-module@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": user,
+					"first_name": "Dock",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Desk User"}],
+				}
+			).insert(ignore_permissions=True)
+
+		frappe.set_user(user)
+		try:
+			self.assertRaises(frappe.PermissionError, create_module, self.NAME, app="frappe")
+		finally:
+			frappe.set_user("Administrator")
+			frappe.delete_doc("User", user, force=True, ignore_missing=True)
+
+		self.assertFalse(frappe.db.exists("Module Def", self.NAME))

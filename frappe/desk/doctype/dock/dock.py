@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
@@ -646,6 +648,66 @@ def get_app_dock_layer() -> list[dict]:
 
 
 # ---------------------------------------------------------------------------------------
+# Making a module of the site's own
+# ---------------------------------------------------------------------------------------
+
+
+@frappe.whitelist()
+def create_module(module: str, app: str | None = None, icon: str | None = None) -> dict:
+	"""Make a module the site is adding for itself, and hand the dock what it needs to show it.
+
+	The page it opens on comes with it, and comes from the module rather than from here: a
+	custom module makes one in `ModuleDef.after_insert`, because a module with nothing to
+	navigate to is a module nobody can get to whichever end created it. So this endpoint is the
+	dock's half and nothing more -- a name, a placement, and the answer the manager needs.
+
+	`app` is placement and nothing else (see `Module Def.validate_placement`): it says whose dock
+	lists the module. Left out, the module stands on its own on the desktop instead, which is
+	what a dock with no app context would be adding to.
+
+	`icon` is what the dock draws it with. It is stored on the page rather than here, because a
+	computed sidebar reads its header icon off the module's own page (`own_page_icon`) -- there
+	is nowhere else on a module for one to live.
+
+	Answers with the entry the dock now offers *and* everything a workspace write invalidates
+	(`workspace_payload`), so the desk can show the module without a reload. The workspace list
+	is in there for a reason: a page the boot has never heard of is a page the desk cannot place,
+	and it reads as one nobody but its owner can see -- which is not what was created.
+	"""
+	from frappe.desk.doctype.workspace.workspace import module_name_is_free, workspace_payload
+
+	check_workspace_manager(_("You need to be Workspace Manager to add this."))
+	# Two rights, because this is two things: the page the module brings with it is navigation
+	# everybody boots, which is the check above, and the module itself is not that kind of thing
+	# at all. Asked here rather than left to the insert, so a refusal names the right that is
+	# missing instead of naming a doctype.
+	if not frappe.has_permission("Module Def", "create"):
+		frappe.throw(_("You need to be System Manager to add this."), frappe.PermissionError)
+
+	module = (module or "").strip()
+	if not module:
+		frappe.throw(_("It needs a name."))
+
+	# Both halves are named after it -- a `Module Def` by its module name, a `Workspace` by its
+	# label -- so the name has to be free of both. Refused here rather than left to a duplicate
+	# key, and refused in one sentence: which of the two holds it is a fact about how this is
+	# built, and either way the answer is that the name will not do.
+	#
+	# A page that already names this module is not holding it: that is a module's own page, left
+	# behind when the module was deleted, and making the module again takes it back.
+	if not module_name_is_free(module):
+		frappe.throw(_("Something here is already called {0}. Try another name.").format(module))
+
+	doc = frappe.get_doc(
+		{"doctype": "Module Def", "module_name": module, "app_name": app or None, "custom": 1}
+	)
+	doc.flags.page_icon = icon or None
+	doc.insert()
+
+	return workspace_payload(entry={"type": "Sidebar", "name": module})
+
+
+# ---------------------------------------------------------------------------------------
 # Ship: rendering an arrangement as the hook that would produce it
 # ---------------------------------------------------------------------------------------
 
@@ -711,8 +773,6 @@ def render_dock_hook(rows: list[dict]) -> str:
 	Hiding is emitted, order is the list's, and nothing else is: a row is the typed pair plus the
 	flag, which is the whole of what a fragment can say.
 	"""
-	import json
-
 	lines = ["add_to_dock = ["]
 	for row in rows:
 		parts = [f'"type": {json.dumps(row["type"])}', f'"name": {json.dumps(row["name"])}']

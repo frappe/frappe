@@ -109,12 +109,19 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// -------------------------------------------------------------------------------------------
 
 	make() {
-		this.layer = "user";
 		this.entries = new Map();
 		this.order = [];
 		this.hidden = new Set();
 		this.can_curate_site = frappe.user.has_role("Workspace Manager");
 		this.prepare();
+		// Which layer the editor opens on: the site's, for whoever may curate it. Arranging for
+		// everyone is what the right is for, and a curator who meant only their own has the
+		// switch sitting in the header to say so. Everybody else has one layer and opens on it.
+		//
+		// Read after `prepare`, because that is where a surface settles what the right means for
+		// it -- opening on a layer this person may not write would be an editor that fails on
+		// Save rather than one that never offered it.
+		this.layer = this.can_curate_site ? "site" : "user";
 
 		this.dialog = new frappe.ui.Dialog({
 			title: this.title(),

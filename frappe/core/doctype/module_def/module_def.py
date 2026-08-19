@@ -62,6 +62,36 @@ class ModuleDef(Document):
 
 			self.app_name = get_module_app(self.name)
 
+	def after_insert(self):
+		"""A module the site adds for itself arrives with the page it opens on.
+
+		Not a nicety: a module whose sidebar comes out empty is dropped from the payload
+		entirely (`resolve_sidebar`), so it is absent from `module_sidebars`, no dock entry
+		naming it resolves, and no desktop tile stands for it. A custom module created with
+		nothing in it would be a module nobody can reach -- which is not a module.
+
+		Only the site's own. An app's modules arrive with whatever the app ships, and minting a
+		page for each of them at install would be inventing content on the app's behalf.
+
+		And only when a person is adding one. Install, migrate and patches create modules to
+		describe things that already exist -- `backfill_workspace_module` mints one *for* a
+		workspace that is already there -- so a page made then would be content nobody asked for,
+		under a name somebody else picked.
+		"""
+		from frappe.desk.doctype.workspace.workspace import make_module_workspace
+
+		if not self.custom:
+			return
+		if frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.in_patch:
+			return
+		if frappe.flags.in_import or frappe.flags.in_fixtures:
+			return
+
+		# `page_icon` is how a caller says what the module looks like: the icon lands on the page
+		# it opens on, which is where a computed sidebar reads a module's header icon from. A flag
+		# rather than a field, because a module has no icon of its own to store -- its page does.
+		make_module_workspace(self.name, icon=self.flags.page_icon)
+
 	def on_update(self):
 		"""If in `developer_mode`, create folder for module and
 		add in `modules.txt` of app if missing."""

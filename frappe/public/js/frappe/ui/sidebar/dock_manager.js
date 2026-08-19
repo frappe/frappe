@@ -22,6 +22,10 @@
 // What differs between the dock's two layers, in one place: where the arrangement is read from,
 // where it is written back to, and what to say once it lands. Everything else -- the picker, the
 // app slice, the shape of a saved row -- is the same work either way.
+// Making a module the site is adding for itself. It creates the workspace that keeps the module
+// reachable along with it -- see the endpoint, which explains why the two are one action.
+const CREATE_MODULE = "frappe.desk.doctype.dock.dock.create_module";
+
 const DOCK_LAYERS = {
 	user: {
 		read: "frappe.desk.doctype.dock.dock.get_user_dock_layer",
@@ -69,6 +73,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	copy() {
 		return {
 			list_head: __("Entries"),
+			add_label: __("Add"),
 			list_sub: __("Drag to reorder. The eye takes an entry off the dock."),
 			reset_title: __("Bring every entry back onto the dock."),
 			list_empty: __("This app has nothing to arrange"),
@@ -160,6 +165,91 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			.collect_dock_entries(this.app)
 			.map((entry) => this.key(entry));
 		return shown.length ? shown : this.all_keys();
+	}
+
+	// The dock's layers order and hide; they never add. This is not a layer adding one -- it
+	// makes a module the site did not have, which the app's own entry set then offers like any
+	// other, whether or not this arrangement is ever saved. So it is offered to whoever curates
+	// for everyone, and only where there is an app for the module to be placed in.
+	can_add() {
+		return this.can_curate_site && !!this.app;
+	}
+
+	add() {
+		if (!this.loaded) return;
+
+		// Named for what it does, not for what it makes. "Module" and "workspace" are how the
+		// desk is built, not what somebody adding one to their dock is thinking about -- they
+		// are adding a place to keep things, and what it takes to be one is our problem.
+		const dialog = new frappe.ui.Dialog({
+			title: __("Add"),
+			fields: [
+				{
+					fieldtype: "Data",
+					fieldname: "module",
+					label: __("Name"),
+					reqd: 1,
+					description: __("It starts with a page of its own."),
+				},
+				// What the rail draws it with. Stored on the page it opens on, which is where a
+				// computed sidebar takes its header icon from -- so this is the icon, not a
+				// decoration on one of its pages.
+				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
+			],
+			primary_action_label: __("Create"),
+			primary_action: async (values) => {
+				this.place(
+					await frappe.xcall(CREATE_MODULE, {
+						module: values.module,
+						app: this.app.app_name,
+						icon: values.icon,
+					})
+				);
+				dialog.hide();
+			},
+		});
+
+		dialog.show();
+	}
+
+	// Put the module the site has just made onto the dock in front of us.
+	//
+	// Everything the write invalidated is swapped in, not just the sidebars: the desk keeps its
+	// own list of workspaces, and a page that list has never heard of is one it cannot place --
+	// it reads as a page nobody but its owner can see, which is not what was created.
+	place(created) {
+		const sidebar = frappe.app.sidebar;
+
+		frappe.boot.workspaces = created.workspace_pages;
+		frappe.boot.app_data = created.app_data;
+		frappe.boot.module_sidebars = created.module_sidebars;
+		frappe.boot.entity_module = created.entity_module;
+		sidebar.all_sidebar_items = created.module_sidebars;
+		// the app's entry set was rebuilt with the rest of it, so it is re-read rather than
+		// patched -- the copy we were holding is off the payload that has just been replaced
+		this.app = sidebar.get_sidebar_app() || this.app;
+
+		const entry = sidebar.dock_entry(created.entry);
+		if (!entry) {
+			// the payload we were just handed does not carry the module it says it made, so
+			// there is nothing here to render it from -- start again from a fresh boot
+			window.location.reload();
+			return;
+		}
+
+		const key = this.key(entry);
+		this.entries.set(key, entry);
+		this.order.push(key);
+		this.render_panes();
+
+		// The rail draws an entry no arrangement names after the ones it does, so the module is
+		// on the dock the moment it exists -- saving this arrangement is what says *where*.
+		sidebar.refresh_dock();
+
+		frappe.show_alert({
+			message: __("{0} is on the dock", [frappe.utils.escape_html(entry.label)]),
+			indicator: "green",
+		});
 	}
 
 	// A row the app itself ships off says so. The eye is still all it takes to bring it back --

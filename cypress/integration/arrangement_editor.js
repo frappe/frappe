@@ -184,26 +184,27 @@ context("Arrangement editor", () => {
 		});
 	});
 
-	it("hangs the layer switch in the dialog's header, and re-reads when it changes", () => {
+	it("opens a curator on the site's layer, with the switch in the dialog's header", () => {
 		cy.window().then((win) => {
 			stub_xcall(win, { "read.user": () => ENTRIES, "read.site": () => ENTRIES });
 			open_editor(win, { can_curate: true });
 		});
 
-		cy.get_open_dialog().find(".modal-header .ws-layer-switch").should("have.value", "user");
-		cy.get_open_dialog().find(".modal-header .ws-layer-switch").select("site");
+		// arranging for everyone is what the right is for, so that is the layer it opens on
+		cy.get_open_dialog().find(".modal-header .ws-layer-switch").should("have.value", "site");
+		cy.get_open_dialog().find(".modal-header .ws-layer-switch").select("user");
 
 		// the other layer is a different arrangement, so it is read rather than filtered
 		cy.get(".ws-arrangement .ws-item").should("have.length", 3);
 		cy.window().then((win) => {
 			expect(win.__calls.map((call) => call.method)).to.deep.equal([
-				"read.user",
 				"read.site",
+				"read.user",
 			]);
 		});
 	});
 
-	it("offers no layer switch to somebody who may not curate for everyone", () => {
+	it("gives somebody who may not curate for everyone their own layer and no switch", () => {
 		cy.window().then((win) => {
 			stub_xcall(win, { "read.user": () => ENTRIES });
 			open_editor(win);
@@ -211,6 +212,10 @@ context("Arrangement editor", () => {
 
 		cy.get(".ws-arrangement .ws-item").should("have.length", 3);
 		cy.get_open_dialog().find(".ws-layer-switch").should("not.exist");
+		// their own is the only layer there is to open on, so it is the one that was read
+		cy.window().then((win) => {
+			expect(win.__calls.map((call) => call.method)).to.deep.equal(["read.user"]);
+		});
 	});
 
 	it("says a read failed instead of sitting on Loading, and will not save what it never read", () => {
@@ -268,6 +273,14 @@ context("Arrangement editor: a module's sidebar", () => {
 		cy.visit("/desk/todo");
 		cy.desk_ready();
 		cy.window().then((win) => {
+			// Run as somebody without the shared curation right, so the editor opens on the one
+			// layer these tests stub. Whether the account running them may curate for everyone is
+			// a fact about the site, and which endpoint a save reaches should not turn on it --
+			// the layer switch has its own test above.
+			const has_role = win.frappe.user.has_role.bind(win.frappe.user);
+			win.frappe.user.has_role = (role) =>
+				role === "Workspace Manager" ? false : has_role(role);
+
 			// The editor arranges the sidebar on screen, and `apply` redraws that sidebar from
 			// the boot payload -- so it is pointed at a module the boot really carries.
 			const module = Object.keys(win.frappe.boot.module_sidebars)[0];
@@ -364,16 +377,25 @@ context("Arrangement editor: an app's dock", () => {
 		cy.visit("/desk/todo");
 		cy.desk_ready();
 		cy.window().then((win) => {
+			// Run as somebody without the shared curation right, so the editor opens on the one
+			// layer these tests stub. Whether the account running them may curate for everyone is
+			// a fact about the site, and which endpoint a save reaches should not turn on it --
+			// the layer switch has its own test above.
+			const has_role = win.frappe.user.has_role.bind(win.frappe.user);
+			win.frappe.user.has_role = (role) =>
+				role === "Workspace Manager" ? false : has_role(role);
+
 			// A dock entry names something the boot payload carries -- an entry it does not is
 			// one this user may see nothing in, and is not offerable. So the app it arranges is
 			// built out of modules this site really has.
 			const modules = Object.keys(win.frappe.boot.module_sidebars).slice(0, 2);
 			win.__modules = modules;
-			win.frappe.app.sidebar.get_sidebar_app = () => ({
+			win.__app = {
 				app_name: "frappe",
 				app_title: "Frappe",
 				dock: modules.map((name) => ({ type: "Sidebar", name })),
-			});
+			};
+			win.frappe.app.sidebar.get_sidebar_app = () => win.__app;
 
 			stub_xcall(win, {
 				[READ]: () => modules.map((name) => ({ type: "Sidebar", name, hidden: 0 })),
@@ -411,6 +433,85 @@ context("Arrangement editor: an app's dock", () => {
 			// an empty dock is not stored as "an empty dock": no row is stored for this app at
 			// all, so the layer below shows through instead
 			expect(JSON.parse(save.args.items)).to.deep.equal([]);
+		});
+	});
+});
+
+context("Arrangement editor: making a module from the dock", () => {
+	const SITE_READ = "frappe.desk.doctype.dock.dock.get_site_dock_layer";
+	const BASE = "frappe.desk.doctype.dock.dock.get_app_dock_layer";
+	const CREATE = "frappe.desk.doctype.dock.dock.create_module";
+	const MADE = "Test Dock Made Module";
+
+	before(() => {
+		cy.login();
+	});
+
+	beforeEach(() => {
+		cy.visit("/desk/todo");
+		cy.desk_ready();
+		cy.window().then((win) => {
+			// Making a module is site content everybody boots, so it is behind the same right the
+			// site layer is -- which is also the layer a curator opens on.
+			const has_role = win.frappe.user.has_role.bind(win.frappe.user);
+			win.frappe.user.has_role = (role) =>
+				role === "Workspace Manager" ? true : has_role(role);
+
+			const module = Object.keys(win.frappe.boot.module_sidebars)[0];
+			// one object, handed back every time it is asked, the way the boot payload's own is
+			// -- `place` pushes the new module onto its entry set
+			win.__app = {
+				app_name: "frappe",
+				app_title: "Frappe",
+				dock: [{ type: "Sidebar", name: module }],
+			};
+			win.frappe.app.sidebar.get_sidebar_app = () => win.__app;
+
+			stub_xcall(win, {
+				[SITE_READ]: () => [{ type: "Sidebar", name: module, hidden: 0 }],
+				[BASE]: () => [],
+				// What the endpoint answers with: the entry the dock now offers, plus everything
+				// a workspace write invalidates -- the workspace list included, since a page the
+				// boot has never heard of is one the desk cannot place.
+				[CREATE]: () => ({
+					entry: { type: "Sidebar", name: MADE },
+					workspace_pages: {
+						...win.frappe.boot.workspaces,
+						pages: [
+							...win.frappe.boot.workspaces.pages,
+							{ name: MADE, title: MADE, module: MADE, public: 1 },
+						],
+					},
+					app_data: win.frappe.boot.app_data,
+					entity_module: win.frappe.boot.entity_module,
+					module_sidebars: {
+						...win.frappe.boot.module_sidebars,
+						[MADE]: { module: MADE, label: MADE, header_icon: "box", items: [] },
+					},
+				}),
+			});
+			win.__editor = new win.frappe.ui.DockManager();
+		});
+	});
+
+	it("puts a module it has just made straight onto the arrangement", () => {
+		cy.get(".ws-arrangement .ws-item").should("have.length", 1);
+
+		cy.get_open_dialog().find(".ws-add").click();
+		cy.fill_field("module", MADE);
+		cy.get_open_dialog().find(".btn-modal-primary").click();
+
+		// it is on the dock the moment it exists; saving this arrangement is what says where
+		cy.get(".ws-arrangement .ws-item").should("have.length", 2);
+		cy.get(".ws-arrangement .ws-item-label").last().should("have.text", MADE);
+		cy.get(".ws-preview .ws-item-label").last().should("have.text", MADE);
+
+		cy.window().then((win) => {
+			const call = win.__calls.find((one) => one.method === CREATE);
+			expect(call.args.module).to.equal(MADE);
+			expect(call.args.app).to.equal("frappe");
+			// and the desk knows the page now, rather than meeting one its boot never heard of
+			expect(win.frappe.boot.workspaces.pages.map((page) => page.name)).to.include(MADE);
 		});
 	});
 });

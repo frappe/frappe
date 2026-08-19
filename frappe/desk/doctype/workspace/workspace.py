@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 from collections import Counter, defaultdict
-from json import loads
+from json import dumps, loads
 
 import frappe
 from frappe import _
@@ -78,7 +78,17 @@ class Workspace(Document, DeskViews):
 	def validate(self):
 		self.title = strip_html(self.title)
 
-		if self.public and not is_workspace_manager() and not disable_saving_as_public():
+		# `with_module` is a page a module brought with it rather than a person publishing one:
+		# a module the site adds creates the page it opens on (`ModuleDef.after_insert`), and
+		# what guards *that* is the right to create a module -- a higher bar than this one, and
+		# held by a different role. Asked again here, somebody could mint a module and then be
+		# told they may not give it anywhere to go, which is a module nobody can reach.
+		if (
+			self.public
+			and not self.flags.with_module
+			and not is_workspace_manager()
+			and not disable_saving_as_public()
+		):
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
 		if self.has_value_changed("title"):
 			validate_route_conflict(self.doctype, self.title)
@@ -206,7 +216,14 @@ class Workspace(Document, DeskViews):
 
 			if self.has_value_changed("title") or self.has_value_changed("module"):
 				previous = self.get_doc_before_save()
-				if previous and previous.get("module") and previous.get("title"):
+				# ... and the module it used to be under may be gone, which `delete_folder`
+				# resolves to a path and throws on -- see `after_delete`
+				if (
+					previous
+					and previous.get("module")
+					and previous.get("title")
+					and frappe.db.exists("Module Def", previous.get("module"))
+				):
 					delete_folder(previous.get("module"), "Workspace", previous.get("title"))
 
 	def export_workspace(self):
@@ -247,7 +264,12 @@ class Workspace(Document, DeskViews):
 		if disable_saving_as_public():
 			return
 
-		if self.module and frappe.conf.developer_mode:
+		# A page can outlive its module: `ModuleDef.on_trash` takes a module's navigation with it
+		# and leaves content alone, so `module` may name one that is no longer there. Asked
+		# first, because `delete_folder` resolves the module to a path and throws for a module
+		# that does not exist -- which made a page whose module had been deleted impossible to
+		# delete at all. There is no folder to remove for one either.
+		if self.module and frappe.conf.developer_mode and frappe.db.exists("Module Def", self.module):
 			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
@@ -361,6 +383,88 @@ def disable_saving_as_public():
 		or frappe.flags.in_fixtures
 		or frappe.flags.in_migrate
 	)
+
+
+def module_page(module: str) -> frappe._dict | None:
+	"""The page named after `module`, whoever it belongs to, or `None` if the name is free.
+
+	One read, asked by both ends of the same rule: `make_module_workspace` decides whether it
+	may adopt the page, and whoever is about to create a module decides whether the name can be
+	had at all.
+	"""
+	return frappe.db.get_value("Workspace", module, ["name", "module"], as_dict=True)
+
+
+def module_name_is_free(module: str) -> bool:
+	"""Whether a module of this name may be created: nothing else on the site holds the name.
+
+	A page that already names this module does not count as holding it -- that is the module's
+	own page, waiting for the module to exist again.
+	"""
+	if frappe.db.exists("Module Def", module):
+		return False
+
+	page = module_page(module)
+	return page is None or page.module == module
+
+
+def welcome_blocks(title: str) -> list[dict]:
+	"""What a page nobody has written yet opens on.
+
+	The same two blocks the desk seeds a page somebody creates by hand with (`initialize_new_page`
+	in workspace.js), so a page reads the same whichever end made it. Plain text in both, because
+	`content` is a Long Text field: markup comes back from the sanitizer with the JSON's own
+	quotes rewritten, i.e. as content nothing can parse.
+	"""
+	return [
+		{"type": "header", "data": {"text": _("Welcome to the {0} workspace").format(title)}},
+		{"type": "paragraph", "data": {"text": _("Click on the {0} menu to edit").format("\u22ef")}},
+	]
+
+
+def make_module_workspace(module: str, icon: str | None = None) -> str | None:
+	"""The page a module opens on, made with the module.
+
+	Public, and named after the module, because it is the module's own: `pick_primary` gives a
+	module the workspace that shares its name, and a computed sidebar is built from what the
+	module holds -- so this one page is the module's whole sidebar until somebody puts more in it.
+
+	`icon` is the module's icon as much as the page's: a computed sidebar has nowhere to state a
+	header icon, so it reads the one off this page (`own_page_icon`), and that is what the dock
+	draws the module with.
+
+	A page of this name that already claims the module is *this module's own*, left behind when
+	the module was deleted -- `ModuleDef.on_trash` takes a module's navigation with it and leaves
+	content alone. Making the module again adopts it back, rather than refusing a name the site
+	is not really using and stranding a page nothing can reach.
+
+	Any other page of that name belongs to somebody else and is left exactly where it is; the
+	answer is `None`, and the module comes out with no page rather than with one it took.
+	"""
+	if existing := module_page(module):
+		if existing.module != module:
+			return None
+		# the icon is the module's, and this is the module being made again
+		if icon:
+			frappe.db.set_value("Workspace", existing.name, "icon", icon)
+		return existing.name
+
+	page = frappe.get_doc(
+		{
+			"doctype": "Workspace",
+			"label": module,
+			"title": module,
+			"module": module,
+			"public": 1,
+			"icon": icon or None,
+			"content": dumps(welcome_blocks(module)),
+		}
+	)
+	# made by the module rather than by whoever happened to create it -- see `validate`
+	page.flags.with_module = True
+	page.insert(ignore_permissions=True)
+
+	return page.name
 
 
 def workspace_payload(**extra):

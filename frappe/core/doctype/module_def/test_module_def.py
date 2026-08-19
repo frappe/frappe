@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 from contextlib import contextmanager
 from unittest.mock import patch
 
@@ -8,7 +9,7 @@ from frappe.app_state import get_disabled_modules
 from frappe.boot import get_app_modules
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, resolve_sidebar
-from frappe.desk.doctype.sidebar.test_sidebar import make_report, make_sidebar
+from frappe.desk.doctype.sidebar.test_sidebar import make_report, make_sidebar, sidebarless_module
 from frappe.installer import (
 	get_app_owned_modules,
 	reclaim_module_name_for_its_app,
@@ -110,6 +111,35 @@ class TestCustomModuleIsSiteOwned(IntegrationTestCase):
 			doctype = doctype_in(module, "Test Custom Module DocType")
 
 			self.assertEqual(frappe.db.get_value("DocType", doctype.name, "module"), module)
+
+	def test_a_module_the_site_adds_arrives_with_the_page_it_opens_on(self):
+		"""A module whose sidebar comes out empty is dropped from the payload entirely, so a
+		module created with nothing in it would be one nobody can reach. The page is made by the
+		module rather than by whoever asked for one, so it is there whichever end created it --
+		the doctype form, or the dock's own Add."""
+		with custom_module("Test Module With A Page") as module:
+			page = frappe.get_doc("Workspace", module)
+
+			self.assertEqual(page.module, module)
+			self.assertTrue(page.public)
+			# it opens on the same welcome the desk seeds a hand-made page with
+			self.assertEqual([block["type"] for block in json.loads(page.content)], ["header", "paragraph"])
+
+			# ... which is the whole of what makes the module reachable at all
+			sidebar = resolve_sidebar(module, "Administrator")
+			self.assertIsNotNone(sidebar)
+			self.assertEqual(
+				[(item["link_type"], item["link_to"]) for item in sidebar.items],
+				[("Workspace", module)],
+			)
+			# ... and it reads as Home, the word every shipped sidebar gives a module's own page
+			self.assertEqual(sidebar.items[0]["label"], "Home")
+
+	def test_an_apps_own_module_is_left_to_ship_its_own(self):
+		"""Only the site's own modules bring a page. Minting one for each of an app's modules at
+		install would be inventing content on the app's behalf."""
+		with sidebarless_module("Test App Module No Page") as module:
+			self.assertFalse(frappe.db.exists("Workspace", module))
 
 	def test_creating_a_module_stays_administrator_and_system_manager_only(self):
 		"""Minting a top-level navigation unit is an administrator's act. Everyone else reads."""

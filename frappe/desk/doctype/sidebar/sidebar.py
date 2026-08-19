@@ -640,6 +640,9 @@ def get_module_contents(modules: list[str]) -> dict[str, dict[str, list]]:
 			# Public workspaces only. A private page belongs to the person who made it and
 			# reaches their sidebar through `get_private_workspaces` instead.
 			filters["public"] = 1
+			# read for one row only -- the module's own page, whose icon is the module's icon
+			# (see `own_page_icon`)
+			fields.append("icon")
 		if entity == "Page":
 			fields.append("title")
 
@@ -666,11 +669,13 @@ def arrange_contents(held: dict[str, list]) -> dict[str, list]:
 	return held
 
 
-def generate_items(held: dict[str, list]) -> list[dict]:
+def generate_items(held: dict[str, list], module: str | None = None) -> list[dict]:
 	"""Sidebar items for one module, built from what it holds.
 
 	Reports, dashboards and pages get a collapsible section to sit under. Workspaces and
 	doctypes are listed flat, because they are what people mostly navigate a module by.
+
+	`module` is only read to recognise the module's own workspace -- see the label below.
 	"""
 	items = []
 	sections = {"Report": "Reports", "Dashboard": "Dashboards", "Page": "Pages"}
@@ -694,6 +699,13 @@ def generate_items(held: dict[str, list]) -> list[dict]:
 				"label": row.title if entity == "Page" else row.name,
 				"icon": icons.get(entity),
 			}
+			# The module's own workspace is where the module opens, and it reads as "Home" --
+			# the same word every shipped `Sidebar` gives it (`('Home', 'Workspace', 'Website')`
+			# is the first row of the one the website module ships). A computed sidebar that
+			# called it by the module's name would say the module's name twice: once as the
+			# header above the list, once as the first thing in it.
+			if entity == "Workspace" and module and row.name == module:
+				item["label"] = _("Home")
 			if entity == "DocType" and "settings" in row.name.lower():
 				item["icon"] = "settings"
 			# A report always sits under its section. A dashboard or page only does when there
@@ -789,12 +801,31 @@ def build_computed_base(module: str, held: dict[str, list]) -> frappe._dict:
 			"module": module,
 			"title": module,
 			"app": get_module_placement(module),
-			"header_icon": DEFAULT_HEADER_ICON,
+			"header_icon": own_page_icon(module, held) or DEFAULT_HEADER_ICON,
 			# Called `rows`, not `items`: `frappe._dict` inherits `dict.items()`, so `items`
 			# would be the method rather than our list.
-			"rows": [frappe._dict(item) for item in generate_items(held)],
+			"rows": [frappe._dict(item) for item in generate_items(held, module)],
 		}
 	)
+
+
+def own_page_icon(module: str, held: dict[str, list]) -> str | None:
+	"""The icon of the module's own workspace, which is the module's icon.
+
+	A shipped `Sidebar` states its header icon outright; a computed one has nowhere to state
+	anything, so it reads the icon off the one page that is unambiguously the module's -- the
+	one named after it, which `pick_primary` already treats as the module's own and which
+	`generate_items` labels "Home".
+
+	Nothing else on a module carries an icon, and a module the site adds gets one this way: the
+	icon chosen while adding it is stored on the page it opens on, and this is what puts it on
+	the dock. Failing that, `DEFAULT_HEADER_ICON`.
+	"""
+	for row in held.get("Workspace", []):
+		if row.name == module:
+			return row.get("icon")
+
+	return None
 
 
 def clear_computed_base_cache(module: str) -> None:
