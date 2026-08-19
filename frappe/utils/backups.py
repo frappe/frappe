@@ -758,26 +758,16 @@ def get_backup_encryption_key():
 
 
 def get_or_generate_backup_encryption_key():
-	"""Get the encryption key from the site config or generate a new one."""
-	if key := get_encryption_key():
-		return key
-
-	return generate_encryption_key()
-
-
-def generate_encryption_key():
-	"""Generate a new encryption key and store it in the site config."""
 	from frappe.installer import update_site_config
+
+	key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	if key:
+		return key
 
 	key = Fernet.generate_key().decode()
 	update_site_config(BACKUP_ENCRYPTION_CONFIG_KEY, key)
 
 	return key
-
-
-def get_encryption_key():
-	"""Get the encryption key from the site config."""
-	return frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
 
 
 @contextlib.contextmanager

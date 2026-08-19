@@ -479,13 +479,13 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 
 
 def _get_encryption_key(provided_key: str | None = None, non_interactive: bool = False) -> str:
-	from frappe.utils.backups import get_encryption_key
+	from frappe.utils.backups import BACKUP_ENCRYPTION_CONFIG_KEY
 
 	if provided_key:
 		click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 		return provided_key
 
-	if site_config_key := get_encryption_key():
+	if site_config_key := frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY):
 		click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
 		return site_config_key
 
