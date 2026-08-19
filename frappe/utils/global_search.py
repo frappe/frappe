@@ -403,10 +403,26 @@ def _get_deduped_search_item_values(items):
 
 
 def sync_values(values: list):
+	from pypika import Tuple
 	from pypika.terms import Values
 
 	GlobalSearch = frappe.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
+
+	if frappe.db.db_type == "sqlite":
+		values = list(values)
+		# Each key uses two bound parameters. Keep batches below SQLite's legacy
+		# limit of 999 parameters while avoiding one DELETE query per search item.
+		for batch in frappe.utils.create_batch(values, 400):
+			keys = [(value[0], value[1]) for value in batch]
+			(
+				frappe.qb.from_(GlobalSearch)
+				.delete()
+				.where(Tuple(GlobalSearch.doctype, GlobalSearch.name).isin(keys))
+			).run()
+		if values:
+			frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values).run()
+		return
 
 	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values)
 
@@ -440,6 +456,21 @@ def sync_value(value: dict):
 	:param value: dict of { doctype, name, content, published, title, route }
 	"""
 
+	if frappe.db.db_type == "sqlite":
+		sync_values(
+			[
+				(
+					value["doctype"],
+					value["name"],
+					value["content"],
+					value["published"],
+					value["title"],
+					value["route"],
+				)
+			]
+		)
+		return
+
 	frappe.db.multisql(
 		{
 			"mariadb": """INSERT INTO `__global_search`
@@ -459,10 +490,6 @@ def sync_value(value: dict):
 				`published`=%(published)s,
 				`title`=%(title)s,
 				`route`=%(route)s
-		""",
-			"sqlite": """INSERT OR REPLACE INTO `__global_search`
-			(`doctype`, `name`, `content`, `published`, `title`, `route`)
-			VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
 		""",
 		},
 		value,

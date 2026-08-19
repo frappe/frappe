@@ -76,6 +76,50 @@ class TestGlobalSearch(IntegrationTestCase):
 
 		self.assertTrue("testing global search" in results[0].content)
 
+	def test_sync_values_upserts_batch(self):
+		global_search.sync_values(
+			[
+				("Event", "first", "old content", 0, "Old title", "/old"),
+				("Event", "second", "second content", 1, "Second title", "/second"),
+			]
+		)
+		global_search.sync_values([("Event", "first", "new content", 1, "New title", "/new")])
+
+		rows = frappe.db.sql(
+			"""select `name`, `content`, `published`, `title`, `route`
+			from `__global_search` where `doctype` = %s order by `name`""",
+			("Event",),
+			as_dict=True,
+		)
+		self.assertEqual(
+			rows,
+			[
+				{
+					"name": "first",
+					"content": "new content",
+					"published": 1,
+					"title": "New title",
+					"route": "/new",
+				},
+				{
+					"name": "second",
+					"content": "second content",
+					"published": 1,
+					"title": "Second title",
+					"route": "/second",
+				},
+			],
+		)
+
+	def test_sync_values_uses_bounded_query_count(self):
+		values = [
+			("Event", f"batch-{index}", f"content {index}", 0, f"Title {index}", f"/route/{index}")
+			for index in range(401)
+		]
+
+		with self.assertQueryCount(3, query_type=("delete", "insert")):
+			global_search.sync_values(values)
+
 	def test_update_fields(self):
 		self.insert_test_events()
 		results = global_search.search("Monthly")
