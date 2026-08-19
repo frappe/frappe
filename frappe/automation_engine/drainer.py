@@ -153,6 +153,8 @@ def promote_due_scheduled():
 def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 	"""Atomically claim up to `batch_size` due waiting rows and mark them Running."""
 	# Raw SQL: the query builder has no way to express FOR UPDATE SKIP LOCKED.
+	# nosemgrep: the only interpolations are a module constant and a fixed lock clause; every
+	# value is a bound parameter.
 	rows = frappe.db.sql(
 		f"""
 		SELECT name FROM `tab{QUEUE}`
@@ -180,6 +182,8 @@ def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 		.set(queue.modified, now())
 		.where(queue.name.isin(names))
 	).run()
+	# nosemgrep: the claim has to be visible to other drainers immediately, and the row locks
+	# taken above must be released before the (slower) execution phase.
 	frappe.db.commit()
 	return names
 
