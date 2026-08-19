@@ -41,17 +41,21 @@
 				</div>
 			</div>
 
-			<SettingItem
-				label="Allow Guest Access"
-				description="Render this page for logged-out visitors. Its layout and script become publicly readable."
-				class="w-full"
-			>
+			<div class="flex w-full items-center justify-between">
+				<div class="flex items-center gap-1">
+					<label class="block text-xs text-ink-gray-5">Allow Guest Access</label>
+					<Tooltip
+						text="Render this page for logged-out visitors. Its layout and script become publicly readable."
+					>
+						<LucideInfo class="size-3 text-ink-gray-4" />
+					</Tooltip>
+				</div>
 				<Switch
 					size="sm"
 					:modelValue="Boolean(page.allow_guest)"
 					@update:modelValue="(val: boolean) => store.updateActivePage('allow_guest', val ? 1 : 0)"
 				/>
-			</SettingItem>
+			</div>
 
 			<!-- Dynamic Route Variables: design-time test values for params like /articles/:category -->
 			<CollapsibleSection
@@ -80,10 +84,10 @@ import { computed, nextTick, ref, watch } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { StudioApp } from "@/types/Studio/StudioApp"
-import { Switch } from "frappe-ui"
+import { Switch, Tooltip } from "frappe-ui"
+import LucideInfo from "~icons/lucide/info"
 import Input from "@/components/Input.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
-import SettingItem from "@/components/SettingItem.vue"
 import { getRouteVariables } from "@/utils/helpers"
 
 const store = useStudioStore()
