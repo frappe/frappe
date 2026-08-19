@@ -15,6 +15,8 @@ NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
 def _render(value, doc, context=None):
 	"""Render a Jinja-templated string against the document; pass through non-templates."""
 	if isinstance(value, str) and "{{" in value:
+		# nosemgrep: the template is an action parameter, authored by the System Manager who
+		# configured the flow - the same trust model as Notification and Email Template.
 		return frappe.render_template(value, _render_context(doc, context))
 	return value
 
@@ -239,8 +241,9 @@ class SendNotification(AutomationAction):
 		if params.get("email_template"):
 			template = frappe.get_doc("Email Template", params["email_template"])
 			return (
+				# nosemgrep: the template body is an Email Template, already an authored artefact.
 				frappe.render_template(template.subject, _render_context(doc, context)),
-				frappe.render_template(
+				frappe.render_template(  # nosemgrep
 					template.response or template.response_html or "", _render_context(doc, context)
 				),
 			)
