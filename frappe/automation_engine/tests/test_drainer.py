@@ -36,12 +36,13 @@ class TestDrainer(IntegrationTestCase):
 		frappe.db.delete(QUEUE)
 		frappe.db.delete("Automation Flow")
 		self.automation = make_automation()
-		frappe.db.commit()
+		# nosemgrep: claim_batch commits, so these tests cannot rely on the harness rollback.
+		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
 		frappe.db.delete(QUEUE)
 		frappe.db.delete("Automation Flow")
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	def add_row(self, ref_name, run_after=None, status=None):
 		row = frappe.get_doc(
@@ -55,7 +56,7 @@ class TestDrainer(IntegrationTestCase):
 				"run_after": run_after,
 			}
 		).insert(ignore_permissions=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		return row.name
 
 	def count(self, status):
@@ -81,7 +82,7 @@ class TestDrainer(IntegrationTestCase):
 		past = frappe.utils.add_to_date(frappe.utils.now(), minutes=-5)
 		name = self.add_row("was_waiting", run_after=past, status="Scheduled")
 		promote_due_scheduled()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Pending")
 
 	def test_due_scheduled_row_is_claimed_without_promotion(self):
@@ -109,9 +110,9 @@ class TestDrainer(IntegrationTestCase):
 		frappe.db.sql(
 			f"UPDATE `tab{QUEUE}` SET status = 'Running', modified = %s WHERE name = %s", (old, name)
 		)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		requeue_stale_running()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Pending")
 
 	def test_drain_processes_all_with_injected_executor(self):
@@ -169,7 +170,7 @@ class TestDrainer(IntegrationTestCase):
 		claimed = claim_batch(1)
 
 		drainer.execute_batch(lambda _name: 1 / 0, claimed)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 		row = frappe.db.get_value(QUEUE, name, ["status", "attempt"], as_dict=True)
 		self.assertEqual(row.status, "Pending")
