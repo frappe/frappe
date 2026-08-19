@@ -240,7 +240,7 @@ context("List View", () => {
 			cy.get("body").type("{ctrl}{shift}d");
 			cy.get_open_dialog().should("contain", "Permanently delete");
 
-			cy.get("body").trigger("keydown", { key: "Enter", keyCode: 13, which: 13 });
+			cy.get("body").type("{enter}");
 			cy.get(".modal:visible").should("not.exist");
 
 			cy.call("frappe.client.get_list", {
