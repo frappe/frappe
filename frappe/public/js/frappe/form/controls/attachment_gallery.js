@@ -234,28 +234,58 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 
 	open_lightbox(images, index) {
 		this.load_photoswipe().then(() => {
-			const data_source = images.map((image) => ({
+			const root = this.ensure_photoswipe_root();
+			const items = images.map((image) => ({
 				src: image.file_url,
-				width: image.thumbnail?.naturalWidth || 1600,
-				height: image.thumbnail?.naturalHeight || 1200,
-				thumbEl: image.thumbnail,
+				msrc: image.file_url,
+				w: image.thumbnail?.naturalWidth || 1600,
+				h: image.thumbnail?.naturalHeight || 1200,
+				el: image.thumbnail,
 			}));
-			const photoswipe = new frappe.PhotoSwipe({
-				dataSource: data_source,
+			const photoswipe = new PhotoSwipe(root.get(0), PhotoSwipeUI_Default, items, {
 				index,
-				showHideAnimationType: "zoom",
+				history: false,
+				shareEl: false,
+				showHideOpacity: true,
+				getThumbBoundsFn(item_index) {
+					const thumbnail = items[item_index]?.el;
+					if (!thumbnail) {
+						return;
+					}
+
+					const page_y_scroll =
+						window.pageYOffset || document.documentElement.scrollTop;
+					const rect = thumbnail.getBoundingClientRect();
+
+					return {
+						x: rect.left,
+						y: rect.top + page_y_scroll,
+						w: rect.width,
+					};
+				},
 			});
 			photoswipe.init();
 		});
 	}
 
+	ensure_photoswipe_root() {
+		let root = $("body > .pswp");
+		if (!root.length) {
+			root = $(frappe.render_template("photoswipe_dom")).appendTo("body");
+		}
+		return root;
+	}
+
 	load_photoswipe() {
 		if (!frappe.ui.form.ControlAttachmentGallery.photoswipe_ready) {
 			frappe.ui.form.ControlAttachmentGallery.photoswipe_ready = new Promise((resolve) => {
+				const asset_dir = "assets/frappe/js/lib/photoswipe/";
 				frappe.require(
 					[
-						"assets/frappe/node_modules/photoswipe/src/photoswipe.css",
-						"photoswipe.bundle.js",
+						asset_dir + "photoswipe.css",
+						asset_dir + "default-skin.css",
+						asset_dir + "photoswipe.js",
+						asset_dir + "photoswipe-ui-default.js",
 					],
 					resolve
 				);
