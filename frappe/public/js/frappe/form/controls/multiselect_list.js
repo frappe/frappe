@@ -132,9 +132,24 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.parse_validate_and_set_in_model("");
 	}
 
-	select_all_options() {
-		this.values = this._options.map((opt) => opt.value);
-		this._selected_values = this._options.slice();
+	async select_all_options() {
+		// The dropdown's loaded options are capped to a small page for performance
+		// (e.g. the first 10 search results). Ask the data source for everything
+		// matching the current search text before selecting "all" of it.
+		let all_options = this._options;
+		if (this.df.get_data) {
+			let txt = this.$filter_input.val();
+			let value = this.df.get_data(txt, true);
+			if (value && value.then) {
+				value = await value;
+			}
+			if (value) {
+				all_options = this.process_options(value);
+			}
+		}
+
+		this.values = all_options.map((opt) => opt.value);
+		this._selected_values = all_options.slice();
 		this.update_status();
 		this.set_selectable_items(this._options);
 		this.parse_validate_and_set_in_model("");
