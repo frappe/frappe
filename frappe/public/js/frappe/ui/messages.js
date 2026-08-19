@@ -92,6 +92,8 @@ frappe.warn = function (
 	// btn-primary → btn-danger class swap
 	d.get_primary_btn().attr("data-theme", "red");
 
+	d.confirm_dialog = true;
+
 	d.show();
 	return d;
 };
