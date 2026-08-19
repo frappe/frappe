@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-13 18:39\n"
+"PO-Revision-Date: 2026-08-19 20:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -20283,24 +20283,24 @@ msgstr "Tryck på Enter att Spara"
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:31
 #: frappe/public/js/frappe/ui/capture.js:229
 msgid "Preview"
-msgstr "Förhandsgranska"
+msgstr "Förhandsvisa"
 
 #. Label of a HTML field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Preview HTML"
-msgstr "Förhandsgranska HTML"
+msgstr "Förhandsvisa HTML"
 
 #. Label of a Attach Image field in DocType 'Blog Category'
 #. Label of a Attach Image field in DocType 'Blog Settings'
 #: frappe/website/doctype/blog_category/blog_category.json
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Preview Image"
-msgstr "Förhandsgranska Bild"
+msgstr "Förhandsvisa Bild"
 
 #. Label of a Button field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Preview Message"
-msgstr "Förhandsgranska Meddelande"
+msgstr "Förhandsvisa Meddelande"
 
 #: frappe/public/js/form_builder/form_builder.bundle.js:83
 msgid "Preview Mode"
@@ -20317,7 +20317,7 @@ msgstr "Förhandsgranskning typ"
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
-msgstr "Förhandsgranska:"
+msgstr "Förhandsvisa:"
 
 #: frappe/public/js/frappe/form/form_tour.js:15
 #: frappe/public/js/frappe/web_form/web_form.js:98
@@ -23826,7 +23826,7 @@ msgstr "Välj dokument för att kontrollera om det uppfyller villkoren."
 
 #: frappe/integrations/doctype/webhook/webhook.py:145
 msgid "Select a document to preview request data"
-msgstr "Välj dokument för att förhandsgranska begäran om data"
+msgstr "Välj dokument för att förhandsvisa begäran om data"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:56
 msgid "Select a field to edit its properties."
@@ -24854,14 +24854,14 @@ msgstr "Visa Behörigheter"
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:18
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Show Preview"
-msgstr "Förhandsgranska"
+msgstr "Förhandsvisa"
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Show Preview Popup"
-msgstr "Visa Förhandsgranska Pop-upp"
+msgstr "Visa Förhandsvisa Pop-upp"
 
 #. Label of a Check field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -28568,7 +28568,7 @@ msgstr "Lås upp Referens Dokument"
 #: frappe/website/doctype/blog_post/blog_post.js:36
 #: frappe/website/doctype/web_form/web_form.js:86
 msgid "Unpublish"
-msgstr "Avpublicera"
+msgstr "Ångra Publicering"
 
 #. Option for the 'Action' (Select) field in DocType 'Email Flag Queue'
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
