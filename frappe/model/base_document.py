@@ -772,7 +772,7 @@ class BaseDocument:
 
 		args:
 		        ignore_if_duplicate: ignore primary key collision
-		                                        at database level (postgres)
+		                                        at database level (postgres, sqlite)
 		                                        in python (mariadb)
 		"""
 		if not self.name:
@@ -799,6 +799,8 @@ class BaseDocument:
 				# breaks both with one row. Letting postgres skip the row keeps the transaction
 				# usable, which catching the error below would not.
 				conflict_handler = "on conflict do nothing"
+		elif ignore_if_duplicate and frappe.db.db_type == "sqlite":
+			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
