@@ -253,8 +253,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 						return;
 					}
 
-					const page_y_scroll =
-						window.pageYOffset || document.documentElement.scrollTop;
+					const page_y_scroll = window.pageYOffset || document.documentElement.scrollTop;
 					const rect = thumbnail.getBoundingClientRect();
 
 					return {
