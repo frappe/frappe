@@ -382,6 +382,107 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
 		});
+<<<<<<< HEAD
+=======
+		this.setup_user_menu();
+	}
+
+	setup_user_menu() {
+		this.create_user_menu({
+			parent: this.wrapper.find(".dropdown-navbar-user"),
+			button: this.wrapper.find(".sidebar-user-button"),
+		});
+	}
+
+	// Build the user dropdown (profile, workspaces, theme, logout, ...) on a given trigger element.
+	// Shared by the sidebar's user button and the workspace dock's avatar so both open the same menu.
+	// `button` is the element that gets the active-state class while the menu is open.
+	create_user_menu({ parent, button }) {
+		const me = this;
+		const $btn = button;
+		const $container = parent;
+
+		frappe.ui.create_menu({
+			parent: $container,
+			open_on_top: true,
+			menu_items: [
+				{
+					name: "settings",
+					label: __("Settings"),
+					icon: "settings",
+					onClick: function () {
+						// The Settings dialog is lazy (not in the desk bundle); pull it
+						// in on click, then open it.
+						frappe
+							.require("user_settings_dialog.bundle.js")
+							.then(() => frappe.ui.show_user_settings("profile"))
+							.catch((e) => {
+								console.error(
+									"Sidebar: failed to load user_settings_dialog.bundle.js",
+									e
+								);
+								frappe.ui.toast({
+									message: __(
+										"Could not open Settings. Please refresh the page."
+									),
+									type: "error",
+								});
+							});
+					},
+				},
+				{
+					name: "workspace-selector",
+					label: __("Manage Dock"),
+					icon: "monitor",
+					onClick: function () {
+						new frappe.ui.DockManager();
+					},
+				},
+				{
+					name: "reload",
+					label: __("Reload"),
+					icon: "rotate-ccw",
+					onClick: function () {
+						frappe.ui.toolbar.clear_cache();
+					},
+				},
+				...frappe.boot.navbar_settings.settings_dropdown
+					.filter((item) => !item.hidden)
+					.map((item) => {
+						const mapped = {
+							name: item.name,
+							label: item.item_label,
+							icon: item.icon,
+							condition: item.condition,
+						};
+						if (item.item_type === "Route") {
+							mapped.url = item.route;
+						} else if (item.item_type === "Action") {
+							mapped.onClick = () => frappe.utils.eval(item.action);
+						}
+						return mapped;
+					}),
+				{ is_divider: true },
+				{
+					name: "logout",
+					label: __("Logout"),
+					icon: "log-out",
+					onClick: function () {
+						frappe.app.logout();
+					},
+				},
+			],
+			onShow: function () {
+				$btn.addClass("user-menu-active");
+			},
+			onHide: function () {
+				$btn.removeClass("user-menu-active");
+			},
+			onItemClick: function () {
+				$btn.removeClass("user-menu-active");
+			},
+		});
+>>>>>>> 185e658c39 (fix(navbar): Onclick link for routesclear)
 	}
 
 	set_active_workspace_item() {
