@@ -26,6 +26,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"FormControl",
 	"ListView",
 	"MultiSelect",
+	"Popover",
 	"Progress",
 	"Rating",
 	"Select",

@@ -119,6 +119,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	const frappeComponents = []
 	const frameworkUIComponents = []
 	const studioComponents = []
+	const missingComponents = []
 
 	appComponents.forEach((component) => {
 		if (FRAPPE_UI_COMPONENTS.includes(component)) {
@@ -133,8 +134,16 @@ function findComponentSources(appComponents, customComponents = {}) {
 			if (frameworkUIAvailable) frameworkUIComponents.push(component)
 		} else if (STUDIO_COMPONENTS.includes(component)) {
 			studioComponents.push(component)
+		} else {
+			missingComponents.push(component)
 		}
 	})
+
+	if (missingComponents.length) {
+		throw new Error(
+			`Components used by this app are missing from the build lists: ` + `${missingComponents.join(", ")}`,
+		)
+	}
 	return {
 		frappeUIComponents,
 		frappeUIMolecules,

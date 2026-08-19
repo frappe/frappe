@@ -3,15 +3,25 @@
 import json
 import os
 import re
+import subprocess
 import traceback
 
 import click
 import frappe
 from frappe.build import get_node_env
-from frappe.commands import popen
 from frappe.utils import get_files_path
 
 from studio.constants import DEFAULT_COMPONENTS, NON_VUE_COMPONENTS
+
+ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+
+
+class StudioAppBuildError(RuntimeError):
+	"""Build failure carrying the full build output on `output`."""
+
+	def __init__(self, message: str, output: str):
+		super().__init__(message)
+		self.output = output
 
 
 class StudioAppBuilder:
@@ -104,7 +114,23 @@ class StudioAppBuilder:
 			command += f" --page-scripts '{page_scripts_json}'"
 
 		studio_app_path = frappe.get_app_source_path("studio")
-		popen(command, cwd=studio_app_path, env=get_node_env(), raise_err=True)
+		result = subprocess.run(
+			command,
+			cwd=studio_app_path,
+			env={**os.environ, **get_node_env()},
+			shell=True,
+			capture_output=True,
+			text=True,
+		)
+		if result.stdout:
+			click.echo(result.stdout)
+		if result.stderr:
+			click.echo(result.stderr, err=True)
+		if result.returncode:
+			output = ANSI_ESCAPE_REGEX.sub("", f"{result.stdout or ''}\n{result.stderr or ''}")
+			raise StudioAppBuildError(
+				f"build failed for app '{self.app_name}' (exit status {result.returncode})", output
+			)
 
 	def get_app_components(self) -> set[str]:
 		pages = frappe.get_all(

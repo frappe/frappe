@@ -21,14 +21,35 @@
 							<FormControl
 								type="select"
 								:modelValue="filter.operator"
-								@update:modelValue="filter.operator = $event"
+								@update:modelValue="setOperator(filter, $event)"
 								:options="getOperators(filter.field.fieldtype)"
 								placeholder="Operator"
 							/>
 						</div>
 						<div id="value" class="flex-1">
+							<!-- in / not in: picked values for option fields, comma text otherwise -->
+							<MultiSelectInput
+								v-if="isMultiValueOperator(filter.operator) && typeSelect.includes(filter.field.fieldtype)"
+								:field="filter.field"
+								:modelValue="filter.value"
+								@update:modelValue="filter.value = $event"
+							/>
+							<MultiLinkInput
+								v-else-if="isMultiValueOperator(filter.operator) && typeLink.includes(filter.field.fieldtype)"
+								:field="filter.field"
+								:modelValue="filter.value"
+								@update:modelValue="filter.value = $event"
+							/>
+							<FormControl
+								v-else-if="isMultiValueOperator(filter.operator)"
+								type="text"
+								:modelValue="Array.isArray(filter.value) ? filter.value.join(', ') : (filter.value ?? '')"
+								@update:modelValue="filter.value = $event"
+								placeholder="Comma-separated values"
+								autocomplete="off"
+							/>
 							<Link
-								v-if="typeLink.includes(filter.field.fieldtype) && ['=', '!='].includes(filter.operator)"
+								v-else-if="typeLink.includes(filter.field.fieldtype) && ['=', '!='].includes(filter.operator)"
 								:doctype="filter.field.options as string"
 								:modelValue="filter.value"
 								@update:modelValue="filter.value = $event"
@@ -84,6 +105,8 @@ import { computed, h, ref, watch } from "vue"
 import { Link } from "frappe-ui/frappe"
 
 import FormInputLabel from "@/components/FormInputLabel.vue"
+import MultiLinkInput from "@/components/MultiLinkInput.vue"
+import MultiSelectInput from "@/components/MultiSelectInput.vue"
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import type { Filters } from "@/types/Studio/StudioResource"
@@ -151,7 +174,18 @@ function makeFiltersList(filtersDict: Filters) {
 		if (!field) {
 			throw new Error(`Field not found: ${fieldname}`)
 		}
-		const [operator, value] = Array.isArray(rawFilter) ? rawFilter : ["=" as Operators, rawFilter]
+		// A stored list filter is [operator, value]. A flat [op, v1, v2, ...] is a
+		// malformed multi-value filter — recover every value instead of silently
+		// dropping the tail.
+		let operator: Operators = "="
+		let value: Filter["value"] = rawFilter as Filter["value"]
+		if (Array.isArray(rawFilter)) {
+			operator = rawFilter[0] as Operators
+			value = rawFilter.length > 2 ? rawFilter.slice(1) : rawFilter[1]
+		}
+		if (isMultiValueOperator(operator) && !Array.isArray(value)) {
+			value = splitCommaValues(String(value ?? ""))
+		}
 		return {
 			fieldname,
 			operator,
@@ -169,9 +203,40 @@ function makeFiltersDict(filtersList: Filter[]) {
 	if (!filtersList.length) return {}
 	return filtersList.reduce((acc: Record<string, any>, filter) => {
 		const { fieldname, operator, value } = filter
-		acc[fieldname] = [operator, value]
+		// in / not in always serialize a nested list — a comma string typed into the
+		// free-text input splits here (the toWireValue convention from @framework/ui).
+		acc[fieldname] = [operator, isMultiValueOperator(operator) ? toValueList(value) : value]
 		return acc
 	}, {})
+}
+
+function isMultiValueOperator(operator: Operators) {
+	return operator === "in" || operator === "not in"
+}
+
+function toValueList(value: Filter["value"]): string[] {
+	if (Array.isArray(value)) return value
+	return splitCommaValues(String(value ?? ""))
+}
+
+function splitCommaValues(text: string): string[] {
+	return text
+		.split(",")
+		.map((v) => v.trim())
+		.filter(Boolean)
+}
+
+function setOperator(filter: Filter, operator: Operators) {
+	const wasMulti = isMultiValueOperator(filter.operator)
+	const isMulti = isMultiValueOperator(operator)
+	filter.operator = operator
+	// Keep the value's shape in step with the operator so the inputs never see
+	// the wrong type: scalar → single-element list, list → its first value.
+	if (isMulti && !wasMulti) {
+		filter.value = filter.value ? [String(filter.value)] : []
+	} else if (!isMulti && wasMulti) {
+		filter.value = Array.isArray(filter.value) ? (filter.value[0] ?? "") : filter.value
+	}
 }
 
 function getOperators(fieldtype: Fieldtype) {
@@ -183,6 +248,8 @@ function getOperators(fieldtype: Fieldtype) {
 				{ label: "Not Equals", value: "!=" },
 				{ label: "Like", value: "like" },
 				{ label: "Not Like", value: "not like" },
+				{ label: "In", value: "in" },
+				{ label: "Not In", value: "not in" },
 			],
 		)
 	}
@@ -195,6 +262,8 @@ function getOperators(fieldtype: Fieldtype) {
 				{ label: ">=", value: ">=" },
 				{ label: "Equals", value: "=" },
 				{ label: "Not Equals", value: "!=" },
+				{ label: "In", value: "in" },
+				{ label: "Not In", value: "not in" },
 			],
 		)
 	}
@@ -203,6 +272,8 @@ function getOperators(fieldtype: Fieldtype) {
 			...[
 				{ label: "Equals", value: "=" },
 				{ label: "Not Equals", value: "!=" },
+				{ label: "In", value: "in" },
+				{ label: "Not In", value: "not in" },
 			],
 		)
 	}

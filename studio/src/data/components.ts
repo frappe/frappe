@@ -34,6 +34,7 @@ import LucideLetterText from "~icons/lucide/letter-text"
 import LucideALargeSmall from "~icons/lucide/a-large-small"
 import LucideEdit from "~icons/lucide/edit"
 import LucideMessageSquare from "~icons/lucide/message-square"
+import LucideMessageSquareMore from "~icons/lucide/message-square-more"
 import LucideListTree from "~icons/lucide/list-tree"
 import LucideCode from "~icons/lucide/code"
 import LucideRepeat from "~icons/lucide/repeat"
@@ -527,6 +528,17 @@ export const COMPONENTS: FrappeUIComponents = {
 				},
 			],
 		},
+	},
+	Popover: {
+		name: "Popover",
+		title: "Popover",
+		icon: LucideMessageSquareMore,
+		initialState: {
+			side: "bottom",
+			align: "center",
+		},
+		initialSlots: ["trigger", "default"],
+		emits: ["update:open", "open", "close"],
 	},
 	Progress: {
 		name: "Progress",
