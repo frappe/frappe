@@ -780,6 +780,141 @@ class TestBuilderPostgres(IntegrationTestCase, TestBuilderBase):
 		self.assertEqual('SELECT * FROM "tabDocType"', qb().from_("DocType").select("*").get_sql())
 
 
+@run_only_if(db_type_is.SQLITE)
+class TestBuilderSQLite(IntegrationTestCase, TestBuilderBase):
+	table_name = "__query_builder_upsert_test"
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.sql_ddl(f'DROP TABLE IF EXISTS "{self.table_name}"')
+		frappe.db.sql_ddl(
+			f"""CREATE TABLE "{self.table_name}" (
+				"identity" TEXT PRIMARY KEY,
+				"mutable" TEXT NOT NULL,
+				"immutable" TEXT NOT NULL,
+				"select" TEXT UNIQUE,
+				"order" TEXT
+			)"""
+		)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{self.table_name}"')
+
+	def test_on_conflict_updates_selected_columns(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		(
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "new", "discarded")
+			.on_conflict(table.identity)
+			.do_update(table.mutable)
+		).run()
+
+		self.assertEqual(
+			frappe.db.sql(
+				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				("row",),
+			)[0],
+			("new", "preserved"),
+		)
+
+	def test_on_conflict_do_nothing(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		(
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "discarded", "discarded")
+			.on_conflict(table.identity)
+			.do_nothing()
+		).run()
+
+		self.assertEqual(
+			frappe.db.sql(
+				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				("row",),
+			)[0],
+			("old", "preserved"),
+		)
+
+	def test_on_conflict_parameterizes_explicit_update_value(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		insert = (
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "discarded", "discarded")
+		)
+		query = insert.on_conflict("identity").do_update("mutable", "forced")
+		sql, parameters = query.walk()
+		self.assertNotIn("ON CONFLICT", insert.get_sql())
+		self.assertNotIn("forced", sql)
+		self.assertIn("forced", parameters.values())
+
+		query.run()
+		self.assertEqual(
+			frappe.db.sql(
+				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				("row",),
+			)[0],
+			("forced", "preserved"),
+		)
+
+	def test_on_conflict_update_where(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		(
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "new", "discarded")
+			.on_conflict(table.identity)
+			.do_update(table.mutable)
+			.where(table.immutable == "preserved")
+		).run()
+
+		self.assertEqual(
+			frappe.db.sql(
+				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				("row",),
+			)[0],
+			("new", "preserved"),
+		)
+
+	def test_on_conflict_quotes_identifiers(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(
+			table.identity, table.mutable, table.immutable, table["select"], table["order"]
+		).insert("row", "old", "preserved", "conflict", "old order").run()
+
+		query = (
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable, table["select"], table["order"])
+			.insert("discarded", "new", "discarded", "conflict", "new order")
+			.on_conflict(table["select"])
+			.do_update(table["order"])
+		)
+
+		self.assertIn('ON CONFLICT ("select")', query.get_sql())
+		self.assertIn('DO UPDATE SET "order"=EXCLUDED."order"', query.get_sql())
+		query.run()
+
+		self.assertEqual(
+			frappe.db.get_value(self.table_name, {"select": "conflict"}, ["identity", "order"]),
+			("row", "new order"),
+		)
+
+
 class TestMisc(IntegrationTestCase):
 	def test_custom_func(self):
 		rand_func = frappe.qb.functions("rand", "45")
