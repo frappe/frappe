@@ -224,4 +224,30 @@ context("List View", () => {
 				});
 		}
 	);
+
+	it("deletes the open document on Enter after Shift+Ctrl+D", () => {
+		cy.call("frappe.client.insert", {
+			doc: {
+				doctype: "ToDo",
+				description: "cypress: delete on enter",
+			},
+		}).then((res) => {
+			const docname = res.body.message.name;
+			cy.visit(`/app/todo/${docname}`);
+			cy.title().should("contain", docname);
+
+			cy.get("body").type("{ctrl}{shift}d");
+			cy.get_open_dialog().should("contain", "Permanently delete");
+
+			cy.get("body").trigger("keydown", { key: "Enter", keyCode: 13, which: 13 });
+			cy.get(".modal:visible").should("not.exist");
+
+			cy.call("frappe.client.get_list", {
+				doctype: "ToDo",
+				filters: { name: docname },
+			}).then((list_res) => {
+				expect(list_res.body.message).to.have.length(0);
+			});
+		});
+	});
 });
