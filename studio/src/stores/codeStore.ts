@@ -236,7 +236,10 @@ const useCodeStore = defineStore("codeStore", () => {
 		return evaluatedFilters
 	}
 
-	const evaluateFilterValue = (value: any) => {
+	const evaluateFilterValue = (value: any): any => {
+		if (Array.isArray(value)) {
+			return value.map((item) => evaluateFilterValue(item)).filter((item) => item !== undefined)
+		}
 		if (isDynamicValue(value)) {
 			// null ?? undefined → undefined, so nullish filters get dropped on serialization
 			return getDynamicValue(value, {}) ?? undefined
