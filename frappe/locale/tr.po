@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-11 18:25\n"
+"PO-Revision-Date: 2026-08-19 20:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1666,7 +1666,7 @@ msgstr "Yönetici Giriş Yaptı"
 
 #: frappe/core/doctype/user/user.py:1194
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
-msgstr "Yönetici, IP Adresi {2} üzerinden {1} yoluyla {0} adresine erişim sağladı."
+msgstr ""
 
 #. Label of a Section Break field in DocType 'DocType'
 #. Label of a Tab Break field in DocType 'System Settings'
@@ -3714,7 +3714,7 @@ msgstr "Fatura"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:21
 msgid "Billing Contact"
-msgstr "Fatura Yetkilisi"
+msgstr ""
 
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -4690,7 +4690,7 @@ msgstr "Etiketi Değiştir (Özel Çeviri)"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:45
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:141
 msgid "Change Letter Head"
-msgstr "Antetli Kağıdı Değiştir"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -6100,7 +6100,7 @@ msgstr "Giriş Oluştur"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
 msgid "Create Letter Head"
-msgstr "Antetli Kağıt Başlığı Oluştur"
+msgstr ""
 
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -12202,7 +12202,7 @@ msgstr "Isı Haritası"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
-msgstr "Merhaba"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
