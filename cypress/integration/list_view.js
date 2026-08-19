@@ -226,6 +226,7 @@ context("List View", () => {
 	);
 
 	it("deletes the open document on Enter after Shift+Ctrl+D", () => {
+		cy.go_to_list("ToDo");
 		cy.call("frappe.client.insert", {
 			doc: {
 				doctype: "ToDo",
