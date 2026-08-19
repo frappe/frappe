@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-16 19:27\n"
+"PO-Revision-Date: 2026-08-19 20:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -10853,7 +10853,7 @@ msgstr "Hét Első Napja"
 #: frappe/core/web_form/edit_profile/edit_profile.json
 #: frappe/www/complete_signup.html:15
 msgid "First Name"
-msgstr "Vezetéknév"
+msgstr "Keresztnév"
 
 #. Label of a Data field in DocType 'Success Action'
 #: frappe/core/doctype/success_action/success_action.json
