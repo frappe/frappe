@@ -1,5 +1,5 @@
 // A module's Sidebar, in the editor every navigation surface shares
-// (`frappe.ui.ArrangementEditor`, which holds the layer switch, the sortables, the pool and the
+// (`frappe.ui.ArrangementEditor`, which holds the layer switch, the list, the eye and the
 // persistence). This is only what a Sidebar is: what its entries are, where its two layers live,
 // and the fields a person may state about an entry -- which the dock has none of.
 //
@@ -14,13 +14,16 @@
 // freeze the site's labels and the app's links forever, which is why `Custom Sidebar` narrows
 // what it keeps and why this offers exactly the two fields it keeps.
 //
-// Section *membership* is not here; it is its own ticket. It rides through untouched: a reference
-// row says nothing about `child`, so the base's membership is what resolves either way.
+// Section *membership* is here, and it is the drop that states it: an entry dragged out from
+// under a section stops being a member, and one dragged back under it is one again. Membership is
+// stored as arrangement rather than as an opinion -- every row a layer holds states it, the way
+// every row states its order and whether it is hidden -- because a `Check` has no way to spell
+// "no opinion" apart from "not a member", and the whole arrangement is written on every save.
 
 // What differs between a Sidebar's two layers, in one place. The extra entry over the dock's is
 // `reset`: hiding everything is not how a sidebar layer is emptied, because an empty arrangement
 // is a real thing to say here -- so Reset is an endpoint that drops the layer rather than a state
-// the panes can be dragged into.
+// the list can be put into.
 const SIDEBAR_LAYERS = {
 	user: {
 		read: "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_user_sidebar_layer",
@@ -103,9 +106,11 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	copy() {
 		const below = this.layer === "site" ? __("what the apps ship") : __("the site's");
 		return {
-			selection_head: __("On the sidebar"),
-			add_label: __("Add Item"),
-			selection_sub: __("Drag to reorder. Use the pencil to rename or re-icon an entry."),
+			list_head: __("Entries"),
+			add_label: __("Add"),
+			list_sub: __(
+				"Drag to reorder, and under a section to put an entry in it. The eye takes an entry off the sidebar; the pencil renames it."
+			),
 			reset_title: __("Drop this arrangement and go back to {0}.", [below]),
 			reset_confirm:
 				this.layer === "site"
@@ -119,10 +124,10 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				this.layer === "site"
 					? __("Sidebar reset for everyone")
 					: __("Sidebar reset to the site's"),
-			selection_empty: __("Drag entries here"),
-			pool_head: __("Hidden"),
-			pool_sub: __("Drag one over to put it back on the sidebar."),
-			pool_empty: __("Nothing is hidden"),
+			list_empty: __("This module has nothing to arrange"),
+			preview_head: __("Preview"),
+			preview_sub: __("The sidebar as this arrangement leaves it."),
+			preview_empty: __("Nothing on the sidebar"),
 			load_error: __("Could not load the sidebar. Please try again."),
 		};
 	}
@@ -135,43 +140,76 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		const items = await frappe.xcall(this.layer_config.read, { module: this.module });
 
 		this.entries = new Map(items.map((item) => [item.key, item]));
-		this.selection = items.filter((item) => !item.hidden).map((item) => item.key);
+		// The layer's own order, hidden entries kept in place: this read answers with every
+		// entry, so a hidden one is a row here like any other and sits where it was left rather
+		// than at the end.
+		this.arrange(
+			items.map((item) => item.key),
+			items.filter((item) => item.hidden).map((item) => item.key)
+		);
 	}
 
 	// A `Custom Sidebar` row can carry an item of its own, so a sidebar layer adds as well as
-	// orders and hides. This is the only surface where that is true.
+	// orders and hides -- a link, or a section to drop links into. This is the only surface
+	// where that is true.
 	can_add() {
 		return true;
 	}
 
 	// The same identity the server works out (`item_key`): a row that leads somewhere is named
-	// by the columns it already has. Worked out here only so an entry has a key between being
-	// added and being saved -- everything read back carries the server's own.
+	// by the columns it already has, and one that leads nowhere -- a section -- by its type and
+	// its label. Worked out here only so an entry has a key between being added and being saved:
+	// everything read back carries the server's own, which is a hash of those same two columns.
 	item_key(item) {
+		if (!this.is_linked(item)) return [item.type || "", item.label || ""].join("|");
+
 		return ["type", "link_type", "link_to", "url"].map((field) => item[field] || "").join("|");
+	}
+
+	// Whether an entry leads anywhere. A section does not, which is the whole of what makes it
+	// a different kind of row -- see `is_linked` on the server, which asks the same question of
+	// the same two columns.
+	is_linked(entry) {
+		return !!(entry.link_to || entry.url);
 	}
 
 	add() {
 		if (!this.loaded) return;
 
 		const dialog = new frappe.ui.Dialog({
-			title: __("Add Item"),
+			title: __("Add to the Sidebar"),
 			fields: [
+				// A section is the other kind of row a sidebar holds: it leads nowhere and names
+				// the run of entries under it. Offered here rather than behind a button of its
+				// own, because the two are one decision -- what am I putting on the sidebar --
+				// and everything below this field is what a link needs and a section does not.
+				{
+					fieldtype: "Select",
+					fieldname: "kind",
+					label: __("Kind"),
+					options: [
+						{ value: "Link", label: __("Link") },
+						{ value: "Section", label: __("Section") },
+					],
+					default: "Link",
+					reqd: 1,
+				},
 				{
 					fieldtype: "Select",
 					fieldname: "link_type",
 					label: __("Links To"),
 					options: LINK_TYPES,
 					default: "DocType",
-					reqd: 1,
+					depends_on: 'eval:doc.kind == "Link"',
+					mandatory_depends_on: 'eval:doc.kind == "Link"',
 				},
 				{
 					fieldtype: "Dynamic Link",
 					fieldname: "link_to",
 					label: __("Item"),
 					options: "link_type",
-					depends_on: 'eval:doc.link_type != "URL"',
-					mandatory_depends_on: 'eval:doc.link_type != "URL"',
+					depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
+					mandatory_depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
 					// A private page's link is derived from the page itself and no layer may
 					// store one (`drop_private_workspaces`), so it is not offerable.
 					get_query: () =>
@@ -190,11 +228,18 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					fieldtype: "Data",
 					fieldname: "url",
 					label: __("URL"),
-					depends_on: 'eval:doc.link_type == "URL"',
-					mandatory_depends_on: 'eval:doc.link_type == "URL"',
+					depends_on: 'eval:doc.kind == "Link" && doc.link_type == "URL"',
+					mandatory_depends_on: 'eval:doc.kind == "Link" && doc.link_type == "URL"',
 				},
 				{ fieldtype: "Data", fieldname: "label", label: __("Label"), reqd: 1 },
-				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
+				// A section header draws no icon on the sidebar, so it is not offered one --
+				// the same rule the rename dialog keeps.
+				{
+					fieldtype: "Icon",
+					fieldname: "icon",
+					label: __("Icon"),
+					depends_on: 'eval:doc.kind == "Link"',
+				},
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
@@ -213,21 +258,24 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// is not a new entry, it is the one that is already there. If it is sitting in Hidden, this
 	// is almost certainly what the person meant, so it goes back on.
 	place(values) {
-		const entry = {
-			added: 1,
-			type: "Link",
-			link_type: values.link_type,
-			link_to: values.link_type === "URL" ? null : values.link_to,
-			url: values.link_type === "URL" ? values.url : null,
-			label: values.label,
-			icon: values.icon || null,
-		};
+		const entry =
+			values.kind === "Section"
+				? { added: 1, type: "Section Break", label: values.label }
+				: {
+						added: 1,
+						type: "Link",
+						link_type: values.link_type,
+						link_to: values.link_type === "URL" ? null : values.link_to,
+						url: values.link_type === "URL" ? values.url : null,
+						label: values.label,
+						icon: values.icon || null,
+				  };
 		entry.key = this.item_key(entry);
 
 		if (this.entries.has(entry.key)) {
-			const shown = this.selection.includes(entry.key);
+			const shown = !this.hidden.has(entry.key);
 			if (!shown) {
-				this.selection.push(entry.key);
+				this.hidden.delete(entry.key);
 				this.render_panes();
 			}
 			frappe.show_alert({
@@ -244,7 +292,12 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		}
 
 		this.entries.set(entry.key, entry);
-		this.selection.push(entry.key);
+		this.order.push(entry.key);
+		// It went on the end, so the end is where it landed, and where an entry lands is what
+		// says which section it is in. That is what makes "add a section, then add what goes in
+		// it" work with nothing else to do: the section goes on last, and the next entry added
+		// is dropped directly under it.
+		this.on_move(entry.key);
 		this.render_panes();
 		return true;
 	}
@@ -253,14 +306,28 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// it, so a row saying "I add this, and I hide it" says nothing at all -- and somebody who
 	// adds an entry and changes their mind means gone. An entry a layer below added is a
 	// reference from here, so it hides like any other.
-	remove_from_selection(key) {
+	hide(key) {
 		if (!this.entries.get(key)?.added) {
-			return super.remove_from_selection(key);
+			return super.hide(key);
 		}
 
 		this.entries.delete(key);
-		this.selection = this.selection.filter((k) => k !== key);
-		this.render_panes();
+		this.order = this.order.filter((k) => k !== key);
+	}
+
+	// Which is why an added entry carries a cross rather than an eye: the control has to say
+	// what it does, and there is no showing one again once it is gone.
+	visibility_button(key) {
+		if (!this.entries.get(key)?.added) return super.visibility_button(key);
+
+		let $remove = $(
+			`<button class="ws-item-remove" title="${__("Remove")}">${frappe.utils.icon(
+				"x",
+				"sm"
+			)}</button>`
+		);
+		$remove.on("click", () => this.toggle(key));
+		return $remove;
 	}
 
 	// A section header is an entry like any other -- it is arranged, hidden and relabelled the
@@ -271,7 +338,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	item_extras(key) {
-		return this.is_section(key) ? `<span class="ws-item-chip">${__("section")}</span>` : "";
+		return this.is_section(key) ? `<span class="ws-item-chip">${__("Section")}</span>` : "";
 	}
 
 	// Members of a section sit under it on the sidebar, so they sit under it here.
@@ -279,7 +346,27 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		return this.entries.get(key).child ? "ws-item-child" : "";
 	}
 
-	decorate_selection_item($el, key) {
+	// Where an entry lands is what says which section it is in: the row above it is either the
+	// section header itself or another of that section's members, and either way the entry has
+	// joined them. Dropped under a top-level entry, or at the top of the list, it belongs to no
+	// section and stops being a member.
+	//
+	// Only the entry that moved is re-read. Membership is stored per row, so re-deriving it for
+	// rows nobody touched would rewrite what the layers below said about them -- a top-level
+	// entry sitting after a section is a real arrangement, and opening this and saving unchanged
+	// has to leave it exactly as it was.
+	//
+	// A section header is never a member of one: the desk draws a single level of nesting, so a
+	// `Section Break` marked `child` would claim a parent it never gets.
+	on_move(key) {
+		const entry = this.entries.get(key);
+		if (!entry || this.is_section(key)) return;
+
+		const above = this.order[this.order.indexOf(key) - 1];
+		entry.child = above && (this.is_section(above) || this.entries.get(above).child) ? 1 : 0;
+	}
+
+	decorate_item($el, key) {
 		let $edit = $(
 			`<button class="ws-item-edit" title="${__("Rename")}">${frappe.utils.icon(
 				"pencil",
@@ -288,6 +375,26 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		);
 		$edit.on("click", () => this.edit_entry(key));
 		$el.append($edit);
+	}
+
+	// The sidebar draws a label and nothing beside it -- `sidebar_item.html` renders no leading
+	// icon -- so neither does the editor. Drawing one here would put a mark on every row that
+	// nobody will ever see on the surface itself, and the preview would be answering wrongly.
+	entry_icon() {
+		return "";
+	}
+
+	// A section header draws as a header in the preview rather than as a link, the way the
+	// sidebar itself draws it -- a preview that made one look like an entry would be answering
+	// the question wrongly.
+	preview_item(key) {
+		if (!this.is_section(key)) return super.preview_item(key);
+
+		return $(
+			`<div class="ws-preview-section">${frappe.utils.escape_html(
+				this.entries.get(key).label
+			)}</div>`
+		);
 	}
 
 	// The per-entry fields, which are the whole of what this editor has that the dock's does not.
@@ -322,8 +429,18 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 			],
 			primary_action_label: __("Done"),
 			primary_action: (values) => {
-				entry.label = values.label;
-				if (!this.is_section(key)) entry.icon = values.icon || null;
+				if (!this.rename(key, values.label)) {
+					frappe.show_alert({
+						message: __("There is already a section called {0}.", [
+							frappe.utils.escape_html(values.label),
+						]),
+						indicator: "orange",
+					});
+					return;
+				}
+
+				// asked of the entry rather than of `key`, which a rename may just have changed
+				if (entry.type !== "Section Break") entry.icon = values.icon || null;
 				dialog.hide();
 				this.render_panes();
 			},
@@ -331,14 +448,57 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		dialog.show();
 	}
 
+	// Relabel an entry, moving it if the label is what names it.
+	//
+	// A section this layer added *is* the item rather than a reference to one, and an item that
+	// leads nowhere is named by its type and its label -- so renaming one renames its identity,
+	// and the list has to carry it across rather than leave it filed under a name it no longer
+	// has. A rename onto a name another section already has is refused: two sections of one name
+	// are one section to the merge, and the second would silently disappear on save.
+	//
+	// Everything else is named by where it points, so a relabel there is only a relabel.
+	rename(key, label) {
+		const entry = this.entries.get(key);
+		const was = entry.label;
+		entry.label = label;
+
+		const fresh = this.item_key(entry);
+		if (!entry.added || this.is_linked(entry) || fresh === key) return true;
+
+		if (this.entries.has(fresh)) {
+			entry.label = was;
+			return false;
+		}
+
+		entry.key = fresh;
+		this.entries.delete(key);
+		this.entries.set(fresh, entry);
+		this.order = this.order.map((k) => (k === key ? fresh : k));
+		if (this.hidden.delete(key)) this.hidden.add(fresh);
+		return true;
+	}
+
 	// The whole ordered arrangement on screen, which is what this layer's save takes -- not a
 	// delta. Each entry goes back as it came, plus its flag. Which of the values it carries is
 	// an opinion and which was merely inherited is settled on the server against the layer
 	// below, because that is the only place both sides of the comparison are known.
 	save_args() {
-		const rows = this.arranged_rows((key, hidden) => ({ ...this.entries.get(key), hidden }));
+		const rows = this.arranged_rows((key, hidden) => this.stored_row(key, hidden));
 
 		return { module: this.module, items: JSON.stringify(rows) };
+	}
+
+	// One row as it goes back: the entry as it came, plus where the arrangement leaves it.
+	//
+	// An added row that leads nowhere goes back without its key. A section is named by a hash of
+	// its type and its label, and the server is what hashes it (`unlinked_key`) -- sending the
+	// editor's own spelling of that identity would store a second name for the same thing, and a
+	// base section of the same label would stop being the same section.
+	stored_row(key, hidden) {
+		const row = { ...this.entries.get(key), hidden };
+		if (row.added && !this.is_linked(row)) row.key = null;
+
+		return row;
 	}
 
 	// A sidebar with nothing navigable left is not an arrangement, it is a locked door: the

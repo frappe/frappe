@@ -1,5 +1,5 @@
 // The dock's arrangement, in the editor every navigation surface shares
-// (`frappe.ui.ArrangementEditor`, which holds the layer switch, the sortables, the pool and the
+// (`frappe.ui.ArrangementEditor`, which holds the layer switch, the list, the eye and the
 // persistence). This is only what the dock is: what its entries are, where its two layers live,
 // and the one action it has that a sidebar does not.
 //
@@ -68,13 +68,13 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 
 	copy() {
 		return {
-			selection_head: __("On the dock"),
-			selection_sub: __("Drag to reorder. Reset brings all of them back."),
+			list_head: __("Entries"),
+			list_sub: __("Drag to reorder. The eye takes an entry off the dock."),
 			reset_title: __("Bring every entry back onto the dock."),
-			selection_empty: __("Drag entries here"),
-			pool_head: __("Hidden"),
-			pool_sub: __("Drag one over to put it back on the dock."),
-			pool_empty: __("Nothing is hidden"),
+			list_empty: __("This app has nothing to arrange"),
+			preview_head: __("Preview"),
+			preview_sub: __("The dock as this arrangement leaves it."),
+			preview_empty: __("Nothing on the dock"),
 			load_error: __("Could not load the dock. Please try again."),
 		};
 	}
@@ -98,7 +98,9 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.base_hidden = new Set(
 			(base || []).filter((row) => row.hidden).map((row) => this.key(row))
 		);
-		this.selection = this.initial_selection();
+		// Only what this layer put on the dock is named; everything else the app offers follows
+		// it in the app's own order, with the eye off.
+		this.arrange(this.initial_selection());
 	}
 
 	// Every entry this app's dock can show, in the server's order, each resolved to the label and
@@ -160,8 +162,8 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return shown.length ? shown : this.all_keys();
 	}
 
-	// A row the app itself ships off says so. Dragging it over is still all it takes to
-	// bring it back -- an off-by-default is a default, not a decision made for you.
+	// A row the app itself ships off says so. The eye is still all it takes to bring it back --
+	// an off-by-default is a default, not a decision made for you.
 	item_extras(key) {
 		return this.base_hidden.has(key)
 			? `<span class="ws-item-chip">${__("app ships this off")}</span>`
@@ -174,7 +176,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// the next Save like every other edit in the panes.
 	reset() {
 		if (!this.selection.length) return;
-		this.selection = [];
+		this.hidden = new Set(this.all_keys());
 		this.render_panes();
 	}
 
@@ -205,10 +207,10 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// Hand the author the block for the arrangement on screen. No confirm: nothing is written,
 	// so there is nothing to agree to -- the old one described a write that no longer happens.
 	//
-	// Every entry the manager showed is named: the left pane as positions, the right pane as
-	// hidden. That is what makes ship round-trip -- paste, restart, and the dock renders the
-	// screen it was taken from -- and it is why the right pane is sent too rather than just the
-	// selection.
+	// Every entry the manager showed is named: the ones on the dock as positions, the ones the eye
+	// has off as hidden. That is what makes ship round-trip -- paste, restart, and the dock renders
+	// the screen it was taken from -- and it is why the hidden ones are sent too rather than just
+	// what is on the dock.
 	async ship() {
 		if (!this.loaded) return;
 		this.sync_order();
@@ -265,7 +267,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// the author on the unshipped dock. Reuses the ordinary clear-and-save path -- Reset,
 		// then Save -- so there is no second way to empty a layer.
 		$body.find(".dock-ship-clear").on("click", async () => {
-			this.selection = [];
+			this.reset();
 			await this.save();
 			dialog.hide();
 		});

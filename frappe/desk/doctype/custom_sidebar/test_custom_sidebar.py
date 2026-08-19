@@ -15,7 +15,7 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 	save_sidebar_customization,
 	save_site_sidebar,
 )
-from frappe.desk.doctype.sidebar.sidebar import item_key, resolve_sidebar
+from frappe.desk.doctype.sidebar.sidebar import item_key, resolve_sidebar, unlinked_key
 from frappe.desk.doctype.sidebar.test_sidebar import (
 	delete_page,
 	make_page,
@@ -708,9 +708,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		return endpoint(module)
 
 	def arrange(self, layer: str, on_the_sidebar: list[str], module: str = MODULE):
-		"""The save the editor makes: the whole arrangement on screen, in order, the entries left
-		on the surface first and everything else flagged hidden. Each entry goes back as it came,
-		which is the client contract `drop_inherited_values` is written against."""
+		"""The save the editor makes: the whole arrangement on screen, in one order, each entry
+		carrying whether it is hidden. Each entry goes back as it came, which is the client
+		contract `drop_inherited_values` is written against."""
 		shown = {item["key"]: item for item in self.read(layer, module)}
 		return [{**shown[key], "hidden": 0} for key in on_the_sidebar] + [
 			{**item, "hidden": 1} for key, item in shown.items() if key not in on_the_sidebar
@@ -901,6 +901,64 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		# ... and the reorder said nothing about anything but the one label it meant
 		layer = get_customization(MODULE, USER)
 		self.assertEqual([row.label for row in layer.sidebar_items if row.label], ["Mine"])
+
+	def test_a_layer_can_add_a_section_and_put_an_entry_in_it(self):
+		"""The other kind of row a layer may add: one that leads nowhere and names the run under
+		it. It is stored without a key, because a row that leads nowhere is named by a hash of
+		its type and its label and the model is what works that out -- so the editor's own
+		spelling of that identity never becomes a second name for the same section."""
+		items = self.base_items()
+		target = next(i for i in items if i["type"] != "Section Break")
+
+		self.as_user()
+		save_sidebar_customization(
+			MODULE,
+			json.dumps(
+				[
+					{"added": 1, "type": "Section Break", "label": "Mine", "key": None},
+					{**target, "child": 1, "hidden": 0},
+				]
+			),
+		)
+
+		resolved = self.items()
+		section = next(i for i in resolved if i["label"] == "Mine")
+		self.assertEqual(section["type"], "Section Break")
+		self.assertEqual(section["key"], unlinked_key({"type": "Section Break", "label": "Mine"}))
+
+		# ... and the entry dropped under it is a member of it
+		member = next(i for i in resolved if i["key"] == target["key"])
+		self.assertEqual(member["child"], 1)
+		self.assertEqual(resolved.index(member), resolved.index(section) + 1)
+
+	def test_an_entry_can_be_put_into_a_section_and_taken_back_out(self):
+		"""Where an entry is dropped is what says which section it is in, so the arrangement
+		states membership for every row it holds -- including the row that has just stopped
+		being a member, which is the half a `Check` cannot spell as an opinion. Both directions
+		are tested in one go because only the second one is new: claiming a membership would
+		work by accident, un-claiming one is what needs the value stored rather than opined."""
+		items = self.base_items()
+		target = next(i for i in items if i["type"] != "Section Break")
+		keys = [i["key"] for i in items]
+
+		def membership():
+			return next(i for i in self.items() if i["key"] == target["key"])["child"]
+
+		def drag(child):
+			rows = self.arrange("user", keys)
+			for row in rows:
+				if row["key"] == target["key"]:
+					row["child"] = child
+			save_sidebar_customization(MODULE, json.dumps(rows))
+
+		self.as_user()
+
+		drag(1)
+		self.assertEqual(membership(), 1)
+
+		# ... and dragged back out from under it, which the layer has to be able to say
+		drag(0)
+		self.assertEqual(membership(), 0)
 
 	def test_a_site_can_be_put_back_to_what_the_apps_ship(self):
 		"""The other reset. `reset_user_sidebar` has a test of its own; this one had no caller at

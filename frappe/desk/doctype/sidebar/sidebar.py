@@ -1303,9 +1303,12 @@ def allowed_added_item(item: dict, perm_ctx) -> bool:
 	every boot.
 
 	A row leading nowhere -- a Section Break, a spacer -- is nobody's to block, which is the same
-	exception the filter makes for it.
+	exception the filter makes for it. Asked as `is_linked`, the same question the identity of a
+	row is decided by, and not as "has a link type": `Sidebar Item.link_type` carries a column
+	default, so a section a layer added arrives claiming to be a DocType link to nothing -- and
+	nobody but Administrator is allowed to see a DocType called None.
 	"""
-	if not item.get("added") or not item.get("link_type"):
+	if not item.get("added") or not is_linked(item):
 		return True
 
 	return is_item_allowed(item.get("link_to"), item.get("link_type"), perm_ctx)

@@ -7,9 +7,11 @@
 // top of. That is the only thing the layer switch changes: both layers are the same rows,
 // arranged the same way, saved through endpoints that differ only in where they land.
 //
-// Two draggable panes, meaning one thing on every surface and under every layer: on the surface, or
-// hidden. The left is the arrangement, reorderable; the right is the pool of what is not on it,
-// ready to drag in.
+// One list and a preview beside it. The list holds every entry the surface offers, in one order,
+// and the eye on a row is the whole of on-the-surface or hidden -- so a hidden entry keeps its
+// place and comes back where it was left, rather than out of a pool at the end. The pane beside it
+// draws the arrangement the way the surface will render it, which is the question a person
+// actually has while dragging: not "which rows did I pick" but "what does it look like".
 //
 // An untouched layer starts from the layer *below* it as that layer renders. A save writes the
 // whole slice, so seeding from anything else would silently un-hide what a lower layer hid --
@@ -17,8 +19,8 @@
 // works it out in the client, the sidebar is handed it by its read endpoint.
 //
 // What a surface supplies is small: what its layers read, save and reset through, what its entries
-// are and what keys them, and whatever per-entry fields it lets a person state. The layer switch,
-// the sortables, the pool and the persistence are here.
+// are and what keys them, how one of them draws in the preview, and whatever per-entry fields it
+// lets a person state. The layer switch, the list, the eye and the persistence are here.
 frappe.ui.ArrangementEditor = class ArrangementEditor {
 	constructor() {
 		this.make();
@@ -46,12 +48,12 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return {};
 	}
 
-	// Read the layer named by `this.layer`, leaving `this.entries` (key -> entry) and
-	// `this.selection` (the keys on the surface, in order) behind. Throwing is how it says the
-	// read failed; nothing is rendered and neither Save nor anything else will act.
+	// Read the layer named by `this.layer`, leaving `this.entries` (key -> entry) behind and
+	// stating the arrangement through `arrange()`. Throwing is how it says the read failed;
+	// nothing is rendered and neither Save nor anything else will act.
 	async read() {}
 
-	// The arguments the save endpoint takes, once `this.selection` is the arrangement on screen.
+	// The arguments the save endpoint takes, once the list on screen is the arrangement.
 	save_args() {
 		return {};
 	}
@@ -59,8 +61,8 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// Apply what a save or a reset answered with, in place.
 	apply() {}
 
-	// What the Reset button in the selection pane's head does. The two surfaces mean different
-	// things by it, so neither inherits the other's.
+	// What the Reset button in the list's head does. The two surfaces mean different things by
+	// it, so neither inherits the other's.
 	reset() {}
 
 	// Whether this surface's layers may *add* an entry rather than only order and hide the ones
@@ -76,25 +78,31 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	add() {}
 
 	// The words, one place per surface, so the panes can say what they are actually arranging.
-	// The base reads `selection_head`, `selection_sub`, `reset_title`, `selection_empty`,
-	// `pool_head`, `pool_sub`, `pool_empty` and `load_error`; a surface may carry more for its
-	// own use, which is where the sidebar's Reset keeps its confirmation.
+	// The base reads `list_head`, `list_sub`, `reset_title`, `list_empty`, `preview_head`,
+	// `preview_sub`, `preview_empty` and `load_error`; a surface may carry more for its own use,
+	// which is where the sidebar's Reset keeps its confirmation.
 	copy() {
 		return {};
 	}
 
-	// Extra markup on an entry, on both panes -- a chip saying who hid it, and the like.
+	// Extra markup on an entry in the list -- a chip saying who hid it, and the like.
 	item_extras() {
 		return "";
 	}
 
-	// Extra classes on an entry, on both panes -- what a surface draws differently about one.
+	// Extra classes on an entry, in the list and in the preview -- what a surface draws
+	// differently about one.
 	item_classes() {
 		return "";
 	}
 
-	// Extra affordances on a selection entry, which need a handler and so are hung on the node.
-	decorate_selection_item() {}
+	// Extra affordances on a list entry, which need a handler and so are hung on the node.
+	decorate_item() {}
+
+	// One entry was dragged to a new place. A surface where position means something beyond
+	// order says so here -- see the sidebar, where where you drop an entry is what says which
+	// section it belongs to.
+	on_move() {}
 
 	// -------------------------------------------------------------------------------------------
 	// The editor itself
@@ -103,17 +111,15 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	make() {
 		this.layer = "user";
 		this.entries = new Map();
-		this.selection = [];
+		this.order = [];
+		this.hidden = new Set();
 		this.can_curate_site = frappe.user.has_role("Workspace Manager");
 		this.prepare();
 
 		this.dialog = new frappe.ui.Dialog({
 			title: this.title(),
 			size: "extra-large",
-			fields: [
-				...(this.can_curate_site ? [this.layer_field()] : []),
-				{ fieldtype: "HTML", fieldname: "picker" },
-			],
+			fields: [{ fieldtype: "HTML", fieldname: "picker" }],
 			primary_action_label: __("Save"),
 			primary_action: () => this.save(),
 			...this.extra_actions(),
@@ -121,35 +127,37 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 		this.$body = $(this.dialog.fields_dict.picker.$wrapper);
 		this.dialog.show();
-		// say which layer is being edited in the field too, not just in `this.layer` -- a Select
-		// that renders blank reads as "no layer chosen" when one always is
-		if (this.can_curate_site) this.dialog.set_value("layer", this.layer);
+		if (this.can_curate_site) this.mount_layer_switch();
 		this.load();
 	}
 
 	// The just-me / everyone switch, and the whole of what the site layer's gate looks like from
-	// here: without the right to curate for everyone the field is absent, so there is nothing to
+	// here: without the right to curate for everyone the switch is absent, so there is nothing to
 	// fail on save. What that right *is* belongs to the endpoints, which check it again.
-	layer_field() {
-		return {
-			fieldtype: "Select",
-			fieldname: "layer",
-			label: __("Arranging"),
-			default: "user",
-			options: [
-				{ value: "user", label: __("Just for me") },
-				{ value: "site", label: __("For everyone") },
-			],
-			change: () => this.switch_layer(),
-		};
+	//
+	// It hangs in the dialog's own header beside the close button rather than sitting above the
+	// panes as the first field of the body. It is not part of the arrangement -- it says which
+	// arrangement you are looking at -- and a field in front of the list read as one more thing
+	// to fill in before getting to the work.
+	mount_layer_switch() {
+		this.$layer = $(`
+			<select class="ws-layer-switch form-control input-xs" title="${__("Arranging")}">
+				<option value="user">${__("Just for me")}</option>
+				<option value="site">${__("For everyone")}</option>
+			</select>
+		`);
+		// a switch that renders blank reads as "no layer chosen" when one always is
+		this.$layer.val(this.layer);
+		this.$layer.on("change", () => this.switch_layer());
+		this.dialog.$wrapper.find(".modal-actions").prepend(this.$layer);
 	}
 
-	// The control fires `change` while the dialog is still building its inputs, before the select
-	// holds anything -- so a value that isn't a layer is not a switch to it, it is the field
-	// telling us it has nothing yet. Taking it at its word left `this.layer` as "" and every read
+	// Neither a value that names no layer nor the layer already on screen is a switch to
+	// anything, and reading either as one would re-read the arrangement for nothing -- or, in
+	// the first case, leave `this.layer` naming a layer that does not exist and every read
 	// through `layer_config` undefined.
 	switch_layer() {
-		const layer = this.dialog.get_value("layer");
+		const layer = this.$layer.val();
 		if (!this.layers[layer] || layer === this.layer) return;
 		this.layer = layer;
 		this.load();
@@ -178,162 +186,208 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.render();
 	}
 
-	// Every key the pool and the panes work in, in the surface's own order. `this.entries` is
-	// built in that order by both of them, so the map is the answer.
+	// Every key the list works in, in the surface's own order. `this.entries` is built in that
+	// order by both of them, so the map is the answer.
 	all_keys() {
 		return [...this.entries.keys()];
+	}
+
+	// The one list the editor works in: every entry the surface offers, in one order, and which
+	// of them are hidden. `read()` states it once, and the list on screen is that statement from
+	// then on.
+	//
+	// A key the layer never named is appended in the surface's own order, and hidden -- a layer
+	// that named some entries and not others has said nothing about the rest, and an entry
+	// nobody has placed is not one to put on the surface uninvited. This is also what carries a
+	// newly installed app's entries into an arrangement somebody has already made.
+	arrange(order, hidden = []) {
+		const named = order.filter((key) => this.entries.has(key));
+		const unnamed = this.all_keys().filter((key) => !named.includes(key));
+
+		this.order = [...named, ...unnamed];
+		this.hidden = new Set([...hidden, ...unnamed].filter((key) => this.entries.has(key)));
+	}
+
+	// What is on the surface, in order: the arrangement minus what the eye has taken off. Every
+	// surface asks this rather than reading `order` -- it is the arrangement as it renders.
+	get selection() {
+		return this.order.filter((key) => !this.hidden.has(key));
 	}
 
 	render() {
 		const copy = this.copy();
 		this.$body.html(`
 			<div class="arrangement-editor">
-				<div class="ws-pane ws-pane-selection">
+				<div class="ws-pane ws-pane-arrangement">
 					<div class="ws-pane-head">
-						<span>${copy.selection_head}</span>
+						<span>${copy.list_head}</span>
 						<span class="ws-pane-actions">
 							${this.can_add() ? `<button class="ws-add btn btn-ghost">${copy.add_label}</button>` : ""}
 							<button class="ws-reset btn btn-ghost" title="${copy.reset_title}">${__("Reset")}</button>
 						</span>
 					</div>
-					<div class="ws-pane-sub">${copy.selection_sub}</div>
-					<div class="ws-list ws-selection"></div>
+					<div class="ws-pane-sub">${copy.list_sub}</div>
+					<div class="ws-list ws-arrangement"></div>
 				</div>
-				<div class="ws-pane ws-pane-pool">
-					<div class="ws-pane-head">${copy.pool_head}</div>
-					<div class="ws-pane-sub">${copy.pool_sub}</div>
-					<div class="ws-list ws-pool"></div>
+				<div class="ws-pane ws-pane-preview">
+					<div class="ws-pane-head">${copy.preview_head}</div>
+					<div class="ws-pane-sub">${copy.preview_sub}</div>
+					<div class="ws-list ws-preview"></div>
 				</div>
 			</div>
 		`);
 
-		this.$selection = this.$body.find(".ws-selection");
-		this.$pool = this.$body.find(".ws-pool");
+		this.$arrangement = this.$body.find(".ws-arrangement");
+		this.$preview = this.$body.find(".ws-preview");
 
 		this.$body.find(".ws-add").on("click", () => this.add());
 		this.$body.find(".ws-reset").on("click", () => this.reset());
 
 		this.render_panes();
-		this.setup_selection_sortable();
-		this.setup_pool_sortable();
+		this.setup_sortable();
 	}
 
 	render_panes() {
-		this.render_selection();
-		this.render_pool();
+		this.render_list();
+		this.render_preview();
 	}
 
-	render_selection() {
-		this.$selection.empty();
-		if (!this.selection.length) {
-			this.$selection.append(
-				`<div class="ws-empty text-muted">${this.copy().selection_empty}</div>`
+	render_list() {
+		this.$arrangement.empty();
+		if (!this.order.length) {
+			this.$arrangement.append(
+				`<div class="ws-empty text-muted">${this.copy().list_empty}</div>`
 			);
 			return;
 		}
-		this.selection.forEach((key) => this.$selection.append(this.selection_item(key)));
+		this.order.forEach((key) => this.$arrangement.append(this.list_item(key)));
 	}
 
-	// The pool is everything the surface offers that is not on it -- one place, with nothing to
-	// filter between.
-	render_pool() {
-		const keys = this.all_keys().filter((key) => !this.selection.includes(key));
+	// The preview is the arrangement as the surface renders it, so it holds what is on the
+	// surface and nothing else -- a hidden entry is absent here, which is the whole of what
+	// hiding one does.
+	render_preview() {
+		const shown = this.selection;
 
-		this.$pool.empty();
-		if (!keys.length) {
-			this.$pool.append(`<div class="ws-empty text-muted">${this.copy().pool_empty}</div>`);
+		this.$preview.empty();
+		if (!shown.length) {
+			this.$preview.append(
+				`<div class="ws-empty text-muted">${this.copy().preview_empty}</div>`
+			);
 			return;
 		}
-		keys.forEach((key) => this.$pool.append(this.pool_item(key)));
+		shown.forEach((key) => this.$preview.append(this.preview_item(key)));
+	}
+
+	// What an entry draws as: its own icon, or a lettered tile standing in for one. A surface that
+	// draws no icons answers with nothing and is given no room for one -- see the sidebar, which
+	// is labels the whole way down.
+	entry_icon(entry) {
+		return entry.icon
+			? frappe.utils.icon(entry.icon, "md")
+			: frappe.utils.desktop_icon(entry.label, "gray", "sm", "Solid");
 	}
 
 	item(key, cls) {
 		const entry = this.entries.get(key);
-		const label = entry.label;
-		const icon = entry.icon
-			? frappe.utils.icon(entry.icon, "md")
-			: frappe.utils.desktop_icon(label, "gray", "sm", "Solid");
+		const icon = this.entry_icon(entry);
 		return $(`
 			<div class="ws-item ${cls || ""} ${this.item_classes(key)}" data-key="${frappe.utils.escape_html(
 			key
 		)}">
-				<span class="ws-item-icon">${icon}</span>
-				<span class="ws-item-label">${frappe.utils.escape_html(label)}</span>
+				${icon ? `<span class="ws-item-icon">${icon}</span>` : ""}
+				<span class="ws-item-label">${frappe.utils.escape_html(entry.label)}</span>
 				${this.item_extras(key)}
 			</div>
 		`);
 	}
 
-	selection_item(key) {
-		let $el = this.item(key, "ws-selection-item");
+	list_item(key) {
+		let $el = this.item(
+			key,
+			`ws-arrangement-item ${this.hidden.has(key) ? "ws-item-hidden" : ""}`
+		);
 		$el.prepend(
 			`<span class="ws-item-handle">${frappe.utils.icon("grip-vertical", "sm")}</span>`
 		);
-		this.decorate_selection_item($el, key);
-		let $remove = $(
-			`<button class="ws-item-remove" title="${__("Remove")}">${frappe.utils.icon(
-				"x",
-				"sm"
-			)}</button>`
-		);
-		$remove.on("click", () => this.remove_from_selection(key));
-		$el.append($remove);
+		this.decorate_item($el, key);
+		$el.append(this.visibility_button(key));
 		return $el;
 	}
 
-	pool_item(key) {
-		return this.item(key, "ws-pool-item");
+	// The eye, which is the whole of hide and show: one list, one control, and a row that keeps
+	// its place either way. A surface where some entry does not come off the way the rest do
+	// says so here -- see the sidebar, where an entry the layer itself added is deleted rather
+	// than hidden, because nothing below holds it.
+	visibility_button(key) {
+		const hidden = this.hidden.has(key);
+		let $btn = $(
+			`<button class="ws-item-eye" title="${
+				hidden ? __("Show") : __("Hide")
+			}">${frappe.utils.icon(hidden ? "eye-off" : "eye", "sm")}</button>`
+		);
+		$btn.on("click", () => this.toggle(key));
+		return $btn;
 	}
 
-	setup_selection_sortable() {
-		this.selection_sortable = new Sortable(this.$selection[0], {
-			group: { name: "ws", pull: false, put: true },
+	toggle(key) {
+		if (this.hidden.has(key)) this.hidden.delete(key);
+		else this.hide(key);
+		this.render_panes();
+	}
+
+	// Take an entry off the surface. Hidden rather than dropped, because the arrangement is
+	// stored whole: a row simply left out would keep whatever the layer below said about it and
+	// go on rendering.
+	hide(key) {
+		this.hidden.add(key);
+	}
+
+	// One entry as it will read on the surface. A surface whose entries do not all draw the same
+	// way overrides it -- see the sidebar, where a section header is a header and not a link.
+	preview_item(key) {
+		const entry = this.entries.get(key);
+		const icon = this.entry_icon(entry);
+		return $(`
+			<div class="ws-preview-item ${this.item_classes(key)}">
+				${icon ? `<span class="ws-item-icon">${icon}</span>` : ""}
+				<span class="ws-item-label">${frappe.utils.escape_html(entry.label)}</span>
+			</div>
+		`);
+	}
+
+	setup_sortable() {
+		// a layer switch re-renders, and the list it was bound to is gone
+		if (this.sortable) this.sortable.destroy();
+
+		this.sortable = new Sortable(this.$arrangement[0], {
 			handle: ".ws-item-handle",
 			animation: 150,
 			ghostClass: "ws-item-ghost",
-			// an entry dragged in from the pool: capture its key, drop the cloned node, and
-			// re-render both lists from `this.selection` (our single source of truth)
-			onAdd: (evt) => {
-				const key = $(evt.item).attr("data-key");
-				$(evt.item).remove();
-				if (key && !this.selection.includes(key)) this.selection.push(key);
+			// the preview is what the drag was for, so it follows the drop rather than waiting
+			// for a save -- and the list is redrawn with it, because a surface may have read
+			// something into where the entry landed
+			onUpdate: (evt) => {
+				this.sync_order();
+				this.on_move($(evt.item).attr("data-key"));
 				this.render_panes();
 			},
-			onUpdate: () => this.sync_order(),
 		});
 	}
 
-	setup_pool_sortable() {
-		if (this.pool_sortable) this.pool_sortable.destroy();
-		this.pool_sortable = new Sortable(this.$pool[0], {
-			group: { name: "ws", pull: "clone", put: false },
-			sort: false,
-			animation: 150,
-		});
-	}
-
-	// The arrangement on screen as stored rows: what is on the surface, in order, then
-	// everything else flagged hidden. An entry left out is stored rather than simply omitted --
-	// omitted, it would keep whatever the layer below said about it and go on rendering.
+	// The arrangement on screen as stored rows: every entry, in the order the list holds it,
+	// each carrying whether the eye has it off. An entry left out is stored rather than simply
+	// omitted -- omitted, it would keep whatever the layer below said about it and go on
+	// rendering.
 	//
 	// `row(key, hidden)` is the only part a surface has to supply, because what a stored row
 	// looks like is the one thing the two of them do not share.
 	arranged_rows(row) {
-		return [
-			...this.selection.map((key) => row(key, 0)),
-			...this.all_keys()
-				.filter((key) => !this.selection.includes(key))
-				.map((key) => row(key, 1)),
-		];
+		return this.order.map((key) => row(key, this.hidden.has(key) ? 1 : 0));
 	}
 
 	sync_order() {
-		this.selection = $.map(this.$selection.find(".ws-item"), (el) => $(el).attr("data-key"));
-	}
-
-	remove_from_selection(key) {
-		this.selection = this.selection.filter((k) => k !== key);
-		this.render_panes();
+		this.order = $.map(this.$arrangement.find(".ws-item"), (el) => $(el).attr("data-key"));
 	}
 
 	async save() {

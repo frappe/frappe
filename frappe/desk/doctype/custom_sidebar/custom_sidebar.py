@@ -45,6 +45,14 @@ ADDED_ITEM_FIELDS = (
 # the site's labels and the app's links forever.
 REFERENCE_FIELDS = ("label", "icon")
 
+# Membership is not one of them, and is not an opinion at all: it is arrangement, like order and
+# like `hidden`. Every row a layer holds states it, because a `Check` has no way to spell "no
+# opinion" apart from "not a member" -- and it does not need one, since a save writes the whole
+# arrangement and the editor is handed the membership it is arranging.
+#
+# What makes that safe is where the value comes from: the editor re-reads it only for the row a
+# person actually dragged, so every other row hands back exactly what it was shown.
+
 
 class CustomSidebar(Document):
 	_DOCTYPE_NAME = "Custom Sidebar"
@@ -298,11 +306,18 @@ def apply_sidebar_row(row, item: dict | None) -> dict | None:
 	if row.added:
 		return shape_added_item(row)
 
-	return {**item, **overrides(row)} if item is not None else None
+	if item is None:
+		return None
+
+	return {**item, **overrides(row), "child": int(row.child or 0)}
 
 
 def overrides(row) -> dict:
-	"""What a reference row says about the item it names. An empty field is no opinion."""
+	"""What a reference row *opines* about the item it names. An empty field is no opinion.
+
+	Membership is not here -- see `REFERENCE_FIELDS` -- because it is stated rather than opined,
+	and a blank one means "not a member" rather than "ask the layer below".
+	"""
 	return {field: row.get(field) for field in REFERENCE_FIELDS if row.get(field)}
 
 
@@ -542,8 +557,9 @@ def shape_row(row: dict) -> dict:
 	"""One row of a saved arrangement, narrowed to what its kind is allowed to carry.
 
 	A reference keeps what names the item it refers to -- its link columns, or the `key` it was
-	shown for a row that has no link -- plus `hidden` and the two fields a person can have an
-	opinion about. Everything else the client echoed back is dropped here rather than stored.
+	shown for a row that has no link -- plus what the arrangement says about it (`hidden` and
+	`child`) and the two fields a person can have an opinion about. Everything else the client
+	echoed back is dropped here rather than stored.
 	That is the whole defence against the failure mode that killed full-body storage -- a
 	stored body carries the label, icon, link and filters whether or not the user has a view on
 	them, so one reorder would freeze the site's and the app's forever.
@@ -563,6 +579,11 @@ def shape_row(row: dict) -> dict:
 		shaped.update({field: row.get(field) for field in ADDED_ITEM_FIELDS})
 		# the boot payload calls it `tab`; the row calls it what the base row calls it
 		shaped["navigate_to_tab"] = row.get("navigate_to_tab") or row.get("tab")
+
+	# Which section the row is in, stated last so it is one statement for both kinds of row. It
+	# is kept whatever the row's kind, because where an entry sits is arrangement and every row
+	# of a saved arrangement carries its own.
+	shaped["child"] = int(row.get("child") or 0)
 
 	return shaped
 
