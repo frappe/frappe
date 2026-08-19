@@ -188,7 +188,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 	render_delete_button($item_wrapper, attachment) {
 		const label = __("Delete attachment");
 		const $button = $('<button type="button" class="attachment-gallery-delete"></button>')
-			.html(frappe.utils.icon("trash", "xs"))
+			.html(frappe.utils.icon("delete", "xs"))
 			.attr({ title: label, "aria-label": label })
 			.appendTo($item_wrapper)
 			.tooltip({ delay: { show: 100, hide: 100 }, trigger: "hover" });
