@@ -323,6 +323,9 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				!String(current_docname).startsWith("new-");
 
 			this._docname = current_docname;
+			// After any doc change (including first save), panel must re-render to update
+			// banner visibility (is_new check) and tabs visibility (import_file check).
+			this._panel_rendered = false;
 			if (!is_first_save_rename) {
 				this._step_initialized = false;
 				this._upload_source = null;
@@ -345,13 +348,20 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 	// ---- public interface used by data_import.js ---------------------------
 
-	set_step(step) {
+	set_step(step, { force = false } = {}) {
 		step = Math.max(0, Math.min(cint(step), STEP_COUNT - 1));
+		const step_changed = this.current_step !== step;
 		this.current_step = step;
 		this.frm.wizard_step = step;
 		this.render_stepper();
 		this.render_mobile_header();
-		this.render_panel();
+		// Only re-render the panel if the step actually changed (or forced) to avoid
+		// duplicate API calls (e.g., pending imports count) when refresh_from_frm is
+		// called multiple times for the same step.
+		if (step_changed || force || !this._panel_rendered) {
+			this._panel_rendered = true;
+			this.render_panel();
+		}
 		this.render_status();
 		this.render_footer();
 	}
@@ -689,6 +699,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	 */
 	bind_import_file_upload_complete(control) {
 		const frm = this.frm;
+		const wizard = this;
 		control.on_upload_complete = async function (attachment) {
 			const file_url = attachment?.file_url;
 			if (!file_url) return;
@@ -702,7 +713,9 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			try {
 				if (frm.is_new()) {
 					await frm.save();
-					// after_save triggers preview once the doc has a real name
+					// After first save, force re-render to hide tabs (file now attached).
+					wizard._panel_rendered = false;
+					wizard.set_step(wizard.current_step);
 					return;
 				}
 				if (frm.is_dirty() && !frappe.ui.form.is_saving) {
@@ -713,10 +726,12 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				return;
 			}
 
+			// Force re-render to hide tabs after file attachment.
+			wizard._panel_rendered = false;
+			wizard.set_step(wizard.current_step);
 			frm.trigger("import_file");
 			frm.trigger("update_primary_action");
 			frm.layout?.refresh_dependency();
-			$(frm.wrapper).triggerHandler("form-refresh", [frm]);
 		};
 	}
 

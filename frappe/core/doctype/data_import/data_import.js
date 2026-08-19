@@ -884,10 +884,15 @@ frappe.ui.form.on("Data Import", {
 			};
 		});
 
+		// Build upload notes with max size from system settings
+		const max_bytes = frappe.boot?.max_file_size;
+		const max_mb = max_bytes ? Math.round(max_bytes / (1024 * 1024)) : null;
+
 		frm.get_field("import_file").df.options = {
 			restrictions: {
 				allowed_file_types: [".csv", ".xls", ".xlsx"],
 			},
+			upload_notes: max_mb ? __(".csv, .xlsx up to {0} MB", [max_mb]) : __(".csv, .xlsx"),
 		};
 
 		frm.has_import_file = () => {
@@ -1618,13 +1623,13 @@ frappe.ui.form.on("Data Import", {
 		frm.trigger("toggle_submit_after_import");
 		// Remount Config so the upload dropzone appears once Doc Type is set.
 		if (cint(frm.wizard_step) === 0) {
-			frm._data_import_wizard?.set_step?.(0);
+			frm._data_import_wizard?.set_step?.(0, { force: true });
 		}
 	},
 
 	import_type(frm) {
 		if (cint(frm.wizard_step) === 0) {
-			frm._data_import_wizard?.set_step?.(0);
+			frm._data_import_wizard?.set_step?.(0, { force: true });
 		}
 	},
 
@@ -2840,21 +2845,25 @@ frappe.ui.form.on("Data Import", {
 			const skipped_rows_action =
 				skipped_rows_count > 0
 					? frappe.ui.button.html({
-							label: __("Skipped"),
 							variant: "ghost",
 							size: "xs",
-							icon_left: "download",
-							attrs: { "data-action": "download_skipped_rows" },
+							icon: "download",
+							attrs: {
+								"data-action": "download_skipped_rows",
+								title: __("Download Skipped Rows"),
+							},
 					  })
 					: "";
 			const failed_rows_action =
 				failed_rows > 0
 					? frappe.ui.button.html({
-							label: __("Failed"),
 							variant: "ghost",
 							size: "xs",
-							icon_left: "download",
-							attrs: { "data-action": "export_errored_rows" },
+							icon: "download",
+							attrs: {
+								"data-action": "export_errored_rows",
+								title: __("Download Failed Rows"),
+							},
 					  })
 					: "";
 
