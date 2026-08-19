@@ -347,9 +347,15 @@ const useStudioStore = defineStore("store", () => {
 				}
 			)
 			.then(async () => {
-				await generateAppBuild()
+				const buildError = await generateAppBuild()
 				activePage.value = await fetchPage(selectedPage.value!)
-				if (activeApp.value && activePage.value) {
+				if (!activeApp.value || !activePage.value) return
+				if (buildError) {
+					showBuildErrorDialog(
+						buildError,
+						"The page was published, but the app build failed - it may not reflect your latest changes.",
+					)
+				} else {
 					openPageInBrowser(activeApp.value, activePage.value)
 				}
 			})
@@ -424,11 +430,14 @@ const useStudioStore = defineStore("store", () => {
 				async onSuccess(data: any) {
 					activePage.value = await fetchPage(selectedPage.value!)
 					setAppPages(activeApp.value!.name)
-					openPageInBrowser(activeApp.value!, activePage.value!)
 					const buildError = data?.message?.build_error
 					if (buildError) {
-						showBuildErrorToast(buildError, "App published, but the build failed")
+						showBuildErrorDialog(
+							buildError,
+							"The app was published, but the build failed - published pages may not reflect your latest changes.",
+						)
 					} else {
+						openPageInBrowser(activeApp.value!, activePage.value!)
 						toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
 					}
 				},
@@ -516,36 +525,50 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// build
-	function generateAppBuild() {
-		if (!activeApp.value) return
-		return studioApps.runDocMethod.submit({
-			name: activeApp.value.name,
-			method: "generate_app_build",
-		}, {
-			onSuccess(data: any) {
-				const buildError = data?.message?.build_error
-				if (buildError) {
-					showBuildErrorToast(buildError)
-				} else {
-					toast.success("App build generated")
-				}
-			},
-			onError(error: any) {
-				toast.warning("Skipped app build due to errors", {
-					description: error?.messages?.join(", "),
-					duration: Infinity,
-				})
-			},
-		})
+	async function generateAppBuild(): Promise<{ error_log: string } | null> {
+		if (!activeApp.value) return null
+		try {
+			const data: any = await studioApps.runDocMethod.submit({
+				name: activeApp.value.name,
+				method: "generate_app_build",
+			})
+			const buildError = data?.message?.build_error
+			if (!buildError) {
+				toast.success("App build generated")
+			}
+			return buildError ?? null
+		} catch (error: any) {
+			toast.warning("Skipped app build due to errors", {
+				description: error?.messages?.join(", "),
+				duration: Infinity,
+			})
+			return null
+		}
 	}
 
-	function showBuildErrorToast(buildError: { error_log: string }, title: string = "App build failed") {
-		toast.warning(title, {
-			duration: Infinity,
-			action: {
-				label: "View Error Log",
-				onClick: () => window.open(`/app/error-log/${buildError.error_log}`, "_blank"),
-			},
+	function showBuildErrorDialog(buildError: { error_log: string }, message: string) {
+		dialog.confirm({
+			title: "App build failed",
+			message: `${message} Check the error log for the full build output.`,
+			theme: "yellow",
+			actions: [
+				{
+					label: "View Page",
+					variant: "outline",
+					onClick: () => {
+						if (activeApp.value && activePage.value) {
+							openPageInBrowser(activeApp.value, activePage.value)
+						}
+					},
+				},
+				{
+					label: "View Error Log",
+					variant: "solid",
+					onClick: () => {
+						window.open(`/app/error-log/${buildError.error_log}`, "_blank")
+					},
+				},
+			],
 		})
 	}
 

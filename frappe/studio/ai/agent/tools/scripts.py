@@ -98,7 +98,7 @@ def _write_file_script(ctx, page, source: str) -> str:
 	folder = page.get_folder_path()
 	frappe.create_folder(folder)
 	write_code_file(page, folder, code_field="script", extension="ts", filename=page.get_export_docname())
-	frappe.enqueue_doc("Studio App", page.studio_app, "generate_app_build", queue="long", timeout=1200)
+	frappe.enqueue_doc("Studio App", page.studio_app, "build_app_bundle", queue="long", timeout=1200)
 	return (
 		"Wrote the page script to its code file and started an app rebuild. The change appears on the "
 		"canvas only after the build finishes — tell the user to wait for the rebuild to complete."

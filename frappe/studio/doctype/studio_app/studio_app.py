@@ -170,15 +170,20 @@ class StudioApp(WebsiteGenerator):
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
 
-		from studio.build import StudioAppBuilder
-
 		try:
-			StudioAppBuilder(
-				studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
-			).build()
+			self.build_app_bundle()
 			return {"build_error": None}
 		except Exception as e:
 			return {"build_error": self._log_build_failure(e)}
+
+	def build_app_bundle(self):
+		"""Build the app bundle, raising on failure — background jobs enqueue this
+		so a failed build marks the job as failed instead of looking successful."""
+		from studio.build import StudioAppBuilder
+
+		StudioAppBuilder(
+			studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
+		).build()
 
 	def _log_build_failure(self, exception: Exception) -> dict:
 		error_log = frappe.log_error(
