@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:38+0000\n"
-"PO-Revision-Date: 2026-08-18 19:49\n"
+"PO-Revision-Date: 2026-08-19 20:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1182,7 +1182,7 @@ msgstr "Konto Borttagning Inställningar"
 #: frappe/core/doctype/duckdb_sync/duckdb_sync.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts Manager"
-msgstr "Bokgöring Ansvarig"
+msgstr "Bokföring Ansvarig"
 
 #. Name of a role
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -7036,7 +7036,7 @@ msgstr "Skapa arbetsflöde för att styra tillstånd som {0} går igenom."
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/print_format.js:279
 msgid "Create a {0} document first to preview this print format."
-msgstr "Skapa {0} dokument först för att förhandsgranska detta utskrift format."
+msgstr "Skapa {0} dokument först för att förhandsvisa detta utskrift format."
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:75
 msgid "Create layout"
@@ -9068,7 +9068,7 @@ msgstr "Visning beror på (JS)"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:614
 msgid "Display a sidebar in forms with attachments, preview image, tags, and other details."
-msgstr "Visa sidofält i formulär med bilagor, förhandsgranska bild, taggar och andra detaljer."
+msgstr "Visa sidofält i formulär med bilagor, förhandsvisa bild, taggar och andra detaljer."
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:641
 msgid "Display exact timestamps instead of relative time in the activity timeline."
@@ -21838,7 +21838,7 @@ msgstr "Endast utkast dokument kan ångras"
 
 #: frappe/public/js/frappe/form/sidebar/attachments.js:373
 msgid "Only files up to {0} MB are supported for preview."
-msgstr "Endast filer på upp till {0} MB kan förhandsgranskas."
+msgstr "Endast filer på upp till {0} MB kan förhandsvisas."
 
 #. Label of the only_for (Link) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -23204,7 +23204,7 @@ msgstr "Välj käll tabell"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:434
 msgid "Pick a {0} to preview..."
-msgstr "Välj {0} för att förhandsgranska..."
+msgstr "Välj {0} för att förhandsvisa..."
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -23964,17 +23964,17 @@ msgstr "Tryck på Alt tangent för att visa ytterligare genvägar på Meny och S
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:309
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:215
 msgid "Preview"
-msgstr "Förhandsgranska"
+msgstr "Förhandsvisa"
 
 #. Label of the preview_html (HTML) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Preview HTML"
-msgstr "Förhandsgranska HTML"
+msgstr "Förhandsvisa HTML"
 
 #. Label of the preview_message (Button) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Preview Message"
-msgstr "Förhandsgranska Meddelande"
+msgstr "Förhandsvisa Meddelande"
 
 #: frappe/public/js/form_builder/form_builder.bundle.js:87
 msgid "Preview Mode"
@@ -23997,7 +23997,7 @@ msgstr "Förhandsgranskning på {0}"
 
 #: frappe/email/doctype/email_group/email_group.js:81
 msgid "Preview:"
-msgstr "Förhandsgranska:"
+msgstr "Förhandsvisa:"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/print_format.js:287
 msgid "Preview: {0}"
@@ -29135,14 +29135,14 @@ msgstr "Visa Behörigheter"
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:38
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:86
 msgid "Show Preview"
-msgstr "Förhandsgranska"
+msgstr "Förhandsvisa"
 
 #. Label of the show_preview_popup (Check) field in DocType 'DocType'
 #. Label of the show_preview_popup (Check) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Show Preview Popup"
-msgstr "Visa Förhandsgranska Pop-upp"
+msgstr "Visa Förhandsvisa Pop-upp"
 
 #. Label of the show_processlist (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -33804,7 +33804,7 @@ msgstr "Lossa"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:643
 #: frappe/website/doctype/web_form/web_form.js:83
 msgid "Unpublish"
-msgstr "Avpublicera"
+msgstr "Ångra Publicering"
 
 #. Option for the 'Action' (Select) field in DocType 'Email Flag Queue'
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
