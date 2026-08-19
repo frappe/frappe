@@ -233,7 +233,7 @@ context("List View", () => {
 				description: "cypress: delete on enter",
 			},
 		}).then((res) => {
-			const docname = res.body.message.name;
+			const docname = res.message.name;
 			cy.visit(`/app/todo/${docname}`);
 			cy.title().should("contain", docname);
 
@@ -247,7 +247,7 @@ context("List View", () => {
 				doctype: "ToDo",
 				filters: { name: docname },
 			}).then((list_res) => {
-				expect(list_res.body.message).to.have.length(0);
+				expect(list_res.message).to.have.length(0);
 			});
 		});
 	});
