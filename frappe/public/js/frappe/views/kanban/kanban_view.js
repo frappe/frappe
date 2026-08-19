@@ -731,12 +731,12 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 				default: select_fields[0],
 				reqd: 1,
 			},
-			// Check field for use_kanban_v2
+			// Hidden field — always use Kanban V2 for new boards
 			{
-				fieldtype: "Check",
+				fieldtype: "Int",
 				fieldname: "use_kanban_v2",
-				label: __("Use Kanban V2 (New Experience)"),
-				description: __("Enable the new Kanban experience for this board"),
+				hidden: 1,
+				default: 1,
 			},
 		];
 
