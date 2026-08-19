@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-11 18:25\n"
+"PO-Revision-Date: 2026-08-19 20:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -12164,7 +12164,7 @@ msgstr "Bản đồ nhiệt"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
-msgstr "Xin chào"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
@@ -17486,7 +17486,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr "Chưa có địa chỉ nào được thêm vào."
+msgstr ""
 
 #: frappe/email/doctype/notification/notification.js:195
 msgid "No alerts for today"
@@ -20308,7 +20308,7 @@ msgstr "Chính"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:21
 msgid "Primary Address"
-msgstr "Địa chỉ chính"
+msgstr ""
 
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
