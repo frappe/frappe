@@ -1230,8 +1230,6 @@ def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessi
 
 
 def set_user_password(site, user, password, logout_all_sessions=False):
-	import getpass
-
 	from frappe.utils.password import update_password
 
 	try:
