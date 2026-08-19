@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:38+0000\n"
-"PO-Revision-Date: 2026-08-18 19:49\n"
+"PO-Revision-Date: 2026-08-19 20:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -58,11 +58,11 @@ msgstr "\"{0}\" nije važeći Google Sheets URL"
 
 #: frappe/core/doctype/data_import/importer.py:1423
 msgid "\"{0}\" is not a valid date. Use {1}"
-msgstr "\"{0}\" nije važeći datum. Koristite {1}"
+msgstr "\"{0}\" nije važeći datum. Koristi {1}"
 
 #: frappe/core/doctype/data_import/importer.py:1439
 msgid "\"{0}\" is not a valid datetime. Use {1}"
-msgstr "\"{0}\" nije važeći datum i vrijeme. Koristite {1}"
+msgstr "\"{0}\" nije važeći datum i vrijeme. Koristi {1}"
 
 #: frappe/core/doctype/data_import/importer.py:1403
 msgid "\"{0}\" is not a valid {1}"
@@ -82,7 +82,7 @@ msgstr "\"{0}\" nije važeće. Dozvoljeno: {1}"
 
 #: frappe/core/doctype/data_import/importer.py:1453
 msgid "\"{0}\" is not valid. Use duration format: d h m s"
-msgstr "\"{0}\" nije važeći. Koristite format trajanja: d h m s"
+msgstr "\"{0}\" nije važeći. Koristi format trajanja: d h m s"
 
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:21
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:22
@@ -343,7 +343,7 @@ msgstr "<b>{0}</b> nije važeći URL"
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr "<div class=\"alert\">Ne ažuriraj jer to može pokvariti vaš obrayac. Koristite Prilagodi Prikaz Obrasca i Prilagođena Polja da postavi svojstva!</div>"
+msgstr "<div class=\"alert\">Ne ažuriraj jer to može pokvariti vaš obrazac. Koristi Prilagodi Prikaz Obrasca i Prilagođena Polja da se postave svojstva!</div>"
 
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
@@ -795,7 +795,7 @@ msgid "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 "</ul>\n"
 "<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
 msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
-"<p>Uslovi bi trebali biti napisani u jednostavnom Pythonu. Koristite samo svojstva dostupna u obrascu.</p>\n"
+"<p>Uslovi bi trebali biti napisani u jednostavnom Pythonu. Koristi samo svojstva dostupna u obrascu.</p>\n"
 "<p>Dopuštene funkcije:\n"
 "</p><ul>\n"
 "<li>frappe.db.get_value</li>\n"
@@ -7051,7 +7051,7 @@ msgstr "Izradi ili Uredi Radni Tok"
 
 #: frappe/public/js/frappe/list/list_view.js:715
 msgid "Create your first {0} to get started."
-msgstr "Izradi svoj prvi {0} da biste započeli."
+msgstr "Izradi prvi {0} da biste započeli."
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -20657,7 +20657,7 @@ msgstr "Nema neuspjelih zapisa"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:664
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr "Nisu pronađena polja koja se mogu koristiti kao kolona Oglasne Table. Koristite obrazac za prilagođavanje da dodate prilagođeno polje tipa \"Odaberi\"."
+msgstr "Nisu pronađena polja koja se mogu koristiti kao kolona Oglasne Table. Koristi obrazac za prilagođavanje da dodate prilagođeno polje tipa \"Odaberi\"."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:87
 msgid "No fields match your search."
@@ -34173,7 +34173,7 @@ msgstr "Koristi IMAP"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Use Number Format from Currency"
-msgstr "Koristite Brojčani komma Format iz Valute"
+msgstr "Koristi Brojčani komma Format iz Valute"
 
 #. Label of the use_post (Check) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
@@ -34210,7 +34210,7 @@ msgstr "Koristi TLS"
 
 #: frappe/utils/password_strength.py:191
 msgid "Use a few uncommon words together."
-msgstr "Koristite nekoliko neuobičajenih riječi zajedno."
+msgstr "Koristi nekoliko neuobičajenih riječi zajedno."
 
 #: frappe/utils/password_strength.py:44
 msgid "Use a few words, avoid common phrases."
@@ -34218,7 +34218,7 @@ msgstr "Koristi nekoliko riječi, izbjegavaj uobičajene fraze."
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:134
 msgid "Use ampersand to match multiple terms"
-msgstr "Koristite ampersand za usklađivanje više pojmova"
+msgstr "Koristi ampersand za usklađivanje više pojmova"
 
 #. Label of the login_id_is_different (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -34877,7 +34877,7 @@ msgstr "Vrijednost za Provjeru"
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Value to set when this workflow state is applied. Use plain text (e.g. Approved) or an expression if “Evaluate as Expression” is enabled."
-msgstr "Vrijednost koju treba postaviti kada se primijeni ovo stanje radnog procesa. Koristite običan tekst (npr. Odobreno) ili izraz ako je omogućeno \"Procijeni kao izraz\"."
+msgstr "Vrijednost koju treba postaviti kada se primijeni ovo stanje radnog procesa. Koristi običan tekst (npr. Odobreno) ili izraz ako je omogućeno \"Procijeni kao izraz\"."
 
 #: frappe/model/base_document.py:1343
 msgid "Value too big"
