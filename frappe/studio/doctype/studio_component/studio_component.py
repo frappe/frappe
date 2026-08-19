@@ -60,20 +60,14 @@ COMPONENT_INPUT_FIELDS = ("input_name", "type", "description", "options", "requi
 
 
 def get_components_for_blocks(blocks) -> list[dict]:
-	"""Definitions of every component a blocks tree renders, including components
-	nested inside other components' blocks, so the renderer gets the whole page in
-	one payload (see get_page). This is the only way component definitions reach
-	users without Studio roles — visibility follows page visibility; the editor
-	reads components through the standard document API under DocType permissions.
-
+	"""Returns definitions of every studio component in block tree
 	Fetched in bulk, one round per nesting level, so queries scale with component
 	depth rather than component count."""
 	components = []
 	requested = set()
 	to_fetch = extract_component_names(blocks)
 	while to_fetch:
-		# dangling references drop out of the fetch; the renderer shows its
-		# missing-component fallback for them
+		# missing references drop out of the fetch
 		components += fetch_component_batch(to_fetch)
 		requested |= to_fetch
 		to_fetch = nested_component_names(components) - requested

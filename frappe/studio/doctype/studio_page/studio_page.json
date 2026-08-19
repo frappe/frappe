@@ -69,7 +69,7 @@
   },
   {
    "default": "0",
-   "description": "Render this page for logged-out visitors. Its layout and script become publicly readable; data it fetches stays permission-checked.",
+   "description": "Render this page for logged-out visitors. Its layout and script become publicly readable; data it fetches depends on the data source permissions",
    "fieldname": "allow_guest",
    "fieldtype": "Check",
    "in_standard_filter": 1,
@@ -142,7 +142,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-17 17:44:03.928540",
+ "modified": "2026-08-19 16:40:26.071762",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
