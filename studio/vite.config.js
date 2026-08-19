@@ -77,7 +77,8 @@ export default defineConfig(async () => {
 			}),
 			...frameworkUIPlugins,
 			studioRootAlias(),
-			sharedDependencyResolver(path.resolve(__dirname, "..")),
+			// Root must be the frontend dir
+			sharedDependencyResolver(path.resolve(__dirname)),
 			studioFolderWatcher(appsDir),
 		],
 		resolve: {
