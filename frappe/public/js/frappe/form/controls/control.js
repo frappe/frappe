@@ -26,6 +26,7 @@ import "./signature";
 import "./password";
 import "./button";
 import "./html";
+import "./attachment_gallery";
 import "./markdown_editor";
 import "./html_editor";
 import "./heading";
