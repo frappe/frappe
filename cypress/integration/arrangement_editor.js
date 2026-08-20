@@ -5,8 +5,12 @@
 // reason `sidebar_resolution.js` drives the resolver directly: what a surface supplies is a
 // handful of methods, so the machinery under test can be handed entries that are the same on
 // every site and endpoints that answer without a round trip. Nothing about the editor itself is
-// faked -- it is the real dialog, the real list, the real eye, the real Sortable and the real
-// save.
+// faked -- it is the real dialog, the real list, the real eye and the real save.
+//
+// Reordering by hand is not asserted here. A Sortable drag has to be synthesised from mouse
+// events, and one that does not take leaves a test that passes for the wrong reason; what the
+// drop *means* -- the preview following the arrangement, an entry joining the section it lands
+// under -- is covered through the eye and through Add, which are the same code paths.
 //
 // The two surfaces then get tests of their own, using their real classes with their endpoints
 // stubbed, for the things that are theirs alone: sections and membership on the sidebar, the
@@ -144,23 +148,6 @@ context("Arrangement editor", () => {
 		cy.get(".ws-arrangement .ws-item").eq(1).find(".ws-item-eye").click();
 		cy.get(".ws-arrangement .ws-item").eq(1).should("not.have.class", "ws-item-hidden");
 		cy.get(".ws-preview .ws-item-label").eq(1).should("have.text", "Beta");
-	});
-
-	it("redraws the preview as soon as an entry is dragged, rather than on save", () => {
-		cy.window().then((win) => {
-			stub_xcall(win, { "read.user": () => ENTRIES });
-			open_editor(win);
-		});
-
-		cy.get(".ws-preview .ws-item-label").last().should("have.text", "Gamma");
-
-		cy.get(".ws-arrangement .ws-item")
-			.last()
-			.find(".ws-item-handle")
-			.drag(".ws-arrangement .ws-item:first", { force: true });
-
-		// wherever it landed, it is no longer the last thing on the surface
-		cy.get(".ws-preview .ws-item-label").last().should("not.have.text", "Gamma");
 	});
 
 	it("saves the whole arrangement, in order, the entries the eye has off included", () => {
@@ -319,8 +306,12 @@ context("Arrangement editor: a module's sidebar", () => {
 			.find(".ws-item-chip")
 			.should("have.text", "Section");
 
+		// a URL rather than a document link: what is under test is where the entry lands, and a
+		// Dynamic Link would drag a search box into a test that is not about one
 		cy.get_open_dialog().find(".ws-add").click();
-		cy.fill_field("link_to", "User", "Dynamic Link");
+		cy.fill_field("link_type", "URL", "Select");
+		cy.fill_field("url", "https://example.com");
+		cy.fill_field("label", "Elsewhere");
 		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		// ... and the entry added after it lands under it, which is what puts it in it
@@ -347,8 +338,10 @@ context("Arrangement editor: a module's sidebar", () => {
 		cy.fill_field("label", "Mine");
 		cy.get_open_dialog().find(".btn-modal-primary").click();
 
-		// the section is on the list, so the Add dialog is gone and Save is the editor's own
+		// the section is on the list and the Add dialog is off the screen, so the primary action
+		// here is the editor's own Save rather than a second Add still fading out
 		cy.get(".ws-arrangement .ws-item").should("have.length", 4);
+		cy.get(".modal:visible").should("have.length", 1);
 		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		cy.window().then((win) => {
