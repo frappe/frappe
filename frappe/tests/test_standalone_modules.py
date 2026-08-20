@@ -45,6 +45,15 @@ class StandaloneModuleTestCase(IntegrationTestCase):
 			"label": workspace.title,
 		}
 
+	def without_its_own_page(self, module: str):
+		"""Take away the page the module arrived with.
+
+		A module a person creates is minted with the page it opens on (`ModuleDef.after_insert`),
+		and that page is a workspace -- so a module is never *born* without one. A test about a
+		module that holds no workspace has to say so by removing it.
+		"""
+		frappe.delete_doc("Workspace", module, force=True, ignore_missing=True)
+
 	def make_workspace(self, module: str, name: str, sequence_id: int = 1):
 		doc = frappe.get_doc(
 			{
@@ -126,6 +135,7 @@ class TestAnUnplacedModuleIsTheTile(StandaloneModuleTestCase):
 		filters as query params -- is `generate_route`'s job on the client, and duplicating
 		it here would be a second routing implementation to keep in step."""
 		with custom_module("Test Routeless Standalone Module") as module:
+			self.without_its_own_page(module)
 			make_report(module, "Test Routeless Standalone Report")
 
 			entry = self.entry(module)
