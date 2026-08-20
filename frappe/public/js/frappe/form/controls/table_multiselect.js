@@ -93,6 +93,65 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	_get_rows() {
 		return this.get_model_value() || this.rows;
 	}
+	on_input(e) {
+		// Web Forms can be public (login_required=0), where the visitor is a Guest.
+		// The inherited ControlLink.on_input() always searches via
+		// frappe.desk.search.search_link, which is whitelisted for logged-in users
+		// only, so it throws "Not permitted" for anonymous visitors. Route through a
+		// Guest-safe endpoint instead when rendered inside a web form; Desk behaviour
+		// (frappe.web_form is undefined there) is unchanged.
+		if (!frappe.web_form) {
+			return super.on_input(e);
+		}
+
+		const term = e ? e.target.value : this.$input.val();
+		const doctype = this.get_options();
+		if (!doctype) return;
+
+		const cache = this.$input.cache;
+		if (!cache[doctype]) {
+			cache[doctype] = {};
+		}
+
+		if (cache[doctype][term] != null) {
+			this.awesomplete.list = cache[doctype][term];
+		}
+
+		frappe.call({
+			type: "POST",
+			method: "frappe.website.doctype.web_form.web_form.search_multiselect_link_options",
+			no_spinner: true,
+			args: {
+				web_form_name: frappe.web_form.name,
+				doctype: doctype,
+				txt: term,
+				web_form_request_key: frappe.web_form.web_form_request_key,
+			},
+			callback: (r) => {
+				if (!window.Cypress && !this.$input.is(":focus")) return;
+
+				const message = r.message || [];
+				cache[doctype][term] = message;
+				this.awesomplete.list = message;
+				message.forEach((item) => {
+					frappe.utils.add_link_title(doctype, item.value, item.label);
+				});
+			},
+		});
+	}
+	validate_multiselect_link_for_webform(value) {
+		if (!value) return value;
+
+		const link_field = this.get_link_field();
+		return frappe
+			.xcall("frappe.website.doctype.web_form.web_form.validate_multiselect_link", {
+				web_form_name: frappe.web_form.name,
+				doctype: link_field.options,
+				docname: value,
+				web_form_request_key: frappe.web_form.web_form_request_key,
+			})
+			.then((validated_value) => validated_value || null);
+	}
 	_update_rows(rows) {
 		this.rows = rows;
 
@@ -157,7 +216,11 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		}
 
 		if (!this.df.ignore_link_validation) {
-			const validated_value = await this.validate_link_and_fetch(link_value);
+			// frappe.client.validate_link_and_fetch (used by validate_link_and_fetch below)
+			// is also login-only, so it throws for Guests on a public web form.
+			const validated_value = frappe.web_form
+				? await this.validate_multiselect_link_for_webform(link_value)
+				: await this.validate_link_and_fetch(link_value);
 			if (frappe.utils.is_empty(validated_value)) {
 				return all_rows_except_last;
 			}

@@ -1129,7 +1129,7 @@ def has_link_option(fields, doctype):
 	for f in fields:
 		if f.options == doctype:
 			return True
-		if f.fieldtype == "Table" and f.options:
+		if f.fieldtype in ("Table", "Table MultiSelect") and f.options:
 			child_doctype = f.options
 			if not isinstance(child_doctype, str) or not child_doctype.strip():
 				continue
@@ -1197,6 +1197,115 @@ def get_link_options(
 
 		# Use the actual names as options without labels
 		return "\n".join([str(doc.value) for doc in link_options])
+
+
+def _validate_multiselect_link_access(
+	web_form_name: str, doctype: str, web_form_request_key: str | None = None
+) -> "WebForm":
+	"""Shared Guest-access gate for Table MultiSelect search/validation below.
+
+	Mirrors get_link_options()'s security checks (Guest Key gating via
+	key_required/web_form_request_key, ensure_guest_key_link_doctype_allowed,
+	and the has_link_option() doctype allow-list), so a Table MultiSelect field
+	gets the same access posture as a plain Link field on the same web form.
+	"""
+	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
+
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
+	if getattr(web_form, "key_required", False):
+		get_web_form_request(
+			web_form.name,
+			web_form_request_key,
+			required=True,
+			allow_used=True,
+		)
+
+	ensure_guest_key_link_doctype_allowed(web_form, doctype)
+
+	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype),
+			frappe.PermissionError,
+		)
+
+	return web_form
+
+
+@frappe.whitelist(allow_guest=True)
+def search_multiselect_link_options(
+	web_form_name: str,
+	doctype: str,
+	txt: str = "",
+	page_length: int = 10,
+	allow_read_on_all_link_options: bool = False,
+	web_form_request_key: str | None = None,
+):
+	"""Guest-safe live search for Table MultiSelect fields on Web Forms.
+
+	frappe.ui.form.ControlTableMultiSelect searches via frappe.desk.search.search_link,
+	which is whitelisted for logged-in users only, so this field type is unusable for
+	anonymous visitors on a public (login_required=0) web form. Unlike plain Link
+	fields, which get_link_options() above fully preloads into a static Autocomplete,
+	Table MultiSelect needs incremental search-as-you-type to support picking several
+	values, so this keeps a live search but gates it the same way.
+	"""
+	web_form = _validate_multiselect_link_access(web_form_name, doctype, web_form_request_key)
+
+	filters = {}
+	if web_form.login_required and not cint(allow_read_on_all_link_options):
+		filters = {"owner": frappe.session.user}
+
+	meta = frappe.get_meta(doctype)
+	show_title_field = meta.title_field and meta.show_title_field_in_link
+
+	fields = ["name as value"]
+	if show_title_field:
+		fields.append(f"{meta.title_field} as label")
+
+	or_filters = []
+	txt = (txt or "").strip()
+	if txt:
+		or_filters.append(["name", "like", f"%{txt}%"])
+		if meta.title_field:
+			or_filters.append([meta.title_field, "like", f"%{txt}%"])
+
+	results = frappe.get_all(
+		doctype,
+		filters=filters,
+		or_filters=or_filters,
+		fields=fields,
+		page_length=cint(page_length) or 10,
+	)
+
+	if show_title_field and meta.translated_doctype:
+		return [{"value": r.value, "label": _(r.label)} for r in results]
+	if meta.translated_doctype:
+		return [{"value": r.value, "label": _(r.value)} for r in results]
+
+	return [{"value": r.value, "label": r.get("label")} for r in results]
+
+
+@frappe.whitelist(allow_guest=True)
+def validate_multiselect_link(
+	web_form_name: str,
+	doctype: str,
+	docname: str,
+	web_form_request_key: str | None = None,
+):
+	"""Guest-safe existence check for a value picked in a Table MultiSelect field.
+
+	ControlTableMultiSelect.validate() calls frappe.client.validate_link_and_fetch
+	after a value is chosen, which is also whitelisted for logged-in users only -
+	so even after search_multiselect_link_options() above fixes the search, picking
+	a value would still throw for anonymous visitors without this.
+	"""
+	_validate_multiselect_link_access(web_form_name, doctype, web_form_request_key)
+
+	if not frappe.db.exists(doctype, docname):
+		return None
+
+	return docname
 
 
 @redis_cache(ttl=60 * 60)
