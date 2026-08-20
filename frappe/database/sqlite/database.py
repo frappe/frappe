@@ -2,7 +2,15 @@ import re
 import sqlite3
 import warnings
 from datetime import date, datetime, time
+from functools import lru_cache
 from pathlib import Path
+
+import sqlglot
+import sqlparse
+from pypika.queries import QueryBuilder
+from sqlglot import expressions as exp
+from sqlglot.errors import ErrorLevel, SqlglotError
+from sqlparse import tokens as sqlparse_tokens
 
 import frappe
 from frappe.database.database import (
@@ -12,10 +20,12 @@ from frappe.database.database import (
 )
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.database.utils import convert_backtick_identifiers
-from frappe.utils import get_table_name
+from frappe.utils import get_table_name, now
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
+# matches both bare `%s` and named `%(param)s` DB-API placeholders
+_PARAM_COMP = re.compile(r"%\(\w+\)s|%s")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
+_TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
 
 class SequenceGeneratorLimitExceeded(sqlite3.Error):
@@ -118,6 +128,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		conn = self.create_connection(read_only)
 		conn.create_function("regexp", 2, regexp)
 		conn.create_function("regexp_replace", 3, regexp_replace)
+		conn.create_function("regexp_like", 2, regexp_like)
+		conn.create_function("now", 0, now)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
@@ -494,13 +506,23 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return mogrified_query
 
 	def sql(self, *args, **kwargs):
-		if args:
+		query = args[0] if args else kwargs.get("query")
+		skip_transpilation = kwargs.pop("_skip_sqlite_transpilation", False) or isinstance(
+			query, QueryBuilder
+		)
+		if args and not skip_transpilation:
 			# since tuple is immutable
 			args = list(args)
-			args[0] = modify_query(args[0])
+			args[0], positional_parameter_order = _modify_query(args[0])
+			if len(args) > 1:
+				args[1] = _reorder_positional_values(args[1], positional_parameter_order)
+			elif "values" in kwargs:
+				kwargs["values"] = _reorder_positional_values(kwargs["values"], positional_parameter_order)
 			args = tuple(args)
-		elif kwargs.get("query"):
-			kwargs["query"] = modify_query(kwargs.get("query"))
+		elif kwargs.get("query") and not skip_transpilation:
+			kwargs["query"], positional_parameter_order = _modify_query(kwargs["query"])
+			if "values" in kwargs:
+				kwargs["values"] = _reorder_positional_values(kwargs["values"], positional_parameter_order)
 
 		return super().sql(*args, **kwargs)
 
@@ -606,15 +628,108 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 
 def modify_query(query):
-	"""
-	Modifies query according to the requirements of SQLite
-	"""
-	# Replace ` with " only where a backtick delimits an identifier
+	"""Translate raw MariaDB-style SQL into SQLite SQL."""
+	return _modify_query(query)[0]
+
+
+def _modify_query(query) -> tuple[str, tuple[int, ...]]:
 	query = str(query)
+	transpiled = _transpile_to_sqlite(query)
+	return transpiled if transpiled is not None else (_legacy_modify_query(query), ())
+
+
+@lru_cache(maxsize=1024)
+def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
+	"""Returns the query rewritten for SQLite, or None if sqlglot couldn't
+	parse it (as MariaDB SQL), or didn't parse it as one of _TRANSPILABLE_STATEMENTS.
+
+	`%s` / `%(name)s` DB-API placeholders aren't valid MySQL expressions on their own. They are replaced only when they are SQL placeholder tokens, so identical text inside strings and comments remains the same.
+	"""
+	try:
+		masked_query, parameters = _mask_query_parameters(query)
+		parsed_queries = sqlglot.parse(masked_query, read="mysql")
+		if len(parsed_queries) != 1 or parsed_queries[0] is None:
+			return None
+
+		parsed = parsed_queries[0]
+		if not isinstance(parsed, _TRANSPILABLE_STATEMENTS):
+			return None
+
+		# SQLite has no row-level locks. Remove only this known incompatibility;
+		# any other unsupported construct must take the safe fallback below.
+		for select in parsed.find_all(exp.Select):
+			select.set("locks", None)
+
+		rewritten = parsed.sql(dialect="sqlite", unsupported_level=ErrorLevel.RAISE)
+		return _restore_query_parameters(rewritten, parameters)
+	except (SqlglotError, ValueError):
+		return None
+
+
+def _mask_query_parameters(query: str) -> tuple[str, dict[str, tuple[str, int | None]]]:
+	parameters = {}
+	parts = []
+	marker_prefix = "__frappe_sql_parameter_"
+	while marker_prefix in query:
+		marker_prefix = f"_{marker_prefix}"
+	positional_index = 0
+
+	for statement in sqlparse.parse(query):
+		for token in statement.flatten():
+			if token.ttype in sqlparse_tokens.Name.Placeholder and _PARAM_COMP.fullmatch(token.value):
+				marker = f":{marker_prefix}{len(parameters)}"
+				position = positional_index if token.value == "%s" else None
+				parameters[marker] = (token.value, position)
+				parts.append(marker)
+				if position is not None:
+					positional_index += 1
+			else:
+				parts.append(token.value)
+	return "".join(parts), parameters
+
+
+def _restore_query_parameters(
+	query: str, parameters: dict[str, tuple[str, int | None]]
+) -> tuple[str, tuple[int, ...]]:
+	parts = []
+	restored_markers = set()
+	positional_parameter_order = []
+
+	for statement in sqlparse.parse(query):
+		for token in statement.flatten():
+			if token.ttype in sqlparse_tokens.Name.Placeholder and token.value in parameters:
+				marker = token.value
+				placeholder, position = parameters[marker]
+				token.value = placeholder
+				restored_markers.add(marker)
+				if position is not None:
+					positional_parameter_order.append(position)
+			parts.append(token.value)
+
+	if restored_markers != set(parameters):
+		raise ValueError("SQLGlot removed a query placeholder")
+	return "".join(parts), tuple(positional_parameter_order)
+
+
+def _reorder_positional_values(values, positional_parameter_order: tuple[int, ...]):
+	if (
+		not isinstance(values, list | tuple)
+		or not positional_parameter_order
+		or positional_parameter_order == tuple(range(len(positional_parameter_order)))
+	):
+		return values
+
+	reordered = (values[index] for index in positional_parameter_order)
+	return list(reordered) if isinstance(values, list) else tuple(reordered)
+
+
+def _legacy_modify_query(query: str) -> str:
+	"""Fallback for queries sqlglot can't parse"""
+	# Replace backticks only when they delimit identifiers. Literal backticks in
+	# strings and comments must survive the fallback translation unchanged.
 	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_instr(query)
 
-	# Select from requires ""
 	if re.search("from tab", query, flags=re.IGNORECASE):
 		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
 
@@ -628,12 +743,14 @@ def replace_locate_with_instr(query: str) -> str:
 	return query
 
 
-def regexp(expr: str, item: str) -> bool:
+def regexp(expr: str | None, item: str | None) -> bool | None:
 	"""
 	Define regexp implementation for SQLite manually
 
 	Although it works in the CLI - doesn't work through python
 	"""
+	if expr is None or item is None:
+		return None
 	return re.search(expr, item) is not None
 
 
@@ -642,3 +759,7 @@ def regexp_replace(item: str, pattern: str, repl: str) -> str:
 	Define regexp_replace implementation for SQLite
 	"""
 	return re.sub(pattern, repl, item)
+
+
+def regexp_like(item: str | None, expr: str | None) -> bool | None:
+	return regexp(expr, item)
