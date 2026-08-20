@@ -13,9 +13,7 @@ class TestSitemap(FrappeTestCase):
 		xml = get_html_for_route("sitemap.xml")
 		self.assertTrue("/about</loc>" in xml)
 		self.assertTrue("/contact</loc>" in xml)
-<<<<<<< HEAD
 		self.assertTrue(blogs[0].route in xml)
-=======
 
 	def test_dynamic_routes_excluded(self):
 		web_page = frappe.get_doc(
@@ -37,4 +35,3 @@ class TestSitemap(FrappeTestCase):
 		finally:
 			web_page.delete()
 			get_public_pages_from_doctypes.clear_cache()
->>>>>>> 07314557d0 (fix: exclude dynamic routes from sitemap.xml)
