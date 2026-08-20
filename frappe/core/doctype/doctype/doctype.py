@@ -1741,14 +1741,17 @@ def validate_fields(meta: Meta):
 		if not link_filters_value:
 			return
 
-		try:
-			link_filters = json.loads(link_filters_value)
-		except (TypeError, ValueError):
-			frappe.throw(
-				_("Invalid Link Filters for field {0}. Link Filters must be valid JSON.").format(
-					frappe.bold(docfield.label or docfield.fieldname)
+		if isinstance(link_filters_value, (list, dict)):
+			link_filters = link_filters_value
+		else:
+			try:
+				link_filters = json.loads(link_filters_value)
+			except (TypeError, ValueError):
+				frappe.throw(
+					_("Invalid Link Filters for field {0}. Link Filters must be valid JSON.").format(
+						frappe.bold(docfield.label or docfield.fieldname)
+					)
 				)
-			)
 
 		if not isinstance(link_filters, list) or any(
 			not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in link_filters
