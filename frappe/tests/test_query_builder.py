@@ -814,7 +814,7 @@ class TestBuilderSQLite(IntegrationTestCase, TestBuilderBase):
 
 		self.assertEqual(
 			frappe.db.sql(
-				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
 				("row",),
 			)[0],
 			("new", "preserved"),
@@ -836,7 +836,7 @@ class TestBuilderSQLite(IntegrationTestCase, TestBuilderBase):
 
 		self.assertEqual(
 			frappe.db.sql(
-				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
 				("row",),
 			)[0],
 			("old", "preserved"),
@@ -862,7 +862,7 @@ class TestBuilderSQLite(IntegrationTestCase, TestBuilderBase):
 		query.run()
 		self.assertEqual(
 			frappe.db.sql(
-				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
 				("row",),
 			)[0],
 			("forced", "preserved"),
@@ -885,7 +885,7 @@ class TestBuilderSQLite(IntegrationTestCase, TestBuilderBase):
 
 		self.assertEqual(
 			frappe.db.sql(
-				f'SELECT "mutable", "immutable" FROM "{self.table_name}" WHERE "identity" = %s',
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
 				("row",),
 			)[0],
 			("new", "preserved"),

@@ -170,6 +170,9 @@ def execute_query(query, *args, **kwargs):
 	child_queries = query._child_queries
 	name_field_injected = query.__dict__.get("_name_field_injected", False)
 	query, params = prepare_query(query)
+	if frappe.local.db.db_type == "sqlite":
+		# The SQLite query builder already emitted the target dialect.
+		kwargs["_skip_sqlite_transpilation"] = True
 	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
 
 	if child_queries and isinstance(child_queries, list) and result:
