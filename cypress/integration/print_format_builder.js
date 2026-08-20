@@ -110,7 +110,8 @@ context("Print Format Builder — create flow", () => {
 		);
 		cy.location("pathname").then((path) => {
 			const created = decodeURIComponent(path.split("/").pop());
-			expect(created).to.contain("Cypress PF");
+			// match on the unique suffix — cy.type can drop leading characters
+			expect(created).to.contain(PF_NAME.split(" ").pop());
 			PF_NAME = created;
 			cy.call("frappe.client.get_value", {
 				doctype: "Print Format",
@@ -146,7 +147,8 @@ context("Print Format Builder — create flow", () => {
 		);
 		cy.location("pathname").then((path) => {
 			const created = decodeURIComponent(path.split("/").pop());
-			expect(created).to.contain("Cypress PF");
+			// match on the unique suffix — cy.type can drop leading characters
+			expect(created).to.contain(PF_NAME.split(" ").pop());
 			PF_NAME = created;
 			cy.call("frappe.client.get_value", {
 				doctype: "Print Format",
