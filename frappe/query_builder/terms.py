@@ -3,7 +3,7 @@ from typing import Any
 
 from pypika.dialects import SQLLiteValueWrapper
 from pypika.queries import QueryBuilder
-from pypika.terms import BasicCriterion, ComplexCriterion, Criterion, Field, Function, ValueWrapper
+from pypika.terms import Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
 
 import frappe
@@ -125,60 +125,3 @@ class SubQuery(Criterion):
 
 
 subqry = SubQuery
-
-# ================================================================================
-# Monkey-patching PyPika Classes used to generate sql through custom `get_sql` method.
-# Main intention is to use `f-strings` to speed up formatting, which add too much latency otherwise due to `.format` coupled with keyword arguements.
-# NOTE: A better/cleaner way would be to maintain Py-Pika fork, as everything is PATCHED at this point :(
-# There is possibility for use of original symbol for PyPika depending upon where such symbol is loaded.
-# For frappe `qb` though, we seems to using expected PATCHED classes, hence benefitting almost all SQL queries generation !
-
-
-# patching `pypika/utils/format_quotes` function.
-def format_quotes_patched(value: Any, quote_char: str | None) -> str:
-	if not (quote_char):
-		quote_char = ""
-	return f"{quote_char}{value}{quote_char}"
-
-
-# patching `terms/Field class get_sql`
-class FieldPatched(Field):
-	def get_sql(self, **kwargs: Any) -> str:
-		# print("hello from patched.. Field")
-		with_alias = kwargs.pop("with_alias", False)
-		with_namespace = kwargs.pop("with_namespace", False)
-		quote_char = kwargs.pop("quote_char", None)
-
-		# Need to add namespace if the table has an alias
-		if self.table and (with_namespace or self.table.alias):
-			table_name = self.table.get_table_name()
-			field_sql = f"{quote_char}{table_name}{quote_char}.{quote_char}{self.name}{quote_char}"
-		else:
-			field_sql = format_quotes_patched(self.name, quote_char)
-		if with_alias:
-			field_alias = getattr(self, "alias", None)
-			return format_alias_sql(field_sql, field_alias, quote_char=quote_char, **kwargs)
-		return field_sql
-
-
-# patching `terms/BasicCriterion class get_sql`
-class BasicCriterionPatched(BasicCriterion):
-	def get_sql(self, quote_char: str = '"', with_alias: bool = False, **kwargs: Any) -> str:
-		# print("Fdafas")
-		# print("hello from patched.. basic")
-		sql = f"{self.left.get_sql(quote_char=quote_char, **kwargs)}{self.comparator.value}{self.right.get_sql(quote_char=quote_char, **kwargs)}"
-		if with_alias:
-			return format_alias_sql(sql, self.alias, **kwargs)
-		return sql
-
-
-class ComplexCriterionPatched(ComplexCriterion):
-	def get_sql(self, subcriterion: bool = False, **kwargs: Any) -> str:
-		# print("hello from patched.. complex")
-		sql = f"{self.left.get_sql(subcriterion=self.needs_brackets(self.left), **kwargs)} {self.comparator.value} {self.right.get_sql(subcriterion=self.needs_brackets(self.right), **kwargs)}"
-		if subcriterion:
-			return f"({sql})"
-		return sql
-
-
-# =====================================================================================
