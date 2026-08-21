@@ -74,11 +74,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-01-28 15:58:11.939407",
-=======
  "modified": "2026-08-21 23:24:24.285309",
->>>>>>> 94e20b2f70 (fix(permissions): grant select on link targets to roles that need them (#42014))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
