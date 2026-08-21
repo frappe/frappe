@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-18 19:50\n"
+"PO-Revision-Date: 2026-08-21 20:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Traditional\n"
 "MIME-Version: 1.0\n"
@@ -826,17 +826,17 @@ msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:16
 msgid "Accept Invitation"
-msgstr ""
+msgstr "接受邀請"
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "已接受"
 
 #. Label of a Datetime field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted At"
-msgstr ""
+msgstr "接受時間"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -8169,7 +8169,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/controls/base_input.js:182
 msgid "Documentation"
-msgstr ""
+msgstr "說明文件"
 
 #. Label of a Data field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -13703,7 +13703,7 @@ msgstr ""
 
 #: frappe/core/api/user_invitation.py:132
 msgid "Invalid or expired key"
-msgstr ""
+msgstr "金鑰無效或已過期"
 
 #: frappe/website/doctype/website_settings/website_settings.py:139
 msgid "Invalid redirect regex in row #{}: {}"
@@ -13788,7 +13788,7 @@ msgstr ""
 #. Label of a Link field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Invited By"
-msgstr ""
+msgstr "邀請者"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:22
 msgid "Is"
@@ -13869,7 +13869,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/treeview.js:384
 msgid "Is Group"
-msgstr ""
+msgstr "是否為群組"
 
 #. Label of a Check field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -14528,7 +14528,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:657
 msgid "Last 6 Months"
-msgstr ""
+msgstr "最近 6 個月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:629
 msgid "Last 7 Days"
@@ -16232,7 +16232,7 @@ msgstr ""
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Mobile Number"
-msgstr ""
+msgstr "行動電話號碼"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -17052,7 +17052,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:709
 msgid "Next 6 Months"
-msgstr ""
+msgstr "未來 6 個月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:685
 msgid "Next 7 Days"
@@ -17084,11 +17084,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:701
 msgid "Next Month"
-msgstr ""
+msgstr "下個月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:705
 msgid "Next Quarter"
-msgstr ""
+msgstr "下一季"
 
 #. Label of a Date field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -17118,11 +17118,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:697
 msgid "Next Week"
-msgstr ""
+msgstr "下週"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:713
 msgid "Next Year"
-msgstr ""
+msgstr "明年"
 
 #: frappe/public/js/frappe/form/workflow.js:48
 msgid "Next actions"
@@ -21289,7 +21289,7 @@ msgstr ""
 #. Label of a Dynamic Link field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Reference Doc"
-msgstr ""
+msgstr "參照文件"
 
 #. Label of a Data field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -26930,7 +26930,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:671
 msgid "This Month"
-msgstr ""
+msgstr "本月"
 
 #: frappe/core/doctype/file/file.py:411
 msgid "This PDF cannot be uploaded as it contains unsafe content."
@@ -26938,15 +26938,15 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:675
 msgid "This Quarter"
-msgstr ""
+msgstr "本季"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:667
 msgid "This Week"
-msgstr ""
+msgstr "本週"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:679
 msgid "This Year"
-msgstr ""
+msgstr "今年"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
@@ -27679,7 +27679,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:744
 msgid "Tomorrow"
-msgstr ""
+msgstr "明天"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:71
 #: frappe/model/workflow.py:253
@@ -30364,7 +30364,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:732
 msgid "Yesterday"
-msgstr ""
+msgstr "昨天"
 
 #: frappe/public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
