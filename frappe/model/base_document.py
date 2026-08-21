@@ -1061,9 +1061,7 @@ class BaseDocument:
 				doctype = self.get(df.options)
 				if not doctype:
 					frappe.throw(
-						_("{0} must be set first").format(
-							_(self.meta.get_label(df.options), context=self.doctype)
-						)
+						_("{0} must be set first").format(self.meta.get_translated_label(df.options))
 					)
 				invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
@@ -1193,7 +1191,7 @@ class BaseDocument:
 			if value not in options and not (frappe.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
-				label = _(self.meta.get_label(df.fieldname), context=self.doctype)
+				label = self.meta.get_translated_label(df.fieldname)
 				comma_options = '", "'.join(_(each) for each in options)
 
 				frappe.throw(
@@ -1268,9 +1266,7 @@ class BaseDocument:
 
 			if self.get(fieldname) != value:
 				frappe.throw(
-					_("Value cannot be changed for {0}").format(
-						_(self.meta.get_label(fieldname), context=self.doctype)
-					),
+					_("Value cannot be changed for {0}").format(self.meta.get_translated_label(fieldname)),
 					frappe.CannotChangeConstantError,
 				)
 

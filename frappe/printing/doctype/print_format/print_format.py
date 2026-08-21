@@ -262,7 +262,7 @@ class PrintFormat(Document):
 			if value and not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
 				frappe.throw(
 					_("{0} must be a hex color code like #1a5fb4").format(
-						frappe.bold(_(self.meta.get_label(fieldname), context=self.doctype))
+						frappe.bold(self.meta.get_translated_label(fieldname))
 					)
 				)
 

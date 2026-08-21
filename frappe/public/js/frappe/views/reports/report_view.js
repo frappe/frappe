@@ -1536,11 +1536,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				.map((f) => {
 					const [doctype, fieldname, condition, value] = f;
 					const docfield = frappe.meta.get_docfield(doctype, fieldname);
-					const label = `<b>${__(
-						frappe.meta.get_label(doctype, fieldname),
-						null,
-						doctype
-					)}</b>`;
+					const label = `<b>${frappe.meta.get_translated_label(doctype, fieldname)}</b>`;
 					switch (condition) {
 						case "=":
 							return __("{0} is equal to {1}", [
