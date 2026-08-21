@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:38+0000\n"
-"PO-Revision-Date: 2026-08-18 19:49\n"
+"PO-Revision-Date: 2026-08-21 20:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Traditional\n"
 "MIME-Version: 1.0\n"
@@ -918,17 +918,17 @@ msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:6
 msgid "Accept Invitation"
-msgstr ""
+msgstr "接受邀請"
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "已接受"
 
 #. Label of the accepted_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted At"
-msgstr ""
+msgstr "接受時間"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:639
 #: frappe/public/js/frappe/views/workspace/workspace.js:902
@@ -1249,7 +1249,7 @@ msgstr ""
 
 #: frappe/desk/doctype/number_card/number_card.js:480
 msgid "Add Filter"
-msgstr ""
+msgstr "新增篩選條件"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:281
 #: frappe/public/js/frappe/widgets/widget_dialog.js:809
@@ -1314,7 +1314,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/components/editor/SectionInsert.vue:6
 msgid "Add Section"
-msgstr ""
+msgstr "新增區段"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:72
 msgid "Add Series"
@@ -1376,7 +1376,7 @@ msgstr ""
 
 #: frappe/core/doctype/role/role.js:207
 msgid "Add User"
-msgstr ""
+msgstr "新增使用者"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:6
 msgid "Add User Permissions"
@@ -2710,7 +2710,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:325
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:327
 msgid "Appearance"
-msgstr ""
+msgstr "外觀"
 
 #. Label of the append_emails_to_sent_folder (Check) field in DocType 'Email
 #. Account'
@@ -6116,7 +6116,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:322
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:677
 msgid "Configure"
-msgstr ""
+msgstr "設定"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:571
 msgid "Configure Chart"
@@ -6366,7 +6366,7 @@ msgstr ""
 #. Label of the contacts (Small Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Contacts"
-msgstr ""
+msgstr "聯絡人"
 
 #: frappe/utils/change_log.py:385
 msgid "Contains {0} security fix"
@@ -8609,7 +8609,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/doctype_settings/tabs/notification.js:63
 #: frappe/public/js/frappe/form/doctype_settings/tabs/workflow.js:36
 msgid "Disable"
-msgstr ""
+msgstr "停用"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:73
 msgid "Disable <b>{0}</b> on this site? It keeps its data, but stops taking effect."
@@ -9536,7 +9536,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_view.js:729
 #: frappe/public/js/frappe/views/reports/query_report.js:2025
 msgid "Documentation"
-msgstr ""
+msgstr "說明文件"
 
 #. Label of the documentation (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -16079,7 +16079,7 @@ msgstr ""
 
 #: frappe/core/api/user_invitation.py:154
 msgid "Invalid or expired key"
-msgstr ""
+msgstr "金鑰無效或已過期"
 
 #: frappe/website/doctype/website_settings/website_settings.py:139
 msgid "Invalid redirect regex in row #{}: {}"
@@ -16194,7 +16194,7 @@ msgstr ""
 #. Label of the invited_by (Link) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Invited By"
-msgstr ""
+msgstr "邀請者"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:22
 msgid "Is"
@@ -16300,7 +16300,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/treeview.js:462
 msgid "Is Group"
-msgstr ""
+msgstr "是否為群組"
 
 #. Label of the is_hidden (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -17085,7 +17085,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:775
 msgid "Last 6 Months"
-msgstr ""
+msgstr "最近 6 個月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:747
 msgid "Last 7 Days"
@@ -17244,7 +17244,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:343
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:68
 msgid "Layout"
-msgstr ""
+msgstr "版面配置"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:276
 msgid "Layout <b>{0}</b> created"
@@ -18973,7 +18973,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/dom.js:354
 msgid "Minimize"
-msgstr ""
+msgstr "縮到最小"
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -19073,7 +19073,7 @@ msgstr ""
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Mobile Number"
-msgstr ""
+msgstr "行動電話號碼"
 
 #. Label of the modal_trigger (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -19333,7 +19333,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:65
 msgid "More Options"
-msgstr ""
+msgstr "更多選項"
 
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:53
 msgid "More actions"
@@ -19835,7 +19835,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/email_template.js:68
 msgid "New Template"
-msgstr ""
+msgstr "新增範本"
 
 #. Label of the new_users (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -19989,7 +19989,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:827
 msgid "Next 6 Months"
-msgstr ""
+msgstr "未來 6 個月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:803
 msgid "Next 7 Days"
@@ -20026,11 +20026,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:819
 msgid "Next Month"
-msgstr ""
+msgstr "下個月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:823
 msgid "Next Quarter"
-msgstr ""
+msgstr "下一季"
 
 #. Label of the next_retry (Datetime) field in DocType 'Webhook Request Log'
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json
@@ -20065,11 +20065,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:815
 msgid "Next Week"
-msgstr ""
+msgstr "下週"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:831
 msgid "Next Year"
-msgstr ""
+msgstr "明年"
 
 #: frappe/public/js/frappe/form/workflow.js:48
 msgid "Next actions"
@@ -20231,7 +20231,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:397
 msgid "No New Notifications"
-msgstr ""
+msgstr "沒有新通知"
 
 #: frappe/core/doctype/doctype/doctype.py:1907
 msgid "No Permissions Specified"
@@ -20601,7 +20601,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/awesomplete.js:15
 msgid "No results found"
-msgstr ""
+msgstr "找不到結果"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/permissions.js:71
 msgid "No roles have access yet."
@@ -20750,7 +20750,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:76
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:86
 msgid "Normal"
-msgstr ""
+msgstr "一般"
 
 #. Label of the normalized_copies (Int) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
@@ -23020,7 +23020,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:718
 msgid "Pinned"
-msgstr ""
+msgstr "已釘選"
 
 #. Label of the placeholder (Data) field in DocType 'DocField'
 #. Label of the placeholder (Data) field in DocType 'Custom Field'
@@ -23249,7 +23249,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:547
 msgid "Please enter a valid URL"
-msgstr ""
+msgstr "請輸入有效的網址"
 
 #: frappe/templates/includes/comments/comments.html:167
 msgid "Please enter a valid email address."
@@ -25058,7 +25058,7 @@ msgstr ""
 #. Label of the reference_docname (Dynamic Link) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Reference Doc"
-msgstr ""
+msgstr "參照文件"
 
 #. Label of the ref_docname (Dynamic Link) field in DocType 'Background Task'
 #. Label of the reference_name (Data) field in DocType 'Email Queue'
@@ -26657,7 +26657,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:97
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:311
 msgid "Rows"
-msgstr ""
+msgstr "列"
 
 #: frappe/core/report/postgres_index_suggestions/postgres_index_suggestions.py:38
 msgid "Rows / Seq Scan"
@@ -28190,7 +28190,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:182
 #: frappe/public/js/frappe/ui/naming_series.js:34
 msgid "Series"
-msgstr ""
+msgstr "數列"
 
 #. Label of the naming_series_options (Text) field in DocType 'Document Naming
 #. Settings'
@@ -29824,7 +29824,7 @@ msgstr ""
 #. Label of the stage (Data) field in DocType 'Background Task'
 #: frappe/core/doctype/background_task/background_task.json
 msgid "Stage"
-msgstr ""
+msgstr "階段"
 
 #. Label of the standard (Select) field in DocType 'Page'
 #. Label of the standard (Check) field in DocType 'Desktop Icon'
@@ -30760,7 +30760,7 @@ msgstr ""
 #. Label of the synced (Check) field in DocType 'DuckDB Sync Item'
 #: frappe/core/doctype/duckdb_sync_item/duckdb_sync_item.json
 msgid "Synced"
-msgstr ""
+msgstr "已同步"
 
 #: frappe/core/doctype/doctype_layout/doctype_layout.js:112
 msgid "Synced Fields"
@@ -31211,7 +31211,7 @@ msgstr ""
 #. Label of the tasks (Table) field in DocType 'Workflow Transition Tasks'
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "Tasks"
-msgstr ""
+msgstr "任務"
 
 #. Label of the sb1 (Section Break) field in DocType 'About Us Settings'
 #. Label of the team_members (Table) field in DocType 'About Us Settings'
@@ -31896,7 +31896,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:789
 msgid "This Month"
-msgstr ""
+msgstr "本月"
 
 #: frappe/core/doctype/file/file.py:479
 msgid "This PDF cannot be uploaded as it contains unsafe content."
@@ -31904,7 +31904,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:793
 msgid "This Quarter"
-msgstr ""
+msgstr "本季"
 
 #: frappe/website/doctype/web_form_request/web_form_request.py:59
 msgid "This Web Form Request has already been used"
@@ -31916,11 +31916,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:785
 msgid "This Week"
-msgstr ""
+msgstr "本週"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:797
 msgid "This Year"
-msgstr ""
+msgstr "今年"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:234
 msgid "This action is irreversible. Do you wish to continue?"
@@ -32758,7 +32758,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:862
 msgid "Tomorrow"
-msgstr ""
+msgstr "明天"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:82
 #: frappe/model/workflow.py:334
@@ -33630,7 +33630,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:21
 msgid "Untitled"
-msgstr ""
+msgstr "未命名"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:75
 msgid "Untitled Column"
@@ -33853,7 +33853,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:189
 msgid "Upload Photo"
-msgstr ""
+msgstr "上傳相片"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:487
 msgid "Upload an image or use a URL"
@@ -35967,7 +35967,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:850
 msgid "Yesterday"
-msgstr ""
+msgstr "昨天"
 
 #: frappe/public/js/frappe/utils/user.js:71
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
