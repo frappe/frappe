@@ -215,6 +215,24 @@ $.extend(frappe.meta, {
 	},
 
 	get_translated_label: function (dt, fn, dn) {
+		if (
+			[
+				"name",
+				"creation",
+				"docstatus",
+				"idx",
+				"modified",
+				"modified_by",
+				"owner",
+				"_user_tags",
+				"_liked_by",
+				"_comments",
+				"_assign",
+			].includes(fn)
+		) {
+			return frappe.meta.get_label(dt, fn, dn);
+		}
+
 		return __(frappe.meta.get_label(dt, fn, dn), null, dt);
 	},
 
