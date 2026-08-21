@@ -843,10 +843,10 @@ $.extend(frappe.model, {
 			frappe.throw(
 				__("Please specify") +
 					": " +
-					__(
-						frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name),
-						null,
-						doc.doctype
+					frappe.meta.get_translated_label(
+						doc.doctype,
+						fieldname,
+						doc.parent || doc.name
 					)
 			);
 		}
