@@ -259,6 +259,10 @@ class Meta(Document):
 
 		return "No Label"
 
+	def get_translated_label(self, fieldname):
+		"""Return the translated label of the given fieldname."""
+		return _(self.get_label(fieldname), context=self.name)
+
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
 
