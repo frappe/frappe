@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:38+0000\n"
-"PO-Revision-Date: 2026-08-17 19:37\n"
+"PO-Revision-Date: 2026-08-22 21:10\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4273,7 +4273,7 @@ msgstr "قبل از اعتبارسنجی"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:8
 msgid "Begin typing for results."
-msgstr ""
+msgstr "برای مشاهده نتایج، شروع به تایپ کنید."
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
@@ -8310,7 +8310,7 @@ msgstr "صفحه کانبان را حذف کنید"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:288
 msgid "Delete Row"
-msgstr ""
+msgstr "حذف ردیف"
 
 #: frappe/public/js/form_builder/components/Section.vue:129
 msgctxt "Title of confirmation dialog"
@@ -8324,7 +8324,7 @@ msgstr "حذف تب"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:290
 msgid "Delete Table"
-msgstr ""
+msgstr "حذف جدول"
 
 #: frappe/public/js/frappe/form/grid.js:130
 msgid "Delete all"
@@ -8573,7 +8573,7 @@ msgstr "منسوخ"
 #. Label of the depth (Int) field in DocType 'Recorder Event'
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Depth"
-msgstr ""
+msgstr "عمق"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:32
 msgid "Descendants Of"
@@ -10097,7 +10097,7 @@ msgstr "مدت زمان"
 #. Label of the duration (Float) field in DocType 'Recorder Event'
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Duration (ms)"
-msgstr ""
+msgstr "مدت زمان (میلی ثانیه)"
 
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -14098,7 +14098,7 @@ msgstr "ایمیل‌های پردازش‌شده"
 #. Label of the handlers (Small Text) field in DocType 'Recorder Event'
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Handlers"
-msgstr ""
+msgstr "هندلرها"
 
 #. Label of the has_attachment (Check) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -15718,11 +15718,11 @@ msgstr "درج ستون قبل از {0}"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:287
 msgid "Insert Column Left"
-msgstr ""
+msgstr "درج ستون در سمت چپ"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:286
 msgid "Insert Column Right"
-msgstr ""
+msgstr "درج ستون در سمت راست"
 
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:82
 msgid "Insert Image in Markdown"
@@ -15735,11 +15735,11 @@ msgstr "درج رکوردهای جدید"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:284
 msgid "Insert Row Above"
-msgstr ""
+msgstr "درج ردیف در بالا"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:285
 msgid "Insert Row Below"
-msgstr ""
+msgstr "درج ردیف در زیر"
 
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -15748,7 +15748,7 @@ msgstr "درج سبک"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:283
 msgid "Insert Table"
-msgstr ""
+msgstr "درج جدول"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:318
 msgid "Insert image"
@@ -18811,7 +18811,7 @@ msgstr "حداکثر مقدار"
 #. Label of the max_zip_extract_size (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Max Zip Extract Size (MB)"
-msgstr ""
+msgstr "حداکثر اندازه استخراج زیپ (مگابایت)"
 
 #. Label of the max_attachment_size (Int) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -18851,7 +18851,7 @@ msgstr "حداکثر محدودیت پیوست {0} رسیده است."
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Maximum total size a ZIP archive is allowed to expand to when extracted."
-msgstr ""
+msgstr "حداکثر حجم کل مجاز برای گسترش یک آرشیو ZIP هنگام استخراج."
 
 #: frappe/model/rename_doc.py:696
 msgid "Maximum {0} rows allowed"
@@ -22211,7 +22211,7 @@ msgstr "مرتب‌سازی بر اساس باید یک رشته متنی باش
 #. Description of the 'Timeline' (Table) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "Ordered timeline of document lifecycle methods and doc_events handlers that ran during this request, attributed to the app(s) that hook them."
-msgstr ""
+msgstr "ترتیب زمانی اجرای متدهای چرخه عمر سند و handlerهای doc_events که در طول این درخواست اجرا شده‌اند، همراه با اپلیکیشن‌هایی که آن‌ها را متصل کرده‌اند."
 
 #. Label of the sb0 (Section Break) field in DocType 'About Us Settings'
 #. Label of the company_history (Table) field in DocType 'About Us Settings'
@@ -24893,7 +24893,7 @@ msgstr ""
 #. Label of the method (Data) field in DocType 'Recorder Event'
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Raw Method"
-msgstr ""
+msgstr "روش خام"
 
 #. Label of the raw_printing (Check) field in DocType 'Print Format'
 #. Label of the raw_printing_section (Section Break) field in DocType 'Print
@@ -25121,7 +25121,7 @@ msgstr "ضبط کننده"
 #. Name of a DocType
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Recorder Event"
-msgstr ""
+msgstr "رویداد ضبط کننده"
 
 #. Name of a DocType
 #: frappe/core/doctype/recorder_query/recorder_query.json
@@ -28104,7 +28104,7 @@ msgstr "ارسال <b>حداقل</b> این تعداد دقیقه قبل یا پ
 #. Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Send Acknowledgement Email"
-msgstr ""
+msgstr "ارسال ایمیل تأیید دریافت"
 
 #. Label of the send_after (Datetime) field in DocType 'Communication'
 #. Label of the send_after (Datetime) field in DocType 'Email Queue'
@@ -28220,7 +28220,7 @@ msgstr "ارسال هشدار در صورت تغییر مقدار این فیل�
 #. 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Send an acknowledgement email to the email address entered in the contact form."
-msgstr ""
+msgstr "یک ایمیل تأیید به آدرس ایمیلی که در فرم تماس وارد شده ارسال کنید."
 
 #. Label of the send_reminder (Check) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -28386,7 +28386,7 @@ msgstr ""
 #. Label of the seq (Int) field in DocType 'Recorder Event'
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Sequence"
-msgstr ""
+msgstr "توالی"
 
 #. Label of the sequence_id (Float) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -30958,7 +30958,7 @@ msgstr ""
 #. Label of the sync_in_batch (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Sync In Batches"
-msgstr ""
+msgstr "همگام‌سازی دسته‌ای"
 
 #. Label of the sync_timeout (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -31623,7 +31623,7 @@ msgstr ""
 
 #: frappe/www/contact.py:48
 msgid "Thank you for reaching out to us. We will get back to you at the earliest."
-msgstr ""
+msgstr "از تماس شما متشکریم. در اولین فرصت با شما تماس خواهیم گرفت."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:160
 msgid "Thank you for spending your valuable time to fill this form"
@@ -33477,7 +33477,7 @@ msgstr "پاسخ خود را اینجا تایپ کنید..."
 
 #: frappe/public/js/frappe/ui/awesomplete.js:7
 msgid "Type {0} or more characters for results."
-msgstr ""
+msgstr "برای نتایج، {0} یا کاراکترهای بیشتری تایپ کنید."
 
 #: frappe/core/doctype/data_export/exporter.py:144
 msgid "Type:"
@@ -36653,7 +36653,7 @@ msgstr "شما آخرین بار این را ویرایش کردید"
 
 #: frappe/desk/form/activity.py:126
 msgid "You last edited this document"
-msgstr ""
+msgstr "شما آخرین بار این سند را ویرایش کردید"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:445
 msgid "You must add atleast one link."
@@ -36973,7 +36973,7 @@ msgstr "صفر به معنای ارسال رکوردهای به روز شده د
 
 #: frappe/core/doctype/file/file.py:708 frappe/core/doctype/file/file.py:726
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
-msgstr ""
+msgstr "حجم فایل زیپ استخراج شده بیش از حداکثر حجم مجاز {0} مگابایت است"
 
 #: frappe/public/js/frappe/scanner/index.js:155
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:18
@@ -38559,7 +38559,7 @@ msgstr "{0} آخرین بار این را ویرایش کرد"
 
 #: frappe/desk/form/activity.py:127
 msgid "{0} last edited this document"
-msgstr ""
+msgstr "{0} آخرین بار این سند را ویرایش کرد"
 
 #: frappe/desk/form/activity.py:224
 msgid "{0} liked"
@@ -38726,7 +38726,7 @@ msgstr "{0} سند محدود شده"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:14
 msgid "{0} results found"
-msgstr ""
+msgstr "{0} نتیجه یافت شد"
 
 #: frappe/public/js/frappe/roles_editor.js:93
 msgid "{0} role does not have permission on any doctype"
@@ -38910,7 +38910,7 @@ msgstr "{0}، ردیف {1}"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:22
 msgid "{0}, list item {1} of {2}"
-msgstr ""
+msgstr "{0}، آیتم فهرست {1} از {2}"
 
 #: frappe/utils/data.py:1594
 msgctxt "Money in words"
