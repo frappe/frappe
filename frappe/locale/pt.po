@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-11 18:25\n"
+"PO-Revision-Date: 2026-08-23 21:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -3679,7 +3679,7 @@ msgstr "Faturação"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:21
 msgid "Billing Contact"
-msgstr "Contacto de Faturação"
+msgstr ""
 
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -4655,7 +4655,7 @@ msgstr "Alterar Rótulo (via Tradução Personalizada)"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:45
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:141
 msgid "Change Letter Head"
-msgstr "Alterar Cabeçalho"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -6064,7 +6064,7 @@ msgstr "Criar entrada"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
 msgid "Create Letter Head"
-msgstr "Criar cabeçalho"
+msgstr ""
 
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -12164,7 +12164,7 @@ msgstr "Mapa de calor"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
-msgstr "Olá"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
@@ -17486,7 +17486,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr "Nenhum endereço adicionado ainda."
+msgstr ""
 
 #: frappe/email/doctype/notification/notification.js:195
 msgid "No alerts for today"
@@ -17534,7 +17534,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
-msgstr "Nenhum contacto adicionado ainda."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:441
 msgid "No contacts linked to document"
@@ -20308,7 +20308,7 @@ msgstr "Primário"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:21
 msgid "Primary Address"
-msgstr "Endereço Principal"
+msgstr ""
 
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
