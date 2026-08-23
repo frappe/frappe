@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-15 18:56\n"
+"PO-Revision-Date: 2026-08-23 21:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -7605,7 +7605,7 @@ msgstr "سرور دایرکتوری"
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Auto Refresh"
-msgstr "غیر فعال کردن Refresh خودکار"
+msgstr "غیرفعال کردن Refresh خودکار"
 
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -13198,7 +13198,7 @@ msgstr "بر حسب ثانیه"
 
 #: frappe/public/js/frappe/form/save.js:223
 msgid "In {0}, {1} is required in every row."
-msgstr ""
+msgstr "در {0}، {1} در هر ردیف الزامی است."
 
 #: frappe/public/js/frappe/form/save.js:229
 msgid "In {0}, {1} is required in row {2}."
@@ -13214,7 +13214,7 @@ msgstr ""
 
 #: frappe/core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
-msgstr "غیر فعال"
+msgstr "غیرفعال"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -14256,7 +14256,7 @@ msgstr "جاوا اسکریپت"
 
 #: frappe/www/login.html:73
 msgid "Javascript is disabled on your browser"
-msgstr "جاوا اسکریپت بر روی مرورگر شما غیر فعال شده است"
+msgstr "جاوا اسکریپت بر روی مرورگر شما غیرفعال شده است"
 
 #. Option for the 'Print Format Type' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -17825,7 +17825,7 @@ msgstr "یک اقدام گردش کار معتبر نیست"
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:7
 msgid "Not active"
-msgstr "غیر فعال"
+msgstr "غیرفعال"
 
 #: frappe/permissions.py:368
 msgid "Not allowed for {0}: {1}"
@@ -23252,7 +23252,7 @@ msgstr "زمان‌بندی: فعال"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:30
 msgid "Scheduler: Inactive"
-msgstr "زمان‌بندی: غیر فعال"
+msgstr "زمان‌بندی: غیرفعال"
 
 #. Label of a Data field in DocType 'OAuth Scope'
 #: frappe/integrations/doctype/oauth_scope/oauth_scope.json
@@ -26608,7 +26608,7 @@ msgstr "قالب ها"
 
 #: frappe/core/doctype/user/user.py:1010
 msgid "Temporarily Disabled"
-msgstr "موقتا غیر فعال می باشد"
+msgstr "موقتا غیرفعال می باشد"
 
 #: frappe/core/doctype/translation/test_translation.py:51
 #: frappe/core/doctype/translation/test_translation.py:58
@@ -33627,7 +33627,7 @@ msgstr "فیلد {} نمی‌تواند خالی باشد."
 #: frappe/email/doctype/email_account/email_account.py:198
 #: frappe/email/doctype/email_account/email_account.py:206
 msgid "{} has been disabled. It can only be enabled if {} is checked."
-msgstr "{} غیر فعال شده است. فقط در صورتی می‌توان آن را فعال کرد که {} علامت زده شود."
+msgstr "{} غیرفعال شده است. فقط در صورتی می‌توان آن را فعال کرد که {} علامت زده شود."
 
 #: frappe/utils/data.py:105
 msgid "{} is not a valid date string."
