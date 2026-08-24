@@ -198,13 +198,17 @@ def init_request(request):
 		else:
 			raise frappe.SessionStopped("Session Stopped")
 
-	if request.path.startswith("/api/method/upload_file"):
-		from frappe.core.api.file import get_max_file_size
-
-		request.max_content_length = get_max_file_size()
+	if _claims_raw_body(request):
+		# the claiming app enforces its own body limits and consumes request.stream itself
+		request.max_content_length = None
 	else:
-		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
-	make_form_dict(request)
+		if request.path.startswith("/api/method/upload_file"):
+			from frappe.core.api.file import get_max_file_size
+
+			request.max_content_length = get_max_file_size()
+		else:
+			request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
+		make_form_dict(request)
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = HTTPRequest()
@@ -326,6 +330,18 @@ def set_authenticate_headers(response: Response):
 		"WWW-Authenticate": f'Bearer resource_metadata="{get_resource_url()}/.well-known/oauth-protected-resource"'
 	}
 	response.headers.update(headers)
+
+
+def _claims_raw_body(request: Request) -> bool:
+	"""Whether an app claims this path's request body via the `streaming_request_paths` hook.
+
+	An app may claim path prefixes whose request bodies it consumes itself (streaming
+	uploads, WebDAV, webhook receivers). For claimed paths the body is neither size-capped
+	nor buffered into form_dict — `frappe.form_dict` stays empty and query args remain
+	available on `request.args`.
+	"""
+	prefixes = frappe.get_hooks("streaming_request_paths")
+	return bool(prefixes) and any(request.path.startswith(prefix) for prefix in prefixes)
 
 
 def make_form_dict(request: Request):
