@@ -8,6 +8,11 @@ from frappe.desk.form import linked_with
 from frappe.tests import IntegrationTestCase
 
 
+def hard_delete_referencing_child2_records(doc, method=None):
+	"""Mimic a voucher on_trash that removes its submitted ledger rows."""
+	frappe.db.delete("Child DocType2", {"child_doctype1": doc.name})
+
+
 class TestLinkedWith(IntegrationTestCase):
 	def setUp(self):
 		parent_doctype = new_doctype("Parent DocType")
@@ -343,6 +348,89 @@ class TestLinkedWith(IntegrationTestCase):
 			self.assertEqual(frappe.local.message_log, ["kept"])
 		finally:
 			frappe.local.message_log = original
+
+	def test_get_linked_docs_to_delete_deepest_first(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		child2 = frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert()
+
+		docs = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)["docs"]
+
+		# child2 references child1, so it must come first to be deletable in list order
+		self.assertEqual([doc["name"] for doc in docs], [child2.name, child1.name])
+
+	def test_delete_all_linked_docs_defers_blocked_docs(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		child2 = frappe.get_doc(
+			{"doctype": "Child DocType2", "parent_doctype": parent.name, "child_doctype1": child1.name}
+		).insert()
+
+		# child1 is blocked by child2 and passed first; it must get deferred
+		# and deleted on a later pass instead of failing
+		result = linked_with.delete_all_linked_docs(
+			docs=[
+				{"doctype": "Child DocType1", "name": child1.name},
+				{"doctype": "Child DocType2", "name": child2.name},
+			]
+		)
+
+		self.assertEqual(
+			result,
+			{
+				"deleted": [
+					{"doctype": "Child DocType1", "name": child1.name},
+					{"doctype": "Child DocType2", "name": child2.name},
+				],
+				"skipped": [],
+			},
+		)
+		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
+		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
+		parent.delete()
+
+	def test_delete_all_linked_docs_waits_for_on_trash_cleanup(self):
+		"""A submitted document that only an on_trash hook removes (like a ledger
+		entry removed with its voucher) must get deferred, not fail the run."""
+		child1 = frappe.get_doc({"doctype": "Child DocType1"}).insert()
+		child2 = (
+			frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+		)
+
+		hook = f"{__name__}.hard_delete_referencing_child2_records"
+		self.addCleanup(setattr, frappe.local, "doc_events_hooks", None)
+		with self.patch_hooks({"doc_events": {"Child DocType1": {"on_trash": [hook]}}}):
+			frappe.local.doc_events_hooks = None
+			linked_with.delete_all_linked_docs(
+				docs=[
+					{"doctype": "Child DocType2", "name": child2.name},
+					{"doctype": "Child DocType1", "name": child1.name},
+				]
+			)
+
+		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
+		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
+
+	def test_delete_all_linked_docs_skips_undeletable_docs(self):
+		"""A document that stays undeletable must get skipped and reported without
+		undoing the deleted documents or leaking messages of failed attempts."""
+		child1 = frappe.get_doc({"doctype": "Child DocType1"}).insert().submit()
+		child2 = frappe.get_doc({"doctype": "Child DocType2"}).insert()
+		message_count = len(frappe.local.message_log)
+
+		result = linked_with.delete_all_linked_docs(
+			docs=[
+				{"doctype": "Child DocType1", "name": child1.name},
+				{"doctype": "Child DocType2", "name": child2.name},
+			]
+		)
+
+		self.assertEqual(result["deleted"], [{"doctype": "Child DocType2", "name": child2.name}])
+		self.assertEqual(result["skipped"], [{"doctype": "Child DocType1", "name": child1.name}])
+		self.assertTrue(frappe.db.exists("Child DocType1", child1.name))
+		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
+		self.assertEqual(len(frappe.local.message_log), message_count)
+		child1.reload().cancel()
 
 	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
