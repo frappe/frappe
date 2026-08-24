@@ -12,7 +12,12 @@ context("Timeout error popups", () => {
 
 		cy.window()
 			.its("frappe")
-			.then((frappe) => frappe.call("frappe.client.get_count", { doctype: "ToDo" }));
+			.then((frappe) => {
+				// the request is expected to fail, so the returned jqXHR must not be
+				// returned to cypress: it would reject and fail the test before the
+				// popup is asserted
+				frappe.call("frappe.client.get_count", { doctype: "ToDo" });
+			});
 		cy.wait("@timed_out");
 
 		cy.get(".modal-title").should("contain", "Request Timed Out");
@@ -34,7 +39,12 @@ context("Timeout error popups", () => {
 
 		cy.window()
 			.its("frappe")
-			.then((frappe) => frappe.call("frappe.client.get_count", { doctype: "ToDo" }));
+			.then((frappe) => {
+				// the request is expected to fail, so the returned jqXHR must not be
+				// returned to cypress: it would reject and fail the test before the
+				// popup is asserted
+				frappe.call("frappe.client.get_count", { doctype: "ToDo" });
+			});
 		cy.wait("@query_timed_out");
 
 		cy.get(".modal-title").should("contain", "Request Timeout");
