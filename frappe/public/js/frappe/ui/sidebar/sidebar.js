@@ -518,7 +518,23 @@ frappe.ui.Sidebar = class Sidebar {
 					// are in rather than the one the menu was built in.
 					condition: () => !!me.get_sidebar_app(),
 					onClick: function () {
-						new frappe.ui.DockManager();
+						// The editor is lazy (not in the desk bundle); pull it in on
+						// click, then open the dock's manager.
+						frappe
+							.require("arrangement_editor.bundle.js")
+							.then(() => new frappe.ui.DockManager())
+							.catch((e) => {
+								console.error(
+									"Sidebar: failed to load arrangement_editor.bundle.js",
+									e
+								);
+								frappe.ui.toast({
+									message: __(
+										"Could not open the dock manager. Please refresh the page."
+									),
+									type: "error",
+								});
+							});
 					},
 				},
 				{

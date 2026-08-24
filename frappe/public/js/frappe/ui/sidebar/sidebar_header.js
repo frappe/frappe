@@ -31,7 +31,24 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				// the one the menu was built in -- which is the whole reason the header keeps
 				// one menu instead of one per module.
 				condition: () => !!this.sidebar.current_module,
-				onClick: () => new frappe.ui.SidebarManager(),
+				// The editor is lazy (not in the desk bundle); pull it in on click, then
+				// open this module's sidebar in it.
+				onClick: () =>
+					frappe
+						.require("arrangement_editor.bundle.js")
+						.then(() => new frappe.ui.SidebarManager())
+						.catch((e) => {
+							console.error(
+								"SidebarHeader: failed to load arrangement_editor.bundle.js",
+								e
+							);
+							frappe.ui.toast({
+								message: __(
+									"Could not open the sidebar editor. Please refresh the page."
+								),
+								type: "error",
+							});
+						}),
 			},
 		];
 	}

@@ -35,6 +35,13 @@ function stub_xcall(win, handlers) {
 	return calls;
 }
 
+// The editor is not in the desk bundle -- it arrives when a menu item asks for it. These tests
+// build their editors by hand instead of going through a menu, so each of them pulls the bundle
+// in for itself, the same way those menu items do.
+function load_editor_bundle() {
+	cy.window().then((win) => win.frappe.require("arrangement_editor.bundle.js"));
+}
+
 // A surface with three entries and nothing else to it. `prepare` states the curation right rather
 // than reading it off whoever is running the test, so the layer switch is testable both ways.
 function open_editor(win, { hidden = [], can_curate = false } = {}) {
@@ -126,6 +133,7 @@ context("Arrangement editor", () => {
 	beforeEach(() => {
 		cy.visit("/desk/todo");
 		cy.desk_ready();
+		load_editor_bundle();
 	});
 
 	it("opens on one list holding everything, and a preview of what it leaves behind", () => {
@@ -284,6 +292,7 @@ context("Arrangement editor: a module's sidebar", () => {
 	beforeEach(() => {
 		cy.visit("/desk/todo");
 		cy.desk_ready();
+		load_editor_bundle();
 		cy.window().then((win) => {
 			// Run as somebody without the shared curation right, so the editor opens on the one
 			// layer these tests stub. Whether the account running them may curate for everyone is
@@ -391,6 +400,7 @@ context("Arrangement editor: an app's dock", () => {
 	beforeEach(() => {
 		cy.visit("/desk/todo");
 		cy.desk_ready();
+		load_editor_bundle();
 		cy.window().then((win) => {
 			// Run as somebody without the shared curation right, so the editor opens on the one
 			// layer these tests stub. Whether the account running them may curate for everyone is
@@ -465,6 +475,7 @@ context("Arrangement editor: making a module from the dock", () => {
 	beforeEach(() => {
 		cy.visit("/desk/todo");
 		cy.desk_ready();
+		load_editor_bundle();
 		cy.window().then((win) => {
 			// Making a module is site content everybody boots, so it is behind the same right the
 			// site layer is -- which is also the layer a curator opens on.
