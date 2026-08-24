@@ -64,8 +64,20 @@ class TestStreamingRequestPaths(IntegrationTestCase):
 		# empty / "/" / non-string prefixes must not disable body handling site-wide
 		for prefix in ("", "/", 123):
 			with self.patch_hooks({"streaming_request_paths": [prefix]}):
-				set_request(method="PUT", path="/api/method/ping")
+				set_request(method="PUT", path="/streamtest/x")
 				self.assertFalse(_claims_raw_body(frappe.local.request), repr(prefix))
+
+	def test_reserved_core_prefixes_are_never_claimed(self):
+		# even if an app registers a framework-owned prefix, core routes must not be claimed
+		for prefix, path in (
+			("/api/", "/api/method/frappe.ping"),
+			("/app", "/app/todo"),
+			("/backups", "/backups/site.sql.gz"),
+			("/private/", "/private/files/secret.pdf"),
+		):
+			with self.patch_hooks({"streaming_request_paths": [prefix]}):
+				set_request(method="PUT", path=path)
+				self.assertFalse(_claims_raw_body(frappe.local.request), f"{prefix} -> {path}")
 
 	def test_claimed_path_skips_cap_and_form_dict(self):
 		body = b"\x00\x01binary body" * 100
