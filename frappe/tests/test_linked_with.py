@@ -16,7 +16,7 @@ def hard_delete_referencing_child2_records(doc, method=None):
 def block_cancel_while_child2_submitted(doc, method=None):
 	"""Mimic a controller that wants referencing documents cancelled first."""
 	if frappe.db.exists("Child DocType2", {"child_doctype1": doc.name, "docstatus": 1}):
-		frappe.throw("Cancel the referencing document first")
+		frappe.throw(frappe._("Cancel the referencing document first"))
 
 
 class TestLinkedWith(IntegrationTestCase):
@@ -387,6 +387,22 @@ class TestLinkedWith(IntegrationTestCase):
 
 		# child2 references child1, so it must come first to be deletable in list order
 		self.assertEqual([doc["name"] for doc in docs], [child2.name, child1.name])
+
+	def test_get_linked_docs_to_delete_excludes_unreadable_docs(self):
+		"""Linked documents the user cannot read must stay hidden from the listing."""
+		from frappe.permissions import add_permission
+
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		frappe.get_doc({"doctype": "Child DocType2", "parent_doctype": parent.name}).insert()
+
+		add_permission("Parent DocType", "All")
+		add_permission("Child DocType1", "All")
+
+		with self.set_user("test1@example.com"):
+			docs = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)["docs"]
+
+		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name, "docstatus": 0}])
 
 	def test_delete_all_linked_docs_defers_blocked_docs(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
