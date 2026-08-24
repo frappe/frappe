@@ -242,7 +242,12 @@ class TestLinkedWith(IntegrationTestCase):
 
 		def process(docinfo):
 			attempts.append(docinfo["name"])
-			frappe.publish_realtime("test_dependency_order", {"attempt": len(attempts)}, after_commit=True)
+			frappe.publish_realtime(
+				"test_dependency_order",
+				{"attempt": len(attempts)},
+				user=frappe.session.user,
+				after_commit=True,
+			)
 			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
 				raise frappe.LinkExistsError
 
