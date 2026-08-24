@@ -266,7 +266,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 			: frappe.utils.desktop_icon(label, "gray", "sm");
 	}
 
-	// Inside a standalone module this renders nothing: collect_dock_entries answers with no
+	// Inside a module no app claims this renders nothing: collect_dock_entries answers with no
 	// entries, and an empty items region is the right answer rather than a rail of one -- an item
 	// rendered permanently active with no alternatives is a switcher that cannot switch.
 	render_entries(entries = this.sidebar.collect_dock_entries(this.app)) {

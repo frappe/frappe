@@ -4,7 +4,8 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.boot import build_entity_module_map, get_module_sidebars
+from frappe.boot import build_entity_module_map, get_bootinfo, get_module_sidebars
+from frappe.core.doctype.module_def.test_module_def import custom_module
 from frappe.desk.doctype.custom_sidebar.test_custom_sidebar import make_user
 from frappe.desk.doctype.sidebar.sidebar import (
 	SidebarContext,
@@ -16,6 +17,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 )
 from frappe.desk.doctype.sidebar.test_sidebar import (
 	make_report,
+	make_sidebar,
 	no_developer_mode,
 	sidebarless_module,
 	system_write,
@@ -869,3 +871,92 @@ class TestOwnershipIsPerUser(IntegrationTestCase):
 		self.assertEqual(
 			self.owner_for("Administrator"), self.winner, "same fixtures, and the answer differs by reader"
 		)
+
+
+class TestAModuleInNoAppHasNoAppContext(IntegrationTestCase):
+	"""D15 -- app context survives answering exactly one question, *what supplies the rail's
+	items*, and for a module no app claims it answers "nothing". That answer is complete, not
+	degraded, and the boot payload states it rather than leaving the desk to guess:
+
+	    placed    logo = app icon      items = the app's other modules
+	    unplaced  logo = module icon   items = (empty)
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def sidebar(self, module: str):
+		return resolve_sidebar(module, frappe.session.user)
+
+	def app_entry(self, app_name: str):
+		return next(app for app in get_bootinfo()["app_data"] if app["app_name"] == app_name)
+
+	def dock_modules(self, app: dict) -> list[str]:
+		"""The `Sidebar` half of an app's one typed dock list -- its modules."""
+		return [row["name"] for row in app["dock"] if row["type"] == "Sidebar"]
+
+	def test_a_placed_module_names_the_app_that_supplies_the_rails_items(self):
+		"""Placed: the rail lists the app's other modules, so the payload has to say which app
+		and that app has to claim the module."""
+		with custom_module("Test Placed Rail Module", app="frappe") as module:
+			make_sidebar(module)
+
+			self.assertEqual(self.sidebar(module).app, "frappe")
+			self.assertIn(module, self.dock_modules(self.app_entry("frappe")))
+
+	def test_a_placement_the_document_never_declares_still_gives_a_rail(self):
+		"""`app` used to come straight off the `Sidebar` document, an authored field a stub can
+		leave blank, so a module placed in an app by a document that never filled it in got no
+		rail at all. Placement answers when the document does not."""
+		with custom_module("Test Silent App Field Module", app="frappe") as module:
+			sidebar = make_sidebar(module)
+			self.assertFalse(sidebar.app, "sanity: the document declares no app")
+
+			self.assertEqual(self.sidebar(module).app, "frappe")
+
+	def test_an_authored_app_declaration_wins_over_placement(self):
+		"""The fallback is a fallback. A companion app ships its module's sidebar mounted into
+		the host app's rail, and that declaration is the whole point of the field."""
+		with custom_module("Test Declared App Module", app="frappe") as module:
+			make_sidebar(module, app="some_other_app")
+
+			self.assertEqual(self.sidebar(module).app, "some_other_app")
+
+	def test_an_unplaced_module_names_no_app(self):
+		with custom_module("Test Appless Rail Module") as module:
+			make_sidebar(module, title="Field Service", header_icon="tool")
+
+			self.assertFalse(self.sidebar(module).app)
+
+	def test_nothing_supplies_an_unplaced_modules_rail_items(self):
+		"""The empty items region is a consequence of the data, not a special case in the
+		client: no installed app claims the module, so the set the rail renders is empty
+		whichever app it is asked about."""
+		with custom_module("Test Unclaimed Rail Module") as module:
+			make_sidebar(module)
+
+			for app in get_bootinfo()["app_data"]:
+				self.assertNotIn(module, self.dock_modules(app))
+
+	def test_the_icon_needs_no_new_boot_payload(self):
+		"""The rail resolves an unplaced module's icon from the sidebar it already
+		reads -- an authored `header_icon`, else a letter icon built from the label. Both are
+		on the entry, so nothing had to be added to boot to give the slot an icon."""
+		with custom_module("Test Iconed Rail Module") as module:
+			make_sidebar(module, title="Field Service", header_icon="tool")
+
+			sidebar = self.sidebar(module)
+
+			self.assertEqual(sidebar.header_icon, "tool")
+			self.assertEqual(sidebar.label, "Field Service")
+
+	def test_a_module_with_no_authored_icon_still_carries_the_label_one_is_built_from(self):
+		"""The letter-icon fallback has nothing to fall back to without a label, so the
+		computed base has to name the module even when nobody titled it."""
+		with custom_module("Test Iconless Rail Module") as module:
+			make_sidebar(module)
+
+			sidebar = self.sidebar(module)
+
+			self.assertFalse(sidebar.header_icon)
+			self.assertEqual(sidebar.label, module)

@@ -1022,9 +1022,6 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 		# question and then lists that app's other modules, or nothing at all when there is no
 		# answer.
 		#
-		# It has to agree with the placement `get_standalone_modules` reads. A module the two
-		# disagree about would end up with no rail and no desktop tile.
-		#
 		# A shipped document names its own app and that wins. A document that does not -- a stub
 		# somebody created, a custom module's -- falls back to the module's placement, which is
 		# what a computed sidebar uses anyway.

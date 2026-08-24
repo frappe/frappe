@@ -76,12 +76,10 @@ def ensure_module(module: str) -> None:
 	it keeps `ModuleDef.on_update` from writing a folder and a `modules.txt` line for a module
 	no app ships.
 
-	`app_name` is placement, and it is deliberately left unset: no app has a claim on these, and
-	an unplaced custom module is not stranded -- it stands on the desktop as its own tile
-	(`frappe.boot.get_standalone_modules`), for the people whose sidebar for it resolves to
-	anything. That is what makes `Private` work as one shared module: its rows are derived per
-	reader from that reader's own pages (`sidebar.get_private_workspaces`), so the tile appears
-	only for someone who has private workspaces, and only ever holds their own.
+	`app_name` is placement, and it is deliberately left unset: no app has a claim on these. That
+	is what makes `Private` work as one shared module: its rows are derived per reader from that
+	reader's own pages (`sidebar.get_private_workspaces`), so it only ever holds the reader's
+	own.
 	"""
 	if frappe.db.exists("Module Def", module):
 		return

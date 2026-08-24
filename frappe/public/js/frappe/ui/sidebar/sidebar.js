@@ -511,7 +511,7 @@ frappe.ui.Sidebar = class Sidebar {
 					name: "workspace-selector",
 					label: __("Manage Dock"),
 					icon: "monitor",
-					// The dock is an app's own modules, so a standalone module has no dock to
+					// The dock is an app's own modules, so a module in no app has no dock to
 					// arrange -- its items region is empty by construction. Offering the picker
 					// there would invite the user to curate nothing. Evaluated on every open
 					// (frappe.ui.menu re-runs conditions in make()), so it tracks the shell you
@@ -942,7 +942,7 @@ frappe.ui.Sidebar = class Sidebar {
 	// between.
 	//
 	// Callers name the app whose set they want; there is no ambient default. No app -- a module
-	// belonging to none -- yields no entries, which is what leaves a standalone module's rail
+	// belonging to none -- yields no entries, which is what leaves such a module's rail
 	// empty rather than a rail of one.
 	collect_dock_entries(app) {
 		const entries = ((app && app.dock) || [])
@@ -1070,9 +1070,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Where a module leads: the first navigable item in the sidebar *this user* resolved.
 	//
-	// The single definition of a module's home, used by `open_module`, by the desktop's app
-	// icons and by its standalone module tiles -- so no two ways into a module can disagree
-	// about where it opens. It replaces a stored `home_workspace` pointer, and is better than
+	// The single definition of a module's home, used by `open_module` and by the desktop's app
+	// icons -- so no two ways into a module can disagree about where it opens. It replaces a stored `home_workspace` pointer, and is better than
 	// one in three ways that all come from resolving late: the boot payload is already
 	// permission-filtered, so it can only name something this user can open; it is already
 	// customized, so reordering a sidebar moves the landing page with it, at the site layer for
