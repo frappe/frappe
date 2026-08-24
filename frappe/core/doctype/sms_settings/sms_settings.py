@@ -4,6 +4,7 @@
 import frappe
 from frappe import _, msgprint, throw
 from frappe.model.document import Document
+from frappe.rate_limiter import rate_limit
 from frappe.utils import nowdate
 
 
@@ -16,13 +17,16 @@ class SMSSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.core.doctype.sms_parameter.sms_parameter import SMSParameter
 		from frappe.types import DF
 
 		message_parameter: DF.Data
 		parameters: DF.Table[SMSParameter]
 		receiver_parameter: DF.Data
+		roles: DF.Table[HasRole]
 		sms_gateway_url: DF.SmallText
+		sms_rate_limit: DF.Int
 		use_post: DF.Check
 	# end: auto-generated types
 
@@ -70,8 +74,50 @@ def get_contact_number(contact_name: str, ref_doctype: str, ref_name: str):
 	return (contact and (contact.mobile_no or contact.phone)) or ""
 
 
+def get_sms_ratelimit() -> int:
+	return frappe.db.get_single_value("SMS Settings", "sms_rate_limit") or 60
+
+
+def enforce_per_user_sms_ratelimit():
+	cache_key = frappe.cache.make_key("sms-rate-limit", user=True)
+	if not frappe.cache.get(cache_key):
+		frappe.cache.setex(cache_key, 60 * 60, 0)
+	count = frappe.cache.incrby(cache_key, 1)
+
+	if count > get_sms_ratelimit():
+		frappe.throw(
+			_(
+				"You hit the rate limit because of too many requests. Please try after sometime, "
+				"or ask your System Manager to change the Rate Limit in SMS Settings."
+			),
+			frappe.RateLimitExceededError,
+		)
+
+
+def is_permitted_to_send_sms() -> bool:
+	"""Return True if no roles are configured, or the current user has one of them."""
+	from frappe.utils import has_common
+
+	if frappe.session.user == "Guest" or frappe.utils.user.is_website_user():
+		return False
+
+	allowed = [
+		d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": "SMS Settings"})
+	]
+	if not allowed:
+		return True
+
+	return bool(has_common(frappe.get_roles(), allowed))
+
+
 @frappe.whitelist()
+@rate_limit(limit=get_sms_ratelimit, seconds=60 * 60)
 def send_sms(receiver_list: str | list[str], msg: str, sender_name: str = "", success_msg: bool = True):
+	if not is_permitted_to_send_sms():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+	enforce_per_user_sms_ratelimit()
+
 	send_sms_hook_methods = frappe.get_hooks("send_sms")
 	if send_sms_hook_methods:
 		return frappe.get_attr(send_sms_hook_methods[-1])(receiver_list, msg, sender_name, success_msg)

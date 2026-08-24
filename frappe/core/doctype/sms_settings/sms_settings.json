@@ -10,7 +10,9 @@
   "receiver_parameter",
   "static_parameters_section",
   "parameters",
-  "use_post"
+  "use_post",
+  "sms_rate_limit",
+  "roles"
  ],
  "fields": [
   {
@@ -54,13 +56,26 @@
    "fieldname": "use_post",
    "fieldtype": "Check",
    "label": "Use POST"
+  },
+  {
+   "description": "Maximum number of SMS a single user can send per hour.",
+   "fieldname": "sms_rate_limit",
+   "fieldtype": "Int",
+   "label": "Rate Limit (per hour)"
+  },
+  {
+   "description": "Roles allowed to send SMS. Leave empty to allow any Desk user.",
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "options": "Has Role"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:03:38.762589",
+ "modified": "2026-08-24 18:23:33.517609",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "SMS Settings",
@@ -74,6 +89,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
