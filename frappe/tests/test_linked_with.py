@@ -206,6 +206,31 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertTrue(child1.reload().docstatus.is_cancelled())
 		self.assertTrue(child2.reload().docstatus.is_cancelled())
 
+	def test_deferred_attempts_drop_queued_commit_hooks(self):
+		"""A rolled-back attempt must not leave its commit hooks queued, or the
+		eventual commit runs side effects of work that never happened."""
+		attempts = []
+
+		def process(docinfo):
+			frappe.db.after_commit.add(lambda: None)
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				raise frappe.LinkExistsError
+
+		after_commit_count = len(frappe.db.after_commit)
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		# three attempts, two successful: only their hooks survive
+		self.assertEqual(attempts, ["blocked", "free", "blocked"])
+		self.assertEqual(len(frappe.db.after_commit), after_commit_count + 2)
+
 	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
