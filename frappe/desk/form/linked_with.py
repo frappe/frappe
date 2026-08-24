@@ -420,6 +420,9 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 	"""Get all documents that block deletion of the given document, including
 	documents that block deletion of those documents, and so on.
 
+	Documents the user cannot read are neither returned nor traversed, so their
+	identities stay hidden and their deletion fails with the regular link error.
+
 	Deepest documents come first, so deleting in list order resolves the links.
 	"""
 	from frappe.model.delete_doc import get_dynamic_linked_docs
@@ -439,7 +442,7 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 		)
 		for link in links:
 			key = (link["reference_doctype"], link["reference_docname"])
-			if key not in depth_by_document:
+			if key not in depth_by_document and frappe.has_permission(key[0], doc=key[1]):
 				depth_by_document[key] = depth_by_document[parent_key] + 1
 				queue.append(key)
 
