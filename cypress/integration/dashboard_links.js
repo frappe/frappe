@@ -89,4 +89,66 @@ context("Dashboard links", () => {
 			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
 		).should("contain.text", "Test Linking");
 	});
+
+	it("Ctrl/Cmd+click on a document count link opens the list in a new tab", () => {
+		const user_route = `/desk/user/${cy.config("testUser")}`;
+		cy.visit(user_route);
+		cy.select_form_tab("Connections");
+
+		cy.window().then((win) => cy.stub(win, "open").as("windowOpen"));
+
+		// plain click: current behaviour is unaffected, navigates in the same tab
+		cy.get('.document-link[data-doctype="Contact"]').contains("Contact").click();
+		cy.location("pathname").should("eq", "/desk/contact");
+		cy.get("@windowOpen").should("not.have.been.called");
+
+		// back to the form and repeat with Ctrl/Cmd held: must open in a new tab
+		// and leave the current tab on the form (this is the fix for #17870)
+		// cy.visit does a full page load, so the stub needs to be re-attached
+		// to the fresh window.
+		cy.visit(user_route);
+		cy.select_form_tab("Connections");
+		cy.window().then((win) => cy.stub(win, "open").as("windowOpen"));
+		cy.get('.document-link[data-doctype="Contact"]')
+			.contains("Contact")
+			.click({ metaKey: true, ctrlKey: true });
+
+		cy.get("@windowOpen")
+			.should("have.been.calledOnce")
+			.its("firstCall.args.0")
+			.should("include", "/desk/contact");
+		cy.location("pathname").should("eq", user_route);
+	});
+
+	it("Ctrl/Cmd+click on a report link opens the report in a new tab", () => {
+		const user_route = `/desk/user/${cy.config("testUser")}`;
+		cy.visit(user_route);
+		cy.select_form_tab("Connections");
+
+		cy.window()
+			.its("cur_frm")
+			.then((cur_frm) => {
+				cur_frm.dashboard.data.reports = [
+					{
+						label: "Reports",
+						items: ["Website Analytics"],
+					},
+				];
+				cur_frm.dashboard.render_report_links();
+			});
+
+		cy.window().then((win) => cy.stub(win, "open").as("windowOpen"));
+
+		cy.get('.document-link[data-report="Website Analytics"]')
+			.contains("Website Analytics")
+			.click({ metaKey: true, ctrlKey: true });
+
+		cy.get("@windowOpen")
+			.should("have.been.calledOnce")
+			.its("firstCall.args.0")
+			.should("include", "query-report")
+			.and("include", "Website");
+		// current tab must stay on the form, not navigate to the report
+		cy.location("pathname").should("eq", user_route);
+	});
 });
