@@ -32,7 +32,16 @@ function stub_xcall(win, handlers) {
 		return handler ? Promise.resolve().then(() => handler(args)) : Promise.resolve({});
 	};
 	win.__calls = calls;
+	// The desk behind the dialog goes on talking to the server -- a list view counting its rows,
+	// say -- and those calls land here too. A test about what the *editor* asked for means the
+	// endpoints it was handed, so they are named rather than inferred from whatever was recorded.
+	win.__stubbed = new Set(Object.keys(handlers));
 	return calls;
+}
+
+// The stubbed endpoints the editor reached, in order.
+function stubbed_calls(win) {
+	return win.__calls.map((call) => call.method).filter((method) => win.__stubbed.has(method));
 }
 
 // The editor is not in the desk bundle -- it arrives when a menu item asks for it. These tests
@@ -217,10 +226,7 @@ context("Arrangement editor", () => {
 		// the other layer is a different arrangement, so it is read rather than filtered
 		cy.get(".ws-arrangement .ws-item").should("have.length", 3);
 		cy.window().then((win) => {
-			expect(win.__calls.map((call) => call.method)).to.deep.equal([
-				"read.site",
-				"read.user",
-			]);
+			expect(stubbed_calls(win)).to.deep.equal(["read.site", "read.user"]);
 		});
 	});
 
@@ -234,7 +240,7 @@ context("Arrangement editor", () => {
 		cy.get_open_dialog().find(".ws-layer-switch").should("not.exist");
 		// their own is the only layer there is to open on, so it is the one that was read
 		cy.window().then((win) => {
-			expect(win.__calls.map((call) => call.method)).to.deep.equal(["read.user"]);
+			expect(stubbed_calls(win)).to.deep.equal(["read.user"]);
 		});
 	});
 
@@ -344,14 +350,21 @@ context("Arrangement editor: a module's sidebar", () => {
 		// same redraw, the other way round: the URL field is what arrives, and it is typed into
 		// once it has
 		cy.get_open_dialog().find('[data-fieldname="url"]').should("be.visible");
-		cy.fill_field("url", "https://example.com");
-		// The label is set rather than typed. A field group refreshes its dependencies 100ms
-		// after any field changes (`FieldGroup.make`), and that redraw rewrites every input from
-		// the model -- so the URL's own commit lands in the middle of the next field being typed
-		// and takes what was typed before it with it, which is how "Elsewhere" arrives as
-		// "lsewhere". What is under test here is where the entry lands, not the Data control.
+		// The URL is committed before anything else is touched. A field's value reaches the
+		// model on blur, and every redraw of the dialog rewrites the inputs *from* the model --
+		// so a URL still sitting in its input is wiped by the next one, and Add is refused for a
+		// missing URL.
+		cy.fill_field("url", "https://example.com").blur();
+		// The label is then set rather than typed. A field group refreshes its dependencies
+		// 100ms after any field changes (`FieldGroup.make`), and that redraw lands between the
+		// first keystroke of the next field and its second, taking the first with it -- which is
+		// how "Elsewhere" arrives as "lsewhere". What is under test here is where the entry
+		// lands, not the Data control.
 		cy.window().then((win) => win.cur_dialog.set_value("label", "Elsewhere"));
 		cy.get_field("label").should("have.value", "Elsewhere");
+		// both halves of the entry are really on the dialog, so Add cannot be refused for a
+		// value the redraw took
+		cy.get_field("url").should("have.value", "https://example.com");
 		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		// ... and the entry added after it lands under it, which is what puts it in it
