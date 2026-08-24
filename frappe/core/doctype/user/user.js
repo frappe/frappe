@@ -112,6 +112,11 @@ frappe.ui.form.on("User", {
 	refresh: function (frm) {
 		let doc = frm.doc;
 
+		frappe.scroll_to_user_roles_field = function () {
+			frappe.hide_msgprint(true);
+			frm.scroll_to_field("roles_html");
+		};
+
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
 			frm.set_df_property("default_app", "options", ["", ...apps]);
