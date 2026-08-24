@@ -93,6 +93,31 @@ function open_editor(win, { hidden = [], can_curate = false } = {}) {
 	win.__editor = new TestSurface();
 }
 
+// The editor's own Save, addressed through the editor rather than through "whatever dialog is
+// open". A dialog on its way out is the last visible modal for as long as its fade takes, and
+// `get_open_dialog` hands back that one -- so a Save clicked after an Add lands on the Add
+// button instead, and the arrangement is never sent.
+function save_editor() {
+	cy.window().then((win) => {
+		cy.wrap(win.__editor.dialog.$wrapper).find(".btn-modal-primary").click();
+	});
+}
+
+// Add a section through the dialog, and leave it closed behind.
+//
+// Choosing `Section` redraws the fields a link needs away, and a label typed into that redraw
+// loses its first keystroke -- so the redraw is waited for and the field read back before it is
+// sent. The dialog is then waited off the screen, so whatever is clicked next cannot be it.
+function add_section(label) {
+	cy.get_open_dialog().find(".ws-add").click();
+	cy.fill_field("kind", "Section", "Select");
+	cy.get_open_dialog().find('[data-fieldname="link_type"]').should("not.be.visible");
+	cy.fill_field("label", label);
+	cy.get_field("label").should("have.value", label);
+	cy.get_open_dialog().find(".btn-modal-primary").click();
+	cy.contains(".modal", "Add to the Sidebar").should("not.be.visible");
+}
+
 context("Arrangement editor", () => {
 	before(() => {
 		cy.login();
@@ -157,7 +182,7 @@ context("Arrangement editor", () => {
 		});
 
 		cy.get(".ws-arrangement .ws-item").first().find(".ws-item-eye").click();
-		cy.get_open_dialog().find(".btn-modal-primary").click();
+		save_editor();
 
 		cy.window().then((win) => {
 			const save = win.__calls.find((call) => call.method === "save.user");
@@ -215,7 +240,7 @@ context("Arrangement editor", () => {
 		});
 
 		cy.get_open_dialog().should("contain", "Could not load the arrangement.");
-		cy.get_open_dialog().find(".btn-modal-primary").click();
+		save_editor();
 
 		cy.window().then((win) => {
 			expect(win.__calls.filter((call) => call.method === "save.user")).to.have.length(0);
@@ -294,10 +319,7 @@ context("Arrangement editor: a module's sidebar", () => {
 	});
 
 	it("adds a section, and then puts what is added next into it", () => {
-		cy.get_open_dialog().find(".ws-add").click();
-		cy.fill_field("kind", "Section", "Select");
-		cy.fill_field("label", "Mine");
-		cy.get_open_dialog().find(".btn-modal-primary").click();
+		add_section("Mine");
 
 		// the section goes on the end...
 		cy.get(".ws-arrangement .ws-item").should("have.length", 4);
@@ -310,8 +332,17 @@ context("Arrangement editor: a module's sidebar", () => {
 		// Dynamic Link would drag a search box into a test that is not about one
 		cy.get_open_dialog().find(".ws-add").click();
 		cy.fill_field("link_type", "URL", "Select");
+		// same redraw, the other way round: the URL field is what arrives, and it is typed into
+		// once it has
+		cy.get_open_dialog().find('[data-fieldname="url"]').should("be.visible");
 		cy.fill_field("url", "https://example.com");
-		cy.fill_field("label", "Elsewhere");
+		// The label is set rather than typed. A field group refreshes its dependencies 100ms
+		// after any field changes (`FieldGroup.make`), and that redraw rewrites every input from
+		// the model -- so the URL's own commit lands in the middle of the next field being typed
+		// and takes what was typed before it with it, which is how "Elsewhere" arrives as
+		// "lsewhere". What is under test here is where the entry lands, not the Data control.
+		cy.window().then((win) => win.cur_dialog.set_value("label", "Elsewhere"));
+		cy.get_field("label").should("have.value", "Elsewhere");
 		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		// ... and the entry added after it lands under it, which is what puts it in it
@@ -321,10 +352,7 @@ context("Arrangement editor: a module's sidebar", () => {
 	});
 
 	it("removes an entry this layer added rather than hiding it", () => {
-		cy.get_open_dialog().find(".ws-add").click();
-		cy.fill_field("kind", "Section", "Select");
-		cy.fill_field("label", "Mine");
-		cy.get_open_dialog().find(".btn-modal-primary").click();
+		add_section("Mine");
 
 		// nothing below holds it, so there is no hiding it -- it carries a cross, not an eye
 		cy.get(".ws-arrangement .ws-item").last().find(".ws-item-eye").should("not.exist");
@@ -333,16 +361,10 @@ context("Arrangement editor: a module's sidebar", () => {
 	});
 
 	it("sends an added section without a key, for the server to name", () => {
-		cy.get_open_dialog().find(".ws-add").click();
-		cy.fill_field("kind", "Section", "Select");
-		cy.fill_field("label", "Mine");
-		cy.get_open_dialog().find(".btn-modal-primary").click();
+		add_section("Mine");
 
-		// the section is on the list and the Add dialog is off the screen, so the primary action
-		// here is the editor's own Save rather than a second Add still fading out
 		cy.get(".ws-arrangement .ws-item").should("have.length", 4);
-		cy.get(".modal:visible").should("have.length", 1);
-		cy.get_open_dialog().find(".btn-modal-primary").click();
+		save_editor();
 
 		cy.window().then((win) => {
 			const rows = JSON.parse(win.__calls.find((call) => call.method === SAVE).args.items);
@@ -420,7 +442,7 @@ context("Arrangement editor: an app's dock", () => {
 		cy.get_open_dialog().find(".ws-reset").click();
 		cy.get(".ws-preview").should("contain", "Nothing on the dock");
 
-		cy.get_open_dialog().find(".btn-modal-primary").click();
+		save_editor();
 		cy.window().then((win) => {
 			const save = win.__calls.find((call) => call.method === SAVE);
 			// an empty dock is not stored as "an empty dock": no row is stored for this app at
