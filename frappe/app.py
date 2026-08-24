@@ -201,6 +201,10 @@ def init_request(request):
 	if _claims_raw_body(request):
 		# the claiming app enforces its own body limits and consumes request.stream itself
 		request.max_content_length = None
+		# tell pre-handler auth (validate_oauth) not to read/buffer the body: it is uncapped
+		# here and must stay intact for the claiming app. `HTTP_`-prefixed keys come from
+		# request headers, so this dotted environ key cannot be spoofed by a client.
+		request.environ["frappe.claims_raw_body"] = True
 	else:
 		if request.path.startswith("/api/method/upload_file"):
 			from frappe.core.api.file import get_max_file_size
@@ -339,9 +343,25 @@ def _claims_raw_body(request: Request) -> bool:
 	uploads, WebDAV, webhook receivers). For claimed paths the body is neither size-capped
 	nor buffered into form_dict — `frappe.form_dict` stays empty and query args remain
 	available on `request.args`.
+
+	Matching is on a path-segment boundary (a `/foo` prefix matches `/foo` and `/foo/...`
+	but not `/foobar`), and empty / `"/"` / non-string prefixes are ignored so a
+	misconfigured hook cannot strip body handling for every request on the site.
 	"""
 	prefixes = frappe.get_hooks("streaming_request_paths")
-	return bool(prefixes) and any(request.path.startswith(prefix) for prefix in prefixes)
+	if not prefixes:
+		return False
+
+	path = request.path
+	for prefix in prefixes:
+		if not isinstance(prefix, str) or prefix in ("", "/"):
+			continue
+		if prefix.endswith("/"):
+			if path.startswith(prefix):
+				return True
+		elif path == prefix or path.startswith(prefix + "/"):
+			return True
+	return False
 
 
 def make_form_dict(request: Request):
