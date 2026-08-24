@@ -205,9 +205,9 @@ def mask_version_data(versions: list[Any], ref_doctype: str) -> list[Any]:
 					changed = True
 
 		if changed:
-			masked_versions.append(
-				{**version, "data": frappe.as_json(data, indent=None, separators=(",", ":"))}
-			)
+			masked_version = version.copy()
+			masked_version["data"] = frappe.as_json(data, indent=None, separators=(",", ":"))
+			masked_versions.append(masked_version)
 		else:
 			masked_versions.append(version)
 
