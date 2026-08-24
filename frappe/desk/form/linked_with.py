@@ -434,13 +434,18 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 	while docs:
 		deferred = []
 		for doc in docs:
+			before_commit_count = len(frappe.db.before_commit)
+			after_commit_count = len(frappe.db.after_commit)
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
 			except frappe.LinkExistsError:
-				# cancel and delete both run their hooks before the link check,
-				# so roll their writes back before deferring
+				# cancel and delete both run their hooks before the link check, so
+				# roll back the writes of the failed attempt before deferring, and
+				# drop the commit hooks it queued, which savepoints cannot undo
 				frappe.db.rollback(save_point=save_point)
+				frappe.db.before_commit.truncate(before_commit_count)
+				frappe.db.after_commit.truncate(after_commit_count)
 				deferred.append(doc)
 				continue
 			frappe.db.release_savepoint(save_point)

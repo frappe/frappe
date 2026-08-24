@@ -1154,6 +1154,18 @@ class CallbackManager:
 	def reset(self):
 		self._functions.clear()
 
+	def __len__(self) -> int:
+		return len(self._functions)
+
+	def __bool__(self) -> bool:
+		# stay truthy when empty; callers use `if callbacks:` as a None check
+		return True
+
+	def truncate(self, count: int) -> None:
+		"""Drop functions queued after the first `count`."""
+		while len(self._functions) > count:
+			self._functions.pop()
+
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
