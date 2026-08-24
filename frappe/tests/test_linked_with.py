@@ -231,6 +231,32 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(attempts, ["blocked", "free", "blocked"])
 		self.assertEqual(len(frappe.db.after_commit), after_commit_count + 2)
 
+	def test_deferred_attempts_drop_queued_realtime_events(self):
+		"""Realtime events queued by a rolled-back attempt must not stay in the
+		log that gets flushed on commit."""
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			frappe.publish_realtime("test_dependency_order", {"attempt": len(attempts)}, after_commit=True)
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				raise frappe.LinkExistsError
+
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		events = [
+			message for event, message, room in frappe.local._realtime_log if event == "test_dependency_order"
+		]
+		# only the events of the two successful attempts survive
+		self.assertEqual(events, [{"attempt": 2}, {"attempt": 3}])
+
 	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
