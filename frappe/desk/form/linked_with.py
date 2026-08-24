@@ -402,50 +402,56 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 	docs = frappe.parse_json(docs)
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
 
-	to_cancel = []
+	to_cancel = [doc for doc in deduplicated(docs) if validate_linked_doc(doc, ignore_doctypes_on_cancel_all)]
+	process_linked_docs_in_dependency_order(to_cancel, cancel_linked_doc, _("Cancelling documents"))
+
+
+def cancel_linked_doc(docinfo):
+	"""Cancel a document unless the on_cancel hook of another document already cancelled it."""
+	doc = frappe.get_doc(docinfo.get("doctype"), docinfo.get("name"))
+	if doc.docstatus.is_submitted():
+		doc.cancel()
+
+
+def deduplicated(docs):
+	"""Preserve order, dropping repeated (doctype, name) entries."""
 	seen = set()
+	unique = []
 	for doc in docs:
 		key = (doc.get("doctype"), doc.get("name"))
-		if key not in seen and validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
+		if key not in seen:
 			seen.add(key)
-			to_cancel.append(doc)
+			unique.append(doc)
+	return unique
 
-	total = len(to_cancel)
-	cancelled = 0
-	while to_cancel:
+
+def process_linked_docs_in_dependency_order(docs, process, progress_title):
+	"""Run process over docs, deferring a document blocked by a linked document
+	to a later pass, until a full pass makes no progress."""
+	total = len(docs)
+	processed = 0
+	save_point = "process_linked_doc"
+	while docs:
 		deferred = []
-		for doc in to_cancel:
-			if not cancel_linked_doc(doc):
+		for doc in docs:
+			frappe.db.savepoint(save_point)
+			try:
+				process(doc)
+			except frappe.LinkExistsError:
+				# cancel and delete both run their hooks before the link check,
+				# so roll their writes back before deferring
+				frappe.db.rollback(save_point=save_point)
 				deferred.append(doc)
 				continue
-			cancelled += 1
-			frappe.publish_progress(percent=cancelled / total * 100, title=_("Cancelling documents"))
+			frappe.db.release_savepoint(save_point)
+			processed += 1
+			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
 
-		if len(deferred) == len(to_cancel):
-			# A full pass cancelled nothing, so a document outside `docs` blocks
-			# cancellation. Cancel without catching to surface the link error.
-			frappe.get_doc(deferred[0].get("doctype"), deferred[0].get("name")).cancel()
-		to_cancel = deferred
-
-
-def cancel_linked_doc(docinfo) -> bool:
-	"""Cancel a document, returning False when a submitted document still references it."""
-	doc = frappe.get_doc(docinfo.get("doctype"), docinfo.get("name"))
-	if not doc.docstatus.is_submitted():
-		# already cancelled, possibly by the on_cancel hook of another document
-		return True
-
-	save_point = "cancel_linked_doc"
-	frappe.db.savepoint(save_point)
-	try:
-		doc.cancel()
-	except frappe.LinkExistsError:
-		# cancel runs on_cancel before the back-link check; roll its writes back
-		frappe.db.rollback(save_point=save_point)
-		return False
-
-	frappe.db.release_savepoint(save_point)
-	return True
+		if len(deferred) == len(docs):
+			# A full pass processed nothing, so a document outside `docs` blocks
+			# it. Process without catching to surface the link error.
+			process(deferred[0])
+		docs = deferred
 
 
 def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
