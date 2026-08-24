@@ -151,6 +151,61 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
 		doc.reload().delete()
 
+	def test_get_submitted_linked_docs_deepest_first(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		child2 = (
+			frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+		)
+
+		docs = linked_with.get_submitted_linked_docs(parent.doctype, parent.name)["docs"]
+
+		# child2 references child1, so it must come first to be cancellable in list order
+		self.assertEqual([doc["name"] for doc in docs], [child2.name, child1.name])
+
+	def test_get_submitted_linked_docs_has_no_duplicates(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		frappe.get_doc(
+			{"doctype": "Child DocType2", "parent_doctype": parent.name, "child_doctype1": child1.name}
+		).insert().submit()
+
+		result = linked_with.get_submitted_linked_docs(parent.doctype, parent.name)
+
+		keys = [(doc["doctype"], doc["name"]) for doc in result["docs"]]
+		self.assertEqual(len(keys), len(set(keys)))
+		self.assertEqual(result["count"], 2)
+
+	def test_cancel_all_linked_docs_defers_blocked_docs(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		child2 = (
+			frappe.get_doc(
+				{"doctype": "Child DocType2", "parent_doctype": parent.name, "child_doctype1": child1.name}
+			)
+			.insert()
+			.submit()
+		)
+
+		# child1 is blocked by child2 and passed first (with a duplicate); it must
+		# get deferred and cancelled on a later pass instead of failing
+		linked_with.cancel_all_linked_docs(
+			docs=[
+				{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
+				{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
+				{"doctype": "Child DocType2", "name": child2.name, "docstatus": 1},
+			]
+		)
+
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(child2.reload().docstatus.is_cancelled())
+
 	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
