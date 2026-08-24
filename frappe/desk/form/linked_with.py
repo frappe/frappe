@@ -389,8 +389,10 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
-	A document that other submitted documents still reference is deferred and
-	retried after the rest, so callers need not pass docs in dependency order.
+	A document whose cancellation another document blocks, through a link or a
+	controller check that wants the other document cancelled first, is deferred
+	and retried after the rest, so callers need not pass docs in dependency
+	order.
 
 	Arguments:
 	        docs (json str) - It contains list of dictionaries of a linked documents.
@@ -465,20 +467,10 @@ def delete_all_linked_docs(docs: str | list) -> dict:
 	"""
 	to_delete = deduplicated(frappe.parse_json(docs))
 
-	# Defer any validation or permission failure, not just link errors: some
-	# documents cannot be deleted directly (e.g. submitted ledger entries that
-	# grant delete to no role and that only the on_trash hook of their voucher
-	# removes) and get retried until deleting the documents around them makes
-	# them deletable or removes them.
 	# No realtime progress here: the events race the requests and navigation
 	# that follow deletion and can strand the progress dialog; the freeze
 	# overlay of the call covers the feedback.
-	skipped = process_linked_docs_in_dependency_order(
-		to_delete,
-		delete_linked_doc,
-		defer_on=(frappe.ValidationError, frappe.PermissionError),
-		raise_when_stuck=False,
-	)
+	skipped = process_linked_docs_in_dependency_order(to_delete, delete_linked_doc, raise_when_stuck=False)
 	return {"deleted": [doc for doc in to_delete if doc not in skipped], "skipped": skipped}
 
 
@@ -499,11 +491,15 @@ def deduplicated(docs):
 	return unique
 
 
-def process_linked_docs_in_dependency_order(
-	docs, process, progress_title=None, defer_on=frappe.LinkExistsError, raise_when_stuck=True
-):
-	"""Run process over docs, deferring a document blocked by a linked document
+def process_linked_docs_in_dependency_order(docs, process, progress_title=None, raise_when_stuck=True):
+	"""Run process over docs, deferring a document blocked by another document
 	to a later pass, until a full pass makes no progress.
+
+	Any validation or permission failure defers, not just link errors: a
+	controller may block cancellation until a referencing document is cancelled
+	first, and some documents cannot be processed directly but stop being in
+	the way as a side effect of processing a document near them (e.g. ledger
+	entries that only the on_trash hook of their voucher removes).
 
 	Once stuck, either surface the error of the first blocked document or, with
 	raise_when_stuck disabled, keep the progress made and return the blocked
@@ -519,7 +515,7 @@ def process_linked_docs_in_dependency_order(
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-			except defer_on:
+			except (frappe.ValidationError, frappe.PermissionError):
 				# cancel and delete both run their hooks before the link check, so
 				# roll back the writes of the failed attempt before deferring, and
 				# drop the messages and side effects it queued, which savepoints
