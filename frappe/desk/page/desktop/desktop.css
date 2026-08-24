@@ -543,7 +543,7 @@
   color: var(--neutral-white);
   line-height: 22px;
   z-index: 1;
-  pointers-events: none;
+  pointer-events: none;
   width: 100%;
     text-align: center;
 }
