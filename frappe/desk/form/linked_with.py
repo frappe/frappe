@@ -462,16 +462,21 @@ def capture_pending_side_effects() -> dict:
 	return {
 		"before_commit": len(frappe.db.before_commit),
 		"after_commit": len(frappe.db.after_commit),
+		"before_rollback": len(frappe.db.before_rollback),
+		"after_rollback": len(frappe.db.after_rollback),
 		"realtime_log": len(frappe.local._realtime_log) if hasattr(frappe.local, "_realtime_log") else None,
 		"webhook_queue": len(getattr(frappe.local, "_webhook_queue", None) or []),
 	}
 
 
 def discard_side_effects_since(counts: dict):
-	"""Drop side effects queued after capture: the commit hooks, realtime events
-	and webhook executions of a rolled-back attempt would otherwise still run."""
+	"""Drop side effects queued after capture: the commit and rollback hooks,
+	realtime events and webhook executions of a rolled-back attempt would
+	otherwise still run."""
 	frappe.db.before_commit.truncate(counts["before_commit"])
 	frappe.db.after_commit.truncate(counts["after_commit"])
+	frappe.db.before_rollback.truncate(counts["before_rollback"])
+	frappe.db.after_rollback.truncate(counts["after_rollback"])
 
 	if counts["realtime_log"] is None:
 		if hasattr(frappe.local, "_realtime_log"):
