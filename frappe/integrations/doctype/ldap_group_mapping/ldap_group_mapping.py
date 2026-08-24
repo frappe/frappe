@@ -16,11 +16,12 @@ class LDAPGroupMapping(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		erpnext_role: DF.Link
+		erpnext_role: DF.Link | None
 		ldap_group: DF.Data
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		role_profile: DF.Link | None
 	# end: auto-generated types
 
 	pass

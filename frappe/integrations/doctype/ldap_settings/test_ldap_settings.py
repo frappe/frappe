@@ -443,6 +443,55 @@ class LDAP_TestCase:
 				)
 
 	@mock_ldap_connection
+	def test_sync_role_profiles(self):
+		profile_roles = {
+			"_Test LDAP Profile A": "Blogger",
+			"_Test LDAP Profile B": "Newsletter Manager",
+		}
+		for profile, role in profile_roles.items():
+			if not frappe.db.exists("Role Profile", profile):
+				frappe.get_doc(
+					{"doctype": "Role Profile", "role_profile": profile, "roles": [{"role": role}]}
+				).insert(ignore_permissions=True)
+
+		settings = self.test_class
+		settings.ldap_groups = []
+		settings.append("ldap_groups", {"ldap_group": "group-a", "role_profile": "_Test LDAP Profile A"})
+		settings.append("ldap_groups", {"ldap_group": "group-b", "role_profile": "_Test LDAP Profile B"})
+
+		user = frappe.get_doc("User", "posix.user1@unit.testing")
+
+		# a single matched group grants that group's profile
+		settings.sync_roles(user, ["group-a"])
+		user.reload()
+		self.assertEqual({p.role_profile for p in user.role_profiles}, {"_Test LDAP Profile A"})
+		self.assertIn("Blogger", {r.role for r in user.roles})
+
+		# a user matching several groups accumulates every mapped profile
+		settings.sync_roles(user, ["group-a", "group-b"])
+		user.reload()
+		self.assertEqual(
+			{p.role_profile for p in user.role_profiles},
+			{"_Test LDAP Profile A", "_Test LDAP Profile B"},
+		)
+		self.assertEqual({r.role for r in user.roles}, {"Blogger", "Newsletter Manager"})
+
+		# losing the groups withdraws both the profiles and the roles they granted
+		settings.sync_roles(user, [])
+		user.reload()
+		self.assertEqual([p.role_profile for p in user.role_profiles], [])
+		for role in profile_roles.values():
+			self.assertNotIn(role, {r.role for r in user.roles})
+
+	@mock_ldap_connection
+	def test_group_mapping_requires_role_or_profile(self):
+		settings = self.test_class
+		settings.ldap_groups = []
+		settings.append("ldap_groups", {"ldap_group": "group-without-target"})
+
+		self.assertRaises(ValidationError, settings.validate_group_mappings)
+
+	@mock_ldap_connection
 	def test_create_or_update_user(self):
 		test_user_data = {
 			"posix.user1": [

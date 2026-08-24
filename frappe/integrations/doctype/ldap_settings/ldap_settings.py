@@ -25,6 +25,10 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
 
 
+def get_role_profile_roles(role_profile: str) -> set[str]:
+	return {role.role for role in frappe.get_cached_doc("Role Profile", role_profile).roles}
+
+
 class LDAPSettings(Document):
 	_DOCTYPE_NAME = "LDAP Settings"
 
@@ -72,6 +76,8 @@ class LDAPSettings(Document):
 
 		if not self.enabled:
 			return
+
+		self.validate_group_mappings()
 
 		if not self.flags.ignore_mandatory:
 			if (
@@ -134,6 +140,16 @@ class LDAPSettings(Document):
 					)
 				)
 
+	def validate_group_mappings(self):
+		for mapping in self.ldap_groups:
+			if not mapping.erpnext_role and not mapping.role_profile:
+				frappe.throw(
+					_("Row #{0}: Set a User Role or a Role Profile for LDAP group {1}").format(
+						mapping.idx, frappe.bold(mapping.ldap_group)
+					),
+					title=_("Misconfigured"),
+				)
+
 	def connect_to_ldap(self, base_dn, password, read_only=True) -> ldap3.Connection:
 		try:
 			if self.require_trusted_certificate == "Yes":
@@ -187,24 +203,47 @@ class LDAPSettings(Document):
 		user.save(ignore_permissions=True)
 
 	def sync_roles(self, user: "User", additional_groups: list | None = None):
-		current_roles = {d.role for d in user.get("roles")}
-		if self.default_user_type == "System User":
-			needed_roles = {self.default_role}
-		else:
-			needed_roles = set()
-		lower_groups = [g.lower() for g in additional_groups or []]
+		lower_groups = {g.lower() for g in additional_groups or []}
 
-		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
-		matched_roles = {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
-		unmatched_roles = all_mapped_roles.difference(matched_roles)
-		needed_roles.update(matched_roles)
-		roles_to_remove = current_roles.intersection(unmatched_roles)
+		mapped_roles, matched_roles = set(), set()
+		mapped_profiles, matched_profiles = set(), set()
 
-		if not needed_roles.issubset(current_roles):
-			missing_roles = needed_roles.difference(current_roles)
-			user.add_roles(*missing_roles)
+		for mapping in self.ldap_groups:
+			is_member = mapping.ldap_group.lower() in lower_groups
+			if mapping.erpnext_role:
+				mapped_roles.add(mapping.erpnext_role)
+				if is_member:
+					matched_roles.add(mapping.erpnext_role)
+			if mapping.role_profile:
+				mapped_profiles.add(mapping.role_profile)
+				if is_member:
+					matched_profiles.add(mapping.role_profile)
 
-		user.remove_roles(*roles_to_remove)
+		# profiles assigned outside of LDAP are left alone, LDAP only owns the ones it maps
+		current_profiles = {p.role_profile for p in user.get("role_profiles")}
+		needed_profiles = (current_profiles - mapped_profiles) | matched_profiles
+
+		needed_roles = set(matched_roles)
+		if self.default_user_type == "System User" and self.default_role:
+			needed_roles.add(self.default_role)
+		for role_profile in needed_profiles:
+			needed_roles.update(get_role_profile_roles(role_profile))
+
+		# losing a group must also withdraw the roles that group's profile granted
+		revoked_roles = mapped_roles - matched_roles
+		for role_profile in mapped_profiles - matched_profiles:
+			revoked_roles.update(get_role_profile_roles(role_profile))
+		revoked_roles -= needed_roles
+
+		if needed_profiles != current_profiles:
+			user.set("role_profiles", [{"role_profile": p} for p in sorted(needed_profiles)])
+
+		user.append_roles(*needed_roles)
+		for role in list(user.get("roles")):
+			if role.role in revoked_roles:
+				user.get("roles").remove(role)
+
+		user.save()
 
 	def create_or_update_user(self, user_data: dict, groups: list | None = None):
 		user: User = None
