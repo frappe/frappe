@@ -207,17 +207,20 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertTrue(child2.reload().docstatus.is_cancelled())
 
 	def test_deferred_attempts_drop_queued_commit_hooks(self):
-		"""A rolled-back attempt must not leave its commit hooks queued, or the
-		eventual commit runs side effects of work that never happened."""
+		"""A rolled-back attempt must not leave its commit or rollback hooks
+		queued, or a later commit or rollback runs side effects of work that
+		never happened."""
 		attempts = []
 
 		def process(docinfo):
 			frappe.db.after_commit.add(lambda: None)
+			frappe.db.after_rollback.add(lambda: None)
 			attempts.append(docinfo["name"])
 			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
 				raise frappe.LinkExistsError
 
 		after_commit_count = len(frappe.db.after_commit)
+		after_rollback_count = len(frappe.db.after_rollback)
 		linked_with.process_linked_docs_in_dependency_order(
 			[
 				{"doctype": "Parent DocType", "name": "blocked"},
@@ -230,6 +233,7 @@ class TestLinkedWith(IntegrationTestCase):
 		# three attempts, two successful: only their hooks survive
 		self.assertEqual(attempts, ["blocked", "free", "blocked"])
 		self.assertEqual(len(frappe.db.after_commit), after_commit_count + 2)
+		self.assertEqual(len(frappe.db.after_rollback), after_rollback_count + 2)
 
 	def test_deferred_attempts_drop_queued_realtime_events(self):
 		"""Realtime events queued by a rolled-back attempt must not stay in the
