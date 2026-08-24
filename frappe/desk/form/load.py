@@ -244,13 +244,17 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
-	return frappe.get_all(
+
+	from frappe.model.utils.mask import mask_version_data
+
+	versions = frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
 	)
+	return mask_version_data(versions, doc.doctype)
 
 
 @frappe.whitelist()
