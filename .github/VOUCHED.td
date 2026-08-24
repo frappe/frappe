@@ -22,6 +22,7 @@ dependabot[bot]
 frappe-pr-bot
 gajjug004
 gavindsouza
+g-sowani
 HenningWendtland
 karm1000
 kaulith
