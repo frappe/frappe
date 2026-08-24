@@ -32,6 +32,7 @@ from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
+from frappe.utils.data import get_additional_filters_from_hooks
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -512,16 +513,6 @@ def get_link_preview_doctypes():
 			link_preview_doctypes.append(custom.doc_type)
 
 	return filter_out_disabled_doctypes(link_preview_doctypes)
-
-
-def get_additional_filters_from_hooks():
-	filter_config = frappe._dict()
-	filter_hooks = frappe.get_hooks("filters_config")
-	for hook in filter_hooks:
-		filter_config.update(frappe.get_attr(hook)())
-
-	return filter_config
-
 
 def add_layouts(bootinfo):
 	bootinfo.doctype_layouts = frappe.get_all(

@@ -36,7 +36,11 @@ from frappe.utils import (
 	get_time,
 	get_timespan_date_range,
 )
-from frappe.utils.data import convert_type_for_between_filters, sbool
+from frappe.utils.data import (
+	convert_type_for_between_filters,
+	get_additional_filters_from_hooks,
+	sbool,
+)
 
 _convert_type_for_between_filters = convert_type_for_between_filters  # bw compatibility
 
@@ -773,8 +777,6 @@ from {tables}
 		filters and the exists candidates grouped by child doctype, both as
 		(filter, parsed filter) pairs so no filter is parsed twice.
 		"""
-		from frappe.boot import get_additional_filters_from_hooks
-
 		joined: list = []
 		exists_groups: dict[str, list] = {}
 		if not filters:
@@ -954,11 +956,6 @@ from {tables}
 
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
-
-		# TODO: refactor
-
-		from frappe.boot import get_additional_filters_from_hooks
-
 		additional_filters_config = get_additional_filters_from_hooks()
 		f: FilterTuple = (
 			parsed if parsed is not None else get_filter(self.doctype, ft, additional_filters_config)

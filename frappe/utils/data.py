@@ -2353,6 +2353,23 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) 
 	return False
 
 
+def get_additional_filters_from_hooks():
+	"""Custom filter operators contributed by apps through the `filters_config` hook.
+
+	Sits beside `get_filter`, which takes this map as its `filters_config`
+	argument, rather than in `frappe.boot`. `frappe.boot` is a desk-layer module
+	that imports email, desk and integrations at module scope, so reaching up to
+	it from the query layer put `frappe.database.query` inside an import cycle
+	that broke background workers.
+	"""
+	filter_config = frappe._dict()
+	filter_hooks = frappe.get_hooks("filters_config")
+	for hook in filter_hooks:
+		filter_config.update(frappe.get_attr(hook)())
+
+	return filter_config
+
+
 def get_filter(doctype: str, filters: FilterSignature, filters_config=None) -> "frappe._dict":
 	"""Return a `_dict` like:
 

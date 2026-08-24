@@ -4,6 +4,7 @@
 import io
 import json
 import os
+import subprocess
 import sys
 from datetime import UTC, date, datetime, time, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, localcontext
@@ -66,6 +67,7 @@ from frappe.utils.data import (
 	evaluate_filters,
 	expand_relative_urls,
 	format_duration,
+	get_additional_filters_from_hooks,
 	get_datetime,
 	get_first_day_of_week,
 	get_time,
@@ -107,6 +109,62 @@ class Capturing(list):
 		del self._stringio
 		sys.stdout = self._stdout
 
+class TestAdditionalFiltersFromHooks(UnitTestCase):
+	def test_query_layer_does_not_import_boot(self):
+		"""`frappe.database.query` must not pull in `frappe.boot` at import time.
+
+		`frappe.boot` is a desk-layer module that imports email, desk and
+		integrations at module scope. Importing it from the query layer creates a
+		cycle that only bites on a cold import in the wrong order, which is what
+		background workers do: every job died with `ImportError: cannot import
+		name 'convert_type_for_between_filters' from 'frappe.utils.data'`.
+
+		This has to run in a fresh interpreter. Inside the test process every
+		module is already in `sys.modules`, so the cycle cannot reproduce and an
+		in-process assertion would pass whether or not the bug is present.
+		"""
+		result = subprocess.run(
+			[
+				sys.executable,
+				"-c",
+				"import sys, frappe.database.query;"
+				" raise SystemExit('frappe.boot' in sys.modules)",
+			],
+			capture_output=True,
+			text=True,
+		)
+		self.assertEqual(
+			result.returncode,
+			0,
+			"frappe.database.query imported frappe.boot at module scope"
+			f"\n{result.stdout}{result.stderr}",
+		)
+
+	def test_importable_from_its_old_home(self):
+		"""`frappe.boot` re-exports it, so existing imports keep working."""
+		from frappe.boot import get_additional_filters_from_hooks as from_boot
+		from frappe.utils.data import get_additional_filters_from_hooks as from_utils
+
+		self.assertIs(from_boot, from_utils)
+
+	def test_returns_operators_contributed_by_hooks(self):
+		"""The `filters_config` hook is read and merged into one map."""
+		config = get_additional_filters_from_hooks()
+		self.assertIsInstance(config, dict)
+
+		with patch.object(
+			frappe,
+			"get_hooks",
+			return_value=["frappe.tests.test_utils._sample_filters_config"],
+		):
+			self.assertEqual(
+				get_additional_filters_from_hooks(),
+				{"sample operator": {"label": "Sample"}},
+			)
+
+
+def _sample_filters_config():
+	return {"sample operator": {"label": "Sample"}}
 
 class TestFilters(IntegrationTestCase):
 	def test_simple_dict(self):

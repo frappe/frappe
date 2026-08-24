@@ -10,7 +10,6 @@ from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, Va
 
 import frappe
 from frappe import _
-from frappe.boot import get_additional_filters_from_hooks
 from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
 from frappe.database.utils import (
 	DefaultOrderBy,
@@ -25,6 +24,7 @@ from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
+from frappe.utils.data import get_additional_filters_from_hooks
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
