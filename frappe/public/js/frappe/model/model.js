@@ -732,7 +732,7 @@ $.extend(frappe.model, {
 		return no_copy_list;
 	},
 
-	delete_doc: function (doctype, docname, callback) {
+	delete_doc: function (doctype, docname, callback, skip_confirm) {
 		let title = docname.toString();
 		const title_field = frappe.get_meta(doctype).title_field;
 		if (title_field) {
@@ -741,28 +741,33 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
+		const perform_delete = function () {
+			return frappe.call({
+				method: "frappe.client.delete",
+				args: {
+					doctype: doctype,
+					name: docname,
+				},
+				freeze: true,
+				freeze_message: __("Deleting {0}...", [title]),
+				callback: function (r, rt) {
+					if (!r.exc) {
+						frappe.utils.play_sound("delete");
+						frappe.model.delete_from_locals(doctype, docname);
+						if (callback) callback(r, rt);
+					}
+				},
+			});
+		};
+		if (skip_confirm) {
+			perform_delete();
+			return;
+		}
 		// destructive: red primary via frappe.warn, not a neutral confirm
 		frappe.warn(
 			__("Confirm"),
 			__("Permanently delete {0}?", [title.bold()]),
-			function () {
-				return frappe.call({
-					method: "frappe.client.delete",
-					args: {
-						doctype: doctype,
-						name: docname,
-					},
-					freeze: true,
-					freeze_message: __("Deleting {0}...", [title]),
-					callback: function (r, rt) {
-						if (!r.exc) {
-							frappe.utils.play_sound("delete");
-							frappe.model.delete_from_locals(doctype, docname);
-							if (callback) callback(r, rt);
-						}
-					},
-				});
-			},
+			perform_delete,
 			__("Delete")
 		);
 	},

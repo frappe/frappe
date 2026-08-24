@@ -1090,26 +1090,35 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 	}
 
+	_linked_docs_list_html(links, as_links = true) {
+		let links_text = "";
+		const doctypes = Array.from(new Set(links.map((link) => link.doctype)));
+
+		for (let doctype of doctypes) {
+			let docnames = links
+				.filter((link) => link.doctype == doctype)
+				.map((link) =>
+					as_links
+						? frappe.utils.get_form_link(link.doctype, link.name, true)
+						: cstr(link.name)
+				)
+				.join(", ");
+			links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
+		}
+		return `<ul>${links_text}</ul>`;
+	}
+
 	_cancel_all(r, btn, callback, on_error) {
 		const me = this;
 
 		// add confirmation message for cancelling all linked docs
-		let links_text = "";
 		let links = r.message.docs;
-		const doctypes = Array.from(new Set(links.map((link) => link.doctype)));
 
 		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
 
-		for (let doctype of doctypes) {
-			if (!me.ignore_doctypes_on_cancel_all.includes(doctype)) {
-				let docnames = links
-					.filter((link) => link.doctype == doctype)
-					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
-					.join(", ");
-				links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
-			}
-		}
-		links_text = `<ul>${links_text}</ul>`;
+		let links_text = me._linked_docs_list_html(
+			links.filter((link) => !me.ignore_doctypes_on_cancel_all.includes(link.doctype))
+		);
 
 		let confirm_message = __("{0} {1} is linked with the following submitted documents: {2}", [
 			__(me.doc.doctype).bold(),
@@ -1255,10 +1264,102 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	savetrash() {
+		const me = this;
 		this.validate_form_action("Delete");
-		frappe.model.delete_doc(this.doctype, this.docname, function () {
-			window.history.back();
+		frappe
+			.call({
+				method: "frappe.desk.form.linked_with.get_linked_docs_to_delete",
+				args: {
+					doctype: me.doctype,
+					name: cstr(me.docname),
+				},
+				freeze: true,
+			})
+			.then((r) => {
+				if (!r.exc && (r.message.docs || []).length) {
+					return me._delete_all(r);
+				}
+				me._delete();
+			});
+	}
+
+	_delete(skip_confirm) {
+		frappe.model.delete_doc(
+			this.doctype,
+			this.docname,
+			function () {
+				window.history.back();
+			},
+			skip_confirm
+		);
+	}
+
+	_delete_all(r) {
+		const me = this;
+		const links = r.message.docs;
+
+		let confirm_message = __("{0} {1} is linked with the following documents: {2}", [
+			__(me.doctype).bold(),
+			me.docname,
+			me._linked_docs_list_html(links),
+		]);
+		confirm_message += __("Do you want to delete {0} along with all linked documents?", [
+			cstr(me.docname).bold(),
+		]);
+
+		const d = new frappe.ui.Dialog({
+			title: __("Delete All Documents"),
+			fields: [
+				{
+					fieldtype: "HTML",
+					options: `<p class="frappe-confirm-message">${confirm_message}</p>`,
+				},
+			],
 		});
+
+		d.set_primary_action(__("Delete All"), () => {
+			d.hide();
+			frappe.call({
+				method: "frappe.desk.form.linked_with.delete_all_linked_docs",
+				args: {
+					docs: links,
+				},
+				freeze: true,
+				freeze_message: __("Deleting documents..."),
+				callback: (resp) => {
+					if (resp.exc) {
+						return;
+					}
+					const skipped = resp.message.skipped || [];
+					if (!skipped.length) {
+						return me._delete(true);
+					}
+					me.reload_doc();
+					const deleted = resp.message.deleted || [];
+					let message = "";
+					if (deleted.length) {
+						message += __("The following documents were deleted: {0}", [
+							me._linked_docs_list_html(deleted, false),
+						]);
+					}
+					message += __(
+						"{0} {1} was kept because the following documents could not be deleted: {2}",
+						[
+							__(me.doctype),
+							cstr(me.docname).bold(),
+							me._linked_docs_list_html(skipped),
+						]
+					);
+					frappe.msgprint({
+						title: __("Partially Deleted"),
+						indicator: "orange",
+						message: message,
+					});
+				},
+			});
+		});
+
+		d.show();
 	}
 
 	amend_doc() {
