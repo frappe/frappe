@@ -13,6 +13,12 @@ def hard_delete_referencing_child2_records(doc, method=None):
 	frappe.db.delete("Child DocType2", {"child_doctype1": doc.name})
 
 
+def block_cancel_while_child2_submitted(doc, method=None):
+	"""Mimic a controller that wants referencing documents cancelled first."""
+	if frappe.db.exists("Child DocType2", {"child_doctype1": doc.name, "docstatus": 1}):
+		frappe.throw("Cancel the referencing document first")
+
+
 class TestLinkedWith(IntegrationTestCase):
 	def setUp(self):
 		parent_doctype = new_doctype("Parent DocType")
@@ -270,6 +276,29 @@ class TestLinkedWith(IntegrationTestCase):
 		]
 		# only the events of the two successful attempts survive
 		self.assertEqual(events, [{"attempt": 2}, {"attempt": 3}])
+
+	def test_cancel_all_linked_docs_defers_controller_blocked_docs(self):
+		"""A controller check that wants a referencing document cancelled first
+		raises a plain ValidationError; the document must get deferred, not fail
+		the run."""
+		child1 = frappe.get_doc({"doctype": "Child DocType1"}).insert().submit()
+		child2 = (
+			frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+		)
+
+		hook = f"{__name__}.block_cancel_while_child2_submitted"
+		self.addCleanup(setattr, frappe.local, "doc_events_hooks", None)
+		with self.patch_hooks({"doc_events": {"Child DocType1": {"before_cancel": [hook]}}}):
+			frappe.local.doc_events_hooks = None
+			linked_with.cancel_all_linked_docs(
+				docs=[
+					{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
+					{"doctype": "Child DocType2", "name": child2.name, "docstatus": 1},
+				]
+			)
+
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(child2.reload().docstatus.is_cancelled())
 
 	def test_get_linked_docs_to_delete_deepest_first(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
