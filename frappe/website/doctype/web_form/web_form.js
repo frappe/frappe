@@ -70,6 +70,22 @@ frappe.ui.form.on("Web Form", {
 		frm.set_value(frm.doc.is_new_doctype ? "doc_type" : "new_doctype_name", "");
 		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
+
+		// Explain the "New DocType Name" field in a one-off dialog instead of a
+		// permanent description under the field, which would shift the layout
+		// every time this checkbox is toggled.
+		if (frm.doc.is_new_doctype) {
+			frappe.msgprint({
+				title: __("Creating a New DocType"),
+				message:
+					__("A new DocType will be created using the fields added below.") +
+					"<br>" +
+					__('If you leave "New DocType Name" blank, it will default to "webform-{0}".', [
+						frm.doc.name,
+					]),
+				indicator: "blue",
+			});
+		}
 	},
 
 	toggle_new_doctype_fields(frm) {

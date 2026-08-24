@@ -122,7 +122,7 @@ class WebForm(WebsiteGenerator):
 		"""Create the target DocType from this Web Form's fields instead of
 		requiring the user to pick an existing DocType."""
 		if not self.new_doctype_name:
-			frappe.throw(_("New DocType Name is mandatory to create a new DocType"))
+			self.new_doctype_name = f"webform-{self.name}"
 
 		if frappe.db.exists("DocType", self.new_doctype_name):
 			frappe.throw(_("DocType {0} already exists").format(self.new_doctype_name))
