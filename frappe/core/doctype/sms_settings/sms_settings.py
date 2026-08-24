@@ -4,7 +4,6 @@
 import frappe
 from frappe import _, msgprint, throw
 from frappe.model.document import Document
-from frappe.rate_limiter import rate_limit
 from frappe.utils import nowdate
 
 
@@ -80,9 +79,11 @@ def get_sms_ratelimit() -> int:
 
 def enforce_per_user_sms_ratelimit():
 	cache_key = frappe.cache.make_key("sms-rate-limit", user=True)
-	if not frappe.cache.get(cache_key):
-		frappe.cache.setex(cache_key, 60 * 60, 0)
+	# incrby is atomic, unlike a get + set pair, so concurrent requests can't clobber each other's count
 	count = frappe.cache.incrby(cache_key, 1)
+	# nx=True only sets the TTL if the key doesn't already have one, so calling this on every
+	# request is safe and keeps a fixed (not sliding) window instead of resetting it each time
+	frappe.cache.expire(cache_key, 60 * 60, nx=True)
 
 	if count > get_sms_ratelimit():
 		frappe.throw(
@@ -111,7 +112,6 @@ def is_permitted_to_send_sms() -> bool:
 
 
 @frappe.whitelist()
-@rate_limit(limit=get_sms_ratelimit, seconds=60 * 60)
 def send_sms(receiver_list: str | list[str], msg: str, sender_name: str = "", success_msg: bool = True):
 	if not is_permitted_to_send_sms():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
