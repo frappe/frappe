@@ -1100,7 +1100,7 @@ frappe.ui.form.Form = class FrappeForm {
 				.map((link) =>
 					as_links
 						? frappe.utils.get_form_link(link.doctype, link.name, true)
-						: cstr(link.name)
+						: frappe.utils.escape_html(cstr(link.name))
 				)
 				.join(", ");
 			links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
