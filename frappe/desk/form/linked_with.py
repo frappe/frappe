@@ -434,18 +434,16 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 	while docs:
 		deferred = []
 		for doc in docs:
-			before_commit_count = len(frappe.db.before_commit)
-			after_commit_count = len(frappe.db.after_commit)
+			side_effect_counts = capture_pending_side_effects()
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
 			except frappe.LinkExistsError:
 				# cancel and delete both run their hooks before the link check, so
 				# roll back the writes of the failed attempt before deferring, and
-				# drop the commit hooks it queued, which savepoints cannot undo
+				# drop the side effects it queued, which savepoints cannot undo
 				frappe.db.rollback(save_point=save_point)
-				frappe.db.before_commit.truncate(before_commit_count)
-				frappe.db.after_commit.truncate(after_commit_count)
+				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
 				continue
 			frappe.db.release_savepoint(save_point)
@@ -457,6 +455,34 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 			# it. Process without catching to surface the link error.
 			process(deferred[0])
 		docs = deferred
+
+
+def capture_pending_side_effects() -> dict:
+	"""Lengths of the queues of pending side effects, which savepoints cannot restore."""
+	return {
+		"before_commit": len(frappe.db.before_commit),
+		"after_commit": len(frappe.db.after_commit),
+		"realtime_log": len(frappe.local._realtime_log) if hasattr(frappe.local, "_realtime_log") else None,
+		"webhook_queue": len(getattr(frappe.local, "_webhook_queue", None) or []),
+	}
+
+
+def discard_side_effects_since(counts: dict):
+	"""Drop side effects queued after capture: the commit hooks, realtime events
+	and webhook executions of a rolled-back attempt would otherwise still run."""
+	frappe.db.before_commit.truncate(counts["before_commit"])
+	frappe.db.after_commit.truncate(counts["after_commit"])
+
+	if counts["realtime_log"] is None:
+		if hasattr(frappe.local, "_realtime_log"):
+			# the attempt created the log and its flush hook, which the truncation
+			# above removed; drop the log so the next event re-registers the flush
+			del frappe.local._realtime_log
+	elif hasattr(frappe.local, "_realtime_log"):
+		frappe.local._realtime_log = frappe.local._realtime_log[: counts["realtime_log"]]
+
+	if getattr(frappe.local, "_webhook_queue", None):
+		frappe.local._webhook_queue = frappe.local._webhook_queue[: counts["webhook_queue"]]
 
 
 def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
