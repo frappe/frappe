@@ -50,6 +50,10 @@ def get_submitted_linked_docs(
 	for dt, names in visited_documents.items():
 		docs.extend([{"doctype": dt, "name": name, "docstatus": 1} for name in names])
 
+	# Deepest documents first, so referencing documents get cancelled before
+	# the documents they reference.
+	docs.sort(key=lambda doc: tree.depth_by_document[doc["doctype"], doc["name"]], reverse=True)
+
 	return {"docs": docs, "count": len(docs)}
 
 
@@ -69,6 +73,7 @@ class SubmittableDocumentTree:
 		# Documents those are yet to be visited for linked documents.
 		self.to_be_visited_documents = {doctype: [name]}
 		self.visited_documents = defaultdict(list)
+		self.depth_by_document = {(doctype, name): 0}
 
 		self._submittable_doctypes = None  # All submittable doctypes in the system
 		self._references_across_doctypes = None  # doctype wise links/references
@@ -77,23 +82,22 @@ class SubmittableDocumentTree:
 		"""Get all nodes of a tree except the root node (all the nested submitted
 		documents those are present in referencing tables dependent tables).
 		"""
+		depth = 0
 		while self.to_be_visited_documents:
+			depth += 1
+			current_level = self.visit_current_level(ignore_doctypes_on_cancel_all)
 			next_level_children = defaultdict(list)
-			for parent_dt in list(self.to_be_visited_documents):
-				parent_docs = self.to_be_visited_documents.get(parent_dt)
-				if not parent_docs or (
-					ignore_doctypes_on_cancel_all and parent_dt in ignore_doctypes_on_cancel_all
-				):
-					del self.to_be_visited_documents[parent_dt]
-					continue
-
+			for parent_dt, parent_docs in current_level.items():
 				child_docs = self.get_next_level_children(parent_dt, parent_docs)
-				self.visited_documents[parent_dt].extend(parent_docs)
 				for linked_dt, linked_names in child_docs.items():
-					not_visited_child_docs = set(linked_names) - set(
-						self.visited_documents.get(linked_dt, [])
+					new_child_docs = (
+						set(linked_names)
+						- set(self.visited_documents.get(linked_dt, []))
+						- set(next_level_children[linked_dt])
 					)
-					next_level_children[linked_dt].extend(not_visited_child_docs)
+					next_level_children[linked_dt].extend(new_child_docs)
+					for linked_name in new_child_docs:
+						self.depth_by_document[(linked_dt, linked_name)] = depth
 
 			self.to_be_visited_documents = next_level_children
 
@@ -105,6 +109,19 @@ class SubmittableDocumentTree:
 			"root document must be excluded from linked children"
 		)
 		return self.visited_documents
+
+	def visit_current_level(self, ignore_doctypes_on_cancel_all):
+		"""Mark all documents of the current level as visited before expanding them,
+		so a document referenced from its own level is not visited twice."""
+		current_level = {}
+		for parent_dt, parent_docs in self.to_be_visited_documents.items():
+			if not parent_docs or (
+				ignore_doctypes_on_cancel_all and parent_dt in ignore_doctypes_on_cancel_all
+			):
+				continue
+			current_level[parent_dt] = parent_docs
+			self.visited_documents[parent_dt].extend(parent_docs)
+		return current_level
 
 	def get_next_level_children(self, parent_dt, parent_names):
 		"""Get immediate children of a Node(parent_dt, parent_names)"""
@@ -372,6 +389,9 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
+	A document that other submitted documents still reference is deferred and
+	retried after the rest, so callers need not pass docs in dependency order.
+
 	Arguments:
 	        docs (json str) - It contains list of dictionaries of a linked documents.
 	        ignore_doctypes_on_cancel_all (list) - List of doctypes to ignore while cancelling.
@@ -381,11 +401,51 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 
 	docs = frappe.parse_json(docs)
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
-	for i, doc in enumerate(docs, 1):
-		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
-			linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
-			linked_doc.cancel()
-		frappe.publish_progress(percent=i / len(docs) * 100, title=_("Cancelling documents"))
+
+	to_cancel = []
+	seen = set()
+	for doc in docs:
+		key = (doc.get("doctype"), doc.get("name"))
+		if key not in seen and validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
+			seen.add(key)
+			to_cancel.append(doc)
+
+	total = len(to_cancel)
+	cancelled = 0
+	while to_cancel:
+		deferred = []
+		for doc in to_cancel:
+			if not cancel_linked_doc(doc):
+				deferred.append(doc)
+				continue
+			cancelled += 1
+			frappe.publish_progress(percent=cancelled / total * 100, title=_("Cancelling documents"))
+
+		if len(deferred) == len(to_cancel):
+			# A full pass cancelled nothing, so a document outside `docs` blocks
+			# cancellation. Cancel without catching to surface the link error.
+			frappe.get_doc(deferred[0].get("doctype"), deferred[0].get("name")).cancel()
+		to_cancel = deferred
+
+
+def cancel_linked_doc(docinfo) -> bool:
+	"""Cancel a document, returning False when a submitted document still references it."""
+	doc = frappe.get_doc(docinfo.get("doctype"), docinfo.get("name"))
+	if not doc.docstatus.is_submitted():
+		# already cancelled, possibly by the on_cancel hook of another document
+		return True
+
+	save_point = "cancel_linked_doc"
+	frappe.db.savepoint(save_point)
+	try:
+		doc.cancel()
+	except frappe.LinkExistsError:
+		# cancel runs on_cancel before the back-link check; roll its writes back
+		frappe.db.rollback(save_point=save_point)
+		return False
+
+	frappe.db.release_savepoint(save_point)
+	return True
 
 
 def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
