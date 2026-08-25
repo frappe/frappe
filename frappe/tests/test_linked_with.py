@@ -195,6 +195,7 @@ class TestLinkedWith(IntegrationTestCase):
 
 		# child1 is blocked by child2 and passed first (with a duplicate); it must
 		# get deferred and cancelled on a later pass instead of failing
+		message_count = len(frappe.local.message_log)
 		linked_with.cancel_all_linked_docs(
 			docs=[
 				{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
@@ -205,6 +206,8 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertTrue(child1.reload().docstatus.is_cancelled())
 		self.assertTrue(child2.reload().docstatus.is_cancelled())
+		# the link error of the deferred attempt must not leak to the user
+		self.assertEqual(len(frappe.local.message_log), message_count)
 
 	def test_deferred_attempts_drop_queued_commit_hooks(self):
 		"""A rolled-back attempt must not leave its commit or rollback hooks
