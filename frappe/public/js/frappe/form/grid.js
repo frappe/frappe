@@ -1798,54 +1798,29 @@ export default class Grid {
 					})),
 					on_change: () => refresh_actions(),
 				},
-				{
-					fieldtype: "Section Break",
-				},
-				{
-					fieldtype: "HTML",
-					fieldname: "download",
-				},
-				...(import_type
-					? [
-							{
-								fieldtype: "HTML",
-								fieldname: "import_file",
-							},
-					  ]
-					: []),
 			],
-		});
-
-		const refresh_actions = () => {
-			dialog.$wrapper
-				.find(".bulk-edit-download")
-				.prop("disabled", !dialog.get_value("fields").length);
-		};
-
-		dialog.get_field("download").$wrapper.html(
-			frappe.ui.button.html({
-				label: __("Download Template"),
-				css_class: "bulk-edit-download",
-			})
-		);
-		dialog.$wrapper.find(".bulk-edit-download").on("click", () => {
-			const { file_type, fields, export_records } = dialog.get_values();
-			this.download_bulk_edit_template(file_type, fields, export_records);
-		});
-
-		if (import_type) {
-			dialog.get_field("import_file").$wrapper.html(`
-				<label class="control-label">${__("Import File")}</label>
-				<div>${frappe.ui.button.html({
-					label: __("Attach"),
-					css_class: "bulk-edit-attach",
-				})}</div>
-			`);
-			dialog.$wrapper.find(".bulk-edit-attach").on("click", () => {
+			// both live in the modal footer, which stays put while the body scrolls,
+			// so the field list can be as long as it likes without hiding them
+			primary_action_label: import_type ? __("Attach File") : __("Download Template"),
+			primary_action: () => {
+				if (!import_type) return download();
 				dialog.hide();
 				this.show_bulk_edit_upload(import_type);
-			});
-		}
+			},
+			secondary_action_label: import_type ? __("Download Template") : undefined,
+			secondary_action: import_type ? () => download() : undefined,
+		});
+
+		const download = () => {
+			const { file_type, fields, export_records } = dialog.get_values();
+			this.download_bulk_edit_template(file_type, fields, export_records);
+		};
+
+		const refresh_actions = () => {
+			const has_fields = Boolean(dialog.get_value("fields").length);
+			const $download = import_type ? dialog.get_secondary_btn() : dialog.get_primary_btn();
+			$download.prop("disabled", !has_fields);
+		};
 
 		this.scroll_bulk_edit_dialog(dialog);
 		dialog.show();
@@ -2161,9 +2136,12 @@ export default class Grid {
 		dialog.show();
 	}
 
-	/** Keep a tall body inside the modal instead of stretching the page. */
+	/**
+	 * Scroll a tall body inside the modal instead of stretching the page, so the
+	 * footer actions stay in view no matter how many fields or rows there are.
+	 */
 	scroll_bulk_edit_dialog(dialog) {
-		dialog.$body.css({ "max-height": "60vh", "overflow-y": "auto" });
+		dialog.modal_body.css({ "max-height": "60vh", "overflow-y": "auto" });
 	}
 
 	/** How each file row would land, without changing anything. */
