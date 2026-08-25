@@ -2010,8 +2010,15 @@ export default class Grid {
 				map
 			);
 
-			// the action only earns its place when there is something to show
-			dialog.$wrapper.find(".bulk-edit-warnings").toggleClass("hide", !warnings.length);
+			// the action stays put and carries the count, rather than appearing and
+			// disappearing as the mapping changes
+			dialog.$wrapper
+				.find(".bulk-edit-warnings .es-button__label")
+				.text(
+					warnings.length
+						? __("Show Warnings ({0})", [warnings.length])
+						: __("Show Warnings")
+				);
 
 			dialog.get_field("summary").$wrapper.html(`
 				<p class="text-muted small">
@@ -2176,20 +2183,24 @@ export default class Grid {
 			return `<li>${label}${w.message}</li>`;
 		};
 
-		const html = `
-			${general.length ? `<ul class="text-muted">${general.map(line).join("")}</ul>` : ""}
-			${Object.keys(by_row)
-				.sort((a, b) => cint(a) - cint(b))
-				.map(
-					(row) => `
-						<div class="mb-3">
-							<h6 class="text-uppercase text-muted">${__("Row {0}", [row])}</h6>
-							<ul class="text-muted">${by_row[row].map(line).join("")}</ul>
-						</div>
-					`
-				)
-				.join("")}
-		`;
+		const html = warnings.length
+			? `
+				${general.length ? `<ul class="text-muted">${general.map(line).join("")}</ul>` : ""}
+				${Object.keys(by_row)
+					.sort((a, b) => cint(a) - cint(b))
+					.map(
+						(row) => `
+							<div class="mb-3">
+								<h6 class="text-uppercase text-muted">${__("Row {0}", [row])}</h6>
+								<ul class="text-muted">${by_row[row].map(line).join("")}</ul>
+							</div>
+						`
+					)
+					.join("")}
+			`
+			: `<p class="text-muted">${__(
+					"No warnings. Every column matches a field and every value looks valid."
+			  )}</p>`;
 
 		let done = false;
 		const finish = () => {
