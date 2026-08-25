@@ -5,7 +5,7 @@
 		</div>
 		<div class="divide-y divide-outline-gray-1">
 			<button
-				v-for="file in files"
+				v-for="file in shown"
 				:key="file.path"
 				class="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-surface-gray-1"
 				:title="file.path"
@@ -18,19 +18,30 @@
 				<span class="flex-none font-mono text-xs text-ink-green-3">+{{ file.added }}</span>
 				<span class="flex-none font-mono text-xs text-ink-red-3">-{{ file.removed }}</span>
 			</button>
+			<button
+				v-if="files.length > VISIBLE"
+				class="w-full py-2 text-center text-xs text-ink-gray-5 transition-colors hover:bg-surface-gray-1 hover:text-ink-gray-8"
+				@click="expanded = !expanded"
+			>
+				{{ expanded ? "Show less" : `Show all ${files.length} files` }}
+			</button>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { compactDisplayText, fileName } from "../transcript.js"
 
-defineProps({
+const props = defineProps({
 	files: { type: Array, required: true }, // [{path, added, removed}]
 })
+
+const VISIBLE = 4
+const expanded = ref(false)
+const shown = computed(() => (expanded.value ? props.files : props.files.slice(0, VISIBLE)))
 
 const flow = inject("flow")
 const cwd = computed(() => flow.state.session?.config?.cwd ?? null)
