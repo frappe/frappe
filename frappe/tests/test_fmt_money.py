@@ -81,6 +81,16 @@ class TestFmtMoney(IntegrationTestCase):
 		self.assertEqual(fmt_money(1000000000.2718272637), "1,000,000,000.2718")
 		frappe.db.set_default("currency_precision", "")
 
+	def test_currency_precision_zero(self):
+		# an explicitly configured Currency Precision of 0 must be honoured,
+		# not treated the same as "not set" (cint("0") is the falsy int 0)
+		frappe.db.set_default("currency_precision", "0")
+		frappe.db.set_default("number_format", "#,###.##")
+		self.assertEqual(fmt_money(100), "100")
+		self.assertEqual(fmt_money(1000.6), "1,001")
+		self.assertEqual(fmt_money(100000.23), "100,000")
+		frappe.db.set_default("currency_precision", "")
+
 	def test_currency_precision_de_format(self):
 		frappe.db.set_default("currency_precision", "4")
 		frappe.db.set_default("number_format", "#.###,##")
