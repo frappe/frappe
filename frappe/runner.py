@@ -14,7 +14,7 @@ import signal
 import sys
 import threading
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 
 from rq.timeouts import TimerDeathPenalty
@@ -34,6 +34,8 @@ SOCKETIO_PATH = "/socket.io"
 # No user waits for these requests. Thus they do not increase a count, and they do
 # not make the process busy.
 HEALTH_CHECK_PATHS = ("/api/method/ping",)
+# A burst of writes (a formatter, a rename across files) leads to one reload.
+SOURCE_QUIET_SECONDS = 1
 
 
 @dataclass(frozen=True)
@@ -44,7 +46,6 @@ class Config:
 	port: int
 	queue: str | None
 	verbose: bool
-	serve_assets: bool
 	web_threads: int
 	job_threads: int
 	restart_after_requests: int
@@ -52,6 +53,7 @@ class Config:
 	restart_idle_seconds: float
 	request_drain_seconds: float
 	job_drain_seconds: float
+	dev: bool
 
 	@property
 	def queue_names(self) -> list[str] | None:
@@ -105,7 +107,7 @@ class TrafficMiddleware:
 	@classmethod
 	def load(cls, config: Config, traffic: Traffic) -> TrafficMiddleware:
 		"""Initialize frappe and get its ASGI app."""
-		if config.serve_assets:
+		if config.dev:
 			os.environ["FRAPPE_SERVE_ASSETS"] = "1"
 		if config.web_threads:
 			os.environ["FRAPPE_WEB_THREADS"] = str(config.web_threads)
@@ -347,6 +349,7 @@ class Runner:
 		self.scheduler = Scheduler()
 		self.draining = threading.Event()
 		self.restarting = threading.Event()
+		self.source = SourceWatch(self.draining) if config.dev else None
 
 	def run(self) -> None:
 		for sig in (signal.SIGHUP, signal.SIGINT, signal.SIGTERM):
@@ -354,6 +357,8 @@ class Runner:
 
 		if self.config.has_restart_limit:
 			RestartWatch(self.config, self.traffic, self.draining).start()
+		if self.source:
+			self.source.start()
 		self.jobs.start()
 		self.scheduler.start()
 
@@ -438,6 +443,60 @@ class RestartWatch:
 				return
 
 
+class SourceWatch:
+	"""Reload when the python source of an app changes.
+
+	SIGHUP already drains the web app and the jobs and then re-execs, thus one signal
+	brings uvicorn, the job threads and the scheduler back on the new code. Only the
+	python package of each app is watched, so node_modules and .git stay out.
+
+	watchdog wants no more than dispatch() on a handler, so this class is its own."""
+
+	# inotify calls a plain read "opened" and "closed_no_write", and an import reads
+	# the file it loads. Anything wider than a real write reloads without end.
+	CHANGES = frozenset(("created", "modified", "moved", "deleted"))
+
+	def __init__(self, draining: threading.Event):
+		self.draining = draining
+		self.fired = threading.Event()
+
+	def start(self) -> None:
+		try:
+			from watchdog.observers import Observer
+		except ImportError as e:
+			# --dev promises a reload. Not starting beats reloading in silence.
+			raise SystemExit("--dev needs watchdog: pip install 'frappe[dev]'") from e
+
+		paths = []
+		for app in frappe.get_all_apps():
+			# apps.txt can name an app that this bench cannot import. build.setup()
+			# steps over those as well.
+			with suppress(ImportError):
+				paths.append(frappe.get_app_path(app))
+		observer = Observer()
+		observer.daemon = True
+		for path in paths:
+			observer.schedule(self, path, recursive=True)
+		observer.start()
+		logger.info("dev: watching %s", ", ".join(paths))
+
+	def dispatch(self, event) -> None:
+		"""One reload for each change. The process re-execs, thus this fires once."""
+		# A rename carries both paths; the new name holds the code now.
+		path = getattr(event, "dest_path", "") or event.src_path
+		if event.is_directory or event.event_type not in self.CHANGES or not path.endswith(".py"):
+			return
+		if self.draining.is_set() or self.fired.is_set():
+			return
+		self.fired.set()
+		logger.info("dev: %s changed, reloading", path)
+		threading.Timer(SOURCE_QUIET_SECONDS, self.reload).start()
+
+	def reload(self) -> None:
+		if not self.draining.is_set():
+			os.kill(os.getpid(), signal.SIGHUP)
+
+
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
 	"""Show the default of each flag, and keep the line breaks of the description."""
 
@@ -451,7 +510,9 @@ def main() -> None:
 	parser.add_argument("--queue", help="comma separated queues; unset means all of them")
 	parser.add_argument("--verbose", action="store_true", help="log each job and each realtime packet")
 	parser.add_argument(
-		"--serve-assets", action="store_true", help="send /assets and /files, as when there is no proxy"
+		"--dev",
+		action="store_true",
+		help="reload on a change of a python file, and send the assets",
 	)
 	parser.add_argument(
 		"--web-threads", type=int, default=0, help="concurrent web requests (0 = the default of frappe.asgi)"
