@@ -53,11 +53,10 @@
 				<ApprovalCard v-else-if="item.kind === 'approval'" :calls="item.calls" :seq="item.seq" />
 				<div
 					v-else-if="item.kind === 'compaction'"
-					class="flex items-center gap-3 py-1 text-2xs text-ink-gray-4"
+					class="flex items-center gap-2.5 text-sm text-ink-gray-5"
 				>
-					<span class="h-px flex-1 bg-surface-gray-3" />
+					<FeatherIcon name="archive" class="h-3.5 w-3.5 flex-none" />
 					<span>Context compacted ({{ item.entry.reason }})</span>
-					<span class="h-px flex-1 bg-surface-gray-3" />
 				</div>
 				<div
 					v-else-if="item.kind === 'notice'"
