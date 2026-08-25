@@ -5,6 +5,22 @@ import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
 
 const BULK_EDIT_CSV_HEADER_ROWS = 7; // title, labels, fieldnames, descriptions, 2 instructions, separator
+const BULK_EDIT_FIELDNAME_ROW = 2; // third header row carries the fieldnames
+const BULK_EDIT_MAX_ROWS = 5000;
+const BULK_EDIT_FILE_TYPES = [".csv", ".xlsx", ".xls"];
+// spreadsheet cells come back in system format, csv cells in the user's date format
+const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
+
+const BULK_EDIT_VALUE_FORMATTERS = {
+	Date: (val) => {
+		if (!val) return val;
+		return SYSTEM_DATE_PATTERN.test(val) ? val.slice(0, 10) : frappe.datetime.user_to_str(val);
+	},
+	Int: (val) => cint(val),
+	Check: (val) => cint(val),
+	Float: (val) => flt(val),
+	Currency: (val) => flt(val),
+};
 
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
@@ -1649,110 +1665,169 @@ export default class Grid {
 	}
 
 	setup_allow_bulk_edit() {
-		let me = this;
 		if (this.frm && this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) {
-			// download
 			this.setup_download();
-
-			const value_formatter_map = {
-				Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
-				Int: (val) => cint(val),
-				Check: (val) => cint(val),
-				Float: (val) => flt(val),
-				Currency: (val) => flt(val),
-			};
-
-			// upload
-			frappe.flags.no_socketio = true;
-			$(this.wrapper)
-				.find(".grid-upload")
-				.removeClass("hidden")
-				.on("click", () => {
-					new frappe.ui.FileUploader({
-						as_dataurl: true,
-						allow_multiple: false,
-						restrictions: {
-							allowed_file_types: [".csv"],
-						},
-						on_success(file) {
-							const data = frappe.utils.csv_to_array(
-								frappe.utils.get_decoded_string(file.dataurl)
-							);
-							if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > 5000) {
-								frappe.throw(__("Cannot import table with more than 5000 rows."));
-							}
-							const fieldnames = data[2];
-							me.frm.clear_table(me.df.fieldname);
-							data.forEach((row, i) => {
-								if (i < BULK_EDIT_CSV_HEADER_ROWS) return;
-								if (!row.some((v) => v)) return;
-								const d = me.frm.add_child(me.df.fieldname);
-								row.forEach((value, ci) => {
-									const fieldname = fieldnames[ci];
-									const df = frappe.meta.get_docfield(me.df.options, fieldname);
-									if (df) {
-										d[fieldname] = value_formatter_map[df.fieldtype]
-											? value_formatter_map[df.fieldtype](value)
-											: value;
-									}
-								});
-							});
-
-							me.frm.refresh_field(me.df.fieldname);
-							frappe.msgprint({
-								message: __("Table updated"),
-								title: __("Success"),
-								indicator: "green",
-							});
-						},
-					});
-					return false;
-				});
+			this.setup_upload();
 		}
 	}
 
+	get_bulk_edit_title() {
+		return this.df.label || frappe.model.unscrub(this.df.fieldname);
+	}
+
 	setup_download() {
-		let title = this.df.label || frappe.model.unscrub(this.df.fieldname);
 		$(this.wrapper)
 			.find(".grid-download")
 			.removeClass("hidden")
 			.on("click", () => {
-				const data = [
-					[__("Bulk Edit {0}", [title])],
-					[],
-					[],
-					[],
-					[__("The CSV format is case sensitive")],
-					[__("Do not edit headers which are preset in the template")],
-					["------"],
-				];
-				const docfields = [];
-				frappe.get_meta(this.df.options).fields.forEach((df) => {
-					if (frappe.model.is_value_type(df.fieldtype)) {
-						data[1].push(df.label);
-						data[2].push(df.fieldname);
-						let description = (df.description || "") + " ";
-						if (df.fieldtype === "Date")
-							description += frappe.boot.sysdefaults.date_format;
-						data[3].push(description);
-						docfields.push(df);
-					}
-				});
-
-				(this.frm.doc[this.df.fieldname] || []).forEach((d) => {
-					const row = data[2].map((fieldname, i) => {
-						let value = d[fieldname];
-						if (docfields[i].fieldtype === "Date" && value) {
-							value = frappe.datetime.str_to_user(value);
-						}
-						return value || "";
-					});
-					data.push(row);
-				});
-
-				frappe.tools.downloadify(data, null, title);
+				this.show_bulk_edit_download_dialog();
 				return false;
 			});
+	}
+
+	show_bulk_edit_download_dialog() {
+		const title = this.get_bulk_edit_title();
+		const dialog = new frappe.ui.Dialog({
+			title: __("Download {0}", [title]),
+			fields: [
+				{
+					fieldtype: "Select",
+					fieldname: "file_type",
+					label: __("File Type"),
+					options: ["Excel", "CSV"],
+					default: "Excel",
+					reqd: 1,
+				},
+			],
+			primary_action_label: __("Download"),
+			primary_action: ({ file_type }) => {
+				dialog.hide();
+				this.download_bulk_edit_template(file_type);
+			},
+		});
+		dialog.show();
+	}
+
+	download_bulk_edit_template(file_type) {
+		const title = this.get_bulk_edit_title();
+		const data = this.get_bulk_edit_data();
+
+		if (file_type === "CSV") {
+			frappe.tools.downloadify(data, null, title);
+			return;
+		}
+
+		// the desk bundle cannot write xlsx, so the sheet is rendered on the server
+		open_url_post("/api/method/frappe.desk.form.bulk_edit.download_bulk_edit_template", {
+			doctype: this.frm.doctype,
+			title: title,
+			file_type: file_type,
+			data: JSON.stringify(data),
+		});
+	}
+
+	get_bulk_edit_data() {
+		const title = this.get_bulk_edit_title();
+		const data = [
+			[__("Bulk Edit {0}", [title])],
+			[],
+			[],
+			[],
+			[__("The file format is case sensitive")],
+			[__("Do not edit headers which are preset in the template")],
+			["------"],
+		];
+		const docfields = [];
+		frappe.get_meta(this.df.options).fields.forEach((df) => {
+			if (frappe.model.is_value_type(df.fieldtype)) {
+				data[1].push(df.label);
+				data[BULK_EDIT_FIELDNAME_ROW].push(df.fieldname);
+				let description = (df.description || "") + " ";
+				if (df.fieldtype === "Date") description += frappe.boot.sysdefaults.date_format;
+				data[3].push(description);
+				docfields.push(df);
+			}
+		});
+
+		(this.frm.doc[this.df.fieldname] || []).forEach((d) => {
+			const row = data[BULK_EDIT_FIELDNAME_ROW].map((fieldname, i) => {
+				let value = d[fieldname];
+				if (docfields[i].fieldtype === "Date" && value) {
+					value = frappe.datetime.str_to_user(value);
+				}
+				return value || "";
+			});
+			data.push(row);
+		});
+
+		return data;
+	}
+
+	setup_upload() {
+		frappe.flags.no_socketio = true;
+		$(this.wrapper)
+			.find(".grid-upload")
+			.removeClass("hidden")
+			.on("click", () => {
+				new frappe.ui.FileUploader({
+					as_dataurl: true,
+					allow_multiple: false,
+					restrictions: {
+						allowed_file_types: BULK_EDIT_FILE_TYPES,
+					},
+					on_success: (file) => {
+						this.read_bulk_edit_file(file);
+					},
+				});
+				return false;
+			});
+	}
+
+	read_bulk_edit_file(file) {
+		// xlsx and xls need a reader the desk bundle does not have, and routing csv
+		// through the same call keeps every format producing identical rows
+		frappe.call({
+			method: "frappe.desk.form.bulk_edit.parse_bulk_edit_file",
+			args: {
+				doctype: this.frm.doctype,
+				filename: file.name,
+				dataurl: file.dataurl,
+			},
+			freeze: true,
+			freeze_message: __("Reading {0}", [file.name]),
+			callback: (r) => {
+				if (r.message) this.set_bulk_edit_rows(r.message);
+			},
+		});
+	}
+
+	set_bulk_edit_rows(data) {
+		if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > BULK_EDIT_MAX_ROWS) {
+			frappe.throw(__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS]));
+		}
+
+		const fieldnames = data[BULK_EDIT_FIELDNAME_ROW] || [];
+		this.frm.clear_table(this.df.fieldname);
+		data.forEach((row, i) => {
+			if (i < BULK_EDIT_CSV_HEADER_ROWS) return;
+			if (!row.some((v) => v)) return;
+			const d = this.frm.add_child(this.df.fieldname);
+			row.forEach((value, ci) => {
+				const fieldname = fieldnames[ci];
+				const df = frappe.meta.get_docfield(this.df.options, fieldname);
+				if (df) {
+					const format = BULK_EDIT_VALUE_FORMATTERS[df.fieldtype];
+					d[fieldname] = format ? format(value) : value;
+				}
+			});
+		});
+
+		this.frm.refresh_field(this.df.fieldname);
+		frappe.msgprint({
+			message: __("Table updated"),
+			title: __("Success"),
+			indicator: "green",
+		});
 	}
 
 	add_custom_button(label, click, position = "bottom") {
