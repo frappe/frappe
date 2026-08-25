@@ -175,7 +175,7 @@
 		</div>
 
 		<div
-			class="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize hover:bg-outline-gray-2 active:bg-outline-gray-3 md:block"
+			class="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3] md:block"
 			title="Drag to resize · double-click to reset"
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
