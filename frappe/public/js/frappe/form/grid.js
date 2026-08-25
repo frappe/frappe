@@ -20,8 +20,8 @@ const BULK_EDIT_ALL_RECORDS = "all";
 const BULK_EDIT_5_RECORDS = "5_records";
 // every step of the flow uses one size so the modals swap without resizing
 // every step shares one size, so switching tabs never resizes the modal
-const BULK_EDIT_DIALOG_SIZE = "large";
-const BULK_EDIT_DIALOG_HEIGHT = "420px";
+const BULK_EDIT_DIALOG_SIZE = "extra-large";
+const BULK_EDIT_DIALOG_HEIGHT = "480px";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -1991,62 +1991,34 @@ export default class Grid {
 			);
 		};
 
-		// every tab's actions live in the footer's left group, so they never move
-		dialog.add_custom_action(__("Download Template"), () => download(), "bulk-edit-download");
-		if (can_import) {
-			dialog.add_custom_action(
-				__("Upload"),
-				() => {
-					tabs.set_disabled(TAB_UPLOAD, false);
-					tabs.set_active(TAB_UPLOAD);
-				},
-				"bulk-edit-goto-upload"
-			);
-			dialog.add_custom_action(
-				__("Map Columns"),
-				() => {
-					tabs.set_disabled(TAB_MAPPING, false);
-					tabs.set_active(TAB_MAPPING);
-				},
-				"bulk-edit-map"
-			);
-			// the button label is set with .text(), so the arrow has to be a glyph
-			dialog.add_custom_action(
-				`← ${__("Back to Preview")}`,
-				() => tabs.set_active(TAB_PREVIEW),
-				"bulk-edit-back"
-			);
-		}
-
-		const show_actions = (...classes) => {
-			[
-				"bulk-edit-download",
-				"bulk-edit-goto-upload",
-				"bulk-edit-map",
-				"bulk-edit-back",
-			].forEach((css) =>
-				dialog.$wrapper.find(`.${css}`).toggleClass("hide", !classes.includes(css))
-			);
-		};
-
+		/**
+		 * Every tab's actions are standard dialog actions, so they all land in
+		 * the footer's right group and never move as the tab changes.
+		 */
 		const set_footer = () => {
 			const active = tabs.get_active();
-			dialog.get_primary_btn().addClass("hide");
-			dialog.get_secondary_btn().addClass("hide");
+			const $primary = dialog.get_primary_btn().addClass("hide");
+			const $secondary = dialog.get_secondary_btn().addClass("hide");
 
 			if (active === TAB_SETUP) {
-				show_actions(
-					"bulk-edit-download",
-					...(can_import ? ["bulk-edit-goto-upload"] : [])
-				);
-				dialog.$wrapper
-					.find(".bulk-edit-download")
-					.prop("disabled", !setup_form.get_value("fields")?.length);
+				dialog.set_secondary_action_label(__("Download Template"));
+				dialog.set_secondary_action(() => download());
+				$secondary.prop("disabled", !setup_form.get_value("fields")?.length);
+				if (can_import) {
+					dialog.set_primary_action(__("Upload"), () => {
+						tabs.set_disabled(TAB_UPLOAD, false);
+						tabs.set_active(TAB_UPLOAD);
+					});
+				}
 				return;
 			}
 
 			if (active === TAB_PREVIEW) {
-				show_actions("bulk-edit-map");
+				dialog.set_secondary_action_label(__("Map Columns"));
+				dialog.set_secondary_action(() => {
+					tabs.set_disabled(TAB_MAPPING, false);
+					tabs.set_active(TAB_MAPPING);
+				});
 				dialog.set_primary_action(__("Apply"), () => {
 					dialog.hide();
 					this.apply_bulk_edit_rows(state.rows, state.import_type, state.column_map);
@@ -2055,12 +2027,16 @@ export default class Grid {
 			}
 
 			if (active === TAB_MAPPING) {
-				show_actions("bulk-edit-back");
+				// the button label is set with .text(), so the arrow has to be a glyph
+				dialog.set_primary_action(`← ${__("Back to Preview")}`, () =>
+					tabs.set_active(TAB_PREVIEW)
+				);
 				return;
 			}
 
-			// upload: the uploader carries its own Upload button
-			show_actions();
+			// upload: the uploader carries its own button
+			$primary.addClass("hide");
+			$secondary.addClass("hide");
 		};
 
 		dialog.show();
