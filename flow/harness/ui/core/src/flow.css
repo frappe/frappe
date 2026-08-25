@@ -9,6 +9,12 @@
 	background: var(--surface-gray-1);
 }
 
+/* Dropdown hover: frappe-ui highlights menu items with --surface-gray-2, which
+   in dark mode is the same color as the menu surface itself — bump one step. */
+[data-theme="dark"] [role="menuitem"][data-highlighted] {
+	background-color: var(--surface-gray-3);
+}
+
 .flow-icon-btn {
 	display: grid;
 	place-items: center;
