@@ -207,6 +207,9 @@
 }
 
 /* rendered markdown */
+.flow-md {
+	overflow-wrap: break-word;
+}
 .flow-md > :first-child {
 	margin-top: 0;
 }
