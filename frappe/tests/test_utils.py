@@ -1024,7 +1024,7 @@ class TestXlsxUtils(FrappeTestCase):
 		self.assertEqual(rows[2][1].value, -5)
 
 
-class TestCsvUtils(IntegrationTestCase):
+class TestCsvUtils(FrappeTestCase):
 	def test_escape_formula_injection_prefixes_trigger_chars(self):
 		from frappe.utils.csvutils import FORMULA_TRIGGER_CHARS, escape_formula_injection
 

@@ -13,13 +13,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
-<<<<<<< HEAD
-=======
-from frappe import _
-from frappe.core.utils import html2text
-from frappe.utils import cint
 from frappe.utils.csvutils import FORMULA_TRIGGER_CHARS
->>>>>>> e07d907e43 (fix(xlsxutils): write formula-like strings as literal text in XLSX export)
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -75,47 +69,18 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				cell = WriteOnlyCell(ws, value=value)
 				cell.number_format = number_format
 				clean_row.append(cell)
+			elif isinstance(value, str) and value.startswith(FORMULA_TRIGGER_CHARS):
+				# force literal text so the cell isn't parsed as a formula
+				cell = WriteOnlyCell(ws, value=value)
+				cell.data_type = "s"
+				clean_row.append(cell)
 			else:
 				clean_row.append(value)
 
 		ws.append(clean_row)
 
-<<<<<<< HEAD
 	xlsx_file = BytesIO()
 	wb.save(xlsx_file)
-=======
-	write = ws.write
-	write_string = ws.write_string
-	has_cell_formats = bool(cell_formats)
-	get_cell_format = cell_formats.get
-
-	for row_idx, row in enumerate(data):
-		for col_idx, value in enumerate(row):
-			is_formula_like = False
-
-			if isinstance(value, str):
-				if handle_html_content:
-					value = handle_html(value)
-
-				if illegal_chars_search(value):
-					value = illegal_chars_sub("", value)
-
-				is_formula_like = value.startswith(FORMULA_TRIGGER_CHARS)
-
-			cell_format = get_cell_format((row_idx, col_idx)) if has_cell_formats else None
-
-			if is_formula_like:
-				# force literal text so the cell isn't parsed as a formula
-				write_string(row_idx, col_idx, value, cell_format)
-			else:
-				write(row_idx, col_idx, value, cell_format)
-
-	if not created_wb:
-		return
-
-	wb.close()
-	xlsx_file.seek(0)
->>>>>>> e07d907e43 (fix(xlsxutils): write formula-like strings as literal text in XLSX export)
 	return xlsx_file
 
 
