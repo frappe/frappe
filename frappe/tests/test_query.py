@@ -2550,6 +2550,39 @@ class TestQuery(IntegrationTestCase):
 				if note:
 					note.delete()
 
+	def test_child_user_permissions_skip_unrelated_applicable_for(self):
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		self.ensure_system_manager(frappe.get_doc("User", test_user), should_have=True)
+		restricted_link_note = None
+
+		try:
+			restricted_link_note = frappe.get_doc(
+				doctype="Note",
+				title="Unrelated applicable_for",
+				public=1,
+				seen_by=[{"user": "Administrator"}],
+			).insert()
+
+			clear_user_permissions_for_doctype("User", test_user)
+			add_user_permission("User", test_user, test_user, ignore_permissions=True, applicable_for="ToDo")
+			frappe.set_user(test_user)
+
+			visible_notes = frappe.qb.get_query(
+				"Note",
+				filters={"name": restricted_link_note.name},
+				ignore_permissions=False,
+			).run(pluck=True)
+
+			# The permission only applies to ToDo, so the Note stays visible.
+			self.assertListEqual(visible_notes, [restricted_link_note.name])
+		finally:
+			frappe.set_user("Administrator")
+			clear_user_permissions_for_doctype("User", test_user)
+			if restricted_link_note:
+				restricted_link_note.delete()
+
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
 		test_user = "test2@example.com"
