@@ -97,6 +97,7 @@ class ConfigPatchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
 	auto_approve: bool | None = None
+	title: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class ApiKeyRequest(BaseModel):
@@ -475,6 +476,17 @@ def create_app(
 			except OSError:
 				# memory and disk must agree, or the flag resurfaces after restart
 				session.set_auto_approve(previous)
+				raise HTTPException(status_code=500, detail="failed to persist config") from None
+		if req.title is not None:
+			title = req.title.strip()
+			if not title:
+				raise HTTPException(status_code=400, detail="title cannot be empty")
+			previous_title = session.config.title
+			session.config.title = title
+			try:
+				store.save_meta(session)
+			except OSError:
+				session.config.title = previous_title
 				raise HTTPException(status_code=500, detail="failed to persist config") from None
 		return {"config": session.config.redacted()}
 
