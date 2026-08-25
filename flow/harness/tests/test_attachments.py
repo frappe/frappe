@@ -92,6 +92,42 @@ def test_attachment_store_rejects_non_images(tmp_path):
 			raise AssertionError(f"non-image attachment was accepted: {name}")
 
 
+def test_attachment_store_add_text_file_round_trips(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	attachment = store.add_text_file("src/notes.txt", b"hello world")
+
+	assert attachment.kind == "text"
+	assert attachment.name == "notes.txt"  # _safe_name strips the directory
+	assert attachment.mime_type == "text/plain"
+	assert store.read(attachment.id) == b"hello world"
+
+
+def test_attachment_store_add_text_file_rejects_empty_oversized_and_binary(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+
+	try:
+		store.add_text_file("empty.txt", b"")
+	except AttachmentError as error:
+		assert "empty" in str(error)
+	else:
+		raise AssertionError("empty text attachment was accepted")
+
+	oversized = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
+	try:
+		store.add_text_file("big.txt", oversized)
+	except AttachmentError as error:
+		assert "KB limit" in str(error)
+	else:
+		raise AssertionError("oversized text attachment was accepted")
+
+	try:
+		store.add_text_file("binary.bin", b"\xff\xfe\x00\x01")
+	except AttachmentError as error:
+		assert "not a UTF-8 text file" in str(error)
+	else:
+		raise AssertionError("non-UTF8 attachment was accepted")
+
+
 def test_non_vision_model_gets_explicit_image_placeholder():
 	attachment = AttachmentContent(
 		id="a" * 24,

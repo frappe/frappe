@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 import json
+import mimetypes
 import os
 import re
 import shutil
@@ -71,6 +72,27 @@ class AttachmentStore:
 			kind="image",
 			width=width,
 			height=height,
+		)
+		self._write(content, data)
+		return content
+
+	def add_text_file(self, name: str, data: bytes) -> AttachmentContent:
+		"""Validate and store one server-read project file (the @file-mention path)."""
+		if not data:
+			raise AttachmentError("attachment is empty")
+		if len(data) > MAX_TEXT_BYTES:
+			raise AttachmentError(f"attachment exceeds the {MAX_TEXT_BYTES // 1024} KB limit")
+		name = _safe_name(name)
+		try:
+			data.decode("utf-8")
+		except UnicodeDecodeError:
+			raise AttachmentError(f"{name} is not a UTF-8 text file") from None
+		content = AttachmentContent(
+			id=uuid.uuid4().hex[:24],
+			name=name,
+			mime_type=mimetypes.guess_type(name)[0] or "text/plain",
+			size=len(data),
+			kind="text",
 		)
 		self._write(content, data)
 		return content
