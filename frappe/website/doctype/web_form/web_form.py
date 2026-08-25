@@ -644,15 +644,78 @@ def get_context(context):
 
 		return parents
 
-	def validate_mandatory(self, doc):
-		"""Validate mandatory web form fields"""
-		missing = [f for f in self.web_form_fields if f.reqd and doc.get(f.fieldname) in (None, [], "")]
+	def validate_submission(self, doc, uploaded_fields=None):
+		"""Check the submitted values against the rules set on the Web Form itself.
+
+		`reqd` and Data `options` on a Web Form Field row belong to the Web Form, not
+		to the target DocType, so `doc.insert()` never looks at them. Without this the
+		browser is the only thing enforcing them, which anyone can walk past by posting
+		straight to `accept` -- guests included, since the endpoint allows them.
+		"""
+		if not self.allow_incomplete:
+			self.validate_mandatory(doc, uploaded_fields)
+
+		self.validate_data_field_options(doc)
+
+	def validate_mandatory(self, doc, uploaded_fields=None):
+		"""Validate mandatory web form fields.
+
+		`uploaded_fields` are attach fields whose file is still being written, so the
+		document does not carry their value yet.
+		"""
+		uploaded_fields = uploaded_fields or set()
+		missing = [
+			f
+			for f in self.web_form_fields
+			if f.reqd and f.fieldname not in uploaded_fields and doc.get(f.fieldname) in (None, [], "")
+		]
 		if missing:
 			frappe.throw(
 				_("Mandatory Information missing:")
 				+ "<br><br>"
 				+ "<br>".join(f"{d.label} ({d.fieldtype})" for d in missing)
 			)
+
+	def validate_data_field_options(self, doc):
+		"""Validate Data fields the Web Form types as Email, Name, Phone or URL.
+
+		Options that the DocType field already carries are left alone, so the document's
+		own check reports them and the message stays the same.
+		"""
+		from frappe.utils import (
+			split_emails,
+			validate_email_address,
+			validate_name,
+			validate_phone_number,
+			validate_url,
+		)
+
+		meta = frappe.get_meta(self.doc_type)
+
+		for field in self.web_form_fields:
+			if field.fieldtype != "Data" or not field.options:
+				continue
+
+			df = meta.get_field(field.fieldname)
+			if df and df.fieldtype == "Data" and df.options == field.options:
+				continue
+
+			value = doc.get(field.fieldname)
+			if not value:
+				continue
+
+			if field.options == "Email":
+				for email_address in split_emails(value):
+					validate_email_address(email_address, throw=True)
+
+			elif field.options == "Name":
+				validate_name(value, throw=True)
+
+			elif field.options == "Phone":
+				validate_phone_number(value, throw=True)
+
+			elif field.options == "URL":
+				validate_url(value, throw=True)
 
 	def allow_website_search_indexing(self):
 		return False
@@ -805,6 +868,8 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		for fieldname, value in web_form_request.get_doc_values().items():
 			if meta.has_field(fieldname):
 				doc.set(fieldname, value)
+
+	web_form.validate_submission(doc, uploaded_fields={fieldname for fieldname, _ in files})
 
 	if doc.name:
 		if web_form_request:

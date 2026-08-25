@@ -30,6 +30,144 @@ class TestWebForm(IntegrationTestCase):
 		frappe.local.request = None
 		frappe.set_user("Administrator")
 
+	def make_temp_web_form(self, **kwargs):
+		"""A throwaway Web Form on Event, so field tweaks don't leak into other tests."""
+		fields = kwargs.pop("web_form_fields", None) or [
+			{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+			{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+		]
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "_Test Validation Web Form",
+				"route": "test-validation-web-form",
+				"doc_type": "Event",
+				"module": "Website",
+				"published": 1,
+				"login_required": 1,
+				"allow_multiple": 1,
+				"web_form_fields": fields,
+				**kwargs,
+			}
+		).insert(ignore_permissions=True)
+
+		self.addCleanup(frappe.delete_doc, "Web Form", web_form.name, force=True, ignore_permissions=True)
+		return web_form
+
+	def test_web_form_mandatory_is_enforced_on_server(self):
+		"""A field mandatory only on the Web Form must not pass just because the
+		browser was skipped."""
+		frappe.set_user("Administrator")
+
+		# `description` is optional on Event, mandatory only on this Web Form
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			]
+		)
+
+		doc = {
+			"doctype": "Event",
+			"subject": "_Test Event Without Description",
+			"starts_on": "2014-09-09",
+		}
+
+		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
+		self.assertFalse(frappe.db.exists("Event", {"subject": "_Test Event Without Description"}))
+
+	def test_web_form_data_field_options_are_enforced_on_server(self):
+		"""Email/Phone/URL set on a Web Form Field is not on the DocType, so the
+		document's own check never sees it."""
+		frappe.set_user("Administrator")
+
+		# Event.subject carries no data field options; the Web Form types it as an Email
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{
+					"fieldname": "subject",
+					"fieldtype": "Data",
+					"label": "Title",
+					"reqd": 1,
+					"options": "Email",
+				}
+			]
+		)
+
+		doc = {
+			"doctype": "Event",
+			"subject": "definitely not an email",
+			"starts_on": "2014-09-09",
+		}
+
+		self.assertRaises(
+			frappe.InvalidEmailAddressError, accept, web_form=web_form.name, data=json.dumps(doc)
+		)
+
+		accept(
+			web_form=web_form.name,
+			data=json.dumps({**doc, "subject": "someone@example.com"}),
+		)
+		self.assertTrue(frappe.db.exists("Event", {"subject": "someone@example.com"}))
+
+	def test_guest_cannot_skip_web_form_validation(self):
+		"""The reported case: an unauthenticated submission got a success page."""
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			],
+		)
+
+		frappe.set_user("Guest")
+
+		doc = {
+			"doctype": "Event",
+			"subject": "_Test Guest Event Without Description",
+			"starts_on": "2014-09-09",
+		}
+
+		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Event", {"subject": "_Test Guest Event Without Description"}))
+
+	def test_allow_incomplete_still_skips_mandatory(self):
+		frappe.set_user("Administrator")
+
+		web_form = self.make_temp_web_form(
+			allow_incomplete=1,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			],
+		)
+
+		accept(
+			web_form=web_form.name,
+			data=json.dumps(
+				{"doctype": "Event", "subject": "_Test Incomplete Event", "starts_on": "2014-09-09"}
+			),
+		)
+		self.assertTrue(frappe.db.exists("Event", {"subject": "_Test Incomplete Event"}))
+
+	def test_mandatory_check_skips_fields_awaiting_upload(self):
+		"""An attach field is emptied while its file is written, so it must not read
+		as a missing mandatory value."""
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			]
+		)
+
+		doc = frappe.new_doc("Event")
+		doc.subject = "_Test Event Awaiting Upload"
+
+		self.assertRaises(frappe.ValidationError, web_form.validate_mandatory, doc)
+		# no exception once the field is declared as pending
+		web_form.validate_mandatory(doc, uploaded_fields={"description"})
+
 	def test_accept(self):
 		frappe.set_user("Administrator")
 
