@@ -1698,19 +1698,39 @@ export default class Grid {
 					default: "Excel",
 					reqd: 1,
 				},
+				{
+					fieldtype: "Section Break",
+				},
+				{
+					fieldtype: "MultiCheck",
+					fieldname: "fields",
+					label: __("Fields"),
+					columns: 2,
+					select_all: true,
+					sort_options: false,
+					options: this.get_bulk_edit_docfields().map((df) => ({
+						label: __(df.label || df.fieldname, null, df.parent),
+						value: df.fieldname,
+						checked: 1,
+					})),
+					on_change: () =>
+						dialog
+							.get_primary_btn()
+							.prop("disabled", !dialog.get_value("fields").length),
+				},
 			],
 			primary_action_label: __("Download"),
-			primary_action: ({ file_type }) => {
+			primary_action: ({ file_type, fields }) => {
 				dialog.hide();
-				this.download_bulk_edit_template(file_type);
+				this.download_bulk_edit_template(file_type, fields);
 			},
 		});
 		dialog.show();
 	}
 
-	download_bulk_edit_template(file_type) {
+	download_bulk_edit_template(file_type, fieldnames) {
 		const title = this.get_bulk_edit_title();
-		const data = this.get_bulk_edit_data();
+		const data = this.get_bulk_edit_data(fieldnames);
 
 		if (file_type === "CSV") {
 			frappe.tools.downloadify(data, null, title);
@@ -1726,7 +1746,13 @@ export default class Grid {
 		});
 	}
 
-	get_bulk_edit_data() {
+	get_bulk_edit_docfields() {
+		return frappe
+			.get_meta(this.df.options)
+			.fields.filter((df) => frappe.model.is_value_type(df.fieldtype));
+	}
+
+	get_bulk_edit_data(fieldnames) {
 		const title = this.get_bulk_edit_title();
 		const data = [
 			[__("Bulk Edit {0}", [title])],
@@ -1737,16 +1763,17 @@ export default class Grid {
 			[__("Do not edit headers which are preset in the template")],
 			["------"],
 		];
-		const docfields = [];
-		frappe.get_meta(this.df.options).fields.forEach((df) => {
-			if (frappe.model.is_value_type(df.fieldtype)) {
-				data[1].push(df.label);
-				data[BULK_EDIT_FIELDNAME_ROW].push(df.fieldname);
-				let description = (df.description || "") + " ";
-				if (df.fieldtype === "Date") description += frappe.boot.sysdefaults.date_format;
-				data[3].push(description);
-				docfields.push(df);
-			}
+		let docfields = this.get_bulk_edit_docfields();
+		if (fieldnames && fieldnames.length) {
+			docfields = docfields.filter((df) => fieldnames.includes(df.fieldname));
+		}
+
+		docfields.forEach((df) => {
+			data[1].push(df.label);
+			data[BULK_EDIT_FIELDNAME_ROW].push(df.fieldname);
+			let description = (df.description || "") + " ";
+			if (df.fieldtype === "Date") description += frappe.boot.sysdefaults.date_format;
+			data[3].push(description);
 		});
 
 		(this.frm.doc[this.df.fieldname] || []).forEach((d) => {
