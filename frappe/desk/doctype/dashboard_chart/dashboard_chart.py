@@ -204,8 +204,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		doctype,
 		fields=[datefield, f"SUM({value_field})", "COUNT(*)"],
 		filters=filters,
-		group_by=datefield,
-		order_by=datefield,
+		group_by=f"`{datefield}`",
+		order_by=f"`{datefield}`",
 		as_list=True,
 		parent_doctype=chart.parent_document_type,
 	)
@@ -236,9 +236,9 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	filters.append([doctype, datefield, "<", f"{next_year_start_date}", False])
 
 	if frappe.db.db_type == "mariadb":
-		timestamp_field = f"unix_timestamp({datefield})"
+		timestamp_field = f"unix_timestamp(`{datefield}`)"
 	else:
-		timestamp_field = f"extract(epoch from timestamp {datefield})"
+		timestamp_field = f"extract(epoch from timestamp `{datefield}`)"
 
 	data = dict(
 		frappe.get_all(
@@ -248,9 +248,9 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 				f"{aggregate_function}({value_field})",
 			],
 			filters=filters,
-			group_by=f"date({datefield})",
+			group_by=f"date(`{datefield}`)",
 			as_list=1,
-			order_by=f"{datefield} asc",
+			order_by=f"`{datefield}` asc",
 			ignore_ifnull=True,
 		)
 	)
