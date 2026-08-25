@@ -727,7 +727,7 @@ class EmailAccount(Document):
 		"""retrive and return inbound mails."""
 		mails = []
 
-		def process_mail(messages, append_to=None):
+		def process_mail(messages, append_to=None, imap_folder=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages["uid_list"][index] if messages.get("uid_list") else None
 				seen_status = messages.get("seen_status", {}).get(uid)
@@ -740,6 +740,7 @@ class EmailAccount(Document):
 							frappe.safe_decode(uid),
 							seen_status,
 							append_to,
+							imap_folder,
 						)
 					)
 
@@ -760,8 +761,9 @@ class EmailAccount(Document):
 					for folder in self.imap_folder:
 						if email_server.select_imap_folder(folder.folder_name):
 							email_server.settings["uid_validity"] = folder.uidvalidity
+							email_server.settings["email_sync_rule"] = self.build_email_sync_rule(folder)
 							messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
-							process_mail(messages, folder.append_to)
+							process_mail(messages, folder.append_to, folder.folder_name)
 				else:
 					# process the pop3 account
 					messages = email_server.get_messages() or {}
@@ -854,12 +856,12 @@ class EmailAccount(Document):
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
-	def build_email_sync_rule(self):
+	def build_email_sync_rule(self, folder=None):
 		if not self.use_imap:
 			return "UNSEEN"
 
 		if self.email_sync_option == "ALL":
-			max_uid = get_max_email_uid(self.name)
+			max_uid = get_max_email_uid(self.name, folder and folder.folder_name)
 			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
 			return f"UID {max_uid}:{last_uid}"
 		else:
@@ -1052,16 +1054,20 @@ def pull_from_email_account(email_account):
 	email_account.receive()
 
 
-def get_max_email_uid(email_account):
+def get_max_email_uid(email_account, imap_folder=None):
 	"""get maximum uid of emails"""
+	filters = {
+		"communication_medium": "Email",
+		"sent_or_received": "Received",
+		"email_account": email_account,
+		"uid": (">", 0),
+	}
+	if imap_folder:
+		filters["imap_folder"] = imap_folder
 
 	if result := frappe.get_all(
 		"Communication",
-		filters={
-			"communication_medium": "Email",
-			"sent_or_received": "Received",
-			"email_account": email_account,
-		},
+		filters=filters,
 		fields=[{"MAX": "uid", "as": "uid"}],
 	):
 		return cint(result[0].get("uid", 0)) + 1
