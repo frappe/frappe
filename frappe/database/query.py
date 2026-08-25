@@ -1883,6 +1883,14 @@ class Engine:
 
 			quote_char = "`" if self.is_mariadb else '"'
 			for c in criteria_list:
+				if self.is_mariadb:
+					# pypika's ValueWrapper only escapes quote characters, not backslashes.
+					# MariaDB's default sql_mode treats `\` as an escape char inside string
+					# literals, so an unescaped trailing backslash lets a filter value break
+					# out of its quotes.
+					for node in c.nodes_():
+						if isinstance(node, ValueWrapper) and isinstance(node.value, str):
+							node.value = node.value.replace("\\", "\\\\")
 				conditions.append(c.get_sql(with_namespace=True, quote_char=quote_char))
 		finally:
 			self.apply_permissions = original_apply_permissions
