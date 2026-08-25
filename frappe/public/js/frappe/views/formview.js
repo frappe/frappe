@@ -115,11 +115,9 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 				}
 				this.render(doctype_layout, name);
 			},
-			(r, permission_denied) => {
-				if (permission_denied) {
-					frappe.show_not_permitted(__(doctype) + " " + __(cstr(name)));
-				}
-			}
+			// Passing any error_callback here (even a no-op) makes with_doc() skip its
+			// cache and recheck with the server.
+			() => {}
 		);
 	}
 
