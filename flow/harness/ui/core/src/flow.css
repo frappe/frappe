@@ -115,6 +115,43 @@
 	}
 }
 
+/* executing tool row: a glare band sweeps over the normal row content, so the
+   row keeps its settled styling and only signals activity */
+.flow-tool-live {
+	position: relative;
+	overflow: hidden;
+}
+.flow-tool-live::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: -280px;
+	width: 280px;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		color-mix(in srgb, var(--surface-white) 80%, transparent) 55%,
+		transparent 100%
+	);
+	animation: flow-tool-sweep 2s ease-out infinite;
+	pointer-events: none;
+}
+@keyframes flow-tool-sweep {
+	0% {
+		left: -280px;
+	}
+	90%,
+	100% {
+		left: 100%;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.flow-tool-live::after {
+		display: none;
+	}
+}
+
 /* Conversation typography. */
 .flow-prose {
 	/* font-family: Inter; */

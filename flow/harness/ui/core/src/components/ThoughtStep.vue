@@ -2,42 +2,49 @@
 	<div>
 		<component
 			:is="expandable ? 'button' : 'div'"
-			class="flex w-full items-baseline gap-2.5 px-3 py-2 text-left"
-			:class="expandable ? 'cursor-pointer hover:bg-surface-gray-2' : ''"
+			class="flex w-full items-baseline gap-2.5 py-2.5 text-left"
+			:class="expandable ? 'group cursor-pointer' : ''"
 			@click="expandable && (open = !open)"
 		>
-			<span class="flex-none text-xs font-medium text-ink-gray-9">Thought</span>
-			<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-5">{{ preview }}</span>
-			<FeatherIcon
-				v-if="expandable"
-				name="chevron-right"
-				class="h-[13px] w-[13px] flex-none self-center text-ink-gray-4 transition-transform"
-				:class="open ? 'rotate-90' : ''"
-			/>
+			<!-- leading slot doubles as the disclosure control (see ToolStep) -->
+			<span class="relative h-3.5 w-3.5 flex-none self-center text-ink-gray-5">
+				<SparkIcon
+					class="h-3.5 w-3.5 transition-opacity"
+					:class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''"
+				/>
+				<FeatherIcon
+					v-if="expandable"
+					name="chevron-right"
+					class="absolute inset-0 h-3.5 w-3.5 transition-[opacity,transform]"
+					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
+				/>
+			</span>
+			<span class="flex-none text-sm font-medium text-ink-gray-9">Thought</span>
+			<span class="min-w-0 flex-1 truncate text-sm text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>
 		</component>
 
-		<div v-if="open" ref="panelEl" class="border-t border-outline-gray-1 bg-surface-white px-3 py-2.5">
+		<div
+			v-if="open"
+			class="mb-1.5 mt-1 rounded-[10px] border border-outline-gray-1 bg-surface-white px-3.5 py-3"
+		>
 			<MarkdownContent
 				:text="block.thinking"
-				class="max-h-[260px] overflow-y-auto text-xs leading-relaxed text-ink-gray-6"
+				class="max-h-[260px] overflow-y-auto text-sm leading-relaxed text-ink-gray-6"
 			/>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import MarkdownContent from "./MarkdownContent.vue"
+import SparkIcon from "./SparkIcon.vue"
 
 const props = defineProps({ block: { type: Object, required: true } })
 
 const open = ref(false)
-const panelEl = ref(null)
-watch(open, (value) => {
-	if (value) nextTick(() => panelEl.value?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
-})
 
 const expandable = computed(() => !props.block.redacted && !!props.block.thinking)
 const preview = computed(() => {

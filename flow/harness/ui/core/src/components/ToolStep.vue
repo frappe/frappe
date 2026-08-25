@@ -2,12 +2,27 @@
 	<div>
 		<component
 			:is="expandable ? 'button' : 'div'"
-			class="flex w-full items-baseline gap-2.5 px-3 py-2 text-left"
-			:class="expandable ? 'cursor-pointer hover:bg-surface-gray-2' : ''"
+			class="flex w-full items-baseline gap-2.5 py-2.5 text-left"
+			:class="[expandable ? 'group cursor-pointer' : '', live ? 'flow-tool-live' : '']"
 			@click="expandable && (open = !open)"
 		>
+			<!-- leading slot doubles as the disclosure control: the tool icon yields
+			     to a chevron on hover, and to the rotated (close) chevron while open -->
+			<span class="relative h-3.5 w-3.5 flex-none self-center text-ink-gray-5">
+				<FeatherIcon
+					:name="icon"
+					class="h-3.5 w-3.5 transition-opacity"
+					:class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''"
+				/>
+				<FeatherIcon
+					v-if="expandable"
+					name="chevron-right"
+					class="absolute inset-0 h-3.5 w-3.5 transition-[opacity,transform]"
+					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
+				/>
+			</span>
 			<!-- template text renders like a label, argument values like a subject -->
-			<span v-if="displaySegments.length" class="min-w-0 flex-1 truncate text-xs">
+			<span v-if="displaySegments.length" class="min-w-0 flex-1 truncate text-sm">
 				<span
 					v-for="(segment, j) in displaySegments"
 					:key="j"
@@ -15,37 +30,34 @@
 						!segment.arg
 							? 'font-medium text-ink-gray-9'
 							: step.call.name === 'bash'
-								? 'font-mono text-2xs text-ink-gray-5'
-								: 'text-ink-gray-5'
+								? 'font-mono text-xs text-ink-gray-5 group-hover:text-ink-gray-7'
+								: 'text-ink-gray-5 group-hover:text-ink-gray-7'
 					"
 				>{{ segment.text }}</span>
 			</span>
 			<template v-else>
-				<span class="flex-none text-xs font-medium text-ink-gray-9">{{ label }}</span>
+				<span class="flex-none text-sm font-medium text-ink-gray-9">{{ label }}</span>
 				<span
-					class="min-w-0 flex-1 truncate text-xs text-ink-gray-5"
-					:class="step.call.name === 'bash' ? 'font-mono text-2xs' : ''"
+					class="min-w-0 flex-1 truncate text-sm text-ink-gray-5 group-hover:text-ink-gray-7"
+					:class="step.call.name === 'bash' ? 'font-mono text-xs' : ''"
 				>{{ subject }}</span>
 			</template>
 			<!-- edits get a Codex-style colored diffstat; everything else the plain stat -->
-			<span v-if="diffStat" class="flex-none font-mono text-2xs">
+			<span v-if="diffStat" class="flex-none font-mono text-xs">
 				<span class="text-ink-green-3">+{{ diffStat.added }}</span>
 				<span class="ml-1 text-ink-red-3">-{{ diffStat.removed }}</span>
 			</span>
-			<span v-else class="flex-none text-2xs" :class="statClass">{{ stat }}</span>
-			<FeatherIcon
-				v-if="expandable"
-				name="chevron-right"
-				class="h-[13px] w-[13px] flex-none self-center text-ink-gray-4 transition-transform"
-				:class="open ? 'rotate-90' : ''"
-			/>
+			<span v-else-if="stat" class="flex-none text-xs" :class="statClass">{{ stat }}</span>
 		</component>
 
-		<div v-if="open && expandable" ref="panelEl" class="border-t border-outline-gray-1 bg-surface-white">
+		<div
+			v-if="open && expandable"
+			class="mb-1.5 mt-1 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-white"
+		>
 			<!-- a call the user denied, cancelled, or redirected -->
 			<div v-if="decision" class="px-3 py-2.5">
-				<div class="text-2xs font-medium" :class="statClass">{{ decisionTitle }}</div>
-				<div v-if="decision.user_feedback" class="mt-1 text-2xs leading-relaxed text-ink-gray-6">
+				<div class="text-xs font-medium" :class="statClass">{{ decisionTitle }}</div>
+				<div v-if="decision.user_feedback" class="mt-1 text-xs leading-relaxed text-ink-gray-6">
 					“{{ decision.user_feedback }}”
 				</div>
 			</div>
@@ -66,7 +78,7 @@
 				</div>
 				<pre
 					v-if="diffLines"
-					class="m-0 max-h-[260px] overflow-auto py-2 font-mono text-2xs leading-[1.7]"
+					class="m-0 max-h-[260px] overflow-auto py-2 font-mono text-xs leading-[1.7]"
 				><span
 					v-for="(line, i) in diffLines"
 					:key="i"
@@ -75,7 +87,7 @@
 				>{{ line }}</span></pre>
 				<pre
 					v-else
-					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-2xs leading-[1.65] text-ink-gray-6"
+					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-xs leading-[1.65] text-ink-gray-6"
 				>{{ output }}</pre>
 			</template>
 		</div>
@@ -83,27 +95,32 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, inject, ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-import { stepDecision, stepLabel, stepStat, stepSubject } from "../transcript.js"
+import { compactDisplayText, stepDecision, stepIcon, stepLabel, stepStat, stepSubject } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 
-const props = defineProps({ step: { type: Object, required: true } })
-
-const open = ref(false)
-const panelEl = ref(null)
-
-const displaySegments = computed(() => props.step.call.display ?? [])
-
-// an expansion near the viewport bottom scrolls itself clear of the composer
-// (the scroller's scroll-padding accounts for the floating card)
-watch(open, (value) => {
-	if (value) nextTick(() => panelEl.value?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
+const props = defineProps({
+	step: { type: Object, required: true },
+	// this step is the one executing right now — its row carries the sweep
+	live: { type: Boolean, default: false },
 })
 
+const open = ref(false)
+
+const flow = inject("flow", null)
+const cwd = computed(() => flow?.state?.session?.config?.cwd ?? null)
+
+const displaySegments = computed(() =>
+	(props.step.call.display ?? []).map((segment) =>
+		segment.arg ? { ...segment, text: compactDisplayText(segment.text, cwd.value) } : segment,
+	),
+)
+
+const icon = computed(() => stepIcon(props.step.call.name))
 const label = computed(() => stepLabel(props.step.call.name))
-const subject = computed(() => stepSubject(props.step.call))
+const subject = computed(() => compactDisplayText(stepSubject(props.step.call), cwd.value))
 const failed = computed(() => props.step.result?.is_error === true)
 const details = computed(() => props.step.result?.details ?? {})
 const output = computed(() => props.step.result?.content ?? "")

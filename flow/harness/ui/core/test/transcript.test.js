@@ -4,6 +4,7 @@ import test from "node:test"
 import {
 	applyEvent,
 	buildItems,
+	compactDisplayText,
 	conversationTitle,
 	displayText,
 	formatDuration,
@@ -13,8 +14,6 @@ import {
 	parseSkillInvocation,
 	skillCommand,
 	stepLiveLabel,
-	toolGroupLiveLabel,
-	toolGroupSummary,
 	userAttachments,
 	userText,
 } from "../src/transcript.js"
@@ -90,51 +89,21 @@ test("unknown tool names are humanized for future custom tools", () => {
 	)
 })
 
-test("completed tool groups summarize unique activity kinds in order", () => {
+test("tool row argument text compacts paths for display", () => {
+	const cwd = "/Users/dev/work/app"
+	assert.equal(compactDisplayText("/Users/dev/work/app/src/main.py", cwd), "src/main.py")
+	assert.equal(compactDisplayText("/Users/dev/work/app", cwd), ".")
 	assert.equal(
-		toolGroupSummary([
-			{ name: "edit" },
-			{ name: "write" },
-			{ name: "bash" },
-			{ name: "bash" },
-		]),
-		"Edited files, ran commands",
+		compactDisplayText("cd /Users/dev/work/app && git status", cwd),
+		"git status",
 	)
 	assert.equal(
-		toolGroupSummary([{ name: "read_file" }, { name: "grep" }, { name: "send_email_now" }]),
-		"Read file, searched code, used send email now",
+		compactDisplayText("grep -n x /Users/dev/work/app/src/a.py", cwd),
+		"grep -n x src/a.py",
 	)
-})
-
-test("trivial thinking does not replace the latest meaningful tool status", () => {
-	const finished = {
-		call: {
-			name: "read_file",
-			arguments: { path: "src/flow/events.py" },
-			display: [{ text: "Reading file " }, { text: "src/flow/events.py", arg: "path" }],
-		},
-		result: { content: "contents" },
-	}
-	assert.equal(toolGroupLiveLabel([finished], "Thinking"), "Reading file events.py")
-	assert.equal(toolGroupLiveLabel([finished], "Reading file events.py"), "Reading file events.py")
-	assert.equal(toolGroupLiveLabel([finished], "Retrying"), "Retrying")
-	assert.equal(
-		toolGroupLiveLabel(
-			[
-				finished,
-				{
-					call: {
-						name: "edit",
-						arguments: { path: "ui/App.vue" },
-						display: [{ text: "Editing file " }, { text: "ui/App.vue", arg: "path" }],
-					},
-					result: null,
-				},
-			],
-			"Thinking",
-		),
-		"Editing file App.vue",
-	)
+	assert.equal(compactDisplayText("/Users/dev/other/file.py", cwd), "~/other/file.py")
+	assert.equal(compactDisplayText("ls sites/", cwd), "ls sites/")
+	assert.equal(compactDisplayText("src/main.py", null), "src/main.py")
 })
 
 test("live chat statuses do not use ellipses", () => {
