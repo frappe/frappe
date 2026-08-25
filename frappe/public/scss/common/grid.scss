@@ -926,3 +926,9 @@ body.grid-col-resizing {
 		padding-right: 0 !important;
 	}
 }
+
+// The bulk edit modal drives the file picker from the dialog footer, so the
+// uploader's own upload button underneath the file preview is a duplicate.
+.bulk-edit-panel .file-preview-container + .justify-content-end {
+	display: none;
+}
