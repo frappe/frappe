@@ -87,6 +87,9 @@ frappe.warn = function (
 		minimizable: is_minimizable,
 	});
 
+	// flag, used to bind "okay" on enter
+	d.confirm_dialog = true;
+
 	d.$body.append(`<div class="frappe-confirm-message">${message_html}</div>`);
 	// destructive confirm: the es-button red theme replaces the old
 	// btn-primary → btn-danger class swap
