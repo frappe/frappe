@@ -5,10 +5,10 @@ import json
 
 import frappe
 from frappe.desk.form.load import get_filtered_attachments, get_user_info_for_viewers
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestLoad(IntegrationTestCase):
+class TestLoad(FrappeTestCase):
 	def test_get_user_info_for_viewers_accepts_native_list(self):
 		# users as a native list instead of a JSON string (frappe.parse_json passthrough)
 		info = get_user_info_for_viewers(["Administrator"])
