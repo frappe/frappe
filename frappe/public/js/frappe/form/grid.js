@@ -19,9 +19,11 @@ const BULK_EDIT_BLANK_TEMPLATE = "blank_template";
 const BULK_EDIT_ALL_RECORDS = "all";
 const BULK_EDIT_5_RECORDS = "5_records";
 // every step of the flow uses one size so the modals swap without resizing
-// every step shares one size, so switching tabs never resizes the modal
-const BULK_EDIT_DIALOG_SIZE = "extra-large";
-const BULK_EDIT_DIALOG_HEIGHT = "480px";
+// every step shares one size, so switching tabs never resizes the modal.
+// the height clears the file picker's drop zone (16rem) plus the tab bar,
+// so the tallest tab sits in the body without it scrolling
+const BULK_EDIT_DIALOG_SIZE = "";
+const BULK_EDIT_DIALOG_HEIGHT = "340px";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
