@@ -111,7 +111,8 @@ body.modal-open[style^="padding-right"] {
 			box-shadow: none;
 		}
 
-		.standard-actions {
+		.standard-actions,
+		.custom-actions {
 			button:not(:last-child) {
 				margin-right: var(--margin-xs);
 			}

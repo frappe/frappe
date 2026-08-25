@@ -2045,40 +2045,47 @@ export default class Grid {
 				}
 			`);
 
-			const columns = Object.keys(map).map(cint);
-			const head = columns
-				.map((i) => `<th class="text-muted">${frappe.utils.escape_html(map[i])}</th>`)
-				.join("");
-			const body = rows
-				.slice(0, BULK_EDIT_PREVIEW_ROWS)
-				.map(
-					(row) =>
-						`<tr>${columns
-							.map((i) => `<td>${frappe.utils.escape_html(cstr(row[i]))}</td>`)
-							.join("")}</tr>`
-				)
-				.join("");
-
-			dialog.get_field("preview").$wrapper.html(`
-				<div style="overflow-x: auto;">
-					<table class="table table-bordered small" style="margin-bottom: 0;">
-						<thead><tr>${head}</tr></thead>
-						<tbody>${body}</tbody>
-					</table>
-				</div>
-				${
-					rows.length > BULK_EDIT_PREVIEW_ROWS
-						? `<p class="text-muted small mt-2">${__(
-								"Showing first {0} of {1} rows.",
-								[BULK_EDIT_PREVIEW_ROWS, rows.length]
-						  )}</p>`
-						: ""
-				}
-			`);
+			dialog.get_field("preview").$wrapper.html(this.get_bulk_edit_preview_html(rows, map));
 		};
 
 		dialog.show();
 		render();
+	}
+
+	get_bulk_edit_preview_html(rows, column_map) {
+		const escape = frappe.utils.escape_html;
+		const columns = Object.keys(column_map).map(cint);
+
+		if (!columns.length) {
+			return `<p class="text-muted">${__(
+				"No column in this file matches a field. Use Map Columns to pair them up."
+			)}</p>`;
+		}
+
+		const head = columns.map((i) => `<th class="text-muted">${escape(column_map[i])}</th>`);
+		const body = rows
+			.slice(0, BULK_EDIT_PREVIEW_ROWS)
+			.map(
+				(row) =>
+					`<tr>${columns.map((i) => `<td>${escape(cstr(row[i]))}</td>`).join("")}</tr>`
+			);
+
+		return `
+			<div style="overflow-x: auto;">
+				<table class="table table-bordered" style="margin-bottom: 0;">
+					<thead><tr>${head.join("")}</tr></thead>
+					<tbody>${body.join("")}</tbody>
+				</table>
+			</div>
+			${
+				rows.length > BULK_EDIT_PREVIEW_ROWS
+					? `<p class="text-muted small mt-2">${__("Showing first {0} of {1} rows.", [
+							BULK_EDIT_PREVIEW_ROWS,
+							rows.length,
+					  ])}</p>`
+					: ""
+			}
+		`;
 	}
 
 	/**
