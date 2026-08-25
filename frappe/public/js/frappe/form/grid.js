@@ -8,6 +8,13 @@ const BULK_EDIT_CSV_HEADER_ROWS = 7; // title, labels, fieldnames, descriptions,
 const BULK_EDIT_FIELDNAME_ROW = 2; // third header row carries the fieldnames
 const BULK_EDIT_MAX_ROWS = 5000;
 const BULK_EDIT_FILE_TYPES = [".csv", ".xlsx", ".xls"];
+const BULK_EDIT_ID_FIELDNAME = "name";
+// same labels as Data Import, so the strings are already translated
+const BULK_EDIT_INSERT = "Insert New Records";
+const BULK_EDIT_UPDATE = "Update Existing Records";
+const BULK_EDIT_UPSERT = "Insert or Update Records";
+const BULK_EDIT_IMPORT_TYPES = [BULK_EDIT_INSERT, BULK_EDIT_UPDATE, BULK_EDIT_UPSERT];
+const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
 
@@ -171,14 +178,9 @@ export default class Grid {
 						</div>
 						<div class="grid-bulk-actions text-right">
 							${frappe.ui.button.html({
-								label: __("Download"),
+								label: __("Bulk Edit"),
 								size: "sm",
-								css_class: "grid-download hidden",
-							})}
-							${frappe.ui.button.html({
-								label: __("Upload"),
-								size: "sm",
-								css_class: "grid-upload hidden",
+								css_class: "grid-bulk-edit hidden",
 							})}
 						</div>
 					</div>
@@ -853,7 +855,9 @@ export default class Grid {
 		// don't be tempted to use the `.hidden` class here
 		// it is used in other logic for the same buttons and will cause conflicts
 		this.wrapper
-			.find(".grid-add-row, .grid-add-multiple-rows, .grid-upload")
+			// bulk edit stays visible when the grid is read only; it falls back to a
+			// download-only flow so a submitted document can still be exported
+			.find(".grid-add-row, .grid-add-multiple-rows")
 			.toggleClass("d-none", !is_editable);
 	}
 
@@ -1665,30 +1669,68 @@ export default class Grid {
 	}
 
 	setup_allow_bulk_edit() {
-		if (this.frm && this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) {
-			this.setup_download();
-			this.setup_upload();
-		}
+		if (!this.frm || !this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) return;
+
+		$(this.wrapper)
+			.find(".grid-bulk-edit")
+			.removeClass("hidden")
+			.on("click", () => {
+				this.show_bulk_edit_import_type();
+				return false;
+			});
 	}
 
 	get_bulk_edit_title() {
 		return this.df.label || frappe.model.unscrub(this.df.fieldname);
 	}
 
-	setup_download() {
-		$(this.wrapper)
-			.find(".grid-download")
-			.removeClass("hidden")
-			.on("click", () => {
-				this.show_bulk_edit_download_dialog();
-				return false;
-			});
+	/** Value fields of the child doctype, with ID first so rows can be matched on it. */
+	get_bulk_edit_docfields() {
+		return [
+			{ fieldname: BULK_EDIT_ID_FIELDNAME, label: __("ID"), fieldtype: "Data" },
+			...frappe
+				.get_meta(this.df.options)
+				.fields.filter((df) => frappe.model.is_value_type(df.fieldtype)),
+		];
 	}
 
-	show_bulk_edit_download_dialog() {
-		const title = this.get_bulk_edit_title();
+	// ---------------------------------------------------------------- step 1
+
+	show_bulk_edit_import_type() {
+		// a read only grid cannot take rows back, so it goes straight to the template
+		if (!this.is_editable()) {
+			this.show_bulk_edit_template(null);
+			return;
+		}
+
 		const dialog = new frappe.ui.Dialog({
-			title: __("Download {0}", [title]),
+			title: __("Bulk Edit {0}", [this.get_bulk_edit_title()]),
+			fields: [
+				{
+					fieldtype: "Select",
+					fieldname: "import_type",
+					label: __("Import Type"),
+					options: BULK_EDIT_IMPORT_TYPES.map((value) => ({ label: __(value), value })),
+					default: BULK_EDIT_INSERT,
+					reqd: 1,
+					description: __("Existing rows are matched on the ID column."),
+				},
+			],
+			primary_action_label: __("Next"),
+			primary_action: ({ import_type }) => {
+				dialog.hide();
+				this.show_bulk_edit_template(import_type);
+			},
+		});
+		dialog.show();
+	}
+
+	// ---------------------------------------------------------------- step 2
+
+	show_bulk_edit_template(import_type) {
+		const needs_id = Boolean(import_type) && import_type !== BULK_EDIT_INSERT;
+		const dialog = new frappe.ui.Dialog({
+			title: __("Download Template"),
 			fields: [
 				{
 					fieldtype: "Select",
@@ -1712,6 +1754,8 @@ export default class Grid {
 						label: __(df.label || df.fieldname, null, df.parent),
 						value: df.fieldname,
 						checked: 1,
+						// without ID there is nothing to match an existing row on
+						danger: needs_id && df.fieldname === BULK_EDIT_ID_FIELDNAME,
 					})),
 					on_change: () =>
 						dialog
@@ -1721,9 +1765,15 @@ export default class Grid {
 			],
 			primary_action_label: __("Download"),
 			primary_action: ({ file_type, fields }) => {
-				dialog.hide();
 				this.download_bulk_edit_template(file_type, fields);
 			},
+			secondary_action_label: import_type ? __("Continue to Upload") : undefined,
+			secondary_action: import_type
+				? () => {
+						dialog.hide();
+						this.show_bulk_edit_upload(import_type);
+				  }
+				: undefined,
 		});
 		dialog.show();
 	}
@@ -1744,12 +1794,6 @@ export default class Grid {
 			file_type: file_type,
 			data: JSON.stringify(data),
 		});
-	}
-
-	get_bulk_edit_docfields() {
-		return frappe
-			.get_meta(this.df.options)
-			.fields.filter((df) => frappe.model.is_value_type(df.fieldtype));
 	}
 
 	get_bulk_edit_data(fieldnames) {
@@ -1790,27 +1834,21 @@ export default class Grid {
 		return data;
 	}
 
-	setup_upload() {
+	// ---------------------------------------------------------------- step 3
+
+	show_bulk_edit_upload(import_type) {
 		frappe.flags.no_socketio = true;
-		$(this.wrapper)
-			.find(".grid-upload")
-			.removeClass("hidden")
-			.on("click", () => {
-				new frappe.ui.FileUploader({
-					as_dataurl: true,
-					allow_multiple: false,
-					restrictions: {
-						allowed_file_types: BULK_EDIT_FILE_TYPES,
-					},
-					on_success: (file) => {
-						this.read_bulk_edit_file(file);
-					},
-				});
-				return false;
-			});
+		new frappe.ui.FileUploader({
+			as_dataurl: true,
+			allow_multiple: false,
+			restrictions: {
+				allowed_file_types: BULK_EDIT_FILE_TYPES,
+			},
+			on_success: (file) => this.read_bulk_edit_file(file, import_type),
+		});
 	}
 
-	read_bulk_edit_file(file) {
+	read_bulk_edit_file(file, import_type) {
 		// xlsx and xls need a reader the desk bundle does not have, and routing csv
 		// through the same call keeps every format producing identical rows
 		frappe.call({
@@ -1823,36 +1861,212 @@ export default class Grid {
 			freeze: true,
 			freeze_message: __("Reading {0}", [file.name]),
 			callback: (r) => {
-				if (r.message) this.set_bulk_edit_rows(r.message);
+				if (r.message) this.show_bulk_edit_preview(r.message, import_type);
 			},
 		});
 	}
 
-	set_bulk_edit_rows(data) {
+	// ---------------------------------------------------------------- step 4
+
+	show_bulk_edit_preview(data, import_type) {
 		if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > BULK_EDIT_MAX_ROWS) {
 			frappe.throw(__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS]));
 		}
 
-		const fieldnames = data[BULK_EDIT_FIELDNAME_ROW] || [];
-		this.frm.clear_table(this.df.fieldname);
-		data.forEach((row, i) => {
-			if (i < BULK_EDIT_CSV_HEADER_ROWS) return;
-			if (!row.some((v) => v)) return;
-			const d = this.frm.add_child(this.df.fieldname);
-			row.forEach((value, ci) => {
-				const fieldname = fieldnames[ci];
-				const df = frappe.meta.get_docfield(this.df.options, fieldname);
-				if (df) {
-					const format = BULK_EDIT_VALUE_FORMATTERS[df.fieldtype];
-					d[fieldname] = format ? format(value) : value;
+		const headers = data[BULK_EDIT_FIELDNAME_ROW] || [];
+		const rows = data.slice(BULK_EDIT_CSV_HEADER_ROWS).filter((row) => row.some((v) => v));
+
+		if (!rows.length) {
+			frappe.msgprint({
+				message: __("There are no rows to import in this file."),
+				title: __("Nothing to Import"),
+				indicator: "orange",
+			});
+			return;
+		}
+
+		// a column is unmapped when its header matches no field on the child doctype
+		const column_map = {};
+		const unmapped = [];
+		headers.forEach((header, i) => {
+			if (header === BULK_EDIT_ID_FIELDNAME) {
+				column_map[i] = BULK_EDIT_ID_FIELDNAME;
+			} else if (frappe.meta.get_docfield(this.df.options, header)) {
+				column_map[i] = header;
+			} else if (header) {
+				unmapped.push({ index: i, header });
+			}
+		});
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Preview"),
+			size: "large",
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "summary",
+				},
+				...unmapped.map(({ index, header }) => ({
+					fieldtype: "Select",
+					fieldname: `map_${index}`,
+					label: __('Map "{0}" to', [header]),
+					options: [
+						{ label: __("Don't Import"), value: "" },
+						...this.get_bulk_edit_docfields().map((df) => ({
+							label: __(df.label || df.fieldname, null, df.parent),
+							value: df.fieldname,
+						})),
+					],
+					default: "",
+					change: () => render(),
+				})),
+				{
+					fieldtype: "HTML",
+					fieldname: "preview",
+				},
+			],
+			primary_action_label: __("Apply"),
+			primary_action: () => {
+				dialog.hide();
+				this.apply_bulk_edit_rows(headers, rows, import_type, resolved_map());
+			},
+		});
+
+		const resolved_map = () => {
+			const map = Object.assign({}, column_map);
+			unmapped.forEach(({ index }) => {
+				const value = dialog.get_value(`map_${index}`);
+				if (value) map[index] = value;
+			});
+			return map;
+		};
+
+		const render = () => {
+			const map = resolved_map();
+			const counts = this.count_bulk_edit_rows(headers, rows, import_type, map);
+
+			dialog.get_field("summary").$wrapper.html(`
+				<p class="text-muted small">
+					${__("{0} rows read from the file.", [rows.length])}
+					${__("{0} will be added, {1} will update an existing row, {2} will be skipped.", [
+						`<b>${counts.insert}</b>`,
+						`<b>${counts.update}</b>`,
+						`<b>${counts.skip}</b>`,
+					])}
+				</p>
+				${
+					counts.skip
+						? `<p class="text-muted small">${__(
+								"Rows are skipped when their ID does not match a row in this table."
+						  )}</p>`
+						: ""
 				}
+			`);
+
+			const columns = Object.keys(map).map(cint);
+			const head = columns
+				.map((i) => `<th class="text-muted">${frappe.utils.escape_html(map[i])}</th>`)
+				.join("");
+			const body = rows
+				.slice(0, BULK_EDIT_PREVIEW_ROWS)
+				.map(
+					(row) =>
+						`<tr>${columns
+							.map((i) => `<td>${frappe.utils.escape_html(cstr(row[i]))}</td>`)
+							.join("")}</tr>`
+				)
+				.join("");
+
+			dialog.get_field("preview").$wrapper.html(`
+				<div style="overflow-x: auto;">
+					<table class="table table-bordered small" style="margin-bottom: 0;">
+						<thead><tr>${head}</tr></thead>
+						<tbody>${body}</tbody>
+					</table>
+				</div>
+				${
+					rows.length > BULK_EDIT_PREVIEW_ROWS
+						? `<p class="text-muted small mt-2">${__(
+								"Showing first {0} of {1} rows.",
+								[BULK_EDIT_PREVIEW_ROWS, rows.length]
+						  )}</p>`
+						: ""
+				}
+			`);
+		};
+
+		dialog.show();
+		render();
+	}
+
+	/** How each file row would land, without changing anything. */
+	count_bulk_edit_rows(headers, rows, import_type, column_map) {
+		const counts = { insert: 0, update: 0, skip: 0 };
+		const id_index = Object.keys(column_map)
+			.map(cint)
+			.find((i) => column_map[i] === BULK_EDIT_ID_FIELDNAME);
+
+		rows.forEach((row) => {
+			const id = id_index === undefined ? null : cstr(row[id_index]).trim();
+			const existing = id && this.get_bulk_edit_row_by_id(id);
+
+			if (import_type === BULK_EDIT_INSERT) counts.insert++;
+			else if (existing) counts.update++;
+			else if (import_type === BULK_EDIT_UPSERT) counts.insert++;
+			else counts.skip++;
+		});
+
+		return counts;
+	}
+
+	get_bulk_edit_row_by_id(id) {
+		return (this.frm.doc[this.df.fieldname] || []).find((d) => d.name === id);
+	}
+
+	apply_bulk_edit_rows(headers, rows, import_type, column_map) {
+		const columns = Object.keys(column_map).map(cint);
+		const id_index = columns.find((i) => column_map[i] === BULK_EDIT_ID_FIELDNAME);
+		const counts = { insert: 0, update: 0, skip: 0 };
+
+		rows.forEach((row) => {
+			const id = id_index === undefined ? null : cstr(row[id_index]).trim();
+			const existing = id && this.get_bulk_edit_row_by_id(id);
+			let target;
+
+			if (import_type === BULK_EDIT_INSERT) {
+				target = this.frm.add_child(this.df.fieldname);
+				counts.insert++;
+			} else if (existing) {
+				target = existing;
+				counts.update++;
+			} else if (import_type === BULK_EDIT_UPSERT) {
+				target = this.frm.add_child(this.df.fieldname);
+				counts.insert++;
+			} else {
+				counts.skip++;
+				return;
+			}
+
+			columns.forEach((i) => {
+				const fieldname = column_map[i];
+				// the ID is what the row was matched on, never something to overwrite
+				if (fieldname === BULK_EDIT_ID_FIELDNAME) return;
+
+				const df = frappe.meta.get_docfield(this.df.options, fieldname);
+				if (!df) return;
+
+				const format = BULK_EDIT_VALUE_FORMATTERS[df.fieldtype];
+				target[fieldname] = format ? format(row[i]) : row[i];
 			});
 		});
 
 		this.frm.refresh_field(this.df.fieldname);
-		frappe.msgprint({
-			message: __("Table updated"),
-			title: __("Success"),
+		frappe.show_alert({
+			message: __("{0} added, {1} updated, {2} skipped", [
+				counts.insert,
+				counts.update,
+				counts.skip,
+			]),
 			indicator: "green",
 		});
 	}
