@@ -14,6 +14,7 @@ const BULK_EDIT_INSERT = "Insert New Records";
 const BULK_EDIT_UPDATE = "Update Existing Records";
 const BULK_EDIT_UPSERT = "Insert or Update Records";
 const BULK_EDIT_IMPORT_TYPES = [BULK_EDIT_INSERT, BULK_EDIT_UPDATE, BULK_EDIT_UPSERT];
+const BULK_EDIT_DONT_IMPORT = "Don't Import";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -1885,18 +1886,7 @@ export default class Grid {
 			return;
 		}
 
-		// a column is unmapped when its header matches no field on the child doctype
-		const column_map = {};
-		const unmapped = [];
-		headers.forEach((header, i) => {
-			if (header === BULK_EDIT_ID_FIELDNAME) {
-				column_map[i] = BULK_EDIT_ID_FIELDNAME;
-			} else if (frappe.meta.get_docfield(this.df.options, header)) {
-				column_map[i] = header;
-			} else if (header) {
-				unmapped.push({ index: i, header });
-			}
-		});
+		let column_map = this.get_bulk_edit_column_map(headers);
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Preview"),
@@ -1906,20 +1896,6 @@ export default class Grid {
 					fieldtype: "HTML",
 					fieldname: "summary",
 				},
-				...unmapped.map(({ index, header }) => ({
-					fieldtype: "Select",
-					fieldname: `map_${index}`,
-					label: __('Map "{0}" to', [header]),
-					options: [
-						{ label: __("Don't Import"), value: "" },
-						...this.get_bulk_edit_docfields().map((df) => ({
-							label: __(df.label || df.fieldname, null, df.parent),
-							value: df.fieldname,
-						})),
-					],
-					default: "",
-					change: () => render(),
-				})),
 				{
 					fieldtype: "HTML",
 					fieldname: "preview",
@@ -1928,22 +1904,21 @@ export default class Grid {
 			primary_action_label: __("Apply"),
 			primary_action: () => {
 				dialog.hide();
-				this.apply_bulk_edit_rows(headers, rows, import_type, resolved_map());
+				this.apply_bulk_edit_rows(rows, import_type, column_map);
 			},
 		});
 
-		const resolved_map = () => {
-			const map = Object.assign({}, column_map);
-			unmapped.forEach(({ index }) => {
-				const value = dialog.get_value(`map_${index}`);
-				if (value) map[index] = value;
-			});
-			return map;
-		};
+		dialog.add_custom_action(__("Map Columns"), () =>
+			this.show_bulk_edit_column_mapper(headers, column_map, (map) => {
+				column_map = map;
+				render();
+			})
+		);
 
 		const render = () => {
-			const map = resolved_map();
-			const counts = this.count_bulk_edit_rows(headers, rows, import_type, map);
+			const map = column_map;
+			const counts = this.count_bulk_edit_rows(rows, import_type, map);
+			const unmapped = headers.filter((header, i) => header && map[i] === undefined).length;
 
 			dialog.get_field("summary").$wrapper.html(`
 				<p class="text-muted small">
@@ -1958,6 +1933,14 @@ export default class Grid {
 					counts.skip
 						? `<p class="text-muted small">${__(
 								"Rows are skipped when their ID does not match a row in this table."
+						  )}</p>`
+						: ""
+				}
+				${
+					unmapped
+						? `<p class="text-muted small">${__(
+								"{0} columns are not mapped to a field and will be ignored.",
+								[`<b>${unmapped}</b>`]
 						  )}</p>`
 						: ""
 				}
@@ -1999,8 +1982,91 @@ export default class Grid {
 		render();
 	}
 
+	/** Column index to fieldname, for every header that names a field. */
+	get_bulk_edit_column_map(headers) {
+		const map = {};
+		headers.forEach((header, i) => {
+			if (!header) return;
+			if (
+				header === BULK_EDIT_ID_FIELDNAME ||
+				frappe.meta.get_docfield(this.df.options, header)
+			) {
+				map[i] = header;
+			}
+		});
+		return map;
+	}
+
+	show_bulk_edit_column_mapper(headers, column_map, on_apply) {
+		const options = [
+			{ label: __("Don't Import"), value: BULK_EDIT_DONT_IMPORT },
+			...this.get_bulk_edit_docfields().map((df) => ({
+				label: __(df.label || df.fieldname, null, df.parent),
+				value: df.fieldname,
+				description: df.fieldname,
+			})),
+		];
+
+		const fields = [
+			{
+				fieldtype: "HTML",
+				fieldname: "heading",
+				options: `<div class="margin-top text-muted">${__(
+					"Map columns from the file to fields in {0}",
+					[__(this.df.options).bold()]
+				)}</div>`,
+			},
+			{
+				fieldtype: "Section Break",
+			},
+		];
+
+		headers.forEach((header, i) => {
+			fields.push(
+				{
+					fieldtype: "Data",
+					fieldname: `column_${i}`,
+					label: "",
+					default: header || __("Column {0}", [i + 1]),
+					read_only: 1,
+				},
+				{
+					fieldtype: "Column Break",
+				},
+				{
+					fieldtype: "Autocomplete",
+					fieldname: `map_${i}`,
+					label: "",
+					max_items: Infinity,
+					options,
+					default: column_map[i] || BULK_EDIT_DONT_IMPORT,
+				},
+				{
+					fieldtype: "Section Break",
+				}
+			);
+		});
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Map Columns"),
+			fields,
+			primary_action_label: __("Apply"),
+			primary_action: () => {
+				const map = {};
+				headers.forEach((header, i) => {
+					const value = dialog.get_value(`map_${i}`);
+					if (value && value !== BULK_EDIT_DONT_IMPORT) map[i] = value;
+				});
+				dialog.hide();
+				on_apply(map);
+			},
+		});
+		dialog.$body.addClass("map-columns");
+		dialog.show();
+	}
+
 	/** How each file row would land, without changing anything. */
-	count_bulk_edit_rows(headers, rows, import_type, column_map) {
+	count_bulk_edit_rows(rows, import_type, column_map) {
 		const counts = { insert: 0, update: 0, skip: 0 };
 		const id_index = Object.keys(column_map)
 			.map(cint)
@@ -2023,7 +2089,7 @@ export default class Grid {
 		return (this.frm.doc[this.df.fieldname] || []).find((d) => d.name === id);
 	}
 
-	apply_bulk_edit_rows(headers, rows, import_type, column_map) {
+	apply_bulk_edit_rows(rows, import_type, column_map) {
 		const columns = Object.keys(column_map).map(cint);
 		const id_index = columns.find((i) => column_map[i] === BULK_EDIT_ID_FIELDNAME);
 		const counts = { insert: 0, update: 0, skip: 0 };
