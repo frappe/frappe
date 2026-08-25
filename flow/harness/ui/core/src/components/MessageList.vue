@@ -52,6 +52,7 @@
 					/>
 					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
 				</div>
+				<TurnFiles v-else-if="item.kind === 'turn-files'" class="-mt-1" :files="item.files" />
 				<ApprovalCard v-else-if="item.kind === 'approval'" :calls="item.calls" :seq="item.seq" />
 				<div
 					v-else-if="item.kind === 'compaction'"
@@ -108,6 +109,7 @@ import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
 import ThinkingBlock from "./ThinkingBlock.vue"
 import ToolGroup from "./ToolGroup.vue"
+import TurnFiles from "./TurnFiles.vue"
 import TurnFold from "./TurnFold.vue"
 import UserBubble from "./UserBubble.vue"
 

@@ -699,3 +699,97 @@ test("streamed thinking stays live while a started tool call has no arguments ye
 	thinking = buildItems(conversation).find((item) => item.kind === "thinking")
 	assert.equal(thinking.live, true)
 })
+
+test("settled edit and write calls surface a changed-files section after the response", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 101, content: "Change it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 102,
+		content: [
+			{ type: "tool_call", id: "e1", name: "edit", arguments: { path: "src/app.js" } },
+			{ type: "tool_call", id: "w1", name: "write", arguments: { path: "src/new.js" } },
+			{ type: "tool_call", id: "e2", name: "edit", arguments: { path: "src/app.js" } },
+			{ type: "tool_call", id: "e3", name: "edit", arguments: { path: "src/bad.js" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 4,
+		tool_call_id: "e1",
+		name: "edit",
+		content: "[edited]",
+		details: { path: "/proj/src/app.js", lines_added: 3, lines_removed: 1 },
+	})
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 5,
+		tool_call_id: "w1",
+		name: "write",
+		content: "[wrote]",
+		details: { path: "/proj/src/new.js", lines: 12, chars: 100 },
+	})
+	// a second edit to the same file aggregates into one row
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 6,
+		tool_call_id: "e2",
+		name: "edit",
+		content: "[edited]",
+		details: { path: "/proj/src/app.js", lines_added: 2, lines_removed: 2 },
+	})
+	// failed calls never count as a change
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 7,
+		tool_call_id: "e3",
+		name: "edit",
+		content: "[edit failed: no such file]",
+		is_error: true,
+		details: {},
+	})
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 8,
+		ts: 110,
+		content: [{ type: "text", text: "Done." }],
+		stop_reason: "stop",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 9, ts: 111, reason: "done" })
+
+	const items = buildItems(conversation)
+	assert.deepEqual(
+		items.map((item) => item.kind),
+		["user", "turn-fold", "text", "turn-copy", "turn-files"],
+	)
+	assert.deepEqual(items.at(-1).files, [
+		{ path: "/proj/src/app.js", added: 5, removed: 3 },
+		{ path: "/proj/src/new.js", added: 12, removed: 0 },
+	])
+})
+
+test("a running turn shows no changed-files section until the response settles", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 101, content: "Change it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 102,
+		content: [{ type: "tool_call", id: "e1", name: "edit", arguments: { path: "src/app.js" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 4,
+		tool_call_id: "e1",
+		name: "edit",
+		content: "[edited]",
+		details: { path: "/proj/src/app.js", lines_added: 1, lines_removed: 1 },
+	})
+
+	assert.ok(!buildItems(conversation).some((item) => item.kind === "turn-files"))
+})
