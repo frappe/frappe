@@ -1428,7 +1428,10 @@ def fmt_money(
 	number_format = NumberFormat.from_string(format) if format else get_number_format()
 
 	if precision is None:
-		precision = cint(frappe.db.get_default("currency_precision")) or None
+		currency_precision = frappe.db.get_default("currency_precision")
+		# an explicit precision of 0 must be honoured, not treated the same as
+		# "not set" (cint(0) is falsy, so `... or None` would discard it)
+		precision = cint(currency_precision) if currency_precision not in (None, "") else None
 
 	if precision is None:
 		precision = number_format.precision
