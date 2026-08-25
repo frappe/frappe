@@ -25,6 +25,12 @@ jobs:
     steps:
       - name: Clone
         uses: actions/checkout@v7
+      - name: Restore test impact map
+        uses: actions/cache/restore@v4
+        with:
+          path: impact-map.json
+          key: impact-map-${{ github.sha }}
+          restore-keys: impact-map-
       - name: Check if unit tests should be run
         id: check-build
         run: |
