@@ -460,6 +460,7 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 def capture_pending_side_effects() -> dict:
 	"""Lengths of the queues of pending side effects, which savepoints cannot restore."""
 	return {
+		"message_log": len(frappe.local.message_log),
 		"before_commit": len(frappe.db.before_commit),
 		"after_commit": len(frappe.db.after_commit),
 		"before_rollback": len(frappe.db.before_rollback),
@@ -470,9 +471,10 @@ def capture_pending_side_effects() -> dict:
 
 
 def discard_side_effects_since(counts: dict):
-	"""Drop side effects queued after capture: the commit and rollback hooks,
-	realtime events and webhook executions of a rolled-back attempt would
+	"""Drop side effects queued after capture: the messages, commit and rollback
+	hooks, realtime events and webhook executions of a rolled-back attempt would
 	otherwise still run."""
+	frappe.local.message_log = frappe.local.message_log[: counts["message_log"]]
 	frappe.db.before_commit.truncate(counts["before_commit"])
 	frappe.db.after_commit.truncate(counts["after_commit"])
 	frappe.db.before_rollback.truncate(counts["before_rollback"])
