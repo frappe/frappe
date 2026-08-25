@@ -26,7 +26,7 @@ jobs:
       - name: Clone
         uses: actions/checkout@v7
       - name: Restore test impact map
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: impact-map.json
           key: impact-map-${{ github.sha }}
@@ -264,7 +264,7 @@ jobs:
 
       - name: Publish test impact map
         if: ${{ github.event_name == 'schedule' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: impact-map.json
           key: impact-map-${{ github.sha }}
