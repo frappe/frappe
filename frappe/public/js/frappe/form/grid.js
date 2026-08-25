@@ -1733,7 +1733,10 @@ export default class Grid {
 			title: __("Upload {0}", [this.get_bulk_edit_title()]),
 			size: BULK_EDIT_DIALOG_SIZE,
 		});
-		dialog.modal_body.css({ height: BULK_EDIT_DIALOG_HEIGHT, "overflow-y": "auto" });
+		// the body owns the height and each panel fills what is left under the tab
+		// bar, so a tall panel scrolls inside itself instead of growing the modal
+		dialog.modal_body.css({ height: BULK_EDIT_DIALOG_HEIGHT, "overflow-y": "hidden" });
+		dialog.$body.css({ height: "100%" });
 
 		const tab_defs = can_import
 			? [
@@ -1744,8 +1747,18 @@ export default class Grid {
 			  ]
 			: [{ label: __("Setup"), content: () => panels.setup[0] }];
 
-		const tabs = new frappe.ui.Tabs({ tabs: tab_defs, on_change: () => set_footer() });
+		const tabs = new frappe.ui.Tabs({
+			tabs: tab_defs,
+			on_change: () => {
+				sync_uploaded_file();
+				set_footer();
+			},
+		});
 		dialog.$body.append(tabs.$el);
+		tabs.$el.css({ height: "100%", display: "flex", "flex-direction": "column" });
+		tabs.$el
+			.find(".es-tabs__panel")
+			.css({ flex: "1 1 auto", "min-height": 0, "overflow-y": "auto" });
 
 		const TAB_SETUP = 0;
 		const TAB_UPLOAD = 1;
@@ -1824,8 +1837,9 @@ export default class Grid {
 		// ---------------------------------------------------------- step 2
 
 		// mounted inline rather than in its own dialog, so nothing stacks
+		let file_uploader = null;
 		const build_uploader = () => {
-			new frappe.ui.FileUploader({
+			file_uploader = new frappe.ui.FileUploader({
 				wrapper: panels.upload,
 				as_dataurl: true,
 				allow_multiple: false,
@@ -1833,7 +1847,27 @@ export default class Grid {
 				restrictions: { allowed_file_types: BULK_EDIT_FILE_TYPES },
 				on_success: (file) => this.read_bulk_edit_file(file, on_file),
 			});
+			// dropping a file or clearing one changes what the later tabs describe
+			panels.upload.on("click change drop", () =>
+				setTimeout(() => {
+					sync_uploaded_file();
+					set_footer();
+				}, 0)
+			);
 			return panels.upload[0];
+		};
+
+		const uploaded_file_count = () => file_uploader?.uploader?.files?.length || 0;
+
+		/** Clearing the file leaves nothing for preview or mapping to describe. */
+		const sync_uploaded_file = () => {
+			if (!file_uploader || uploaded_file_count() || !state.rows.length) return;
+			state.headers = [];
+			state.rows = [];
+			state.row_numbers = [];
+			state.column_map = {};
+			tabs.set_disabled(TAB_PREVIEW, true);
+			tabs.set_disabled(TAB_MAPPING, true);
 		};
 
 		// ---------------------------------------------------------- step 3
@@ -2036,9 +2070,9 @@ export default class Grid {
 				return;
 			}
 
-			// upload: the uploader carries its own button
-			$primary.addClass("hide");
-			$secondary.addClass("hide");
+			// upload: the footer drives the uploader, so its own button is hidden
+			dialog.set_primary_action(__("Upload"), () => file_uploader?.upload_files());
+			$primary.prop("disabled", !uploaded_file_count());
 		};
 
 		dialog.show();
