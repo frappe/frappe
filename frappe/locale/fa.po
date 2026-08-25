@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-23 21:21\n"
+"PO-Revision-Date: 2026-08-25 22:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1641,7 +1641,7 @@ msgstr "افزودن یک نمودار {0}"
 #: frappe/public/js/frappe/form/controls/attachment_gallery.js:205
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:128
 msgid "Add attachment"
-msgstr ""
+msgstr "افزودن پیوست"
 
 #: frappe/public/js/form_builder/components/Section.vue:275
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:83
@@ -3486,11 +3486,11 @@ msgstr "پیوست"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Attachment Gallery"
-msgstr ""
+msgstr "گالری پیوست‌ها"
 
 #: frappe/core/doctype/doctype/doctype.py:1823 frappe/desk/form/load.py:221
 msgid "Attachment Gallery filters must target File."
-msgstr ""
+msgstr "فیلترهای گالری پیوست باید فایل را هدف قرار دهند."
 
 #. Label of the attachment_limit (Int) field in DocType 'Email Account'
 #. Label of the attachment_limit (Int) field in DocType 'Email Domain'
@@ -6998,7 +6998,7 @@ msgstr "ایجاد تابلوی کانبان جدید"
 
 #: frappe/core/doctype/role/role.js:301
 msgid "Create New User"
-msgstr ""
+msgstr "ایجاد کاربر جدید"
 
 #: frappe/core/doctype/user/user.js:297
 msgid "Create User Email"
@@ -9072,7 +9072,7 @@ msgstr "نمایش بستگی دارد به (JS)"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:614
 msgid "Display a sidebar in forms with attachments, preview image, tags, and other details."
-msgstr ""
+msgstr "نمایش نوار کناری در فرم‌ها با پیوست‌ها، تصویر پیش‌نمایش، برچسب‌ها و سایر جزئیات."
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:641
 msgid "Display exact timestamps instead of relative time in the activity timeline."
@@ -11902,7 +11902,7 @@ msgstr "اتصال به سرور ممکن نشد"
 
 #: frappe/core/doctype/role/role.js:342
 msgid "Failed to create user."
-msgstr ""
+msgstr "ایجاد کاربر ناموفق بود."
 
 #: frappe/auth.py:736
 msgid "Failed to decode token, please provide a valid base64-encoded token."
@@ -12633,11 +12633,11 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Filters applied to Link queries and Attachment Gallery files."
-msgstr ""
+msgstr "فیلترهای اعمال شده بر روی کوئری‌های لینک و فایل‌های گالری پیوست."
 
 #: frappe/desk/form/load.py:219
 msgid "Filters must be four-value rows with string doctypes, fields, and operators."
-msgstr ""
+msgstr "فیلترها باید ردیف‌های چهار مقداری با doctypeهای رشته‌ای، فیلدها و عملگرها باشند."
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:467
 msgid "Filters saved"
@@ -16025,11 +16025,11 @@ msgstr "مقدار فیلتر نامعتبر است"
 
 #: frappe/core/doctype/doctype/doctype.py:1815
 msgid "Invalid Filters for field {0}. Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
-msgstr ""
+msgstr "فیلترهای نامعتبر برای فیلد {0}. فیلترها باید لیستی از فیلترها باشند، که هر فیلتر لیستی با چهار مقدار است: نوع سند، نام فیلد، عملگر و مقدار."
 
 #: frappe/core/doctype/doctype/doctype.py:1806
 msgid "Invalid Filters for field {0}. Filters must be valid JSON."
-msgstr ""
+msgstr "فیلترهای نامعتبر برای فیلد {0}. فیلترها باید از نوع JSON معتبر باشند."
 
 #: frappe/website/doctype/website_settings/website_settings.py:83
 msgid "Invalid Home Page"
@@ -20550,7 +20550,7 @@ msgstr "هیچ پیوستی برای گزارش تهیه شده یافت نشد"
 
 #: frappe/public/js/frappe/form/controls/attachment_gallery.js:55
 msgid "No attachments"
-msgstr ""
+msgstr "بدون پیوست"
 
 #: frappe/core/doctype/recorder/recorder.py:198
 msgid "No automatic optimization suggestions available."
@@ -27267,7 +27267,7 @@ msgstr "ذخیره پس از تکمیل"
 
 #: frappe/public/js/frappe/form/controls/attachment_gallery.js:30
 msgid "Save the document to attach files."
-msgstr ""
+msgstr "برای پیوست کردن فایل‌ها، سند را ذخیره کنید."
 
 #: frappe/public/js/frappe/form/form_tour.js:295
 msgid "Save the document."
@@ -33703,7 +33703,7 @@ msgstr "نمی‌توان DocType {0} را پیدا کرد"
 
 #: frappe/public/js/frappe/form/controls/attachment_gallery.js:43
 msgid "Unable to load attachments."
-msgstr ""
+msgstr "بارگیری پیوست‌ها امکان‌پذیر نیست."
 
 #: frappe/public/js/frappe/ui/capture.js:339
 msgid "Unable to load camera."
@@ -34576,7 +34576,7 @@ msgstr "کاربر می‌تواند با شناسه ایمیل یا نام کا
 
 #: frappe/core/doctype/role/role.js:337
 msgid "User created."
-msgstr ""
+msgstr "کاربر ایجاد شد."
 
 #: frappe/auth.py:187 frappe/utils/user.py:330
 msgid "User does not exist"
@@ -36802,7 +36802,7 @@ msgstr "برای تغییر نام به اجازه نوشتن در {0} {1} نی�
 
 #: frappe/utils/file_manager.py:402
 msgid "You need write permissions to add attachments to this record."
-msgstr ""
+msgstr "برای افزودن پیوست به این رکورد، به مجوزهای نوشتن نیاز دارید."
 
 #: frappe/client.py:522
 msgid "You need {0} permission to fetch values from {1} {2}"
