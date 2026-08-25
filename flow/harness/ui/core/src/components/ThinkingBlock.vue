@@ -6,7 +6,7 @@
 		>
 			<!-- leading slot doubles as the disclosure control (see ToolStep) -->
 			<span class="relative h-3.5 w-3.5 flex-none">
-				<SparkIcon
+				<ThoughtIcon
 					class="h-3.5 w-3.5 transition-opacity"
 					:class="open ? 'opacity-0' : 'group-hover:opacity-0'"
 				/>
@@ -33,7 +33,7 @@ import { ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import MarkdownContent from "./MarkdownContent.vue"
-import SparkIcon from "./SparkIcon.vue"
+import ThoughtIcon from "./ThoughtIcon.vue"
 
 defineProps({
 	block: { type: Object, required: true },
