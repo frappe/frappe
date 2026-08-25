@@ -513,7 +513,6 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 	while docs:
 		deferred = []
 		for doc in docs:
-			message_count = len(frappe.local.message_log)
 			side_effect_counts = capture_pending_side_effects()
 			frappe.db.savepoint(save_point)
 			try:
@@ -524,7 +523,6 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 				# drop the messages and side effects it queued, which savepoints
 				# cannot undo
 				frappe.db.rollback(save_point=save_point)
-				frappe.local.message_log = frappe.local.message_log[:message_count]
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
 				continue
