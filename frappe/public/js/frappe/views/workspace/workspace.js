@@ -64,7 +64,12 @@ frappe.views.Workspace = class Workspace {
 		this.workspaces.map((workspace) => {
 			workspace.is_editable = !workspace.public || me.has_access;
 			if (typeof workspace.content == "string") {
-				workspace.content = JSON.parse(workspace.content);
+				try {
+					workspace.content = JSON.parse(workspace.content);
+				} catch (e) {
+					console.log(`Failed to parse workspace content for ${workspace.name}:`, e);
+					workspace.content = [];
+				}
 			}
 		});
 	}
