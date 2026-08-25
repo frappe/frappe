@@ -525,12 +525,13 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		validation is a deliberate no-op -- so nothing else would carry the new name across and
 		the row would be left pointing at a sidebar that no longer answers."""
 		doc = make_sidebar(self.MODULE)
-		# one `Dock` per person, enforced by a unique index, so whatever this site holds for
-		# them goes first
-		frappe.db.delete("Dock", {"user": "test@example.com"})
+		# one `Dock` per app per person, enforced by a unique index, so whatever this site holds
+		# at that address goes first
+		frappe.db.delete("Dock", {"app": "frappe", "user": "test@example.com"})
 		layer = frappe.get_doc(
 			{
 				"doctype": "Dock",
+				"app": "frappe",
 				"user": "test@example.com",
 				"items": [{"type": "Sidebar", "link_name": self.MODULE}],
 			}

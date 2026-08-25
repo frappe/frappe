@@ -84,16 +84,25 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		};
 	}
 
-	// Load the layer being edited -- its own stored rows, not the resolved dock in
+	// Load the layer being edited -- its own stored rows, not the resolved rail in
 	// `frappe.boot.dock`. A save replaces the layer whole, so it has to be shown
-	// what it will overwrite: shown the resolved dock, saving as a user would copy the site's
+	// what it will overwrite: shown the resolved rail, saving as a user would copy the site's
 	// rows into their own layer and freeze them out of every later site change.
+	//
+	// Every read names the app, because a layer is one app's: reading without one would be
+	// asking for an arrangement that no longer exists.
 	async read() {
+		// A dock belongs to an app and every read names one, so there is nothing to read without
+		// it. The user menu already hides this surface where there is no app context; saying so
+		// here is what keeps a hand-opened manager on the load error instead of on a failed call.
+		if (!this.app) throw new Error("Manage Dock: no app in context");
+
 		this.load_entries();
 
+		const args = { app: this.app.app_name };
 		const [layer, base] = await Promise.all([
-			frappe.xcall(this.layer_config.read),
-			frappe.xcall("frappe.desk.doctype.dock.dock.get_app_dock_layer"),
+			frappe.xcall(this.layer_config.read, args),
+			frappe.xcall("frappe.desk.doctype.dock.dock.get_app_dock_layer", args),
 		]);
 
 		this.layer_rows = layer;
@@ -126,9 +135,8 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return frappe.app.sidebar.dock_key(row.type, row.name);
 	}
 
-	// This layer's picks for this app, in their order. A layer is a single flat list across every
-	// app and across both kinds of entry, so this app's picks are the rows naming entries it
-	// offers.
+	// This layer's picks, in their order. The layer is this app's, so every row in it is about
+	// this app -- the filter is against what the app still offers, not against whose app a row is.
 	initial_selection() {
 		const mine = new Set(this.all_keys());
 		const arranged = (this.layer_rows || [])
@@ -271,26 +279,24 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	}
 
 	save_args() {
-		// A layer is one flat list across every app, but a dock belongs to an app -- so replace
-		// only this app's entries and leave every other app's arrangement in this layer untouched.
-		// Rows are typed pairs, so an entry of another kind that happens to share a module's name
-		// is one of the ones left alone.
-		const app_keys = new Set(this.all_keys());
-		const others = (this.layer_rows || []).filter((row) => !app_keys.has(this.key(row)));
-		// Nothing selected at all is Reset: it stores no row for this app, so the layer below
-		// shows through instead of the app being hidden entry by entry.
+		// The layer is this app's, so what is on screen is the whole of it. The old
+		// carry-the-other-apps-rows-through dance went with the flat list: a save touches one
+		// document, and that document holds one app's rows.
+		//
+		// Nothing selected at all is Reset: it stores no row, so the layer below shows through
+		// instead of the app being hidden entry by entry.
 		const mine = this.selection.length
 			? this.arranged_rows((key, hidden) => this.stored_row(key, hidden))
 			: [];
 
-		return { items: JSON.stringify([...others, ...mine]) };
+		return { app: this.app.app_name, items: JSON.stringify(mine) };
 	}
 
-	// Both saves answer with the resolved dock -- every app's fragment with the site's
-	// arrangement and this user's own on top -- so the rail can be redrawn in place whichever
-	// layer was written. No reload needed now that the dock reads the returned payload.
-	apply(dock) {
-		frappe.boot.dock = dock;
+	// Both saves answer with this app's resolved rail -- its own dock with the site's arrangement
+	// and this user's own on top -- so the rail can be redrawn in place whichever layer was
+	// written. Only this app's key is replaced, because only this app's document was saved.
+	apply(rail) {
+		frappe.boot.dock = { ...(frappe.boot.dock || {}), [this.app.app_name]: rail };
 		frappe.app.sidebar.refresh_dock();
 	}
 

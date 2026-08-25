@@ -30,6 +30,10 @@ USER = "test-dock-prefs@example.com"
 # fragment is free to name the framework's modules, and once an app ships one every site has a
 # base that does, so borrowing them made every assertion here depend on what somebody else had
 # shipped. These three are created by the suite and named by nothing else.
+# The app these suites arrange the dock of. A `Dock` layer is per app, so every read and every
+# write names one; the suite's three modules are frappe's, so frappe's is the dock they are on.
+APP = "frappe"
+
 ALPHA = "Test Dock Alpha"
 BETA = "Test Dock Beta"
 GAMMA = "Test Dock Gamma"
@@ -65,18 +69,19 @@ def hidden_by_name(rows) -> dict[str, int]:
 	return {row["name"]: row["hidden"] for row in rows}
 
 
-def dock_for(email=None, among=TRIO):
-	"""The resolved dock as `email` sees it, narrowed to the modules a test named.
+def dock_for(email=None, among=TRIO, app=APP):
+	"""One app's resolved rail as `email` sees it, narrowed to the modules a test named.
 
-	Two things this hides. `resolve_dock` answers for the session user, so the only way to ask
-	about somebody else is to be them for a moment. And the base is whatever the site's apps
-	ship, which is not a suite about the site and user layers to control -- narrowing to the
-	suite's own modules keeps the order it asserts while leaving the rest of the dock alone.
+	Three things this hides. `resolve_dock` answers for the session user, so the only way to ask
+	about somebody else is to be them for a moment. It answers for every app at once, keyed by
+	app, and a suite arranges one. And the base is whatever the site's apps ship, which is not a
+	suite about the site and user layers to control -- narrowing to the suite's own modules keeps
+	the order it asserts while leaving the rest of the rail alone.
 	"""
 	if email:
 		frappe.set_user(email)
 	try:
-		rows = resolve_dock()
+		rows = resolve_dock().get(app, [])
 	finally:
 		if email:
 			frappe.set_user("Administrator")
@@ -183,21 +188,21 @@ class TestDockPreferences(DockTestCase):
 		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
 
 	def test_order_round_trips(self):
-		save_user_dock(payload(GAMMA, ALPHA, BETA))
+		save_user_dock(APP, payload(GAMMA, ALPHA, BETA))
 		self.assertEqual(names(dock_for()), [GAMMA, ALPHA, BETA])
 
 	def test_the_resolved_dock_carries_the_typed_pair(self):
 		"""What an entry points at is a kind and a name together, at every layer and in the
 		payload -- never one column whose being filled is the kind."""
-		save_user_dock(payload(ALPHA))
+		save_user_dock(APP, payload(ALPHA))
 
 		self.assertEqual(dock_for(), [{"type": "Sidebar", "name": ALPHA, "hidden": 0}])
-		self.assertEqual(get_user_dock_layer(), [{"type": "Sidebar", "name": ALPHA, "hidden": 0}])
+		self.assertEqual(get_user_dock_layer(APP), [{"type": "Sidebar", "name": ALPHA, "hidden": 0}])
 
 	def test_hidden_is_stored_not_omitted(self):
 		"""An explicitly hidden module has to persist as a row. Storing "hidden" as mere
 		absence would let it reappear the moment its app adds another module."""
-		save_user_dock(payload(sidebar(ALPHA, hidden=0), sidebar(GAMMA, hidden=1)))
+		save_user_dock(APP, payload(sidebar(ALPHA, hidden=0), sidebar(GAMMA, hidden=1)))
 		rows = hidden_by_name(dock_for())
 		self.assertEqual(rows[ALPHA], 0)
 		self.assertEqual(rows[GAMMA], 1)
@@ -205,13 +210,14 @@ class TestDockPreferences(DockTestCase):
 	def test_a_row_that_names_no_kind_is_dropped(self):
 		"""Both halves are the entry, so half of one says nothing at all -- and a bare name is
 		half of one. Dropped rather than refused, the way a row naming nothing has always been."""
-		save_user_dock(json.dumps([sidebar(ALPHA), {"name": BETA}, GAMMA, {"type": "Sidebar"}]))
+		save_user_dock(APP, json.dumps([sidebar(ALPHA), {"name": BETA}, GAMMA, {"type": "Sidebar"}]))
 		self.assertEqual(names(dock_for()), [ALPHA])
 
 	def test_a_half_that_is_not_a_name_is_dropped(self):
 		"""These rows are client JSON, so neither half can be taken on trust. A dict reaching the
 		existence lookup would be read as *filters* rather than as a name."""
 		save_user_dock(
+			APP,
 			json.dumps(
 				[
 					sidebar(ALPHA),
@@ -219,23 +225,23 @@ class TestDockPreferences(DockTestCase):
 					{"type": ["Sidebar"], "name": BETA},
 					{"type": "Sidebar", "name": 7},
 				]
-			)
+			),
 		)
 		self.assertEqual(names(dock_for()), [ALPHA])
 
 	def test_duplicates_are_collapsed(self):
-		save_user_dock(payload(ALPHA, ALPHA, BETA))
+		save_user_dock(APP, payload(ALPHA, ALPHA, BETA))
 		self.assertEqual(names(dock_for()), [ALPHA, BETA])
 
 	def test_unknown_module_is_dropped(self):
-		save_user_dock(payload(ALPHA, "No Such Module"))
+		save_user_dock(APP, payload(ALPHA, "No Such Module"))
 		self.assertEqual(names(dock_for()), [ALPHA])
 
 	def test_a_row_naming_a_kind_the_dock_does_not_have_is_dropped(self):
 		"""`type` is an open Link, so the whitelist is what closes the set on the way in."""
-		save_user_dock(json.dumps([sidebar(ALPHA), {"type": "User", "name": "Administrator"}]))
+		save_user_dock(APP, json.dumps([sidebar(ALPHA), {"type": "User", "name": "Administrator"}]))
 		self.assertEqual(names(dock_for()), [ALPHA])
-		self.assertEqual(names(get_user_dock_layer()), [ALPHA])
+		self.assertEqual(names(get_user_dock_layer(APP)), [ALPHA])
 
 	def test_curation_cannot_resurface_a_blocked_module(self):
 		"""A dock arrangement is a preference, never a way around module visibility."""
@@ -246,20 +252,20 @@ class TestDockPreferences(DockTestCase):
 		frappe.clear_cache(user=USER)
 		frappe.set_user(USER)
 
-		save_user_dock(payload(ALPHA, GAMMA))
+		save_user_dock(APP, payload(ALPHA, GAMMA))
 		self.assertEqual(names(dock_for()), [ALPHA])
 
 	def test_saving_replaces_rather_than_appends(self):
 		"""The client sends the whole arrangement, not a delta -- the shape a Sortable makes."""
-		save_user_dock(payload(ALPHA, BETA, GAMMA))
-		save_user_dock(payload(BETA))
+		save_user_dock(APP, payload(ALPHA, BETA, GAMMA))
+		save_user_dock(APP, payload(BETA))
 		self.assertEqual(names(dock_for()), [BETA])
 
 	def test_boot_exposes_the_curation(self):
 		from frappe.boot import get_bootinfo
 
-		save_user_dock(payload(BETA, ALPHA))
-		carried = [r["name"] for r in get_bootinfo().get("dock") if r["name"] in set(TRIO)]
+		save_user_dock(APP, payload(BETA, ALPHA))
+		carried = [r["name"] for r in get_bootinfo().get("dock")[APP] if r["name"] in set(TRIO)]
 		self.assertEqual(carried, [BETA, ALPHA])
 
 
@@ -303,7 +309,7 @@ class TestDockSiteLayer(DockTestCase):
 		"""The site layer as a Workspace Manager would leave it. Administrator holds every role."""
 		user = frappe.session.user
 		frappe.set_user("Administrator")
-		save_site_dock(payload(*rows))
+		save_site_dock(APP, payload(*rows))
 		frappe.set_user(user)
 
 	def block_module(self, email, module):
@@ -322,7 +328,7 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(BETA, ALPHA, GAMMA)
 
 		frappe.set_user(self.DESK_USER)
-		save_user_dock(payload(GAMMA))
+		save_user_dock(APP, payload(GAMMA))
 
 		# what they named comes first; the site's arrangement of the rest survives underneath
 		self.assertEqual(names(dock_for(self.DESK_USER)), [GAMMA, BETA, ALPHA])
@@ -333,7 +339,7 @@ class TestDockSiteLayer(DockTestCase):
 		self.assertEqual(hidden_by_name(dock_for(self.DESK_USER))[BETA], 1)
 
 		frappe.set_user(self.DESK_USER)
-		save_user_dock(payload(sidebar(BETA, hidden=0)))
+		save_user_dock(APP, payload(sidebar(BETA, hidden=0)))
 		self.assertEqual(hidden_by_name(dock_for(self.DESK_USER))[BETA], 0)
 
 	def test_a_module_the_site_never_named_is_absent_rather_than_appended(self):
@@ -370,21 +376,21 @@ class TestDockSiteLayer(DockTestCase):
 
 	def test_only_a_workspace_manager_may_write_the_site_layer(self):
 		frappe.set_user(self.DESK_USER)
-		self.assertRaises(frappe.PermissionError, save_site_dock, payload(ALPHA))
+		self.assertRaises(frappe.PermissionError, save_site_dock, APP, payload(ALPHA))
 
 		frappe.set_user(self.MANAGER)
-		save_site_dock(payload(ALPHA, BETA))
+		save_site_dock(APP, payload(ALPHA, BETA))
 		frappe.set_user("Administrator")
-		self.assertEqual(names(get_site_dock()), [ALPHA, BETA])
+		self.assertEqual(names(get_site_dock(APP)), [ALPHA, BETA])
 
 	def test_only_a_workspace_manager_may_read_the_site_layer(self):
 		self.set_site_order(ALPHA)
 
 		frappe.set_user(self.DESK_USER)
-		self.assertRaises(frappe.PermissionError, get_site_dock_layer)
+		self.assertRaises(frappe.PermissionError, get_site_dock_layer, APP)
 
 		frappe.set_user(self.MANAGER)
-		self.assertEqual(names(get_site_dock_layer()), [ALPHA])
+		self.assertEqual(names(get_site_dock_layer(APP)), [ALPHA])
 
 	def test_a_site_save_keeps_rows_for_modules_the_saver_cannot_see(self):
 		"""Site intent outlives one manager's blocked module.
@@ -397,10 +403,10 @@ class TestDockSiteLayer(DockTestCase):
 		self.block_module(self.MANAGER, GAMMA)
 
 		frappe.set_user(self.MANAGER)
-		save_site_dock(payload(GAMMA, ALPHA))
+		save_site_dock(APP, payload(GAMMA, ALPHA))
 		frappe.set_user("Administrator")
 
-		self.assertEqual(names(get_site_dock()), [GAMMA, ALPHA])
+		self.assertEqual(names(get_site_dock(APP)), [GAMMA, ALPHA])
 		self.assertEqual(names(dock_for(self.MANAGER)), [ALPHA])
 		self.assertEqual(names(dock_for(self.DESK_USER)), [GAMMA, ALPHA])
 
@@ -415,10 +421,10 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(BETA, ALPHA)
 
 		frappe.set_user(self.DESK_USER)
-		save_user_dock(payload(ALPHA))
+		save_user_dock(APP, payload(ALPHA))
 
-		self.assertEqual(names(get_user_dock_layer()), [ALPHA])
-		self.assertEqual(names(get_user_dock()), [ALPHA])
+		self.assertEqual(names(get_user_dock_layer(APP)), [ALPHA])
+		self.assertEqual(names(get_user_dock(APP)), [ALPHA])
 		self.assertEqual(names(dock_for()), [ALPHA, BETA])
 
 	def test_both_writable_layers_round_trip_typed_rows(self):
@@ -426,11 +432,13 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(BETA)
 
 		frappe.set_user(self.DESK_USER)
-		save_user_dock(payload(ALPHA))
+		save_user_dock(APP, payload(ALPHA))
 		frappe.set_user("Administrator")
 
-		self.assertEqual(get_site_dock(), [{"type": "Sidebar", "name": BETA, "hidden": 0}])
-		self.assertEqual(get_user_dock(self.DESK_USER), [{"type": "Sidebar", "name": ALPHA, "hidden": 0}])
+		self.assertEqual(get_site_dock(APP), [{"type": "Sidebar", "name": BETA, "hidden": 0}])
+		self.assertEqual(
+			get_user_dock(APP, self.DESK_USER), [{"type": "Sidebar", "name": ALPHA, "hidden": 0}]
+		)
 
 	def test_boot_carries_the_resolved_dock(self):
 		from frappe.boot import get_bootinfo
@@ -438,29 +446,32 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(BETA, ALPHA)
 
 		frappe.set_user(self.DESK_USER)
-		carried = [r["name"] for r in get_bootinfo().get("dock") if r["name"] in set(TRIO)]
+		carried = [r["name"] for r in get_bootinfo().get("dock")[APP] if r["name"] in set(TRIO)]
 		self.assertEqual(carried, [BETA, ALPHA])
 
 	def test_every_layer_is_one_shape(self):
-		"""One doctype at both stored layers, because the rows are identical -- `user` is the
-		whole difference, and the parent is what names the layer."""
+		"""One doctype at all three layers, because the rows are identical -- `app`, `user` and
+		`standard` are the whole difference, and the parent is what names the layer."""
 		self.set_site_order(ALPHA)
 
 		frappe.set_user(self.DESK_USER)
-		save_user_dock(payload(BETA))
+		save_user_dock(APP, payload(BETA))
 		frappe.set_user("Administrator")
 
-		layers = frappe.get_all("Dock", fields=["user"])
+		layers = frappe.get_all("Dock", fields=["app", "user"])
 		self.assertEqual(sorted(row.user or "" for row in layers), ["", self.DESK_USER])
+		self.assertEqual({row.app for row in layers}, {APP})
 		self.assertEqual(frappe.get_meta("Dock").get_field("items").options, "Dock Item")
-		self.assertIsNone(frappe.get_meta("Dock").get_field("app"), "the app layer is a hook now")
 
 	def test_a_layer_exists_once(self):
 		"""Two documents at one address would give the merge two answers for the same layer, so
 		the constraint is an index rather than a `validate` hook a bulk write can be talked past.
 		"""
 		self.set_site_order(ALPHA)
-		self.assertRaises(frappe.UniqueValidationError, frappe.new_doc("Dock").insert)
+
+		duplicate = frappe.new_doc("Dock")
+		duplicate.app = APP
+		self.assertRaises(frappe.UniqueValidationError, duplicate.insert)
 
 
 class TestTheAppLayer(DockTestCase):
@@ -500,68 +511,70 @@ class TestTheAppLayer(DockTestCase):
 
 	def test_the_app_layer_is_the_base_the_dock_resolves_from(self):
 		with self.ship(BETA, ALPHA):
-			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
 
 	def test_the_base_is_the_hook_rather_than_a_document(self):
 		"""Nothing is exported, imported or materialised: an app-layer row accumulates no state a
 		hook cannot express, so there is no mirror record to drift and no orphan to reap."""
 		with self.ship(BETA, ALPHA):
-			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
 			self.assertFalse(frappe.get_all("Dock"), "an app's fragment stores nothing")
 
-	def test_each_apps_fragment_follows_the_one_before_it(self):
-		"""A fragment says nothing about another app's, so the base is the fragments concatenated.
-
-		The order is the apps screen's -- the `sequence_id` an app declares in
-		`add_to_apps_screen`, then install position. Both of these are invented at the end of the
-		installed list, in the order they were named, and each fragment stays whole rather than
-		interleaving.
-		"""
+	def test_each_apps_fragment_is_its_own_rail(self):
+		"""A fragment says nothing about another app's, and now nothing concatenates them either:
+		a rail is one app's, so the two are resolved apart and keyed apart in the payload."""
 		with shipped_dock({self.APP: [sidebar(BETA), sidebar(ALPHA)], self.OTHER_APP: [sidebar(GAMMA)]}):
-			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA, GAMMA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.OTHER_APP)), [GAMMA])
 
-	def test_two_fragments_naming_one_module_render_it_once(self):
+	def test_one_fragment_naming_one_module_twice_renders_it_once(self):
 		"""The base is copied into the merge whole, so a duplicate there is never deduped above
-		it. The first fragment to name an entry keeps it, as a layer does for a row it sees
-		twice."""
+		it. The first row to name an entry keeps it, as a layer does for a row it sees twice."""
+		with shipped_dock({self.APP: [sidebar(BETA), sidebar(ALPHA), sidebar(BETA)]}):
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
+
+	def test_two_apps_arrangements_do_not_touch_each_other(self):
+		"""The whole of what a per-app record buys: arranging one rail leaves the other alone,
+		and neither save has to carry the other app's rows through untouched."""
 		with shipped_dock(
-			{
-				self.APP: [sidebar(BETA), sidebar(ALPHA)],
-				self.OTHER_APP: [sidebar(ALPHA), sidebar(GAMMA)],
-			}
+			{self.APP: [sidebar(BETA), sidebar(ALPHA)], self.OTHER_APP: [sidebar(GAMMA), sidebar(ALPHA)]}
 		):
-			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA, GAMMA])
+			save_site_dock(self.APP, payload(ALPHA))
+
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, BETA])
+			self.assertEqual(names(dock_for(self.USER, app=self.OTHER_APP)), [GAMMA, ALPHA])
+			self.assertEqual(names(get_site_dock(self.OTHER_APP)), [])
 
 	def test_the_site_arranges_what_the_app_shipped(self):
 		with self.ship(BETA, ALPHA, GAMMA):
-			save_site_dock(payload(GAMMA))
+			save_site_dock(self.APP, payload(GAMMA))
 
 			# what the site named comes first; the app's order of the rest survives underneath
-			self.assertEqual(names(dock_for(self.USER)), [GAMMA, BETA, ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [GAMMA, BETA, ALPHA])
 
 	def test_a_person_arranges_what_the_site_left(self):
 		with self.ship(BETA, ALPHA, GAMMA):
-			save_site_dock(payload(GAMMA))
+			save_site_dock(self.APP, payload(GAMMA))
 
 			frappe.set_user(self.USER)
-			save_user_dock(payload(ALPHA))
+			save_user_dock(self.APP, payload(ALPHA))
 			frappe.set_user("Administrator")
 
-			self.assertEqual(names(dock_for(self.USER)), [ALPHA, GAMMA, BETA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, GAMMA, BETA])
 
 	def test_a_module_the_app_added_later_still_reaches_someone_who_has_arranged(self):
 		"""An entry no layer names trails the ones they did, rather than dropping out."""
 		with self.ship(BETA, ALPHA, GAMMA):
-			save_site_dock(payload(GAMMA, BETA))
+			save_site_dock(self.APP, payload(GAMMA, BETA))
 
-			self.assertEqual(names(dock_for(self.USER)), [GAMMA, BETA, ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [GAMMA, BETA, ALPHA])
 
 	def test_hiding_survives_the_app_adding_a_module(self):
 		"""Hiding is a decision, not the absence of a row -- so a later fragment cannot undo it."""
 		with self.ship(BETA, ALPHA):
-			save_site_dock(payload(sidebar(BETA, hidden=1)))
+			save_site_dock(self.APP, payload(sidebar(BETA, hidden=1)))
 
-			hidden = hidden_by_name(dock_for(self.USER))
+			hidden = hidden_by_name(dock_for(self.USER, app=self.APP))
 			self.assertEqual(hidden[BETA], 1)
 			self.assertEqual(hidden[ALPHA], 0)
 
@@ -569,12 +582,12 @@ class TestTheAppLayer(DockTestCase):
 		"""`type` is an open Link to `DocType`, so the whitelist is what closes the set at every
 		layer -- including the one an app writes by hand."""
 		with shipped_dock({self.APP: [{"type": "User", "name": "Administrator"}, sidebar(ALPHA)]}):
-			self.assertEqual(names(dock_for(self.USER)), [ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA])
 
 	def test_a_base_row_missing_half_the_pair_says_nothing(self):
 		"""Both halves are the entry, so either one missing says nothing at all."""
 		with shipped_dock({self.APP: [sidebar(ALPHA), {"type": "Sidebar"}, {"name": BETA}, BETA]}):
-			self.assertEqual(names(dock_for(self.USER)), [ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA])
 
 	def test_a_module_with_no_sidebar_document_is_still_nameable(self):
 		"""Most modules have a computed base and no `Sidebar` document at all, so a row is proved
@@ -583,10 +596,10 @@ class TestTheAppLayer(DockTestCase):
 		self.assertFalse(frappe.db.exists("Sidebar", ALPHA), "sanity: this module ships no sidebar")
 
 		with self.ship(ALPHA):
-			self.assertEqual(names(dock_for(self.USER)), [ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA])
 
-		save_site_dock(payload(ALPHA))
-		self.assertEqual(names(get_site_dock()), [ALPHA])
+			save_site_dock(self.APP, payload(ALPHA))
+			self.assertEqual(names(get_site_dock(self.APP)), [ALPHA])
 
 	# -- the base may hide ---------------------------------------------------------------
 
@@ -594,7 +607,7 @@ class TestTheAppLayer(DockTestCase):
 		"""The base hides on the same terms as every layer above it. It used to be the one layer
 		whose hiding was thrown away, which made "off by default" inexpressible."""
 		with shipped_dock({self.APP: [sidebar(ALPHA), sidebar(BETA, hidden=1)]}):
-			hidden = hidden_by_name(dock_for(self.USER))
+			hidden = hidden_by_name(dock_for(self.USER, app=self.APP))
 
 		self.assertEqual(hidden[ALPHA], 0)
 		self.assertEqual(hidden[BETA], 1)
@@ -604,16 +617,18 @@ class TestTheAppLayer(DockTestCase):
 		naming the entry with hiding off is the whole of bringing it back."""
 		with shipped_dock({self.APP: [sidebar(BETA, hidden=1)]}):
 			frappe.set_user(self.USER)
-			save_user_dock(payload(sidebar(BETA, hidden=0)))
+			save_user_dock(self.APP, payload(sidebar(BETA, hidden=0)))
 			frappe.set_user("Administrator")
 
-			self.assertEqual(hidden_by_name(dock_for(self.USER))[BETA], 0)
+			self.assertEqual(hidden_by_name(dock_for(self.USER, app=self.APP))[BETA], 0)
 
 	def test_a_hidden_entry_stays_in_the_payload_carrying_its_flag(self):
 		"""The dock keeps a hidden entry and the client drops it from the rail -- forced by the
 		manager's Hidden pane, which cannot render what the payload has already discarded."""
 		with shipped_dock({self.APP: [sidebar(BETA, hidden=1)]}):
-			self.assertEqual(dock_for(self.USER), [{"type": "Sidebar", "name": BETA, "hidden": 1}])
+			self.assertEqual(
+				dock_for(self.USER, app=self.APP), [{"type": "Sidebar", "name": BETA, "hidden": 1}]
+			)
 
 	def test_a_base_entry_no_layer_names_trails_the_named_ones_in_base_order(self):
 		"""The class the two-class rule had no room for. An entry in the base that no layer
@@ -622,11 +637,11 @@ class TestTheAppLayer(DockTestCase):
 		rearranged.
 		"""
 		with shipped_dock({self.APP: [sidebar(GAMMA), sidebar(BETA), sidebar(ALPHA)]}):
-			save_site_dock(payload(ALPHA))
+			save_site_dock(self.APP, payload(ALPHA))
 
 			# ALPHA is named; GAMMA and BETA are in the base and named by nobody, so they trail
 			# it in the order the app shipped them
-			self.assertEqual(names(dock_for(self.USER)), [ALPHA, GAMMA, BETA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, GAMMA, BETA])
 
 	def test_the_walked_case(self):
 		"""Ten shipped entries arriving beneath a site that reordered four and hid one."""
@@ -637,14 +652,15 @@ class TestTheAppLayer(DockTestCase):
 
 			with shipped_dock({self.APP: [sidebar(module) for module in shipped]}):
 				save_site_dock(
+					self.APP,
 					payload(
 						shipped[3],
 						shipped[1],
 						sidebar(shipped[7], hidden=1),
 						shipped[0],
-					)
+					),
 				)
-				resolved = dock_for(self.USER, among=shipped)
+				resolved = dock_for(self.USER, among=shipped, app=self.APP)
 
 		self.assertEqual(
 			names(resolved),
@@ -660,7 +676,7 @@ class TestTheAppLayer(DockTestCase):
 
 		with shipped_dock({self.APP: [sidebar(ALPHA), sidebar(BETA, hidden=1)]}):
 			self.assertEqual(
-				get_app_dock_layer(),
+				get_app_dock_layer(self.APP),
 				[
 					{"type": "Sidebar", "name": ALPHA, "hidden": 0},
 					{"type": "Sidebar", "name": BETA, "hidden": 1},
@@ -670,11 +686,11 @@ class TestTheAppLayer(DockTestCase):
 	def test_a_site_whose_apps_declare_nothing_resolves_an_empty_base(self):
 		"""Adopting the hook is a choice: an app that declares none leaves the site layer as the
 		first there is, exactly as it was before the base existed."""
-		with shipped_dock({}):
-			self.assertEqual(dock_for(self.USER, among=None), [])
+		with shipped_dock({self.APP: []}):
+			self.assertEqual(dock_for(self.USER, among=None, app=self.APP), [])
 
-			save_site_dock(payload(BETA, ALPHA))
-			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA])
+			save_site_dock(self.APP, payload(BETA, ALPHA))
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
 
 	def test_a_sidebar_and_a_workspace_of_the_same_name_are_different_entries(self):
 		"""Identity is the pair, so one name under two kinds is two entries rather than one."""
@@ -699,19 +715,20 @@ class TestTheAppLayer(DockTestCase):
 		).insert(ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True, ignore_missing=True)
 
-		save_site_dock(payload({"type": "Workspace", "name": ALPHA}, sidebar(ALPHA)))
+		with shipped_dock({self.APP: []}):
+			save_site_dock(self.APP, payload({"type": "Workspace", "name": ALPHA}, sidebar(ALPHA)))
 
-		self.assertEqual(
-			get_site_dock(),
-			[
-				{"type": "Workspace", "name": ALPHA, "hidden": 0},
-				{"type": "Sidebar", "name": ALPHA, "hidden": 0},
-			],
-		)
-		self.assertEqual(
-			[(r["type"], r["name"]) for r in dock_for(among=None) if r["name"] == ALPHA],
-			[("Workspace", ALPHA), ("Sidebar", ALPHA)],
-		)
+			self.assertEqual(
+				get_site_dock(self.APP),
+				[
+					{"type": "Workspace", "name": ALPHA, "hidden": 0},
+					{"type": "Sidebar", "name": ALPHA, "hidden": 0},
+				],
+			)
+			self.assertEqual(
+				[(r["type"], r["name"]) for r in dock_for(among=None, app=self.APP) if r["name"] == ALPHA],
+				[("Workspace", ALPHA), ("Sidebar", ALPHA)],
+			)
 
 
 class TestThePin(DockTestCase):
@@ -856,7 +873,7 @@ class TestThePin(DockTestCase):
 		pin_row = {"type": "Workspace", "name": workspace}
 
 		with shipped_dock({self.COMPANION: [self.pin(workspace)], self.HOST: [sidebar(ALPHA)]}):
-			save_site_dock(json.dumps([pin_row, sidebar(ALPHA)]))
+			save_site_dock(APP, json.dumps([pin_row, sidebar(ALPHA)]))
 			resolved = [
 				(r["type"], r["name"], r["hidden"])
 				for r in dock_for(self.USER, among=None)
@@ -871,7 +888,7 @@ class TestThePin(DockTestCase):
 		workspace = self.make_workspace("Test Dock Pin Unpinned", ALPHA)
 
 		with shipped_dock({}):
-			save_site_dock(json.dumps([{"type": "Workspace", "name": workspace}]))
+			save_site_dock(APP, json.dumps([{"type": "Workspace", "name": workspace}]))
 			pinned = [row["name"] for row in self.host_dock() if row["type"] == "Workspace"]
 
 		self.assertNotIn(workspace, pinned)
@@ -1078,7 +1095,7 @@ class TestTheFrameworksTen(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		clear_arrangements()
 
-		resolved = [row["name"] for row in resolve_dock() if row["type"] == "Sidebar"]
+		resolved = [row["name"] for row in resolve_dock()["frappe"] if row["type"] == "Sidebar"]
 		entry_set = get_app_modules("frappe")
 
 		# the ten lead, in the order the hook declares them

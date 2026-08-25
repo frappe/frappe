@@ -9,13 +9,15 @@ from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
-# Cached `user` for every `Dock` on the site, so resolving one costs a redis read rather than a
-# query. The same trick as `Custom Sidebar`'s customized-keys cache, and it earns more here: a
-# site nobody has arranged holds no `Dock` at all, so the whole surface is free.
+# Cached address of every `Dock` on the site -- app, user and standard -- so resolving one costs a
+# redis read rather than a query. The same trick as `Custom Sidebar`'s customized-keys cache, and
+# it earns more here: a site nobody has arranged and whose apps ship no dock holds no `Dock` at
+# all, so the whole surface is free.
 DOCK_LAYERS_CACHE_KEY = "dock_layers"
 
-# A blank `user` -- the site layer's address, spelled out so the layer reads as a value rather
-# than as a falsy string.
+# A blank `user` -- the address every layer but a person's own carries, spelled out so it reads as
+# a value rather than as a falsy string. `standard` is what tells the two of them apart: the app's
+# own dock, or the site's arrangement of it.
 SITE_LAYER = ""
 
 # The hook an app declares its own dock fragment through: an ordered list of typed rows.
@@ -58,16 +60,20 @@ DOCK_TYPES = frozenset(PROVED_BY)
 
 
 class Dock(Document):
-	"""One of the dock's two stored layers: the site's arrangement, or one person's own.
+	"""One layer of one app's dock: the app's own, the site's arrangement of it, or one person's.
 
-	The two are the same shape because the rows are identical -- `user` is the whole difference,
-	and the parent is what says whose an entry is. See `Custom Sidebar`, which layers the sidebar
-	the same way and for the same reason.
+	All three are the same shape because the rows are identical -- `app`, `user` and `standard`
+	are the whole difference, and the parent is what says whose an entry is. See `Custom Sidebar`,
+	which layers the sidebar the same way, in a table of its own.
 
-	The layer below both of these is not a document at all: an app declares its fragment through
-	the `add_to_dock` hook (see `get_app_dock`). The asymmetry with `Sidebar` / `Custom Sidebar`
-	is deliberate -- a dock row accumulates no state a hook cannot express, whereas a sidebar
-	carries sections, links and icons.
+	One table rather than a doctype per layer, which is where ADR 0004 is consciously amended:
+	`Workspace`, `Report`, `Print Format`, `Notification` and `Dashboard Chart` all mix exported
+	and site-created rows in one table, and the app layer's read-only-ness is a code guard
+	(`validate_app_content`) rather than a permission row.
+
+	A dock belongs to an app. Storing every app's rows in one flat pair of layers was already
+	friction -- the manager edits one app at a time and had to avoid copying the site's rows for
+	*other* apps into a person's own layer -- and per-app records delete that dance outright.
 	"""
 
 	_DOCTYPE_NAME = "Dock"
@@ -81,15 +87,31 @@ class Dock(Document):
 		from frappe.desk.doctype.dock_item.dock_item import DockItem
 		from frappe.types import DF
 
+		app: DF.Autocomplete
 		items: DF.Table[DockItem]
+		standard: DF.Check
 		user: DF.Link
 	# end: auto-generated types
 
+	def autoname(self):
+		"""An app's own dock is named after the app; everything else takes a hash.
+
+		Forced by the export road, where the record's name *is* the path: a hash-named standard
+		record would write `<app>/dock/6a1f9c2e/6a1f9c2e.json`, and a re-export from a fresh
+		bench would mint a second file with the first left as a permanent orphan.
+
+		An opaque name costs the other two layers nothing, because a layer is looked up by
+		filter and never by name. Leaving `self.name` unset here is what falls through to the
+		doctype's own `autoname: hash`.
+		"""
+		if self.standard:
+			self.name = self.app
+
 	def validate(self):
-		# One spelling of "the site's layer", so the column's unique index can see two of them.
-		# The column is also declared not-nullable, which is what makes this stick: a blank
-		# `unique` column is written as `NULL`, and every NULL is distinct to an index -- which
-		# would let the site layer exist twice while reading as one address to `layer_filter`.
+		# One spelling of "not a person's own layer", so the composite index can see two of them.
+		# The column is also declared not-nullable, which is what makes this stick: a blank column
+		# in a unique index is written as `NULL`, and every NULL is distinct to an index -- which
+		# would let one app hold two site layers while both read as one address to `layer_filter`.
 		self.user = self.user or SITE_LAYER
 		self.anchor_the_items()
 
@@ -142,14 +164,19 @@ class Dock(Document):
 		drop_dock_caches(self.user)
 
 
-# One layer per address is enforced by the schema -- `user` is `unique` and not-nullable in the
-# doctype -- rather than by a `validate` hook. A hook is bypassable (`db_insert`, a bulk write,
-# anything that skips the document), and two documents at one address would give the merge two
-# answers for the same layer.
-#
-# Declared on the field rather than added by an `on_doctype_update` hook because the two disagree:
-# a column the doctype does not call `unique` has its index dropped on every migrate, and the hook
-# would add it straight back, so each migrate would churn the table for nothing.
+def on_doctype_update():
+	"""One layer per address, enforced by the schema rather than by a `validate` hook.
+
+	A hook is bypassable (`db_insert`, a bulk write, anything that skips the document), and two
+	documents at one address would give the merge two answers for the same layer.
+
+	Composite, because an address is three columns now. `user` alone was right while a layer
+	spanned every app; per-app records make it wrong -- it would let one person arrange exactly
+	one app's rail. And `standard` is in the index because an app's own dock and the site's
+	arrangement of it are two documents at the same `(app, user)`: one shipped, one curated, and
+	the site's is what `Reset for everyone` drops without touching the app's.
+	"""
+	frappe.db.add_unique("Dock", ("app", "user", "standard"), constraint_name="unique_layer_address")
 
 
 def rename_sidebar_rows(old_name: str, new_name: str) -> None:
@@ -198,34 +225,36 @@ def drop_dock_caches(user: str | None) -> None:
 		frappe.cache.delete_key("bootinfo")
 
 
-def layer_filter(user: str | None) -> dict:
-	"""The filter naming one layer. The column is not-nullable, so the site layer is stored as
-	`''` and there is only one spelling of "unset" to match."""
-	return {"user": user or SITE_LAYER}
+def layer_filter(app: str, user: str | None, standard: int = 0) -> dict:
+	"""The filter naming one layer. The columns are not-nullable, so every layer but a person's
+	own is stored with `user = ''` and there is only one spelling of "unset" to match."""
+	return {"app": app, "user": user or SITE_LAYER, "standard": standard}
 
 
-def get_dock_layers() -> set[str]:
-	"""Cached addresses of every layer the site holds -- each person who has arranged their
-	dock, plus `SITE_LAYER` if anyone has arranged the site's.
+def get_dock_layers() -> set[tuple[str, str, int]]:
+	"""Cached addresses of every layer the site holds: `(app, user, standard)`, one per document.
 
-	This is the cost-control story: a boot on a site nobody has arranged answers both layers out
-	of one redis read, instead of a query apiece. The addresses rather than the names, so a stale
-	cache can only ever cost a lookup that finds nothing -- the same negative filter
-	`Custom Sidebar` keeps, and for the same reason.
+	This is the cost-control story: a boot on a site nobody has arranged answers every layer of
+	every app out of one redis read, instead of a query apiece. The addresses rather than the
+	names, so a stale cache can only ever cost a lookup that finds nothing -- the same negative
+	filter `Custom Sidebar` keeps, and for the same reason.
 	"""
 	layers = frappe.cache.get_value(DOCK_LAYERS_CACHE_KEY)
 	if layers is None:
-		layers = [row.user or SITE_LAYER for row in frappe.get_all("Dock", fields=["user"])]
+		layers = [
+			[row.app, row.user or SITE_LAYER, int(row.standard or 0)]
+			for row in frappe.get_all("Dock", fields=["app", "user", "standard"])
+		]
 		frappe.cache.set_value(DOCK_LAYERS_CACHE_KEY, layers)
-	return set(layers)
+	return {tuple(layer) for layer in layers}
 
 
-def get_dock(user: str | None = None) -> "Dock | None":
-	"""The document holding one layer, or None. Cheap when there is none."""
-	if (user or SITE_LAYER) not in get_dock_layers():
+def get_dock(app: str, user: str | None = None, standard: int = 0) -> "Dock | None":
+	"""The document holding one layer of one app's dock, or None. Cheap when there is none."""
+	if (app, user or SITE_LAYER, standard) not in get_dock_layers():
 		return None
 
-	name = frappe.db.exists("Dock", layer_filter(user))
+	name = frappe.db.exists("Dock", layer_filter(app, user, standard))
 	return frappe.get_cached_doc("Dock", name) if name else None
 
 
@@ -376,35 +405,28 @@ def get_dock_workspaces() -> dict[str, list[str]]:
 	}
 
 
-def get_app_dock() -> list[dict]:
-	"""The base every site starts from: each app's fragment, concatenated.
+def get_app_dock(app: str) -> list[dict]:
+	"""The base one app's layers are laid over: the rows that app's fragment declares.
 
-	An app orders its own entries and says nothing about another app's, so the fragments are
-	meant not to overlap and concatenation is the whole composition. Apps-screen order decides
-	which fragment comes first, so the dock reads in the same order as the screen people reach
-	it from.
+	Per app, because a `Dock` is. The old cross-app concatenation existed only because the two
+	stored layers spanned every app and had to be laid over one list; with a layer addressed by
+	app plus user there is nothing to concatenate, and two apps' arrangements can no longer reach
+	each other at all.
 
-	*Meant* not to overlap: an entry belongs to one app, but nothing enforces that two fragments
-	name different ones. Two rows under one key would render the entry twice -- the layers above
-	dedupe their own rows and would not catch it, because the base is copied in whole -- so the
-	first fragment to name an entry keeps it, which is the rule a layer already follows for a row
-	it sees twice.
+	Empty for an app that declares no fragment -- and then that app's site layer is simply the
+	first there is, exactly as it was before this base existed.
 
-	Empty on a site where no app declares one -- and then the site's layer is simply the first
-	there is, exactly as it was before this base existed.
+	*Deduped*, because a fragment may name one entry twice: two rows under one key would render
+	the entry twice, and the layers above dedupe their own rows without catching it, since the
+	base is copied in whole. First named keeps it, which is the rule a layer already follows.
 	"""
-	fragments = dock_fragments()
-	if not fragments:
-		return []
-
 	rows, seen = [], set()
-	for app in sorted(fragments, key=apps_screen_sort_key()):
-		for row in fragments[app]:
-			key = dock_key(row)
-			if key in seen:
-				continue
-			seen.add(key)
-			rows.append(row)
+	for row in dock_fragments().get(app, []):
+		key = dock_key(row)
+		if key in seen:
+			continue
+		seen.add(key)
+		rows.append(row)
 	return rows
 
 
@@ -428,26 +450,29 @@ def apps_screen_sort_key():
 	return lambda app: (sequence(app), installed.index(app), app)
 
 
-def get_site_dock() -> list[dict]:
-	"""The site's arrangement, curated by a Workspace Manager and applying to everyone."""
-	return dock_rows(get_dock())
+def get_site_dock(app: str) -> list[dict]:
+	"""The site's arrangement of one app's dock, curated by a Workspace Manager and applying to
+	everyone."""
+	return dock_rows(get_dock(app))
 
 
-def get_user_dock(user: str | None = None) -> list[dict]:
-	"""The session user's own arrangement.
+def get_user_dock(app: str, user: str | None = None) -> list[dict]:
+	"""One person's own arrangement of one app's dock.
 
-	What the dock manager round-trips: it replaces only the current app's slice of a layer, so
-	it has to see the layer it is editing rather than the resolved dock, which carries the
-	site's rows too and would copy them into the person's own layer on the next save.
+	What the dock manager round-trips: it replaces the layer whole, so it has to see the layer it
+	is editing rather than the resolved dock, which carries the site's rows too and would copy
+	them into the person's own layer on the next save.
 	"""
-	return dock_rows(get_dock(user=user or frappe.session.user))
+	return dock_rows(get_dock(app, user=user or frappe.session.user))
 
 
-def resolve_dock() -> list[dict]:
-	"""The dock as the session user sees it: app, then site, then their own.
+def resolve_dock() -> dict[str, list[dict]]:
+	"""The dock as the session user sees it: one resolved rail per app, keyed by app.
 
-	One flat list across every app -- a dock renders per app, but an arrangement is stored
-	whole, so an app's slice can be replaced without disturbing the rest.
+	Keyed by app because a `Dock` is per app. One flat cross-app list was what the two stored
+	layers used to be, and the client had to intersect it with each app's entry set to find the
+	rows meant for the rail on screen; with a layer addressed by app plus user, the rail *is*
+	its app's entry and no intersection is needed.
 
 	**Three classes of entry come out of this, not two.** The distinction is the whole of how a
 	shipped order and an arrangement live together, and this is the only place it is written
@@ -471,10 +496,34 @@ def resolve_dock() -> list[dict]:
 
 	Every entry carries the typed pair it was stored as. The client keys on both halves, so a
 	`Sidebar` and a `Workspace` of one name stay two entries all the way to the rail.
+
+	Apps that resolve to nothing are left out rather than carried as empty lists: the payload is
+	read by key, and an absent key and an empty list say the same thing to every reader.
 	"""
+	resolved = {}
+	for app in docked_apps():
+		rail = resolve_app_dock(app)
+		if rail:
+			resolved[app] = rail
+	return resolved
+
+
+def docked_apps() -> list[str]:
+	"""Every app whose dock could resolve to something: one that ships a fragment, or one some
+	layer on this site has an opinion about.
+
+	Asking every installed app instead would be correct and nearly as cheap -- both reads below
+	are cached -- but it would walk apps that have never had a rail on any site.
+	"""
+	apps = set(dock_fragments()) | {app for app, _user, _standard in get_dock_layers()}
+	return sorted(apps, key=apps_screen_sort_key())
+
+
+def resolve_app_dock(app: str) -> list[dict]:
+	"""One app's rail for the session user: its own dock, then the site's, then their own."""
 	resolved, hidden = resolve_layers(
-		get_app_dock(),
-		[get_site_dock(), get_user_dock()],
+		get_app_dock(app),
+		[get_site_dock(app), get_user_dock(app)],
 		key=dock_key,
 		apply_row=apply_dock_row,
 	)
@@ -635,28 +684,37 @@ def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
 
 
 @frappe.whitelist()
-def save_user_dock(items: list | str):
-	"""Persist this person's own arrangement, which is applied on top of the site's."""
-	return _save_layer(items, user=frappe.session.user, require_visible=True)
+def save_user_dock(app: str, items: list | str):
+	"""Persist this person's own arrangement of `app`'s dock, applied on top of the site's."""
+	return _save_layer(app, items, user=frappe.session.user, require_visible=True)
 
 
 @frappe.whitelist()
-def save_site_dock(items: list | str):
-	"""Persist the site's arrangement, for everyone.
+def save_site_dock(app: str, items: list | str):
+	"""Persist the site's arrangement of `app`'s dock, for everyone.
 
 	The site layer's whole point: "Accounts first, for everyone" is not expressible by any
 	number of per-person arrangements. A person's own still lands on top of it.
 	"""
 	check_workspace_manager(_("You need to be Workspace Manager to change the dock for everyone."))
-	return _save_layer(items, user=None, require_visible=False)
+	return _save_layer(app, items, user=None, require_visible=False)
 
 
-def _save_layer(items: list | str, user: str | None, require_visible: bool):
-	doc = get_dock(user=user)
+def _save_layer(app: str, items: list | str, user: str | None, require_visible: bool):
+	"""Replace one layer of one app's dock with `items`, and answer with the rail it leaves.
+
+	The whole layer, not a slice of it. A `Dock` is per app, so the rows the client sends are
+	the only rows this document holds -- which is what retires the dance the flat list needed,
+	where a save had to carry every *other* app's rows through untouched or lose them.
+	"""
+	app = check_docked_app(app)
+
+	doc = get_dock(app, user=user)
 	if doc:
 		doc = frappe.get_doc("Dock", doc.name)
 	else:
 		doc = frappe.new_doc("Dock")
+		doc.app = app
 		doc.user = user or SITE_LAYER
 
 	doc.set("items", [])
@@ -670,9 +728,25 @@ def _save_layer(items: list | str, user: str | None, require_visible: bool):
 	# arrangement is re-filtered through reach on every boot regardless of what is stored here.
 	doc.save(ignore_permissions=True)
 
-	# Both saves answer with the resolved dock, so the rail can be redrawn in place whichever
-	# layer was written.
-	return resolve_dock()
+	# Both saves answer with this app's resolved rail, so it can be redrawn in place whichever
+	# layer was written. This app's and no other: the save touched one document.
+	return resolve_app_dock(app)
+
+
+def check_docked_app(app: str | None) -> str:
+	"""The app a layer is being written for, refused unless it is installed.
+
+	`app` arrives from the client on every write and every layer read, and it is stored: an
+	unchecked value would let a layer be filed under an app that does not exist, where nothing
+	would ever resolve it and nothing would ever reap it.
+
+	Active rather than merely installed, which is the same set `dock_fragments` and
+	`apps_screen_sort_key` already walk: a disabled app has no rail to arrange.
+	"""
+	app = (app or "").strip()
+	if not app or app not in frappe.get_active_apps():
+		frappe.throw(_("{0} is not an app on this site.").format(frappe.bold(app or "-")))
+	return app
 
 
 # A layer's raw rows, for the editor that is about to replace them. Not the resolved dock: an
@@ -684,19 +758,20 @@ def _save_layer(items: list | str, user: str | None, require_visible: bool):
 
 
 @frappe.whitelist()
-def get_user_dock_layer() -> list[dict]:
-	"""This person's own arrangement. No gate: it is theirs, and it is all they can read."""
-	return get_user_dock()
+def get_user_dock_layer(app: str) -> list[dict]:
+	"""This person's own arrangement of one app's dock. No gate: it is theirs, and it is all they
+	can read."""
+	return get_user_dock(check_docked_app(app))
 
 
 @frappe.whitelist()
-def get_site_dock_layer() -> list[dict]:
+def get_site_dock_layer(app: str) -> list[dict]:
 	check_workspace_manager(_("You need to be Workspace Manager to see the dock's site layer."))
-	return get_site_dock()
+	return get_site_dock(check_docked_app(app))
 
 
 @frappe.whitelist()
-def get_app_dock_layer() -> list[dict]:
+def get_app_dock_layer(app: str) -> list[dict]:
 	"""What the apps ship, as the manager needs to read it: the typed pair and the hidden flag.
 
 	No gate, because it is a read of app content -- the same thing every boot already carries in
@@ -710,7 +785,10 @@ def get_app_dock_layer() -> list[dict]:
 	`declared_by` is dropped: which app declared a row is the projection Ship needs, not the
 	manager, and shipping it here would put an app name in every editor payload.
 	"""
-	return [{"type": row["type"], "name": row["name"], "hidden": row["hidden"]} for row in get_app_dock()]
+	return [
+		{"type": row["type"], "name": row["name"], "hidden": row["hidden"]}
+		for row in get_app_dock(check_docked_app(app))
+	]
 
 
 # ---------------------------------------------------------------------------------------
@@ -786,7 +864,7 @@ def owners_of(rows: list[dict]) -> list[str | None]:
 	than to whoever owns the workspace. Everything else falls back to the module the entry is
 	rooted in, which is what "lives in" means for an entry no fragment names yet.
 	"""
-	declared = {dock_key(row): row["declared_by"] for row in get_app_dock()}
+	declared = {dock_key(row): row["declared_by"] for rows in dock_fragments().values() for row in rows}
 
 	def owner(entry) -> str | None:
 		if app := declared.get(dock_key(entry)):

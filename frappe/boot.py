@@ -260,10 +260,12 @@ def load_desktop_data(bootinfo):
 	# only the pinned workspace is derivable from that, and a companion's *other* workspaces need
 	# the host's dock on screen too.
 	bootinfo.app_rail_host = get_app_rail_host_map()
-	# The dock this user sees: each app's fragment, with the site's arrangement and then their
-	# own applied on top, filtered to what they may reach. An arrangement, not the dock's
-	# contents -- an entry it doesn't name still shows, in its app's own order, after the ones
-	# it does.
+	# The dock this user sees, keyed by app: each app's own dock, with the site's arrangement and
+	# then their own applied on top, filtered to what they may reach. Keyed by app because a dock
+	# layer is per app -- arranging one app's rail says nothing about another's, and the client no
+	# longer has to intersect one cross-app list with each app's entry set. An arrangement, not
+	# the dock's contents -- an entry it doesn't name still shows, in its app's own order, after
+	# the ones it does. An app with no arrangement is absent rather than carried as an empty list.
 	bootinfo.dock = resolve_dock()
 	# Keyed by exact-case module name, so a `Sidebar` row in `app_data[].dock` indexes straight
 	# in. This

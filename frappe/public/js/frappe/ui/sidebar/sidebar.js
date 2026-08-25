@@ -978,7 +978,7 @@ frappe.ui.Sidebar = class Sidebar {
 			.map((row) => this.dock_entry(row))
 			.filter(Boolean);
 
-		return this.apply_dock_arrangement(entries);
+		return this.apply_dock_arrangement(entries, app);
 	}
 
 	// One typed row resolved to what the rail needs: a label, an icon, the sidebar it selects and
@@ -1022,12 +1022,12 @@ frappe.ui.Sidebar = class Sidebar {
 		return null;
 	}
 
-	// Apply the dock arrangement in `frappe.boot.dock` -- each app's fragment with the site's
-	// arrangement and this user's own already merged on top of it by the server: drop what it
-	// hides, and order what it names. An arrangement is one flat cross-app list, so it is
-	// applied *within* this app's set rather than replacing it -- as a replacement it would put
-	// the same rail on every app. An arrangement naming none of this app's entries leaves the
-	// app's own order alone rather than rendering an empty rail.
+	// Apply this app's dock arrangement -- its own dock with the site's arrangement and this
+	// user's own already merged on top of it by the server: drop what it hides, and order what it
+	// names. `frappe.boot.dock` is keyed by app, because a dock layer is per app: arranging
+	// ERPNext's rail says nothing about frappe's, and neither one has to be intersected out of a
+	// cross-app list any more. An app with no arrangement at all is absent from the payload and
+	// keeps its own order.
 	//
 	// Entries are typed pairs and the arrangement is keyed on both halves, so a `Workspace` and a
 	// `Sidebar` of one name are two entries and never match each other. Both kinds are ordered,
@@ -1036,8 +1036,8 @@ frappe.ui.Sidebar = class Sidebar {
 	// The layers above the app only order and hide; they never add. An arrangement row naming
 	// something outside this set resolves to nothing here, which is what stops a person pinning
 	// an arbitrary workspace onto their own rail.
-	apply_dock_arrangement(entries) {
-		const arrangement = frappe.boot.dock || [];
+	apply_dock_arrangement(entries, app) {
+		const arrangement = (frappe.boot.dock || {})[app && app.app_name] || [];
 		if (!arrangement.length) return entries;
 
 		const hidden = new Set(
@@ -1046,8 +1046,8 @@ frappe.ui.Sidebar = class Sidebar {
 		const order = new Map(arrangement.map((p, idx) => [this.dock_key(p.type, p.name), idx]));
 		const key = (e) => this.dock_key(e.type, e.name);
 
-		// An arrangement that names nothing in this app says nothing about it -- every entry it
-		// does name belongs to some other app's dock. Hiding, though, is honoured even when it
+		// An arrangement none of whose rows resolve says nothing this rail can act on -- every
+		// entry it names has gone since it was saved. Hiding, though, is honoured even when it
 		// empties the rail: a site that hid an app's whole set meant to.
 		if (!entries.some((e) => order.has(key(e)))) return entries;
 

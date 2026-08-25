@@ -2,25 +2,46 @@
  "actions": [],
  "autoname": "hash",
  "creation": "2026-08-16 20:30:00.000000",
- "description": "One of the dock's two stored layers. `user` is what tells them apart: set means that person's own arrangement, applied last and winning; blank means the site layer, curated by a Workspace Manager and applying to everyone. Both span every app and name none. The layer below them is not a document at all -- an app declares its fragment through the `add_to_dock` hook, because a dock row accumulates no state a hook cannot express. Same shape at both stored layers, because the rows are identical and the parent is what says whose they are; see `Custom Sidebar`, which layers the same way.",
+ "description": "One layer of one app's dock. Three of them share this table, told apart by `app`, `user` and `standard`: the app's own dock, which an app ships as an exported document and a developer authors; the site's arrangement of it, curated by a Workspace Manager and applying to everyone; and one person's own, applied last and winning. A dock belongs to an app, so arranging ERPNext's rail does not touch frappe's -- and a layer is addressed by app plus user rather than by user alone. Same shape at all three, because the rows are identical and the parent is what says whose they are; see `Custom Sidebar`, which layers a sidebar the same way in a table of its own.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "app",
   "user",
+  "standard",
   "items_section",
   "items"
  ],
  "fields": [
   {
-   "description": "The person whose own arrangement this is. Blank means the site layer, which applies to everyone and is overridden by each user's own.",
+   "description": "The app whose dock this layer arranges. Required: a dock belongs to an app, and a layer that named none would be one arrangement spanning every rail. An `Autocomplete` over installed apps rather than a Link, because there is no `App` doctype -- the house spelling, shared with `Sidebar.app` and `Desktop Icon.app`.",
+   "fieldname": "app",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App",
+   "options": "Installed Applications",
+   "reqd": 1
+  },
+  {
+   "description": "The person whose own arrangement this is. Blank means the app's own dock or the site's arrangement of it, told apart by `standard`.",
    "fieldname": "user",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "User",
    "not_nullable": 1,
-   "options": "User",
-   "unique": 1
+   "options": "User"
+  },
+  {
+   "default": "0",
+   "description": "Owned by the app: exported to `<app>/dock/<app>/<app>.json` and re-imported by migrate. This is the app layer, and the layer the other two are laid over. Set via the Export to App action, not by hand -- a standard dock with no exported file is an orphan and gets deleted on the next migrate.",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Standard",
+   "read_only": 1
   },
   {
    "fieldname": "items_section",
@@ -38,7 +59,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-18 15:40:00.000000",
+ "modified": "2026-08-26 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dock",
