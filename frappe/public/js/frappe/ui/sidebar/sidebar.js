@@ -1112,7 +1112,9 @@ frappe.ui.Sidebar = class Sidebar {
 		let sidebar_name = workspace.name || label;
 		return {
 			name: label.toLowerCase(),
-			label: label,
+			// name stays untranslated: it is a lookup key into
+			// boot.workspace_sidebar_item and the basis of the route slug
+			label: __(label),
 			// land on the workspace's first sidebar link, falling back to the workspace page
 			url: this.get_first_link_route(workspace) || this.workspace_route(workspace),
 			icon: workspace.icon,
