@@ -6,6 +6,7 @@
 			<MessageList ref="list" />
 			<Composer ref="composer" />
 		</main>
+		<WorkspacePanel />
 
 		<!-- host for frappe-ui's imperative dialog.* stack (confirm/danger/prompt) -->
 		<Dialogs />
@@ -35,6 +36,7 @@ import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
 import MessageList from "./MessageList.vue"
 import SessionSidebar from "./SessionSidebar.vue"
+import WorkspacePanel from "./WorkspacePanel.vue"
 
 const props = defineProps({
 	store: { type: Object, required: true },
