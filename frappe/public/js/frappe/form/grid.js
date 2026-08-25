@@ -15,6 +15,11 @@ const BULK_EDIT_UPDATE = "Update Existing Records";
 const BULK_EDIT_UPSERT = "Insert or Update Records";
 const BULK_EDIT_IMPORT_TYPES = [BULK_EDIT_INSERT, BULK_EDIT_UPDATE, BULK_EDIT_UPSERT];
 const BULK_EDIT_DONT_IMPORT = "Don't Import";
+const BULK_EDIT_BLANK_TEMPLATE = "blank_template";
+const BULK_EDIT_ALL_RECORDS = "all";
+const BULK_EDIT_5_RECORDS = "5_records";
+// every step of the flow uses one size so the modals swap without resizing
+const BULK_EDIT_DIALOG_SIZE = "large";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -1730,9 +1735,42 @@ export default class Grid {
 
 	show_bulk_edit_template(import_type) {
 		const needs_id = Boolean(import_type) && import_type !== BULK_EDIT_INSERT;
+		const row_count = (this.frm.doc[this.df.fieldname] || []).length;
+
 		const dialog = new frappe.ui.Dialog({
-			title: __("Download Template"),
+			title: __("Bulk Edit {0}", [this.get_bulk_edit_title()]),
+			size: BULK_EDIT_DIALOG_SIZE,
 			fields: [
+				{
+					fieldtype: "Data",
+					fieldname: "document_type",
+					label: __("Document Type"),
+					default: __(this.df.options),
+					read_only: 1,
+				},
+				{
+					fieldtype: "Data",
+					fieldname: "shown_import_type",
+					label: __("Import Type"),
+					default: import_type ? __(import_type) : __("Download Only"),
+					read_only: 1,
+				},
+				{
+					fieldtype: "Select",
+					fieldname: "export_records",
+					label: __("Export Type"),
+					options: [
+						{ label: __("Blank Template"), value: BULK_EDIT_BLANK_TEMPLATE },
+						{ label: __("All Records"), value: BULK_EDIT_ALL_RECORDS },
+						{ label: __("5 Records"), value: BULK_EDIT_5_RECORDS },
+					],
+					// insert starts from an empty sheet; update needs the rows to edit
+					default:
+						import_type === BULK_EDIT_INSERT
+							? BULK_EDIT_BLANK_TEMPLATE
+							: BULK_EDIT_ALL_RECORDS,
+					description: __("{0} rows in this table", [row_count]),
+				},
 				{
 					fieldtype: "Select",
 					fieldname: "file_type",
@@ -1758,30 +1796,65 @@ export default class Grid {
 						// without ID there is nothing to match an existing row on
 						danger: needs_id && df.fieldname === BULK_EDIT_ID_FIELDNAME,
 					})),
-					on_change: () =>
-						dialog
-							.get_primary_btn()
-							.prop("disabled", !dialog.get_value("fields").length),
+					on_change: () => refresh_actions(),
 				},
+				{
+					fieldtype: "Section Break",
+				},
+				{
+					fieldtype: "HTML",
+					fieldname: "download",
+				},
+				...(import_type
+					? [
+							{
+								fieldtype: "HTML",
+								fieldname: "import_file",
+							},
+					  ]
+					: []),
 			],
-			primary_action_label: __("Download"),
-			primary_action: ({ file_type, fields }) => {
-				this.download_bulk_edit_template(file_type, fields);
-			},
-			secondary_action_label: import_type ? __("Continue to Upload") : undefined,
-			secondary_action: import_type
-				? () => {
-						dialog.hide();
-						this.show_bulk_edit_upload(import_type);
-				  }
-				: undefined,
 		});
+
+		const refresh_actions = () => {
+			dialog.$wrapper
+				.find(".bulk-edit-download")
+				.prop("disabled", !dialog.get_value("fields").length);
+		};
+
+		dialog.get_field("download").$wrapper.html(
+			frappe.ui.button.html({
+				label: __("Download Template"),
+				css_class: "bulk-edit-download",
+			})
+		);
+		dialog.$wrapper.find(".bulk-edit-download").on("click", () => {
+			const { file_type, fields, export_records } = dialog.get_values();
+			this.download_bulk_edit_template(file_type, fields, export_records);
+		});
+
+		if (import_type) {
+			dialog.get_field("import_file").$wrapper.html(`
+				<label class="control-label">${__("Import File")}</label>
+				<div>${frappe.ui.button.html({
+					label: __("Attach"),
+					css_class: "bulk-edit-attach",
+				})}</div>
+			`);
+			dialog.$wrapper.find(".bulk-edit-attach").on("click", () => {
+				dialog.hide();
+				this.show_bulk_edit_upload(import_type);
+			});
+		}
+
+		this.scroll_bulk_edit_dialog(dialog);
 		dialog.show();
+		refresh_actions();
 	}
 
-	download_bulk_edit_template(file_type, fieldnames) {
+	download_bulk_edit_template(file_type, fieldnames, export_records) {
 		const title = this.get_bulk_edit_title();
-		const data = this.get_bulk_edit_data(fieldnames);
+		const data = this.get_bulk_edit_data(fieldnames, export_records);
 
 		if (file_type === "CSV") {
 			frappe.tools.downloadify(data, null, title);
@@ -1797,7 +1870,7 @@ export default class Grid {
 		});
 	}
 
-	get_bulk_edit_data(fieldnames) {
+	get_bulk_edit_data(fieldnames, export_records) {
 		const title = this.get_bulk_edit_title();
 		const data = [
 			[__("Bulk Edit {0}", [title])],
@@ -1821,7 +1894,11 @@ export default class Grid {
 			data[3].push(description);
 		});
 
-		(this.frm.doc[this.df.fieldname] || []).forEach((d) => {
+		let grid_rows = this.frm.doc[this.df.fieldname] || [];
+		if (export_records === BULK_EDIT_BLANK_TEMPLATE) grid_rows = [];
+		else if (export_records === BULK_EDIT_5_RECORDS) grid_rows = grid_rows.slice(0, 5);
+
+		grid_rows.forEach((d) => {
 			const row = data[BULK_EDIT_FIELDNAME_ROW].map((fieldname, i) => {
 				let value = d[fieldname];
 				if (docfields[i].fieldtype === "Date" && value) {
@@ -1890,7 +1967,7 @@ export default class Grid {
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Preview"),
-			size: "large",
+			size: BULK_EDIT_DIALOG_SIZE,
 			fields: [
 				{
 					fieldtype: "HTML",
@@ -1907,13 +1984,17 @@ export default class Grid {
 				this.apply_bulk_edit_rows(rows, import_type, column_map);
 			},
 		});
+		this.scroll_bulk_edit_dialog(dialog);
 
-		dialog.add_custom_action(__("Map Columns"), () =>
+		dialog.add_custom_action(__("Map Columns"), () => {
+			// the mapper replaces this modal rather than stacking on top of it
+			dialog.hide();
 			this.show_bulk_edit_column_mapper(headers, column_map, (map) => {
-				column_map = map;
+				if (map) column_map = map;
+				dialog.show();
 				render();
-			})
-		);
+			});
+		});
 
 		const render = () => {
 			const map = column_map;
@@ -2047,8 +2128,18 @@ export default class Grid {
 			);
 		});
 
+		// closing with Esc or the X must still hand control back to the preview
+		let done = false;
+		const finish = (map) => {
+			if (done) return;
+			done = true;
+			dialog.hide();
+			on_apply(map);
+		};
+
 		const dialog = new frappe.ui.Dialog({
 			title: __("Map Columns"),
+			size: BULK_EDIT_DIALOG_SIZE,
 			fields,
 			primary_action_label: __("Apply"),
 			primary_action: () => {
@@ -2057,12 +2148,22 @@ export default class Grid {
 					const value = dialog.get_value(`map_${i}`);
 					if (value && value !== BULK_EDIT_DONT_IMPORT) map[i] = value;
 				});
-				dialog.hide();
-				on_apply(map);
+				finish(map);
 			},
+			// the button label is set with .text(), so the arrow has to be a glyph
+			secondary_action_label: `← ${__("Back to Preview")}`,
+			// no map means the preview keeps the mapping it already had
+			secondary_action: () => finish(null),
+			onhide: () => finish(null),
 		});
 		dialog.$body.addClass("map-columns");
+		this.scroll_bulk_edit_dialog(dialog);
 		dialog.show();
+	}
+
+	/** Keep a tall body inside the modal instead of stretching the page. */
+	scroll_bulk_edit_dialog(dialog) {
+		dialog.$body.css({ "max-height": "60vh", "overflow-y": "auto" });
 	}
 
 	/** How each file row would land, without changing anything. */
