@@ -1,6 +1,10 @@
 import custom_link_title_doctype from "../fixtures/custom_link_title_doctype";
 const doctype_name = custom_link_title_doctype.name;
 
+function docname_from_request_body(body) {
+	return typeof body === "string" ? new URLSearchParams(body).get("docname") : body.docname;
+}
+
 context("Report View Link Titles", () => {
 	before(() => {
 		cy.login();
@@ -29,7 +33,7 @@ context("Report View Link Titles", () => {
 	it("skips the link title lookup for a blank Link column", () => {
 		const requested_docnames = [];
 		cy.intercept("POST", "/api/method/frappe.desk.search.get_link_title", (req) => {
-			requested_docnames.push(req.body.docname);
+			requested_docnames.push(docname_from_request_body(req.body));
 		}).as("link_title");
 
 		cy.visit(`/desk/List/${doctype_name}/Report`);
