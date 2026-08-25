@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-23 21:20\n"
+"PO-Revision-Date: 2026-08-25 22:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -18703,7 +18703,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:163
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #. Label of the normalized_copies (Int) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
@@ -28619,7 +28619,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:687
 msgid "This Year"
-msgstr ""
+msgstr "Dieses Jahr"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:233
 msgid "This action is irreversible. Do you wish to continue?"
