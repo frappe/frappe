@@ -21,7 +21,7 @@ const BULK_EDIT_5_RECORDS = "5_records";
 // every step of the flow uses one size so the modals swap without resizing
 // every step shares one size, so switching tabs never resizes the modal
 const BULK_EDIT_DIALOG_SIZE = "large";
-const BULK_EDIT_DIALOG_HEIGHT = "210px";
+const BULK_EDIT_DIALOG_HEIGHT = "420px";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -1705,7 +1705,8 @@ export default class Grid {
 	/**
 	 * One modal, one size, four tabs. A tab only opens once the step before it
 	 * has produced what it needs, and stays open afterwards so earlier choices
-	 * can be revisited without starting again. Nothing opens on top of it.
+	 * can be revisited without starting again. Nothing opens on top of it, and
+	 * every tab's actions sit in the same place in the footer.
 	 */
 	show_bulk_edit_wizard() {
 		// a read only grid cannot take rows back, so only the template step applies
@@ -1720,8 +1721,7 @@ export default class Grid {
 		};
 
 		const panels = {
-			type: $('<div class="bulk-edit-panel"></div>'),
-			template: $('<div class="bulk-edit-panel"></div>'),
+			setup: $('<div class="bulk-edit-panel"></div>'),
 			upload: $('<div class="bulk-edit-panel"></div>'),
 			preview: $('<div class="bulk-edit-panel"></div>'),
 			mapping: $('<div class="bulk-edit-panel"></div>'),
@@ -1735,36 +1735,25 @@ export default class Grid {
 
 		const tab_defs = can_import
 			? [
-					{ label: __("Import Type"), content: () => panels.type[0] },
-					{ label: __("Template"), content: () => panels.template[0], disabled: true },
+					{ label: __("Setup"), content: () => panels.setup[0] },
 					{ label: __("Upload"), content: () => build_uploader(), disabled: true },
 					{ label: __("Preview"), content: () => panels.preview[0], disabled: true },
 					{ label: __("Map Columns"), content: () => panels.mapping[0], disabled: true },
 			  ]
-			: [{ label: __("Template"), content: () => panels.template[0] }];
+			: [{ label: __("Setup"), content: () => panels.setup[0] }];
 
 		const tabs = new frappe.ui.Tabs({ tabs: tab_defs, on_change: () => set_footer() });
 		dialog.$body.append(tabs.$el);
 
-		const TAB_TEMPLATE = can_import ? 1 : 0;
-		const TAB_UPLOAD = 2;
-		const TAB_PREVIEW = 3;
-		const TAB_MAPPING = 4;
-
-		// the preview's own action, bottom left; only that tab shows it
-		dialog.add_custom_action(
-			__("Map Columns"),
-			() => {
-				tabs.set_disabled(TAB_MAPPING, false);
-				tabs.set_active(TAB_MAPPING);
-			},
-			"bulk-edit-map"
-		);
+		const TAB_SETUP = 0;
+		const TAB_UPLOAD = 1;
+		const TAB_PREVIEW = 2;
+		const TAB_MAPPING = 3;
 
 		// ---------------------------------------------------------- step 1
 
-		const type_form = new frappe.ui.FieldGroup({
-			body: panels.type[0],
+		const setup_form = new frappe.ui.FieldGroup({
+			body: panels.setup[0],
 			no_submit_on_enter: true,
 			fields: [
 				{
@@ -1774,71 +1763,63 @@ export default class Grid {
 					options: BULK_EDIT_IMPORT_TYPES.map((value) => ({ label: __(value), value })),
 					default: BULK_EDIT_INSERT,
 					reqd: 1,
+					// the export that suits the import, still free to change afterwards
+					change: () => {
+						const value = setup_form.get_value("import_type");
+						state.import_type = value;
+						setup_form.set_value(
+							"export_records",
+							value === BULK_EDIT_INSERT
+								? BULK_EDIT_BLANK_TEMPLATE
+								: BULK_EDIT_ALL_RECORDS
+						);
+						tabs.set_disabled(TAB_UPLOAD, !value);
+					},
+				},
+				{ fieldtype: "Section Break" },
+				{
+					fieldtype: "Select",
+					fieldname: "file_type",
+					label: __("File Type"),
+					options: ["Excel", "CSV"],
+					default: "Excel",
+					reqd: 1,
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldtype: "Select",
+					fieldname: "export_records",
+					label: __("Export Type"),
+					options: [
+						{ label: __("Blank Template"), value: BULK_EDIT_BLANK_TEMPLATE },
+						{ label: __("All Records"), value: BULK_EDIT_ALL_RECORDS },
+						{ label: __("5 Records"), value: BULK_EDIT_5_RECORDS },
+					],
+					default: BULK_EDIT_BLANK_TEMPLATE,
+					description: __("{0} rows in this table", [
+						(this.frm.doc[this.df.fieldname] || []).length,
+					]),
+				},
+				{ fieldtype: "Section Break" },
+				{
+					fieldtype: "MultiCheck",
+					fieldname: "fields",
+					label: __("Fields"),
+					columns: 2,
+					select_all: true,
+					sort_options: false,
+					options: this.get_bulk_edit_docfields().map((df) => ({
+						label: __(df.label || df.fieldname, null, df.parent),
+						value: df.fieldname,
+						checked: 1,
+					})),
+					on_change: () => set_footer(),
 				},
 			],
 		});
-		if (can_import) type_form.make();
+		setup_form.make();
 
 		// ---------------------------------------------------------- step 2
-
-		let template_form = null;
-		const build_template_form = () => {
-			const needs_id = can_import && state.import_type !== BULK_EDIT_INSERT;
-			panels.template.empty();
-			template_form = new frappe.ui.FieldGroup({
-				body: panels.template[0],
-				no_submit_on_enter: true,
-				fields: [
-					{
-						fieldtype: "Select",
-						fieldname: "export_records",
-						label: __("Export Type"),
-						options: [
-							{ label: __("Blank Template"), value: BULK_EDIT_BLANK_TEMPLATE },
-							{ label: __("All Records"), value: BULK_EDIT_ALL_RECORDS },
-							{ label: __("5 Records"), value: BULK_EDIT_5_RECORDS },
-						],
-						// insert starts from an empty sheet; update needs the rows to edit
-						default:
-							state.import_type === BULK_EDIT_INSERT
-								? BULK_EDIT_BLANK_TEMPLATE
-								: BULK_EDIT_ALL_RECORDS,
-						description: __("{0} rows in this table", [
-							(this.frm.doc[this.df.fieldname] || []).length,
-						]),
-					},
-					{ fieldtype: "Column Break" },
-					{
-						fieldtype: "Select",
-						fieldname: "file_type",
-						label: __("File Type"),
-						options: ["Excel", "CSV"],
-						default: "Excel",
-						reqd: 1,
-					},
-					{ fieldtype: "Section Break" },
-					{
-						fieldtype: "MultiCheck",
-						fieldname: "fields",
-						label: __("Fields"),
-						columns: 2,
-						select_all: true,
-						sort_options: false,
-						options: this.get_bulk_edit_docfields().map((df) => ({
-							label: __(df.label || df.fieldname, null, df.parent),
-							value: df.fieldname,
-							checked: 1,
-							// without ID there is nothing to match an existing row on
-							danger: needs_id && df.fieldname === BULK_EDIT_ID_FIELDNAME,
-						})),
-						on_change: () => set_footer(),
-					},
-				],
-			});
-			template_form.make();
-		};
-
-		// ---------------------------------------------------------- step 3
 
 		// mounted inline rather than in its own dialog, so nothing stacks
 		const build_uploader = () => {
@@ -1853,7 +1834,7 @@ export default class Grid {
 			return panels.upload[0];
 		};
 
-		// ---------------------------------------------------------- step 4
+		// ---------------------------------------------------------- step 3
 
 		let preview_form = null;
 		const build_preview_form = () => {
@@ -1869,7 +1850,7 @@ export default class Grid {
 			preview_form.make();
 		};
 
-		// ---------------------------------------------------------- step 5
+		// ---------------------------------------------------------- step 4
 
 		let mapping_form = null;
 		const build_mapping_form = () => {
@@ -2001,7 +1982,7 @@ export default class Grid {
 		// ---------------------------------------------------------- footer
 
 		const download = () => {
-			const values = template_form.get_values();
+			const values = setup_form.get_values();
 			if (!values) return;
 			this.download_bulk_edit_template(
 				values.file_type,
@@ -2010,38 +1991,62 @@ export default class Grid {
 			);
 		};
 
+		// every tab's actions live in the footer's left group, so they never move
+		dialog.add_custom_action(__("Download Template"), () => download(), "bulk-edit-download");
+		if (can_import) {
+			dialog.add_custom_action(
+				__("Upload"),
+				() => {
+					tabs.set_disabled(TAB_UPLOAD, false);
+					tabs.set_active(TAB_UPLOAD);
+				},
+				"bulk-edit-goto-upload"
+			);
+			dialog.add_custom_action(
+				__("Map Columns"),
+				() => {
+					tabs.set_disabled(TAB_MAPPING, false);
+					tabs.set_active(TAB_MAPPING);
+				},
+				"bulk-edit-map"
+			);
+			// the button label is set with .text(), so the arrow has to be a glyph
+			dialog.add_custom_action(
+				`← ${__("Back to Preview")}`,
+				() => tabs.set_active(TAB_PREVIEW),
+				"bulk-edit-back"
+			);
+		}
+
+		const show_actions = (...classes) => {
+			[
+				"bulk-edit-download",
+				"bulk-edit-goto-upload",
+				"bulk-edit-map",
+				"bulk-edit-back",
+			].forEach((css) =>
+				dialog.$wrapper.find(`.${css}`).toggleClass("hide", !classes.includes(css))
+			);
+		};
+
 		const set_footer = () => {
 			const active = tabs.get_active();
-			const $primary = dialog.get_primary_btn();
-			const $secondary = dialog.get_secondary_btn();
-			$primary.removeClass("hide");
-			$secondary.addClass("hide");
-			// the Map Columns action belongs to the preview and nowhere else
-			dialog.$wrapper.find(".bulk-edit-map").toggleClass("hide", active !== TAB_PREVIEW);
+			dialog.get_primary_btn().addClass("hide");
+			dialog.get_secondary_btn().addClass("hide");
 
-			if (active === TAB_TEMPLATE) {
-				if (can_import) {
-					dialog.set_primary_action(__("Next"), () => {
-						tabs.set_disabled(TAB_UPLOAD, false);
-						tabs.set_active(TAB_UPLOAD);
-					});
-					dialog.set_secondary_action_label(__("Download Template"));
-					dialog.set_secondary_action(() => download());
-				} else {
-					dialog.set_primary_action(__("Download Template"), () => download());
-				}
-				const has_fields = Boolean(template_form?.get_value("fields")?.length);
-				(can_import ? dialog.get_secondary_btn() : $primary).prop("disabled", !has_fields);
-				return;
-			}
-
-			if (active === TAB_UPLOAD) {
-				// the uploader carries its own Upload button
-				$primary.addClass("hide");
+			if (active === TAB_SETUP) {
+				show_actions(
+					"bulk-edit-download",
+					...(can_import ? ["bulk-edit-goto-upload"] : [])
+				);
+				dialog.$wrapper
+					.find(".bulk-edit-download")
+					.prop("disabled", !setup_form.get_value("fields")?.length);
 				return;
 			}
 
 			if (active === TAB_PREVIEW) {
+				show_actions("bulk-edit-map");
 				dialog.set_primary_action(__("Apply"), () => {
 					dialog.hide();
 					this.apply_bulk_edit_rows(state.rows, state.import_type, state.column_map);
@@ -2050,23 +2055,17 @@ export default class Grid {
 			}
 
 			if (active === TAB_MAPPING) {
-				// the button label is set with .text(), so the arrow has to be a glyph
-				dialog.set_primary_action(`← ${__("Back to Preview")}`, () =>
-					tabs.set_active(TAB_PREVIEW)
-				);
+				show_actions("bulk-edit-back");
 				return;
 			}
 
-			dialog.set_primary_action(__("Next"), () => {
-				state.import_type = type_form.get_value("import_type");
-				build_template_form();
-				tabs.set_disabled(TAB_TEMPLATE, false);
-				tabs.set_active(TAB_TEMPLATE);
-			});
+			// upload: the uploader carries its own Upload button
+			show_actions();
 		};
 
-		if (!can_import) build_template_form();
 		dialog.show();
+		// an import type is picked by default, so upload is reachable straight away
+		if (can_import) tabs.set_disabled(TAB_UPLOAD, false);
 		set_footer();
 	}
 
