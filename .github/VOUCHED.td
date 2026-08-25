@@ -23,6 +23,7 @@ frappe-pr-bot
 gajjug004
 gavindsouza
 g-sowani
+harshp4114
 HenningWendtland
 karm1000
 kaulith
