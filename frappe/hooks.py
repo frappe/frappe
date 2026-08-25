@@ -617,7 +617,10 @@ add_to_apps_screen = [
 # The code-only modules (`Core`, `Custom`, `Desk`) are unnameable here for the same reason they
 # are absent from the rail: see `code_only_modules` below.
 add_to_dock = [
-	{"type": "Sidebar", "name": "Build Tools"},
+	# `Build`, not `Build Tools`: a dock row names a shell, and the shell frappe ships for the
+	# `Build Tools` module is titled `Build` -- the module carries the longer name only because
+	# a `frappe/build/` folder would collide with `frappe/build.py`.
+	{"type": "Sidebar", "name": "Build"},
 	{"type": "Sidebar", "name": "Users"},
 	{"type": "Sidebar", "name": "Email"},
 	{"type": "Sidebar", "name": "Website"},

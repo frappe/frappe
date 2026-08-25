@@ -113,6 +113,7 @@ class Sidebar(Document, DeskViews):
 	def validate(self):
 		self.validate_app_content()
 		self.set_default_title()
+		self.validate_title_is_its_own()
 		self.validate_standard()
 		self.clear_stored_keys()
 
@@ -132,6 +133,29 @@ class Sidebar(Document, DeskViews):
 		"""
 		if not self.title:
 			self.title = self.module
+
+	def validate_title_is_its_own(self):
+		"""A sidebar may not be titled after somebody else's module.
+
+		The title is the name, and the name is the shell -- the key the boot payload is built
+		on. A module with no sidebar of its own gets a computed shell under its own name, so a
+		sidebar titled after *another* module would want the same key, and one of the two would
+		have to lose it silently. That is the failure this release exists to remove, so it is
+		refused at the point somebody could still pick a different title.
+
+		Titling a sidebar after its **own** module is the default and the common case; only
+		another module's name is refused.
+		"""
+		if self.title == self.module:
+			return
+
+		if frappe.db.exists("Module Def", self.title, cache=True):
+			frappe.throw(
+				_("{0} is another module's name, and a sidebar's title is what the desk calls it by.").format(
+					frappe.bold(self.title)
+				),
+				title=_("Pick another title"),
+			)
 
 	def rename_to_title(self):
 		"""Follow a title edit with a rename, because the name *is* the title.
@@ -985,8 +1009,10 @@ class SidebarContext:
 
 	A context is built for a specific set of modules and a specific person.
 
-	`bases` is keyed by module, so asking about a module the context was not built for raises a
-	`KeyError` rather than quietly returning nothing.
+	`bases` is keyed by **shell**, not by module -- a module may own more than one -- so asking
+	about a shell the context was not built for raises a `KeyError` rather than quietly
+	returning nothing. `layers` stays keyed by module, because a `Custom Sidebar` is still
+	anchored to one; every shell under a module therefore takes that module's customizations.
 
 	`user` is checked rather than trusted. Half of what is fetched here belongs to one person --
 	their private pages, their onboardings -- so handing the context to a different reader would
@@ -1032,8 +1058,15 @@ class ResolvedSidebar:
 	Everything on it has already been worked out for this particular reader. The items have been
 	filtered by permission, had customizations applied and had derived items added. The label
 	and icon are whatever those customizations left standing.
+
+	`name` and `module` are two different questions and are answered separately. `name` is the
+	shell -- what the payload is keyed by, what a dock row selects, what the desk calls "the
+	sidebar I am in". `module` is which module it belongs to, which is what a customization is
+	anchored to and what a promotional banner reads. They are the same string for every sidebar
+	nobody has deliberately named something else.
 	"""
 
+	name: str
 	module: str
 	label: str
 	app: str | None
@@ -1057,8 +1090,14 @@ class ResolvedSidebar:
 		return get_module_landing_route(self.items)
 
 	def as_boot_entry(self) -> dict:
-		"""This sidebar in the shape `bootinfo.module_sidebars[module]` uses."""
+		"""This sidebar in the shape `bootinfo.module_sidebars[shell]` uses.
+
+		It carries its own key. The payload is keyed by shell identity, and an entry that could
+		not say which shell it is would leave every reader holding one to recover it by
+		position in the dict.
+		"""
 		return {
+			"name": self.name,
 			"module": self.module,
 			"label": self.label,
 			"app": self.app,
@@ -1075,30 +1114,40 @@ class ResolvedSidebar:
 		}
 
 
-def resolve_sidebar(module: str, user: str, context: SidebarContext | None = None) -> ResolvedSidebar | None:
-	"""What `module`'s sidebar looks like for `user`, or `None` if it comes out empty.
+def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None) -> ResolvedSidebar | None:
+	"""What the `shell` sidebar looks like for `user`, or `None` if it comes out empty.
 
 	This is the one place that question is answered, so that everything shaping the answer
 	happens in one order, in one function: the permission filter, the customizations, the
-	private pages added at the end, and the rule that drops a module with nothing left to
+	private pages added at the end, and the rule that drops a shell with nothing left to
 	navigate to. Building the boot payload is then just assembly.
 
-	`context` only exists for batching. Pass one when resolving many modules; leave it out and
-	the module is resolved on its own. The answer is the same either way.
+	`shell` is a shell identity, not a module: a `Sidebar` document's name, or a module's name
+	where the base is computed (see `get_sidebar_bases`). The two coincide for every sidebar
+	nobody has deliberately named something else, so most callers pass what they always passed.
+
+	`context` only exists for batching. Pass one when resolving many shells; leave it out and
+	the shell is resolved on its own -- through its own module, so a module's other shells come
+	along and the answer is the same as it would have been in a batch.
 	"""
 	from frappe.desk.doctype.custom_sidebar.custom_sidebar import merge_layers
 
 	if context is None:
-		context = SidebarContext.for_modules([module], user)
+		context = SidebarContext.for_modules([module_of_shell(shell) or shell], user)
 	elif context.user != user:
 		raise ValueError(f"sidebar context is {context.user}'s, and cannot answer for {user}")
 
-	base = context.bases[module]
+	base = context.bases[shell]
 	filtered = filter_sidebar_items(base.rows, context.perm_ctx)
 
 	# Customizations are applied after the permission filter, never before. That way a
 	# customization can never bring back an item the user is not allowed to see.
-	layers = context.layers.get(module, [])
+	#
+	# Anchored to the module rather than to the shell, because a `Custom Sidebar` still is:
+	# every shell under one module takes that module's layers. That is what a site upgrading to
+	# a second sidebar under a module inherits, and re-anchoring it is a change to what a
+	# customization names rather than to how a sidebar resolves.
+	layers = context.layers.get(base.module, [])
 	if layers:
 		filtered = merge_layers(filtered, layers)
 		# An added row is the one kind that gets past that, because it brings an item the base
@@ -1110,16 +1159,16 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 	# The user's own private pages come after that. This is what keeps them out of every stored
 	# customization: a customization can only name what it was shown when it was saved, and
 	# these are added later than anything it could have seen.
-	filtered = append_derived_items(filtered, context.private_rows.get(module), context.perm_ctx)
+	filtered = append_derived_items(filtered, context.private_rows.get(base.module), context.perm_ctx)
 
-	# A sidebar left with nothing but Section Breaks is one the user cannot use, so the module
+	# A sidebar left with nothing but Section Breaks is one the user cannot use, so the shell
 	# is dropped. `is_icon_permitted` applies the same rule for desktop icons and the two must
 	# not drift apart. This runs after customizations, so hiding every item really does hide
-	# the module.
+	# the sidebar.
 	if not any(i["type"] != "Section Break" for i in filtered):
 		return None
 
-	label = base.title or module
+	label = base.title or shell
 	header_icon = base.header_icon
 	# The same customizations the merge just used, in the same order. Later ones win, so the
 	# last one with an opinion about the label or icon is the one that stands.
@@ -1130,7 +1179,8 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 			header_icon = layer.header_icon
 
 	return ResolvedSidebar(
-		module=module,
+		name=shell,
+		module=base.module,
 		label=_(label),
 		# This is the desk's entire idea of "which app am I in". The rail asks this one
 		# question and then lists that app's other modules, or nothing at all when there is no
@@ -1139,16 +1189,16 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 		# A shipped document names its own app and that wins. A document that does not -- a stub
 		# somebody created, a custom module's -- falls back to the module's placement, which is
 		# what a computed sidebar uses anyway.
-		app=base.app or get_module_placement(module),
+		app=base.app or get_module_placement(base.module),
 		header_icon=header_icon,
 		# Worked out, never stored: which onboarding this module offers *this user*, which is
 		# the only version of the question the desk ever asks. `landing` works the same way.
 		# Both used to be stored links on the sidebar, and a stored link resolved before the
 		# permission filter runs can name something the reader is not allowed to open.
-		module_onboarding=context.onboardings.get(module),
+		module_onboarding=context.onboardings.get(base.module),
 		customized=bool(layers),
 		computed=bool(base.get("computed")),
-		workspaces=context.workspaces.get(module, []),
+		workspaces=context.workspaces.get(base.module, []),
 		items=filtered,
 	)
 
@@ -1185,17 +1235,29 @@ def get_navigable_modules() -> list[str]:
 
 
 def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
-	"""The starting sidebar for each of `modules`, keyed by module, with its item rows.
+	"""The starting sidebar for every shell under `modules`, keyed by **shell identity**.
+
+	A shell is the thing the desk shows you and the thing a dock row selects. Its identity is
+	the `Sidebar` document's name where a document exists, and the module's name where the base
+	was computed -- and since a sidebar is named by its title and the title defaults to the
+	module (see `set_default_title`), the two coincide for every sidebar that has not been
+	deliberately named something else.
+
+	Keyed by shell rather than by module because **a module may own more than one**, and a dict
+	keeps one value per key: keyed by module, a second sidebar under one module was overwritten
+	by whichever of them was read last and vanished with no error anywhere. There is no
+	module-to-shell index to go with this, deliberately -- the naming rule already answers it,
+	and an index would hold something derivable.
 
 	A sidebar comes from one of two places: an app shipped a `Sidebar` document, or we worked
 	one out from what the module holds. So a module with no document is not left without a
 	sidebar -- it gets a computed one, in the same shape, and nothing downstream can tell the
 	difference.
 
-	A document with an empty items table falls back the same way. A sidebar with nothing in it
-	is not navigation, and the module would be dropped from the payload entirely, which is the
-	same as having no sidebar at all. Only its *rows* are computed: whatever the document says
-	about itself -- title, icon, app -- was written by somebody and stands. So a stub created
+	A document with an empty items table borrows the same rows. A sidebar with nothing in it is
+	not navigation, and the shell would be dropped from the payload entirely, which is the same
+	as having no sidebar at all. Only its *rows* are computed: whatever the document says about
+	itself -- name, title, icon, app -- was written by somebody and stands. So a stub created
 	just to name a module keeps its name and gains contents.
 
 	One consequence worth knowing: emptying a sidebar's items is not a way to hide a module.
@@ -1208,53 +1270,113 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 	`COMPUTED_DOCTYPE_LIMIT`. Routing reads this flag so that a display limit cannot decide
 	where a document opens.
 
+	Ordered by module and then by shell name, so anything that walks the result in order -- the
+	boot payload, and through it `build_entity_module_map` and the desk's `get_modules_linking`
+	-- gets the same order on every request.
+
 	One query for the documents, one for their items, and one batch for whatever is left --
 	whether that is one module or seventy.
 	"""
-	bases = frappe.get_all(
+	documents = frappe.get_all(
 		"Sidebar",
 		filters={"module": ["in", modules]},
 		fields=["name", "module", "title", "app", "header_icon"],
 		order_by="name asc",
 	)
 
-	items_by_sidebar = get_sidebar_items([base.name for base in bases])
-	for base in bases:
+	items_by_sidebar = get_sidebar_items([base.name for base in documents])
+	shells = {}
+	for base in documents:
 		# Called `rows`, not `items`: `frappe._dict` inherits `dict.items()`, so `items` would
 		# be the method rather than our list.
 		base.rows = items_by_sidebar.get(base.name, [])
 		base.computed = 0
+		shells.setdefault(base.module, []).append(base)
 
-	# A module may own more than one sidebar, and this payload holds one per module, so it has
-	# to say which. The naming rule decides it: the sidebar called after the module wins.
-	#
-	# The second clause is a **bridge, not part of the rule** -- where the module is named by
-	# none of its sidebars, the first of them answers anyway. Only one sidebar in the framework
-	# is in that position (`Build`, under `Build Tools`), and it is there because a dock row
-	# still names a *module* rather than a shell, so without this the whole of Build Tools'
-	# shipped navigation would fall back to a computed base. It goes when the payload is keyed
-	# on shell identity and the dock row names `Build` directly, and until then it is ordered by
-	# name so "the first of them" is a stable answer rather than whichever row the database
-	# happened to hand back.
+	# Two things need rows built from what a module holds: a module nobody shipped a sidebar
+	# for, which gets a whole computed shell of its own, and a document whose items table is
+	# empty, which keeps its own identity and takes only the rows.
+	documented = set(shells)
+	needs_computing = [module for module in modules if module not in documented]
+	needs_computing += [base.module for bases in shells.values() for base in bases if not base.rows]
+	computed = get_computed_bases(sorted(set(needs_computing))) if needs_computing else {}
+
 	resolved = {}
-	for base in bases:
-		if base.module not in resolved or base.name == base.module:
-			resolved[base.module] = base
-
-	# A module with no document at all and a document with an empty items table both need the
-	# same thing: rows built from what the module holds.
-	needs_computing = [module for module in modules if not resolved.get(module, {}).get("rows")]
-	computed = get_computed_bases(needs_computing) if needs_computing else {}
-
-	for module in needs_computing:
-		if base := resolved.get(module):
-			base.rows = computed[module].rows
-			base.computed = 1
-		else:
-			resolved[module] = computed[module]
-			resolved[module].computed = 1
+	for module in modules:
+		for base in shells.get(module) or [computed[module]]:
+			if not base.rows:
+				base.rows = computed[module].rows
+				base.computed = 1
+			# A computed shell is keyed by its module -- that is what shell identity means where
+			# there is no document. The key is put on here rather than on the base itself,
+			# because `name` still means "there is a document behind this" and a computed base
+			# has none.
+			resolved[base.get("name") or module] = base
 
 	return resolved
+
+
+def module_of_shell(shell: str | None) -> str | None:
+	"""The module a shell belongs to, or `None` when there is no such shell.
+
+	The one direction the naming rule does not answer, and the one a shell carries outright: a
+	`Sidebar` document names its module in a column, and a computed shell is named after the
+	module it was computed from. So this is a read of something already stored rather than a
+	scan, which is why the desk needs no module-to-shell index to go with the re-keyed payload.
+
+	`Module Def` is asked first because it is the answer for all but the deliberately renamed
+	few, so the common shell costs one request-cached read and only a divergent one costs two.
+	The order changes no answer: a sidebar named after a module is either that module's own --
+	in which case both branches say the same thing -- or refused outright by
+	`validate_title_is_its_own`.
+	"""
+	if not shell:
+		return None
+
+	if frappe.db.exists("Module Def", shell, cache=True):
+		return shell
+
+	# A sidebar rooted at its app rather than at a module carries no module, so it answers
+	# `None` here -- which is also how the boot treats it, since the payload is built by walking
+	# modules. Making one a shell in its own right is what a dock row naming a shell is for.
+	return frappe.db.get_value("Sidebar", shell, "module", cache=True) or None
+
+
+def get_module_base(module: str) -> frappe._dict:
+	"""The base a `Custom Sidebar` layer applies to: the module's own shell.
+
+	A layer is anchored to a module rather than to a shell, so the editor that reads and writes
+	one has to be handed a single base however many shells the module owns. The naming rule
+	picks it -- the shell called after the module -- and where an author has named every one of
+	them something else the first in order answers, so the editor gets a base rather than a
+	`KeyError`.
+
+	It falls back where `get_sidebar` returns `None`, and the difference is deliberate. That one
+	answers "which sidebar *is* the module's", which a module named by none of its sidebars
+	truthfully has no answer to. This one answers "which base is the layer being edited sitting
+	on", and a customization anchored to a module that owns exactly one shell is sitting on that
+	shell whatever it is called.
+
+	The unhandled case is a module owning **two** shells: the layer is one document, so editing
+	from the second shell reads the first one's rows. That is what anchoring a customization to
+	a module costs, and it is a fact about `Custom Sidebar` rather than about this function.
+	"""
+	bases = get_sidebar_bases([module])
+	return bases.get(module) or next(iter(bases.values()))
+
+
+def sidebar_for_module(payload: dict, module: str) -> dict | None:
+	"""The boot entry for `module`'s own shell, out of an already-built payload.
+
+	For the readers that hold a *module* and need the shell it leads to -- a desktop icon, a
+	dock row from before a row named a shell. The naming rule answers it outright for every
+	sidebar nobody renamed; the fallback walks the payload for one carrying the module, which
+	is a pass over a dict the caller already has rather than an index anybody has to keep.
+	"""
+	if module in payload:
+		return payload[module]
+
+	return next((entry for entry in payload.values() if entry.get("module") == module), None)
 
 
 def get_sidebar_items(sidebar_names):

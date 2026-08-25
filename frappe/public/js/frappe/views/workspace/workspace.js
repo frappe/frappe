@@ -462,7 +462,7 @@ frappe.views.Workspace = class Workspace {
 					fieldname: "module",
 					reqd: 1,
 					options: this.module_select_options(modules),
-					default: frappe.app.sidebar?.current_module,
+					default: frappe.app.sidebar?.current_module_def(),
 					description: __("Which module's sidebar this workspace appears in"),
 				},
 			],
@@ -1116,7 +1116,7 @@ frappe.views.Workspace = class Workspace {
 					fieldname: "module",
 					reqd: 1,
 					options: this.module_select_options(apps),
-					default: frappe.app.sidebar?.current_module,
+					default: frappe.app.sidebar?.current_module_def(),
 					description: __("Which module's sidebar this workspace appears in"),
 				},
 				{
@@ -1187,8 +1187,8 @@ frappe.views.Workspace = class Workspace {
 					roles: values.access === ACCESS_GROUP ? values.roles || [] : [],
 					parent_page: values.parent || "",
 					// the module this workspace belongs to -- it decides the dock entry it
-					// appears under, and defaults to the shell it was created from
-					module: values.module || frappe.app.sidebar?.current_module,
+					// appears under, and defaults to the module of the shell it was created from
+					module: values.module || frappe.app.sidebar?.current_module_def(),
 					is_editable: true,
 					selected: true,
 					type: values.type,

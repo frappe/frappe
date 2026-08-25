@@ -372,11 +372,11 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 	Private workspaces are absent, as they are from every stored arrangement: they are derived
 	after the merge, and `drop_private_workspaces` takes them back out of anything storing one.
 	"""
-	from frappe.desk.doctype.sidebar.sidebar import filter_sidebar_items, get_sidebar_bases
+	from frappe.desk.doctype.sidebar.sidebar import filter_sidebar_items, get_module_base
 
 	check_module(module)
 
-	base = get_sidebar_bases([module])[module]
+	base = get_module_base(module)
 	# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance to run on --
 	# one throwaway `Workspace`, exactly as `SidebarContext` builds for the boot.
 	items = filter_sidebar_items(base.rows, frappe.new_doc("Workspace"), check_permission=bool(user))
@@ -666,9 +666,9 @@ def base_items(module: str) -> list[dict]:
 	Not permission-filtered, and not meant to be: this is only ever compared against, so an
 	item the saver cannot see simply never matches a row they sent.
 	"""
-	from frappe.desk.doctype.sidebar.sidebar import get_sidebar_bases
+	from frappe.desk.doctype.sidebar.sidebar import get_module_base
 
-	return [dict(row) for row in get_sidebar_bases([module])[module].rows]
+	return [dict(row) for row in get_module_base(module).rows]
 
 
 def _reset(module: str, user: str | None):

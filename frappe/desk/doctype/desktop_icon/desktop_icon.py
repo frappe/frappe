@@ -141,6 +141,7 @@ def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None)
 	so `get_desktop_icons` can fetch both for the whole grid in one query each instead of
 	loading every icon just to reach them.
 	"""
+	from frappe.desk.doctype.sidebar.sidebar import sidebar_for_module
 	from frappe.utils.modules import is_module_visible
 
 	# module permission check
@@ -159,7 +160,10 @@ def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None)
 		# Mirrors the boot builder's rule: a sidebar the user can see nothing real in is one
 		# they cannot use, so its icon does not belong on the desktop either. The two must not
 		# drift -- an icon for an empty sidebar leads nowhere.
-		sidebar = (bootinfo.module_sidebars or {}).get(icon_module or icon.label)
+		# An icon names a module, and the payload is keyed by shell, so the module has to be
+		# resolved to the shell it leads to. The naming rule answers it directly for every
+		# sidebar nobody renamed; `sidebar_for_module` covers the rest.
+		sidebar = sidebar_for_module(bootinfo.module_sidebars or {}, icon_module or icon.label)
 		if not sidebar:
 			return False
 

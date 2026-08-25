@@ -525,7 +525,15 @@ context("Arrangement editor: making a module from the dock", () => {
 					entity_module: win.frappe.boot.entity_module,
 					module_sidebars: {
 						...win.frappe.boot.module_sidebars,
-						[MADE]: { module: MADE, label: MADE, header_icon: "box", items: [] },
+						// keyed by shell identity, and carrying its own key -- a new module's
+						// shell is named after it, which is the ordinary case
+						[MADE]: {
+							name: MADE,
+							module: MADE,
+							label: MADE,
+							header_icon: "box",
+							items: [],
+						},
 					},
 				}),
 			});

@@ -18,8 +18,10 @@ context("Cold-entry sidebar resolution", () => {
 
 	// An entity's home is decided against this payload; `items` only ever needs `link_to` here.
 	//
-	// A module maps to its links, or to `{ links, computed }` when the test needs to say the
-	// sidebar was built from the module's contents rather than shipped by an app.
+	// A shell maps to its links, or to `{ links, computed }` when the test needs to say the
+	// sidebar was built from the module's contents rather than shipped by an app. These shells are
+	// all named after their module, which is the ordinary case -- the payload is keyed by shell
+	// identity and every entry carries both its own `name` and the module it belongs to.
 	const payload = (sidebars) =>
 		Object.fromEntries(
 			Object.entries(sidebars).map(([module, value]) => {
@@ -28,7 +30,12 @@ context("Cold-entry sidebar resolution", () => {
 					: value;
 				return [
 					module,
-					{ module, computed, items: links.map((link_to) => ({ link_to })) },
+					{
+						name: module,
+						module,
+						computed,
+						items: links.map((link_to) => ({ link_to })),
+					},
 				];
 			})
 		);

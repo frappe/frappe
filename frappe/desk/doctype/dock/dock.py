@@ -36,13 +36,16 @@ DOCK_HOOK = "add_to_dock"
 # this is, at both ends: a `Dock` refuses a row naming any other doctype, and a saved arrangement
 # drops one. Adding a third kind of entry is a row here rather than a column there.
 #
-# A `Sidebar` is proved by its `Module Def`, not by a `Sidebar` document: a dock row of this kind
-# names a **module**, and most modules have a computed base with no document at all -- so asking
-# the `Sidebar` table would drop the common case. A sidebar is named by its title now, and the
-# title defaults to the module's name, so the module's own sidebar is still what such a row
-# lands on.
+# What proves the thing an entry names is really there, in words -- this is what an author is told
+# when their row names nothing, and `entry_exists` is where each one is actually asked.
+#
+# A `Sidebar` row names a **shell**, and a shell is proved by *either* a `Sidebar` document or a
+# `Module Def`: most modules have a computed base with no document at all, so asking the `Sidebar`
+# table alone would drop the common case, while asking `Module Def` alone drops a sidebar that is
+# named something other than its module (`Build`, under `Build Tools`). `module_of_shell` answers
+# both at once, and is also what says which module's visibility gates the row.
 PROVED_BY = {
-	"Sidebar": "Module Def",
+	"Sidebar": "Sidebar or Module Def",
 	"Workspace": "Workspace",
 }
 DOCK_TYPES = frozenset(PROVED_BY)
@@ -335,7 +338,7 @@ def check_dock_hooks() -> list[str]:
 			if host and host not in installed:
 				continue
 
-			if not frappe.db.exists(PROVED_BY[entry["type"]], entry["name"]):
+			if not entry_exists(entry):
 				proof = PROVED_BY[entry["type"]]
 				problems.append(f"{app}: {raw!r} names a {proof} that does not exist on this site")
 
@@ -512,27 +515,47 @@ def points_at(entry) -> dict:
 	return {"type": entry.get("type"), "name": entry.get("name")}
 
 
+def entry_exists(entry) -> bool:
+	"""Whether the thing an entry names is on this site.
+
+	Existence, not reach -- `is_reachable` is the per-user question and asks this first. A
+	`Sidebar` row is answered by `module_of_shell`, which says `None` for a shell that is not
+	there and the module for one that is, so one call proves both halves.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import module_of_shell
+
+	if entry.get("type") == "Sidebar":
+		return bool(module_of_shell(entry.get("name")))
+
+	if entry.get("type") == "Workspace":
+		return bool(frappe.db.exists("Workspace", entry.get("name"), cache=True))
+
+	return False
+
+
 def is_reachable(entry) -> bool:
 	"""Whether the session user may go where the entry points.
 
 	Two gates because there are two kinds of entry, and each is the gate that already decides
-	the thing it points at: module visibility for a sidebar -- a row of that kind names a module
-	-- and the permitted workspace list for a workspace. Neither is anything the dock decides for
-	itself, and a third kind would bring its own rather than reuse one of these.
+	the thing it points at: module visibility for a sidebar -- a row of that kind names a shell,
+	and a shell belongs to exactly one module -- and the permitted workspace list for a
+	workspace. Neither is anything the dock decides for itself, and a third kind would bring its
+	own rather than reuse one of these.
 
 	Existence is asked first, and only of the sidebar half. `is_module_visible` answers "not
 	blocked", which a module that does not exist answers just as happily as one that does -- so
-	on its own it lets a row naming a deleted or renamed module render an entry that leads
+	on its own it lets a row naming a deleted or renamed shell render an entry that leads
 	nowhere. `shape_dock_rows` already proves existence on the way in, but the two paths that
-	skip it are exactly the ones that go stale: a row stored before the module went away, and
+	skip it are exactly the ones that go stale: a row stored before the shell went away, and
 	an `add_to_dock` row from an app whose module has been renamed since. The workspace half
 	needs no equivalent -- `permitted_workspaces` is a membership test against real rows.
 	"""
+	from frappe.desk.doctype.sidebar.sidebar import module_of_shell
 	from frappe.utils.modules import is_module_visible
 
 	if entry.get("type") == "Sidebar":
-		module = entry.get("name")
-		return bool(frappe.db.exists("Module Def", module, cache=True)) and is_module_visible(module)
+		module = module_of_shell(entry.get("name"))
+		return bool(module) and is_module_visible(module)
 
 	if entry.get("type") == "Workspace":
 		return entry.get("name") in permitted_workspaces()
@@ -591,7 +614,7 @@ def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
 			continue
 		if entry["type"] not in DOCK_TYPES:
 			continue
-		if not frappe.db.exists(PROVED_BY[entry["type"]], entry["name"]):
+		if not entry_exists(entry):
 			continue
 
 		key = dock_key(entry)

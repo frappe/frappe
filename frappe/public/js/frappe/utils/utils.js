@@ -1408,6 +1408,20 @@ Object.assign(frappe.utils, {
 		icon_html.find("svg").css("color", stroke_color);
 		return icon_html.get(0).outerHTML;
 	},
+	// The boot entry for a module's own shell, or undefined.
+	//
+	// `frappe.boot.module_sidebars` is keyed by SHELL -- a `Sidebar` document's name, or the
+	// module's name where the base was computed -- and a sidebar is named after its module unless
+	// somebody deliberately named it something else. So a module is its own key for all but the
+	// divergent few, and those are found by the `module` every entry carries. That is one pass over
+	// a payload already in memory; there is no module-to-shell index in the boot, deliberately,
+	// because the naming rule is what answers this.
+	sidebar_for_module(module) {
+		if (!module) return undefined;
+		const all = frappe.boot.module_sidebars || {};
+		return all[module] || Object.values(all).find((entry) => entry.module === module);
+	},
+
 	// --- Desktop Icon grid -----------------------------------------------------------
 	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
 	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
@@ -1418,7 +1432,9 @@ Object.assign(frappe.utils, {
 		if (desktop_icon.link_type == "External" && desktop_icon.link) {
 			route = desktop_icon.link;
 		} else {
-			let sidebar = frappe.boot.module_sidebars[desktop_icon.module || desktop_icon.label];
+			let sidebar = frappe.utils.sidebar_for_module(
+				desktop_icon.module || desktop_icon.label
+			);
 			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
 				let first_link = sidebar.items.find((i) => i.type == "Link");
 				if (first_link) {

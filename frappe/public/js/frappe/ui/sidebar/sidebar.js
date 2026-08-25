@@ -359,6 +359,18 @@ frappe.ui.Sidebar = class Sidebar {
 			: null;
 	}
 
+	// The MODULE the shell on screen belongs to.
+	//
+	// `current_module` is a shell identity -- the key `frappe.boot.module_sidebars` is built on --
+	// and the two are the same string unless somebody named a sidebar something other than its
+	// module. Every surface that names a real `Module Def` (a workspace's module, a
+	// `Custom Sidebar`) asks this one instead of reading the shell and hoping.
+	current_module_def() {
+		if (!this.current_module) return null;
+		const sidebar = frappe.boot.module_sidebars[this.current_module];
+		return (sidebar && sidebar.module) || this.current_module;
+	}
+
 	// The workspace dock is always on. Apps can no longer opt out; only page-level opt-outs
 	// (page_allows_dock, e.g. the desktop/apps screen) still suppress it.
 	workspace_dock_enabled() {
@@ -932,8 +944,9 @@ frappe.ui.Sidebar = class Sidebar {
 		if (module) localStorage.setItem("selected_module", module);
 	}
 
-	// Switch to a module's sidebar and navigate into it -- how the dock's items move you between
-	// an app's modules.
+	// Switch to a sidebar and navigate into it -- how the dock's items move you between an app's
+	// shells. The argument is a shell identity, which is what the payload is keyed by and what a
+	// dock entry carries.
 	open_module(module) {
 		let sidebar = frappe.boot.module_sidebars[module];
 		if (!sidebar) return;
@@ -1084,7 +1097,8 @@ frappe.ui.Sidebar = class Sidebar {
 		return entry ? this.module_landing_route(entry.module) : null;
 	}
 
-	// Where a module leads: the first navigable item in the sidebar *this user* resolved.
+	// Where a shell leads: the first navigable item in the sidebar *this user* resolved. Named
+	// for the module because that is what a shell is for all but the deliberately renamed few.
 	//
 	// The single definition of a module's home, used by `open_module` and by the desktop's app
 	// icons -- so no two ways into a module can disagree about where it opens. It replaces a stored `home_workspace` pointer, and is better than
@@ -1405,32 +1419,39 @@ frappe.ui.Sidebar = class Sidebar {
 	sidebar_from_module(entity, route, linking = null) {
 		const module = this.get_module_for_entity(entity, route);
 		if (!module) return null;
-		if (frappe.boot.module_sidebars?.[module]) return module;
+		// A module names its own shell for all but the deliberately renamed few; the payload is
+		// keyed by shell, so the answer this returns is a shell either way.
+		const own = frappe.utils.sidebar_for_module(module);
+		if (own) return own.name;
 
-		const heirs = (frappe.boot.code_only_module_heirs?.[module] || []).filter(
-			(heir) => frappe.boot.module_sidebars?.[heir]
-		);
+		const heirs = (frappe.boot.code_only_module_heirs?.[module] || [])
+			.map((heir) => frappe.utils.sidebar_for_module(heir)?.name)
+			.filter(Boolean);
 		const links = linking || this.get_modules_linking(entity);
 
 		return heirs.find((heir) => links.includes(heir)) || heirs[0] || null;
 	}
 
-	// Whether a module's sidebar was built from what the module holds rather than shipped by an
-	// app. What it is for: an entity missing from a shipped sidebar was left out on purpose,
-	// while one missing from a computed sidebar may simply not have fitted. Only the first of
-	// those is a statement about where the entity belongs.
-	is_computed(module) {
-		return !!frappe.boot.module_sidebars?.[module]?.computed;
+	// Whether a sidebar was built from what its module holds rather than shipped by an app. What
+	// it is for: an entity missing from a shipped sidebar was left out on purpose, while one
+	// missing from a computed sidebar may simply not have fitted. Only the first of those is a
+	// statement about where the entity belongs.
+	is_computed(shell) {
+		return !!frappe.boot.module_sidebars?.[shell]?.computed;
 	}
 
-	// The module that owns a workspace, from the module payload's `workspaces` list. A direct
-	// workspace route names a workspace, but selection is module-shaped now.
+	// The sidebar a workspace belongs to, from the payload's `workspaces` list. A direct workspace
+	// route names a workspace, and selection is shell-shaped.
+	//
+	// `workspaces` is a module's list, so every shell under one module carries the same one and
+	// the first of them answers -- a workspace route selects a module's own shell, never its
+	// second. Naming the second is what a dock row is for.
 	module_for_workspace(name) {
 		if (!name) return null;
 		const entry = Object.values(frappe.boot.module_sidebars || {}).find((sidebar) =>
 			(sidebar.workspaces || []).includes(name)
 		);
-		return entry ? entry.module : null;
+		return entry ? entry.name : null;
 	}
 
 	entity_from_route(route) {

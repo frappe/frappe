@@ -1050,7 +1050,8 @@ class TestTheFrameworksTen(IntegrationTestCase):
 	"""
 
 	TEN: typing.ClassVar[list[str]] = [
-		"Build Tools",
+		# the shell, not the module: `Build Tools`' sidebar is titled `Build`
+		"Build",
 		"Users",
 		"Email",
 		"Website",
@@ -1090,7 +1091,11 @@ class TestTheFrameworksTen(IntegrationTestCase):
 		# Narrowed to the modules `modules.txt` declares: a bench that has run the full suite
 		# carries stray `Module Def` rows, and this is an assertion about the framework's fifteen.
 		declared = set(frappe.get_module_list("frappe"))
-		unnamed = [name for name in entry_set if name in declared and name not in self.TEN]
+		# The hook names shells and this entry set names modules, and `Build Tools` is the one
+		# place the two are spelled differently -- so the comparison goes through the module each
+		# named shell belongs to rather than through the name itself.
+		named = {frappe.db.get_value("Sidebar", name, "module") or name for name in self.TEN}
+		unnamed = [name for name in entry_set if name in declared and name not in named]
 		self.assertEqual([name for name in resolved if name in unnamed], [])
 		self.assertEqual([name for name in unnamed if name not in get_code_only_modules()], ["Geo", "System"])
 
@@ -1135,7 +1140,7 @@ class TestTheHookIsChecked(IntegrationTestCase):
 		problems = self.problems([sidebar("Test Module That Is Not Here")])
 
 		self.assertEqual(len(problems), 1)
-		self.assertIn("Module Def that does not exist", problems[0])
+		self.assertIn("Sidebar or Module Def that does not exist", problems[0])
 
 	def test_a_pin_at_an_app_that_is_not_installed_is_not_a_problem(self):
 		"""Silence by design: a companion may be installed before or without its host, and the

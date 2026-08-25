@@ -56,17 +56,23 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	prepare() {
 		// The sidebar on screen, which is the only one there is to arrange. The user menu doesn't
 		// offer this when there is no module shown.
-		this.module = frappe.app.sidebar.current_module;
+		//
+		// Two names, because a `Custom Sidebar` is anchored to a MODULE while the desk shows a
+		// SHELL: `shell` is what is on screen and what the payload is keyed by, `module` is what
+		// every endpoint here takes. They are the same string for every sidebar nobody
+		// deliberately renamed, and the entry carries the module outright where they differ.
+		this.shell = frappe.app.sidebar.current_module;
+		this.module = frappe.app.sidebar.current_module_def();
 	}
 
 	title() {
 		return __("Manage {0} Sidebar", [this.title_of_module()]);
 	}
 
-	// What this module is called on screen -- its `Sidebar`'s title, which an app or a layer may
-	// have relabelled, falling back to the module's own name.
+	// What the sidebar on screen is called -- its `Sidebar`'s title, which an app or a layer may
+	// have relabelled, falling back to the shell's own name.
 	title_of_module() {
-		return (frappe.boot.module_sidebars[this.module] || {}).label || this.module;
+		return (frappe.boot.module_sidebars[this.shell] || {}).label || this.shell;
 	}
 
 	// Offered to whoever may curate for everyone, and to nobody else: it discards the site's
@@ -554,7 +560,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		// cause of it, but it cannot be the only way it happens. There is no shell left to
 		// redraw and the rest of the boot is stale in ways this payload does not carry, so
 		// reload rather than render a module that is no longer there.
-		if (!frappe.boot.module_sidebars[this.module]) {
+		if (!frappe.boot.module_sidebars[this.shell]) {
 			window.location.reload();
 			return;
 		}

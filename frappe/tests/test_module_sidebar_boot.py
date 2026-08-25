@@ -41,16 +41,16 @@ class TestTheResolverSeam(IntegrationTestCase):
 
 	def test_the_payload_is_the_seams_answers_and_nothing_else(self):
 		"""The builder chooses the set and assembles; it decides nothing. So every key in the
-		payload is one resolution, and every module missing from it resolved to `None`."""
+		payload is one resolution, and every shell missing from it resolved to `None`."""
 		user = frappe.session.user
 		payload = get_module_sidebars()
 
-		for module in get_navigable_modules():
-			resolved = resolve_sidebar(module, user)
+		for shell in get_sidebar_bases(get_navigable_modules()):
+			resolved = resolve_sidebar(shell, user)
 			if resolved is None:
-				self.assertNotIn(module, payload, f"{module} resolved to nothing but is in the payload")
+				self.assertNotIn(shell, payload, f"{shell} resolved to nothing but is in the payload")
 			else:
-				self.assertEqual(payload[module], resolved.as_boot_entry())
+				self.assertEqual(payload[shell], resolved.as_boot_entry())
 
 	def test_a_scope_resolves_the_same_alone_as_it_does_in_a_batch(self):
 		"""The context is a batching detail and nothing more -- resolving seventy Scopes must
@@ -124,16 +124,75 @@ class TestSidebarBoot(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 
-	def test_keyed_by_exact_case_module_name(self):
-		"""The point of the switch: a `Sidebar` row in `app_data[].dock` holds an exact
-		Module Def name, so it
-		must index straight into this payload. The legacy key is `title.lower()`."""
+	def test_keyed_by_exact_case_shell_identity(self):
+		"""One keyspace, exact case: a `Sidebar` document's own name, or the module's name where
+		the base was computed. The legacy key is `title.lower()`.
+
+		An entry carries its own key, so nothing has to recover it by position.
+		"""
 		payload = get_module_sidebars()
 		self.assertTrue(payload, "sanity: the site has sidebars")
 
 		for key, sidebar in payload.items():
-			self.assertEqual(key, sidebar["module"])
-			self.assertTrue(frappe.db.exists("Module Def", key), f"{key} is not a Module Def")
+			self.assertEqual(key, sidebar["name"])
+			self.assertTrue(frappe.db.exists("Module Def", sidebar["module"]))
+			if key != sidebar["module"]:
+				self.assertTrue(
+					frappe.db.exists("Sidebar", {"name": key, "module": sidebar["module"]}),
+					f"{key} is neither its module's name nor a document under it",
+				)
+
+	def test_a_modules_second_sidebar_is_in_the_payload_beside_its_first(self):
+		"""The whole point of the re-key. Keyed by module, a dict keeps one value per key, so
+		the second sidebar under a module was overwritten by whichever was read last -- gone
+		from the desk with no error anywhere."""
+		with sidebarless_module("Test Two Shells Module") as module:
+			with system_write():
+				for title, link in (("Test Two Shells Module", "ToDo"), ("Test Two Shells Deals", "User")):
+					doc = frappe.get_doc({"doctype": "Sidebar", "module": module, "title": title})
+					doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": link})
+					doc.insert(ignore_permissions=True)
+
+			payload = get_module_sidebars()
+
+			self.assertIn("Test Two Shells Module", payload)
+			self.assertIn("Test Two Shells Deals", payload)
+			self.assertEqual(payload["Test Two Shells Deals"]["module"], module)
+			self.assertEqual(
+				[item["link_to"] for item in payload["Test Two Shells Deals"]["items"]], ["User"]
+			)
+
+	def test_a_sidebar_named_otherwise_is_keyed_by_its_own_name(self):
+		"""Shell identity is the document's name, so a module named by none of its sidebars is
+		not a key at all -- what the desk shows is the sidebar, and the sidebar is called what
+		its author called it."""
+		with sidebarless_module("Test Renamed Shell Module") as module:
+			with system_write():
+				doc = frappe.get_doc({"doctype": "Sidebar", "module": module, "title": "Test Renamed Shell"})
+				doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+				doc.insert(ignore_permissions=True)
+
+			payload = get_module_sidebars()
+
+			self.assertIn("Test Renamed Shell", payload)
+			self.assertNotIn(module, payload)
+			self.assertEqual(payload["Test Renamed Shell"]["module"], module)
+
+	def test_ten_of_frappes_eleven_keys_do_not_move(self):
+		"""The re-key is meant to be invisible everywhere an author did not diverge. Frappe
+		ships eleven sidebars and titles ten of them after their module; only `Build` (under
+		`Build Tools`) is keyed by anything new."""
+		payload = get_module_sidebars()
+		shipped = frappe.get_all(
+			"Sidebar", filters={"standard": 1, "app": "frappe"}, fields=["name", "module"]
+		)
+		self.assertTrue(shipped, "sanity: frappe's sidebars are imported")
+
+		moved = [row.name for row in shipped if row.name != row.module and row.name in payload]
+		self.assertEqual(moved, ["Build"])
+		for row in shipped:
+			if row.name != "Build":
+				self.assertIn(row.name, payload)
 
 	def test_resolution_walks_modules_not_rows(self):
 		"""The set being resolved is the site's modules, and the modules that happen to have a
@@ -160,7 +219,9 @@ class TestSidebarBoot(IntegrationTestCase):
 			row_backed = set(get_visible_modules(list(row_backed)))
 			self.assertIn(rowed_module, row_backed, "sanity: the staged row is visible")
 			self.assertTrue(row_backed <= modules, f"{row_backed - modules} would be dropped by the switch")
-			self.assertTrue(set(get_module_sidebars()) <= modules)
+			# the payload is keyed by shell, so what it must stay inside is the modules those
+			# shells belong to -- the walk is still bounded by the module set
+			self.assertTrue({entry["module"] for entry in get_module_sidebars().values()} <= modules)
 
 	def test_a_module_with_no_sidebar_document_is_still_navigable(self):
 		"""Nothing shipped this module a sidebar, so the system computes one from its contents
@@ -206,7 +267,9 @@ class TestSidebarBoot(IntegrationTestCase):
 			with system_write():
 				shipped.insert(ignore_permissions=True)
 
-			sidebar = get_module_sidebars()[module]
+			# keyed by the document's own name, which is its title -- the module is not a shell
+			# here, because none of its sidebars is called after it
+			sidebar = get_module_sidebars()["Shipped"]
 
 			self.assertEqual(sidebar["label"], "Shipped")
 			self.assertEqual([item["link_to"] for item in sidebar["items"]], ["ToDo"])
@@ -234,7 +297,7 @@ class TestSidebarBoot(IntegrationTestCase):
 					{"doctype": "Sidebar", "module": module, "title": "Stub", "header_icon": "box"}
 				).insert(ignore_permissions=True)
 
-			sidebar = get_module_sidebars()[module]
+			sidebar = get_module_sidebars()["Stub"]
 
 			self.assertEqual(sidebar["label"], "Stub")
 			self.assertEqual(sidebar["header_icon"], "box")
@@ -326,7 +389,7 @@ class TestSidebarBoot(IntegrationTestCase):
 					ignore_permissions=True
 				)
 
-			base = get_sidebar_bases([module])[module]
+			base = get_sidebar_bases([module])["Named"]
 
 			self.assertEqual(base.title, "Named", "what the document says about itself stands")
 			self.assertEqual(base.computed, 1, "but its rows were computed")
@@ -358,6 +421,7 @@ class TestSidebarBoot(IntegrationTestCase):
 	def test_every_entry_has_the_documented_shape(self):
 		for sidebar in get_module_sidebars().values():
 			for field in (
+				"name",
 				"module",
 				"label",
 				"app",
@@ -422,14 +486,14 @@ class TestSidebarBoot(IntegrationTestCase):
 		self.assertTrue(boot.get("module_sidebars"))
 		self.assertIn("entity_module", boot)
 
-	def test_entity_module_only_names_visible_modules(self):
-		"""Built from the already-filtered payload, so it can never point at something the
-		user cannot see."""
-		modules = get_module_sidebars()
-		entity_module = build_entity_module_map(modules)
+	def test_entity_module_only_names_shells_in_the_payload(self):
+		"""Built from the already-filtered payload and keyed the same way it is, so what it
+		names indexes straight back in and can never be something the user cannot see."""
+		shells = get_module_sidebars()
+		entity_module = build_entity_module_map(shells)
 
-		for entity, module in entity_module.items():
-			self.assertIn(module, modules, f"{entity} -> {module} is not in the payload")
+		for entity, shell in entity_module.items():
+			self.assertIn(shell, shells, f"{entity} -> {shell} is not in the payload")
 
 	def test_a_private_page_is_not_in_anyone_elses_module_workspaces(self):
 		"""`workspaces` is the workspaces of a module this *reader* may open, which is what the
@@ -885,8 +949,8 @@ class TestAModuleInNoAppHasNoAppContext(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 
-	def sidebar(self, module: str):
-		return resolve_sidebar(module, frappe.session.user)
+	def sidebar(self, shell: str):
+		return resolve_sidebar(shell, frappe.session.user)
 
 	def app_entry(self, app_name: str):
 		return next(app for app in get_bootinfo()["app_data"] if app["app_name"] == app_name)
@@ -926,7 +990,7 @@ class TestAModuleInNoAppHasNoAppContext(IntegrationTestCase):
 		with custom_module("Test Appless Rail Module") as module:
 			make_sidebar(module, title="Field Service", header_icon="tool")
 
-			self.assertFalse(self.sidebar(module).app)
+			self.assertFalse(self.sidebar("Field Service").app)
 
 	def test_nothing_supplies_an_unplaced_modules_rail_items(self):
 		"""The empty items region is a consequence of the data, not a special case in the
@@ -945,7 +1009,7 @@ class TestAModuleInNoAppHasNoAppContext(IntegrationTestCase):
 		with custom_module("Test Iconed Rail Module") as module:
 			make_sidebar(module, title="Field Service", header_icon="tool")
 
-			sidebar = self.sidebar(module)
+			sidebar = self.sidebar("Field Service")
 
 			self.assertEqual(sidebar.header_icon, "tool")
 			self.assertEqual(sidebar.label, "Field Service")

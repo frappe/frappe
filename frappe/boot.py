@@ -644,17 +644,23 @@ def get_sentry_dsn():
 
 
 def get_module_sidebars():
-	"""Build `bootinfo.module_sidebars` by resolving each of the site's modules to its sidebar.
+	"""Build `bootinfo.module_sidebars` by resolving each of the site's shells.
 
-	Resolution walks **modules**, not `Sidebar` rows (see `get_navigable_modules`), and
-	each one is handed to `resolve_sidebar`, which is where every rule that shapes an answer
-	lives. This function chooses the set and assembles the payload; it decides nothing about
-	what a module resolves to.
+	Which shells there are still comes from walking **modules**, not `Sidebar` rows (see
+	`get_navigable_modules`); what a module owns is then whatever `get_sidebar_bases` finds
+	under it, and each of those is handed to `resolve_sidebar`, which is where every rule that
+	shapes an answer lives. This function chooses the set and assembles the payload; it decides
+	nothing about what a shell resolves to.
 
-	Keyed by **exact-case module name**, which is the fix for the desk's long-standing
-	keyspace problem: a `Sidebar` row in `app_data[].dock` already names an exact Module Def, so
-	it now indexes straight in. The legacy payload is keyed by `title.lower()`, a third keyspace
-	alongside `router.slug(name)` and the exact Workspace name.
+	Keyed by **shell identity** -- a `Sidebar` document's exact name, or the exact module name
+	where the base was computed. Keyed by module, a module's second sidebar was overwritten by
+	its first and vanished with no error anywhere; a shell is what the desk shows and what a
+	dock row selects, so it is the honest key. The naming rule (`set_default_title`) keeps the
+	two the same string for every sidebar nobody deliberately renamed, so a reader holding a
+	module still indexes straight in.
+
+	This is one keyspace, exact case. The legacy payload was keyed by `title.lower()`, a third
+	keyspace alongside `router.slug(name)` and the exact Workspace name.
 	"""
 	from frappe.desk.doctype.sidebar.sidebar import (
 		SidebarContext,
@@ -670,22 +676,23 @@ def get_module_sidebars():
 	context = SidebarContext.for_modules(modules, user)
 
 	payload = {}
-	for module in modules:
-		resolved = resolve_sidebar(module, user, context)
+	for shell in context.bases:
+		resolved = resolve_sidebar(shell, user, context)
 		if resolved:
-			payload[module] = resolved.as_boot_entry()
+			payload[shell] = resolved.as_boot_entry()
 
 	return payload
 
 
 def build_entity_module_map(module_sidebars):
-	"""Map each entity (`link_to`) to the module whose sidebar owns it.
+	"""Map each entity (`link_to`) to the **shell** whose sidebar owns it.
 
-	The module-keyed successor to `default_workspace_map`. Built from the already-filtered
-	payload, so it can never name a module or entity the user cannot see.
+	The successor to `default_workspace_map`. Built from the already-filtered payload and keyed
+	the same way it is, so it can never name a shell or an entity the user cannot see, and what
+	it returns indexes straight back into the payload.
 
 	When two sidebars claim the same entity the winner is the **last-installed app**, and two
-	claims from the *same* app are separated by module name ascending. Install order is
+	claims from the *same* app are separated by shell name ascending. Install order is
 	dependency order wherever a dependency exists -- the installer refuses to install an app
 	before its `required_apps` -- so a claim from the app built on top beats the one underneath
 	it, which is the `hrms` claims `Employee` case. The rule stops here: the desk's
@@ -695,8 +702,8 @@ def build_entity_module_map(module_sidebars):
 
 	- **Ownership is per-user.** The payload is permission-filtered before it gets here, so the
 	  winner is the last-installed app *among the claims this user can see*. Two users may
-	  correctly resolve one entity to different modules, and a user who cannot see the winning
-	  module falls to the next claim down rather than to nothing.
+	  correctly resolve one entity to different shells, and a user who cannot see the winning
+	  shell falls to the next claim down rather than to nothing.
 	- **The loser is told nothing**, deliberately -- no log, no report, no `after_migrate` line.
 	  What was wrong with the last-write-wins this replaces was that it was a *coin flip* (over a
 	  dict ordered by module name), not that it was quiet; a rule an author can predict from their
@@ -708,13 +715,13 @@ def build_entity_module_map(module_sidebars):
 	install_index = {app: index for index, app in enumerate(frappe.get_installed_apps())}
 
 	claims = {}
-	for module, sidebar in module_sidebars.items():
-		claim = (install_index.get(sidebar.get("app"), -1), module)
+	for shell, sidebar in module_sidebars.items():
+		claim = (install_index.get(sidebar.get("app"), -1), shell)
 		for item in sidebar["items"]:
 			if item.get("link_to") and item.get("is_default_module"):
 				claims.setdefault(item["link_to"], []).append(claim)
 
-	# the comparator, stated once: highest install index, then lowest module name
+	# the comparator, stated once: highest install index, then lowest shell name
 	return {
 		entity: min(entity_claims, key=lambda claim: (-claim[0], claim[1]))[1]
 		for entity, entity_claims in claims.items()
