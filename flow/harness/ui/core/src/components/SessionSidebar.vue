@@ -8,11 +8,14 @@
 		/>
 	</Transition>
 	<aside
-		class="fixed inset-y-0 left-0 z-30 flex w-64 flex-none flex-col border-r border-outline-gray-1 bg-surface-menu-bar md:static"
+		class="fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col border-r border-outline-gray-1 bg-surface-menu-bar md:relative"
 		:class="[
 			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
-			open ? 'translate-x-0' : '-translate-x-full md:-ml-64 md:translate-x-0',
+			// no transform while open: a transformed aside would become the containing
+			// block for PopMenu's fixed backdrop, clipping it to the sidebar
+			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 		]"
+		:style="{ '--sidebar-w': width + 'px' }"
 	>
 		<div class="flex h-12 items-center gap-2.5 px-3.5">
 			<BrandMark :size="22" />
@@ -117,7 +120,10 @@
 				role="button"
 				tabindex="0"
 				class="group relative flex cursor-pointer items-center rounded-lg px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
-				:class="s.session_id === flow.state.sessionId ? 'bg-surface-gray-3' : ''"
+				:class="[
+					s.session_id === flow.state.sessionId ? 'bg-surface-gray-3' : '',
+					menuFor === s.session_id ? 'menu-open bg-surface-gray-2' : '',
+				]"
 				@click="flow.openSession(s.session_id)"
 				@keydown.enter.prevent="flow.openSession(s.session_id)"
 				@keydown.space.prevent="flow.openSession(s.session_id)"
@@ -130,6 +136,7 @@
 				</span>
 				<span
 					class="absolute right-2 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center text-2xs text-ink-gray-5 transition-opacity group-hover:opacity-0"
+					:class="menuFor === s.session_id ? 'opacity-0' : ''"
 				>
 					<span
 						v-if="s.state === 'running'"
@@ -138,20 +145,41 @@
 					/>
 					<span v-else-if="s.state === 'paused'" title="Waiting for approval">⏸</span>
 				</span>
-				<button
-					class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md bg-transparent text-ink-gray-5 opacity-0 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100 group-hover:opacity-100"
-					title="Delete session"
-					@click.stop="confirmDelete(s)"
-					@keydown.enter.stop
-					@keydown.space.stop
+				<Dropdown
+					align="end"
+					:options="sessionActions(s)"
+					:open="menuFor === s.session_id"
+					@update:open="(open) => (menuFor = open ? s.session_id : null)"
 				>
-					<FeatherIcon name="trash-2" class="h-[13px] w-[13px]" />
-				</button>
+					<template #trigger>
+						<button
+							class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-ink-gray-5 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100"
+							:class="
+								menuFor === s.session_id
+									? 'bg-surface-gray-4 text-ink-gray-8 opacity-100'
+									: 'bg-transparent opacity-0 group-hover:opacity-100'
+							"
+							title="Session options"
+							@click.stop
+							@keydown.enter.stop
+							@keydown.space.stop
+						>
+							<FeatherIcon name="more-horizontal" class="h-[13px] w-[13px]" />
+						</button>
+					</template>
+				</Dropdown>
 			</div>
 			<div v-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
 				{{ emptyMessage }}
 			</div>
 		</div>
+
+		<div
+			class="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize hover:bg-outline-gray-2 active:bg-outline-gray-3 md:block"
+			title="Drag to resize · double-click to reset"
+			@pointerdown="startResize"
+			@dblclick="resetWidth"
+		/>
 
 		<footer class="flex min-h-[44px] items-center gap-2 border-t border-outline-gray-1 px-3.5 py-2">
 			<span class="h-1.5 w-1.5 flex-none rounded-full bg-surface-green-3" />
@@ -171,6 +199,7 @@
 
 <script setup>
 import { computed, inject, onMounted, ref, watch } from "vue"
+import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { dialog } from "frappe-ui/src/utils/dialog"
@@ -187,6 +216,7 @@ const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
 const projectMenu = ref(false)
 const selectedProject = ref(null)
+const menuFor = ref(null)
 
 function projectName(cwd) {
 	return cwd.replace(/[\\/]+$/, "").split(/[\\/]/).filter(Boolean).pop() ?? cwd
@@ -220,6 +250,22 @@ watch(projects, (available) => {
 	}
 })
 
+function sessionActions(s) {
+	return [
+		{ label: "Rename", icon: "lucide-pen", onClick: () => promptRename(s) },
+		{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: () => confirmDelete(s) },
+	]
+}
+
+function promptRename(s) {
+	dialog.prompt({
+		title: "Rename chat",
+		fields: [{ name: "title", label: "Name", defaultValue: flow.sessionTitle(s), required: true }],
+		confirmLabel: "Rename",
+		onConfirm: ({ values }) => flow.renameSession(s.session_id, values.title.trim()),
+	})
+}
+
 // dialog.confirm, not dialog.danger: danger's red theme injects a header
 // icon; the destructive styling lives on the action button instead
 function confirmDelete(s) {
@@ -236,6 +282,32 @@ function confirmDelete(s) {
 			},
 		],
 	})
+}
+
+const DEFAULT_WIDTH = 288
+const clampWidth = (w) => Math.min(420, Math.max(224, w))
+const width = ref(clampWidth(flow.state.prefs.sidebarWidth ?? DEFAULT_WIDTH))
+
+function resetWidth() {
+	width.value = DEFAULT_WIDTH
+	flow.setSidebarWidth(DEFAULT_WIDTH)
+}
+
+function startResize(event) {
+	event.preventDefault()
+	const handle = event.currentTarget
+	handle.setPointerCapture(event.pointerId)
+	const startX = event.clientX
+	const startWidth = width.value
+	const move = (e) => (width.value = clampWidth(startWidth + e.clientX - startX))
+	const up = (e) => {
+		handle.releasePointerCapture(e.pointerId)
+		handle.removeEventListener("pointermove", move)
+		handle.removeEventListener("pointerup", up)
+		flow.setSidebarWidth(width.value)
+	}
+	handle.addEventListener("pointermove", move)
+	handle.addEventListener("pointerup", up)
 }
 
 // enable the slide transition only after mount, so a closed saved state
@@ -273,8 +345,15 @@ const daemonUrl = computed(() => {
 	opacity: 0;
 }
 
+/* reka copies the content's z-index onto its fixed popper wrapper; without
+   this the menu paints under the z-30 sidebar */
+:global(.dropdown-content) {
+	z-index: 40;
+}
+
 .group:hover .session-title,
-.group:focus-within .session-title {
+.group:focus-within .session-title,
+.group.menu-open .session-title {
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 	mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 }

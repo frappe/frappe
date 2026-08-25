@@ -46,6 +46,7 @@ export function createFlowStore(client) {
 			lastEffort: null,
 			cwd: null,
 			sidebarOpen: true,
+			sidebarWidth: 288,
 			...readJSON(PREFS_KEY, {}),
 		},
 		titles: readJSON(TITLES_KEY, {}),
@@ -472,10 +473,24 @@ export function createFlowStore(client) {
 		savePrefs()
 	}
 
+	function setSidebarWidth(width) {
+		state.prefs.sidebarWidth = width
+		savePrefs()
+	}
+
 	function setTheme(theme) {
 		state.prefs.theme = theme
 		savePrefs()
 		document.documentElement.setAttribute("data-theme", theme)
+	}
+
+	async function renameSession(sid, title) {
+		const data = await guard(() => client.patchConfig(sid, { title }))
+		if (!data) return
+		const listed = state.sessions.find((info) => info.session_id === sid)
+		if (listed) listed.title = data.config.title
+		if (state.sessionId === sid && state.session) state.session.title = data.config.title
+		notify("Chat renamed")
 	}
 
 	async function deleteSession(sid) {
@@ -529,7 +544,9 @@ export function createFlowStore(client) {
 		setMode,
 		setCwd,
 		setSidebarOpen,
+		setSidebarWidth,
 		setTheme,
+		renameSession,
 		deleteSession,
 		pickFolder,
 		sessionTitle,
