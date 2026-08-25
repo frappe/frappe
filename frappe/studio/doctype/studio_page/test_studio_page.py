@@ -80,9 +80,11 @@ class TestGuestRendering(IntegrationTestCase):
 			with self.assertRaises(frappe.DoesNotExistError):
 				get_page(self.app.name, route)
 
-	def test_guest_preview_404s_even_for_public_pages(self):
+	def test_guest_cannot_preview_public_pages(self):
 		self.as_guest()
-		with self.assertRaises(frappe.DoesNotExistError):
+		with self.assertRaisesRegex(
+			frappe.PermissionError, "You do not have permission to preview this page"
+		):
 			get_page(self.app.name, "/public", preview=True)
 
 	def test_logged_in_user_gets_private_page(self):

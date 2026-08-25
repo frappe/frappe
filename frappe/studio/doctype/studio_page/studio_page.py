@@ -421,9 +421,8 @@ def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 	page = frappe.get_cached_doc("Studio Page", page_name)
 	is_guest = frappe.session.user == "Guest"
 	if preview:
-		if is_guest:
-			frappe.throw(_("Page not found"), frappe.DoesNotExistError)
-		frappe.has_permission("Studio Page", ptype="read", throw=True)
+		if not frappe.has_permission("Studio Page", ptype="read", doc=page):
+			frappe.throw(_("You do not have permission to preview this page"), frappe.PermissionError)
 		blocks = page.draft_blocks or page.blocks
 	else:
 		# unpublished routes 404 like nonexistent ones, so the endpoint doesn't confirm they exist
