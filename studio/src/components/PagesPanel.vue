@@ -74,33 +74,56 @@ const getPageMenu = (page: StudioPage) => {
 
 	return [
 		{
-			label: "Set as App Home",
-			icon: "lucide-home",
-			condition: () => !isAppHome(page),
-			onClick: () => {
-				store.updateActiveApp("app_home", page.name)
-			},
+			group: "Page settings",
+			hideLabel: true,
+			options: [
+				{
+					label: "Set as App Home",
+					icon: "lucide-home",
+					condition: () => !isAppHome(page),
+					onClick: () => store.updateActiveApp("app_home", page.name),
+				},
+				{
+					label: "Unpublish",
+					icon: "lucide-circle-dashed",
+					condition: () => Boolean(page.published),
+					onClick: () => store.unpublishPage(),
+				},
+				{
+					label: "Allow Guest Access",
+					icon: "lucide-globe-2",
+					switch: true,
+					switchValue: Boolean(isPageActive(page) ? store.activePage?.allow_guest : page.allow_guest),
+					onClick: (value: boolean) => store.updateActivePage("allow_guest", value ? 1 : 0),
+				},
+			],
 		},
 		{
-			label: "Duplicate",
-			icon: "lucide-copy",
-			onClick: () => store.duplicateAppPage(app.name, page),
-		},
-		{
-			label: "Delete",
-			icon: "lucide-trash",
-			theme: "red",
-			condition: () => !isAppHome(page),
-			onClick: async () => {
-				await store.deleteAppPage(app.name, page)
-				if (isPageActive(page)) {
-					router.push({
-						name: "StudioPage",
-						params: { appID: app.name, pageID: app.app_home },
-						replace: true,
-					})
-				}
-			},
+			group: "Actions",
+			hideLabel: true,
+			options: [
+				{
+					label: "Duplicate",
+					icon: "lucide-copy",
+					onClick: () => store.duplicateAppPage(app.name, page),
+				},
+				{
+					label: "Delete",
+					icon: "lucide-trash",
+					theme: "red",
+					condition: () => !isAppHome(page),
+					onClick: async () => {
+						await store.deleteAppPage(app.name, page)
+						if (isPageActive(page)) {
+							router.push({
+								name: "StudioPage",
+								params: { appID: app.name, pageID: app.app_home },
+								replace: true,
+							})
+						}
+					},
+				},
+			],
 		},
 	]
 }

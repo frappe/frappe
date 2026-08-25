@@ -19,6 +19,7 @@ from studio.export import (
 	write_document_file,
 )
 from studio.realtime import publish_doc_change
+from studio.studio.doctype.studio_component.studio_component import get_components_for_blocks
 from studio.utils import camel_case_to_kebab_case, has_page_write_perm
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -38,6 +39,7 @@ class StudioPage(Document):
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
 
+		allow_guest: DF.Check
 		blocks: DF.LongText | None
 		draft_blocks: DF.LongText | None
 		frappe_app: DF.Literal[None]
@@ -285,9 +287,8 @@ class StudioPage(Document):
 
 	@frappe.whitelist()
 	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
-		"""Set a single editor-owned field (title/route/script) under the same optimistic lock as
-		save_draft, so a field edit can't silently overwrite a page the DB has moved past either."""
-		FIELDS = ["page_title", "route", "script"]
+		"""Update an editor-owned field using the page's optimistic lock."""
+		FIELDS = ["page_title", "route", "script", "allow_guest"]
 		if fieldname not in FIELDS:
 			frappe.throw(_("Field {0} is not editable outside the Studio editor").format(fieldname))
 		self.reject_if_stale(known_modified)
@@ -401,25 +402,31 @@ PAGE_RESOURCE_FIELDS = (
 PAGE_VARIABLE_FIELDS = ("variable_name", "variable_type", "initial_value")
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 	"""Serve a page definition to the app renderer in a single call.
 
 	Published pages need no role — a published definition is markup; the data it
-	fetches stays permission-checked by the endpoints its resources call. Drafts
-	and unpublished pages are only served in preview, which requires read access
-	on Studio Page."""
+	fetches stays permission-checked by the endpoints its resources call. Guests
+	only get pages that are published AND allow_guest; everything else 404s
+	identically so private routes can't be enumerated. Drafts and unpublished
+	pages are only served in preview, which requires read access on Studio Page.
+
+	The served blocks' component definitions ship in the same payload, so what a
+	caller can see of components is exactly what the pages they can fetch use."""
 	page_name = find_page_with_route(app_name, page_route)
 	if not page_name:
 		frappe.throw(_("Page not found"), frappe.DoesNotExistError)
 
 	page = frappe.get_cached_doc("Studio Page", page_name)
+	is_guest = frappe.session.user == "Guest"
 	if preview:
-		frappe.has_permission("Studio Page", ptype="read", throw=True)
+		if not frappe.has_permission("Studio Page", ptype="read", doc=page):
+			frappe.throw(_("You do not have permission to preview this page"), frappe.PermissionError)
 		blocks = page.draft_blocks or page.blocks
 	else:
 		# unpublished routes 404 like nonexistent ones, so the endpoint doesn't confirm they exist
-		if not page.published:
+		if not page.published or (is_guest and not page.allow_guest):
 			frappe.throw(_("Page not found"), frappe.DoesNotExistError)
 		blocks = page.blocks
 
@@ -431,6 +438,7 @@ def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 		"is_standard": page.is_standard,
 		"script": page.script,
 		"blocks": blocks,
+		"components": get_components_for_blocks(blocks),
 		"resources": [
 			{"resource_id": row.name, **{field: row.get(field) for field in PAGE_RESOURCE_FIELDS}}
 			for row in page.resources

@@ -292,16 +292,19 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function updateActivePage(key: string, value: string | number) {
+		if (!activePage.value) return
+		const page = activePage.value
 		return studioPages.runDocMethod
 			.submit({
-				name: activePage.value?.name,
+				name: page.name,
 				method: "save_page_field",
 				fieldname: key,
 				value: value,
-				known_modified: activePage.value?.modified,
+				known_modified: page.modified,
 			})
 			.then((response: any) => {
-				activePage.value![key] = value
+				if (activePage.value?.name !== page.name) return
+				activePage.value[key] = value
 				syncPageModified(response)
 			})
 			.catch(handlePageWriteConflict)
@@ -363,21 +366,25 @@ const useStudioStore = defineStore("store", () => {
 
 	async function unpublishPage() {
 		if (!activePage.value) return
+		const page = activePage.value
 		const confirmed = await confirm(
-			`Are you sure you want to unpublish the page "${activePage.value.page_title}"? It will no longer be publicly accessible.`,
+			`Are you sure you want to unpublish the page "${page.page_title}"? It will no longer be publicly accessible.`,
 		)
 		if (!confirmed) {
 			return
 		}
 		return studioPages.runDocMethod.submit(
 			{
-				name: selectedPage.value,
+				name: page.name,
 				method: "unpublish",
 			},
 			{
 				onSuccess(data: any) {
-					activePage.value!.published = 0
-					syncPageModified(data)
+					if (activePage.value?.name === page.name) {
+						activePage.value.published = 0
+						syncPageModified(data)
+					}
+					if (appPages.value[page.name]) appPages.value[page.name].published = 0
 					toast.success("Page unpublished")
 				},
 				onError(error: any) {

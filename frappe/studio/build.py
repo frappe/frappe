@@ -12,6 +12,7 @@ from frappe.build import get_node_env
 from frappe.utils import get_files_path
 
 from studio.constants import DEFAULT_COMPONENTS, NON_VUE_COMPONENTS
+from studio.utils import walk_blocks
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
@@ -195,23 +196,14 @@ class StudioAppBuilder:
 		for match in matches:
 			self.components.add(match)
 
-	def _add_block_components(self, block: dict) -> None:
-		if block.get("isStudioComponent"):
-			self._add_studio_components(block)
-		elif block.get("isCustomVueComponent"):
-			self._add_custom_vue_component(block.get("componentName"))
-		elif block.get("componentName") not in NON_VUE_COMPONENTS:
-			self.components.add(block.get("componentName"))
-		for child in block.get("children", []):
-			self._add_block_components(child)
-
-		if slots := block.get("componentSlots"):
-			for slot in slots.values():
-				content = slot.get("slotContent")
-				if not isinstance(content, list):
-					continue
-				for slot_child in content:
-					self._add_block_components(slot_child)
+	def _add_block_components(self, blocks) -> None:
+		for block in walk_blocks(blocks):
+			if block.get("isStudioComponent"):
+				self._add_studio_components(block)
+			elif block.get("isCustomVueComponent"):
+				self._add_custom_vue_component(block.get("componentName"))
+			elif block.get("componentName") not in NON_VUE_COMPONENTS:
+				self.components.add(block.get("componentName"))
 
 	def _add_studio_components(self, block: dict):
 		if self.is_standard:

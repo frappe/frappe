@@ -1,45 +1,50 @@
 <template>
 	<div>
 		<div class="flex flex-row flex-wrap gap-4">
-			<div class="flex w-full flex-col gap-2">
-				<label class="block text-xs text-ink-gray-5">Page Title</label>
+			<Input
+				label="Page Title"
+				type="text"
+				variant="outline"
+				class="w-full"
+				:modelValue="pageTitle"
+				@update:modelValue="(val: string) => store.updateActivePage('page_title', val)"
+			/>
+
+			<div class="relative flex w-full items-stretch">
 				<Input
+					ref="inputRef"
+					label="Page Route"
 					type="text"
 					variant="outline"
 					class="w-full"
-					:modelValue="pageTitle"
-					@update:modelValue="(val: string) => store.updateActivePage('page_title', val)"
+					:hideClearButton="true"
+					:modelValue="pageRoute"
+					@update:modelValue="
+						(val: string) => {
+							store.updateActivePage('route', val.startsWith('/') ? val : `/${val}`)
+						}
+					"
 				/>
-			</div>
 
-			<div class="flex w-full flex-col gap-2">
-				<label class="block text-xs text-ink-gray-5">Page Route</label>
-				<div class="relative flex items-stretch">
-					<Input
-						ref="inputRef"
-						type="text"
-						variant="outline"
-						class="w-full"
-						:hideClearButton="true"
-						:modelValue="pageRoute"
-						@update:modelValue="
-							(val: string) => {
-								store.updateActivePage('route', val.startsWith('/') ? val : `/${val}`)
-							}
-						"
-					/>
-
-					<!-- App Route Prefix -->
-					<div
-						ref="prefixElement"
-						class="absolute bottom-[1px] left-[1px] flex items-center rounded-l-[0.4rem] bg-surface-gray-2 text-ink-gray-6"
-					>
-						<span class="flex h-[1.6rem] items-center text-nowrap px-2 py-0 text-base">
-							{{ `${app?.route}/` }}
-						</span>
-					</div>
+				<!-- App Route Prefix -->
+				<div
+					ref="prefixElement"
+					class="absolute bottom-[1px] left-[1px] flex items-center rounded-l-[0.4rem] bg-surface-gray-2 text-ink-gray-6"
+				>
+					<span class="flex h-[1.6rem] items-center text-nowrap px-2 py-0 text-base">
+						{{ `${app?.route}/` }}
+					</span>
 				</div>
 			</div>
+
+			<Switch
+				size="sm"
+				class="w-full"
+				label="Allow Guest Access"
+				description="Anyone can access this page without logging in"
+				:modelValue="Boolean(page.allow_guest)"
+				@update:modelValue="(val: boolean) => store.updateActivePage('allow_guest', val ? 1 : 0)"
+			/>
 
 			<!-- Dynamic Route Variables: design-time test values for params like /articles/:category -->
 			<CollapsibleSection
@@ -47,9 +52,9 @@
 				sectionName="Route Variables"
 				class="mt-2 w-full [&>div>h3]:!text-base [&>div>h3]:!text-ink-gray-5"
 			>
-				<div v-for="name in routeVariableNames" :key="name" class="flex w-full flex-col gap-2">
-					<label class="block text-xs text-ink-gray-5">{{ name.replace(/_/g, " ") }}</label>
+				<div v-for="name in routeVariableNames" :key="name" class="w-full">
 					<Input
+						:label="name.replace(/_/g, ' ')"
 						type="text"
 						variant="outline"
 						class="w-full"
@@ -68,6 +73,7 @@ import { computed, nextTick, ref, watch } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { StudioApp } from "@/types/Studio/StudioApp"
+import { Switch } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import { getRouteVariables } from "@/utils/helpers"

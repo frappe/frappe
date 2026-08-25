@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { markRaw, reactive } from "vue"
-import { createResource } from "frappe-ui"
+import { createDocumentResource } from "frappe-ui"
 import Block from "@/utils/block"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
@@ -13,13 +13,13 @@ const useComponentStore = defineStore("componentStore", () => {
 	const fetchingComponent = reactive<Set<string>>(new Set())
 
 	async function fetchComponent(componentName: string) {
-		const componentDoc = createResource({
-			url: "studio.studio.doctype.studio_component.studio_component.get_component",
-			method: "GET",
-			params: { component_name: componentName },
+		const componentDoc = await createDocumentResource({
+			doctype: "Studio Component",
+			name: componentName,
+			auto: true,
 		})
-		await componentDoc.fetch()
-		return componentDoc.data as StudioComponent
+		await componentDoc.get.promise
+		return componentDoc.doc as StudioComponent
 	}
 
 	async function getComponent(componentName: string): Promise<Block | undefined> {
@@ -60,6 +60,13 @@ const useComponentStore = defineStore("componentStore", () => {
 				fetchingComponent.delete(componentName)
 			}
 		}
+	}
+
+	function setComponents(componentDocs: StudioComponent[]) {
+		// Prevent nested blocks from refetching components in this batch.
+		for (const componentDoc of componentDocs) fetchingComponent.add(componentDoc.component_id)
+		for (const componentDoc of componentDocs) cacheComponent(componentDoc)
+		for (const componentDoc of componentDocs) fetchingComponent.delete(componentDoc.component_id)
 	}
 
 	async function reloadComponent(componentName: string) {
@@ -110,6 +117,7 @@ const useComponentStore = defineStore("componentStore", () => {
 		componentMap,
 		componentDocMap,
 		loadComponent,
+		setComponents,
 		reloadComponent,
 		getComponent,
 		getComponentDoc,
