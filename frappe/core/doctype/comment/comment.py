@@ -8,6 +8,7 @@ from frappe.desk.notifications import notify_mentions
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
 from frappe.model.utils import is_virtual_doctype
+from frappe.permissions import get_doctypes_with_read, has_controller_permissions
 from frappe.website.utils import clear_cache
 
 
@@ -115,6 +116,87 @@ class Comment(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""A comment is readable as far as the document it was written on is."""
+	if ptype != "read":
+		return True
+
+	if not (doc.reference_doctype and doc.reference_name):
+		return True
+
+	if doc.reference_doctype == doc.doctype:
+		# comment-on-comment chains can be cyclic
+		return True
+
+	return frappe.has_permission(
+		doc.reference_doctype, ptype="read", doc=doc.reference_name, user=user, debug=debug
+	)
+
+
+def get_permission_query_conditions(user: str | None = None) -> str:
+	"""Drop comments on doctypes the user cannot read at all; per-document access is
+	`has_permission`'s job, it is not expressible as one condition on `tabComment`."""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+
+	unreferenced = "`tabComment`.`reference_doctype` IS NULL OR `tabComment`.`reference_doctype` = ''"
+
+	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read(user))
+	if not readable_doctypes:
+		return f"({unreferenced})"
+
+	return f"({unreferenced} OR `tabComment`.`reference_doctype` IN ({readable_doctypes}))"
+
+
+def get_document_comments(
+	reference_doctype: str,
+	reference_name: str | int,
+	fields: list[str],
+	comment_types: list[str] | None = None,
+	extra_filters: list | None = None,
+	user: str | None = None,
+	**kwargs,
+) -> list[frappe._dict]:
+	"""Read a document's comment rows, honouring the Comment `has_permission` hooks.
+
+	The caller must have checked read on the document. Pass `user` when composing for
+	someone other than the session user, as the follow digests do.
+	"""
+	filters = [
+		["reference_doctype", "=", reference_doctype],
+		["reference_name", "=", reference_name],
+		*(extra_filters or []),
+	]
+	if comment_types is not None:
+		if not comment_types:
+			return []
+		filters.append(["comment_type", "in", comment_types])
+
+	if "comment_type" not in fields:
+		# the hooks decide per type
+		fields = [*fields, "comment_type"]
+
+	rows = frappe.get_all("Comment", fields=fields, filters=filters, **kwargs)
+
+	# all rows share one reference, so a verdict can only turn on comment_type
+	verdicts: dict[str, bool] = {}
+
+	def permitted(comment_type: str) -> bool:
+		if comment_type not in verdicts:
+			probe = frappe._dict(
+				doctype="Comment",
+				name=None,
+				reference_doctype=reference_doctype,
+				reference_name=reference_name,
+				comment_type=comment_type,
+			)
+			verdicts[comment_type] = has_controller_permissions(probe, "read", user=user)
+		return verdicts[comment_type]
+
+	return [row for row in rows if permitted(row.comment_type)]
 
 
 def update_comment_in_doc(doc):

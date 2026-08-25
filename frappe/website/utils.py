@@ -60,6 +60,7 @@ def can_cache(no_cache=False):
 
 
 def get_comment_list(doctype, name):
+	# the published flag governs visibility here, not the Comment hooks
 	comments = frappe.get_all(
 		"Comment",
 		fields=["name", "creation", "owner", "comment_email", "comment_by", "content"],
