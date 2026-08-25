@@ -46,6 +46,7 @@ export function createFlowStore(client) {
 			lastEffort: null,
 			cwd: null,
 			sidebarOpen: true,
+			sidebarWidth: 288,
 			...readJSON(PREFS_KEY, {}),
 		},
 		titles: readJSON(TITLES_KEY, {}),
@@ -472,6 +473,11 @@ export function createFlowStore(client) {
 		savePrefs()
 	}
 
+	function setSidebarWidth(width) {
+		state.prefs.sidebarWidth = width
+		savePrefs()
+	}
+
 	function setTheme(theme) {
 		state.prefs.theme = theme
 		savePrefs()
@@ -538,6 +544,7 @@ export function createFlowStore(client) {
 		setMode,
 		setCwd,
 		setSidebarOpen,
+		setSidebarWidth,
 		setTheme,
 		renameSession,
 		deleteSession,

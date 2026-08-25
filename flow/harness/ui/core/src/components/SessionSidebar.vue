@@ -8,11 +8,12 @@
 		/>
 	</Transition>
 	<aside
-		class="fixed inset-y-0 left-0 z-30 flex w-64 flex-none flex-col border-r border-outline-gray-1 bg-surface-menu-bar md:static"
+		class="fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col border-r border-outline-gray-1 bg-surface-menu-bar md:relative"
 		:class="[
 			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
-			open ? 'translate-x-0' : '-translate-x-full md:-ml-64 md:translate-x-0',
+			open ? 'translate-x-0' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 		]"
+		:style="{ '--sidebar-w': width + 'px' }"
 	>
 		<div class="flex h-12 items-center gap-2.5 px-3.5">
 			<BrandMark :size="22" />
@@ -171,6 +172,13 @@
 			</div>
 		</div>
 
+		<div
+			class="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize hover:bg-outline-gray-2 active:bg-outline-gray-3 md:block"
+			title="Drag to resize · double-click to reset"
+			@pointerdown="startResize"
+			@dblclick="resetWidth"
+		/>
+
 		<footer class="flex min-h-[44px] items-center gap-2 border-t border-outline-gray-1 px-3.5 py-2">
 			<span class="h-1.5 w-1.5 flex-none rounded-full bg-surface-green-3" />
 			<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-5" :title="daemonUrl">
@@ -272,6 +280,32 @@ function confirmDelete(s) {
 			},
 		],
 	})
+}
+
+const DEFAULT_WIDTH = 288
+const clampWidth = (w) => Math.min(420, Math.max(224, w))
+const width = ref(clampWidth(flow.state.prefs.sidebarWidth ?? DEFAULT_WIDTH))
+
+function resetWidth() {
+	width.value = DEFAULT_WIDTH
+	flow.setSidebarWidth(DEFAULT_WIDTH)
+}
+
+function startResize(event) {
+	event.preventDefault()
+	const handle = event.currentTarget
+	handle.setPointerCapture(event.pointerId)
+	const startX = event.clientX
+	const startWidth = width.value
+	const move = (e) => (width.value = clampWidth(startWidth + e.clientX - startX))
+	const up = (e) => {
+		handle.releasePointerCapture(e.pointerId)
+		handle.removeEventListener("pointermove", move)
+		handle.removeEventListener("pointerup", up)
+		flow.setSidebarWidth(width.value)
+	}
+	handle.addEventListener("pointermove", move)
+	handle.addEventListener("pointerup", up)
 }
 
 // enable the slide transition only after mount, so a closed saved state
