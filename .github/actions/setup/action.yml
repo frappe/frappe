@@ -83,11 +83,8 @@ runs:
       start_time=$(date +%s)
 
       install_system_deps() {
-        # --skip-verify: the version check does its own request to dlm.mariadb.com, which
-        # answers 502 often enough to break the build. apt fetches the repo anyway, so a
-        # version that does not exist still fails, and it fails where the cause is clear.
-        curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale --skip-verify
-
+        # the mariadb server runs as a service container; the client tools come
+        # from ubuntu's archives so CI does not depend on mariadb.com mirrors
         sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
         wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
