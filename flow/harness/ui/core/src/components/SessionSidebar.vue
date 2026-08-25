@@ -11,7 +11,9 @@
 		class="fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col border-r border-outline-gray-1 bg-surface-menu-bar md:relative"
 		:class="[
 			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
-			open ? 'translate-x-0' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
+			// no transform while open: a transformed aside would become the containing
+			// block for PopMenu's fixed backdrop, clipping it to the sidebar
+			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 		]"
 		:style="{ '--sidebar-w': width + 'px' }"
 	>
