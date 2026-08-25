@@ -24,17 +24,11 @@ def component_ref(component) -> dict:
 
 
 class TestGuestRendering(IntegrationTestCase):
-	"""Guests only ever see pages that are published AND allow_guest; everything
-	else must be indistinguishable from a nonexistent page. Component definitions
-	ship with the page that uses them (see get_page), so component visibility
-	follows page visibility."""
-
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.delete_leftover_fixtures()
 		cls.app = make_studio_app(app_title="Guest Test App", app_name="guest-test-app")
-		# a component nested inside another, and one used only on a private page
 		cls.nested_card = make_component("Nested Card")
 		cls.hero = make_component(
 			"Hero Section",
@@ -56,13 +50,12 @@ class TestGuestRendering(IntegrationTestCase):
 			blocks=frappe.as_json([component_ref(cls.secret_widget)]),
 		)
 		make_studio_page(cls.app.name, page_title="Draft Page", route="/draft", published=0, allow_guest=1)
-		# an app with published pages but nothing guest-accessible
 		cls.members_app = make_studio_app(app_title="Members App", app_name="members-app")
 		make_studio_page(cls.members_app.name, page_title="Members Home", route="/home")
 
 	@classmethod
 	def delete_leftover_fixtures(cls):
-		"""Fixtures can outlive a run (get_context commits mid-test), so recreate them cleanly."""
+		"""Remove fixtures left behind when get_context commits."""
 		for app_name in ("guest-test-app", "members-app"):
 			if frappe.db.exists("Studio App", app_name):
 				frappe.delete_doc("Studio App", app_name, force=True)
@@ -132,13 +125,11 @@ class TestGuestRendering(IntegrationTestCase):
 	def test_page_ships_its_component_definitions(self):
 		self.as_guest()
 		page = get_page(self.app.name, "/public")
-		# hero directly on the page, nested card only inside hero's block
 		components = {component["name"]: component for component in page["components"]}
 		self.assertEqual(set(components), {self.hero.name, self.nested_card.name})
 		self.assertEqual(components[self.hero.name]["inputs"][0]["input_name"], "title")
 		self.assertEqual(components[self.nested_card.name]["inputs"], [])
 
 	def test_get_page_is_guest_whitelisted(self):
-		# allow_guest is enforced by the API handler, so assert via the same check it runs
 		self.as_guest()
 		frappe.is_whitelisted(get_page)

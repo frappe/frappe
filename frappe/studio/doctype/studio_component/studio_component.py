@@ -57,9 +57,7 @@ class StudioComponent(Document):
 
 
 def get_components_for_blocks(blocks) -> list[dict]:
-	"""Returns definitions of every studio component in block tree
-	Fetched in bulk, one round per nesting level, so queries scale with component
-	depth rather than component count."""
+	"""Fetch component definitions referenced by a block tree, one depth at a time."""
 	components = []
 	requested_components = set()
 	to_fetch = extract_component_names(blocks)
@@ -72,7 +70,6 @@ def get_components_for_blocks(blocks) -> list[dict]:
 
 
 def extract_component_names(blocks) -> set[str]:
-	"""Docnames of Studio Components referenced anywhere in a blocks tree."""
 	return {
 		block["componentName"]
 		for block in walk_blocks(blocks)
@@ -81,7 +78,6 @@ def extract_component_names(blocks) -> set[str]:
 
 
 def get_nested_component_names(components) -> set[str]:
-	"""Component names referenced inside the given components' own blocks."""
 	names = set()
 	for component in components:
 		names.update(extract_component_names(component["block"]))
@@ -89,7 +85,6 @@ def get_nested_component_names(components) -> set[str]:
 
 
 def fetch_component_batch(names: set[str]) -> list[dict]:
-	"""One query for the component docs, one for all their input rows."""
 	components = frappe.get_all(
 		"Studio Component",
 		filters={"name": ["in", names]},

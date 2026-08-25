@@ -14,8 +14,7 @@ def camel_case_to_kebab_case(text, remove_spaces=False):
 
 
 def walk_blocks(blocks):
-	"""Yield every block dict in a blocks tree, descending into children and slot content.
-	Accepts a JSON string, a single block dict, or a list of blocks."""
+	"""Yield all blocks recursively, including children and slots."""
 	if isinstance(blocks, str):
 		blocks = frappe.parse_json(blocks or "[]")
 	if isinstance(blocks, dict):

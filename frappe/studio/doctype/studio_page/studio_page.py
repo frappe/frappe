@@ -35,6 +35,7 @@ class StudioPage(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
+
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
 
@@ -286,8 +287,7 @@ class StudioPage(Document):
 
 	@frappe.whitelist()
 	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
-		"""Set a single editor-owned field (title/route/script/guest access) under the same optimistic
-		lock as save_draft, so a field edit can't silently overwrite a page the DB has moved past either."""
+		"""Update an editor-owned field using the page's optimistic lock."""
 		FIELDS = ["page_title", "route", "script", "allow_guest"]
 		if fieldname not in FIELDS:
 			frappe.throw(_("Field {0} is not editable outside the Studio editor").format(fieldname))

@@ -63,8 +63,7 @@ const useComponentStore = defineStore("componentStore", () => {
 	}
 
 	function setComponents(componentDocs: StudioComponent[]) {
-		// mark everything in-flight first: caching a component instantiates its block tree,
-		// and nested component blocks would otherwise refetch definitions later in the list
+		// Prevent nested blocks from refetching components in this batch.
 		for (const componentDoc of componentDocs) fetchingComponent.add(componentDoc.component_id)
 		for (const componentDoc of componentDocs) cacheComponent(componentDoc)
 		for (const componentDoc of componentDocs) fetchingComponent.delete(componentDoc.component_id)

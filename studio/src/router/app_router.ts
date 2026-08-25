@@ -60,8 +60,7 @@ router.beforeEach((to, _, next) => {
 	}
 	if (!to.matched.length) {
 		if (window.is_guest) {
-			// guests only get public pages in app_pages — an unmatched route may just
-			// need a login, so bounce through it and back to the same URL
+			// Private routes are absent for guests; retry after login.
 			const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
 			window.location.href = `/login?redirect-to=${redirectTo}`
 			return false

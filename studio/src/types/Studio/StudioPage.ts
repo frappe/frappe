@@ -27,7 +27,6 @@ export interface StudioPage {
 	script?: string
 	/**	Title : Data	*/
 	page_title?: string
-	/** Definitions of components the served blocks use (from get_page) */
 	components?: StudioComponent[]
 	[key: string]: any
 }
