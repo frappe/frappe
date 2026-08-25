@@ -184,9 +184,9 @@ export default class Grid {
 						</div>
 						<div class="grid-bulk-actions text-right">
 							${frappe.ui.button.html({
-								label: __("Bulk Edit"),
+								label: __("Upload"),
 								size: "sm",
-								css_class: "grid-bulk-edit hidden",
+								css_class: "grid-upload hidden",
 							})}
 						</div>
 					</div>
@@ -1678,7 +1678,7 @@ export default class Grid {
 		if (!this.frm || !this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) return;
 
 		$(this.wrapper)
-			.find(".grid-bulk-edit")
+			.find(".grid-upload")
 			.removeClass("hidden")
 			.on("click", () => {
 				this.show_bulk_edit_import_type();
@@ -1710,7 +1710,7 @@ export default class Grid {
 		}
 
 		const dialog = new frappe.ui.Dialog({
-			title: __("Bulk Edit {0}", [this.get_bulk_edit_title()]),
+			title: __("Upload {0}", [this.get_bulk_edit_title()]),
 			fields: [
 				{
 					fieldtype: "Select",
@@ -1738,7 +1738,7 @@ export default class Grid {
 		const row_count = (this.frm.doc[this.df.fieldname] || []).length;
 
 		const dialog = new frappe.ui.Dialog({
-			title: __("Bulk Edit {0}", [this.get_bulk_edit_title()]),
+			title: __("Upload {0}", [this.get_bulk_edit_title()]),
 			size: BULK_EDIT_DIALOG_SIZE,
 			fields: [
 				{
