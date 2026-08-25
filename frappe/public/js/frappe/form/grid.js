@@ -21,7 +21,7 @@ const BULK_EDIT_5_RECORDS = "5_records";
 // every step of the flow uses one size so the modals swap without resizing
 // every step shares one size, so switching tabs never resizes the modal
 const BULK_EDIT_DIALOG_SIZE = "large";
-const BULK_EDIT_DIALOG_HEIGHT = "420px";
+const BULK_EDIT_DIALOG_HEIGHT = "210px";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -1724,6 +1724,7 @@ export default class Grid {
 			template: $('<div class="bulk-edit-panel"></div>'),
 			upload: $('<div class="bulk-edit-panel"></div>'),
 			preview: $('<div class="bulk-edit-panel"></div>'),
+			mapping: $('<div class="bulk-edit-panel"></div>'),
 		};
 
 		const dialog = new frappe.ui.Dialog({
@@ -1738,6 +1739,7 @@ export default class Grid {
 					{ label: __("Template"), content: () => panels.template[0], disabled: true },
 					{ label: __("Upload"), content: () => build_uploader(), disabled: true },
 					{ label: __("Preview"), content: () => panels.preview[0], disabled: true },
+					{ label: __("Map Columns"), content: () => panels.mapping[0], disabled: true },
 			  ]
 			: [{ label: __("Template"), content: () => panels.template[0] }];
 
@@ -1747,6 +1749,17 @@ export default class Grid {
 		const TAB_TEMPLATE = can_import ? 1 : 0;
 		const TAB_UPLOAD = 2;
 		const TAB_PREVIEW = 3;
+		const TAB_MAPPING = 4;
+
+		// the preview's own action, bottom left; only that tab shows it
+		dialog.add_custom_action(
+			__("Map Columns"),
+			() => {
+				tabs.set_disabled(TAB_MAPPING, false);
+				tabs.set_active(TAB_MAPPING);
+			},
+			"bulk-edit-map"
+		);
 
 		// ---------------------------------------------------------- step 1
 
@@ -1776,13 +1789,6 @@ export default class Grid {
 				body: panels.template[0],
 				no_submit_on_enter: true,
 				fields: [
-					{
-						fieldtype: "Data",
-						fieldname: "document_type",
-						label: __("Document Type"),
-						default: __(this.df.options),
-						read_only: 1,
-					},
 					{
 						fieldtype: "Select",
 						fieldname: "export_records",
@@ -1852,6 +1858,22 @@ export default class Grid {
 		let preview_form = null;
 		const build_preview_form = () => {
 			panels.preview.empty();
+			preview_form = new frappe.ui.FieldGroup({
+				body: panels.preview[0],
+				no_submit_on_enter: true,
+				fields: [
+					{ fieldtype: "HTML", fieldname: "summary" },
+					{ fieldtype: "HTML", fieldname: "table" },
+				],
+			});
+			preview_form.make();
+		};
+
+		// ---------------------------------------------------------- step 5
+
+		let mapping_form = null;
+		const build_mapping_form = () => {
+			panels.mapping.empty();
 			const options = [
 				{ label: __("Don't Import"), value: BULK_EDIT_DONT_IMPORT },
 				...this.get_bulk_edit_docfields().map((df) => ({
@@ -1861,15 +1883,7 @@ export default class Grid {
 				})),
 			];
 
-			const fields = [
-				{ fieldtype: "HTML", fieldname: "summary" },
-				{
-					fieldtype: "Section Break",
-					fieldname: "mapping_section",
-					label: __("Map Columns"),
-					collapsible: 1,
-				},
-			];
+			const fields = [];
 			state.headers.forEach((header, i) => {
 				fields.push(
 					{
@@ -1892,26 +1906,20 @@ export default class Grid {
 					{ fieldtype: "Section Break" }
 				);
 			});
-			fields.push({ fieldtype: "HTML", fieldname: "table" });
 
-			preview_form = new frappe.ui.FieldGroup({
-				body: panels.preview[0],
+			mapping_form = new frappe.ui.FieldGroup({
+				body: panels.mapping[0],
 				no_submit_on_enter: true,
 				fields,
 			});
-			preview_form.make();
-
-			// mapping starts folded away; the rows are what you came to look at
-			preview_form.sections
-				.find((section) => section.df?.fieldname === "mapping_section")
-				?.collapse(true);
+			mapping_form.make();
 		};
 
 		/** Re-read the mapping controls, then redraw the summary and the table. */
 		const refresh_preview = () => {
 			const map = {};
 			state.headers.forEach((header, i) => {
-				const value = preview_form.get_value(`map_${i}`);
+				const value = mapping_form?.get_value(`map_${i}`);
 				if (value && value !== BULK_EDIT_DONT_IMPORT) map[i] = value;
 			});
 			state.column_map = map;
@@ -1983,6 +1991,8 @@ export default class Grid {
 
 			state.column_map = this.get_bulk_edit_column_map(state.headers);
 			build_preview_form();
+			// built now so the mapping controls exist for refresh_preview to read
+			build_mapping_form();
 			refresh_preview();
 			tabs.set_disabled(TAB_PREVIEW, false);
 			tabs.set_active(TAB_PREVIEW);
@@ -2006,6 +2016,8 @@ export default class Grid {
 			const $secondary = dialog.get_secondary_btn();
 			$primary.removeClass("hide");
 			$secondary.addClass("hide");
+			// the Map Columns action belongs to the preview and nowhere else
+			dialog.$wrapper.find(".bulk-edit-map").toggleClass("hide", active !== TAB_PREVIEW);
 
 			if (active === TAB_TEMPLATE) {
 				if (can_import) {
@@ -2034,6 +2046,14 @@ export default class Grid {
 					dialog.hide();
 					this.apply_bulk_edit_rows(state.rows, state.import_type, state.column_map);
 				});
+				return;
+			}
+
+			if (active === TAB_MAPPING) {
+				// the button label is set with .text(), so the arrow has to be a glyph
+				dialog.set_primary_action(`← ${__("Back to Preview")}`, () =>
+					tabs.set_active(TAB_PREVIEW)
+				);
 				return;
 			}
 
