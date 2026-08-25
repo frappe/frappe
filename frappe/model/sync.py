@@ -58,7 +58,7 @@ IMPORTABLE_DOCTYPES = [
 # Not to be confused with `APP_LEVEL_ENTITIES` further down: that one is the reaper's list of
 # the old hand-written app-level fixtures, which are retiring. This is the ordinary export road,
 # rooted one level up.
-APP_ROOTED_DOCTYPES = [("desk", "sidebar")]
+APP_ROOTED_DOCTYPES = [("desk", "dock"), ("desk", "sidebar")]
 
 
 def sync_all(force=0, reset_permissions=False):
@@ -243,7 +243,7 @@ def remove_orphan_doctypes():
 # deleted. `Workspace Sidebar` has left this list -- the archive's files are going away with
 # this release, so left here it would delete the very rows the conversion reads. Icon fixtures
 # stay: their files are staying, and an icon has no computed base to absorb the loss.
-ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Sidebar"]
+ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Sidebar", "Dock"]
 # Retiring with the icon-grid batch, together with the fixture import it mirrors; see
 # `frappe/desk/RETIRING.md`.
 APP_LEVEL_ENTITIES = ["Desktop Icon"]
@@ -265,6 +265,9 @@ def remove_orphan_entities(entity_types=None):
 		# only a standard sidebar is backed by a file; everything else belongs to the site
 		# and is never an orphan
 		"Sidebar": {"standard": True},
+		# the same rule one table down: the app's own dock is the file-backed layer, and the
+		# site's arrangement and every person's own are never candidates
+		"Dock": {"standard": 1},
 	}
 	if entity_types:
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]

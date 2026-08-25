@@ -1,0 +1,75 @@
+{
+ "app": "frappe",
+ "creation": "2026-08-26 20:00:00",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "hidden": 0,
+   "link_name": "Build",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Users",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Email",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Website",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Data",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Workflow",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Printing",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Integrations",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Contacts",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Automation",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "Geo",
+   "type": "Sidebar"
+  },
+  {
+   "hidden": 0,
+   "link_name": "System",
+   "type": "Sidebar"
+  }
+ ],
+ "modified": "2026-08-26 20:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "frappe",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}

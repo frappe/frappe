@@ -2,6 +2,9 @@
 # License: MIT. See LICENSE
 
 import json
+import os
+import shutil
+import tempfile
 import typing
 from contextlib import ExitStack, contextmanager
 from unittest.mock import patch
@@ -9,19 +12,34 @@ from unittest.mock import patch
 import frappe
 from frappe.boot import get_app_modules, get_module_sidebars
 from frappe.desk.doctype.dock.dock import (
+	Dock,
 	check_dock_hooks,
 	create_module,
+	get_app_dock,
 	get_site_dock,
 	get_site_dock_layer,
 	get_user_dock,
 	get_user_dock_layer,
+	mark_as_standard,
 	render_dock_hook,
 	resolve_dock,
 	save_site_dock,
 	save_user_dock,
+	unmark_as_standard,
 )
-from frappe.desk.doctype.sidebar.sidebar import DEFAULT_HEADER_ICON, resolve_sidebar
-from frappe.desk.doctype.sidebar.test_sidebar import developer_mode, make_sidebar, sidebarless_module
+from frappe.desk.doctype.sidebar.sidebar import (
+	DEFAULT_HEADER_ICON,
+	SYSTEM_WRITE_FLAGS,
+	resolve_sidebar,
+)
+from frappe.desk.doctype.sidebar.test_sidebar import (
+	developer_mode,
+	make_sidebar,
+	no_developer_mode,
+	sidebarless_module,
+	system_write,
+)
+from frappe.model.sync import remove_orphan_entities
 from frappe.tests import IntegrationTestCase
 
 USER = "test-dock-prefs@example.com"
@@ -92,17 +110,71 @@ def dock_for(email=None, among=TRIO, app=APP):
 
 
 def clear_arrangements():
-	"""The site's layer and every person's own, gone.
+	"""The site's layer and every person's own, gone -- at every app.
 
 	These suites reuse the same addresses, so a layer left standing is the next test's mystery
 	entry. Deleting the *user* is not enough on its own here, since these layers belong to
 	`Administrator`, who is never deleted.
 
-	Nothing an app ships is touched: an app's fragment is a hook, not a document, and a suite
-	that wants one declares it with `shipped_dock`.
+	**Standard rows are left alone.** Those are what an app ships, they are backed by files in
+	the working tree, and sweeping them would delete frappe's own dock from the site -- which no
+	suite here means to do and only `TestTheExportRoad` ever creates.
 	"""
-	for name in frappe.get_all("Dock", pluck="name"):
+	clear_arrangements_for(standard=0)
+
+
+def clear_arrangements_for(app=None, standard=None):
+	"""Dock rows matching an address, gone. Deleted through the document so each one invalidates
+	the boot cache it belongs to."""
+	filters = {}
+	if app is not None:
+		filters["app"] = app
+	if standard is not None:
+		filters["standard"] = standard
+
+	for name in frappe.get_all("Dock", filters=filters, pluck="name"):
 		frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)
+
+
+@contextmanager
+def app_rooted_at(app, root):
+	"""Pretend `app` is on this bench with its files under `root`.
+
+	The export road writes into `frappe.get_app_path(app)`, and a suite about that road must not
+	write into a real app on the bench -- frappe ships a dock of its own, and a test that marked
+	and unmarked it would delete the file from the working tree.
+
+	Four reads are redirected: the path the export writes to, the installed list
+	`validate_standard` checks, the active list `check_docked_app` checks, and the hooks read --
+	an invented app has no `hooks.py` to import, and asking for one raises.
+	`_ensure_on_bench` is deliberately left alone, exactly as `shipped_dock` leaves it: callers
+	who ask that question want apps that really are directories, and this one is not.
+	"""
+	real_path = frappe.get_app_path
+	real_installed = frappe.get_installed_apps
+	real_active = frappe.get_active_apps
+	real_hooks = frappe.get_hooks
+
+	def app_path(app_name, *joins):
+		return os.path.join(root, *joins) if app_name == app else real_path(app_name, *joins)
+
+	def installed(*args, **kwargs):
+		return [*real_installed(*args, **kwargs), app]
+
+	def active(*args, _ensure_on_bench=False, **kwargs):
+		apps = real_active(*args, _ensure_on_bench=_ensure_on_bench, **kwargs)
+		return apps if _ensure_on_bench else [*apps, app]
+
+	def hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		return [] if app_name == app else real_hooks(hook, default, app_name)
+
+	with (
+		patch.object(frappe, "get_app_path", app_path),
+		patch.object(frappe, "get_installed_apps", installed),
+		patch.object(frappe, "get_active_apps", active),
+		patch.object(frappe, "get_hooks", hooks),
+	):
+		yield root
 
 
 @contextmanager
@@ -458,7 +530,9 @@ class TestDockSiteLayer(DockTestCase):
 		save_user_dock(APP, payload(BETA))
 		frappe.set_user("Administrator")
 
-		layers = frappe.get_all("Dock", fields=["app", "user"])
+		# the two writable layers, which is what "every layer is one shape" is about -- the app's
+		# own row is in this same table and is told apart by `standard`
+		layers = frappe.get_all("Dock", filters={"standard": 0}, fields=["app", "user"])
 		self.assertEqual(sorted(row.user or "" for row in layers), ["", self.DESK_USER])
 		self.assertEqual({row.app for row in layers}, {APP})
 		self.assertEqual(frappe.get_meta("Dock").get_field("items").options, "Dock Item")
@@ -513,12 +587,15 @@ class TestTheAppLayer(DockTestCase):
 		with self.ship(BETA, ALPHA):
 			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
 
-	def test_the_base_is_the_hook_rather_than_a_document(self):
-		"""Nothing is exported, imported or materialised: an app-layer row accumulates no state a
-		hook cannot express, so there is no mirror record to drift and no orphan to reap."""
+	def test_the_hook_still_answers_for_an_app_that_ships_no_record(self):
+		"""The expand half of the pair 07 contracts: an app that has re-exported its dock is read
+		from the document, and one that has not keeps its fragment working meanwhile."""
 		with self.ship(BETA, ALPHA):
 			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
-			self.assertFalse(frappe.get_all("Dock"), "an app's fragment stores nothing")
+			self.assertFalse(
+				frappe.get_all("Dock", filters={"app": self.APP}),
+				"this app ships no record, so its base is the hook and stores nothing",
+			)
 
 	def test_each_apps_fragment_is_its_own_rail(self):
 		"""A fragment says nothing about another app's, and now nothing concatenates them either:
@@ -946,8 +1023,12 @@ class TestEmitDockHook(DockTestCase):
 		]
 		self.assertEqual(emitted["code"], render_dock_hook(fragment))
 
-		with shipped_dock({self.APP: fragment}):
-			resolved = dock_for(among=TRIO)
+		# Declared for an app that ships no record, because that is the only app a pasted block
+		# still answers for: `get_app_dock` prefers a shipped document where there is one, and
+		# frappe now ships its own.
+		pasted_into = "zz-dock-emit-roundtrip"
+		with shipped_dock({pasted_into: fragment}):
+			resolved = dock_for(among=TRIO, app=pasted_into)
 
 		self.assertEqual(names(resolved), [GAMMA, BETA, ALPHA])
 		self.assertEqual(hidden_by_name(resolved)[ALPHA], 1)
@@ -1057,16 +1138,16 @@ class TestTheAppsEntrySet(IntegrationTestCase):
 		self.assertTrue(hasattr(boot, "DEFAULT_APP_SEQUENCE_ID"))
 
 
-class TestTheFrameworksTen(IntegrationTestCase):
-	"""The framework declaring its own dock order as ten typed rows.
+class TestTheFrameworksDock(IntegrationTestCase):
+	"""The framework shipping its own dock as an exported document.
 
-	A transcription, not an extension: the ten are what the framework already declared through
-	eleven exported `Sidebar` documents, and `Geo` and `System` stay unnamed and trail exactly as
-	they did -- System's exported value read as the default, so it trailed beside Geo. The dock
-	renders identically before and after.
+	Twelve rows, not ten. The hook deliberately left `Geo` and `System` unnamed so they would
+	trail in `modules.txt` order; a record has no trailing tier to fall into, so naming them is
+	compulsory rather than gratuitous -- and the rail renders the same twelve buttons in the same
+	order either way.
 	"""
 
-	TEN: typing.ClassVar[list[str]] = [
+	TWELVE: typing.ClassVar[list[str]] = [
 		# the shell, not the module: `Build Tools`' sidebar is titled `Build`
 		"Build",
 		"Users",
@@ -1078,43 +1159,225 @@ class TestTheFrameworksTen(IntegrationTestCase):
 		"Integrations",
 		"Contacts",
 		"Automation",
+		"Geo",
+		"System",
 	]
 
-	def test_frappe_declares_its_ten(self):
+	def test_frappe_ships_a_dock_record(self):
+		"""A document, exported and re-imported like any other -- not a hook, and not a fixture."""
+		dock = frappe.get_doc("Dock", "frappe")
+
+		self.assertTrue(dock.standard)
+		self.assertEqual(dock.app, "frappe")
+		self.assertEqual([row.link_name for row in dock.items], self.TWELVE)
+
+	def test_the_record_is_named_after_its_app(self):
+		"""The record's name is its path, so it cannot be a hash: a re-export from a fresh bench
+		would mint a second file and leave the first a permanent orphan."""
+		self.assertEqual(frappe.db.get_value("Dock", {"app": "frappe", "standard": 1}), "frappe")
+
+	def test_the_record_is_the_base_the_layers_are_laid_over(self):
+		frappe.set_user("Administrator")
+		clear_arrangements()
+
 		self.assertEqual(
-			frappe.get_hooks("add_to_dock", app_name="frappe"),
-			[{"type": "Sidebar", "name": module} for module in self.TEN],
+			[row["name"] for row in get_app_dock("frappe") if row["type"] == "Sidebar"],
+			self.TWELVE,
 		)
 
 	def test_the_walked_case_renders_the_same_dock(self):
-		"""Fifteen modules in, ten named, three code-only dropped by the client, Geo and System
-		trailing -- in `modules.txt` order, which is where they already were."""
-		from frappe.boot import get_app_modules
+		"""Fifteen modules in, twelve named, three code-only never nameable at all."""
 		from frappe.utils.modules import get_code_only_modules
 
 		frappe.set_user("Administrator")
 		clear_arrangements()
 
 		resolved = [row["name"] for row in resolve_dock()["frappe"] if row["type"] == "Sidebar"]
-		entry_set = get_app_modules("frappe")
+		self.assertEqual([name for name in resolved if name in self.TWELVE], self.TWELVE)
 
-		# the ten lead, in the order the hook declares them
-		self.assertEqual([name for name in resolved if name in self.TEN], self.TEN)
+		# the three the record cannot name, because they ship no navigation of their own
+		self.assertEqual(sorted(get_code_only_modules()), ["Core", "Custom", "Desk"])
+		self.assertFalse([name for name in resolved if name in get_code_only_modules()])
 
-		# ...and the entries nothing names are absent from the arrangement, so the client keeps
-		# them in the app's own order behind the ten. Code-only modules are filtered client-side,
-		# as they already were, so they are still in the entry set here.
-		#
-		# Narrowed to the modules `modules.txt` declares: a bench that has run the full suite
-		# carries stray `Module Def` rows, and this is an assertion about the framework's fifteen.
-		declared = set(frappe.get_module_list("frappe"))
-		# The hook names shells and this entry set names modules, and `Build Tools` is the one
-		# place the two are spelled differently -- so the comparison goes through the module each
-		# named shell belongs to rather than through the name itself.
-		named = {frappe.db.get_value("Sidebar", name, "module") or name for name in self.TEN}
-		unnamed = [name for name in entry_set if name in declared and name not in named]
-		self.assertEqual([name for name in resolved if name in unnamed], [])
-		self.assertEqual([name for name in unnamed if name not in get_code_only_modules()], ["Geo", "System"])
+
+class TestTheExportRoad(IntegrationTestCase):
+	"""An app's dock as a git-versioned file: promoted in one act, kept current on every Save,
+	re-imported by migrate, and reaped when its file goes away.
+
+	The app used here is invented, so nothing is ever written into a real app on the bench: the
+	export is pointed at a temporary directory standing in for `frappe.get_app_path(app)`.
+
+	Not a `DockTestCase`, and its modules are its own. `remove_orphan_entities` commits, so
+	anything this suite writes outlives the framework's rollback -- which means the fixtures have
+	to be torn down by hand, and cannot be the shared class-level ones the other suites lean on.
+	"""
+
+	APP = "zz-dock-export"
+	ONE = "Test Dock Export One"
+	TWO = "Test Dock Export Two"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.root = tempfile.mkdtemp(prefix="zz-dock-export-")
+		self.addCleanup(shutil.rmtree, self.root, True)
+		self.enterContext(app_rooted_at(self.APP, self.root))
+		self.enterContext(developer_mode())
+		self.make_modules()
+
+	def tearDown(self):
+		"""By hand and before the commit, not through `addCleanup`.
+
+		`remove_orphan_entities` commits, so everything this suite has written is already durable
+		by the time a test ends -- and cleanups run *after* `tearDown`, so anything deleted there
+		would be deleted after the commit that was supposed to make the deletion stick.
+		"""
+		frappe.set_user("Administrator")
+		clear_arrangements_for(self.APP)
+		self.drop_modules()
+		frappe.db.commit()  # nosemgrep
+
+	def make_modules(self):
+		self.drop_modules()
+		with no_developer_mode():
+			for module in (self.ONE, self.TWO):
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": module, "app_name": "frappe"}
+				).insert()
+
+	def drop_modules(self):
+		with no_developer_mode():
+			for module in (self.ONE, self.TWO):
+				frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+
+	def exported(self) -> str:
+		# `scrub`, because the export road does: the folder and the file are named after the
+		# record, snake_cased, and the record here is named after an app with hyphens in it
+		scrubbed = frappe.scrub(self.APP)
+		return os.path.join(self.root, "dock", scrubbed, f"{scrubbed}.json")
+
+	def author(self, *modules):
+		"""The site arranges a rail, which is what an author has in front of them before the
+		dock is promoted to app content."""
+		save_site_dock(self.APP, payload(*modules))
+
+	def test_marking_standard_writes_the_file_and_sets_the_flag_in_one_act(self):
+		self.author(self.TWO, self.ONE)
+		mark_as_standard(self.APP)
+
+		self.assertTrue(os.path.exists(self.exported()))
+		self.assertTrue(frappe.db.get_value("Dock", {"app": self.APP, "standard": 1}, "standard"))
+		self.assertEqual(json.load(open(self.exported()))["name"], self.APP)
+
+	def test_the_promoted_dock_becomes_the_base(self):
+		"""The point of promoting: the app's own rows are what the two layers above rearrange."""
+		self.author(self.TWO, self.ONE)
+		mark_as_standard(self.APP)
+
+		self.assertEqual(names(get_app_dock(self.APP)), [self.TWO, self.ONE])
+
+	def test_a_later_save_keeps_the_file_current(self):
+		self.author(self.TWO)
+		mark_as_standard(self.APP)
+
+		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": self.APP, "standard": 1}))
+		doc.append("items", {"type": "Sidebar", "link_name": self.ONE})
+		doc.save(ignore_permissions=True)
+
+		on_disk = [row["link_name"] for row in json.load(open(self.exported()))["items"]]
+		self.assertEqual(on_disk, [self.TWO, self.ONE])
+
+	def test_a_mark_that_writes_no_file_leaves_no_row(self):
+		"""A standard row with no file is the orphan the next migrate deletes, so a mark that
+		did not land must roll the row back rather than create one that deletes itself."""
+		self.author(self.ONE)
+
+		with patch.object(Dock, "is_exported", return_value=False):
+			self.assertRaises(frappe.ValidationError, mark_as_standard, self.APP)
+
+		self.assertFalse(frappe.db.exists("Dock", {"app": self.APP, "standard": 1}))
+
+	def test_unmarking_deletes_both_the_row_and_the_file(self):
+		self.author(self.ONE)
+		mark_as_standard(self.APP)
+
+		unmark_as_standard(self.APP)
+
+		self.assertFalse(os.path.exists(self.exported()))
+		self.assertFalse(frappe.db.exists("Dock", {"app": self.APP, "standard": 1}))
+
+	def test_unmarking_leaves_the_app_with_no_rail(self):
+		"""The asymmetry with `Sidebar`'s unmark, which falls back to a computed base: a dock
+		has none, so what is left is no rail at all."""
+		self.author(self.ONE)
+		mark_as_standard(self.APP)
+		# the site's own arrangement is what would otherwise still be answering
+		clear_arrangements_for(self.APP, standard=0)
+
+		unmark_as_standard(self.APP)
+
+		self.assertEqual(get_app_dock(self.APP), [])
+
+	def test_deleting_the_file_reaps_the_row(self):
+		"""What makes the file the source of truth: a record whose file has gone is an orphan."""
+		self.author(self.ONE)
+		mark_as_standard(self.APP)
+
+		shutil.rmtree(os.path.dirname(self.exported()))
+		remove_orphan_entities(["Dock"])
+
+		self.assertFalse(frappe.db.exists("Dock", {"app": self.APP, "standard": 1}))
+
+	def test_site_and_user_rows_are_never_orphan_candidates(self):
+		"""They are backed by no file at all, so a reaper that swept them would delete every
+		arrangement on the site the first time it ran."""
+		self.author(self.ONE)
+		save_user_dock(self.APP, payload(self.TWO))
+
+		remove_orphan_entities(["Dock"])
+
+		self.assertTrue(frappe.db.exists("Dock", {"app": self.APP, "standard": 0, "user": ""}))
+
+	# -- the conditional guard -----------------------------------------------------------
+
+	def test_outside_developer_mode_the_standard_flag_cannot_be_set(self):
+		self.author(self.ONE)
+
+		with no_developer_mode():
+			self.assertRaises(frappe.ValidationError, mark_as_standard, self.APP)
+
+	def test_outside_developer_mode_the_standard_flag_cannot_be_cleared(self):
+		"""The half a blanket guard would cover and a flag-only guard would not: a Workspace
+		Manager holds `write` on `Dock`, so without this they could take an app's row, clear the
+		flag, and convert git-versioned app content into a site row they own."""
+		self.author(self.ONE)
+		mark_as_standard(self.APP)
+		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": self.APP, "standard": 1}))
+
+		with no_developer_mode():
+			doc.standard = 0
+			self.assertRaises(frappe.ValidationError, doc.save, ignore_permissions=True)
+
+	def test_an_ordinary_site_layer_save_succeeds_outside_developer_mode(self):
+		"""Why the guard is conditional rather than blanket: all three layers share this table,
+		and a blanket guard would refuse every person saving their own arrangement."""
+		with no_developer_mode():
+			save_site_dock(self.APP, payload(self.ONE))
+
+		self.assertEqual(names(get_site_dock(self.APP)), [self.ONE])
+
+	def test_each_system_write_flag_lets_app_content_through(self):
+		"""Every one of these is a real route by which an app's dock reaches a site. Without the
+		escape, installing or updating an app that ships one fails on every customer site."""
+		for flag in SYSTEM_WRITE_FLAGS:
+			with self.subTest(flag=flag), no_developer_mode(), system_write(flag):
+				doc = frappe.new_doc("Dock")
+				doc.app = self.APP
+				doc.standard = 1
+				doc.append("items", {"type": "Sidebar", "link_name": self.ONE})
+				doc.save(ignore_permissions=True)
+
+				self.assertTrue(doc.standard)
+				frappe.delete_doc("Dock", doc.name, force=True, ignore_permissions=True)
 
 
 class TestTheHookIsChecked(IntegrationTestCase):

@@ -5,6 +5,11 @@ import json
 
 import frappe
 from frappe import _
+
+# The same flags `Sidebar` reads, because they answer the same question: is the system placing
+# app content on a site, or is a person editing? Shared rather than copied -- a route added to one
+# list and not the other would break exactly one of the two doctypes on customer sites.
+from frappe.desk.doctype.sidebar.sidebar import SYSTEM_WRITE_FLAGS
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
@@ -51,6 +56,11 @@ PROVED_BY = {
 	"Workspace": "Workspace",
 }
 DOCK_TYPES = frozenset(PROVED_BY)
+
+# The columns a stored `Dock Item` carries. One list, so copying a row from one layer to another
+# -- which is what promoting the site's arrangement to app content is -- cannot quietly drop a
+# column somebody added to the schema.
+DOCK_ITEM_FIELDS = ("type", "link_name", "hidden")
 
 # `Dock Item` stores the second half of the pair as `link_name`, while every dict this module
 # hands out or takes in calls it `name`. The column cannot be called `name`: on a child row that
@@ -113,7 +123,75 @@ class Dock(Document):
 		# in a unique index is written as `NULL`, and every NULL is distinct to an index -- which
 		# would let one app hold two site layers while both read as one address to `layer_filter`.
 		self.user = self.user or SITE_LAYER
+		self.validate_app_content()
+		self.validate_standard()
 		self.anchor_the_items()
+
+	def validate_app_content(self):
+		"""Only developer mode may set or clear the standard flag, because it is app content.
+
+		Conditional, where `Sidebar`'s equivalent is blanket. It has to be: all three layers live
+		in this one table, and the site's and each person's rows have to stay writable at
+		runtime -- a blanket guard would refuse every `save_user_dock`. Without *any* guard, a
+		Workspace Manager (who holds `write` on `Dock`) could take an app's row, clear the flag,
+		and convert git-versioned app content into a site row they own.
+
+		`is_new()` is load-bearing: on an unsaved document `has_value_changed` answers True for
+		every field, so without it every site- and user-layer row would be refused outside
+		developer mode.
+
+		The system-write flags are not optional either -- each of them is a real route by which
+		an app's dock reaches a site, and without the escape, installing or updating an app that
+		ships one fails on every customer site.
+		"""
+		if not (self.standard or (not self.is_new() and self.has_value_changed("standard"))):
+			return
+
+		if frappe.conf.developer_mode:
+			return
+
+		if any(frappe.flags.get(flag) for flag in SYSTEM_WRITE_FLAGS):
+			return
+
+		frappe.throw(
+			_(
+				"{0}'s dock belongs to its app and can only be authored in developer mode. "
+				"Arrange the dock instead to change it for this site."
+			).format(frappe.bold(self.app)),
+			title=_("Not Editable"),
+		)
+
+	def validate_standard(self):
+		"""Refuse to mark a dock standard unless we can actually write its file.
+
+		`standard` means "there is a JSON file in an app behind this row", and a row whose file
+		is missing counts as an orphan -- `remove_orphan_entities` would delete it on the next
+		`bench migrate`. Better to refuse than to create a row that quietly deletes itself.
+
+		Where `Sidebar` checks that a module resolves to a folder, this checks that the app is
+		installed: an app-rooted record has no module folder to find, and the app is the whole
+		address.
+
+		A system write is exempt from the developer-mode half for the same reason
+		`validate_app_content` is: an app install or a migrate places a row whose file is already
+		on disk, so demanding developer mode would refuse the very write the file exists for.
+		The app check still runs, because that one is about the file being writable at all.
+		"""
+		if not self.standard:
+			return
+
+		if not self.has_value_changed("standard") and not self.has_value_changed("app"):
+			return
+
+		if not any(frappe.flags.get(flag) for flag in SYSTEM_WRITE_FLAGS):
+			check_developer_mode()
+
+		if self.app not in frappe.get_installed_apps():
+			frappe.throw(
+				_("App {0} is not installed, so a standard dock cannot be written to it.").format(
+					frappe.bold(self.app)
+				)
+			)
 
 	def anchor_the_items(self):
 		"""Every entry points at exactly one thing, and the typed pair is what says which.
@@ -156,12 +234,57 @@ class Dock(Document):
 
 	def on_update(self):
 		self.clear_dock_cache()
+		self.export_dock()
 
 	def on_trash(self):
 		self.clear_dock_cache()
 
 	def clear_dock_cache(self):
 		drop_dock_caches(self.user)
+
+	def export_dock(self):
+		"""Write this dock to its file. Every Save keeps the file current, which is what makes
+		authoring in Manage Dock and shipping the result one thing rather than two.
+
+		`<app>/dock/<app>/<app>.json`: the ordinary per-record folder, rooted at the app instead
+		of at a module. That shape is the whole of the export road -- the import walk and orphan
+		cleanup work on it with no machinery of their own, because the filename and the record
+		name agree, which is exactly what the old hand-written app-level fixtures got wrong.
+		"""
+		from frappe.modules.export_file import export_to_files
+
+		if not self.standard or frappe.flags.in_import or not frappe.conf.developer_mode:
+			return
+
+		export_to_files(record_list=[["Dock", self.name]], record_app=self.app)
+
+	def exported_file_path(self) -> str:
+		"""The path `export_to_files` writes this dock to.
+
+		Asked of the export module rather than rebuilt here, so the file this checks for is by
+		construction the file the export writes.
+		"""
+		from frappe.modules.export_file import export_root, exported_file_path
+
+		return exported_file_path(export_root(record_app=self.app), self.doctype, self.name)
+
+	def is_exported(self) -> bool:
+		"""Whether the file behind this dock is really on disk.
+
+		This is the question orphan cleanup asks, so `mark_as_standard` has to answer it before
+		claiming the dock is shipped.
+		"""
+		import os
+
+		if self.is_new() or not self.app:
+			return False
+
+		try:
+			return os.path.exists(self.exported_file_path())
+		except (frappe.DoesNotExistError, ImportError):
+			# no app on the bench, so no file -- `get_app_path` says so by throwing
+			frappe.clear_last_message()
+			return False
 
 
 def on_doctype_update():
@@ -177,6 +300,131 @@ def on_doctype_update():
 	the site's is what `Reset for everyone` drops without touching the app's.
 	"""
 	frappe.db.add_unique("Dock", ("app", "user", "standard"), constraint_name="unique_layer_address")
+
+
+# ---------------------------------------------------------------------------------------
+# Making a dock app content, and taking it back
+#
+# `standard` means an app ships this dock as a JSON file. The two actions below turn that on
+# and off, and both of them move the file as well as the flag.
+#
+# There is no bench command and no CI check to go with them, deliberately. The "standard check"
+# is three existing mechanisms at three moments: `validate_standard` refuses the flag unless the
+# file can be written, `is_exported` verifies the write landed and rolls back if it did not, and
+# the reaper deletes a row whose file went away. Drift self-heals on this road -- `on_update`
+# re-exports on Save, a hand-edited file is re-imported on migrate -- so a command would report a
+# state the system already prevents.
+# ---------------------------------------------------------------------------------------
+
+
+@frappe.whitelist()
+def mark_as_standard(app: str) -> str:
+	"""Make `app`'s dock part of the app: write it into the app's folder so the app ships it,
+	and let `bench migrate` import it back from there. Returns the document's name.
+
+	One act, not two. The flag and the file go together, and the row is rolled back if the write
+	did not land -- a standard row with no file is exactly the orphan the next `bench migrate`
+	deletes, so a mark that wrote nothing must leave no row behind either.
+
+	**No materialize step**, which is where this parts company with `Sidebar`'s: a sidebar has a
+	computed base to be shipped when no document holds one, and a dock has none. A dock-less app
+	gets no rail, so there is nothing to promote until somebody has authored rows.
+	"""
+	app = check_docked_app(app)
+	check_developer_mode()
+
+	doc = get_dock(app, standard=1)
+	if doc:
+		doc = frappe.get_doc("Dock", doc.name)
+		# Already shipped, so there is nothing to do. We check the flag *and* the file: a standard
+		# row whose file has gone missing is exactly the orphan this action exists to prevent, so
+		# we write it again rather than report success.
+		if doc.is_exported():
+			return doc.name
+	else:
+		# The site's arrangement is what an author has been editing, so that is what gets shipped.
+		# Copied rather than re-parented: the site's own layer stays where it is, so unmarking
+		# leaves the site exactly as it was before the promotion.
+		site = get_dock(app)
+		doc = frappe.new_doc("Dock")
+		doc.app = app
+		for row in site.items if site else []:
+			doc.append("items", {field: row.get(field) for field in DOCK_ITEM_FIELDS})
+
+	savepoint = "mark_dock_standard"
+	frappe.db.savepoint(savepoint)
+	try:
+		doc.standard = 1
+		# `save` inserts a freshly built record and updates an existing one. Either way it is
+		# `on_update` that writes the file.
+		doc.save(ignore_permissions=True)
+
+		if not doc.is_exported():
+			frappe.throw(_("Could not write {0}'s dock to it. Left unchanged.").format(frappe.bold(app)))
+	except Exception:
+		frappe.db.rollback(save_point=savepoint)
+		raise
+	frappe.db.release_savepoint(savepoint)
+
+	frappe.msgprint(
+		_("{0}'s dock is now standard and exported to the app.").format(frappe.bold(app)),
+		alert=True,
+		indicator="green",
+	)
+	return doc.name
+
+
+@frappe.whitelist()
+def unmark_as_standard(app: str) -> None:
+	"""Give `app`'s dock back to the site: delete its exported file and its document.
+
+	The document goes rather than just the flag. Once the app content is gone there is nothing
+	for the app to fall back to -- a dock has no computed base -- so the honest report is that
+	the app now has no rail, which is the asymmetry with `Sidebar`'s unmark: that one means "this
+	module falls back to its computed base".
+
+	The file has to go too. Left on disk, the next `bench migrate` imports it again and the row
+	comes back standard, so deleting the document on its own would not survive a migrate.
+	"""
+	import os
+	import shutil
+
+	app = check_docked_app(app)
+	check_developer_mode()
+
+	doc = get_dock(app, standard=1)
+	if not doc:
+		return
+
+	path = doc.exported_file_path() if doc.is_exported() else None
+	frappe.delete_doc("Dock", doc.name, force=True, ignore_permissions=True)
+
+	# Delete the file now rather than on commit. If someone un-marks and marks again in one
+	# request, we want to end up with the file the second call wrote -- not with a queued delete
+	# that removes it afterwards.
+	if path:
+		shutil.rmtree(os.path.dirname(path), ignore_errors=True)
+
+	frappe.msgprint(
+		_("{0} now has no rail; its exported dock has been removed.").format(frappe.bold(app)),
+		alert=True,
+		indicator="orange",
+	)
+
+
+def check_developer_mode() -> None:
+	"""Refuse unless developer mode is on.
+
+	`standard` means there is a file inside an app, and only a developer's site writes files
+	into apps.
+	"""
+	if frappe.conf.developer_mode:
+		return
+
+	frappe.throw(
+		_("Enable developer mode to change whether a dock is standard -- it is backed by a file in its app."),
+		title=_("Not Editable"),
+	)
 
 
 def rename_sidebar_rows(old_name: str, new_name: str) -> None:
@@ -406,22 +654,30 @@ def get_dock_workspaces() -> dict[str, list[str]]:
 
 
 def get_app_dock(app: str) -> list[dict]:
-	"""The base one app's layers are laid over: the rows that app's fragment declares.
+	"""The base one app's layers are laid over: its own dock, as the app ships it.
 
 	Per app, because a `Dock` is. The old cross-app concatenation existed only because the two
 	stored layers spanned every app and had to be laid over one list; with a layer addressed by
 	app plus user there is nothing to concatenate, and two apps' arrangements can no longer reach
 	each other at all.
 
-	Empty for an app that declares no fragment -- and then that app's site layer is simply the
-	first there is, exactly as it was before this base existed.
+	**The record where the app ships one, the hook where it does not.** This is the expand half
+	of the pair 07 contracts: an app that has re-exported its dock is read from the document, and
+	one that has not keeps its `add_to_dock` fragment working until the hook retires. Both answer
+	in the same shape, so nothing above here knows which it got.
 
-	*Deduped*, because a fragment may name one entry twice: two rows under one key would render
+	Empty for an app that ships neither -- and then that app's site layer is simply the first
+	there is, exactly as it was before this base existed.
+
+	*Deduped*, because either source may name one entry twice: two rows under one key would render
 	the entry twice, and the layers above dedupe their own rows without catching it, since the
 	base is copied in whole. First named keeps it, which is the rule a layer already follows.
 	"""
+	shipped = get_dock(app, standard=1)
+	source = dock_rows(shipped) if shipped else dock_fragments().get(app, [])
+
 	rows, seen = [], set()
-	for row in dock_fragments().get(app, []):
+	for row in source:
 		key = dock_key(row)
 		if key in seen:
 			continue
