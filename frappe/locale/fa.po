@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-23 21:23\n"
+"PO-Revision-Date: 2026-08-25 22:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -31051,7 +31051,7 @@ msgstr "برای تغییر نام به اجازه نوشتن در {0} {1} نی�
 
 #: frappe/utils/file_manager.py:405
 msgid "You need write permissions to add attachments to this record."
-msgstr ""
+msgstr "برای افزودن پیوست به این رکورد، به مجوزهای نوشتن نیاز دارید."
 
 #: frappe/client.py:480
 msgid "You need {0} permission to fetch values from {1} {2}"
