@@ -1,12 +1,13 @@
 {
  "actions": [],
- "autoname": "field:module",
+ "allow_rename": 1,
+ "autoname": "field:title",
  "creation": "2026-08-03 17:10:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "module",
   "title",
+  "module",
   "header_icon",
   "column_break_defn",
   "app",
@@ -19,20 +20,21 @@
  ],
  "fields": [
   {
+   "description": "The module this sidebar belongs to. Neither required nor unique: one module may own several sidebars, and which of them answers for the module itself is decided by the name -- the one called after the module -- rather than by a column here.",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Module",
-   "options": "Module Def",
-   "reqd": 1,
-   "unique": 1
+   "options": "Module Def"
   },
   {
-   "description": "Label shown in the dock. Defaults to the module name.",
+   "description": "What this sidebar is called, on screen and as its record name (`autoname: field:title`). Defaults to the module's name, and the default is stored -- so a module's own sidebar keeps the name it has always had, and a second sidebar under that module is told apart by being called something else.",
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Title"
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "header_icon",
@@ -90,7 +92,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-17 19:30:00.000000",
+ "modified": "2026-08-26 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar",

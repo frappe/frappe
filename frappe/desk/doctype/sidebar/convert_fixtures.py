@@ -113,8 +113,12 @@ def convert_app(app: str, dry_run: bool = False) -> list[dict]:
 	results = [{"module": None, "path": path, "state": "no module"} for path in unresolved]
 
 	for module in sorted(by_module):
+		# Built before the path rather than after it: a `Sidebar` is named by its title, so the
+		# title the merge lands on is what says where the file goes.
+		plan = build_sidebar(module, by_module[module])
+
 		try:
-			path = export_path(module)
+			path = export_path(module, plan["title"])
 		except (frappe.DoesNotExistError, ImportError):
 			# the fixture names a module this app has no folder for, so there is nowhere to
 			# write it; anything else here is a real failure and should not be reported as one
@@ -122,11 +126,14 @@ def convert_app(app: str, dry_run: bool = False) -> list[dict]:
 			results.append({"module": module, "path": None, "state": "no folder"})
 			continue
 
-		if os.path.exists(path):
-			results.append({"module": module, "path": path, "state": "already converted"})
+		# A file already there is left alone, under either of the two names it could be under:
+		# an app that converted by hand before a sidebar was named by its title wrote its file
+		# under the module's name, and re-converting must not write it a second time.
+		existing = next((p for p in (path, export_path(module, module)) if os.path.exists(p)), None)
+		if existing:
+			results.append({"module": module, "path": existing, "state": "already converted"})
 			continue
 
-		plan = build_sidebar(module, by_module[module])
 		results.append(
 			{
 				"module": module,
@@ -143,10 +150,11 @@ def convert_app(app: str, dry_run: bool = False) -> list[dict]:
 	return results
 
 
-def export_path(module: str) -> str:
-	"""Where `bench migrate` will look for this module's sidebar. Mirrors
-	`Sidebar.exported_file_path`, which is also what orphan removal derives."""
-	scrubbed = frappe.scrub(module)
+def export_path(module: str, title: str) -> str:
+	"""Where `bench migrate` will look for this sidebar. Mirrors `Sidebar.exported_file_path`,
+	which is also what orphan removal derives -- both are built from the record's name, and a
+	sidebar's name is its title."""
+	scrubbed = frappe.scrub(title)
 	return os.path.join(frappe.get_module_path(module), "sidebar", scrubbed, f"{scrubbed}.json")
 
 
@@ -160,7 +168,8 @@ def write_export(path: str, module: str, plan, app: str) -> None:
 
 	doc = {
 		"doctype": "Sidebar",
-		"name": module,
+		# the record is named by its title, and the file is named after the record
+		"name": plan["title"],
 		"module": module,
 		"title": plan["title"],
 		"header_icon": plan["header_icon"],

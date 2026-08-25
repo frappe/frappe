@@ -994,13 +994,18 @@ def rename_conflicting_custom_module(module: str, app: str) -> str | None:
 		show_alert=False,
 	)
 
-	# A `Sidebar` is named after its module (`autoname: field:module`), so renaming the
-	# module updates the sidebar's link to it but leaves the sidebar sitting on the name the app
-	# is about to take -- and the app's own sidebar would collide with it on import.
-	if frappe.db.exists("Sidebar", module):
+	# A `Sidebar` is named by its **title** (`autoname: field:title`), and the title defaults to
+	# the module's name -- so the site's sidebar for this module is almost certainly sitting on
+	# the name the app's own sidebar is about to be imported under. Renaming the module updated
+	# the sidebar's link to it and left its name alone, so the name has to move too.
+	#
+	# The collision is on the title rather than on the module. Two sidebars may share a module;
+	# what they cannot share is a name, so a site sidebar titled "Leads" collides with an app's
+	# "Leads" whichever modules the two belong to.
+	if held := frappe.db.get_value("Sidebar", {"title": module}, "name"):
 		rename_doc(
 			doctype="Sidebar",
-			old=module,
+			old=held,
 			new=new_name,
 			force=True,
 			ignore_permissions=True,

@@ -39,6 +39,7 @@ from frappe.app_state import get_disabled_modules
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
+from frappe.model.rename_doc import rename_doc
 from frappe.utils.modules import get_module_placement
 
 # The fields copied unchanged from a source item row into a `Sidebar Item`.
@@ -98,19 +99,73 @@ class Sidebar(Document, DeskViews):
 		header_icon: DF.Icon | None
 		items: DF.Table[SidebarItem]
 		merged_from: DF.LongText | None
-		module: DF.Link
+		module: DF.Link | None
 		standard: DF.Check
-		title: DF.Data | None
+		title: DF.Data
 	# end: auto-generated types
+
+	def before_naming(self):
+		# the name is the title, so the default has to be in place before naming reads it
+		self.set_default_title()
 
 	def validate(self):
 		self.validate_app_content()
+		self.set_default_title()
+		self.validate_standard()
+		self.clear_stored_keys()
 
+	def before_save(self):
+		self.rename_to_title()
+
+	def set_default_title(self):
+		"""A sidebar with no title of its own is called after its module.
+
+		Stored rather than worked out when read, and that is what keeps this release cheap:
+		every sidebar shipped today is titled after its module, so storing the default leaves
+		their record names, their exported paths and every reference to them exactly where
+		they already were.
+
+		Run from `before_naming` as well as from `validate` because `field:` autoname reads the
+		column directly, and it reads it before `validate` has had a chance to fill it in.
+		"""
 		if not self.title:
 			self.title = self.module
 
-		self.validate_standard()
-		self.clear_stored_keys()
+	def rename_to_title(self):
+		"""Follow a title edit with a rename, because the name *is* the title.
+
+		`field:` autoname is insert-only. On an update the name stays where it was and
+		`_sync_autoname_field` copies it back over the column, so a title edit would silently
+		revert. `Workspace` pays for the same shape with explicit `rename_doc` calls; this is
+		the same payment, made inside the document, so every writer gets it rather than only
+		the one endpoint that remembered.
+
+		Renamed *before* the save rather than after it: the row is still under its old name
+		here, which is what `rename_doc` needs, and the save that follows writes the rest of
+		the edit to the row the rename left behind.
+
+		An import is left alone. A file carries its own `name`, and that name is the record's
+		identity -- `set_new_name` keeps it for exactly that reason -- so a file whose `title`
+		disagrees with it is saying two things, and the answer is the one every other
+		`field:`-named doctype gives: `_sync_autoname_field` writes the name back over the
+		column. Renaming instead would move a row an app is in the middle of shipping, and take
+		the app's own folder with it.
+		"""
+		if frappe.flags.in_import or self.is_new() or not self.title or self.title == self.name:
+			return
+
+		# `rebuild_search`: a sidebar puts no field in global search, so the rebuild this would
+		# enqueue on every title edit has nothing to find
+		rename_doc(self.doctype, self.name, self.title, ignore_permissions=True, rebuild_search=False)
+		self.name = self.title
+		# the item rows moved with the record, and the save about to run writes them back out
+		# under whatever `parent` they are carrying -- which is still the name they left
+		self.set_parent_in_children()
+
+	def after_rename(self, old_name, new_name, merge=False):
+		from frappe.desk.doctype.dock.dock import rename_sidebar_rows
+
+		rename_sidebar_rows(old_name, new_name)
 
 	def clear_stored_keys(self):
 		"""Blank the `key` column on every item.
@@ -153,7 +208,7 @@ class Sidebar(Document, DeskViews):
 			_(
 				"{0} belongs to its app and can only be edited in developer mode. "
 				"Customize the sidebar instead to change it for this site."
-			).format(frappe.bold(self.module or self.name)),
+			).format(frappe.bold(self.name or self.title)),
 			title=_("Not Editable"),
 		)
 
@@ -194,7 +249,32 @@ class Sidebar(Document, DeskViews):
 	# renders perfectly well.
 
 	def on_update(self):
+		self.remove_previous_export()
 		self.export_sidebar()
+
+	def remove_previous_export(self):
+		"""Delete the file this sidebar was exported to under the name it has just left.
+
+		A rename leaves that file sitting there with no row of its own, and the next
+		`bench migrate` imports it straight back as a second sidebar.
+
+		Done after the save rather than beside the rename, because deleting a folder inside an
+		app is the one thing here that a failed save cannot undo -- everything else unwinds with
+		the transaction. `Workspace.on_update` removes its own stale folder in the same place
+		and for the same reason.
+
+		Gated on developer mode, which is the condition that wrote the file in the first place:
+		only a developer's site has files inside an app to keep in step.
+		"""
+		import os
+		import shutil
+
+		previous = self.get_doc_before_save()
+		if not frappe.conf.developer_mode or not previous or previous.name == self.name:
+			return
+
+		if previous.standard and previous.is_exported():
+			shutil.rmtree(os.path.dirname(previous.exported_file_path()), ignore_errors=True)
 
 	def export_sidebar(self):
 		"""Write this sidebar to `<app>/<module>/sidebar/<name>/<name>.json`.
@@ -371,12 +451,19 @@ def check_developer_mode() -> None:
 
 
 def get_sidebar(module: str) -> "Sidebar | None":
-	"""`module`'s sidebar document, or `None`.
+	"""The sidebar `module` itself answers with, or `None`.
+
+	**The naming rule, and the whole of it.** A module may own several sidebars now that a
+	sidebar is named by its title, and the one that answers *for the module* is the one called
+	after it. Anything else under that module is a second shell, reached by a dock row that
+	names it rather than by the module. That is why there is no `is_default` column: the name
+	already says which one it is.
 
 	`None` is the normal answer. Nothing creates a sidebar document for a module on its behalf,
-	so most modules have none and get a computed base instead.
+	so most modules have none and get a computed base instead -- and a module whose only sidebar
+	is called something else is in exactly that position.
 	"""
-	name = frappe.db.get_value("Sidebar", {"module": module})
+	name = frappe.db.get_value("Sidebar", {"name": module, "module": module})
 	return frappe.get_doc("Sidebar", name) if name else None
 
 
@@ -1101,6 +1188,7 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 		"Sidebar",
 		filters={"module": ["in", modules]},
 		fields=["name", "module", "title", "app", "header_icon"],
+		order_by="name asc",
 	)
 
 	items_by_sidebar = get_sidebar_items([base.name for base in bases])
@@ -1110,7 +1198,21 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 		base.rows = items_by_sidebar.get(base.name, [])
 		base.computed = 0
 
-	resolved = {base.module: base for base in bases}
+	# A module may own more than one sidebar, and this payload holds one per module, so it has
+	# to say which. The naming rule decides it: the sidebar called after the module wins.
+	#
+	# The second clause is a **bridge, not part of the rule** -- where the module is named by
+	# none of its sidebars, the first of them answers anyway. Only one sidebar in the framework
+	# is in that position (`Build`, under `Build Tools`), and it is there because a dock row
+	# still names a *module* rather than a shell, so without this the whole of Build Tools'
+	# shipped navigation would fall back to a computed base. It goes when the payload is keyed
+	# on shell identity and the dock row names `Build` directly, and until then it is ordered by
+	# name so "the first of them" is a stable answer rather than whichever row the database
+	# happened to hand back.
+	resolved = {}
+	for base in bases:
+		if base.module not in resolved or base.name == base.module:
+			resolved[base.module] = base
 
 	# A module with no document at all and a document with an empty items table both need the
 	# same thing: rows built from what the module holds.

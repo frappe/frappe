@@ -100,7 +100,9 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			mine = [r for r in results if r["module"] == MODULE]
 
 			self.assertEqual([r["state"] for r in mine], ["converted"])
-			path = export_path(MODULE)
+			# a merge is titled after the module -- four sidebars in one are not any one of
+			# them -- and a sidebar is named by its title, so the path is the module's here
+			path = export_path(MODULE, MODULE)
 			self.assertTrue(os.path.exists(path), f"nothing written to {path}")
 
 			written = json.loads(open(path).read())
@@ -120,11 +122,26 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 
 		with module_resolvable_on_disk(MODULE), old_fixtures(fixtures):
 			convert_app("frappe")
-			import_file_by_path(export_path(MODULE), force=True, ignore_version=True)
+			import_file_by_path(export_path(MODULE, "Conversion Only"), force=True, ignore_version=True)
 
-		doc = frappe.get_doc("Sidebar", MODULE)
+		doc = frappe.get_doc("Sidebar", "Conversion Only")
+		self.assertEqual(doc.module, MODULE)
 		self.assertEqual([item.link_to for item in doc.items], ["User"])
 		self.assertEqual(doc.standard, 1)
+
+	def test_a_single_source_is_written_under_the_title_it_keeps(self):
+		"""A module with one source keeps that workspace's title -- `Loan Management` still
+		reads "Lending" -- and a sidebar is named by its title, so that is what the record and
+		the file are called. The module column is what still says whose it is."""
+		fixtures = {"only": fixture("Conversion Only", MODULE, [link("User")])}
+
+		with module_resolvable_on_disk(MODULE), old_fixtures(fixtures):
+			convert_app("frappe")
+
+			written = json.loads(open(export_path(MODULE, "Conversion Only")).read())
+			self.assertEqual(written["name"], "Conversion Only")
+			self.assertEqual(written["title"], "Conversion Only")
+			self.assertEqual(written["module"], MODULE)
 
 	def test_it_never_overwrites_a_file_that_is_already_there(self):
 		"""Idempotent, and safe against an app half-way through converting by hand -- which is
@@ -133,12 +150,12 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 
 		with module_resolvable_on_disk(MODULE), old_fixtures(fixtures):
 			convert_app("frappe")
-			before = open(export_path(MODULE)).read()
+			before = open(export_path(MODULE, "Conversion Only")).read()
 
 			results = convert_app("frappe")
 
 			self.assertIn("already converted", [r["state"] for r in results if r["module"] == MODULE])
-			self.assertEqual(before, open(export_path(MODULE)).read())
+			self.assertEqual(before, open(export_path(MODULE, "Conversion Only")).read())
 
 	def test_a_dry_run_writes_nothing(self):
 		fixtures = {"only": fixture("Conversion Only", MODULE, [link("User")])}
@@ -147,7 +164,7 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			results = convert_app("frappe", dry_run=True)
 
 			self.assertIn("converted", [r["state"] for r in results if r["module"] == MODULE])
-			self.assertFalse(os.path.exists(export_path(MODULE)))
+			self.assertFalse(os.path.exists(export_path(MODULE, "Conversion Only")))
 
 	def test_a_personal_fork_in_an_app_folder_is_not_shipped(self):
 		"""A `for_user` sidebar that got exported by accident is somebody's own arrangement,
@@ -160,7 +177,7 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			results = convert_app("frappe")
 
 			self.assertEqual([r for r in results if r["module"] == MODULE], [])
-			self.assertFalse(os.path.exists(export_path(MODULE)))
+			self.assertFalse(os.path.exists(export_path(MODULE, "Conversion Mine")))
 
 
 class TestTheMerge(IntegrationTestCase):

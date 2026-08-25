@@ -7,8 +7,9 @@ They have the previous navigation in full: a `Workspace Sidebar` per workspace, 
 of those sidebars per user, and a container holding everyone's private pages. The site-level rows become
 each module's **`Sidebar`** -- the base the desk reads, which is what they were -- and a fork
 becomes a **`Custom Sidebar`** for its owner, which is what *it* was. Writing the base is also
-what lets an app take its own sidebar back later: a `Sidebar` is named after its module, so the
-file the author eventually ships lands on that very row and the import overwrites it.
+what lets an app take its own sidebar back later: a `Sidebar` is named by its title, so an app
+titling its sidebar what the site's was called lands on that very row, and one titling it after
+the module wins by the naming rule instead.
 
 These tests seed that shape, run the patch as a migrate would, and read the result off the
 surfaces the desk actually boots from.
@@ -245,9 +246,14 @@ class TestV16Upgrade(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Sidebar", self.MODULE, "modified"), archived)
 
 	def test_an_app_shipping_its_sidebar_later_takes_over(self):
-		"""The whole reason this is a base and not a layer: the author's file is named after the
-		module, lands on the converted row, and the import overwrites it. Nothing has to notice
-		that the conversion ever happened.
+		"""The whole reason this is a base and not a layer: the module ends up answering with the
+		author's file rather than with what the conversion wrote, and nothing has to notice that
+		the conversion ever happened.
+
+		A sidebar is named by its title now, so the two are not always the same record. This
+		module's one v16 sidebar was called "V16 Late" and keeps that label, while the app titles
+		its own after the module -- so the app's lands beside the converted row, and the naming
+		rule is what hands the module to it.
 
 		On a module of its own, because it deliberately replaces what the conversion wrote and the
 		rest of this class reads that.
@@ -273,13 +279,15 @@ class TestV16Upgrade(IntegrationTestCase):
 			module=module,
 		)
 		run_conversion()
-		self.assertEqual([row.label for row in self.base(module).items], ["Their Todos"])
+		converted = frappe.get_doc("Sidebar", "V16 Late")
+		self.assertEqual(converted.module, module, "the conversion kept the v16 label as its name")
+		self.assertEqual([row.label for row in converted.items], ["Their Todos"])
 
 		shipped = {
 			"doctype": "Sidebar",
 			"name": module,
 			"module": module,
-			"title": "Curated",
+			"title": module,
 			"standard": 1,
 			"modified": add_days(now(), 14),
 			"items": [
@@ -305,7 +313,7 @@ class TestV16Upgrade(IntegrationTestCase):
 
 			imported = import_file_by_path(f, force=False, ignore_version=True)
 
-		self.assertTrue(imported, "the app's own file did not overwrite the converted row")
+		self.assertTrue(imported, "the app's own file was not imported")
 		self.assertEqual([row.label for row in self.base(module).items], ["Curated Users"])
 		self.assertEqual(
 			[item["label"] for item in resolve_sidebar(module, "Administrator").items], ["Curated Users"]

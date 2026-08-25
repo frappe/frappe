@@ -36,9 +36,11 @@ DOCK_HOOK = "add_to_dock"
 # this is, at both ends: a `Dock` refuses a row naming any other doctype, and a saved arrangement
 # drops one. Adding a third kind of entry is a row here rather than a column there.
 #
-# A `Sidebar` is proved by its `Module Def`, not by a `Sidebar` document. A sidebar's name *is*
-# its module's name (`autoname: field:module`), and most modules have a computed base with no
-# document at all -- so asking the `Sidebar` table would drop the common case.
+# A `Sidebar` is proved by its `Module Def`, not by a `Sidebar` document: a dock row of this kind
+# names a **module**, and most modules have a computed base with no document at all -- so asking
+# the `Sidebar` table would drop the common case. A sidebar is named by its title now, and the
+# title defaults to the module's name, so the module's own sidebar is still what such a row
+# lands on.
 PROVED_BY = {
 	"Sidebar": "Module Def",
 	"Workspace": "Workspace",
@@ -150,6 +152,31 @@ class Dock(Document):
 # Declared on the field rather than added by an `on_doctype_update` hook because the two disagree:
 # a column the doctype does not call `unique` has its index dropped on every migrate, and the hook
 # would add it straight back, so each migrate would churn the table for nothing.
+
+
+def rename_sidebar_rows(old_name: str, new_name: str) -> None:
+	"""Point every dock row naming a sidebar at what that sidebar is called now.
+
+	A dock row *names* what it opens rather than referencing it -- `_validate_links` above is a
+	deliberate no-op -- so nothing carries a rename across on its own, and the row would be left
+	naming a shell that no longer answers to it.
+
+	The rows are updated in place rather than through their parent. A `Dock` is the site's
+	arrangement or one person's own, and re-saving one to correct a name it holds would re-run
+	validation nobody asked for. What the parent's save would have done besides is drop the
+	caches its layer is read out of, and that is what the loop does instead: `get_dock` reads a
+	`Dock` through `get_cached_doc`, so the document's own cache entry is the one that goes
+	stale, and `clear_dock_cache` is what the parent would have called anyway.
+	"""
+	named = {"parenttype": "Dock", "type": "Sidebar", "link_name": old_name}
+	layers = frappe.get_all("Dock Item", filters=named, pluck="parent", distinct=True)
+	if not layers:
+		return
+
+	frappe.db.set_value("Dock Item", named, "link_name", new_name, update_modified=False)
+	for layer in layers:
+		frappe.clear_document_cache("Dock", layer)
+		frappe.get_doc("Dock", layer).clear_dock_cache()
 
 
 def layer_filter(user: str | None) -> dict:
@@ -473,8 +500,8 @@ def is_reachable(entry) -> bool:
 	"""Whether the session user may go where the entry points.
 
 	Two gates because there are two kinds of entry, and each is the gate that already decides
-	the thing it points at: module visibility for a sidebar -- whose name is its module's name --
-	and the permitted workspace list for a workspace. Neither is anything the dock decides for
+	the thing it points at: module visibility for a sidebar -- a row of that kind names a module
+	-- and the permitted workspace list for a workspace. Neither is anything the dock decides for
 	itself, and a third kind would bring its own rather than reuse one of these.
 
 	Existence is asked first, and only of the sidebar half. `is_module_visible` answers "not

@@ -127,9 +127,13 @@ class ModuleDef(Document):
 
 	def on_trash(self):
 		"""Delete module name from modules.txt"""
-		# The sidebar is this module's content, so it goes with it. Unconditional -- the
-		# developer_mode guard below is about editing modules.txt on disk, not about data.
-		frappe.delete_doc("Sidebar", self.name, ignore_missing=True, force=True)
+		# The sidebars are this module's content, so they go with it. Every one of them, not
+		# just the one called after the module: a sidebar is named by its title now, so a module
+		# may own several and deleting by name would leave the rest behind pointing at a module
+		# that is gone. Unconditional -- the developer_mode guard below is about editing
+		# modules.txt on disk, not about data.
+		for name in frappe.get_all("Sidebar", filters={"module": self.name}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, ignore_missing=True, force=True)
 
 		# ...and so do the site's and every user's customizations of it, which are anchored to
 		# the module rather than to that document. Said out loud because nothing else says it:

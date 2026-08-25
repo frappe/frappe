@@ -629,6 +629,9 @@ def add_to_sidebar(workspace):
 	if not workspace.public or (workspace.type and workspace.type != "Workspace"):
 		return
 
+	# The naming rule: the sidebar a module answers with is the one called after it. A module
+	# whose only sidebar is called something else is a module with no sidebar of its own, and
+	# its base is computed -- where a public workspace turns up by itself.
 	if not workspace.module or not frappe.db.exists("Sidebar", workspace.module):
 		return
 

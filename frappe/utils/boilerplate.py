@@ -431,7 +431,8 @@ use_json_request_body = True
 # ]
 
 # Where this app's entries sit on the dock (the rail down the left of the desk), as an ordered
-# list of typed rows. A `Sidebar` names a module -- a sidebar's name is its module's name. An
+# list of typed rows. A `Sidebar` names a module -- the sidebar it lands on is the one called
+# after that module. An
 # entry you don't name simply trails the ones you do, in the app's own order, so adding a module
 # later doesn't mean re-authoring this. A row shipped `"hidden": 1` is off by default, and a site
 # or a person can bring it back.

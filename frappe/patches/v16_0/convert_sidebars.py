@@ -41,11 +41,16 @@ def execute():
 	- the **private container**, which holds nothing that is not derived now. Passed over.
 
 	**Writing the base is what makes an app's next release take over by itself.** A `Sidebar` is
-	named after its module, so when the author finally ships `<module>/sidebar/<module>.json`
-	the file lands on this very row and `modules.import_file` overwrites it -- newest writer
-	wins, the rule every other piece of app content already follows. Nothing has to notice that
-	the conversion happened, and nothing has to clean up after it. `written_as_of` is what keeps
-	that promise honest.
+	named by its title, so where the app titles its sidebar what the site's was called -- which
+	is every module the conversion titled after itself -- the file the author ships lands on this
+	very row and `modules.import_file` overwrites it: newest writer wins, the rule every other
+	piece of app content already follows, and `written_as_of` is what keeps it honest.
+
+	Where the two titles differ -- a module with one v16 sidebar keeps that workspace's label, so
+	`Loan Management` reads "Lending" -- the app's arrives as a second sidebar under the module
+	rather than on top of this row, and the **naming rule** hands the module over instead: the
+	sidebar called after the module is the one the module answers with. Either way the author's
+	navigation is what the desk shows, and the converted row stops being read.
 
 	Standard is deliberately 0. The flag means *a file in an app backs this row*, and no file
 	does: the fixture it came from stops being imported with this release. It also keeps orphan
@@ -82,9 +87,10 @@ def convert_site_sidebars() -> list[str]:
 	"""Every module's site-level rows, merged into one `Sidebar` each."""
 	converted = []
 	for module, sources in sorted(site_sources().items()):
-		# `Sidebar` is named after its module, so this is the whole precedence rule: a document
-		# already there is the current statement about this module, whoever made it.
-		if frappe.db.exists("Sidebar", module):
+		# The whole precedence rule: a document already there is the current statement about
+		# this module, whoever made it. Asked of the module rather than of the name, because a
+		# sidebar is named by its title now and the module's own may be called anything.
+		if frappe.db.exists("Sidebar", {"module": module}):
 			continue
 
 		plan = build_sidebar(module, sources)

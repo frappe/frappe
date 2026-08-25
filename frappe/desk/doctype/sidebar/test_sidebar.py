@@ -11,6 +11,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	SYSTEM_WRITE_FLAGS,
 	clear_computed_base_cache,
 	get_computed_base,
+	get_sidebar,
 	item_key,
 	mark_as_standard,
 	unmark_as_standard,
@@ -396,6 +397,168 @@ class TestSidebarDocument(IntegrationTestCase):
 		self.assertNotEqual(names_before, names_after, "sanity: child row names are regenerated")
 
 
+class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
+	"""A sidebar's record name is its **title**, and the title defaults to its module's name.
+
+	The default is what makes this free: every sidebar shipped today is titled after its module,
+	so storing the default leaves their record names, their exported paths and every reference
+	to them exactly where they were. What it buys is a module that owns more than one sidebar --
+	*Leads* and *Deals* both under `FCRM` -- which `unique` on `module` made unbuildable.
+	"""
+
+	MODULE = "Test Sidebar Naming Module"
+	DEALS = "Test Sidebar Deals"
+	LEADS = "Test Sidebar Leads"
+	RENAMED = "Test Sidebar Renamed"
+
+	def setUp(self):
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": self.MODULE, "app_name": "frappe"}
+			).insert()
+
+	def tearDown(self):
+		for name in frappe.get_all("Sidebar", filters={"module": self.MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
+
+	def test_the_record_is_named_by_its_title(self):
+		self.assertEqual(make_sidebar(self.MODULE, title=self.DEALS).name, self.DEALS)
+
+	def test_the_title_defaults_to_the_module_and_is_stored(self):
+		"""Stored, not worked out when read -- which is the whole of why the ten sidebars
+		frappe ships with `title == module` keep the names they already had."""
+		doc = make_sidebar(self.MODULE)
+		self.assertEqual(doc.name, self.MODULE)
+		self.assertEqual(frappe.db.get_value("Sidebar", doc.name, "title"), self.MODULE)
+
+	def test_two_sidebars_may_share_one_module(self):
+		"""The point of the change. `Sidebar.module` was `unique`, so a module got exactly one
+		sidebar forever."""
+		leads = make_sidebar(self.MODULE, title=self.LEADS)
+		deals = make_sidebar(self.MODULE, title=self.DEALS)
+
+		self.assertEqual(
+			sorted(frappe.get_all("Sidebar", filters={"module": self.MODULE}, pluck="name")),
+			sorted([leads.name, deals.name]),
+		)
+
+	def test_two_sidebars_may_not_share_a_title(self):
+		"""What a name is: the one thing two sidebars cannot both have."""
+		make_sidebar(self.MODULE, title=self.LEADS)
+
+		with self.assertRaises(frappe.DuplicateEntryError):
+			make_sidebar(self.MODULE, title=self.LEADS)
+
+	def test_module_is_neither_required_nor_unique(self):
+		module = frappe.get_meta("Sidebar").get_field("module")
+		self.assertFalse(module.reqd)
+		self.assertFalse(module.unique)
+
+	def test_no_index_replaces_the_dropped_unique(self):
+		"""`unique: 1` was silently indexing `module`, and nothing takes its place. Neither
+		`Custom Sidebar.module` nor `Workspace.module` declares one, and `Custom Sidebar` runs
+		the identical access pattern on a larger table."""
+		self.assertFalse(frappe.get_meta("Sidebar").get_field("module").search_index)
+		self.assertFalse(hasattr(frappe.new_doc("Sidebar"), "on_doctype_update"))
+
+	def test_a_module_lands_on_the_sidebar_named_after_it(self):
+		"""The naming rule, and why no `is_default` column is needed: which of a module's
+		sidebars answers for the module is decided by what it is called."""
+		make_sidebar(self.MODULE, title=self.DEALS)
+		own = make_sidebar(self.MODULE)
+
+		self.assertEqual(get_sidebar(self.MODULE).name, own.name)
+
+	def test_a_module_named_by_none_of_its_sidebars_falls_back_to_the_computed_base(self):
+		"""The other half of the rule. A sidebar under this module but called something else is
+		a second shell, reached by a dock row naming it -- not the module's own."""
+		make_sidebar(self.MODULE, title=self.DEALS)
+
+		self.assertIsNone(get_sidebar(self.MODULE))
+
+	def test_editing_the_title_renames_the_record(self):
+		"""`field:` autoname is insert-only, and `_sync_autoname_field` copies the name back
+		over the column on every save -- so without the rename the edit would silently revert."""
+		doc = make_sidebar(self.MODULE)
+		with developer_mode():
+			doc.title = self.RENAMED
+			doc.save(ignore_permissions=True)
+
+		self.assertEqual(doc.name, self.RENAMED)
+		self.assertFalse(frappe.db.exists("Sidebar", self.MODULE))
+		self.assertEqual(frappe.db.get_value("Sidebar", self.RENAMED, "title"), self.RENAMED)
+		self.assertEqual(len(frappe.get_doc("Sidebar", self.RENAMED).items), 1, "its items came too")
+
+	def test_an_import_is_named_by_its_file_rather_than_renamed(self):
+		"""A file carries its own `name`, and that name is the record's identity. A file whose
+		`title` disagrees with it is saying two things, and an app shipping one must not have
+		its row moved -- nor its folder deleted -- out from under it mid-import."""
+		doc = make_sidebar(self.MODULE)
+
+		with system_write(), no_developer_mode():
+			doc.title = self.RENAMED
+			doc.save(ignore_permissions=True)
+
+		self.assertEqual(doc.name, self.MODULE, "the file's name still says which record this is")
+		self.assertEqual(frappe.db.get_value("Sidebar", self.MODULE, "title"), self.MODULE)
+		self.assertFalse(frappe.db.exists("Sidebar", self.RENAMED))
+
+	def test_a_dock_row_naming_the_shell_follows_the_rename(self):
+		"""A dock row *names* what it opens rather than referencing it -- `Dock`'s link
+		validation is a deliberate no-op -- so nothing else would carry the new name across and
+		the row would be left pointing at a sidebar that no longer answers."""
+		doc = make_sidebar(self.MODULE)
+		# one `Dock` per person, enforced by a unique index, so whatever this site holds for
+		# them goes first
+		frappe.db.delete("Dock", {"user": "test@example.com"})
+		layer = frappe.get_doc(
+			{
+				"doctype": "Dock",
+				"user": "test@example.com",
+				"items": [{"type": "Sidebar", "link_name": self.MODULE}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Dock", layer.name, force=True, ignore_permissions=True)
+
+		with developer_mode():
+			doc.title = self.RENAMED
+			doc.save(ignore_permissions=True)
+
+		self.assertEqual(frappe.get_doc("Dock", layer.name).items[0].link_name, self.RENAMED)
+
+	def test_deleting_the_module_deletes_every_sidebar_it_owns(self):
+		"""Deleting by name reached exactly one, which was every one of them while a module
+		could only have one."""
+		make_sidebar(self.MODULE)
+		make_sidebar(self.MODULE, title=self.DEALS)
+
+		frappe.delete_doc("Module Def", self.MODULE, force=True)
+
+		self.assertEqual(frappe.get_all("Sidebar", filters={"module": self.MODULE}), [])
+
+	def test_the_sidebars_frappe_ships_are_all_named_by_their_titles(self):
+		"""Ten of the eleven are titled after their module, so nothing about them moves. The
+		eleventh is `Build Tools`', titled `Build` -- the module is called `Build Tools` only
+		because a `frappe/build/` folder would collide with `frappe/build.py`, which is a
+		packaging accident rather than a navigation fact -- and its record name and its exported
+		path move here, once."""
+		import os
+
+		shipped = frappe.get_all(
+			"Sidebar", filters={"standard": 1, "app": "frappe"}, fields=["name", "module", "title"]
+		)
+		self.assertEqual([row.name for row in shipped if row.name != row.module], ["Build"])
+		for row in shipped:
+			self.assertEqual(row.name, row.title)
+
+		self.assertEqual(
+			frappe.get_doc("Sidebar", "Build").exported_file_path(),
+			os.path.join(frappe.get_module_path("Build Tools"), "sidebar", "build", "build.json"),
+		)
+
+
 class TestSidebarStandard(IntegrationTestCase):
 	"""`standard` is the export switch, and marking flips it by writing the file.
 
@@ -512,15 +675,15 @@ class TestSidebarStandard(IntegrationTestCase):
 			self.with_content()
 			stub = frappe.new_doc("Sidebar")
 			stub.module = MODULE
-			stub.title = "Named by hand"
+			stub.header_icon = "hammer"
 			stub.insert(ignore_permissions=True)
 			self.assertEqual(stub.items, [])
 
 			mark_as_standard(MODULE)
 
 			stub.reload()
-			# its own title stands: that is authored, and only the items were missing
-			self.assertEqual(stub.title, "Named by hand")
+			# what it says about itself stands: that is authored, and only the items were missing
+			self.assertEqual(stub.header_icon, "hammer")
 			self.assertEqual(
 				[item_key(row) for row in stub.items],
 				[item_key(row) for row in get_computed_base(MODULE).rows],
