@@ -593,7 +593,7 @@ class Engine:
 		field_table = getattr(_field, "table", None)
 		if field_table is not None:
 			try:
-				filter_doctype = get_doctype_name(field_table.get_sql())
+				filter_doctype = get_doctype_name(field_table._table_name)
 			except Exception:
 				pass
 
@@ -1709,13 +1709,15 @@ class Engine:
 		Keyed by (doctype, link_fieldname) so the select and filter passes of the same
 		field share one join, and counted per target doctype so two link fields to the
 		same doctype get separate joins. A counter is used instead of the field name so
-		the alias can't collide when doctype names contain underscores.
+		the alias can't collide when doctype names contain underscores, and the `tab_`
+		prefix keeps it out of the real table namespace, which doctype naming rules
+		forbid from starting with an underscore.
 		"""
 		key = (doctype, link_fieldname)
 		if key not in self.link_table_aliases:
 			count = self.link_table_counts.get(doctype, 0) + 1
 			self.link_table_counts[doctype] = count
-			self.link_table_aliases[key] = f"tab{doctype}_{count}"
+			self.link_table_aliases[key] = f"tab_{doctype}_{count}"
 		return self.link_table_aliases[key]
 
 	def get_permission_conditions(self, doctype: str, table: Table) -> Criterion | None:
@@ -1785,9 +1787,10 @@ class Engine:
 			if not alias:
 				return condition
 			quote = '"' if frappe.db.db_type == "postgres" else "`"
-			return condition.replace(f"`tab{doctype}`", f"{quote}{alias}{quote}").replace(
-				f'"tab{doctype}"', f"{quote}{alias}{quote}"
-			)
+			aliased = f"{quote}{alias}{quote}"
+			table_name = f"tab{doctype}"
+			condition = condition.replace(f"`{table_name}`", aliased).replace(f'"{table_name}"', aliased)
+			return re.sub(rf"(?<![\w'\"`]){re.escape(table_name)}(?![\w'\"`])", aliased, condition)
 
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
