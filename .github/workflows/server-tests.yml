@@ -100,12 +100,20 @@ jobs:
           BUILD_NUMBER: ${{ matrix.index }}
           TOTAL_BUILDS: 2
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
+          IMPACT_MAP_OUTFILE: ${{ github.event_name == 'schedule' && format('impact-map-{0}-{1}.json', matrix.db, matrix.index) || '' }}
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}
           path: ./sites/*coverage*.xml
+
+      - name: Upload test impact map
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: impact-map-${{ matrix.db }}-${{ matrix.index }}
+          path: ./sites/impact-map-*.json
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -243,6 +251,17 @@ jobs:
           fail_ci_if_error: true
           verbose: true
           flags: server
+
+      - name: Merge test impact maps
+        if: ${{ github.event_name == 'schedule' }}
+        run: python .github/helper/impact_map.py merge impact-map.json impact-map-*/impact-map-*.json
+
+      - name: Publish test impact map
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/cache/save@v4
+        with:
+          path: impact-map.json
+          key: impact-map-${{ github.sha }}
 
   # TIP: Require this single check in branch protection, e.g. Server / Success
   success:
