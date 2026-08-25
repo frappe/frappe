@@ -8,13 +8,18 @@
 		/>
 	</Transition>
 	<aside
-		v-if="workspace.open"
 		class="flex flex-col border-l border-outline-gray-1 bg-surface-white"
-		:class="
+		:class="[
 			workspace.maximized
 				? 'fixed inset-0 z-40'
-				: 'fixed inset-y-0 right-0 z-30 w-[var(--workspace-w)] max-w-full flex-none md:relative'
-		"
+				: 'fixed inset-y-0 right-0 z-30 w-[var(--workspace-w)] max-w-full flex-none md:relative',
+			ready ? 'transition-[transform,margin-right] duration-200 ease-in-out' : '',
+			// mirror of the left sidebar: no transform while open (a transformed
+			// aside would clip monaco's fixed overflow widgets and dialogs)
+			workspace.open || workspace.maximized
+				? ''
+				: 'translate-x-full md:mr-[calc(-1*var(--workspace-w))] md:translate-x-0',
+		]"
 		:style="workspace.maximized ? {} : { '--workspace-w': width + 'px' }"
 	>
 		<div
@@ -26,8 +31,12 @@
 		/>
 
 		<!-- panel-level tab strip: one tab per open item of any kind (editor today,
-		     browser/terminal later) — kind-specific chrome lives below, not here -->
-		<div class="flex h-9 flex-none items-stretch bg-surface-white">
+		     browser/terminal later) — kind-specific chrome lives below, not here.
+		     The view picker (nothing open) renders without it. -->
+		<div
+			v-if="viewActive"
+			class="flex h-11 flex-none items-stretch border-b border-outline-gray-1 bg-surface-white"
+		>
 			<div class="flow-tab-strip flex min-w-0 items-center gap-1 overflow-x-auto px-1.5" role="tablist">
 				<div
 					v-for="tab in workspace.tabs"
@@ -56,6 +65,29 @@
 						<FeatherIcon name="x" class="h-3 w-3" :class="tab.dirty ? 'flow-dirty-x hidden' : ''" />
 					</button>
 				</div>
+				<!-- transient Files tab: stands in until a file is picked, which replaces it -->
+				<div
+					v-if="workspace.view === 'files' && !activeTab"
+					role="tab"
+					aria-selected="true"
+					class="flex h-7 w-40 flex-none cursor-default items-center gap-1.5 rounded-md bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
+				>
+					<span class="min-w-0 flex-1 truncate text-left">Files</span>
+					<button
+						class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+						title="Close"
+						@click="flow.closeFilesView()"
+					>
+						<FeatherIcon name="x" class="h-3 w-3" />
+					</button>
+				</div>
+				<Dropdown class="flex-none" :options="addTabOptions">
+					<template #trigger>
+						<button class="flow-icon-btn" title="New tab">
+							<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+						</button>
+					</template>
+				</Dropdown>
 			</div>
 			<span class="flex-1" />
 			<button
@@ -71,12 +103,13 @@
 		</div>
 
 		<!-- kind-specific body; only the editor kind exists so far -->
-		<div v-if="activeTab?.kind === 'editor'" class="flex min-h-0 flex-1 flex-col">
-			<div class="flex h-10 flex-none items-center gap-2 border-b border-outline-gray-1 px-2.5">
-				<Breadcrumbs class="flow-crumbs min-w-0" :items="crumbs" />
+		<div v-if="viewActive" class="flex min-h-0 flex-1 flex-col">
+			<div class="flex h-11 flex-none items-center gap-2 border-b border-outline-gray-1 px-2.5">
+				<Breadcrumbs v-if="activeTab" class="flow-crumbs min-w-0" :items="crumbs" />
+				<span v-else class="text-[13.5px] text-ink-gray-5">/</span>
 				<span class="flex-1" />
 				<Button
-					v-if="activeTab.dirty"
+					v-if="activeTab?.dirty"
 					variant="ghost"
 					size="sm"
 					class="flex-none"
@@ -104,7 +137,15 @@
 			<div class="flex min-h-0 flex-1">
 				<div class="flex min-w-0 flex-1 flex-col">
 					<div
-						v-if="activeTab.error"
+						v-if="!activeTab"
+						class="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center"
+					>
+						<FeatherIcon name="file-text" class="h-6 w-6 text-ink-gray-3" />
+						<span class="text-sm text-ink-gray-5">No file open</span>
+						<span class="text-xs leading-5 text-ink-gray-4">Select a file to view or edit it</span>
+					</div>
+					<div
+						v-else-if="activeTab.error"
 						class="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center"
 					>
 						<span class="text-xs text-ink-gray-5">{{ activeTab.error }}</span>
@@ -116,7 +157,7 @@
 					>
 						Loading…
 					</div>
-					<div v-show="!activeTab.error && activeTab.content != null" ref="editorEl" class="min-h-0 flex-1" />
+					<div v-show="activeTab && !activeTab.error && activeTab.content != null" ref="editorEl" class="min-h-0 flex-1" />
 				</div>
 
 				<div
@@ -205,16 +246,25 @@
 				</div>
 			</div>
 		</div>
-		<div v-else class="flex flex-1 items-center justify-center text-xs text-ink-gray-4">
-			No file open
+
+		<!-- nothing open and no view picked: the view picker -->
+		<div v-else class="flex flex-1 flex-col items-center justify-center gap-3 px-6">
+			<button
+				class="flex w-44 items-center gap-2.5 rounded-lg border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+				@click="flow.showFilesView()"
+			>
+				<FeatherIcon name="folder" class="h-4 w-4 flex-none text-ink-gray-5" />
+				Files
+			</button>
 		</div>
 	</aside>
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, ref, watch } from "vue"
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import Breadcrumbs from "frappe-ui/src/components/Breadcrumbs/Breadcrumbs.vue"
 import Button from "frappe-ui/src/components/Button/Button.vue"
+import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
@@ -228,6 +278,12 @@ const cwd = computed(() => flow.state.session?.config?.cwd ?? null)
 const activeTab = computed(
 	() => workspace.value.tabs.find((tab) => tab.path === workspace.value.active) ?? null,
 )
+// a view (editor or files) is showing; false means the view picker
+const viewActive = computed(() => activeTab.value?.kind === "editor" || workspace.value.view === "files")
+
+// the panel stays mounted while closed so it can slide like the left sidebar
+const ready = ref(false)
+onMounted(() => requestAnimationFrame(() => (ready.value = true)))
 
 const crumbs = computed(() => {
 	if (!activeTab.value) return []
@@ -240,6 +296,19 @@ const crumbs = computed(() => {
 const explorerOpen = ref(false)
 const rootDir = ref(null)
 const rootEntries = ref(null)
+
+// "+" menu: one entry per tab kind the panel can host (browser, terminal later)
+const addTabOptions = [{ label: "Files", icon: "lucide-folder", onClick: () => flow.showFilesView() }]
+
+// entering the files view — from a menu or a restore — should present the
+// file bar without an extra click
+watch(
+	() => [workspace.value.open, workspace.value.active, workspace.value.view],
+	([open, active, view]) => {
+		if (open && !active && view === "files" && !explorerOpen.value) void toggleExplorer()
+	},
+	{ immediate: true },
+)
 
 // Search runs server-side (recursive, pruned to matches); the result renders
 // as a fully opened tree of only the branches that contain matches. Clearing
@@ -371,10 +440,12 @@ function syncModel() {
 	if (editor.getModel() !== model) editor.setModel(model)
 }
 
-watch(editorEl, async (el) => {
-	if (el && !editor) {
+// gate on `open`: the closed panel stays mounted for the slide animation and
+// must not pull the monaco bundle until it is actually shown
+watch([editorEl, () => workspace.value.open], async ([el, open]) => {
+	if (el && open && !editor) {
 		monaco ??= (await import("../monaco.js")).monaco
-		if (!editorEl.value || editor) return // panel closed (or re-created) while loading
+		if (!editorEl.value || !workspace.value.open || editor) return // closed while loading
 		editor = monaco.editor.create(editorEl.value, {
 			automaticLayout: true,
 			fontSize: 13.5,

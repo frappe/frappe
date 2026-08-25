@@ -43,7 +43,7 @@ export function createFlowStore(client) {
 		// right panel; tabs are typed ({ kind: "editor" } today, browser/terminal
 		// later) — editor tabs: { kind, path, name, content, error, loading, dirty },
 		// content being the last server-confirmed text (the editor owns unsaved edits)
-		workspace: { open: false, maximized: false, tabs: [], active: null },
+		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
 		prefs: {
 			theme: "light",
 			mode: "ask", // "ask" | "auto" — applied at session create
@@ -128,7 +128,7 @@ export function createFlowStore(client) {
 	}
 
 	function resetWorkspace() {
-		state.workspace = { open: false, maximized: false, tabs: [], active: null }
+		state.workspace = { open: false, maximized: false, tabs: [], active: null, view: null }
 	}
 
 	// Open tabs and panel visibility survive refreshes and session switches:
@@ -139,8 +139,13 @@ export function createFlowStore(client) {
 		const sid = state.sessionId
 		if (!sid) return
 		const ws = state.workspace
-		if (ws.tabs.length) {
-			workspaceBySession[sid] = { open: ws.open, active: ws.active, tabs: ws.tabs.map((t) => t.path) }
+		if (ws.tabs.length || ws.open) {
+			workspaceBySession[sid] = {
+				open: ws.open,
+				active: ws.active,
+				view: ws.view ?? null,
+				tabs: ws.tabs.map((t) => t.path),
+			}
 		} else {
 			delete workspaceBySession[sid]
 		}
@@ -153,10 +158,11 @@ export function createFlowStore(client) {
 		const paths = (Array.isArray(saved?.tabs) ? saved.tabs : []).filter(
 			(path) => typeof path === "string" && path,
 		)
-		if (!paths.length) return
+		if (!paths.length && !saved?.open) return
 		state.workspace = {
 			open: saved.open ?? true,
 			maximized: false,
+			view: saved.view === "files" ? "files" : null,
 			tabs: paths.map((path) => ({
 				kind: "editor",
 				path,
@@ -166,7 +172,7 @@ export function createFlowStore(client) {
 				loading: false,
 				dirty: false,
 			})),
-			active: paths.includes(saved.active) ? saved.active : paths[0],
+			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
 		}
 		if (state.workspace.open && state.workspace.active) void openFile(state.workspace.active)
 	}
@@ -580,6 +586,22 @@ export function createFlowStore(client) {
 		return guard(() => client.searchFiles(state.sessionId, query))
 	}
 
+	// the "+ → Files" view: panel open with no active tab, explorer as the focus
+	function showFilesView() {
+		state.workspace.open = true
+		state.workspace.view = "files"
+		state.workspace.active = null
+		persistWorkspace()
+	}
+
+	// closing the transient Files tab: back to a file if one is open, else the picker
+	function closeFilesView() {
+		const ws = state.workspace
+		ws.view = null
+		if (ws.tabs.length) return selectFile(ws.tabs[0].path)
+		persistWorkspace()
+	}
+
 	// Tab switches only activate — never refetch — so unsaved edits survive.
 	// A restored tab has no content yet and hydrates on first activation.
 	function selectFile(path) {
@@ -613,13 +635,23 @@ export function createFlowStore(client) {
 		if (index === -1) return
 		ws.tabs.splice(index, 1)
 		if (ws.active === path) ws.active = ws.tabs[Math.min(index, ws.tabs.length - 1)]?.path ?? null
-		if (!ws.tabs.length) ws.open = false
+		if (!ws.tabs.length) {
+			ws.open = false
+			ws.view = null
+		}
 		persistWorkspace()
 	}
 
 	function setWorkspaceOpen(open) {
 		state.workspace.open = open
-		if (!open) state.workspace.maximized = false
+		if (!open) {
+			state.workspace.maximized = false
+			state.workspace.view = null // reopening with no tabs lands on the view picker
+		} else {
+			// resume the last open file; selectFile also hydrates a restored tab
+			const target = state.workspace.active ?? state.workspace.tabs[0]?.path
+			if (target) return selectFile(target)
+		}
 		persistWorkspace()
 	}
 
@@ -720,6 +752,8 @@ export function createFlowStore(client) {
 		listFiles,
 		searchFiles,
 		selectFile,
+		showFilesView,
+		closeFilesView,
 		saveFile,
 		markFileDirty,
 		closeFile,
