@@ -17,7 +17,7 @@
 			>
 				<FeatherIcon
 					:name="toast.kind === 'error' ? 'alert-circle' : 'info'"
-					class="mt-px h-3.5 w-3.5 flex-none"
+					class="mt-1 h-3.5 w-3.5 flex-none"
 					:class="toast.kind === 'error' ? 'text-ink-red-3' : 'text-ink-gray-5'"
 				/>
 				<span class="min-w-0 text-xs leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
