@@ -56,29 +56,35 @@ class StudioComponent(Document):
 			delete_file(component_path)
 
 
-COMPONENT_INPUT_FIELDS = ("input_name", "type", "description", "options", "required", "default")
-
-
 def get_components_for_blocks(blocks) -> list[dict]:
 	"""Returns definitions of every studio component in block tree
 	Fetched in bulk, one round per nesting level, so queries scale with component
 	depth rather than component count."""
 	components = []
-	requested = set()
+	requested_components = set()
 	to_fetch = extract_component_names(blocks)
 	while to_fetch:
-		# missing references drop out of the fetch
-		components += fetch_component_batch(to_fetch)
-		requested |= to_fetch
-		to_fetch = nested_component_names(components) - requested
+		requested_components.update(to_fetch)
+		batch = fetch_component_batch(to_fetch)
+		components.extend(batch)
+		to_fetch = get_nested_component_names(batch) - requested_components
 	return components
 
 
-def nested_component_names(components) -> set[str]:
+def extract_component_names(blocks) -> set[str]:
+	"""Docnames of Studio Components referenced anywhere in a blocks tree."""
+	return {
+		block["componentName"]
+		for block in walk_blocks(blocks)
+		if block.get("isStudioComponent") and block.get("componentName")
+	}
+
+
+def get_nested_component_names(components) -> set[str]:
 	"""Component names referenced inside the given components' own blocks."""
 	names = set()
 	for component in components:
-		names |= extract_component_names(component["block"])
+		names.update(extract_component_names(component["block"]))
 	return names
 
 
@@ -96,7 +102,7 @@ def fetch_component_batch(names: set[str]) -> list[dict]:
 	input_rows = frappe.get_all(
 		"Studio Component Input",
 		filters={"parenttype": "Studio Component", "parent": ["in", [c.name for c in components]]},
-		fields=["name", "parent", *COMPONENT_INPUT_FIELDS],
+		fields=["name", "parent", "input_name", "type", "description", "options", "required", "default"],
 		order_by="idx asc",
 	)
 	for row in input_rows:
@@ -105,12 +111,3 @@ def fetch_component_batch(names: set[str]) -> list[dict]:
 	for component in components:
 		component["inputs"] = inputs_by_component.get(component.name, [])
 	return components
-
-
-def extract_component_names(blocks) -> set[str]:
-	"""Docnames of Studio Components referenced anywhere in a blocks tree."""
-	return {
-		block["componentName"]
-		for block in walk_blocks(blocks)
-		if block.get("isStudioComponent") and block.get("componentName")
-	}
