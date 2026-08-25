@@ -5,7 +5,9 @@
 
 Every module in the desk has a sidebar. It starts from one of two places:
 
-  * an app shipped a `Sidebar` document as JSON, under `<app>/<module>/sidebar/`, or
+  * an app shipped a `Sidebar` document as JSON, under `<app>/<module>/sidebar/` -- or under
+    `<app>/sidebar/` when the sidebar belongs to the app rather than to one of its modules --
+    or
   * nobody shipped one, so we work one out from what the module holds -- its workspaces,
     dashboards, doctypes, reports and pages.
 
@@ -217,14 +219,33 @@ class Sidebar(Document, DeskViews):
 		mode can write that file. A standard row whose file is missing counts as an orphan, so
 		`remove_orphan_entities` would delete it on the next `bench migrate`. Better to refuse
 		than to create a row that quietly deletes itself.
+
+		Fires when the *root* moves as well as when the flag goes on. Now that both `module`
+		and `app` may be blank, clearing them on a row that is already standard produces
+		exactly the row this refuses to create -- standard, with nowhere for its file to be --
+		and the flag itself never changed, so watching the flag alone would wave it through.
 		"""
-		if not self.standard or not self.has_value_changed("standard"):
+		if not self.standard:
+			return
+
+		if not any(self.has_value_changed(field) for field in ("standard", "module", "app")):
 			return
 
 		check_developer_mode()
 
 		if not self.module:
-			frappe.throw(_("A standard sidebar needs a module to be written to."))
+			# App-rooted. There is no module folder to write into, so `app` is the whole
+			# address -- and it has to name an app that is actually on this site.
+			if not self.app:
+				frappe.throw(_("A standard sidebar needs a module or an app to be written to."))
+
+			if self.app not in frappe.get_installed_apps():
+				frappe.throw(
+					_("App {0} is not installed, so a standard sidebar cannot be written to it.").format(
+						frappe.bold(self.app)
+					)
+				)
+			return
 
 		try:
 			frappe.get_module_path(self.module)
@@ -275,32 +296,40 @@ class Sidebar(Document, DeskViews):
 			shutil.rmtree(os.path.dirname(previous.exported_file_path()), ignore_errors=True)
 
 	def export_sidebar(self):
-		"""Write this sidebar to `<app>/<module>/sidebar/<name>/<name>.json`.
+		"""Write this sidebar to its file, wherever that file is rooted.
 
-		The path is under the module, where the old sidebar fixtures sat in a flat folder at the
-		top of the app. That matters because orphan cleanup works out a record's file path as
-		`<...>/<scrub(name)>.json`. In a flat folder the filenames did not have to match the
-		record names, and any that did not match got their rows deleted on the next migrate.
-		Here the filename and the record name always agree.
+		`<app>/<module>/sidebar/<name>/<name>.json` when the sidebar has a module, and
+		`<app>/sidebar/<name>/<name>.json` when it has none -- that one belongs to its app
+		rather than to any one of the app's modules, so the app is where it is rooted.
+
+		Both are the same shape: a folder named after the record, holding a file of the same
+		name. That is what the old sidebar fixtures got wrong -- they sat in a flat folder at
+		the top of the app, so the filenames did not have to match the record names, and any
+		that did not match got their rows deleted on the next migrate. Orphan cleanup works out
+		a record's file path as `<...>/<scrub(name)>.json`, and here the filename and the record
+		name always agree, whichever root they are under.
 		"""
 		from frappe.modules.export_file import export_to_files
 
-		allow_export = (
-			self.standard and self.module and not frappe.flags.in_import and frappe.conf.developer_mode
-		)
-		if allow_export:
+		if not self.standard or frappe.flags.in_import or not frappe.conf.developer_mode:
+			return
+
+		if self.module:
 			export_to_files(record_list=[["Sidebar", self.name]], record_module=self.module)
+		elif self.app:
+			export_to_files(record_list=[["Sidebar", self.name]], record_app=self.app)
 
 	def exported_file_path(self) -> str:
 		"""The path `export_to_files` writes this sidebar to.
 
-		Built the same way as `check_if_record_exists`, which is what orphan cleanup uses to
-		decide whether a standard record still has a file behind it.
+		Asked of the export module rather than rebuilt here, so the file this checks for is by
+		construction the file the export writes -- and so dropping `autoname: field:module`
+		changed the record's *name* without touching how its path is built.
 		"""
-		import os
+		from frappe.modules.export_file import export_root, exported_file_path
 
-		scrubbed = frappe.scrub(self.name)
-		return os.path.join(frappe.get_module_path(self.module), "sidebar", scrubbed, f"{scrubbed}.json")
+		root = export_root(module=self.module) if self.module else export_root(record_app=self.app)
+		return exported_file_path(root, self.doctype, self.name)
 
 	def is_exported(self) -> bool:
 		"""Whether the file behind this sidebar is really on disk.
@@ -311,7 +340,7 @@ class Sidebar(Document, DeskViews):
 		"""
 		import os
 
-		if self.is_new() or not self.module:
+		if self.is_new() or not (self.module or self.app):
 			return False
 
 		try:

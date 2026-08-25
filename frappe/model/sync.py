@@ -44,6 +44,22 @@ IMPORTABLE_DOCTYPES = [
 	("printing", "letter_head"),
 ]
 
+# The doctypes an app may ship rooted at the app itself rather than inside one of its modules.
+#
+# An explicit allowlist rather than a reuse of `IMPORTABLE_DOCTYPES`, because the app-root walk
+# makes a folder name meaningful at the top of every installed app. Reusing the whole list would
+# hand twenty-odd folder names that meaning at once -- a widening nobody asked for -- where this
+# says in code that app-level export is a narrow, named capability. `Dock` joins it when an app
+# ships one.
+#
+# A module-rooted `Sidebar` is unaffected: it keeps riding `IMPORTABLE_DOCTYPES` on the
+# per-module walk, from exactly the same code.
+#
+# Not to be confused with `APP_LEVEL_ENTITIES` further down: that one is the reaper's list of
+# the old hand-written app-level fixtures, which are retiring. This is the ordinary export road,
+# rooted one level up.
+APP_ROOTED_DOCTYPES = [("desk", "sidebar")]
+
 
 def sync_all(force=0, reset_permissions=False):
 	_patch_mode(True)
@@ -120,10 +136,15 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	# Nothing app-level is imported here any more. `workspace_sidebar` was the last of them and
-	# its fixtures stop arriving with this release: an app ships a `Sidebar` now, which
-	# rides the ordinary per-module walk above. An app that has not re-exported yet degrades to
-	# a computed base rather than to nothing, which is what makes dropping them safe.
+	# The same walk once more, rooted at the app, for the handful of doctypes an app may ship
+	# outside any module -- an app-rooted `Sidebar` today. `get_doc_files` needs nothing new to
+	# do this: it was already parameterised on where to start.
+	#
+	# The old app-level fixture import is gone and is not what this is. `workspace_sidebar` was
+	# the last of those and its fixtures stop arriving with this release: an app ships a
+	# `Sidebar` now. An app that has not re-exported yet degrades to a computed base rather than
+	# to nothing, which is what makes dropping them safe.
+	files = get_doc_files(files=files, start_path=frappe.get_app_path(app_name), doctypes=APP_ROOTED_DOCTYPES)
 
 	l = len(files)
 	if l:
@@ -147,14 +168,22 @@ def sync_for(app_name, force=0, reset_permissions=False):
 	import_desktop_icon_fixtures(app_name, force=force)
 
 
-def get_doc_files(files, start_path):
-	"""walk and sync all doctypes and pages"""
+def get_doc_files(files, start_path, doctypes=None):
+	"""walk and sync all doctypes and pages
+
+	`doctypes` narrows the walk to a named few, and is what the app-root call passes: at the
+	top of an app only `APP_ROOTED_DOCTYPES` is meaningful. Left out, the walk is the whole
+	importable set plus whatever apps added by hook, which is what a module folder gets.
+	"""
 
 	files = files or []
+	general_walk = doctypes is None
+	if general_walk:
+		doctypes = IMPORTABLE_DOCTYPES + [
+			(None, frappe.scrub(dt)) for dt in frappe.get_hooks("importable_doctypes")
+		]
 
-	for _module, doctype in IMPORTABLE_DOCTYPES + [
-		(None, frappe.scrub(dt)) for dt in frappe.get_hooks("importable_doctypes")
-	]:
+	for _module, doctype in doctypes:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
 			for docname in os.listdir(doctype_path):
@@ -163,6 +192,11 @@ def get_doc_files(files, start_path):
 					if os.path.exists(doc_path):
 						if doc_path not in files:
 							files.append(doc_path)
+
+	# Both of these are module-rooted shapes, and an allowlisted walk is asking about the named
+	# doctypes only -- so they are skipped rather than made meaningful at the top of an app too.
+	if not general_walk:
+		return files
 
 	# DocType Layouts: doctype/{document_type}/doctype_layout/{name}.json
 	for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", "doctype_layout", "*.json")):
@@ -242,9 +276,10 @@ def remove_orphan_entities(entity_types=None):
 
 	for entity in entities:
 		print(f"Removing orphan {entity}s")
-		all_enitities = frappe.get_all(
-			entity, filters=entity_filter_map.get(entity), fields=["name", "module"]
-		)
+		# `name` and nothing else. The module was never read in the loop below, and selecting
+		# it means an entity with no `module` column -- or one whose rows may leave it blank --
+		# cannot be swept at all: the query fails and takes the whole migrate with it.
+		all_enitities = frappe.get_all(entity, filters=entity_filter_map.get(entity), fields=["name"])
 		for i, w in enumerate(all_enitities):
 			try:
 				entity_file_map[entity][w.name]

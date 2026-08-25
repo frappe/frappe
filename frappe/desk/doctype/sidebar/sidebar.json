@@ -20,7 +20,7 @@
  ],
  "fields": [
   {
-   "description": "The module this sidebar belongs to. Neither required nor unique: one module may own several sidebars, and which of them answers for the module itself is decided by the name -- the one called after the module -- rather than by a column here.",
+   "description": "The module this sidebar belongs to. Neither required nor unique: one module may own several sidebars, and which of them answers for the module itself is decided by the name -- the one called after the module -- rather than by a column here. May also be blank, which means the sidebar belongs to its app rather than to any one of the app's modules; such a sidebar is exported to the app's own folder and says which app in `app`.",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -47,6 +47,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "The app this sidebar is placed in. Derived from the module when there is one -- a module sits in exactly one app. Author-set when there is not: an app-rooted sidebar has no module to derive it from, and this is then the only thing that says which app ships the file.",
    "fieldname": "app",
    "fieldtype": "Autocomplete",
    "label": "App",
@@ -71,7 +72,7 @@
   },
   {
    "default": "0",
-   "description": "Owned by an app: exported to its module's folder and re-imported by migrate. Set via the Mark as Standard action, not by hand -- a standard sidebar with no exported file is an orphan and gets deleted on the next migrate. Everything else belongs to this site, however it got here.",
+   "description": "Owned by an app: exported to its module's folder -- or to the app's own folder when it has no module -- and re-imported by migrate. Set via the Mark as Standard action, not by hand -- a standard sidebar with no exported file is an orphan and gets deleted on the next migrate. Everything else belongs to this site, however it got here.",
    "fieldname": "standard",
    "fieldtype": "Check",
    "label": "Standard",
@@ -92,7 +93,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-26 13:00:00.000000",
+ "modified": "2026-08-26 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar",

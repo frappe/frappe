@@ -891,6 +891,224 @@ class TestSidebarStandard(IntegrationTestCase):
 			self.assertEqual(frappe.db.get_value("Sidebar", name, "modified"), modified)
 
 
+APP_ROOT_MODULE = "Test App Rooted Sidebar Module"
+APP_ROOT_TITLE = "Test App Rooted Sidebar"
+
+
+class TestAppRootedSidebar(IntegrationTestCase):
+	"""A sidebar that belongs to its app rather than to one of the app's modules.
+
+	`module` may be blank, and a blank one is not a sidebar with a missing column: it is a
+	sidebar whose home is the app itself. Frappe CRM wanting a shell that is neither `FCRM` nor
+	`Lead Syncing` is the case, and the app is the only thing left to root it at.
+
+	The point of these tests is that rooting it there costs the export road nothing. The file
+	keeps the ordinary shape -- a folder named after the record, holding a file of the same
+	name -- so the import walk finds it, orphan cleanup reaps it and the module-rooted path is
+	built by the very same code. The old app-level fixtures got that wrong (a flat folder named
+	after a display field) and every piece of app-level machinery downstream existed to make up
+	for it.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.app_path = frappe.get_app_path("frappe")
+		self.clear_sidebars()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		self.clear_sidebars()
+		# `remove_orphan_entities` commits, so a row written before it is already durable and
+		# the framework's rollback will not take it back out.
+		frappe.db.commit()  # nosemgrep
+
+	def clear_sidebars(self):
+		"""Both the rows and anything they left inside the frappe app.
+
+		These tests write real files into the working tree -- that is what is under test -- so
+		a leaked folder is not just untidy, it is a `Sidebar` the next `bench migrate` imports.
+		"""
+		import contextlib
+		import os
+		import shutil
+
+		for name in frappe.get_all(
+			"Sidebar", filters={"title": ["like", "Test App Rooted Sidebar%"]}, pluck="name"
+		):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+
+		for title in (APP_ROOT_TITLE, f"{APP_ROOT_TITLE} Two"):
+			shutil.rmtree(self.app_root_folder(title), ignore_errors=True)
+
+		# frappe ships no app-rooted sidebar, so the `sidebar/` folder itself is ours too --
+		# and an empty folder git will not show is exactly the kind of residue that survives a
+		# run and confuses the next one.
+		with contextlib.suppress(OSError):
+			os.rmdir(os.path.join(self.app_path, "sidebar"))
+
+	def app_root_folder(self, title):
+		import os
+
+		return os.path.join(self.app_path, "sidebar", frappe.scrub(title))
+
+	def make(self, title=APP_ROOT_TITLE, app="frappe", standard=1):
+		"""A sidebar with no module at all, authored the only way one ever is."""
+		doc = frappe.new_doc("Sidebar")
+		doc.title = title
+		doc.app = app
+		doc.standard = standard
+		doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"})
+		with developer_mode():
+			return doc.insert(ignore_permissions=True)
+
+	def test_a_sidebar_may_belong_to_no_module(self):
+		"""`module` lost `reqd` when the record took its name from the title, and this is what
+		that was for: a shell the app owns outright."""
+		doc = self.make(standard=0)
+
+		self.assertFalse(doc.module)
+		self.assertEqual(frappe.db.get_value("Sidebar", doc.name, "app"), "frappe")
+
+	def test_it_is_exported_to_the_app_root(self):
+		import os
+
+		doc = self.make()
+
+		self.assertEqual(
+			doc.exported_file_path(),
+			os.path.join(self.app_path, "sidebar", "test_app_rooted_sidebar", "test_app_rooted_sidebar.json"),
+		)
+		self.assertTrue(doc.is_exported())
+
+	def test_the_module_rooted_path_is_unchanged(self):
+		"""The seam took a root rather than a module, so the module-rooted path is built by the
+		same call and comes out where it always did."""
+		import os
+
+		with sidebarless_module(APP_ROOT_MODULE), module_resolvable_on_disk(APP_ROOT_MODULE):
+			doc = make_sidebar(APP_ROOT_MODULE, title=f"{APP_ROOT_TITLE} Two")
+			scrubbed = frappe.scrub(doc.name)
+
+			self.assertEqual(
+				doc.exported_file_path(),
+				os.path.join(
+					frappe.get_module_path(APP_ROOT_MODULE), "sidebar", scrubbed, f"{scrubbed}.json"
+				),
+			)
+
+	def test_the_import_walk_finds_it(self):
+		"""What makes migrate re-import it: the ordinary walk, pointed at the app instead of at
+		a module folder. Nothing about the walk itself is new."""
+		from frappe.model.sync import APP_ROOTED_DOCTYPES, get_doc_files
+
+		doc = self.make()
+
+		files = get_doc_files(files=[], start_path=self.app_path, doctypes=APP_ROOTED_DOCTYPES)
+		self.assertIn(doc.exported_file_path(), files)
+
+	def test_the_app_root_walk_is_allowlisted(self):
+		"""App-level export is a narrow, named capability. Reusing the whole importable set at
+		the top of an app would make twenty-odd folder names newly meaningful there."""
+		import json
+		import os
+		import shutil
+
+		from frappe.model.sync import APP_ROOTED_DOCTYPES, get_doc_files
+
+		stray = os.path.join(self.app_path, "workspace", "test_app_rooted_stray")
+		os.makedirs(stray, exist_ok=True)
+		self.addCleanup(shutil.rmtree, os.path.join(self.app_path, "workspace"), ignore_errors=True)
+		path = os.path.join(stray, "test_app_rooted_stray.json")
+		with open(path, "w") as f:
+			json.dump({"doctype": "Workspace", "name": "Test App Rooted Stray"}, f)
+
+		files = get_doc_files(files=[], start_path=self.app_path, doctypes=APP_ROOTED_DOCTYPES)
+		self.assertNotIn(path, files)
+
+	def test_migrate_re_imports_it(self):
+		from frappe.modules.import_file import import_file_by_path
+
+		doc = self.make()
+		path = doc.exported_file_path()
+		frappe.delete_doc("Sidebar", doc.name, force=True, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Sidebar", doc.name))
+
+		import_file_by_path(path, force=True, ignore_version=True)
+
+		imported = frappe.get_doc("Sidebar", APP_ROOT_TITLE)
+		self.assertEqual(imported.standard, 1)
+		self.assertFalse(imported.module)
+		self.assertEqual(imported.app, "frappe")
+		self.assertEqual([row.link_to for row in imported.items], ["User"])
+
+	def test_deleting_the_file_reaps_the_row(self):
+		"""The other half of the round trip, and the reason the sweep stopped selecting a
+		module column: a module-less row has to be a candidate, or the app can never stop
+		shipping the sidebar."""
+		import os
+		import shutil
+
+		from frappe.model.sync import remove_orphan_entities
+
+		doc = self.make()
+		shutil.rmtree(os.path.dirname(doc.exported_file_path()))
+
+		remove_orphan_entities("Sidebar")
+
+		self.assertFalse(frappe.db.exists("Sidebar", doc.name))
+
+	def test_a_site_owned_module_less_sidebar_is_untouched(self):
+		"""Only a standard row is backed by a file, so only a standard row can be an orphan."""
+		from frappe.model.sync import remove_orphan_entities
+
+		doc = self.make(standard=0)
+
+		remove_orphan_entities("Sidebar")
+
+		self.assertTrue(frappe.db.exists("Sidebar", doc.name))
+
+	def test_a_standard_sidebar_with_neither_a_module_nor_an_app_is_refused(self):
+		"""`standard` means there is a file behind the row, and with no root there is nowhere
+		to put one -- so the row would delete itself on the next migrate."""
+		with self.assertRaises(frappe.ValidationError):
+			self.make(app=None)
+
+	def test_a_standard_sidebar_naming_an_uninstalled_app_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.make(app="not_an_installed_app")
+
+	def test_a_standard_sidebar_cannot_have_its_root_taken_away(self):
+		"""Flipping the flag is not the only way to end up standard with no file. Both `module`
+		and `app` may be blank now, so clearing whichever one was holding the row up gets to the
+		same orphan by another route -- and `standard` itself never changes on the way."""
+		doc = self.make()
+		doc.app = None
+
+		with developer_mode(), self.assertRaises(frappe.ValidationError):
+			doc.save(ignore_permissions=True)
+
+	def test_a_round_trip_leaves_no_residue(self):
+		"""Author, export, migrate, re-import: one row, one folder, and the same file."""
+		import os
+
+		from frappe.modules.import_file import import_file_by_path
+
+		doc = self.make()
+		path = doc.exported_file_path()
+		with open(path) as f:
+			exported = f.read()
+
+		frappe.delete_doc("Sidebar", doc.name, force=True, ignore_permissions=True)
+		import_file_by_path(path, force=True, ignore_version=True)
+
+		self.assertEqual(
+			frappe.get_all("Sidebar", filters={"title": APP_ROOT_TITLE}, pluck="name"), [APP_ROOT_TITLE]
+		)
+		self.assertEqual(os.listdir(os.path.dirname(path)), [os.path.basename(path)])
+		with open(path) as f:
+			self.assertEqual(f.read(), exported)
+
+
 APP_CONTENT_MODULE = "Test App Content Sidebar Module"
 
 
