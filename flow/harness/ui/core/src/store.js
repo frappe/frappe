@@ -478,6 +478,15 @@ export function createFlowStore(client) {
 		document.documentElement.setAttribute("data-theme", theme)
 	}
 
+	async function renameSession(sid, title) {
+		const data = await guard(() => client.patchConfig(sid, { title }))
+		if (!data) return
+		const listed = state.sessions.find((info) => info.session_id === sid)
+		if (listed) listed.title = data.config.title
+		if (state.sessionId === sid && state.session) state.session.title = data.config.title
+		notify("Chat renamed")
+	}
+
 	async function deleteSession(sid) {
 		const ok = await guard(() => client.deleteSession(sid))
 		if (ok === null) return // running (409) or gone — the toast already said so
@@ -530,6 +539,7 @@ export function createFlowStore(client) {
 		setCwd,
 		setSidebarOpen,
 		setTheme,
+		renameSession,
 		deleteSession,
 		pickFolder,
 		sessionTitle,
