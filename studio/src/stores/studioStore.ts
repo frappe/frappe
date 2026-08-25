@@ -291,20 +291,36 @@ const useStudioStore = defineStore("store", () => {
 		else throw error
 	}
 
-	function updateActivePage(key: string, value: string | number) {
+	function updatePageField(page: StudioPage, key: string, value: string | number) {
+		const listedPage = appPages.value[page.name]
+		const pageDoc = activePage.value?.name === page.name ? activePage.value : listedPage || page
 		return studioPages.runDocMethod
 			.submit({
-				name: activePage.value?.name,
+				name: page.name,
 				method: "save_page_field",
 				fieldname: key,
 				value: value,
-				known_modified: activePage.value?.modified,
+				known_modified: pageDoc.modified,
 			})
 			.then((response: any) => {
-				activePage.value![key] = value
-				syncPageModified(response)
+				const modified = response?.docs?.[0]?.modified ?? response?.modified ?? response?.message
+				page[key] = value
+				if (modified) page.modified = modified
+				if (listedPage && listedPage !== page) {
+					listedPage[key] = value
+					if (modified) listedPage.modified = modified
+				}
+				if (activePage.value?.name === page.name) {
+					activePage.value[key] = value
+					syncPageModified(response)
+				}
 			})
 			.catch(handlePageWriteConflict)
+	}
+
+	function updateActivePage(key: string, value: string | number) {
+		if (!activePage.value) return
+		return updatePageField(activePage.value, key, value)
 	}
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
@@ -361,23 +377,32 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
-	async function unpublishPage() {
-		if (!activePage.value) return
+	async function unpublishAppPage(page: StudioPage) {
 		const confirmed = await confirm(
-			`Are you sure you want to unpublish the page "${activePage.value.page_title}"? It will no longer be publicly accessible.`,
+			`Are you sure you want to unpublish the page "${page.page_title}"? It will no longer be publicly accessible.`,
 		)
 		if (!confirmed) {
 			return
 		}
 		return studioPages.runDocMethod.submit(
 			{
-				name: selectedPage.value,
+				name: page.name,
 				method: "unpublish",
 			},
 			{
 				onSuccess(data: any) {
-					activePage.value!.published = 0
-					syncPageModified(data)
+					const listedPage = appPages.value[page.name]
+					const modified = data?.docs?.[0]?.modified ?? data?.modified ?? data?.message
+					page.published = 0
+					if (modified) page.modified = modified
+					if (listedPage && listedPage !== page) {
+						listedPage.published = 0
+						if (modified) listedPage.modified = modified
+					}
+					if (activePage.value?.name === page.name) {
+						activePage.value.published = 0
+						syncPageModified(data)
+					}
 					toast.success("Page unpublished")
 				},
 				onError(error: any) {
@@ -387,6 +412,11 @@ const useStudioStore = defineStore("store", () => {
 				},
 			}
 		)
+	}
+
+	async function unpublishPage() {
+		if (!activePage.value) return
+		return unpublishAppPage(activePage.value)
 	}
 
 	function revertPage() {
@@ -724,11 +754,13 @@ const useStudioStore = defineStore("store", () => {
 		activePage,
 		setPage,
 		savePage,
+		updatePageField,
 		updateActivePage,
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
 		publishPage,
+		unpublishAppPage,
 		unpublishPage,
 		revertPage,
 		publishApp,

@@ -41,7 +41,7 @@
 				size="sm"
 				class="w-full"
 				label="Allow Guest Access"
-				description="Render this page for logged-out visitors"
+				description="Anyone can access this page without logging in"
 				:modelValue="Boolean(page.allow_guest)"
 				@update:modelValue="(val: boolean) => store.updateActivePage('allow_guest', val ? 1 : 0)"
 			/>

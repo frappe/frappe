@@ -3,7 +3,7 @@ import { createListResource } from "frappe-ui"
 const studioPages = createListResource({
 	method: "GET",
 	doctype: "Studio Page",
-	fields: ["name", "page_title", "route", "studio_app", "creation", "modified", "published"],
+	fields: ["name", "page_title", "route", "studio_app", "creation", "modified", "published", "allow_guest"],
 	auto: true,
 	cache: "pages",
 	orderBy: "creation asc",
