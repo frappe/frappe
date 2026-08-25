@@ -470,6 +470,32 @@ class TestEmailAccount(IntegrationTestCase):
 		self.assertEqual(inbox_mails, 2)
 		self.assertEqual(test_folder_mails, 1)
 
+	def test_email_sync_rule_ignores_reindexed_uids(self):
+		email_account = frappe.get_doc(
+			doctype="Email Account",
+			email_account_name="Synthink RFQ",
+			email_id="enquiry@synthinkchemicals.com",
+			use_imap=1,
+			email_sync_option="ALL",
+			initial_sync_count=100,
+			imap_folder=[{"folder_name": "INBOX", "append_to": "Communication"}],
+		).insert(ignore_permissions=True)
+		self.addCleanup(email_account.delete)
+
+		communication = frappe.get_doc(
+			doctype="Communication",
+			communication_type="Communication",
+			communication_medium="Email",
+			sent_or_received="Received",
+			email_account=email_account.name,
+			subject="Quotation request for chromatography columns",
+			sender="purchase@synthinkchemicals.com",
+			uid=-1,
+		).insert(ignore_permissions=True)
+		self.addCleanup(communication.delete)
+
+		self.assertEqual(email_account.build_email_sync_rule(), "UID 1:101")
+
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
