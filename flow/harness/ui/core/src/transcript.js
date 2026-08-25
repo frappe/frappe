@@ -203,6 +203,20 @@ export function stepLabel(name) {
 	return STEP_LABELS[name] ?? humanizeToolName(name)
 }
 
+// Leading row icons for the built-in tools; extension tools get the generic wrench.
+const STEP_ICONS = {
+	read_file: "file-text",
+	grep: "search",
+	bash: "terminal",
+	edit: "edit-3",
+	write: "file-plus",
+	websearch: "globe",
+}
+
+export function stepIcon(name) {
+	return STEP_ICONS[name] ?? "tool"
+}
+
 export function humanizeToolName(name) {
 	const words = String(name ?? "")
 		.replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -246,54 +260,20 @@ export function stepLiveLabel(call) {
 	return `Running ${lowerFirst(label)}`
 }
 
-// Keep the live header on meaningful work. Reasoning deltas remain available
-// inside the expanded group, but a generic "Thinking" signal should not replace
-// the latest actionable tool metadata.
-export function toolGroupLiveLabel(steps, liveLabel) {
-	const toolSteps = steps.filter((step) => step.call)
-	const running = toolSteps.find((step) => !step.result && !step.aborted)
-	if (running) return stepLiveLabel(running.call)
-	const last = toolSteps.at(-1)
-	const lastLabel = last ? stepLiveLabel(last.call) : null
-	if (
-		last &&
-		(!liveLabel ||
-			liveLabel === "Thinking" ||
-			liveLabel === stepLabel(last.call.name) ||
-			liveLabel === lastLabel)
-	)
-		return lastLabel
-	return liveLabel ?? lastLabel
-}
-
-export function toolGroupSummary(calls) {
-	const activities = []
-	const counts = new Map()
-	for (const call of calls) {
-		const name = call?.name ?? ""
-		const key =
-			name === "write" || name === "edit"
-				? "files-edited"
-				: name === "read_file"
-					? "files-read"
-					: name === "bash"
-						? "commands"
-						: name === "grep"
-							? "search"
-							: `custom:${name}`
-		if (!counts.has(key)) activities.push({ key, name })
-		counts.set(key, (counts.get(key) ?? 0) + 1)
+// Display-only compaction for tool row argument text: cwd-relative paths,
+// no `cd <cwd> && ` command prefix, `~` for the home directory. Expanded
+// panels and copy actions keep the full text.
+export function compactDisplayText(text, cwd) {
+	let value = String(text ?? "")
+	cwd = cwd ? String(cwd).replace(/\/+$/, "") : cwd
+	if (cwd) {
+		if (value === cwd) return "."
+		const cd = `cd ${cwd} && `
+		if (value.startsWith(cd)) value = value.slice(cd.length)
+		if (value.startsWith(cwd + "/")) value = value.slice(cwd.length + 1)
+		else value = value.split(cwd + "/").join("")
 	}
-	const phrases = activities.map(({ key, name }) => {
-		const count = counts.get(key)
-		if (key === "files-edited") return count === 1 ? "edited file" : "edited files"
-		if (key === "files-read") return count === 1 ? "read file" : "read files"
-		if (key === "commands") return count === 1 ? "ran command" : "ran commands"
-		if (key === "search") return "searched code"
-		return `used ${lowerFirst(humanizeToolName(name))}`
-	})
-	const summary = phrases.join(", ")
-	return summary ? summary[0].toUpperCase() + summary.slice(1) : "Worked"
+	return value.replace(/(^|[\s"'=(])\/(?:Users|home)\/[^/\s"']+/g, "$1~")
 }
 
 // The one-line summary shown next to a step label.

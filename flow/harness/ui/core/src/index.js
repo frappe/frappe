@@ -14,7 +14,6 @@ export {
 	stepLiveLabel,
 	stepStat,
 	stepSubject,
-	toolGroupSummary,
 } from "./transcript.js"
 export { highlightCode, renderMarkdown, renderMarkdownSegments } from "./markdown.js"
 
