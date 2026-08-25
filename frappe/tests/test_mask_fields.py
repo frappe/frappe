@@ -219,6 +219,21 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		)
 		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
 
+	def test_db_get_value_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		value = frappe.db.get_value(self.dt, self.docname, "secret_data")
+		self.assertEqual(value, "top_secret_value")
+
+	def test_qb_get_query_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["secret_data"],
+			filters={"name": self.docname},
+			ignore_permissions=True,
+		).run(as_dict=True)
+		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
+
 	# ------------------------------------------------------------------
 	# Save: server hooks and permission checks see real values
 	# ------------------------------------------------------------------
