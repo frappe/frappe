@@ -187,6 +187,24 @@ frappe.ui.Tabs = class Tabs {
 		return this.active;
 	}
 
+	/**
+	 * Lock or unlock a tab after construction — for a sequence where a step
+	 * only opens once the one before it is done. Locking the active tab moves
+	 * to the first usable one so the panel never shows behind a dead tab.
+	 * @param {number} index
+	 * @param {boolean} [disabled=true]
+	 */
+	set_disabled(index, disabled = true) {
+		const entry = this.tabs[index];
+		if (!entry) return;
+		entry.tab.disabled = !!disabled;
+		entry.button.disabled = !!disabled;
+		if (disabled && index === this.active) {
+			const next = this.tabs.findIndex((other) => !other.tab.disabled);
+			if (next > -1) this.set_active(next);
+		}
+	}
+
 	// Slide the bar under the active tab: measure where the tab sits in
 	// the list and hand the numbers to CSS (which owns the animation).
 	position_indicator() {
