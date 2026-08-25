@@ -19,6 +19,7 @@
   {
    "fieldname": "master",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Master",
    "options": "MapReduce Job",
    "read_only": 1
@@ -71,7 +72,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-31 10:55:17.779636",
+ "modified": "2026-08-25 12:13:05.238067",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Task",
