@@ -136,12 +136,7 @@ class Dock(Document):
 		self.clear_dock_cache()
 
 	def clear_dock_cache(self):
-		frappe.cache.delete_value(DOCK_LAYERS_CACHE_KEY)
-		if self.user:
-			# a person's own arrangement only invalidates their boot
-			frappe.cache.hdel("bootinfo", self.user)
-		else:
-			frappe.cache.delete_key("bootinfo")
+		drop_dock_caches(self.user)
 
 
 # One layer per address is enforced by the schema -- `user` is `unique` and not-nullable in the
@@ -157,16 +152,20 @@ class Dock(Document):
 def rename_sidebar_rows(old_name: str, new_name: str) -> None:
 	"""Point every dock row naming a sidebar at what that sidebar is called now.
 
-	A dock row *names* what it opens rather than referencing it -- `_validate_links` above is a
-	deliberate no-op -- so nothing carries a rename across on its own, and the row would be left
-	naming a shell that no longer answers to it.
+	Mostly a **fallback**, not the only pass. `rename_doc` runs `rename_dynamic_links` before it
+	calls `after_rename`, and `Dock Item.link_name` is a Dynamic Link, so the framework normally
+	does this already. Normally: that pass walks `get_dynamic_link_map()`, which is derived from
+	the distinct `type` values already in the table and cached for twelve hours -- so on a site
+	whose map was built before any dock row was a `Sidebar`, it does nothing at all. This is what
+	makes the outcome the same either way.
 
 	The rows are updated in place rather than through their parent. A `Dock` is the site's
 	arrangement or one person's own, and re-saving one to correct a name it holds would re-run
-	validation nobody asked for. What the parent's save would have done besides is drop the
-	caches its layer is read out of, and that is what the loop does instead: `get_dock` reads a
-	`Dock` through `get_cached_doc`, so the document's own cache entry is the one that goes
-	stale, and `clear_dock_cache` is what the parent would have called anyway.
+	validation nobody asked for. Invalidating is then this function's own job: `get_dock` reads
+	a `Dock` through `get_cached_doc`, so the document's cache entry is the one that goes stale.
+	`rename_doc` happens to flush the whole site cache a few lines after `after_rename` returns,
+	which would cover it -- but a helper that leaves its own writes visibly stale is only correct
+	while its one caller stays the way it is, and this one costs two queries.
 	"""
 	named = {"parenttype": "Dock", "type": "Sidebar", "link_name": old_name}
 	layers = frappe.get_all("Dock Item", filters=named, pluck="parent", distinct=True)
@@ -174,9 +173,26 @@ def rename_sidebar_rows(old_name: str, new_name: str) -> None:
 		return
 
 	frappe.db.set_value("Dock Item", named, "link_name", new_name, update_modified=False)
-	for layer in layers:
-		frappe.clear_document_cache("Dock", layer)
-		frappe.get_doc("Dock", layer).clear_dock_cache()
+	# name *and* user in one read: `drop_dock_caches` wants the user, and fetching each layer as
+	# a document to get it would pull every one of its item rows along for a single column
+	for layer in frappe.get_all("Dock", filters={"name": ["in", layers]}, fields=["name", "user"]):
+		frappe.clear_document_cache("Dock", layer.name)
+		drop_dock_caches(layer.user)
+
+
+def drop_dock_caches(user: str | None) -> None:
+	"""Drop the caches a dock layer is read out of, for whoever holds it.
+
+	A module function rather than only a method, because a rename edits the rows in place and
+	never loads the parent -- and reading a whole `Dock` to find out whose it is would be a
+	document fetch for one column.
+	"""
+	frappe.cache.delete_value(DOCK_LAYERS_CACHE_KEY)
+	if user:
+		# a person's own arrangement only invalidates their boot
+		frappe.cache.hdel("bootinfo", user)
+	else:
+		frappe.cache.delete_key("bootinfo")
 
 
 def layer_filter(user: str | None) -> dict:

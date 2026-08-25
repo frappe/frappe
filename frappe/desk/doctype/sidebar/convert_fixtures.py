@@ -129,7 +129,7 @@ def convert_app(app: str, dry_run: bool = False) -> list[dict]:
 		# A file already there is left alone, under either of the two names it could be under:
 		# an app that converted by hand before a sidebar was named by its title wrote its file
 		# under the module's name, and re-converting must not write it a second time.
-		existing = next((p for p in (path, export_path(module, module)) if os.path.exists(p)), None)
+		existing = next((p for p in (path, export_path(module)) if os.path.exists(p)), None)
 		if existing:
 			results.append({"module": module, "path": existing, "state": "already converted"})
 			continue
@@ -150,11 +150,14 @@ def convert_app(app: str, dry_run: bool = False) -> list[dict]:
 	return results
 
 
-def export_path(module: str, title: str) -> str:
+def export_path(module: str, title: str | None = None) -> str:
 	"""Where `bench migrate` will look for this sidebar. Mirrors `Sidebar.exported_file_path`,
 	which is also what orphan removal derives -- both are built from the record's name, and a
-	sidebar's name is its title."""
-	scrubbed = frappe.scrub(title)
+	sidebar's name is its title.
+
+	`title` defaults to the module's name, which is what a sidebar's title defaults to.
+	"""
+	scrubbed = frappe.scrub(title or module)
 	return os.path.join(frappe.get_module_path(module), "sidebar", scrubbed, f"{scrubbed}.json")
 
 

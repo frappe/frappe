@@ -445,10 +445,25 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		)
 
 	def test_two_sidebars_may_not_share_a_title(self):
-		"""What a name is: the one thing two sidebars cannot both have."""
+		"""What a name is: the one thing two sidebars cannot both have. Refused by the primary
+		key, since a sidebar's name *is* its title."""
 		make_sidebar(self.MODULE, title=self.LEADS)
 
 		with self.assertRaises(frappe.DuplicateEntryError):
+			make_sidebar(self.MODULE, title=self.LEADS)
+
+	def test_the_title_index_catches_a_row_whose_name_has_drifted(self):
+		"""What `unique` on `title` buys over the primary key, which already forbids two records
+		of one name.
+
+		A row written straight to the table -- a legacy row, a raw update, anything that skips
+		`_sync_autoname_field` -- can carry a title its name does not match. The index is what
+		refuses to let a second sidebar claim that title, and it is the only thing that would.
+		"""
+		drifted = make_sidebar(self.MODULE)
+		frappe.db.set_value("Sidebar", drifted.name, "title", self.LEADS, update_modified=False)
+
+		with self.assertRaises(frappe.UniqueValidationError):
 			make_sidebar(self.MODULE, title=self.LEADS)
 
 	def test_module_is_neither_required_nor_unique(self):
@@ -688,6 +703,46 @@ class TestSidebarStandard(IntegrationTestCase):
 				[item_key(row) for row in stub.items],
 				[item_key(row) for row in get_computed_base(MODULE).rows],
 			)
+
+	def test_renaming_a_standard_sidebar_moves_its_file(self):
+		"""The file is named after the record, so a rename has to take it along.
+
+		Left where it was, it is a file with no row behind it -- and the next `bench migrate`
+		imports it straight back as a second sidebar under the same module.
+		"""
+		import os
+
+		renamed = "Test Standard Sidebar Renamed"
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			doc = frappe.get_doc("Sidebar", mark_as_standard(MODULE))
+			before = doc.exported_file_path()
+			self.assertTrue(os.path.exists(before), "sanity: the mark wrote a file")
+
+			doc.title = renamed
+			doc.save(ignore_permissions=True)
+
+			self.assertEqual(doc.name, renamed)
+			after = frappe.get_doc("Sidebar", renamed).exported_file_path()
+			self.assertNotEqual(after, before, "sanity: the path is built from the name")
+			self.assertFalse(os.path.exists(os.path.dirname(before)), "the old folder is gone")
+			self.assertTrue(os.path.exists(after), f"nothing written to {after}")
+
+	def test_a_site_owned_rename_touches_no_file(self):
+		"""Only a standard sidebar has a file to keep in step, and only a developer's site has
+		one to write. A rename must not go looking for a folder that was never there."""
+		import os
+
+		with module_resolvable_on_disk(MODULE) as path, developer_mode():
+			doc = make_sidebar(MODULE)
+			self.assertEqual(doc.standard, 0)
+
+			doc.title = "Test Site Owned Sidebar Renamed"
+			doc.save(ignore_permissions=True)
+
+			self.assertEqual(doc.name, "Test Site Owned Sidebar Renamed")
+			self.assertFalse(os.path.exists(os.path.join(path, "sidebar")), "nothing was written")
 
 	def test_a_standard_row_whose_file_went_missing_is_written_again(self):
 		"""The mark reports what it verified, so being asked again to ship a sidebar that has

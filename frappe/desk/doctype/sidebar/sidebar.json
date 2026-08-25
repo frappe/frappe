@@ -28,7 +28,7 @@
    "options": "Module Def"
   },
   {
-   "description": "What this sidebar is called, on screen and as its record name (`autoname: field:title`). Defaults to the module's name, and the default is stored -- so a module's own sidebar keeps the name it has always had, and a second sidebar under that module is told apart by being called something else.",
+   "description": "What this sidebar is called, on screen and as its record name (`autoname: field:title`). Defaults to the module's name, and the default is stored -- so a module's own sidebar keeps the name it has always had, and a second sidebar under that module is told apart by being called something else. `unique` on top of that adds one thing the primary key does not: it refuses a second sidebar claiming the title of a row whose name has drifted away from it -- a legacy row, or one written straight to the table.",
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -92,7 +92,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-26 12:00:00.000000",
+ "modified": "2026-08-26 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar",

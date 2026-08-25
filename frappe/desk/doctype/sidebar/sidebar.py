@@ -144,12 +144,10 @@ class Sidebar(Document, DeskViews):
 		here, which is what `rename_doc` needs, and the save that follows writes the rest of
 		the edit to the row the rename left behind.
 
-		An import is left alone. A file carries its own `name`, and that name is the record's
-		identity -- `set_new_name` keeps it for exactly that reason -- so a file whose `title`
-		disagrees with it is saying two things, and the answer is the one every other
-		`field:`-named doctype gives: `_sync_autoname_field` writes the name back over the
-		column. Renaming instead would move a row an app is in the middle of shipping, and take
-		the app's own folder with it.
+		`in_import` is belt-and-braces. `import_doc` is delete-then-insert and sets
+		`ignore_validate`, so an import never reaches here anyway -- but it also leaves the flag
+		set to `False` rather than restoring what it found, and what this guards is a rename
+		that takes a folder inside an app with it.
 		"""
 		if frappe.flags.in_import or self.is_new() or not self.title or self.title == self.name:
 			return
