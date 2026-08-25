@@ -1756,6 +1756,9 @@ export default class Grid {
 		});
 		dialog.$body.append(tabs.$el);
 		tabs.$el.css({ height: "100%", display: "flex", "flex-direction": "column" });
+		// the bar keeps its own height; without this it shrinks and the scrolling
+		// panel rides up over the tab labels
+		tabs.$el.find(".es-tabs__list").css({ flex: "0 0 auto" });
 		tabs.$el
 			.find(".es-tabs__panel")
 			.css({ flex: "1 1 auto", "min-height": 0, "overflow-y": "auto" });
@@ -2011,7 +2014,9 @@ export default class Grid {
 			// built now so the mapping controls exist for refresh_preview to read
 			build_mapping_form();
 			refresh_preview();
+			// both describe the parsed file, so both open together
 			tabs.set_disabled(TAB_PREVIEW, false);
+			tabs.set_disabled(TAB_MAPPING, false);
 			tabs.set_active(TAB_PREVIEW);
 		};
 
@@ -2051,10 +2056,7 @@ export default class Grid {
 
 			if (active === TAB_PREVIEW) {
 				dialog.set_secondary_action_label(__("Map Columns"));
-				dialog.set_secondary_action(() => {
-					tabs.set_disabled(TAB_MAPPING, false);
-					tabs.set_active(TAB_MAPPING);
-				});
+				dialog.set_secondary_action(() => tabs.set_active(TAB_MAPPING));
 				dialog.set_primary_action(__("Apply"), () => {
 					dialog.hide();
 					this.apply_bulk_edit_rows(state.rows, state.import_type, state.column_map);
