@@ -13,7 +13,7 @@ from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from frappe.email.email_body import get_message_id
-from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
+from frappe.email.receive import Email, EmailServer, InboundMail, SentEmailInInboxError
 from frappe.tests import IntegrationTestCase
 
 
@@ -469,6 +469,109 @@ class TestEmailAccount(IntegrationTestCase):
 
 		self.assertEqual(inbox_mails, 2)
 		self.assertEqual(test_folder_mails, 1)
+
+	def make_multi_folder_account(self):
+		email_account = frappe.get_doc(
+			doctype="Email Account",
+			email_account_name="Synthink RFQ",
+			email_id="enquiry@synthinkchemicals.com",
+			use_imap=1,
+			email_sync_option="ALL",
+			initial_sync_count=100,
+			imap_folder=[
+				{"folder_name": "RFQ", "append_to": "Communication", "uidvalidity": "2", "uidnext": "6807"},
+				{"folder_name": "Inbox", "append_to": "Communication", "uidvalidity": "4", "uidnext": "6036"},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(email_account.delete)
+		return email_account
+
+	def make_received_mail(self, email_account, uid, imap_folder, message_id=None):
+		communication = frappe.get_doc(
+			doctype="Communication",
+			communication_type="Communication",
+			communication_medium="Email",
+			sent_or_received="Received",
+			email_account=email_account.name,
+			subject=f"Quotation request {uid}",
+			sender="purchase@synthinkchemicals.com",
+			message_id=message_id,
+			uid=uid,
+			imap_folder=imap_folder,
+		).insert(ignore_permissions=True)
+		self.addCleanup(communication.delete)
+		return communication
+
+	def make_email_server(self, email_account, uid_validity, email_sync_rule, status):
+		server = EmailServer(
+			frappe._dict(
+				{
+					"use_imap": 1,
+					"email_account": email_account.name,
+					"email_account_name": email_account.email_account_name,
+					"uid_validity": uid_validity,
+					"initial_sync_count": 100,
+					"email_sync_rule": email_sync_rule,
+				}
+			)
+		)
+		server.imap = MagicMock()
+		server.imap.status.return_value = ("OK", [status])
+		return server
+
+	def test_email_sync_rule_is_scoped_to_folder(self):
+		email_account = self.make_multi_folder_account()
+		rfq, inbox = email_account.imap_folder
+		self.make_received_mail(email_account, 6806, rfq.folder_name)
+		self.make_received_mail(email_account, 6035, inbox.folder_name)
+
+		self.assertEqual(email_account.build_email_sync_rule(rfq), "UID 6807:*")
+		self.assertEqual(email_account.build_email_sync_rule(inbox), "UID 6036:*")
+
+	def test_uid_reindex_is_scoped_to_folder(self):
+		email_account = self.make_multi_folder_account()
+		rfq, inbox = email_account.imap_folder
+		rfq_mail = self.make_received_mail(email_account, 6806, rfq.folder_name)
+		inbox_mail = self.make_received_mail(email_account, 6035, inbox.folder_name)
+
+		server = self.make_email_server(
+			email_account, inbox.uidvalidity, "UID 6036:*", b'"Inbox" (UIDVALIDITY 9 UIDNEXT 6100)'
+		)
+		server.check_imap_uidvalidity('"Inbox"')
+
+		self.assertEqual(frappe.db.get_value("Communication", inbox_mail.name, "uid"), -1)
+		self.assertEqual(frappe.db.get_value("Communication", rfq_mail.name, "uid"), 6806)
+
+	def test_mail_seen_in_another_folder_keeps_its_original_uid(self):
+		email_account = self.make_multi_folder_account()
+		rfq, inbox = email_account.imap_folder
+		message_id = "rfq-6035@synthinkchemicals.com"
+		communication = self.make_received_mail(email_account, 6035, inbox.folder_name, message_id)
+
+		mail_content = (
+			"From: purchase@synthinkchemicals.com\n"
+			"To: enquiry@synthinkchemicals.com\n"
+			"Subject: Quotation request for chromatography columns\n"
+			f"Message-ID: <{message_id}>\n"
+			"Content-Type: text/plain\n\n"
+			"Please share pricing for the columns.\n"
+		)
+		InboundMail(mail_content, email_account, 500, "UNSEEN", "Communication", rfq.folder_name).process()
+
+		communication.reload()
+		self.assertEqual(communication.uid, 6035)
+		self.assertEqual(communication.imap_folder, inbox.folder_name)
+
+	def test_folder_without_synced_mail_resumes_from_server_uidnext(self):
+		email_account = self.make_multi_folder_account()
+		inbox = email_account.imap_folder[1]
+
+		server = self.make_email_server(
+			email_account, inbox.uidvalidity, "UID 6807:*", b'"Inbox" (UIDVALIDITY 4 UIDNEXT 6036)'
+		)
+		server.check_imap_uidvalidity('"Inbox"')
+
+		self.assertEqual(server.settings.email_sync_rule, "UID 6036:*")
 
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
