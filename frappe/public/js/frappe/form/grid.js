@@ -1927,7 +1927,14 @@ export default class Grid {
 		}
 
 		const headers = data[BULK_EDIT_FIELDNAME_ROW] || [];
-		const rows = data.slice(BULK_EDIT_CSV_HEADER_ROWS).filter((row) => row.some((v) => v));
+		const rows = [];
+		// kept alongside rows so a warning can name the line in the file
+		const row_numbers = [];
+		data.slice(BULK_EDIT_CSV_HEADER_ROWS).forEach((row, i) => {
+			if (!row.some((v) => v)) return;
+			rows.push(row);
+			row_numbers.push(BULK_EDIT_CSV_HEADER_ROWS + i + 1);
+		});
 
 		if (!rows.length) {
 			frappe.msgprint({
@@ -1971,10 +1978,40 @@ export default class Grid {
 			});
 		});
 
+		dialog.add_custom_action(
+			__("Show Warnings"),
+			() => {
+				dialog.hide();
+				this.show_bulk_edit_warnings(
+					this.get_bulk_edit_warnings(
+						headers,
+						rows,
+						row_numbers,
+						import_type,
+						column_map
+					),
+					() => {
+						dialog.show();
+						render();
+					}
+				);
+			},
+			"bulk-edit-warnings"
+		);
+
 		const render = () => {
 			const map = column_map;
 			const counts = this.count_bulk_edit_rows(rows, import_type, map);
-			const unmapped = headers.filter((header, i) => header && map[i] === undefined).length;
+			const warnings = this.get_bulk_edit_warnings(
+				headers,
+				rows,
+				row_numbers,
+				import_type,
+				map
+			);
+
+			// the action only earns its place when there is something to show
+			dialog.$wrapper.find(".bulk-edit-warnings").toggleClass("hide", !warnings.length);
 
 			dialog.get_field("summary").$wrapper.html(`
 				<p class="text-muted small">
@@ -1993,11 +2030,10 @@ export default class Grid {
 						: ""
 				}
 				${
-					unmapped
-						? `<p class="text-muted small">${__(
-								"{0} columns are not mapped to a field and will be ignored.",
-								[`<b>${unmapped}</b>`]
-						  )}</p>`
+					warnings.length
+						? `<p class="text-warning small">${__("{0} warnings", [
+								`<b>${warnings.length}</b>`,
+						  ])}</p>`
 						: ""
 				}
 			`);
@@ -2036,6 +2072,144 @@ export default class Grid {
 
 		dialog.show();
 		render();
+	}
+
+	/**
+	 * Everything questionable about the file, found without touching the server.
+	 * Link values are not checked; proving one exists needs a query per value.
+	 */
+	get_bulk_edit_warnings(headers, rows, row_numbers, import_type, column_map) {
+		const warnings = [];
+		const columns = Object.keys(column_map).map(cint);
+		const id_index = columns.find((i) => column_map[i] === BULK_EDIT_ID_FIELDNAME);
+
+		headers.forEach((header, i) => {
+			if (header && column_map[i] === undefined) {
+				warnings.push({
+					col: i + 1,
+					message: __('"{0}" does not match a field and will be ignored.', [header]),
+				});
+			}
+		});
+
+		if (import_type !== BULK_EDIT_INSERT && id_index === undefined) {
+			warnings.push({
+				message: __(
+					"No ID column is mapped, so no row can be matched. Every row will be skipped."
+				),
+			});
+		}
+
+		rows.forEach((row, r) => {
+			const row_number = row_numbers[r];
+
+			if (row.length !== headers.length) {
+				warnings.push({
+					row: row_number,
+					message:
+						row.length < headers.length
+							? __("This row has fewer cells than the header.")
+							: __("This row has more cells than the header."),
+				});
+			}
+
+			const id = id_index === undefined ? null : cstr(row[id_index]).trim();
+			const is_new =
+				import_type === BULK_EDIT_INSERT ||
+				(!this.get_bulk_edit_row_by_id(id) && import_type === BULK_EDIT_UPSERT);
+
+			if (import_type === BULK_EDIT_UPDATE && id && !this.get_bulk_edit_row_by_id(id)) {
+				warnings.push({
+					row: row_number,
+					message: __('No row in this table has the ID "{0}".', [id]),
+				});
+			}
+
+			columns.forEach((i) => {
+				const fieldname = column_map[i];
+				if (fieldname === BULK_EDIT_ID_FIELDNAME) return;
+
+				const df = frappe.meta.get_docfield(this.df.options, fieldname);
+				if (!df) return;
+
+				const value = cstr(row[i]).trim();
+
+				if (df.fieldtype === "Select" && value) {
+					const options = (df.options || "").split("\n").map((o) => o.trim());
+					if (!options.includes(value)) {
+						warnings.push({
+							row: row_number,
+							field: df,
+							message: __('"{0}" is not a valid option. Allowed: {1}', [
+								value,
+								options.filter(Boolean).join(", "),
+							]),
+						});
+					}
+				}
+
+				// a blank mandatory cell only matters on a row that is being created
+				if (df.reqd && !value && is_new) {
+					warnings.push({
+						row: row_number,
+						field: df,
+						message: __("This field is mandatory and is blank."),
+					});
+				}
+			});
+		});
+
+		return warnings;
+	}
+
+	show_bulk_edit_warnings(warnings, on_back) {
+		const by_row = {};
+		const general = [];
+		warnings.forEach((w) => {
+			if (!w.row) return general.push(w);
+			by_row[w.row] = by_row[w.row] || [];
+			by_row[w.row].push(w);
+		});
+
+		const line = (w) => {
+			const label = w.field ? `<b>${frappe.utils.escape_html(w.field.label)}</b>: ` : "";
+			return `<li>${label}${w.message}</li>`;
+		};
+
+		const html = `
+			${general.length ? `<ul class="text-muted">${general.map(line).join("")}</ul>` : ""}
+			${Object.keys(by_row)
+				.sort((a, b) => cint(a) - cint(b))
+				.map(
+					(row) => `
+						<div class="mb-3">
+							<h6 class="text-uppercase text-muted">${__("Row {0}", [row])}</h6>
+							<ul class="text-muted">${by_row[row].map(line).join("")}</ul>
+						</div>
+					`
+				)
+				.join("")}
+		`;
+
+		let done = false;
+		const finish = () => {
+			if (done) return;
+			done = true;
+			dialog.hide();
+			on_back();
+		};
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Warnings"),
+			size: BULK_EDIT_DIALOG_SIZE,
+			fields: [{ fieldtype: "HTML", fieldname: "warnings", options: html }],
+			// the button label is set with .text(), so the arrow has to be a glyph
+			primary_action_label: `← ${__("Back to Preview")}`,
+			primary_action: () => finish(),
+			onhide: () => finish(),
+		});
+		this.scroll_bulk_edit_dialog(dialog);
+		dialog.show();
 	}
 
 	/** Column index to fieldname, for every header that names a field. */
