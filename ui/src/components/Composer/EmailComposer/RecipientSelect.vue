@@ -6,13 +6,13 @@
 			:options="options"
 			:loading="loading"
 			:placeholder="placeholder"
-			class="!gap-1 !bg-transparent !p-0"
+			class="mt-px !gap-1 !bg-transparent !p-0"
 			@update:query="onQuery"
 		>
 			<!-- Always show the avatar; the default hides it when imageless. -->
 			<template #tag="{ value, option, removeTag }">
 				<Avatar size="xs" :image="option?.image" :label="option?.label || value" />
-				<span class="truncate">{{ option?.label || value }}</span>
+				<span class="mb-0.5 truncate">{{ option?.label || value }}</span>
 				<button
 					class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-4"
 					@click.stop="removeTag"

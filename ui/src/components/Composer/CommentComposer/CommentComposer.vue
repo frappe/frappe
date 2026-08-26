@@ -4,6 +4,7 @@
 		:placeholder="placeholder"
 		:submit-label="submitLabel"
 		:upload-function="uploadFunction"
+		:extensions="extensions"
 		:mentions="mentions"
 		v-model:body="body"
 		@submit="emit('submit', $event)"

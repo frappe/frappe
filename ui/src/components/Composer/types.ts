@@ -1,3 +1,4 @@
+import type { Extension } from "@tiptap/core";
 import type { UploadedFile as EditorUploadedFile } from "frappe-ui/editor";
 
 export interface Recipient {
@@ -6,16 +7,8 @@ export interface Recipient {
   image?: string;
 }
 
-export interface Recipients {
-  to: Recipient[];
-  cc: Recipient[];
-  bcc: Recipient[];
-}
-
 /** Host-supplied recipient lookup, called as the user types (and once with ""). */
 export type RecipientSearch = (query: string) => Promise<Recipient[]>;
-
-export type HeaderField = "from" | "to" | "subject" | "cc" | "bcc";
 
 /** A file as returned by FileUploader's `success` event. */
 export interface UploadedFile {
@@ -46,6 +39,8 @@ interface BaseComposerProps {
   placeholder?: string;
   submitLabel?: string;
   uploadFunction?: UploadFunction;
+  /** Extra tiptap extensions, appended after the built-in RichTextKit. Read once at mount. */
+  extensions?: Extension[];
 }
 
 export interface ComposerEditorProps extends BaseComposerProps {
@@ -73,14 +68,20 @@ interface BaseComposerEmits<Payload> {
 export interface EmailPayload extends CoreSubmitPayload {
   from: string;
   subject: string;
-  recipients: Recipients;
+  to: Recipient[];
+  cc: Recipient[];
+  bcc: Recipient[];
 }
 
-/** v-models: body (default), from, recipients, subject, quoted. */
+/** v-models: body (default), from, to, cc, bcc, subject, quoted. */
 export interface EmailComposerProps extends BaseComposerProps {
-  /** Built-in header rows to render. Defaults to ["to", "cc", "bcc"]. */
-  headerFields?: HeaderField[];
-  /** Sender identities for the From row (shown when `headerFields` includes "from"). */
+  /** Header rows. To/Cc/Bcc default on; From/Subject default off. */
+  showTo?: boolean;
+  showCc?: boolean;
+  showBcc?: boolean;
+  showFrom?: boolean;
+  showSubject?: boolean;
+  /** Sender identities for the From row (shown with `showFrom`). */
   senders?: Recipient[];
   /** Recipient lookup; omit for a plain creatable-email field. */
   searchRecipients?: RecipientSearch;

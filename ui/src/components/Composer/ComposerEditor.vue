@@ -27,7 +27,7 @@
 						class="flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
 					>
 						<EditorContent
-							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
+							class="prose-sm max-w-full flex-1 pb-8 pt-4 [&_p.reply-to-content]:hidden"
 						/>
 						<!--
 							Quoted reply lives outside the editor: tiptap parses HTML into its
@@ -42,7 +42,7 @@
 							@toggle="onQuoteToggle"
 						>
 							<summary
-								class="w-fit cursor-pointer select-none rounded px-1 text-sm leading-none text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
+								class="w-fit cursor-pointer select-none rounded px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
 							>
 								•••
 							</summary>
@@ -83,21 +83,24 @@
 						</div>
 
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<div class="relative overflow-hidden" style="max-width: 70%">
+							<!-- -ml-1.5 offsets the scroller's p-0.5 plus the ghost button's icon inset
+							     so the first icon's ink sits on the content edge, mirroring Send's right. -->
+							<div class="relative -ml-1.5 overflow-hidden" style="max-width: 70%">
 								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
+									ref="toolbarScroller"
 									class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
-									<button
+									<Button
 										v-if="uploadFunction"
-										type="button"
+										variant="ghost"
+										size="sm"
+										:icon="LucidePaperclip"
 										aria-label="Attach file"
-										class="flex shrink-0 rounded p-1 text-ink-gray-8 transition-colors hover:bg-surface-gray-3 disabled:opacity-50"
+										class="shrink-0"
 										:disabled="isUploading"
 										@click="attachInput?.click()"
-									>
-										<LucidePaperclip class="h-4 w-4" />
-									</button>
+									/>
 									<input
 										ref="attachInput"
 										type="file"
@@ -108,9 +111,27 @@
 										name="actions"
 										v-bind="{ addAttachment, setUploading }"
 									/>
+									<!-- Same divider the menu uses between its own sections. -->
+									<span
+										v-if="uploadFunction || $slots.actions"
+										class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
+										aria-hidden="true"
+									/>
 									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
 								</div>
 								<div
+									v-show="!toolbarArrived.left"
+									class="pointer-events-none absolute inset-y-0 left-0 w-8"
+									style="
+										background: linear-gradient(
+											to right,
+											var(--surface-base, white),
+											transparent
+										);
+									"
+								/>
+								<div
+									v-show="!toolbarArrived.right"
 									class="pointer-events-none absolute inset-y-0 right-0 w-8"
 									style="
 										background: linear-gradient(
@@ -122,7 +143,7 @@
 								/>
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
-								<Button label="Discard" :disabled="isEmpty" @click="reset" />
+								<Button v-if="!isEmpty" label="Discard" @click="reset" />
 								<Button
 									variant="solid"
 									:label="submitLabel"
@@ -140,6 +161,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
+import { useScroll } from "@vueuse/core";
 import { Button, toast } from "frappe-ui";
 import LucideFileImage from "~icons/lucide/file-image";
 import LucidePaperclip from "~icons/lucide/paperclip";
@@ -215,6 +237,10 @@ const emit = defineEmits<{
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const editor = computed(() => editorRef.value?.editor);
 
+// Edge fades track scroll position so each side fades only while clipped.
+const toolbarScroller = useTemplateRef<HTMLElement>("toolbarScroller");
+const { arrivedState: toolbarArrived } = useScroll(toolbarScroller);
+
 const mentionItems = computed(() =>
 	(props.mentions ?? []).map((option) => ({
 		id: option.value,
@@ -222,12 +248,14 @@ const mentionItems = computed(() =>
 	}))
 );
 
-// Built once so the editor isn't torn down on change; reactive bits thread in via getters.
+// Built once so the editor isn't torn down on change; reactive bits thread in via
+// getters. Host extensions land after RichTextKit so they can override its defaults.
 const extensions = [
 	RichTextKit.configure({
 		heading: { levels: [2, 3, 4, 5, 6] },
 		mention: { items: () => mentionItems.value },
 	}),
+	...(props.extensions ?? []),
 ];
 
 const body = defineModel<string>("body", { default: "" });

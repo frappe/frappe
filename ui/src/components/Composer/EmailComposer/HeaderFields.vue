@@ -1,8 +1,8 @@
 <template>
 	<div class="px-2.5">
 		<Row v-if="showFrom" label="From" :items-center="true">
-			<!-- -ml-2 cancels the ghost trigger's px-2 so text aligns with the inputs below. -->
-			<Select v-model="from" :options="senderOptions" variant="ghost" class="-ml-2" />
+			<!-- -ml-1 offsets the ghost trigger's px-2 so its text sits 12px from the label. -->
+			<Select v-model="from" :options="senderOptions" variant="ghost" class="-ml-1" />
 		</Row>
 
 		<Row v-if="showSubject" label="Subject" :items-center="true">
@@ -14,56 +14,64 @@
 		</Row>
 
 		<Row v-if="showTo" label="To">
-			<RecipientSelect v-model="model.to" class="flex-1" :search="search" />
-			<div v-if="rows.length" class="flex shrink-0 items-center gap-1">
+			<RecipientSelect v-model="to" class="flex-1" :search="search" />
+			<div v-if="showCc || showBcc" class="flex shrink-0 items-center gap-1">
 				<Button
-					v-for="field in rows"
-					:key="field"
+					v-if="showCc"
 					variant="ghost"
-					:label="field.toUpperCase()"
-					:class="open[field] ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
-					@click="toggle(field)"
+					label="CC"
+					:class="openCc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
 					size="xs"
+					@click="toggleCc"
+				/>
+				<Button
+					v-if="showBcc"
+					variant="ghost"
+					label="BCC"
+					:class="openBcc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
+					size="xs"
+					@click="toggleBcc"
 				/>
 			</div>
 		</Row>
 
-		<template v-for="field in rows" :key="field">
-			<Row v-if="open[field]" :label="field.toUpperCase()">
-				<RecipientSelect v-model="model[field]" class="flex-1" :search="search" />
-			</Row>
-		</template>
-		<div class="border-b bg-surface-gray-1 mt-1"></div>
+		<Row v-if="showCc && openCc" label="CC">
+			<RecipientSelect v-model="cc" class="flex-1" :search="search" />
+		</Row>
+		<Row v-if="showBcc && openBcc" label="BCC">
+			<RecipientSelect v-model="bcc" class="flex-1" :search="search" />
+		</Row>
+		<div class="border-b bg-surface-gray-1 mt-2"></div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { Button, Select } from "frappe-ui";
 import RecipientSelect from "./RecipientSelect.vue";
 import Row from "./HeaderRow.vue";
-import type { HeaderField, Recipient, Recipients, RecipientSearch } from "../types";
+import type { Recipient, RecipientSearch } from "../types";
 
+// Private to EmailComposer, which always passes every flag — required props
+// keep the defaults in one place (EmailComposerProps).
 const props = withDefaults(
 	defineProps<{
-		fields?: HeaderField[];
+		showTo: boolean;
+		showCc: boolean;
+		showBcc: boolean;
+		showFrom: boolean;
+		showSubject: boolean;
 		senders?: Recipient[];
 		search?: RecipientSearch;
 	}>(),
-	{ fields: () => ["to", "cc", "bcc"], senders: () => [] }
+	{ senders: () => [] }
 );
 
-const model = defineModel<Recipients>({ required: true });
+const to = defineModel<Recipient[]>("to", { default: () => [] });
+const cc = defineModel<Recipient[]>("cc", { default: () => [] });
+const bcc = defineModel<Recipient[]>("bcc", { default: () => [] });
 const subject = defineModel<string>("subject", { default: "" });
 const from = defineModel<string>("from", { default: "" });
-
-const OPTIONAL = ["cc", "bcc"] as const;
-type OptionalField = "cc" | "bcc";
-
-const showFrom = computed(() => props.fields.includes("from"));
-const showSubject = computed(() => props.fields.includes("subject"));
-const showTo = computed(() => props.fields.includes("to"));
-const rows = computed(() => OPTIONAL.filter((field) => props.fields.includes(field)));
 
 const senderOptions = computed(() =>
 	props.senders.map((sender) => ({
@@ -74,29 +82,39 @@ const senderOptions = computed(() =>
 
 // Default to the first sender so the From row never sits unselected.
 watch(
-	[showFrom, () => props.senders],
+	[() => props.showFrom, () => props.senders],
 	([show, senders]) => {
 		if (show && !from.value && senders.length) from.value = senders[0].email;
 	},
 	{ immediate: true }
 );
 
-const open = reactive<Record<OptionalField, boolean>>({ cc: false, bcc: false });
+const openCc = ref(false);
+const openBcc = ref(false);
 
 // Prefilled recipients auto-open their row.
-for (const field of OPTIONAL) {
-	watch(
-		() => model.value[field].length,
-		(count) => {
-			if (count) open[field] = true;
-		},
-		{ immediate: true }
-	);
-}
+watch(
+	() => cc.value.length,
+	(count) => {
+		if (count) openCc.value = true;
+	},
+	{ immediate: true }
+);
+watch(
+	() => bcc.value.length,
+	(count) => {
+		if (count) openBcc.value = true;
+	},
+	{ immediate: true }
+);
 
 // Closing a row drops its recipients so none are sent invisibly.
-function toggle(field: OptionalField) {
-	open[field] = !open[field];
-	if (!open[field]) model.value[field] = [];
+function toggleCc() {
+	openCc.value = !openCc.value;
+	if (!openCc.value) cc.value = [];
+}
+function toggleBcc() {
+	openBcc.value = !openBcc.value;
+	if (!openBcc.value) bcc.value = [];
 }
 </script>
