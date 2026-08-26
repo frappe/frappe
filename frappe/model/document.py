@@ -323,7 +323,9 @@ class Document(BaseDocument):
 			self.set(field.fieldname, mask_field_value(field, val))
 
 		for table_field in self.meta.get_table_fields():
-			child_mask_fields = frappe.get_meta(table_field.options).get_masked_fields()
+			child_mask_fields = frappe.get_meta(table_field.options).get_masked_fields(
+				parenttype=self.doctype
+			)
 			if not child_mask_fields:
 				continue
 
@@ -994,7 +996,7 @@ class Document(BaseDocument):
 		child_mask_fields = {
 			table_field.fieldname: masked
 			for table_field in self.meta.get_table_fields()
-			if (masked := frappe.get_meta(table_field.options).get_masked_fields())
+			if (masked := frappe.get_meta(table_field.options).get_masked_fields(parenttype=self.doctype))
 		}
 		if not mask_fields and not child_mask_fields:
 			return
