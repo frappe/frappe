@@ -3,7 +3,11 @@
 import json
 
 import frappe
-from frappe.core.doctype.comment.comment import get_document_comments, get_permission_query_conditions
+from frappe.core.doctype.comment.comment import (
+	MAX_COMMENT_CHAIN_DEPTH,
+	get_document_comments,
+	get_permission_query_conditions,
+)
 from frappe.desk.form.activity import get_activity_timeline
 from frappe.desk.form.load import add_comments, get_comments
 from frappe.permissions import add_permission, reset_perms
@@ -106,7 +110,7 @@ class TestComment(IntegrationTestCase):
 		test_blog.delete()
 
 	def test_guest_sees_published_website_comments(self):
-		"""Website comment visibility is the `published` flag, not desk read on the page."""
+		"""Visibility here is the `published` flag, not desk read on the page."""
 		from frappe.website.utils import get_comment_list
 
 		web_page = frappe.get_doc("Web Page", "test-web-page-1")
@@ -160,7 +164,7 @@ class TestCommentPermissions(IntegrationTestCase):
 				roles=[{"role": "Blogger"}],
 			).insert(ignore_permissions=True)
 
-		# a role read on Comment is needed to get past the doctype gate
+		# needed to get past the doctype gate
 		add_permission("Comment", "Blogger", 0)
 		frappe.clear_cache(doctype="Comment")
 
@@ -169,7 +173,7 @@ class TestCommentPermissions(IntegrationTestCase):
 		frappe.clear_cache(doctype="Comment")
 
 	def visible_comments(self):
-		"""Assertions stay outside `set_user`: one failing inside leaks the user into the next setUp."""
+		"""Assert outside `set_user`: a failure inside leaks the user into the next setUp."""
 		with set_user(self.user):
 			return frappe.get_list(
 				"Comment",
@@ -219,8 +223,48 @@ class TestCommentPermissions(IntegrationTestCase):
 	def test_administrator_is_not_filtered(self):
 		self.assertEqual(get_permission_query_conditions("Administrator"), "")
 
-	def test_a_cycle_of_comments_does_not_recurse(self):
-		"""Two comments referencing each other must not blow the stack on a permission check."""
+	def test_a_nested_comment_follows_the_root_document(self):
+		"""A comment written on a comment inherits the document the thread ends on."""
+		reply = frappe.get_doc(
+			doctype="Comment",
+			comment_type="Comment",
+			content="reply",
+			reference_doctype="Comment",
+			reference_name=self.comment,
+		).insert(ignore_permissions=True)
+
+		with set_user(self.user):
+			before = frappe.has_permission("Comment", "read", doc=reply.name)
+
+		frappe.share.add("ToDo", self.todo.name, self.user, read=1)
+
+		with set_user(self.user):
+			after = frappe.has_permission("Comment", "read", doc=reply.name)
+
+		self.assertFalse(before)
+		self.assertTrue(after)
+
+	def test_a_chain_deeper_than_the_limit_is_refused(self):
+		"""The walk is bounded, so a longer chain cannot be verified."""
+		tip = self.todo.add_comment("Comment", "root")
+		for _ in range(MAX_COMMENT_CHAIN_DEPTH + 1):
+			tip = frappe.get_doc(
+				doctype="Comment",
+				comment_type="Comment",
+				content="reply",
+				reference_doctype="Comment",
+				reference_name=tip.name,
+			).insert(ignore_permissions=True)
+
+		frappe.share.add("ToDo", self.todo.name, self.user, read=1)
+
+		with set_user(self.user):
+			readable = frappe.has_permission("Comment", "read", doc=tip.name)
+
+		self.assertFalse(readable)
+
+	def test_a_cycle_of_comments_is_refused_without_recursing(self):
+		"""A cycle reaches no document, so it is refused rather than blowing the stack."""
 		a = frappe.get_doc(doctype="Comment", comment_type="Comment", content="a").insert(
 			ignore_permissions=True
 		)
@@ -238,7 +282,7 @@ class TestCommentPermissions(IntegrationTestCase):
 		with set_user(self.user):
 			readable = frappe.has_permission("Comment", "read", doc=a.name)
 
-		self.assertTrue(readable)
+		self.assertFalse(readable)
 
 	def test_a_comment_on_nothing_stays_visible(self):
 		orphan = frappe.get_doc(doctype="Comment", comment_type="Comment", content="no reference").insert(
@@ -298,6 +342,17 @@ class TestCommentReadersHonourHooks(IntegrationTestCase):
 		with self.patch_hooks(HIDE):
 			self.assertEqual(get_comments("ToDo", self.todo.name), [])
 			self.assertEqual(len(get_comments("ToDo", self.todo.name, "Info")), 1)
+
+	def test_a_limit_is_not_spent_on_hidden_rows(self):
+		"""A limit counts only rows the reader gets."""
+		for i in range(5):
+			self.todo.add_comment("Comment", f"hidden {i}")
+			self.todo.add_comment("Info", f"shown {i}")
+
+		with self.patch_hooks(HIDE):
+			rows = get_document_comments("ToDo", self.todo.name, fields=["name"], limit_page_length=5)
+
+		self.assertEqual(len(rows), 5)
 
 	def test_hook_reaches_a_read_composed_for_another_user(self):
 		with self.patch_hooks(HIDE):

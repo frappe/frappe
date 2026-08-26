@@ -114,30 +114,51 @@ class Comment(Document):
 		update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
 
 
+MAX_COMMENT_CHAIN_DEPTH = 10
+
+
 def on_doctype_update():
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-	"""A comment is readable as far as the document it was written on is."""
+	"""A comment is readable as far as the document it was written on is.
+
+	A comment can be written on a comment, so the reference is followed to the document the
+	thread ends on. A chain that reaches none is refused.
+	"""
 	if ptype != "read":
 		return True
 
-	if not (doc.reference_doctype and doc.reference_name):
-		return True
+	reference_doctype, reference_name = doc.reference_doctype, doc.reference_name
+	seen = {doc.name}
 
-	if doc.reference_doctype == doc.doctype:
-		# comment-on-comment chains can be cyclic
-		return True
+	for _ in range(MAX_COMMENT_CHAIN_DEPTH):
+		if not (reference_doctype and reference_name):
+			return True
 
-	return frappe.has_permission(
-		doc.reference_doctype, ptype="read", doc=doc.reference_name, user=user, debug=debug
-	)
+		if reference_doctype != "Comment":
+			return frappe.has_permission(
+				reference_doctype, ptype="read", doc=reference_name, user=user, debug=debug
+			)
+
+		if reference_name in seen:
+			break
+		seen.add(reference_name)
+
+		reference = frappe.db.get_value("Comment", reference_name, ["reference_doctype", "reference_name"])
+		if reference is None:
+			break
+		reference_doctype, reference_name = reference
+
+	return False
 
 
 def get_permission_query_conditions(user: str | None = None) -> str:
-	"""Drop comments on doctypes the user cannot read at all; per-document access is
-	`has_permission`'s job, it is not expressible as one condition on `tabComment`."""
+	"""Drop comments on doctypes the user cannot read at all.
+
+	Per-document access is `has_permission`'s job; it is not one condition on `tabComment`.
+	"""
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return ""
@@ -162,41 +183,34 @@ def get_document_comments(
 ) -> list[frappe._dict]:
 	"""Read a document's comment rows, honouring the Comment `has_permission` hooks.
 
-	The caller must have checked read on the document. Pass `user` when composing for
-	someone other than the session user, as the follow digests do.
+	The caller must have checked read on the document. Pass `user` to compose for someone
+	other than the session user, as the follow digests do. Hooks decide per comment type and
+	are handed the reference and the type only, so one reading any other field sees nothing.
 	"""
 	filters = [
 		["reference_doctype", "=", reference_doctype],
 		["reference_name", "=", reference_name],
 		*(extra_filters or []),
 	]
-	if comment_types is not None:
-		if not comment_types:
-			return []
-		filters.append(["comment_type", "in", comment_types])
 
-	if "comment_type" not in fields:
-		# the hooks decide per type
-		fields = [*fields, "comment_type"]
-
-	rows = frappe.get_all("Comment", fields=fields, filters=filters, **kwargs)
-
-	# all rows share one reference, so a verdict can only turn on comment_type
-	verdicts: dict[str, bool] = {}
+	if comment_types is None:
+		comment_types = frappe.get_all("Comment", filters=filters, pluck="comment_type", distinct=True)
 
 	def permitted(comment_type: str) -> bool:
-		if comment_type not in verdicts:
-			probe = frappe._dict(
-				doctype="Comment",
-				name=None,
-				reference_doctype=reference_doctype,
-				reference_name=reference_name,
-				comment_type=comment_type,
-			)
-			verdicts[comment_type] = has_controller_permissions(probe, "read", user=user)
-		return verdicts[comment_type]
+		probe = frappe._dict(
+			doctype="Comment",
+			name=None,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+			comment_type=comment_type,
+		)
+		return has_controller_permissions(probe, "read", user=user)
 
-	return [row for row in rows if permitted(row.comment_type)]
+	if not (allowed := [comment_type for comment_type in comment_types if permitted(comment_type)]):
+		return []
+
+	filters.append(["comment_type", "in", allowed])
+	return frappe.get_all("Comment", fields=fields, filters=filters, **kwargs)
 
 
 def update_comment_in_doc(doc):

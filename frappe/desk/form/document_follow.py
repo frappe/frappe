@@ -238,7 +238,7 @@ def get_version(doctype, doc_name, frequency, user):
 
 
 def get_comments(doctype, doc_name, frequency, user):
-	# local import: circular with frappe.model.document
+	# circular with frappe.model.document
 	from frappe.core.doctype.comment.comment import get_document_comments
 	from frappe.core.utils import html2text
 
