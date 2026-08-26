@@ -27,6 +27,17 @@
 				</template>
 			</Button>
 			<Button
+				v-if="activeTab"
+				variant="outline"
+				size="sm"
+				class="flex-none"
+				:class="wrapText ? '!bg-surface-gray-3' : ''"
+				:title="wrapText ? 'Disable word wrap' : 'Wrap text'"
+				:aria-pressed="wrapText"
+				icon="lucide-wrap-text"
+				@click="toggleWrap"
+			/>
+			<Button
 				variant="outline"
 				size="sm"
 				class="flex-none"
@@ -171,6 +182,16 @@ function toggleDiffLayout() {
 	diffEditor?.updateOptions({ renderSideBySide: diffSplit.value })
 }
 
+const wrapText = ref(false)
+const wrapValue = () => (wrapText.value ? "on" : "off")
+function toggleWrap() {
+	wrapText.value = !wrapText.value
+	const wordWrap = wrapValue()
+	editor?.updateOptions({ wordWrap })
+	// diffWordWrap governs the diff editor's inner editors ("inherit" tracks wordWrap)
+	diffEditor?.updateOptions({ wordWrap, diffWordWrap: wordWrap })
+}
+
 // monaco infers the language from the file uri; only fill its gaps
 const LANG_OVERRIDES = { vue: "html", svelte: "html" }
 
@@ -221,7 +242,7 @@ watch([editorEl, () => workspace.value.open, showEditorHost], async ([el, open, 
 	if (el && open && needed && !editor) {
 		monaco ??= (await import("../monaco.js")).monaco
 		if (!editorEl.value || !workspace.value.open || editor) return // closed while loading
-		editor = monaco.editor.create(editorEl.value, { ...EDITOR_OPTIONS })
+		editor = monaco.editor.create(editorEl.value, { ...EDITOR_OPTIONS, wordWrap: wrapValue() })
 		applyTheme()
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save)
 		syncModel()
@@ -238,6 +259,8 @@ watch([diffEl, () => workspace.value.open, showDiffHost], async ([el, open, need
 		if (!diffEl.value || !workspace.value.open || diffEditor) return
 		diffEditor = monaco.editor.createDiffEditor(diffEl.value, {
 			...EDITOR_OPTIONS,
+			wordWrap: wrapValue(),
+			diffWordWrap: wrapValue(),
 			renderSideBySide: diffSplit.value,
 			useInlineViewWhenSpaceIsLimited: false,
 			hideUnchangedRegions: { enabled: false },
