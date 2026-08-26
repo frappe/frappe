@@ -1373,10 +1373,42 @@ from {tables}
 			if not only_if_shared and self.shared and conditions:
 				conditions = f"(({conditions}) or ({self.get_share_condition()}))"
 
+			if self.doctype_meta.istable and self.parent_doctype:
+				parent_condition = self.get_parent_row_permission_condition()
+				if parent_condition:
+					conditions += (" and " + parent_condition) if conditions else parent_condition
+
 			return conditions
 
 		else:
 			return self.match_filters
+
+	def get_parent_row_permission_condition(self) -> str:
+		"""Restrict child rows to parents the user has row-level (not just doctype-level) access to.
+
+		check_read_permission() only checks doctype-level read on parent_doctype; this folds
+		in the parent's own row-level conditions (User Permission/owner/share) as a subquery.
+		"""
+		if self.flags.ignore_permissions:
+			return ""
+
+		parent_meta = frappe.get_meta(self.parent_doctype)
+		if parent_meta.issingle:
+			return ""
+
+		parent_query = DatabaseQuery(self.parent_doctype, user=self.user)
+		# thread through reference_doctype: applicable_for-scoped User Permissions on the
+		# parent's own "name" field are matched against it (see build_match_conditions),
+		# and a bare DatabaseQuery() otherwise leaves it unset
+		parent_query.reference_doctype = self.reference_doctype
+		parent_condition = parent_query.build_match_conditions()
+		if not parent_condition:
+			return ""
+
+		return (
+			f"`tab{self.doctype}`.`parent` in "
+			f"(select `name` from `tab{self.parent_doctype}` where {parent_condition})"
+		)
 
 	def get_share_condition(self):
 		return (
