@@ -66,6 +66,15 @@
 			<div
 				class="flow-composer-surface flex flex-col gap-2 rounded-xl border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
 			>
+				<button
+					v-if="needsCwd"
+					class="flex w-full items-center gap-2.5 rounded-lg border border-dashed border-outline-gray-3 bg-surface-gray-1 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+					@click="chooseFolder"
+				>
+					<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
+					<span class="min-w-0 flex-1 text-xs font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
+					<span class="flex-none text-2xs font-medium text-ink-gray-6">Browse…</span>
+				</button>
 				<div v-if="codeRefs.length" class="flex flex-wrap items-center gap-2 px-1 pt-0.5">
 					<span
 						v-for="(ref, i) in codeRefs"
@@ -538,9 +547,12 @@ watch(
 const refLabel = (ref) =>
 	`${fileName(ref.path)} (${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""})`
 const refToken = (ref) => `@${ref.rel}:${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""}`
+// an existing session's cwd is frozen in its config; only new chats need one picked
+const needsCwd = computed(() => !flow.state.sessionId && !flow.state.prefs.cwd)
 const canSend = computed(
 	() =>
 		!submitting.value &&
+		!needsCwd.value &&
 		(text.value.trim().length > 0 || attachments.value.length > 0 || codeRefs.value.length > 0),
 )
 
@@ -668,6 +680,7 @@ async function submit() {
 			return
 		}
 	}
+	if (needsCwd.value) return // the composer banner points at the fix
 	// code references travel as file:line tokens appended to the message
 	const outgoing = [value, codeRefs.value.map(refToken).join("\n")].filter(Boolean).join("\n\n")
 	const selectedAttachments = attachments.value.map((item) => ({ ...item }))
