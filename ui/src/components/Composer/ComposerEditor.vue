@@ -83,13 +83,13 @@
 						</div>
 
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<!-- -ml-1.5 offsets the scroller's p-0.5 plus the ghost button's icon inset
-							     so the first icon's ink sits on the content edge, mirroring Send's right. -->
+							<!-- Wrapper -ml-1.5 + scroller ml-1 tune the first icon's ink against the
+							     content edge, mirroring Send's flush right. -->
 							<div class="relative -ml-1.5 overflow-hidden" style="max-width: 70%">
 								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
 									ref="toolbarScroller"
-									class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+									class="ml-1 flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
 									<Button
 										v-if="uploadFunction"
