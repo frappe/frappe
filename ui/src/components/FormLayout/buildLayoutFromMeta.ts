@@ -8,13 +8,14 @@ import type {
   Section,
   Tab,
 } from "./types";
+import { holdsChildRows } from "../Fields/rowIdentity";
 
 /**
  * Build a render-ready `FormLayoutSchema` from a doctype's flat meta `fields`,
  * splitting on layout breaks into the tabs → sections → columns → fields tree.
  * Pure (no Vue/backend). Static visibility only — carries `depends_on` verbatim
  * for Phase 4 rather than evaluating it. Statically-`hidden` data fields are kept
- * in the schema (filtered out at render time) so meta-script ops can target them;
+ * in the schema (filtered out at render time) so an override can target them;
  * layout-break fields are still dropped.
  */
 
@@ -22,10 +23,6 @@ const TAB_BREAK = "Tab Break";
 const SECTION_BREAK = "Section Break";
 const COLUMN_BREAK = "Column Break";
 const TABLE = "Table";
-const TABLE_MULTISELECT = "Table MultiSelect";
-
-/** Fieldtypes whose value lives in a child table; both resolve `childFields`. */
-const CHILD_TABLE_TYPES = new Set([TABLE, TABLE_MULTISELECT]);
 
 /** Layout-break fieldtypes never render as a value/grid column. */
 const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK]);
@@ -34,6 +31,11 @@ const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK]);
  * App hook to attach per-field presentation/behavior during the build. Called
  * once per data field (and per grid column) with the field's resolved meta;
  * returns a `FieldUI` to overlay onto that node, or nothing to leave it plain.
+ *
+ * No caller in this repo right now — `useDoctypeLayout` was the last one and it
+ * is gone. `joinLayout` (`experimental/FormLayoutSource`) is the incoming one;
+ * it is what makes a `Button` field live, so `Decorator`/`compose` are kept
+ * deliberately and their tests with them. Not dead code.
  */
 export type Decorator = (field: FieldMeta) => FieldUI | void;
 
@@ -88,8 +90,12 @@ function newSection(field?: RawMetaField): Section {
     label: field.label,
     hideBorder: !!field.hide_border,
     collapsible,
-    // Collapsible sections start collapsed (Frappe desk behaviour).
-    opened: !collapsible,
+    // Open by default, collapsible or not. The stored-layout path
+    // (`joinSection`) defaults `opened` to true and is the production path, so
+    // both constructors agree rather than a section opening or closing
+    // depending on which one built it. `collapsible` still lets the reader
+    // close it; only the initial state differs from desk.
+    opened: true,
     dependsOn: field.depends_on,
     columns: [],
   };
@@ -154,9 +160,17 @@ function mapField(
     options: field.options,
     filters: field.filters,
     reqd: !!field.reqd,
+    default: field.default,
     precision: coercePrecision(field.precision),
     description: field.description,
     hidden: !!field.hidden,
+    permlevel: field.permlevel,
+    // Carried, not read here: `resolveLayout` needs it to tell a permlevel
+    // denial (which arrives as a static `hidden`/`readOnly`) apart from a
+    // meta-hidden field, so an override cannot lift the permission floor.
+    // Absent unless something applied the gate — a layout built straight from
+    // meta has no floor, so nothing here is refused.
+    permDenied: !!field.perm_denied,
     // The `Read Only` fieldtype is always read-only; conditional read-only is
     // baked in `resolveLayout`.
     readOnly: !!field.read_only || field.fieldtype === READ_ONLY,
@@ -164,7 +178,7 @@ function mapField(
     mandatoryDependsOn: field.mandatory_depends_on,
     readOnlyDependsOn: field.read_only_depends_on,
     // Child-table columns. Nested grids aren't supported (no deeper childMetas).
-    ...(CHILD_TABLE_TYPES.has(field.fieldtype)
+    ...(holdsChildRows(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas, decorate) }
       : {}),
     // The row-edit dialog renders the full child form; `Table MultiSelect` has
@@ -219,9 +233,9 @@ export function buildLayoutFromMeta(
     } else {
       // Keep statically-hidden data fields in the schema (`mapField` marks them
       // `hidden`, and `FormLayoutColumn` filters them out at render time) rather
-      // than dropping them here — so `applyMetaScript` ops (`showField`, or
-      // `addField` with `after:` a hidden field) can still target them instead
-      // of silently no-op'ing on a field that was never in the schema.
+      // than dropping them here — so a field-property override (`FieldNode`'s
+      // `override.hidden`) can still target them instead of silently
+      // no-op'ing on a field that was never in the schema.
       ensureColumn().fields.push(mapField(field, childMetas, decorate));
     }
   }

@@ -5,10 +5,11 @@ import re
 from contextlib import contextmanager
 from functools import partial
 from typing import Any
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.desk.search import awesomebar_search, get_names_for_mentions, search_link, search_widget
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -286,6 +287,22 @@ class TestSearch(IntegrationTestCase):
 		self.assertIn(allowed_doc.name, result_values)
 		self.assertNotIn(restricted_doc.name, result_values)
 
+		# a custom query runs its own frappe.get_list, the flag should still apply
+		results_from_custom_query = search_link(
+			doctype="Test Search Linked",
+			txt="Document",
+			query="frappe.tests.test_search.query_by_title",
+			ignore_user_permissions=True,
+			reference_doctype="Test Search Form",
+			link_fieldname="linked_doc",
+		)
+		result_values = [r["value"] for r in results_from_custom_query]
+		self.assertIn(allowed_doc.name, result_values)
+		self.assertIn(restricted_doc.name, result_values)
+
+		# and should not outlive the search call
+		self.assertEqual([d.name for d in frappe.get_list("Test Search Linked")], [allowed_doc.name])
+
 	def test_search_link_ignore_user_permissions_validation(self):
 		"""Test that ignore_user_permissions is validated correctly"""
 
@@ -552,6 +569,116 @@ class TestSearch(IntegrationTestCase):
 				link_fieldname="nonexistent_field",
 			)
 
+	def test_awesomebar_search_hook(self):
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "awesomebar_search":
+				return [
+					"frappe.tests.test_search._awesomebar_help",
+					"frappe.tests.test_search._awesomebar_broken",
+					"frappe.tests.test_search._awesomebar_bad_items",
+				]
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			self.assertEqual(awesomebar_search(""), [])
+			self.assertEqual(awesomebar_search("   "), [])
+
+			results = awesomebar_search("help")
+			self.assertEqual(
+				results,
+				[
+					{
+						"label": "Open Help",
+						"value": "Open Help",
+						"index": 50,
+						"route": ["https://docs.example.com"],
+						"description": "Docs",
+					},
+					{
+						"label": "ToDo List",
+						"value": "ToDo List",
+						"index": 0,
+						"route": ["List", "ToDo"],
+					},
+				],
+			)
+
+			http_results = awesomebar_search("intranet")
+			self.assertEqual(
+				http_results,
+				[
+					{
+						"label": "Intranet",
+						"value": "Intranet",
+						"index": 40,
+						"route": ["http://docs.local"],
+					},
+				],
+			)
+
+			inapp_results = awesomebar_search("inapp")
+			self.assertEqual(
+				inapp_results,
+				[
+					{
+						"label": "Desk Docs",
+						"value": "Desk Docs",
+						"index": 30,
+						"route": ["/desk/docs/some/page"],
+					},
+				],
+			)
+
+			self.assertEqual(awesomebar_search("unrelated"), [])
+
+
+def _awesomebar_help(txt):
+	query = txt.lower()
+	if "help" in query:
+		return [
+			{
+				"label": "Open Help",
+				"description": "Docs",
+				"route": "https://docs.example.com",
+				"index": 50,
+			}
+		]
+	if "intranet" in query:
+		return [
+			{
+				"label": "Intranet",
+				"route": "http://docs.local",
+				"index": 40,
+			}
+		]
+	if "inapp" in query:
+		return [
+			{
+				"label": "Desk Docs",
+				"route": "/desk/docs/some/page",
+				"index": 30,
+			}
+		]
+	return []
+
+
+def _awesomebar_broken(txt):
+	raise RuntimeError("boom")
+
+
+def _awesomebar_bad_items(txt):
+	if "help" not in txt.lower():
+		return []
+	return [
+		"not a dict",
+		{},
+		{"label": "JS", "route": "javascript:alert(1)"},
+		{"label": "Proto", "route": "//evil.com"},
+		{"label": "ToDo List", "route": ["List", "ToDo"]},
+	]
+
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
@@ -570,6 +697,19 @@ def query_with_reference_doctype(
 	reference_doctype: str | None = None,
 ):
 	return []
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def query_by_title(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	return frappe.get_list(doctype, filters={"title": ("like", f"%{txt}%")}, as_list=True)
 
 
 def setup_test_link_field_order(TestCase):

@@ -271,6 +271,9 @@ class Engine:
 			self.doctype = table
 			self.table = qb.DocType(table)
 
+		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
+			self.ignore_user_permissions = True
+
 		if self.apply_permissions:
 			self.check_select_permission()
 			self.permission_doctype = parent_doctype or self.doctype
@@ -334,9 +337,11 @@ class Engine:
 
 		self.add_permission_conditions()
 
-		# Store metadata for masked field processing during execution
-		self.query._doctype = self.doctype
-		self.query._fields_list = getattr(self, "fields", [])
+		if self.apply_permissions:
+			# Store metadata for masked field processing during execution.
+			self.query._doctype = self.doctype
+			self.query._parent_doctype = self.parent_doctype
+			self.query._fields_list = getattr(self, "fields", [])
 
 		self.query.immutable = True
 		return self.query
