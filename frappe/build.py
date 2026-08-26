@@ -147,8 +147,14 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	# Install when the tree is missing OR when the composed dependency set changed --
 	# adding an app that declares a new library rewrites package.json, and skipping the
 	# install here would resolve its import against a tree that never received it.
+	# `--production=false` because yarn v1 skips devDependencies whenever NODE_ENV is
+	# `production`, which is exactly what a production build sets. vite, its vue plugin
+	# and tailwind are all devDependencies of the shell, so without them the build does
+	# not merely lose a plugin -- `vite.config.js` cannot be loaded at all.
 	if not os.path.exists(os.path.join(frontend_path, "node_modules")) or deps_changed:
-		frappe.commands.popen("yarn install", cwd=frontend_path, env=get_node_env(), raise_err=True)
+		frappe.commands.popen(
+			"yarn install --production=false", cwd=frontend_path, env=get_node_env(), raise_err=True
+		)
 
 	# Build into a staging directory and swap it in only on success.
 	#
