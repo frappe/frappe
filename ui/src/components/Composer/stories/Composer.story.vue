@@ -1,261 +1,146 @@
 <template>
 	<div class="mx-auto max-w-4xl p-6">
 		<h3 class="mb-1 text-xl-semibold text-ink-gray-9">Composers</h3>
-		<p class="mb-6 text-p-sm text-ink-gray-6">
+		<p class="mb-8 text-p-sm text-ink-gray-6">
 			Two standalone, inline message composers. <code>EmailComposer</code> stacks email
-			header rows (From/Subject/To/Cc/Bcc, per <code>headerFields</code>) plus an optional
+			header rows (From/Subject/To/Cc/Bcc, per the <code>show*</code> props) plus an optional
 			quoted reply above the editor; <code>CommentComposer</code> is the editor alone, with
 			@-mentions, for internal notes. Both are transport-agnostic — <code>submit</code> hands
 			back a payload and the host performs the send, then calls the exposed
-			<code>reset()</code>. They render in normal document flow: an Email/Comment tab
-			switcher (§1) and a docked reply window (§2) are a few host lines, not library surface.
+			<code>reset()</code>. Each scene below is a real host pattern, built from a few lines
+			around the inline composer.
 		</p>
 
-		<section class="mb-6 rounded-lg border border-outline-gray-2 p-4">
-			<div class="mb-3 text-sm-medium text-ink-gray-7">Controls</div>
-
-			<div class="flex flex-wrap items-center gap-x-8 gap-y-4">
-				<div class="flex items-center gap-3">
-					<span class="text-p-sm text-ink-gray-6">headerFields</span>
-					<Checkbox v-model="fieldFrom" label="from" />
-					<Checkbox v-model="fieldTo" label="to" />
-					<Checkbox v-model="fieldSubject" label="subject" />
-					<Checkbox v-model="fieldCc" label="cc" />
-					<Checkbox v-model="fieldBcc" label="bcc" />
-				</div>
-			</div>
-
-			<div
-				class="mt-4 flex flex-wrap items-center gap-2 border-t border-outline-gray-1 pt-4"
-			>
-				<span class="mr-1 text-p-sm text-ink-gray-6">actions</span>
-				<Button label="Focus" @click="activeComposer?.focus()" />
-				<Button label="Reset" @click="activeComposer?.reset()" />
-				<Button label="Submit" @click="activeComposer?.submit()" />
-				<Button label="Seed quoted reply" @click="seedReply" />
-				<span class="ml-auto text-p-sm text-ink-gray-5">
-					channel: <b>{{ channel }}</b>
-				</span>
-			</div>
-		</section>
-
-		<section class="mb-8">
-			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				Switchable composer — Email and Comment share one area via
-				<code>TabButtons</code>; each draft survives a tab switch because both stay mounted
-				(<code>v-show</code>, not <code>v-if</code>)
-			</div>
-			<div class="rounded-md border border-outline-gray-2 bg-surface-base">
-				<div class="border-b border-outline-gray-2 p-2">
-					<TabButtons v-model="channel" :options="channelOptions" />
-				</div>
-
-				<div v-show="channel === 'email'" class="p-2">
-					<EmailComposer
-						ref="emailRef"
-						v-model="emailBody"
-						v-model:recipients="recipients"
-						v-model:subject="subject"
-						v-model:quoted="quoted"
-						v-model:from="fromEmail"
-						:header-fields="headerFields"
-						:senders="senders"
-						:search-recipients="searchRecipients"
-						:upload-function="mockUpload"
-						placeholder="Write a reply…"
-						@submit="(payload) => log('email:submit', payload)"
-						@remove-attachment="(file) => log('email:remove-attachment', file)"
-					/>
-				</div>
-
-				<div v-show="channel === 'comment'" class="p-2">
-					<CommentComposer
-						ref="commentRef"
-						v-model="commentBody"
-						:mentions="mentions"
-						:upload-function="mockUpload"
-						placeholder="Leave an internal note — type @ to mention…"
-						@submit="(payload) => log('comment:submit', payload)"
-						@remove-attachment="(file) => log('comment:remove-attachment', file)"
-					/>
-				</div>
-			</div>
+		<section class="mb-10">
+			<div class="text-base font-medium text-ink-gray-8">Ticket reply</div>
+			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
+				A support thread with an Email/Comment switcher. The quoted customer message rides
+				<code>v-model:quoted</code> and is appended on send; both drafts survive tab
+				switches because the composers stay mounted (<code>v-show</code>, not
+				<code>v-if</code>).
+			</p>
+			<TicketReply />
 			<pre
 				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ tabbedCode }}</code></pre>
+			><code>{{ ticketSnippet }}</code></pre>
 		</section>
 
-		<section class="mb-8">
-			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				A docked reply window is the host's own <code>FloatingWindow</code> around an
-				inline composer — the library stays out of the window business (FP1)
-			</div>
+		<section class="mb-10">
+			<div class="text-base font-medium text-ink-gray-8">Docked compose window</div>
+			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
+				A Gmail-style floating composer. The window is the host's own fixed card (FP1 — the
+				library stays out of the window business); <code>show-from</code> and
+				<code>show-subject</code> turn on the full header.
+			</p>
+			<DockedCompose />
 			<pre
-				class="overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ windowRecipe }}</code></pre>
+				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+			><code>{{ dockedSnippet }}</code></pre>
 		</section>
 
-		<section class="mb-8">
-			<div class="mb-2 text-sm-medium text-ink-gray-7">
-				<code>#header</code> replaces the built-in header rows wholesale — provide it empty
-				to render no header at all
-			</div>
+		<section class="mb-10">
+			<div class="text-base font-medium text-ink-gray-8">Comment thread</div>
+			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
+				An activity feed with <code>CommentComposer</code> pinned underneath — type
+				<code>@</code> to mention a teammate. Submitted comments join the feed and the host
+				calls <code>reset()</code>.
+			</p>
+			<CommentThread />
 			<pre
-				class="overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			><code>{{ headerRecipe }}</code></pre>
+				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+			><code>{{ commentSnippet }}</code></pre>
 		</section>
 
-		<div class="text-sm-medium text-ink-gray-7">Events</div>
-		<pre
-			class="mt-2 max-h-64 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
-			>{{
-				events.length
-					? events.join("\n")
-					: "— interact above to see submit / attachment events —"
-			}}</pre
-		>
+		<section class="mb-10">
+			<div class="text-base font-medium text-ink-gray-8">Quick reply, custom header</div>
+			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
+				A body-only reply under a message. <code>#header</code> replaces the built-in rows
+				wholesale — here a "Replying to" pill — while the host seeds
+				<code>v-model:to</code> so the payload still carries the recipient.
+			</p>
+			<QuickReply />
+			<pre
+				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+			><code>{{ quickSnippet }}</code></pre>
+		</section>
+
+		<section class="mb-4">
+			<div class="text-base font-medium text-ink-gray-8">Custom utilities</div>
+			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
+				Extending the editor: a host tiptap extension via <code>extensions</code>
+				(press <kbd>⌘⇧E</kbd> to stamp today's date) and a canned-responses menu in the
+				<code>#actions</code> slot, driven through the exposed <code>editor</code>.
+			</p>
+			<CustomUtility />
+			<pre
+				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+			><code>{{ utilitySnippet }}</code></pre>
+		</section>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { Button, Checkbox, TabButtons } from "frappe-ui";
-import { CommentComposer, EmailComposer } from "../index";
-import type {
-	CommentPayload,
-	EmailPayload,
-	HeaderField,
-	MentionOption,
-	Recipient,
-	Recipients,
-	UploadedFile,
-	UploadFunction,
-} from "../types";
+import CommentThread from "./CommentThread.vue";
+import CustomUtility from "./CustomUtility.vue";
+import DockedCompose from "./DockedCompose.vue";
+import QuickReply from "./QuickReply.vue";
+import TicketReply from "./TicketReply.vue";
 
-const channel = ref("email");
-const channelOptions = [
-	{ label: "Email", value: "email" },
-	{ label: "Comment", value: "comment" },
-];
+const ticketSnippet = `<TabButtons v-model="channel" :options="channels" />
 
-const fieldFrom = ref(true);
-const fieldTo = ref(true);
-const fieldSubject = ref(true);
-const fieldCc = ref(true);
-const fieldBcc = ref(false);
-const headerFields = computed<HeaderField[]>(() =>
-	(
-		[
-			["from", fieldFrom.value],
-			["to", fieldTo.value],
-			["subject", fieldSubject.value],
-			["cc", fieldCc.value],
-			["bcc", fieldBcc.value],
-		] as const
-	)
-		.filter(([, on]) => on)
-		.map(([name]) => name)
-);
-
-// Draft state — host-owned via v-model, survives tab switches.
-const emailBody = ref("");
-const commentBody = ref("");
-const subject = ref("");
-const quoted = ref<string | null>(null);
-const recipients = ref<Recipients>({
-	to: [{ email: "grace@example.com", label: "Grace Hopper" }],
-	cc: [],
-	bcc: [],
-});
-
-const emailRef = ref<InstanceType<typeof EmailComposer> | null>(null);
-const commentRef = ref<InstanceType<typeof CommentComposer> | null>(null);
-const activeComposer = computed(() =>
-	channel.value === "comment" ? commentRef.value : emailRef.value
-);
-function seedReply() {
-	channel.value = "email";
-	quoted.value = "<p>On Tue, Grace wrote:</p><p>Can we ship the composer this week?</p>";
-	emailRef.value?.focus();
-}
-
-const senders: Recipient[] = [
-	{ label: "Support", email: "support@example.com" },
-	{ label: "Sales", email: "sales@example.com" },
-];
-const fromEmail = ref(senders[0].email);
-
-// Mocked transports — a real host wires these to its backend.
-const mockUpload: UploadFunction = async (file) => {
-	await new Promise((resolve) => setTimeout(resolve, 600));
-	return {
-		name: `mock-${Date.now()}`,
-		file_name: file.name,
-		file_url: URL.createObjectURL(file),
-		file_size: file.size,
-		file_type: file.type,
-	};
-};
-
-const directory: Recipient[] = [
-	{ label: "Grace Hopper", email: "grace@example.com" },
-	{ label: "Ada Lovelace", email: "ada@example.com" },
-	{ label: "Alan Turing", email: "alan@example.com" },
-	{ label: "Katherine Johnson", email: "katherine@example.com" },
-];
-function searchRecipients(query: string): Promise<Recipient[]> {
-	const text = query.trim().toLowerCase();
-	const matches = text
-		? directory.filter(
-				(person) =>
-					person.label!.toLowerCase().includes(text) ||
-					person.email.toLowerCase().includes(text)
-		  )
-		: directory;
-	// Short queries resolve slower, so typing fast forces the out-of-order case.
-	const delay = text.length < 3 ? 900 : 150;
-	return new Promise((resolve) => setTimeout(() => resolve(matches), delay));
-}
-
-const mentions: MentionOption[] = [
-	{ label: "Grace Hopper", value: "grace@example.com" },
-	{ label: "Ada Lovelace", value: "ada@example.com" },
-	{ label: "Alan Turing", value: "alan@example.com" },
-];
-
-const tabbedCode = `<TabButtons v-model="channel" :options="channelOptions" />
-
-<div v-show="channel === 'email'">
+<div v-show="channel === 'reply'">
   <EmailComposer
-    v-model="emailBody"
-    v-model:recipients="recipients"
+    v-model="replyBody"
+    v-model:to="to"
+    v-model:quoted="quoted"
     :search-recipients="searchRecipients"
-    @submit="onSendEmail"
+    @submit="onReply"
   />
 </div>
 <div v-show="channel === 'comment'">
-  <CommentComposer v-model="commentBody" :mentions="mentions" @submit="onComment" />
+  <CommentComposer v-model="commentBody" :mentions="agents" @submit="onComment" />
 </div>`;
 
-const windowRecipe = `<FloatingWindow v-model:open="open">
-  <EmailComposer v-model="body" v-model:recipients="recipients" @submit="onSend" />
-</FloatingWindow>`;
+const dockedSnippet = `<!-- The window is host chrome: a fixed card, a Dialog, whatever fits. -->
+<div class="fixed bottom-0 right-6 w-[440px] rounded-t-xl border shadow-2xl">
+  <EmailComposer
+    v-model="body"
+    v-model:to="to"
+    v-model:subject="subject"
+    v-model:from="from"
+    show-from
+    show-subject
+    :senders="senders"
+    @submit="onSend"
+  />
+</div>`;
 
-const headerRecipe = `<!-- Custom addressing UI -->
-<EmailComposer v-model="body" v-model:recipients="recipients" @submit="onSend">
+const commentSnippet = `<CommentComposer v-model="draft" :mentions="teammates" @submit="onComment" />
+
+async function onComment(payload) {
+  await call("add_comment", payload); // { body, attachments }
+  composer.value?.reset();
+}`;
+
+const quickSnippet = `<EmailComposer v-model="body" v-model:to="to" @submit="onSend">
   <template #header>
-    <MyAddressBar v-model="recipients" />
+    <ReplyingToPill :recipient="to[0]" />
   </template>
-</EmailComposer>
-
-<!-- No header at all — body-only reply, recipients seeded by the host -->
-<EmailComposer v-model="body" v-model:recipients="recipients" @submit="onSend">
-  <template #header />
 </EmailComposer>`;
 
-const events = ref<string[]>([]);
-function log(name: string, payload?: EmailPayload | CommentPayload | UploadedFile) {
-	const time = new Date().toLocaleTimeString();
-	events.value.unshift(`[${time}] ${name}${payload ? " " + JSON.stringify(payload) : ""}`);
-}
+const utilitySnippet = `const insertDate = Extension.create({
+  name: "insertDate",
+  addKeyboardShortcuts() {
+    return {
+      "Mod-Shift-e": ({ editor }) =>
+        editor.commands.insertContent(new Date().toLocaleDateString()),
+    };
+  },
+});
+
+<EmailComposer ref="composer" v-model="body" :extensions="[insertDate]">
+  <template #actions>
+    <Dropdown :options="templates"><Button label="Templates" /></Dropdown>
+  </template>
+</EmailComposer>`;
 </script>
