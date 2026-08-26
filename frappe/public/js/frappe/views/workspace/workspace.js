@@ -540,9 +540,13 @@ frappe.views.Workspace = class Workspace {
 		this.workspace_manager.show();
 	}
 
-	// One rail item per module that holds something. Deliberately not every module on the site:
-	// the rail is how you *find* a workspace, and moving one into a module that holds none is the
-	// Module field's job, which offers the full list.
+	// One rail item per module that holds something, in a single flat list. Deliberately not
+	// every module on the site: the rail is how you *find* a workspace, and moving one into a
+	// module that holds none is the Module field's job, which offers the full list.
+	//
+	// The rail is not grouped by app. The dialog manages modules, and which app happens to ship
+	// a module isn't something you act on here -- app headings only broke one short list into
+	// several shorter ones and pushed the modules themselves down the page.
 	workspace_manager_tabs(manageable, modules) {
 		const meta = {};
 		(modules || []).forEach((m) => (meta[m.module] = m));
@@ -561,34 +565,22 @@ frappe.views.Workspace = class Workspace {
 			by_module.get(key).push(page);
 		});
 
-		// Rank decides which lists lead, and the leaders are the ones worth triaging. Two states
-		// share the top: a workspace with no module at all, and one naming a module that isn't
-		// there -- a `Link` the database doesn't enforce, so a module can be renamed or deleted
-		// out from under one. Both are equally unreachable and both are fixed the same way, by
-		// the Module field, so they share a group. The site's own modules come next (where the
-		// migration parks anything that never declared one), then each app's.
+		// The unreachable ones lead, because they're the ones worth triaging. Two states share
+		// that top: a workspace with no module at all, and one naming a module that isn't there
+		// -- a `Link` the database doesn't enforce, so a module can be renamed or deleted out
+		// from under one. Both are equally unreachable and both are fixed the same way, by the
+		// Module field. Everything else is plain alphabetical: with no headings to scan, the
+		// label is what you look for.
 		const missing = (key) => Boolean(key) && !meta[key];
-		const rank = (key) => {
-			if (!key || missing(key)) return 0;
-			return meta[key].app_title ? 2 : 1;
-		};
-		const group_of = (key) => {
-			if (!key || missing(key)) return __("Needs a module");
-			return meta[key].app_title ? __(meta[key].app_title) : __("Site");
-		};
+		const rank = (key) => (!key || missing(key) ? 0 : 1);
 
 		const keys = [...by_module.keys()].sort((a, b) => {
-			const am = meta[a] || {};
-			const bm = meta[b] || {};
-			return (
-				rank(a) - rank(b) ||
-				(am.app_title || "").localeCompare(bm.app_title || "") ||
-				(am.label || a).localeCompare(bm.label || b)
-			);
+			const al = (meta[a] || {}).label || a;
+			const bl = (meta[b] || {}).label || b;
+			return rank(a) - rank(b) || __(al).localeCompare(__(bl));
 		});
 
-		const groups = new Map();
-		keys.forEach((key) => {
+		const items = keys.map((key) => {
 			// A workspace whose module can't be offered still has to appear, or it would drop
 			// out of the only dialog that can move it. `missing` also covers a module this
 			// particular user may not see (a block hides it), which is a different cause with
@@ -599,17 +591,17 @@ frappe.views.Workspace = class Workspace {
 				app_title: null,
 				missing: Boolean(key),
 			};
-			const group = group_of(key);
-			if (!groups.has(group)) groups.set(group, []);
-			groups.get(group).push({
+			return {
 				id: key || NO_MODULE_TAB,
 				label: __(module.label),
-				icon: module.missing || !key ? "alert-circle" : "folder-normal",
+				// icon: module.missing || !key ? "circle-alert" : "folder",
 				render: (panel) => this.render_module_panel(panel, module, by_module.get(key)),
-			});
+			};
 		});
 
-		return [...groups].map(([group, items]) => ({ group, items }));
+		// One group, so the rail carries a single top-level heading naming what the list is
+		// instead of a heading per app splitting it into pieces.
+		return [{ group: __("Modules"), items }];
 	}
 
 	// `SettingsDialog.activate` silently does nothing for an id it has no item for, which would

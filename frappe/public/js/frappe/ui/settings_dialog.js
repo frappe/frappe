@@ -245,28 +245,28 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 	}
 
 	make_tab_item(item) {
+		// The icon span is only built when there's an icon to put in it: `.settings-dialog-tab-icon`
+		// is what the label's left margin hangs off, so an empty one indents an icon-less item as
+		// though it had one.
+		const icon_html = item.icon_html
+			? // Raw markup — only ever set developer-authored, trusted HTML here.
+			  // Never populate `icon_html` from a server response or user input.
+			  item.icon_html
+			: item.icon
+			? // Sprite icon name, resolved (and escaped) through the icon util.
+			  frappe.utils.icon(item.icon, "sm")
+			: "";
+
 		const $item = $(`
 			<button type="button" class="settings-dialog-tab-item" data-tab-id="${frappe.utils.escape_html(
 				item.id
 			)}">
 				<span class="settings-dialog-tab-item-content">
-					<span class="settings-dialog-tab-icon"></span>
+					${icon_html ? `<span class="settings-dialog-tab-icon">${icon_html}</span>` : ""}
 					<span class="settings-dialog-tab-label"></span>
 				</span>
 			</button>
 		`);
-
-		const $icon = $item.find(".settings-dialog-tab-icon");
-		if (item.icon_html) {
-			// Raw markup — only ever set developer-authored, trusted HTML here.
-			// Never populate `icon_html` from a server response or user input.
-			$icon.html(item.icon_html);
-		} else if (item.icon) {
-			// Sprite icon name, resolved (and escaped) through the icon util.
-			$icon.html(frappe.utils.icon(item.icon, "sm"));
-		} else {
-			$icon.remove();
-		}
 
 		$item.find(".settings-dialog-tab-label").text(item.label || item.id);
 
