@@ -56,24 +56,23 @@
 					</div>
 
 					<div class="mt-auto">
-						<div
-							v-if="attachments.length"
-							ref="attachmentRow"
-							class="my-2 flex overflow-x-auto gap-2 px-2.5"
-						>
+						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2 px-2.5">
 							<Button
 								v-for="attachment in attachments"
 								:key="attachment.file_url"
 								theme="gray"
 								variant="subtle"
-								:label="compactAttachments ? undefined : attachment.file_name"
+								:label="attachment.file_name"
 								:title="attachment.file_name"
-								:class="compactAttachments ? 'w-8 shrink-0' : 'min-w-0 max-w-36'"
+								class="min-w-0 max-w-36"
 							>
 								<template #prefix>
-									<LucideFileImage class="size-3.5 shrink-0" />
+									<component
+										:is="attachmentIcon(attachment)"
+										class="size-3.5 shrink-0"
+									/>
 								</template>
-								<template v-if="!compactAttachments" #suffix>
+								<template #suffix>
 									<span
 										class="lucide-x size-3.5 cursor-pointer shrink-0"
 										@click.self.stop="removeAttachment(attachment)"
@@ -96,7 +95,9 @@
 										:icon="LucidePaperclip"
 										aria-label="Attach file"
 										class="shrink-0"
-										:disabled="isUploading"
+										:disabled="
+											isUploading || attachments.length >= maxAttachments
+										"
 										@click="attachInput?.click()"
 									/>
 									<input
@@ -161,7 +162,14 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
 import { Button, toast } from "frappe-ui";
+import LucideFile from "~icons/lucide/file";
+import LucideFileArchive from "~icons/lucide/file-archive";
+import LucideFileAudio from "~icons/lucide/file-audio";
+import LucideFileCode from "~icons/lucide/file-code";
 import LucideFileImage from "~icons/lucide/file-image";
+import LucideFileSpreadsheet from "~icons/lucide/file-spreadsheet";
+import LucideFileText from "~icons/lucide/file-text";
+import LucideFileVideo from "~icons/lucide/file-video";
 import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
@@ -223,6 +231,7 @@ const emailToolbar = [
 const props = withDefaults(defineProps<ComposerEditorProps>(), {
 	placeholder: "Type your message…",
 	submitLabel: "Send",
+	maxAttachments: 10,
 });
 
 const emit = defineEmits<{
@@ -336,27 +345,28 @@ function buildMessage() {
 
 const attachments = ref<UploadedFile[]>([]);
 const isUploading = ref(false);
-const attachmentRow = useTemplateRef<HTMLElement>("attachmentRow");
-const compactAttachments = ref(false);
-
-watch(attachmentRow, (el, _prev, onCleanup) => {
-	if (!el) return;
-	const observer = new ResizeObserver(() => {
-		compactAttachments.value = el.scrollWidth > el.clientWidth;
-	});
-	observer.observe(el);
-	onCleanup(() => observer.disconnect());
-});
-
-watch(attachments, () => {
-	nextTick(() => {
-		const el = attachmentRow.value;
-		if (el) compactAttachments.value = el.scrollWidth > el.clientWidth;
-	});
-});
-
 function addAttachment(file: UploadedFile) {
+	if (attachments.value.length >= props.maxAttachments) {
+		toast.error(`Attachment limit reached (${props.maxAttachments}).`);
+		return;
+	}
 	attachments.value.push(file);
+}
+
+// Chip icon by MIME type.
+function attachmentIcon(file: UploadedFile) {
+	const type = file.file_type ?? "";
+	if (type.startsWith("image/")) return LucideFileImage;
+	if (type.startsWith("video/")) return LucideFileVideo;
+	if (type.startsWith("audio/")) return LucideFileAudio;
+	if (type.includes("csv") || type.includes("sheet") || type.includes("excel"))
+		return LucideFileSpreadsheet;
+	if (type.includes("zip") || type.includes("tar") || type.includes("compressed"))
+		return LucideFileArchive;
+	if (type.includes("json") || type.includes("xml") || type.includes("html"))
+		return LucideFileCode;
+	if (type.includes("pdf") || type.startsWith("text/")) return LucideFileText;
+	return LucideFile;
 }
 
 function setUploading(value: boolean) {

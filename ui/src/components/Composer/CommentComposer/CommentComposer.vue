@@ -5,6 +5,7 @@
 		:submit-label="submitLabel"
 		:upload-function="uploadFunction"
 		:extensions="extensions"
+		:max-attachments="maxAttachments"
 		:mentions="mentions"
 		v-model:body="body"
 		@submit="emit('submit', $event)"
