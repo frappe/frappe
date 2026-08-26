@@ -434,3 +434,11 @@
 	color: var(--ink-red-3);
 	background: var(--surface-red-1);
 }
+
+/* Prompt rail: the bar list scrolls only when taller than its cap; no scrollbar chrome */
+.flow-prompt-rail {
+	scrollbar-width: none;
+}
+.flow-prompt-rail::-webkit-scrollbar {
+	display: none;
+}
