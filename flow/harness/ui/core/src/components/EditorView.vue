@@ -399,6 +399,7 @@ function applyTheme() {
 	const dark = flow.state.prefs.theme === "dark"
 	const name = dark ? "flow-dark" : "flow-light"
 	const colors = {
+		focusBorder: "#00000000",
 		"editor.background": cssColor("--surface-white"),
 		"editorCursor.foreground": cssColor("--ink-gray-9"),
 		"editor.lineHighlightBackground": cssColor("--surface-gray-1"),
