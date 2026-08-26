@@ -5,6 +5,7 @@
 		:submit-label="submitLabel"
 		:upload-function="uploadFunction"
 		:extensions="extensions"
+		:max-attachments="maxAttachments"
 		v-model:body="body"
 		v-model:quoted="quoted"
 		@submit="handleSubmit"

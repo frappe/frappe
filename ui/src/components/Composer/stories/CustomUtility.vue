@@ -50,10 +50,11 @@ const cannedReplyOptions = cannedReplies.map((reply) => ({
 	onClick: () => composerRef.value?.editor?.commands.insertContent(reply.body),
 }));
 
+// Frappe-style server path; the editor rejects non-http(s) URLs like blob:.
 const mockUpload: UploadFunction = async (file) => ({
 	name: `mock-${Date.now()}`,
 	file_name: file.name,
-	file_url: URL.createObjectURL(file),
+	file_url: `/files/${file.name}`,
 	file_size: file.size,
 	file_type: file.type,
 });

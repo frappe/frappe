@@ -41,6 +41,8 @@ interface BaseComposerProps {
   uploadFunction?: UploadFunction;
   /** Extra tiptap extensions, appended after the built-in RichTextKit. Read once at mount. */
   extensions?: Extension[];
+  /** Maximum number of attachments. Defaults to 10. */
+  maxAttachments?: number;
 }
 
 export interface ComposerEditorProps extends BaseComposerProps {
