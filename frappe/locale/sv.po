@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-23 21:20\n"
+"PO-Revision-Date: 2026-08-26 22:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2480,7 +2480,7 @@ msgstr "Annan {0} med namn {1} existerar, välj ett annat namn"
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr "Alla strängbaserade skrivarspråk kan användas. Att skriva rå kommando kräver kunskap om skrivarens skrivarspråk som tillhandahålls av tillverkare. Se utvecklarhandbok som tillhandahålls av tillverkare om hur man skriver deras ursprungliga kommando. Dessa kommando återges på serversidan med hjälp av Jinja Templating Language."
+msgstr "Alla strängbaserade skrivarspråk kan användas. Att skriva rå kommando erfordrar kunskap om skrivarens skrivarspråk som tillhandahålls av tillverkare. Se utvecklarhandbok som tillhandahålls av tillverkare om hur man skriver deras ursprungliga kommando. Dessa kommando återges på serversidan med hjälp av Jinja Templating Language."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:103
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
@@ -18654,7 +18654,7 @@ msgstr "Ingen {0}"
 
 #: frappe/public/js/frappe/web_form/web_form_list.js:263
 msgid "No {0} found"
-msgstr "Ingen {0} Hittades"
+msgstr "{0} hittades inte"
 
 #: frappe/public/js/frappe/list/list_view.js:540
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
@@ -19737,7 +19737,7 @@ msgstr "Operatören måste vara en av {0}"
 
 #: frappe/database/query.py:2300
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
-msgstr "Operatorn {0} kräver exakt 2 argument (vänster och höger operand)"
+msgstr "Operatorn {0} erfordrar exakt 2 argument (vänster och höger operand)"
 
 #: frappe/core/doctype/file/file.js:34
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8
@@ -27964,7 +27964,7 @@ msgstr "Tabell FlerVal"
 
 #: frappe/desk/search.py:336
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
-msgstr "Tabell MultiSelect kräver en tabell med minst ett länkfält, men inget hittades i {0}"
+msgstr "Tabell MultiSelect erfordrar en tabell med minst ett länkfält, men inget hittades i {0}"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:242
 msgid "Table Trimmed"
