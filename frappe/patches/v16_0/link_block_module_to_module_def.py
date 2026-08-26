@@ -4,13 +4,10 @@ import frappe
 
 
 def execute():
-	"""Drop `Block Module` rows naming a module that no longer exists.
+	"""Delete Block Module rows naming a module that no longer exists.
 
-	`Block Module.module` becomes a Link to Module Def. A stale row -- a module from an app
-	since uninstalled, or a typo from when this was free text -- would fail link validation
-	on the user's next save, locking them out of editing their own profile.
-
-	Runs pre_model_sync, before the Data -> Link column change lands.
+	`Block Module.module` becomes a Link to Module Def, and a stale row would stop the user from
+	saving their own profile. Runs before the column change lands.
 	"""
 	if not frappe.db.exists("DocType", "Block Module"):
 		return
