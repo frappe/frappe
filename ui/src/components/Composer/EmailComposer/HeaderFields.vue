@@ -52,7 +52,7 @@ import RecipientSelect from "./RecipientSelect.vue";
 import Row from "./HeaderRow.vue";
 import type { Recipient, RecipientSearch } from "../types";
 
-// Private to EmailComposer, which always passes every flag — required props
+// Private to EmailComposer, which always passes every flag; required props
 // keep the defaults in one place (EmailComposerProps).
 const props = withDefaults(
 	defineProps<{
