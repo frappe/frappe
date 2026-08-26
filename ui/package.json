@@ -49,6 +49,10 @@
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
     },
+    "./experimental": {
+      "import": "./src/experimental/index.ts",
+      "types": "./src/experimental/index.ts"
+    },
     "./utils": {
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"
