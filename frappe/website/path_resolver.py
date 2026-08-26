@@ -9,6 +9,7 @@ from frappe.website.page_renderers.list_renderer import ListPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.page_renderers.print_page import PrintPage
 from frappe.website.page_renderers.redirect_page import RedirectPage
+from frappe.website.page_renderers.shell_page import ShellPage
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
@@ -55,6 +56,9 @@ class PathResolver:
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
 			*custom_renderers,
+			# Ahead of StaticPage, so a file under an app's `www/` cannot shadow the
+			# framework's own shell at a claimed prefix (#42066).
+			ShellPage,
 			StaticPage,
 			WebFormPage,
 			DocumentPage,

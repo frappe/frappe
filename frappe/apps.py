@@ -75,11 +75,14 @@ def get_apps():
 
 
 def get_route(app_name):
+	# `/desk` rather than `/apps`, because `/apps` used to be a redirect *to* `/desk`
+	# and is now the v2 index. These are involuntary destinations — login, default app
+	# — so they keep landing exactly where they landed before (#42124).
 	if app_name not in frappe.get_active_apps():
-		return "/apps"  # Invalid defaults
+		return "/desk"  # Invalid defaults
 	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 	app = next((app for app in apps if app.get("name") == app_name), None)
-	return app.get("route") if app and app.get("route") else "/apps"
+	return app.get("route") if app and app.get("route") else "/desk"
 
 
 def is_desk_apps(apps):
@@ -106,9 +109,11 @@ def get_default_path():
 
 	if len(_apps) == 1:
 		return _apps[0].get("route") or "/desk"
-	elif is_desk_apps(_apps):
-		return "/desk"
-	return "/apps"
+
+	# Both arms of the old `is_desk_apps` branch now answer `/desk`, so the predicate
+	# no longer decides anything here. It is left in place for its other caller
+	# (#42124); this is the branch it guarded going quiet.
+	return "/desk"
 
 
 @frappe.whitelist()

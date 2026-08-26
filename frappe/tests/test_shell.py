@@ -1,0 +1,500 @@
+# The desk v2 shell: routing, the prefix contract, and the two guards.
+#
+# Several of these prove things the running skeleton cannot show by running — the
+# `frappe_` default derivation (no app on this bench is named that way), the shell's
+# refusal to be cached (invisible under `developer_mode`), and the singleton conflict
+# (both real consumers agree today). Those are exactly the ones that would otherwise
+# rot silently.
+
+import re
+from unittest.mock import patch
+
+import frappe
+from frappe.shell import SHELL_ROOT
+from frappe.shell.install import PrefixCollisionError, before_app_install
+from frappe.shell.manifest import SingletonConflict, enforce_singletons
+from frappe.shell.registry import declared_prefix, default_prefix, shell_base, split_shell_path
+from frappe.shell.route_guard import ReservedRouteError, is_reserved
+from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
+from frappe.website.page_renderers.not_found_page import NotFoundPage
+from frappe.website.page_renderers.shell_page import ShellPage
+from frappe.website.path_resolver import PathResolver
+from frappe.website.serve import get_response
+
+
+def hooks_declaring(hook_name: str, values: dict[str, str]):
+	"""Patch `get_hooks` for ONE hook on named apps, delegating everything else.
+
+	Delegation is not politeness: `log_error` reads hooks of its own, so a blanket
+	`return_value=` patch breaks the very error path some of these tests assert on.
+	"""
+	real = frappe.get_hooks
+
+	def fake(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if hook == hook_name and app_name in values:
+			return [values[app_name]]
+		return real(hook, default, app_name)
+
+	return patch.object(frappe, "get_hooks", side_effect=fake)
+
+
+def hooks_returning(app_prefixes: dict[str, str]):
+	return hooks_declaring("app_prefix", app_prefixes)
+
+
+def strip_html_comments(html: bytes) -> bytes:
+	"""Comments are commentary, not content.
+
+	The shell's document carries a comment explaining which per-request payloads are
+	deliberately absent — and it names them, so a naive substring search finds the very
+	strings it is checking are gone.
+	"""
+	return re.sub(rb"<!--.*?-->", b"", html, flags=re.DOTALL)
+
+
+class TestShellPrefixes(IntegrationTestCase):
+	def test_default_derivation_when_an_app_declares_nothing(self):
+		"""Charter item 2: install an app and it is served, with no declaration at all.
+
+		Both real consumers on this bench exercise one branch each — CRM takes the
+		default, frappe overrides — but no app here is named `frappe_*`, so the
+		prefix-stripping branch has nothing to prove it but this.
+		"""
+		self.assertEqual(default_prefix("crm"), "crm")
+		self.assertEqual(default_prefix("frappe_whatsapp"), "whatsapp")
+		# Underscores are preserved: the derivation strips a vendor prefix, it does not
+		# try to guess a nicer name.
+		self.assertEqual(default_prefix("hr_management"), "hr_management")
+		# An app named exactly `frappe_` must not claim the empty prefix, which would
+		# swallow the whole of /apps.
+		self.assertEqual(default_prefix("frappe_"), "frappe_")
+
+	def test_an_app_that_declares_nothing_gets_its_own_name(self):
+		with hooks_returning({}):
+			# CRM declares no `app_prefix`; this is the derivation running for real.
+			self.assertEqual(declared_prefix("crm"), "crm")
+
+	def test_the_framework_declares_its_own_prefix(self):
+		"""Charter item 7: no privileged path. The desk uses the door it is building."""
+		self.assertEqual(declared_prefix("frappe"), "desk")
+		self.assertEqual(shell_base("desk"), "/apps/desk")
+
+	def test_split_shell_path(self):
+		self.assertEqual(split_shell_path("apps/crm"), ("crm", ""))
+		self.assertEqual(split_shell_path("apps/crm/crm-deal/CRM-001"), ("crm", "crm-deal/CRM-001"))
+		# The index belongs to no app, so it is not a prefix.
+		self.assertIsNone(split_shell_path("apps"))
+		# v1's address space is untouched.
+		self.assertIsNone(split_shell_path("crm"))
+		self.assertIsNone(split_shell_path("desk"))
+
+
+class TestShellRouting(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def tearDown(self):
+		self._clear_request()
+
+	def _clear_request(self):
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
+	def renderer_for(self, path):
+		return PathResolver(path).resolve()[1]
+
+	def test_a_bare_prefix_resolves(self):
+		"""`Rule("/apps/crm/<path:app_path>")` would NOT match bare `/apps/crm`.
+
+		v1's `/crm` only works because a file literally named `crm/www/crm.html`
+		happens to exist. The registry-based renderer has no such accident to rely on,
+		so the bare case needs its own test.
+		"""
+		self.assertIsInstance(self.renderer_for("apps/crm"), ShellPage)
+		self.assertIsInstance(self.renderer_for("apps/desk"), ShellPage)
+
+	def test_a_doctype_route_resolves_under_a_prefix(self):
+		self.assertIsInstance(self.renderer_for("apps/crm/crm-deal/CRM-DEAL-001"), ShellPage)
+
+	def test_the_index_resolves(self):
+		self.assertIsInstance(self.renderer_for(SHELL_ROOT), ShellPage)
+
+	def test_an_unclaimed_prefix_is_a_website_404(self):
+		"""The shell owns error states only *inside* a prefix it serves (#42124)."""
+		self.assertIsInstance(self.renderer_for("apps/no-such-app"), NotFoundPage)
+
+	def test_desk_v1_and_crm_v1_are_untouched(self):
+		"""This map must coexist with v1, not replace it."""
+		self.assertNotIsInstance(self.renderer_for("desk"), ShellPage)
+		self.assertNotIsInstance(self.renderer_for("crm"), ShellPage)
+
+	def test_a_route_miss_inside_a_prefix_serves_the_shell_at_200(self):
+		"""A client-side route miss, not a server 404.
+
+		Returning 404 would cost the page its asset preloads —
+		`build_response` skips `add_preload_for_bundled_assets` at 404
+		(`website/utils.py:580-581`) — for a document that is about to render
+		perfectly well.
+		"""
+		set_request(method="GET", path="/apps/crm/nothing-is-here")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+	def test_the_shell_serves_the_built_document(self):
+		set_request(method="GET", path="/apps/crm")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+		self.assertIn(b'<div id="app">', response.data)
+
+		# The document carries no per-request content: no boot island, no CSRF token,
+		# no injected route (#42072). If any of these appear, the shell has grown a
+		# second boot producer and #42111 has become unanswerable.
+		markup = strip_html_comments(response.data)
+		self.assertNotIn(b"window.boot", markup)
+		self.assertNotIn(b"__FRONTEND_ROUTE__", markup)
+		self.assertNotIn(b"__SOCKETIO_PORT__", markup)
+		self.assertNotIn(b"csrf_token", markup)
+
+	def test_the_document_is_byte_identical_for_two_different_users(self):
+		"""The premise #42111 will have to argue from, pinned here.
+
+		If this ever fails, the shell has become user-varying and caching it is no
+		longer merely risky but wrong — and the failure mode is a cross-user leak,
+		which is not the kind one finds by looking.
+		"""
+		other = frappe.get_doc(
+			doctype="User",
+			email="shell-second-user@example.com",
+			first_name="Shell",
+			user_type="System User",
+		).insert(ignore_if_duplicate=True)
+		other.add_roles("System Manager")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		set_request(method="GET", path="/apps/desk")
+		as_admin = get_response().data
+
+		frappe.set_user(other.name)
+		set_request(method="GET", path="/apps/desk")
+		as_other = get_response().data
+
+		self.assertEqual(as_admin, as_other)
+
+
+class TestShellIsNeverCached(IntegrationTestCase):
+	"""`@cache_html` is gated on `can_cache()`, which does not consider the session
+	user — so a cached shell response would hand one user's document to the next.
+
+	`can_cache()` returns False under `developer_mode`, which is why this is invisible
+	in development and why the test has to force the flag. Without the force it passes
+	for the wrong reason.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		frappe.flags.force_website_cache = True
+
+	def tearDown(self):
+		frappe.flags.force_website_cache = False
+		frappe.cache.delete_value("website_page::apps/crm")
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
+	def test_the_shell_writes_no_page_cache_even_when_caching_is_forced(self):
+		from frappe.website.utils import can_cache
+
+		# The flag really is on: this is the guard against the test passing because
+		# caching was off anyway.
+		self.assertTrue(can_cache())
+
+		frappe.cache.delete_value("website_page::apps/crm")
+		set_request(method="GET", path="/apps/crm")
+		response = get_response()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertIsNone(frappe.cache.get_value("website_page::apps/crm"))
+
+	def test_rendering_the_shell_turns_local_caching_off(self):
+		set_request(method="GET", path="/apps/crm")
+		get_response()
+		self.assertTrue(getattr(frappe.local, "no_cache", False))
+
+
+class TestPrefixCollisionGuard(IntegrationTestCase):
+	"""Collisions fail hard at install, naming every claimant.
+
+	In `before_app_install`, where a raise leaves the site byte-identical —
+	`before_install`'s refusal path exits 0 and reports success.
+	"""
+
+	def test_a_colliding_prefix_is_refused_naming_both_claimants(self):
+		with hooks_returning({"newapp": "crm"}):
+			with self.assertRaises(PrefixCollisionError) as caught:
+				before_app_install("newapp")
+
+		message = str(caught.exception)
+		self.assertIn("newapp", message)
+		self.assertIn("crm", message)
+
+	def test_a_malformed_prefix_is_refused(self):
+		for bad in ["Apps", "with space", "9lives", "trailing/slash", ""]:
+			with self.subTest(prefix=bad), hooks_returning({"newapp": bad}):
+				with self.assertRaises(PrefixCollisionError):
+					before_app_install("newapp")
+
+	def test_a_free_prefix_installs(self):
+		with hooks_returning({"newapp": "totally-free-prefix"}):
+			before_app_install("newapp")  # must not raise
+
+	def test_crm_v1_does_not_collide_with_crm_v2(self):
+		"""The /apps redraw is what removed this collision.
+
+		CRM v1 holds `/crm` and CRM v2 holds `/apps/crm`; they no longer compete, which
+		is why both skeleton consumers ship on their real names.
+		"""
+		self.assertEqual(shell_base(declared_prefix("crm")), "/apps/crm")
+
+
+class TestReservedRouteGuard(IntegrationTestCase):
+	"""The runtime half of the claim surface: a Web Page titled "Apps"."""
+
+	def test_apps_is_reserved(self):
+		self.assertTrue(is_reserved("apps"))
+		self.assertTrue(is_reserved("/apps"))
+		self.assertTrue(is_reserved("apps/crm"))
+		self.assertFalse(is_reserved("applications"))
+		self.assertFalse(is_reserved("my/apps"))
+		self.assertFalse(is_reserved(""))
+
+	def test_a_web_page_cannot_claim_a_route_inside_apps(self):
+		page = frappe.get_doc(doctype="Web Page", title="Apps", route="apps", published=1)
+		with self.assertRaises(ReservedRouteError):
+			page.insert()
+
+	def test_a_web_page_elsewhere_is_unaffected(self):
+		page = frappe.get_doc(
+			doctype="Web Page", title="Shell Guard Test", route="shell-guard-test", published=1
+		)
+		page.insert()
+		self.addCleanup(lambda: frappe.delete_doc("Web Page", page.name, force=True))
+		self.assertEqual(page.route, "shell-guard-test")
+
+
+class TestSingletonEnforcement(IntegrationTestCase):
+	"""One module graph admits one version of each shared library.
+
+	Both real consumers agree today, so nothing on this bench would exercise this —
+	which is precisely why it needs a test rather than a demonstration.
+	"""
+
+	def test_conflicting_ranges_fail_the_build_naming_both_apps(self):
+		manifest = [
+			{"app": "frappe", "deps": {"vue": "^3.5.13", "frappe-ui": "1.0.0-beta.24"}},
+			{"app": "gameplan", "deps": {"vue": "^3.5.13", "frappe-ui": "1.0.0-beta.50"}},
+		]
+
+		with self.assertRaises(SingletonConflict) as caught:
+			enforce_singletons(manifest)
+
+		message = str(caught.exception)
+		self.assertIn("frappe-ui", message)
+		self.assertIn("beta.24", message)
+		self.assertIn("beta.50", message)
+		self.assertIn("gameplan", message)
+		# `vue` agrees, so it must not be reported.
+		self.assertNotIn("  vue:", message)
+
+	def test_agreement_passes(self):
+		enforce_singletons(
+			[
+				{"app": "frappe", "deps": {"vue": "^3.5.13"}},
+				{"app": "crm", "deps": {"vue": "^3.5.13", "date-fns": "^4.1.0"}},
+			]
+		)
+
+	def test_a_non_singleton_may_differ_freely(self):
+		"""The list is closed. An app pins its own libraries without asking."""
+		enforce_singletons(
+			[
+				{"app": "crm", "deps": {"date-fns": "^4.1.0"}},
+				{"app": "gameplan", "deps": {"date-fns": "^2.0.0"}},
+			]
+		)
+
+
+class TestShellBoot(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+		set_request(method="GET", path="/apps/crm")
+
+	def tearDown(self):
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
+	def test_boot_is_core_plus_the_declaring_app(self):
+		from frappe.shell.boot import get_boot
+
+		boot = get_boot("/apps/crm")
+
+		self.assertEqual(boot["shell_base"], "/apps/crm")
+		self.assertEqual(boot["app"], "crm")
+		# Core.
+		self.assertIn("csrf_token", boot)
+		self.assertIn("timezone", boot)
+		# The declaring app's contribution, merged under core.
+		self.assertIn("default_route", boot)
+
+	def test_boot_is_small(self):
+		"""v1's boot is 147,711 bytes, ~120 KB of it desk workspace furniture.
+
+		A generous ceiling: the point is to fail loudly if v1's furniture ever creeps
+		back in, not to police a few hundred bytes.
+		"""
+		import json
+
+		from frappe.shell.boot import get_boot
+
+		self.assertLess(len(json.dumps(get_boot("/apps/crm"), default=str)), 40_000)
+
+	def test_the_slug_table_is_permission_independent(self):
+		"""An address space cannot change shape per user.
+
+		v1's de-slug table is keyed on `can_read`, so two colleagues pasting the same
+		URL resolve it differently. Access is still refused at the record.
+		"""
+		from frappe.shell.doctypes import slugs_for_app
+
+		as_admin = slugs_for_app("crm")
+
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		as_guest = slugs_for_app("crm")
+
+		self.assertEqual(as_admin, as_guest)
+		self.assertIn("crm-deal", as_admin)
+		self.assertEqual(as_admin["crm-deal"], "CRM Deal")
+
+	def test_the_slug_table_tracks_doctypes_being_added_and_removed(self):
+		"""A new doctype must be addressable, and a deleted one must stop being so.
+
+		Regression: this cache was originally invalidated from `doc_events` on DocType,
+		which looks right and is not — `frappe.delete_doc("DocType", ...)` never reaches
+		an `after_delete` handler, so a deleted doctype stayed addressable. It is keyed
+		on `metadata_version` instead, which every schema-change path already resets.
+		"""
+		from frappe.shell.doctypes import slugs_for_app
+
+		name = "Shell Slug Probe"
+		# Start from a known state rather than a pristine one: a previous aborted run of
+		# this test can leave the doctype behind, and the first assertion would then
+		# fail for a reason that has nothing to do with what is being tested.
+		if frappe.db.exists("DocType", name):
+			frappe.delete_doc("DocType", name, force=True)
+		self.assertNotIn("shell-slug-probe", slugs_for_app("frappe"))
+
+		frappe.get_doc(
+			doctype="DocType",
+			name=name,
+			module="Core",
+			custom=1,
+			fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
+
+		self.assertEqual(slugs_for_app("frappe").get("shell-slug-probe"), name)
+
+		frappe.delete_doc("DocType", name, force=True)
+		self.assertNotIn("shell-slug-probe", slugs_for_app("frappe"))
+
+	def test_a_contributed_boot_key_cannot_overwrite_core(self):
+		"""Core is spread LAST.
+
+		`app_boot` is a third-party callable merged into the same dict as `csrf_token`
+		and `user`. If it won, an app could break every save at its own prefix with a
+		bare 400 by returning a key it did not know was taken.
+		"""
+		from frappe.shell.boot import get_boot
+
+		poison = {"csrf_token": "stolen", "user": {"name": "nobody"}, "shell_base": "/elsewhere"}
+		with patch("frappe.shell.boot.app_boot", return_value=poison):
+			boot = get_boot("/apps/crm")
+
+		self.assertNotEqual(boot["csrf_token"], "stolen")
+		self.assertNotEqual(boot["user"]["name"], "nobody")
+		self.assertEqual(boot["shell_base"], "/apps/crm")
+
+	def test_the_desk_prefix_boot_is_small_too(self):
+		"""The framework's own prefix is the biggest one, so it is the one to measure.
+
+		Child tables are excluded from the slug table — they have no page and no
+		address, and frappe alone has enough of them to dominate this payload.
+		"""
+		import json
+
+		from frappe.shell.boot import get_boot
+		from frappe.shell.doctypes import slugs_for_app
+
+		self.assertLess(len(json.dumps(get_boot("/apps/desk"), default=str)), 40_000)
+		self.assertNotIn("doc-field", slugs_for_app("frappe"))
+
+	def test_the_index_lists_installed_apps(self):
+		from frappe.shell.boot import get_boot
+
+		boot = get_boot(f"/{SHELL_ROOT}")
+
+		self.assertIsNone(boot["app"])
+		self.assertEqual(boot["shell_base"], "/apps")
+		routes = {entry["app"]: entry["route"] for entry in boot["apps"]}
+		# The framework is on the index by construction — charter item 7 made true
+		# rather than stated.
+		self.assertEqual(routes["frappe"], "/apps/desk")
+		self.assertEqual(routes["crm"], "/apps/crm")
+
+
+class TestAppPermission(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_guest_is_refused_by_default(self):
+		from frappe.shell.permissions import has_app_permission
+
+		frappe.set_user("Guest")
+		self.assertFalse(has_app_permission("frappe"))
+
+	def test_a_system_user_is_admitted_by_default(self):
+		"""The default reproduces `www/desk.py:20-27`, so frappe declares nothing."""
+		from frappe.shell.permissions import has_app_permission
+
+		frappe.set_user("Administrator")
+		self.assertTrue(has_app_permission("frappe"))
+
+	def test_a_website_user_cannot_read_the_index_boot(self):
+		"""`@frappe.whitelist()` excludes Guest and nobody else.
+
+		Without an explicit gate, any portal login could call the endpoint directly and
+		read core boot — site defaults, the installed-app list — which desk v1 never
+		exposed below System User. The tile list being filtered does not help: the leak
+		is the core payload around it.
+		"""
+		from frappe.shell.boot import get_boot
+
+		website_user = frappe.db.get_value("User", {"user_type": "Website User", "enabled": 1}, "name")
+		if not website_user:
+			self.skipTest("no enabled Website User on this site")
+
+		frappe.set_user(website_user)
+		with self.assertRaises(frappe.PermissionError):
+			get_boot("/apps")
+
+	def test_a_raising_gate_denies_rather_than_degrades(self):
+		"""Deliberately asymmetric with `app_boot`, which degrades.
+
+		A broken contributor costs its boot keys; a broken gate costs the door, because
+		failing open is the one outcome a gate may not have.
+		"""
+		from frappe.shell.permissions import has_app_permission
+
+		with hooks_declaring("app_permission", {"crm": "frappe.shell.nonexistent.handler"}):
+			self.assertFalse(has_app_permission("crm"))

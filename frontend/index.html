@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+  The ONE document. Not one per prefix, not one per app.
+
+  It has no per-request content at all, and the absence is the design (#42072):
+    - no boot JSON island. Boot is fetched in both environments, so the document is
+      user-invariant; a `window.boot = {{ ... }}` here would be a second producer
+      that only ever ran in prod (#42070).
+    - no __FRONTEND_ROUTE__, no __SOCKETIO_PORT__. Both were build-time constants of
+      an app's own build, and there is no app build now.
+    - no import map. The delivery tier retired with `extend_frontend` (#42071).
+
+  Which is why ShellPage can serve the built file verbatim, and why #42111 exists to
+  ask whether it may be cached. It is NOT cached today.
+-->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/assets/frappe/images/frappe-framework-logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Frappe</title>
+    <script>
+      // Pre-paint only. Reads no server state, so it does not make the document
+      // user-varying.
+      ;(() => {
+        const stored = localStorage.getItem('theme')
+        const dark = stored === 'dark' || (!stored && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
