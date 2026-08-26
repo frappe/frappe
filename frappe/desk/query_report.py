@@ -59,6 +59,25 @@ def get_report_doc(report_name):
 	return doc
 
 
+@frappe.whitelist()
+def get_print_format_html_and_css(print_format: str):
+	pf = frappe.db.get_value(
+		"Print Format", {"name": print_format, "disabled": 0}, ["report", "html", "css"], as_dict=True
+	)
+	if not pf:
+		return
+
+	report = get_report_doc(pf.report)
+
+	if not frappe.has_permission(report.ref_doctype, "print"):
+		frappe.throw(
+			_("You don't have permission to print: {0}").format(_(report.ref_doctype)),
+			frappe.PermissionError,
+		)
+
+	return {"html": pf.html, "css": pf.css}
+
+
 def get_report_result(report, filters):
 	res = None
 
