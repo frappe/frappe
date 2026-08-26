@@ -1,75 +1,129 @@
-// Gmail-style floating email composer
-// Scoped to .compose-floating — applied only by frappe.views.CommunicationComposer
+// Email Composer ("New Email") — Gmail-style docked shell.
 
-// Layer 1: floating shell — bottom-right position, no backdrop, page stays interactive
-.modal.compose-floating {
-	// Let clicks pass through the overlay area so the page behind stays interactive
+// Strip a control's input chrome so it reads as inline text in a row.
+@mixin email-composer-plain-input {
+	width: 100%;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.email-composer-modal {
 	pointer-events: none;
 
 	.modal-dialog {
+		pointer-events: auto;
 		position: fixed;
-		right: 16px;
-		bottom: 0;
+		right: 20px;
+		bottom: 20px;
 		top: auto;
 		left: auto;
 		margin: 0;
-		width: 530px;
-		max-width: 530px;
-		min-width: 530px;
+		width: 600px;
+		max-width: calc(100vw - 40px);
 		transform: none !important;
 
 		@include media-breakpoint-down(sm) {
 			right: 0;
+			bottom: 0;
 			width: 100%;
 			max-width: 100%;
-			min-width: 100%;
 		}
 	}
 
 	.modal-content {
-		// Only the compose itself is interactive
-		pointer-events: auto;
-		border-radius: var(--radius-md) var(--radius-md) 0 0;
-		border-bottom: none;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-		max-height: calc(100vh - 60px);
-		// Constrain children to the max-height so the body can scroll internally
 		display: flex;
 		flex-direction: column;
+		max-height: calc(100vh - 40px);
+		min-height: 534px;
+		border-radius: var(--radius-2xl);
+		border: 1px solid var(--border-color);
+		box-shadow: var(--elevation-xl);
+		background-color: var(--card-bg);
 		overflow: hidden;
 	}
 
-	// Sticky header + footer are already set in modal.scss;
-	// the body fills the remaining space and scrolls internally.
+	// Body fills remaining height and scrolls internally so the footer stays visible.
+	// Also a flex column itself (not just a flex item): .email-composer's
+	// `min-height:100%` needs a definite ancestor height to resolve against, and a
+	// flex item alone doesn't give descendants one — establishing the flex context
+	// here lets .email-composer's `flex:1` genuinely fill the expanded card instead
+	// of stopping at its own content height and leaving blank space above the
+	// footer.
 	.modal-body {
+		display: flex;
+		flex-direction: column;
 		flex: 1 1 auto;
 		overflow-y: auto;
 		overflow-x: hidden;
+		padding: 0;
+
+		// Dialog wraps its content in its own anonymous, unstyled <div>
+		// (`this.$body = $("<div></div>").appendTo(this.modal_body)` in
+		// ui/dialog.js) — .email-composer is a grandchild of .modal-body through
+		// that div, not a direct flex-item child, so .email-composer's own flex:1
+		// does nothing until THIS wrapper is pulled into the flex chain too.
+		// min-height:0 overrides the flex default (min-height:auto, sized to
+		// content) so it can actually shrink to the available space rather than
+		// forcing modal-body to grow past it.
+		> div {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			min-height: 0;
+		}
 	}
 
-	// .title-section fills the header (except action buttons) and is clickable to toggle minimize
-	.modal-header .title-section {
-		cursor: pointer;
+	.modal-header {
+		align-items: center;
+		padding: 14px 16px 14px 20px;
+		border-bottom: none;
+
+		// text/base/medium
+		.modal-title {
+			font-size: var(--text-base);
+			line-height: 1.15;
+			font-weight: var(--font-weight-medium);
+			letter-spacing: 0.015em;
+			color: var(--ink-gray-7);
+		}
+
+		.modal-actions {
+			gap: 4px;
+		}
 	}
 
-	// Compact minimized chip — Gmail's collapsed state
+	// Compact docked chip: cap the 600px docked width down, and reset the
+	// empty-state min-height so the card collapses to just the header.
 	&.modal-minimize {
 		.modal-dialog {
-			width: 330px;
-			max-width: 330px;
-			min-width: 330px;
+			width: 400px;
 
 			@include media-breakpoint-down(sm) {
 				width: 100%;
 				max-width: 100%;
-				min-width: 100%;
 			}
+		}
+
+		.modal-content {
+			min-height: 0;
+		}
+
+		// Base modal.scss already hides the body when minimised, but its
+		// `.modal-minimize .modal-body` and our `.email-composer-modal
+		// .modal-body` (which sets display:flex to build the fill chain) are both
+		// two-class selectors — and this file loads after modal.scss, so ours won
+		// and the chip kept its full height. Re-assert the collapse here, where
+		// the extra class outranks both.
+		.modal-body {
+			display: none;
 		}
 
 		.modal-header {
 			padding: 6px 12px;
 			min-height: 40px;
-			border-bottom: none;
 
 			.modal-title {
 				font-size: var(--text-md);
@@ -78,51 +132,53 @@
 		}
 	}
 
-	// Belt-and-suspenders: if a stray backdrop slips in, hide it
+	// Full-screen / expanded view (toggled by the repurposed minimise button).
+	// Guarded with :not(.modal-minimize) so minimizing while expanded falls back
+	// to the minimized chip instead of staying a blank centered 1024×700 card.
+	&.expanded:not(.modal-minimize) .modal-dialog {
+		inset: 0;
+		margin: auto;
+		width: 1024px;
+		height: 700px;
+		max-width: calc(100vw - 40px);
+		max-height: calc(100vh - 40px);
+	}
+
+	&.expanded:not(.modal-minimize) .modal-content {
+		height: 100%;
+		max-height: none;
+	}
+
 	& ~ .modal-backdrop {
 		display: none !important;
 	}
 
-	// --- Layer 2: Gmail-shaped structure ---
-	// Hide the original auto-rendered form (controls were moved out; remaining ones stay in DOM
-	// so existing logic keeps working, just invisible).
 	.modal-body .form-layout {
 		display: none !important;
 	}
 
-	// Hide the default modal footer (Send/Discard) — replaced by our custom action bar inside the body.
 	.modal-footer {
 		display: none !important;
 	}
+}
 
-	.modal-body {
-		padding: 0;
-	}
+// Skeleton: field controls are moved into these slots (see render_composer_layout).
+.email-composer {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 100%;
 
-	.gmail-compose {
-		display: flex;
-		flex-direction: column;
-		min-height: 100%;
-	}
-
-	// Address / subject rows — inline label + underlined input
-	.gmail-row {
+	.email-composer-row {
 		display: flex;
 		align-items: center;
-		padding: 6px 16px;
-		border-bottom: 1px solid var(--border-color);
+		padding: 8px 20px;
 		gap: 8px;
 
-		&.is-collapsed {
+		&.hidden {
 			display: none;
 		}
 
-		.gmail-slot {
-			flex: 1;
-			min-width: 0;
-		}
-
-		// Override Frappe control styling: inline label, no box, no extra margin
 		.frappe-control {
 			margin-bottom: 0;
 
@@ -138,9 +194,10 @@
 				width: auto;
 
 				.control-label {
+					@include get_textstyle("base", "regular");
+					min-width: 35px;
 					margin-bottom: 0;
-					font-weight: normal;
-					color: var(--text-muted);
+					color: var(--ink-gray-5);
 				}
 			}
 
@@ -152,38 +209,275 @@
 			.control-input,
 			.form-control,
 			.awesomplete {
-				border: none !important;
-				background: transparent !important;
-				box-shadow: none !important;
-				padding-left: 0;
-				padding-right: 0;
+				@include email-composer-plain-input;
 			}
 		}
 	}
 
-	// Cc / Bcc text toggles on the right of the To row
-	.gmail-cc-bcc-toggles {
+	// Separators between the To / Cc / Bcc / Subject rows (not in the Figma, added
+	// on request). Cc/Bcc lines only show when that row is revealed (To→Cc, Cc→Bcc);
+	// the subject row is always visible so its top border closes off the recipients
+	// block above it. Uses the subject divider's colour (--outline-gray-2) so every
+	// line reads the same.
+	.email-composer-cc-row,
+	.email-composer-bcc-row,
+	.email-composer-subject-row {
+		border-top: 1px solid var(--outline-gray-2);
+	}
+
+	// To-row: input grows, Cc/Bcc toggles pin to the right.
+	.email-composer-to-input {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.email-composer-recipient-toggles {
+		flex: 0 0 auto;
 		display: flex;
+		gap: 4px;
+	}
+
+	// CC/BCC fields are direct flex children of their row and don't grow by
+	// default (unlike To, which sits in flex:1 .email-composer-to-input), leaving
+	// dead unclickable space to the right — make the field fill the row.
+	.email-composer-cc-row > .frappe-control,
+	.email-composer-bcc-row > .frappe-control {
+		flex: 1;
+		min-width: 0;
+	}
+
+	// Gmail-style: keep the To/CC/BCC label (and CC/BCC toggles) top-aligned while
+	// pills wrap below. The base `.email-composer-row .frappe-control .form-group`
+	// centers them, so match its (.frappe-control .form-group) specificity to win.
+	// `align-items` on the flex parents is not enough on its own once the pill row
+	// wraps to two lines: also pin each individual item with `align-self`, since
+	// that's what actually anchors a box to its container's cross-start edge.
+	.email-composer-to-row,
+	.email-composer-cc-row,
+	.email-composer-bcc-row {
+		align-items: flex-start;
+
+		> * {
+			align-self: flex-start;
+		}
+
+		.frappe-control .form-group {
+			align-items: flex-start;
+
+			> * {
+				align-self: flex-start;
+			}
+		}
+	}
+
+	// Recipient pills (MultiSelect Pills): Frappe Mail-style avatar + name + ×.
+	// Flatten the .table-multiselect widget into an inline pill row — kill the
+	// form-control box and the full-width input so pills + input flow on one line.
+	.email-composer-to-input,
+	.email-composer-cc-row,
+	.email-composer-bcc-row {
+		.table-multiselect {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 6px;
+			padding: 0;
+			min-height: var(--btn-height);
+			border: none;
+			background: transparent;
+			box-shadow: none;
+			// Positioning context for the suggestion dropdown, so it sizes to the
+			// (stable) field width instead of the variable-width input inside it.
+			position: relative;
+		}
+
+		// The awesomplete grows to fill the row's remaining space, and the input
+		// fills the awesomplete (width:100% of the awesomplete, NOT the full row —
+		// that's what stacked the pills before). This restores the pre-pill
+		// behaviour where clicking anywhere in the row focuses the input.
+		// position:static so the dropdown's containing block is .table-multiselect
+		// (stable field width), not this variable-width input wrapper.
+		.table-multiselect .awesomplete {
+			flex: 1 1 80px;
+			min-width: 80px;
+			display: block;
+			position: static;
+		}
+
+		// Dropdown now sizes to the field (stable) and drops below it, instead of
+		// tracking the shrinking input — no !important needed.
+		.table-multiselect .awesomplete > ul,
+		.table-multiselect .awesomplete > [role="listbox"] {
+			top: 100%;
+			left: 0;
+			width: 100%;
+			min-width: 0;
+		}
+
+		.table-multiselect input {
+			width: 100%;
+			min-width: 0;
+			margin-bottom: 0;
+			padding: 0;
+			border: none;
+			background: transparent;
+			box-shadow: none;
+			@include get_textstyle("base", "regular");
+		}
+
+		// Recipient chip = the Espresso tag (.es-badge, gray/subtle — its --c-fill is
+		// already surface/gray-2 and its lg size already gives the 4px gap and the
+		// 12px ×). Only what the design's "tag" node differs on is overridden:
+		// 22px tall, 6px inline padding, radius/2 (5px), text/xs/regular.
+		.email-composer-recipient-tag {
+			// Re-assert the component's own layout. A legacy rule for the old
+			// generic multiselect widget — `.table-multiselect .tb-selected-value`
+			// (controls.scss) — carries 2 classes to the tag's 1 (`.es-badge`), so
+			// it wins the cascade on specificity alone and flips this from
+			// inline-flex to inline-block, which silently drops gap/align-items/
+			// justify-content and lets the chip spread instead of hugging its
+			// content. Also re-asserts `width`/`background` against that same
+			// rule's `background-color` leak.
+			display: inline-flex;
+			flex-shrink: 0;
+			width: fit-content;
+			background: var(--surface-gray-2);
+			height: 22px;
+			max-width: 100%;
+			// no border: the design insets its content 6px from the tag edge, and the
+			// component's 1px (transparent, for the outline variant) border would
+			// push that to 7px.
+			border: none;
+			padding-inline: 6px;
+			border-radius: var(--radius-2);
+			color: var(--ink-gray-7);
+			@include get_textstyle("xs", "regular");
+			// the mixin is size/weight/tracking only; text/xs/regular's line-height
+			// is 1.15 (same value the canonical .text-xs class carries), and the
+			// component's own line-height:1 would otherwise stand.
+			line-height: 1.15;
+
+			.email-composer-tag-avatar {
+				width: 16px;
+				height: 16px;
+				flex-shrink: 0;
+				margin: 0;
+
+				// initials fall back to whatever case the address is in
+				// (frappe.get_abbr doesn't upper-case); show them capitalised
+				// without touching the shared helper.
+				.avatar-frame {
+					text-transform: uppercase;
+				}
+			}
+
+			// let the label ellipsize instead of pushing the × out of the chip
+			.pill-label {
+				min-width: 0;
+			}
+
+			// the × — the only click target on the chip. The design draws it at
+			// full strength in ink/gray-7, which it already inherits as currentColor
+			// (--icon-stroke), so hover deepens the colour rather than the opacity.
+			.es-badge__affix {
+				cursor: pointer;
+
+				&:hover,
+				&:focus-visible {
+					color: var(--ink-gray-9);
+				}
+			}
+		}
+
+		// Collapsed (blurred) state: the whole field is a text target; the input is
+		// hidden so only the first two chips + "+N more" show on one row.
+		.table-multiselect.is-collapsed {
+			cursor: text;
+
+			.awesomplete {
+				display: none;
+			}
+		}
+
+		// "+N more" is the same tag, ghost variant (the design's outline-less tag).
+		.email-composer-more-count {
+			height: 22px;
+			padding-inline: 6px;
+			color: var(--ink-gray-7);
+			cursor: pointer;
+			@include get_textstyle("xs", "regular");
+		}
+	}
+
+	// CC / BCC toggles: text/sm/regular per the design, dark by default; when their
+	// row is open they mute to grey (.active) to signal it's showing.
+	.email-composer-toggle {
+		@include get_textstyle("sm", "regular");
+		--bt-fg: var(--ink-gray-7);
+
+		&.active {
+			--bt-fg: var(--ink-gray-4);
+		}
+	}
+
+	// Subject: inline editable heading + Add template dropdown on the right.
+	.email-composer-subject-row {
+		align-items: center;
 		gap: 12px;
+	}
+
+	.email-composer-subject {
+		flex: 1;
+		min-width: 0;
+
+		.frappe-control,
+		.form-group {
+			margin-bottom: 0;
+		}
+
+		.clearfix {
+			display: none;
+		}
+
+		.control-input-wrapper {
+			width: auto;
+			max-width: none;
+		}
+
+		.control-input,
+		.form-control {
+			@include email-composer-plain-input;
+			// paragraph/xl/semibold
+			font-size: 18px;
+			font-weight: var(--font-weight-semibold);
+			line-height: 1.5;
+			letter-spacing: 0.01em;
+			color: var(--ink-gray-7);
+
+			&::placeholder {
+				color: var(--ink-gray-4);
+			}
+		}
+	}
+
+	// "Add template" Bootstrap dropdown; the email_template Link is a hidden data holder.
+	.email-composer-template {
 		flex: 0 0 auto;
 
-		.gmail-toggle {
-			cursor: pointer;
-			color: var(--text-color);
-			font-size: var(--text-sm);
-			user-select: none;
-
-			&:hover {
-				text-decoration: underline;
-			}
+		.frappe-control {
+			display: none;
 		}
 	}
 
-	// Use HTML / Add CSS toggles — thin bar shown only when the selected Email Template
-	// has use_html=1. Hidden by default via the `hidden` attribute set from JS.
-	// Overrides Frappe's `.checkbox label { padding-top: 2.5px; align-items: start }` from
-	// global.scss and hides the empty .disp-area/.help spans so the two checkboxes align.
-	.gmail-html-toggles {
+	// "Add template" trigger: es-button sm/ghost already matches the design's 28px
+	// height / 8px radius / 8px gap+padding / 16px chevron. Add the text/base/regular
+	// letter-spacing (es-button sets none) and the ink-gray-6 colour from the design.
+	.email-composer-add-template {
+		@include get_textstyle("base", "regular");
+		--bt-fg: var(--ink-gray-6);
+	}
+
+	.email-composer-html-toggles {
 		display: flex;
 		align-items: center;
 		gap: var(--padding-md);
@@ -191,7 +485,7 @@
 		border-bottom: 1px solid var(--border-color);
 		font-size: var(--text-sm);
 
-		&[hidden] {
+		&.hidden {
 			display: none;
 		}
 
@@ -209,57 +503,143 @@
 		}
 
 		.disp-area,
-		.help {
-			display: none;
-		}
-
+		.help,
 		.help-box {
 			display: none;
 		}
 	}
 
-	// Hide the Code editor's Expand button (no unique class, see code.js:68) — full-screen
-	// expand doesn't fit inside the floating compose.
-	.gmail-message-area .frappe-control[data-fieldname="html_content"] .btn {
+	// Expand button doesn't fit inside the floating compose.
+	.email-composer-message-area .frappe-control[data-fieldname="html_content"] .btn {
 		display: none;
 	}
 
-	// Message body — fill remaining vertical space; Quill's toolbar is hidden by default
-	// and shown when the Aa icon is active (.show-toolbar class on the message area).
-	.gmail-message-area {
+	.email-composer-message-area {
+		display: flex;
+		flex-direction: column;
 		flex: 1 1 auto;
-		padding: 12px 16px;
-		min-height: 240px;
+		padding: 16px 20px 20px;
+		min-height: 328px;
+
+		// The content field control isn't a direct child either — render_composer_layout
+		// appends it into this anonymous `[data-slot="content"]` div — so it needs
+		// pulling into the flex chain the same way modal-body's own wrapper does.
+		// Only "content", not the sibling `[data-slot="html_content"]` slot: that
+		// one stays hidden until an HTML template is picked, but its own div isn't
+		// — giving it flex:1 too would split the area's height evenly between an
+		// empty box and the real editor instead of handing it all to the editor.
+		> [data-slot="content"] {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			min-height: 0;
+		}
 
 		.frappe-control {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
 			margin-bottom: 0;
-			height: 100%;
 
 			.clearfix {
 				display: none;
 			}
+		}
 
-			.ql-toolbar {
-				display: none;
+		.frappe-control[data-fieldname="content"] {
+			// Every control's own .form-group (label + input row, shared markup
+			// with every other field) is a plain block box that only sizes to its
+			// own content — one more link the flex-fill chain has to cross before
+			// it reaches .control-input-wrapper.
+			.form-group,
+			.control-input-wrapper,
+			.control-input,
+			.ql-container {
+				display: flex;
+				flex-direction: column;
+				flex: 1;
+				min-height: 0;
 			}
 
 			.ql-container {
 				border: none !important;
-				font-size: var(--text-md);
+			}
+
+			// Body text: paragraph/base/regular per the design — get_textstyle gives
+			// 14px / 420 / 2% letter-spacing; line-height 1.5 is the paragraph variant
+			// (Quill defaults to 1.6) and ink-gray-7 is the design's text colour.
+			// Also fills the message area instead of quill.scss's fixed 300px/
+			// resize:vertical (the empty gap above the footer when expanded was
+			// that fixed height leaving the grown wrapper's extra space unused) —
+			// flex:1 replaces the manual resize handle with auto-fill instead.
+			.ql-editor {
+				@include get_textstyle("base", "regular");
+				line-height: 1.5;
+				color: var(--ink-gray-7);
+				flex: 1;
+				height: auto;
+				resize: none;
+				// Drop Quill's own 12px/15px padding (and the matching placeholder
+				// offset) so the text and "Type something…" line up with the
+				// message-area's 20px edge — level with the To / Subject rows.
+				padding: 0;
+
+				&.ql-blank::before {
+					left: 0;
+					right: 0;
+				}
 			}
 		}
 
-		&.show-toolbar .ql-toolbar {
-			display: block;
+		// Quill builds its toolbar inside the editor; keep it hidden there — JS
+		// relocates it into .email-composer-toolbar-slot on first use. .ql-snow
+		// keeps this above the global quill.scss (imported later, equal specificity).
+		.ql-toolbar.ql-snow {
+			display: none;
 		}
 	}
 
-	// Uploaded attachments — moved here from setup_attach() so chips are visible.
-	// The 📎 icon in the action bar already provides the Add Attachment trigger.
-	.gmail-attachments {
-		padding: var(--padding-sm) var(--padding-md);
+	// Formatting toolbar is pinned in the sticky footer, above the banner and
+	// action bar (Gmail-style: static above the Send row, below the files).
+	// Toggled by the "Tt" button; the slot carries the .hidden state (global
+	// utility) so no local display rule is needed.
+	.email-composer-toolbar-slot {
+		padding: 8px 20px;
 
-		// Hide the redundant label + Add Attachment button — 📎 icon replaces them.
+		// Flat single-row toolbar: no grey fill / border / radii (those suited
+		// Quill's default top placement). The slot supplies the 20px edge inset.
+		.ql-toolbar.ql-snow {
+			display: flex;
+			padding: 0;
+			background-color: transparent;
+			border: none;
+			border-radius: 0;
+		}
+
+		// The toolbar is pinned at the bottom, so its picker dropdowns must open
+		// upward. Quill anchors them with top:100% (opening down) — that overflows
+		// past the footer and grows a scrollable gap in the modal body.
+		.ql-picker.ql-expanded .ql-picker-options {
+			top: auto;
+			bottom: 100%;
+		}
+
+		// "⋯" overflow: the rarely-used groups (blockquote, code, direction,
+		// indent, table) collapse behind the toggle until it is expanded. .ql-snow
+		// keeps these above the global `.ql-toolbar.ql-snow .ql-formats { display }`
+		// rule, which is equally specific but imported later.
+		.ql-toolbar.ql-snow .email-composer-toolbar-overflow {
+			display: none;
+		}
+
+		.ql-toolbar.ql-snow.show-overflow .email-composer-toolbar-overflow {
+			display: inline-flex;
+		}
+	}
+
+	.email-composer-attachments {
+		padding: var(--padding-sm) 20px;
+
 		.control-label,
 		.add-more-attachments {
 			display: none;
@@ -271,76 +651,300 @@
 			gap: var(--padding-xs);
 		}
 
-		// Cap width so long filenames ellipsize via .pill-label.ellipsis.
-		.gmail-attach-pill .data-pill {
+		.email-composer-attach-pill .data-pill {
 			max-width: 200px;
 			min-width: 0;
 		}
 
-		// Collapse to zero height when no attachments are uploaded.
 		&:has(.attach-list:empty) {
 			padding: 0;
 		}
 	}
 
-	// Sticky footer, mirrors .modal-header's sticky top.
-	.gmail-footer {
+	// Attached document print — its own card under the attachment chips.
+	// Figma: surface/gray-1, radius 12, padding 12/12/14/16, space-between with the
+	// text column hugging left and the edit/delete icons pinned top-right.
+	.email-composer-print-format {
+		padding: 0 20px var(--padding-sm);
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	.email-composer-print-card {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		padding: 12px 12px 14px 16px;
+		border-radius: var(--radius-lg);
+		background-color: var(--surface-gray-1);
+
+		.email-composer-print-card__content {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 2px;
+			// let the meta line ellipsize instead of pushing the icons out
+			flex: 1 1 0;
+			min-width: 0;
+		}
+
+		// paragraph/base/medium. The title alone is the preview target — max-width
+		// keeps the hit area on the words themselves rather than the whole row.
+		.email-composer-print-card__title {
+			@include get_textstyle("base", "medium");
+			line-height: 1.5;
+			color: var(--ink-gray-8);
+			max-width: 100%;
+			cursor: pointer;
+
+			&:hover {
+				text-decoration: underline;
+			}
+
+			&:focus-visible {
+				outline: 1px solid var(--outline-gray-3);
+				outline-offset: 2px;
+				border-radius: var(--radius-sm);
+			}
+		}
+
+		// paragraph/base/regular
+		.email-composer-print-card__meta {
+			@include get_textstyle("base", "regular");
+			line-height: 1.5;
+			color: var(--ink-gray-6);
+			@include truncate;
+		}
+
+		.email-composer-print-card__actions {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			flex-shrink: 0;
+			padding: 2.5px 0;
+		}
+	}
+
+	.email-composer-footer {
 		position: sticky;
 		bottom: 0;
 		z-index: 3;
 		background: var(--card-bg);
 	}
 
-	// Informational banner above the action bar — reflects send-options state.
-	// Uses Frappe's existing alert tokens and spacing tokens.
-	.gmail-banner {
-		padding: var(--padding-sm) var(--padding-md);
+	.email-composer-banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--padding-sm);
+		padding: var(--padding-sm) 20px;
 		background-color: var(--alert-bg-info);
 		color: var(--alert-text-info);
 		font-size: var(--text-sm);
+
+		&.hidden {
+			display: none;
+		}
+
+		.email-composer-banner__text {
+			flex: 1;
+		}
+
+		.email-composer-banner__close {
+			flex-shrink: 0;
+			padding: 2px;
+			line-height: 1;
+			color: var(--alert-text-info);
+			opacity: 0.7;
+
+			&:hover {
+				opacity: 1;
+			}
+		}
 	}
 
-	// Bottom action bar — Send on left, icon row in middle, trash on right.
-	// Uses Frappe's existing button classes (btn-primary, btn-ghost icon-btn) — no custom button styling.
-	.gmail-action-bar {
+	.email-composer-action-bar {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		gap: 8px;
-		padding: 8px 16px;
+		padding: 8px 20px;
 		border-top: 1px solid var(--border-color);
 		background: var(--card-bg);
 
-		.gmail-action-bar__send {
+		.email-composer-icon-row {
 			display: flex;
 			align-items: center;
+			gap: 8px;
+		}
 
-			// Frappe's .btn has no border, so Bootstrap's btn-group margin-left:-1px
-			// trick leaves a visible 1px seam between Send and the chevron. Neutralize.
-			&.btn-group > .btn:not(:first-child) {
-				margin-left: 0;
+		.email-composer-action-bar__right {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+
+			// Discard is a ghost button per the design (borderless), ink-gray-7 text.
+			[data-action="discard"] {
+				color: var(--ink-gray-7);
 			}
 		}
 
-		.gmail-icon-row {
-			flex: 1;
+		// Separator/split button (Frappe Mail style): two solid segments sharing
+		// the send button's own radius/colour tokens, cut apart at the middle
+		// instead of one whole button that opens a menu on any click. Left
+		// segment sends immediately; the chevron segment is the only click
+		// target that opens the menu (Schedule email).
+		.email-composer-send-group {
 			display: flex;
 			align-items: center;
-			gap: 2px;
-			margin-left: 8px;
+
+			.email-composer-send-btn {
+				border-top-right-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+
+			.email-composer-send-toggle {
+				border-top-left-radius: 0;
+				border-bottom-left-radius: 0;
+				// The seam between the two segments: a sliver of the card's own
+				// background (already the footer's fill below) cut into the solid
+				// button, rather than a new divider colour token.
+				box-shadow: -1px 0 var(--card-bg);
+			}
 		}
 
-		// Active state for icon toggles — uses the same tokens Frappe uses elsewhere
-		// (e.g. theme switcher, sidebar selection).
 		.btn.icon-btn.active {
-			background-color: var(--bg-light-gray);
+			background-color: var(--surface-gray-4);
 			color: var(--text-on-light-gray);
+		}
+	}
+
+	// Composer dropdowns match the design: 12px radius, 4px inner padding.
+	.email-composer-more-menu,
+	.email-composer-attach-menu,
+	.email-composer-send-menu {
+		border-radius: var(--radius-lg);
+		padding: 4px;
+	}
+
+	.email-composer-menu-toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+		user-select: none;
+		color: var(--ink-gray-7);
+
+		// Text fills the row so the switch sits flush at the right edge.
+		> span:not(.switch-visual) {
+			flex: 1;
+		}
+
+		// .active drives the switch state, but Bootstrap also paints
+		// .dropdown-item.active with a grey (#7c7c7c) row highlight — suppress it
+		// so the menu stays white like the design.
+		&.active {
+			background-color: transparent;
+			color: var(--ink-gray-7);
+
+			// Reuses the framework switch skin (.switch-visual / .switch-thumb from
+			// ControlSwitch, styled in controls.scss under .switch-control — the
+			// item carries that class). These toggle via .active rather than a real
+			// checkbox, so drive the "on" look from that (not :has(:checked)).
+			.switch-visual {
+				background-color: var(--ink-gray-8);
+
+				.switch-thumb {
+					transform: translateX(10px);
+				}
+			}
 		}
 	}
 }
 
-// When only floating composers are open, don't lock body scroll —
-// the user must be able to scroll/click the page behind the popup.
-body.modal-open:has(.modal.compose-floating.show):not(:has(.modal.show:not(.compose-floating))) {
+body.modal-open:has(.email-composer-modal.show):not(:has(.modal.show:not(.email-composer-modal))) {
 	overflow: auto !important;
 	padding-right: 0 !important;
+}
+
+// Attachment picker rows (the "Select attachments" dialog). Modelled on Raven's
+// list: checkbox + thumbnail + name over "TYPE · size", whole row is the label.
+// Lives outside .email-composer because the dialog is a separate modal.
+.email-composer-file-picker {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	max-height: 288px;
+	overflow-y: auto;
+
+	.email-composer-file-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 0;
+		padding: 6px 8px;
+		border-radius: var(--radius-md);
+		cursor: pointer;
+		font-weight: inherit;
+
+		&:hover {
+			background-color: var(--surface-gray-2);
+		}
+	}
+
+	.email-composer-file-row__check {
+		flex-shrink: 0;
+		width: 16px;
+		height: 16px;
+		margin: 0;
+		cursor: pointer;
+	}
+
+	// 32px tile: the image itself when we have one, else the extension on a
+	// neutral chip (red for PDFs, matching the reference).
+	.email-composer-file-row__thumb {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: 32px;
+		height: 32px;
+		border-radius: var(--radius-3);
+		background-color: var(--surface-gray-3);
+		background-size: cover;
+		background-position: center;
+		color: var(--ink-gray-7);
+		@include get_textstyle("xs", "medium");
+
+		&.is-image {
+			background-color: var(--surface-gray-2);
+		}
+
+		&.is-pdf {
+			background-color: var(--surface-red-6);
+			color: var(--ink-base);
+		}
+	}
+
+	.email-composer-file-row__text {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		// let both lines truncate instead of pushing the row wider
+		min-width: 0;
+		flex: 1 1 0;
+	}
+
+	.email-composer-file-row__name {
+		@include get_textstyle("sm", "regular");
+		line-height: 1.25;
+		color: var(--ink-gray-8);
+	}
+
+	.email-composer-file-row__meta {
+		@include get_textstyle("xs", "regular");
+		color: var(--ink-gray-5);
+	}
 }

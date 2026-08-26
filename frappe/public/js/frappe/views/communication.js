@@ -36,21 +36,17 @@ frappe.views.CommunicationComposer = class {
 			},
 			size: "large",
 			minimizable: true,
+			// The composer is docked, not a modal over the page: navigating away
+			// must leave it exactly as the user left it. Without this, changing
+			// route auto-minimises it (container.js change_to), which also
+			// inverted the minimise button — it restored instead of minimising.
+			keep_open: true,
 		});
 
 		$(this.dialog.$wrapper.find(".form-section").get(0)).addClass("to_section");
-		this.dialog.$wrapper.addClass("compose-floating");
-		// Gmail-style floating compose: no backdrop, no Escape-to-close
-		this.dialog.$wrapper.modal({ backdrop: false, keyboard: false, show: false });
-		// Gmail-style: clicking the title section toggles minimize in both directions.
-		// .title-section has fill-width so it covers the whole header except the action buttons,
-		// which keep their own click handlers (no bubbling conflict).
-		const $titleSection = this.dialog.$wrapper.find(".modal-header .title-section");
-		$titleSection.off("click");
-		$titleSection.on("click", () => this.dialog.toggle_minimize());
-
+		this.setup_composer_shell();
 		this.prepare();
-		this.render_gmail_layout();
+		this.render_composer_layout();
 		this.dialog.show();
 
 		if (this.frm) {
@@ -58,85 +54,170 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	render_gmail_layout() {
-		// Build the Gmail-shaped skeleton and move the existing rendered controls into named slots.
-		// All controls remain functional because we move the actual .frappe-control DOM (not clones)
-		// and their instances stay in this.dialog.fields_dict.
-		const $body = this.dialog.$body;
-		const icon = (name) => frappe.utils.icon(name, "sm");
+	setup_composer_shell() {
+		// Docked floating shell (styled in email_composer.scss); no backdrop so the form stays usable.
+		const $wrapper = this.dialog.$wrapper;
+		$wrapper.addClass("email-composer-modal");
+		$wrapper.attr("data-backdrop", "false");
 
-		const $skeleton = $(`
-			<div class="gmail-compose">
-				<div class="gmail-row gmail-sender-row is-collapsed">
-					<div class="gmail-slot" data-slot="sender"></div>
-				</div>
-				<div class="gmail-row">
-					<div class="gmail-slot" data-slot="recipients"></div>
-					<div class="gmail-cc-bcc-toggles">
-						<a class="gmail-toggle" data-toggle="cc">${__("Cc")}</a>
-						<a class="gmail-toggle" data-toggle="bcc">${__("Bcc")}</a>
-					</div>
-				</div>
-				<div class="gmail-row gmail-cc-row is-collapsed">
-					<div class="gmail-slot" data-slot="cc"></div>
-				</div>
-				<div class="gmail-row gmail-bcc-row is-collapsed">
-					<div class="gmail-slot" data-slot="bcc"></div>
-				</div>
-				<div class="gmail-row">
-					<div class="gmail-slot" data-slot="email_template"></div>
-					<a class="gmail-toggle" data-action="clear-template" hidden>${__("Clear")}</a>
-				</div>
-				<div class="gmail-row">
-					<div class="gmail-slot" data-slot="subject"></div>
-				</div>
-				<div class="gmail-html-toggles" hidden>
-					<div class="gmail-slot" data-slot="use_html"></div>
-					<div class="gmail-slot" data-slot="add_css"></div>
-				</div>
-				<div class="gmail-message-area">
-					<div class="gmail-slot" data-slot="content"></div>
-					<div class="gmail-slot" data-slot="html_content"></div>
-				</div>
-				<div class="gmail-attachments" data-slot="select_attachments"></div>
-				<div class="gmail-footer">
-					<div class="gmail-banner" hidden></div>
-					<div class="gmail-action-bar">
-						<div class="gmail-action-bar__send btn-group" data-slot="send-button">
-							<button class="btn btn-primary btn-sm" data-action="schedule" title="${__(
-								"Schedule send"
-							)}">${frappe.utils.icon("es-line-down", "xs")}</button>
+		// Repurpose the dialog's existing minimise button into a full-screen toggle.
+		$wrapper
+			.find(".btn-modal-minimize")
+			.removeClass("btn-modal-minimize")
+			.attr("title", __("Full screen"))
+			.off("click")
+			.on("click", () => $wrapper.toggleClass("expanded"));
+
+		// Add the minimise button on the left, reusing the dialog's minimize logic.
+		// It skips .btn-modal-minimize so toggle_minimize() doesn't swap in a missing "collapse" icon.
+		const $minimize = $(
+			frappe.ui.button.html({
+				icon: "minus",
+				variant: "ghost",
+				title: __("Minimize"),
+				css_class: "btn-modal-collapse icon-btn",
+			})
+		).on("click", () => this.dialog.toggle_minimize());
+		$wrapper.find(".modal-header .modal-actions").prepend($minimize);
+	}
+
+	render_composer_layout() {
+		// Move the live field controls out of Frappe's default form layout into our own
+		// skeleton (nodes are MOVED, not cloned, so every control keeps its state and logic).
+		const $body = this.dialog.$body;
+		const $original = $body.children();
+
+		this.$composer = $(`
+			<div class="email-composer">
+				<div class="email-composer-recipients">
+					<div class="email-composer-row email-composer-sender-row hidden" data-slot="sender"></div>
+					<div class="email-composer-row email-composer-to-row">
+						<div class="email-composer-to-input" data-slot="recipients"></div>
+						<div class="email-composer-recipient-toggles">
+							${frappe.ui.button.html({
+								label: __("CC"),
+								variant: "ghost",
+								css_class: "email-composer-toggle",
+								attrs: { "data-target": "cc" },
+							})}
+							${frappe.ui.button.html({
+								label: __("BCC"),
+								variant: "ghost",
+								css_class: "email-composer-toggle",
+								attrs: { "data-target": "bcc" },
+							})}
 						</div>
-						<div class="gmail-icon-row">
-							<button class="btn btn-ghost icon-btn" data-action="format" title="${__(
-								"Formatting options"
-							)}">${icon("es-solid-text")}</button>
-							<button class="btn btn-ghost icon-btn" data-action="attach" title="${__("Attach files")}">${icon(
-			"es-line-attachment"
-		)}</button>
-							<button class="btn btn-ghost icon-btn" data-action="send-me-a-copy" title="${__(
-								"Send me a copy"
-							)}">${icon("es-line-copy")}</button>
-							<button class="btn btn-ghost icon-btn" data-action="send-read-receipt" title="${__(
-								"Send read receipt"
-							)}">${icon("check-check")}</button>
+					</div>
+					<div class="email-composer-row email-composer-cc-row hidden" data-slot="cc"></div>
+					<div class="email-composer-row email-composer-bcc-row hidden" data-slot="bcc"></div>
+					<div class="email-composer-row email-composer-subject-row">
+						<div class="email-composer-subject" data-slot="subject"></div>
+						<div class="email-composer-template dropdown">
+							${frappe.ui.button.html({
+								label: __("Add template"),
+								variant: "ghost",
+								icon_right: "chevron-down",
+								css_class: "email-composer-add-template",
+								attrs: { "data-toggle": "dropdown", "data-display": "static" },
+							})}
+							<div class="dropdown-menu dropdown-menu-right"></div>
+							<div data-slot="email_template"></div>
+						</div>
+					</div>
+					${frappe.ui.divider.html()}
+				</div>
+				<div class="email-composer-html-toggles hidden">
+					<div data-slot="use_html"></div>
+					<div data-slot="add_css"></div>
+				</div>
+				<div class="email-composer-message-area">
+					<div data-slot="content"></div>
+					<div data-slot="html_content"></div>
+				</div>
+				<div class="email-composer-attachments" data-slot="select_attachments"></div>
+				<div class="email-composer-print-format"></div>
+				<div class="email-composer-footer">
+					<div class="email-composer-toolbar-slot hidden"></div>
+					<div class="email-composer-banner hidden">
+						<span class="email-composer-banner__text"></span>
+						<button class="btn btn-ghost email-composer-banner__close" data-action="dismiss-banner">${frappe.utils.icon(
+							"x",
+							"xs"
+						)}</button>
+					</div>
+					<div class="email-composer-action-bar">
+						<div class="email-composer-icon-row">
+							<div class="dropdown">
+								<button class="btn btn-ghost icon-btn" data-action="attach" data-toggle="dropdown" title="${__(
+									"Attach files"
+								)}">${frappe.utils.icon("paperclip", "sm")}</button>
+								<div class="dropdown-menu email-composer-attach-menu">
+									<a class="dropdown-item" data-action="select-attachments" href="#">
+										${frappe.utils.icon("paperclip", "sm")}&nbsp;${__("Select attachments")}
+									</a>
+									<a class="dropdown-item" data-action="add-attachments" href="#">
+										${frappe.utils.icon("plus", "sm")}&nbsp;${__("Add new attachments")}
+									</a>
+								</div>
+							</div>
 							<div class="dropdown">
 								<button class="btn btn-ghost icon-btn" data-action="print" data-toggle="dropdown" title="${__(
 									"Attach document print"
-								)}">${icon("printer")}</button>
-								<div class="dropdown-menu dropdown-menu-right gmail-print-menu"></div>
+								)}">${frappe.utils.icon("printer", "sm")}</button>
+								<div class="dropdown-menu dropdown-menu-right email-composer-print-menu"></div>
+							</div>
+							<button class="btn btn-ghost icon-btn" data-action="format" title="${__(
+								"Formatting options"
+							)}">${frappe.utils.icon("type", "sm")}</button>
+							<div class="dropdown">
+								<button class="btn btn-ghost icon-btn" data-toggle="dropdown" title="${__(
+									"More options"
+								)}">${frappe.utils.icon("ellipsis", "sm")}</button>
+								<div class="dropdown-menu dropdown-menu-right email-composer-more-menu">
+									<div class="dropdown-item email-composer-menu-toggle switch-control" data-action="send-read-receipt">
+										${frappe.utils.icon("mail-open", "sm")}
+										<span>${__("Send read receipt")}</span>
+										<span class="switch-visual"><span class="switch-thumb"></span></span>
+									</div>
+									<div class="dropdown-item email-composer-menu-toggle switch-control" data-action="send-me-a-copy">
+										${frappe.utils.icon("copy", "sm")}
+										<span>${__("Send me a copy")}</span>
+										<span class="switch-visual"><span class="switch-thumb"></span></span>
+									</div>
+								</div>
 							</div>
 						</div>
-						<button class="btn btn-ghost icon-btn" data-action="discard" title="${__("Discard")}">${icon(
-			"es-line-delete"
-		)}</button>
+						<div class="email-composer-action-bar__right">
+							<button class="btn btn-ghost btn-sm" data-action="discard">${__("Discard")}</button>
+							<div class="email-composer-send-group dropdown" data-slot="send-button">
+								${frappe.ui.button.html({
+									label: __("Send"),
+									variant: "solid",
+									size: "sm",
+									css_class: "email-composer-send-btn",
+									attrs: { "data-action": "send-now" },
+								})}
+								${frappe.ui.button.html({
+									icon: "chevron-down",
+									variant: "solid",
+									size: "sm",
+									css_class: "email-composer-send-toggle",
+									title: __("More send options"),
+									attrs: { "data-toggle": "dropdown" },
+								})}
+								<div class="dropdown-menu dropdown-menu-right email-composer-send-menu">
+									<a class="dropdown-item" data-action="schedule" href="#">
+										${frappe.utils.icon("calendar", "sm")}&nbsp;${__("Schedule email")}
+									</a>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
 		`);
-		$body.prepend($skeleton);
+		$body.prepend(this.$composer);
 
-		// Move the rendered controls into their slots — autocomplete, Quill, validation all preserved
 		[
 			"sender",
 			"recipients",
@@ -150,90 +231,66 @@ frappe.views.CommunicationComposer = class {
 			"html_content",
 			"select_attachments",
 		].forEach((fieldname) => {
-			const $field = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
-			if ($field.length) {
-				$skeleton.find(`[data-slot="${fieldname}"]`).append($field);
+			const $control = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
+			if ($control.length) {
+				this.$composer.find(`[data-slot="${fieldname}"]`).append($control);
 			}
 		});
 
+		// Subject renders as an inline placeholder heading, not a labelled field.
+		this.dialog.fields_dict.subject.$input?.attr("placeholder", __("Subject"));
+
 		// Show the sender row only when the user has more than one outgoing account.
-		// Single-account users get the pre-selected value silently.
 		if (this.user_email_accounts?.length > 1) {
-			$skeleton.find(".gmail-sender-row").removeClass("is-collapsed");
+			this.$composer.find(".email-composer-sender-row").removeClass("hidden");
 		}
 
-		// email_template's original section break is hidden — Frappe applies display:none
-		// to the field. Clear it since the field is now in a visible slot.
-		$skeleton.find('.frappe-control[data-fieldname="email_template"]').css("display", "");
-
-		const $templateClear = $skeleton.find('[data-action="clear-template"]');
-		const templateField = this.dialog.fields_dict.email_template;
-		const syncTemplateClear = () => {
-			$templateClear.prop("hidden", !templateField.get_value());
-		};
-
-		// Reveal the .gmail-html-toggles bar when use_html becomes visible (i.e. when
-		// the selected Email Template has use_html=1, via check_email_template_html).
-		const $htmlToggles = $skeleton.find(".gmail-html-toggles");
-		const syncHtmlToggles = () => {
-			$htmlToggles.prop("hidden", !!this.dialog.fields_dict.use_html.df.hidden);
-		};
-
-		$templateClear.on("click", () => {
-			templateField.set_value("");
-			this.get_content_field().set_value("");
-			this.dialog.fields_dict.subject.set_value("");
-			this._last_applied_template = null;
-			syncHtmlToggles();
+		// Cc / Bcc ghost buttons toggle their respective rows; the button mutes to
+		// grey (.active) while its row is open.
+		this.$composer.find(".email-composer-toggle").on("click", (e) => {
+			const $btn = $(e.currentTarget);
+			const target = $btn.data("target");
+			const $row = this.$composer.find(`.email-composer-${target}-row`);
+			$row.toggleClass("hidden");
+			$btn.toggleClass("active", !$row.hasClass("hidden"));
 		});
-		syncTemplateClear();
-		syncHtmlToggles();
 
-		const originalOnchange = templateField.df.onchange;
-		templateField.df.onchange = async function () {
-			if (originalOnchange) await originalOnchange.call(this);
-			syncTemplateClear();
-			syncHtmlToggles();
-		};
+		this.setup_template_dropdown();
 
-		// Move Frappe's existing Send button (.btn-modal-primary) from the hidden footer into our
-		// action bar — keeps its existing click handler, classes, and styling. No custom button.
-		// Prepend so Send appears before the schedule chevron in the btn-group (Send | ▾).
+		// Keep the dialog's real send button hidden in the send group — the visible
+		// "Send ▾" toggle opens the menu, and "Send now" triggers this to send.
 		const $sendBtn = this.dialog.$wrapper.find(".btn-modal-primary");
 		if ($sendBtn.length) {
-			$skeleton.find('[data-slot="send-button"]').prepend($sendBtn);
+			this.$composer.find('[data-slot="send-button"]').prepend($sendBtn.addClass("hidden"));
 		}
 
-		// Cc / Bcc text toggles show/hide their rows
-		$skeleton.find('[data-toggle="cc"]').on("click", () => {
-			$skeleton.find(".gmail-cc-row").toggleClass("is-collapsed");
-		});
-		$skeleton.find('[data-toggle="bcc"]').on("click", () => {
-			$skeleton.find(".gmail-bcc-row").toggleClass("is-collapsed");
-		});
-
-		// Discard / Attach wire to existing handlers — no logic duplicated
-		$skeleton.find('[data-action="discard"]').on("click", () => {
+		this.$composer.find('[data-action="discard"]').on("click", () => {
 			this.dialog.hide();
 			this.clear_cache();
 		});
-		$skeleton.find('[data-action="attach"]').on("click", () => {
+		// "Add new attachments" uploads a file (the old paperclip behaviour);
+		// "Select attachments" picks from what's already on the document.
+		this.$composer.find('[data-action="add-attachments"]').on("click", (e) => {
+			e.preventDefault();
 			$body.find(".add-more-attachments button").trigger("click");
 		});
-
-		// Aa toggles the Quill formatting toolbar (the existing one rendered by Text Editor)
-		$skeleton.find('[data-action="format"]').on("click", function () {
-			$(this).toggleClass("active");
-			$skeleton.find(".gmail-message-area").toggleClass("show-toolbar");
+		this.$composer.find('[data-action="select-attachments"]').on("click", (e) => {
+			e.preventDefault();
+			this.open_attachment_picker();
 		});
 
-		// Send-me-a-copy and Send-read-receipt icons toggle the existing Check fields.
-		// Active state reflects the current field value; initial value comes from the field's
-		// own default (e.g. frappe.boot.user.send_me_a_copy for send_me_a_copy).
+		this.$composer.find('[data-action="format"]').on("click", (e) => {
+			$(e.currentTarget).toggleClass("active");
+			this.setup_toolbar();
+			this.$composer.find(".email-composer-toolbar-slot").toggleClass("hidden");
+		});
+
 		const fields = this.dialog.fields_dict;
 
-		// Banner above the action bar — reflects current send-options state
-		const $banner = $skeleton.find(".gmail-banner");
+		const $banner = this.$composer.find(".email-composer-banner");
+		this.$composer.find('[data-action="dismiss-banner"]').on("click", () => {
+			$banner.addClass("hidden");
+		});
 		const updateBanner = () => {
 			const copy = !!fields.send_me_a_copy.get_value();
 			const receipt = !!fields.send_read_receipt.get_value();
@@ -245,84 +302,91 @@ frappe.views.CommunicationComposer = class {
 			} else if (receipt) {
 				text = __("You will receive a read receipt");
 			}
-			$banner.text(text);
-			if (text) $banner.removeAttr("hidden");
-			else $banner.attr("hidden", "");
+			$banner.find(".email-composer-banner__text").text(text);
+			$banner.toggleClass("hidden", !text);
 		};
 
-		const bindCheckIcon = (action, fieldname, onToggle) => {
-			const $btn = $skeleton.find(`[data-action="${action}"]`);
+		const bindCheckIcon = (action, fieldname) => {
+			const $item = this.$composer.find(`[data-action="${action}"]`);
 			const field = fields[fieldname];
 			let active = !!(field.get_value() || field.df.default);
 			field.set_input(active ? 1 : 0);
-			$btn.toggleClass("active", active);
-			onToggle?.(active);
+			$item.toggleClass("active", active);
 
-			$btn.on("click", () => {
+			$item.on("click", (e) => {
+				// Keep the dropdown open so users can toggle multiple options in one click.
+				if ($item.hasClass("email-composer-menu-toggle")) e.stopPropagation();
 				active = !active;
-				// set_input updates input.checked (which get_value/send_action read) without
-				// firing native click — preserves per-email-only behavior, the User record
-				// is not auto-updated.
 				field.set_input(active ? 1 : 0);
-				$btn.toggleClass("active", active);
+				$item.toggleClass("active", active);
 				updateBanner();
-				onToggle?.(active);
 			});
 		};
 
-		// Assigned inside the `if (this.frm)` block below; no-op default when there's no doc.
 		let syncPrintMenu = () => {};
 
+		// The attached document print renders as its own card under the attachment
+		// chips: title + "format • letter head • language", with edit (opens the
+		// settings dialog) and delete. The hidden `attach_document_print` Check
+		// stays the single source of truth that send_action reads — this card and
+		// the printer dropdown are only views onto it.
 		const renderPrintRow = (active) => {
-			const $list = $skeleton.find(".gmail-attachments .attach-list");
-			$list.find(".gmail-print-row").remove();
+			const $slot = this.$composer.find(".email-composer-print-format").empty();
 			if (!active) return;
 
-			const docName = this.frm?.doc?.name || __("Document Print");
-			const $row = $(`<div class="gmail-attach-pill gmail-print-row"></div>`);
-			const $pill = frappe.get_data_pill(
-				`${docName} (${__("Print")})`,
-				null,
-				() => {
-					fields.attach_document_print.set_input(0);
-					$row.remove();
-					syncPrintMenu();
-				},
-				frappe.utils.icon("printer", "xs"),
-				false,
-				"xs"
-			);
-			// Build the /printview URL manually — frappe.utils.print appends trigger_print=1
-			// which would auto-fire the browser print dialog. We want preview only.
-			if (this.frm) {
-				$pill.on("click", (e) => {
-					if ($(e.target).closest(".remove-btn").length) return;
-					const print_format = fields.select_print_format?.get_value() || "Standard";
-					const lang = fields.print_language?.get_value() || frappe.boot.lang;
-					const url = frappe.urllib.get_full_url(
-						"/printview?doctype=" +
-							encodeURIComponent(this.frm.doctype) +
-							"&name=" +
-							encodeURIComponent(this.frm.docname) +
-							"&format=" +
-							encodeURIComponent(print_format) +
-							"&_lang=" +
-							encodeURIComponent(lang)
-					);
-					window.open(url, "_blank");
-				});
-			}
-			$list.prepend($row.append($pill));
+			const $card = $(`
+				<div class="email-composer-print-card">
+					<div class="email-composer-print-card__content">
+						<div class="email-composer-print-card__title" role="button" tabindex="0" title="${__(
+							"Preview"
+						)}">${__("Print format")}</div>
+						<div class="email-composer-print-card__meta"></div>
+					</div>
+					<div class="email-composer-print-card__actions">
+						<button type="button" class="btn btn-ghost icon-btn" data-action="edit-print" title="${__(
+							"Change print settings"
+						)}">${frappe.utils.icon("pencil", "sm")}</button>
+						<button type="button" class="btn btn-ghost icon-btn" data-action="remove-print" title="${__(
+							"Remove"
+						)}">${frappe.utils.icon("trash", "sm")}</button>
+					</div>
+				</div>
+			`);
+
+			// Only the "Print format" title opens the preview — the meta line and the
+			// rest of the card stay inert, so there's no ambiguity about what the
+			// click target is.
+			const $title = $card.find(".email-composer-print-card__title");
+			$title.on("click", () => this.open_print_preview());
+			$title.on("keydown", (e) => {
+				if (e.key !== "Enter" && e.key !== " ") return;
+				e.preventDefault();
+				this.open_print_preview();
+			});
+
+			$card.find('[data-action="edit-print"]').on("click", (e) => {
+				e.preventDefault();
+				this.open_print_settings();
+			});
+			$card.find('[data-action="remove-print"]').on("click", (e) => {
+				e.preventDefault();
+				fields.attach_document_print.set_input(0);
+				renderPrintRow(false);
+				syncPrintMenu();
+			});
+
+			$slot.append($card);
+			this.render_print_card_meta();
 		};
+
+		// Reachable from open_print_settings(), which lives outside this closure.
+		this.render_print_card = renderPrintRow;
 
 		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
 		bindCheckIcon("send-read-receipt", "send_read_receipt");
 
-		// 🖨 print dropdown — populate with format options for the current doc.
-		// Clicking a format sets the value + activates attach_document_print. If there's
-		// no doc to print (no this.frm), hide the entire dropdown.
-		const $printBtn = $skeleton.find('[data-action="print"]');
-		const $printMenu = $skeleton.find(".gmail-print-menu");
+		const $printBtn = this.$composer.find('[data-action="print"]');
+		const $printMenu = this.$composer.find(".email-composer-print-menu");
 		if (!this.frm) {
 			$printBtn.parent().hide();
 		} else {
@@ -340,24 +404,34 @@ frappe.views.CommunicationComposer = class {
 						f
 					)}">${frappe.utils.escape_html(f)}</a>`
 				);
-				$item.on("click", (e) => {
+				$item.on("click", async (e) => {
 					e.preventDefault();
-					fields.select_print_format.set_value(f);
+					// await: set_value is async, so repainting straight after it would
+					// read the previous format and leave the card's meta line stale
+					await fields.select_print_format.set_value(f);
 					if (!fields.attach_document_print.get_value()) {
 						fields.attach_document_print.set_input(1);
-						renderPrintRow(true);
 					}
+					// re-render unconditionally: picking a different format while the
+					// print is already attached must refresh the card's meta line too
+					renderPrintRow(true);
 					syncPrintMenu();
 				});
 				$printMenu.append($item);
 			});
 			syncPrintMenu();
 		}
+		// Reachable from open_print_settings(), which lives outside this closure.
+		this.sync_print_menu = () => syncPrintMenu();
 		updateBanner();
 
-		// Schedule send: ▾ next to Send opens a datetime picker for the existing send_after field.
-		// No new field, no new dialog logic — uses frappe.prompt with a Datetime input.
-		$skeleton.find('[data-action="schedule"]').on("click", () => {
+		this.$composer.find('[data-action="send-now"]').on("click", (e) => {
+			e.preventDefault();
+			this.$composer.find(".btn-modal-primary").trigger("click");
+		});
+
+		this.$composer.find('[data-action="schedule"]').on("click", (e) => {
+			e.preventDefault();
 			frappe.prompt(
 				{
 					label: __("Schedule Send At"),
@@ -371,6 +445,92 @@ frappe.views.CommunicationComposer = class {
 				__("Schedule Send")
 			);
 		});
+
+		$original.hide();
+	}
+
+	setup_toolbar() {
+		const $slot = this.$composer.find(".email-composer-toolbar-slot");
+		if ($slot.children(".ql-toolbar").length) return; // already relocated + wired
+
+		const $toolbar = this.$composer.find(
+			'.frappe-control[data-fieldname="content"] .ql-toolbar'
+		);
+		if (!$toolbar.length) return; // Quill hasn't built the toolbar yet
+
+		// Move Quill's toolbar out of the message body into its slot in the sticky
+		// footer, pinned above the Send row (Gmail-style). Its click handlers are
+		// bound to the element, so relocating the node keeps them live.
+		$slot.append($toolbar);
+
+		// Order the tool groups by everyday priority and collapse the rarely-used
+		// ones behind a "⋯" toggle, so the row stays clean without hiding common
+		// tools. Each group is located by a marker class on one of its controls
+		// (Quill's own ql-* classes) rather than a positional index.
+		const group = (marker) => $toolbar.find(marker).first().closest(".ql-formats");
+		const visible = [
+			".ql-header", // text style
+			".ql-size",
+			".ql-bold", // bold / italic / underline / strike / clean
+			".ql-color", // text + background colour
+			".ql-list",
+			".ql-align",
+			".ql-link", // link + image
+		];
+		const overflow = [".ql-blockquote", ".ql-direction", ".ql-indent", ".ql-table"];
+
+		visible.forEach((marker) => $toolbar.append(group(marker)));
+
+		const $more = $(
+			`<button type="button" class="email-composer-toolbar-more" title="${__(
+				"More options"
+			)}">${frappe.utils.icon("ellipsis", "sm")}</button>`
+		);
+		$toolbar.append($more);
+
+		overflow.forEach((marker) =>
+			$toolbar.append(group(marker).addClass("email-composer-toolbar-overflow"))
+		);
+
+		$more.on("click", () => {
+			const expanded = $toolbar.toggleClass("show-overflow").hasClass("show-overflow");
+			// Reuse Quill's own active-button styling for the pressed state.
+			$more.toggleClass("ql-active", expanded);
+		});
+	}
+
+	setup_template_dropdown() {
+		const $menu = this.$composer.find(".email-composer-template .dropdown-menu");
+
+		frappe.call({
+			method: "frappe.email.doctype.email_template.email_template.get_email_templates",
+			args: {
+				doctype: "Email Template",
+				txt: "",
+				searchfield: "name",
+				start: 0,
+				page_len: 0,
+				filters: { reference_doctype: this.frm?.doctype || "" },
+			},
+			callback: (r) => {
+				const templates = r.message || [];
+				if (!templates.length) {
+					$menu.append(
+						`<span class="dropdown-item disabled">${__("No templates")}</span>`
+					);
+					return;
+				}
+				templates.forEach(([name]) => {
+					$(`<a class="dropdown-item" href="#"></a>`)
+						.text(name)
+						.on("click", (e) => {
+							e.preventDefault();
+							this.apply_email_template(name);
+						})
+						.appendTo($menu);
+				});
+			},
+		});
 	}
 
 	get_fields() {
@@ -378,36 +538,22 @@ frappe.views.CommunicationComposer = class {
 		const fields = [
 			{
 				label: __("To", null, "Email Recipients"),
-				fieldtype: "MultiSelect",
+				fieldtype: "MultiSelect Pills",
 				reqd: 0,
 				fieldname: "recipients",
 				default: this.get_default_recipients("recipients"),
 				ignore_validation: true,
 			},
 			{
-				fieldtype: "Button",
-				label: frappe.utils.icon("chevron-down", "xs"),
-				title: __("More Options"),
-				fieldname: "option_toggle_button",
-				click: () => {
-					this.toggle_more_options();
-				},
-			},
-			{
-				fieldtype: "Section Break",
-				hidden: 1,
-				fieldname: "more_options",
-			},
-			{
 				label: __("CC", null, "Email Recipients"),
-				fieldtype: "MultiSelect",
+				fieldtype: "MultiSelect Pills",
 				fieldname: "cc",
 				default: this.get_default_recipients("cc"),
 				ignore_validation: true,
 			},
 			{
 				label: __("BCC", null, "Email Recipients"),
-				fieldtype: "MultiSelect",
+				fieldtype: "MultiSelect Pills",
 				fieldname: "bcc",
 				default: this.get_default_recipients("bcc"),
 				ignore_validation: true,
@@ -437,17 +583,9 @@ frappe.views.CommunicationComposer = class {
 				},
 				onchange: async function () {
 					const email_template = this.value;
-					if (!email_template) {
-						return me.hide_use_html_field();
-					}
+					if (!email_template) return me.hide_use_html_field();
 					await me.check_email_template_html(email_template);
-					me.apply_email_template(email_template);
 				},
-			},
-			{
-				fieldtype: "HTML",
-				label: __("Clear & Add template"),
-				fieldname: "clear_and_add_template",
 			},
 			{
 				label: __("Use HTML"),
@@ -592,10 +730,11 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_default_recipients(fieldname) {
+		// MultiSelect Pills holds an array of recipients (one pill each).
 		if (this.frm?.events.get_email_recipients) {
-			return (this.frm.events.get_email_recipients(this.frm, fieldname) || []).join(", ");
+			return this.frm.events.get_email_recipients(this.frm, fieldname) || [];
 		} else {
-			return "";
+			return [];
 		}
 	}
 
@@ -638,8 +777,8 @@ frappe.views.CommunicationComposer = class {
 	// Guarded against duplicate applies — onchange can fire more than once for the same
 	// value (Frappe field refresh, awesomplete blur), which would otherwise append twice.
 	apply_email_template(template_name) {
-		if (this._last_applied_template === template_name) return;
-		this._last_applied_template = template_name;
+		if (!template_name || this.last_applied_template === template_name) return;
+		this.last_applied_template = template_name;
 		frappe.call({
 			method: "frappe.email.doctype.email_template.email_template.get_email_template",
 			args: {
@@ -663,22 +802,13 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.fields_dict.use_html.toggle(false); // hide the field
 	}
 
-	toggle_more_options(show_options) {
-		show_options = show_options || this.dialog.fields_dict.more_options.df.hidden;
-		this.dialog.set_df_property("more_options", "hidden", !show_options);
-		this.dialog.set_df_property("email_template_section_break", "hidden", !show_options);
-
-		const label = frappe.utils.icon(show_options ? "chevron-up" : "chevron-down", "xs");
-		this.dialog.get_field("option_toggle_button").set_label(label);
-	}
-
 	prepare() {
 		this.setup_multiselect_queries();
+		this.setup_recipient_pills();
 		this.setup_subject_and_recipients();
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
-		this.setup_email_template();
 		this.setup_last_edited_communication();
 		this.setup_add_signature_button();
 		this.set_values();
@@ -692,8 +822,10 @@ frappe.views.CommunicationComposer = class {
 	setup_multiselect_queries() {
 		["recipients", "cc", "bcc"].forEach((field) => {
 			this.dialog.fields_dict[field].get_data = () => {
-				const data = this.dialog.fields_dict[field].get_value();
-				const txt = data.match(/[^,\s*]*$/)[0] || "";
+				// Pills commit selected values, so the text being typed lives in the
+				// raw input (get_value() now returns the committed array).
+				const control = this.dialog.fields_dict[field];
+				const txt = (control.$input?.val() || "").trim();
 				const args = { txt };
 
 				if (this.frm?.events.get_email_recipient_filters) {
@@ -712,6 +844,230 @@ frappe.views.CommunicationComposer = class {
 				});
 			};
 		});
+	}
+
+	setup_recipient_pills() {
+		// get_pill_html runs with `this` bound to the control, so keep a handle on
+		// the composer for the shared avatar cache.
+		const me = this;
+		this._recipient_avatars = this._recipient_avatars || {};
+
+		["recipients", "cc", "bcc"].forEach((fieldname) => {
+			const control = this.dialog.fields_dict[fieldname];
+			if (!control) return;
+
+			// Accept comma/semicolon/newline-separated strings (defaults, reply-all
+			// prefill, server values) as well as arrays, splitting into deduped rows
+			// so the string-based recipient logic elsewhere keeps working.
+			control.parse = function (value) {
+				if (Array.isArray(value)) return value;
+				this.rows = this.rows || [];
+				if (value) {
+					String(value)
+						.split(/[,;\n]/)
+						.map((email) => email.trim())
+						.filter(Boolean)
+						.forEach((email) => {
+							if (!this.rows.includes(email)) this.rows.push(email);
+						});
+				}
+				return this.rows;
+			};
+
+			// Chip = the Espresso tag (`.es-badge` with a removable suffix), same
+			// component the form sidebar uses for document tags, with an avatar
+			// (photo if the recipient is a known user, else initials) prefixed.
+			control.get_pill_html = function (value) {
+				const $tag = frappe.ui.badge({
+					label: this.get_label(value) || value,
+					size: "lg",
+					icon_right: "x",
+					title: value,
+					css_class: "email-composer-recipient-tag tb-selected-value",
+					attrs: { "data-value": encodeURIComponent(value) },
+				});
+				// Photo from the matching Contact (or User) when we have one; otherwise
+				// frappe.avatar falls back to the initial. Passing `null` as the user
+				// keeps it off frappe.user_info, which only knows desk users.
+				const photo = me._recipient_avatars?.[String(value).toLowerCase()] || null;
+				$tag.prepend(
+					frappe.avatar(
+						photo ? null : value,
+						"avatar avatar-xs email-composer-tag-avatar",
+						value,
+						photo
+					)
+				);
+				// wrap the label text so it can ellipsize — a bare text node in a flex
+				// container can't (same wrap the sidebar tag does)
+				$tag.contents()
+					.filter(
+						(_, node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+					)
+					.wrap('<span class="pill-label ellipsis"></span>');
+				$tag.find(".es-badge__affix").attr({
+					role: "button",
+					tabindex: 0,
+					"aria-label": __("Remove"),
+				});
+				return $tag[0].outerHTML;
+			};
+
+			// Remove on MOUSEDOWN, not click. A click on the × used to blur the input,
+			// which scheduled a collapse; on anything but a quick tap the collapse fired
+			// between mousedown and mouseup, hid the chip under the cursor and the click
+			// event never landed — so only the chips that stay visible when collapsed
+			// (the first ones) could be removed. preventDefault() also keeps focus in the
+			// input, so nothing re-collapses while the user is clearing chips.
+			control.$multiselect_wrapper.on("mousedown", ".es-badge__affix", (e) => {
+				e.preventDefault();
+				this.remove_recipient(control, $(e.currentTarget).closest(".tb-selected-value"));
+			});
+			control.$multiselect_wrapper.on("keydown", ".es-badge__affix", (e) => {
+				if (e.key !== "Enter" && e.key !== " ") return;
+				e.preventDefault();
+				this.remove_recipient(control, $(e.currentTarget).closest(".tb-selected-value"));
+			});
+
+			// An address typed by hand (not picked from the dropdown) commits through
+			// ControlAutocomplete's Enter/blur path, which never clears the raw input —
+			// only "awesomplete-selectcomplete" does, and that fires for dropdown picks
+			// only. The address was left sitting as text beside its own chip, and the
+			// next one typed would concatenate onto it. Only clear once the value has
+			// actually landed in `rows`, so text that failed to commit is kept.
+			const clear_committed_text = () => {
+				const typed = (control.$input?.val() || "").trim();
+				if (typed && (control.rows || []).includes(typed)) {
+					control.$input.val("");
+				}
+			};
+
+			// Clear in the SAME task that renders the pill, not a deferred one: a
+			// setTimeout here let the browser paint a frame with the chip and the
+			// leftover text both visible, which flashed on the first address typed.
+			const render_pills = control.set_formatted_input.bind(control);
+			control.set_formatted_input = function (value) {
+				render_pills(value);
+				clear_committed_text();
+				me.fetch_recipient_avatars(control);
+			};
+			control.$input?.on("keydown", (e) => {
+				if (e.key === "Enter") clear_committed_text();
+			});
+
+			// Collapse to the first two chips + "+N more" when the field is blurred;
+			// the whole field is a click target that expands to all chips.
+			control.$input?.on("focus", () => {
+				clearTimeout(control._collapse_timer);
+				this.expand_recipient_row(control);
+			});
+			control.$input?.on("blur", () => {
+				clear_committed_text();
+				clearTimeout(control._collapse_timer);
+				control._collapse_timer = setTimeout(
+					() => this.collapse_recipient_row(control),
+					150
+				);
+			});
+			control.$multiselect_wrapper?.on("click", (e) => {
+				if (!control.$multiselect_wrapper.hasClass("is-collapsed")) return;
+				if ($(e.target).closest(".tb-selected-value").length) return; // chip/× → leave it
+				this.expand_recipient_row(control);
+				control.$input?.focus(); // caret at end
+			});
+		});
+	}
+
+	// Resolve real photos for the addresses currently in a recipient field, then
+	// repaint that field's chips once. Every looked-up address is cached — including
+	// the ones with no photo, stored as null — so a given address is only ever
+	// requested once and the repaint can't feed back into another lookup.
+	fetch_recipient_avatars(control) {
+		const cache = (this._recipient_avatars = this._recipient_avatars || {});
+		const pending = (control.rows || [])
+			.map((row) => String(row).toLowerCase())
+			.filter((email) => email && !(email in cache));
+		if (!pending.length) return;
+
+		// claim them up front so a second render mid-flight doesn't re-request
+		pending.forEach((email) => (cache[email] = null));
+
+		frappe.call({
+			method: "frappe.email.get_recipient_avatars",
+			args: { emails: pending },
+			callback: (r) => {
+				const found = r.message || {};
+				if (!Object.keys(found).length) return;
+				Object.assign(cache, found);
+				// repaint with the photos now in hand; set_pill_html is the raw
+				// renderer, so this can't re-enter the wrapped set_formatted_input
+				control.set_pill_html(control.rows || []);
+			},
+		});
+	}
+
+	remove_recipient(control, $tag) {
+		const value = decodeURIComponent($tag.attr("data-value") || "");
+		if (!value) return;
+		control.rows = (control.rows || []).filter((row) => row !== value);
+		// repaint first, then sync the Dialog's value, so the row never renders
+		// against a stale `rows`
+		control.set_pill_html(control.rows);
+		control.parse_validate_and_set_in_model("");
+
+		// set_pill_html only touches the chips — the "+N more" badge from the last
+		// collapse is now stale (it counted the row we just removed) and every chip
+		// it just redrew is visible again, so recompute the collapse from scratch.
+		// collapse_recipient_row bails on its own while the input is still focused
+		// (removal keeps focus in place), leaving everything visible until blur.
+		control.$multiselect_wrapper.find(".email-composer-more-count").remove();
+		this.collapse_recipient_row(control);
+	}
+
+	expand_recipient_row(control) {
+		const $wrapper = control.$multiselect_wrapper;
+		if (!$wrapper?.length) return;
+		clearTimeout(control._collapse_timer);
+		$wrapper.removeClass("is-collapsed");
+		$wrapper.find(".email-composer-more-count").remove();
+		$wrapper.find(".tb-selected-value").removeClass("hidden");
+		// NB: do NOT focus here — the focus handler calls this, so focusing would
+		// recurse infinitely. The click-to-expand path focuses explicitly instead.
+	}
+
+	collapse_recipient_row(control) {
+		const $wrapper = control.$multiselect_wrapper;
+		if (!$wrapper?.length) return;
+		// Still editing (e.g. refocused after choosing a suggestion) — don't collapse.
+		if (control.$input?.is(":focus")) return;
+		if ($wrapper[0].contains(document.activeElement)) return;
+		// Pointer is over the row: collapsing would pull chips out from under the
+		// cursor mid-click. Wait for the pointer to leave.
+		if ($wrapper.is(":hover")) return;
+
+		$wrapper.find(".email-composer-more-count").remove();
+		const $tags = $wrapper.find(".tb-selected-value").removeClass("hidden");
+		if (!$tags.length) {
+			$wrapper.removeClass("is-collapsed");
+			return;
+		}
+		// Not laid out yet — measuring now would hide everything.
+		if ($wrapper.width() < 40) return;
+
+		// Show exactly the first two chips; collapse the rest into "+N more".
+		$wrapper.addClass("is-collapsed");
+		const VISIBLE = 2;
+		if ($tags.length <= VISIBLE) return;
+
+		$tags.slice(VISIBLE).addClass("hidden");
+		$wrapper.append(
+			frappe.ui.badge.html({
+				label: __("+{0} more", [$tags.length - VISIBLE]),
+				size: "lg",
+				variant: "ghost",
+				css_class: "email-composer-more-count",
+			})
+		);
 	}
 
 	setup_recipients_if_reply() {
@@ -812,63 +1168,6 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	setup_email_template() {
-		const me = this;
-
-		const fields = this.dialog.fields_dict;
-		const clear_and_add_template = $(fields.clear_and_add_template.wrapper);
-
-		function add_template() {
-			const email_template = me.dialog.fields_dict.email_template.get_value();
-			if (!email_template) return;
-
-			function prepend_reply(reply) {
-				const content_field = me.get_content_field();
-				const subject_field = me.dialog.fields_dict.subject;
-
-				let content = content_field.get_value() || "";
-
-				content_field.set_value(reply.message + content);
-				subject_field.set_value(reply.subject);
-			}
-
-			frappe.call({
-				method: "frappe.email.doctype.email_template.email_template.get_email_template",
-				args: {
-					template_name: email_template,
-					doc: me.doc,
-					sender: me.dialog.get_value("sender") || "",
-				},
-				callback(r) {
-					prepend_reply(r.message);
-				},
-			});
-		}
-
-		let email_template_actions = [
-			{
-				label: __("Add Template"),
-				description: __("Prepend the template to the email message"),
-				action: () => add_template(),
-			},
-			{
-				label: __("Clear & Add Template"),
-				description: __("Clear the email message and add the template"),
-				action: () => {
-					me.set_email_content("");
-					add_template();
-				},
-			},
-		];
-
-		frappe.utils.add_select_group_button(
-			clear_and_add_template,
-			email_template_actions,
-			"btn-default"
-		);
-		$(fields.use_html.wrapper).addClass("mt-2 text-center").appendTo(clear_and_add_template);
-	}
-
 	setup_last_edited_communication() {
 		if (this.frm) {
 			this.doctype = this.frm.doctype;
@@ -923,10 +1222,16 @@ frappe.views.CommunicationComposer = class {
 			await this.dialog.set_value("email_template", email_template);
 		}
 
-		for (const fieldname of ["email_template", "cc", "bcc"]) {
-			if (this.dialog.get_value(fieldname)) {
-				this.toggle_more_options(true);
-				break;
+		// Reveal CC/BCC rows (and mark their toggle active) when values are
+		// pre-filled, e.g. reply-all.
+		if (this.$composer) {
+			for (const type of ["cc", "bcc"]) {
+				if (this.dialog.get_value(type)) {
+					this.$composer.find(`.email-composer-${type}-row`).removeClass("hidden");
+					this.$composer
+						.find(`.email-composer-toggle[data-target="${type}"]`)
+						.addClass("active");
+				}
 			}
 		}
 	}
@@ -979,6 +1284,115 @@ frappe.views.CommunicationComposer = class {
 		} else {
 			return {};
 		}
+	}
+
+	// "Standard • Frappe 2024 • English" — the three print settings, read straight
+	// off the dialog's own fields so the card can never disagree with what gets
+	// sent. Language resolves to its readable name asynchronously (the field holds
+	// a code like "en"); the code shows until it lands, and stays if the lookup
+	// fails.
+	render_print_card_meta() {
+		const $meta = this.$composer?.find(".email-composer-print-card__meta");
+		if (!$meta?.length) return;
+
+		const fields = this.dialog.fields_dict;
+		const lang = fields.print_language?.get_value() || "";
+		const parts = [
+			fields.select_print_format?.get_value(),
+			fields.select_letter_head?.get_value(),
+			this._language_labels?.[lang] || lang,
+		];
+		$meta.text(parts.filter(Boolean).join(" • "));
+
+		if (!lang || this._language_labels?.[lang]) return;
+		this._language_labels = this._language_labels || {};
+		frappe.db
+			.get_value("Language", lang, "language_name")
+			.then(({ message }) => {
+				if (!message?.language_name) return;
+				this._language_labels[lang] = message.language_name;
+				this.render_print_card_meta();
+			})
+			.catch(() => {});
+	}
+
+	// Preview the document print exactly as it will be attached — same format,
+	// letter head and language the card shows. Uses /printview rather than
+	// frappe.utils.print, which appends trigger_print=1 and would fire the
+	// browser's print dialog instead of just showing the document.
+	open_print_preview() {
+		if (!this.frm) return;
+
+		const fields = this.dialog.fields_dict;
+		const params = {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			format: fields.select_print_format?.get_value() || "Standard",
+			_lang: fields.print_language?.get_value() || frappe.boot.lang,
+		};
+
+		// letterhead is optional: an empty picker means "no letter head", which
+		// printview expresses with no_letterhead rather than an empty letterhead.
+		const letterhead = fields.select_letter_head?.get_value();
+		if (letterhead) {
+			params.letterhead = letterhead;
+		} else {
+			params.no_letterhead = 1;
+		}
+
+		const query = Object.entries(params)
+			.map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+			.join("&");
+		window.open(frappe.urllib.get_full_url(`/printview?${query}`), "_blank");
+	}
+
+	// Edit (pencil) on the print card. Mirrors the three fields the original
+	// inline UI exposed — print format, letter head, print language — and writes
+	// straight back to them, so send_action keeps reading the same values it
+	// always did.
+	open_print_settings() {
+		const fields = this.dialog.fields_dict;
+		const print_formats = this.frm ? frappe.meta.get_print_formats(this.frm.meta.name) : [];
+
+		const settings = new frappe.ui.Dialog({
+			title: __("Print format"),
+			fields: [
+				{
+					label: __("Print Format"),
+					fieldname: "print_format",
+					fieldtype: "Select",
+					options: print_formats,
+					default: fields.select_print_format?.get_value(),
+				},
+				{
+					label: __("Letter Head"),
+					fieldname: "letter_head",
+					fieldtype: "Link",
+					options: "Letter Head",
+					default: fields.select_letter_head?.get_value(),
+				},
+				{
+					label: __("Print Language"),
+					fieldname: "print_language",
+					fieldtype: "Link",
+					options: "Language",
+					default: fields.print_language?.get_value(),
+				},
+			],
+			primary_action_label: __("Save"),
+			// set_value is async — await all three before repainting, or the card's
+			// meta line reads the previous values and goes stale against what will
+			// actually be sent.
+			primary_action: async (values) => {
+				await this.dialog.set_value("select_print_format", values.print_format || "");
+				await this.dialog.set_value("select_letter_head", values.letter_head || "");
+				await this.dialog.set_value("print_language", values.print_language || "");
+				settings.hide();
+				this.render_print_card_meta();
+				this.sync_print_menu?.();
+			},
+		});
+		settings.show();
 	}
 
 	setup_print() {
@@ -1072,38 +1486,135 @@ frappe.views.CommunicationComposer = class {
 		this.render_attachment_rows();
 	}
 
-	render_attachment_rows(attachment) {
-		const select_attachments = this.dialog.fields_dict.select_attachments;
-		const attachment_rows = $(select_attachments.wrapper).find(".attach-list");
-		if (attachment) {
-			attachment_rows.append(this.get_attachment_row(attachment, true));
-		} else {
-			let files = [];
-			if (this.attachments && this.attachments.length) {
-				files = files.concat(this.attachments);
-			}
-			if (this.frm) {
-				files = files.concat(this.frm.get_files());
-			}
+	// Every attachment available to this email: whatever is already on the
+	// document, plus anything uploaded from inside the composer.
+	get_available_attachments() {
+		let files = [];
+		if (this.attachments?.length) files = files.concat(this.attachments);
+		if (this.frm) files = files.concat(this.frm.get_files());
 
-			if (files.length) {
-				$.each(files, (i, f) => {
-					if (!f.file_name) return;
-					if (!attachment_rows.find(`[data-file-name="${f.name}"]`).length) {
-						f.file_url = frappe.urllib.get_full_url(f.file_url);
-						attachment_rows.append(this.get_attachment_row(f));
-					}
-				});
-			}
+		const seen = new Set();
+		return files.filter((f) => {
+			if (!f?.file_name || seen.has(f.name)) return false;
+			seen.add(f.name);
+			return true;
+		});
+	}
+
+	// A chip is rendered only for an attachment the user actually picked, and each
+	// chip carries the hidden checked input that send_action collects. Nothing is
+	// attached implicitly — the document's own files have to be chosen first.
+	render_attachment_rows(attachment) {
+		const attachment_rows = $(this.dialog.fields_dict.select_attachments.wrapper).find(
+			".attach-list"
+		);
+		this.selected_attachments = this.selected_attachments || new Set();
+
+		// a file uploaded from the composer is an explicit choice — select it
+		if (attachment?.name) this.selected_attachments.add(attachment.name);
+
+		attachment_rows.empty();
+		this.get_available_attachments().forEach((f) => {
+			if (!this.selected_attachments.has(f.name)) return;
+			f.file_url = frappe.urllib.get_full_url(f.file_url);
+			attachment_rows.append(this.get_attachment_row(f));
+		});
+	}
+
+	// One row of the attachment picker: checkbox, a thumbnail (or a type tile),
+	// then the file name over "TYPE · size" — the whole row is the label, so
+	// clicking anywhere on it toggles the box.
+	get_file_picker_row(file) {
+		const name = file.file_name || "";
+		const source = file.file_url || name;
+		const is_image = frappe.utils.is_image_file(source);
+		const extension = (name.split(".").pop() || "").toUpperCase();
+
+		let type_label = extension;
+		if (is_image) type_label = __("Image");
+		else if (frappe.utils.is_video_file(source)) type_label = __("Video");
+
+		const size = file.file_size ? frappe.form.formatters.FileSize(file.file_size) : "";
+		const meta = [type_label, size].filter(Boolean).join(" · ");
+
+		const $row = $(`
+			<label class="email-composer-file-row">
+				<input type="checkbox" class="email-composer-file-row__check">
+				<span class="email-composer-file-row__thumb" data-ext="${frappe.utils.escape_html(
+					extension
+				)}"></span>
+				<span class="email-composer-file-row__text">
+					<span class="email-composer-file-row__name ellipsis"></span>
+					<span class="email-composer-file-row__meta ellipsis"></span>
+				</span>
+			</label>
+		`);
+
+		$row.attr("title", name);
+		$row.find(".email-composer-file-row__name").text(name);
+		$row.find(".email-composer-file-row__meta").text(meta);
+		$row.find("input")
+			.prop("checked", this.selected_attachments.has(file.name))
+			.data("file", file.name);
+
+		const $thumb = $row.find(".email-composer-file-row__thumb");
+		if (is_image) {
+			// CSS-escape the url so quotes/parens in a filename can't break out
+			$thumb.addClass("is-image").css("background-image", `url("${CSS.escape(source)}")`);
+		} else {
+			$thumb.text(extension.slice(0, 4));
+			if (extension === "PDF") $thumb.addClass("is-pdf");
 		}
+		return $row;
+	}
+
+	// "Select attachments" — the old checkbox list, now in its own dialog.
+	open_attachment_picker() {
+		const available = this.get_available_attachments();
+		if (!available.length) {
+			frappe.msgprint({
+				title: __("No attachments"),
+				message: __("This document has no files to attach yet."),
+				indicator: "orange",
+			});
+			return;
+		}
+
+		this.selected_attachments = this.selected_attachments || new Set();
+
+		// Build the dialog once and reuse it — a fresh frappe.ui.Dialog per open
+		// leaves the previous one in the DOM, so repeated opens pile up copies.
+		if (!this.attachment_picker) {
+			this.attachment_picker = new frappe.ui.Dialog({
+				title: __("Select attachments"),
+				fields: [{ fieldtype: "HTML", fieldname: "files" }],
+				primary_action_label: __("Attach"),
+				primary_action: () => {
+					const $rows = this.attachment_picker.fields_dict.files.$wrapper;
+					$rows.find("input").each((_, cb) => {
+						const file = $(cb).data("file");
+						if (cb.checked) this.selected_attachments.add(file);
+						else this.selected_attachments.delete(file);
+					});
+					this.attachment_picker.hide();
+					this.render_attachment_rows();
+				},
+			});
+		}
+
+		// repopulate every time: files can be uploaded between opens
+		const $list = $(`<div class="email-composer-file-picker"></div>`);
+		available.forEach((f) => $list.append(this.get_file_picker_row(f)));
+		this.attachment_picker.fields_dict.files.$wrapper.empty().append($list);
+		this.attachment_picker.show();
 	}
 
 	get_attachment_row(attachment, checked) {
 		// Hidden checkbox carries data-file-name so send_action's `[data-file-name]:checked`
 		// selector still finds it — removing the row drops the checkbox with it.
-		// .gmail-attach-pill avoids the form-sidebar .attachment-row overrides that strip
+		// .email-composer-attach-pill avoids the form-sidebar .attachment-row overrides that strip
 		// the pill background.
-		const $row = $(`<div class="gmail-attach-pill" title="${attachment.file_name}">
+		const $row = $(`<div class="email-composer-attach-pill" title="${attachment.file_name}">
 			<input
 				type="checkbox"
 				data-file-name="${attachment.name}"
@@ -1115,11 +1626,15 @@ frappe.views.CommunicationComposer = class {
 			? frappe.form.formatters.FileSize(attachment.file_size)
 			: null;
 		const label = size ? `${attachment.file_name} (${size})` : attachment.file_name;
-		const icon = frappe.utils.icon("link-url", "xs");
+		const icon = frappe.utils.icon("link", "xs");
 		const $pill = frappe.get_data_pill(
 			label,
 			attachment.name,
-			() => $row.remove(),
+			() => {
+				// drop it from the selection too, or the next re-render brings it back
+				this.selected_attachments?.delete(attachment.name);
+				$row.remove();
+			},
 			icon,
 			false,
 			"xs"
@@ -1150,8 +1665,13 @@ frappe.views.CommunicationComposer = class {
 		const form_values = this.get_values();
 		if (!form_values) return;
 
+		// NB: `dialog.wrapper` is NOT the modal — Layout.make() overwrites Dialog's
+		// own assignment with its `.form-layout` div. render_composer_layout()
+		// moves every control out of that div into the composer skeleton, so
+		// searching it finds nothing and no attachment is ever sent. Search the
+		// modal root, which holds the relocated controls either way.
 		const selected_attachments = $.map(
-			$(me.dialog.wrapper).find("[data-file-name]:checked"),
+			me.dialog.$wrapper.find("[data-file-name]:checked"),
 			function (element) {
 				return $(element).attr("data-file-name");
 			}
@@ -1174,21 +1694,27 @@ frappe.views.CommunicationComposer = class {
 	get_values() {
 		const form_values = this.dialog.get_values();
 
-		// cc
+		// Recipient fields are MultiSelect Pills, so recipients/cc/bcc are arrays.
 		for (let i = 0, l = this.dialog.fields.length; i < l; i++) {
 			const df = this.dialog.fields[i];
 
 			if (df.is_cc_checkbox) {
-				// concat in cc
+				// concat the doc field into cc / bcc
 				if (form_values[df.fieldname]) {
-					form_values.cc = (form_values.cc ? form_values.cc + ", " : "") + df.fieldname;
-					form_values.bcc =
-						(form_values.bcc ? form_values.bcc + ", " : "") + df.fieldname;
+					form_values.cc = [].concat(form_values.cc || [], df.fieldname);
+					form_values.bcc = [].concat(form_values.bcc || [], df.fieldname);
 				}
 
 				delete form_values[df.fieldname];
 			}
 		}
+
+		// The send RPC (communication.email.make) expects comma-separated strings.
+		["recipients", "cc", "bcc"].forEach((field) => {
+			if (Array.isArray(form_values[field])) {
+				form_values[field] = form_values[field].join(", ");
+			}
+		});
 
 		return form_values;
 	}
