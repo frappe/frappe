@@ -195,8 +195,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 			this.app ? this.app.app_name : null,
 			this.sidebar.current_module,
 			entries.map((entry) => [
-				entry.type,
-				entry.name,
+				this.sidebar.dock_key(entry),
 				entry.label,
 				entry.icon,
 				this.sidebar.is_active_entry(entry),

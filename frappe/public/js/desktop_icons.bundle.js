@@ -37,8 +37,8 @@ function get_workspaces_from_app_name(app_name) {
 	});
 	if (app.length > 0)
 		return (app[0].dock || [])
-			.filter((row) => row.type === "Workspace")
-			.map((row) => row.name);
+			.filter((row) => row.link_type === "Workspace")
+			.map((row) => row.link_to);
 }
 
 function get_route(desktop_icon) {

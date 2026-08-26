@@ -431,12 +431,12 @@ context("Arrangement editor: an app's dock", () => {
 			win.__app = {
 				app_name: "frappe",
 				app_title: "Frappe",
-				dock: modules.map((name) => ({ type: "Sidebar", name })),
+				dock: modules.map((name) => ({ sidebar: name })),
 			};
 			win.frappe.app.sidebar.get_sidebar_app = () => win.__app;
 
 			stub_xcall(win, {
-				[READ]: () => modules.map((name) => ({ type: "Sidebar", name, hidden: 0 })),
+				[READ]: () => modules.map((name) => ({ sidebar: name, hidden: 0 })),
 				[BASE]: () => [],
 				[SAVE]: () => win.frappe.boot.dock,
 			});
@@ -502,18 +502,18 @@ context("Arrangement editor: making a module from the dock", () => {
 			win.__app = {
 				app_name: "frappe",
 				app_title: "Frappe",
-				dock: [{ type: "Sidebar", name: module }],
+				dock: [{ sidebar: module }],
 			};
 			win.frappe.app.sidebar.get_sidebar_app = () => win.__app;
 
 			stub_xcall(win, {
-				[SITE_READ]: () => [{ type: "Sidebar", name: module, hidden: 0 }],
+				[SITE_READ]: () => [{ sidebar: module, hidden: 0 }],
 				[BASE]: () => [],
 				// What the endpoint answers with: the entry the dock now offers, plus everything
 				// a workspace write invalidates -- the workspace list included, since a page the
 				// boot has never heard of is one the desk cannot place.
 				[CREATE]: () => ({
-					entry: { type: "Sidebar", name: MADE },
+					entry: { sidebar: MADE },
 					workspace_pages: {
 						...win.frappe.boot.workspaces,
 						pages: [

@@ -377,10 +377,10 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 		# pinned onto it. A pin is *appended* rather than positioned: a companion is not
 		# asserting a default into an arrangement that is not its, and where it sits is Layer
 		# business. Permission-filtered like anything else that reaches the dock.
-		dock = [{"type": "Sidebar", "name": module} for module in get_app_modules(app_name)]
+		dock = [{"sidebar": module} for module in get_app_modules(app_name)]
 		for workspace in pinned.get(app_name, []):
 			if workspace in allowed_pages:
-				dock.append({"type": "Workspace", "name": workspace})
+				dock.append({"link_type": "Workspace", "link_to": workspace})
 
 		app_data.append(
 			dict(

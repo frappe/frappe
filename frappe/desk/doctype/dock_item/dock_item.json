@@ -2,16 +2,84 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "creation": "2026-08-16 20:30:00.000000",
- "description": "One entry on the dock -- what it points at, its order (`idx`) and whether it is hidden. The same rows at all three layers: an app's fragment, the site's arrangement and one person's own are told apart by the parent `Dock`, never by the row. What an entry points at *is* its identity, and it is a typed Dynamic Link: a `type` saying which kind of thing and a name saying which one. Two columns where whichever was filled was the kind is what this replaces -- a third kind of entry now costs a row value rather than a column.",
+ "description": "One entry on the dock. It does **two** things when clicked -- it opens a page and it swaps the shell -- and each exists without the other, which is why they are two columns: `sidebar` is the shell, `link_type`/`link_to`/`url` is the page. The ordinary row fills one; filling both is the override, for a page whose own module is not the shell you want. Every row also carries its own `icon` and `title`, so the rail reads the way its author wrote it -- blank at an upper layer means inherit. What a row points at *is* its identity, and none of it is stored: re-labelling cannot detach a row from itself, and re-pointing is not an edit but a different row. The same rows at all three layers -- the app's own dock, the site's arrangement and one person's -- told apart by the parent `Dock`, never by the row.",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "sidebar",
+  "link_type",
+  "link_to",
+  "url",
+  "icon",
+  "title",
+  "added",
+  "hidden",
   "type",
-  "link_name",
-  "hidden"
+  "link_name"
  ],
  "fields": [
+  {
+   "description": "The shell this entry selects -- the panel that comes up beside it. Blank derives the shell from the module that owns what the row opens, which is the ordinary case for a workspace row and the whole of how a companion's pin lands a person in the companion's shell. A `Link` whose target need not exist as a document: most modules have a computed base and no `Sidebar` row at all, so this names a shell rather than referencing one, which is why link validation on a `Dock` is a deliberate no-op.",
+   "fieldname": "sidebar",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sidebar",
+   "options": "Sidebar"
+  },
+  {
+   "description": "What kind of page this entry opens, if it opens one. Spelled the way `Sidebar Item` spells it, so `frappe.ui.sidebar_item.get_route(row)` takes a dock row unchanged. `Sidebar` is deliberately absent as a value: a module entry is a row with `sidebar` filled and no target, and naming the module in a type value as well would be redundant.",
+   "fieldname": "link_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Link Type",
+   "options": "\nWorkspace\nURL"
+  },
+  {
+   "depends_on": "eval:doc.link_type && doc.link_type != \"URL\"",
+   "description": "The record this entry opens, in the doctype `link_type` names.",
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link To",
+   "options": "link_type"
+  },
+  {
+   "depends_on": "eval:doc.link_type == \"URL\"",
+   "description": "Where a web address entry goes. A URL row has no shell and is gated by nothing.",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "description": "What the rail draws this entry with. Required when the row *adds* an entry, because nothing below it holds one; optional when it references an entry a lower layer already has, where blank means inherit and filled is an override.",
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "label": "Icon",
+   "options": "Emojis"
+  },
+  {
+   "description": "How this entry reads on the rail. Required when the row adds and optional when it references, exactly as `icon` is -- and outside the row's identity, so re-labelling can never detach a row from itself.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "default": "0",
+   "description": "This row *is* the entry, rather than an opinion about one a lower layer holds. Stored rather than inferred from the row carrying a body: under partial opinions a reference may carry an icon and no title, so body-presence stops telling the two apart -- and a reference to a row the app has since deleted would resurrect as a label-less button.",
+   "fieldname": "added",
+   "fieldtype": "Check",
+   "label": "Added"
+  },
+  {
+   "default": "0",
+   "description": "Kept in the row so an explicitly hidden entry stays hidden when its app later adds entries, instead of reappearing because it is simply absent.",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Hidden"
+  },
   {
    "description": "Which kind of thing this entry opens: a `Sidebar` or a `Workspace`. An open Link to `DocType` rather than a Select, because the schema is not what closes the set -- `Dock` whitelists the two explicitly, and a row naming any other doctype is refused rather than stored.",
    "fieldname": "type",
@@ -27,21 +95,13 @@
    "in_list_view": 1,
    "label": "Name",
    "options": "type"
-  },
-  {
-   "default": "0",
-   "description": "Kept in the row so an explicitly hidden entry stays hidden when its app later adds entries, instead of reappearing because it is simply absent.",
-   "fieldname": "hidden",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Hidden"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-08-26 12:00:00.000000",
+ "modified": "2026-08-26 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dock Item",

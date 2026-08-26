@@ -956,8 +956,9 @@ class TestAModuleInNoAppHasNoAppContext(IntegrationTestCase):
 		return next(app for app in get_bootinfo()["app_data"] if app["app_name"] == app_name)
 
 	def dock_modules(self, app: dict) -> list[str]:
-		"""The `Sidebar` half of an app's one typed dock list -- its modules."""
-		return [row["name"] for row in app["dock"] if row["type"] == "Sidebar"]
+		"""The shells an app's dock list names -- its modules. A row that only opens a page
+		derives its shell rather than naming one, so it is not one of these."""
+		return [row["sidebar"] for row in app["dock"] if row.get("sidebar")]
 
 	def test_a_placed_module_names_the_app_that_supplies_the_rails_items(self):
 		"""Placed: the rail lists the app's other modules, so the payload has to say which app

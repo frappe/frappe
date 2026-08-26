@@ -132,7 +132,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// What identifies an entry here, on the server and on the rail: the typed pair. Both halves,
 	// because a `Sidebar` and a `Workspace` of one name are two entries.
 	key(row) {
-		return frappe.app.sidebar.dock_key(row.type, row.name);
+		return frappe.app.sidebar.dock_key(row);
 	}
 
 	// This layer's picks, in their order. The layer is this app's, so every row in it is about
@@ -145,10 +145,18 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return arranged.length ? arranged : this.unarranged_selection();
 	}
 
-	// One row as a layer stores it, from the key the panes work in.
+	// One row as a layer stores it, from the key the panes work in. The whole destination, and
+	// nothing about how it reads -- an entry this layer has no opinion about inherits its icon
+	// and title from the layer below.
 	stored_row(key, hidden) {
 		const entry = this.entries.get(key);
-		return { type: entry.type, name: entry.name, hidden };
+		return {
+			sidebar: entry.sidebar,
+			link_type: entry.link_type,
+			link_to: entry.link_to,
+			url: entry.url,
+			hidden,
+		};
 	}
 
 	// Where an untouched layer starts, so the arrangement is a trim rather than a build from

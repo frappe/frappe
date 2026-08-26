@@ -981,45 +981,51 @@ frappe.ui.Sidebar = class Sidebar {
 		return this.apply_dock_arrangement(entries, app);
 	}
 
-	// One typed row resolved to what the rail needs: a label, an icon, the sidebar it selects and
-	// where clicking it goes. Both kinds answer out of a payload the boot already carries, so a
-	// `Workspace` entry needs no machinery of its own.
+	// One stored row resolved to what the rail needs: a label, an icon, the shell it selects and
+	// where clicking it goes. Every kind answers out of a payload the boot already carries, so a
+	// pinned workspace and a URL need no machinery of their own.
+	//
+	// A row does two things when clicked -- it opens a page and it swaps the shell -- and each
+	// exists without the other, which is why they are separate fields. The ordinary row fills
+	// one; filling both is the override.
+	//
+	// The shell a row does not name is **derived** from the module that owns what it opens, which
+	// is what lands a person in a companion's shell while the host's rail stays on screen. A URL
+	// row has no shell at all and derives none.
 	//
 	// An entry that resolves to nothing is dropped: a module whose every item this user may not
 	// see is absent from `module_sidebars`, and a workspace they may not open is absent from
 	// `workspaces.pages`.
 	dock_entry(row) {
-		if (!row || !row.name) return null;
+		if (!row) return null;
 
-		if (row.type === "Sidebar") {
-			const sidebar = frappe.boot.module_sidebars[row.name];
-			if (!sidebar) return null;
-			return {
-				type: row.type,
-				name: row.name,
-				module: row.name,
-				label: sidebar.label || row.name,
-				icon: sidebar.header_icon,
-			};
-		}
+		const page =
+			row.link_type === "Workspace"
+				? (frappe.boot.workspaces?.pages || []).find((p) => p.name === row.link_to)
+				: null;
+		if (row.link_type === "Workspace" && !page) return null;
+		if (row.link_type === "URL" && !row.url) return null;
 
-		if (row.type === "Workspace") {
-			const page = (frappe.boot.workspaces?.pages || []).find((p) => p.name === row.name);
-			if (!page) return null;
-			return {
-				type: row.type,
-				name: row.name,
-				// the sidebar a pinned workspace selects is the one of the module that owns it,
-				// which is what lands a person in the companion's shell while the host's rail
-				// stays on screen
-				module: this.module_for_workspace(row.name) || page.module,
-				label: page.title || row.name,
-				icon: page.icon,
-				page,
-			};
-		}
+		// the shell it names, else the one that owns what it opens
+		const module =
+			row.sidebar || (page ? this.module_for_workspace(page.name) || page.module : null);
+		const sidebar = module ? frappe.boot.module_sidebars[module] : null;
+		if (module && !sidebar) return null;
+		if (!module && !row.link_type) return null;
 
-		return null;
+		return {
+			sidebar: row.sidebar || null,
+			link_type: row.link_type || null,
+			link_to: row.link_to || null,
+			url: row.url || null,
+			module,
+			// The row's own label and icon win, then whatever it opens, then the shell it
+			// selects. Blank at an upper layer means inherit, which is resolved on the server --
+			// so a blank here is an entry nobody has ever labelled.
+			label: row.title || page?.title || sidebar?.label || row.link_to || row.url,
+			icon: row.icon || page?.icon || sidebar?.header_icon,
+			page,
+		};
 	}
 
 	// Apply this app's dock arrangement -- its own dock with the site's arrangement and this
@@ -1040,11 +1046,9 @@ frappe.ui.Sidebar = class Sidebar {
 		const arrangement = (frappe.boot.dock || {})[app && app.app_name] || [];
 		if (!arrangement.length) return entries;
 
-		const hidden = new Set(
-			arrangement.filter((p) => p.hidden).map((p) => this.dock_key(p.type, p.name))
-		);
-		const order = new Map(arrangement.map((p, idx) => [this.dock_key(p.type, p.name), idx]));
-		const key = (e) => this.dock_key(e.type, e.name);
+		const hidden = new Set(arrangement.filter((p) => p.hidden).map((p) => this.dock_key(p)));
+		const order = new Map(arrangement.map((p, idx) => [this.dock_key(p), idx]));
+		const key = (e) => this.dock_key(e);
 
 		// An arrangement none of whose rows resolve says nothing this rail can act on -- every
 		// entry it names has gone since it was saved. Hiding, though, is honoured even when it
@@ -1061,18 +1065,21 @@ frappe.ui.Sidebar = class Sidebar {
 			.sort((a, b) => position(a) - position(b));
 	}
 
-	// Go where a dock entry points, and select the sidebar it belongs to. A module opens at its
-	// own landing route; a workspace opens at itself, and the sidebar that comes with it is the
-	// one of the module that owns it.
+	// Go where a dock entry points, and select the shell it selects. Both happen, in that order,
+	// because a click does both things: a row with a page opens that page, a row with only a
+	// shell opens that shell's own landing route.
 	open_dock_entry(entry) {
 		if (!entry) return;
 
-		if (entry.type === "Workspace") {
-			this.select_module(entry.module);
+		if (entry.link_type) {
+			// The shell first, so the sidebar is already the right one when the route lands. A
+			// URL row selects nothing, because it has no shell.
+			if (entry.module) this.select_module(entry.module);
 			const route = frappe.ui.sidebar_item.get_route({
 				type: "Link",
-				link_type: "Workspace",
-				link_to: entry.name,
+				link_type: entry.link_type,
+				link_to: entry.link_to,
+				url: entry.url,
 			});
 			if (route) frappe.set_route(route);
 			return;
@@ -1081,10 +1088,10 @@ frappe.ui.Sidebar = class Sidebar {
 		this.open_module(entry.module);
 	}
 
-	// What identifies a dock entry, client-side: the same pair, joined the same way, as
-	// `dock_key` on the server. Both halves, because the kinds do not share a namespace.
-	dock_key(type, name) {
-		return `${type}::${name}`;
+	// What identifies a dock entry, client-side: the whole destination, joined the same way as
+	// `dock_key` on the server. Never the label, so re-labelling cannot detach a row from itself.
+	dock_key(entry) {
+		return ["sidebar", "link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
 	// Where an app's icon leads. `app_route` covers apps that declare one; otherwise land on
@@ -1119,16 +1126,20 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// Whether a dock entry is the one on screen -- not offered as a switch target, and highlighted
-	// on the rail. A module entry is active while its sidebar is the one shown; a workspace entry
-	// only while the route is that workspace, because several of an app's entries can share a
-	// module and highlighting all of them would say nothing.
+	// on the rail.
+	//
+	// A row that opens a workspace is active only while the route *is* that workspace, because
+	// several of an app's entries can share a shell and highlighting all of them would say
+	// nothing. A row that only names a shell is active while that shell is the one shown. A URL
+	// row is never active: it leaves the desk.
 	is_active_entry(entry) {
 		if (!entry) return false;
-		if (entry.type === "Workspace") {
+		if (entry.link_type === "URL") return false;
+		if (entry.link_type === "Workspace") {
 			const route = frappe.get_route();
-			return route[0] === "Workspaces" && route[route.length - 1] === entry.name;
+			return route[0] === "Workspaces" && route[route.length - 1] === entry.link_to;
 		}
-		return entry.module === this.current_module;
+		return !!entry.module && entry.module === this.current_module;
 	}
 
 	// An entity resolves to a MODULE, and only to a module -- this is the one place it happens.
