@@ -15,7 +15,14 @@ class TestErrorLog(IntegrationTestCase):
 		doc = frappe.new_doc("Error Log")
 		error = doc.log_error("This is an error")
 		self.assertEqual(error.doctype, "Error Log")
-
+	def test_log_error_with_long_title(self):
+		title = "x" * 200
+		error_log = frappe.log_error(
+		title=title,
+		message="Test error",
+		defer_insert=True,
+		)
+		self.assertEqual(error_log.method, title[:140])
 	def test_error_fingerprint(self):
 		def boom(msg):
 			raise ValueError(msg)
