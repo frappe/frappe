@@ -1,41 +1,50 @@
-// The dock's arrangement, in the editor every navigation surface shares
+// The rail's arrangement, in the editor every navigation surface shares
 // (`frappe.ui.ArrangementEditor`, which holds the layer switch, the list, the eye and the
-// persistence). This is only what the dock is: what its entries are, where its two layers live,
+// persistence). This is only what the dock is: what its entries are, where its three layers live,
 // and the one action it has that a sidebar does not.
 //
-// The dock it arranges is the one for the app you're currently in: which of that app's entries
-// appear on it, and in what order.
+// The rail it arranges is the one for the app you are currently in. **One tool, two panes, one
+// gesture per row** -- what authoring adds is a third value in the layer switch, an Add dialog
+// and one action. Every alternative that made the app layer *look* different (a pool pane, a
+// changed title, a coloured band, ladder tabs) was dropped, and so was every alternative that
+// moved authoring out of a dialog and into the list.
 //
-// An entry is a typed pair -- a `Sidebar` (a module) or a `Workspace` (one of the app's own, or
-// one a companion app pinned onto it) -- and both kinds are arranged the same way, because a pin
-// is an entry on the dock rather than a fixture on it.
-//
-// On a developer's site it also authors the layer *below* both stored ones: "Ship This Order"
-// hands you the `add_to_dock` block for the arrangement on screen, to paste into the app's
-// `hooks.py`. It writes nothing -- the last inch is given up on purpose, because the target is
-// hand-authored Python and the drag-and-drop is where the value was. Not a third layer either:
-// the two layers rearrange the list an app ships, and this is that list.
+// An entry names a shell, a page, or both, and every kind is arranged the same way -- a
+// companion's entry is an entry on the rail, not a fixture on it.
 //
 // One app on purpose -- a dock belongs to an app, so there's nothing to choose between here and
-// no app switcher. Modules in other apps are managed from those apps' docks.
+// no app switcher. Entries in other apps are managed from those apps' rails.
 
-// What differs between the dock's two layers, in one place: where the arrangement is read from,
-// where it is written back to, and what to say once it lands. Everything else -- the picker, the
-// app slice, the shape of a saved row -- is the same work either way.
-// Making a module the site is adding for itself. It creates the workspace that keeps the module
-// reachable along with it -- see the endpoint, which explains why the two are one action.
+// What differs between the three layers, in one place: where the arrangement is read from, where
+// it is written back to, what to call it, and what to say once it lands. Everything else -- the
+// list, the eye, the shape of a saved row -- is the same work whichever one is on screen.
 const RESET_FOR_EVERYONE = "frappe.desk.doctype.dock.dock.reset_dock_for_everyone";
+const MARK_AS_STANDARD = "frappe.desk.doctype.dock.dock.mark_as_standard";
 
 const DOCK_LAYERS = {
 	user: {
 		read: "frappe.desk.doctype.dock.dock.get_user_dock_layer",
 		save: "frappe.desk.doctype.dock.dock.save_user_dock",
+		label: () => __("Just for me"),
 		saved: () => __("Dock updated"),
 	},
 	site: {
 		read: "frappe.desk.doctype.dock.dock.get_site_dock_layer",
 		save: "frappe.desk.doctype.dock.dock.save_site_dock",
+		label: () => __("For everyone"),
+		condition: () => frappe.user.has_role("Workspace Manager"),
 		saved: () => __("Dock updated for everyone"),
+	},
+	// The third value, and the whole of what the app layer looks like from here. Developer mode
+	// only, because authoring what an app ships means writing a file into the app -- and only
+	// where the app already ships one, since promoting is `Export to app` and that is one act
+	// with the file write.
+	app: {
+		read: "frappe.desk.doctype.dock.dock.get_app_dock_layer",
+		save: "frappe.desk.doctype.dock.dock.save_app_dock",
+		label: () => __("Ship with the app"),
+		condition: () => !!frappe.boot.developer_mode,
+		saved: () => __("Exported to the app"),
 	},
 };
 
@@ -45,27 +54,30 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	}
 
 	prepare() {
-		// The dock renders for `get_sidebar_app()` (the shown sidebar's app), so curate that one.
-		// It is also the only app context there is -- a module belonging to no app has no dock to
+		// The rail renders for `get_sidebar_app()` (the shown sidebar's app), so curate that one.
+		// It is also the only app context there is -- a module belonging to no app has no rail to
 		// arrange, which is why the user menu doesn't offer this there.
 		this.app = frappe.app.sidebar.get_sidebar_app();
 		this.base_hidden = new Set();
-		// Shipping hands you Python for an app's `hooks.py`, so it is offered where app content is
-		// authored at all -- a developer's site -- and nowhere else. Not a role: the two layers
-		// above are what a site rearranges, and neither of them needs this. The gate is kept for
-		// meaning rather than for safety, now that the call is a read.
-		this.can_ship = !!(frappe.boot.developer_mode && this.app);
+		this.own_adds = new Set();
+		// Writing a file into an app is a developer's act, so the promotion is offered where app
+		// content is authored at all and nowhere else. Not a role: the two layers above are what a
+		// site rearranges, and neither of them needs this.
+		this.can_export = !!(frappe.boot.developer_mode && this.app);
 	}
 
+	// One title, whichever layer is on screen. A layer-dependent title was dropped with the rest
+	// of the "make the app layer look different" alternatives: the switch one line below already
+	// says which layer this is, and saying it twice reads as a warning.
 	title() {
 		return this.app ? __("Manage {0} Dock", [__(this.app.app_title)]) : __("Manage Dock");
 	}
 
 	extra_actions() {
-		return this.can_ship
+		return this.can_export
 			? {
-					secondary_action_label: __("Ship This Order"),
-					secondary_action: () => this.ship(),
+					secondary_action_label: __("Export to app"),
+					secondary_action: () => this.export_to_app(),
 			  }
 			: {};
 	}
@@ -123,16 +135,26 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.arrange(this.initial_selection());
 	}
 
-	// Every entry this app's dock can show, in the server's order, each resolved to the label and
+	// Every entry this app's rail can show, in the server's order, each resolved to the label and
 	// icon it renders as. An entry the boot payload doesn't carry is one the user may see nothing
 	// in -- a module whose every item is blocked, a workspace they may not open -- so it is not
-	// offerable. Keyed by the typed pair, which is also what a layer row names.
+	// offerable. Keyed by its destination, which is also what a layer row names.
 	load_entries() {
 		this.entries = new Map();
 		((this.app && this.app.dock) || []).forEach((row) => {
 			const entry = frappe.app.sidebar.dock_entry(row);
 			if (entry) this.entries.set(this.key(entry), entry);
 		});
+	}
+
+	// A muted reading, not an affordance: how many of the app's modules are on no tier at all --
+	// not on the rail, not shipped off it, simply never named. Those are the ones no layer can
+	// bring back, so an author who did not mean it should be able to see the number.
+	unnamed_modules() {
+		const named = new Set(
+			[...this.entries.values()].map((entry) => entry.sidebar).filter(Boolean)
+		);
+		return frappe.app.sidebar.app_modules(this.app).filter((shell) => !named.has(shell));
 	}
 
 	// What identifies an entry here, on the server and on the rail: the typed pair. Both halves,
@@ -151,9 +173,13 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return arranged.length ? arranged : this.unarranged_selection();
 	}
 
-	// One row as a layer stores it, from the key the panes work in. The whole destination, and
-	// nothing about how it reads -- an entry this layer has no opinion about inherits its icon
-	// and title from the layer below.
+	// One row as a layer stores it, from the key the panes work in: the whole destination, plus
+	// how it reads *only if this layer has an opinion about that*.
+	//
+	// An entry this layer merely references sends its icon and title back too -- the server
+	// recognises them as inherited and blanks them, which is what keeps the app's and the site's
+	// later relabels reaching a row nobody touched. An entry this layer **added** has nothing
+	// below it to inherit from, so its own icon and title are the only ones there are.
 	stored_row(key, hidden) {
 		const entry = this.entries.get(key);
 		return {
@@ -161,6 +187,9 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			link_type: entry.link_type,
 			link_to: entry.link_to,
 			url: entry.url,
+			icon: entry.icon,
+			title: entry.label,
+			added: this.is_own_add(key) ? 1 : 0,
 			hidden,
 		};
 	}
@@ -171,14 +200,20 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// saves would write `hidden: 0` over what a layer below deliberately hid, un-hiding it
 	// without ever asking to.
 	//
-	// Both layers therefore start from the layer *below* them, as that layer renders:
+	// Each layer therefore starts from the layer *below* it, as that layer renders:
 	//
-	//   - the user's starts from the dock on screen -- the app's order with the site's
-	//     arrangement applied
-	//   - the site's starts from the base as it renders -- the app's entries minus the ones the
-	//     app ships off. Never from the dock this manager happens to see, which carries their
-	//     personal arrangement and is not theirs to publish.
+	//   - the app's starts from its own rows, which is what it already holds
+	//   - the site's starts from the app's dock as it renders -- its entries minus the ones the
+	//     app ships off. Never from the rail this manager happens to see, which carries the
+	//     curator's personal arrangement and is not theirs to publish.
+	//   - a person's starts from the rail on screen -- the app's dock with the site's on top.
 	unarranged_selection() {
+		if (this.layer === "app") {
+			return (this.layer_rows || [])
+				.filter((row) => !row.hidden)
+				.map((row) => this.key(row));
+		}
+
 		if (this.layer === "site") {
 			return this.all_keys().filter((key) => !this.base_hidden.has(key));
 		}
@@ -189,16 +224,53 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return shown.length ? shown : this.all_keys();
 	}
 
-	// Both upper layers may add an entry -- the server's bound is **reach**, never base
-	// membership, so a person may put on their rail anything they can already navigate to.
-	// The dialog that does it is ticket 14's; until it lands there is nothing here to open, and
-	// offering a button that does nothing would be worse than not offering one.
+	// Every layer may add an entry. The server's bound is **reach** -- a person may put on their
+	// rail anything they can already navigate to -- and never base membership, which is what
+	// *never add* claimed and never enforced.
 	can_add() {
-		return false;
+		return !!this.app;
 	}
 
 	is_own_add(key) {
 		return this.own_adds.has(key);
+	}
+
+	// **One control at every layer**, and the layer switch one line above is what says whether
+	// hiding is an author stating a default or a site exercising a customisation. A control per
+	// meaning was dropped: the meaning is already on screen, so a second control would be a
+	// second way to say the same thing. The tooltip carries the difference.
+	hide_tooltip(key, hidden) {
+		if (hidden) return __("Show");
+		return this.layer === "app" ? __("Ship this off by default") : __("Hide");
+	}
+
+	// The two resets, side by side, because they are two different reaches and only one of them
+	// is undoable by the person it affects.
+	extra_pane_actions() {
+		if (this.layer !== "site" || !this.can_curate_site) return [];
+
+		return [
+			{
+				label: __("Reset for everyone"),
+				title: __(
+					"Drops every person's own arrangement of this rail as well as the site's, so everybody is back on what the app ships."
+				),
+				onClick: () => this.reset_for_everyone(),
+			},
+		];
+	}
+
+	// A reading, not an affordance: the app's modules that are on no tier at all -- not on the
+	// rail, not shipped off it, simply never named. Nothing above the app layer can bring one
+	// back, so an author who did not mean it should be able to see the number.
+	pane_note() {
+		const unnamed = this.unnamed_modules();
+		if (!unnamed.length) return "";
+
+		return `<span title="${frappe.utils.escape_html(unnamed.join(", "))}">${__(
+			"{0} of this app's modules are on no tier at all",
+			[unnamed.length]
+		)}</span>`;
 	}
 
 	// A row the app itself ships off says so. The eye is still all it takes to bring it back --
@@ -270,95 +342,179 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		frappe.app.sidebar.refresh_dock();
 	}
 
-	// Hand the author the block for the arrangement on screen. No confirm: nothing is written,
-	// so there is nothing to agree to -- the old one described a write that no longer happens.
+	// Add, type-first: what it opens, then the target, then how it reads, with the shell override
+	// behind a collapsed disclosure.
 	//
-	// Every entry the manager showed is named: the ones on the dock as positions, the ones the eye
-	// has off as hidden. That is what makes ship round-trip -- paste, restart, and the dock renders
-	// the screen it was taken from -- and it is why the hidden ones are sent too rather than just
-	// what is on the dock.
-	async ship() {
+	// **The pool is never drawn.** *Anything nameable* is an unbounded set -- every workspace, every
+	// module, any URL -- and a pane for it would break the two-pane pair the whole surface is. It
+	// lives in the picker's own search instead.
+	//
+	// **Icon and title start empty**, with no prefill and no placeholder holding the module's
+	// title. Prefilling was refused for making divergence look like inheritance: a site that
+	// renames a module sees the new name in the sidebar header and the old one on the rail, and a
+	// pre-filled field gives the author no reason to suspect the two ever come apart. The cost is
+	// taken knowingly -- an empty rail is a round trip per entry with two fields typed by hand.
+	add() {
 		if (!this.loaded) return;
-		this.sync_order();
 
-		const emitted = await frappe.xcall("frappe.desk.doctype.dock.dock.emit_dock_hook", {
-			app: this.app.app_name,
-			items: JSON.stringify(
-				this.arranged_rows((key, hidden) => this.stored_row(key, hidden))
-			),
-		});
-
-		this.show_emitted(emitted);
-	}
-
-	// A handover, not a confirm and not an editor: one line of framing, the block in a code box
-	// under the path it belongs in, the rows the projection dropped and why, and a warning that
-	// the block is not live until the bench restarts *and* that the arrangement it was taken from
-	// is still sitting on top of it.
-	show_emitted(emitted) {
+		const sidebar = frappe.app.sidebar;
 		const dialog = new frappe.ui.Dialog({
-			title: __("Ship This Order"),
-			size: "large",
-			fields: [{ fieldtype: "HTML", fieldname: "handover" }],
-		});
-
-		const $body = $(dialog.fields_dict.handover.$wrapper);
-		$body.html(`
-			<div class="dock-ship">
-				<p class="dock-ship-lede">${__("Paste this into {0} to ship this order with the app.", [
-					`<code>${frappe.utils.escape_html(emitted.path)}</code>`,
-				])}</p>
-				<div class="dock-ship-code">
-					<button class="dock-ship-copy btn btn-default btn-xs">${__("Copy")}</button>
-					<pre>${frappe.utils.escape_html(emitted.code)}</pre>
-				</div>
-				${this.dropped_note(emitted.dropped)}
-				<div class="dock-ship-warning">
-					<p>${__(
-						"The block is not live until the bench restarts -- and your own arrangement is still sitting on top of it, so the dock will keep rendering that instead."
-					)}</p>
-					<button class="dock-ship-clear btn btn-default btn-xs" title="${__(
-						"Until the bench restarts this drops the dock back to the order the app ships today, not the block above."
-					)}">${
-			this.layer === "site" ? __("Clear the site's arrangement") : __("Clear my arrangement")
-		}</button>
-				</div>
-			</div>
-		`);
-
-		$body.find(".dock-ship-copy").on("click", () => {
-			frappe.utils.copy_to_clipboard(emitted.code);
-		});
-		// Offered *after* the paste and never fused to Ship: clearing at ship time would strand
-		// the author on the unshipped dock. Reuses the ordinary clear-and-save path -- Reset,
-		// then Save -- so there is no second way to empty a layer.
-		$body.find(".dock-ship-clear").on("click", async () => {
-			this.reset();
-			await this.save();
-			dialog.hide();
+			title: __("Add to the dock"),
+			fields: [
+				{
+					fieldtype: "Select",
+					fieldname: "opens",
+					label: __("What it opens"),
+					options: [
+						{ value: "Module", label: __("Module") },
+						{ value: "Workspace", label: __("Workspace") },
+						{ value: "URL", label: __("Web address") },
+					],
+					default: "Module",
+					reqd: 1,
+					onchange: () => this.describe_target(dialog),
+				},
+				{
+					fieldtype: "Autocomplete",
+					fieldname: "module",
+					label: __("Module"),
+					depends_on: "eval:doc.opens == 'Module'",
+					// The app's navigable modules, which is what `get_app_modules` answers -- not a
+					// link query, which would show only the minority that happen to have a
+					// `Sidebar` document.
+					options: sidebar.app_modules(this.app).map((shell) => ({
+						value: shell,
+						label: frappe.boot.module_sidebars[shell]?.label || shell,
+					})),
+				},
+				{
+					fieldtype: "Link",
+					fieldname: "workspace",
+					label: __("Workspace"),
+					options: "Workspace",
+					depends_on: "eval:doc.opens == 'Workspace'",
+				},
+				{
+					fieldtype: "Data",
+					fieldname: "url",
+					label: __("Web address"),
+					depends_on: "eval:doc.opens == 'URL'",
+				},
+				{ fieldtype: "HTML", fieldname: "hint" },
+				{ fieldtype: "Section Break" },
+				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon"), reqd: 1 },
+				{ fieldtype: "Column Break" },
+				{
+					fieldtype: "Data",
+					fieldname: "title",
+					label: __("Title"),
+					reqd: 1,
+					description: __("How it reads on the rail."),
+				},
+				{
+					fieldtype: "Section Break",
+					fieldname: "shell_section",
+					label: __("Show a different sidebar"),
+					collapsible: 1,
+					// Collapsed by default: it is only for a page whose own module is not the shell
+					// you want -- `Welcome Workspace` on `Core` being the live case -- and every
+					// ordinary row leaves it alone.
+					depends_on: "eval:doc.opens != 'URL'",
+				},
+				{
+					fieldtype: "Link",
+					fieldname: "shell",
+					label: __("Sidebar"),
+					options: "Sidebar",
+					description: __(
+						"Leave blank to derive it from what this opens. Fill it in only when the page's own module is not the sidebar you want."
+					),
+				},
+			],
+			primary_action_label: __("Add"),
+			primary_action: (values) => {
+				const entry = this.entry_from(values);
+				if (!entry) return;
+				dialog.hide();
+				this.place(entry);
+			},
 		});
 
 		dialog.show();
+		this.describe_target(dialog);
 	}
 
-	// The projection, in one sentence carrying both halves of the rule. A dropped row is named
-	// with the app that declared it, because "some rows are missing" is not something an author
-	// should have to work out by diffing.
-	dropped_note(dropped) {
-		if (!dropped || !dropped.length) return "";
+	// One line under the target saying what the row will do, because the two ordinary shapes
+	// behave differently and neither says so from its fields alone.
+	describe_target(dialog) {
+		const hints = {
+			Module: __("Opens the module's home."),
+			Workspace: __("Its sidebar is derived from the module that owns it."),
+			URL: __("Leaves the desk. It has no sidebar."),
+		};
+		$(dialog.fields_dict.hint.$wrapper).html(
+			`<div class="text-muted small">${hints[dialog.get_value("opens")] || ""}</div>`
+		);
+	}
 
-		const named = dropped
-			.map((row) =>
-				__("{0} (from {1})", [
-					frappe.utils.escape_html(row.name),
-					frappe.utils.escape_html(row.declared_by || __("another app")),
-				])
-			)
-			.join(", ");
+	// The dialog's answer as a rail entry, or nothing if it named nothing.
+	entry_from(values) {
+		const row =
+			values.opens === "Module"
+				? { sidebar: values.module }
+				: values.opens === "Workspace"
+				? {
+						sidebar: values.shell || null,
+						link_type: "Workspace",
+						link_to: values.workspace,
+				  }
+				: { link_type: "URL", url: values.url };
 
-		return `<p class="dock-ship-dropped text-muted">${__(
-			"Left out: {0}. A pinned workspace is already declared in the pinning app's own hooks.py, and a pin is appended rather than positioned -- where it sits on screen is the site's or your own arrangement, which no block can state.",
-			[named]
-		)}</p>`;
+		if (!(row.sidebar || row.link_to || row.url)) {
+			frappe.throw(__("Pick something for it to open."));
+		}
+
+		return {
+			...row,
+			module: row.sidebar || null,
+			icon: values.icon,
+			label: values.title,
+		};
+	}
+
+	// Put a newly added entry on the arrangement in front of us. Nothing is saved yet -- Save is
+	// what says so, exactly as it is for a drag.
+	place(entry) {
+		const key = this.key(entry);
+		if (this.entries.has(key)) {
+			// Same destination, so it is the same entry: adding it again would be a second button
+			// to one place. The one already there is un-hidden instead, which is what the person
+			// meant.
+			this.hidden.delete(key);
+			this.render_panes();
+			return;
+		}
+
+		this.entries.set(key, { ...entry, module: entry.module || null });
+		this.own_adds.add(key);
+		this.order.push(key);
+		this.hidden.delete(key);
+		this.render_panes();
+	}
+
+	// Author's promotion: write this app's dock into the app as a file, so git carries it.
+	//
+	// The **dock's own** promotion, not the sidebar's -- `Sidebar.mark_as_standard` materialises a
+	// computed base, and a dock has none. There is no unmark button in this surface: taking an
+	// app's rail away is a bigger act than an editor should offer beside Save, and it has its own
+	// endpoint.
+	async export_to_app() {
+		if (!this.loaded) return;
+
+		await frappe.xcall(MARK_AS_STANDARD, { app: this.app.app_name });
+		// The app now ships a dock, so the third value in the switch has something to write to.
+		this.layer = "app";
+		if (this.$layer) this.$layer.val("app");
+		this.load();
 	}
 };

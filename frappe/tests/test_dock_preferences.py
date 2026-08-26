@@ -25,7 +25,6 @@ from frappe.desk.doctype.dock.dock import (
 	get_user_dock_layer,
 	mark_as_standard,
 	mounted_apps,
-	render_dock_hook,
 	resolve_dock,
 	save_site_dock,
 	save_user_dock,
@@ -1552,103 +1551,6 @@ class TestAnAppWithNoDock(DockTestCase):
 		self.assertIn(BETA, get_navigable_modules())
 
 
-class TestEmitDockHook(DockTestCase):
-	"""Ship: the arrangement on screen, rendered as the block that would produce it.
-
-	Nothing is written. The target is `hooks.py` -- hand-authored Python with comments and
-	conditionals, which the framework writes exactly once, at `bench new-app`.
-	"""
-
-	APP = "frappe"
-	COMPANION = "zz-dock-emit-companion"
-
-	def setUp(self):
-		frappe.set_user("Administrator")
-		# emit is gated on developer mode at both ends, and a test site is not a developer's
-		# site -- the one test that asserts the gate turns it back off for itself
-		self.enterContext(developer_mode())
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		clear_arrangements()
-
-	def emit(self, *rows, app=None):
-		from frappe.desk.doctype.dock.dock import emit_dock_hook
-
-		return emit_dock_hook(app=app or self.APP, items=json.dumps(list(rows)))
-
-	def test_the_block_names_every_entry_the_manager_showed(self):
-		"""Left pane as positions, right pane as hidden -- which is what makes ship round-trip."""
-		emitted = self.emit(sidebar(BETA), sidebar(ALPHA), sidebar(GAMMA, hidden=1))
-
-		self.assertEqual(
-			emitted["code"],
-			"add_to_dock = [\n"
-			'\t{"type": "Sidebar", "name": "Test Dock Beta"},\n'
-			'\t{"type": "Sidebar", "name": "Test Dock Alpha"},\n'
-			'\t{"type": "Sidebar", "name": "Test Dock Gamma", "hidden": 1},\n'
-			"]",
-		)
-		self.assertEqual(emitted["path"], "apps/frappe/frappe/hooks.py")
-		self.assertEqual(emitted["dropped"], [])
-
-	def test_a_foreign_row_is_dropped_and_named(self):
-		"""A projection, not a refusal: a row that lives in another app's files is not this
-		app's to ship, and saying which app it came from is what stops "some rows are missing"
-		being something an author has to work out by diffing."""
-		with sidebarless_module("Test Dock Emit Foreign", app=self.COMPANION) as foreign:
-			page = frappe.get_doc(
-				{
-					"doctype": "Workspace",
-					"title": "Test Dock Emit Foreign Page",
-					"label": "Test Dock Emit Foreign Page",
-					"module": foreign,
-					"public": 1,
-					"content": "[]",
-				}
-			).insert(ignore_permissions=True)
-			self.addCleanup(frappe.delete_doc, "Workspace", page.name, force=True, ignore_missing=True)
-			frappe.local.request_cache.clear()
-
-			emitted = self.emit(sidebar(BETA), workspace(page.name), sidebar(ALPHA))
-
-		self.assertEqual(
-			emitted["code"],
-			"add_to_dock = [\n"
-			'\t{"type": "Sidebar", "name": "Test Dock Beta"},\n'
-			'\t{"type": "Sidebar", "name": "Test Dock Alpha"},\n'
-			"]",
-		)
-		self.assertEqual(
-			emitted["dropped"],
-			[{**destination(workspace(page.name)), "name": page.name, "declared_by": self.COMPANION}],
-		)
-
-	def test_a_multi_app_screen_is_legal(self):
-		"""The old "one app, else throw" guard is not carried over -- a pin makes a multi-app
-		screen legal, and refusing one would refuse exactly the case this exists for."""
-		emitted = self.emit(sidebar(ALPHA), sidebar(BETA), sidebar(GAMMA))
-		self.assertEqual(emitted["app"], "frappe")
-
-	def test_the_app_is_resolved_from_the_rows_not_the_client(self):
-		"""`app` names the screen and decides nothing: it is the apps-screen title key, which an
-		app may set to something other than the app its files live in."""
-		emitted = self.emit(sidebar(ALPHA), app="Not An App At All")
-		self.assertEqual(emitted["app"], "frappe")
-		self.assertEqual(emitted["path"], "apps/frappe/frappe/hooks.py")
-
-	def test_an_empty_screen_is_refused(self):
-		from frappe.desk.doctype.dock.dock import emit_dock_hook
-
-		self.assertRaises(frappe.ValidationError, emit_dock_hook, app=self.APP, items="[]")
-
-	def test_a_non_developer_site_is_refused(self):
-		from frappe.desk.doctype.dock.dock import emit_dock_hook
-
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			self.assertRaises(frappe.ValidationError, emit_dock_hook, app=self.APP, items=payload(ALPHA))
-
-
 class TestTheLandingFloor(IntegrationTestCase):
 	"""Where an app's icon takes you stops being partly a guess.
 
@@ -1937,6 +1839,39 @@ class TestTheExportRoad(IntegrationTestCase):
 
 		self.assertFalse(os.path.exists(self.exported()))
 		self.assertFalse(frappe.db.exists("Dock", {"app": self.APP, "standard": 1}))
+
+	def test_the_app_layer_is_saved_through_its_own_endpoint(self):
+		"""The one save that is authoring rather than arrangement, so it is gated on developer
+		mode and on nothing else -- and `on_update` writes the file, which is what makes pressing
+		Save in the manager and shipping the result one act."""
+		from frappe.desk.doctype.dock.dock import save_app_dock
+
+		self.author(self.ONE, self.TWO)
+		mark_as_standard(self.APP)
+
+		save_app_dock(self.APP, payload(added(sidebar(self.TWO)), added(sidebar(self.ONE))))
+
+		self.assertEqual(names(get_app_dock(self.APP)), [self.TWO, self.ONE])
+		on_disk = [row["sidebar"] for row in json.load(open(self.exported()))["items"]]
+		self.assertEqual(on_disk, [self.TWO, self.ONE])
+
+	def test_the_app_layer_cannot_be_saved_outside_developer_mode(self):
+		from frappe.desk.doctype.dock.dock import save_app_dock
+
+		self.author(self.ONE)
+		mark_as_standard(self.APP)
+
+		with no_developer_mode():
+			self.assertRaises(
+				frappe.ValidationError, save_app_dock, self.APP, payload(added(sidebar(self.ONE)))
+			)
+
+	def test_the_app_layer_cannot_be_saved_before_the_app_ships_one(self):
+		"""Promoting is `mark_as_standard`, which is one act with the file write and rolls the row
+		back if the write does not land -- so there is no second road to a standard row."""
+		from frappe.desk.doctype.dock.dock import save_app_dock
+
+		self.assertRaises(frappe.ValidationError, save_app_dock, self.APP, payload(added(sidebar(self.ONE))))
 
 	def test_unmarking_leaves_the_app_with_no_rail(self):
 		"""The asymmetry with `Sidebar`'s unmark, which falls back to a computed base: a dock

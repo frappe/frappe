@@ -56,6 +56,14 @@
 		margin-top: calc(-1 * var(--margin-xs));
 	}
 
+	// A reading rather than an affordance, so it is quieter than the subtitle above it and
+	// carries no control of its own -- the detail is in its tooltip.
+	.ws-pane-note {
+		font-size: var(--text-xs);
+		color: var(--text-light);
+		cursor: default;
+	}
+
 	.ws-list {
 		flex: 1;
 		display: flex;

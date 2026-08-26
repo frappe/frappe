@@ -30,10 +30,19 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// What a surface supplies. Everything below this block is the same work for either of them.
 	// -------------------------------------------------------------------------------------------
 
-	// `{user: {read, save, reset, saved()}, site: {...}}` -- where a layer is read from, where it
-	// is written back to, and what to say once it lands.
+	// `{user: {read, save, saved(), label(), condition?}, site: {...}}` -- where a layer is read
+	// from, where it is written back to, what to call it in the switch, and what to say once it
+	// lands. A layer whose `condition` answers false is not offered at all.
 	get layers() {
 		return {};
+	}
+
+	// The layers this person may actually write, in switch order. What the switch shows is what
+	// the endpoints will accept, so there is never a value that fails on Save.
+	get offered_layers() {
+		return Object.entries(this.layers).filter(
+			([, layer]) => !layer.condition || layer.condition()
+		);
 	}
 
 	// Whatever a surface needs resolved before the dialog is titled: its subject, its own gates.
@@ -99,6 +108,25 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// Extra affordances on a list entry, which need a handler and so are hung on the node.
 	decorate_item() {}
 
+	// Extra buttons beside Add and Reset in the list's head -- an act one surface has and the
+	// other does not. `{label, title, onClick}` each.
+	extra_pane_actions() {
+		return [];
+	}
+
+	// A muted line under the pane's subtitle: a reading rather than an affordance. Empty by
+	// default, because most surfaces have nothing to report.
+	pane_note() {
+		return "";
+	}
+
+	// What the eye says it will do. A surface where hiding means different things at different
+	// layers says so here -- see the dock, where an author hiding a row ships it off by default
+	// and a site hiding one is exercising a customisation.
+	hide_tooltip(key, hidden) {
+		return hidden ? __("Show") : __("Hide");
+	}
+
 	// One entry was dragged to a new place. A surface where position means something beyond
 	// order says so here -- see the sidebar, where where you drop an entry is what says which
 	// section it belongs to.
@@ -118,6 +146,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		// everyone is what the right is for, and a curator who meant only their own has the
 		// switch sitting in the header to say so. Everybody else has one layer and opens on it.
 		//
+		// Never the app's, however: authoring what an app ships is a deliberate act, not the one
+		// you fall into by opening the manager on a developer's site.
+		//
 		// Read after `prepare`, because that is where a surface settles what the right means for
 		// it -- opening on a layer this person may not write would be an editor that fails on
 		// Save rather than one that never offered it.
@@ -134,7 +165,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 		this.$body = $(this.dialog.fields_dict.picker.$wrapper);
 		this.dialog.show();
-		if (this.can_curate_site) this.mount_layer_switch();
+		if (this.offered_layers.length > 1) this.mount_layer_switch();
 		this.load();
 	}
 
@@ -147,10 +178,12 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// arrangement you are looking at -- and a field in front of the list read as one more thing
 	// to fill in before getting to the work.
 	mount_layer_switch() {
+		const options = this.offered_layers
+			.map(([name, layer]) => `<option value="${name}">${layer.label()}</option>`)
+			.join("");
 		this.$layer = $(`
 			<select class="ws-layer-switch form-control input-xs" title="${__("Arranging")}">
-				<option value="user">${__("Just for me")}</option>
-				<option value="site">${__("For everyone")}</option>
+				${options}
 			</select>
 		`);
 		// a switch that renders blank reads as "no layer chosen" when one always is
@@ -231,9 +264,18 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 						<span class="ws-pane-actions">
 							${this.can_add() ? `<button class="ws-add btn btn-ghost">${copy.add_label}</button>` : ""}
 							<button class="ws-reset btn btn-ghost" title="${copy.reset_title}">${__("Reset")}</button>
+							${this.extra_pane_actions()
+								.map(
+									(action, idx) =>
+										`<button class="ws-extra-action btn btn-ghost" data-action="${idx}" title="${frappe.utils.escape_html(
+											action.title || ""
+										)}">${action.label}</button>`
+								)
+								.join("")}
 						</span>
 					</div>
 					<div class="ws-pane-sub">${copy.list_sub}</div>
+					${this.pane_note() ? `<div class="ws-pane-note text-muted">${this.pane_note()}</div>` : ""}
 					<div class="ws-list ws-arrangement"></div>
 				</div>
 				<div class="ws-pane ws-pane-preview">
@@ -249,6 +291,10 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 		this.$body.find(".ws-add").on("click", () => this.add());
 		this.$body.find(".ws-reset").on("click", () => this.reset());
+		const extras = this.extra_pane_actions();
+		this.$body
+			.find(".ws-extra-action")
+			.on("click", (e) => extras[$(e.currentTarget).data("action")].onClick());
 
 		this.render_panes();
 		this.setup_sortable();
@@ -334,9 +380,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	visibility_button(key) {
 		const hidden = this.hidden.has(key);
 		let $btn = $(
-			`<button class="ws-item-eye" title="${
-				hidden ? __("Show") : __("Hide")
-			}">${frappe.utils.icon(hidden ? "eye-off" : "eye", "sm")}</button>`
+			`<button class="ws-item-eye" title="${frappe.utils.escape_html(
+				this.hide_tooltip(key, hidden)
+			)}">${frappe.utils.icon(hidden ? "eye-off" : "eye", "sm")}</button>`
 		);
 		$btn.on("click", () => this.toggle(key));
 		return $btn;

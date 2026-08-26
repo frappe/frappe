@@ -29,12 +29,15 @@ const SIDEBAR_LAYERS = {
 		read: "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_user_sidebar_layer",
 		save: "frappe.desk.doctype.custom_sidebar.custom_sidebar.save_sidebar_customization",
 		reset: "frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_user_sidebar",
+		label: () => __("Just for me"),
 		saved: () => __("Sidebar updated"),
 	},
 	site: {
 		read: "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_site_sidebar_layer",
 		save: "frappe.desk.doctype.custom_sidebar.custom_sidebar.save_site_sidebar",
 		reset: "frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_site_sidebar",
+		label: () => __("For everyone"),
+		condition: () => frappe.user.has_role("Workspace Manager"),
 		saved: () => __("Sidebar updated for everyone"),
 	},
 };
