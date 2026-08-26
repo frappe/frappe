@@ -318,6 +318,7 @@ def test_webui_mount_serves_shell_but_protects_api(tmp_path):
 	assert "<title>Flow</title>" in c.get("/").text
 	assert c.get("/sessions").status_code == 401
 	assert c.get("/providers").status_code == 401
+	assert c.get("/fs/file", params={"cwd": str(tmp_path), "path": "x"}).status_code == 401
 	assert c.get("/sessions", headers={"Authorization": "Bearer secret"}).status_code == 200
 
 	# without a webui dir, "/" stays a 404 and nothing is exempt

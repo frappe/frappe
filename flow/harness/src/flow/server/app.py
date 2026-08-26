@@ -559,17 +559,6 @@ def create_app(
 			"running": session.is_running,
 		}
 
-	@app.get("/sessions/{sid}/file")
-	async def read_file(sid: str, path: str):
-		"""Text content of a workspace file, for the web UI's file viewer. Fenced by
-		the same allowed roots as the built-in file tools."""
-		session = _get(sid)
-		full_path = absolute_path(path, base=session.config.cwd)
-		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
-
-		return {"path": full_path, "content": await asyncio.to_thread(_read_text_file, full_path)}
-
 	@app.get("/sessions/{sid}/file/diff")
 	async def file_diff(sid: str, path: str):
 		"""Both sides of the session's changes to one file, for the diff viewer.
@@ -594,61 +583,36 @@ def create_app(
 
 		return await asyncio.to_thread(compute)
 
-	@app.get("/sessions/{sid}/files")
-	async def list_files(sid: str, path: str = ""):
-		"""One directory level for the file explorer, fenced like file reads."""
-		session = _get(sid)
-		full_path = absolute_path(path or ".", base=session.config.cwd)
-		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+	# explorer reads are cwd-keyed so they work before the first message
+	# creates a session; diffs and saves stay on the session routes.
+	@app.get("/fs/files")
+	async def list_files(cwd: str, path: str = ""):
+		full_path = _resolve_allowed_path(cwd, path or ".")
+		return {"path": full_path, "entries": await asyncio.to_thread(_list_directory, full_path)}
 
-		def read() -> list[dict]:
-			try:
-				with os.scandir(full_path) as it:
-					entries = [{"name": e.name, "type": "dir" if e.is_dir() else "file"} for e in it]
-			except FileNotFoundError:
-				raise HTTPException(status_code=404, detail="directory not found") from None
-			except NotADirectoryError:
-				raise HTTPException(status_code=400, detail="not a directory") from None
-			except PermissionError:
-				raise HTTPException(status_code=403, detail="directory is not readable") from None
-			entries.sort(key=lambda e: (e["type"] != "dir", e["name"].lower()))
-			return entries
-
-		return {"path": full_path, "entries": await asyncio.to_thread(read)}
-
-	@app.get("/sessions/{sid}/files/search")
-	async def search_files(sid: str, query: str):
-		"""File-name search under the session cwd for the explorer's filter box.
-		Hidden and dependency directories are pruned; results are cwd-relative."""
-		session = _get(sid)
-		root = absolute_path(".", base=session.config.cwd)
-		if session.allowed_roots and not is_path_allowed(canonical_path(root), session.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+	@app.get("/fs/files/search")
+	async def search_files(cwd: str, query: str):
+		root = _resolve_allowed_path(cwd, ".")
+		if not os.path.isdir(root):
+			raise HTTPException(status_code=404, detail="directory not found")
 		needle = query.strip().lower()
 		if not needle:
 			return {"path": root, "matches": [], "truncated": False}
-
-		def walk() -> tuple[list[str], bool]:
-			matches: list[str] = []
-			scanned = 0
-			for dirpath, dirnames, filenames in os.walk(root):
-				dirnames[:] = sorted(
-					(d for d in dirnames if not d.startswith(".") and d not in SEARCH_SKIP_DIRS),
-					key=str.lower,
-				)
-				for name in sorted(filenames, key=str.lower):
-					scanned += 1
-					if needle in name.lower():
-						matches.append(os.path.relpath(os.path.join(dirpath, name), root))
-						if len(matches) >= MAX_SEARCH_RESULTS:
-							return matches, True
-					if scanned >= MAX_SEARCH_SCAN:
-						return matches, True
-			return matches, False
-
-		matches, truncated = await asyncio.to_thread(walk)
+		matches, truncated = await asyncio.to_thread(_search_tree, root, needle)
 		return {"path": root, "matches": matches, "truncated": truncated}
+
+	@app.get("/fs/file")
+	async def read_file(cwd: str, path: str):
+		full_path = _resolve_allowed_path(cwd, path)
+		return {"path": full_path, "content": await asyncio.to_thread(_read_text_file, full_path)}
+
+	def _resolve_allowed_path(cwd: str, path: str) -> str:
+		if not os.path.isabs(cwd):
+			raise HTTPException(status_code=400, detail="cwd must be an absolute path")
+		full_path = absolute_path(path, base=cwd)
+		if store.allowed_roots and not is_path_allowed(canonical_path(full_path), store.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+		return full_path
 
 	@app.put("/sessions/{sid}/file")
 	async def write_file(sid: str, req: WriteFileRequest):
@@ -829,6 +793,45 @@ def _read_text_file(full_path: str, *, strip_bom: bool = False) -> str:
 		raise HTTPException(status_code=415, detail="not a text file") from None
 	# BOM-stripped callers diff line one cleanly (the edit tool records BOM-less diffs)
 	return text.removeprefix("\ufeff") if strip_bom else text
+
+
+def _list_directory(full_path: str) -> list[dict]:
+	"""One directory level for the file explorer, errors mapped to HTTP."""
+	try:
+		with os.scandir(full_path) as it:
+			entries = [{"name": e.name, "type": "dir" if e.is_dir() else "file"} for e in it]
+	except FileNotFoundError:
+		raise HTTPException(status_code=404, detail="directory not found") from None
+	except NotADirectoryError:
+		raise HTTPException(status_code=400, detail="not a directory") from None
+	except PermissionError:
+		raise HTTPException(status_code=403, detail="directory is not readable") from None
+	entries.sort(key=lambda e: (e["type"] != "dir", e["name"].lower()))
+	return entries
+
+
+def _search_tree(root: str, needle: str) -> tuple[list[str], bool]:
+	"""File-name matches under root; hidden and dependency directories are pruned."""
+	matches: list[str] = []
+	scanned = 0
+	for dirpath, dirnames, filenames in os.walk(root):
+		# directories count too, so file-sparse deep trees still hit the cap
+		scanned += 1
+		if scanned >= MAX_SEARCH_SCAN:
+			return matches, True
+		dirnames[:] = sorted(
+			(d for d in dirnames if not d.startswith(".") and d not in SEARCH_SKIP_DIRS),
+			key=str.lower,
+		)
+		for name in sorted(filenames, key=str.lower):
+			scanned += 1
+			if needle in name.lower():
+				matches.append(os.path.relpath(os.path.join(dirpath, name), root))
+				if len(matches) >= MAX_SEARCH_RESULTS:
+					return matches, True
+			if scanned >= MAX_SEARCH_SCAN:
+				return matches, True
+	return matches, False
 
 
 def _file_change_results(rows: list[dict], full_path: str) -> list[dict]:
