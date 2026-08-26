@@ -297,6 +297,7 @@ class DatabaseQuery:
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 		self.reference_doctype = None
+		self.parent_doctype = None
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
