@@ -142,9 +142,10 @@ export function createFlowStore(client) {
 		if (ws.tabs.length || ws.open) {
 			workspaceBySession[sid] = {
 				open: ws.open,
+				maximized: ws.maximized,
 				active: ws.active,
 				view: ws.view ?? null,
-				tabs: ws.tabs.map((t) => t.path),
+				tabs: ws.tabs.map((t) => ({ path: t.path, diff: !!t.diff })),
 			}
 		} else {
 			delete workspaceBySession[sid]
@@ -154,27 +155,32 @@ export function createFlowStore(client) {
 
 	function restoreWorkspace(sid) {
 		const saved = workspaceBySession[sid]
-		// corrupt storage must never break opening the session itself
-		const paths = (Array.isArray(saved?.tabs) ? saved.tabs : []).filter(
-			(path) => typeof path === "string" && path,
-		)
-		if (!paths.length && !saved?.open) return
+		// corrupt storage must never break opening the session itself; tabs were
+		// stored as plain paths before the diff flag existed
+		const stored = (Array.isArray(saved?.tabs) ? saved.tabs : [])
+			.map((tab) => (typeof tab === "string" ? { path: tab } : tab))
+			.filter((tab) => tab && typeof tab.path === "string" && tab.path)
+		if (!stored.length && !saved?.open) return
+		const paths = stored.map((tab) => tab.path)
 		state.workspace = {
 			open: saved.open ?? true,
-			maximized: false,
-			view: saved.view === "files" ? "files" : null,
-			tabs: paths.map((path) => ({
+			maximized: (saved.open ?? true) && !!saved.maximized,
+			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
+			tabs: stored.map(({ path, diff }) => ({
 				kind: "editor",
 				path,
 				name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
 				content: null,
+				original: null,
 				error: null,
 				loading: false,
 				dirty: false,
+				diff: !!diff,
 			})),
 			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
 		}
-		if (state.workspace.open && state.workspace.active) void openFile(state.workspace.active)
+		const tab = state.workspace.tabs.find((t) => t.path === state.workspace.active)
+		if (state.workspace.open && tab) void (tab.diff ? openDiffFile(tab.path) : openFile(tab.path))
 	}
 
 	async function openSession(sid) {
@@ -550,12 +556,15 @@ export function createFlowStore(client) {
 				path,
 				name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
 				content: null,
+				original: null,
 				error: null,
 				loading: false,
 				dirty: false,
+				diff: false,
 			})
 			tab = ws.tabs[ws.tabs.length - 1]
 		}
+		tab.diff = false
 		ws.active = path
 		ws.open = true
 		persistWorkspace()
@@ -570,6 +579,52 @@ export function createFlowStore(client) {
 			if (state.sessionId !== sid) return
 			tab.error = String(error?.message ?? error)
 			tab.content = null
+		} finally {
+			tab.loading = false
+		}
+	}
+
+	// Diff twin of openFile: the tab shows the whole file with the session's
+	// changes highlighted. `original` is the pre-session side; the current file
+	// content stays the editable (and savable) side.
+	async function openDiffFile(path) {
+		const sid = state.sessionId
+		if (!sid) return
+		// hosts with an older client surface fall back to the plain viewer
+		if (typeof client.fileDiff !== "function") return openFile(path)
+		const ws = state.workspace
+		let tab = ws.tabs.find((t) => t.path === path)
+		if (!tab) {
+			ws.tabs.push({
+				kind: "editor",
+				path,
+				name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
+				content: null,
+				original: null,
+				error: null,
+				loading: false,
+				dirty: false,
+				diff: true,
+			})
+			tab = ws.tabs[ws.tabs.length - 1]
+		}
+		tab.diff = true
+		ws.active = path
+		ws.open = true
+		persistWorkspace()
+		tab.loading = true
+		try {
+			const data = await client.fileDiff(sid, path)
+			if (state.sessionId !== sid) return
+			// an empty original means the session created the file; the tab stays in
+			// the diff view but renders as a plain file (nothing to compare against)
+			tab.original = data.original
+			if (!tab.dirty) tab.content = data.modified
+			tab.error = null
+		} catch (error) {
+			if (state.sessionId !== sid) return
+			tab.error = String(error?.message ?? error)
+			if (!tab.dirty) tab.content = null
 		} finally {
 			tab.loading = false
 		}
@@ -594,6 +649,13 @@ export function createFlowStore(client) {
 		persistWorkspace()
 	}
 
+	function showDiffView() {
+		state.workspace.open = true
+		state.workspace.view = "diff"
+		state.workspace.active = null
+		persistWorkspace()
+	}
+
 	// closing the transient Files tab: back to a file if one is open, else the picker
 	function closeFilesView() {
 		const ws = state.workspace
@@ -609,7 +671,8 @@ export function createFlowStore(client) {
 		if (!tab) return
 		state.workspace.active = path
 		persistWorkspace()
-		if (tab.content == null && !tab.loading && !tab.error) void openFile(path)
+		if (tab.content == null && !tab.loading && !tab.error)
+			void (tab.diff ? openDiffFile(path) : openFile(path))
 	}
 
 	async function saveFile(path, content) {
@@ -637,6 +700,7 @@ export function createFlowStore(client) {
 		if (ws.active === path) ws.active = ws.tabs[Math.min(index, ws.tabs.length - 1)]?.path ?? null
 		if (!ws.tabs.length) {
 			ws.open = false
+			ws.maximized = false // a maximized panel must not outlive its last tab
 			ws.view = null
 		}
 		persistWorkspace()
@@ -657,6 +721,7 @@ export function createFlowStore(client) {
 
 	function toggleWorkspaceMaximized() {
 		state.workspace.maximized = !state.workspace.maximized
+		persistWorkspace()
 	}
 
 	function setWorkspaceWidth(width) {
@@ -749,10 +814,12 @@ export function createFlowStore(client) {
 		setMode,
 		setCwd,
 		openFile,
+		openDiffFile,
 		listFiles,
 		searchFiles,
 		selectFile,
 		showFilesView,
+		showDiffView,
 		closeFilesView,
 		saveFile,
 		markFileDirty,

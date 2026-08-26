@@ -23,6 +23,13 @@
 	background-color: var(--surface-gray-3);
 }
 
+/* Diff overview ruler: monaco paints the viewport overlay with the scrollbar
+   slider color, which our editor theme makes opaque — that would hide the
+   red/green marks under it. Keep just this overlay translucent. */
+.monaco-diff-editor .diffOverview .diffViewport {
+	background: color-mix(in srgb, var(--ink-gray-9) 10%, transparent);
+}
+
 .flow-icon-btn {
 	display: grid;
 	place-items: center;

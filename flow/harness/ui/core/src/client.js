@@ -90,6 +90,10 @@ export class DaemonClient {
 	readFile(sid, path) {
 		return this.request("GET", `/sessions/${enc(sid)}/file`, { params: { path } })
 	}
+	// original + current content of a session-changed file, for the diff viewer
+	fileDiff(sid, path) {
+		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params: { path } })
+	}
 	writeFile(sid, path, content) {
 		return this.request("PUT", `/sessions/${enc(sid)}/file`, { body: { path, content } })
 	}

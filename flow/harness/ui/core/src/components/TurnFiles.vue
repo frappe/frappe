@@ -9,7 +9,7 @@
 				:key="file.path"
 				class="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-surface-gray-1"
 				:title="file.path"
-				@click="flow.openFile(file.path)"
+				@click="flow.openDiffFile(file.path)"
 			>
 				<FeatherIcon name="file" class="h-4 w-4 flex-none text-ink-gray-5" />
 				<span class="flex-none text-sm font-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
