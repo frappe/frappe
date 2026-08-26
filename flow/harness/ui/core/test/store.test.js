@@ -198,9 +198,9 @@ test("workspace tabs persist per session and restore after a refresh", async () 
 	}
 	try {
 		const client = {
-			session: async () => ({ session_id: "s1", latest_seq: 0, config: {}, model: "mock" }),
+			session: async () => ({ session_id: "s1", latest_seq: 0, config: { cwd: "/proj" }, model: "mock" }),
 			entries: async () => ({ entries: [], latest_seq: 0 }),
-			readFile: async (sid, path) => ({ path, content: "hello" }),
+			readFile: async (cwd, path) => ({ path, content: "hello" }),
 			stream: () => ({ close() {}, async *[Symbol.asyncIterator]() {} }),
 		}
 		const flow = createFlowStore(client)

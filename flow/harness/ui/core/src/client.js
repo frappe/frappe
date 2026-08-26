@@ -78,17 +78,16 @@ export class DaemonClient {
 	entries(sid) {
 		return this.request("GET", `/sessions/${enc(sid)}/entries`)
 	}
-	// one directory level of the session workspace, for the file explorer
-	listFiles(sid, path = "") {
-		return this.request("GET", `/sessions/${enc(sid)}/files`, { params: { path } })
+	// the explorer calls, keyed by the browsed cwd: one directory level, a
+	// file-name search, and a file's text content
+	listFiles(cwd, path = "") {
+		return this.request("GET", "/fs/files", { params: { cwd, path } })
 	}
-	// file-name search under the session cwd, for the explorer's filter box
-	searchFiles(sid, query) {
-		return this.request("GET", `/sessions/${enc(sid)}/files/search`, { params: { query } })
+	searchFiles(cwd, query) {
+		return this.request("GET", "/fs/files/search", { params: { cwd, query } })
 	}
-	// text content of a workspace file, for the file editor panel
-	readFile(sid, path) {
-		return this.request("GET", `/sessions/${enc(sid)}/file`, { params: { path } })
+	readFile(cwd, path) {
+		return this.request("GET", "/fs/file", { params: { cwd, path } })
 	}
 	// original + current content of a session-changed file, for the diff viewer
 	fileDiff(sid, path) {

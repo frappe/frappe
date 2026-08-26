@@ -107,7 +107,7 @@ import FilesBar from "./FilesBar.vue"
 
 const flow = inject("flow")
 const workspace = computed(() => flow.state.workspace)
-const cwd = computed(() => flow.state.session?.config?.cwd ?? null)
+const cwd = computed(() => flow.explorerCwd())
 const activeTab = computed(
 	() => workspace.value.tabs.find((tab) => tab.path === workspace.value.active) ?? null,
 )
@@ -283,7 +283,11 @@ watch([editorEl, () => workspace.value.open, showEditorHost], async ([el, open, 
 	if (el && open && needed && !editor) {
 		monaco ??= (await import("../monaco.js")).monaco
 		if (!editorEl.value || !workspace.value.open || editor) return // closed while loading
-		editor = monaco.editor.create(editorEl.value, { ...EDITOR_OPTIONS, wordWrap: wrapValue() })
+		editor = monaco.editor.create(editorEl.value, {
+			...EDITOR_OPTIONS,
+			wordWrap: wrapValue(),
+			readOnly: !flow.state.sessionId,
+		})
 		applyTheme()
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save)
 		wireAddToChat(editor)
@@ -293,6 +297,12 @@ watch([editorEl, () => workspace.value.open, showEditorHost], async ([el, open, 
 		editor = null
 	}
 })
+
+// before a session exists the explorer is a browser: files open read-only
+watch(
+	() => flow.state.sessionId,
+	(sid) => editor?.updateOptions({ readOnly: !sid }),
+)
 
 // the diff twin: same lifecycle, whole-file view with the session's changes
 watch([diffEl, () => workspace.value.open, showDiffHost], async ([el, open, needed]) => {
