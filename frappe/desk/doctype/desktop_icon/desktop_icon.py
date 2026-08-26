@@ -321,7 +321,7 @@ def clear_desktop_icons_cache(user=None):
 def create_desktop_icons_from_workspace():
 	workspaces = frappe.get_all(
 		"Workspace",
-		filters={"public": 1, "name": ["!=", "Welcome Workspace"]},
+		filters={"public": 1},
 		fields=["name", "icon", "module"],
 	)
 

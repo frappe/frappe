@@ -422,8 +422,8 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					label: __("Show a different sidebar"),
 					collapsible: 1,
 					// Collapsed by default: it is only for a page whose own module is not the shell
-					// you want -- `Welcome Workspace` on `Core` being the live case -- and every
-					// ordinary row leaves it alone.
+					// you want -- a page on a code-only module, which is on no rail, being the
+					// case it exists for -- and every ordinary row leaves it alone.
 					depends_on: "eval:doc.opens != 'URL'",
 				},
 				{

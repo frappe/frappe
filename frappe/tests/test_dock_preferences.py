@@ -1255,22 +1255,20 @@ class TestTheRowShape(DockTestCase):
 		rendered = next(r for r in dock_for(among=None) if r["link_to"] == page)
 		self.assertEqual(rendered["sidebar"], BETA, "the named shell, not the page's own module")
 
-	def test_the_live_case_for_the_override_is_expressible(self):
-		"""`Welcome Workspace`'s module is `Core`, which is code-only and therefore on no rail --
-		so deriving its shell would land somewhere the rail refuses to acknowledge. The row is
-		storable; whether it *renders* is the ordinary workspace permission question, which a
-		bare site answers no to."""
+	def test_the_case_the_override_exists_for_is_expressible(self):
+		"""The case the override is for: a page whose own module is code-only and therefore on
+		no rail, so deriving its shell would land somewhere the rail refuses to acknowledge.
+		Naming one keeps the row storable; whether it *renders* is the ordinary workspace
+		permission question."""
 		from frappe.utils.modules import get_code_only_modules
 
 		self.assertIn("Core", get_code_only_modules())
-		self.assertEqual(frappe.db.get_value("Workspace", "Welcome Workspace", "module"), "Core")
+		page = self.make_workspace("Test Dock Code Only Page", "Core")
 
-		save_site_dock(
-			APP, payload(added(sidebar("Users", link_type="Workspace", link_to="Welcome Workspace")))
-		)
+		save_site_dock(APP, payload(added(sidebar("Users", link_type="Workspace", link_to=page))))
 
 		row = get_site_dock(APP)[0]
-		self.assertEqual((row["sidebar"], row["link_to"]), ("Users", "Welcome Workspace"))
+		self.assertEqual((row["sidebar"], row["link_to"]), ("Users", page))
 
 	# -- identity ------------------------------------------------------------------------
 

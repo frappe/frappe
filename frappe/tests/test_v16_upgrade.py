@@ -72,6 +72,7 @@ class TestV16Upgrade(IntegrationTestCase):
 	REPORT = "V16 Module Report"
 	OTHER_REPORT = "V16 Other Report"
 	SHIPPED_REPORT = "V16 Re-exported Report"
+	PRIVATE_PAGE = "V16 Personal Page"
 	USER = "test-v16-upgrade@example.com"
 
 	@classmethod
@@ -121,6 +122,19 @@ class TestV16Upgrade(IntegrationTestCase):
 			}
 		).insert(ignore_if_duplicate=True)
 
+		# The kind of page the private container below hangs off: one a person owns.
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": cls.PRIVATE_PAGE,
+				"label": cls.PRIVATE_PAGE,
+				"module": cls.MODULE,
+				"public": 0,
+				"for_user": cls.USER,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
 		# Two sidebars on one module, a personal fork of one of them, and the container v16 hung
 		# everyone's private pages off -- the whole shape a v16 site arrives carrying.
 		archive(
@@ -146,12 +160,12 @@ class TestV16Upgrade(IntegrationTestCase):
 		)
 		archive(
 			"V16 My Workspaces",
-			[{"type": "Link", "link_type": "Workspace", "link_to": "Welcome Workspace"}],
+			[{"type": "Link", "link_type": "Workspace", "link_to": cls.PRIVATE_PAGE}],
 			module=cls.MODULE,
 		)
 		archive(
 			f"My Workspaces-{cls.USER}",
-			[{"type": "Link", "link_type": "Workspace", "link_to": "Welcome Workspace"}],
+			[{"type": "Link", "link_type": "Workspace", "link_to": cls.PRIVATE_PAGE}],
 			module=cls.MODULE,
 			for_user=cls.USER,
 		)
@@ -359,7 +373,7 @@ class TestV16Upgrade(IntegrationTestCase):
 	def test_a_private_workspace_container_is_passed_over(self):
 		"""Every row in one is a link to a page its owner owns, and those are derived on read
 		now -- there is nothing in it to convert."""
-		self.assertNotIn("Welcome Workspace", [row.link_to for row in self.user_layer().sidebar_items])
+		self.assertNotIn(self.PRIVATE_PAGE, [row.link_to for row in self.user_layer().sidebar_items])
 
 	# -- nothing is destroyed, so it can all be done again -------------------------------
 

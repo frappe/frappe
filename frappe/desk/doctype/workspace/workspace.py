@@ -14,6 +14,7 @@ from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.modules.export_file import delete_folder, export_to_files
 from frappe.utils import strip_html
+from frappe.utils.html_utils import sanitize_html
 
 
 class Workspace(Document, DeskViews):
@@ -74,6 +75,12 @@ class Workspace(Document, DeskViews):
 		title: DF.Data
 		type: DF.Literal["Workspace", "Link", "URL"]
 	# end: auto-generated types
+
+	def before_validate(self):
+		# `before_validate` and not `validate`: a fixture import sets `ignore_validate`, which skips
+		# `validate` but not the sanitizer -- and the import is the very write that damaged every
+		# workspace shipping markup in its blocks.
+		self.content = sanitize_content(self.content)
 
 	def validate(self):
 		self.title = strip_html(self.title)
@@ -408,13 +415,61 @@ def module_name_is_free(module: str) -> bool:
 	return page is None or page.module == module
 
 
+def sanitize_content(content: str | None) -> str | None:
+	"""The form a workspace's blocks are stored in: markup sanitized, no angle bracket left over.
+
+	`content` is a Long Text field holding a JSON document, and every write of a Long Text field
+	goes through the XSS sanitizer (`BaseDocument._sanitize_content`). That sanitizer reads the
+	*whole field* as HTML, so the markup a header block carries -- `<span class=\\"h4\\">`, quotes
+	escaped because it lives inside a JSON string -- comes back as `class="\\&quot;h4\\&quot;"` and
+	the field has stopped being JSON. Every reader of it raises from then on, and the reader of
+	`Home` is the desk itself.
+
+	So the field reaches the sanitizer with nothing in it for the sanitizer to do:
+
+	* Each string in the document is sanitized *as HTML* on its own, which is where the check
+	  belongs and where it works -- a `<script>` in a paragraph is dropped, a `<b>` is kept.
+	* The serialized document is then written with every `<` and `>` as its `\\u003c` / `\\u003e`
+	  JSON escape. `loads` and `JSON.parse` hand back the same markup either way, but the stored
+	  string carries nothing the sanitizer recognises as a tag, so it skips the field on its
+	  `"<" not in value` check and the JSON survives the trip.
+
+	Content that doesn't parse is handed back untouched: re-serializing what nobody can read is
+	not on offer. A row damaged before this existed comes back when its app file is imported over
+	it, which is why an app ships its workspaces in exactly the form this returns -- the file is
+	the repair.
+	"""
+	if not content:
+		return content
+
+	try:
+		document = loads(content)
+	except ValueError:
+		return content
+
+	# `<` and `>` only ever occur inside a string literal here -- JSON's own syntax has no angle
+	# bracket -- so escaping them in the serialized form cannot touch the structure.
+	return dumps(sanitize_strings(document)).replace("<", "\\u003c").replace(">", "\\u003e")
+
+
+def sanitize_strings(value):
+	"""Run the HTML sanitizer over every string in a parsed block document, at any depth."""
+	if isinstance(value, str):
+		return sanitize_html(value)
+	if isinstance(value, list):
+		return [sanitize_strings(v) for v in value]
+	if isinstance(value, dict):
+		return {key: sanitize_strings(v) for key, v in value.items()}
+	return value
+
+
 def welcome_blocks(title: str) -> list[dict]:
 	"""What a page nobody has written yet opens on.
 
 	The same two blocks the desk seeds a page somebody creates by hand with (`initialize_new_page`
-	in workspace.js), so a page reads the same whichever end made it. Plain text in both, because
-	`content` is a Long Text field: markup comes back from the sanitizer with the JSON's own
-	quotes rewritten, i.e. as content nothing can parse.
+	in workspace.js), so a page reads the same whichever end made it. Plain text in both, which is
+	all a page nobody has written yet has to say -- markup would be kept (see `sanitize_content`),
+	it just has nothing to add here.
 	"""
 	return [
 		{"type": "header", "data": {"text": _("Welcome to the {0} workspace").format(title)}},

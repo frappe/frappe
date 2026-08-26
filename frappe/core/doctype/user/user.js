@@ -4,7 +4,6 @@ frappe.ui.form.on("User", {
 			return {
 				filters: {
 					for_user: ["in", ["", frappe.session.user]],
-					title: ["!=", "Welcome Workspace"],
 				},
 			};
 		});

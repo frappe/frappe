@@ -470,7 +470,7 @@ def get_workspaces():
 		try:
 			workspace = Workspace(page, True)
 			if has_access or workspace.is_permitted():
-				if page.public and (has_access or not page.is_hidden) and page.title != "Welcome Workspace":
+				if page.public and (has_access or not page.is_hidden):
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
@@ -497,11 +497,6 @@ def get_workspaces():
 			pass
 	if private_pages:
 		pages.extend(private_pages)
-
-	if len(pages) == 0:
-		welcome_workspace = next((x for x in all_pages if x["title"] == "Welcome Workspace"), None)
-		if welcome_workspace:
-			pages.append(welcome_workspace)
 
 	return {
 		"pages": pages,

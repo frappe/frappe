@@ -60,6 +60,14 @@ class CustomWorkspace(Document):
 		workspace: DF.Link
 	# end: auto-generated types
 
+	def before_validate(self):
+		# Same trip through the XSS sanitizer the base document takes, and the same reason for
+		# heading it off here -- this row carries a workspace's blocks too.
+		from frappe.desk.doctype.workspace.workspace import sanitize_content
+
+		self.content = sanitize_content(self.content)
+		self.widgets = sanitize_content(self.widgets)
+
 	def validate(self):
 		if not frappe.db.get_value("Workspace", self.workspace, "standard"):
 			frappe.throw(_("Only standard (app-shipped) workspaces can be customized."))
