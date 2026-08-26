@@ -63,8 +63,19 @@ function open_editor(win, { hidden = [], can_curate = false } = {}) {
 
 		get layers() {
 			return {
-				user: { read: "read.user", save: "save.user", saved: () => "Saved" },
-				site: { read: "read.site", save: "save.site", saved: () => "Saved for everyone" },
+				user: {
+					read: "read.user",
+					save: "save.user",
+					label: () => "Just for me",
+					saved: () => "Saved",
+				},
+				site: {
+					read: "read.site",
+					save: "save.site",
+					label: () => "For everyone",
+					condition: () => this.can_curate_site,
+					saved: () => "Saved for everyone",
+				},
 			};
 		}
 
