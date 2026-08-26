@@ -99,7 +99,7 @@ context("Dashboard links", () => {
 
 		// plain click: current behaviour is unaffected, navigates in the same tab
 		cy.get('.document-link[data-doctype="Contact"]').contains("Contact").click();
-		cy.location("pathname").should("eq", "/desk/contact");
+		cy.location("pathname").should("eq", "/desk/contact/view/list");
 		cy.get("@windowOpen").should("not.have.been.called");
 
 		// back to the form and repeat with Ctrl/Cmd held: must open in a new tab
@@ -127,14 +127,14 @@ context("Dashboard links", () => {
 
 		cy.window()
 			.its("cur_frm")
-			.then((cur_frm) => {
-				cur_frm.dashboard.data.reports = [
+			.then((frm) => {
+				frm.dashboard.data.reports = [
 					{
 						label: "Reports",
 						items: ["Website Analytics"],
 					},
 				];
-				cur_frm.dashboard.render_report_links();
+				frm.dashboard.render_report_links();
 			});
 
 		cy.window().then((win) => cy.stub(win, "open").as("windowOpen"));
