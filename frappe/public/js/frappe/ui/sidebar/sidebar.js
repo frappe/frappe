@@ -371,10 +371,20 @@ frappe.ui.Sidebar = class Sidebar {
 		return (sidebar && sidebar.module) || this.current_module;
 	}
 
-	// The workspace dock is always on. Apps can no longer opt out; only page-level opt-outs
-	// (page_allows_dock, e.g. the desktop/apps screen) still suppress it.
+	// Whether there is a rail to draw at all.
+	//
+	// **The trigger is zero *resolved* entries, not the record's absence.** Presence is the
+	// authoring opt-in; rendering tests the payload. That covers both the app that ships no dock
+	// and the person permitted none of a full dock's entries -- who would otherwise get an empty
+	// rail *and* no switcher: no navigation at all, for exactly the person least able to
+	// improvise some.
+	//
+	// A dock-less app gets **no rail**, not a chrome-only stripe. The user button goes back to
+	// the sidebar (the pre-dock layout, which still exists) and the sidebar header carries a
+	// switcher instead. The cost is accepted: the layout shifts as you move between a docked app
+	// and a dock-less one.
 	workspace_dock_enabled() {
-		return true;
+		return this.collect_dock_entries(this.get_sidebar_app()).length > 0;
 	}
 
 	// (Re)render the workspace dock to match the current app context. Created lazily on first

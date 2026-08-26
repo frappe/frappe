@@ -6,8 +6,11 @@
 //   placed      logo = app icon      items = the app's other modules
 //   standalone  logo = module icon   items = (empty)
 //
-// It's always on (see Sidebar.workspace_dock_enabled), but hidden until the page on screen allows
-// it (page_allows_dock -- the desktop/apps screen does not).
+// It is drawn only when the app on screen resolves to at least one visible entry
+// (Sidebar.workspace_dock_enabled) *and* the page on screen allows it (page_allows_dock -- the
+// desktop/apps screen does not). An app that resolves to none gets no rail at all rather than a
+// chrome-only stripe: the user button goes back to the body sidebar and the sidebar header
+// carries a switcher instead.
 frappe.ui.WorkspaceDock = class WorkspaceDock {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
@@ -170,10 +173,11 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 	refresh() {
 		// the dock belongs to the app whose body sidebar is on screen
 		this.app = this.sidebar.get_sidebar_app();
-		// ...and is only displayed if the page on screen allows it (the desktop/apps screen, and
-		// any page still to render, do not)
+		// ...and is only drawn if there is anything on it, and if the page on screen allows it
+		// (the desktop/apps screen, and any page still to render, do not)
 		let enabled = this.sidebar.workspace_dock_enabled() && this.sidebar.page_allows_dock();
-		// drives the CSS that hides the sidebar's own user button (moved into the dock) when active
+		// drives the CSS that hides the sidebar's own user button (moved into the rail) when
+		// active -- so switching this off is what returns the user button to the sidebar
 		$("body").toggleClass("workspace-dock-active", enabled);
 
 		if (!enabled) {

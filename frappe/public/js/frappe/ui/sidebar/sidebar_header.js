@@ -16,13 +16,44 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.title = this.get_display_title();
 		this.set_header_icon();
 		this.$header_title.text(__(this.title));
+		this.refresh_menu();
 	}
 
-	// What the header's own menu offers: things that are about the sidebar in front of you.
-	// Switching between sidebars is the dock's, and arranging the dock is the user menu's --
-	// this is neither, which is why it is not either of those menus.
+	// The menu's rows are restated rather than the menu rebuilt.
+	//
+	// `frappe.ui.menu` re-runs each row's `condition` on every open, but the *list* is the array
+	// it was handed at construction -- so the switcher's rows, and the modules and apps nested
+	// under them, would be whichever app was on screen when the desk booted. Rebuilding the menu
+	// instead would bind a second click handler to the same header and register another
+	// document-level listener, which is exactly what keeping one header for the life of the desk
+	// exists to avoid. Replacing the array is neither.
+	refresh_menu() {
+		if (this.menu) this.menu.menu_items = this.menu_items();
+	}
+
+	// What the header's own menu offers.
+	//
+	// On a **docked** app: things that are about the sidebar in front of you, and nothing else.
+	// Switching between sidebars is the rail's while there is one, and arranging the rail is the
+	// user menu's -- so the menu is one item long and both switcher rows are absent. Premise 5
+	// holds: a docked app's header is untouched.
+	//
+	// On a **dock-less** app there is no rail to switch with, so the header carries the switcher.
+	// Two nested rows and nothing more:
+	//
+	//     Modules  >   the app's navigable modules
+	//     Apps     >   every app on the desktop screen, then All apps
+	//     ---------
+	//     Edit Sidebar
+	//
+	// Nesting both axes is what buys the brevity: the menu stays four rows tall whether the app
+	// has two modules or twenty-two. Nothing new was added to the menu primitive for it --
+	// nesting, dividers and group headings all existed.
 	menu_items() {
+		const switching = this.switcher_items();
 		return [
+			...switching,
+			...(switching.length ? [{ is_divider: true }] : []),
 			{
 				name: "edit-sidebar",
 				label: __("Edit Sidebar"),
@@ -53,8 +84,68 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		];
 	}
 
+	// The switcher, present only where there is no rail to do the switching.
+	//
+	// Rows name the **axis**, not the current location: "Modules", not "Stock". A row naming
+	// where you are reads as a status line, and a menu row is a thing you press.
+	switcher_items() {
+		const sidebar = this.sidebar;
+		if (sidebar.workspace_dock_enabled()) return [];
+
+		const items = [];
+		const modules = sidebar.app_modules(sidebar.get_sidebar_app());
+
+		// **Absent when the app has one module**, following the rail's own refusal to draw a rail
+		// of one: an item rendered permanently active with no alternatives is a switcher that
+		// cannot switch. Helpdesk, Insights, Drive, Wiki and Newsletter each ship exactly one, so
+		// for most dock-less apps the switcher *is* an app switcher.
+		if (modules.length > 1) {
+			items.push({
+				name: "switch-module",
+				label: __("Modules"),
+				icon: "layout-grid",
+				items: modules.map((shell) => ({
+					name: `module-${shell}`,
+					label: frappe.boot.module_sidebars[shell]?.label || shell,
+					icon: frappe.boot.module_sidebars[shell]?.header_icon,
+					onClick: () => sidebar.open_module(shell),
+				})),
+			});
+		}
+
+		items.push({
+			name: "switch-app",
+			label: __("Apps"),
+			icon: "layout-dashboard",
+			// Every app on the desktop screen, **docked ones included**. Excluding them would
+			// strand somebody on a dock-less app with no route to ERPNext.
+			items: [
+				...(frappe.boot.app_data || [])
+					.filter((app) => app.on_apps_screen)
+					.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100))
+					.map((app) => ({
+						name: `app-${app.app_name}`,
+						label: app.app_title || app.app_name,
+						icon_url: Array.isArray(app.app_logo_url)
+							? app.app_logo_url[0]
+							: app.app_logo_url,
+						onClick: () => {
+							const route = sidebar.app_landing_route(app) || "/desk";
+							route.startsWith("http")
+								? window.open(route, "_blank")
+								: frappe.set_route(route);
+						},
+					})),
+				{ is_divider: true },
+				{ name: "all-apps", label: __("All apps"), icon: "grid-2x2", url: "/desk" },
+			],
+		});
+
+		return items;
+	}
+
 	setup_menu() {
-		frappe.ui.create_menu({
+		this.menu = frappe.ui.create_menu({
 			parent: this.wrapper,
 			menu_items: this.menu_items(),
 			onShow: this.toggle_active,
