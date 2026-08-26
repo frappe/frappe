@@ -882,7 +882,11 @@ patches_template = """[pre_model_sync]
 # Read docs to understand patches: https://docs.frappe.io/framework/user/en/database-migrations
 
 [post_model_sync]
-# Patches added in this section will be executed after doctypes are migrated"""
+# Patches added in this section will be executed after doctypes are migrated
+
+[post_fixture_sync]
+# Patches added in this section will be executed after fixtures and customizations
+# (Custom Field, Property Setter, etc) are synced"""
 
 
 precommit_template = """exclude: 'node_modules|.git'

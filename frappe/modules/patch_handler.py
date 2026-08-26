@@ -20,15 +20,27 @@ patches by using INI like file format:
 
 	[post_model_sync]
 	app.module.patch3
+
+
+	[post_fixture_sync]
+	app.module.patch4
 	```
 
 	When different sections are specified patches are executed in this order:
 		1. Run pre_model_sync patches
 		2. Reload/resync all doctype schema
 		3. Run post_model_sync patches
+		4. Sync fixtures and customizations (Custom Field, Property Setter, etc)
+		5. Run post_fixture_sync patches
 
 	Hence any patch that just needs to modify data but doesn't depend on
-	old schema should be added to post_model_sync section of file.
+	old schema should be added to post_model_sync section of file. Any
+	patch that depends on fields/doctypes added via fixtures or
+	customizations (which aren't available on the DocType until fixtures
+	are synced) should be added to the post_fixture_sync section instead.
+
+	The post_fixture_sync section is optional; apps that don't need it can
+	omit it entirely.
 
 3. simple python commands can be added by starting line with `execute:`
 `execute:` example: `execute:print("hello world")`
@@ -49,6 +61,7 @@ class PatchError(Exception):
 class PatchType(Enum):
 	pre_model_sync = "pre_model_sync"
 	post_model_sync = "post_model_sync"
+	post_fixture_sync = "post_fixture_sync"
 
 
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
@@ -126,9 +139,16 @@ def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) 
 		return []
 
 	if not patch_type:
-		return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
-			patch for patch in parser[PatchType.post_model_sync.value]
-		]
+		patches = [patch for patch in parser[PatchType.pre_model_sync.value]]
+		patches += [patch for patch in parser[PatchType.post_model_sync.value]]
+		if PatchType.post_fixture_sync.value in parser.sections():
+			patches += [patch for patch in parser[PatchType.post_fixture_sync.value]]
+		return patches
+
+	# TODO: Since this is a new patch type, we should not throw an error if it is not found in the patches.txt file.
+	# Instead, we should return an empty list for existing apps and can be removed afterwards.
+	if patch_type == PatchType.post_fixture_sync and patch_type.value not in parser.sections():
+		return []
 
 	if patch_type.value in parser.sections():
 		return [patch for patch in parser[patch_type.value]]
