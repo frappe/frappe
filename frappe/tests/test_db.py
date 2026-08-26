@@ -766,6 +766,8 @@ class TestDB(IntegrationTestCase):
 			{"a": "23", "b": 23.0, "c": 23.0345, "d": "wow", "e": ("1", "2", "3", "abc")},
 			modify_values({"a": 23, "b": 23.0, "c": 23.0345, "d": "wow", "e": [1, 2, 3, "abc"]}),
 		)
+		# bool is a subclass of int, it must not end up as "True"
+		self.assertEqual({"a": "1", "b": "0"}, modify_values({"a": True, "b": False}))
 		self.assertEqual(
 			["23", 23.0, 23.00004345, "wow", ("1", "2", "3", "abc")],
 			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
@@ -1046,6 +1048,14 @@ class TestDBSetValue(IntegrationTestCase):
 			self.assertTrue(modify_query("UPDATE `tabToDo` SET") in query)
 		if frappe.conf.db_type == "mariadb":
 			self.assertTrue("UPDATE `tabToDo` SET" in query)
+
+	def test_bool_value_for_check_field(self):
+		# postgres does not accept `true` in a smallint (Check) column
+		frappe.db.set_value("User", "Administrator", "mute_sounds", True)
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "mute_sounds"), 1)
+
+		frappe.db.set_value("User", "Administrator", "mute_sounds", False)
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "mute_sounds"), 0)
 
 	def test_cleared_cache(self):
 		self.todo2.reload()

@@ -631,6 +631,17 @@ class TestParameterization(IntegrationTestCase):
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "some_value")
 
+	def test_bool_conditions(self):
+		DocType = frappe.qb.DocType("DocType")
+		query, params = frappe.qb.update(DocType).set(DocType.is_submittable, True).walk()
+
+		if frappe.db.db_type == "postgres":
+			# sent as '1' so that smallint (Check), varchar and boolean columns all accept it
+			self.assertIn("%(param1)s", query)
+			self.assertEqual(params["param1"], "1")
+		else:
+			self.assertIn("=true", query)
+
 	def test_where_conditions_functions(self):
 		DocType = frappe.qb.DocType("DocType")
 		query = (
