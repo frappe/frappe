@@ -61,6 +61,7 @@ frappe.views.TreeView = class TreeView {
 		this.get_tree_nodes = me.opts.get_tree_nodes || "frappe.desk.treeview.get_children";
 
 		this.get_permissions();
+		this.editor = new frappe.views.TreeEditor(this);
 
 		this.make_page();
 		this.make_filters();
@@ -131,12 +132,14 @@ frappe.views.TreeView = class TreeView {
 		if (this.opts.show_expand_all) {
 			this.$collapse_all_btn = this.page
 				.add_menu_item(__("Collapse All"), function () {
+					if (me.editor.blocks_reload(me.tree.root_node, false)) return;
 					me.tree.load_children(me.tree.root_node, false);
 				})
 				.parent();
 
 			this.$expand_all_btn = this.page
 				.add_menu_item(__("Expand All"), function () {
+					if (me.editor.blocks_reload(me.tree.root_node, true)) return;
 					me.tree.load_children(me.tree.root_node, true);
 				})
 				.parent();
@@ -250,6 +253,7 @@ frappe.views.TreeView = class TreeView {
 				this.opts.on_node_render && this.opts.on_node_render(node, deep);
 				this.update_expand_collapse_buttons();
 			},
+			on_children_render: (node) => this.editor.make_sortable(node),
 			on_click: (node) => {
 				this.select_node(node);
 				// node.expanded is flipped synchronously right after this callback
@@ -260,6 +264,7 @@ frappe.views.TreeView = class TreeView {
 
 		cur_tree = this.tree;
 		cur_tree.view_name = "Tree";
+		this.editor.attach();
 		this.post_render();
 	}
 	get_expandable_nodes() {
@@ -338,7 +343,7 @@ frappe.views.TreeView = class TreeView {
 					return !node.is_root && me.can_read;
 				},
 				click: function (node) {
-					frappe.set_route("Form", me.doctype, node.label);
+					me.editor.quick_edit(node);
 				},
 			},
 			{
@@ -361,6 +366,7 @@ frappe.views.TreeView = class TreeView {
 					return !node.is_root && me.can_write && allow_rename;
 				},
 				click: function (node) {
+					if (me.editor.blocks_reload(node.parent_node, false)) return;
 					frappe.model.rename_doc(me.doctype, node.label, function (new_name) {
 						node.$tree_link.find("a").text(new_name);
 						node.label = new_name;
@@ -541,8 +547,16 @@ frappe.views.TreeView = class TreeView {
 			{
 				label: __("Refresh"),
 				action: function () {
+					if (me.editor.blocks_reload(null, true)) return;
 					me.make_tree();
 				},
+			},
+			{
+				label: __("Edit Tree"),
+				action: function () {
+					me.editor.toggle();
+				},
+				condition: "me.editor.can_edit",
 			},
 		];
 
@@ -554,6 +568,7 @@ frappe.views.TreeView = class TreeView {
 			this.menu_items.push({
 				label: __("Rebuild Tree"),
 				action: function () {
+					if (me.editor.blocks_reload(null, true)) return;
 					me.rebuild_tree();
 				},
 			});
@@ -570,7 +585,8 @@ frappe.views.TreeView = class TreeView {
 			}
 
 			if (has_perm) {
-				me.page.add_menu_item(menu_item["label"], menu_item["action"]);
+				let $item = me.page.add_menu_item(menu_item["label"], menu_item["action"]);
+				if (menu_item["label"] === __("Edit Tree")) me.editor.$menu_item = $item;
 			}
 		});
 	}

@@ -19,6 +19,7 @@ frappe.ui.Tree = class {
 		on_render,
 		on_click,
 		on_node_render,
+		on_children_render,
 	}) {
 		$.extend(this, arguments[0]);
 		if (root_value == null) {
@@ -195,9 +196,14 @@ frappe.ui.Tree = class {
 		// As children loaded
 		node.loaded = true;
 		this.expand_node(node);
+
+		this.on_children_render && this.on_children_render(node);
 	}
 
 	on_node_click(node) {
+		// a mouseup that ends a drag would otherwise read as a click on the row
+		if (this.suppress_click_until && Date.now() < this.suppress_click_until) return;
+
 		this.expand_node(node);
 		frappe.dom.activate(this.wrapper, node.$tree_link, "tree-link");
 		if (node.$toolbar) this.show_toolbar(node);

@@ -171,3 +171,128 @@
 	background-color: var(--fg-hover-color);
 	border-radius: var(--radius);
 }
+
+// --- rearranging the tree -------------------------------------------------
+
+.tree-edit-banner {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-sm);
+	margin-bottom: var(--margin-md);
+	padding: var(--padding-sm) var(--padding-md);
+	border: 1px dashed var(--orange-400);
+	border-radius: var(--radius);
+	background-color: var(--bg-orange);
+	color: var(--text-on-orange);
+	font-size: var(--text-sm);
+	font-weight: 500;
+
+	&::before {
+		content: "\271B";
+		font-size: var(--text-md);
+		line-height: 1;
+	}
+}
+
+// while a session is open the whole card reads as a work surface
+.tree-editing {
+	.layout-main-section.frappe-card,
+	.page-main-content .frappe-card {
+		outline: 1px dashed var(--orange-400);
+		outline-offset: 4px;
+	}
+
+	.tree.tree-draggable .tree-link {
+		cursor: grab;
+		border: 1px dashed transparent;
+		border-radius: var(--radius);
+
+		// a grip, so a row visibly announces that it can be picked up
+		&::before {
+			content: "\2807\2807";
+			margin-right: var(--margin-xs);
+			color: var(--text-muted);
+			font-size: var(--text-md);
+			line-height: 1.4em;
+		}
+
+		&:hover {
+			border-color: var(--gray-400);
+			background-color: var(--highlight-color);
+		}
+
+		&:active {
+			cursor: grabbing;
+		}
+
+		// moved, but not saved yet
+		&.tree-link-moved {
+			border-color: var(--orange-400);
+			border-style: solid;
+			background-color: var(--bg-orange);
+
+			&::before {
+				color: var(--text-on-orange);
+			}
+
+			.tree-label {
+				color: var(--text-on-orange);
+				font-weight: 600;
+			}
+		}
+	}
+}
+
+// the gap the dragged row leaves behind
+li.tree-node.tree-drag-ghost {
+	opacity: 0.4;
+
+	> .tree-link {
+		background-color: var(--highlight-color);
+		border-radius: var(--radius);
+	}
+}
+
+li.tree-node.tree-drag-chosen > .tree-link {
+	background-color: var(--control-bg);
+	border-radius: var(--radius);
+}
+
+// the row following the cursor
+li.tree-node.tree-drag-image {
+	background-color: var(--card-bg);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-base);
+	opacity: 0.9;
+
+	// only the row itself follows the cursor, not the branch under it
+	> ul.tree-children {
+		display: none !important;
+	}
+}
+
+// the children list the row would land in
+ul.tree-children.tree-drop-target {
+	background-color: var(--bg-orange);
+	border-radius: var(--radius);
+	outline: 1px dashed var(--orange-400);
+	outline-offset: 2px;
+}
+
+body.tree-dragging {
+	// a group with no children is still a valid destination, so give it
+	// enough of a target to aim at
+	ul.tree-children.tree-sortable:empty {
+		display: block !important;
+		min-height: 36px;
+		margin-right: var(--margin-md);
+		margin-bottom: var(--margin-xs);
+		border: 1px dashed var(--gray-400);
+		border-radius: var(--radius);
+		background-color: var(--highlight-color);
+	}
+
+	.tree-link {
+		cursor: grabbing;
+	}
+}
