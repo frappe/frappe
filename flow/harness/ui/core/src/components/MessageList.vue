@@ -158,7 +158,10 @@ const partialVersion = computed(() => {
 	const partial = conversation.value.partial
 	const tail = partial[partial.length - 1]
 	const streamedLength = tail?.text?.length ?? tail?.thinking?.length ?? 0
-	return `${partial.length}:${tail?.type ?? ""}:${tail?.id ?? ""}:${tail?.name ?? ""}:${streamedLength}`
+	// tool rows render on their display_ready upgrade (arguments landing), which
+	// moves nothing else the autoscroller watches — count the upgraded calls
+	const ready = partial.filter((b) => b.type === "tool_call" && b.arguments != null).length
+	return `${partial.length}:${tail?.type ?? ""}:${tail?.id ?? ""}:${tail?.name ?? ""}:${streamedLength}:${ready}`
 })
 
 const scroller = ref(null)
@@ -171,10 +174,11 @@ function onScroll() {
 	const distance = el.scrollHeight - el.scrollTop - el.clientHeight
 	const goingUp = el.scrollTop < lastScrollTop
 	lastScrollTop = el.scrollTop
-	// any upward scroll unsticks; only scrolling down near the bottom re-sticks
-	if (distance < 1) stick.value = true
+	// any upward scroll unsticks; scrolling down re-sticks only once the view
+	// actually reaches the bottom — re-pinning from ~80px away yanks the page
+	// out of the user's hands mid-scroll
+	if (distance < 4) stick.value = true
 	else if (goingUp) stick.value = false
-	else stick.value = distance < 80
 	updateActivePrompt()
 }
 
