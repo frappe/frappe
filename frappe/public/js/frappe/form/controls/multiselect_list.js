@@ -136,13 +136,29 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		// The dropdown's loaded options are capped to a small page for performance
 		// (e.g. the first 10 search results). Ask the data source for everything
 		// matching the current search text before selecting "all" of it.
+		//
+		// Most get_data callbacks aren't written to know about "select all" — they
+		// just delegate straight to frappe.db.get_link_options. Temporarily make
+		// that call request a much larger page so those callbacks return everything
+		// without needing to be updated individually. Callbacks that want explicit
+		// control can still branch on the second (for_select_all) argument.
 		let all_options = this._options;
 		if (this.df.get_data) {
 			let txt = this.$filter_input.val();
-			let value = this.df.get_data(txt, true);
-			if (value && value.then) {
-				value = await value;
+			const get_link_options = frappe.db.get_link_options;
+			frappe.db.get_link_options = (doctype, t, filters) =>
+				get_link_options(doctype, t, filters, 25000);
+
+			let value;
+			try {
+				value = this.df.get_data(txt, true);
+				if (value && value.then) {
+					value = await value;
+				}
+			} finally {
+				frappe.db.get_link_options = get_link_options;
 			}
+
 			if (value) {
 				all_options = this.process_options(value);
 			}
