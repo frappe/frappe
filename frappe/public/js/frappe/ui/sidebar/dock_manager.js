@@ -24,7 +24,7 @@
 // app slice, the shape of a saved row -- is the same work either way.
 // Making a module the site is adding for itself. It creates the workspace that keeps the module
 // reachable along with it -- see the endpoint, which explains why the two are one action.
-const CREATE_MODULE = "frappe.desk.doctype.dock.dock.create_module";
+const RESET_FOR_EVERYONE = "frappe.desk.doctype.dock.dock.reset_dock_for_everyone";
 
 const DOCK_LAYERS = {
 	user: {
@@ -106,6 +106,12 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		]);
 
 		this.layer_rows = layer;
+		// Which of these rows this layer added itself, so they carry a cross rather than an eye.
+		// Read off the stored layer rather than guessed from the entry: an entry a *lower* layer
+		// added is a reference from here, and hiding is the right control for it.
+		this.own_adds = new Set(
+			(layer || []).filter((row) => row.added).map((row) => this.key(row))
+		);
 		// What the apps ship, so a row the app itself hid can say so. "Hidden" is otherwise
 		// silent about who hid it, and un-hiding an app's deliberate default should be a choice
 		// rather than an accident.
@@ -183,89 +189,16 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return shown.length ? shown : this.all_keys();
 	}
 
-	// The dock's layers order and hide; they never add. This is not a layer adding one -- it
-	// makes a module the site did not have, which the app's own entry set then offers like any
-	// other, whether or not this arrangement is ever saved. So it is offered to whoever curates
-	// for everyone, and only where there is an app for the module to be placed in.
+	// Both upper layers may add an entry -- the server's bound is **reach**, never base
+	// membership, so a person may put on their rail anything they can already navigate to.
+	// The dialog that does it is ticket 14's; until it lands there is nothing here to open, and
+	// offering a button that does nothing would be worse than not offering one.
 	can_add() {
-		return this.can_curate_site && !!this.app;
+		return false;
 	}
 
-	add() {
-		if (!this.loaded) return;
-
-		// Named for what it does, not for what it makes. "Module" and "workspace" are how the
-		// desk is built, not what somebody adding one to their dock is thinking about -- they
-		// are adding a place to keep things, and what it takes to be one is our problem.
-		const dialog = new frappe.ui.Dialog({
-			title: __("Add"),
-			fields: [
-				{
-					fieldtype: "Data",
-					fieldname: "module",
-					label: __("Name"),
-					reqd: 1,
-					description: __("It starts with a page of its own."),
-				},
-				// What the rail draws it with. Stored on the page it opens on, which is where a
-				// computed sidebar takes its header icon from -- so this is the icon, not a
-				// decoration on one of its pages.
-				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
-			],
-			primary_action_label: __("Create"),
-			primary_action: async (values) => {
-				this.place(
-					await frappe.xcall(CREATE_MODULE, {
-						module: values.module,
-						app: this.app.app_name,
-						icon: values.icon,
-					})
-				);
-				dialog.hide();
-			},
-		});
-
-		dialog.show();
-	}
-
-	// Put the module the site has just made onto the dock in front of us.
-	//
-	// Everything the write invalidated is swapped in, not just the sidebars: the desk keeps its
-	// own list of workspaces, and a page that list has never heard of is one it cannot place --
-	// it reads as a page nobody but its owner can see, which is not what was created.
-	place(created) {
-		const sidebar = frappe.app.sidebar;
-
-		frappe.boot.workspaces = created.workspace_pages;
-		frappe.boot.app_data = created.app_data;
-		frappe.boot.module_sidebars = created.module_sidebars;
-		frappe.boot.entity_module = created.entity_module;
-		sidebar.all_sidebar_items = created.module_sidebars;
-		// the app's entry set was rebuilt with the rest of it, so it is re-read rather than
-		// patched -- the copy we were holding is off the payload that has just been replaced
-		this.app = sidebar.get_sidebar_app() || this.app;
-
-		const entry = sidebar.dock_entry(created.entry);
-		if (!entry) {
-			// the payload we were just handed does not carry the module it says it made, so
-			// there is nothing here to render it from -- start again from a fresh boot
-			window.location.reload();
-			return;
-		}
-
-		const key = this.key(entry);
-		this.entries.set(key, entry);
-		this.order.push(key);
-		this.render_panes();
-
-		// The rail draws an entry no arrangement names after the ones it does, so the module is
-		// on the dock the moment it exists -- saving this arrangement is what says *where*.
-		sidebar.refresh_dock();
-
-		frappe.show_alert({
-			message: __("{0} is on the dock", [frappe.utils.escape_html(entry.label)]),
-			indicator: "green",
-		});
+	is_own_add(key) {
+		return this.own_adds.has(key);
 	}
 
 	// A row the app itself ships off says so. The eye is still all it takes to bring it back --
@@ -276,14 +209,43 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			: "";
 	}
 
-	// An empty selection isn't stored as "an empty dock": it is saved as no rows for this app at
-	// all, which is what this layer says when it has nothing to say about it -- so Reset here is
-	// a reset to the layer below (the site's, or the app's own order), and it takes effect on
-	// the next Save like every other edit in the panes.
+	// An empty selection isn't stored as "an empty dock": it is saved as no rows at all, which
+	// is what this layer says when it has nothing to say -- so Reset here is a reset to the layer
+	// below (the site's, or the app's own dock), and it takes effect on the next Save like every
+	// other edit in the panes.
+	//
+	// Rows this layer added go too, not just off the rail. There is nothing below them to fall
+	// back to, so leaving one behind hidden would keep a row nobody can see and nobody can
+	// explain.
 	reset() {
+		this.own_adds.forEach((key) => this.remove(key));
 		if (!this.selection.length) return;
 		this.hidden = new Set(this.all_keys());
 		this.render_panes();
+	}
+
+	// Drop every non-standard dock for this app -- the site's own layer included -- so everybody
+	// is back on the app's exported dock.
+	//
+	// The one act that reaches past the site layer, and the reason it exists: a Workspace Manager
+	// who re-curates the site's rail reaches nobody who has arranged their own. Immediate and
+	// confirmed rather than a pane edit applied on Save, because it is not an edit to the
+	// arrangement in front of them -- it is a decision about everybody else's.
+	async reset_for_everyone() {
+		frappe.confirm(
+			__(
+				"This drops the dock arrangement of every person on this site for {0}, and the site's own, back to what the app ships. It cannot be undone.",
+				[frappe.utils.escape_html(this.app.app_title || this.app.app_name)]
+			),
+			async () => {
+				this.apply(await frappe.xcall(RESET_FOR_EVERYONE, { app: this.app.app_name }));
+				this.dialog.hide();
+				frappe.show_alert({
+					message: __("Everyone is back on the dock this app ships"),
+					indicator: "green",
+				});
+			}
+		);
 	}
 
 	save_args() {

@@ -318,14 +318,19 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			`<span class="ws-item-handle">${frappe.utils.icon("grip-vertical", "sm")}</span>`
 		);
 		this.decorate_item($el, key);
-		$el.append(this.visibility_button(key));
+		$el.append(this.is_own_add(key) ? this.remove_button(key) : this.visibility_button(key));
 		return $el;
 	}
 
-	// The eye, which is the whole of hide and show: one list, one control, and a row that keeps
-	// its place either way. A surface where some entry does not come off the way the rest do
-	// says so here -- see the sidebar, where an entry the layer itself added is deleted rather
-	// than hidden, because nothing below holds it.
+	// Whether this layer added the entry itself, rather than having an opinion about one a layer
+	// below holds. An own add comes off with a cross rather than an eye: there is nothing under
+	// it to hide it *from*, so changing your mind about your own row means gone.
+	is_own_add() {
+		return false;
+	}
+
+	// The eye, which is the whole of hide and show for an entry a lower layer holds: one list,
+	// one control, and a row that keeps its place either way.
 	visibility_button(key) {
 		const hidden = this.hidden.has(key);
 		let $btn = $(
@@ -335,6 +340,28 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		);
 		$btn.on("click", () => this.toggle(key));
 		return $btn;
+	}
+
+	// The cross, for a row this layer added. Hiding it would store "this layer holds an entry it
+	// does not show", which is a sentence with no meaning -- the entry exists only because this
+	// layer says so.
+	remove_button(key) {
+		let $btn = $(
+			`<button class="ws-item-remove" title="${__("Remove")}">${frappe.utils.icon(
+				"x",
+				"sm"
+			)}</button>`
+		);
+		$btn.on("click", () => this.remove(key));
+		return $btn;
+	}
+
+	// Take an own-added entry off the arrangement entirely.
+	remove(key) {
+		this.entries.delete(key);
+		this.order = this.order.filter((k) => k !== key);
+		this.hidden.delete(key);
+		this.render_panes();
 	}
 
 	toggle(key) {

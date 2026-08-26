@@ -976,7 +976,7 @@ frappe.ui.Sidebar = class Sidebar {
 			.map((row) => this.dock_entry(row))
 			.filter(Boolean);
 
-		return this.apply_dock_arrangement(entries, app);
+		return this.apply_dock_arrangement(entries, app).filter(Boolean);
 	}
 
 	// One stored row resolved to what the rail needs: a label, an icon, the shell it selects and
@@ -1026,41 +1026,24 @@ frappe.ui.Sidebar = class Sidebar {
 		};
 	}
 
-	// Apply this app's dock arrangement -- its own dock with the site's arrangement and this
-	// user's own already merged on top of it by the server: drop what it hides, and order what it
-	// names. `frappe.boot.dock` is keyed by app, because a dock layer is per app: arranging
-	// ERPNext's rail says nothing about frappe's, and neither one has to be intersected out of a
-	// cross-app list any more. An app with no arrangement at all is absent from the payload and
-	// keeps its own order.
+	// The rail this app's dock resolves to for this user, already merged by the server: its own
+	// dock, then the site's arrangement, then this person's own. All the client does is drop what
+	// is hidden -- the payload keeps a hidden entry so the manager's list can render it, which is
+	// the one thing the dock does differently from a sidebar.
 	//
-	// Entries are typed pairs and the arrangement is keyed on both halves, so a `Workspace` and a
-	// `Sidebar` of one name are two entries and never match each other. Both kinds are ordered,
-	// hidden and rendered the same way -- a pin is an entry on the dock, not a fixture on it.
+	// There is no client-side arrangement left to apply. A saved layer *is* the rail, so ordering
+	// and the trailing-entry fallback both went with the class they served: an entry the app
+	// ships later does not appear on a rail somebody has already settled, it appears in Manage
+	// Dock as something to add.
 	//
-	// The layers above the app only order and hide; they never add. An arrangement row naming
-	// something outside this set resolves to nothing here, which is what stops a person pinning
-	// an arbitrary workspace onto their own rail.
+	// `frappe.boot.dock` is keyed by app, because a dock layer is per app. An app with no layers
+	// at all is absent from it and falls back to the entry set, which is its own dock unarranged.
 	apply_dock_arrangement(entries, app) {
-		const arrangement = (frappe.boot.dock || {})[app && app.app_name] || [];
-		if (!arrangement.length) return entries;
+		const app_name = app && app.app_name;
+		const arrangement = (frappe.boot.dock || {})[app_name];
+		if (!arrangement) return entries;
 
-		const hidden = new Set(arrangement.filter((p) => p.hidden).map((p) => this.dock_key(p)));
-		const order = new Map(arrangement.map((p, idx) => [this.dock_key(p), idx]));
-		const key = (e) => this.dock_key(e);
-
-		// An arrangement none of whose rows resolve says nothing this rail can act on -- every
-		// entry it names has gone since it was saved. Hiding, though, is honoured even when it
-		// empties the rail: a site that hid an app's whole set meant to.
-		if (!entries.some((e) => order.has(key(e)))) return entries;
-
-		// Entries the arrangement never names keep their app order and trail the ones it did, so
-		// installing an app still surfaces its modules on a dock that has already been arranged.
-		// `MAX_SAFE_INTEGER` rather than `Infinity`: two unnamed entries would subtract to `NaN`,
-		// and a comparator that returns `NaN` is only saved by sort stability.
-		const position = (e) => order.get(key(e)) ?? Number.MAX_SAFE_INTEGER;
-		return entries
-			.filter((e) => !hidden.has(key(e)))
-			.sort((a, b) => position(a) - position(b));
+		return arrangement.filter((row) => !row.hidden).map((row) => this.dock_entry(row));
 	}
 
 	// Go where a dock entry points, and select the shell it selects. Both happen, in that order,

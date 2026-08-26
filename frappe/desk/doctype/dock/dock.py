@@ -47,6 +47,14 @@ SITE_LAYER = ""
 # so re-pointing is not an edit -- it names a different row.
 DESTINATION_FIELDS = ("sidebar", "link_type", "link_to", "url")
 
+# What a row may say about how an entry *reads*, as opposed to where it goes. Blank means "no
+# opinion, inherit"; filled is an override. Outside `DESTINATION_FIELDS` on purpose: re-labelling
+# an entry must never detach the customisations of it.
+#
+# Required when a row **adds** an entry, because nothing below it holds one; optional when it
+# references one, which is the whole of the inheritance.
+REFERENCE_FIELDS = ("icon", "title")
+
 # The two kinds of page a row may open. Only these: a Report or a DocType list belongs inside a
 # module's sidebar, not on a rail of roughly a dozen destinations -- and `Report` is the one kind
 # that would need new boot payload. Widening later costs a Select value, not a column.
@@ -72,7 +80,7 @@ PROVED_BY = {
 # The columns a stored `Dock Item` carries. One list, so copying a row from one layer to another
 # -- which is what promoting the site's arrangement to app content is -- cannot quietly drop a
 # column somebody added to the schema.
-DOCK_ITEM_FIELDS = (*DESTINATION_FIELDS, "icon", "title", "added", "hidden")
+DOCK_ITEM_FIELDS = (*DESTINATION_FIELDS, *REFERENCE_FIELDS, "added", "hidden")
 
 
 class Dock(Document):
@@ -226,6 +234,20 @@ class Dock(Document):
 					)
 				)
 		self.set("items", [row for row in self.items if points_somewhere(stored_row(row))])
+		self.validate_added_rows()
+
+	def validate_added_rows(self):
+		"""An added row has to say how it reads; a reference need not.
+
+		Nothing below an added row holds an icon or a title for it, so leaving them blank would
+		put a label-less button on the rail. A reference inherits both, which is the whole of
+		what blank means there.
+		"""
+		for row in self.items:
+			if row.added and not (row.icon and row.title):
+				frappe.throw(
+					_("Row #{0}: an entry you add needs an icon and a title of its own.").format(row.idx)
+				)
 
 	def _validate_links(self):
 		"""A row *names* something to navigate to; it does not reference it.
@@ -695,20 +717,33 @@ def docked_apps() -> list[str]:
 	return sorted({app for app, _user, _standard in get_dock_layers()}, key=apps_screen_sort_key())
 
 
-def resolve_app_dock(app: str) -> list[dict]:
-	"""One app's rail for the session user: its own dock, then the site's, then their own."""
+def resolve_app_dock(app: str, upto: str = "user", gated: bool = True) -> list[dict]:
+	"""One app's rail for the session user: its own dock, then the site's, then their own.
+
+	`upto` names the last layer applied, and `gated` says whether reach is applied. Both exist for
+	the save path rather than for the boot: a layer being written has to be settled against the
+	rail it was *looking at*, which is the layers **below** it -- and unfiltered, because whether
+	a row is an add is a question about base membership, not about who can see it. Reach-filtered,
+	a Workspace Manager saving the site's rail with one module blocked for them personally would
+	turn that module's row into an add, and adds demand an icon and a title nobody typed.
+	"""
+	layers = {"app": [], "site": [get_site_dock(app)], "user": [get_site_dock(app), get_user_dock(app)]}
 	resolved, hidden = resolve_layers(
 		get_app_dock(app),
-		[get_site_dock(app), get_user_dock(app)],
+		layers[upto],
 		key=dock_key,
 		apply_row=apply_dock_row,
+		# A saved layer *is* the rail. An entry the app ships later does not appear on it; it
+		# appears in Manage Dock as something to add, and you opt in by adding it. The cost is on
+		# the record and is deliberate: predictable rails over automatic updates.
+		keep_unnamed=False,
 	)
 	# Applied last, so no layer can name its way past the gates -- an arrangement is navigation
 	# reach, and reach is decided by module visibility and workspace permissions alone.
 	return [
 		{**rail_entry(entry), "hidden": int(hidden.get(dock_key(entry), 0))}
 		for entry in resolved
-		if is_reachable(entry)
+		if not gated or is_reachable(entry)
 	]
 
 
@@ -727,24 +762,49 @@ def dock_key(entry) -> str:
 	return "|".join(entry.get(field) or "" for field in DESTINATION_FIELDS)
 
 
-def apply_dock_row(row, entry: dict | None) -> dict:
-	"""What one layer row does to the dock entry it names: it is the entry.
+def apply_dock_row(row, entry: dict | None) -> dict | None:
+	"""What one layer row does to the dock entry it names.
 
-	Never skipped, unlike a sidebar row, because a row here carries the whole entry -- so a row
-	naming something no layer below it mentioned is an entry the dock has, not a reference to
-	one that is missing.
+	Two kinds of row, exactly as the sidebar has. An **added** row *is* the entry: it brings a
+	destination nothing below it holds, so it stands in for whatever the list has under that key,
+	which is usually nothing. A **reference** row states an opinion about an entry that is
+	already there, and `overrides` keeps that opinion short.
+
+	A reference naming an entry the list does not hold returns `None` and is skipped. That is
+	what stops a reference to a row the app has since deleted **resurrecting as a label-less
+	button** -- a destination with no icon and no title, because a reference is not required to
+	carry either.
+
+	`added` is stored rather than inferred from the row carrying a body, and that is not
+	convenience: under permitted re-labelling a reference may carry a partial opinion -- an icon
+	and no title -- so body-presence stops telling the two apart.
 	"""
-	return rail_entry(row)
+	if row.get("added"):
+		return rail_entry(row)
+
+	if entry is None:
+		return None
+
+	return {**entry, **overrides(row)}
 
 
 def rail_entry(entry) -> dict:
 	"""What the rail is handed: where the entry goes, and how it reads."""
-	return {**{field: entry.get(field) for field in DESTINATION_FIELDS}, **overrides(entry)}
+	return {
+		**{field: entry.get(field) for field in DESTINATION_FIELDS},
+		**{field: entry.get(field) for field in REFERENCE_FIELDS},
+	}
 
 
-def overrides(entry) -> dict:
-	"""What a row says about how an entry reads. Blank is no opinion."""
-	return {"icon": entry.get("icon"), "title": entry.get("title")}
+def overrides(row) -> dict:
+	"""What a reference row *opines* about the entry it names. A blank field is no opinion, so
+	the entry keeps whatever the layer below gave it.
+
+	This is what stops one reorder freezing the app's label forever -- the failure that killed
+	full-body storage in the sidebar, and one 06 made urgent here by giving every row a stored
+	icon and title.
+	"""
+	return {field: row.get(field) for field in REFERENCE_FIELDS if row.get(field)}
 
 
 def entry_exists(entry) -> bool:
@@ -834,7 +894,7 @@ def permitted_workspaces() -> set[str]:
 	return {page.name for page in get_workspaces()["pages"]}
 
 
-def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
+def shape_dock_rows(items: list | str, require_visible: bool, below: dict[str, dict]) -> list[dict]:
 	"""One saved arrangement, narrowed to rows that can be stored.
 
 	`items` is the whole ordered arrangement the client is showing -- the shape a Sortable
@@ -858,7 +918,12 @@ def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
 	site's is not: it is written for everyone, and dropping the rows the saver personally cannot
 	see would let one Workspace Manager's blocked module quietly delete the site's intent for
 	it. Reach is applied to the *resolved* dock either way.
+
+	`below` is every entry this layer could be referencing, keyed by destination (see
+	`entries_below`). It settles two things the client is not trusted to say: whether a row
+	**adds**, and whether its icon and title are an *opinion* or merely what it was shown.
 	"""
+	shown = below
 	shaped, seen = [], set()
 
 	for row in frappe.parse_json(items) or []:
@@ -886,9 +951,57 @@ def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
 			continue
 
 		seen.add(key)
-		shaped.append(entry)
+		shaped.append(settle_reference(entry, shown.get(key)))
 
 	return shaped
+
+
+def settle_reference(entry: dict, below: dict | None) -> dict:
+	"""Say whether this row adds an entry or references one, and keep its opinion honest.
+
+	**Adding is derived, never taken from the client.** A row whose destination nothing below it
+	holds is an add: it brings the entry rather than opining about one. A pleasant consequence of
+	identity being the destination -- a person pins `Payables`, the app later ships `Payables`
+	itself, and the next save turns the person's add into a reference to it, so the two **merge
+	into one entry with the person's position winning** rather than doubling.
+
+	A reference blanks out what it only **echoes back**. The client sends the arrangement it is
+	*showing*, which carries the labels and icons it was given; stored as-is they would stop being
+	inheritance and start being opinion, and an entry the person never touched would keep the
+	label it happened to have on the day they reordered -- neither the site's relabel nor the
+	app's ever reaching them again.
+	"""
+	if below is None:
+		return {**entry, "added": 1}
+
+	settled = {**entry, "added": 0}
+	for field in REFERENCE_FIELDS:
+		inherited = below.get(field)
+		if settled.get(field) and settled[field] in (inherited, _(inherited) if inherited else None):
+			settled[field] = None
+	return settled
+
+
+def entries_below(app: str, user: str | None) -> dict[str, dict]:
+	"""Every entry a layer being saved could be *referencing*, keyed by destination.
+
+	**The rail as it was without this layer**, which is exactly what the saver was looking at --
+	so what their icons and titles were echoing back, and what a row of theirs can be a
+	*reference to*. A person's own save sees the app's dock with the site's arrangement on it;
+	the site's sees the app's dock alone, never the curator's own arrangement, which is not
+	theirs to publish.
+
+	Anything else is an **add**: a destination the rail below did not hold. That includes a URL
+	somebody typed, a workspace no dock names, and an entry the site took off -- a person
+	bringing that one back is not restoring the site's row, they are putting their own there,
+	which is why it carries a cross rather than an eye and why it has to say how it reads.
+
+	Ungated on purpose -- whether a row adds is a question about membership, not about who can
+	see it. Reach-filtered, a Workspace Manager saving the site's rail with one module blocked
+	for them personally would turn that module's row into an add.
+	"""
+	below = resolve_app_dock(app, upto="user" if user else "site", gated=False)
+	return {dock_key(entry): entry for entry in below}
 
 
 def destination(entry) -> dict:
@@ -936,7 +1049,7 @@ def _save_layer(app: str, items: list | str, user: str | None, require_visible: 
 		doc.user = user or SITE_LAYER
 
 	doc.set("items", [])
-	for row in shape_dock_rows(items, require_visible=require_visible):
+	for row in shape_dock_rows(items, require_visible=require_visible, below=entries_below(app, user)):
 		doc.append("items", {field: row[field] for field in DOCK_ITEM_FIELDS})
 
 	# ignore_permissions: a person arranging their own dock need not hold write access to this
@@ -1001,70 +1114,35 @@ def get_app_dock_layer(app: str) -> list[dict]:
 	`declared_by` is dropped: which app declared a row is the projection Ship needs, not the
 	manager, and shipping it here would put an app name in every editor payload.
 	"""
-	return [
-		{**destination(row), **overrides(row), "hidden": row["hidden"]}
-		for row in get_app_dock(check_docked_app(app))
-	]
+	return [{**rail_entry(row), "hidden": row["hidden"]} for row in get_app_dock(check_docked_app(app))]
 
 
 # ---------------------------------------------------------------------------------------
-# Making a module of the site's own
+# Reset for everyone
 # ---------------------------------------------------------------------------------------
 
 
 @frappe.whitelist()
-def create_module(module: str, app: str | None = None, icon: str | None = None) -> dict:
-	"""Make a module the site is adding for itself, and hand the dock what it needs to show it.
+def reset_dock_for_everyone(app: str) -> list[dict]:
+	"""Drop every non-standard `Dock` for `app` -- the site's own layer included -- so everybody
+	is back on the app's exported dock.
 
-	The page it opens on comes with it, and comes from the module rather than from here: a
-	custom module makes one in `ModuleDef.after_insert`, because a module with nothing to
-	navigate to is a module nobody can get to whichever end created it. So this endpoint is the
-	dock's half and nothing more -- a name, a placement, and the answer the manager needs.
+	The argument is the sidebar's verbatim: a Workspace Manager who re-curates the site's rail
+	**reaches nobody who has arranged their own**. Reset at the site layer only lifts the site's
+	opinion; this is the one act that reaches past it, which is why it is an immediate confirmed
+	endpoint behind Workspace Manager rather than a pane edit applied on Save.
 
-	`app` is placement and nothing else (see `Module Def.validate_placement`): it says whose dock
-	lists the module. Left out, the module stands on its own on the desktop instead, which is
-	what a dock with no app context would be adding to.
-
-	`icon` is what the dock draws it with. It is stored on the page rather than here, because a
-	computed sidebar reads its header icon off the module's own page (`own_page_icon`) -- there
-	is nowhere else on a module for one to live.
-
-	Answers with the entry the dock now offers *and* everything a workspace write invalidates
-	(`workspace_payload`), so the desk can show the module without a reload. The workspace list
-	is in there for a reason: a page the boot has never heard of is a page the desk cannot place,
-	and it reads as one nobody but its owner can see -- which is not what was created.
+	Deleted **row by row so each `on_trash` runs**: only the document knows whose boot cache to
+	invalidate, and a bulk delete would leave every one of those people booting a rail that no
+	longer exists.
 	"""
-	from frappe.desk.doctype.workspace.workspace import module_name_is_free, workspace_payload
+	app = check_docked_app(app)
+	check_workspace_manager(_("You need to be Workspace Manager to reset the dock for everyone."))
 
-	check_workspace_manager(_("You need to be Workspace Manager to add this."))
-	# Two rights, because this is two things: the page the module brings with it is navigation
-	# everybody boots, which is the check above, and the module itself is not that kind of thing
-	# at all. Asked here rather than left to the insert, so a refusal names the right that is
-	# missing instead of naming a doctype.
-	if not frappe.has_permission("Module Def", "create"):
-		frappe.throw(_("You need to be System Manager to add this."), frappe.PermissionError)
+	for name in frappe.get_all("Dock", filters={"app": app, "standard": 0}, pluck="name"):
+		frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)
 
-	module = (module or "").strip()
-	if not module:
-		frappe.throw(_("It needs a name."))
-
-	# Both halves are named after it -- a `Module Def` by its module name, a `Workspace` by its
-	# label -- so the name has to be free of both. Refused here rather than left to a duplicate
-	# key, and refused in one sentence: which of the two holds it is a fact about how this is
-	# built, and either way the answer is that the name will not do.
-	#
-	# A page that already names this module is not holding it: that is a module's own page, left
-	# behind when the module was deleted, and making the module again takes it back.
-	if not module_name_is_free(module):
-		frappe.throw(_("Something here is already called {0}. Try another name.").format(module))
-
-	doc = frappe.get_doc(
-		{"doctype": "Module Def", "module_name": module, "app_name": app or None, "custom": 1}
-	)
-	doc.flags.page_icon = icon or None
-	doc.insert()
-
-	return workspace_payload(entry={"sidebar": module})
+	return resolve_app_dock(app)
 
 
 # ---------------------------------------------------------------------------------------
@@ -1178,7 +1256,7 @@ def emit_dock_hook(app: str | None = None, items: list | str | None = None) -> d
 
 	check_developer_mode()
 
-	rows = shape_dock_rows(items or [], require_visible=False)
+	rows = shape_dock_rows(items or [], require_visible=False, below=entries_below(app, None))
 	owners = owners_of(rows)
 	target = fragment_app(owners)
 	if not target:

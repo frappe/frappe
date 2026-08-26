@@ -14,10 +14,10 @@ from frappe.boot import get_app_modules, get_module_sidebars
 from frappe.desk.doctype.dock.dock import (
 	DOCK_ITEM_FIELDS,
 	Dock,
-	create_module,
 	destination,
 	dock_key,
 	get_app_dock,
+	get_app_dock_layer,
 	get_app_entry_set,
 	get_site_dock,
 	get_site_dock_layer,
@@ -53,8 +53,11 @@ USER = "test-dock-prefs@example.com"
 # base that does, so borrowing them made every assertion here depend on what somebody else had
 # shipped. These three are created by the suite and named by nothing else.
 # The app these suites arrange the dock of. A `Dock` layer is per app, so every read and every
-# write names one; the suite's three modules are frappe's, so frappe's is the dock they are on.
-APP = "frappe"
+# write names one -- and an app's dock is exactly the record it ships, so the suite ships one
+# naming its own three modules rather than borrowing frappe's twelve. An arrangement is then a
+# *reference* to rows that are really there, which is the ordinary case; a row naming something
+# the base does not hold is an **add**, and adds are `TestALayerMayAdd`'s subject.
+APP = "zz-dock-suite-app"
 
 ALPHA = "Test Dock Alpha"
 BETA = "Test Dock Beta"
@@ -81,6 +84,17 @@ def workspace(name, hidden=None, **kwargs) -> dict:
 	if hidden is not None:
 		row["hidden"] = hidden
 	return row
+
+
+def added(row, title=None) -> dict:
+	"""A row that **adds** an entry rather than referencing one a layer below holds.
+
+	An add carries its own icon and title, because nothing below it has either -- leaving them
+	blank would put a label-less button on the rail, which is what the refusal at Save exists to
+	prevent.
+	"""
+	name = row.get("sidebar") or row.get("link_to") or row.get("url")
+	return {"icon": "box", "title": title or name, **row}
 
 
 def payload(*rows) -> str:
@@ -242,10 +256,20 @@ def shipped_dock(records: dict[str, list[dict]]):
 	real_hooks = frappe.get_hooks
 	real_installed = frappe.get_installed_apps
 	real_active = frappe.get_active_apps
+	real_path = frappe.get_app_path
 	invented = [app for app in records if app not in real_active()]
+	# Somewhere to point an invented app's files, which is a real directory that stays empty.
+	# `get_desktop_icon_urls` and the orphan reaper both walk `get_app_path` for every active
+	# app, and an invented one has no python module for the real function to resolve.
+	nowhere = tempfile.mkdtemp(prefix="zz-invented-app-")
 
 	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
 		return [] if app_name in invented else real_hooks(hook, default, app_name)
+
+	def patched_path(app_name, *joins):
+		return (
+			os.path.join(nowhere, app_name, *joins) if app_name in invented else real_path(app_name, *joins)
+		)
 
 	def patched_installed(*args, **kwargs):
 		return [*real_installed(*args, **kwargs), *invented]
@@ -258,16 +282,27 @@ def shipped_dock(records: dict[str, list[dict]]):
 		patch.object(frappe, "get_hooks", patched_hooks),
 		patch.object(frappe, "get_installed_apps", patched_installed),
 		patch.object(frappe, "get_active_apps", patched_active),
+		patch.object(frappe, "get_app_path", patched_path),
 	):
-		shipped = []
+		shipped, displaced = [], {}
 		for app, rows in records.items():
-			clear_arrangements_for(app, standard=1)
+			# A dock this block replaces is put back afterwards. Suites nest these -- the class
+			# ships one for its own app and a test ships a different one over it -- and without
+			# the restore the inner block would leave the app dock-less for every later test,
+			# which turns every reference into an add and fails a long way from the cause.
+			if standing := frappe.db.get_value("Dock", {"app": app, "standard": 1}):
+				doc = frappe.get_doc("Dock", standing)
+				displaced[app] = [{field: row.get(field) for field in DOCK_ITEM_FIELDS} for row in doc.items]
+				frappe.delete_doc("Dock", standing, force=True, ignore_permissions=True)
 			shipped.append(ship_dock(app, rows))
 		try:
 			yield
 		finally:
 			for name in shipped:
 				frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)
+			for app, rows in displaced.items():
+				ship_dock(app, rows)
+			shutil.rmtree(nowhere, ignore_errors=True)
 
 
 def ship_dock(app: str, rows: list) -> str:
@@ -285,19 +320,21 @@ def ship_dock(app: str, rows: list) -> str:
 
 
 class DockTestCase(IntegrationTestCase):
-	"""A suite with three modules of its own, and no opinion about anybody else's."""
+	"""A suite with three modules of its own, an app of its own that ships a dock naming them,
+	and no opinion about anybody else's."""
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		frappe.set_user("Administrator")
-		cls._modules = ExitStack()
+		cls._fixtures = ExitStack()
 		for module in TRIO:
-			cls._modules.enter_context(sidebarless_module(module))
+			cls._fixtures.enter_context(sidebarless_module(module))
+		cls._fixtures.enter_context(shipped_dock({APP: [sidebar(module) for module in TRIO]}))
 
 	@classmethod
 	def tearDownClass(cls):
-		cls._modules.close()
+		cls._fixtures.close()
 		super().tearDownClass()
 
 
@@ -465,14 +502,19 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(BETA, ALPHA)
 		self.assertEqual(names(dock_for(self.DESK_USER)), [BETA, ALPHA])
 
-	def test_a_users_own_arrangement_applies_on_top_of_the_sites(self):
+	def test_a_saved_layer_is_exactly_the_rail(self):
+		"""A person's saved layer *is* their rail. What they left out is not behind what they
+		kept -- it is off, and it comes back by being added rather than by turning up.
+
+		Predictable rails over automatic updates, and it costs them nothing they were seeing:
+		the editor shows every entry, hidden ones included, so a save names all of them.
+		"""
 		self.set_site_order(BETA, ALPHA, GAMMA)
 
 		frappe.set_user(self.DESK_USER)
 		save_user_dock(APP, payload(GAMMA))
 
-		# what they named comes first; the site's arrangement of the rest survives underneath
-		self.assertEqual(names(dock_for(self.DESK_USER)), [GAMMA, BETA, ALPHA])
+		self.assertEqual(names(dock_for(self.DESK_USER)), [GAMMA])
 
 	def test_a_user_can_unhide_what_the_site_hid(self):
 		"""Later layers win on hiding too, which is the whole reason to have a second one."""
@@ -492,19 +534,15 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(BETA, ALPHA)
 		self.assertEqual(names(dock_for(self.DESK_USER)), [BETA, ALPHA])
 
-	def test_installing_an_app_surfaces_its_module_on_an_already_ordered_dock(self):
+	def test_an_entry_the_app_adds_later_waits_to_be_added(self):
+		"""The cost of "a saved layer is exactly the rail", on the record. An entry the app ships
+		after the site has arranged its rail does **not** appear on it. It appears in Manage
+		Dock -- which reads the app's own dock, not the resolved rail -- as something to add.
+		"""
 		self.set_site_order(BETA, ALPHA)
 
-		# the newcomer is in `among` on purpose: filtered out, the assertion below that it is
-		# absent would hold whether the merge dropped it or not
-		newcomer = "Test Dock Newcomer"
-		with sidebarless_module(newcomer):
-			dock = dock_for(self.DESK_USER, among=[*TRIO, newcomer])
-
-		# the new module is named by neither layer, so nothing hides it and nothing pins it
-		# behind the arrangement -- it lands after what the site ordered
-		self.assertNotIn(newcomer, names(dock))
-		self.assertEqual(names(dock), [BETA, ALPHA])
+		self.assertEqual(names(dock_for(self.DESK_USER)), [BETA, ALPHA])
+		self.assertIn(GAMMA, names(get_app_dock_layer(APP)))
 
 	def test_a_module_the_user_may_not_reach_is_absent_from_the_dock(self):
 		"""The dock is navigation reach, never a way around the module gate -- at either layer."""
@@ -566,18 +604,23 @@ class TestDockSiteLayer(DockTestCase):
 
 		self.assertEqual(names(get_user_dock_layer(APP)), [ALPHA])
 		self.assertEqual(names(get_user_dock(APP)), [ALPHA])
-		self.assertEqual(names(dock_for()), [ALPHA, BETA])
+		self.assertEqual(names(dock_for()), [ALPHA])
 
-	def test_both_writable_layers_round_trip_typed_rows(self):
-		"""Written as a pair, read back as a pair -- at the site's layer and at a person's own."""
+	def test_both_writable_layers_round_trip_a_row(self):
+		"""Written whole, read back whole -- at the site's layer and at a person's own.
+
+		The person's row *adds*, because the site's saved layer left `ALPHA` off the rail and a
+		saved layer is exactly the rail. So it carries its own icon and title, and the site's
+		row -- which references what the app ships -- carries neither.
+		"""
 		self.set_site_order(BETA)
 
 		frappe.set_user(self.DESK_USER)
-		save_user_dock(APP, payload(ALPHA))
+		save_user_dock(APP, payload(added(sidebar(ALPHA))))
 		frappe.set_user("Administrator")
 
 		self.assertEqual(get_site_dock(APP), [stored(sidebar(BETA))])
-		self.assertEqual(get_user_dock(APP, self.DESK_USER), [stored(sidebar(ALPHA))])
+		self.assertEqual(get_user_dock(APP, self.DESK_USER), [stored(added(sidebar(ALPHA)), added=1)])
 
 	def test_boot_carries_the_resolved_dock(self):
 		from frappe.boot import get_bootinfo
@@ -594,7 +637,7 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(ALPHA)
 
 		frappe.set_user(self.DESK_USER)
-		save_user_dock(APP, payload(BETA))
+		save_user_dock(APP, payload(added(sidebar(BETA))))
 		frappe.set_user("Administrator")
 
 		# the two writable layers, which is what "every layer is one shape" is about -- the app's
@@ -682,38 +725,56 @@ class TestTheAppLayer(DockTestCase):
 		):
 			save_site_dock(self.APP, payload(ALPHA))
 
-			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, BETA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA])
 			self.assertEqual(names(dock_for(self.USER, app=self.OTHER_APP)), [GAMMA, ALPHA])
 			self.assertEqual(names(get_site_dock(self.OTHER_APP)), [])
 
 	def test_the_site_arranges_what_the_app_shipped(self):
 		with self.ship(BETA, ALPHA, GAMMA):
-			save_site_dock(self.APP, payload(GAMMA))
+			save_site_dock(self.APP, payload(GAMMA, BETA))
 
-			# what the site named comes first; the app's order of the rest survives underneath
-			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [GAMMA, BETA, ALPHA])
+			# the site's rows, in the site's order, and nothing else
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [GAMMA, BETA])
 
-	def test_a_person_arranges_what_the_site_left(self):
+	def test_bringing_back_what_the_site_left_off_is_an_add(self):
+		"""A saved site layer *is* the rail, so from a person's side the entry is gone -- not
+		hidden, gone. Putting it back is therefore their own row rather than a reference to the
+		site's, which is why it carries a cross and why it has to say how it reads.
+
+		The pool it is picked from is the app's own dock, which `get_app_dock_layer` answers
+		independently of the resolved rail -- so the entry is still *offerable*, it is just not
+		inheritable.
+		"""
 		with self.ship(BETA, ALPHA, GAMMA):
 			save_site_dock(self.APP, payload(GAMMA))
 
 			frappe.set_user(self.USER)
-			save_user_dock(self.APP, payload(ALPHA))
+			# a bare reference to it says nothing: nothing below holds it any more
+			self.assertRaises(
+				frappe.ValidationError, save_user_dock, self.APP, payload(sidebar(ALPHA), GAMMA)
+			)
+			save_user_dock(self.APP, payload(added(sidebar(ALPHA)), GAMMA))
 			frappe.set_user("Administrator")
 
-			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, GAMMA, BETA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, GAMMA])
+			self.assertEqual([row["added"] for row in get_user_dock(self.APP, self.USER)], [1, 0])
 
-	def test_a_module_the_app_added_later_still_reaches_someone_who_has_arranged(self):
-		"""An entry no layer names trails the ones they did, rather than dropping out."""
+	def test_a_module_the_app_added_later_waits_in_the_manager(self):
+		"""What "a saved layer is exactly the rail" costs, said out loud. An entry no layer names
+		is off the rail rather than trailing it -- and it is offered by `get_app_dock_layer`,
+		which is what the manager builds its list from."""
 		with self.ship(BETA, ALPHA, GAMMA):
 			save_site_dock(self.APP, payload(GAMMA, BETA))
 
-			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [GAMMA, BETA, ALPHA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [GAMMA, BETA])
+			self.assertIn(ALPHA, names(get_app_dock_layer(self.APP)))
 
-	def test_hiding_survives_the_app_adding_a_module(self):
-		"""Hiding is a decision, not the absence of a row -- so a later fragment cannot undo it."""
+	def test_hiding_is_stored_rather_than_being_the_absence_of_a_row(self):
+		"""Hiding is a decision. A row saying so persists, and the payload keeps it -- which is
+		what lets the manager render it and bring it back, and is the one thing the dock does
+		differently from a sidebar."""
 		with self.ship(BETA, ALPHA):
-			save_site_dock(self.APP, payload(sidebar(BETA, hidden=1)))
+			save_site_dock(self.APP, payload(sidebar(BETA, hidden=1), sidebar(ALPHA, hidden=0)))
 
 			hidden = hidden_by_name(dock_for(self.USER, app=self.APP))
 			self.assertEqual(hidden[BETA], 1)
@@ -774,21 +835,31 @@ class TestTheAppLayer(DockTestCase):
 		with shipped_dock({self.APP: [sidebar(BETA, hidden=1)]}):
 			self.assertEqual(dock_for(self.USER, app=self.APP), [entry(sidebar(BETA), hidden=1)])
 
-	def test_a_base_entry_no_layer_names_trails_the_named_ones_in_base_order(self):
-		"""The class the two-class rule had no room for. An entry in the base that no layer
-		mentions is *present*, at its real index -- behind everything the layers named and ahead
-		of everything nothing names. It is what makes a shipped order apply to the entries nobody
-		rearranged.
-		"""
+	def test_a_base_entry_no_layer_names_is_off_the_rail(self):
+		"""Where the sidebar keeps such an entry, the dock drops it. The merge takes a
+		*don't keep unnamed* parameter, and the dock is what passes it: a saved layer states the
+		whole rail, so what it left out it left out."""
 		with shipped_dock({self.APP: [sidebar(GAMMA), sidebar(BETA), sidebar(ALPHA)]}):
 			save_site_dock(self.APP, payload(ALPHA))
 
-			# ALPHA is named; GAMMA and BETA are in the base and named by nobody, so they trail
-			# it in the order the app shipped them
-			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA, GAMMA, BETA])
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA])
+
+	def test_a_layer_that_names_nothing_says_nothing(self):
+		"""The one thing *don't keep unnamed* must not do: an empty layer means "no opinion",
+		not "an empty rail". Read the other way it would empty every app the moment a layer
+		existed for it at all."""
+		with shipped_dock({self.APP: [sidebar(GAMMA), sidebar(BETA)]}):
+			save_site_dock(self.APP, payload(GAMMA, BETA))
+			save_site_dock(self.APP, "[]")
+
+			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [GAMMA, BETA])
 
 	def test_the_walked_case(self):
-		"""Ten shipped entries arriving beneath a site that reordered four and hid one."""
+		"""Ten shipped entries, a site that named four of them and hid one of those.
+
+		The rail is the four, in the site's order, with the hidden one carrying its flag. The
+		six the site never named are off it -- and are what the manager offers to add back.
+		"""
 		shipped = [f"Test Dock Walk {n}" for n in range(1, 11)]
 		with ExitStack() as modules:
 			for module in shipped:
@@ -808,8 +879,7 @@ class TestTheAppLayer(DockTestCase):
 
 		self.assertEqual(
 			names(resolved),
-			# the site's four in the site's order, then the six it never named in base order
-			[shipped[3], shipped[1], shipped[7], shipped[0], *[shipped[i] for i in (2, 4, 5, 6, 8, 9)]],
+			[shipped[3], shipped[1], shipped[7], shipped[0]],
 		)
 		self.assertEqual(hidden_by_name(resolved)[shipped[7]], 1)
 
@@ -830,7 +900,7 @@ class TestTheAppLayer(DockTestCase):
 		with shipped_dock({self.APP: []}):
 			self.assertEqual(dock_for(self.USER, among=None, app=self.APP), [])
 
-			save_site_dock(self.APP, payload(BETA, ALPHA))
+			save_site_dock(self.APP, payload(added(sidebar(BETA)), added(sidebar(ALPHA))))
 			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
 
 	def test_a_sidebar_and_a_workspace_of_the_same_name_are_different_entries(self):
@@ -854,9 +924,12 @@ class TestTheAppLayer(DockTestCase):
 		self.addCleanup(frappe.delete_doc, "Workspace", page.name, force=True, ignore_missing=True)
 
 		with shipped_dock({self.APP: []}):
-			save_site_dock(self.APP, payload(workspace(ALPHA), sidebar(ALPHA)))
+			save_site_dock(self.APP, payload(added(workspace(ALPHA)), added(sidebar(ALPHA))))
 
-			self.assertEqual(get_site_dock(self.APP), [stored(workspace(ALPHA)), stored(sidebar(ALPHA))])
+			self.assertEqual(
+				get_site_dock(self.APP),
+				[stored(added(workspace(ALPHA)), added=1), stored(added(sidebar(ALPHA)), added=1)],
+			)
 			self.assertEqual(
 				[
 					(r["sidebar"], r["link_to"])
@@ -865,6 +938,200 @@ class TestTheAppLayer(DockTestCase):
 				],
 				[(None, ALPHA), (ALPHA, None)],
 			)
+
+
+class TestWhatACustomisationMayDo(DockTestCase):
+	"""What a layer above the app may say about a rail: its order, its visibility and its label
+	-- and it may add. What it may never do is re-point a row.
+
+	*Never add* was stated in two comments and implemented nowhere: `apply_dock_row` never
+	returned `None`, and the save path checked kind, existence and reach but never base
+	membership. Only the manager's UI made the rule look true. So refusing adds was the option
+	that would have cost new enforcement code, next to a sidebar that already answers yes.
+	"""
+
+	MANAGER = "test-dock-may@example.com"
+	PERSON = "test-dock-may-person@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		for email, roles in (
+			(self.MANAGER, ["Desk User", "Workspace Manager"]),
+			(self.PERSON, ["Desk User"]),
+		):
+			if not frappe.db.exists("User", email):
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": email.split("@")[0],
+						"send_welcome_email": 0,
+						"roles": [{"role": role} for role in roles],
+					}
+				).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_arrangements()
+		for email in (self.MANAGER, self.PERSON):
+			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+
+	def make_workspace(self, title, module, roles=None):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": title,
+				"module": module,
+				"public": 1,
+				"content": "[]",
+				"roles": [{"role": role} for role in roles or []],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		frappe.local.request_cache.clear()
+		return doc.name
+
+	# -- both upper layers may add -------------------------------------------------------
+
+	def test_a_site_and_a_person_may_each_add_what_they_can_reach(self):
+		page = self.make_workspace("Test Dock May Add", ALPHA)
+
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(ALPHA, added(workspace(page))))
+		frappe.set_user(self.PERSON)
+		save_user_dock(APP, payload(ALPHA, added({"link_type": "URL", "url": "https://frappe.io"})))
+		frappe.set_user("Administrator")
+
+		self.assertEqual(names(dock_for(self.PERSON, among=None)), [ALPHA, "https://frappe.io"])
+
+	def test_an_unreachable_add_is_refused(self):
+		"""The bound is reach, and it is the only bound. A person may name anything they can
+		already navigate to -- and nothing else, which is what stops an add being a way past
+		permissions."""
+		page = self.make_workspace("Test Dock May Not Add", ALPHA, roles=["Workspace Manager"])
+
+		frappe.set_user(self.PERSON)
+		save_user_dock(APP, payload(ALPHA, added(workspace(page))))
+		frappe.set_user("Administrator")
+
+		self.assertEqual(names(get_user_dock(APP, self.PERSON)), [ALPHA])
+
+	def test_a_persons_add_and_a_later_identical_app_row_merge_into_one_entry(self):
+		"""A pleasant property of identity being the destination. A person pins a workspace; the
+		app later ships a row for the same one. Same key, so the two are one entry with the
+		person's position winning, rather than the rail drawing it twice."""
+		page = self.make_workspace("Test Dock May Merge", ALPHA)
+
+		frappe.set_user(self.PERSON)
+		save_user_dock(APP, payload(added(workspace(page)), ALPHA))
+		frappe.set_user("Administrator")
+
+		with shipped_dock({APP: [sidebar(module) for module in TRIO] + [workspace(page)]}):
+			rendered = names(dock_for(self.PERSON, among=None))
+
+		self.assertEqual(rendered.count(page), 1)
+		self.assertEqual(rendered, [page, ALPHA])
+
+	# -- re-labelling --------------------------------------------------------------------
+
+	def test_icon_and_title_may_be_restated_at_both_upper_layers(self):
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(sidebar(ALPHA, icon="star", title="Ours")))
+		frappe.set_user("Administrator")
+
+		row = dock_for(self.PERSON)[0]
+		self.assertEqual((row["icon"], row["title"]), ("star", "Ours"))
+
+	def test_a_row_nobody_touched_keeps_receiving_the_apps_relabels(self):
+		"""The failure that killed full-body storage in the sidebar, and one 06 made urgent here
+		by giving every row a stored icon and title: left alone, one reorder would freeze the
+		app's label forever. A value equal to what the saver was *shown* is not an opinion."""
+		with shipped_dock({APP: [sidebar(ALPHA, icon="box", title="First")]}):
+			frappe.set_user(self.MANAGER)
+			# the client echoes back what it was showing, which is the app's own label
+			save_site_dock(APP, payload(sidebar(ALPHA, icon="box", title="First")))
+			frappe.set_user("Administrator")
+
+			stored_rows = get_site_dock(APP)
+			self.assertEqual((stored_rows[0]["icon"], stored_rows[0]["title"]), (None, None))
+
+		# ...so when the app relabels, the relabel reaches them
+		with shipped_dock({APP: [sidebar(ALPHA, icon="star", title="Renamed")]}):
+			row = dock_for(self.PERSON)[0]
+			self.assertEqual((row["icon"], row["title"]), ("star", "Renamed"))
+
+	def test_a_reference_to_a_deleted_row_does_not_resurrect_as_a_labelless_button(self):
+		"""What the `added` flag is required for. A reference carries no icon and no title of its
+		own, so if it stood in for a row the app has since deleted it would render a destination
+		with no label at all."""
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(ALPHA, BETA))
+		frappe.set_user("Administrator")
+
+		with shipped_dock({APP: [sidebar(ALPHA)]}):
+			self.assertEqual(names(dock_for(self.PERSON, among=None)), [ALPHA])
+
+	def test_an_added_row_needs_an_icon_and_a_title(self):
+		page = self.make_workspace("Test Dock May Blank", ALPHA)
+
+		self.assertRaises(frappe.ValidationError, save_site_dock, APP, payload(ALPHA, workspace(page)))
+
+	# -- no re-pointing ------------------------------------------------------------------
+
+	def test_hide_and_add_is_how_a_layer_re_points_a_row(self):
+		"""The key *is* the destination, so a layer changing it has not edited the row -- it has
+		named a different one. Both coexist: the app's, hidden; the site's own, shown."""
+		page = self.make_workspace("Test Dock May Repoint", ALPHA)
+
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(sidebar(ALPHA, hidden=1), added(workspace(page)), BETA))
+		frappe.set_user("Administrator")
+
+		hidden = hidden_by_name(dock_for(self.PERSON, among=None))
+		self.assertEqual(hidden[ALPHA], 1)
+		self.assertEqual(hidden[page], 0)
+
+	# -- reset ---------------------------------------------------------------------------
+
+	def test_reset_for_everyone_drops_every_non_standard_layer_for_the_app(self):
+		"""The one act that reaches past the site's own layer: a Workspace Manager who
+		re-curates the site's rail reaches nobody who has arranged their own."""
+		from frappe.desk.doctype.dock.dock import reset_dock_for_everyone
+
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(GAMMA, BETA))
+		frappe.set_user(self.PERSON)
+		save_user_dock(APP, payload(BETA))
+		frappe.set_user(self.MANAGER)
+
+		reset_dock_for_everyone(APP)
+		frappe.set_user("Administrator")
+
+		self.assertEqual(frappe.get_all("Dock", filters={"app": APP, "standard": 0}), [])
+		self.assertEqual(names(dock_for(self.PERSON)), [ALPHA, BETA, GAMMA])
+
+	def test_reset_for_everyone_is_workspace_manager_only(self):
+		from frappe.desk.doctype.dock.dock import reset_dock_for_everyone
+
+		frappe.set_user(self.PERSON)
+		try:
+			self.assertRaises(frappe.PermissionError, reset_dock_for_everyone, APP)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_reset_for_everyone_deletes_row_by_row(self):
+		"""Each `on_trash` has to run: only the document knows whose boot cache to invalidate,
+		and a bulk delete would leave those people booting a rail that is no longer there."""
+		from frappe.desk.doctype.dock.dock import get_dock_layers, reset_dock_for_everyone
+
+		frappe.set_user(self.PERSON)
+		save_user_dock(APP, payload(BETA))
+		frappe.set_user(self.MANAGER)
+		reset_dock_for_everyone(APP)
+		frappe.set_user("Administrator")
+
+		self.assertNotIn((APP, self.PERSON, 0), get_dock_layers())
 
 
 class TestTheRowShape(DockTestCase):
@@ -918,7 +1185,11 @@ class TestTheRowShape(DockTestCase):
 
 		save_site_dock(
 			APP,
-			payload(sidebar(ALPHA), workspace(page), sidebar(BETA, link_type="Workspace", link_to=page)),
+			payload(
+				added(sidebar(ALPHA)),
+				added(workspace(page)),
+				added(sidebar(BETA, link_type="Workspace", link_to=page)),
+			),
 		)
 
 		self.assertEqual(
@@ -931,7 +1202,9 @@ class TestTheRowShape(DockTestCase):
 		same shell that opens a particular page."""
 		page = self.make_workspace("Test Dock Shape Second", ALPHA)
 
-		save_site_dock(APP, payload(sidebar(ALPHA), sidebar(ALPHA, link_type="Workspace", link_to=page)))
+		save_site_dock(
+			APP, payload(added(sidebar(ALPHA)), added(sidebar(ALPHA, link_type="Workspace", link_to=page)))
+		)
 
 		rows = get_site_dock(APP)
 		self.assertEqual(len(rows), 2)
@@ -957,7 +1230,7 @@ class TestTheRowShape(DockTestCase):
 		recomputed from the target."""
 		page = self.make_workspace("Test Dock Shape Override", ALPHA)
 
-		save_site_dock(APP, payload(sidebar(BETA, link_type="Workspace", link_to=page)))
+		save_site_dock(APP, payload(added(sidebar(BETA, link_type="Workspace", link_to=page))))
 
 		rendered = next(r for r in dock_for(among=None) if r["link_to"] == page)
 		self.assertEqual(rendered["sidebar"], BETA, "the named shell, not the page's own module")
@@ -972,7 +1245,9 @@ class TestTheRowShape(DockTestCase):
 		self.assertIn("Core", get_code_only_modules())
 		self.assertEqual(frappe.db.get_value("Workspace", "Welcome Workspace", "module"), "Core")
 
-		save_site_dock(APP, payload(sidebar("Users", link_type="Workspace", link_to="Welcome Workspace")))
+		save_site_dock(
+			APP, payload(added(sidebar("Users", link_type="Workspace", link_to="Welcome Workspace")))
+		)
 
 		row = get_site_dock(APP)[0]
 		self.assertEqual((row["sidebar"], row["link_to"]), ("Users", "Welcome Workspace"))
@@ -1012,7 +1287,9 @@ class TestTheRowShape(DockTestCase):
 		user.save(ignore_permissions=True)
 		frappe.clear_cache(user=self.USER)
 
-		save_site_dock(APP, payload(sidebar(GAMMA, link_type="Workspace", link_to=page), workspace(page)))
+		save_site_dock(
+			APP, payload(added(sidebar(GAMMA, link_type="Workspace", link_to=page)), added(workspace(page)))
+		)
 
 		# the workspace is permitted, the shell is not, so the conjunction refuses the row -- and
 		# the bare pin at the same workspace still renders
@@ -1024,7 +1301,9 @@ class TestTheRowShape(DockTestCase):
 	def test_a_url_row_is_ungated(self):
 		"""Nothing proves a web address and nothing gates one. It leaks no permission, and it is
 		not new -- a person can already store an arbitrary URL in their own sidebar layer."""
-		save_user_dock(APP, payload({"link_type": "URL", "url": "https://example.com", "title": "Out"}))
+		save_user_dock(
+			APP, payload(added({"link_type": "URL", "url": "https://example.com", "title": "Out"}))
+		)
 
 		self.assertIn("https://example.com", names(dock_for(among=None)))
 
@@ -1097,7 +1376,7 @@ class TestAnAppWithNoDock(DockTestCase):
 			self.assertNotIn(BETA, names(get_app_dock(self.APP)))
 
 			# and un-hiding it says nothing, because nothing below holds it
-			save_site_dock(self.APP, payload(sidebar(BETA, hidden=0)))
+			save_site_dock(self.APP, payload(added(sidebar(BETA, hidden=0))))
 			self.assertNotIn(BETA, names(get_app_entry_set(self.APP)))
 
 	def test_a_module_the_record_ships_hidden_can_be_rescued_by_either_layer(self):
@@ -1228,8 +1507,6 @@ class TestTheAppsEntrySet(IntegrationTestCase):
 	"""
 
 	def app_order(self, app: str = "frappe") -> list[str]:
-		from frappe.boot import get_app_modules
-
 		return get_app_modules(app)
 
 	def test_modules_txt_position_leads_and_the_name_breaks_the_tie(self):
@@ -1389,9 +1666,13 @@ class TestTheExportRoad(IntegrationTestCase):
 		return os.path.join(self.root, "dock", scrubbed, f"{scrubbed}.json")
 
 	def author(self, *modules):
-		"""The site arranges a rail, which is what an author has in front of them before the
-		dock is promoted to app content."""
-		save_site_dock(self.APP, payload(*modules))
+		"""The site builds a rail for an app that ships none, which is what an author has in
+		front of them before the dock is promoted to app content.
+
+		Every row *adds*: there is nothing below to reference, so each carries its own icon and
+		title -- which is also what the Add dialog asks for.
+		"""
+		save_site_dock(self.APP, payload(*[added(sidebar(module)) for module in modules]))
 
 	def test_marking_standard_writes_the_file_and_sets_the_flag_in_one_act(self):
 		self.author(self.TWO, self.ONE)
@@ -1464,7 +1745,7 @@ class TestTheExportRoad(IntegrationTestCase):
 		"""They are backed by no file at all, so a reaper that swept them would delete every
 		arrangement on the site the first time it ran."""
 		self.author(self.ONE)
-		save_user_dock(self.APP, payload(self.TWO))
+		save_user_dock(self.APP, payload(added(sidebar(self.TWO))))
 
 		remove_orphan_entities(["Dock"])
 
@@ -1494,7 +1775,7 @@ class TestTheExportRoad(IntegrationTestCase):
 		"""Why the guard is conditional rather than blanket: all three layers share this table,
 		and a blanket guard would refuse every person saving their own arrangement."""
 		with no_developer_mode():
-			save_site_dock(self.APP, payload(self.ONE))
+			self.author(self.ONE)
 
 		self.assertEqual(names(get_site_dock(self.APP)), [self.ONE])
 
@@ -1511,152 +1792,3 @@ class TestTheExportRoad(IntegrationTestCase):
 
 				self.assertTrue(doc.standard)
 				frappe.delete_doc("Dock", doc.name, force=True, ignore_permissions=True)
-
-
-class TestMakingAModule(IntegrationTestCase):
-	"""A module the site adds for itself, from the dock that will list it."""
-
-	NAME = "Test Dock Made Module"
-
-	def setUp(self):
-		frappe.set_user("Administrator")
-		self.wipe()
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		self.wipe()
-
-	def wipe(self):
-		# the page first: a module's page outlives the module, and deleting the module leaves one
-		# behind for the next test to trip over
-		frappe.delete_doc("Workspace", self.NAME, force=True, ignore_missing=True)
-		frappe.delete_doc("Module Def", self.NAME, force=True, ignore_missing=True)
-		frappe.clear_cache()
-
-	def test_a_new_module_arrives_with_a_workspace_and_a_sidebar(self):
-		"""The workspace is not a nicety: a module whose sidebar comes out empty is dropped from
-		the payload entirely, so a module made without one would be a module that never appears
-		on the dock it was made from."""
-		answer = create_module(self.NAME, app="frappe")
-
-		self.assertTrue(frappe.db.exists("Module Def", self.NAME))
-		workspace = frappe.get_doc("Workspace", self.NAME)
-		self.assertEqual(workspace.module, self.NAME)
-		self.assertTrue(workspace.public)
-
-		# ... which is what makes the module navigable, and so present at all
-		sidebar = resolve_sidebar(self.NAME, "Administrator")
-		self.assertIsNotNone(sidebar)
-		self.assertEqual(
-			[(item["link_type"], item["link_to"]) for item in sidebar.items],
-			[("Workspace", self.NAME)],
-		)
-
-		# and the manager is handed what it needs to draw the module without a reload: the entry
-		# the dock now offers, and the desk state the write invalidated -- the workspace list
-		# included, since a page the boot has never heard of is one the desk cannot place
-		self.assertEqual(answer["entry"], {"sidebar": self.NAME})
-		self.assertIn(self.NAME, answer["module_sidebars"])
-		self.assertIn(self.NAME, [page.name for page in answer["workspace_pages"]["pages"]])
-		# ...but *not* on frappe's rail. An app's dock is the record it ships, so a module the
-		# site adds for itself is navigable without being on somebody else's rail until a layer
-		# says so.
-		self.assertNotIn(
-			{"sidebar": self.NAME},
-			next(app["dock"] for app in answer["app_data"] if app["app_name"] == "frappe"),
-		)
-
-	def test_the_icon_it_was_given_is_the_icon_the_dock_draws_it_with(self):
-		"""A module has nowhere to keep an icon, so the one chosen while adding it is kept on the
-		page it opens on -- which is exactly where a computed sidebar reads its header icon."""
-		create_module(self.NAME, app="frappe", icon="box")
-
-		self.assertEqual(frappe.db.get_value("Workspace", self.NAME, "icon"), "box")
-		self.assertEqual(get_module_sidebars()[self.NAME]["header_icon"], "box")
-
-	def test_a_module_given_no_icon_keeps_the_standard_one(self):
-		create_module(self.NAME, app="frappe")
-
-		self.assertEqual(get_module_sidebars()[self.NAME]["header_icon"], DEFAULT_HEADER_ICON)
-
-	def test_the_app_it_was_made_from_is_the_dock_that_lists_it(self):
-		"""`app_name` is placement and nothing else, and placement is what a dock is."""
-		create_module(self.NAME, app="frappe")
-
-		self.assertIn(self.NAME, get_app_modules("frappe"))
-
-	def test_a_module_made_with_no_app_stands_on_its_own(self):
-		"""Nowhere to place it is a real answer -- the module is on the desktop as its own tile
-		rather than in somebody's dock."""
-		create_module(self.NAME)
-
-		self.assertIsNone(frappe.db.get_value("Module Def", self.NAME, "app_name"))
-		self.assertNotIn(self.NAME, get_app_modules("frappe"))
-
-	def test_making_a_module_again_takes_its_old_page_back(self):
-		"""Deleting a module leaves its page behind -- `ModuleDef.on_trash` takes navigation and
-		leaves content alone -- so the name would otherwise be held by a page nothing can reach,
-		and the module could never be made again under the name it had."""
-		create_module(self.NAME, app="frappe")
-		frappe.db.set_value("Workspace", self.NAME, "content", '[{"type": "header"}]')
-		frappe.delete_doc("Module Def", self.NAME, force=True)
-
-		create_module(self.NAME, app="frappe", icon="box")
-
-		# the page it had is the page it has, content and all
-		self.assertEqual(frappe.db.count("Workspace", {"name": self.NAME}), 1)
-		self.assertEqual(frappe.db.get_value("Workspace", self.NAME, "content"), '[{"type": "header"}]')
-		# ... and the icon chosen this time is the module's icon now
-		self.assertEqual(frappe.db.get_value("Workspace", self.NAME, "icon"), "box")
-
-	def test_a_page_belonging_to_something_else_still_holds_the_name(self):
-		"""Only the module's own page is adopted. Anything else under that name is somebody's
-		work, and a module that took it would be taking a page nobody offered."""
-		frappe.get_doc(
-			{
-				"doctype": "Workspace",
-				"label": self.NAME,
-				"title": self.NAME,
-				# `Workspace.module` is mandatory, so a page always belongs to some module -- and
-				# one belonging to another module is the case this is about
-				"module": "Desk",
-				"public": 1,
-				"content": "[]",
-			}
-		).insert()
-
-		self.assertRaises(frappe.ValidationError, create_module, self.NAME, app="frappe")
-
-	def test_a_name_that_is_already_taken_is_refused(self):
-		"""Both halves are named after the module, so both names have to be free -- and the
-		refusal names the thing rather than the doctype whose key it clashed with."""
-		create_module(self.NAME, app="frappe")
-
-		self.assertRaises(frappe.ValidationError, create_module, self.NAME, app="frappe")
-
-	def test_a_module_needs_a_name(self):
-		self.assertRaises(frappe.ValidationError, create_module, "   ")
-
-	def test_making_a_module_needs_the_shared_curation_right(self):
-		"""It is site content, and everybody boots it -- so it is the same right the site layer
-		of every arrangement is behind."""
-		user = "test-dock-module@example.com"
-		if not frappe.db.exists("User", user):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": user,
-					"first_name": "Dock",
-					"send_welcome_email": 0,
-					"roles": [{"role": "Desk User"}],
-				}
-			).insert(ignore_permissions=True)
-
-		frappe.set_user(user)
-		try:
-			self.assertRaises(frappe.PermissionError, create_module, self.NAME, app="frappe")
-		finally:
-			frappe.set_user("Administrator")
-			frappe.delete_doc("User", user, force=True, ignore_missing=True)
-
-		self.assertFalse(frappe.db.exists("Module Def", self.NAME))
