@@ -44,17 +44,17 @@
 					role="tab"
 					tabindex="0"
 					:aria-selected="tab.path === workspace.active"
-					class="group flex h-7 w-40 flex-none cursor-pointer items-center gap-1.5 rounded-md pl-2.5 pr-1 text-xs"
+					class="flow-tab group flex h-7 min-w-[96px] shrink basis-40 cursor-pointer items-center gap-1.5 rounded-md pl-2.5 pr-1 text-xs"
 					:class="
 						tab.path === workspace.active
-							? 'bg-surface-gray-2 text-ink-gray-9'
+							? 'flow-tab-active bg-surface-gray-2 text-ink-gray-9'
 							: 'text-ink-gray-5 hover:bg-surface-gray-1 hover:text-ink-gray-8'
 					"
 					:title="tab.path"
 					@click="flow.selectFile(tab.path)"
 					@keydown.enter.prevent="flow.selectFile(tab.path)"
 				>
-					<span class="min-w-0 flex-1 truncate text-left">{{ tab.name }}</span>
+					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ tab.name }}</span>
 					<button
 						class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 						:class="tab.path === workspace.active || tab.dirty ? '' : 'opacity-0 group-hover:opacity-100'"
@@ -70,9 +70,9 @@
 					v-if="transientTab"
 					role="tab"
 					aria-selected="true"
-					class="flex h-7 w-40 flex-none cursor-default items-center gap-1.5 rounded-md bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
+					class="flow-tab flow-tab-active flex h-7 min-w-[96px] shrink basis-40 cursor-default items-center gap-1.5 rounded-md bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
 				>
-					<span class="min-w-0 flex-1 truncate text-left">{{ transientTab }}</span>
+					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ transientTab }}</span>
 					<button
 						class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 						title="Close"
@@ -227,6 +227,34 @@ function startResize(event) {
 
 .flow-tab-strip {
 	scrollbar-width: thin;
+}
+
+/* codex-style divider centered in the 4px gap between adjacent tabs */
+.flow-tab {
+	position: relative;
+}
+.flow-tab + .flow-tab::before {
+	content: "";
+	position: absolute;
+	left: -2.5px;
+	top: 50%;
+	height: 12px;
+	width: 1px;
+	transform: translateY(-50%);
+	background: var(--outline-gray-2);
+}
+/* the active tab's own surface marks it; no dividers touching it */
+.flow-tab-active::before,
+.flow-tab-active + .flow-tab::before {
+	display: none;
+}
+
+/* long tab names fade out at the right edge instead of clipping to an ellipsis */
+.flow-tab-label {
+	overflow: hidden;
+	white-space: nowrap;
+	-webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent);
+	mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent);
 }
 
 /* VSCode-style dirty marker: the dot swaps to an × when hovering the close button */
