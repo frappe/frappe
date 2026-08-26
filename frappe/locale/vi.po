@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-04 17:32\n"
+"PO-Revision-Date: 2026-08-23 21:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -12164,7 +12164,7 @@ msgstr "Bản đồ nhiệt"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
-msgstr "Xin chào"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
@@ -17486,7 +17486,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr "Chưa có địa chỉ nào được thêm vào."
+msgstr ""
 
 #: frappe/email/doctype/notification/notification.js:195
 msgid "No alerts for today"
@@ -20308,7 +20308,7 @@ msgstr "Chính"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:21
 msgid "Primary Address"
-msgstr "Địa chỉ chính"
+msgstr ""
 
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -26813,7 +26813,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
-msgstr "Trường {0} là bắt buộc"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:177
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -26909,7 +26909,7 @@ msgstr "Tài nguyên bạn đang tìm kiếm không có sẵn"
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "The role {0} should be a custom role."
-msgstr "Vai trò {0} phải là một vai trò tùy chỉnh."
+msgstr ""
 
 #: frappe/utils/response.py:331
 msgid "The system is being updated. Please refresh again after a few moments."

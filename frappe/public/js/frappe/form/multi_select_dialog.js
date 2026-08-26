@@ -637,9 +637,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	async add_parent_filters(filters) {
 		const parent_names = await this.get_filtered_parents_for_child_search();
-		if (parent_names.length) {
-			filters.push(["parent", "in", parent_names]);
-		}
+		// empty list must match nothing, else child search leaks every parent's rows
+		filters.push(["parent", "in", parent_names]);
 	}
 
 	add_custom_child_filters(filters) {

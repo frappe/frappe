@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-04 17:32\n"
+"PO-Revision-Date: 2026-08-23 21:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -1629,7 +1629,7 @@ msgstr "Amministratore connesso"
 
 #: frappe/core/doctype/user/user.py:1194
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
-msgstr "L'amministratore ha effettuato l'accesso a {0} il {1} tramite indirizzo IP {2}."
+msgstr ""
 
 #. Label of a Section Break field in DocType 'DocType'
 #. Label of a Tab Break field in DocType 'System Settings'
@@ -3677,7 +3677,7 @@ msgstr "Fatturazione"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:21
 msgid "Billing Contact"
-msgstr "Contatto di Fatturazione"
+msgstr ""
 
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -4653,7 +4653,7 @@ msgstr "Cambia Etichetta (tramite Traduzione Personalizzata)"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:45
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:141
 msgid "Change Letter Head"
-msgstr "Cambia Intestazione"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -6062,7 +6062,7 @@ msgstr "Crea Voce"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
 msgid "Create Letter Head"
-msgstr "Crea Intestazione"
+msgstr ""
 
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -6132,7 +6132,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
-msgstr "Crea o Modifica Formato di Stampa"
+msgstr ""
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
@@ -6969,11 +6969,11 @@ msgstr "Si è verificato un deadlock"
 
 #: frappe/templates/emails/password_reset.html:1
 msgid "Dear"
-msgstr "Gentile"
+msgstr ""
 
 #: frappe/templates/emails/administrator_logged_in.html:1
 msgid "Dear System Manager,"
-msgstr "Gentile Amministratore di sistema,"
+msgstr ""
 
 #: frappe/templates/emails/account_deletion_notification.html:1
 #: frappe/templates/emails/delete_data_confirmation.html:1
@@ -10912,7 +10912,7 @@ msgstr "Segui"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr "Seguito da"
+msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:132
 msgid "Following Report Filters have missing values:"
@@ -12162,7 +12162,7 @@ msgstr "Mappa di calore"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
-msgstr "Ciao"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
@@ -17484,7 +17484,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr "Nessun indirizzo aggiunto finora."
+msgstr ""
 
 #: frappe/email/doctype/notification/notification.js:195
 msgid "No alerts for today"
@@ -17532,7 +17532,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
-msgstr "Nessun contatto aggiunto ancora."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:441
 msgid "No contacts linked to document"
@@ -20306,7 +20306,7 @@ msgstr "Primario"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:21
 msgid "Primary Address"
-msgstr "Indirizzo Principale"
+msgstr ""
 
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -24649,7 +24649,7 @@ msgstr "Spedizione"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:25
 msgid "Shipping Address"
-msgstr "indirizzo di spedizione"
+msgstr ""
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -26670,7 +26670,7 @@ msgstr "Editor di testo"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Thank you"
-msgstr "Grazie"
+msgstr ""
 
 #: frappe/www/contact.py:47
 msgid "Thank you for reaching out to us. We will get back to you at the earliest.\n\n\n"
@@ -26702,7 +26702,7 @@ msgstr "Grazie per il vostro messaggio"
 
 #: frappe/templates/emails/new_user.html:16
 msgid "Thanks"
-msgstr "Grazie"
+msgstr ""
 
 #: frappe/templates/emails/auto_repeat_fail.html:3
 msgid "The Auto Repeat for this document has been disabled."
@@ -26811,7 +26811,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
-msgstr "Il campo {0} è obbligatorio"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:177
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -26907,7 +26907,7 @@ msgstr "La risorsa che stai cercando non è disponibile"
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "The role {0} should be a custom role."
-msgstr "Il ruolo {0} deve essere un ruolo personalizzato."
+msgstr ""
 
 #: frappe/utils/response.py:331
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -30661,7 +30661,7 @@ msgstr "Non sei autorizzato ad accedere a questa risorsa. Effettua il login per 
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
-msgstr "Ora stai seguendo questo documento. Riceverai aggiornamenti giornalieri tramite e-mail. Puoi modificare questa impostazione nelle Impostazioni Utente."
+msgstr ""
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:125
 msgid "You are only allowed to update order, do not remove or add apps."

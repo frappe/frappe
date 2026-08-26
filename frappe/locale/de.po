@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-04 17:32\n"
+"PO-Revision-Date: 2026-08-25 22:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -27180,7 +27180,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:679
 msgid "This Year"
-msgstr ""
+msgstr "Dieses Jahr"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"

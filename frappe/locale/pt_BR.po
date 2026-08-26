@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-29 15:46\n"
+"PO-Revision-Date: 2026-08-23 21:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -26670,7 +26670,7 @@ msgstr "Editor de Texto"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Thank you"
-msgstr "Obrigado"
+msgstr ""
 
 #: frappe/www/contact.py:47
 msgid "Thank you for reaching out to us. We will get back to you at the earliest.\n\n\n"
@@ -30661,7 +30661,7 @@ msgstr "Você não tem permissão para acessar este recurso. Entre para acessar"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
-msgstr "Agora você está seguindo este documento. Você receberá atualizações diárias via e-mail. Você pode alterar isso nas Configurações do Usuário."
+msgstr ""
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:125
 msgid "You are only allowed to update order, do not remove or add apps."

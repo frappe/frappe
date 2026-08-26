@@ -155,7 +155,7 @@ def get_permission_query_conditions(user):
 	if any(check in todo_roles for check in frappe.get_roles(user)):
 		return None
 	else:
-		return """(`tabToDo`.allocated_to = {user} or `tabToDo`.assigned_by = {user})""".format(
+		return """(`tabToDo`.allocated_to = {user} or `tabToDo`.assigned_by = {user} or `tabToDo`.owner = {user})""".format(
 			user=frappe.db.escape(user)
 		)
 
@@ -168,7 +168,7 @@ def has_permission(doc, ptype="read", user=None):
 	if any(check in todo_roles for check in frappe.get_roles(user)):
 		return True
 	else:
-		return doc.allocated_to == user or doc.assigned_by == user
+		return doc.allocated_to == user or doc.assigned_by == user or doc.owner == user
 
 
 @frappe.whitelist()

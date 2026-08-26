@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-04 17:32\n"
+"PO-Revision-Date: 2026-08-23 21:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -3679,7 +3679,7 @@ msgstr "Faturação"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:21
 msgid "Billing Contact"
-msgstr "Contacto de Faturação"
+msgstr ""
 
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -4655,7 +4655,7 @@ msgstr "Alterar Rótulo (via Tradução Personalizada)"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:45
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:141
 msgid "Change Letter Head"
-msgstr "Alterar Cabeçalho"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -6064,7 +6064,7 @@ msgstr "Criar entrada"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
 msgid "Create Letter Head"
-msgstr "Criar cabeçalho"
+msgstr ""
 
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -6134,7 +6134,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
-msgstr "Criar ou Editar Formato de Impressão"
+msgstr ""
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
@@ -10914,7 +10914,7 @@ msgstr "Seguir"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr "Seguido por"
+msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:132
 msgid "Following Report Filters have missing values:"
@@ -12164,7 +12164,7 @@ msgstr "Mapa de calor"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
-msgstr "Olá"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
@@ -17486,7 +17486,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr "Nenhum endereço adicionado ainda."
+msgstr ""
 
 #: frappe/email/doctype/notification/notification.js:195
 msgid "No alerts for today"
@@ -17534,7 +17534,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
-msgstr "Nenhum contacto adicionado ainda."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:441
 msgid "No contacts linked to document"
@@ -20308,7 +20308,7 @@ msgstr "Primário"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:21
 msgid "Primary Address"
-msgstr "Endereço Principal"
+msgstr ""
 
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -26813,7 +26813,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
-msgstr "O campo {0} é obrigatório"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:177
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -26909,7 +26909,7 @@ msgstr "O recurso que procura não está disponível"
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "The role {0} should be a custom role."
-msgstr "A função {0} deve ser uma função personalizada."
+msgstr ""
 
 #: frappe/utils/response.py:331
 msgid "The system is being updated. Please refresh again after a few moments."

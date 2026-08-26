@@ -227,6 +227,7 @@ import {
 } from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
+import { identify, rowKey } from "../Fields/rowIdentity";
 import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
@@ -369,12 +370,15 @@ function alignClass(align: GridColumn["align"]): string {
 	return "text-left";
 }
 
-// Stable identity per row object (rows have no guaranteed id), minted in a WeakMap.
-// Used for `v-for`/Draggable keys and selection, both surviving reorder/delete/edit
-// since row objects are mutated in place, never replaced.
+// Identity by `name ?? __row_id`, so it survives a save: the saved response
+// replaces every row object, which used to empty the selection. The WeakMap
+// remains for rows that reached the grid with neither (`v-for`/Draggable need a
+// key regardless).
 let uid = 0;
 const rowKeys = new WeakMap<object, string>();
 function keyOf(row: Record<string, any>): string {
+	const identified = rowKey(row);
+	if (identified) return identified;
 	let key = rowKeys.get(row);
 	if (!key) {
 		key = `r${uid++}`;
@@ -420,20 +424,29 @@ function updateCell(index: number, col: T, value: any) {
 }
 
 function commitCell(index: number, col: T, value: any) {
-	rows.value[index][col.fieldname] = value;
+	const row = rows.value[index];
+	row[col.fieldname] = value;
+	emit("commit", { row, column: col });
 	emit("change", rows.value);
 }
 
+// `newRow` seeds the child doctype's docfield defaults; the caller supplies it
+// because the grid sees only the columns, not the whole child form.
 function addRow() {
-	const next = [...rows.value, {}];
+	const row = identify(props.newRow?.() ?? {});
+	const next = [...rows.value, row];
 	rows.value = next;
+	emit("add", { row });
 	emit("change", next);
 }
 
 function deleteSelected() {
-	const next = rows.value.filter((row) => !selected.value.has(keyOf(row)));
+	const isRemoved = (row: Record<string, any>) => selected.value.has(keyOf(row));
+	const removed = rows.value.filter(isRemoved);
+	const next = rows.value.filter((row) => !isRemoved(row));
 	rows.value = next;
 	selected.value = new Set();
+	emit("remove", { rows: removed });
 	emit("change", next);
 }
 
