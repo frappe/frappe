@@ -19,7 +19,9 @@
 					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
 				/>
 			</span>
-			<span class="flex-none text-sm font-medium text-ink-gray-9">Thought</span>
+			<span class="flex-none text-sm font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
+				live ? "Thinking" : "Thought"
+			}}</span>
 			<span class="min-w-0 flex-1 truncate text-sm text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>
 		</component>
 
@@ -27,24 +29,49 @@
 			v-if="open"
 			class="mb-1.5 mt-1 rounded-[10px] border border-outline-gray-1 bg-surface-white px-3.5 py-3"
 		>
-			<MarkdownContent
-				:text="block.thinking"
-				class="max-h-[260px] overflow-y-auto text-sm leading-relaxed text-ink-gray-6"
-			/>
+			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
+				<MarkdownContent :text="block.thinking" class="text-sm leading-relaxed text-ink-gray-6" />
+			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, ref } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"
 
-const props = defineProps({ block: { type: Object, required: true } })
+const props = defineProps({
+	block: { type: Object, required: true },
+	// this thought's chunks are still streaming in
+	live: { type: Boolean, default: false },
+})
 
 const open = ref(false)
+
+// The open panel follows streamed text like the thread does: pinned while the
+// user is at its bottom (trivially true when the content is still short),
+// released the moment they scroll up inside it.
+const panelEl = ref(null)
+let panelPinned = false
+const atPanelBottom = (el) => el.scrollHeight - el.scrollTop - el.clientHeight < 8
+function onPanelScroll() {
+	if (panelEl.value) panelPinned = atPanelBottom(panelEl.value)
+}
+watch(panelEl, (el) => {
+	if (el) panelPinned = atPanelBottom(el)
+})
+watch(
+	() => props.block.thinking,
+	async () => {
+		if (!panelPinned) return
+		await nextTick()
+		const el = panelEl.value
+		if (el) el.scrollTop = el.scrollHeight
+	},
+)
 
 const expandable = computed(() => !props.block.redacted && !!props.block.thinking)
 const preview = computed(() => {
