@@ -358,6 +358,10 @@ export function createFlowStore(client) {
 		const message = text.trim()
 		if (!message && !attachments.length) return false
 		if (!state.sessionId) {
+			if (!state.prefs.cwd) {
+				notify("Choose a project folder before sending a message.", "error")
+				return false
+			}
 			creating ??= newSession()
 			try {
 				if (!(await creating)) return false
