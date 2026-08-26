@@ -24,6 +24,7 @@ from frappe.desk.doctype.dock.dock import (
 	get_user_dock,
 	get_user_dock_layer,
 	mark_as_standard,
+	mounted_apps,
 	render_dock_hook,
 	resolve_dock,
 	save_site_dock,
@@ -285,7 +286,8 @@ def shipped_dock(records: dict[str, list[dict]]):
 		patch.object(frappe, "get_app_path", patched_path),
 	):
 		shipped, displaced = [], {}
-		for app, rows in records.items():
+		for app, spec in records.items():
+			rows, mount_on = (spec, None) if isinstance(spec, list) else (spec["items"], spec.get("mount_on"))
 			# A dock this block replaces is put back afterwards. Suites nest these -- the class
 			# ships one for its own app and a test ships a different one over it -- and without
 			# the restore the inner block would leave the app dock-less for every later test,
@@ -294,7 +296,7 @@ def shipped_dock(records: dict[str, list[dict]]):
 				doc = frappe.get_doc("Dock", standing)
 				displaced[app] = [{field: row.get(field) for field in DOCK_ITEM_FIELDS} for row in doc.items]
 				frappe.delete_doc("Dock", standing, force=True, ignore_permissions=True)
-			shipped.append(ship_dock(app, rows))
+			shipped.append(ship_dock(app, rows, mount_on))
 		try:
 			yield
 		finally:
@@ -305,11 +307,12 @@ def shipped_dock(records: dict[str, list[dict]]):
 			shutil.rmtree(nowhere, ignore_errors=True)
 
 
-def ship_dock(app: str, rows: list) -> str:
+def ship_dock(app: str, rows: list, mount_on: str | None = None) -> str:
 	"""One app's `Dock` record, as if its file had just been imported. Returns its name."""
 	doc = frappe.new_doc("Dock")
 	doc.app = app
 	doc.standard = 1
+	doc.mount_on = mount_on
 	for row in rows:
 		if isinstance(row, dict):
 			doc.append("items", {field: row.get(field) for field in DOCK_ITEM_FIELDS})
@@ -1331,6 +1334,154 @@ class TestTheRowShape(DockTestCase):
 		an empty string where every reader wants "unset", and a key built from two spellings of
 		nothing would key one row two ways."""
 		self.assertEqual(dock_key(stored_row({"sidebar": ALPHA, "url": ""})), dock_key(sidebar(ALPHA)))
+
+
+class TestTheCompanionMount(DockTestCase):
+	"""A companion app -- one with no rail of its own -- declaring that with **one column on its
+	own record** rather than a flag on its rows.
+
+	The reframe that settled it: the host lookup never read the hook's fragment, it read the
+	rows, took the first host and broke. So what the hook carried was a one-per-companion
+	*identity claim*, which is a record-level fact. A per-row host column would hold one value in
+	every companion row and be blank in every other.
+	"""
+
+	HOST = "zz-dock-host"
+	COMPANION = "zz-dock-companion"
+	OTHER_COMPANION = "zz-dock-companion-two"
+	USER = "test-dock-mount@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", self.USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": self.USER,
+					"first_name": "Dock Mount",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Desk User"}],
+				}
+			).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_arrangements()
+		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
+
+	def host_and_companion(self, host_rows=None, companion_rows=None, mount_on=None):
+		return shipped_dock(
+			{
+				self.HOST: [sidebar(ALPHA)] if host_rows is None else host_rows,
+				self.COMPANION: {
+					"items": [sidebar(BETA)] if companion_rows is None else companion_rows,
+					"mount_on": self.HOST if mount_on is None else mount_on,
+				},
+			}
+		)
+
+	# -- the column ----------------------------------------------------------------------
+
+	def test_a_dock_declares_the_app_it_mounts_on_as_an_app_name(self):
+		"""Not a Link to a record: every consumer wants a string, and every app has three `Dock`
+		records, so a mount aimed at a record would be a mount aimed at a *layer*."""
+		field = frappe.get_meta("Dock").get_field("mount_on")
+
+		self.assertEqual(field.fieldtype, "Autocomplete")
+		self.assertEqual(field.options, "Installed Applications")
+
+	def test_the_column_is_blank_on_an_ordinary_dock(self):
+		with self.host_and_companion():
+			self.assertIsNone(frappe.db.get_value("Dock", self.HOST, "mount_on"))
+			self.assertEqual(frappe.db.get_value("Dock", self.COMPANION, "mount_on"), self.HOST)
+
+	def test_the_column_is_blanked_on_a_layer_that_is_not_app_content(self):
+		"""`depends_on` hides it on the two writable layers; it does not stop an API write, and a
+		site row carrying a mount would put one person's arrangement on somebody else's rail."""
+		with self.host_and_companion():
+			save_site_dock(self.HOST, payload(ALPHA))
+			doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": self.HOST, "standard": 0}))
+			doc.mount_on = self.COMPANION
+			doc.save(ignore_permissions=True)
+
+			self.assertIsNone(doc.mount_on)
+
+	# -- what a mount does ---------------------------------------------------------------
+
+	def test_a_companions_rows_land_appended_on_the_hosts_rail(self):
+		"""Appended rather than positioned: a companion is not asserting an opinion into an
+		arrangement that is not its."""
+		with self.host_and_companion():
+			self.assertEqual(names(dock_for(self.USER, among=None, app=self.HOST)), [ALPHA, BETA])
+
+	def test_a_companion_has_no_rail_of_its_own(self):
+		with self.host_and_companion():
+			self.assertNotIn(self.COMPANION, resolve_dock())
+
+	def test_appending_is_a_default_the_site_may_reorder(self):
+		"""The reason it is only a default: the host's file is authored before the companion
+		exists on any site, so where a companion's entries sit is the site's business."""
+		with self.host_and_companion():
+			save_site_dock(self.HOST, payload(BETA, ALPHA))
+
+			self.assertEqual(names(dock_for(self.USER, among=None, app=self.HOST)), [BETA, ALPHA])
+
+	def test_two_companions_mount_in_installation_order(self):
+		with shipped_dock(
+			{
+				self.HOST: [sidebar(ALPHA)],
+				self.COMPANION: {"items": [sidebar(BETA)], "mount_on": self.HOST},
+				self.OTHER_COMPANION: {"items": [sidebar(GAMMA)], "mount_on": self.HOST},
+			}
+		):
+			self.assertEqual(names(dock_for(self.USER, among=None, app=self.HOST)), [ALPHA, BETA, GAMMA])
+
+	def test_a_mount_costs_the_apps_screen_slot(self):
+		from frappe.boot import get_app_rail_host_map
+
+		with self.host_and_companion():
+			hosts = get_app_rail_host_map()
+
+		self.assertEqual(hosts.get(self.COMPANION), self.HOST)
+		self.assertNotIn(self.HOST, hosts)
+
+	# -- a mount is conditional ----------------------------------------------------------
+
+	def test_a_companion_whose_host_is_not_installed_is_an_ordinary_app(self):
+		"""The invisible-companion bug. Resolution dropped the pin deliberately, but the boot
+		path checked only the declarer -- so installing a companion without its host took its
+		apps-screen slot away and gave it nothing."""
+		from frappe.boot import get_app_rail_host_map
+
+		with shipped_dock({self.COMPANION: {"items": [sidebar(BETA)], "mount_on": "not-an-app"}}):
+			self.assertEqual(get_app_rail_host_map(), {})
+			self.assertEqual(names(dock_for(self.USER, among=None, app=self.COMPANION)), [BETA])
+
+	def test_a_companion_whose_host_ships_no_dock_is_an_ordinary_app(self):
+		"""Mount onto a dock-less host and its rail becomes *entirely another app's entries*,
+		with no route to its own module and the switcher gone -- and the common dock-less app
+		ships exactly one module, so this is not an edge."""
+		from frappe.boot import get_app_rail_host_map
+
+		with shipped_dock({self.HOST: [], self.COMPANION: {"items": [sidebar(BETA)], "mount_on": self.HOST}}):
+			self.assertEqual(get_app_rail_host_map(), {})
+			self.assertEqual(names(dock_for(self.USER, among=None, app=self.COMPANION)), [BETA])
+			self.assertNotIn(self.HOST, resolve_dock())
+
+	def test_a_companion_that_ships_no_rows_is_an_ordinary_app(self):
+		from frappe.boot import get_app_rail_host_map
+
+		with self.host_and_companion(companion_rows=[]):
+			self.assertEqual(get_app_rail_host_map(), {})
+
+	def test_the_condition_reads_the_hosts_own_dock_rather_than_its_rail(self):
+		"""So it does not go circular: resolving the host's rail is what wants this answer."""
+		with self.host_and_companion():
+			# the site hides everything the host ships; the mount still lands, because what it
+			# asks about is the record rather than what this person ends up seeing
+			save_site_dock(self.HOST, payload(sidebar(ALPHA, hidden=1)))
+
+			self.assertEqual(mounted_apps().get(self.COMPANION), self.HOST)
 
 
 class TestAnAppWithNoDock(DockTestCase):

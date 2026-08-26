@@ -224,12 +224,15 @@ def get_app_rail_host_map():
 	context (rail + header) of a companion app's workspaces to the host app, so you stay "in" the
 	host's rail while using the companion.
 
-	**Empty for one commit.** It read the `add_to_dock` rows carrying `app`, and that hook is
-	gone; the claim it carried was never an entry at all but a one-per-companion *identity*
-	claim, which is a record-level fact -- so it comes back as a read of `Dock.mount_on` in
-	ticket 10, which is where the column lands.
+	Read off the records rather than off a hook, and it rides the dock layers cache -- which
+	exists for exactly this, a question the boot asks on every request. Only the mounts that
+	actually **land** are here: a companion whose host is not installed, or whose host ships no
+	dock, or that ships no rows itself, is an ordinary app with a rail and an apps-screen slot of
+	its own.
 	"""
-	return {}
+	from frappe.desk.doctype.dock.dock import mounted_apps
+
+	return mounted_apps()
 
 
 # Fallback apps-screen sort order for apps that don't declare a `sequence_id` in their
@@ -246,11 +249,11 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.doctype.dock.dock import resolve_dock
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
-	# A companion app's workspaces resolve their app context (dock + header) to the host app they
-	# pinned into, so the companion appears to live inside the host's dock rather than flipping
-	# the desk to a shell of its own. Not redundant with the pin being in the host's entry set:
-	# only the pinned workspace is derivable from that, and a companion's *other* workspaces need
-	# the host's dock on screen too.
+	# A companion app's workspaces resolve their app context (rail + header) to the host app it
+	# mounts on, so the companion appears to live inside the host's rail rather than flipping the
+	# desk to a shell of its own. Not redundant with the companion's rows being in the host's
+	# entry set: only those rows are derivable from that, and a companion's *other* workspaces
+	# need the host's rail on screen too.
 	bootinfo.app_rail_host = get_app_rail_host_map()
 	# The dock this user sees, keyed by app: each app's own dock, with the site's arrangement and
 	# then their own applied on top, filtered to what they may reach. Keyed by app because a dock
@@ -337,7 +340,9 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 		# workspace record's own configured order.
 		#
 		# Private workspaces are included on the same footing as public ones: a private workspace
-		# mounted to an app belongs on that app's dock, and nowhere else. Restricting to the
+		# whose module belongs to an app belongs on that app's rail, and nowhere else. ("Mounted"
+		# is not the word any more -- mounting is one *app* declaring it lives on another's rail,
+		# and a workspace's placement follows its module.) Restricting to the
 		# session user is belt-and-braces -- `allowed_pages` already covers it, since
 		# `get_workspaces()` only ever extends its page list with the user's *own* private
 		# workspaces -- but it keeps the query honest on its own terms.

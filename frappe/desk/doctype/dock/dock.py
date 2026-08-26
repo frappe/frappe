@@ -113,6 +113,7 @@ class Dock(Document):
 
 		app: DF.Autocomplete
 		items: DF.Table[DockItem]
+		mount_on: DF.Autocomplete | None
 		standard: DF.Check
 		user: DF.Link
 	# end: auto-generated types
@@ -139,7 +140,17 @@ class Dock(Document):
 		self.user = self.user or SITE_LAYER
 		self.validate_app_content()
 		self.validate_standard()
+		self.blank_the_mount()
 		self.anchor_the_items()
+
+	def blank_the_mount(self):
+		"""Mounting is an app-layer claim, so no other layer may hold one.
+
+		`depends_on` hides the field on the two writable layers; it does not stop an API write,
+		and a site row carrying a mount would put a person's arrangement on somebody else's rail.
+		"""
+		if not self.standard:
+			self.mount_on = None
 
 	def validate_app_content(self):
 		"""Only developer mode may set or clear the standard flag, because it is app content.
@@ -509,22 +520,72 @@ def layer_filter(app: str, user: str | None, standard: int = 0) -> dict:
 	return {"app": app, "user": user or SITE_LAYER, "standard": standard}
 
 
-def get_dock_layers() -> set[tuple[str, str, int]]:
-	"""Cached addresses of every layer the site holds: `(app, user, standard)`, one per document.
+def dock_records() -> list[dict]:
+	"""Cached address of every layer the site holds -- app, user, standard -- plus the mount an
+	app's own dock declares.
 
 	This is the cost-control story: a boot on a site nobody has arranged answers every layer of
-	every app out of one redis read, instead of a query apiece. The addresses rather than the
-	names, so a stale cache can only ever cost a lookup that finds nothing -- the same negative
-	filter `Custom Sidebar` keeps, and for the same reason.
+	every app out of one redis read, instead of a query apiece. `mount_on` rides it for the same
+	reason -- the boot asks who mounts on whom on every request, and that used to be a cached
+	hooks read.
+
+	Addresses rather than documents, so a stale cache can only ever cost a lookup that finds
+	nothing -- the same negative filter `Custom Sidebar` keeps.
 	"""
-	layers = frappe.cache.get_value(DOCK_LAYERS_CACHE_KEY)
-	if layers is None:
-		layers = [
-			[row.app, row.user or SITE_LAYER, int(row.standard or 0)]
-			for row in frappe.get_all("Dock", fields=["app", "user", "standard"])
+	records = frappe.cache.get_value(DOCK_LAYERS_CACHE_KEY)
+	if records is None:
+		records = [
+			{
+				"app": row.app,
+				"user": row.user or SITE_LAYER,
+				"standard": int(row.standard or 0),
+				"mount_on": row.mount_on or None,
+			}
+			for row in frappe.get_all("Dock", fields=["app", "user", "standard", "mount_on"])
 		]
-		frappe.cache.set_value(DOCK_LAYERS_CACHE_KEY, layers)
-	return {tuple(layer) for layer in layers}
+		frappe.cache.set_value(DOCK_LAYERS_CACHE_KEY, records)
+	return records
+
+
+def get_dock_layers() -> set[tuple[str, str, int]]:
+	"""Every layer address the site holds, for the membership test `get_dock` makes."""
+	return {(row["app"], row["user"], row["standard"]) for row in dock_records()}
+
+
+def mounted_apps() -> dict[str, str]:
+	"""Companion app -> the host whose rail it mounts on, for the mounts that actually **land**.
+
+	A companion app has no rail of its own; its entries live on a host's. Declaring that is an
+	aspiration, not a renunciation -- three conditions have to hold, and each of them prevents a
+	real failure:
+
+	1. **the host is installed.** A companion installed without its host is invisible today:
+	   resolution drops the pin, but the boot path takes its apps-screen slot away anyway.
+	2. **the host ships a dock of its own.** Mount onto a dock-less host and its rail becomes
+	   *entirely another app's entries*, with no route to its own module and the switcher gone --
+	   and the common dock-less app ships exactly one module, so this is not an edge.
+	3. **the companion ships rows.** Nothing to mount is not a mount.
+
+	The second test is on the host's **own** dock rather than on its resolved rail, so it does
+	not go circular -- resolving the host's rail is what wants this answer.
+
+	The host has no say; the site does. A host's file is authored before the companion exists on
+	any site, so a veto would be exercised blind. Refusal is **hiding**, at the site layer.
+	"""
+	shipped = {row["app"]: row for row in dock_records() if row["standard"]}
+	installed = frappe.get_active_apps()
+
+	mounts = {}
+	for app, row in shipped.items():
+		host = row["mount_on"]
+		if not host or host == app or host not in installed or app not in installed:
+			continue
+		if host not in shipped or not get_app_dock(host):
+			continue
+		if not get_app_dock(app):
+			continue
+		mounts[app] = host
+	return mounts
 
 
 def get_dock(app: str, user: str | None = None, standard: int = 0) -> "Dock | None":
@@ -617,6 +678,32 @@ def get_app_dock(app: str) -> list[dict]:
 	return rows
 
 
+def get_app_base(app: str) -> list[dict]:
+	"""One app's own dock, with the rows of every companion mounted on it appended.
+
+	Appended rather than positioned, and **as a default**: a companion is not asserting an
+	opinion into an arrangement that is not its, and the site and the person may then reorder
+	the lot. Two companions mounting on one host land in installation order rather than fighting
+	for a slot.
+	"""
+	own = get_app_dock(app)
+	mounts = mounted_apps()
+	if app not in set(mounts.values()):
+		return own
+
+	rows, seen = list(own), {dock_key(row) for row in own}
+	for companion in sorted(mounts, key=frappe.get_active_apps().index):
+		if mounts[companion] != app:
+			continue
+		for row in get_app_dock(companion):
+			key = dock_key(row)
+			if key in seen:
+				continue
+			seen.add(key)
+			rows.append(row)
+	return rows
+
+
 def get_app_entry_set(app: str) -> list[dict]:
 	"""Every entry `app`'s dock offers this person, before any layer arranges them.
 
@@ -624,7 +711,7 @@ def get_app_entry_set(app: str) -> list[dict]:
 	from. Filtered by reach and by nothing else: which of them are *on* the rail, and in what
 	order, is the layers' business and is answered by `resolve_app_dock`.
 	"""
-	return [rail_entry(row) for row in get_app_dock(app) if is_reachable(row)]
+	return [rail_entry(row) for row in get_app_base(app) if is_reachable(row)]
 
 
 def apps_screen_sort_key():
@@ -707,14 +794,19 @@ def resolve_dock() -> dict[str, list[dict]]:
 
 
 def docked_apps() -> list[str]:
-	"""Every app whose dock could resolve to something: one that ships a record, or one some
+	"""Every app whose rail could resolve to something: one that ships a record, or one some
 	layer on this site has an opinion about.
 
 	Both come off the same cached read, which is what keeps a boot on a site nobody has arranged
 	free. Asking every installed app instead would be correct and nearly as cheap, but it would
 	walk apps that have never had a rail on any site.
+
+	A companion whose mount lands is left out: its entries render on the host's rail, and it has
+	no rail of its own for anything to resolve to.
 	"""
-	return sorted({app for app, _user, _standard in get_dock_layers()}, key=apps_screen_sort_key())
+	mounted = mounted_apps()
+	apps = {row["app"] for row in dock_records()} - set(mounted)
+	return sorted(apps, key=apps_screen_sort_key())
 
 
 def resolve_app_dock(app: str, upto: str = "user", gated: bool = True) -> list[dict]:
@@ -729,7 +821,7 @@ def resolve_app_dock(app: str, upto: str = "user", gated: bool = True) -> list[d
 	"""
 	layers = {"app": [], "site": [get_site_dock(app)], "user": [get_site_dock(app), get_user_dock(app)]}
 	resolved, hidden = resolve_layers(
-		get_app_dock(app),
+		get_app_base(app),
 		layers[upto],
 		key=dock_key,
 		apply_row=apply_dock_row,

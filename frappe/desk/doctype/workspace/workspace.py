@@ -756,8 +756,8 @@ def get_manageable_workspaces():
 	manager for a Workspace Manager (who should see every workspace, including other users'
 	private ones). Everyone else sees only their own private workspaces.
 	"""
-	# `app` comes along so the dialog can group the workspaces that aren't mounted to any app
-	# (and so appear on no dock) into their own list.
+	# `app` comes along so the dialog can group the workspaces whose module belongs to no app
+	# (and which therefore appear on no rail) into their own list.
 	fields = ["name", "title", "icon", "public", "for_user", "standard", "module"]
 	if is_workspace_manager():
 		filters = {}
@@ -942,8 +942,8 @@ def delete_page(name: str):
 def get_assignable_modules():
 	"""Modules a workspace can be assigned to, as `{module, label, app_name, app_title}`.
 
-	Replaces `get_mountable_apps`: a workspace's dock placement follows its module now, so the
-	question is which module owns it, not which app it is mounted to.
+	Replaces `get_mountable_apps`: a workspace's rail placement follows its module now, so the
+	question is which module owns it, not which app it was placed in.
 	"""
 	from frappe.utils.modules import is_module_visible
 
