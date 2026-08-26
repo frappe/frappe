@@ -5,7 +5,7 @@
 			Two standalone, inline message composers. <code>EmailComposer</code> stacks email
 			header rows (From/Subject/To/Cc/Bcc, per the <code>show*</code> props) plus an optional
 			quoted reply above the editor; <code>CommentComposer</code> is the editor alone, with
-			@-mentions, for internal notes. Both are transport-agnostic — <code>submit</code> hands
+			@-mentions, for internal notes. Both are transport-agnostic: <code>submit</code> hands
 			back a payload and the host performs the send, then calls the exposed
 			<code>reset()</code>. Each scene below is a real host pattern, built from a few lines
 			around the inline composer.
@@ -17,7 +17,9 @@
 				A support thread with an Email/Comment switcher. The quoted customer message rides
 				<code>v-model:quoted</code> and is appended on send; both drafts survive tab
 				switches because the composers stay mounted (<code>v-show</code>, not
-				<code>v-if</code>).
+				<code>v-if</code>). The whole reply section lives in frappe-ui's
+				<code>FloatingWindow</code>: docked it renders in-flow, and its title bar pops it
+				out to a draggable window; the same instance moves, so no draft is lost.
 			</p>
 			<TicketReply />
 			<pre
@@ -28,8 +30,9 @@
 		<section class="mb-10">
 			<div class="text-base font-medium text-ink-gray-8">Docked compose window</div>
 			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
-				A Gmail-style floating composer. The window is the host's own fixed card (FP1 — the
-				library stays out of the window business); <code>show-from</code> and
+				A Gmail-style compose window: frappe-ui's <code>FloatingWindow</code> around the
+				inline composer (FP1: the composer stays out of the window business). Pop it out
+				and drag it, or minimize it to the tray; <code>show-from</code> and
 				<code>show-subject</code> turn on the full header.
 			</p>
 			<DockedCompose />
@@ -41,7 +44,7 @@
 		<section class="mb-10">
 			<div class="text-base font-medium text-ink-gray-8">Comment thread</div>
 			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
-				An activity feed with <code>CommentComposer</code> pinned underneath — type
+				An activity feed with <code>CommentComposer</code> pinned underneath. Type
 				<code>@</code> to mention a teammate. Submitted comments join the feed and the host
 				calls <code>reset()</code>.
 			</p>
@@ -55,7 +58,7 @@
 			<div class="text-base font-medium text-ink-gray-8">Quick reply, custom header</div>
 			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
 				A body-only reply under a message. <code>#header</code> replaces the built-in rows
-				wholesale — here a "Replying to" pill — while the host seeds
+				wholesale, here a "Replying to" pill, while the host seeds
 				<code>v-model:to</code> so the payload still carries the recipient.
 			</p>
 			<QuickReply />
@@ -67,9 +70,8 @@
 		<section class="mb-4">
 			<div class="text-base font-medium text-ink-gray-8">Custom utilities</div>
 			<p class="mb-3 mt-1 text-p-sm text-ink-gray-6">
-				Extending the editor: a host tiptap extension via <code>extensions</code>
-				(press <kbd>⌘⇧E</kbd> to stamp today's date) and a canned-responses menu in the
-				<code>#actions</code> slot, driven through the exposed <code>editor</code>.
+				Host utilities in the <code>#actions</code> slot: a canned replies menu beside the
+				built-in attach button, inserting through the exposed <code>editor</code>.
 			</p>
 			<CustomUtility />
 			<pre
@@ -86,23 +88,25 @@ import DockedCompose from "./DockedCompose.vue";
 import QuickReply from "./QuickReply.vue";
 import TicketReply from "./TicketReply.vue";
 
-const ticketSnippet = `<TabButtons v-model="channel" :options="channels" />
+const ticketSnippet = `<!-- Docked renders in-flow; the title bar pops the whole section out. -->
+<FloatingWindow title="TICKET-1042 Reply" :minimizable="false">
+  <TabButtons v-model="channel" :options="channels" />
 
-<div v-show="channel === 'reply'">
-  <EmailComposer
-    v-model="replyBody"
-    v-model:to="to"
-    v-model:quoted="quoted"
-    :search-recipients="searchRecipients"
-    @submit="onReply"
-  />
-</div>
-<div v-show="channel === 'comment'">
-  <CommentComposer v-model="commentBody" :mentions="agents" @submit="onComment" />
-</div>`;
+  <div v-show="channel === 'reply'">
+    <EmailComposer
+      v-model="replyBody"
+      v-model:to="to"
+      v-model:quoted="quoted"
+      :search-recipients="searchRecipients"
+      @submit="onReply"
+    />
+  </div>
+  <div v-show="channel === 'comment'">
+    <CommentComposer v-model="commentBody" :mentions="agents" @submit="onComment" />
+  </div>
+</FloatingWindow>`;
 
-const dockedSnippet = `<!-- The window is host chrome: a fixed card, a Dialog, whatever fits. -->
-<div class="fixed bottom-0 right-6 w-[440px] rounded-t-xl border shadow-2xl">
+const dockedSnippet = `<FloatingWindow title="New message">
   <EmailComposer
     v-model="body"
     v-model:to="to"
@@ -113,7 +117,7 @@ const dockedSnippet = `<!-- The window is host chrome: a fixed card, a Dialog, w
     :senders="senders"
     @submit="onSend"
   />
-</div>`;
+</FloatingWindow>`;
 
 const commentSnippet = `<CommentComposer v-model="draft" :mentions="teammates" @submit="onComment" />
 
@@ -128,19 +132,9 @@ const quickSnippet = `<EmailComposer v-model="body" v-model:to="to" @submit="onS
   </template>
 </EmailComposer>`;
 
-const utilitySnippet = `const insertDate = Extension.create({
-  name: "insertDate",
-  addKeyboardShortcuts() {
-    return {
-      "Mod-Shift-e": ({ editor }) =>
-        editor.commands.insertContent(new Date().toLocaleDateString()),
-    };
-  },
-});
-
-<EmailComposer ref="composer" v-model="body" :extensions="[insertDate]">
+const utilitySnippet = `<EmailComposer ref="composer" v-model="body">
   <template #actions>
-    <Dropdown :options="templates"><Button label="Templates" /></Dropdown>
+    <Dropdown :options="cannedReplies"><Button :icon="LucideZap" /></Dropdown>
   </template>
 </EmailComposer>`;
 </script>

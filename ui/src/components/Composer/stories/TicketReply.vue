@@ -30,32 +30,41 @@
 			</div>
 		</div>
 
-		<div class="border-t border-outline-gray-2">
-			<div class="border-b border-outline-gray-1 p-2">
-				<TabButtons v-model="channel" :options="channelOptions" />
-			</div>
-			<!-- v-show keeps both mounted so each draft survives a tab switch. -->
-			<div v-show="channel === 'reply'" class="p-2">
-				<EmailComposer
-					ref="replyRef"
-					v-model="replyBody"
-					v-model:to="to"
-					v-model:cc="cc"
-					v-model:bcc="bcc"
-					v-model:quoted="quoted"
-					:search-recipients="searchRecipients"
-					placeholder="Reply to Grace…"
-					@submit="onReply"
-				/>
-			</div>
-			<div v-show="channel === 'comment'" class="p-2">
-				<CommentComposer
-					ref="commentRef"
-					v-model="commentBody"
-					:mentions="agents"
-					@submit="onComment"
-				/>
-			</div>
+		<!-- FloatingWindow: docked renders in-flow; pop-out moves the same instance. -->
+		<div class="px-4 pb-4">
+			<FloatingWindow title="TICKET-1042 Reply" :minimizable="false">
+				<!-- Full-height column: the composer stretches, so its toolbar row
+				     pins to the window bottom while floating. -->
+				<div class="flex h-full min-h-0 flex-col">
+					<div class="shrink-0 px-2.5 pt-2">
+						<TabButtons v-model="channel" :options="channelOptions" />
+					</div>
+					<!-- v-show keeps both mounted so each draft survives a tab switch. -->
+					<div v-show="channel === 'reply'" class="flex min-h-0 flex-1 flex-col px-2.5 py-2">
+						<EmailComposer
+							ref="replyRef"
+							v-model="replyBody"
+							v-model:to="to"
+							v-model:cc="cc"
+							v-model:bcc="bcc"
+							v-model:quoted="quoted"
+							class="min-h-0 flex-1"
+							:search-recipients="searchRecipients"
+							placeholder="Reply to Grace…"
+							@submit="onReply"
+						/>
+					</div>
+					<div v-show="channel === 'comment'" class="flex min-h-0 flex-1 flex-col py-2">
+						<CommentComposer
+							ref="commentRef"
+							v-model="commentBody"
+							class="min-h-0 flex-1"
+							:mentions="agents"
+							@submit="onComment"
+						/>
+					</div>
+				</div>
+			</FloatingWindow>
 		</div>
 	</div>
 </template>
@@ -63,6 +72,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Avatar, Badge, TabButtons } from "frappe-ui";
+import { FloatingWindow } from "frappe-ui/experimental";
 import { CommentComposer, EmailComposer } from "../index";
 import type { CommentPayload, EmailPayload, MentionOption, Recipient } from "../types";
 

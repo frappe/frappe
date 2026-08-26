@@ -46,7 +46,7 @@ const comments = ref<Comment[]>([
 		id: 1,
 		author: "Ada Lovelace",
 		time: "3 hours ago",
-		body: "<p>Deploy looks good — error rate is back to baseline.</p>",
+		body: "<p>Deploy looks good, error rate is back to baseline.</p>",
 	},
 	{
 		id: 2,
