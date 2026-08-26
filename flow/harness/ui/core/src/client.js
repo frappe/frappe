@@ -170,6 +170,9 @@ export class DaemonClient {
 	saveCustomProvider(config) {
 		return this.request("POST", "/providers/custom", { body: config })
 	}
+	updateCustomProvider(providerId, config) {
+		return this.request("PUT", `/providers/custom/${enc(providerId)}`, { body: config })
+	}
 	saveProviderKey(providerId, key) {
 		return this.request("POST", `/providers/${enc(providerId)}/api-key`, { body: { key } })
 	}

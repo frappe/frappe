@@ -41,6 +41,7 @@ from flow.server.provider_auth import (
 	create_custom_provider,
 	provider_catalog,
 	require_provider,
+	update_custom_provider,
 )
 from flow.session.attachments import (
 	MAX_ATTACHMENTS_PER_MESSAGE,
@@ -263,32 +264,30 @@ def create_app(
 	@app.post("/providers/custom")
 	async def save_custom_provider(req: CustomProviderRequest):
 		"""Register an OpenAI-compatible endpoint (Ollama, LM Studio, a gateway)."""
-		base_url = req.base_url.strip().rstrip("/")
-
-		parsed = urlsplit(base_url)
-		if parsed.scheme not in ("http", "https") or not parsed.netloc:
-			raise HTTPException(status_code=422, detail="Base URL must be an absolute http(s) URL")
-		if parsed.username or parsed.password:
-			raise HTTPException(status_code=422, detail="Base URL must not contain credentials")
-		models = tuple(dict.fromkeys(m.strip() for m in req.models if m.strip()))
-		if not models:
-			raise HTTPException(status_code=422, detail="Add at least one model id")
-		# the prefix is what routes a model back to this endpoint later
-		if any("/" not in m for m in models):
-			raise HTTPException(
-				status_code=422,
-				detail="Model ids need a provider prefix, for example ollama/llama3.2",
-			)
-		name = req.name.strip()
-		if not name:
-			raise HTTPException(status_code=422, detail="Name must not be empty")
+		name, base_url, models, api_key = _normalized_custom_provider_request(req)
 		row = create_custom_provider(
 			store.credentials,
 			name=name,
 			base_url=base_url,
 			models=models,
-			api_key=(req.api_key or "").strip() or None,
+			api_key=api_key,
 		)
+		return {"provider": row}
+
+	@app.put("/providers/custom/{provider_id}")
+	async def edit_custom_provider(provider_id: str, req: CustomProviderRequest):
+		"""Rewrite a stored endpoint in place; a blank api_key keeps the saved one."""
+		name, base_url, models, api_key = _normalized_custom_provider_request(req)
+		row = update_custom_provider(
+			store.credentials,
+			provider_id,
+			name=name,
+			base_url=base_url,
+			models=models,
+			api_key=api_key,
+		)
+		if row is None:
+			raise HTTPException(status_code=404, detail="no such custom endpoint")
 		return {"provider": row}
 
 	@app.post("/providers/{provider_id}/api-key")
@@ -690,6 +689,30 @@ def create_app(
 		app.mount("/", StaticFiles(directory=webui_dir, html=True), name="webui")
 
 	return app
+
+
+def _normalized_custom_provider_request(
+	req: CustomProviderRequest,
+) -> tuple[str, str, tuple[str, ...], str | None]:
+	base_url = req.base_url.strip().rstrip("/")
+	parsed = urlsplit(base_url)
+	if parsed.scheme not in ("http", "https") or not parsed.netloc:
+		raise HTTPException(status_code=422, detail="Base URL must be an absolute http(s) URL")
+	if parsed.username or parsed.password:
+		raise HTTPException(status_code=422, detail="Base URL must not contain credentials")
+	models = tuple(dict.fromkeys(m.strip() for m in req.models if m.strip()))
+	if not models:
+		raise HTTPException(status_code=422, detail="Add at least one model id")
+	# the prefix is what routes a model back to this endpoint later
+	if any("/" not in m for m in models):
+		raise HTTPException(
+			status_code=422,
+			detail="Model ids need a provider prefix, for example ollama/llama3.2",
+		)
+	name = req.name.strip()
+	if not name:
+		raise HTTPException(status_code=422, detail="Name must not be empty")
+	return name, base_url, models, (req.api_key or "").strip() or None
 
 
 async def _finish(session: Session, handle: RunHandle, wait: bool) -> dict:

@@ -73,6 +73,50 @@ def test_custom_provider_roundtrip(tmp_path):
 	assert store.credentials.get(row["id"]) is None
 
 
+def test_custom_provider_update(tmp_path):
+	c, store = _client(tmp_path)
+	body = {
+		"name": "Local Ollama",
+		"base_url": "http://localhost:11434/v1",
+		"models": ["ollama/llama3.2"],
+		"api_key": "secret",
+	}
+	row = c.post("/providers/custom", json=body).json()["provider"]
+
+	# edit with a blank key and the same base_url: the stored key is kept
+	edited = c.put(
+		f"/providers/custom/{row['id']}",
+		json={
+			"name": "Gateway",
+			"base_url": "http://localhost:11434/v1/",
+			"models": ["gw/m1", "gw/m1", " gw/m2 "],
+		},
+	).json()["provider"]
+	assert edited["id"] == row["id"]  # the id survives a rename
+	assert edited["name"] == "Gateway"
+	assert edited["models"] == ["gw/m1", "gw/m2"]
+	credential = store.credentials.get_custom(row["id"])
+	assert credential is not None and credential.api_key == "secret"
+
+	# repointing base_url with a blank key drops the key instead of leaking it
+	moved = c.put(
+		f"/providers/custom/{row['id']}",
+		json={"name": "Gateway", "base_url": "http://gw:9/v1/", "models": ["gw/m1"]},
+	).json()["provider"]
+	assert moved["source"] == "http://gw:9/v1"
+	assert store.credentials.get_custom(row["id"]).api_key is None
+
+	# a provided key replaces the stored one
+	c.put(f"/providers/custom/{row['id']}", json={**body, "api_key": "rotated"})
+	assert store.credentials.get_custom(row["id"]).api_key == "rotated"
+
+	# create-time validation applies, and only custom credentials are editable
+	assert c.put(f"/providers/custom/{row['id']}", json={**body, "models": ["bare"]}).status_code == 422
+	assert c.put("/providers/custom/custom-nope", json=body).status_code == 404
+	c.post("/providers/openai/api-key", json={"key": "sk-test"})
+	assert c.put("/providers/custom/openai", json=body).status_code == 404
+
+
 def test_custom_provider_rejects_bad_input(tmp_path):
 	c, _ = _client(tmp_path)
 	base = {"name": "X", "base_url": "http://host/v1", "models": ["ollama/m"]}

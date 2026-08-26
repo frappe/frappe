@@ -90,6 +90,35 @@ def create_custom_provider(
 	return _custom_provider_row(provider_id, credential)
 
 
+def update_custom_provider(
+	store: CredentialStore,
+	provider_id: str,
+	*,
+	name: str,
+	base_url: str,
+	models: tuple[str, ...],
+	api_key: str | None,
+) -> dict | None:
+	"""Rewrite an endpoint under its existing id; no api_key keeps the stored one
+	unless base_url changed. Returns None when the id has no stored custom endpoint."""
+	existing = store.get_custom(provider_id)
+	if existing is None:
+		return None
+	store.set_custom(
+		provider_id,
+		display_name=name,
+		base_url=base_url,
+		models=models,
+		# a blank key keeps the stored one — but never across a base_url change:
+		# repointing the endpoint must not leak the old key to the new host
+		api_key=api_key or (existing.api_key if base_url == existing.base_url else None),
+	)
+	credential = store.get_custom(provider_id)
+	if credential is None:  # pragma: no cover — set_custom just wrote it
+		raise AuthError("Failed to store the custom endpoint")
+	return _custom_provider_row(provider_id, credential)
+
+
 def _custom_provider_row(provider_id: str, credential: CustomProviderCredential) -> dict:
 	prefixes = sorted({model.split("/", 1)[0] for model in credential.models})
 	return {
