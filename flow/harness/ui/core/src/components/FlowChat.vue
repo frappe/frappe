@@ -32,6 +32,7 @@ import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
 import Dialogs from "frappe-ui/src/components/Dialogs.vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
+import { installShortcuts } from "../shortcuts.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
 import MessageList from "./MessageList.vue"
@@ -52,13 +53,18 @@ const composer = ref(null)
 const composerHeight = ref(120)
 provide("composerHeight", composerHeight)
 let resizeObserver = null
+let uninstallShortcuts = null
 onMounted(() => {
+	uninstallShortcuts = installShortcuts(props.store)
 	const el = composer.value?.$el
 	if (!el || typeof ResizeObserver === "undefined") return
 	resizeObserver = new ResizeObserver(() => (composerHeight.value = el.offsetHeight))
 	resizeObserver.observe(el)
 })
-onBeforeUnmount(() => resizeObserver?.disconnect())
+onBeforeUnmount(() => {
+	uninstallShortcuts?.()
+	resizeObserver?.disconnect()
+})
 
 const toast = ref(null)
 let toastTimer = null
