@@ -51,9 +51,10 @@
 					<FeatherIcon :name="theme === 'dark' ? 'moon' : 'sun'" class="h-3.5 w-3.5" />
 				</button>
 				<button
+					v-if="!workspaceOpen"
 					class="flow-icon-btn"
-					:title="workspaceOpen ? 'Close panel' : 'Open panel'"
-					@click="flow.setWorkspaceOpen(!workspaceOpen)"
+					title="Open panel"
+					@click="flow.setWorkspaceOpen(true)"
 				>
 					<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
 				</button>
