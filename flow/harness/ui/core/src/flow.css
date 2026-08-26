@@ -9,6 +9,14 @@
 	background: var(--surface-gray-1);
 }
 
+/* Long dropdown menus: the page itself never scrolls, so a menu taller than
+   the viewport would be unreachable. Cap it to the space reka reports for the
+   popper and scroll inside instead. */
+.dropdown-content {
+	max-height: min(60vh, var(--reka-popper-available-height, 60vh));
+	overflow-y: auto;
+}
+
 /* Dropdown hover: frappe-ui highlights menu items with --surface-gray-2, which
    in dark mode is the same color as the menu surface itself — bump one step. */
 [data-theme="dark"] [role="menuitem"][data-highlighted] {
