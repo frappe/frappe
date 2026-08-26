@@ -1649,6 +1649,74 @@ class TestEmitDockHook(DockTestCase):
 			self.assertRaises(frappe.ValidationError, emit_dock_hook, app=self.APP, items=payload(ALPHA))
 
 
+class TestTheLandingFloor(IntegrationTestCase):
+	"""Where an app's icon takes you stops being partly a guess.
+
+	The ladder is *explicit route -> first visible rail entry -> first navigable module*, and the
+	middle two are resolved on the client, late, so reordering a rail moves the landing with it.
+	What the server owes it is the top of the ladder and the floor -- and the deletion of the
+	fourth source that used to sit between them.
+	"""
+
+	def app_entry(self, app_name: str) -> dict:
+		from frappe.boot import get_app_data
+		from frappe.desk.desktop import get_workspaces
+
+		pages = [page.name for page in get_workspaces()["pages"]]
+		return next(app for app in get_app_data(pages) if app["app_name"] == app_name)
+
+	def test_an_explicitly_declared_route_is_carried(self):
+		"""The top of the ladder: an app may have a front door outside its rail, or outside the
+		desk entirely, and this is the only way to have one."""
+		self.assertEqual(self.app_entry("frappe")["app_route"], "/app/build")
+
+	def test_the_derived_first_workspace_guess_is_gone(self):
+		"""It picked a workspace by `sequence_id`, which was always a guess -- and this model
+		makes it a worse one, because that workspace may sit in a module the app's record never
+		names, so the icon would land somewhere the rail refuses to acknowledge."""
+		with patch.object(frappe, "get_hooks", _no_app_home()):
+			self.assertEqual(self.app_entry("frappe")["app_route"], "")
+
+	def test_an_app_with_no_resolvable_landing_still_appears_on_the_apps_screen(self):
+		"""The floor's reason for existing. An app that resolves to nothing used to be filtered
+		off the screen, which was survivable while every app's rail was every module it owned --
+		now it would leave a dock-less app with no rail *and* no icon, and no way in at all."""
+		with patch.object(frappe, "get_hooks", _no_app_home()):
+			self.assertTrue(self.app_entry("frappe")["on_apps_screen"])
+
+	def test_the_switchers_first_module_is_the_landing_floor(self):
+		"""The floor and the switcher's list are the same list, so the icon and the switcher's
+		first row cannot disagree about where the app starts."""
+		self.assertEqual(get_app_modules("frappe")[0], sorted_modules_of("frappe")[0])
+
+
+def _no_app_home():
+	"""`frappe.get_hooks` with frappe's own front door taken away, so the ladder's floor shows."""
+	real = frappe.get_hooks
+
+	def patched(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if hook in ("app_home", "add_to_apps_screen") and app_name == "frappe":
+			return [] if hook == "app_home" else [{"name": "frappe", "title": "Framework"}]
+		return real(hook, default, app_name)
+
+	return patched
+
+
+def sorted_modules_of(app: str) -> list[str]:
+	"""The app's navigable modules in `modules.txt` order, worked out here rather than asked of
+	the thing under test."""
+	from frappe.app_state import get_disabled_modules
+	from frappe.utils.modules import get_code_only_modules, get_visible_modules
+
+	modules = get_visible_modules(frappe.get_all("Module Def", filters={"app_name": app}, pluck="name"))
+	skip = get_disabled_modules() | set(get_code_only_modules())
+	declared = {name: idx for idx, name in enumerate(frappe.get_module_list(app))}
+	return sorted(
+		(m for m in modules if m not in skip),
+		key=lambda module: (declared.get(module, len(declared)), module),
+	)
+
+
 class TestTheAppsEntrySet(IntegrationTestCase):
 	"""The order an app's modules take when nothing arranges them.
 

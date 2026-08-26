@@ -291,17 +291,14 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 	workspace can hand the client a fresh copy without duplicating the grouping rules (see
 	`mount_workspace`).
 
-	`allowed_pages` is the set of workspace names the user may see -- `bootinfo.workspaces.pages`,
-	i.e. every public workspace they're permitted plus their own private ones.
+	`allowed_pages` is unused now that a rail is exactly its record's rows, and is kept because
+	`mount_workspace` calls this to hand the client a fresh copy of the payload.
 	"""
 	from frappe.desk.doctype.dock.dock import get_app_entry_set
 
 	app_data = []
 
 	app_rail_host = get_app_rail_host_map()
-
-	Workspace = frappe.qb.DocType("Workspace")
-	Module = frappe.qb.DocType("Module Def")
 
 	for app_name in frappe.get_active_apps():
 		# get app details from app_info (/apps)
@@ -333,38 +330,6 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 				)
 				continue
 
-		# The app's own workspaces. Not shipped: this list stopped being part of the payload when
-		# the dock became one typed list, and the only thing left asking for it is the landing
-		# route below. A workspace belongs to this app if its module is the app's; the left join
-		# keeps module-less custom workspaces from being dropped, and `sequence_id` is the
-		# workspace record's own configured order.
-		#
-		# Private workspaces are included on the same footing as public ones: a private workspace
-		# whose module belongs to an app belongs on that app's rail, and nowhere else. ("Mounted"
-		# is not the word any more -- mounting is one *app* declaring it lives on another's rail,
-		# and a workspace's placement follows its module.) Restricting to the
-		# session user is belt-and-braces -- `allowed_pages` already covers it, since
-		# `get_workspaces()` only ever extends its page list with the user's *own* private
-		# workspaces -- but it keeps the query honest on its own terms.
-		workspaces = [
-			r[0]
-			for r in (
-				frappe.qb.from_(Workspace)
-				.left_join(Module)
-				.on(Workspace.module == Module.name)
-				.select(Workspace.name)
-				.where(
-					# app membership is the module's app, full stop -- `Workspace.app` was a
-					# second, hand-set answer to the same question and is gone
-					(Module.app_name == app_name)
-					& ((Workspace.public == 1) | (Workspace.for_user == frappe.session.user))
-				)
-				.orderby(Workspace.sequence_id)
-				.run()
-			)
-			if r[0] in allowed_pages
-		]
-
 		# The entries this app's dock offers: exactly the rows of the `Dock` record it ships,
 		# permission-filtered. Not `get_app_modules` any more -- an app's dock stopped being
 		# "every module it owns, in some order" and became a document its author writes, so a
@@ -391,12 +356,17 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 					or ""
 				)
 				or app_name,
+				# **Only what the app declares.** The third source used to be an arbitrary
+				# workspace picked by `sequence_id`, which was a guess -- and this model makes
+				# it a worse one, because that workspace may sit in a module the app's `Dock`
+				# record never names, so the icon would land somewhere the rail refuses to
+				# acknowledge. The rest of the ladder is resolved on the client, late, so that
+				# reordering a rail moves the landing with it (`Sidebar.app_landing_route`).
 				app_route=app_info.get("route")
 				or (
 					frappe.get_hooks("app_home", app_name=app_name)
 					and frappe.get_hooks("app_home", app_name=app_name)[0]
 				)
-				or (workspaces and "/desk/" + frappe.utils.slug(workspaces[0]))
 				or "",
 				# Only the app's own logo (from add_to_apps_screen or its app_logo_url hook); left
 				# empty when it declares none, so the desk renders an alphabet icon instead.

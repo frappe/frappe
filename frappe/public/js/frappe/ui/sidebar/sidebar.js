@@ -1075,14 +1075,60 @@ frappe.ui.Sidebar = class Sidebar {
 		return ["sidebar", "link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
-	// Where an app's icon leads. `app_route` covers apps that declare one; otherwise land on
-	// the first entry of its dock -- the same place clicking that entry would go.
+	// Where an app's icon leads, as a ladder of three:
+	//
+	//   1. the route it declares. An app may have a front door outside its rail, or outside the
+	//      desk entirely, and saying so is the only way to have one.
+	//   2. its first visible rail entry -- resolved *late*, here, so reordering the rail moves
+	//      the landing with it, at the site layer for everyone and at a person's own for them.
+	//   3. its first navigable module. The floor: an app that resolves to no visible entry --
+	//      because it ships no dock, or because this person may reach none of it -- must still
+	//      land somewhere, or the apps screen has an icon with nowhere to go.
+	//
+	// There used to be a fourth, on the server: an arbitrary workspace picked by `sequence_id`.
+	// It was a guess, and this model makes it a worse one -- that workspace may sit in a module
+	// the app's `Dock` record never names, so the icon would land somewhere the rail refuses to
+	// acknowledge. It is gone.
 	app_landing_route(app) {
 		if (!app) return null;
 		if (app.app_route) return app.app_route;
 
 		const [entry] = this.collect_dock_entries(app);
-		return entry ? this.module_landing_route(entry.module) : null;
+		if (entry) return this.dock_entry_route(entry);
+
+		return this.module_landing_route(this.first_navigable_module(app));
+	}
+
+	// Where a rail entry goes, which is where clicking it would take you: its page if it opens
+	// one, else the shell's own landing route. The one definition, so the icon and the button
+	// can never disagree.
+	dock_entry_route(entry) {
+		if (!entry) return null;
+		if (entry.link_type) {
+			return frappe.ui.sidebar_item.get_route({
+				type: "Link",
+				link_type: entry.link_type,
+				link_to: entry.link_to,
+				url: entry.url,
+			});
+		}
+		return this.module_landing_route(entry.module);
+	}
+
+	// The floor of the ladder, and the switcher's own list: the app's modules this person can
+	// navigate to, in the app's own order. Read off `module_sidebars`, which is already
+	// permission-filtered -- a module whose every item is blocked is absent from it -- so the
+	// icon and the switcher's first row are answering out of the same list and agree.
+	app_modules(app) {
+		if (!app) return [];
+		const app_name = app.app_name;
+		return Object.values(frappe.boot.module_sidebars || {})
+			.filter((sidebar) => sidebar.app === app_name)
+			.map((sidebar) => sidebar.name);
+	}
+
+	first_navigable_module(app) {
+		return this.app_modules(app)[0];
 	}
 
 	// Where a shell leads: the first navigable item in the sidebar *this user* resolved. Named
