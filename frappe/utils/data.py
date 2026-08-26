@@ -20,7 +20,6 @@ from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunpa
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import orjson
-from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
@@ -1032,6 +1031,8 @@ def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
 
 def cast_fieldtype(fieldtype, value, show_warning=True):
 	if show_warning:
+		from click import secho
+
 		message = (
 			"Function `frappe.utils.data.cast_fieldtype` has been deprecated in favour"
 			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."

@@ -4,8 +4,6 @@
 
 from urllib.parse import quote
 
-from googleapiclient.errors import HttpError
-
 import frappe
 from frappe import _
 from frappe.integrations.google_oauth import GoogleOAuth
@@ -48,6 +46,7 @@ def get_google_indexing_object():
 
 def publish_site(url, operation_type="URL_UPDATED"):
 	"""Send an update/remove url request."""
+	from googleapiclient.errors import HttpError
 
 	google_indexing = get_google_indexing_object()
 	body = {"url": url, "type": operation_type}

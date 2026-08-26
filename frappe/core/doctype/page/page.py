@@ -6,7 +6,6 @@ import shutil
 
 import frappe
 from frappe import _, conf, get_module_path, safe_decode
-from frappe.build import html_to_js_template
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 from frappe.desk.utils import validate_route_conflict
@@ -145,6 +144,7 @@ class Page(Document):
 	def load_assets(self):
 		import os
 
+		from frappe.build import html_to_js_template
 		from frappe.modules import get_module_path, scrub
 
 		self.script = ""

@@ -10,7 +10,6 @@ import zipfile
 from urllib.parse import quote, unquote
 
 import filetype
-from PIL import Image, ImageFile, ImageOps
 
 import frappe
 from frappe import _
@@ -27,8 +26,6 @@ from frappe.utils import (
 )
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.html_utils import escape_html
-from frappe.utils.image import optimize_image, strip_exif_data
-from frappe.utils.pdf import pdf_contains_js
 
 from .exceptions import (
 	AttachmentLimitReached,
@@ -39,8 +36,6 @@ from .exceptions import (
 from .utils import *
 
 exclude_from_linked_with = True
-
-ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
 
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
@@ -484,6 +479,8 @@ class File(Document):
 			)
 
 	def check_content(self):
+		from frappe.utils.pdf import pdf_contains_js
+
 		if self.file_type == "PDF" and self._content and pdf_contains_js(self._content):
 			frappe.throw(_("This PDF cannot be uploaded as it contains unsafe content."))
 
@@ -548,6 +545,8 @@ class File(Document):
 		crop: bool = False,
 	) -> str:
 		from requests.exceptions import HTTPError, SSLError
+
+		from frappe.utils.image import Image, ImageOps
 
 		if not self.file_url:
 			return
@@ -880,6 +879,8 @@ class File(Document):
 			and self.content_type == "image/jpeg"
 			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
 		):
+			from frappe.utils.image import strip_exif_data
+
 			self._content = strip_exif_data(self._content, self.content_type)
 
 		self.file_size = self.check_max_file_size()
@@ -1004,6 +1005,8 @@ class File(Document):
 
 		if is_svg:
 			raise TypeError("Optimization of SVG images is not supported")
+
+		from frappe.utils.image import optimize_image
 
 		original_content = self.get_content()
 		optimized_content = optimize_image(

@@ -7,6 +7,11 @@ from bleach_allowlist import bleach_allowlist
 import frappe
 from frappe.utils.data import escape_html
 
+# Matches the first opening tag. Deliberately equivalent to
+# `bool(BeautifulSoup(html, "html.parser").find())`, which treats comments, `<3`
+# and unmatched end tags as text rather than tags — see `test_html_utils.py`.
+HTML_TAG_PATTERN = re.compile(r"<[a-zA-Z][^>]*>")
+
 EMOJI_PATTERN = re.compile(
 	"(\ud83d[\ude00-\ude4f])|"
 	"(\ud83c[\udf00-\uffff])|"
@@ -129,6 +134,11 @@ def clean_email_html(html):
 	)
 
 
+def has_html_tags(html: str) -> bool:
+	"""Return True if `html` contains at least one HTML tag."""
+	return bool(HTML_TAG_PATTERN.search(html))
+
+
 def clean_script_and_style(html):
 	"""
 	Remove script and style tags.
@@ -150,13 +160,11 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 
 	Content without any HTML tags is returned unchanged; everything else is sanitized.
 	"""
-	from bs4 import BeautifulSoup
-
 	if not isinstance(html, str):
 		return html
 
 	if not always_sanitize:
-		if not bool(BeautifulSoup(html, "html.parser").find()):
+		if not has_html_tags(html):
 			return html
 
 	tags = (
