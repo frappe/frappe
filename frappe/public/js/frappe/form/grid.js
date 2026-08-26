@@ -20,10 +20,10 @@ const BULK_EDIT_ALL_RECORDS = "all";
 const BULK_EDIT_5_RECORDS = "5_records";
 // every step of the flow uses one size so the modals swap without resizing
 // every step shares one size, so switching tabs never resizes the modal.
-// the height clears the file picker's drop zone (16rem) plus the tab bar,
-// so the tallest tab sits in the body without it scrolling
-const BULK_EDIT_DIALOG_SIZE = "";
-const BULK_EDIT_DIALOG_HEIGHT = "340px";
+// the width matches global search; the height clears the file picker's drop
+// zone (16rem) with room to spare, so no tab has to scroll to be read
+const BULK_EDIT_DIALOG_SIZE = "extra-large";
+const BULK_EDIT_DIALOG_HEIGHT = "520px";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -1732,6 +1732,7 @@ export default class Grid {
 		const dialog = new frappe.ui.Dialog({
 			title: __("Upload {0}", [this.get_bulk_edit_title()]),
 			size: BULK_EDIT_DIALOG_SIZE,
+			centered: true,
 		});
 		// the body owns the height and each panel fills what is left under the tab
 		// bar, so a tall panel scrolls inside itself instead of growing the modal
@@ -1755,6 +1756,7 @@ export default class Grid {
 			},
 		});
 		dialog.$body.append(tabs.$el);
+		tabs.$el.addClass("bulk-edit-tabs");
 		tabs.$el.css({ height: "100%", display: "flex", "flex-direction": "column" });
 		// the bar keeps its own height; without this it shrinks and the scrolling
 		// panel rides up over the tab labels
@@ -2033,12 +2035,24 @@ export default class Grid {
 		};
 
 		/**
+		 * The tab's forward action. Only the one that commits the rows is solid;
+		 * the steps on the way there stay quiet, so the weight in the footer
+		 * always points at the end of the flow.
+		 */
+		const set_action = (label, handler, { solid = false } = {}) => {
+			dialog.set_primary_action(label, handler);
+			if (!solid) {
+				frappe.ui.button.dress(dialog.get_primary_btn(), { label, variant: "subtle" });
+			}
+		};
+
+		/**
 		 * Every tab's actions are standard dialog actions, so they all land in
 		 * the footer's right group and never move as the tab changes.
 		 */
 		const set_footer = () => {
 			const active = tabs.get_active();
-			const $primary = dialog.get_primary_btn().addClass("hide");
+			dialog.get_primary_btn().addClass("hide");
 			const $secondary = dialog.get_secondary_btn().addClass("hide");
 
 			if (active === TAB_SETUP) {
@@ -2046,7 +2060,7 @@ export default class Grid {
 				dialog.set_secondary_action(() => download());
 				$secondary.prop("disabled", !setup_form.get_value("fields")?.length);
 				if (can_import) {
-					dialog.set_primary_action(__("Upload"), () => {
+					set_action(__("Next"), () => {
 						tabs.set_disabled(TAB_UPLOAD, false);
 						tabs.set_active(TAB_UPLOAD);
 					});
@@ -2057,24 +2071,33 @@ export default class Grid {
 			if (active === TAB_PREVIEW) {
 				dialog.set_secondary_action_label(__("Map Columns"));
 				dialog.set_secondary_action(() => tabs.set_active(TAB_MAPPING));
-				dialog.set_primary_action(__("Apply"), () => {
-					dialog.hide();
-					this.apply_bulk_edit_rows(state.rows, state.import_type, state.column_map);
-				});
+				set_action(
+					__("Apply"),
+					() => {
+						dialog.hide();
+						this.apply_bulk_edit_rows(state.rows, state.import_type, state.column_map);
+					},
+					{ solid: true }
+				);
 				return;
 			}
 
 			if (active === TAB_MAPPING) {
 				// the button label is set with .text(), so the arrow has to be a glyph
-				dialog.set_primary_action(`← ${__("Back to Preview")}`, () =>
-					tabs.set_active(TAB_PREVIEW)
-				);
+				set_action(`← ${__("Back to Preview")}`, () => tabs.set_active(TAB_PREVIEW));
 				return;
 			}
 
-			// upload: the footer drives the uploader, so its own button is hidden
-			dialog.set_primary_action(__("Upload"), () => file_uploader?.upload_files());
-			$primary.prop("disabled", !uploaded_file_count());
+			// upload: the footer drives the uploader, so its own button is hidden.
+			// The button stays live whatever the tab history — an empty selection
+			// says so on click, rather than greying out with nothing to explain it
+			set_action(__("Upload"), () => {
+				if (!uploaded_file_count()) {
+					frappe.msgprint(__("Please select a file first."));
+					return;
+				}
+				file_uploader?.upload_files();
+			});
 		};
 
 		dialog.show();
