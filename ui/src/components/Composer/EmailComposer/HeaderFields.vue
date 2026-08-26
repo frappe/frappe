@@ -1,7 +1,6 @@
 <template>
 	<div class="px-2.5">
 		<Row v-if="showFrom" label="From" :items-center="true">
-			<!-- -ml-1 offsets the ghost trigger's px-2 so its text sits 12px from the label. -->
 			<Select v-model="from" :options="senderOptions" variant="ghost" class="-ml-1" />
 		</Row>
 

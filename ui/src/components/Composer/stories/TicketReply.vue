@@ -25,7 +25,10 @@
 						<span class="text-p-sm text-ink-gray-4">{{ message.time }}</span>
 					</div>
 					<!-- Story-local static HTML only. -->
-					<div class="prose-sm mt-0.5 max-w-none text-ink-gray-7" v-html="message.body" />
+					<div
+						class="prose-sm mt-0.5 max-w-none text-ink-gray-7"
+						v-html="message.body"
+					/>
 				</div>
 			</div>
 		</div>
@@ -40,7 +43,10 @@
 						<TabButtons v-model="channel" :options="channelOptions" />
 					</div>
 					<!-- v-show keeps both mounted so each draft survives a tab switch. -->
-					<div v-show="channel === 'reply'" class="flex min-h-0 flex-1 flex-col px-2.5 py-2">
+					<div
+						v-show="channel === 'reply'"
+						class="flex min-h-0 flex-1 flex-col px-2.5 py-2"
+					>
 						<EmailComposer
 							ref="replyRef"
 							v-model="replyBody"
@@ -132,7 +138,12 @@ const replyRef = ref<InstanceType<typeof EmailComposer> | null>(null);
 const commentRef = ref<InstanceType<typeof CommentComposer> | null>(null);
 
 function onReply(payload: EmailPayload) {
-	messages.value.push({ id: Date.now(), author: "Sydney", time: "Just now", body: payload.body });
+	messages.value.push({
+		id: Date.now(),
+		author: "Sydney",
+		time: "Just now",
+		body: payload.body,
+	});
 	quoted.value = null;
 	replyRef.value?.reset();
 }

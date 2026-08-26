@@ -1,7 +1,6 @@
 <!-- Wrapper div so flex-1 applies: MultiEmailInput puts attrs.class on its inner box. -->
 <template>
 	<div class="w-full flex-1">
-		<!-- min-h-6 covers the chip height so the first chip doesn't grow the row. -->
 		<MultiEmailInput
 			v-model="emails"
 			:options="options"
@@ -13,7 +12,6 @@
 			<!-- Always show the avatar; the default hides it when imageless. -->
 			<template #tag="{ value, option, removeTag }">
 				<Avatar size="xs" :image="option?.image" :label="option?.label || value" />
-				<!-- leading-4 fits descender ink; truncate's overflow clips tighter leadings. -->
 				<span class="mb-0.5 leading-4 truncate">{{ option?.label || value }}</span>
 				<button
 					class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-4"

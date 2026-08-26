@@ -9,7 +9,10 @@
 						<span class="text-p-sm text-ink-gray-4">{{ comment.time }}</span>
 					</div>
 					<!-- Story-local static HTML only. -->
-					<div class="prose-sm mt-0.5 max-w-none text-ink-gray-7" v-html="comment.body" />
+					<div
+						class="prose-sm mt-0.5 max-w-none text-ink-gray-7"
+						v-html="comment.body"
+					/>
 				</div>
 			</div>
 		</div>
@@ -66,7 +69,12 @@ const draft = ref("");
 const composerRef = ref<InstanceType<typeof CommentComposer> | null>(null);
 
 function onComment(payload: CommentPayload) {
-	comments.value.push({ id: Date.now(), author: "Sydney", time: "Just now", body: payload.body });
+	comments.value.push({
+		id: Date.now(),
+		author: "Sydney",
+		time: "Just now",
+		body: payload.body,
+	});
 	composerRef.value?.reset();
 }
 </script>
