@@ -31,7 +31,7 @@ function on_change(prop, value) {
 				<span class="text-muted small ms-1">({{ field.fieldname }})</span>
 			</div>
 			<button class="btn btn-xs btn-default" :title="__('Close')" @click="store.deselect()">
-				<span v-html="frappe.utils.icon('remove', 'xs')" />
+				<span v-html="frappe.utils.icon('x', 'xs')" />
 			</button>
 		</div>
 

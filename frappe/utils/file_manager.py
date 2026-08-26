@@ -3,7 +3,6 @@
 
 import base64
 import hashlib
-import json
 import mimetypes
 import os
 from copy import copy
@@ -402,8 +401,7 @@ def add_attachments(doctype: str, name: str | int, attachments: str | list[str])
 	if not frappe.has_permission(doctype, "write", doc=name):
 		frappe.throw(_("You need write permissions to add attachments to this record."))
 
-	if isinstance(attachments, str):
-		attachments = json.loads(attachments)
+	attachments = frappe.parse_json(attachments)
 	# loop through attachments
 	files = []
 	for a in attachments:

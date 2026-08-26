@@ -1,0 +1,249 @@
+/* Espresso Toast — the floating message pill, bottom-right.
+ *
+ * Dark pill on every theme (same inverted look as frappe-ui's toast):
+ *   <div class="es-toast" role="status" data-type="success">
+ *     <svg>...</svg>
+ *     <div class="es-toast__content">
+ *       <div class="es-toast__message">Saved</div>
+ *       <div class="es-toast__description">optional second line</div>
+ *     </div>
+ *     <button class="es-toast__action">Undo</button>      (optional)
+ *     <button class="es-toast__close close">...</button>  (optional)
+ *   </div>
+ *
+ * data-type  info | success | warning | error  — colors the icon.
+ * Toasts live in .es-toast-container, which frappe.ui.toast manages. */
+
+.es-toast-container {
+    position: fixed;
+    bottom: 12px;
+    inset-inline-end: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 2);
+    pointer-events: none;
+}
+
+@media (max-width: 575.98px) {
+    .es-toast-container {
+        inset-inline: 8px;
+    }
+}
+
+.es-toast {
+    /* icons inherit the pill's text color unless the type recolors them
+       (info has no icon and no color of its own, same as frappe-ui) */
+    --es-toast-icon: currentColor;
+
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 3);
+    min-width: 280px;
+    max-width: 400px;
+    padding-inline: calc(var(--spacing) * 4);
+    padding-block: calc(var(--spacing) * 2.5);
+    border-radius: var(--radius-md);
+    background: var(--surface-gray-9);
+    color: var(--ink-base);
+    box-shadow: var(--elevation-lg);
+    pointer-events: auto;
+    animation: es-toast-in 250ms ease-out;
+}
+
+/* .out is the old alert's exit class — old code slides a toast away by
+   adding it to the element show_alert returned, so it keeps working here.
+   The element stays in the DOM until its timer removes it, hence no
+   pointer events while (in)visible. */
+.es-toast--out,
+.es-toast.out {
+    animation: es-toast-out 200ms ease-in forwards;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-toast,
+    .es-toast--out,
+    .es-toast.out {
+        animation: none;
+    }
+
+    .es-toast--out,
+    .es-toast.out {
+        opacity: 0;
+    }
+}
+
+/* ---- icon colors per type ---- */
+.es-toast[data-type="info"] {
+    --es-toast-icon: var(--ink-blue-5);
+}
+
+.es-toast[data-type="success"] {
+    --es-toast-icon: var(--ink-green-5);
+}
+
+.es-toast[data-type="warning"] {
+    --es-toast-icon: var(--ink-amber-5);
+}
+
+.es-toast[data-type="error"] {
+    --es-toast-icon: var(--ink-red-5);
+}
+
+.es-toast > svg,
+.es-toast > .es-spinner {
+    flex-shrink: 0;
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    color: var(--es-toast-icon);
+}
+
+/* ---- content ---- */
+.es-toast__content {
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.es-toast__message {
+    /* text-p-base + medium, per the frappe-ui toast */
+    font-size: var(--text-p-base, var(--text-base));
+    line-height: 1.5;
+    letter-spacing: 0.015em;
+    font-weight: var(--font-weight-medium);
+    overflow-wrap: break-word;
+}
+
+.es-toast__description {
+    /* text-p-base, inheriting the pill's ink — the message's medium weight
+       is what sets the two lines apart */
+    font-size: var(--text-p-base, var(--text-base));
+    line-height: 1.5;
+    letter-spacing: 0.015em;
+    overflow-wrap: break-word;
+}
+
+/* Links in the message or description have the same problem as 'close' class,
+    it's styled directly by the global `a { color: var(--text-color) }`.
+    This out-specifies the global styles*/
+.es-toast a,
+.es-toast a:hover,
+.es-toast a:focus {
+    color: var(--ink-base);
+}
+
+
+
+/* extra html passed through the legacy body option */
+.es-toast__body {
+    margin-top: var(--spacing);
+    font-size: var(--text-sm);
+}
+
+/* save-success toasts pass "next action" buttons through body */
+.es-toast__body .next-action-container {
+    display: flex;
+    margin-top: var(--spacing);
+}
+
+.es-toast__body .next-action {
+    border: 0;
+    background: none;
+    width: 100%;
+    padding: calc(var(--spacing) * 2);
+    border-top: 1px solid var(--outline-gray-3);
+    color: var(--ink-gray-4);
+    font-size: var(--text-sm);
+    cursor: pointer;
+}
+
+.es-toast__body .next-action:hover {
+    color: var(--ink-base);
+}
+
+/* ---- action + close buttons ---- */
+.es-toast__action {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    height: calc(var(--spacing) * 7);
+    padding-block: calc(var(--spacing) * 1.5);
+    padding-inline: calc(var(--spacing) * 2);
+    margin-inline-start: auto;
+    margin-inline-end: calc(var(--spacing) * 2);
+    border-radius: var(--radius);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-blue-link);
+    cursor: pointer;
+    transition: background-color 120ms, color 120ms;
+}
+
+.es-toast__action:hover {
+    background: var(--surface-gray-8);
+}
+
+.es-toast__close {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    padding: var(--spacing);
+    border-radius: var(--radius);
+    line-height: 0;
+    color: var(--ink-base);
+    cursor: pointer;
+}
+
+.es-toast__close:hover {
+    color: var(--ink-gray-3);
+}
+
+/* The button also carries bootstrap's old "close" class so legacy
+   .find(".close").click() dismissals keep working. Bootstrap styles .close
+   globally and loads after this file, so these selectors out-specify its
+   rules (including the :hover/:focus opacity one) to keep the toast look. */
+.es-toast button.es-toast__close.close {
+    float: none;
+    padding: var(--spacing);
+    line-height: 0;
+    color: var(--ink-base);
+    text-shadow: none;
+    opacity: 1;
+}
+
+.es-toast button.es-toast__close.close:hover {
+    color: var(--ink-gray-3);
+}
+
+.es-toast__action:focus-visible,
+.es-toast__close:focus-visible {
+    outline: var(--focus-outline-default);
+}
+
+.es-toast__close > svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    color: currentColor;
+}
+
+@keyframes es-toast-in {
+    from {
+        transform: translateX(120%);
+        opacity: 0.5;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes es-toast-out {
+    to {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+}

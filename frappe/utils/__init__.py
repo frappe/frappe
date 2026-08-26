@@ -21,10 +21,9 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, getaddresses, parseaddr
-from typing import Any, Generic, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, Any, Generic, TypeAlias, TypedDict
 
 import orjson
-from werkzeug.test import Client
 
 from frappe.deprecation_dumpster import (
 	get_gravatar,
@@ -38,6 +37,9 @@ from frappe.deprecation_dumpster import (
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from frappe.utils.html_utils import sanitize_html
+
+if TYPE_CHECKING:
+	from werkzeug.test import Client
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
 EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
@@ -184,12 +186,21 @@ def validate_email_address(email_str, throw=False):
 	email_str = (email_str or "").strip()
 	out = []
 
-	# Replace newlines with commas so getaddresses can handle them
-	# getaddresses expects comma-separated values
+	# split_emails collapses \n/\r to spaces *before* splitting, so newlines
+	# would no longer act as separators. Convert them to commas up front.
 	email_str = email_str.replace("\n", ",").replace("\r", ",")
 
-	# Parse using stdlib (handles commas in display names correctly)
+	# Fast path: parse the whole string in one shot. Strict mode either gives
+	# us all entries cleanly or bails to [('', '')] on malformed input.
 	addresses = getaddresses([email_str])
+
+	# Slow path: if nothing usable came back, re-parse each piece in isolation
+	# so one malformed entry can't reject its valid neighbours. split_emails
+	# is quote-aware, so `"Last, First" <addr>` survives the split intact.
+	if not any(addr for _, addr in addresses):
+		addresses = []
+		for piece in split_emails(email_str):
+			addresses.extend(getaddresses([piece]))
 
 	for name, addr in addresses:
 		if not addr:
@@ -206,8 +217,7 @@ def validate_email_address(email_str, throw=False):
 		if "undisclosed-recipient" in addr:
 			continue
 
-		match = EMAIL_MATCH_PATTERN.match(addr)
-		if not match:
+		if not EMAIL_MATCH_PATTERN.fullmatch(addr):
 			if throw:
 				frappe.throw(
 					frappe._("{0} is not a valid Email Address").format(frappe.utils.escape_html(addr)),
@@ -350,9 +360,7 @@ def _get_traceback_sanitizer():
 	placeholder = "********"
 
 	def dict_printer(v: dict) -> str:
-		from copy import deepcopy
-
-		v = deepcopy(v)
+		v = v.copy()
 		for key in blocklist:
 			if key in v:
 				v[key] = placeholder
@@ -586,8 +594,10 @@ def touch_file(path):
 	return path
 
 
-def get_test_client(use_cookies=True) -> Client:
+def get_test_client(use_cookies=True) -> "Client":
 	"""Return an test instance of the Frappe WSGI."""
+	from werkzeug.test import Client
+
 	from frappe.app import application
 
 	return Client(application, use_cookies=use_cookies)
@@ -786,7 +796,7 @@ def get_installed_apps_info():
 			"version": version_details.get("branch_version") or version_details.get("version"),
 			"branch": version_details.get("branch"),
 		}
-		for app, version_details in get_versions().items()
+		for app, version_details in get_versions(include_disabled=True).items()
 	)
 	return out
 

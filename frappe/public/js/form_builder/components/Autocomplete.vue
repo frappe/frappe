@@ -13,7 +13,7 @@
 					@click.stop
 				/>
 				<button class="clear-button btn btn-sm" @click="clear_search">
-					<div v-html="frappe.utils.icon('close', 'sm')" />
+					<div v-html="frappe.utils.icon('x', 'sm')" />
 				</button>
 			</div>
 			<div class="combo-box-items">

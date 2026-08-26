@@ -113,15 +113,11 @@
 // ONCE near the app root.
 import { computed, onUnmounted, ref, watch } from "vue";
 import { clearAllBatches, clearFinishedBatches, useTray } from "./uploadTray";
+import type { UploadTrayProps } from "./types";
 
 // The tray always sits at the bottom; `side` picks which bottom corner.
 // Default reproduces the original bottom-right placement.
-const props = withDefaults(
-	defineProps<{
-		side?: "left" | "right";
-	}>(),
-	{ side: "right" }
-);
+const props = withDefaults(defineProps<UploadTrayProps>(), { side: "right" });
 
 const { batches, isUploading, allDone } = useTray();
 

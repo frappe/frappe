@@ -166,6 +166,40 @@ class TestCustomField(IntegrationTestCase):
 		]
 		self.assertEqual(field_names, expected_order)
 
+	def test_custom_tab_break_ordering(self):
+		doc = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": "Test Custom Tab Break Ordering",
+				"custom": 1,
+				"module": "Core",
+				"fields": [
+					{"fieldname": "tab1", "fieldtype": "Tab Break", "label": "Tab 1"},
+					{"fieldname": "field1", "fieldtype": "Data", "label": "Field 1"},
+					{"fieldname": "field2", "fieldtype": "Data", "label": "Field 2"},
+					{"fieldname": "tab2", "fieldtype": "Tab Break", "label": "Tab 2"},
+				],
+			}
+		)
+		doc.insert()
+
+		# A custom Tab Break should be appended after the first tab instead of splitting it
+		frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "Test Custom Tab Break Ordering",
+				"fieldname": "custom_tab",
+				"fieldtype": "Tab Break",
+				"insert_after": "field1",
+				"label": "Custom Tab",
+			}
+		).insert()
+
+		updated_meta = frappe.get_meta("Test Custom Tab Break Ordering", cached=False)
+		field_names = [field.fieldname for field in updated_meta.fields]
+
+		self.assertEqual(field_names, ["tab1", "field1", "field2", "custom_tab", "tab2"])
+
 	def test_custom_field_renaming(self):
 		def gen_fieldname():
 			return "test_" + frappe.generate_hash()

@@ -93,11 +93,6 @@ let docfield_df = computed(() => {
 			df.description = FIELD_DESCRIPTIONS[fieldtype] || "";
 		}
 
-		// show link_filters docfield only when link field is selected
-		if (df.fieldname === "link_filters" && store.form.selected_field.fieldtype !== "Link") {
-			return false;
-		}
-
 		if (search_text.value) {
 			if (
 				df.label.toLowerCase().includes(search_text.value.toLowerCase()) ||
@@ -121,7 +116,7 @@ let docfield_df = computed(() => {
 			:title="__('Close properties')"
 			@click="store.form.selected_field = null"
 		>
-			<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+			<div v-html="frappe.utils.icon('x', 'sm')"></div>
 		</button>
 	</div>
 	<div class="control-data">

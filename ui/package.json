@@ -13,9 +13,41 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./ActivityTimeline": {
+      "import": "./src/components/ActivityTimeline/index.ts",
+      "types": "./src/components/ActivityTimeline/index.ts"
+    },
     "./FileUpload": {
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
+    },
+    "./InviteUser": {
+      "import": "./src/components/InviteUser/index.ts",
+      "types": "./src/components/InviteUser/index.ts"
+    },
+    "./ListView": {
+      "import": "./src/components/ListView/index.ts",
+      "types": "./src/components/ListView/index.ts"
+    },
+    "./SortBy": {
+      "import": "./src/components/SortBy/index.ts",
+      "types": "./src/components/SortBy/index.ts"
+    },
+    "./Filter": {
+      "import": "./src/components/Filter/index.ts",
+      "types": "./src/components/Filter/index.ts"
+    },
+    "./QuickFilter": {
+      "import": "./src/components/QuickFilter/index.ts",
+      "types": "./src/components/QuickFilter/index.ts"
+    },
+    "./ColumnSettings": {
+      "import": "./src/components/ColumnSettings/index.ts",
+      "types": "./src/components/ColumnSettings/index.ts"
+    },
+    "./fields": {
+      "import": "./src/components/Fields/index.ts",
+      "types": "./src/components/Fields/index.ts"
     },
     "./utils": {
       "import": "./src/utils/index.ts",
@@ -39,6 +71,7 @@
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
   "dependencies": {
+    "dompurify": "^3.4.0",
     "cropperjs": "^2.1.1",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
@@ -46,7 +79,8 @@
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
-    "frappe-ui": "*",
+    "@vueuse/core": ">=10.4.1",
+    "frappe-ui": ">=1.0.0-beta.16",
     "vue": ">=3.3.0",
     "vue-router": "^4.1.5"
   }

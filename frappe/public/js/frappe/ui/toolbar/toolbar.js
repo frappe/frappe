@@ -27,7 +27,6 @@ frappe.ui.toolbar.Toolbar = class {
 
 		this.setup_help();
 
-		this.setup_read_only_mode();
 		this.setup_announcement_widget();
 		this.make();
 	}
@@ -40,6 +39,12 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_help() {
+		// Global Search (⌘G / Ctrl+G) is independent of the help/notifications UI,
+		// so its dialog is initialised before the early-return that skips help setup.
+		this.search = new frappe.search.SearchDialog();
+		frappe.provide("frappe.searchdialog");
+		frappe.searchdialog.search = this.search;
+
 		if (!frappe.boot.desk_settings.notifications) {
 			// hide the help section
 			$(".navbar .vertical-bar").removeClass("d-sm-block");
@@ -48,10 +53,6 @@ frappe.ui.toolbar.Toolbar = class {
 		}
 		frappe.provide("frappe.help");
 		frappe.help.show_results = show_results;
-
-		this.search = new frappe.search.SearchDialog();
-		frappe.provide("frappe.searchdialog");
-		frappe.searchdialog.search = this.search;
 
 		$(".dropdown-help .dropdown-toggle").on("click", function () {
 			$(".dropdown-help input").focus();
@@ -154,15 +155,6 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 	}
 
-	setup_read_only_mode() {
-		if (!frappe.boot.read_only) return;
-
-		$("header .read-only-banner").tooltip({
-			delay: { show: 600, hide: 100 },
-			trigger: "hover",
-		});
-	}
-
 	setup_announcement_widget() {
 		let current_announcement = frappe.boot.navbar_settings.announcement_widget;
 
@@ -200,7 +192,10 @@ $.extend(frappe.ui.toolbar, {
 		}
 
 		return $(
-			'<li class="custom-menu"><a><i class="fa-fw ' + icon + '"></i> ' + label + "</a></li>"
+			'<li class="custom-menu"><a>' +
+				(icon ? frappe.utils.icon(icon) + " " : "") +
+				label +
+				"</a></li>"
 		)
 			.insertBefore(menu.find(".divider"))
 			.find("a")

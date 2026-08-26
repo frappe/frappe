@@ -78,6 +78,7 @@ from frappe.utils.data import (
 	map_trackers,
 	now_datetime,
 	nowtime,
+	orjson_dumps,
 	pretty_date,
 	rounded,
 	sha256_hash,
@@ -239,6 +240,47 @@ class TestFilters(IntegrationTestCase):
 			"last_password_reset_date": None,
 		}
 		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
+
+	def test_between_operator(self):
+		"""Test 'between' operator for inclusive range checks."""
+		# Numbers
+		self.assertTrue(compare(5, "between", [1, 10]))
+		self.assertTrue(compare(1, "between", [1, 10]))
+		self.assertTrue(compare(10, "between", [1, 10]))
+		self.assertFalse(compare(0, "between", [1, 10]))
+		self.assertFalse(compare(11, "between", [1, 10]))
+		self.assertFalse(compare(None, "between", [1, 10]))
+
+		# Numbers with fieldtype casting
+		self.assertTrue(compare("5", "between", ["1", "10"], "Int"))
+		self.assertFalse(compare("0", "between", ["1", "10"], "Int"))
+
+		# Dates
+		self.assertTrue(compare("2024-06-15", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertTrue(compare("2024-01-01", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertTrue(compare("2024-12-31", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertFalse(compare("2023-12-31", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertFalse(compare(None, "between", ["2024-01-01", "2024-12-31"], "Date"))
+
+		# Datetime: date-only upper bound includes the full final day (matches DB between)
+		self.assertTrue(compare("2024-12-31 15:30:00", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		self.assertTrue(compare("2024-12-31 23:59:59", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		self.assertFalse(compare("2025-01-01 00:00:00", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		# Explicit datetime upper bound is not expanded to end-of-day
+		self.assertFalse(
+			compare(
+				"2024-12-31 15:30:00",
+				"between",
+				["2024-01-01 00:00:00", "2024-12-31 12:00:00"],
+				"Datetime",
+			)
+		)
+
+		# evaluate_filters: API lowercase and UI capitalized form
+		doc = {"doctype": "User", "birth_date": "2024-06-15"}
+		self.assertTrue(evaluate_filters(doc, [("birth_date", "between", ["2024-01-01", "2024-12-31"])]))
+		self.assertTrue(evaluate_filters(doc, [("birth_date", "Between", ["2024-01-01", "2024-12-31"])]))
+		self.assertFalse(evaluate_filters(doc, [("birth_date", "between", ["2025-01-01", "2025-12-31"])]))
 
 	def test_is_operator(self):
 		"""Test 'is' operator for checking if values are set or not set."""
@@ -539,6 +581,25 @@ class TestHTMLUtils(IntegrationTestCase):
 		self.assertIn("ordered", clean)
 		self.assertNotIn("xyz", clean)
 
+		# content that happens to parse as JSON is still sanitized when it carries tags
+		self.assertNotIn("<script>", sanitize_html('"<script>alert(1)</script>"'))
+		self.assertNotIn("<script>", sanitize_html('["<script>alert(1)</script>"]'))
+		self.assertNotIn("<script>", sanitize_html('{"x": "<script>alert(1)</script>"}'))
+
+		# tag-free content (including JSON) is returned unchanged
+		self.assertEqual(sanitize_html('[["name", "=", "x"]]'), '[["name", "=", "x"]]')
+		self.assertEqual(sanitize_html("plain text"), "plain text")
+
+	def test_sanitize_svg(self):
+		from frappe.utils.html_utils import sanitize_svg
+
+		clean = sanitize_svg('<svg onload="alert(1)"><script>alert(1)</script><circle r="4"/></svg>')
+		self.assertIn("<circle", clean)
+		self.assertNotIn("script", clean)
+		self.assertNotIn("onload", clean)
+
+		self.assertIsNone(sanitize_svg(None))
+
 
 class TestValidationUtils(IntegrationTestCase):
 	def test_valid_url(self):
@@ -632,6 +693,53 @@ class TestValidationUtils(IntegrationTestCase):
 			validate_email_address("test@example.com, undisclosed-recipients:;"), "test@example.com"
 		)
 
+		# Recover valid addresses from a list that contains malformed entries.
+		# Previously a single bad entry (here: `foo@bar.baz@baz`) caused strict
+		# mode to drop the whole list including the valid `bar@bar.baz`.
+		self.assertEqual(
+			validate_email_address("invalid, foo@bar.baz@baz, bar@bar.baz"),
+			"bar@bar.baz",
+		)
+
+		# Quoted display name preserved on the slow path: one entry is bad
+		# (`bad@@email`), but the valid `john@example.com` must still be
+		# recovered without the quoted comma in the display name corrupting
+		# the split.
+		self.assertEqual(
+			validate_email_address('"Smith, John" <john@example.com>, bad@@email'),
+			"john@example.com",
+		)
+
+		# Silently-truncated inputs must be rejected, not sanitized.
+		# `alice@example.com)` should NOT become `alice@example.com` just
+		# because the parser can extract a clean prefix.
+		self.assertFalse(validate_email_address("alice@example.com)"))
+		self.assertFalse(validate_email_address("alice@example.com (unclosed comment"))
+		self.assertFalse(validate_email_address("alice@[192.168.0.1"))
+
+		# Trailing garbage after a valid prefix must be rejected. The parser
+		# returns these addrs as-is (with the trailing chars attached); only a
+		# full-string regex anchor catches them. `re.match` would have accepted
+		# the valid prefix and ignored the tail.
+		self.assertFalse(validate_email_address("alice@example.com."))
+		self.assertFalse(validate_email_address("alice@example.com.."))
+		self.assertFalse(validate_email_address("alice@example.com#fragment"))
+		self.assertFalse(validate_email_address("alice@example.com\x00"))
+
+		# CRLF separator (Windows-style line endings)
+		self.assertEqual(
+			validate_email_address("test1@example.com\r\ntest2@example.com"),
+			"test1@example.com, test2@example.com",
+		)
+
+		# Throw mode rejects silently-truncated input
+		self.assertRaises(
+			frappe.InvalidEmailAddressError,
+			validate_email_address,
+			"alice@example.com)",
+			throw=True,
+		)
+
 	def test_valid_phone(self):
 		valid_phones = ["+91 1234567890", ""]
 
@@ -673,6 +781,22 @@ class TestValidationUtils(IntegrationTestCase):
 		for not_iban in invalid_ibans:
 			self.assertFalse(is_valid_iban(not_iban))
 
+	def test_parse_json_passthrough_and_decode(self):
+		from frappe.utils.data import parse_json
+
+		# already-native values pass through untouched (the new JSON request-body path)
+		self.assertEqual(parse_json({"a": 1}), {"a": 1})
+		self.assertEqual(parse_json([1, 2]), [1, 2])
+		self.assertEqual(parse_json(None), None)
+		self.assertEqual(parse_json(1), 1)
+
+		# strings still decode (legacy form-encoded path)
+		self.assertEqual(parse_json('{"a": 1}'), {"a": 1})
+		self.assertEqual(parse_json("[1, 2]"), [1, 2])
+
+		# decoded dicts become frappe._dict (attribute access)
+		self.assertEqual(parse_json('{"a": 1}').a, 1)
+
 
 class TestImage(IntegrationTestCase):
 	def test_strip_exif_data(self):
@@ -687,6 +811,10 @@ class TestImage(IntegrationTestCase):
 
 		self.assertEqual(new_image._getexif(), None)
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
+
+		# Testing idempotency of strip_exif_data()
+		restripped_image_content = strip_exif_data(new_image_content, "image/jpeg")
+		self.assertEqual(restripped_image_content, new_image_content)
 
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
@@ -807,6 +935,11 @@ class TestDateUtils(IntegrationTestCase):
 	def test_is_last_day_of_the_month(self):
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-31"), True)
+
+	def test_get_timezone_utc_offset(self):
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("UTC"), "+00:00")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Asia/Kolkata"), "+05:30")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Pacific/Marquesas"), "-09:30")
 
 	def test_get_time(self):
 		datetime_input = now_datetime()
@@ -1043,6 +1176,107 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertIn("html data >", val)
 		self.assertEqual("abc", handle_html("abc"))
 
+	def test_formula_like_strings_are_not_written_as_formulas(self):
+		"""A leading =, +, -, @ etc must not cause the cell to be written as a real formula."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import make_xlsx
+
+		data = [
+			["notes", "amount", "phone"],
+			["=1+1", 1500.5, "+1-555-0100"],
+			["+91-1234567890", -5, "555-1234"],
+			["normal text", 10, "@handle-as-text"],
+		]
+		xlsx_file = make_xlsx(data, "Test Sheet")
+		wb = load_workbook(xlsx_file, data_only=False)
+		ws = wb.active
+
+		rows = list(ws.iter_rows(values_only=False))
+
+		# formula-trigger strings must be forced to string type, value unchanged
+		for coord, expected_value in (
+			((1, 0), "=1+1"),
+			((1, 2), "+1-555-0100"),
+			((2, 0), "+91-1234567890"),
+			((2, 2), "555-1234"),
+			((3, 2), "@handle-as-text"),
+		):
+			row_idx, col_idx = coord
+			cell = rows[row_idx][col_idx]
+			self.assertEqual(cell.data_type, "s")
+			self.assertEqual(cell.value, expected_value)
+
+		# real numeric values must keep their native type, not get stringified
+		self.assertEqual(rows[1][1].data_type, "n")
+		self.assertEqual(rows[1][1].value, 1500.5)
+		self.assertEqual(rows[2][1].data_type, "n")
+		self.assertEqual(rows[2][1].value, -5)
+
+
+class TestCsvUtils(IntegrationTestCase):
+	def test_escape_formula_injection_prefixes_trigger_chars(self):
+		from frappe.utils.csvutils import FORMULA_TRIGGER_CHARS, escape_formula_injection
+
+		for char in FORMULA_TRIGGER_CHARS:
+			value = f"{char}1+1"
+			self.assertEqual(escape_formula_injection(value), "'" + value)
+
+	def test_escape_formula_injection_leaves_normal_values_untouched(self):
+		from frappe.utils.csvutils import escape_formula_injection
+
+		self.assertEqual(escape_formula_injection("normal text"), "normal text")
+		self.assertEqual(escape_formula_injection("555-1234"), "555-1234")
+		self.assertEqual(escape_formula_injection(100), 100)
+		self.assertEqual(escape_formula_injection(None), None)
+
+	def test_unescape_reverses_escape(self):
+		from frappe.utils.csvutils import (
+			FORMULA_TRIGGER_CHARS,
+			escape_formula_injection,
+			unescape_formula_injection,
+		)
+
+		for char in FORMULA_TRIGGER_CHARS:
+			original = f"{char}1+1"
+			self.assertEqual(unescape_formula_injection(escape_formula_injection(original)), original)
+
+	def test_unescape_does_not_strip_literal_leading_quote(self):
+		"""A user-typed apostrophe not followed by a trigger char must survive untouched."""
+		from frappe.utils.csvutils import unescape_formula_injection
+
+		self.assertEqual(unescape_formula_injection("'hello"), "'hello")
+		self.assertEqual(unescape_formula_injection("'"), "'")
+
+	def test_to_csv_escapes_formula_like_values(self):
+		from frappe.utils.csvutils import to_csv
+
+		out = to_csv([["notes", "amount"], ["=1+1", "10"]])
+		self.assertIn("'=1+1", out)
+		self.assertNotIn('"=1+1"', out)
+
+	def test_export_reimport_round_trip_preserves_legit_data(self):
+		"""Export followed by reimport must not corrupt values that start with trigger chars."""
+		from frappe.utils.csvutils import read_csv_content, to_csv
+
+		rows = [
+			["name", "notes", "phone", "qty_text"],
+			["REC-001", "=1+1", "+1-555-0100", "-5"],
+			["REC-002", "normal text", "555-1234", "10"],
+		]
+
+		exported = to_csv(rows)
+		# a formula-like value must round-trip through escape_formula_injection
+		self.assertIn("'=1+1", exported)
+
+		reimported = read_csv_content(exported)
+		self.assertEqual(reimported, rows)
+
+		# a second export/import cycle must not accumulate extra quote markers
+		reexported = to_csv(reimported)
+		self.assertEqual(reexported, exported)
+		self.assertEqual(read_csv_content(reexported), rows)
+
 
 class TestLinkTitle(IntegrationTestCase):
 	def test_link_title_doctypes_in_boot_info(self):
@@ -1132,6 +1366,29 @@ class TestLinkTitle(IntegrationTestCase):
 
 		todo.delete()
 		user.delete()
+		prop_setter.delete()
+
+	def test_link_title_of_missing_document(self):
+		"""
+		Test that a link value with no target returns the docname without raising
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "User",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		from frappe.desk.search import get_link_title
+
+		frappe.clear_messages()
+		self.assertEqual(get_link_title("User", "meera.iyer@example.com"), "meera.iyer@example.com")
+		self.assertEqual(frappe.get_message_log(), [])
+
 		prop_setter.delete()
 
 
@@ -1351,20 +1608,53 @@ class TestTypingValidations(IntegrationTestCase):
 
 		func(1)  # should run without error
 
+	def test_whitelisted_http_methods_are_stored_as_tuple(self):
+		def default_methods():
+			pass
+
+		def list_methods():
+			pass
+
+		def tuple_methods():
+			pass
+
+		def string_method():
+			pass
+
+		default_methods = frappe.whitelist()(default_methods)
+		list_methods = frappe.whitelist(methods=["GET", "POST"])(list_methods)
+		tuple_methods = frappe.whitelist(methods=("PUT", "DELETE"))(tuple_methods)
+		string_method = frappe.whitelist(methods="GET")(string_method)
+
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[default_methods],
+			("GET", "POST", "PUT", "DELETE", "QUERY"),
+		)
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST", "QUERY")
+		)
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[tuple_methods], ("PUT", "DELETE"))
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET", "QUERY"))
+
 
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitzation(self):
+		handle = io.BufferedWriter(io.BytesIO())
 		try:
-			password = "42"  # noqa: F841
-			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
-			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})  # noqa: F841
+			password = "424242"  # noqa: F841
+			values = {"password": "424242", "pwd": "424242", "safe": "safe_value", "handle": handle}
+			args = frappe._dict(values)  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn("42", traceback)
-			self.assertIn("********", traceback)
-			self.assertIn("password =", traceback)
-			self.assertIn("safe_value", traceback)
+		finally:
+			handle.close()
+
+		self.assertNotIn("424242", traceback)
+		self.assertNotIn("cannot pickle", traceback)
+		self.assertIn("********", traceback)
+		self.assertIn("password =", traceback)
+		self.assertIn("safe_value", traceback)
 
 
 class TestRounding(IntegrationTestCase):
@@ -1592,6 +1882,18 @@ class TestDataUtils(UnitTestCase):
 
 	def tearDown(self):
 		frappe.local.lang = "en"
+
+	def test_orjson_dumps_fallback_on_large_integers(self):
+		def normalize(v):
+			return json.loads(v)
+
+		big = 2**63 + 1
+		result = orjson_dumps({"big": big})
+		self.assertEqual(normalize(result), normalize(json.dumps({"big": big})))
+
+		result_bytes = orjson_dumps({"big": big}, decode=False)
+		self.assertIsInstance(result_bytes, bytes)
+		self.assertEqual(normalize(result_bytes), normalize(json.dumps({"big": big}).encode()))
 
 	def test_comma_and(self):
 		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b', and 'c'")

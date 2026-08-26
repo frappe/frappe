@@ -14,9 +14,6 @@ import random
 import time
 from typing import NoReturn
 
-from croniter import CroniterBadCronError
-from filelock import FileLock, Timeout
-
 import frappe
 from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import set_niceness
@@ -38,6 +35,8 @@ def cprint(*args, **kwargs):
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_tick_interval in seconds in common_site_config.json"""
+	# Lazy: filelock imports the asyncio stack.
+	from filelock import FileLock, Timeout
 
 	tick = get_scheduler_tick()
 	set_niceness()
@@ -66,6 +65,8 @@ def is_schduler_process_running() -> bool:
 	Note: FLOCK is held by process until it exits, this function just checks if process is
 	running or not. We can't determine if process is stuck somehwere.
 	"""
+	from filelock import FileLock, Timeout
+
 	try:
 		lock = FileLock(_get_scheduler_lock_file())
 		lock.acquire(blocking=False)
@@ -133,8 +134,16 @@ def enqueue_events_for_site(site: str) -> None:
 
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
+		from croniter import CroniterBadCronError
+
+		from frappe.core.doctype.scheduled_job_type.scheduled_job_type import get_disabled_app_job_methods
+
 		enqueued_jobs = []
-		all_jobs = frappe.get_docs("Scheduled Job Type", filters={"stopped": 0})
+		filters = {"stopped": 0}
+		if disabled_methods := get_disabled_app_job_methods():
+			filters["method"] = ["not in", disabled_methods]
+
+		all_jobs = frappe.get_docs("Scheduled Job Type", filters=filters)
 		random.shuffle(all_jobs)
 		for job_type in all_jobs:
 			try:

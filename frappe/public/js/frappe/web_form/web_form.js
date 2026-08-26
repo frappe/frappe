@@ -64,6 +64,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make_form_dirty() {
+		if (!this.is_new && !this.in_edit_mode) {
+			return;
+		}
 		frappe.form_dirty = true;
 		$("#not-saved-badge").removeClass("hide");
 	}
@@ -160,7 +163,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 		let values = frappe.utils.get_query_params();
 		delete values.new;
-		Object.assign(defaults, values);
+		delete values.web_form_request_key;
+		Object.assign(defaults, this.doc, values);
 		this.set_values(defaults);
 	}
 
@@ -177,35 +181,34 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	discard_form() {
-		let path = window.location.href;
-		// remove new or edit after last / from url
-		path = path.substring(0, path.lastIndexOf("/"));
+		const url = this.get_discard_url();
 
 		if (frappe.form_dirty) {
 			frappe.warn(
 				__("Discard?"),
 				__("Are you sure you want to discard the changes?"),
-				() => (window.location.href = path),
+				() => (window.location.href = url),
 				__("Discard")
 			);
 		} else {
-			window.location.href = path;
+			window.location.href = url;
 		}
 		return false;
 	}
 
 	delete_form() {
-		const path = window.location.href;
 		frappe.confirm(__("Are you sure you want to delete this record?"), () => {
 			frappe.call({
+				type: "DELETE",
 				method: "frappe.website.doctype.web_form.web_form.delete",
 				args: {
 					web_form_name: this.name,
 					docname: this.doc.name,
+					web_form_request_key: this.web_form_request_key,
 				},
 				callback: () => {
 					frappe.msgprint(__("Deleted!"));
-					window.location.href = path.substring(0, path.lastIndexOf("/"));
+					window.location.href = this.get_delete_redirect_url();
 				},
 			});
 		});
@@ -214,6 +217,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	validate_section() {
 		if (this.allow_incomplete) return true;
+
+		// submit attempted: allow mandatory fields to show the error highlight
+		this.primary_action_fulfilled = true;
 
 		let fields = $(`${this.get_page(this.current_section)} .form-control`);
 		let errors = [];
@@ -232,8 +238,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				if (
 					field.df.reqd &&
 					is_null(typeof value === "string" ? strip_html(value) : value)
-				)
+				) {
 					errors.push(__(field.df.label));
+					field.refresh_input();
+				}
 
 				if (
 					field.df.reqd &&
@@ -304,7 +312,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		for (let i = 0; i <= this.page_breaks.length; i++) {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
 			</div>`).attr({ "data-step-id": i });
 
 			if (i < this.current_section) {
@@ -378,6 +386,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	save() {
 		let is_new = this.is_new;
+		// submit attempted: allow mandatory fields to show the error highlight
+		this.primary_action_fulfilled = true;
 		let valid = this.validate && this.validate();
 		if (!valid && valid !== undefined) {
 			frappe.msgprint(
@@ -387,8 +397,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return false;
 		}
 
-		// validation hack: get_values will check for missing data
-		let doc_values = super.get_values(this.allow_incomplete);
+		// validation hack: get_values will check for missing and invalid data
+		let doc_values = super.get_values(this.allow_incomplete, true);
 
 		if (!doc_values) return false;
 
@@ -410,6 +420,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			args: {
 				data: this.doc,
 				web_form: this.name,
+				web_form_request_key: this.web_form_request_key,
 				for_payment,
 			},
 			btn: $("btn-primary"),
@@ -467,9 +478,13 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	render_success_page(data) {
+		const request_query = this.get_request_query();
+
 		if (this.allow_edit && data.name) {
 			$(".success-footer").append(`
-				<a href="/${this.route}/${data.name}/edit" class="edit-button btn btn-default btn-md">
+				<a href="/${this.route}/${
+				data.name
+			}/edit${request_query}" class="edit-button btn btn-default btn-md">
 					${__("Edit your response", null, "Button in web form")}
 				</a>
 			`);
@@ -477,10 +492,41 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		if (this.login_required && !this.allow_multiple && !this.show_list && data.name) {
 			$(".success-footer").append(`
-				<a href="/${this.route}/${data.name}" class="view-button btn btn-default btn-md">
+				<a href="/${this.route}/${data.name}${request_query}" class="view-button btn btn-default btn-md">
 					${__("View your response", null, "Button in web form")}
 				</a>
 			`);
 		}
+	}
+
+	get_request_query() {
+		return this.web_form_request_key
+			? `?web_form_request_key=${encodeURIComponent(this.web_form_request_key)}`
+			: "";
+	}
+
+	get_discard_url() {
+		let path = window.location.pathname;
+		if (path.endsWith("/edit")) {
+			path = path.slice(0, -"/edit".length);
+		}
+		return path + this.get_request_query();
+	}
+
+	get_delete_redirect_url() {
+		if (this.web_form_request_key) {
+			if (this.show_list) {
+				return `/${this.route}/list${this.get_request_query()}`;
+			}
+			if (this.allow_multiple) {
+				return `/${this.route}/new${this.get_request_query()}`;
+			}
+		}
+
+		let path = window.location.pathname;
+		if (path.endsWith("/edit")) {
+			path = path.slice(0, -"/edit".length);
+		}
+		return path.substring(0, path.lastIndexOf("/")) + this.get_request_query();
 	}
 }

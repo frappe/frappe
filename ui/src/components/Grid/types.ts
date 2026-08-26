@@ -23,6 +23,30 @@ export interface GridColumn {
   width?: number;
 }
 
+/** Validation error shown below the grid: a message string, or an `Error` with `messages[]`. */
+export interface GridError extends Error {
+  messages?: string[];
+}
+
+/** Props for `<Grid>`. The rows array is a separate `v-model`. */
+export interface GridProps {
+  /** Columns to render, in order. */
+  columns: GridColumn[];
+  /** Disable structural actions (add/delete/reorder/select) and render read-only. */
+  disabled?: boolean;
+  /** Optional heading shown above the grid. */
+  label?: string;
+  /** Helper text rendered below the grid. Hidden while an error is shown. */
+  description?: string;
+  /** Validation error below the grid: a string, or an `Error` with `messages[]`. */
+  error?: string | GridError;
+  /** Renders a `*` next to the label. */
+  required?: boolean;
+  /** Seeds a newly added row. The grid sees only the columns, so whoever knows
+   *  the whole child form supplies its docfield defaults. */
+  newRow?: () => Record<string, any>;
+}
+
 export type GridEmits = {
   /**
    * A row was added, deleted, reordered, or a cell committed (via the slot's
@@ -30,6 +54,16 @@ export type GridEmits = {
    * signal, distinct from the live `v-model` sync (the slot's `update`).
    */
   change: [rows: Record<string, any>[]];
+  /**
+   * One cell was committed. Distinct from `change`, which says only that the
+   * rows array moved: this names the row and the column, so a consumer can
+   * dispatch a per-row event without diffing to work out what moved.
+   */
+  commit: [payload: { row: Record<string, any>; column: GridColumn }];
+  /** A row was added, carrying the row so a consumer can address it. */
+  add: [payload: { row: Record<string, any> }];
+  /** Rows were deleted, carrying them as they last were. */
+  remove: [payload: { rows: Record<string, any>[] }];
   /**
    * The user clicked a row's edit action (last column). Carries the row and its
    * index. `Grid` stays oblivious to *how* a row is edited — the consumer (e.g.
@@ -49,4 +83,9 @@ export interface GridCellSlotProps<T extends GridColumn = GridColumn> {
   update: (value: any) => void;
   /** Commit the cell — writes the value and emits `change`. */
   commit: (value: any) => void;
+}
+
+export interface GridSlots<T extends GridColumn = GridColumn> {
+  /** Render/edit one cell. Falls back to plain text when not provided. */
+  cell?: (props: GridCellSlotProps<T>) => any;
 }

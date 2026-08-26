@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils.caching import redis_cache
+from frappe.utils import cint
 
 
 class InvalidAppOrder(frappe.ValidationError):
@@ -32,6 +32,7 @@ class InstalledApplications(Document):
 		self.reload_doc_if_required()
 
 		app_wise_setup_details = self.get_app_wise_setup_details()
+		disabled_apps = frappe.get_disabled_apps()
 
 		self.delete_key("installed_applications")
 		for app in frappe.utils.get_installed_apps_info():
@@ -56,6 +57,7 @@ class InstalledApplications(Document):
 					"git_branch": app.get("branch") or "UNVERSIONED",
 					"has_setup_wizard": has_setup_wizard,
 					"is_setup_complete": setup_complete,
+					"disabled": app.get("app_name") in disabled_apps,
 				},
 			)
 
@@ -83,7 +85,7 @@ class InstalledApplications(Document):
 		)
 
 	def reload_doc_if_required(self):
-		if frappe.db.has_column("Installed Application", "is_setup_complete"):
+		if frappe.db.has_column("Installed Application", "disabled"):
 			return
 
 		frappe.reload_doc("core", "doctype", "installed_application")
@@ -117,8 +119,7 @@ def update_installed_apps_order(new_order: list[str] | str):
 	"""
 	frappe.only_for("System Manager")
 
-	if isinstance(new_order, str):
-		new_order = json.loads(new_order)
+	new_order = frappe.parse_json(new_order)
 
 	frappe.local.request_cache and frappe.local.request_cache.clear()
 	existing_order = frappe.get_installed_apps(_ensure_on_bench=True)
@@ -146,6 +147,19 @@ def _create_version_log_for_change(old, new):
 	version.flags.ignore_links = True  # This is a fake doctype
 	version.flags.ignore_permissions = True
 	version.insert()
+
+
+@frappe.whitelist()
+def set_app_state(app_name: str, disabled: bool | int | str):
+	"""Disable or enable an installed app on this site without touching its data."""
+	frappe.only_for("System Manager")
+
+	from frappe.installer import disable_app, enable_app
+
+	if cint(disabled):
+		disable_app(app_name)
+	else:
+		enable_app(app_name)
 
 
 @frappe.whitelist()

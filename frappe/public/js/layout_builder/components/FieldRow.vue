@@ -12,26 +12,26 @@ const is_selected = computed(() => store.selected_field?.fieldname === props.fie
 const is_hidden = computed(() => !!props.field.hidden);
 
 const fieldtype_icon = {
-	"Section Break": "es-line-layout-rows",
-	"Column Break": "es-line-columns",
-	"Tab Break": "es-line-tab",
-	Table: "es-line-table",
-	Link: "es-line-link",
-	Check: "es-line-check-circle",
-	Date: "es-line-calendar",
-	Datetime: "es-line-clock",
-	Int: "es-line-hash",
-	Float: "es-line-decimal",
-	Currency: "es-line-currency",
-	Text: "es-line-text",
-	"Small Text": "es-line-text",
-	Code: "es-line-code",
-	Select: "es-line-list",
-	Attach: "es-line-file-upload",
-	"Attach Image": "es-line-image",
+	"Section Break": "rows-2",
+	"Column Break": "columns-2",
+	"Tab Break": "panel-top",
+	Table: "table",
+	Link: "link",
+	Check: "circle-check",
+	Date: "calendar",
+	Datetime: "clock",
+	Int: "hash",
+	Float: "decimals-arrow-right",
+	Currency: "circle-dollar-sign",
+	Text: "type",
+	"Small Text": "type",
+	Code: "code",
+	Select: "list",
+	Attach: "file-up",
+	"Attach Image": "image",
 };
 
-const icon = computed(() => fieldtype_icon[fieldtype.value] || "es-line-form");
+const icon = computed(() => fieldtype_icon[fieldtype.value] || "text-cursor-input");
 
 function toggle(prop, event) {
 	event.stopPropagation();
@@ -52,7 +52,7 @@ function toggle(prop, event) {
 	>
 		<!-- drag handle -->
 		<span class="lb-drag-handle" :title="__('Drag to reorder')">
-			<span v-html="frappe.utils.icon('es-line-drag', 'xs')" />
+			<span v-html="frappe.utils.icon('grip-vertical', 'xs')" />
 		</span>
 
 		<!-- fieldtype icon -->

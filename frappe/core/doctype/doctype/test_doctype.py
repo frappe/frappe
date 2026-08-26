@@ -18,7 +18,9 @@ from frappe.core.doctype.doctype.doctype import (
 	InvalidFieldNameError,
 	UniqueFieldnameError,
 	WrongOptionsDoctypeLinkError,
+	validate_fields,
 	validate_links_table_fieldnames,
+	validate_permissions,
 )
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
@@ -49,7 +51,7 @@ class TestDocType(IntegrationTestCase):
 			doc.delete()
 
 	@skipIf(
-		frappe.conf.db_type == "sqlite",
+		frappe.conf and frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
 	)
 	def test_making_sequence_on_change(self):
@@ -122,6 +124,21 @@ class TestDocType(IntegrationTestCase):
 		doc2.insert()
 		doc1.delete()
 		doc2.delete()
+
+	def test_change_field_type_with_incompatible_values(self):
+		if frappe.db.exists("DocType", "Test Field Type Change"):
+			frappe.delete_doc("DocType", "Test Field Type Change")
+
+		dt = new_doctype("Test Field Type Change")
+		dt.insert()
+
+		doc = frappe.new_doc("Test Field Type Change")
+		doc.some_fieldname = "not a number"
+		doc.insert()
+
+		dt.fields[0].fieldtype = "Int"
+		self.assertRaises(frappe.ValidationError, dt.save)
+		frappe.db.rollback()
 
 	def test_validate_search_fields(self):
 		doc = new_doctype("Test Search Fields")
@@ -554,6 +571,40 @@ class TestDocType(IntegrationTestCase):
 		self.assertIn(("User", "first_name"), link_tuples)
 		self.assertIn(("Role", "name"), link_tuples)
 
+	def test_if_owner_cleared_for_high_permlevel(self):
+		"""`if_owner` is only honoured at permlevel 0; it is cleared at higher levels."""
+		doc = new_doctype(
+			"Test If Owner Permlevel",
+			permissions=[
+				{"role": "All", "permlevel": 0, "read": 1, "write": 1, "if_owner": 1},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1, "if_owner": 1},
+			],
+		)
+
+		validate_permissions(doc)
+
+		perms = {p.permlevel: p for p in doc.permissions}
+		self.assertEqual(perms[0].if_owner, 1)
+		self.assertEqual(perms[1].if_owner, 0)
+
+	def test_if_owner_at_high_permlevel_does_not_duplicate(self):
+		"""Clearing if_owner must not leave a duplicate of an existing rule at the same level."""
+		doc = new_doctype(
+			"Test If Owner Duplicate",
+			permissions=[
+				{"role": "All", "permlevel": 0, "read": 1, "write": 1},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1},
+				{"role": "All", "permlevel": 1, "read": 1, "write": 1, "if_owner": 1},
+			],
+		)
+
+		validate_permissions(doc)
+
+		level1 = [p for p in doc.permissions if p.permlevel == 1]
+		self.assertEqual(len(level1), 1)
+		self.assertFalse(level1[0].if_owner)
+		self.assertEqual(level1[0].write, 1)
+
 	def test_create_virtual_doctype(self):
 		"""Test virtual DocType."""
 		virtual_doc = new_doctype("Test Virtual Doctype")
@@ -664,6 +715,88 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
+	def test_link_filters_must_be_valid_json(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"options": "User",
+					"link_filters": "not valid json",
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_link_filters_must_be_list_of_filters(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"options": "User",
+					"link_filters": '{"name": "Administrator"}',
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_attachment_gallery_filters_must_target_file(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "Attachments",
+					"fieldname": "attachments",
+					"fieldtype": "Attachment Gallery",
+					"link_filters": '[["User", "name", "=", "Administrator"]]',
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_missing_link_filters_field_is_allowed(self):
+		doctype = new_doctype()
+		doctype.fields[0].__dict__.pop("link_filters", None)
+
+		validate_fields(doctype)
+
+	def test_custom_field_validates_link_filters(self):
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"fieldname": "invalid_link_filters",
+				"label": "Invalid Link Filters",
+				"fieldtype": "Link",
+				"options": "User",
+				"link_filters": '[["User", "name", "="]]',
+			}
+		)
+
+		self.assertRaises(frappe.ValidationError, custom_field.insert)
+		frappe.db.rollback()
+		frappe.clear_cache(doctype="ToDo")
+
+	def test_property_setter_validates_link_filters(self):
+		self.assertRaises(
+			frappe.ValidationError,
+			frappe.make_property_setter,
+			{
+				"doctype": "ToDo",
+				"fieldname": "allocated_to",
+				"property": "link_filters",
+				"value": '["not a filter row"]',
+				"property_type": "JSON",
+			},
+		)
+		frappe.db.rollback()
+		frappe.clear_cache(doctype="ToDo")
+
 	def test_no_delete_doc(self):
 		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
 
@@ -711,6 +844,28 @@ class TestDocType(IntegrationTestCase):
 				if controller_folder:
 					shutil.rmtree(controller_folder, ignore_errors=True)
 				frappe.local.request = previous_request
+
+	def test_warn_on_module_change(self):
+		doc = frappe.new_doc("DocType")
+		doc.name = "Test Module Change Warning"
+		doc.module = "Custom"
+
+		messages = []
+		with patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)):
+			doc.get_doc_before_save = lambda: frappe._dict(module="Core")
+			doc.warn_on_module_change()
+			self.assertEqual(len(messages), 1)
+			self.assertIn("Custom", messages[0])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Custom")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
+
+			messages.clear()
+			doc.get_doc_before_save = lambda: frappe._dict(module="Does Not Exist")
+			doc.warn_on_module_change()
+			self.assertEqual(messages, [])
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"

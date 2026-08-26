@@ -7,7 +7,7 @@
 		{% if can_write %}
 		<div class="sidebar-image-actions">
 			<div class="sidebar-image-upload-hint">
-				<svg class="es-icon icon-sm"><use href="#es-line-camera"></use></svg>
+				<svg class="icon icon-sm"><use href="#icon-camera"></use></svg>
 			</div>
 			<a class="sidebar-image-remove">
 				<svg class="icon icon-sm"><use href="#icon-x"></use></svg>
@@ -36,7 +36,21 @@
 			</div>
 			{% if frm.meta.beta %}
 			<div class="pt-1">
-				<span class="es-badge" data-theme="amber" title="{{ __("This feature is brand new and still experimental") }}">{%= frappe.utils.icon("flask-conical") %}{{ __("Experimental") }}</span>
+				{%= frappe.ui.badge.html({
+					label: __("Experimental"),
+					theme: "amber",
+					icon: "flask-conical",
+					title: __("This feature is brand new and still experimental"),
+				}) %}
+			</div>
+			{% endif %}
+			{% if frm.meta.deprecated %}
+			<div class="pt-1">
+				{%= frappe.ui.badge.html({
+					label: __("Deprecated"),
+					theme: "red",
+					title: __("This feature is deprecated and may be removed in a future release"),
+				}) %}
 			</div>
 			{% endif %}
 			{% if (title && title !== frm.doc.name) { %}
@@ -89,9 +103,12 @@
 				{%= frappe.utils.icon("users") %}
 				<span class="ellipsis">{%= __("Assign") %}</span>
 			</span>
-			<button class="add-assignment-btn btn btn-link icon-btn">
-				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
-			</button>
+			{%= frappe.ui.button.html({
+				icon: "plus",
+				variant: "ghost",
+				title: __("Assign"),
+				css_class: "add-assignment-btn",
+			}) %}
 		</span>
 		<div class="assignments"></div>
 	</div>
@@ -105,9 +122,12 @@
 					{%= __("Attachments") %}
 				</a>
 			</span>
-			<button class="add-attachment-btn btn btn-link icon-btn">
-				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
-			</button>
+			{%= frappe.ui.button.html({
+				icon: "plus",
+				variant: "ghost",
+				title: __("Add attachment"),
+				css_class: "add-attachment-btn",
+			}) %}
 		</span>
 	</div>
 	<a class="show-all-btn hidden" href="">
@@ -133,25 +153,14 @@
 				{%= frappe.utils.icon("share-2") %}
 				<span class="ellipsis">{%= __("Share") %}</span>
 			</span>
-			<button class="share-doc-btn btn btn-link icon-btn">
-				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
-			</button>
+			{%= frappe.ui.button.html({
+				icon: "plus",
+				variant: "ghost",
+				title: __("Share"),
+				css_class: "share-doc-btn",
+			}) %}
 		</span>
 		<div class="shares"></div>
-	</div>
-</div>
-<div class="sidebar-section followed-by-section hidden">
-	<div class="sidebar-label followed-by-label">
-		{%= __("Followed by") %}
-	</div>
-	<div class="followed-by"></div>
-	<div class="document-follow">
-		<a class="badge-hover follow-document-link hidden">
-			{%= __("Follow") %}
-		</a>
-		<a class="badge-hover unfollow-document-link hidden">
-			{%= __("Unfollow") %}
-		</a>
 	</div>
 </div>
 <div class="sidebar-section hidden">

@@ -1,3 +1,13 @@
+/* Styles for both /app/desktop pages, selected by Desktop Settings -> Desktop Page.
+ *
+ * Page.load_assets serves exactly one desktop.css, so both the Apps screen and the
+ * Desktop Icon grid live here, each scoped to the body class set in desk.js. The custom
+ * properties below are shared and stay unscoped: :root and [data-theme] both resolve to
+ * <html>, which is not a descendant of body.
+ *
+ * The scoped sections are mechanical prefixes of the two source stylesheets -- edit the
+ * rule you mean, inside the matching section.
+ */
 :root{
     --desktop-blur: blur(10.2px);
     --desktop-modal-width: 590px;
@@ -12,555 +22,1022 @@
 [data-theme="dark"]{
     --folder-icon-background-color: #2b2b2b;
 }
-.desktop-wrapper{
-    max-width: 100%;
-    width: 100%;
-    margin-right: auto;
-    margin-left: auto;
-    padding: 0px;
+
+[data-theme="dark"] body.apps-page .desktop-edit{
+	background-color: var(--surface-gray-3);
+	opacity: 1;
 }
 
-.navbar-container{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px 20px 10px 20px;
-    box-sizing: border-box;
-    height: var(--desktop-navbar-height);
-    position: sticky;
-    top: 0px;
-    z-index: 1030;
+[data-theme="dark"] body.apps-page .desktop-edit:hover{
+	opacity: 0.8;
+	transition: opacity 0.3s;
 }
 
-#brand-logo{
-    width: auto;
+[data-theme="dark"] body.desktop-icons-page .desktop-edit{
+	background-color: var(--surface-gray-3);
+	opacity: 1;
 }
 
-.desktop-container{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: row;
-    .icons-container {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+[data-theme="dark"] body.desktop-icons-page .desktop-edit:hover{
+	opacity: 0.8;
+	transition: opacity 0.3s;
 }
 
-.icon-stroke{
-    stroke-width: 1.5px;
+body.apps-page .desktop-wrapper {
+  max-width: 100%;
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 0px;
 }
-.icons-container{
-    margin-top: 60px;
-    padding: 20px;
+body.apps-page .navbar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  height: var(--desktop-navbar-height);
+  position: sticky;
+  top: 0px;
+  z-index: 1030;
+  border-bottom: 1px solid var(--border-color);
 }
-.icons-container:has(.sidebar-card){
-    margin-top: 20px;
-    .sidebar-card{
-        gap: 6px;
-    }
+body.apps-page #brand-logo {
+  width: auto;
 }
-.modal
-.modal-body .icons-container, .folder-icon .icons-container {
-    padding:0px;
-    margin: 0px;
-    height: 100%;
-    overflow: auto;
+body.apps-page .desktop-cloud-settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  color: var(--ink-gray-7);
 }
-
-.folder-icon .icons-container {
-    overflow: hidden;
+body.apps-page .desktop-cloud-settings:hover {
+  background: var(--surface-gray-2);
 }
-
-.icons{
-	gap: 16px;
-	display: grid;
-	justify-items: center;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(3, 1fr);
+body.apps-page .desktop-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
 }
-.desktop-icon{
-    display: flex;
-    height: 126px;
-    width: 127px;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 16px 12px 16px;
-    position: relative;
-    border-radius: 20px;
-    border-width: 1px;
-    border-style: dashed;
-    border-color: transparent;
+body.apps-page .desktop-container .icons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.desktop-icon.desktop-edit-mode .hide-button {
-    display: flex;
+body.apps-page .icon-stroke {
+  stroke-width: 1.5px;
 }
-.icon-container:has(.app-logo) {
-    padding: 0;
-    background-color: unset;
+body.apps-page .icons-container {
+  margin-top: 60px;
+  padding: 20px;
 }
-.icon-container img{
-    width: var(--desktop-icon-dimension);
-    height: var(--desktop-icon-dimension);
-    -webkit-user-drag: none;
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
+body.apps-page .icons-container:has(.frappe-card) {
+  margin-top: 20px;
 }
-.icon-container{
-    padding: 10px;
-    border-radius: 16px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--desktop-icon-dimension);
-    height: var(--desktop-icon-dimension);
+body.apps-page .modal .modal-body .icons-container, body.apps-page .folder-icon .icons-container {
+  padding: 0px;
+  margin: 0px;
+  height: 100%;
+  overflow: auto;
 }
-.icon-container:has(.icon){
-    background-color: var(--surface-gray-3);
+body.apps-page .folder-icon .icons-container {
+  overflow: hidden;
 }
-.icon-container:hover{
-	transform: scale(1.05);
-    transition: transform 0.1s;
+body.apps-page .icons {
+  gap: 16px;
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
 }
-.icon-caption{
-    text-align: center;
-    text-wrap: nowrap;
-    display: flex;
-    justify-content: space-between;
-    height: 35px;
-    flex-direction: column;
+body.apps-page .desktop-icon {
+  display: flex;
+  height: 126px;
+  width: 127px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px 12px 16px;
+  position: relative;
+  border-radius: 20px;
+  border-width: 1px;
+  border-style: dashed;
+  border-color: transparent;
 }
-.icon-title{
-    font-weight: var(--weight-semibold);
-    font-size: var(--text-md);
-    overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-    line-height: var(--desktop-icon-line-height);
+body.apps-page .desktop-icon.desktop-edit-mode .hide-button {
+  display: flex;
 }
-.icon-subtitle{
-    font-weight: var(--weight-regular);
-    font-size: var(--text-xs);
-    color: var(--ink-gray-5);
-    line-height: var(--desktop-icon-line-height);
+body.apps-page .icon-container:has(.app-logo) {
+  padding: 0;
+  background-color: unset;
 }
-.timeless-style{
-    width: 100vw;
-    max-width: 600px;
+body.apps-page .icon-container img {
+  width: var(--desktop-icon-dimension);
+  height: var(--desktop-icon-dimension);
+  -webkit-user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
-.timeless-style input::placeholder{
-    text-align: center;
+body.apps-page .icon-container {
+  padding: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--desktop-icon-dimension);
+  height: var(--desktop-icon-dimension);
 }
-.apps-search{
-    align-items: center;
-    justify-content: space-between;
-    margin-left: 20px;
+body.apps-page .icon-container:has(.icon) {
+  background-color: var(--surface-gray-3);
 }
-.small-margin{
-    margin-top: 30px;
+body.apps-page .icon-container:hover {
+  transform: scale(1.05);
+  transition: transform 0.1s;
 }
-.desktop-modal{
-    backdrop-filter: var(--desktop-blur);
-    display: flex !important;
-    justify-content: center;
-    & .modal-dialog{
-        & .modal-content {
-            top: 120px;
-            border-radius: var(--desktop-modal-radius);
-        }
-    }
+body.apps-page .icon-caption {
+  text-align: center;
+  text-wrap: nowrap;
+  display: flex;
+  justify-content: space-between;
+  height: 35px;
+  flex-direction: column;
+  width: 100%;
 }
-
-#desktop-modal{
-    transform: none;
-    transition: none;
+body.apps-page .icon-title {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: var(--desktop-icon-line-height);
 }
-
-.desktop-modal-body {
-    width: var(--desktop-modal-width);
-    height: var(--desktop-modal-height);
-    padding: 24px 23px !important;
-    width: fit-content;
-    & .icons{
-        gap: 0px 0px;
-    }
-    .icon-container{
-        min-height: var(--desktop-icon-dimension);
-    }
+body.apps-page .icon-subtitle {
+  font-weight: var(--weight-regular);
+  font-size: var(--text-xs);
+  color: var(--ink-gray-5);
+  line-height: var(--desktop-icon-line-height);
 }
-.modal-heading{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-semibold);
-    color: var(--ink-base);
+body.apps-page .timeless-style {
+  width: 100vw;
+  max-width: 600px;
 }
-.desktop-modal-heading {
-    all: unset !important;
-    position: absolute !important;
-    top: -75px !important;
-    width: 100% !important;
-    & .title-section{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        & .modal-title{
-            color: var(--ink-base);
-            font-size: var(--text-2xl);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-    }
-    & .modal-actions {
-        display: none !important;
-    }
+body.apps-page .timeless-style input::placeholder {
+  text-align: center;
 }
-.modal-body .icons{
-    margin-top: 0px;
-    place-self: anchor-center;
-    & .desktop-icon{
-        height: 126px;
-        width: 127px;
-        padding: 13px 16px 13px 16px;
-        & .icon-caption {
-            text-overflow: ellipsis;
-            text-wrap: wrap;
-        }
-    }
+body.apps-page .apps-search {
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 20px;
 }
-.desktop-context-menu{
-    position: absolute;
+body.apps-page .small-margin {
+  margin-top: 30px;
 }
-
-.folder-icon {
-    border-radius: 16px;
-    background-color: var(--folder-icon-background-color) !important;
-    box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.14);
-    padding: 7px;
-    align-items: normal;
-    /* box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14); */
-    & .icons{
-        gap: 2.1px;
-        margin-top: 0px;
-        & .desktop-icon {
-            width: fit-content;
-            height: fit-content;
-            pointer-events: none;
-            padding: 0px;
-            & .icon-container{
-                height: var(--folder-thumbnail-icon-height);
-                width: var(--folder-thumbnail-icon-height);
-                padding: 0px;
-                border-radius: 4px;
-                & .icon{
-                    width: 5px;
-                    height: 5px;
-                }
-                & img{
-                    width: var(--folder-thumbnail-icon-height);
-                    height: var(--folder-thumbnail-icon-height);
-                }
-            }
-
-        }
-    }
+body.apps-page .desktop-modal {
+  backdrop-filter: var(--desktop-blur);
+  display: flex !important;
+  justify-content: center;
 }
-.page-indicator-container{
-    display: flex;
-    justify-content: center;
-    gap: 5px;
+body.apps-page .desktop-modal .modal-dialog .modal-content {
+  top: 120px;
+  border-radius: var(--desktop-modal-radius);
 }
-.active-page{
-    background: black !important;
+body.apps-page #desktop-modal {
+  transform: none;
+  transition: none;
 }
-.page-indicator{
-    background: var(--gray-300);
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-
+body.apps-page .desktop-modal-body {
+  width: var(--desktop-modal-width);
+  height: var(--desktop-modal-height);
+  padding: 24px 23px !important;
+  width: fit-content;
 }
-.no-apps-message{
-      grid-column: 1 / -1;
-      grid-row: 1 / -1;
+body.apps-page .desktop-modal-body .icons {
+  gap: 0px 0px;
 }
-.right-page-arrow, .left-page-arrow{
-    margin: 0px;
+body.apps-page .desktop-modal-body .icon-container {
+  min-height: var(--desktop-icon-dimension);
 }
-
-.bounce {
+body.apps-page .modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-base);
+}
+body.apps-page .desktop-modal-heading {
+  all: unset !important;
+  position: absolute !important;
+  top: -75px !important;
+  width: 100% !important;
+}
+body.apps-page .desktop-modal-heading .title-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.apps-page .desktop-modal-heading .title-section .modal-title {
+  color: var(--ink-base);
+  font-size: var(--text-2xl);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+body.apps-page .desktop-modal-heading .modal-actions {
+  display: none !important;
+}
+body.apps-page .modal-body .icons {
+  margin-top: 0px;
+  place-self: anchor-center;
+}
+body.apps-page .modal-body .icons .desktop-icon {
+  height: 126px;
+  width: 127px;
+  padding: 13px 16px 13px 16px;
+}
+body.apps-page .modal-body .icons .desktop-icon .icon-caption {
+  text-overflow: ellipsis;
+  text-wrap: wrap;
+}
+body.apps-page .desktop-context-menu {
+  position: absolute;
+}
+body.apps-page .folder-icon {
+  border-radius: 16px;
+  background-color: var(--folder-icon-background-color) !important;
+  box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.14);
+  padding: 7px;
+  align-items: normal;
+  /* box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14); */
+}
+body.apps-page .folder-icon .icons {
+  gap: 2.1px;
+  margin-top: 0px;
+}
+body.apps-page .folder-icon .icons .desktop-icon {
+  width: fit-content;
+  height: fit-content;
+  pointer-events: none;
+  padding: 0px;
+}
+body.apps-page .folder-icon .icons .desktop-icon .icon-container {
+  height: var(--folder-thumbnail-icon-height);
+  width: var(--folder-thumbnail-icon-height);
+  padding: 0px;
+  border-radius: 4px;
+}
+body.apps-page .folder-icon .icons .desktop-icon .icon-container .icon {
+  width: 5px;
+  height: 5px;
+}
+body.apps-page .folder-icon .icons .desktop-icon .icon-container img {
+  width: var(--folder-thumbnail-icon-height);
+  height: var(--folder-thumbnail-icon-height);
+}
+body.apps-page .page-indicator-container {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+body.apps-page .active-page {
+  background: black !important;
+}
+body.apps-page .page-indicator {
+  background: var(--gray-300);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+body.apps-page .no-apps-message {
+  grid-column: 1/-1;
+  grid-row: 1/-1;
+}
+body.apps-page .right-page-arrow, body.apps-page .left-page-arrow {
+  margin: 0px;
+}
+body.apps-page .bounce {
   animation: bounceIn 2s infinite 2s;
 }
-
 @keyframes bounceIn {
-	0%, 20%, 50%, 80%, 100% {
+  0%, 20%, 50%, 80%, 100% {
     transform: translateY(0);
     opacity: 1;
   }
-	20% {
+  20% {
     transform: translateY(-30px);
   }
-	60% {
+  60% {
     transform: translateY(-15px);
   }
 }
-
-.hide-button{
-    display: none;
-    background-color: var(--surface-gray-2);
-    position: absolute;
-    border-radius: 67px;
-    width: 24px;
-    height: 24px;
-    padding: 4px;
-    text-align: center;
-    vertical-align: center;
-    align-items: center;
-    top: -5px;
-    left: 108px;
+body.apps-page .hide-button {
+  display: none;
+  background-color: var(--surface-gray-2);
+  position: absolute;
+  border-radius: 67px;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  text-align: center;
+  vertical-align: center;
+  align-items: center;
+  top: -5px;
+  left: 108px;
 }
-
-.desktop-edit-mode{
-    border-color: var(--outline-gray-2);
+body.apps-page .desktop-edit-mode {
+  border-color: var(--outline-gray-2);
 }
-.edit-mode-buttons{
-    display: none;
-    gap: 4px;
+body.apps-page .edit-mode-buttons {
+  display: none;
+  gap: 4px;
 }
-.desktop-wrapper[data-mode="Edit"]{
-    .edit-mode-buttons{
-        display: flex;
-        justify-content: flex-end;
-        position: absolute;
-        bottom: 5%;
-        right: 5%;
-    }
+body.apps-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  bottom: 5%;
+  right: 5%;
 }
-
 @media screen and (max-width: 570px) {
   :root {
     --desktop-icon-dimension: 50px;
     --desktop-icon-container: 117px;
     --folder-thumbnail-icon-height:15px;
   }
-
-  .desktop-container {
+  body.apps-page .desktop-container {
     padding: 20px 13px;
-
-    > .icons-container {
-      width: 100%;
-      margin-top: 0;
-      padding: 0;
-
-      > .icons {
-        gap: 8px;
-        row-gap: 12px;
-
-        @media screen and (max-width: 380px) {
-          --desktop-icon-container: 100px;
-          .folder-icon > .icons{
-            grid-template-columns: repeat(2, 1fr) I !important;
-          }
-        }
-
-        > .desktop-icon {
-          width: var(--desktop-icon-container);
-          height: var(--desktop-icon-container);
-          .icon-container {
-                min-width: var(--desktop-icon-dimension);
-                min-height: var(--desktop-icon-dimension);
-          }
-        }
-      }
-
-    }
   }
-
-    .desktop-modal-body {
-        width: calc(100vw - 20px);
-        padding-left: 0px !important;
-        padding-right: 0px !important;
-        > .icons-container {
-            width: 100%;
-            overflow: hidden !important;
-            margin: 0px;
-            margin-top: 0;
-            padding: 0;
-
-            > .icons {
-                column-gap: 6px;
-                row-gap: 6px;
-
-                @media screen and (max-width: 380px) {
-                --desktop-icon-container: 100px;
-                .folder-icon > .icons{
-                    grid-template-columns: repeat(2, 1fr) I !important;
-                }
-                }
-
-                > .desktop-icon {
-                width: var(--desktop-icon-container);
-                height: var(--desktop-icon-container);
-                }
-            }
-        }
-    }
-    .folder-icon > .icons-container {
-        overflow: hidden;
-        > .icons {
-            grid-template-columns: repeat(2, 1fr) !important;
-            grid-template-rows: repeat(2, 1fr) !important;
-            > .desktop-icon {
-                .icon-container {
-                        min-width: unset;
-                        min-height: unset;
-                }
-            }
-            }
-        }
+  body.apps-page .desktop-container > .icons-container {
+    width: 100%;
+    margin-top: 0;
+    padding: 0;
+  }
+  body.apps-page .desktop-container > .icons-container > .icons {
+    gap: 8px;
+    row-gap: 12px;
+  }
+}
+@media screen and (max-width: 570px) and (max-width: 380px) {
+  body.apps-page .desktop-container > .icons-container > .icons {
+    --desktop-icon-container: 100px;
+  }
+  body.apps-page .desktop-container > .icons-container > .icons .folder-icon > .icons {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media screen and (max-width: 570px) {
+  body.apps-page .desktop-container > .icons-container > .icons > .desktop-icon {
+    width: var(--desktop-icon-container);
+    height: var(--desktop-icon-container);
+  }
+  body.apps-page .desktop-container > .icons-container > .icons > .desktop-icon .icon-container {
+    min-width: var(--desktop-icon-dimension);
+    min-height: var(--desktop-icon-dimension);
+  }
+  body.apps-page .desktop-modal-body {
+    width: calc(100vw - 20px);
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+  }
+  body.apps-page .desktop-modal-body > .icons-container {
+    width: 100%;
+    overflow: hidden !important;
+    margin: 0px;
+    margin-top: 0;
+    padding: 0;
+  }
+  body.apps-page .desktop-modal-body > .icons-container > .icons {
+    column-gap: 6px;
+    row-gap: 6px;
+  }
+}
+@media screen and (max-width: 570px) and (max-width: 380px) {
+  body.apps-page .desktop-modal-body > .icons-container > .icons {
+    --desktop-icon-container: 100px;
+  }
+  body.apps-page .desktop-modal-body > .icons-container > .icons .folder-icon > .icons {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media screen and (max-width: 570px) {
+  body.apps-page .desktop-modal-body > .icons-container > .icons > .desktop-icon {
+    width: var(--desktop-icon-container);
+    height: var(--desktop-icon-container);
+  }
+  body.apps-page .folder-icon > .icons-container {
+    overflow: hidden;
+  }
+  body.apps-page .folder-icon > .icons-container > .icons {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+  }
+  body.apps-page .folder-icon > .icons-container > .icons > .desktop-icon .icon-container {
+    min-width: unset;
+    min-height: unset;
+  }
+}
+body.apps-page .icons-container > .icons-container {
+  padding: 0px;
+}
+body.apps-page .desktop-edit {
+  width: 36px;
+  height: 36px;
+  background-color: var(--surface-gray-10);
+  position: absolute;
+  bottom: 4%;
+  right: 4%;
+  z-index: 100;
+  opacity: 6%;
+  border-radius: 10px;
+}
+body.apps-page .desktop-edit:hover {
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+body.apps-page .desktop-pane {
+  position: absolute;
+  top: var(--desktop-navbar-height);
+  right: 0px;
+  width: 300px;
+  border-left: 1px solid var(--border-color);
+  background-color: rgb(255, 255, 255);
+  height: 100vh;
+}
+body.apps-page .pane-header {
+  display: flex;
+  font-size: var(--text-lg);
+  padding: var(--padding-md);
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+body.apps-page .pane-icons-area .icons-container {
+  height: 100%;
+  margin-top: 0px;
+}
+body.apps-page .pane-icons-area .icons {
+  height: 100%;
+  overflow: scroll;
+}
+body.apps-page .add-new-icon {
+  cursor: pointer;
+  gap: 0px;
+  justify-content: center;
+}
+body.apps-page .title-widget {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+  cursor: text;
+  position: relative;
+}
+body.apps-page .title-widget--read-only {
+  cursor: default;
+}
+body.apps-page .title-widget--editable:hover .title-input-label {
+  opacity: 0.9;
+}
+body.apps-page .desktop-modal-heading .title-widget--read-only .title-input-label:hover {
+  background-color: transparent;
+}
+body.apps-page .desktop-modal-heading .title-widget .title-input-label {
+  color: var(--ink-base);
+  font-size: var(--text-2xl);
+  line-height: 1.3;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+body.apps-page .desktop-modal-heading .title-widget--editable:hover .title-input-label {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+body.apps-page .title-input-wrapper {
+  display: inline-block;
+  min-width: 80px;
+}
+body.apps-page .desktop-modal-heading .title-input-wrapper .title-input {
+  color: var(--ink-base);
+  font-size: var(--text-2xl);
+  line-height: 1.3;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 2px 8px;
+  outline: none;
+  min-width: 80px;
+  box-sizing: border-box;
+}
+body.apps-page .desktop-modal-heading .title-input-wrapper .title-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+body.apps-page .desktop-modal-heading .title-input-wrapper .title-input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.12);
+}
+body.apps-page .title-input-mirror {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  font-size: var(--text-2xl);
+  font-family: inherit;
+  padding: 0 4px;
 }
 
-.icons-container {
-    > .icons-container {
-        padding: 0px;
-    }
+body.desktop-icons-page .desktop-wrapper {
+  max-width: 100%;
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 0px;
 }
-
-.desktop-edit{
-    width: 36px;
-    height: 36px;
-    background-color: var(--surface-gray-10);
-    position: absolute;
-    bottom: 4%;
-    right: 4%;
-    z-index: 100;
-    opacity: 6%;
-    border-radius: 10px;
+body.desktop-icons-page .navbar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 20px 10px 20px;
+  box-sizing: border-box;
+  height: var(--desktop-navbar-height);
+  position: sticky;
+  top: 0px;
+  z-index: 1030;
 }
-
-.desktop-edit:hover{
+body.desktop-icons-page .desktop-search-wrapper {
+  flex: 1;
+  position: relative;
+}
+body.desktop-icons-page .desktop-search-wrapper span {
+  color: var(--text-light);
+}
+body.desktop-icons-page .desktop-navbar-modal-search {
+  background-color: var(--control-bg);
+  border-radius: var(--border-radius-sm);
+  height: 32px;
+  padding: 0px 10px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-right: 0px;
+}
+body.desktop-icons-page #brand-logo {
+  width: auto;
+}
+body.desktop-icons-page .desktop-search-icon > .icon {
+  stroke-width: 1px;
+  margin-bottom: 2px;
+}
+body.desktop-icons-page .desktop-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+}
+body.desktop-icons-page .desktop-container .icons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+body.desktop-icons-page .icon-stroke {
+  stroke-width: 1.5px;
+}
+body.desktop-icons-page .icons-container {
+  margin-top: 60px;
+  padding: 20px;
+}
+body.desktop-icons-page .icons-container:has(.sidebar-card) {
+  margin-top: 20px;
+}
+body.desktop-icons-page .icons-container:has(.sidebar-card) .sidebar-card {
+  gap: 6px;
+}
+body.desktop-icons-page .modal .modal-body .icons-container, body.desktop-icons-page .folder-icon .icons-container {
+  padding: 0px;
+  margin: 0px;
+  height: 100%;
+  overflow: auto;
+}
+body.desktop-icons-page .folder-icon .icons-container {
+  overflow: hidden;
+}
+body.desktop-icons-page .icons {
+  gap: 16px;
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+body.desktop-icons-page .desktop-icon {
+  display: flex;
+  height: 126px;
+  width: 127px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px 12px 16px;
+  position: relative;
+  border-radius: 20px;
+  border-width: 1px;
+  border-style: dashed;
+  border-color: transparent;
+}
+body.desktop-icons-page .desktop-icon.desktop-edit-mode .hide-button {
+  display: flex;
+}
+body.desktop-icons-page .icon-container:has(.app-logo) {
+  padding: 0;
+  background-color: unset;
+}
+body.desktop-icons-page .icon-container img {
+  width: var(--desktop-icon-dimension);
+  height: var(--desktop-icon-dimension);
+  -webkit-user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+body.desktop-icons-page .icon-container {
+  padding: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--desktop-icon-dimension);
+  height: var(--desktop-icon-dimension);
+}
+body.desktop-icons-page .icon-container:has(.icon) {
+  background-color: var(--surface-gray-3);
+}
+body.desktop-icons-page .icon-container:hover {
+  transform: scale(1.05);
+  transition: transform 0.1s;
+}
+body.desktop-icons-page .icon-caption {
+  text-align: center;
+  text-wrap: nowrap;
+  display: flex;
+  justify-content: space-between;
+  height: 35px;
+  flex-direction: column;
+}
+body.desktop-icons-page .icon-title {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: var(--desktop-icon-line-height);
+}
+body.desktop-icons-page .icon-subtitle {
+  font-weight: var(--weight-regular);
+  font-size: var(--text-xs);
+  color: var(--ink-gray-5);
+  line-height: var(--desktop-icon-line-height);
+}
+body.desktop-icons-page .timeless-style {
+  width: 100vw;
+  max-width: 600px;
+}
+body.desktop-icons-page .timeless-style input::placeholder {
+  text-align: center;
+}
+body.desktop-icons-page .apps-search {
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 20px;
+}
+body.desktop-icons-page .small-margin {
+  margin-top: 30px;
+}
+body.desktop-icons-page .desktop-modal {
+  backdrop-filter: var(--desktop-blur);
+  display: flex !important;
+  justify-content: center;
+}
+body.desktop-icons-page .desktop-modal .modal-dialog .modal-content {
+  top: 120px;
+  border-radius: var(--desktop-modal-radius);
+}
+body.desktop-icons-page #desktop-modal {
+  transform: none;
+  transition: none;
+}
+body.desktop-icons-page .desktop-modal-body {
+  width: var(--desktop-modal-width);
+  height: var(--desktop-modal-height);
+  padding: 24px 23px !important;
+  width: fit-content;
+}
+body.desktop-icons-page .desktop-modal-body .icons {
+  gap: 0px 0px;
+}
+body.desktop-icons-page .desktop-modal-body .icon-container {
+  min-height: var(--desktop-icon-dimension);
+}
+body.desktop-icons-page .modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-white);
+}
+body.desktop-icons-page .desktop-modal-heading {
+  all: unset !important;
+  position: absolute !important;
+  top: -75px !important;
+  width: 100% !important;
+}
+body.desktop-icons-page .desktop-modal-heading .title-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.desktop-icons-page .desktop-modal-heading .title-section .modal-title {
+  color: var(--neutral-white);
+  font-size: var(--text-2xl);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+body.desktop-icons-page .desktop-modal-heading .modal-actions {
+  display: none !important;
+}
+body.desktop-icons-page .modal-body .icons {
+  margin-top: 0px;
+  place-self: anchor-center;
+}
+body.desktop-icons-page .modal-body .icons .desktop-icon {
+  height: 126px;
+  width: 127px;
+  padding: 13px 16px 13px 16px;
+}
+body.desktop-icons-page .modal-body .icons .desktop-icon .icon-caption {
+  text-overflow: ellipsis;
+  text-wrap: wrap;
+}
+body.desktop-icons-page .desktop-context-menu {
+  position: absolute;
+}
+body.desktop-icons-page .folder-icon {
+  border-radius: 16px;
+  background-color: var(--folder-icon-background-color) !important;
+  box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.14);
+  padding: 7px;
+  align-items: normal;
+  /* box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14); */
+}
+body.desktop-icons-page .folder-icon .icons {
+  gap: 2.1px;
+  margin-top: 0px;
+}
+body.desktop-icons-page .folder-icon .icons .desktop-icon {
+  width: fit-content;
+  height: fit-content;
+  pointer-events: none;
+  padding: 0px;
+}
+body.desktop-icons-page .folder-icon .icons .desktop-icon .icon-container {
+  height: var(--folder-thumbnail-icon-height);
+  width: var(--folder-thumbnail-icon-height);
+  padding: 0px;
+  border-radius: 4px;
+}
+body.desktop-icons-page .folder-icon .icons .desktop-icon .icon-container .icon {
+  width: 5px;
+  height: 5px;
+}
+body.desktop-icons-page .folder-icon .icons .desktop-icon .icon-container img {
+  width: 9px;
+  height: 9px;
+}
+body.desktop-icons-page .page-indicator-container {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+body.desktop-icons-page .active-page {
+  background: black !important;
+}
+body.desktop-icons-page .page-indicator {
+  background: var(--gray-300);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+body.desktop-icons-page .no-apps-message {
+  grid-column: 1/-1;
+  grid-row: 1/-1;
+}
+body.desktop-icons-page .right-page-arrow, body.desktop-icons-page .left-page-arrow {
+  margin: 0px;
+}
+body.desktop-icons-page .bounce {
+  animation: bounceIn 2s infinite 2s;
+}
+@keyframes bounceIn {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
     opacity: 1;
-    transition: opacity 0.3s;
+  }
+  20% {
+    transform: translateY(-30px);
+  }
+  60% {
+    transform: translateY(-15px);
+  }
 }
-
-[data-theme="dark"] .desktop-edit{
-	background-color: var(--surface-gray-3);
-	opacity: 1;
+body.desktop-icons-page .hide-button {
+  display: none;
+  background-color: var(--surface-gray-2);
+  position: absolute;
+  border-radius: 67px;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  text-align: center;
+  vertical-align: center;
+  align-items: center;
+  top: -5px;
+  left: 108px;
 }
-
-[data-theme="dark"] .desktop-edit:hover{
-	opacity: 0.8;
-	transition: opacity 0.3s;
+body.desktop-icons-page .desktop-edit-mode {
+  border-color: var(--outline-gray-2);
 }
-.desktop-pane{
-    position: absolute;
-    top: var(--desktop-navbar-height);
-    right: 0px;
-    width: 300px;
-    border-left: 1px solid var(--border-color);
-    background-color: rgba(255,255,255, 1);
-    height: 100vh;
+body.desktop-icons-page .edit-mode-buttons {
+  display: none;
+  gap: 4px;
 }
-.pane-header{
-    display: flex;
-    font-size: var(--text-lg);
-    padding: var(--padding-md);
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border-color);
+body.desktop-icons-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  bottom: 5%;
+  right: 5%;
 }
-.pane-icons-area{
-    .icons-container {
-        height: 100%;
-        margin-top: 0px;
-    }
-    .icons{
-        height: 100%;
-        overflow: scroll;
-    }
+@media screen and (max-width: 570px) {
+  :root {
+    --desktop-icon-dimension: 50px;
+    --desktop-icon-container: 117px;
+    --folder-thumbnail-icon-height:15px;
+  }
+  body.desktop-icons-page .desktop-container {
+    padding: 20px 13px;
+  }
+  body.desktop-icons-page .desktop-container > .icons-container {
+    width: 100%;
+    margin-top: 0;
+    padding: 0;
+  }
+  body.desktop-icons-page .desktop-container > .icons-container > .icons {
+    gap: 8px;
+    row-gap: 12px;
+  }
 }
-
-.add-new-icon{
-    cursor: pointer;
-    gap: 0px;
-    justify-content: center;
+@media screen and (max-width: 570px) and (max-width: 380px) {
+  body.desktop-icons-page .desktop-container > .icons-container > .icons {
+    --desktop-icon-container: 100px;
+  }
+  body.desktop-icons-page .desktop-container > .icons-container > .icons .folder-icon > .icons {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
-
-.title-widget {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 1.5rem;
-    cursor: text;
-    position: relative;
+@media screen and (max-width: 570px) {
+  body.desktop-icons-page .desktop-container > .icons-container > .icons > .desktop-icon {
+    width: var(--desktop-icon-container);
+    height: var(--desktop-icon-container);
+  }
+  body.desktop-icons-page .desktop-container > .icons-container > .icons > .desktop-icon .icon-container {
+    min-width: var(--desktop-icon-dimension);
+    min-height: var(--desktop-icon-dimension);
+  }
+  body.desktop-icons-page .desktop-modal-body {
+    width: calc(100vw - 20px);
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+  }
+  body.desktop-icons-page .desktop-modal-body > .icons-container {
+    width: 100%;
+    overflow: hidden !important;
+    margin: 0px;
+    margin-top: 0;
+    padding: 0;
+  }
+  body.desktop-icons-page .desktop-modal-body > .icons-container > .icons {
+    column-gap: 6px;
+    row-gap: 6px;
+  }
 }
-
-.title-widget--read-only {
-    cursor: default;
+@media screen and (max-width: 570px) and (max-width: 380px) {
+  body.desktop-icons-page .desktop-modal-body > .icons-container > .icons {
+    --desktop-icon-container: 100px;
+  }
+  body.desktop-icons-page .desktop-modal-body > .icons-container > .icons .folder-icon > .icons {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
-
-.title-widget--editable:hover .title-input-label {
-    opacity: 0.9;
+@media screen and (max-width: 570px) {
+  body.desktop-icons-page .desktop-modal-body > .icons-container > .icons > .desktop-icon {
+    width: var(--desktop-icon-container);
+    height: var(--desktop-icon-container);
+  }
+  body.desktop-icons-page .folder-icon > .icons-container {
+    overflow: hidden;
+  }
+  body.desktop-icons-page .folder-icon > .icons-container > .icons {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+  }
+  body.desktop-icons-page .folder-icon > .icons-container > .icons > .desktop-icon .icon-container {
+    min-width: unset;
+    min-height: unset;
+  }
 }
-
-.desktop-modal-heading .title-widget--read-only .title-input-label:hover {
-    background-color: transparent;
+body.desktop-icons-page .icons-container > .icons-container {
+  padding: 0px;
 }
-
-.desktop-modal-heading .title-widget .title-input-label {
-    color: var(--ink-base);
-    font-size: var(--text-2xl);
-    line-height: 1.3;
-    padding: 2px 4px;
-    border-radius: 4px;
-    transition: background-color 0.15s ease;
+body.desktop-icons-page .desktop-edit {
+  width: 36px;
+  height: 36px;
+  background-color: var(--surface-gray-7);
+  position: absolute;
+  bottom: 4%;
+  right: 4%;
+  z-index: 100;
+  opacity: 6%;
+  border-radius: 10px;
 }
-
-.desktop-modal-heading .title-widget--editable:hover .title-input-label {
-    background-color: rgba(255, 255, 255, 0.08);
+body.desktop-icons-page .desktop-edit:hover {
+  opacity: 1;
+  transition: opacity 0.3s;
 }
-
-.title-input-wrapper {
-    display: inline-block;
-    min-width: 80px;
+body.desktop-icons-page .desktop-navbar-modal-search:hover {
+  outline: 1px solid var(--surface-gray-3);
 }
-
-.desktop-modal-heading .title-input-wrapper .title-input {
-    color: var(--ink-base);
-    font-size: var(--text-2xl);
-    line-height: 1.3;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 4px;
-    padding: 2px 8px;
-    outline: none;
-    min-width: 80px;
-    box-sizing: border-box;
+body.desktop-icons-page .desktop-pane {
+  position: absolute;
+  top: var(--desktop-navbar-height);
+  right: 0px;
+  width: 300px;
+  border-left: 1px solid var(--border-color);
+  background-color: rgb(255, 255, 255);
+  height: 100vh;
 }
-
-.desktop-modal-heading .title-input-wrapper .title-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+body.desktop-icons-page .pane-header {
+  display: flex;
+  font-size: var(--text-lg);
+  padding: var(--padding-md);
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
 }
-
-.desktop-modal-heading .title-input-wrapper .title-input:focus {
-    border-color: rgba(255, 255, 255, 0.5);
-    background-color: rgba(255, 255, 255, 0.12);
+body.desktop-icons-page .pane-icons-area .icons-container {
+  height: 100%;
+  margin-top: 0px;
 }
-
-.title-input-mirror {
-    position: absolute;
-    visibility: hidden;
-    white-space: pre;
-    font-size: var(--text-2xl);
-    font-family: inherit;
-    padding: 0 4px;
+body.desktop-icons-page .pane-icons-area .icons {
+  height: 100%;
+  overflow: scroll;
+}
+body.desktop-icons-page .add-new-icon {
+  cursor: pointer;
+  gap: 0px;
+  justify-content: center;
+}
+body.desktop-icons-page .title-widget {
+  display: inline-block;
+  position: relative;
+}
+body.desktop-icons-page .title-input-label {
+  position: absolute;
+  top: 0px;
+  color: var(--neutral-white);
+  line-height: 22px;
+  z-index: 1;
+  pointer-events: none;
+  width: 100%;
+  text-align: center;
+}
+body.desktop-icons-page .title-input-wrapper {
+  position: relative;
+  display: inline-block;
+}
+body.desktop-icons-page .title-input-wrapper input {
+  border: 1px solid transparent;
+  width: 100%;
+  height: 100%;
+  background: none;
+  color: var(--neutral-white);
 }

@@ -68,10 +68,11 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			list_view: this,
 		};
 		const calendar_name = this.calendar_name;
+		const calendar_settings = frappe.views.calendar[this.doctype];
 
 		return new Promise((resolve) => {
 			if (calendar_name === "default") {
-				Object.assign(options, frappe.views.calendar[this.doctype]);
+				Object.assign(options, calendar_settings);
 				resolve(options);
 			} else {
 				frappe.model.with_doc("Calendar View", calendar_name, () => {
@@ -84,6 +85,10 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 						);
 						frappe.set_route("List", this.doctype, "Calendar", "default");
 						return;
+					}
+					if (calendar_settings?.apply_to_custom_calendar_views) {
+						options.fields = calendar_settings.fields;
+						options.get_css_class = calendar_settings.get_css_class;
 					}
 					Object.assign(options, {
 						field_map: {
@@ -154,32 +159,142 @@ frappe.views.Calendar = class Calendar {
 		});
 
 		$(this.parent).on("show", function () {
-			me.$cal.fullCalendar.refetchEvents();
+			// (this used the FullCalendar v3 jQuery API — me.$cal.fullCalendar
+			// is undefined on v6, so it threw on every page revisit)
+			me.fullCalendar.refetchEvents();
+			me.set_calendar_height();
 		});
 	}
 
 	make() {
 		this.$wrapper = this.parent;
-		this.$cal = $("<div id='fc-calendar-wrapper'>").appendTo(this.$wrapper);
+		this.make_toolbar();
+		// no horizontal padding of its own — the view container's rail is the
+		// alignment edge for the toolbar, the grid and the footnote alike
+		this.$cal = $("<div id='fc-calendar-wrapper' class='pt-3'>").appendTo(this.$wrapper);
 		this.footnote_area = frappe.utils.set_footnote(
 			this.footnote_area,
 			this.$wrapper,
 			__("Select or drag across time slots to create a new event.")
 		);
-		this.footnote_area.addClass("px-4 pb-4").css({
+		this.footnote_area.addClass("pb-4").css({
 			"border-top": "0px",
 		});
 		this.fullCalendar = new frappe.FullCalendar(this.$cal[0], this.cal_options);
 		this.fullCalendar.render();
 
-		this.set_css();
+		this.set_calendar_height();
+		$(window).on(
+			"resize.fc-calendar",
+			frappe.utils.debounce(() => this.set_calendar_height(), 300)
+		);
+	}
+
+	// size the calendar to the space left in the scroll column, so the view
+	// fits the viewport instead of growing past it (FullCalendar's default
+	// aspect-ratio sizing overflows on tall months)
+	set_calendar_height() {
+		if (!this.$cal.is(":visible")) return;
+		const main = document.querySelector(".main-section");
+		if (!main) return;
+		const top = this.$cal[0].getBoundingClientRect().top - main.getBoundingClientRect().top;
+		const footnote_height = this.footnote_area ? this.footnote_area.outerHeight(true) : 0;
+		const available = main.clientHeight - top - footnote_height;
+		this.fullCalendar.setOption("height", Math.max(available, 400));
+	}
+
+	// [prev] [title ⌄ → jump-to-date picker] [next] ..... [Today] [Month|Week|Day]
+	// Month/Week/Day is a radio group (you are always in exactly one);
+	// Today is an action, so it's a plain button
+	make_toolbar() {
+		// the label is filled by the datesSet callback on first render
+		this.$toolbar_title = frappe.ui.button({
+			label: __("Calendar"),
+			variant: "ghost",
+			css_class: "text-lg-medium text-ink-gray-7",
+		});
+		this.date_popover = new frappe.ui.Popover({
+			trigger: this.$toolbar_title,
+			content: () => this.make_date_jumper(),
+			css_class: "calendar-date-jumper",
+		});
+
+		this.view_button_group = new frappe.ui.TabButtons({
+			label: __("Calendar View"),
+			options: [
+				{ label: __("Month"), value: "dayGridMonth" },
+				{ label: __("Week"), value: "timeGridWeek" },
+				{ label: __("Day"), value: "timeGridDay" },
+			],
+			value: this.cal_options.initialView,
+			on_change: (value) => {
+				this.fullCalendar.changeView(value);
+				this.set_localStorage_option("cal_initialView", value);
+			},
+		});
+
+		this.$toolbar = $('<div class="flex items-center gap-2 pt-4"></div>').append(
+			frappe.ui.button({
+				icon: "chevron-left",
+				variant: "ghost",
+				title: __("Previous"),
+				onclick: () => this.fullCalendar.prev(),
+			}),
+			this.$toolbar_title,
+			frappe.ui.button({
+				icon: "chevron-right",
+				variant: "ghost",
+				title: __("Next"),
+				onclick: () => this.fullCalendar.next(),
+			}),
+			$('<div class="grow"></div>'),
+			(this.today_button = frappe.ui.button({
+				label: __("Today"),
+				onclick: () => this.fullCalendar.today(),
+			})),
+			this.view_button_group.$el
+		);
+		this.$wrapper.append(this.$toolbar);
+	}
+
+	// inline air-datepicker (the desk-standard picker) inside the title
+	// popover — picking any date jumps the calendar there in the current view
+	make_date_jumper() {
+		const wrapper = document.createElement("div");
+		let lang = (frappe.boot.user && frappe.boot.user.language) || "en";
+		if (!$.fn.datepicker.language[lang]) lang = "en";
+
+		// match the picker to the view: month view jumps by month,
+		// week/day views by day
+		const month_only = this.fullCalendar.view.type === "dayGridMonth";
+
+		let ready = false;
+		$(wrapper).datepicker({
+			language: lang,
+			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
+			...(month_only ? { view: "months", minView: "months" } : {}),
+			onSelect: (fd, date) => {
+				if (!ready || !date) return;
+				this.fullCalendar.gotoDate(date);
+				this.date_popover.close();
+			},
+		});
+		// preselect where the calendar currently is; selectDate fires
+		// onSelect synchronously, so the flag keeps it from immediately
+		// re-navigating and closing the popover
+		$(wrapper).data("datepicker").selectDate(this.fullCalendar.getDate());
+		ready = true;
+		return wrapper;
 	}
 	setup_view_mode_button(defaults) {
-		var me = this;
-		$(me.footnote_area).find(".btn-weekend").detach();
-		let btnTitle = defaults.weekends ? __("Hide Weekends") : __("Show Weekends");
-		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`;
-		me.footnote_area.append(btn);
+		$(this.footnote_area).find(".btn-weekend").detach();
+		this.footnote_area.append(
+			frappe.ui.button({
+				label: defaults.weekends ? __("Hide Weekends") : __("Show Weekends"),
+				size: "xs",
+				css_class: "btn-weekend",
+			})
+		);
 	}
 	set_localStorage_option(option, value) {
 		localStorage.removeItem(option);
@@ -187,62 +302,11 @@ frappe.views.Calendar = class Calendar {
 	}
 	bind() {
 		const me = this;
-		let btn_group = me.$wrapper.find(".fc-button-group");
-		btn_group.on("click", ".btn", function () {
-			let value = $(this).hasClass("fc-timeGridWeek-button")
-				? "timeGridWeek"
-				: $(this).hasClass("fc-timeGridDay-button")
-				? "timeGridDay"
-				: "dayGridMonth";
-			me.set_localStorage_option("cal_initialView", value);
-		});
-
 		me.$wrapper.on("click", ".btn-weekend", function () {
 			me.cal_options.weekends = !me.cal_options.weekends;
 			me.fullCalendar.setOption("weekends", me.cal_options.weekends);
 			me.set_localStorage_option("cal_weekends", me.cal_options.weekends);
-			me.set_css();
 			me.setup_view_mode_button(me.cal_options);
-		});
-	}
-	set_css() {
-		const viewButtons =
-			".fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button, .fc-today-button";
-		const fcViewButtonClasses = "fc-button fc-button-primary fc-button-active";
-
-		// remove fc-button styles
-		this.$wrapper
-			.find("button.fc-button")
-			.removeClass(fcViewButtonClasses)
-			.addClass("btn btn-default");
-
-		// group all view buttons
-		this.$wrapper.find(viewButtons).wrapAll('<div class="btn-group" />');
-
-		// add icons
-		this.$wrapper
-			.find(`.fc-prev-button span`)
-			.attr("class", "")
-			.html(frappe.utils.icon("left"));
-		this.$wrapper
-			.find(`.fc-next-button span`)
-			.attr("class", "")
-			.html(frappe.utils.icon("right"));
-		if (this.$wrapper.find(".fc-today-button svg").length == 0)
-			this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("today"));
-
-		// v6.x of fc has weird behaviour which removes all the custom classes
-		// on header buttons on click, event below re-adds all the classes
-		var btn_group = this.$wrapper.find(".fc-button-group");
-		btn_group.find(".fc-button-active").addClass("active");
-
-		btn_group.find(".btn").on("click", function () {
-			btn_group
-				.find(viewButtons)
-				.removeClass(`active ${fcViewButtonClasses}`)
-				.addClass("btn btn-default");
-
-			$(this).addClass("active");
 		});
 	}
 
@@ -263,10 +327,35 @@ frappe.views.Calendar = class Calendar {
 			},
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			eventDisplay: "block",
-			headerToolbar: {
-				left: "prev,title,next",
-				center: "",
-				right: "today,dayGridMonth,timeGridWeek,timeGridDay",
+			eventOrder: "_calendar_order",
+			eventOrderStrict: true,
+			eventDidMount: (info) => {
+				const missing_time = info.event.extendedProps._calendar_missing_time;
+				if (missing_time) {
+					const time = info.view.calendar.formatDate(
+						info.event.start,
+						this.cal_options.eventTimeFormat
+					);
+					$(info.el).find(".fc-event-time").text(`${time} · ${missing_time}`);
+				}
+			},
+			// the toolbar is ours (make_toolbar), not FullCalendar's — no
+			// more stripping fc-button classes and re-adding them after every
+			// re-render
+			headerToolbar: false,
+			datesSet: (info) => {
+				// the title is an es-button now — swap only its label text
+				this.$toolbar_title &&
+					this.$toolbar_title.find(".es-button__label").text(info.view.title);
+				if (this.today_button) {
+					// no-op when the visible range already contains today
+					// (activeEnd is exclusive)
+					const now = new Date();
+					this.today_button.prop(
+						"disabled",
+						info.view.activeStart <= now && now < info.view.activeEnd
+					);
+				}
 			},
 			editable: true,
 			droppable: true,
@@ -343,20 +432,14 @@ frappe.views.Calendar = class Calendar {
 						me.fullCalendar.changeView("timeGridDay", info.date);
 						me.$wrapper.find(".date-clicked").removeClass("date-clicked");
 
-						// update "active view" btn
-						me.$wrapper.find(".fc-month-button").removeClass("active");
-						me.$wrapper.find(".fc-agendaDay-button").addClass("active");
+						// keep the view pill in sync with the programmatic view
+						// change. Silent: double-click navigation is a jump, not a
+						// choice of default view, so it isn't persisted.
+						me.view_button_group.set_value("timeGridDay", { silent: true });
 					}
 
 					me.$wrapper.find(".date-clicked").removeClass("date-clicked");
 					$date_cell.addClass("date-clicked");
-
-					// explicitly remove the fc primary button styling that is append on view change
-					// from month -> day
-					$("#fc-calendar-wrapper")
-						.find("button.fc-button")
-						.removeClass("fc-button fc-button-primary fc-button-active")
-						.addClass("btn btn-default");
 				}
 				return false;
 			},
@@ -367,13 +450,24 @@ frappe.views.Calendar = class Calendar {
 		}
 	}
 	get_args(start, end) {
+		const fields = this.fields && [
+			...new Set(
+				this.fields.concat(
+					this.field_map.start,
+					this.field_map.end,
+					this.field_map.title,
+					"name"
+				)
+			),
+		];
 		var args = {
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			fields: this.fields,
+			fields,
 			filters: this.list_view.filter_area.get(),
 			field_map: this.field_map,
+			order_by: this.list_view.sort_selector?.get_sql_string(),
 		};
 		return args;
 	}
@@ -383,8 +477,9 @@ frappe.views.Calendar = class Calendar {
 	prepare_events(events) {
 		var me = this;
 
-		return (events || []).map((d) => {
+		return (events || []).map((d, index) => {
 			d.id = d.name;
+			d._calendar_order = index;
 			d.editable = frappe.model.can_write(d.doctype || me.doctype);
 
 			// do not allow submitted/cancelled events to be moved / extended
@@ -400,6 +495,15 @@ frappe.views.Calendar = class Calendar {
 				d.allDay = me.field_map.allDay;
 			}
 
+			// date-only events (Date fields, no time part) are all-day by
+			// nature even when the config doesn't say so; without this the
+			// exclusive-end rule below never runs and multi-day events
+			// draw one day short (#25193)
+			const date_only = (v) => v && !String(v).includes(" ");
+			if (!d.allDay && date_only(d.start) && (!d.end || date_only(d.end))) {
+				d.allDay = 1;
+			}
+
 			if (!me.field_map.convertToUserTz) d.convertToUserTz = 1;
 
 			// convert to user tz
@@ -408,17 +512,36 @@ frappe.views.Calendar = class Calendar {
 				d.end = frappe.datetime.convert_to_user_tz(d.end);
 			}
 
-			// show event on single day if start or end date is invalid
-			if (!frappe.datetime.validate(d.start) && d.end) {
-				d.start = frappe.datetime.add_days(d.end, -1);
-			}
+			const missing_start = !frappe.datetime.validate(d.start) && d.end;
+			const missing_end = d.start && !frappe.datetime.validate(d.end);
+			const uses_datetime_fields =
+				(missing_start || missing_end) &&
+				[me.field_map.start, me.field_map.end].some(
+					(fieldname) =>
+						frappe.meta.get_docfield(me.doctype, fieldname)?.fieldtype === "Datetime"
+				);
 
-			if (d.start && !frappe.datetime.validate(d.end)) {
+			// Timed events with one missing boundary are shown at the known time.
+			if (uses_datetime_fields) {
+				const missing_field = missing_start ? me.field_map.start : me.field_map.end;
+				if (missing_start) d.start = d.end;
+				d.end = null;
+				d._calendar_missing_time = __("{0} missing", [
+					frappe.meta.get_label(me.doctype, missing_field),
+				]);
+			} else if (missing_start) {
+				d.start = frappe.datetime.add_days(d.end, -1);
+			} else if (missing_end) {
 				d.end = frappe.datetime.add_days(d.start, 1);
 			}
 
 			if (d.allDay && d.end) {
 				d.end = frappe.datetime.add_days(d.end, 1);
+			}
+
+			// timed events get the accent bar (see calendar.scss)
+			if (!d.allDay) {
+				d.classNames = (d.classNames || []).concat("timed-event");
 			}
 
 			me.prepare_colors(d);
@@ -429,24 +552,79 @@ frappe.views.Calendar = class Calendar {
 		});
 	}
 	prepare_colors(d) {
-		let color, color_name;
+		// espresso color families that have a surface-X-1 / ink-X-7 pair
+		const families = [
+			"red",
+			"green",
+			"blue",
+			"orange",
+			"amber",
+			"yellow",
+			"gray",
+			"purple",
+			"pink",
+			"cyan",
+			"teal",
+			"violet",
+		];
+		// the color picker's swatches — saturated hexes stored on existing
+		// documents; render them as their espresso family so old colored
+		// events pick up the soft look instead of a solid block
+		const swatch_families = {
+			"#449cf0": "blue",
+			"#ecad4b": "amber",
+			"#29cd42": "green",
+			"#761acb": "purple",
+			"#cb2929": "red",
+			"#ed6396": "pink",
+			"#4463f0": "violet",
+			"#ec864b": "orange",
+			"#4f9dd9": "cyan",
+			"#39e4a5": "teal",
+			"#b4cd29": "yellow",
+		};
+
+		const apply_family = (name) => {
+			// "dark-green" was a color in the old palette
+			if (name === "dark-green") name = "green";
+			if (!families.includes(name)) name = "blue";
+			// tokens instead of resolved hexes, so events flip in dark mode
+			d.backgroundColor = `var(--surface-${name}-1)`;
+			d.textColor = `var(--ink-${name}-7)`;
+		};
+
+		// known hexes (picker swatches, old standard palette) map to a
+		// family; for hand-picked hexes, synthesize a family-style pair
+		// from the hex itself — a barely-tinted surface and a text color
+		// pulled toward ink. Mixing with tokens keeps them dark-mode aware.
+		const apply_hex = (hex) => {
+			hex = hex.toLowerCase();
+			const family = swatch_families[hex] || frappe.ui.color.get_color_name(hex);
+			if (family) {
+				apply_family(family);
+			} else {
+				d.backgroundColor = `color-mix(in oklab, ${hex} 14%, var(--surface-base))`;
+				d.textColor = `color-mix(in oklab, ${hex} 55%, var(--ink-gray-9))`;
+			}
+		};
+
 		if (this.get_css_class) {
-			color_name = this.get_css_class(d);
+			let color_name = this.get_css_class(d);
+			// color_map keeps the old semantic names (danger, success, ...) working
 			color_name = this.color_map[color_name] || color_name || "blue";
 
 			if (color_name.startsWith("#")) {
-				color_name = frappe.ui.color.validate_hex(color_name) ? color_name : "blue";
+				if (frappe.ui.color.validate_hex(color_name)) {
+					apply_hex(color_name);
+					return d;
+				}
+				color_name = "blue";
 			}
-
-			d.backgroundColor = frappe.ui.color.get(color_name, "extra-light");
-			d.textColor = frappe.ui.color.get(color_name, "dark");
+			apply_family(color_name);
+		} else if (d.color && frappe.ui.color.validate_hex(d.color)) {
+			apply_hex(d.color);
 		} else {
-			color = d.color;
-			if (!frappe.ui.color.validate_hex(color) || !color) {
-				color = frappe.ui.color.get("blue", "extra-light");
-			}
-			d.backgroundColor = color;
-			d.textColor = frappe.ui.color.get_contrast_color(color);
+			apply_family("blue");
 		}
 		return d;
 	}

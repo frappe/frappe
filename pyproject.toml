@@ -15,12 +15,14 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
-    "Pillow~=12.2.0",
+    "Pillow~=12.3.0",
     "PyJWT~=2.13.0",
+    "duckdb~=1.4.3",
+    "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.13.2",
+    "pypdf==6.15.0",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.8",
     "PyQRCode~=1.2.1",
@@ -32,8 +34,9 @@ dependencies = [
     "bleach-allowlist~=1.0.3",
     "chardet~=7.4.3",
     "croniter~=6.2.2",
-    "cryptography~=48.0.1",
+    "cryptography~=50.0.0",
     "cssutils~=2.15.0",
+    "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
     "Faker~=40.23.0",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
@@ -50,11 +53,11 @@ dependencies = [
     "orjson~=3.11.5",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
-    "phonenumbers~=9.0.21",
+    "phonenumbers~=9.0.23",
     "premailer~=3.10.0",
     "psutil~=7.2.2",
     "psycopg2-binary~=2.9.11",
-    "pyOpenSSL~=26.2.0",
+    "pyOpenSSL~=26.4.0",
     "pydantic~=2.13.4",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
@@ -71,11 +74,12 @@ dependencies = [
     "rsa~=4.9.1",
     "semantic-version~=2.10.0",
     "sentry-sdk~=2.60.0",
-    "sqlparse~=0.5.5",
-    "sql_metadata~=2.20.0",
+    "sqlparse~=0.6.0",
+    "sql_metadata~=3.0.1",
     "tenacity~=9.1.2",
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.2.1",
+    "typst~=0.15.0",
     "typing_extensions>=4.15.0,<5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
@@ -92,10 +96,11 @@ dependencies = [
     # Pin exact versions after a manual handshake check (polling + websocket upgrade).
     "python-socketio~=5.16.2",
     "python-engineio~=4.13.2",
-    "gevent~=25.9.1",
-    # gevent-websocket is effectively unmaintained but is the documented websocket
-    # path for python-socketio's gevent WSGIServer. Pinned deliberately.
-    "gevent-websocket~=0.10.1",
+    # ASGI server for the realtime process.
+    "uvicorn~=0.52.1",
+    "a2wsgi~=1.10.10",
+    # async HTTP client for the realtime connect/auth path.
+    "httpx~=0.28.0",
 ]
 
 [project.urls]
@@ -106,6 +111,7 @@ Documentation = "https://docs.frappe.io/framework"
 
 [project.optional-dependencies]
 dev = [
+    "pyperf==2.8.1",
     "pyngrok~=8.1.2",
     "watchdog~=6.0.0",
     "responses==0.23.1",
@@ -153,6 +159,7 @@ skip_namespaces = [
 
 [tool.bench.dev-dependencies]
 coverage = "~=7.14.1"
+pyperf = "==2.8.1"
 pyngrok = "~=8.1.2"
 unittest-xml-reporting = "~=4.0.0"
 watchdog = "~=6.0.0"
@@ -162,7 +169,7 @@ freezegun = "~=1.5.5"
 
 [tool.ruff]
 line-length = 110
-target-version = "py314"
+target-version = "py313"
 exclude = [
     "**/doctype/*/boilerplate/*.py" # boilerplate are template strings, not valid python
 ]
@@ -220,6 +227,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
+exclude-newer-package = { sqlparse = false } # drop sqlparse after 2026-08-20
 
 [tool.mypy]
 strict = false

@@ -4,10 +4,14 @@
   Props:
     options     Array<{ label, value, badge? }>   List of options to search through
     placeholder string                            Input placeholder (default: "Search...")
+    modelValue  string (optional)                 Single-select mode: the current value is
+                                                  shown as the input text when idle, and as
+                                                  the placeholder while searching.
 
   Events:
     @select(opt)   Fired when user picks an option. `opt` is the full option object.
-                   Input clears automatically; dropdown stays open for the next pick.
+                   Input clears automatically; dropdown stays open for the next pick
+                   in add-more mode, and closes in single-select mode.
 
   Exposes:
     focus()   Programmatically focus the input
@@ -33,8 +37,9 @@
 				ref="input_el"
 				class="frappe-autocomplete-input"
 				type="text"
-				:placeholder="placeholder || __('Search...')"
-				v-model="query"
+				:placeholder="(focused && display_value) || placeholder || __('Search...')"
+				:value="focused ? query : display_value || query"
+				@input="query = $event.target.value"
 				@focus="focused = true"
 				@blur="on_blur"
 				@keydown.escape="on_escape"
@@ -69,6 +74,7 @@ import { ref, computed, watch } from "vue";
 const props = defineProps({
 	options: { type: Array, default: () => [] },
 	placeholder: { type: String, default: "" },
+	modelValue: { type: String, default: null },
 });
 
 const emit = defineEmits(["select"]);
@@ -77,6 +83,12 @@ const input_el = ref(null);
 const query = ref("");
 const focused = ref(false);
 const highlight = ref(0);
+
+const display_value = computed(() => {
+	if (props.modelValue == null) return "";
+	const opt = props.options.find((o) => o.value === props.modelValue);
+	return opt ? opt.label : props.modelValue;
+});
 
 const filtered = computed(() => {
 	const q = query.value.toLowerCase();
@@ -94,7 +106,10 @@ watch(filtered, () => {
 });
 
 function on_blur() {
-	setTimeout(() => (focused.value = false), 100);
+	setTimeout(() => {
+		focused.value = false;
+		if (props.modelValue != null) query.value = "";
+	}, 100);
 }
 
 function on_escape() {
@@ -105,6 +120,10 @@ function select(opt) {
 	emit("select", opt);
 	query.value = "";
 	highlight.value = 0;
+	if (props.modelValue != null) {
+		focused.value = false;
+		input_el.value?.blur();
+	}
 }
 
 function confirm_highlight() {

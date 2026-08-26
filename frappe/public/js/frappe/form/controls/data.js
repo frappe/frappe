@@ -82,7 +82,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$wrapper.find(".control-input").append(
 			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Open Link")}" target="_blank">
-					${frappe.utils.icon("link-url", "sm")}
+					${frappe.utils.icon("link", "sm")}
 				</a>
 			</span>`
 		);

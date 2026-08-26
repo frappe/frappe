@@ -6,6 +6,55 @@
 				width: auto;
 				display: table;
 
+				// Spacer rows reserve off-screen height in virtualized lists but should never intercept clicks.
+				.list-virtual-spacer {
+					width: 100%;
+					pointer-events: none;
+					position: relative;
+
+					// Fast flings outrun the rendered row window — paint the gap
+					// as breathing skeleton rows. The paint sits on a bounded
+					// pseudo-element because iOS won't rasterize an animated
+					// layer the size of the full spacer (~100k+px). The SVG is
+					// a mask so the color stays a theme token; surface-gray-3
+					// because the breathe animation would dim --skeleton-bg to
+					// invisibility in light mode. Cadence matches the row
+					// height estimates in list_view.js (44px rows, 72px cards).
+					&::before {
+						content: "";
+						position: absolute;
+						left: 0;
+						right: 0;
+						height: min(100%, 4096px);
+						background-color: var(--surface-gray-3);
+						-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='1%25' y='16' width='24%25' height='12' rx='6' fill='black'/%3E%3Crect x='46%25' y='16' width='12%25' height='12' rx='6' fill='black'/%3E%3Crect x='63%25' y='16' width='9%25' height='12' rx='6' fill='black'/%3E%3Crect x='79%25' y='16' width='7%25' height='12' rx='6' fill='black'/%3E%3Crect x='95%25' y='16' width='4%25' height='12' rx='6' fill='black'/%3E%3C/svg%3E");
+						mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='1%25' y='16' width='24%25' height='12' rx='6' fill='black'/%3E%3Crect x='46%25' y='16' width='12%25' height='12' rx='6' fill='black'/%3E%3Crect x='63%25' y='16' width='9%25' height='12' rx='6' fill='black'/%3E%3Crect x='79%25' y='16' width='7%25' height='12' rx='6' fill='black'/%3E%3Crect x='95%25' y='16' width='4%25' height='12' rx='6' fill='black'/%3E%3C/svg%3E");
+						-webkit-mask-size: 100% 44px;
+						mask-size: 100% 44px;
+						-webkit-mask-repeat: repeat-y;
+						mask-repeat: repeat-y;
+						animation: 2s breathe infinite;
+
+						// mobile cards: a title line over a shorter meta line
+						@media (max-width: 767.98px) {
+							-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3%25' y='16' width='58%25' height='13' rx='6' fill='black'/%3E%3Crect x='3%25' y='42' width='34%25' height='11' rx='5' fill='black'/%3E%3C/svg%3E");
+							mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3%25' y='16' width='58%25' height='13' rx='6' fill='black'/%3E%3Crect x='3%25' y='42' width='34%25' height='11' rx='5' fill='black'/%3E%3C/svg%3E");
+							-webkit-mask-size: 100% 72px;
+							mask-size: 100% 72px;
+						}
+					}
+
+					// the bottom spacer's gap appears at its top edge (just
+					// past the rendered rows); the top spacer's at its bottom
+					&:last-child::before {
+						top: 0;
+					}
+
+					&:not(:last-child)::before {
+						bottom: 0;
+					}
+				}
+
 				.list-row-container {
 					width: fit-content;
 					min-width: 100%;
@@ -227,7 +276,7 @@
 
 .list-col-resize-handle {
 	position: absolute;
-	right: -8px;
+	inset-inline-end: -8px;
 	top: 0;
 	bottom: 0;
 	width: 16px;
@@ -245,23 +294,7 @@
 		background-color: var(--gray-500);
 		// Always show a faint resting separator so users can discover resize
 		opacity: 0.25;
-		transition: opacity 0.15s, background-color 0.15s, width 0.15s, height 0.15s;
 	}
-
-	&:hover::before {
-		background-color: var(--primary);
-		width: 3px;
-		height: 20px;
-		opacity: 1 !important;
-	}
-}
-
-// Darken & grow all separators when cursor enters the header row
-.list-row-head:hover .list-col-resize-handle::before {
-	background-color: var(--gray-600);
-	width: 3px;
-	height: 18px;
-	opacity: 0.7;
 }
 
 body.list-col-resizing {
@@ -326,6 +359,15 @@ body.list-col-resizing {
 		cursor: pointer;
 		text-decoration: underline;
 	}
+
+	.selected-color {
+		display: inline-block;
+		width: 12px;
+		height: 12px;
+		border-radius: 4px;
+		margin-right: 6px;
+		vertical-align: middle;
+	}
 }
 
 $level-margin-right: 8px;
@@ -342,28 +384,21 @@ $level-margin-right: 8px;
 	}
 }
 
+// On mobile the rows flow in the page scroll (see set_result_height), so
+// pin the paging controls to the bottom edge; opaque background because
+// rows pass underneath
+@media (max-width: 767.98px) {
+	.frappe-list .list-paging-area {
+		position: sticky;
+		bottom: 0;
+		background-color: var(--fg-color);
+		z-index: 3;
+	}
+}
+
 .list-paging-area,
 .footnote-area {
 	border-top: 1px solid var(--border-color);
-
-	.btn-group {
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius);
-
-		.btn-paging.btn-info {
-			&:not(:first-child) {
-				border-left: 1px solid var(--border-color);
-			}
-
-			background-color: var(--bg-color);
-			color: var(--text-color);
-			font-weight: var(--weight-medium);
-		}
-	}
-
-	.btn-paging {
-		background-color: var(--control-bg);
-	}
 }
 
 .layout-main-list {
@@ -606,6 +641,31 @@ input.list-header-checkbox {
 			}
 		}
 	}
+
+	&.list-page-form {
+		@include media-breakpoint-between(xs, sm) {
+			flex-direction: column-reverse;
+			justify-content: flex-end;
+
+			.standard-filter-section {
+				display: none;
+			}
+
+			&.standard-filters-visible .standard-filter-section {
+				display: flex;
+			}
+		}
+	}
+}
+
+.filter-section {
+	@include media-breakpoint-between(xs, sm) {
+		justify-content: space-between;
+
+		.filter-selector {
+			margin: 0 0 0 auto;
+		}
+	}
 }
 
 .restricted-button {
@@ -712,6 +772,10 @@ input.list-header-checkbox {
 
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	.layout-main-section .frappe-list .result-container {
+		// rows are stacked cards at this width — nothing needs horizontal
+		// scroll, and iOS turns any transient overflow into a sideways wiggle
+		overflow-x: hidden;
+
 		.result {
 			overflow: hidden;
 			display: block;
@@ -721,6 +785,18 @@ input.list-header-checkbox {
 				width: 15px !important;
 				height: 15px;
 			}
+		}
+
+		// the desktop column split (level-left 80% + level-right 130px) sums
+		// past the card-width viewport and pushed the list count and the
+		// header's rounded corner over the clipped right edge
+		.list-row .level-right {
+			flex: 0 0 auto;
+			width: auto;
+		}
+
+		.list-row-head .level-left {
+			min-width: 0;
 		}
 
 		.list-row-container:not(:has(.list-row-head)) {

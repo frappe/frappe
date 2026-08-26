@@ -47,31 +47,22 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 		for icon in new_icons:
 			workspace = icon.get("workspace")
 			if workspace:
+				# A workspace icon creates the workspace and its desktop entry, then moves on --
+				# it isn't a plain Desktop Icon. Don't return here: earlier this exited the loop,
+				# dropping every later icon and handing the caller the wrong response (it reads
+				# `r.message.layout`).
 				new_workspace = frappe.new_doc("Workspace")
 				new_workspace.update(workspace)
 				new_workspace.title = new_workspace.label
-				if not new_workspace.public:
-					new_workspace.for_user = frappe.session.user
 				new_workspace.save()
-				return add_workspace_to_desktop(new_workspace.name)
+				add_workspace_to_desktop(new_workspace.name)
+				continue
 			desktop_icon = frappe.new_doc("Desktop Icon")
 			desktop_icon.update(icon)
 			desktop_icon.owner = frappe.session.user
 			desktop_icon.save()
 
 	return {"layout": layout}
-
-
-@frappe.whitelist()
-def get_layout():
-	"""Return the current user's saved desktop layout. Used on desk load to avoid stale cached HTML."""
-	try:
-		doc = frappe.get_doc("Desktop Layout", frappe.session.user)
-		if doc.layout:
-			return json.loads(doc.layout)
-	except frappe.DoesNotExistError:
-		frappe.clear_last_message()
-	return None
 
 
 @frappe.whitelist()

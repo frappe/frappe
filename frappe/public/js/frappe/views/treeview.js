@@ -27,15 +27,19 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 
 	on_show() {
 		/**
-		 * When the the treeview is visited using the previous button,
-		 * the framework just show the treeview element that is hidden.
-		 * Due to this, the data of the tree can be old.
-		 * To deal with this, the tree will be refreshed whenever the
-		 * treeview is visible.
+		 * On back-navigation the framework re-shows the existing treeview
+		 * element instead of rebuilding it, so the expanded nodes are kept
+		 * as the user left them. Point cur_tree back at this tree; use the
+		 * Refresh menu item to reload data when it may have changed.
 		 */
 		let route = frappe.get_route();
 		let treeview = frappe.views.trees[route[1]];
-		treeview && treeview.make_tree();
+		if (treeview && treeview.tree) {
+			cur_tree = treeview.tree;
+			if (treeview.scroll_position) {
+				frappe.utils.scroll_to(treeview.scroll_position, false, 0, $(".main-section"));
+			}
+		}
 	}
 
 	get view_name() {
@@ -86,6 +90,11 @@ frappe.views.TreeView = class TreeView {
 		if (!this.opts || !this.opts.do_not_make_page) {
 			this.parent = frappe.container.add_page(this.page_name);
 			$(this.parent).addClass("treeview");
+			$(".main-section").on("scroll.treeview_" + this.page_name, () => {
+				if (frappe.get_route_str() === me.page_name) {
+					me.scroll_position = $(".main-section").scrollTop();
+				}
+			});
 			frappe.ui.make_app_page({ parent: this.parent, single_column: true });
 			this.page = this.parent.page;
 			frappe.container.change_to(this.page_name);
@@ -120,25 +129,17 @@ frappe.views.TreeView = class TreeView {
 		}
 
 		if (this.opts.show_expand_all) {
-			this.page.add_inner_button(
-				__("Collapse All"),
-				function () {
+			this.$collapse_all_btn = this.page
+				.add_menu_item(__("Collapse All"), function () {
 					me.tree.load_children(me.tree.root_node, false);
-				},
-				__("Expand"),
-				"default",
-				true
-			);
+				})
+				.parent();
 
-			this.page.add_inner_button(
-				__("Expand All"),
-				function () {
+			this.$expand_all_btn = this.page
+				.add_menu_item(__("Expand All"), function () {
 					me.tree.load_children(me.tree.root_node, true);
-				},
-				__("Expand"),
-				"default",
-				true
-			);
+				})
+				.parent();
 		}
 
 		if (this.opts.view_template) {
@@ -245,9 +246,15 @@ frappe.views.TreeView = class TreeView {
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
 			on_get_node: this.opts.on_get_node,
-			on_node_render: this.opts.on_node_render,
+			on_node_render: (node, deep) => {
+				this.opts.on_node_render && this.opts.on_node_render(node, deep);
+				this.update_expand_collapse_buttons();
+			},
 			on_click: (node) => {
 				this.select_node(node);
+				// node.expanded is flipped synchronously right after this callback
+				// runs, so defer the state check to the next tick
+				setTimeout(() => this.update_expand_collapse_buttons(), 0);
 			},
 		});
 
@@ -255,13 +262,41 @@ frappe.views.TreeView = class TreeView {
 		cur_tree.view_name = "Tree";
 		this.post_render();
 	}
+	get_expandable_nodes() {
+		return Object.values(this.tree.nodes).filter(
+			(node) =>
+				node.expandable && !node.is_root && document.body.contains(node.$tree_link[0])
+		);
+	}
+	update_expand_collapse_buttons() {
+		if (!this.opts.show_expand_all || !this.tree) return;
+
+		if (!this.tree.root_node.expanded) {
+			// root collapsed hides every descendant, so their stale expanded
+			// flags (from before the root was closed) don't reflect what's
+			// actually visible; only offer to expand back out
+			this.$collapse_all_btn && this.$collapse_all_btn.hide();
+			this.$expand_all_btn && this.$expand_all_btn.show();
+			return;
+		}
+
+		let expandable_nodes = this.get_expandable_nodes();
+		let has_expandable_nodes = expandable_nodes.length > 0;
+		let all_expanded = has_expandable_nodes && expandable_nodes.every((node) => node.expanded);
+		let all_collapsed =
+			has_expandable_nodes && expandable_nodes.every((node) => !node.expanded);
+
+		this.$collapse_all_btn &&
+			this.$collapse_all_btn.toggle(has_expandable_nodes && !all_collapsed);
+		this.$expand_all_btn && this.$expand_all_btn.toggle(has_expandable_nodes && !all_expanded);
+	}
 	toggle_label() {
 		console.log("hello");
 	}
 	rebuild_tree() {
 		let me = this;
 		frappe.call({
-			method: "frappe.utils.nestedset.rebuild_tree",
+			method: "frappe.utils.nestedset.rebuild_tree_for_doctype",
 			args: {
 				doctype: me.doctype,
 			},
@@ -483,7 +518,7 @@ frappe.views.TreeView = class TreeView {
 				function () {
 					me.new_node();
 				},
-				"add"
+				"plus"
 			);
 		}
 	}

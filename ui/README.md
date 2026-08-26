@@ -47,12 +47,7 @@ The `paths` key must match the package name `@framework/ui` (also the key under
 The host app must already provide the peers (`vue`, `vue-router`, `frappe-ui`) — every
 Frappe frontend does.
 
-### 3. Dedupe shared singletons — `vite.config.js`
-
-`@framework/ui` ships raw source compiled in place by the host bundler, so its bare
-imports of shared singletons (`vue`, `vue-router`, `frappe-ui`, `reka-ui`, `dompurify`)
-resolve by realpath into a _second_ copy unless deduped — breaking provide/inject
-context (reka-ui especially) and doubling Vue. Add the bundled plugin:
+### 3. Add the bundled Vite plugin — `vite.config.js`
 
 ```js
 import frameworkUI from "@framework/ui/vite";
@@ -61,6 +56,18 @@ export default defineConfig({
   plugins: [frameworkUI()], // pass { dedupe: [...] } to add app-specific singletons
 });
 ```
+
+The plugin does two things, both consequences of raw source compiled in place by the
+host bundler:
+
+- **Dedupes shared singletons.** Bare imports of `vue`, `vue-router`, `frappe-ui`,
+  `reka-ui` and `dompurify` resolve by realpath into a _second_ copy unless deduped —
+  breaking provide/inject context (reka-ui especially) and doubling Vue.
+- **Resolves this package's own dependencies against the host app.** `leaflet`,
+  `cropperjs` and the rest are declared in this package's `package.json`, but a bench
+  installs `node_modules` beside the host frontend and never beside the frappe repo,
+  so walking up from this package's realpath finds nothing. The plugin re-runs the
+  host's resolver for bare specifiers Vite could not resolve itself.
 
 ## Usage
 
@@ -86,6 +93,11 @@ Subpaths work too (via the `./*` export), e.g. `import { FormLayout } from '@fra
 - **"Failed to resolve import '@framework/ui'"** after a rename or fresh link: re-run
   `yarn install` and restart the dev server so the new symlink enters Vite's module graph.
   Also confirm the import specifier matches the package name `@framework/ui`.
+- **A build that fails on an asset import** from one of this package's own dependencies
+  (e.g. leaflet's marker images) while the dev server passes: the host app is missing the
+  plugin from step 3, and only a stray `apps/frappe/ui/node_modules` was hiding it. Vite
+  keeps a project-root resolution fallback for JS but not for `css` and `?url` asset
+  imports, so those are the first to break on a fresh setup.
 - **`vue`/`vue-router`/`frappe-ui` imports inside this package** are resolved by the host
   app (peers + `resolve.dedupe`), so the package cannot be built or type-checked in
   isolation — work on it from within a consuming app.

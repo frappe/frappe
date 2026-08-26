@@ -1,4 +1,3 @@
-@import "frappe/public/css/fonts/fontawesome/font-awesome.min.css";
 @import "frappe/public/css/fonts/inter/inter.scss";
 @import "~frappe-charts/dist/frappe-charts.min";
 @import "~plyr/dist/plyr";
@@ -8,3 +7,6 @@
 @import "./espresso_components";
 
 @import "frappe/public/node_modules/highlight.js/styles/tomorrow.css";
+
+/* Utility classes — imported last so they win source-order ties (unlayered). */
+@import "./common/utilities";

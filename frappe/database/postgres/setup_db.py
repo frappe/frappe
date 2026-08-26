@@ -40,6 +40,22 @@ def setup_database():
 		db_conn.commit()
 		db_conn.sql("end")
 		db_conn.sql(f'GRANT ALL ON SCHEMA {db_conn.db_schema} TO "{frappe.conf.db_user}"')
+		db_conn.sql("end")  # persist the schema grant before the best-effort setup below
+		# Best-effort setup for the Postgres Query Stats dashboard: enable pg_stat_statements in
+		# this database and let the site role read cluster-wide stats. Both need the extension
+		# preloaded (shared_preload_libraries) and superuser; if either is unavailable, skip
+		# silently. Each runs in its own transaction so a failing GRANT (e.g. a managed-PG role
+		# that can install extensions but not grant system roles) doesn't undo the extension too.
+		try:
+			db_conn.sql("CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
+			db_conn.sql("end")
+		except Exception:
+			db_conn.rollback()
+		try:
+			db_conn.sql(f'GRANT pg_read_all_stats TO "{frappe.conf.db_user}"')
+			db_conn.sql("end")
+		except Exception:
+			db_conn.rollback()
 	finally:
 		db_conn.close()
 

@@ -1,10 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
 from typing import Literal
-
-from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
@@ -275,7 +272,7 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 			items.extend(group.get("items"))
 
 	if not isinstance(items, list):
-		items = json.loads(items)
+		items = frappe.parse_json(items)
 
 	out = {
 		"external_links_found": [],
@@ -290,12 +287,13 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 			internal_links_data_for_d = get_internal_links(doc, internal_link_for_doctype, d)
 			if internal_links_data_for_d["count"]:
 				out["internal_links_found"].append(internal_links_data_for_d)
+			elif has_external_link_field(d, links):
+				# pairs can be linked from either side, e.g. a Sales Invoice made
+				# from a Delivery Note (internal) vs one a Delivery Note was made
+				# from (external), so probe the other direction too
+				out["external_links_found"].append(get_external_links(d, name, links))
 			else:
-				try:
-					external_links_data_for_d = get_external_links(d, name, links)
-					out["external_links_found"].append(external_links_data_for_d)
-				except Exception:
-					out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
+				out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
 			external_links_data_for_d = get_external_links(d, name, links)
 			out["external_links_found"].append(external_links_data_for_d)
@@ -336,8 +334,23 @@ def get_internal_links(doc, link, link_doctype):
 	return data
 
 
+def get_external_link_fieldname(doctype, links):
+	return links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
+
+
+def has_external_link_field(doctype, links):
+	"""Whether `doctype` (or one of its child tables) has the field that links it back."""
+	fieldname = get_external_link_fieldname(doctype, links)
+	if not fieldname:
+		return False
+	meta = frappe.get_meta(doctype)
+	return meta.has_field(fieldname) or any(
+		frappe.get_meta(df.options).has_field(fieldname) for df in meta.get_table_fields()
+	)
+
+
 def get_external_links(doctype, name, links):
-	fieldname = links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
+	fieldname = get_external_link_fieldname(doctype, links)
 	filters = {fieldname: name}
 
 	# updating filters based on dynamic_links
@@ -385,7 +398,12 @@ def get_dynamic_link_filters(doctype, links, fieldname):
 	return {doctype_fieldname: doctype_value}
 
 
-def notify_mentions(ref_doctype, ref_name, content):
+def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_name=None):
+	"""Notify users mentioned in `content`.
+	`source_doctype` / `source_name` identify the record the mention was
+	written in (e.g. a Comment) when that is not the reference document
+	itself.
+	"""
 	if ref_doctype and ref_name and content:
 		mentions = extract_mentions(content)
 
@@ -412,6 +430,8 @@ def notify_mentions(ref_doctype, ref_name, content):
 			"type": "Mention",
 			"document_type": ref_doctype,
 			"document_name": ref_name,
+			"source_doctype": source_doctype,
+			"source_name": source_name,
 			"subject": notification_message,
 			"from_user": frappe.session.user,
 			"email_content": content,
@@ -422,6 +442,8 @@ def notify_mentions(ref_doctype, ref_name, content):
 
 def extract_mentions(txt):
 	"""Find all instances of @mentions in the html."""
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(txt, "html.parser")
 	emails = []
 	for mention in soup.find_all(class_="mention"):

@@ -15,7 +15,7 @@ frappe.ui.form.ControlImage = class ControlImage extends frappe.ui.form.Control 
 				.css({ "max-width": "100%" });
 		} else {
 			this.$buffer = $(
-				`<div class='missing-image'>${frappe.utils.icon("restriction", "md")}</div>`
+				`<div class='missing-image'>${frappe.utils.icon("ban", "md")}</div>`
 			).appendTo(this.$body);
 		}
 		return false;

@@ -82,6 +82,7 @@
   "files_tab",
   "files_section",
   "max_file_size",
+  "max_zip_extract_size",
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
@@ -107,6 +108,11 @@
   "prepared_report_section",
   "max_auto_email_report_per_user",
   "max_report_rows",
+  "snapshot_reports_section",
+  "enable_snapshot_reports",
+  "sync_in_batch",
+  "frequency",
+  "sync_timeout",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -804,12 +810,52 @@
    "fieldname": "allowed_doctypes_for_guest_uploads",
    "fieldtype": "Small Text",
    "label": "Allowed Doctypes for Guest Uploads"
+  },
+  {
+   "default": "Daily",
+   "depends_on": "eval: doc.enable_snapshot_reports",
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Hourly\nDaily"
+  },
+  {
+   "depends_on": "eval: doc.enable_snapshot_reports",
+   "fieldname": "sync_timeout",
+   "fieldtype": "Int",
+   "label": "Sync Timeout (Seconds)"
+  },
+  {
+   "fieldname": "snapshot_reports_section",
+   "fieldtype": "Section Break",
+   "label": "Snapshot Reports"
+  },
+  {
+   "default": "0",
+   "documentation_url": "https://docs.frappe.io/framework/user/en/desk/reports/script-report#snapshot-reports",
+   "fieldname": "enable_snapshot_reports",
+   "fieldtype": "Check",
+   "label": "Enable Snapshot Reports"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval: doc.enable_snapshot_reports",
+   "fieldname": "sync_in_batch",
+   "fieldtype": "Check",
+   "label": "Sync In Batches"
+  },
+  {
+   "description": "Maximum total size a ZIP archive is allowed to expand to when extracted.",
+   "fieldname": "max_zip_extract_size",
+   "fieldtype": "Int",
+   "label": "Max Zip Extract Size (MB)",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-05-21 10:32:53.594355",
+ "modified": "2026-08-06 17:22:18.039321",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

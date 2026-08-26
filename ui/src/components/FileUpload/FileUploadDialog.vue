@@ -306,43 +306,21 @@ import CameraSource from "./sources/CameraSource.vue";
 import { getUploadSources } from "./sources";
 import { useUploader, formatBytes } from "./useUploader";
 import { pushTrayBatch, useTray } from "./uploadTray";
-import type {
-	ProgressMode,
-	Restrictions,
-	UploadItem,
-	UploadResult,
-	UploadTransport,
-} from "./types";
+import type { FileUploadDialogProps, ProgressMode, UploadItem, UploadResult } from "./types";
 
 // Lazy so cropperjs only loads when a crop dialog actually opens.
 const ImageCropper = defineAsyncComponent(() => import("./ImageCropper.vue"));
 
-const props = withDefaults(
-	defineProps<{
-		open: boolean;
-		multiple?: boolean;
-		imageOnly?: boolean;
-		crop?: boolean;
-		restrictions?: Restrictions;
-		transport?: UploadTransport;
-		progressMode?: ProgressMode;
-		folder?: string;
-		// Accepted for API compatibility with the tabbed dialog; the bare popover
-		// has no title bar, so it is not rendered.
-		title?: string;
-		trayLabel?: string;
-	}>(),
-	{
-		// `progressMode` is intentionally left without a static default so an
-		// "unset" mode is distinguishable from an explicit one — see
-		// `effectiveProgressMode`.
-		multiple: false,
-		imageOnly: false,
-		crop: false,
-		title: "Upload",
-		trayLabel: "Uploading files",
-	}
-);
+const props = withDefaults(defineProps<FileUploadDialogProps>(), {
+	// `progressMode` is intentionally left without a static default so an
+	// "unset" mode is distinguishable from an explicit one — see
+	// `effectiveProgressMode`.
+	multiple: false,
+	imageOnly: false,
+	crop: false,
+	title: "Upload",
+	trayLabel: "Uploading files",
+});
 
 // How progress is surfaced. When the caller doesn't specify, multi-file uploads
 // fall back to the floating tray (so closing the popover mid-upload doesn't lose

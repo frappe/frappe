@@ -11,7 +11,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title,
 	get_title_html,
 )
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.utils import cint
 
 if TYPE_CHECKING:
@@ -85,7 +85,7 @@ def add_docshare(
 	if (user != name or doctype != "User") and frappe.get_cached_value(
 		"User", user, "follow_shared_documents"
 	):
-		follow_document(doctype, name, user)
+		_follow_document(doctype, name, user)
 
 	return doc
 

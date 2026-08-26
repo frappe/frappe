@@ -100,6 +100,8 @@ frappe.ui.FilterGroup = class {
 			}
 			this.toggle_empty_filters(false);
 			!hide_empty_filters && this.add_filter(this.doctype, "name");
+
+			this.filters[0]?.fieldselect?.$input?.focus();
 		});
 
 		this.filter_button.on("hidden.bs.popover", () => {
@@ -128,6 +130,8 @@ frappe.ui.FilterGroup = class {
 	}
 
 	update_filter_button() {
+		if (!this.filter_button) return;
+
 		const filters_applied = this.filters.length > 0;
 		const button_label = filters_applied
 			? __("Filters {0}", [`<span class="filter-label">${this.filters.length}</span>`])
@@ -150,6 +154,8 @@ frappe.ui.FilterGroup = class {
 		this.wrapper.find(".add-filter").on("click", () => {
 			this.toggle_empty_filters(false);
 			this.add_filter(this.doctype, "name");
+
+			this.filters[this.filters.length - 1]?.fieldselect?.$input?.focus();
 		});
 
 		this.wrapper.find(".clear-filters").on("click", () => {
@@ -234,6 +240,7 @@ frappe.ui.FilterGroup = class {
 			index: this.filters.length + 1,
 			on_change: (update) => {
 				if (update) this.update_filters();
+				this.refresh_dynamic_link_filters();
 				this.on_change();
 			},
 			filter_items: (doctype, fieldname) => {
@@ -250,6 +257,17 @@ frappe.ui.FilterGroup = class {
 	get_filter_value(fieldname) {
 		let filter_obj = this.filters.find((f) => f.fieldname == fieldname) || {};
 		return filter_obj.value;
+	}
+
+	refresh_dynamic_link_filters() {
+		if (!this.filters) return;
+
+		this.filters.forEach((f) => {
+			if (!f.field || f.field.df.original_type !== "Dynamic Link") return;
+			if (!f.link_friendly_conditions.has(f.get_condition())) return;
+
+			f.set_field(f.field.df.parent, f.field.df.fieldname, null, f.get_condition());
+		});
 	}
 
 	filter_exists(filter_value) {
@@ -304,7 +322,7 @@ frappe.ui.FilterGroup = class {
 					</div>
 				</div>
 				<hr class="divider"></hr>
-				<div class="filter-action-buttons mt-2">
+				<div class="filter-action-buttons">
 					<button class="text-muted add-filter btn btn-xs">
 						+ ${__("Add a Filter")}
 					</button>

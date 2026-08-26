@@ -1,12 +1,10 @@
-import json
-
 import frappe
 from frappe.core.doctype.file.file import File
 from frappe.core.doctype.file.utils import setup_folder_path
 from frappe.utils import cint, cstr
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unzip_file(name: str):
 	"""Unzip the given file and make file records for each of the extracted files"""
 	file: File = frappe.get_doc("File", name)
@@ -17,8 +15,7 @@ def unzip_file(name: str):
 def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 	"""Return list of image urls attached in form `{name: ['image.jpg', 'image.png']}`."""
 
-	if isinstance(names, str):
-		names = json.loads(names)
+	names = frappe.parse_json(names)
 
 	img_urls = frappe.db.get_list(
 		"File",
@@ -90,6 +87,14 @@ def get_max_file_size() -> int:
 	)
 
 
+def get_max_extract_size() -> int:
+	return (
+		cint(frappe.get_system_settings("max_zip_extract_size")) * 1024 * 1024
+		or cint(frappe.conf.get("max_zip_extract_size"))
+		or 25 * 1024 * 1024
+	)
+
+
 def get_file_chunk_size() -> int:
 	return cint(frappe.conf.get("file_chunk_size")) or 25 * 1024 * 1024
 
@@ -107,8 +112,7 @@ def create_new_folder(file_name: str, folder: str) -> File:
 
 @frappe.whitelist()
 def move_file(file_list: list[File | dict] | str, new_parent: str, old_parent: str) -> None:
-	if isinstance(file_list, str):
-		file_list = json.loads(file_list)
+	file_list = frappe.parse_json(file_list)
 
 	# will check for permission on each file & update parent
 	for file_obj in file_list:

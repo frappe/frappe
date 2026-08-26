@@ -1,17 +1,45 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import csv
-import json
 from csv import Sniffer
 from io import StringIO
 from typing import Any
-
-import requests
 
 import frappe
 from frappe import _, msgprint
 from frappe.core.doctype.file.file import FILE_ENCODING_OPTIONS
 from frappe.utils import cint, comma_or, cstr, flt
+
+# leading characters that spreadsheet applications treat as the start of a formula
+FORMULA_TRIGGER_CHARS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def escape_formula_injection(value):
+	"""Prefix a leading single quote so spreadsheet apps render, but don't evaluate, formula-like strings."""
+	if isinstance(value, str) and value.startswith(FORMULA_TRIGGER_CHARS):
+		return "'" + value
+	return value
+
+
+def unescape_formula_injection(value):
+	"""Reverse escape_formula_injection on the way back in via CSV import.
+
+	A leading single quote in front of a formula-trigger character is a display-only
+	marker, not part of the value, so re-importing our own export must not bake it in
+	permanently (e.g. phone numbers, negative quantities stored as text).
+
+	Trade-off: a value that genuinely starts with a quote, e.g. "'+S-001", loses that
+	quote too - CSV has no way to tell the two cases apart. Assumes the input came from
+	escape_formula_injection, not an arbitrary external CSV.
+	"""
+	if (
+		isinstance(value, str)
+		and len(value) > 1
+		and value[0] == "'"
+		and value[1:].startswith(FORMULA_TRIGGER_CHARS)
+	):
+		return value[1:]
+	return value
 
 
 def read_csv_content_from_attached_file(doc):
@@ -90,7 +118,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None 
 			r = []
 			for val in row:
 				# decode everything
-				val = val.strip()
+				val = unescape_formula_injection(val.strip())
 
 				if val == "":
 					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes
@@ -100,6 +128,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None 
 
 			rows.append(r)
 
+		assert len(rows) <= len(content), "parsing cannot produce more rows than input lines"
 		return rows
 
 	except Exception:
@@ -109,10 +138,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None 
 
 @frappe.whitelist()
 def send_csv_to_client(args: str | dict[str, Any]):
-	if isinstance(args, str):
-		args = json.loads(args)
-
-	args = frappe._dict(args)
+	args = frappe._dict(frappe.parse_json(args))
 
 	frappe.response["result"] = cstr(to_csv(args.data))
 	frappe.response["doctype"] = args.filename
@@ -140,7 +166,7 @@ class UnicodeWriter:
 		self.writer = csv.writer(self.queue, quoting=quoting)
 
 	def writerow(self, row):
-		self.writer.writerow(row)
+		self.writer.writerow([escape_formula_injection(v) for v in row])
 
 	def getvalue(self):
 		return self.queue.getvalue()
@@ -218,6 +244,8 @@ def get_csv_content_from_google_sheets(url):
 	url = url.rsplit("/edit", 1)[0]
 	# add /export path,
 	url = url + f"/export?format=csv&gid={gid}"
+
+	import requests
 
 	headers = {"Accept": "text/csv"}
 	response = requests.get(url, headers=headers)

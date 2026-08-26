@@ -1,7 +1,10 @@
 .settings-dialog-wrapper {
+	// `clip` (not `hidden`) — a hidden container can still be scrolled programmatically
+	// (e.g. the browser scrolling a below-the-fold control into view on focus), and with
+	// no scrollbar the user can't scroll it back, leaving the dialog stuck mid-scroll.
 	.modal-content {
 		height: calc(100vh - 8rem);
-		overflow: hidden;
+		overflow: clip;
 	}
 
 	.modal-body.settings-dialog-body {
@@ -9,7 +12,7 @@
 		flex: 1;
 		min-height: 0;
 		padding: 0;
-		overflow: hidden;
+		overflow: clip;
 	}
 }
 
@@ -17,17 +20,17 @@
 	display: flex;
 	flex: 1;
 	min-height: 0;
-	background-color: var(--surface-sidebar);
+	background-color: var(--surface-elevation-1);
 }
-
-// --- Sidebar -------------------------------------------------------------
 
 .settings-dialog-sidebar {
 	display: flex;
 	flex-direction: column;
 	flex-shrink: 0;
-	width: 14rem; // w-56
-	margin: 0.25rem; // m-1
+	width: 14rem;
+	padding: var(--spacing);
+	border-top-left-radius: var(--radius-lg);
+	border-bottom-left-radius: var(--radius-lg);
 	overflow-y: auto;
 	background-color: var(--surface-sidebar);
 }
@@ -35,16 +38,17 @@
 .settings-dialog-group-header {
 	position: sticky;
 	top: 0;
-	z-index: 1;
+	z-index: 10;
 	display: flex;
 	align-items: center;
-	gap: 0.375rem; // gap-1.5
-	height: 1.875rem; // h-7.5
+	gap: calc(var(--spacing) * 1.5); // gap-1.5
+	height: calc(var(--spacing) * 7.5); // h-7.5
 	margin: 3px 0; // my-[3px]
-	padding: 0 0.5rem; // px-2
+	padding: 0 var(--spacing); // px-1
 	font-size: var(--text-xs);
 	font-weight: var(--weight-medium);
-	color: var(--ink-gray-5);
+	line-height: 1.15;
+	color: var(--text-muted);
 	background-color: var(--surface-sidebar);
 	cursor: default;
 }
@@ -52,27 +56,27 @@
 .settings-dialog-tab-list {
 	display: flex;
 	flex-direction: column;
-	gap: 3px; // space-y-[3px]
-	padding: 0 0.25rem; // px-1
+	gap: 3px;
+	padding: 0 0.25rem;
 }
 
 .settings-dialog-tab-group {
-	padding-bottom: 5px; // trailing spacer (mt-[5px])
+	padding-bottom: 5px;
 }
 
 .settings-dialog-tab-item {
 	display: flex;
 	align-items: center;
-	width: 100%; // w-full
-	height: 1.875rem; // h-7.5
+	width: 100%;
+	height: 1.875rem;
 	padding: 0;
 	border: none;
-	border-radius: var(--radius); // 8px
+	border-radius: var(--radius);
 	background-color: transparent;
-	color: var(--ink-gray-6);
+	color: var(--text-muted);
 	text-align: left;
 	cursor: pointer;
-	transition: background-color 0.2s ease-in-out;
+	transition: background-color 0.2s ease;
 
 	&:hover {
 		background-color: var(--surface-gray-3);
@@ -80,7 +84,7 @@
 
 	&:focus-visible {
 		outline: none;
-		box-shadow: 0 0 0 2px var(--outline-gray-3); // ring-2 ring-outline-gray-3
+		box-shadow: 0 0 0 2px var(--outline-gray-3);
 	}
 
 	&.active {
@@ -93,30 +97,23 @@
 	}
 }
 
-[data-theme="dark"] .settings-dialog-tab-item.active {
-	box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.7), 0px 0px 14px rgba(0, 0, 0, 0.18),
-		0px 0.5px 0.5px 0.5px rgba(255, 255, 255, 0.04) inset;
-}
-
 .settings-dialog-tab-item-content {
 	display: flex;
+	justify-content: space-between;
 	align-items: center;
 	width: 100%;
 	min-width: 0;
-	padding: 7px 0.5rem; // py-[7px] px-2
+	padding: 7px 0.5rem;
 }
 
 .settings-dialog-tab-icon {
 	display: flex;
 	align-items: center;
 	flex-shrink: 0;
-	color: var(--ink-gray-6);
-	--icon-stroke: var(--ink-gray-6);
-	// Size comes from the `.icon-sm` class that frappe.utils.icon(name, "sm")
-	// applies (16px) — no hardcoded svg sizing needed.
+	color: var(--text-muted);
+	--icon-stroke: var(--text-muted);
 }
 
-// ms-2 only when an icon precedes the label
 .settings-dialog-tab-icon + .settings-dialog-tab-label {
 	margin-left: 0.5rem;
 }
@@ -124,9 +121,10 @@
 .settings-dialog-tab-label {
 	flex: 1;
 	min-width: 0;
-	font-size: var(--text-sm); // text-sm
-	line-height: 1rem; // leading-4
-	color: var(--ink-gray-7);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-regular);
+	line-height: 1.15;
+	color: var(--text-muted);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -137,7 +135,7 @@
 	flex-direction: column;
 	flex: 1;
 	overflow-y: auto;
-	background-color: var(--surface-elevation-2);
+	background-color: var(--bg-color);
 }
 
 .settings-dialog-panel {
@@ -145,9 +143,10 @@
 	flex-direction: column;
 	width: 100%;
 	height: 100%;
+	min-height: 0;
 	padding: 2rem 1.5rem;
-	gap: 1.5rem;
-	color: var(--ink-gray-9);
+	gap: 1rem;
+	color: var(--text-color);
 }
 
 .settings-dialog-panel-header {
@@ -161,31 +160,127 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0.25rem;
+	width: 100%;
 }
 
 .settings-dialog-panel-title {
-	font-size: var(--text-2xl); // 20px
+	display: flex;
+	gap: 0.5rem;
+	height: 1.25rem;
+	font-size: var(--text-xl);
 	font-weight: var(--weight-semibold);
-	line-height: 1.2;
-	color: var(--ink-gray-8);
+	line-height: 1;
 }
 
 .settings-dialog-panel-description {
 	font-size: var(--text-base);
-	color: var(--ink-gray-6);
+	font-weight: var(--weight-regular);
+	line-height: 1.5;
+	color: var(--text-muted);
 }
 
 .settings-dialog-panel-actions {
 	display: flex;
 	gap: 0.5rem;
 	align-items: center;
+	justify-content: flex-end;
 	flex-shrink: 0;
+	width: fit-content;
 }
 
 .settings-dialog-panel-body {
 	flex: 1;
+	// Without this a flex child won't shrink below its content height, so a long tab
+	min-height: 0;
 	display: flex;
 	flex-direction: column;
 	overflow-y: auto;
 	padding: 0 0.5rem;
+}
+
+.settings-dialog-section-heading {
+	margin-top: var(--margin-md);
+	margin-bottom: var(--margin-xs);
+	padding-top: var(--padding-sm);
+	border-top: 1px solid var(--outline-gray-2);
+
+	&:first-child {
+		margin-top: 0;
+		padding-top: 0;
+		border-top: none;
+	}
+}
+
+table + .settings-dialog-section-heading {
+	border-top: none;
+	padding-top: 0;
+}
+
+.settings-dialog-section-title {
+	margin-top: var(--margin-md);
+	font-size: var(--text-lg);
+	font-weight: var(--weight-semibold);
+	line-height: 1.5;
+}
+
+.settings-dialog-section-description {
+	margin-top: 2px;
+	font-size: var(--text-sm);
+	font-weight: var(--weight-regular);
+	line-height: 1.5;
+	color: var(--text-muted);
+}
+
+.settings-dialog-panel-body .form-section .section-head {
+	margin: var(--margin-md) 0 var(--margin-xs);
+	padding: 0;
+	font-size: var(--text-base);
+	font-weight: var(--weight-medium);
+	line-height: 1.5;
+}
+
+.settings-dialog-panel-body .ql-editor {
+	min-height: 120px;
+}
+
+.settings-dialog-panel-body .form-section {
+	padding: 0;
+}
+
+.settings-dialog-panel-body .form-section .section-body,
+.settings-dialog-panel-body .form-section > .section-body:first-child {
+	padding-top: 0;
+	margin-top: 0;
+}
+
+.settings-dialog-panel-body .form-section:not(:first-child) {
+	border-top: none;
+}
+
+.settings-dialog-panel-body .form-section:not(:first-child):has(> .section-head) {
+	border-top: 1px solid var(--outline-gray-2);
+	padding-top: var(--padding-sm);
+}
+
+.settings-dialog-panel-body .control-label {
+	font-size: var(--text-base);
+	font-weight: var(--weight-regular);
+	line-height: 1.5;
+	color: var(--text-muted);
+}
+
+.settings-dialog-panel-body .switch-control {
+	.label-area,
+	.help-box {
+		font-weight: var(--weight-regular);
+		line-height: 1.5;
+	}
+}
+
+.settings-dialog-panel-body
+	.frappe-control:has(> .switch-control)
+	+ .frappe-control:has(> .switch-control) {
+	border-top: 1px solid var(--outline-gray-2);
+	padding-top: var(--padding-sm);
+	margin-top: var(--padding-sm);
 }

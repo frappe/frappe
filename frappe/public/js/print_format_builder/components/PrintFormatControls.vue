@@ -1,27 +1,33 @@
 <template>
 	<div class="pfb-sidebar">
-		<!-- Tab bar -->
-		<div class="pfb-tabbar">
-			<button
-				v-for="tab in tabs"
-				:key="tab.id"
-				class="pfb-tab"
-				:class="{ active: activeTab === tab.id }"
-				:title="tab.label"
-				@click="activeTab = tab.id"
-			>
-				<span class="pfb-tab-icon" v-html="frappe.utils.icon(tab.icon, 'sm')"></span>
-				<span class="pfb-tab-label">{{ tab.label }}</span>
-			</button>
+		<!-- Tab bar: the Espresso tabs contract (es-tabs), same markup the desk's
+		     frappe.ui.Tabs and frappe-ui's Tabs.vue render -->
+		<div class="es-tabs" data-orientation="horizontal">
+			<div class="es-tabs__list" role="tablist" ref="tablist">
+				<button
+					v-for="tab in tabs"
+					:key="tab.id"
+					class="es-tabs__tab"
+					:data-tab="tab.id"
+					:data-state="activeTab === tab.id ? 'active' : 'inactive'"
+					role="tab"
+					:aria-selected="activeTab === tab.id"
+					@click="activeTab = tab.id"
+				>
+					{{ tab.label }}
+				</button>
+				<span class="es-tabs__indicator" :style="indicator_style"></span>
+			</div>
 		</div>
 
 		<!-- ── Fields ────────────────────────────────────────── -->
 		<div v-if="activeTab === 'fields'" class="pfb-tab-body pfb-fields-tab">
 			<!-- Search -->
 			<div class="pfb-search-wrap">
-				<svg class="icon icon-xs pfb-search-icon text-muted">
-					<use href="#icon-search"></use>
-				</svg>
+				<span
+					class="pfb-search-icon text-muted"
+					v-html="frappe.utils.icon('search', 'xs')"
+				></span>
 				<input
 					ref="search_input"
 					class="pfb-search"
@@ -35,9 +41,9 @@
 			<!-- Header -->
 			<div class="pfb-fields-header">
 				<span class="pfb-fields-header-title">
-					{{ __("DOCUMENT FIELDS") }}
+					{{ __("Document Fields") }}
 					<span class="pfb-fields-header-sep">·</span>
-					{{ (meta.name || "").toUpperCase() }}
+					{{ meta.name }}
 				</span>
 			</div>
 
@@ -54,6 +60,9 @@
 					:sort="false"
 					:clone="clone_field"
 					item-key="fieldname"
+					v-bind="DRAG_OPTIONS"
+					@start="setDragging(true)"
+					@end="setDragging(false)"
 				>
 					<template #item="{ element }">
 						<div
@@ -63,7 +72,7 @@
 						>
 							<span
 								class="pfb-field-drag"
-								v-html="frappe.utils.icon('drag', 'xs')"
+								v-html="frappe.utils.icon('grip', 'xs')"
 							></span>
 							<span class="pfb-field-label">{{ element.label }}</span>
 							<span class="pfb-field-type">{{ element.fieldtype }}</span>
@@ -73,183 +82,302 @@
 			</div>
 
 			<div v-if="!field_groups.length" class="pfb-empty">
-				{{ __("No fields match your search.") }}
+				{{
+					search_text
+						? __("No fields match your search.")
+						: __("This document type has no printable fields.")
+				}}
 			</div>
 		</div>
 
 		<!-- ── Blocks ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'blocks'" class="pfb-tab-body">
-			<div class="pfb-group-label">{{ __("Content") }}</div>
 			<draggable
 				:list="draggable_blocks"
 				:group="{ name: 'fields', pull: 'clone', put: false }"
 				:sort="false"
 				:clone="clone_field"
 				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 			>
 				<template #item="{ element }">
-					<div
-						class="pfb-block-card"
+					<BlockCard
+						:icon="element.icon"
+						:name="element.label"
+						:desc="element.desc"
 						:title="element.desc"
 						@click="add_to_layout(element)"
-					>
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon(element.icon, 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ element.label }}</div>
-							<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
-						</div>
-					</div>
+					/>
 				</template>
 			</draggable>
 
-			<div class="pfb-group-label mt-3">{{ __("Page") }}</div>
+			<!-- Page Break drops into the sections container, not a column, so it
+			     stays a separate draggable — just without its own heading -->
 			<draggable
+				class="mt-2"
 				:list="page_break_block"
 				:group="{ name: 'sections', pull: 'clone', put: false }"
 				:sort="false"
 				:clone="clone_as_section"
 				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 			>
 				<template #item="{ element }">
-					<div class="pfb-block-card" :title="element.desc" @click="add_page_break">
-						<span
-							class="pfb-block-icon"
-							v-html="frappe.utils.icon('scissors-line-dashed', 'sm')"
-						></span>
-						<div class="pfb-block-info">
-							<div class="pfb-block-name">{{ element.label }}</div>
-							<div class="pfb-block-desc text-muted">{{ element.desc }}</div>
-						</div>
-					</div>
+					<BlockCard
+						icon="scissors-line-dashed"
+						:name="element.label"
+						:desc="element.desc"
+						:title="element.desc"
+						@click="add_page_break"
+					/>
 				</template>
 			</draggable>
 		</div>
 
-		<!-- ── Templates ─────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'templates'" class="pfb-tab-body">
-			<div v-if="!print_templates_list.length" class="pfb-templates-empty">
-				<div class="pfb-empty">
-					{{ __("No field templates for this document type.") }}
-				</div>
-				<p class="pfb-templates-hint text-muted">
-					{{
-						__(
-							"Field templates let you render specific fields with custom Jinja/HTML, e.g. a custom items table layout."
-						)
-					}}
-				</p>
-				<a :href="new_template_link" target="_blank" class="btn btn-xs btn-secondary mt-2">
-					{{ __("Create Field Template") }}
-				</a>
+		<!-- ── Library ───────────────────────────────────────── -->
+		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
+			<div class="pfb-group-label">
+				{{ __("Saved Snippets") }}
 			</div>
-
-			<template v-else>
-				<div class="pfb-group-label">
-					{{ __("Field Templates") }}
-					<a
-						:href="'/app/print-format-field-template'"
-						target="_blank"
-						class="pfb-manage-link text-muted"
-					>
-						{{ __("Manage") }}
-					</a>
-				</div>
+			<div v-if="!store.snippets.value.length" class="pfb-empty">
+				{{ __("Save a section or field as a snippet to reuse it here.") }}
+			</div>
+			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
-					:list="print_templates_list"
-					:group="{ name: 'fields', pull: 'clone', put: false }"
+					v-if="grp.items.length"
+					:list="grp.items"
+					:group="{ name: grp.drag_group, pull: 'clone', put: false }"
 					:sort="false"
-					:clone="clone_field"
-					item-key="fieldname"
+					:clone="clone_snippet"
+					item-key="name"
+					filter="button"
+					:preventOnFilter="false"
+					v-bind="DRAG_OPTIONS"
+					@start="setDragging(true)"
+					@end="setDragging(false)"
 				>
-					<template #item="{ element }">
-						<div
-							class="pfb-template-card"
-							:title="element.fieldname"
-							@click="add_to_layout(element)"
+					<template #item="{ element: snip }">
+						<BlockCard
+							:icon="grp.icon"
+							:name="snip.name"
+							:desc="grp.desc"
+							:title="__('Drag into the layout, or click to insert')"
+							@click="store.insert_snippet(snip.name)"
 						>
-							<div class="pfb-template-thumb">
-								<svg class="icon icon-sm text-muted">
-									<use href="#icon-table"></use>
-								</svg>
-							</div>
-							<div class="pfb-template-info">
-								<div class="pfb-template-name">{{ element.display_label }}</div>
-								<div class="pfb-template-field text-muted">
-									{{ element.field_label || __("Custom block") }}
-								</div>
-							</div>
-						</div>
+							<template #action>
+								<button
+									class="es-button"
+									data-size="xs"
+									data-variant="ghost"
+									data-theme="red"
+									data-icon-button="true"
+									:title="__('Delete snippet')"
+									@click.stop="confirm_delete_snippet(snip.name)"
+									v-html="frappe.utils.icon('trash', 'xs')"
+								></button>
+							</template>
+						</BlockCard>
 					</template>
 				</draggable>
-				<div class="pfb-templates-hint text-muted mt-2">
-					{{ __("Drag or click to add a field template to the last section.") }}
-				</div>
 			</template>
+
+			<div class="pfb-group-label mt-3">
+				{{ __("Field Templates") }}
+				<a
+					:href="'/app/print-format-field-template'"
+					target="_blank"
+					class="pfb-manage-link text-muted"
+				>
+					{{ __("Manage") }}
+				</a>
+			</div>
+			<div v-if="!print_templates_list.length" class="pfb-empty">
+				{{
+					__(
+						"Field templates render a specific field with custom Jinja/HTML, e.g. a custom items table."
+					)
+				}}
+				<a :href="new_template_link" target="_blank">{{ __("Create one") }}</a>
+			</div>
+			<draggable
+				v-else
+				:list="print_templates_list"
+				:group="{ name: 'fields', pull: 'clone', put: false }"
+				:sort="false"
+				:clone="clone_field"
+				item-key="fieldname"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
+			>
+				<template #item="{ element }">
+					<BlockCard
+						icon="code"
+						:name="element.display_label"
+						:desc="element.field_label || __('Custom block')"
+						:title="element.fieldname"
+						@click="add_to_layout(element)"
+					/>
+				</template>
+			</draggable>
 		</div>
 
-		<!-- ── Outline ────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body">
-			<div v-if="!visible_sections.length" class="pfb-empty">
+		<!-- ── Layers ─────────────────────────────────────────── -->
+		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
+			<div v-if="!layout" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
-			<div
-				v-for="(section, i) in visible_sections"
-				:key="i"
-				class="pfb-outline-item"
-				:class="{ active: store.selected_section.value === section }"
-				@click="select_section(section)"
+			<draggable
+				v-else
+				v-model="tree_sections"
+				group="pfb-tree-sections"
+				handle=".pfb-drag-handle"
+				item-key="id"
+				:move="(e) => !!e.related?.querySelector('.pfb-drag-handle')"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 			>
-				<span class="pfb-outline-idx text-muted">{{ i + 1 }}</span>
-				<span class="pfb-outline-label">
-					{{ section.label || __("Untitled section") }}
-				</span>
-			</div>
-		</div>
-
-		<!-- ── Format ─────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'format'" class="pfb-tab-body">
-			<div class="pfb-group-label">{{ __("Page margins (mm)") }}</div>
-			<div class="pfb-margin-grid">
-				<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-					<label class="pfb-margin-label control-label">{{ df.label }}</label>
-					<input
-						type="number"
-						class="form-control form-control-sm"
-						:value="print_format[df.fieldname]"
-						min="0"
-						@change="(e) => update_margin(df.fieldname, e.target.value)"
-					/>
-				</div>
-			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Font") }}</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Google Font") }}</label>
-				<select class="form-control form-control-sm" v-model="print_format.font">
-					<option v-for="font in google_fonts" :value="font">{{ font }}</option>
-				</select>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Font Size (pt)") }}</label>
-				<input
-					type="number"
-					class="form-control form-control-sm"
-					placeholder="12, 13, 14"
-					:value="print_format.font_size"
-					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
-				/>
-			</div>
-
-			<div class="pfb-group-label mt-3">{{ __("Page number") }}</div>
-			<div class="form-group">
-				<select class="form-control form-control-sm" v-model="print_format.page_number">
-					<option v-for="p in page_number_positions" :value="p.value">
-						{{ p.label }}
-					</option>
-				</select>
+				<template #item="{ element: section }">
+					<div class="pfb-tree-node">
+						<div
+							class="pfb-tree-row"
+							@mouseenter="store.hovered_section.value = section"
+							@mouseleave="store.hovered_section.value = null"
+							:class="{
+								'pfb-drag-handle': !zone_of(section),
+								active: store.selected_sections.value.includes(section),
+								'pfb-tree-hover': store.hovered_node.value === section,
+							}"
+							role="treeitem"
+							tabindex="0"
+							:aria-expanded="!is_collapsed(section)"
+							:aria-selected="store.selected_sections.value.includes(section)"
+							@click="select_section(section)"
+							@keydown.enter.prevent="select_section(section)"
+							@keydown.space.prevent="select_section(section)"
+						>
+							<button
+								class="pfb-tree-chevron"
+								:class="{ collapsed: is_collapsed(section) }"
+								@click.stop="toggle_collapse(section)"
+								v-html="frappe.utils.icon('chevron-down', 'sm')"
+							></button>
+							<span
+								class="pfb-tree-icon"
+								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
+							></span>
+							<span class="pfb-tree-label">
+								{{ section.label || zone_of(section) || __("Untitled section") }}
+							</span>
+						</div>
+						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
+							<div
+								v-for="(col, ci) in section.columns"
+								:key="ci"
+								class="pfb-tree-node"
+							>
+								<!-- a lone column isn't a real division of the section, so it
+								     only earns a row once there's more than one -->
+								<div
+									v-if="section.columns.length > 1"
+									class="pfb-tree-row"
+									role="treeitem"
+									tabindex="0"
+									@click="select_section(section)"
+									@keydown.enter.prevent="select_section(section)"
+									@keydown.space.prevent="select_section(section)"
+								>
+									<button
+										v-if="col.fields.length"
+										class="pfb-tree-chevron"
+										:class="{ collapsed: is_collapsed(col) }"
+										@click.stop="toggle_collapse(col)"
+										v-html="frappe.utils.icon('chevron-down', 'sm')"
+									></button>
+									<span v-else class="pfb-tree-spacer"></span>
+									<span
+										class="pfb-tree-icon"
+										v-html="frappe.utils.icon('columns-2', 'sm')"
+									></span>
+									<span class="pfb-tree-label text-muted">
+										{{ __("Column {0}", [ci + 1]) }}
+									</span>
+								</div>
+								<draggable
+									v-if="section.columns.length === 1 || !is_collapsed(col)"
+									v-model="col.fields"
+									class="pfb-tree-children pfb-tree-fields"
+									:class="{
+										'pfb-tree-fields--flush': section.columns.length === 1,
+									}"
+									group="pfb-tree-fields"
+									item-key="id"
+									:emptyInsertThreshold="20"
+									v-bind="DRAG_OPTIONS"
+									@start="setDragging(true)"
+									@end="setDragging(false)"
+									@add="(e) => select_dropped_layer_field(col, e)"
+								>
+									<template #item="{ element: field }">
+										<div
+											v-show="!field.remove"
+											class="pfb-tree-row"
+											:class="{
+												active: store.selected_fields.value.includes(
+													field
+												),
+												'pfb-tree-hover':
+													store.hovered_node.value === field,
+											}"
+											@mouseenter="store.hovered_field.value = field"
+											@mouseleave="store.hovered_field.value = null"
+											role="treeitem"
+											tabindex="0"
+											:aria-selected="
+												store.selected_fields.value.includes(field)
+											"
+											@click="select_field(field, section, $event)"
+											@keydown.enter.prevent="
+												select_field(field, section, $event)
+											"
+											@keydown.space.prevent="
+												select_field(field, section, $event)
+											"
+										>
+											<span class="pfb-tree-spacer"></span>
+											<span
+												class="pfb-tree-icon"
+												v-html="frappe.utils.icon(field_icon(field), 'sm')"
+											></span>
+											<span class="pfb-tree-label">{{
+												field_label(field)
+											}}</span>
+											<span
+												v-if="field_broken(field)"
+												class="pfb-tree-warn"
+												:title="
+													__(
+														'Field \u201c{0}\u201d no longer exists on {1}',
+														[field.fieldname, meta.name]
+													)
+												"
+												v-html="frappe.utils.icon('triangle-alert', 'sm')"
+											></span>
+										</div>
+									</template>
+								</draggable>
+							</div>
+						</div>
+					</div>
+				</template>
+			</draggable>
+			<div v-if="layout && !layout.sections.length" class="pfb-empty">
+				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
 		</div>
 	</div>
@@ -257,16 +385,39 @@
 
 <script setup>
 import draggable from "vuedraggable";
-import { get_table_columns, pluck } from "../utils";
+import {
+	BLOCK_FIELDTYPES,
+	DRAG_OPTIONS,
+	clone_plain,
+	freshen_field,
+	get_table_columns,
+	pluck,
+	setDragging,
+} from "../utils";
+import BlockCard from "./BlockCard.vue";
 import { useStore } from "../stores";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
 let search_text = ref("");
-let google_fonts = ref([]);
-let activeTab = ref("fields");
 let search_input = ref(null);
 let raw_templates = ref([]);
+
+// ── tab definitions ───────────────────────────────────────
+const TAB_STORE_KEY = "pfb_active_tab";
+const tabs = computed(() => [
+	{ id: "layers", label: __("Layers") },
+	{ id: "fields", label: __("Fields") },
+	{ id: "blocks", label: __("Blocks") },
+	{ id: "library", label: __("Library") },
+]);
+
+// A stale tab id would render an empty sidebar, so fall back to the first tab
+function restore_tab() {
+	const saved = localStorage.getItem(TAB_STORE_KEY);
+	return tabs.value.some((t) => t.id === saved) ? saved : "layers";
+}
+let activeTab = ref(restore_tab());
 
 function focus_search() {
 	activeTab.value = "fields";
@@ -275,16 +426,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, print_format, layout } = useStore();
-
-// ── tab definitions ───────────────────────────────────────
-const tabs = computed(() => [
-	{ id: "fields", label: __("Fields"), icon: "list" },
-	{ id: "blocks", label: __("Blocks"), icon: "blocks" },
-	{ id: "templates", label: __("Templates"), icon: "table" },
-	{ id: "outline", label: __("Outline"), icon: "layout-list" },
-	{ id: "format", label: __("Format"), icon: "settings" },
-]);
+let { meta, layout, print_format } = useStore();
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [
@@ -295,21 +437,36 @@ const page_break_block = [
 	},
 ];
 
-const draggable_blocks = [
-	{
-		label: __("Custom HTML"),
-		fieldname: "custom_html",
-		fieldtype: "HTML",
-		html: "",
-		custom: 1,
-		icon: "code",
-		desc: __("Raw HTML or Jinja template"),
-	},
+const draggable_blocks = computed(() => [
+	...(print_format.value?.pdf_generator === "Typst"
+		? [
+				{
+					label: __("Typst"),
+					fieldname: "typst_block",
+					fieldtype: "Typst",
+					typst: "",
+					custom: 1,
+					icon: "code",
+					desc: __("Raw Typst markup"),
+				},
+		  ]
+		: [
+				{
+					label: __("Custom HTML"),
+					fieldname: "custom_html",
+					fieldtype: "HTML",
+					html: "",
+					custom: 1,
+					icon: "code",
+					desc: __("Raw HTML or Jinja template"),
+				},
+		  ]),
 	{
 		label: __("Spacer"),
 		fieldname: "spacer",
 		fieldtype: "Spacer",
 		custom: 1,
+		height: 10,
 		icon: "minus",
 		desc: __("Vertical whitespace"),
 	},
@@ -321,15 +478,36 @@ const draggable_blocks = [
 		icon: "minus",
 		desc: __("Horizontal rule"),
 	},
-];
+	{
+		label: __("Image"),
+		fieldname: "image",
+		fieldtype: "Image",
+		custom: 1,
+		icon: "image",
+		desc: __("Upload an image or use a URL"),
+		image_url: "",
+		width: "",
+	},
+	{
+		label: __("Repeater"),
+		fieldname: "repeater",
+		fieldtype: "Repeater",
+		custom: 1,
+		icon: "list",
+		desc: __("Repeat child table rows as templated lines"),
+		source: "",
+		repeater_columns: [
+			{ template: [], align: "left" },
+			{ template: [], align: "right" },
+		],
+	},
+]);
 
-// ── helpers ────────────────────────────────────────────────
-function update_margin(fieldname, value) {
-	value = parseFloat(value);
-	if (value < 0) value = 0;
-	print_format.value[fieldname] = value;
+function confirm_delete_snippet(name) {
+	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
 }
 
+// ── helpers ────────────────────────────────────────────────
 function clone_field(df) {
 	let cloned = pluck(df, [
 		"label",
@@ -338,20 +516,58 @@ function clone_field(df) {
 		"options",
 		"table_columns",
 		"html",
+		"typst",
 		"field_template",
+		"source",
+		"repeater_columns",
+		"custom",
+		"image_url",
+		"width",
+		"height",
+		"barcode_field",
+		"barcode_value",
+		"barcode_format",
+		"show_text",
 	]);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
 	}
+	// Repeater has no title by default — the palette label is only for the palette.
+	if (cloned.fieldtype === "Repeater") cloned.label = "";
 	return cloned;
 }
 
 function add_to_layout(df) {
-	const sections = layout.value?.sections;
+	const lv = layout.value;
+	const sections = lv?.sections;
 	if (!sections || !sections.length) return;
-	const last_section = sections.filter((s) => !s.remove).slice(-1)[0];
-	if (!last_section) return;
-	const last_column = last_section.columns.slice(-1)[0];
+
+	// If a field is selected, insert right after it in the same column.
+	// Search body sections and header/footer zones so a selected header field
+	// is used as the anchor when inserting from the panel.
+	const selected_field = store.selected_field.value;
+	if (selected_field && !selected_field.remove) {
+		const all_zones = [lv?.header, lv?.footer, ...sections].filter(Boolean);
+		for (const section of all_zones) {
+			for (const column of section.columns) {
+				const idx = column.fields.indexOf(selected_field);
+				if (idx !== -1) {
+					column.fields.splice(idx + 1, 0, clone_field(df));
+					return;
+				}
+			}
+		}
+	}
+
+	// Otherwise add to the last column of the selected (or last body) section.
+	// Header/footer zone sections are valid targets when they are selected.
+	const selected = store.selected_section.value;
+	const is_valid_target =
+		selected &&
+		(sections.includes(selected) || selected === lv?.header || selected === lv?.footer);
+	const target_section = is_valid_target ? selected : sections.slice(-1)[0];
+	if (!target_section) return;
+	const last_column = target_section.columns.slice(-1)[0];
 	if (!last_column) return;
 	last_column.fields.push(clone_field(df));
 }
@@ -370,16 +586,106 @@ function build_field(df) {
 }
 
 function select_section(section) {
-	store.scroll_to_section.value = section;
-	store.selected_section.value = section;
-	store.selected_field.value = null;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.scroll_target.value = section;
+	store.select_section(section);
 }
+
+function select_field(field, section, e) {
+	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
+	if (!additive) store.scroll_target.value = field;
+	store.select_field(field, additive);
+}
+
+function select_dropped_layer_field(column, e) {
+	const field = column.fields[e.newIndex];
+	if (field) store.select_field(field);
+}
+
+function field_label(f) {
+	return f.label || f.fieldname || f.fieldtype || __("Field");
+}
+
+let known_fieldnames = computed(() => {
+	const s = new Set((meta.value?.fields || []).map((df) => df.fieldname));
+	s.add("name");
+	return s;
+});
+function field_broken(f) {
+	if (f.custom || f.fieldtype === "Field Template" || !f.fieldname) return false;
+	if (BLOCK_FIELDTYPES.has(f.fieldtype)) return false;
+	return !known_fieldnames.value.has(f.fieldname);
+}
+
+const FIELD_ICONS = {
+	Table: "table",
+	Repeater: "rows-3",
+	Image: "image",
+	"Attach Image": "image",
+	Attach: "image",
+	HTML: "file-text",
+	"Text Editor": "file-text",
+	"Small Text": "file-text",
+	"Long Text": "file-text",
+	Text: "file-text",
+	Barcode: "square",
+};
+function field_icon(f) {
+	return FIELD_ICONS[f.fieldtype] || "type";
+}
+
+// the zones are sections too, so the tree lists them alongside the body ones —
+// only their order is fixed, since a header can't become a body section
+let tree_sections = computed({
+	get: () =>
+		[layout.value.header, ...layout.value.sections, layout.value.footer].filter(Boolean),
+	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(s))),
+});
+
+function zone_of(section) {
+	if (section && section === layout.value?.header) return __("Header");
+	if (section && section === layout.value?.footer) return __("Footer");
+	return "";
+}
+
+let collapsed_nodes = ref(new Set());
+function is_collapsed(node) {
+	return collapsed_nodes.value.has(node);
+}
+function toggle_collapse(node) {
+	const next = new Set(collapsed_nodes.value);
+	next.has(node) ? next.delete(node) : next.add(node);
+	collapsed_nodes.value = next;
+}
+watch(
+	() => layout.value,
+	() => (collapsed_nodes.value = new Set())
+);
 
 function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
 }
+
+// Drag-insert bypasses insert_field/insert_section, so freshen here too — a custom
+// field dropped twice would otherwise carry the same fieldname into both copies.
+function clone_snippet(snip) {
+	const clone = clone_plain(snip.content);
+	if (snip.snippet_type === "Field") return freshen_field(clone);
+	delete clone.remove;
+	(clone.columns || []).forEach((c) => (c.fields || []).forEach(freshen_field));
+	return clone;
+}
+
+const SNIPPET_GROUPS = [
+	{ type: "Section", drag_group: "sections", icon: "layout-template", desc: __("Section") },
+	{ type: "Field", drag_group: "fields", icon: "text-cursor-input", desc: __("Field") },
+];
+
+let snippet_groups = computed(() =>
+	SNIPPET_GROUPS.map((grp) => ({
+		...grp,
+		items: store.snippets.value.filter((s) => s.snippet_type === grp.type),
+	}))
+);
 
 function add_page_break() {
 	if (!layout.value) return;
@@ -413,7 +719,12 @@ let field_groups = computed(() => {
 			continue;
 		}
 		if (df.fieldtype === "Column Break") continue;
-		if (frappe.model.no_value_type.includes(df.fieldtype)) continue;
+		if (
+			frappe.model.no_value_type.includes(df.fieldtype) &&
+			df.fieldtype !== "Table" &&
+			df.fieldtype !== "Table MultiSelect"
+		)
+			continue;
 
 		if (q) {
 			const match =
@@ -428,7 +739,7 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── templates tab ─────────────────────────────────────────
+// ── library tab ───────────────────────────────────────────
 function fetch_templates() {
 	const doctype = meta.value?.name;
 	if (!doctype) return;
@@ -452,8 +763,27 @@ function fetch_templates() {
 		});
 }
 
+function enter_tab(tab) {
+	if (tab === "library") fetch_templates();
+}
+
+// the indicator is the moving bar under the active tab; espresso's tabs.css
+// reads its offset and width from these two custom properties
+let tablist = ref(null);
+let indicator_style = ref({});
+function move_indicator() {
+	const tab = tablist.value?.querySelector('[data-state="active"]');
+	if (!tab) return;
+	indicator_style.value = {
+		"--es-tabs-indicator-x": `${tab.offsetLeft}px`,
+		"--es-tabs-indicator-w": `${tab.offsetWidth}px`,
+	};
+}
+
 watch(activeTab, (tab) => {
-	if (tab === "templates") fetch_templates();
+	localStorage.setItem(TAB_STORE_KEY, tab);
+	enter_tab(tab);
+	nextTick(move_indicator);
 });
 
 let print_templates_list = computed(() => {
@@ -478,45 +808,18 @@ let print_templates_list = computed(() => {
 	});
 });
 
-// ── computed: outline tab ──────────────────────────────────
-let visible_sections = computed(() => {
-	if (!layout.value) return [];
-	return layout.value.sections.filter((s) => !s.remove);
-});
-
 // ── computed: misc ─────────────────────────────────────────
 let new_template_link = computed(
 	() => `/app/print-format-field-template/new?document_type=${meta.value?.name || ""}`
 );
 
-let margins = computed(() => [
-	{ label: __("Top"), fieldname: "margin_top" },
-	{ label: __("Bottom"), fieldname: "margin_bottom" },
-	{ label: __("Left", null, "alignment"), fieldname: "margin_left" },
-	{ label: __("Right", null, "alignment"), fieldname: "margin_right" },
-]);
-
-let page_number_positions = computed(() => [
-	{ label: __("Hide"), value: "Hide" },
-	{ label: __("Top Left"), value: "Top Left" },
-	{ label: __("Top Center"), value: "Top Center" },
-	{ label: __("Top Right"), value: "Top Right" },
-	{ label: __("Bottom Left"), value: "Bottom Left" },
-	{ label: __("Bottom Center"), value: "Bottom Center" },
-	{ label: __("Bottom Right"), value: "Bottom Right" },
-]);
-
 // ── lifecycle ──────────────────────────────────────────────
 onMounted(() => {
-	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
-	frappe.call(method).then((r) => {
-		google_fonts.value = r.message || [];
-		if (!google_fonts.value.includes(print_format.value.font)) {
-			google_fonts.value.push(print_format.value.font);
-		}
-	});
-
 	document.addEventListener("keydown", handle_slash_key);
+
+	// the watcher only fires on change, so a restored tab needs its setup run here
+	enter_tab(activeTab.value);
+	nextTick(move_indicator);
 });
 
 onUnmounted(() => {
@@ -535,8 +838,6 @@ function handle_slash_key(e) {
 		focus_search();
 	}
 }
-
-watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>
@@ -544,69 +845,27 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-sidebar {
 	width: 260px;
 	flex-shrink: 0;
-	height: calc(100vh - 95px);
+	height: calc(100vh - var(--pfb-chrome-offset, 95px));
 	display: flex;
 	flex-direction: column;
 	border-right: 1px solid var(--border-color);
 	background: var(--fg-color);
 }
 
-/* ── Tab bar ─────────────────────────────────────────────── */
-.pfb-tabbar {
-	display: flex;
-	padding: 6px 6px 0;
-	gap: 2px;
-	border-bottom: 1px solid var(--border-color);
+/* the tab bar itself is styled by espresso/components/tabs.css; the sidebar is
+   narrower than a page, so it takes a tighter rhythm than the default */
+.es-tabs {
 	flex-shrink: 0;
 }
 
-.pfb-tab {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 2px;
-	padding: 6px 2px 8px;
-	border: none;
-	background: transparent;
-	border-radius: var(--radius) var(--radius) 0 0;
-	color: var(--text-muted);
-	cursor: pointer;
-	transition: color 0.12s, background 0.12s;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	position: relative;
+.es-tabs__list {
+	gap: calc(var(--spacing) * 3);
+	padding-inline: calc(var(--spacing) * 3);
 }
 
-.pfb-tab:hover {
-	color: var(--text-color);
-	background: var(--gray-100);
-}
-
-.pfb-tab.active {
-	color: var(--primary);
-	background: var(--fg-color);
-}
-
-.pfb-tab.active::after {
-	content: "";
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 2px;
-	background: var(--primary);
-	border-radius: 2px 2px 0 0;
-}
-
-.pfb-tab-icon {
-	display: flex;
-	align-items: center;
-	line-height: 1;
-}
-
-.pfb-tab-label {
-	line-height: 1;
+.es-tabs__tab {
+	padding-block: calc(var(--spacing) * 2);
+	font-size: var(--text-sm);
 }
 
 /* ── Tab body ─────────────────────────────────────────────── */
@@ -673,7 +932,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-fields-header-title {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	letter-spacing: 0.06em;
 	color: var(--text-muted);
 }
 
@@ -686,8 +944,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-group-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	letter-spacing: 0;
 	color: var(--text-muted);
 	padding: 8px 10px 2px;
 	display: flex;
@@ -738,129 +995,9 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-field-type {
 	font-size: var(--text-tiny);
 	color: var(--gray-500);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-200);
-	border-radius: var(--radius);
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
-}
-
-.pfb-plus-icon {
-	opacity: 0;
-	flex-shrink: 0;
-	transition: opacity 0.1s;
-}
-
-.pfb-template-card:hover .pfb-plus-icon {
-	opacity: 1;
-}
-
-/* ── Block card (Blocks tab) ─────────────────────────────── */
-.pfb-block-card {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 8px 10px;
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-	background: var(--gray-50);
-	cursor: grab;
-	margin-top: 6px;
-}
-
-.pfb-block-card:hover {
-	background: var(--gray-100);
-	border-color: var(--gray-500);
-}
-
-.pfb-block-card--click {
-	cursor: pointer;
-}
-
-.pfb-block-icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	border-radius: var(--radius);
-	background: var(--gray-200);
-	flex-shrink: 0;
-}
-
-.pfb-block-info {
-	min-width: 0;
-}
-
-.pfb-block-name {
-	font-size: var(--text-sm);
-	font-weight: 500;
-}
-
-.pfb-block-desc {
-	font-size: var(--text-tiny);
-	margin-top: 1px;
-}
-
-/* ── Template card (Templates tab) ──────────────────────── */
-.pfb-template-card {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 8px 10px;
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-	background: var(--gray-50);
-	cursor: grab;
-	margin-top: 6px;
-}
-
-.pfb-template-card:hover {
-	background: var(--gray-100);
-	border-color: var(--gray-500);
-}
-
-.pfb-template-thumb {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 32px;
-	height: 32px;
-	border-radius: var(--radius);
-	background: var(--gray-200);
-	flex-shrink: 0;
-}
-
-.pfb-template-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.pfb-template-name {
-	font-size: var(--text-sm);
-	font-weight: 500;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.pfb-template-field {
-	font-size: var(--text-tiny);
-	margin-top: 1px;
-}
-
-.pfb-templates-empty {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding: 16px 0;
-}
-
-.pfb-templates-hint {
-	font-size: var(--text-tiny);
-	line-height: 1.5;
-	margin-top: 6px;
 }
 
 .pfb-manage-link {
@@ -870,58 +1007,100 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	letter-spacing: 0;
 }
 
-/* ── Outline tab ─────────────────────────────────────────── */
-.pfb-outline-item {
+.pfb-label-actions {
+	display: flex;
+	gap: 2px;
+	margin-right: -4px;
+}
+
+/* ── Outline tab (tree) ──────────────────────────────────── */
+.pfb-tree {
+	padding-top: 4px;
+}
+
+.pfb-tree-row {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 6px 8px;
+	gap: 6px;
+	padding: 4px 6px;
 	border-radius: var(--radius);
 	cursor: pointer;
-	margin-top: 2px;
 	font-size: var(--text-sm);
+	user-select: none;
 }
 
-.pfb-outline-item:hover {
-	background: var(--gray-100);
+.pfb-tree-row:hover,
+.pfb-tree-row.pfb-tree-hover {
+	outline: 1px solid var(--pfb-accent);
+	outline-offset: -1px;
 }
 
-.pfb-outline-item.active {
-	background: var(--blue-50);
-	color: var(--primary);
+.pfb-tree-row.active {
+	background: var(--gray-200);
+	color: var(--gray-900);
 	font-weight: 500;
 }
 
-.pfb-outline-idx {
-	font-size: var(--text-tiny);
-	font-variant-numeric: tabular-nums;
-	min-width: 18px;
-	text-align: right;
+.pfb-tree-chevron {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	color: var(--gray-500);
+	flex-shrink: 0;
+	transition: transform 0.12s ease;
 }
 
-.pfb-outline-label {
+.pfb-tree-chevron.collapsed {
+	transform: rotate(-90deg);
+}
+
+.pfb-tree-spacer {
+	width: 16px;
+	flex-shrink: 0;
+}
+
+.pfb-tree-icon {
+	display: flex;
+	align-items: center;
+	color: var(--gray-500);
+	flex-shrink: 0;
+}
+
+.pfb-tree-row.active .pfb-tree-icon {
+	color: var(--gray-700);
+}
+
+.pfb-tree-label {
 	flex: 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-/* ── Format tab ──────────────────────────────────────────── */
-.pfb-margin-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 6px;
-	margin-bottom: 6px;
+.pfb-tree-warn {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--text-on-orange, #b95000);
 }
 
-.pfb-margin-cell {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
+.pfb-tree-children {
+	margin-left: 18px;
 }
 
-.pfb-margin-label {
-	font-size: var(--text-tiny);
+.pfb-tree-fields {
+	min-height: 8px;
+}
+
+/* single-column sections have no Column row, so their fields sit directly
+   under the section instead of indenting past a row that isn't there */
+.pfb-tree-fields--flush {
+	margin-left: 0;
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

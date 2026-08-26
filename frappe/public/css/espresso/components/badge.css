@@ -5,8 +5,6 @@
  * Unlayered here (Frappe/Bootstrap is unlayered; a layer would lose to it). */
 
 .es-badge {
-  --es-sp: var(--spacing, 0.25rem);
-
   /* default theme = gray (gray is the exception: solid bg is -10, text is
      ink-base / ink-gray-6 instead of the -1 / -8 scale) */
   --c-solid-bg: var(--surface-gray-10);
@@ -18,7 +16,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--es-sp);
+  gap: var(--spacing);
   /* 1 step (gap-1) */
   width: fit-content;
   flex-shrink: 0;
@@ -30,8 +28,8 @@
   font-weight: var(--font-weight-regular, 420);
 
   /* default size = md */
-  height: calc(var(--es-sp) * 5);
-  padding-inline: calc(var(--es-sp) * 1.5);
+  height: calc(var(--spacing) * 5);
+  padding-inline: calc(var(--spacing) * 1.5);
   font-size: 0.75rem;
   line-height: 1;
 
@@ -42,13 +40,13 @@
 
 /* ---- sizes (override the md default) ---- */
 .es-badge[data-size="sm"] {
-  height: calc(var(--es-sp) * 4);
-  padding-inline: calc(var(--es-sp) * 1.5);
+  height: calc(var(--spacing) * 4);
+  padding-inline: calc(var(--spacing) * 1.5);
 }
 
 .es-badge[data-size="lg"] {
-  height: calc(var(--es-sp) * 6);
-  padding-inline: calc(var(--es-sp) * 2);
+  height: calc(var(--spacing) * 6);
+  padding-inline: calc(var(--spacing) * 2);
   font-size: 0.8125rem;
   letter-spacing: 0.02em;
 }
@@ -114,7 +112,7 @@
 
 /* ---- icons ----
  * One rule covers both framework idioms: React passes icons as direct <svg>
- * children (like the Raven badge); Vue wraps prefix/suffix slots in
+ * children; Vue wraps prefix/suffix slots in
  * .es-badge__affix (like the frappe-ui badge). Sizing lives here, not per app.
  * Icon size follows the badge size; the md default applies when size is absent. */
 .es-badge>svg {
@@ -124,8 +122,8 @@
 .es-badge>svg,
 .es-badge__affix {
   flex-shrink: 0;
-  width: calc(var(--es-sp) * 2.5);
-  height: calc(var(--es-sp) * 2.5);
+  width: calc(var(--spacing) * 2.5);
+  height: calc(var(--spacing) * 2.5);
 }
 
 .es-badge__affix {
@@ -134,8 +132,14 @@
   justify-content: center;
 }
 
+/* slot icons size to the affix, whatever size class they carry themselves */
+.es-badge__affix>svg {
+  width: 100%;
+  height: 100%;
+}
+
 .es-badge[data-size="lg"]>svg,
 .es-badge[data-size="lg"] .es-badge__affix {
-  width: calc(var(--es-sp) * 3);
-  height: calc(var(--es-sp) * 3);
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
 }

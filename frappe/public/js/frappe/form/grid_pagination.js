@@ -119,15 +119,29 @@ export default class GridPagination {
 				<span class="total-page-number page-number"> ${__(this.total_pages)} </span>
 			</div>`;
 
-		return $(`<button class="btn btn-secondary btn-xs first-page"">
-				<span>${__("First")}</span>
-			</button>
-			<button class="btn btn-secondary btn-xs prev-page">${frappe.utils.icon("left", "xs")}</button>
+		return $(`${frappe.ui.button.html({
+			label: __("First"),
+			size: "sm",
+			css_class: "first-page",
+		})}
+			${frappe.ui.button.html({
+				icon: "chevron-left",
+				title: __("Previous page"),
+				size: "sm",
+				css_class: "prev-page",
+			})}
 			${page_text_html}
-			<button class="btn btn-secondary btn-xs next-page">${frappe.utils.icon("right", "xs")}</button>
-			<button class="btn btn-secondary btn-xs last-page">
-				<span>${__("Last")}</span>
-			</button>`);
+			${frappe.ui.button.html({
+				icon: "chevron-right",
+				title: __("Next page"),
+				size: "sm",
+				css_class: "next-page",
+			})}
+			${frappe.ui.button.html({
+				label: __("Last"),
+				size: "sm",
+				css_class: "last-page",
+			})}`);
 	}
 
 	render_next_page() {

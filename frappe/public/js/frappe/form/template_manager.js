@@ -354,11 +354,11 @@ frappe.ui.form.TemplateManager = class TemplateManager {
 			html += `<div class="dt-pagination">
 				<button class="btn btn-secondary btn-xs dt-page-prev" title="${__(
 					"Previous"
-				)}" ${prevDisabled}>${frappe.utils.icon("left", "xs")}</button>
+				)}" ${prevDisabled}>${frappe.utils.icon("chevron-left", "xs")}</button>
 				<span class="text-muted text-small dt-page-info">${__("Page {0}", [current_page])}</span>
 				<button class="btn btn-secondary btn-xs dt-page-next" title="${__(
 					"Next"
-				)}" ${nextDisabled}>${frappe.utils.icon("right", "xs")}</button>
+				)}" ${nextDisabled}>${frappe.utils.icon("chevron-right", "xs")}</button>
 			</div>`;
 		}
 
@@ -389,7 +389,7 @@ frappe.ui.form.TemplateManager = class TemplateManager {
 			actionsHtml += `<button class="btn btn-default btn-xs dt-action-edit" title="${esc(
 				__("Open template")
 			)}" aria-label="${esc(__("Edit {0}", [template.template_name]))}">${frappe.utils.icon(
-				"edit",
+				"pencil",
 				"xs"
 			)}</button>`;
 		}

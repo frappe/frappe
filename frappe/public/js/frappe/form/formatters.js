@@ -68,11 +68,8 @@ frappe.form.formatters = {
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
 		} else {
 			// show 1.000000 as 1
-			if (!(options || {}).always_show_decimals && !is_null(value)) {
-				var temp = cstr(value).split(".");
-				if (temp[1] == undefined || cint(temp[1]) === 0) {
-					precision = 0;
-				}
+			if (!(options || {}).always_show_decimals && !is_null(value) && flt(value) % 1 === 0) {
+				precision = 0;
 			}
 
 			value = value == null || value === "" ? "" : value;
@@ -95,7 +92,8 @@ frappe.form.formatters = {
 			return "";
 		}
 
-		const valuePrecision = value?.toString().split(".")[1]?.length || 0;
+		const [mantissa, exponent] = cstr(value).toLowerCase().split("e");
+		const valuePrecision = Math.max((mantissa.split(".")[1]?.length || 0) - cint(exponent), 0);
 
 		const precision =
 			docfield.precision ||
@@ -133,12 +131,10 @@ frappe.form.formatters = {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
 
 		let precision;
-		if (typeof docfield.precision == "number") {
-			precision = docfield.precision;
+		if (typeof docfield.precision == "number" || docfield.precision) {
+			precision = cint(docfield.precision);
 		} else {
-			precision = cint(
-				docfield.precision || frappe.boot.sysdefaults.currency_precision || 2
-			);
+			precision = frappe.meta.get_field_precision(docfield, doc);
 		}
 
 		// If you change anything below, it's going to hurt a company in UAE, a bit.
@@ -167,7 +163,7 @@ frappe.form.formatters = {
 	},
 	Check: function (value) {
 		return `<input type="checkbox" disabled
-			class="disabled-${value ? "selected" : "deselected"}">`;
+			class="disabled-${cint(value) ? "selected" : "deselected"}">`;
 	},
 
 	Link: function (value, docfield, options, doc) {
@@ -357,11 +353,13 @@ frappe.form.formatters = {
 				"<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\
 				style='padding-bottom: 4px; cursor: pointer;'>\
-				<i class='fa fa-small fa-white fa-%(icon)s'></i> %(value)s</span>",
+				%(icon)s %(value)s</span>",
 				{
 					value: value,
 					style: workflow_state.style.toLowerCase(),
-					icon: workflow_state.icon,
+					icon: workflow_state.icon
+						? frappe.utils.icon(workflow_state.icon, "xs", "", "", "", true)
+						: "",
 				}
 			);
 		} else {

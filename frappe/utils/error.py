@@ -2,20 +2,21 @@
 # License: MIT. See LICENSE
 
 import functools
+import hashlib
 import inspect
+import os
 import re
+import sys
+import traceback as traceback_module
 from collections import Counter
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe.monitor import add_data_to_monitor
 
-EXCLUDE_EXCEPTIONS = (
-	frappe.AuthenticationError,
-	frappe.CSRFTokenError,  # CSRF covers OAuth too
-	frappe.SecurityException,
-	frappe.InReadOnlyMode,
-)
+if TYPE_CHECKING:
+	from frappe.core.doctype.error_log.error_log import ErrorLog
 
 LDAP_BASE_EXCEPTION = "LDAPException"
 
@@ -34,10 +35,16 @@ def _is_ldap_exception(e):
 	return False
 
 
-def log_error(title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False):
+def log_error(
+	title=None,
+	message=None,
+	reference_doctype=None,
+	reference_name=None,
+	*,
+	defer_insert=False,
+) -> "ErrorLog":
 	"""Log error to Error Log"""
 	from frappe.monitor import get_trace_id
-	from frappe.utils.sentry import capture_exception
 
 	# Parameter ALERT:
 	# the title and message may be swapped
@@ -51,8 +58,13 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		else:
 			traceback = message
 
-	title = title or "Error"
 	traceback = frappe.as_unicode(traceback or frappe.get_traceback(with_context=True))
+
+	if not title:
+		if traceback:
+			title = traceback.splitlines()[-1][:140]
+		else:
+			title = "Error"
 
 	if not frappe.db:
 		print(f"Failed to log error in db: {title}")
@@ -60,6 +72,7 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 
 	trace_id = get_trace_id()
 	metadata = get_error_metadata()
+	fingerprint = get_error_fingerprint()
 
 	error_log = frappe.get_doc(
 		doctype="Error Log",
@@ -69,15 +82,48 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		reference_name=reference_name,
 		trace_id=trace_id,
 		metadata=metadata,
+		fingerprint=fingerprint,
 	)
-
-	# Capture exception data if telemetry is enabled
-	capture_exception(message=f"{title}\n{traceback}")
 
 	if frappe.flags.read_only or defer_insert:
 		error_log.deferred_insert()
 	else:
-		return error_log.insert(ignore_permissions=True)
+		error_log.insert(ignore_permissions=True)
+
+	# Capture exception data if telemetry is enabled
+	if os.getenv("FRAPPE_SENTRY_DSN"):
+		from frappe.utils.sentry import capture_exception
+
+		capture_exception(message=f"{title}\n{traceback}")
+
+	return error_log
+
+
+def get_error_fingerprint(exception: BaseException | None = None) -> str | None:
+	"""Compute a stable fingerprint for an exception.
+
+	This hashes the *relevant* parts of the exception so that identical errors can be grouped and
+	counted together. For each stack frame we combine the file, line number and function, along
+	with the exception type.
+	"""
+	from frappe.utils import get_bench_path
+
+	with suppress(Exception):
+		if exception is None:
+			exception = sys.exc_info()[1]
+
+		if exception is None:
+			return None
+
+		bench_path = get_bench_path() + "/"
+
+		parts = [type(exception).__name__]
+		for frame, lineno in traceback_module.walk_tb(exception.__traceback__):
+			code = frame.f_code
+			filename = code.co_filename.replace(bench_path, "")
+			parts.append(f"{filename}:{lineno}:{code.co_name}")
+
+		return hashlib.sha1("\n".join(parts).encode(), usedforsecurity=False).hexdigest()
 
 
 def get_error_metadata() -> str:
@@ -116,7 +162,7 @@ def get_error_metadata() -> str:
 
 
 def log_error_snapshot(exception: Exception):
-	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
+	if getattr(exception, "skip_error_log", False) or _is_ldap_exception(exception):
 		return
 
 	logger = frappe.logger(with_more_info=True)

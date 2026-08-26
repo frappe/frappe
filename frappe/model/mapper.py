@@ -11,21 +11,25 @@ from frappe.utils import cstr
 
 @frappe.whitelist()
 def make_mapped_doc(
-	method: str, source_name: str, selected_children: str | None = None, args: str | None = None
+	method: str,
+	source_name: str,
+	selected_children: str | list | dict | None = None,
+	args: str | dict | None = None,
 ):
 	"""Return the mapped document calling the given mapper method.
 	Set `selected_children` as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js"""
-	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+	resolved_method_path = frappe.override_whitelisted_method(method)
+	method = frappe.get_attr(resolved_method_path)
 
 	frappe.is_whitelisted(method)
 
 	if selected_children:
-		selected_children = json.loads(selected_children)
+		selected_children = frappe.parse_json(selected_children)
 
 	if args:
-		frappe.flags.args = frappe._dict(json.loads(args))
+		frappe.flags.args = frappe._dict(frappe.parse_json(args))
 
 	frappe.flags.selected_children = selected_children or None
 
@@ -33,19 +37,22 @@ def make_mapped_doc(
 
 
 @frappe.whitelist()
-def map_docs(method: str, source_names: str, target_doc: Document | dict | str, args: str | None = None):
+def map_docs(
+	method: str, source_names: str | list, target_doc: Document | dict | str, args: str | dict | None = None
+):
 	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
 
 	:param args: Args as string to pass to the mapper method
 
 	e.g. args: "{ 'supplier': 'XYZ' }"
 	"""
-	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+	resolved_method_path = frappe.override_whitelisted_method(method)
+	method = frappe.get_attr(resolved_method_path)
 
 	frappe.is_whitelisted(method)
 
-	for src in json.loads(source_names):
-		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
+	for src in frappe.parse_json(source_names):
+		_args = (src, target_doc, frappe.parse_json(args)) if args else (src, target_doc)
 		target_doc = method(*_args)
 	return target_doc
 
@@ -80,6 +87,9 @@ def get_mapped_doc(
 			ret_doc = target_doc
 	elif isinstance(target_doc, str):
 		target_doc = frappe.get_doc(json.loads(target_doc))
+		ret_doc = target_doc
+	elif isinstance(target_doc, dict):
+		target_doc = frappe.get_doc(target_doc)
 		ret_doc = target_doc
 	else:
 		ret_doc = target_doc

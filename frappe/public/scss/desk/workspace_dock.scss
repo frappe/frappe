@@ -1,0 +1,294 @@
+// Slim vertical rail left of the body sidebar listing the current app's workspaces as icons, with
+// the app logo pinned to the top corner. Rendered by frappe.ui.WorkspaceDock and opt-in per app.
+//
+// Styles mirror the frappe-ui <Rail> / <RailItem> component so the dock renders identically to the
+// Vue rail. Values map straight across: 50px column on --surface-sidebar; 28px items; workspace
+// icons use the `tile` treatment (filled cell + left indicator bar when active) and the bell uses
+// the `ghost` treatment (transparent until hovered).
+.workspace-dock {
+	position: relative;
+	flex: 0 0 50px;
+	width: 50px;
+	height: 100vh;
+	z-index: 1020;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	// items (28px) centre in the 50px column, so the rail's 11px side gutter falls out of centring
+	// with no explicit padding; no top padding keeps the logo aligned with the navbar band.
+	padding: 0 0 12px 0;
+
+	background: var(--surface-sidebar);
+	border-right: 1px solid var(--border-color);
+
+	&.hidden {
+		display: none;
+	}
+
+	.workspace-dock-logo {
+		flex: 0 0 auto;
+		// match the navbar / sidebar-header band so the logo lines up with them
+		height: var(--navbar-height, 48px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		a {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			// sized like an item cell so the logo reads as part of the rail
+			width: 28px;
+			height: 28px;
+			border-radius: 7px;
+			overflow: hidden;
+		}
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+		}
+	}
+
+	.workspace-dock-divider {
+		flex: 0 0 auto;
+		width: 24px;
+		height: 1px;
+		margin: 8px 0;
+		background: var(--outline-gray-1);
+	}
+
+	// The divider right below the logo hugs the navbar-height band -- the logo is already centred in
+	// its 48px band, so no extra top margin is stacked on top of it; its 8px bottom margin then
+	// matches the gap on every other divider, keeping the rhythm even.
+	.workspace-dock-logo + .workspace-dock-divider {
+		margin-top: 0;
+	}
+
+	// Icon shortcuts (search, notifications) pinned under the logo, bracketed by a divider above and
+	// below. A centred icon column whose 8px gap matches the dividers' margins, so every gap in the
+	// top of the rail reads the same. Collapses to nothing when no shortcut is enabled.
+	.workspace-dock-shortcuts {
+		flex: 0 0 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	// with no shortcuts, drop the divider that would sit under them so two dividers don't stack up
+	.workspace-dock-shortcuts:empty + .workspace-dock-divider {
+		display: none;
+	}
+
+	.workspace-dock-items {
+		flex: 1 1 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+
+		overflow-y: auto;
+		// hide the scrollbar -- the rail is too narrow to spare the width
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	.workspace-dock-user {
+		flex: 0 0 auto;
+		padding: 0;
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		.avatar {
+			margin: 0;
+		}
+
+		&.user-menu-active {
+			box-shadow: 0 0 0 2px var(--surface-gray-4);
+		}
+	}
+
+	// Workspace icon — mirrors <RailItem variant="tile">: a filled 28px cell (7px radius) that darkens
+	// on active, with a left indicator bar sitting flush against the rail's edge.
+	.workspace-dock-item {
+		position: relative;
+		flex: 0 0 auto;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		border: none;
+		border-radius: 7px;
+		background: var(--surface-gray-3);
+		color: var(--ink-gray-8);
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+
+		svg,
+		img {
+			width: 16px;
+			height: 16px;
+		}
+
+		&.active {
+			background: var(--surface-gray-4);
+
+			// left indicator bar — the tile variant's active affordance
+			&::before {
+				content: "";
+				position: absolute;
+				left: -11px;
+				top: 50%;
+				transform: translateY(-50%);
+				width: 4px;
+				height: 28px;
+				border-top-right-radius: 4px;
+				border-bottom-right-radius: 4px;
+				background: var(--surface-gray-8);
+			}
+		}
+
+		// unread indicator — a small dot on the bell's top-right corner (mirrors <RailItemBadge> dot)
+		.notification-count {
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			width: 8px;
+			height: 8px;
+			padding: 0;
+			border-radius: 50%;
+			border: 1px solid var(--surface-base);
+			background: var(--surface-blue-5);
+			// dot only — hide any count text the shared notifications view sets on it
+			font-size: 0;
+			color: transparent;
+			overflow: hidden;
+
+			&.hidden {
+				display: none;
+			}
+		}
+	}
+
+	// Search / notification shortcuts are not workspaces — mirror <RailItem variant="ghost">:
+	// transparent until hovered, 8px radius.
+	.workspace-dock-shortcuts .workspace-dock-item {
+		background: transparent;
+		border-radius: 8px;
+
+		&:hover {
+			background: var(--surface-gray-3);
+		}
+	}
+}
+
+// the user menu and notification bell live in the dock while it's active -- drop the sidebar copies
+body.workspace-dock-active .body-sidebar {
+	.dropdown-navbar-user,
+	.sidebar-notification {
+		display: none;
+	}
+}
+
+// Right-edge handle that reopens the collapsed body sidebar -- the mirror of the sidebar's own
+// .sidebar-resize-handle. Only present while collapsed (body.sidebar-collapsed), so it doesn't
+// offer an expand affordance when the sidebar is already open.
+.workspace-dock-resize-handle {
+	position: absolute;
+	top: 0;
+	right: -4px;
+	width: 8px;
+	height: 100%;
+	z-index: 1022;
+	cursor: e-resize;
+	display: none;
+
+	&::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 0;
+		transform: translateX(-50%);
+		width: 2px;
+		height: 100%;
+		background: transparent;
+		transition: background 0.15s ease;
+	}
+
+	&:hover::after {
+		background: var(--ink-gray-2);
+	}
+}
+
+body.sidebar-collapsed .workspace-dock-resize-handle {
+	display: block;
+}
+
+// The visible twin of the handle above, mirroring .body-sidebar .sidebar-toggle-btn so the expand
+// affordance lands in the same spot and looks the same as the collapse one it replaces.
+.workspace-dock-toggle-btn {
+	position: absolute;
+	right: -12px;
+	bottom: 80px;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	border: 1px solid var(--sidebar-border-color);
+	background: var(--surface-sidebar);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.15s ease, visibility 0.15s ease;
+	z-index: 1023;
+	display: none;
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	&:hover {
+		background: var(--sidebar-hover-color);
+	}
+}
+
+body.sidebar-collapsed .workspace-dock-toggle-btn {
+	display: flex;
+}
+
+body.sidebar-collapsed .workspace-dock:hover .workspace-dock-toggle-btn {
+	opacity: 1;
+	visibility: visible;
+}
+
+// mirror the body sidebar: the rail collapses away on mobile
+@include media-breakpoint-down(sm) {
+	.workspace-dock {
+		display: none;
+	}
+}

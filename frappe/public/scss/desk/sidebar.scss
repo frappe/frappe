@@ -5,6 +5,7 @@
 	--sidebar-border-color: #ededed;
 	--divider-color: rgba(237, 237, 237, 1);
 	--sidebar-width: 220px;
+	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
 }
 
 [data-theme="dark"] {
@@ -12,6 +13,8 @@
 	--sidebar-active-color: rgba(66, 66, 66, 1);
 	--sidebar-border-color: #232323;
 	--divider-color: rgba(52, 52, 52, 1);
+	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.5), 0 1px 3px 0 rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 // sidebar-item states
@@ -28,26 +31,36 @@
 	width: fit-content;
 
 	.body-sidebar-placeholder {
-		display: none;
-		width: 50px;
-		height: 100vh;
+		// reserves the panel's width in-flow so the main section glides across as the panel animates
+		// in/out; the panel itself is absolutely positioned over this
+		width: var(--sidebar-width);
+		height: 100vh; // fallback for engines without dvh
+		height: 100dvh;
+		transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 }
 
 .body-sidebar {
-	position: relative;
-	width: 50px;
+	position: absolute;
+	width: var(--sidebar-width);
 	background: var(--surface-sidebar);
 	border-right: 1px solid var(--sidebar-border-color);
-	transition-property: all;
-	transition-duration: 0.3s;
-	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-	// @include transition(all, 0.3s ,cubic-bezier(0.4, 0, 0.2, 1));
+	// the panel's own chrome fades with its contents when collapsing / expanding, but the element
+	// itself stays put -- see the collapsed state below for why
+	transition: background 0.2s ease, border-color 0.2s ease;
+
+	// slide + fade every band of the panel when collapsing / expanding (see the collapsed state
+	// below); the notification / background-task dropdowns are deliberately excluded there, so
+	// they opt out of the transition here too
+	> *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
+		transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+	}
 
 	display: flex;
 	flex-direction: column;
-	gap: 14px;
-	height: 100vh;
+	gap: 12px;
+	height: 100vh; // fallback for engines without dvh
+	height: 100dvh;
 	z-index: 1020;
 	padding: 8px 8px 10px 8px;
 
@@ -111,6 +124,7 @@
 			align-items: center;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
+			margin-left: var(--margin-sm);
 		}
 
 		.item-anchor {
@@ -120,8 +134,8 @@
 			align-items: center;
 			// padding: 3px 0px 3px 11px;
 			flex: 1;
-			height: 30px;
-			color: var(--ink-gray-8);
+			height: 28px;
+			color: var(--ink-gray-6);
 			text-decoration: none;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
@@ -163,18 +177,29 @@
 		padding: 4px 0px;
 	}
 
-	.standard-items-sections {
-		.dropdown-notifications {
-			.notifications-list {
-				left: 100%;
-			}
-		}
+	// The notification / background-task dropdowns are overlays, not bands of the sidebar's flex
+	// column. Take them out of flow so opening one doesn't add the column's 12px gap and shove the
+	// first sidebar item down. `inset: 0` sizes each to the panel box, so the list inside keeps the
+	// same positioning context it had directly on .body-sidebar (no shift in where the panel opens).
+	// The transparent overlay stays click-through so the sidebar underneath is still interactive;
+	// the list itself opts back in.
+	.dropdown-notifications,
+	.dropdown-background-tasks {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
 
-		.dropdown-background-tasks {
-			.background-tasks-list {
-				left: 100%;
-			}
-		}
+	.notifications-list,
+	.background-tasks-list {
+		pointer-events: auto;
+	}
+
+	// the dropdowns open flush against the sidebar's right edge; the collapsed state repins them
+	// to the dock instead
+	.dropdown-notifications .notifications-list,
+	.dropdown-background-tasks .background-tasks-list {
+		left: 100%;
 	}
 }
 
@@ -237,6 +262,41 @@
 	@include body-sidebar-expanded();
 }
 
+// Collapsed: the workspace dock is the icon rail now, so the body sidebar leaves entirely rather
+// than shrinking to a strip. The placeholder animates its reserved width to 0 (the main section
+// glides left to fill it) while the panel's contents fade and slide out behind the dock. Reopening is done
+// from the dock's right-edge handle. Driven by the container's `expanded` class -- set at render
+// time -- so the initial paint lands in the right state with no flash or stray animation.
+.body-sidebar-container:not(.expanded) {
+	.body-sidebar-placeholder {
+		width: 0;
+	}
+
+	// The panel element stays in place because it's the positioning context for the notification /
+	// background-task dropdowns, and the dock's bell opens those while the sidebar is collapsed.
+	// So it's the panel's chrome and its content bands that leave, not the dropdowns themselves --
+	// an `opacity: 0` on the panel would take the dropdowns with it, and a child can't opt back in.
+	.body-sidebar {
+		background: transparent;
+		border-right-color: transparent;
+		pointer-events: none;
+
+		> *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
+			transform: translateX(-12px);
+			opacity: 0;
+		}
+
+		// the dropdowns are absolute overlays (see the base rule) so they stay put while the bands
+		// slide out, and their lists keep pointer-events even though the sidebar is inert. With the
+		// sidebar gone, `left: 100%` would open them a panel-width out into empty space -- pin them
+		// to the dock's right edge instead
+		.dropdown-notifications .notifications-list,
+		.dropdown-background-tasks .background-tasks-list {
+			left: 0;
+		}
+	}
+}
+
 @include media-breakpoint-down(sm) {
 	// body sidebar hidded in mobile view
 	.body-sidebar-container {
@@ -246,11 +306,9 @@
 			overflow: hidden;
 			transition-property: none;
 
-			.standard-items-sections {
-				.dropdown-notifications .notifications-list,
-				.dropdown-background-tasks .background-tasks-list {
-					left: 0;
-				}
+			.dropdown-notifications .notifications-list,
+			.dropdown-background-tasks .background-tasks-list {
+				left: 0;
 			}
 		}
 	}
@@ -293,7 +351,7 @@
 
 .active-sidebar {
 	background: var(--sidebar-active-color);
-	box-shadow: var(--shadow-sm);
+	box-shadow: var(--sidebar-active-shadow);
 	border-radius: 8px;
 
 	:hover {
@@ -378,41 +436,6 @@
 	}
 }
 
-.bottom-edit-controls {
-	display: flex;
-	gap: 35%;
-}
-
-.body-sidebar-container[data-mode="edit"] {
-	.standard-sidebar-item:hover {
-		& .sidebar-item-edit-controls {
-			visibility: visible;
-		}
-	}
-
-	.promotional-banners,
-	.dropdown-navbar-user {
-		display: none;
-	}
-}
-
-.sidebar-item-edit-controls {
-	visibility: hidden;
-	position: absolute;
-	right: 0;
-	display: flex;
-	gap: 6px;
-}
-
-.standard-sidebar-item[data-name="add-sidebar-item"] {
-	margin-top: 5px;
-	width: 100%;
-
-	& .sidebar-item-label {
-		color: var(--ink-gray-5) !important;
-	}
-}
-
 .menu-icon {
 	margin: 0px !important;
 }
@@ -424,7 +447,12 @@
 }
 
 .indent + .nested-container {
-	margin-left: 16px;
+	margin-left: calc(var(--margin-sm) + 1px);
+	border-left: 1px solid var(--border-color);
+
+	.sidebar-item-container {
+		margin-left: var(--margin-xs);
+	}
 }
 
 .sidebar-item-suffix {

@@ -34,13 +34,10 @@ body {
 	.page-card {
 		padding: 24px;
 		background-color: var(--bg-color);
-		max-width: 371px;
+		max-width: 400px;
 		width: 100%;
 		margin: 0 auto;
 		border-radius: var(--radius-lg);
-		display: flex;
-		flex-direction: column;
-		gap: var(--margin-lg);
 
 		@include media-breakpoint-down(xs) {
 			max-width: 100%;
@@ -50,171 +47,31 @@ body {
 			padding: 60px 32px 32px;
 		}
 
-		form {
-			display: flex;
-			flex-direction: column;
-			gap: 16px;
-			max-width: 100%;
-			margin: 0;
-
-			.form-group {
-				display: flex;
-				flex-direction: column;
-				align-items: flex-start;
-				gap: 6px;
-				align-self: stretch;
-				margin-bottom: 0;
-
-				&:has(.forgot-password-message) {
-					gap: 8px;
-				}
-			}
-		}
-
-		.page-card-actions {
-			margin-top: 0;
-			display: flex;
-			flex-direction: column;
-			gap: 12px;
-
-			.btn-login,
-			.btn-ldap-login {
-				@include get_textstyle("base", "regular");
-				line-height: 115%;
-				color: white;
-				background: var(--gray-900);
-				border: none;
-				box-shadow: none;
-				padding: 6px 8px;
-				border-radius: var(--radius);
-				width: 100%;
-
-				&:hover,
-				&:focus,
-				&:active {
-					background: var(--gray-800);
-					color: white;
-					border: none;
-					box-shadow: none;
-				}
-
-				&:disabled {
-					background: var(--gray-900);
-					color: white;
-					opacity: 1;
-					pointer-events: none;
-				}
+		.social-logins {
+			.btn-salesforce i {
+				color: var(--blue-400);
 			}
 
-			.btn-signup {
-				@include get_textstyle("base", "regular");
-				line-height: 115%;
-				background: var(--surface-gray-2);
-				color: var(--ink-gray-4);
-				border: none;
-				box-shadow: none;
-				padding: 6px 8px;
-				border-radius: var(--radius);
-				width: 100%;
+			.social-login-buttons {
+				margin-top: var(--margin-md);
 
-				&:not(:disabled) {
-					background: var(--surface-gray-10);
-					color: white;
+				.login-button-wrapper {
+					@include media-breakpoint-up(md) {
+						min-width: 33.33%;
+					}
 
-					&:hover,
-					&:focus,
-					&:active {
-						background: var(--gray-800);
-						color: white;
-						border: none;
-						box-shadow: none;
+					min-width: 50%;
+					padding: 0 4px;
+					margin-bottom: var(--margin-md);
+
+					&:last-child {
+						margin-bottom: 0;
 					}
 				}
-
-				&:disabled {
-					opacity: 1;
-					pointer-events: none;
-				}
-			}
-
-			.btn-login-option {
-				@include get_textstyle("base", "medium");
-				line-height: 115%;
-				color: var(--gray-800);
-				background: var(--gray-100);
-				box-shadow: none;
-				border: none;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				padding: 6px 8px;
-				margin-top: 0;
-				border-radius: var(--radius);
-				width: 100%;
-
-				&.btn-salesforce {
-					i {
-						color: var(--blue-400);
-					}
-				}
-
-				img {
-					margin-right: var(--padding-xs);
-				}
-
-				&:hover {
-					border: none;
-					background: var(--gray-200);
-				}
-			}
-
-			.social-logins {
-				@include get_textstyle("base", "regular");
-
-				.social-login-buttons {
-					margin-top: var(--margin-md);
-
-					.login-button-wrapper {
-						@include media-breakpoint-up(md) {
-							min-width: 33.33%;
-						}
-
-						min-width: 50%;
-						padding: 0 4px;
-						margin-bottom: var(--margin-md);
-
-						&:last-child {
-							margin-bottom: 0;
-						}
-					}
-				}
-			}
-
-			.resend-link {
-				display: none;
-				align-items: center;
-				gap: 8px;
-				align-self: stretch;
-				@include get_textstyle("base", "regular");
-				color: var(--ink-gray-6);
-				margin-bottom: 0;
-
-				a {
-					color: var(--ink-gray-6);
-					text-decoration: underline;
-				}
-			}
-
-			.login-divider {
-				margin: var(--margin-md) 0;
 			}
 		}
 
 		.page-card-body {
-			display: flex;
-			flex-direction: column;
-			gap: 14px;
-
 			::placeholder,
 			/* Chrome, Firefox, Opera, Safari 10.1+ */
 			::-ms-input-placeholder {
@@ -244,46 +101,8 @@ body {
 				}
 			}
 
-			.login-success-banner {
-				display: none;
-				padding: 6px 8px;
-				align-items: center;
-				gap: 8px;
-				align-self: stretch;
-				background-color: var(--surface-green-1);
-				border-radius: var(--radius);
-				@include get_textstyle("base", "regular");
-				line-height: 115%;
-				color: var(--ink-green-6);
-
-				svg {
-					fill: var(--ink-green-6);
-					flex-shrink: 0;
-				}
-			}
-
-			.login-error-banner {
-				display: none;
-				padding: 6px 8px;
-				align-items: center;
-				gap: 8px;
-				align-self: stretch;
-				background-color: var(--red-50);
-				border-radius: var(--radius);
-				@include get_textstyle("base", "regular");
-				color: var(--ink-red-8);
-
-				svg {
-					fill: var(--ink-red-8);
-					flex-shrink: 0;
-				}
-			}
-
 			.field-error {
 				display: none;
-				@include get_textstyle("base", "regular");
-				color: var(--ink-red-8);
-				margin-bottom: 0;
 			}
 
 			.form-group.invalid {
@@ -298,48 +117,19 @@ body {
 				}
 			}
 
-			.form-label {
-				@include get_textstyle("base", "regular");
-				color: var(--ink-gray-5);
-				width: 100%;
-				line-height: 115%;
-				margin-bottom: 0;
-			}
-
-			.forgot-password-message {
-				text-align: right;
-				align-self: stretch;
-				line-height: 115%;
-				margin-bottom: 0;
-
-				> * {
-					color: var(--ink-gray-5);
-					@include get_textstyle("base", "regular");
-				}
-			}
-
-			.field-icon {
-				left: 8px;
-				top: 50%;
-				transform: translateY(-50%);
-				position: absolute;
-				z-index: 2;
-				fill: var(--ink-gray-4);
-			}
-
 			.email-field,
 			.password-field {
 				position: relative;
 				width: 100%;
-
-				input {
-					padding-left: 38px;
-				}
 			}
 
 			.password-field {
 				input {
 					padding-right: 38px;
+
+					&::-ms-reveal {
+						display: none; /* Hide Edge's native password reveal icon */
+					}
 				}
 
 				.toggle-password {
@@ -349,28 +139,9 @@ body {
 					position: absolute;
 					z-index: 2;
 					cursor: pointer;
-					fill: var(--ink-gray-4);
+					stroke: var(--ink-gray-5);
 				}
 			}
-		}
-	}
-
-	.sign-up-message {
-		margin-top: auto;
-		margin-bottom: 0;
-		color: var(--ink-gray-6);
-		@include get_textstyle("sm", "regular");
-		line-height: 150%;
-
-		a {
-			color: var(--ink-gray-6);
-			font-weight: var(--weight-regular);
-			letter-spacing: 0.195px;
-			text-decoration-line: underline;
-			text-decoration-style: solid;
-			text-decoration-skip-ink: none;
-			text-decoration-thickness: 1px;
-			text-underline-position: from-font;
 		}
 	}
 
@@ -403,153 +174,8 @@ body {
 }
 
 .page-card-head {
-	padding: 0;
-	margin: 0;
-	text-align: left;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 16px;
-
 	img.app-logo {
 		max-height: 32px;
 		width: auto;
-	}
-
-	.page-card-head-text {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		align-self: stretch;
-	}
-
-	h4 {
-		margin: 0;
-		font-size: var(--text-2xl);
-		font-weight: var(--weight-bold);
-		letter-spacing: 0.01em;
-		line-height: 115%;
-		color: var(--heading-color);
-		align-self: stretch;
-	}
-
-	.page-card-subtitle {
-		margin: 0;
-		font-size: var(--text-base);
-		font-weight: var(--weight-regular);
-		line-height: 150%;
-		letter-spacing: 0.28px;
-		color: var(--ink-gray-6);
-	}
-}
-
-.for-reset-password {
-	.password-hint {
-		display: flex;
-		align-items: flex-start;
-		gap: 8px;
-		@include get_textstyle("sm", "regular");
-		color: var(--ink-gray-5);
-		margin-bottom: 0;
-		line-height: 150%;
-
-		svg {
-			fill: var(--ink-gray-4);
-			flex-shrink: 0;
-			margin-top: 1px;
-		}
-	}
-
-	.password-mismatch-message {
-		@include get_textstyle("sm", "regular");
-		color: var(--ink-red-8);
-		margin-bottom: 0;
-
-		&.hidden {
-			display: none;
-		}
-	}
-
-	.password-strength-message {
-		@include get_textstyle("sm", "regular");
-		color: var(--ink-gray-5);
-		margin-bottom: 0;
-
-		&.hidden {
-			display: none;
-		}
-	}
-
-	.password-strength-group {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: flex-start;
-		gap: 6px;
-		align-self: stretch;
-		margin-top: 2px;
-	}
-
-	.password-strength-container {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 10px;
-		align-self: stretch;
-		padding-top: 4px;
-
-		&.hidden {
-			display: none;
-		}
-
-		.password-strength-label {
-			@include get_textstyle("base", "medium");
-
-			&.strength-red {
-				color: var(--dark-red-500, #b01f1f);
-			}
-
-			&.strength-orange {
-				color: var(--dark-orange-500, var(--orange-700));
-			}
-
-			&.strength-blue {
-				color: var(--dark-blue-500, var(--blue-700));
-			}
-
-			&.strength-green {
-				color: var(--dark-green-500, var(--green-700));
-			}
-		}
-
-		.password-strength-bar-track {
-			height: 4px;
-			background: var(--surface-gray-2);
-			border-radius: var(--radius);
-			align-self: stretch;
-			overflow: hidden;
-		}
-
-		.password-strength-bar-fill {
-			height: 100%;
-			border-radius: 20px 4px 4px 20px;
-			transition: width 0.3s ease;
-
-			&.strength-red {
-				background: var(--dark-red-500, #b01f1f);
-			}
-
-			&.strength-orange {
-				background: var(--dark-orange-500, var(--orange-700));
-			}
-
-			&.strength-blue {
-				background: var(--dark-blue-500, var(--blue-700));
-			}
-
-			&.strength-green {
-				background: var(--dark-green-500, var(--green-700));
-			}
-		}
 	}
 }

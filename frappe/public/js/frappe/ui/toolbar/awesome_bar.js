@@ -26,6 +26,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			const input = search_modal.find("#navbar-search").get(0);
 			setTimeout(() => input.focus(), 10);
 		});
+		search_modal.on("hide.bs.modal", () => {
+			this._hook_search_seq = (this._hook_search_seq || 0) + 1;
+		});
 
 		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
 			<input
@@ -67,7 +70,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.addClass("cool-awesomebar-modal-footer")
 			.html(search_modal_footer);
 
-		$search_element.on("click", () => {
+		$(document).on("click", element, () => {
 			if (this.is_open()) {
 				this.close();
 				return;
@@ -107,6 +110,21 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			container: function (input) {
+				let container = document.createElement("div");
+				container.className = "awesomplete";
+				let input_row = document.createElement("div");
+				input_row.className = "awesomebar-input-row";
+				let icon = document.createElement("span");
+				icon.className = "awesomebar-search-icon";
+				icon.setAttribute("aria-hidden", "true");
+				icon.innerHTML = frappe.utils.icon("search", "sm");
+				input.parentNode.insertBefore(container, input);
+				input_row.appendChild(icon);
+				input_row.appendChild(input);
+				container.appendChild(input_row);
+				return container;
+			},
 			filter: function (text, term) {
 				return true;
 			},
@@ -119,7 +137,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			item: function (item, term) {
 				const d = this.get_item(item.value);
 				let target = "#";
-				if (d.route) {
+				if (is_external_url(d.route) || is_in_app_path(d.route)) {
+					target = first_route(d.route);
+				} else if (d.route) {
 					target = frappe.router.make_url(
 						frappe.router.convert_from_standard_route(
 							frappe.router.get_route_from_arguments(
@@ -127,18 +147,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
-				}
-				if (d.type == "sidebar") {
-					d.route_options = {
-						sidebar: d.description,
-					};
-				}
-				if (d.type == "Desktop Icon") {
-					target = frappe.utils.get_route_for_icon(d.icon_data);
-					d.route = target;
-					d.route_options = {
-						sidebar: d.icon_data.label,
-					};
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -169,6 +177,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				var txt = value.trim().replace(/\s\s+/g, " ");
 				var last_space = txt.lastIndexOf(" ");
 				me.global_results = [];
+				me._hook_search_seq = (me._hook_search_seq || 0) + 1;
 
 				me.options = [];
 
@@ -179,12 +188,22 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
+					if (frappe.boot.has_awesomebar_search) {
+						me.fetch_hook_results(txt, me._hook_search_seq);
+					}
 				} else {
 					me.options = me.options.concat(
 						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
 					);
 					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
+
+				// hide footer and remove spacing when there are no results
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(me.options?.length) == 0);
+				search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(me.options?.length) == 0);
+
 				let options = me.deduplicate(me.options);
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
@@ -219,14 +238,14 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 			if (item.onclick) {
 				item.onclick(item.match);
+			} else if (is_external_url(item.route)) {
+				window.open(first_route(item.route), "_blank");
+			} else if (is_in_app_path(item.route)) {
+				navigate_in_app_path(first_route(item.route), o.originalEvent);
 			} else {
 				let event = o.originalEvent;
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
-				}
-				if (item.route && item.route[0].startsWith("https://")) {
-					window.open(item.route[0], "_blank");
-					return;
 				}
 				frappe.set_route(item.route);
 			}
@@ -284,11 +303,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_doctype_layouts(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_desktop_icons(txt),
+				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
-				frappe.search.utils.get_executables(txt),
-				frappe.search.utils.get_marketplace_apps(txt)
+				frappe.search.utils.get_executables(txt)
 			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);
@@ -333,6 +351,26 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 	set_global_results(global_results, txt) {
 		this.global_results = this.global_results.concat(global_results);
+	}
+
+	fetch_hook_results(txt, seq) {
+		frappe.call({
+			method: "frappe.desk.search.awesomebar_search",
+			args: { txt },
+			callback: (r) => {
+				if (seq !== this._hook_search_seq || !r.message?.length) return;
+				this.options = this.deduplicate(this.options.concat(r.message));
+				this.options.sort((a, b) => b.index - a.index);
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
+				this.search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(this.options?.length) == 0);
+				this.awesomplete.options_with_desc = this.create_options_with_descriptions(
+					this.options
+				);
+				this.awesomplete.list = this.options;
+			},
+		});
 	}
 
 	make_global_search(txt) {
@@ -487,3 +525,42 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 	}
 };
+
+function first_route(route) {
+	return Array.isArray(route) ? route[0] : route;
+}
+
+function is_external_url(route) {
+	const first = first_route(route);
+	return (
+		typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"))
+	);
+}
+
+function is_in_app_path(route) {
+	const first = first_route(route);
+	return typeof first === "string" && first.startsWith("/") && !first.startsWith("//");
+}
+
+function is_desk_path(path) {
+	const pathname = path.split(/[?#]/)[0];
+	return (
+		pathname === "/desk" ||
+		pathname.startsWith("/desk/") ||
+		pathname === "/app" ||
+		pathname.startsWith("/app/")
+	);
+}
+
+function navigate_in_app_path(path, event) {
+	if (is_desk_path(path)) {
+		if (event.ctrlKey || event.metaKey) {
+			frappe.open_in_new_tab = true;
+		}
+		frappe.set_route(path);
+	} else if (event.ctrlKey || event.metaKey) {
+		window.open(path, "_blank");
+	} else {
+		window.location.href = path;
+	}
+}

@@ -202,7 +202,7 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 
 Cypress.Commands.add("get_field", (fieldname, fieldtype = "Data") => {
 	let field_element = fieldtype === "Select" ? "select" : "input";
-	let selector = `[data-fieldname="${fieldname}"] ${field_element}:visible`;
+	let selector = `[data-fieldname="${fieldname}"]:not(.search) ${field_element}:visible`;
 
 	if (fieldtype === "Text Editor") {
 		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]:visible`;
@@ -286,6 +286,14 @@ Cypress.Commands.add("clear_cache", () => {
 		.then((frappe) => {
 			frappe.ui.toolbar.clear_cache();
 		});
+});
+
+Cypress.Commands.add("desk_ready", () => {
+	cy.window({ log: false }).should((win) => {
+		expect(win.frappe && win.frappe.app, "desk booted").to.be.ok;
+		expect(win.frappe.request.ajax_count, "requests settled").to.eq(0);
+	});
+	cy.get(".layout-main-section:visible").should("not.be.empty");
 });
 
 Cypress.Commands.add("dialog", (opts) => {
@@ -446,7 +454,6 @@ const add_remove_role = (action, user, role, session_user) => {
 
 Cypress.Commands.add("open_list_filter", () => {
 	cy.get(".filter-section .filter-button").click();
-	cy.wait(300);
 	cy.get(".filter-popover").should("exist");
 });
 
@@ -454,14 +461,16 @@ Cypress.Commands.add("click_custom_action_button", (name) => {
 	cy.get(`.custom-actions [data-label="${encodeURIComponent(name)}"]`).click();
 });
 
+// the page header dropdowns are espresso menus now — the panel body-portals,
+// so rows are matched inside .es-menu, not inside the btn-group
 Cypress.Commands.add("click_action_button", (name) => {
 	cy.findByRole("button", { name: "Actions" }).click();
-	cy.get(`.actions-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
+	cy.get(".es-menu").contains('[role="menuitem"]', name).click();
 });
 
 Cypress.Commands.add("click_menu_button", (name) => {
-	cy.get(".standard-actions .menu-btn-group > .btn").click();
-	cy.get(`.menu-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
+	cy.get(".standard-actions .menu-btn-group > button").click();
+	cy.get(".es-menu").contains('[role="menuitem"]', name).click();
 });
 
 Cypress.Commands.add("clear_filters", () => {
@@ -471,7 +480,7 @@ Cypress.Commands.add("clear_filters", () => {
 
 Cypress.Commands.add("click_modal_primary_button", (btn_name) => {
 	cy.wait(400);
-	cy.get(".modal-footer > .standard-actions > .btn-primary")
+	cy.get(".modal-footer > .standard-actions > .btn-modal-primary")
 		.contains(btn_name)
 		.click({ force: true });
 });

@@ -647,7 +647,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	// TODO: Review! code related to headline should be the part of layout/form
 	set_headline(html, color, permanent = false) {
-		this.frm.layout.show_message(html, color, permanent);
+		return this.frm.layout.show_message(html, color, permanent);
 	}
 
 	clear_headline() {
@@ -669,7 +669,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	set_headline_alert(text, color, permanent = false) {
 		if (text) {
-			this.set_headline(`<div>${text}</div>`, color, permanent);
+			return this.set_headline(`<div>${text}</div>`, color, permanent);
 		} else {
 			this.clear_headline();
 		}

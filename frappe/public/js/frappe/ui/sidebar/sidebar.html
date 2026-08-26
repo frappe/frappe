@@ -1,54 +1,25 @@
 <div class="body-sidebar-container {%= expanded ? 'expanded' : ''%}">
 	<div class="body-sidebar-placeholder"></div>
 		<div class="body-sidebar">
-			<div class="standard-items-sections">
-				<div class="dropdown-notifications hidden">
-					<div class="notifications-list" role="menu">
-						<div class="notification-list-header">
-							<div class="header-items"></div>
-							<div class="header-actions"></div>
-						</div>
-						<div class="notification-list-body">
-							<div class="panel-notifications"></div>
-							<div class="panel-events"></div>
-							<div class="panel-changelog-feed"></div>
-						</div>
+			<div class="dropdown-notifications hidden">
+				<!-- contents are rendered by frappe.ui.Notifications -->
+				<div class="notifications-list" role="menu"></div>
+			</div>
+			<div class="dropdown-background-tasks hidden">
+				<div class="background-tasks-list" role="menu">
+					<div class="background-tasks-header">
+						<div class="bg-tasks-header-items"></div>
+						<div class="bg-tasks-header-actions"></div>
 					</div>
-				</div>
-				<div class="dropdown-background-tasks hidden">
-					<div class="background-tasks-list" role="menu">
-						<div class="background-tasks-header">
-							<div class="bg-tasks-header-items"></div>
-							<div class="bg-tasks-header-actions"></div>
-						</div>
-						<div class="background-tasks-body"></div>
-					</div>
+					<div class="background-tasks-body"></div>
 				</div>
 			</div>
 			<div class="body-sidebar-top">
 				<div class="sidebar-items">
 				</div>
-				<div class="edit-mode standard-sidebar-item hidden" data-name="add-sidebar-item" >
-					<a
-						class="item-anchor"
-					>
-						<span class="sidebar-item-icon text-ink-gray-7">
-							{%= frappe.utils.icon("add" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
-						</span>
-						<span class="sidebar-item-label">Add Sidebar Item<span>
-					</a>
-				</div>
 			</div>
 			<div class="body-sidebar-cards"></div>
 			<div class="body-sidebar-bottom">
-				<div class="edit-mode bottom-edit-controls hidden">
-					<button class="btn-outline btn-sm discard-button">
-						Discard
-					</button>
-					<button class="btn btn-primary btn-sm save-sidebar">
-						Save
-					</button>
-				</div>
 				<div class="promotional-banners"></div>
 				<p>
 					<a class="onboarding-sidebar px-2">
@@ -79,7 +50,7 @@
 				aria-label="{%= __('Toggle Sidebar') %}"
 				data-placement="right"
 			>
-				{%= frappe.utils.icon(expanded ? "chevron-left" : "chevron-right", "sm", "", "", "", true) %}
+				{%= frappe.utils.icon("chevron-left", "sm", "", "", "", true) %}
 			</button>
 			<div class="sidebar-resize-handle"></div>
 		</div>

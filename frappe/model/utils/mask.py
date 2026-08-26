@@ -1,5 +1,21 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import copy
+import json
+from typing import Any
+
+import frappe
+
+
+def as_aliased_field(df, alias: str | None):
+	"""Return the docfield keyed by the alias it is selected under, since masking matches
+	the result columns by fieldname (`items.rate as 'Item:rate'` lands under `Item:rate`)."""
+	if not alias:
+		return df
+
+	df = copy.copy(df)
+	df.fieldname = alias
+	return df
 
 
 def mask_field_value(field, val):
@@ -17,6 +33,7 @@ def mask_field_value(field, val):
 		- Email (Data + Email option): Shows "XXXXXX@domain"
 		- Date: Shows "XX-XX-XXXX"
 		- Time: Shows "XX:XX"
+		- Datetime: Shows "XX-XX-XXXX XX:XX"
 		- Default: Shows "XXXXXXXX"
 	"""
 	if not val:
@@ -34,8 +51,60 @@ def mask_field_value(field, val):
 		return "XX-XX-XXXX"
 	elif field.fieldtype == "Time":
 		return "XX:XX"
+	elif field.fieldtype == "Datetime":
+		return "XX-XX-XXXX XX:XX"
 	else:
 		return "XXXXXXXX"
+
+
+def mask_pluck_results(
+	result: list[Any],
+	masked_fields: list[Any],
+	fields: list[Any],
+) -> list[Any]:
+	"""Mask plucked (scalar) results.
+
+	With ``pluck``, the database layer has already reduced each row to the
+	scalar value of the first selected field, so ``result`` is a flat list of
+	values rather than a list of tuples/dicts. Mask each value when the
+	plucked expression references a masked field — directly, or transitively
+	through a wrapper (Coalesce, Max, aliased expressions, arithmetic, ...).
+
+	Args:
+		result: Flat list of scalar values (one per row)
+		masked_fields: List of DocField objects with masking configuration
+		fields: List of field objects from the query (the plucked field is first)
+
+	Returns:
+		List of scalar values, with the plucked value masked when the
+		plucked expression references any masked field.
+	"""
+	if not fields:
+		return result
+
+	masked_names = {f.fieldname for f in masked_fields}
+
+	# pypika's Term.fields_() returns every Field reference in the expression
+	# subtree, so Coalesce(secret, x) / Max(secret) / secret + suffix all
+	# surface the underlying "secret" reference. Non-Term items (raw string
+	# fieldnames) don't have fields_(); fall back to a shallow name check.
+	first = fields[0]
+	alias = getattr(first, "alias", None)
+
+	if alias and alias in masked_names:
+		hit_name = alias
+	elif hasattr(first, "fields_"):
+		hit_name = next((f.name for f in first.fields_() if f.name in masked_names), None)
+	else:
+		# child / link fields selected through dot notation carry `fieldname`, not `name`
+		name = getattr(first, "name", None) or getattr(first, "fieldname", None)
+		hit_name = name if name in masked_names else None
+
+	if not hit_name:
+		return result
+
+	masked_field = next(f for f in masked_fields if f.fieldname == hit_name)
+	return [mask_field_value(masked_field, val) for val in result]
 
 
 def mask_dict_results(result, masked_fields):
@@ -75,3 +144,71 @@ def mask_list_results(result, masked_fields, field_index_map):
 				row[idx] = mask_field_value(field, row[idx])
 		masked_result.append(tuple(row))  # Convert back to tuple
 	return masked_result
+
+
+def mask_version_data(versions: list[Any], ref_doctype: str) -> list[Any]:
+	"""Mask fields in Version payloads according to the current user's permissions."""
+	meta = frappe.get_meta(ref_doctype)
+	masked_fields = {df.fieldname: df for df in meta.get_masked_fields()}
+	child_masked_fields = {
+		table_field.fieldname: {df.fieldname: df for df in masked}
+		for table_field in meta.get_table_fields()
+		if (masked := frappe.get_meta(table_field.options).get_masked_fields(parenttype=ref_doctype))
+	}
+
+	if not masked_fields and not child_masked_fields:
+		return versions
+
+	masked_versions = []
+	for version in versions:
+		raw_data = version.get("data")
+		if not raw_data:
+			masked_versions.append(version)
+			continue
+		try:
+			data = json.loads(raw_data)
+		except ValueError:
+			masked_versions.append(version)
+			continue
+
+		changed = False
+
+		# top-level field changes: [fieldname, old, new]
+		for entry in data.get("changed") or []:
+			if len(entry) >= 3 and entry[0] in masked_fields:
+				df = masked_fields[entry[0]]
+				entry[1] = mask_field_value(df, entry[1])
+				entry[2] = mask_field_value(df, entry[2])
+				changed = True
+
+		# child row edits: [table_fieldname, row_index, row_name, [[fieldname, old, new], ...]]
+		for entry in data.get("row_changed") or []:
+			child_fields = child_masked_fields.get(entry[0])
+			if not child_fields:
+				continue
+			for child_entry in entry[3]:
+				if len(child_entry) >= 3 and child_entry[0] in child_fields:
+					df = child_fields[child_entry[0]]
+					child_entry[1] = mask_field_value(df, child_entry[1])
+					child_entry[2] = mask_field_value(df, child_entry[2])
+					changed = True
+
+		# child rows added/removed wholesale: [table_fieldname, row_dict]
+		for key in ("added", "removed"):
+			for entry in data.get(key) or []:
+				table_fieldname, row = entry[0], entry[1]
+				child_fields = child_masked_fields.get(table_fieldname)
+				if not child_fields or not isinstance(row, dict):
+					continue
+				if any(fieldname in row for fieldname in child_fields):
+					mask_dict_results([row], child_fields.values())
+					changed = True
+
+		if changed:
+			masked_version = version.copy()
+			masked_version["data"] = frappe.as_json(data, indent=None, separators=(",", ":"))
+			masked_versions.append(masked_version)
+		else:
+			masked_versions.append(version)
+
+	return masked_versions

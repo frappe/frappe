@@ -144,8 +144,7 @@ context("Data Control", () => {
 		//Deleting the inserted document
 		cy.go_to_list("Test Data Control");
 		cy.get(".list-row-checkbox").eq(0).click({ force: true });
-		cy.get(".actions-btn-group > .btn").contains("Actions").click();
-		cy.get('.actions-btn-group > .dropdown-menu [data-label="Delete"]').click();
-		cy.click_modal_primary_button("Yes");
+		cy.click_action_button("Delete");
+		cy.click_modal_primary_button("Delete");
 	});
 });

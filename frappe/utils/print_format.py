@@ -1,12 +1,9 @@
 import http
-import json
 import os
 import uuid
 from io import BytesIO
 from typing import Literal
 from urllib.parse import urlparse
-
-from pypdf import PdfWriter
 
 import frappe
 from frappe import _
@@ -19,7 +16,6 @@ from frappe.utils.pdf import get_pdf
 no_cache = 1
 
 base_template_path = "www/printview.html"
-standard_format = "templates/print_formats/standard.html"
 
 from frappe.www.printview import validate_print_permission
 
@@ -61,7 +57,7 @@ def download_multi_pdf_async(
 	if isinstance(doctype, dict):
 		doc_count = sum([len(doctype[dt]) for dt in doctype])
 	else:
-		doc_count = len(json.loads(name))
+		doc_count = len(frappe.parse_json(name))
 
 	frappe.enqueue(
 		_download_multi_pdf,
@@ -122,30 +118,70 @@ def _download_multi_pdf(
 	"""
 	filename = ""
 
+	from pypdf import PdfWriter
+
 	pdf_writer = PdfWriter()
 
-	if isinstance(options, str):
-		options = json.loads(options)
+	options = frappe.parse_json(options)
+
+	if (options or {}).get("password") and format:
+		# Typst can't encrypt — failing here once beats silently dropping
+		# every document inside the loop below
+		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
+			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
+
+	def print_into_writer(print_doctype, print_name):
+		"""Route one document into the shared writer — builder formats through the
+		generator (which dispatches Typst), everything else through get_print."""
+		from frappe.printing.doctype.print_format.classic_converter import (
+			get_default_print_format,
+			uses_beta_renderer,
+		)
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+		from frappe.www.printview import set_link_titles, validate_print
+
+		pf_doc = _print_format_doc_or_none(format)
+		if not ((pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(pf_doc) == "chrome"):
+			return frappe.get_print(
+				print_doctype,
+				print_name,
+				format,
+				as_pdf=True,
+				output=pdf_writer,
+				no_letterhead=no_letterhead,
+				letterhead=letterhead,
+				pdf_options=options,
+			)
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		doc = frappe.get_doc(print_doctype, print_name)
+		validate_print(doc)
+		set_link_titles(doc)
+		pf = pf_doc or get_default_print_format(print_doctype)
+		generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
+		pdf = generator.render_pdf(password=(options or {}).get("password"))
+		for page in PdfReader(BytesIO(pdf)).pages:
+			pdf_writer.add_page(page)
+		return pdf_writer
 
 	if not isinstance(doctype, dict):
-		result = json.loads(name)
+		result = frappe.parse_json(name)
 		total_docs = len(result)
 		filename = f"{doctype}_"
 
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
-				pdf_writer = frappe.get_print(
-					doctype,
-					ss,
-					format,
-					as_pdf=True,
-					output=pdf_writer,
-					no_letterhead=no_letterhead,
-					letterhead=letterhead,
-					pdf_options=options,
-				)
+				pdf_writer = print_into_writer(doctype, ss)
 			except Exception:
+				frappe.log_error(
+					title="Error in Multi PDF download",
+					reference_doctype=doctype,
+					reference_name=ss,
+				)
 				if task_id:
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
 
@@ -172,16 +208,7 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
-					pdf_writer = frappe.get_print(
-						doctype_name,
-						doc_name,
-						format,
-						as_pdf=True,
-						output=pdf_writer,
-						no_letterhead=no_letterhead,
-						letterhead=letterhead,
-						pdf_options=options,
-					)
+					pdf_writer = print_into_writer(doctype_name, doc_name)
 				except Exception:
 					if task_id:
 						frappe.publish_realtime(task_id=task_id, message="Failed")
@@ -232,6 +259,7 @@ from frappe.deprecation_dumpster import read_multi_pdf
 
 
 @frappe.whitelist(allow_guest=True)
+@frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,
 	name: str,
@@ -242,9 +270,6 @@ def download_pdf(
 	letterhead: str | None = None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
 ):
-	if pdf_generator is None:
-		pdf_generator = "wkhtmltopdf"
-
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
@@ -266,6 +291,7 @@ def download_pdf(
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
@@ -274,11 +300,42 @@ def report_to_pdf(html: str, orientation: str = "Landscape"):
 		{
 			"orientation": orientation,
 			"proxy": "http://0.0.0.0:0",
-			"bypass-proxy-for": urlparse(frappe.utils.get_url(allow_header_override=False)).hostname,
+			"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
 			"load-error-handling": "ignore",
 		},
 	)
 	frappe.local.response.type = "pdf"
+
+
+def _pdf_bypass_proxy_hosts() -> list[str]:
+	"""Hosts wkhtmltopdf is allowed to fetch from while rendering a report PDF.
+
+	The report HTML is built client-side and posted back, so its asset URLs are
+	absolute against whichever domain the user is browsing. wkhtmltopdf is pinned
+	to a dead proxy and only bypasses it for these hosts, so a site reached via a
+	secondary domain would otherwise fail every asset fetch with UnknownNetworkError.
+
+	Always allows the canonical host. Additional hosts (e.g. a site's alternate
+	domains) can be allowed via the `domains` site config key. The bypass list is
+	limited to these, so genuinely external resources stay blocked.
+	"""
+	hosts = {_hostname(frappe.utils.get_url(allow_header_override=False))}
+	hosts.update(_hostname(domain) for domain in (frappe.conf.domains or []))
+	hosts.discard(None)
+	return sorted(hosts)
+
+
+def _hostname(value: str) -> str | None:
+	"""Bare hostname for a `--bypass-proxy-for` entry.
+
+	wkhtmltopdf wants a bare host, but config values may arrive as a full URL,
+	with a scheme, or with a port (e.g. "https://a.com", "a.com:443"). urlparse
+	only finds the host in the netloc, so give bare values one before parsing —
+	otherwise an un-normalized entry silently fails the bypass for that domain.
+	"""
+	if "://" not in value:
+		value = "//" + value
+	return urlparse(value).hostname
 
 
 @frappe.whitelist()
@@ -290,7 +347,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 
 	if isinstance(doc, str):
 		try:
-			doc = json.loads(doc)
+			doc = frappe.parse_json(doc)
 		except Exception:
 			doc = {}
 
@@ -344,6 +401,9 @@ def print_by_server(
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
 		conn = cups.Connection()
+
+		from pypdf import PdfWriter
+
 		output = PdfWriter()
 		output = frappe.get_print(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output

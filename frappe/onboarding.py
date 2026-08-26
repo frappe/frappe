@@ -10,8 +10,8 @@ def get_onboarding_status():
 
 
 @frappe.whitelist()
-def update_user_onboarding_status(steps: str, appName: str):
-	steps = json.loads(steps)
+def update_user_onboarding_status(steps: str | list | dict, appName: str):
+	steps = frappe.parse_json(steps)
 
 	# get the current onboarding status
 	onboarding_status = frappe.db.get_value("User", frappe.session.user, "onboarding_status")

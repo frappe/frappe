@@ -155,7 +155,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				if (!is_null(v)) ret[f.df.fieldname] = v;
 			}
 
-			if (this.is_dialog && f.df.reqd && !f.value) {
+			if ((this.is_dialog || this.doctype === "Web Form") && f.df.reqd && !f.value) {
 				f.refresh_input();
 			}
 

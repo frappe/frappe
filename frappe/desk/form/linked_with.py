@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import itertools
-import json
 from collections import defaultdict
 
 import frappe
@@ -41,8 +40,7 @@ def get_submitted_linked_docs(
 	        you will be finding documents using parent document and parent document links.
 	"""
 
-	if isinstance(ignore_doctypes_on_cancel_all, str):
-		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
+	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
 
 	frappe.has_permission(doctype, doc=name, throw=True)
 	tree = SubmittableDocumentTree(doctype, name)
@@ -370,7 +368,7 @@ def get_referencing_documents(
 
 
 @frappe.whitelist()
-def cancel_all_linked_docs(docs: str, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
+def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
@@ -381,9 +379,8 @@ def cancel_all_linked_docs(docs: str, ignore_doctypes_on_cancel_all: str | list[
 	if ignore_doctypes_on_cancel_all is None:
 		ignore_doctypes_on_cancel_all = []
 
-	docs = json.loads(docs)
-	if isinstance(ignore_doctypes_on_cancel_all, str):
-		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
+	docs = frappe.parse_json(docs)
+	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
 	for i, doc in enumerate(docs, 1):
 		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
 			linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
@@ -428,9 +425,8 @@ def get_exempted_doctypes():
 
 
 def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
-	if isinstance(linkinfo, str):
-		# additional fields are added in linkinfo
-		linkinfo = json.loads(linkinfo)
+	# additional fields are added in linkinfo
+	linkinfo = frappe.parse_json(linkinfo)
 
 	results = {}
 
@@ -538,6 +534,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			)
 
 		permitted_count = len(ret or [])
+		assert permitted_count <= total_count, "permitted linked docs cannot exceed total linked docs"
 		results[linked_doctype] = {
 			"docs": ret or [],
 			"hidden_count": total_count - permitted_count,

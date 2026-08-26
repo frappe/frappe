@@ -31,6 +31,7 @@ class FrappeTypeError(TypeError):
 
 class AuthenticationError(Exception):
 	http_status_code = 401
+	skip_error_log = True
 
 
 class SessionExpired(Exception):
@@ -80,6 +81,7 @@ class Redirect(Exception):
 
 class CSRFTokenError(Exception):
 	http_status_code = 400
+	skip_error_log = True
 
 
 class TooManyRequestsError(Exception):
@@ -199,6 +201,10 @@ class AppNotInstalledError(ValidationError):
 	pass
 
 
+class AppDisabledError(AppNotInstalledError):
+	pass
+
+
 class IncorrectSitePath(NotFound):
 	pass
 
@@ -220,7 +226,7 @@ class CircularLinkingError(ValidationError):
 
 
 class SecurityException(Exception):
-	pass
+	skip_error_log = True
 
 
 class InvalidColumnName(ValidationError):
@@ -252,15 +258,17 @@ class AttachmentLimitReached(ValidationError):
 
 
 class QueryTimeoutError(Exception):
-	pass
+	# frappe convention: 508 means a concurrent transaction is blocking this one, retry later
+	http_status_code = 508
 
 
 class QueryDeadlockError(Exception):
-	pass
+	http_status_code = 508
 
 
 class InReadOnlyMode(ValidationError):
 	http_status_code = 503  # temporarily not available
+	skip_error_log = True
 
 
 class SessionBootFailed(ValidationError):

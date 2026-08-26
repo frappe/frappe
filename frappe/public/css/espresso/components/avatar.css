@@ -1,0 +1,191 @@
+/* Espresso Avatar — a user/thing picture with an initials fallback.
+ *
+ * Markup:
+ *   <span class="es-avatar" data-size="lg" data-shape="square" data-theme="blue">
+ *     <img src="..." alt="...">              — or —
+ *     <span class="es-avatar__fallback">N</span>
+ *   </span>
+ *
+ * Attributes (all optional):
+ *   data-size    xs | sm | md | lg | xl | 2xl | 3xl   (default: md)
+ *   data-shape   circle | square                      (default: circle)
+ *   data-theme   gray | blue | green | amber | red | violet   (default: gray)
+ *
+ * The theme colors the initials fallback; an image simply covers it.
+ * An optional status dot sits at the bottom-right corner:
+ *   <span class="es-avatar__indicator" aria-hidden="true">
+ *     <span class="es-avatar__indicator-dot" data-color="green"></span>
+ *   </span> */
+
+.es-avatar {
+
+    /* default size = md (24px) */
+    --es-av-size: calc(var(--spacing) * 6);
+    --es-av-text: var(--text-base);
+    --es-av-radius: var(--radius-2);
+
+    /* default theme = gray */
+    --es-av-bg: var(--surface-gray-2);
+    --es-av-fg: var(--ink-gray-5);
+
+    /* indicator ring and dot, md defaults */
+    --es-av-ind: 10px;
+    --es-av-dot: 6px;
+
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    width: var(--es-av-size);
+    height: var(--es-av-size);
+    user-select: none;
+    color: var(--es-av-fg);
+
+    /* the rounded corners live on the children, not the root — the
+       indicator overlaps the edge and must not get clipped */
+    --es-av-round: var(--radius-full);
+}
+
+.es-avatar[data-shape="square"] {
+    --es-av-round: var(--es-av-radius);
+}
+
+/* ---- sizes (width/height, fallback text, square radius) ---- */
+.es-avatar[data-size="xs"] {
+    --es-av-ind: 8px;
+    --es-av-dot: 4px;
+    --es-av-size: calc(var(--spacing) * 4);
+    --es-av-text: var(--text-2xs);
+    --es-av-radius: 4px;
+}
+
+.es-avatar[data-size="sm"] {
+    --es-av-ind: 9px;
+    --es-av-dot: 5px;
+    --es-av-size: calc(var(--spacing) * 5);
+    --es-av-text: var(--text-sm);
+    --es-av-radius: 5px;
+}
+
+.es-avatar[data-size="lg"] {
+    --es-av-ind: 12px;
+    --es-av-dot: 8px;
+    --es-av-size: calc(var(--spacing) * 7);
+    --es-av-text: var(--text-base);
+    --es-av-radius: 6px;
+}
+
+.es-avatar[data-size="xl"] {
+    --es-av-ind: 12px;
+    --es-av-dot: 8px;
+    --es-av-size: calc(var(--spacing) * 8);
+    --es-av-text: var(--text-lg);
+    --es-av-radius: 6px;
+}
+
+.es-avatar[data-size="2xl"] {
+    --es-av-ind: 14px;
+    --es-av-dot: 10px;
+    --es-av-size: calc(var(--spacing) * 10);
+    --es-av-text: var(--text-2xl);
+    --es-av-radius: 8px;
+}
+
+.es-avatar[data-size="3xl"] {
+    --es-av-ind: 16px;
+    --es-av-dot: 12px;
+    --es-av-size: calc(var(--spacing) * 11.5);
+    --es-av-text: var(--text-3xl);
+    --es-av-radius: 10px;
+}
+
+/* ---- themes (color the initials fallback) ---- */
+.es-avatar[data-theme="blue"] {
+    --es-av-bg: var(--surface-blue-2);
+    --es-av-fg: var(--ink-blue-8);
+}
+
+.es-avatar[data-theme="green"] {
+    --es-av-bg: var(--surface-green-2);
+    --es-av-fg: var(--ink-green-8);
+}
+
+.es-avatar[data-theme="amber"] {
+    --es-av-bg: var(--surface-amber-2);
+    --es-av-fg: var(--ink-amber-8);
+}
+
+.es-avatar[data-theme="red"] {
+    --es-av-bg: var(--surface-red-2);
+    --es-av-fg: var(--ink-red-8);
+}
+
+.es-avatar[data-theme="violet"] {
+    --es-av-bg: var(--surface-violet-2);
+    --es-av-fg: var(--ink-violet-8);
+}
+
+/* ---- children ---- */
+.es-avatar > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--es-av-round);
+}
+
+.es-avatar__fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--es-av-round);
+    background: var(--es-av-bg);
+    font-size: var(--es-av-text);
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+/* ---- status indicator: a dot in a ring, bottom-right ---- */
+.es-avatar__indicator {
+    position: absolute;
+    bottom: -0.1rem;
+    inset-inline-end: -0.1rem;
+    display: grid;
+    place-items: center;
+    width: var(--es-av-ind);
+    height: var(--es-av-ind);
+    border-radius: var(--radius-full);
+    background: var(--surface-base);
+}
+
+.es-avatar[data-size="3xl"] > .es-avatar__indicator {
+    bottom: -0.2rem;
+    inset-inline-end: -0.2rem;
+}
+
+.es-avatar__indicator-dot {
+    width: var(--es-av-dot);
+    height: var(--es-av-dot);
+    border-radius: var(--radius-full);
+    background: var(--surface-gray-5);
+}
+
+.es-avatar__indicator-dot[data-color="blue"] {
+    background: var(--surface-blue-7);
+}
+
+.es-avatar__indicator-dot[data-color="green"] {
+    background: var(--surface-green-7);
+}
+
+.es-avatar__indicator-dot[data-color="amber"] {
+    background: var(--surface-amber-7);
+}
+
+.es-avatar__indicator-dot[data-color="red"] {
+    background: var(--surface-red-7);
+}
+
+.es-avatar__indicator-dot[data-color="violet"] {
+    background: var(--surface-violet-7);
+}

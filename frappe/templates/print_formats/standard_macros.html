@@ -137,7 +137,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% if child_templates and child_templates[df.fieldname] %}
 		{% include child_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" and doc[df.fieldname] %}
-		<!-- <i class="{{ 'fa fa-check' }}"></i> -->
 		<svg viewBox="0 0 16 16"
 			fill="transparent" stroke="#1F272E" stroke-width="2"
 			xmlns="http://www.w3.org/2000/svg" id="icon-tick"

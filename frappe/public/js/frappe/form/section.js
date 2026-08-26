@@ -120,6 +120,7 @@ export default class Section {
 
 		if (hide === undefined) {
 			hide = !this.body.hasClass("hide");
+			this.expanded_by_user = !hide;
 		}
 
 		this.body.toggleClass("hide", hide);
@@ -135,7 +136,7 @@ export default class Section {
 	}
 
 	set_icon(hide) {
-		let indicator_icon = hide ? "chevron-right" : "es-line-down";
+		let indicator_icon = hide ? "chevron-right" : "chevron-down";
 		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 

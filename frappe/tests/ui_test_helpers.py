@@ -197,11 +197,37 @@ def create_contact_records():
 @whitelist_for_tests()
 def create_multiple_todo_records():
 	if frappe.get_all("ToDo", {"description": "Multiple ToDo 1"}):
+		frappe.db.sql("UPDATE `tabToDo` SET status = 'Open' WHERE description LIKE 'Multiple ToDo %'")
 		return
 
-	values = [(f"100{i}", f"Multiple ToDo {i}") for i in range(1, 1002)]
+	values = [(f"100{i}", f"Multiple ToDo {i}", "Open") for i in range(1, 1002)]
 
-	frappe.db.bulk_insert("ToDo", fields=["name", "description"], values=set(values))
+	frappe.db.bulk_insert("ToDo", fields=["name", "description", "status"], values=set(values))
+
+
+@whitelist_for_tests()
+def ensure_todo_kanban_board():
+	"""Create the ToDo Kanban board used by cypress/integration/kanban.js."""
+	if frappe.db.exists("Kanban Board", "ToDo Kanban"):
+		return "ToDo Kanban"
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Kanban Board",
+			"kanban_board_name": "ToDo Kanban",
+			"reference_doctype": "ToDo",
+			"field_name": "status",
+			"private": 0,
+			"show_labels": 0,
+			"columns": [
+				{"column_name": "Open", "status": "Active", "indicator": "Gray"},
+				{"column_name": "Closed", "status": "Active", "indicator": "Gray"},
+				{"column_name": "Cancelled", "status": "Active", "indicator": "Gray"},
+			],
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return doc.name
 
 
 def insert_contact(first_name, phone_number):
@@ -472,7 +498,24 @@ def setup_tree_doctype():
 	).insert()
 
 	if not frappe.db.exists("Custom Tree", "All Trees"):
-		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees"}).insert()
+		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees", "is_group": 1}).insert()
+
+	for parent, child, is_group in (
+		("All Trees", "Parent Node", 1),
+		("Parent Node", "Child Node", 0),
+		("All Trees", "Second Parent Node", 1),
+	):
+		if not frappe.db.exists("Custom Tree", child):
+			frappe.get_doc(
+				{"doctype": "Custom Tree", "tree": child, "parent_custom_tree": parent, "is_group": is_group}
+			).insert()
+
+	for i in range(40):
+		name = f"Scroll Node {i}"
+		if not frappe.db.exists("Custom Tree", name):
+			frappe.get_doc(
+				{"doctype": "Custom Tree", "tree": name, "parent_custom_tree": "All Trees", "is_group": 0}
+			).insert()
 
 
 @whitelist_for_tests()
@@ -670,8 +713,63 @@ def slow_task(duration, title, doctype, docname):
 		time.sleep(int(duration) / steps)
 
 
+LIST_LAYOUT_TEST_PREFIX = "_cypress_layout_"
+
+
 @whitelist_for_tests()
-def empty_my_workspaces():
-	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
-	my_workspaces.items = []
-	my_workspaces.save()
+def clear_list_layout_test_layouts():
+	"""Remove saved layouts created by Cypress saved-layout tests."""
+	frappe.db.delete("List Filter", {"filter_name": ["like", f"{LIST_LAYOUT_TEST_PREFIX}%"]})
+
+
+@whitelist_for_tests()
+def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
+	"""Clear saved layout preference so Cypress starts from Default Layout."""
+	import json
+
+	from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+
+	settings = json.loads(get_user_settings(doctype, for_update=True) or "{}")
+	list_settings = settings.get("List") or {}
+	list_settings["active_layout_name"] = ""
+	settings["List"] = list_settings
+	update_user_settings(doctype, settings)
+
+
+@whitelist_for_tests()
+def create_list_layout_test_layout(
+	layout_name: str | None = None,
+	filter_name: str | None = None,
+	reference_doctype: str = "ToDo",
+	for_user: str | None = None,
+	filters: str | None = None,
+	columns: str | None = None,
+	sort_field: str = "modified",
+	sort_order: str = "desc",
+):
+	"""Insert a saved list filter for Cypress tests."""
+	import json
+
+	filter_name = filter_name or layout_name or f"{LIST_LAYOUT_TEST_PREFIX}open"
+
+	if frappe.db.exists("List Filter", {"filter_name": filter_name, "reference_doctype": reference_doctype}):
+		frappe.db.delete(
+			"List Filter",
+			{"filter_name": filter_name, "reference_doctype": reference_doctype},
+		)
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "List Filter",
+			"filter_name": filter_name,
+			"reference_doctype": reference_doctype,
+			"for_user": for_user if for_user is not None else frappe.session.user,
+			"filters": filters if filters is not None else json.dumps([["ToDo", "status", "=", "Open"]]),
+			"columns": columns
+			if columns is not None
+			else json.dumps([{"fieldname": "status", "label": "Status"}]),
+			"sort_field": sort_field,
+			"sort_order": sort_order,
+		}
+	).insert(ignore_permissions=True)
+	return doc.name

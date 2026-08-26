@@ -3,7 +3,6 @@
 
 """assign/unassign to ToDo"""
 
-import json
 from typing import Any
 
 import frappe
@@ -15,7 +14,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title,
 	get_title_html,
 )
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.utils.data import strip_html
 
 
@@ -119,7 +118,7 @@ def _add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int =
 
 			# make this document followed by assigned user
 			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
-				follow_document(args["doctype"], args["name"], assign_to)
+				_follow_document(args["doctype"], args["name"], assign_to)
 
 			# notify
 			notify_assignment(
@@ -151,7 +150,7 @@ def add_multiple() -> None:
 
 	args = frappe.local.form_dict
 
-	docname_list = json.loads(args["name"])
+	docname_list = frappe.parse_json(args["name"])
 
 	for docname in docname_list:
 		args.update({"name": docname})
@@ -190,11 +189,11 @@ def _remove(doctype: str, name: str | int, assign_to: str, ignore_permissions: b
 
 
 @frappe.whitelist()
-def remove_multiple(doctype: str, names: str):
+def remove_multiple(doctype: str, names: str | list):
 	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
 		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
 
-	docname_list = json.loads(names)
+	docname_list = frappe.parse_json(names)
 
 	for name in docname_list:
 		assignments = get({"doctype": doctype, "name": name})

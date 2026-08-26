@@ -1,0 +1,9 @@
+<div class="action-banner print-hide">
+	<a class="p-2" onclick="window.print();">
+		{{ _("Print") }}
+	</a>
+	<a class="p-2"
+		href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&format={{print_format|e}}{% if letterhead %}&letterhead={{letterhead|e}}{% endif %}{% if no_letterhead %}&no_letterhead={{no_letterhead|e}}{% endif %}{% if lang %}&_lang={{lang|e}}{% endif %}{% if key %}&key={{key|e}}{% endif %}{% if pdf_generator %}&pdf_generator={{pdf_generator|e}}{% endif %}">
+		{{ _('Get PDF') }}
+	</a>
+</div>

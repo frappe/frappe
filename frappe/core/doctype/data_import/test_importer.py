@@ -187,6 +187,14 @@ class TestImporter(IntegrationTestCase):
 			"Title is required",
 		)
 
+	def test_row_failure_is_logged_to_logger(self):
+		import_file = get_import_file("sample_import_file_without_mandatory")
+		data_import = self.get_importer(doctype_name, import_file)
+		frappe.clear_messages()
+		with self.assertLogs(frappe.logger("data_import"), level="ERROR") as captured:
+			data_import.start_import()
+		self.assertTrue(any("failed to import" in message for message in captured.output))
+
 	def test_data_import_update(self):
 		existing_doc = frappe.get_doc(
 			doctype=doctype_name,

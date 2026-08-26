@@ -10,7 +10,7 @@ from semantic_version import SimpleSpec, Version
 
 import frappe
 from frappe import _, safe_decode
-from frappe.utils import cstr
+from frappe.utils import cint, cstr
 from frappe.utils.caching import redis_cache
 from frappe.utils.frappecloud import on_frappecloud
 
@@ -18,6 +18,9 @@ from frappe.utils.frappecloud import on_frappecloud
 def get_change_log(user=None):
 	if not user:
 		user = frappe.session.user
+
+	if not frappe.is_setup_complete():
+		return []
 
 	last_known_versions = frappe._dict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
@@ -88,18 +91,21 @@ def get_change_log_for_app(app, from_version, to_version):
 
 @frappe.whitelist()
 def update_last_known_versions():
-	frappe.db.set_value(
-		"User",
-		frappe.session.user,
-		"last_known_versions",
-		json.dumps(get_versions()),
-		update_modified=False,
-	)
+	with suppress(frappe.QueryDeadlockError):
+		frappe.db.set_value(
+			"User",
+			frappe.session.user,
+			"last_known_versions",
+			json.dumps(get_versions()),
+			update_modified=False,
+		)
 
 
 @frappe.whitelist()
-def get_versions():
-	"""Get versions of all installed apps.
+def get_versions(include_disabled: bool = False):
+	"""Get versions of apps active on this site.
+
+	:param include_disabled: Also return apps that are installed but disabled.
 
 	Example:
 
@@ -110,7 +116,12 @@ def get_versions():
 	                }
 	        }"""
 	versions = {}
-	for app in frappe.get_installed_apps(_ensure_on_bench=True):
+	apps = (
+		frappe.get_installed_apps(_ensure_on_bench=True)
+		if cint(include_disabled)
+		else frappe.get_active_apps(_ensure_on_bench=True)
+	)
+	for app in apps:
 		app_hooks = frappe.get_hooks(app_name=app)
 		app_color = app_hooks.get("app_color")
 

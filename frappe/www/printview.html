@@ -1,3 +1,6 @@
+{%- if standalone -%}
+{{ body }}
+{%- else -%}
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ layout_direction }}">
 <head>
@@ -14,15 +17,7 @@
 	{% endif %}
 </head>
 <body>
-	<div class="action-banner print-hide">
-		<a class="p-2" onclick="window.print();">
-			{{ _("Print") }}
-		</a>
-		<a class="p-2"
-			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&format={{print_format|e}}&letterhead={{letterhead|e}}&no_letterhead={{no_letterhead|e}}&_lang={{lang|e}}&key={{key|e}}&pdf_generator={{pdf_generator|e}}">
-			{{ _('Get PDF') }}
-		</a>
-	</div>
+	{% if not no_action_banner %}{% include "templates/print_formats/print_action_banner.html" %}{% endif %}
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}
@@ -52,3 +47,4 @@
 <!-- {{ comment }} -->
 {%- endif -%}
 </html>
+{%- endif -%}

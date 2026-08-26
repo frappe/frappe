@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "is_system_generated",
+  "is_app_disabled",
   "dt",
   "module",
   "label",
@@ -37,10 +38,13 @@
   "read_only_depends_on",
   "properties",
   "non_negative",
+  "min_value",
+  "max_value",
   "reqd",
   "unique",
   "is_virtual",
   "read_only",
+  "mask",
   "ignore_user_permissions",
   "hidden",
   "print_hide",
@@ -134,7 +138,7 @@
    "label": "Field Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
+   "options": "Autocomplete\nAttach\nAttach Image\nAttachment Gallery\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
    "sort_options": 1
   },
@@ -451,6 +455,18 @@
    "label": "Non Negative"
   },
   {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "min_value",
+   "fieldtype": "Float",
+   "label": "Min Value"
+  },
+  {
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "max_value",
+   "fieldtype": "Float",
+   "label": "Max Value"
+  },
+  {
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module (for export)",
@@ -465,16 +481,25 @@
   },
   {
    "default": "0",
+   "description": "Set while owner app is disabled.",
+   "fieldname": "is_app_disabled",
+   "fieldtype": "Check",
+   "label": "Is App Disabled",
+   "read_only": 1
+  },
+  {
+   "default": "0",
    "depends_on": "eval: doc.fieldtype === 'Select'",
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
   },
   {
+   "depends_on": "eval:[\"Attachment Gallery\", \"Link\"].includes(doc.fieldtype)",
+   "description": "Filters applied to Link queries and Attachment Gallery files.",
    "fieldname": "link_filters",
    "fieldtype": "JSON",
-   "hidden": 1,
-   "label": "Link Filters"
+   "label": "Filters"
   },
   {
    "default": "0",
@@ -499,6 +524,13 @@
    "fieldname": "set_only_once",
    "fieldtype": "Check",
    "label": "Set only once"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:[\"Select\", \"Read Only\", \"Phone\", \"Percent\", \"Password\", \"Link\", \"Int\", \"Float\", \"Dynamic Link\", \"Duration\", \"Datetime\", \"Currency\", \"Data\", \"Date\"].includes(doc.fieldtype)",
+   "fieldname": "mask",
+   "fieldtype": "Check",
+   "label": "Mask"
   }
  ],
  "grid_page_length": 50,
@@ -506,7 +538,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-12 10:00:00.000000",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

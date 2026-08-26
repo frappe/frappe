@@ -375,10 +375,6 @@ body[data-route^="Form"] {
 		align-items: center;
 		cursor: pointer;
 
-		.es-icon {
-			margin-right: 4px;
-		}
-
 		.icon {
 			margin: 0;
 			margin-right: var(--margin-xs);
@@ -479,7 +475,9 @@ body[data-route^="Form"] {
 .attachment-row,
 .form-tag-row {
 	margin: 4px 0;
+}
 
+.attachment-row {
 	.data-pill {
 		@include get_textstyle("sm", "regular");
 		justify-content: space-between;
@@ -540,13 +538,26 @@ body[data-route^="Form"] {
 
 .form-tag-row {
 	margin-right: var(--margin-xs);
-
-	.data-pill {
-		background-color: var(--subtle-fg);
-		max-width: 150px;
-	}
-
 	display: inline-flex;
+
+	.form-tag {
+		max-width: 150px;
+
+		.pill-label {
+			min-width: 0;
+		}
+
+		// the remove ✕ — the only click target on the tag
+		.es-badge__affix {
+			cursor: pointer;
+			opacity: 0.7;
+
+			&:hover,
+			&:focus-visible {
+				opacity: 1;
+			}
+		}
+	}
 }
 
 .attachments-actions {
@@ -612,17 +623,6 @@ body[data-route^="Form"] .attachment-preview {
 		align-items: center;
 		gap: 2px;
 		flex-shrink: 0;
-
-		.btn-link {
-			text-decoration: none;
-
-			&:hover,
-			&:focus {
-				text-decoration: none;
-				outline: none;
-				box-shadow: none;
-			}
-		}
 	}
 
 	.attachment-preview-body {
@@ -770,29 +770,6 @@ body[data-route^="Form"] .attachment-preview {
 			display: block;
 			margin-top: var(--padding-xs);
 		}
-	}
-}
-
-.add-assignment-btn,
-.add-attachment-btn,
-.add-review-btn,
-.add-tags-btn,
-.share-doc-btn,
-.followed-by {
-	max-width: 100%;
-	display: block;
-	width: unset;
-	height: unset;
-	margin-right: 0;
-	padding: var(--padding-xs) !important;
-	border-radius: var(--radius-full);
-
-	&:hover {
-		background-color: var(--subtle-fg);
-	}
-
-	&:focus {
-		box-shadow: none;
 	}
 }
 

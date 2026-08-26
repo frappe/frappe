@@ -1,117 +1,175 @@
 <template>
 	<div
-		class="field"
-		:class="{
-			'field--table': df.fieldtype == 'Table',
-			'field--selected': is_selected,
-			'field--preview': !!preview_doc,
-		}"
+		:class="[
+			preview_doc ? preview_root.classes : 'field field--chip',
+			{
+				'field--selected': is_selected,
+				'field--layer-hover': store.hovered_node.value === df,
+				'field--preview': !!preview_doc,
+				'field--condition-hidden': preview_doc && !is_field_visible,
+			},
+		]"
+		:style="preview_doc ? preview_root.style : undefined"
+		:data-fieldname="preview_data_attr(df.fieldname)"
+		:data-fieldtype="preview_data_attr(df.fieldtype)"
+		:data-field-uid="field_uid(df)"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
-		@click.stop="select_field"
+		:aria-label="df.label || df.fieldname"
+		tabindex="0"
+		@click.stop="select_field($event)"
+		@contextmenu="on_context_menu"
+		@mouseenter="store.hovered_field.value = df"
+		@mouseleave="store.hovered_field.value = null"
+		@keydown.enter.prevent="kbd_select($event)"
+		@keydown.space.prevent="kbd_select($event)"
 	>
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
-			<div class="field-preview-wrap">
-				<!-- Handle HTML fields: render Jinja2 server-side if needed -->
+			<!-- Handle HTML fields: render Jinja2 server-side if needed -->
+			<span v-if="template_render_failed" class="text-muted">{{
+				__("Couldn't render this template for the previewed document")
+			}}</span>
+			<div
+				v-else-if="df.fieldtype == 'HTML' && df.html"
+				v-html="rendered_html ?? df.html"
+			></div>
+			<!-- Typst can't render in the HTML canvas — show the markup, the PDF preview shows the output -->
+			<pre v-else-if="df.fieldtype == 'Typst'" class="typst-block-source">{{
+				df.typst || __("Empty Typst block")
+			}}</pre>
+			<!-- Spacer/Divider: the root element itself is the rendered output -->
+			<i
+				v-else-if="df.fieldtype == 'Spacer' || df.fieldtype == 'Divider'"
+				v-show="false"
+			></i>
+			<template v-else-if="df.fieldtype == 'Image'">
+				<img
+					v-if="df.image_url || preview_doc[df.fieldname]"
+					:src="df.image_url || preview_doc[df.fieldname]"
+					:style="{ maxWidth: '100%', ...(df.width ? { width: df.width } : {}) }"
+					:alt="df.label || ''"
+				/>
+				<span v-else class="text-muted">{{ __("No image — set one in the panel") }}</span>
+			</template>
+			<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode'" :df="df" />
+			<div
+				v-else-if="df.fieldtype == 'Field Template'"
+				v-html="rendered_template || ''"
+			></div>
+			<!-- Table MultiSelect field: render as a comma-separated value list -->
+			<template v-else-if="df.fieldtype == 'Table MultiSelect'">
 				<div
-					v-if="df.fieldtype == 'HTML' && df.html"
-					class="custom-html"
-					v-html="rendered_html ?? df.html"
-				></div>
-				<div v-else-if="df.fieldtype == 'Spacer'" class="field-preview-spacer"></div>
-				<div v-else-if="df.fieldtype == 'Divider'" class="field-preview-divider"></div>
-				<div
-					v-else-if="df.fieldtype == 'Field Template'"
-					class="custom-html"
-					v-html="rendered_template || ''"
-				></div>
-				<!-- Table field -->
-				<div v-else-if="df.fieldtype == 'Table'" class="field-preview-table">
-					<div v-if="df.label" class="field-preview-label">{{ df.label }}</div>
-					<table
-						class="preview-table"
-						:class="{
-							[`preview-table--${df.table_style || 'lined'}`]: true,
-							'preview-table--borderless': df.table_bordered === false,
-							'preview-table--plain-header': df.table_header === 'plain',
-						}"
-					>
-						<thead>
-							<tr>
-								<th
-									v-for="col in df.table_columns"
-									:key="col.fieldname"
-									:class="numeric_align_class(col)"
-								>
-									{{ col.label || col.fieldname }}
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr
-								v-for="(row, i) in (preview_doc[df.fieldname] || []).slice(0, 4)"
-								:key="i"
-								:class="i % 2 === 0 ? 'odd' : 'even'"
-							>
-								<td
-									v-for="col in df.table_columns"
-									:key="col.fieldname"
-									:class="numeric_align_class(col)"
-								>
-									<img
-										v-if="
-											is_image_field(col, row[col.fieldname]) &&
-											row[col.fieldname]
-										"
-										:src="row[col.fieldname]"
-										class="preview-table-img"
-										:alt="col.label || col.fieldname"
-									/>
-									<span v-else>{{ format_cell(row, col) }}</span>
-								</td>
-							</tr>
-							<tr v-if="!preview_doc[df.fieldname]?.length">
-								<td
-									:colspan="df.table_columns?.length || 1"
-									class="text-muted"
-									style="text-align: center; font-size: 11px; padding: 6px"
-								>
-									{{ __("No rows") }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<!-- Regular field -->
-				<div
-					v-else
-					:style="{ textAlign: df.align || 'left' }"
-					:class="{ 'field-preview-lr': field_orientation === 'left-right' }"
+					v-if="df.label && df.show_label !== 'hide'"
+					class="label"
+					:style="label_text_style(df)"
 				>
-					<div v-if="df.label && df.show_label !== 'hide'" class="field-preview-label">
-						{{ df.label }}
-					</div>
-					<div class="field-preview-value" :class="{ 'text-muted': !preview_value }">
-						<img
-							v-if="is_image_field(df, preview_value) && preview_value"
-							:src="preview_value"
-							class="preview-field-img"
-							:alt="df.label || df.fieldname"
-						/>
-						<span v-else>{{ preview_value || "—" }}</span>
-					</div>
+					{{ df.label }}
 				</div>
-			</div>
-			<!-- Top-right actions pill: drag + remove -->
+				<div
+					class="value"
+					:class="{ 'text-muted': !(preview_doc[df.fieldname] || []).length }"
+					:style="value_text_style(df)"
+				>
+					{{ multiselect_display(df) }}
+				</div>
+			</template>
+			<FieldPreviewTable v-else-if="df.fieldtype == 'Table'" :df="df" />
+			<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
+			<template v-else>
+				<div
+					v-if="df.label && df.show_label !== 'hide'"
+					class="label"
+					:style="label_text_style(df)"
+				>
+					{{ df.label }}
+				</div>
+				<div
+					class="value"
+					:class="{ 'text-muted': !preview_value }"
+					:style="value_text_style(df)"
+				>
+					<img
+						v-if="df.fieldtype == 'Attach Image' && preview_doc[df.fieldname]"
+						class="w-100"
+						:src="preview_doc[df.fieldname]"
+						:alt="df.label || df.fieldname"
+					/>
+					<a
+						v-else-if="df.fieldtype == 'Attach' && preview_doc[df.fieldname]"
+						:href="preview_doc[df.fieldname]"
+						@click.prevent
+						>{{ String(preview_doc[df.fieldname]).split("/").pop() }}</a
+					>
+					<template v-else-if="df.fieldtype == 'Color' && preview_doc[df.fieldname]">
+						<div
+							class="color-square"
+							:style="{ backgroundColor: preview_doc[df.fieldname] }"
+						></div>
+						{{ preview_doc[df.fieldname] }}
+					</template>
+					<!-- Mirrors the star SVG of templates/print_format/macros/Rating.html -->
+					<template v-else-if="df.fieldtype == 'Rating' && preview_doc[df.fieldname]">
+						<svg
+							v-for="i in rating_stars.total"
+							:key="i"
+							class="rating-star"
+							:class="{ active: i <= rating_stars.filled }"
+							viewBox="0 0 24 24"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								:fill="i <= rating_stars.filled ? '#f6c35e' : '#dce0e3'"
+								:stroke="i <= rating_stars.filled ? '#f6c35e' : '#dce0e3'"
+								d="M11.5516 2.90849C11.735 2.53687 12.265 2.53687 12.4484 2.90849L14.8226 7.71919C14.8954 7.86677 15.0362 7.96905 15.1991 7.99271L20.508 8.76415C20.9181 8.82374 21.0818 9.32772 20.7851 9.61699L16.9435 13.3616C16.8257 13.4765 16.7719 13.642 16.7997 13.8042L17.7066 19.0916C17.7766 19.5001 17.3479 19.8116 16.9811 19.6187L12.2327 17.1223C12.087 17.0457 11.913 17.0457 11.7673 17.1223L7.01888 19.6187C6.65207 19.8116 6.22335 19.5001 6.29341 19.0916L7.20028 13.8042C7.2281 13.642 7.17433 13.4765 7.05648 13.3616L3.21491 9.61699C2.91815 9.32772 3.08191 8.82374 3.49202 8.76415L8.80094 7.99271C8.9638 7.96905 9.10458 7.86677 9.17741 7.71919L11.5516 2.90849Z"
+							/>
+						</svg>
+					</template>
+					<span v-else-if="preview_value_html" v-html="preview_value_html"></span>
+					<span v-else>{{ preview_value || "—" }}</span>
+				</div>
+			</template>
 			<div class="field-preview-actions">
 				<div
 					class="drag-handle field-drag-handle"
-					v-html="frappe.utils.icon('drag', 'xs')"
+					v-html="frappe.utils.icon('grip', 'xs')"
 				></div>
 				<button
-					class="btn btn-xs btn-icon field-remove-btn"
-					@click.stop="df['remove'] = true"
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Copy')"
+					@click.stop="store.copy_field(df)"
+					v-html="frappe.utils.icon('copy', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Duplicate')"
+					@click.stop="store.duplicate_field(df)"
+					v-html="frappe.utils.icon('copy-plus', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Save as snippet')"
+					@click.stop="save_as_snippet"
+					v-html="frappe.utils.icon('bookmark-plus', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-theme="red"
+					data-icon-button="true"
+					:title="__('Remove field')"
+					@click.stop="store.remove_field(df)"
 					v-html="frappe.utils.icon('x', 'xs')"
 				></button>
 			</div>
@@ -121,12 +179,12 @@
 		<template v-else>
 			<div
 				class="field-row"
-				:style="{ textAlign: df.align || 'left' }"
+				:style="{ textAlign: df.align || 'left', ...custom_style }"
 				:class="{ 'field-row--lr': field_orientation === 'left-right' }"
 			>
 				<div
 					class="drag-handle field-drag-handle"
-					v-html="frappe.utils.icon('drag', 'xs')"
+					v-html="frappe.utils.icon('grip', 'xs')"
 				></div>
 				<div class="field-body">
 					<div class="field-content">
@@ -135,11 +193,24 @@
 							v-if="df.fieldtype == 'HTML' && df.html"
 							v-html="df.html"
 						></div>
+						<pre
+							v-else-if="df.fieldtype == 'Typst' && df.typst"
+							class="typst-block-source"
+							>{{ df.typst }}</pre
+						>
 						<div class="custom-html" v-else-if="df.fieldtype == 'Field Template'">
 							{{ df.label }}
 						</div>
+						<img
+							v-else-if="df.fieldtype == 'Image' && df.custom && df.image_url"
+							:src="df.image_url"
+							class="pf-builder-thumb"
+							:alt="df.label || ''"
+						/>
 						<input
-							v-else-if="editing && df.fieldtype != 'HTML'"
+							v-else-if="
+								editing && df.fieldtype != 'HTML' && df.fieldtype != 'Typst'
+							"
 							ref="label_input"
 							class="label-input"
 							type="text"
@@ -152,17 +223,44 @@
 						<i class="text-muted" v-else>{{ __("No Label") }} ({{ df.fieldname }})</i>
 					</div>
 					<div class="field-meta">
-						<span class="fieldtype-badge">{{ short_fieldtype }}</span>
+						<span class="es-badge">{{ short_fieldtype }}</span>
 						<div class="field-actions">
 							<button
-								v-if="df.fieldtype == 'HTML'"
-								class="btn btn-xs btn-icon"
-								@click.stop="edit_html"
-								v-html="frappe.utils.icon('edit', 'sm')"
+								v-if="code_edit"
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-icon-button="true"
+								:title="code_edit.title"
+								@click.stop="code_edit.open"
+								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
 							<button
-								class="btn btn-xs btn-icon"
-								@click.stop="df['remove'] = true"
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-icon-button="true"
+								:title="__('Copy')"
+								@click.stop="store.copy_field(df)"
+								v-html="frappe.utils.icon('copy', 'sm')"
+							></button>
+							<button
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-icon-button="true"
+								:title="__('Duplicate')"
+								@click.stop="store.duplicate_field(df)"
+								v-html="frappe.utils.icon('copy-plus', 'sm')"
+							></button>
+							<button
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-theme="red"
+								data-icon-button="true"
+								:title="__('Remove field')"
+								@click.stop="store.remove_field(df)"
 								v-html="frappe.utils.icon('x', 'sm')"
 							></button>
 						</div>
@@ -192,25 +290,129 @@
 					{{ __("Configure Columns") }}
 				</button>
 			</div>
+			<div v-if="df.fieldtype == 'Repeater'" class="table-preview">
+				<div class="table-columns-list">
+					<span v-if="df.source" class="table-col-chip">{{ df.source }}</span>
+					<span v-else class="text-muted no-columns-hint">
+						{{ __("No source table selected") }}
+					</span>
+				</div>
+			</div>
 		</template>
 	</div>
 </template>
 
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
-import { render_jinja_html } from "../../utils";
+import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
+import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
+import FieldPreviewTable from "./FieldPreviewTable.vue";
+import {
+	render_jinja_html,
+	evaluate_visible_if,
+	parse_inline_style,
+	field_uid,
+} from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
+import { useFieldFormat } from "../../composables/useFieldFormat";
+import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["df", "field_orientation"]);
+
+// Per-field text colour for the label and value lines.
+function label_text_style(df) {
+	return {
+		...(df.label_color ? { color: df.label_color } : {}),
+	};
+}
+function value_text_style(df) {
+	return {
+		...(df.value_color ? { color: df.value_color } : {}),
+	};
+}
 
 let store = inject("$store");
 let editing = ref(false);
 let label_input = ref(null);
 let rendered_html = ref(null);
+let template_render_failed = ref(false);
 let rendered_template = ref(null);
 
-let is_selected = computed(() => store.selected_field.value === props.df);
+let custom_style = computed(() => parse_inline_style(props.df.custom_style));
+
+let is_selected = computed(
+	() => store.selected_field.value === props.df || store.selected_fields.value.includes(props.df)
+);
 let preview_doc = computed(() => store.preview_doc.value);
+let is_field_visible = computed(() => evaluate_visible_if(props.df.visible_if, preview_doc.value));
+
+// Mirrors the root markup of templates/print_format/macros/*.html per fieldtype
+const preview_root = computed(() => {
+	const df = props.df;
+	const custom = custom_style.value;
+	if (df.fieldtype === "Table") {
+		return {
+			classes: [
+				"child-table",
+				`child-table--${df.table_style || "lined"}`,
+				df.table_header === "plain" ? "child-table--plain-header" : "",
+				df.table_bordered !== false ? "child-table--bordered" : "",
+			],
+			style: custom,
+		};
+	}
+	if (df.fieldtype === "Repeater") return { classes: ["pfb-repeater"], style: custom };
+	if (df.fieldtype === "HTML") return { classes: ["custom-html"], style: custom };
+	if (df.fieldtype === "Field Template") return { classes: ["field-template"], style: custom };
+	if (df.fieldtype === "Spacer")
+		return { classes: [], style: { height: df.height ? `${df.height}px` : "1em", ...custom } };
+	if (df.fieldtype === "Divider") {
+		return {
+			classes: [],
+			style: {
+				height: "1px",
+				margin: "0.5em 0",
+				borderBottom: "1px solid",
+				borderBottomColor: "var(--dark-border-color)",
+				...custom,
+			},
+		};
+	}
+	if (df.fieldtype === "Image" || df.fieldtype === "Barcode") {
+		return {
+			classes: [
+				"field",
+				df.fieldtype === "Image" ? "print-image" : "print-barcode",
+				df.align ? `field-align-${df.align}` : "",
+			],
+			style: custom,
+		};
+	}
+	const lr = props.field_orientation === "left-right";
+	const style = {};
+	if ((lr || df.show_label === "inline") && df.label_gap != null) {
+		style.gap = df.label_gap + "px";
+	}
+	return {
+		classes: [
+			"field",
+			lr ? "left-right" : "",
+			!lr && df.show_label === "inline" ? "field-inline" : "",
+			df.align ? `field-align-${df.align}` : "",
+			lr && df.label_justify && !["center", "right"].includes(df.align)
+				? `field-justify-${df.label_justify}`
+				: "",
+		],
+		style: { ...style, ...custom },
+	};
+});
+
+// Spacer/Divider carry no data attributes on the server either
+function preview_data_attr(value) {
+	if (!preview_doc.value || !value) return undefined;
+	if (props.df.fieldtype === "Spacer" || props.df.fieldtype === "Divider") return undefined;
+	return value;
+}
 
 // Render Jinja2 HTML fields server-side when in preview mode
 watch(
@@ -219,6 +421,7 @@ watch(
 		const html = props.df.html;
 		if (!doc || !html || props.df.fieldtype !== "HTML") {
 			rendered_html.value = null;
+			template_render_failed.value = false;
 			return;
 		}
 		rendered_html.value = await render_jinja_html(
@@ -226,6 +429,7 @@ watch(
 			store.meta.value?.name,
 			store.preview_doc_name.value
 		);
+		template_render_failed.value = rendered_html.value === null;
 	},
 	{ immediate: true }
 );
@@ -236,6 +440,7 @@ watch(
 	async ([doc]) => {
 		if (!doc || props.df.fieldtype !== "Field Template" || !props.df.field_template) {
 			rendered_template.value = null;
+			template_render_failed.value = false;
 			return;
 		}
 		try {
@@ -250,72 +455,38 @@ watch(
 				store.meta.value?.name,
 				store.preview_doc_name.value
 			);
+			template_render_failed.value = rendered_template.value === null;
 		} catch {
 			rendered_template.value = null;
+			template_render_failed.value = true;
 		}
 	},
 	{ immediate: true }
 );
 
-let preview_value = computed(() => {
-	if (!preview_doc.value || !props.df.fieldname) return null;
-	const raw = preview_doc.value[props.df.fieldname];
-	if (raw === null || raw === undefined || raw === "") return null;
-	const ft = props.df.fieldtype;
-	// Check fields return an <input> element from frappe.format — handle directly
-	if (ft === "Check") return raw ? __("Yes") : __("No");
-	try {
-		const formatted = frappe.format(raw, props.df, { only_value: true }, preview_doc.value);
-		// If frappe.format returned HTML markup, extract the text content
-		if (typeof formatted === "string" && formatted.includes("<")) {
-			const tmp = document.createElement("div");
-			tmp.innerHTML = formatted;
-			return tmp.textContent || tmp.innerText || String(raw);
-		}
-		return formatted;
-	} catch {
-		return String(raw);
+const { preview_value, preview_value_html, rating_stars, multiselect_display } = useFieldFormat(
+	props,
+	store,
+	preview_doc
+);
+
+function select_field(e) {
+	if (e && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+		store.select_field_range(props.df);
+		return;
 	}
-});
-
-const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
-const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?.*)?$/i;
-function is_image_field(col, value) {
-	if (IMAGE_FIELDTYPES.has(col?.fieldtype)) return true;
-	// Heuristic: any field whose value looks like an image URL
-	if (value && typeof value === "string" && IMAGE_EXTENSIONS.test(value)) return true;
-	return false;
-}
-
-const NUMERIC_FIELDTYPES = new Set(["Currency", "Float", "Int", "Percent"]);
-function numeric_align_class(col) {
-	return NUMERIC_FIELDTYPES.has(col?.fieldtype) ? "col-numeric" : "";
-}
-
-function format_cell(row, col) {
-	const raw = row[col.fieldname];
-	if (raw === null || raw === undefined || raw === "") return "";
-	if (col.fieldtype === "Check") return raw ? __("Yes") : __("No");
-	try {
-		const formatted = frappe.format(raw, col, { only_value: true }, row);
-		if (typeof formatted === "string" && formatted.includes("<")) {
-			const tmp = document.createElement("div");
-			tmp.innerHTML = formatted;
-			return tmp.textContent || tmp.innerText || String(raw);
-		}
-		return formatted;
-	} catch {
-		return String(raw);
-	}
-}
-
-function select_field() {
-	store.selected_field.value = props.df;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
-	if (props.df.fieldtype !== "HTML") {
+	const additive = !!(e && (e.metaKey || e.ctrlKey));
+	store.select_field(props.df, additive);
+	if (!additive && props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}
+}
+function kbd_select(e) {
+	if (e && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+		store.select_field_range(props.df);
+		return;
+	}
+	store.select_field(props.df, !!(e.metaKey || e.ctrlKey));
 }
 
 let short_fieldtype = computed(() => {
@@ -329,6 +500,7 @@ let short_fieldtype = computed(() => {
 		Check: "Check",
 		Select: "Select",
 		Table: "Table",
+		"Table MultiSelect": "Multi",
 		"Long Text": "Text",
 		Text: "Text",
 		Link: "Link",
@@ -338,23 +510,103 @@ let short_fieldtype = computed(() => {
 		HTML: "HTML",
 		Spacer: "Space",
 		Divider: "Line",
+		Image: "Img",
+		Barcode: "Code",
 		"Field Template": "Tmpl",
+		Repeater: "Repeat",
 	};
 	return map[props.df.fieldtype] || props.df.fieldtype?.substring(0, 5) || "";
 });
 
-function edit_html() {
+let code_edit = computed(() => {
+	if (props.df.fieldtype == "HTML") return { title: __("Edit HTML"), open: edit_html };
+	if (props.df.fieldtype == "Typst") return { title: __("Edit Typst"), open: edit_typst };
+	return null;
+});
+
+function edit_code({ title, key, field, clean }) {
 	let d = new frappe.ui.Dialog({
-		title: __("Edit HTML"),
-		fields: [{ label: __("HTML"), fieldname: "html", fieldtype: "Code", options: "HTML" }],
-		primary_action: ({ html }) => {
-			html = frappe.dom.remove_script_and_style(html);
-			props.df["html"] = html;
+		title,
+		fields: [{ fieldname: key, fieldtype: "Code", ...field }],
+		primary_action: (values) => {
+			props.df[key] = clean(values[key]);
 			d.hide();
 		},
 	});
-	d.set_value("html", props.df.html);
+	d.set_value(key, props.df[key]);
 	d.show();
+}
+
+function edit_html() {
+	edit_code({
+		title: __("Edit HTML"),
+		key: "html",
+		field: { label: __("HTML"), options: "HTML" },
+		clean: (html) => frappe.dom.remove_script_and_style(html),
+	});
+}
+
+function edit_typst() {
+	edit_code({
+		title: __("Edit Typst"),
+		key: "typst",
+		field: {
+			label: __("Typst Markup"),
+			description: __("Use {0} for values from the document.", ["{{ doc.field_name }}"]),
+		},
+		clean: (typst) => typst || "",
+	});
+}
+
+function save_as_snippet() {
+	frappe.prompt(
+		{
+			label: __("Snippet name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: props.df.label || props.df.fieldname || "",
+		},
+		({ name }) => {
+			store.save_snippet(name, props.df, "Field").then(
+				() =>
+					frappe.show_alert(
+						{ message: __("Field saved as snippet"), indicator: "green" },
+						3
+					),
+				() => {}
+			);
+		},
+		__("Save Field as Snippet"),
+		__("Save")
+	);
+}
+
+const { open: open_context_menu } = useContextMenu();
+
+function on_context_menu(e) {
+	store.select_field(props.df);
+	open_context_menu(e, [
+		{ label: __("Copy"), icon: "copy", action: () => store.copy_field(props.df) },
+		{
+			label: __("Duplicate"),
+			icon: "copy-plus",
+			action: () => store.duplicate_field(props.df),
+		},
+		{ label: __("Save as snippet"), icon: "bookmark-plus", action: save_as_snippet },
+		store.clipboard.value && {
+			label: __("Paste"),
+			icon: "clipboard-paste",
+			action: () => store.paste_clipboard(),
+		},
+		{ divider: true },
+		{
+			label: __("Delete"),
+			icon: "trash",
+			danger: true,
+			action: () => store.remove_field(props.df),
+		},
+	]);
 }
 
 function configure_columns() {
@@ -435,7 +687,8 @@ watch(
 </script>
 
 <style scoped>
-.field {
+.field--chip {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: 0;
@@ -446,18 +699,21 @@ watch(
 	border: 1px dashed var(--gray-400);
 	padding: 0.4rem 0.5rem;
 	font-size: var(--text-sm);
-	cursor: default;
+	cursor: grab;
 	overflow: hidden;
 }
 
-.field:focus-within {
-	border-style: solid;
-	border-color: var(--gray-600);
+.field--chip:active {
+	cursor: grabbing;
 }
 
-.field--selected {
+.field--chip.sortable-chosen {
+	cursor: grabbing;
+}
+
+.field--chip:focus-within {
 	border-style: solid;
-	border-color: var(--gray-500);
+	border-color: var(--gray-600);
 }
 
 .field-row {
@@ -504,32 +760,13 @@ watch(
 	flex-shrink: 0;
 }
 
-.fieldtype-badge {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	background: var(--control-bg);
-	border: 1px solid var(--gray-300);
-	border-radius: var(--radius);
-	padding: 1px 4px;
-	white-space: nowrap;
-}
-
 .field-actions {
 	display: flex;
 	align-items: center;
 	gap: 2px;
 }
 
-.field-actions .btn-icon {
-	box-shadow: none;
-	padding: 2px;
-}
-
-.field-actions .btn-icon:hover {
-	background-color: var(--fg-color);
-}
-
-.custom-html {
+.field--chip .custom-html {
 	word-break: break-all;
 }
 
@@ -622,70 +859,28 @@ watch(
 
 /* ── Preview mode ────────────────────────────────────────── */
 .field--preview {
-	border: 1px solid transparent;
-	background: transparent;
-	padding: 0;
 	position: relative;
 }
 
-.field--preview:hover {
-	border-color: var(--gray-200);
-	background: var(--gray-50);
+.field--condition-hidden {
+	opacity: 0.35;
 }
 
-.field--preview.field--selected {
-	border-style: solid;
-	border-color: var(--gray-500);
-	background: var(--fg-color);
+.field--preview.field--selected::after,
+.field--preview:hover::after,
+.field--preview.field--layer-hover::after,
+.field--chip.field--selected::after,
+.field--chip:hover::after,
+.field--chip.field--layer-hover::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border: var(--pfb-ring);
+	border-radius: inherit;
+	pointer-events: none;
 }
 
-.field-preview-wrap {
-	padding: 2px 4px;
-	width: 100%;
-}
-
-.field-preview-label {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	color: var(--gray-500);
-	margin-bottom: 1px;
-}
-
-/* Left-right: label and value side by side */
-.field-preview-lr {
-	display: flex;
-	align-items: baseline;
-	gap: 6px;
-}
-
-.field-preview-lr .field-preview-label {
-	flex-shrink: 0;
-	margin-bottom: 0;
-	white-space: nowrap;
-}
-
-.field-preview-lr .field-preview-value {
-	flex: 1;
-	min-width: 0;
-}
-
-.field-preview-value {
-	font-size: var(--text-sm);
-	color: var(--text-color);
-	word-break: break-word;
-}
-
-.field-preview-spacer {
-	height: 12px;
-}
-
-.field-preview-divider {
-	height: 1px;
-	background: var(--gray-300);
-	margin: 4px 0;
-}
-
-/* Top-right actions pill: drag + remove — hidden until hover/selected */
 .field-preview-actions {
 	display: none;
 	position: absolute;
@@ -706,11 +901,6 @@ watch(
 	display: flex;
 }
 
-.field-preview-actions .btn-icon {
-	box-shadow: none;
-	padding: 2px;
-}
-
 .field-preview-actions .field-drag-handle {
 	cursor: grab;
 	color: var(--gray-400);
@@ -723,106 +913,23 @@ watch(
 	color: var(--gray-600);
 }
 
-/* Preview table — exact PDF print_format.css child-table style */
-.field-preview-table {
-	width: 100%;
-	margin-top: 0.5rem;
-}
-
-.field-preview-table > .field-preview-label {
-	font-size: 0.8em;
-	font-weight: var(--weight-semibold);
-	color: var(--text-muted);
-	margin-bottom: 0.4rem;
-}
-
-.preview-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: var(--text-sm);
-}
-
-/* ── Default: bordered + styled header (matches PDF) ─── */
-.preview-table th {
-	background-color: var(--gray-100);
-	color: var(--text-color);
-	font-weight: var(--weight-semibold);
-	font-size: var(--text-tiny);
-	padding: 0.45rem 0.6rem;
-	border: 1px solid var(--gray-200);
-	text-align: left;
-}
-
-.preview-table td {
-	padding: 0.45rem 0.6rem;
-	border: 1px solid var(--gray-200);
-	vertical-align: top;
-	color: var(--text-color);
-}
-
-/* lined (default): no alternating rows */
-.preview-table--lined tr.odd td,
-.preview-table--lined tr.even td {
-	background-color: var(--fg-color);
-}
-
-/* striped: alternating row background */
-.preview-table--striped tr.odd td {
-	background-color: var(--fg-color);
-}
-
-.preview-table--striped tr.even td {
-	background-color: var(--gray-50);
-}
-
-/* plain: no borders, bottom divider only */
-.preview-table--plain th,
-.preview-table--plain td {
-	border: none;
-	border-bottom: 1px solid var(--gray-200);
-}
-
-.preview-table--plain th {
-	background-color: transparent;
-	border-bottom: 2px solid var(--gray-300);
-}
-
-.preview-table--plain tr.odd td,
-.preview-table--plain tr.even td {
-	background-color: var(--fg-color);
-}
-
-/* Numeric columns right-aligned — same as PDF */
-.preview-table .col-numeric {
-	text-align: right;
-}
-
-/* ── Borderless variant ──────────────────────────────── */
-.preview-table--borderless th,
-.preview-table--borderless td {
-	border: none;
-	border-bottom: 1px solid var(--gray-200);
-}
-
-/* ── Plain header variant ───────────────────────────── */
-.preview-table--plain-header th {
-	background-color: transparent;
-	border-bottom: 2px solid var(--gray-300);
-}
-
-.preview-table-img {
-	width: auto;
-	height: 60px;
-	max-width: 80px;
-	object-fit: contain;
-	display: block;
-}
-
-.preview-field-img {
-	max-width: 100%;
-	max-height: 80px;
+.pf-builder-thumb {
+	max-height: 32px;
+	max-width: 120px;
 	object-fit: contain;
 	border-radius: var(--radius);
-	display: block;
+	vertical-align: middle;
+}
+
+.typst-block-source {
+	margin: 0;
+	font-family: monospace;
+	font-size: var(--text-xs);
+	white-space: pre-wrap;
+	word-break: break-word;
+	color: var(--text-color);
+	background: var(--gray-50);
+	border-radius: var(--radius-sm);
+	padding: 4px 6px;
 }
 </style>

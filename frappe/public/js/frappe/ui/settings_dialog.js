@@ -64,13 +64,14 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 	}
 
 	make_action(action) {
-		const $btn = $(`<button type="button"></button>`)
-			.addClass(`btn btn-sm ${action.primary ? "btn-primary" : "btn-default"}`)
-			.addClass(action.class || "")
-			.text(action.label || "");
-		// `this` and the first argument are both the panel, so actions can mutate it.
-		action.click && $btn.on("click", () => action.click.call(this, this));
-		return $btn;
+		return frappe.ui.button({
+			label: action.label || "",
+			icon: action.icon,
+			variant: action.variant,
+			css_class: action.class,
+			// `this` and the first argument are both the panel, so actions can mutate it.
+			onclick: action.click && (() => action.click.call(this, this)),
+		});
 	}
 
 	add_fields(fields) {
@@ -296,5 +297,17 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 
 	get_panel(id) {
 		return this._panels[id];
+	}
+
+	reset(tabs, default_tab) {
+		// Swap tabs without destroying the modal shell — clears panel state, rebuilds
+		// the sidebar, and activates the new default tab.
+		this.$panels.empty();
+		this._items = {};
+		this._panels = {};
+		this.tabs = tabs;
+		this.render_sidebar();
+		const first = default_tab || this.first_tab_id();
+		if (first) this.activate(first);
 	}
 };

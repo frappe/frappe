@@ -3,16 +3,16 @@
     {% for doc in docs %}
     <div>
         {% if Object.keys(added_or_removed[doc]).length > 0 %}
-            <h5>{{ doc }}</h5>
+            <h5>{{ frappe.utils.escape_html(doc) }}</h5>
             <br>
             {% var tables = Object.keys(added_or_removed[doc]) %}
             {% for table in tables %}
-                <h5 class="text-muted">{{ table }}</h5>
+                <h5 class="text-muted">{{ frappe.utils.escape_html(__(table, null, doctype)) }}</h5>
                 <table class="table table-bordered">
                     <thead>
                         {% var fieldnames = Object.keys(added_or_removed[doc][table][0]) %}
                         {% for fieldname in fieldnames %}
-                            <th>{{ fieldname }}</th>
+                            <th>{{ frappe.utils.escape_html(__(fieldname)) }}</th>
                         {% endfor %}
                     </thead>
                     <tbody>
@@ -21,7 +21,7 @@
                             <tr>
                                 {% var field_keys = Object.keys(added_or_removed[doc][table][row]) %}
                                 {% for key in field_keys %}
-                                    <td>{{ added_or_removed[doc][table][row][key] }}</td>
+                                    <td>{{ frappe.utils.escape_html(added_or_removed[doc][table][row][key]) }}</td>
                                 {% endfor %}
                             </tr>
                         {% endfor %}

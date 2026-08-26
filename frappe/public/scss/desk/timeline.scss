@@ -107,9 +107,12 @@ $threshold: 34;
 
 		.timeline-content {
 			position: relative;
-			max-width: var(--timeline-content-max-width);
 			padding: var(--padding-sm);
 			margin-left: var(--margin-md);
+
+			body:not(.full-width) & {
+				max-width: var(--timeline-content-max-width);
+			}
 
 			> .ql-editor {
 				display: inline-flex;
@@ -147,8 +150,11 @@ $threshold: 34;
 
 		.timeline-load-more {
 			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
-			width: var(--timeline-content-max-width);
 			text-align: center;
+
+			body:not(.full-width) & {
+				width: var(--timeline-content-max-width);
+			}
 		}
 
 		.timeline-message-box {

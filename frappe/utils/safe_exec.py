@@ -146,6 +146,8 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals["__builtins__"] = {}
 	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
 
+	assert eval_globals["__builtins__"] == {}, "safe_eval must run with empty __builtins__"
+
 	return eval(_compile_code(code, filename="<safe_eval>", mode="eval"), eval_globals, eval_locals)
 
 
@@ -170,18 +172,118 @@ def safe_exec_flags():
 	finally:
 		# Always ensure that the flag is decremented
 		frappe.flags.in_safe_exec -= 1
+		assert frappe.flags.in_safe_exec >= 0, "in_safe_exec flag must never go negative"
+
+
+class SafeDoc(frappe._dict):
+	"""An extension of frappe._dict that exposes safer subset of methods."""
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		for key, val in self.items():
+			if isinstance(val, list):
+				children = []
+				for v in val:
+					if isinstance(v, dict):
+						child = SafeDoc(v)
+						object.__setattr__(child, "parent_doc", self)
+						children.append(child)
+					else:
+						children.append(v)
+				self[key] = children
+
+	@property
+	def meta(self):
+		doctype = self.get("doctype")
+		if not isinstance(doctype, str):
+			return None
+		meta = frappe.get_meta(doctype)
+		return meta.as_dict() if meta else None
+
+	def get_formatted(
+		self,
+		fieldname,
+		doc=None,
+		currency=None,
+		absolute_value=False,
+		translated=False,
+		format=None,
+	):
+		from frappe.utils.formatters import format_value
+
+		meta = frappe.get_meta(self.get("doctype")) if self.get("doctype") else None
+		df = meta.get_field(fieldname) if meta else None
+
+		if not df:
+			from frappe.model.meta import get_default_df
+
+			df = get_default_df(fieldname)
+
+		if (
+			df
+			and df.fieldtype == "Currency"
+			and not currency
+			and (currency_field := df.get("options"))
+			and (currency_value := self.get(currency_field))
+		):
+			currency = frappe.db.get_value("Currency", currency_value, cache=True)
+
+		val = self.get(fieldname)
+
+		if translated:
+			val = _(val)
+
+		if not doc:
+			doc = getattr(self, "parent_doc", None) or self
+
+		if (absolute_value or doc.get("absolute_value")) and isinstance(val, int | float):
+			val = abs(val)
+
+		return format_value(val, df=df, doc=doc, currency=currency, format=format)
+
+	def get_label_from_fieldname(self, fieldname):
+		meta = frappe.get_meta(self.get("doctype")) if self.get("doctype") else None
+		df = meta.get_field(fieldname) if meta else None
+		return _(df.label) if df and df.label else None
+
+	def in_format_data(self, fieldname):
+		doc = getattr(self, "parent_doc", None) or self
+		format_data_map = doc.get("format_data_map")
+		if format_data_map:
+			return fieldname in format_data_map
+		return True
+
+	def is_print_hide(self, fieldname, df=None, for_print=True):
+		meta = frappe.get_meta(self.get("doctype")) if self.get("doctype") else None
+		meta_df = meta.get_field(fieldname) if meta else None
+
+		if meta_df and meta_df.get("__print_hide"):
+			return True
+
+		print_hide = 0
+
+		if self.get(fieldname) == 0 and not (meta and meta.istable):
+			print_hide = (df and df.print_hide_if_no_value) or (meta_df and meta_df.print_hide_if_no_value)
+
+		if not print_hide:
+			if df and df.print_hide is not None:
+				print_hide = df.print_hide
+			elif meta_df:
+				print_hide = meta_df.print_hide
+
+		return print_hide
 
 
 def get_doc_as_dict(*args, **kwargs):
-	return frappe.get_doc(*args, **kwargs).as_dict()
+	return SafeDoc(frappe.get_doc(*args, **kwargs).as_dict())
 
 
 def safer_get_last_doc(*args, **kwargs):
-	return frappe.get_last_doc(*args, **kwargs).as_dict()
+	return SafeDoc(frappe.get_last_doc(*args, **kwargs).as_dict())
 
 
 def safer_get_cached_doc(*args, **kwargs):
-	return frappe.get_cached_doc(*args, **kwargs).as_dict()
+	return SafeDoc(frappe.get_cached_doc(*args, **kwargs).as_dict())
 
 
 def remove_unsafe_fields(fields):
@@ -361,7 +463,6 @@ def render_safe_globals():
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
-			request=getattr(frappe.local, "request", {}),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
@@ -499,7 +600,9 @@ def exec_safe_globals():
 			),
 		),
 	)
-	return _update_namespace(render_safe, exec_safe)
+	result = _update_namespace(render_safe, exec_safe)
+	result["frappe"]["request"] = getattr(frappe.local, "request", {})
+	return result
 
 
 def get_keys_for_autocomplete(

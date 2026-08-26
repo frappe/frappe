@@ -5,7 +5,7 @@ import datetime
 import json
 import os
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.desk.reportview
@@ -19,7 +19,9 @@ from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions, get_roles, has_permission
 from frappe.utils import cint, cstr, flt, format_datetime, format_duration, formatdate, get_html_format, sbool
 from frappe.utils.caching import request_cache
-from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, handle_html, make_xlsx
+
+if TYPE_CHECKING:
+	from frappe.utils.xlsxutils import XLSXMetadata
 
 
 def get_report_doc(report_name):
@@ -130,7 +132,7 @@ def generate_report_result(
 	if isinstance(filters, dict) and filters.get("translate_data"):
 		result = translate_report_data(result, has_total_row)
 
-	return {
+	return_dict = {
 		"result": result,
 		"columns": columns,
 		"message": message,
@@ -140,6 +142,24 @@ def generate_report_result(
 		"status": None,
 		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
 	}
+
+	if report.snapshot_report and report.doctype_to_sync:
+		if latest_sync := frappe.db.get_all(
+			"DuckDB Sync",
+			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
+			fields=["creation"],
+			pluck="creation",
+			order_by="creation desc",
+			limit=1,
+		):
+			return_dict.update(
+				{
+					"snapshot_report": True,
+					"snapshot_at": latest_sync[0],
+				}
+			)
+
+	return return_dict
 
 
 def normalize_result(result, columns):
@@ -207,6 +227,30 @@ def get_reference_report(report):
 def run(
 	report_name: str,
 	filters: str | dict | None = None,
+	user: str | None = None,  # Kept for backward compatibility
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+) -> dict:
+	return _run(
+		report_name=report_name,
+		filters=filters,
+		ignore_prepared_report=ignore_prepared_report,
+		custom_columns=custom_columns,
+		is_tree=is_tree,
+		parent_field=parent_field,
+		are_default_filters=are_default_filters,
+		js_filters=js_filters,
+	)
+
+
+def _run(
+	*,
+	report_name: str,
+	filters: str | dict | None = None,
 	user: str | None = None,
 	ignore_prepared_report: bool = False,
 	custom_columns: str | list | None = None,
@@ -239,6 +283,8 @@ def run(
 					filters = json.loads(filters)
 
 				dn = filters.pop("prepared_report_name", None)
+				if dn:
+					frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
@@ -376,6 +422,7 @@ def run_export_query_job(user_email: str, form_params, csv_params):
 
 def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
+	from frappe.utils.xlsxutils import handle_html, make_xlsx
 
 	report_name = form_params.report_name
 	file_format_type = form_params.file_format_type
@@ -388,6 +435,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
+	elif not isinstance(visible_idx, list):
+		visible_idx = []
 
 	data = run(
 		report_name,
@@ -410,22 +459,23 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	has_total_row = cint(data.get("add_total_row"))
-	needs_visible_filtering = (
-		visible_idx
-		and not ignore_visible_idx
-		and len(visible_idx) < len(data.result) - (1 if has_total_row else 0)
-	)
 
-	if needs_visible_filtering:
-		visible_idx = set(visible_idx)
-		filtered_result = [row for idx, row in enumerate(data.result) if idx in visible_idx]
+	# visible_idx is the client's display-order list of row indices into
+	# data.result. Iterate it as an ordered list (not a set) so the UI
+	# sort direction the user applied before Export survives into the file.
+	if visible_idx and not ignore_visible_idx:
+		row_count = len(data.result)
+		# Guard out-of-range indices in case the server's re-run returned
+		# fewer rows than the client had (data changed, or the report is
+		# non-deterministic).
+		filtered_result = [data.result[idx] for idx in visible_idx if 0 <= idx < row_count]
 
 		if has_total_row:
 			filtered_result = add_total_row(filtered_result, data.columns)
 
 		data["result"] = filtered_result
 
-	format_fields(data)
+	format_fields(data, file_format_type)
 
 	xlsx_data, column_widths, styles = build_xlsx_data(
 		data,
@@ -478,7 +528,9 @@ def valid_report_name(report_name, suffix):
 	return False
 
 
-def format_fields(data: frappe._dict) -> None:
+def format_fields(data: frappe._dict, file_format_type: str | None = None) -> None:
+	stringify_dates = file_format_type != "Excel"
+
 	for i, col in enumerate(data.columns):
 		if col.get("fieldtype") == "Duration":
 			for row in data.result:
@@ -492,13 +544,13 @@ def format_fields(data: frappe._dict) -> None:
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = round(val, col.get("precision"))
-		elif col.get("fieldtype") == "Date":
+		elif col.get("fieldtype") == "Date" and stringify_dates:
 			for row in data.result:
 				index = col.get("fieldname") if isinstance(row, dict) else i
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = formatdate(val)
-		elif col.get("fieldtype") == "Datetime":
+		elif col.get("fieldtype") == "Datetime" and stringify_dates:
 			for row in data.result:
 				index = col.get("fieldname") if isinstance(row, dict) else i
 				val = row.get(index) if isinstance(row, dict) else row[index]
@@ -538,6 +590,8 @@ def build_xlsx_data(
 			- column_widths: List of column widths for the Excel sheet
 			- styles: Dictionary of styles for Excel formatting (if applicable)
 	"""
+	from frappe.utils.xlsxutils import XLSXMetadata
+
 	metadata = None
 
 	EXCEL_TYPES = (
@@ -668,12 +722,14 @@ def build_xlsx_data(
 	return result, column_widths, get_xlsx_styles(metadata, data.report_name) if build_styles else None
 
 
-def get_xlsx_styles(metadata: XLSXMetadata, report_name: str | None = None) -> dict | None:
+def get_xlsx_styles(metadata: "XLSXMetadata", report_name: str | None = None) -> dict | None:
 	"""
 	Returns styles for XLSX export.
 
 	If report_name is provided, it tries to fetch styles defined in the report's module.
 	"""
+	from frappe.utils.xlsxutils import XLSXStyleBuilder
+
 	styles = None
 	if report_name:
 		report = frappe.get_doc("Report", report_name)
@@ -808,7 +864,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report: str, report_name: str, columns: str, filters: str):
+def save_report(reference_report: str, report_name: str, columns: str | list, filters: str | list | dict):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(
@@ -822,9 +878,9 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 
 	if docname:
 		report = frappe.get_doc("Report", docname)
-		existing_jd = json.loads(report.json)
-		existing_jd["columns"] = json.loads(columns)
-		existing_jd["filters"] = json.loads(filters)
+		existing_jd = frappe.parse_json(report.json or "{}")
+		existing_jd["columns"] = frappe.parse_json(columns)
+		existing_jd["filters"] = frappe.parse_json(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
@@ -835,7 +891,10 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": f'{{"columns":{columns},"filters":{filters}}}',
+				"json": json.dumps(
+					{"columns": frappe.parse_json(columns), "filters": frappe.parse_json(filters)},
+					separators=(",", ":"),
+				),
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",

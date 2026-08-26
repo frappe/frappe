@@ -160,11 +160,9 @@ function get_version_timeline_content(version_doc, frm) {
 					) {
 						parts.push(
 							__("{0} from {1} to {2} in row #{3}", [
-								__(
-									frappe.meta.get_label(
-										frm.fields_dict[row[0]].grid.doctype,
-										p[0]
-									)
+								frappe.meta.get_translated_label(
+									frm.fields_dict[row[0]].grid.doctype,
+									p[0]
 								),
 								format_content_for_timeline(p[1]),
 								format_content_for_timeline(p[2]),
@@ -223,7 +221,7 @@ function get_version_timeline_content(version_doc, frm) {
 						field_display_status === "Write" ||
 						(df.hidden && df.show_on_timeline)
 					) {
-						return __(frappe.meta.get_label(frm.doctype, p[0]));
+						return frappe.meta.get_translated_label(frm.doctype, p[0]);
 					}
 				}
 			});

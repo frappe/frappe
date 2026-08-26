@@ -8,6 +8,15 @@ frappe.ui.form.on("User", {
 				},
 			};
 		});
+
+		frm.set_query("workspace", "workspaces", () => {
+			return {
+				filters: {
+					public: 1,
+					title: ["!=", "Welcome Workspace"],
+				},
+			};
+		});
 	},
 	before_load: function (frm) {
 		let update_tz_options = function () {
@@ -103,6 +112,11 @@ frappe.ui.form.on("User", {
 	refresh: function (frm) {
 		let doc = frm.doc;
 
+		frappe.scroll_to_user_roles_field = function () {
+			frappe.hide_msgprint(true);
+			frm.scroll_to_field("roles_html");
+		};
+
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
 			frm.set_df_property("default_app", "options", ["", ...apps]);
@@ -165,46 +179,10 @@ frappe.ui.form.on("User", {
 			if (cint(frm.doc.enabled) && frm.has_perm("write")) {
 				frm.add_custom_button(
 					__("Change Password"),
-					function () {
-						const dialog = new frappe.ui.Dialog({
-							title: __("Change Password"),
-							fields: [
-								{
-									label: __("Set New Password"),
-									fieldtype: "Password",
-									fieldname: "new_password",
-									reqd: 1,
-								},
-								{
-									label: __("Logout From All Devices After Changing Password"),
-									fieldtype: "Check",
-									fieldname: "logout_all_sessions",
-									default: 1,
-								},
-							],
-							primary_action_label: __("Change Password"),
-							primary_action: (values) => {
-								return frappe
-									.call({
-										method: "frappe.core.doctype.user.user.change_password",
-										args: {
-											user: frm.doc.name,
-											new_password: values.new_password,
-											logout_all_sessions: values.logout_all_sessions,
-										},
-									})
-									.then(() => {
-										dialog.hide();
-										frappe.show_alert({
-											message: __("Password changed"),
-											indicator: "green",
-										});
-										frm.reload_doc();
-									});
-							},
-						});
-						dialog.show();
-					},
+					() =>
+						frappe.ui.show_change_password_dialog(frm.doc.name, () =>
+							frm.reload_doc()
+						),
 					__("Password")
 				);
 			}
@@ -274,7 +252,7 @@ frappe.ui.form.on("User", {
 			}
 
 			if (
-				cint(frappe.boot.sysdefaults.enable_two_factor_auth) &&
+				frappe.defaults.is_enabled("enable_two_factor_auth") &&
 				(frappe.session.user == doc.name || frappe.user.has_role("System Manager"))
 			) {
 				frm.add_custom_button(

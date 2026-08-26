@@ -11,7 +11,7 @@ import frappe.share
 from frappe import _
 from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
-	is_email_notifications_enabled_for_type,
+	is_email_enabled_for_feature,
 )
 from frappe.desk.reportview import get_filters_cond
 from frappe.model.document import Document
@@ -116,6 +116,9 @@ class Event(Document):
 
 		if not self.sync_with_google_calendar:
 			self.add_video_conferencing = 0
+
+		if self.google_meet_link and not self.google_meet_link.startswith("https://"):
+			self.google_meet_link = ""
 
 	def before_save(self):
 		self.set_participants_email()
@@ -260,8 +263,7 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 
 @frappe.whitelist()
 def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str | int):
-	if isinstance(event, str):
-		event = json.loads(event)
+	event = frappe.parse_json(event)
 
 	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
 
@@ -312,7 +314,7 @@ def send_event_digest():
 	users = [
 		user
 		for user in get_enabled_system_users()
-		if is_email_notifications_enabled_for_type(user.name, "Event Reminders")
+		if is_email_enabled_for_feature(user.name, "enable_email_event_reminders")
 	]
 
 	for user in users:
@@ -351,13 +353,11 @@ def get_events(
 	target_user = user or caller
 
 	if user and user != caller:
-		if not frappe.has_permission("Event", ptype="read"):
-			frappe.throw(_("You are not allowed to view events for another user."), frappe.PermissionError)
+		frappe.only_for("System Manager")
 	type EventLikeDict = Event | frappe._dict
 	resolved_events: list[EventLikeDict] = []
 
-	if isinstance(filters, str):
-		filters = json.loads(filters)
+	filters = frappe.parse_json(filters)
 
 	filter_condition = get_filters_cond("Event", filters, [])
 

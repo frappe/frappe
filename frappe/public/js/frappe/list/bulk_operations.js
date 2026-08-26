@@ -207,8 +207,20 @@ export default class BulkOperations {
 				},
 			})
 			.then((r) => {
+				// delete_items returns the undeleted names, or null when the job was enqueued.
+				// Only trust an explicit list — otherwise we would clear meta locals for
+				// documents that still exist (failed deletes) or were not deleted yet (async).
 				let failed = r.message;
-				if (!failed) failed = [];
+				if (!Array.isArray(failed)) {
+					if (done) done();
+					return;
+				}
+
+				for (const name of docnames) {
+					if (!failed.includes(name)) {
+						frappe.model.delete_from_locals(this.doctype, name);
+					}
+				}
 
 				if (failed.length && !r._server_messages) {
 					frappe.throw(
@@ -369,9 +381,9 @@ export default class BulkOperations {
 				frappe
 					.call({
 						method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
+						freeze: true,
 						args: {
 							doctype: this.doctype,
-							freeze: true,
 							docnames: docnames,
 							action: "update",
 							data: update_data,

@@ -49,7 +49,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 			if len(meta.get_global_search_fields()) > 0:
 				global_search_doctypes.append(d)
 
-		installed_apps = frappe.get_installed_apps()
+		installed_apps = frappe.get_active_apps()
 		module_app = frappe.local.module_app
 
 		doctypes = [
@@ -166,6 +166,7 @@ def get_selected_fields(meta, global_search_fields):
 	if meta.has_field("is_website_published"):
 		fieldnames.append("is_website_published")
 
+	assert fieldnames, "selected fields must always include an identifier column"
 	return fieldnames
 
 
@@ -298,7 +299,7 @@ def update_global_search_for_all_web_pages():
 
 
 def get_routes_to_index():
-	apps = frappe.get_installed_apps()
+	apps = frappe.get_active_apps()
 
 	routes_to_index = []
 	for app in apps:
@@ -397,6 +398,7 @@ def _get_deduped_search_item_values(items):
 		key = (item_dict["doctype"], item_dict["name"])
 		values_dict[key] = tuple(item_dict.values())
 
+	assert len(values_dict) <= len(items), "dedup must not produce more values than input items"
 	return values_dict.values()
 
 
@@ -543,7 +545,7 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	return sorted_results
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
@@ -570,7 +572,9 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 		mariadb_conditions += "MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)".format(
 			frappe.db.escape("+" + text + "*")
 		)
-		postgres_conditions += f'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({frappe.db.escape(text)})'
+		postgres_conditions += (
+			f"to_tsvector('english', \"content\") @@ plainto_tsquery('english', {frappe.db.escape(text)})"
+		)
 
 		values = {"scope": "".join([scope, "%"]) if scope else "", "limit": limit, "start": start}
 

@@ -49,10 +49,10 @@ def get_emails_sent_today(email_account=None):
 		WHERE
 			`status` in ('Sent', 'Not Sent', 'Sending')
 			AND
-			`creation` > (NOW() - INTERVAL '24' HOUR)
+			`creation` > %(since)s
 	"""
 
-	q_args = {}
+	q_args = {"since": add_to_date(now_datetime(), hours=-24)}
 	if email_account is not None:
 		if email_account:
 			q += " AND email_account = %(email_account)s"

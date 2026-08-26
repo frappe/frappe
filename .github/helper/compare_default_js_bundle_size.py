@@ -20,7 +20,7 @@ from pathlib import Path
 
 # WARNING: DO NOT MODIFY THIS!
 # Analyze the default bundle and optimize something instead: https://esbuild.github.io/analyze/
-DEFAULT_THRESHOLD = 10.0 # KB
+DEFAULT_THRESHOLD = 10.0  # KB
 THRESHOLD_ENV_VAR = "DEFAULT_JS_BUNDLE_SIZE_THRESHOLD"
 
 

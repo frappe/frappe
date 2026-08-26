@@ -37,7 +37,7 @@ frappe.ui.TagEditor = class TagEditor {
 
 		this.tags = new frappe.ui.Tags({
 			parent: this.wrapper,
-			placeholder: '<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>',
+			placeholder: frappe.utils.icon("plus", "sm"),
 			onTagAdd: (tag) => {
 				if (me.initialized && !me.refreshing) {
 					return frappe.call({

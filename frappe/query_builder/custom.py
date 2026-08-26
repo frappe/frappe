@@ -21,7 +21,7 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		self._separator = separator
 
 	@builder
-	def separator(self, separator: str = ""):
+	def separator(self, separator: str = ","):
 		"""Adds a separator to the GROUP_CONCAT function.
 		Args:
 				separator (str, optional): [separator to be used]. Defaults to ",".
@@ -32,7 +32,10 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		query_alias = self.alias
 		self.alias = None
 		sql = super().get_sql(**kwargs)
-		if self._separator:
+		# an explicit "" is a real request for no delimiter, not "use the default": dropping the
+		# clause would silently fall back to MariaDB's comma while STRING_AGG concatenates bare.
+		if self._separator is not None:
+			assert sql.endswith(")"), "GROUP_CONCAT SQL must end with ')' before injecting SEPARATOR"
 			sql = f"{sql[:-1]} SEPARATOR {frappe.db.escape(self._separator)})"
 
 		self.alias = query_alias
@@ -96,13 +99,16 @@ class TO_TSVECTOR(DistinctOptionFunction):
 		        column (str): [ column to search in ]
 		"""
 		alias = kwargs.get("alias")
-		super().__init__("TO_TSVECTOR", column, *args, alias=alias)
+		# Pin the 'english' regconfig: it makes to_tsvector immutable so a GIN index can back it
+		# (the 1-arg form depends on a session GUC and can't be indexed); plainto_tsquery uses the
+		# same config so the index over to_tsvector('english', content) is actually used.
+		super().__init__("TO_TSVECTOR", "english", column, *args, alias=alias)
 		self._PLAINTO_TSQUERY = False
 
 	def get_function_sql(self, **kwargs):
 		s = super(DistinctOptionFunction, self).get_function_sql(**kwargs)
 		if self._PLAINTO_TSQUERY:
-			return f"{s} @@ PLAINTO_TSQUERY({frappe.db.escape(self._PLAINTO_TSQUERY)})"
+			return f"{s} @@ PLAINTO_TSQUERY('english', {frappe.db.escape(self._PLAINTO_TSQUERY)})"
 		return s
 
 	@builder

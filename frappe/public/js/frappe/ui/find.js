@@ -1,6 +1,6 @@
 frappe.find = {
 	page_primary_action: () => {
-		return $(".page-actions:visible .btn-primary");
+		return $(".page-actions:visible .primary-action");
 	},
 	field: (fieldname, value) => {
 		return new Promise((resolve) => {

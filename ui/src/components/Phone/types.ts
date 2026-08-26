@@ -14,7 +14,7 @@ export interface Country {
   isd: string;
 }
 
-export interface PhoneInputProps extends InputLabelingProps {
+export interface PhoneProps extends InputLabelingProps {
   /** Visual size of the control. */
   size?: InputSize;
 
@@ -28,7 +28,7 @@ export interface PhoneInputProps extends InputLabelingProps {
   disabled?: boolean;
 }
 
-export interface PhoneInputSlots {
+export interface PhoneSlots {
   /** Overrides the rendered label content. Receives `{ required }`. */
   label?: (props: { required: boolean }) => any;
 
@@ -38,3 +38,4 @@ export interface PhoneInputSlots {
   /** Content rendered at the end of the control shell. */
   suffix?: () => any;
 }
+

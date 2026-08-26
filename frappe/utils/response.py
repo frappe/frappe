@@ -45,6 +45,8 @@ def report_error(status_code):
 	traceback = frappe.utils.get_traceback()
 	exc_type, exc_value, _ = sys.exc_info()
 
+	assert exc_type is not None, "report_error must be called while handling an active exception"
+
 	match get_api_version():
 		case ApiVersion.V1:
 			if allow_traceback:
@@ -306,7 +308,22 @@ def download_private_file(path: str) -> Response:
 	return send_private_file(path.split("/private", 1)[1], filename=file.file_name)
 
 
-FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+FORCE_DOWNLOAD_EXTENSIONS = (
+	".svg",
+	".svgz",
+	".html",
+	".htm",
+	".xhtml",
+	".xht",
+	".shtml",
+	".shtm",
+	".mhtml",
+	".mht",
+	".xml",
+	".xsl",
+	".xslt",
+	".swf",
+)
 
 
 def send_private_file(path: str, filename: str | None = None) -> Response:

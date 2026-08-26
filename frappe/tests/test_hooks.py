@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
 from frappe.cache_manager import clear_controller_cache
 from frappe.desk.doctype.todo.todo import ToDo
@@ -185,6 +187,25 @@ class TestHooks(IntegrationTestCase):
 			["1_my_prefix_user.json", "2_contact.json", "3_role.json"],
 			os.listdir(frappe.get_app_path(app, "fixtures")),
 		)
+
+	def test_disallowed_fixture_doctypes(self):
+		import click
+
+		from frappe import hooks
+		from frappe.utils.fixtures import DISALLOWED_FIXTURE_DOCTYPES, export_fixtures
+
+		app = "frappe"
+		for doctype in DISALLOWED_FIXTURE_DOCTYPES:
+			hooks.fixtures = [{"dt": doctype}]
+			if frappe._load_app_hooks in frappe.local.request_cache.keys():
+				del frappe.local.request_cache[frappe._load_app_hooks]
+
+			with patch("frappe.utils.fixtures.click.secho") as secho:
+				self.assertRaises(click.exceptions.Exit, export_fixtures, app)
+
+			message = secho.call_args.args[0]
+			self.assertIn(f'Cannot export "{doctype}" doctype', message)
+			self.assertIn("it can only be created in developer mode from desk", message)
 
 
 class TestDocEventHandlerSignature(UnitTestCase):

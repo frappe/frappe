@@ -781,6 +781,8 @@ docfield_properties = {
 	"print_width": "Data",
 	"alignment": "Select",
 	"non_negative": "Check",
+	"min_value": "Float",
+	"max_value": "Float",
 	"reqd": "Check",
 	"unique": "Check",
 	"ignore_user_permissions": "Check",

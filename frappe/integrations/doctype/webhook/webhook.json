@@ -19,6 +19,7 @@
   "request_url",
   "is_dynamic_url",
   "timeout",
+  "max_retries",
   "background_jobs_queue",
   "cb_webhook",
   "request_method",
@@ -178,6 +179,14 @@
    "label": "Request Timeout"
   },
   {
+   "default": "3",
+   "description": "Number of retry attempts for failed requests. Set to 0 for no retries.",
+   "fieldname": "max_retries",
+   "fieldtype": "Int",
+   "label": "Max Retries",
+   "non_negative": 1
+  },
+  {
    "fieldname": "background_jobs_queue",
    "fieldtype": "Autocomplete",
    "label": "Background Jobs Queue"
@@ -189,7 +198,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2026-04-22 15:33:54.888415",
+ "modified": "2026-07-11 19:04:55.894152",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

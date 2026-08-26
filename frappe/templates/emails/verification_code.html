@@ -1,1 +1,6 @@
-<p>{{ _("Your verification code is {0}").format(frappe.bold(code)) }}</p>
+<h1 class="email-title">{{ _("Your verification code") }}</h1>
+<div class="email-body">
+	<p>{{ _("Enter this code to complete your login.") }} {% if minutes == 1 %}{{ _("It expires in 1 minute.") }}{% else %}{{ _("It expires in {0} minutes.").format(minutes) }}{% endif %}</p>
+	<div class="email-code">{{ code }}</div>
+	<p class="email-ignore">{{ _("If you didn't request this code, you can safely ignore this email.") }}</p>
+</div>

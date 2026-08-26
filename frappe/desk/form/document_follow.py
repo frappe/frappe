@@ -19,15 +19,19 @@ if TYPE_CHECKING:
 def update_follow(doctype: str, doc_name: str, following: bool | str):
 	following = frappe.utils.sbool(following)
 	if following:
-		is_following = follow_document(doctype, doc_name, frappe.session.user)
+		is_following = follow_document(doctype, doc_name)
 		return bool(is_following)
 	else:
-		unfollow_document(doctype, doc_name, frappe.session.user)
+		unfollow_document(doctype, doc_name)
 		return False
 
 
 @frappe.whitelist()
-def follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
+def follow_document(doctype: str, doc_name: str) -> Document | bool:
+	return _follow_document(doctype, doc_name, frappe.session.user)
+
+
+def _follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 	"""
 	param:
 	Doctype name
@@ -61,20 +65,20 @@ def follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 		frappe.toast(_("Administrator can't follow"))
 		return False
 
-	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
-		frappe.throw(_("You can only follow documents for yourself."), frappe.PermissionError)
-
 	if not frappe.has_permission(doctype, "read", doc=doc_name, user=user):
-		frappe.throw(_("You do not have permission to access this document."), frappe.PermissionError)
+		return False
 
 	if not frappe.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
 		frappe.toast(_("Document follow is not enabled for this user."))
 		return False
 
 	if not is_document_followed(doctype, doc_name, user):
+		if not frappe.has_permission("Document Follow", "create", user=user):
+			return False
+
 		doc = frappe.new_doc("Document Follow")
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
-		doc.save()
+		doc.save(ignore_permissions=True)
 		frappe.toast(_("Following document {0}").format(doc_name))
 		return doc
 
@@ -82,9 +86,12 @@ def follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 
 
 @frappe.whitelist()
-def unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
-	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
-		frappe.throw(_("You can only unfollow documents for yourself."), frappe.PermissionError)
+def unfollow_document(doctype: str, doc_name: str) -> bool:
+	return _unfollow_document(doctype, doc_name, frappe.session.user)
+
+
+def _unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
+	"""Same as unfollow_document but hides param `user` from API"""
 
 	doc = frappe.get_all(
 		"Document Follow",
@@ -151,6 +158,7 @@ def get_user_list(frequency):
 		.on(DocumentFollow.user == User.name)
 		.where(User.document_follow_notify == 1)
 		.where(User.document_follow_frequency == frequency)
+		.where(User.enabled == 1)
 		.select(DocumentFollow.user)
 		.groupby(DocumentFollow.user)
 	).run(pluck="user")
@@ -266,13 +274,6 @@ def get_comments(doctype, doc_name, frequency, user):
 def is_document_followed(doctype, doc_name, user):
 	return frappe.db.exists(
 		"Document Follow", {"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user}
-	)
-
-
-@frappe.whitelist()
-def get_follow_users(doctype: str, doc_name: str):
-	return frappe.get_all(
-		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
 	)
 
 

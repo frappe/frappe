@@ -1,20 +1,26 @@
 # UI workspace notes
 
-## Use frappe-ui components first; only build your own if none exists
+## Design rules — read `PHILOSOPHY.md` first
 
-Before hand-rolling any UI element, reach for the frappe-ui equivalent
-(`Dialog`, `Button`, `Checkbox`, `Select`, `TextInput`, `Switch`, `Tabs`,
-`TabButtons`, `ErrorMessage`, etc.). Only build a custom component when frappe-ui
-has no equivalent — and when you do, leave a comment noting that frappe-ui lacks
-it, so it's clear the custom code is a deliberate fallback rather than a missed
-reuse.
+[`PHILOSOPHY.md`](./PHILOSOPHY.md) is the design rulebook for this library — the
+generative `FP*` principles that govern component APIs here (composing frappe-ui
+atoms, controlled components, meta-derived options). `@framework/ui` also inherits
+[frappe-ui's `PHILOSOPHY.md`](https://github.com/frappe/frappe-ui/blob/main/PHILOSOPHY.md)
+(`P1`–`P14`) in full, since every component here composes frappe-ui atoms.
+Walk both before drafting or refactoring a component, and cite principles by ID
+(`FP1`, `P3`) in reviews. The notes below are operational specifics that support
+those rules — the design *rules* themselves live in PHILOSOPHY.md, not here.
 
-Check the right package: this repo is **`@framework/ui`**, a slim in-house
+## frappe-ui vs `@framework/ui` — which package is which
+
+The compose-atoms-don't-rebuild rule is [`FP1`](./PHILOSOPHY.md); this note is the
+operational trap it depends on. This repo is **`@framework/ui`**, a slim in-house
 library with only a handful of components — it is NOT the `frappe-ui` dependency.
 Components imported `from "frappe-ui"` resolve to the full upstream package in
 `node_modules/frappe-ui` (e.g. `apps/crm/frontend/node_modules/frappe-ui`), which
 has far more (`Tabs`, `TabButtons`, etc.). Grep there, not just local `src/`,
-before concluding a component doesn't exist.
+before concluding a component doesn't exist — otherwise you'll rebuild something
+that already ships upstream.
 
 Example: `FileUpload/FileUploadDialog.vue` uses frappe-ui's `Tabs` for its source
 switcher rather than a hand-rolled tablist — `Tabs` provides the ARIA + keyboard
@@ -50,3 +56,23 @@ is what's used to manually test fieldtypes in a real consuming app — keep the 
 stories in sync. Note CRM's frontend uses **2-space** indentation (its own
 prettier/eslint config), not this repo's tabs; run `npx prettier --write` from
 `apps/crm/frontend` on the CRM file.
+
+## Subagents
+
+Offload exploration and side work to subagents to keep the main context lean.
+Use them by default (don't ask) for:
+
+- **Codebase exploration** — locating files, tracing a feature across the stack,
+  finding callers/usages, reading large files for one fact. Prefer the `Explore`
+  agent (read-only; returns conclusions, not file dumps).
+- **Independent parallel work** — unrelated lookups/edits with no data dependency:
+  launch in one message so they run concurrently.
+- **Verification side-quests** — test subsets, build checks, grep sweeps whose raw
+  output would flood the main context.
+
+Keep in the main context the synthesis, the decision, and the actual fix. Relay
+only what matters from a result — the user doesn't see subagent output.
+
+Exceptions: for a single known fact (you know the file/symbol), just read it —
+an agent only adds latency. Once you've delegated a search, don't also run it
+yourself; wait for the result.

@@ -15,7 +15,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.$value = $(
 			`<div class="attached-file flex justify-between align-center">
 				<div class="ellipsis">
-				${frappe.utils.icon("es-line-link", "sm")}
+				${frappe.utils.icon("link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
 				<div class="flex" style="align-items: center">
@@ -35,12 +35,17 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		let me = this;
 		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
 			if (me.frm) {
-				me.parse_validate_and_set_in_model(null);
-				me.refresh();
-				me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
-					await me.parse_validate_and_set_in_model(null);
+				let file_url = me.value || me.get_model_value();
+				me.parse_validate_and_set_in_model(null).then(() => {
 					me.refresh();
-					me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+					if (!me.frm.is_new()) {
+						let save_action = me.frm.doc.docstatus == 1 ? "Update" : "Save";
+						me.frm.save(save_action, () => {
+							if (!me.frm.is_dirty()) {
+								me.frm.attachments.remove_attachment_by_filename(file_url);
+							}
+						});
+					}
 				});
 			} else {
 				me.dataurl = null;
@@ -139,7 +144,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		if (this.frm) {
 			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
-			this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+			if (!this.frm.is_new()) {
+				this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+			}
 		}
 		this.set_value(attachment.file_url);
 	}

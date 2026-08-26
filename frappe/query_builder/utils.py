@@ -35,6 +35,8 @@ DB_TYPE_MAP = {
 	db_type_is.SQLITE: SQLite,
 }
 
+assert set(DB_TYPE_MAP) == set(db_type_is), "DB_TYPE_MAP must map every db_type_is member to a builder"
+
 
 class ImportMapper:
 	def __init__(self, func_map: dict[db_type_is, Callable]) -> None:
@@ -84,6 +86,8 @@ def mask_fields(
 	fields: list[Any],
 	result: list[dict] | list[tuple],
 	as_dict: bool = True,
+	pluck: bool = False,
+	parent_doctype: str | None = None,
 ) -> list[dict] | list[tuple]:
 	"""Mask fields in the result based on the doctype's masked fields.
 
@@ -92,21 +96,28 @@ def mask_fields(
 		fields: List of field objects from the query
 		result: Query results as list of dicts or tuples
 		as_dict: Whether results are dictionaries (True) or tuples (False)
-
+		pluck: Whether results were plucked into a flat list of scalar values
+		parent_doctype: Parent DocType when querying a child table, used to
+			resolve role permissions for the `mask` permission type
 	Returns:
 		Result with masked field values applied based on user permissions
 	"""
 	from frappe.database.query import CORE_DOCTYPES
-	from frappe.model.utils.mask import mask_dict_results, mask_list_results
+	from frappe.model.utils.mask import mask_dict_results, mask_list_results, mask_pluck_results
 
 	# We can't query meta for core doctypes here
 	if doctype in CORE_DOCTYPES:
 		return result
 
-	masked_fields = frappe.get_meta(doctype).get_masked_fields()
+	masked_fields = frappe.get_meta(doctype).get_masked_fields(
+		parenttype=parent_doctype
+	) + get_masked_joined_fields(doctype, fields)
 
 	if not masked_fields:
 		return result
+
+	if pluck:
+		return mask_pluck_results(result, masked_fields, fields)
 
 	if not as_dict:
 		field_index_map = {}
@@ -114,7 +125,7 @@ def mask_fields(
 			# Handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
 			if alias := getattr(field, "alias", None):
 				field_index_map[alias] = idx
-			elif name := getattr(field, "name", None):
+			elif name := getattr(field, "name", None) or getattr(field, "fieldname", None):
 				field_index_map[name] = idx
 
 		return mask_list_results(result, masked_fields, field_index_map)
@@ -123,8 +134,34 @@ def mask_fields(
 	return mask_dict_results(result, masked_fields)
 
 
+def get_masked_joined_fields(doctype: str, fields: list[Any]) -> list[Any]:
+	"""Get masked fields of the doctypes joined in through dot notation (`items.rate`)."""
+	from frappe.database.query import CORE_DOCTYPES, DynamicTableField
+	from frappe.model.utils.mask import as_aliased_field
+
+	masked_fields = []
+	lookups = {}
+
+	for field in fields:
+		if not isinstance(field, DynamicTableField) or field.doctype in CORE_DOCTYPES:
+			continue
+
+		if field.doctype not in lookups:
+			meta = frappe.get_meta(field.doctype)
+			parenttype = doctype if meta.istable else None
+			lookups[field.doctype] = {
+				df.fieldname: df for df in meta.get_masked_fields(parenttype=parenttype)
+			}
+
+		if df := lookups[field.doctype].get(field.fieldname):
+			masked_fields.append(as_aliased_field(df, field.alias))
+
+	return masked_fields
+
+
 def execute_query(query, *args, **kwargs):
 	dt = query.__dict__.get("_doctype")
+	parent_dt = query.__dict__.get("_parent_doctype")
 	fields = query.__dict__.get("_fields_list", [])
 	child_queries = query._child_queries
 	query, params = prepare_query(query)
@@ -132,12 +169,36 @@ def execute_query(query, *args, **kwargs):
 
 	if child_queries and isinstance(child_queries, list) and result:
 		execute_child_queries(child_queries, result)
+		if dt:
+			mask_child_query_fields(child_queries, result)
 
 	if result and dt and fields:
-		as_dict = kwargs.get("as_dict", not kwargs.get("as_list", False))
-		result = mask_fields(dt, fields, result, as_dict=as_dict)
+		# `db.sql` returns tuples unless `as_dict` is passed, so masking must not assume dicts
+		as_dict = bool(kwargs.get("as_dict"))
+		result = mask_fields(
+			dt, fields, result, as_dict=as_dict, pluck=kwargs.get("pluck", False), parent_doctype=parent_dt
+		)
 
 	return result
+
+
+def mask_child_query_fields(child_queries, result):
+	if not isinstance(result[0], dict):
+		return
+
+	from frappe.database.query import CORE_DOCTYPES
+	from frappe.model.utils.mask import mask_dict_results
+
+	for child_query in child_queries:
+		if child_query.doctype in CORE_DOCTYPES:
+			continue
+		masked_fields = frappe.get_meta(child_query.doctype).get_masked_fields(
+			parenttype=child_query.parent_doctype
+		)
+		if not masked_fields:
+			continue
+		for row in result:
+			mask_dict_results(row.get(child_query.fieldname) or [], masked_fields)
 
 
 def execute_child_queries(queries, result):
@@ -244,8 +305,34 @@ def patch_like_operators():
 	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
+def patch_regex_operator():
+	"""Render the query-builder regex operator in each backend's native spelling.
+
+	pypika's Term.regex emits " REGEX ", which is an operator on neither backend: MySQL spells it
+	REGEXP, postgres uses the case-insensitive match ~*. So `frappe.get_all(filters={"f":
+	["regex", ...]})` produced a syntax error everywhere. Emitting the right operator here also
+	means a generated query no longer depends on the textual REGEXP rewrite in modify_query.
+	"""
+	# pypika has no hook for dialect-specific operator rendering, so patch Term.regex the same way
+	# patch_like_operators above does. The rule anchors on the import, so suppress it there too.
+	from pypika.enums import Comparator, Matching
+	from pypika.terms import BasicCriterion, Term  # nosemgrep: frappe-monkey-patching-not-allowed
+
+	class PostgresMatching(Comparator):
+		regex = " ~* "
+
+	def regex(self, pattern: str):
+		comparator = (
+			PostgresMatching.regex if frappe.db and frappe.db.db_type == "postgres" else Matching.regexp
+		)
+		return BasicCriterion(comparator, self, self.wrap_constant(pattern))
+
+	Term.regex = regex  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
 	patch_get_query()
 	patch_like_operators()
+	patch_regex_operator()

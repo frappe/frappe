@@ -68,6 +68,9 @@ class Notification(Document):
 		method: DF.Data | None
 		minutes_offset: DF.Int
 		module: DF.Link | None
+		notification_message: DF.SmallText | None
+		notification_title: DF.Data | None
+		notification_type: DF.Link | None
 		print_format: DF.Link | None
 		property_value: DF.Data | None
 		recipients: DF.Table[NotificationRecipient]
@@ -88,7 +91,8 @@ class Notification(Document):
 
 	def autoname(self):
 		if not self.name:
-			self.name = self.subject
+			# Subject is optional for System Notification rules; fall back to the headline.
+			self.name = self.subject or self.notification_title
 
 	# START: PreviewRenderer API
 
@@ -152,6 +156,11 @@ class Notification(Document):
 			validate_template(self.subject)
 
 		validate_template(self.message)
+
+		if self.notification_title:
+			validate_template(self.notification_title)
+		if self.notification_message:
+			validate_template(self.notification_message)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
@@ -436,9 +445,24 @@ def get_context(context):
 			self.log_error("Failed to send Notification")
 
 	def create_system_notification(self, doc, context):
-		subject = self.subject
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context, restrict_globals=True)
+		def _render(template):
+			# Templates (subject / notification_title / notification_message) come from the
+			# System Notification rule, authored by System Managers — the same trusted source as
+			# the other render_template calls in this controller.
+			if not (template and "{" in template):
+				return template
+			return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				template, context
+			)
+
+		# Title falls back to the email Subject so existing rules keep their headline.
+		# Description, however, comes ONLY from the dedicated Notification Message — we do not
+		# fall back to the email Message, whose default placeholder ("Add your message here")
+		# would otherwise leak into the panel. This matches the older behaviour where the bell
+		# showed just the headline when there was no body.
+		subject = _render(self.subject)
+		title = _render(self.notification_title) or subject
+		description = _render(self.notification_message)
 
 		attachments = self.get_attachment(doc)
 
@@ -450,12 +474,22 @@ def get_context(context):
 			return
 
 		notification_doc = {
-			"type": "Alert",
+			"type": self.notification_type or "Alert",
 			"document_type": get_reference_doctype(doc),
 			"document_name": get_reference_name(doc),
+			# Scope the in-app notification to the rule's own app so it appears in that app's panel
+			# even when the reference document belongs to a different app (or there is none).
+			# Falls through to NotificationLog.before_insert's document_type derivation when unset.
+			"app": frappe.db.get_value("Module Def", self.module, "app_name") if self.module else None,
+			"title": title,
 			"subject": subject,
+			"description": description,
+			# Email body comes from the rule's Message field (its dedicated purpose), not the
+			# in-app Description: a non-skip notification_type can make the log email itself
+			# (NotificationLog.after_insert), and a blank Notification Message must not produce a
+			# body-less email. This restores the pre-split behaviour (email_content <- self.message).
+			"email_content": _render(self.message),
 			"from_user": doc.modified_by or doc.owner,
-			"email_content": frappe.render_template(self.message, context, restrict_globals=True),
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}
 		enqueue_create_notification(users, notification_doc)
@@ -762,15 +796,24 @@ def trigger_daily_alerts():
 	trigger_notifications(None, "daily")
 
 
+def get_scheduled_notifications(events: tuple[str, ...]) -> list[dict]:
+	"""Return the enabled notifications for these events, minus those of a disabled app."""
+	from frappe.app_state import get_disabled_modules
+
+	filters = {"event": ("in", events), "enabled": 1}
+	if disabled_modules := get_disabled_modules():
+		filters["module"] = ("not in", list(disabled_modules))
+
+	return frappe.get_all("Notification", filters=filters)
+
+
 def trigger_notifications(doc, method=None):
 	if frappe.flags.in_import or frappe.flags.in_patch:
 		# don't send notifications while syncing or patching
 		return
 
 	if method == "daily":
-		doc_list = frappe.get_all(
-			"Notification", filters={"event": ("in", ("Days Before", "Days After")), "enabled": 1}
-		)
+		doc_list = get_scheduled_notifications(("Days Before", "Days After"))
 		for d in doc_list:
 			alert = frappe.get_doc("Notification", d.name)
 
@@ -780,9 +823,7 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()  # nosemgrep
 
 	elif method == "offset":
-		doc_list = frappe.get_all(
-			"Notification", filters={"event": ("in", ("Minutes Before", "Minutes After")), "enabled": 1}
-		)
+		doc_list = get_scheduled_notifications(("Minutes Before", "Minutes After"))
 		for d in doc_list:
 			alert = frappe.get_doc("Notification", d.name)
 

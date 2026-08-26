@@ -100,6 +100,51 @@ class TestRQJob(IntegrationTestCase):
 		with self.assertRaises(rq_exc.NoSuchJobError):
 			job.refresh()
 
+	def test_queue_filter_rejects_suffix_collision(self):
+		"""`queue = long` must not include a custom
+		queue whose name is a suffix of `long` (e.g. `schedulelong`).
+
+		The old check `queue.name.endswith(tuple(queues))` false-matched any
+		suffix. Fix uses `rsplit(":", 1)[-1] not in queues` so only exact
+		short-name matches pass.
+		"""
+		from unittest.mock import MagicMock, patch
+
+		site = frappe.local.site
+
+		# Two fake queues with bench-prefixed names, one a legitimate `long`
+		# and one a custom queue whose short name ends with `long` as a
+		# substring.
+		long_queue = MagicMock(name="long_queue")
+		long_queue.name = "test-bench:long"
+		collide_queue = MagicMock(name="collide_queue")
+		collide_queue.name = "test-bench:schedulelong"
+
+		def fake_fetch(queue, status):
+			# Return one ID per (queue, status), site-prefixed so
+			# filter_current_site_jobs doesn't strip them.
+			short = queue.name.rsplit(":", 1)[-1]
+			return [f"{site}||{short}-{status}"]
+
+		module = "frappe.core.doctype.rq_job.rq_job"
+		with (
+			patch(f"{module}.get_queues", return_value=[long_queue, collide_queue]),
+			patch(f"{module}.get_custom_queues", return_value=["schedulelong"]),
+			patch(f"{module}.fetch_job_ids", side_effect=fake_fetch),
+		):
+			result = RQJob.get_matching_job_ids(filters=[["RQ Job", "queue", "=", "long"]])
+
+		self.assertFalse(
+			any("schedulelong" in job_id for job_id in result),
+			f"queue=long filter must exclude schedulelong, got: {result!r}",
+		)
+		self.assertTrue(
+			all("||long-" in job_id for job_id in result),
+			f"every returned id should be from the long queue, got: {result!r}",
+		)
+		# One id per status from the single matching queue.
+		self.assertEqual(len(result), 7)
+
 	@timeout
 	def test_multi_queue_burst_consumption(self):
 		for _ in range(3):
@@ -184,6 +229,9 @@ class TestRQJob(IntegrationTestCase):
 		# TODO: Observed higher usage on 2026-05-26. Temporarily raising the limit
 		LAST_MEASURED_USAGE += 1
 
+		# Setting session time zone on connect loads System Settings in the worker
+		LAST_MEASURED_USAGE += 3
+
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):
@@ -200,6 +248,15 @@ class TestRQJob(IntegrationTestCase):
 			RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"], ["RQ Job", "queue", "=", "short"]]),
 			limit * 1.2,
 		)
+
+	def test_pickle_lazy_doc_for_rq_job(self):
+		job = frappe.enqueue(test_serialization, user=frappe.get_lazy_doc("User", "Guest"))
+		self.check_status(job, "finished")
+
+
+def test_serialization(user):
+	assert user.roles
+	return True
 
 
 def test_func(fail=False, sleep=0):

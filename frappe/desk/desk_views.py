@@ -4,6 +4,7 @@
 from functools import cached_property
 
 import frappe
+from frappe.app_state import get_disabled_modules
 from frappe.permissions import has_permission
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
@@ -65,35 +66,22 @@ class DeskViews:
 
 		return frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
 
-	def is_item_allowed(self, name, item_type, allowed_workspaces=None):
-		"""Return whether the user may see a sidebar/workspace item.
+	@cached_property
+	def can_read(self):
+		"""Doctypes the session user may read. Built lazily so subclasses used purely as a
+		permission context don't pay for it on construction."""
+		user = frappe.get_user()
+		if not user.can_read:
+			user.build_permissions()
+		return user.can_read
 
-		Relies on the consumer setting `can_read`, `allowed_pages`, `allowed_reports`,
-		`allowed_dashboards`, `restricted_doctypes` and `restricted_pages` on the instance.
-		"""
-		if frappe.session.user == "Administrator":
-			return True
+	@cached_property
+	def allowed_workspaces(self):
+		"""Names of the workspaces the session user may see. Built lazily, like the other
+		permission caches above."""
+		from frappe.desk.desktop import get_workspaces
 
-		item_type = item_type.lower()
-
-		if item_type == "doctype":
-			return (
-				name in (self.can_read or [])
-				and name in (self.restricted_doctypes or [])
-				and frappe.has_permission(name)
-			)
-		if item_type == "page":
-			return name in self.allowed_pages and name in self.restricted_pages
-		if item_type == "report":
-			return not frappe.db.get_value("Report", name, "disabled") and name in self.allowed_reports
-		if item_type == "dashboard":
-			return name in (self.allowed_dashboards or [])
-		if item_type in ("help", "url"):
-			return True
-		if item_type == "workspace":
-			return name in (allowed_workspaces or [])
-
-		return False
+		return [page.name for page in get_workspaces()["pages"]]
 
 	@classmethod
 	def get_allowed_pages(cls, cache=False, user: str | None = None):
@@ -134,7 +122,7 @@ class DeskViews:
 		"""
 		if cache:
 			cached = frappe.cache.get_value(key, user=user)
-			if cached:
+			if cached is not None:
 				return cached
 
 		value = builder()
@@ -243,16 +231,35 @@ class DeskViews:
 
 			reports = frappe.get_list(
 				"Report",
-				fields=["name", "report_type"],
+				fields=["name", "report_type", "ref_doctype"],
 				filters={"name": ("in", has_role.keys())},
 				ignore_ifnull=True,
 				user=user,
 			)
+			permitted_names = set()
 			for report in reports:
-				has_role[report.name]["report_type"] = report.report_type
+				try:
+					if report.ref_doctype and not has_permission(
+						report.ref_doctype, "report", user=user, print_logs=False
+					):
+						continue
+					has_role[report.name]["report_type"] = report.report_type
+					permitted_names.add(report.name)
+				except frappe.DoesNotExistError:
+					frappe.log_error("Error occurred while checking report permissions")
 
-			non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
+			non_permitted_reports = set(has_role.keys()) - permitted_names
 			for r in non_permitted_reports:
 				has_role.pop(r, None)
+
+		if disabled_modules := get_disabled_modules():
+			hidden = (
+				frappe.qb.from_(parentTable)
+				.select(parentTable.name)
+				.where(parentTable.module.isin(list(disabled_modules)))
+				.run(pluck=True)
+			)
+			for name in hidden:
+				has_role.pop(name, None)
 
 		return has_role

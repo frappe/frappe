@@ -106,10 +106,9 @@ def get_context(context):
 	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_user_name")):
 		login_label.append(_("Username"))
 
-	context["login_label"] = f" {_('or')} ".join(login_label)
+	context["login_label"] = " / ".join(login_label)
 
 	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
-	context["login_with_frappe_cloud_url"] = None
 
 	return context
 
@@ -154,6 +153,8 @@ def send_login_link(email: str):
 			recipients=email,
 			template="login_with_email_link",
 			args={"link": link, "minutes": expiry, "app_name": app_name},
+			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 			now=True,
 		)
 	except frappe.DoesNotExistError:

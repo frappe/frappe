@@ -1,74 +1,10 @@
 // Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See LICENSE
 
-// Flags shown as columns in the Documents table (compact view).
-const PERM_FLAGS = ["read", "write", "create", "delete", "submit", "cancel", "amend"];
-
-// Full permission set for the add/edit dialog, grouped into three sections with
-// help text. Strings are translated lazily at field-build time, not at load.
-const PERM_SECTIONS = [
-	{
-		label: __("Primary"),
-		flags: [
-			{ name: "read", description: __("Allows the user to view the document.") },
-			{
-				name: "write",
-				description: __("Allows the user to edit existing records they have access to."),
-			},
-			{ name: "create", description: __("Allows the user to create new documents.") },
-			{ name: "delete", description: __("Allows the user to delete documents.") },
-			{
-				name: "submit",
-				description: __("Allows the user to submit documents (submittable doctypes)."),
-			},
-			{ name: "cancel", description: __("Allows the user to cancel submitted documents.") },
-			{
-				name: "amend",
-				description: __("Allows the user to amend a cancelled document into a new copy."),
-			},
-			{ name: "select", description: __("Allows the user to search and see records.") },
-			{
-				name: "mask",
-				description: __(
-					"Allows users to enable the mask property for any field of the respective doctype."
-				),
-			},
-		],
-	},
-	{
-		label: __("Reporting & Sharing"),
-		flags: [
-			{
-				name: "report",
-				description: __("Allows the user to access reports related to the document."),
-			},
-			{
-				name: "export",
-				description: __("Allows the user to export data from the Report view."),
-			},
-			{
-				name: "import",
-				description: __(
-					"Allows the user to use Data Import tool to create / update records."
-				),
-			},
-			{ name: "share", description: __("Allows sharing document access with other users.") },
-			{ name: "print", description: __("Allows printing or PDF download of documents.") },
-			{ name: "email", description: __("Allows the user to email from the document.") },
-		],
-	},
-];
-
-// Every flag the dialog can write back (across all three sections).
-const ALL_PERM_FLAGS = PERM_SECTIONS.flatMap((section) => section.flags.map((flag) => flag.name));
-
-// Permission levels offered in the add dialog (0–9).
-const PERMLEVEL_OPTIONS = Array.from({ length: 10 }, (_, i) => String(i)).join("\n");
-
-// Rights that only apply to submittable doctypes (hidden otherwise).
-const SUBMITTABLE_FLAGS = ["submit", "cancel", "amend"];
-// At permlevel > 0, only these field-level rights apply.
-const PERMLEVEL_FLAGS = ["read", "write", "mask"];
+// Permission-flag metadata + the add/edit dialog live in the shared permission editor
+// (frappe.ui.PermissionDialog / frappe.perm_editor), so the Role form and the DocType
+// Settings permissions tab share one implementation.
+const { PERM_FLAGS, ALL_PERM_FLAGS, capitalize } = frappe.perm_editor;
 
 frappe.ui.form.on("Role", {
 	refresh(frm) {
@@ -114,14 +50,28 @@ class RoleForm {
 			pages_tab: new PagesTab(this.frm),
 			workspace_tab: new WorkspacesTab(this.frm),
 		};
-		Object.values(this.tabs).forEach((tab) => tab.build());
+		// EmbeddedList is lazy (not in the desk bundle); build the tabs' lists
+		// once it's loaded so build()/refresh() stay synchronous below.
+		frappe
+			.require("embedded_list.bundle.js")
+			.then(() => {
+				Object.values(this.tabs).forEach((tab) => tab.build());
 
-		// Role Profiles live in the always-visible Details tab — load eagerly.
-		const profiles = new RoleProfilesTab(this.frm);
-		profiles.build();
-		profiles.refresh();
+				// Role Profiles live in the always-visible Details tab — load eagerly.
+				const profiles = new RoleProfilesTab(this.frm);
+				profiles.build();
+				profiles.refresh();
 
-		this.load_active_tab();
+				this.load_active_tab();
+			})
+			.catch((e) => {
+				// a failed lazy load must not leave the form silently blank
+				console.error("Role form: failed to load embedded_list.bundle.js", e);
+				frappe.ui.toast({
+					message: __("Could not load this section. Please refresh the page."),
+					type: "error",
+				});
+			});
 	}
 
 	load_active_tab() {
@@ -239,6 +189,7 @@ class RoleProfilesTab extends RoleTab {
 				filters: { role: this.role, parenttype: "Role Profile" },
 				fields: ["parent"],
 				limit: 0,
+				parent_doctype: "Role Profile",
 			})
 			.then((rows) => unique_parents(rows).map((parent) => ({ name: parent })));
 	}
@@ -253,7 +204,7 @@ class UsersTab extends RoleTab {
 		return {
 			description: __("Users who have this role."),
 			empty_message: __("No users have this role."),
-			add_button: { label: __("+ Add User"), action: () => this.add() },
+			add_button: { label: __("Add User"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Full Name"),
@@ -270,9 +221,7 @@ class UsersTab extends RoleTab {
 							label: __("Remove"),
 							icon: "x",
 							danger: true,
-							confirm: __("Remove {0} from this role?"),
-							confirm_field: "full_name",
-							action: (row, refresh) => this.remove(row.name).then(refresh),
+							action: (row, refresh) => this.remove_user(row, refresh),
 						},
 					],
 				},
@@ -287,6 +236,7 @@ class UsersTab extends RoleTab {
 				filters: { role: this.role, parenttype: "User" },
 				fields: ["parent"],
 				limit: 0,
+				parent_doctype: "User",
 			})
 			.then((rows) => this.fetch_users(unique_parents(rows)));
 	}
@@ -318,28 +268,144 @@ class UsersTab extends RoleTab {
 				},
 			],
 			primary_action_label: __("Add"),
-			primary_action: (values) => {
-				this.add_role(values.user)
-					.then(() => {
-						dialog.hide();
-						frappe.show_alert({ message: __("User added."), indicator: "green" });
-						this.refresh();
-					})
-					.catch((e) => {
-						frappe.show_alert({
-							message: e.message || __("Failed to add user."),
-							indicator: "red",
-						});
-					});
-			},
+			primary_action: (values) => this.add_existing_user(values.user, dialog),
 		});
+		dialog.fields_dict.user.new_doc = () => {
+			dialog.hide();
+			this.create_new_user();
+		};
 		dialog.show();
+	}
+
+	add_existing_user(user_name, dialog) {
+		this.get_user_role_profiles(user_name).then((profiles) => {
+			if (profiles.length) return this.notify_profile_managed(user_name, profiles);
+			this.add_role(user_name)
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({ message: __("User added."), indicator: "green" });
+					this.refresh();
+				})
+				.catch((e) => {
+					frappe.show_alert({
+						message: e.message || __("Failed to add user."),
+						indicator: "red",
+					});
+				});
+		});
+	}
+
+	create_new_user() {
+		this.eligible_role_profiles().then((eligible) => {
+			const dialog = new frappe.ui.Dialog({
+				title: __("Create New User"),
+				fields: [
+					{ label: __("Email"), fieldname: "email", fieldtype: "Data", reqd: 1 },
+					{
+						label: __("First Name"),
+						fieldname: "first_name",
+						fieldtype: "Data",
+						reqd: 1,
+					},
+					{
+						label: __("Role Profile"),
+						fieldname: "role_profile",
+						fieldtype: "Link",
+						options: "Role Profile",
+						description: __("Leave empty to grant {0} directly.", [this.role]),
+						get_query: () => ({
+							filters: { name: ["in", eligible.length ? eligible : [""]] },
+						}),
+					},
+				],
+				primary_action_label: __("Create"),
+				primary_action: (values) => this.insert_user(values, dialog),
+			});
+			dialog.add_custom_action(__("Edit Full Form"), () => this.edit_full_form(dialog));
+			dialog.show();
+		});
+	}
+
+	insert_user(values, dialog) {
+		const doc = { doctype: "User", email: values.email, first_name: values.first_name };
+		if (values.role_profile) doc.role_profiles = [{ role_profile: values.role_profile }];
+		else doc.roles = [{ role: this.role }];
+		frappe.db
+			.insert(doc)
+			.then(() => {
+				dialog.hide();
+				frappe.show_alert({ message: __("User created."), indicator: "green" });
+				this.refresh();
+			})
+			.catch((e) => {
+				frappe.show_alert({
+					message: e.message || __("Failed to create user."),
+					indicator: "red",
+				});
+			});
+	}
+
+	edit_full_form(dialog) {
+		const values = dialog.get_values(true) || {};
+		const doc = frappe.model.get_new_doc("User");
+		doc.email = values.email;
+		doc.first_name = values.first_name;
+		if (values.role_profile) {
+			frappe.model.add_child(doc, "User Role Profile", "role_profiles").role_profile =
+				values.role_profile;
+		} else {
+			frappe.model.add_child(doc, "Has Role", "roles").role = this.role;
+		}
+		dialog.hide();
+		frappe.set_route("Form", "User", doc.name);
+	}
+
+	notify_profile_managed(user_name, profiles) {
+		frappe.msgprint({
+			title: __("Role Managed by Role Profile"),
+			message: __("{0}'s roles come from the Role Profile {1}. Edit that to change this.", [
+				frappe.utils.escape_html(user_name),
+				frappe.utils.comma_and(profiles.map((p) => frappe.utils.escape_html(p))),
+			]),
+			indicator: "orange",
+		});
+	}
+
+	eligible_role_profiles() {
+		return frappe.db
+			.get_list("Has Role", {
+				filters: { role: this.role, parenttype: "Role Profile" },
+				fields: ["parent"],
+				limit: 0,
+				parent_doctype: "Role Profile",
+			})
+			.then((rows) => unique_parents(rows));
+	}
+
+	get_user_role_profiles(user_name) {
+		return frappe.db
+			.get_list("User Role Profile", {
+				filters: { parenttype: "User", parent: user_name },
+				fields: ["role_profile"],
+				limit: 0,
+				parent_doctype: "User",
+			})
+			.then((rows) => rows.map((r) => r.role_profile));
 	}
 
 	add_role(user_name) {
 		return this.save_roles_on_doc("User", user_name, (roles) => {
 			if (!roles.find((r) => r.role === this.role)) roles.push({ role: this.role });
 			return roles;
+		});
+	}
+
+	remove_user(row, refresh) {
+		this.get_user_role_profiles(row.name).then((profiles) => {
+			if (profiles.length) return this.notify_profile_managed(row.name, profiles);
+			frappe.confirm(__("Remove {0} from this role?", [row.full_name || row.name]), () =>
+				this.remove(row.name).then(refresh)
+			);
 		});
 	}
 
@@ -363,8 +429,10 @@ class DocumentsTab extends RoleTab {
 		return {
 			page_size: 50,
 			description: __("DocTypes this role can access."),
-			empty_message: __("No DocTypes are accessible to this role."),
-			add_button: { label: __("+ Add Permission"), action: () => this.add() },
+			empty_message: __("No documents added."),
+			empty_icon: "file-text",
+			no_match_message: __("No documents found."),
+			add_button: { label: __("Add Permission"), action: () => this.add() },
 			columns: this.columns(),
 			on_row_click: (row) => this.edit(row),
 			get_data: () => this.get_data(),
@@ -418,11 +486,11 @@ class DocumentsTab extends RoleTab {
 	}
 
 	edit(row) {
-		new PermissionDialog(this, { row }).show();
+		new frappe.ui.PermissionDialog(this, { row }).show();
 	}
 
 	add() {
-		new PermissionDialog(this, {}).show();
+		new frappe.ui.PermissionDialog(this, {}).show();
 	}
 
 	create(values) {
@@ -512,226 +580,6 @@ class DocumentsTab extends RoleTab {
 }
 
 // ============================================================
-// PermissionDialog — the add / edit permission dialog.
-// ============================================================
-
-class PermissionDialog {
-	constructor(tab, opts) {
-		this.tab = tab;
-		this.row = opts.row || null;
-		this.is_submittable = this.row ? !!this.row.is_submittable : false;
-	}
-
-	get role() {
-		return this.tab.role;
-	}
-
-	get is_edit() {
-		return !!this.row;
-	}
-
-	show() {
-		this.dialog = new frappe.ui.Dialog({
-			title: this.title(),
-			fields: this.fields(),
-			primary_action_label: this.is_edit ? __("Save") : __("Add"),
-			primary_action: (values) => this.save(values),
-		});
-		if (this.is_edit) this.add_row_actions();
-		this.dialog.show();
-		this.apply_visibility(this.is_edit ? this.row.permlevel : 0);
-	}
-
-	title() {
-		return this.is_edit
-			? __("{0} Permission for {1}", [__(this.row.source), this.row.parent])
-			: __("Add Permission for {0}", [this.role]);
-	}
-
-	fields() {
-		const level_field = this.is_edit ? this.edit_level_field() : this.add_level_field();
-		const seed = this.is_edit ? this.row : { read: 1 };
-		return [
-			this.doctype_field(),
-			level_field,
-			...this.flag_fields(seed),
-
-			{
-				fieldtype: "Section Break",
-				fieldname: "sb_only_if_creator",
-				label: __("Creator's Access"),
-			},
-
-			this.if_owner_field(seed),
-		];
-	}
-
-	doctype_field() {
-		if (this.is_edit) {
-			return {
-				fieldtype: "Link",
-				fieldname: "ref_doctype",
-				label: __("DocType"),
-				options: "DocType",
-				read_only: 1,
-				default: this.row.parent,
-			};
-		}
-		return {
-			fieldtype: "Link",
-			fieldname: "ref_doctype",
-			label: __("DocType"),
-			options: "DocType",
-			reqd: 1,
-			onchange: () => this.on_doctype_change(),
-		};
-	}
-
-	edit_level_field() {
-		const level = String(this.row.permlevel || 0);
-		return {
-			fieldtype: "Select",
-			fieldname: "permlevel",
-			label: __("Permission Level"),
-			options: level,
-			default: level,
-			read_only: 1,
-		};
-	}
-
-	add_level_field() {
-		return {
-			fieldtype: "Select",
-			fieldname: "permlevel",
-			label: __("Permission Level"),
-			options: PERMLEVEL_OPTIONS,
-			default: "0",
-			onchange: () => this.refresh_visibility(),
-		};
-	}
-
-	flag_fields(seed) {
-		const fields = [];
-		PERM_SECTIONS.forEach((section) => {
-			fields.push({
-				fieldtype: "Section Break",
-				fieldname: section_break_fieldname(section.label),
-				label: __(section.label),
-			});
-			const half = Math.ceil(section.flags.length / 2);
-			section.flags.forEach((flag, i) => {
-				if (i === half) fields.push({ fieldtype: "Column Break" });
-				fields.push(this.check_field(flag.name, flag.description, seed));
-			});
-		});
-		return fields;
-	}
-
-	check_field(fieldname, description, seed) {
-		return {
-			fieldtype: "Check",
-			fieldname,
-			label: __(capitalize(fieldname)),
-			description: __(description),
-			show_description_on_click: 1,
-			default: seed[fieldname] || 0,
-		};
-	}
-
-	if_owner_field(seed) {
-		const field = this.check_field(
-			"if_owner",
-			"When checked, these permissions apply only to documents this user created.",
-			seed
-		);
-		field.label = __("Only if Creator");
-		field.show_description_on_click = 0;
-		return field;
-	}
-
-	on_doctype_change() {
-		const doctype = this.dialog.get_value("ref_doctype");
-		if (!doctype) {
-			this.is_submittable = false;
-			return this.refresh_visibility();
-		}
-		// The submittable flag decides whether submit/cancel/amend apply.
-		frappe.db.get_value("DocType", doctype, "is_submittable").then((r) => {
-			this.is_submittable = !!(r.message && cint(r.message.is_submittable));
-			this.refresh_visibility();
-		});
-	}
-
-	refresh_visibility() {
-		this.apply_visibility(this.dialog.get_value("permlevel"));
-	}
-
-	apply_visibility(permlevel) {
-		const high_level = cint(permlevel) > 0;
-		const visible = (flag) => {
-			if (!this.is_submittable && SUBMITTABLE_FLAGS.includes(flag)) return false;
-			if (high_level && !PERMLEVEL_FLAGS.includes(flag)) return false;
-			return true;
-		};
-		ALL_PERM_FLAGS.forEach((flag) =>
-			this.dialog.set_df_property(flag, "hidden", visible(flag) ? 0 : 1)
-		);
-		this.dialog.set_df_property("if_owner", "hidden", high_level ? 1 : 0);
-		PERM_SECTIONS.forEach((section) => {
-			const any = section.flags.some((flag) => visible(flag.name));
-			this.dialog.set_df_property(
-				section_break_fieldname(section.label),
-				"hidden",
-				any ? 0 : 1
-			);
-		});
-	}
-
-	add_row_actions() {
-		this.dialog.add_custom_action(__("Remove Permission"), () => this.confirm_remove());
-	}
-
-	save(values) {
-		const promise = this.is_edit ? this.tab.update(this.row, values) : this.tab.create(values);
-		promise
-			.then(() => {
-				this.dialog.hide();
-				frappe.show_alert({
-					message: this.is_edit ? __("Permission updated.") : __("Permission added."),
-					indicator: "green",
-				});
-				this.tab.refresh();
-			})
-			.catch((e) => {
-				frappe.msgprint({
-					title: __("Error"),
-					message: e.message || __("Failed to save permission."),
-					indicator: "red",
-				});
-			});
-	}
-
-	confirm_remove() {
-		frappe.confirm(__("Remove this role's permission on {0}?", [this.row.parent]), () => {
-			this.tab
-				.remove(this.row)
-				.then(() => {
-					this.dialog.hide();
-					frappe.show_alert({ message: __("Permission removed."), indicator: "green" });
-					this.tab.refresh();
-				})
-				.catch((e) => {
-					frappe.msgprint({
-						title: __("Error"),
-						message: e.message || __("Failed to remove permission."),
-						indicator: "red",
-					});
-				});
-		});
-	}
-}
-
-// ============================================================
 // ============================================================
 // ReportsTab & PagesTab — direct lookup on the `roles` child table.
 // ============================================================
@@ -743,6 +591,7 @@ class RoleAccessTab extends RoleTab {
 				filters: { role: this.role, parenttype: this.access_doctype },
 				fields: ["parent"],
 				limit: 0,
+				parent_doctype: this.access_doctype,
 			})
 			.then((rows) => {
 				const names = unique_parents(rows);
@@ -850,8 +699,10 @@ class ReportsTab extends RoleAccessTab {
 	list_config() {
 		return {
 			description: __("Reports this role can access."),
-			empty_message: __("This role has no Report access."),
-			add_button: { label: __("+ Add Report"), action: () => this.add() },
+			empty_message: __("This role does not have access to any reports."),
+			empty_icon: "sheet",
+			no_match_message: __("No reports found."),
+			add_button: { label: __("Add Report"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Report"),
@@ -878,8 +729,10 @@ class PagesTab extends RoleAccessTab {
 	list_config() {
 		return {
 			description: __("Pages this role can access."),
-			empty_message: __("This role has no Page access."),
-			add_button: { label: __("+ Add Page"), action: () => this.add() },
+			empty_message: __("This role does not have access to any pages."),
+			empty_icon: "file",
+			no_match_message: __("No pages found."),
+			add_button: { label: __("Add Page"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Title"),
@@ -907,8 +760,10 @@ class WorkspacesTab extends RoleAccessTab {
 	list_config() {
 		return {
 			description: __("Workspaces this role can access."),
-			empty_message: __("This role has no Workspace access."),
-			add_button: { label: __("+ Add Workspace"), action: () => this.add() },
+			empty_message: __("This role does not have access to any workspaces."),
+			empty_icon: "table-2",
+			no_match_message: __("No workspaces found."),
+			add_button: { label: __("Add Workspace"), action: () => this.add() },
 			columns: [
 				{
 					label: __("Workspace"),
@@ -1000,20 +855,6 @@ function unique_values(rows, field) {
 // A safe "not in" list for link filters (empty lists confuse the query builder).
 function not_in(values) {
 	return values.length ? values : [""];
-}
-
-function section_break_fieldname(label) {
-	return (
-		"sb_" +
-		label
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, "_")
-			.replace(/_+$/, "")
-	);
-}
-
-function capitalize(string) {
-	return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 function placeholder_html(message) {

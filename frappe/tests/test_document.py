@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import inspect
+import pickle
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import timedelta
@@ -9,10 +10,11 @@ from unittest.mock import Mock, patch
 import frappe
 from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.note.note import Note
 from frappe.desk.doctype.todo.todo import ToDo
-from frappe.model.document import Document, LazyChildTable
+from frappe.model.document import Document, LazyChildTable, LazyDocument
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, now_datetime, set_request
@@ -49,6 +51,10 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.name, "Website Settings")
 		self.assertEqual(d.doctype, "Website Settings")
 		self.assertTrue(d.disable_signup in (0, 1))
+
+		with patch.object(frappe.db, "get_singles_dict", return_value=frappe._dict({"disable_signup": 0})):
+			d = frappe.get_doc("Website Settings")
+			self.assertEqual(d.name, "Website Settings")
 
 	def test_insert(self):
 		d = frappe.get_doc(
@@ -342,6 +348,27 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Currency", d.name), d.name)
 
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
+
+	def test_min_max_value_check(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"fieldname": "qty",
+					"fieldtype": "Int",
+					"label": "Qty",
+					"min_value": 5,
+					"max_value": 10,
+				}
+			]
+		).insert()
+
+		try:
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=3).insert)
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=12).insert)
+			frappe.get_doc(doctype=doctype.name, qty=7).insert()
+			frappe.get_doc(doctype=doctype.name).insert()
+		finally:
+			doctype.delete(force=True)
 
 	def test_get_formatted(self):
 		frappe.get_doc(
@@ -818,6 +845,31 @@ class TestLazyDocument(IntegrationTestCase):
 	def test_for_update(self):
 		guest = frappe.get_lazy_doc("User", "Guest", for_update=True)
 		self.assertTrue(guest.flags.for_update)
+
+	def test_pickling(self):
+		guest = frappe.get_lazy_doc("User", "Guest")
+		unpickled = pickle.loads(pickle.dumps(guest))
+		self.assertIsInstance(unpickled, LazyDocument)
+		self.assertIs(type(unpickled), type(guest))
+		self.assertEqual(unpickled.name, "Guest")
+		# unloaded child tables stay lazy and still load after unpickling
+		self.assertNotIn("roles", unpickled.__dict__)
+		self.assertTrue(unpickled.get("roles"))
+
+		# loaded child tables survive the round trip without a refetch
+		guest = frappe.get_lazy_doc("User", "Guest")
+		roles = [r.role for r in guest.roles]
+		unpickled = pickle.loads(pickle.dumps(guest))
+		self.assertIn("roles", unpickled.__dict__)
+		self.assertEqual([r.role for r in unpickled.roles], roles)
+
+		# reconstruction works even when the lazy controller cache is cold,
+		# e.g. unpickling in a freshly started worker
+		data = pickle.dumps(frappe.get_lazy_doc("User", "Guest"))
+		frappe.lazy_controllers.pop(frappe.local.site, None)
+		unpickled = pickle.loads(data)
+		self.assertIsInstance(unpickled, LazyDocument)
+		self.assertTrue(unpickled.get("roles"))
 
 
 class TestGetDocs(IntegrationTestCase):

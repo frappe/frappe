@@ -1,6 +1,6 @@
 const cookie = require("cookie");
 const { get_conf, get_redis_subscriber } = require("../../node_utils");
-const { get_url } = require("../utils");
+const { get_url, get_hostname } = require("../utils");
 const conf = get_conf();
 const redisClient = get_redis_subscriber("redis_queue");
 
@@ -58,6 +58,8 @@ function authenticate_with_frappe(socket, next) {
 		if (secret) {
 			headers["X-Frappe-Socket-Secret"] = secret;
 		}
+		// Carry the tenant so loopback requests route to the right site.
+		headers["X-Frappe-Site-Name"] = get_site_name(socket);
 		return fetch(get_url(socket, path), {
 			...opts,
 			headers,
@@ -102,14 +104,6 @@ function get_site_name(socket) {
 		socket.site_name = get_hostname(socket.request.headers.host);
 	}
 	return socket.site_name;
-}
-
-function get_hostname(url) {
-	if (!url) return undefined;
-	if (url.indexOf("://") > -1) {
-		url = url.split("/")[2];
-	}
-	return url.match(/:/g) ? url.slice(0, url.indexOf(":")) : url;
 }
 
 module.exports = authenticate_with_frappe;

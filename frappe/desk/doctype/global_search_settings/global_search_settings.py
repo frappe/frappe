@@ -64,7 +64,7 @@ def update_global_search_doctypes():
 	global_search_doctypes = []
 	show_message(1, _("Fetching default Global Search documents."))
 
-	installed_apps = [app for app in frappe.get_installed_apps() if app]
+	installed_apps = [app for app in frappe.get_active_apps() if app]
 	active_domains = [domain for domain in frappe.get_active_domains() if domain]
 	active_domains.append("Default")
 
@@ -168,7 +168,7 @@ def _set_global_search_property_setter(cf: CustomizeForm, fieldname: str, enable
 
 
 @frappe.whitelist()
-def update_global_search_fields(doctype: str, fields: str):
+def update_global_search_fields(doctype: str, fields: str | list):
 	"""Apply global-search field selection via the same Property Setter path as Customize Form."""
 
 	frappe.only_for("System Manager")

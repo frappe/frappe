@@ -1,51 +1,26 @@
 import type { Component, InjectionKey, Ref } from "vue";
-
-/**
- * Schema describing a doc form as a tree of tabs → sections → columns → fields.
- * `FormLayout` is render-only: it consumes a ready schema and does not fetch
- * doctype meta. Keys are camelCase; field-level keys mirror Frappe meta.
- */
-export interface FieldMeta {
-  fieldname: string;
-  fieldtype: string;
-  label?: string;
-  /** Target doctype for `Link` fields, or child doctype for `Table` (Frappe `options`). */
-  options?: string;
-  /** Link search filters. */
-  filters?: Record<string, unknown>;
-  /**
-   * Child-table columns from the child's `in_list_view` fields. Used by `Table`
-   * (grid columns) and `Table MultiSelect` (its single `Link` field gives the
-   * target doctype + per-row value key). Typed `FieldNode[]` so grid columns
-   * carry a `ui` overlay too — back-compatible since `FieldNode extends FieldMeta`.
-   */
-  childFields?: FieldNode[];
-  /**
-   * Full render-ready layout of the child doctype, for the `Table` row-edit
-   * dialog which shows every field (desk grid-row form), not just the
-   * `in_list_view` columns in `childFields`.
-   */
-  childLayout?: FormLayoutSchema;
-  /** Whether the field is mandatory. */
-  reqd?: boolean;
-  /** Decimal places for numeric fields (Float/Currency/Percent); from meta. */
-  precision?: number;
-  /** Initial grid-column width in px for a child-table column; omit for flexible. */
-  width?: number;
-  description?: string;
-  placeholder?: string;
-  /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */
-  hidden?: boolean;
-  /** Static read-only; `resolveLayout` may flip this from `readOnlyDependsOn`. */
-  readOnly?: boolean;
-  /**
-   * Raw Frappe conditional expressions, carried verbatim. Not evaluated here —
-   * `resolveLayout` bakes them into `hidden` / `reqd` / `readOnly` (Phase 4).
-   */
-  dependsOn?: string;
-  mandatoryDependsOn?: string;
-  readOnlyDependsOn?: string;
-}
+// The field contract (`FieldMeta`, `FieldComponentProps`, `FieldComponentEmits`)
+// and the form-context injection keys (`DocKey`/`ParentDocKey`/`UpdateKey`) now
+// live with the shared value-inputs (ADR-0004). Re-exported here so existing
+// `from ".../FormLayout/types"` and `@framework/ui/FormLayout` imports keep working.
+import type { FieldMeta } from "../Fields/types";
+export type {
+  FieldMeta,
+  FieldComponentProps,
+  FieldComponentEmits,
+} from "../Fields/types";
+export {
+  CommitKey,
+  DocKey,
+  NO_COMMIT,
+  ParentDocKey,
+  UpdateKey,
+} from "../Fields/types";
+export type {
+  CommitChannel,
+  RowAddress,
+  RowChange,
+} from "../Fields/types";
 
 /**
  * App-supplied presentation/behavior for one field's *layout node* — not part of
@@ -72,12 +47,34 @@ export interface FieldUI {
 }
 
 /**
- * A field as it sits in the layout tree: its portable meta plus an optional,
- * app-supplied UI overlay. Extends `FieldMeta`, so every existing read
- * (`f.hidden`, `f.fieldname`) and every `{ ...f }` spread keeps working and the
- * `ui` key rides along untouched.
+ * The three field properties an app can override *per render*, applied by
+ * `resolveFieldConditionals` after it has resolved the `depends_on` family —
+ * so an override wins over a conditional expression, which no other override
+ * in this pipeline does (every other one is monotonic-restrictive).
+ *
+ * Only these three need the carrier: `label`, `options`, `precision`,
+ * `placeholder`, `description` and `filters` are set once when the node is
+ * built and never recomputed, so an app applies those at build time instead.
+ *
+ * Plain data, deliberately: it keeps `FormLayout` an independent component that
+ * takes a schema and knows nothing about whoever wrote the override.
  */
-export type FieldNode = FieldMeta & { ui?: FieldUI };
+export interface FieldOverride {
+  hidden?: boolean;
+  readOnly?: boolean;
+  reqd?: boolean;
+}
+
+/**
+ * A field as it sits in the layout tree: its portable meta plus an optional,
+ * app-supplied UI overlay and an optional per-render property override.
+ * Extends `FieldMeta`, so every existing read (`f.hidden`, `f.fieldname`) and
+ * every `{ ...f }` spread keeps working and the extra keys ride along untouched.
+ */
+export type FieldNode = FieldMeta & {
+  ui?: FieldUI;
+  override?: FieldOverride;
+};
 
 /**
  * The subset of a Frappe DocField (as returned by `getdoctype`) that
@@ -93,8 +90,22 @@ export interface RawMetaField {
   precision?: number | string;
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
+  /** Field-level permission level; access is DocPerm rows × user roles. */
+  permlevel?: number;
+  /**
+   * Set by whoever applied the permlevel gate, on the fields it actually
+   * denied. The denial itself is written as `hidden` / `read_only`, which is
+   * indistinguishable from a meta-hidden or meta-read-only field — and a
+   * `permlevel` alone does not mean denied, since a reader who *has* the level
+   * is left untouched. This flag is the difference, and it is what
+   * `resolveFieldConditionals` refuses to let an override lift.
+   */
+  perm_denied?: boolean | 0 | 1;
   /** Whether a child-table field shows as a grid column. */
   in_list_view?: boolean | 0 | 1;
+  /** Whether the field is surfaced as a default Quick Filter input (the
+   *  `in_standard_filter` flag CRM's `get_quick_filters` reads). */
+  in_standard_filter?: boolean | 0 | 1;
   description?: string;
   hide_border?: boolean | 0 | 1;
   collapsible?: boolean | 0 | 1;
@@ -125,53 +136,41 @@ export interface Section {
   columns: Column[];
 }
 
+/**
+ * The two tab properties an app can override *per render*, applied by
+ * `applyTabOverride` after `resolveLayout` has baked the `depends_on` — so an
+ * override wins over a conditional expression, exactly as `FieldOverride` does.
+ *
+ * Applied where the strip is drawn rather than in `resolveLayout`, because it
+ * addresses the strip: `PanelLayout` renders the same layout as one flat list
+ * with no strip at all, where hiding a tab would silently drop its rows.
+ *
+ * Plain data, deliberately: it keeps `FormLayout` an independent component that
+ * takes a schema and knows nothing about whoever wrote the override.
+ */
+export interface TabOverride {
+  hidden?: boolean;
+  label?: string;
+}
+
 export interface Tab {
   name?: string;
   label?: string;
   hidden?: boolean;
   /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
   dependsOn?: string;
+  /** Per-render override; the last word on visibility and label. */
+  override?: TabOverride;
   sections: Section[];
 }
 
 export type FormLayoutSchema = Tab[];
 
-/**
- * Contract every registered field component satisfies: it takes the field's
- * meta plus the current value, and emits value changes.
- */
-export interface FieldComponentProps {
-  field: FieldMeta;
-  modelValue: any;
-  row?: Record<string, any>;
+/** Props for `<FormLayout>`. The rendered document is a separate `v-model:doc`. */
+export interface FormLayoutProps {
+  /** Tabs → sections → columns → fields describing the form to render. */
+  layout: FormLayoutSchema;
 }
-
-export type FieldComponentEmits = {
-  /** Live value on every change — keeps `doc` reactive while editing. */
-  "update:modelValue": [value: any];
-  /** Commit (blur for typed inputs, selection for pickers); only the field knows
-   *  which event means commit. Caught by the node's `ui.on.change` when one is
-   *  attached, otherwise a harmless no-op (the value is already synced into `doc`
-   *  via `update:modelValue`). `FormLayout` itself emits nothing. */
-  change: [value: any];
-};
-
-/** The doc object fields read/write, provided from the root. */
-export const DocKey: InjectionKey<Ref<Record<string, any>>> =
-  Symbol("FormLayoutDoc");
-
-/**
- * Parent doc, provided by `TableField` into a row's edit dialog. The row's
- * nested `FormLayout` shadows `DocKey` with the row clone, so parent-scoped
- * resolution (e.g. a `Currency` `options` naming a parent field) needs this.
- * Absent at the top level — injectors must treat it as optional.
- */
-export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
-  Symbol("FormLayoutParentDoc");
-
-/** Writes a field's live value into the doc on every change. Pure state sync. */
-export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
-  Symbol("FormLayoutUpdate");
 
 /** Resolves a fieldtype to its component (falls back to the text component). */
 export const ResolveFieldKey: InjectionKey<(fieldtype: string) => Component> =

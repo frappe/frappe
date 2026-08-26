@@ -10,8 +10,13 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			{
 				page_size: 50,
 				empty_message: __("No records found."),
+				empty_icon: "list",
+				// shown when records exist but the search box matched none of them
+				no_match_message: __("No matching records."),
+				no_match_icon: "search-x",
 				loading_message: __("Loading..."),
 				error_message: __("Failed to load data."),
+				show_search: true,
 				columns: [],
 				filters: {},
 				fields: ["name"],
@@ -43,9 +48,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		this.$result = $(`<div class="embedded-list-result"></div>`)
 			.appendTo(this.$wrapper)
 			.hide();
-		this.$no_result = $(
-			`<div class="embedded-list-no-result text-muted">${this.empty_message}</div>`
-		)
+		this.$no_result = frappe.ui
+			.empty_state({ icon: this.empty_icon, title: this.empty_message })
 			.appendTo(this.$wrapper)
 			.hide();
 
@@ -61,13 +65,16 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			? `<div class="embedded-list-description">${this.description}</div>`
 			: "";
 		const add = this.add_button
-			? `<button class="btn btn-xs btn-default" data-action="add-row">${
-					this.add_button.label || __("+ Add")
-			  }</button>`
+			? frappe.ui.button.html({
+					label: this.add_button.label || __("Add"),
+					attrs: { "data-action": "add-row" },
+			  })
 			: "";
-		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
-			"Search"
-		)}">`;
+		const search = this.show_search
+			? `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
+					"Search"
+			  )}">`
+			: "";
 
 		if (!title && !description && !add) {
 			this.$header.hide();
@@ -186,9 +193,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					this.rendered_count,
 					this.data.length,
 				])}</span>
-				<button class="btn btn-xs btn-default" data-action="load-more">
-					${__("Load More")}
-				</button>
+				${frappe.ui.button.html({ label: __("Load More"), attrs: { "data-action": "load-more" } })}
 			</div>`
 		).appendTo(this.$result);
 	}
@@ -240,16 +245,17 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 		if (col.type === "check") {
 			return `<td class="text-center"${col_attr}>${
-				raw ? frappe.utils.icon("tick", "xs") : ""
+				raw ? frappe.utils.icon("check", "xs") : ""
 			}</td>`;
 		}
 
 		if (col.type === "badge") {
 			if (raw == null || raw === "") return `<td${align}${col_attr}></td>`;
 			const color = typeof col.color === "function" ? col.color(row) : col.color || "gray";
-			return `<td${align}${col_attr}><span class="indicator-pill ${color}">${frappe.utils.escape_html(
-				raw
-			)}</span></td>`;
+			return `<td${align}${col_attr}>${frappe.ui.badge.html({
+				label: raw,
+				theme: color,
+			})}</td>`;
 		}
 
 		if (col.type === "link") {
@@ -258,9 +264,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			const label = typeof col.text === "function" ? col.text(row) : raw;
 			const text = frappe.utils.escape_html(label ?? "");
 			if (col.url) {
-				return `<td${align}><a href="${col.url(
-					row
-				)}" onclick="event.stopPropagation();">${text}</a></td>`;
+				const href = frappe.utils.escape_html(col.url(row));
+				return `<td${align}><a href="${href}" onclick="event.stopPropagation();">${text}</a></td>`;
 			}
 			// Route-based link: the delegated handler navigates and stops
 			// propagation itself, so no inline onclick (which would prevent the
@@ -273,18 +278,18 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 	build_actions_html(col) {
 		return (col.actions || [])
-			.map((action, action_idx) => {
-				const danger = action.danger ? " text-danger" : "";
-				const title = action.label
-					? ` title="${frappe.utils.escape_html(action.label)}"`
-					: "";
-				// `xs` + currentColor matches Frappe's inline row actions (grid_row.js)
-				// so danger actions inherit the button's red instead of the muted stroke.
-				const inner = action.icon
-					? frappe.utils.icon(action.icon, "xs", "", "", "", true)
-					: frappe.utils.escape_html(action.label || "");
-				return `<button class="btn btn-xs btn-link${danger}" data-action-idx="${action_idx}"${title}>${inner}</button>`;
-			})
+			.map((action, action_idx) =>
+				// only danger actions take the red theme, others stay neutral gray
+				frappe.ui.button.html({
+					label: action.icon ? "" : action.label || "",
+					icon: action.icon,
+					size: "xs",
+					variant: "ghost",
+					theme: action.danger ? "red" : null,
+					title: action.label,
+					attrs: { "data-action-idx": String(action_idx) },
+				})
+			)
 			.join("");
 	}
 
@@ -378,7 +383,21 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 	}
 
 	toggle_result_area() {
-		this.$result.toggle(this.data.length > 0);
-		this.$no_result.toggle(this.data.length === 0);
+		const has_rows = this.data.length > 0;
+		this.$result.toggle(has_rows);
+
+		if (!has_rows) {
+			// "no documents at all" vs "the search box filtered them all out"
+			// — records exist in _all_data only in the latter case
+			const searched = this._all_data && this._all_data.length > 0;
+			const $empty = frappe.ui.empty_state(
+				searched
+					? { icon: this.no_match_icon, title: this.no_match_message }
+					: { icon: this.empty_icon, title: this.empty_message }
+			);
+			this.$no_result.replaceWith($empty);
+			this.$no_result = $empty;
+		}
+		this.$no_result.toggle(!has_rows);
 	}
 };

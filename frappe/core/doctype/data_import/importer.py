@@ -9,6 +9,7 @@ from datetime import date, datetime, time
 
 import frappe
 from frappe import _
+from frappe.app_state import clear_cache_after_maintenance
 from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
@@ -281,6 +282,14 @@ class Importer:
 
 					log_index += 1
 
+					try:
+						frappe.logger("data_import").error(
+							f"Data Import {self.data_import.name}: row(s) {row_indexes} failed to import",
+							exc_info=True,
+						)
+					except Exception:
+						pass
+
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
 			frappe.get_all(
@@ -307,6 +316,12 @@ class Importer:
 			status = "Error"
 		elif len(failures) > 0 and len(successes) > 0:
 			status = "Partial Success"
+			try:
+				frappe.logger("data_import").warning(
+					f"Data Import {self.data_import.name}: {len(failures)} of {attempted_payload_count} rows failed"
+				)
+			except Exception:
+				pass
 		else:
 			status = "Pending"
 
@@ -322,6 +337,7 @@ class Importer:
 	def after_import(self):
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
+		clear_cache_after_maintenance()
 
 	def _publish_skip_progress(self, current_index, total_payload_count):
 		if total_payload_count > 5:

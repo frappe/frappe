@@ -116,6 +116,18 @@ class TestPermissions(IntegrationTestCase):
 		self.assertTrue(post1.has_permission("read"))
 		self.assertTrue(get_doc_permissions(post1).get("read"))
 
+	def test_user_permission_denial_is_explained(self):
+		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
+
+		with self.set_user("test2@example.com"):
+			frappe.local.message_log = []
+			post = frappe.get_doc("Test Blog Post", "_Test Blog Post")
+			self.assertRaises(frappe.PermissionError, post.check_permission, "read")
+
+			message = frappe.local.message_log[-1]["message"]
+			self.assertIn("Test Blog Category", message)
+			self.assertIn("_Test Blog Category", message)
+
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
 
@@ -124,6 +136,25 @@ class TestPermissions(IntegrationTestCase):
 
 		self.assertTrue("_Test Blog Post 1" in names)
 		self.assertFalse("_Test Blog Post" in names)
+
+	def test_user_permissions_in_report_with_multiple_link_fields(self):
+		from frappe.desk.query_report import get_user_match_filters
+
+		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
+		add_user_permission("Test Blogger", "_Test Blogger 1", "test2@example.com")
+
+		frappe.set_user("test2@example.com")
+		match_filters = get_user_match_filters(["Test Blog Post"], "test2@example.com")
+
+		filter_list = match_filters["Test Blog Post"]
+		self.assertEqual(len(filter_list), 1)
+		self.assertEqual(
+			filter_list[0],
+			{
+				"Test Blog Category": ["_Test Blog Category 1"],
+				"Test Blogger": ["_Test Blogger 1"],
+			},
+		)
 
 	def test_default_values(self):
 		doc = frappe.new_doc("Test Blog Post")
@@ -699,6 +730,48 @@ class TestPermissions(IntegrationTestCase):
 		user = frappe.get_doc("User", "Administrator")
 		doc = user.append("defaults")
 		self.assertRaises(frappe.PermissionError, doc.check_permission)
+
+	def test_child_permission_error_reports_parent_doctype(self):
+		with self.set_user("Administrator"):
+			child_doctype = new_doctype(istable=1).insert().name
+			parent_doctype = (
+				new_doctype(
+					fields=[
+						{
+							"label": "Rows",
+							"fieldname": "rows",
+							"fieldtype": "Table",
+							"options": child_doctype,
+							"permlevel": 1,
+						}
+					],
+					permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1}],
+				)
+				.insert()
+				.name
+			)
+			parent = frappe.new_doc(parent_doctype)
+			parent.append("rows", {})
+			parent.insert()
+
+		row = parent.rows[0]
+
+		# no access to the parent doctype at all
+		with self.set_user("test@example.com"):
+			frappe.local.message_log = []
+			self.assertRaises(frappe.PermissionError, row.check_permission, "delete")
+
+			self.assertIn(parent_doctype, frappe.local.message_log[-1]["message"])
+			self.assertIn(parent_doctype, frappe.flags.error_message)
+
+		# access to the parent doctype, denied on the table's permlevel
+		with self.set_user("test1@example.com"):
+			self.assertRaises(frappe.PermissionError, row.check_permission, "delete")
+
+			self.assertIn(parent_doctype, frappe.flags.error_message)
+			self.assertIn(parent.name, frappe.flags.error_message)
+			self.assertNotIn(child_doctype, frappe.flags.error_message)
+			self.assertNotIn(row.name, frappe.flags.error_message)
 
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only

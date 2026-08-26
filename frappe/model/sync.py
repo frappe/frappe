@@ -10,8 +10,6 @@ import os
 import re
 
 import frappe
-from frappe.cache_manager import clear_controller_cache
-from frappe.model.base_document import get_controller
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 from frappe.modules.utils import get_app_level_directory_path
@@ -119,7 +117,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	app_level_folders = ["desktop_icon", "workspace_sidebar", "sidebar_item_group"]
+	app_level_folders = ["desktop_icon", "workspace_sidebar"]
 	for folder_name in app_level_folders:
 		directory_path = get_app_level_directory_path(folder_name, app_name)
 		if os.path.exists(directory_path):
@@ -166,6 +164,11 @@ def get_doc_files(files, start_path):
 		if doc_path not in files:
 			files.append(doc_path)
 
+	# DocType Settings Maps: doctype_settings_map/{name}.json
+	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):
+		if doc_path not in files:
+			files.append(doc_path)
+
 	return files
 
 
@@ -180,20 +183,11 @@ def remove_orphan_doctypes():
 	"""
 
 	doctype_names = frappe.get_all("DocType", {"custom": 0}, pluck="name")
-	orphan_doctypes = []
 
-	clear_controller_cache()
-	class_overrides = frappe.get_hooks("override_doctype_class", {})
-
-	for doctype in doctype_names:
-		if doctype in class_overrides:
-			continue
-		try:
-			get_controller(doctype=doctype)
-		except (ImportError, frappe.DoesNotExistError):
-			orphan_doctypes.append(doctype)
-		except Exception:
-			continue
+	# Existence of the schema file is enough, importing the controller just to check if the doctype
+	# exists is expensive and can fail for unrelated reasons.
+	known_doctypes = create_entity_file_map(["DocType"])["DocType"]
+	orphan_doctypes = [doctype for doctype in doctype_names if doctype not in known_doctypes]
 
 	if not orphan_doctypes:
 		return
@@ -276,8 +270,6 @@ def remove_orphan_entities(entity_types=None):
 
 
 def create_entity_file_map(entities):
-	import glob
-
 	from frappe.modules.import_file import read_doc_from_file
 
 	entity_file_map = {}

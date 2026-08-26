@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
@@ -315,9 +314,9 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
-@frappe.whitelist()
-def bulk_workflow_approval(docnames: str, doctype: str, action: str):
-	docnames = json.loads(docnames)
+@frappe.whitelist(methods=["POST"])
+def bulk_workflow_approval(docnames: str | list, doctype: str, action: str):
+	docnames = frappe.parse_json(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
 	elif len(docnames) <= 500:
@@ -377,6 +376,10 @@ def _bulk_workflow_action(docnames, doctype, action):
 				else:
 					successful_transactions[docname].append({"docname": docname, "message": None})
 
+	assert all(
+		docname in failed_transactions or docname in successful_transactions for docname in docnames
+	), "every docname must be recorded as either a failed or successful transaction"
+
 	if failed_transactions and successful_transactions:
 		indicator = "orange"
 	elif failed_transactions:
@@ -413,8 +416,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 @frappe.whitelist()
 def get_common_transition_actions(docs: str | list[dict[str, Any]], doctype: str):
 	common_actions = []
-	if isinstance(docs, str):
-		docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 	try:
 		for i, doc in enumerate(docs, 1):
 			if not doc.get("doctype"):

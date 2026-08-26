@@ -95,3 +95,31 @@ export interface UploadResult {
  *  - `toast`   — terminal state when the user left both dialog and tray
  */
 export type ProgressMode = "inline" | "tray" | "field" | "toast";
+
+// —— Component props ——
+
+export interface FileUploadDialogProps {
+  open: boolean;
+  multiple?: boolean;
+  imageOnly?: boolean;
+  crop?: boolean;
+  restrictions?: Restrictions;
+  transport?: UploadTransport;
+  progressMode?: ProgressMode;
+  folder?: string;
+  /** Accepted for API compatibility with the tabbed dialog; not rendered here. */
+  title?: string;
+  trayLabel?: string;
+}
+
+export interface AttachmentsListProps {
+  modelValue: UploadResult[];
+  imageOnly?: boolean;
+  crop?: boolean;
+  restrictions?: Restrictions;
+  transport?: UploadTransport;
+}
+
+export interface UploadTrayProps {
+  side?: "left" | "right";
+}

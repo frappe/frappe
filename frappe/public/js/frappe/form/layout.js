@@ -162,6 +162,8 @@ frappe.ui.form.Layout = class Layout {
 
 		// Show parent container if hidden
 		this.message.removeClass("hidden");
+
+		return $html;
 	}
 
 	render(new_fields) {
@@ -530,7 +532,7 @@ frappe.ui.form.Layout = class Layout {
 					collapse = !this.evaluate_depends_on_value(df.collapsible_depends_on);
 				}
 
-				if (collapse && section.has_missing_mandatory()) {
+				if (collapse && (section.has_missing_mandatory() || section.expanded_by_user)) {
 					collapse = false;
 				}
 

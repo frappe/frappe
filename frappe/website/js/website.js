@@ -164,19 +164,19 @@ $.extend(frappe, {
 
 		if (data._server_messages) {
 			var server_messages = JSON.parse(data._server_messages || "[]");
-			server_messages
-				.map((msg) => {
-					// temp fix for messages sent as dict
-					try {
-						return JSON.parse(msg);
-					} catch (e) {
-						return msg;
-					}
-				})
-				.join("<br>");
 
 			if (opts.error_msg) {
-				$(opts.error_msg).html(server_messages).toggle(true);
+				var message_html = server_messages
+					.map((msg) => {
+						try {
+							const parsed = JSON.parse(msg);
+							return parsed && typeof parsed === "object" ? parsed.message : parsed;
+						} catch (e) {
+							return msg;
+						}
+					})
+					.join("<br>");
+				$(opts.error_msg).html(message_html).toggle(true);
 			} else {
 				frappe.msgprint(server_messages);
 			}
@@ -211,16 +211,12 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function (text, icon) {
-		if (!icon) icon = "fa fa-refresh fa-spin";
+		let icon_html = icon
+			? '<i class="' + icon + ' text-muted"></i>'
+			: frappe.utils.icon("refresh-cw", "lg");
 		frappe.hide_message();
 		$('<div class="message-overlay"></div>')
-			.html(
-				'<div class="content"><i class="' +
-					icon +
-					' text-muted"></i><br>' +
-					text +
-					"</div>"
-			)
+			.html('<div class="content">' + icon_html + "<br>" + text + "</div>")
 			.appendTo(document.body);
 	},
 	has_permission: function (doctype, docname, perm_type, callback) {

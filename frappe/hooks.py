@@ -15,9 +15,8 @@ app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
-
-after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
-after_app_uninstall = "frappe.utils.install.delete_desktop_icon_and_sidebar"
+after_app_install = "frappe.utils.install.create_desktop_icons_for_app"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icons_for_app"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
@@ -39,8 +38,6 @@ app_include_css = [
 ]
 app_include_icons = [
 	"/assets/frappe/icons/lucide/icons.svg",
-	"/assets/frappe/icons/timeless/icons.svg",
-	"/assets/frappe/icons/espresso/icons.svg",
 	"/assets/frappe/icons/desktop_icons/alphabets.svg",
 ]
 
@@ -53,8 +50,6 @@ web_include_js = ["website_script.js"]
 web_include_css = []
 web_include_icons = [
 	"/assets/frappe/icons/lucide/icons.svg",
-	"/assets/frappe/icons/timeless/icons.svg",
-	"/assets/frappe/icons/espresso/icons.svg",
 ]
 
 email_css = ["email.bundle.css"]
@@ -77,6 +72,15 @@ write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
 
+# Notification Types whose in-app Notification Log should NOT additionally send its own
+# email (e.g. "Alert" — the Notification rule already owns email delivery via its channel).
+notification_skip_email_types = ["Alert"]
+
+# Notification Types that are delivered even when the recipient is also the actor
+# (for_user == from_user). Other types suppress self-notifications.
+# TODO: This should not be hardcoded and a configurable option in future.
+notification_self_notify_types = ["Alert"]
+
 before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
@@ -97,18 +101,34 @@ on_logout = "frappe.core.doctype.session_default_settings.session_default_settin
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
 pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
-pdf_generator = "frappe.utils.pdf.get_chrome_pdf"
+pdf_generator = [
+	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.print_format_generator.get_typst_pdf",
+]
 # permissions
 
 permission_query_conditions = {
+	"Report": [
+		"frappe.core.doctype.report.report.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
-	"Dashboard": "frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
-	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
-	"Number Card": "frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
+	"Dashboard": [
+		"frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
+	"Dashboard Chart": [
+		"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
+	"Number Card": [
+		"frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
@@ -120,9 +140,23 @@ permission_query_conditions = {
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
+	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
+	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
+	"DocType": "frappe.app_state.get_module_permission_query_conditions",
+	"Page": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace Sidebar": "frappe.app_state.get_module_permission_query_conditions",
+	"Print Format": "frappe.app_state.get_module_permission_query_conditions",
+	"Notification": "frappe.app_state.get_module_permission_query_conditions",
+	"Web Form": "frappe.app_state.get_module_permission_query_conditions",
+	"Client Script": "frappe.app_state.get_module_permission_query_conditions",
+	"Server Script": "frappe.app_state.get_module_permission_query_conditions",
+	"Desktop Icon": "frappe.app_state.get_app_permission_query_conditions",
 }
 
 has_permission = {
+	"Report": "frappe.core.doctype.report.report.has_permission",
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
@@ -137,8 +171,11 @@ has_permission = {
 	"File": "frappe.core.doctype.file.file.has_permission",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
+	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.has_permission",
+	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -213,6 +250,7 @@ scheduler_events = {
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
 			"frappe.search.sqlite_search.index_docs_in_queue",
+			"frappe.integrations.doctype.webhook.webhook.retry_failed_webhooks",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -233,10 +271,6 @@ scheduler_events = {
 		"45 0 * * *": [],
 		"0 */3 * * *": [
 			"frappe.search.sqlite_search.build_index_if_not_exists",
-		],
-		# Daily at 6:00 AM.
-		"0 6 * * *": [
-			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 		],
 	},
 	"all": [
@@ -274,11 +308,12 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
+		"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
+		"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.utils.change_log.check_for_update",
-		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -305,6 +340,7 @@ before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
 after_migrate = [
 	"frappe.website.doctype.website_theme.website_theme.after_migrate",
 	"frappe.search.sqlite_search.build_index_in_background",
+	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -474,9 +510,11 @@ extend_bootinfo = [
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
 ]
 
-get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
-
 export_python_type_annotations = True
+
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
 
 standard_help_items = [
 	{
@@ -516,6 +554,7 @@ default_log_clearing_doctypes = {
 	"OAuth Bearer Token": 30,
 	"API Request Log": 90,
 	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
+	"DuckDB Sync": 45,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()
@@ -528,6 +567,7 @@ persistent_cache_keys = [
 	"rate-limit-counter-*",
 	"rl:*",
 	"concurrency:*",
+	"pulse-client:*",
 ]
 
 user_invitation = {
@@ -536,13 +576,19 @@ user_invitation = {
 	},
 }
 
+# Expose method source code through the API discovery endpoints. Safe for open
+# source apps and helps API clients understand what a method does.
+expose_discovery_source = True
+
 
 add_to_apps_screen = [
 	{
 		"name": app_name,
 		"logo": app_logo_url,
-		"title": app_title,
+		"title": "Framework",
 		"route": app_home,
 		"has_permission": "frappe.permissions.check_app_permission",
+		# Sort order on the apps (desktop) screen; lower shows first. Framework is pinned last.
+		"sequence_id": 1000,
 	}
 ]

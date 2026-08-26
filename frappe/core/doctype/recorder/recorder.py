@@ -1,7 +1,6 @@
 # Copyright (c) 2023, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import json
 from collections import Counter, defaultdict
 
 import frappe
@@ -24,17 +23,20 @@ class Recorder(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.recorder_event.recorder_event import RecorderEvent
 		from frappe.core.doctype.recorder_query.recorder_query import RecorderQuery
 		from frappe.core.doctype.recorder_suggested_index.recorder_suggested_index import (
 			RecorderSuggestedIndex,
 		)
 		from frappe.types import DF
 
+		apps_involved: DF.Data | None
 		cmd: DF.Data | None
 		duration: DF.Float
 		event_type: DF.Data | None
 		form_dict: DF.Code | None
 		method: DF.Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+		number_of_events: DF.Int
 		number_of_queries: DF.Int
 		path: DF.Data | None
 		profile: DF.Code | None
@@ -43,6 +45,7 @@ class Recorder(Document):
 		suggested_indexes: DF.Table[RecorderSuggestedIndex]
 		time: DF.Datetime | None
 		time_in_queries: DF.Float
+		timeline: DF.Table[RecorderEvent]
 	# end: auto-generated types
 
 	def load_from_db(self):
@@ -102,13 +105,28 @@ def serialize_request(request):
 		for i in request.calls:
 			i["stack"] = frappe.as_json(i["stack"])
 			i["explain_result"] = frappe.as_json(i["explain_result"])
+
+	events = request.get("events") or []
+	for event in events:
+		# indent the method by its nesting depth so the grid reads as a call tree.
+		# non-breaking spaces render the indentation without depending on CSS white-space.
+		indent = "\u00a0\u00a0\u00a0\u00a0" * event.get("depth", 0)
+		event["label"] = indent + (event.get("method") or "")
+		if isinstance(event.get("apps"), list):
+			event["apps"] = ", ".join(event["apps"])
+		if isinstance(event.get("handlers"), list):
+			event["handlers"] = "\n".join(event["handlers"])
+
 	request.update(
 		name=request.get("uuid"),
 		number_of_queries=request.get("queries"),
 		time_in_queries=request.get("time_queries"),
+		number_of_events=request.get("number_of_events") or len(events),
+		apps_involved=request.get("apps_involved"),
 		request_headers=frappe.as_json(request.get("headers", {}), indent=4),
 		form_dict=frappe.as_json(request.get("form_dict", {}), indent=4),
 		sql_queries=request.get("calls"),
+		timeline=events,
 		suggested_indexes=request.get("suggested_indexes"),
 		modified=request.get("time"),
 		creation=request.get("time"),
@@ -118,9 +136,9 @@ def serialize_request(request):
 
 
 @frappe.whitelist()
-def add_indexes(indexes: str):
+def add_indexes(indexes: str | list[dict]):
 	frappe.only_for("Administrator")
-	indexes = json.loads(indexes)
+	indexes = frappe.parse_json(indexes)
 
 	for index in indexes:
 		frappe.enqueue(_add_index, table=index["table"], column=index["column"])

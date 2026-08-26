@@ -262,7 +262,7 @@ Object.assign(frappe.utils, {
 	},
 
 	escape_html: function (txt) {
-		if (!txt) return "";
+		if (txt == null) return ""; // null or undefined, but keep 0 / false
 		let escape_html_mapping = {
 			"&": "&amp;",
 			"<": "&lt;",
@@ -1171,7 +1171,13 @@ Object.assign(frappe.utils, {
 		}
 	},
 	is_rtl(lang = null) {
-		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
+		// Keep this list in sync with rtl_languages in the Python twin at
+		// frappe/utils/jinja_globals.py:is_rtl.
+		const rtl_languages = ["ar", "fa", "he", "ku", "ps", "ur"];
+		const code = lang || frappe.boot.lang || "";
+
+		if (rtl_languages.includes(code)) return true;
+		return rtl_languages.includes(code.split(/[-_]/)[0]);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
@@ -1378,6 +1384,33 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
+	desktop_icon(label, color, size, style) {
+		let letter = frappe.utils.escape_html(label.charAt(0).toUpperCase());
+		let icon_size = size ? size : "md";
+		let opacity_hex = "1A";
+		let icon_html = $(`
+			<div class="icon-container">
+				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-${icon_size}" stroke=none style="" aria-hidden="true">
+				<use class="" href="#${letter}"></use>
+				</svg>
+			</div>
+		`);
+		let pallete_color = this.desktop_pallete[color || "blue"];
+		let bg_color = pallete_color + opacity_hex;
+		let stroke_color = pallete_color;
+		// `style` overrides the global desktop_icon_style for callers that always want a
+		// specific look (e.g. a solid letter icon regardless of the user's setting).
+		if ((style || frappe.boot.desktop_icon_style) == "Solid") {
+			bg_color = stroke_color;
+			stroke_color = "var(--white)";
+		}
+		icon_html.css("backgroundColor", bg_color);
+		icon_html.find("svg").css("color", stroke_color);
+		return icon_html.get(0).outerHTML;
+	},
+	// --- Desktop Icon grid -----------------------------------------------------------
+	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
+	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
 	get_route_for_icon(desktop_icon) {
 		let route;
 		if (!desktop_icon) return;
@@ -1395,7 +1428,9 @@ Object.assign(frappe.utils, {
 							name: first_link.link_to,
 						};
 
-						if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+						// the body reads `first_link.report.*`, so a link whose report has been
+						// deleted (no `report` payload) has to skip it, not fall through to it
+						if (first_link.report) {
 							args.is_query_report =
 								first_link.report.report_type === "Query Report" ||
 								first_link.report.report_type == "Script Report";
@@ -1436,28 +1471,36 @@ Object.assign(frappe.utils, {
 		}
 		return route;
 	},
-	desktop_icon(label, color, size) {
-		let letter = label.charAt(0).toUpperCase();
-		let icon_size = size ? size : "md";
-		let opacity_hex = "1A";
-		let icon_html = $(`
-			<div class="icon-container">
-				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-${icon_size}" stroke=none style="" aria-hidden="true">
-				<use class="" href="#${letter}"></use>
-				</svg>
-			</div>
-		`);
-		let pallete_color = this.desktop_pallete[color || "blue"];
-		let bg_color = pallete_color + opacity_hex;
-		let stroke_color = pallete_color;
-		if (frappe.boot.desktop_icon_style == "Solid") {
-			bg_color = stroke_color;
-			stroke_color = "var(--white)";
+
+	get_desktop_icon(icon_name, variant) {
+		let exists = false;
+		let icon_data = this.get_desktop_icon_by_label(icon_name);
+		variant = variant.toLowerCase();
+		if (!icon_data?.app) return exists;
+		let app_name = icon_data.app;
+		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
+			icon_name
+		)}.svg`;
+
+		if (frappe.boot.desktop_icon_urls[app_name]?.[variant]?.includes(icon_url)) {
+			return `/${icon_url}`;
 		}
-		icon_html.css("backgroundColor", bg_color);
-		icon_html.find("svg").css("color", stroke_color);
-		return icon_html.get(0).outerHTML;
+		return exists;
 	},
+
+	get_desktop_icon_by_label(title, filters) {
+		if (!filters) {
+			return frappe.boot.desktop_icons.find((f) => f.label === title);
+		} else {
+			return frappe.boot.desktop_icons.find((f) => {
+				return (
+					f.label === title &&
+					Object.keys(filters).every((key) => f[key] === filters[key])
+				);
+			});
+		}
+	},
+
 	desktop_pallete: {
 		blue: "#0289F7",
 		gray: "#7B808A",
@@ -1475,21 +1518,14 @@ Object.assign(frappe.utils, {
 			return `<span>${icon_name}</span>`;
 		}
 		let size_class = "";
-		let is_espresso = icon_name.startsWith("es-");
 
-		icon_name = is_espresso ? `${"#" + icon_name}` : `${"#icon-" + icon_name}`;
+		icon_name = `${"#icon-" + icon_name}`;
 		if (typeof size == "object") {
 			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
-		let $svg = `<svg class="${
-			is_espresso
-				? icon_name.startsWith("es-solid")
-					? "es-icon es-solid"
-					: "es-icon es-line"
-				: "icon"
-		} ${svg_class} ${size_class}"
+		let $svg = `<svg class="icon ${svg_class} ${size_class}"
 			${current_color ? 'stroke="currentColor"' : ""}
 			${stroke_color ? `stroke="${stroke_color}"` : ""}
 			style="${icon_style}" aria-hidden="true">
@@ -1526,41 +1562,10 @@ Object.assign(frappe.utils, {
 		);
 	},
 
-	get_desktop_icon(icon_name, variant) {
-		let exists = false;
-		let icon_data = this.get_desktop_icon_by_label(icon_name);
-		variant = variant.toLowerCase();
-		if (!icon_data?.app) return exists;
-		let app_name = icon_data.app;
-		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
-			icon_name
-		)}.svg`;
-
-		if (
-			frappe.boot.desktop_icon_urls[app_name] &&
-			frappe.boot.desktop_icon_urls[app_name][variant].includes(icon_url)
-		) {
-			return `/${icon_url}`;
-		}
-		return exists;
-	},
-
 	desktop_icon_exists(app_name, url) {
 		let exists = false;
 		if (frappe.boot.desktop_icon_urls[app_name].includes(url)) exists = true;
 		return exists;
-	},
-	get_desktop_icon_by_label(title, filters) {
-		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title);
-		} else {
-			return frappe.boot.desktop_icons.find((f) => {
-				return (
-					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key])
-				);
-			});
-		}
 	},
 
 	make_chart(wrapper, custom_options = {}) {
@@ -1833,7 +1838,7 @@ Object.assign(frappe.utils, {
 				</button>
 
 				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-					${frappe.utils.icon("down", "xs")}
+					${frappe.utils.icon("chevron-down", "xs")}
 				</button>
 
 				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
@@ -1922,21 +1927,16 @@ Object.assign(frappe.utils, {
 		if (!doctype || !name) {
 			return;
 		}
-		try {
-			return frappe
-				.xcall("frappe.desk.search.get_link_title", {
-					doctype: doctype,
-					docname: name,
-				})
-				.then((title) => {
-					frappe.utils.add_link_title(doctype, name, title);
-					return title;
-				});
-		} catch (error) {
-			console.log("Error while fetching link title.");
-			console.log(error);
-			return Promise.resolve(name);
-		}
+		return frappe
+			.xcall("frappe.desk.search.get_link_title", {
+				doctype: doctype,
+				docname: name,
+			})
+			.then((title) => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
+			})
+			.catch(() => name);
 	},
 
 	only_allow_num_decimal(input) {
@@ -2226,10 +2226,7 @@ Object.assign(frappe.utils, {
 	 * @returns {boolean}
 	 */
 	can_upload_public_files() {
-		if (
-			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
-			1
-		) {
+		if (!frappe.defaults.is_enabled("only_allow_system_managers_to_upload_public_files")) {
 			return true;
 		}
 		return frappe.user.has_role(["System Manager", "Administrator"]);

@@ -89,7 +89,6 @@ export default class GridRow {
 		this.grid.debounced_refresh_remove_rows_button();
 	}
 	remove() {
-		var me = this;
 		if (this.grid.is_editable()) {
 			if (this.get_open_form()) {
 				this.hide_form();
@@ -128,7 +127,7 @@ export default class GridRow {
 					data = this.grid.df.data;
 				}
 
-				const index = data.findIndex((d) => d.name === me.doc.name);
+				const index = data.findIndex((d) => d.name === this.doc.name);
 
 				if (index > -1) {
 					// mutate array directly,
@@ -136,7 +135,7 @@ export default class GridRow {
 					data.splice(index, 1);
 				}
 				// remap idxs
-				data.forEach(function (d, i) {
+				data.forEach((d, i) => {
 					d.idx = i + 1;
 				});
 
@@ -145,8 +144,8 @@ export default class GridRow {
 		}
 	}
 	insert(show, below, duplicate) {
-		var idx = this.doc.idx;
-		var copy_doc = duplicate ? this.doc : null;
+		let idx = this.doc.idx;
+		const copy_doc = duplicate ? this.doc : null;
 		if (below) idx++;
 		this.toggle_view(false);
 		this.grid.add_new_row(idx, null, show, copy_doc);
@@ -328,13 +327,11 @@ export default class GridRow {
 	}
 
 	add_open_form_button() {
-		var me = this;
 		if (this.doc && !this.grid.df.in_place_edit) {
-			// remove row
 			if (!this.open_form_button) {
 				this.open_form_button = $('<div class="col"></div>').appendTo(this.row);
-				this.open_form_button.on("click", function (e) {
-					me.toggle_view();
+				this.open_form_button.on("click", () => {
+					this.toggle_view();
 					return false;
 				});
 
@@ -342,15 +339,15 @@ export default class GridRow {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
 						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
-							<a>${frappe.utils.icon("edit", "xs")}</a>
+							<a>${frappe.utils.icon("pencil", "xs")}</a>
 						</div>
 					`).appendTo(this.open_form_button);
 
 					$(this.open_form_button)
 						.parent()
-						.on("keydown", function (ev) {
+						.on("keydown", (ev) => {
 							if (ev.key == "Enter") {
-								me.toggle_view();
+								this.toggle_view();
 								return false;
 							}
 						});
@@ -359,12 +356,10 @@ export default class GridRow {
 				}
 
 				if (this.is_too_small()) {
-					// narrow
 					this.open_form_button.css({ "margin-right": "-2px" });
 				}
-				// focus open form button after escape
-				$(document).on("escape", function () {
-					me.open_form_button.parent().focus();
+				$(document).on("escape", () => {
+					this.open_form_button.parent().focus();
 				});
 			}
 		}
@@ -430,7 +425,7 @@ export default class GridRow {
 		this.grid.visible_columns.forEach((row) => {
 			this.selected_columns_for_grid.push({
 				fieldname: row[0].fieldname,
-				columns: row[0].columns || row[0].colsize,
+				width: row[1],
 				sticky: row[0].sticky,
 			});
 		});
@@ -503,11 +498,10 @@ export default class GridRow {
 							this.grid.doctype,
 							selected_column
 						);
-						this.grid.update_default_colsize(docfield);
 
 						this.selected_columns_for_grid.push({
 							fieldname: selected_column,
-							columns: docfield.columns || docfield.colsize,
+							width: this.grid.get_column_width(docfield),
 							sticky: docfield.sticky,
 						});
 					}
@@ -587,15 +581,15 @@ export default class GridRow {
 
 						<div class='row'>
 							<div class='col-1' style='padding-top: 4px;'>
-								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
+								<a style='cursor: grabbing;'>${frappe.utils.icon("grip", "xs")}</a>
 							</div>
 							<div class='col-5' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
 							</div>
-							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${__("Columns")}'>
+							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${__("Width in pixels")}'>
 								<input class='form-control column-width my-1 input-xs text-right'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
-									value='${cint(d.columns) || docfield.columns}'
+									value='${cint(d.width) || this.grid.get_column_width(docfield)}'
 									data-fieldname='${docfield.fieldname}'>
 							</div>
 							<div class='col-2 sticky-col-container' title='${__("Sticky")}' >
@@ -639,7 +633,7 @@ export default class GridRow {
 		columns.each((idx) => {
 			this.selected_columns_for_grid.push({
 				fieldname: $(columns[idx]).attr("data-fieldname"),
-				columns: cint($(columns[idx]).find(".column-width").attr("value")),
+				width: cint($(columns[idx]).find(".column-width").attr("value")),
 				sticky: $(columns[idx]).find(".sticky-column").is(":checked") ? 1 : 0,
 			});
 		});
@@ -657,15 +651,14 @@ export default class GridRow {
 		$(this.fields_html_wrapper)
 			.find(".column-width")
 			.change((event) => {
-				if (cint(event.target.value) === 0) {
-					event.target.value = cint(event.target.defaultValue);
-					frappe.throw(__("Column width cannot be zero."));
-				}
+				// Clamp to the same bounds as drag-resize.
+				let width = this.grid.clamp_column_width(event.target.value);
+				event.target.value = width;
 
 				this.selected_columns_for_grid.forEach((row) => {
 					if (row.fieldname === event.target.dataset.fieldname) {
-						row.columns = cint(event.target.value);
-						event.target.defaultValue = cint(event.target.value);
+						row.width = width;
+						event.target.defaultValue = width;
 					}
 				});
 			});
@@ -727,29 +720,21 @@ export default class GridRow {
 		this.search_columns = {};
 
 		this.grid.setup_visible_columns();
-		let fields =
-			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
+		const fields =
+			this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
 				: this.docfields;
 
-		let total_colsize = 0;
-
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
-			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
+			let df = this.get_column_docfield(fields, col[0].fieldname);
 
 			this.set_dependant_property(df);
 
-			let colsize = col[1];
+			let width = col[1];
 
-			total_colsize += colsize;
 			let txt = this.doc
-				? frappe.format(
-						this._escape_for_format(this.doc[df.fieldname], df),
-						df,
-						null,
-						this.doc
-				  )
+				? this._format_static_value(this.doc[df.fieldname], df, this.doc)
 				: __(df.label, null, df.parent);
 
 			if (this.doc && df.fieldtype === "Select") {
@@ -757,9 +742,9 @@ export default class GridRow {
 			}
 			let column;
 			if (!this.columns[df.fieldname] && !this.show_search) {
-				column = this.make_column(df, colsize, txt, ci);
+				column = this.make_column(df, width, txt, ci);
 			} else if (!this.columns[df.fieldname] && this.show_search) {
-				column = this.make_search_column(df, colsize);
+				column = this.make_search_column(df, width);
 			} else {
 				column = this.columns[df.fieldname];
 				this.refresh_field(df.fieldname, txt);
@@ -778,20 +763,9 @@ export default class GridRow {
 			}
 		});
 
-		let current_grid = this.grid.wrapper.find(".form-grid-container");
-		if (total_colsize > 10) {
-			current_grid.addClass("column-limit-reached");
-		} else if (current_grid.hasClass("column-limit-reached")) {
-			if (Number($(current_grid).children(".form-grid").css("left")) != 0) {
-				$(current_grid).children(".form-grid").css("left", 0);
-				$(current_grid).children().find(".grid-scroll-bar").css({
-					width: "auto",
-					"margin-left": "0px",
-				});
-				$(current_grid).children().find(".grid-scroll-bar-rows").css("width", "auto");
-			}
-			current_grid.removeClass("column-limit-reached");
-		}
+		// Last data column grows to fill spare width (see grid-data-last in grid.scss).
+		this.columns_list.forEach((column) => column.removeClass("grid-data-last"));
+		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
 		if (this.show_search) {
 			// last empty column
@@ -821,6 +795,18 @@ export default class GridRow {
 			this.doc &&
 			!column.df.hidden
 		);
+	}
+
+	get_column_docfield(fields, fieldname) {
+		const column_df = fields.find((field) => field?.fieldname === fieldname);
+		const row_df = this.docfields?.find((df) => df.fieldname === fieldname);
+
+		if (!column_df || !row_df || column_df === row_df) return column_df;
+
+		row_df.sticky = column_df.sticky;
+		row_df.in_list_view = column_df.in_list_view;
+
+		return row_df;
 	}
 
 	set_dependant_property(df) {
@@ -901,26 +887,37 @@ export default class GridRow {
 		return this.show_search;
 	}
 
-	make_search_column(df, colsize) {
+	_get_fieldtype_class(fieldtype) {
+		if (["Text", "Small Text"].includes(fieldtype)) return "grid-overflow-no-ellipsis";
+		if (["Int", "Currency", "Float", "Percent"].includes(fieldtype)) return "text-right";
+		if (fieldtype === "Check") return "text-center";
+		return "";
+	}
+
+	make_search_column(df, width) {
 		let title = "";
-		let input_class = "";
 		let is_disabled = "";
 
-		if (["Text", "Small Text"].includes(df.fieldtype)) {
-			input_class = "grid-overflow-no-ellipsis";
-		} else if (["Int", "Currency", "Float", "Percent"].includes(df.fieldtype)) {
-			input_class = "text-right";
-		} else if (df.fieldtype === "Check") {
+		if (df.fieldtype === "Check") {
 			title = __("1 = True & 0 = False");
-			input_class = "text-center";
 		} else if (df.fieldtype === "Password") {
 			is_disabled = "disabled";
 			title = __("Password cannot be filtered");
 		}
+		let input_class = this._get_fieldtype_class(df.fieldtype);
+
+		let add_class = "";
+		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
+		if (df.sticky) {
+			add_class = " sticky-grid-col";
+			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
+		}
 
 		let $col = $(
-			'<div class="col grid-static-col col-xs-' + colsize + ' search"></div>'
-		).appendTo(this.row);
+			`<div class="col grid-static-col search${add_class}" style="${add_style}"></div>`
+		)
+			.attr("data-fieldname", df.fieldname)
+			.appendTo(this.row);
 
 		let $search_input = $(`
 			<input
@@ -966,42 +963,14 @@ export default class GridRow {
 		return $col;
 	}
 
-	make_column(df, colsize, txt, ci) {
-		let col_sizes = {
-			1: 60,
-			2: 100,
-			3: 140,
-			4: 200,
-			5: 250,
-			6: 300,
-			7: 350,
-			8: 400,
-			9: 450,
-			10: 500,
-			11: 550,
-			12: 600,
-		};
+	make_column(df, width, txt, ci) {
 		let me = this;
-		var add_class =
-			["Text", "Small Text"].indexOf(df.fieldtype) !== -1
-				? " grid-overflow-no-ellipsis"
-				: "";
-		add_class +=
-			["Int", "Currency", "Float", "Percent"].indexOf(df.fieldtype) !== -1
-				? " text-right"
-				: "";
-		add_class += ["Check"].indexOf(df.fieldtype) !== -1 ? " text-center" : "";
+		let add_class = this._get_fieldtype_class(df.fieldtype);
 
-		let add_style = "";
+		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
-			if (!(df.fieldname in this.grid.sticky_rows)) {
-				this.grid.sticky_rows[df.fieldname] = this.grid.sticky_row_sum;
-				this.grid.sticky_row_sum = Object.keys(this.grid.sticky_rows).length
-					? this.grid.sticky_row_sum + col_sizes[colsize]
-					: this.grid.sticky_row_sum;
-			}
-			add_style += `left: ${this.grid.sticky_rows[df.fieldname] || 71}px;`;
+			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
 		}
 
 		let grid;
@@ -1060,9 +1029,7 @@ export default class GridRow {
 
 		let is_focused = false;
 
-		var $col = $(
-			`<div class="col grid-static-col col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
-		)
+		var $col = $(`<div class="col grid-static-col ${add_class}" style="${add_style}"></div>`)
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
@@ -1132,6 +1099,12 @@ export default class GridRow {
 		}
 		df.fieldname && $col.static_area.toggleClass("reqd", Boolean(df.reqd));
 
+		// Resize handle (see Grid.setup_column_resize); desktop, data columns only.
+		if (this.header_row && df.fieldname && !frappe.is_mobile()) {
+			// Empty title suppresses $col's label tooltip over the drag zone.
+			$('<div class="grid-col-resize-handle"></div>').attr("title", "").appendTo($col);
+		}
+
 		$col.df = df;
 		$col.column_index = ci;
 
@@ -1157,25 +1130,20 @@ export default class GridRow {
 	}
 
 	toggle_editable_row(show) {
-		var me = this;
-		// show static for field based on
-		// whether grid is editable
 		if (
 			this.grid.allow_on_grid_editing() &&
 			this.grid.is_editable() &&
 			this.doc &&
 			show !== false
 		) {
-			// disable other editable row
 			if (frappe.ui.form.editable_row && frappe.ui.form.editable_row !== this) {
 				frappe.ui.form.editable_row.toggle_editable_row(false);
 			}
 
 			this.row.toggleClass("editable-row", true);
 
-			// setup controls
-			this.columns_list.forEach(function (column) {
-				me.make_control(column);
+			this.columns_list.forEach((column) => {
+				this.make_control(column);
 				column.static_area.toggle(false);
 				column.field_area.toggle(true);
 			});
@@ -1190,12 +1158,7 @@ export default class GridRow {
 					let df = this.grid.visible_columns[index][0];
 
 					let txt = this.doc
-						? frappe.format(
-								this._escape_for_format(this.doc[df.fieldname], df),
-								df,
-								null,
-								this.doc
-						  )
+						? this._format_static_value(this.doc[df.fieldname], df, this.doc)
 						: __(df.label, null, df.parent);
 
 					this.refresh_field(df.fieldname, txt);
@@ -1282,108 +1245,90 @@ export default class GridRow {
 		this.on_grid_fields.push(field);
 	}
 	set_arrow_keys(field) {
-		var me = this;
-		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
-		if (field.$input) {
-			field.$input.on("keydown", function (e) {
-				var { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
-				if (![TAB, UP_ARROW, DOWN_ARROW, ESCAPE].includes(e.which)) {
-					return;
-				}
+		const ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
+		if (!field.$input) return;
 
-				var values = me.grid.get_data();
-				var fieldname = $(this).attr("data-fieldname");
-				var fieldtype = $(this).attr("data-fieldtype");
+		field.$input.on("keydown", (e) => {
+			const { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+			if (![TAB, UP_ARROW, DOWN_ARROW, ESCAPE].includes(e.which)) return;
 
-				let ctrl_key = e.metaKey || e.ctrlKey;
-				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB) {
-					me.add_new_row_using_keys(e);
-					return;
-				}
+			const values = this.grid.get_data();
+			const fieldname = $(e.currentTarget).attr("data-fieldname");
+			const fieldtype = $(e.currentTarget).attr("data-fieldtype");
+			const ctrl_key = e.metaKey || e.ctrlKey;
 
-				if (e.shiftKey && e.altKey && DOWN_ARROW === e.which) {
-					me.duplicate_row_using_keys();
-					return;
-				}
+			if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB) {
+				this.add_new_row_using_keys(e);
+				return;
+			}
 
-				var move_up_down = function (base) {
-					if (ignore_fieldtypes.includes(fieldtype) && !e.altKey) {
+			if (e.shiftKey && e.altKey && DOWN_ARROW === e.which) {
+				this.duplicate_row_using_keys();
+				return;
+			}
+
+			const move_up_down = (base) => {
+				if (ignore_fieldtypes.includes(fieldtype) && !e.altKey) return false;
+				if (field.autocomplete_open) return false;
+
+				field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+					base.toggle_editable_row();
+					const input = base.columns[fieldname].field.$input;
+					if (input) input.focus();
+				});
+				return true;
+			};
+
+			if (e.which === ESCAPE && !e.shiftKey) {
+				if (this.doc.__unedited) this.grid.grid_rows[this.doc.idx - 1].remove();
+				return false;
+			}
+
+			if (e.which === TAB && !e.shiftKey) {
+				const last_column = this.wrapper.find("input:enabled:last").get(0);
+				const is_last_column =
+					$(e.currentTarget).attr("data-last-input") || last_column === e.currentTarget;
+
+				if (is_last_column) {
+					if (this.doc.idx === values.length) {
+						setTimeout(() => {
+							this.grid.add_new_row(null, null, true);
+							this.grid.grid_rows[
+								this.grid.grid_rows.length - 1
+							].toggle_editable_row();
+							this.grid.set_focus_on_row();
+						}, 100);
+					} else {
+						this.grid.grid_rows[this.doc.idx].toggle_editable_row();
+						this.grid.set_focus_on_row(this.doc.idx);
 						return false;
 					}
-					if (field.autocomplete_open) {
-						return false;
-					}
-
-					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
-						base.toggle_editable_row();
-						const input = base.columns[fieldname].field.$input;
-						if (input) {
-							input.focus();
-						}
-					});
-
-					return true;
-				};
-
-				// ESC
-				if (e.which === ESCAPE && !e.shiftKey) {
-					if (me.doc.__unedited) {
-						me.grid.grid_rows[me.doc.idx - 1].remove();
-					}
-					return false;
 				}
-
-				// TAB
-				if (e.which === TAB && !e.shiftKey) {
-					var last_column = me.wrapper.find("input:enabled:last").get(0);
-					var is_last_column = $(this).attr("data-last-input") || last_column === this;
-
-					if (is_last_column) {
-						// last row
-						if (me.doc.idx === values.length) {
-							setTimeout(function () {
-								me.grid.add_new_row(null, null, true);
-								me.grid.grid_rows[
-									me.grid.grid_rows.length - 1
-								].toggle_editable_row();
-								me.grid.set_focus_on_row();
-							}, 100);
-						} else {
-							// last column before last row
-							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
-							me.grid.set_focus_on_row(me.doc.idx);
-							return false;
-						}
-					}
-				} else if (e.which === UP_ARROW) {
-					if (me.doc.idx > 1) {
-						var prev = me.grid.grid_rows[me.doc.idx - 2];
-						if (move_up_down(prev)) {
-							return false;
-						}
-					}
-				} else if (e.which === DOWN_ARROW) {
-					if (me.doc.idx < values.length) {
-						var next = me.grid.grid_rows[me.doc.idx];
-						if (move_up_down(next)) {
-							return false;
-						}
-					}
-				} else if (e.which === TAB && e.shiftKey) {
-					var first_column = me.wrapper
-						.find("input:enabled:not([type='checkbox'])")
-						.first()
-						.get(0);
-					var is_first_column =
-						$(this).attr("data-first-input") || first_column === this;
-					if (is_first_column) {
-						let ri = me.grid.get_current_row(e.target);
-						if (ri == 0) return;
-						me.grid.grid_rows[ri - 1].toggle_editable_row(true);
-					}
+			} else if (e.which === UP_ARROW) {
+				if (this.doc.idx > 1) {
+					const prev = this.grid.grid_rows[this.doc.idx - 2];
+					if (move_up_down(prev)) return false;
 				}
-			});
-		}
+			} else if (e.which === DOWN_ARROW) {
+				if (this.doc.idx < values.length) {
+					const next = this.grid.grid_rows[this.doc.idx];
+					if (move_up_down(next)) return false;
+				}
+			} else if (e.which === TAB && e.shiftKey) {
+				const first_column = this.wrapper
+					.find("input:enabled:not([type='checkbox'])")
+					.first()
+					.get(0);
+				const is_first_column =
+					$(e.currentTarget).attr("data-first-input") ||
+					first_column === e.currentTarget;
+				if (is_first_column) {
+					const ri = this.grid.get_current_row(e.target);
+					if (ri == 0) return;
+					this.grid.grid_rows[ri - 1].toggle_editable_row(true);
+				}
+			}
+		});
 	}
 
 	duplicate_row_using_keys() {
@@ -1585,33 +1530,31 @@ export default class GridRow {
 		return value;
 	}
 
+	// Static cells clip to a single line, so building the full rich-text HTML per cell
+	// is wasted work — show stripped text instead, like the list view does.
+	_format_static_value(value, df, doc) {
+		const RICH_TEXT_FIELDTYPES = ["Text Editor", "HTML Editor", "Markdown Editor"];
+		if (df && RICH_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+			return strip_html(cstr(value));
+		}
+		return frappe.format(this._escape_for_format(value, df), df, null, doc);
+	}
+
 	refresh_field(fieldname, txt) {
 		let fields =
 			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
 				: this.docfields;
 
-		let df = fields.find((col) => {
-			return col?.fieldname === fieldname;
-		});
+		let df = this.get_column_docfield(fields, fieldname);
 
 		// format values if no frm
 		if (df && this.doc) {
-			txt = frappe.format(
-				this._escape_for_format(this.doc[fieldname], df),
-				df,
-				null,
-				this.doc
-			);
+			txt = this._format_static_value(this.doc[fieldname], df, this.doc);
 		}
 
 		if (!txt && this.frm) {
-			txt = frappe.format(
-				this._escape_for_format(this.doc[fieldname], df),
-				df,
-				null,
-				this.frm.doc
-			);
+			txt = this._format_static_value(this.doc[fieldname], df, this.frm.doc);
 		}
 
 		// reset static value
@@ -1701,36 +1644,27 @@ export default class GridRow {
 	}
 
 	get_visible_columns(blacklist = []) {
-		var me = this;
-		var visible_columns = $.map(this.docfields, function (df) {
-			var visible =
+		return this.docfields.filter(
+			(df) =>
 				!df.hidden &&
 				df.in_list_view &&
-				me.grid.frm.get_perm(df.permlevel, "read") &&
+				this.grid.frm.get_perm(df.permlevel, "read") &&
 				!frappe.model.layout_fields.includes(df.fieldtype) &&
-				!blacklist.includes(df.fieldname);
-
-			return visible ? df : null;
-		});
-		return visible_columns;
+				!blacklist.includes(df.fieldname)
+		);
 	}
 	set_field_property(fieldname, property, value) {
-		// set a field property for open form / grid form
-		var me = this;
-
-		var set_property = function (field) {
+		const set_property = (field) => {
 			if (!field) return;
 			field.df[property] = value;
 			field.refresh();
 		};
 
-		// set property in grid form
 		if (this.grid_form) {
 			set_property(this.grid_form.fields_dict[fieldname]);
 			this.grid_form.layout && this.grid_form.layout.refresh_sections();
 		}
 
-		// set property in on grid fields
 		set_property(this.on_grid_fields_dict[fieldname]);
 	}
 	toggle_reqd(fieldname, reqd) {

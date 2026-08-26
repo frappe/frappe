@@ -161,4 +161,6 @@ OPERATOR_MAP: dict[str, Callable] = {
 	# TODO: Add support for custom operators (WIP) - via filters_config hooks
 }
 
+assert all(callable(fn) for fn in OPERATOR_MAP.values()), "every OPERATOR_MAP entry must be callable"
+
 NESTED_SET_OPERATORS = frozenset(NestedSetHierarchy)

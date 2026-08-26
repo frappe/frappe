@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import os
-from json import JSONDecodeError, dumps, loads
 
 import click
 
@@ -13,6 +12,26 @@ from frappe.model.document import Document
 from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 from frappe.utils.caching import site_cache
+
+# Child fields carried over verbatim when re-parenting `Workspace Sidebar Item` rows
+# from `Workspace Sidebar.items` to `Workspace.sidebar_items`.
+SIDEBAR_ITEM_FIELDS = (
+	"type",
+	"label",
+	"link_type",
+	"link_to",
+	"icon",
+	"child",
+	"indent",
+	"collapsible",
+	"keep_closed",
+	"url",
+	"show_arrow",
+	"filters",
+	"route_options",
+	"navigate_to_tab",
+	"open_in_new_tab",
+)
 
 
 class WorkspaceSidebar(Document, DeskViews):
@@ -29,6 +48,7 @@ class WorkspaceSidebar(Document, DeskViews):
 
 		app: DF.Autocomplete | None
 		for_user: DF.Link | None
+		header_icon: DF.Icon | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
 		module_onboarding: DF.Link | None
@@ -105,6 +125,89 @@ class WorkspaceSidebar(Document, DeskViews):
 		if counts and counts.most_common(1)[0]:
 			return counts.most_common(1)[0][0]
 
+	@frappe.whitelist()
+	def migrate_to_workspace(self):
+		"""Merge this `Workspace Sidebar` into its matching `Workspace`.
+
+		Copies the sidebar items into the matching `Workspace`'s `sidebar_items` table
+		(mapping `header_icon` -> `icon`, plus `module_onboarding` and `standard`). When no
+		`Workspace` matches the sidebar, one is created to host the items so no sidebar is lost.
+		"""
+		if not is_workspace_manager():
+			frappe.throw(
+				_("You need to be Workspace Manager to migrate a sidebar."),
+				frappe.PermissionError,
+			)
+
+		# Welcome Workspace was never given a sidebar; leave its special-casing untouched.
+		if self.title == "Welcome Workspace":
+			return
+
+		workspace = get_or_create_workspace(self)
+
+		workspace.set("sidebar_items", [])
+		for item in self.items:
+			workspace.append("sidebar_items", {field: item.get(field) for field in SIDEBAR_ITEM_FIELDS})
+
+		if self.header_icon:
+			workspace.icon = self.header_icon
+		if self.module_onboarding:
+			workspace.module_onboarding = self.module_onboarding
+		workspace.standard = self.standard
+
+		# A standard workspace must carry app + module so it can be exported to files. If no app
+		# can be resolved it can't be exported, so keep it as a non-standard workspace instead.
+		if self.standard:
+			set_app_and_module(workspace, self)
+			workspace.standard = 1 if workspace.module else 0
+
+		workspace.save(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+		# `remove_orphan_entities` (run later during migrate) deletes any standard public
+		# workspace that has no backing JSON file in an app. `on_update` skips the export during
+		# patches, so export through the controller here to give the merged workspace a file.
+		if workspace.standard:
+			workspace.export_workspace()
+
+		return workspace
+
+
+def set_app_and_module(workspace, sidebar):
+	"""Populate `app`/`module` on `workspace` in place. No-op when no app can be resolved."""
+	app = sidebar.app or workspace.app
+	if not app:
+		return
+
+	workspace.app = app
+	if not workspace.module:
+		modules = frappe.get_module_list(app)
+		workspace.module = modules[0] if modules else None
+
+
+def get_or_create_workspace(sidebar):
+	if frappe.db.exists("Workspace", sidebar.title):
+		return frappe.get_doc("Workspace", sidebar.title)
+
+	public = 0 if sidebar.for_user else 1
+	click.echo(f"Creating Workspace '{sidebar.title}' for orphan Workspace Sidebar")
+
+	workspace = frappe.new_doc("Workspace")
+	workspace.update(
+		{
+			"title": sidebar.title,
+			"label": sidebar.title,
+			"type": "Workspace",
+			"content": "[]",
+			"public": public,
+			"for_user": sidebar.for_user or "",
+			"module": sidebar.module or None,
+			"app": sidebar.app,
+			"sequence_id": frappe.db.count("Workspace", {"public": public}),
+		}
+	)
+	workspace.save(ignore_permissions=True)
+	return workspace
+
 
 def delete_file(app, title):
 	folder_path = create_directory_on_app_path("workspace_sidebar", app)
@@ -161,96 +264,55 @@ def create_workspace_sidebar_for_workspaces():
 				frappe.log_error(title="Failed To Create Sidebar", message=e)
 
 
-@frappe.whitelist()
-def add_sidebar_items(sidebar_title: str, sidebar_items: str):
-	sidebar_items = loads(sidebar_items)
-	title = f"{sidebar_title}-{frappe.session.user}"
-	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
-	if not frappe.conf.developer_mode:
-		try:
-			w = frappe.get_doc("Workspace Sidebar", title)
-		except frappe.DoesNotExistError:
-			frappe.clear_messages()
-			w = frappe.copy_doc(w, ignore_no_copy=False)
-			w.title = title
-			w.for_user = frappe.session.user
-	items = []
-	current_idx = 1
-	for item in sidebar_items:
-		si = frappe.new_doc("Workspace Sidebar Item")
-		si.update(item)
-		si.idx = current_idx
-		items.append(si)
-		current_idx += 1
-
-		nested_items = item.get("nested_items", [])
-		if nested_items:
-			for nested_item in nested_items:
-				new_nested_item = frappe.new_doc("Workspace Sidebar Item")
-				new_nested_item.update(nested_item)
-				new_nested_item.child = 1
-				new_nested_item.idx = current_idx
-				items.append(new_nested_item)
-				current_idx += 1
-
-	w.items = items
-	w.save()
-	return w
-
-
-def add_to_my_workspace(workspace):
-	try:
-		if not workspace.for_user:
-			return
-
-		sidebar_name = f"My Workspaces-{workspace.for_user}"
-		existing_sidebar = frappe.db.exists("Workspace Sidebar", sidebar_name)
-
-		if existing_sidebar:
-			private_sidebar = frappe.get_doc("Workspace Sidebar", existing_sidebar)
-		else:
-			# clone sidebar
-			base_sidebar = frappe.get_doc("Workspace Sidebar", "My Workspaces")
-			private_sidebar = frappe.copy_doc(base_sidebar)
-			private_sidebar.title = sidebar_name
-			private_sidebar.for_user = workspace.for_user
-			private_sidebar.owner = workspace.for_user
-			private_sidebar.items = []
-
-		sidebar_item = {
-			"label": workspace.title,
-			"type": "Link",
-			"link_to": f"{workspace.title}-{workspace.for_user}",
-			"link_type": "Workspace",
-			"icon": workspace.icon,
-		}
-
-		private_sidebar.append("items", sidebar_item)
-
-		if existing_sidebar:
-			private_sidebar.save()
-		else:
-			private_sidebar.insert()
-
-	except Exception as e:
-		frappe.log_error(title="Error in Adding Private Workspaces", message=e)
-
-
 @site_cache()
 def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
+	from frappe.app_state import get_disabled_modules
+
 	sidebars = []
-	for module in frappe.get_all("Module Def", pluck="name"):
-		if not (frappe.db.exists("Workspace Sidebar", {"name": module, "for_user": None})):
-			module_info = get_module_info(module)
-			sidebar_items = create_sidebar_items(module_info)
-			sidebar = frappe.new_doc("Workspace Sidebar")
-			sidebar.title = module
-			sidebar.items = sidebar_items
-			sidebar.module = module
-			sidebar.header_icon = "hammer"
-			sidebars.append(sidebar)
+	disabled_modules = get_disabled_modules()
+	for module in frappe.get_all("Module Def", fields=["name", "app_name"]):
+		if module.name in disabled_modules:
+			continue
+
+		# Skip modules whose public workspace already carries authored sidebar items -- that
+		# workspace's sidebar is built from `Workspace.sidebar_items` (the source of truth), so a
+		# generated fallback would be redundant.
+		if not module_has_workspace_sidebar(module.name):
+			try:
+				module_info = get_module_info(module.name)
+				sidebar_items = create_sidebar_items(module_info)
+				sidebar = frappe.new_doc("Workspace Sidebar")
+				sidebar.title = module.name
+				sidebar.items = sidebar_items
+				sidebar.module = module.name
+				sidebar.header_icon = "hammer"
+
+				# A module that exists only in the DB (a Module Def created from the UI, never
+				# added to any modules.txt) isn't in frappe.local.module_app, so fall back to the
+				# Module Def's own app_name. Without either the sidebar still generates -- it just
+				# carries no app context (the dock/header keep the current app).
+				sidebar.app = frappe.local.module_app.get(frappe.scrub(module.name)) or module.app_name
+				# in-memory marker (not a persisted field): flags sidebars built from a module so the
+				# desk can render a generated avatar instead of the default app-logo header icon.
+				sidebar.from_module = 1
+				sidebars.append(sidebar)
+			except frappe.DoesNotExistError:
+				pass
 	return sidebars
+
+
+def module_has_workspace_sidebar(module):
+	"""Whether a public Workspace for this module already carries authored sidebar items."""
+	workspaces = frappe.get_all("Workspace", {"module": module, "public": 1}, pluck="name")
+	if not workspaces:
+		return False
+	return bool(
+		frappe.db.exists(
+			"Workspace Sidebar Item",
+			{"parenttype": "Workspace", "parentfield": "sidebar_items", "parent": ["in", workspaces]},
+		)
+	)
 
 
 def get_module_info(module_name):
@@ -264,6 +326,9 @@ def get_module_info(module_name):
 		fieldnames = ["name"]
 		if entity.lower() == "doctype":
 			filters.append({"istable": 0})
+		if entity.lower() == "workspace":
+			# only surface public workspaces; private ones belong to individual users
+			filters.append({"public": 1})
 		if entity.lower() == "page":
 			fieldnames.append("title")
 			pluck = None

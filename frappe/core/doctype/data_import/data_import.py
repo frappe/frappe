@@ -235,6 +235,10 @@ def start_import(data_import):
 		frappe.db.rollback()
 		data_import.db_set("status", "Error")
 		data_import.log_error("Data import failed")
+		try:
+			frappe.logger("data_import").error(f"Data import {data_import.name} failed", exc_info=True)
+		except Exception:
+			pass
 	finally:
 		frappe.flags.in_import = False
 
@@ -351,6 +355,15 @@ def get_import_status(data_import_name: str):
 		import_status["total_records"] = logged_total
 
 	return import_status
+
+
+@frappe.whitelist(methods=["GET"])
+@frappe.read_only()
+def get_import_log_count(data_import: str):
+	doc = frappe.get_doc("Data Import", data_import)
+	doc.check_permission("read")
+
+	return frappe.db.count("Data Import Log", {"data_import": data_import})
 
 
 @frappe.whitelist()

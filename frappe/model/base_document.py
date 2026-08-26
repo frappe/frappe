@@ -37,7 +37,7 @@ from frappe.utils import (
 	strip_html,
 )
 from frappe.utils.defaults import get_not_null_defaults
-from frappe.utils.html_utils import unescape_html
+from frappe.utils.html_utils import has_html_tags, unescape_html
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -560,9 +560,17 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 		field_map = self.meta._fields
+		masked_fieldnames = self.flags.get("masked_fieldnames")
 
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
+
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it is not
+			# cast back to 0 for numeric fieldtypes. Only truthy values get masked, so falsy ones
+			# fall through to the normal null-aware path.
+			if value and fieldname in (masked_fieldnames or ()):
+				d[fieldname] = value
+				continue
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and value is None:
@@ -1052,7 +1060,9 @@ class BaseDocument:
 				assert df.fieldtype == "Dynamic Link"
 				doctype = self.get(df.options)
 				if not doctype:
-					frappe.throw(_("{0} must be set first").format(_(self.meta.get_label(df.options))))
+					frappe.throw(
+						_("{0} must be set first").format(self.meta.get_translated_label(df.options))
+					)
 				invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
 			meta = frappe.get_meta(doctype)
@@ -1181,7 +1191,7 @@ class BaseDocument:
 			if value not in options and not (frappe.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
-				label = _(self.meta.get_label(df.fieldname))
+				label = self.meta.get_translated_label(df.fieldname)
 				comma_options = '", "'.join(_(each) for each in options)
 
 				frappe.throw(
@@ -1256,7 +1266,7 @@ class BaseDocument:
 
 			if self.get(fieldname) != value:
 				frappe.throw(
-					_("Value cannot be changed for {0}").format(_(self.meta.get_label(fieldname))),
+					_("Value cannot be changed for {0}").format(self.meta.get_translated_label(fieldname)),
 					frappe.CannotChangeConstantError,
 				)
 
@@ -1371,8 +1381,6 @@ class BaseDocument:
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
-		from bs4 import BeautifulSoup
-
 		if frappe.flags.in_install:
 			return
 
@@ -1386,7 +1394,7 @@ class BaseDocument:
 				# doesn't look like html so no need
 				continue
 
-			elif "<!-- markdown -->" in value and not bool(BeautifulSoup(value, "html.parser").find()):
+			elif "<!-- markdown -->" in value and not has_html_tags(value):
 				# should be handled separately via the markdown converter function
 				continue
 
@@ -1396,7 +1404,7 @@ class BaseDocument:
 			if df and (
 				df.get("ignore_xss_filter")
 				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
-				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
+				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
 				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))
@@ -1536,15 +1544,12 @@ class BaseDocument:
 		return print_hide
 
 	def in_format_data(self, fieldname):
-		"""Return True if shown via Print Format::`format_data` property.
+		"""Compatibility shim for third-party server-side print templates.
 
-		Called from within standard print format."""
-		doc = getattr(self, "parent_doc", self)
-
-		if hasattr(doc, "format_data_map"):
-			return fieldname in doc.format_data_map
-		else:
-			return True
+		The classic print format builder that populated `format_data_map` has been
+		removed; builder layouts now render through PrintFormatGenerator, so every
+		field is considered in scope here."""
+		return True
 
 	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields, mask_fields=None):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""

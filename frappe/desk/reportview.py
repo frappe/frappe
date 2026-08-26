@@ -21,6 +21,8 @@ from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
+DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
 
 
 @frappe.whitelist()
@@ -190,12 +192,12 @@ def validate_filters(data, filters):
 def setup_group_by(data):
 	"""Add columns for aggregated values e.g. count(name)"""
 	if data.group_by and data.aggregate_function:
-		if data.aggregate_function.lower() not in ("count", "sum", "avg"):
+		if data.aggregate_function.lower() not in SUPPORTED_AGGREGATE_FUNCTIONS:
 			frappe.throw(_("Invalid aggregate function"))
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
 			field = f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`"
-			data.fields.append({data.aggregate_function.upper(): field, "as": "_aggregate_column"})
+			data.fields.append({data.aggregate_function.upper(): field, "as": DEFAULT_AGGREGATE_FIELDNAME})
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -257,19 +259,19 @@ def clean_params(data):
 
 def parse_json(data):
 	if (filters := data.get("filters")) and isinstance(filters, str):
-		data["filters"] = json.loads(filters)
+		data["filters"] = frappe.parse_json(filters)
 	if (applied_filters := data.get("applied_filters")) and isinstance(applied_filters, str):
-		data["applied_filters"] = json.loads(applied_filters)
+		data["applied_filters"] = frappe.parse_json(applied_filters)
 	if (or_filters := data.get("or_filters")) and isinstance(or_filters, str):
-		data["or_filters"] = json.loads(or_filters)
+		data["or_filters"] = frappe.parse_json(or_filters)
 	if (fields := data.get("fields")) and isinstance(fields, str):
-		data["fields"] = ["*"] if fields == "*" else json.loads(fields)
+		data["fields"] = ["*"] if fields == "*" else frappe.parse_json(fields)
 	if isinstance(data.get("docstatus"), str):
-		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), str):
-		data["save_user_settings"] = json.loads(data["save_user_settings"])
-	else:
+		data["docstatus"] = frappe.parse_json(data["docstatus"])
+	if "save_user_settings" not in data:
 		data["save_user_settings"] = True
+	elif isinstance(data.get("save_user_settings"), str):
+		data["save_user_settings"] = frappe.parse_json(data["save_user_settings"])
 	if isinstance(data.get("start"), str):
 		data["start"] = cint(data.get("start"))
 	if isinstance(data.get("page_length"), str):
@@ -435,11 +437,28 @@ def _export_query(form_params, csv_params, populate_response=True):
 		form_params["fields"] = form_params["fields"] + (owner_field,)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
-	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
-	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
+	add_totals_row = cint(form_params.pop("add_totals_row", 0))
+	translate_values = cint(form_params.pop("translate_values", 0))
+
+	visible_names = form_params.pop("visible_names", None)
+	if isinstance(visible_names, str):
+		visible_names = frappe.parse_json(visible_names)
+	if not (isinstance(visible_names, list) and visible_names):
+		visible_names = None
 
 	if selection := form_params.pop("selected_items", None):
-		form_params["filters"] = {"name": ("in", json.loads(selection))}
+		form_params["filters"] = {"name": ("in", frappe.parse_json(selection))}
+
+	# visible_names is the client's ordered display sequence
+	# When present, take precedence over generic filters/order/pagination: fetch
+	# exactly those rows, then reorder in Python below.
+	# Mirrors the visible_idx pattern in Query Report.
+	if visible_names:
+		form_params["filters"] = {"name": ("in", visible_names)}
+		form_params["order_by"] = None
+		form_params.pop("page_length", None)
+		form_params.pop("limit_page_length", None)
+		form_params.pop("start", None)
 
 	make_access_log(
 		doctype=doctype,
@@ -450,6 +469,9 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
+
+	if visible_names:
+		ret = _reorder_by_visible_names(ret, form_params.get("fields", []), doctype, visible_names)
 
 	if not frappe.permissions.can_export(doctype):
 		if frappe.permissions.can_export(doctype, is_owner=True):
@@ -515,6 +537,29 @@ def _export_query(form_params, csv_params, populate_response=True):
 	provide_binary_file(_(title), file_extension, content)
 
 
+def _reorder_by_visible_names(ret, fields, doctype, visible_names):
+	"""Reorder `ret` (list of row tuples, `as_list=True`) so that rows appear
+	in the same order as `visible_names`. Rows whose primary key isn't in
+	`visible_names` are dropped. If the primary key column can't be located in
+	`fields`, `ret` is returned unchanged (server-order fallback).
+
+	Only the primary doctype's `name` column is a valid match.
+	Using linked doctype's `name` as the reorder key
+	would silently rebuild the export against the wrong identifier."""
+	name_field = f"`tab{doctype}`.`name`"
+	name_idx = None
+	for i, field in enumerate(fields):
+		if not isinstance(field, str):
+			continue
+		if field == name_field or field == "name":
+			name_idx = i
+			break
+	if name_idx is None:
+		return ret
+	ret_by_name = {row[name_idx]: row for row in ret}
+	return [ret_by_name[n] for n in visible_names if n in ret_by_name]
+
+
 def append_totals_row(data):
 	if not data:
 		return data
@@ -553,19 +598,12 @@ def get_field_info(fields, parent_doctype):
 	field_info = []
 
 	for field in fields:
-		df = None
-		doctype = None
 		try:
 			doctype, fieldname = parse_field(field)
 		except ValueError:
-			# handles aggregate functions
-			if isinstance(field, dict):
-				# Eg: {"COUNT": "name", "as": "count_name"} -> "COUNT"
-				fieldname = next(f for f in field if f != "as")
-			else:
-				# Eg: "count(name)" -> "count"
-				fieldname = field.split("(", 1)[0]
-			fieldname = fieldname.capitalize()
+			# handles aggregate functions like COUNT, SUM, AVG etc.
+			field_info.append(get_aggregate_field_info(field, parent_doctype))
+			continue
 
 		doctype = doctype or parent_doctype
 		options = None
@@ -577,12 +615,14 @@ def get_field_info(fields, parent_doctype):
 			translatable = True
 		else:
 			meta = frappe.get_meta(doctype)
-			meta_df = meta.get_field(fieldname)
-			df = meta_df or get_default_df(fieldname)
+			df = meta.get_field(fieldname) or get_default_df(fieldname)
 
 			if df:
 				fieldname = df.fieldname
-				label = _(df.label or "") if meta_df else meta.get_label(fieldname)
+				label = meta.get_label(fieldname) or ""
+				if label:
+					label = _(label, context=doctype)
+
 				fieldtype = df.fieldtype
 				translatable = df.translatable or False
 				options = df.options
@@ -656,24 +696,149 @@ def parse_field(field: str | dict) -> tuple[str | None, str]:
 	return None, key.strip("`")
 
 
+def parse_aggregate_field(field: str | dict) -> tuple[str, str]:
+	"""
+	Extract an aggregate function name (uppercase) and target SQL expression from an aggregate field.
+
+	Example inputs and outputs:
+	```
+	_parse_aggregate_field("count(`tabSales Invoice`.`amount`) as _aggregate_column")
+	>>> ("COUNT", "`tabSales Invoice`.`amount`")
+
+	_parse_aggregate_field({"SUM": "`tabSales Invoice`.`amount`", "as": "_aggregate_column"})
+	>>> ("SUM", "`tabSales Invoice`.`amount`")
+	```
+	"""
+	if isinstance(field, dict):
+		function = next(f for f in field if f != "as")
+		return function.upper(), field[function]
+
+	key = field.split(" as ", 1)[0]
+	function, sep, rest = key.partition("(")
+	return function.upper(), rest.rstrip(")") if sep else ""
+
+
+def _aggregate_field_df(doctype: str, fieldname: str):
+	if not doctype or not fieldname:
+		return
+
+	return frappe.get_meta(doctype).get_field(fieldname)
+
+
+# NOTE: Parameter kept for handler signature consistency.
+def _aggregate_count_column_info(doctype: str, fieldname: str) -> dict:
+	return frappe._dict(
+		{
+			"label": _("Count"),
+			"fieldtype": "Int",
+			"translatable": False,
+			"options": None,
+		}
+	)
+
+
+def _aggregate_sum_column_info(doctype: str, fieldname: str) -> dict:
+	df = _aggregate_field_df(doctype, fieldname)
+	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
+
+	return frappe._dict(
+		{
+			"label": _("{0} of {1}").format(_("Sum"), label),
+			"fieldtype": df.fieldtype if df else "Float",
+			"translatable": False,
+			"options": df.options if df else None,
+		}
+	)
+
+
+def _aggregate_avg_column_info(doctype: str, fieldname: str) -> dict:
+	df = _aggregate_field_df(doctype, fieldname)
+	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
+	# average of Int can be a Float
+	fieldtype = "Float" if not df or df.fieldtype == "Int" else df.fieldtype
+
+	return frappe._dict(
+		{
+			"label": _("{0} of {1}").format(_("Average"), label),
+			"fieldtype": fieldtype,
+			"translatable": False,
+			"options": df.options if df else None,
+		}
+	)
+
+
+# Register new aggregate function handlers here.
+AGGREGATE_FIELD_INFO_HANDLERS = {
+	"COUNT": _aggregate_count_column_info,
+	"SUM": _aggregate_sum_column_info,
+	"AVG": _aggregate_avg_column_info,
+}
+
+assert set(AGGREGATE_FIELD_INFO_HANDLERS) == {fn.upper() for fn in SUPPORTED_AGGREGATE_FUNCTIONS}, (
+	"aggregate field info handlers must stay in sync with SUPPORTED_AGGREGATE_FUNCTIONS"
+)
+
+
+def get_aggregate_field_info(field: str | dict, parent_doctype: str) -> dict:
+	"""
+	Build field info for an aggregate column (e.g. COUNT/SUM/AVG).
+
+	Example:
+
+	```
+	get_aggregate_field_info("count(`tabSales Invoice`.`amount`) as total", "Sales Invoice")
+
+	# Returns:
+	{
+	    "fieldname": "_aggregate_column",
+	    "label": "Count",
+	    "fieldtype": "Int",
+	    "translatable": False,
+	    "options": None,
+	}
+	```
+	"""
+	function, aggregate_on = parse_aggregate_field(field)
+	doctype, fieldname = parse_field(aggregate_on)
+
+	doctype = doctype or parent_doctype
+
+	field_info = frappe._dict(
+		{
+			"label": _(function.capitalize()),
+			"fieldtype": "Data",
+			"translatable": False,
+			"options": None,
+		}
+	)
+
+	if handler := AGGREGATE_FIELD_INFO_HANDLERS.get(function):
+		field_info = handler(doctype, fieldname)
+
+	# using a default fieldname for aggregate column
+	field_info["fieldname"] = DEFAULT_AGGREGATE_FIELDNAME
+
+	return field_info
+
+
 @frappe.whitelist(methods=["POST", "DELETE"])
 def delete_items():
 	"""delete selected items"""
 	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
 		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
 
-	import json
-
-	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)
+	items = sorted(frappe.parse_json(frappe.form_dict.get("items")), reverse=True)
 	doctype = frappe.form_dict.get("doctype")
 
 	if len(items) > 10:
 		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
-	else:
-		delete_bulk(doctype, items)
+		return None
+
+	return delete_bulk(doctype, items)
 
 
 def delete_bulk(doctype, items):
+	"""Delete documents one by one. Returns names that could not be deleted."""
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
@@ -698,19 +863,21 @@ def delete_bulk(doctype, items):
 			frappe.db.rollback()
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
-		delete_bulk(doctype, undeleted_items)
+		return delete_bulk(doctype, undeleted_items)
 	elif undeleted_items:
 		frappe.msgprint(
 			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
 			realtime=True,
 			title=_("Bulk Operation Failed"),
 		)
-	else:
-		frappe.msgprint(
-			_(f"Deleted {len(items)} records from {doctype} doctype"),
-			realtime=True,
-			title=_("Bulk Operation Successful"),
-		)
+		return undeleted_items
+
+	frappe.msgprint(
+		_("Deleted {0} records from {1} doctype").format(len(items), doctype),
+		realtime=True,
+		title=_("Bulk Operation Successful"),
+	)
+	return []
 
 
 @frappe.whitelist()
@@ -733,15 +900,13 @@ def get_sidebar_stats(
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats: str, doctype: str, filters: str | None = None):
+def get_stats(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tag info"""
-	import json
-
 	if filters is None:
 		filters = []
-	columns = json.loads(stats)
+	columns = frappe.parse_json(stats)
 	if filters:
-		filters = json.loads(filters)
+		filters = frappe.parse_json(filters)
 	results = {}
 
 	try:
@@ -790,12 +955,10 @@ def get_stats(stats: str, doctype: str, filters: str | None = None):
 
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats: str, doctype: str, filters: str | None = None):
+def get_filter_dashboard_data(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tags info"""
-	import json
-
-	tags = json.loads(stats)
-	filters = json.loads(filters or [])
+	tags = frappe.parse_json(stats)
+	filters = frappe.parse_json(filters) or []
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
@@ -886,8 +1049,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 
 
 def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
-	if isinstance(filters, str):
-		filters = json.loads(filters)
+	filters = frappe.parse_json(filters)
 
 	if filters:
 		flt = filters

@@ -9,9 +9,11 @@ configuration.
 """
 
 import json
-import sys
 import os
+import sys
 from pathlib import Path
+
+import impact_map
 from coverage import Coverage
 
 STANDARD_INCLUSIONS = ["*.py"]
@@ -74,10 +76,12 @@ class CodeCoverage:
 	applying the appropriate inclusion and exclusion patterns.
 	"""
 
-	def __init__(self, with_coverage, app, outfile="coverage.xml"):
+	def __init__(self, with_coverage, app, outfile="coverage.xml", impact_map_outfile=None):
 		self.with_coverage = with_coverage
 		self.app = app or "frappe"
 		self.outfile = outfile
+		# Recording per-test attribution costs ~10-30% runtime, so it is opt-in (nightly only).
+		self.impact_map_outfile = impact_map_outfile
 
 	def __enter__(self):
 		if self.with_coverage:
@@ -90,6 +94,10 @@ class CodeCoverage:
 
 			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 
+			if self.impact_map_outfile:
+				# Tag every covered line with the test that ran it. Not a constructor argument.
+				self.coverage.set_option("run:dynamic_context", "test_function")
+
 			assert "frappe" not in sys.modules, "frappe already imported, coverage will be inaccurate"
 			self.coverage.start()
 		return self
@@ -101,18 +109,32 @@ class CodeCoverage:
 			self.coverage.xml_report(outfile=self.outfile)
 			print("Saved Coverage")
 
+			if self.impact_map_outfile:
+				self.save_impact_map()
+
+	def save_impact_map(self):
+		"""Invert this runner's coverage into `{source_file: [test_file]}` for `roulette.py`."""
+		app_path = os.path.join(get_bench_path(), "apps", self.app)
+		built = impact_map.build(self.coverage.get_data(), app_path)
+
+		with open(self.impact_map_outfile, "w") as f:
+			json.dump(built, f)
+
+		print(f"Saved impact map for {len(built['map'])} source files to {self.impact_map_outfile}")
+
 
 if __name__ == "__main__":
 	app = "frappe"
 	site = os.environ.get("SITE") or "test_site"
 	with_coverage = json.loads(os.environ.get("CAPTURE_COVERAGE", "true").lower())
+	impact_map_outfile = os.environ.get("IMPACT_MAP_OUTFILE")
 
 	# Parse build information from environment variables
 	build_number = int(os.environ.get("BUILD_NUMBER"))
 	total_builds = int(os.environ.get("TOTAL_BUILDS"))
 
 	# Run tests with code coverage
-	with CodeCoverage(with_coverage=with_coverage, app=app):
+	with CodeCoverage(with_coverage=with_coverage, app=app, impact_map_outfile=impact_map_outfile):
 		from frappe.parallel_test_runner import ParallelTestRunner
 
 		runner = ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)

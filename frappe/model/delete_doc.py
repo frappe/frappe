@@ -138,7 +138,7 @@ def delete_doc(
 			):
 				try:
 					delete_controllers(name, doc.module)
-				except OSError, KeyError:
+				except (OSError, KeyError):
 					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 
@@ -148,7 +148,7 @@ def delete_doc(
 			# Lock the doc without waiting
 			try:
 				frappe.db.get_value(doctype, name, for_update=True, wait=False)
-			except frappe.QueryTimeoutError, frappe.QueryDeadlockError:
+			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError):
 				frappe.throw(
 					_(
 						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
@@ -160,6 +160,7 @@ def delete_doc(
 			if not for_reload:
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
+				doc.flags.force_delete = force
 
 				if not ignore_on_trash:
 					doc.run_method("on_trash")

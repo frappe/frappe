@@ -16,12 +16,15 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
+from frappe.api import discovery
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
 
 PERMISSION_MAP = {
 	"GET": "read",
 	"POST": "write",
+	"QUERY": "read",
 }
 
 
@@ -57,6 +60,8 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 
 	try:
 		method = frappe.get_attr(method)
+	except frappe.AppNotInstalledError:
+		raise
 	except Exception as e:
 		frappe.throw(_("Failed to get method {0} with {1}").format(method, str(e)))
 
@@ -132,7 +137,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))
 	filters: dict | None = frappe.parse_json(args.get("filters", None))
-	order_by: str | None = args.get("order_by", None)
+	order_by: str | None = args.get("order_by", DefaultOrderBy)
 	start: int = cint(args.get("start", 0))
 	limit: int = cint(args.get("limit", 20))
 	group_by: str | None = args.get("group_by", None)
@@ -180,7 +185,6 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
 
 	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
-	assert isinstance(data, list), "query.run must return a list of records"
 	frappe.response["has_next_page"] = len(data) > limit
 	return data[:limit]
 
@@ -253,8 +257,13 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
 	doc.is_whitelisted(method)
+	method_obj = getattr(doc, method)
+	fn = getattr(method_obj, "__func__", method_obj)
+	is_valid_http_method(fn)
 
-	assert frappe.request.method in PERMISSION_MAP, "execute_doc_method route is only mounted for GET/POST"
+	assert frappe.request.method in PERMISSION_MAP, (
+		"execute_doc_method route is only mounted for GET/POST/QUERY"
+	)
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
 	doc.apply_fieldlevel_read_permissions()
@@ -387,6 +396,7 @@ def execute_bulk_delete(docs: list):
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"doctype": doctype, "name": name, "error": str(e)})
 
+	assert len(deleted) + len(failed) == len(docs), "every doc must be either deleted or failed exactly once"
 	return {
 		"deleted": deleted,
 		"failed": failed,
@@ -462,6 +472,7 @@ def execute_bulk_update_docs(doctype: str, docs: list):
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"name": name, "error": str(e)})
 
+	assert len(updated) + len(failed) == len(docs), "every doc must be either updated or failed exactly once"
 	return {
 		"updated": updated,
 		"failed": failed,
@@ -544,6 +555,7 @@ def execute_bulk_update(docs: list):
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"doctype": doctype, "name": name, "error": str(e)})
 
+	assert len(updated) + len(failed) == len(docs), "every doc must be either updated or failed exactly once"
 	return {
 		"updated": updated,
 		"failed": failed,
@@ -572,7 +584,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
-	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST"
+	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST/QUERY"
 	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
@@ -590,6 +602,21 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 
 url_rules = [
+	# Discovery APIs
+	Rule("/discovery", methods=["GET"], endpoint=discovery.root),
+	Rule(
+		"/discovery/search",
+		methods=["GET"],
+		endpoint=lambda: discovery.search(frappe.form_dict.get("q")),
+	),
+	Rule("/discovery/method", methods=["GET"], endpoint=discovery.methods),
+	Rule("/discovery/method/<method>", methods=["GET"], endpoint=discovery.method),
+	Rule("/discovery/doctype/<doctype>", methods=["GET"], endpoint=discovery.doctype_methods),
+	Rule(
+		"/discovery/doctype/<doctype>/method/<method>",
+		methods=["GET"],
+		endpoint=discovery.doctype_method,
+	),
 	# RPC calls
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout, methods=["POST"]),
@@ -600,12 +627,12 @@ url_rules = [
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
 	),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
 	# Document level APIs
-	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
+	Rule("/document/<doctype>", methods=["GET", "QUERY"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_delete_docs),
 	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_update_docs),
@@ -615,10 +642,10 @@ url_rules = [
 	Rule("/document/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/method/<method>/",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=execute_doc_method,
 	),
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
-	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
+	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),
 ]

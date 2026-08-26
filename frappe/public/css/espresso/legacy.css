@@ -27,7 +27,6 @@
   --card-bg: var(--surface-base);
   --modal-bg: var(--bg-color);
   --popover-bg: var(--bg-color);
-  --toast-bg: var(--modal-bg);
   --control-bg: var(--surface-gray-2);
   --control-bg-on-gray: var(--surface-gray-3);
   --subtle-accent: var(--surface-gray-1);
@@ -100,6 +99,10 @@
 
 /* Preserved legacy color tokens — OLD values verbatim, TODO: remap to Espresso. */
 :root {
+  /* TODO: remove the --alert-* block (here and in the dark section below)
+     once the bootstrap .alert banners move to the es-alert component —
+     common/alert.scss is their only consumer. ~19 call sites, listed in
+     the component plan (includes user.py, which renders alerts server-side). */
   --alert-bg-danger: var(--red-50);
   --alert-bg-info: var(--blue-50);
   --alert-bg-success: var(--green-100);

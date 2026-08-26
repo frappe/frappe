@@ -2,6 +2,15 @@ import KanbanSettings from "./kanban_settings";
 
 frappe.provide("frappe.views");
 
+/*
+ * Kanban list view — loads card data from the server.
+ *
+ * This file fetches cards in pages and keeps them in memory (this.data).
+ * The board UI (kanban_board.bundle.js) only draws the cards you can see on screen.
+ *
+ * See build_column_state() for how paging works.
+ */
+
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	static full_page = true;
 	static no_sidebar = true;
@@ -61,6 +70,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	init() {
 		return super.init().then(() => {
+			// Same debounced path as list view: list_update + kanban_board_update → render_list.
+			this.debounced_refresh = frappe.utils.debounce(
+				this.process_document_refreshes.bind(this),
+				500
+			);
+			this.pending_kanban_board_refresh = false;
 			let menu_length = this.page.menu.find(".dropdown-item").length;
 			if (menu_length === 1) {
 				// Only 'Refresh' (hidden) is present (always), dropdown is visibly empty
@@ -79,6 +94,14 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.page_title = __(this.board_name);
 			this.card_meta = this.get_card_meta();
 			this.page_length = 0;
+			// How many cards to load and keep in memory (works with kanban_board.bundle.js):
+			// kanban_page_size — cards per server request (first load + each scroll load).
+			// kanban_prefetch_trigger — start loading more when user is this many cards from the bottom.
+			// kanban_max_column_cards — max cards kept in memory per column; older ones are removed.
+			this.kanban_page_size = 50;
+			this.kanban_prefetch_trigger = 25;
+			this.kanban_max_column_cards = 500;
+			this.kanban_column_state = {};
 
 			return frappe.run_serially([
 				() => this.set_board_perms_and_push_menu_items(),
@@ -127,6 +150,15 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 	}
 
+	setup_result_container_area() {
+		// pass
+	}
+
+	setup_result_area() {
+		this.$result = $(`<div class="result">`);
+		this.$frappe_list.append(this.$result);
+	}
+
 	setup_paging_area() {
 		// pass
 	}
@@ -136,7 +168,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	toggle_result_area() {
-		this.$result.toggle(this.data.length > 0);
+		// Kanban should remain visible even when no cards are loaded yet,
+		// so the board columns and empty state can render.
+		this.$result.show();
 	}
 
 	get_board() {
@@ -160,7 +194,217 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.page.container.addClass("full-width");
 		}
 		this.setup_realtime_updates();
+		this.setup_kanban_board_realtime();
 		this.setup_like();
+	}
+
+	/**
+	 * Reload the board: fetch totals + first page per column, then draw it.
+	 */
+	refresh() {
+		this.freeze(true);
+
+		return Promise.resolve(this.load_lib)
+			.then(() => this.refresh_kanban_pages())
+			.then(() => {
+				this.toggle_result_area();
+				this.before_render();
+				return this.render_kanban_board();
+			})
+			.then(() => {
+				this.after_render();
+				this.freeze(false);
+			})
+			.catch((err) => {
+				console.error("Kanban refresh failed", err);
+				this.freeze(false);
+				frappe.show_alert({
+					message: __("Failed to load Kanban board"),
+					indicator: "red",
+				});
+			});
+	}
+
+	/** Columns that are not archived. */
+	get_active_kanban_columns() {
+		return (this.board?.columns || []).filter((col) => col.status !== "Archived");
+	}
+
+	// Column pagination lives in kanban_pagination.js (loaded with kanban_board.bundle.js).
+
+	/** Map Kanban Board child rows to the column shape used by the board UI. */
+	map_kanban_board_columns(board) {
+		return (board?.columns || []).map((col) => ({
+			title: col.column_name,
+			status: col.status,
+			order: col.order,
+			indicator: col.indicator || "gray",
+		}));
+	}
+
+	apply_kanban_board_doc(board) {
+		this.board = board;
+		this.board.filters_array = JSON.parse(this.board.filters || "[]");
+		this.board.fields = JSON.parse(this.board.fields || "[]");
+	}
+
+	/** Reload card pages and column order after a cross-tab board update. */
+	refresh_kanban_board_from_realtime() {
+		return frappe.db
+			.get_doc("Kanban Board", this.board_name)
+			.then((board) => {
+				this.apply_kanban_board_doc(board);
+				const columns = this.map_kanban_board_columns(board);
+
+				return this.refresh_kanban_pages().then(() => {
+					if (this.kanban && !this.skip_kanban_realtime) {
+						this.kanban.sync_from_realtime(this.data, columns, null);
+					} else if (!this.kanban) {
+						return this.render_kanban_board();
+					}
+				});
+			})
+			.catch((err) => {
+				console.error("Kanban board refresh failed", err);
+			});
+	}
+
+	/** Refresh when another user changes column order on this board. */
+	setup_kanban_board_realtime() {
+		if (this.kanban_board_realtime_setup) return;
+
+		frappe.realtime.on("kanban_board_update", (data) => {
+			if (data.board_name !== this.board_name) return;
+			this.pending_kanban_board_refresh = true;
+			if (this.avoid_realtime_update() || this.skip_kanban_realtime) return;
+			this.debounced_refresh();
+		});
+		this.kanban_board_realtime_setup = true;
+	}
+
+	/** When a card changes, update it in memory and redraw (no full list re-sort). */
+	process_document_refreshes() {
+		const board_refresh_only =
+			!this.pending_document_refreshes?.length && this.pending_kanban_board_refresh;
+
+		if (!this.pending_document_refreshes?.length && !this.pending_kanban_board_refresh) {
+			return;
+		}
+
+		if (this.skip_kanban_realtime) {
+			return;
+		}
+
+		const route = frappe.get_route() || [];
+		if (!cur_list || route[0] != "List" || cur_list.doctype != route[1]) {
+			this.pending_document_refreshes = [];
+			this.pending_kanban_board_refresh = false;
+			this.disable_realtime_updates();
+			return;
+		}
+
+		if (board_refresh_only) {
+			this.pending_kanban_board_refresh = false;
+			return this.refresh_kanban_board_from_realtime();
+		}
+
+		const names = this.pending_document_refreshes.map((d) => d.name);
+		this.pending_document_refreshes = this.pending_document_refreshes.filter(
+			(d) => names.indexOf(d.name) === -1
+		);
+
+		if (!names.length) {
+			if (this.pending_kanban_board_refresh) {
+				this.pending_kanban_board_refresh = false;
+				this.render_list();
+			}
+			return;
+		}
+
+		const call_args = this.get_call_args();
+		call_args.args.filters.push([this.doctype, "name", "in", names]);
+		call_args.args.start = 0;
+
+		frappe.call(call_args).then(({ message }) => {
+			if (!message) return;
+			const data = frappe.utils.dict(message.keys, message.values);
+
+			if (!(data && data.length)) {
+				this.data = this.data.filter((d) => !names.includes(d.name));
+			} else {
+				const index_by_name = new Map(this.data.map((doc, i) => [doc.name, i]));
+				data.forEach((datum) => {
+					const index = index_by_name.get(datum.name);
+					if (index === undefined) {
+						this.data.push(datum);
+					} else {
+						this.data[index] = datum;
+					}
+				});
+			}
+
+			// Kanban column order comes from the board — do not re-sort this.data like list view.
+			this.pending_kanban_board_refresh = false;
+			this.toggle_result_area();
+			this.render_list(names);
+		});
+	}
+
+	render_list(changed_names) {
+		if (!this.kanban || this.skip_kanban_realtime) return;
+		this._changed_card_names = changed_names || null;
+		this._render_kanban_from_server();
+	}
+
+	/** Apply board/card realtime updates queued while a local drag is settling. */
+	flush_deferred_kanban_realtime() {
+		if (this.skip_kanban_realtime) return;
+		if (this.pending_kanban_board_refresh || this.pending_document_refreshes?.length) {
+			this.debounced_refresh();
+		}
+	}
+
+	begin_kanban_local_drag_sync() {
+		// Pause incoming realtime reconciliation while local drag save is in flight.
+		this._local_drag_sync_count = (this._local_drag_sync_count || 0) + 1;
+		this.skip_kanban_realtime = true;
+	}
+
+	end_kanban_local_drag_sync() {
+		// Resume realtime only after the last local drag request settles.
+		this._local_drag_sync_count = Math.max(0, (this._local_drag_sync_count || 0) - 1);
+		if (this._local_drag_sync_count > 0) return;
+		this.skip_kanban_realtime = false;
+		// Apply any board/card events queued while realtime was paused.
+		this.flush_deferred_kanban_realtime();
+	}
+
+	/** After a realtime update, load latest column order and refresh cards. */
+	_render_kanban_from_server() {
+		if (this._kanban_sync_in_flight) {
+			this._kanban_sync_pending = true;
+			return;
+		}
+
+		this._kanban_sync_in_flight = true;
+		return frappe.db
+			.get_doc("Kanban Board", this.board_name)
+			.then((board) => {
+				if (this.skip_kanban_realtime || !this.kanban) return;
+				this.apply_kanban_board_doc(board);
+				const columns = this.map_kanban_board_columns(board);
+				const changed_card_names = this._changed_card_names;
+				this.kanban.sync_from_realtime(this.data, columns, changed_card_names);
+				this._changed_card_names = null;
+				return this.sync_kanban_column_state_from_board(columns, changed_card_names);
+			})
+			.finally(() => {
+				this._kanban_sync_in_flight = false;
+				if (this._kanban_sync_pending) {
+					this._kanban_sync_pending = false;
+					this._render_kanban_from_server();
+				}
+			});
 	}
 
 	set_fields() {
@@ -197,8 +441,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
-	render_list() {}
-
 	on_filter_change() {
 		if (!this.board_perms.write) return; // avoid misleading ux
 
@@ -227,6 +469,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 			this.board.filters_array = filters;
 			this.on_filter_change();
+			this.refresh();
 		});
 	}
 
@@ -236,22 +479,32 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	render() {
-		const board_name = this.board_name;
-		if (!this.kanban) {
-			this.kanban = new frappe.views.KanbanBoard({
-				doctype: this.doctype,
-				board: this.board,
-				board_name: board_name,
-				cards: this.data,
-				card_meta: this.card_meta,
-				wrapper: this.$result,
-				cur_list: this,
-				user_settings: this.view_user_settings,
-			});
-		} else if (board_name === this.kanban.board_name) {
-			this.$result.empty();
-			this.kanban.update(this.data);
-		}
+		return this.render_kanban_board();
+	}
+
+	/** Wait for kanban bundle before creating/updating the board (same pattern as Gantt view). */
+	render_kanban_board() {
+		return Promise.resolve(this.load_lib).then(() => {
+			const board_name = this.board_name;
+			if (!frappe.views.KanbanBoard) {
+				throw new Error("Kanban board library failed to load");
+			}
+			if (!this.kanban) {
+				this.kanban = new frappe.views.KanbanBoard({
+					doctype: this.doctype,
+					board: this.board,
+					board_name: board_name,
+					cards: this.data,
+					card_meta: this.card_meta,
+					wrapper: this.$result,
+					cur_list: this,
+					user_settings: this.view_user_settings,
+				});
+			} else if (board_name === this.kanban.board_name) {
+				this.$result.empty();
+				this.kanban.update(this.data);
+			}
+		});
 	}
 
 	get_card_meta() {

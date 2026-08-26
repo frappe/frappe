@@ -5,7 +5,7 @@
 		@click.stop="toggle_fieldtype_options"
 	>
 		<slot>
-			<div v-html="frappe.utils.icon('dot-horizontal', 'sm')" />
+			<div v-html="frappe.utils.icon('ellipsis', 'sm')" />
 		</slot>
 		<Teleport to="#autocomplete-area">
 			<div class="dropdown" ref="dropdown_ref">

@@ -1,6 +1,6 @@
 frappe.ui.BackgroundTasks = class BackgroundTasks {
 	constructor(opts) {
-		this.wrapper = opts?.wrapper || $(".standard-items-sections");
+		this.wrapper = opts?.wrapper || $(".body-sidebar");
 		this.db_tasks = [];
 		this.has_fetched = false;
 		this.make();
@@ -51,9 +51,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 		});
 
 		$(document).on("click", (e) => {
-			const isInsideBtn =
-				$(e.target).closest(".standard-items-sections .sidebar-background-tasks").length >
-				0;
+			const isInsideBtn = $(e.target).closest(".sidebar-background-tasks").length > 0;
 			const isInsideDropdown =
 				$(e.target).closest(".dropdown-background-tasks .background-tasks-list").length >
 				0;
@@ -278,15 +276,19 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 			`;
 		}
 
-		return $(`<a class="bg-task-item ${cancellable_class} ${retryable_class}" data-name="${task.name}" data-task-id="${task.task_id}">
+		return $(`<a class="bg-task-item ${cancellable_class} ${retryable_class}" data-name="${
+			task.name
+		}" data-task-id="${task.task_id}">
 			<div class="bg-task-header">
 				<div class="bg-task-title">
 					<span>${task_title}</span>
 				</div>
 				<div class="bg-task-actions" style="display: flex; align-items: center; justify-content: flex-end; min-width: 60px; flex-shrink: 0;">
-					<div class="es-badge status-badge" data-theme="${color}">
-						${task.status}
-					</div>
+					${frappe.ui.badge.html({
+						label: task.status,
+						theme: color,
+						css_class: "status-badge",
+					})}
 					${cancel_btn}
 					${retry_btn}
 				</div>

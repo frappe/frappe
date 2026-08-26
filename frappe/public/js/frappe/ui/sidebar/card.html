@@ -1,0 +1,38 @@
+<div class="frappe-card d-inline-flex flex-column px-2 py-2">
+    {% if(!card.close_button) { %}
+    <div>
+        <div class="frappe-card-title-container">
+            {%= frappe.utils.icon(card.icon, "sm", "", "", "frappe-card-icon") %}
+            <div class="frappe-card-title">{{ card.title }}</div>
+        </div>
+        <div class="frappe-card-description">{{ card.message }}</div>
+    </div>
+    {% } else { %}
+        <div class="frappe-card-title-container frappe-card-close-button">
+            {% if !card.hide_icon %}
+                {%= frappe.utils.icon(card.icon, "sm", "", "", "frappe-card-icon") %}
+            {% endif %}
+            <span class="flex flex-column w-100">
+                <div class="frappe-card-title">{{ card.title }}</div>
+                <div class="frappe-card-description">{{ card.message }}</div>
+            </span>
+            <span class="frappe-card-header-slot flex"></span>
+            <button type="button" class="close-button btn btn-default icon-btn">
+                {%= frappe.utils.icon("x", "sm") %}
+            </button>
+         </div>
+    {% } %}
+    <div class="frappe-card-actions flex">
+            {% if(card.primary_action_label) { %}
+    <button class="frappe-card-button btn {%= card.primary_button_width ? 'w-100' : '' %}">
+        {% if (card.primary_action_icon) %}
+            {{ frappe.utils.icon(card.primary_action_icon, "sm", "", "", "", true) }}
+        {% } %}
+        {{ card.primary_action_label }}
+        {% if card.primary_action_suffix_icon %}
+            {{ frappe.utils.icon(card.primary_action_suffix_icon, "sm", "", "", "", true) }}
+        {% endif %}
+    </button>
+    {% } %}
+    </div>
+</div>

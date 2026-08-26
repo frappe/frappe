@@ -23,7 +23,7 @@ jobs:
       build: ${{ steps.check-build.outputs.build }}
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Check if build should be run
         id: check-build
         run: |
@@ -50,7 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         db: ["mariadb"]
-        index: [1, 2, 3]
+        index: [1, 2, 3, 4]
     services:
       mariadb:
         image: mariadb:11.8
@@ -60,7 +60,7 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
@@ -76,18 +76,10 @@ jobs:
           git diff --exit-code yarn.lock
 
       - name: Cache cypress binary
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress
-
-      - name: Instrument Source Code
-        run: |
-          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          npx nyc instrument \
-            -x '${{ github.event.repository.name }}/public/dist/**' \
-            -x '${{ github.event.repository.name }}/public/js/lib/**' \
-            -x '**/*.bundle.js' --compact=false --in-place ${{ github.event.repository.name }}
 
       - name: Site Setup
         run: |
@@ -103,14 +95,13 @@ jobs:
         run: |
           bench --site test_site \
             run-ui-tests ${{ github.event.repository.name }} \
-              --with-coverage \
               --headless \
               --browser ${{ env.BROWSER_PATH }} \
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
               --group ui-shard-${{ matrix.index }}
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
-          SPLIT: 3
+          SPLIT: 4
           SPLIT_INDEX: ${{ strategy.job-index }}
 
       - name: Compress Cypress Videos

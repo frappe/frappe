@@ -1,0 +1,574 @@
+.print-format-doc .col,
+.print-format-doc *[class^="col-"] {
+	max-width: none !important;
+}
+.print-format-doc {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+.print-format-doc .label {
+	border: none;
+}
+
+/* em only, never rem (the canvas rem root is the desk page); values inside a
+   font-size scope are pre-divided by that multiplier (0.5em × 0.9 = 0.45). */
+.print-format-doc .section-label {
+	font-size: 1.1em;
+	font-weight: 700;
+	color: var(--gray-900);
+	padding-bottom: 0.3182em;
+	margin-bottom: 0.6818em;
+	border-bottom: 1.5px solid var(--gray-300);
+	/* Don't let the section heading sit alone at the bottom of a page */
+	break-after: avoid;
+	page-break-after: avoid;
+}
+
+.print-format-doc .field + .field {
+	margin-top: 0.5em;
+}
+
+/* Keep field label and value on the same page */
+.print-format-doc .field {
+	break-inside: avoid;
+	page-break-inside: avoid;
+}
+
+/* Long-content fields (Terms, notes) opt into flowing across a page boundary
+   instead of jumping whole and leaving the previous page half empty */
+.print-format-doc .field.field--breakable {
+	break-inside: auto;
+	page-break-inside: auto;
+}
+
+/* Stacked (default): muted label above value */
+.print-format-doc .field .label {
+	font-size: 1em;
+	color: var(--gray-600);
+	margin-bottom: 0.1em;
+}
+
+.print-format-doc .field .value {
+	color: var(--gray-900);
+}
+
+/* Left-right (section-level): label shrinks to content width, value takes the rest */
+.print-format-doc .field.left-right,
+.print-format-doc .field.field-inline {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5em;
+}
+
+.print-format-doc .field.left-right .label,
+.print-format-doc .field.field-inline .label {
+	flex-shrink: 0;
+	font-size: 1em;
+	color: var(--gray-800);
+	text-transform: none;
+	letter-spacing: 0;
+	padding-top: 0.05em;
+	white-space: nowrap;
+}
+
+.print-format-doc .field.field-inline .label::after,
+.print-format-doc.show-label-colon .field .label::after {
+	content: ":";
+}
+
+.print-format-doc .field.left-right .value,
+.print-format-doc .field.field-inline .value {
+	flex: 1;
+	min-width: 0;
+}
+
+/* Field-level alignment */
+.print-format-doc .field.field-align-left {
+	text-align: left;
+}
+
+.print-format-doc .field.field-align-left .value {
+	text-align: left;
+}
+
+.print-format-doc .field.field-align-center {
+	text-align: center;
+}
+
+.print-format-doc .field.field-align-center .value {
+	text-align: center;
+}
+
+.print-format-doc .field.field-align-right {
+	text-align: right;
+}
+
+.print-format-doc .field.field-align-right .value {
+	text-align: right;
+}
+
+/* Spacing/alignment variants for left-right orientation.
+   Right/center align: both label and value need flex:none so the pair moves as a unit.
+   Space-between/evenly: only value needs flex:none (label already has flex-shrink:0). */
+.print-format-doc .field.left-right.field-align-right .label,
+.print-format-doc .field.left-right.field-align-right .value,
+.print-format-doc .field.left-right.field-align-center .label,
+.print-format-doc .field.left-right.field-align-center .value,
+.print-format-doc .field.left-right.field-justify-space-between .value,
+.print-format-doc .field.left-right.field-justify-space-evenly .value {
+	flex: none;
+}
+
+.print-format-doc .field.left-right.field-align-right {
+	justify-content: flex-end;
+}
+.print-format-doc .field.left-right.field-align-center {
+	justify-content: center;
+}
+.print-format-doc .field.left-right.field-justify-space-between {
+	justify-content: space-between;
+}
+.print-format-doc .field.left-right.field-justify-space-between .value {
+	text-align: right;
+}
+.print-format-doc .field.left-right.field-justify-space-evenly {
+	justify-content: space-evenly;
+}
+
+/* Repeater */
+.print-format-doc .pfb-repeater-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.print-format-doc .pfb-repeater-cell {
+	padding: 0;
+	vertical-align: top;
+}
+
+.print-format-doc .pfb-repeater-table tr + tr .pfb-repeater-cell {
+	padding-top: 0.5em;
+}
+
+/* Child table + Repeater share the same block-label styling */
+.print-format-doc .pfb-repeater,
+.print-format-doc .child-table {
+	margin-top: 0.5em;
+}
+
+.print-format-doc .pfb-repeater > .label,
+.print-format-doc .child-table > .label {
+	font-size: 0.8em;
+	font-weight: 600;
+	color: var(--gray-600);
+	margin-bottom: 0.5em;
+}
+
+.print-format-doc .child-table .table {
+	font-size: 0.9em;
+	border-collapse: separate;
+	border-spacing: 0;
+	margin: 0;
+	width: 100%;
+	table-layout: fixed;
+	word-break: break-word;
+}
+
+@media print {
+	.print-format-doc .child-table .table {
+		border-collapse: separate !important;
+		border-spacing: 0 !important;
+	}
+}
+
+.print-format-doc .child-table .table th {
+	color: var(--gray-800);
+	font-weight: 600;
+	font-size: 0.85em;
+	padding: 0.5882em 0.7843em;
+	border: none !important;
+}
+
+.print-format-doc .child-table .table thead th {
+	background-color: var(--pfb-header-bg, var(--gray-100)) !important;
+}
+
+.print-format-doc .child-table:not(.child-table--plain-header) .table thead th:first-child {
+	border-top-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table:not(.child-table--plain-header) .table thead th:last-child {
+	border-top-right-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc
+	.child-table--lined:not(.child-table--bordered):not(.child-table--plain-header)
+	.table
+	thead
+	th:first-child {
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc
+	.child-table--lined:not(.child-table--bordered):not(.child-table--plain-header)
+	.table
+	thead
+	th:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
+}
+
+/* bordered tables close their bottom corners through the .table-foot cap, so
+   the last body row must not also round them — two curved closes stack into a
+   doubled bottom edge otherwise */
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:first-child {
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table .table td {
+	padding: 0.5em 0.6667em;
+	border: none !important;
+	background-color: var(--white) !important;
+	vertical-align: top;
+}
+
+.print-format-doc .child-table--lined .table td {
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
+/* row lines separate rows — the last row ends open (bordered tables close
+   through the .table-foot cap instead) */
+.print-format-doc .child-table--lined:not(.child-table--bordered) .table tbody tr:last-child td {
+	border-bottom: none !important;
+}
+
+.print-format-doc .child-table--striped .table .even td {
+	background-color: var(--gray-50) !important;
+}
+
+.print-format-doc .child-table--bordered .table th,
+.print-format-doc .child-table--bordered .table td {
+	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: none !important;
+}
+
+.print-format-doc .child-table--bordered .table tbody td {
+	border-top: 1px solid var(--gray-300) !important;
+}
+
+/* the header row already draws this line — a border-top here doubles it */
+.print-format-doc .child-table--bordered .table thead ~ tbody tr:first-child td {
+	border-top: none !important;
+}
+
+.print-format-doc .child-table--bordered .table thead th {
+	border-bottom: 1px solid var(--gray-300) !important;
+	border-top: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table--bordered .table th:first-child,
+.print-format-doc .child-table--bordered .table td:first-child {
+	border-left: 1px solid var(--gray-300) !important;
+}
+
+/* The bottom edge of a bordered table is owned by the .table-foot cap alone.
+   It lives in a <tfoot>, so the renderer repeats it at the foot of every page
+   the table spans, closing the outline on each one. Three things have to hold
+   together here — changing one in isolation is what keeps regressing this:
+     1. the cap draws the bottom line, so mid-document page breaks close;
+     2. no body row draws a bottom border, so the last page isn't doubled
+        (bordered rows are separated by border-top — see .child-table--bordered
+        .table tbody td above);
+     3. the cap is as tall as the radius and carries the side borders, so the
+        rounded corners have room to curve. At radius 0 it collapses to nothing,
+        so there is no empty band under square tables. */
+.print-format-doc .child-table .table .table-foot {
+	padding: 0;
+	height: var(--pfb-radius, 0);
+	border: none !important;
+}
+
+/* the cap is one cell per column (see macros/Table.html), so each one carries
+   its column divider down to the closing line — with a single colspan cell the
+   verticals would stop short of the bottom edge by the height of the cap */
+.print-format-doc .child-table--bordered .table .table-foot {
+	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table--bordered .table .table-foot:first-child {
+	border-left: 1px solid var(--gray-300) !important;
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table--bordered .table .table-foot:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
+}
+
+/* plain header: no fill, a single rule under the header row instead */
+.print-format-doc .child-table--plain-header .table thead th {
+	background-color: transparent !important;
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"],
+.print-format-doc .child-table [data-fieldtype="Float"],
+.print-format-doc .child-table [data-fieldtype="Int"] {
+	text-align: right;
+}
+
+/* Serial-number column is centered */
+.print-format-doc .child-table [data-fieldname="idx"] {
+	text-align: center;
+}
+
+/* ── Merged cells (multiple fields, optional left image) ─── */
+/* Same specificity as the numeric-align rule above but declared later, so
+   this wins the cascade without needing !important. */
+.print-format-doc .child-table .column-value--merged {
+	text-align: left;
+}
+
+/* numeric merged cells keep their right alignment */
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged {
+	text-align: right;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-merged,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-merged,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-merged,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Currency"].column-value--merged
+	.cell-lines--horizontal,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Float"].column-value--merged
+	.cell-lines--horizontal,
+.print-format-doc
+	.child-table
+	[data-fieldtype="Int"].column-value--merged
+	.cell-lines--horizontal {
+	justify-content: flex-end;
+}
+
+.print-format-doc .child-table [data-fieldtype="Currency"].column-value--merged .cell-lines,
+.print-format-doc .child-table [data-fieldtype="Float"].column-value--merged .cell-lines,
+.print-format-doc .child-table [data-fieldtype="Int"].column-value--merged .cell-lines {
+	align-items: flex-end;
+}
+
+.print-format-doc .child-table .cell-merged {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5556em;
+}
+
+/* size comes from --thumb-size (column.image_size); !important because the
+   Standard print style forces td img to width: 100% !important */
+.print-format-doc .child-table .cell-thumb-img,
+.print-format-doc .child-table .cell-thumb {
+	width: var(--thumb-size, 40px) !important;
+	height: var(--thumb-size, 40px) !important;
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.print-format-doc .child-table .cell-thumb-img {
+	object-fit: cover;
+}
+
+.print-format-doc .child-table .cell-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	text-transform: uppercase;
+	line-height: 1;
+}
+
+.print-format-doc .child-table .cell-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1111em;
+	min-width: 0;
+}
+
+.print-format-doc .child-table .cell-lines--horizontal {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 0.6em;
+}
+
+.print-format-doc .child-table .cell-line {
+	word-break: break-word;
+}
+
+.print-format-doc .child-table .cell-line--primary,
+.print-format-doc .child-table .cell-line--secondary {
+	color: var(--gray-900);
+}
+
+.print-format-doc .child-table .cell-line--primary {
+	font-weight: 600;
+}
+
+.print-format-doc .child-table .cell-line--mono-sm {
+	font-family: var(--monospace-font-family, monospace);
+}
+
+.print-format-doc .child-table .cell-line--mono-sm,
+.print-format-doc .child-table .cell-line--muted-sm {
+	font-size: 0.85em;
+	color: var(--gray-600);
+}
+
+.print-format-doc .page-break {
+	page-break-after: always;
+}
+
+.print-format-doc .section.keep-together {
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+
+/* Override Bootstrap's tr { page-break-inside: avoid } so tall child-table rows
+   flow across pages; keep thead repeating on each new page. */
+@media print {
+	.print-format-doc .child-table tr {
+		page-break-inside: avoid;
+		break-inside: avoid;
+	}
+	.print-format-doc .child-table thead {
+		display: table-header-group;
+	}
+}
+
+/* How a section distributes its columns — set by the section's justify, or by a
+   right-aligned column on formats that predate it. */
+.print-format-doc .row-col-space-between {
+	justify-content: space-between !important;
+}
+
+.print-format-doc .row-col-space-evenly {
+	justify-content: space-evenly !important;
+}
+
+.print-format-doc .row-col-center {
+	justify-content: center !important;
+}
+
+.print-format-doc .row-col-right-end {
+	justify-content: flex-end !important;
+}
+
+/* The grid gives every column `width: 100%`, so a row has no free space for
+   justify-content to distribute. These take their content width instead, and
+   still shrink when the row runs out of room — so any column count behaves. */
+.print-format-doc .row-col-space-between .col,
+.print-format-doc .row-col-space-evenly .col,
+.print-format-doc .row-col-center .col,
+.print-format-doc .row-col-right-end .col {
+	flex: 0 1 auto !important;
+	width: auto !important;
+}
+
+/* Keep letterhead images from overflowing their box. The .letter-head selector
+   must be here too: the Chrome PDF header/footer overlay renders the letterhead
+   in a bare div (no <header>), so a header-only rule never reaches the PDF. */
+.print-format-doc header img,
+.print-format-doc .letter-head img {
+	max-width: 100%;
+	height: auto;
+}
+
+.print-format-doc .field[data-fieldtype="Rating"] .rating-star {
+	width: 1.5em;
+}
+
+.print-format-doc .field[data-fieldtype="Long Text"] .value,
+.print-format-doc .field[data-fieldtype="Text"] .value {
+	white-space: pre-line;
+}
+
+.print-format-doc .field[data-fieldtype="Color"] .value {
+	display: flex;
+	align-items: center;
+}
+
+.print-format-doc .field[data-fieldtype="Color"] .color-square {
+	width: 1em;
+	height: 1em;
+	margin-right: 0.3em;
+	border-radius: var(--radius);
+}
+
+/* ── Table layout (field-borders mode) ───────────────────── */
+.print-format-doc .section--grid {
+	/* table padding is folded into the edge cells (below) so the dividers and
+	   border wrap the padded box instead of leaving a borderless strip */
+	--pfb-pad-top: 0px;
+	--pfb-pad-right: 0px;
+	--pfb-pad-bottom: 0px;
+	--pfb-pad-left: 0px;
+	border: 1px solid var(--gray-300);
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
+}
+.print-format-doc .section--grid .section-label {
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid var(--gray-300);
+}
+.print-format-doc .section--grid .section-columns {
+	padding: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+.print-format-doc .section--grid .col {
+	padding: 0;
+}
+.print-format-doc .section--grid .col:not(:last-child) {
+	border-right: 1px solid var(--gray-300);
+}
+.print-format-doc .section--grid .field {
+	padding: var(--pfb-cell-pad, 8px);
+	border-bottom: 1px solid var(--gray-300);
+}
+.print-format-doc .section--grid .field + .field {
+	margin-top: 0;
+}
+.print-format-doc .section--grid .field:last-child {
+	border-bottom: none;
+}
+/* fold the section padding into the outermost cells */
+.print-format-doc .section--grid .field:first-child {
+	padding-top: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-top));
+}
+.print-format-doc .section--grid .field:last-child {
+	padding-bottom: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-bottom));
+}
+.print-format-doc .section--grid .col:first-child .field {
+	padding-left: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-left));
+}
+.print-format-doc .section--grid .col:last-child .field {
+	padding-right: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-right));
+}
+.print-format-doc .section--grid-rows .col:not(:last-child) {
+	border-right: none;
+}
+.print-format-doc .section--grid-columns .field {
+	border-bottom: none;
+}
+
+.print-format-doc .custom-html .row {
+	margin-left: 0;
+	margin-right: 0;
+}

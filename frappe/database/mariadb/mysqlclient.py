@@ -9,7 +9,7 @@ from MySQLdb.converters import conversions
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import get_datetime, get_table_name
+from frappe.utils import get_datetime, get_table_name, get_timezone_utc_offset
 
 ER_STATEMENT_TIMEOUT = 1969
 
@@ -80,6 +80,12 @@ class MariaDBExceptionUtil:
 		return e.args and e.args[0] == ER.DATA_TOO_LONG
 
 	@staticmethod
+	def is_data_truncated(e: MySQLdb.Error) -> bool:
+		# WARN_DATA_OUT_OF_RANGE: a value that doesn't fit the column's new type on a type change,
+		# mirroring postgres's NUMERIC_VALUE_OUT_OF_RANGE so both engines raise the same error
+		return e.args and e.args[0] in (ER.TRUNCATED_WRONG_VALUE, ER.WARN_DATA_OUT_OF_RANGE)
+
+	@staticmethod
 	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:
 		return e.args and e.args[0] == ER.TOO_BIG_ROWSIZE
 
@@ -118,6 +124,12 @@ class MariaDBConnectionUtil:
 
 	def set_execution_timeout(self, seconds: int):
 		self.sql("set session max_statement_time = %s", int(seconds))
+
+	def set_session_time_zone(self, timezone: str):
+		try:
+			self.sql("set session time_zone = %s", timezone)
+		except MySQLdb.OperationalError:
+			self.sql("set session time_zone = %s", get_timezone_utc_offset(timezone))
 
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
@@ -364,24 +376,26 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with descriptions."""
 		return self.sql(
-			f"""select
+			"""select
 			column_name as 'name',
 			column_type as 'type',
 			column_default as 'default',
 			COALESCE(
 				(select 1
 				from information_schema.statistics
-				where table_name="{table_name}"
+				where table_name=%(table_name)s
 					and column_name=columns.column_name
 					and NON_UNIQUE=1
 					and Seq_in_index = 1
+					and table_schema = %(schema)s
 					limit 1
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique',
 			(is_nullable = 'NO') AS 'not_nullable'
 			from information_schema.columns as columns
-			where table_name = '{table_name}'
-   			and table_schema = '{frappe.db.cur_db_name}' """,
+			where table_name = %(table_name)s
+   			and table_schema = %(schema)s """,
+			{"table_name": table_name, "schema": self.cur_db_name},
 			as_dict=1,
 		)
 
@@ -437,11 +451,17 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			if not clustered_index:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
 		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
+		`using`/`where`/`include` are postgres-only (trigram/partial/covering) with no MariaDB
+		equivalent, so they are silently ignored: a `using` kind skips index creation, and
+		`where`/`include` fall back to a plain index over `fields`."""
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
+		if using:
+			return
 		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
@@ -461,6 +481,36 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					property_type="Check",
 					for_doctype=False,  # Applied on docfield
 				)
+
+	@contextmanager
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level named lock (GET_LOCK) for the duration of the `with` block -- the
+		MariaDB equivalent of pg_advisory_lock. Session-scoped, so it survives intermediate commits.
+		Waits up to `timeout` seconds, then raises QueryTimeoutError. The key is hashed to a fixed
+		64-char digest so long keys can't collide via GET_LOCK's silent name truncation."""
+		import hashlib
+		import time
+
+		from frappe.exceptions import QueryTimeoutError
+
+		name = hashlib.sha256(str(key).encode()).hexdigest()
+		deadline = time.monotonic() + timeout
+		while True:
+			remaining = deadline - time.monotonic()
+			result = self.sql("SELECT GET_LOCK(%s, %s)", (name, max(remaining, 0)))
+			value = result[0][0] if result else None
+			if value == 1:
+				break
+			# GET_LOCK returns 1 (acquired), 0 (waited out the remaining budget for the holder), or
+			# NULL (transient server error, e.g. killed thread). Retry NULL within the budget so a
+			# blip self-heals instead of failing the whole operation; give up once the budget is spent.
+			if value == 0 or remaining <= 0:
+				raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+			time.sleep(0.1)
+		try:
+			yield
+		finally:
+			self.sql("SELECT RELEASE_LOCK(%s)", (name,))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):

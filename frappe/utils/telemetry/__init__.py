@@ -11,6 +11,7 @@ from frappe.utils import getdate
 from frappe.utils.caching import site_cache
 
 # pulse provider
+from .pulse.client import boot_config as pulse_boot_config
 from .pulse.client import capture as pulse_capture
 from .pulse.client import is_enabled as is_pulse_enabled
 
@@ -22,6 +23,7 @@ def add_bootinfo(bootinfo):
 	if is_pulse_enabled():
 		bootinfo.enable_telemetry = True
 		bootinfo.telemetry_provider.append("pulse")
+		bootinfo.telemetry = pulse_boot_config()
 
 
 def capture(event, app, **kwargs):

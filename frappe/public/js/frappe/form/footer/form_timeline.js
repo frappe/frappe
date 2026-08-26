@@ -27,7 +27,7 @@ class FormTimeline extends BaseTimeline {
 			this.add_action_button(
 				__("New Email"),
 				() => this.compose_mail(),
-				"es-line-add",
+				"plus",
 				"btn-secondary"
 			);
 		}
@@ -230,9 +230,9 @@ class FormTimeline extends BaseTimeline {
 		let communication_timeline_contents = [];
 		let icon_set = {
 			Email: "mail",
-			Phone: "call",
+			Phone: "phone",
 			Meeting: "calendar",
-			Other: "dot-horizontal",
+			Other: "ellipsis",
 		};
 		let items = more_items ? more_items : this.doc_info.communications || [];
 		items.forEach((communication) => {
@@ -319,7 +319,7 @@ class FormTimeline extends BaseTimeline {
 		let items = more_items ? more_items : this.doc_info.automated_messages || [];
 		items.forEach((message) => {
 			auto_messages_timeline_contents.push({
-				icon: "notification",
+				icon: "bell",
 				icon_size: "sm",
 				creation: message.creation,
 				is_card: true,
@@ -341,7 +341,7 @@ class FormTimeline extends BaseTimeline {
 
 	get_comment_timeline_item(comment) {
 		return {
-			icon: "es-line-chat-alt",
+			icon: "message-circle",
 			icon_size: "sm",
 			creation: comment.creation,
 			is_card: true,
@@ -426,7 +426,7 @@ class FormTimeline extends BaseTimeline {
 				  );
 
 			attachment_timeline_contents.push({
-				icon: is_file_upload ? "es-line-attachment" : "es-line-delete",
+				icon: is_file_upload ? "paperclip" : "trash-2",
 				icon_size: "sm",
 				creation: attachment_log.creation,
 				content: timeline_content,
@@ -440,7 +440,10 @@ class FormTimeline extends BaseTimeline {
 		let milestone_timeline_contents = [];
 
 		(this.doc_info.milestones || []).forEach((milestone_log) => {
-			const field = frappe.meta.get_label(this.frm.doctype, milestone_log.track_field);
+			const field = frappe.meta.get_translated_label(
+				this.frm.doctype,
+				milestone_log.track_field
+			);
 			const value = frappe.utils.bold(milestone_log.value);
 			const user_link = get_user_link(milestone_log.owner);
 			const timeline_content = get_user_message(
@@ -470,7 +473,7 @@ class FormTimeline extends BaseTimeline {
 			);
 
 			like_timeline_contents.push({
-				icon: "es-line-like",
+				icon: "heart",
 				icon_size: "sm",
 				creation: like_log.creation,
 				content: timeline_content,
@@ -485,7 +488,7 @@ class FormTimeline extends BaseTimeline {
 		let workflow_timeline_contents = [];
 		(this.doc_info.workflow_logs || []).forEach((workflow_log) => {
 			workflow_timeline_contents.push({
-				icon: "branch",
+				icon: "git-branch",
 				icon_size: "sm",
 				creation: workflow_log.creation,
 				content: `${get_user_link(workflow_log.owner)} ${__(workflow_log.content)}`,
