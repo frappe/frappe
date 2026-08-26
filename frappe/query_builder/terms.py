@@ -51,6 +51,9 @@ class ParameterizedValueWrapper(ValueWrapper):
 		param_wrapper: NamedParameterWrapper | None = None,
 		**kwargs: Any,
 	) -> str:
+		if isinstance(self.value, bool) and frappe.db and frappe.db.db_type == "postgres":
+			self.value = str(int(self.value))
+
 		if param_wrapper and isinstance(self.value, str):
 			# add quotes if it's a string value
 			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
