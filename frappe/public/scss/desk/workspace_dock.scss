@@ -219,11 +219,30 @@
 	}
 }
 
-// the user menu and notification bell live in the dock while it's active -- drop the sidebar copies
+// While the rail is on screen it carries the user button, search and notifications -- so the
+// sidebar's copies go. The whole standard-items band goes with them, which is what finally takes
+// background tasks off a docked app's sidebar: it was the one of the three that showed there,
+// while its sibling bell was hidden.
 body.workspace-dock-active .body-sidebar {
 	.dropdown-navbar-user,
-	.sidebar-notification {
+	.standard-items-band {
 		display: none;
+	}
+}
+
+// The standard-items band: search, notifications and background tasks, directly under the header
+// and above the module's own items, behind a divider. Full-width rows in the sidebar's own
+// vocabulary rather than the rail's ghost-icon strip -- which is what makes search legible in a
+// 220px panel rather than merely present.
+//
+// The divider is drawn only when the band has something in it: each row hides itself until it has
+// something to say (background tasks until there is a task, notifications until they load), and a
+// rule under an empty band would read as a stray line.
+.body-sidebar .standard-items-band {
+	&:not(:empty) {
+		padding-bottom: 4px;
+		margin-bottom: 4px;
+		border-bottom: 1px solid var(--border-color);
 	}
 }
 

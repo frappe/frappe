@@ -26,8 +26,8 @@ frappe.ui.Sidebar = class Sidebar {
 		this.fields_for_dialog = [];
 		this.sidebar_items = [];
 		this.$items_container = this.wrapper.find(".sidebar-items");
-		// the notification/background-task panels and their trigger buttons live directly on the
-		// body sidebar now (there's no wrapper element), so scope both to it
+		// the notification/background-task panels live directly on the body sidebar (there's no
+		// wrapper element), so scope to it
 		this.$standard_items_sections = this.wrapper.find(".body-sidebar");
 		this.$sidebar = this.wrapper.find(".body-sidebar");
 		this.items = [];
@@ -737,9 +737,41 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
 		}
 	}
+	// Search, notifications and background tasks, as full-width rows in a band of their own.
+	//
+	// **Why search is here at all.** With the rail gone it has nowhere else: the rail carried
+	// four things besides navigation and only three survive its removal -- notifications and the
+	// user button come back to the sidebar for free, the apps door is answered by the switcher's
+	// *All apps*, and search is not. The desk's own full-search button is dead markup, so on a
+	// dock-less app there is currently no search affordance at all.
+	//
+	// Full-width rows rather than an icon strip: the band speaks the sidebar's vocabulary instead
+	// of importing the rail's ghost-icon treatment into a 220px panel, and it makes search
+	// legible rather than merely present. Nothing new is built for it -- each row is the ordinary
+	// icon-plus-label item every sidebar link already is.
+	//
+	// The band sits directly under the header, above the module's own items, behind a divider --
+	// rather than after the user button, where the generic add-item helper happened to put these
+	// two. The whole of it is gated on the rail being absent (`body.workspace-dock-active`
+	// hides it), which is what a docked app's sidebar wants: all three off, **including
+	// background tasks**, which it showed while hiding its sibling bell.
+	//
+	// **The cost is admitted:** search has two homes depending on whether the app has a rail.
+	// Taken over stripping the rail's shortcuts, which would have changed every docked app to fix
+	// a dock-less one.
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
+		this.standard_items.push({
+			label: __("Search"),
+			icon: "search",
+			standard: true,
+			type: "Button",
+			// AwesomeBar's delegated click handler (page.js) opens the shared search modal off
+			// this class, which is the same modal the rail's own shortcut opens.
+			class: "navbar-modal-search-mobile",
+			condition: () => !!frappe.boot.desk_settings.search_bar,
+		});
 		this.standard_items.push({
 			label: __("Notification"),
 			icon: "bell",
@@ -773,8 +805,10 @@ frappe.ui.Sidebar = class Sidebar {
 				}
 			},
 		});
+		this.$standard_items_band = this.wrapper.find(".standard-items-band");
 		this.standard_items.forEach((w) => {
-			this.add_item(this.$standard_items_sections, w);
+			if (w.condition && !w.condition()) return;
+			this.add_item(this.$standard_items_band, w);
 		});
 		this.setup_notifications();
 		this.setup_background_tasks();
