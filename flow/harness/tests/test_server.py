@@ -221,43 +221,27 @@ def test_abort_idle(tmp_path):
 
 def test_read_workspace_file(tmp_path):
 	c = _client(tmp_path)
-	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
 	(tmp_path / "notes.txt").write_text("hello\nworld\n")
 
-	r = c.get(f"/sessions/{sid}/file", params={"path": "notes.txt"})
+	r = c.get("/fs/file", params={"cwd": str(tmp_path), "path": "notes.txt"})
 	assert r.status_code == 200
 	assert r.json() == {"path": str(tmp_path / "notes.txt"), "content": "hello\nworld\n"}
 
-	assert c.get(f"/sessions/{sid}/file", params={"path": "missing.txt"}).status_code == 404
+	assert c.get("/fs/file", params={"cwd": str(tmp_path), "path": "missing.txt"}).status_code == 404
 
 	(tmp_path / "blob.bin").write_bytes(b"\xff\xfe\x00garbage\x80")
-	assert c.get(f"/sessions/{sid}/file", params={"path": "blob.bin"}).status_code == 415
-
-
-def test_read_workspace_file_is_fenced_by_allowed_roots(tmp_path):
-	allowed = tmp_path / "allowed"
-	allowed.mkdir()
-	(tmp_path / "secret.txt").write_text("nope")
-	(allowed / "ok.txt").write_text("fine")
-	c = _client(tmp_path, allowed_roots=[str(allowed)])
-	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
-
-	assert c.get(f"/sessions/{sid}/file", params={"path": "ok.txt"}).status_code == 200
-	assert c.get(f"/sessions/{sid}/file", params={"path": "../secret.txt"}).status_code == 403
-	assert c.get(f"/sessions/{sid}/file", params={"path": str(tmp_path / "secret.txt")}).status_code == 403
+	assert c.get("/fs/file", params={"cwd": str(tmp_path), "path": "blob.bin"}).status_code == 415
 
 
 def test_list_workspace_files(tmp_path):
 	c = _client(tmp_path)
 	work = tmp_path / "work"
-	work.mkdir()
-	sid = c.post("/sessions", json={"cwd": str(work)}).json()["session_id"]
-	(work / "src").mkdir()
+	(work / "src").mkdir(parents=True)
 	(work / "src" / "app.py").write_text("x")
 	(work / "zeta.txt").write_text("x")
 	(work / "Alpha.txt").write_text("x")
 
-	r = c.get(f"/sessions/{sid}/files")  # default path lists the cwd
+	r = c.get("/fs/files", params={"cwd": str(work)})  # default path lists the cwd
 	assert r.status_code == 200
 	body = r.json()
 	assert body["path"] == str(work)
@@ -265,21 +249,12 @@ def test_list_workspace_files(tmp_path):
 	# directories first, then case-insensitive alphabetical
 	assert names == [("src", "dir"), ("Alpha.txt", "file"), ("zeta.txt", "file")]
 
-	sub = c.get(f"/sessions/{sid}/files", params={"path": "src"}).json()
+	sub = c.get("/fs/files", params={"cwd": str(work), "path": "src"}).json()
 	assert sub["entries"] == [{"name": "app.py", "type": "file"}]
 
-	assert c.get(f"/sessions/{sid}/files", params={"path": "missing"}).status_code == 404
-	assert c.get(f"/sessions/{sid}/files", params={"path": "zeta.txt"}).status_code == 400
-
-
-def test_list_workspace_files_is_fenced_by_allowed_roots(tmp_path):
-	allowed = tmp_path / "allowed"
-	allowed.mkdir()
-	c = _client(tmp_path, allowed_roots=[str(allowed)])
-	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
-
-	assert c.get(f"/sessions/{sid}/files").status_code == 200
-	assert c.get(f"/sessions/{sid}/files", params={"path": ".."}).status_code == 403
+	assert c.get("/fs/files", params={"cwd": str(work), "path": "missing"}).status_code == 404
+	assert c.get("/fs/files", params={"cwd": str(work), "path": "zeta.txt"}).status_code == 400
+	assert c.get("/fs/files", params={"cwd": "relative/path"}).status_code == 400
 
 
 def test_search_workspace_files(tmp_path):
@@ -288,20 +263,40 @@ def test_search_workspace_files(tmp_path):
 	(work / "src" / "deep").mkdir(parents=True)
 	(work / "node_modules" / "pkg").mkdir(parents=True)
 	(work / ".git").mkdir()
-	sid = c.post("/sessions", json={"cwd": str(work)}).json()["session_id"]
 	(work / "app.py").write_text("x")
 	(work / "src" / "deep" / "app_helpers.py").write_text("x")
 	(work / "src" / "readme.md").write_text("x")
 	(work / "node_modules" / "pkg" / "app.py").write_text("x")
 	(work / ".git" / "app.py").write_text("x")
 
-	body = c.get(f"/sessions/{sid}/files/search", params={"query": "APP"}).json()
+	body = c.get("/fs/files/search", params={"cwd": str(work), "query": "APP"}).json()
 	assert body["path"] == str(work)
 	# hidden and dependency trees are pruned; matching is case-insensitive
 	assert body["matches"] == ["app.py", "src/deep/app_helpers.py"]
 	assert body["truncated"] is False
 
-	assert c.get(f"/sessions/{sid}/files/search", params={"query": "  "}).json()["matches"] == []
+	assert c.get("/fs/files/search", params={"cwd": str(work), "query": "  "}).json()["matches"] == []
+	gone = c.get("/fs/files/search", params={"cwd": str(work / "gone"), "query": "app"})
+	assert gone.status_code == 404
+
+
+def test_workspace_files_are_fenced_by_allowed_roots(tmp_path):
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	(tmp_path / "secret.txt").write_text("nope")
+	(allowed / "ok.txt").write_text("fine")
+	c = _client(tmp_path, allowed_roots=[str(allowed)])
+
+	assert c.get("/fs/file", params={"cwd": str(allowed), "path": "ok.txt"}).status_code == 200
+	assert c.get("/fs/file", params={"cwd": str(allowed), "path": "../secret.txt"}).status_code == 403
+	assert (
+		c.get("/fs/file", params={"cwd": str(allowed), "path": str(tmp_path / "secret.txt")}).status_code
+		== 403
+	)
+	assert c.get("/fs/files", params={"cwd": str(allowed)}).status_code == 200
+	assert c.get("/fs/files", params={"cwd": str(allowed), "path": ".."}).status_code == 403
+	assert c.get("/fs/files", params={"cwd": str(tmp_path)}).status_code == 403
+	assert c.get("/fs/files/search", params={"cwd": str(tmp_path), "query": "x"}).status_code == 403
 
 
 def test_write_workspace_file(tmp_path):
@@ -312,7 +307,8 @@ def test_write_workspace_file(tmp_path):
 	r = c.put(f"/sessions/{sid}/file", json={"path": "new/notes.txt", "content": "draft\n"})
 	assert r.status_code == 200
 	assert (tmp_path / "new" / "notes.txt").read_text() == "draft\n"
-	assert c.get(f"/sessions/{sid}/file", params={"path": "new/notes.txt"}).json()["content"] == "draft\n"
+	read = c.get("/fs/file", params={"cwd": str(tmp_path), "path": "new/notes.txt"})
+	assert read.json()["content"] == "draft\n"
 	# writing over a directory is a client error, not a 500
 	assert c.put(f"/sessions/{sid}/file", json={"path": "new", "content": "x"}).status_code == 400
 

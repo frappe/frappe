@@ -180,8 +180,6 @@ export function createFlowStore(client) {
 			})),
 			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
 		}
-		const tab = state.workspace.tabs.find((t) => t.path === state.workspace.active)
-		if (state.workspace.open && tab) void (tab.diff ? openDiffFile(tab.path) : openFile(tab.path))
 	}
 
 	async function openSession(sid) {
@@ -218,6 +216,9 @@ export function createFlowStore(client) {
 		}
 		if (seed.latest_seq > info.latest_seq) info.latest_seq = seed.latest_seq
 		state.session = info
+		// hydrate the restored active tab now that the session's cwd is known
+		if (switching && state.workspace.open && state.workspace.active)
+			selectFile(state.workspace.active)
 		state.skills = catalog?.skills ?? []
 		state.conversation.model = info.model
 		state.conversation.reasoningEffort = info.reasoning_effort ?? null
@@ -557,6 +558,8 @@ export function createFlowStore(client) {
 
 	// The working directory new chats are created in (until changed again).
 	function setCwd(path) {
+		// pre-session tabs belong to the previous pick: close them with it
+		if (!state.sessionId && state.prefs.cwd !== path) resetWorkspace()
 		state.prefs.cwd = path
 		if (!state.sessionId) {
 			state.skills = []
@@ -566,9 +569,18 @@ export function createFlowStore(client) {
 	}
 
 	// Open a file in the workspace panel, refetching unless unsaved edits exist.
+	// The explorer browses one cwd: the session's, or the picked one before the
+	// first message. Null while a session is still loading, so nothing fetches
+	// against the wrong directory in that window.
+	function explorerCwd() {
+		if (state.sessionId) return state.session?.config?.cwd ?? null
+		return state.prefs.cwd ?? null
+	}
+
 	async function openFile(path) {
-		const sid = state.sessionId
-		if (!sid || typeof client.readFile !== "function") return
+		const cwd = explorerCwd()
+		const stale = () => explorerCwd() !== cwd // a session or cwd switch mid-flight
+		if (!cwd || typeof client.readFile !== "function") return
 		const ws = state.workspace
 		let tab = ws.tabs.find((t) => t.path === path)
 		if (!tab) {
@@ -592,12 +604,12 @@ export function createFlowStore(client) {
 		if (tab.dirty) return
 		tab.loading = true
 		try {
-			const data = await client.readFile(sid, path)
-			if (state.sessionId !== sid) return
+			const data = await client.readFile(cwd, path)
+			if (stale()) return
 			tab.content = data.content
 			tab.error = null
 		} catch (error) {
-			if (state.sessionId !== sid) return
+			if (stale()) return
 			tab.error = String(error?.message ?? error)
 			tab.content = null
 		} finally {
@@ -653,13 +665,15 @@ export function createFlowStore(client) {
 
 	// One directory level for the explorer; null on failure (toast already shown).
 	async function listFiles(path = "") {
-		if (!state.sessionId || typeof client.listFiles !== "function") return null
-		return guard(() => client.listFiles(state.sessionId, path))
+		const cwd = explorerCwd()
+		if (!cwd || typeof client.listFiles !== "function") return null
+		return guard(() => client.listFiles(cwd, path))
 	}
 
 	async function searchFiles(query) {
-		if (!state.sessionId || typeof client.searchFiles !== "function") return null
-		return guard(() => client.searchFiles(state.sessionId, query))
+		const cwd = explorerCwd()
+		if (!cwd || typeof client.searchFiles !== "function") return null
+		return guard(() => client.searchFiles(cwd, query))
 	}
 
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
@@ -839,6 +853,7 @@ export function createFlowStore(client) {
 		setCwd,
 		openFile,
 		openDiffFile,
+		explorerCwd,
 		listFiles,
 		searchFiles,
 		selectFile,

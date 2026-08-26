@@ -144,9 +144,9 @@ const rootDir = ref(null)
 const rootEntries = ref(null)
 
 async function loadRoot() {
-	const sid = flow.state.sessionId
+	const cwd = flow.explorerCwd()
 	const data = await flow.listFiles() // refetch on every open: stays fresh
-	if (!data || flow.state.sessionId !== sid) return // a switch mid-flight: not our tree
+	if (!data || flow.explorerCwd() !== cwd) return // a cwd switch mid-flight: not our tree
 	rootDir.value = data.path
 	rootEntries.value = data.entries
 }
@@ -159,13 +159,14 @@ watch(
 	{ immediate: true },
 )
 
-// the tree belongs to one session's cwd; a switch must not show the old one
+// the tree belongs to the browsed cwd; a switch must not show the old one
 watch(
-	() => flow.state.sessionId,
+	() => flow.explorerCwd(),
 	() => {
 		rootDir.value = null
 		rootEntries.value = null
 		fileQuery.value = ""
+		if (props.open && props.mode === "files") void loadRoot()
 	},
 )
 
@@ -188,8 +189,10 @@ watch(debouncedFileQuery, async (raw) => {
 	// Previous results stay rendered while the new search is in flight —
 	// blanking between keystrokes is what makes the list flicker. Stable row
 	// keys (paths) then let Vue patch only the rows that actually changed.
+	const cwd = flow.explorerCwd()
 	const data = await flow.searchFiles(query)
-	if (debouncedFileQuery.value.trim() !== query) return // stale response
+	// stale response: the query or the browsed cwd moved on
+	if (debouncedFileQuery.value.trim() !== query || flow.explorerCwd() !== cwd) return
 	searchRoot.value = data?.path ?? null
 	searchMatches.value = data?.matches ?? []
 	searchTruncated.value = data?.truncated ?? false
