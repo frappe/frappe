@@ -1004,25 +1004,30 @@ def get_assignable_modules():
 
 	modules = []
 	for row in frappe.get_all("Module Def", fields=["name", "app_name"], order_by="app_name asc, name asc"):
-		if not is_module_visible(row.name):
+		try:
+			if not is_module_visible(row.name):
+				continue
+			# An unplaced module is in no app's dock and has no app to be titled after. Asking
+			# `get_hooks` without an app name does not answer "no app" -- it returns the hook merged
+			# across every installed one, so every module the site owns came back titled after
+			# whichever app happened to be first.
+			app_title = (
+				(frappe.get_hooks("app_title", app_name=row.app_name) or [row.app_name])[0]
+				if row.app_name
+				else None
+			)
+			modules.append(
+				{
+					"module": row.name,
+					"label": row.name,
+					"app_name": row.app_name,
+					"app_title": app_title,
+				}
+			)
+		except Exception:
+			# a module that cannot be imported is not assignable, and `is_module_visible` will
+			# have logged the import error already
 			continue
-		# An unplaced module is in no app's dock and has no app to be titled after. Asking
-		# `get_hooks` without an app name does not answer "no app" -- it returns the hook merged
-		# across every installed one, so every module the site owns came back titled after
-		# whichever app happened to be first.
-		app_title = (
-			(frappe.get_hooks("app_title", app_name=row.app_name) or [row.app_name])[0]
-			if row.app_name
-			else None
-		)
-		modules.append(
-			{
-				"module": row.name,
-				"label": row.name,
-				"app_name": row.app_name,
-				"app_title": app_title,
-			}
-		)
 	return modules
 
 
