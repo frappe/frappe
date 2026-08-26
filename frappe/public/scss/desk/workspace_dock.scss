@@ -258,7 +258,7 @@ body:not(.workspace-dock-active) .body-sidebar-container .body-sidebar {
 	&:not(:empty) {
 		padding-bottom: 4px;
 		margin-bottom: 4px;
-		border-bottom: 1px solid var(--border-color);
+		width: 100%;
 	}
 }
 
