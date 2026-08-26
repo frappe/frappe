@@ -21,9 +21,11 @@ const BULK_EDIT_5_RECORDS = "5_records";
 // every step of the flow uses one size so the modals swap without resizing
 // every step shares one size, so switching tabs never resizes the modal.
 // the width matches global search; the height clears the file picker's drop
-// zone (16rem) with room to spare, so no tab has to scroll to be read
+// zone (16rem) with room to spare, but never grows past what the window can
+// show, so the modal keeps an even margin above and below instead of
+// running off the screen
 const BULK_EDIT_DIALOG_SIZE = "extra-large";
-const BULK_EDIT_DIALOG_HEIGHT = "520px";
+const BULK_EDIT_DIALOG_HEIGHT = "min(520px, calc(100vh - 200px))";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -1759,8 +1761,9 @@ export default class Grid {
 		tabs.$el.addClass("bulk-edit-tabs");
 		tabs.$el.css({ height: "100%", display: "flex", "flex-direction": "column" });
 		// the bar keeps its own height; without this it shrinks and the scrolling
-		// panel rides up over the tab labels
-		tabs.$el.find(".es-tabs__list").css({ flex: "0 0 auto" });
+		// panel rides up over the tab labels. its inline padding goes too, so the
+		// first tab starts on the same edge as the panel content below it
+		tabs.$el.find(".es-tabs__list").css({ flex: "0 0 auto", "padding-inline": 0 });
 		tabs.$el
 			.find(".es-tabs__panel")
 			.css({ flex: "1 1 auto", "min-height": 0, "overflow-y": "auto" });
@@ -1844,6 +1847,14 @@ export default class Grid {
 		// mounted inline rather than in its own dialog, so nothing stacks
 		let file_uploader = null;
 		const build_uploader = () => {
+			// the drop zone is its own fixed height, so centre it in the panel
+			// rather than letting it sit against the tab bar
+			panels.upload.css({
+				height: "100%",
+				display: "flex",
+				"flex-direction": "column",
+				"justify-content": "center",
+			});
 			file_uploader = new frappe.ui.FileUploader({
 				wrapper: panels.upload,
 				as_dataurl: true,
@@ -1852,6 +1863,8 @@ export default class Grid {
 				restrictions: { allowed_file_types: BULK_EDIT_FILE_TYPES },
 				on_success: (file) => this.read_bulk_edit_file(file, on_file),
 			});
+			// keep it at its natural height so the centring above has room to work
+			panels.upload.children(".file-uploader").css({ flex: "0 0 auto" });
 			// dropping a file or clearing one changes what the later tabs describe
 			panels.upload.on("click change drop", () =>
 				setTimeout(() => {
