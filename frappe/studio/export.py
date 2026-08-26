@@ -8,6 +8,8 @@ from frappe.modules.export_file import strip_default_fields
 
 from studio.sync_json import cache_synced_file_hash
 
+PRESERVED_EMPTY_PROPERTIES = frozenset({"componentProps", "componentSlots"})
+
 
 def write_document_file(doc, folder=None, exclude_fields=None):
 	doc_export = doc.as_dict(no_nulls=True)
@@ -77,6 +79,9 @@ def remove_null_fields(docdict):
 	"""remove null and empty fields"""
 	to_remove = []
 	for attr, value in docdict.items():
+		if attr in PRESERVED_EMPTY_PROPERTIES:
+			continue
+
 		if isinstance(value, list):
 			if not value:
 				to_remove.append(attr)
