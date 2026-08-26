@@ -136,7 +136,7 @@ class Dock(Document):
 		# One spelling of "not a person's own layer", so the composite index can see two of them.
 		# The column is also declared not-nullable, which is what makes this stick: a blank column
 		# in a unique index is written as `NULL`, and every NULL is distinct to an index -- which
-		# would let one app hold two site layers while both read as one address to `layer_filter`.
+		# would let one app hold two site layers while both read as one address to `get_dock`.
 		self.user = self.user or SITE_LAYER
 		self.validate_app_content()
 		self.validate_standard()
@@ -248,16 +248,22 @@ class Dock(Document):
 		self.validate_added_rows()
 
 	def validate_added_rows(self):
-		"""An added row has to say how it reads; a reference need not.
+		"""A row with nothing below it has to say how it reads; a reference need not.
 
-		Nothing below an added row holds an icon or a title for it, so leaving them blank would
-		put a label-less button on the rail. A reference inherits both, which is the whole of
-		what blank means there.
+		Two ways a row can have nothing below it, and both would otherwise put a **label-less
+		button** on the rail:
+
+		- it **adds** an entry, so no lower layer holds one for it to inherit from;
+		- it is on the **app's own dock**, which is the bottom of the stack. Every row there is a
+		  base row whatever its `added` flag says -- and the flag reads 0 on one promoted from the
+		  site's layer, where it really was a reference to something that is no longer beneath it.
+
+		A reference at an upper layer inherits both, which is the whole of what blank means there.
 		"""
 		for row in self.items:
-			if row.added and not (row.icon and row.title):
+			if (self.standard or row.added) and not (row.icon and row.title):
 				frappe.throw(
-					_("Row #{0}: an entry you add needs an icon and a title of its own.").format(row.idx)
+					_("Row #{0}: an entry on this dock needs an icon and a title of its own.").format(row.idx)
 				)
 
 	def _validate_links(self):
@@ -386,10 +392,27 @@ def mark_as_standard(app: str) -> str:
 		# The site's arrangement is what an author has been editing, so that is what gets shipped.
 		# Copied rather than re-parented: the site's own layer stays where it is, so unmarking
 		# leaves the site exactly as it was before the promotion.
-		site = get_dock(app)
+		#
+		# **Resolved rather than copied raw.** A site row may be a *reference* -- blank icon and
+		# title, inheriting from the layer below -- and there is no layer below the app's own
+		# dock. Copied verbatim, those rows would ship with no label at all, which is the
+		# label-less button the whole reference/add split exists to prevent.
+		#
+		# Resolving also means a reference to a dock that is *gone* -- unmark, then mark again --
+		# contributes nothing rather than a blank, and that is what the refusal below is for: the
+		# author is told their layer names a rail that no longer exists, instead of quietly
+		# shipping an empty one.
+		rail = resolve_app_dock(app, gated=False)
+		if not rail:
+			frappe.throw(
+				_("There is nothing to export for {0}. Put some entries on its dock first.").format(
+					frappe.bold(app)
+				)
+			)
+
 		doc = frappe.new_doc("Dock")
 		doc.app = app
-		for row in site.items if site else []:
+		for row in rail:
 			doc.append("items", {field: row.get(field) for field in DOCK_ITEM_FIELDS})
 
 	savepoint = "mark_dock_standard"
@@ -507,6 +530,9 @@ def drop_dock_caches(user: str | None) -> None:
 	document fetch for one column.
 	"""
 	frappe.cache.delete_value(DOCK_LAYERS_CACHE_KEY)
+	# ...and the per-request memo built off it, so a save answering with the rail it just wrote
+	# does not resolve against the dock as it was before
+	frappe.local.dock_cache = {"app_dock": {}, "mounts": None}
 	if user:
 		# a person's own arrangement only invalidates their boot
 		frappe.cache.hdel("bootinfo", user)
@@ -514,15 +540,27 @@ def drop_dock_caches(user: str | None) -> None:
 		frappe.cache.delete_key("bootinfo")
 
 
-def layer_filter(app: str, user: str | None, standard: int = 0) -> dict:
-	"""The filter naming one layer. The columns are not-nullable, so every layer but a person's
-	own is stored with `user = ''` and there is only one spelling of "unset" to match."""
-	return {"app": app, "user": user or SITE_LAYER, "standard": standard}
+def request_cache_for_docks() -> dict:
+	"""Per-request memo for the two reads the rail asks over and over.
+
+	`get_app_dock` and `mounted_apps` are each called once per app *and* once per app per app --
+	`get_app_base` asks `mounted_apps`, which asks `get_app_dock` for every shipped dock -- so
+	without this a twenty-app bench pays hundreds of lookups to draw its rails. Quadratic in the
+	number of apps, on every boot.
+
+	Request-scoped and hand-rolled rather than `@request_cache`, because it has to be *dropped*:
+	a save inside the same request (`_save_layer` answers with the rail it just wrote) would
+	otherwise resolve against the dock as it was before. `drop_dock_caches` is where that
+	happens, which is already the one place that runs on every write.
+	"""
+	if not hasattr(frappe.local, "dock_cache"):
+		frappe.local.dock_cache = {"app_dock": {}, "mounts": None}
+	return frappe.local.dock_cache
 
 
 def dock_records() -> list[dict]:
-	"""Cached address of every layer the site holds -- app, user, standard -- plus the mount an
-	app's own dock declares.
+	"""Cached address of every layer the site holds -- name, app, user, standard -- plus the
+	mount an app's own dock declares.
 
 	This is the cost-control story: a boot on a site nobody has arranged answers every layer of
 	every app out of one redis read, instead of a query apiece. `mount_on` rides it for the same
@@ -536,24 +574,28 @@ def dock_records() -> list[dict]:
 	if records is None:
 		records = [
 			{
+				"name": row.name,
 				"app": row.app,
 				"user": row.user or SITE_LAYER,
 				"standard": int(row.standard or 0),
 				"mount_on": row.mount_on or None,
 			}
-			for row in frappe.get_all("Dock", fields=["app", "user", "standard", "mount_on"])
+			for row in frappe.get_all("Dock", fields=["name", "app", "user", "standard", "mount_on"])
 		]
 		frappe.cache.set_value(DOCK_LAYERS_CACHE_KEY, records)
 	return records
 
 
-def get_dock_layers() -> set[tuple[str, str, int]]:
-	"""Every layer address the site holds, for the membership test `get_dock` makes."""
-	return {(row["app"], row["user"], row["standard"]) for row in dock_records()}
+def get_dock_layers() -> dict[tuple[str, str, int], str]:
+	"""Every layer address the site holds, mapped to the document that holds it."""
+	return {(row["app"], row["user"], row["standard"]): row["name"] for row in dock_records()}
 
 
 def mounted_apps() -> dict[str, str]:
 	"""Companion app -> the host whose rail it mounts on, for the mounts that actually **land**.
+
+	Memoised per request: `get_app_base` asks this once per app, and each answer walks every
+	shipped dock.
 
 	A companion app has no rail of its own; its entries live on a host's. Declaring that is an
 	aspiration, not a renunciation -- three conditions have to hold, and each of them prevents a
@@ -572,6 +614,10 @@ def mounted_apps() -> dict[str, str]:
 	The host has no say; the site does. A host's file is authored before the companion exists on
 	any site, so a veto would be exercised blind. Refusal is **hiding**, at the site layer.
 	"""
+	memo = request_cache_for_docks()
+	if memo["mounts"] is not None:
+		return memo["mounts"]
+
 	shipped = {row["app"]: row for row in dock_records() if row["standard"]}
 	installed = frappe.get_active_apps()
 
@@ -585,15 +631,20 @@ def mounted_apps() -> dict[str, str]:
 		if not get_app_dock(app):
 			continue
 		mounts[app] = host
+
+	memo["mounts"] = mounts
 	return mounts
 
 
 def get_dock(app: str, user: str | None = None, standard: int = 0) -> "Dock | None":
-	"""The document holding one layer of one app's dock, or None. Cheap when there is none."""
-	if (app, user or SITE_LAYER, standard) not in get_dock_layers():
-		return None
+	"""The document holding one layer of one app's dock, or None.
 
-	name = frappe.db.exists("Dock", layer_filter(app, user, standard))
+	The **name comes off the cache** rather than out of a lookup. It used to be a filtered
+	`db.exists`, which is a query the cache had already answered -- and one that cannot itself be
+	cached, since redis caching does not work with filters. A boot resolves three layers for every
+	app, so that was three queries per app for something already in redis.
+	"""
+	name = get_dock_layers().get((app, user or SITE_LAYER, standard))
 	return frappe.get_cached_doc("Dock", name) if name else None
 
 
@@ -664,6 +715,13 @@ def get_app_dock(app: str) -> list[dict]:
 	entry twice, and the layers above dedupe their own rows without catching it, since the base is
 	copied in whole. First named keeps it, which is the rule a layer already follows.
 	"""
+	memo = request_cache_for_docks()["app_dock"]
+	if app not in memo:
+		memo[app] = build_app_dock(app)
+	return memo[app]
+
+
+def build_app_dock(app: str) -> list[dict]:
 	shipped = get_dock(app, standard=1)
 	if not shipped:
 		return []
@@ -801,11 +859,17 @@ def docked_apps() -> list[str]:
 	free. Asking every installed app instead would be correct and nearly as cheap, but it would
 	walk apps that have never had a rail on any site.
 
-	A companion whose mount lands is left out: its entries render on the host's rail, and it has
-	no rail of its own for anything to resolve to.
+	**Narrowed to apps that are actually here.** Nothing reaps a site's or a person's layer when
+	its app is uninstalled -- only a *standard* row is an orphan candidate -- so a bench that has
+	ever removed an app holds rows naming one that is gone. Left in, the sort key asks that app
+	for its hooks and the boot dies with `ModuleNotFoundError`.
+
+	A companion whose mount lands is left out too: its entries render on the host's rail, and it
+	has no rail of its own for anything to resolve to.
 	"""
+	installed = set(frappe.get_active_apps())
 	mounted = mounted_apps()
-	apps = {row["app"] for row in dock_records()} - set(mounted)
+	apps = {row["app"] for row in dock_records() if row["app"] in installed} - set(mounted)
 	return sorted(apps, key=apps_screen_sort_key())
 
 
@@ -819,10 +883,17 @@ def resolve_app_dock(app: str, upto: str = "user", gated: bool = True) -> list[d
 	a Workspace Manager saving the site's rail with one module blocked for them personally would
 	turn that module's row into an add, and adds demand an icon and a title nobody typed.
 	"""
-	layers = {"app": [], "site": [get_site_dock(app)], "user": [get_site_dock(app), get_user_dock(app)]}
+	# Built for the one answer wanted, not all three. Spelled as a list that grows because that
+	# *is* the stack: each layer is laid over the one before it, and `upto` says where to stop.
+	layers = []
+	if upto in ("site", "user"):
+		layers.append(get_site_dock(app))
+	if upto == "user":
+		layers.append(get_user_dock(app))
+
 	resolved, hidden = resolve_layers(
 		get_app_base(app),
-		layers[upto],
+		layers,
 		key=dock_key,
 		apply_row=apply_dock_row,
 		# A saved layer *is* the rail. An entry the app ships later does not appear on it; it
@@ -1259,8 +1330,10 @@ def reset_dock_for_everyone(app: str) -> list[dict]:
 	invalidate, and a bulk delete would leave every one of those people booting a rail that no
 	longer exists.
 	"""
-	app = check_docked_app(app)
+	# The right first, the lookup second: an unprivileged caller should be refused for the reason
+	# that applies to them, not told which apps this site has on the way.
 	check_workspace_manager(_("You need to be Workspace Manager to reset the dock for everyone."))
+	app = check_docked_app(app)
 
 	for name in frappe.get_all("Dock", filters={"app": app, "standard": 0}, pluck="name"):
 		frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)

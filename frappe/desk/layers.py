@@ -130,10 +130,10 @@ def apply_layer(
 		arranged.append(row_key)
 		named.add(row_key)
 
-	arranged_items = [by_key[row_key] for row_key in arranged]
 	if not named:
 		return items
 
+	arranged_items = [by_key[row_key] for row_key in arranged]
 	# Entries the layer never named. The sidebar keeps them, trailing the ones it did, so an app
 	# adding an item still surfaces for someone who has already rearranged. The dock drops them:
 	# a saved layer is exactly the rail, so an app's later addition waits in the manager to be

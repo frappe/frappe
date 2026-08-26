@@ -16,6 +16,7 @@ from frappe.desk.doctype.dock.dock import (
 	Dock,
 	destination,
 	dock_key,
+	docked_apps,
 	get_app_dock,
 	get_app_dock_layer,
 	get_app_entry_set,
@@ -25,6 +26,7 @@ from frappe.desk.doctype.dock.dock import (
 	get_user_dock_layer,
 	mark_as_standard,
 	mounted_apps,
+	resolve_app_dock,
 	resolve_dock,
 	save_site_dock,
 	save_user_dock,
@@ -86,6 +88,12 @@ def workspace(name, hidden=None, **kwargs) -> dict:
 	return row
 
 
+def labelled(row) -> dict:
+	"""The icon and title a base row must carry, defaulted from what it points at."""
+	name = row.get("sidebar") or row.get("link_to") or row.get("url")
+	return {"icon": row.get("icon") or "box", "title": row.get("title") or name}
+
+
 def added(row, title=None) -> dict:
 	"""A row that **adds** an entry rather than referencing one a layer below holds.
 
@@ -93,8 +101,7 @@ def added(row, title=None) -> dict:
 	blank would put a label-less button on the rail, which is what the refusal at Save exists to
 	prevent.
 	"""
-	name = row.get("sidebar") or row.get("link_to") or row.get("url")
-	return {"icon": "box", "title": title or name, **row}
+	return {**labelled(row), **({"title": title} if title else {}), **row}
 
 
 def payload(*rows) -> str:
@@ -307,14 +314,19 @@ def shipped_dock(records: dict[str, list[dict]]):
 
 
 def ship_dock(app: str, rows: list, mount_on: str | None = None) -> str:
-	"""One app's `Dock` record, as if its file had just been imported. Returns its name."""
+	"""One app's `Dock` record, as if its file had just been imported. Returns its name.
+
+	Icon and title are filled in where a fixture leaves them out. Not a convenience: an app's own
+	dock is the bottom of the stack, so every row of it has to say how it reads -- there is
+	nothing under it to inherit from -- and a real record always carries both.
+	"""
 	doc = frappe.new_doc("Dock")
 	doc.app = app
 	doc.standard = 1
 	doc.mount_on = mount_on
 	for row in rows:
 		if isinstance(row, dict):
-			doc.append("items", {field: row.get(field) for field in DOCK_ITEM_FIELDS})
+			doc.append("items", {field: row.get(field) for field in DOCK_ITEM_FIELDS} | labelled(row))
 
 	with system_write("in_import"):
 		doc.save(ignore_permissions=True)
@@ -371,7 +383,7 @@ class TestDockPreferences(DockTestCase):
 		payload -- never one column whose being filled is the kind."""
 		save_user_dock(APP, payload(ALPHA))
 
-		self.assertEqual(dock_for(), [entry(sidebar(ALPHA))])
+		self.assertEqual(dock_for(), [entry(labelled(sidebar(ALPHA)) | sidebar(ALPHA))])
 		self.assertEqual(get_user_dock_layer(APP), [stored(sidebar(ALPHA))])
 
 	def test_hidden_is_stored_not_omitted(self):
@@ -835,7 +847,10 @@ class TestTheAppLayer(DockTestCase):
 		"""The dock keeps a hidden entry and the client drops it from the rail -- forced by the
 		manager's Hidden pane, which cannot render what the payload has already discarded."""
 		with shipped_dock({self.APP: [sidebar(BETA, hidden=1)]}):
-			self.assertEqual(dock_for(self.USER, app=self.APP), [entry(sidebar(BETA), hidden=1)])
+			self.assertEqual(
+				dock_for(self.USER, app=self.APP),
+				[entry(labelled(sidebar(BETA)) | sidebar(BETA), hidden=1)],
+			)
 
 	def test_a_base_entry_no_layer_names_is_off_the_rail(self):
 		"""Where the sidebar keeps such an entry, the dock drops it. The merge takes a
@@ -893,7 +908,10 @@ class TestTheAppLayer(DockTestCase):
 		with shipped_dock({self.APP: [sidebar(ALPHA), sidebar(BETA, hidden=1)]}):
 			self.assertEqual(
 				get_app_dock_layer(self.APP),
-				[entry(sidebar(ALPHA)), entry(sidebar(BETA), hidden=1)],
+				[
+					entry(labelled(sidebar(ALPHA)) | sidebar(ALPHA)),
+					entry(labelled(sidebar(BETA)) | sidebar(BETA), hidden=1),
+				],
 			)
 
 	def test_a_site_whose_apps_declare_nothing_resolves_an_empty_base(self):
@@ -1539,6 +1557,23 @@ class TestAnAppWithNoDock(DockTestCase):
 				self.assertEqual(hidden_by_name(dock_for(among=None, app=self.APP))[BETA], 0)
 				clear_arrangements()
 
+	def test_a_layer_for_an_uninstalled_app_does_not_break_the_boot(self):
+		"""Nothing reaps a site's or a person's layer when its app is uninstalled -- only a
+		*standard* row is an orphan candidate -- so a bench that has ever removed an app holds
+		rows naming one that is gone. Left in, the apps-screen sort key asks that app for its
+		hooks and the boot dies with `ModuleNotFoundError`."""
+		from frappe.desk.doctype.dock.dock import DOCK_LAYERS_CACHE_KEY
+
+		doc = frappe.new_doc("Dock")
+		doc.app = "zz-dock-uninstalled"
+		doc.append("items", added(sidebar(ALPHA)))
+		doc.save(ignore_permissions=True)
+		self.addCleanup(frappe.cache.delete_value, DOCK_LAYERS_CACHE_KEY)
+		frappe.cache.delete_value(DOCK_LAYERS_CACHE_KEY)
+
+		self.assertNotIn("zz-dock-uninstalled", docked_apps())
+		self.assertNotIn("zz-dock-uninstalled", resolve_dock())
+
 	def test_a_module_the_record_omits_is_still_navigable(self):
 		"""Reachability is narrowed to discovery, not lost: the boot's sidebars are built from
 		the navigable-modules list, not from the dock, so an omitted module still opens by
@@ -1562,10 +1597,8 @@ class TestTheLandingFloor(IntegrationTestCase):
 
 	def app_entry(self, app_name: str) -> dict:
 		from frappe.boot import get_app_data
-		from frappe.desk.desktop import get_workspaces
 
-		pages = [page.name for page in get_workspaces()["pages"]]
-		return next(app for app in get_app_data(pages) if app["app_name"] == app_name)
+		return next(app for app in get_app_data() if app["app_name"] == app_name)
 
 	def test_an_explicitly_declared_route_is_carried(self):
 		"""The top of the ladder: an app may have a front door outside its rail, or outside the
@@ -1810,12 +1843,49 @@ class TestTheExportRoad(IntegrationTestCase):
 
 		self.assertEqual(names(get_app_dock(self.APP)), [self.TWO, self.ONE])
 
+	def test_promoting_ships_the_rail_rather_than_the_stored_rows(self):
+		"""A site row may be a *reference* -- blank icon and title, inheriting from the layer
+		below -- and there is nothing below the app's own dock. Copied verbatim those would ship
+		with no label at all, which is the label-less button the reference/add split exists to
+		prevent. Promotion therefore resolves first."""
+		shipped = ship_dock(self.APP, [sidebar(self.ONE, icon="box", title="One")])
+		self.addCleanup(frappe.delete_doc, "Dock", shipped, force=True, ignore_permissions=True)
+
+		# a reference to the app's row: it echoes the label back and stores no opinion
+		save_site_dock(self.APP, payload(sidebar(self.ONE, icon="box", title="One")))
+		self.assertEqual(get_site_dock(self.APP)[0]["title"], None)
+
+		self.assertEqual(
+			[(row["icon"], row["title"]) for row in resolve_app_dock(self.APP)], [("box", "One")]
+		)
+
+	def test_promoting_nothing_is_refused_rather_than_shipping_an_empty_rail(self):
+		"""The case that reaches it: unmark, which leaves the site's layer full of references to
+		a dock that is gone, then mark again. Resolving those gives nothing -- so say so, rather
+		than write a file that silently takes the app's rail away."""
+		shipped = ship_dock(self.APP, [sidebar(self.ONE, icon="box", title="One")])
+		save_site_dock(self.APP, payload(sidebar(self.ONE, icon="box", title="One")))
+		frappe.delete_doc("Dock", shipped, force=True, ignore_permissions=True)
+
+		self.assertRaisesRegex(frappe.ValidationError, "nothing to export", mark_as_standard, self.APP)
+
+	def test_every_row_of_an_apps_own_dock_must_say_how_it_reads(self):
+		"""The app layer is the bottom of the stack, so a blank icon or title there is not
+		inheritance -- it is a button with no label."""
+		self.author(self.ONE)
+		mark_as_standard(self.APP)
+
+		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": self.APP, "standard": 1}))
+		doc.items[0].title = None
+
+		self.assertRaisesRegex(frappe.ValidationError, "Row #1", doc.save, ignore_permissions=True)
+
 	def test_a_later_save_keeps_the_file_current(self):
 		self.author(self.TWO)
 		mark_as_standard(self.APP)
 
 		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": self.APP, "standard": 1}))
-		doc.append("items", {"sidebar": self.ONE})
+		doc.append("items", labelled(sidebar(self.ONE)) | {"sidebar": self.ONE})
 		doc.save(ignore_permissions=True)
 
 		on_disk = [row["sidebar"] for row in json.load(open(self.exported()))["items"]]
@@ -1941,7 +2011,7 @@ class TestTheExportRoad(IntegrationTestCase):
 				doc = frappe.new_doc("Dock")
 				doc.app = self.APP
 				doc.standard = 1
-				doc.append("items", {"sidebar": self.ONE})
+				doc.append("items", labelled(sidebar(self.ONE)) | {"sidebar": self.ONE})
 				doc.save(ignore_permissions=True)
 
 				self.assertTrue(doc.standard)

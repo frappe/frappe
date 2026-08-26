@@ -118,6 +118,9 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		]);
 
 		this.layer_rows = layer;
+		// What the app itself ships, unfiltered by anybody's reach -- the pool the manager offers
+		// and what `unnamed_modules` counts against.
+		this.base_rows = base || [];
 		// Which of these rows this layer added itself, so they carry a cross rather than an eye.
 		// Read off the stored layer rather than guessed from the entry: an entry a *lower* layer
 		// added is a reference from here, and hiding is the right control for it.
@@ -150,10 +153,12 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// A muted reading, not an affordance: how many of the app's modules are on no tier at all --
 	// not on the rail, not shipped off it, simply never named. Those are the ones no layer can
 	// bring back, so an author who did not mean it should be able to see the number.
+	//
+	// Read off the app's **own rows** rather than off the entry set, which is reach-filtered: a
+	// module the record names but this person cannot see is named, and reporting it as unnamed
+	// would send an author looking for a row that is already there.
 	unnamed_modules() {
-		const named = new Set(
-			[...this.entries.values()].map((entry) => entry.sidebar).filter(Boolean)
-		);
+		const named = new Set((this.base_rows || []).map((row) => row.sidebar).filter(Boolean));
 		return frappe.app.sidebar.app_modules(this.app).filter((shell) => !named.has(shell));
 	}
 
@@ -511,6 +516,11 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	async export_to_app() {
 		if (!this.loaded) return;
 
+		// Save first. Promotion reads what is *stored*, so exporting with unsaved drags on screen
+		// would ship the arrangement the author had before they started -- silently, which is the
+		// worst way to be wrong about a file that goes into git.
+		this.sync_order();
+		await frappe.xcall(this.layer_config.save, this.save_args());
 		await frappe.xcall(MARK_AS_STANDARD, { app: this.app.app_name });
 		// The app now ships a dock, so the third value in the switch has something to write to.
 		this.layer = "app";

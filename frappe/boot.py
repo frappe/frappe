@@ -248,7 +248,6 @@ DEFAULT_APP_SEQUENCE_ID = 100
 def load_desktop_data(bootinfo):
 	from frappe.desk.doctype.dock.dock import resolve_dock
 
-	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	# A companion app's workspaces resolve their app context (rail + header) to the host app it
 	# mounts on, so the companion appears to live inside the host's rail rather than flipping the
 	# desk to a shell of its own. Not redundant with the companion's rows being in the host's
@@ -277,10 +276,10 @@ def load_desktop_data(bootinfo):
 
 		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 
-	bootinfo.app_data = get_app_data(allowed_pages)
+	bootinfo.app_data = get_app_data()
 
 
-def get_app_data(allowed_pages: list[str]) -> list[dict]:
+def get_app_data() -> list[dict]:
 	"""The apps the desk knows about, each with the ordered set of entries its dock offers.
 
 	This is what backs the apps (desktop) screen and the workspace dock: the dock renders
@@ -291,8 +290,9 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 	workspace can hand the client a fresh copy without duplicating the grouping rules (see
 	`mount_workspace`).
 
-	`allowed_pages` is unused now that a rail is exactly its record's rows, and is kept because
-	`mount_workspace` calls this to hand the client a fresh copy of the payload.
+	Takes nothing. It used to be handed the workspace names this person may see, for the derived
+	first-workspace guess that 11 deleted -- and reach is now applied per entry by
+	`get_app_entry_set`, which asks the same question about the same person.
 	"""
 	from frappe.desk.doctype.dock.dock import get_app_entry_set
 

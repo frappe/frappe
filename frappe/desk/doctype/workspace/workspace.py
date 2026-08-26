@@ -480,7 +480,7 @@ def workspace_payload(**extra):
 	module_sidebars = get_module_sidebars()
 	return {
 		"workspace_pages": workspaces,
-		"app_data": get_app_data([d.name for d in workspaces.get("pages")]),
+		"app_data": get_app_data(),
 		# the module-keyed payload, so a hot-swapping caller updates both keyspaces at once
 		"module_sidebars": module_sidebars,
 		"entity_module": build_entity_module_map(module_sidebars),
