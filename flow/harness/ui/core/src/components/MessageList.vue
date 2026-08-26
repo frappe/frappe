@@ -37,7 +37,13 @@
 					@toggle="toggleTurn(item.turnKey)"
 				/>
 				<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
-				<ThinkingBlock v-else-if="item.kind === 'thinking'" :block="item.block" :live="item.live" />
+				<!-- like ToolGroup below: the row's own py-2.5 already pads it -->
+				<ThinkingBlock
+					v-else-if="item.kind === 'thinking'"
+					:class="items[i - 1]?.kind === 'turn-fold' ? '-mt-3' : ''"
+					:block="item.block"
+					:live="item.live"
+				/>
 				<!-- the first row's own py-2.5 already pads it; offset the thread gap -->
 				<ToolGroup
 					v-else-if="item.kind === 'group'"
@@ -85,8 +91,15 @@
 			</template>
 
 			<!-- Before the first streamed block (or during retry/compaction), no
-			     transcript item owns the live status, so render one fallback line. -->
-			<div v-if="showStandaloneStatus" class="text-sm font-medium">
+			     transcript item owns the live status, so render one fallback line.
+			     py-2.5 keeps it on the same rhythm as the rows that replace it; after
+			     a thinking block the thread gap collapses too, so the status sits
+			     exactly where the upcoming tool row will render. -->
+			<div
+				v-if="showStandaloneStatus"
+				class="py-2.5 text-sm font-medium"
+				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
+			>
 				<span class="flow-shimmer">{{ conversation.liveLabel }}</span>
 			</div>
 
