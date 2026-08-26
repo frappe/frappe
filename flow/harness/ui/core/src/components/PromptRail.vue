@@ -1,7 +1,7 @@
 <template>
 	<nav
 		ref="rail"
-		class="absolute right-1 top-1/2 z-10 max-h-[72%] -translate-y-1/2"
+		class="absolute right-3 top-3 z-10 max-h-[72%]"
 		aria-label="Go to prompt"
 		@mouseleave="hovered = null"
 	>
