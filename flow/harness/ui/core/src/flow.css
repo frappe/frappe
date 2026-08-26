@@ -30,6 +30,26 @@
 	background: color-mix(in srgb, var(--ink-gray-9) 10%, transparent);
 }
 
+/* Floating "Add to chat" pill rendered as a monaco content widget */
+.flow-add-to-chat {
+	margin-bottom: 4px;
+	padding: 4px 8px;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: 6px;
+	background: var(--surface-white);
+	color: var(--ink-gray-8);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+}
+.flow-add-to-chat:hover {
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-9);
+}
+
 .flow-icon-btn {
 	display: grid;
 	place-items: center;

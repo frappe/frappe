@@ -66,6 +66,25 @@
 			<div
 				class="flow-composer-surface flex flex-col gap-2 rounded-xl border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
 			>
+				<div v-if="codeRefs.length" class="flex flex-wrap items-center gap-2 px-1 pt-0.5">
+					<span
+						v-for="(ref, i) in codeRefs"
+						:key="`${ref.path}:${ref.start}-${ref.end}`"
+						class="flex max-w-[260px] items-center gap-1.5 rounded-lg border border-outline-gray-2 bg-surface-white py-1 pl-2 pr-1"
+						:title="`${ref.rel}:${ref.start}-${ref.end}`"
+					>
+						<FeatherIcon name="code" class="h-3 w-3 flex-none text-ink-gray-5" />
+						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ refLabel(ref) }}</span>
+						<button
+							class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+							title="Remove reference"
+							:disabled="submitting"
+							@click="flow.removeCodeRef(i)"
+						>
+							<FeatherIcon name="x" class="h-3 w-3" />
+						</button>
+					</span>
+				</div>
 				<div v-if="attachments.length" class="flex flex-wrap items-start gap-2 px-1 pt-0.5">
 					<template v-for="(item, i) in attachments" :key="item.key">
 						<figure
@@ -298,7 +317,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
-import { EFFORT_LABELS } from "../transcript.js"
+import { EFFORT_LABELS, fileName } from "../transcript.js"
 import ModelPalette from "./ModelPalette.vue"
 import PalettePanel from "./PalettePanel.vue"
 import PopMenu from "./PopMenu.vue"
@@ -445,7 +464,10 @@ onBeforeUnmount(() => {
 watch(
 	() => flow.state.sessionId,
 	() => {
-		if (!submitting.value) clearAttachments()
+		if (!submitting.value) {
+			clearAttachments()
+			flow.clearCodeRefs()
+		}
 		nextTick(() => box.value?.focus())
 	},
 )
@@ -505,8 +527,21 @@ const skillPrompt = computed(() => {
 	return { prefix: match[0], rest: text.value.slice(match[0].length) }
 })
 const running = computed(() => flow.state.conversation.running)
+const codeRefs = computed(() => flow.state.codeRefs)
+// "Add to chat" hands off to typing: pull focus as soon as a ref arrives
+watch(
+	() => codeRefs.value.length,
+	(count, prev) => {
+		if (count > (prev ?? 0)) nextTick(() => box.value?.focus())
+	},
+)
+const refLabel = (ref) =>
+	`${fileName(ref.path)} (${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""})`
+const refToken = (ref) => `@${ref.rel}:${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""}`
 const canSend = computed(
-	() => !submitting.value && (text.value.trim().length > 0 || attachments.value.length > 0),
+	() =>
+		!submitting.value &&
+		(text.value.trim().length > 0 || attachments.value.length > 0 || codeRefs.value.length > 0),
 )
 
 // inside a session the button reflects that session's live mode; outside, the
@@ -623,7 +658,7 @@ function pick(command) {
 async function submit() {
 	if (submitting.value) return
 	const value = text.value.trim()
-	if (!value && !attachments.value.length) return
+	if (!value && !attachments.value.length && !codeRefs.value.length) return
 	if (value.startsWith("/")) {
 		const [name, ...rest] = value.slice(1).split(" ")
 		const command = COMMANDS.find((c) => c.name === name)
@@ -633,11 +668,13 @@ async function submit() {
 			return
 		}
 	}
+	// code references travel as file:line tokens appended to the message
+	const outgoing = [value, codeRefs.value.map(refToken).join("\n")].filter(Boolean).join("\n\n")
 	const selectedAttachments = attachments.value.map((item) => ({ ...item }))
 	submitting.value = true
 	let sent = false
 	try {
-		sent = await flow.send(value, selectedAttachments)
+		sent = await flow.send(outgoing, selectedAttachments)
 	} finally {
 		submitting.value = false
 		// re-enabling the disabled textarea does not restore focus on its own
@@ -646,6 +683,7 @@ async function submit() {
 	if (!sent) return
 	text.value = ""
 	clearAttachments()
+	flow.clearCodeRefs()
 }
 
 // rewinds prefill via the store's draft channel (also fed by per-bubble rewind)

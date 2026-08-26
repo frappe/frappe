@@ -40,6 +40,7 @@ export function createFlowStore(client) {
 		loading: false,
 		toast: null,
 		draft: null, // { text, attachments } handed to the composer after rewind
+		codeRefs: [], // { path, rel, start, end } selections queued for the next message
 		// right panel; tabs are typed ({ kind: "editor" } today, browser/terminal
 		// later) — editor tabs: { kind, path, name, content, error, loading, dirty },
 		// content being the last server-confirmed text (the editor owns unsaved edits)
@@ -477,6 +478,22 @@ export function createFlowStore(client) {
 		state.draft = draft
 	}
 
+	// Editor selections referenced in the next message as path:lines, not pasted text.
+	function addCodeRef(path, start, end) {
+		const cwd = state.session?.config?.cwd
+		const rel = cwd && path.startsWith(cwd + "/") ? path.slice(cwd.length + 1) : path
+		if (state.codeRefs.some((r) => r.path === path && r.start === start && r.end === end)) return
+		state.codeRefs.push({ path, rel, start, end })
+	}
+
+	function removeCodeRef(index) {
+		state.codeRefs.splice(index, 1)
+	}
+
+	function clearCodeRefs() {
+		state.codeRefs = []
+	}
+
 	async function selectModel(model) {
 		state.prefs.lastModel = model
 		savePrefs()
@@ -809,6 +826,9 @@ export function createFlowStore(client) {
 		rewindToMessage,
 		rewindLastUserMessage,
 		setDraft,
+		addCodeRef,
+		removeCodeRef,
+		clearCodeRefs,
 		selectModel,
 		selectEffort,
 		setMode,

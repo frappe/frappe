@@ -192,6 +192,47 @@ function toggleWrap() {
 	diffEditor?.updateOptions({ wordWrap, diffWordWrap: wordWrap })
 }
 
+// Floating "Add to chat" pill over a non-empty selection: queues a file+lines
+// reference for the composer (never the selected text itself).
+function wireAddToChat(ed) {
+	const node = document.createElement("button")
+	node.type = "button"
+	node.className = "flow-add-to-chat"
+	node.textContent = "Add to chat"
+	node.addEventListener("mousedown", (e) => e.preventDefault()) // keep the selection
+	let position = null
+	const widget = {
+		getId: () => "flow.add-to-chat",
+		allowEditorOverflow: true, // never clipped by the scrolled viewport
+		getDomNode: () => node,
+		getPosition: () =>
+			position && {
+				position,
+				preference: [
+					monaco.editor.ContentWidgetPositionPreference.ABOVE,
+					monaco.editor.ContentWidgetPositionPreference.BELOW,
+				],
+			},
+	}
+	node.addEventListener("click", () => {
+		const sel = ed.getSelection()
+		const tab = activeTab.value
+		if (!tab || !sel || sel.isEmpty()) return
+		let end = sel.endLineNumber
+		if (end > sel.startLineNumber && sel.endColumn === 1) end-- // drag past the newline
+		flow.addCodeRef(tab.path, sel.startLineNumber, end)
+		position = null
+		ed.layoutContentWidget(widget)
+	})
+	ed.onDidChangeCursorSelection((e) => {
+		position = e.selection.isEmpty()
+			? null
+			: { lineNumber: e.selection.startLineNumber, column: e.selection.startColumn }
+		ed.layoutContentWidget(widget)
+	})
+	ed.addContentWidget(widget)
+}
+
 // monaco infers the language from the file uri; only fill its gaps
 const LANG_OVERRIDES = { vue: "html", svelte: "html" }
 
@@ -245,6 +286,7 @@ watch([editorEl, () => workspace.value.open, showEditorHost], async ([el, open, 
 		editor = monaco.editor.create(editorEl.value, { ...EDITOR_OPTIONS, wordWrap: wrapValue() })
 		applyTheme()
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save)
+		wireAddToChat(editor)
 		syncModel()
 	} else if (!el && editor) {
 		editor.dispose()
@@ -274,6 +316,7 @@ watch([diffEl, () => workspace.value.open, showDiffHost], async ([el, open, need
 		})
 		applyTheme()
 		diffEditor.getModifiedEditor().addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save)
+		wireAddToChat(diffEditor.getModifiedEditor())
 		syncModel()
 	} else if (!el && diffEditor) {
 		diffEditor.dispose()
