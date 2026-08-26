@@ -52,18 +52,18 @@ def apps_with_old_fixtures() -> dict[str, int]:
 
 
 def read_fixtures(app: str) -> list[frappe._dict]:
-	"""The app's old fixtures, shaped like the merge's other sources.
+	"""Return the app's old fixtures, shaped like the merge's other sources.
 
-	Personal forks are skipped: a `for_user` sidebar in an app's folder is somebody's own
-	arrangement that got exported by accident, and an app has no business shipping one.
+	Personal forks are skipped: a `for_user` sidebar in an app's folder is a user's own
+	arrangement exported by accident, and an app should not ship one.
 	"""
 	sources = []
 	for path in sorted(get_app_level_files(OLD_FIXTURE_FOLDER, app)):
 		if not path.endswith(".json"):
 			continue
 
-		# the path is an installed app's own folder, walked by the operator's own bench
-		# command -- nothing here comes from a request
+		# The path is an installed app's own folder, walked by a bench command. Nothing here
+		# comes from a request.
 		with open(path) as f:  # nosemgrep
 			fixture = frappe.parse_json(f.read())
 		if isinstance(fixture, list):
@@ -83,7 +83,7 @@ def read_fixtures(app: str) -> list[frappe._dict]:
 					"icon": fixture.get("header_icon"),
 					"module": fixture.get("module"),
 					"rows": rows,
-					# the fixtures carry no ordering of their own; file order stands in
+					# The fixtures carry no ordering of their own, so file order is used.
 					"sequence_id": 0,
 					"creation": path,
 					"path": path,
@@ -96,10 +96,9 @@ def read_fixtures(app: str) -> list[frappe._dict]:
 def convert_app(app: str, dry_run: bool = False) -> list[dict]:
 	"""Write one `Sidebar` export per module the app's fixtures name.
 
-	**Idempotent, and safe against an app that has already converted by hand**: a module whose
-	export file is already there is reported and left alone, never overwritten. That is what
-	makes it runnable against erpnext, which has ten converted files today and fourteen old
-	ones.
+	It is idempotent and safe against an app that has already been converted by hand: a module
+	whose export file already exists is reported and left alone, never overwritten. That is what
+	makes it runnable against erpnext, which has ten converted files and fourteen old ones.
 	"""
 	by_module = {}
 	unresolved = []
@@ -190,7 +189,7 @@ def write_export(path: str, module: str, plan, app: str) -> None:
 		],
 	}
 
-	# `export_path` builds this from `get_module_path`, the same way every other document
-	# export in the framework does
+	# `export_path` builds this from `get_module_path`, the same as every other document export
+	# in the framework.
 	with open(path, "w") as f:  # nosemgrep
 		f.write(json.dumps(doc, indent=1, sort_keys=True) + "\n")

@@ -64,11 +64,11 @@ class DesktopPage {
 		// The destination is the landing ladder: the route the app declares, then its first
 		// visible rail entry, then its first navigable module (see app_landing_route).
 		//
-		// An app that resolves to none of the three **keeps its icon**. It used to be filtered
-		// out, which was survivable while every app's rail was every module it owned; now that a
-		// rail is exactly the record an app ships, a dock-less app would have had no rail *and*
-		// no icon, and therefore no way in at all. The icon leads to the desk's own root, which
-		// is somewhere rather than nowhere.
+		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
+		// which was tolerable while every app's rail was every module it owned. Now that a rail
+		// is exactly the record an app ships, a dock-less app would have had no rail and no icon,
+		// so no way in at all. The icon leads to the desk's root, which is somewhere rather than
+		// nowhere.
 		const apps = (frappe.boot.app_data || [])
 			.filter((app) => app.on_apps_screen)
 			.map((app) => ({

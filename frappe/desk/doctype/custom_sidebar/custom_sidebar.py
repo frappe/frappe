@@ -14,15 +14,15 @@ from frappe.model.document import Document
 
 SITE_LAYER = ""
 
-# What a row carries when it *is* an item rather than a reference to one. The same fields a
-# base item has, because an added item renders through the same code with no special-casing --
-# with one exception: `is_default_module`. Apps claim, sites do not.
+# What a row carries when it is an item rather than a reference to one. These are the same fields
+# a base item has, because an added item renders through the same code, with one exception:
+# `is_default_module`. Only apps claim ownership; sites do not.
 #
-# Ownership is an app-authored fact about a product, not a site preference, and the layer here
-# is one-way: a site could add a flagged row to claim an entity, but there is no reference field
-# that could ever un-claim one an app shipped (`REFERENCE_FIELDS` is `label` and `icon`). Leaving
-# it in would offer half a mechanism. A site that disagrees about where an entity lives edits the
-# sidebar so the entity is a member of the one it wants -- membership is what routes you.
+# Ownership is an app-authored fact about a product, not a site preference, and this layer is
+# one-way: a site could add a flagged row to claim an entity, but no reference field could ever
+# un-claim one an app shipped, since `REFERENCE_FIELDS` is only `label` and `icon`. Leaving it in
+# would offer half a mechanism. A site that disagrees about where an entity lives edits the
+# sidebar so the entity is a member of the one it wants, because membership is what routes you.
 ADDED_ITEM_FIELDS = (
 	"type",
 	"label",
@@ -40,18 +40,18 @@ ADDED_ITEM_FIELDS = (
 	"open_in_new_tab",
 )
 
-# What a *reference* row may say about the base item it names. Deliberately short: a reference
-# stores an opinion, never a copy. Storing the whole body is what would let one reorder freeze
+# What a reference row may override on the base item it names. The list is short on purpose: a
+# reference stores an override, never a copy. Storing the whole body would let one reorder freeze
 # the site's labels and the app's links forever.
 REFERENCE_FIELDS = ("label", "icon")
 
-# Membership is not one of them, and is not an opinion at all: it is arrangement, like order and
-# like `hidden`. Every row a layer holds states it, because a `Check` has no way to spell "no
-# opinion" apart from "not a member" -- and it does not need one, since a save writes the whole
-# arrangement and the editor is handed the membership it is arranging.
+# Membership is not in that list and is not an override: it is arrangement, like order and
+# `hidden`. Every row a layer holds states it, because a `Check` cannot express "no opinion"
+# separately from "not a member". It does not need to, since a save writes the whole arrangement
+# and the editor is given the membership it is arranging.
 #
-# What makes that safe is where the value comes from: the editor re-reads it only for the row a
-# person actually dragged, so every other row hands back exactly what it was shown.
+# That is safe because of where the value comes from: the editor re-reads it only for the row the
+# user dragged, so every other row hands back what it was shown.
 
 
 class CustomSidebar(Document):
@@ -80,9 +80,8 @@ class CustomSidebar(Document):
 		self.anchor_the_items()
 
 	def validate_module(self):
-		"""A layer is anchored to a module, and this says so in the model rather than leaving it
-		to the endpoints -- `_validate_links` below no longer checks this document's own Link
-		fields either, so nothing else would."""
+		"""Check the module in the model rather than in the endpoints. `_validate_links` below no
+		longer checks this document's own Link fields, so nothing else would."""
 		check_module(self.module)
 
 	def validate_unique(self):
@@ -101,21 +100,20 @@ class CustomSidebar(Document):
 			)
 
 	def drop_private_workspaces(self):
-		"""No layer stores a row naming a private workspace -- not the site's, not a user's own.
+		"""Drop rows naming a private workspace from any layer, the site's and a user's alike.
 
 		A private page's link is derived on read (`sidebar.get_private_workspaces`), and the
-		derivation is appended to the arrangement the client is shown, so it comes back with
-		that arrangement on the next save. Kept, it would be exactly the pollution D3 removes:
-		a row per private page in the document the whole site shares, or -- in the owner's own
-		layer -- a second copy of a link that is already derived from the workspace, left
-		pointing nowhere the day the page is deleted.
+		derived row is appended to the arrangement the client is shown, so it comes back on the
+		next save. Storing it would put a row per private page in the document the whole site
+		shares, or, in the owner's own layer, a second copy of a link that is already derived
+		from the workspace and that points nowhere once the page is deleted.
 
-		Enforced here rather than in the endpoints because every write is a way in: the two save
-		endpoints, `add_site_sidebar_item`, the form, the API. It also retires the rows a site
-		stored before the derivation existed -- the next save of that layer takes them out.
+		This is enforced here rather than in the endpoints, because every write is a way in: the
+		two save endpoints, `add_site_sidebar_item`, the form and the API. It also clears rows a
+		site stored before the derivation existed, on the next save of that layer.
 
-		A *public* workspace is untouched: its link is stored, and arranging or hiding it is
-		what the layers are for.
+		A public workspace is untouched: its link is stored, and arranging or hiding it is what
+		the layers are for.
 		"""
 		named = {row.link_to for row in self.sidebar_items if row.link_type == "Workspace" and row.link_to}
 		if not named:
@@ -135,17 +133,17 @@ class CustomSidebar(Document):
 			)
 
 	def anchor_the_items(self):
-		"""Every row has to name a base item, and name it the way the model names one.
+		"""Require every row to name a base item the way the model names one.
 
-		A reference naming nothing -- no link, no key -- is dropped rather than given a derived
-		one: a derived identity would be a coincidence, and coinciding with a real base item is
-		worse than saying nothing. An added row *is* an item and names itself, out of the same
-		columns a base item is named by. Nothing is ever anchored to a row's `name`: child rows
-		are hash-named and recreated on every save.
+		A reference that names nothing, with no link and no key, is dropped rather than given a
+		derived identity. A derived identity would be a coincidence, and coinciding with a real
+		base item is worse than naming nothing. An added row is an item and names itself, from the
+		same columns a base item is named by. Nothing is anchored to a row's `name`, because child
+		rows are hash-named and recreated on every save.
 
-		A linked row's stored key is blanked on the way in. Its columns are its identity, and a
-		rename rewrites them for base and delta together -- a key stored beside them would
-		survive that rename still naming what the row used to point at.
+		A linked row's stored key is blanked here. Its columns are its identity, and a rename
+		rewrites them for base and delta together, so a key stored beside them would survive the
+		rename still naming the old target.
 		"""
 		self.set(
 			"sidebar_items",
@@ -156,16 +154,16 @@ class CustomSidebar(Document):
 				row.key = None
 
 	def _validate_links(self):
-		"""A row *names* a document; it does not reference one.
+		"""Skip link validation, because a row names a document rather than referencing it.
 
-		Frappe checks a Dynamic Link's target still exists on every save, which here would mean
-		one deleted report turning every later write to this layer into an error -- relabelling
-		the sidebar, a new workspace adding its link, anything. A row naming something that is
-		gone stops applying when the sidebar resolves, which is exactly what an app deleting an
-		item has always done to a delta that named it.
+		Frappe checks that a Dynamic Link's target still exists on every save. Here that would
+		mean one deleted report turning every later write to this layer into an error, whether
+		relabelling the sidebar or adding a new workspace's link. A row naming something that is
+		gone stops applying when the sidebar resolves, which is what an app deleting an item has
+		always done to a delta naming it.
 
-		`ignore_links_on_delete` in hooks is the same call made from the other side of the same
-		link: nobody's sidebar preference may stop a document being deleted either.
+		`ignore_links_on_delete` in hooks is the same decision from the other side of the link: a
+		sidebar preference must not stop a document being deleted.
 		"""
 		return
 
@@ -177,36 +175,34 @@ class CustomSidebar(Document):
 
 	def clear_customization_cache(self):
 		if self.user:
-			# a user-scoped arrangement only invalidates that user's boot
+			# A user-scoped arrangement only invalidates that user's boot.
 			frappe.cache.hdel("bootinfo", self.user)
 		else:
 			frappe.cache.delete_key("bootinfo")
 
 
 def get_layers_for(user: str, modules: list[str] | None = None) -> dict[str, list["CustomSidebar"]]:
-	"""Every layer that applies to `user`, keyed by module and in the order they are applied.
+	"""Return every layer that applies to `user`, keyed by module and in application order.
 
-	**Which layers apply is a question about the reader, not about a module** -- the site's, and
-	their own -- so it is answered once for however many modules are being resolved. That is the
-	same batching `SidebarContext` already does for the bases, the workspaces and the
-	onboardings, and this is the fourth of those reads rather than an exception to them.
+	Which layers apply depends on the user, not the module: the site's layer and the user's own.
+	So it is answered once for however many modules are being resolved, the same batching
+	`SidebarContext` does for the bases, the workspaces and the onboardings.
 
-	One indexed query. It replaces a site-wide redis set of every `(module, user)` pair on the
-	site, read in full on every boot to gate a per-module `db.exists`. That set answered the
-	right question keyed by the wrong thing: it grew with users x modules, so a site with five
-	thousand people who had each arranged three modules deserialized fifteen thousand pairs to
-	decide something about one of them -- and it needed invalidating, which is a second way to
-	be wrong. What a reader's own layers cost is now a function of how much *they* have
-	customized, which is the dimension that belongs in the answer.
+	It is one indexed query. It replaces a site-wide redis set of every `(module, user)` pair,
+	read in full on every boot to gate a per-module `db.exists`. That set was keyed by the wrong
+	thing: it grew with users times modules, so a site with five thousand users who had each
+	arranged three modules deserialized fifteen thousand pairs to answer about one, and it needed
+	invalidating. The cost of a user's own layers is now proportional to how much that user has
+	customized.
 	"""
 	filters = {"user": ["in", [SITE_LAYER, user]]}
 	if modules is not None:
 		filters["module"] = ["in", modules]
 
 	rows = frappe.get_all("Custom Sidebar", filters=filters, fields=["name", "module", "user"])
-	# The site's layer first, then the reader's own. Stated here rather than left to the column's
-	# sort order: a blank `user` collating before an email address is a fact about the database,
-	# and the application order is not.
+	# The site's layer first, then the user's own. Sorted here rather than relying on the
+	# column's sort order, since a blank `user` collating before an email address is a database
+	# detail, not the application order.
 	rows.sort(key=lambda row: bool(row.user))
 
 	layers: dict[str, list[CustomSidebar]] = {}
@@ -217,25 +213,24 @@ def get_layers_for(user: str, modules: list[str] | None = None) -> dict[str, lis
 
 
 def get_customization(module: str, user: str | None) -> "CustomSidebar | None":
-	"""The customization for one layer, or None.
+	"""Return the customization for one module and one layer, or None.
 
-	For one module and one layer, which is what the write paths ask. A resolution covering many
-	modules asks `get_layers_for` once instead of asking this per module.
+	This is what the write paths need. A resolution covering many modules calls `get_layers_for`
+	once instead of calling this per module.
 	"""
 	name = frappe.db.exists("Custom Sidebar", {"module": module, "user": user or ["in", ["", None]]})
 	return frappe.get_cached_doc("Custom Sidebar", name) if name else None
 
 
 def get_layers(module: str, user: str | None) -> list["CustomSidebar"]:
-	"""The layers to apply to `module`, in order: the site's first, then the user's own.
+	"""Return the layers to apply to `module`, in order: the site's first, then the user's own.
 
-	Later layers win, so a user's `hidden: 0` un-hides something the site hid -- a preference
-	beating a preference, which is what a per-user layer is for.
+	Later layers win, so a user's `hidden: 0` un-hides something the site hid, which is what a
+	per-user layer is for.
 
-	`user` of `None` means the site's layer alone. It used to mean the site's layer *twice* --
-	`get_customization(module, None)` and `get_customization(module, user)` both resolve to it --
-	which the merge happened to survive, being idempotent, but which is not what any caller
-	asked for.
+	A `user` of `None` means the site's layer alone. It used to mean the site's layer twice, since
+	`get_customization(module, None)` and `get_customization(module, user)` both resolve to it.
+	The merge is idempotent so that worked, but it was not what any caller asked for.
 	"""
 	layers = [get_customization(module, None)]
 	if user:
@@ -245,12 +240,11 @@ def get_layers(module: str, user: str | None) -> list["CustomSidebar"]:
 
 
 def check_module(module: str) -> None:
-	"""A layer is anchored to a module, so nothing may name one that is not there.
+	"""Throw unless `module` exists, since a layer is anchored to a module.
 
-	The module, not its sidebar: most modules have no `Sidebar` document at all -- their base is
-	computed from their contents -- and those are customizable, readable and resettable on
-	exactly the same terms as a shipped one. What has to exist is the thing the layer is
-	anchored to.
+	It checks the module, not its sidebar. Most modules have no `Sidebar` document, because their
+	base is computed from their contents, and those are customizable, readable and resettable on
+	the same terms as a shipped one. What must exist is what the layer is anchored to.
 	"""
 	if not frappe.db.exists("Module Def", module):
 		frappe.throw(_("{0} is not a module.").format(module))
@@ -264,16 +258,15 @@ def check_module(module: str) -> None:
 def resolve_arrangement(
 	items: list[dict], layers: list["CustomSidebar"]
 ) -> tuple[list[dict], dict[str, bool]]:
-	"""Fold each layer into `items`, in order, and hand back what came out and what is hidden.
+	"""Fold each layer into `items` in order, returning the result and which items are hidden.
 
-	The merge itself is `frappe.desk.layers`, which the dock resolves through too. What is the
-	sidebar's own is the two things handed over here -- how an item is identified (`item_key`)
-	and what a row does to the item it names (`apply_sidebar_row`).
+	The merge is `frappe.desk.layers`, which the dock also uses. The sidebar supplies the two
+	pieces passed in here: how an item is identified (`item_key`) and what a row does to the item
+	it names (`apply_sidebar_row`).
 
-	What to do about a hidden item is left to the caller, because the sidebar has two callers
-	that answer it differently: what renders drops one (`merge_layers`), and what the editor
-	opens on keeps it (`layer_arrangement`), since an editor that cannot see a hidden item
-	cannot offer to bring it back.
+	What to do with a hidden item is left to the caller, because the sidebar's two callers differ:
+	rendering drops it (`merge_layers`), and the editor keeps it (`layer_arrangement`), since an
+	editor that cannot see a hidden item cannot offer to bring it back.
 	"""
 	return resolve_layers(
 		items,
@@ -284,24 +277,24 @@ def resolve_arrangement(
 
 
 def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:
-	"""The arrangement as it renders: an item left hidden across all the layers is *removed*,
-	rather than rendered as hidden the way the dock renders one."""
+	"""Return the arrangement as it renders. An item left hidden by every layer is removed, rather
+	than rendered as hidden the way the dock renders one."""
 	resolved, hidden = resolve_arrangement(items, layers)
 
 	return [item for item in resolved if not hidden.get(item_key(item))]
 
 
 def apply_sidebar_row(row, item: dict | None) -> dict | None:
-	"""What one customization row does to the base item it names.
+	"""Apply one customization row to the base item it names.
 
-	An `added` row *is* an item, so it stands in for whatever the list holds under that key --
-	usually nothing. A reference row states an opinion about an item that is already there, and
-	`overrides` keeps that opinion short: a reference stores an opinion, never a copy.
+	An `added` row is an item, so it replaces whatever the list holds under that key, which is
+	usually nothing. A reference row overrides fields on an item that is already there, and
+	`overrides` keeps that to the fields it sets: a reference stores overrides, never a copy.
 
 	A reference naming an item the list does not hold returns `None` and is skipped rather than
-	errored. That is what makes an app re-authoring its sidebar non-fatal -- some rows survive by
-	coincidence, the rest simply stop applying -- and it is the same answer for a row naming an
-	item this user may not see, since the layers are applied after permission filtering.
+	raising. That makes an app re-authoring its sidebar non-fatal: some rows survive, the rest
+	stop applying. It is also the answer for a row naming an item this user may not see, since the
+	layers are applied after permission filtering.
 	"""
 	if row.added:
 		return shape_added_item(row)
@@ -313,16 +306,17 @@ def apply_sidebar_row(row, item: dict | None) -> dict | None:
 
 
 def overrides(row) -> dict:
-	"""What a reference row *opines* about the item it names. An empty field is no opinion.
+	"""Return what a reference row overrides on the item it names. An empty field overrides
+	nothing.
 
-	Membership is not here -- see `REFERENCE_FIELDS` -- because it is stated rather than opined,
-	and a blank one means "not a member" rather than "ask the layer below".
+	Membership is not included (see `REFERENCE_FIELDS`), because every row states it outright and
+	a blank value means "not a member" rather than "ask the layer below".
 	"""
 	return {field: row.get(field) for field in REFERENCE_FIELDS if row.get(field)}
 
 
 def shape_added_item(row) -> dict:
-	"""An added row, in the shape the boot payload uses for a base item."""
+	"""Return an added row in the shape the boot payload uses for a base item."""
 	item = {field: row.get(field) for field in ADDED_ITEM_FIELDS}
 	item.update(
 		{
@@ -338,47 +332,44 @@ def shape_added_item(row) -> dict:
 # ---------------------------------------------------------------------------------------
 # Read API: what the editor opens on
 #
-# One endpoint per layer, each carrying its own gate, the way the dock's reads and this
-# module's saves and resets do -- a single endpoint taking "which layer" would carry the gate
-# in a branch instead.
+# One endpoint per layer, each with its own gate, the same as the dock's reads and this module's
+# saves and resets. A single endpoint taking a layer name would put the gate in a branch instead.
 # ---------------------------------------------------------------------------------------
 
 
 def layer_arrangement(module: str, user: str | None) -> list[dict]:
-	"""`module`'s sidebar as one layer arranges it, with hidden items kept.
+	"""Return `module`'s sidebar as one layer arranges it, keeping hidden items.
 
-	What the editor opens on, and neither of the two answers that already exist. The boot
-	payload is the resolution for the reader, which drops a hidden item -- and an editor that
-	cannot see one cannot offer to bring it back. A layer's stored rows are a delta, and this
-	editor saves the whole arrangement rather than a delta.
+	This is what the editor opens on, and it differs from the two answers that already exist. The
+	boot payload is the resolution for the user and drops hidden items, and an editor that cannot
+	see a hidden item cannot offer to bring it back. A layer's stored rows are a delta, and this
+	editor saves the whole arrangement.
 
-	The layer being edited is included, so what comes back is the arrangement as it stands. An
-	*unarranged* layer therefore reads as **the layer below it, as that layer renders** -- the
-	rule the editor needs, got here rather than seeded in the client: a save writes the whole
-	arrangement, so starting from anything else would silently un-hide what a lower layer hid.
+	The layer being edited is included, so the result is the arrangement as it stands. An
+	unarranged layer therefore reads as the layer below it, as that layer renders. That rule is
+	applied here rather than seeded in the client, because a save writes the whole arrangement and
+	starting from anything else would silently un-hide what a lower layer hid.
 
-	`added` names only this layer's own added rows. An item a layer below added is a *reference*
-	from here, and saying otherwise would copy its body into this layer and freeze the label,
-	icon and link the layer below still owns -- the same failure `REFERENCE_FIELDS` exists to
-	prevent.
+	`added` marks only this layer's own added rows. An item added by a lower layer is a reference
+	from here; marking it as added would copy its body into this layer and freeze the label, icon
+	and link the lower layer owns, which is what `REFERENCE_FIELDS` exists to prevent.
 
-	The two layers disagree about the permission filter, the way the dock's two reads do. A
-	person's own arrangement is what is in front of *them*, so it is filtered. The site's is
-	not: who may see an item is a fact about the reader, applied to what each person boots, so
-	it is no part of what the site arranged -- and a curator handed a filtered screen would drop
-	the site's rows for everything they personally cannot see on the very next save, since this
-	editor writes the whole arrangement.
+	The two layers differ on the permission filter, the same as the dock's two reads. A user's own
+	arrangement is what is in front of them, so it is filtered. The site's is not: permission is a
+	fact about each user, applied to what they boot, so it is not part of what the site arranged.
+	A curator given a filtered screen would drop the site's rows for everything they personally
+	cannot see on the next save, since this editor writes the whole arrangement.
 
 	Private workspaces are absent, as they are from every stored arrangement: they are derived
-	after the merge, and `drop_private_workspaces` takes them back out of anything storing one.
+	after the merge, and `drop_private_workspaces` removes any that were stored.
 	"""
 	from frappe.desk.doctype.sidebar.sidebar import filter_sidebar_items, get_module_base
 
 	check_module(module)
 
 	base = get_module_base(module)
-	# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance to run on --
-	# one throwaway `Workspace`, exactly as `SidebarContext` builds for the boot.
+	# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance: one throwaway
+	# `Workspace`, the same as `SidebarContext` builds for the boot.
 	items = filter_sidebar_items(base.rows, frappe.new_doc("Workspace"), check_permission=bool(user))
 	resolved, hidden = resolve_arrangement(items, get_layers(module, user))
 
@@ -397,7 +388,7 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 
 @frappe.whitelist()
 def get_user_sidebar_layer(module: str) -> list[dict]:
-	"""How this person has `module`'s sidebar arranged. No gate: it is theirs."""
+	"""Return how this user has `module`'s sidebar arranged. No gate, because it is theirs."""
 	return layer_arrangement(module, frappe.session.user)
 
 
@@ -413,7 +404,7 @@ def get_site_sidebar_layer(module: str) -> list[dict]:
 
 
 def module_payload(**extra) -> dict:
-	"""The desk state a customization write invalidates, for the client to swap in place."""
+	"""Return the desk state a customization write invalidates, for the client to swap in."""
 	from frappe.boot import build_entity_module_map, get_module_sidebars
 
 	module_sidebars = get_module_sidebars()
@@ -430,10 +421,10 @@ def save_sidebar_customization(
 ):
 	"""Save the session user's arrangement of a module's sidebar.
 
-	`items` is the whole ordered arrangement the client is showing -- the shape a Sortable
-	produces -- not a delta. A row naming a base item carries `key` and whatever the user has
-	an opinion about; a row the user added carries `added: 1` and the item itself. Omitted, the
-	arrangement is left as it stands, which is what lets the header be renamed on its own.
+	`items` is the whole ordered arrangement the client is showing, the shape a Sortable produces,
+	not a delta. A row naming a base item carries `key` plus whatever the user overrode; a row the
+	user added carries `added: 1` and the item itself. If `items` is omitted the arrangement is
+	left as it is, which is what lets the header be renamed on its own.
 	"""
 	return _save_customization(module, items, user=frappe.session.user, label=label, header_icon=header_icon)
 
@@ -442,7 +433,8 @@ def save_sidebar_customization(
 def save_site_sidebar(
 	module: str, items: list | str | None = None, label: str | None = None, header_icon: str | None = None
 ):
-	"""Save the site-wide layer, which applies to everyone a user's own layer does not override."""
+	"""Save the site-wide layer, which applies to every user whose own layer does not override
+	it."""
 	check_workspace_manager(_("You need to be Workspace Manager to change this for everyone."))
 	return _save_customization(module, items, user=None, label=label, header_icon=header_icon)
 
@@ -461,23 +453,21 @@ def reset_site_sidebar(module: str):
 
 @frappe.whitelist()
 def reset_to_standard(module: str):
-	"""Take every layer off `module`, so it goes back to using its `Sidebar`.
+	"""Remove every layer from `module`, so it goes back to using its `Sidebar`.
 
-	The other two resets each drop one layer and let the next one show through. This drops the
-	lot: after it there is no `Custom Sidebar` for the module at all, and what everybody sees is
-	the arrangement the app ships -- or, for a module no app shipped one for, its computed base.
-	That is what makes it "to Standard" rather than "one layer down". `Workspace` offers the
-	same action under the same name, for the same reason and behind the same right.
+	The other two resets drop one layer and let the next show through. This drops all of them:
+	afterwards there is no `Custom Sidebar` for the module, and everyone sees the arrangement the
+	app ships, or the computed base for a module no app shipped one for. That is why it is called
+	"to Standard" rather than "one layer down". `Workspace` offers the same action under the same
+	name and behind the same permission.
 
-	It reaches **everyone's** layer, not just the site's and the caller's. A person whose own
-	arrangement survived would not be using the module's `Sidebar`, which is the whole of what
-	this promises -- so the promise would only hold for whoever happened not to have customized
-	it. Discarding other people's work is the cost, and it is why this asks before it runs and
-	why it is behind the right to curate for everyone.
+	It reaches every user's layer, not just the site's and the caller's. A user whose own
+	arrangement survived would not be using the module's `Sidebar`, so the promise would only hold
+	for users who had not customized it. The cost is discarding other users' work, which is why
+	this confirms before it runs and is behind the right to curate for everyone.
 
-	Deleted row by row rather than in one statement, so each layer's `on_trash` runs: a person's
-	own arrangement invalidates their boot cache and nobody else's, and only the document knows
-	whose.
+	The rows are deleted one at a time so each layer's `on_trash` runs: a user's own arrangement
+	invalidates their boot cache and nobody else's, and only the document knows whose.
 	"""
 	check_workspace_manager(_("You need to be Workspace Manager to reset this for everyone."))
 	check_module(module)
@@ -489,15 +479,16 @@ def reset_to_standard(module: str):
 
 
 def add_site_sidebar_item(module: str, item: dict) -> None:
-	"""Append one item to the site-wide layer, leaving the rest of it alone.
+	"""Append one item to the site-wide layer, leaving the rest unchanged.
 
-	The caller for this is the system noticing that something on the site needs a way in --
-	a workspace someone just created. That is site intent, and the base is app content the site
-	may not write to, so it lands here.
+	The caller is the system noticing that something on the site needs a way in, such as a
+	workspace someone just created. That is site intent, and the base is app content the site
+	cannot write to, so it goes here.
 
-	Not `save_site_sidebar`, which replaces the whole arrangement: right when a person has just
-	arranged it, wrong when one row is being added, because it would drop every preference the
-	site had recorded. Skips an item already present, so the caller need not remember.
+	This is not `save_site_sidebar`, which replaces the whole arrangement. That is right when a
+	user has just arranged it and wrong when one row is added, because it would drop every
+	preference the site had recorded. An item already present is skipped, so the caller does not
+	have to check.
 	"""
 	existing = get_customization(module, None)
 	doc = (
@@ -510,8 +501,8 @@ def add_site_sidebar_item(module: str, item: dict) -> None:
 		return
 
 	doc.append("sidebar_items", {**item, "added": 1})
-	# ignore_permissions: creating a workspace is what earned this row, and the arrangement is
-	# re-filtered through permissions on every boot regardless of what is stored here
+	# ignore_permissions: creating the workspace is what earned this row, and the arrangement is
+	# re-filtered by permissions on every boot whatever is stored here.
 	doc.save(ignore_permissions=True)
 
 
@@ -545,27 +536,28 @@ def _save_customization(
 		for row in rows:
 			doc.append("sidebar_items", row)
 
-	# ignore_permissions: a user arranging their own sidebar need not hold write access to
-	# this doctype. Only their own layer is touched, and the arrangement is re-filtered
-	# through permissions on every boot regardless of what is stored here.
+	# ignore_permissions: a user arranging their own sidebar does not need write access to this
+	# doctype. Only their own layer is touched, and the arrangement is re-filtered by permissions
+	# on every boot whatever is stored here.
 	doc.save(ignore_permissions=True)
 
 	return module_payload()
 
 
 def shape_row(row: dict) -> dict:
-	"""One row of a saved arrangement, narrowed to what its kind is allowed to carry.
+	"""Narrow one row of a saved arrangement to what its kind may carry.
 
-	A reference keeps what names the item it refers to -- its link columns, or the `key` it was
-	shown for a row that has no link -- plus what the arrangement says about it (`hidden` and
-	`child`) and the two fields a person can have an opinion about. Everything else the client
-	echoed back is dropped here rather than stored.
-	That is the whole defence against the failure mode that killed full-body storage -- a
-	stored body carries the label, icon, link and filters whether or not the user has a view on
-	them, so one reorder would freeze the site's and the app's forever.
+	A reference keeps what names the item it refers to, which is its link columns or the `key` it
+	was shown for a row with no link, plus what the arrangement says about it (`hidden` and
+	`child`) and the two fields a user can override. Everything else the client echoed back is
+	dropped rather than stored.
 
-	The link columns are not a body: they are the row's identity, kept in real columns so a
-	rename repairs the reference and the base item it names in the same statement.
+	That is what prevents the failure that ruled out full-body storage: a stored body carries the
+	label, icon, link and filters whether or not the user changed them, so one reorder would
+	freeze the site's and the app's values forever.
+
+	The link columns are not a body. They are the row's identity, kept in real columns so a rename
+	repairs the reference and the base item it names in one statement.
 	"""
 	shaped = {
 		**{field: row.get(field) for field in LINKED_IDENTITY_FIELDS},
@@ -577,29 +569,28 @@ def shape_row(row: dict) -> dict:
 
 	if shaped["added"]:
 		shaped.update({field: row.get(field) for field in ADDED_ITEM_FIELDS})
-		# the boot payload calls it `tab`; the row calls it what the base row calls it
+		# The boot payload calls this `tab`; the row uses the base row's column name.
 		shaped["navigate_to_tab"] = row.get("navigate_to_tab") or row.get("tab")
 
-	# Which section the row is in, stated last so it is one statement for both kinds of row. It
-	# is kept whatever the row's kind, because where an entry sits is arrangement and every row
-	# of a saved arrangement carries its own.
+	# Which section the row is in, set last so one statement covers both kinds of row. It is kept
+	# for every kind, because where an entry sits is arrangement and every row of a saved
+	# arrangement carries its own.
 	shaped["child"] = int(row.get("child") or 0)
 
 	return shaped
 
 
 def settle_references(module: str, rows: list[dict], user: str | None) -> None:
-	"""Resolve what the layer being saved was looking at, and settle its references against it:
-	what each row *names*, and then what it actually *says*.
+	"""Resolve what the layer being saved was looking at and settle its references against it:
+	first what each row names, then what it actually overrides.
 
-	One base resolution for both, and none at all for an arrangement of nothing but added items
-	-- and it happens when a person clicks, not when the desk boots.
+	One base resolution serves both steps, and an arrangement of nothing but added items needs
+	none. It runs when a user saves, not when the desk boots.
 
-	Hidden items are kept in that resolution rather than dropped. A save may name one: the
-	editor shows what a layer below hid so it can be brought back, and a row bringing one back
-	is naming an item that is really there -- so it deserves to be anchored by its columns, and
-	the label it echoed back deserves to be recognised as inherited rather than stored as this
-	person's opinion of it.
+	Hidden items are kept in that resolution rather than dropped, because a save may name one: the
+	editor shows what a lower layer hid so it can be brought back. A row bringing one back names
+	an item that exists, so it should be anchored by its columns, and the label it echoed back
+	should be recognised as inherited rather than stored as this user's override.
 	"""
 	references = [row for row in rows if not row["added"]]
 	if not references:
@@ -614,14 +605,14 @@ def settle_references(module: str, rows: list[dict], user: str | None) -> None:
 def anchor_references(rows: list[dict], shown: dict[str, dict]) -> None:
 	"""Store each reference the way the model names the item it refers to.
 
-	A client may name an item however it likes -- echoing the whole row back, or sending only
-	the `key` the payload gave it. What gets *stored* is canonical either way: a linked item's
-	own columns, so that a rename repairs the reference and the base row together in one
-	statement; an unlinked item's key, since it has no columns to be named by.
+	A client may name an item in any of several ways, echoing the whole row back or sending only
+	the `key` the payload gave it. What gets stored is canonical either way: a linked item's own
+	columns, so a rename repairs the reference and the base row in one statement, or an unlinked
+	item's key, since it has no columns to be named by.
 
-	A reference to something not in front of the saver is left exactly as it arrived. It names
-	an item that is not there and simply stops applying -- which is also what an app deleting
-	an item does to a delta that survived it.
+	A reference to something the saver was not shown is stored as it arrived. It names an item
+	that is not there and stops applying, which is also what an app deleting an item does to a
+	delta that named it.
 	"""
 	for row in rows:
 		item = shown.get(item_key(row))
@@ -633,19 +624,19 @@ def anchor_references(rows: list[dict], shown: dict[str, dict]) -> None:
 			row.update({field: item.get(field) for field in LINKED_IDENTITY_FIELDS})
 			row["key"] = None
 		else:
-			# nowhere to point, so the columns say nothing and the key says everything
+			# Nothing to point at, so the columns are cleared and the key carries the identity.
 			row.update(dict.fromkeys(("link_type", "link_to", "url")))
 			row["key"] = item_key(item)
 
 
 def drop_inherited_values(rows: list[dict], shown: dict[str, dict]) -> None:
-	"""Blank out what a reference row only echoes back from the layer below it.
+	"""Blank any field a reference row only echoes back from the layer below it.
 
-	The client sends the arrangement it is *showing*, which carries the labels and icons it was
-	given. Stored as-is they would stop being inheritance and start being opinion: an item the
-	user never touched would keep the label it happened to have on the day they reordered, and
-	neither the site's relabel nor the app's would ever reach them again. Equal to what they
-	were shown means they said nothing.
+	The client sends the arrangement it is showing, which carries the labels and icons it was
+	given. Stored as-is those would become overrides rather than inheritance: an item the user
+	never touched would keep the label it had when they reordered, and neither the site's relabel
+	nor the app's would reach them again. A value equal to what the user was shown is not an
+	override.
 	"""
 	for row in rows:
 		item = shown.get(item_key(row)) or {}
@@ -656,15 +647,15 @@ def drop_inherited_values(rows: list[dict], shown: dict[str, dict]) -> None:
 
 
 def layers_below(module: str, user: str | None) -> list["CustomSidebar"]:
-	"""The layers already applied to what the layer being saved was shown."""
+	"""Return the layers already applied to what the layer being saved was shown."""
 	return get_layers(module, None) if user else []
 
 
 def base_items(module: str) -> list[dict]:
-	"""The module's base rows, unfiltered.
+	"""Return the module's base rows, unfiltered.
 
-	Not permission-filtered, and not meant to be: this is only ever compared against, so an
-	item the saver cannot see simply never matches a row they sent.
+	They are not permission-filtered on purpose. These rows are only compared against, so an item
+	the saver cannot see never matches a row they sent.
 	"""
 	from frappe.desk.doctype.sidebar.sidebar import get_module_base
 
@@ -684,11 +675,11 @@ def _reset(module: str, user: str | None):
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-	"""A Workspace Manager curates the site; everyone else has only their own layer.
+	"""Allow a Workspace Manager to curate the site; everyone else gets only their own layer.
 
-	The document-level half of the same gate the endpoints hold: without it a plain Desk User
-	could write the site layer straight from the form and make one person's preference into
-	everybody's navigation.
+	This is the document-level half of the gate the endpoints hold. Without it a plain Desk User
+	could write the site layer from the form and turn one user's preference into everyone's
+	navigation.
 	"""
 	user = user or frappe.session.user
 	if user == "Administrator" or is_workspace_manager(user):
@@ -698,10 +689,10 @@ def has_permission(doc, ptype="read", user=None, debug=False):
 
 
 def get_permission_query_conditions(user=None):
-	"""Everyone but a Workspace Manager lists only their own layer.
+	"""Restrict list queries so everyone but a Workspace Manager sees only their own layer.
 
-	This is also what keeps one person's preferences out of everybody else's reads -- reports,
-	the API and the desk's export all go through it.
+	It also keeps one user's preferences out of everyone else's reads, since reports, the API and
+	the desk's export all go through it.
 	"""
 	user = user or frappe.session.user
 	if user == "Administrator" or is_workspace_manager(user):

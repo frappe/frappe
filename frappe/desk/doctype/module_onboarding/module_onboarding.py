@@ -89,30 +89,29 @@ class ModuleOnboarding(Document):
 		self.save()
 
 
-# The role every onboarding is visible to, whatever it lists. Mirrors `get_allowed_roles`; the
-# two are the same rule read from opposite ends -- one document at a time, and the whole site at
-# once -- and must not drift.
+# The role every onboarding is visible to, whatever it lists. This mirrors `get_allowed_roles`:
+# the two are the same rule read from opposite ends, one document at a time and the whole site at
+# once, and must stay in step.
 IMPLICIT_ROLE = "System Manager"
 
 
 def get_permitted_onboardings() -> dict[str, str]:
-	"""The onboarding each module offers *this user*, keyed by module.
+	"""Return the onboarding each module offers this user, keyed by module.
 
-	This replaces the `Sidebar.module_onboarding` pointer, and is strictly better than
-	it: a stored pointer names one onboarding regardless of who is looking, so it either
-	bypassed the role check the onboarding itself declares or showed a panel that then refused
-	to load. Asking which onboardings the user's roles allow answers both questions at once,
-	and answers them per user.
+	This replaces the `Sidebar.module_onboarding` pointer. A stored pointer names one onboarding
+	regardless of who is looking, so it either bypassed the role check the onboarding declares or
+	showed a panel that then refused to load. Asking which onboardings the user's roles allow
+	answers both questions, per user.
 
-	A module may have more than one -- `Module Onboarding` is named by prompt, not by module --
-	so the pick has to be deterministic rather than whichever row the database returned first:
-	**the earliest-created among the ones this user is allowed**. Creation order is stable
-	across sites and re-imports, and it means an app adding a second onboarding does not move
-	everyone off the one they were already working through.
+	A module may have more than one, because `Module Onboarding` is named by prompt rather than by
+	module, so the choice has to be deterministic instead of whichever row the database returned
+	first. It picks the earliest-created onboarding this user is allowed. Creation order is stable
+	across sites and re-imports, so an app adding a second onboarding does not move everyone off
+	the one they were working through.
 
-	Roles only. Whether the onboarding is *finished*, and whether the site enables onboarding
-	at all, stay with `get_onboarding_data`, which is what loads it -- a module that offers an
-	onboarding you may see does not stop offering it the moment you complete it.
+	This checks roles only. Whether the onboarding is finished, and whether the site enables
+	onboarding at all, stay with `get_onboarding_data`, which loads it. A module that offers an
+	onboarding you may see does not stop offering it once you complete it.
 	"""
 	onboardings = frappe.get_all("Module Onboarding", fields=["name", "module"], order_by="creation asc")
 	if not onboardings:

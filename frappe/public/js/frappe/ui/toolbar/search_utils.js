@@ -371,7 +371,7 @@ frappe.search.utils = {
 
 	// Search covers every workspace the user is permitted (`frappe.workspaces`), not just those
 	// carrying sidebar items. That matters because a rail only lists the entries its app's `Dock`
-	// record names -- for a workspace no record names, search is the way back to it.
+	// record names, so for a workspace no record names, search is the way back to it.
 	get_workspaces: function (keywords) {
 		var me = this;
 		var out = [];

@@ -2111,8 +2111,8 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 
 		if "tabModule Def" in frappe.db.get_tables():
 			# A doctype arriving from an app brings its module with it. If the site holds that
-			# name with a custom module of its own, the app wins it and the site's module moves
-			# aside -- otherwise this does nothing, which is every ordinary save.
+			# name with a custom module of its own, the app takes it and the site's module is
+			# renamed. Otherwise this does nothing, which is the case for every ordinary save.
 			from frappe.installer import reclaim_module_name_for_its_app
 
 			reclaim_module_name_for_its_app(doc.module)

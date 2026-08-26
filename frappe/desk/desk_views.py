@@ -155,7 +155,7 @@ class DeskViews:
 		is_report = parent == "Report"
 
 		# `module` is selected for both so the client can resolve a Page's or Report's home sidebar
-		# from boot data alone -- only a DocType's module comes from its meta.
+		# from boot data alone. Only a DocType's module comes from its meta.
 		if is_report:
 			columns = (report.name.as_("title"), report.ref_doctype, report.report_type, report.module)
 		else:

@@ -91,10 +91,10 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		// The module whose sidebar this item is in, read off the sidebar rather than out of the
 		// DOM. It keys the collapsed/expanded state of section breaks in localStorage.
 		//
-		// It used to read `data-title` and lowercase it, falling back to `sidebar.sidebar_title`
-		// -- a property that no longer exists, so the fallback was always undefined and every
-		// module would have shared one state. The lowercasing made it a fourth keyspace in a
-		// change whose whole point was to have one: the exact-case module name.
+		// It used to read `data-title` and lowercase it, falling back to `sidebar.sidebar_title`,
+		// a property that no longer exists, so the fallback was always undefined and every module
+		// shared one state. The lowercasing also made it a fourth keyspace, in a change whose
+		// point was to have one: the exact-case module name.
 		this.current_module = frappe.app.sidebar.current_module;
 		this.prepare(opts);
 		this.make();

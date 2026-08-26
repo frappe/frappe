@@ -1410,12 +1410,11 @@ Object.assign(frappe.utils, {
 	},
 	// The boot entry for a module's own shell, or undefined.
 	//
-	// `frappe.boot.module_sidebars` is keyed by SHELL -- a `Sidebar` document's name, or the
-	// module's name where the base was computed -- and a sidebar is named after its module unless
-	// somebody deliberately named it something else. So a module is its own key for all but the
-	// divergent few, and those are found by the `module` every entry carries. That is one pass over
-	// a payload already in memory; there is no module-to-shell index in the boot, deliberately,
-	// because the naming rule is what answers this.
+	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's
+	// name where the base was computed. A sidebar is named after its module unless it was renamed,
+	// so a module is its own key in almost every case, and the renamed ones are found by the
+	// `module` every entry carries. That is one pass over a payload already in memory. There is no
+	// module-to-shell index in the boot, because the naming rule answers this.
 	sidebar_for_module(module) {
 		if (!module) return undefined;
 		const all = frappe.boot.module_sidebars || {};

@@ -430,12 +430,12 @@ use_json_request_body = True
 # 	}}
 # ]
 
-# The dock -- the rail down the left of the desk -- is a document rather than a hook. Author it
-# in Manage Dock on a developer-mode site and press Export to App, and it is written to
-# `{app_name}/dock/{app_name}/{app_name}.json` for git to carry. An app that ships none has no rail:
-# its sidebar grows a switcher in the header instead.
+# The dock, the rail down the left of the desk, is a document rather than a hook. Author it in
+# Manage Dock on a developer-mode site and press Export to App, and it is written to
+# `{app_name}/dock/{app_name}/{app_name}.json` for git to carry. An app that ships none has no
+# rail: its sidebar gets a switcher in the header instead.
 #
-# A companion app -- one that extends a host app rather than standing on its own -- says so with
+# A companion app, one that extends a host app rather than standing on its own, says so with
 # `mount_on` on that same record, and its entries are appended to the host's rail. Mounting keeps
 # the companion off the apps screen, so it takes precedence over any add_to_apps_screen above.
 

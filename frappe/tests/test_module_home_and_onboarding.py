@@ -19,8 +19,9 @@ ROLE = "Test Derived Home Role"
 
 
 class DerivedHomeTestCase(IntegrationTestCase):
-	"""D5 -- a module lands you on the first thing you can actually open, and offers an
-	onboarding only when one exists that you are allowed to see. Neither is stored."""
+	"""D5: a module lands you on the first thing you can open, and offers an onboarding only when
+	one exists that you are allowed to see. Neither is stored.
+	"""
 
 	def setUp(self):
 		self.as_user("Administrator")
@@ -101,7 +102,7 @@ class DerivedHomeTestCase(IntegrationTestCase):
 		}
 
 	def resolved(self, module: str):
-		"""What `module` resolves to for the session user -- label, icon, Landing, entries."""
+		"""What `module` resolves to for the session user: label, icon, landing and entries."""
 		return resolve_sidebar(module, frappe.session.user)
 
 	def home(self, module: str) -> str | None:
@@ -129,9 +130,10 @@ class DerivedHomeTestCase(IntegrationTestCase):
 
 class TestHomeIsTheFirstNavigableItem(DerivedHomeTestCase):
 	def test_the_stored_pointers_are_gone_from_the_model(self):
-		"""Not moved to the customization -- removed. Both questions are now answered from
-		what the module already holds, so there is nothing left to store, validate, hand off
-		when its target is deleted, or keep in step with permissions."""
+		"""They are removed rather than moved to the customization. Both questions are now answered
+		from what the module already holds, so there is nothing left to store, validate, hand off when
+		its target is deleted, or keep in step with permissions.
+		"""
 		fieldnames = {df.fieldname for df in frappe.get_meta("Sidebar").fields}
 
 		self.assertNotIn("home_workspace", fieldnames)
@@ -146,9 +148,10 @@ class TestHomeIsTheFirstNavigableItem(DerivedHomeTestCase):
 			self.assertEqual(self.home(module), "/desk/test-derived-home-first")
 
 	def test_a_user_who_cannot_see_the_first_item_lands_on_the_first_they_can(self):
-		"""The point of deriving it: home resolves *after* permission filtering, so it can
-		only ever name something this user can open. A stored pointer resolved before the
-		filter and could send someone to a page that then refused them."""
+		"""The point of deriving it: home resolves after permission filtering, so it can only name
+		something this user can open. A stored pointer resolved before the filter and could send
+		someone to a page that then refused them.
+		"""
 		role = self.make_role()
 		user = self.make_user(roles=[role])
 
@@ -165,13 +168,15 @@ class TestHomeIsTheFirstNavigableItem(DerivedHomeTestCase):
 				self.assertEqual(self.home(module), "/desk/test-derived-home-open")
 
 	def test_a_deleted_workspace_needs_no_hand_off(self):
-		"""What the stored pointer needed a release step for. An item naming a workspace that
-		is gone fails the same permission filter every other item goes through, so the module
-		opens on the next one -- with nothing written when it was deleted.
+		"""What the stored pointer needed a release step for. An item naming a workspace that is gone
+		fails the same permission filter every other item goes through, so the module opens on the
+		next one, with nothing written when it was deleted.
 
-		Administrator bypasses that filter by definition and so still sees the dead item. It
-		leads nowhere either way: the server declines to route it rather than handing out a
-		path to a page that is not there."""
+		Administrator bypasses that filter by definition and still sees the dead item. It leads nowhere
+		either way: the server declines to route it rather than handing out a path to a page that is
+		not there.
+
+		"""
 		user = self.make_user(roles=[self.make_role()])
 
 		with custom_module("Test Derived Home Deletion Module") as module:
@@ -189,8 +194,9 @@ class TestHomeIsTheFirstNavigableItem(DerivedHomeTestCase):
 
 
 class TestReorderingMovesTheLandingPage(DerivedHomeTestCase):
-	"""Customizable at every layer for free: reordering is the mechanism, and it already
-	exists at both layers."""
+	"""Customizable at every layer for free: reordering is the mechanism, and it already exists at
+	both layers.
+	"""
 
 	def test_the_site_layer_moves_it_for_everyone(self):
 		role = self.make_role()
@@ -226,8 +232,9 @@ class TestReorderingMovesTheLandingPage(DerivedHomeTestCase):
 
 
 class TestOnboardingIsOfferedByRole(DerivedHomeTestCase):
-	"""Whether a module onboarding exists whose roles you hold -- not a stored pointer that
-	named one regardless of who was looking."""
+	"""Whether a module onboarding exists whose roles you hold, rather than a stored pointer that
+	named one regardless of who was looking.
+	"""
 
 	def make_onboarding(self, name: str, module: str, roles: list[str]):
 		with no_developer_mode():
@@ -270,8 +277,9 @@ class TestOnboardingIsOfferedByRole(DerivedHomeTestCase):
 				self.assertEqual(self.onboarding_of(module), "Test Role Gated Onboarding")
 
 	def test_a_user_holding_none_of_its_roles_is_offered_nothing(self):
-		"""The check the stored pointer bypassed: it named the onboarding for everybody, and
-		the panel then loaded empty for anyone the onboarding itself refused."""
+		"""The check the stored pointer bypassed: it named the onboarding for everybody, and the panel
+		then loaded empty for anyone the onboarding itself refused.
+		"""
 		gate = self.make_role("Test Onboarding Gate Role")
 		outsider = self.make_user(roles=[self.make_role()])
 
@@ -283,8 +291,9 @@ class TestOnboardingIsOfferedByRole(DerivedHomeTestCase):
 				self.assertIsNone(self.onboarding_of(module))
 
 	def test_a_system_manager_is_always_allowed(self):
-		"""`get_allowed_roles` adds System Manager to whatever an onboarding lists, and this
-		is the same rule read for the whole site at once -- the two must not drift."""
+		"""`get_allowed_roles` adds System Manager to whatever an onboarding lists, and this is the
+		same rule read for the whole site at once. The two must stay in step.
+		"""
 		gate = self.make_role("Test Onboarding Gate Role")
 		manager = self.make_user(roles=["System Manager"])
 
@@ -296,8 +305,9 @@ class TestOnboardingIsOfferedByRole(DerivedHomeTestCase):
 				self.assertEqual(self.onboarding_of(module), "Test Manager Onboarding")
 
 	def test_the_earlier_created_permitted_one_wins(self):
-		"""A module may have two -- `Module Onboarding` is named by prompt, not by module --
-		so the pick has to be deterministic rather than whichever row came back first."""
+		"""A module may have two, since `Module Onboarding` is named by prompt rather than by module,
+		so the choice has to be deterministic rather than whichever row came back first.
+		"""
 		role = self.make_role()
 		holder = self.make_user(roles=[role])
 
@@ -313,8 +323,9 @@ class TestOnboardingIsOfferedByRole(DerivedHomeTestCase):
 				self.assertEqual(self.onboarding_of(module), "Test Earlier Onboarding")
 
 	def test_an_earlier_one_the_user_may_not_see_does_not_shadow_a_later_one(self):
-		"""Permitted first, earliest second. Ordering before filtering would leave a user with
-		no onboarding at all whenever the module's first was for somebody else."""
+		"""Permitted first, earliest second. Ordering before filtering would leave a user with no
+		onboarding at all whenever the module's first was for somebody else.
+		"""
 		gate = self.make_role("Test Onboarding Gate Role")
 		role = self.make_role()
 		holder = self.make_user(roles=[role])

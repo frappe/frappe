@@ -3,7 +3,7 @@ import click
 import frappe
 
 # Where a workspace goes when nothing says where it belongs. Both are custom modules the site
-# owns rather than modules any app ships -- see `ensure_module`.
+# owns rather than modules any app ships. See `ensure_module`.
 PRIVATE_MODULE = "Private"
 CUSTOM_MODULE = "Custom Workspaces"
 

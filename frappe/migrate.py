@@ -123,9 +123,9 @@ class SiteMigration:
 		"""Registers modules declared since the last migrate, then executes `before_migrate` hooks"""
 		from frappe.installer import sync_module_defs
 
-		# Before the hooks, and before either patch pass, because everything downstream that
-		# names a module -- a patch, a workspace, a module sidebar -- needs the row to exist
-		# first. A module an app added after it was installed has none until this runs.
+		# This runs before the hooks and before either patch pass, because everything downstream
+		# that names a module, such as a patch, a workspace or a module sidebar, needs the row to
+		# exist first. A module an app added after it was installed has no row until this runs.
 		if added := sync_module_defs():
 			print(f"Registered new modules: {comma_and(added, add_quotes=False)}")
 

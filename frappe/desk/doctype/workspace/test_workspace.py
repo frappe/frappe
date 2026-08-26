@@ -130,8 +130,8 @@ class TestWorkspace(IntegrationTestCase):
 			workspace.title = "Legacy Duplicate Workspace Renamed"
 			workspace.save()
 
-			# deepening the existing clash -- a *third* row under the grandfathered label -- is a
-			# new duplicate all the same, so it is still refused
+			# Deepening the existing clash with a third row under the grandfathered label is
+			# still a new duplicate, so it is refused.
 			workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Tasks"})
 			with self.assertRaises(frappe.ValidationError):
 				workspace.save()
@@ -176,10 +176,11 @@ class TestWorkspace(IntegrationTestCase):
 class TestWorkspaceAccessLevels(IntegrationTestCase):
 	"""All three levels survive, and only a Workspace Manager may reach past the first.
 
-	What `public` decides is whether a page is in anybody's navigation but its owner's, so it
-	is the level a plain Desk User is never offered -- nobody publishes a page into everyone's
-	navigation by accident. The dialog offers them "Only to you" and nothing else; this is the
-	same answer given where it counts.
+	`public` decides whether a page is in anybody's navigation but its owner's, so it is the level a
+	plain Desk User is never offered: nobody publishes a page into everyone's navigation by accident.
+	The dialog offers them "Only to you" and nothing else, and this asserts the same answer where it
+	is enforced.
+
 	"""
 
 	MODULE = "Test Access Level Module"
@@ -226,8 +227,8 @@ class TestWorkspaceAccessLevels(IntegrationTestCase):
 		from frappe.desk.doctype.workspace.workspace import new_page
 
 		frappe.set_user(self.DESK_USER)
-		# the label carries the owner, which is what keeps two people's pages of the same name
-		# apart -- `Workspace` is named after it
+		# The label carries the owner, which is what keeps two users' pages of the same name
+		# apart, and `Workspace` is named after it.
 		name = f"Test Desk User Private Page-{self.DESK_USER}"
 		new_page(self.page("Test Desk User Private Page", label=name, for_user=self.DESK_USER))
 
@@ -411,9 +412,10 @@ class TestBothDoorsToTheModule(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Workspace", name, "module"), self.MODULE)
 
 	def test_the_settings_endpoint_refuses_it_too(self):
-		"""The door that used to let it through. A workspace filed under a module the reader
-		cannot see is one nothing can navigate to -- `get_navigable_modules` drops the module
-		before its sidebar is ever built."""
+		"""The door that used to let it through. A workspace filed under a module the user cannot see
+		is one nothing can navigate to, because `get_navigable_modules` drops the module before its
+		sidebar is built.
+		"""
 		from frappe.desk.doctype.workspace.workspace import update_workspace_settings
 
 		name = self.make_page()

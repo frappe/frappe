@@ -25,9 +25,9 @@ from frappe.desk.doctype.sidebar.test_sidebar import (
 )
 from frappe.tests import IntegrationTestCase
 
-# Any module the dock can take you to will do -- these tests are about the layers, not about
+# Any module the dock can take you to will do, since these tests are about the layers rather than
 # this module. Not `Core`: it is a `code_only_modules` module now, so `get_navigable_modules`
-# skips it and the payload has no key for it at all.
+# skips it and the payload has no key for it.
 MODULE = "Users"
 USER = "test-sidebar-custom@example.com"
 MANAGER = "test-sidebar-manager@example.com"
@@ -64,7 +64,7 @@ class CustomizationTestCase(IntegrationTestCase):
 		frappe.clear_cache(user=USER)
 
 	def resolved(self, module: str = MODULE):
-		"""What `module` resolves to for the session user -- the seam every layer lands in."""
+		"""What `module` resolves to for the session user, which is where every layer lands."""
 		return resolve_sidebar(module, frappe.session.user)
 
 	def base_items(self, module: str = MODULE):
@@ -88,10 +88,11 @@ class TestSidebarCustomization(CustomizationTestCase):
 		self.assertFalse(self.resolved().customized)
 
 	def test_the_layers_cost_one_query_however_many_modules(self):
-		"""The cost-control story, stated as the thing that is actually true: which layers apply
-		is a question about the reader, so it is asked once per resolution rather than once per
-		module. Asserted against a real set of modules, because the failure this guards against
-		is a lookup that quietly moved back inside the loop."""
+		"""The cost-control claim, stated as what is true: which layers apply depends on the user, so
+		it is asked once per resolution rather than once per module. It is asserted against a real set
+		of modules, because the failure this guards against is a lookup that quietly moved back inside
+		the loop.
+		"""
 		from frappe.desk.doctype.sidebar.sidebar import get_navigable_modules
 
 		modules = get_navigable_modules()
@@ -102,7 +103,8 @@ class TestSidebarCustomization(CustomizationTestCase):
 
 	def test_a_layer_is_found_however_the_site_row_spells_unset(self):
 		"""A blank Link stores as `''` or as NULL depending on how the row was written, and both
-		spellings are the site layer."""
+		spellings are the site layer.
+		"""
 		save_site_sidebar(MODULE, json.dumps([]), label="Site Says")
 		name = frappe.db.get_value("Custom Sidebar", {"module": MODULE})
 		frappe.db.set_value("Custom Sidebar", name, "user", None, update_modified=False)
@@ -136,8 +138,9 @@ class TestSidebarCustomization(CustomizationTestCase):
 		self.assertEqual(item["icon"], "star")
 
 	def test_reorder_puts_named_items_first(self):
-		"""Base items the layer never named keep their order and follow the ones it did, so an
-		app adding an item still surfaces for someone who has already reordered."""
+		"""Base items the layer never named keep their order and follow the ones it did, so an app
+		adding an item still reaches someone who has already reordered.
+		"""
 		items = self.base_items()
 		last = items[-1]
 
@@ -147,8 +150,9 @@ class TestSidebarCustomization(CustomizationTestCase):
 		self.assertEqual(self.keys()[0], last["key"])
 
 	def test_unknown_key_is_skipped_not_errored(self):
-		"""What makes an app re-authoring its sidebar non-fatal, and what an item the app has
-		since deleted meets."""
+		"""What makes an app re-authoring its sidebar non-fatal, and what happens to an item the app
+		has since deleted.
+		"""
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([{"key": "no-such-key-000", "hidden": 1}]))
 
@@ -164,8 +168,9 @@ class TestSidebarCustomization(CustomizationTestCase):
 		self.assertIsNone(self.resolved())
 
 	def test_user_layer_overrides_site_layer(self):
-		"""A user's `hidden: 0` un-hides what the site hid -- which is the whole reason `hidden`
-		is a field rather than the row's presence."""
+		"""A user's `hidden: 0` un-hides what the site hid, which is why `hidden` is a field rather
+		than the row's presence.
+		"""
 		items = self.base_items()
 		target = next(i for i in items if i["type"] != "Section Break")
 
@@ -190,8 +195,9 @@ class TestSidebarCustomization(CustomizationTestCase):
 		self.assertIn("Mine", [item["label"] for item in self.items()])
 
 	def test_an_added_item_sits_where_it_was_put(self):
-		"""One ordered table for references and additions alike, which is what stops an added
-		item being pinned to the end of the list."""
+		"""One ordered table for references and additions alike, which is what stops an added item
+		being pinned to the end of the list.
+		"""
 		items = self.base_items()
 		first, second = items[0], items[1]
 
@@ -234,8 +240,9 @@ class TestSidebarCustomization(CustomizationTestCase):
 		self.assertIn(target["key"], self.keys())
 
 	def test_delta_cannot_resurface_a_forbidden_item(self):
-		"""Layers are applied after the permission filter, so an item the user may not see is
-		not in the list a layer can reorder or un-hide."""
+		"""Layers are applied after the permission filter, so an item the user may not see is not in
+		the list a layer can reorder or un-hide.
+		"""
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([{"key": "some-forbidden-key", "hidden": 0}]))
 
@@ -254,11 +261,12 @@ class TestSidebarCustomization(CustomizationTestCase):
 
 
 class TestAReorderIsNotAnOpinionAboutEverything(CustomizationTestCase):
-	"""The failure mode that killed storing full item bodies against base items.
+	"""The failure mode that ruled out storing full item bodies against base items.
 
-	The client saves the arrangement it is *showing*, labels and all. Stored as they arrive,
-	one reorder would freeze every label the user happened to be looking at -- so the site's
-	relabel and the app's next release would never reach them again.
+	The client saves the arrangement it is showing, labels and all. Stored as they arrive, one
+	reorder would freeze every label the user happened to be looking at, so the site's relabel and
+	the app's next release would never reach them again.
+
 	"""
 
 	def test_an_item_the_user_never_touched_keeps_following_the_site_and_the_app(self):
@@ -271,8 +279,8 @@ class TestAReorderIsNotAnOpinionAboutEverything(CustomizationTestCase):
 			items = self.items(module)
 			followed = next(i for i in items if i["link_to"] == "Test Following Report A")
 
-			# the user reorders -- sending back the whole arrangement, labels included, the way
-			# a Sortable does
+			# The user reorders, sending back the whole arrangement, labels included, the way a
+			# Sortable does.
 			self.as_user()
 			save_sidebar_customization(module, json.dumps(list(reversed(items))))
 
@@ -313,14 +321,14 @@ class TestAReorderIsNotAnOpinionAboutEverything(CustomizationTestCase):
 class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 	"""D7: a customization survives a rename, and nothing else re-anchors it.
 
-	A delta row and the base row it names are both `Sidebar Item` rows carrying a
-	Dynamic Link, so `rename_dynamic_links` rewrites the pair in one statement -- no hook, no
-	patch, no re-keying. These pin that, and the things that used to move an anchor and now
-	must not.
+	A delta row and the base row it names are both `Sidebar Item` rows carrying a Dynamic Link, so
+	`rename_dynamic_links` rewrites the pair in one statement, with no hook, patch or re-keying.
+	These tests pin that, and the things that used to move an anchor and now must not.
+
 	"""
 
 	def test_renaming_a_linked_target_moves_base_and_delta_together(self):
-		"""A Page rather than a Report, because a Report cannot be renamed at all."""
+		"""A Page rather than a Report, because a Report cannot be renamed."""
 		with sidebarless_module("Test Renamed Target Module") as module:
 			self.addCleanup(self.wipe, module)
 			doomed = make_page(module, "test-renamed-page")
@@ -345,8 +353,9 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			)
 
 	def test_the_delta_stores_the_link_rather_than_an_id(self):
-		"""What makes the repair reach it: the stored row carries the real columns, so the
-		rename's `UPDATE ... SET link_to` finds it like any other Dynamic Link."""
+		"""What makes the repair reach it: the stored row carries the real columns, so the rename's
+		`UPDATE ... SET link_to` finds it like any other Dynamic Link.
+		"""
 		with sidebarless_module("Test Stored Columns Module") as module:
 			self.addCleanup(self.wipe, module)
 			report = make_report(module, "Test Stored Columns Report")
@@ -362,10 +371,11 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			self.assertFalse(row.key, "a linked row stores no id beside its columns")
 
 	def test_hiding_an_item_does_not_stop_anyone_deleting_it(self):
-		"""The price of storing a real Dynamic Link: a link blocks a delete, unless the model
-		says this kind of link is not a reference. It is not -- a sidebar item is a way in, and
-		a dangling one is already skipped on read -- so a person hiding something in their own
-		sidebar must not be able to stop an admin deleting it.
+		"""The price of storing a real Dynamic Link: a link blocks a delete unless the model says this
+		kind of link is not a reference. A sidebar item is not: it is a way in, and a dangling one is
+		already skipped on read, so a user hiding something in their own sidebar must not be able to
+		stop an admin deleting it.
+
 		"""
 		with sidebarless_module("Test Deletable Target Module") as module:
 			self.addCleanup(self.wipe, module)
@@ -382,12 +392,13 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			self.assertFalse(frappe.db.exists("Page", doomed.name))
 
 	def test_a_stale_reference_does_not_block_the_next_write(self):
-		"""The other half of the same price: a stored link is *validated* on save, so a row
-		left naming a deleted item would turn every later write to that layer into a link
-		error -- renaming the sidebar, adding a workspace's link, anything.
+		"""The other half of the same price: a stored link is validated on save, so a row left naming
+		a deleted item would turn every later write to that layer into a link error, whether renaming
+		the sidebar or adding a workspace's link.
 
-		It stops applying, which is what an item the app has deleted has always done. It does
-		not stop the layer being written.
+		It stops applying, which is what an item the app has deleted has always done. It does not stop
+		the layer being written.
+
 		"""
 		with sidebarless_module("Test Stale Reference Module") as module:
 			self.addCleanup(self.wipe, module)
@@ -404,8 +415,9 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			self.assertEqual(self.resolved(module).label, "Renamed Module")
 
 	def test_inserting_an_item_does_not_re_anchor_other_deltas(self):
-		"""The ordinal is gone, and with it the thing that made an insertion move every anchor
-		below it."""
+		"""The ordinal is gone, and with it the thing that made an insertion move every anchor below
+		it.
+		"""
 		with sidebarless_module("Test Insertion Module") as module:
 			self.addCleanup(self.wipe, module)
 			make_report(module, "Test Insertion Report A")
@@ -425,8 +437,9 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			self.assertIn("Test Insertion Report C", links)
 
 	def test_a_section_break_still_matches_across_a_recomputation(self):
-		"""An unlinked row has nothing to repair, so it keeps a stored key -- hashed from its
-		type and label, both of which a recomputation reproduces exactly."""
+		"""An unlinked row has nothing to repair, so it keeps a stored key, hashed from its type and
+		label, both of which a recomputation reproduces exactly.
+		"""
 		with sidebarless_module("Test Section Module") as module:
 			self.addCleanup(self.wipe, module)
 			make_report(module, "Test Section Report A")
@@ -444,8 +457,9 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 
 
 class TestWhoMayTouchTheSiteLayer(CustomizationTestCase):
-	"""`Workspace Manager`, not System Manager -- the role literally named for curating
-	navigation, granted to nobody by default."""
+	"""`Workspace Manager`, not System Manager: the role named for curating navigation, granted to
+	nobody by default.
+	"""
 
 	def setUp(self):
 		super().setUp()
@@ -463,8 +477,9 @@ class TestWhoMayTouchTheSiteLayer(CustomizationTestCase):
 			save_site_sidebar(MODULE, json.dumps([]))
 
 	def test_a_desk_user_cannot_write_the_site_layer_from_the_form_either(self):
-		"""The endpoint is not the only door: without a document-level gate a plain user could
-		write the site layer straight from the doctype."""
+		"""The endpoint is not the only door: without a document-level gate a plain user could write
+		the site layer straight from the doctype.
+		"""
 		self.as_user()
 		doc = frappe.get_doc({"doctype": "Custom Sidebar", "module": MODULE, "user": ""})
 
@@ -490,9 +505,10 @@ class TestWhoMayTouchTheSiteLayer(CustomizationTestCase):
 		self.assertNotIn(target["key"], self.keys())
 
 	def test_one_users_preferences_stay_out_of_another_users_reads(self):
-		"""Nobody but a Workspace Manager reads anyone else's arrangement. The manager reads
-		everything -- and the list view's default filter is what keeps a site audit, and the
-		export that follows it, to the site layer alone."""
+		"""Nobody but a Workspace Manager reads another user's arrangement. The manager reads
+		everything, and the list view's default filter is what keeps a site audit, and the export that
+		follows it, to the site layer alone.
+		"""
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([]))
 
@@ -529,11 +545,11 @@ class TestUserRowsAreTheUsers(CustomizationTestCase):
 class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
 	"""A private workspace's link is derived on read, so no layer ever stores one.
 
-	The derivation is appended to the arrangement the client is shown, which means the client
-	sends it straight back on the next save. Kept, the site layer would fill up with one row
-	per private page of whoever last curated it -- exactly the pollution D3 removes -- and the
-	owner's own layer would hold a second copy of a link that is already derived from the
-	workspace.
+	The derivation is appended to the arrangement the client is shown, so the client sends it back
+	on the next save. Stored, the site layer would fill up with one row per private page of whoever
+	last curated it, which is the pollution D3 removes, and the owner's own layer would hold a second
+	copy of a link already derived from the workspace.
+
 	"""
 
 	def make_workspace(self, title, public, for_user=""):
@@ -573,8 +589,9 @@ class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
 		self.assertEqual(self.stored_links(), [public.name])
 
 	def test_the_owners_own_layer_drops_it_too(self):
-		"""Their own page, but still not their own row: it is derived from the workspace, and a
-		stored copy would outlive the page it names."""
+		"""Their own page, but still not their own row: it is derived from the workspace, and a stored
+		copy would outlive the page it names.
+		"""
 		private = self.make_workspace("Test Own Layer Private Page", public=0, for_user=USER)
 
 		self.as_user()
@@ -583,8 +600,9 @@ class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
 		self.assertEqual(self.stored_links(USER), [])
 
 	def test_a_page_that_turns_private_takes_its_stored_row_out_on_the_next_save(self):
-		"""What retires the rows a site stored before the derivation existed: every write runs
-		the rule, so the next save of that layer takes them with it."""
+		"""What retires the rows a site stored before the derivation existed: every write runs the
+		rule, so the next save of that layer removes them.
+		"""
 		workspace = self.make_workspace("Test Turned Private Page", public=1)
 		save_site_sidebar(MODULE, json.dumps([self.row_for(workspace)]))
 		self.assertEqual(self.stored_links(), [workspace.name])
@@ -597,11 +615,12 @@ class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
 
 class TestTheModelSaysWhatItMeans(IntegrationTestCase):
 	def test_the_old_tables_are_gone(self):
-		"""One child table serves base, site and user; the preference table and the separate
+		"""One child table serves base, site and user, so the preference table and the separate
 		added-items table have nothing left to hold.
 
-		Asserted on the app rather than the site: a doctype is gone when it stops being shipped,
+		It is asserted on the app rather than the site: a doctype is gone when it stops being shipped,
 		and `remove_orphan_doctypes` drops the row on the next migrate.
+
 		"""
 		import os
 
@@ -621,8 +640,9 @@ class TestTheModelSaysWhatItMeans(IntegrationTestCase):
 		self.assertIn("added", fieldnames)
 
 	def test_the_doctype_records_why_it_holds_user_rows(self):
-		"""The `Custom *` prefix means site-owned everywhere else in the repo. The next reader
-		has to find out why this one is different before they "fix" it."""
+		"""The `Custom *` prefix means site-owned everywhere else in the repo. The next reader has to
+		find out why this one is different before they "fix" it.
+		"""
 		description = frappe.db.get_value("DocType", "Custom Sidebar", "description") or ""
 
 		self.assertIn("user", description)
@@ -630,11 +650,12 @@ class TestTheModelSaysWhatItMeans(IntegrationTestCase):
 
 
 class TestCustomizationTarget(CustomizationTestCase):
-	"""What a customization has to be *of*.
+	"""What a customization has to be of.
 
-	Not a `Sidebar`: most modules have no document at all, their base being computed
-	from their contents, and those are exactly as customizable as a shipped one. The module is
-	the thing that has to exist.
+	Not a `Sidebar`: most modules have no document at all, their base being computed from their
+	contents, and those are exactly as customizable as a shipped one. The module is the thing that
+	has to exist.
+
 	"""
 
 	def test_a_module_with_no_sidebar_document_can_be_customized(self):
@@ -643,8 +664,8 @@ class TestCustomizationTarget(CustomizationTestCase):
 
 		with sidebarless_module(module):
 			doomed = make_report(module, "Test Customizable Report")
-			# a second one, so hiding the first leaves something navigable behind -- a module
-			# with nothing left but its section headers is dropped from the payload entirely
+			# A second one, so hiding the first leaves something navigable behind. A module with
+			# nothing left but its section headers is dropped from the payload entirely.
 			survivor = make_report(module, "Test Surviving Customizable Report")
 
 			# by link, not by position: a computed base leads with a section header
@@ -658,13 +679,14 @@ class TestCustomizationTarget(CustomizationTestCase):
 			self.assertIn(survivor.name, links)
 
 	def test_deleting_the_module_takes_its_customizations_with_it(self):
-		"""A layer is anchored to a module, so it goes when the module does -- the same rule
-		the sidebar document already follows.
+		"""A layer is anchored to a module, so it goes when the module does, the same rule the sidebar
+		document follows.
 
-		It has to be said out loud now. A Link used to refuse the delete on the row's behalf,
-		and navigation links no longer do: `ignore_links_on_delete` covers this doctype so that
-		nobody's sidebar preference can stop a document being deleted. Refusing was never the
-		right answer for a module either -- deleting one now cleans up after itself.
+		It has to be stated now. A Link used to refuse the delete on the row's behalf, and navigation
+		links no longer do: `ignore_links_on_delete` covers this doctype so that nobody's sidebar
+		preference can stop a document being deleted. Refusing was never right for a module either, and
+		deleting one now cleans up after itself.
+
 		"""
 		module = "Test Deleted Module With Customization"
 		with no_developer_mode():
@@ -679,8 +701,9 @@ class TestCustomizationTarget(CustomizationTestCase):
 		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": module}))
 
 	def test_a_module_that_does_not_exist_cannot_be_customized(self):
-		"""Asserted on the message, because the child table's own Link validation would raise
-		a `ValidationError` too -- and that one fires only after the write has been assembled."""
+		"""Asserted on the message, because the child table's own Link validation would raise a
+		`ValidationError` too, and that one fires only after the write has been assembled.
+		"""
 		with self.assertRaises(frappe.ValidationError) as caught:
 			save_sidebar_customization("Test No Such Module", json.dumps([]))
 
@@ -690,9 +713,10 @@ class TestCustomizationTarget(CustomizationTestCase):
 class TestWhatTheEditorOpensOn(CustomizationTestCase):
 	"""The read the editor opens a layer on.
 
-	It is neither of the two answers that already existed. The boot payload is the resolution
-	for the reader and drops a hidden item, which an editor has to be able to bring back; a
-	layer's stored rows are a delta, and this editor saves the whole arrangement.
+	It is neither of the two answers that already existed. The boot payload is the resolution for the
+	user and drops a hidden item, which an editor has to be able to bring back, and a layer's stored
+	rows are a delta, while this editor saves the whole arrangement.
+
 	"""
 
 	def setUp(self):
@@ -709,17 +733,19 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 
 	def arrange(self, layer: str, on_the_sidebar: list[str], module: str = MODULE):
 		"""The save the editor makes: the whole arrangement on screen, in one order, each entry
-		carrying whether it is hidden. Each entry goes back as it came, which is the client
-		contract `drop_inherited_values` is written against."""
+		carrying whether it is hidden. Each entry goes back as it came, which is the client contract
+		`drop_inherited_values` is written against.
+		"""
 		shown = {item["key"]: item for item in self.read(layer, module)}
 		return [{**shown[key], "hidden": 0} for key in on_the_sidebar] + [
 			{**item, "hidden": 1} for key, item in shown.items() if key not in on_the_sidebar
 		]
 
 	def test_an_unarranged_layer_reads_as_the_layer_below(self):
-		"""The starting point rule. Nothing is stored at either layer, so each reads as the one
-		below it: a person's own as the sidebar on their screen, the site's as what the apps
-		ship -- which is not narrowed to whoever is curating it, see the unfiltered read below.
+		"""The starting-point rule. Nothing is stored at either layer, so each reads as the one below
+		it: a user's own as the sidebar on their screen, the site's as what the apps ship, which is
+		not narrowed to whoever is curating it. See the unfiltered read below.
+
 		"""
 		shipped = [item["key"] for item in self.base_items()]
 
@@ -733,8 +759,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual([item["key"] for item in self.read("site")], shipped)
 
 	def test_a_hidden_item_is_kept_so_it_can_be_brought_back(self):
-		"""The one thing the boot payload cannot say. The site hides an item; the person's own
-		layer opens on it still there, flagged, ready to be dragged back."""
+		"""The one thing the boot payload cannot say. The site hides an item, and the user's own layer
+		opens with it still there, flagged, ready to be dragged back.
+		"""
 		target = next(i for i in self.base_items() if i["type"] != "Section Break")
 		save_site_sidebar(MODULE, json.dumps([{"key": target["key"], "hidden": 1}]))
 
@@ -746,8 +773,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(read[target["key"]]["hidden"], 1)
 
 	def test_the_layer_being_edited_is_included(self):
-		"""The arrangement as it stands, not the one below it -- otherwise reopening the editor
-		would show none of the work the last save did."""
+		"""The arrangement as it stands, not the one below it. Otherwise reopening the editor would
+		show none of the work the last save did.
+		"""
 		items = self.base_items()
 		target = next(i for i in items if i["type"] != "Section Break")
 
@@ -758,8 +786,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(read[target["key"]]["hidden"], 1)
 
 	def test_the_site_layer_reads_without_anybodys_own(self):
-		"""A curator arranges for everyone, so what they open on is the site's arrangement --
-		never the one their own preferences put on their screen."""
+		"""A curator arranges for everyone, so what they open on is the site's arrangement, never the
+		one their own preferences put on their screen.
+		"""
 		items = self.base_items()
 		target = next(i for i in items if i["type"] != "Section Break")
 
@@ -770,8 +799,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(read[target["key"]]["hidden"], 0)
 
 	def test_only_this_layers_own_added_rows_read_as_added(self):
-		"""An item a layer below added is a *reference* from here. Read back as added, one save
-		would copy its body into this layer and freeze what the layer below still owns."""
+		"""An item a layer below added is a reference from here. Read back as added, one save would
+		copy its body into this layer and freeze what the layer below still owns.
+		"""
 		workspace = frappe.get_doc(
 			{
 				"doctype": "Workspace",
@@ -802,8 +832,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(mine[item_key(row)]["added"], 0)
 
 	def test_saving_the_read_straight_back_says_nothing(self):
-		"""The round trip the editor makes on every Save. Sending back what it was handed,
-		untouched, must leave the resolution exactly as it was -- and must store no opinion."""
+		"""The round trip the editor makes on every Save. Sending back what it was given, untouched,
+		must leave the resolution as it was and must store no override.
+		"""
 		before = self.keys()
 
 		self.as_user()
@@ -814,9 +845,10 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
 
 	def test_bringing_an_item_back_does_not_freeze_its_label(self):
-		"""The read hands out a hidden item with the label it inherits. A row un-hiding it is
-		naming an item that is really there, so that label is still inheritance -- storing it
-		would stop the site's next relabel ever reaching this person."""
+		"""The read hands out a hidden item with the label it inherits. A row un-hiding it names an
+		item that really exists, so that label is still inheritance. Storing it would stop the site's
+		next relabel reaching this user.
+		"""
 		target = next(i for i in self.base_items() if i["type"] != "Section Break")
 		save_site_sidebar(MODULE, json.dumps([{"key": target["key"], "hidden": 1}]))
 
@@ -831,8 +863,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
 
 	def test_an_added_item_survives_the_editors_round_trip(self):
-		"""The editor sends the whole arrangement back, added rows included. An added row is the
-		item rather than a reference to one, so losing its body loses the entry itself."""
+		"""The editor sends the whole arrangement back, added rows included. An added row is the item
+		rather than a reference to one, so losing its body loses the entry.
+		"""
 		added = {
 			"added": 1,
 			"type": "Link",
@@ -855,9 +888,10 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(kept["url"], "https://example.com/handbook")
 
 	def test_the_site_layer_is_read_unfiltered_so_a_save_cannot_drop_what_it_hid(self):
-		"""Who may see an item is a fact about the reader, applied to what each person boots. A
-		curator handed their own filtered screen would write the whole arrangement back without
-		it, quietly deleting the site's intent for everything they personally cannot open."""
+		"""Permission is a fact about each user, applied to what they boot. A curator given their own
+		filtered screen would write the whole arrangement back without it, silently deleting the site's
+		intent for everything they personally cannot open.
+		"""
 		everything = {i["key"] for i in self.base_items()}
 
 		frappe.set_user(MANAGER)
@@ -867,7 +901,7 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual({i["key"] for i in self.read("site")}, everything)
 
 	def test_the_site_layer_read_needs_the_shared_curation_right(self):
-		"""The switch is absent for a person without it, and the endpoint says so anyway."""
+		"""The switch is absent for a user without it, and the endpoint refuses anyway."""
 		self.as_user()
 		self.assertNotIn("Workspace Manager", frappe.get_roles())
 
@@ -903,10 +937,11 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual([row.label for row in layer.sidebar_items if row.label], ["Mine"])
 
 	def test_a_layer_can_add_a_section_and_put_an_entry_in_it(self):
-		"""The other kind of row a layer may add: one that leads nowhere and names the run under
-		it. It is stored without a key, because a row that leads nowhere is named by a hash of
-		its type and its label and the model is what works that out -- so the editor's own
-		spelling of that identity never becomes a second name for the same section."""
+		"""The other kind of row a layer may add: one that leads nowhere and names the entries under
+		it. It is stored without a key, because a row that leads nowhere is named by a hash of its
+		type and label, and the model computes that, so the editor's own version of the identity never
+		becomes a second name for the same section.
+		"""
 		items = self.base_items()
 		target = next(i for i in items if i["type"] != "Section Break")
 
@@ -932,11 +967,12 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(resolved.index(member), resolved.index(section) + 1)
 
 	def test_an_entry_can_be_put_into_a_section_and_taken_back_out(self):
-		"""Where an entry is dropped is what says which section it is in, so the arrangement
-		states membership for every row it holds -- including the row that has just stopped
-		being a member, which is the half a `Check` cannot spell as an opinion. Both directions
-		are tested in one go because only the second one is new: claiming a membership would
-		work by accident, un-claiming one is what needs the value stored rather than opined."""
+		"""Where an entry is dropped decides which section it is in, so the arrangement states
+		membership for every row it holds, including a row that has just stopped being a member, which
+		is the half a `Check` cannot express as an override. Both directions are tested together
+		because only the second is new: claiming a membership would work by accident, while un-claiming
+		one needs the value stored rather than overridden.
+		"""
 		items = self.base_items()
 		target = next(i for i in items if i["type"] != "Section Break")
 		keys = [i["key"] for i in items]
@@ -961,8 +997,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		self.assertEqual(membership(), 0)
 
 	def test_a_site_can_be_put_back_to_what_the_apps_ship(self):
-		"""The other reset. `reset_user_sidebar` has a test of its own; this one had no caller at
-		all until the editor's Reset button."""
+		"""The other reset. `reset_user_sidebar` has its own test; this one had no caller at all until
+		the editor's Reset button.
+		"""
 		items = self.base_items()
 		target = next(i for i in items if i["type"] != "Section Break")
 		keys = [i["key"] for i in items]
@@ -979,9 +1016,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 class TestResetToStandard(CustomizationTestCase):
 	"""The third reset: not one layer down, but back to the module's `Sidebar`.
 
-	The other two each drop one layer and let the next show through. This one promises the
-	module is using what its app ships -- which is only true if nothing is laid over it, for
-	anybody.
+	The other two each drop one layer and let the next show through. This one promises the module is
+	using what its app ships, which is only true if nothing is laid over it for anybody.
+
 	"""
 
 	def setUp(self):
@@ -1036,8 +1073,9 @@ class TestResetToStandard(CustomizationTestCase):
 			self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": other}))
 
 	def test_it_needs_the_shared_curation_right(self):
-		"""It discards other people's arrangements, so it is behind the right to act for
-		everyone -- the same gate `reset_site_sidebar` carries."""
+		"""It discards other users' arrangements, so it is behind the right to act for everyone, the
+		same gate `reset_site_sidebar` carries.
+		"""
 		self.arrange_every_layer()
 
 		self.as_user()
@@ -1056,12 +1094,13 @@ class TestResetToStandard(CustomizationTestCase):
 
 
 class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
-	"""A row that *adds* an item brings one the base never held, so the filter that runs before
-	the layers never saw it.
+	"""A row that adds an item brings one the base never held, so the filter that runs before the
+	layers never saw it.
 
-	Every other row names an item that is already in the list, which is what makes "a layer can
-	never widen what somebody may reach" true for them. An added row has to be checked on its
-	own, or a curator adding a link for everyone hands it to the people who may not follow it.
+	Every other row names an item already in the list, which is what makes it true for them that a
+	layer can never widen what someone may reach. An added row has to be checked on its own, or a
+	curator adding a link for everyone hands it to users who may not follow it.
+
 	"""
 
 	def setUp(self):
@@ -1089,8 +1128,9 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 		self.assertIn("Custom Field", [item["link_to"] for item in self.items()])
 
 	def test_an_added_url_is_nobody_s_to_block(self):
-		"""A URL leads out of the site, so there is no permission on it to check -- the same
-		answer `is_item_allowed` has always given one."""
+		"""A URL leads out of the site, so there is no permission on it to check, which is the answer
+		`is_item_allowed` has always given for one.
+		"""
 		self.add_to_site_layer(link_type="URL", url="https://example.com", label="Somewhere Else")
 
 		frappe.set_user(MANAGER)

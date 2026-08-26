@@ -7,97 +7,97 @@ import frappe
 from frappe import _
 
 # The same flags `Sidebar` reads, because they answer the same question: is the system placing
-# app content on a site, or is a person editing? Shared rather than copied -- a route added to one
-# list and not the other would break exactly one of the two doctypes on customer sites.
+# app content on a site, or is a user editing? Shared rather than copied, so a route added to one
+# list but not the other cannot break one doctype and not the other on customer sites.
 from frappe.desk.doctype.sidebar.sidebar import SYSTEM_WRITE_FLAGS
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
-# Cached address of every `Dock` on the site -- app, user and standard -- so resolving one costs a
-# redis read rather than a query. The same trick as `Custom Sidebar`'s customized-keys cache, and
-# it earns more here: a site nobody has arranged and whose apps ship no dock holds no `Dock` at
-# all, so the whole surface is free.
+# Cached address of every `Dock` on the site (app, user and standard), so resolving one costs a
+# redis read instead of a query. Same approach as `Custom Sidebar`'s customized-keys cache, and it
+# pays off more here: a site nobody has arranged and whose apps ship no dock holds no `Dock` row
+# at all, so the whole lookup is free.
 DOCK_LAYERS_CACHE_KEY = "dock_layers"
 
-# A blank `user` -- the address every layer but a person's own carries, spelled out so it reads as
-# a value rather than as a falsy string. `standard` is what tells the two of them apart: the app's
-# own dock, or the site's arrangement of it.
+# A blank `user`, which every layer except a user's own carries. Named so it reads as a value
+# rather than a falsy string. `standard` tells the other two apart: the app's own dock, or the
+# site's arrangement of it.
 SITE_LAYER = ""
 
-# What a dock entry points at, and what proves each half of it is really there.
+# What a dock entry points at.
 #
-# An entry does **two** things when clicked: it opens a **page** and it swaps the **shell**. Each
-# exists without the other -- a URL row is a page with no shell, a module row is a shell with no
-# particular page -- which is why they are separate columns rather than one typed pair.
+# Clicking an entry does two things: it opens a page and it swaps the shell. Either can happen
+# without the other. A URL row is a page with no shell; a module row is a shell with no particular
+# page. That is why these are separate columns rather than one typed pair.
 #
 #   sidebar                              a module's rail button
 #   sidebar + link_type/link_to          a second button into one module
 #   link_type/link_to                    a pin; the shell is derived from what it opens
 #   link_type=URL + url                  a link out; no shell at all
 #
-# `DESTINATION_FIELDS` is the identity: `dock_key` joins exactly these and stores nothing. The
-# direct generalisation of the sidebar's `LINKED_IDENTITY_FIELDS` -- "the columns it already has,
-# so there is no second copy to keep in step and nothing for a rename to break". It needs no
-# stored-key fallback the way the sidebar does, because the sidebar's second shape is for a row
-# that links nowhere (a Section Break) and the dock has none: all four blank is not an entry.
+# These columns are the entry's identity: `dock_key` joins exactly these and stores nothing. It is
+# the same rule as the sidebar's `LINKED_IDENTITY_FIELDS`: use the columns the row already has, so
+# there is no second copy to keep in step and a rename does not break it. It needs no stored-key
+# fallback, because the sidebar's fallback is for rows that link nowhere (a Section Break) and the
+# dock has none: all four blank is not an entry.
 #
-# Two things it settles by construction rather than by policy. `icon` and `title` are **outside**
-# it, so re-labelling cannot detach a row from itself; `sidebar` and `link_to` are **inside** it,
-# so re-pointing is not an edit -- it names a different row.
+# Two consequences. `icon` and `title` are outside this list, so re-labelling cannot detach a row
+# from itself. `sidebar` and `link_to` are inside it, so re-pointing a row makes it a different
+# row rather than an edit of the same one.
 DESTINATION_FIELDS = ("sidebar", "link_type", "link_to", "url")
 
-# What a row may say about how an entry *reads*, as opposed to where it goes. Blank means "no
-# opinion, inherit"; filled is an override. Outside `DESTINATION_FIELDS` on purpose: re-labelling
-# an entry must never detach the customisations of it.
+# What a row may say about how an entry looks, as opposed to where it goes. Blank means inherit;
+# filled means override. These are outside `DESTINATION_FIELDS` on purpose, so re-labelling an
+# entry does not detach its customizations.
 #
-# Required when a row **adds** an entry, because nothing below it holds one; optional when it
-# references one, which is the whole of the inheritance.
+# Required when a row adds an entry, because nothing below it holds one. Optional when the row
+# references an entry, which is where the inheritance happens.
 REFERENCE_FIELDS = ("icon", "title")
 
-# The two kinds of page a row may open. Only these: a Report or a DocType list belongs inside a
-# module's sidebar, not on a rail of roughly a dozen destinations -- and `Report` is the one kind
-# that would need new boot payload. Widening later costs a Select value, not a column.
+# The two kinds of page a row may open. Only these two: a Report or a DocType list belongs in a
+# module's sidebar, not on a rail of about a dozen destinations, and `Report` would also need new
+# boot payload. Adding more later costs a Select value, not a column.
 #
-# `Sidebar` is deliberately *not* a value here. A module entry is a row with `sidebar` filled and
-# no target; naming the module in a type value as well would say it twice.
+# `Sidebar` is not a value here. A module entry is a row with `sidebar` filled and no target, so
+# naming the module in a type value would say it twice.
 DOCK_LINK_TYPES = frozenset({"Workspace", "URL"})
 
-# What proves each filled column is really there, in words -- this is what an author is told when
-# their row names nothing, and `entry_exists` is where each one is actually asked.
+# What each filled column must point at, in words. This is the message an author sees when their
+# row names nothing. `entry_exists` runs the actual checks.
 #
-# `sidebar` is proved by *either* a `Sidebar` document or a `Module Def`. Most modules have a
-# computed base with no document at all, so asking the `Sidebar` table alone would drop the common
-# case; and since 01 a `Sidebar` may be named something other than its module, so asking
-# `Module Def` alone would reject exactly the new capability.
+# `sidebar` is satisfied by either a `Sidebar` document or a `Module Def`. Most modules have a
+# computed base with no document, so checking the `Sidebar` table alone would reject the common
+# case. Since 01 a `Sidebar` may be named something other than its module, so checking
+# `Module Def` alone would reject the new capability.
 #
-# `url` is proved by nothing, which is not an oversight -- see `is_reachable`.
+# `url` is checked against nothing, on purpose. See `is_reachable`.
 PROVED_BY = {
 	"sidebar": "Sidebar or Module Def",
 	"Workspace": "Workspace",
 }
 
-# The columns a stored `Dock Item` carries. One list, so copying a row from one layer to another
-# -- which is what promoting the site's arrangement to app content is -- cannot quietly drop a
-# column somebody added to the schema.
+# The columns a stored `Dock Item` carries. One list, so copying a row between layers, which is
+# what promoting the site's arrangement to app content does, cannot silently drop a column
+# someone added to the schema.
 DOCK_ITEM_FIELDS = (*DESTINATION_FIELDS, *REFERENCE_FIELDS, "added", "hidden")
 
 
 class Dock(Document):
-	"""One layer of one app's dock: the app's own, the site's arrangement of it, or one person's.
+	"""One layer of one app's dock: the app's own, the site's arrangement of it, or one user's.
 
-	All three are the same shape because the rows are identical -- `app`, `user` and `standard`
-	are the whole difference, and the parent is what says whose an entry is. See `Custom Sidebar`,
-	which layers the sidebar the same way, in a table of its own.
+	All three have the same shape because the rows are identical. `app`, `user` and `standard` are
+	the only difference, and the parent says who an entry belongs to. `Custom Sidebar` layers the
+	sidebar the same way, in its own table.
 
-	One table rather than a doctype per layer, which is where ADR 0004 is consciously amended:
-	`Workspace`, `Report`, `Print Format`, `Notification` and `Dashboard Chart` all mix exported
-	and site-created rows in one table, and the app layer's read-only-ness is a code guard
-	(`validate_app_content`) rather than a permission row.
+	This uses one table rather than a doctype per layer, which amends ADR 0004. `Workspace`,
+	`Report`, `Print Format`, `Notification` and `Dashboard Chart` all mix exported and
+	site-created rows in one table, and the app layer is kept read-only by a code guard
+	(`validate_app_content`) rather than by permissions.
 
-	A dock belongs to an app. Storing every app's rows in one flat pair of layers was already
-	friction -- the manager edits one app at a time and had to avoid copying the site's rows for
-	*other* apps into a person's own layer -- and per-app records delete that dance outright.
+	A dock belongs to an app. Storing every app's rows in one flat pair of layers caused friction:
+	the manager edits one app at a time and had to avoid copying the site's rows for other apps
+	into a user's own layer. Per-app records remove that.
 	"""
 
 	_DOCTYPE_NAME = "Dock"
@@ -119,24 +119,24 @@ class Dock(Document):
 	# end: auto-generated types
 
 	def autoname(self):
-		"""An app's own dock is named after the app; everything else takes a hash.
+		"""Name an app's own dock after the app; everything else gets a hash.
 
-		Forced by the export road, where the record's name *is* the path: a hash-named standard
-		record would write `<app>/dock/6a1f9c2e/6a1f9c2e.json`, and a re-export from a fresh
-		bench would mint a second file with the first left as a permanent orphan.
+		The export path requires it, because the record name is the file path. A hash-named
+		standard record would write `<app>/dock/6a1f9c2e/6a1f9c2e.json`, and a re-export from a
+		fresh bench would create a second file, leaving the first as a permanent orphan.
 
-		An opaque name costs the other two layers nothing, because a layer is looked up by
-		filter and never by name. Leaving `self.name` unset here is what falls through to the
-		doctype's own `autoname: hash`.
+		An opaque name costs the other two layers nothing, because a layer is looked up by filter
+		and never by name. Leaving `self.name` unset falls through to the doctype's own
+		`autoname: hash`.
 		"""
 		if self.standard:
 			self.name = self.app
 
 	def validate(self):
-		# One spelling of "not a person's own layer", so the composite index can see two of them.
-		# The column is also declared not-nullable, which is what makes this stick: a blank column
-		# in a unique index is written as `NULL`, and every NULL is distinct to an index -- which
-		# would let one app hold two site layers while both read as one address to `get_dock`.
+		# One spelling of "not a user's own layer", so the composite index can compare them. The
+		# column is also not-nullable, which is what makes this stick: a blank column in a unique
+		# index is stored as `NULL`, and every NULL is distinct to an index, so one app could
+		# hold two site layers that both look like one address to `get_dock`.
 		self.user = self.user or SITE_LAYER
 		self.validate_app_content()
 		self.validate_standard()
@@ -144,30 +144,30 @@ class Dock(Document):
 		self.anchor_the_items()
 
 	def blank_the_mount(self):
-		"""Mounting is an app-layer claim, so no other layer may hold one.
+		"""Clear `mount_on` outside the app layer, because mounting is an app-layer claim.
 
-		`depends_on` hides the field on the two writable layers; it does not stop an API write,
-		and a site row carrying a mount would put a person's arrangement on somebody else's rail.
+		`depends_on` hides the field on the two writable layers but does not stop an API write,
+		and a site row carrying a mount would put a user's arrangement on another app's rail.
 		"""
 		if not self.standard:
 			self.mount_on = None
 
 	def validate_app_content(self):
-		"""Only developer mode may set or clear the standard flag, because it is app content.
+		"""Allow only developer mode to set or clear the standard flag, because it is app content.
 
-		Conditional, where `Sidebar`'s equivalent is blanket. It has to be: all three layers live
-		in this one table, and the site's and each person's rows have to stay writable at
-		runtime -- a blanket guard would refuse every `save_user_dock`. Without *any* guard, a
-		Workspace Manager (who holds `write` on `Dock`) could take an app's row, clear the flag,
-		and convert git-versioned app content into a site row they own.
+		This check is conditional where `Sidebar`'s equivalent applies to every write. It has to
+		be: all three layers live in one table, and the site's and each user's rows must stay
+		writable at runtime, so a blanket guard would refuse every `save_user_dock`. With no guard
+		at all, a Workspace Manager, who has `write` on `Dock`, could take an app's row, clear the
+		flag, and turn git-versioned app content into a site row they own.
 
-		`is_new()` is load-bearing: on an unsaved document `has_value_changed` answers True for
+		The `is_new()` check matters: on an unsaved document `has_value_changed` returns True for
 		every field, so without it every site- and user-layer row would be refused outside
 		developer mode.
 
-		The system-write flags are not optional either -- each of them is a real route by which
-		an app's dock reaches a site, and without the escape, installing or updating an app that
-		ships one fails on every customer site.
+		The system-write flags are needed too. Each is a real route by which an app's dock reaches
+		a site, and without them, installing or updating an app that ships one fails on every
+		customer site.
 		"""
 		if not (self.standard or (not self.is_new() and self.has_value_changed("standard"))):
 			return
@@ -187,20 +187,20 @@ class Dock(Document):
 		)
 
 	def validate_standard(self):
-		"""Refuse to mark a dock standard unless we can actually write its file.
+		"""Refuse to mark a dock standard unless we can write its file.
 
-		`standard` means "there is a JSON file in an app behind this row", and a row whose file
-		is missing counts as an orphan -- `remove_orphan_entities` would delete it on the next
-		`bench migrate`. Better to refuse than to create a row that quietly deletes itself.
+		`standard` means a JSON file in an app backs this row. A row with a missing file counts as
+		an orphan, and `remove_orphan_entities` deletes it on the next `bench migrate`. Refusing
+		is better than creating a row that deletes itself.
 
-		Where `Sidebar` checks that a module resolves to a folder, this checks that the app is
-		installed: an app-rooted record has no module folder to find, and the app is the whole
+		`Sidebar` checks that a module resolves to a folder; this checks that the app is
+		installed, because an app-rooted record has no module folder and the app is the whole
 		address.
 
-		A system write is exempt from the developer-mode half for the same reason
-		`validate_app_content` is: an app install or a migrate places a row whose file is already
-		on disk, so demanding developer mode would refuse the very write the file exists for.
-		The app check still runs, because that one is about the file being writable at all.
+		A system write skips the developer-mode check for the same reason as in
+		`validate_app_content`: an app install or migrate places a row whose file is already on
+		disk, so requiring developer mode would refuse the write the file exists for. The app
+		check still runs, because it is about whether the file can be written at all.
 		"""
 		if not self.standard:
 			return
@@ -219,23 +219,21 @@ class Dock(Document):
 			)
 
 	def anchor_the_items(self):
-		"""Every entry names a shell, a page, or both. One that names neither says nothing.
+		"""Drop entries that name neither a shell nor a page.
 
-		The rule the typed pair used to state as "a row needs both halves". A row now needs a
-		`sidebar`, a target, or both -- because the two things a click does are separable, and a
-		row filling only one of them is the ordinary case rather than half of something.
+		A row needs a `sidebar`, a target, or both. The old typed pair required both halves, but
+		the two things a click does are separable, so a row filling only one of them is normal.
 
-		An anchorless row is dropped rather than refused, the way a `Custom Sidebar` reference
-		anchored to nothing is. That is also what quietly empties a row written before these
-		columns existed but *not* carrying the old pair either.
+		An anchorless row is dropped rather than refused, the same as a `Custom Sidebar` reference
+		anchored to nothing. That also clears a row written before these columns existed that does
+		not carry the old pair either.
 
-		A row whose `link_type` is outside the set is different. It *does* say something, and what
-		it says is not storable, so it is refused rather than quietly kept for a reader that will
-		never know what to do with it.
+		A row whose `link_type` is outside the allowed set is refused instead. It says something
+		we cannot store, so keeping it would leave a reader with a row it cannot interpret.
 
-		The refusal runs first so the row number it quotes is the one the author is looking at:
-		re-setting the table renumbers `idx`, and a message pointing at a row that has already
-		moved is worse than no message.
+		The refusal runs first so the row number in the message matches what the author sees:
+		re-setting the table renumbers `idx`, and a message pointing at a moved row is worse than
+		no message.
 		"""
 		for row in self.items:
 			if row.link_type and row.link_type not in DOCK_LINK_TYPES:
@@ -248,17 +246,17 @@ class Dock(Document):
 		self.validate_added_rows()
 
 	def validate_added_rows(self):
-		"""A row with nothing below it has to say how it reads; a reference need not.
+		"""Require an icon and title on a row that has nothing below it to inherit from.
 
-		Two ways a row can have nothing below it, and both would otherwise put a **label-less
-		button** on the rail:
+		A row can have nothing below it in two ways, and both would otherwise put an unlabelled
+		button on the rail:
 
-		- it **adds** an entry, so no lower layer holds one for it to inherit from;
-		- it is on the **app's own dock**, which is the bottom of the stack. Every row there is a
-		  base row whatever its `added` flag says -- and the flag reads 0 on one promoted from the
-		  site's layer, where it really was a reference to something that is no longer beneath it.
+		1. It adds an entry, so no lower layer holds one to inherit from.
+		2. It is on the app's own dock, the bottom of the stack. Every row there is a base row
+		   whatever its `added` flag says, and the flag reads 0 on a row promoted from the site's
+		   layer, where it referenced something that is no longer beneath it.
 
-		A reference at an upper layer inherits both, which is the whole of what blank means there.
+		A reference at an upper layer inherits both, which is what blank means there.
 		"""
 		for row in self.items:
 			if (self.standard or row.added) and not (row.icon and row.title):
@@ -267,15 +265,15 @@ class Dock(Document):
 				)
 
 	def _validate_links(self):
-		"""A row *names* something to navigate to; it does not reference it.
+		"""Skip link validation, because a row names a navigation target rather than referencing it.
 
-		The same call `Custom Sidebar` makes, for the same reason: one deleted workspace would
-		otherwise turn every later write to this layer into an error. A row naming something
-		that is gone stops applying when the dock resolves, which is already what happens to a
-		row whose target the reader may not see.
+		`Custom Sidebar` does the same, for the same reason: one deleted workspace would otherwise
+		turn every later write to this layer into an error. A row naming something that is gone
+		stops applying when the dock resolves, which is already what happens to a row whose target
+		the user may not see.
 
-		It is also what lets a `Sidebar` row name a module whose sidebar is a computed base: the
-		`Sidebar` table holds no document for it, and a Dynamic Link would refuse it.
+		It also lets a `Sidebar` row name a module whose sidebar is a computed base. The `Sidebar`
+		table holds no document for it, so a Dynamic Link would refuse it.
 		"""
 		return
 
@@ -290,13 +288,13 @@ class Dock(Document):
 		drop_dock_caches(self.user)
 
 	def export_dock(self):
-		"""Write this dock to its file. Every Save keeps the file current, which is what makes
-		authoring in Manage Dock and shipping the result one thing rather than two.
+		"""Write this dock to its file. Every save keeps the file current, so authoring in Manage
+		Dock and shipping the result are one step.
 
-		`<app>/dock/<app>/<app>.json`: the ordinary per-record folder, rooted at the app instead
-		of at a module. That shape is the whole of the export road -- the import walk and orphan
-		cleanup work on it with no machinery of their own, because the filename and the record
-		name agree, which is exactly what the old hand-written app-level fixtures got wrong.
+		The path is `<app>/dock/<app>/<app>.json`: the usual per-record folder, rooted at the app
+		instead of a module. That shape is all the export needs. The import walk and orphan
+		cleanup work on it without extra machinery, because the filename and the record name
+		agree, which is what the old hand-written app-level fixtures got wrong.
 		"""
 		from frappe.modules.export_file import export_to_files
 
@@ -306,20 +304,20 @@ class Dock(Document):
 		export_to_files(record_list=[["Dock", self.name]], record_app=self.app)
 
 	def exported_file_path(self) -> str:
-		"""The path `export_to_files` writes this dock to.
+		"""Return the path `export_to_files` writes this dock to.
 
-		Asked of the export module rather than rebuilt here, so the file this checks for is by
-		construction the file the export writes.
+		The export module computes it rather than this file rebuilding it, so the path checked
+		here is always the path the export writes.
 		"""
 		from frappe.modules.export_file import export_root, exported_file_path
 
 		return exported_file_path(export_root(record_app=self.app), self.doctype, self.name)
 
 	def is_exported(self) -> bool:
-		"""Whether the file behind this dock is really on disk.
+		"""Return whether the file behind this dock exists on disk.
 
-		This is the question orphan cleanup asks, so `mark_as_standard` has to answer it before
-		claiming the dock is shipped.
+		Orphan cleanup asks the same question, so `mark_as_standard` has to answer it before
+		reporting the dock as shipped.
 		"""
 		import os
 
@@ -329,53 +327,54 @@ class Dock(Document):
 		try:
 			return os.path.exists(self.exported_file_path())
 		except (frappe.DoesNotExistError, ImportError):
-			# no app on the bench, so no file -- `get_app_path` says so by throwing
+			# No app on the bench, so no file. `get_app_path` reports that by throwing.
 			frappe.clear_last_message()
 			return False
 
 
 def on_doctype_update():
-	"""One layer per address, enforced by the schema rather than by a `validate` hook.
+	"""Enforce one layer per address in the schema rather than in a `validate` hook.
 
-	A hook is bypassable (`db_insert`, a bulk write, anything that skips the document), and two
-	documents at one address would give the merge two answers for the same layer.
+	A hook can be bypassed by `db_insert`, a bulk write, or anything that skips the document, and
+	two documents at one address would give the merge two answers for the same layer.
 
-	Composite, because an address is three columns now. `user` alone was right while a layer
-	spanned every app; per-app records make it wrong -- it would let one person arrange exactly
-	one app's rail. And `standard` is in the index because an app's own dock and the site's
-	arrangement of it are two documents at the same `(app, user)`: one shipped, one curated, and
-	the site's is what `Reset for everyone` drops without touching the app's.
+	The index is composite because an address is three columns. `user` alone worked while a layer
+	spanned every app; with per-app records it would let one user arrange only one app's rail.
+	`standard` is in the index because an app's own dock and the site's arrangement of it are two
+	documents at the same `(app, user)`: one shipped, one curated. `Reset for everyone` drops the
+	site's without touching the app's.
 	"""
 	frappe.db.add_unique("Dock", ("app", "user", "standard"), constraint_name="unique_layer_address")
 
 
 # ---------------------------------------------------------------------------------------
-# Making a dock app content, and taking it back
+# Making a dock app content, and undoing that
 #
-# `standard` means an app ships this dock as a JSON file. The two actions below turn that on
-# and off, and both of them move the file as well as the flag.
+# `standard` means an app ships this dock as a JSON file. The two actions below turn the flag on
+# and off, and both move the file as well.
 #
-# There is no bench command and no CI check to go with them, deliberately. The "standard check"
-# is three existing mechanisms at three moments: `validate_standard` refuses the flag unless the
-# file can be written, `is_exported` verifies the write landed and rolls back if it did not, and
-# the reaper deletes a row whose file went away. Drift self-heals on this road -- `on_update`
-# re-exports on Save, a hand-edited file is re-imported on migrate -- so a command would report a
-# state the system already prevents.
+# There is no bench command or CI check for this on purpose. Three existing mechanisms cover it:
+# `validate_standard` refuses the flag unless the file can be written, `is_exported` verifies the
+# write landed and rolls back if it did not, and the reaper deletes a row whose file went away.
+# Drift also self-heals: `on_update` re-exports on save, and a hand-edited file is re-imported on
+# migrate. A command would report a state the system already prevents.
 # ---------------------------------------------------------------------------------------
 
 
 @frappe.whitelist()
 def mark_as_standard(app: str) -> str:
-	"""Make `app`'s dock part of the app: write it into the app's folder so the app ships it,
-	and let `bench migrate` import it back from there. Returns the document's name.
+	"""Make `app`'s dock part of the app and return the document name.
 
-	One act, not two. The flag and the file go together, and the row is rolled back if the write
-	did not land -- a standard row with no file is exactly the orphan the next `bench migrate`
-	deletes, so a mark that wrote nothing must leave no row behind either.
+	It writes the dock into the app's folder so the app ships it, and `bench migrate` imports it
+	back from there.
 
-	**No materialize step**, which is where this parts company with `Sidebar`'s: a sidebar has a
-	computed base to be shipped when no document holds one, and a dock has none. A dock-less app
-	gets no rail, so there is nothing to promote until somebody has authored rows.
+	The flag and the file are set together, and the row is rolled back if the write did not land.
+	A standard row with no file is the orphan the next `bench migrate` deletes, so a mark that
+	wrote nothing must leave no row behind.
+
+	There is no materialize step, unlike `Sidebar`'s version. A sidebar has a computed base to
+	ship when no document holds one; a dock has none. A dock-less app gets no rail, so there is
+	nothing to promote until someone has authored rows.
 	"""
 	app = check_docked_app(app)
 	check_developer_mode()
@@ -383,25 +382,25 @@ def mark_as_standard(app: str) -> str:
 	doc = get_dock(app, standard=1)
 	if doc:
 		doc = frappe.get_doc("Dock", doc.name)
-		# Already shipped, so there is nothing to do. We check the flag *and* the file: a standard
-		# row whose file has gone missing is exactly the orphan this action exists to prevent, so
-		# we write it again rather than report success.
+		# Already shipped, so there is nothing to do. We check the flag and the file: a standard
+		# row with a missing file is the orphan this action prevents, so write it again rather
+		# than report success.
 		if doc.is_exported():
 			return doc.name
 	else:
-		# The site's arrangement is what an author has been editing, so that is what gets shipped.
-		# Copied rather than re-parented: the site's own layer stays where it is, so unmarking
-		# leaves the site exactly as it was before the promotion.
+		# The site's arrangement is what the author has been editing, so that is what gets
+		# shipped. The rows are copied rather than re-parented, so the site's own layer stays
+		# where it is and unmarking leaves the site as it was before the promotion.
 		#
-		# **Resolved rather than copied raw.** A site row may be a *reference* -- blank icon and
-		# title, inheriting from the layer below -- and there is no layer below the app's own
-		# dock. Copied verbatim, those rows would ship with no label at all, which is the
-		# label-less button the whole reference/add split exists to prevent.
+		# The rows are resolved, not copied raw. A site row may be a reference, with blank icon
+		# and title inherited from the layer below, and there is no layer below the app's own
+		# dock. Copied verbatim those rows would ship with no label, which is what the
+		# reference/add split exists to prevent.
 		#
-		# Resolving also means a reference to a dock that is *gone* -- unmark, then mark again --
-		# contributes nothing rather than a blank, and that is what the refusal below is for: the
-		# author is told their layer names a rail that no longer exists, instead of quietly
-		# shipping an empty one.
+		# Resolving also means a reference to a dock that is gone, after an unmark and a second
+		# mark, contributes nothing instead of a blank row. The refusal below then tells the
+		# author their layer names a rail that no longer exists, rather than shipping an empty
+		# one.
 		rail = resolve_app_dock(app, gated=False)
 		if not rail:
 			frappe.throw(
@@ -419,8 +418,8 @@ def mark_as_standard(app: str) -> str:
 	frappe.db.savepoint(savepoint)
 	try:
 		doc.standard = 1
-		# `save` inserts a freshly built record and updates an existing one. Either way it is
-		# `on_update` that writes the file.
+		# `save` inserts a freshly built record or updates an existing one. Either way,
+		# `on_update` writes the file.
 		doc.save(ignore_permissions=True)
 
 		if not doc.is_exported():
@@ -440,15 +439,14 @@ def mark_as_standard(app: str) -> str:
 
 @frappe.whitelist()
 def unmark_as_standard(app: str) -> None:
-	"""Give `app`'s dock back to the site: delete its exported file and its document.
+	"""Give `app`'s dock back to the site by deleting its exported file and its document.
 
-	The document goes rather than just the flag. Once the app content is gone there is nothing
-	for the app to fall back to -- a dock has no computed base -- so the honest report is that
-	the app now has no rail, which is the asymmetry with `Sidebar`'s unmark: that one means "this
-	module falls back to its computed base".
+	The document is deleted rather than just unflagged. Once the app content is gone the app has
+	nothing to fall back to, because a dock has no computed base, so the app now has no rail.
+	`Sidebar`'s unmark differs here: there, the module falls back to its computed base.
 
 	The file has to go too. Left on disk, the next `bench migrate` imports it again and the row
-	comes back standard, so deleting the document on its own would not survive a migrate.
+	comes back standard.
 	"""
 	import os
 	import shutil
@@ -464,8 +462,8 @@ def unmark_as_standard(app: str) -> None:
 	frappe.delete_doc("Dock", doc.name, force=True, ignore_permissions=True)
 
 	# Delete the file now rather than on commit. If someone un-marks and marks again in one
-	# request, we want to end up with the file the second call wrote -- not with a queued delete
-	# that removes it afterwards.
+	# request, we want the file the second call wrote, not a queued delete that removes it
+	# afterwards.
 	if path:
 		shutil.rmtree(os.path.dirname(path), ignore_errors=True)
 
@@ -477,7 +475,7 @@ def unmark_as_standard(app: str) -> None:
 
 
 def check_developer_mode() -> None:
-	"""Refuse unless developer mode is on.
+	"""Throw unless developer mode is on.
 
 	`standard` means there is a file inside an app, and only a developer's site writes files
 	into apps.
@@ -492,21 +490,20 @@ def check_developer_mode() -> None:
 
 
 def rename_sidebar_rows(old_name: str, new_name: str) -> None:
-	"""Point every dock row naming a sidebar at what that sidebar is called now.
+	"""Point every dock row naming a sidebar at that sidebar's new name.
 
-	Its own pass, not a fallback any more. `Dock Item.sidebar` is an ordinary `Link`, so nothing
-	the framework does on rename touches it -- `rename_dynamic_links` walks Dynamic Links, which
-	is what the retired `link_name` column was. So this is the only thing carrying a shell rename
-	onto the rails that name it.
+	This is its own pass. `Dock Item.sidebar` is an ordinary `Link`, so nothing the framework does
+	on rename touches it: `rename_dynamic_links` walks Dynamic Links, which is what the retired
+	`link_name` column was. So this is the only thing that carries a shell rename onto the rails
+	naming it.
 
 	The rows are updated in place rather than through their parent. A `Dock` is one layer of one
-	app's dock, and re-saving one to correct a name it holds would re-run validation nobody asked
-	for -- including the export, on an app's own record. Invalidating is then this function's own
-	job: `get_dock` reads a `Dock` through `get_cached_doc`, so the document's cache entry is the
-	one that goes stale. `rename_doc` happens to flush the whole site cache a few lines after
-	`after_rename` returns, which would cover it -- but a helper that leaves its own writes
-	visibly stale is only correct while its one caller stays the way it is, and this one costs two
-	queries.
+	app's dock, and re-saving one to fix a name it holds would re-run validation, including the
+	export on an app's own record. That makes cache invalidation this function's job: `get_dock`
+	reads a `Dock` through `get_cached_doc`, so the document's cache entry goes stale.
+	`rename_doc` does flush the whole site cache shortly after `after_rename` returns, which would
+	cover it, but relying on that would only be correct while its one caller stays as it is, and
+	doing it here costs two queries.
 	"""
 	named = {"parenttype": "Dock", "sidebar": old_name}
 	layers = frappe.get_all("Dock Item", filters=named, pluck="parent", distinct=True)
@@ -515,43 +512,43 @@ def rename_sidebar_rows(old_name: str, new_name: str) -> None:
 
 	frappe.db.set_value("Dock Item", named, "sidebar", new_name, update_modified=False)
 
-	# name *and* user in one read: `drop_dock_caches` wants the user, and fetching each layer as
-	# a document to get it would pull every one of its item rows along for a single column
+	# Read name and user together: `drop_dock_caches` needs the user, and fetching each layer as
+	# a document would pull all its item rows along for one column.
 	for layer in frappe.get_all("Dock", filters={"name": ["in", layers]}, fields=["name", "user"]):
 		frappe.clear_document_cache("Dock", layer.name)
 		drop_dock_caches(layer.user)
 
 
 def drop_dock_caches(user: str | None) -> None:
-	"""Drop the caches a dock layer is read out of, for whoever holds it.
+	"""Drop the caches a dock layer is read from, for the user who holds it.
 
-	A module function rather than only a method, because a rename edits the rows in place and
-	never loads the parent -- and reading a whole `Dock` to find out whose it is would be a
+	This is a module function rather than only a method, because a rename edits the rows in place
+	and never loads the parent, and reading a whole `Dock` to find out whose it is would be a
 	document fetch for one column.
 	"""
 	frappe.cache.delete_value(DOCK_LAYERS_CACHE_KEY)
-	# ...and the per-request memo built off it, so a save answering with the rail it just wrote
-	# does not resolve against the dock as it was before
+	# Also drop the per-request memo built from it, so a save that answers with the rail it just
+	# wrote does not resolve against the dock as it was before.
 	frappe.local.dock_cache = {"app_dock": {}, "mounts": None}
 	if user:
-		# a person's own arrangement only invalidates their boot
+		# A user's own arrangement only invalidates their boot.
 		frappe.cache.hdel("bootinfo", user)
 	else:
 		frappe.cache.delete_key("bootinfo")
 
 
 def request_cache_for_docks() -> dict:
-	"""Per-request memo for the two reads the rail asks over and over.
+	"""Per-request memo for the two reads the rail repeats.
 
-	`get_app_dock` and `mounted_apps` are each called once per app *and* once per app per app --
-	`get_app_base` asks `mounted_apps`, which asks `get_app_dock` for every shipped dock -- so
-	without this a twenty-app bench pays hundreds of lookups to draw its rails. Quadratic in the
-	number of apps, on every boot.
+	`get_app_dock` and `mounted_apps` are each called once per app, and once more per app per app:
+	`get_app_base` asks `mounted_apps`, which asks `get_app_dock` for every shipped dock. Without
+	this a twenty-app bench pays hundreds of lookups per boot to draw its rails, quadratic in the
+	number of apps.
 
-	Request-scoped and hand-rolled rather than `@request_cache`, because it has to be *dropped*:
-	a save inside the same request (`_save_layer` answers with the rail it just wrote) would
-	otherwise resolve against the dock as it was before. `drop_dock_caches` is where that
-	happens, which is already the one place that runs on every write.
+	It is request-scoped and hand-rolled rather than `@request_cache` because it has to be
+	dropped: a save in the same request (`_save_layer` answers with the rail it just wrote) would
+	otherwise resolve against the dock as it was before. `drop_dock_caches` does that, and it
+	already runs on every write.
 	"""
 	if not hasattr(frappe.local, "dock_cache"):
 		frappe.local.dock_cache = {"app_dock": {}, "mounts": None}
@@ -559,16 +556,15 @@ def request_cache_for_docks() -> dict:
 
 
 def dock_records() -> list[dict]:
-	"""Cached address of every layer the site holds -- name, app, user, standard -- plus the
-	mount an app's own dock declares.
+	"""Return the cached address of every layer the site holds (name, app, user, standard), plus
+	the mount an app's own dock declares.
 
-	This is the cost-control story: a boot on a site nobody has arranged answers every layer of
-	every app out of one redis read, instead of a query apiece. `mount_on` rides it for the same
-	reason -- the boot asks who mounts on whom on every request, and that used to be a cached
-	hooks read.
+	This keeps boot cheap: on a site nobody has arranged, every layer of every app is answered
+	from one redis read instead of a query each. `mount_on` is included for the same reason, since
+	the boot asks who mounts on whom on every request and that used to be a cached hooks read.
 
-	Addresses rather than documents, so a stale cache can only ever cost a lookup that finds
-	nothing -- the same negative filter `Custom Sidebar` keeps.
+	It stores addresses, not documents, so a stale cache can only cost a lookup that finds
+	nothing. `Custom Sidebar` uses the same negative filter.
 	"""
 	records = frappe.cache.get_value(DOCK_LAYERS_CACHE_KEY)
 	if records is None:
@@ -587,32 +583,32 @@ def dock_records() -> list[dict]:
 
 
 def get_dock_layers() -> dict[tuple[str, str, int], str]:
-	"""Every layer address the site holds, mapped to the document that holds it."""
+	"""Return every layer address the site holds, mapped to the document that holds it."""
 	return {(row["app"], row["user"], row["standard"]): row["name"] for row in dock_records()}
 
 
 def mounted_apps() -> dict[str, str]:
-	"""Companion app -> the host whose rail it mounts on, for the mounts that actually **land**.
+	"""Map each companion app to the host whose rail it mounts on, for mounts that take effect.
 
 	Memoised per request: `get_app_base` asks this once per app, and each answer walks every
 	shipped dock.
 
-	A companion app has no rail of its own; its entries live on a host's. Declaring that is an
-	aspiration, not a renunciation -- three conditions have to hold, and each of them prevents a
-	real failure:
+	A companion app has no rail of its own; its entries live on a host's. Declaring a mount is a
+	request, not a guarantee. Three conditions must hold, and each prevents a real failure:
 
-	1. **the host is installed.** A companion installed without its host is invisible today:
-	   resolution drops the pin, but the boot path takes its apps-screen slot away anyway.
-	2. **the host ships a dock of its own.** Mount onto a dock-less host and its rail becomes
-	   *entirely another app's entries*, with no route to its own module and the switcher gone --
-	   and the common dock-less app ships exactly one module, so this is not an edge.
-	3. **the companion ships rows.** Nothing to mount is not a mount.
+	1. The host is installed. A companion installed without its host is invisible: resolution
+	   drops the pin, and the boot path takes its apps-screen slot away.
+	2. The host ships a dock of its own. Mounting onto a dock-less host would make its rail
+	   entirely another app's entries, with no route to its own module and no switcher. The
+	   common dock-less app ships exactly one module, so this happens easily.
+	3. The companion ships rows. Nothing to mount is not a mount.
 
-	The second test is on the host's **own** dock rather than on its resolved rail, so it does
-	not go circular -- resolving the host's rail is what wants this answer.
+	The second test reads the host's own dock rather than its resolved rail, so it does not
+	recurse: resolving the host's rail is what asks for this answer.
 
-	The host has no say; the site does. A host's file is authored before the companion exists on
-	any site, so a veto would be exercised blind. Refusal is **hiding**, at the site layer.
+	The host cannot veto a mount, but the site can. A host's file is authored before the companion
+	exists on any site, so a veto would be blind. Refusing a mount is done by hiding it at the
+	site layer.
 	"""
 	memo = request_cache_for_docks()
 	if memo["mounts"] is not None:
@@ -637,24 +633,24 @@ def mounted_apps() -> dict[str, str]:
 
 
 def get_dock(app: str, user: str | None = None, standard: int = 0) -> "Dock | None":
-	"""The document holding one layer of one app's dock, or None.
+	"""Return the document holding one layer of one app's dock, or None.
 
-	The **name comes off the cache** rather than out of a lookup. It used to be a filtered
-	`db.exists`, which is a query the cache had already answered -- and one that cannot itself be
-	cached, since redis caching does not work with filters. A boot resolves three layers for every
-	app, so that was three queries per app for something already in redis.
+	The name comes from the cache rather than a lookup. It used to be a filtered `db.exists`,
+	which is a query the cache had already answered and which cannot itself be cached, because
+	redis caching does not work with filters. A boot resolves three layers per app, so that cost
+	three queries per app for something already in redis.
 	"""
 	name = get_dock_layers().get((app, user or SITE_LAYER, standard))
 	return frappe.get_cached_doc("Dock", name) if name else None
 
 
 def stored_row(row) -> dict:
-	"""One stored `Dock Item`, read as the dict every reader above here works in.
+	"""Return one stored `Dock Item` as the dict every reader here works with.
 
-	A read of the columns and nothing else, now that the old typed pair is gone. It stays a
-	function rather than becoming a dict comprehension at each call site because it is also what
-	normalises a blank column to `None` -- the schema writes `""` where a reader wants "unset",
-	and `dock_key` would otherwise be built from two different spellings of nothing.
+	It reads the columns and nothing else, now that the old typed pair is gone. It stays a
+	function rather than a dict comprehension at each call site because it also normalises a blank
+	column to `None`: the schema writes `""` where a reader wants unset, and `dock_key` would
+	otherwise be built from two spellings of nothing.
 	"""
 	return {
 		**{field: row.get(field) or None for field in DESTINATION_FIELDS},
@@ -666,11 +662,11 @@ def stored_row(row) -> dict:
 
 
 def points_somewhere(entry) -> bool:
-	"""Whether a row says anything a rail can act on: a shell, a page, or both.
+	"""Return whether a row names something a rail can act on: a shell, a page, or both.
 
-	A page is its `link_type` *plus* whichever column that type fills, so a `link_type` on its own
-	is as anchorless as a blank row -- and a `URL` row is anchored by its `url`, not by a
-	`link_to` it will never have.
+	A page is its `link_type` plus whichever column that type fills, so a `link_type` on its own
+	is as anchorless as a blank row. A `URL` row is anchored by its `url`, not by a `link_to` it
+	never has.
 	"""
 	if entry.get("sidebar"):
 		return True
@@ -680,10 +676,10 @@ def points_somewhere(entry) -> bool:
 
 
 def dock_rows(dock: "Dock | None") -> list[dict]:
-	"""One layer's stored rows, in row order. Row order is the arrangement.
+	"""Return one layer's stored rows in row order. Row order is the arrangement.
 
-	Anchorless rows are dropped again rather than trusted to `validate`, which only ran on the
-	layers this site has saved since the columns existed.
+	Anchorless rows are dropped again rather than left to `validate`, which only ran on layers
+	this site saved after the columns existed.
 	"""
 	if not dock:
 		return []
@@ -693,27 +689,27 @@ def dock_rows(dock: "Dock | None") -> list[dict]:
 
 
 def get_app_dock(app: str) -> list[dict]:
-	"""**An app's dock is exactly its record's rows.** Empty when it ships none.
+	"""Return an app's dock, which is exactly its record's rows. Empty when it ships none.
 
-	The entry set, not just an order over one. A module this record never names is off this app's
-	rail for good -- no layer above can bring it back, because there is nothing there to name.
-	That is the third of three tiers an author picks from:
+	This is the entry set, not just an order over one. A module this record never names is off
+	this app's rail permanently: no layer above can bring it back, because there is nothing to
+	name. An author picks from three tiers:
 
 	    named, hidden: 0     on the rail
-	    named, hidden: 1     off the rail, and the site *or* the person can bring it back
+	    named, hidden: 1     off the rail, and the site or the user can bring it back
 	    not named            off the rail, and nobody can
 
-	The middle tier needs no machinery of its own: `resolve_layers` seeds its hidden map from the
-	base, so one row above naming that entry with hiding off is the whole of bringing it back.
+	The middle tier needs no extra machinery: `resolve_layers` seeds its hidden map from the base,
+	so one row above naming that entry with hiding off brings it back.
 
-	**Reachability is narrowed to discovery, not lost.** The boot's sidebars are built from the
-	navigable-modules list rather than from the dock, so a module this record omits still has a
-	sidebar in the payload, still opens by route, and still catches the entity resolver. What it
-	loses is the rail as a place to *find* it.
+	Omitting an entry only affects discovery, not reachability. The boot's sidebars are built from
+	the navigable-modules list rather than the dock, so a module this record omits still has a
+	sidebar in the payload, still opens by route, and still resolves as an entity. It only loses
+	the rail as a place to find it.
 
-	*Deduped*, because a record may name one entry twice: two rows under one key would render the
-	entry twice, and the layers above dedupe their own rows without catching it, since the base is
-	copied in whole. First named keeps it, which is the rule a layer already follows.
+	The rows are deduped, because a record may name one entry twice. Two rows under one key would
+	render the entry twice, and the layers above dedupe their own rows without catching it, since
+	the base is copied whole. The first row named wins, the same rule a layer follows.
 	"""
 	memo = request_cache_for_docks()["app_dock"]
 	if app not in memo:
@@ -737,12 +733,12 @@ def build_app_dock(app: str) -> list[dict]:
 
 
 def get_app_base(app: str) -> list[dict]:
-	"""One app's own dock, with the rows of every companion mounted on it appended.
+	"""Return one app's own dock with the rows of every companion mounted on it appended.
 
-	Appended rather than positioned, and **as a default**: a companion is not asserting an
-	opinion into an arrangement that is not its, and the site and the person may then reorder
-	the lot. Two companions mounting on one host land in installation order rather than fighting
-	for a slot.
+	Companion rows are appended rather than positioned, and only as a default: a companion does
+	not push an opinion into an arrangement that is not its own, and the site and the user can
+	reorder afterwards. Two companions mounting on one host land in installation order rather than
+	competing for a slot.
 	"""
 	own = get_app_dock(app)
 	mounts = mounted_apps()
@@ -763,23 +759,23 @@ def get_app_base(app: str) -> list[dict]:
 
 
 def get_app_entry_set(app: str) -> list[dict]:
-	"""Every entry `app`'s dock offers this person, before any layer arranges them.
+	"""Return every entry `app`'s dock offers this user, before any layer arranges them.
 
-	What the boot payload carries as `app_data[].dock` and what the manager builds its panes
-	from. Filtered by reach and by nothing else: which of them are *on* the rail, and in what
-	order, is the layers' business and is answered by `resolve_app_dock`.
+	The boot payload carries this as `app_data[].dock`, and the manager builds its panes from it.
+	It is filtered by reach only. Which entries are on the rail, and in what order, is decided by
+	the layers in `resolve_app_dock`.
 	"""
 	return [rail_entry(row) for row in get_app_base(app) if is_reachable(row)]
 
 
 def apps_screen_sort_key():
-	"""Sort key putting apps in the order the apps screen lists them.
+	"""Return a sort key that orders apps the way the apps screen lists them.
 
-	The same two keys that screen sorts on -- the `sequence_id` an app declares in
-	`add_to_apps_screen`, then installation order for the apps that declare none.
+	It uses the same two keys as that screen: the `sequence_id` an app declares in
+	`add_to_apps_screen`, then installation order for apps that declare none.
 
-	Only installed apps are ever asked: a fragment is a hook, and a hook belongs to an app that
-	is here to declare it.
+	Only installed apps are passed in, because the declaration is a hook and a hook belongs to an
+	installed app.
 	"""
 	from frappe.boot import DEFAULT_APP_SEQUENCE_ID
 
@@ -793,55 +789,51 @@ def apps_screen_sort_key():
 
 
 def get_site_dock(app: str) -> list[dict]:
-	"""The site's arrangement of one app's dock, curated by a Workspace Manager and applying to
-	everyone."""
+	"""Return the site's arrangement of one app's dock, curated by a Workspace Manager and
+	applying to everyone."""
 	return dock_rows(get_dock(app))
 
 
 def get_user_dock(app: str, user: str | None = None) -> list[dict]:
-	"""One person's own arrangement of one app's dock.
+	"""Return one user's own arrangement of one app's dock.
 
-	What the dock manager round-trips: it replaces the layer whole, so it has to see the layer it
-	is editing rather than the resolved dock, which carries the site's rows too and would copy
-	them into the person's own layer on the next save.
+	The dock manager round-trips this. It replaces the layer whole, so it has to see the layer it
+	is editing rather than the resolved dock, which also carries the site's rows and would copy
+	them into the user's own layer on the next save.
 	"""
 	return dock_rows(get_dock(app, user=user or frappe.session.user))
 
 
 def resolve_dock() -> dict[str, list[dict]]:
-	"""The dock as the session user sees it: one resolved rail per app, keyed by app.
+	"""Return the dock as the session user sees it: one resolved rail per app, keyed by app.
 
-	Keyed by app because a `Dock` is per app. One flat cross-app list was what the two stored
-	layers used to be, and the client had to intersect it with each app's entry set to find the
-	rows meant for the rail on screen; with a layer addressed by app plus user, the rail *is*
-	its app's entry and no intersection is needed.
+	It is keyed by app because a `Dock` is per app. The two stored layers used to be one flat
+	cross-app list, and the client had to intersect it with each app's entry set to find the rows
+	for the rail on screen. With a layer addressed by app plus user, the rail is its app's entry
+	and no intersection is needed.
 
-	**Three classes of entry come out of this, not two.** The distinction is the whole of how a
-	shipped order and an arrangement live together, and this is the only place it is written
-	down:
+	Three classes of entry come out of this, which is how a shipped order and an arrangement live
+	together:
 
-	1. **Named by a layer.** At the front, in the order the layers left them.
-	2. **In the base but named by no layer.** Present, trailing the named ones, at their real
-	   index in base order. This is what makes an app's shipped order apply to the entries
-	   nobody rearranged -- without it, shipping an order would only ever reach a fresh install.
-	3. **In neither.** *Absent from this list*, not appended to it: the client keeps such an
-	   entry in its app's own order, behind both classes above (`MAX_SAFE_INTEGER` on the
-	   client). That is what makes installing an app safe on a site that has already arranged
-	   its dock -- the new app's modules appear at the end rather than vanishing for want of a
-	   row.
+	1. Named by a layer. These come first, in the order the layers left them.
+	2. In the base but named by no layer. These follow the named ones, at their real index in base
+	   order. This is what makes an app's shipped order apply to entries nobody rearranged;
+	   without it, shipping an order would only reach a fresh install.
+	3. In neither. These are absent from this list rather than appended. The client keeps such an
+	   entry in its app's own order, behind both classes above (`MAX_SAFE_INTEGER` on the client).
+	   That makes installing an app safe on a site that has already arranged its dock: the new
+	   app's modules appear at the end rather than disappearing for want of a row.
 
-	Resolved through `frappe.desk.layers`, the merge the sidebar's layers run on. **An entry left
-	hidden stays in this list, carrying its flag**, and the client drops it from the rail. That
-	is forced by the dock manager's Hidden pane, which cannot render what the payload has already
-	discarded -- and it is the one thing the dock does differently from a sidebar, which drops a
-	hidden item outright.
+	Resolution runs through `frappe.desk.layers`, the same merge the sidebar's layers use. An
+	entry left hidden stays in this list carrying its flag, and the client drops it from the rail.
+	The dock manager's Hidden pane needs that, since it cannot render what the payload discarded.
+	This is the one place the dock differs from a sidebar, which drops a hidden item outright.
 
 	Every entry carries the whole destination it was stored with, plus its icon and title. The
-	client keys on the destination, so two rows into one module stay two entries all the way to
-	the rail.
+	client keys on the destination, so two rows into one module stay two entries on the rail.
 
-	Apps that resolve to nothing are left out rather than carried as empty lists: the payload is
-	read by key, and an absent key and an empty list say the same thing to every reader.
+	Apps that resolve to nothing are left out rather than carried as empty lists. The payload is
+	read by key, so an absent key and an empty list mean the same thing.
 	"""
 	resolved = {}
 	for app in docked_apps():
@@ -852,20 +844,20 @@ def resolve_dock() -> dict[str, list[dict]]:
 
 
 def docked_apps() -> list[str]:
-	"""Every app whose rail could resolve to something: one that ships a record, or one some
-	layer on this site has an opinion about.
+	"""Return every app whose rail could resolve to something: an app that ships a record, or one
+	some layer on this site has an opinion about.
 
-	Both come off the same cached read, which is what keeps a boot on a site nobody has arranged
-	free. Asking every installed app instead would be correct and nearly as cheap, but it would
-	walk apps that have never had a rail on any site.
+	Both come from the same cached read, which keeps boot free on a site nobody has arranged.
+	Asking every installed app would be correct and nearly as cheap, but it would walk apps that
+	have never had a rail on any site.
 
-	**Narrowed to apps that are actually here.** Nothing reaps a site's or a person's layer when
-	its app is uninstalled -- only a *standard* row is an orphan candidate -- so a bench that has
-	ever removed an app holds rows naming one that is gone. Left in, the sort key asks that app
-	for its hooks and the boot dies with `ModuleNotFoundError`.
+	Only installed apps are returned. Nothing deletes a site's or a user's layer when its app is
+	uninstalled, because only a standard row is an orphan candidate, so a bench that ever removed
+	an app holds rows naming one that is gone. Left in, the sort key would ask that app for its
+	hooks and the boot would fail with `ModuleNotFoundError`.
 
-	A companion whose mount lands is left out too: its entries render on the host's rail, and it
-	has no rail of its own for anything to resolve to.
+	A companion whose mount takes effect is also left out: its entries render on the host's rail,
+	so it has no rail of its own to resolve.
 	"""
 	installed = set(frappe.get_active_apps())
 	mounted = mounted_apps()
@@ -874,17 +866,17 @@ def docked_apps() -> list[str]:
 
 
 def resolve_app_dock(app: str, upto: str = "user", gated: bool = True) -> list[dict]:
-	"""One app's rail for the session user: its own dock, then the site's, then their own.
+	"""Return one app's rail for the session user: its own dock, then the site's, then the user's.
 
-	`upto` names the last layer applied, and `gated` says whether reach is applied. Both exist for
-	the save path rather than for the boot: a layer being written has to be settled against the
-	rail it was *looking at*, which is the layers **below** it -- and unfiltered, because whether
-	a row is an add is a question about base membership, not about who can see it. Reach-filtered,
-	a Workspace Manager saving the site's rail with one module blocked for them personally would
-	turn that module's row into an add, and adds demand an icon and a title nobody typed.
+	`upto` names the last layer applied, and `gated` says whether the reach filter runs. Both
+	exist for the save path rather than the boot. A layer being written has to be settled against
+	the rail it was looking at, which is the layers below it, and unfiltered, because whether a
+	row is an add depends on base membership rather than on who can see it. With the reach filter
+	on, a Workspace Manager saving the site's rail with one module blocked for them personally
+	would turn that module's row into an add, and an add requires an icon and title nobody typed.
 	"""
-	# Built for the one answer wanted, not all three. Spelled as a list that grows because that
-	# *is* the stack: each layer is laid over the one before it, and `upto` says where to stop.
+	# Build only the layers the caller asked for. The list is the stack: each layer is laid over
+	# the one before it, and `upto` says where to stop.
 	layers = []
 	if upto in ("site", "user"):
 		layers.append(get_site_dock(app))
@@ -896,13 +888,13 @@ def resolve_app_dock(app: str, upto: str = "user", gated: bool = True) -> list[d
 		layers,
 		key=dock_key,
 		apply_row=apply_dock_row,
-		# A saved layer *is* the rail. An entry the app ships later does not appear on it; it
-		# appears in Manage Dock as something to add, and you opt in by adding it. The cost is on
-		# the record and is deliberate: predictable rails over automatic updates.
+		# A saved layer is the rail. An entry the app ships later does not appear on it; it shows
+		# up in Manage Dock as something to add, and the user opts in by adding it. That is a
+		# deliberate trade: predictable rails over automatic updates.
 		keep_unnamed=False,
 	)
-	# Applied last, so no layer can name its way past the gates -- an arrangement is navigation
-	# reach, and reach is decided by module visibility and workspace permissions alone.
+	# Applied last, so no layer can name its way past the gates. An arrangement cannot grant
+	# reach; reach is decided by module visibility and workspace permissions alone.
 	return [
 		{**rail_entry(entry), "hidden": int(hidden.get(dock_key(entry), 0))}
 		for entry in resolved
@@ -911,36 +903,35 @@ def resolve_app_dock(app: str, upto: str = "user", gated: bool = True) -> list[d
 
 
 def dock_key(entry) -> str:
-	"""What a dock entry is identified by: the whole destination, and nothing else.
+	"""Return what identifies a dock entry: the whole destination and nothing else.
 
-	The direct generalisation of the sidebar's `LINKED_IDENTITY_FIELDS` -- the columns the row
-	already has, so there is no second copy to keep in step and nothing for a rename to break.
-	Nothing is stored, and no second shape is needed: the sidebar keeps one for a row that links
-	nowhere, and a dock row that points nowhere is not an entry at all.
+	This is the same rule as the sidebar's `LINKED_IDENTITY_FIELDS`: use the columns the row
+	already has, so there is no second copy to keep in step and a rename does not break it.
+	Nothing is stored, and no second shape is needed, because the sidebar's second shape is for a
+	row that links nowhere and a dock row that points nowhere is not an entry.
 
-	It keeps the distinctions of the row shape real. `Stock` (a shell) and `Stock Analytics` (that
-	shell plus a workspace) key apart, as do a bare `GST` pin and a `Welcome` row that overrides
-	its shell.
+	It keeps the row shape's distinctions: `Stock` (a shell) and `Stock Analytics` (that shell
+	plus a workspace) key apart, as do a bare `GST` pin and a `Welcome` row that overrides its
+	shell.
 	"""
 	return "|".join(entry.get(field) or "" for field in DESTINATION_FIELDS)
 
 
 def apply_dock_row(row, entry: dict | None) -> dict | None:
-	"""What one layer row does to the dock entry it names.
+	"""Apply one layer row to the dock entry it names.
 
-	Two kinds of row, exactly as the sidebar has. An **added** row *is* the entry: it brings a
-	destination nothing below it holds, so it stands in for whatever the list has under that key,
-	which is usually nothing. A **reference** row states an opinion about an entry that is
-	already there, and `overrides` keeps that opinion short.
+	There are two kinds of row, the same as in the sidebar. An added row is the entry: it brings a
+	destination nothing below it holds, so it replaces whatever the list has under that key, which
+	is usually nothing. A reference row states an opinion about an entry that is already there,
+	and `overrides` keeps that opinion to the fields it sets.
 
-	A reference naming an entry the list does not hold returns `None` and is skipped. That is
-	what stops a reference to a row the app has since deleted **resurrecting as a label-less
-	button** -- a destination with no icon and no title, because a reference is not required to
-	carry either.
+	A reference naming an entry the list does not hold returns `None` and is skipped, which stops
+	a reference to a row the app has since deleted from reappearing as an unlabelled button: a
+	destination with no icon and no title, since a reference need not carry either.
 
-	`added` is stored rather than inferred from the row carrying a body, and that is not
-	convenience: under permitted re-labelling a reference may carry a partial opinion -- an icon
-	and no title -- so body-presence stops telling the two apart.
+	`added` is stored rather than inferred from the row carrying a body. Re-labelling is allowed,
+	so a reference may carry a partial opinion, such as an icon and no title, and the presence of
+	a body no longer tells the two apart.
 	"""
 	if row.get("added"):
 		return rail_entry(row)
@@ -952,7 +943,7 @@ def apply_dock_row(row, entry: dict | None) -> dict | None:
 
 
 def rail_entry(entry) -> dict:
-	"""What the rail is handed: where the entry goes, and how it reads."""
+	"""Return what the rail is given: where the entry goes and how it reads."""
 	return {
 		**{field: entry.get(field) for field in DESTINATION_FIELDS},
 		**{field: entry.get(field) for field in REFERENCE_FIELDS},
@@ -960,26 +951,25 @@ def rail_entry(entry) -> dict:
 
 
 def overrides(row) -> dict:
-	"""What a reference row *opines* about the entry it names. A blank field is no opinion, so
-	the entry keeps whatever the layer below gave it.
+	"""Return what a reference row overrides on the entry it names. A blank field means no
+	override, so the entry keeps what the layer below gave it.
 
-	This is what stops one reorder freezing the app's label forever -- the failure that killed
-	full-body storage in the sidebar, and one 06 made urgent here by giving every row a stored
+	This stops one reorder from freezing the app's label forever, the failure that ruled out
+	full-body storage in the sidebar. Ticket 06 made it urgent here by giving every row a stored
 	icon and title.
 	"""
 	return {field: row.get(field) for field in REFERENCE_FIELDS if row.get(field)}
 
 
 def entry_exists(entry) -> bool:
-	"""Whether everything an entry names is on this site.
+	"""Return whether everything an entry names exists on this site.
 
-	Existence, not reach -- `is_reachable` is the per-user question and asks this first. One check
-	per **filled column**, conjoined, because a row may fill more than one and each half has to be
-	there for the click to land.
+	This is existence, not reach. `is_reachable` asks the per-user question and calls this first.
+	Each filled column is checked, and all must pass, because a row may fill more than one and
+	every part has to exist for the click to land.
 
-	`sidebar` is answered by `shell_exists`, which accepts either a `Sidebar` document or a
-	`Module Def`. `url` is proved by nothing but being non-empty, which `points_somewhere` has
-	already asked.
+	`sidebar` is checked by `shell_exists`, which accepts either a `Sidebar` document or a
+	`Module Def`. `url` only has to be non-empty, which `points_somewhere` already checked.
 	"""
 	if entry.get("sidebar") and not shell_exists(entry["sidebar"]):
 		return False
@@ -991,12 +981,12 @@ def entry_exists(entry) -> bool:
 
 
 def shell_exists(shell: str) -> bool:
-	"""Whether a shell is on this site: a `Sidebar` document, or a `Module Def` whose sidebar is a
-	computed base.
+	"""Return whether a shell exists on this site: a `Sidebar` document, or a `Module Def` whose
+	sidebar is a computed base.
 
-	Both, and this is the widening ticket 01 forced. Most modules have no `Sidebar` row at all, so
-	asking that table alone would drop the common case; and a sidebar may now be named something
-	other than its module, so asking `Module Def` alone would reject exactly the new capability.
+	Both are checked, which ticket 01 required. Most modules have no `Sidebar` row, so checking
+	that table alone would reject the common case, and a sidebar may now be named something other
+	than its module, so checking `Module Def` alone would reject the new capability.
 	"""
 	return bool(
 		frappe.db.exists("Module Def", shell, cache=True) or frappe.db.exists("Sidebar", shell, cache=True)
@@ -1004,30 +994,30 @@ def shell_exists(shell: str) -> bool:
 
 
 def is_reachable(entry) -> bool:
-	"""Whether the session user may go where the entry points.
+	"""Return whether the session user may go where the entry points.
 
-	**One gate per filled column, conjoined: a row passes only if every column it fills passes.**
+	One gate per filled column, and a row passes only if every column it fills passes:
 
 	    sidebar     its module exists and is module-visible
 	    Workspace   in `permitted_workspaces()`
-	    URL         none -- always passes
+	    URL         no gate; always passes
 
-	Both failure directions are real, which is why it is a conjunction rather than a first-match
-	branch. *Shell blocked, workspace permitted* -- the `Welcome` shape -- would otherwise render
-	**the whole sidebar of a module the person has blocked**, the block undone by a row pointing
-	past it. *Shell visible, workspace not* is the stale-row failure the existence check was added
-	to prevent.
+	Both failure directions happen, which is why this is a conjunction rather than a first-match
+	branch. A blocked shell with a permitted workspace, the `Welcome` shape, would otherwise
+	render the whole sidebar of a module the user has blocked, undoing the block with a row that
+	points past it. A visible shell with a forbidden workspace is the stale-row failure the
+	existence check prevents.
 
-	Existence comes first for the shell half. `is_module_visible` answers "not blocked", which a
-	module that does not exist answers just as happily as one that does -- so on its own it lets a
+	Existence is checked first for the shell. `is_module_visible` only answers whether a module is
+	blocked, and a module that does not exist is also not blocked, so on its own it would let a
 	row naming a deleted or renamed shell render an entry that leads nowhere.
 
-	**A module-less shell contributes no module gate**, exactly as a URL is ungated: a `Sidebar`
-	rooted at its app belongs to no module, so there is no module visibility to consult, and its
-	existence is the whole of the question.
+	A module-less shell has no module gate, the same as a URL. A `Sidebar` rooted at its app
+	belongs to no module, so there is no module visibility to check and existence is the whole
+	question.
 
-	The URL door being ungated is deliberate and is not new: a person can already store an
-	arbitrary URL in their own sidebar layer. It leaks no permission.
+	Leaving URLs ungated is deliberate and not new: a user can already store an arbitrary URL in
+	their own sidebar layer, and it leaks no permission.
 	"""
 	from frappe.desk.doctype.sidebar.sidebar import module_of_shell
 	from frappe.utils.modules import is_module_visible
@@ -1046,11 +1036,11 @@ def is_reachable(entry) -> bool:
 
 
 def permitted_workspaces() -> set[str]:
-	"""The workspaces this person may open.
+	"""Return the workspaces this user may open.
 
-	Asked on any site where a fragment or a layer names one, which is every site carrying a pin.
-	It costs nothing: it rides the request-cached workspace list the sidebar already computes on
-	every boot.
+	Called on any site where a fragment or a layer names one, which is every site carrying a pin.
+	It costs nothing, because it reuses the request-cached workspace list the sidebar already
+	computes on every boot.
 	"""
 	from frappe.desk.desktop import get_workspaces
 
@@ -1058,33 +1048,33 @@ def permitted_workspaces() -> set[str]:
 
 
 def shape_dock_rows(items: list | str, require_visible: bool, below: dict[str, dict]) -> list[dict]:
-	"""One saved arrangement, narrowed to rows that can be stored.
+	"""Narrow one saved arrangement to the rows that can be stored.
 
-	`items` is the whole ordered arrangement the client is showing -- the shape a Sortable
-	produces -- not a delta. A row names a shell, a page, or both:
+	`items` is the whole ordered arrangement the client is showing, the shape a Sortable produces,
+	not a delta. A row names a shell, a page, or both:
 
 	    {"sidebar": "Stock"}
 	    {"sidebar": "Stock", "link_type": "Workspace", "link_to": "Stock Analytics"}
 	    {"link_type": "Workspace", "link_to": "Payables", "hidden": 1}
 	    {"link_type": "URL", "url": "https://...", "icon": "book", "title": "Docs"}
 
-	A row naming nothing, or naming a `link_type` that is not on the whitelist, is dropped -- the
-	same treatment a row naming nothing has always had. The set is closed here as well as in
-	`Dock.validate` because these rows never pass through a document until after they are shaped.
+	A row naming nothing, or naming a `link_type` outside the allowed set, is dropped. The set is
+	checked here as well as in `Dock.validate`, because these rows do not reach a document until
+	after they are shaped.
 
-	Existence is checked separately from visibility because `is_module_visible` answers a
-	different question -- an unknown module is simply "not blocked", so it passes that check
-	and would then name nothing when the dock resolved.
+	Existence is checked separately from visibility, because `is_module_visible` answers a
+	different question: an unknown module is not blocked, so it passes that check and would then
+	name nothing when the dock resolved.
 
-	`require_visible` is what the two writable layers disagree about. A person's own arrangement
-	is filtered by their reach, so it can never resurface something permissions hide. The
-	site's is not: it is written for everyone, and dropping the rows the saver personally cannot
-	see would let one Workspace Manager's blocked module quietly delete the site's intent for
-	it. Reach is applied to the *resolved* dock either way.
+	`require_visible` differs between the two writable layers. A user's own arrangement is
+	filtered by their reach, so it cannot resurface something permissions hide. The site's is not,
+	because it is written for everyone, and dropping rows the saver personally cannot see would
+	let one Workspace Manager's blocked module delete the site's intent for it. Reach is applied
+	to the resolved dock either way.
 
 	`below` is every entry this layer could be referencing, keyed by destination (see
-	`entries_below`). It settles two things the client is not trusted to say: whether a row
-	**adds**, and whether its icon and title are an *opinion* or merely what it was shown.
+	`entries_below`). It decides two things the client is not trusted to report: whether a row
+	adds an entry, and whether its icon and title are an override or just what it was shown.
 	"""
 	shown = below
 	shaped, seen = [], set()
@@ -1094,10 +1084,10 @@ def shape_dock_rows(items: list | str, require_visible: bool, below: dict[str, d
 			continue
 
 		entry = stored_row(row)
-		# Every destination column has to be a non-empty string or absent. These rows are client
-		# JSON, so this is also what keeps a dict out of the lookups below: `frappe.db.exists`
-		# reads one as *filters* rather than as a name, which would turn a saved arrangement into
-		# a query surface.
+		# Every destination column must be a non-empty string or absent. These rows are client
+		# JSON, so this also keeps a dict out of the lookups below: `frappe.db.exists` reads a
+		# dict as filters rather than as a name, which would turn a saved arrangement into a
+		# query surface.
 		if any(value is not None and not isinstance(value, str) for value in destination(entry).values()):
 			continue
 		if entry["link_type"] and entry["link_type"] not in DOCK_LINK_TYPES:
@@ -1120,19 +1110,19 @@ def shape_dock_rows(items: list | str, require_visible: bool, below: dict[str, d
 
 
 def settle_reference(entry: dict, below: dict | None) -> dict:
-	"""Say whether this row adds an entry or references one, and keep its opinion honest.
+	"""Decide whether this row adds an entry or references one, and drop echoed-back overrides.
 
-	**Adding is derived, never taken from the client.** A row whose destination nothing below it
-	holds is an add: it brings the entry rather than opining about one. A pleasant consequence of
-	identity being the destination -- a person pins `Payables`, the app later ships `Payables`
-	itself, and the next save turns the person's add into a reference to it, so the two **merge
-	into one entry with the person's position winning** rather than doubling.
+	Whether a row adds is derived here, never taken from the client. A row whose destination
+	nothing below it holds is an add: it brings the entry rather than overriding one. Because
+	identity is the destination, a user who pins `Payables` before the app ships `Payables` gets
+	their add turned into a reference on the next save, so the two merge into one entry with the
+	user's position winning instead of appearing twice.
 
-	A reference blanks out what it only **echoes back**. The client sends the arrangement it is
-	*showing*, which carries the labels and icons it was given; stored as-is they would stop being
-	inheritance and start being opinion, and an entry the person never touched would keep the
-	label it happened to have on the day they reordered -- neither the site's relabel nor the
-	app's ever reaching them again.
+	A reference blanks any field that only echoes what it was given. The client sends the
+	arrangement it is showing, which carries the labels and icons it received. Stored as-is those
+	would become overrides rather than inheritance, and an entry the user never touched would keep
+	the label it happened to have when they reordered, so neither the site's relabel nor the
+	app's would ever reach them again.
 	"""
 	if below is None:
 		return {**entry, "added": 1}
@@ -1146,21 +1136,20 @@ def settle_reference(entry: dict, below: dict | None) -> dict:
 
 
 def entries_below(app: str, user: str | None) -> dict[str, dict]:
-	"""Every entry a layer being saved could be *referencing*, keyed by destination.
+	"""Return every entry a layer being saved could be referencing, keyed by destination.
 
-	**The rail as it was without this layer**, which is exactly what the saver was looking at --
-	so what their icons and titles were echoing back, and what a row of theirs can be a
-	*reference to*. A person's own save sees the app's dock with the site's arrangement on it;
-	the site's sees the app's dock alone, never the curator's own arrangement, which is not
-	theirs to publish.
+	This is the rail as it was without this layer, which is what the saver was looking at, so it
+	is what their icons and titles echo back and what their rows can reference. A user's own save
+	sees the app's dock with the site's arrangement on it. The site's save sees the app's dock
+	alone, never the curator's own arrangement, which is not theirs to publish.
 
-	Anything else is an **add**: a destination the rail below did not hold. That includes a URL
-	somebody typed, a workspace no dock names, and an entry the site took off -- a person
-	bringing that one back is not restoring the site's row, they are putting their own there,
-	which is why it carries a cross rather than an eye and why it has to say how it reads.
+	Anything else is an add: a destination the rail below did not hold. That includes a URL
+	someone typed, a workspace no dock names, and an entry the site removed. A user bringing that
+	last one back is not restoring the site's row but adding their own, which is why it carries a
+	cross rather than an eye and why it has to state how it reads.
 
-	Ungated on purpose -- whether a row adds is a question about membership, not about who can
-	see it. Reach-filtered, a Workspace Manager saving the site's rail with one module blocked
+	It is ungated on purpose: whether a row adds depends on membership, not on who can see it.
+	With the reach filter on, a Workspace Manager saving the site's rail with one module blocked
 	for them personally would turn that module's row into an add.
 	"""
 	below = resolve_app_dock(app, upto="user" if user else "site", gated=False)
@@ -1168,7 +1157,7 @@ def entries_below(app: str, user: str | None) -> dict[str, dict]:
 
 
 def destination(entry) -> dict:
-	"""Just the columns that say where an entry goes -- what `dock_key` is built from."""
+	"""Return only the columns that say where an entry goes, which is what `dock_key` uses."""
 	return {field: entry.get(field) for field in DESTINATION_FIELDS}
 
 
@@ -1179,27 +1168,27 @@ def destination(entry) -> dict:
 
 @frappe.whitelist()
 def save_user_dock(app: str, items: list | str):
-	"""Persist this person's own arrangement of `app`'s dock, applied on top of the site's."""
+	"""Save this user's own arrangement of `app`'s dock, applied on top of the site's."""
 	return _save_layer(app, items, user=frappe.session.user, require_visible=True)
 
 
 @frappe.whitelist()
 def save_site_dock(app: str, items: list | str):
-	"""Persist the site's arrangement of `app`'s dock, for everyone.
+	"""Save the site's arrangement of `app`'s dock, for everyone.
 
-	The site layer's whole point: "Accounts first, for everyone" is not expressible by any
-	number of per-person arrangements. A person's own still lands on top of it.
+	This is what the site layer is for: "Accounts first, for everyone" cannot be expressed by any
+	number of per-user arrangements. A user's own arrangement still applies on top of it.
 	"""
 	check_workspace_manager(_("You need to be Workspace Manager to change the dock for everyone."))
 	return _save_layer(app, items, user=None, require_visible=False)
 
 
 def _save_layer(app: str, items: list | str, user: str | None, require_visible: bool):
-	"""Replace one layer of one app's dock with `items`, and answer with the rail it leaves.
+	"""Replace one layer of one app's dock with `items` and return the resulting rail.
 
-	The whole layer, not a slice of it. A `Dock` is per app, so the rows the client sends are
-	the only rows this document holds -- which is what retires the dance the flat list needed,
-	where a save had to carry every *other* app's rows through untouched or lose them.
+	It replaces the whole layer, not part of it. A `Dock` is per app, so the rows the client sends
+	are the only rows this document holds. The old flat list needed each save to carry every other
+	app's rows through untouched or lose them.
 	"""
 	app = check_docked_app(app)
 
@@ -1215,25 +1204,25 @@ def _save_layer(app: str, items: list | str, user: str | None, require_visible: 
 	for row in shape_dock_rows(items, require_visible=require_visible, below=entries_below(app, user)):
 		doc.append("items", {field: row[field] for field in DOCK_ITEM_FIELDS})
 
-	# ignore_permissions: a person arranging their own dock need not hold write access to this
-	# doctype, and the site layer's gate is the role check its endpoint already made. The
-	# arrangement is re-filtered through reach on every boot regardless of what is stored here.
+	# ignore_permissions: a user arranging their own dock does not need write access to this
+	# doctype, and the site layer is gated by the role check its endpoint already made. The
+	# arrangement is re-filtered by reach on every boot whatever is stored here.
 	doc.save(ignore_permissions=True)
 
-	# Both saves answer with this app's resolved rail, so it can be redrawn in place whichever
-	# layer was written. This app's and no other: the save touched one document.
+	# Both saves return this app's resolved rail, so it can be redrawn in place whichever layer
+	# was written. Only this app's, because the save touched one document.
 	return resolve_app_dock(app)
 
 
 def check_docked_app(app: str | None) -> str:
-	"""The app a layer is being written for, refused unless it is installed.
+	"""Return the app a layer is being written for, throwing unless it is installed.
 
-	`app` arrives from the client on every write and every layer read, and it is stored: an
+	`app` comes from the client on every write and every layer read, and it is stored. An
 	unchecked value would let a layer be filed under an app that does not exist, where nothing
-	would ever resolve it and nothing would ever reap it.
+	would resolve it and nothing would delete it.
 
-	Active rather than merely installed, which is the same set `apps_screen_sort_key` already
-	walks: a disabled app has no rail to arrange.
+	It checks active apps rather than merely installed ones, the same set `apps_screen_sort_key`
+	walks, because a disabled app has no rail to arrange.
 	"""
 	app = (app or "").strip()
 	if not app or app not in frappe.get_active_apps():
@@ -1241,18 +1230,18 @@ def check_docked_app(app: str | None) -> str:
 	return app
 
 
-# A layer's raw rows, for the editor that is about to replace them. Not the resolved dock: an
-# editor saves back the whole arrangement, so it has to be shown the layer it will overwrite.
-# Kept out of the boot payload because it is only wanted the moment someone opens the manager.
+# A layer's raw rows, for the editor about to replace them. Not the resolved dock: an editor
+# saves back the whole arrangement, so it has to see the layer it will overwrite. These are kept
+# out of the boot payload because they are only needed when someone opens the manager.
 #
-# One endpoint per layer, each carrying its own gate, like the sidebar's saves and resets -- a
-# single endpoint taking "which layer" would carry the gate in a branch instead.
+# One endpoint per layer, each with its own gate, like the sidebar's saves and resets. A single
+# endpoint taking a layer name would put the gate in a branch instead.
 
 
 @frappe.whitelist()
 def get_user_dock_layer(app: str) -> list[dict]:
-	"""This person's own arrangement of one app's dock. No gate: it is theirs, and it is all they
-	can read."""
+	"""Return this user's own arrangement of one app's dock. No gate, because it is theirs and it
+	is all they can read."""
 	return get_user_dock(check_docked_app(app))
 
 
@@ -1264,15 +1253,15 @@ def get_site_dock_layer(app: str) -> list[dict]:
 
 @frappe.whitelist()
 def save_app_dock(app: str, items: list | str):
-	"""Persist the app's **own** dock -- the layer the other two are laid over.
+	"""Save the app's own dock, the layer the other two are laid over.
 
-	The one save that is authoring rather than arrangement, which is why it is gated on developer
-	mode and on nothing else: what makes this write okay is that the site belongs to a developer.
-	`Dock.validate_app_content` refuses it again at the document, and `on_update` writes the file,
-	so pressing Save in the manager and shipping the result are one act.
+	This is the one save that is authoring rather than arrangement, which is why developer mode is
+	its only gate: the write is safe because the site belongs to a developer.
+	`Dock.validate_app_content` checks it again at the document, and `on_update` writes the file,
+	so pressing Save in the manager also ships the result.
 
-	Not offered where the app ships no dock yet -- promoting is `mark_as_standard`, which is one
-	act with the file write and rolls the row back if the write does not land.
+	It is not offered where the app ships no dock yet. Promoting one is `mark_as_standard`, which
+	writes the file in the same step and rolls the row back if the write fails.
 	"""
 	app = check_docked_app(app)
 	check_developer_mode()
@@ -1283,9 +1272,9 @@ def save_app_dock(app: str, items: list | str):
 
 	doc = frappe.get_doc("Dock", doc.name)
 	doc.set("items", [])
-	# `below` is empty: there is nothing under the app's own dock, so every row of it adds and
-	# every row carries its own icon and title. That is the same rule the layers above follow,
-	# read at the bottom of the stack.
+	# `below` is empty: nothing sits under the app's own dock, so every row adds and every row
+	# carries its own icon and title. That is the same rule the layers above follow, applied at
+	# the bottom of the stack.
 	for row in shape_dock_rows(items, require_visible=False, below={}):
 		doc.append("items", {field: row[field] for field in DOCK_ITEM_FIELDS})
 
@@ -1295,18 +1284,19 @@ def save_app_dock(app: str, items: list | str):
 
 @frappe.whitelist()
 def get_app_dock_layer(app: str) -> list[dict]:
-	"""What the apps ship, as the manager needs to read it: the typed pair and the hidden flag.
+	"""Return what the apps ship, in the shape the manager reads: the typed pair and the hidden
+	flag.
 
-	No gate, because it is a read of app content -- the same thing every boot already carries in
-	`app_data`, minus the reach filter the resolved dock applies.
+	No gate, because it reads app content, which is what every boot already carries in `app_data`
+	minus the reach filter the resolved dock applies.
 
-	This is what tells the manager *who* hid a row. "Hidden" is otherwise silent about it, and a
-	person un-hiding what an app deliberately shipped off should at least be told they are doing
-	that. It is a **call**, not a doctype: materialising the hook into records to answer this one
-	question is the mirror the app layer exists to avoid.
+	This is what tells the manager who hid a row. The hidden flag alone does not say, and a user
+	un-hiding something an app shipped off should be told that is what they are doing. It is a
+	call rather than a doctype, because turning the hook into records to answer this one question
+	is what the app layer avoids.
 
-	`declared_by` is dropped: which app declared a row is the projection Ship needs, not the
-	manager, and shipping it here would put an app name in every editor payload.
+	`declared_by` is dropped: which app declared a row is what Ship needs, not the manager, and
+	including it would put an app name in every editor payload.
 	"""
 	return [{**rail_entry(row), "hidden": row["hidden"]} for row in get_app_dock(check_docked_app(app))]
 
@@ -1318,20 +1308,20 @@ def get_app_dock_layer(app: str) -> list[dict]:
 
 @frappe.whitelist()
 def reset_dock_for_everyone(app: str) -> list[dict]:
-	"""Drop every non-standard `Dock` for `app` -- the site's own layer included -- so everybody
-	is back on the app's exported dock.
+	"""Drop every non-standard `Dock` for `app`, including the site's own layer, so everyone is
+	back on the app's exported dock.
 
-	The argument is the sidebar's verbatim: a Workspace Manager who re-curates the site's rail
-	**reaches nobody who has arranged their own**. Reset at the site layer only lifts the site's
-	opinion; this is the one act that reaches past it, which is why it is an immediate confirmed
-	endpoint behind Workspace Manager rather than a pane edit applied on Save.
+	The reasoning matches the sidebar's: a Workspace Manager who re-curates the site's rail
+	reaches nobody who has arranged their own. Resetting the site layer only lifts the site's
+	arrangement, and this is the one action that reaches past it, which is why it is an immediate
+	confirmed endpoint behind Workspace Manager rather than a pane edit applied on Save.
 
-	Deleted **row by row so each `on_trash` runs**: only the document knows whose boot cache to
-	invalidate, and a bulk delete would leave every one of those people booting a rail that no
-	longer exists.
+	The rows are deleted one at a time so each `on_trash` runs. Only the document knows whose boot
+	cache to invalidate, and a bulk delete would leave those users booting a rail that no longer
+	exists.
 	"""
-	# The right first, the lookup second: an unprivileged caller should be refused for the reason
-	# that applies to them, not told which apps this site has on the way.
+	# Check the permission before the lookup, so an unprivileged caller is refused for the reason
+	# that applies to them rather than told which apps this site has.
 	check_workspace_manager(_("You need to be Workspace Manager to reset the dock for everyone."))
 	app = check_docked_app(app)
 
@@ -1347,13 +1337,13 @@ def reset_dock_for_everyone(app: str) -> list[dict]:
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-	"""A Workspace Manager curates the site and the apps; everyone else has only their own layer.
+	"""Allow a Workspace Manager to curate the site and the apps; everyone else gets only their
+	own layer.
 
-	The document-level half of the gate the endpoints hold. A `Desk User` holds `read` and
-	nothing more -- arranging a dock goes through `save_user_dock`, which writes one person's own
-	layer with `ignore_permissions`, so no write permission has to exist for the surface to work
-	and none is granted. This is what stops the read they *do* hold from being a read of
-	everybody else's.
+	This is the document-level half of the gate the endpoints hold. A `Desk User` has `read` and
+	nothing more: arranging a dock goes through `save_user_dock`, which writes one user's own
+	layer with `ignore_permissions`, so no write permission is needed or granted. This stops the
+	read they do have from being a read of everyone else's layers.
 	"""
 	user = user or frappe.session.user
 	if user == "Administrator" or is_workspace_manager(user):
@@ -1363,12 +1353,12 @@ def has_permission(doc, ptype="read", user=None, debug=False):
 
 
 def get_permission_query_conditions(user=None):
-	"""Everyone but a Workspace Manager lists only their own layer.
+	"""Restrict list queries so everyone but a Workspace Manager sees only their own layer.
 
-	The pair to `has_permission`, and not redundant with it: this is what keeps one person's
-	arrangement out of everybody else's *reads* -- reports, the API and the desk's export all go
-	through it rather than through the document-level check. Deliberately the same two functions
-	`Custom Sidebar` carries, because it is the same layering and the same gate.
+	This pairs with `has_permission` and is not redundant: it keeps one user's arrangement out of
+	everyone else's reads, since reports, the API and the desk's export go through this rather
+	than the document-level check. `Custom Sidebar` carries the same two functions, because it is
+	the same layering and the same gate.
 	"""
 	user = user or frappe.session.user
 	if user == "Administrator" or is_workspace_manager(user):

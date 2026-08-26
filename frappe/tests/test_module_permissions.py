@@ -66,9 +66,9 @@ class TestModulePermissions(IntegrationTestCase):
 	def test_role_gated_workspace_in_a_blocked_module_is_hidden(self):
 		"""The bug this phase fixes.
 
-		The module check used to sit inside the *no-roles* branch, so a workspace with any
-		role bypassed the block entirely -- the block silently did nothing for exactly the
-		workspaces someone had bothered to restrict.
+		The module check used to sit inside the no-roles branch, so a workspace with any role bypassed
+		the block entirely, and the block did nothing for exactly the workspaces someone had restricted.
+
 		"""
 		from frappe.desk.desktop import Workspace
 

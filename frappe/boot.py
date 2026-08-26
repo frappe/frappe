@@ -74,9 +74,9 @@ def get_bootinfo():
 		module: app for module, app in frappe.local.module_app.items() if module not in disabled_modules
 	}
 	# Where a code-only module's navigation went, so the desk can resolve an entity whose own
-	# module ships none. Raw and unfiltered on purpose: the client already tests each heir against
-	# `module_sidebars`, which is the per-user payload, so filtering here would say the same thing
-	# twice. Keyed by real module name, unlike module_app above.
+	# module ships none. Unfiltered on purpose: the client already checks each heir against
+	# `module_sidebars`, the per-user payload, so filtering here would repeat that. Keyed by real
+	# module name, unlike module_app above.
 	from frappe.utils.modules import get_code_only_module_heirs
 
 	bootinfo.code_only_module_heirs = get_code_only_module_heirs()
@@ -217,18 +217,17 @@ def get_boot_module_app():
 
 
 def get_app_rail_host_map():
-	"""Map of companion app -> the host app whose rail it mounts on.
+	"""Map each companion app to the host app whose rail it mounts on.
 
-	A companion app (e.g. India Compliance for ERPNext, India Payroll for HRMS) has no shell of
-	its own; its entries live on the host app's rail. This map lets the desk resolve the app
-	context (rail + header) of a companion app's workspaces to the host app, so you stay "in" the
-	host's rail while using the companion.
+	A companion app, such as India Compliance for ERPNext or India Payroll for HRMS, has no shell
+	of its own; its entries live on the host app's rail. This map lets the desk resolve the app
+	context (rail and header) of a companion app's workspaces to the host app, so the user stays
+	in the host's rail while using the companion.
 
-	Read off the records rather than off a hook, and it rides the dock layers cache -- which
-	exists for exactly this, a question the boot asks on every request. Only the mounts that
-	actually **land** are here: a companion whose host is not installed, or whose host ships no
-	dock, or that ships no rows itself, is an ordinary app with a rail and an apps-screen slot of
-	its own.
+	It is read from the records rather than a hook, and it uses the dock layers cache, which
+	exists for questions the boot asks on every request. Only mounts that take effect are here: a
+	companion whose host is not installed, whose host ships no dock, or that ships no rows itself
+	is an ordinary app with its own rail and apps-screen slot.
 	"""
 	from frappe.desk.doctype.dock.dock import mounted_apps
 
@@ -238,34 +237,34 @@ def get_app_rail_host_map():
 # Fallback apps-screen sort order for apps that don't declare a `sequence_id` in their
 # `add_to_apps_screen` hook. Sits below Framework (1000) so it always trails real apps.
 #
-# This one stays. It orders the thing it lives on -- the app's slot on the apps screen -- and it
-# is what makes the rails read in the same order as the screen people reach them from. Its
-# module-level counterpart is gone: where a module sits on a rail is a row's position in the
-# `Dock` record its app ships, which has no unset state to need a default.
+# This default stays. It orders the app's slot on the apps screen, which is what makes the rails
+# read in the same order as the screen users reach them from. Its module-level counterpart is
+# gone: where a module sits on a rail is a row's position in the `Dock` record its app ships,
+# which has no unset state and so needs no default.
 DEFAULT_APP_SEQUENCE_ID = 100
 
 
 def load_desktop_data(bootinfo):
 	from frappe.desk.doctype.dock.dock import resolve_dock
 
-	# A companion app's workspaces resolve their app context (rail + header) to the host app it
-	# mounts on, so the companion appears to live inside the host's rail rather than flipping the
-	# desk to a shell of its own. Not redundant with the companion's rows being in the host's
-	# entry set: only those rows are derivable from that, and a companion's *other* workspaces
-	# need the host's rail on screen too.
+	# A companion app's workspaces resolve their app context (rail and header) to the host app it
+	# mounts on, so the companion appears inside the host's rail rather than switching the desk to
+	# a shell of its own. This is not redundant with the companion's rows being in the host's
+	# entry set: only those rows are derivable from that, and a companion's other workspaces need
+	# the host's rail on screen too.
 	bootinfo.app_rail_host = get_app_rail_host_map()
 	# The dock this user sees, keyed by app: each app's own dock, with the site's arrangement and
-	# then their own applied on top, filtered to what they may reach. Keyed by app because a dock
-	# layer is per app -- arranging one app's rail says nothing about another's, and the client no
-	# longer has to intersect one cross-app list with each app's entry set. An arrangement, not
-	# the dock's contents -- an entry it doesn't name still shows, in its app's own order, after
-	# the ones it does. An app with no arrangement is absent rather than carried as an empty list.
+	# then the user's applied on top, filtered to what they can reach. It is keyed by app because
+	# a dock layer is per app, so arranging one app's rail says nothing about another's and the
+	# client no longer has to intersect one cross-app list with each app's entry set. This is an
+	# arrangement rather than the dock's contents: an entry it does not name still shows, in its
+	# app's own order, after the ones it does. An app with no arrangement is absent rather than
+	# carried as an empty list.
 	bootinfo.dock = resolve_dock()
-	# Keyed by exact-case module name, so a `Sidebar` row in `app_data[].dock` indexes straight
-	# in. This
-	# replaced three overlapping payloads -- `workspace_sidebar_item` (keyed by lowercased
-	# workspace title), `default_workspace_map` and `module_wise_workspaces` -- which between
-	# them made the desk reconcile four keyspaces for one identity.
+	# Keyed by exact-case module name, so a `Sidebar` row in `app_data[].dock` indexes straight in.
+	# This replaced three overlapping payloads: `workspace_sidebar_item` (keyed by lowercased
+	# workspace title), `default_workspace_map` and `module_wise_workspaces`, which together made
+	# the desk reconcile four keyspaces for one identity.
 	bootinfo.module_sidebars = get_module_sidebars()
 	bootinfo.entity_module = build_entity_module_map(bootinfo.module_sidebars)
 
@@ -280,19 +279,19 @@ def load_desktop_data(bootinfo):
 
 
 def get_app_data() -> list[dict]:
-	"""The apps the desk knows about, each with the ordered set of entries its dock offers.
+	"""Return the apps the desk knows about, each with the ordered set of entries its dock offers.
 
-	This is what backs the apps (desktop) screen and the workspace dock: the dock renders
+	This backs the apps (desktop) screen and the workspace dock: the dock renders
 	`app_data[app].dock` for whichever app is in context, ordered by the arrangement in
-	`frappe.boot.dock`. One typed list rather than the separate module and workspace lists it
-	replaces -- the client used to reconcile the two to render a single rail, and the pin landed
-	in the one the rail never read. Kept as its own function so anything that re-mounts a
+	`frappe.boot.dock`. It is one typed list rather than the separate module and workspace lists
+	it replaces, which the client had to reconcile to render a single rail and where the pin
+	landed in the list the rail never read. It stays its own function so anything that re-mounts a
 	workspace can hand the client a fresh copy without duplicating the grouping rules (see
 	`mount_workspace`).
 
-	Takes nothing. It used to be handed the workspace names this person may see, for the derived
-	first-workspace guess that 11 deleted -- and reach is now applied per entry by
-	`get_app_entry_set`, which asks the same question about the same person.
+	It takes no arguments. It used to be given the workspace names this user may see, for the
+	derived first-workspace guess that ticket 11 removed. Reach is now applied per entry by
+	`get_app_entry_set`, which asks the same question about the same user.
 	"""
 	from frappe.desk.doctype.dock.dock import get_app_entry_set
 
@@ -330,18 +329,18 @@ def get_app_data() -> list[dict]:
 				)
 				continue
 
-		# The entries this app's dock offers: exactly the rows of the `Dock` record it ships,
-		# permission-filtered. Not `get_app_modules` any more -- an app's dock stopped being
-		# "every module it owns, in some order" and became a document its author writes, so a
-		# module the record never names is off this rail for good. Which of these are *on* the
+		# The entries this app's dock offers: the rows of the `Dock` record it ships,
+		# permission-filtered. This is no longer `get_app_modules`, because an app's dock stopped
+		# being every module it owns in some order and became a document its author writes, so a
+		# module the record never names is off this rail permanently. Which of these are on the
 		# rail, and in what order, is `frappe.boot.dock`.
 		dock = get_app_entry_set(app_name)
 
 		app_data.append(
 			dict(
-				# whether the app opts into the apps screen via the add_to_apps_screen hook. An app
+				# Whether the app opts into the apps screen via the add_to_apps_screen hook. An app
 				# that pins into a host app's dock never takes a slot of its own, even if it still
-				# declares add_to_apps_screen from before the dock existed -- the pin wins.
+				# declares add_to_apps_screen from before the dock existed: the pin wins.
 				on_apps_screen=bool(apps) and app_name not in app_rail_host,
 				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
 				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
@@ -356,12 +355,12 @@ def get_app_data() -> list[dict]:
 					or ""
 				)
 				or app_name,
-				# **Only what the app declares.** The third source used to be an arbitrary
-				# workspace picked by `sequence_id`, which was a guess -- and this model makes
-				# it a worse one, because that workspace may sit in a module the app's `Dock`
-				# record never names, so the icon would land somewhere the rail refuses to
-				# acknowledge. The rest of the ladder is resolved on the client, late, so that
-				# reordering a rail moves the landing with it (`Sidebar.app_landing_route`).
+				# Only what the app declares. The third source used to be an arbitrary workspace
+				# picked by `sequence_id`, which was a guess, and a worse one under this model,
+				# because that workspace may sit in a module the app's `Dock` record never names,
+				# so the icon would land somewhere the rail does not show. The rest of the steps
+				# are resolved late on the client, so reordering a rail moves the landing with it
+				# (`Sidebar.app_landing_route`).
 				app_route=app_info.get("route")
 				or (
 					frappe.get_hooks("app_home", app_name=app_name)
@@ -381,31 +380,30 @@ def get_app_data() -> list[dict]:
 
 
 def get_app_modules(app_name: str) -> list[str]:
-	"""One app's modules that this user can actually navigate to, stably ordered.
+	"""Return one app's modules that this user can navigate to, in a stable order.
 
-	**Demoted, and narrowed in the same breath.** It used to *be* the app's dock, and an app's
-	dock is now the rows of the record it ships. What is left are three readers that all want the
-	same thing -- the switcher's list of shells, the manager's pool of things to add, and the
-	landing ladder's floor -- and each of them offers what it returns as a destination.
+	This used to be the app's dock, which is now the rows of the record the app ships. Three
+	readers are left, and all want the same thing: the switcher's list of shells, the manager's
+	pool of things to add, and the last step of the landing ladder. Each offers what this returns
+	as a destination.
 
-	The narrowing is forced by exactly that. It filtered only blocked modules, which was harmless
-	while it fed the rail: the client silently dropped any row missing from the module-sidebars
-	payload, where a disabled app's modules and the code-only ones never appear. Removing that
-	mask without adding the two checks would offer `Core`, `Custom` and `Desk` as destinations
-	that resolve to nothing.
+	That is why the filter is narrower than before. It used to filter only blocked modules, which
+	was harmless while it fed the rail, since the client silently dropped any row missing from the
+	module-sidebars payload, where a disabled app's modules and code-only modules never appear.
+	Removing that mask without adding the two checks would offer `Core`, `Custom` and `Desk` as
+	destinations that resolve to nothing.
 
-	So it asks the same three questions `get_navigable_modules` asks site-wide, scoped to one
-	app: not blocked by this person, not in a disabled app, and not code-only. One definition of
-	*a module you can navigate to*.
+	So it asks the same three questions `get_navigable_modules` asks site-wide, scoped to one app:
+	not blocked by this user, not in a disabled app, and not code-only. That is one definition of
+	a module you can navigate to.
 
-	Two tiers of order:
+	The order has two tiers:
 
-	1. **`modules.txt` position** -- the order the app declares its modules in.
-	2. **name** -- for modules that exist only in the database (a `Module Def` added from the
-	   UI, never written to `modules.txt`), which trail the declared ones alphabetically.
+	1. `modules.txt` position, the order the app declares its modules in.
+	2. Name, for modules that exist only in the database (a `Module Def` added from the UI and
+	   never written to `modules.txt`), which follow the declared ones alphabetically.
 
-	Collapsing these to name alone would alphabetise the trailing set, which is a behaviour
-	change and not one anybody asked for.
+	Sorting by name alone would alphabetise the trailing set, which changes behaviour.
 	"""
 	from frappe.utils.modules import get_code_only_modules, get_visible_modules
 
@@ -622,20 +620,20 @@ def get_sentry_dsn():
 def get_module_sidebars():
 	"""Build `bootinfo.module_sidebars` by resolving each of the site's shells.
 
-	Which shells there are still comes from walking **modules**, not `Sidebar` rows (see
-	`get_navigable_modules`); what a module owns is then whatever `get_sidebar_bases` finds
-	under it, and each of those is handed to `resolve_sidebar`, which is where every rule that
-	shapes an answer lives. This function chooses the set and assembles the payload; it decides
-	nothing about what a shell resolves to.
+	Which shells exist still comes from walking modules, not `Sidebar` rows (see
+	`get_navigable_modules`). What a module owns is whatever `get_sidebar_bases` finds under it,
+	and each of those goes to `resolve_sidebar`, which holds every rule that shapes an answer.
+	This function picks the set and assembles the payload; it decides nothing about what a shell
+	resolves to.
 
-	Keyed by **shell identity** -- a `Sidebar` document's exact name, or the exact module name
-	where the base was computed. Keyed by module, a module's second sidebar was overwritten by
-	its first and vanished with no error anywhere; a shell is what the desk shows and what a
-	dock row selects, so it is the honest key. The naming rule (`set_default_title`) keeps the
-	two the same string for every sidebar nobody deliberately renamed, so a reader holding a
-	module still indexes straight in.
+	It is keyed by shell identity: a `Sidebar` document's exact name, or the exact module name
+	where the base was computed. Keyed by module, a module's second sidebar was overwritten by its
+	first and disappeared with no error. A shell is what the desk shows and what a dock row
+	selects, so it is the correct key. The naming rule (`set_default_title`) keeps the two the
+	same string unless a sidebar was renamed, so a reader holding a module still indexes straight
+	in.
 
-	This is one keyspace, exact case. The legacy payload was keyed by `title.lower()`, a third
+	This is one keyspace, in exact case. The legacy payload was keyed by `title.lower()`, a third
 	keyspace alongside `router.slug(name)` and the exact Workspace name.
 	"""
 	from frappe.desk.doctype.sidebar.sidebar import (
@@ -661,33 +659,33 @@ def get_module_sidebars():
 
 
 def build_entity_module_map(module_sidebars):
-	"""Map each entity (`link_to`) to the **shell** whose sidebar owns it.
+	"""Map each entity (`link_to`) to the shell whose sidebar owns it.
 
-	The successor to `default_workspace_map`. Built from the already-filtered payload and keyed
-	the same way it is, so it can never name a shell or an entity the user cannot see, and what
-	it returns indexes straight back into the payload.
+	This replaces `default_workspace_map`. It is built from the already-filtered payload and keyed
+	the same way, so it can never name a shell or an entity the user cannot see, and what it
+	returns indexes straight back into the payload.
 
-	When two sidebars claim the same entity the winner is the **last-installed app**, and two
-	claims from the *same* app are separated by shell name ascending. Install order is
-	dependency order wherever a dependency exists -- the installer refuses to install an app
-	before its `required_apps` -- so a claim from the app built on top beats the one underneath
-	it, which is the `hrms` claims `Employee` case. The rule stops here: the desk's
-	`get_modules_linking` orders *curations* and deliberately does not use it.
+	When two sidebars claim the same entity, the last-installed app wins, and two claims from the
+	same app are ordered by shell name ascending. Install order follows dependency order wherever
+	a dependency exists, since the installer refuses to install an app before its `required_apps`,
+	so a claim from the app built on top beats the one underneath, which is how `hrms` claims
+	`Employee`. The rule stops here: the desk's `get_modules_linking` orders curations and does
+	not use it.
 
-	Two consequences worth stating, because neither is visible in the loop:
+	Two consequences are not visible in the loop below:
 
-	- **Ownership is per-user.** The payload is permission-filtered before it gets here, so the
-	  winner is the last-installed app *among the claims this user can see*. Two users may
-	  correctly resolve one entity to different shells, and a user who cannot see the winning
-	  shell falls to the next claim down rather than to nothing.
-	- **The loser is told nothing**, deliberately -- no log, no report, no `after_migrate` line.
-	  What was wrong with the last-write-wins this replaces was that it was a *coin flip* (over a
-	  dict ordered by module name), not that it was quiet; a rule an author can predict from their
-	  own install order needs no warning. Please don't add one back.
+	1. Ownership is per-user. The payload is permission-filtered before it gets here, so the
+	   winner is the last-installed app among the claims this user can see. Two users may
+	   correctly resolve one entity to different shells, and a user who cannot see the winning
+	   shell falls to the next claim rather than to nothing.
+	2. The losing claim is not reported anywhere: no log, no report, no `after_migrate` line. The
+	   problem with the last-write-wins this replaces was that it was arbitrary, over a dict
+	   ordered by module name, not that it was quiet. A rule an author can predict from their own
+	   install order needs no warning, so please do not add one.
 	"""
 	# A module placed by `get_module_placement` rather than by a shipped document can name an app
-	# that isn't installed here, so an unknown app ranks below every installed one instead of
-	# raising -- ownership is not worth a broken boot.
+	# that is not installed here, so an unknown app ranks below every installed one instead of
+	# raising. Ownership is not worth a broken boot.
 	install_index = {app: index for index, app in enumerate(frappe.get_installed_apps())}
 
 	claims = {}
@@ -697,7 +695,7 @@ def build_entity_module_map(module_sidebars):
 			if item.get("link_to") and item.get("is_default_module"):
 				claims.setdefault(item["link_to"], []).append(claim)
 
-	# the comparator, stated once: highest install index, then lowest shell name
+	# The comparator, in one place: highest install index, then lowest shell name.
 	return {
 		entity: min(entity_claims, key=lambda claim: (-claim[0], claim[1]))[1]
 		for entity, entity_claims in claims.items()

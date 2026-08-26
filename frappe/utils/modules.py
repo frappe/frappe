@@ -45,9 +45,9 @@ def is_module_visible(module: str | None, user: str | None = None) -> bool:
 
 	    visible(m, u) = m not in blocked(u)
 
-	**Navigation reach only. Never call this from `has_permission`.** Document access is
-	decided by DocPerm, and routing it through here would turn a navigation preference into a
-	security boundary. Hiding a module hides the way *to* a document, never the document itself.
+	This is navigation reach only. Never call it from `has_permission`. Document access is decided
+	by DocPerm, and routing it through here would turn a navigation preference into a security
+	boundary. Hiding a module hides the way to a document, never the document itself.
 	"""
 	if not module:
 		return True
@@ -63,54 +63,54 @@ def get_visible_modules(modules: list[str], user: str | None = None) -> list[str
 
 
 def get_code_only_modules() -> set[str]:
-	"""Modules their own app says ship no navigation.
+	"""Return the modules whose own app says they ship no navigation.
 
-	A module is two things at once -- a folder of code and a place in the dock -- and an app
-	splitting its navigation into semantic modules is left holding the first without wanting the
-	second. `frappe.Core` is the case this exists for: its doctypes, reports and pages stay put
-	while `System`, `Build`, `Data` and `Users` carry the navigation, and without this it
-	would keep a dock entry whose computed base is the leftover grab-bag of everything nobody
-	moved.
+	A module is two things at once: a folder of code and a place in the dock. An app that splits
+	its navigation into semantic modules keeps the first without wanting the second. `frappe.Core`
+	is the case this exists for: its doctypes, reports and pages stay where they are while
+	`System`, `Build`, `Data` and `Users` carry the navigation. Without this it would keep a dock
+	entry whose computed base is whatever doctypes nobody moved.
 
-	Declared in `hooks.py` (`code_only_modules`), so it travels with the app that made the split
-	rather than being site state somebody has to re-apply -- and an existing site gets it on the
-	next boot with no patch to run.
+	It is declared in `hooks.py` as `code_only_modules`, so it travels with the app that made the
+	split rather than being site state someone has to re-apply, and an existing site gets it on
+	the next boot with no patch.
 
-	**Not a permission gate, and deliberately not part of `is_module_visible`.** That one decides
-	whether a module's *contents* may be reached -- `Workspace.is_permitted` falls back to it, as
-	do the module-scoped chart and card pickers -- so folding this in would make Core's workspaces
-	and dashboard records unreachable rather than merely unlisted. This is only about the dock;
-	see `frappe.desk.doctype.sidebar.sidebar.get_navigable_modules`, its one caller.
+	This is not a permission gate and is deliberately not part of `is_module_visible`. That one
+	decides whether a module's contents may be reached, since `Workspace.is_permitted` falls back
+	to it, as do the module-scoped chart and card pickers, so folding this in would make Core's
+	workspaces and dashboard records unreachable rather than only unlisted. This is only about the
+	dock. Its one caller is `frappe.desk.doctype.sidebar.sidebar.get_navigable_modules`.
 
-	Uncached on purpose: `get_hooks` already caches the merged hook map per site and busts it on
-	migrate, so a second cache here would only add a copy nothing invalidates.
+	It is uncached on purpose: `get_hooks` already caches the merged hook map per site and clears
+	it on migrate, so a second cache here would add a copy nothing invalidates.
 
-	Only the *names* -- `set()` over the hook's dict yields its keys, so this reads the same
-	answer out of a mapping as it did out of the list the hook used to be. Where the navigation
-	went is `get_code_only_module_heirs`'s question, deliberately kept separate: this one guards
-	the dock and would learn nothing from the values.
+	It returns only the names, since `set()` over the hook's dict yields its keys, so it reads the
+	same answer from a mapping as it did from the list the hook used to be. Where the navigation
+	went is `get_code_only_module_heirs`'s question, kept separate because this one guards the
+	dock and would learn nothing from the values.
 	"""
 	return set(frappe.get_hooks("code_only_modules") or [])
 
 
 def get_code_only_module_heirs() -> dict[str, list[str]]:
-	"""Where each code-only module's navigation went -- module -> the modules that inherited it.
+	"""Return where each code-only module's navigation went: module to the modules that inherited
+	it.
 
-	The other half of the `code_only_modules` declaration. `get_code_only_modules` says a module
-	ships no navigation; this says which modules carry it now, so an entity whose module is
-	code-only resolves against the heirs instead of dead-ending in a module that is not a place
-	you can go. `frappe.Core` fans out to five, and the desk picks among them by membership --
-	which is why a module-level declaration is enough and nobody has to flag 200 entities.
+	This is the other half of the `code_only_modules` declaration. `get_code_only_modules` says a
+	module ships no navigation; this says which modules carry it now, so an entity whose module is
+	code-only resolves against the heirs instead of dead-ending in a module you cannot navigate to.
+	`frappe.Core` fans out to five heirs, and the desk picks among them by membership, which is why
+	a module-level declaration is enough and nobody has to flag 200 entities.
 
-	**Ordered, and the order is read twice** -- earliest heir wins a tie between two that both
-	list the entity, and the first heir this user can see is the home for an entity none of them
-	lists. `append_hook` listifies each value and extends across apps in app order, so the
-	ordering is per-app-merged and stable: an app that took over part of another's navigation
+	The order matters and is read twice: the earliest heir wins a tie between two that both list
+	the entity, and the first heir this user can see is the home for an entity none of them lists.
+	`append_hook` turns each value into a list and extends across apps in app order, so the
+	ordering is merged per app and stable: an app that took over part of another's navigation
 	appends to the same key from its own `hooks.py`.
 
-	Shipped to the desk raw (`bootinfo.code_only_module_heirs`) rather than filtered to the
-	user's payload -- the client already tests every candidate against `module_sidebars`, and
-	filtering here would put the per-user rule in two places.
+	It is shipped to the desk unfiltered as `bootinfo.code_only_module_heirs`. The client already
+	tests every candidate against `module_sidebars`, and filtering here would put the per-user rule
+	in two places.
 	"""
 	return {module: list(heirs) for module, heirs in (frappe.get_hooks("code_only_modules") or {}).items()}
 

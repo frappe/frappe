@@ -5,12 +5,12 @@ import frappe
 from frappe.model.document import Document
 
 # The two things the /app/desktop page can be. These strings are the options of the
-# `desktop_page` field, so they are what a system manager sees. This module is the only
-# place either is compared -- everything else asks `is_desktop_icons_page()`.
+# `desktop_page` field, so they are what a system manager sees. This module is the only place
+# either is compared; everything else calls `is_desktop_icons_page()`.
 #
-# Retiring. The field, the mode check and the seed-on-flip below exist only while the desktop
-# has two forms; with the field gone every caller collapses to the Apps path. They go with the
-# icon-grid batch, on one of the two triggers written down in `frappe/desk/RETIRING.md`.
+# This is being retired. The field, the mode check and the seed-on-switch below exist only while
+# the desktop has two forms; with the field gone every caller uses the Apps path. They go with the
+# icon-grid batch, on one of the two triggers listed in `frappe/desk/RETIRING.md`.
 APPS = "Apps"
 DESKTOP_ICONS = "Desktop Icons"
 
@@ -38,11 +38,11 @@ class DesktopSettings(Document):
 		# switching it has to rebuild every user's boot.
 		frappe.clear_cache()
 
-		# Whatever turns the grid on is responsible for there being a grid: both producers
-		# are gated on this setting, so without seeding here a System Manager flipping to it
-		# lands on an empty screen. Enqueued rather than run inline -- seeding walks every
-		# installed app and every public workspace, which is not what a settings save is for.
-		# Flipping the other way deletes nothing, which is what makes the move reversible.
+		# Whatever turns the grid on is responsible for there being a grid. Both producers are
+		# gated on this setting, so without seeding here a System Manager switching to it lands on
+		# an empty screen. It is enqueued rather than run inline, because seeding walks every
+		# installed app and every public workspace, which is too much for a settings save.
+		# Switching back deletes nothing, which keeps the move reversible.
 		if self.desktop_page == DESKTOP_ICONS:
 			frappe.enqueue(seed_desktop_icons, enqueue_after_commit=True)
 
@@ -50,10 +50,10 @@ class DesktopSettings(Document):
 def seed_desktop_icons():
 	"""Fill a freshly switched-on grid: generated rows, then every app's shipped ones.
 
-	Exists only while the flag has two settings; see `frappe/desk/RETIRING.md`.
+	This exists only while the flag has two settings; see `frappe/desk/RETIRING.md`.
 
-	Both producers are idempotent -- they skip an icon that already exists -- so repeated
-	flips accumulate nothing.
+	Both producers are idempotent, skipping an icon that already exists, so repeated switches
+	accumulate nothing.
 	"""
 	from frappe.desk.doctype.desktop_icon.desktop_icon import (
 		create_desktop_icons,
@@ -64,17 +64,17 @@ def seed_desktop_icons():
 	import_desktop_icon_fixtures()
 
 	# Anyone who booted between the save and this job cached an empty grid, and the rows
-	# themselves bust nothing useful -- a generated icon is not `standard`, so its own
-	# `on_update` only clears the cache of the user the job runs as.
+	# themselves clear nothing useful: a generated icon is not `standard`, so its own `on_update`
+	# only clears the cache of the user the job runs as.
 	frappe.clear_cache()
 
 
 def get_desktop_page() -> str:
 	"""Which page /app/desktop renders. Defaults to `Apps` when unset (fresh install)."""
-	# Asked on every boot, and by the fixture-import guard during an install's own doctype
-	# sync -- so neither the doctype nor the field can be assumed to exist. Reading either
-	# blind would take down the install, or session boot on a site that has pulled the code
-	# but not migrated yet, rather than just falling back to the default page.
+	# This is asked on every boot, and by the fixture-import guard during an install's own doctype
+	# sync, so neither the doctype nor the field can be assumed to exist. Reading either without
+	# checking would break the install, or session boot on a site that has pulled the code but not
+	# migrated, instead of falling back to the default page.
 	try:
 		has_field = frappe.get_meta(DesktopSettings._DOCTYPE_NAME).has_field("desktop_page")
 	except frappe.DoesNotExistError:

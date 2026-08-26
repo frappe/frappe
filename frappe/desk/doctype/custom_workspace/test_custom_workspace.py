@@ -146,7 +146,7 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 
 		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
 		self.assertEqual(loads(customization.content), edited)
-		# the app-owned record still has BOTH blocks -- it was never edited in place
+		# The app-owned record still has both blocks, because it was never edited in place.
 		base_content = loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content"))
 		self.assertEqual(len(base_content), 2)
 
@@ -210,9 +210,9 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Custom Workspace", self.WORKSPACE))
 
 	def test_layout_customization_marks_the_page_as_frozen(self):
-		# the desk warns before the save that freezes a layout, so the payload has to say
-		# whether this workspace has a snapshot already -- an appearance-only delta has not
-		# frozen anything and must not be reported as if it had.
+		# The desk warns before the save that freezes a layout, so the payload has to say whether
+		# this workspace already has a snapshot. An appearance-only delta has frozen nothing and
+		# must not be reported as if it had.
 		from frappe.desk.desktop import _overlay_customization_properties
 
 		frappe.get_doc({"doctype": "Custom Workspace", "workspace": self.WORKSPACE, "icon": "star"}).insert()

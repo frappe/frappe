@@ -1,135 +1,134 @@
 // One editor over the arrangements a navigation surface has.
 //
-// Two of them exist, and both are the same thing: an ordered list of entries that more than one
-// party gets an opinion about. The dock is an app's, running along the side of the screen; a
-// Sidebar is a module's. Each is stored in two writable layers -- everyone has their own, and a
-// curator can switch to the site's, which everyone sees and each person's own is then applied on
-// top of. That is the only thing the layer switch changes: both layers are the same rows,
-// arranged the same way, saved through endpoints that differ only in where they land.
+// There are two surfaces, and both are the same thing: an ordered list of entries that more than
+// one party can arrange. The dock belongs to an app and runs along the side of the screen; a
+// Sidebar belongs to a module. Each is stored in two writable layers: every user has their own,
+// and a curator can switch to the site's, which everyone sees and on top of which each user's own
+// layer is applied. That is all the layer switch changes: both layers hold the same rows, arranged
+// the same way, saved through endpoints that differ only in where they write.
 //
-// One list and a preview beside it. The list holds every entry the surface offers, in one order,
-// and the eye on a row is the whole of on-the-surface or hidden -- so a hidden entry keeps its
-// place and comes back where it was left, rather than out of a pool at the end. The pane beside it
-// draws the arrangement the way the surface will render it, which is the question a person
-// actually has while dragging: not "which rows did I pick" but "what does it look like".
+// The dialog is one list with a preview beside it. The list holds every entry the surface offers,
+// in one order, and the eye on a row is all there is to being on the surface or hidden, so a
+// hidden entry keeps its place instead of moving to a pool at the end. The preview draws the
+// arrangement the way the surface will render it, which is the question a user has while dragging:
+// not which rows they picked, but what it will look like.
 //
-// An untouched layer starts from the layer *below* it as that layer renders. A save writes the
-// whole slice, so seeding from anything else would silently un-hide what a lower layer hid --
-// which is why the rule is stated here even though each surface reaches it its own way: the dock
-// works it out in the client, the sidebar is handed it by its read endpoint.
+// An untouched layer starts from the layer below it, as that layer renders. A save writes the
+// whole slice, so seeding from anything else would silently un-hide what a lower layer hid. The
+// rule is stated here even though each surface implements it differently: the dock works it out in
+// the client, and the sidebar is given it by its read endpoint.
 //
-// What a surface supplies is small: what its layers read, save and reset through, what its entries
-// are and what keys them, how one of them draws in the preview, and whatever per-entry fields it
-// lets a person state. The layer switch, the list, the eye and the persistence are here.
+// A surface supplies little: what its layers read, save and reset through, what its entries are
+// and what keys them, how an entry draws in the preview, and any per-entry fields a user may set.
+// The layer switch, the list, the eye and the persistence live here.
 frappe.ui.ArrangementEditor = class ArrangementEditor {
 	constructor() {
 		this.make();
 	}
 
 	// -------------------------------------------------------------------------------------------
-	// What a surface supplies. Everything below this block is the same work for either of them.
+	// What a surface supplies. Everything below this block is the same for both surfaces.
 	// -------------------------------------------------------------------------------------------
 
-	// `{user: {read, save, saved(), label(), condition?}, site: {...}}` -- where a layer is read
+	// `{user: {read, save, saved(), label(), condition?}, site: {...}}`: where a layer is read
 	// from, where it is written back to, what to call it in the switch, and what to say once it
-	// lands. A layer whose `condition` answers false is not offered at all.
+	// lands. A layer whose `condition` returns false is not offered.
 	get layers() {
 		return {};
 	}
 
-	// The layers this person may actually write, in switch order. What the switch shows is what
-	// the endpoints will accept, so there is never a value that fails on Save.
+	// The layers this user may write, in switch order. The switch only shows what the endpoints
+	// will accept, so no value can fail on Save.
 	get offered_layers() {
 		return Object.entries(this.layers).filter(
 			([, layer]) => !layer.condition || layer.condition()
 		);
 	}
 
-	// Whatever a surface needs resolved before the dialog is titled: its subject, its own gates.
+	// Whatever a surface needs resolved before the dialog is titled: its subject and its gates.
 	prepare() {}
 
 	title() {
 		return __("Arrange");
 	}
 
-	// Extra `frappe.ui.Dialog` options -- a secondary action one surface offers and the other does not.
+	// Extra `frappe.ui.Dialog` options, such as a secondary action one surface offers and the
+	// other does not.
 	extra_actions() {
 		return {};
 	}
 
-	// Read the layer named by `this.layer`, leaving `this.entries` (key -> entry) behind and
-	// stating the arrangement through `arrange()`. Throwing is how it says the read failed;
-	// nothing is rendered and neither Save nor anything else will act.
+	// Read the layer named by `this.layer`, populating `this.entries` (key to entry) and setting
+	// the arrangement through `arrange()`. It throws when the read fails; nothing is rendered and
+	// no action, including Save, will run.
 	async read() {}
 
-	// The arguments the save endpoint takes, once the list on screen is the arrangement.
+	// The arguments the save endpoint takes, given the arrangement on screen.
 	save_args() {
 		return {};
 	}
 
-	// Apply what a save or a reset answered with, in place.
+	// Apply what a save or a reset returned, in place.
 	apply() {}
 
-	// What the Reset button in the list's head does. The two surfaces mean different things by
+	// What the Reset button in the list header does. The two surfaces mean different things by
 	// it, so neither inherits the other's.
 	reset() {}
 
-	// Whether this surface's layers may *add* an entry rather than only order and hide the ones
-	// the base gave them. `frappe.desk.layers` states the asymmetry the two ends live by -- the
-	// base adds, orders and hides; the layers above order and hide -- and a sidebar is the one
-	// exception, because a `Custom Sidebar` row can carry an item of its own. A dock row cannot;
-	// it names something the app already put on the fragment.
+	// Whether this surface's layers may add an entry rather than only order and hide the ones the
+	// base gave them. `frappe.desk.layers` sets the rule: the base adds, orders and hides, and the
+	// layers above order and hide. A sidebar is the exception, because a `Custom Sidebar` row can
+	// carry an item of its own. A dock row cannot; it names something the app already shipped.
 	can_add() {
 		return false;
 	}
 
-	// Put a new entry on the arrangement. Only ever reached when `can_add()` says so.
+	// Put a new entry into the arrangement. Only reached when `can_add()` allows it.
 	add() {}
 
-	// The words, one place per surface, so the panes can say what they are actually arranging.
-	// The base reads `list_head`, `list_sub`, `reset_title`, `list_empty`, `preview_head`,
-	// `preview_sub`, `preview_empty` and `load_error`; a surface may carry more for its own use,
-	// which is where the sidebar's Reset keeps its confirmation.
+	// The wording, one place per surface, so the panes can say what they are arranging. The base
+	// reads `list_head`, `list_sub`, `reset_title`, `list_empty`, `preview_head`, `preview_sub`,
+	// `preview_empty` and `load_error`. A surface may add more for its own use, which is where the
+	// sidebar's Reset keeps its confirmation text.
 	copy() {
 		return {};
 	}
 
-	// Extra markup on an entry in the list -- a chip saying who hid it, and the like.
+	// Extra markup on an entry in the list, such as a chip saying who hid it.
 	item_extras() {
 		return "";
 	}
 
-	// Extra classes on an entry, in the list and in the preview -- what a surface draws
-	// differently about one.
+	// Extra classes on an entry, in the list and in the preview, for anything a surface draws
+	// differently.
 	item_classes() {
 		return "";
 	}
 
-	// Extra affordances on a list entry, which need a handler and so are hung on the node.
+	// Extra controls on a list entry, which need a handler and so are attached to the node.
 	decorate_item() {}
 
-	// Extra buttons beside Add and Reset in the list's head -- an act one surface has and the
-	// other does not. `{label, title, onClick}` each.
+	// Extra buttons beside Add and Reset in the list header, for an action one surface has and the
+	// other does not. Each is `{label, title, onClick}`.
 	extra_pane_actions() {
 		return [];
 	}
 
-	// A muted line under the pane's subtitle: a reading rather than an affordance. Empty by
+	// A muted line under the pane's subtitle, for reporting rather than for acting on. Empty by
 	// default, because most surfaces have nothing to report.
 	pane_note() {
 		return "";
 	}
 
 	// What the eye says it will do. A surface where hiding means different things at different
-	// layers says so here -- see the dock, where an author hiding a row ships it off by default
-	// and a site hiding one is exercising a customisation.
+	// layers states that here. See the dock, where an author hiding a row ships it off by default
+	// and a site hiding one makes a customization.
 	hide_tooltip(key, hidden) {
 		return hidden ? __("Show") : __("Hide");
 	}
 
-	// One entry was dragged to a new place. A surface where position means something beyond
-	// order says so here -- see the sidebar, where where you drop an entry is what says which
-	// section it belongs to.
+	// One entry was dragged to a new place. A surface where position means more than order handles
+	// that here. See the sidebar, where the drop position decides which section an entry is in.
 	on_move() {}
 
 	// -------------------------------------------------------------------------------------------
@@ -142,16 +141,16 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.hidden = new Set();
 		this.can_curate_site = frappe.user.has_role("Workspace Manager");
 		this.prepare();
-		// Which layer the editor opens on: the site's, for whoever may curate it. Arranging for
-		// everyone is what the right is for, and a curator who meant only their own has the
-		// switch sitting in the header to say so. Everybody else has one layer and opens on it.
+		// Which layer the editor opens on: the site's, for users who may curate it, since
+		// arranging for everyone is what that permission is for. A curator who meant only their
+		// own layer has the switch in the header. Everyone else has one layer and opens on it.
 		//
-		// Never the app's, however: authoring what an app ships is a deliberate act, not the one
-		// you fall into by opening the manager on a developer's site.
+		// Never the app's layer: authoring what an app ships should be deliberate, not what
+		// happens by opening the manager on a developer's site.
 		//
-		// Read after `prepare`, because that is where a surface settles what the right means for
-		// it -- opening on a layer this person may not write would be an editor that fails on
-		// Save rather than one that never offered it.
+		// Read after `prepare`, because that is where a surface settles what the permission means
+		// for it. Opening on a layer this user cannot write would fail on Save instead of never
+		// being offered.
 		this.layer = this.can_curate_site ? "site" : "user";
 
 		this.dialog = new frappe.ui.Dialog({
@@ -169,14 +168,14 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.load();
 	}
 
-	// The just-me / everyone switch, and the whole of what the site layer's gate looks like from
-	// here: without the right to curate for everyone the switch is absent, so there is nothing to
-	// fail on save. What that right *is* belongs to the endpoints, which check it again.
+	// The just-me / everyone switch, and all the site layer's gate looks like from here: without
+	// the right to curate for everyone the switch is absent, so nothing can fail on save. What
+	// that right is belongs to the endpoints, which check it again.
 	//
-	// It hangs in the dialog's own header beside the close button rather than sitting above the
-	// panes as the first field of the body. It is not part of the arrangement -- it says which
-	// arrangement you are looking at -- and a field in front of the list read as one more thing
-	// to fill in before getting to the work.
+	// It sits in the dialog header beside the close button rather than above the panes as the
+	// first field of the body. It is not part of the arrangement, it says which arrangement you
+	// are looking at, and a field in front of the list read as one more thing to fill in before
+	// starting.
 	mount_layer_switch() {
 		const options = this.offered_layers
 			.map(([name, layer]) => `<option value="${name}">${layer.label()}</option>`)
@@ -186,16 +185,16 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 				${options}
 			</select>
 		`);
-		// a switch that renders blank reads as "no layer chosen" when one always is
+		// A switch that renders blank reads as no layer chosen, but one is always chosen.
 		this.$layer.val(this.layer);
 		this.$layer.on("change", () => this.switch_layer());
 		this.dialog.$wrapper.find(".modal-actions").prepend(this.$layer);
 	}
 
-	// Neither a value that names no layer nor the layer already on screen is a switch to
-	// anything, and reading either as one would re-read the arrangement for nothing -- or, in
-	// the first case, leave `this.layer` naming a layer that does not exist and every read
-	// through `layer_config` undefined.
+	// A value naming no layer, and the layer already on screen, are both non-switches. Treating
+	// either as a switch would re-read the arrangement for nothing, and the first would also leave
+	// `this.layer` naming a layer that does not exist, making every read through `layer_config`
+	// undefined.
 	switch_layer() {
 		const layer = this.$layer.val();
 		if (!this.layers[layer] || layer === this.layer) return;
@@ -214,9 +213,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		try {
 			await this.read();
 		} catch (e) {
-			// Say so rather than sit on "Loading..." forever. `loaded` stays false, so Save and
-			// every other action do nothing -- none of them should act on an arrangement we
-			// never read.
+			// Report the failure rather than sit on "Loading..." forever. `loaded` stays false, so
+			// Save and every other action do nothing, since none should act on an arrangement that
+			// was never read.
 			console.error("Arrangement editor: could not read the arrangement", e);
 			this.$body.html(`<div class="text-muted">${this.copy().load_error}</div>`);
 			return;
@@ -226,20 +225,19 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.render();
 	}
 
-	// Every key the list works in, in the surface's own order. `this.entries` is built in that
-	// order by both of them, so the map is the answer.
+	// Every key the list works in, in the surface's own order. Both surfaces build `this.entries`
+	// in that order, so the map itself gives the order.
 	all_keys() {
 		return [...this.entries.keys()];
 	}
 
-	// The one list the editor works in: every entry the surface offers, in one order, and which
-	// of them are hidden. `read()` states it once, and the list on screen is that statement from
-	// then on.
+	// The one list the editor works in: every entry the surface offers, in one order, and which of
+	// them are hidden. `read()` sets it once, and the list on screen is that from then on.
 	//
-	// A key the layer never named is appended in the surface's own order, and hidden -- a layer
-	// that named some entries and not others has said nothing about the rest, and an entry
-	// nobody has placed is not one to put on the surface uninvited. This is also what carries a
-	// newly installed app's entries into an arrangement somebody has already made.
+	// A key the layer never named is appended in the surface's own order and hidden. A layer that
+	// named some entries and not others has said nothing about the rest, and an entry nobody has
+	// placed should not appear on the surface uninvited. This is also how a newly installed app's
+	// entries reach an arrangement someone has already made.
 	arrange(order, hidden = []) {
 		const named = order.filter((key) => this.entries.has(key));
 		const unnamed = this.all_keys().filter((key) => !named.includes(key));
@@ -249,7 +247,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	}
 
 	// What is on the surface, in order: the arrangement minus what the eye has taken off. Every
-	// surface asks this rather than reading `order` -- it is the arrangement as it renders.
+	// surface uses this rather than reading `order`, because it is the arrangement as it renders.
 	get selection() {
 		return this.order.filter((key) => !this.hidden.has(key));
 	}
@@ -316,9 +314,8 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.order.forEach((key) => this.$arrangement.append(this.list_item(key)));
 	}
 
-	// The preview is the arrangement as the surface renders it, so it holds what is on the
-	// surface and nothing else -- a hidden entry is absent here, which is the whole of what
-	// hiding one does.
+	// The preview is the arrangement as the surface renders it, so it holds what is on the surface
+	// and nothing else. A hidden entry is absent here, which is all hiding one does.
 	render_preview() {
 		const shown = this.selection;
 
@@ -332,9 +329,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		shown.forEach((key) => this.$preview.append(this.preview_item(key)));
 	}
 
-	// What an entry draws as: its own icon, or a lettered tile standing in for one. A surface that
-	// draws no icons answers with nothing and is given no room for one -- see the sidebar, which
-	// is labels the whole way down.
+	// What an entry draws as: its own icon, or a lettered tile in place of one. A surface that
+	// draws no icons returns nothing and is given no room for one. See the sidebar, which is
+	// labels only.
 	entry_icon(entry) {
 		return entry.icon
 			? frappe.utils.icon(entry.icon, "md")
@@ -368,15 +365,15 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return $el;
 	}
 
-	// Whether this layer added the entry itself, rather than having an opinion about one a layer
-	// below holds. An own add comes off with a cross rather than an eye: there is nothing under
-	// it to hide it *from*, so changing your mind about your own row means gone.
+	// Whether this layer added the entry itself, rather than overriding one a lower layer holds.
+	// An entry this layer added is removed with a cross rather than an eye: there is nothing below
+	// it to hide it from, so changing your mind about your own row means deleting it.
 	is_own_add() {
 		return false;
 	}
 
-	// The eye, which is the whole of hide and show for an entry a lower layer holds: one list,
-	// one control, and a row that keeps its place either way.
+	// The eye, which is all of hide and show for an entry a lower layer holds: one list, one
+	// control, and a row that keeps its place either way.
 	visibility_button(key) {
 		const hidden = this.hidden.has(key);
 		let $btn = $(
@@ -388,9 +385,8 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return $btn;
 	}
 
-	// The cross, for a row this layer added. Hiding it would store "this layer holds an entry it
-	// does not show", which is a sentence with no meaning -- the entry exists only because this
-	// layer says so.
+	// The cross, for a row this layer added. Hiding it would store a layer holding an entry it
+	// does not show, which means nothing: the entry exists only because this layer names it.
 	remove_button(key) {
 		let $btn = $(
 			`<button class="ws-item-remove" title="${__("Remove")}">${frappe.utils.icon(
@@ -402,7 +398,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return $btn;
 	}
 
-	// Take an own-added entry off the arrangement entirely.
+	// Remove an entry this layer added from the arrangement entirely.
 	remove(key) {
 		this.entries.delete(key);
 		this.order = this.order.filter((k) => k !== key);
@@ -416,15 +412,15 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.render_panes();
 	}
 
-	// Take an entry off the surface. Hidden rather than dropped, because the arrangement is
-	// stored whole: a row simply left out would keep whatever the layer below said about it and
-	// go on rendering.
+	// Take an entry off the surface. It is hidden rather than dropped, because the arrangement is
+	// stored whole: a row left out would keep whatever the layer below said about it and keep
+	// rendering.
 	hide(key) {
 		this.hidden.add(key);
 	}
 
 	// One entry as it will read on the surface. A surface whose entries do not all draw the same
-	// way overrides it -- see the sidebar, where a section header is a header and not a link.
+	// way overrides this. See the sidebar, where a section header is a header and not a link.
 	preview_item(key) {
 		const entry = this.entries.get(key);
 		const icon = this.entry_icon(entry);
@@ -437,16 +433,16 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	}
 
 	setup_sortable() {
-		// a layer switch re-renders, and the list it was bound to is gone
+		// A layer switch re-renders, so the list it was bound to is gone.
 		if (this.sortable) this.sortable.destroy();
 
 		this.sortable = new Sortable(this.$arrangement[0], {
 			handle: ".ws-item-handle",
 			animation: 150,
 			ghostClass: "ws-item-ghost",
-			// the preview is what the drag was for, so it follows the drop rather than waiting
-			// for a save -- and the list is redrawn with it, because a surface may have read
-			// something into where the entry landed
+			// The preview is the point of the drag, so it follows the drop rather than waiting for
+			// a save. The list is redrawn with it, because a surface may derive something from
+			// where the entry landed.
 			onUpdate: (evt) => {
 				this.sync_order();
 				this.on_move($(evt.item).attr("data-key"));
@@ -455,13 +451,13 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		});
 	}
 
-	// The arrangement on screen as stored rows: every entry, in the order the list holds it,
-	// each carrying whether the eye has it off. An entry left out is stored rather than simply
-	// omitted -- omitted, it would keep whatever the layer below said about it and go on
+	// The arrangement on screen as stored rows: every entry, in the order the list holds it, each
+	// carrying whether the eye has it off. An entry taken off is stored as hidden rather than
+	// omitted, because an omitted row would keep whatever the layer below said about it and keep
 	// rendering.
 	//
-	// `row(key, hidden)` is the only part a surface has to supply, because what a stored row
-	// looks like is the one thing the two of them do not share.
+	// `row(key, hidden)` is the only part a surface supplies, because the shape of a stored row is
+	// the one thing the two surfaces do not share.
 	arranged_rows(row) {
 		return this.order.map((key) => row(key, this.hidden.has(key) ? 1 : 0));
 	}
@@ -471,8 +467,8 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	}
 
 	async save() {
-		// the layer arrives after the dialog opens; saving before it lands would write an
-		// arrangement nobody has seen yet over the one that is there
+		// The layer arrives after the dialog opens. Saving before it lands would overwrite the
+		// stored arrangement with one nobody has seen.
 		if (!this.loaded) return;
 		this.sync_order();
 

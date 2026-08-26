@@ -46,17 +46,16 @@ IMPORTABLE_DOCTYPES = [
 
 # The doctypes an app may ship rooted at the app itself rather than inside one of its modules.
 #
-# An explicit allowlist rather than a reuse of `IMPORTABLE_DOCTYPES`, because the app-root walk
-# makes a folder name meaningful at the top of every installed app. Reusing the whole list would
-# hand twenty-odd folder names that meaning at once -- a widening nobody asked for -- where this
-# says in code that app-level export is a narrow, named capability. `Dock` joins it when an app
+# This is an explicit allowlist rather than a reuse of `IMPORTABLE_DOCTYPES`, because the app-root
+# walk makes a folder name meaningful at the top of every installed app. Reusing the whole list
+# would give that meaning to twenty-odd folder names at once. `Dock` joins the list when an app
 # ships one.
 #
-# A module-rooted `Sidebar` is unaffected: it keeps riding `IMPORTABLE_DOCTYPES` on the
-# per-module walk, from exactly the same code.
+# A module-rooted `Sidebar` is unaffected: it still uses `IMPORTABLE_DOCTYPES` on the per-module
+# walk, from the same code.
 #
-# Not to be confused with `APP_LEVEL_ENTITIES` further down: that one is the reaper's list of
-# the old hand-written app-level fixtures, which are retiring. This is the ordinary export road,
+# Do not confuse this with `APP_LEVEL_ENTITIES` below, which is the reaper's list of the old
+# hand-written app-level fixtures that are being retired. This is the ordinary export path,
 # rooted one level up.
 APP_ROOTED_DOCTYPES = [("desk", "dock"), ("desk", "sidebar")]
 
@@ -136,14 +135,14 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	# The same walk once more, rooted at the app, for the handful of doctypes an app may ship
-	# outside any module -- an app-rooted `Sidebar` today. `get_doc_files` needs nothing new to
-	# do this: it was already parameterised on where to start.
+	# The same walk again, rooted at the app, for the few doctypes an app may ship outside any
+	# module, which today means an app-rooted `Sidebar`. `get_doc_files` needs no changes for
+	# this, since it already takes the directory to start from.
 	#
-	# The old app-level fixture import is gone and is not what this is. `workspace_sidebar` was
-	# the last of those and its fixtures stop arriving with this release: an app ships a
-	# `Sidebar` now. An app that has not re-exported yet degrades to a computed base rather than
-	# to nothing, which is what makes dropping them safe.
+	# This is not the old app-level fixture import, which is gone. `workspace_sidebar` was the
+	# last of those, and its fixtures stop arriving with this release, because an app ships a
+	# `Sidebar` now. An app that has not re-exported yet falls back to a computed base rather
+	# than to nothing, which makes dropping them safe.
 	files = get_doc_files(files=files, start_path=frappe.get_app_path(app_name), doctypes=APP_ROOTED_DOCTYPES)
 
 	l = len(files)
@@ -162,9 +161,9 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		# print each progress bar on new line
 		print()
 
-	# The icon grid's fixtures go through their own entry point because they carry the
-	# desktop-mode guard: an Apps-mode site holds zero icon rows, shipped or generated, and
-	# flipping to the grid is what imports them.
+	# The icon grid's fixtures use their own entry point because of the desktop-mode guard: an
+	# Apps-mode site holds no icon rows, shipped or generated, and switching to the grid is what
+	# imports them.
 	import_desktop_icon_fixtures(app_name, force=force)
 
 
@@ -193,8 +192,8 @@ def get_doc_files(files, start_path, doctypes=None):
 						if doc_path not in files:
 							files.append(doc_path)
 
-	# Both of these are module-rooted shapes, and an allowlisted walk is asking about the named
-	# doctypes only -- so they are skipped rather than made meaningful at the top of an app too.
+	# Both of these are module-rooted, and an allowlisted walk covers only the named doctypes, so
+	# they are skipped rather than given meaning at the top of an app.
 	if not general_walk:
 		return files
 
@@ -240,8 +239,8 @@ def remove_orphan_doctypes():
 
 
 # What the reaper walks: a standard record here whose file has gone is an orphan and is
-# deleted. `Workspace Sidebar` has left this list -- the archive's files are going away with
-# this release, so left here it would delete the very rows the conversion reads. Icon fixtures
+# deleted. `Workspace Sidebar` has left this list, because the archive's files are going away with
+# this release, so keeping it here would delete the rows the conversion reads. Icon fixtures
 # stay: their files are staying, and an icon has no computed base to absorb the loss.
 ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Sidebar", "Dock"]
 # Retiring with the icon-grid batch, together with the fixture import it mirrors; see
@@ -254,8 +253,8 @@ def remove_orphan_entities(entity_types=None):
 	entity_filter_map = {
 		# only a standard workspace is backed by a file in an app; a site's own public workspace
 		# is never an orphan. This used to read `app is set`, back when a workspace carried its
-		# app itself -- which also swept up site-created workspaces that a migrate had stamped
-		# an app onto, and deleted them.
+		# app itself, which also swept up site-created workspaces that a migrate had stamped an
+		# app onto, and deleted them.
 		"Workspace": {"public": 1, "standard": 1},
 		"Page": {"standard": "Yes"},
 		"Report": {"is_standard": "Yes"},
@@ -273,14 +272,14 @@ def remove_orphan_entities(entity_types=None):
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]
 
 	# Built from the entities actually being walked. Built from the default list instead, a
-	# caller naming anything outside it got an empty map -- and an empty map means every row
-	# looks like an orphan, so asking to reap one entity deleted all of another.
+	# caller naming anything outside it got an empty map, and an empty map makes every row look
+	# like an orphan, so asking to reap one entity deleted all of another.
 	entity_file_map = create_entity_file_map(entities)
 
 	for entity in entities:
 		print(f"Removing orphan {entity}s")
 		# `name` and nothing else. The module was never read in the loop below, and selecting
-		# it means an entity with no `module` column -- or one whose rows may leave it blank --
+		# it means an entity with no `module` column, or one whose rows may leave it blank,
 		# cannot be swept at all: the query fails and takes the whole migrate with it.
 		all_enitities = frappe.get_all(entity, filters=entity_filter_map.get(entity), fields=["name"])
 		for i, w in enumerate(all_enitities):
@@ -339,9 +338,8 @@ def create_entity_file_map(entities):
 		for entity in entities:
 			# `scrub`, not `lower`: a multi-word entity lives in a snake_case folder, so one
 			# would have to be looked for in `custom_sidebar/`, not `custom sidebar/`. Every
-			# entity here is a single word today, which keeps the difference invisible -- and
-			# `lower` would have made every record of the first multi-word one look like an
-			# orphan.
+			# entity here is a single word today, which hides the difference, and `lower` would
+			# have made every record of the first multi-word entity look like an orphan.
 			entity_folder = frappe.scrub(entity)
 			if entity_folder == "dashboard":
 				entity_folder = f"*_{entity_folder}"

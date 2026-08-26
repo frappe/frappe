@@ -1,20 +1,20 @@
-// The editor every navigation surface is arranged in -- `frappe.ui.ArrangementEditor`, which the
+// The editor every navigation surface is arranged in: `frappe.ui.ArrangementEditor`, which the
 // dock's manager and a module's sidebar editor are both built on.
 //
-// Most of it is driven through a test surface rather than through a real module, for the same
-// reason `sidebar_resolution.js` drives the resolver directly: what a surface supplies is a
-// handful of methods, so the machinery under test can be handed entries that are the same on
-// every site and endpoints that answer without a round trip. Nothing about the editor itself is
-// faked -- it is the real dialog, the real list, the real eye and the real save.
+// Most of it is driven through a test surface rather than a real module, for the same reason
+// `sidebar_resolution.js` drives the resolver directly: what a surface supplies is a handful of
+// methods, so the machinery under test can be given entries that are the same on every site and
+// endpoints that answer without a round trip. Nothing about the editor itself is faked; it is the
+// real dialog, list, eye and save.
 //
 // Reordering by hand is not asserted here. A Sortable drag has to be synthesised from mouse
-// events, and one that does not take leaves a test that passes for the wrong reason; what the
-// drop *means* -- the preview following the arrangement, an entry joining the section it lands
-// under -- is covered through the eye and through Add, which are the same code paths.
+// events, and one that does not take leaves a test that passes for the wrong reason. What the drop
+// means, such as the preview following the arrangement and an entry joining the section it lands
+// under, is covered through the eye and through Add, which are the same code paths.
 //
 // The two surfaces then get tests of their own, using their real classes with their endpoints
-// stubbed, for the things that are theirs alone: sections and membership on the sidebar, the
-// app's own entries on the dock.
+// stubbed, for what is specific to each: sections and membership on the sidebar, and the app's own
+// entries on the dock.
 
 const ENTRIES = [
 	{ key: "alpha", label: "Alpha" },
@@ -32,9 +32,9 @@ function stub_xcall(win, handlers) {
 		return handler ? Promise.resolve().then(() => handler(args)) : Promise.resolve({});
 	};
 	win.__calls = calls;
-	// The desk behind the dialog goes on talking to the server -- a list view counting its rows,
-	// say -- and those calls land here too. A test about what the *editor* asked for means the
-	// endpoints it was handed, so they are named rather than inferred from whatever was recorded.
+	// The desk behind the dialog keeps talking to the server, such as a list view counting its
+	// rows, and those calls land here too. A test about what the editor asked for means the
+	// endpoints it was given, so they are named rather than inferred from whatever was recorded.
 	win.__stubbed = new Set(Object.keys(handlers));
 	return calls;
 }
@@ -44,9 +44,9 @@ function stubbed_calls(win) {
 	return win.__calls.map((call) => call.method).filter((method) => win.__stubbed.has(method));
 }
 
-// The editor is not in the desk bundle -- it arrives when a menu item asks for it. These tests
-// build their editors by hand instead of going through a menu, so each of them pulls the bundle
-// in for itself, the same way those menu items do.
+// The editor is not in the desk bundle; it arrives when a menu item asks for it. These tests build
+// their editors by hand instead of going through a menu, so each pulls the bundle in for itself,
+// the same way those menu items do.
 function load_editor_bundle() {
 	cy.window().then((win) => win.frappe.require("arrangement_editor.bundle.js"));
 }
@@ -120,21 +120,22 @@ function open_editor(win, { hidden = [], can_curate = false } = {}) {
 	win.__editor = new TestSurface();
 }
 
-// The editor's own Save, addressed through the editor rather than through "whatever dialog is
-// open". A dialog on its way out is the last visible modal for as long as its fade takes, and
-// `get_open_dialog` hands back that one -- so a Save clicked after an Add lands on the Add
-// button instead, and the arrangement is never sent.
+// The editor's own Save, addressed through the editor rather than through whatever dialog is
+// open. A dialog on its way out is the last visible modal for as long as its fade takes, and
+// `get_open_dialog` returns that one, so a Save clicked after an Add would land on the Add button
+// and the arrangement would never be sent.
 function save_editor() {
 	cy.window().then((win) => {
 		cy.wrap(win.__editor.dialog.$wrapper).find(".btn-modal-primary").click();
 	});
 }
 
-// Add a section through the dialog, and leave it closed behind.
+// Add a section through the dialog, and leave it closed afterwards.
 //
-// Choosing `Section` redraws the fields a link needs away, and a label typed into that redraw
-// loses its first keystroke -- so the redraw is waited for and the field read back before it is
-// sent. The dialog is then waited off the screen, so whatever is clicked next cannot be it.
+// Choosing `Section` redraws the dialog, removing the fields a link needs, and a label typed into
+// that redraw loses its first keystroke, so the redraw is waited for and the field read back
+// before it is sent. The dialog is then waited off the screen, so whatever is clicked next cannot
+// be it.
 function add_section(label) {
 	cy.get_open_dialog().find(".ws-add").click();
 	cy.fill_field("kind", "Section", "Select");
@@ -174,7 +175,7 @@ context("Arrangement editor", () => {
 			open_editor(win, { hidden: ["beta"] });
 		});
 
-		// still on the list, and still second -- which is what makes it findable again
+		// Still on the list, and still second, which is what makes it findable again.
 		cy.get(".ws-arrangement .ws-item").should("have.length", 3);
 		cy.get(".ws-arrangement .ws-item").eq(1).should("have.class", "ws-item-hidden");
 		cy.get(".ws-arrangement .ws-item")
@@ -197,7 +198,7 @@ context("Arrangement editor", () => {
 		cy.get(".ws-preview .ws-preview-item").should("have.length", 2);
 		cy.get(".ws-preview").should("not.contain", "Beta");
 
-		// ... and back on, into the place it never left
+		// And back on, into the place it never left.
 		cy.get(".ws-arrangement .ws-item").eq(1).find(".ws-item-eye").click();
 		cy.get(".ws-arrangement .ws-item").eq(1).should("not.have.class", "ws-item-hidden");
 		cy.get(".ws-preview .ws-item-label").eq(1).should("have.text", "Beta");
@@ -214,8 +215,8 @@ context("Arrangement editor", () => {
 
 		cy.window().then((win) => {
 			const save = win.__calls.find((call) => call.method === "save.user");
-			// an entry left out would keep whatever the layer below said about it, so every one
-			// of them goes back, carrying its own flag
+			// An entry left out would keep whatever the layer below said about it, so every entry
+			// goes back, carrying its own flag.
 			expect(save.args.items).to.deep.equal([
 				{ key: "alpha", hidden: 1 },
 				{ key: "beta", hidden: 0 },
@@ -230,11 +231,11 @@ context("Arrangement editor", () => {
 			open_editor(win, { can_curate: true });
 		});
 
-		// arranging for everyone is what the right is for, so that is the layer it opens on
+		// Arranging for everyone is what the permission is for, so that is the layer it opens on.
 		cy.get_open_dialog().find(".modal-header .ws-layer-switch").should("have.value", "site");
 		cy.get_open_dialog().find(".modal-header .ws-layer-switch").select("user");
 
-		// the other layer is a different arrangement, so it is read rather than filtered
+		// The other layer is a different arrangement, so it is read rather than filtered.
 		cy.get(".ws-arrangement .ws-item").should("have.length", 3);
 		cy.window().then((win) => {
 			expect(stubbed_calls(win)).to.deep.equal(["read.site", "read.user"]);
@@ -249,7 +250,7 @@ context("Arrangement editor", () => {
 
 		cy.get(".ws-arrangement .ws-item").should("have.length", 3);
 		cy.get_open_dialog().find(".ws-layer-switch").should("not.exist");
-		// their own is the only layer there is to open on, so it is the one that was read
+		// Their own is the only layer to open on, so it is the one that was read.
 		cy.window().then((win) => {
 			expect(stubbed_calls(win)).to.deep.equal(["read.user"]);
 		});
@@ -274,9 +275,9 @@ context("Arrangement editor", () => {
 });
 
 context("Arrangement editor: a module's sidebar", () => {
-	// What the read endpoint answers with: the layer as it arranges the sidebar, hidden entries
-	// kept. A section and one member of it, so both halves of what a sidebar has and the dock
-	// does not are on screen.
+	// What the read endpoint returns: the layer as it arranges the sidebar, with hidden entries
+	// kept. A section and one member of it, so both things a sidebar has and the dock does not are
+	// on screen.
 	const ITEMS = [
 		{
 			key: "Link|DocType|ToDo|",
@@ -311,16 +312,17 @@ context("Arrangement editor: a module's sidebar", () => {
 		cy.desk_ready();
 		load_editor_bundle();
 		cy.window().then((win) => {
-			// Run as somebody without the shared curation right, so the editor opens on the one
+			// Run as a user without the shared curation right, so the editor opens on the one
 			// layer these tests stub. Whether the account running them may curate for everyone is
-			// a fact about the site, and which endpoint a save reaches should not turn on it --
-			// the layer switch has its own test above.
+			// a fact about the site, and which endpoint a save reaches should not depend on it.
+			// The layer switch has its own test above.
 			const has_role = win.frappe.user.has_role.bind(win.frappe.user);
 			win.frappe.user.has_role = (role) =>
 				role === "Workspace Manager" ? false : has_role(role);
 
+			// Run as a user without the shared curation right, so the editor opens on the one
 			// The editor arranges the sidebar on screen, and `apply` redraws that sidebar from
-			// the boot payload -- so it is pointed at a module the boot really carries.
+			// the boot payload, so it is pointed at a module the boot really carries.
 			const module = Object.keys(win.frappe.boot.module_sidebars)[0];
 			win.frappe.app.sidebar.current_module = module;
 
@@ -339,7 +341,7 @@ context("Arrangement editor: a module's sidebar", () => {
 			.find(".ws-item-chip")
 			.should("have.text", "Section");
 
-		// a header leads nowhere, so the preview draws it as a header rather than as a link
+		// A header leads nowhere, so the preview draws it as a header rather than as a link.
 		cy.get(".ws-preview .ws-preview-section").should("have.text", "Records");
 		cy.get(".ws-arrangement .ws-item").eq(2).should("have.class", "ws-item-child");
 	});
@@ -347,38 +349,38 @@ context("Arrangement editor: a module's sidebar", () => {
 	it("adds a section, and then puts what is added next into it", () => {
 		add_section("Mine");
 
-		// the section goes on the end...
+		// The section goes on the end.
 		cy.get(".ws-arrangement .ws-item").should("have.length", 4);
 		cy.get(".ws-arrangement .ws-item")
 			.last()
 			.find(".ws-item-chip")
 			.should("have.text", "Section");
 
-		// a URL rather than a document link: what is under test is where the entry lands, and a
-		// Dynamic Link would drag a search box into a test that is not about one
+		// A URL rather than a document link: what is under test is where the entry lands, and a
+		// Dynamic Link would bring a search box into a test that is not about one.
 		cy.get_open_dialog().find(".ws-add").click();
 		cy.fill_field("link_type", "URL", "Select");
-		// same redraw, the other way round: the URL field is what arrives, and it is typed into
-		// once it has
+		// The same redraw, the other way round: the URL field is what arrives, and it is typed
+		// into once it has.
 		cy.get_open_dialog().find('[data-fieldname="url"]').should("be.visible");
-		// The URL is committed before anything else is touched. A field's value reaches the
-		// model on blur, and every redraw of the dialog rewrites the inputs *from* the model --
-		// so a URL still sitting in its input is wiped by the next one, and Add is refused for a
-		// missing URL.
+		// The URL is committed before anything else is touched. A field's value reaches the model
+		// on blur, and every redraw of the dialog rewrites the inputs from the model, so a URL
+		// still sitting in its input is wiped by the next redraw and Add is refused for a missing
+		// URL.
 		cy.fill_field("url", "https://example.com").blur();
-		// The label is then set rather than typed. A field group refreshes its dependencies
-		// 100ms after any field changes (`FieldGroup.make`), and that redraw lands between the
-		// first keystroke of the next field and its second, taking the first with it -- which is
-		// how "Elsewhere" arrives as "lsewhere". What is under test here is where the entry
-		// lands, not the Data control.
+		// The label is then set rather than typed. A field group refreshes its dependencies 100ms
+		// after any field changes (`FieldGroup.make`), and that redraw lands between the first
+		// keystroke of the next field and its second, taking the first with it, which is how
+		// "Elsewhere" arrives as "lsewhere". What is under test here is where the entry lands, not
+		// the Data control.
 		cy.window().then((win) => win.cur_dialog.set_value("label", "Elsewhere"));
 		cy.get_field("label").should("have.value", "Elsewhere");
-		// both halves of the entry are really on the dialog, so Add cannot be refused for a
-		// value the redraw took
+		// Both halves of the entry are on the dialog, so Add cannot be refused for a value the
+		// redraw removed.
 		cy.get_field("url").should("have.value", "https://example.com");
 		cy.get_open_dialog().find(".btn-modal-primary").click();
 
-		// ... and the entry added after it lands under it, which is what puts it in it
+		// The entry added after it lands under it, which is what puts it in the section.
 		cy.get(".ws-arrangement .ws-item").should("have.length", 5);
 		cy.get(".ws-arrangement .ws-item").last().should("have.class", "ws-item-child");
 		cy.get(".ws-preview .ws-preview-item").last().should("have.class", "ws-item-child");
@@ -387,7 +389,7 @@ context("Arrangement editor: a module's sidebar", () => {
 	it("removes an entry this layer added rather than hiding it", () => {
 		add_section("Mine");
 
-		// nothing below holds it, so there is no hiding it -- it carries a cross, not an eye
+		// Nothing below holds it, so there is no hiding it: it carries a cross, not an eye.
 		cy.get(".ws-arrangement .ws-item").last().find(".ws-item-eye").should("not.exist");
 		cy.get(".ws-arrangement .ws-item").last().find(".ws-item-remove").click();
 		cy.get(".ws-arrangement .ws-item").should("have.length", 3);
@@ -405,8 +407,8 @@ context("Arrangement editor: a module's sidebar", () => {
 
 			expect(added.type).to.equal("Section Break");
 			expect(added.label).to.equal("Mine");
-			// a row that leads nowhere is named by a hash of its type and its label, and the
-			// server is what works that out
+			// A row that leads nowhere is named by a hash of its type and label, and the server
+			// computes that.
 			expect(added.key).to.equal(null);
 		});
 	});
@@ -426,17 +428,17 @@ context("Arrangement editor: an app's dock", () => {
 		cy.desk_ready();
 		load_editor_bundle();
 		cy.window().then((win) => {
-			// Run as somebody without the shared curation right, so the editor opens on the one
+			// Run as a user without the shared curation right, so the editor opens on the one
 			// layer these tests stub. Whether the account running them may curate for everyone is
-			// a fact about the site, and which endpoint a save reaches should not turn on it --
-			// the layer switch has its own test above.
+			// a fact about the site, and which endpoint a save reaches should not depend on it.
+			// The layer switch has its own test above.
 			const has_role = win.frappe.user.has_role.bind(win.frappe.user);
 			win.frappe.user.has_role = (role) =>
 				role === "Workspace Manager" ? false : has_role(role);
 
-			// A dock entry names something the boot payload carries -- an entry it does not is
-			// one this user may see nothing in, and is not offerable. So the app it arranges is
-			// built out of modules this site really has.
+			// A dock entry names something the boot payload carries. An entry it does not carry
+			// is one this user can see nothing in, and is not offered. So the app it arranges
+			// is built from modules this site really has.
 			const modules = Object.keys(win.frappe.boot.module_sidebars).slice(0, 2);
 			win.__modules = modules;
 			win.__app = {

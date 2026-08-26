@@ -2,8 +2,8 @@
 // For license information, please see license.txt
 
 // An archive of the previous navigation: read-only, and no longer wired to anything. The
-// "Migrate to Workspace" button is gone with the column it wrote to -- the conversion reads
-// these rows straight into module sidebars now, from `bench migrate`.
+// "Migrate to Workspace" button is gone along with the column it wrote to. The conversion now
+// reads these rows straight into module sidebars, from `bench migrate`.
 frappe.ui.form.on("Workspace Sidebar", {
 	refresh(frm) {
 		frm.set_intro(

@@ -3,16 +3,17 @@
 
 """What a v16 customer gets from `bench update`.
 
-They have the previous navigation in full: a `Workspace Sidebar` per workspace, personal forks
-of those sidebars per user, and a container holding everyone's private pages. The site-level rows become
-each module's **`Sidebar`** -- the base the desk reads, which is what they were -- and a fork
-becomes a **`Custom Sidebar`** for its owner, which is what *it* was. Writing the base is also
-what lets an app take its own sidebar back later: a `Sidebar` is named by its title, so an app
-titling its sidebar what the site's was called lands on that very row, and one titling it after
-the module wins by the naming rule instead.
+They have the previous navigation in full: a `Workspace Sidebar` per workspace, personal forks of
+those sidebars per user, and a container holding everyone's private pages. The site-level rows
+become each module's `Sidebar`, the base the desk reads, which is what they were, and a fork
+becomes a `Custom Sidebar` for its owner, which is what it was. Writing the base is also what lets
+an app take its own sidebar back later: a `Sidebar` is named by its title, so an app titling its
+sidebar what the site's was called lands on that row, and one titling it after the module wins by
+the naming rule instead.
 
 These tests seed that shape, run the patch as a migrate would, and read the result off the
-surfaces the desk actually boots from.
+surfaces the desk boots from.
+
 """
 
 from unittest.mock import patch
@@ -26,8 +27,9 @@ CONVERT = "frappe.patches.v16_0.convert_sidebars"
 
 
 def archive(title, items, module=None, for_user=None, standard=0):
-	"""A row as v16 left it. Inserted under `in_patch`: the archive takes no new entries, and
-	a fixture standing in for what a v16 site already holds is the system's own write."""
+	"""A row as v16 left it. It is inserted under `in_patch`, because the archive takes no new
+	entries and a fixture standing in for what a v16 site already holds is the system's own write.
+	"""
 	original = frappe.flags.get("in_patch")
 	frappe.flags.in_patch = True
 	try:
@@ -46,11 +48,12 @@ def archive(title, items, module=None, for_user=None, standard=0):
 
 
 def run_conversion() -> list[str]:
-	"""The patch, exactly as `bench migrate` runs it, with everything it printed.
+	"""Run the patch exactly as `bench migrate` does, returning everything it printed.
 
-	Under `in_patch` because that is what the patch handler sets around every patch, and the
-	conversion writes a `Sidebar` -- app content, which a customer site only accepts from the
+	It runs under `in_patch` because that is what the patch handler sets around every patch, and the
+	conversion writes a `Sidebar`, which is app content that a customer site only accepts from the
 	system (`Sidebar.validate_app_content`).
+
 	"""
 	lines = []
 	original = frappe.flags.get("in_patch")
@@ -136,7 +139,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 
 		# Two sidebars on one module, a personal fork of one of them, and the container v16 hung
-		# everyone's private pages off -- the whole shape a v16 site arrives carrying.
+		# everyone's private pages off: the whole shape a v16 site arrives carrying.
 		archive(
 			"V16 Primary",
 			[
@@ -189,7 +192,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		super().tearDownClass()
 
 	def resolved(self, user=None):
-		"""What the module resolves to for this reader, asked of the resolver itself."""
+		"""What the module resolves to for this user, asked of the resolver itself."""
 		return resolve_sidebar(self.MODULE, user or frappe.session.user)
 
 	def user_layer(self):
@@ -201,8 +204,9 @@ class TestV16Upgrade(IntegrationTestCase):
 	# -- the base: what everybody was being shown ----------------------------------------
 
 	def test_the_site_level_rows_become_the_modules_sidebar(self):
-		"""Not a `Custom Sidebar`: a layer means *this site disagrees with the base*, and this
-		content is not a disagreement -- it is the base, recovered from where v16 kept it."""
+		"""Not a `Custom Sidebar`: a layer means the site disagrees with the base, and this content is
+		not a disagreement. It is the base, recovered from where v16 kept it.
+		"""
 		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": ""}))
 
 		links = [row.link_to for row in self.base().items]
@@ -210,13 +214,14 @@ class TestV16Upgrade(IntegrationTestCase):
 		self.assertIn("ToDo", links)
 
 	def test_the_converted_base_is_not_standard(self):
-		"""`standard` means a file in an app backs the row, and none does -- the fixture it came
-		from stops being imported with this release. Marked standard, orphan removal would delete
-		it on the very next migrate, since that is exactly what it reaps.
+		"""`standard` means a file in an app backs the row, and none does, since the fixture it came
+		from stops being imported with this release. Marked standard, orphan removal would delete it
+		on the next migrate, because that is exactly what it reaps.
 
-		The sweep itself is covered by `test_site_owned_row_survives_orphan_removal`; it is not
-		run here because `remove_orphan_entities` commits, which would flush this class's fixtures
-		past its own rollback and leave them on the site.
+		The sweep itself is covered by `test_site_owned_row_survives_orphan_removal`. It is not run
+		here because `remove_orphan_entities` commits, which would push this class's fixtures past its
+		own rollback and leave them on the site.
+
 		"""
 		from frappe.model.sync import ORPHANABLE_ENTITIES
 
@@ -224,8 +229,9 @@ class TestV16Upgrade(IntegrationTestCase):
 		self.assertIn("Sidebar", ORPHANABLE_ENTITIES)
 
 	def test_several_sidebars_on_one_module_collapse_without_losing_content(self):
-		"""v16 held one per workspace and a module now holds one, so the rest become sections --
-		which is a demotion, not a deletion."""
+		"""v16 held one per workspace and a module now holds one, so the rest become sections, which is
+		a demotion rather than a deletion.
+		"""
 		base = self.base()
 		self.assertIn(self.OTHER_REPORT, [row.link_to for row in base.items])
 
@@ -233,23 +239,26 @@ class TestV16Upgrade(IntegrationTestCase):
 		self.assertIn("V16 Secondary", sections)
 
 	def test_the_items_are_carried_whole(self):
-		"""A base row *is* an item -- there is nothing underneath it to take a label from -- so
-		what v16 called things is what the desk keeps calling them."""
+		"""A base row is an item, with nothing underneath it to take a label from, so what v16 called
+		things is what the desk keeps calling them.
+		"""
 		labels = {row.link_to: row.label for row in self.base().items if row.link_to}
 		self.assertEqual(labels["ToDo"], "Todos")
 		self.assertEqual(labels[self.REPORT], "Report")
 
 	def test_the_base_keeps_the_v16_title(self):
-		"""What the customer was reading yesterday. A merge takes the module name, since the
-		union of two sidebars is not either one of them."""
+		"""What the customer was reading yesterday. A merge takes the module name, since the union of
+		two sidebars is not either one of them.
+		"""
 		self.assertEqual(self.base().title, self.MODULE)
 		self.assertEqual(self.resolved("Administrator").label, self.MODULE)
 
 	def test_it_is_stamped_with_when_v16_last_wrote_it(self):
-		"""Not with today. `import_file` skips a file older than the row it would overwrite, so a
-		row stamped `now` would outrank an export its author made last month -- and the app could
-		never take its own sidebar back."""
-		# the newest of the rows it was merged from -- when this content was last true
+		"""Not with today's date. `import_file` skips a file older than the row it would overwrite, so
+		a row stamped now would outrank an export its author made last month, and the app could never
+		take its own sidebar back.
+		"""
+		# The newest of the rows it was merged from, which is when this content was last true.
 		archived = max(
 			frappe.get_all(
 				"Workspace Sidebar",
@@ -260,17 +269,17 @@ class TestV16Upgrade(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Sidebar", self.MODULE, "modified"), archived)
 
 	def test_an_app_shipping_its_sidebar_later_takes_over(self):
-		"""The whole reason this is a base and not a layer: the module ends up answering with the
-		author's file rather than with what the conversion wrote, and nothing has to notice that
-		the conversion ever happened.
+		"""Why this is a base and not a layer: the module ends up answering with the author's file
+		rather than with what the conversion wrote, and nothing has to notice the conversion happened.
 
-		A sidebar is named by its title now, so the two are not always the same record. This
-		module's one v16 sidebar was called "V16 Late" and keeps that label, while the app titles
-		its own after the module -- so the app's lands beside the converted row, and the naming
-		rule is what hands the module to it.
+		A sidebar is named by its title now, so the two are not always the same record. This module's
+		one v16 sidebar was called "V16 Late" and keeps that label, while the app titles its own after
+		the module, so the app's lands beside the converted row and the naming rule hands the module to
+		it.
 
-		On a module of its own, because it deliberately replaces what the conversion wrote and the
+		It uses a module of its own, because it deliberately replaces what the conversion wrote and the
 		rest of this class reads that.
+
 		"""
 		import json
 		import os
@@ -336,43 +345,49 @@ class TestV16Upgrade(IntegrationTestCase):
 	# -- user layers: what one person did to that -----------------------------------------
 
 	def test_a_personal_fork_becomes_that_users_own_layer(self):
-		"""It is the *normal* v16 customization -- that version forked a whole sidebar per user
-		on any edit -- and the only thing in the archive nothing derives again."""
+		"""This is the normal v16 customization, since that version forked a whole sidebar per user on
+		any edit, and it is the only thing in the archive nothing derives again.
+		"""
 		layer = self.user_layer()
 		self.assertEqual(layer.user, self.USER)
 		self.assertIn(self.OTHER_REPORT, [row.link_to for row in layer.sidebar_items])
 
 	def test_an_item_the_module_already_contains_stays_maintained(self):
-		"""Stored as a reference, so the label and the link keep coming from the base underneath
-		-- which is the difference between a converted arrangement and a frozen copy of one."""
+		"""Stored as a reference, so the label and the link keep coming from the base underneath, which
+		is the difference between a converted arrangement and a frozen copy of one.
+		"""
 		rows = {row.link_to: row.added for row in self.user_layer().sidebar_items if row.link_to}
 		self.assertEqual(rows[self.OTHER_REPORT], 0)
 
 	def test_what_the_user_removed_stays_removed(self):
-		"""A fork is the whole list, so a removal is an absence; a layer is a delta, where an
-		absence says nothing at all. Converting one into the other is what this row is."""
+		"""A fork is the whole list, so a removal is an absence. A layer is a delta, where an absence
+		says nothing. Converting one into the other is what this row does.
+		"""
 		self.assertNotIn(self.REPORT, [item["link_to"] for item in self.resolved(self.USER).items])
 
 		# ...and it is *this* person's opinion, not the site's
 		self.assertIn(self.REPORT, [item["link_to"] for item in self.resolved("Administrator").items])
 
 	def test_an_item_they_were_never_offered_is_not_hidden(self):
-		"""The other half of it. An item today's base has that v16 never showed them is not
-		something they decided against -- hiding it would leave a v16 customer with a permanently
-		smaller sidebar than the colleague who never touched theirs."""
+		"""The other half. An item today's base has that v16 never showed them is not something they
+		decided against, and hiding it would leave a v16 customer with a permanently smaller sidebar
+		than a colleague who never touched theirs.
+		"""
 		hidden = {row.link_to for row in self.user_layer().sidebar_items if row.hidden}
 		self.assertNotIn(self.OTHER_REPORT, hidden)
 
 	def test_the_fork_does_not_rename_the_module(self):
-		"""A fork's title is `<sidebar>-<user>`. It is a preference about arrangement, and must
-		not quietly become a preference about what the module is called."""
+		"""A fork's title is `<sidebar>-<user>`. It is a preference about arrangement and must not
+		become a preference about what the module is called.
+		"""
 		layer = self.user_layer()
 		self.assertFalse(layer.label)
 		self.assertNotIn(self.USER, self.resolved(self.USER).label)
 
 	def test_a_private_workspace_container_is_passed_over(self):
-		"""Every row in one is a link to a page its owner owns, and those are derived on read
-		now -- there is nothing in it to convert."""
+		"""Every row in one is a link to a page its owner owns, and those are derived on read now, so
+		there is nothing in it to convert.
+		"""
 		self.assertNotIn(self.PRIVATE_PAGE, [row.link_to for row in self.user_layer().sidebar_items])
 
 	# -- nothing is destroyed, so it can all be done again -------------------------------
@@ -401,8 +416,9 @@ class TestV16Upgrade(IntegrationTestCase):
 		)
 
 	def test_a_migrate_does_not_delete_the_archive(self):
-		"""The reaper walks a fixed list, and the archive is not on it -- so a standard row
-		whose file has gone (they are all going) is left exactly where it is."""
+		"""The reaper walks a fixed list and the archive is not on it, so a standard row whose file has
+		gone, as they all are going, is left where it is.
+		"""
 		from frappe.model.sync import APP_LEVEL_ENTITIES, ORPHANABLE_ENTITIES
 
 		self.assertNotIn("Workspace Sidebar", ORPHANABLE_ENTITIES + APP_LEVEL_ENTITIES)
@@ -420,8 +436,9 @@ class TestV16Upgrade(IntegrationTestCase):
 			self.assertIn(expected, links)
 
 	def test_the_conversion_names_each_fork_it_carried(self):
-		"""One line per person whose arrangement moved, naming the rows it was computed from --
-		every one of which is still there to check it against."""
+		"""One line per user whose arrangement moved, naming the rows it was computed from, every one
+		of which is still there to check it against.
+		"""
 		named = [line for line in self.output if self.USER in line]
 		self.assertTrue(named, f"the fork was not named in output: {self.output}")
 
@@ -429,8 +446,9 @@ class TestV16Upgrade(IntegrationTestCase):
 		self.assertTrue(merges, f"the merge was not named in output: {self.output}")
 
 	def test_a_module_whose_app_never_re_exported_gets_a_computed_sidebar(self):
-		"""App-shipped sidebar fixtures stop arriving. That is only safe because the base is
-		computed: the module degrades to a generated sidebar, not to nothing."""
+		"""App-shipped sidebar fixtures stop arriving. That is only safe because the base is computed:
+		the module falls back to a generated sidebar rather than to nothing.
+		"""
 		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.QUIET_MODULE}))
 		self.assertFalse(frappe.db.exists("Sidebar", {"module": self.QUIET_MODULE}))
 
@@ -466,15 +484,16 @@ class TestTheArchiveIsInert(IntegrationTestCase):
 		self.assertNotIn("app_level_folders", inspect.getsource(sync.sync_for))
 
 	def test_the_reaper_leaves_it_alone(self):
-		"""Its files are going away, and the reaper deletes a standard row whose file is gone
-		-- left in that list it would delete a site's whole record of its old navigation."""
+		"""Its files are going away, and the reaper deletes a standard row whose file is gone. Left in
+		that list it would delete a site's whole record of its old navigation.
+		"""
 		from frappe.model.sync import APP_LEVEL_ENTITIES, ORPHANABLE_ENTITIES
 
 		self.assertNotIn("Workspace Sidebar", ORPHANABLE_ENTITIES + APP_LEVEL_ENTITIES)
 
 
 class TestTheIntermediateColumnIsGone(IntegrationTestCase):
-	"""It never shipped in any release, so it goes outright -- no patch, no notice."""
+	"""It never shipped in any release, so it goes outright, with no patch and no notice."""
 
 	def test_the_workspace_has_no_sidebar_items(self):
 		self.assertFalse(frappe.get_meta("Workspace").get_field("sidebar_items"))

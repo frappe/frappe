@@ -1,15 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-"""D14 -- the icon grid is contained behind its flag.
+"""D14: the icon grid is contained behind its flag.
 
-The grid works exactly as it does today for the customers who have it, and stops existing at
-all for the customers who don't. Containment is what makes coexistence safe: an Apps-mode site
-holds **zero** icon rows, generated or shipped, so the retiring surface cannot contradict the
-module-first model -- it simply isn't there.
+The grid works exactly as it does today for the customers who have it, and does not exist at all
+for the customers who do not. Containment is what makes coexistence safe: an Apps-mode site holds
+no icon rows, generated or shipped, so the retiring surface cannot contradict the module-first
+model.
 
-Whatever turns the grid on is responsible for there being a grid, so flipping *to* it seeds
-one; flipping to Apps deletes nothing, which is what makes the move honestly reversible.
+Whatever turns the grid on is responsible for there being a grid, so switching to it seeds one.
+Switching to Apps deletes nothing, which is what makes the move reversible.
+
 """
 
 import json
@@ -42,11 +43,12 @@ USER = "test-icon-grid@example.com"
 def desktop_page(page: str):
 	"""The site on `page` with an empty grid, and everything put back afterwards.
 
-	A savepoint rather than the class rollback, because these rows are the site's own: on a
-	development site the grid is real, and a test that leaves it emptied -- or seeded with
-	every workspace it holds -- has broken something the person running it uses. The seeding
-	commits its own work, which would release the savepoint, so `commit` is stubbed for the
-	duration and the rollback stays reachable.
+	It uses a savepoint rather than the class rollback, because these rows are the site's own: on a
+	development site the grid is real, and a test that leaves it emptied, or seeded with every
+	workspace it holds, has broken something the person running it uses. The seeding commits its own
+	work, which would release the savepoint, so `commit` is stubbed for the duration and the rollback
+	stays reachable.
+
 	"""
 	frappe.db.savepoint("icon_grid_containment")
 	try:
@@ -54,9 +56,9 @@ def desktop_page(page: str):
 			frappe.db.delete("Desktop Icon")
 			frappe.db.set_single_value("Desktop Settings", "desktop_page", page)
 			# Flipping goes through the document, so every other field on the single has to
-			# validate too -- and a development site can be carrying an `icon_style` from a
-			# branch whose options no longer exist. Not this ticket's subject; normalised so
-			# it cannot decide whether these tests run.
+			# validate too, and a development site can be carrying an `icon_style` from a
+			# branch whose options no longer exist. That is not this ticket's subject, so it is
+			# normalised here rather than being allowed to decide whether these tests run.
 			frappe.db.set_single_value("Desktop Settings", "icon_style", "Subtle")
 			frappe.clear_cache()
 			clear_desktop_icons_cache()
@@ -71,8 +73,9 @@ def desktop_page(page: str):
 def shipped_icon_fixture(app: str = "frappe"):
 	"""An app shipping one icon fixture, for the length of the test.
 
-	Written to disk rather than mocked because the import reads the app's folder, and the
-	whole question here is whether that folder is looked at at all.
+	It is written to disk rather than mocked, because the import reads the app's folder and the
+	question here is whether that folder is looked at at all.
+
 	"""
 	from frappe.modules.utils import get_app_level_directory_path
 
@@ -123,7 +126,7 @@ class IconGridTestCase(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	def flip(self, page: str):
-		"""Change the desktop page the way a System Manager does -- through the document."""
+		"""Change the desktop page the way a System Manager does, through the document."""
 		settings = frappe.get_doc("Desktop Settings")
 		settings.desktop_page = page
 		settings.save()
@@ -171,8 +174,9 @@ class TestAnAppsModeSiteHoldsNoIconRows(IconGridTestCase):
 			self.assertEqual(frappe.db.count("Desktop Icon"), 0)
 
 	def test_a_fixture_import_lands_nothing(self):
-		"""The guard the generator already carried, now on the shipped rows too -- otherwise
-		containment holds for what the site generates and not for what its apps ship."""
+		"""The guard the generator already carried, now on the shipped rows too. Otherwise containment
+		holds for what the site generates and not for what its apps ship.
+		"""
 		with desktop_page(APPS), shipped_icon_fixture():
 			import_desktop_icon_fixtures("frappe")
 
@@ -201,9 +205,10 @@ class TestAGridModeSiteStillGetsItsIcons(IconGridTestCase):
 			self.assertTrue(frappe.db.exists("Desktop Icon", SHIPPED))
 
 	def test_a_generated_workspace_icon_records_the_app_it_came_from(self):
-		"""Without it the row is invisible to the reaper, and to anything else that asks an
-		icon which app it belongs to -- the generator was setting a field the doctype has no
-		column for, so every generated row landed appless."""
+		"""Without it the row is invisible to the reaper, and to anything else that asks an icon which
+		app it belongs to. The generator was setting a field the doctype has no column for, so every
+		generated row landed with no app.
+		"""
 		with desktop_page(DESKTOP_ICONS):
 			workspace = self.make_public_workspace("Test Attributed Workspace")
 
@@ -236,9 +241,10 @@ class TestTheFlagIsWhatSeedsTheGrid(IconGridTestCase):
 			self.assertEqual(frappe.db.count("Desktop Icon"), 0, "the save waited on the seeding")
 
 	def test_seeding_busts_the_empty_grid_anyone_cached_while_it_was_queued(self):
-		"""The save clears every cache, but the job runs after it -- so a user who boots in
-		between caches an empty grid and keeps it. The rows cannot bust it themselves: a
-		generated icon is not `standard`, so its own `on_update` reaches only the job's user.
+		"""The save clears every cache, but the job runs after it, so a user who boots in between
+		caches an empty grid and keeps it. The rows cannot clear it themselves: a generated icon is
+		not `standard`, so its own `on_update` reaches only the job's user.
+
 		"""
 		with desktop_page(DESKTOP_ICONS), shipped_icon_fixture():
 			frappe.cache.hset("desktop_icons", USER, [])
@@ -285,9 +291,9 @@ class TestTheFlagIsWhatSeedsTheGrid(IconGridTestCase):
 
 
 class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
-	"""Rows stay authored, not derived: they own existence and presentation, and the module
-	model owns visibility and routing. The two gates compose with AND and are never
-	reconciled."""
+	"""Rows stay authored rather than derived: they own existence and presentation, and the module
+	model owns visibility and routing. The two gates compose with AND and are never reconciled.
+	"""
 
 	@classmethod
 	def setUpClass(cls):
@@ -308,8 +314,9 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 		super().tearDown()
 
 	def test_a_folder_and_the_icons_inside_it_reach_the_desktop(self):
-		"""Fully-derived was rejected because it destroys exactly this: a folder has no
-		module to be derived from."""
+		"""A fully-derived grid was rejected because it destroys exactly this: a folder has no module
+		to be derived from.
+		"""
 		with desktop_page(DESKTOP_ICONS):
 			self.make_icon("Test Icon Folder", icon_type="Folder")
 			self.make_icon("Test Foldered Icon", icon_type="Folder", parent_icon="Test Icon Folder")
@@ -320,8 +327,9 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 			self.assertIn("Test Foldered Icon", visible)
 
 	def test_an_external_url_icon_reaches_the_desktop(self):
-		"""It resolves to a URL, not to a sidebar, so nothing about the module model gets to
-		decide whether it belongs there."""
+		"""It resolves to a URL rather than to a sidebar, so nothing about the module model decides
+		whether it belongs there.
+		"""
 		with desktop_page(DESKTOP_ICONS):
 			self.make_icon("Test External Icon", link="https://frappe.io")
 
@@ -339,8 +347,9 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 			self.assertNotIn("Test Restricted Icon", visible)
 
 	def test_a_folder_with_no_module_is_still_hidden_by_its_roles(self):
-		"""What the icon gate earns its place expressing: the module model cannot hide a
-		folder, because a folder has no module."""
+		"""What the icon gate is for: the module model cannot hide a folder, because a folder has no
+		module.
+		"""
 		with desktop_page(DESKTOP_ICONS):
 			self.make_icon(
 				"Test Restricted Folder", icon_type="Folder", roles=[{"role": "Prepared Report User"}]
@@ -351,10 +360,11 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 			self.assertNotIn("Test Restricted Folder", self.visible_icons())
 
 	def test_a_restricted_icon_can_still_be_deleted(self):
-		"""`restrict_removal` means what it always meant -- it hides the remove affordance in
-		the grid's edit mode. `check_for_restrict_removal` stays available for a caller that
-		is genuinely removing an icon from the grid, but wiring it into document deletion
-		would make a workspace that deletes fine today start throwing."""
+		"""`restrict_removal` means what it always did: it hides the remove control in the grid's edit
+		mode. `check_for_restrict_removal` stays available for a caller that is genuinely removing an
+		icon from the grid, but wiring it into document deletion would make a workspace that deletes
+		fine today start throwing.
+		"""
 		with desktop_page(DESKTOP_ICONS):
 			icon = self.make_icon("Test Restricted Removal Icon", restrict_removal=1)
 
@@ -376,9 +386,10 @@ class TestTheWorkspaceIconDeletePathIsGated(IconGridTestCase):
 			self.assertFalse(frappe.db.exists("Desktop Icon", workspace.name))
 
 	def test_a_private_page_does_not_take_a_public_ones_icon(self):
-		"""The grid labels an icon with the workspace's name, and a private page's name
-		carries an owner suffix its title does not -- so matching on the title takes down a
-		public page's icon whenever someone deletes a private page they titled the same."""
+		"""The grid labels an icon with the workspace's name, and a private page's name carries an
+		owner suffix its title does not, so matching on the title takes down a public page's icon
+		whenever someone deletes a private page with the same title.
+		"""
 		with desktop_page(DESKTOP_ICONS):
 			public = self.make_public_workspace("Test Shared Title Page")
 			self.make_icon(public.name, icon_type="Link", link_type="Workspace Sidebar")
@@ -399,8 +410,9 @@ class TestTheWorkspaceIconDeletePathIsGated(IconGridTestCase):
 			self.assertTrue(frappe.db.exists("Desktop Icon", public.name))
 
 	def test_deleting_a_workspace_in_apps_mode_touches_no_icon_row(self):
-		"""An Apps-mode site holds no icon rows, so this never had anything to delete -- but
-		it ran anyway, which is containment holding by consequence instead of by design."""
+		"""An Apps-mode site holds no icon rows, so this never had anything to delete, but it ran
+		anyway, which is containment holding by accident rather than by design.
+		"""
 		with desktop_page(APPS):
 			workspace = self.make_public_workspace("Test Apps Deleted Page")
 			self.make_icon(workspace.name, icon_type="Link", link_type="Workspace Sidebar")
@@ -411,9 +423,9 @@ class TestTheWorkspaceIconDeletePathIsGated(IconGridTestCase):
 
 
 class TestNothingWritesToTheArchivedSidebarDoctype(IconGridTestCase):
-	"""The v16 sidebar doctype retires as an inert archive, and the migration converts it --
-	so a surface still creating rows on it would make that conversion's input a moving
-	target."""
+	"""The v16 sidebar doctype retires as an inert archive and the migration converts it, so a
+	surface still creating rows on it would change the conversion's input.
+	"""
 
 	def test_adding_a_workspace_to_the_desktop_creates_no_archive_row(self):
 		with desktop_page(DESKTOP_ICONS):

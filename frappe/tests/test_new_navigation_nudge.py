@@ -1,10 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-"""D12's attention channel -- the one-time invitation to try the new navigation.
+"""D12's attention channel: the one-time invitation to try the new navigation.
 
 A grid-mode site is asked once and never again, whichever way it answers. A fresh install is
-already on Apps, so it is never asked at all -- which is why this needs no patch.
+already on Apps, so it is never asked at all, which is why this needs no patch.
+
 """
 
 from contextlib import contextmanager
@@ -61,8 +62,9 @@ class TestNewNavigationNudge(IntegrationTestCase):
 			self.assertTrue(should_show_new_navigation_prompt())
 
 	def test_a_grid_site_asks_a_workspace_manager_too(self):
-		"""The one exception to Workspace-Manager-only: which desktop *screen* a site shows is
-		a system setting, and a role granted to nobody by default would ask nobody."""
+		"""The one exception to Workspace-Manager-only: which desktop screen a site shows is a system
+		setting, and a role granted to nobody by default would ask nobody.
+		"""
 		with unasked(), as_user(MANAGER):
 			self.assertTrue(should_show_new_navigation_prompt())
 
@@ -114,8 +116,9 @@ class TestNewNavigationNudge(IntegrationTestCase):
 			submit_new_navigation_prompt("try_new_navigation")
 
 	def test_neither_flag_is_a_schema_change(self):
-		"""Both live outside the schema on purpose -- a `frappe.defaults` key and a boot key --
-		so a mechanism with an end date leaves no column behind when it goes."""
+		"""Both live outside the schema on purpose, as a `frappe.defaults` key and a boot key, so a
+		mechanism with an end date leaves no column behind when it goes.
+		"""
 		self.assertFalse(frappe.get_meta("Desktop Settings").get_field(SKIP_NEW_NAVIGATION_PROMPT))
 		self.assertFalse(frappe.db.exists("DocField", {"fieldname": SKIP_NEW_NAVIGATION_PROMPT}))
 

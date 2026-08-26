@@ -7,9 +7,9 @@ frappe.ui.form.on("Sidebar", {
 	refresh(frm) {
 		if (frm.is_new()) return;
 
-		// Both actions are gated on developer mode, since both write to the app on disk: one
+		// Both actions are gated on developer mode, because both write to the app on disk: one
 		// writes the sidebar's file, the other removes it. `standard` is read-only on the form
-		// for the same reason -- setting it without writing the file leaves a row that orphan
+		// for the same reason: setting it without writing the file leaves a row that orphan
 		// removal deletes on the next migrate.
 		if (!frappe.boot.developer_mode) return;
 

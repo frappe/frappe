@@ -1,12 +1,13 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-"""D17 -- an app author gets a command and a notice.
+"""D17: an app author gets a command and a notice.
 
-App-shipped `<app>/workspace_sidebar/*.json` stops being imported. Nothing breaks -- the module
-falls back to a computed base -- but for the apps that curated their navigation that fallback
-is the whole of it reverting, so there is a command to convert with and a one-time notice
-saying the command exists.
+App-shipped `<app>/workspace_sidebar/*.json` stops being imported. Nothing breaks, because the
+module falls back to a computed base, but for apps that curated their navigation that fallback
+undoes all of it, so there is a command to convert with and a one-time notice saying the command
+exists.
+
 """
 
 import json
@@ -37,8 +38,9 @@ MODULE = "Test Fixture Conversion Module"
 def old_fixtures(fixtures: dict[str, dict], app: str = "frappe"):
 	"""An app shipping the old folder, for the length of the test.
 
-	Written to disk rather than mocked: the whole question is what is in that folder and what
+	It is written to disk rather than mocked, because the question is what is in that folder and what
 	gets written beside it.
+
 	"""
 	folder = get_app_level_directory_path(OLD_FIXTURE_FOLDER, app)
 	created = not os.path.exists(folder)
@@ -100,8 +102,8 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			mine = [r for r in results if r["module"] == MODULE]
 
 			self.assertEqual([r["state"] for r in mine], ["converted"])
-			# a merge is titled after the module -- four sidebars in one are not any one of
-			# them -- and a sidebar is named by its title, so the path is the module's here
+			# A merge is titled after the module, since four sidebars in one are not any one of
+			# them, and a sidebar is named by its title, so the path is the module's here.
 			path = export_path(MODULE, MODULE)
 			self.assertTrue(os.path.exists(path), f"nothing written to {path}")
 
@@ -130,9 +132,10 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 		self.assertEqual(doc.standard, 1)
 
 	def test_a_single_source_is_written_under_the_title_it_keeps(self):
-		"""A module with one source keeps that workspace's title -- `Loan Management` still
-		reads "Lending" -- and a sidebar is named by its title, so that is what the record and
-		the file are called. The module column is what still says whose it is."""
+		"""A module with one source keeps that workspace's title, so `Loan Management` still reads
+		"Lending". A sidebar is named by its title, so that is what the record and the file are called.
+		The module column still says whose it is.
+		"""
 		fixtures = {"only": fixture("Conversion Only", MODULE, [link("User")])}
 
 		with module_resolvable_on_disk(MODULE), old_fixtures(fixtures):
@@ -144,8 +147,9 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			self.assertEqual(written["module"], MODULE)
 
 	def test_it_never_overwrites_a_file_that_is_already_there(self):
-		"""Idempotent, and safe against an app half-way through converting by hand -- which is
-		the state erpnext is actually in."""
+		"""Idempotent, and safe against an app half-way through converting by hand, which is the state
+		erpnext is in.
+		"""
 		fixtures = {"only": fixture("Conversion Only", MODULE, [link("User")])}
 
 		with module_resolvable_on_disk(MODULE), old_fixtures(fixtures):
@@ -167,8 +171,9 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			self.assertFalse(os.path.exists(export_path(MODULE, "Conversion Only")))
 
 	def test_a_personal_fork_in_an_app_folder_is_not_shipped(self):
-		"""A `for_user` sidebar that got exported by accident is somebody's own arrangement,
-		and an app has no business shipping one."""
+		"""A `for_user` sidebar exported by accident is a user's own arrangement, and an app should not
+		ship one.
+		"""
 		fixtures = {
 			"mine": fixture("Conversion Mine", MODULE, [link("User")], for_user="someone@example.com")
 		}
@@ -181,15 +186,16 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 
 
 class TestTheMerge(IntegrationTestCase):
-	"""One module, several of the app's old files -- and one sidebar out the other end.
+	"""One module, several of the app's old files, and one sidebar out the other end.
 
 	The merge is reached only from here now: a module that shipped four workspace fixtures still
-	ships one sidebar. Its sources are read off disk rather than out of any table, so these
-	build them the way `read_fixtures` hands them over.
+	ships one sidebar. Its sources are read off disk rather than out of a table, so these build them
+	the way `read_fixtures` hands them over.
+
 	"""
 
 	def source(self, title, items, **extra):
-		"""A fixture in the shape `convert_app` passes down -- see `read_fixtures`."""
+		"""A fixture in the shape `convert_app` passes down. See `read_fixtures`."""
 		return frappe._dict(
 			{
 				"name": title,
@@ -207,8 +213,9 @@ class TestTheMerge(IntegrationTestCase):
 		return {**link(doctype), "label": label}
 
 	def test_largest_sidebar_becomes_primary(self):
-		"""`sequence_id` is near-uniform on a real site, so as the primary signal it picks
-		arbitrarily -- it hands Accounts to Invoicing(28) over Accounting(49)."""
+		"""`sequence_id` is nearly uniform on a real site, so as the primary signal it picks
+		arbitrarily: it gives Accounts to Invoicing(28) over Accounting(49).
+		"""
 		sources = [
 			self.source("Merge Small", [link("User")]),
 			self.source("Merge Large", [link("Role"), link("DocType")]),
@@ -247,28 +254,31 @@ class TestTheMerge(IntegrationTestCase):
 		self.assertEqual(plan["title"], MODULE)
 
 	def test_unmerged_title_keeps_the_fixture_label(self):
-		"""A module with one fixture must look exactly as it does today (`Loan Management`
-		still reads "Lending")."""
+		"""A module with one fixture must look exactly as it does today, so `Loan Management` still
+		reads "Lending".
+		"""
 		plan = build_sidebar(MODULE, [self.source("Merge Only", [link("User")])])
 
 		self.assertEqual(plan["title"], "Merge Only")
 
 	def test_duplicate_rows_are_dropped(self):
-		"""The tables carry rows boot dedupes away; copying them straight across would show
-		copies the desk does not. erpnext.site has 160 such rows, 72 in Core alone."""
+		"""The tables carry rows boot dedupes away, and copying them straight across would show copies
+		the desk does not. erpnext.site has 160 such rows, 72 in Core alone.
+		"""
 		plan = build_sidebar(MODULE, [self.source("Merge Dupes", [link("User"), link("User"), link("Role")])])
 
 		self.assertEqual(len([i for i in plan["items"] if i["link_to"] == "User"]), 1)
 
 	def test_differently_labelled_duplicates_are_one_item(self):
-		"""A relabelled duplicate used to survive the merge, because the dedupe key included
-		`label`. Identity does not: two rows pointing at one target *are* one item, whatever
-		the two files called it (erpnext's CRM lists Lead twice).
+		"""A relabelled duplicate used to survive the merge, because the dedupe key included `label`.
+		Identity does not: two rows pointing at one target are one item, whatever the two files called
+		it. erpnext's CRM lists Lead twice.
 
-		Keeping the second is no longer possible rather than no longer preferred -- it would
-		share an identity with the first, so no customization could name one without naming the
-		other, and the resolution drops it on the way to the payload regardless. The first
-		wins, which is the label the desk was already showing at that position.
+		Keeping the second is now impossible rather than merely undesirable: it would share an identity
+		with the first, so no customization could name one without naming the other, and the resolution
+		drops it on the way to the payload anyway. The first wins, which is the label the desk was
+		already showing at that position.
+
 		"""
 		plan = build_sidebar(
 			MODULE,
@@ -284,8 +294,9 @@ class TestTheMerge(IntegrationTestCase):
 		self.assertEqual([i["label"] for i in users], ["All Users"])
 
 	def test_merging_does_not_re_key_items(self):
-		"""A delta made against a source's item still names it after the merge: the merge copies
-		the columns the identity is made of and derives nothing."""
+		"""A delta made against a source's item still names it after the merge: the merge copies the
+		columns the identity is made of and derives nothing.
+		"""
 		sources = [self.source("Merge Keyed", [link("User"), {"type": "Section Break", "label": "More"}])]
 		plan = build_sidebar(MODULE, sources)
 
@@ -297,8 +308,10 @@ class TestTheMerge(IntegrationTestCase):
 	def test_claim_flag_is_not_carried(self):
 		"""The conversion drops the claim rather than mapping it to `is_default_module`.
 
-		A claim is an app's opinion and the app has to be able to retract it -- which it can,
-		by flagging the row in the `sidebar` fixture it ships from here on."""
+		A claim is an app's opinion and the app has to be able to retract it, which it can by flagging
+		the row in the `sidebar` fixture it ships from here on.
+
+		"""
 		item = {**link("User"), "default_workspace": 1}
 		plan = build_sidebar(MODULE, [self.source("Merge Default", [item])])
 
@@ -306,8 +319,9 @@ class TestTheMerge(IntegrationTestCase):
 		self.assertNotIn("default_workspace", plan["items"][0])
 
 	def test_the_sources_are_recorded(self):
-		"""`merged_from` names every file that went into the export, so an author reading the
-		converted JSON can see which of their old fixtures produced it."""
+		"""`merged_from` names every file that went into the export, so an author reading the converted
+		JSON can see which of their old fixtures produced it.
+		"""
 		plan = build_sidebar(
 			MODULE,
 			[
@@ -320,12 +334,13 @@ class TestTheMerge(IntegrationTestCase):
 
 
 class TestAnAppThatHasNotFollowedTheRename(IntegrationTestCase):
-	"""`Module Sidebar` is `Sidebar`, and an app's fixtures moved with it -- but only frappe's.
+	"""`Module Sidebar` is `Sidebar`, and an app's fixtures moved with it, but only frappe's.
 
 	hrms and erpnext convert on their own branches, so in between they ship
-	`<module>/module_sidebar/` naming a doctype this site no longer has. That has to be
-	*ignored*: a migrate that tried to import one would fail on every site holding a stale app,
-	which is a far worse outcome than the module falling back to a computed base.
+	`<module>/module_sidebar/` naming a doctype this site no longer has. That has to be ignored: a
+	migrate that tried to import one would fail on every site holding a stale app, which is far worse
+	than the module falling back to a computed base.
+
 	"""
 
 	def test_the_old_folder_is_not_walked(self):
@@ -348,8 +363,9 @@ class TestAnAppThatHasNotFollowedTheRename(IntegrationTestCase):
 				shutil.rmtree(os.path.join(module_path, "module_sidebar"), ignore_errors=True)
 
 	def test_the_new_folder_is(self):
-		"""The other half of the same fact: the walk found nothing above because it looks in
-		`sidebar/` now, not because it stopped looking."""
+		"""The other half of the same fact: the walk found nothing above because it looks in `sidebar/`
+		now, not because it stopped looking.
+		"""
 		import shutil
 
 		from frappe.model.sync import get_doc_files
@@ -395,9 +411,10 @@ class TestTheNotice(IntegrationTestCase):
 			self.assertEqual(self.run_patch(), [])
 
 	def test_it_runs_once_rather_than_on_every_migrate(self):
-		"""A one-time fact belongs at the upgrade boundary. A line printed on every migrate for
-		the rest of the release is a nag, which is why this is a patch and not console output
-		from the conversion."""
+		"""A one-time fact belongs at the upgrade boundary. A line printed on every migrate for the
+		rest of the release is a nag, which is why this is a patch rather than console output from the
+		conversion.
+		"""
 		from frappe.modules.patch_handler import PatchType, get_patches_from_app
 
 		patches = [p.split(maxsplit=1)[0] for p in get_patches_from_app("frappe", PatchType.post_model_sync)]

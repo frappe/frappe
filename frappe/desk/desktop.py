@@ -65,17 +65,16 @@ class Workspace(DeskViews):
 
 		Visibility is gated purely by access (module visibility / roles):
 
-		* Its `module` must be visible to the user -- i.e. not one they have blocked.
-		* Then, if the workspace has `roles`, the user must have one of them.
+		1. Its `module` must be visible to the user, meaning not one they have blocked.
+		2. Then, if the workspace has `roles`, the user must have one of them.
 
-		The module gate runs **before** the roles branch. It used to sit inside the *no-roles*
-		branch, which meant a role-gated workspace in a blocked module stayed visible -- the
-		block silently did nothing for exactly the workspaces someone bothered to restrict.
+		The module check runs before the roles branch. It used to sit inside the no-roles branch,
+		so a role-gated workspace in a blocked module stayed visible and the block did nothing for
+		exactly the workspaces someone had restricted.
 
-		No dock layer -- the app's fragment, the site's arrangement or a person's own -- is an
-		access filter. All three are arrangements, applied client-side from `frappe.boot.dock`.
-		Keeping them out of here ensures the full permitted pool stays available for the picker
-		to choose from.
+		No dock layer is an access filter, whether the app's fragment, the site's arrangement or a
+		user's own. All three are arrangements, applied on the client from `frappe.boot.dock`.
+		Keeping them out of here keeps the full permitted pool available for the picker.
 		"""
 		from frappe.utils import has_common
 		from frappe.utils.modules import is_module_visible
@@ -478,11 +477,10 @@ def get_workspaces():
 					pages.append(page)
 				page["label"] = _(page.get("name"))
 
-			# Derived, never stored: there is no `Workspace.app` any more, so the module is the
-			# only answer to which app a workspace belongs to. `None` for a module no app lists,
-			# which a site's own module is entitled to be -- resolving this through
-			# `get_module_app` threw for exactly those modules, and the throw escaped the
-			# `PermissionError` handler below with it.
+			# Derived, never stored: there is no `Workspace.app` any more, so the module decides
+			# which app a workspace belongs to. It is `None` for a module no app lists, which a
+			# site's own module may be. Resolving this through `get_module_app` threw for exactly
+			# those modules, and the exception escaped the `PermissionError` handler below.
 			page["app"] = get_module_placement(page["module"]) if page["module"] else None
 			if page["link_type"] == "Report":
 				report_type, ref_doctype = frappe.db.get_value(

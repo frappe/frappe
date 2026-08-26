@@ -25,8 +25,9 @@ from frappe.utils.modules import get_module_placement
 def module_declared_by(module: str, app: str):
 	"""`app`'s modules.txt claiming `module`, in memory only.
 
-	Registering it in `frappe.local.module_app` is what an app declaring a module amounts to
-	at runtime, and writing the file instead would leave the working tree dirty.
+	Registering it in `frappe.local.module_app` is what an app declaring a module amounts to at
+	runtime, and writing the file instead would leave the working tree dirty.
+
 	"""
 	key = frappe.scrub(module)
 	frappe.local.module_app[key] = app
@@ -39,23 +40,25 @@ def module_declared_by(module: str, app: str):
 def doctype_in(module: str, name: str):
 	"""A DocType owned by `module`.
 
-	Single, so that syncing it needs no table of its own: creating a table commits, and a
-	committed fixture outlives the test's rollback -- stranding both the doctype and the module
-	it names for the next run to collide with. Nothing here reads a row; what is under test is
-	which module owns the doctype.
+	It is single, so syncing it needs no table of its own: creating a table commits, and a committed
+	fixture outlives the test's rollback, stranding both the doctype and the module it names for the
+	next run to collide with. Nothing here reads a row; what is under test is which module owns the
+	doctype.
+
 	"""
 	return new_doctype(name, module=module, issingle=1).insert()
 
 
 @contextmanager
 def custom_module(name: str, app: str | None = None):
-	"""A site-owned module, placed in `app`'s dock or nowhere at all.
+	"""A site-owned module, placed in `app`'s dock or nowhere.
 
-	Nothing is written to disk on the way in or out: `on_update` and `on_trash` both skip
-	their modules.txt and folder work for a custom module, which is the whole point of one.
+	Nothing is written to disk on the way in or out: `on_update` and `on_trash` both skip their
+	modules.txt and folder work for a custom module, which is the point of one.
 
-	A test that renames the module cleans up the name it renamed to; this only knows the one
-	it created.
+	A test that renames the module cleans up the name it renamed to; this only knows the one it
+	created.
+
 	"""
 	frappe.get_doc({"doctype": "Module Def", "module_name": name, "custom": 1, "app_name": app}).insert()
 	clear_computed_base_cache(name)
@@ -70,7 +73,7 @@ def custom_module(name: str, app: str | None = None):
 
 
 class TestCustomModuleIsSiteOwned(IntegrationTestCase):
-	"""`custom` governs lifecycle, `app_name` governs placement -- and nothing else."""
+	"""`custom` governs lifecycle and `app_name` governs placement, and nothing else."""
 
 	def test_a_custom_module_needs_no_placement(self):
 		"""`app_name` is a hint about which dock lists the module, so a module that has not
@@ -79,9 +82,10 @@ class TestCustomModuleIsSiteOwned(IntegrationTestCase):
 			self.assertFalse(frappe.db.get_value("Module Def", module, "app_name"))
 
 	def test_an_unplaced_module_resolves_to_no_app_rather_than_throwing(self):
-		"""A custom module is in no app's modules.txt and may name no app at all. Asking which
-		app it belongs to is then a question with the answer `None`, not an error -- the throw
-		is what used to leave a freshly created module out of the desk entirely."""
+		"""A custom module is in no app's modules.txt and may name no app. Asking which app it belongs
+		to then has the answer `None` rather than an error. The throw is what used to leave a freshly
+		created module out of the desk entirely.
+		"""
 		with custom_module("Test Unresolvable Module") as module:
 			self.assertIsNone(get_module_placement(module))
 
@@ -105,18 +109,20 @@ class TestCustomModuleIsSiteOwned(IntegrationTestCase):
 			self.assertIn("Test Placed Module Report", [item["link_to"] for item in sidebar.items])
 
 	def test_a_custom_module_can_own_doctypes(self):
-		"""Owning doctypes is *why* custom modules exist -- `DocType.module` has always been
-		mandatory, so a module that could not hold one would be an empty gesture."""
+		"""Owning doctypes is why custom modules exist: `DocType.module` has always been mandatory, so
+		a module that could not hold one would be useless.
+		"""
 		with custom_module("Test Owning Module") as module:
 			doctype = doctype_in(module, "Test Custom Module DocType")
 
 			self.assertEqual(frappe.db.get_value("DocType", doctype.name, "module"), module)
 
 	def test_a_module_the_site_adds_arrives_with_the_page_it_opens_on(self):
-		"""A module whose sidebar comes out empty is dropped from the payload entirely, so a
-		module created with nothing in it would be one nobody can reach. The page is made by the
-		module rather than by whoever asked for one, so it is there whichever end created it --
-		the doctype form, or the dock's own Add."""
+		"""A module whose sidebar comes out empty is dropped from the payload entirely, so a module
+		created with nothing in it would be unreachable. The page is created by the module rather than
+		by whoever asked for one, so it is there whichever end created it: the doctype form, or the
+		dock's own Add.
+		"""
 		with custom_module("Test Module With A Page") as module:
 			page = frappe.get_doc("Workspace", module)
 
@@ -136,8 +142,9 @@ class TestCustomModuleIsSiteOwned(IntegrationTestCase):
 			self.assertEqual(sidebar.items[0]["label"], "Home")
 
 	def test_an_apps_own_module_is_left_to_ship_its_own(self):
-		"""Only the site's own modules bring a page. Minting one for each of an app's modules at
-		install would be inventing content on the app's behalf."""
+		"""Only the site's own modules bring a page. Creating one for each of an app's modules at
+		install would invent content on the app's behalf.
+		"""
 		with sidebarless_module("Test App Module No Page") as module:
 			self.assertFalse(frappe.db.exists("Workspace", module))
 
@@ -159,8 +166,9 @@ class TestUninstallLeavesCustomModulesAlone(IntegrationTestCase):
 			self.assertIn("Core", owned)
 
 	def test_uninstall_releases_a_custom_modules_placement(self):
-		"""The placement pointed at an app that is no longer here; the module is not. Clearing
-		it is what keeps the module reachable -- it falls back to standing on its own."""
+		"""The placement pointed at an app that is no longer here, but the module is. Clearing it is
+		what keeps the module reachable, since it falls back to standing on its own.
+		"""
 		with custom_module("Test Released Module", app="frappe") as module:
 			release_custom_module_placements("frappe")
 
@@ -173,8 +181,9 @@ class TestUninstallLeavesCustomModulesAlone(IntegrationTestCase):
 
 
 class TestDisablingTheHostAppLeavesTheModule(IntegrationTestCase):
-	"""Turning an app off is the same split as uninstalling it: the app's modules go, the
-	site's stay. A custom module can never become unreachable."""
+	"""Turning an app off is the same split as uninstalling it: the app's modules go and the site's
+	stay. A custom module can never become unreachable.
+	"""
 
 	def disabled_modules_with(self, app: str) -> set[str]:
 		# the answer is request-cached, and something earlier in the process has already asked
@@ -224,9 +233,10 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 				self.assertEqual(renamed, f"{first} (Custom 2)")
 
 	def test_the_modules_sidebar_moves_with_it(self):
-		"""A `Sidebar` is named by its title, which defaults to the module's name, so the link
-		cascade is not enough: left on the old name, it is what the app's own sidebar collides
-		with on import."""
+		"""A `Sidebar` is named by its title, which defaults to the module's name, so the link cascade
+		is not enough: left on the old name, it is what the app's own sidebar collides with on
+		import.
+		"""
 		with custom_module("Test Sidebarred Module") as module:
 			make_sidebar(module)
 
@@ -238,9 +248,10 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 			self.assertEqual(frappe.db.get_value("Sidebar", renamed, "title"), renamed)
 
 	def test_a_sidebar_called_something_else_is_left_where_it_is(self):
-		"""The collision is on the **title** -- what a sidebar is named by -- and not on the
-		module. A sidebar the site holds under a name of its own is not in the app's way, and
-		moving it would rename navigation nobody is fighting over."""
+		"""The collision is on the title, which is what a sidebar is named by, not on the module. A
+		sidebar the site holds under a name of its own is not in the app's way, and moving it would
+		rename navigation nobody is fighting over.
+		"""
 		with custom_module("Test Titled Sidebar Module") as module:
 			sidebar = make_sidebar(module, title="Test Titled Sidebar")
 
@@ -255,8 +266,9 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 			)
 
 	def test_an_apps_own_module_is_left_where_it_is(self):
-		"""Only a *custom* module moves aside. A module the app already owns is the app
-		re-declaring what it shipped, and renaming it would rename the app's own content."""
+		"""Only a custom module moves aside. A module the app already owns is the app re-declaring what
+		it shipped, and renaming it would rename the app's own content.
+		"""
 		self.assertIsNone(rename_conflicting_custom_module("Core", "frappe"))
 		self.assertTrue(frappe.db.exists("Module Def", "Core"))
 
@@ -264,8 +276,9 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 		self.assertIsNone(rename_conflicting_custom_module("Test Module Nobody Holds", "frappe"))
 
 	def test_a_module_an_app_declares_takes_its_name_back(self):
-		"""The sideways route: a doctype imported by `bench migrate` brings its module with it,
-		and never names the app. `modules.txt` is what says the name is the app's."""
+		"""The indirect route: a doctype imported by `bench migrate` brings its module with it and
+		never names the app. `modules.txt` is what says the name is the app's.
+		"""
 		with custom_module("Test Declared Module") as module:
 			with module_declared_by(module, "frappe"):
 				renamed = reclaim_module_name_for_its_app(module)
@@ -285,17 +298,18 @@ class TestSyncGivesEveryDeclaredModuleARow(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		# a non-custom insert runs `on_update`, which writes `modules.txt` and creates a folder
-		# when developer_mode is on -- a test has no business touching the working tree
+		# A non-custom insert runs `on_update`, which writes `modules.txt` and creates a folder
+		# when developer_mode is on, and a test should not touch the working tree.
 		patcher = patch.dict(frappe.local.conf, {"developer_mode": 0})
 		patcher.start()
 		self.addCleanup(patcher.stop)
 
 	def test_an_app_module_that_lost_its_placement_gets_it_back(self):
-		"""`app_name` is what lists a module in an app's dock, so a blank one is a module no
-		dock reaches. The app that declares it is what the sync is already iterating over."""
-		# rollback is class-scoped, so a failure here would hand every later test an unplaced
-		# `Core` -- restoring it cannot be left to the function under test
+		"""`app_name` is what lists a module in an app's dock, so a blank one is a module no dock
+		reaches. The app that declares it is what the sync is already iterating over.
+		"""
+		# Rollback is class-scoped, so a failure here would hand every later test an unplaced
+		# `Core`. Restoring it cannot be left to the function under test.
 		placement = frappe.db.get_value("Module Def", "Core", "app_name")
 		self.addCleanup(
 			frappe.db.set_value, "Module Def", "Core", "app_name", placement, update_modified=False
@@ -321,8 +335,8 @@ class TestSyncGivesEveryDeclaredModuleARow(IntegrationTestCase):
 			return [module] if app == declaring else real_module_list(app)
 
 		with (
-			# the real list with one app repeated -- replacing it instead would strip the other
-			# installed apps, and plenty of cached lookups expect those to be there
+			# The real list with one app repeated. Replacing it would strip the other installed
+			# apps, and plenty of cached lookups expect those to be there.
 			patch("frappe.get_installed_apps", return_value=[*apps, declaring]),
 			patch("frappe.get_module_list", side_effect=declares),
 		):

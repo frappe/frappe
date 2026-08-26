@@ -42,7 +42,7 @@ def execute():
 
 
 # ---------------------------------------------------------------------------------------
-# The base -- what this site showed everybody
+# The base: what this site showed everybody
 # ---------------------------------------------------------------------------------------
 
 
@@ -50,7 +50,8 @@ def convert_site_sidebars() -> list[str]:
 	"""Merge each module's site-level rows into one `Sidebar`, unless the module already has one."""
 	converted = []
 	for module, sources in sorted(site_sources().items()):
-		# a sidebar already there is the current statement about this module, whoever made it
+		# A sidebar that already exists is the current arrangement for this module, whoever made
+		# it.
 		if frappe.db.exists("Sidebar", {"module": module}):
 			continue
 
@@ -119,7 +120,7 @@ def site_sources() -> dict[str, list[frappe._dict]]:
 
 
 # ---------------------------------------------------------------------------------------
-# User layers -- what one person did to what everybody was shown
+# User layers: what one user changed about what everybody was shown
 # ---------------------------------------------------------------------------------------
 
 
@@ -184,9 +185,10 @@ def forks_by_owner() -> dict[tuple[str, str], list[frappe._dict]]:
 
 
 def source_of(fork) -> str | None:
-	"""The sidebar this fork was copied from -- v16 named a fork `<sidebar>-<user>`.
+	"""Return the sidebar this fork was copied from. v16 named a fork `<sidebar>-<user>`.
 
-	Worth recovering: it is the list the person was actually looking at when they rearranged it.
+	It is worth recovering, because it is the list the user was looking at when they rearranged
+	it.
 	"""
 	title = fork.title or fork.name
 	source = title.removesuffix(f"-{fork.for_user}")
@@ -205,10 +207,10 @@ def arrangement_below(module: str) -> list:
 
 
 def dropped_keys(forks: list[frappe._dict], items: list[dict]) -> set[str]:
-	"""What this person took out, as opposed to what they were never offered.
+	"""Return what this user removed, as opposed to what they were never offered.
 
-	Only items the source sidebar showed them can count as removed; anything the module has
-	gained since is new to them, not something they hid.
+	Only items the source sidebar showed them count as removed. Anything the module gained since
+	is new to them rather than something they hid.
 	"""
 	kept = {item_key(item) for item in items}
 	offered = {item_key(row) for fork in forks if fork.source for row in archive_items(fork.source)}
@@ -225,7 +227,8 @@ def is_private_container(sidebar) -> bool:
 
 
 def is_module(module: str | None) -> bool:
-	"""Whether the site still has this module -- a sidebar outlives the app that authored it."""
+	"""Return whether the site still has this module. A sidebar outlives the app that authored
+	it."""
 	return bool(module) and bool(frappe.db.exists("Module Def", module))
 
 

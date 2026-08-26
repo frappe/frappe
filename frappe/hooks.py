@@ -475,10 +475,10 @@ ignore_links_on_delete = [
 	"Access Log",
 	"Permission Log",
 	"Desktop Icon",
-	# Navigation, not references. A sidebar item names a way in to a document; the document
-	# does not belong to it, and a dangling item is already skipped when the sidebar resolves.
-	# Without this a person hiding something in their own sidebar would stop anyone deleting
-	# it -- `Workspace` is on this list for exactly the same reason.
+	# Navigation, not references. A sidebar item names a way in to a document; the document does
+	# not belong to it, and a dangling item is already skipped when the sidebar resolves. Without
+	# this, a user hiding something in their own sidebar would stop anyone deleting it.
+	# `Workspace` is on this list for the same reason.
 	"Sidebar",
 	"Custom Sidebar",
 	"Dock",
@@ -604,29 +604,28 @@ add_to_apps_screen = [
 	}
 ]
 
-# Modules that are a folder of code and nothing else -- kept out of the dock, never out of
-# reach. Each still owns every doctype, report and page it always did; what none of them owns
-# any more is navigation, which lives in the semantic modules instead. Left in the dock they
-# would each show a computed base built from whatever doctypes happen to sit in them -- the
-# grab-bag the split exists to replace. See `frappe.utils.modules.get_code_only_modules`.
+# Modules that are a folder of code and nothing else. They are kept out of the dock but stay
+# reachable. Each still owns every doctype, report and page it always did; what they no longer own
+# is navigation, which lives in the semantic modules instead. Left in the dock, each would show a
+# computed base built from whatever doctypes happen to sit in it, which is what the split exists to
+# replace. See `frappe.utils.modules.get_code_only_modules`.
 #
 # Each key maps to the modules that inherited its navigation, so nothing is stranded: an entity
-# whose module is code-only is resolved against the heirs instead of dead-ending. Naming the
-# heirs is the app's job -- it made the split and is the only one who knows where the navigation
-# went. Without it the desk can only infer, and inference lost `User` to erpnext's `Setup` on
-# every erpnext site.
+# whose module is code-only resolves against the heirs instead of dead-ending. Naming the heirs is
+# the app's job, since it made the split and knows where the navigation went. Without it the desk
+# can only infer, and inference gave `User` to erpnext's `Setup` on every erpnext site.
 #
-# THE ORDER IS LOAD-BEARING, TWICE. This is a list, not a set, and appending to it is a decision:
-#   1. it breaks ties -- when several heirs list the same entity, the earliest declared wins;
-#   2. it names the default home -- an entity no heir lists at all lands in the first heir that
-#      this user can see.
-# `System` leads `Core` deliberately: it is the internals shell (settings, versions, logs, jobs),
-# and leading with `Build` instead would turn the developer-tooling sidebar into the dumping
-# ground for every unplaced `Core` internal.
+# The order matters, in two ways. This is a list, not a set, and appending to it is a decision:
+#   1. It breaks ties: when several heirs list the same entity, the earliest declared wins.
+#   2. It names the default home: an entity no heir lists lands in the first heir this user can
+#      see.
+# `System` leads `Core` on purpose. It is the internals shell (settings, versions, logs, jobs), and
+# leading with `Build` would turn the developer-tooling sidebar into the dumping ground for every
+# unplaced `Core` internal.
 #
-# A mapping can rot where an inference cannot: `Email` is here because `Communication` is a `Core`
-# doctype that only frappe's `Email` sidebar links, which the list above this comment used to
-# miss. Keep it swept.
+# A mapping can go stale where an inference cannot: `Email` is here because `Communication` is a
+# `Core` doctype that only frappe's `Email` sidebar links, which this list used to miss. Keep it
+# up to date.
 code_only_modules = {
 	"Core": ["System", "Build", "Data", "Users", "Email"],
 	"Custom": ["Build"],

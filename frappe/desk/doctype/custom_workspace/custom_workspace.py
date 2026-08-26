@@ -61,8 +61,8 @@ class CustomWorkspace(Document):
 	# end: auto-generated types
 
 	def before_validate(self):
-		# Same trip through the XSS sanitizer the base document takes, and the same reason for
-		# heading it off here -- this row carries a workspace's blocks too.
+		# The same trip through the XSS sanitizer the base document takes, for the same reason:
+		# this row carries a workspace's blocks too.
 		from frappe.desk.doctype.workspace.workspace import sanitize_content
 
 		self.content = sanitize_content(self.content)
