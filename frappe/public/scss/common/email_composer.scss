@@ -740,8 +740,10 @@
 		justify-content: space-between;
 		gap: var(--padding-sm);
 		padding: var(--padding-sm) 20px;
-		background-color: var(--alert-bg-info);
-		color: var(--alert-text-info);
+		// Colours from the Figma "alerts" component; layout/sizing deliberately
+		// left as the existing banner's.
+		background-color: var(--surface-gray-1);
+		color: var(--ink-gray-7);
 		font-size: var(--text-sm);
 
 		&.hidden {
@@ -756,7 +758,7 @@
 			flex-shrink: 0;
 			padding: 2px;
 			line-height: 1;
-			color: var(--alert-text-info);
+			color: var(--ink-gray-8);
 			opacity: 0.7;
 
 			&:hover {
