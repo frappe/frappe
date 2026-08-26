@@ -50,6 +50,55 @@ def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None 
 	]
 
 
+@frappe.whitelist()
+def get_recipient_avatars(emails: str) -> dict[str, str]:
+	"""Map recipient email -> avatar image, for the email composer's recipient chips.
+
+	Prefers the matching Contact's own `image`, falling back to the User with that
+	email. Addresses with neither are absent from the result, so the caller can
+	fall back to initials.
+	"""
+	emails = [e.strip().lower() for e in (frappe.parse_json(emails) or []) if e and e.strip()]
+	if not emails:
+		return {}
+
+	Contact = frappe.qb.DocType("Contact")
+	ContactEmail = frappe.qb.DocType("Contact Email")
+	User = frappe.qb.DocType("User")
+
+	# Contact.image, joined straight through the Contact Email child table
+	contact_avatars = (
+		frappe.qb.from_(ContactEmail)
+		.select(ContactEmail.email_id, Contact.image)
+		.inner_join(Contact)
+		.on(Contact.name == ContactEmail.parent)
+		.where(ContactEmail.email_id.isin(emails))
+		.where(Contact.image.notnull())
+		.where(Contact.image != "")
+		.run()
+	)
+
+	# User.user_image. A User's id is usually the address but not always, so match
+	# on either column — and key the result by whichever one the caller asked for.
+	user_avatars = (
+		frappe.qb.from_(User)
+		.select(User.name, User.email, User.user_image)
+		.where(User.name.isin(emails) | User.email.isin(emails))
+		.where(User.user_image.notnull())
+		.where(User.user_image != "")
+		.run()
+	)
+
+	# users first, then contacts overwrite them — Contact wins where both exist
+	avatars = {}
+	for name, email, image in user_avatars:
+		for key in (name, email):
+			if key and key.lower() in emails:
+				avatars[key.lower()] = image
+	avatars.update({email.lower(): image for email, image in contact_avatars if email})
+	return avatars
+
+
 def get_system_managers():
 	return frappe.db.sql_list(
 		"""select parent FROM `tabHas Role`
