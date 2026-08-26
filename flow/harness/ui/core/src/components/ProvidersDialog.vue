@@ -72,15 +72,10 @@
 
 		<!-- provider detail -->
 		<div v-else class="min-h-0 flex-1 overflow-y-auto p-4">
-			<div class="flex items-center gap-3">
+			<!-- the custom form repeats name and URL as fields; the header would only spend space -->
+			<div v-if="!selected.custom_setup && !selected.custom" class="flex items-center gap-3">
 				<span class="flex h-10 w-10 flex-none items-center justify-center">
-					<span
-						v-if="selected.custom_setup"
-						class="flex h-9 w-9 items-center justify-center rounded-md border border-outline-gray-2 text-ink-gray-6"
-					>
-						<FeatherIcon name="server" class="h-4 w-4" />
-					</span>
-					<ProviderIcon v-else :provider-id="selected.id" :icon="selected.icon" :size="28" />
+					<ProviderIcon :provider-id="selected.id" :icon="selected.icon" :size="28" />
 				</span>
 				<div class="min-w-0">
 					<div class="truncate text-sm font-semibold text-ink-gray-9">{{ selected.name }}</div>
@@ -88,8 +83,8 @@
 				</div>
 			</div>
 
-			<!-- custom endpoint setup -->
-			<form v-if="selected.custom_setup" class="mt-5 flex flex-col gap-3" @submit.prevent="saveCustom">
+			<!-- custom endpoint setup: adds a new one, or edits the selected one in place -->
+			<form v-if="selected.custom_setup || selected.custom" class="flex flex-col gap-3" @submit.prevent="saveCustom">
 				<label class="block">
 					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">Name</span>
 					<input v-model="customName" :class="FIELD" placeholder="Local Ollama" />
@@ -120,17 +115,29 @@
 						type="password"
 						autocomplete="off"
 						:class="FIELD"
-						placeholder="Leave empty for local runtimes"
+						:placeholder="editingCustom ? 'Leave empty to keep the saved key' : 'Leave empty for local runtimes'"
 					/>
 				</label>
-				<button
-					type="submit"
-					class="mt-1 flex h-8 items-center gap-1.5 self-start rounded-md bg-surface-gray-7 px-3 text-xs font-medium text-ink-white hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
-					:disabled="!canSaveCustom || saving"
-				>
-					<FeatherIcon name="plus" class="h-3.5 w-3.5" />
-					Add endpoint
-				</button>
+				<div class="mt-1 flex items-center gap-2">
+					<button
+						v-if="editingCustom"
+						type="button"
+						class="flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-red-3 hover:bg-surface-red-1"
+						:disabled="saving"
+						@click="disconnect"
+					>
+						<FeatherIcon name="log-out" class="h-3.5 w-3.5" />
+						Disconnect
+					</button>
+					<button
+						type="submit"
+						class="flex h-8 items-center gap-1.5 rounded-md bg-surface-gray-7 px-3 text-xs font-medium text-ink-white hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+						:disabled="!canSaveCustom || saving"
+					>
+						<FeatherIcon :name="editingCustom ? 'check' : 'plus'" class="h-3.5 w-3.5" />
+						{{ editingCustom ? "Save changes" : "Add endpoint" }}
+					</button>
+				</div>
 			</form>
 
 			<div v-else-if="selected.configured" class="mt-5">
@@ -278,6 +285,9 @@ const customBaseUrl = ref("")
 const customApiKey = ref("")
 const customModelIds = ref("")
 
+// a saved custom row opens the same form prefilled and saves in place
+const editingCustom = computed(() => !!selected.value?.custom)
+
 // ids may be newline- or comma-separated; the server dedupes and re-validates
 const customModels = computed(() =>
 	customModelIds.value
@@ -295,17 +305,22 @@ const canSaveCustom = computed(
 
 async function saveCustom() {
 	saving.value = true
+	const editing = editingCustom.value
 	try {
-		const data = await flow.client.saveCustomProvider({
+		const payload = {
 			name: customName.value.trim(),
 			base_url: customBaseUrl.value.trim(),
 			models: customModels.value,
 			api_key: customApiKey.value.trim() || null,
-		})
-		flow.notify(`${data.provider.name} added`)
+		}
+		const data = editing
+			? await flow.client.updateCustomProvider(selected.value.id, payload)
+			: await flow.client.saveCustomProvider(payload)
+		flow.notify(`${data.provider.name} ${editing ? "updated" : "added"}`)
 		await reload()
 		flow.refreshModels()
-		selected.value = rows.value.find((p) => p.id === data.provider.id) ?? null
+		// prefill from the response row: it is authoritative even if reload failed
+		select(data.provider)
 	} catch (error) {
 		flow.notify(error.message, "error")
 	} finally {
@@ -346,10 +361,10 @@ function select(p) {
 	showManual.value = false
 	callbackUrl.value = ""
 	authorizeUrl.value = ""
-	customName.value = ""
-	customBaseUrl.value = p.custom_setup ? "http://localhost:11434/v1" : ""
-	customApiKey.value = ""
-	customModelIds.value = ""
+	customName.value = p.custom ? p.name : ""
+	customBaseUrl.value = p.custom ? p.source : p.custom_setup ? "http://localhost:11434/v1" : ""
+	customApiKey.value = "" // never echoed back; blank means "keep the saved key"
+	customModelIds.value = p.custom ? (p.models ?? []).join("\n") : ""
 }
 
 function deselect() {
