@@ -39,8 +39,6 @@ patches by using INI like file format:
 	customizations (which aren't available on the DocType until fixtures
 	are synced) should be added to the post_fixture_sync section instead.
 
-	The post_fixture_sync section is optional; apps that don't need it can
-	omit it entirely.
 
 3. simple python commands can be added by starting line with `execute:`
 `execute:` example: `execute:print("hello world")`
