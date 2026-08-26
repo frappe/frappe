@@ -430,24 +430,14 @@ use_json_request_body = True
 # 	}}
 # ]
 
-# Where this app's entries sit on the dock (the rail down the left of the desk), as an ordered
-# list of typed rows. A `Sidebar` names a module -- the sidebar it lands on is the one called
-# after that module. An
-# entry you don't name simply trails the ones you do, in the app's own order, so adding a module
-# later doesn't mean re-authoring this. A row shipped `"hidden": 1` is off by default, and a site
-# or a person can bring it back.
-# add_to_dock = [
-# 	{{"type": "Sidebar", "name": "{app_title}"}},
-# ]
-
-# A companion app that extends a host app pins a workspace onto the host's dock with the same
-# hook: one row naming the host `app`. The pin is appended after the host's own entries, and it
-# keeps this app off the apps screen -- pinning into a host costs the slot, so it takes
-# precedence over any add_to_apps_screen above. Who can see a pinned workspace is controlled by
-# that workspace's own Roles table.
-# add_to_dock = [
-# 	{{"type": "Workspace", "name": "My Workspace", "app": "erpnext"}},
-# ]
+# The dock -- the rail down the left of the desk -- is a document rather than a hook. Author it
+# in Manage Dock on a developer-mode site and press Export to App, and it is written to
+# `{app_name}/dock/{app_name}/{app_name}.json` for git to carry. An app that ships none has no rail:
+# its sidebar grows a switcher in the header instead.
+#
+# A companion app -- one that extends a host app rather than standing on its own -- says so with
+# `mount_on` on that same record, and its entries are appended to the host's rail. Mounting keeps
+# the companion off the apps screen, so it takes precedence over any add_to_apps_screen above.
 
 # Includes in <head>
 # ------------------

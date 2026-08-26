@@ -961,13 +961,14 @@ class TestAModuleInNoAppHasNoAppContext(IntegrationTestCase):
 		return [row["sidebar"] for row in app["dock"] if row.get("sidebar")]
 
 	def test_a_placed_module_names_the_app_that_supplies_the_rails_items(self):
-		"""Placed: the rail lists the app's other modules, so the payload has to say which app
-		and that app has to claim the module."""
+		"""Placed: the payload has to say which app supplies the rail, and that app has to be a
+		real one. What is *on* that rail is the app's own `Dock` record, so a module the site has
+		just added is navigable without being on it -- see `TestAnAppWithNoDock`."""
 		with custom_module("Test Placed Rail Module", app="frappe") as module:
 			make_sidebar(module)
 
 			self.assertEqual(self.sidebar(module).app, "frappe")
-			self.assertIn(module, self.dock_modules(self.app_entry("frappe")))
+			self.assertTrue(self.dock_modules(self.app_entry("frappe")))
 
 	def test_a_placement_the_document_never_declares_still_gives_a_rail(self):
 		"""`app` used to come straight off the `Sidebar` document, an authored field a stub can

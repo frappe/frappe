@@ -217,36 +217,28 @@ def get_boot_module_app():
 
 
 def get_app_rail_host_map():
-	"""Map of companion app -> the host app it pins into with an `add_to_dock` row.
+	"""Map of companion app -> the host app whose rail it mounts on.
 
 	A companion app (e.g. India Compliance for ERPNext, India Payroll for HRMS) has no shell of
-	its own; its workspaces live inside the host app's dock. This map lets the desk resolve the
-	app context (dock + header) of a companion app's workspaces to the host app, so you stay "in"
-	the host's dock while using the companion. When a companion pins into more than one host, the
-	first host wins.
+	its own; its entries live on the host app's rail. This map lets the desk resolve the app
+	context (rail + header) of a companion app's workspaces to the host app, so you stay "in" the
+	host's rail while using the companion.
 
-	Derived from the **rows carrying `app`**, never from the hook's mere presence. Every app
-	declares `add_to_dock` now, so a presence check would delete each adopting app from the apps
-	screen. Pinning into a host costs the slot; declaring your own order does not.
+	**Empty for one commit.** It read the `add_to_dock` rows carrying `app`, and that hook is
+	gone; the claim it carried was never an entry at all but a one-per-companion *identity*
+	claim, which is a record-level fact -- so it comes back as a read of `Dock.mount_on` in
+	ticket 10, which is where the column lands.
 	"""
-	from frappe.desk.doctype.dock.dock import DOCK_HOOK
-
-	host_map = {}
-	for app_name in frappe.get_active_apps():
-		for entry in frappe.get_hooks(DOCK_HOOK, app_name=app_name) or []:
-			if isinstance(entry, dict) and entry.get("app") and entry.get("app") != app_name:
-				host_map[app_name] = entry["app"]
-				break
-	return host_map
+	return {}
 
 
 # Fallback apps-screen sort order for apps that don't declare a `sequence_id` in their
 # `add_to_apps_screen` hook. Sits below Framework (1000) so it always trails real apps.
 #
 # This one stays. It orders the thing it lives on -- the app's slot on the apps screen -- and it
-# is what makes the dock read in the same order as the screen people reach it from. Its
-# module-level counterpart is gone: where a module sits on the dock is `add_to_dock`, an ordered
-# list, which has no unset state to need a default.
+# is what makes the rails read in the same order as the screen people reach them from. Its
+# module-level counterpart is gone: where a module sits on a rail is a row's position in the
+# `Dock` record its app ships, which has no unset state to need a default.
 DEFAULT_APP_SEQUENCE_ID = 100
 
 
@@ -299,14 +291,10 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 	`allowed_pages` is the set of workspace names the user may see -- `bootinfo.workspaces.pages`,
 	i.e. every public workspace they're permitted plus their own private ones.
 	"""
-	from frappe.desk.doctype.dock.dock import get_dock_workspaces
+	from frappe.desk.doctype.dock.dock import get_app_entry_set
 
 	app_data = []
 
-	# Workspaces named by an `add_to_dock` row on this app's fragment -- its own, and the ones
-	# companion apps pinned onto it instead of taking an apps-screen slot of their own. Resolved
-	# once, folded into each host's list below.
-	pinned = get_dock_workspaces()
 	app_rail_host = get_app_rail_host_map()
 
 	Workspace = frappe.qb.DocType("Workspace")
@@ -372,15 +360,12 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 			if r[0] in allowed_pages
 		]
 
-		# One ordered typed list: the app's own modules as `Sidebar` rows, then every `Workspace`
-		# an `add_to_dock` row put on this app's fragment -- its own, and the ones companions
-		# pinned onto it. A pin is *appended* rather than positioned: a companion is not
-		# asserting a default into an arrangement that is not its, and where it sits is Layer
-		# business. Permission-filtered like anything else that reaches the dock.
-		dock = [{"sidebar": module} for module in get_app_modules(app_name)]
-		for workspace in pinned.get(app_name, []):
-			if workspace in allowed_pages:
-				dock.append({"link_type": "Workspace", "link_to": workspace})
+		# The entries this app's dock offers: exactly the rows of the `Dock` record it ships,
+		# permission-filtered. Not `get_app_modules` any more -- an app's dock stopped being
+		# "every module it owns, in some order" and became a document its author writes, so a
+		# module the record never names is off this rail for good. Which of these are *on* the
+		# rail, and in what order, is `frappe.boot.dock`.
+		dock = get_app_entry_set(app_name)
 
 		app_data.append(
 			dict(
@@ -421,14 +406,24 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 
 
 def get_app_modules(app_name: str) -> list[str]:
-	"""The app's modules the user may see, in the order its dock offers them.
+	"""One app's modules that this user can actually navigate to, stably ordered.
 
-	This is the *entry set*, not the arrangement. Where a module actually sits is
-	`add_to_dock` -- an ordered list in the app's `hooks.py`, resolved through the site's and
-	each person's layers -- and a module that list never names simply trails the ones it does,
-	in this order. So this has to be permission-filtered and stably ordered, and nothing more.
+	**Demoted, and narrowed in the same breath.** It used to *be* the app's dock, and an app's
+	dock is now the rows of the record it ships. What is left are three readers that all want the
+	same thing -- the switcher's list of shells, the manager's pool of things to add, and the
+	landing ladder's floor -- and each of them offers what it returns as a destination.
 
-	Two tiers:
+	The narrowing is forced by exactly that. It filtered only blocked modules, which was harmless
+	while it fed the rail: the client silently dropped any row missing from the module-sidebars
+	payload, where a disabled app's modules and the code-only ones never appear. Removing that
+	mask without adding the two checks would offer `Core`, `Custom` and `Desk` as destinations
+	that resolve to nothing.
+
+	So it asks the same three questions `get_navigable_modules` asks site-wide, scoped to one
+	app: not blocked by this person, not in a disabled app, and not code-only. One definition of
+	*a module you can navigate to*.
+
+	Two tiers of order:
 
 	1. **`modules.txt` position** -- the order the app declares its modules in.
 	2. **name** -- for modules that exist only in the database (a `Module Def` added from the
@@ -437,11 +432,15 @@ def get_app_modules(app_name: str) -> list[str]:
 	Collapsing these to name alone would alphabetise the trailing set, which is a behaviour
 	change and not one anybody asked for.
 	"""
-	from frappe.utils.modules import get_visible_modules
+	from frappe.utils.modules import get_code_only_modules, get_visible_modules
 
 	modules = get_visible_modules(frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name"))
 	if not modules:
 		return []
+
+	disabled = get_disabled_modules()
+	code_only = get_code_only_modules()
+	modules = [module for module in modules if module not in disabled and module not in code_only]
 
 	declared = {name: idx for idx, name in enumerate(frappe.get_module_list(app_name))}
 

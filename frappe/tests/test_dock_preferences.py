@@ -12,12 +12,13 @@ from unittest.mock import patch
 import frappe
 from frappe.boot import get_app_modules, get_module_sidebars
 from frappe.desk.doctype.dock.dock import (
+	DOCK_ITEM_FIELDS,
 	Dock,
-	check_dock_hooks,
 	create_module,
 	destination,
 	dock_key,
 	get_app_dock,
+	get_app_entry_set,
 	get_site_dock,
 	get_site_dock_layer,
 	get_user_dock,
@@ -47,8 +48,8 @@ from frappe.tests import IntegrationTestCase
 
 USER = "test-dock-prefs@example.com"
 
-# The modules these suites arrange -- their own, rather than three of the framework's. An app
-# fragment is free to name the framework's modules, and once an app ships one every site has a
+# The modules these suites arrange -- their own, rather than three of the framework's. An app's
+# dock is free to name the framework's modules, and once an app ships one every site has a
 # base that does, so borrowing them made every assertion here depend on what somebody else had
 # shipped. These three are created by the suite and named by nothing else.
 # The app these suites arrange the dock of. A `Dock` layer is per app, so every read and every
@@ -77,15 +78,6 @@ def workspace(name, hidden=None, **kwargs) -> dict:
 	"""One row opening a workspace. The shell it selects is derived from the module that owns it
 	unless the row names one."""
 	row = {"link_type": "Workspace", "link_to": name, **kwargs}
-	if hidden is not None:
-		row["hidden"] = hidden
-	return row
-
-
-def hook_sidebar(module, hidden=None) -> dict:
-	"""The same row in the `add_to_dock` spelling -- the typed pair the hook still speaks, which
-	every reader translates on the way in until 08 drops the columns."""
-	row = {"type": "Sidebar", "name": module}
 	if hidden is not None:
 		row["hidden"] = hidden
 	return row
@@ -228,46 +220,73 @@ def app_rooted_at(app, root):
 
 
 @contextmanager
-def shipped_dock(fragments: dict[str, list[dict]]):
-	"""Declare `add_to_dock` for named apps, as if they had it in their `hooks.py`.
+def shipped_dock(records: dict[str, list[dict]]):
+	"""Ship a standard `Dock` for each named app, for the length of the `with` block.
 
 	    shipped_dock({"zz-dock-suite": [sidebar(ALPHA)], "zz-dock-suite-companion": [...]})
 
-	The built-in `patch_hooks` is no use here: it ignores `app_name`, so every installed app
-	would answer with the same fragment and the base would repeat it once per app. Whose fragment
-	a row is in is the whole subject of these suites, so the patcher has to keep the distinction.
+	An app's dock is a document now, so this writes one rather than patching a hook. Written
+	under `in_import`, which is the truthful flag: this is the system placing app content on a
+	site, exactly as migrate does, and it is also what keeps the write from touching the working
+	tree -- `export_dock` returns early on it.
 
 	An app named here that is not installed is *invented* for the duration -- it joins the
-	installed list and answers every other hook with nothing, because it has no `hooks.py` to
-	import. That is what lets a suite own its fragments: the framework's own are patched away
-	inside the block, and the assertions do not depend on which apps this bench happens to carry.
+	installed and active lists, and answers every other hook with nothing, because it has no
+	`hooks.py` to import. That is what lets a suite own the docks under test: the assertions do
+	not depend on which apps this bench happens to carry.
 
 	An invented app is deliberately absent from `_ensure_on_bench=True`, which asks for the apps
 	that exist as directories. It does not, and callers who ask that question mean it -- the
 	template loader imports every app it is handed.
 	"""
 	real_hooks = frappe.get_hooks
-	real_apps = frappe.get_active_apps
-	invented = [app for app in fragments if app not in real_apps()]
+	real_installed = frappe.get_installed_apps
+	real_active = frappe.get_active_apps
+	invented = [app for app in records if app not in real_active()]
 
 	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
-		if hook == "add_to_dock":
-			if app_name:
-				return fragments.get(app_name, [])
-			return [row for rows in fragments.values() for row in rows]
-		if app_name in invented:
-			return []
-		return real_hooks(hook, default, app_name)
+		return [] if app_name in invented else real_hooks(hook, default, app_name)
 
-	def patched_apps(*args, _ensure_on_bench=False, **kwargs):
-		apps = real_apps(*args, _ensure_on_bench=_ensure_on_bench, **kwargs)
+	def patched_installed(*args, **kwargs):
+		return [*real_installed(*args, **kwargs), *invented]
+
+	def patched_active(*args, _ensure_on_bench=False, **kwargs):
+		apps = real_active(*args, _ensure_on_bench=_ensure_on_bench, **kwargs)
 		return apps if _ensure_on_bench else [*apps, *invented]
 
 	with (
 		patch.object(frappe, "get_hooks", patched_hooks),
-		patch.object(frappe, "get_active_apps", patched_apps),
+		patch.object(frappe, "get_installed_apps", patched_installed),
+		patch.object(frappe, "get_active_apps", patched_active),
 	):
-		yield
+		shipped = []
+		for app, rows in records.items():
+			clear_arrangements_for(app, standard=1)
+			shipped.append(ship_dock(app, rows))
+		try:
+			yield
+		finally:
+			for name in shipped:
+				frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)
+
+
+# Every column a fixture may set on a row: the current ones, plus the pair 08 drops -- so a test
+# about a layer stored before this release can still author one.
+FIXTURE_ROW_FIELDS = (*DOCK_ITEM_FIELDS, "type", "link_name")
+
+
+def ship_dock(app: str, rows: list) -> str:
+	"""One app's `Dock` record, as if its file had just been imported. Returns its name."""
+	doc = frappe.new_doc("Dock")
+	doc.app = app
+	doc.standard = 1
+	for row in rows:
+		if isinstance(row, dict):
+			doc.append("items", {field: row.get(field) for field in FIXTURE_ROW_FIELDS})
+
+	with system_write("in_import"):
+		doc.save(ignore_permissions=True)
+	return doc.name
 
 
 class DockTestCase(IntegrationTestCase):
@@ -640,15 +659,12 @@ class TestTheAppLayer(DockTestCase):
 		with self.ship(BETA, ALPHA):
 			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
 
-	def test_the_hook_still_answers_for_an_app_that_ships_no_record(self):
-		"""The expand half of the pair 07 contracts: an app that has re-exported its dock is read
-		from the document, and one that has not keeps its fragment working meanwhile."""
+	def test_the_base_is_the_record_the_app_ships(self):
+		"""One document, exported and re-imported. Not a hook: the projection a hook needed had
+		no reader once the record is what ships, and an app that ships neither has no rail."""
 		with self.ship(BETA, ALPHA):
 			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [BETA, ALPHA])
-			self.assertFalse(
-				frappe.get_all("Dock", filters={"app": self.APP}),
-				"this app ships no record, so its base is the hook and stores nothing",
-			)
+			self.assertEqual(frappe.get_all("Dock", filters={"app": self.APP}, pluck="standard"), [1])
 
 	def test_each_apps_fragment_is_its_own_rail(self):
 		"""A fragment says nothing about another app's, and now nothing concatenates them either:
@@ -708,11 +724,16 @@ class TestTheAppLayer(DockTestCase):
 			self.assertEqual(hidden[BETA], 1)
 			self.assertEqual(hidden[ALPHA], 0)
 
-	def test_a_row_naming_a_kind_the_dock_does_not_have_is_dropped_from_the_base(self):
-		"""`type` is an open Link to `DocType`, so the whitelist is what closes the set at every
-		layer -- including the one an app writes by hand."""
-		with shipped_dock({self.APP: [{"link_type": "Report", "link_to": "ToDo"}, sidebar(ALPHA)]}):
-			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA])
+	def test_a_row_opening_a_kind_the_dock_does_not_have_is_refused_at_save(self):
+		"""What retiring `check_dock_hooks` loses, which is nothing: a bad row used to fail
+		silently in `hooks.py` and be reported at migrate. A record catches it at Save, in front
+		of the author, quoting the row they are looking at."""
+		doc = frappe.new_doc("Dock")
+		doc.app = "frappe"
+		doc.append("items", {"link_type": "Report", "link_to": "ToDo"})
+		doc.append("items", {"sidebar": ALPHA})
+
+		self.assertRaisesRegex(frappe.ValidationError, "Row #1", doc.save, ignore_permissions=True)
 
 	def test_a_base_row_naming_nothing_says_nothing(self):
 		"""A row names a shell, a page, or both. One that names neither is not an entry."""
@@ -1047,18 +1068,16 @@ class TestTheRowShape(DockTestCase):
 		)
 
 
-class TestThePin(DockTestCase):
-	"""A companion app's workspace reaching the host app's dock.
+class TestAnAppWithNoDock(DockTestCase):
+	"""What an app that ships no `Dock` record resolves to: nothing at all.
 
-	The fix the pinning hook was built for and never delivered: the pin used to land in a per-app
-	workspace list while the rail rendered a per-app module list, so installing a companion took
-	away its apps-screen slot and gave it a dock entry nobody could see.
+	Zero entries rather than "every module it owns", which is what the entry set used to mean.
+	That is what makes an app *dock-less* -- a state ticket 12 renders as no rail and a switcher
+	in the sidebar header, rather than as a chrome-only stripe.
 	"""
 
-	HOST = "frappe"
-	COMPANION = "zz-dock-companion"
-	OTHER_COMPANION = "zz-dock-companion-two"
-	USER = "test-dock-pin@example.com"
+	APP = "zz-dock-none"
+	USER = "test-dock-none@example.com"
 
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -1067,149 +1086,54 @@ class TestThePin(DockTestCase):
 				{
 					"doctype": "User",
 					"email": self.USER,
-					"first_name": "Dock Pin",
+					"first_name": "Dock None",
 					"send_welcome_email": 0,
-					"roles": [{"role": "System Manager"}],
+					"roles": [{"role": "Desk User"}],
 				}
 			).insert(ignore_permissions=True)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
-		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
 
-	def make_workspace(self, title, module, public=1, roles=None):
-		doc = frappe.get_doc(
-			{
-				"doctype": "Workspace",
-				"title": title,
-				"label": title,
-				"module": module,
-				"public": public,
-				"content": "[]",
-				"roles": [{"role": role} for role in roles or []],
-			}
-		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
-		return doc.name
+	def test_an_app_with_no_record_resolves_to_zero_entries(self):
+		with shipped_dock({self.APP: []}):
+			self.assertEqual(get_app_dock(self.APP), [])
+			self.assertEqual(get_app_entry_set(self.APP), [])
+			self.assertNotIn(self.APP, resolve_dock())
 
-	def pin(self, page, host=None):
-		"""A companion's pin: a workspace row carrying the host app it joins. Still the hook's
-		spelling of `app`, which is the row-level fact ticket 10 moves onto the record."""
-		return {**workspace(page), "app": host or self.HOST}
+	def test_a_module_the_record_never_names_is_not_in_the_entry_set(self):
+		"""Tier 3. Un-hiding is how a layer rescues an entry, and there is nothing to un-hide:
+		the entry set is the record's rows, so the manager never offers the module and no
+		hidden flag anywhere can bring it back."""
+		with shipped_dock({self.APP: [sidebar(ALPHA)]}):
+			self.assertEqual(names(get_app_entry_set(self.APP)), [ALPHA])
+			self.assertNotIn(BETA, names(get_app_dock(self.APP)))
 
-	def host_dock(self, email=None):
-		"""The host app's one typed list, as `email` sees it in the boot payload.
+			# and un-hiding it says nothing, because nothing below holds it
+			save_site_dock(self.APP, payload(sidebar(BETA, hidden=0)))
+			self.assertNotIn(BETA, names(get_app_entry_set(self.APP)))
 
-		`get_app_data` rather than a whole boot: an invented app is not a directory on the bench,
-		and several other things a boot does walk the installed apps and import each one.
-		"""
-		from frappe.boot import get_app_data
-		from frappe.desk.desktop import get_workspaces
+	def test_a_module_the_record_ships_hidden_can_be_rescued_by_either_layer(self):
+		"""Tier 2, which needs no machinery of its own: the hidden map is seeded from the base,
+		so one row above naming the entry with hiding off is the whole of bringing it back."""
+		for layer, save in (("site", save_site_dock), ("person", save_user_dock)):
+			with self.subTest(layer=layer), shipped_dock({self.APP: [sidebar(BETA, hidden=1)]}):
+				save(self.APP, payload(sidebar(BETA, hidden=0)))
 
-		if email:
-			frappe.set_user(email)
-		try:
-			app_data = get_app_data([page.name for page in get_workspaces()["pages"]])
-		finally:
-			if email:
-				frappe.set_user("Administrator")
+				self.assertEqual(hidden_by_name(dock_for(among=None, app=self.APP))[BETA], 0)
+				clear_arrangements()
 
-		host = next(app for app in app_data if app["app_name"] == self.HOST)
-		return host["dock"]
+	def test_a_module_the_record_omits_is_still_navigable(self):
+		"""Reachability is narrowed to discovery, not lost: the boot's sidebars are built from
+		the navigable-modules list, not from the dock, so an omitted module still opens by
+		route and still catches the entity resolver."""
+		from frappe.desk.doctype.sidebar.sidebar import get_navigable_modules
 
-	def test_the_boot_payload_carries_one_entry_list_per_app(self):
-		"""Both old fields are gone: the client stops reconciling a module list against a
-		workspace list to render a single rail, which is the gap the pin fell into."""
-		from frappe.boot import get_bootinfo
+		with shipped_dock({self.APP: [sidebar(ALPHA)]}):
+			self.assertNotIn(BETA, names(get_app_entry_set(self.APP)))
 
-		for app in get_bootinfo()["app_data"]:
-			self.assertIn("dock", app)
-			self.assertNotIn("modules", app)
-			self.assertNotIn("workspaces", app)
-			for row in app["dock"]:
-				self.assertTrue({*row} <= {"sidebar", "link_type", "link_to", "url"})
-
-	def test_a_pin_folds_into_the_hosts_list_behind_its_own_entries(self):
-		"""Attribution is forced rather than chosen: a row grouped under the companion would
-		never render on the host's dock at all. Appended rather than positioned -- where it sits
-		is Layer business, not the companion's to assert."""
-		page = self.make_workspace("Test Dock Pinned", ALPHA)
-
-		with shipped_dock({self.COMPANION: [self.pin(page)]}):
-			dock = self.host_dock()
-
-		self.assertEqual(dock[-1], {"link_type": "Workspace", "link_to": page})
-		self.assertTrue(all(row.get("sidebar") for row in dock[:-1]))
-
-	def test_two_companions_pinning_into_one_host_order_by_installation(self):
-		first = self.make_workspace("Test Dock Pin One", ALPHA)
-		second = self.make_workspace("Test Dock Pin Two", BETA)
-
-		with shipped_dock(
-			{
-				self.COMPANION: [self.pin(first)],
-				self.OTHER_COMPANION: [self.pin(second)],
-			}
-		):
-			pinned = [row["link_to"] for row in self.host_dock() if row.get("link_type")]
-
-		self.assertEqual(pinned, [first, second])
-
-	def test_a_pinned_workspace_the_person_may_not_open_is_absent(self):
-		"""Permission-filtered like any other workspace, so pinning cannot leak a page's
-		existence to someone who may not open it."""
-		page = self.make_workspace("Test Dock Pin Blocked", ALPHA, roles=["Workspace Manager"])
-
-		with shipped_dock({self.COMPANION: [self.pin(page)]}):
-			# `get_workspaces` is request-cached, and this suite asks it as two different people
-			# inside one request
-			frappe.local.request_cache.clear()
-			allowed = [row["link_to"] for row in self.host_dock(self.USER) if row.get("link_type")]
-
-		self.assertNotIn(page, allowed)
-
-	def test_pinning_costs_the_apps_screen_slot_but_declaring_your_own_does_not(self):
-		"""The rule reads the rows, not the hook. Every app declares `add_to_dock` now, so a
-		presence check would delete each adopting app from the apps screen."""
-		from frappe.boot import get_app_rail_host_map
-
-		page = self.make_workspace("Test Dock Pin Slot", ALPHA)
-
-		with shipped_dock(
-			{
-				self.COMPANION: [self.pin(page)],
-				self.OTHER_COMPANION: [sidebar(BETA)],
-			}
-		):
-			hosts = get_app_rail_host_map()
-
-		self.assertEqual(hosts.get(self.COMPANION), self.HOST)
-		self.assertNotIn(self.OTHER_COMPANION, hosts)
-
-	def test_a_pin_is_arranged_and_hidden_like_any_other_entry(self):
-		page = self.make_workspace("Test Dock Pin Arranged", ALPHA)
-
-		with shipped_dock({self.COMPANION: [self.pin(page)], self.HOST: [sidebar(ALPHA)]}):
-			save_site_dock(APP, json.dumps([workspace(page), sidebar(ALPHA)]))
-			resolved = [
-				(r["sidebar"], r["link_to"], r["hidden"])
-				for r in dock_for(self.USER, among=None)
-				if page in (r["sidebar"], r["link_to"]) or ALPHA in (r["sidebar"], r["link_to"])
-			]
-
-		self.assertEqual(resolved, [(None, page, 0), (ALPHA, None, 0)])
-
-	def test_a_layer_row_naming_a_workspace_outside_the_set_adds_nothing(self):
-		"""The layers above the app order and hide; they never add. The entry set is the server's,
-		and an arrangement naming something outside it names nothing the dock renders."""
-		page = self.make_workspace("Test Dock Pin Unpinned", ALPHA)
-
-		with shipped_dock({}):
-			save_site_dock(APP, json.dumps([workspace(page)]))
-			pinned = [row["link_to"] for row in self.host_dock() if row.get("link_type")]
-
-		self.assertNotIn(page, pinned)
+		self.assertIn(BETA, get_navigable_modules())
 
 
 class TestEmitDockHook(DockTestCase):
@@ -1252,46 +1176,24 @@ class TestEmitDockHook(DockTestCase):
 		self.assertEqual(emitted["path"], "apps/frappe/frappe/hooks.py")
 		self.assertEqual(emitted["dropped"], [])
 
-	def test_the_block_round_trips_through_the_hook(self):
-		"""Paste, restart, and the dock renders the screen it was taken from."""
-		emitted = self.emit(sidebar(GAMMA), sidebar(BETA), sidebar(ALPHA, hidden=1))
-
-		self.assertEqual(
-			emitted["code"],
-			render_dock_hook([sidebar(GAMMA), sidebar(BETA), sidebar(ALPHA, hidden=1)]),
-		)
-
-		# what the author would have in `hooks.py` after pasting, read back as a fragment -- the
-		# block is written in the typed-pair spelling, which is what a `hooks.py` reader speaks
-		fragment = [hook_sidebar(GAMMA), hook_sidebar(BETA), hook_sidebar(ALPHA, hidden=1)]
-
-		# Declared for an app that ships no record, because that is the only app a pasted block
-		# still answers for: `get_app_dock` prefers a shipped document where there is one, and
-		# frappe now ships its own.
-		pasted_into = "zz-dock-emit-roundtrip"
-		with shipped_dock({pasted_into: fragment}):
-			resolved = dock_for(among=TRIO, app=pasted_into)
-
-		self.assertEqual(names(resolved), [GAMMA, BETA, ALPHA])
-		self.assertEqual(hidden_by_name(resolved)[ALPHA], 1)
-
 	def test_a_foreign_row_is_dropped_and_named(self):
-		"""A projection, not a refusal: the pin is already declared in the companion's own
-		`hooks.py`, and where it sits on screen is layer business no block can state."""
-		page = frappe.get_doc(
-			{
-				"doctype": "Workspace",
-				"title": "Test Dock Emit Pin",
-				"label": "Test Dock Emit Pin",
-				"module": ALPHA,
-				"public": 1,
-				"content": "[]",
-			}
-		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "Workspace", page.name, force=True, ignore_missing=True)
+		"""A projection, not a refusal: a row that lives in another app's files is not this
+		app's to ship, and saying which app it came from is what stops "some rows are missing"
+		being something an author has to work out by diffing."""
+		with sidebarless_module("Test Dock Emit Foreign", app=self.COMPANION) as foreign:
+			page = frappe.get_doc(
+				{
+					"doctype": "Workspace",
+					"title": "Test Dock Emit Foreign Page",
+					"label": "Test Dock Emit Foreign Page",
+					"module": foreign,
+					"public": 1,
+					"content": "[]",
+				}
+			).insert(ignore_permissions=True)
+			self.addCleanup(frappe.delete_doc, "Workspace", page.name, force=True, ignore_missing=True)
+			frappe.local.request_cache.clear()
 
-		pin = {**workspace(page.name), "app": self.APP}
-		with shipped_dock({self.COMPANION: [pin], self.APP: [sidebar(BETA), sidebar(ALPHA)]}):
 			emitted = self.emit(sidebar(BETA), workspace(page.name), sidebar(ALPHA))
 
 		self.assertEqual(
@@ -1625,58 +1527,6 @@ class TestTheExportRoad(IntegrationTestCase):
 				frappe.delete_doc("Dock", doc.name, force=True, ignore_permissions=True)
 
 
-class TestTheHookIsChecked(IntegrationTestCase):
-	"""What an app author is told when a row they wrote will never render.
-
-	The boot leaves out a row it does not understand, which is right at boot -- one bad row must
-	not cost an app its whole rail -- but on its own it means a typo produces no error and no
-	button. `check_dock_hooks` is the other half, run at migrate.
-	"""
-
-	def problems(self, rows) -> list[str]:
-		with shipped_dock({"frappe": rows}):
-			return check_dock_hooks()
-
-	def test_a_good_fragment_says_nothing(self):
-		with sidebarless_module("Test Checked Module") as module:
-			self.assertEqual(self.problems([hook_sidebar(module)]), [])
-
-	def test_a_bare_name_is_not_a_row(self):
-		problems = self.problems(["Test Checked Module"])
-
-		self.assertEqual(len(problems), 1)
-		self.assertIn("not a row", problems[0])
-
-	def test_an_unknown_kind_is_named(self):
-		problems = self.problems([{"type": "Module", "name": "Users"}])
-
-		self.assertEqual(len(problems), 1)
-		self.assertIn("Module", problems[0])
-
-	def test_a_row_naming_nothing_is_reported(self):
-		problems = self.problems([{"type": "Sidebar"}])
-
-		self.assertEqual(len(problems), 1)
-		self.assertIn("names nothing", problems[0])
-
-	def test_a_module_that_does_not_exist_is_reported(self):
-		"""The typo an author is most likely to make, and the one the boot is quietest about:
-		the row is well formed, so it survives every shape check and then resolves to nothing."""
-		problems = self.problems([hook_sidebar("Test Module That Is Not Here")])
-
-		self.assertEqual(len(problems), 1)
-		self.assertIn("Sidebar or Module Def that does not exist", problems[0])
-
-	def test_a_pin_at_an_app_that_is_not_installed_is_not_a_problem(self):
-		"""Silence by design: a companion may be installed before or without its host, and the
-		row is correct in both cases."""
-		self.assertEqual(self.problems([{"type": "Workspace", "name": "Anything", "app": "not-an-app"}]), [])
-
-	def test_the_frameworks_own_fragment_is_clean(self):
-		"""The check is only worth running if what we ship passes it."""
-		self.assertEqual(check_dock_hooks(), [])
-
-
 class TestMakingAModule(IntegrationTestCase):
 	"""A module the site adds for itself, from the dock that will list it."""
 
@@ -1722,7 +1572,10 @@ class TestMakingAModule(IntegrationTestCase):
 		self.assertEqual(answer["entry"], {"sidebar": self.NAME})
 		self.assertIn(self.NAME, answer["module_sidebars"])
 		self.assertIn(self.NAME, [page.name for page in answer["workspace_pages"]["pages"]])
-		self.assertIn(
+		# ...but *not* on frappe's rail. An app's dock is the record it ships, so a module the
+		# site adds for itself is navigable without being on somebody else's rail until a layer
+		# says so.
+		self.assertNotIn(
 			{"sidebar": self.NAME},
 			next(app["dock"] for app in answer["app_data"] if app["app_name"] == "frappe"),
 		)

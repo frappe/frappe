@@ -27,10 +27,10 @@ $.extend(frappe.desktop_utils, {
 		}
 	},
 });
-// The workspaces on an app's dock, read out of the one typed list `app_data` carries. A stated
-// behaviour change: that list holds the workspaces an `add_to_dock` row put on the app's
-// fragment -- its own and the ones companions pinned onto it -- rather than every workspace whose
-// module belongs to the app. The icon grid is a retired surface an Apps-mode site never renders.
+// The workspaces on an app's rail, read out of the one list `app_data` carries. A stated
+// behaviour change: that list holds the workspaces the app's `Dock` record names -- its own and
+// the ones companions mount onto it -- rather than every workspace whose module belongs to the
+// app. The icon grid is a retired surface an Apps-mode site never renders.
 function get_workspaces_from_app_name(app_name) {
 	const app = frappe.boot.app_data.filter((a) => {
 		return a.app_title === app_name;

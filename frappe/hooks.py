@@ -604,34 +604,6 @@ add_to_apps_screen = [
 	}
 ]
 
-# Where the framework's modules sit on the dock. A transcription of the order it has always
-# declared, which used to live as a float on eleven exported `Sidebar` documents -- ordering data
-# about the *dock*, homed on a *sidebar*, and unauthorable for a module whose sidebar is computed
-# because there was no document to carry it. An ordered list needs no stub and has no unset state.
-#
-# `Geo` and `System` are deliberately unnamed: an entry this list never names trails the ones it
-# does, in `modules.txt` order, which is exactly where those two already sat. Naming them would be
-# a new opinion nobody has ever stated, and would leave the trailing branch exercised only by
-# other people's apps.
-#
-# The code-only modules (`Core`, `Custom`, `Desk`) are unnameable here for the same reason they
-# are absent from the rail: see `code_only_modules` below.
-add_to_dock = [
-	# `Build`, not `Build Tools`: a dock row names a shell, and the shell frappe ships for the
-	# `Build Tools` module is titled `Build` -- the module carries the longer name only because
-	# a `frappe/build/` folder would collide with `frappe/build.py`.
-	{"type": "Sidebar", "name": "Build"},
-	{"type": "Sidebar", "name": "Users"},
-	{"type": "Sidebar", "name": "Email"},
-	{"type": "Sidebar", "name": "Website"},
-	{"type": "Sidebar", "name": "Data"},
-	{"type": "Sidebar", "name": "Workflow"},
-	{"type": "Sidebar", "name": "Printing"},
-	{"type": "Sidebar", "name": "Integrations"},
-	{"type": "Sidebar", "name": "Contacts"},
-	{"type": "Sidebar", "name": "Automation"},
-]
-
 # Modules that are a folder of code and nothing else -- kept out of the dock, never out of
 # reach. Each still owns every doctype, report and page it always did; what none of them owns
 # any more is navigation, which lives in the semantic modules instead. Left in the dock they

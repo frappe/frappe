@@ -22,7 +22,6 @@ from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_it
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.database.schema import add_column
 from frappe.deferred_insert import save_to_db as flush_deferred_inserts
-from frappe.desk.doctype.dock.dock import report_dock_hook_problems
 from frappe.desk.notifications import clear_notifications
 from frappe.installer import reapply_disabled_app_state
 from frappe.modules.patch_handler import PatchType
@@ -216,10 +215,6 @@ class SiteMigration:
 
 		print("Applying state of disabled apps again...")
 		reapply_disabled_app_state()
-
-		# Last, so that everything a dock row can name -- modules, workspaces -- is already
-		# synced and a row is only reported when it really names nothing.
-		report_dock_hook_problems()
 
 	def required_services_running(self) -> bool:
 		"""Return True if all required services are running. Return False and print

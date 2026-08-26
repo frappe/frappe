@@ -1244,7 +1244,7 @@ frappe.views.Workspace = class Workspace {
 
 						// Switch the shell to the module the new workspace belongs to, so it
 						// reflects the just-created workspace. Nothing is pushed onto the rail:
-						// the dock lists an app's modules and the workspaces an `add_to_dock` row
+						// the rail lists the entries an app's `Dock` record names
 						// names, and a new workspace reaches the shell through its module's
 						// sidebar instead.
 						const module = frappe.app.sidebar.module_for_workspace(new_page.name);

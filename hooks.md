@@ -39,7 +39,6 @@ A disable or an enable is one transaction. If a hook fails, the site keeps the s
 1. `get_desktop_icons` - method to get list of desktop icons
 1. `awesomebar_search` - method(txt) returning extra Awesome Bar results (`label`, `description`, `route`, `index`). `route` may be a desk route list, an in-app path (`/desk/...`), or an `http(s)://` URL.
 1. `add_to_apps_screen` - list of dicts, one per app to place on the apps screen
-1. `add_to_dock` - ordered list of dicts, one per entry, stating where an app's entries sit on the dock
 
 #### Navigation an app ships
 
@@ -66,47 +65,40 @@ Two folders an app used to ship are no longer read:
 
 - **`<app>/desktop_icon/*.json`** — the icon-grid fixtures. These are still imported, but only
   onto a site that has chosen the icon grid, and the grid is being retired. Use
-  `add_to_apps_screen` to place an app on the apps screen, and `add_to_dock` to state where its
-  entries sit on the dock.
+  `add_to_apps_screen` to place an app on the apps screen, and ship a `Dock` record to state
+  which entries sit on its rail.
 
 #### The dock an app ships
 
-The dock (the rail down the left of the desk) lists an app's modules, and `add_to_dock` is where
-an app states the order they appear in. It is an ordered **list of dicts**, each a typed row —
-never a map, and there is no fixture behind it:
+The dock (the rail down the left of the desk) is a **document**, not a hook. An app ships one
+`Dock` record at `<app>/dock/<app>/<app>.json`, and its rows *are* the app's rail — a module the
+record never names is off that rail, and no site and no person can bring it back.
 
-```python
-# <app>/hooks.py
-add_to_dock = [
-	{"type": "Sidebar", "name": "Stock"},
-	{"type": "Sidebar", "name": "Accounts"},
-	{"type": "Sidebar", "name": "Assets", "hidden": 1},
-]
-```
+Author it in Manage Dock on a developer-mode site and press **Export to App**; the file is written
+for git to carry, and every later Save keeps it current. Deleting the file and running
+`bench migrate` reaps the record, and the app is left with no rail at all: its sidebar grows a
+switcher in the header instead.
 
-`type` is `Sidebar` (a module — a sidebar's name is its module's name) or `Workspace`. An entry
-the list never names simply trails the ones it does, in the app's own order, so adding a module
-later does not mean re-authoring the block. A row shipped `hidden` is off by default; a site or a
-person can bring it back with one drag in the dock manager.
+A row names a **shell**, a **page**, or both — because a click does both things:
 
-The site's arrangement and each person's own are laid over this, and they only order and hide —
-they never add.
+| row | what it does |
+|---|---|
+| `sidebar: Stock` | selects the `Stock` shell and opens its own landing route |
+| `sidebar: Stock`, `link_type: Workspace`, `link_to: Stock Analytics` | selects that shell and opens that page |
+| `link_type: Workspace`, `link_to: GST` | opens that page; the shell is derived from its module |
+| `link_type: URL`, `url: https://…` | leaves the desk; no shell at all |
 
-A **companion app** — one that extends a host app rather than standing on its own — pins a
-workspace onto the host's dock with the same hook, by naming the host in `app`:
+Every row carries its own `icon` and `title`. A row shipped `hidden: 1` is off by default, and a
+site or a person can bring it back with one gesture in Manage Dock.
 
-```python
-# india_compliance/hooks.py
-add_to_dock = [
-	{"type": "Workspace", "name": "GST", "app": "erpnext"},
-]
-```
+The site's arrangement and each person's own are laid over this. They may reorder, hide, relabel
+and add anything they can already reach — what they may not do is re-point a row, because what a
+row points at *is* its identity.
 
-The pin is appended after the host's own entries rather than positioned among them, and it is
-permission-checked like any other workspace. Declaring one keeps the companion off the apps
-screen — pinning into a host costs the slot, so it takes precedence over `add_to_apps_screen`.
-Declaring your *own* order costs nothing. A companion whose other workspaces should also keep the
-host's dock on screen declares `app_rail_host` as well.
+A **companion app** — one that extends a host app rather than standing on its own — says so with
+`mount_on` on its own record, naming the host app. Its rows are appended to the host's rail in
+installation order, as a default the site and the person may then reorder. Mounting keeps the
+companion off the apps screen; declaring your own rail costs nothing.
 
 #### Notifications
 

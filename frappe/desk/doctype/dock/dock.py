@@ -25,18 +25,6 @@ DOCK_LAYERS_CACHE_KEY = "dock_layers"
 # own dock, or the site's arrangement of it.
 SITE_LAYER = ""
 
-# The hook an app declares its own dock fragment through: an ordered list of typed rows.
-#
-#   add_to_dock = [
-#       {"type": "Sidebar", "name": "Stock"},
-#       {"type": "Workspace", "name": "GST", "app": "erpnext"},
-#   ]
-#
-# A row carrying `app` joins *that* app's fragment -- how a companion pins a workspace onto a
-# host's rail. Absent means "my own fragment". Rows are dicts, never bare strings: a name on its
-# own no longer says what kind of thing it names.
-DOCK_HOOK = "add_to_dock"
-
 # What a dock entry points at, and what proves each half of it is really there.
 #
 # An entry does **two** things when clicked: it opens a **page** and it swaps the **shell**. Each
@@ -89,7 +77,7 @@ DOCK_ITEM_FIELDS = (*DESTINATION_FIELDS, "icon", "title", "added", "hidden")
 # The old pair, kept beside the new columns until 08 contracts them. `type` was a `DocType` link
 # whose being filled said which kind of thing, and `link_name` the name of that thing. Every
 # reader prefers the new columns when a row carries them and falls back to these when it does not,
-# so a layer stored before this release and an `add_to_dock` fragment both keep working.
+# so a layer stored before this release keeps working.
 #
 # `link_name` and not `name`, for the record: on a child row `name` is the row's own primary key,
 # and autoname overwrites whatever is in it the moment the row is inserted.
@@ -557,8 +545,7 @@ def get_dock(app: str, user: str | None = None, standard: int = 0) -> "Dock | No
 
 
 def stored_row(row) -> dict:
-	"""One stored `Dock Item`, or one `add_to_dock` dict, read as the shape every reader above
-	here works in.
+	"""One stored `Dock Item`, read as the shape every reader above here works in.
 
 	**This is the expand half of the pair 08 contracts.** The new columns are preferred when a row
 	carries them, and the old typed pair is read when it does not -- so a layer saved before this
@@ -617,176 +604,51 @@ def dock_rows(dock: "Dock | None") -> list[dict]:
 	return [row for row in rows if points_somewhere(row)]
 
 
-def hook_row(row, declared_by: str) -> dict | None:
-	"""One `add_to_dock` entry as the merge takes it, or None if it says nothing storable.
-
-	Rows are dicts, never bare strings -- a name on its own no longer says what kind of thing it
-	names. `declared_by` rides along because the walk already knows it: the projection Ship emits
-	is then exact rather than derived from where a module's files happen to live.
-
-	Hiding travels with the row, which is what lets an app ship an entry off by default. The
-	layers above may bring it back; see `resolve_layers`, which seeds its hidden map from here.
-	"""
-	if not isinstance(row, dict):
-		return None
-
-	entry = stored_row(row)
-	if not points_somewhere(entry):
-		return None
-	if entry["link_type"] and entry["link_type"] not in DOCK_LINK_TYPES:
-		return None
-
-	return {**entry, "declared_by": declared_by}
-
-
-def dock_fragments() -> dict[str, list[dict]]:
-	"""Each app's fragment: the rows it declared for itself, then the pins aimed at it.
-
-	A row carrying `app` joins *that* app's fragment rather than its declarer's, which is how a
-	companion's workspace reaches a host's rail. It is appended after the host's own entries
-	rather than positioned among them -- a companion is not asserting a default into an
-	arrangement that is not its, and two companions pinning into one host land in installation
-	order rather than fighting for a slot.
-
-	Attribution is forced rather than chosen: a row grouped under its declarer would never render
-	on the host's rail at all, which is precisely the bug the pin has always had.
-	"""
-	installed = frappe.get_active_apps()
-	own: dict[str, list[dict]] = {}
-	pinned: dict[str, list[dict]] = {}
-
-	for app in installed:
-		for raw in frappe.get_hooks(DOCK_HOOK, app_name=app) or []:
-			row = hook_row(raw, declared_by=app)
-			if not row:
-				continue
-			# a pin at a host that is not here names no fragment, so it joins none -- the same
-			# silence a row naming a workspace nobody may open resolves to
-			host = raw.get("app")
-			if host and host not in installed:
-				continue
-			(pinned if host else own).setdefault(host or app, []).append(row)
-
-	return {app: own.get(app, []) + pinned.get(app, []) for app in own.keys() | pinned.keys()}
-
-
-def check_dock_hooks() -> list[str]:
-	"""Every `add_to_dock` row an app declared that the dock cannot use, described in words.
-
-	Nothing reads a dock hook except the boot, and the boot's answer to a row it does not
-	understand is to leave it out. That is the right answer at boot -- one bad row must not cost
-	an app its whole rail -- but it means an author who typed `"Sidbar"` or named a module that
-	has since been renamed sees no error at all, just a rail button that never appears. This is
-	where they are told.
-
-	Run at migrate, which is when an author has just edited `hooks.py`, and after the modules
-	have been synced -- so a row naming a module the app added in this very release is not
-	reported as naming a module that does not exist.
-
-	Returns descriptions rather than printing them, so the caller decides where they go and a
-	test can read them.
-	"""
-	problems = []
-	installed = frappe.get_active_apps()
-
-	for app in installed:
-		for raw in frappe.get_hooks(DOCK_HOOK, app_name=app) or []:
-			if not isinstance(raw, dict):
-				problems.append(f"{app}: {raw!r} is not a row -- a dock entry is a dict, not a bare name")
-				continue
-
-			# A hook row is still written in the old typed-pair spelling, so it is read through
-			# the same translation every other reader takes.
-			kind = raw.get("type")
-			if kind not in LEGACY_TYPES:
-				kinds = " or ".join(sorted(LEGACY_TYPES))
-				problems.append(f"{app}: {raw!r} names a {kind!r}, and a dock entry is a {kinds}")
-				continue
-
-			entry = stored_row(raw)
-			if not points_somewhere(entry):
-				problems.append(f"{app}: {raw!r} names nothing")
-				continue
-
-			# A pin at an app that is not installed is silence by design, not a mistake: a
-			# companion may be installed before or without its host.
-			host = raw.get("app")
-			if host and host not in installed:
-				continue
-
-			if not entry_exists(entry):
-				proof = PROVED_BY["sidebar" if entry["sidebar"] else "Workspace"]
-				problems.append(f"{app}: {raw!r} names a {proof} that does not exist on this site")
-
-	return problems
-
-
-def report_dock_hook_problems() -> None:
-	"""Print what `check_dock_hooks` found. Nothing at all when there is nothing to say."""
-	problems = check_dock_hooks()
-	if not problems:
-		return
-
-	import click
-
-	click.secho("\nSome add_to_dock rows will not render:", fg="yellow", bold=True)
-	for problem in problems:
-		click.secho(f"  {problem}", fg="yellow")
-	click.secho("")
-
-
-def get_dock_workspaces() -> dict[str, list[str]]:
-	"""App -> the workspaces its fragment names, in fragment order.
-
-	What folds a companion's pin into the host's entry set, and the whole of what the pin needed:
-	a row grouped under its declarer would never render on the host's dock at all, which is the
-	bug the hook has carried since it was written. An app's own `Workspace` rows land here too --
-	the pin is a row-level difference, not a second mechanism.
-
-	Names only, because that is all the boot payload's entry set is. Whether a person may open one
-	is the caller's to apply, so a pin is gated by its workspace's own Roles table like any other.
-	"""
-	return {
-		app: list(
-			dict.fromkeys(
-				row["link_to"] for row in rows if row["link_type"] == "Workspace" and row["link_to"]
-			)
-		)
-		for app, rows in dock_fragments().items()
-	}
-
-
 def get_app_dock(app: str) -> list[dict]:
-	"""The base one app's layers are laid over: its own dock, as the app ships it.
+	"""**An app's dock is exactly its record's rows.** Empty when it ships none.
 
-	Per app, because a `Dock` is. The old cross-app concatenation existed only because the two
-	stored layers spanned every app and had to be laid over one list; with a layer addressed by
-	app plus user there is nothing to concatenate, and two apps' arrangements can no longer reach
-	each other at all.
+	The entry set, not just an order over one. A module this record never names is off this app's
+	rail for good -- no layer above can bring it back, because there is nothing there to name.
+	That is the third of three tiers an author picks from:
 
-	**The record where the app ships one, the hook where it does not.** This is the expand half
-	of the pair 07 contracts: an app that has re-exported its dock is read from the document, and
-	one that has not keeps its `add_to_dock` fragment working until the hook retires. Both answer
-	in the same shape, so nothing above here knows which it got.
+	    named, hidden: 0     on the rail
+	    named, hidden: 1     off the rail, and the site *or* the person can bring it back
+	    not named            off the rail, and nobody can
 
-	Empty for an app that ships neither -- and then that app's site layer is simply the first
-	there is, exactly as it was before this base existed.
+	The middle tier needs no machinery of its own: `resolve_layers` seeds its hidden map from the
+	base, so one row above naming that entry with hiding off is the whole of bringing it back.
 
-	*Deduped*, because either source may name one entry twice: two rows under one key would render
-	the entry twice, and the layers above dedupe their own rows without catching it, since the
-	base is copied in whole. First named keeps it, which is the rule a layer already follows.
+	**Reachability is narrowed to discovery, not lost.** The boot's sidebars are built from the
+	navigable-modules list rather than from the dock, so a module this record omits still has a
+	sidebar in the payload, still opens by route, and still catches the entity resolver. What it
+	loses is the rail as a place to *find* it.
+
+	*Deduped*, because a record may name one entry twice: two rows under one key would render the
+	entry twice, and the layers above dedupe their own rows without catching it, since the base is
+	copied in whole. First named keeps it, which is the rule a layer already follows.
 	"""
 	shipped = get_dock(app, standard=1)
-	source = dock_rows(shipped) if shipped else dock_fragments().get(app, [])
+	if not shipped:
+		return []
 
 	rows, seen = [], set()
-	for row in source:
+	for row in dock_rows(shipped):
 		key = dock_key(row)
 		if key in seen:
 			continue
 		seen.add(key)
 		rows.append(row)
 	return rows
+
+
+def get_app_entry_set(app: str) -> list[dict]:
+	"""Every entry `app`'s dock offers this person, before any layer arranges them.
+
+	What the boot payload carries as `app_data[].dock` and what the manager builds its panes
+	from. Filtered by reach and by nothing else: which of them are *on* the rail, and in what
+	order, is the layers' business and is answered by `resolve_app_dock`.
+	"""
+	return [rail_entry(row) for row in get_app_dock(app) if is_reachable(row)]
 
 
 def apps_screen_sort_key():
@@ -869,14 +731,14 @@ def resolve_dock() -> dict[str, list[dict]]:
 
 
 def docked_apps() -> list[str]:
-	"""Every app whose dock could resolve to something: one that ships a fragment, or one some
+	"""Every app whose dock could resolve to something: one that ships a record, or one some
 	layer on this site has an opinion about.
 
-	Asking every installed app instead would be correct and nearly as cheap -- both reads below
-	are cached -- but it would walk apps that have never had a rail on any site.
+	Both come off the same cached read, which is what keeps a boot on a site nobody has arranged
+	free. Asking every installed app instead would be correct and nearly as cheap, but it would
+	walk apps that have never had a rail on any site.
 	"""
-	apps = set(dock_fragments()) | {app for app, _user, _standard in get_dock_layers()}
-	return sorted(apps, key=apps_screen_sort_key())
+	return sorted({app for app, _user, _standard in get_dock_layers()}, key=apps_screen_sort_key())
 
 
 def resolve_app_dock(app: str) -> list[dict]:
@@ -1140,8 +1002,8 @@ def check_docked_app(app: str | None) -> str:
 	unchecked value would let a layer be filed under an app that does not exist, where nothing
 	would ever resolve it and nothing would ever reap it.
 
-	Active rather than merely installed, which is the same set `dock_fragments` and
-	`apps_screen_sort_key` already walk: a disabled app has no rail to arrange.
+	Active rather than merely installed, which is the same set `apps_screen_sort_key` already
+	walks: a disabled app has no rail to arrange.
 	"""
 	app = (app or "").strip()
 	if not app or app not in frappe.get_active_apps():
@@ -1259,16 +1121,12 @@ def create_module(module: str, app: str | None = None, icon: str | None = None) 
 def owners_of(rows: list[dict]) -> list[str | None]:
 	"""Which app's files each row lives in, in the order they arrived.
 
-	The hook's own attribution first, because it is exact: `get_app_dock` walked the apps and
-	knows which one declared each row, so a pin resolves to the companion that pinned it rather
-	than to whoever owns the workspace. Everything else falls back to the module the entry is
-	rooted in, which is what "lives in" means for an entry no fragment names yet.
+	The module the entry is rooted in, which is what "lives in" means. The hook's own attribution
+	used to come first, because it was exact -- and it went with the hook. This whole block goes
+	with the manager's Ship projection in 14; it has no reader once the record is what ships.
 	"""
-	declared = {dock_key(row): row["declared_by"] for rows in dock_fragments().values() for row in rows}
 
 	def owner(entry) -> str | None:
-		if app := declared.get(dock_key(entry)):
-			return app
 		if shell := entry.get("sidebar"):
 			return frappe.db.get_value("Module Def", shell, "app_name")
 		if entry.get("link_type") == "Workspace":

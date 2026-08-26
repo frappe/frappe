@@ -50,9 +50,9 @@ frappe.ui.Sidebar = class Sidebar {
 			console.log(e);
 		}
 	}
-	// Resolve a companion app to the host app it's pinned into (an `add_to_dock` row carrying
-	// `app`, surfaced as `frappe.boot.app_rail_host`). A companion app has no shell of its own --
-	// its workspaces live inside the host app's dock -- so its app context is the host's.
+	// Resolve a companion app to the host app whose rail it mounts on (`Dock.mount_on`, surfaced
+	// as `frappe.boot.app_rail_host`). A companion app has no rail of its own -- its entries live
+	// on the host's -- so its app context is the host's.
 	// Non-companion apps (and unknown/null names) pass through unchanged.
 	rail_host_app(app_name) {
 		return (frappe.boot.app_rail_host && frappe.boot.app_rail_host[app_name]) || app_name;
@@ -964,11 +964,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// The ordered set of entries an app's dock offers, each resolved to what the rail renders it
 	// as. The dock renders the whole set, highlighting the active one.
 	//
-	// The set is `app_data[].dock` -- one ordered typed list, already permission-filtered: the
-	// app's own modules as `Sidebar` rows, then the workspaces an `add_to_dock` row put on this
-	// app's fragment, including the ones companion apps pinned onto it. It replaces a separate
-	// module list and workspace list that the rail had to reconcile, and that the pin fell
-	// between.
+	// The set is `app_data[].dock` -- the rows of the `Dock` record the app ships, already
+	// permission-filtered. An app that ships none offers nothing, which is what makes it
+	// dock-less; a module its record never names is off this rail whatever any layer says.
 	//
 	// Callers name the app whose set they want; there is no ambient default. No app -- a module
 	// belonging to none -- yields no entries, which is what leaves such a module's rail
