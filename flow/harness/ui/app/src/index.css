@@ -4,6 +4,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light-theme tuning: frappe-ui's stock outlines (#ededed/#e2e2e2) all but
+   vanish on the white surface; darken each step so borders actually read. */
+:root {
+	--outline-gray-1: #e6e6e6;
+	--outline-gray-2: #d6d6d6;
+	--outline-gray-3: #bdbdbd;
+}
+
 /* Dark-theme tuning: frappe-ui's stock dark base is #0F0F0F; lift it to the
    #171717 the frappe-ui site uses, shifting the neighboring surfaces and
    outlines coherently. Overriding the themed variables is the supported
