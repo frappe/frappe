@@ -1,6 +1,7 @@
 import os
 import shutil
 from pathlib import Path
+
 import frappe
 from frappe.modules import scrub
 from frappe.modules.export_file import strip_default_fields
@@ -16,7 +17,7 @@ def write_document_file(doc, folder=None, exclude_fields=None):
 	remove_null_fields(doc_export)
 	for field in exclude_fields or []:
 		doc_export.pop(field, None)
-		
+
 	fname = scrub(doc_export.name)
 	path = os.path.join(folder, f"{fname}.json")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
@@ -83,9 +84,9 @@ def remove_null_fields(docdict):
 				for v in value:
 					if isinstance(v, dict):
 						remove_null_fields(v)
-				
+
 				value[:] = [v for v in value if not (isinstance(v, dict) and not v)]
-				
+
 				if not value:
 					to_remove.append(attr)
 
@@ -96,10 +97,8 @@ def remove_null_fields(docdict):
 				remove_null_fields(value)
 				if not value:
 					to_remove.append(attr)
-		elif not value:
+		elif value is None or value == "":
 			to_remove.append(attr)
 
 	for attr in to_remove:
 		del docdict[attr]
-
-
