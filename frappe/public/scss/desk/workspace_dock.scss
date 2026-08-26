@@ -230,6 +230,22 @@ body.workspace-dock-active .body-sidebar {
 	}
 }
 
+// ...and the mirror of that: with no rail there is nothing to collapse *to*. Collapsing takes the
+// body sidebar off screen entirely (see .body-sidebar-container:not(.expanded)) and the way back
+// in is the rail's right-edge handle -- which a dock-less app does not have. So on a dock-less app
+// the collapse controls go: the chevron button, and the resize handle that is the same click by
+// another name.
+//
+// `.body-sidebar-container` is in the chain only to outweigh the expanded mixin, which sets
+// `display: flex` on the chevron from `.body-sidebar-container.expanded .body-sidebar
+// .collapse-sidebar-link` -- one class more specific than this rule would otherwise be.
+body:not(.workspace-dock-active) .body-sidebar-container .body-sidebar {
+	.collapse-sidebar-link,
+	.sidebar-resize-handle {
+		display: none;
+	}
+}
+
 // The standard-items band: search, notifications and background tasks, directly under the header
 // and above the module's own items, behind a divider. Full-width rows in the sidebar's own
 // vocabulary rather than the rail's ghost-icon strip -- which is what makes search legible in a

@@ -827,7 +827,7 @@ def generate_items(held: dict[str, list], module: str | None = None) -> list[dic
 		# one, because reports come in numbers and read badly mixed in with everything else.
 		sectioned = entity in sections and (entity == "Report" or len(rows) > 1)
 		if sectioned:
-			items.append({"type": "Section Break", "label": sections[entity], "collapsible": 1})
+			items.append({"type": "Section Break", "label": sections[entity], "indent": 1, "collapsible": 1})
 
 		for row in rows:
 			item = {
