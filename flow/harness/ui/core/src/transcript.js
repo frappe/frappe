@@ -61,7 +61,7 @@ export function applyEvent(s, e) {
 		case "run_started":
 			s.running = true
 			s.lastError = null
-			s.liveLabel = "Thinking"
+			s.liveLabel = "Working"
 			s.partial = []
 			s.pendingApproval = null // a new run consumes the batch (resume) — same as the server reducer
 			break
@@ -143,9 +143,10 @@ export function applyEvent(s, e) {
 				if (existing) existing.name = e.name
 				else s.partial.push({ type: "tool_call", id: e.id, name: e.name, arguments: null })
 			}
-			// Keep the current status until tool_call_display_ready renders the full
-			// label; a name-only generic label here would flash for a fraction of a
-			// second before the arguments arrive.
+			// Arguments can stream for a while (write/edit payloads), and the row
+			// renders only on tool_call_display_ready — a generic status covers that
+			// gap. Tool names belong to the rows, never to the status line.
+			s.liveLabel = "Working"
 			break
 		case "tool_call_display_ready": {
 			const call = {
@@ -158,7 +159,7 @@ export function applyEvent(s, e) {
 			const index = s.partial.findIndex((block) => block.type === "tool_call" && block.id === e.id)
 			if (index === -1) s.partial.push(call)
 			else s.partial[index] = call
-			s.liveLabel = stepLiveLabel(call)
+			s.liveLabel = "Working"
 			break
 		}
 		case "retry":
@@ -491,17 +492,10 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		bufferedThoughts = []
 	}
 	const appendAssistantBlocks = (blocks, { entry = null, provisional = false } = {}) => {
-		// a streamed tool call renders nothing until its arguments land (or while it
-		// awaits approval / already has a durable step), so it must not steal the live
-		// flag from the thinking block above it — that re-summons the standalone
-		// status line and shows "Thinking" twice
-		const lastLiveIdx = provisional
-			? blocks.findLastIndex(
-					(b) =>
-						b.type !== "tool_call" ||
-						(b.arguments != null && !pendingIds.has(b.id) && !stepsById.has(b.id)),
-				)
-			: -1
+		// a thought is live only while its chunks are still arriving — i.e. while it
+		// is the newest streamed block. Any block after it (a tool call, text) means
+		// that thought ended: it settles to "Thought" and the status line takes over.
+		const lastLiveIdx = provisional ? blocks.length - 1 : -1
 		for (const [blockIdx, block] of blocks.entries()) {
 			const key = provisional
 				? `p:${blockIdx}`
@@ -511,7 +505,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 				items.push({ kind: "text", key, turnKey: currentTurnKey, block, entry, provisional })
 			} else if (block.type === "thinking") {
 				const last = items[items.length - 1]
-				if (last?.kind === "group") last.steps.push({ thought: block })
+				if (last?.kind === "group")
+					last.steps.push({ thought: block, live: provisional && blockIdx === lastLiveIdx })
 				else {
 					bufferedThoughts.push({
 						block,

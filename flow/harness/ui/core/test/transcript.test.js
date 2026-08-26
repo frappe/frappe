@@ -109,10 +109,10 @@ test("tool row argument text compacts paths for display", () => {
 test("live chat statuses do not use ellipses", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
-	assert.equal(conversation.liveLabel, "Thinking")
-	// a name-only start keeps the current status; no generic label flash
+	assert.equal(conversation.liveLabel, "Working")
+	// tool names never reach the status line — the row is the tool's only UI
 	applyEvent(conversation, { type: "tool_call_started", name: "read_file" })
-	assert.equal(conversation.liveLabel, "Thinking")
+	assert.equal(conversation.liveLabel, "Working")
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
 		id: "call-1",
@@ -120,13 +120,13 @@ test("live chat statuses do not use ellipses", () => {
 		arguments: { path: "src/events.py" },
 		display: [{ text: "Inspecting " }, { text: "src/events.py", arg: "path" }],
 	})
-	assert.equal(conversation.liveLabel, "Inspecting events.py")
+	assert.equal(conversation.liveLabel, "Working")
 	assert.deepEqual(conversation.partial[0].display, [
 		{ text: "Inspecting " },
 		{ text: "src/events.py", arg: "path" },
 	])
 	applyEvent(conversation, { type: "tool_call_started", name: "send_email_now" })
-	assert.equal(conversation.liveLabel, "Inspecting events.py")
+	assert.equal(conversation.liveLabel, "Working")
 	applyEvent(conversation, { type: "retry", status: "scheduled" })
 	assert.equal(conversation.liveLabel, "Retrying")
 	applyEvent(conversation, { type: "compaction_started" })
@@ -177,7 +177,7 @@ test("identity-only tool starts stay hidden until actionable arguments arrive", 
 		{ type: "tool_call", id: "call-1", name: "read_file", arguments: null },
 	])
 	assert.deepEqual(toolGroups(conversation), [])
-	assert.equal(conversation.liveLabel, "Thinking")
+	assert.equal(conversation.liveLabel, "Working")
 })
 
 test("ready tool metadata creates one exact provisional step", () => {
@@ -200,7 +200,7 @@ test("ready tool metadata creates one exact provisional step", () => {
 	})
 
 	assert.equal(conversation.partial.length, 1)
-	assert.equal(conversation.liveLabel, "Editing file Renamed.vue")
+	assert.equal(conversation.liveLabel, "Working")
 	const groups = toolGroups(conversation)
 	assert.equal(groups.length, 1)
 	assert.equal(groups[0].steps[0].call.arguments.path, "ui/Renamed.vue")
@@ -305,7 +305,15 @@ test("streamed thinking joins the trailing tool group's dropdown", () => {
 	assert.equal(conversation.liveLabel, "Thinking")
 	const steps = toolGroups(conversation)[0].steps
 	assert.deepEqual(steps[steps.length - 1].thought, { type: "thinking", thinking: "next I should" })
+	// its chunks are still arriving, so the thought row shimmers as "Thinking"
+	assert.equal(steps[steps.length - 1].live, true)
 	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
+
+	// a tool call after it ends the thought: the row settles to "Thought"
+	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "write" })
+	const settled = toolGroups(conversation)[0].steps
+	assert.equal(settled.findLast((step) => step.thought)?.live, false)
+	assert.equal(conversation.liveLabel, "Working")
 })
 
 test("streamed thinking stays visible until the actionable tool call arrives", () => {
@@ -371,7 +379,7 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "bash" })
 
 	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
-	assert.equal(conversation.liveLabel, null)
+	assert.equal(conversation.liveLabel, "Working")
 	const liveItems = buildItems(conversation)
 	assert.deepEqual(liveItems.map((item) => item.kind), ["user", "thinking", "text"])
 	assert.equal(liveItems[1].live, false)
@@ -685,7 +693,7 @@ test("an aborted turn folds its partial response with the stopped work", () => {
 	assert.deepEqual(expanded.map((item) => item.kind), ["user", "turn-fold", "text", "group", "text", "notice"])
 })
 
-test("streamed thinking stays live while a started tool call has no arguments yet", () => {
+test("a started tool call takes the live status over from streamed thinking", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "thinking_delta", thinking: "planning the call" })
@@ -693,11 +701,12 @@ test("streamed thinking stays live while a started tool call has no arguments ye
 	let thinking = buildItems(conversation).find((item) => item.kind === "thinking")
 	assert.equal(thinking.live, true)
 
-	// the argument-less start renders nothing, so it must not demote the thinking
-	// block and re-summon the standalone status line (a duplicate "Thinking")
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "add" })
+	// the row renders only once arguments land; until then the thinking block
+	// settles to "Thought" and the generic status line covers the wait
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "write" })
 	thinking = buildItems(conversation).find((item) => item.kind === "thinking")
-	assert.equal(thinking.live, true)
+	assert.equal(thinking.live, false)
+	assert.equal(conversation.liveLabel, "Working")
 })
 
 test("settled edit and write calls surface a changed-files section after the response", () => {

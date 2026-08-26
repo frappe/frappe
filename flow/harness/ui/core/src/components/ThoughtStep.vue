@@ -19,7 +19,9 @@
 					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
 				/>
 			</span>
-			<span class="flex-none text-sm font-medium text-ink-gray-9">Thought</span>
+			<span class="flex-none text-sm font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
+				live ? "Thinking" : "Thought"
+			}}</span>
 			<span class="min-w-0 flex-1 truncate text-sm text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>
 		</component>
 
@@ -42,7 +44,11 @@ import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"
 
-const props = defineProps({ block: { type: Object, required: true } })
+const props = defineProps({
+	block: { type: Object, required: true },
+	// this thought's chunks are still streaming in
+	live: { type: Boolean, default: false },
+})
 
 const open = ref(false)
 
