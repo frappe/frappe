@@ -9,6 +9,47 @@
 	background: var(--surface-gray-1);
 }
 
+/* Long dropdown menus: the page itself never scrolls, so a menu taller than
+   the viewport would be unreachable. Cap it to the space reka reports for the
+   popper and scroll inside instead. */
+.dropdown-content {
+	max-height: min(60vh, var(--reka-popper-available-height, 60vh));
+	overflow-y: auto;
+}
+
+/* Dropdown hover: frappe-ui highlights menu items with --surface-gray-2, which
+   in dark mode is the same color as the menu surface itself — bump one step. */
+[data-theme="dark"] [role="menuitem"][data-highlighted] {
+	background-color: var(--surface-gray-3);
+}
+
+/* Diff overview ruler: monaco paints the viewport overlay with the scrollbar
+   slider color, which our editor theme makes opaque — that would hide the
+   red/green marks under it. Keep just this overlay translucent. */
+.monaco-diff-editor .diffOverview .diffViewport {
+	background: color-mix(in srgb, var(--ink-gray-9) 10%, transparent);
+}
+
+/* Floating "Add to chat" pill rendered as a monaco content widget */
+.flow-add-to-chat {
+	margin-bottom: 4px;
+	padding: 4px 8px;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: 6px;
+	background: var(--surface-white);
+	color: var(--ink-gray-8);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+}
+.flow-add-to-chat:hover {
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-9);
+}
+
 .flow-icon-btn {
 	display: grid;
 	place-items: center;
@@ -90,6 +131,7 @@
 	transition: opacity 0.12s ease;
 }
 .flow-thread > :hover + .flow-turn-copy,
+.flow-thread > :hover + .flow-turn-files + .flow-turn-copy,
 .flow-turn-copy:hover,
 .flow-turn-copy:focus-within {
 	opacity: 1;

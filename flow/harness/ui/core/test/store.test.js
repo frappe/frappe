@@ -188,3 +188,47 @@ test("session replay restores the selected model's limit after a trailing model 
 	assert.equal(flow.state.conversation.contextWindow, 1_000_000)
 	flow.detach()
 })
+
+test("workspace tabs persist per session and restore after a refresh", async () => {
+	const backing = new Map()
+	const previousStorage = globalThis.localStorage
+	globalThis.localStorage = {
+		getItem: (key) => backing.get(key) ?? null,
+		setItem: (key, value) => backing.set(key, value),
+	}
+	try {
+		const client = {
+			session: async () => ({ session_id: "s1", latest_seq: 0, config: {}, model: "mock" }),
+			entries: async () => ({ entries: [], latest_seq: 0 }),
+			readFile: async (sid, path) => ({ path, content: "hello" }),
+			stream: () => ({ close() {}, async *[Symbol.asyncIterator]() {} }),
+		}
+		const flow = createFlowStore(client)
+		await flow.openSession("s1")
+		await flow.openFile("/proj/a.py")
+		await flow.openFile("/proj/b.py")
+		flow.selectFile("/proj/a.py")
+
+		// a fresh store (page refresh) restores the same session's panel
+		const restored = createFlowStore(client)
+		await restored.openSession("s1")
+		assert.deepEqual(
+			restored.state.workspace.tabs.map((tab) => tab.path),
+			["/proj/a.py", "/proj/b.py"],
+		)
+		assert.equal(restored.state.workspace.active, "/proj/a.py")
+		assert.equal(restored.state.workspace.open, true)
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		assert.equal(restored.state.workspace.tabs[0].content, "hello") // active tab hydrated
+
+		// deleting the session drops its stored panel
+		restored.state.sessions = []
+		client.deleteSession = async () => ({ status: "deleted" })
+		await restored.deleteSession("s1")
+		const third = createFlowStore(client)
+		await third.openSession("s1")
+		assert.equal(third.state.workspace.tabs.length, 0)
+	} finally {
+		globalThis.localStorage = previousStorage
+	}
+})

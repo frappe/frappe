@@ -23,9 +23,10 @@ async function raise(response) {
 	} catch {
 		// non-JSON error body
 	}
-	// this UI never sends a wrong method to its own daemon — a 405 means the
-	// daemon process predates the served bundle
-	if (response.status === 405) {
+	// this UI never sends a wrong method to its own daemon — a 405 (or the
+	// router's generic unknown-route 404, distinct from any endpoint's own
+	// detail) means the daemon process predates the served bundle
+	if (response.status === 405 || (response.status === 404 && detail === "Not Found")) {
 		detail = "The daemon is running older code than this UI — restart it and retry."
 	}
 	throw new FlowAPIError(response.status, detail, data)
@@ -76,6 +77,25 @@ export class DaemonClient {
 	// the session's active branch — replay-safe seed for a fresh transcript
 	entries(sid) {
 		return this.request("GET", `/sessions/${enc(sid)}/entries`)
+	}
+	// one directory level of the session workspace, for the file explorer
+	listFiles(sid, path = "") {
+		return this.request("GET", `/sessions/${enc(sid)}/files`, { params: { path } })
+	}
+	// file-name search under the session cwd, for the explorer's filter box
+	searchFiles(sid, query) {
+		return this.request("GET", `/sessions/${enc(sid)}/files/search`, { params: { query } })
+	}
+	// text content of a workspace file, for the file editor panel
+	readFile(sid, path) {
+		return this.request("GET", `/sessions/${enc(sid)}/file`, { params: { path } })
+	}
+	// original + current content of a session-changed file, for the diff viewer
+	fileDiff(sid, path) {
+		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params: { path } })
+	}
+	writeFile(sid, path, content) {
+		return this.request("PUT", `/sessions/${enc(sid)}/file`, { body: { path, content } })
 	}
 	createSession(config) {
 		return this.request("POST", "/sessions", { body: config })

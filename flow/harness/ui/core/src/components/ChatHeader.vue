@@ -1,5 +1,5 @@
 <template>
-	<header class="flex flex-none items-center gap-2 border-b border-outline-gray-1 px-3 py-2">
+	<header class="flex h-11 flex-none items-center gap-2 border-b border-outline-gray-1 px-3">
 		<template v-if="!sidebarOpen">
 			<button class="flow-icon-btn" title="Show sidebar" @click="emit('open-sidebar')">
 				<FeatherIcon name="sidebar" class="h-3.5 w-3.5" />
@@ -46,9 +46,19 @@
 				</span>
 			</span>
 
-			<button class="flow-icon-btn" title="Toggle theme" @click="toggleTheme">
-				<FeatherIcon :name="theme === 'dark' ? 'moon' : 'sun'" class="h-3.5 w-3.5" />
-			</button>
+			<span class="flex items-center gap-1">
+				<button class="flow-icon-btn" title="Toggle theme" @click="toggleTheme">
+					<FeatherIcon :name="theme === 'dark' ? 'moon' : 'sun'" class="h-3.5 w-3.5" />
+				</button>
+				<button
+					v-if="!workspaceOpen"
+					class="flow-icon-btn"
+					title="Open panel"
+					@click="flow.setWorkspaceOpen(true)"
+				>
+					<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
+				</button>
+			</span>
 		</span>
 	</header>
 </template>
@@ -81,6 +91,8 @@ const headerTitle = computed(() => (cwd.value ? `${cwd.value} / ${title.value}` 
 const cost = computed(() => flow.state.conversation.usage.cost)
 const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)
 const contextWindow = computed(() => flow.state.conversation.contextWindow ?? null)
+
+const workspaceOpen = computed(() => flow.state.workspace.open)
 
 const theme = computed(() => flow.state.prefs.theme)
 function toggleTheme() {

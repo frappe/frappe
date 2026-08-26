@@ -11,6 +11,7 @@ import {
 
 const PREFS_KEY = "flow.ui.prefs"
 const TITLES_KEY = "flow.ui.titles"
+const WORKSPACE_KEY = "flow.ui.workspace"
 
 function sameArray(left, right) {
 	return left.length === right.length && left.every((value, index) => value === right[index])
@@ -39,6 +40,11 @@ export function createFlowStore(client) {
 		loading: false,
 		toast: null,
 		draft: null, // { text, attachments } handed to the composer after rewind
+		codeRefs: [], // { path, rel, start, end } selections queued for the next message
+		// right panel; tabs are typed ({ kind: "editor" } today, browser/terminal
+		// later) — editor tabs: { kind, path, name, content, error, loading, dirty },
+		// content being the last server-confirmed text (the editor owns unsaved edits)
+		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
 		prefs: {
 			theme: "light",
 			mode: "ask", // "ask" | "auto" — applied at session create
@@ -47,6 +53,8 @@ export function createFlowStore(client) {
 			cwd: null,
 			sidebarOpen: true,
 			sidebarWidth: 288,
+			workspaceWidth: 460,
+			explorerWidth: 220,
 			...readJSON(PREFS_KEY, {}),
 		},
 		titles: readJSON(TITLES_KEY, {}),
@@ -95,7 +103,15 @@ export function createFlowStore(client) {
 
 	async function refreshSessions() {
 		const data = await guard(() => client.sessions())
-		if (data) state.sessions = data.sessions
+		if (!data) return
+		state.sessions = data.sessions
+		// drop stored panel state for sessions deleted outside this UI
+		const known = new Set(data.sessions.map((info) => info.session_id))
+		const stale = Object.keys(workspaceBySession).filter((sid) => !known.has(sid))
+		if (stale.length) {
+			for (const sid of stale) delete workspaceBySession[sid]
+			localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
+		}
 	}
 
 	async function refreshModels() {
@@ -112,9 +128,69 @@ export function createFlowStore(client) {
 		streamTask = null
 	}
 
+	function resetWorkspace() {
+		state.workspace = { open: false, maximized: false, tabs: [], active: null, view: null }
+	}
+
+	// Open tabs and panel visibility survive refreshes and session switches:
+	// persisted per session (paths only — unsaved edits are not kept).
+	let workspaceBySession = readJSON(WORKSPACE_KEY, {})
+
+	function persistWorkspace() {
+		const sid = state.sessionId
+		if (!sid) return
+		const ws = state.workspace
+		if (ws.tabs.length || ws.open) {
+			workspaceBySession[sid] = {
+				open: ws.open,
+				maximized: ws.maximized,
+				active: ws.active,
+				view: ws.view ?? null,
+				tabs: ws.tabs.map((t) => ({ path: t.path, diff: !!t.diff })),
+			}
+		} else {
+			delete workspaceBySession[sid]
+		}
+		localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
+	}
+
+	function restoreWorkspace(sid) {
+		const saved = workspaceBySession[sid]
+		// corrupt storage must never break opening the session itself; tabs were
+		// stored as plain paths before the diff flag existed
+		const stored = (Array.isArray(saved?.tabs) ? saved.tabs : [])
+			.map((tab) => (typeof tab === "string" ? { path: tab } : tab))
+			.filter((tab) => tab && typeof tab.path === "string" && tab.path)
+		if (!stored.length && !saved?.open) return
+		const paths = stored.map((tab) => tab.path)
+		state.workspace = {
+			open: saved.open ?? true,
+			maximized: (saved.open ?? true) && !!saved.maximized,
+			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
+			tabs: stored.map(({ path, diff }) => ({
+				kind: "editor",
+				path,
+				name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
+				content: null,
+				original: null,
+				error: null,
+				loading: false,
+				dirty: false,
+				diff: !!diff,
+			})),
+			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
+		}
+		const tab = state.workspace.tabs.find((t) => t.path === state.workspace.active)
+		if (state.workspace.open && tab) void (tab.diff ? openDiffFile(tab.path) : openFile(tab.path))
+	}
+
 	async function openSession(sid) {
 		closeStream()
+		// a same-session reload (rewind) keeps the open file tabs as they are
+		const switching = state.sessionId !== sid
+		if (switching) resetWorkspace()
 		state.sessionId = sid
+		if (switching) restoreWorkspace(sid)
 		state.session = null
 		state.queued = []
 		state.skills = []
@@ -222,6 +298,7 @@ export function createFlowStore(client) {
 		const listedSession = state.sessions.find((session) => session.session_id === state.sessionId)
 		const nextCwd = cwd ?? state.session?.config?.cwd ?? listedSession?.cwd
 		closeStream()
+		resetWorkspace()
 		state.sessionId = null
 		state.session = null
 		state.queued = []
@@ -401,6 +478,22 @@ export function createFlowStore(client) {
 		state.draft = draft
 	}
 
+	// Editor selections referenced in the next message as path:lines, not pasted text.
+	function addCodeRef(path, start, end) {
+		const cwd = state.session?.config?.cwd
+		const rel = cwd && path.startsWith(cwd + "/") ? path.slice(cwd.length + 1) : path
+		if (state.codeRefs.some((r) => r.path === path && r.start === start && r.end === end)) return
+		state.codeRefs.push({ path, rel, start, end })
+	}
+
+	function removeCodeRef(index) {
+		state.codeRefs.splice(index, 1)
+	}
+
+	function clearCodeRefs() {
+		state.codeRefs = []
+	}
+
 	async function selectModel(model) {
 		state.prefs.lastModel = model
 		savePrefs()
@@ -468,6 +561,196 @@ export function createFlowStore(client) {
 		savePrefs()
 	}
 
+	// Open a file in the workspace panel, refetching unless unsaved edits exist.
+	async function openFile(path) {
+		const sid = state.sessionId
+		if (!sid || typeof client.readFile !== "function") return
+		const ws = state.workspace
+		let tab = ws.tabs.find((t) => t.path === path)
+		if (!tab) {
+			ws.tabs.push({
+				kind: "editor",
+				path,
+				name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
+				content: null,
+				original: null,
+				error: null,
+				loading: false,
+				dirty: false,
+				diff: false,
+			})
+			tab = ws.tabs[ws.tabs.length - 1]
+		}
+		tab.diff = false
+		ws.active = path
+		ws.open = true
+		persistWorkspace()
+		if (tab.dirty) return
+		tab.loading = true
+		try {
+			const data = await client.readFile(sid, path)
+			if (state.sessionId !== sid) return
+			tab.content = data.content
+			tab.error = null
+		} catch (error) {
+			if (state.sessionId !== sid) return
+			tab.error = String(error?.message ?? error)
+			tab.content = null
+		} finally {
+			tab.loading = false
+		}
+	}
+
+	// Diff twin of openFile: the tab shows the whole file with the session's
+	// changes highlighted. `original` is the pre-session side; the current file
+	// content stays the editable (and savable) side.
+	async function openDiffFile(path) {
+		const sid = state.sessionId
+		if (!sid) return
+		// hosts with an older client surface fall back to the plain viewer
+		if (typeof client.fileDiff !== "function") return openFile(path)
+		const ws = state.workspace
+		let tab = ws.tabs.find((t) => t.path === path)
+		if (!tab) {
+			ws.tabs.push({
+				kind: "editor",
+				path,
+				name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
+				content: null,
+				original: null,
+				error: null,
+				loading: false,
+				dirty: false,
+				diff: true,
+			})
+			tab = ws.tabs[ws.tabs.length - 1]
+		}
+		tab.diff = true
+		ws.active = path
+		ws.open = true
+		persistWorkspace()
+		tab.loading = true
+		try {
+			const data = await client.fileDiff(sid, path)
+			if (state.sessionId !== sid) return
+			// an empty original means the session created the file; the tab stays in
+			// the diff view but renders as a plain file (nothing to compare against)
+			tab.original = data.original
+			if (!tab.dirty) tab.content = data.modified
+			tab.error = null
+		} catch (error) {
+			if (state.sessionId !== sid) return
+			tab.error = String(error?.message ?? error)
+			if (!tab.dirty) tab.content = null
+		} finally {
+			tab.loading = false
+		}
+	}
+
+	// One directory level for the explorer; null on failure (toast already shown).
+	async function listFiles(path = "") {
+		if (!state.sessionId || typeof client.listFiles !== "function") return null
+		return guard(() => client.listFiles(state.sessionId, path))
+	}
+
+	async function searchFiles(query) {
+		if (!state.sessionId || typeof client.searchFiles !== "function") return null
+		return guard(() => client.searchFiles(state.sessionId, query))
+	}
+
+	// the "+ → Files" view: panel open with no active tab, explorer as the focus
+	function showFilesView() {
+		state.workspace.open = true
+		state.workspace.view = "files"
+		state.workspace.active = null
+		persistWorkspace()
+	}
+
+	function showDiffView() {
+		state.workspace.open = true
+		state.workspace.view = "diff"
+		state.workspace.active = null
+		persistWorkspace()
+	}
+
+	// closing the transient Files tab: back to a file if one is open, else the picker
+	function closeFilesView() {
+		const ws = state.workspace
+		ws.view = null
+		if (ws.tabs.length) return selectFile(ws.tabs[0].path)
+		persistWorkspace()
+	}
+
+	// Tab switches only activate — never refetch — so unsaved edits survive.
+	// A restored tab has no content yet and hydrates on first activation.
+	function selectFile(path) {
+		const tab = state.workspace.tabs.find((t) => t.path === path)
+		if (!tab) return
+		state.workspace.active = path
+		persistWorkspace()
+		if (tab.content == null && !tab.loading && !tab.error)
+			void (tab.diff ? openDiffFile(path) : openFile(path))
+	}
+
+	async function saveFile(path, content) {
+		const sid = state.sessionId
+		const tab = state.workspace.tabs.find((t) => t.path === path)
+		if (!sid || !tab || typeof client.writeFile !== "function") return false
+		const data = await guard(() => client.writeFile(sid, path, content))
+		if (!data || state.sessionId !== sid) return false
+		tab.content = content
+		tab.dirty = false
+		tab.error = null
+		return true
+	}
+
+	function markFileDirty(path, dirty) {
+		const tab = state.workspace.tabs.find((t) => t.path === path)
+		if (tab) tab.dirty = dirty
+	}
+
+	function closeFile(path) {
+		const ws = state.workspace
+		const index = ws.tabs.findIndex((t) => t.path === path)
+		if (index === -1) return
+		ws.tabs.splice(index, 1)
+		if (ws.active === path) ws.active = ws.tabs[Math.min(index, ws.tabs.length - 1)]?.path ?? null
+		if (!ws.tabs.length) {
+			ws.open = false
+			ws.maximized = false // a maximized panel must not outlive its last tab
+			ws.view = null
+		}
+		persistWorkspace()
+	}
+
+	function setWorkspaceOpen(open) {
+		state.workspace.open = open
+		if (!open) {
+			state.workspace.maximized = false
+			state.workspace.view = null // reopening with no tabs lands on the view picker
+		} else {
+			// resume the last open file; selectFile also hydrates a restored tab
+			const target = state.workspace.active ?? state.workspace.tabs[0]?.path
+			if (target) return selectFile(target)
+		}
+		persistWorkspace()
+	}
+
+	function toggleWorkspaceMaximized() {
+		state.workspace.maximized = !state.workspace.maximized
+		persistWorkspace()
+	}
+
+	function setWorkspaceWidth(width) {
+		state.prefs.workspaceWidth = width
+		savePrefs()
+	}
+
+	function setExplorerWidth(width) {
+		state.prefs.explorerWidth = width
+		savePrefs()
+	}
+
 	function setSidebarOpen(open) {
 		state.prefs.sidebarOpen = open
 		savePrefs()
@@ -500,6 +783,10 @@ export function createFlowStore(client) {
 		if (state.titles[sid]) {
 			delete state.titles[sid]
 			localStorage.setItem(TITLES_KEY, JSON.stringify(state.titles))
+		}
+		if (workspaceBySession[sid]) {
+			delete workspaceBySession[sid]
+			localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
 		}
 		if (state.sessionId === sid) startNewChat()
 	}
@@ -539,10 +826,28 @@ export function createFlowStore(client) {
 		rewindToMessage,
 		rewindLastUserMessage,
 		setDraft,
+		addCodeRef,
+		removeCodeRef,
+		clearCodeRefs,
 		selectModel,
 		selectEffort,
 		setMode,
 		setCwd,
+		openFile,
+		openDiffFile,
+		listFiles,
+		searchFiles,
+		selectFile,
+		showFilesView,
+		showDiffView,
+		closeFilesView,
+		saveFile,
+		markFileDirty,
+		closeFile,
+		setWorkspaceOpen,
+		toggleWorkspaceMaximized,
+		setWorkspaceWidth,
+		setExplorerWidth,
 		setSidebarOpen,
 		setSidebarWidth,
 		setTheme,

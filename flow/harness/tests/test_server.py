@@ -1,4 +1,5 @@
 import asyncio
+import difflib
 import json
 import os
 import shlex
@@ -216,6 +217,236 @@ def test_abort_idle(tmp_path):
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
 	assert c.post(f"/sessions/{sid}/abort").json()["status"] == "idle"
+
+
+def test_read_workspace_file(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	(tmp_path / "notes.txt").write_text("hello\nworld\n")
+
+	r = c.get(f"/sessions/{sid}/file", params={"path": "notes.txt"})
+	assert r.status_code == 200
+	assert r.json() == {"path": str(tmp_path / "notes.txt"), "content": "hello\nworld\n"}
+
+	assert c.get(f"/sessions/{sid}/file", params={"path": "missing.txt"}).status_code == 404
+
+	(tmp_path / "blob.bin").write_bytes(b"\xff\xfe\x00garbage\x80")
+	assert c.get(f"/sessions/{sid}/file", params={"path": "blob.bin"}).status_code == 415
+
+
+def test_read_workspace_file_is_fenced_by_allowed_roots(tmp_path):
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	(tmp_path / "secret.txt").write_text("nope")
+	(allowed / "ok.txt").write_text("fine")
+	c = _client(tmp_path, allowed_roots=[str(allowed)])
+	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
+
+	assert c.get(f"/sessions/{sid}/file", params={"path": "ok.txt"}).status_code == 200
+	assert c.get(f"/sessions/{sid}/file", params={"path": "../secret.txt"}).status_code == 403
+	assert c.get(f"/sessions/{sid}/file", params={"path": str(tmp_path / "secret.txt")}).status_code == 403
+
+
+def test_list_workspace_files(tmp_path):
+	c = _client(tmp_path)
+	work = tmp_path / "work"
+	work.mkdir()
+	sid = c.post("/sessions", json={"cwd": str(work)}).json()["session_id"]
+	(work / "src").mkdir()
+	(work / "src" / "app.py").write_text("x")
+	(work / "zeta.txt").write_text("x")
+	(work / "Alpha.txt").write_text("x")
+
+	r = c.get(f"/sessions/{sid}/files")  # default path lists the cwd
+	assert r.status_code == 200
+	body = r.json()
+	assert body["path"] == str(work)
+	names = [(e["name"], e["type"]) for e in body["entries"]]
+	# directories first, then case-insensitive alphabetical
+	assert names == [("src", "dir"), ("Alpha.txt", "file"), ("zeta.txt", "file")]
+
+	sub = c.get(f"/sessions/{sid}/files", params={"path": "src"}).json()
+	assert sub["entries"] == [{"name": "app.py", "type": "file"}]
+
+	assert c.get(f"/sessions/{sid}/files", params={"path": "missing"}).status_code == 404
+	assert c.get(f"/sessions/{sid}/files", params={"path": "zeta.txt"}).status_code == 400
+
+
+def test_list_workspace_files_is_fenced_by_allowed_roots(tmp_path):
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	c = _client(tmp_path, allowed_roots=[str(allowed)])
+	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
+
+	assert c.get(f"/sessions/{sid}/files").status_code == 200
+	assert c.get(f"/sessions/{sid}/files", params={"path": ".."}).status_code == 403
+
+
+def test_search_workspace_files(tmp_path):
+	c = _client(tmp_path)
+	work = tmp_path / "work"
+	(work / "src" / "deep").mkdir(parents=True)
+	(work / "node_modules" / "pkg").mkdir(parents=True)
+	(work / ".git").mkdir()
+	sid = c.post("/sessions", json={"cwd": str(work)}).json()["session_id"]
+	(work / "app.py").write_text("x")
+	(work / "src" / "deep" / "app_helpers.py").write_text("x")
+	(work / "src" / "readme.md").write_text("x")
+	(work / "node_modules" / "pkg" / "app.py").write_text("x")
+	(work / ".git" / "app.py").write_text("x")
+
+	body = c.get(f"/sessions/{sid}/files/search", params={"query": "APP"}).json()
+	assert body["path"] == str(work)
+	# hidden and dependency trees are pruned; matching is case-insensitive
+	assert body["matches"] == ["app.py", "src/deep/app_helpers.py"]
+	assert body["truncated"] is False
+
+	assert c.get(f"/sessions/{sid}/files/search", params={"query": "  "}).json()["matches"] == []
+
+
+def test_write_workspace_file(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+
+	# parent directories are created, and the write round-trips through the read endpoint
+	r = c.put(f"/sessions/{sid}/file", json={"path": "new/notes.txt", "content": "draft\n"})
+	assert r.status_code == 200
+	assert (tmp_path / "new" / "notes.txt").read_text() == "draft\n"
+	assert c.get(f"/sessions/{sid}/file", params={"path": "new/notes.txt"}).json()["content"] == "draft\n"
+	# writing over a directory is a client error, not a 500
+	assert c.put(f"/sessions/{sid}/file", json={"path": "new", "content": "x"}).status_code == 400
+
+
+def test_write_workspace_file_is_fenced_by_allowed_roots(tmp_path):
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	c = _client(tmp_path, allowed_roots=[str(allowed)])
+	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
+
+	assert c.put(f"/sessions/{sid}/file", json={"path": "ok.txt", "content": "x"}).status_code == 200
+	assert c.put(f"/sessions/{sid}/file", json={"path": "../escape.txt", "content": "x"}).status_code == 403
+	assert not (tmp_path / "escape.txt").exists()
+
+
+def _append_log_rows(tmp_path, sid, rows):
+	"""Fabricate durable tool_result rows, chained onto the session's log tip."""
+	meta = next((tmp_path / "data" / "sessions").rglob(f"{sid}.meta.json"))
+	log = meta.with_name(f"{sid}.jsonl")  # created lazily on the first real append
+	existing = (
+		[json.loads(line) for line in log.read_text().splitlines() if line.strip()] if log.exists() else []
+	)
+	seq = existing[-1]["seq"] if existing else 0
+	with log.open("a") as f:
+		for row in rows:
+			seq += 1
+			f.write(json.dumps({"seq": seq, "parent_seq": seq - 1, "ts": 0.0, **row}) + "\n")
+
+
+def _edit_result(path, old, new, call_id="edit-1"):
+	diff = "".join(
+		difflib.unified_diff(old.splitlines(keepends=True), new.splitlines(keepends=True), path, path)
+	)
+	return {
+		"type": "tool_result",
+		"tool_call_id": call_id,
+		"name": "edit",
+		"content": f"[edited {path} (1 block(s))]",
+		"details": {"path": path, "edits": 1, "lines_added": 1, "lines_removed": 1, "diff": diff},
+	}
+
+
+def test_file_diff_reconstructs_original_from_edits(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	target = tmp_path / "app.py"
+	v0 = "a\nb\nc\n"
+	v1 = "a\nB\nc\n"
+	v2 = "a\nB\nc\nd\n"
+	target.write_text(v2)
+	_append_log_rows(
+		tmp_path,
+		sid,
+		[_edit_result(str(target), v0, v1, "e1"), _edit_result(str(target), v1, v2, "e2")],
+	)
+
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py"})
+	assert r.status_code == 200
+	assert r.json() == {"path": str(target), "original": v0, "modified": v2}
+
+
+def test_file_diff_write_counts_as_created(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	target = tmp_path / "new.py"
+	v1 = "print('hi')\n"
+	v2 = "print('hi')\nprint('bye')\n"
+	target.write_text(v2)
+	_append_log_rows(
+		tmp_path,
+		sid,
+		[
+			{
+				"type": "tool_result",
+				"tool_call_id": "w1",
+				"name": "write",
+				"content": f"[wrote {target} (1 lines)]",
+				"details": {"path": str(target), "chars": len(v1), "lines": 1},
+			},
+			_edit_result(str(target), v1, v2),
+		],
+	)
+
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "new.py"})
+	assert r.status_code == 200
+	assert r.json() == {"path": str(target), "original": "", "modified": v2}
+
+
+def test_file_diff_unchanged_file_and_stale_diff(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	target = tmp_path / "app.py"
+	target.write_text("x\n")
+
+	# the session never touched this file
+	assert c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py"}).status_code == 404
+
+	# an error result does not count as a change
+	row = _edit_result(str(target), "a\n", "b\n")
+	_append_log_rows(tmp_path, sid, [{**row, "is_error": True}])
+	assert c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py"}).status_code == 404
+
+	# a recorded diff that no longer matches the file is skipped, not an error:
+	# the response shows only the diff that still applies (none here)
+	_append_log_rows(tmp_path, sid, [_edit_result(str(target), "a\n", "b\n", "e2")])
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py"})
+	assert r.status_code == 200
+	assert r.json() == {"path": str(target), "original": "x\n", "modified": "x\n"}
+
+
+def test_file_diff_keeps_matching_hunks_when_the_file_moved_on(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	target = tmp_path / "app.py"
+	v0 = "a\nb\nc\n"
+	v1 = "a\nB\nc\n"
+	target.write_text("a\nB\nc\nuser-added\n")  # edited again after the session
+	_append_log_rows(tmp_path, sid, [_edit_result(str(target), v0, v1)])
+
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py"})
+	assert r.status_code == 200
+	# the session's b->B change is still undone; the later user line stays
+	assert r.json()["original"] == "a\nb\nc\nuser-added\n"
+	assert r.json()["modified"] == "a\nB\nc\nuser-added\n"
+
+
+def test_file_diff_is_fenced_by_allowed_roots(tmp_path):
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	c = _client(tmp_path, allowed_roots=[str(allowed)])
+	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
+
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "../secret.txt"})
+	assert r.status_code == 403
 
 
 def test_allowed_roots_fences_cwd(tmp_path):

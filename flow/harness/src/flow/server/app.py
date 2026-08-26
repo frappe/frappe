@@ -15,6 +15,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import os
+import re
 import secrets
 from collections.abc import AsyncIterator
 from dataclasses import asdict
@@ -32,6 +34,7 @@ from flow.events import AssistantMessage, ReasoningEffort, parse_event
 from flow.model.auth import AuthError
 from flow.model.catalog import model_supports_images
 from flow.model.discovery import available_models, context_window_for
+from flow.path_policy import absolute_path, canonical_path, is_path_allowed
 from flow.server.fspick import PickerUnavailable, pick_folder
 from flow.server.provider_auth import (
 	OAuthCoordinator,
@@ -56,6 +59,16 @@ from flow.session.session import (
 from flow.session.skills import SkillCatalog, SkillError
 from flow.session.store import SessionStore
 from flow.session.transcript import active_path
+from flow.tools.builtins.common import to_lf
+
+# viewer payload cap; anything bigger is not a file to render in a chat UI
+MAX_FILE_VIEW_BYTES = 2 * 1024 * 1024
+
+# file-name search: skip dependency/VCS trees, cap results, and bound the walk
+# itself so a huge un-pruned tree cannot pin a thread per keystroke
+SEARCH_SKIP_DIRS = {"node_modules", "__pycache__", "venv", "dist", "build", "target"}
+MAX_SEARCH_RESULTS = 200
+MAX_SEARCH_SCAN = 20_000
 
 
 class RunRequest(BaseModel):
@@ -125,6 +138,13 @@ class OAuthCompleteRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
 	callback_url: str = Field(min_length=1)
+
+
+class WriteFileRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	path: str = Field(min_length=1)
+	content: str
 
 
 def create_app(
@@ -540,6 +560,121 @@ def create_app(
 			"running": session.is_running,
 		}
 
+	@app.get("/sessions/{sid}/file")
+	async def read_file(sid: str, path: str):
+		"""Text content of a workspace file, for the web UI's file viewer. Fenced by
+		the same allowed roots as the built-in file tools."""
+		session = _get(sid)
+		full_path = absolute_path(path, base=session.config.cwd)
+		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+
+		return {"path": full_path, "content": await asyncio.to_thread(_read_text_file, full_path)}
+
+	@app.get("/sessions/{sid}/file/diff")
+	async def file_diff(sid: str, path: str):
+		"""Both sides of the session's changes to one file, for the diff viewer.
+		`original` is reconstructed by reverse-applying the recorded edit diffs;
+		a write marks the file as created, so its original is empty."""
+		session = _get(sid)
+		full_path = absolute_path(path, base=session.config.cwd)
+		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+
+		def compute() -> dict:
+			# the log scan and the string-heavy reconstruction stay off the event loop
+			results = _file_change_results(active_path(session.log.read_since(0)), full_path)
+			if not results:
+				raise HTTPException(status_code=404, detail="the session has not changed this file")
+			modified = _read_text_file(full_path, strip_bom=True)
+			return {
+				"path": full_path,
+				"original": _reconstruct_original(modified, results),
+				"modified": modified,
+			}
+
+		return await asyncio.to_thread(compute)
+
+	@app.get("/sessions/{sid}/files")
+	async def list_files(sid: str, path: str = ""):
+		"""One directory level for the file explorer, fenced like file reads."""
+		session = _get(sid)
+		full_path = absolute_path(path or ".", base=session.config.cwd)
+		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+
+		def read() -> list[dict]:
+			try:
+				with os.scandir(full_path) as it:
+					entries = [{"name": e.name, "type": "dir" if e.is_dir() else "file"} for e in it]
+			except FileNotFoundError:
+				raise HTTPException(status_code=404, detail="directory not found") from None
+			except NotADirectoryError:
+				raise HTTPException(status_code=400, detail="not a directory") from None
+			except PermissionError:
+				raise HTTPException(status_code=403, detail="directory is not readable") from None
+			entries.sort(key=lambda e: (e["type"] != "dir", e["name"].lower()))
+			return entries
+
+		return {"path": full_path, "entries": await asyncio.to_thread(read)}
+
+	@app.get("/sessions/{sid}/files/search")
+	async def search_files(sid: str, query: str):
+		"""File-name search under the session cwd for the explorer's filter box.
+		Hidden and dependency directories are pruned; results are cwd-relative."""
+		session = _get(sid)
+		root = absolute_path(".", base=session.config.cwd)
+		if session.allowed_roots and not is_path_allowed(canonical_path(root), session.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+		needle = query.strip().lower()
+		if not needle:
+			return {"path": root, "matches": [], "truncated": False}
+
+		def walk() -> tuple[list[str], bool]:
+			matches: list[str] = []
+			scanned = 0
+			for dirpath, dirnames, filenames in os.walk(root):
+				dirnames[:] = sorted(
+					(d for d in dirnames if not d.startswith(".") and d not in SEARCH_SKIP_DIRS),
+					key=str.lower,
+				)
+				for name in sorted(filenames, key=str.lower):
+					scanned += 1
+					if needle in name.lower():
+						matches.append(os.path.relpath(os.path.join(dirpath, name), root))
+						if len(matches) >= MAX_SEARCH_RESULTS:
+							return matches, True
+					if scanned >= MAX_SEARCH_SCAN:
+						return matches, True
+			return matches, False
+
+		matches, truncated = await asyncio.to_thread(walk)
+		return {"path": root, "matches": matches, "truncated": truncated}
+
+	@app.put("/sessions/{sid}/file")
+	async def write_file(sid: str, req: WriteFileRequest):
+		"""Save the file viewer's edits. Same fence as reading; parent directories
+		are created like the write tool does."""
+		session = _get(sid)
+		full_path = absolute_path(req.path, base=session.config.cwd)
+		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+		if len(req.content.encode()) > MAX_FILE_VIEW_BYTES:
+			raise HTTPException(status_code=413, detail="file too large to save")
+
+		def save() -> None:
+			try:
+				os.makedirs(os.path.dirname(full_path) or ".", exist_ok=True)
+				with open(full_path, "w", encoding="utf-8", newline="") as f:
+					f.write(req.content)
+			except PermissionError:
+				raise HTTPException(status_code=403, detail="file is not writable") from None
+			except IsADirectoryError:
+				raise HTTPException(status_code=400, detail="path is a directory") from None
+
+		await asyncio.to_thread(save)
+		return {"path": full_path}
+
 	@app.get("/sessions/{sid}/stream")
 	async def stream(sid: str, since: int = 0, follow: bool = False):
 		session = _get(sid)
@@ -649,3 +784,96 @@ async def _sse_stream(session: Session, since: int) -> AsyncIterator[bytes]:
 
 def _sse(data: dict) -> bytes:
 	return f"data: {json.dumps(data)}\n\n".encode()
+
+
+_HUNK_RE = re.compile(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+
+
+def _read_text_file(full_path: str, *, strip_bom: bool = False) -> str:
+	"""Workspace file bytes as text, with the viewer's caps mapped to HTTP errors."""
+	if not os.path.isfile(full_path):
+		raise HTTPException(status_code=404, detail="file not found")
+	if os.path.getsize(full_path) > MAX_FILE_VIEW_BYTES:
+		raise HTTPException(status_code=413, detail="file too large to display")
+	try:
+		with open(full_path, "rb") as f:
+			data = f.read()
+	except PermissionError:
+		raise HTTPException(status_code=403, detail="file is not readable") from None
+	try:
+		text = data.decode("utf-8")
+	except UnicodeDecodeError:
+		raise HTTPException(status_code=415, detail="not a text file") from None
+	# BOM-stripped callers diff line one cleanly (the edit tool records BOM-less diffs)
+	return text.removeprefix("\ufeff") if strip_bom else text
+
+
+def _file_change_results(rows: list[dict], full_path: str) -> list[dict]:
+	"""Successful edit/write results for one file, in log order."""
+	results = []
+	for row in rows:
+		if row.get("type") != "tool_result" or row.get("name") not in ("edit", "write"):
+			continue
+		if row.get("is_error") or (row.get("details") or {}).get("path") != full_path:
+			continue
+		content = row.get("content") or ""
+		if content.startswith("{"):  # an approval decision marker, not a real result
+			with contextlib.suppress(ValueError):
+				if json.loads(content).get("status") in ("denied", "cancelled", "redirect"):
+					continue
+		results.append(row)
+	return results
+
+
+def _reconstruct_original(modified: str, results: list[dict]) -> str:
+	"""The file as it was before the session's changes, by reverse-applying the
+	recorded edit diffs newest-first. A write marks the file as created by the
+	session, so its original is empty."""
+	text = to_lf(modified)
+	for result in reversed(results):
+		if result.get("name") == "write":
+			return ""
+		diff = (result.get("details") or {}).get("diff") or ""
+		if diff:
+			text = _reverse_unified_diff(diff, text)
+	return text
+
+
+def _reverse_unified_diff(diff: str, text: str) -> str:
+	"""Undo one recorded unified diff (LF, keepends) against `text`, best-effort:
+	hunks whose after-side no longer matches (the file changed since) are left
+	as they are, so the caller still gets a usable original for the rest."""
+	lines = text.splitlines(keepends=True)
+	out: list[str] = []
+	pos = 0
+	dl = diff.splitlines(keepends=True)
+	i = 0
+	while i < len(dl) and not dl[i].startswith("@@"):
+		i += 1
+	while i < len(dl):
+		m = _HUNK_RE.match(dl[i])
+		if not m:
+			break  # malformed: keep the rest of the file untouched
+		new_len = int(m.group(2)) if m.group(2) is not None else 1
+		new_start = int(m.group(1)) - (1 if new_len else 0)
+		i += 1
+		before: list[str] = []
+		after: list[str] = []
+		while i < len(dl) and not dl[i].startswith("@@"):
+			tag, body = dl[i][:1], dl[i][1:]
+			if tag == " ":
+				before.append(body)
+				after.append(body)
+			elif tag == "-":
+				before.append(body)
+			elif tag == "+":
+				after.append(body)
+			i += 1
+		if new_start < pos or new_start + new_len > len(lines):
+			continue  # out of bounds for the current file: skip the hunk
+		region = lines[new_start : new_start + new_len]
+		out.extend(lines[pos:new_start])
+		out.extend(before if region == after else region)
+		pos = new_start + new_len
+	out.extend(lines[pos:])
+	return "".join(out)

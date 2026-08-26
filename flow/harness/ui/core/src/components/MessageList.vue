@@ -25,6 +25,7 @@
 				<UserBubble v-if="item.kind === 'user'" :entry="item.entry" />
 				<TurnFold
 					v-else-if="item.kind === 'turn-fold'"
+					:data-turn-fold="item.turnKey"
 					:label="item.label"
 					:expanded="item.expanded"
 					@toggle="toggleTurn(item.turnKey)"
@@ -52,6 +53,7 @@
 					/>
 					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
 				</div>
+				<TurnFiles v-else-if="item.kind === 'turn-files'" class="flow-turn-files -mt-1" :files="item.files" />
 				<ApprovalCard v-else-if="item.kind === 'approval'" :calls="item.calls" :seq="item.seq" />
 				<div
 					v-else-if="item.kind === 'compaction'"
@@ -108,6 +110,7 @@ import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
 import ThinkingBlock from "./ThinkingBlock.vue"
 import ToolGroup from "./ToolGroup.vue"
+import TurnFiles from "./TurnFiles.vue"
 import TurnFold from "./TurnFold.vue"
 import UserBubble from "./UserBubble.vue"
 
@@ -169,9 +172,16 @@ function toBottom() {
 
 function toggleTurn(turnKey) {
 	const next = new Set(expandedTurnKeys.value)
-	if (next.has(turnKey)) next.delete(turnKey)
-	else next.add(turnKey)
+	const opening = !next.has(turnKey)
+	if (opening) next.add(turnKey)
+	else next.delete(turnKey)
 	expandedTurnKeys.value = next
+	if (!opening) return
+	// reveal the steps the fold just inserted below itself (no-op when visible)
+	void nextTick(() => {
+		const fold = scroller.value?.querySelector(`[data-turn-fold="${CSS.escape(turnKey)}"]`)
+		fold?.nextElementSibling?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+	})
 }
 
 watch(

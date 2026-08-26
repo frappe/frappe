@@ -52,6 +52,7 @@
 
 		<div
 			v-if="open && expandable"
+			ref="payloadEl"
 			class="mb-1.5 mt-1 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-white"
 		>
 			<!-- a call the user denied, cancelled, or redirected -->
@@ -95,7 +96,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue"
+import { computed, inject, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { compactDisplayText, stepDecision, stepIcon, stepLabel, stepStat, stepSubject } from "../transcript.js"
@@ -158,6 +159,11 @@ const diffStat = computed(() => {
 
 // dumping file contents inline is noise; expand only where the payload is the
 // point (command output, search hits, diffs, custom tool results) or the user intervened
+// expanding near the bottom edge would reveal the payload off-screen;
+// nudge it into view (no-op when it is already visible)
+const payloadEl = ref(null)
+watch(payloadEl, (el) => el?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
+
 const expandable = computed(() => {
 	if (!props.step.result) return false
 	if (decision.value) return true

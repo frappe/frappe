@@ -230,7 +230,7 @@ function lowerFirst(value) {
 	return value ? value[0].toLowerCase() + value.slice(1) : value
 }
 
-function fileName(path) {
+export function fileName(path) {
 	return String(path ?? "")
 		.split(/[\\/]/)
 		.filter(Boolean)
@@ -387,6 +387,54 @@ function deriveTurns(entries) {
 	return { turns, turnByEntry, latestTurnKey: [...turns.keys()].at(-1) ?? null }
 }
 
+// Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
+// per path in first-touch order. Denied/failed calls don't count; a write
+// reports its full line count as additions.
+// Session-wide aggregate of edit/write results, for the diff viewer's file bar.
+export function aggregateFileChanges(entries) {
+	const calls = new Set()
+	const files = new Map()
+	for (const entry of entries) {
+		if (entry.type === "assistant_message") {
+			for (const block of entry.content ?? []) {
+				if (block.type === "tool_call" && ["edit", "write"].includes(block.name)) calls.add(block.id)
+			}
+		} else if (entry.type === "tool_result" && calls.has(entry.tool_call_id)) {
+			const path = entry.details?.path
+			if (!path || entry.is_error || stepDecision(entry)) continue
+			const file = files.get(path) ?? { path, added: 0, removed: 0 }
+			file.added += entry.details.lines_added ?? entry.details.lines ?? 0
+			file.removed += entry.details.lines_removed ?? 0
+			files.set(path, file)
+		}
+	}
+	return [...files.values()]
+}
+
+function deriveFileChanges(entries, turnByEntry) {
+	const callTurns = new Map()
+	const filesByTurn = new Map()
+	for (const entry of entries) {
+		if (entry.type === "assistant_message") {
+			for (const block of entry.content ?? []) {
+				if (block.type === "tool_call" && ["edit", "write"].includes(block.name))
+					callTurns.set(block.id, turnByEntry.get(entry))
+			}
+		} else if (entry.type === "tool_result" && callTurns.has(entry.tool_call_id)) {
+			const path = entry.details?.path
+			if (!path || entry.is_error || stepDecision(entry)) continue
+			const turnKey = callTurns.get(entry.tool_call_id)
+			const files = filesByTurn.get(turnKey) ?? new Map()
+			const file = files.get(path) ?? { path, added: 0, removed: 0 }
+			file.added += entry.details.lines_added ?? entry.details.lines ?? 0
+			file.removed += entry.details.lines_removed ?? 0
+			files.set(path, file)
+			filesByTurn.set(turnKey, files)
+		}
+	}
+	return filesByTurn
+}
+
 function foldLabel(turn) {
 	const elapsed =
 		turn.startedAt != null && turn.endedAt != null
@@ -402,6 +450,7 @@ function foldLabel(turn) {
 //   {kind: "thinking", block, entry?, live?}
 //   {kind: "group", steps: [{call, result, aborted} | {thought}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
+//   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
 //   {kind: "approval", calls: [...], seq}      (undecided batch)
 //   {kind: "compaction", entry}
 //   {kind: "error", error}
@@ -556,11 +605,22 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 	const lastTerminalKeyByTurn = new Map(
 		[...terminalTextByTurn].map(([turnKey, terminal]) => [turnKey, terminal.items.at(-1)?.key]),
 	)
+	const fileChangesByTurn = deriveFileChanges(conversation.entries, turnByEntry)
 	const withCopyRows = []
 	for (const item of filtered) {
 		withCopyRows.push(item)
 		if (lastTerminalKeyByTurn.get(item.turnKey) !== item.key) continue
 		const terminal = terminalTextByTurn.get(item.turnKey)
+		// the files card folds into the response; the copy/time row closes the turn
+		const changed = fileChangesByTurn.get(item.turnKey)
+		if (changed?.size) {
+			withCopyRows.push({
+				kind: "turn-files",
+				key: `tfs:${item.turnKey}`,
+				turnKey: item.turnKey,
+				files: [...changed.values()],
+			})
+		}
 		withCopyRows.push({
 			kind: "turn-copy",
 			key: `tc:${item.key}`,
