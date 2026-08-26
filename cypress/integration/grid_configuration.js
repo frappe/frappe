@@ -47,13 +47,16 @@ context("Grid Configuration", () => {
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				// snapshot only the editable fields, not full rows (name/idx/etc
-				// belong to the rows being deleted and shouldn't be reused below)
+				// snapshot every real data field on Top Bar Item (label, url,
+				// parent_label, right, open_in_new_tab) — not full rows, since
+				// name/idx/etc belong to the rows being deleted and shouldn't
+				// be reused below
 				saved_footer_items = (frm.doc.footer_items || []).map((row) => ({
 					label: row.label,
 					url: row.url,
 					parent_label: row.parent_label,
 					right: row.right,
+					open_in_new_tab: row.open_in_new_tab,
 				}));
 
 				frm.clear_table("footer_items");
