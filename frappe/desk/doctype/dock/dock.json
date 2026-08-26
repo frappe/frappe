@@ -36,13 +36,13 @@
   },
   {
    "default": "0",
-   "description": "Owned by the app: exported to `<app>/dock/<app>/<app>.json` and re-imported by migrate. This is the app layer, and the layer the other two are laid over. Set via the Export to App action, not by hand -- a standard dock with no exported file is an orphan and gets deleted on the next migrate.",
+   "description": "Owned by the app: exported to `<app>/dock/<app>/<app>.json` and re-imported by migrate. This is the app layer, and the layer the other two are laid over. Ordinarily set via the Export to App action rather than by hand, which is why it is writable only in developer mode -- a standard dock with no exported file is an orphan and gets deleted on the next migrate.",
    "fieldname": "standard",
    "fieldtype": "Check",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Standard",
-   "read_only": 1
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
   },
   {
    "depends_on": "eval:doc.standard == 1",
@@ -68,7 +68,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-26 23:00:00.000000",
+ "modified": "2026-08-26 23:45:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dock",
