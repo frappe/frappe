@@ -22,7 +22,12 @@
 			:style="{ paddingBottom: composerHeight + 40 + 'px' }"
 		>
 			<template v-for="(item, i) in items" :key="item.key">
-				<UserBubble v-if="item.kind === 'user'" :entry="item.entry" />
+				<UserBubble
+					v-if="item.kind === 'user'"
+					:entry="item.entry"
+					:data-prompt-key="item.key"
+					class="scroll-mt-3"
+				/>
 				<TurnFold
 					v-else-if="item.kind === 'turn-fold'"
 					:data-turn-fold="item.turnKey"
@@ -87,6 +92,13 @@
 		</div>
 	</div>
 
+	<PromptRail
+		v-if="prompts.length"
+		:prompts="prompts"
+		:active-key="activePromptKey"
+		@select="scrollToPrompt"
+	/>
+
 	<button
 		v-if="!stick && !empty"
 		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-white text-ink-gray-6 shadow-md hover:text-ink-gray-9"
@@ -103,11 +115,12 @@
 import { computed, inject, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-import { buildItems, formatTime } from "../transcript.js"
+import { buildItems, formatTime, userAttachments, userText } from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
+import PromptRail from "./PromptRail.vue"
 import ThinkingBlock from "./ThinkingBlock.vue"
 import ToolGroup from "./ToolGroup.vue"
 import TurnFiles from "./TurnFiles.vue"
@@ -161,7 +174,46 @@ function onScroll() {
 	if (distance < 1) stick.value = true
 	else if (goingUp) stick.value = false
 	else stick.value = distance < 80
+	updateActivePrompt()
 }
+
+const prompts = computed(() =>
+	items.value
+		.filter((item) => item.kind === "user")
+		.map((item) => {
+			const text = userText(item.entry) || userAttachments(item.entry)[0]?.name || "Prompt"
+			return { key: item.key, text: text.length > 400 ? text.slice(0, 400) + "…" : text }
+		}),
+)
+const activePromptKey = ref(null)
+
+// the active prompt is the last one that has scrolled past the upper third of
+// the visible area — i.e. the turn currently being read
+function updateActivePrompt() {
+	const el = scroller.value
+	if (!el || !prompts.value.length) {
+		activePromptKey.value = null
+		return
+	}
+	const threshold = el.getBoundingClientRect().top + el.clientHeight / 3
+	let active = prompts.value[0].key
+	for (const bubble of el.querySelectorAll("[data-prompt-key]")) {
+		if (bubble.getBoundingClientRect().top <= threshold) active = bubble.dataset.promptKey
+	}
+	activePromptKey.value = active
+}
+
+function scrollToPrompt(key) {
+	const target = scroller.value?.querySelector(`[data-prompt-key="${CSS.escape(key)}"]`)
+	if (!target) return
+	stick.value = false // don't let the autoscroller cancel the jump mid-stream
+	target.scrollIntoView({ behavior: "smooth", block: "start" })
+}
+
+watch(
+	() => prompts.value.length,
+	() => void nextTick(updateActivePrompt),
+)
 
 function toBottom() {
 	const el = scroller.value
