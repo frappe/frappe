@@ -74,15 +74,6 @@ PROVED_BY = {
 # column somebody added to the schema.
 DOCK_ITEM_FIELDS = (*DESTINATION_FIELDS, "icon", "title", "added", "hidden")
 
-# The old pair, kept beside the new columns until 08 contracts them. `type` was a `DocType` link
-# whose being filled said which kind of thing, and `link_name` the name of that thing. Every
-# reader prefers the new columns when a row carries them and falls back to these when it does not,
-# so a layer stored before this release keeps working.
-#
-# `link_name` and not `name`, for the record: on a child row `name` is the row's own primary key,
-# and autoname overwrites whatever is in it the moment the row is inserted.
-LEGACY_TYPES = {"Sidebar", "Workspace"}
-
 
 class Dock(Document):
 	"""One layer of one app's dock: the app's own, the site's arrangement of it, or one person's.
@@ -234,15 +225,6 @@ class Dock(Document):
 						row.idx, row.link_type
 					)
 				)
-			# the old column carried the same closed set, and is refused on the same terms while
-			# it is still read
-			if row.type and row.link_name and row.type not in LEGACY_TYPES:
-				frappe.throw(
-					_("Row #{0}: a dock entry names a Sidebar or a Workspace, not a {1}.").format(
-						row.idx, row.type
-					)
-				)
-
 		self.set("items", [row for row in self.items if points_somewhere(stored_row(row))])
 
 	def _validate_links(self):
@@ -456,42 +438,30 @@ def check_developer_mode() -> None:
 def rename_sidebar_rows(old_name: str, new_name: str) -> None:
 	"""Point every dock row naming a sidebar at what that sidebar is called now.
 
-	Mostly a **fallback**, not the only pass. `rename_doc` runs `rename_dynamic_links` before it
-	calls `after_rename`, and `Dock Item.link_name` is a Dynamic Link, so the framework normally
-	does this already. Normally: that pass walks `get_dynamic_link_map()`, which is derived from
-	the distinct `type` values already in the table and cached for twelve hours -- so on a site
-	whose map was built before any dock row was a `Sidebar`, it does nothing at all. This is what
-	makes the outcome the same either way.
+	Its own pass, not a fallback any more. `Dock Item.sidebar` is an ordinary `Link`, so nothing
+	the framework does on rename touches it -- `rename_dynamic_links` walks Dynamic Links, which
+	is what the retired `link_name` column was. So this is the only thing carrying a shell rename
+	onto the rails that name it.
 
-	The rows are updated in place rather than through their parent. A `Dock` is the site's
-	arrangement or one person's own, and re-saving one to correct a name it holds would re-run
-	validation nobody asked for. Invalidating is then this function's own job: `get_dock` reads
-	a `Dock` through `get_cached_doc`, so the document's cache entry is the one that goes stale.
-	`rename_doc` happens to flush the whole site cache a few lines after `after_rename` returns,
-	which would cover it -- but a helper that leaves its own writes visibly stale is only correct
-	while its one caller stays the way it is, and this one costs two queries.
+	The rows are updated in place rather than through their parent. A `Dock` is one layer of one
+	app's dock, and re-saving one to correct a name it holds would re-run validation nobody asked
+	for -- including the export, on an app's own record. Invalidating is then this function's own
+	job: `get_dock` reads a `Dock` through `get_cached_doc`, so the document's cache entry is the
+	one that goes stale. `rename_doc` happens to flush the whole site cache a few lines after
+	`after_rename` returns, which would cover it -- but a helper that leaves its own writes
+	visibly stale is only correct while its one caller stays the way it is, and this one costs two
+	queries.
 	"""
-	# Both columns, while both are read. `sidebar` is the new home of a shell name and `type` +
-	# `link_name` the old one, and a site may hold rows in either shape until 08 drops the pair.
-	named = [
-		({"parenttype": "Dock", "sidebar": old_name}, "sidebar"),
-		({"parenttype": "Dock", "type": "Sidebar", "link_name": old_name}, "link_name"),
-	]
-
-	layers = set()
-	for filters, column in named:
-		rows = frappe.get_all("Dock Item", filters=filters, pluck="parent", distinct=True)
-		if not rows:
-			continue
-		frappe.db.set_value("Dock Item", filters, column, new_name, update_modified=False)
-		layers.update(rows)
-
+	named = {"parenttype": "Dock", "sidebar": old_name}
+	layers = frappe.get_all("Dock Item", filters=named, pluck="parent", distinct=True)
 	if not layers:
 		return
 
+	frappe.db.set_value("Dock Item", named, "sidebar", new_name, update_modified=False)
+
 	# name *and* user in one read: `drop_dock_caches` wants the user, and fetching each layer as
 	# a document to get it would pull every one of its item rows along for a single column
-	for layer in frappe.get_all("Dock", filters={"name": ["in", list(layers)]}, fields=["name", "user"]):
+	for layer in frappe.get_all("Dock", filters={"name": ["in", layers]}, fields=["name", "user"]):
 		frappe.clear_document_cache("Dock", layer.name)
 		drop_dock_caches(layer.user)
 
@@ -545,31 +515,15 @@ def get_dock(app: str, user: str | None = None, standard: int = 0) -> "Dock | No
 
 
 def stored_row(row) -> dict:
-	"""One stored `Dock Item`, read as the shape every reader above here works in.
+	"""One stored `Dock Item`, read as the dict every reader above here works in.
 
-	**This is the expand half of the pair 08 contracts.** The new columns are preferred when a row
-	carries them, and the old typed pair is read when it does not -- so a layer saved before this
-	release, and an app whose dock is still a hook, both keep rendering. The whole of the old form
-	is these seven lines; nothing above here knows which shape it came from.
-
-	The old pair translates one way each:
-
-	    {"type": "Sidebar",   "name": "Stock"}  ->  sidebar = "Stock"
-	    {"type": "Workspace", "name": "GST"}    ->  link_type = "Workspace", link_to = "GST"
-
-	which is exactly what the two columns always meant, spelled where the reader can act on it.
+	A read of the columns and nothing else, now that the old typed pair is gone. It stays a
+	function rather than becoming a dict comprehension at each call site because it is also what
+	normalises a blank column to `None` -- the schema writes `""` where a reader wants "unset",
+	and `dock_key` would otherwise be built from two different spellings of nothing.
 	"""
-	entry = {field: row.get(field) or None for field in DESTINATION_FIELDS}
-
-	if not any(entry.values()):
-		legacy_type, legacy_name = row.get("type"), row.get("link_name") or row.get("name")
-		if legacy_type == "Sidebar":
-			entry["sidebar"] = legacy_name or None
-		elif legacy_type == "Workspace":
-			entry["link_type"], entry["link_to"] = "Workspace", legacy_name or None
-
 	return {
-		**entry,
+		**{field: row.get(field) or None for field in DESTINATION_FIELDS},
 		"icon": row.get("icon") or None,
 		"title": row.get("title") or None,
 		"added": int(row.get("added") or 0),

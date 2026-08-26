@@ -15,12 +15,17 @@ class DockItem(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		added: DF.Check
 		hidden: DF.Check
-		link_name: DF.DynamicLink | None
+		icon: DF.Icon | None
+		link_to: DF.DynamicLink | None
+		link_type: DF.Literal["", "Workspace", "URL"]
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		type: DF.Link | None
+		sidebar: DF.Link | None
+		title: DF.Data | None
+		url: DF.Data | None
 	# end: auto-generated types
 
 	pass

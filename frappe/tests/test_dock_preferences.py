@@ -270,11 +270,6 @@ def shipped_dock(records: dict[str, list[dict]]):
 				frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)
 
 
-# Every column a fixture may set on a row: the current ones, plus the pair 08 drops -- so a test
-# about a layer stored before this release can still author one.
-FIXTURE_ROW_FIELDS = (*DOCK_ITEM_FIELDS, "type", "link_name")
-
-
 def ship_dock(app: str, rows: list) -> str:
 	"""One app's `Dock` record, as if its file had just been imported. Returns its name."""
 	doc = frappe.new_doc("Dock")
@@ -282,7 +277,7 @@ def ship_dock(app: str, rows: list) -> str:
 	doc.standard = 1
 	for row in rows:
 		if isinstance(row, dict):
-			doc.append("items", {field: row.get(field) for field in FIXTURE_ROW_FIELDS})
+			doc.append("items", {field: row.get(field) for field in DOCK_ITEM_FIELDS})
 
 	with system_write("in_import"):
 		doc.save(ignore_permissions=True)
@@ -1043,29 +1038,20 @@ class TestTheRowShape(DockTestCase):
 		self.assertTrue(shell_exists("Build"), "a Sidebar named something other than its module")
 		self.assertFalse(shell_exists("Test Dock Shape Not A Shell"))
 
-	# -- the old form still works --------------------------------------------------------
+	# -- what the contract left --------------------------------------------------------
 
-	def test_a_row_stored_in_the_old_shape_still_resolves(self):
-		"""The expand half: 08 drops the columns, and until then a layer written before this
-		release keeps rendering. `Dock` is authored by hand here, because the save path only ever
-		writes the new columns."""
-		doc = frappe.new_doc("Dock")
-		doc.app = APP
-		doc.append("items", {"type": "Sidebar", "link_name": BETA})
-		doc.append("items", {"type": "Sidebar", "link_name": ALPHA})
-		doc.save(ignore_permissions=True)
+	def test_the_old_columns_are_gone_from_the_schema(self):
+		"""The contract half of the pair 06 opened. Nothing reads them, and the translation that
+		existed only because a child row's own primary key made `name` unusable goes with them."""
+		meta = frappe.get_meta("Dock Item")
+		self.assertIsNone(meta.get_field("type"))
+		self.assertIsNone(meta.get_field("link_name"))
 
-		self.assertEqual(names(dock_for()), [BETA, ALPHA])
-
-	def test_an_old_row_and_a_new_row_pointing_at_one_thing_share_a_key(self):
-		"""Which is what lets a layer written in either shape name a base row written in the
-		other -- the translation happens on the way in, so both sides key the same."""
-		self.assertEqual(
-			dock_key(stored_row({"type": "Sidebar", "link_name": ALPHA})), dock_key(sidebar(ALPHA))
-		)
-		self.assertEqual(
-			dock_key(stored_row({"type": "Workspace", "link_name": "GST"})), dock_key(workspace("GST"))
-		)
+	def test_a_blank_column_reads_as_unset(self):
+		"""What `stored_row` is still for once there is nothing to translate: the schema writes
+		an empty string where every reader wants "unset", and a key built from two spellings of
+		nothing would key one row two ways."""
+		self.assertEqual(dock_key(stored_row({"sidebar": ALPHA, "url": ""})), dock_key(sidebar(ALPHA)))
 
 
 class TestAnAppWithNoDock(DockTestCase):

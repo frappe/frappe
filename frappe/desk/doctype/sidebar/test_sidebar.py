@@ -521,9 +521,10 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Sidebar", self.RENAMED))
 
 	def test_a_dock_row_naming_the_shell_follows_the_rename(self):
-		"""A dock row *names* what it opens rather than referencing it -- `Dock`'s link
-		validation is a deliberate no-op -- so nothing else would carry the new name across and
-		the row would be left pointing at a sidebar that no longer answers."""
+		"""`Dock Item.sidebar` is an ordinary `Link`, so nothing the framework does on rename
+		touches it -- `rename_dynamic_links` walks Dynamic Links. `rename_sidebar_rows` is the
+		only thing carrying a shell rename onto the rails that name it, and without it the row
+		would be left pointing at a sidebar that no longer answers."""
 		doc = make_sidebar(self.MODULE)
 		# one `Dock` per app per person, enforced by a unique index, so whatever this site holds
 		# at that address goes first
@@ -533,7 +534,7 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 				"doctype": "Dock",
 				"app": "frappe",
 				"user": "test@example.com",
-				"items": [{"type": "Sidebar", "link_name": self.MODULE}],
+				"items": [{"sidebar": self.MODULE}],
 			}
 		).insert(ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "Dock", layer.name, force=True, ignore_permissions=True)
@@ -542,7 +543,7 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 			doc.title = self.RENAMED
 			doc.save(ignore_permissions=True)
 
-		self.assertEqual(frappe.get_doc("Dock", layer.name).items[0].link_name, self.RENAMED)
+		self.assertEqual(frappe.get_doc("Dock", layer.name).items[0].sidebar, self.RENAMED)
 
 	def test_deleting_the_module_deletes_every_sidebar_it_owns(self):
 		"""Deleting by name reached exactly one, which was every one of them while a module
