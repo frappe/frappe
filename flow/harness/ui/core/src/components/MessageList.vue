@@ -25,6 +25,7 @@
 				<UserBubble v-if="item.kind === 'user'" :entry="item.entry" />
 				<TurnFold
 					v-else-if="item.kind === 'turn-fold'"
+					:data-turn-fold="item.turnKey"
 					:label="item.label"
 					:expanded="item.expanded"
 					@toggle="toggleTurn(item.turnKey)"
@@ -171,9 +172,16 @@ function toBottom() {
 
 function toggleTurn(turnKey) {
 	const next = new Set(expandedTurnKeys.value)
-	if (next.has(turnKey)) next.delete(turnKey)
-	else next.add(turnKey)
+	const opening = !next.has(turnKey)
+	if (opening) next.add(turnKey)
+	else next.delete(turnKey)
 	expandedTurnKeys.value = next
+	if (!opening) return
+	// reveal the steps the fold just inserted below itself (no-op when visible)
+	void nextTick(() => {
+		const fold = scroller.value?.querySelector(`[data-turn-fold="${CSS.escape(turnKey)}"]`)
+		fold?.nextElementSibling?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+	})
 }
 
 watch(
