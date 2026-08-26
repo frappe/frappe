@@ -439,6 +439,46 @@ class TestShellBoot(IntegrationTestCase):
 		self.assertLess(len(json.dumps(get_boot("/apps/desk"), default=str)), 40_000)
 		self.assertNotIn("doc-field", slugs_for_app("frappe"))
 
+	def test_a_doctype_in_a_db_only_module_resolves_to_its_real_owner(self):
+		"""A Module Def created from the UI is in no modules.txt.
+
+		`frappe.local.module_app` misses it, so its doctypes would fall to the `frappe`
+		floor and be addressable at /apps/desk rather than the owning app's prefix. The
+		floor is deliberate for the *unresolvable* case (#42068) — it must not swallow a
+		case that is perfectly resolvable from the database.
+		"""
+		from frappe.shell.doctypes import clear_doctype_owners, get_doctype_owners
+
+		module = frappe.get_doc(
+			doctype="Module Def", module_name="Shell DB Only Module", app_name="crm"
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("Module Def", module.name, force=True))
+
+		doctype = frappe.get_doc(
+			doctype="DocType",
+			name="Shell Module Probe",
+			module=module.name,
+			custom=1,
+			fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doctype.name, force=True))
+
+		# The condition this actually guards against is a process whose `module_app` was
+		# built BEFORE the Module Def existed — a running worker, or any fresh process
+		# reading a cold cache. Inserting the Module Def rebuilds the map in *this*
+		# process, which would make the assertion pass either way, so the pre-existing
+		# state is restored explicitly.
+		stale = {
+			key: app for key, app in frappe.local.module_app.items() if app != "crm" or "shell" not in key
+		}
+		stale.pop(frappe.scrub(module.name), None)
+
+		with patch.object(frappe.local, "module_app", stale):
+			self.assertNotIn(frappe.scrub(module.name), frappe.local.module_app)
+			clear_doctype_owners()
+			self.assertEqual(get_doctype_owners().get("Shell Module Probe"), "crm")
+
 	def test_the_index_lists_installed_apps(self):
 		from frappe.shell.boot import get_boot
 

@@ -5,6 +5,7 @@
 # lands on the framework. Core doctypes stay single-homed at `/apps/desk`.
 
 import frappe
+from frappe.boot import get_boot_module_app
 from frappe.cache_manager import reset_metadata_version
 
 OWNER_CACHE_KEY = "shell_doctype_owners"
@@ -17,7 +18,13 @@ def slug(doctype: str) -> str:
 
 def build_doctype_owners() -> dict[str, str]:
 	"""`{doctype: app}` over every doctype on the site."""
-	module_app = frappe.local.module_app or {}
+	# `get_boot_module_app`, not the raw `frappe.local.module_app`. A Module Def created
+	# from the UI to host a custom doctype carries its app in `app_name` and never
+	# appears in any modules.txt, so the raw map misses it and the doctype would fall to
+	# the `frappe` floor — addressable at /apps/desk instead of its owner's prefix. The
+	# helper exists for exactly this question; its docstring names resolving a routed
+	# doctype's owning app as the reason.
+	module_app = get_boot_module_app()
 	owners = {}
 
 	# `istable=0`: a child table has no page and no address, so carrying one would be
