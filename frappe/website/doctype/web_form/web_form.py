@@ -677,31 +677,44 @@ def get_context(context):
 			)
 
 	def validate_data_field_options(self, doc):
-		"""Validate Data fields the Web Form types as Email, Name, Phone or URL.
+		"""Validate fields the Web Form types as a phone number, Email, Name or URL.
 
-		Options that the DocType field already carries are left alone, so the document's
-		own check reports them and the message stays the same.
+		A Web Form row can carry a type its DocType field does not: the `Phone`
+		fieldtype, or `Data` with `options`. `Document._validate_data_fields` reads the
+		DocType's own meta, so it never sees either, and nothing checks these values
+		unless we do it here.
+
+		Types the DocType field already carries are left alone, so the document reports
+		them itself and the message stays the same. The two spellings of a phone number
+		get the check their DocType counterpart would get, not one merged check.
 		"""
 		from frappe.utils import (
 			split_emails,
 			validate_email_address,
 			validate_name,
 			validate_phone_number,
+			validate_phone_number_with_country_code,
 			validate_url,
 		)
 
 		meta = frappe.get_meta(self.doc_type)
 
 		for field in self.web_form_fields:
-			if field.fieldtype != "Data" or not field.options:
+			value = doc.get(field.fieldname)
+			if not value:
 				continue
 
 			df = meta.get_field(field.fieldname)
-			if df and df.fieldtype == "Data" and df.options == field.options:
+
+			if field.fieldtype == "Phone":
+				if not (df and df.fieldtype == "Phone"):
+					validate_phone_number_with_country_code(value, field.fieldname)
 				continue
 
-			value = doc.get(field.fieldname)
-			if not value:
+			if field.fieldtype != "Data" or not field.options:
+				continue
+
+			if df and df.fieldtype == "Data" and df.options == field.options:
 				continue
 
 			if field.options == "Email":
