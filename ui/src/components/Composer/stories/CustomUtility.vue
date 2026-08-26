@@ -4,16 +4,23 @@
 			ref="composerRef"
 			v-model="body"
 			v-model:to="to"
-			:extensions="[insertDate]"
 			:upload-function="mockUpload"
-			placeholder="Try ⌘⇧E for today's date, or insert a template…"
+			placeholder="Insert a canned reply…"
 			@submit="onSend"
 		>
-			<!-- #actions adds host utilities beside the built-in attach button. -->
+			<!-- #actions adds host utilities beside the built-in attach button,
+			     inserting through the exposed editor. -->
 			<template #actions>
-				<Dropdown :options="templateOptions">
-					<Button variant="ghost" size="sm" label="Templates" />
-				</Dropdown>
+				<Tooltip text="Canned replies">
+					<Dropdown :options="cannedReplyOptions">
+						<Button
+							variant="ghost"
+							size="sm"
+							:icon="LucideZap"
+							aria-label="Canned replies"
+						/>
+					</Dropdown>
+				</Tooltip>
 			</template>
 		</EmailComposer>
 	</div>
@@ -22,8 +29,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { Extension } from "@tiptap/core";
-import { Button, Dropdown } from "frappe-ui";
+import { Button, Dropdown, Tooltip } from "frappe-ui";
+import LucideZap from "~icons/lucide/zap";
 import { EmailComposer } from "../index";
 import type { Recipient, UploadFunction } from "../types";
 
@@ -31,26 +38,16 @@ const body = ref("");
 const to = ref<Recipient[]>([{ email: "grace@example.com", label: "Grace Hopper" }]);
 const sent = ref(false);
 
-// A host tiptap extension, appended after the built-in RichTextKit.
-const insertDate = Extension.create({
-	name: "insertDate",
-	addKeyboardShortcuts() {
-		return {
-			"Mod-Shift-e": ({ editor }) =>
-				editor.commands.insertContent(new Date().toLocaleDateString()),
-		};
-	},
-});
+const composerRef = ref<InstanceType<typeof EmailComposer> | null>(null);
 
-const templates = [
+const cannedReplies = [
 	{ label: "Greeting", body: "<p>Hi Grace, thanks for reaching out!</p>" },
-	{ label: "Fix shipped", body: "<p>The fix is live — please refresh and try again.</p>" },
+	{ label: "Fix shipped", body: "<p>The fix is live. Please refresh and try again.</p>" },
 	{ label: "Sign-off", body: "<p>Best regards,<br>Sydney</p>" },
 ];
-const composerRef = ref<InstanceType<typeof EmailComposer> | null>(null);
-const templateOptions = templates.map((template) => ({
-	label: template.label,
-	onClick: () => composerRef.value?.editor?.commands.insertContent(template.body),
+const cannedReplyOptions = cannedReplies.map((reply) => ({
+	label: reply.label,
+	onClick: () => composerRef.value?.editor?.commands.insertContent(reply.body),
 }));
 
 const mockUpload: UploadFunction = async (file) => ({
