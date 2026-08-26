@@ -126,7 +126,7 @@ class FormMeta(Meta):
 		if self.custom:
 			return
 
-		from frappe.build import scrub_html_template
+		from frappe.bundler import scrub_html_template
 
 		templates = dict()
 		for fname in os.listdir(path):

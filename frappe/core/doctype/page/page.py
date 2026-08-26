@@ -151,7 +151,7 @@ class Page(Document):
 	def load_assets(self):
 		import os
 
-		from frappe.build import html_to_js_template
+		from frappe.bundler import html_to_js_template
 		from frappe.modules import get_module_path, scrub
 
 		self.script = ""

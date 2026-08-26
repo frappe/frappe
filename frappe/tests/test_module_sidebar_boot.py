@@ -178,10 +178,10 @@ class TestSidebarBoot(IntegrationTestCase):
 			self.assertNotIn(module, payload)
 			self.assertEqual(payload["Test Renamed Shell"]["module"], module)
 
-	def test_ten_of_frappes_eleven_keys_do_not_move(self):
+	def test_frappes_eleven_keys_do_not_move(self):
 		"""The re-key is meant to be invisible everywhere an author did not diverge. Frappe
-		ships eleven sidebars and titles ten of them after their module; only `Build` (under
-		`Build Tools`) is keyed by anything new."""
+		ships eleven sidebars and titles every one of them after its module, so none of the
+		keys is anything new."""
 		payload = get_module_sidebars()
 		shipped = frappe.get_all(
 			"Sidebar", filters={"standard": 1, "app": "frappe"}, fields=["name", "module"]
@@ -189,10 +189,9 @@ class TestSidebarBoot(IntegrationTestCase):
 		self.assertTrue(shipped, "sanity: frappe's sidebars are imported")
 
 		moved = [row.name for row in shipped if row.name != row.module and row.name in payload]
-		self.assertEqual(moved, ["Build"])
+		self.assertEqual(moved, [])
 		for row in shipped:
-			if row.name != "Build":
-				self.assertIn(row.name, payload)
+			self.assertIn(row.name, payload)
 
 	def test_resolution_walks_modules_not_rows(self):
 		"""The set being resolved is the site's modules, and the modules that happen to have a

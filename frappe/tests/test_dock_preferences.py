@@ -1707,7 +1707,6 @@ class TestTheFrameworksDock(IntegrationTestCase):
 	"""
 
 	TWELVE: typing.ClassVar[list[str]] = [
-		# the shell, not the module: `Build Tools`' sidebar is titled `Build`
 		"Build",
 		"Users",
 		"Email",

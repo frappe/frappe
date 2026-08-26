@@ -68,7 +68,7 @@ def get_code_only_modules() -> set[str]:
 	A module is two things at once -- a folder of code and a place in the dock -- and an app
 	splitting its navigation into semantic modules is left holding the first without wanting the
 	second. `frappe.Core` is the case this exists for: its doctypes, reports and pages stay put
-	while `System`, `Build Tools`, `Data` and `Users` carry the navigation, and without this it
+	while `System`, `Build`, `Data` and `Users` carry the navigation, and without this it
 	would keep a dock entry whose computed base is the leftover grab-bag of everything nobody
 	moved.
 

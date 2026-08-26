@@ -556,23 +556,21 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		self.assertEqual(frappe.get_all("Sidebar", filters={"module": self.MODULE}), [])
 
 	def test_the_sidebars_frappe_ships_are_all_named_by_their_titles(self):
-		"""Ten of the eleven are titled after their module, so nothing about them moves. The
-		eleventh is `Build Tools`', titled `Build` -- the module is called `Build Tools` only
-		because a `frappe/build/` folder would collide with `frappe/build.py`, which is a
-		packaging accident rather than a navigation fact -- and its record name and its exported
-		path move here, once."""
+		"""All eleven are titled after the module that owns them, so naming by title moves
+		nothing: a shipped sidebar's record name, its title and its module are one string, and
+		its exported path follows that module's folder."""
 		import os
 
 		shipped = frappe.get_all(
 			"Sidebar", filters={"standard": 1, "app": "frappe"}, fields=["name", "module", "title"]
 		)
-		self.assertEqual([row.name for row in shipped if row.name != row.module], ["Build"])
+		self.assertEqual([row.name for row in shipped if row.name != row.module], [])
 		for row in shipped:
 			self.assertEqual(row.name, row.title)
 
 		self.assertEqual(
 			frappe.get_doc("Sidebar", "Build").exported_file_path(),
-			os.path.join(frappe.get_module_path("Build Tools"), "sidebar", "build", "build.json"),
+			os.path.join(frappe.get_module_path("Build"), "sidebar", "build", "build.json"),
 		)
 
 

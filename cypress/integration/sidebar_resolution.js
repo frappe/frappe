@@ -339,7 +339,7 @@ context("Cold-entry sidebar resolution", () => {
 	// both list the entity, and it names the home for an entity none of them lists.
 	const code_only_world = {
 		sidebars: {
-			"Build Tools": ["Module Def", "Translation", "Client Script"],
+			Build: ["Module Def", "Translation", "Client Script"],
 			Data: ["Data Import"],
 			Email: ["Communication"],
 			Setup: [
@@ -361,9 +361,9 @@ context("Cold-entry sidebar resolution", () => {
 		},
 		pages: { "permission-manager": { module: "Core" } },
 		heirs: {
-			Core: ["System", "Build Tools", "Data", "Users", "Email"],
-			Custom: ["Build Tools"],
-			Desk: ["Build Tools"],
+			Core: ["System", "Build", "Data", "Users", "Email"],
+			Custom: ["Build"],
+			Desk: ["Build"],
 		},
 	};
 
@@ -383,7 +383,7 @@ context("Cold-entry sidebar resolution", () => {
 		});
 	});
 
-	// Both System and Build Tools list `Module Def`; the declaration order decides, which is why the
+	// Both System and Build list `Module Def`; the declaration order decides, which is why the
 	// hook is a list and appending to it is a decision rather than a transcription.
 	it("breaks a tie between two listing heirs by declaration order", () => {
 		resolve({ ...code_only_world, route: ["List", "Module Def"] }, (resolved) => {
@@ -417,7 +417,7 @@ context("Cold-entry sidebar resolution", () => {
 				route: ["List", "Prepared Report"],
 			},
 			(resolved) => {
-				expect(resolved.sidebar).to.equal("Build Tools");
+				expect(resolved.sidebar).to.equal("Build");
 				expect(resolved.reason).to.contain("no sidebar links the entity at all");
 			}
 		);

@@ -57,7 +57,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.build import bundle
+	from frappe.bundler import bundle
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -129,7 +129,7 @@ def run_after_build_hook(built_apps: list[str]):
 @click.option("--apps", help="Watch assets for specific apps")
 def watch(apps=None):
 	"Watch and compile JS and CSS files as and when they change"
-	from frappe.build import watch
+	from frappe.bundler import watch
 
 	frappe.init("")
 	watch(apps)

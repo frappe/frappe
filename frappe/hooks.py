@@ -621,14 +621,14 @@ add_to_apps_screen = [
 #   2. it names the default home -- an entity no heir lists at all lands in the first heir that
 #      this user can see.
 # `System` leads `Core` deliberately: it is the internals shell (settings, versions, logs, jobs),
-# and leading with `Build Tools` instead would turn the developer-tooling sidebar into the dumping
+# and leading with `Build` instead would turn the developer-tooling sidebar into the dumping
 # ground for every unplaced `Core` internal.
 #
 # A mapping can rot where an inference cannot: `Email` is here because `Communication` is a `Core`
 # doctype that only frappe's `Email` sidebar links, which the list above this comment used to
 # miss. Keep it swept.
 code_only_modules = {
-	"Core": ["System", "Build Tools", "Data", "Users", "Email"],
-	"Custom": ["Build Tools"],
-	"Desk": ["Build Tools"],
+	"Core": ["System", "Build", "Data", "Users", "Email"],
+	"Custom": ["Build"],
+	"Desk": ["Build"],
 }
