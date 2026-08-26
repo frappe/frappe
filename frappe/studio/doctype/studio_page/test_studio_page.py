@@ -4,11 +4,11 @@
 # import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from studio.export import remove_null_fields
+from studio.export import remove_empty_values
 
 
 class TestStudioPage(FrappeTestCase):
-	def test_remove_null_fields(self):
+	def test_remove_empty_values(self):
 		test_dict = {
 			"keep_this": "value",
 			"keep_false": False,
@@ -28,7 +28,7 @@ class TestStudioPage(FrappeTestCase):
 				}
 			],
 		}
-		remove_null_fields(test_dict)
+		remove_empty_values(test_dict)
 		self.assertEqual(
 			test_dict,
 			{

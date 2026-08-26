@@ -14,7 +14,6 @@ from studio.export import (
 	can_export,
 	delete_folder,
 	parse_json,
-	remove_null_fields,
 	write_code_file,
 	write_document_file,
 )
@@ -265,6 +264,7 @@ class StudioPage(Document):
 		doc.name = self.get_export_docname()
 		doc.blocks = parse_json(doc.blocks)
 		doc.draft_blocks = parse_json(doc.draft_blocks)
+
 	def before_import(self):
 		self.name = self.page_name
 

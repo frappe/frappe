@@ -9,7 +9,7 @@ from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
-from studio.export import can_export, delete_folder, remove_null_fields, write_document_file
+from studio.export import can_export, delete_folder, write_document_file
 from studio.realtime import publish_doc_change
 
 
@@ -132,9 +132,6 @@ class StudioApp(WebsiteGenerator):
 		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
 			self.delete_app_folder()
 		publish_doc_change("Studio App", self.name, self.name)
-
-	def before_export(self, doc):
-		remove_null_fields(doc)
 
 	def on_trash(self):
 		for page in self.pages:

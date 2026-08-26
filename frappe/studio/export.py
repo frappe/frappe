@@ -16,7 +16,7 @@ def write_document_file(doc, folder=None, exclude_fields=None):
 	doc.run_method("before_export", doc_export)
 	doc_export = strip_default_fields(doc, doc_export)
 	# Fields written to a companion file (e.g. a Code field exported as .js) are dropped from JSON.
-	remove_null_fields(doc_export)
+	remove_empty_values(doc_export)
 	for field in exclude_fields or []:
 		doc_export.pop(field, None)
 
@@ -75,8 +75,8 @@ def parse_json(field):
 	return
 
 
-def remove_null_fields(docdict):
-	"""remove null and empty fields"""
+def remove_empty_values(docdict):
+	"""Recursively remove null and empty fields"""
 	to_remove = []
 	for attr, value in docdict.items():
 		if attr in PRESERVED_EMPTY_PROPERTIES:
@@ -88,7 +88,7 @@ def remove_null_fields(docdict):
 			else:
 				for v in value:
 					if isinstance(v, dict):
-						remove_null_fields(v)
+						remove_empty_values(v)
 
 				value[:] = [v for v in value if not (isinstance(v, dict) and not v)]
 
@@ -99,7 +99,7 @@ def remove_null_fields(docdict):
 			if not value:
 				to_remove.append(attr)
 			else:
-				remove_null_fields(value)
+				remove_empty_values(value)
 				if not value:
 					to_remove.append(attr)
 		elif value is None or value == "":
