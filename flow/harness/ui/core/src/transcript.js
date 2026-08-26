@@ -611,15 +611,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		withCopyRows.push(item)
 		if (lastTerminalKeyByTurn.get(item.turnKey) !== item.key) continue
 		const terminal = terminalTextByTurn.get(item.turnKey)
-		withCopyRows.push({
-			kind: "turn-copy",
-			key: `tc:${item.key}`,
-			turnKey: item.turnKey,
-			text: terminal.text.join("\n\n"),
-			ts: item.entry?.ts ?? null,
-		})
-		// the copy row must directly follow the terminal text (its hover-reveal
-		// pairs adjacent siblings), so the files card lands after it
+		// the files card folds into the response; the copy/time row closes the turn
 		const changed = fileChangesByTurn.get(item.turnKey)
 		if (changed?.size) {
 			withCopyRows.push({
@@ -629,6 +621,13 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 				files: [...changed.values()],
 			})
 		}
+		withCopyRows.push({
+			kind: "turn-copy",
+			key: `tc:${item.key}`,
+			turnKey: item.turnKey,
+			text: terminal.text.join("\n\n"),
+			ts: item.entry?.ts ?? null,
+		})
 	}
 
 	const foldableByTurn = new Map()

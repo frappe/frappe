@@ -131,6 +131,7 @@
 	transition: opacity 0.12s ease;
 }
 .flow-thread > :hover + .flow-turn-copy,
+.flow-thread > :hover + .flow-turn-files + .flow-turn-copy,
 .flow-turn-copy:hover,
 .flow-turn-copy:focus-within {
 	opacity: 1;
