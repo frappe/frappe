@@ -12,7 +12,7 @@
 		</div>
 		<div v-if="mode === 'files'" class="flex-none px-1.5 pt-1.5">
 			<div
-				class="flex h-8 items-center gap-2 rounded-md border border-outline-gray-2 bg-surface-white px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
+				class="flex h-8 items-center gap-2 rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
 			>
 				<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
 				<input
@@ -23,7 +23,7 @@
 				/>
 				<button
 					v-if="fileQuery"
-					class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-4 hover:text-ink-gray-8"
+					class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:text-ink-gray-8"
 					title="Clear"
 					@click="fileQuery = ''"
 				>
@@ -39,7 +39,7 @@
 					:key="file.path"
 					role="button"
 					tabindex="0"
-					class="flex cursor-pointer items-center gap-1.5 rounded py-[5px] pl-2 pr-1.5 text-sm hover:bg-surface-gray-2"
+					class="flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pl-2 pr-1.5 text-sm hover:bg-surface-gray-2"
 					:class="
 						activeTab?.path === file.path
 							? 'bg-surface-gray-3 font-medium text-ink-gray-9'
@@ -54,8 +54,8 @@
 					</span>
 					<span class="min-w-0 truncate">{{ fileName(file.path) }}</span>
 					<span class="flex-1" />
-					<span class="flex-none font-mono text-2xs text-ink-green-3">+{{ file.added }}</span>
-					<span class="flex-none font-mono text-2xs text-ink-red-3">-{{ file.removed }}</span>
+					<span class="flex-none font-mono text-2xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
+					<span class="flex-none font-mono text-2xs text-ink-red-6">-{{ file.removed }}</span>
 				</div>
 				<div v-if="!changedFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
 					No files changed in this session
@@ -72,7 +72,7 @@
 						:key="row.path"
 						:role="row.type === 'file' ? 'button' : undefined"
 						:tabindex="row.type === 'file' ? 0 : undefined"
-						class="relative flex items-center gap-1.5 rounded py-[5px] pr-1.5 text-sm"
+						class="relative flex items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm"
 						:class="
 							row.type === 'file'
 								? 'cursor-pointer text-ink-gray-8 hover:bg-surface-gray-2'
@@ -122,7 +122,7 @@
 
 <script setup>
 import { computed, inject, ref, watch } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import { aggregateFileChanges, fileName } from "../transcript.js"
