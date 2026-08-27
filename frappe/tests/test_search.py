@@ -206,6 +206,13 @@ class TestSearch(IntegrationTestCase):
 		# the result shape must not change: a mismatched strip would drop a real column
 		self.assertEqual(len(empty[0]), len(typed[0]))
 
+	def test_empty_search_still_orders_by_idx(self):
+		"""Dropping the constant relevance key must not change the order of an empty search."""
+		frappe.db.set_value("Language", "es", {"enabled": 1, "idx": 500})
+
+		# page_length=1 leaves the python relevance_sorter no second row to reorder
+		self.assertEqual("es", search_link("Language", "", page_length=1)[0]["value"])
+
 	def test_search_with_paren(self):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		result = search(txt="(txt)")
