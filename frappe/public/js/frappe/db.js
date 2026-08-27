@@ -142,7 +142,7 @@ frappe.db = {
 					doctype,
 					txt,
 					filters,
-					page_length, // NOTE: 0 as page_length, would correspond to no LIMIT clause in the final SQL QUERY. Reference `get_query` in `query.py` module.
+					page_length,
 				},
 				callback(r) {
 					resolve(r.message);
