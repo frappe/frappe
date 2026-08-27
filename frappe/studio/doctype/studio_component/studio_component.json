@@ -40,7 +40,8 @@
   },
   {
    "fieldname": "block",
-   "fieldtype": "JSON",
+   "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
    "label": "Block"
   },
   {
@@ -53,7 +54,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-25 23:59:31.584994",
+ "modified": "2026-08-27 12:50:27.879257",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
