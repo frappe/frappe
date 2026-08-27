@@ -1439,10 +1439,9 @@ frappe.views.CommunicationComposer = class {
 				this.selected_attachments?.delete(attachment.name);
 				$row.remove();
 			},
-			icon,
-			false,
-			"xs"
+			icon
 		);
+		$pill.find(".remove-btn .icon").removeClass("icon-sm").addClass("icon-xs");
 		return $row.append($pill);
 	}
 
