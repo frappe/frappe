@@ -74,6 +74,11 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX):
 
 	Delegation matters as much as it does in `hooks_declaring`: anything asked about a
 	real app must still get the real answer.
+
+	The invented app exists in those three answers and **nowhere on disk**, so do not
+	route a path this app does not claim while it is active: anything that falls past
+	`ShellPage` reaches `StaticPage`, which resolves every app to `get_app_path(app,
+	"www")` and raises `ModuleNotFoundError` on one that was never installed.
 	"""
 	real_hooks = frappe.get_hooks
 	real_active = frappe.get_active_apps
@@ -195,13 +200,13 @@ class TestShellRouting(IntegrationTestCase):
 	def test_desk_v1_is_untouched(self):
 		"""This map must coexist with v1, not replace it.
 
-		`/desk` is v1's, and stays v1's, even though the framework claims `/apps/desk`.
-		A second app's bare name is covered by the prefix being claimed only under
-		`/apps` — see `test_a_bare_prefix_resolves`.
+		`/desk` is v1's and stays v1's, even though the framework claims `/apps/desk`.
+		That a *prefix* is claimed only under `/apps` — never at the bare name — is
+		`split_shell_path`'s to prove, and `test_split_shell_path` does; asserting it
+		here would mean routing a bare invented name, which reaches `StaticPage` and the
+		filesystem (see `a_second_app`).
 		"""
 		self.assertNotIsInstance(self.renderer_for("desk"), ShellPage)
-		with a_second_app() as (_, prefix):
-			self.assertNotIsInstance(self.renderer_for(prefix), ShellPage)
 
 	def test_a_route_miss_inside_a_prefix_serves_the_shell_at_200(self):
 		"""A client-side route miss, not a server 404.
