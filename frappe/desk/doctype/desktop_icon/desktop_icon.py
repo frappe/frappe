@@ -157,19 +157,14 @@ def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None)
 	elif icon.icon_type == "App":
 		return _has_app_permission(icon)
 	else:
-		# Mirrors the boot builder's rule: a sidebar the user can see nothing in is unusable, so
-		# its icon does not belong on the desktop either. The two must stay in step, since an icon
-		# for an empty sidebar leads nowhere.
+		# Carrying the shell is the whole test: `resolve_sidebar` already applied the module gate
+		# and dropped a shell with nothing this user can open. Re-testing the items here would
+		# restate that rule and could drift from it.
 		#
 		# An icon names a module and the payload is keyed by shell, so the module has to be
-		# resolved to the shell it leads to. The naming rule answers that for every sidebar that
-		# was not renamed, and `sidebar_for_module` covers the rest.
+		# resolved to the shell it leads to. `sidebar_for_module` covers a renamed sidebar.
 		sidebar = sidebar_for_module(bootinfo.module_sidebars or {}, icon_module or icon.label)
-		if not sidebar:
-			return False
-
-		items = sidebar["items"]
-		return bool(items) and any(item["type"] != "Section Break" for item in items)
+		return bool(sidebar)
 
 
 def _has_app_permission(icon) -> bool:

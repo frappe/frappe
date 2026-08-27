@@ -495,6 +495,50 @@ class TestSidebarBoot(IntegrationTestCase):
 
 			self.assertNotIn(module, get_module_sidebars())
 
+	def test_a_module_is_dropped_when_the_user_can_open_nothing_in_it(self):
+		"""A shell needs one item the user can open; being in reach does not earn one.
+
+		So module visibility follows item permissions, with the known cost that a doctype curated
+		into a foreign module makes that module visible to anyone who can read it (#39868).
+
+		Staged with a doctype only System Manager may read, so the permission filter is what
+		empties the base.
+		"""
+		user = make_user("test-shell-nothing-open@example.com", ["Desk User"])
+		with sidebarless_module("Test Shell Nothing Open Module") as module:
+			with system_write():
+				doc = frappe.get_doc({"doctype": "Sidebar", "module": module})
+				doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "Role"})
+				doc.insert(ignore_permissions=True)
+
+			self.assertIsNotNone(
+				resolve_sidebar(module, "Administrator"),
+				"the shell exists for someone who can open its item",
+			)
+			self.assertIsNone(
+				resolve_sidebar(module, user.name),
+				"and is dropped for someone who cannot, rather than rendering blank",
+			)
+
+	def test_a_module_out_of_reach_loses_its_shell_even_with_items(self):
+		"""The other half of the same rule: blocking is what hides a module, and it hides one
+		whose items the user could otherwise have seen."""
+		user = make_user("test-shell-out-of-reach@example.com", ["Desk User"])
+		with sidebarless_module("Test Shell Out Of Reach Module") as module:
+			with system_write():
+				doc = frappe.get_doc({"doctype": "Sidebar", "module": module})
+				doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+				doc.insert(ignore_permissions=True)
+
+			self.assertIsNotNone(resolve_sidebar(module, user.name))
+
+			blocked = frappe.get_doc("User", user.name)
+			blocked.append("block_modules", {"module": module})
+			blocked.save(ignore_permissions=True)
+			frappe.clear_cache(user=user.name)
+
+			self.assertNotIn(module, get_visible_modules([module], user.name))
+
 	def test_legacy_keyspaces_are_gone(self):
 		"""One keyspace, the exact-case module name. The desk used to reconcile four for the same
 		identity, across three overlapping boot payloads.

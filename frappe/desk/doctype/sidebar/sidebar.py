@@ -1165,10 +1165,19 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 	# these arrive later.
 	filtered = append_derived_items(filtered, context.private_rows.get(base.module), context.perm_ctx)
 
-	# A sidebar left with nothing but Section Breaks is unusable, so the shell is dropped.
-	# `is_icon_permitted` applies the same rule for desktop icons and the two must stay in step.
-	# This runs after customizations, so hiding every item does hide the sidebar.
-	if not any(i["type"] != "Section Break" for i in filtered):
+	# A shell needs at least one item this user can open, or it is dropped. Section Breaks do not
+	# count, since a header links nowhere; private pages and added rows are already in `filtered`.
+	#
+	# The lower of two tiers. `User.block_modules` is the upper one, applied upstream in
+	# `get_navigable_modules`; it names modules, so this is a fallback for a module-rooted shell
+	# and the only gate for an app-rooted one.
+	#
+	# Accepted cost: a doctype curated into a foreign module makes that module visible to anyone
+	# who can read it (#39868). Without the rule an unconfigured site shows every module to
+	# everyone, blank.
+	#
+	# `is_icon_permitted` mirrors this; the two must stay in step.
+	if not any(row.get("type") != "Section Break" for row in filtered):
 		return None
 
 	label = base.title or shell
