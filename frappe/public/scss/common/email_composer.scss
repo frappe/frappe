@@ -149,10 +149,6 @@
 		max-height: none;
 	}
 
-	& ~ .modal-backdrop {
-		display: none !important;
-	}
-
 	.modal-body .form-layout {
 		display: none !important;
 	}
@@ -477,43 +473,6 @@
 		--bt-fg: var(--ink-gray-6);
 	}
 
-	.email-composer-html-toggles {
-		display: flex;
-		align-items: center;
-		gap: var(--padding-md);
-		padding: var(--padding-xs) var(--padding-md);
-		border-bottom: 1px solid var(--border-color);
-		font-size: var(--text-sm);
-
-		&.hidden {
-			display: none;
-		}
-
-		.frappe-control,
-		.checkbox {
-			margin: 0;
-		}
-
-		label {
-			display: flex;
-			align-items: center;
-			gap: var(--padding-xs);
-			margin: 0;
-			padding: 0;
-		}
-
-		.disp-area,
-		.help,
-		.help-box {
-			display: none;
-		}
-	}
-
-	// Expand button doesn't fit inside the floating compose.
-	.email-composer-message-area .frappe-control[data-fieldname="html_content"] .btn {
-		display: none;
-	}
-
 	.email-composer-message-area {
 		display: flex;
 		flex-direction: column;
@@ -524,10 +483,6 @@
 		// The content field control isn't a direct child either — render_composer_layout
 		// appends it into this anonymous `[data-slot="content"]` div — so it needs
 		// pulling into the flex chain the same way modal-body's own wrapper does.
-		// Only "content", not the sibling `[data-slot="html_content"]` slot: that
-		// one stays hidden until an HTML template is picked, but its own div isn't
-		// — giving it flex:1 too would split the area's height evenly between an
-		// empty box and the real editor instead of handing it all to the editor.
 		> [data-slot="content"] {
 			display: flex;
 			flex-direction: column;
