@@ -590,17 +590,6 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "content",
 				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
 			},
-			{
-				fieldtype: "Button",
-				label: __("Add Signature"),
-				fieldname: "add_signature",
-				hidden: 1,
-				click: async () => {
-					let sender_email = this.dialog.get_value("sender") || "";
-					this.content_set = false;
-					await this.set_content(sender_email);
-				},
-			},
 			{ fieldtype: "Section Break" },
 			{
 				label: __("Send me a copy"),
@@ -683,6 +672,18 @@ frappe.views.CommunicationComposer = class {
 		return fields;
 	}
 
+	// Recipient fields are MultiSelect Pills and store an array, but callers pass
+	// comma-separated strings (frm.email_doc, timeline replies, reply-all, undo).
+	// The control's own validate() slices a string like an array, so it has to be
+	// split before it reaches set_value.
+	as_recipient_list(value) {
+		if (Array.isArray(value)) return value;
+		return String(value ?? "")
+			.split(/[,;\n]/)
+			.map((email) => email.trim())
+			.filter(Boolean);
+	}
+
 	get_default_recipients(fieldname) {
 		// MultiSelect Pills holds an array of recipients (one pill each).
 		if (this.frm?.events.get_email_recipients) {
@@ -746,13 +747,7 @@ frappe.views.CommunicationComposer = class {
 		this.setup_attach();
 		this.setup_email();
 		this.setup_last_edited_communication();
-		this.setup_add_signature_button();
 		this.set_values();
-	}
-
-	setup_add_signature_button() {
-		let has_sender = this.dialog.has_field("sender");
-		this.dialog.set_df_property("add_signature", "hidden", !has_sender);
 	}
 
 	setup_multiselect_queries() {
@@ -1017,13 +1012,13 @@ frappe.views.CommunicationComposer = class {
 		};
 		// If same user replies to their own email, set recipients to last email recipients
 		if (this.last_email.sender == sender) {
-			fields.recipients.set_value(this.last_email.recipients);
+			fields.recipients.set_value(this.as_recipient_list(this.last_email.recipients));
 			if (this.reply_all) {
-				fields.cc.set_value(this.last_email.cc);
-				fields.bcc.set_value(this.last_email.bcc);
+				fields.cc.set_value(this.as_recipient_list(this.last_email.cc));
+				fields.bcc.set_value(this.as_recipient_list(this.last_email.bcc));
 			}
 		} else {
-			fields.recipients.set_value(this.last_email.sender);
+			fields.recipients.set_value(this.as_recipient_list(this.last_email.sender));
 			if (this.reply_all) {
 				// if sending reply add ( last email's recipients - sender's email_id ) to cc.
 				const recipients = this.last_email.recipients.split(",").map((r) => r.trim());
@@ -1038,7 +1033,7 @@ frappe.views.CommunicationComposer = class {
 					.filter((r) => !cc_array.includes(r) && r != sender)
 					.join(", ");
 				this.cc = this.cc.replace(sender + ", ", "");
-				fields.cc.set_value(this.cc);
+				fields.cc.set_value(this.as_recipient_list(this.cc));
 			}
 		}
 	}
@@ -1142,9 +1137,10 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	async set_values() {
-		for (const fieldname of ["recipients", "cc", "bcc", "sender"]) {
-			await this.dialog.set_value(fieldname, this[fieldname] || "");
+		for (const fieldname of ["recipients", "cc", "bcc"]) {
+			await this.dialog.set_value(fieldname, this.as_recipient_list(this[fieldname]));
 		}
+		await this.dialog.set_value("sender", this.sender || "");
 
 		const subject = this.subject ? frappe.utils.html2text(this.subject) : "";
 		await this.dialog.set_value("subject", subject);
@@ -1159,10 +1155,11 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		// Reveal CC/BCC rows (and mark their toggle active) when values are
-		// pre-filled, e.g. reply-all.
+		// pre-filled, e.g. reply-all. These are MultiSelect Pills, so the value is
+		// an array — check length, since an empty array is truthy.
 		if (this.$composer) {
 			for (const type of ["cc", "bcc"]) {
-				if (this.dialog.get_value(type)) {
+				if (this.dialog.get_value(type)?.length) {
 					this.$composer.find(`.email-composer-${type}-row`).removeClass("hidden");
 					this.$composer
 						.find(`.email-composer-toggle[data-target="${type}"]`)
@@ -1321,17 +1318,6 @@ frappe.views.CommunicationComposer = class {
 	setup_print() {
 		// print formats
 		const fields = this.dialog.fields_dict;
-
-		// toggle print format and letter head
-		$(fields.attach_document_print.input).click(function () {
-			const checked = $(this).prop("checked");
-			$(fields.select_print_format.wrapper).toggle(checked);
-			$(fields.select_letter_head.wrapper).toggle(checked);
-		});
-
-		// select print format
-		$(fields.select_print_format.wrapper).toggle(false);
-		$(fields.select_letter_head.wrapper).toggle(false);
 
 		if (this.frm) {
 			const print_formats = frappe.meta.get_print_formats(this.frm.meta.name);
@@ -1577,15 +1563,7 @@ frappe.views.CommunicationComposer = class {
 
 		if (this.attach_document_print) {
 			$(fields.attach_document_print.input).click();
-			$(fields.select_print_format.wrapper).toggle(true);
 		}
-
-		$(fields.send_me_a_copy.input).on("click", () => {
-			// update send me a copy (make it sticky)
-			const val = fields.send_me_a_copy.get_value();
-			frappe.db.set_value("User", frappe.session.user, "send_me_a_copy", val);
-			frappe.boot.user.send_me_a_copy = val;
-		});
 	}
 
 	send_action() {
@@ -1622,21 +1600,6 @@ frappe.views.CommunicationComposer = class {
 
 	get_values() {
 		const form_values = this.dialog.get_values();
-
-		// Recipient fields are MultiSelect Pills, so recipients/cc/bcc are arrays.
-		for (let i = 0, l = this.dialog.fields.length; i < l; i++) {
-			const df = this.dialog.fields[i];
-
-			if (df.is_cc_checkbox) {
-				// concat the doc field into cc / bcc
-				if (form_values[df.fieldname]) {
-					form_values.cc = [].concat(form_values.cc || [], df.fieldname);
-					form_values.bcc = [].concat(form_values.bcc || [], df.fieldname);
-				}
-
-				delete form_values[df.fieldname];
-			}
-		}
 
 		// The send RPC (communication.email.make) expects comma-separated strings.
 		["recipients", "cc", "bcc"].forEach((field) => {
