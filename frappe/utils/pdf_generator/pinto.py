@@ -8,7 +8,7 @@ import tempfile
 import frappe
 from frappe import _
 from frappe.utils.data import cstr
-from frappe.utils.pdf import get_host_url
+from frappe.utils.pdf import get_host_url, inline_private_images
 
 GENERATOR = "pinto"
 DEFAULT_TIMEOUT = 120
@@ -42,23 +42,43 @@ def build_config(print_format: str | None, options: dict) -> dict:
 	"""The `--options` payload pinto expects: the wkhtmltopdf-style options plus the
 	site-local values a standalone binary cannot read for itself."""
 	print_settings = frappe.get_cached_doc("Print Settings")
+	page_size, page_options = resolve_page_size(print_settings, options)
 
 	return {
-		"options": options,
+		"options": {**options, **page_options},
 		"is_print_designer": bool(
 			print_format and frappe.get_cached_value("Print Format", print_format, "print_designer")
 		),
 		"host_url": get_host_url(),
 		"bench_sites_path": os.path.join(frappe.utils.get_bench_path(), "sites"),
 		"site_public_path": frappe.get_site_path("public"),
-		"default_page_size": print_settings.pdf_page_size or "A4",
-		"default_page_height": _page_dimension(print_settings.pdf_page_height),
-		"default_page_width": _page_dimension(print_settings.pdf_page_width),
+		"default_page_size": page_size,
 	}
 
 
-def _page_dimension(value) -> str | None:
-	return cstr(value) if value else None
+def resolve_page_size(print_settings, options: dict) -> tuple[str, dict]:
+	"""Mirror `prepare_options`: turn a "Custom" page size into explicit dimensions.
+
+	pinto resolves geometry from `page-size`/`page-width`/`page-height` only — it has no
+	notion of the "Custom" sentinel, and reads bare Print Settings dimensions as pixels.
+	"""
+	page_size = options.get("page-size") or print_settings.pdf_page_size or "A4"
+	if page_size != "Custom":
+		return page_size, {}
+
+	dimensions = {}
+	for option, field in (("page-height", "pdf_page_height"), ("page-width", "pdf_page_width")):
+		value = options.get(option) or print_settings.get(field)
+		if value:
+			dimensions[option] = with_unit(value)
+
+	return "A4", dimensions
+
+
+def with_unit(value, unit: str = "mm") -> str:
+	"""Print Settings stores page dimensions as bare floats; CSS lengths need a unit."""
+	value = cstr(value).strip()
+	return value if value[-1:].isalpha() else f"{value}{unit}"
 
 
 def render(html: str, config: dict) -> bytes:
@@ -125,9 +145,11 @@ def get_pinto_pdf(print_format, html, options, output=None, pdf_generator=None):
 	options = dict(options or {})
 	password = options.pop("password", None)
 
-	pdf = render(html, build_config(print_format, options))
+	pdf = render(inline_private_images(html), build_config(print_format, options))
 
-	if password:
+	# An `output` writer merges the pages downstream and cannot read an encrypted PDF;
+	# wkhtmltopdf skips encryption in the same case.
+	if password and not output:
 		pdf = encrypt(pdf, password)
 
 	return pdf

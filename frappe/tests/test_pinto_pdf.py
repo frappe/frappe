@@ -6,6 +6,8 @@ import os
 import subprocess
 from unittest.mock import patch
 
+from pypdf import PdfReader
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils.pdf_generator import pinto
@@ -42,13 +44,52 @@ class TestPintoPdf(IntegrationTestCase):
 
 	def test_password_is_applied_by_frappe_not_pinto(self):
 		"""pinto's own encryption silently no-ops without qpdf, so Frappe encrypts."""
-		from pypdf import PdfReader
-
 		with patch.object(pinto, "render", return_value=_blank_pdf()) as render:
 			pdf = pinto.get_pinto_pdf(None, "<p>hi</p>", {"password": "s3cret"}, pdf_generator="pinto")
 
 		self.assertNotIn("password", render.call_args.args[1]["options"])
 		self.assertTrue(PdfReader(io.BytesIO(pdf)).is_encrypted)
+
+	def test_output_writer_gets_unencrypted_pages(self):
+		"""print_utils merges returned bytes into the writer, which cannot read an encrypted PDF."""
+		from pypdf import PdfWriter
+
+		with patch.object(pinto, "render", return_value=_blank_pdf()):
+			pdf = pinto.get_pinto_pdf(
+				None, "<p>hi</p>", {"password": "s3cret"}, output=PdfWriter(), pdf_generator="pinto"
+			)
+
+		self.assertFalse(PdfReader(io.BytesIO(pdf)).is_encrypted)
+
+	def test_custom_page_size_becomes_explicit_mm_dimensions(self):
+		print_settings = frappe.get_cached_doc("Print Settings")
+		print_settings.pdf_page_size = "Custom"
+		print_settings.pdf_page_height = 100
+		print_settings.pdf_page_width = 200.5
+
+		page_size, dimensions = pinto.resolve_page_size(print_settings, {})
+
+		self.assertNotEqual(page_size, "Custom")
+		self.assertEqual(dimensions, {"page-height": "100mm", "page-width": "200.5mm"})
+
+	def test_explicit_page_size_passes_through(self):
+		print_settings = frappe.get_cached_doc("Print Settings")
+		print_settings.pdf_page_size = "Custom"
+
+		self.assertEqual(pinto.resolve_page_size(print_settings, {"page-size": "Letter"}), ("Letter", {}))
+
+	def test_with_unit_keeps_existing_units(self):
+		self.assertEqual(pinto.with_unit(210), "210mm")
+		self.assertEqual(pinto.with_unit("8.5in"), "8.5in")
+
+	def test_private_images_are_inlined(self):
+		with (
+			patch.object(pinto, "render", return_value=_blank_pdf()),
+			patch.object(pinto, "inline_private_images", side_effect=lambda html: html) as inline,
+		):
+			pinto.get_pinto_pdf(None, "<p>hi</p>", {}, pdf_generator="pinto")
+
+		inline.assert_called_once_with("<p>hi</p>")
 
 	def test_render_reports_binary_failure(self):
 		error = subprocess.CalledProcessError(1, "pinto", stderr=b"Error: parsing options JSON")
