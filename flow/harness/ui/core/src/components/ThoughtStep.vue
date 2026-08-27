@@ -27,7 +27,7 @@
 
 		<div
 			v-if="open"
-			class="mb-1.5 mt-1 rounded-[10px] border border-outline-gray-1 bg-surface-white px-3.5 py-3"
+			class="mb-1.5 mt-1 rounded-[10px] border border-outline-gray-1 bg-surface-base px-3.5 py-3"
 		>
 			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
 				<MarkdownContent :text="block.thinking" class="text-sm leading-relaxed text-ink-gray-6" />
@@ -38,7 +38,7 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"

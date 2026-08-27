@@ -2,7 +2,7 @@
 	<!-- pb-7 reserves the button row inside this component's own box, so the
 	     absolute buttons can never overlap the next message -->
 	<div class="group relative flex justify-end pb-7">
-		<div class="flow-prose max-w-[76%] rounded-xl bg-surface-gray-2 px-3.5 py-2.5 text-ink-gray-9">
+		<div class="flow-prose max-w-[76%] rounded-7 bg-surface-gray-2 px-3.5 py-2.5 text-ink-gray-9">
 			<div
 				v-if="text"
 				ref="textEl"
@@ -20,10 +20,10 @@
 				<span
 					v-for="item in attachments"
 					:key="item.id"
-					class="flex max-w-full items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-white py-1 pl-1 pr-2.5"
+					class="flex max-w-full items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base py-1 pl-1 pr-2.5"
 				>
 					<span
-						class="grid h-6 w-6 flex-none place-items-center rounded-md bg-surface-gray-1 text-ink-gray-6"
+						class="grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6"
 					>
 						<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
 					</span>
@@ -38,14 +38,14 @@
 			>{{ time }}</span>
 			<button
 				title="Rewind to this message"
-				class="grid h-6 w-6 place-items-center rounded-md text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
+				class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
 				@click="confirmRewind"
 			>
 				<FeatherIcon name="rotate-ccw" class="h-3.5 w-3.5" />
 			</button>
 			<CopyButton
 				:text="text"
-				class="grid h-6 w-6 place-items-center rounded-md text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
+				class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
 			/>
 		</span>
 	</div>
@@ -53,7 +53,7 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { formatTime, userAttachments, userText } from "../transcript.js"

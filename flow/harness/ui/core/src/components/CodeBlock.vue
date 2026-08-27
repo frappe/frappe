@@ -1,5 +1,5 @@
 <template>
-	<div class="flow-code overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-gray-1">
+	<div class="flow-code overflow-hidden rounded-6 border border-outline-gray-1 bg-surface-gray-1">
 		<div
 			class="flex items-center justify-between gap-2 border-b border-outline-gray-1 bg-surface-gray-2 py-1 pl-3 pr-1"
 		>
@@ -7,7 +7,7 @@
 			<CopyButton
 				:text="code"
 				title="Copy code"
-				class="grid h-6 w-6 flex-none place-items-center rounded-md text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+				class="grid h-6 w-6 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 			/>
 		</div>
 		<pre><code v-html="html" /></pre>

@@ -8,7 +8,7 @@
 		/>
 	</Transition>
 	<aside
-		class="fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col border-r border-outline-gray-1 bg-surface-menu-bar md:relative"
+		class="fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col border-r border-outline-gray-1 bg-surface-sidebar md:relative"
 		:class="[
 			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
 			// no transform while open: a transformed aside would become the containing
@@ -28,7 +28,7 @@
 
 		<div class="px-2.5 pb-1.5">
 			<button
-				class="flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-2"
+				class="flex h-9 w-full items-center gap-2 rounded-6 px-2.5 text-xs font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-2"
 				@click="startNewChat"
 			>
 				<FeatherIcon name="plus" class="h-4 w-4 text-ink-gray-6" />
@@ -38,7 +38,7 @@
 
 		<div class="px-2.5 pb-1.5">
 			<div
-				class="flex h-8 items-center gap-2 rounded-md border border-outline-gray-2 bg-surface-white px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
+				class="flex h-8 items-center gap-2 rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
 			>
 				<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
 				<input
@@ -49,7 +49,7 @@
 				/>
 				<button
 					v-if="query"
-					class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-4 hover:text-ink-gray-8"
+					class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:text-ink-gray-8"
 					title="Clear"
 					@click="query = ''"
 				>
@@ -65,7 +65,7 @@
 			<span>Sessions</span>
 			<div class="relative min-w-0">
 				<button
-					class="flex max-w-[128px] items-center gap-1 rounded-md px-1.5 py-1 font-normal text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
+					class="flex max-w-[128px] items-center gap-1 rounded-5 px-1.5 py-1 font-normal text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					title="Filter sessions by project"
 					aria-haspopup="menu"
 					:aria-expanded="projectMenu"
@@ -85,7 +85,7 @@
 					<button
 						role="menuitemradio"
 						:aria-checked="selectedProject === null"
-						class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
+						class="flex w-full items-center gap-2 rounded-5 px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
 						@click="selectProject(null)"
 					>
 						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
@@ -98,7 +98,7 @@
 						role="menuitemradio"
 						:aria-checked="selectedProject === project.cwd"
 						:title="project.cwd"
-						class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
+						class="flex w-full items-center gap-2 rounded-5 px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
 						@click="selectProject(project.cwd)"
 					>
 						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
@@ -119,7 +119,7 @@
 				:key="s.session_id"
 				role="button"
 				tabindex="0"
-				class="group relative flex cursor-pointer items-center rounded-lg px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
+				class="group relative flex cursor-pointer items-center rounded-6 px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
 				:class="[
 					s.session_id === flow.state.sessionId ? 'bg-surface-gray-3' : '',
 					menuFor === s.session_id ? 'menu-open bg-surface-gray-2' : '',
@@ -153,7 +153,7 @@
 				>
 					<template #trigger>
 						<button
-							class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-ink-gray-5 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100"
+							class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-5 text-ink-gray-5 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100"
 							:class="
 								menuFor === s.session_id
 									? 'bg-surface-gray-4 text-ink-gray-8 opacity-100'
@@ -187,7 +187,7 @@
 				{{ daemonUrl }}
 			</span>
 			<button
-				class="flex-none rounded p-1 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-7"
+				class="flex-none rounded-4 p-1 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-7"
 				title="Refresh sessions"
 				@click="flow.refreshSessions()"
 			>
@@ -200,7 +200,7 @@
 <script setup>
 import { computed, inject, onMounted, ref, watch } from "vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { dialog } from "frappe-ui/src/utils/dialog"
 
@@ -262,7 +262,11 @@ function promptRename(s) {
 		title: "Rename chat",
 		fields: [{ name: "title", label: "Name", defaultValue: flow.sessionTitle(s), required: true }],
 		confirmLabel: "Rename",
-		onConfirm: ({ values }) => flow.renameSession(s.session_id, values.title.trim()),
+		// fire-and-forget (outcome lands as a toast): returning the promise would
+		// flash the button's loading state for ~20ms and jolt the action row
+		onConfirm: ({ values }) => {
+			void flow.renameSession(s.session_id, values.title.trim())
+		},
 	})
 }
 
@@ -278,7 +282,9 @@ function confirmDelete(s) {
 				label: "Delete",
 				variant: "solid",
 				theme: "red",
-				onClick: () => flow.deleteSession(s.session_id),
+				onClick: () => {
+					void flow.deleteSession(s.session_id)
+				},
 			},
 		],
 	})

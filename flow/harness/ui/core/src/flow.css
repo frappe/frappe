@@ -3,7 +3,7 @@
    frappe-ui's themed CSS variables so dark mode follows [data-theme]. */
 
 .flow-composer-surface {
-	background: color-mix(in srgb, var(--surface-white) 90%, var(--surface-gray-1));
+	background: color-mix(in srgb, var(--surface-base) 90%, var(--surface-gray-1));
 }
 [data-theme="dark"] .flow-composer-surface {
 	background: var(--surface-gray-1);
@@ -36,7 +36,7 @@
 	padding: 4px 8px;
 	border: 1px solid var(--outline-gray-2);
 	border-radius: 6px;
-	background: var(--surface-white);
+	background: var(--surface-base);
 	color: var(--ink-gray-8);
 	font-size: 12px;
 	font-weight: 500;
@@ -80,8 +80,8 @@
 }
 .flow-btn-primary {
 	padding: 0 15px;
-	background: var(--surface-gray-7);
-	color: var(--ink-white);
+	background: var(--surface-gray-10);
+	color: var(--ink-base);
 	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 }
 .flow-btn-primary:hover {
@@ -90,7 +90,7 @@
 .flow-btn-secondary {
 	padding: 0 13px;
 	border: 1px solid var(--outline-gray-2);
-	background: var(--surface-white);
+	background: var(--surface-base);
 	color: var(--ink-gray-7);
 }
 .flow-btn-secondary:hover {
@@ -107,19 +107,13 @@
 	color: var(--ink-gray-9);
 }
 
-/* frappe-ui's dialog overlay ships without a z-index; lift it above the app's
-   layered chrome (composer z-10, sidebar z-30) so the backdrop dims everything */
-.dialog-overlay {
-	z-index: 40;
-}
-
 /* dialog.prompt renders the subtle input variant, whose border matches its own
    background — invisible against the dark modal until focused. Give dialog
    inputs the app's outline field look; their own focus styles still apply. */
 .dialog-content input[type="text"]:not(:focus),
 .dialog-content textarea:not(:focus) {
 	border-color: var(--outline-gray-2);
-	background: var(--surface-white);
+	background: var(--surface-base);
 }
 
 /* the per-turn copy row reveals when hovering the turn's last item (its
@@ -182,7 +176,7 @@
 	background: linear-gradient(
 		90deg,
 		transparent 0%,
-		color-mix(in srgb, var(--surface-white) 80%, transparent) 55%,
+		color-mix(in srgb, var(--surface-base) 80%, transparent) 55%,
 		transparent 100%
 	);
 	animation: flow-tool-sweep 2s ease-out infinite;
@@ -221,6 +215,8 @@
 }
 .flow-md p {
 	margin: 0.85em 0;
+	/* frappe-ui's base layer pins bare <p> to 1.5; take the prose leading back */
+	line-height: inherit;
 }
 .flow-md h1,
 .flow-md h2,
@@ -427,11 +423,11 @@
 	font-weight: 600;
 }
 .flow-code .hljs-addition {
-	color: var(--ink-green-3);
+	color: var(--ink-green-6);
 	background: var(--surface-green-1);
 }
 .flow-code .hljs-deletion {
-	color: var(--ink-red-3);
+	color: var(--ink-red-6);
 	background: var(--surface-red-1);
 }
 

@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 defineProps({
 	label: { type: String, required: true },

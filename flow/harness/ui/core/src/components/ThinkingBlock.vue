@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"

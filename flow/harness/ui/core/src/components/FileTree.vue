@@ -2,7 +2,7 @@
 	<div
 		role="button"
 		tabindex="0"
-		class="relative flex cursor-pointer items-center gap-1.5 rounded py-[5px] pr-1.5 text-sm hover:bg-surface-gray-2"
+		class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm hover:bg-surface-gray-2"
 		:class="active ? 'bg-surface-gray-3 font-medium text-ink-gray-9' : 'text-ink-gray-8'"
 		:style="{ paddingLeft: depth * INDENT + 8 + 'px' }"
 		:title="path"
@@ -30,7 +30,7 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 const INDENT = 16
 

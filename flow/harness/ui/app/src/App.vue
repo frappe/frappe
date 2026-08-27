@@ -1,9 +1,9 @@
 <template>
 	<FlowChat v-if="store" :store="store" class="h-full" />
 
-	<div v-else class="flex h-full items-center justify-center bg-surface-white">
+	<div v-else class="flex h-full items-center justify-center bg-surface-base">
 		<form
-			class="flex w-[380px] flex-col gap-3 rounded-lg border border-outline-gray-2 bg-surface-white p-5 shadow-sm"
+			class="flex w-[380px] flex-col gap-3 rounded-6 border border-outline-gray-2 bg-surface-base p-5 shadow-sm"
 			@submit.prevent="connect"
 		>
 			<div>
@@ -15,7 +15,7 @@
 				<input
 					v-model="baseUrl"
 					placeholder="same origin (dev proxy)"
-					class="h-8 rounded-md border border-outline-gray-2 bg-surface-white px-2.5 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 				/>
 			</label>
 			<label class="flex flex-col gap-1">
@@ -24,15 +24,15 @@
 					v-model="token"
 					type="password"
 					placeholder="Leave empty unless the daemon requires one"
-					class="h-8 rounded-md border border-outline-gray-2 bg-surface-white px-2.5 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 				/>
 			</label>
-			<div v-if="error" class="rounded-md bg-surface-red-1 px-2.5 py-1.5 text-xs text-ink-red-3">
+			<div v-if="error" class="rounded-5 bg-surface-red-1 px-2.5 py-1.5 text-xs text-ink-red-6">
 				{{ error }}
 			</div>
 			<button
 				type="submit"
-				class="h-8 rounded-md bg-surface-gray-7 text-sm font-medium text-ink-white hover:opacity-90"
+				class="h-8 rounded-5 bg-surface-gray-10 text-sm font-medium text-ink-base hover:opacity-90"
 				:disabled="checking"
 			>
 				{{ checking ? "Connecting…" : "Connect" }}

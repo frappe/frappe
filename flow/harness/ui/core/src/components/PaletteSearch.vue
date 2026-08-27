@@ -13,7 +13,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 defineOptions({ inheritAttrs: false })
 const props = defineProps({ autofocus: { type: Boolean, default: false } })

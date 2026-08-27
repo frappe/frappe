@@ -1,5 +1,5 @@
 <template>
-	<div class="overflow-hidden rounded-lg border border-outline-gray-1">
+	<div class="overflow-hidden rounded-6 border border-outline-gray-1">
 		<div class="flex h-9 items-center border-b border-outline-gray-1 bg-surface-gray-1 px-3 text-xs font-medium text-ink-gray-5">
 			{{ files.length }} {{ files.length === 1 ? "file" : "files" }} changed
 		</div>
@@ -15,8 +15,8 @@
 				<span class="flex-none text-sm font-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
 				<span class="min-w-0 truncate text-xs text-ink-gray-4">{{ dirPath(file.path) }}</span>
 				<span class="flex-1" />
-				<span class="flex-none font-mono text-xs text-ink-green-3">+{{ file.added }}</span>
-				<span class="flex-none font-mono text-xs text-ink-red-3">-{{ file.removed }}</span>
+				<span class="flex-none font-mono text-xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
+				<span class="flex-none font-mono text-xs text-ink-red-6">-{{ file.removed }}</span>
 			</button>
 			<button
 				v-if="files.length > VISIBLE"
@@ -31,7 +31,7 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { compactDisplayText, fileName } from "../transcript.js"
 

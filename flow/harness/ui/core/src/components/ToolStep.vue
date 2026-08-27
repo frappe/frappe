@@ -44,8 +44,8 @@
 			</template>
 			<!-- edits get a Codex-style colored diffstat; everything else the plain stat -->
 			<span v-if="diffStat" class="flex-none font-mono text-xs">
-				<span class="text-ink-green-3">+{{ diffStat.added }}</span>
-				<span class="ml-1 text-ink-red-3">-{{ diffStat.removed }}</span>
+				<span class="text-ink-green-6">+{{ diffStat.added }}</span>
+				<span class="ml-1 text-ink-red-6">-{{ diffStat.removed }}</span>
 			</span>
 			<span v-else-if="stat" class="flex-none text-xs" :class="statClass">{{ stat }}</span>
 		</component>
@@ -53,7 +53,7 @@
 		<div
 			v-if="open && expandable"
 			ref="payloadEl"
-			class="mb-1.5 mt-1 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-white"
+			class="mb-1.5 mt-1 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-base"
 		>
 			<!-- a call the user denied, cancelled, or redirected -->
 			<div v-if="decision" class="px-3 py-2.5">
@@ -69,12 +69,12 @@
 					<span v-if="duration" class="flex-none font-mono text-2xs text-ink-gray-5">{{ duration }}</span>
 					<span
 						v-if="exitChip"
-						class="flex-none rounded px-1.5 py-px font-mono text-2xs font-medium"
-						:class="failed ? 'bg-surface-red-1 text-ink-red-3' : 'bg-surface-green-1 text-ink-green-3'"
+						class="flex-none rounded-4 px-1.5 py-px font-mono text-2xs font-medium"
+						:class="failed ? 'bg-surface-red-1 text-ink-red-6' : 'bg-surface-green-1 text-ink-green-6'"
 					>{{ exitChip }}</span>
 					<CopyButton
 						:text="diffLines ? details.diff : output"
-						class="grid h-5 w-5 flex-none place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					/>
 				</div>
 				<pre
@@ -97,7 +97,7 @@
 
 <script setup>
 import { computed, inject, ref, watch } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { compactDisplayText, stepDecision, stepIcon, stepLabel, stepStat, stepSubject } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
@@ -141,8 +141,8 @@ const stat = computed(() => {
 	return stepStat(props.step)
 })
 const statClass = computed(() => {
-	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-3" : "text-ink-red-3"
-	return failed.value ? "text-ink-red-3" : "text-ink-gray-4"
+	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-6" : "text-ink-red-6"
+	return failed.value ? "text-ink-red-6" : "text-ink-gray-4"
 })
 
 const diffLines = computed(() =>
@@ -192,8 +192,8 @@ const panelNote = computed(() => {
 })
 
 function lineClass(line) {
-	if (line.startsWith("+")) return "bg-surface-green-1 text-ink-green-3"
-	if (line.startsWith("-")) return "bg-surface-red-1 text-ink-red-3"
+	if (line.startsWith("+")) return "bg-surface-green-1 text-ink-green-6"
+	if (line.startsWith("-")) return "bg-surface-red-1 text-ink-red-6"
 	if (line.startsWith("@@")) return "text-ink-gray-4"
 	return "text-ink-gray-6"
 }

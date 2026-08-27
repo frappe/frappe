@@ -30,8 +30,9 @@
 		</div>
 		<div
 			v-if="hovered"
-			class="pointer-events-none absolute right-full mr-1.5 w-max max-w-[300px] -translate-y-1/2 rounded-lg border border-outline-gray-2 bg-surface-white px-3 py-2 shadow-md"
-			:style="{ top: hovered.y + 'px' }"
+			ref="card"
+			class="pointer-events-none absolute right-full mr-1.5 w-max max-w-[300px] rounded-6 border border-outline-gray-2 bg-surface-base px-3 py-2 shadow-md"
+			:style="{ top: cardTop + 'px' }"
 		>
 			<p class="line-clamp-6 whitespace-pre-wrap break-words text-xs leading-relaxed text-ink-gray-8">
 				{{ hovered.text }}
@@ -51,12 +52,27 @@ defineEmits(["select"])
 
 const rail = ref(null)
 const list = ref(null)
+const card = ref(null)
 const hovered = ref(null)
+const cardTop = ref(0)
 
+// Center the preview on the hovered bar, then clamp it inside the chat area
+// (the rail's positioned ancestor) — an edge bar would otherwise push half the
+// card past the header or the bottom. Measured after render, before paint.
 function onHover(prompt, event) {
 	const bar = event.currentTarget.getBoundingClientRect()
 	const origin = rail.value.getBoundingClientRect()
-	hovered.value = { text: prompt.text, y: bar.top + bar.height / 2 - origin.top }
+	const anchor = bar.top + bar.height / 2 - origin.top
+	hovered.value = { text: prompt.text }
+	cardTop.value = anchor
+	void nextTick(() => {
+		if (!card.value) return
+		const bounds = rail.value.offsetParent.getBoundingClientRect()
+		const pad = 4
+		const minTop = bounds.top - origin.top + pad
+		const maxTop = bounds.bottom - origin.top - card.value.offsetHeight - pad
+		cardTop.value = Math.min(Math.max(anchor - card.value.offsetHeight / 2, minTop), maxTop)
+	})
 }
 
 // When the rail itself overflows, keep the active bar in view. Manual scrollTop

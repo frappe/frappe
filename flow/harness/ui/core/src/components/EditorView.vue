@@ -100,7 +100,7 @@
 import { computed, inject, onBeforeUnmount, ref, watch } from "vue"
 import Breadcrumbs from "frappe-ui/src/components/Breadcrumbs/Breadcrumbs.vue"
 import Button from "frappe-ui/src/components/Button/Button.vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { compactDisplayText } from "../transcript.js"
 import FilesBar from "./FilesBar.vue"
@@ -400,7 +400,7 @@ function applyTheme() {
 	const name = dark ? "flow-dark" : "flow-light"
 	const colors = {
 		focusBorder: "#00000000",
-		"editor.background": cssColor("--surface-white"),
+		"editor.background": cssColor("--surface-base"),
 		"editorCursor.foreground": cssColor("--ink-gray-9"),
 		"editor.lineHighlightBackground": cssColor("--surface-gray-1"),
 		// opaque sliders: the default translucent band reads as a smear over code

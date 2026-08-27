@@ -5,7 +5,7 @@
 			ref="menuEl"
 			role="menu"
 			:aria-label="label"
-			class="flow-pop-menu absolute z-20 flex flex-col gap-0.5 rounded-[10px] border border-outline-gray-2 bg-surface-white p-1 shadow-xl outline-none"
+			class="flow-pop-menu absolute z-20 flex flex-col gap-0.5 rounded-[10px] border border-outline-gray-2 bg-surface-base p-1 shadow-xl outline-none"
 			:class="[
 				align === 'right' ? 'right-0' : 'left-0',
 				placement === 'bottom' ? 'top-full mt-2.5' : 'bottom-full mb-2.5',

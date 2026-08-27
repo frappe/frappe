@@ -8,7 +8,7 @@
 		/>
 	</Transition>
 	<aside
-		class="flex flex-col border-l border-outline-gray-1 bg-surface-white"
+		class="flex flex-col border-l border-outline-gray-1 bg-surface-base"
 		:class="[
 			workspace.maximized
 				? 'fixed inset-0 z-40'
@@ -35,7 +35,7 @@
 		     The view picker (nothing open) renders without it. -->
 		<div
 			v-if="viewActive"
-			class="flex h-11 flex-none items-stretch border-b border-outline-gray-1 bg-surface-white"
+			class="flex h-11 flex-none items-stretch border-b border-outline-gray-1 bg-surface-base"
 		>
 			<div class="flow-tab-strip flex min-w-0 items-center gap-1 overflow-x-auto px-1.5" role="tablist">
 				<div
@@ -44,7 +44,7 @@
 					role="tab"
 					tabindex="0"
 					:aria-selected="tab.path === workspace.active"
-					class="flow-tab group flex h-7 min-w-[96px] shrink basis-40 cursor-pointer items-center gap-1.5 rounded-md pl-2.5 pr-1 text-xs"
+					class="flow-tab group flex h-7 min-w-[96px] shrink basis-40 cursor-pointer items-center gap-1.5 rounded-5 pl-2.5 pr-1 text-xs"
 					:class="
 						tab.path === workspace.active
 							? 'flow-tab-active bg-surface-gray-2 text-ink-gray-9'
@@ -56,7 +56,7 @@
 				>
 					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ tab.name }}</span>
 					<button
-						class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+						class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 						:class="tab.path === workspace.active || tab.dirty ? '' : 'opacity-0 group-hover:opacity-100'"
 						:title="tab.dirty ? 'Unsaved changes — close file' : 'Close file'"
 						@click.stop="requestClose(tab)"
@@ -70,11 +70,11 @@
 					v-if="transientTab"
 					role="tab"
 					aria-selected="true"
-					class="flow-tab flow-tab-active flex h-7 min-w-[96px] shrink basis-40 cursor-default items-center gap-1.5 rounded-md bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
+					class="flow-tab flow-tab-active flex h-7 min-w-[96px] shrink basis-40 cursor-default items-center gap-1.5 rounded-5 bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
 				>
 					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ transientTab }}</span>
 					<button
-						class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+						class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 						title="Close"
 						@click="flow.closeFilesView()"
 					>
@@ -125,14 +125,14 @@
 				</button>
 			</span>
 			<button
-				class="flex w-44 items-center gap-2.5 rounded-lg border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+				class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 				@click="flow.showFilesView()"
 			>
 				<FeatherIcon name="folder" class="h-4 w-4 flex-none text-ink-gray-5" />
 				Files
 			</button>
 			<button
-				class="flex w-44 items-center gap-2.5 rounded-lg border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+				class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 				@click="flow.showDiffView()"
 			>
 				<FeatherIcon name="columns" class="h-4 w-4 flex-none text-ink-gray-5" />
@@ -145,7 +145,7 @@
 <script setup>
 import { computed, inject, onMounted, ref } from "vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import EditorView from "./EditorView.vue"
