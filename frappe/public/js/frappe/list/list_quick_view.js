@@ -28,6 +28,7 @@ frappe.views.ListQuickView = class ListQuickView {
 		this.current_docname = docname;
 		this.set_width(this.width);
 		this.$panel.removeClass("hidden");
+		this.render_header(docname);
 		this.refresh_list_layout();
 		this.load_and_render(docname);
 		this.bind_escape();
@@ -52,15 +53,55 @@ frappe.views.ListQuickView = class ListQuickView {
 
 		this.$panel = $(`<div class="list-quick-view hidden">
 				<div class="list-quick-view-resize-handle"></div>
+				<div class="list-quick-view-header">
+					<div class="list-quick-view-title ellipsis"></div>
+					<div class="list-quick-view-actions">
+						<a class="es-button list-quick-view-open-link"
+							data-variant="ghost" data-icon-button="true"
+							title="${__("Open in full page")}"
+							aria-label="${__("Open in full page")}"
+						>
+							${frappe.utils.icon("arrow-up-right", "sm", "", "", "", true)}
+						</a>
+						${frappe.ui.button.html({
+							icon: "x",
+							variant: "ghost",
+							title: __("Close"),
+							css_class: "list-quick-view-close",
+						})}
+					</div>
+				</div>
 				<div class="list-quick-view-body"></div>
 			</div>`).appendTo(this.list_view.page.main.closest(".layout-main"));
 
+		this.$header_title = this.$panel.find(".list-quick-view-title");
 		this.$body = this.$panel.find(".list-quick-view-body");
+
+		this.$panel.find(".list-quick-view-open-link").on("click", (event) => {
+			if (event.ctrlKey || event.metaKey) return; // let the browser open a new tab
+			event.preventDefault();
+			let docname = this.current_docname;
+			this.hide();
+			frappe.set_route("Form", this.list_view.doctype, docname);
+		});
+
+		this.$panel.find(".list-quick-view-close").on("click", () => this.hide());
 
 		this.$panel.find(".list-quick-view-resize-handle").on("mousedown", (event) => {
 			if (event.target !== event.currentTarget) return;
 			this.start_resize(event);
 		});
+	}
+
+	render_header(docname) {
+		let title_field = this.list_view.meta?.title_field;
+		let row = title_field && (this.list_view.data || []).find((d) => d.name === docname);
+		let title = (row && row[title_field]) || docname;
+
+		this.$header_title.text(title).attr("title", title);
+		this.$panel
+			.find(".list-quick-view-open-link")
+			.attr("href", this.list_view.get_form_link({ name: docname }));
 	}
 
 	load_and_render(docname) {
@@ -101,27 +142,9 @@ frappe.views.ListQuickView = class ListQuickView {
 	render_form(docname) {
 		if (!this.frm) {
 			this.frm = new frappe.ui.form.Form(this.list_view.doctype, this.$body.get(0), true, null);
-			this.add_panel_actions(this.frm);
 		}
 
 		this.with_route_state_preserved(() => this.frm.refresh(docname));
-	}
-
-	// Standard page actions (same frappe.ui.Page API every toolbar icon uses) instead
-	// of a bespoke header bar -- the form already renders its own title/breadcrumb/
-	// toolbar, so a second header here would just duplicate it.
-	add_panel_actions(frm) {
-		frm.page.add_action_icon(
-			"arrow-up-right",
-			() => {
-				let docname = this.current_docname;
-				this.hide();
-				frappe.set_route("Form", this.list_view.doctype, docname);
-			},
-			"list-quick-view-open-link",
-			__("Open in full page")
-		);
-		frm.page.add_action_icon("x", () => this.hide(), "list-quick-view-close", __("Close"));
 	}
 
 	render_not_found(docname) {

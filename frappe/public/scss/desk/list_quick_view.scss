@@ -1,6 +1,11 @@
 body[data-route^="List"] {
 	.layout-main:has(> .list-quick-view:not(.hidden)) {
-		.layout-main-section-wrapper {
+		// direct-child combinator: the embedded form inside .list-quick-view
+		// builds an identical .layout-main > .layout-main-section-wrapper
+		// structure of its own, nested arbitrarily deep -- a descendant
+		// selector here would also floor *that* wrapper's width, which is
+		// exactly the bug this rule is meant to prevent, just one level in.
+		> .layout-main-section-wrapper {
 			flex: 1 1 calc(100% - var(--list-quick-view-width));
 			width: calc(100% - var(--list-quick-view-width));
 			// list rows size their columns in fixed pixels and pin their meta
@@ -30,6 +35,33 @@ body[data-route^="List"] {
 	border-left: 1px solid var(--border-color);
 	outline: none;
 
+	.list-quick-view-header {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 0 8px 0 12px;
+		height: 40px;
+		background-color: var(--subtle-fg);
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.list-quick-view-title {
+		flex: 1;
+		min-width: 0;
+		font-size: var(--text-sm);
+		font-weight: 500;
+		color: var(--text-color);
+	}
+
+	.list-quick-view-actions {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		flex-shrink: 0;
+	}
+
 	.list-quick-view-body {
 		position: relative;
 		flex: 1;
@@ -46,18 +78,29 @@ body[data-route^="List"] {
 		text-align: center;
 	}
 
+	// the visible line is 3px, centered inside a wider invisible hit area --
+	// a 3px target is unreliable to grab with a mouse.
 	.list-quick-view-resize-handle {
 		position: absolute;
 		top: 0;
-		left: 0;
-		width: 3px;
+		left: -4px;
+		width: 9px;
 		height: 100%;
 		cursor: col-resize;
 		z-index: 1;
-		background-color: var(--border-color);
-		transition: background-color 120ms ease;
+		background-color: transparent;
 
-		&:hover {
+		&::after {
+			content: "";
+			display: block;
+			margin: 0 auto;
+			width: 3px;
+			height: 100%;
+			background-color: var(--border-color);
+			transition: background-color 120ms ease;
+		}
+
+		&:hover::after {
 			background-color: var(--gray-400);
 		}
 	}
