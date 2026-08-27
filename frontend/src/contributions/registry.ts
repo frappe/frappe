@@ -5,32 +5,17 @@
 // in plugin/contributions.js, at build time, where it costs nothing at runtime.
 
 import contributions from 'virtual:frappe/contributions'
-import type {
-  DoctypeContribution,
-  ListHandlers,
-  PageContribution,
-  RecordHandlers,
-} from './types'
+import { registerRecordPage, withRegisteringSource } from '@/recordPage'
+import type { DoctypeContribution, ListHandlers, PageContribution } from './types'
 
 export const pages: PageContribution[] = contributions.pages
 
 /** List customizations, indexed by doctype. No registrar exists for these in
- *  `@framework/ui` yet, so the shell holds them rather than growing that package. */
+ *  the record-page engine yet, so the shell's own index holds them. */
 const listHandlers = new Map<string, { app: string; handlers: ListHandlers }[]>()
-
-/** Record customizations, indexed by doctype, in the run order `ordered` decided.
- *
- *  Held rather than run: this PR proves a contribution is *discovered* and *ordered*.
- *  Making one actually run is the record-page engine's job, and it arrives with the
- *  engine — at which point this map is what it registers from. */
-const recordHandlers = new Map<string, { app: string; handlers: RecordHandlers }[]>()
 
 export function listHandlersFor(doctype: string) {
   return listHandlers.get(doctype) ?? []
-}
-
-export function recordHandlersFor(doctype: string) {
-  return recordHandlers.get(doctype) ?? []
 }
 
 /**
@@ -84,10 +69,10 @@ export async function registerContributions(appOrder: string[]) {
       }
 
       // Tagged with the contributing app, so a later `unregisterSource` can drop
-      // exactly one app's handlers once the engine is doing the registering.
-      const own = recordHandlers.get(doctype) ?? []
-      own.push({ app: contribution.app, handlers: contribution.handlers })
-      recordHandlers.set(doctype, own)
+      // exactly one app's handlers.
+      await withRegisteringSource(contribution.app, async () =>
+        registerRecordPage(doctype, contribution.handlers),
+      )
     }
   }
 }
