@@ -133,7 +133,7 @@ frappe.db = {
 			{ cache }
 		);
 	},
-	get_link_options(doctype, txt = "", filters = {}) {
+	get_link_options(doctype, txt = "", filters = {}, page_length = 0) {
 		return new Promise((resolve) => {
 			frappe.call({
 				type: "GET",
@@ -142,6 +142,7 @@ frappe.db = {
 					doctype,
 					txt,
 					filters,
+					page_length, // NOTE: 0 as page_length, would correspond to no LIMIT clause in the final SQL QUERY. Reference `get_query` in `query.py` module.
 				},
 				callback(r) {
 					resolve(r.message);
