@@ -224,4 +224,23 @@ context("List View", () => {
 				});
 		}
 	);
+
+	it(
+		"opens a document in the quick view panel without navigating away",
+		{ scrollBehavior: false },
+		() => {
+			cy.go_to_list("ToDo");
+			cy.clear_filters();
+
+			cy.get(".list-row-container .list-subject a").first().click();
+
+			cy.get(".list-quick-view").should("be.visible");
+			cy.get(".list-quick-view .list-quick-view-body .form-layout").should("exist");
+			cy.location("pathname").should("eq", "/desk/todo");
+
+			cy.get(".list-quick-view .list-quick-view-close").click();
+			cy.get(".list-quick-view").should("have.class", "hidden");
+			cy.location("pathname").should("eq", "/desk/todo");
+		}
+	);
 });

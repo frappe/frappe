@@ -1,0 +1,64 @@
+body[data-route^="List"] {
+	.layout-main:has(> .list-quick-view:not(.hidden)) {
+		.layout-main-section-wrapper {
+			flex: 1 1 calc(100% - var(--list-quick-view-width));
+			width: calc(100% - var(--list-quick-view-width));
+			// list rows size their columns in fixed pixels and pin their meta
+			// info (like/count) to the row's right edge with position: sticky;
+			// squeezed past this floor that sticky content starts landing on
+			// top of column text instead of scrolling past it with the row.
+			min-width: 480px;
+		}
+	}
+
+	.list-quick-view-resizing {
+		cursor: col-resize;
+	}
+}
+
+.list-quick-view {
+	position: sticky;
+	top: var(--page-head-height);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 var(--list-quick-view-width);
+	width: var(--list-quick-view-width);
+	min-width: var(--list-quick-view-width);
+	height: calc(100vh - var(--page-head-height));
+	background-color: var(--fg-color);
+	border-left: 1px solid var(--border-color);
+	outline: none;
+
+	.list-quick-view-body {
+		position: relative;
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+	}
+
+	.list-quick-view-unavailable {
+		padding: var(--padding-md);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--margin-sm);
+		text-align: center;
+	}
+
+	.list-quick-view-resize-handle {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 3px;
+		height: 100%;
+		cursor: col-resize;
+		z-index: 1;
+		background-color: var(--border-color);
+		transition: background-color 120ms ease;
+
+		&:hover {
+			background-color: var(--gray-400);
+		}
+	}
+}

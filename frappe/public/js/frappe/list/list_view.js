@@ -1,5 +1,6 @@
 import BulkOperations from "./bulk_operations";
 import ListSettings from "./list_settings";
+import "./list_quick_view";
 
 frappe.provide("frappe.views");
 
@@ -183,6 +184,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_page() {
 		this.parent.list_view = this;
 		super.setup_page();
+		this.quick_view = new frappe.views.ListQuickView(this);
 	}
 
 	setup_paging_area() {
@@ -2080,16 +2082,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
-			// link, let the event be handled via set_route
-			if ($target.is("a")) return;
+			// ctrl/cmd+click on the link: let the browser open it in a new tab as usual
+			if ($target.is("a")) {
+				if (e.ctrlKey || e.metaKey || !this.quick_view) return;
+				e.preventDefault();
+				this.quick_view.show($target.attr("data-name"));
+				return false;
+			}
 
-			// clicked on the row, open form
+			// clicked on the row, open the quick view (or the form, without one)
 			const $row = $(e.currentTarget);
 			const link = $row.find(".list-subject a").get(0);
-			if (link) {
+			if (!link) return;
+
+			if (!this.quick_view) {
 				frappe.set_route(link.pathname);
 				return false;
 			}
+
+			this.quick_view.show(link.dataset.name);
+			return false;
 		});
 	}
 
