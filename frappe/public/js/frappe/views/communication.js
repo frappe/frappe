@@ -64,7 +64,7 @@ frappe.views.CommunicationComposer = class {
 		$wrapper
 			.find(".btn-modal-minimize")
 			.removeClass("btn-modal-minimize")
-			.attr("title", __("Full screen"))
+			.attr({ title: __("Full screen"), "aria-label": __("Full screen") })
 			.off("click")
 			.on("click", () => $wrapper.toggleClass("expanded"));
 
@@ -169,12 +169,12 @@ frappe.views.CommunicationComposer = class {
 									"More options"
 								)}">${frappe.utils.icon("ellipsis", "sm")}</button>
 								<div class="dropdown-menu dropdown-menu-right email-composer-more-menu">
-									<div class="dropdown-item email-composer-menu-toggle switch-control" data-action="send-read-receipt">
+									<div class="dropdown-item email-composer-menu-toggle switch-control" data-action="send-read-receipt" role="switch" tabindex="0" aria-checked="false">
 										${frappe.utils.icon("mail-open", "sm")}
 										<span>${__("Send read receipt")}</span>
 										<span class="switch-visual"><span class="switch-thumb"></span></span>
 									</div>
-									<div class="dropdown-item email-composer-menu-toggle switch-control" data-action="send-me-a-copy">
+									<div class="dropdown-item email-composer-menu-toggle switch-control" data-action="send-me-a-copy" role="switch" tabindex="0" aria-checked="false">
 										${frappe.utils.icon("copy", "sm")}
 										<span>${__("Send me a copy")}</span>
 										<span class="switch-visual"><span class="switch-thumb"></span></span>
@@ -302,16 +302,23 @@ frappe.views.CommunicationComposer = class {
 			const $item = this.$composer.find(`[data-action="${action}"]`);
 			const field = fields[fieldname];
 			let active = !!(field.get_value() || field.df.default);
-			field.set_input(active ? 1 : 0);
-			$item.toggleClass("active", active);
+			const apply = () => {
+				field.set_input(active ? 1 : 0);
+				$item.toggleClass("active", active).attr("aria-checked", String(active));
+			};
+			apply();
 
 			$item.on("click", (e) => {
 				// Keep the dropdown open so users can toggle multiple options in one click.
 				if ($item.hasClass("email-composer-menu-toggle")) e.stopPropagation();
 				active = !active;
-				field.set_input(active ? 1 : 0);
-				$item.toggleClass("active", active);
+				apply();
 				updateBanner();
+			});
+			$item.on("keydown", (e) => {
+				if (e.key !== "Enter" && e.key !== " ") return;
+				e.preventDefault();
+				$item.trigger("click");
 			});
 		};
 
