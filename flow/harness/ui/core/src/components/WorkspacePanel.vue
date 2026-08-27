@@ -37,14 +37,17 @@
 			v-if="viewActive"
 			class="flex h-11 flex-none items-stretch border-b border-outline-gray-1 bg-surface-base"
 		>
-			<div class="flow-tab-strip flex min-w-0 items-center gap-1 overflow-x-auto px-1.5" role="tablist">
+			<!-- flex-1 makes the strip's width definite (the whole row minus the window
+			     controls), so tabs hold their basis cap and shrink together only once
+			     they stop fitting — a shrink-to-fit strip would hug the labels instead -->
+			<div class="flow-tab-strip flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1.5" role="tablist">
 				<div
 					v-for="tab in workspace.tabs"
 					:key="tab.path"
 					role="tab"
 					tabindex="0"
 					:aria-selected="tab.path === workspace.active"
-					class="flow-tab group flex h-7 min-w-[96px] shrink basis-40 cursor-pointer items-center gap-1.5 rounded-5 pl-2.5 pr-1 text-xs"
+					class="flow-tab group flex h-7 min-w-12 shrink basis-60 cursor-pointer items-center gap-1.5 rounded-5 pl-2.5 pr-1 text-xs"
 					:class="
 						tab.path === workspace.active
 							? 'flow-tab-active bg-surface-gray-2 text-ink-gray-9'
@@ -70,7 +73,7 @@
 					v-if="transientTab"
 					role="tab"
 					aria-selected="true"
-					class="flow-tab flow-tab-active flex h-7 min-w-[96px] shrink basis-40 cursor-default items-center gap-1.5 rounded-5 bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
+					class="flow-tab flow-tab-active flex h-7 min-w-12 shrink basis-60 cursor-default items-center gap-1.5 rounded-5 bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
 				>
 					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ transientTab }}</span>
 					<button
@@ -89,7 +92,6 @@
 					</template>
 				</Dropdown>
 			</div>
-			<span class="flex-1" />
 			<button
 				class="flow-icon-btn my-1 flex-none self-center"
 				:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"

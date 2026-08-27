@@ -1,116 +1,123 @@
 <template>
+	<!-- the bar animates its width open/closed; the fixed-width inner column rides
+	     the leading edge (border included), so content slides in instead of squishing -->
 	<div
-		v-show="open"
-		class="relative flex flex-none flex-col border-l border-outline-gray-1"
-		:style="{ width: width + 'px' }"
+		class="relative flex flex-none overflow-hidden"
+		:class="resizing ? '' : 'transition-[width] duration-200 ease-in-out'"
+		:style="{ width: (open ? width : 0) + 'px' }"
 	>
 		<div
-			v-if="mode === 'diff'"
-			class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-xs font-medium text-ink-gray-5"
+			class="flex min-h-0 flex-1 flex-col border-l border-outline-gray-1"
+			:style="{ width: width + 'px' }"
 		>
-			{{ changedFiles.length }} {{ changedFiles.length === 1 ? "file" : "files" }} changed
-		</div>
-		<div v-if="mode === 'files'" class="flex-none px-1.5 pt-1.5">
 			<div
-				class="flex h-8 items-center gap-2 rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
+				v-if="mode === 'diff'"
+				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-xs font-medium text-ink-gray-5"
 			>
-				<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
-				<input
-					v-model="fileQuery"
-					placeholder="Search files"
-					spellcheck="false"
-					class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
-				/>
-				<button
-					v-if="fileQuery"
-					class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:text-ink-gray-8"
-					title="Clear"
-					@click="fileQuery = ''"
-				>
-					<FeatherIcon name="x" class="h-3 w-3" />
-				</button>
+				{{ changedFiles.length }} {{ changedFiles.length === 1 ? "file" : "files" }} changed
 			</div>
-		</div>
-		<div class="min-h-0 flex-1 overflow-y-auto px-1.5 py-1.5">
-			<!-- diff mode: only the files this session edited or wrote -->
-			<template v-if="mode === 'diff'">
+			<div v-if="mode === 'files'" class="flex-none px-1.5 pt-1.5">
 				<div
-					v-for="file in changedFiles"
-					:key="file.path"
-					role="button"
-					tabindex="0"
-					class="flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pl-2 pr-1.5 text-sm hover:bg-surface-gray-2"
-					:class="
-						activeTab?.path === file.path
-							? 'bg-surface-gray-3 font-medium text-ink-gray-9'
-							: 'text-ink-gray-8'
-					"
-					:title="file.path"
-					@click="flow.openDiffFile(file.path)"
-					@keydown.enter.prevent="flow.openDiffFile(file.path)"
+					class="flex h-8 items-center gap-2 rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
 				>
-					<span class="grid h-4 w-4 flex-none place-items-center">
-						<FeatherIcon name="file" class="h-3.5 w-3.5 text-ink-gray-5" />
-					</span>
-					<span class="min-w-0 truncate">{{ fileName(file.path) }}</span>
-					<span class="flex-1" />
-					<span class="flex-none font-mono text-2xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
-					<span class="flex-none font-mono text-2xs text-ink-red-6">-{{ file.removed }}</span>
+					<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
+					<input
+						v-model="fileQuery"
+						placeholder="Search files"
+						spellcheck="false"
+						class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					/>
+					<button
+						v-if="fileQuery"
+						class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:text-ink-gray-8"
+						title="Clear"
+						@click="fileQuery = ''"
+					>
+						<FeatherIcon name="x" class="h-3 w-3" />
+					</button>
 				</div>
-				<div v-if="!changedFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
-					No files changed in this session
-				</div>
-			</template>
-			<!-- searching: a pruned tree of matches only, all branches open -->
-			<template v-else-if="searchActive">
-				<div v-if="searchMatches === null" class="px-1.5 py-2 text-2xs text-ink-gray-4">
-					Searching…
-				</div>
-				<template v-else>
+			</div>
+			<div class="min-h-0 flex-1 overflow-y-auto px-1.5 py-1.5">
+				<!-- diff mode: only the files this session edited or wrote -->
+				<template v-if="mode === 'diff'">
 					<div
-						v-for="row in searchRows"
-						:key="row.path"
-						:role="row.type === 'file' ? 'button' : undefined"
-						:tabindex="row.type === 'file' ? 0 : undefined"
-						class="relative flex items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm"
+						v-for="file in changedFiles"
+						:key="file.path"
+						role="button"
+						tabindex="0"
+						class="flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pl-2 pr-1.5 text-sm hover:bg-surface-gray-2"
 						:class="
-							row.type === 'file'
-								? 'cursor-pointer text-ink-gray-8 hover:bg-surface-gray-2'
+							activeTab?.path === file.path
+								? 'bg-surface-gray-3 font-medium text-ink-gray-9'
 								: 'text-ink-gray-8'
 						"
-						:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
-						:title="row.path"
-						@click="row.type === 'file' && flow.openFile(row.path)"
-						@keydown.enter.prevent="row.type === 'file' && flow.openFile(row.path)"
+						:title="file.path"
+						@click="flow.openDiffFile(file.path)"
+						@keydown.enter.prevent="flow.openDiffFile(file.path)"
 					>
-						<span
-							v-for="level in row.depth"
-							:key="level"
-							class="pointer-events-none absolute inset-y-0 w-px bg-[--outline-gray-1]"
-							:style="{ left: (level - 1) * 16 + 16 + 'px' }"
-						/>
 						<span class="grid h-4 w-4 flex-none place-items-center">
-							<FeatherIcon
-								:name="row.type === 'dir' ? 'chevron-down' : 'file'"
-								class="h-3.5 w-3.5 text-ink-gray-5"
-							/>
+							<FeatherIcon name="file" class="h-3.5 w-3.5 text-ink-gray-5" />
 						</span>
-						<span class="min-w-0 truncate">{{ row.name }}</span>
+						<span class="min-w-0 truncate">{{ fileName(file.path) }}</span>
+						<span class="flex-1" />
+						<span class="flex-none font-mono text-2xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
+						<span class="flex-none font-mono text-2xs text-ink-red-6">-{{ file.removed }}</span>
 					</div>
-					<div v-if="!searchRows.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
-						No matches
-					</div>
-					<div v-else-if="searchTruncated" class="px-1.5 py-2 text-2xs text-ink-gray-4">
-						More matches not shown — narrow the search
+					<div v-if="!changedFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						No files changed in this session
 					</div>
 				</template>
-			</template>
-			<template v-else-if="rootDir">
-				<FileTree v-for="entry in rootEntries" :key="entry.name" :entry="entry" :dir="rootDir" />
-				<div v-if="!rootEntries.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
-					Empty folder
-				</div>
-			</template>
+				<!-- searching: a pruned tree of matches only, all branches open -->
+				<template v-else-if="searchActive">
+					<div v-if="searchMatches === null" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						Searching…
+					</div>
+					<template v-else>
+						<div
+							v-for="row in searchRows"
+							:key="row.path"
+							:role="row.type === 'file' ? 'button' : undefined"
+							:tabindex="row.type === 'file' ? 0 : undefined"
+							class="relative flex items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm"
+							:class="
+								row.type === 'file'
+									? 'cursor-pointer text-ink-gray-8 hover:bg-surface-gray-2'
+									: 'text-ink-gray-8'
+							"
+							:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
+							:title="row.path"
+							@click="row.type === 'file' && flow.openFile(row.path)"
+							@keydown.enter.prevent="row.type === 'file' && flow.openFile(row.path)"
+						>
+							<span
+								v-for="level in row.depth"
+								:key="level"
+								class="pointer-events-none absolute inset-y-0 w-px bg-[--outline-gray-1]"
+								:style="{ left: (level - 1) * 16 + 16 + 'px' }"
+							/>
+							<span class="grid h-4 w-4 flex-none place-items-center">
+								<FeatherIcon
+									:name="row.type === 'dir' ? 'chevron-down' : 'file'"
+									class="h-3.5 w-3.5 text-ink-gray-5"
+								/>
+							</span>
+							<span class="min-w-0 truncate">{{ row.name }}</span>
+						</div>
+						<div v-if="!searchRows.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+							No matches
+						</div>
+						<div v-else-if="searchTruncated" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+							More matches not shown — narrow the search
+						</div>
+					</template>
+				</template>
+				<template v-else-if="rootDir">
+					<FileTree v-for="entry in rootEntries" :key="entry.name" :entry="entry" :dir="rootDir" />
+					<div v-if="!rootEntries.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						Empty folder
+					</div>
+				</template>
+			</div>
 		</div>
 		<div
 			class="absolute inset-y-0 left-0 z-10 w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3]"
@@ -224,11 +231,13 @@ const searchRows = computed(() => {
 
 const clampWidth = (w) => Math.min(400, Math.max(160, w))
 const width = ref(clampWidth(flow.state.prefs.explorerWidth ?? 220))
+const resizing = ref(false) // a drag must track the pointer, not the width transition
 
 function startResize(event) {
 	event.preventDefault()
 	const handle = event.currentTarget
 	handle.setPointerCapture(event.pointerId)
+	resizing.value = true
 	const startX = event.clientX
 	const startWidth = width.value
 	// the handle sits on the bar's left edge: dragging left widens it
@@ -238,6 +247,7 @@ function startResize(event) {
 		handle.removeEventListener("pointermove", move)
 		handle.removeEventListener("pointerup", up)
 		handle.removeEventListener("pointercancel", up)
+		resizing.value = false
 		flow.setExplorerWidth(width.value)
 	}
 	handle.addEventListener("pointermove", move)
