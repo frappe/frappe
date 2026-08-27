@@ -9,88 +9,100 @@
    "added": 0,
    "hidden": 0,
    "icon": "hammer",
-   "sidebar": "Build",
+   "link_to": "Build",
+   "link_type": "Sidebar",
    "title": "Build"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "users",
-   "sidebar": "Users",
+   "link_to": "Users",
+   "link_type": "Sidebar",
    "title": "Users"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "mail",
-   "sidebar": "Email",
+   "link_to": "Email",
+   "link_type": "Sidebar",
    "title": "Email"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "globe",
-   "sidebar": "Website",
+   "link_to": "Website",
+   "link_type": "Sidebar",
    "title": "Website"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "table",
-   "sidebar": "Data",
+   "link_to": "Data",
+   "link_type": "Sidebar",
    "title": "Data"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "network",
-   "sidebar": "Workflow",
+   "link_to": "Workflow",
+   "link_type": "Sidebar",
    "title": "Workflow"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "printer",
-   "sidebar": "Printing",
+   "link_to": "Printing",
+   "link_type": "Sidebar",
    "title": "Printing"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "cable",
-   "sidebar": "Integrations",
+   "link_to": "Integrations",
+   "link_type": "Sidebar",
    "title": "Integrations"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "book-user",
-   "sidebar": "Contacts",
+   "link_to": "Contacts",
+   "link_type": "Sidebar",
    "title": "Contacts"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "repeat",
-   "sidebar": "Automation",
+   "link_to": "Automation",
+   "link_type": "Sidebar",
    "title": "Automation"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "map",
-   "sidebar": "Geo",
+   "link_to": "Geo",
+   "link_type": "Sidebar",
    "title": "Geo"
   },
   {
    "added": 0,
    "hidden": 0,
    "icon": "monitor-check",
-   "sidebar": "System",
+   "link_to": "System",
+   "link_type": "Sidebar",
    "title": "System"
   }
  ],
- "modified": "2026-08-26 21:00:00.000000",
+ "modified": "2026-08-27 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

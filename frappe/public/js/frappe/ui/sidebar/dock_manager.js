@@ -9,8 +9,8 @@
 // band, ladder tabs) was dropped, as was every alternative that moved authoring out of a dialog
 // and into the list.
 //
-// An entry names a shell, a page, or both, and every kind is arranged the same way. A companion's
-// entry is an ordinary entry on the rail, not a fixture.
+// An entry names one destination -- a shell, a workspace or a web address -- and every kind is
+// arranged the same way. A companion's entry is an ordinary entry on the rail, not a fixture.
 //
 // It covers one app on purpose: a dock belongs to an app, so there is nothing to choose between
 // and no app switcher. Entries in other apps are managed from those apps' rails.
@@ -158,12 +158,17 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// module the record names but this user cannot see is still named, and reporting it as unnamed
 	// would send an author looking for a row that is already there.
 	unnamed_modules() {
-		const named = new Set((this.base_rows || []).map((row) => row.sidebar).filter(Boolean));
+		const named = new Set(
+			(this.base_rows || [])
+				.filter((row) => row.link_type === "Sidebar")
+				.map((row) => row.link_to)
+		);
 		return frappe.app.sidebar.app_modules(this.app).filter((shell) => !named.has(shell));
 	}
 
-	// What identifies an entry here, on the server and on the rail: the typed pair. Both halves,
-	// because a `Sidebar` and a `Workspace` with the same name are two entries.
+	// What identifies an entry here, on the server and on the rail: the whole destination. The
+	// kind is half of it, because a `Sidebar` and a `Workspace` with the same name are two
+	// entries.
 	key(row) {
 		return frappe.app.sidebar.dock_key(row);
 	}
@@ -188,7 +193,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	stored_row(key, hidden) {
 		const entry = this.entries.get(key);
 		return {
-			sidebar: entry.sidebar,
 			link_type: entry.link_type,
 			link_to: entry.link_to,
 			url: entry.url,
@@ -345,8 +349,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		frappe.app.sidebar.refresh_dock();
 	}
 
-	// Add, type first: what it opens, then the target, then how it reads, with the shell override
-	// behind a collapsed disclosure.
+	// Add, kind first: what it opens, then the target, then how it reads.
 	//
 	// The pool is never drawn. Anything nameable is an unbounded set, covering every workspace,
 	// every module and any URL, and a pane for it would break the two-pane layout. It lives in the
@@ -369,11 +372,11 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					fieldname: "opens",
 					label: __("What it opens"),
 					options: [
-						{ value: "Module", label: __("Module") },
+						{ value: "Sidebar", label: __("Module") },
 						{ value: "Workspace", label: __("Workspace") },
 						{ value: "URL", label: __("Web address") },
 					],
-					default: "Module",
+					default: "Sidebar",
 					reqd: 1,
 					onchange: () => this.describe_target(dialog),
 				},
@@ -381,7 +384,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					fieldtype: "Autocomplete",
 					fieldname: "module",
 					label: __("Module"),
-					depends_on: "eval:doc.opens == 'Module'",
+					depends_on: "eval:doc.opens == 'Sidebar'",
 					// The app's navigable modules, which is what `get_app_modules` returns, rather
 					// than a link query, which would show only the few modules that have a
 					// `Sidebar` document.
@@ -414,25 +417,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					reqd: 1,
 					description: __("How it reads on the rail."),
 				},
-				{
-					fieldtype: "Section Break",
-					fieldname: "shell_section",
-					label: __("Show a different sidebar"),
-					collapsible: 1,
-					// Collapsed by default: it is only for a page whose own module is not the
-					// shell you want, such as a page on a code-only module, which is on no rail.
-					// Ordinary rows leave it alone.
-					depends_on: "eval:doc.opens != 'URL'",
-				},
-				{
-					fieldtype: "Link",
-					fieldname: "shell",
-					label: __("Sidebar"),
-					options: "Sidebar",
-					description: __(
-						"Leave blank to derive it from what this opens. Fill it in only when the page's own module is not the sidebar you want."
-					),
-				},
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
@@ -451,7 +435,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// differently and their fields alone do not show that.
 	describe_target(dialog) {
 		const hints = {
-			Module: __("Opens the module's home."),
+			Sidebar: __("Opens the module's home and shows its sidebar."),
 			Workspace: __("Its sidebar is derived from the module that owns it."),
 			URL: __("Leaves the desk. It has no sidebar."),
 		};
@@ -463,23 +447,19 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// The dialog's result as a rail entry, or nothing if it named nothing.
 	entry_from(values) {
 		const row =
-			values.opens === "Module"
-				? { sidebar: values.module }
+			values.opens === "Sidebar"
+				? { link_type: "Sidebar", link_to: values.module }
 				: values.opens === "Workspace"
-				? {
-						sidebar: values.shell || null,
-						link_type: "Workspace",
-						link_to: values.workspace,
-				  }
+				? { link_type: "Workspace", link_to: values.workspace }
 				: { link_type: "URL", url: values.url };
 
-		if (!(row.sidebar || row.link_to || row.url)) {
+		if (!(row.link_to || row.url)) {
 			frappe.throw(__("Pick something for it to open."));
 		}
 
 		return {
 			...row,
-			module: row.sidebar || null,
+			module: row.link_type === "Sidebar" ? row.link_to : null,
 			icon: values.icon,
 			label: values.title,
 		};

@@ -2,12 +2,11 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "creation": "2026-08-16 20:30:00.000000",
- "description": "One entry on the dock. It does **two** things when clicked -- it opens a page and it swaps the shell -- and each exists without the other, which is why they are two columns: `sidebar` is the shell, `link_type`/`link_to`/`url` is the page. The ordinary row fills one; filling both is the override, for a page whose own module is not the shell you want. Every row also carries its own `icon` and `title`, so the rail reads the way its author wrote it -- blank at an upper layer means inherit. What a row points at *is* its identity, and none of it is stored: re-labelling cannot detach a row from itself, and re-pointing is not an edit but a different row. The same rows at all three layers -- the app's own dock, the site's arrangement and one person's -- told apart by the parent `Dock`, never by the row.",
+ "description": "One entry on the dock. `link_type` says what kind of thing it opens, and each kind answers the two questions a click asks -- which page comes up and which shell comes up beside it -- in its own way. A `Sidebar` row *is* the shell: it selects that sidebar and opens its landing route. A `Workspace` row opens a page and derives its shell from the module that owns it. A `URL` row leaves the desk and has no shell at all. Every row also carries its own `icon` and `title`, so the rail reads the way its author wrote it -- blank at an upper layer means inherit. What a row points at *is* its identity, and none of it is stored: re-labelling cannot detach a row from itself, and re-pointing is not an edit but a different row. The same rows at all three layers -- the app's own dock, the site's arrangement and one person's -- told apart by the parent `Dock`, never by the row.",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "sidebar",
   "link_type",
   "link_to",
   "url",
@@ -18,24 +17,16 @@
  ],
  "fields": [
   {
-   "description": "The shell this entry selects -- the panel that comes up beside it. Blank derives the shell from the module that owns what the row opens, which is the ordinary case for a workspace row and the whole of how a companion's pin lands a person in the companion's shell. A `Link` whose target need not exist as a document: most modules have a computed base and no `Sidebar` row at all, so this names a shell rather than referencing one, which is why link validation on a `Dock` is a deliberate no-op.",
-   "fieldname": "sidebar",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Sidebar",
-   "options": "Sidebar"
-  },
-  {
-   "description": "What kind of page this entry opens, if it opens one. Spelled the way `Sidebar Item` spells it, so `frappe.ui.sidebar_item.get_route(row)` takes a dock row unchanged. `Sidebar` is deliberately absent as a value: a module entry is a row with `sidebar` filled and no target, and naming the module in a type value as well would be redundant.",
+   "description": "What kind of thing this entry opens. Spelled the way `Sidebar Item` spells it, so `frappe.ui.sidebar_item.get_route(row)` takes the two page kinds unchanged. `Sidebar` is a value here because a module entry is an entry like any other: it opens the shell, which is the one destination that is not a page.",
    "fieldname": "link_type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Link Type",
-   "options": "\nWorkspace\nURL"
+   "options": "\nSidebar\nWorkspace\nURL"
   },
   {
    "depends_on": "eval:doc.link_type && doc.link_type != \"URL\"",
-   "description": "The record this entry opens, in the doctype `link_type` names.",
+   "description": "The record this entry opens, in the doctype `link_type` names. A `Sidebar` target need not exist as a document: most modules have a computed base and no `Sidebar` row at all, so a row of that kind names a shell rather than referencing one, which is why link validation on a `Dock` is a deliberate no-op.",
    "fieldname": "link_to",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
@@ -83,7 +74,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-08-26 22:00:00.000000",
+ "modified": "2026-08-27 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dock Item",

@@ -19,11 +19,10 @@ class DockItem(Document):
 		hidden: DF.Check
 		icon: DF.Icon | None
 		link_to: DF.DynamicLink | None
-		link_type: DF.Literal["", "Workspace", "URL"]
+		link_type: DF.Literal["", "Sidebar", "Workspace", "URL"]
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		sidebar: DF.Link | None
 		title: DF.Data | None
 		url: DF.Data | None
 	# end: auto-generated types

@@ -70,19 +70,19 @@ TRIO = [ALPHA, BETA, GAMMA]
 def sidebar(module, hidden=None, **kwargs) -> dict:
 	"""One row naming a module's shell, the shape a layer stores and a client sends.
 
-	A shell row fills `sidebar` and nothing else: the button selects that shell and opens its own
-	landing route. A sidebar's name defaults to its module's name, so the module is all it needs.
+	A shell row is a `Sidebar` link: the button selects that shell and opens its own landing
+	route. A sidebar's name defaults to its module's name, so the module is all it needs.
 
 	"""
-	row = {"sidebar": module, **kwargs}
+	row = {"link_type": "Sidebar", "link_to": module, **kwargs}
 	if hidden is not None:
 		row["hidden"] = hidden
 	return row
 
 
 def workspace(name, hidden=None, **kwargs) -> dict:
-	"""One row opening a workspace. The shell it selects is derived from the module that owns it
-	unless the row names one."""
+	"""One row opening a workspace. The shell it selects is derived from the module that owns
+	it."""
 	row = {"link_type": "Workspace", "link_to": name, **kwargs}
 	if hidden is not None:
 		row["hidden"] = hidden
@@ -91,7 +91,7 @@ def workspace(name, hidden=None, **kwargs) -> dict:
 
 def labelled(row) -> dict:
 	"""The icon and title a base row must carry, defaulted from what it points at."""
-	name = row.get("sidebar") or row.get("link_to") or row.get("url")
+	name = row.get("link_to") or row.get("url")
 	return {"icon": row.get("icon") or "box", "title": row.get("title") or name}
 
 
@@ -122,7 +122,6 @@ def stored(row, **overrides) -> dict:
 	the schema is one edit rather than thirty.
 	"""
 	return {
-		"sidebar": None,
 		"link_type": None,
 		"link_to": None,
 		"url": None,
@@ -146,8 +145,14 @@ def entry(row, **overrides) -> dict:
 
 
 def names(rows) -> list[str]:
-	"""What each row points at, as one readable string: the shell it names, else its target."""
-	return [row.get("sidebar") or row.get("link_to") or row.get("url") for row in rows]
+	"""What each row points at, as one readable string: its target, else its web address."""
+	return [row.get("link_to") or row.get("url") for row in rows]
+
+
+def dock_rows_for_trio(rows) -> list[dict]:
+	"""The rows of a payload that name one of the suite's own shells, so an assertion about order
+	is not disturbed by whatever else the site's apps ship."""
+	return [row for row in rows if row.get("link_type") == "Sidebar" and row.get("link_to") in set(TRIO)]
 
 
 def hidden_by_name(rows) -> dict[str, int]:
@@ -174,7 +179,7 @@ def dock_for(email=None, among=TRIO, app=APP):
 
 	if among is None:
 		return rows
-	return [row for row in rows if row.get("sidebar") in set(among)]
+	return [row for row in rows if row.get("link_type") == "Sidebar" and row.get("link_to") in set(among)]
 
 
 def clear_arrangements():
@@ -408,9 +413,9 @@ class TestDockPreferences(DockTestCase):
 		self.assertEqual(rows[GAMMA], 1)
 
 	def test_a_row_that_names_nothing_is_dropped(self):
-		"""A row names a shell, a page, or both. One that names neither says nothing, and a
-		`link_type` with no target is as anchorless as a blank row. It is dropped rather than
-		refused, as a row naming nothing always has been.
+		"""A row names one destination. One that names none says nothing, and a `link_type` with
+		no target is as anchorless as a blank row. It is dropped rather than refused, as a row
+		naming nothing always has been.
 		"""
 		save_user_dock(
 			APP,
@@ -427,9 +432,9 @@ class TestDockPreferences(DockTestCase):
 			json.dumps(
 				[
 					sidebar(ALPHA),
-					{"sidebar": {"like": "%"}},
+					{"link_type": "Sidebar", "link_to": {"like": "%"}},
 					{"link_type": ["Workspace"], "link_to": BETA},
-					{"sidebar": 7},
+					{"link_type": "Sidebar", "link_to": 7},
 				]
 			),
 		)
@@ -473,7 +478,7 @@ class TestDockPreferences(DockTestCase):
 		from frappe.boot import get_bootinfo
 
 		save_user_dock(APP, payload(BETA, ALPHA))
-		carried = [r["sidebar"] for r in get_bootinfo().get("dock")[APP] if r["sidebar"] in set(TRIO)]
+		carried = names(dock_rows_for_trio(get_bootinfo().get("dock")[APP]))
 		self.assertEqual(carried, [BETA, ALPHA])
 
 
@@ -665,7 +670,7 @@ class TestDockSiteLayer(DockTestCase):
 		self.set_site_order(BETA, ALPHA)
 
 		frappe.set_user(self.DESK_USER)
-		carried = [r["sidebar"] for r in get_bootinfo().get("dock")[APP] if r["sidebar"] in set(TRIO)]
+		carried = names(dock_rows_for_trio(get_bootinfo().get("dock")[APP]))
 		self.assertEqual(carried, [BETA, ALPHA])
 
 	def test_every_layer_is_one_shape(self):
@@ -834,12 +839,12 @@ class TestTheAppLayer(DockTestCase):
 		doc = frappe.new_doc("Dock")
 		doc.app = "frappe"
 		doc.append("items", {"link_type": "Report", "link_to": "ToDo"})
-		doc.append("items", {"sidebar": ALPHA})
+		doc.append("items", sidebar(ALPHA))
 
 		self.assertRaisesRegex(frappe.ValidationError, "Row #1", doc.save, ignore_permissions=True)
 
 	def test_a_base_row_naming_nothing_says_nothing(self):
-		"""A row names a shell, a page, or both. One that names neither is not an entry."""
+		"""A row names one destination. One that names none is not an entry."""
 		with shipped_dock({self.APP: [sidebar(ALPHA), {}, {"link_type": "Workspace"}, BETA]}):
 			self.assertEqual(names(dock_for(self.USER, app=self.APP)), [ALPHA])
 
@@ -993,11 +998,11 @@ class TestTheAppLayer(DockTestCase):
 			)
 			self.assertEqual(
 				[
-					(r["sidebar"], r["link_to"])
+					(r["link_type"], r["link_to"])
 					for r in dock_for(among=None, app=self.APP)
-					if ALPHA in (r["sidebar"], r["link_to"])
+					if r["link_to"] == ALPHA
 				],
-				[(None, ALPHA), (ALPHA, None)],
+				[("Workspace", ALPHA), ("Sidebar", ALPHA)],
 			)
 
 
@@ -1201,11 +1206,16 @@ class TestWhatACustomisationMayDo(DockTestCase):
 
 
 class TestTheRowShape(DockTestCase):
-	"""What a dock row can say, now that it has real columns.
+	"""What a dock row can say, now that a row names one destination.
 
-	A click does two things, opening a page and swapping the shell, and each can happen without the
-	other. That is why `sidebar` and `link_type`/`link_to`/`url` are separate columns rather than one
-	typed pair whose being filled was the kind.
+	A click does two things, opening a page and swapping the shell, and `link_type` says how a row
+	answers both. A `Sidebar` row is the shell: it has no page and opens the shell's own landing
+	route. A `Workspace` row opens a page and derives its shell from the module that owns it. A
+	`URL` row leaves the desk and has neither.
+
+	The shell used to be a column of its own, so a row could name a page and a shell that did not
+	own it. That override went with the column: the shell is either the destination or derived from
+	it, never named beside it.
 
 	"""
 
@@ -1247,7 +1257,7 @@ class TestTheRowShape(DockTestCase):
 
 	# -- what a row may say --------------------------------------------------------------
 
-	def test_a_row_may_name_a_shell_a_page_or_both(self):
+	def test_a_row_names_one_destination_of_one_kind(self):
 		page = self.make_workspace("Test Dock Shape Page", ALPHA)
 
 		save_site_dock(
@@ -1255,23 +1265,25 @@ class TestTheRowShape(DockTestCase):
 			payload(
 				added(sidebar(ALPHA)),
 				added(workspace(page)),
-				added(sidebar(BETA, link_type="Workspace", link_to=page)),
+				added({"link_type": "URL", "url": "https://frappe.io", "icon": "book", "title": "Docs"}),
 			),
 		)
 
 		self.assertEqual(
-			[(r["sidebar"], r["link_to"]) for r in get_site_dock(APP)],
-			[(ALPHA, None), (None, page), (BETA, page)],
+			[(r["link_type"], r["link_to"], r["url"]) for r in get_site_dock(APP)],
+			[
+				("Sidebar", ALPHA, None),
+				("Workspace", page, None),
+				("URL", None, "https://frappe.io"),
+			],
 		)
 
 	def test_two_rows_into_one_module_key_apart(self):
-		"""`Stock` and `Stock Analytics`: the module's own button, and a second button into the
-		same shell that opens a particular page."""
+		"""`Stock` and `Stock Analytics`: the module's own button, and a second button that opens a
+		page belonging to the same module, which selects that same shell."""
 		page = self.make_workspace("Test Dock Shape Second", ALPHA)
 
-		save_site_dock(
-			APP, payload(added(sidebar(ALPHA)), added(sidebar(ALPHA, link_type="Workspace", link_to=page)))
-		)
+		save_site_dock(APP, payload(added(sidebar(ALPHA)), added(workspace(page))))
 
 		rows = get_site_dock(APP)
 		self.assertEqual(len(rows), 2)
@@ -1283,40 +1295,21 @@ class TestTheRowShape(DockTestCase):
 		)
 
 		row = get_site_dock(APP)[0]
-		self.assertEqual((row["sidebar"], row["url"], row["title"]), (None, "https://frappe.io", "Docs"))
+		self.assertEqual((row["link_to"], row["url"], row["title"]), (None, "https://frappe.io", "Docs"))
 		# it renders on the rail, and it comes out of the merge carrying its own label
 		rendered = next(r for r in dock_for(among=None) if r["url"])
 		self.assertEqual(
-			(rendered["url"], rendered["title"], rendered["sidebar"]), (row["url"], "Docs", None)
+			(rendered["url"], rendered["title"], rendered["link_to"]), (row["url"], "Docs", None)
 		)
 
-	def test_a_row_may_name_a_shell_other_than_the_one_that_owns_its_page(self):
-		"""The override. Left blank, the shell is derived from the module that owns the page, which
-		is right for a pin and wrong for a page whose own module is on no rail. Naming one is what
-		the second column exists for, and it survives resolution rather than being recomputed from
-		the target.
+	def test_a_shell_row_carries_no_page(self):
+		"""The shell is the destination, so there is nothing else on the row. A shell row that also
+		named a page would be the override the second column used to hold.
 		"""
-		page = self.make_workspace("Test Dock Shape Override", ALPHA)
-
-		save_site_dock(APP, payload(added(sidebar(BETA, link_type="Workspace", link_to=page))))
-
-		rendered = next(r for r in dock_for(among=None) if r["link_to"] == page)
-		self.assertEqual(rendered["sidebar"], BETA, "the named shell, not the page's own module")
-
-	def test_the_case_the_override_exists_for_is_expressible(self):
-		"""The case the override is for: a page whose own module is code-only and therefore on no
-		rail, so deriving its shell would land somewhere the rail does not show. Naming one keeps
-		the row storable; whether it renders is the ordinary workspace permission question.
-		"""
-		from frappe.utils.modules import get_code_only_modules
-
-		self.assertIn("Core", get_code_only_modules())
-		page = self.make_workspace("Test Dock Code Only Page", "Core")
-
-		save_site_dock(APP, payload(added(sidebar("Users", link_type="Workspace", link_to=page))))
+		save_site_dock(APP, payload(added(sidebar(ALPHA))))
 
 		row = get_site_dock(APP)[0]
-		self.assertEqual((row["sidebar"], row["link_to"]), ("Users", page))
+		self.assertEqual((row["link_type"], row["link_to"], row["url"]), ("Sidebar", ALPHA, None))
 
 	# -- identity ------------------------------------------------------------------------
 
@@ -1330,24 +1323,23 @@ class TestTheRowShape(DockTestCase):
 
 	def test_changing_a_destination_re_keys_a_row(self):
 		"""The other half: the key is the destination, so a layer changing any of it has not edited
-		the row but named a different one.
+		the row but named a different one. The kind is half of the destination, so a shell and a
+		page of one name key apart.
 		"""
 		page = self.make_workspace("Test Dock Shape Repoint", ALPHA)
 
 		self.assertNotEqual(dock_key(sidebar(ALPHA)), dock_key(sidebar(BETA)))
-		self.assertNotEqual(
-			dock_key(sidebar(ALPHA)), dock_key(sidebar(ALPHA, link_type="Workspace", link_to=page))
-		)
-		self.assertNotEqual(dock_key(workspace(page)), dock_key(sidebar(ALPHA, **workspace(page))))
+		self.assertNotEqual(dock_key(sidebar(ALPHA)), dock_key(workspace(page)))
+		self.assertNotEqual(dock_key(sidebar(ALPHA)), dock_key(workspace(ALPHA)))
 
 	# -- reach ---------------------------------------------------------------------------
 
-	def test_reach_is_conjoined_across_filled_columns(self):
-		"""A row passes only if every column it fills passes. A shell the user has blocked, with a
-		workspace they may open, would otherwise render the whole sidebar of a module the block was
-		supposed to hide, undone by a row pointing past it.
+	def test_a_shell_row_is_gated_on_its_modules_visibility(self):
+		"""One gate per kind. A shell row is refused when the user has blocked the module behind
+		it; a workspace they may open, in that same module, is not, because a workspace is gated on
+		workspace permission alone.
 		"""
-		page = self.make_workspace("Test Dock Shape Gated", ALPHA)
+		page = self.make_workspace("Test Dock Shape Gated", GAMMA)
 
 		frappe.set_user("Administrator")
 		user = frappe.get_doc("User", self.USER)
@@ -1355,16 +1347,14 @@ class TestTheRowShape(DockTestCase):
 		user.save(ignore_permissions=True)
 		frappe.clear_cache(user=self.USER)
 
-		save_site_dock(
-			APP, payload(added(sidebar(GAMMA, link_type="Workspace", link_to=page)), added(workspace(page)))
-		)
+		save_site_dock(APP, payload(added(sidebar(GAMMA)), added(workspace(page))))
 
-		# The workspace is permitted and the shell is not, so the conjunction refuses the row.
-		# The bare pin at the same workspace still renders.
 		rendered = [
-			(r["sidebar"], r["link_to"]) for r in dock_for(self.USER, among=None) if r["link_to"] == page
+			(r["link_type"], r["link_to"])
+			for r in dock_for(self.USER, among=None)
+			if r["link_to"] in (GAMMA, page)
 		]
-		self.assertEqual(rendered, [(None, page)])
+		self.assertEqual(rendered, [("Workspace", page)])
 
 	def test_a_url_row_is_ungated(self):
 		"""Nothing verifies a web address and nothing gates one. It leaks no permission, and it is
@@ -1390,19 +1380,30 @@ class TestTheRowShape(DockTestCase):
 	# -- what the contract left --------------------------------------------------------
 
 	def test_the_old_columns_are_gone_from_the_schema(self):
-		"""The contract half of the pair ticket 06 opened. Nothing reads them, and the translation
-		that existed only because a child row's own primary key made `name` unusable goes too.
+		"""Nothing reads them. `sidebar` went when the shell became a kind of destination rather
+		than a second column beside one, and `type`/`link_name` went with the typed pair before it.
 		"""
 		meta = frappe.get_meta("Dock Item")
 		self.assertIsNone(meta.get_field("type"))
 		self.assertIsNone(meta.get_field("link_name"))
+		self.assertIsNone(meta.get_field("sidebar"))
+
+	def test_the_shell_is_a_link_type(self):
+		"""The three kinds a row may open, and nothing else. A row naming a fourth is refused
+		rather than stored, since the schema no longer closes the set."""
+		options = frappe.get_meta("Dock Item").get_field("link_type").options.split("\n")
+
+		self.assertEqual([kind for kind in options if kind], ["Sidebar", "Workspace", "URL"])
 
 	def test_a_blank_column_reads_as_unset(self):
 		"""What `stored_row` is still for once there is nothing to translate: the schema writes an
 		empty string where every reader wants unset, and a key built from two spellings of nothing
 		would key one row two ways.
 		"""
-		self.assertEqual(dock_key(stored_row({"sidebar": ALPHA, "url": ""})), dock_key(sidebar(ALPHA)))
+		self.assertEqual(
+			dock_key(stored_row({"link_type": "Sidebar", "link_to": ALPHA, "url": ""})),
+			dock_key(sidebar(ALPHA)),
+		)
 
 
 class TestTheCompanionMount(DockTestCase):
@@ -1798,7 +1799,8 @@ class TestTheFrameworksDock(IntegrationTestCase):
 
 		self.assertTrue(dock.standard)
 		self.assertEqual(dock.app, "frappe")
-		self.assertEqual([row.sidebar for row in dock.items], self.TWELVE)
+		self.assertEqual([row.link_to for row in dock.items], self.TWELVE)
+		self.assertTrue(all(row.link_type == "Sidebar" for row in dock.items))
 		# All twelve are authored: nothing derives an icon or a title, because a prefill would
 		# make divergence look like inheritance.
 		self.assertTrue(all(row.icon and row.title for row in dock.items))
@@ -1814,7 +1816,7 @@ class TestTheFrameworksDock(IntegrationTestCase):
 		clear_arrangements()
 
 		self.assertEqual(
-			[row["sidebar"] for row in get_app_dock("frappe") if row["sidebar"]],
+			names(get_app_dock("frappe")),
 			self.TWELVE,
 		)
 
@@ -1825,7 +1827,7 @@ class TestTheFrameworksDock(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		clear_arrangements()
 
-		resolved = [row["sidebar"] for row in resolve_dock()["frappe"] if row["sidebar"]]
+		resolved = names(resolve_dock()["frappe"])
 		self.assertEqual([name for name in resolved if name in self.TWELVE], self.TWELVE)
 
 		# the three the record cannot name, because they ship no navigation of their own
@@ -1981,10 +1983,10 @@ class TestTheExportRoad(IntegrationTestCase):
 		mark_as_standard(self.APP)
 
 		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": self.APP, "standard": 1}))
-		doc.append("items", labelled(sidebar(self.ONE)) | {"sidebar": self.ONE})
+		doc.append("items", labelled(sidebar(self.ONE)) | sidebar(self.ONE))
 		doc.save(ignore_permissions=True)
 
-		on_disk = [row["sidebar"] for row in json.load(open(self.exported()))["items"]]
+		on_disk = names(json.load(open(self.exported()))["items"])
 		self.assertEqual(on_disk, [self.TWO, self.ONE])
 
 	def test_a_mark_that_writes_no_file_leaves_no_row(self):
@@ -2020,7 +2022,7 @@ class TestTheExportRoad(IntegrationTestCase):
 		save_app_dock(self.APP, payload(added(sidebar(self.TWO)), added(sidebar(self.ONE))))
 
 		self.assertEqual(names(get_app_dock(self.APP)), [self.TWO, self.ONE])
-		on_disk = [row["sidebar"] for row in json.load(open(self.exported()))["items"]]
+		on_disk = names(json.load(open(self.exported()))["items"])
 		self.assertEqual(on_disk, [self.TWO, self.ONE])
 
 	def test_promoting_a_dock_is_workspace_manager_only(self):
@@ -2150,7 +2152,7 @@ class TestTheExportRoad(IntegrationTestCase):
 				doc = frappe.new_doc("Dock")
 				doc.app = self.APP
 				doc.standard = 1
-				doc.append("items", labelled(sidebar(self.ONE)) | {"sidebar": self.ONE})
+				doc.append("items", labelled(sidebar(self.ONE)) | sidebar(self.ONE))
 				doc.save(ignore_permissions=True)
 
 				self.assertTrue(doc.standard)

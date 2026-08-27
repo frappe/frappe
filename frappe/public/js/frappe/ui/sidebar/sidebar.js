@@ -1059,13 +1059,11 @@ frappe.ui.Sidebar = class Sidebar {
 	// where clicking it goes. Every kind is answered from a payload the boot already carries, so
 	// a pinned workspace and a URL need no extra machinery.
 	//
-	// Clicking a row does two things: it opens a page and it swaps the shell. Either can happen
-	// without the other, which is why they are separate fields. A normal row fills one; filling
-	// both is the override.
-	//
-	// A row that does not name a shell derives one from the module that owns what it opens, which
-	// is what lands a user in a companion's shell while the host's rail stays on screen. A URL
-	// row has no shell and derives none.
+	// Clicking a row does two things: it opens a page and it swaps the shell, and `link_type`
+	// says how this row answers both. A `Sidebar` row is the shell itself, so it has no page and
+	// opens the shell's own landing route. A `Workspace` row derives its shell from the module
+	// that owns the page, which is what lands a user in a companion's shell while the host's rail
+	// stays on screen. A `URL` row has no shell and derives none.
 	//
 	// An entry that resolves to nothing is dropped: a module whose items this user cannot see is
 	// absent from `module_sidebars`, and a workspace they cannot open is absent from
@@ -1080,15 +1078,18 @@ frappe.ui.Sidebar = class Sidebar {
 		if (row.link_type === "Workspace" && !page) return null;
 		if (row.link_type === "URL" && !row.url) return null;
 
-		// The shell the row names, or the one that owns what it opens.
+		// The shell the row is, or the one that owns the page it opens.
 		const module =
-			row.sidebar || (page ? this.module_for_workspace(page.name) || page.module : null);
+			row.link_type === "Sidebar"
+				? row.link_to
+				: page
+				? this.module_for_workspace(page.name) || page.module
+				: null;
 		const sidebar = module ? frappe.boot.module_sidebars[module] : null;
 		if (module && !sidebar) return null;
-		if (!module && !row.link_type) return null;
+		if (!row.link_type) return null;
 
 		return {
-			sidebar: row.sidebar || null,
 			link_type: row.link_type || null,
 			link_to: row.link_to || null,
 			url: row.url || null,
@@ -1128,27 +1129,29 @@ frappe.ui.Sidebar = class Sidebar {
 	open_dock_entry(entry) {
 		if (!entry) return;
 
-		if (entry.link_type) {
-			// Select the shell first, so the sidebar is correct when the route lands. A URL row
-			// selects nothing, because it has no shell.
-			if (entry.module) this.select_module(entry.module);
-			const route = frappe.ui.sidebar_item.get_route({
-				type: "Link",
-				link_type: entry.link_type,
-				link_to: entry.link_to,
-				url: entry.url,
-			});
-			if (route) frappe.set_route(route);
+		// A shell entry has no page of its own, so it opens the shell's landing route. That route
+		// is resolved from the sidebar this user actually has, so it moves when they reorder it.
+		if (entry.link_type === "Sidebar") {
+			this.open_module(entry.module);
 			return;
 		}
 
-		this.open_module(entry.module);
+		// Select the shell first, so the sidebar is correct when the route lands. A URL row
+		// selects nothing, because it has no shell.
+		if (entry.module) this.select_module(entry.module);
+		const route = frappe.ui.sidebar_item.get_route({
+			type: "Link",
+			link_type: entry.link_type,
+			link_to: entry.link_to,
+			url: entry.url,
+		});
+		if (route) frappe.set_route(route);
 	}
 
 	// What identifies a dock entry on the client: the whole destination, joined the same way as
 	// `dock_key` on the server. Never the label, so re-labelling cannot detach a row from itself.
 	dock_key(entry) {
-		return ["sidebar", "link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
+		return ["link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
 	// Where an app's icon leads, in three steps:
@@ -1180,15 +1183,13 @@ frappe.ui.Sidebar = class Sidebar {
 	// disagree.
 	dock_entry_route(entry) {
 		if (!entry) return null;
-		if (entry.link_type) {
-			return frappe.ui.sidebar_item.get_route({
-				type: "Link",
-				link_type: entry.link_type,
-				link_to: entry.link_to,
-				url: entry.url,
-			});
-		}
-		return this.module_landing_route(entry.module);
+		if (entry.link_type === "Sidebar") return this.module_landing_route(entry.module);
+		return frappe.ui.sidebar_item.get_route({
+			type: "Link",
+			link_type: entry.link_type,
+			link_to: entry.link_to,
+			url: entry.url,
+		});
 	}
 
 	// The last step above, and the switcher's own list: the app's modules this user can navigate
@@ -1233,8 +1234,8 @@ frappe.ui.Sidebar = class Sidebar {
 	//
 	// A row that opens a workspace is active only while the route is that workspace, because
 	// several of an app's entries can share a shell and highlighting all of them would say
-	// nothing. A row that only names a shell is active while that shell is shown. A URL row is
-	// never active, because it leaves the desk.
+	// nothing. A row that names a shell is active while that shell is shown. A URL row is never
+	// active, because it leaves the desk.
 	is_active_entry(entry) {
 		if (!entry) return false;
 		if (entry.link_type === "URL") return false;
