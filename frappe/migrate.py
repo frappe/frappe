@@ -155,6 +155,7 @@ class SiteMigration:
 		* Sync fixtures & custom scripts
 		* Sync in-Desk Module Dashboards
 		* Sync customizations: Custom Fields, Property Setters, Custom Permissions
+		* Run post_fixture_sync patches
 		* Sync Frappe's internal language master
 		* Flush deferred inserts made during maintenance mode.
 		* Sync Portal Menu Items
@@ -181,6 +182,12 @@ class SiteMigration:
 
 		print("Syncing customizations...")
 		sync_customizations()
+
+		print("Running post fixture sync patches...")
+		frappe.clear_cache()
+		frappe.modules.patch_handler.run_all(
+			skip_failing=self.skip_failing, patch_type=PatchType.post_fixture_sync
+		)
 
 		print("Syncing languages...")
 		sync_languages()
