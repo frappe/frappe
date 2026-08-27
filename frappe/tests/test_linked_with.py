@@ -356,6 +356,27 @@ class TestLinkedWith(IntegrationTestCase):
 		finally:
 			frappe.local.message_log = original
 
+	def test_deferred_attempts_include_locked_documents(self):
+		"""A document locked by another session must get deferred and retried,
+		not abort the run."""
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "locked" and attempts.count("locked") == 1:
+				raise frappe.QueryTimeoutError
+
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "locked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		self.assertEqual(attempts, ["locked", "free", "locked"])
+
 	def test_cancel_all_linked_docs_defers_controller_blocked_docs(self):
 		"""A controller check that wants a referencing document cancelled first
 		raises a plain ValidationError; the document must get deferred, not fail
