@@ -517,11 +517,7 @@ def get_version_activities(
 
 	frappe.utils.add_user_info({v.owner for v in versions if v.owner}, user_info)
 
-<<<<<<< HEAD
-	child_cache: dict[str, tuple[set, frappe.Meta]] = {}
-=======
 	child_cache: dict[str, tuple[set | None, "frappe.Meta"]] = {}
->>>>>>> 2b620e0 (fix: improve timeline component)
 
 	result = []
 	for v in versions:
