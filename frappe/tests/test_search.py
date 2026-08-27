@@ -180,6 +180,39 @@ class TestSearch(IntegrationTestCase):
 		frappe.db.set_value("Language", "es", "idx", 10)
 		self.assertEqual("es", search(txt="es")[0]["value"])
 
+	def test_relevance_skipped_without_txt(self):
+		"""`_relevance` is a constant when txt is empty, so it must not be selected or sorted on."""
+
+		def search_and_capture(txt):
+			captured = []
+			orig_sql = frappe.db.__class__.sql
+
+			def _capture(*args, **kwargs):
+				result = orig_sql(*args, **kwargs)
+				captured.append(str(args[0].last_query))
+				return result
+
+			with patch.object(frappe.db.__class__, "sql", _capture):
+				values = search_widget(doctype="Language", txt=txt, page_length=5)
+
+			return values, "\n".join(captured)
+
+		empty, empty_sql = search_and_capture("")
+		typed, typed_sql = search_and_capture("e")
+
+		self.assertNotIn("_relevance", empty_sql)
+		self.assertIn("_relevance", typed_sql)
+
+		# the result shape must not change: a mismatched strip would drop a real column
+		self.assertEqual(len(empty[0]), len(typed[0]))
+
+	def test_empty_search_still_orders_by_idx(self):
+		"""Dropping the constant relevance key must not change the order of an empty search."""
+		frappe.db.set_value("Language", "es", {"enabled": 1, "idx": 500})
+
+		# page_length=1 leaves the python relevance_sorter no second row to reorder
+		self.assertEqual("es", search_link("Language", "", page_length=1)[0]["value"])
+
 	def test_search_with_paren(self):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		result = search(txt="(txt)")
