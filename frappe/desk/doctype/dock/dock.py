@@ -420,7 +420,7 @@ def mark_as_standard(app: str) -> str:
 		doc.standard = 1
 		# `save` inserts a freshly built record or updates an existing one. Either way,
 		# `on_update` writes the file.
-		doc.save(ignore_permissions=True)
+		doc.save()
 
 		if not doc.is_exported():
 			frappe.throw(_("Could not write {0}'s dock to it. Left unchanged.").format(frappe.bold(app)))
@@ -459,7 +459,7 @@ def unmark_as_standard(app: str) -> None:
 		return
 
 	path = doc.exported_file_path() if doc.is_exported() else None
-	frappe.delete_doc("Dock", doc.name, force=True, ignore_permissions=True)
+	frappe.delete_doc("Dock", doc.name, force=True)
 
 	# Delete the file now rather than on commit. If someone un-marks and marks again in one
 	# request, we want the file the second call wrote, not a queued delete that removes it
@@ -479,6 +479,12 @@ def check_developer_mode() -> None:
 
 	`standard` means there is a file inside an app, and only a developer's site writes files
 	into apps.
+
+	This is a site mode, not a permission. It says the site may write into apps at all; it says
+	nothing about who is asking, so a caller has to leave the ordinary permission check in place
+	as well. Passing `ignore_permissions` past this gate is what let any Desk user on a
+	developer-mode site rewrite an app's shipped dock or delete its folder. `Dock`'s own
+	permissions name `Workspace Manager`, the same role the site layer gates on.
 	"""
 	if frappe.conf.developer_mode:
 		return
@@ -1278,7 +1284,7 @@ def save_app_dock(app: str, items: list | str):
 	for row in shape_dock_rows(items, require_visible=False, below={}):
 		doc.append("items", {field: row[field] for field in DOCK_ITEM_FIELDS})
 
-	doc.save(ignore_permissions=True)
+	doc.save()
 	return resolve_app_dock(app)
 
 

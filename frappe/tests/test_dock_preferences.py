@@ -1849,6 +1849,7 @@ class TestTheExportRoad(IntegrationTestCase):
 	APP = "zz-dock-export"
 	ONE = "Test Dock Export One"
 	TWO = "Test Dock Export Two"
+	DESK_USER = "test-dock-export-desk-user@example.com"
 
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -1867,6 +1868,7 @@ class TestTheExportRoad(IntegrationTestCase):
 
 		"""
 		frappe.set_user("Administrator")
+		frappe.delete_doc("User", self.DESK_USER, force=True, ignore_missing=True)
 		clear_arrangements_for(self.APP)
 		self.drop_modules()
 		frappe.db.commit()  # nosemgrep
@@ -1883,6 +1885,25 @@ class TestTheExportRoad(IntegrationTestCase):
 		with no_developer_mode():
 			for module in (self.ONE, self.TWO):
 				frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+
+	def desk_user(self) -> str:
+		"""Someone with a desk and nothing else. Administrator holds every role, so a permission
+		gate is invisible until a user who does not hold it asks.
+
+		Made on demand rather than in `setUp`: two tests want it and the rest would pay for it.
+		`tearDown` deletes it before the commit, for the reason written there.
+		"""
+		if not frappe.db.exists("User", self.DESK_USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": self.DESK_USER,
+					"first_name": "Dock Export Desk User",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Desk User"}],
+				}
+			).insert(ignore_permissions=True)
+		return self.DESK_USER
 
 	def exported(self) -> str:
 		# `scrub`, because the export road does: the folder and the file are named after the
@@ -2001,6 +2022,43 @@ class TestTheExportRoad(IntegrationTestCase):
 		self.assertEqual(names(get_app_dock(self.APP)), [self.TWO, self.ONE])
 		on_disk = [row["sidebar"] for row in json.load(open(self.exported()))["items"]]
 		self.assertEqual(on_disk, [self.TWO, self.ONE])
+
+	def test_promoting_a_dock_is_workspace_manager_only(self):
+		"""Developer mode says the site may write into apps at all. It does not say who may, and
+		it is the only gate these three had: the writes ran with `ignore_permissions`, so anyone
+		with a desk could ship an app's dock on a developer-mode site.
+		"""
+		self.author(self.ONE)
+
+		frappe.set_user(self.desk_user())
+		try:
+			self.assertRaises(frappe.PermissionError, mark_as_standard, self.APP)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertFalse(os.path.exists(self.exported()))
+		self.assertFalse(frappe.db.exists("Dock", {"app": self.APP, "standard": 1}))
+
+	def test_the_app_layer_and_its_removal_are_workspace_manager_only(self):
+		"""The refusal has to land before anything is written or deleted: `unmark` removes the
+		app's folder, so a gate that ran after the fact would be no gate at all.
+		"""
+		from frappe.desk.doctype.dock.dock import save_app_dock
+
+		self.author(self.ONE)
+		mark_as_standard(self.APP)
+
+		frappe.set_user(self.desk_user())
+		try:
+			self.assertRaises(
+				frappe.PermissionError, save_app_dock, self.APP, payload(added(sidebar(self.TWO)))
+			)
+			self.assertRaises(frappe.PermissionError, unmark_as_standard, self.APP)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertTrue(os.path.exists(self.exported()))
+		self.assertEqual(names(resolve_app_dock(self.APP)), [self.ONE])
 
 	def test_the_app_layer_cannot_be_saved_outside_developer_mode(self):
 		from frappe.desk.doctype.dock.dock import save_app_dock

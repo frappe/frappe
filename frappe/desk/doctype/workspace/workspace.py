@@ -1020,8 +1020,11 @@ def get_assignable_modules():
 				}
 			)
 		except Exception:
-			# a module that cannot be imported is not assignable, and `is_module_visible` will
-			# have logged the import error already
+			# Nothing in this loop imports anything, so a failure here is a broken `Module Def`
+			# row or a broken `app_title` hook, and no other code logs it. The module is skipped
+			# rather than failing the whole picker, but it is skipped loudly: silently dropping
+			# it left a module missing from New Workspace with no trace anywhere to explain why.
+			frappe.log_error(f"Module {row.name} left out of the assignable list")
 			continue
 	return modules
 
