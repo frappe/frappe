@@ -109,6 +109,21 @@ class TestPintoPdf(IntegrationTestCase):
 		finally:
 			frappe.flags.in_migrate = False
 
+	def test_multi_pdf_download_is_encrypted(self):
+		"""The counterpart to skipping encryption when `output` is set: generators merge
+		unencrypted pages, so the password lands once on the finished writer."""
+		from frappe.utils.print_format import _download_multi_pdf
+
+		names = frappe.get_all("ToDo", limit=2, pluck="name")
+		while len(names) < 2:
+			names.append(frappe.get_doc({"doctype": "ToDo", "description": "pinto"}).insert().name)
+
+		_download_multi_pdf("ToDo", names, options=json.dumps({"password": "s3cret"}))
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("s3cret"))
+
 	def test_render_reports_binary_failure(self):
 		error = subprocess.CalledProcessError(1, "pinto", stderr=b"Error: parsing options JSON")
 

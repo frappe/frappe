@@ -233,6 +233,11 @@ def _download_multi_pdf(
 		if task_id is None:
 			frappe.local.response.filename = f"{name}.pdf"
 
+	# Generators hand their pages to the shared writer unencrypted — an encrypted document
+	# cannot be merged — so the password is applied once, to the finished writer.
+	if (options or {}).get("password"):
+		pdf_writer.encrypt(options["password"])
+
 	with BytesIO() as merged_pdf:
 		pdf_writer.write(merged_pdf)
 		if task_id:
