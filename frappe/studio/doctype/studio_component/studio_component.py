@@ -20,9 +20,10 @@ class StudioComponent(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
+
 		from studio.studio.doctype.studio_component_input.studio_component_input import StudioComponentInput
 
-		block: DF.JSON | None
+		block: DF.LongText | None
 		component_id: DF.Data | None
 		component_name: DF.Data | None
 		inputs: DF.Table[StudioComponentInput]

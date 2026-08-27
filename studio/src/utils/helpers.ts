@@ -5,6 +5,7 @@ import { toast } from "frappe-ui"
 import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { StudioApp } from "@/types/Studio/StudioApp"
+import DOMPurify from "dompurify"
 
 function isEditor() {
 	return window.location.pathname.startsWith("/studio/")
@@ -547,6 +548,11 @@ function scrub(txt: string | null | undefined) {
 	return txt.replace(/ |-/g, "_").toLowerCase()
 }
 
+function sanitizeHTML(html?: string): string {
+	return DOMPurify.sanitize(html ?? "")
+}
+
+
 export {
 	isEditor,
 	deepCloneObject,
@@ -602,4 +608,5 @@ export {
 	getErrorMessage,
 	throttle,
 	scrub,
+	sanitizeHTML,
 }

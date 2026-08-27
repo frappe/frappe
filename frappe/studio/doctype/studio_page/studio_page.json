@@ -46,6 +46,7 @@
   {
    "fieldname": "route",
    "fieldtype": "Data",
+   "ignore_xss_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Route"
@@ -57,6 +58,7 @@
   {
    "fieldname": "blocks",
    "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
    "label": "Blocks"
   },
   {
@@ -78,6 +80,7 @@
   {
    "fieldname": "draft_blocks",
    "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
    "label": "Draft Blocks"
   },
   {
@@ -142,7 +145,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-19 16:40:26.071762",
+ "modified": "2026-08-27 12:49:34.370901",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
