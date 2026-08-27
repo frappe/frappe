@@ -1,0 +1,171 @@
+// Drawer chrome only — the body is a frappe.ui.form.Layout and inherits form.scss as-is.
+
+.side-panel {
+	--side-panel-min-width: 380px;
+	--side-panel-width: clamp(var(--side-panel-min-width), 46vw, 780px);
+
+	position: fixed;
+	top: $navbar-height;
+	bottom: 0;
+	width: var(--side-panel-width);
+	z-index: 1010; // under #freeze (1020 for grid forms), so a grid row form still layers above
+	display: flex;
+	flex-direction: column;
+	background-color: var(--surface-base);
+	border-left: 1px solid var(--border-color);
+	box-shadow: var(--shadow-lg);
+
+	// Slides on `right`, not `transform` — a transform would make this the containing block for
+	// its position:fixed descendants (even translateX(0) does).
+	right: calc(-1 * var(--side-panel-width));
+	transition: right 200ms ease;
+
+	&.is-open {
+		right: 0;
+	}
+
+	// Set width/right directly, not the variable — a stored width is applied as an inline custom
+	// property, which would otherwise win over this.
+	@media (max-width: map-get($grid-breakpoints, "md")) {
+		width: 100vw;
+		right: -100vw;
+	}
+}
+
+// Drag handle: a wide invisible grab strip with a small centred grip on hover.
+.side-panel-resizer {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 8px;
+	margin-left: -4px;
+	cursor: col-resize;
+	z-index: 1;
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 3px;
+		height: 28px;
+		border-radius: var(--radius-full);
+		background-color: var(--outline-gray-3);
+		opacity: 0;
+		transition: opacity 120ms ease;
+	}
+
+	&:hover::after,
+	body.side-panel-resizing &::after {
+		opacity: 1;
+	}
+
+	@media (max-width: map-get($grid-breakpoints, "md")) {
+		display: none;
+	}
+}
+
+// Dragging: kill the slide transition so the edge tracks the cursor, and stop text selection.
+body.side-panel-resizing {
+	cursor: col-resize;
+	user-select: none;
+
+	.side-panel {
+		transition: none;
+	}
+}
+
+.side-panel-header {
+	flex-shrink: 0;
+	gap: var(--margin-sm);
+	padding: var(--padding-sm) var(--padding-md);
+	// Tinted instead of a divider line; surface-gray-1 stays a subtle step in light and dark.
+	background-color: var(--surface-gray-1);
+}
+
+.side-panel-heading {
+	gap: var(--margin-xs);
+	min-width: 0;
+}
+
+.side-panel-doctype,
+.side-panel-sep {
+	white-space: nowrap;
+}
+
+.side-panel-actions {
+	gap: var(--margin-xs);
+	margin-left: auto;
+}
+
+.side-panel-body {
+	min-height: 0;
+	overflow-y: auto;
+	position: relative;
+
+	.form-layout {
+		// No top padding — the tab bar brings its own (.nav-link, form.scss).
+		padding: 0 0 var(--padding-md);
+	}
+
+	// The routed form centres and caps its page width; in a drawer that just wastes space.
+	.form-page,
+	.section-head,
+	.section-body {
+		max-width: none;
+	}
+}
+
+.side-panel-message {
+	padding: var(--padding-xl);
+}
+
+.side-panel-row-dialog {
+	.modal-dialog {
+		max-width: var(--page-max-width);
+	}
+
+	.modal-body {
+		max-height: 80vh;
+		overflow-y: auto;
+	}
+}
+
+.side-panel-detail {
+	.form-section {
+		padding: var(--padding-md);
+
+		&:not(:first-child) {
+			border-top: 1px solid var(--border-color);
+		}
+
+		.section-head {
+			padding: 0;
+			@include get_textstyle("lg", "medium");
+		}
+
+		.form-column:first-child {
+			padding-left: 0;
+		}
+	}
+
+	.section-body.side-panel-detail-columns {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--margin-lg);
+	}
+
+	.side-panel-detail-column {
+		min-width: 220px;
+	}
+	.control-value.like-disabled-input a {
+		color: var(--text-color);
+
+		&:hover {
+			text-decoration: underline;
+			text-underline-offset: 2px;
+		}
+	}
+}

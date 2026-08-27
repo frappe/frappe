@@ -51,6 +51,7 @@ desk_properties = (
 	"form_navigation_buttons",
 	"timeline",
 	"dashboard",
+	"report_split_view",
 )
 
 
@@ -127,6 +128,7 @@ class User(Document):
 		onboarding_status: DF.SmallText | None
 		phone: DF.Data | None
 		redirect_url: DF.SmallText | None
+		report_split_view: DF.Check
 		reset_password_key: DF.Data | None
 		restrict_ip: DF.SmallText | None
 		role_profile_name: DF.Link | None

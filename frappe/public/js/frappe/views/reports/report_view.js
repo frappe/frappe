@@ -447,6 +447,22 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 
 		this.setup_inline_filter_observer();
+		this.setup_link_side_panel();
+	}
+
+	// Preview Link cells in the side panel so filters, sort and scroll survive.
+	setup_link_side_panel() {
+		this.$datatable_wrapper
+			.off("click.side-panel")
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) => {
+				frappe.ui.handle_link_cell_click(e, ($cell) => {
+					const col_index = $cell.attr("data-col-index");
+					if (col_index == null) return false;
+					const column = this.datatable.getColumn(Number(col_index));
+					// The ID column's anchor is identical but should still route to the form.
+					return ["Link", "Dynamic Link"].includes(column?.docfield?.fieldtype);
+				});
+			});
 	}
 
 	setup_inline_filter_observer() {
