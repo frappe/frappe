@@ -183,9 +183,9 @@ async function series_dialog(doctype, row, refresh) {
 
 			if (series !== original) {
 				if (options.includes(series)) {
-					frappe.show_alert({
+					frappe.ui.toast({
 						message: __("Series already exists"),
-						indicator: "orange",
+						type: "warning",
 					});
 					return;
 				}
@@ -204,9 +204,9 @@ async function series_dialog(doctype, row, refresh) {
 			}
 
 			dialog.hide();
-			frappe.show_alert({
+			frappe.ui.toast({
 				message: is_edit ? __("Series updated") : __("Series added"),
-				indicator: "green",
+				type: "success",
 			});
 			refresh();
 		},
@@ -226,7 +226,7 @@ async function remove_series(doctype, series, refresh) {
 		.filter((s) => s !== series);
 	doc.naming_series_options = options.join("\n");
 	await settings_call(doc, "update_series");
-	frappe.show_alert({ message: __("Series removed"), indicator: "green" });
+	frappe.ui.toast({ message: __("Series removed"), type: "success" });
 	refresh();
 }
 
@@ -315,9 +315,9 @@ function make_rules_section($body, doctype, panel) {
 							confirm_field: "prefix",
 							action: (row, refresh) =>
 								frappe.db.delete_doc("Document Naming Rule", row.name).then(() => {
-									frappe.show_alert({
+									frappe.ui.toast({
 										message: __("Deleted"),
-										indicator: "green",
+										type: "success",
 									});
 									refresh();
 								}),
