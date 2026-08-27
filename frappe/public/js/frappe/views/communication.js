@@ -83,6 +83,7 @@ frappe.views.CommunicationComposer = class {
 			this.sync_fullscreen_btn();
 		});
 		$wrapper.find(".modal-header .modal-actions").prepend($minimize);
+		$wrapper.find(".modal-header .modal-actions .es-button").attr("data-size", "xs");
 		this.sync_fullscreen_btn();
 	}
 

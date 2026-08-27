@@ -35,7 +35,7 @@
 		flex-direction: column;
 		max-height: calc(100vh - 40px);
 		min-height: 534px;
-		border-radius: var(--radius-2xl);
+		border-radius: var(--radius-xl);
 		border: 1px solid var(--border-color);
 		box-shadow: var(--elevation-xl);
 		background-color: var(--card-bg);
@@ -67,6 +67,7 @@
 			@include get_textstyle("base", "medium");
 			line-height: 1.15;
 			color: var(--ink-gray-7);
+			margin: 0;
 		}
 
 		.modal-actions {
@@ -76,7 +77,8 @@
 
 	&.modal-minimize {
 		.modal-dialog {
-			width: 400px;
+			width: 357px;
+			bottom: 0;
 
 			@include media-breakpoint-down(sm) {
 				width: 100%;
@@ -86,6 +88,8 @@
 
 		.modal-content {
 			min-height: 0;
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
 		}
 
 		.modal-body {
@@ -93,8 +97,7 @@
 		}
 
 		.modal-header {
-			padding: 6px 12px;
-			min-height: 40px;
+			padding: 12px 16px 12px 16px;
 
 			.modal-title {
 				font-size: var(--text-base);
