@@ -68,8 +68,9 @@ def get_print_format_html_and_css(print_format: str):
 		as_dict=True,
 	)
 	if not pf:
-		return
+		frappe.throw(_("Print Format {0} not found").format(print_format), frappe.DoesNotExistError)
 
+	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
 	report = get_report_doc(pf.report)
 
 	if not frappe.has_permission(report.ref_doctype, "print"):
