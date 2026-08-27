@@ -269,6 +269,81 @@ class TestLinkedWith(IntegrationTestCase):
 		# only the events of the two successful attempts survive
 		self.assertEqual(events, [{"attempt": 2}, {"attempt": 3}])
 
+	def test_deferred_attempts_run_their_rollback_callbacks(self):
+		"""A rolled-back attempt's rollback watchers must run, or the effects they
+		compensate for (files written, caches primed) stay behind."""
+		compensated = []
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				frappe.db.after_rollback.add(lambda: compensated.append("blocked"))
+				raise frappe.LinkExistsError
+
+		after_rollback_count = len(frappe.db.after_rollback)
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		self.assertEqual(compensated, ["blocked"])
+		self.assertEqual(len(frappe.db.after_rollback), after_rollback_count)
+
+	def test_deferred_attempts_restore_currently_saving(self):
+		"""Document saves append to frappe.flags.currently_saving and pop only on
+		success, so a deferred failure must not leak its entry."""
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			frappe.flags.currently_saving.append(("Parent DocType", docinfo["name"]))
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				raise frappe.LinkExistsError
+			frappe.flags.currently_saving.remove(("Parent DocType", docinfo["name"]))
+
+		before = list(frappe.flags.currently_saving)
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		self.assertEqual(list(frappe.flags.currently_saving), before)
+
+	def test_deferred_attempts_restore_replaced_message_log(self):
+		"""Some permission checks swap the message log out and do not put it back
+		when they raise; the snapshot must survive the replacement."""
+		original = frappe.local.message_log
+		frappe.local.message_log = ["kept"]
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				frappe.local.message_log = ["from the failed attempt"]
+				raise frappe.LinkExistsError
+
+		try:
+			linked_with.process_linked_docs_in_dependency_order(
+				[
+					{"doctype": "Parent DocType", "name": "blocked"},
+					{"doctype": "Parent DocType", "name": "free"},
+				],
+				process,
+				"Processing",
+			)
+			self.assertEqual(frappe.local.message_log, ["kept"])
+		finally:
+			frappe.local.message_log = original
+
 	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
