@@ -10,7 +10,21 @@ from frappe.core.doctype.file.test_file import make_test_image_file
 from frappe.tests.utils import FrappeTestCase
 
 
+<<<<<<< HEAD
 class TestPdf(FrappeTestCase):
+=======
+def blank_pdf() -> bytes:
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+class TestPdf(IntegrationTestCase):
+>>>>>>> 4bbd034 (test(pdf): cover smart shrinking opt-in on report PDFs)
 	@property
 	def html(self):
 		return """<style>
@@ -76,6 +90,33 @@ class TestPdf(FrappeTestCase):
 		reader = PdfReader(io.BytesIO(pdf))
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
+
+	def test_smart_shrinking_is_opt_in(self):
+		from unittest.mock import patch
+
+		captured = {}
+
+		def capture_options(html, options=None, verbose=True):
+			captured.clear()
+			captured.update(options or {})
+			return blank_pdf()
+
+		with patch.object(pdfgen.pdfkit, "from_string", side_effect=capture_options):
+			pdfgen.get_pdf(self.html)
+			self.assertIn("disable-smart-shrinking", captured)
+
+			pdfgen.get_pdf(self.html, smart_shrinking=True)
+			self.assertNotIn("disable-smart-shrinking", captured)
+
+	def test_report_pdf_is_scaled_to_fit_the_page(self):
+		from unittest.mock import patch
+
+		from frappe.utils import print_format
+
+		with patch.object(print_format, "get_pdf", return_value=blank_pdf()) as get_report_pdf:
+			print_format.report_to_pdf("<table><tr><td>a wide report</td></tr></table>")
+
+		self.assertTrue(get_report_pdf.call_args.kwargs["smart_shrinking"])
 
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")
