@@ -42,9 +42,23 @@
 					>
 						<!-- load_more has no gutter icon — the connector line passes straight through -->
 						<div
+<<<<<<< HEAD
 							v-if="activity.type !== 'load_more'"
 							class="relative z-10 flex items-center justify-center self-start bg-surface-base"
 							:class="[isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full']"
+=======
+							class="relative flex justify-center after:absolute after:start-[calc(50%-0.5px)] after:z-0 after:border-s after:border-outline-elevation-2"
+							:class="
+								activity.type === 'load_more'
+									? 'after:-top-2 after:h-[calc(100%+1rem)]'
+									: [
+											i != displayActivities.length - 1 && 'after:h-full',
+											isOneLinerActivity(activity)
+												? 'after:top-6'
+												: 'after:top-3',
+									  ]
+							"
+>>>>>>> 74c2a2b (fix(ui): align the timeline gutter line with the icon axis)
 						>
 							<!-- gutter ladder: #icon-{type} slot > GutterIcon (activity.icon > per-type default) -->
 							<slot :name="`icon-${activity.type}`" :activity="activity">
