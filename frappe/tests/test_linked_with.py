@@ -1,5 +1,6 @@
 import random
 import string
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -402,7 +403,18 @@ class TestLinkedWith(IntegrationTestCase):
 		with self.set_user("test1@example.com"):
 			docs = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)["docs"]
 
-		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name, "docstatus": 0}])
+		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name}])
+
+	def test_get_linked_docs_to_delete_truncates_large_graphs(self):
+		"""A graph larger than the cap returns no documents, so the caller falls
+		back to a plain delete instead of walking everything."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+
+		with patch.object(linked_with, "MAX_LINKED_DELETE_DOCUMENTS", 0):
+			result = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)
+
+		self.assertEqual(result, {"docs": [], "count": 0, "truncated": True})
 
 	def test_delete_all_linked_docs_defers_blocked_docs(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
