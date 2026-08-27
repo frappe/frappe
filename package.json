@@ -57,7 +57,7 @@
     "frappe-quill-image-resize": "^3.0.9",
     "highlight.js": "^10.4.1",
     "html5-qrcode": "^2.3.8",
-    "jquery": "3.7.0",
+    "jquery": "3.7.1",
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.11.0",
     "launch-editor": "^2.2.1",
@@ -92,5 +92,12 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
     "utf-8-validate": "^6.0.3"
+<<<<<<< HEAD
+=======
+  },
+  "resolutions": {
+    "esbuild-plugin-vue3/esbuild": "^0.28.0",
+    "sortablejs": "^1.15.7"
+>>>>>>> 4531beb (chore(deps): bump jquery, moment and sortablejs)
   }
 }
