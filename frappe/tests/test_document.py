@@ -599,6 +599,24 @@ class TestDocument(IntegrationTestCase):
 		doc.save()
 		self.assertEqual(frappe.db.get_value("ToDo", doc.name, "docstatus"), 1)
 
+	def test_ignore_if_duplicate_on_a_unique_autoname_field(self):
+		"""A doctype named after a unique field breaks two indexes with one row.
+
+		`Role` is `autoname: field:role_name` and `role_name` is unique, so re-inserting the
+		same role violates the primary key AND the unique index. Which one the backend reports
+		is its own choice: MariaDB names PRIMARY, SQLite names the secondary index. Callers that
+		seed idempotently pass `ignore_if_duplicate` and must not have to know the difference.
+		"""
+		role = frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+		self.addCleanup(role.delete)
+
+		frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert(ignore_if_duplicate=True)
+		self.assertEqual(frappe.db.count("Role", {"role_name": "_Test Duplicate Role"}), 1)
+
+		# Without the flag it is still an error, whichever index the backend blames.
+		with self.assertRaises((frappe.UniqueValidationError, frappe.DuplicateEntryError)):
+			frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+
 
 class TestDocumentWebView(IntegrationTestCase):
 	def get(self, path, user="Guest"):
