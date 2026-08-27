@@ -21,6 +21,7 @@ context("Timeout error popups", () => {
 		cy.wait("@timed_out");
 
 		cy.get(".modal-title").should("contain", "Request Timed Out");
+		cy.get(".msgprint").should("contain", "HTTP timeout of the bench");
 		cy.get(".msgprint")
 			.find("a")
 			.should("have.attr", "href")
@@ -49,6 +50,7 @@ context("Timeout error popups", () => {
 
 		cy.get(".modal-title").should("contain", "Request Timeout");
 		cy.get(".msgprint").should("contain", "Server was too busy");
+		cy.get(".msgprint").should("contain", "waited too long for a row lock");
 		cy.get(".msgprint")
 			.find("a")
 			.should("have.attr", "href")
