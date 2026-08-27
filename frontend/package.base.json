@@ -1,0 +1,27 @@
+{
+  "name": "@frappe/frontend",
+  "private": true,
+  "type": "module",
+  "comment": "The framework's OWN declaration: the shared library set, pinned here and enforced by the build. `bench build` composes this with each contributing app's own dependencies into the generated package.json beside it, which is what yarn installs. One tree for all apps -- deliberately NOT a yarn workspace root, because workspaces hoist and nest on conflict rather than fail, and the charter wants hard failure at manifest assembly (#42069).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@framework/ui": "link:../ui",
+    "@vueuse/core": "^11.3.0",
+    "dompurify": "^3.3.3",
+    "frappe-ui": "1.0.0-beta.55",
+    "reka-ui": "^2.9.6",
+    "socket.io-client": "^4.7.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.5",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.5",
+    "tailwindcss": "^3.4.15",
+    "vite": "8.1.5"
+  }
+}
