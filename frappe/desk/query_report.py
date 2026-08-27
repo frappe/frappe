@@ -60,7 +60,7 @@ def get_report_doc(report_name):
 
 
 @frappe.whitelist()
-def get_print_format_html_and_css(print_format: str):
+def get_print_format_data(print_format: str):
 	pf = frappe.db.get_value(
 		"Print Format",
 		{"name": print_format, "disabled": 0, "print_format_for": "Report"},

@@ -1754,7 +1754,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	async get_report_print_format(print_format) {
 		const r = await frappe.call({
-			method: "frappe.desk.query_report.get_print_format_html_and_css",
+			method: "frappe.desk.query_report.get_print_format_data",
 			args: { print_format },
 		});
 		if (r && r.message && r.message.html) {
