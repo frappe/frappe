@@ -57,7 +57,7 @@ SECOND_PREFIX = "shell-probe"
 
 
 @contextmanager
-def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX):
+def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, active: bool = True):
 	"""Present a second app to the shell without one being installed.
 
 	Most of what the shell promises — that a prefix resolves, that boot is composed per
@@ -69,8 +69,13 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX):
 	Every seam the shell reads an app through is faked here, and only for `app`:
 
 	- `get_active_apps`, which the prefix registry is built from
-	- `get_installed_apps`, which `get_boot_module_app` filters DB-only modules on
+	- `get_installed_apps`, which `get_boot_module_app` filters DB-only modules on, and
+	  which the install-time prefix guard reads
 	- `get_hooks(app_name=...)`, which would otherwise import the app to read them
+
+	`active=False` presents the app as **installed but disabled**: it appears in
+	`get_installed_apps` and not in `get_active_apps`, which is exactly the shape
+	`get_active_apps` produces for an app named in the `disabled_apps` global.
 
 	Delegation matters as much as it does in `hooks_declaring`: anything asked about a
 	real app must still get the real answer.
@@ -108,7 +113,8 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX):
 	with ExitStack() as stack:
 		stack.callback(clear)
 		stack.enter_context(patch.object(frappe, "get_hooks", side_effect=fake_hooks))
-		stack.enter_context(patch.object(frappe, "get_active_apps", side_effect=with_app(real_active)))
+		if active:
+			stack.enter_context(patch.object(frappe, "get_active_apps", side_effect=with_app(real_active)))
 		stack.enter_context(patch.object(frappe, "get_installed_apps", side_effect=with_app(real_installed)))
 		yield app, prefix
 
@@ -335,6 +341,34 @@ class TestPrefixCollisionGuard(IntegrationTestCase):
 	def test_a_free_prefix_installs(self):
 		with hooks_returning({"newapp": "totally-free-prefix"}):
 			before_app_install("newapp")  # must not raise
+
+	def test_a_disabled_app_still_holds_its_prefix(self):
+		"""A disabled app is not serving, but it has not given the prefix up.
+
+		`get_active_apps` is `get_installed_apps` minus the `disabled_apps` global, so a
+		guard reading the active list cannot see a disabled claimant at all. Letting the
+		install through would make the collision appear later and elsewhere: re-enabling
+		the original leaves two apps declaring one prefix, and `build_prefix_registry` is
+		a dict comprehension, so one silently overwrites the other and an app becomes
+		unreachable with nothing logged.
+
+		Refusing at install is the only point where the operator is present and the site
+		is still byte-identical.
+		"""
+		with a_second_app(prefix="shop", active=False) as (disabled, prefix):
+			self.assertNotIn(disabled, frappe.get_active_apps(_ensure_on_bench=True))
+			self.assertIn(disabled, frappe.get_installed_apps(_ensure_on_bench=True))
+
+			with hooks_returning({"newapp": prefix}):
+				with self.assertRaises(PrefixCollisionError) as caught:
+					before_app_install("newapp")
+
+		# Both claimants named, the disabled one included -- an operator who cannot see
+		# it in the app list needs the message to say which app is holding the prefix.
+		message = str(caught.exception)
+		self.assertIn("newapp", message)
+		self.assertIn(prefix, message)
+		self.assertIn(disabled, message)
 
 	def test_a_v1_route_does_not_collide_with_the_same_name_under_apps(self):
 		"""The /apps redraw is what removed this collision.

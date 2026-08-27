@@ -35,7 +35,17 @@ def before_app_install(app_name: str):
 			title=_("Invalid Route Prefix"),
 		)
 
-	for installed in frappe.get_active_apps(_ensure_on_bench=True):
+	# `get_installed_apps`, NOT `get_active_apps` — and this is deliberately the opposite
+	# of what `build_prefix_registry` reads. A *disabled* app must stop serving its
+	# prefix, so the registry skips it; but it can be re-enabled at any time, so its
+	# claim must still block a new app from taking the prefix. Checking active apps only
+	# would let disable-A / install-B / re-enable-A end with two claimants, which the
+	# registry resolves by silently letting one win.
+	#
+	# `_ensure_on_bench=True` is kept for the reason it exists: an app left in
+	# `installed_apps` but no longer on the bench would raise from `get_hooks(app_name=)`
+	# in `declared_prefix` below, turning one missing directory into a failed install.
+	for installed in frappe.get_installed_apps(_ensure_on_bench=True):
 		if installed == app_name:
 			continue
 		if declared_prefix(installed) != prefix:
