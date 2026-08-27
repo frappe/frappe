@@ -734,11 +734,20 @@ export function createFlowStore(client) {
 	}
 
 	async function saveFile(path, content) {
-		const sid = state.sessionId
+		const cwd = explorerCwd()
+		const stale = () => explorerCwd() !== cwd
 		const tab = state.workspace.tabs.find((t) => t.path === path)
-		if (!sid || !tab || typeof client.writeFile !== "function") return false
-		const data = await guard(() => client.writeFile(sid, path, content))
-		if (!data || state.sessionId !== sid) return false
+		if (!cwd || !tab) return false
+		// hosts with an older client surface only have the session-scoped save
+		const write =
+			typeof client.writeFsFile === "function"
+				? () => client.writeFsFile(cwd, path, content)
+				: state.sessionId && typeof client.writeFile === "function"
+					? () => client.writeFile(state.sessionId, path, content)
+					: null
+		if (!write) return false
+		const data = await guard(write)
+		if (!data || stale()) return false
 		tab.content = content
 		tab.dirty = false
 		tab.error = null

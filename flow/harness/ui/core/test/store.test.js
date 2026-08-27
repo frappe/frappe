@@ -291,3 +291,23 @@ test("diff tabs fall back to the session diff for files outside the repository",
 	assert.equal(tab.original, "before\n")
 	assert.equal(tab.content, "after\n")
 })
+
+test("files save against the browsed cwd even before a session", async () => {
+	const calls = []
+	const client = {
+		async readFile(cwd, path) {
+			return { path, content: "old" }
+		},
+		async writeFsFile(cwd, path, content) {
+			calls.push([cwd, path, content])
+			return { path }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.setCwd("/project")
+	await flow.openFile("/project/a.txt")
+
+	assert.equal(await flow.saveFile("/project/a.txt", "new"), true)
+	assert.deepEqual(calls, [["/project", "/project/a.txt", "new"]])
+	assert.equal(flow.state.workspace.tabs[0].content, "new")
+})

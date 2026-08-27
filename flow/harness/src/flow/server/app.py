@@ -142,9 +142,10 @@ class OAuthCompleteRequest(BaseModel):
 	callback_url: str = Field(min_length=1)
 
 
-class WriteFileRequest(BaseModel):
+class FsWriteFileRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
+	cwd: str = Field(min_length=1)
 	path: str = Field(min_length=1)
 	content: str
 
@@ -607,6 +608,15 @@ def create_app(
 		full_path = _resolve_allowed_path(cwd, path)
 		return {"path": full_path, "content": await asyncio.to_thread(_read_text_file, full_path)}
 
+	@app.put("/fs/file")
+	async def write_fs_file(req: FsWriteFileRequest):
+		"""The cwd-keyed twin of the session save, so edits work before a session exists."""
+		full_path = _resolve_allowed_path(req.cwd, req.path)
+		if len(req.content.encode()) > MAX_FILE_VIEW_BYTES:
+			raise HTTPException(status_code=413, detail="file too large to save")
+		await asyncio.to_thread(_save_text_file, full_path, req.content)
+		return {"path": full_path}
+
 	def _resolve_allowed_path(cwd: str, path: str) -> str:
 		if not os.path.isabs(cwd):
 			raise HTTPException(status_code=400, detail="cwd must be an absolute path")
@@ -642,30 +652,6 @@ def create_app(
 			return {"path": full_path, "original": original, "modified": modified}
 
 		return await asyncio.to_thread(compute)
-
-	@app.put("/sessions/{sid}/file")
-	async def write_file(sid: str, req: WriteFileRequest):
-		"""Save the file viewer's edits. Same fence as reading; parent directories
-		are created like the write tool does."""
-		session = _get(sid)
-		full_path = absolute_path(req.path, base=session.config.cwd)
-		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
-		if len(req.content.encode()) > MAX_FILE_VIEW_BYTES:
-			raise HTTPException(status_code=413, detail="file too large to save")
-
-		def save() -> None:
-			try:
-				os.makedirs(os.path.dirname(full_path) or ".", exist_ok=True)
-				with open(full_path, "w", encoding="utf-8", newline="") as f:
-					f.write(req.content)
-			except PermissionError:
-				raise HTTPException(status_code=403, detail="file is not writable") from None
-			except IsADirectoryError:
-				raise HTTPException(status_code=400, detail="path is a directory") from None
-
-		await asyncio.to_thread(save)
-		return {"path": full_path}
 
 	@app.get("/sessions/{sid}/stream")
 	async def stream(sid: str, since: int = 0, follow: bool = False):
@@ -822,6 +808,18 @@ def _read_text_file(full_path: str, *, strip_bom: bool = False) -> str:
 		raise HTTPException(status_code=415, detail="not a text file") from None
 	# BOM-stripped callers diff line one cleanly (the edit tool records BOM-less diffs)
 	return text.removeprefix("\ufeff") if strip_bom else text
+
+
+def _save_text_file(full_path: str, content: str) -> None:
+	"""Write the viewer's edits, creating parent directories like the write tool does."""
+	try:
+		os.makedirs(os.path.dirname(full_path) or ".", exist_ok=True)
+		with open(full_path, "w", encoding="utf-8", newline="") as f:
+			f.write(content)
+	except PermissionError:
+		raise HTTPException(status_code=403, detail="file is not writable") from None
+	except IsADirectoryError:
+		raise HTTPException(status_code=400, detail="path is a directory") from None
 
 
 def _list_directory(full_path: str) -> list[dict]:
