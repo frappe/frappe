@@ -15,7 +15,7 @@
 			:style="{ paddingBottom: composerHeight + 'px' }"
 		>
 			<BrandMark :size="48" />
-			<h2 class="text-3xl font-normal text-ink-gray-9">What would you like to build?</h2>
+			<h2 class="text-4xl font-normal text-ink-gray-9">What would you like to build?</h2>
 		</div>
 		<div
 			v-else
