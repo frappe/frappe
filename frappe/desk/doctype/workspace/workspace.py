@@ -625,6 +625,38 @@ def new_page(new_page: dict):
 	return workspace_payload()
 
 
+# Where a workspace goes when nothing says where it belongs. Both are custom modules the site
+# owns rather than modules any app ships, so an app's uninstall cannot take the site's workspaces
+# with it. `backfill_workspace_module` sorts existing rows into them; `triage_module` is what a
+# create path uses when it has no module to offer.
+PRIVATE_MODULE = "Private"
+CUSTOM_MODULE = "Custom Workspaces"
+
+
+def ensure_module(module: str) -> None:
+	"""Create one of the triage modules if the site does not have it yet."""
+	if frappe.db.exists("Module Def", module):
+		return
+
+	frappe.get_doc({"doctype": "Module Def", "module_name": module, "custom": 1}).insert(
+		ignore_permissions=True
+	)
+
+
+def triage_module(for_user: str | None = None) -> str:
+	"""Return the module a workspace goes to when its creator was never asked for one.
+
+	`Workspace.module` is mandatory, and the desk's own dialog asks for it. A caller that cannot
+	ask -- the icon grid's create dialog collects a label and a visibility and nothing else --
+	needs an answer that is not a guess, so it gets the same triage module the upgrade uses. A
+	workspace manager sorts it out later, and the workspace is reachable in the meantime, which
+	is the whole point: before this, saving it raised a mandatory-field error.
+	"""
+	module = PRIVATE_MODULE if for_user else CUSTOM_MODULE
+	ensure_module(module)
+	return module
+
+
 def get_workspace_app(doc) -> str | None:
 	"""Return the app a workspace belongs to, which is its module's app.
 
@@ -665,9 +697,12 @@ def add_to_sidebar(workspace):
 	This runs on every write that can leave a workspace shared, not only on insert, since a page
 	that has just been made public needs the link its private form did not store.
 
-	It only reaches modules that have a document, which is now the minority. For the rest the base
-	is computed, and a public workspace appears in it on its own, because `get_module_info` reads
-	them.
+	It only reaches modules that have a sidebar document, which is now the minority. For the rest
+	the base is computed, and a public workspace appears in it on its own, because
+	`get_module_contents` reads them.
+
+	The link is appended, and an append lands at the end of the sidebar (`frappe/desk/layers.py`).
+	That is what keeps the most recently added item from becoming the module's landing page.
 	"""
 	from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 		add_site_sidebar_item,
@@ -679,15 +714,25 @@ def add_to_sidebar(workspace):
 	if not workspace.public or (workspace.type and workspace.type != "Workspace"):
 		return
 
-	# The naming rule: the sidebar a module answers with is the one named after it. A module whose
-	# only sidebar has another name has no sidebar of its own, so its base is computed, and a
-	# public workspace appears in that base on its own.
-	if not workspace.module or not frappe.db.exists("Sidebar", workspace.module):
+	if not workspace.module:
 		return
 
-	sidebar = frappe.get_cached_doc("Sidebar", workspace.module)
-	if any(item.link_type == "Workspace" and item.link_to == workspace.name for item in sidebar.items):
+	# Matched the way `get_sidebar_bases` matches, on the module column rather than the name. A
+	# sidebar renamed away from its module still answers for that module, so the module has a
+	# document base and no computed one -- and asking for a document *named* after the module
+	# found nothing, took the computed branch's exit, and left the workspace in no sidebar at all.
+	#
+	# The computed branch is still the common one, and it needs no link: `get_module_contents`
+	# reads public workspaces, so a workspace appears in a computed base on its own.
+	shells = frappe.get_all("Sidebar", filters={"module": workspace.module}, pluck="name")
+	if not shells:
 		return
+
+	# Already listed by a shipped sidebar, in any of the module's shells.
+	for shell in shells:
+		sidebar = frappe.get_cached_doc("Sidebar", shell)
+		if any(item.link_type == "Workspace" and item.link_to == workspace.name for item in sidebar.items):
+			return
 
 	add_site_sidebar_item(
 		workspace.module,

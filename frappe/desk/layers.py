@@ -108,6 +108,9 @@ def apply_layer(
 	empty layer would empty the surface, but an empty layer means no opinion.
 	"""
 	by_key = {key(item): item for item in items}
+	# Captured before the loop, which writes added rows into `by_key`. Used to tell an
+	# arrangement from a set of appends, below.
+	base_keys = set(by_key)
 	arranged: list[str] = []
 	named: set[str] = set()
 
@@ -142,4 +145,21 @@ def apply_layer(
 	if not keep_unnamed:
 		return arranged_items
 
-	return arranged_items + [item for item in items if key(item) not in named]
+	unnamed = [item for item in items if key(item) not in named]
+
+	# A layer whose every row is an addition the base does not hold is not an arrangement, it is a
+	# set of appends, and an append belongs at the end.
+	#
+	# The distinction matters because the two writers produce different shapes. Saving an
+	# arrangement names every row it was shown, so it positions the whole surface and the rule
+	# above is right. `add_site_sidebar_item` names one row, and reading that as an arrangement
+	# put the row first: creating a shared workspace moved it to the top of its module's sidebar
+	# for the whole site, and, because a module opens on the first item of its sidebar, silently
+	# changed what the module opened on.
+	#
+	# A layer that names even one base row is an arrangement again, so a row appended to a layer
+	# somebody arranged stays where `append` put it, which is last among the rows it names.
+	if arranged and all(row_key not in base_keys for row_key in arranged):
+		return unnamed + arranged_items
+
+	return arranged_items + unnamed

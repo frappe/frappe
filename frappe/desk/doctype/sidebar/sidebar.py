@@ -734,6 +734,10 @@ MODULE_CONTENT_ENTITIES = ("Workspace", "Dashboard", "DocType", "Report", "Page"
 # resolved sidebar for how routing is kept independent of it.
 COMPUTED_DOCTYPE_LIMIT = 15
 
+# Where `arrange_contents` records how many doctypes the limit dropped, so `generate_items` can
+# say so. Not an entity, so every reader of a contents dict skips it by name.
+OVERFLOW_KEY = "_dropped_doctypes"
+
 # The icon a module gets in the dock when it specifies none.
 DEFAULT_HEADER_ICON = "hammer"
 
@@ -777,10 +781,17 @@ def arrange_contents(held: dict[str, list]) -> dict[str, list]:
 	with a workspace leads with it. A module without one leads with its doctypes, which are then
 	the first thing to land on.
 	"""
+	dropped = max(0, len(held["DocType"]) - COMPUTED_DOCTYPE_LIMIT)
 	held["DocType"] = held["DocType"][:COMPUTED_DOCTYPE_LIMIT]
 
 	if not held["Workspace"]:
 		held = {"DocType": held["DocType"], **held}
+
+	# Carried so the sidebar can say what it left out. A limit that draws fewer doctypes than the
+	# module holds is fine; one that does it silently is not, because the reading it invites is
+	# that the module does not hold them.
+	if dropped:
+		held[OVERFLOW_KEY] = dropped
 
 	return held
 
@@ -798,7 +809,7 @@ def generate_items(held: dict[str, list], module: str | None = None) -> list[dic
 	icons = {"Report": "table", "Page": "panel-top", "Workspace": "wallpaper"}
 
 	for entity, rows in held.items():
-		if not rows:
+		if entity == OVERFLOW_KEY or not rows:
 			continue
 
 		# A single dashboard or page needs no section. A report always gets one, because
@@ -829,6 +840,27 @@ def generate_items(held: dict[str, list], module: str | None = None) -> list[dic
 				item["child"] = 1
 
 			items.append(item)
+
+		# Said once, right after the doctypes it applies to. A computed sidebar draws at most
+		# COMPUTED_DOCTYPE_LIMIT of them, and the rest were reachable but unlisted, which reads
+		# as the module not holding them.
+		#
+		# It links to the full list rather than being a dead label, and it is an ordinary
+		# `DocType` item, so `is_item_allowed` filters it away for anyone without read access to
+		# `DocType`. That is the intended audience: the row is only actionable by someone who
+		# can ship the module a `Sidebar` or reorganise it, and it would be noise for everyone
+		# else.
+		if entity == "DocType" and held.get(OVERFLOW_KEY):
+			items.append(
+				{
+					"type": "Link",
+					"link_type": "DocType",
+					"link_to": "DocType",
+					"label": _("{0} more not shown").format(held[OVERFLOW_KEY]),
+					"icon": "more-horizontal",
+					"filters": json.dumps([["DocType", "module", "=", module]]) if module else None,
+				}
+			)
 
 	return items
 

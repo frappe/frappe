@@ -661,6 +661,13 @@ frappe.ui.Sidebar = class Sidebar {
 			const clean_href = href.replace(/\/$/, "");
 			const clean_path = path.replace(/\/$/, "");
 
+			// A root or empty href strips to "", and "" prefix-matches every route, so such an
+			// item was highlighted on every page. A URL item is where this came from: it is the
+			// one kind whose href is arbitrary rather than a route this desk generated, and an
+			// item pointing at "/" claimed the highlight from whichever item the route really
+			// belonged to.
+			if (!clean_href) return;
+
 			const isActive = clean_path === clean_href || clean_path.startsWith(clean_href + "/");
 			if (!href || !isActive) return;
 
@@ -999,6 +1006,31 @@ frappe.ui.Sidebar = class Sidebar {
 		this.select_module(module);
 
 		let route = this.module_landing_route(module);
+		if (route) frappe.set_route(route);
+	}
+
+	// Navigate to a workspace by name, and show it inside a shell that lists it.
+	//
+	// The argument is a workspace, not a shell, which is why this is not `open_module`. Global
+	// search offers every workspace the user is permitted, including ones no dock row names, so
+	// this is the way back to a workspace that is otherwise unreachable.
+	//
+	// Where `open_module` lands on the shell's first item, this lands on the workspace that was
+	// asked for. Selecting the shell is presentation: the sidebar should show where the workspace
+	// lives, and `get_modules_linking` puts the owning shell first, so a workspace listed in
+	// several lands in the one that claims it. A workspace no shell lists keeps whatever shell is
+	// current rather than clearing it, since an empty sidebar helps nobody.
+	open_workspace(name) {
+		if (!name) return;
+
+		const shell = this.get_modules_linking(name)[0];
+		if (shell) this.select_module(shell);
+
+		const route = frappe.ui.sidebar_item.get_route({
+			type: "Link",
+			link_type: "Workspace",
+			link_to: name,
+		});
 		if (route) frappe.set_route(route);
 	}
 
@@ -1381,9 +1413,12 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		// 6. The first available sidebar.
-		const first = Object.values(all)[0];
+		// `Object.keys`, not `first.module`: the payload is keyed by shell identity, and every
+		// other step returns a key into it. A shell renamed away from its module would make
+		// `first.module` a string this map does not hold, so the last resort resolved to nothing.
+		const first = Object.keys(all)[0];
 		return {
-			sidebar: first && first.module,
+			sidebar: first,
 			reason: `fallback to the first available sidebar (route entity "${entity}" matched none)`,
 			provisional,
 		};

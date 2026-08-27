@@ -2,10 +2,13 @@ import click
 
 import frappe
 
-# Where a workspace goes when nothing says where it belongs. Both are custom modules the site
-# owns rather than modules any app ships. See `ensure_module`.
-PRIVATE_MODULE = "Private"
-CUSTOM_MODULE = "Custom Workspaces"
+# Defined next to the doctype rather than here, because a create path needs them at runtime and a
+# patch is deleted once every site has run it. Re-exported so this module stays the import site.
+from frappe.desk.doctype.workspace.workspace import (
+	CUSTOM_MODULE,
+	PRIVATE_MODULE,
+	ensure_module,
+)
 
 
 def execute():
@@ -35,16 +38,3 @@ def execute():
 		ensure_module(module)
 		frappe.db.set_value("Workspace", {"name": ["in", names]}, "module", module, update_modified=False)
 		click.secho(f"  {len(names)} workspace(s) -> {module}", fg="green")
-
-
-def ensure_module(module: str) -> None:
-	"""Create the destination module if the site doesn't have it yet.
-
-	`custom` so no app owns it: an app's uninstall must not take the site's workspaces with it.
-	"""
-	if frappe.db.exists("Module Def", module):
-		return
-
-	frappe.get_doc({"doctype": "Module Def", "module_name": module, "custom": 1}).insert(
-		ignore_permissions=True
-	)
