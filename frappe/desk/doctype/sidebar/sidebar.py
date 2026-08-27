@@ -65,12 +65,23 @@ SIDEBAR_ITEM_FIELDS = (
 # my module", and the fixture conversion drops it rather than guessing. An app that wants the
 # claim sets it in the `sidebar` file it ships.
 
-# These four columns identify a sidebar item that points somewhere. We match on the columns
+# These columns identify a sidebar item that points somewhere. We match on the columns
 # themselves instead of storing a hash of them, so customizations survive a rename: `link_to`
 # is a Dynamic Link, so `rename_dynamic_links` updates every `Sidebar Item` naming the renamed
 # document in one statement, base rows and customization rows alike. A stored hash could not be
 # updated that way, and the customization would keep pointing at the old name.
-LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url")
+#
+# `filters` is one of them because a filtered list is a different destination, not a second name
+# for the same one. A sidebar may offer both "Sales Invoice" and "Credit Note", which is the same
+# doctype narrowed to returns; without the filters they share an identity and
+# `filter_sidebar_items` keeps the first and silently drops the rest.
+#
+# The label is deliberately *not* here, though it is the other thing that tells those two rows
+# apart on screen. Relabelling an item is something a `Custom Sidebar` does, so a label in the
+# identity would break the very delta that set it -- `narrow_reference` stores label and icon as
+# overrides for exactly that reason, and stores no filters, which is what makes filters stable
+# enough to identify by.
+LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters")
 
 # Flags that mean the system is installing app content, not that a user is editing.
 #
@@ -1624,24 +1635,51 @@ def get_module_landing_route(items: list[dict]) -> str | None:
 	first item in the sidebar that links anywhere. So this takes the resolved items, already
 	filtered by permission and customized, not the module's workspaces, which are neither.
 
-	Only workspaces get an answer. A workspace route is a slug, while every other kind of item
-	is turned into a route by `frappe.utils.generate_route` on the client, which handles doc
-	views, report types and filters as query parameters. The desktop asks the client first and
-	falls back to this, so this is the answer a tile has before the sidebar object exists, not a
-	second copy of the routing rules.
+	Workspaces and doctypes get an answer. A module whose sidebar opens on a list rather than a
+	workspace is ordinary -- `Bulk Transaction` has no workspace at all -- and answering `None`
+	for it left its tile with nowhere to go. Reports, pages and filtered views are still left to
+	`frappe.utils.generate_route` on the client, which knows about report types, doc views and
+	filters as query parameters. The desktop asks the client first and falls back to this, so
+	this is the answer a tile has before the sidebar object exists, not a second copy of the
+	routing rules.
 
-	It stops at the first item that links anywhere instead of reading on for a workspace it
-	could answer for. A tile is a link with a click handler and the two must agree: a route
-	found further down the sidebar would send a middle-click somewhere a normal click never
-	goes.
+	It stops at the first item that links anywhere instead of reading on for one it could answer
+	for. A tile is a link with a click handler and the two must agree: a route found further
+	down the sidebar would send a middle-click somewhere a normal click never goes.
 	"""
 	item = next((item for item in items or [] if item.get("type") == "Link"), None)
-	if not item or item.get("link_type") != "Workspace" or not item.get("link_to"):
+	if not item or not item.get("link_to"):
 		return None
 
-	public = frappe.db.get_value("Workspace", item["link_to"], "public")
-	if public is None:
+	if item.get("link_type") == "Workspace":
+		public = frappe.db.get_value("Workspace", item["link_to"], "public")
+		if public is None:
+			return None
+
+		prefix = "/desk/" if public else "/desk/private/"
+		return prefix + frappe.utils.slug(item["link_to"])
+
+	if item.get("link_type") == "DocType":
+		return doctype_landing_route(item)
+
+	return None
+
+
+def doctype_landing_route(item: dict) -> str | None:
+	"""Where a sidebar item pointing at a doctype opens, matching the client's `generate_route`.
+
+	A single opens on the document itself, since there is no list to show, and a `tab` is a
+	fragment on the end. Anything the client would decorate further -- a filtered list, a
+	non-default view -- is left to it, because a tile that led somewhere the sidebar item does
+	not would be worse than a tile that falls back.
+	"""
+	meta = frappe.get_meta(item["link_to"]) if frappe.db.exists("DocType", item["link_to"]) else None
+	if not meta or meta.istable:
 		return None
 
-	prefix = "/desk/" if public else "/desk/private/"
-	return prefix + frappe.utils.slug(item["link_to"])
+	slug = frappe.utils.slug(item["link_to"])
+	route = f"/desk/{slug}/{item['link_to']}" if meta.issingle else f"/desk/{slug}"
+	if item.get("tab"):
+		route += f"#{item['tab']}"
+
+	return route
