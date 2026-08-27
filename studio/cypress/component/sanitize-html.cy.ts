@@ -14,12 +14,14 @@ describe("sanitizeHTML", () => {
 			<a href="javascript:window.studioXss = true">Click</a>
 		`,
 			},
+		}).then(({ wrapper }) => {
+			const element = wrapper.element as HTMLElement
+			expect(element.querySelector("script")).to.be.null
+			expect(element.querySelector("img")?.hasAttribute("onerror")).to.be.false
+			expect(element.querySelector("svg")?.hasAttribute("onload")).to.be.false
+			expect(element.querySelector("a")?.hasAttribute("href")).to.be.false
 		})
 
-		cy.get("script").should("not.exist")
-		cy.get("img").should("not.have.attr", "onerror")
-		cy.get("svg").should("not.have.attr", "onload")
-		cy.get("a").should("not.have.attr", "href")
 		cy.then(() => expect((window as any).studioXss).to.be.false)
 	})
 
