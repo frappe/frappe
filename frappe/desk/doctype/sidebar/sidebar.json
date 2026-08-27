@@ -67,8 +67,7 @@
   {
    "collapsible": 1,
    "fieldname": "provenance_section",
-   "fieldtype": "Section Break",
-   "label": "Provenance"
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -93,7 +92,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-26 18:30:00.000000",
+ "modified": "2026-08-27 14:57:28.772713",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar",

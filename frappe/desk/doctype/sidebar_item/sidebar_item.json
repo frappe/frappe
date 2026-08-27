@@ -207,8 +207,7 @@
   {
    "collapsible": 1,
    "fieldname": "provenance_section",
-   "fieldtype": "Section Break",
-   "label": "Provenance"
+   "fieldtype": "Section Break"
   },
   {
    "description": "Only meaningful on a `Custom Sidebar` row referring to a base item that has no link -- a Section Break or a spacer -- which is the one kind of row with nothing else to name it by. A base row stores none: an unlinked one is identified by a hash of its type and label, and a linked one by its own link columns, which is what lets a rename repair the base row and the customization naming it together.",
@@ -222,7 +221,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-08-18 12:00:00.000000",
+ "modified": "2026-08-27 14:57:28.772713",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar Item",
