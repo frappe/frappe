@@ -312,6 +312,9 @@ watch([diffEl, () => workspace.value.open, showDiffHost], async ([el, open, need
 			// the revert-arrows gutter: dead space here, and it picks up a stray
 			// focus outline (its div shares the .monaco-editor class)
 			renderGutterMenu: false,
+			// the overview ruler's draggable viewport handle is the diff scrollbar;
+			// the editors' own slider beside it would read as a second one
+			scrollbar: { vertical: "hidden", verticalScrollbarSize: 0, horizontalScrollbarSize: 10 },
 		})
 		applyTheme()
 		diffEditor.getModifiedEditor().addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save)
