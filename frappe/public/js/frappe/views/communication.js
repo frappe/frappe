@@ -36,10 +36,6 @@ frappe.views.CommunicationComposer = class {
 			},
 			size: "large",
 			minimizable: true,
-			// The composer is docked, not a modal over the page: navigating away
-			// must leave it exactly as the user left it. Without this, changing
-			// route auto-minimises it (container.js change_to), which also
-			// inverted the minimise button — it restored instead of minimising.
 			keep_open: true,
 		});
 
@@ -55,21 +51,26 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	setup_composer_shell() {
-		// Docked floating shell (styled in email_composer.scss); no backdrop so the form stays usable.
 		const $wrapper = this.dialog.$wrapper;
 		$wrapper.addClass("email-composer-modal");
 		$wrapper.attr("data-backdrop", "false");
 
-		// Repurpose the dialog's existing minimise button into a full-screen toggle.
-		$wrapper
+		this.$fullscreen_btn = $wrapper
 			.find(".btn-modal-minimize")
 			.removeClass("btn-modal-minimize")
-			.attr({ title: __("Full screen"), "aria-label": __("Full screen") })
 			.off("click")
-			.on("click", () => $wrapper.toggleClass("expanded"));
+			.on("click", () => {
+				// The expanded styles are guarded with :not(.modal-minimize), so
+				// restore first — otherwise this click only flips a dead class.
+				if (this.dialog.is_minimized) {
+					this.dialog.toggle_minimize();
+					$wrapper.addClass("expanded");
+				} else {
+					$wrapper.toggleClass("expanded");
+				}
+				this.sync_fullscreen_btn();
+			});
 
-		// Add the minimise button on the left, reusing the dialog's minimize logic.
-		// It skips .btn-modal-minimize so toggle_minimize() doesn't swap in a missing "collapse" icon.
 		const $minimize = $(
 			frappe.ui.button.html({
 				icon: "minus",
@@ -77,13 +78,24 @@ frappe.views.CommunicationComposer = class {
 				title: __("Minimize"),
 				css_class: "btn-modal-collapse icon-btn",
 			})
-		).on("click", () => this.dialog.toggle_minimize());
+		).on("click", () => {
+			this.dialog.toggle_minimize();
+			this.sync_fullscreen_btn();
+		});
 		$wrapper.find(".modal-header .modal-actions").prepend($minimize);
+		this.sync_fullscreen_btn();
+	}
+
+	sync_fullscreen_btn() {
+		const full = this.dialog.$wrapper.hasClass("expanded") && !this.dialog.is_minimized;
+		const label = full ? __("Exit full screen") : __("Full screen");
+		this.$fullscreen_btn
+			.attr({ title: label, "aria-label": label })
+			.find("use")
+			.attr("href", `#icon-${full ? "minimize-2" : "maximize-2"}`);
 	}
 
 	render_composer_layout() {
-		// Move the live field controls out of Frappe's default form layout into our own
-		// skeleton (nodes are MOVED, not cloned, so every control keeps its state and logic).
 		const $body = this.dialog.$body;
 		const $original = $body.children();
 
@@ -229,16 +241,12 @@ frappe.views.CommunicationComposer = class {
 			}
 		});
 
-		// Subject renders as an inline placeholder heading, not a labelled field.
 		this.dialog.fields_dict.subject.$input?.attr("placeholder", __("Subject"));
 
-		// Show the sender row only when the user has more than one outgoing account.
 		if (this.user_email_accounts?.length > 1) {
 			this.$composer.find(".email-composer-sender-row").removeClass("hidden");
 		}
 
-		// Cc / Bcc ghost buttons toggle their respective rows; the button mutes to
-		// grey (.active) while its row is open.
 		this.$composer.find(".email-composer-toggle").on("click", (e) => {
 			const $btn = $(e.currentTarget);
 			const target = $btn.data("target");
@@ -249,8 +257,6 @@ frappe.views.CommunicationComposer = class {
 
 		this.setup_template_dropdown();
 
-		// Keep the dialog's real send button hidden in the send group — the visible
-		// "Send ▾" toggle opens the menu, and "Send now" triggers this to send.
 		const $sendBtn = this.dialog.$wrapper.find(".btn-modal-primary");
 		if ($sendBtn.length) {
 			this.$composer.find('[data-slot="send-button"]').prepend($sendBtn.addClass("hidden"));
@@ -260,8 +266,6 @@ frappe.views.CommunicationComposer = class {
 			this.dialog.hide();
 			this.clear_cache();
 		});
-		// "Add new attachments" uploads a file (the old paperclip behaviour);
-		// "Select attachments" picks from what's already on the document.
 		this.$composer.find('[data-action="add-attachments"]').on("click", (e) => {
 			e.preventDefault();
 			$body.find(".add-more-attachments button").trigger("click");
@@ -309,7 +313,6 @@ frappe.views.CommunicationComposer = class {
 			apply();
 
 			$item.on("click", (e) => {
-				// Keep the dropdown open so users can toggle multiple options in one click.
 				if ($item.hasClass("email-composer-menu-toggle")) e.stopPropagation();
 				active = !active;
 				apply();
@@ -324,11 +327,6 @@ frappe.views.CommunicationComposer = class {
 
 		let syncPrintMenu = () => {};
 
-		// The attached document print renders as its own card under the attachment
-		// chips: title + "format • letter head • language", with edit (opens the
-		// settings dialog) and delete. The hidden `attach_document_print` Check
-		// stays the single source of truth that send_action reads — this card and
-		// the printer dropdown are only views onto it.
 		const renderPrintRow = (active) => {
 			const $slot = this.$composer.find(".email-composer-print-format").empty();
 			if (!active) return;
@@ -352,9 +350,6 @@ frappe.views.CommunicationComposer = class {
 				</div>
 			`);
 
-			// Only the "Print format" title opens the preview — the meta line and the
-			// rest of the card stay inert, so there's no ambiguity about what the
-			// click target is.
 			const $title = $card.find(".email-composer-print-card__title");
 			$title.on("click", () => this.open_print_preview());
 			$title.on("keydown", (e) => {
@@ -402,14 +397,10 @@ frappe.views.CommunicationComposer = class {
 				);
 				$item.on("click", async (e) => {
 					e.preventDefault();
-					// await: set_value is async, so repainting straight after it would
-					// read the previous format and leave the card's meta line stale
 					await fields.select_print_format.set_value(f);
 					if (!fields.attach_document_print.get_value()) {
 						fields.attach_document_print.set_input(1);
 					}
-					// re-render unconditionally: picking a different format while the
-					// print is already attached must refresh the card's meta line too
 					renderPrintRow(true);
 					syncPrintMenu();
 				});
@@ -420,7 +411,6 @@ frappe.views.CommunicationComposer = class {
 			}
 			syncPrintMenu();
 		}
-		// Reachable from open_print_settings(), which lives outside this closure.
 		this.sync_print_menu = () => syncPrintMenu();
 		updateBanner();
 
@@ -457,15 +447,8 @@ frappe.views.CommunicationComposer = class {
 		);
 		if (!$toolbar.length) return; // Quill hasn't built the toolbar yet
 
-		// Move Quill's toolbar out of the message body into its slot in the sticky
-		// footer, pinned above the Send row (Gmail-style). Its click handlers are
-		// bound to the element, so relocating the node keeps them live.
 		$slot.append($toolbar);
 
-		// Order the tool groups by everyday priority and collapse the rarely-used
-		// ones behind a "⋯" toggle, so the row stays clean without hiding common
-		// tools. Each group is located by a marker class on one of its controls
-		// (Quill's own ql-* classes) rather than a positional index.
 		const group = (marker) => $toolbar.find(marker).first().closest(".ql-formats");
 		const visible = [
 			".ql-header", // text style
@@ -493,7 +476,6 @@ frappe.views.CommunicationComposer = class {
 
 		$more.on("click", () => {
 			const expanded = $toolbar.toggleClass("show-overflow").hasClass("show-overflow");
-			// Reuse Quill's own active-button styling for the pressed state.
 			$more.toggleClass("ql-active", expanded);
 		});
 	}
@@ -517,7 +499,6 @@ frappe.views.CommunicationComposer = class {
 			});
 		};
 
-		// No frm means no scoping, same as the Link field's get_query.
 		if (!this.frm?.doctype) {
 			frappe.db
 				.get_list("Email Template", { fields: ["name"], order_by: "name", limit: 0 })
@@ -679,10 +660,6 @@ frappe.views.CommunicationComposer = class {
 		return fields;
 	}
 
-	// Recipient fields are MultiSelect Pills and store an array, but callers pass
-	// comma-separated strings (frm.email_doc, timeline replies, reply-all, undo).
-	// The control's own validate() slices a string like an array, so it has to be
-	// split before it reaches set_value.
 	as_recipient_list(value) {
 		if (Array.isArray(value)) return value;
 		return String(value ?? "")
@@ -692,7 +669,6 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_default_recipients(fieldname) {
-		// MultiSelect Pills holds an array of recipients (one pill each).
 		if (this.frm?.events.get_email_recipients) {
 			return this.frm.events.get_email_recipients(this.frm, fieldname) || [];
 		} else {
@@ -760,8 +736,6 @@ frappe.views.CommunicationComposer = class {
 	setup_multiselect_queries() {
 		["recipients", "cc", "bcc"].forEach((field) => {
 			this.dialog.fields_dict[field].get_data = () => {
-				// Pills commit selected values, so the text being typed lives in the
-				// raw input (get_value() now returns the committed array).
 				const control = this.dialog.fields_dict[field];
 				const txt = (control.$input?.val() || "").trim();
 				const args = { txt };
@@ -785,8 +759,6 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	setup_recipient_pills() {
-		// get_pill_html runs with `this` bound to the control, so keep a handle on
-		// the composer for the shared avatar cache.
 		const me = this;
 		this._recipient_avatars = this._recipient_avatars || {};
 
@@ -794,9 +766,6 @@ frappe.views.CommunicationComposer = class {
 			const control = this.dialog.fields_dict[fieldname];
 			if (!control) return;
 
-			// Accept comma/semicolon/newline-separated strings (defaults, reply-all
-			// prefill, server values) as well as arrays, splitting into deduped rows
-			// so the string-based recipient logic elsewhere keeps working.
 			control.parse = function (value) {
 				if (Array.isArray(value)) return value;
 				this.rows = this.rows || [];
@@ -812,9 +781,6 @@ frappe.views.CommunicationComposer = class {
 				return this.rows;
 			};
 
-			// Chip = the Espresso tag (`.es-badge` with a removable suffix), same
-			// component the form sidebar uses for document tags, with an avatar
-			// (photo if the recipient is a known user, else initials) prefixed.
 			control.get_pill_html = function (value) {
 				const $tag = frappe.ui.badge({
 					label: this.get_label(value) || value,
@@ -824,9 +790,6 @@ frappe.views.CommunicationComposer = class {
 					css_class: "email-composer-recipient-tag tb-selected-value",
 					attrs: { "data-value": encodeURIComponent(value) },
 				});
-				// Photo from the matching Contact (or User) when we have one; otherwise
-				// frappe.avatar falls back to the initial. Passing `null` as the user
-				// keeps it off frappe.user_info, which only knows desk users.
 				const photo = me._recipient_avatars?.[String(value).toLowerCase()] || null;
 				$tag.prepend(
 					frappe.avatar(
@@ -836,8 +799,6 @@ frappe.views.CommunicationComposer = class {
 						photo
 					)
 				);
-				// wrap the label text so it can ellipsize — a bare text node in a flex
-				// container can't (same wrap the sidebar tag does)
 				$tag.contents()
 					.filter(
 						(_, node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()
@@ -851,12 +812,6 @@ frappe.views.CommunicationComposer = class {
 				return $tag[0].outerHTML;
 			};
 
-			// Remove on MOUSEDOWN, not click. A click on the × used to blur the input,
-			// which scheduled a collapse; on anything but a quick tap the collapse fired
-			// between mousedown and mouseup, hid the chip under the cursor and the click
-			// event never landed — so only the chips that stay visible when collapsed
-			// (the first ones) could be removed. preventDefault() also keeps focus in the
-			// input, so nothing re-collapses while the user is clearing chips.
 			control.$multiselect_wrapper.on("mousedown", ".es-badge__affix", (e) => {
 				e.preventDefault();
 				this.remove_recipient(control, $(e.currentTarget).closest(".tb-selected-value"));
@@ -867,12 +822,6 @@ frappe.views.CommunicationComposer = class {
 				this.remove_recipient(control, $(e.currentTarget).closest(".tb-selected-value"));
 			});
 
-			// An address typed by hand (not picked from the dropdown) commits through
-			// ControlAutocomplete's Enter/blur path, which never clears the raw input —
-			// only "awesomplete-selectcomplete" does, and that fires for dropdown picks
-			// only. The address was left sitting as text beside its own chip, and the
-			// next one typed would concatenate onto it. Only clear once the value has
-			// actually landed in `rows`, so text that failed to commit is kept.
 			const clear_committed_text = () => {
 				const typed = (control.$input?.val() || "").trim();
 				if (typed && (control.rows || []).includes(typed)) {
@@ -880,9 +829,6 @@ frappe.views.CommunicationComposer = class {
 				}
 			};
 
-			// Clear in the SAME task that renders the pill, not a deferred one: a
-			// setTimeout here let the browser paint a frame with the chip and the
-			// leftover text both visible, which flashed on the first address typed.
 			const render_pills = control.set_formatted_input.bind(control);
 			control.set_formatted_input = function (value) {
 				render_pills(value);
@@ -893,8 +839,6 @@ frappe.views.CommunicationComposer = class {
 				if (e.key === "Enter") clear_committed_text();
 			});
 
-			// Collapse to the first two chips + "+N more" when the field is blurred;
-			// the whole field is a click target that expands to all chips.
 			control.$input?.on("focus", () => {
 				clearTimeout(control._collapse_timer);
 				this.expand_recipient_row(control);
@@ -916,10 +860,6 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
-	// Resolve real photos for the addresses currently in a recipient field, then
-	// repaint that field's chips once. Every looked-up address is cached — including
-	// the ones with no photo, stored as null — so a given address is only ever
-	// requested once and the repaint can't feed back into another lookup.
 	fetch_recipient_avatars(control) {
 		const cache = (this._recipient_avatars = this._recipient_avatars || {});
 		const pending = (control.rows || [])
@@ -927,7 +867,6 @@ frappe.views.CommunicationComposer = class {
 			.filter((email) => email && !(email in cache));
 		if (!pending.length) return;
 
-		// claim them up front so a second render mid-flight doesn't re-request
 		pending.forEach((email) => (cache[email] = null));
 
 		frappe.call({
@@ -937,8 +876,6 @@ frappe.views.CommunicationComposer = class {
 				const found = r.message || {};
 				if (!Object.keys(found).length) return;
 				Object.assign(cache, found);
-				// repaint with the photos now in hand; set_pill_html is the raw
-				// renderer, so this can't re-enter the wrapped set_formatted_input
 				control.set_pill_html(control.rows || []);
 			},
 		});
@@ -948,16 +885,9 @@ frappe.views.CommunicationComposer = class {
 		const value = decodeURIComponent($tag.attr("data-value") || "");
 		if (!value) return;
 		control.rows = (control.rows || []).filter((row) => row !== value);
-		// repaint first, then sync the Dialog's value, so the row never renders
-		// against a stale `rows`
 		control.set_pill_html(control.rows);
 		control.parse_validate_and_set_in_model("");
 
-		// set_pill_html only touches the chips — the "+N more" badge from the last
-		// collapse is now stale (it counted the row we just removed) and every chip
-		// it just redrew is visible again, so recompute the collapse from scratch.
-		// collapse_recipient_row bails on its own while the input is still focused
-		// (removal keeps focus in place), leaving everything visible until blur.
 		control.$multiselect_wrapper.find(".email-composer-more-count").remove();
 		this.collapse_recipient_row(control);
 	}
@@ -969,18 +899,13 @@ frappe.views.CommunicationComposer = class {
 		$wrapper.removeClass("is-collapsed");
 		$wrapper.find(".email-composer-more-count").remove();
 		$wrapper.find(".tb-selected-value").removeClass("hidden");
-		// NB: do NOT focus here — the focus handler calls this, so focusing would
-		// recurse infinitely. The click-to-expand path focuses explicitly instead.
 	}
 
 	collapse_recipient_row(control) {
 		const $wrapper = control.$multiselect_wrapper;
 		if (!$wrapper?.length) return;
-		// Still editing (e.g. refocused after choosing a suggestion) — don't collapse.
 		if (control.$input?.is(":focus")) return;
 		if ($wrapper[0].contains(document.activeElement)) return;
-		// Pointer is over the row: collapsing would pull chips out from under the
-		// cursor mid-click. Wait for the pointer to leave.
 		if ($wrapper.is(":hover")) return;
 
 		$wrapper.find(".email-composer-more-count").remove();
@@ -989,10 +914,8 @@ frappe.views.CommunicationComposer = class {
 			$wrapper.removeClass("is-collapsed");
 			return;
 		}
-		// Not laid out yet — measuring now would hide everything.
 		if ($wrapper.width() < 40) return;
 
-		// Show exactly the first two chips; collapse the rest into "+N more".
 		$wrapper.addClass("is-collapsed");
 		const VISIBLE = 2;
 		if ($tags.length <= VISIBLE) return;
@@ -1161,9 +1084,6 @@ frappe.views.CommunicationComposer = class {
 			await this.dialog.set_value("email_template", email_template);
 		}
 
-		// Reveal CC/BCC rows (and mark their toggle active) when values are
-		// pre-filled, e.g. reply-all. These are MultiSelect Pills, so the value is
-		// an array — check length, since an empty array is truthy.
 		if (this.$composer) {
 			for (const type of ["cc", "bcc"]) {
 				if (this.dialog.get_value(type)?.length) {
@@ -1213,11 +1133,6 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	// "Standard • Frappe 2024 • English" — the three print settings, read straight
-	// off the dialog's own fields so the card can never disagree with what gets
-	// sent. Language resolves to its readable name asynchronously (the field holds
-	// a code like "en"); the code shows until it lands, and stays if the lookup
-	// fails.
 	render_print_card_meta() {
 		const $meta = this.$composer?.find(".email-composer-print-card__meta");
 		if (!$meta?.length) return;
@@ -1243,10 +1158,6 @@ frappe.views.CommunicationComposer = class {
 			.catch(() => {});
 	}
 
-	// Preview the document print exactly as it will be attached — same format,
-	// letter head and language the card shows. Uses /printview rather than
-	// frappe.utils.print, which appends trigger_print=1 and would fire the
-	// browser's print dialog instead of just showing the document.
 	open_print_preview() {
 		if (!this.frm) return;
 
@@ -1258,8 +1169,6 @@ frappe.views.CommunicationComposer = class {
 			_lang: fields.print_language?.get_value() || frappe.boot.lang,
 		};
 
-		// letterhead is optional: an empty picker means "no letter head", which
-		// printview expresses with no_letterhead rather than an empty letterhead.
 		const letterhead = fields.select_letter_head?.get_value();
 		if (letterhead) {
 			params.letterhead = letterhead;
@@ -1273,10 +1182,6 @@ frappe.views.CommunicationComposer = class {
 		window.open(frappe.urllib.get_full_url(`/printview?${query}`), "_blank");
 	}
 
-	// Edit (pencil) on the print card. Mirrors the three fields the original
-	// inline UI exposed — print format, letter head, print language — and writes
-	// straight back to them, so send_action keeps reading the same values it
-	// always did.
 	open_print_settings() {
 		const fields = this.dialog.fields_dict;
 		const print_formats = this.frm ? frappe.meta.get_print_formats(this.frm.meta.name) : [];
@@ -1307,9 +1212,6 @@ frappe.views.CommunicationComposer = class {
 				},
 			],
 			primary_action_label: __("Save"),
-			// set_value is async — await all three before repainting, or the card's
-			// meta line reads the previous values and goes stale against what will
-			// actually be sent.
 			primary_action: async (values) => {
 				await this.dialog.set_value("select_print_format", values.print_format || "");
 				await this.dialog.set_value("select_letter_head", values.letter_head || "");
@@ -1403,8 +1305,6 @@ frappe.views.CommunicationComposer = class {
 		this.render_attachment_rows();
 	}
 
-	// Every attachment available to this email: whatever is already on the
-	// document, plus anything uploaded from inside the composer.
 	get_available_attachments() {
 		let files = [];
 		if (this.attachments?.length) files = files.concat(this.attachments);
@@ -1418,16 +1318,12 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
-	// A chip is rendered only for an attachment the user actually picked, and each
-	// chip carries the hidden checked input that send_action collects. Nothing is
-	// attached implicitly — the document's own files have to be chosen first.
 	render_attachment_rows(attachment) {
 		const attachment_rows = $(this.dialog.fields_dict.select_attachments.wrapper).find(
 			".attach-list"
 		);
 		this.selected_attachments = this.selected_attachments || new Set();
 
-		// a file uploaded from the composer is an explicit choice — select it
 		if (attachment?.name) this.selected_attachments.add(attachment.name);
 
 		attachment_rows.empty();
@@ -1438,9 +1334,6 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
-	// One row of the attachment picker: checkbox, a thumbnail (or a type tile),
-	// then the file name over "TYPE · size" — the whole row is the label, so
-	// clicking anywhere on it toggles the box.
 	get_file_picker_row(file) {
 		const name = file.file_name || "";
 		const source = file.file_url || name;
@@ -1476,7 +1369,6 @@ frappe.views.CommunicationComposer = class {
 
 		const $thumb = $row.find(".email-composer-file-row__thumb");
 		if (is_image) {
-			// CSS-escape the url so quotes/parens in a filename can't break out
 			$thumb.addClass("is-image").css("background-image", `url("${CSS.escape(source)}")`);
 		} else {
 			$thumb.text(extension.slice(0, 4));
@@ -1485,7 +1377,6 @@ frappe.views.CommunicationComposer = class {
 		return $row;
 	}
 
-	// "Select attachments" — the old checkbox list, now in its own dialog.
 	open_attachment_picker() {
 		const available = this.get_available_attachments();
 		if (!available.length) {
@@ -1499,8 +1390,6 @@ frappe.views.CommunicationComposer = class {
 
 		this.selected_attachments = this.selected_attachments || new Set();
 
-		// Build the dialog once and reuse it — a fresh frappe.ui.Dialog per open
-		// leaves the previous one in the DOM, so repeated opens pile up copies.
 		if (!this.attachment_picker) {
 			this.attachment_picker = new frappe.ui.Dialog({
 				title: __("Select attachments"),
@@ -1519,7 +1408,6 @@ frappe.views.CommunicationComposer = class {
 			});
 		}
 
-		// repopulate every time: files can be uploaded between opens
 		const $list = $(`<div class="email-composer-file-picker"></div>`);
 		available.forEach((f) => $list.append(this.get_file_picker_row(f)));
 		this.attachment_picker.fields_dict.files.$wrapper.empty().append($list);
@@ -1527,10 +1415,6 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_attachment_row(attachment) {
-		// Hidden checkbox carries data-file-name so send_action's `[data-file-name]:checked`
-		// selector still finds it — removing the row drops the checkbox with it.
-		// .email-composer-attach-pill avoids the form-sidebar .attachment-row overrides that strip
-		// the pill background.
 		const escape = frappe.utils.escape_html;
 		const $row = $(`<div class="email-composer-attach-pill" title="${escape(
 			attachment.file_name
@@ -1545,7 +1429,6 @@ frappe.views.CommunicationComposer = class {
 		const size = attachment.file_size
 			? frappe.form.formatters.FileSize(attachment.file_size)
 			: null;
-		// get_data_pill interpolates the label as raw HTML.
 		const file_name = escape(attachment.file_name);
 		const label = size ? `${file_name} (${size})` : file_name;
 		const icon = frappe.utils.icon("link", "xs");
@@ -1553,7 +1436,6 @@ frappe.views.CommunicationComposer = class {
 			label,
 			attachment.name,
 			() => {
-				// drop it from the selection too, or the next re-render brings it back
 				this.selected_attachments?.delete(attachment.name);
 				$row.remove();
 			},
@@ -1579,11 +1461,6 @@ frappe.views.CommunicationComposer = class {
 		const form_values = this.get_values();
 		if (!form_values) return;
 
-		// NB: `dialog.wrapper` is NOT the modal — Layout.make() overwrites Dialog's
-		// own assignment with its `.form-layout` div. render_composer_layout()
-		// moves every control out of that div into the composer skeleton, so
-		// searching it finds nothing and no attachment is ever sent. Search the
-		// modal root, which holds the relocated controls either way.
 		const selected_attachments = $.map(
 			me.dialog.$wrapper.find("[data-file-name]:checked"),
 			function (element) {
@@ -1608,7 +1485,6 @@ frappe.views.CommunicationComposer = class {
 	get_values() {
 		const form_values = this.dialog.get_values();
 
-		// The send RPC (communication.email.make) expects comma-separated strings.
 		["recipients", "cc", "bcc"].forEach((field) => {
 			if (Array.isArray(form_values[field])) {
 				form_values[field] = form_values[field].join(", ");
