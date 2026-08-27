@@ -422,8 +422,8 @@ class TestEmailAccount(FrappeTestCase):
 	def test_email_sync_rule_ignores_reindexed_uids(self):
 		email_account = frappe.get_doc(
 			doctype="Email Account",
-			email_account_name="Synthink RFQ",
-			email_id="enquiry@synthinkchemicals.com",
+			email_account_name="Test IMAP Account",
+			email_id="test@example.com",
 			use_imap=1,
 			email_sync_option="ALL",
 			initial_sync_count=100,
@@ -437,8 +437,8 @@ class TestEmailAccount(FrappeTestCase):
 			communication_medium="Email",
 			sent_or_received="Received",
 			email_account=email_account.name,
-			subject="Quotation request for chromatography columns",
-			sender="purchase@synthinkchemicals.com",
+			subject="Quotation request",
+			sender="sender@example.com",
 			uid=-1,
 		).insert(ignore_permissions=True)
 		self.addCleanup(communication.delete)
