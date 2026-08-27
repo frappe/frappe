@@ -189,7 +189,10 @@ export function createFlowStore(client) {
 		if (switching) resetWorkspace()
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
-		state.session = null
+		// seed cwd/title from the session list so the header doesn't flash empty
+		// while the full session loads
+		const listed = state.sessions.find((s) => s.session_id === sid)
+		state.session = listed ? { title: sessionTitle(listed), config: { cwd: listed.cwd } } : null
 		state.queued = []
 		state.skills = []
 		state.conversation = initialConversation()
