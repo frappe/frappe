@@ -3,7 +3,7 @@
 	<div
 		ref="scroller"
 		class="h-full overflow-y-auto"
-		:class="prompts.length ? 'px-10' : 'px-5'"
+		:class="prompts.length > 3 ? 'px-10' : 'px-5'"
 		:style="{ scrollPaddingBottom: composerHeight + 24 + 'px' }"
 		@scroll="onScroll"
 	>
@@ -107,7 +107,7 @@
 	</div>
 
 	<PromptRail
-		v-if="prompts.length"
+		v-if="prompts.length > 3"
 		:prompts="prompts"
 		:active-key="activePromptKey"
 		@select="scrollToPrompt"
