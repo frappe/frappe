@@ -10,6 +10,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	MODULE_CONTENT_DOCTYPES,
 	SYSTEM_WRITE_FLAGS,
 	clear_computed_base_cache,
+	filter_sidebar_items,
 	get_computed_base,
 	get_sidebar,
 	item_key,
@@ -222,7 +223,7 @@ class TestItemIdentity(IntegrationTestCase):
 		"""
 		row = {"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"}
 
-		self.assertEqual(item_key(row), "Link|DocType|User|")
+		self.assertEqual(item_key(row), "Link|DocType|User||")
 
 	def test_identity_ignores_the_label_of_a_linked_row(self):
 		"""Renaming an item in the sidebar must not orphan a user's delta."""
@@ -230,6 +231,33 @@ class TestItemIdentity(IntegrationTestCase):
 			item_key({"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"}),
 			item_key({"type": "Link", "link_type": "DocType", "link_to": "User", "label": "People"}),
 		)
+
+	def test_a_filtered_row_is_a_different_item(self):
+		"""The same doctype narrowed to a subset is somewhere else to go, not a second name for the
+		same place. Without this the two share an identity and `filter_sidebar_items` keeps only the
+		first -- which is how erpnext's Accounts sidebar lost "Credit Note" to "Sales Invoice".
+		"""
+		plain = {"type": "Link", "link_type": "DocType", "link_to": "Sales Invoice"}
+		returns = {**plain, "filters": '{"is_return": 1}'}
+
+		self.assertNotEqual(item_key(plain), item_key(returns))
+
+	def test_both_survive_the_filter_that_drops_duplicates(self):
+		"""The identity is only worth having if it reaches the pass that reads it."""
+		rows = [
+			frappe._dict(type="Link", link_type="DocType", link_to="User", label="Users", filters=None),
+			frappe._dict(
+				type="Link",
+				link_type="DocType",
+				link_to="User",
+				label="Disabled Users",
+				filters='{"enabled": 0}',
+			),
+		]
+
+		kept = filter_sidebar_items(rows, None, check_permission=False)
+
+		self.assertEqual([row["label"] for row in kept], ["Users", "Disabled Users"])
 
 	def test_identity_follows_a_renamed_target(self):
 		"""The other half: the identity does move when the target does, which is why base row and delta
@@ -306,7 +334,7 @@ class TestItemIdentity(IntegrationTestCase):
 			base = get_sidebar_bases([module])[module]
 
 			self.assertIsNone(base.rows[0].get("key"))
-			self.assertEqual(item_key(base.rows[0]), "Link|DocType|User|")
+			self.assertEqual(item_key(base.rows[0]), "Link|DocType|User||")
 
 
 class TestSidebarDocument(IntegrationTestCase):

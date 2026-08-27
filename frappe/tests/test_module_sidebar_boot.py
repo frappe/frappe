@@ -116,6 +116,44 @@ class TestTheResolverSeam(IntegrationTestCase):
 			self.assertEqual(resolved.landing, "/desk/test-seam-landing-page")
 			self.assertEqual(resolved.landing, get_module_landing_route(resolved.items))
 
+	def test_a_module_opening_on_a_doctype_lands_on_its_list(self):
+		"""A sidebar need not start on a workspace. `Bulk Transaction` has no workspace at all, and
+		answering `None` for it left its tile with nowhere to go, so a module whose first entry is a
+		list opens on that list.
+		"""
+		self.assertEqual(
+			get_module_landing_route([{"type": "Link", "link_type": "DocType", "link_to": "ToDo"}]),
+			"/desk/todo",
+		)
+
+	def test_a_single_opens_on_the_document_itself(self):
+		"""There is no list to send anyone to."""
+		self.assertEqual(
+			get_module_landing_route(
+				[{"type": "Link", "link_type": "DocType", "link_to": "System Settings"}]
+			),
+			"/desk/system-settings/System Settings",
+		)
+
+	def test_a_child_table_is_not_somewhere_to_land(self):
+		"""It has no list view, so a tile pointing at one would open on nothing. Better to fall back
+		to the client, which knows the rest of the routing rules.
+		"""
+		child = frappe.get_all("DocType", filters={"istable": 1}, limit=1, pluck="name")[0]
+
+		self.assertIsNone(
+			get_module_landing_route([{"type": "Link", "link_type": "DocType", "link_to": child}])
+		)
+
+	def test_a_report_is_still_left_to_the_client(self):
+		"""Report types and filters live in `generate_route`, and a second copy of those rules here
+		would be one to keep in step."""
+		self.assertIsNone(
+			get_module_landing_route(
+				[{"type": "Link", "link_type": "Report", "link_to": "Permitted Documents For User"}]
+			)
+		)
+
 	def test_the_landing_is_derived_rather_than_carried(self):
 		"""Boot never asks for it, since seventy modules would be seventy lookups to answer a question
 		the desk asks about the one it is opening. So it is not in the payload, and the tile list
