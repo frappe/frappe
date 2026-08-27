@@ -157,7 +157,7 @@ frappe.doctype_settings.set_property = function (doctype, property, value) {
 			property_type: "Data",
 			value,
 		})
-		.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
+		.then(() => frappe.ui.toast({ message: __("Default updated"), type: "success" }));
 };
 
 frappe.doctype_settings.clear_property = function (doctype, property) {
@@ -170,7 +170,7 @@ frappe.doctype_settings.clear_property = function (doctype, property) {
 		.then((rows) =>
 			rows && rows.length ? frappe.db.delete_doc("Property Setter", rows[0].name) : null
 		)
-		.then(() => frappe.show_alert({ message: __("Default removed"), indicator: "green" }));
+		.then(() => frappe.ui.toast({ message: __("Default removed"), type: "success" }));
 };
 
 // Each `condition` hides a tab the user could never load anyway (boot perms are a

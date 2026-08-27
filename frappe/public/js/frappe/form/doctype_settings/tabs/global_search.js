@@ -122,11 +122,11 @@ function set_included(doctype, included) {
 			: rows.filter((r) => r.document_type !== doctype);
 
 		return frappe.call({ method: "frappe.client.save", args: { doc: settings } }).then(() => {
-			frappe.show_alert({
+			frappe.ui.toast({
 				message: included
 					? __("Added to global search")
 					: __("Removed from global search"),
-				indicator: "green",
+				type: "success",
 			});
 		});
 	});
@@ -141,7 +141,7 @@ function save(panel, doctype, state) {
 		freeze: true,
 		freeze_message: __("Updating global search"),
 		callback: () => {
-			frappe.show_alert({ message: __("Global search updated"), indicator: "green" });
+			frappe.ui.toast({ message: __("Global search updated"), type: "success" });
 			load(panel, doctype);
 		},
 	});

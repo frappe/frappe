@@ -237,7 +237,7 @@ class ListPanel {
 				.catch(() => {
 					// Revert to the last confirmed state on failure.
 					$input.prop("checked", last_good).prop("disabled", false);
-					frappe.show_alert({ message: __("Could not update"), indicator: "red" });
+					frappe.ui.toast({ message: __("Could not update"), type: "error" });
 				});
 		});
 

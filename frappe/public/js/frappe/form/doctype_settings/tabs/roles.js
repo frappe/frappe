@@ -204,7 +204,7 @@ function customized_banner(panel, doctype, reload) {
 			]),
 			() =>
 				perm_call("reset", { doctype }).then(() => {
-					frappe.show_alert({ message: __("Permissions reset"), indicator: "green" });
+					frappe.ui.toast({ message: __("Permissions reset"), type: "success" });
 					reload();
 				})
 		);

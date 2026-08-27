@@ -56,7 +56,7 @@ function draw(panel, doctype) {
 						confirm: __("Delete this user permission?"),
 						action: (row, refresh) =>
 							frappe.db.delete_doc("User Permission", row.name).then(() => {
-								frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+								frappe.ui.toast({ message: __("Deleted"), type: "success" });
 								refresh();
 							}),
 					},
@@ -161,12 +161,12 @@ function add_user_permission(doctype, refresh) {
 				})
 				.then((r) => {
 					dialog.hide();
-					frappe.show_alert(
+					frappe.ui.toast(
 						r.message
-							? { message: __("User permission added"), indicator: "green" }
+							? { message: __("User permission added"), type: "success" }
 							: {
 									message: __("User permission already exists"),
-									indicator: "orange",
+									type: "warning",
 							  }
 					);
 					refresh();

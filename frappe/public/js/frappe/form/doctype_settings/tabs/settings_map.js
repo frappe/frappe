@@ -159,7 +159,7 @@ function save(group, field, value, revert) {
 		.then(() => {
 			field.value = value;
 			group.doc[field.fieldname] = value;
-			frappe.show_alert({ message: __("{0} updated", [group.label]), indicator: "green" });
+			frappe.ui.toast({ message: __("{0} updated", [group.label]), type: "success" });
 		})
 		.catch(() => revert && revert());
 }
