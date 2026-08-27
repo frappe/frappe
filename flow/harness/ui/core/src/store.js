@@ -205,6 +205,7 @@ export function createFlowStore(client) {
 		])
 		if (state.sessionId !== sid) return
 		if (!info) {
+			state.session = null // drop the list seed — the load failed
 			state.loading = false
 			return
 		}
@@ -214,6 +215,7 @@ export function createFlowStore(client) {
 		const seed = await guard(() => client.entries(sid))
 		if (state.sessionId !== sid) return
 		if (!seed) {
+			state.session = null // drop the list seed — the load failed
 			state.loading = false
 			return
 		}
