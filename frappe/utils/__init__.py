@@ -1161,10 +1161,17 @@ class CallbackManager:
 		# stay truthy when empty; callers use `if callbacks:` as a None check
 		return True
 
+	def cut(self, count: int) -> list:
+		"""Detach and return the functions queued after the first `count`."""
+		detached = []
+		while len(self._functions) > count:
+			detached.append(self._functions.pop())
+		detached.reverse()
+		return detached
+
 	def truncate(self, count: int) -> None:
 		"""Drop functions queued after the first `count`."""
-		while len(self._functions) > count:
-			self._functions.pop()
+		self.cut(count)
 
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
