@@ -90,7 +90,7 @@ def _sleep_with_scheduler_heartbeat(duration: float) -> None:
 		time.sleep(min(SCHEDULER_HEARTBEAT_INTERVAL, remaining))
 
 
-def is_schduler_process_running() -> bool:
+def is_scheduler_process_running() -> bool:
 	"""Check whether the scheduler is publishing a heartbeat to the shared queue Redis."""
 	return bool(get_redis_conn().exists(_get_scheduler_heartbeat_key()))
 

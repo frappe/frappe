@@ -31,7 +31,7 @@ from frappe.utils.scheduler import (
 	get_scheduler_status,
 	get_scheduler_tick,
 	is_dormant,
-	is_schduler_process_running,
+	is_scheduler_process_running,
 )
 
 
@@ -74,7 +74,7 @@ def get_scheduler_health_status() -> str:
 	scheduler_enabled = get_scheduler_status().get("status") == "active"
 
 	try:
-		scheduler_process_running = is_schduler_process_running()
+		scheduler_process_running = is_scheduler_process_running()
 	except Exception:
 		# get_redis_conn raises Exception when redis_queue is not configured.
 		return "Redis Unavailable"

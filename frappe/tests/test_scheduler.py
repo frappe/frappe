@@ -16,7 +16,7 @@ from frappe.utils.scheduler import (
 	SCHEDULER_HEARTBEAT_INTERVAL,
 	enqueue_events,
 	is_dormant,
-	is_schduler_process_running,
+	is_scheduler_process_running,
 	schedule_jobs_based_on_activity,
 	sleep_duration,
 )
@@ -161,10 +161,10 @@ class TestSchedulerHeartbeat(UnitTestCase):
 		)
 
 		redis.exists.return_value = 1
-		self.assertTrue(is_schduler_process_running())
+		self.assertTrue(is_scheduler_process_running())
 
 		redis.exists.return_value = 0
-		self.assertFalse(is_schduler_process_running())
+		self.assertFalse(is_scheduler_process_running())
 
 	@patch("frappe.utils.scheduler.frappe.logger")
 	@patch("frappe.utils.scheduler.get_redis_conn")
