@@ -415,6 +415,9 @@ def cancel_linked_doc(docinfo):
 		doc.cancel()
 
 
+MAX_LINKED_DELETE_DOCUMENTS = 500
+
+
 @frappe.whitelist()
 def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 	"""Get all documents that block deletion of the given document, including
@@ -424,35 +427,43 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 	identities stay hidden and their deletion fails with the regular link error.
 
 	Deepest documents come first, so deleting in list order resolves the links.
+
+	Traversal stops once MAX_LINKED_DELETE_DOCUMENTS is exceeded and returns no
+	documents, so deleting a heavily referenced document falls back to a plain
+	delete instead of tying up the worker walking its graph.
 	"""
 	from frappe.model.delete_doc import get_dynamic_linked_docs
 	from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
 
 	frappe.has_permission(doctype, doc=name, throw=True)
 
-	depth_by_document = {(doctype, name): 0}
-	docstatus_by_document = {}
-	queue = deque([(doctype, name)])
+	root_key = (doctype, name)
+	depth_by_document = {root_key: 0}
+	queue = deque([root_key])
 	while queue:
 		parent_key = queue.popleft()
-		parent_doc = frappe.get_doc(*parent_key)
-		docstatus_by_document[parent_key] = parent_doc.docstatus
-		links = get_statically_linked_docs(parent_doc, method="Delete") + get_dynamic_linked_docs(
-			parent_doc, method="Delete"
+		# a lightweight stand-in is enough for the link lookups; loading the
+		# full document of every node is too expensive on this request path
+		parent = frappe._dict(doctype=parent_key[0], name=parent_key[1])
+		links = get_statically_linked_docs(parent, method="Delete") + get_dynamic_linked_docs(
+			parent, method="Delete"
 		)
 		for link in links:
 			key = (link["reference_doctype"], link["reference_docname"])
-			if key not in depth_by_document and frappe.has_permission(key[0], doc=key[1]):
-				depth_by_document[key] = depth_by_document[parent_key] + 1
-				queue.append(key)
+			if key in depth_by_document:
+				continue
+			if len(depth_by_document) > MAX_LINKED_DELETE_DOCUMENTS:
+				return {"docs": [], "count": 0, "truncated": True}
+			if not frappe.has_permission(key[0], doc=key[1]):
+				continue
+			depth_by_document[key] = depth_by_document[parent_key] + 1
+			queue.append(key)
 
 	docs = [
-		{"doctype": dt, "name": docname, "docstatus": docstatus_by_document[(dt, docname)]}
-		for dt, docname in depth_by_document
-		if (dt, docname) != (doctype, name)
+		{"doctype": dt, "name": docname} for dt, docname in depth_by_document if (dt, docname) != root_key
 	]
 	docs.sort(key=lambda doc: depth_by_document[doc["doctype"], doc["name"]], reverse=True)
-	return {"docs": docs, "count": len(docs)}
+	return {"docs": docs, "count": len(docs), "truncated": False}
 
 
 @frappe.whitelist()
