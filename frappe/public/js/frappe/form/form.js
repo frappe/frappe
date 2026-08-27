@@ -1091,18 +1091,24 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	_linked_docs_list_html(links, as_links = true) {
+		// never render an absurdly long list; the count carries the scale
+		const max_names_per_doctype = 10;
 		let links_text = "";
 		const doctypes = Array.from(new Set(links.map((link) => link.doctype)));
 
 		for (let doctype of doctypes) {
-			let docnames = links
-				.filter((link) => link.doctype == doctype)
+			const of_doctype = links.filter((link) => link.doctype == doctype);
+			let docnames = of_doctype
+				.slice(0, max_names_per_doctype)
 				.map((link) =>
 					as_links
 						? frappe.utils.get_form_link(link.doctype, link.name, true)
 						: frappe.utils.escape_html(cstr(link.name))
 				)
 				.join(", ");
+			if (of_doctype.length > max_names_per_doctype) {
+				docnames += ", " + __("and {0} more", [of_doctype.length - max_names_per_doctype]);
+			}
 			links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
 		}
 		return `<ul>${links_text}</ul>`;
