@@ -1,5 +1,8 @@
 {
     "disabledLabels": [
         "conflicts", "skip-greptile"
+    ],
+    "includeBranches": [
+        "develop", "desk-v2"
     ]
 }
