@@ -14,7 +14,7 @@ import frappe
 from frappe import _
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
-from frappe.desk.query_report import generate_report_result
+from frappe.desk.query_report import generate_report_result, get_reference_report
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import add_to_date, now
@@ -131,8 +131,7 @@ def generate_report(prepared_report):
 
 		if report.report_type == "Custom Report":
 			custom_report_doc = report
-			reference_report = custom_report_doc.reference_report
-			report = frappe.get_doc("Report", reference_report)
+			report = get_reference_report(custom_report_doc)
 			report.custom_report = instance.report_name
 			report.prepared_report = custom_report_doc.prepared_report
 			report.disable_prepared_report_automation = custom_report_doc.disable_prepared_report_automation
