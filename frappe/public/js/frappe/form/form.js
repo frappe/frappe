@@ -1162,13 +1162,25 @@ frappe.ui.form.Form = class FrappeForm {
 					args: {
 						docs: links,
 						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
+						root_doctype: me.doc.doctype,
+						root_name: me.doc.name,
 					},
 					freeze: true,
 					callback: (resp) => {
-						if (!resp.exc) {
-							me.reload_doc();
-							me._cancel(btn, callback, on_error, true);
+						if (resp.exc) {
+							return;
 						}
+						if (resp.message && resp.message.queued) {
+							frappe.msgprint(
+								__(
+									"There are too many linked documents to cancel right away, so they will be cancelled in the background along with {0}. You will be notified when it completes.",
+									[cstr(me.doc.name).bold()]
+								)
+							);
+							return;
+						}
+						me.reload_doc();
+						me._cancel(btn, callback, on_error, true);
 					},
 				});
 			});
@@ -1282,6 +1294,9 @@ frappe.ui.form.Form = class FrappeForm {
 				freeze: true,
 			})
 			.then((r) => {
+				if (!r.exc && r.message.truncated) {
+					return me._delete_all_in_background();
+				}
 				if (!r.exc && (r.message.docs || []).length) {
 					return me._delete_all(r);
 				}
@@ -1297,6 +1312,38 @@ frappe.ui.form.Form = class FrappeForm {
 				window.history.back();
 			},
 			skip_confirm
+		);
+	}
+
+	_delete_all_in_background() {
+		const me = this;
+		frappe.warn(
+			__("Confirm"),
+			__(
+				"{0} {1} is linked with too many documents to list. Delete all of them in the background along with {1}? You will be notified when it completes.",
+				[__(me.doctype).bold(), cstr(me.docname).bold()]
+			),
+			() => {
+				frappe.call({
+					method: "frappe.desk.form.linked_with.delete_all_linked_docs",
+					args: {
+						root_doctype: me.doctype,
+						root_name: cstr(me.docname),
+					},
+					freeze: true,
+					callback: (resp) => {
+						if (!resp.exc) {
+							frappe.show_alert({
+								message: __(
+									"Deletion queued. You will be notified when it completes."
+								),
+								indicator: "blue",
+							});
+						}
+					},
+				});
+			},
+			__("Delete All")
 		);
 	}
 
@@ -1329,11 +1376,22 @@ frappe.ui.form.Form = class FrappeForm {
 				method: "frappe.desk.form.linked_with.delete_all_linked_docs",
 				args: {
 					docs: links,
+					root_doctype: me.doctype,
+					root_name: cstr(me.docname),
 				},
 				freeze: true,
 				freeze_message: __("Deleting documents..."),
 				callback: (resp) => {
 					if (resp.exc) {
+						return;
+					}
+					if (resp.message.queued) {
+						frappe.msgprint(
+							__(
+								"There are too many linked documents to delete right away, so they will be deleted in the background along with {0}. You will be notified when it completes.",
+								[cstr(me.docname).bold()]
+							)
+						);
 						return;
 					}
 					const skipped = resp.message.skipped || [];
