@@ -291,6 +291,24 @@ frappe.ui.Page = class Page {
 		});
 	}
 
+	/**
+	 * For a page that draws its own header — an island page renders one inside
+	 * its own tree, and desk's would be a second, emptier one above it.
+	 *
+	 * The page itself stays: the body sidebar and the workspace dock resolve
+	 * their visibility against the `frappe.ui.Page` on screen
+	 * (`Sidebar.current_page`), so a route that built none would lose the app
+	 * frame along with the head. Hidden rather than removed, because a page can
+	 * draw one renderer's head and not another's.
+	 *
+	 * The head's own affordances go with it. In v16 that costs nothing a reader
+	 * needs: the workspace dock carries search, notifications and the user menu,
+	 * and the body sidebar carries its own collapse handle.
+	 */
+	toggle_page_head(show) {
+		this.wrapper.find(".page-head").toggle(Boolean(show));
+	}
+
 	clear_indicator() {
 		return this.indicator
 			.removeClass()

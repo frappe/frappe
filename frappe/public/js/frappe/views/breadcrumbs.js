@@ -290,7 +290,9 @@ frappe.breadcrumbs = {
 
 	set_dashboard_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
-		const docname = frappe.get_route()[1];
+		// The page names the document it drew. The route segment is only a
+		// fallback: it carries whatever casing the link that reached here used.
+		const docname = breadcrumbs.label || frappe.get_route()[1];
 		let dashboard_route = `/desk/${frappe.router.slug(doctype)}/${docname}`;
 		$(
 			`<li><a href="${frappe.utils.escape_html(dashboard_route)}">${frappe.utils.escape_html(

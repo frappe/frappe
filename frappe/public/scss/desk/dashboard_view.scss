@@ -1,3 +1,61 @@
+/**
+ * The bounded page shell, for the Insights renderer only (`dashboard_view.js`
+ * puts the class on <body> while that renderer is on screen).
+ *
+ * Who owns what: desk owns the box, the island owns what happens inside it.
+ * Desk pages document-scroll — `.main-section` is the scroller and `.page-head`
+ * sticks to its top — and an island that grows with its content inherits that.
+ * The island is one surface with its own header band and its own scrolling
+ * body, so two scrollers end up nested: the island's sticky header sticks to
+ * desk's scrollport, half a page away from the content it belongs to, and the
+ * two layers slide over each other. Handing the island a fixed box and letting
+ * it scroll inside leaves exactly one scroller on the page.
+ *
+ * Flex the column rather than `height: calc(100vh - var(--page-head-height))`
+ * (the report view's idiom): that number is wrong by the head's border, and
+ * wrong again wherever `.main-section` does not start at the top of the
+ * viewport. Nothing here measures desk's chrome — every element just takes what
+ * the one above it has left.
+ */
+body.dashboard-view-island-page {
+	.main-section {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		// the chat bubble and the onboarding panel each pad `.main-section` by
+		// 90px inline, to keep a document-scrolled page clear of the widget they
+		// float bottom-right. A bounded box has no page to scroll past, so that
+		// padding is dead space under the island. `!important` beats the inline
+		// style those two write.
+		padding-bottom: 0 !important;
+	}
+
+	#body,
+	.page-container,
+	.page-body,
+	.page-wrapper {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		// flex items floor at their content height without this, which is the
+		// whole dashboard — the box would be as tall as what it is bounding
+		min-height: 0;
+	}
+
+	.page-head {
+		flex: none;
+	}
+
+	.page-content {
+		flex: 1;
+		min-height: 0;
+	}
+
+	.dashboard-view-island {
+		height: 100%;
+	}
+}
+
 .dashboard-page {
 	.dashboard-view {
 		min-height: calc(100vh - 284px);
