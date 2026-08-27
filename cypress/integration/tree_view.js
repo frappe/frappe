@@ -31,10 +31,9 @@ context("Tree View", () => {
 		cy.visit("/app/custom-tree/view/tree");
 
 		const tree_view = (win) => win.frappe.views.trees["Custom Tree"];
-		// the menu only ever hides/shows these <li>s via jQuery .hide()/.show()/.toggle(),
-		// which resolves the "visible" state to the tag's native default display
-		// (list-item, not block) — assert against "none" vs. not-"none" instead of
-		// a specific display value
+		// the toolbar only ever hides/shows these buttons via jQuery
+		// .hide()/.show()/.toggle() — assert against "none" vs. not-"none"
+		// instead of a specific display value
 		const assert_buttons = (expand_visible, collapse_visible) => {
 			cy.window().should((win) => {
 				let tv = tree_view(win);
@@ -52,24 +51,21 @@ context("Tree View", () => {
 				}
 			});
 		};
-		const click_menu_item = (label) => {
-			// the menu button's own .dropdown-menu is a hidden item store (see
-			// page.js build_dropdown_options) — the actual open menu is an
-			// espresso panel with role="menu", portaled elsewhere in the DOM
-			cy.get(".menu-btn-group > button").click();
-			cy.contains('[role="menu"] .es-menu__item', label).click();
+		const click_toolbar_button = (label) => {
+			cy.contains(".tree-toolbar-actions .es-button", label).click();
 		};
 
 		// root auto-expands; both groups underneath are still collapsed -> only "Expand All"
 		assert_buttons(true, false);
 
-		// expand one group, leave its sibling group collapsed -> mixed, both show
+		// expand one group, leave its sibling group collapsed -> not yet fully
+		// expanded, so still only "Expand All" (one button at a time)
 		cy.get('.tree-link[data-label="Parent Node"]').click();
 		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
-		assert_buttons(true, true);
+		assert_buttons(true, false);
 
 		// Expand All -> every node, including the untouched sibling group, opens -> only "Collapse All"
-		click_menu_item("Expand All");
+		click_toolbar_button("Expand All");
 		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
 		assert_buttons(false, true);
 
@@ -86,7 +82,7 @@ context("Tree View", () => {
 		assert_buttons(false, true);
 
 		// Collapse All -> back to the initial state
-		click_menu_item("Collapse All");
+		click_toolbar_button("Collapse All");
 		cy.get('.tree-link[data-label="Child Node"]').should("not.exist");
 		assert_buttons(true, false);
 	});

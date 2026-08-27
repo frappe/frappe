@@ -47,6 +47,28 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 	}
 };
 
+/**
+ * The standard view switcher, mounted on the tree page header so Tree keeps
+ * the same header anatomy as the list-family views (and switching back
+ * doesn't require digging through the ... menu).
+ */
+frappe.views.TreeViewSelect = class TreeViewSelect extends frappe.views.ListViewSelect {
+	set_current_view() {
+		// tree routes are ["Tree", doctype], not [doctype, "view", <name>],
+		// so the route-based detection in ListViewSelect would report "List"
+		this.current_view = "Tree";
+	}
+
+	set_route(view, calendar_name) {
+		// the tree page has no search box, so unlike the list switcher don't
+		// carry cur_list's search params — cur_list here is whatever list was
+		// visited last, possibly another doctype's
+		const route = [this.slug(), "view", view];
+		if (calendar_name) route.push(calendar_name);
+		frappe.set_route(route);
+	}
+};
+
 frappe.views.TreeView = class TreeView {
 	constructor(opts) {
 		var me = this;
@@ -104,54 +126,115 @@ frappe.views.TreeView = class TreeView {
 			);
 
 			this.set_title();
+			this.setup_view_switcher();
+
+			// same reload affordance as the list views' default secondary action
+			this.page.add_action_icon(
+				"refresh-cw",
+				() => {
+					this.make_tree();
+				},
+				"",
+				__("Reload Tree")
+			);
 
 			this.page.main.css({
 				"min-height": "300px",
 			});
 
-			this.page.main.addClass("frappe-card");
+			this.make_tree_toolbar();
+
+			if (this.opts.view_template) {
+				var row = $('<div class="row"><div>').appendTo(this.page.main);
+				this.body = $('<div class="col-sm-6 col-xs-12"></div>').appendTo(row);
+				this.node_view = $('<div class="col-sm-6 hidden-xs"></div>').appendTo(row);
+			} else {
+				this.body = $('<div class="tree-view-body"></div>').appendTo(this.page.main);
+			}
 		} else {
 			this.page = this.opts.page;
 			$(this.page[0]).addClass("frappe-card");
+			this.body = this.page.main;
 		}
+	}
+	make_tree_toolbar() {
+		var me = this;
 
-		if (frappe.meta.has_field(me.doctype, "disabled")) {
-			this.page.add_inner_button(
-				__("Include Disabled"),
-				function () {
-					me.toggle_disable(event.target);
-					me.make_tree();
-				},
-				__("Expand"),
-				"default",
-				true
-			);
-		}
+		// same filter-bar anatomy as the list views: page_form holding a
+		// .standard-filter-section, fields added through page.add_field
+		this.page.page_form.removeClass("row").addClass("flex");
+		this.$filter_area = $('<div class="standard-filter-section flex"></div>').appendTo(
+			this.page.page_form
+		);
+
+		// the same name filter every list view leads with
+		let search_field = this.page.add_field(
+			{
+				fieldtype: "Data",
+				fieldname: "tree_search",
+				label: __("ID"),
+			},
+			this.$filter_area
+		);
+		this.$search_input = search_field.$input;
+		this.$search_input.on(
+			"input",
+			frappe.utils.debounce(() => this.apply_search(search_field.get_value()), 300)
+		);
 
 		if (this.opts.show_expand_all) {
-			this.$collapse_all_btn = this.page
-				.add_menu_item(__("Collapse All"), function () {
-					me.tree.load_children(me.tree.root_node, false);
+			let $actions = $(
+				'<div class="tree-toolbar-actions ms-auto flex items-center gap-1 py-1"></div>'
+			).appendTo(this.page.page_form);
+			// don't return the load promise from onclick — the button would
+			// show its busy spinner on every toggle
+			this.$expand_all_btn = $(
+				frappe.ui.button({
+					label: __("Expand All"),
+					icon: "chevrons-up-down",
+					onclick: () => {
+						me.tree.load_children(me.tree.root_node, true);
+					},
 				})
-				.parent();
-
-			this.$expand_all_btn = this.page
-				.add_menu_item(__("Expand All"), function () {
-					me.tree.load_children(me.tree.root_node, true);
+			).appendTo($actions);
+			this.$collapse_all_btn = $(
+				frappe.ui.button({
+					label: __("Collapse All"),
+					icon: "chevrons-down-up",
+					onclick: () => {
+						me.tree.load_children(me.tree.root_node, false);
+					},
 				})
-				.parent();
-		}
+			).appendTo($actions);
 
-		if (this.opts.view_template) {
-			var row = $('<div class="row"><div>').appendTo(this.page.main);
-			this.body = $('<div class="col-sm-6 col-xs-12"></div>').appendTo(row);
-			this.node_view = $('<div class="col-sm-6 hidden-xs"></div>').appendTo(row);
-		} else {
-			this.body = this.page.main;
+			// stay hidden until the tree renders — the applicable one is
+			// shown by update_expand_collapse_buttons
+			this.$expand_all_btn.hide();
+			this.$collapse_all_btn.hide();
 		}
 	}
 	set_title() {
 		this.page.set_title(this.opts.title || __("{0} Tree", [__(this.doctype)]));
+	}
+	setup_view_switcher() {
+		if (
+			!frappe.boot.desk_settings.view_switcher ||
+			this.opts.meta?.force_re_route_to_default_view
+		) {
+			return;
+		}
+		// ListViewSelect only needs meta and settings from its list_view —
+		// hand it a minimal adapter since there is no list view on this page
+		this.views_list = new frappe.views.TreeViewSelect({
+			doctype: this.doctype,
+			page: this.page,
+			list_view: {
+				meta: this.opts.meta || frappe.get_meta(this.doctype),
+				settings: frappe.listview_settings[this.doctype] || {},
+			},
+			icon_map: frappe.views.get_view_icon_map(),
+			label_map: frappe.views.get_view_label_map(),
+		});
 	}
 	onload() {
 		var me = this;
@@ -159,7 +242,6 @@ frappe.views.TreeView = class TreeView {
 	}
 	make_filters() {
 		var me = this;
-		frappe.treeview_settings.filters = [];
 		$.each(this.opts.filters || [], function (i, filter) {
 			if (frappe.route_options && frappe.route_options[filter.fieldname]) {
 				filter.default = frappe.route_options[filter.fieldname];
@@ -180,16 +262,37 @@ frappe.views.TreeView = class TreeView {
 				};
 			}
 
-			if (filter.render_on_toolbar) {
-				me.page.add_field(filter, me.page.filters);
-			} else {
-				me.page.add_field(filter);
-			}
+			// every filter renders in the tree filter bar; render_on_toolbar is
+			// accepted for backward compatibility but no longer changes
+			// placement. Fields still register in page.fields_dict, which
+			// apps read (e.g. page.fields_dict.company.get_value()).
+			var field = me.page.add_field(filter, me.$filter_area || me.page.filters);
 
 			if (filter.default) {
-				$("[data-fieldname='" + filter.fieldname + "']").trigger("change");
+				if (field && field.$input) {
+					field.$input.trigger("change");
+				} else {
+					$("[data-fieldname='" + filter.fieldname + "']").trigger("change");
+				}
 			}
 		});
+
+		// disabled records toggle — a checkbox in the filter bar, the way
+		// list views render Check standard filters
+		if (!this.opts.do_not_make_page && frappe.meta.has_field(this.doctype, "disabled")) {
+			let field = me.page.add_field(
+				{
+					fieldname: "include_disabled",
+					fieldtype: "Check",
+					label: __("Show all (including disabled)"),
+					change: function () {
+						me.args["include_disabled"] = cint(field.get_value());
+						me.make_tree();
+					},
+				},
+				me.$filter_area
+			);
+		}
 	}
 	get_root() {
 		var me = this;
@@ -212,18 +315,42 @@ frappe.views.TreeView = class TreeView {
 			},
 		});
 	}
-	toggle_disable(el) {
-		if (this.args["include_disabled"]) {
-			this.args["include_disabled"] = false;
-			el.innerText = el.innerText.replace("Exclude", "Include");
-		} else {
-			this.args["include_disabled"] = true;
-			console.log(el);
-			el.innerText = el.innerText.replace("Include", "Exclude");
-		}
+	show_tree_skeleton() {
+		if (!this.body || this.opts.do_not_make_page) return;
+		this.hide_tree_skeleton();
+		const row = (indent, width) => `
+			<div class="flex items-center gap-2.5" style="height: 32px; padding-left: ${indent}px">
+				${frappe.ui.skeleton.html({ width: "14px", height: "14px" })}
+				${frappe.ui.skeleton.html({ width: width, height: "13px" })}
+			</div>`;
+		this.$tree_skeleton = $(`
+			<div class="tree-skeleton p-1" aria-busy="true" aria-label="${__("Loading")}">
+				${row(8, "90px")}
+				${row(32, "220px")}
+				${row(32, "180px")}
+				${row(32, "240px")}
+				${row(32, "160px")}
+			</div>
+		`).appendTo(this.body);
+	}
+	hide_tree_skeleton() {
+		this.$tree_skeleton && this.$tree_skeleton.remove();
+		this.$tree_skeleton = null;
+		this.tree && this.tree.wrapper.show();
 	}
 	make_tree() {
+		// a rebuild (filter change, Include Disabled, reload) must not cost
+		// the user their expansion — remember what was open and restore it
+		// as the nodes reappear (see restore_expanded_nodes)
+		this._expanded_labels = this.tree
+			? Object.values(this.tree.nodes)
+					.filter((node) => node.expanded && !node.is_root)
+					.map((node) => node.label)
+			: [];
+
 		$(this.parent).find(".tree").remove();
+		this.reset_search();
+		this.show_tree_skeleton();
 
 		var use_label = this.args[this.opts.root_label] || this.root_label || this.opts.root_label;
 		var use_value = this.root_value;
@@ -236,17 +363,20 @@ frappe.views.TreeView = class TreeView {
 			label: use_label,
 			root_value: use_value,
 			expandable: true,
+			use_row_actions: !this.opts.do_not_make_page,
 
 			args: this.args,
 			method: this.get_tree_nodes,
 
-			// array of button props: {label, condition, click, btnClass}
+			// array of button props: {label, condition, click, btnClass, icon}
 			toolbar: this.get_toolbar(),
 
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
 			on_get_node: this.opts.on_get_node,
 			on_node_render: (node, deep) => {
+				this.hide_tree_skeleton();
+				this.restore_expanded_nodes();
 				this.opts.on_node_render && this.opts.on_node_render(node, deep);
 				this.update_expand_collapse_buttons();
 			},
@@ -258,9 +388,26 @@ frappe.views.TreeView = class TreeView {
 			},
 		});
 
+		// the skeleton stands in until the first render
+		if (this.$tree_skeleton) {
+			this.tree.wrapper.hide();
+		}
+
 		cur_tree = this.tree;
 		cur_tree.view_name = "Tree";
 		this.post_render();
+	}
+	restore_expanded_nodes() {
+		if (!this._expanded_labels?.length || !this.tree) return;
+		this._expanded_labels = this._expanded_labels.filter((label) => {
+			const node = this.tree.nodes[label];
+			// not rendered yet — it may appear when an ancestor opens
+			if (!node) return true;
+			if (!node.expandable || node.expanded) return false;
+			if (!document.body.contains(node.$tree_link[0])) return true;
+			this.tree.load_children(node);
+			return false;
+		});
 	}
 	get_expandable_nodes() {
 		return Object.values(this.tree.nodes).filter(
@@ -283,15 +430,81 @@ frappe.views.TreeView = class TreeView {
 		let expandable_nodes = this.get_expandable_nodes();
 		let has_expandable_nodes = expandable_nodes.length > 0;
 		let all_expanded = has_expandable_nodes && expandable_nodes.every((node) => node.expanded);
-		let all_collapsed =
-			has_expandable_nodes && expandable_nodes.every((node) => !node.expanded);
 
-		this.$collapse_all_btn &&
-			this.$collapse_all_btn.toggle(has_expandable_nodes && !all_collapsed);
+		// exactly one button at a time: Expand All until everything is open,
+		// then Collapse All
+		this.$collapse_all_btn && this.$collapse_all_btn.toggle(all_expanded);
 		this.$expand_all_btn && this.$expand_all_btn.toggle(has_expandable_nodes && !all_expanded);
 	}
-	toggle_label() {
-		console.log("hello");
+	reset_search() {
+		this.search_deep_loaded = false;
+		this.$search_input && this.$search_input.val("");
+		this.$search_empty_state && this.$search_empty_state.remove();
+		this.tree && this.tree.wrapper.removeClass("tree-searching");
+	}
+	apply_search(txt) {
+		txt = (txt || "").trim().toLowerCase();
+		this.search_text = txt;
+		if (!this.tree) return;
+
+		const $wrapper = this.tree.wrapper;
+		this.$search_empty_state && this.$search_empty_state.remove();
+
+		if (!txt) {
+			$wrapper.removeClass("tree-searching");
+			$wrapper.find("li.tree-node").show();
+			return;
+		}
+
+		const run = () => {
+			// a newer keystroke superseded this one while the deep load ran
+			if (this.search_text !== txt) return;
+
+			$wrapper.addClass("tree-searching");
+			const $nodes = $wrapper.find("li.tree-node");
+			$nodes.hide();
+
+			let matches = 0;
+			$nodes.each((i, li) => {
+				const $li = $(li);
+				const $link = $li.children(".tree-link");
+				// match the visible label AND the real name (data-label) — apps
+				// may display a cleaned label (e.g. account number as a badge)
+				const label =
+					($link.find(".tree-label").text() || "") +
+					" " +
+					($link.attr("data-label") || "");
+				if (label.toLowerCase().includes(txt)) {
+					matches++;
+					$li.show();
+					// reveal the path to the match
+					$li.parentsUntil($wrapper, "li.tree-node").show();
+					$li.parents("ul.tree-children").show();
+				}
+			});
+
+			if (matches === 0) {
+				this.$search_empty_state = $(
+					frappe.ui.empty_state({
+						icon: "search",
+						title: __("No matching records"),
+						description: __("Try a different search."),
+					})
+				).appendTo(this.body);
+			}
+		};
+
+		if (this.search_deep_loaded) {
+			run();
+			return;
+		}
+		frappe.dom.freeze(__("Loading full tree..."));
+		Promise.resolve(this.tree.load_children(this.tree.root_node, true))
+			.then(() => {
+				this.search_deep_loaded = true;
+				run();
+			})
+			.finally(() => frappe.dom.unfreeze());
 	}
 	rebuild_tree() {
 		let me = this;
@@ -334,6 +547,10 @@ frappe.views.TreeView = class TreeView {
 		var toolbar = [
 			{
 				label: __(me.can_write ? "Edit" : "Details"),
+				icon: "pencil",
+				// renders as the hover icon-button beside the label, so it
+				// stays out of the row's ... menu
+				inline: true,
 				condition: function (node) {
 					return !node.is_root && me.can_read;
 				},
@@ -343,6 +560,7 @@ frappe.views.TreeView = class TreeView {
 			},
 			{
 				label: __("Add Child"),
+				icon: "plus",
 				condition: function (node) {
 					return me.can_create && node.expandable && !node.hide_add;
 				},
@@ -352,13 +570,25 @@ frappe.views.TreeView = class TreeView {
 				btnClass: "hidden-xs",
 			},
 			{
-				label: __("Rename"),
+				label: __("Move to..."),
+				icon: "corner-down-right",
 				condition: function (node) {
-					let allow_rename = true;
-					if (me.doctype && frappe.get_meta(me.doctype)) {
-						if (!frappe.get_meta(me.doctype).allow_rename) allow_rename = false;
-					}
-					return !node.is_root && me.can_write && allow_rename;
+					return !node.is_root && me.can_write;
+				},
+				click: function (node) {
+					me.move_node(node);
+				},
+			},
+			{
+				label: __("Rename"),
+				icon: "text-cursor-input",
+				// doctype-level allow_rename and user permission are constant
+				// for every node — hide instead of repeating a disabled row
+				condition: function (node) {
+					return me.can_write && frappe.get_meta(me.doctype)?.allow_rename != 0;
+				},
+				get_disabled_reason: function (node) {
+					if (node.is_root) return __("Root records can't be renamed");
 				},
 				click: function (node) {
 					frappe.model.rename_doc(me.doctype, node.label, function (new_name) {
@@ -371,8 +601,13 @@ frappe.views.TreeView = class TreeView {
 			},
 			{
 				label: __("Delete"),
+				icon: "trash-2",
+				danger: true,
 				condition: function (node) {
-					return !node.is_root && me.can_delete;
+					return me.can_delete;
+				},
+				get_disabled_reason: function (node) {
+					if (node.is_root) return __("Root records can't be deleted");
 				},
 				click: function (node) {
 					frappe.model.delete_doc(me.doctype, node.label, function () {
@@ -393,6 +628,99 @@ frappe.views.TreeView = class TreeView {
 		} else {
 			return toolbar;
 		}
+	}
+	move_node(node) {
+		var me = this;
+
+		// a group must never be offered its own subtree as a target (moving
+		// under a descendant is a cycle) — collect the subtree up front and
+		// exclude it from the picker; the server's validate_loop remains the
+		// backstop for anything this misses
+		let excluded = [node.label];
+		const fetch_descendants = !node.expandable
+			? Promise.resolve()
+			: frappe.db.get_value(me.doctype, node.label, ["lft", "rgt"]).then((r) => {
+					const { lft, rgt } = r.message || {};
+					if (lft == null) return;
+					return frappe.db
+						.get_list(me.doctype, {
+							filters: { lft: [">", lft], rgt: ["<", rgt] },
+							limit: 0,
+						})
+						.then((rows) => {
+							excluded = excluded.concat(rows.map((row) => row.name));
+						});
+			  });
+
+		fetch_descendants.then(() => me.show_move_dialog(node, excluded));
+	}
+	show_move_dialog(node, excluded) {
+		var me = this;
+		const parent_fieldname =
+			"parent_" + me.doctype.toLowerCase().replace(/ /g, "_").replace(/-/g, "_");
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Move {0}", [node.label]),
+			fields: [
+				{
+					fieldtype: "Link",
+					fieldname: "new_parent",
+					label: __("New Parent"),
+					options: me.doctype,
+					reqd: 1,
+					// closing the dialog with half-typed text must not toast
+					// "did not match any results" — a submitted value is still
+					// validated server-side
+					ignore_link_validation: 1,
+					get_query: () => {
+						// only groups qualify — never the node or its own
+						// subtree; stay within the tree currently shown
+						const filters = { is_group: 1, name: ["not in", excluded] };
+						Object.keys(me.args).forEach((key) => {
+							if (
+								key !== "doctype" &&
+								me.args[key] &&
+								frappe.meta.has_field(me.doctype, key)
+							) {
+								filters[key] = me.args[key];
+							}
+						});
+						return { filters };
+					},
+				},
+			],
+			primary_action_label: __("Move"),
+			primary_action(values) {
+				dialog.hide();
+				frappe.dom.freeze(__("Moving {0}", [node.label]));
+				frappe.call({
+					method: "frappe.client.set_value",
+					args: {
+						doctype: me.doctype,
+						name: node.label,
+						fieldname: parent_fieldname,
+						value: values.new_parent,
+					},
+					callback: function (r) {
+						if (r.exc) return;
+						// re-render the branch it left and the one it joined
+						node.parent_node && me.tree.load_children(node.parent_node);
+						const target = me.tree.nodes[values.new_parent];
+						if (target && target !== node.parent_node && target.loaded) {
+							me.tree.load_children(target);
+						}
+						frappe.show_alert({
+							message: __("{0} moved under {1}", [node.label, values.new_parent]),
+							indicator: "green",
+						});
+					},
+					always: function () {
+						frappe.dom.unfreeze();
+					},
+				});
+			},
+		});
+		dialog.show();
 	}
 	new_node() {
 		var me = this;
@@ -467,7 +795,9 @@ frappe.views.TreeView = class TreeView {
 		];
 
 		if (this.opts.fields) {
-			this.fields = this.opts.fields;
+			// work on a copy — the mandatory-field append below must not
+			// accumulate into the app's settings object across dialog opens
+			this.fields = this.opts.fields.slice();
 		}
 
 		this.ignore_fields = this.opts.ignore_fields || [];
@@ -513,13 +843,30 @@ frappe.views.TreeView = class TreeView {
 	set_primary_action() {
 		var me = this;
 		if (!this.opts.disable_add_node && this.can_create) {
+			// same primary action as the list views: "Add {doctype}", short
+			// "Add" below the md breakpoint, ctrl+b shortcut
+			const primary_action = () => me.new_node();
 			me.page.set_primary_action(
-				__("New"),
-				function () {
-					me.new_node();
+				{
+					label: __("Add {0}", [__(this.doctype)], "Primary action in tree view"),
+					short_label: __("Add"),
 				},
+				primary_action,
 				"plus"
 			);
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+b",
+				action: () => {
+					primary_action();
+					return true;
+				},
+				description: __(
+					"Create a new document",
+					null,
+					"Description of a tree view shortcut"
+				),
+				page: this.page,
+			});
 		}
 	}
 	set_menu_item() {
@@ -527,24 +874,23 @@ frappe.views.TreeView = class TreeView {
 
 		this.menu_items = [
 			{
-				label: __("View List"),
-				action: function () {
-					frappe.set_route(["List", me.doctype, "List"]);
-				},
-			},
-			{
 				label: __("Print"),
 				action: function () {
 					me.print_tree();
 				},
 			},
-			{
-				label: __("Refresh"),
-				action: function () {
-					me.make_tree();
-				},
-			},
 		];
+
+		// the view switcher covers navigation and the header icon covers
+		// reload; only fall back to menu items when the switcher is disabled
+		if (!this.views_list) {
+			this.menu_items.unshift({
+				label: __("View List"),
+				action: function () {
+					frappe.set_route(["List", me.doctype, "List"]);
+				},
+			});
+		}
 
 		if (
 			frappe.user.has_role("System Manager") &&
@@ -566,7 +912,12 @@ frappe.views.TreeView = class TreeView {
 		$.each(me.menu_items, function (i, menu_item) {
 			var has_perm = true;
 			if (menu_item["condition"]) {
-				has_perm = eval(menu_item["condition"]);
+				// apps historically pass condition as an eval'd string; new
+				// code should pass a function
+				has_perm =
+					typeof menu_item["condition"] === "function"
+						? menu_item["condition"]()
+						: eval(menu_item["condition"]);
 			}
 
 			if (has_perm) {

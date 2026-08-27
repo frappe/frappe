@@ -1,3 +1,5 @@
+// the tree page keeps a centered, width-capped column — value columns
+// (balances) stay near their labels
 .treeview {
 	.layout-main-section {
 		margin: auto;
@@ -8,9 +10,58 @@
 	}
 }
 
-.tree {
-	padding: var(--padding-sm);
+// ─── filter bar + tree body (same page_form anatomy as list views) ─────────
 
+.treeview .page-form {
+	// a tree page has few filters, so give them more room than the list
+	// default (150px) — they read cramped otherwise
+	.standard-filter-section .frappe-control:not([data-fieldtype="Check"]) {
+		min-width: 220px;
+	}
+}
+
+.tree-view-body {
+	padding: 4px var(--padding-sm) var(--padding-sm);
+}
+
+// node hover card: the panel is widened past the component default (256px)
+// so account names and amounts fit without scrolling; the content fills it
+.es-hover-card.tree-node-hover-panel {
+	width: calc(var(--spacing) * 78);
+	max-width: 90vw;
+}
+
+.tree-hover-card {
+	width: 100%;
+
+	// layout and type come from utility/typography classes on the markup;
+	// only what those can't express lives here
+	.tree-hover-card-head {
+		// the avatar spans both text lines, so it stays vertically centered
+		// while the open button top-aligns with the title
+		.es-avatar {
+			align-self: center;
+		}
+
+		> .es-button {
+			margin-top: -1px;
+			margin-right: -4px;
+		}
+	}
+
+	.tree-hover-card-row .value {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+// ─── tree widget ────────────────────────────────────────────────────────────
+
+.tree {
+	padding: var(--padding-xs);
+	font-size: var(--text-base);
+
+	// legacy click-injected toolbar (embedded trees: BOM Configurator etc.)
 	.btn-group {
 		.btn {
 			box-shadow: none;
@@ -29,38 +80,29 @@
 
 .tree li {
 	list-style: none;
-	margin: 2px 0px;
+	margin: 0;
 }
 
 .tree-link {
 	cursor: pointer;
 	display: inline-flex;
-	align-items: flex-end;
+	align-items: center;
 	padding: var(--padding-xs);
-	font-size: $font-size-lg;
-	font-weight: 600;
 	color: var(--text-color);
 }
 
 .tree-label {
-	margin-left: var(--margin-sm);
+	margin-left: var(--margin-xs);
 	line-height: 1.4em;
 }
 
 .tree-children {
 	padding-left: var(--padding-xl);
 	margin-bottom: 0;
-
-	.tree-link {
-		font-size: var(--text-md);
-		font-weight: normal;
-	}
 }
 
 .tree-link .node-parent {
 	color: var(--text-muted);
-	font-size: $font-size-base;
-	// width: 10px;
 	text-align: center;
 }
 
@@ -68,38 +110,10 @@
 	color: var(--text-muted);
 }
 
-// .tree-link .node-parent, .tree-link .node-leaf {
-// 	margin-right: 10px;
-// }
-
 .tree-link.active {
-	i {
-		color: var(--indicator-blue);
-	}
-
 	a {
 		color: var(--text-color);
-		font-weight: 600;
 	}
-}
-
-.tree-link .file-doc-link {
-	opacity: 0;
-}
-
-.tree-link:hover .file-doc-link {
-	opacity: 0.4;
-}
-
-.tree-link .file-doc-link:hover {
-	transform: scale(1.1);
-	opacity: 0.5;
-}
-
-.tree-hover {
-	background-color: var(--highlight-color);
-	min-height: 25px;
-	border: 1px solid var(--border-color);
 }
 
 .tree-node-toolbar {
@@ -110,64 +124,173 @@
 	margin-top: -8px;
 }
 
-// @media (max-width: @screen-xs) {
-// 	.tree-children {
-// 		padding-left: 10px;
-// 	}
-// }
-
-// decoration
-// .tree, .tree-node {
-.tree.with-skeleton,
-.tree.with-skeleton .tree-node {
-	position: relative;
-
-	// &.opened::before, &:last-child::after {
-	// 	content: '';
-	// 	position: absolute;
-	// 	top: 16px;
-	// 	left: 8px;
-	// 	height: calc(100% - 26px);
-	// 	width: 1px;
-	// 	background: var(--border-color);
-	// }
-
-	// &:last-child::after {
-	// 	top: 11px;
-	// 	left: -13px;
-	// 	height: calc(100% - 15px);
-	// 	width: 3px;
-	// 	background: #fff;
-	// }
-}
-
-// .tree.with-skeleton .tree-children > .tree-node > .tree-link::before {
-// 	content: '';
-// 	position: absolute;
-// 	width: 12px;
-// 	height: 1px;
-// 	top: 10px;
-// 	left: -11px;
-// 	background: var(--border-color);
-// }
-
-// .tree.with-skeleton.opened::before {
-// 	left: 23px;
-// 	top: 33px;
-// 	height: calc(100% - 67px);
-// }
-
 .balance-area {
 	color: var(--text-color) !important;
 	font-size: var(--text-md);
 	padding: var(--padding-xs);
 }
 
-.tree-link.active ~ .balance-area {
+.tree:not(.tree-rows) .tree-link.active ~ .balance-area {
 	font-weight: 600;
 }
 
-.tree-node.hover-active {
+// ─── row mode (.tree-rows): full-width rows, guides, hover actions ─────────
+// standard desk tree pages only; embedded trees keep the legacy layout above
+
+.tree.tree-rows {
+	padding: 0;
+
+	// a node's <li> holds [row link][optional value column][children <ul>] —
+	// flex-wrap puts link + value on one visual row, children wrap below.
+	// No vertical margins: sibling connector segments must touch to draw as
+	// one continuous line.
+	li.tree-node {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		margin: 0;
+	}
+
+	.tree-link {
+		display: flex;
+		flex: 1 1 0%;
+		min-width: 0;
+		align-items: center;
+		min-height: 32px;
+		padding: 2px var(--padding-sm);
+		border-radius: var(--radius);
+		font-size: var(--text-base);
+		font-weight: var(--font-weight-regular);
+
+		// icon slot: chevron for groups; leaves keep the slot for alignment
+		// but draw no marker (frappe-ui tree convention)
+		> span:first-child {
+			flex: none;
+			width: 20px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: var(--ink-gray-5);
+
+			&:not(.node-parent) svg {
+				display: none;
+			}
+		}
+
+		.tree-label {
+			margin-left: var(--margin-xs);
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: none;
+		}
+
+		&:hover {
+			background-color: var(--fg-hover-color);
+		}
+	}
+
+	// every label carries the same weight (frappe-ui tree convention) —
+	// hierarchy is shown by indent and chevrons, selection by background
+
+	// indent guides: frappe-ui-style elbow connectors. The line hangs from
+	// the parent's chevron center (8px row padding + half of the 20px icon
+	// slot = 18px into the <ul>, i.e. -6px relative to each 24px-indented
+	// child <li>): an └ elbow into each row, the vertical continuing past
+	// every child except the last
+	ul.tree-children {
+		flex: 1 1 100%;
+		padding-left: 24px;
+
+		> li.tree-node {
+			position: relative;
+
+			&::before {
+				content: "";
+				position: absolute;
+				left: -6px;
+				top: 0;
+				height: 16px;
+				width: 12px;
+				border-left: 1px solid var(--outline-gray-2);
+				border-bottom: 1px solid var(--outline-gray-2);
+				border-bottom-left-radius: 3px;
+			}
+
+			&:not(:last-child)::after {
+				content: "";
+				position: absolute;
+				left: -6px;
+				top: 16px;
+				bottom: 0;
+				border-left: 1px solid var(--outline-gray-2);
+			}
+		}
+	}
+
+	// hover actions sit right beside the label (Option E): Edit + ⋯,
+	// shortest travel from where the pointer already is; the amount at the
+	// row's end stays untouched
+	.tree-actions {
+		display: none;
+		align-items: center;
+		gap: 2px;
+		flex: none;
+		margin-left: var(--margin-sm);
+	}
+
+	.tree-link:hover .tree-actions {
+		display: inline-flex;
+	}
+
+	// no hover on touch devices — keep the actions visible (approved mobile
+	// design: the per-row controls are always shown there)
+	@media (hover: none) {
+		.tree-actions {
+			display: inline-flex;
+		}
+	}
+
+	// value column (e.g. account balances) — apps insert .balance-area after
+	// the tree-link; as a flex sibling it sits at the row's right edge and
+	// can never overlap the label
+	li.tree-node > .balance-area {
+		float: none;
+		flex: none;
+		min-height: 32px;
+		display: flex;
+		align-items: center;
+		padding: 2px var(--padding-sm);
+		border-radius: 0 var(--radius) var(--radius) 0;
+		font-size: var(--text-sm);
+		color: var(--ink-gray-7);
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	// link + value paint as ONE continuous row: square the touching corners
+	li.tree-node:has(> .balance-area) > .tree-link {
+		border-radius: var(--radius) 0 0 var(--radius);
+	}
+
+	// carry the row highlight across the value column
+	li.tree-node:has(> .tree-link:hover) > .balance-area {
+		background-color: var(--fg-hover-color);
+	}
+
+	// legacy click-toolbar never shows in row mode
+	.tree-node-toolbar {
+		display: none !important;
+	}
+}
+
+// legacy hover treatment for embedded trees
+.tree:not(.tree-rows) .tree-node.hover-active {
 	background-color: var(--fg-hover-color);
 	border-radius: var(--radius);
 }
