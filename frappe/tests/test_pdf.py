@@ -101,7 +101,10 @@ class TestPdf(IntegrationTestCase):
 			captured.update(options or {})
 			return blank_pdf()
 
-		with patch.object(pdfgen.pdfkit, "from_string", side_effect=capture_options):
+		with (
+			patch.object(pdfgen.pdfkit, "from_string", side_effect=capture_options),
+			patch.object(pdfgen, "get_wkhtmltopdf_version", return_value="0.12.6"),
+		):
 			pdfgen.get_pdf(self.html)
 			self.assertIn("disable-smart-shrinking", captured)
 
