@@ -11,7 +11,7 @@
     "@framework/ui": "link:../ui",
     "@vueuse/core": "^11.3.0",
     "dompurify": "^3.3.3",
-    "frappe-ui": "1.0.0-beta.24",
+    "frappe-ui": "1.0.0-beta.55",
     "reka-ui": "^2.9.6",
     "socket.io-client": "^4.7.2",
     "vue": "^3.5.13",
