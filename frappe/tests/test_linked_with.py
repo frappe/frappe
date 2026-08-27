@@ -471,6 +471,48 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
 		self.assertFalse(frappe.db.exists("Parent DocType", parent.name))
 
+	def test_cancel_all_linked_docs_drops_stale_entries(self):
+		"""The confirmed list comes from an earlier request; a document unlinked
+		since then must not be cancelled."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		unrelated = frappe.get_doc({"doctype": "Child DocType1"}).insert().submit()
+
+		linked_with.cancel_all_linked_docs(
+			docs=[
+				{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
+				{"doctype": "Child DocType1", "name": unrelated.name, "docstatus": 1},
+			],
+			root_doctype=parent.doctype,
+			root_name=parent.name,
+		)
+
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(unrelated.reload().docstatus.is_submitted())
+		unrelated.cancel()
+
+	def test_delete_all_linked_docs_drops_stale_entries(self):
+		"""The confirmed list comes from an earlier request; a document unlinked
+		since then must not be deleted."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		unrelated = frappe.get_doc({"doctype": "Child DocType1"}).insert()
+
+		result = linked_with.delete_all_linked_docs(
+			docs=[
+				{"doctype": "Child DocType1", "name": child1.name},
+				{"doctype": "Child DocType1", "name": unrelated.name},
+			],
+			root_doctype=parent.doctype,
+			root_name=parent.name,
+		)
+
+		self.assertEqual(result["deleted"], [{"doctype": "Child DocType1", "name": child1.name}])
+		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
+		self.assertTrue(frappe.db.exists("Child DocType1", unrelated.name))
+
 	def test_get_linked_docs_to_delete_deepest_first(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
