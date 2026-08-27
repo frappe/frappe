@@ -1674,12 +1674,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return print_settings.columns?.length || !custom_format ? "print_grid" : custom_format;
 	}
 
-	async get_report_print_format(report_name) {
-		const filters = {
-			name: report_name,
-			disabled: 0,
-		};
-		const r = await frappe.db.get_value("Print Format", filters, ["html", "css"]);
+	async get_report_print_format(print_format) {
+		const r = await frappe.call({
+			method: "frappe.desk.query_report.get_print_format_data",
+			args: { print_format },
+		});
 		if (r && r.message && r.message.html) {
 			const css = r.message.css || "";
 			const html = r.message.html || "";
