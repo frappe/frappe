@@ -427,10 +427,12 @@ frappe.views.CommunicationComposer = class {
 					label: __("Schedule Send At"),
 					fieldname: "schedule_at",
 					fieldtype: "Datetime",
+					reqd: 1,
 					default: fields.send_after.get_value(),
 				},
-				(values) => {
-					this.dialog.set_value("send_after", values.schedule_at);
+				async (values) => {
+					await this.dialog.set_value("send_after", values.schedule_at);
+					this.$composer.find(".btn-modal-primary").trigger("click");
 				},
 				__("Schedule Send")
 			);
