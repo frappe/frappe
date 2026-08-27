@@ -400,6 +400,77 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertTrue(child1.reload().docstatus.is_cancelled())
 		self.assertTrue(child2.reload().docstatus.is_cancelled())
 
+	def test_cancel_all_linked_docs_queues_large_sets(self):
+		"""A set above the synchronous limit moves to a background job that also
+		cancels the root document, which the caller skips when queued."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+
+		with patch.object(linked_with, "MAX_SYNCHRONOUS_LINKED_DOCS", 0):
+			result = linked_with.cancel_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(parent.reload().docstatus.is_cancelled())
+
+	def test_background_cancel_is_all_or_nothing(self):
+		"""When a document outside the set blocks the run, the job must undo its
+		cancellations, matching the synchronous all-or-nothing behaviour."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		# blocks child1 but is not part of the set, so the run can never finish
+		frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+
+		with patch.object(linked_with, "MAX_SYNCHRONOUS_LINKED_DOCS", 0):
+			result = linked_with.cancel_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertTrue(child1.reload().docstatus.is_submitted())
+		self.assertTrue(parent.reload().docstatus.is_submitted())
+
+	def test_delete_all_linked_docs_queues_large_sets(self):
+		"""A set above the synchronous limit moves to a background job that also
+		deletes the root document, which the caller skips when queued."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+
+		with patch.object(linked_with, "MAX_SYNCHRONOUS_LINKED_DOCS", 0):
+			result = linked_with.delete_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
+		self.assertFalse(frappe.db.exists("Parent DocType", parent.name))
+
+	def test_delete_all_linked_docs_discovers_in_background_without_docs(self):
+		"""Without docs the graph was too large to list; the background job must
+		discover and delete it itself, root included."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		child2 = frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert()
+
+		result = linked_with.delete_all_linked_docs(root_doctype=parent.doctype, root_name=parent.name)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
+		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
+		self.assertFalse(frappe.db.exists("Parent DocType", parent.name))
+
 	def test_get_linked_docs_to_delete_deepest_first(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
@@ -427,12 +498,13 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name}])
 
 	def test_get_linked_docs_to_delete_truncates_large_graphs(self):
-		"""A graph larger than the cap returns no documents, so the caller falls
-		back to a plain delete instead of walking everything."""
+		"""A graph larger than the cap returns no documents marked truncated, so
+		the caller offers background deletion instead of walking everything."""
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 		frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		frappe.get_doc({"doctype": "Child DocType2", "parent_doctype": parent.name}).insert()
 
-		with patch.object(linked_with, "MAX_LINKED_DELETE_DOCUMENTS", 0):
+		with patch.object(linked_with, "MAX_LINKED_DELETE_DOCUMENTS", 1):
 			result = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)
 
 		self.assertEqual(result, {"docs": [], "count": 0, "truncated": True})
