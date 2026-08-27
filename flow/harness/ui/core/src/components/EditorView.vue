@@ -286,7 +286,6 @@ watch([editorEl, () => workspace.value.open, showEditorHost], async ([el, open, 
 		editor = monaco.editor.create(editorEl.value, {
 			...EDITOR_OPTIONS,
 			wordWrap: wrapValue(),
-			readOnly: !flow.state.sessionId,
 		})
 		applyTheme()
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save)
@@ -297,12 +296,6 @@ watch([editorEl, () => workspace.value.open, showEditorHost], async ([el, open, 
 		editor = null
 	}
 })
-
-// before a session exists the explorer is a browser: files open read-only
-watch(
-	() => flow.state.sessionId,
-	(sid) => editor?.updateOptions({ readOnly: !sid }),
-)
 
 // the diff twin: same lifecycle, whole-file view with the session's changes
 watch([diffEl, () => workspace.value.open, showDiffHost], async ([el, open, needed]) => {

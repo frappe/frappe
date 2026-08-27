@@ -302,26 +302,28 @@ def test_workspace_files_are_fenced_by_allowed_roots(tmp_path):
 
 def test_write_workspace_file(tmp_path):
 	c = _client(tmp_path)
-	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
 
-	# parent directories are created, and the write round-trips through the read endpoint
-	r = c.put(f"/sessions/{sid}/file", json={"path": "new/notes.txt", "content": "draft\n"})
+	# no session needed; parent directories are created, and the write
+	# round-trips through the read endpoint
+	r = c.put("/fs/file", json={"cwd": str(tmp_path), "path": "new/notes.txt", "content": "draft\n"})
 	assert r.status_code == 200
 	assert (tmp_path / "new" / "notes.txt").read_text() == "draft\n"
 	read = c.get("/fs/file", params={"cwd": str(tmp_path), "path": "new/notes.txt"})
 	assert read.json()["content"] == "draft\n"
 	# writing over a directory is a client error, not a 500
-	assert c.put(f"/sessions/{sid}/file", json={"path": "new", "content": "x"}).status_code == 400
+	assert c.put("/fs/file", json={"cwd": str(tmp_path), "path": "new", "content": "x"}).status_code == 400
 
 
 def test_write_workspace_file_is_fenced_by_allowed_roots(tmp_path):
 	allowed = tmp_path / "allowed"
 	allowed.mkdir()
 	c = _client(tmp_path, allowed_roots=[str(allowed)])
-	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
 
-	assert c.put(f"/sessions/{sid}/file", json={"path": "ok.txt", "content": "x"}).status_code == 200
-	assert c.put(f"/sessions/{sid}/file", json={"path": "../escape.txt", "content": "x"}).status_code == 403
+	assert c.put("/fs/file", json={"cwd": str(allowed), "path": "ok.txt", "content": "x"}).status_code == 200
+	assert (
+		c.put("/fs/file", json={"cwd": str(allowed), "path": "../escape.txt", "content": "x"}).status_code
+		== 403
+	)
 	assert not (tmp_path / "escape.txt").exists()
 
 

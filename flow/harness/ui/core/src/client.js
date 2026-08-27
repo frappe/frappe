@@ -89,6 +89,9 @@ export class DaemonClient {
 	readFile(cwd, path) {
 		return this.request("GET", "/fs/file", { params: { cwd, path } })
 	}
+	writeFsFile(cwd, path, content) {
+		return this.request("PUT", "/fs/file", { body: { cwd, path, content } })
+	}
 	// the repository's uncommitted files, and one file's HEAD + working-tree
 	// content for the diff viewer — cwd-keyed like the other explorer calls
 	gitChanges(cwd) {
@@ -101,9 +104,6 @@ export class DaemonClient {
 	// the session changed outside the project repository
 	fileDiff(sid, path) {
 		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params: { path } })
-	}
-	writeFile(sid, path, content) {
-		return this.request("PUT", `/sessions/${enc(sid)}/file`, { body: { path, content } })
 	}
 	createSession(config) {
 		return this.request("POST", "/sessions", { body: config })
