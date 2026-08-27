@@ -503,6 +503,10 @@ class TestSidebarBoot(IntegrationTestCase):
 
 		Staged with a doctype only System Manager may read, so the permission filter is what
 		empties the base.
+
+		Asked as each user rather than only about them: the item filter reads the session user's
+		permissions, so the `user` argument alone would still be answered as whoever is logged in,
+		and every item would pass for an Administrator running the test.
 		"""
 		user = make_user("test-shell-nothing-open@example.com", ["Desk User"])
 		with sidebarless_module("Test Shell Nothing Open Module") as module:
@@ -515,10 +519,11 @@ class TestSidebarBoot(IntegrationTestCase):
 				resolve_sidebar(module, "Administrator"),
 				"the shell exists for someone who can open its item",
 			)
-			self.assertIsNone(
-				resolve_sidebar(module, user.name),
-				"and is dropped for someone who cannot, rather than rendering blank",
-			)
+			with self.set_user(user.name):
+				self.assertIsNone(
+					resolve_sidebar(module, user.name),
+					"and is dropped for someone who cannot, rather than rendering blank",
+				)
 
 	def test_a_module_out_of_reach_loses_its_shell_even_with_items(self):
 		"""The other half of the same rule: blocking is what hides a module, and it hides one
@@ -1049,10 +1054,11 @@ class TestAModuleInNoAppHasNoAppContext(IntegrationTestCase):
 		return next(app for app in get_bootinfo()["app_data"] if app["app_name"] == app_name)
 
 	def dock_modules(self, app: dict) -> list[str]:
-		"""The shells an app's dock list names, which are its modules. A row that only opens a page
-		derives its shell rather than naming one, so it is not one of these.
+		"""The shells an app's dock list names, which are its modules. A `Sidebar` row is the shell
+		itself; a row of any other kind opens a page and derives its shell, so it is not one of
+		these.
 		"""
-		return [row["sidebar"] for row in app["dock"] if row.get("sidebar")]
+		return [row["link_to"] for row in app["dock"] if row.get("link_type") == "Sidebar"]
 
 	def test_a_placed_module_names_the_app_that_supplies_the_rails_items(self):
 		"""Placed: the payload has to say which app supplies the rail, and that app has to be a real

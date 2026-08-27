@@ -444,12 +444,13 @@ context("Arrangement editor: an app's dock", () => {
 			win.__app = {
 				app_name: "frappe",
 				app_title: "Frappe",
-				dock: modules.map((name) => ({ sidebar: name })),
+				dock: modules.map((name) => ({ link_type: "Sidebar", link_to: name })),
 			};
 			win.frappe.app.sidebar.get_sidebar_app = () => win.__app;
 
 			stub_xcall(win, {
-				[READ]: () => modules.map((name) => ({ sidebar: name, hidden: 0 })),
+				[READ]: () =>
+					modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
 				[BASE]: () => [],
 				[SAVE]: () => win.frappe.boot.dock,
 			});
