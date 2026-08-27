@@ -68,7 +68,10 @@ def get_print_format_data(print_format: str):
 		as_dict=True,
 	)
 	if not pf:
-		frappe.throw(_("Print Format {0} not found").format(print_format), frappe.DoesNotExistError)
+		frappe.throw(
+			_("{0} is not an enabled Print Format for a Report").format(frappe.bold(print_format)),
+			frappe.DoesNotExistError,
+		)
 
 	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
 	report = get_report_doc(pf.report)
