@@ -170,7 +170,7 @@ const EDITOR_OPTIONS = {
 const contentReady = computed(
 	() => !!activeTab.value && !activeTab.value.error && activeTab.value.content != null,
 )
-// a diff tab whose original is empty was created by the session: render it as
+// a diff tab whose original is empty is a new or untracked file: render it as
 // a plain file (whole-file-green adds nothing) while the bar stays in diff mode
 const diffRender = computed(() => !!activeTab.value?.diff && !!activeTab.value?.original)
 const showEditorHost = computed(() => contentReady.value && !diffRender.value)
@@ -319,9 +319,6 @@ watch([diffEl, () => workspace.value.open, showDiffHost], async ([el, open, need
 			// the revert-arrows gutter: dead space here, and it picks up a stray
 			// focus outline (its div shares the .monaco-editor class)
 			renderGutterMenu: false,
-			// the combined overview ruler paints an opaque strip over the code's
-			// right edge; drop it and keep the plain editor's slim scrollbar
-			renderOverviewRuler: false,
 		})
 		applyTheme()
 		diffEditor.getModifiedEditor().addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, save)
@@ -393,6 +390,11 @@ function cssColor(name) {
 	return "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")
 }
 
+function translucent(name, alpha) {
+	const hex = cssColor(name)
+	return hex && hex + alpha
+}
+
 function applyTheme() {
 	if (!monaco) return
 	const dark = flow.state.prefs.theme === "dark"
@@ -402,10 +404,11 @@ function applyTheme() {
 		"editor.background": cssColor("--surface-base"),
 		"editorCursor.foreground": cssColor("--ink-gray-9"),
 		"editor.lineHighlightBackground": cssColor("--surface-gray-1"),
-		// opaque sliders: the default translucent band reads as a smear over code
-		"scrollbarSlider.background": cssColor("--surface-gray-3"),
-		"scrollbarSlider.hoverBackground": cssColor("--surface-gray-4"),
-		"scrollbarSlider.activeBackground": cssColor("--surface-gray-4"),
+		// translucent sliders (VSCode-style): diff highlights and ruler marks
+		// stay visible through the scrollbar instead of being covered by it
+		"scrollbarSlider.background": translucent("--ink-gray-4", "66"),
+		"scrollbarSlider.hoverBackground": translucent("--ink-gray-5", "99"),
+		"scrollbarSlider.activeBackground": translucent("--ink-gray-5", "99"),
 	}
 	monaco.editor.defineTheme(name, {
 		base: dark ? "vs-dark" : "vs",
