@@ -98,4 +98,156 @@ context("List View", () => {
 				});
 		});
 	});
+<<<<<<< HEAD
+=======
+
+	it("translates field labels in the bulk edit dialog", { scrollBehavior: false }, () => {
+		const translations = {
+			Route: "Routen-Pfad",
+			"Web Page": "Webseite",
+			"CSS Class": "CSS-Klasse",
+			"Page Building Blocks": "Seitenbausteine",
+		};
+
+		cy.insert_doc(
+			"Web Page",
+			{ title: "Impressum", route: "impressum", content_type: "Rich Text" },
+			true
+		);
+		cy.go_to_list("Web Page");
+		cy.clear_filters();
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
+
+		cy.window().then((win) => Object.assign(win.frappe._messages, translations));
+		cy.click_action_button("Edit");
+
+		cy.get_open_dialog().find('input[data-fieldname="field"]').clear().type("Routen-Pfad");
+		cy.get(".awesomplete li:visible").should("contain.text", "Routen-Pfad (Webseite)");
+
+		cy.get_open_dialog().find('input[data-fieldname="field"]').clear().type("CSS-Klasse");
+		cy.get(".awesomplete li:visible").should("contain.text", "CSS-Klasse (Seitenbausteine)");
+
+		cy.hide_dialog();
+		cy.window().then((win) => {
+			Object.keys(translations).forEach((key) => delete win.frappe._messages[key]);
+		});
+		cy.remove_doc("Web Page", "impressum");
+	});
+
+	it("keeps selected rows checked after a list rerender", { scrollBehavior: false }, () => {
+		cy.go_to_list("ToDo");
+		cy.clear_filters();
+		let selected_docname;
+
+		// Step 1: select one visible row and capture its source-of-truth docname.
+		cy.get(".list-row-checkbox").first().click();
+
+		cy.window()
+			.its("cur_list")
+			.then((list) => {
+				const selected_docnames = Array.from(list.checked_docnames);
+				expect(selected_docnames.length).to.equal(1);
+
+				// Step 2: force a list rerender; the same row should still resolve as checked.
+				selected_docname = selected_docnames[0];
+				list.render_list();
+			});
+
+		cy.window()
+			.its("cur_list")
+			.should((list) => {
+				const $checkbox = list.find_checkbox_by_docname(selected_docname);
+				expect($checkbox.length).to.equal(1);
+				expect($checkbox.prop("checked")).to.equal(true);
+			});
+	});
+
+	it(
+		"preserves select-all across virtualized window rerenders",
+		{ scrollBehavior: false },
+		() => {
+			cy.go_to_list("ToDo");
+			cy.clear_filters();
+
+			// Step 1: force virtual mode even on small fixtures to exercise virtualization path.
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.data.length).to.be.greaterThan(0);
+					list.virtualization_threshold = 1;
+					list.render_list();
+				});
+
+			// Step 2: select all and verify Set tracks all docs, not just visible DOM rows.
+			cy.get('.list-row-container[data-virtual-row="1"]').should("exist");
+			cy.get(".list-header-subject .list-subject .list-check-all").click();
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.checked_docnames.size).to.equal(list.data.length);
+				});
+
+			// Step 3: scroll to trigger window swap; selection state must remain intact.
+			cy.get(".result-container").scrollTo("bottom", {
+				duration: 0,
+				ensureScrollable: false,
+			});
+			cy.wait(150);
+			cy.window()
+				.its("cur_list")
+				.then((list) => list.render_virtual_rows(true));
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.checked_docnames.size).to.equal(list.data.length);
+				});
+
+			cy.get(".result-container .list-row-checkbox:checked").should("exist");
+		}
+	);
+
+	it(
+		"keeps mobile virtual rows rendered during fast downward scroll",
+		{ scrollBehavior: false },
+		() => {
+			cy.viewport("iphone-6");
+			cy.go_to_list("ToDo");
+			cy.clear_filters();
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.data.length).to.be.greaterThan(0);
+					list.virtualization_threshold = 1;
+					list.render_list();
+				});
+
+			cy.get('.list-row-container[data-virtual-row="1"]').should("exist");
+
+			cy.get(".result-container").scrollTo("bottom", {
+				duration: 0,
+				ensureScrollable: false,
+			});
+
+			cy.wait(150);
+			cy.window()
+				.its("cur_list")
+				.then((list) => list.render_virtual_rows(true));
+
+			cy.get('.list-row-container[data-virtual-row="1"] .list-row')
+				.should("exist")
+				.and("have.length.greaterThan", 0);
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.virtualization_state.end).to.be.greaterThan(
+						list.virtualization_state.start
+					);
+				});
+		}
+	);
+>>>>>>> 21b91b1 (test(list-view): cover translated field labels in bulk edit dialog)
 });
