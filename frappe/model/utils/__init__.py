@@ -4,7 +4,7 @@ import re
 from functools import wraps
 
 import frappe
-from frappe.build import html_to_js_template
+from frappe.bundler import html_to_js_template
 from frappe.utils import cstr
 from frappe.utils.caching import site_cache
 

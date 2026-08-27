@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-16 20:30:00.000000",
+ "description": "One layer of one app's dock. Three of them share this table, told apart by `app`, `user` and `standard`: the app's own dock, which an app ships as an exported document and a developer authors; the site's arrangement of it, curated by a Workspace Manager and applying to everyone; and one person's own, applied last and winning. A dock belongs to an app, so arranging ERPNext's rail does not touch frappe's -- and a layer is addressed by app plus user rather than by user alone. Same shape at all three, because the rows are identical and the parent is what says whose they are; see `Custom Sidebar`, which layers a sidebar the same way in a table of its own.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "app",
+  "user",
+  "standard",
+  "mount_on",
+  "items_section",
+  "items"
+ ],
+ "fields": [
+  {
+   "description": "The app whose dock this layer arranges. Required: a dock belongs to an app, and a layer that named none would be one arrangement spanning every rail. An `Autocomplete` over installed apps rather than a Link, because there is no `App` doctype -- the house spelling, shared with `Sidebar.app` and `Desktop Icon.app`.",
+   "fieldname": "app",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App",
+   "options": "Installed Applications",
+   "reqd": 1
+  },
+  {
+   "description": "The person whose own arrangement this is. Blank means the app's own dock or the site's arrangement of it, told apart by `standard`.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "not_nullable": 1,
+   "options": "User"
+  },
+  {
+   "default": "0",
+   "description": "Owned by the app: exported to `<app>/dock/<app>/<app>.json` and re-imported by migrate. This is the app layer, and the layer the other two are laid over. Ordinarily set via the Export to App action rather than by hand, which is why it is writable only in developer mode -- a standard dock with no exported file is an orphan and gets deleted on the next migrate.",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval:doc.standard == 1",
+   "description": "The app this one mounts on, for a companion app -- one with no rail of its own, whose entries live on a host's. Blank on every ordinary dock. An **app name** rather than a Link to a `Dock`: every consumer wants a string, and a pin aimed at a record would be a pin aimed at one of that app's three layers, which means nothing. App-layer only: `depends_on` hides it elsewhere and `validate` blanks it, because hiding a field does not stop an API write.",
+   "fieldname": "mount_on",
+   "fieldtype": "Autocomplete",
+   "label": "Mount On",
+   "options": "Installed Applications"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Dock Items"
+  },
+  {
+   "description": "The ordered entries this layer has an opinion about. Row order is the arrangement; an entry this layer never names keeps its incoming order and follows the ones it does, which is how a newly installed app's modules still reach someone who has already arranged their dock.",
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Dock Items",
+   "options": "Dock Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-26 23:45:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Dock",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Workspace Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

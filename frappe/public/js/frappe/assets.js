@@ -83,11 +83,7 @@ class AssetManager {
 
 		// clear assets
 		for (let key in localStorage) {
-			if (
-				key.startsWith("_page:") ||
-				key.startsWith("_doctype:") ||
-				key.startsWith("preferred_breadcrumbs:")
-			) {
+			if (key.startsWith("_page:") || key.startsWith("_doctype:")) {
 				localStorage.removeItem(key);
 			}
 		}

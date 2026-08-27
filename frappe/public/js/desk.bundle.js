@@ -29,7 +29,6 @@ import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar/sidebar_header.js";
 import "./frappe/ui/sidebar/sidebar_header.html";
-import "./frappe/ui/sidebar/dock_manager.js";
 import "./frappe/ui/sidebar/sidebar.html";
 import "./frappe/ui/sidebar/sidebar_item.html";
 import "./frappe/ui/sidebar/sidebar.js";
@@ -125,6 +124,7 @@ import "./frappe/change_log.html";
 import "./frappe/ui/workspace_loading_skeleton.html";
 import "./frappe/ui/workspace_sidebar_loading_skeleton.html";
 import "./frappe/legacy_gravatar_cleanup.js";
+import "./frappe/new_navigation_nudge.js";
 import "./frappe/desk.js";
 import "./frappe/query_string.js";
 

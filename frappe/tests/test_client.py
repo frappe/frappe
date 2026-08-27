@@ -213,14 +213,14 @@ class TestClient(IntegrationTestCase):
 		self.addCleanup(frappe.db.rollback)
 
 		user = frappe.get_doc("User", "Administrator")
-		user.append("block_modules", {"module": "Setup"})
+		user.append("block_modules", {"module": "Core"})
 		user.save()
 
 		child_row = user.block_modules[-1]
 
 		result = validate_link_and_fetch("Block Module", child_row.name, fields_to_fetch=["module"])
 		self.assertEqual(result.get("name"), child_row.name)
-		self.assertEqual(result.get("module"), "Setup")
+		self.assertEqual(result.get("module"), "Core")
 
 	def test_client_insert(self):
 		from frappe.client import insert
