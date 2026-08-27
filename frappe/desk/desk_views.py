@@ -105,10 +105,13 @@ class DeskViews:
 		from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards, get_permitted_charts
 
 		def build():
+			# `module` rides along so the client can resolve a dashboard's home sidebar; the row
+			# stays a dict in a list rather than becoming a name-keyed map, so search_utils'
+			# get_dashboards() is untouched.
 			return [
-				{"name": name}
-				for name in frappe.get_all("Dashboard", pluck="name")
-				if get_permitted_charts(name) or get_permitted_cards(name)
+				{"name": d.name, "module": d.module}
+				for d in frappe.get_all("Dashboard", fields=["name", "module"])
+				if get_permitted_charts(d.name) or get_permitted_cards(d.name)
 			]
 
 		return cls._allowed_entity_cache("allowed_dashboards", frappe.session.user, build, cache=cache)
@@ -151,10 +154,12 @@ class DeskViews:
 
 		is_report = parent == "Report"
 
+		# `module` is selected for both so the client can resolve a Page's or Report's home sidebar
+		# from boot data alone. Only a DocType's module comes from its meta.
 		if is_report:
-			columns = (report.name.as_("title"), report.ref_doctype, report.report_type)
+			columns = (report.name.as_("title"), report.ref_doctype, report.report_type, report.module)
 		else:
-			columns = (page.title.as_("title"),)
+			columns = (page.title.as_("title"), page.module)
 
 		customRole = DocType("Custom Role")
 		hasRole = DocType("Has Role")
@@ -177,7 +182,12 @@ class DeskViews:
 		).run(as_dict=True)
 
 		for p in pages_with_custom_roles:
-			has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
+			has_role[p.name] = {
+				"modified": p.modified,
+				"title": p.title,
+				"ref_doctype": p.ref_doctype,
+				"module": p.module,
+			}
 
 		subq = (
 			frappe.qb.from_(customRole)
@@ -204,7 +214,7 @@ class DeskViews:
 
 		for p in pages_with_standard_roles:
 			if p.name not in has_role:
-				has_role[p.name] = {"modified": p.modified, "title": p.title}
+				has_role[p.name] = {"modified": p.modified, "title": p.title, "module": p.module}
 				if parent == "Report":
 					has_role[p.name].update({"ref_doctype": p.ref_doctype})
 
@@ -221,7 +231,7 @@ class DeskViews:
 
 		for r in rows_with_no_roles:
 			if r.name not in has_role:
-				has_role[r.name] = {"modified": r.modified, "title": r.title}
+				has_role[r.name] = {"modified": r.modified, "title": r.title, "module": r.module}
 				if is_report:
 					has_role[r.name] |= {"ref_doctype": r.ref_doctype}
 

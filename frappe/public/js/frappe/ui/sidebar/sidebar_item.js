@@ -1,6 +1,6 @@
 frappe.provide("frappe.ui.sidebar_item");
 
-// Resolve a sidebar item (from `bootinfo.workspace_sidebar_item`) to a navigable route.
+// Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
 // Shared by the rendered sidebar links and the header workspace switcher.
 frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 	let path;
@@ -88,10 +88,14 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.item = opts.item;
 		this.container = opts.container;
 		this.nested_items = opts.item.nested_items || [];
-		this.workspace_title =
-			($(".body-sidebar").attr("data-title") &&
-				$(".body-sidebar").attr("data-title").toLowerCase()) ||
-			frappe.app.sidebar.sidebar_title;
+		// The module whose sidebar this item is in, read off the sidebar rather than out of the
+		// DOM. It keys the collapsed/expanded state of section breaks in localStorage.
+		//
+		// It used to read `data-title` and lowercase it, falling back to `sidebar.sidebar_title`,
+		// a property that no longer exists, so the fallback was always undefined and every module
+		// shared one state. The lowercasing also made it a fourth keyspace, in a change whose
+		// point was to have one: the exact-case module name.
+		this.current_module = frappe.app.sidebar.current_module;
 		this.prepare(opts);
 		this.make();
 	}
@@ -106,7 +110,9 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			return;
 		}
 		this.set_suffix();
-		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
+		// `parent` is only set on items find_nested_items() actually nested; a row can carry
+		// `child` without one (a Section Break, or a child with no section above it).
+		if (!this.item.icon && !(this.item.child && this.item.parent?.indent)) {
 			this.item.icon = "list";
 		}
 		this.wrapper = $(
@@ -244,7 +250,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		}
 		if (
 			Object.keys(this.section_breaks_state) &&
-			this.section_breaks_state[this.workspace_title]
+			this.section_breaks_state[this.current_module]
 		) {
 			this.apply_section_break_state();
 		}
@@ -254,9 +260,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 	}
 	apply_section_break_state() {
 		const me = this;
-		let current_sidebar_state = this.section_breaks_state[this.workspace_title];
+		let current_sidebar_state = this.section_breaks_state[this.current_module];
 		for (const [element_name, collapsed] of Object.entries(current_sidebar_state)) {
-			if ($(this.wrapper).attr("title") == element_name) {
+			if (this.item.label == element_name) {
 				me.collapsed = collapsed;
 				me.toggle();
 			}
@@ -279,81 +285,21 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		});
 	}
 	save_section_break_state() {
-		if (!this.section_breaks_state[this.workspace_title]) {
-			this.section_breaks_state[this.workspace_title] = {};
+		if (!this.section_breaks_state[this.current_module]) {
+			this.section_breaks_state[this.current_module] = {};
 		}
 
-		const title = this.wrapper.attr("title");
-		this.section_breaks_state[this.workspace_title][title] = this.collapsed;
+		this.section_breaks_state[this.current_module][this.item.label] = this.collapsed;
 
 		localStorage.setItem("section-breaks-state", JSON.stringify(this.section_breaks_state));
-	}
-};
-
-frappe.ui.sidebar_item.TypeSpacer = class SpacerItem extends frappe.ui.sidebar_item.TypeLink {
-	constructor(item, items) {
-		super(item);
-	}
-};
-
-frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
-	frappe.ui.sidebar_item.TypeLink
-) {
-	constructor(item, items) {
-		super(item);
-		this.title = frappe.app.sidebar.workspace_title;
-	}
-
-	// overrides TypeLink.setup_click(), invoked once via the base class's make()
-	setup_click() {
-		const me = this;
-		this.wrapper.on("click", function () {
-			frappe.call({
-				method: "frappe.desk.doctype.sidebar_item_group.sidebar_item_group.get_reports",
-				args: { module_name: frappe.app.sidebar.workspace_title },
-				callback: function (r) {
-					if (r.message) {
-						let links_html = "";
-
-						r.message.forEach((report) => {
-							let args = {
-								type: "Report",
-								name: report.title,
-								is_query_report:
-									report.report_type === "Query Report" ||
-									report.report_type === "Script Report",
-								report_ref_doctype: report.ref_doctype,
-							};
-
-							links_html += `<a href="${encodeURI(
-								frappe.utils.generate_route(args)
-							)}">${report.title}</a><br>`;
-						});
-
-						var d = new frappe.ui.Dialog({
-							title: __(me.item.label),
-							fields: [
-								{
-									fieldtype: "HTML",
-									options: links_html,
-								},
-							],
-						});
-						d.show();
-					}
-				},
-			});
-		});
 	}
 };
 
 frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sidebar_item.TypeLink {
 	constructor(item) {
 		super(item);
-		this.title = frappe.app.sidebar.workspace_title;
 		this.item.id && this.wrapper.attr("id", this.item.id);
 		this.item.class && this.wrapper.attr("class", this.item.class);
-		this.wrapper.attr("title", this.item.label);
 	}
 
 	// overrides TypeLink.setup_click(), invoked once via the base class's make()

@@ -50,6 +50,22 @@
 			height: 100%;
 			object-fit: contain;
 		}
+
+		// A module standing in the slot (nothing placed it in an app) wears its own icon rather
+		// than a logo: an authored icon, or the letter tile desktop_icon() builds. Either fills the
+		// same 28px cell an app logo would.
+		.icon-container {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		svg {
+			width: 16px;
+			height: 16px;
+		}
 	}
 
 	.workspace-dock-divider {
@@ -203,11 +219,70 @@
 	}
 }
 
-// the user menu and notification bell live in the dock while it's active -- drop the sidebar copies
+// While the rail is on screen it carries the user button, search and notifications -- so the
+// sidebar's copies go. The whole standard-items band goes with them, which is what finally takes
+// background tasks off a docked app's sidebar: it was the one of the three that showed there,
+// while its sibling bell was hidden.
 body.workspace-dock-active .body-sidebar {
 	.dropdown-navbar-user,
-	.sidebar-notification {
+	.standard-items-band {
 		display: none;
+	}
+}
+
+// ...and the mirror of that: with no rail there is nothing to collapse *to*. Collapsing takes the
+// body sidebar off screen entirely (see .body-sidebar-container:not(.expanded)) and the way back
+// in is the rail's right-edge handle -- which a dock-less app does not have. So on a dock-less app
+// the collapse controls go: the chevron button, and the resize handle that is the same click by
+// another name.
+//
+// `.body-sidebar-container` is in the chain only to outweigh the expanded mixin, which sets
+// `display: flex` on the chevron from `.body-sidebar-container.expanded .body-sidebar
+// .collapse-sidebar-link` -- one class more specific than this rule would otherwise be.
+body:not(.workspace-dock-active) .body-sidebar-container .body-sidebar {
+	.collapse-sidebar-link,
+	.sidebar-resize-handle {
+		display: none;
+	}
+}
+
+// Leading icons on the sidebar's own rows. A docked app leaves iconography to the rail and keeps
+// a label-only sidebar next to it; a dock-less app has no rail, so the rows carry their icons
+// themselves -- which is also what gives the standard-items band (search, notifications,
+// background tasks) the icon-plus-label shape it is described as having.
+//
+// The template renders the span either way; the docked case hides it, so toggling the rail on or
+// off is a class flip rather than a re-render.
+//
+// The selector carries the whole `.standard-sidebar-item .item-anchor` chain only to outweigh the
+// rule that gives the span its `display: flex` in sidebar.scss -- two classes more specific than
+// `body.workspace-dock-active .body-sidebar .sidebar-item-icon` would be on its own.
+body.workspace-dock-active .body-sidebar .standard-sidebar-item .item-anchor .sidebar-item-icon {
+	display: none;
+}
+
+// The label's own left margin stands in for the icon when there isn't one. Where the icon is
+// drawn it already supplies that gap, so drop the margin rather than paying for it twice --
+// scoped by :has() so section breaks and icon-less rows keep theirs.
+body:not(.workspace-dock-active) .body-sidebar {
+	.item-anchor:has(.sidebar-item-icon) .sidebar-item-label {
+		margin-left: 0;
+	}
+}
+
+// The standard-items band: search, notifications and background tasks, directly under the header
+// and above the module's own items, behind a divider. Full-width rows in the sidebar's own
+// vocabulary rather than the rail's ghost-icon strip -- which is what makes search legible in a
+// 220px panel rather than merely present.
+//
+// The divider is drawn only when the band has something in it: each row hides itself until it has
+// something to say (background tasks until there is a task, notifications until they load), and a
+// rule under an empty band would read as a stray line.
+.body-sidebar .standard-items-band {
+	&:not(:empty) {
+		padding-bottom: 4px;
+		margin-bottom: 4px;
+		width: 100%;
 	}
 }
 

@@ -482,13 +482,13 @@ result = [
 			)
 
 			cached_bootinfo = frappe.sessions.get()
-			self.assertIn(report_name, cached_bootinfo["user"]["all_reports"])
+			self.assertIn(report_name, cached_bootinfo["allowed_reports"])
 
 			doc = frappe.get_doc("Report", report_name)
 			delete_report(doc.name)
 
 			cached_bootinfo = frappe.sessions.get()
-			self.assertNotIn(report_name, cached_bootinfo["user"]["all_reports"])
+			self.assertNotIn(report_name, cached_bootinfo["allowed_reports"])
 
 		finally:
 			frappe.local.request = None

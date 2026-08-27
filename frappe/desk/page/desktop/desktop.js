@@ -61,16 +61,20 @@ class DesktopPage {
 		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
 		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
 		// always trails. Ties keep installed-apps order since sort() is stable.
-		// An app that ships no workspaces declares no route either; it opens on its first module
-		// sidebar instead (see app_landing_route), so resolve the destination before filtering out
-		// the apps that have nowhere to go.
+		// The destination is the landing ladder: the route the app declares, then its first
+		// visible rail entry, then its first navigable module (see app_landing_route).
+		//
+		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
+		// which was tolerable while every app's rail was every module it owned. Now that a rail
+		// is exactly the record an app ships, a dock-less app would have had no rail and no icon,
+		// so no way in at all. The icon leads to the desk's root, which is somewhere rather than
+		// nowhere.
 		const apps = (frappe.boot.app_data || [])
 			.filter((app) => app.on_apps_screen)
 			.map((app) => ({
 				...app,
-				route: frappe.app.sidebar?.app_landing_route(app) || app.app_route,
+				route: frappe.app.sidebar?.app_landing_route(app) || app.app_route || "/desk",
 			}))
-			.filter((app) => app.route)
 			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
 
 		const $container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
@@ -86,15 +90,18 @@ class DesktopPage {
 				label: app.app_title,
 				logo_url: app.app_logo_url,
 			};
-			const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
-			if (app.route.startsWith("http")) {
-				$icon.attr("target", "_blank");
-			}
-			$icon.attr("href", app.route);
-			$grid.append($icon);
+			this.add_icon($grid, icon_data, app.route);
 		});
 
 		$('[data-toggle="tooltip"]').tooltip({ placement: "bottom" });
+	}
+	add_icon($grid, icon_data, route) {
+		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
+		if (route.startsWith("http")) {
+			$icon.attr("target", "_blank");
+		}
+		$icon.attr("href", route);
+		$grid.append($icon);
 	}
 	setup() {
 		$(document).trigger("desktop_screen", { desktop: this });

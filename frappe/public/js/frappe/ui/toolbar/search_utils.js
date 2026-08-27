@@ -290,11 +290,11 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		var route;
-		Object.keys(frappe.boot.user.all_reports).forEach(function (item) {
+		Object.keys(frappe.boot.allowed_reports).forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item, true);
 			var level = search_result.score;
 			if (level > 0) {
-				var report = frappe.boot.user.all_reports[item];
+				var report = frappe.boot.allowed_reports[item];
 				if (report.report_type == "Report Builder")
 					route = ["List", report.ref_doctype, "Report", item];
 				else route = ["query-report", item];
@@ -370,8 +370,8 @@ frappe.search.utils = {
 	},
 
 	// Search covers every workspace the user is permitted (`frappe.workspaces`), not just those
-	// carrying sidebar items. That matters because the dock only lists workspaces mounted to an
-	// app -- for an unmounted one, search is the way back to it.
+	// carrying sidebar items. That matters because a rail only lists the entries its app's `Dock`
+	// record names, so for a workspace no record names, search is the way back to it.
 	get_workspaces: function (keywords) {
 		var me = this;
 		var out = [];
