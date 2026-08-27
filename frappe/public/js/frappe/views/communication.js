@@ -126,13 +126,8 @@ frappe.views.CommunicationComposer = class {
 					</div>
 					${frappe.ui.divider.html()}
 				</div>
-				<div class="email-composer-html-toggles hidden">
-					<div data-slot="use_html"></div>
-					<div data-slot="add_css"></div>
-				</div>
 				<div class="email-composer-message-area">
 					<div data-slot="content"></div>
-					<div data-slot="html_content"></div>
 				</div>
 				<div class="email-composer-attachments" data-slot="select_attachments"></div>
 				<div class="email-composer-print-format"></div>
@@ -224,11 +219,8 @@ frappe.views.CommunicationComposer = class {
 			"cc",
 			"bcc",
 			"email_template",
-			"use_html",
-			"add_css",
 			"subject",
 			"content",
-			"html_content",
 			"select_attachments",
 		].forEach((fieldname) => {
 			const $control = $body.find(`.frappe-control[data-fieldname="${fieldname}"]`);
@@ -379,9 +371,6 @@ frappe.views.CommunicationComposer = class {
 			this.render_print_card_meta();
 		};
 
-		// Reachable from open_print_settings(), which lives outside this closure.
-		this.render_print_card = renderPrintRow;
-
 		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
 		bindCheckIcon("send-read-receipt", "send_read_receipt");
 
@@ -419,6 +408,9 @@ frappe.views.CommunicationComposer = class {
 				});
 				$printMenu.append($item);
 			});
+			if (fields.attach_document_print.get_value()) {
+				renderPrintRow(true);
+			}
 			syncPrintMenu();
 		}
 		// Reachable from open_print_settings(), which lives outside this closure.
@@ -502,6 +494,30 @@ frappe.views.CommunicationComposer = class {
 	setup_template_dropdown() {
 		const $menu = this.$composer.find(".email-composer-template .dropdown-menu");
 
+		const render = (names) => {
+			if (!names.length) {
+				$menu.append(`<span class="dropdown-item disabled">${__("No templates")}</span>`);
+				return;
+			}
+			names.forEach((name) => {
+				$(`<a class="dropdown-item" href="#"></a>`)
+					.text(name)
+					.on("click", (e) => {
+						e.preventDefault();
+						this.apply_email_template(name);
+					})
+					.appendTo($menu);
+			});
+		};
+
+		// No frm means no scoping, same as the Link field's get_query.
+		if (!this.frm?.doctype) {
+			frappe.db
+				.get_list("Email Template", { fields: ["name"], order_by: "name", limit: 0 })
+				.then((rows) => render((rows || []).map((row) => row.name)));
+			return;
+		}
+
 		frappe.call({
 			method: "frappe.email.doctype.email_template.email_template.get_email_templates",
 			args: {
@@ -510,26 +526,9 @@ frappe.views.CommunicationComposer = class {
 				searchfield: "name",
 				start: 0,
 				page_len: 0,
-				filters: { reference_doctype: this.frm?.doctype || "" },
+				filters: { reference_doctype: this.frm.doctype },
 			},
-			callback: (r) => {
-				const templates = r.message || [];
-				if (!templates.length) {
-					$menu.append(
-						`<span class="dropdown-item disabled">${__("No templates")}</span>`
-					);
-					return;
-				}
-				templates.forEach(([name]) => {
-					$(`<a class="dropdown-item" href="#"></a>`)
-						.text(name)
-						.on("click", (e) => {
-							e.preventDefault();
-							this.apply_email_template(name);
-						})
-						.appendTo($menu);
-				});
-			},
+			callback: (r) => render((r.message || []).map(([name]) => name)),
 		});
 	}
 
@@ -564,11 +563,6 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "send_after",
 			},
 			{
-				fieldtype: "Section Break",
-				fieldname: "email_template_section_break",
-				hidden: 1,
-			},
-			{
 				label: __("Email Template"),
 				fieldtype: "Link",
 				options: "Email Template",
@@ -580,22 +574,6 @@ frappe.views.CommunicationComposer = class {
 							filters: { reference_doctype: me.frm.doctype },
 						};
 					}
-				},
-				onchange: async function () {
-					const email_template = this.value;
-					if (!email_template) return me.hide_use_html_field();
-					await me.check_email_template_html(email_template);
-				},
-			},
-			{
-				label: __("Use HTML"),
-				fieldtype: "Check",
-				fieldname: "use_html",
-				default: 0,
-				hidden: 1,
-				description: "Use Raw HTML email editor.",
-				onchange: (event) => {
-					me.on_use_html_toggle(event);
 				},
 			},
 			{ fieldtype: "Section Break" },
@@ -611,15 +589,6 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Text Editor",
 				fieldname: "content",
 				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
-				depends_on: "eval:!doc.use_html",
-			},
-			{
-				label: __("HTML Message"),
-				fieldtype: "Code",
-				fieldname: "html_content",
-				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
-				depends_on: "eval:doc.use_html",
-				options: "HTML",
 			},
 			{
 				fieldtype: "Button",
@@ -674,13 +643,6 @@ frappe.views.CommunicationComposer = class {
 			},
 			{ fieldtype: "Column Break" },
 			{
-				label: __("Add CSS"),
-				fieldtype: "Check",
-				fieldname: "add_css",
-				default: 1,
-				depends_on: "eval:doc.use_html",
-			},
-			{
 				label: __("Select Attachments"),
 				fieldtype: "HTML",
 				fieldname: "select_attachments",
@@ -721,14 +683,6 @@ frappe.views.CommunicationComposer = class {
 		return fields;
 	}
 
-	get_content_field() {
-		if (this.dialog.fields_dict.use_html.value) {
-			return this.dialog.fields_dict.html_content;
-		} else {
-			return this.dialog.fields_dict.content;
-		}
-	}
-
 	get_default_recipients(fieldname) {
 		// MultiSelect Pills holds an array of recipients (one pill each).
 		if (this.frm?.events.get_email_recipients) {
@@ -763,22 +717,8 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.set_value("print_language", lang);
 	}
 
-	async check_email_template_html(email_template) {
-		const r = await frappe.db.get_value("Email Template", email_template, "use_html");
-		// Show or hide "Use HTML" based on the Email Template's use_html value
-		if (r.message?.use_html === 1) {
-			// Show the field.
-			this.dialog.fields_dict.use_html.toggle(true);
-		} else {
-			this.hide_use_html_field();
-		}
-	}
-
-	// Guarded against duplicate applies — onchange can fire more than once for the same
-	// value (Frappe field refresh, awesomplete blur), which would otherwise append twice.
 	apply_email_template(template_name) {
-		if (!template_name || this.last_applied_template === template_name) return;
-		this.last_applied_template = template_name;
+		if (!template_name) return;
 		frappe.call({
 			method: "frappe.email.doctype.email_template.email_template.get_email_template",
 			args: {
@@ -788,18 +728,14 @@ frappe.views.CommunicationComposer = class {
 			},
 			callback: (r) => {
 				if (!r || !r.message) return;
-				const content_field = this.get_content_field();
+				const content_field = this.dialog.fields_dict.content;
 				const subject_field = this.dialog.fields_dict.subject;
 				const existing = content_field.get_value() || "";
 				content_field.set_value(r.message.message + existing);
 				subject_field.set_value(r.message.subject);
+				this.dialog.fields_dict.email_template.set_input(template_name);
 			},
 		});
-	}
-
-	hide_use_html_field() {
-		this.dialog.fields_dict.use_html.set_input(false); // reset the value
-		this.dialog.fields_dict.use_html.toggle(false); // hide the field
 	}
 
 	prepare() {
@@ -1240,26 +1176,13 @@ frappe.views.CommunicationComposer = class {
 		if (this.message) return;
 
 		const last_edited = this.get_last_edited_communication();
-		if (!last_edited.content && !last_edited.html_content) return;
+		if (!last_edited.content) return;
 
 		// For replies: strip duplicate quoted content (Quill uses <p>---</p>)
 		if (this.is_a_reply) {
-			const reply_block = this.get_earlier_reply();
-			for (const field of ["content", "html_content"]) {
-				if (last_edited[field]) {
-					last_edited[field] =
-						(last_edited[field].split(separator_regex)[0] || "").trimEnd() +
-						reply_block;
-				}
-			}
-		}
-
-		// prevent re-triggering of email template
-		if (last_edited.email_template) {
-			const template_field = this.dialog.fields_dict.email_template;
-			await template_field.set_model_value(last_edited.email_template);
-			await this.check_email_template_html(last_edited.email_template);
-			delete last_edited.email_template;
+			last_edited.content =
+				(last_edited.content.split(separator_regex)[0] || "").trimEnd() +
+				this.get_earlier_reply();
 		}
 
 		await this.dialog.set_values(last_edited);
@@ -1434,6 +1357,7 @@ frappe.views.CommunicationComposer = class {
 			.then(({ message }) => {
 				if (message?.name) {
 					this.dialog.set_value("select_letter_head", message.name);
+					this.render_print_card_meta();
 				}
 			})
 			.catch((err) => console.error("Failed to fetch default Letter Head:", err));
@@ -1609,23 +1533,28 @@ frappe.views.CommunicationComposer = class {
 		this.attachment_picker.show();
 	}
 
-	get_attachment_row(attachment, checked) {
+	get_attachment_row(attachment) {
 		// Hidden checkbox carries data-file-name so send_action's `[data-file-name]:checked`
 		// selector still finds it — removing the row drops the checkbox with it.
 		// .email-composer-attach-pill avoids the form-sidebar .attachment-row overrides that strip
 		// the pill background.
-		const $row = $(`<div class="email-composer-attach-pill" title="${attachment.file_name}">
+		const escape = frappe.utils.escape_html;
+		const $row = $(`<div class="email-composer-attach-pill" title="${escape(
+			attachment.file_name
+		)}">
 			<input
 				type="checkbox"
-				data-file-name="${attachment.name}"
-				${checked === false ? "" : "checked"}
+				data-file-name="${escape(attachment.name)}"
+				checked
 				hidden
 			>
 		</div>`);
 		const size = attachment.file_size
 			? frappe.form.formatters.FileSize(attachment.file_size)
 			: null;
-		const label = size ? `${attachment.file_name} (${size})` : attachment.file_name;
+		// get_data_pill interpolates the label as raw HTML.
+		const file_name = escape(attachment.file_name);
+		const label = size ? `${file_name} (${size})` : file_name;
 		const icon = frappe.utils.icon("link", "xs");
 		const $pill = frappe.get_data_pill(
 			label,
@@ -1724,10 +1653,6 @@ frappe.views.CommunicationComposer = class {
 			let message = this.get_email_content();
 			message = message.split(separator_regex)[0];
 			this.save_item_in_local_forage(this.frm.doctype + this.frm.docname, message);
-			this.save_item_in_local_forage(
-				this.frm.doctype + this.frm.docname + "_use_html",
-				this.dialog.get_value("use_html")
-			);
 		}
 	}
 
@@ -1802,8 +1727,6 @@ frappe.views.CommunicationComposer = class {
 				letterhead: letterhead || null,
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
-				raw_html: form_values.use_html,
-				add_css: form_values.add_css,
 				in_reply_to: (this.is_a_reply && this.last_email?.name) || null,
 			},
 			btn,
@@ -1913,8 +1836,6 @@ frappe.views.CommunicationComposer = class {
 		if (!message && this.frm) {
 			const { doctype, docname } = this.frm;
 			message = (await localforage.getItem(doctype + docname)) || "";
-			const use_html = (await localforage.getItem(doctype + docname + "_use_html")) || 0;
-			await this.dialog.set_value("use_html", use_html);
 		}
 
 		if (message) {
@@ -2028,23 +1949,10 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_email_content() {
-		return this.get_content_field().get_value() || "";
+		return this.dialog.fields_dict.content.get_value() || "";
 	}
 
 	set_email_content(value) {
-		return this.get_content_field().set_value(value);
-	}
-
-	on_use_html_toggle(event) {
-		if (!event) return;
-
-		this.save_as_draft();
-		const use_html = event.target.checked;
-
-		if (use_html) {
-			this.dialog.set_value("html_content", this.dialog.get_value("content"));
-		} else {
-			this.dialog.set_value("content", this.dialog.get_value("html_content"));
-		}
+		return this.dialog.fields_dict.content.set_value(value);
 	}
 };
