@@ -617,14 +617,15 @@ export function createFlowStore(client) {
 		}
 	}
 
-	// Diff twin of openFile: the tab shows the whole file with the session's
-	// changes highlighted. `original` is the pre-session side; the current file
-	// content stays the editable (and savable) side.
+	// Diff twin of openFile: the tab shows the file's uncommitted changes, with
+	// HEAD as the original side; the working-tree content stays the editable
+	// (and savable) side.
 	async function openDiffFile(path) {
-		const sid = state.sessionId
-		if (!sid) return
+		const cwd = explorerCwd()
+		const stale = () => explorerCwd() !== cwd
+		if (!cwd) return
 		// hosts with an older client surface fall back to the plain viewer
-		if (typeof client.fileDiff !== "function") return openFile(path)
+		if (typeof client.gitFileDiff !== "function") return openFile(path)
 		const ws = state.workspace
 		let tab = ws.tabs.find((t) => t.path === path)
 		if (!tab) {
@@ -646,16 +647,27 @@ export function createFlowStore(client) {
 		ws.open = true
 		persistWorkspace()
 		tab.loading = true
+		// a 400 means the file lies outside the repo (or there is none): the
+		// session's own recorded changes still diff it, so TurnFiles clicks work
+		const fetchDiff = async () => {
+			try {
+				return await client.gitFileDiff(cwd, path)
+			} catch (error) {
+				const outside = error instanceof FlowAPIError && error.status === 400
+				if (!outside || !state.sessionId || typeof client.fileDiff !== "function") throw error
+				return client.fileDiff(state.sessionId, path)
+			}
+		}
 		try {
-			const data = await client.fileDiff(sid, path)
-			if (state.sessionId !== sid) return
-			// an empty original means the session created the file; the tab stays in
+			const data = await fetchDiff()
+			if (stale()) return
+			// an empty original means the file is new or untracked; the tab stays in
 			// the diff view but renders as a plain file (nothing to compare against)
 			tab.original = data.original
 			if (!tab.dirty) tab.content = data.modified
 			tab.error = null
 		} catch (error) {
-			if (state.sessionId !== sid) return
+			if (stale()) return
 			tab.error = String(error?.message ?? error)
 			if (!tab.dirty) tab.content = null
 		} finally {
@@ -674,6 +686,17 @@ export function createFlowStore(client) {
 		const cwd = explorerCwd()
 		if (!cwd || typeof client.searchFiles !== "function") return null
 		return guard(() => client.searchFiles(cwd, query))
+	}
+
+	// the diff bar polls this, so failures stay silent instead of toasting
+	async function gitChanges() {
+		const cwd = explorerCwd()
+		if (!cwd || typeof client.gitChanges !== "function") return null
+		try {
+			return await client.gitChanges(cwd)
+		} catch {
+			return null
+		}
 	}
 
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
@@ -857,6 +880,7 @@ export function createFlowStore(client) {
 		explorerCwd,
 		listFiles,
 		searchFiles,
+		gitChanges,
 		selectFile,
 		showFilesView,
 		showDiffView,

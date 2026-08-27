@@ -14,7 +14,7 @@
 				v-if="mode === 'diff'"
 				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-xs font-medium text-ink-gray-5"
 			>
-				{{ changedFiles.length }} {{ changedFiles.length === 1 ? "file" : "files" }} changed
+				{{ gitFiles.length }} {{ gitFiles.length === 1 ? "file" : "files" }} changed
 			</div>
 			<div v-if="mode === 'files'" class="flex-none px-1.5 pt-1.5">
 				<div
@@ -38,10 +38,10 @@
 				</div>
 			</div>
 			<div class="min-h-0 flex-1 overflow-y-auto px-1.5 py-1.5">
-				<!-- diff mode: only the files this session edited or wrote -->
+				<!-- diff mode: the project's uncommitted changes -->
 				<template v-if="mode === 'diff'">
 					<div
-						v-for="file in changedFiles"
+						v-for="file in gitFiles"
 						:key="file.path"
 						role="button"
 						tabindex="0"
@@ -63,8 +63,11 @@
 						<span class="flex-none font-mono text-2xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
 						<span class="flex-none font-mono text-2xs text-ink-red-6">-{{ file.removed }}</span>
 					</div>
-					<div v-if="!changedFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
-						No files changed in this session
+					<div v-if="changes && !changes.root" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						Not a git repository
+					</div>
+					<div v-else-if="changes && !gitFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						No uncommitted changes
 					</div>
 				</template>
 				<!-- searching: a pruned tree of matches only, all branches open -->
@@ -128,16 +131,16 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from "vue"
+import { computed, inject, onBeforeUnmount, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
-import { aggregateFileChanges, fileName } from "../transcript.js"
+import { fileName } from "../transcript.js"
 import FileTree from "./FileTree.vue"
 
 const props = defineProps({
 	open: { type: Boolean, default: false },
-	// "files": cwd tree with search; "diff": the session's changed files
+	// "files": cwd tree with search; "diff": the project's uncommitted changes
 	mode: { type: String, required: true },
 })
 
@@ -145,7 +148,6 @@ const flow = inject("flow")
 const activeTab = computed(
 	() => flow.state.workspace.tabs.find((tab) => tab.path === flow.state.workspace.active) ?? null,
 )
-const changedFiles = computed(() => aggregateFileChanges(flow.state.conversation.entries))
 
 const rootDir = ref(null)
 const rootEntries = ref(null)
@@ -158,22 +160,48 @@ async function loadRoot() {
 	rootEntries.value = data.entries
 }
 
+// The diff list polls while visible, so edits from the agent, the editor, or
+// outside Flow all show up. Chained (not an interval): a slow response never
+// overlaps the next one. Bumping pollId retires the loop and its stale replies.
+const DIFF_POLL_MS = 3000
+const changes = ref(null) // {root, files}; root is null outside a git repo
+const gitFiles = computed(() => changes.value?.files ?? [])
+let pollId = 0
+
+async function pollChanges(id) {
+	while (id === pollId) {
+		const data = await flow.gitChanges()
+		if (id !== pollId) return
+		if (data) changes.value = data
+		await new Promise((resolve) => setTimeout(resolve, DIFF_POLL_MS))
+	}
+}
+
 watch(
 	() => [props.open, props.mode],
 	([open, mode]) => {
-		if (open && mode === "files") void loadRoot()
+		pollId++
+		if (!open) return
+		if (mode === "files") void loadRoot()
+		if (mode === "diff") void pollChanges(pollId)
 	},
 	{ immediate: true },
 )
 
-// the tree belongs to the browsed cwd; a switch must not show the old one
+onBeforeUnmount(() => pollId++)
+
+// the tree and diff list belong to the browsed cwd; a switch must not show the old ones
 watch(
 	() => flow.explorerCwd(),
 	() => {
 		rootDir.value = null
 		rootEntries.value = null
 		fileQuery.value = ""
-		if (props.open && props.mode === "files") void loadRoot()
+		changes.value = null
+		pollId++
+		if (!props.open) return
+		if (props.mode === "files") void loadRoot()
+		if (props.mode === "diff") void pollChanges(pollId)
 	},
 )
 

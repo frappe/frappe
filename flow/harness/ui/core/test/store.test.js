@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
+import { FlowAPIError } from "../src/client.js"
 import { createFlowStore } from "../src/store.js"
 
 globalThis.localStorage = {
@@ -231,4 +232,62 @@ test("workspace tabs persist per session and restore after a refresh", async () 
 	} finally {
 		globalThis.localStorage = previousStorage
 	}
+})
+
+test("diff tabs load the git diff for the browsed cwd, even before a session", async () => {
+	const calls = []
+	const client = {
+		async gitFileDiff(cwd, path) {
+			calls.push([cwd, path])
+			return { path, original: "old\n", modified: "new\n" }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.setCwd("/project")
+
+	await flow.openDiffFile("/project/app.py")
+
+	assert.deepEqual(calls, [["/project", "/project/app.py"]])
+	const tab = flow.state.workspace.tabs[0]
+	assert.equal(tab.diff, true)
+	assert.equal(tab.original, "old\n")
+	assert.equal(tab.content, "new\n")
+	assert.equal(flow.state.workspace.open, true)
+})
+
+test("git change polling swallows errors instead of toasting", async () => {
+	const flow = createFlowStore({
+		async gitChanges() {
+			throw new Error("boom")
+		},
+	})
+	flow.setCwd("/project")
+
+	assert.equal(await flow.gitChanges(), null)
+	assert.equal(flow.state.toast, null)
+})
+
+test("diff tabs fall back to the session diff for files outside the repository", async () => {
+	const calls = []
+	const client = {
+		async gitFileDiff() {
+			calls.push("git")
+			throw new FlowAPIError(400, "file is outside the repository")
+		},
+		async fileDiff(sid, path) {
+			calls.push(["session", sid, path])
+			return { path, original: "before\n", modified: "after\n" }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "s1"
+	flow.state.session = { config: { cwd: "/project" } }
+
+	await flow.openDiffFile("/home/elsewhere/hook.py")
+
+	assert.deepEqual(calls, ["git", ["session", "s1", "/home/elsewhere/hook.py"]])
+	const tab = flow.state.workspace.tabs[0]
+	assert.equal(tab.error, null)
+	assert.equal(tab.original, "before\n")
+	assert.equal(tab.content, "after\n")
 })

@@ -391,27 +391,6 @@ function deriveTurns(entries) {
 // Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
 // per path in first-touch order. Denied/failed calls don't count; a write
 // reports its full line count as additions.
-// Session-wide aggregate of edit/write results, for the diff viewer's file bar.
-export function aggregateFileChanges(entries) {
-	const calls = new Set()
-	const files = new Map()
-	for (const entry of entries) {
-		if (entry.type === "assistant_message") {
-			for (const block of entry.content ?? []) {
-				if (block.type === "tool_call" && ["edit", "write"].includes(block.name)) calls.add(block.id)
-			}
-		} else if (entry.type === "tool_result" && calls.has(entry.tool_call_id)) {
-			const path = entry.details?.path
-			if (!path || entry.is_error || stepDecision(entry)) continue
-			const file = files.get(path) ?? { path, added: 0, removed: 0 }
-			file.added += entry.details.lines_added ?? entry.details.lines ?? 0
-			file.removed += entry.details.lines_removed ?? 0
-			files.set(path, file)
-		}
-	}
-	return [...files.values()]
-}
-
 function deriveFileChanges(entries, turnByEntry) {
 	const callTurns = new Map()
 	const filesByTurn = new Map()
