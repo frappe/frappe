@@ -383,10 +383,18 @@ def get_referencing_documents(
 	return documents
 
 
+MAX_SYNCHRONOUS_LINKED_DOCS = 50
+
+
 @frappe.whitelist()
-def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
-	"""Cancel the linked documents, deferring blocked ones so callers need not
-	order them; doctypes in ignore_doctypes_on_cancel_all are skipped."""
+def cancel_all_linked_docs(
+	docs: str | list,
+	ignore_doctypes_on_cancel_all: str | list[str] | None = None,
+	root_doctype: str | None = None,
+	root_name: str | None = None,
+):
+	"""Cancel the linked documents in dependency order; sets larger than
+	MAX_SYNCHRONOUS_LINKED_DOCS move to a job that also cancels the root."""
 	if ignore_doctypes_on_cancel_all is None:
 		ignore_doctypes_on_cancel_all = []
 
@@ -394,6 +402,9 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
 
 	to_cancel = [doc for doc in deduplicated(docs) if validate_linked_doc(doc, ignore_doctypes_on_cancel_all)]
+	if len(to_cancel) > MAX_SYNCHRONOUS_LINKED_DOCS:
+		return enqueue_linked_docs_processing(to_cancel, "cancel", root_doctype, root_name)
+
 	process_linked_docs_in_dependency_order(to_cancel, cancel_linked_doc, _("Cancelling documents"))
 
 
@@ -412,10 +423,16 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 	"""Get the documents blocking deletion of the given document, recursively,
 	deepest first; unreadable ones are neither returned nor traversed. Past
 	MAX_LINKED_DELETE_DOCUMENTS the result is empty and marked truncated."""
+	frappe.has_permission(doctype, doc=name, throw=True)
+	docs, truncated = collect_deletion_blockers(doctype, name, limit=MAX_LINKED_DELETE_DOCUMENTS)
+	return {"docs": docs, "count": len(docs), "truncated": truncated}
+
+
+def collect_deletion_blockers(doctype: str, name: str, limit: int | None = None) -> tuple[list, bool]:
+	"""Walk the delete-blocking graph breadth first, deepest documents first in
+	the result; past `limit` discovered documents, give up and report truncated."""
 	from frappe.model.delete_doc import get_dynamic_linked_docs
 	from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
-
-	frappe.has_permission(doctype, doc=name, throw=True)
 
 	root_key = (doctype, name)
 	depth_by_document = {root_key: 0}
@@ -431,8 +448,8 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 			key = (link["reference_doctype"], link["reference_docname"])
 			if key in depth_by_document:
 				continue
-			if len(depth_by_document) > MAX_LINKED_DELETE_DOCUMENTS:
-				return {"docs": [], "count": 0, "truncated": True}
+			if limit and len(depth_by_document) > limit:
+				return [], True
 			if not frappe.has_permission(key[0], doc=key[1]):
 				continue
 			depth_by_document[key] = depth_by_document[parent_key] + 1
@@ -442,13 +459,25 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 		{"doctype": dt, "name": docname} for dt, docname in depth_by_document if (dt, docname) != root_key
 	]
 	docs.sort(key=lambda doc: depth_by_document[doc["doctype"], doc["name"]], reverse=True)
-	return {"docs": docs, "count": len(docs), "truncated": False}
+	return docs, False
 
 
 @frappe.whitelist()
-def delete_all_linked_docs(docs: str | list):
-	"""Delete the given documents in dependency order; a blocked one fails the whole request."""
+def delete_all_linked_docs(
+	docs: str | list | None = None, root_doctype: str | None = None, root_name: str | None = None
+) -> dict | None:
+	"""Delete the given documents in dependency order, failing the request if one
+	stays blocked; sets larger than MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None
+	past the listing cap, move to a job that also deletes the root."""
+	if docs is None:
+		if not (root_doctype and root_name):
+			frappe.throw(_("Either the documents to delete or a root document is required"))
+		frappe.has_permission(root_doctype, doc=root_name, throw=True)
+		return enqueue_linked_docs_processing([], "delete", root_doctype, root_name, discover=True)
+
 	to_delete = deduplicated(frappe.parse_json(docs))
+	if len(to_delete) > MAX_SYNCHRONOUS_LINKED_DOCS:
+		return enqueue_linked_docs_processing(to_delete, "delete", root_doctype, root_name)
 
 	# no realtime progress: late events strand the dialog; the freeze overlay suffices
 	process_linked_docs_in_dependency_order(to_delete, delete_linked_doc)
@@ -457,6 +486,79 @@ def delete_all_linked_docs(docs: str | list):
 def delete_linked_doc(docinfo):
 	"""Delete a document; one already removed by another document's on_trash hook is ignored."""
 	frappe.delete_doc(docinfo.get("doctype"), docinfo.get("name"))
+
+
+def enqueue_linked_docs_processing(docs, action, root_doctype, root_name, discover=False):
+	"""Queue processing of a large set together with the root document, which
+	the caller must not touch before the job has processed its links. With
+	discover, the job walks the graph itself instead of receiving it."""
+	job_kwargs = {}
+	if root_doctype and root_name:
+		if not discover:
+			docs = [*docs, frappe._dict(doctype=root_doctype, name=root_name)]
+		job_kwargs = {"job_id": f"linked_docs_{action}::{root_doctype}::{root_name}", "deduplicate": True}
+
+	frappe.enqueue(
+		process_linked_docs_in_background,
+		docs=docs,
+		action=action,
+		discover_root=(root_doctype, root_name) if discover else None,
+		queue="long",
+		now=frappe.in_test,
+		**job_kwargs,
+	)
+	return {"queued": True}
+
+
+def process_linked_docs_in_background(docs, action, discover_root=None):
+	"""Process the docs and notify the user of the outcome, since a background
+	job has no response to report through. With discover_root, walk the graph
+	here, where the listing cap does not apply.
+
+	Cancellation is all or nothing, matching the synchronous behaviour, since a
+	half-cancelled tree cannot be uncancelled. Deletion is best effort: some
+	blockers are permanently undeletable yet harmless, so the rest proceeds and
+	the leftovers are counted."""
+	if discover_root:
+		docs, _truncated = collect_deletion_blockers(*discover_root)
+		docs = [*docs, frappe._dict(doctype=discover_root[0], name=discover_root[1])]
+
+	if action == "cancel":
+		side_effect_counts = capture_pending_side_effects()
+		frappe.db.savepoint("cancel_linked_docs_job")
+		try:
+			process_linked_docs_in_dependency_order(docs, cancel_linked_doc)
+		except (
+			frappe.ValidationError,
+			frappe.PermissionError,
+			frappe.QueryTimeoutError,
+			frappe.QueryDeadlockError,
+		) as error:
+			frappe.db.rollback(save_point="cancel_linked_docs_job")
+			discard_side_effects_since(side_effect_counts)
+			notify_linked_docs_processed(
+				_("Could not cancel {0} linked documents: {1}").format(len(docs), str(error))
+			)
+			return
+		notify_linked_docs_processed(_("Cancelled {0} linked documents.").format(len(docs)))
+		return
+
+	skipped = process_linked_docs_in_dependency_order(docs, delete_linked_doc, raise_when_stuck=False)
+	done = len(docs) - len(skipped)
+	message = (
+		_("Deleted {0} linked documents; {1} could not be deleted.").format(done, len(skipped))
+		if skipped
+		else _("Deleted {0} linked documents.").format(done)
+	)
+	notify_linked_docs_processed(message)
+
+
+def notify_linked_docs_processed(message):
+	"""Tell the user live when they are still around, and durably via a notification."""
+	from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+
+	frappe.publish_realtime("msgprint", {"message": message, "alert": True}, user=frappe.session.user)
+	enqueue_create_notification([frappe.session.user], {"type": "Alert", "subject": message})
 
 
 def deduplicated(docs):
