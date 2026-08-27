@@ -7,7 +7,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	LINKED_IDENTITY_FIELDS,
 	SIDEBAR_ITEM_FIELDS,
 	build_sidebar,
-	get_sidebar_bases,
+	get_module_base,
 	is_linked,
 	item_key,
 	majority_module_of,
@@ -81,7 +81,15 @@ def write_base(module: str, plan, as_of) -> None:
 	# no `app`: nothing here came from an app's file
 	for item in plan["items"]:
 		doc.append("items", {field: item.get(field) for field in SIDEBAR_ITEM_FIELDS})
-	doc.insert(ignore_permissions=True)
+
+	# `ignore_links`, because these rows are the site's, not ours. A v16 site has been
+	# accumulating them for two release lines, and some of them point at things that are gone:
+	# erpnext's shipped v16 sidebars still name `Repost Accounting Ledger Settings`, a doctype it
+	# deleted in April, and an uninstalled app leaves the same kind of row behind. Validating them
+	# would let one dead link abort the whole migrate, and the item is worth more carried than
+	# dropped -- it is a broken link on a sidebar, which the user can see and remove, rather than a
+	# customer stuck partway through `bench update`.
+	doc.insert(ignore_permissions=True, ignore_links=True)
 
 	# Stamped with what it was converted from, not with today: `import_file` skips a file older
 	# than the row it overwrites, so a row stamped `now` would keep the app's own sidebar out.
@@ -202,8 +210,14 @@ def arrangement_below(module: str) -> list:
 	"""The module's base sidebar, which a person's layer is laid over.
 
 	Read after the base pass, so items that exist in both are stored as references and stay live.
+
+	`get_module_base` rather than indexing `get_sidebar_bases` by the module: that dict is keyed by
+	shell, and the base pass above names each `Sidebar` after the v16 title it was converted from,
+	which is only the module's name when several sidebars were merged. One sidebar called anything
+	else -- "Invoicing" under `Accounts`, say -- means no key under the module, and a `KeyError`
+	here takes down the migrate of any site where such a module also has a fork.
 	"""
-	return get_sidebar_bases([module])[module].rows
+	return get_module_base(module).rows
 
 
 def dropped_keys(forks: list[frappe._dict], items: list[dict]) -> set[str]:
@@ -252,7 +266,8 @@ def write_user_layer(module: str, user: str, rows: list[dict]) -> None:
 	doc.user = user
 	for row in rows:
 		doc.append("sidebar_items", row)
-	doc.insert(ignore_permissions=True)
+	# Same reason as `write_base`: a fork is the site's data too, and holds the same dead links.
+	doc.insert(ignore_permissions=True, ignore_links=True)
 
 
 def layer_rows(items: list[dict], below: list, dropped: set[str] | None = None) -> list[dict]:

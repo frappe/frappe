@@ -26,9 +26,13 @@ from frappe.tests import IntegrationTestCase
 CONVERT = "frappe.patches.v16_0.convert_sidebars"
 
 
-def archive(title, items, module=None, for_user=None, standard=0):
+def archive(title, items, module=None, for_user=None, standard=0, ignore_links=False):
 	"""A row as v16 left it. It is inserted under `in_patch`, because the archive takes no new
 	entries and a fixture standing in for what a v16 site already holds is the system's own write.
+
+	`ignore_links` seeds a row that has outlived what it points at. A v16 site acquired such a row
+	while the target still existed, so there is no way to write one here honestly except to skip
+	the check the site skipped by being older than the deletion.
 	"""
 	original = frappe.flags.get("in_patch")
 	frappe.flags.in_patch = True
@@ -42,7 +46,7 @@ def archive(title, items, module=None, for_user=None, standard=0):
 				"standard": standard,
 				"items": items,
 			}
-		).insert(ignore_permissions=True)
+		).insert(ignore_permissions=True, ignore_links=ignore_links)
 	finally:
 		frappe.flags.in_patch = original
 
@@ -503,3 +507,75 @@ class TestTheIntermediateColumnIsGone(IntegrationTestCase):
 
 		patches = " ".join(get_patches_from_app("frappe", PatchType.post_model_sync))
 		self.assertNotIn("sidebar_items", patches)
+
+
+class TestALinkThatNoLongerResolves(IntegrationTestCase):
+	"""A v16 site's rows outlive the things they point at, and the migrate has to survive that.
+
+	The archive has been filling up for two release lines, and nothing pruned it when an app
+	dropped a doctype or a customer uninstalled an app. erpnext's shipped v16 sidebars still name
+	`Repost Accounting Ledger Settings`, which it deleted in April, so this is not a hypothetical:
+	a plain `insert` validates those links and one dead row takes the whole `bench update` down
+	with it, partway through `run_schema_updates`.
+
+	The item is carried rather than dropped. A broken link on a sidebar is something a person can
+	see and remove; a migrate that stops halfway is not.
+	"""
+
+	MODULE = "Test V16 Dangling Module"
+	GONE = "V16 Doctype That Was Deleted"
+	USER = "test-v16-dangling@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.MODULE, "app_name": "frappe"}
+			).insert()
+			clear_computed_base_cache(cls.MODULE)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": cls.USER,
+				"first_name": "V16 Dangling",
+				"send_welcome_email": 0,
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_if_duplicate=True)
+
+		# One row that still resolves and one that does not, because a sidebar of nothing but dead
+		# links would convert even if the dead one were quietly dropped.
+		items = [
+			{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"},
+			{"type": "Link", "link_type": "DocType", "link_to": cls.GONE, "label": "Gone"},
+		]
+		archive("V16 Dangling", items, module=cls.MODULE, standard=1, ignore_links=True)
+		archive(f"V16 Dangling-{cls.USER}", items, module=cls.MODULE, for_user=cls.USER, ignore_links=True)
+
+		cls.output = run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def test_the_doctype_really_is_gone(self):
+		"""The premise. If something ever creates it, these tests would pass without testing
+		anything."""
+		self.assertFalse(frappe.db.exists("DocType", self.GONE))
+
+	def test_the_module_still_converts(self):
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.MODULE}))
+
+	def test_the_dead_row_is_carried_not_dropped(self):
+		base = frappe.get_doc("Sidebar", {"module": self.MODULE})
+		self.assertEqual([row.link_to for row in base.items], ["ToDo", self.GONE])
+
+	def test_a_fork_holding_one_converts_too(self):
+		"""`write_user_layer` inserts a `Custom Sidebar` off the same rows, so it is exposed the same
+		way and is easy to fix on only one of the two paths."""
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": self.USER}))
