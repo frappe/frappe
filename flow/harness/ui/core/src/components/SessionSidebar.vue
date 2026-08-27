@@ -140,7 +140,7 @@
 				>
 					<span
 						v-if="s.state === 'running'"
-						class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-surface-green-3"
+						class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-surface-green-7"
 						title="Running"
 					/>
 					<span v-else-if="s.state === 'paused'" title="Waiting for approval">⏸</span>
@@ -182,7 +182,7 @@
 		/>
 
 		<footer class="flex min-h-[44px] items-center gap-2 border-t border-outline-gray-1 px-3.5 py-2">
-			<span class="h-1.5 w-1.5 flex-none rounded-full bg-surface-green-3" />
+			<span class="h-1.5 w-1.5 flex-none rounded-full bg-surface-green-7" />
 			<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-5" :title="daemonUrl">
 				{{ daemonUrl }}
 			</span>

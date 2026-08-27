@@ -37,9 +37,9 @@
 				</span>
 				<span
 					v-if="p.configured"
-					class="flex items-center gap-1 text-2xs font-medium text-ink-green-6"
+					class="flex items-center gap-1 text-2xs font-medium text-ink-green-7"
 				>
-					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-3" />
+					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-7" />
 					Connected
 				</span>
 				<FeatherIcon v-else name="chevron-right" class="h-4 w-4 text-ink-gray-4" />
@@ -144,7 +144,7 @@
 				<div
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
 				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-6" />
+					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
 					Ready to use
 				</div>
 				<button
@@ -211,7 +211,7 @@
 					v-if="oauthStatus === 'connected'"
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
 				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-6" />
+					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
 					Connected
 				</div>
 				<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-6">
