@@ -177,15 +177,15 @@
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome",
-   "description": "wkhtmltopdf cannot render multi-column layouts and is no longer maintained. Use chrome unless you depend on a wkhtmltopdf-specific print format."
+   "options": "wkhtmltopdf\nchrome\npinto",
+   "description": "wkhtmltopdf cannot render multi-column layouts and is no longer maintained. Use chrome unless you depend on a wkhtmltopdf-specific print format, or pinto for a browser-free render that trades pixel-parity with chrome for a much smaller footprint."
   }
  ],
  "icon": "fa fa-cog",
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-13 00:00:00.000000",
+ "modified": "2026-08-27 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",

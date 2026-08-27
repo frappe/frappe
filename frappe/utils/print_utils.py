@@ -58,7 +58,7 @@ def get_print(
 	password=None,
 	pdf_options=None,
 	letterhead=None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+	pdf_generator: Literal["wkhtmltopdf", "chrome", "pinto"] | None = None,
 ):
 	"""Get Print Format for given document.
 	:param doctype: DocType of document.
