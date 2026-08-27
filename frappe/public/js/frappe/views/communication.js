@@ -204,7 +204,6 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Link",
 				options: "Language",
 				fieldname: "print_language",
-				default: frappe.boot.lang,
 				depends_on: "attach_document_print",
 			},
 			{ fieldtype: "Column Break" },
