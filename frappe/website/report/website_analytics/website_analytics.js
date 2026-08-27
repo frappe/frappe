@@ -44,22 +44,32 @@ frappe.query_reports["Website Analytics"] = {
 		},
 	],
 	formatter: function (value, row, column, data, default_formatter) {
-		if (
-			frappe.query_report.get_filter_value("group_by") === "source" &&
-			column.id === "source"
-		) {
-			if (value) {
-				try {
-					let doctype = value.split(">")[0].trim();
-					let name = value.split(">")[1].trim();
-					return frappe.utils.get_form_link(doctype, name, true, value);
-				} catch (e) {
-					// skip and return with default formatter
-				}
-			} else {
-				return `<i>${__("Unknown")}</i>`;
+		const group_by = frappe.query_report.get_filter_value("group_by");
+
+		if (column.id !== group_by) {
+			return default_formatter(value, row, column, data);
+		}
+
+		if (!value) {
+			return group_by === "source"
+				? `<i>${__("Unknown")}</i>`
+				: default_formatter(value, row, column, data);
+		}
+
+		const escaped_value = frappe.utils.escape_html(value);
+
+		if (group_by === "source") {
+			const [doctype, name] = String(value).split(">");
+			if (doctype && name) {
+				return frappe.utils.get_form_link(
+					doctype.trim(),
+					name.trim(),
+					true,
+					escaped_value
+				);
 			}
 		}
-		return default_formatter(value, row, column, data);
+
+		return default_formatter(escaped_value, row, column, data);
 	},
 };
