@@ -25,14 +25,12 @@
 
 				<!-- Contributed quick actions, in the run order the registry decided. -->
 				<div class="ml-auto flex gap-2">
-					<button
+					<Button
 						v-for="action in quickActions"
 						:key="action.name"
-						class="rounded border border-outline-gray-2 px-2.5 py-1 text-sm hover:bg-surface-gray-2"
+						:label="action.label"
 						@click="runAction(action)"
-					>
-						{{ action.label }}
-					</button>
+					/>
 				</div>
 			</header>
 
@@ -52,6 +50,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, shallowRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { Button } from "frappe-ui";
 import { createRecordPage, type RecordPageController } from "@framework/ui/experimental";
 import type { Boot } from "@/boot";
 import { resolveDoctype } from "@/router";
