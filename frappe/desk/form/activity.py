@@ -517,7 +517,7 @@ def get_version_activities(
 
 	frappe.utils.add_user_info({v.owner for v in versions if v.owner}, user_info)
 
-	child_cache: dict[str, tuple[set | None, "frappe.Meta"]] = {}
+	child_cache: dict[str, tuple[set | None, frappe.Meta]] = {}
 
 	result = []
 	for v in versions:
