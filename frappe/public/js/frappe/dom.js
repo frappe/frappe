@@ -306,8 +306,7 @@ frappe.get_data_pill = (
 	target_id = null,
 	remove_action = null,
 	image = null,
-	colored = false,
-	size = "sm"
+	colored = false
 ) => {
 	let color = "",
 		style = "";
@@ -315,9 +314,8 @@ frappe.get_data_pill = (
 		color = frappe.get_palette(label);
 		style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 	}
-	const size_class = size === "sm" ? "" : ` data-pill-${size}`;
 	let data_pill_wrapper = $(`
-		<button class="data-pill${size_class} btn" style="${style}">
+		<button class="data-pill btn" style="${style}">
 			<div class="flex align-center ellipsis">
 				${image ? image : ""}
 				<span class="pill-label ellipsis">${label} </span>
@@ -327,7 +325,7 @@ frappe.get_data_pill = (
 	if (remove_action) {
 		let remove_btn = $(`
 			<span class="remove-btn cursor-pointer flex align-items-center">
-				${frappe.utils.icon("x", size)}
+				${frappe.utils.icon("x", "sm")}
 			</span>
 		`);
 		if (typeof remove_action === "function") {

@@ -484,6 +484,17 @@
 		.email-composer-attach-pill .data-pill {
 			max-width: 200px;
 			min-width: 0;
+			height: 24px;
+			font-size: var(--text-sm);
+
+			> .flex {
+				gap: var(--padding-xs);
+			}
+
+			.icon {
+				flex-shrink: 0;
+				margin-left: 0;
+			}
 		}
 
 		&:has(.attach-list:empty) {
