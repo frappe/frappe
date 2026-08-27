@@ -378,19 +378,47 @@ class File(Document):
 		):
 			return
 
-		if frappe.get_meta(self.attached_to_doctype).issingle:
+		parent_meta = frappe.get_meta(self.attached_to_doctype)
+
+		if parent_meta.issingle:
 			frappe.db.set_single_value(
 				self.attached_to_doctype,
 				self.attached_to_field,
 				self.file_url,
 			)
-		else:
+			return
+		if parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
+			self.attached_to_doctype,
+			{"name": self.attached_to_name, self.attached_to_field: old_file_url},
+		):
 			frappe.db.set_value(
 				self.attached_to_doctype,
 				self.attached_to_name,
 				self.attached_to_field,
 				self.file_url,
 			)
+
+		for table_df in parent_meta.get_table_fields():
+			child_meta = frappe.get_meta(table_df.options)
+			if not child_meta.has_field(self.attached_to_field):
+				continue
+
+			match_filters = {
+				"parent": self.attached_to_name,
+				"parentfield": table_df.fieldname,
+				self.attached_to_field: old_file_url,
+			}
+			if not frappe.db.exists(table_df.options, match_filters):
+				continue
+
+			child_table = frappe.qb.DocType(table_df.options)
+			(
+				frappe.qb.update(child_table)
+				.set(child_table[self.attached_to_field], self.file_url)
+				.where(child_table.parent == self.attached_to_name)
+				.where(child_table.parentfield == table_df.fieldname)
+				.where(child_table[self.attached_to_field] == old_file_url)
+			).run()
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:
