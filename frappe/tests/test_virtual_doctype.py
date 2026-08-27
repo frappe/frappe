@@ -175,3 +175,33 @@ class TestVirtualDoctypes(FrappeTestCase):
 	def test_controller_validity(self):
 		validate_controller(TEST_DOCTYPE_NAME)
 		validate_controller(TEST_CHILD_DOCTYPE_NAME)
+
+	def test_guest_cannot_list_virtual_doctype(self):
+		frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+
+		with self.set_user("Guest"):
+			self.assertRaises(frappe.PermissionError, frappe.get_list, TEST_DOCTYPE_NAME)
+
+	def test_authorized_user_can_list_virtual_doctype(self):
+		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+
+		listed_docs = {d.name for d in frappe.get_list(TEST_DOCTYPE_NAME)}
+		self.assertIn(doc.name, listed_docs)
+
+	def test_guest_cannot_delete_virtual_doctype(self):
+		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+
+		with self.set_user("Guest"):
+			self.assertRaises(frappe.PermissionError, frappe.delete_doc, doc.doctype, doc.name)
+
+		# document must survive the rejected delete attempt
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
+		self.assertIn(doc.name, listed_docs)
+
+	def test_authorized_user_can_delete_virtual_doctype(self):
+		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+
+		frappe.delete_doc(doc.doctype, doc.name)
+
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
+		self.assertNotIn(doc.name, listed_docs)
