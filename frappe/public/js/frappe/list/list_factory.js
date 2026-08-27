@@ -41,8 +41,6 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		if (this.re_route_to_view()) {
 			return false;
 		}
-
-		this.set_module_breadcrumb();
 	}
 
 	on_show() {
@@ -72,20 +70,6 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			// Step 3: Now we cannot send the user back to /desk/List/Item/List so go back one more step
 			window.history.go(-1);
 			return true;
-		}
-	}
-
-	set_module_breadcrumb() {
-		if (frappe.route_history.length > 1) {
-			const prev_route = frappe.route_history[frappe.route_history.length - 2];
-			if (prev_route[0] === "modules") {
-				const doctype = this.route[1],
-					module = prev_route[1];
-				if (frappe.module_links[module] && frappe.module_links[module].includes(doctype)) {
-					// save the last page from the breadcrumb was accessed
-					frappe.breadcrumbs.set_doctype_module(doctype, module);
-				}
-			}
 		}
 	}
 
