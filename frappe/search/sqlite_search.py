@@ -13,11 +13,35 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from bs4 import BeautifulSoup
-
 import frappe
 from frappe.model.document import Document
 from frappe.utils import update_progress_bar
+
+SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
+
+
+def strip_surrogates(value):
+	"""Repair or drop Unicode surrogate code points so a value can be encoded as UTF-8.
+
+	Inbound data (for example e-mail bodies that were mis-decoded from UTF-16) can
+	carry paired or lone surrogate code points inside Python ``str`` objects.
+	SQLite encodes bound parameters as strict UTF-8, which raises
+	``UnicodeEncodeError: ... surrogates not allowed`` for any surrogate code
+	point and aborts the whole ``cursor.executemany()`` call during indexing.
+
+	A round-trip through UTF-16 (with ``surrogatepass``) re-pairs valid surrogate
+	pairs into their real astral character (so a mis-encoded emoji survives), and
+	the following UTF-8 ``ignore`` pass drops any remaining lone surrogate.
+	Non-``str`` and surrogate-free values are returned unchanged.
+	"""
+	if not isinstance(value, str) or not SURROGATE_RE.search(value):
+		return value
+	return (
+		value.encode("utf-16-le", "surrogatepass")
+		.decode("utf-16-le", "surrogatepass")
+		.encode("utf-8", "ignore")
+		.decode("utf-8")
+	)
 
 
 class WarningType(Enum):
@@ -404,12 +428,15 @@ class SQLiteSearch(ABC):
 					if documents:
 						self._index_documents(documents)
 
-						# Update progress with last processed document cursor
-						last_doc_modified = docs[-1].get(progress_field) or docs[-1].get("modified")
-						last_doc_name = docs[-1]["name"]
-						self._update_index_progress(doctype, last_doc_name, last_doc_modified, len(documents))
-						last_indexed_modified = last_doc_modified
-						last_indexed_name = last_doc_name
+					# Advance the cursor even when nothing in this batch was indexable: these
+					# rows have been consumed either way. Advancing only when `documents` was
+					# non-empty meant a batch whose documents all failed prepare_document()
+					# was fetched again forever, so build_index() never returned.
+					last_doc_modified = docs[-1].get(progress_field) or docs[-1].get("modified")
+					last_doc_name = docs[-1]["name"]
+					self._update_index_progress(doctype, last_doc_name, last_doc_modified, len(documents))
+					last_indexed_modified = last_doc_modified
+					last_indexed_name = last_doc_name
 
 					batch_count += 1
 
@@ -1356,7 +1383,7 @@ class SQLiteSearch(ABC):
 							doc_id = doc.get("id") or f"{doc.get('doctype', '')}:{doc.get('name', '')}"
 							values.append(doc_id)
 						else:
-							values.append(doc.get(field, ""))
+							values.append(strip_surrogates(doc.get(field, "")))
 
 					doc_ids_to_delete.append(doc_id)
 
@@ -1585,6 +1612,8 @@ class SQLiteSearch(ABC):
 		if not content:
 			return ""
 
+		from bs4 import BeautifulSoup
+
 		# Convert to string in case it's a Mock object or other type
 		content = str(content)
 
@@ -1601,6 +1630,7 @@ class SQLiteSearch(ABC):
 		text = soup.get_text(separator=" ").strip()  # remove tags
 		text = re.sub(r"https?://[^\s]+", "[link]", text)  # replace standalone links
 		text = re.sub(r"\s+", " ", text).strip()  # normalize whitespace
+		text = strip_surrogates(text)  # drop/repair UTF-16 surrogate code points
 		return text
 
 	def _generate_trigrams(self, word):

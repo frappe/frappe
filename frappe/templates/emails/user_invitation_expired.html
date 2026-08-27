@@ -1,9 +1,4 @@
-<span style = "display: block; margin-bottom: 1.5rem;">
-  {{ _("Hello,") }}
-</span>
-<span style = "display: block; margin-bottom: 1rem;">
-  {{ _("Your invitation to join {0} has expired.").format(title) }}
-</span>
-<span style = "display: block;">
-  {{ _("You can ask your team to resend the invitation if you'd still like to join.") }}
-</span>
+<h1 class="email-title">{{ _("This invitation has expired") }}</h1>
+<div class="email-body">
+	<p>{{ _("Your invitation to join {0} is no longer valid. Ask your team to send a new invitation if you'd still like to join.").format(title) }}</p>
+</div>

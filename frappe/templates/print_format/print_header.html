@@ -1,11 +1,6 @@
 <style>
 	{% include "templates/print_format/print_format_font.css" %}
 </style>
-{#- The letterhead stays in normal flow for browser printing: position:fixed
-   would repeat it on every page but overlaps the body content (fixed elements
-   reserve no space). Per-page repetition is handled properly by the Chrome PDF
-   overlay pipeline; browser print shows the letterhead once, like classic
-   print formats. -#}
 <header>
 	{%- if letterhead -%}
 	<div class="letter-head">{{ frappe.render_template(letterhead.content, {'doc': doc}) }}</div>

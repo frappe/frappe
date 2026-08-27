@@ -20,7 +20,7 @@ from frappe import _, is_whitelisted, msgprint
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.database.utils import commit_after_response
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, D, get_controller
@@ -669,17 +669,22 @@ class Document(BaseDocument):
 	def _handle_permission_failure(self, perm_type):
 		from frappe.permissions import check_doctype_permission
 
-		check_doctype_permission(self.doctype, perm_type)
+		parent_doctype = self.get("parenttype") if self.meta.istable else None
+		check_doctype_permission(parent_doctype or self.doctype, perm_type)
 		self.raise_no_permission_to(perm_type)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
+		doctype, name = self.doctype, self.name
+		if self.meta.istable and self.get("parenttype"):
+			doctype, name = self.parenttype, self.parent
+
 		frappe.flags.error_message = _(
 			"You need the '{0}' permission on {1} {2} to perform this action."
 		).format(
 			_(perm_type),
-			frappe.bold(_(self.doctype)),
-			self.name or "",
+			frappe.bold(_(doctype)),
+			name or "",
 		)
 		raise frappe.PermissionError
 
@@ -771,7 +776,7 @@ class Document(BaseDocument):
 
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
-				follow_document(self.doctype, self.name, frappe.session.user)
+				_follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def check_if_locked(self):
@@ -1209,7 +1214,7 @@ class Document(BaseDocument):
 				if fail:
 					frappe.throw(
 						_("Value cannot be changed for {0}").format(
-							frappe.bold(_(self.meta.get_label(field.fieldname)))
+							frappe.bold(self.meta.get_translated_label(field.fieldname))
 						),
 						exc=frappe.CannotChangeConstantError,
 					)
@@ -1681,7 +1686,8 @@ class Document(BaseDocument):
 	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
 
-		assert not method.startswith("__"), "Run method is for hooks, avoid usage on internal methods"
+		if method.startswith("_"):
+			raise Exception("Run method is for hooks, avoid usage on internal methods")
 
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
@@ -1720,11 +1726,16 @@ class Document(BaseDocument):
 
 		def _get_notifications():
 			"""Return enabled notifications for the current doctype."""
+			from frappe.app_state import get_disabled_modules
+
+			filters = {"enabled": 1, "document_type": self.doctype}
+			if disabled_modules := get_disabled_modules():
+				filters["module"] = ["not in", list(disabled_modules)]
 
 			return frappe.get_all(
 				"Notification",
 				fields=["name", "event", "method"],
-				filters={"enabled": 1, "document_type": self.doctype},
+				filters=filters,
 			)
 
 		notifications = frappe.client_cache.get_value(
@@ -1858,7 +1869,7 @@ class Document(BaseDocument):
 	def load_doc_before_save(self, *, raise_exception: bool = False):
 		"""load existing document from db before saving"""
 
-		self._doc_before_save = None
+		self._doc_before_save: "Self | None" = None
 
 		if self.is_new():
 			return
@@ -2116,7 +2127,7 @@ class Document(BaseDocument):
 		val2 = doc.cast(val2, df)
 
 		if not compare(val1, condition, val2):
-			label = doc.meta.get_label(fieldname)
+			label = doc.meta.get_translated_label(fieldname)
 			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}:").format(doc.idx)
 			else:
@@ -2139,7 +2150,7 @@ class Document(BaseDocument):
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
 		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
-			label = _(self.meta.get_label(parentfield))
+			label = self.meta.get_translated_label(parentfield)
 			frappe.throw(
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
@@ -2379,8 +2390,8 @@ class Document(BaseDocument):
 			frappe.throw(
 				table_row
 				+ _("{0} must be after {1}").format(
-					frappe.bold(_(self.meta.get_label(to_date_field))),
-					frappe.bold(_(self.meta.get_label(from_date_field))),
+					frappe.bold(self.meta.get_translated_label(to_date_field)),
+					frappe.bold(self.meta.get_translated_label(from_date_field)),
 				),
 				frappe.exceptions.InvalidDates,
 			)
@@ -2532,11 +2543,18 @@ def unlock_document(doctype: str, name: str):
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 
-def get_lazy_controller(doctype):
-	lazy_controllers = frappe.lazy_controllers.setdefault(frappe.local.site, {})
+def get_lazy_controller(doctype, *, site=None, meta=None, controller=None):
+	"""Return the lazy-loading controller class for a doctype.
+
+	`site`, `meta` and `controller` default to the current context. They can be passed
+	explicitly during unpickling, where the pickled document must be reconstructed with the
+	same schema it was pickled with and no frappe.local context is available.
+	"""
+	lazy_controllers = frappe.lazy_controllers.setdefault(site or frappe.local.site, {})
 	if doctype not in lazy_controllers:
-		meta = frappe.get_meta(doctype)
-		original_controller = get_controller(doctype)
+		if meta is None:
+			meta = frappe.get_meta(doctype)
+		original_controller = controller or get_controller(doctype)
 		if meta.is_virtual:  # not supported
 			lazy_controllers[doctype] = original_controller
 			warnings.warn(f"Virtual doctypes don't support lazy loading: {doctype}", stacklevel=3)
@@ -2551,8 +2569,29 @@ def get_lazy_controller(doctype):
 	return lazy_controllers[doctype]
 
 
+def _reconstruct_lazy_doc(site: str, doctype: str, meta, original_controller):
+	"""Reconstruct a lazy document instance during unpickling.
+
+	The lazy controller class is created dynamically, so pickle can't find it by name.
+	Rebuild it from the pickled site, meta and original controller instead, without making
+	any frappe calls that require an initialized frappe.local.
+	"""
+	controller = get_lazy_controller(doctype, site=site, meta=meta, controller=original_controller)
+	return controller.__new__(controller)
+
+
 class LazyDocument:
 	"""Mixin for Document class that implments lazy loading for child tables."""
+
+	def __reduce__(self):
+		"""Make dynamically created lazy controller instances pickle-able."""
+		# Lazy controller is type("Lazy...", (LazyDocument, original_controller), {})
+		original_controller = type(self).__bases__[1]
+		return (
+			_reconstruct_lazy_doc,
+			(frappe.local.site, self.doctype, self.meta, original_controller),
+			self.__getstate__(),
+		)
 
 	@override
 	def load_children_from_db(self: Document):

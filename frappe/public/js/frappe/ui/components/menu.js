@@ -1,4 +1,4 @@
-import { validated, safe_href } from "./utils.js";
+import { validated, safe_href, shortcut_keys } from "./utils.js";
 import { place } from "./position.js";
 
 /**
@@ -24,6 +24,11 @@ import { place } from "./position.js";
  *
  * Rows are built with createElement + textContent, so labels can never
  * smuggle markup — there is no HTML channel here at all.
+ *
+ * Async: the root options (via a function returning a promise, or a bare
+ * promise) and function submenus may resolve later — the panel opens with a
+ * loading placeholder and fill() swaps the rows in when the data lands,
+ * re-measuring the position. Late resolutions after a close are discarded.
  */
 
 /**
@@ -38,7 +43,8 @@ import { place } from "./position.js";
  * @property {function} [onclick] Called with the click event. The menu closes after.
  * @property {string} [href] Renders the row as a link. Code-running schemes are refused.
  * @property {function} [condition] Checked on every open; return false to hide the row.
- * @property {MenuItem[]} [submenu] Nested rows — the row opens a side panel instead of acting.
+ * @property {string} [css_class] Extra classes on the row element (responsive visibility hooks like visible-xs).
+ * @property {MenuItem[]|function} [submenu] Nested rows — the row opens a side panel instead of acting. A function runs at hover-start (once per menu open, result cached) and may return the rows or a Promise of them; the panel shows a loading state until it settles.
  */
 
 /**
@@ -50,10 +56,34 @@ import { place } from "./position.js";
 
 const THEMES = ["gray", "red"];
 
+function is_thenable(value) {
+	return !!value && typeof value.then === "function";
+}
+
 const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
 const EXIT_MS = 140;
 const TYPEAHEAD_RESET_MS = 1000;
+// how long the safe-triangle grace lasts after leaving a submenu row —
+// enough to cross the menu diagonally, short enough that a change of mind
+// (parking on a sibling) recovers quickly. Same value radix uses.
+const GRACE_MS = 300;
+// widen the triangle a little around the exit point and the panel corners so
+// pointer paths that hug an edge stay inside it
+const GRACE_PAD = 5;
+
+// ray-casting point-in-polygon; polygon is [[x, y], ...]
+function point_in_polygon(x, y, polygon) {
+	let inside = false;
+	for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+		const [xi, yi] = polygon[i];
+		const [xj, yj] = polygon[j];
+		if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+			inside = !inside;
+		}
+	}
+	return inside;
+}
 
 function is_group(entry) {
 	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
@@ -105,25 +135,6 @@ function icon_html(name, svg_class, component) {
 	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
 }
 
-// same OS mapping as frappe.ui.keys.get_shortcut_label, but per key — that
-// util returns one joined string ("⌘P") and we render one <kbd> per key
-const MAC_KEY_SYMBOLS = { ctrl: "⌘", meta: "⌘", cmd: "⌘", alt: "⌥", shift: "⇧" };
-
-function shortcut_keys(shortcut) {
-	if (Array.isArray(shortcut)) return shortcut.map(String);
-	const mac = frappe.utils.is_mac && frappe.utils.is_mac();
-	return String(shortcut)
-		.split("+")
-		.map((key) => key.trim())
-		.filter(Boolean)
-		.map((key) => {
-			if (mac && MAC_KEY_SYMBOLS[key.toLowerCase()]) {
-				return MAC_KEY_SYMBOLS[key.toLowerCase()];
-			}
-			return frappe.utils.to_title_case(key);
-		});
-}
-
 // Underline the first free a-z letter of the label so Alt+letter can activate
 // the row (skipping letters earlier rows in the same panel already took).
 // Built from text nodes + a span, never innerHTML, so labels still can't
@@ -154,6 +165,7 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	const href = item.submenu || item.disabled ? null : safe_href(item.href, component);
 	const el = document.createElement(href ? "a" : "button");
 	el.className = "es-menu__item";
+	if (item.css_class) el.className += ` ${item.css_class}`;
 	el.setAttribute("role", "menuitem");
 	el.setAttribute("tabindex", "-1");
 	if (href) el.href = href;
@@ -181,9 +193,11 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	const label = document.createElement("span");
 	label.className = "es-menu__label";
 	const label_text = item.label || "";
-	// disabled rows can't be activated, so they get no mnemonic
+	// disabled rows can't be activated, so they get no mnemonic; rows with
+	// an accelerator keep it as their only key path (the legacy desk rule —
+	// it also leaves the letter pool for shortcut-less rows)
 	let mnemonic = null;
-	if (taken && label_text && !item.disabled) {
+	if (taken && label_text && !item.disabled && !item.shortcut) {
 		mnemonic = assign_mnemonic(label, label_text, taken);
 	} else {
 		label.textContent = label_text;
@@ -220,12 +234,10 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	return { el, mnemonic };
 }
 
-function build_panel(groups, { empty_text, component }) {
-	const panel = document.createElement("div");
-	panel.className = "es-menu";
-	panel.setAttribute("role", "menu");
-	panel.setAttribute("tabindex", "-1");
-
+// fill a bare panel with its group/row elements (or the empty text) and
+// return the rows. Separate from build_panel so a panel that opened in its
+// loading state can be filled in place when the async items arrive.
+function render_content(panel, groups, { empty_text, component }) {
 	const rows = []; // [{ el, item, mnemonic }] in visual order
 	const taken = new Set(); // Alt-mnemonic letters, unique within a panel
 
@@ -234,7 +246,7 @@ function build_panel(groups, { empty_text, component }) {
 		empty.className = "es-menu__empty";
 		empty.textContent = empty_text || __("No options");
 		panel.appendChild(empty);
-		return { panel, rows };
+		return rows;
 	}
 
 	for (const group of groups) {
@@ -267,6 +279,39 @@ function build_panel(groups, { empty_text, component }) {
 		panel.appendChild(group_el);
 	}
 
+	return rows;
+}
+
+// the placeholder shown while async items load: a spinner + "Loading...",
+// inert like the empty state (no rows, so keyboard navigation has nothing
+// to land on; Escape and outside-click work through the panel as usual)
+function render_loading(panel) {
+	const loading = document.createElement("div");
+	loading.className = "es-menu__loading";
+	const spinner = document.createElement("span");
+	spinner.className = "es-spinner";
+	spinner.setAttribute("aria-hidden", "true");
+	const text = document.createElement("span");
+	text.textContent = __("Loading...");
+	loading.append(spinner, text);
+	panel.appendChild(loading);
+	panel.setAttribute("aria-busy", "true");
+}
+
+// `groups === null` means the items are still loading (async source) — the
+// panel opens with the loading placeholder and fill() swaps the rows in
+function build_panel(groups, { empty_text, component }) {
+	const panel = document.createElement("div");
+	panel.className = "es-menu";
+	panel.setAttribute("role", "menu");
+	panel.setAttribute("tabindex", "-1");
+
+	if (groups === null) {
+		render_loading(panel);
+		return { panel, rows: [] };
+	}
+
+	const rows = render_content(panel, groups, { empty_text, component });
 	return { panel, rows };
 }
 
@@ -287,7 +332,14 @@ export class MenuTree {
 		this.lock_scroll = lock_scroll;
 		this.panels = []; // [{ panel, rows, anchor, side, align, offset, parent_row }]
 		this.closed = false;
+		// function submenus resolve once per menu open: row -> items or the
+		// pending promise (see get_submenu_items)
+		this.submenu_cache = new Map();
 		this.submenu_timer = null;
+		// the safe triangle: while the pointer travels from a submenu row
+		// toward its open panel, sibling rows must not steal the highlight or
+		// close the panel. { polygon, expiry } or null.
+		this.grace = null;
 		this.typeahead_buffer = "";
 		this.typeahead_timer = null;
 		this.mnemonics_visible = false; // Alt held → underlines showing
@@ -295,17 +347,22 @@ export class MenuTree {
 
 	open({ side = "bottom", align = "start", offset = 4, motion = "animated", focus = null }) {
 		// options can be a function so the menu reflects right-now state
-		// (which row was clicked, what's selected); it runs on every open
-		const groups = normalize_options(
-			typeof this.options === "function" ? this.options() : this.options
-		);
-		const entry = this.mount(groups, {
-			anchor: this.anchor,
-			side,
-			align,
-			offset,
-			motion,
-		});
+		// (which row was clicked, what's selected); it runs on every open.
+		// A promise (or a function returning one) opens the menu in its
+		// loading state, and the rows fill in when it settles.
+		const value = typeof this.options === "function" ? this.options() : this.options;
+		const mount_opts = { anchor: this.anchor, side, align, offset, motion };
+		let entry;
+		if (is_thenable(value)) {
+			entry = this.mount(null, mount_opts);
+			entry.pending_focus = focus === "first" || focus === "last" ? focus : null;
+			value.then(
+				(items) => this.fill(entry, normalize_options(items)),
+				(error) => this.fill_failed(entry, error)
+			);
+		} else {
+			entry = this.mount(normalize_options(value), mount_opts);
+		}
 
 		// pressing down anywhere that isn't a panel (or the trigger, which
 		// handles its own clicks) closes the menu
@@ -322,6 +379,11 @@ export class MenuTree {
 		this.onreposition = () => this.reposition();
 		window.addEventListener("resize", this.onreposition);
 		document.addEventListener("scroll", this.onreposition, { capture: true, passive: true });
+
+		// the safe triangle is judged on every pointer move (cheap: a null
+		// check when no grace is active)
+		this.ongracemove = (e) => this.handle_grace_move(e);
+		document.addEventListener("pointermove", this.ongracemove, true);
 
 		if (this.lock_scroll) {
 			// context menus freeze the page: a stray trackpad flick shouldn't
@@ -352,9 +414,11 @@ export class MenuTree {
 
 		// keyboard opens land on a row right away (ArrowDown = first,
 		// ArrowUp = last); mouse opens just focus the panel so keys work
-		// without stealing the highlight from wherever the pointer is
-		if (focus === "first") this.focus_step(entry, 1);
-		else if (focus === "last") this.focus_step(entry, -1);
+		// without stealing the highlight from wherever the pointer is. An
+		// async panel has no rows yet — focus the panel so Escape works, and
+		// fill() honors pending_focus when the rows arrive
+		if (focus === "first" && entry.rows.length) this.focus_step(entry, 1);
+		else if (focus === "last" && entry.rows.length) this.focus_step(entry, -1);
 		else entry.panel.focus({ preventScroll: true });
 	}
 
@@ -388,9 +452,40 @@ export class MenuTree {
 	}
 
 	bind_panel(entry) {
-		const { panel, rows } = entry;
+		this.bind_rows(entry);
 
-		for (const row of rows) {
+		// reaching any panel surface — including its padding and group labels,
+		// not just a row — means the pointer arrived at a menu: a close
+		// pending from a previously hovered row must not fire under the
+		// cursor, and any safe-triangle journey is complete
+		entry.panel.addEventListener("pointerenter", (e) => {
+			// real pointerenter doesn't bubble — the panel only ever sees
+			// itself as target. Synthetic events (tests) may bubble up from a
+			// row; those are the row's business, and clearing here would kill
+			// the submenu-open timer the row just scheduled.
+			if (e.target !== entry.panel) return;
+			clearTimeout(this.submenu_timer);
+			this.grace = null;
+		});
+
+		// whichever row has focus carries the highlight — this is the only
+		// place data-highlighted is ever set. Reads entry.rows live (not a
+		// captured copy) so an async fill's new rows are covered too.
+		entry.panel.addEventListener("focusin", (e) => {
+			for (const row of entry.rows) {
+				row.el.toggleAttribute("data-highlighted", row.el === e.target);
+			}
+		});
+
+		// key presses on focused rows bubble up to the panel, so one
+		// listener per panel covers all of its rows
+		entry.panel.addEventListener("keydown", (e) => this.handle_keydown(entry, e));
+	}
+
+	// per-row listeners; called at mount and again after an async fill
+	// replaces a panel's rows
+	bind_rows(entry) {
+		for (const row of entry.rows) {
 			row.el.addEventListener("click", (e) => {
 				// disabled buttons don't fire click, but a scripted or AT
 				// activation can still reach here — never act on a disabled row
@@ -411,24 +506,120 @@ export class MenuTree {
 			});
 
 			// the highlight follows the pointer; focus follows so keyboard
-			// navigation continues from where the mouse was
-			row.el.addEventListener("pointerenter", () => {
+			// navigation continues from where the mouse was. While the safe
+			// triangle is active the pointer is on its way to an open
+			// submenu — siblings crossed en route must not steal the
+			// highlight or schedule anything.
+			row.el.addEventListener("pointerenter", (e) => {
+				if (this.in_grace(e)) return;
 				row.el.focus({ preventScroll: true });
 				this.schedule_submenu(entry, row);
 			});
+
+			// leaving a row whose submenu is open starts the safe triangle:
+			// exit point + the panel's near corners
+			row.el.addEventListener("pointerleave", (e) => {
+				this.start_grace(entry, row, e);
+			});
 		}
+	}
 
-		// whichever row has focus carries the highlight — this is the only
-		// place data-highlighted is ever set
-		panel.addEventListener("focusin", (e) => {
-			for (const row of rows) {
-				row.el.toggleAttribute("data-highlighted", row.el === e.target);
+	// ---- the safe triangle (hover grace toward an open submenu) ----
+
+	start_grace(entry, row, e) {
+		const depth = this.panels.indexOf(entry);
+		const child = this.panels[depth + 1];
+		// only when THIS row's submenu is open
+		if (!child || child.parent_row !== row.el) return;
+
+		const rect = child.panel.getBoundingClientRect();
+		// the triangle spans from the exit point (nudged back so edge-hugging
+		// paths stay inside) to the panel's near edge, padded top and bottom
+		const opens_left = rect.left < e.clientX;
+		const near_x = opens_left ? rect.right : rect.left;
+		const origin_x = e.clientX + (opens_left ? GRACE_PAD : -GRACE_PAD);
+		this.grace = {
+			polygon: [
+				[origin_x, e.clientY],
+				[near_x, rect.top - GRACE_PAD],
+				[near_x, rect.bottom + GRACE_PAD],
+			],
+			expiry: Date.now() + GRACE_MS,
+		};
+	}
+
+	in_grace(e) {
+		if (!this.grace) return false;
+		if (Date.now() > this.grace.expiry) {
+			this.grace = null;
+			return false;
+		}
+		return point_in_polygon(e.clientX, e.clientY, this.grace.polygon);
+	}
+
+	// once the pointer leaves the triangle (or the grace expires), hand
+	// control back to whatever row it is actually on — pointerenter already
+	// fired and was suppressed, so it won't fire again without this
+	handle_grace_move(e) {
+		if (!this.grace) return;
+		if (
+			Date.now() <= this.grace.expiry &&
+			point_in_polygon(e.clientX, e.clientY, this.grace.polygon)
+		) {
+			return;
+		}
+		this.grace = null;
+		const row_el = e.target instanceof Element && e.target.closest(".es-menu__item");
+		if (!row_el) return;
+		for (const entry of this.panels) {
+			const row = entry.rows.find((r) => r.el === row_el);
+			if (row) {
+				row.el.focus({ preventScroll: true });
+				this.schedule_submenu(entry, row);
+				return;
 			}
-		});
+		}
+	}
 
-		// key presses on focused rows bubble up to the panel, so one
-		// listener per panel covers all of its rows
-		panel.addEventListener("keydown", (e) => this.handle_keydown(entry, e));
+	// swap a loading panel's placeholder for the resolved rows, in place.
+	// Late resolutions are dropped: the whole menu may have closed, or just
+	// that submenu panel (hover moved on) — either way there's nothing to do.
+	fill(entry, groups) {
+		if (this.closed || !this.panels.includes(entry)) return;
+		// read focus before replaceChildren blurs whatever held it
+		const had_focus =
+			entry.panel === document.activeElement || entry.panel.contains(document.activeElement);
+		entry.panel.replaceChildren();
+		entry.panel.removeAttribute("aria-busy");
+		entry.rows = render_content(entry.panel, groups, {
+			empty_text: this.empty_text,
+			component: this.component,
+		});
+		this.bind_rows(entry);
+		// the panel's size just changed — measure, flip and clamp again
+		place(entry.panel, entry.anchor(), entry.side, entry.align, entry.offset);
+		if (entry.pending_focus) {
+			this.focus_step(entry, entry.pending_focus === "last" ? -1 : 1);
+			entry.pending_focus = null;
+		} else if (had_focus) {
+			entry.panel.focus({ preventScroll: true });
+		}
+	}
+
+	// async items rejected: keep the panel up with an inert notice — a dead
+	// hover with no feedback would look like the menu is broken
+	fill_failed(entry, error) {
+		if (this.closed || !this.panels.includes(entry)) return;
+		console.warn(`frappe.ui.${this.component}: menu items failed to load`, error);
+		entry.panel.replaceChildren();
+		entry.panel.removeAttribute("aria-busy");
+		const failed = document.createElement("div");
+		failed.className = "es-menu__empty";
+		failed.textContent = __("Couldn't load options");
+		entry.panel.appendChild(failed);
+		entry.rows = [];
+		entry.pending_focus = null;
+		place(entry.panel, entry.anchor(), entry.side, entry.align, entry.offset);
 	}
 
 	// all keyboard behavior for one panel. `entry` is the panel the focused
@@ -605,6 +796,10 @@ export class MenuTree {
 	// other row closes panels deeper than this one
 	schedule_submenu(entry, row) {
 		clearTimeout(this.submenu_timer);
+		// a function submenu starts resolving at hover-START, before the open
+		// delay — a fast source is ready before the panel ever shows, so the
+		// loading state often never appears at all
+		if (row.item.submenu) this.get_submenu_items(row);
 		const depth = this.panels.indexOf(entry);
 		this.submenu_timer = setTimeout(() => {
 			if (this.closed) return;
@@ -613,19 +808,41 @@ export class MenuTree {
 		}, SUBMENU_OPEN_DELAY);
 	}
 
+	// a submenu's items: an array passes through; a function runs once per
+	// menu open and its result — value or promise — is cached, so hovering
+	// away and back doesn't refetch. When a promise resolves, the cache is
+	// swapped to the plain items so the next open of that row is synchronous.
+	// A rejected promise stays cached (no retry until the next menu open);
+	// the rejection itself is handled where the panel consumes it.
+	get_submenu_items(row) {
+		const source = row.item.submenu;
+		if (typeof source !== "function") return source;
+		if (!this.submenu_cache.has(row)) {
+			const value = source();
+			this.submenu_cache.set(row, value);
+			if (is_thenable(value)) {
+				value.then(
+					(items) => this.submenu_cache.set(row, items),
+					() => {} // fill_failed reports it; this guard just keeps the prefetch handled
+				);
+			}
+		}
+		return this.submenu_cache.get(row);
+	}
+
 	open_submenu(parent_entry, row, { focus }) {
 		// this row's submenu is already open — just step into it if asked
 		const depth = this.panels.indexOf(parent_entry);
 		const already = this.panels[depth + 1];
 		if (already && already.parent_row === row.el) {
-			if (focus) this.focus_step(already, 1);
+			if (focus && already.rows.length) this.focus_step(already, 1);
 			return;
 		}
 		// a sibling's submenu may be open — only one branch at a time
 		this.close_submenus_from(depth + 1);
 
-		const groups = normalize_options(row.item.submenu);
-		const entry = this.mount(groups, {
+		const source = this.get_submenu_items(row);
+		const mount_opts = {
 			// the submenu hangs off its row and follows it around, opening
 			// toward the reading direction (left in RTL)
 			anchor: () => row.el.getBoundingClientRect(),
@@ -634,10 +851,21 @@ export class MenuTree {
 			offset: SUBMENU_OFFSET,
 			motion: "animated",
 			parent_row: row.el,
-		});
-		// keyboard opens step onto the first row; hover opens leave focus
-		// on the parent row until the pointer moves in
-		if (focus) this.focus_step(entry, 1);
+		};
+		let entry;
+		if (is_thenable(source)) {
+			entry = this.mount(null, mount_opts);
+			if (focus) entry.pending_focus = "first";
+			source.then(
+				(items) => this.fill(entry, normalize_options(items)),
+				(error) => this.fill_failed(entry, error)
+			);
+		} else {
+			entry = this.mount(normalize_options(source), mount_opts);
+			// keyboard opens step onto the first row; hover opens leave focus
+			// on the parent row until the pointer moves in
+			if (focus) this.focus_step(entry, 1);
+		}
 	}
 
 	// close every panel deeper than `depth` (the Math.max keeps the root
@@ -698,6 +926,8 @@ export class MenuTree {
 		document.removeEventListener("pointerdown", this.onpointerdown, true);
 		window.removeEventListener("resize", this.onreposition);
 		document.removeEventListener("scroll", this.onreposition, { capture: true });
+		document.removeEventListener("pointermove", this.ongracemove, true);
+		this.grace = null;
 		if (this.onwheel) {
 			window.removeEventListener("wheel", this.onwheel, { capture: true });
 			window.removeEventListener("touchmove", this.onwheel, { capture: true });

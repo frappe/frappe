@@ -4,7 +4,7 @@ import os
 
 import frappe
 from frappe import _
-from frappe.build import scrub_html_template
+from frappe.app_state import get_disabled_modules
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
@@ -45,6 +45,7 @@ def get_meta(doctype, cached=True) -> "FormMeta":
 		#       In prod don't use cached meta when explicitly requesting from DB.
 		meta = FormMeta(doctype, cached=frappe.conf.developer_mode)
 
+	assert isinstance(meta, FormMeta), "get_meta must return a FormMeta instance"
 	return meta
 
 
@@ -126,6 +127,9 @@ class FormMeta(Meta):
 	def add_html_templates(self, path):
 		if self.custom:
 			return
+
+		from frappe.build import scrub_html_template
+
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
@@ -141,10 +145,14 @@ class FormMeta(Meta):
 	def add_custom_script(self):
 		"""embed all require files"""
 		# custom script
+		filters = {"dt": self.name, "enabled": 1}
+		if disabled_modules := get_disabled_modules():
+			filters["module"] = ["not in", list(disabled_modules)]
+
 		client_scripts = (
 			frappe.get_all(
 				"Client Script",
-				filters={"dt": self.name, "enabled": 1},
+				filters=filters,
 				fields=["name", "script", "view"],
 				order_by="creation asc",
 			)
@@ -202,7 +210,7 @@ class FormMeta(Meta):
 			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
 			(self.name,),
 			as_dict=1,
-			update={"doctype": "Print Format"},
+			update={"doctype": ":Print Format"},
 		)
 
 		self.set("__print_formats", print_formats)
@@ -283,7 +291,7 @@ class FormMeta(Meta):
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []
-	for app_name in frappe.get_installed_apps():
+	for app_name in frappe.get_active_apps():
 		code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
 		if not code_hook:
 			continue

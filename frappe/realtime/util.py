@@ -14,12 +14,12 @@ def read_header(environ: dict, name: str) -> str | None:
 
 
 def get_hostname(url: str | None) -> str | None:
-	"""hostname without scheme or port. Port of node_utils get_hostname."""
+	"""hostname without scheme, userinfo, or port."""
 	if not url:
 		return None
-	if "://" in url:
-		url = url.split("/")[2]
-	return url.split(":")[0] if ":" in url else url
+	if "://" not in url:
+		url = f"//{url}"
+	return urlsplit(url).hostname
 
 
 def resolve_site_name(environ: dict, config: RealtimeConfig) -> str | None:

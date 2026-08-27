@@ -1,6 +1,175 @@
+export function clone_plain(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
+// stable per-object id used to map a field's DOM node back to its object
+// (fields have no persistent id of their own) — e.g. for marquee selection
+const _field_uids = new WeakMap();
+let _field_uid_seq = 0;
+export function field_uid(df) {
+	if (!_field_uids.has(df)) _field_uids.set(df, "pfb-f-" + ++_field_uid_seq);
+	return _field_uids.get(df);
+}
+
+// the canvas is scaled via CSS `zoom`; convert a screen-pixel delta to doc px
+export function canvas_zoom(el) {
+	const c = el?.closest(".print-format-container");
+	return parseFloat(c && getComputedStyle(c).getPropertyValue("--pfb-zoom")) || 1;
+}
+
+export function read_json(key, fallback = null) {
+	try {
+		return JSON.parse(localStorage.getItem(key)) || fallback;
+	} catch {
+		return fallback;
+	}
+}
+
+export function write_json(key, value) {
+	try {
+		localStorage.setItem(key, JSON.stringify(value));
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+// Mirrors typst_emitter.py: TRANSLATABLE_STYLE_PROPS + typst_blockers — a UX
+// hint only; the server list is the authority and refuses at save/render
+export const TYPST_STYLE_PROPS = new Set([
+	"font-weight",
+	"border-top",
+	"border-bottom",
+	"margin-top",
+	"padding-top",
+	"padding-bottom",
+	"flex-direction",
+	"align-items",
+	"gap",
+]);
+
+// Value grammars for the props above — a recognized prop with a value the
+// server cannot translate blocks too, it never silently drops
+const TYPST_BORDER_VALUE =
+	/^\d+(\.\d+)?px\s+\w+\s+(#([0-9a-fA-F]{3}){1,2}|black|gray|silver|white|navy|blue|aqua|teal|purple|fuchsia|maroon|red|orange|yellow|olive|green|lime)$/;
+
+const TYPST_STYLE_VALUES = {
+	"font-weight": /^(bold|600|700|800|900)$/,
+	"border-top": TYPST_BORDER_VALUE,
+	"border-bottom": TYPST_BORDER_VALUE,
+	"margin-top": /^\d+(\.\d+)?(px)?$/,
+	"padding-top": /^\d+(\.\d+)?(px)?$/,
+	"padding-bottom": /^\d+(\.\d+)?(px)?$/,
+	gap: /^\d+(\.\d+)?(px)?$/,
+};
+
+export function* layout_nodes(layout) {
+	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
+	for (const zone of zones) {
+		if (!zone || typeof zone !== "object") continue;
+		yield zone;
+		for (const col of zone.columns || []) {
+			for (const df of col?.fields || []) if (df && !df.remove) yield df;
+		}
+	}
+}
+
+// mirrors safe_color / COLOR_PATTERN: Typst emits rgb("#..."), a non-hex value blocks
+const TYPST_HEX = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+function non_hex_color(value) {
+	return value && !TYPST_HEX.test(String(value).trim());
+}
+
+export function typst_blockers_client(print_format, layout, letterhead) {
+	const blockers = [];
+	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
+	if (print_format?.custom_format) return [__("Custom HTML format")];
+	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
+	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
+	for (const key of ["label_color", "value_color"]) {
+		if (non_hex_color(print_format?.[key]))
+			add(__("Format color Typst can't render: {0}", [print_format[key]]));
+	}
+	if (letterhead) {
+		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
+		const header_is_image = letterhead.source === "Image" && letterhead.image;
+		if ((letterhead.content || "").trim() && !header_is_image)
+			add(__("Letterhead with HTML content"));
+		const footer_is_image = letterhead.footer_source === "Image" && letterhead.footer_image;
+		if ((letterhead.footer || "").trim() && !footer_is_image)
+			add(__("Letterhead footer with HTML content"));
+	}
+	for (const node of layout_nodes(layout)) {
+		if ((node.custom_style || "").trim()) {
+			const unknown = [];
+			for (const declaration of node.custom_style.split(";")) {
+				if (!declaration.includes(":")) continue;
+				const [raw_prop, raw_value] = declaration.split(/:(.+)/);
+				const prop = raw_prop.trim().toLowerCase();
+				const value = (raw_value || "").trim();
+				if (!prop) continue;
+				if (!TYPST_STYLE_PROPS.has(prop)) {
+					unknown.push(prop);
+				} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
+					unknown.push(`${prop}: ${value}`);
+				}
+			}
+			if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
+		}
+		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
+		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+		if (node.fieldtype === "Barcode") {
+			if (node.custom) {
+				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
+			} else {
+				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
+				if (!meta_df || !is_qr_barcode_options(meta_df.options))
+					add(__("Barcode (non-QR)"));
+			}
+		}
+		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
+			add(__("Remote image URL"));
+		for (const key of ["label_color", "value_color"]) {
+			if (non_hex_color(node[key]))
+				add(__("Field color Typst can't render: {0}", [node[key]]));
+		}
+	}
+	return blockers;
+}
+
+// Blocks the builder invents — they never map to a docfield on the document type
+export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
+
+// Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so
+// both surfaces can be grepped for them
+export const JUSTIFY_CLASSES = {
+	"space-between": "row-col-space-between",
+	"space-evenly": "row-col-space-evenly",
+	center: "row-col-center",
+	"right-end": "row-col-right-end",
+};
+
+// Mirrors print_format_generator.is_qr_barcode_options: a Barcode docfield whose
+// options ask for a qr code — "qrcode"/"qr" or JSON like {"format": "qrcode"}
+export function is_qr_barcode_options(options) {
+	options = (options || "").trim();
+	if (["qr", "qrcode"].includes(options.toLowerCase())) return true;
+	try {
+		return ["qr", "qrcode"].includes((JSON.parse(options).format || "").toLowerCase());
+	} catch {
+		return false;
+	}
+}
+
+export function freshen_field(f) {
+	delete f.remove;
+	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
+	return f;
+}
+
 export function create_default_layout(meta, print_format) {
 	let layout = {
-		header: get_default_header(meta),
+		header: get_default_header(),
 		sections: [],
 	};
 
@@ -43,8 +212,7 @@ export function create_default_layout(meta, print_format) {
 
 	for (let df of meta.fields) {
 		if (df.fieldname) {
-			// make a copy to avoid mutation bugs
-			df = JSON.parse(JSON.stringify(df));
+			df = clone_plain(df);
 		} else {
 			continue;
 		}
@@ -82,7 +250,6 @@ export function create_default_layout(meta, print_format) {
 		}
 	}
 
-	// remove empty sections
 	layout.sections = layout.sections.filter((section) => section.has_fields);
 
 	return layout;
@@ -124,7 +291,7 @@ function get_field_template(print_format, fieldname) {
 	return null;
 }
 
-function get_default_header(meta) {
+function get_default_header() {
 	return { columns: [{ label: "", fields: [] }] };
 }
 
@@ -138,7 +305,20 @@ export function pluck(object, keys) {
 	return out;
 }
 
-export const TABLE_COLUMN_PLUCK_KEYS = [
+export const DRAG_OPTIONS = {
+	forceFallback: true,
+	fallbackOnBody: true,
+	fallbackTolerance: 4,
+	fallbackClass: "pfb-drag-fallback",
+	ghostClass: "pfb-drag-ghost",
+};
+
+export function setDragging(active) {
+	document.body.classList.toggle("pfb-dragging", active);
+	if (active) window.getSelection()?.removeAllRanges();
+}
+
+const TABLE_COLUMN_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -146,10 +326,12 @@ export const TABLE_COLUMN_PLUCK_KEYS = [
 	"width",
 	"field_template",
 	"merged_fields",
+	"merge_direction",
 	"image_size",
+	"column_condition",
 ];
 
-export const FIELD_PLUCK_KEYS = [
+const FIELD_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -163,11 +345,14 @@ export const FIELD_PLUCK_KEYS = [
 	"table_header_bg",
 	"table_border_color",
 	"html",
+	"typst",
 	"field_template",
 	"source",
 	"repeater_columns",
+	"row_condition",
 	"show_label",
 	"align",
+	"allow_page_break",
 	"label_justify",
 	"label_gap",
 	"visible_if",
@@ -177,43 +362,16 @@ export const FIELD_PLUCK_KEYS = [
 	"custom",
 	"image_url",
 	"width",
+	"height",
 	"barcode_field",
 	"barcode_value",
 	"barcode_format",
 	"show_text",
 ];
 
-export const ZONE_FIELD_PLUCK_KEYS = [
-	"label",
-	"fieldname",
-	"fieldtype",
-	"options",
-	"table_columns",
-	"table_style",
-	"table_bordered",
-	"table_header",
-	"table_header_bg",
-	"table_border_color",
-	"html",
-	"field_template",
-	"source",
-	"repeater_columns",
-	"show_label",
-	"align",
-	"label_justify",
-	"label_gap",
-	"visible_if",
-	"custom_style",
-	"value_color",
-	"label_color",
-	"custom",
-	"image_url",
-	"width",
-	"barcode_field",
-	"barcode_value",
-	"barcode_format",
-	"show_text",
-];
+const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
+	(key) => key !== "table_cell_padding" && key !== "table_radius"
+);
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -438,11 +596,13 @@ export function evaluate_visible_if(expr, doc) {
 }
 
 export function get_image_dimensions(src) {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		let img = new Image();
 		img.onload = function () {
 			resolve({ width: this.width, height: this.height });
 		};
+		// a broken src must reject, not leave the caller hanging forever
+		img.onerror = () => reject(new Error(`could not load image: ${src}`));
 		img.src = src;
 	});
 }

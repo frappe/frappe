@@ -7,12 +7,12 @@
             <br>
             {% var tables = Object.keys(added_or_removed[doc]) %}
             {% for table in tables %}
-                <h5 class="text-muted">{{ frappe.utils.escape_html(table) }}</h5>
+                <h5 class="text-muted">{{ frappe.utils.escape_html(__(table, null, doctype)) }}</h5>
                 <table class="table table-bordered">
                     <thead>
                         {% var fieldnames = Object.keys(added_or_removed[doc][table][0]) %}
                         {% for fieldname in fieldnames %}
-                            <th>{{ frappe.utils.escape_html(fieldname) }}</th>
+                            <th>{{ frappe.utils.escape_html(__(fieldname)) }}</th>
                         {% endfor %}
                     </thead>
                     <tbody>

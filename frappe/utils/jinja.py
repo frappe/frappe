@@ -190,7 +190,7 @@ def _get_jloader():
 
 	apps = frappe.get_hooks("template_apps")
 	if not apps:
-		apps = list(reversed(frappe.get_installed_apps(_ensure_on_bench=True)))
+		apps = list(reversed(frappe.get_active_apps(_ensure_on_bench=True)))
 
 	if "frappe" not in apps:
 		apps.append("frappe")
@@ -268,3 +268,4 @@ def safe_render_flags():
 	finally:
 		# Always ensure that the flag is decremented
 		frappe.flags.in_render_safe_exec -= 1
+		assert frappe.flags.in_render_safe_exec >= 0, "in_render_safe_exec flag must never go negative"

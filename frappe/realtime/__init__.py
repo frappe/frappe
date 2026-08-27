@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 
+import hmac
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
@@ -131,26 +132,27 @@ SOCKETIO_SECRET_KEY = "socketio_auth_secret"
 
 
 def get_socketio_secret():
-	"""Generate socket.io secret and store in redis"""
+	"""Read the shared realtime secret, and make it if it is not there yet.
+
+	nx: the first writer wins, thus two processes cannot store two secrets and refuse
+	each other's clients. The realtime server writes the key the same way."""
 
 	from frappe.utils.background_jobs import get_redis_connection_without_auth
 
 	r = get_redis_connection_without_auth()
 	secret = r.get(SOCKETIO_SECRET_KEY)
-	if secret:
-		return secret.decode()
-
-	secret = frappe.generate_hash(length=32)
-	r.set(SOCKETIO_SECRET_KEY, secret)
-	return secret
+	if secret is None:
+		r.set(SOCKETIO_SECRET_KEY, frappe.generate_hash(length=32), nx=True)
+		secret = r.get(SOCKETIO_SECRET_KEY)
+	return secret.decode()
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def get_user_info():
 	user_type = frappe.session.data.user_type
 	trusted_secret = get_socketio_secret()
 	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
-	if trusted_secret != provided_secret:
+	if not provided_secret or not hmac.compare_digest(trusted_secret.encode(), provided_secret.encode()):
 		return {}
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
@@ -158,7 +160,7 @@ def get_user_info():
 	return {
 		"user": frappe.session.user,
 		"user_type": user_type,
-		"installed_apps": frappe.get_installed_apps(),
+		"installed_apps": frappe.get_active_apps(),
 	}
 
 
@@ -234,7 +236,7 @@ def publish_to_room(room: str, event: str, message: dict | None = None, *, after
 # Handler-authoring surface, exposed lazily so the publish helpers above stay
 # import-light. ``Socket`` pulls in the server stack (socketio, via auth); resolving
 # it only on access keeps ``from frappe.realtime import publish_realtime`` (web
-# process) from importing socketio/gevent.
+# process) from importing socketio.
 def __getattr__(name: str) -> object:
 	if name == "realtime":
 		from frappe.realtime.registry import realtime

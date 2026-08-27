@@ -28,7 +28,7 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 		show_header: true,
 		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
-			frappe.db.get_list("Notification", {
+			frappe.doctype_settings.get_list("Notification", {
 				filters: { document_type: doctype },
 				fields: ["name", "event", "channel", "enabled"],
 				order_by: "name asc",

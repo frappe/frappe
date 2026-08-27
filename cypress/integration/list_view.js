@@ -50,9 +50,19 @@ context("List View", () => {
 		];
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
+		cy.intercept("POST", "/api/method/frappe.model.workflow.get_common_transition_actions").as(
+			"common-actions"
+		);
 		cy.get(".list-header-subject .list-subject .list-check-all").click();
+		// selecting rows triggers the workflow-actions refresh (debounced);
+		// wait for it to hide "Review" (not common to the selected docs)
+		// before opening — the menu snapshots its items at open
+		cy.wait("@common-actions");
+		cy.get('.actions-btn-group [data-label="Review"]')
+			.closest("li")
+			.should("have.css", "display", "none");
 		cy.findByRole("button", { name: "Actions" }).click();
-		cy.get(".dropdown-menu li:visible .dropdown-item")
+		cy.get('.es-menu [role="menuitem"]')
 			.should("have.length", 9)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);
@@ -98,4 +108,120 @@ context("List View", () => {
 				});
 		});
 	});
+
+	it("keeps selected rows checked after a list rerender", { scrollBehavior: false }, () => {
+		cy.go_to_list("ToDo");
+		cy.clear_filters();
+		let selected_docname;
+
+		// Step 1: select one visible row and capture its source-of-truth docname.
+		cy.get(".list-row-checkbox").first().click();
+
+		cy.window()
+			.its("cur_list")
+			.then((list) => {
+				const selected_docnames = Array.from(list.checked_docnames);
+				expect(selected_docnames.length).to.equal(1);
+
+				// Step 2: force a list rerender; the same row should still resolve as checked.
+				selected_docname = selected_docnames[0];
+				list.render_list();
+			});
+
+		cy.window()
+			.its("cur_list")
+			.should((list) => {
+				const $checkbox = list.find_checkbox_by_docname(selected_docname);
+				expect($checkbox.length).to.equal(1);
+				expect($checkbox.prop("checked")).to.equal(true);
+			});
+	});
+
+	it(
+		"preserves select-all across virtualized window rerenders",
+		{ scrollBehavior: false },
+		() => {
+			cy.go_to_list("ToDo");
+			cy.clear_filters();
+
+			// Step 1: force virtual mode even on small fixtures to exercise virtualization path.
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.data.length).to.be.greaterThan(0);
+					list.virtualization_threshold = 1;
+					list.render_list();
+				});
+
+			// Step 2: select all and verify Set tracks all docs, not just visible DOM rows.
+			cy.get('.list-row-container[data-virtual-row="1"]').should("exist");
+			cy.get(".list-header-subject .list-subject .list-check-all").click();
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.checked_docnames.size).to.equal(list.data.length);
+				});
+
+			// Step 3: scroll to trigger window swap; selection state must remain intact.
+			cy.get(".result-container").scrollTo("bottom", {
+				duration: 0,
+				ensureScrollable: false,
+			});
+			cy.wait(150);
+			cy.window()
+				.its("cur_list")
+				.then((list) => list.render_virtual_rows(true));
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.checked_docnames.size).to.equal(list.data.length);
+				});
+
+			cy.get(".result-container .list-row-checkbox:checked").should("exist");
+		}
+	);
+
+	it(
+		"keeps mobile virtual rows rendered during fast downward scroll",
+		{ scrollBehavior: false },
+		() => {
+			cy.viewport("iphone-6");
+			cy.go_to_list("ToDo");
+			cy.clear_filters();
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.data.length).to.be.greaterThan(0);
+					list.virtualization_threshold = 1;
+					list.render_list();
+				});
+
+			cy.get('.list-row-container[data-virtual-row="1"]').should("exist");
+
+			cy.get(".result-container").scrollTo("bottom", {
+				duration: 0,
+				ensureScrollable: false,
+			});
+
+			cy.wait(150);
+			cy.window()
+				.its("cur_list")
+				.then((list) => list.render_virtual_rows(true));
+
+			cy.get('.list-row-container[data-virtual-row="1"] .list-row')
+				.should("exist")
+				.and("have.length.greaterThan", 0);
+
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.virtualization_state.end).to.be.greaterThan(
+						list.virtualization_state.start
+					);
+				});
+		}
+	);
 });

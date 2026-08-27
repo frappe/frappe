@@ -1,6 +1,6 @@
 frappe.ui.BackgroundTasks = class BackgroundTasks {
 	constructor(opts) {
-		this.wrapper = opts?.wrapper || $(".standard-items-sections");
+		this.wrapper = opts?.wrapper || $(".body-sidebar");
 		this.db_tasks = [];
 		this.has_fetched = false;
 		this.make();
@@ -51,9 +51,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 		});
 
 		$(document).on("click", (e) => {
-			const isInsideBtn =
-				$(e.target).closest(".standard-items-sections .sidebar-background-tasks").length >
-				0;
+			const isInsideBtn = $(e.target).closest(".sidebar-background-tasks").length > 0;
 			const isInsideDropdown =
 				$(e.target).closest(".dropdown-background-tasks .background-tasks-list").length >
 				0;

@@ -314,7 +314,7 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def bulk_workflow_approval(docnames: str | list, doctype: str, action: str):
 	docnames = frappe.parse_json(docnames)
 	if len(docnames) < 20:
@@ -375,6 +375,10 @@ def _bulk_workflow_action(docnames, doctype, action):
 							successful_transactions[docname].append(message_dict)
 				else:
 					successful_transactions[docname].append({"docname": docname, "message": None})
+
+	assert all(
+		docname in failed_transactions or docname in successful_transactions for docname in docnames
+	), "every docname must be recorded as either a failed or successful transaction"
 
 	if failed_transactions and successful_transactions:
 		indicator = "orange"

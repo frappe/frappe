@@ -1,4 +1,11 @@
 {% import "templates/print_format/macros.html" as macros %}
+{#- A section's justify names one of these classes and nothing else -#}
+{%- set justify_classes = {
+	'space-between': 'row-col-space-between',
+	'space-evenly': 'row-col-space-evenly',
+	'center': 'row-col-center',
+	'right-end': 'row-col-right-end',
+} -%}
 
 <!DOCTYPE html>
 <html lang="{{ lang or 'en' }}"{% if layout_direction %} dir="{{ layout_direction }}"{% endif %}>
@@ -19,8 +26,14 @@
 	<style>{{ letterhead.custom_css }}</style>
 	{%- endif -%}
 </head>
-<body class="print-format-doc">
+<body class="print-format-doc{% if print_format and print_format.show_label_colon %} show-label-colon{% endif %}">
 	{{ action_banner or '' }}
+	{%- if repeat_frame -%}
+	<table class="print-repeating-frame">
+	<thead><tr><td>{{ frame_header or '' }}</td></tr></thead>
+	{%- if frame_footer -%}<tfoot><tr><td>{{ frame_footer }}</td></tr></tfoot>{%- endif -%}
+	<tbody><tr><td>
+	{%- else -%}
 	{{ header or '' }}
 	{#- Chrome PDF: layout.header rendered once as a body element (page 1 only, reliable height) -#}
 	{{ chrome_layout_header or '' }}
@@ -34,7 +47,7 @@
 	{%- if ns_h.has_fields -%}
 	{%- set col_gap = (layout.header.gap if layout.header.gap is defined and layout.header.gap != None else 20)|string + 'px' -%}
 	<div class="section document-header-content">
-	<div class="section-columns row" style="gap:{{ col_gap }}">
+	<div class="section-columns row {{ justify_classes.get(layout.header.justify, '') }}" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
 	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
@@ -44,6 +57,12 @@
 	</div>
 	{%- endif -%}
 	{%- endif -%}
+	{%- endif -%}
+	{%- endif -%}
+	{%- if doc.meta.is_submittable and doc.docstatus == 0 and (not print_settings or print_settings.add_draft_heading) -%}
+	<div document-status="draft"><h4>{{ _("DRAFT") }}</h4></div>
+	{%- elif doc.meta.is_submittable and doc.docstatus == 2 -%}
+	<div document-status="cancelled"><h4>{{ _("CANCELLED") }}</h4></div>
 	{%- endif -%}
 	{% for section in layout.sections %}
 	{%- if not section.get('_hidden') -%}
@@ -57,6 +76,11 @@
 				{%- if df.source and doc.get(df.source) -%}
 					{%- set ns.has_content = true -%}
 				{%- endif -%}
+			{%- elif df.fieldtype == 'Table' -%}
+				{%- set _tr = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
+				{%- if _tr and df.table_columns -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
 			{%- elif doc.get(df.fieldname) -%}
 				{%- set ns.has_content = true -%}
 			{%- endif -%}
@@ -67,28 +91,40 @@
 	{%- if section.background -%}
 		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
-	{%- for prop in ['padding', 'margin'] -%}
-		{%- set box = section.get(prop) -%}
-		{%- if box -%}
-			{%- set ns3.section_style = ns3.section_style + prop + ':' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
+	{%- if section.margin -%}
+		{%- set box = section.margin -%}
+		{%- set ns3.section_style = ns3.section_style + 'margin:' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
+	{%- endif -%}
+	{%- if section.padding -%}
+		{%- set box = section.padding -%}
+		{%- if section.field_borders -%}
+			{# table mode: fold padding into the edge cells, not element padding #}
+			{%- set ns3.section_style = ns3.section_style + '--pfb-pad-top:' + (box.top or 0)|string + 'px;--pfb-pad-right:' + (box.right or 0)|string + 'px;--pfb-pad-bottom:' + (box.bottom or 0)|string + 'px;--pfb-pad-left:' + (box.left or 0)|string + 'px;' -%}
+		{%- else -%}
+			{%- set ns3.section_style = ns3.section_style + 'padding:' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
 		{%- endif -%}
-	{%- endfor -%}
+	{%- endif -%}
 	{%- if section.field_borders -%}
 		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
 		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}
 	{%- endif -%}
+	{%- if section.radius is defined and section.radius is not none -%}
+		{%- set ns3.section_style = ns3.section_style + 'border-radius:' + section.radius|string + 'px;' -%}
+	{%- endif -%}
 	{%- if section.custom_style -%}
 		{%- set ns3.section_style = ns3.section_style + section.custom_style|string -%}
 	{%- endif -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
+	<div class="section {{ resolve_class({'page-break': section.page_break, 'keep-together': section.keep_together}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
-		<div class="section-label">{{ _(section.label) }}</div>
+		<div class="section-label">{{ _(section.label)|e }}</div>
 		{% endif %}
 
-		{#- Detect right-aligned columns to pick the right row layout class -#}
+		{#- The section's own justify wins; a right-aligned column is the older way to ask -#}
 		{%- set ns2 = namespace(has_right=false) -%}
 		{%- for col in section.columns -%}{%- if col.align == 'right' -%}{%- set ns2.has_right = true -%}{%- endif -%}{%- endfor -%}
-		{%- if ns2.has_right and section.columns | length == 1 -%}
+		{%- if section.justify in justify_classes -%}
+			{%- set row_layout = justify_classes[section.justify] -%}
+		{%- elif ns2.has_right and section.columns | length == 1 -%}
 			{%- set row_layout = 'row-col-right-end' -%}
 		{%- elif ns2.has_right -%}
 			{%- set row_layout = 'row-col-space-between' -%}
@@ -109,6 +145,9 @@
 	{%- endif -%}
 	{%- endif -%}
 	{% endfor %}
+	{%- if repeat_frame -%}
+	</td></tr></tbody></table>
+	{%- else -%}
 	{#- Chrome PDF: layout.footer rendered once at the end of body -#}
 	{{ chrome_layout_footer or '' }}
 	{#- HTML preview: render layout.footer once at the bottom of the body -#}
@@ -121,7 +160,7 @@
 	{%- if ns_f.has_fields -%}
 	{%- set col_gap_f = (layout.footer.gap if layout.footer.gap is defined and layout.footer.gap != None else 20)|string + 'px' -%}
 	<div class="section document-footer-content">
-	<div class="section-columns row" style="gap:{{ col_gap_f }}">
+	<div class="section-columns row {{ justify_classes.get(layout.footer.justify, '') }}" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
 	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
@@ -133,6 +172,7 @@
 	{%- endif -%}
 	{%- endif -%}
 	{{ footer or '' }}
+	{%- endif -%}
 	{{ include_script('print.bundle.js') }}
 	<script>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
 	{{ trigger_print_script or '' }}

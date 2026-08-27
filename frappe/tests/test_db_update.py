@@ -1,5 +1,6 @@
 import random
 from unittest.case import skipIf
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -134,6 +135,39 @@ class TestDBUpdate(IntegrationTestCase):
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_type_change_keeps_dynamic_defaults_dynamic(self):
+		"""A Today/Now default must not be frozen into the column when the type changes"""
+
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "starts_on", "fieldtype": "Data", "default": "Now"},
+				{"fieldname": "starts_day", "fieldtype": "Data", "default": "Today"},
+			]
+		).insert()
+		table = f"tab{doctype.name}"
+		# the type change below is DDL and commits itself, so the table outlives this test's
+		# rollback and has to be dropped (and that drop committed) whatever the assertions do
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{table}" CASCADE')
+		self.addCleanup(doctype.delete)
+
+		for field in doctype.fields:
+			field.fieldtype = "Datetime" if field.fieldname == "starts_on" else "Date"
+		doctype.save()
+
+		for column in ("starts_on", "starts_day"):
+			expression = frappe.db.sql(
+				"""SELECT pg_get_expr(d.adbin, d.adrelid)
+				FROM pg_attrdef d
+				JOIN pg_class c ON c.oid = d.adrelid
+				JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = d.adnum
+				WHERE c.relname = %s AND a.attname = %s""",
+				(table, column),
+				pluck=True,
+			)
+			self.assertFalse(expression, msg=f"{column} kept a frozen literal default: {expression}")
+
 	def test_bigint_conversion(self):
 		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
 
@@ -167,6 +201,27 @@ class TestDBUpdate(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			doctype.save()
 		frappe.db.rollback()
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
+		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
+
+		doctype = new_doctype(fields=[{"fieldname": "amount", "fieldtype": "Data"}]).insert()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `tab{doctype.name}`")
+		self.addCleanup(doctype.delete)
+
+		blank = frappe.get_doc(doctype=doctype.name, amount="").insert()
+		priced = frappe.get_doc(doctype=doctype.name, amount="99.5").insert()
+		frappe.db.commit()  # nosemgrep
+
+		doctype.fields[0].fieldtype = "Currency"
+		with patch.dict(frappe.flags, {"in_migrate": True}):
+			doctype.save()
+
+		self.assertIn("decimal", frappe.db.get_column_type(doctype.name, "amount"))
+		self.assertEqual(frappe.db.get_value(doctype.name, blank.name, "amount"), 0)
+		self.assertEqual(frappe.db.get_value(doctype.name, priced.name, "amount"), 99.5)
 
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
@@ -207,6 +262,57 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.delete()
 			frappe.db.commit()
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_manual_indexes_are_not_reported_as_search_indexes(self):
+		"""A partial, covering or non-btree index is never the framework's search index"""
+
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "status", "fieldtype": "Data"},
+				{"fieldname": "payload", "fieldtype": "Data"},
+			]
+		).insert()
+		table = f"tab{doctype.name}"
+		# add_index is DDL and commits itself, so the table outlives this test's rollback and has
+		# to be dropped (and that drop committed) whatever the assertions do
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{table}" CASCADE')
+		self.addCleanup(doctype.delete)
+
+		for index_name, kwargs in (
+			("zz_partial_idx", {"where": "status <> 'done'"}),
+			("zz_covering_idx", {"include": ["payload"]}),
+			("zz_trigram_idx", {"using": "gin_trgm"}),
+		):
+			frappe.db.add_index(doctype.name, ["status"], index_name=index_name, **kwargs)
+			column = get_table_column(doctype.name, "status")
+			frappe.db.sql_ddl(f'DROP INDEX IF EXISTS "{index_name}"')
+			self.assertFalse(column.index, msg=f"{index_name} was taken for the search index")
+
+		# but a plain btree index on the column is exactly that
+		frappe.db.add_index(doctype.name, ["status"])
+		self.assertTrue(get_table_column(doctype.name, "status").index)
+
+	def test_unique_index_name_is_scoped_to_its_table(self):
+		"""Two doctypes sharing a unique fieldname must each get their own enforced index"""
+
+		first = new_doctype(unique=1).insert()
+		second = new_doctype(unique=1).insert()
+		try:
+			# the alter path (as opposed to table creation) is what names the index itself
+			for doctype in (first, second):
+				doctype.fields[0].unique = 0
+				doctype.save()
+				doctype.fields[0].unique = 1
+				doctype.save()
+
+			for doctype in (first, second):
+				self.check_unique_indexes(doctype.name, "some_fieldname")
+		finally:
+			first.delete()
+			second.delete()
+			frappe.db.commit()
+
 	def test_unique_index_on_field_with_search_index(self):
 		"""Unique index must be created even when the field already has a search index"""
 
@@ -229,6 +335,36 @@ class TestDBUpdate(IntegrationTestCase):
 		finally:
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_drop_index_for_accent_colliding_fields(self):
+		# removing two fields whose names collide under the collation must not fail schema sync
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "some_fieldname", "fieldtype": "Data"},
+				{"fieldname": "patrimonio", "fieldtype": "Data", "unique": 1},
+				{"fieldname": "patrimônio", "fieldtype": "Data", "unique": 1},
+			]
+		).insert()
+		try:
+			self.assertTrue(self.get_unique_index(doctype.name, "patrimonio"))
+			self.assertTrue(self.get_unique_index(doctype.name, "patrimônio"))
+
+			doctype.fields = [f for f in doctype.fields if f.fieldname not in ("patrimonio", "patrimônio")]
+			doctype.save()
+
+			self.assertFalse(self.get_unique_index(doctype.name, "patrimonio"))
+			self.assertFalse(self.get_unique_index(doctype.name, "patrimônio"))
+		finally:
+			# DDL in this test auto-commits, so the cleanup delete must be committed explicitly
+			doctype.delete()
+			frappe.db.commit()  # nosemgrep
+
+	def get_unique_index(self, doctype: str, column: str):
+		# binary match so colliding names are compared exactly
+		return frappe.db.sql(
+			f"show index from `tab{doctype}` where column_name = binary %s and Non_unique = 0", column
+		)
 
 	def test_uuid_varchar_migration(self):
 		doctype = new_doctype().insert()

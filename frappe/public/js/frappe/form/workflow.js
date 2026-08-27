@@ -59,6 +59,11 @@ frappe.ui.form.States = class FormStates {
 	}
 
 	refresh() {
+		// always drop the previous doc's actions first — a doc with no
+		// workflow_state (it predates the workflow) never reaches
+		// show_actions, and would otherwise keep showing them
+		this.frm.page.clear_actions_menu();
+
 		// hide if its not yet saved
 		if (this.frm.doc.__islocal) {
 			this.set_default_state();
@@ -96,8 +101,11 @@ frappe.ui.form.States = class FormStates {
 			return approval_access;
 		}
 
+		// refresh() already cleared the menu synchronously; guard the async
+		// re-fill against the user having navigated to another doc meanwhile
+		const docname = this.frm.doc.name;
 		frappe.workflow.get_transitions(this.frm.doc).then((transitions) => {
-			this.frm.page.clear_actions_menu();
+			if (this.frm.doc.name !== docname) return;
 			transitions.forEach((d) => {
 				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;

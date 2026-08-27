@@ -2,7 +2,9 @@ const path = require("path");
 const fs = require("fs");
 const glob = require("fast-glob");
 
-module.exports = {
+// esbuild validates plugin objects strictly, so the plugin and the helper
+// (used by derive-rtl.js for outputs that bypass esbuild) are separate exports.
+const plugin = {
 	name: "build_cleanup",
 	setup(build) {
 		build.onEnd((result) => {
@@ -11,6 +13,8 @@ module.exports = {
 		});
 	},
 };
+
+module.exports = { plugin, clean_dist_files };
 
 function clean_dist_files(new_files) {
 	new_files.forEach((file) => {

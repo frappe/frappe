@@ -160,6 +160,7 @@ def delete_doc(
 			if not for_reload:
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
+				doc.flags.force_delete = force
 
 				if not ignore_on_trash:
 					doc.run_method("on_trash")

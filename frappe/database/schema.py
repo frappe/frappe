@@ -181,6 +181,10 @@ class DBTable:
 
 NOT_NULL_TYPES = ("Check", "Int", "Currency", "Float", "Percent")
 
+assert set(CONFIGURABLE_DECIMAL_TYPES) <= set(NOT_NULL_TYPES), (
+	"configurable decimal types must be a subset of not-null types"
+)
+
 
 class DbColumn:
 	def __init__(

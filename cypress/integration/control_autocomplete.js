@@ -2,7 +2,7 @@ context("Control Autocomplete", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/desk");
-		cy.wait(4000);
+		cy.desk_ready();
 	});
 
 	const get_dialog_with_autocomplete = (fieldname, options) => {

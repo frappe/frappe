@@ -49,7 +49,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 			if len(meta.get_global_search_fields()) > 0:
 				global_search_doctypes.append(d)
 
-		installed_apps = frappe.get_installed_apps()
+		installed_apps = frappe.get_active_apps()
 		module_app = frappe.local.module_app
 
 		doctypes = [
@@ -166,6 +166,7 @@ def get_selected_fields(meta, global_search_fields):
 	if meta.has_field("is_website_published"):
 		fieldnames.append("is_website_published")
 
+	assert fieldnames, "selected fields must always include an identifier column"
 	return fieldnames
 
 
@@ -298,7 +299,7 @@ def update_global_search_for_all_web_pages():
 
 
 def get_routes_to_index():
-	apps = frappe.get_installed_apps()
+	apps = frappe.get_active_apps()
 
 	routes_to_index = []
 	for app in apps:
@@ -397,6 +398,7 @@ def _get_deduped_search_item_values(items):
 		key = (item_dict["doctype"], item_dict["name"])
 		values_dict[key] = tuple(item_dict.values())
 
+	assert len(values_dict) <= len(items), "dedup must not produce more values than input items"
 	return values_dict.values()
 
 

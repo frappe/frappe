@@ -54,7 +54,7 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			);
 			for (const [key, value] of Object.entries(filters_json)) {
 				if (Array.isArray(value)) {
-					filters_json[key] = value[1];
+					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
 				}
 			}
 			if (item.link_type == "DocType") {
@@ -116,6 +116,16 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			})
 		);
 		$(this.container).append(this.wrapper);
+		this.setup_click();
+	}
+
+	setup_click() {
+		if (!this.path) return;
+		this.wrapper.find(".item-anchor").on("click", () => {
+			if (frappe.is_mobile()) {
+				frappe.app.sidebar.close();
+			}
+		});
 	}
 	set_suffix() {
 		if (this.item.suffix) {
@@ -213,16 +223,20 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 
 	enable_collapsible(item, $item_container) {
 		let sidebar_control = this.$item_control;
-		let drop_icon = "chevron-down";
+		let stroke_color = window.getComputedStyle(document.body).getPropertyValue("--ink-gray-5");
+
 		if (item.collapsible) {
-			let stroke_color = window
-				.getComputedStyle(document.body)
-				.getPropertyValue("--ink-gray-5");
 			this.$drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
-				.html(frappe.utils.icon(drop_icon, "sm", "", "", "", "", stroke_color))
+				.html(frappe.utils.icon("chevron-down", "sm", "", "", "", "", stroke_color))
 				.appendTo(sidebar_control);
 
 			this.$drop_icon.removeClass("hidden");
+		} else if (item.show_arrow) {
+			// The leading chevron span was removed from sidebar_item.html, so build the
+			// toggle indicator here instead of selecting the now-absent [item-icon] span.
+			this.$drop_icon = $(`<button class="btn-reset drop-icon">`)
+				.html(frappe.utils.icon("chevron-right", "sm", "", "", "", "", stroke_color))
+				.prependTo(this.wrapper.find(".item-anchor").first());
 		}
 
 		if (item.keep_closed) {
@@ -233,9 +247,6 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			this.section_breaks_state[this.workspace_title]
 		) {
 			this.apply_section_break_state();
-		}
-		if (item.show_arrow) {
-			this.$drop_icon = this.wrapper.find('[item-icon="chevron-right"]');
 		}
 		if (item.collapsible || item.show_arrow) {
 			this.setup_event_listner();
@@ -291,9 +302,9 @@ frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
 	constructor(item, items) {
 		super(item);
 		this.title = frappe.app.sidebar.workspace_title;
-		this.setup_click();
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		this.wrapper.on("click", function () {
@@ -343,9 +354,9 @@ frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sideba
 		this.item.id && this.wrapper.attr("id", this.item.id);
 		this.item.class && this.wrapper.attr("class", this.item.class);
 		this.wrapper.attr("title", this.item.label);
-		this.setup_click();
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		if (this.item.onClick) {

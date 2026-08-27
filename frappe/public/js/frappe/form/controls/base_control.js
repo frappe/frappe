@@ -84,7 +84,7 @@ frappe.ui.form.Control = class BaseControl {
 			if (
 				status === "Read" &&
 				is_null(value) &&
-				!["HTML", "Image", "Button"].includes(this.df.fieldtype)
+				!["Attachment Gallery", "HTML", "Image", "Button"].includes(this.df.fieldtype)
 			)
 				status = "Read";
 
@@ -124,8 +124,10 @@ frappe.ui.form.Control = class BaseControl {
 			status === "Read" &&
 			!this.only_input &&
 			is_null(value) &&
-			cint(frappe.boot.sysdefaults.hide_empty_read_only_fields) &&
-			!["HTML", "Image", "Button", "Geolocation"].includes(this.df.fieldtype)
+			frappe.defaults.is_enabled("hide_empty_read_only_fields") &&
+			!["Attachment Gallery", "HTML", "Image", "Button", "Geolocation"].includes(
+				this.df.fieldtype
+			)
 		) {
 			if (explain) console.log("By Hide Read-only, null fields: None");
 			status = "None";

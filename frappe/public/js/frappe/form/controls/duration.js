@@ -20,7 +20,6 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 				<div class="picker-row row"></div>
 			</div>`
 		);
-		this.$wrapper.append(this.$picker);
 		this.build_numeric_input(
 			"days",
 			this.duration_options.hide_days,
@@ -84,7 +83,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 		// flag to handle the display property of the picker
 		let clicked = false;
 
-		this.$wrapper.find(".duration-input").mousedown(() => {
+		this.$picker.on("mousedown", ".duration-input", () => {
 			// input in individual duration boxes
 			clicked = true;
 		});
@@ -125,6 +124,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 	}
 
 	show_picker() {
+		$(document.body).append(this.$picker);
 		this.$picker.show();
 		this.position_picker();
 		document.addEventListener("scroll", this.reposition_picker, true);
@@ -133,6 +133,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 
 	hide_picker() {
 		this.$picker.hide();
+		this.$picker.detach();
 		document.removeEventListener("scroll", this.reposition_picker, true);
 		window.removeEventListener("resize", this.reposition_picker);
 	}

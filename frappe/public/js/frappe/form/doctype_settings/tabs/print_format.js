@@ -1,7 +1,12 @@
+// Rendered print HTML, keyed by doctype::format::sample. Kept outside the builder
+// because the panel re-runs it on every open, and the same format renders the same.
+const html_cache = new Map();
+
 frappe.doctype_settings.register("print-format", function (panel, doctype) {
 	// Captured each load: current default + a printable sample doc for previews.
 	let default_pf = null;
 	let sample_name = null;
+	let thumb_observer = null;
 
 	// Editing a format opens it in the Print Format Builder.
 	const open_edit = (name) => {
@@ -46,8 +51,10 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 	});
 
 	function load() {
+		thumb_observer?.disconnect();
+		thumb_observer = null;
 		panel.body.empty();
-		$(`<div class="text-muted small">${__("Loading")}</div>`).appendTo(panel.body);
+		frappe.doctype_settings.render_loading(panel.body);
 
 		// Reuse generic client APIs: get_list for the formats and a printable sample
 		// (submitted-only for submittable doctypes) for previews. The current default is
@@ -57,13 +64,13 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		const sample_filters = meta.is_submittable ? { docstatus: 1 } : {};
 
 		Promise.all([
-			frappe.db.get_list("Print Format", {
+			frappe.doctype_settings.get_list("Print Format", {
 				filters: { doc_type: doctype },
-				fields: ["name", "standard", "preview_image"],
+				fields: ["name", "standard"],
 				order_by: "standard asc, name asc",
 				limit: 0,
 			}),
-			frappe.db.get_list(doctype, {
+			frappe.doctype_settings.get_list(doctype, {
 				filters: sample_filters,
 				fields: ["name"],
 				order_by: "modified desc",
@@ -76,7 +83,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				default_pf = current_default;
 				render(formats || []);
 			})
-			.catch(() => frappe.doctype_settings.render_error(panel, load));
+			.catch((err) => frappe.doctype_settings.render_error(panel, load, err));
 	}
 
 	// Default print format lives in a Property Setter for standard doctypes (Customize
@@ -111,6 +118,13 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 
 		const $grid = $('<div class="dts-pf-grid"></div>').appendTo(panel.body);
 		formats.forEach((f) => $grid.append(make_card(f)));
+
+		// The first screenful renders straight away — waiting on the observer would leave
+		// the visible cards blank until something scrolls. The rest load as they're reached.
+		$grid.find(".dts-pf-thumb").each((i, el) => {
+			if (i < EAGER_THUMBS) load_thumb($(el));
+			else observe_thumb($(el));
+		});
 	}
 
 	function make_card(f) {
@@ -143,13 +157,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 
 		if (is_custom) $card.find(".dts-pf-badge").removeClass("hide");
 
-		// Thumbnail comes from the Print Format's own `preview_image` (generated from its
-		// form's "Generate Preview" button); formats without one show the placeholder.
-		if (f.preview_image) {
-			$thumb
-				.find(".dts-pf-placeholder")
-				.replaceWith($('<img class="dts-pf-img" />').attr("src", f.preview_image));
-		}
+		$thumb.data("pf", f.name);
 
 		// The page thumbnail → full preview.
 		$thumb.on("click", () => preview(f.name));
@@ -174,6 +182,96 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		return $card;
 	}
 
+	// One render path for both surfaces: the card thumbnail and the full-size dialog show
+	// the same print HTML, so a card can never disagree with what opening it reveals.
+	const PREVIEW_WIDTH = 850;
+	const EAGER_THUMBS = 6;
+
+	function fetch_print_html(pf) {
+		const key = `${doctype}::${pf}::${sample_name}`;
+		if (html_cache.has(key)) return html_cache.get(key);
+		const req = new Promise((resolve) => {
+			frappe.call({
+				method: "frappe.www.printview.get_html_and_style",
+				args: {
+					doc: doctype,
+					name: sample_name,
+					print_format: pf,
+					no_letterhead: 0,
+					trigger_print: 0,
+				},
+				callback: (r) => resolve(r.exc ? null : r.message),
+				error: () => resolve(null),
+			});
+		});
+		html_cache.set(key, req);
+		return req;
+	}
+
+	// Sandboxed with no `allow-same-origin` (and no `allow-scripts`): the iframe gets an
+	// opaque origin, so it can't run scripts, read/send this site's cookies, or access
+	// same-origin storage. Loading a linked stylesheet doesn't require allow-same-origin.
+	function make_frame(message, css_class) {
+		const $iframe = $(`<iframe class="${css_class}" frameborder="0" sandbox=""></iframe>`);
+		const html = message.html || "";
+		if (/^\s*<(!doctype|html)\b/i.test(html)) {
+			$iframe[0].srcdoc = html;
+			return $iframe;
+		}
+
+		const base_url = frappe.urllib.get_base_url();
+		const print_css = frappe.assets.bundled_asset("print.bundle.css");
+		// A format's CSS is user/admin-authored and untrusted. Escaping every "</" stops
+		// a "</style>" (or any other closing tag) inside it from breaking out of the
+		// <style> block and injecting raw HTML into the srcdoc.
+		const safe_style = (message.style || "").replace(/<\//g, "<\\/");
+		$iframe[0].srcdoc = `<!DOCTYPE html>
+<html>
+	<head>
+		<link href="${base_url}${print_css}" rel="stylesheet">
+		<style>${safe_style}</style>
+	</head>
+	<body>
+		<div class="print-format print-format-preview">${html}</div>
+	</body>
+</html>`;
+		return $iframe;
+	}
+
+	// A thumbnail is the format itself at page width, scaled down to the card — no stored
+	// image to go stale, and only the cards you actually scroll to are ever rendered.
+	function load_thumb($thumb) {
+		const pf = $thumb.data("pf");
+		if (!pf || !sample_name) return;
+		fetch_print_html(pf).then((message) => {
+			if (!message || !$thumb.closest("body").length) return;
+			const $frame = make_frame(message, "dts-pf-frame");
+			$thumb.empty().append($frame);
+			const scale = ($thumb.width() || PREVIEW_WIDTH) / PREVIEW_WIDTH;
+			$frame.css({
+				width: `${PREVIEW_WIDTH}px`,
+				height: `${PREVIEW_WIDTH * 1.414}px`,
+				transform: `scale(${scale})`,
+			});
+		});
+	}
+
+	function observe_thumb($thumb) {
+		if (!window.IntersectionObserver) return load_thumb($thumb);
+		if (!thumb_observer) {
+			thumb_observer = new IntersectionObserver(
+				(entries) =>
+					entries.forEach((entry) => {
+						if (!entry.isIntersecting) return;
+						thumb_observer.unobserve(entry.target);
+						load_thumb($(entry.target));
+					}),
+				{ rootMargin: "200px" }
+			);
+		}
+		thumb_observer.observe($thumb[0]);
+	}
+
 	function preview(pf) {
 		if (!sample_name) {
 			frappe.msgprint({
@@ -191,50 +289,13 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			fields: [{ fieldtype: "HTML", fieldname: "preview" }],
 		});
 		const $wrapper = dialog.fields_dict.preview.$wrapper;
-		$wrapper.html(`<div class="text-muted small">${__("Loading")}</div>`);
+		$wrapper.empty();
+		frappe.doctype_settings.render_loading($wrapper);
 		dialog.show();
 
-		// Render the print HTML server-side and inject it as a static (JS-free) iframe via
-		// srcdoc. Loading the live /printview page in an iframe boots a full Frappe app
-		// whose router throws a cross-realm error if the dialog closes mid-load. We mirror
-		// the print page's own structure: the base print stylesheet (absolute URL, since
-		// srcdoc has no base) + the format style, with the html in a `.print-format` wrapper.
-		frappe.call({
-			method: "frappe.www.printview.get_html_and_style",
-			args: {
-				doc: doctype,
-				name: sample_name,
-				print_format: pf,
-				no_letterhead: 0,
-				trigger_print: 0,
-			},
-			callback: (r) => {
-				if (r.exc || !r.message) return;
-				const base_url = frappe.urllib.get_base_url();
-				const print_css = frappe.assets.bundled_asset("print.bundle.css");
-				// A format's CSS is user/admin-authored and untrusted. Escaping every "</" stops
-				// a "</style>" (or any other closing tag) inside it from breaking out of the
-				// <style> block and injecting raw HTML into the srcdoc.
-				const safe_style = (r.message.style || "").replace(/<\//g, "<\\/");
-				// Sandboxed with no `allow-same-origin` (and no `allow-scripts`): the iframe gets
-				// an opaque origin, so it can't run scripts, read/send this site's cookies, or
-				// access same-origin storage — even if the CSS/HTML above were bypassed some
-				// other way. Loading the linked stylesheet doesn't require allow-same-origin.
-				const $iframe = $(
-					'<iframe class="dts-preview-frame" frameborder="0" sandbox=""></iframe>'
-				);
-				$wrapper.empty().append($iframe);
-				$iframe[0].srcdoc = `<!DOCTYPE html>
-<html>
-	<head>
-		<link href="${base_url}${print_css}" rel="stylesheet">
-		<style>${safe_style}</style>
-	</head>
-	<body>
-		<div class="print-format print-format-preview">${r.message.html || ""}</div>
-	</body>
-</html>`;
-			},
+		fetch_print_html(pf).then((message) => {
+			if (!message) return;
+			$wrapper.empty().append(make_frame(message, "dts-preview-frame"));
 		});
 	}
 

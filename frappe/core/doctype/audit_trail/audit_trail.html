@@ -22,7 +22,7 @@
             <tbody>
                 {% for fieldname in field_keys %}
                     <tr>
-                        <td> {{ frappe.utils.escape_html(fieldname) }} </td>
+                        <td> {{ frappe.utils.escape_html(__(fieldname, null, doctype)) }} </td>
                         {% var values = changed[fieldname] %}
 
                         {% for value in values %}
@@ -47,7 +47,7 @@
                     {% for table in tables %}
                     <tr>
                         <tr>
-                            <td><b>{{ frappe.utils.escape_html(table) }}</b></td>
+                            <td><b>{{ frappe.utils.escape_html(__(table, null, doctype)) }}</b></td>
                             {% for doc in documents %}
                                 <td><b>{{ frappe.utils.escape_html(doc) }}</b></td>
                             {% endfor %}
@@ -59,7 +59,7 @@
                             {% var fields = Object.keys(row_changed[table][idx]).sort(); %}
                             {% for field in fields %}
                                 <tr>
-                                    <td>{{ frappe.utils.escape_html(field) }}</td>
+                                    <td>{{ frappe.utils.escape_html(__(field)) }}</td>
                                     {% var values = row_changed[table][idx][field] %}
                                     {% for value in values %}
                                         <td> {{ frappe.utils.escape_html(value) }} </td>

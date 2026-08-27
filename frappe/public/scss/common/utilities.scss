@@ -113,14 +113,16 @@
 }
 
 /* ---- spacing (1 step = 0.25rem) ----
-   Makes gap-* plus padding/margin classes for steps 0.5 to 4.
+   Makes gap-* plus the full padding/margin family for the steps below.
    ps/pe/ms/me mean start and end — they flip automatically in
    right-to-left languages. Prefer gap on the parent over margins. */
 
 $spacing-steps: (
 	"0\\.5": 0.5,
 	"1": 1,
+	"1\\.5": 1.5,
 	"2": 2,
+	"2\\.5": 2.5,
 	"3": 3,
 	"4": 4,
 	"5": 5,
@@ -142,16 +144,18 @@ $spacing-steps: (
 	}
 }
 
-/* p-*, px-, py-, pt-, pb- and the m- versions are NOT defined here — but you
-   can use them in markup anyway. Bootstrap owns those exact names (with
-   !important), and as of the $spacers remap in desk/variables.scss its scale
-   now matches ours: bootstrap .p-3 = 12px = our .gap-3, .p-4 = 16px, and so on
-   up the 4px grid. So reach for bootstrap's p-* and m-* for physical padding and
-   margin; use ps-*,pe-*,ms-*,me-* below when you need logical (RTL-flipping)
-   sides, or gap on the parent. When bootstrap's utilities are eventually
-   dropped, these names move here — same values, no markup change. */
-
+/* p/m utilities coexist with Bootstrap's identically-named ones. For steps
+   Bootstrap defines (whole numbers), its !important physical declarations
+   still win in devtools — harmless, because the $spacers remap in
+   desk/variables.scss made the values identical. The fractional steps (0.5,
+   1.5, 2.5) exist only here. When Bootstrap's utilities are dropped, these
+   take over with no markup change. Logical properties (padding-inline/-block)
+   on purpose: same result today, RTL-safe forever. */
 @each $name, $n in $spacing-steps {
+	.p-#{$name} {
+		padding: spacing-step($n);
+	}
+
 	.ps-#{$name} {
 		padding-inline-start: spacing-step($n);
 	}
@@ -159,15 +163,51 @@ $spacing-steps: (
 	.pe-#{$name} {
 		padding-inline-end: spacing-step($n);
 	}
+
+	.py-#{$name} {
+		padding-block: spacing-step($n);
+	}
+
+	.px-#{$name} {
+		padding-inline: spacing-step($n);
+	}
+
+	.pt-#{$name} {
+		padding-top: spacing-step($n);
+	}
+
+	.pb-#{$name} {
+		padding-bottom: spacing-step($n);
+	}
 }
 
 @each $name, $n in $spacing-steps {
+	.m-#{$name} {
+		margin: spacing-step($n);
+	}
+
 	.ms-#{$name} {
 		margin-inline-start: spacing-step($n);
 	}
 
 	.me-#{$name} {
 		margin-inline-end: spacing-step($n);
+	}
+
+	.my-#{$name} {
+		margin-block: spacing-step($n);
+	}
+
+	.mx-#{$name} {
+		margin-inline: spacing-step($n);
+	}
+
+	.mt-#{$name} {
+		margin-top: spacing-step($n);
+	}
+
+	.mb-#{$name} {
+		margin-bottom: spacing-step($n);
 	}
 }
 

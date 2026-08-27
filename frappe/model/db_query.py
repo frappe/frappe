@@ -36,7 +36,9 @@ from frappe.utils import (
 	get_time,
 	get_timespan_date_range,
 )
-from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+from frappe.utils.data import convert_type_for_between_filters, sbool
+
+_convert_type_for_between_filters = convert_type_for_between_filters  # bw compatibility
 
 
 @lru_cache(maxsize=128)
@@ -280,7 +282,38 @@ class DatabaseQuery:
 
 		meta = self.get_meta(self.doctype)
 
-		return meta.get_masked_fields(parenttype=self.parent_doctype)
+		return meta.get_masked_fields(parenttype=self.parent_doctype) + self.get_masked_joined_fields()
+
+	def get_masked_joined_fields(self):
+		"""Get masked fields of the doctypes joined in through dot notation (`items.rate`)."""
+		from frappe.database.query import CORE_DOCTYPES
+		from frappe.desk.reportview import extract_fieldnames
+		from frappe.model.utils.mask import as_aliased_field
+
+		masked_fields = []
+		lookups = {}
+
+		for field in self.fields or []:
+			columns = extract_fieldnames(field)
+			if not columns or "." not in columns[0]:
+				continue
+
+			table, fieldname = columns[0].split(".", 1)
+			doctype = self.linked_table_aliases.get(table, table).replace("`", "").removeprefix("tab")
+
+			if doctype == self.doctype or doctype in CORE_DOCTYPES:
+				continue
+
+			if doctype not in lookups:
+				meta = self.get_meta(doctype)
+				parenttype = self.doctype if meta.istable else None
+				lookups[doctype] = {df.fieldname: df for df in meta.get_masked_fields(parenttype=parenttype)}
+
+			if df := lookups[doctype].get(fieldname):
+				alias = field.split(" as ")[1].strip(" '`") if " as " in field.lower() else None
+				masked_fields.append(as_aliased_field(df, alias))
+
+		return masked_fields
 
 	def build_and_run(self):
 		args = self.prepare_args()
@@ -1564,8 +1597,8 @@ def get_between_date_filter(value, df=None):
 
 	# if filter value is date but fieldtype is datetime:
 	if fieldtype == "Datetime":
-		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
-		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
+		from_date = convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
 	# If filter value is already datetime, do nothing.
 	if fieldtype == "Datetime":
@@ -1574,23 +1607,6 @@ def get_between_date_filter(value, df=None):
 		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
 	return cond
-
-
-def _convert_type_for_between_filters(
-	value: DateTimeLikeObject, set_time: datetime.time
-) -> datetime.datetime:
-	if isinstance(value, str):
-		if " " in value.strip():
-			value = get_datetime(value)
-		else:
-			value = getdate(value)
-
-	if isinstance(value, datetime.datetime):
-		return value
-	elif isinstance(value, datetime.date):
-		return datetime.datetime.combine(value, set_time)
-
-	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

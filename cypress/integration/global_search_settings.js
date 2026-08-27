@@ -111,7 +111,7 @@ context("Global Search Settings — configure search fields", () => {
 			.should("exist");
 
 		cy.get_open_dialog()
-			.find(".modal-footer .standard-actions .btn-primary")
+			.find(".modal-footer .standard-actions .btn-modal-primary")
 			.contains("Save")
 			.click({ force: true });
 

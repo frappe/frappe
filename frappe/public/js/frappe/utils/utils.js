@@ -1171,7 +1171,13 @@ Object.assign(frappe.utils, {
 		}
 	},
 	is_rtl(lang = null) {
-		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
+		// Keep this list in sync with rtl_languages in the Python twin at
+		// frappe/utils/jinja_globals.py:is_rtl.
+		const rtl_languages = ["ar", "fa", "he", "ku", "ps", "ur"];
+		const code = lang || frappe.boot.lang || "";
+
+		if (rtl_languages.includes(code)) return true;
+		return rtl_languages.includes(code.split(/[-_]/)[0]);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
@@ -1402,6 +1408,99 @@ Object.assign(frappe.utils, {
 		icon_html.find("svg").css("color", stroke_color);
 		return icon_html.get(0).outerHTML;
 	},
+	// --- Desktop Icon grid -----------------------------------------------------------
+	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
+	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
+	get_route_for_icon(desktop_icon) {
+		let route;
+		if (!desktop_icon) return;
+		let item = {};
+		if (desktop_icon.link_type == "External" && desktop_icon.link) {
+			route = desktop_icon.link;
+		} else {
+			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
+				let first_link = sidebar.items.find((i) => i.type == "Link");
+				if (first_link) {
+					if (first_link.link_type === "Report") {
+						let args = {
+							type: first_link.link_type,
+							name: first_link.link_to,
+						};
+
+						// the body reads `first_link.report.*`, so a link whose report has been
+						// deleted (no `report` payload) has to skip it, not fall through to it
+						if (first_link.report) {
+							args.is_query_report =
+								first_link.report.report_type === "Query Report" ||
+								first_link.report.report_type == "Script Report";
+							args.report_ref_doctype = first_link.report.ref_doctype;
+						}
+
+						route = frappe.utils.generate_route(args);
+					} else if (first_link.link_type == "Workspace") {
+						let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
+						if (workspaces) {
+							if (workspaces.public) {
+								route = "/desk/" + frappe.router.slug(first_link.link_to);
+							} else {
+								route = "/desk/private/" + frappe.router.slug(workspaces.title);
+							}
+						}
+
+						if (first_link.route) {
+							route = first_link.route;
+						}
+					} else if (first_link.link_type === "URL") {
+						route = first_link.url;
+					} else if (first_link.link_type == "Page" && first_link.route_options) {
+						route = frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							route_options: JSON.parse(first_link.route_options),
+						});
+					} else {
+						route = frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							tab: first_link.tab,
+						});
+					}
+				}
+			}
+		}
+		return route;
+	},
+
+	get_desktop_icon(icon_name, variant) {
+		let exists = false;
+		let icon_data = this.get_desktop_icon_by_label(icon_name);
+		variant = variant.toLowerCase();
+		if (!icon_data?.app) return exists;
+		let app_name = icon_data.app;
+		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
+			icon_name
+		)}.svg`;
+
+		if (frappe.boot.desktop_icon_urls[app_name]?.[variant]?.includes(icon_url)) {
+			return `/${icon_url}`;
+		}
+		return exists;
+	},
+
+	get_desktop_icon_by_label(title, filters) {
+		if (!filters) {
+			return frappe.boot.desktop_icons.find((f) => f.label === title);
+		} else {
+			return frappe.boot.desktop_icons.find((f) => {
+				return (
+					f.label === title &&
+					Object.keys(filters).every((key) => f[key] === filters[key])
+				);
+			});
+		}
+	},
+
 	desktop_pallete: {
 		blue: "#0289F7",
 		gray: "#7B808A",
@@ -1828,21 +1927,16 @@ Object.assign(frappe.utils, {
 		if (!doctype || !name) {
 			return;
 		}
-		try {
-			return frappe
-				.xcall("frappe.desk.search.get_link_title", {
-					doctype: doctype,
-					docname: name,
-				})
-				.then((title) => {
-					frappe.utils.add_link_title(doctype, name, title);
-					return title;
-				});
-		} catch (error) {
-			console.log("Error while fetching link title.");
-			console.log(error);
-			return Promise.resolve(name);
-		}
+		return frappe
+			.xcall("frappe.desk.search.get_link_title", {
+				doctype: doctype,
+				docname: name,
+			})
+			.then((title) => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
+			})
+			.catch(() => name);
 	},
 
 	only_allow_num_decimal(input) {
@@ -2132,10 +2226,7 @@ Object.assign(frappe.utils, {
 	 * @returns {boolean}
 	 */
 	can_upload_public_files() {
-		if (
-			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
-			1
-		) {
+		if (!frappe.defaults.is_enabled("only_allow_system_managers_to_upload_public_files")) {
 			return true;
 		}
 		return frappe.user.has_role(["System Manager", "Administrator"]);

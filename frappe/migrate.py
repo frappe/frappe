@@ -16,12 +16,14 @@ import frappe
 import frappe.model.sync
 import frappe.modules.patch_handler
 import frappe.translate
+from frappe.app_state import clear_cache_after_maintenance
 from frappe.core.doctype.language.language import sync_languages
 from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_items
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.database.schema import add_column
 from frappe.deferred_insert import save_to_db as flush_deferred_inserts
 from frappe.desk.notifications import clear_notifications
+from frappe.installer import reapply_disabled_app_state
 from frappe.modules.patch_handler import PatchType
 from frappe.modules.utils import sync_customizations
 from frappe.search.website_search import build_index_for_all_routes
@@ -114,6 +116,7 @@ class SiteMigration:
 		frappe.publish_realtime("version-update")
 		frappe.flags.touched_tables.clear()
 		frappe.flags.in_migrate = False
+		clear_cache_after_maintenance()
 
 	@atomic
 	def pre_schema_updates(self):
@@ -152,6 +155,7 @@ class SiteMigration:
 		* Sync fixtures & custom scripts
 		* Sync in-Desk Module Dashboards
 		* Sync customizations: Custom Fields, Property Setters, Custom Permissions
+		* Run post_fixture_sync patches
 		* Sync Frappe's internal language master
 		* Flush deferred inserts made during maintenance mode.
 		* Sync Portal Menu Items
@@ -179,6 +183,12 @@ class SiteMigration:
 		print("Syncing customizations...")
 		sync_customizations()
 
+		print("Running post fixture sync patches...")
+		frappe.clear_cache()
+		frappe.modules.patch_handler.run_all(
+			skip_failing=self.skip_failing, patch_type=PatchType.post_fixture_sync
+		)
+
 		print("Syncing languages...")
 		sync_languages()
 
@@ -201,6 +211,9 @@ class SiteMigration:
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("after_migrate", app_name=app):
 				frappe.get_attr(fn)()
+
+		print("Applying state of disabled apps again...")
+		reapply_disabled_app_state()
 
 	def required_services_running(self) -> bool:
 		"""Return True if all required services are running. Return False and print

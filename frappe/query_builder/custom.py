@@ -21,7 +21,7 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		self._separator = separator
 
 	@builder
-	def separator(self, separator: str = ""):
+	def separator(self, separator: str = ","):
 		"""Adds a separator to the GROUP_CONCAT function.
 		Args:
 				separator (str, optional): [separator to be used]. Defaults to ",".
@@ -32,7 +32,10 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		query_alias = self.alias
 		self.alias = None
 		sql = super().get_sql(**kwargs)
-		if self._separator:
+		# an explicit "" is a real request for no delimiter, not "use the default": dropping the
+		# clause would silently fall back to MariaDB's comma while STRING_AGG concatenates bare.
+		if self._separator is not None:
+			assert sql.endswith(")"), "GROUP_CONCAT SQL must end with ')' before injecting SEPARATOR"
 			sql = f"{sql[:-1]} SEPARATOR {frappe.db.escape(self._separator)})"
 
 		self.alias = query_alias

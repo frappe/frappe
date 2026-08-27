@@ -11,6 +11,15 @@ from textwrap import dedent
 
 import click
 
+PYTHON_OPTIMIZE_ERROR = (
+	"Frappe cannot run with Python optimization enabled. "
+	"Unset PYTHONOPTIMIZE and do not use python -O or python -OO."
+)
+
+if sys.flags.optimize > 0:
+	raise SystemExit(PYTHON_OPTIMIZE_ERROR)
+
+
 import frappe
 import frappe.utils
 

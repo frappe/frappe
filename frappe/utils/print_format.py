@@ -5,8 +5,6 @@ from io import BytesIO
 from typing import Literal
 from urllib.parse import urlparse
 
-from pypdf import PdfWriter
-
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -18,7 +16,6 @@ from frappe.utils.pdf import get_pdf
 no_cache = 1
 
 base_template_path = "www/printview.html"
-standard_format = "templates/print_formats/standard.html"
 
 from frappe.www.printview import validate_print_permission
 
@@ -121,9 +118,54 @@ def _download_multi_pdf(
 	"""
 	filename = ""
 
+	from pypdf import PdfWriter
+
 	pdf_writer = PdfWriter()
 
 	options = frappe.parse_json(options)
+
+	if (options or {}).get("password") and format:
+		# Typst can't encrypt — failing here once beats silently dropping
+		# every document inside the loop below
+		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
+			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
+
+	def print_into_writer(print_doctype, print_name):
+		"""Route one document into the shared writer — builder formats through the
+		generator (which dispatches Typst), everything else through get_print."""
+		from frappe.printing.doctype.print_format.classic_converter import (
+			get_default_print_format,
+			uses_beta_renderer,
+		)
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+		from frappe.www.printview import set_link_titles, validate_print
+
+		pf_doc = _print_format_doc_or_none(format)
+		if not ((pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(pf_doc) == "chrome"):
+			return frappe.get_print(
+				print_doctype,
+				print_name,
+				format,
+				as_pdf=True,
+				output=pdf_writer,
+				no_letterhead=no_letterhead,
+				letterhead=letterhead,
+				pdf_options=options,
+			)
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		doc = frappe.get_doc(print_doctype, print_name)
+		validate_print(doc)
+		set_link_titles(doc)
+		pf = pf_doc or get_default_print_format(print_doctype)
+		generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
+		pdf = generator.render_pdf(password=(options or {}).get("password"))
+		for page in PdfReader(BytesIO(pdf)).pages:
+			pdf_writer.add_page(page)
+		return pdf_writer
 
 	if not isinstance(doctype, dict):
 		result = frappe.parse_json(name)
@@ -133,17 +175,13 @@ def _download_multi_pdf(
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
-				pdf_writer = frappe.get_print(
-					doctype,
-					ss,
-					format,
-					as_pdf=True,
-					output=pdf_writer,
-					no_letterhead=no_letterhead,
-					letterhead=letterhead,
-					pdf_options=options,
-				)
+				pdf_writer = print_into_writer(doctype, ss)
 			except Exception:
+				frappe.log_error(
+					title="Error in Multi PDF download",
+					reference_doctype=doctype,
+					reference_name=ss,
+				)
 				if task_id:
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
 
@@ -170,16 +208,7 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
-					pdf_writer = frappe.get_print(
-						doctype_name,
-						doc_name,
-						format,
-						as_pdf=True,
-						output=pdf_writer,
-						no_letterhead=no_letterhead,
-						letterhead=letterhead,
-						pdf_options=options,
-					)
+					pdf_writer = print_into_writer(doctype_name, doc_name)
 				except Exception:
 					if task_id:
 						frappe.publish_realtime(task_id=task_id, message="Failed")
@@ -230,6 +259,7 @@ from frappe.deprecation_dumpster import read_multi_pdf
 
 
 @frappe.whitelist(allow_guest=True)
+@frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,
 	name: str,
@@ -240,9 +270,6 @@ def download_pdf(
 	letterhead: str | None = None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
 ):
-	if pdf_generator is None:
-		pdf_generator = "wkhtmltopdf"
-
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
@@ -264,6 +291,7 @@ def download_pdf(
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
@@ -373,6 +401,9 @@ def print_by_server(
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
 		conn = cups.Connection()
+
+		from pypdf import PdfWriter
+
 		output = PdfWriter()
 		output = frappe.get_print(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output

@@ -7,6 +7,11 @@ from bleach_allowlist import bleach_allowlist
 import frappe
 from frappe.utils.data import escape_html
 
+# Matches the first opening tag. Deliberately equivalent to
+# `bool(BeautifulSoup(html, "html.parser").find())`, which treats comments, `<3`
+# and unmatched end tags as text rather than tags — see `test_html_utils.py`.
+HTML_TAG_PATTERN = re.compile(r"<[a-zA-Z][^>]*>")
+
 EMOJI_PATTERN = re.compile(
 	"(\ud83d[\ude00-\ude4f])|"
 	"(\ud83c[\udf00-\uffff])|"
@@ -129,6 +134,11 @@ def clean_email_html(html):
 	)
 
 
+def has_html_tags(html: str) -> bool:
+	"""Return True if `html` contains at least one HTML tag."""
+	return bool(HTML_TAG_PATTERN.search(html))
+
+
 def clean_script_and_style(html):
 	"""
 	Remove script and style tags.
@@ -148,18 +158,13 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on nh3 clean, bleach whitelist and html5lib's Sanitizer defaults
 
-	Does not sanitize JSON unless explicitly specified, as it could lead to future problems
+	Content without any HTML tags is returned unchanged; everything else is sanitized.
 	"""
-	from bs4 import BeautifulSoup
-
 	if not isinstance(html, str):
 		return html
 
 	if not always_sanitize:
-		if is_json(html):
-			return html
-
-		if not bool(BeautifulSoup(html, "html.parser").find()):
+		if not has_html_tags(html):
 			return html
 
 	tags = (
@@ -189,6 +194,23 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 	)
 
 	return escaped_html
+
+
+def sanitize_svg(svg: str) -> str:
+	"""Sanitize standalone SVG markup for safe inline rendering (e.g. custom icons).
+
+	Stricter than sanitize_html: only SVG elements and attributes survive, so
+	scripts, event handlers, foreignObject and plain HTML are all stripped.
+	"""
+	if not isinstance(svg, str):
+		return svg
+
+	return nh3.clean(
+		svg,
+		tags=svg_elements,
+		attributes={"*": svg_attributes},
+		strip_comments=True,
+	)
 
 
 def is_json(text):
@@ -747,3 +769,9 @@ svg_attributes = {
 	"y2",
 	"zoomAndPan",
 }
+
+# Tags whose content is stripped must never also be present in any allow-list of
+# renderable tags, otherwise sanitization would keep dangerous content.
+assert REMOVE_CONTENT_TAGS.isdisjoint(acceptable_elements | mathml_elements | svg_elements), (
+	"content-removal tags must never appear in any allowed tag set"
+)

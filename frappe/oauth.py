@@ -195,19 +195,29 @@ class OAuthWebRequestValidator(RequestValidator):
 		# access_token and the refresh_token and set expiration for the
 		# access_token to now + expires_in seconds.
 
+		# When this is a refresh_token grant, oauthlib has already issued a fresh
+		# access/refresh token pair. Look up the token being rotated so we can both
+		# inherit its user and revoke it once the replacement is saved. Other grants
+		# (authorization_code, implicit) carry no refresh_token, and their request
+		# body may not even be a mapping (e.g. an empty string for implicit).
+		try:
+			incoming_refresh_token = request.body.get("refresh_token")
+		except AttributeError:
+			incoming_refresh_token = None
+
+		old_token_name = None
+		if incoming_refresh_token:
+			old_token_name = frappe.db.get_value(
+				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(incoming_refresh_token)}, "name"
+			)
+
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client["name"]
-		try:
-			otoken.user = (
-				request.user
-				if request.user
-				else frappe.db.get_value(
-					"OAuth Bearer Token",
-					{"refresh_token": get_oauth_token_hash(request.body.get("refresh_token"))},
-					"user",
-				)
-			)
-		except Exception:
+		if request.user:
+			otoken.user = request.user
+		elif old_token_name:
+			otoken.user = frappe.db.get_value("OAuth Bearer Token", old_token_name, "user")
+		else:
 			otoken.user = frappe.session.user
 
 		otoken.scopes = get_url_delimiter().join(request.scopes)
@@ -215,6 +225,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken.refresh_token = token.get("refresh_token")
 		otoken.expires_in = token["expires_in"]
 		otoken.save(ignore_permissions=True)
+
+		# Rotate: revoke the token that was refreshed so the old access/refresh
+		# pair can no longer be used once a replacement has been issued.
+		if old_token_name:
+			frappe.db.set_value("OAuth Bearer Token", old_token_name, "status", "Revoked")
+
 		frappe.db.commit()
 
 		return frappe.get_cached_value("OAuth Client", request.client["name"], "default_redirect_uri")
@@ -231,12 +247,19 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
+		is_token_valid = (
+			now_datetime() < otoken.expiration_time
+			and otoken.status != "Revoked"
+			and frappe.db.exists("User", {"name": otoken.user, "enabled": 1})
+		)
 		client_scopes = frappe.get_cached_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
 		are_scopes_valid = all(scope in client_scopes for scope in scopes)
-		return is_token_valid and are_scopes_valid
+		if is_token_valid and are_scopes_valid:
+			request.user = otoken.user
+			return True
+		return False
 
 	# Token refresh request
 
@@ -370,7 +393,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		return self.finalize_id_token(id_token, token, token_handler, request)
 
 	def get_userinfo_claims(self, request):
-		user = frappe.get_doc("User", frappe.session.user)
+		user = frappe.get_doc("User", request.user)
 		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):

@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "is_system_generated",
+  "is_app_disabled",
   "dt",
   "module",
   "label",
@@ -137,7 +138,7 @@
    "label": "Field Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
+   "options": "Autocomplete\nAttach\nAttach Image\nAttachment Gallery\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
    "sort_options": 1
   },
@@ -480,16 +481,25 @@
   },
   {
    "default": "0",
+   "description": "Set while owner app is disabled.",
+   "fieldname": "is_app_disabled",
+   "fieldtype": "Check",
+   "label": "Is App Disabled",
+   "read_only": 1
+  },
+  {
+   "default": "0",
    "depends_on": "eval: doc.fieldtype === 'Select'",
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
   },
   {
-   "depends_on": "eval:doc.fieldtype===\"Link\"",
+   "depends_on": "eval:[\"Attachment Gallery\", \"Link\"].includes(doc.fieldtype)",
+   "description": "Filters applied to Link queries and Attachment Gallery files.",
    "fieldname": "link_filters",
    "fieldtype": "JSON",
-   "label": "Link Filters"
+   "label": "Filters"
   },
   {
    "default": "0",
@@ -528,7 +538,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-11 11:35:29.567463",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

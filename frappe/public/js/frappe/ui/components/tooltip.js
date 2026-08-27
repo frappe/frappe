@@ -1,11 +1,12 @@
 import { place, SIDES, ALIGNS } from "./position.js";
-import { validated } from "./utils.js";
+import { validated, shortcut_keys } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
 /**
  * @typedef {Object} TooltipOpts
  * @property {string} text The label. Rendered as text, never HTML.
+ * @property {string|string[]} [shortcut] Keyboard hint after the label, one <kbd> per key — pass the raw combo ("ctrl+b") and each key becomes its OS form (⌘B on Mac), or an array of already-formatted keys. Display only; binding stays the caller's job.
  * @property {"top"|"right"|"bottom"|"left"} [side="top"] Which side of the trigger the bubble prefers.
  * @property {"start"|"center"|"end"} [align="center"] How the bubble lines up along that side.
  * @property {number} [delay=500] Hover delay in ms before showing. Focus always shows immediately.
@@ -53,6 +54,7 @@ frappe.ui.Tooltip = class Tooltip {
 		}
 
 		this.text = opts.text || "";
+		this.shortcut = opts.shortcut || null;
 		this.side = validated(opts.side, SIDES, "side", "Tooltip") || "top";
 		this.align = validated(opts.align, ALIGNS, "align", "Tooltip") || "center";
 		this.delay = opts.delay == null ? 500 : opts.delay;
@@ -105,7 +107,21 @@ frappe.ui.Tooltip = class Tooltip {
 		bubble.className = "es-tooltip";
 		bubble.setAttribute("role", "tooltip");
 		bubble.id = `es-tooltip-${++id_counter}`;
-		bubble.textContent = this.text; // text, never HTML
+		bubble.textContent = this.text; // text, never HTML (set_text edits this node)
+
+		if (this.shortcut) {
+			const hint = document.createElement("span");
+			hint.className = "es-tooltip__shortcut";
+			// symbols like ⌘ read poorly; the label alone stays the
+			// accessible description (same call as the menu shortcuts)
+			hint.setAttribute("aria-hidden", "true");
+			for (const key of shortcut_keys(this.shortcut)) {
+				const kbd = document.createElement("kbd");
+				kbd.textContent = key;
+				hint.appendChild(kbd);
+			}
+			bubble.appendChild(hint);
+		}
 
 		const arrow = document.createElement("span");
 		arrow.className = "es-tooltip__arrow";

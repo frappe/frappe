@@ -10,7 +10,6 @@ import zipfile
 from urllib.parse import quote, unquote
 
 import filetype
-from PIL import Image, ImageFile, ImageOps
 
 import frappe
 from frappe import _
@@ -27,8 +26,6 @@ from frappe.utils import (
 )
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.html_utils import escape_html
-from frappe.utils.image import optimize_image, strip_exif_data
-from frappe.utils.pdf import pdf_contains_js
 
 from .exceptions import (
 	AttachmentLimitReached,
@@ -39,8 +36,6 @@ from .exceptions import (
 from .utils import *
 
 exclude_from_linked_with = True
-
-ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
 
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
@@ -247,6 +242,7 @@ class File(Document):
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
 		self.validate_protected_file()
+		self.validate_not_referenced_in_attach_field()
 		self._delete_file_on_disk()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
@@ -352,13 +348,22 @@ class File(Document):
 				exc=FileExistsError,
 			)
 
-		# Uses os.rename which is an atomic operation
-		shutil.move(source, target)
+		other_refs_exist = self.content_hash and frappe.db.exists(
+			"File",
+			{
+				"content_hash": self.content_hash,
+				"file_url": self.file_url,
+				"name": ["!=", self.name],
+			},
+		)
+		if other_refs_exist:
+			shutil.copy2(source, target)
+		else:
+			shutil.move(source, target)
 		self.flags.original_path = {"old": source, "new": target}
 		frappe.db.after_rollback.add(self.on_rollback)
 
 		self.file_url = updated_file_url
-		update_existing_file_docs(self)
 
 		if (
 			not self.attached_to_doctype
@@ -474,6 +479,8 @@ class File(Document):
 			)
 
 	def check_content(self):
+		from frappe.utils.pdf import pdf_contains_js
+
 		if self.file_type == "PDF" and self._content and pdf_contains_js(self._content):
 			frappe.throw(_("This PDF cannot be uploaded as it contains unsafe content."))
 
@@ -538,6 +545,8 @@ class File(Document):
 		crop: bool = False,
 	) -> str:
 		from requests.exceptions import HTTPError, SSLError
+
+		from frappe.utils.image import Image, ImageOps
 
 		if not self.file_url:
 			return
@@ -605,15 +614,70 @@ class File(Document):
 			title=_("Protected File"),
 		)
 
+	def validate_not_referenced_in_attach_field(self):
+		"""Throw an exception if the linked document still has this file's URL set in an Attach field."""
+		if self.flags.force_delete:
+			return
+
+		if not (self.attached_to_doctype and self.attached_to_name and self.file_url):
+			return
+
+		url_backed_by_another_file = frappe.get_all(
+			"File",
+			filters={"file_url": self.file_url, "name": ["!=", self.name]},
+			limit=1,
+		)
+		if url_backed_by_another_file:
+			return
+
+		try:
+			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+		except DoesNotExistError:
+			return
+
+		def get_referencing_field(doc):
+			for df in doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+				if doc.get(df.fieldname) == self.file_url:
+					return df
+
+		docs_to_check = [ref_doc]
+		for table_field in ref_doc.meta.get_table_fields():
+			docs_to_check.extend(ref_doc.get(table_field.fieldname))
+
+		referencing_field = None
+		referencing_doc = None
+		for doc in docs_to_check:
+			if referencing_field := get_referencing_field(doc):
+				referencing_doc = doc
+				break
+
+		if not referencing_field:
+			return
+
+		if ref_doc.docstatus > 0 and not referencing_field.allow_on_submit:
+			return
+
+		field_label = frappe.bold(_(referencing_field.label or referencing_field.fieldname))
+
+		if referencing_doc is ref_doc:
+			msg = _(
+				"This file cannot be deleted as it is set in field {0} of {1} {2}. Clear the field first."
+			).format(field_label, _(ref_doc.doctype), ref_doc.name)
+		else:
+			msg = _(
+				"This file cannot be deleted as it is set in field {0} in row {1} of {2} {3}. Clear the field first."
+			).format(field_label, referencing_doc.idx, _(ref_doc.doctype), ref_doc.name)
+
+		frappe.throw(msg, frappe.LinkExistsError)
+
 	def _delete_file_on_disk(self):
-		"""If file not attached to any other record, delete it"""
+		"""If no other row references this specific physical file, delete it."""
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
 			"File",
 			filters={
 				"content_hash": self.content_hash,
+				"file_url": self.file_url,
 				"name": ["!=", self.name],
-				# NOTE: Some old Files might share file_urls while not sharing the is_private value
-				# "is_private": self.is_private,
 			},
 			limit=1,
 		)
@@ -624,35 +688,66 @@ class File(Document):
 
 	def unzip(self) -> list["File"]:
 		"""Unzip current file and replace it by its children"""
+		from frappe.core.api.file import get_max_extract_size
+
 		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
 
 		zip_path = self.get_full_path()
+		max_extracted_size = get_max_extract_size()
 
 		files = []
+		total_extracted_size = 0
 		with zipfile.ZipFile(zip_path) as z:
-			for file in z.filelist:
-				if file.is_dir() or file.filename.startswith("__MACOSX/"):
-					# skip directories and macos hidden directory
-					continue
+			# skip directories, macos hidden directory & hidden files
+			members = [
+				file
+				for file in z.filelist
+				if not (file.is_dir() or file.filename.startswith("__MACOSX/"))
+				and not os.path.basename(file.filename).startswith(".")
+			]
 
-				filename = os.path.basename(file.filename)
-				if filename.startswith("."):
-					# skip hidden files
-					continue
+			# Reject on declared (central directory) sizes before reading any member,
+			# so a small, highly compressible archive can't force large reads/writes.
+			declared_total_size = sum(file.file_size for file in members)
+			if declared_total_size > max_extracted_size:
+				frappe.throw(
+					_("Zip file extracts to more than the maximum allowed size of {0} MB").format(
+						max_extracted_size // 1048576
+					)
+				)
 
-				file_doc = frappe.new_doc("File")
-				try:
-					file_doc.content = z.read(file.filename)
-				except zipfile.BadZipFile:
-					frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
-				file_doc.file_name = filename
-				file_doc.folder = self.folder
-				file_doc.is_private = self.is_private
-				file_doc.attached_to_doctype = self.attached_to_doctype
-				file_doc.attached_to_name = self.attached_to_name
-				file_doc.save()
-				files.append(file_doc)
+			try:
+				for file in members:
+					filename = os.path.basename(file.filename)
+
+					file_doc = frappe.new_doc("File")
+					try:
+						content = z.read(file.filename)
+					except zipfile.BadZipFile:
+						frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
+
+					total_extracted_size += len(content)
+					if total_extracted_size > max_extracted_size:
+						frappe.throw(
+							_("Zip file extracts to more than the maximum allowed size of {0} MB").format(
+								max_extracted_size // 1048576
+							)
+						)
+
+					file_doc.content = content
+					file_doc.file_name = filename
+					file_doc.folder = self.folder
+					file_doc.is_private = self.is_private
+					file_doc.attached_to_doctype = self.attached_to_doctype
+					file_doc.attached_to_name = self.attached_to_name
+					file_doc.save()
+					files.append(file_doc)
+			except Exception:
+				# roll back any children already persisted before the failure
+				for file_doc in files:
+					frappe.delete_doc("File", file_doc.name, ignore_permissions=True, force=True)
+				raise
 
 		frappe.delete_doc("File", self.name)
 		return files
@@ -664,6 +759,7 @@ class File(Document):
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 
+		self.validate_file_path()
 		# if doc was just created, content field is already populated, return it as-is
 		if self.get("content"):
 			self._content = self.content
@@ -783,6 +879,8 @@ class File(Document):
 			and self.content_type == "image/jpeg"
 			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
 		):
+			from frappe.utils.image import strip_exif_data
+
 			self._content = strip_exif_data(self._content, self.content_type)
 
 		self.file_size = self.check_max_file_size()
@@ -908,11 +1006,17 @@ class File(Document):
 		if is_svg:
 			raise TypeError("Optimization of SVG images is not supported")
 
+		from frappe.utils.image import optimize_image
+
 		original_content = self.get_content()
 		optimized_content = optimize_image(
 			content=original_content,
 			content_type=content_type,
 		)
+
+		if original_content == optimized_content:
+			# optimization failed, don't resave it
+			return
 
 		self.save_file(content=optimized_content, overwrite=True)
 		self.save()

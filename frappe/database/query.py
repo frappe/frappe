@@ -101,7 +101,7 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 	Returns:
 		Tuple with dates expanded to datetime ranges for Datetime fields
 	"""
-	from frappe.model.db_query import _convert_type_for_between_filters
+	from frappe.utils.data import convert_type_for_between_filters
 
 	# Extract field name
 	field_name = field
@@ -121,9 +121,9 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 
 	from_val, to_val = between_values
 
-	# Convert to datetime using db_query helper (handles strings, dates, datetimes)
-	from_val = _convert_type_for_between_filters(from_val, set_time=datetime.time())
-	to_val = _convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
+	# Convert to datetime using shared helper (handles strings, dates, datetimes)
+	from_val = convert_type_for_between_filters(from_val, set_time=datetime.time())
+	to_val = convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
 
 	return (from_val, to_val)
 
@@ -277,6 +277,9 @@ class Engine:
 			self.table = qb.DocType(table)
 
 		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
+
+		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
+			self.ignore_user_permissions = True
 
 		if self.apply_permissions:
 			self.check_select_permission()
@@ -1880,6 +1883,14 @@ class Engine:
 
 			quote_char = "`" if self.is_mariadb else '"'
 			for c in criteria_list:
+				if self.is_mariadb:
+					# pypika's ValueWrapper only escapes quote characters, not backslashes.
+					# MariaDB's default sql_mode treats `\` as an escape char inside string
+					# literals, so an unescaped trailing backslash lets a filter value break
+					# out of its quotes.
+					for node in c.nodes_():
+						if isinstance(node, ValueWrapper) and isinstance(node.value, str):
+							node.value = node.value.replace("\\", "\\\\")
 				conditions.append(c.get_sql(with_namespace=True, quote_char=quote_char))
 		finally:
 			self.apply_permissions = original_apply_permissions

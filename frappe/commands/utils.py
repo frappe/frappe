@@ -32,9 +32,7 @@ if typing.TYPE_CHECKING:
 )
 @click.option("--production", is_flag=True, default=False, help="Build assets in production mode")
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
-@click.option(
-	"--force", is_flag=True, default=False, help="Force build assets instead of downloading available"
-)
+@click.option("--force", is_flag=True, default=False, help="Force build and compile translations")
 @click.option(
 	"--save-metafiles",
 	is_flag=True,
@@ -59,7 +57,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.build import bundle, download_frappe_assets
+	from frappe.build import bundle
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -69,13 +67,6 @@ def build(
 		apps = app
 
 	with filelock("bench_build", is_global=True, timeout=10):
-		# dont try downloading assets if force used, app specified or running via CI
-		if not (force or apps or os.environ.get("CI")):
-			# skip building frappe if assets exist remotely
-			skip_frappe = download_frappe_assets(verbose=verbose)
-		else:
-			skip_frappe = False
-
 		# don't minify in developer_mode for faster builds
 		development = frappe.local.conf.developer_mode or frappe._dev_server
 		esbuild_target = frappe.local.conf.get("esbuild_target") or os.environ.get("ESBUILD_TARGET")
@@ -92,7 +83,6 @@ def build(
 			apps=apps,
 			hard_link=hard_link,
 			verbose=verbose,
-			skip_frappe=skip_frappe,
 			save_metafiles=save_metafiles,
 			using_cached=using_cached,
 			esbuild_target=esbuild_target,
@@ -112,15 +102,27 @@ def build(
 		run_after_build_hook(apps)
 
 
-def run_after_build_hook(apps):
+def run_after_build_hook(built_apps: list[str]):
+	"""Run build hooks after assets are built.
+
+	- `after_build`: self-referential - runs only for apps that were just built, called with no arguments.
+	- `after_app_build`: cross-app - runs for every app on the bench, called with the list of built apps,
+	  so an app can react to another app's build (e.g. compile frontends it owns for that app).
+	"""
 	from importlib import import_module
 
-	for app in apps:
+	def _get_method(fn):
+		modulename = ".".join(fn.split(".")[:-1])
+		methodname = fn.split(".")[-1]
+		return getattr(import_module(modulename), methodname)
+
+	for app in built_apps:
 		for fn in frappe.get_hooks("after_build", app_name=app):
-			modulename = ".".join(fn.split(".")[:-1])
-			methodname = fn.split(".")[-1]
-			method = getattr(import_module(modulename), methodname)
-			method()
+			_get_method(fn)()
+
+	for app in frappe.get_all_apps():
+		for fn in frappe.get_hooks("after_app_build", app_name=app):
+			_get_method(fn)(built_apps)
 
 
 @click.command("watch")
@@ -747,6 +749,12 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 
 @click.command("serve")
 @click.option("--port", default=8000)
+@click.option(
+	"--host",
+	"bind_addr",
+	default=None,
+	help="Address to bind the development server to. Defaults to 127.0.0.1, use 0.0.0.0 to expose it on all interfaces.",
+)
 @click.option("--profile", is_flag=True, default=False)
 @click.option(
 	"--proxy",
@@ -761,6 +769,7 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 def serve(
 	context: CliCtxObj,
 	port=None,
+	bind_addr=None,
 	profile=False,
 	proxy=False,
 	no_reload=False,
@@ -783,6 +792,7 @@ def serve(
 			no_reload = True
 		frappe.app.serve(
 			port=port,
+			bind_addr=bind_addr,
 			profile=profile,
 			proxy=proxy,
 			no_reload=no_reload,

@@ -32,13 +32,14 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
-from frappe.monitor import get_trace_id
+from frappe.monitor import TRACE_ID_PATTERN, get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
 from frappe.utils import (
 	CallbackManager,
 	cint,
 	get_datetime,
+	get_system_timezone,
 	get_table_name,
 	getdate,
 	now,
@@ -62,6 +63,7 @@ ALLOWED_TYPES_FOR_VALUES = tuple | list | dict
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
+DROP_INDEX_PATTERN = re.compile(r"\s*DROP\s+INDEX\s", flags=re.IGNORECASE)
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
@@ -72,6 +74,9 @@ CREATE_OR_DROP = frozenset(("create", "drop"))
 COMMIT_OR_ROLLBACK = frozenset(("commit", "rollback"))
 WRITE_QUERY_TYPES = frozenset(("update", "insert", "delete"))
 QUERY_TYPES_FOR_LOG_TOUCHED_TABLES = frozenset(("insert", "delete", "update", "alter", "drop", "rename"))
+
+assert CREATE_OR_DROP <= DDL_QUERY_TYPES, "CREATE_OR_DROP must be a subset of DDL_QUERY_TYPES"
+assert COMMIT_OR_ROLLBACK.isdisjoint(WRITE_QUERY_TYPES), "commit/rollback are not write queries"
 
 SQL_ITERATOR_BATCH_SIZE = 1000
 
@@ -154,9 +159,18 @@ class Database:
 		except Exception as e:
 			self.logger.warning(f"Couldn't set execution timeout {e}")
 
+		try:
+			self.set_session_time_zone(get_system_timezone())
+		except Exception as e:
+			self.logger.warning(f"Couldn't set session time zone {e}")
+
 	def set_execution_timeout(self, seconds: int):
 		"""Set session speicifc timeout on exeuction of statements.
 		If any statement takes more time it will be killed along with entire transaction."""
+		raise NotImplementedError
+
+	def set_session_time_zone(self, timezone: str):
+		"""Set session time zone so database clock functions match the system timezone."""
 		raise NotImplementedError
 
 	def use(self, db_name):
@@ -266,7 +280,7 @@ class Database:
 
 		query, values = self._transform_query(query, values)
 
-		if trace_id := get_trace_id():
+		if (trace_id := get_trace_id()) and TRACE_ID_PATTERN.fullmatch(trace_id):
 			query += f" /* FRAPPE_TRACE_ID: {trace_id} */"
 
 		try:
@@ -1432,6 +1446,7 @@ class Database:
 		"""
 		current_dialect = self.db_type or "mariadb"
 		query = sql_dict.get(current_dialect) or sql_dict.get("*")
+		assert query is not None, f"multisql has no query for dialect {current_dialect!r} and no '*' fallback"
 		return self.sql(query, values, **kwargs)
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
@@ -1467,6 +1482,12 @@ class Database:
 
 	def log_touched_tables(self, query, query_type):
 		if query_type not in QUERY_TYPES_FOR_LOG_TOUCHED_TABLES:
+			return
+
+		# `DROP INDEX <name>` never names its table, and on postgres the index name is
+		# table-qualified ("tabToDo_reference_type_index"), which the patterns below would read as
+		# a table. Index DDL touches no rows, and CREATE INDEX is already excluded by query_type.
+		if DROP_INDEX_PATTERN.match(query):
 			return
 
 		# single_word_regex is designed to match following patterns

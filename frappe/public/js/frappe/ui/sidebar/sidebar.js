@@ -1,4 +1,5 @@
 import "./sidebar_item";
+import "./workspace_dock";
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -7,16 +8,20 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 		this.make_dom();
 		// states
-		this.sidebar_expanded = false;
 		this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
 		this.$items = [];
 		this.fields_for_dialog = [];
 		this.workspace_sidebar_items = [];
 		this.$items_container = this.wrapper.find(".sidebar-items");
-		this.$standard_items_sections = this.wrapper.find(".standard-items-sections");
+		// the notification/background-task panels and their trigger buttons live directly on the
+		// body sidebar now (there's no wrapper element), so scope both to it
+		this.$standard_items_sections = this.wrapper.find(".body-sidebar");
 		this.$sidebar = this.wrapper.find(".body-sidebar");
 		this.items = [];
 		this.cards = [];
+		// Route whose cold-entry sidebar was resolved without the doctype's meta, and so still
+		// owes a re-resolve against the entity's module. See resolve_initial_sidebar.
+		this.pending_cold_entry = null;
 		this.setup_events();
 		this.standard_items_setup = false;
 	}
@@ -48,23 +53,23 @@ frappe.ui.Sidebar = class Sidebar {
 		const route = frappe.get_route();
 		if (route[0] === "Workspaces") {
 			// a workspace route names its workspace -> the app comes from the workspace itself.
-			// Custom (user-created, non-standard) workspaces belong to no app, so they never carry
-			// an app context -- even if an older one has a stale `app` value.
+			// `app` is the mount point for every kind of workspace: standard ones inherit it from
+			// their module, custom and private ones are mounted explicitly. Only a workspace that
+			// has never been mounted resolves to no app.
 			const name = route[route.length - 1];
 			const workspace = frappe.workspaces[frappe.router.slug(name)];
 			const sidebar = frappe.boot.workspace_sidebar_item[name.toLowerCase()];
-			const app_name =
-				workspace && !workspace.standard
-					? null
-					: (workspace && workspace.app) || (sidebar && sidebar.app);
-			const app = app_name && frappe.boot.app_data.find((a) => a.app_name === app_name);
+			const app_name = (workspace && workspace.app) || (sidebar && sidebar.app);
+			const app =
+				app_name &&
+				frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name));
 			if (app) {
 				frappe.current_app = app;
 				this.header_subtitle = app.app_title;
 				this.app_logo_url = app.app_logo_url;
 			} else {
-				// no owning app (a custom workspace) -> clear the app context so the header/selector
-				// don't keep showing the app you came from
+				// unmounted workspace -> clear the app context so the header/selector don't keep
+				// showing the app you came from
 				frappe.current_app = null;
 				this.header_subtitle = frappe.session.user;
 			}
@@ -76,7 +81,9 @@ frappe.ui.Sidebar = class Sidebar {
 		// doctype/report figure out the app. If it can't be resolved (meta not loaded yet), keep
 		// the current app context rather than clearing it.
 		const app_name = this.app_from_route(this.entity_from_route(route));
-		const app = app_name && frappe.boot.app_data.find((a) => a.app_name === app_name);
+		const app =
+			app_name &&
+			frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name));
 		if (app) {
 			frappe.current_app = app;
 			this.header_subtitle = app.app_title;
@@ -93,9 +100,17 @@ frappe.ui.Sidebar = class Sidebar {
 		return frappe.boot.module_app[frappe.scrub(meta.module)];
 	}
 
+	// Resolve a companion app to the host app it's pinned into (via the `add_to_workspace_dock` hook,
+	// surfaced as `frappe.boot.app_rail_host`). A companion app has no shell of its own -- its
+	// workspaces live inside the host app's rail -- so its app context (dock + header) is the host's.
+	// Non-companion apps (and unknown/null names) pass through unchanged.
+	rail_host_app(app_name) {
+		return (frappe.boot.app_rail_host && frappe.boot.app_rail_host[app_name]) || app_name;
+	}
+
 	setup_promotional_banners() {
 		if (
-			cint(frappe.sys_defaults?.disable_product_suggestion) ||
+			frappe.defaults.is_enabled("disable_product_suggestion") ||
 			!frappe.user.has_role("System Manager")
 		)
 			return;
@@ -347,6 +362,8 @@ frappe.ui.Sidebar = class Sidebar {
 			// change (e.g. navigating within the same workspace). Refresh the header here so it
 			// always reflects the app context resolved above.
 			frappe.app.sidebar.refresh_header();
+			// Keep the workspace dock in sync with the app context and the active workspace.
+			frappe.app.sidebar.refresh_dock();
 		});
 
 		frappe.ui.keys.add_shortcut({
@@ -365,25 +382,97 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// The app that owns the body sidebar currently on screen, as an app_data entry (or null). The
+	// dock belongs to whichever app's sidebar is shown, so it follows this rather than the
+	// route-derived `frappe.current_app` (the two can diverge -- e.g. a sidebar that curates a
+	// cross-app link keeps its own app while the route entity belongs to another). Resolved from the
+	// shown workspace's `app` (module sidebars carry it on the boot payload). A workspace that
+	// isn't mounted to any app resolves to null.
+	get_sidebar_app() {
+		if (!this.sidebar_title) return null;
+		const workspace = frappe.workspaces[frappe.router.slug(this.sidebar_title)];
+		const sidebar = frappe.boot.workspace_sidebar_item[this.sidebar_title.toLowerCase()];
+		const app_name = (workspace && workspace.app) || (sidebar && sidebar.app);
+		return app_name
+			? frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name))
+			: null;
+	}
+
+	// The workspace dock is always on. Apps can no longer opt out; only page-level opt-outs
+	// (page_allows_dock, e.g. the desktop/apps screen) still suppress it.
+	workspace_dock_enabled() {
+		return true;
+	}
+
+	// (Re)render the workspace dock to match the current app context. Created lazily on first
+	// refresh; the dock stays hidden unless the page allows it (see page_allows_dock).
+	refresh_dock() {
+		if (!this.workspace_dock) {
+			this.workspace_dock = new frappe.ui.WorkspaceDock(this);
+		}
+		this.workspace_dock.refresh();
+	}
+
 	// Fired on page-change / form-refresh. Handles visibility, then runs the
 	// same resolver as the router so every navigation event picks a sidebar.
 	// set_workspace_sidebar is idempotent, so re-running it here is a no-op
 	// unless the route actually warrants a different sidebar.
 	refresh() {
-		if (!frappe.container.page.page) return;
-		if (frappe.container.page.page.hide_sidebar) {
-			this.wrapper.hide();
-			return;
-		}
-		this.wrapper.show();
+		this.apply_page_visibility();
+		if (!this.page_allows_sidebar() && !this.page_allows_dock()) return;
+		// Re-resolve the app context now that the routed doctype's meta is loaded. On a cold/direct
+		// load the router `change` handler ran before the meta was available, so set_current_app()
+		// couldn't derive the app (leaving current_app -- and thus the dock -- unresolved). This
+		// second pass fills it in. All three are idempotent, so re-running is cheap.
+		this.set_current_app();
 		this.set_workspace_sidebar();
+		this.refresh_header();
+		this.refresh_dock();
 	}
+
+	// -------------------------------------------------------------------------------------------
+	// Visibility. Both shells -- the body sidebar and the workspace dock -- are hidden by default
+	// (see make_dom and WorkspaceDock.make) and are only displayed once the page on screen says it
+	// allows them. Defaulting to hidden means a page that suppresses them (the desktop/apps screen,
+	// the setup wizard) never flashes them first, and a page that has not rendered yet -- so
+	// nothing is known about its options -- shows nothing rather than guessing.
+	// -------------------------------------------------------------------------------------------
+
+	// The frappe.ui.Page on screen, or undefined before one has rendered.
+	current_page() {
+		return frappe.container && frappe.container.page && frappe.container.page.page;
+	}
+
+	// The body sidebar is displayed unless the page opts out via the standard `hide_sidebar` option.
+	page_allows_sidebar() {
+		const page = this.current_page();
+		return !!page && !page.hide_sidebar;
+	}
+
+	// The dock is displayed unless the page opts out with `hide_workspace_dock` -- both that and
+	// `hide_sidebar` are standard frappe.ui.Page options, and a page picks either shell on its
+	// own: the print format builder keeps the dock while hiding the body sidebar, the
+	// desktop/apps screen sets both.
+	page_allows_dock() {
+		const page = this.current_page();
+		return !!page && !page.hide_workspace_dock;
+	}
+
+	// Resolve both shells against the current page's options. This is the one place that turns
+	// either of them on; it's driven per page by container.toggle_sidebar, so every page change
+	// re-evaluates them.
+	apply_page_visibility() {
+		if (!this.wrapper) return;
+		this.wrapper.toggle(this.page_allows_sidebar());
+		this.refresh_dock();
+	}
+
+	// Explicit override for callers that want the body sidebar hidden/shown irrespective of the
+	// page. The dock keeps following the page's options.
 	toggle(hide) {
-		if (hide) {
-			this.wrapper.hide();
-		} else {
-			this.wrapper.show();
-		}
+		if (!this.wrapper) return;
+		this.wrapper.toggle(!hide);
+		this.refresh_dock();
 	}
 	make_dom() {
 		this.load_sidebar_state();
@@ -393,7 +482,12 @@ frappe.ui.Sidebar = class Sidebar {
 				avatar: frappe.avatar(frappe.session.user, "avatar-medium-2"),
 				navbar_settings: frappe.boot.navbar_settings,
 			})
-		).prependTo("body");
+		)
+			// Starts hidden; only a page that allows it turns it on (see apply_page_visibility).
+			// Hiding before it enters the document means a page that hides the sidebar never
+			// flashes it first.
+			.hide()
+			.prependTo("body");
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
 		this.wrapper.find(".body-sidebar .sidebar-resize-handle").on("click", () => {
@@ -411,8 +505,19 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	setup_user_menu() {
-		const $btn = this.wrapper.find(".sidebar-user-button");
-		const $container = this.wrapper.find(".dropdown-navbar-user");
+		this.create_user_menu({
+			parent: this.wrapper.find(".dropdown-navbar-user"),
+			button: this.wrapper.find(".sidebar-user-button"),
+		});
+	}
+
+	// Build the user dropdown (profile, workspaces, theme, logout, ...) on a given trigger element.
+	// Shared by the sidebar's user button and the workspace dock's avatar so both open the same menu.
+	// `button` is the element that gets the active-state class while the menu is open.
+	create_user_menu({ parent, button }) {
+		const me = this;
+		const $btn = button;
+		const $container = parent;
 
 		frappe.ui.create_menu({
 			parent: $container,
@@ -444,16 +549,36 @@ frappe.ui.Sidebar = class Sidebar {
 				},
 				{
 					name: "workspace-selector",
-					label: __("Manage Workspaces"),
+					label: __("Manage Dock"),
 					icon: "monitor",
 					onClick: function () {
-						new frappe.ui.WorkspacePicker();
+						new frappe.ui.DockManager();
 					},
 				},
-				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
-					...item,
-					label: item.item_label,
-				})),
+				{
+					name: "reload",
+					label: __("Reload"),
+					icon: "rotate-ccw",
+					onClick: function () {
+						frappe.ui.toolbar.clear_cache();
+					},
+				},
+				...frappe.boot.navbar_settings.settings_dropdown
+					.filter((item) => !item.hidden)
+					.map((item) => {
+						const mapped = {
+							name: item.name,
+							label: item.item_label,
+							icon: item.icon,
+							condition: item.condition,
+						};
+						if (item.item_type === "Route") {
+							mapped.url = item.route;
+						} else if (item.item_type === "Action") {
+							mapped.onClick = () => frappe.utils.eval(item.action);
+						}
+						return mapped;
+					}),
 				{ is_divider: true },
 				{
 					name: "logout",
@@ -575,6 +700,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.sidebar_expanded = false;
 		}
 	}
+
 	empty() {
 		if (this.wrapper.find(".sidebar-items")[0]) {
 			this.wrapper.find(".sidebar-items").html("");
@@ -617,7 +743,7 @@ frappe.ui.Sidebar = class Sidebar {
 			standard: true,
 			type: "Button",
 			class: "sidebar-notification hidden",
-			suffix: "<span class='sidebar-notification-count hidden' aria-live='polite'></span>",
+			suffix: "<span class='notification-count hidden' aria-live='polite'></span>",
 			onClick: () => {
 				const $dropdown = this.wrapper.find(".dropdown-notifications");
 				$dropdown.toggleClass("hidden");
@@ -653,7 +779,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
-			this.notifications = new frappe.ui.Notifications({ full_height: true });
+			this.notifications = new frappe.ui.Notifications();
 		}
 	}
 	setup_background_tasks() {
@@ -719,6 +845,9 @@ frappe.ui.Sidebar = class Sidebar {
 			.find("use")
 			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
+		// while collapsed the body sidebar is hidden and only the workspace dock (rail) shows; this
+		// gates the rail's edge handle that reopens the sidebar (see workspace_dock.scss)
+		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
 		});
@@ -783,21 +912,31 @@ frappe.ui.Sidebar = class Sidebar {
 					this.select_sidebar(name);
 				}
 			} else {
-				// Find every sidebar that contains the routed entity. Ownership resolution does NOT
-				// consult the route's app: a sidebar may deliberately curate a cross-app link (e.g.
-				// System Settings, owned by `frappe`, linked in the erpnext-owned ERPNext Settings
-				// sidebar), and filtering by the doctype's app would drop the very sidebar you're on.
-				// This matches the cold-entry path (resolve_initial_sidebar), which is also app-blind.
-				// If the entity isn't already in the current sidebar, follow it to the one that owns
-				// it: get_workspace_sidebars() puts the default_workspace owner first, else the first
-				// sidebar that contains it.
+				// Find every sidebar that contains the routed entity. While NAVIGATING, ownership
+				// resolution does NOT consult the route's app: a sidebar may deliberately curate a
+				// cross-app link (e.g. System Settings, owned by `frappe`, linked in the
+				// erpnext-owned ERPNext Settings sidebar), and filtering by the doctype's app would
+				// drop the very sidebar you're on. If the entity isn't already in the current
+				// sidebar, follow it to the one that owns it: get_workspace_sidebars() puts the
+				// default_workspace owner first, else the first sidebar that contains it.
+				// Cold entry is deliberately NOT app-blind -- there is no "sidebar you're on" to
+				// preserve, so resolve_initial_sidebar leads with the entity's module instead.
 				const entity = this.entity_from_route(route);
 				const candidates = this.get_workspace_sidebars(entity);
 				const in_current = candidates.some(
 					(s) => s.toLowerCase() === this.workspace_title
 				);
 
-				if (this.workspace_title && candidates.length && !in_current) {
+				if (this.cold_entry_needs_recheck(route, entity)) {
+					// The cold entry below ran before this doctype's meta existed and could only
+					// guess from the sidebars linking it. The module is readable now, so resolve
+					// again and land in the workspace that actually owns the entity.
+					this.pending_cold_entry = null;
+					const target = this.initial_sidebar(route);
+					if (target && target.toLowerCase() !== this.workspace_title) {
+						frappe.app.sidebar.setup(target);
+					}
+				} else if (this.workspace_title && candidates.length && !in_current) {
 					this.select_sidebar(candidates[0]);
 				} else if (this.sidebar_title && !candidates.length) {
 					// the entity isn't linked in any sidebar -> fall back to its module's
@@ -808,8 +947,11 @@ frappe.ui.Sidebar = class Sidebar {
 						this.select_sidebar(module_sidebar);
 					}
 				} else if (!this.sidebar_title) {
-					// cold entry / deep link whose entity isn't in any sidebar -> resolve once
-					const target = this.initial_sidebar(route);
+					// cold entry / deep link -> resolve once. When the routed doctype's meta hasn't
+					// loaded yet the answer is provisional; remember the route so the branch above
+					// can re-resolve it against the module on the next pass.
+					const { sidebar: target, provisional } = this.resolve_initial_sidebar(route);
+					this.pending_cold_entry = provisional ? route.join("/") : null;
 					if (target) frappe.app.sidebar.setup(target);
 				}
 			}
@@ -843,82 +985,269 @@ frappe.ui.Sidebar = class Sidebar {
 	// Switch the sidebar to `name` and navigate to its first item (falling back to the
 	// workspace page). Shared by the header switcher and global search.
 	open_workspace(name) {
-		if (frappe.boot.workspace_sidebar_item[(name || "").toLowerCase()]) {
+		let sidebar = frappe.boot.workspace_sidebar_item[(name || "").toLowerCase()];
+		if (sidebar) {
 			this.select_sidebar(name);
 		}
 
 		let route = this.get_first_sidebar_route(name);
 		if (route) {
 			frappe.set_route(route);
-		} else {
-			frappe.set_route("Workspaces", frappe.router.slug(name));
+			return;
 		}
+
+		// A module sidebar (see get_app_module_sidebars) is not a workspace and has no page of its
+		// own: it's reachable only through its items, so selecting it is the whole switch.
+		if (sidebar && sidebar.from_module) return;
+
+		// No sidebar items to land on -> the workspace's own page. Route by path (as the workspace
+		// view itself does) rather than as a ["Workspaces", slug] standard route: the path form is
+		// what carries a private workspace's `private/` prefix and lets the router resolve the slug
+		// back to the workspace's real name.
+		let workspace = frappe.workspaces[frappe.router.slug(name)];
+		let is_public = workspace ? workspace.public : true;
+		frappe.set_route(frappe.router.slug(is_public ? name : "private/" + name));
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Workspace selector set -- the single source of truth for both the header dropdown and the
+	// workspace dock, so the two always offer the same workspaces.
+	// ---------------------------------------------------------------------------------------------
+
+	// Full ordered set of workspaces the selector covers, as Workspace objects, including the
+	// active one. The dock renders this whole set (highlighting the active); the header dropdown
+	// drops the active one (see get_workspace_selector_items) since you can't switch to it.
+	//
+	// The set is exactly the app's own workspaces -- `app_data[].workspaces`, which the server
+	// builds from each workspace's module or its `app` mount, public and private alike. A
+	// workspace that isn't mounted to any app is deliberately on no dock; it stays reachable
+	// through global search and Manage Workspaces until someone mounts it.
+	//
+	// An app that ships no workspaces at all is navigated by module instead -- the set is then its
+	// module sidebars (see get_app_module_sidebars) and the dock becomes a module dock.
+	//
+	// `app` defaults to the route's current app (used by the header dropdown); the dock passes the
+	// shown sidebar's app so it lists that app's workspaces.
+	collect_selector_workspaces(app = frappe.current_app) {
+		let names = (app && app.workspaces) || [];
+
+		// `frappe.boot.user_workspaces` (`User.workspaces`) is the user's curated selector
+		// preference. Apply it *within* the app's set rather than as a replacement for it --
+		// as a replacement it would put the same list on every app's dock, which is the
+		// belongs-to-every-app problem the app mount exists to fix. If the user curated a
+		// selection that names none of this app's workspaces, fall back to the app's full set
+		// rather than rendering an empty rail.
+		let selection = frappe.boot.user_workspaces || [];
+		if (selection.length) {
+			let scoped = selection.filter((name) => names.includes(name));
+			if (scoped.length) names = scoped;
+		}
+
+		let workspaces = names
+			.map((name) => frappe.workspaces[frappe.router.slug(name)])
+			.filter(Boolean);
+
+		return workspaces.length ? workspaces : this.get_app_module_sidebars(app);
+	}
+
+	// The module sidebars an app navigates by when it owns no workspaces, shaped like workspaces
+	// so the dock and the header dropdown can render them unchanged. Empty for every other app.
+	//
+	// Shipping no workspace at all is a normal shape for an app in the ecosystem -- one that only
+	// adds a few doctypes has nothing to author a workspace for. Every module still gets a sidebar
+	// generated for it (`from_module` in the boot payload, listing the module's doctypes, reports,
+	// dashboards and pages), so the dock lists the app's modules and picking one opens that
+	// module's sidebar.
+	//
+	// Access needs no work here: the payload only carries a module's sidebar when the module isn't
+	// blocked for the user (see `get_sidebar_items`) and at least one item in it is visible to
+	// them, so anything left to list is something they may open.
+	get_app_module_sidebars(app) {
+		if (!app || (app.workspaces || []).length) return [];
+
+		return (app.modules || [])
+			.map((module) => frappe.boot.workspace_sidebar_item[module.toLowerCase()])
+			.filter((sidebar) => sidebar && sidebar.from_module)
+			.map((sidebar) => ({
+				name: sidebar.label,
+				title: sidebar.label,
+				// marks the entry as a module rather than a workspace: it has no page of its own
+				// to route to, and no icon either -- the dock renders a letter icon for it, the
+				// same one the sidebar header shows for a module sidebar
+				from_module: 1,
+			}));
+	}
+
+	// Where an app's icon leads. `app_route` covers apps that declare a route or ship a workspace;
+	// one that does neither is navigated by module, so land on the first item of its first module
+	// sidebar -- where the module dock's first entry goes.
+	app_landing_route(app) {
+		if (!app) return null;
+		if (app.app_route) return app.app_route;
+
+		let [module] = this.get_app_module_sidebars(app);
+		return module ? this.get_first_sidebar_route(module.name) : null;
+	}
+
+	// Menu items for the header dropdown selector: every selector workspace except the active one.
+	get_workspace_selector_items() {
+		return this.collect_selector_workspaces()
+			.filter((workspace) => !this.is_active_workspace(workspace))
+			.map((workspace) => this.workspace_to_item(workspace))
+			.filter(Boolean);
+	}
+
+	// The currently shown workspace shouldn't be offered as a switch target in the dropdown, and is
+	// the one the dock highlights.
+	is_active_workspace(workspace) {
+		if (!workspace) return false;
+		let active = frappe.router.slug(this.sidebar_title || "");
+		return frappe.router.slug(workspace.name || workspace.title || "") === active;
+	}
+
+	workspace_to_item(workspace) {
+		if (!workspace) return null;
+		let label = workspace.title || workspace.label || workspace.name;
+		if (!label) return null;
+		let sidebar_name = workspace.name || label;
+		return {
+			name: label.toLowerCase(),
+			label: label,
+			// land on the workspace's first sidebar link, falling back to the workspace page
+			url: this.get_first_link_route(workspace) || this.workspace_route(workspace),
+			icon: workspace.icon,
+			// switch the sidebar to this workspace (and remember it) alongside navigating
+			onClick: () => {
+				if (frappe.boot.workspace_sidebar_item[sidebar_name.toLowerCase()]) {
+					this.select_sidebar(sidebar_name);
+				}
+			},
+		};
+	}
+
+	get_first_link_route(workspace) {
+		return this.get_first_sidebar_route(workspace.name || workspace.title);
+	}
+
+	// The workspace's own desk route -- used when it has no sidebar items to land on. A module
+	// sidebar has no such page (see get_app_module_sidebars), so it has nothing to fall back to.
+	workspace_route(workspace) {
+		if (workspace.from_module) return null;
+
+		let slug = frappe.router.slug(workspace.name || workspace.title);
+		return `/desk/${workspace.public ? slug : "private/" + slug}`;
 	}
 
 	initial_sidebar(route) {
 		return this.resolve_initial_sidebar(route).sidebar;
 	}
 
-	// Pick the sidebar to show on cold entry, returning both the choice and why it was made.
+	// Pick the sidebar to show on cold entry, returning the choice, why it was made, and whether
+	// the answer is provisional (see below).
 	// Precedence:
-	//   1. when the routed entity is linked in some sidebar: keep the last selected sidebar if it is
-	//      one of them, else the first sidebar that contains it
-	//   2. otherwise derive a sidebar from the doctype's module — the first sidebar belonging to the
-	//      app that owns the module. This lands custom/standalone doctypes that no sidebar links
-	//      directly into their own app's shell, instead of inheriting whatever was last selected.
-	//   3. otherwise keep the last selected sidebar (the route belongs to no sidebar at all)
-	//   4. the first available sidebar
+	//   1. an item flagged `default_workspace` names the entity's owning workspace outright — the
+	//      one authored signal that beats every heuristic below
+	//   2. the last selected sidebar, if it links the entity. Continuity outranks the module: on a
+	//      reload or a deep link you stay in the shell you were working in instead of being
+	//      relocated to the entity's home module. Gated on the link so it can only hold you
+	//      somewhere the entity is actually reachable — an unrelated shell is never kept.
+	//   3. the entity's own module — the module's autogenerated sidebar, else the sidebar belonging
+	//      to that module. With no prior selection worth honouring, a deep link lands in the shell
+	//      the entity actually lives in, rather than in whichever unrelated workspace links it.
+	//   4. only then the remaining sidebars that link the entity: the first that contains it. A link
+	//      is a weak signal — an entity can be curated into any number of foreign sidebars — so it
+	//      decides nothing until the module has had its say.
+	//   5. otherwise keep the last selected sidebar (the route belongs to no sidebar at all)
+	//   6. the first available sidebar
 	// User.default_workspace is intentionally NOT consulted here: it made the sidebar sticky to
 	// one workspace regardless of route, which broke the illusion that each entity lives in its
 	// own app shell.
+	//
+	// Only step 3 needs the routed doctype's meta, which is NOT loaded on the first pass of a cold
+	// load (the router fires before the page's meta arrives). When the module can't be read yet the
+	// results below it are flagged `provisional`: they are the best guess from link data alone, and
+	// set_workspace_sidebar re-resolves once the meta lands. Without that second pass a cold entry
+	// would permanently keep the step-4 answer and the module would never get a look in. Steps 1-2
+	// read boot data only, so they are final on the first pass.
 	resolve_initial_sidebar(route) {
 		const all = frappe.boot.workspace_sidebar_item || {};
 		const exists = (name) => (name && all[name.toLowerCase()] ? name : null);
 
 		const entity = this.entity_from_route(route);
-		const candidates = this.get_workspace_sidebars(entity);
 		const persisted = exists(localStorage.getItem("selected_sidebar"));
+		// resolved up front (rather than at step 4) because step 2 tests the last selection against it
+		const candidates = this.get_workspace_sidebars(entity);
 
-		// 1. the entity is directly linked in one or more sidebars
-		if (candidates.length) {
-			if (persisted && candidates.some((c) => c.toLowerCase() === persisted.toLowerCase())) {
-				return {
-					sidebar: persisted,
-					reason: `last selected sidebar "${persisted}" — route entity "${entity}" belongs to it`,
-				};
-			}
+		// 1. the entity is explicitly owned by a workspace
+		const owner = exists(this.default_workspace_for(entity));
+		if (owner) {
 			return {
-				sidebar: candidates[0],
-				reason: `derived from route entity "${entity}", which appears in: ${candidates.join(
-					", "
-				)}`,
+				sidebar: owner,
+				reason: `"${entity}" is flagged default_workspace in "${owner}"`,
+				provisional: false,
 			};
 		}
 
-		// 2. the entity isn't linked anywhere -> fall back to its module's app shell, before
-		// keeping the last selection, so custom/standalone doctypes land in their own app.
+		// 2. the last selected sidebar, when it can actually show the entity
+		if (persisted && candidates.some((c) => c.toLowerCase() === persisted.toLowerCase())) {
+			return {
+				sidebar: persisted,
+				reason: `last selected sidebar "${persisted}" — route entity "${entity}" is linked in it, so the selection is kept over the entity's module`,
+				provisional: false,
+			};
+		}
+
+		// 3. the entity's module decides, before any remaining link-based match
 		const module_sidebar = this.sidebar_from_module(entity);
 		if (module_sidebar) {
 			return {
 				sidebar: module_sidebar,
-				reason: `derived from "${entity}"'s module app — no sidebar links it directly`,
+				reason: `derived from "${entity}"'s module — the shell the entity belongs to`,
+				provisional: false,
 			};
 		}
 
-		// 3. nothing ties the route to a sidebar -> keep the last selection
+		// Everything past here is decided without the module, so mark it provisional whenever the
+		// module is unreadable — it may just be a meta that hasn't loaded. Being over-eager is free:
+		// the caller only acts on the flag once the module actually resolves, which never happens
+		// for routes that have no meta to wait for (a workspace, a report).
+		const provisional = !!entity && !frappe.get_meta(entity)?.module;
+
+		// 4. the entity is linked in one or more sidebars — the last selected one is not among them,
+		//    step 2 would have taken it
+		if (candidates.length) {
+			return {
+				sidebar: candidates[0],
+				reason: `route entity "${entity}" has no owning module sidebar; it is linked in: ${candidates.join(
+					", "
+				)}`,
+				provisional,
+			};
+		}
+
+		// 5. nothing ties the route to a sidebar -> keep the last selection
 		if (persisted) {
 			return {
 				sidebar: persisted,
 				reason: `last selected sidebar "${persisted}" — route "${entity}" belongs to no sidebar, so the selection is kept`,
+				provisional,
 			};
 		}
 
-		// 4. first available
+		// 6. first available
 		const first = Object.values(all)[0];
 		return {
 			sidebar: first && first.label,
 			reason: `fallback to the first available sidebar (route entity "${entity}" matched none)`,
+			provisional,
 		};
+	}
+
+	// True when a cold entry for `route` was resolved before the routed doctype's meta was
+	// available -- so it could not consult the module -- and the module is readable now. This is
+	// the trigger for the second resolution pass; see resolve_initial_sidebar.
+	cold_entry_needs_recheck(route, entity) {
+		return this.pending_cold_entry === route.join("/") && !!this.sidebar_from_module(entity);
 	}
 
 	// Debug helper: explain why the current sidebar is shown.
@@ -941,20 +1270,27 @@ frappe.ui.Sidebar = class Sidebar {
 		return info;
 	}
 
-	// The autogenerated sidebar for the entity's module, or null. Used to place an entity that no
-	// sidebar links directly into its own module's sidebar (every module has one). The module's
-	// autogenerated sidebar is keyed by the module name, so we look it up directly rather than
-	// scanning for the first sidebar carrying the module -- the latter varies per user as
-	// permission filtering changes which sidebars survive and in what order. Returns null when the
-	// module can't be determined (e.g. meta not loaded yet) or has no sidebar.
+	// The sidebar for the entity's module, or null. Used to place an entity that no sidebar links
+	// directly (e.g. a custom doctype) into its own module's shell. Preferred: the module's
+	// autogenerated sidebar, keyed by the module name -- a direct lookup, stable across users.
+	// When the module has no generated sidebar (an authored workspace covers it, possibly under a
+	// different title, e.g. module "Accounts" -> workspace "Accounting"), fall back to the first
+	// sidebar carrying the module in payload (display) order. Returns null when the module can't
+	// be determined (e.g. meta not loaded yet) or no sidebar carries it.
 	sidebar_from_module(entity) {
 		const meta = entity && frappe.get_meta(entity);
 		if (!meta?.module) return null;
-		const sidebar = this.all_sidebar_items?.[meta.module.toLowerCase()];
-		return sidebar ? sidebar.label : null;
+		const module = meta.module.toLowerCase();
+		const direct = this.all_sidebar_items?.[module];
+		if (direct) return direct.label;
+		const owner = Object.values(this.all_sidebar_items || {}).find(
+			(sidebar) => (sidebar.module || "").toLowerCase() === module
+		);
+		return owner ? owner.label : null;
 	}
 
 	entity_from_route(route) {
+		if (route[0] && frappe.boot.page_info?.[route[0]]) return route[0];
 		switch (route.length) {
 			case 1:
 				return route[0];

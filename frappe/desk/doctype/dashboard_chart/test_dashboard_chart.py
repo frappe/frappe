@@ -185,6 +185,35 @@ class TestDashboardChart(IntegrationTestCase):
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
+	def test_value_based_on_required_for_sum_and_average(self):
+		for chart_type in ("Sum", "Average"):
+			chart = frappe.get_doc(
+				doctype="Dashboard Chart",
+				chart_name=f"Test {chart_type} Without Value Field",
+				chart_type=chart_type,
+				document_type=self.doctype_name,
+				based_on="date",
+				timespan="Last Year",
+				time_interval="Monthly",
+				filters_json="[]",
+				timeseries=1,
+			)
+			self.assertRaises(frappe.ValidationError, chart.insert)
+
+		chart = frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name="Test Count Without Value Field",
+			chart_type="Count",
+			document_type=self.doctype_name,
+			based_on="date",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="[]",
+			timeseries=1,
+		)
+		chart.insert()
+		self.addCleanup(chart.delete)
+
 	def test_daily_dashboard_chart(self):
 		insert_test_records(self.doctype_name)
 

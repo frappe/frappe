@@ -143,8 +143,8 @@ class _PostgresUnixTimestamp(Extract):
 		field = self.field if isinstance(self.field, Term) else Term.wrap_constant(self.field)
 		field_sql = field.get_sql(**kwargs)
 		sql = (
-			"CAST(EXTRACT(EPOCH FROM "
-			f"(CAST({field_sql} AS TIMESTAMP) AT TIME ZONE CURRENT_SETTING('TimeZone'))) AS BIGINT)"
+			"CAST(TRUNC(EXTRACT(EPOCH FROM "
+			f"(CAST({field_sql} AS TIMESTAMP) AT TIME ZONE CURRENT_SETTING('TimeZone')))) AS BIGINT)"
 		)
 		if with_alias:
 			return format_alias_sql(sql, self.alias, **kwargs)
@@ -161,15 +161,17 @@ UnixTimestamp = ImportMapper(
 
 class _PostgresDateDiff(ArithmeticExpression):
 	"""Postgres subtracts two dates to get an integer number of days, which matches
-	MariaDB's DATEDIFF(date1, date2). String operands are cast to date so that e.g.
-	DateDiff("2024-01-10", field) renders correctly on both backends."""
+	MariaDB's DATEDIFF(date1, date2). Both operands are cast to date: subtracting
+	timestamps would yield an interval that carries the time of day, so a Datetime
+	field would return a timedelta where MariaDB returns whole days."""
 
 	def __init__(self, date1, date2, alias=None):
-		if isinstance(date1, str):
-			date1 = Cast(date1, "date")
-		if isinstance(date2, str):
-			date2 = Cast(date2, "date")
-		super().__init__(operator=Arithmetic.sub, left=date1, right=date2, alias=alias)
+		super().__init__(
+			operator=Arithmetic.sub,
+			left=Cast(date1, "date"),
+			right=Cast(date2, "date"),
+			alias=alias,
+		)
 
 
 DateDiff = ImportMapper(

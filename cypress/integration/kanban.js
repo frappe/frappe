@@ -44,10 +44,11 @@ context("Kanban Board", () => {
 			}
 
 			cy.visit("/desk/todo");
+			// the Kanban row hosts the boards submenu (it doesn't act on
+			// click) — creation lives in the submenu's Create Board row
 			cy.get(".page-actions .custom-btn-group button").click();
-			cy.get(".page-actions .custom-btn-group ul.dropdown-menu li")
-				.contains("Kanban")
-				.click();
+			cy.contains(".es-menu__item", "Kanban View").trigger("pointerenter");
+			cy.contains(".es-menu__item", "Create Board").click();
 
 			cy.get(".modal-dialog:visible").should("exist");
 			cy.fill_field("board_name", "ToDo Kanban", "Data");
@@ -56,6 +57,21 @@ context("Kanban Board", () => {
 
 			cy.get(".title-text").should("contain", "ToDo Kanban");
 		});
+	});
+
+	it("Open a board from the view switcher on list view", () => {
+		cy.visit("/desk/todo");
+		cy.get(".page-actions .custom-btn-group button").click();
+		// boards load async at hover — the row appears once the fetch lands
+		cy.contains(".es-menu__item", "Kanban View").trigger("pointerenter");
+		cy.contains(".es-menu__item", "ToDo Kanban").click();
+
+		cy.get(".title-text").should("contain", "ToDo Kanban");
+		cy.window()
+			.its("cur_list")
+			.then((list) => {
+				expect(list.view_name).to.equal("Kanban");
+			});
 	});
 
 	it("Create ToDo from kanban", () => {
@@ -67,7 +83,7 @@ context("Kanban Board", () => {
 		cy.click_listview_primary_button("Add ToDo");
 
 		cy.fill_field("description", "Test Kanban ToDo", "Text Editor").wait(300);
-		cy.get(".modal-footer .btn-primary").last().click();
+		cy.get(".modal-footer .btn-modal-primary").last().click();
 
 		cy.wait("@save-todo");
 	});
@@ -164,6 +180,32 @@ context("Kanban Board", () => {
 		visit_todo_kanban();
 		cy.get('.kanban-column[data-column-value="Open"] .kanban-cards').as("open-cards");
 		cy.get("@open-cards").find(".kanban-card .kanban-card-doc").should("not.contain", "ID:");
+	});
+
+	it("Shows fieldtype icons when labels are hidden", () => {
+		cy.call("frappe.desk.doctype.kanban_board.kanban_board.save_settings", {
+			board_name: "ToDo Kanban",
+			settings: { fields: ["status", "priority"], show_labels: 0 },
+		});
+
+		visit_todo_kanban();
+		cy.get('.kanban-column[data-column-value="Open"] .kanban-cards').as("open-cards");
+		cy.get("@open-cards")
+			.find(".kanban-card .kanban-card-doc")
+			.first()
+			.as("card-doc")
+			.should("not.contain", "Status:")
+			.and("not.contain", "Priority:");
+		cy.get("@card-doc")
+			.find(".kanban-doc-icon")
+			.should("have.length.at.least", 1)
+			.first()
+			.should("have.attr", "title")
+			.and("not.be.empty");
+		cy.get("@card-doc")
+			.find(".kanban-doc-icon")
+			.first()
+			.should("have.attr", "title", "Status");
 	});
 
 	const test_column_page_prefetch = () => {

@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import frappe
 from frappe.database.schema import DbColumn, DBTable, get_definition
 from frappe.utils import cint, cstr, flt
@@ -77,6 +79,7 @@ class DuckDBTable(DBTable):
 	def get_column_definitions(self):
 		column_list = [*frappe.db.DEFAULT_COLUMNS]
 		ret = []
+
 		for k in list(self.columns):
 			if k not in column_list:
 				d = self.columns[k].get_definition()
@@ -85,10 +88,39 @@ class DuckDBTable(DBTable):
 					column_list.append(k)
 		return ret
 
-	def get_columns_from_docfields(self):
-		"""
-		get columns from docfields and custom fields
-		"""
+	def get_all_column_definitions(self):
+		fields = []
+
+		# meta
+		varchar_len = frappe.db.VARCHAR_LEN
+		fields.extend(
+			[
+				f'"name" varchar({varchar_len})',
+				'"creation" datetime(6)',
+				'"modified" datetime(6)',
+				f'"modified_by" varchar({varchar_len})',
+				f'"owner" varchar({varchar_len})',
+				'"docstatus" tinyint not null default 0',
+				'"idx" int not null default 0',
+			]
+		)
+
+		# doctype fields
+		fields.extend(self.get_column_definitions())
+
+		# child table meta
+		if self.meta.get("istable", default=0):
+			fields.extend(
+				[
+					f'"parent" varchar({varchar_len})',
+					f'"parentfield" varchar({varchar_len})',
+					f'"parenttype" varchar({varchar_len})',
+				]
+			)
+
+		return fields
+
+	def _get_docfields(self):
 		fields = self.meta.get_fieldnames_with_value(with_field_meta=True)
 
 		# optional fields like _comments
@@ -102,7 +134,13 @@ class DuckDBTable(DBTable):
 
 		# amended_from
 		fields.append({"fieldname": "amended_from", "fieldtype": "Data"})
-		for field in fields:
+		return fields
+
+	def get_columns_from_docfields(self):
+		"""
+		get columns from docfields and custom fields
+		"""
+		for field in self._get_docfields():
 			if field.get("is_virtual"):
 				continue
 
@@ -119,35 +157,61 @@ class DuckDBTable(DBTable):
 				not_nullable=field.get("not_nullable"),
 			)
 
-	def create(self, conn):
-		additional_definitions = []
-		varchar_len = frappe.db.VARCHAR_LEN
-		name_column = f"name varchar({varchar_len}) primary key"
+	def get_all_columns(self):
+		# meta
+		fields = [
+			{"fieldname": "name", "fieldtype": "Data"},
+			{"fieldname": "creation", "fieldtype": "Datetime"},
+			{"fieldname": "modified", "fieldtype": "Datetime"},
+			{"fieldname": "modified_by", "fieldtype": "Data"},
+			{"fieldname": "owner", "fieldtype": "Data"},
+			{"fieldname": "docstatus", "fieldtype": "Int"},
+			{"fieldname": "idx", "fieldtype": "Int"},
+		]
 
-		# columns
-		column_defs = self.get_column_definitions()
-		if column_defs:
-			additional_definitions += column_defs
+		# doctype fields
+		fields.extend(self._get_docfields())
 
-		# child table columns
+		# child table meta fields
 		if self.meta.get("istable", default=0):
-			additional_definitions += [
-				f"parent varchar({varchar_len})",
-				f"parentfield varchar({varchar_len})",
-				f"parenttype varchar({varchar_len})",
-			]
-		additional_definitions = ",\n".join(additional_definitions)
+			fields.extend(
+				[
+					{"fieldname": "parent", "fieldtype": "Data"},
+					{"fieldname": "parentfield", "fieldtype": "Data"},
+					{"fieldname": "parenttype", "fieldtype": "Data"},
+				]
+			)
+		columns = OrderedDict()
+		for field in fields:
+			if field.get("is_virtual"):
+				continue
 
+			columns[field.get("fieldname")] = DuckDBColumn(
+				table=self,
+				fieldname=field.get("fieldname"),
+				fieldtype=field.get("fieldtype"),
+				length=field.get("length"),
+				default=field.get("default"),
+				set_index=field.get("search_index"),
+				options=field.get("options"),
+				unique=field.get("unique"),
+				precision=field.get("precision"),
+				not_nullable=field.get("not_nullable"),
+			)
+		return columns
+
+	def create(self, conn):
 		# create table
-		query = f"""create table \"{self.table_name}\" (
-			{name_column},
-			creation datetime(6),
-			modified datetime(6),
-			modified_by varchar({varchar_len}),
-			owner varchar({varchar_len}),
-			docstatus tinyint not null default '0',
-			idx int not null default '0',
-			{additional_definitions})
-			"""
+		all_columns = ",".join(self.get_all_column_definitions())
+		query = f"""create table \"{self.table_name}\" ({all_columns})"""
 
 		conn.sql(query)
+
+	def get_arrow_schema(self):
+		import pyarrow as pa
+
+		from frappe.database.duckdb.database import get_pyarrow_type_map
+
+		arrow_typemap = get_pyarrow_type_map()
+		fields = [(v.fieldname, arrow_typemap[v.fieldtype]) for v in self.get_all_columns().values()]
+		return pa.schema(fields)

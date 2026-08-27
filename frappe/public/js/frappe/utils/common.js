@@ -270,8 +270,18 @@ frappe.get_cookies = function getCookies() {
 	return cookies;
 };
 
+// Memoized: window.innerWidth forces layout, and is_mobile runs in tight
+// render loops where DOM writes keep layout dirty — reading it per call
+// made large list renders quadratic.
+let _is_mobile_cache = null;
+$(window).on("resize", () => {
+	_is_mobile_cache = null;
+});
 frappe.is_mobile = function () {
-	return window.innerWidth < 768;
+	if (_is_mobile_cache === null) {
+		_is_mobile_cache = window.innerWidth < 768;
+	}
+	return _is_mobile_cache;
 };
 
 frappe.is_large_screen = function () {
@@ -315,69 +325,24 @@ frappe.utils.xss_sanitise = function (string, options) {
 };
 
 frappe.utils.sanitise_redirect = (url) => {
-	const is_external = (() => {
-		return (url) => {
-			function domain(url) {
-				let base_domain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:/\n?]+)/gim.exec(
-					url
-				);
-				return base_domain == null ? "" : base_domain[1];
-			}
+	// preserve falsy input so callers' fallback checks still work
+	if (!url) return url;
 
-			function is_absolute(url) {
-				// returns true for url that have a defined scheme
-				// anything else, eg. internal urls return false
-				return /^(?:[a-z]+:)?\/\//i.test(url);
-			}
+	let target;
+	try {
+		// parse the same way the browser will resolve it
+		target = new URL(url, location.href);
+	} catch (e) {
+		return "";
+	}
 
-			// check for base domain only if the url is absolute
-			// return true for relative url (except protocol-relative urls)
-			return is_absolute(url) ? domain(location.href) !== domain(url) : false;
-		};
-	})();
+	if (target.origin !== location.origin) return "";
 
-	/*
-	 * Strips out url containing the text `javascript` with or without any HTML Entities in it
-	 **/
-	const sanitise_javascript = (url) => {
-		/*
-		 * Written below split into parts, but actual is in one line regardless of whitespaces
-		 * /
-		 * 	j
-		 * 		\s*(&#x.{1,7})?
-		 * 	a
-		 * 		\s*(&#x.{1,7})?
-		 * 	v
-		 * 		\s*(&#x.{1,7})?
-		 * 	a
-		 * 		\s*(&#x.{1,7})?
-		 * 	s
-		 * 		\s*(&#x.{1,7})?
-		 * 	c
-		 * 		\s*(&#x.{1,7})?
-		 * 	r
-		 * 		\s*(&#x.{1,7})?
-		 * 	i
-		 * 		\s*(&#x.{1,7})?
-		 * 	p
-		 * 		\s*(&#x.{1,7})?
-		 * 	t
-		 * /gi
-		 * */
-		const REGEX_ESC_UNIT = /\s*(&#x.{1,7})?/;
-		const REGEX_SCRIPT = new RegExp(
-			Array.from("javascript").join(REGEX_ESC_UNIT.source),
-			"gi"
-		);
-
-		return url.replace(REGEX_SCRIPT, "");
-	};
-
-	url = frappe.utils.strip_url(url);
-
-	return is_external(url)
-		? ""
-		: sanitise_javascript(frappe.utils.xss_sanitise(url, { strategies: ["js"] }));
+	// keep the caller's absolute/protocol-relative/relative shape
+	const was_protocol_relative = url.startsWith("//");
+	const was_absolute = /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(url);
+	if (was_protocol_relative) return target.href.slice(target.protocol.length);
+	return was_absolute ? target.href : target.pathname + target.search + target.hash;
 };
 
 frappe.utils.strip_url = (url) => {

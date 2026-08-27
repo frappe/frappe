@@ -36,7 +36,7 @@ flags:
 
 profiling:
    critical_files_paths:
-      - /frappe/api.py
+      - /frappe/api/*
       - /frappe/app.py
       - /frappe/auth.py
       - /frappe/boot.py

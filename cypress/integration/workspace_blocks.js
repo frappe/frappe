@@ -23,12 +23,12 @@ context("Workspace Blocks", () => {
 		cy.fill_field("title", "Test Block Page", "Data");
 		cy.fill_field("type", "Workspace", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
-		cy.get_open_dialog().find(".btn-primary").click();
+		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		// check if sidebar item is added in private section
 		cy.get('.sidebar-item-container[item-name="Test Block Page"]');
 		cy.wait(300);
-		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
+		cy.get('.standard-actions .primary-action[data-label="Save"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Block Page"]');
 
@@ -85,9 +85,9 @@ context("Workspace Blocks", () => {
 		cy.get_open_dialog().find(".filter-field .input-with-feedback").type("Pending");
 
 		cy.get_open_dialog().find(".modal-header").click();
-		cy.get_open_dialog().find(".btn-primary").click();
+		cy.get_open_dialog().find(".btn-modal-primary").click();
 
-		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
+		cy.get('.standard-actions .primary-action[data-label="Save"]').click();
 
 		cy.get(".codex-editor__redactor .ce-block");
 
@@ -115,7 +115,7 @@ context("Workspace Blocks", () => {
 			.focus()
 			.type("{selectall}Approved");
 		cy.get_open_dialog().find(".modal-header").click();
-		cy.get_open_dialog().find(".btn-primary").click();
+		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		cy.get("@todo-quick-list").find(".quick-list-item .status").should("contain", "Approved");
 
@@ -169,7 +169,7 @@ context("Workspace Blocks", () => {
 		cy.click_modal_primary_button("Add");
 		cy.get(".ce-block .number-widget-box").first().as("number_card");
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");
-		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
+		cy.get('.standard-actions .primary-action[data-label="Save"]').click();
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");
 
 		// edit number card
@@ -178,7 +178,7 @@ context("Workspace Blocks", () => {
 		cy.get_field("label", "Data").invoke("val", "ToDo Count");
 		cy.click_modal_primary_button("Save");
 		cy.get("@number_card").find(".widget-title").should("contain", "ToDo Count");
-		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
+		cy.get('.standard-actions .primary-action[data-label="Save"]').click();
 		cy.get("@number_card").find(".widget-title").should("contain", "ToDo Count");
 	});
 });

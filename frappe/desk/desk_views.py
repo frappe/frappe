@@ -4,6 +4,7 @@
 from functools import cached_property
 
 import frappe
+from frappe.app_state import get_disabled_modules
 from frappe.permissions import has_permission
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
@@ -121,7 +122,7 @@ class DeskViews:
 		"""
 		if cache:
 			cached = frappe.cache.get_value(key, user=user)
-			if cached:
+			if cached is not None:
 				return cached
 
 		value = builder()
@@ -230,16 +231,35 @@ class DeskViews:
 
 			reports = frappe.get_list(
 				"Report",
-				fields=["name", "report_type"],
+				fields=["name", "report_type", "ref_doctype"],
 				filters={"name": ("in", has_role.keys())},
 				ignore_ifnull=True,
 				user=user,
 			)
+			permitted_names = set()
 			for report in reports:
-				has_role[report.name]["report_type"] = report.report_type
+				try:
+					if report.ref_doctype and not has_permission(
+						report.ref_doctype, "report", user=user, print_logs=False
+					):
+						continue
+					has_role[report.name]["report_type"] = report.report_type
+					permitted_names.add(report.name)
+				except frappe.DoesNotExistError:
+					frappe.log_error("Error occurred while checking report permissions")
 
-			non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
+			non_permitted_reports = set(has_role.keys()) - permitted_names
 			for r in non_permitted_reports:
 				has_role.pop(r, None)
+
+		if disabled_modules := get_disabled_modules():
+			hidden = (
+				frappe.qb.from_(parentTable)
+				.select(parentTable.name)
+				.where(parentTable.module.isin(list(disabled_modules)))
+				.run(pluck=True)
+			)
+			for name in hidden:
+				has_role.pop(name, None)
 
 		return has_role

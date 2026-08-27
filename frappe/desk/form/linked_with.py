@@ -534,6 +534,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			)
 
 		permitted_count = len(ret or [])
+		assert permitted_count <= total_count, "permitted linked docs cannot exceed total linked docs"
 		results[linked_doctype] = {
 			"docs": ret or [],
 			"hidden_count": total_count - permitted_count,

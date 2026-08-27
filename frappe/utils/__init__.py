@@ -21,10 +21,9 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, getaddresses, parseaddr
-from typing import Any, Generic, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, Any, Generic, TypeAlias, TypedDict
 
 import orjson
-from werkzeug.test import Client
 
 from frappe.deprecation_dumpster import (
 	get_gravatar,
@@ -38,6 +37,9 @@ from frappe.deprecation_dumpster import (
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from frappe.utils.html_utils import sanitize_html
+
+if TYPE_CHECKING:
+	from werkzeug.test import Client
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
 EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
@@ -592,8 +594,10 @@ def touch_file(path):
 	return path
 
 
-def get_test_client(use_cookies=True) -> Client:
+def get_test_client(use_cookies=True) -> "Client":
 	"""Return an test instance of the Frappe WSGI."""
+	from werkzeug.test import Client
+
 	from frappe.app import application
 
 	return Client(application, use_cookies=use_cookies)
@@ -792,7 +796,7 @@ def get_installed_apps_info():
 			"version": version_details.get("branch_version") or version_details.get("version"),
 			"branch": version_details.get("branch"),
 		}
-		for app, version_details in get_versions().items()
+		for app, version_details in get_versions(include_disabled=True).items()
 	)
 	return out
 

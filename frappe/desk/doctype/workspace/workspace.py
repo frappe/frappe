@@ -1,7 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from json import loads
 
 import frappe
@@ -42,6 +42,7 @@ class Workspace(Document, DeskViews):
 		external_link: DF.Data | None
 		for_user: DF.Data | None
 		hide_custom: DF.Check
+		icon: DF.Icon | None
 		indicator_color: DF.Literal[
 			"green",
 			"cyan",
@@ -115,11 +116,82 @@ class Workspace(Document, DeskViews):
 			if shortcut.type == "Report":
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
 
+		self.validate_duplicate_widget_labels()
+
 		if self.standard:
 			if not self.app and self.module:
 				from frappe.modules.utils import get_module_app
 
 				self.app = get_module_app(self.module)
+
+		# `app` is the workspace's mount point -- it decides which app's dock lists it. A bad value
+		# doesn't error anywhere downstream, it just silently drops the workspace off every dock,
+		# so reject it here rather than let it strand the workspace.
+		if self.app and self.app not in frappe.get_installed_apps():
+			frappe.throw(_("{0} is not an installed app.").format(frappe.bold(self.app)))
+
+	@staticmethod
+	def get_widget_label_counts(doc, parentfield) -> Counter:
+		"""How many rows of `parentfield` carry each label."""
+		rows = doc.get(parentfield) or []
+		if parentfield == "links":
+			# only `Card Break` rows name a card; the link rows beneath them aren't addressed by label
+			rows = [row for row in rows if row.type == "Card Break"]
+
+		counts = Counter()
+		for row in rows:
+			if label := (row.label or "").strip():
+				counts[label] += 1
+
+		return counts
+
+	def validate_duplicate_widget_labels(self):
+		"""Widget blocks in `content` reference their child row by label (see `clean_up` in
+		frappe/desk/desktop.py), so two widgets of the same type sharing a label collapse into a
+		single row on save and one of them silently loses its settings.
+
+		Only duplicates that *this* save introduces are rejected. Ones already stored — shipped app
+		data, sites saved before this check existed — are left alone, so an affected workspace
+		doesn't become impossible to edit.
+		"""
+		# app-shipped workspaces are imported verbatim; a duplicate in one is the app's bug to fix
+		# and shouldn't take down install/migrate
+		if (
+			frappe.flags.in_install
+			or frappe.flags.in_migrate
+			or frappe.flags.in_import
+			or frappe.flags.in_patch
+		):
+			return
+
+		widget_labels = {
+			"shortcuts": _("Shortcut"),
+			"charts": _("Chart"),
+			"quick_lists": _("Quick List"),
+			"number_cards": _("Number Card"),
+			"custom_blocks": _("Custom Block"),
+			"links": _("Card"),
+		}
+
+		before_save = self.get_doc_before_save()
+
+		for parentfield, widget_label in widget_labels.items():
+			counts = self.get_widget_label_counts(self, parentfield)
+			stored = self.get_widget_label_counts(before_save, parentfield) if before_save else {}
+
+			# Compare counts, not just presence: a label already stored twice is grandfathered at
+			# two, but a third row under it is a clash *this* save introduces and still has to go.
+			duplicates = {
+				label for label, count in counts.items() if count > 1 and count > stored.get(label, 0)
+			}
+
+			if duplicates:
+				frappe.throw(
+					_(
+						"Duplicate {0} labels: {1}. Labels are used to tell widgets apart when a workspace is saved, so each {0} needs a unique label."
+					).format(widget_label, frappe.bold(", ".join(sorted(duplicates)))),
+					title=_("Duplicate Label"),
+				)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
@@ -178,6 +250,29 @@ class Workspace(Document, DeskViews):
 
 		if self.module and frappe.conf.developer_mode:
 			delete_folder(self.module, "Workspace", self.title)
+
+	@staticmethod
+	def rename_private_workspaces(old_name, new_name):
+		for workspace in frappe.get_all(
+			"Workspace",
+			filters={"for_user": old_name},
+			fields=["name", "title"],
+			limit=0,
+		):
+			new_label = f"{workspace.title}-{new_name}"
+			if workspace.name != new_label:
+				if frappe.db.exists("Workspace", new_label):
+					frappe.db.set_value("Workspace", workspace.name, "for_user", new_name)
+					continue
+				rename_doc(
+					"Workspace",
+					workspace.name,
+					new_label,
+					force=True,
+					show_alert=False,
+					ignore_permissions=True,
+				)
+			frappe.db.set_value("Workspace", new_label, {"for_user": new_name, "label": new_label})
 
 	@staticmethod
 	def get_module_wise_workspaces():
@@ -287,6 +382,34 @@ def disable_saving_as_public():
 	)
 
 
+def workspace_payload(**extra):
+	"""The desk state a workspace write invalidates, for the caller to swap into `frappe.boot`.
+
+	`app_data` is in here because the dock is app-scoped: it lists `app_data[app].workspaces`, so
+	a workspace that just gained or changed its `app` only moves once that mapping is rebuilt.
+	Without it the desk needs a full reload to show the change.
+	"""
+	from frappe.boot import get_app_data
+
+	workspaces = get_workspaces()
+	return {
+		"workspace_pages": workspaces,
+		"sidebar_items": get_sidebar_items(),
+		"app_data": get_app_data([d.name for d in workspaces.get("pages")]),
+		**extra,
+	}
+
+
+def can_edit_workspace(doc):
+	"""Whether the session user may change this workspace's settings (including its app mount).
+
+	A Workspace Manager may edit any workspace; anyone may edit their own private one. The desk
+	mirrors this predicate to decide whether to offer the "mount to app" action or tell the
+	viewer to ask a Workspace Manager, so keep the two in step.
+	"""
+	return is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+
+
 def get_link_type(key):
 	key = key.lower()
 
@@ -360,8 +483,7 @@ def new_page(new_page: dict):
 		)
 		doc.save(ignore_permissions=True)
 
-	workspaces = get_workspaces()
-	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items()}
+	return workspace_payload()
 
 
 @frappe.whitelist()
@@ -369,7 +491,7 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
-	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	can_edit = can_edit_workspace(doc)
 	if not can_edit:
 		frappe.throw(
 			_("You need the Workspace Manager role to edit this workspace."),
@@ -464,7 +586,9 @@ def get_manageable_workspaces():
 	manager for a Workspace Manager (who should see every workspace, including other users'
 	private ones). Everyone else sees only their own private workspaces.
 	"""
-	fields = ["name", "title", "icon", "public", "for_user", "standard"]
+	# `app` comes along so the dialog can group the workspaces that aren't mounted to any app
+	# (and so appear on no dock) into their own list.
+	fields = ["name", "title", "icon", "public", "for_user", "standard", "app"]
 	if is_workspace_manager():
 		filters = {}
 	else:
@@ -492,7 +616,7 @@ def get_workspace_settings(name: str):
 
 	doc = frappe.get_cached_doc("Workspace", name)
 
-	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	can_edit = can_edit_workspace(doc)
 	if not can_edit:
 		frappe.throw(
 			_("You need the Workspace Manager role to manage this workspace."),
@@ -527,6 +651,7 @@ def get_workspace_settings(name: str):
 		"standard": is_standard,
 		"access": access,
 		"roles": sorted(roles),
+		"app": doc.app,
 	}
 
 
@@ -538,17 +663,18 @@ def update_workspace_settings(
 	indicator_color: str | None = None,
 	access: str | None = None,
 	roles: list | str | None = None,
+	app: str | None = None,
 ):
-	"""Save appearance + access/roles for a workspace from the Manage Workspaces dialog.
+	"""Save appearance + access/roles + app mount for a workspace from the Manage Workspaces dialog.
 
-	A standard (app-shipped) workspace keeps its app-owned title / route / visibility; only
+	A standard (app-shipped) workspace keeps its app-owned title / route / visibility / app; only
 	its appearance and role gating are captured as a Workspace Customization delta. A custom
 	(or developer-mode) workspace is edited in place, with `access` mapped onto the underlying
 	`public` / `for_user` / `roles` fields (mirroring `new_page`).
 	"""
 	doc = frappe.get_doc("Workspace", name)
 
-	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	can_edit = can_edit_workspace(doc)
 	if not can_edit:
 		frappe.throw(
 			_("You need the Workspace Manager role to edit this workspace."),
@@ -569,7 +695,7 @@ def update_workspace_settings(
 		)
 
 		upsert_settings_customization(name, icon=icon, indicator_color=indicator_color, roles=role_names)
-		return {"workspace_pages": get_workspaces(), "sidebar_items": get_sidebar_items(), "name": name}
+		return workspace_payload(name=name)
 
 	# custom workspace: edit in place, mapping the access choice onto public / for_user / roles
 	make_public = 0 if access == "private" else 1
@@ -587,6 +713,10 @@ def update_workspace_settings(
 		doc.icon = icon
 	if indicator_color is not None:
 		doc.indicator_color = indicator_color
+	# the dock the workspace is mounted to. "" is a meaningful value (unmount it), so this is
+	# deliberately a `not None` check rather than a truthiness one.
+	if app is not None:
+		doc.app = app
 	doc.set("roles", [{"role": r} for r in role_names])
 	if doc.public != make_public:
 		doc.sequence_id = frappe.db.count("Workspace", {"public": make_public}, cache=True)
@@ -612,7 +742,7 @@ def update_workspace_settings(
 		if child.name != new_child_name:
 			rename_doc("Workspace", child.name, new_child_name, force=True, ignore_permissions=True)
 
-	return {"workspace_pages": get_workspaces(), "sidebar_items": get_sidebar_items(), "name": new_name}
+	return workspace_payload(name=new_name)
 
 
 @frappe.whitelist()
@@ -623,7 +753,7 @@ def delete_page(name: str):
 	if doc.standard and not frappe.conf.developer_mode:
 		frappe.throw(_("Standard workspaces cannot be deleted. Reset to standard instead."))
 
-	can_edit = is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	can_edit = can_edit_workspace(doc)
 	if not can_edit:
 		frappe.throw(
 			_("You need the Workspace Manager role to delete this workspace."),
@@ -631,7 +761,71 @@ def delete_page(name: str):
 		)
 
 	frappe.delete_doc("Workspace", name, ignore_permissions=True)
-	return {"workspace_pages": get_workspaces(), "sidebar_items": get_sidebar_items()}
+	return workspace_payload()
+
+
+@frappe.whitelist()
+def get_mountable_apps():
+	"""Apps a workspace may be mounted to, as `[{app_name, app_title}]`.
+
+	The installed apps that declare `add_to_apps_screen` and that the user is allowed into --
+	the same permission gate `load_desktop_data` applies when building `boot.app_data`. Apps
+	that declare no hook have no desk presence to mount into, so they're skipped.
+
+	Companion apps (those pinned into a host app's dock via `add_to_workspace_dock`) stay in the
+	list: mounting to one is meaningful, and the desk resolves it to the host's rail at read
+	time via `rail_host_app`.
+	"""
+	apps = []
+	for app_name in frappe.get_installed_apps():
+		hooks = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
+		if not hooks:
+			continue
+
+		app_info = hooks[0]
+		has_permission = app_info.get("has_permission")
+		if has_permission and not frappe.get_attr(has_permission)():
+			continue
+
+		apps.append(
+			{
+				"app_name": app_info.get("name") or app_name,
+				"app_title": app_info.get("title")
+				or (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
+				or app_name,
+			}
+		)
+
+	return apps
+
+
+@frappe.whitelist()
+def mount_workspace(name: str, app: str):
+	"""Mount a workspace onto an app's dock, from the in-page "not on any dock" prompt.
+
+	Narrow counterpart to `update_workspace_settings` -- it only sets `app`, so the prompt
+	doesn't have to round-trip the workspace's title / icon / access just to place it.
+	"""
+	doc = frappe.get_doc("Workspace", name)
+
+	if doc.standard and not frappe.conf.developer_mode:
+		# a standard workspace's app is owned by its module, and Workspace Customization has no
+		# field to record a per-site override in
+		frappe.throw(_("A standard workspace is mounted by the app that ships it."))
+
+	if not can_edit_workspace(doc):
+		frappe.throw(
+			_("You need the Workspace Manager role to mount this workspace."),
+			frappe.PermissionError,
+		)
+
+	if app not in [a["app_name"] for a in get_mountable_apps()]:
+		frappe.throw(_("{0} is not an app you can mount a workspace to.").format(frappe.bold(app)))
+
+	doc.app = app
+	doc.save(ignore_permissions=True)
+
+	return workspace_payload(name=doc.name)
 
 
 def last_sequence_id(doc):

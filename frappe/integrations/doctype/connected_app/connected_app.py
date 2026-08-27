@@ -12,6 +12,7 @@ from frappe import _
 from frappe.integrations.utils import make_get_request
 from frappe.model.document import Document
 from frappe.utils.synchronization import filelock
+from frappe.www.login import sanitize_redirect
 
 if any((os.getenv("CI"), frappe.conf.developer_mode, frappe.conf.allow_tests)):
 	# Disable mandatory TLS in developer mode and tests
@@ -94,6 +95,10 @@ class ConnectedApp(Document):
 	def initiate_web_application_flow(self, user: str | None = None, success_uri: str | None = None):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
 		user = user or frappe.session.user
+		if user != frappe.session.user:
+			self.check_permission("write")
+		success_uri = sanitize_redirect(success_uri) if getattr(frappe.local, "request", None) else None
+
 		oauth = self.get_oauth2_session(user, init=True)
 		query_params = self.get_query_params()
 		authorization_url, state = oauth.authorization_url(self.authorization_uri, **query_params)

@@ -1,39 +1,12 @@
-{% macro table(content, table_class) %}
-<table class="{{ table_class or '' }}" cellpadding="0" cellspacing="0" width="100%" align="center">
-	<tbody>
-		<tr>
-			<td align="center">
-				{{ content }}
-			</td>
-		</tr>
-	</tbody>
-</table>
-{% endmacro %}
-
-{% macro body() %}
-<table width="100%" cellspacing="0" cellpadding="0">
-	<tbody>
-		<tr>
-			<td align="center">
-				<div class="email-header-title">
-					{{ _('Click on the button to log in to {0}').format(app_name) }}
-				</div>
-				<div>{{ _('The link will expire in {0} minutes').format(minutes) }}</div>
-			</td>
-		</tr>
-		<tr>
-			<td align="center">
-				<a href="{{ link or '#'}}" class="btn btn-primary" style="background-color: #171717; text-decoration: none; margin-top: 30px;">
-					{{ _('Log In To {0}').format(app_name) }}
-				</a>
-			</td>
-		</tr>
-	</tbody>
-</table>
-{% endmacro %}
-
-<div class="body-table with-container">
-	<div class="body-content">
-		{{ table(table(body(), 'email-body'), 'email-container') }}
+<h1 class="email-title">{{ _("Login with email link") }}</h1>
+<div class="email-body">
+	<p>{{ _("Click below to login.") }} {% if minutes == 1 %}{{ _("The link expires in 1 minute.") }}{% else %}{{ _("The link expires in {0} minutes.").format(minutes) }}{% endif %}</p>
+	<div class="email-action">
+		<a class="email-btn email-btn-primary" href="{{ link or '#' }}">{{ _("Login to {0}").format(app_name) }}</a>
 	</div>
+	<div class="email-copy">
+		<p>{{ _("Or copy and paste:") }}</p>
+		<a href="{{ link or '#' }}">{{ link }}</a>
+	</div>
+	<p class="email-ignore">{{ _("If you didn't request this, you can safely ignore this email. Your account is safe.") }}</p>
 </div>

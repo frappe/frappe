@@ -7,6 +7,45 @@ from frappe.utils.data import cint, cstr
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
 
+def _print_format_doc_or_none(print_format: str | None):
+	"""Return the Print Format doc, or None for an empty/"Standard"/deleted name.
+
+	Degrading a missing name to None (instead of raising DoesNotExistError) keeps
+	notifications and scheduled jobs that reference a removed format from breaking
+	mid-send — they fall back to the Standard render.
+	"""
+	if not print_format or print_format == "Standard":
+		return None
+	try:
+		return frappe.get_cached_doc("Print Format", print_format)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return None
+
+
+def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
+	"""Pick the PDF engine for a render.
+
+	The beta renderer emits flexbox layouts that only Chromium lays out correctly, so a
+	beta format pins itself to Chrome. Everything else honours an explicit choice, then
+	the format's own setting, then the site default in Print Settings.
+
+	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
+	HTML pipeline's PDF consumers reach the Typst renderer too.
+	"""
+	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+	if print_format and uses_beta_renderer(print_format):
+		if print_format.get("pdf_generator") == "Typst":
+			return "Typst"
+		return "chrome"
+	if pdf_generator:
+		return pdf_generator
+	if print_format and print_format.get("pdf_generator"):
+		return print_format.get("pdf_generator")
+	return frappe.db.get_single_value("Print Settings", "pdf_generator") or "wkhtmltopdf"
+
+
 def get_print(
 	doctype=None,
 	name=None,
@@ -42,12 +81,8 @@ def get_print(
 
 	local = frappe.local
 	if "pdf_generator" not in local.form_dict:
-		# if arg is passed, use that, else get setting from print format
-		if pdf_generator is None:
-			pdf_generator = (
-				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
-			)
-		local.form_dict.pdf_generator = pdf_generator
+		pf_doc = _print_format_doc_or_none(print_format)
+		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc, pdf_generator)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
@@ -140,10 +175,15 @@ def attach_print(
 
 	frappe.local.flags.ignore_print_permissions = True
 
-	is_beta_print_format = False
-	if print_format and print_format != "Standard":
-		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
-		is_beta_print_format = print_format_doc.get("print_format_builder_beta")
+	from frappe.printing.doctype.print_format.classic_converter import (
+		get_default_print_format,
+		uses_beta_renderer,
+	)
+
+	pf_doc = _print_format_doc_or_none(print_format)
+	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
+		pf_doc
+	) == "chrome"
 
 	try:
 		with print_language(lang or frappe.local.lang):
@@ -152,13 +192,18 @@ def attach_print(
 				ext = ".pdf"
 				if html:
 					content = get_pdf(html, options={"password": password} if password else None)
-				elif is_beta_print_format:
+				elif render_via_generator:
 					from frappe.utils.print_format_generator import PrintFormatGenerator
+					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
+					validate_print_for_docstatus(doc_obj)
 					letterhead_name = letterhead if print_letterhead else None
-					generator = PrintFormatGenerator(print_format, doc_obj, letterhead_name)
-					content = generator.render_pdf()
+					pf = pf_doc or get_default_print_format(doc_obj.doctype)
+					generator = PrintFormatGenerator(
+						pf, doc_obj, letterhead_name, no_letterhead=not print_letterhead
+					)
+					content = generator.render_pdf(password=password)
 				else:
 					kwargs["as_pdf"] = True
 					content = get_print(doctype, name, **kwargs)

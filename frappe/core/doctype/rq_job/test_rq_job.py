@@ -229,6 +229,9 @@ class TestRQJob(IntegrationTestCase):
 		# TODO: Observed higher usage on 2026-05-26. Temporarily raising the limit
 		LAST_MEASURED_USAGE += 1
 
+		# Setting session time zone on connect loads System Settings in the worker
+		LAST_MEASURED_USAGE += 3
+
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):
@@ -245,6 +248,15 @@ class TestRQJob(IntegrationTestCase):
 			RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"], ["RQ Job", "queue", "=", "short"]]),
 			limit * 1.2,
 		)
+
+	def test_pickle_lazy_doc_for_rq_job(self):
+		job = frappe.enqueue(test_serialization, user=frappe.get_lazy_doc("User", "Guest"))
+		self.check_status(job, "finished")
+
+
+def test_serialization(user):
+	assert user.roles
+	return True
 
 
 def test_func(fail=False, sleep=0):

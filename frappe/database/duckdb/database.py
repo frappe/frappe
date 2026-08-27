@@ -44,6 +44,47 @@ def get_type_map():
 	}
 
 
+def get_pyarrow_type_map():
+	import pyarrow as pa
+
+	return {
+		"Currency": pa.float64(),
+		"Int": pa.int32(),
+		"Long Int": pa.int64(),
+		"Float": pa.float64(),
+		"Percent": pa.float64(),
+		"Check": pa.int8(),
+		"Small Text": pa.string(),
+		"Long Text": pa.string(),
+		"Code": pa.string(),
+		"Text Editor": pa.string(),
+		"Markdown Editor": pa.string(),
+		"HTML Editor": pa.string(),
+		"Date": pa.date32(),
+		"Datetime": pa.timestamp("us"),
+		"Time": pa.time64("us"),
+		"Text": pa.string(),
+		"Data": pa.string(),
+		"Link": pa.string(),
+		"Dynamic Link": pa.string(),
+		"Password": pa.string(),
+		"Select": pa.string(),
+		"Rating": pa.float64(),
+		"Read Only": pa.string(),
+		"Attach": pa.string(),
+		"Attach Image": pa.string(),
+		"Signature": pa.string(),
+		"Color": pa.string(),
+		"Barcode": pa.string(),
+		"Geolocation": pa.string(),
+		"Duration": pa.float64(),
+		"Icon": pa.string(),
+		"Phone": pa.string(),
+		"Autocomplete": pa.string(),
+		"JSON": pa.large_string(),
+	}
+
+
 def get_latest_sync(doctype: str | None = None):
 	if doctype:
 		if latest_sync := frappe.db.get_all(

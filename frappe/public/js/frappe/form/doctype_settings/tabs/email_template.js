@@ -17,7 +17,7 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
 			Promise.all([
-				frappe.db.get_list("Email Template", {
+				frappe.doctype_settings.get_list("Email Template", {
 					filters: { reference_doctype: doctype },
 					fields: ["name", "subject"],
 					order_by: "name asc",

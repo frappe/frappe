@@ -11,7 +11,6 @@
   "report",
   "module",
   "default_print_language",
-  "preview_image",
   "column_break_3",
   "standard",
   "custom_format",
@@ -37,12 +36,15 @@
   "label_color",
   "value_color",
   "page_number",
+  "show_label_colon",
   "css_section",
   "css",
   "custom_html_help",
   "section_break_13",
   "print_format_help",
   "format_data",
+  "draft_data",
+  "classic_format_data",
   "print_format_builder",
   "print_format_builder_beta"
  ],
@@ -168,15 +170,6 @@
    "options": "Language"
   },
   {
-   "description": "Auto-generated thumbnail of this format. Use the 'Generate Preview' button to (re)generate.",
-   "fieldname": "preview_image",
-   "fieldtype": "Attach Image",
-   "label": "Preview Image",
-   "no_copy": 1,
-   "print_hide": 1,
-   "hidden": 1
-  },
-  {
    "depends_on": "eval:!doc.custom_format",
    "fieldname": "font",
    "fieldtype": "Data",
@@ -228,6 +221,14 @@
    "fieldtype": "Code",
    "hidden": 1,
    "label": "Format Data"
+  },
+  {
+   "fieldname": "classic_format_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Classic Format Data",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "default": "0",
@@ -289,11 +290,18 @@
    "options": "Hide\nTop Left\nTop Center\nTop Right\nBottom Left\nBottom Center\nBottom Right"
   },
   {
+   "default": "0",
+   "description": "Show a colon after field labels (e.g. \"Name:\"), matching the older print style.",
+   "fieldname": "show_label_colon",
+   "fieldtype": "Check",
+   "label": "Show Colon After Field Labels"
+  },
+  {
    "default": "wkhtmltopdf",
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome"
+   "options": "wkhtmltopdf\nchrome\nTypst"
   },
   {
    "default": "DocType",
@@ -312,12 +320,20 @@
    "label": "Report",
    "mandatory_depends_on": "eval:doc.print_format_for == \"Report\"",
    "options": "Report"
+  },
+  {
+   "fieldname": "draft_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Draft Data",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-07-03 01:28:04.950020",
+ "modified": "2026-08-07 21:43:00.939226",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -343,7 +359,5 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 1,
- "image_field": "preview_image"
+ "states": []
 }

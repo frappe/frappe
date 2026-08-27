@@ -12,22 +12,25 @@
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
-	{% if not for_chrome %}
-	/* page number via CSS margin boxes (WeasyPrint / browser print only) */
-	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
-	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
+{%- if not for_chrome %}
+	{%- set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
+	{%- if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
 	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
-	{% endif %}
-	{% endif %}
+	{%- endif %}
+{%- endif %}
 }
 
 html, body {
-	font-size: {{ print_format.font_size }}px;
+	font-size: {{ print_format.font_size or 14 }}px;
 }
 
 body {
+	box-sizing: border-box;
 	min-width: {{ body_width | int }}mm !important;
 	max-width: {{ body_width | int }}mm !important;
+{%- if not for_chrome %}
+	margin: 0 auto;
+{%- endif %}
 }
 
 @media screen {
@@ -40,14 +43,32 @@ body {
 		margin: 2rem auto;
 		min-height: 297mm;
 		height: min-content;
-		min-width: {{ body_width | int }}mm !important;
-		max-width: {{ body_width | int }}mm !important;
-		padding-top: {{ print_format.margin_top | int }}mm;
-		padding-right: {{ print_format.margin_right | int }}mm;
-		padding-left: {{ print_format.margin_left | int }}mm;
-		padding-bottom: {{ print_format.margin_bottom | int }}mm;
+	{%- if not for_chrome %}
+		min-width: {{ page_width | int }}mm !important;
+		max-width: {{ page_width | int }}mm !important;
+		padding: {{ print_format.margin_top | int }}mm {{ print_format.margin_right | int }}mm {{ print_format.margin_bottom | int }}mm {{ print_format.margin_left | int }}mm;
+	{%- endif %}
 	}
 }
+
+{%- if repeat_frame %}
+.print-repeating-frame {
+	width: 100%;
+	border-collapse: collapse;
+}
+.print-repeating-frame > thead {
+	display: table-header-group;
+}
+.print-repeating-frame > tfoot {
+	display: table-footer-group;
+}
+.print-repeating-frame > thead > tr > td,
+.print-repeating-frame > tfoot > tr > td,
+.print-repeating-frame > tbody > tr > td {
+	padding: 0;
+	border: none;
+}
+{%- endif %}
 
 {%- if action_banner %}
 @media screen {
@@ -83,3 +104,11 @@ body {
 	color: {{ print_format.value_color }};
 }
 {%- endif %}
+
+.print-format-doc [document-status] {
+	text-align: center;
+	margin-bottom: 5mm;
+}
+.print-format-doc [document-status] h4 {
+	margin: 0;
+}

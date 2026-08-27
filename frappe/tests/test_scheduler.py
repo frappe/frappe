@@ -114,7 +114,7 @@ class TestScheduler(IntegrationTestCase):
 
 
 class TestSchedulerHeartbeat(UnitTestCase):
-	@patch("frappe.utils.scheduler.FileLock")
+	@patch("filelock.FileLock")
 	@patch("frappe.utils.scheduler.set_niceness")
 	@patch("frappe.utils.scheduler.get_scheduler_tick", return_value=240)
 	@patch("frappe.utils.scheduler.sleep_duration", return_value=120)

@@ -9,7 +9,7 @@ from MySQLdb.converters import conversions
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import get_datetime, get_table_name
+from frappe.utils import get_datetime, get_table_name, get_timezone_utc_offset
 
 ER_STATEMENT_TIMEOUT = 1969
 
@@ -124,6 +124,12 @@ class MariaDBConnectionUtil:
 
 	def set_execution_timeout(self, seconds: int):
 		self.sql("set session max_statement_time = %s", int(seconds))
+
+	def set_session_time_zone(self, timezone: str):
+		try:
+			self.sql("set session time_zone = %s", timezone)
+		except MySQLdb.OperationalError:
+			self.sql("set session time_zone = %s", get_timezone_utc_offset(timezone))
 
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
@@ -424,7 +430,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		indexes = self.sql(
 			f"""SHOW INDEX FROM `{table_name}`
-				WHERE Column_name = "{fieldname}"
+				WHERE Column_name = BINARY "{fieldname}"
 					AND Seq_in_index = 1
 					AND Non_unique={int(not unique)}
 					AND Index_type != 'FULLTEXT'

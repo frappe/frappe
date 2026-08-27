@@ -63,7 +63,14 @@ frappe.confirm = function (
 	return d;
 };
 
-frappe.warn = function (title, message_html, proceed_action, primary_label, is_minimizable) {
+frappe.warn = function (
+	title,
+	message_html,
+	proceed_action,
+	primary_label,
+	is_minimizable,
+	secondary_label
+) {
 	const d = new frappe.ui.Dialog({
 		title: title,
 		indicator: "red",
@@ -72,13 +79,21 @@ frappe.warn = function (title, message_html, proceed_action, primary_label, is_m
 			if (proceed_action) proceed_action();
 			d.hide();
 		},
-		secondary_action_label: __("Cancel", null, "Secondary button in warning dialog"),
+		// "Cancel" reads wrong when the ACTION is cancelling something —
+		// those callers pass "No" instead
+		secondary_action_label:
+			secondary_label || __("Cancel", null, "Secondary button in warning dialog"),
 		secondary_action: () => d.hide(),
 		minimizable: is_minimizable,
 	});
 
+	// flag, used to bind "okay" on enter
+	d.confirm_dialog = true;
+
 	d.$body.append(`<div class="frappe-confirm-message">${message_html}</div>`);
-	d.standard_actions.find(".btn-primary").removeClass("btn-primary").addClass("btn-danger");
+	// destructive confirm: the es-button red theme replaces the old
+	// btn-primary → btn-danger class swap
+	d.get_primary_btn().attr("data-theme", "red");
 
 	d.show();
 	return d;
@@ -453,19 +468,31 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 		});
 		return $root;
 	};
-	harden(handle.$el.find(".es-toast__message").html(sane(message.message || "")));
+	// legacy alerts could also pass a DOM element or jQuery for any of these
+	// channels (e.g. success_action's next-action buttons) — append those as
+	// they are, with their event bindings intact; stringifying them would
+	// print "[object Object]". Strings go through sanitise + harden as before.
+	const fill = ($target, content) => {
+		if (content && (content.jquery || content.nodeType)) {
+			return $target.append(content);
+		}
+		return harden($target.html(sane(content)));
+	};
+	fill(handle.$el.find(".es-toast__message"), message.message || "");
 	if (message.subtitle) {
-		harden(
-			$('<div class="es-toast__description"></div>')
-				.html(sane(message.subtitle))
-				.appendTo(handle.$el.find(".es-toast__content"))
+		fill(
+			$('<div class="es-toast__description"></div>').appendTo(
+				handle.$el.find(".es-toast__content")
+			),
+			message.subtitle
 		);
 	}
 	if (message.body) {
-		harden(
-			$('<div class="es-toast__body"></div>')
-				.html(sane(message.body))
-				.appendTo(handle.$el.find(".es-toast__content"))
+		fill(
+			$('<div class="es-toast__body"></div>').appendTo(
+				handle.$el.find(".es-toast__content")
+			),
+			message.body
 		);
 	}
 

@@ -21,10 +21,32 @@
 
 frappe.ui.make_app_page = function (opts) {
 	opts.parent.page = new frappe.ui.Page(opts);
+	// A page is usually built before the container switches to it, but not always: a form creates
+	// its frappe.ui.Page inside the first frm.refresh(), by which point change_to() has already
+	// pointed the container at this element. Sidebar visibility was therefore resolved against a
+	// page that carried no options yet and fell back to hidden. Re-resolve now that they exist.
+	if (frappe.container?.page === opts.parent) {
+		frappe.app.sidebar.apply_page_visibility();
+	}
 	return opts.parent.page;
 };
 
 frappe.ui.pages = {};
+
+// bootstrap button types (the public add_inner_button/add_button vocabulary)
+// mapped onto the es-button contract; unknown types fall back to subtle
+const BTN_TYPE_TO_ES = {
+	default: { variant: "subtle" },
+	secondary: { variant: "subtle" },
+	light: { variant: "subtle" },
+	primary: { variant: "solid" },
+	danger: { variant: "solid", theme: "red" },
+	ghost: { variant: "ghost" },
+};
+
+function es_opts_for_btn_type(type) {
+	return BTN_TYPE_TO_ES[type] || BTN_TYPE_TO_ES.default;
+}
 
 frappe.ui.Page = class Page {
 	constructor(opts) {
@@ -37,13 +59,15 @@ frappe.ui.Page = class Page {
 
 		this.make();
 		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
+		// pages can hide just the workspace dock (while keeping the body sidebar) via this option;
+		// a page that hides the whole sidebar hides the dock too (see Sidebar.page_allows_dock)
+		if (!Object.keys(opts).includes("hide_workspace_dock")) this.hide_workspace_dock = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_scroll_handler();
 		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
@@ -63,24 +87,6 @@ frappe.ui.Page = class Page {
 				}, __("Background Jobs"));
 			}
 		}
-	}
-
-	setup_scroll_handler() {
-		let last_scroll = 0;
-		$(".main-section").scroll(
-			frappe.utils.throttle(() => {
-				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
-				let current_scroll = document.documentElement.scrollTop;
-				if (
-					current_scroll > 0 &&
-					last_scroll <= current_scroll &&
-					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
-				) {
-					$(".page-head").css("top", "-15px");
-				}
-				last_scroll = current_scroll;
-			}, 500)
-		);
 	}
 
 	get_empty_state(title, message, primary_action) {
@@ -159,7 +165,7 @@ frappe.ui.Page = class Page {
 		this.filters = this.wrapper.find(".filters");
 		this.page_head = this.wrapper.find(".page-head");
 		this.btn_primary = this.page_actions.find(".primary-action");
-		this.btn_secondary = this.page_actions.find(".btn-secondary");
+		this.btn_secondary = this.page_actions.find(".secondary-action");
 
 		this.menu = this.page_actions.find(".menu-btn-group .dropdown-menu");
 		this.menu_btn_group = this.page_actions.find(".menu-btn-group");
@@ -187,14 +193,40 @@ frappe.ui.Page = class Page {
 			.on("click mousedown", function () {
 				$(this).tooltip("hide");
 			});
-		frappe.ui.keys
-			.get_shortcut_group(this.page_actions[0])
-			.add(menu_btn, menu_btn.find(".menu-btn-group-label"));
+		frappe.ui.keys.get_shortcut_group(this.page_actions[0]).add(menu_btn);
 
+		// The Menu / Actions dropdowns are espresso menus. The old bootstrap
+		// ULs stay in the DOM as hidden item stores: add_dropdown_item keeps
+		// writing <li><a> markup there (the returned jQuery is public API and
+		// callers mutate it), and every open snapshots the store into rows —
+		// so .text() / .toggle() / .addClass("disabled") all keep working.
+		this.menu_dropdown = new frappe.ui.Dropdown({
+			trigger: menu_btn,
+			align: "end",
+			options: () => this.build_dropdown_options(this.menu),
+		});
+		this.actions_dropdown = new frappe.ui.Dropdown({
+			trigger: this.actions_btn_group.find("button"),
+			align: "end",
+			options: () => this.build_dropdown_options(this.actions),
+		});
+		// the menus body-portal, so one left open would float over the next
+		// page — the container fires "hide" on the page element on switch
+		this.wrapper.on("hide", () => {
+			this.menu_dropdown.close("owner");
+			this.actions_dropdown.close("owner");
+			this.wrapper.find(".inner-group-button, .custom-btn-group").each((_, group) => {
+				$(group).data("es_dropdown")?.close("owner");
+			});
+		});
+
+		// desktop shows "Actions" + chevron; mobile keeps just the chevron.
+		// actions-btn-group-label stays as the legacy hook name for the span.
 		let action_btn = this.actions_btn_group.find("button");
-		frappe.ui.keys
-			.get_shortcut_group(this.page_actions[0])
-			.add(action_btn, action_btn.find(".actions-btn-group-label"));
+		let action_btn_label = action_btn
+			.find(".es-button__label")
+			.addClass("hidden-xs actions-btn-group-label");
+		frappe.ui.keys.get_shortcut_group(this.page_actions[0]).add(action_btn, action_btn_label);
 
 		// https://axesslab.com/skip-links
 		this.skip_link_to_main = $("<button>")
@@ -280,46 +312,81 @@ frappe.ui.Page = class Page {
 
 	set_action(btn, opts) {
 		let me = this;
-		if (opts.icon) {
-			opts.iconHTML = this.get_icon_label(opts.icon, opts.label);
-		}
 
 		this.clear_action_of(btn);
 
+		// icon can be a name or { icon, size } — the es contract sizes icons
+		// from the button itself, so only the name matters now. Guard against
+		// null: callers pass it to skip the icon (typeof null === "object")
+		const icon = opts.icon && typeof opts.icon === "object" ? opts.icon.icon : opts.icon;
+		const dress_opts = {
+			label: opts.label,
+			icon: icon,
+			variant: opts.variant,
+		};
+		// only pass loading_label through when the caller gave one, so the
+		// component's default map (Save → Saving...) still applies otherwise
+		if (opts.working_label) {
+			dress_opts.loading_label = opts.working_label;
+		}
+		frappe.ui.button.dress(btn, dress_opts);
+
 		btn.removeClass("hide")
 			.prop("disabled", false)
-			.html(opts.iconHTML || opts.label)
 			.attr("data-label", opts.label)
 			.on("click", function () {
+				// busy blocks the mouse via pointer-events, but keyboard
+				// activation still fires — guard re-entry
+				if (btn.attr("aria-busy") === "true") return;
 				let response = opts.click.apply(this, [btn]);
 				me.btn_disable_enable(btn, response);
 			});
+
+		if (opts.short_label) {
+			// responsive label pair: the full label shows from md up, the short
+			// one below md (hidden-xs and hidden-lg are exact complements at
+			// the 768px boundary) — CSS decides, so resizing just works
+			btn.find(".es-button__label").addClass("hidden-xs");
+			$('<span class="es-button__label hidden-lg"></span>')
+				.text(opts.short_label)
+				.insertAfter(btn.find(".es-button__label").first());
+		} else if (opts.icon) {
+			// with an icon and no short label, mobile shows the icon alone
+			// (page.scss squares the button into an icon button below md)
+			btn.find(".es-button__label").addClass("hidden-xs");
+		}
 
 		if (opts.working_label) {
 			btn.attr("data-working-label", opts.working_label);
 		}
 
-		// alt shortcuts
-		let text_span = btn.find("span");
+		// alt shortcuts — pass the full label span alone; the button also
+		// contains the spinner, loading-label and short-label spans, whose
+		// text must not join in
+		let text_span = btn.find(".es-button__label").first();
 		frappe.ui.keys.get_shortcut_group(this).add(btn, text_span.length ? text_span : btn);
 	}
 
+	// `label` can be a plain string, or { label, short_label } to show a
+	// shorter text below the md breakpoint (e.g. "Add" for "Add Sales Order")
 	set_primary_action(label, click, icon, working_label) {
 		this.set_action(this.btn_primary, {
-			label: label,
+			...(label && typeof label === "object" ? label : { label }),
 			click: click,
 			icon: icon,
 			working_label: working_label,
+			variant: "solid",
 		});
 		return this.btn_primary;
 	}
 
 	set_secondary_action(label, click, icon, working_label) {
 		this.set_action(this.btn_secondary, {
-			label: label,
+			...(label && typeof label === "object" ? label : { label }),
 			click: click,
 			icon: icon,
 			working_label: working_label,
+			variant: "subtle",
 		});
 
 		return this.btn_secondary;
@@ -342,8 +409,30 @@ frappe.ui.Page = class Page {
 		this.clear_secondary_action();
 	}
 
+	// Close and tear down the espresso dropdowns of button groups inside
+	// $scope before their elements are discarded — an open menu body-portals,
+	// so removing its group would otherwise leave the panel floating over
+	// the page with its listeners live.
+	destroy_group_dropdowns($scope) {
+		$scope
+			.find(".inner-group-button, .custom-btn-group")
+			.addBack(".inner-group-button, .custom-btn-group")
+			.each((_, group) => {
+				$(group).data("es_dropdown")?.destroy();
+			});
+	}
+
 	clear_custom_actions() {
+		this.destroy_group_dropdowns(this.custom_actions);
 		this.custom_actions.addClass("hide").empty();
+		this.clear_mobile_custom_groups();
+	}
+	clear_mobile_custom_groups() {
+		const $groups = this.custom_mobile_actions.children(
+			".custom-btn-group:not(.view-switcher)"
+		);
+		this.destroy_group_dropdowns($groups);
+		$groups.remove();
 	}
 
 	clear_icons() {
@@ -465,28 +554,35 @@ frappe.ui.Page = class Page {
 			)}</span>`;
 		}
 
+		const data_label = encodeURIComponent(label);
 		if (shortcut) {
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
 			$li = $(`
 				<li>
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
-						<span class="menu-item-label">${label}</span>
+						<span class="menu-item-label" data-label="${data_label}">${label}</span>
 						<span class="menu-item-shortcut">${shortcut_obj.shortcut_label}</span>
 					</a>
 				</li>
 			`);
+			// binding stays here — the menu rows only display the combo
 			frappe.ui.keys.add_shortcut(shortcut_obj);
+			$li.data("menu_shortcut", shortcut_obj.shortcut);
 		} else {
 			$li = $(`
 				<li>
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
-						<span class="menu-item-label">${label}</span>
+						<span class="menu-item-label" data-label="${data_label}">${label}</span>
 					</a>
 				</li>
 			`);
 		}
+
+		// the snapshot (build_dropdown_options) reads these back
+		$li.data("menu_click", click);
+		if (icon) $li.data("menu_icon", icon);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -507,14 +603,96 @@ frappe.ui.Page = class Page {
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
 
-		// if an shortcut is already set, dont set an alt Shortcut
-		if (!shortcut) {
-			// alt shortcut
-			frappe.ui.keys
-				.get_shortcut_group(parent.get(0))
-				.add($link, $link.find(".menu-item-label"));
-		}
 		return $link;
+	}
+
+	// Snapshot a hidden item store (this.menu / this.actions) into menu rows.
+	// Reading the live elements on every open is what keeps the legacy jQuery
+	// contract alive: .text(), .toggle(), .addClass("disabled") on a held item
+	// all show up the next time the menu opens. Divider <li>s split groups.
+	build_dropdown_options($parent) {
+		// classes internal to the legacy markup; everything else (visible-xs,
+		// hidden-xl, caller classes) is carried onto the rendered row
+		const internal = ["grey-link", "dropdown-item", "disabled", "user-action"];
+		// the responsive utilities, evaluated at open time — a group whose
+		// rows are all CSS-hidden would still paint its separator, and the
+		// legacy divider was itself visible-xs (desktop menus had none)
+		const responsive_hidden = (el) =>
+			(el.classList.contains("visible-xs") &&
+				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xl") &&
+				window.matchMedia("(min-width: 992px)").matches);
+		const segments = [[]];
+		// one submenu row per inner-button group, keyed by group label
+		const nested_groups = new Map();
+
+		$parent.children("li").each((_, li) => {
+			if (li.classList.contains("dropdown-divider")) {
+				if (!responsive_hidden(li) && segments[segments.length - 1].length) {
+					segments.push([]);
+				}
+				return;
+			}
+			const $li = $(li);
+			const a = $li.children("a").get(0);
+			if (!a) return;
+			// .toggle(false) / .hide() by callers
+			if (li.style.display === "none" || a.style.display === "none") return;
+			if (responsive_hidden(li) || responsive_hidden(a)) return;
+
+			// .text(label) on the held <a> replaces its children, so fall back
+			const label = ($li.find(".menu-item-label").text() || $(a).text()).trim();
+			if (!label) return;
+
+			const css_class = [...li.classList, ...a.classList]
+				.filter((c) => !internal.includes(c))
+				.join(" ");
+			const click = $li.data("menu_click");
+			const onclick = (e) => {
+				if (e && (e.ctrlKey || e.metaKey)) {
+					frappe.open_in_new_tab = true;
+				}
+				// raw <li>s appended by apps have no stashed handler —
+				// clicking their own link keeps them working
+				return click ? click() : a.click();
+			};
+
+			// grouped inner buttons mirror into this menu on mobile as flat
+			// "Group > Label" store items (see add_inner_button) — render
+			// them as one "Group" row with a submenu instead
+			const nested = $li.data("menu_submenu");
+			if (nested) {
+				let submenu = nested_groups.get(nested.group);
+				if (!submenu) {
+					submenu = [];
+					nested_groups.set(nested.group, submenu);
+					segments[segments.length - 1].push({
+						label: nested.group,
+						css_class: css_class || undefined,
+						submenu,
+					});
+				}
+				submenu.push({
+					label: nested.label,
+					disabled: a.classList.contains("disabled"),
+					onclick,
+				});
+				return;
+			}
+
+			segments[segments.length - 1].push({
+				label,
+				icon: $li.data("menu_icon") || undefined,
+				shortcut: $li.data("menu_shortcut") || undefined,
+				disabled: a.classList.contains("disabled"),
+				css_class: css_class || undefined,
+				onclick,
+			});
+		});
+
+		const groups = segments.filter((segment) => segment.length);
+		if (groups.length <= 1) return groups[0] || [];
+		return groups.map((options) => ({ group: "", hide_label: true, options }));
 	}
 
 	prepare_shortcut_obj(shortcut, click, label) {
@@ -560,6 +738,10 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_btn_group(parent) {
+		// a refresh can clear the store while its menu is open — close it so
+		// the portaled panel doesn't float on with stale rows
+		if (parent.is(this.menu)) this.menu_dropdown?.close("owner");
+		if (parent.is(this.actions)) this.actions_dropdown?.close("owner");
 		parent.empty();
 		parent.parent().addClass("hide");
 	}
@@ -573,17 +755,69 @@ frappe.ui.Page = class Page {
 			`.inner-group-button[data-label="${encodeURIComponent(label)}"]`
 		);
 		if (!$group.length) {
+			// same bridge as the header menus: the .dropdown-menu div stays in
+			// the DOM as a hidden item store (add_inner_button returns its
+			// <a>s to callers, who mutate them), and the espresso dropdown
+			// snapshots it on every open
 			$group = $(
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
-					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						${label}
-						${frappe.utils.icon("chevrons-up-down", "xs")}
-					</button>
-					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
+					<div role="presentation" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
+			const $btn = frappe.ui
+				.button({
+					label: label,
+					icon_right: "chevrons-up-down",
+					css_class: "ellipsis",
+				})
+				.prependTo($group);
+			$group.data(
+				"es_dropdown",
+				new frappe.ui.Dropdown({
+					trigger: $btn,
+					align: align_right ? "end" : "start",
+					options: () =>
+						this.build_inner_group_options($group.children(".dropdown-menu")),
+				})
+			);
 		}
 		return $group;
+	}
+
+	// Snapshot an inner group's item store — bare <a.dropdown-item> children
+	// plus divider <li>s — into menu rows; same live-read contract as
+	// build_dropdown_options, so held-reference mutations show on next open.
+	build_inner_group_options($store) {
+		const segments = [[]];
+		$store.children().each((_, el) => {
+			if (el.classList.contains("dropdown-divider")) {
+				if (segments[segments.length - 1].length) segments.push([]);
+				return;
+			}
+			// match by tag, not .dropdown-item — change_inner_button_type's
+			// legacy removeClass() strips ALL classes off the store item
+			if (el.tagName !== "A" || el.style.display === "none") return;
+			const label = $(el).text().trim();
+			if (!label) return;
+			const internal = ["dropdown-item", "disabled", "btn", "btn-danger", "text-danger"];
+			const css_class = [...el.classList].filter((c) => !internal.includes(c)).join(" ");
+			segments[segments.length - 1].push({
+				label,
+				disabled: el.classList.contains("disabled"),
+				// btn-danger comes from change_inner_button_type(label, group,
+				// "danger"); text-danger is how apps mark risky rows
+				theme:
+					el.classList.contains("btn-danger") || el.classList.contains("text-danger")
+						? "red"
+						: undefined,
+				css_class: css_class || undefined,
+				// clicking the store element runs every handler callers bound
+				onclick: () => $(el).trigger("click"),
+			});
+		});
+		const groups = segments.filter((segment) => segment.length);
+		if (groups.length <= 1) return groups[0] || [];
+		return groups.map((options) => ({ group: "", hide_label: true, options }));
 	}
 
 	get_inner_group_button(label) {
@@ -597,23 +831,24 @@ frappe.ui.Page = class Page {
 		const dropdown_items = group.find(".dropdown-menu .dropdown-item");
 
 		if (dropdown_items.length > 0) {
-			group.find("button").removeClass("btn-default").addClass("btn-primary");
+			group.find("button").attr("data-variant", "solid");
 		} else {
 			group.toggleClass("hide", true);
 		}
 	}
 
 	btn_disable_enable(btn, response) {
+		// aria-busy, not disabled: disabling ejects keyboard focus, busy shows
+		// the es-button spinner/loading-label and blocks clicks. Direct
+		// .prop("disabled") pokes from outside still work (es-button styles
+		// :disabled) — this only changes what the page does on its own.
+		const busy = (on) => (on ? btn.attr("aria-busy", "true") : btn.removeAttr("aria-busy"));
 		if (response && response.then) {
-			btn.prop("disabled", true);
-			response.finally(() => {
-				btn.prop("disabled", false);
-			});
+			busy(true);
+			response.finally(() => busy(false));
 		} else if (response && response.always) {
-			btn.prop("disabled", true);
-			response.always(() => {
-				btn.prop("disabled", false);
-			});
+			busy(true);
+			response.always(() => busy(false));
 		}
 	}
 	add_divider_to_button_group(group) {
@@ -637,9 +872,15 @@ frappe.ui.Page = class Page {
 			me.btn_disable_enable(btn, response);
 		};
 
-		// Add actions as menu item in Mobile View
+		// Add actions as menu item in Mobile View. The store keeps the flat
+		// "Group > Label" item (dedupe and remove_custom_button look it up by
+		// that label) — the snapshot renders stamped items as a nested
+		// "Group" row with a submenu instead.
 		let menu_item_label = group ? `${group} > ${label}` : label;
 		let menu_item = this.add_menu_item(menu_item_label, _action, false, false, false);
+		if (group) {
+			menu_item.closest("li").data("menu_submenu", { group, label });
+		}
 		menu_item.parent().addClass("hidden-xl");
 		if (this.menu_btn_group.hasClass("hide")) {
 			this.menu_btn_group.removeClass("hide").addClass("hidden-xl");
@@ -663,11 +904,12 @@ frappe.ui.Page = class Page {
 				`button[data-label="${encodeURIComponent(label)}"]`
 			);
 			if (button.length == 0) {
-				button = $(`<button data-label="${encodeURIComponent(
-					label
-				)}" class="btn btn-${type} ellipsis">
-					${__(label)}
-				</button>`);
+				button = frappe.ui.button({
+					label: __(label),
+					...es_opts_for_btn_type(type),
+					css_class: "ellipsis",
+					attrs: { "data-label": encodeURIComponent(label) },
+				});
 				button.on("click", _action);
 				button.appendTo(this.inner_toolbar.removeClass("hide"));
 			}
@@ -687,7 +929,10 @@ frappe.ui.Page = class Page {
 			if ($group.length) {
 				$group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`).remove();
 			}
-			if ($group.find(".dropdown-item").length === 0) $group.remove();
+			if ($group.find(".dropdown-item").length === 0) {
+				this.destroy_group_dropdowns($group);
+				$group.remove();
+			}
 		} else {
 			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
 		}
@@ -697,16 +942,26 @@ frappe.ui.Page = class Page {
 		let btn;
 
 		if (group) {
+			// the class poke lands on the store item; the snapshot maps
+			// btn-danger to the red row theme. Strips extra classes
+			// (pre-existing behavior).
 			var $group = this.get_inner_group_button(__(group));
 			if ($group.length) {
 				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`);
+				if (btn) btn.removeClass().addClass(`btn btn-${type} ellipsis`);
 			}
 		} else {
+			// es-buttons change look via data attributes — the classes
+			// (es-button, ellipsis, data-label hooks) must survive
 			btn = this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`);
-		}
-
-		if (btn) {
-			btn.removeClass().addClass(`btn btn-${type} ellipsis`);
+			if (btn.length) {
+				const es = es_opts_for_btn_type(type);
+				// defaults (subtle/gray) are expressed by NO attribute
+				es.variant === "subtle"
+					? btn.removeAttr("data-variant")
+					: btn.attr("data-variant", es.variant);
+				es.theme ? btn.attr("data-theme", es.theme) : btn.removeAttr("data-theme");
+			}
 		}
 	}
 
@@ -719,7 +974,9 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_inner_toolbar() {
-		this.inner_toolbar.empty().addClass("hide");
+		// inner_toolbar IS custom_actions (see setup_page) — delegate so the
+		// dropdown teardown and the mobile-container clear live in one place
+		this.clear_custom_actions();
 	}
 
 	clear_user_actions() {
@@ -766,11 +1023,19 @@ frappe.ui.Page = class Page {
 
 	add_button(label, click, opts) {
 		if (!opts) opts = {};
-		let button = $(`<button
-			class="btn ${opts.btn_class || "btn-default"} ${opts.btn_size || "btn-sm"} ellipsis">
-				${opts.icon ? frappe.utils.icon(opts.icon) : ""}
-				${label}
-		</button>`);
+		// btn_class/btn_size keep their bootstrap vocabulary ("btn-primary",
+		// "btn-xs") and are mapped onto the es contract; a class we don't
+		// recognize passes through so custom hooks keep working
+		const type = (opts.btn_class || "btn-default").replace(/^btn-/, "");
+		const known = Boolean(BTN_TYPE_TO_ES[type]);
+		let button = frappe.ui.button({
+			label: label,
+			icon: opts.icon,
+			...es_opts_for_btn_type(type),
+			size: opts.btn_size === "btn-xs" ? "xs" : undefined,
+			css_class: ["ellipsis", !known && opts.btn_class].filter(Boolean).join(" "),
+			attrs: { "data-label": encodeURIComponent(label) },
+		});
 		// Add actions as menu item in Mobile View (similar to "add_custom_button" in forms.js)
 		let menu_item = this.add_menu_item(label, click, false);
 		menu_item.parent().addClass("hidden-xl");
@@ -783,36 +1048,45 @@ frappe.ui.Page = class Page {
 	}
 
 	add_custom_button_group(label, icon, parent) {
-		let dropdown_label = `<span class="hidden-xs">
-			<span class="custom-btn-group-label">${__(label)}</span>
-			${frappe.utils.icon("chevrons-up-down", "xs")}
-		</span>`;
-
-		if (icon) {
-			dropdown_label = `<span class="hidden-xs">
-				${frappe.utils.icon(icon)}
-				<span class="custom-btn-group-label">${__(label)}</span>
-				${frappe.utils.icon("chevrons-up-down", "xs")}
-			</span>
-			<span class="visible-xs">
-				${frappe.utils.icon(icon)}
-			</span>`;
-		}
-
+		// same bridge as the header menus: the UL is a hidden item store
+		// (add_custom_menu_item writes li > a there and returns the link),
+		// rendered as an espresso menu per open
 		let custom_btn_group = $(`
 			<div class="custom-btn-group">
-				<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
-					${dropdown_label}
-				</button>
-				<ul class="dropdown-menu" role="menu"></ul>
+				<ul class="dropdown-menu" role="presentation"></ul>
 			</div>
 		`);
+
+		let $button = frappe.ui.button({
+			label: __(label),
+			icon: icon,
+			icon_right: "chevrons-up-down",
+			css_class: "ellipsis",
+		});
+		$button.find(".es-button__label").addClass("custom-btn-group-label");
+		if (icon) {
+			// with an icon, mobile collapses to it alone: label and chevron
+			// hide below md and page.scss squares the button. Without an icon
+			// there is nothing to collapse to, so the label stays.
+			$button.find(".es-button__label").addClass("hidden-xs");
+			$button.children("svg").last().addClass("hidden-xs");
+		}
+		$button.prependTo(custom_btn_group);
 
 		if (!parent)
 			parent = frappe.is_mobile() ? this.custom_mobile_actions : this.custom_actions;
 		parent.removeClass("hide").append(custom_btn_group);
 
-		return custom_btn_group.find(".dropdown-menu");
+		const $store = custom_btn_group.find(".dropdown-menu");
+		custom_btn_group.data(
+			"es_dropdown",
+			new frappe.ui.Dropdown({
+				trigger: $button,
+				options: () => this.build_dropdown_options($store),
+			})
+		);
+
+		return $store;
 	}
 
 	add_dropdown_button(parent, label, click, icon) {

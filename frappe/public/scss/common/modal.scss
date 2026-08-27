@@ -115,11 +115,6 @@ body.modal-open[style^="padding-right"] {
 			button:not(:last-child) {
 				margin-right: var(--margin-xs);
 			}
-
-			.btn-primary-dark {
-				min-width: 80px;
-				max-width: 200px;
-			}
 		}
 
 		& > * {

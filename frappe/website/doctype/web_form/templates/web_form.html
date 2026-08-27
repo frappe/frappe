@@ -185,8 +185,8 @@
 	<script>
 		frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }};
 		frappe._messages = {{ translated_messages }};
-		frappe.web_form_doc = {{ web_form_doc | json }};
-		frappe.reference_doc = {{ reference_doc | json }};
+		frappe.web_form_doc = {{ web_form_doc | json | replace("<", "\\u003c") | replace(">", "\\u003e") | replace("&", "\\u0026") }};
+		frappe.reference_doc = {{ reference_doc | json | replace("<", "\\u003c") | replace(">", "\\u003e") | replace("&", "\\u0026") }};
 		function in_iframe() {
 			try {
 				return window.self !== window.top;

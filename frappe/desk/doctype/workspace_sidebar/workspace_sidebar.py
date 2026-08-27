@@ -48,6 +48,7 @@ class WorkspaceSidebar(Document, DeskViews):
 
 		app: DF.Autocomplete | None
 		for_user: DF.Link | None
+		header_icon: DF.Icon | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
 		module_onboarding: DF.Link | None
@@ -266,22 +267,32 @@ def create_workspace_sidebar_for_workspaces():
 @site_cache()
 def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
+	from frappe.app_state import get_disabled_modules
+
 	sidebars = []
-	for module in frappe.get_all("Module Def", pluck="name"):
+	disabled_modules = get_disabled_modules()
+	for module in frappe.get_all("Module Def", fields=["name", "app_name"]):
+		if module.name in disabled_modules:
+			continue
+
 		# Skip modules whose public workspace already carries authored sidebar items -- that
 		# workspace's sidebar is built from `Workspace.sidebar_items` (the source of truth), so a
 		# generated fallback would be redundant.
-		if not module_has_workspace_sidebar(module):
+		if not module_has_workspace_sidebar(module.name):
 			try:
-				module_info = get_module_info(module)
+				module_info = get_module_info(module.name)
 				sidebar_items = create_sidebar_items(module_info)
 				sidebar = frappe.new_doc("Workspace Sidebar")
-				sidebar.title = module
+				sidebar.title = module.name
 				sidebar.items = sidebar_items
-				sidebar.module = module
+				sidebar.module = module.name
 				sidebar.header_icon = "hammer"
 
-				sidebar.app = frappe.modules.utils.get_module_app(module)
+				# A module that exists only in the DB (a Module Def created from the UI, never
+				# added to any modules.txt) isn't in frappe.local.module_app, so fall back to the
+				# Module Def's own app_name. Without either the sidebar still generates -- it just
+				# carries no app context (the dock/header keep the current app).
+				sidebar.app = frappe.local.module_app.get(frappe.scrub(module.name)) or module.app_name
 				# in-memory marker (not a persisted field): flags sidebars built from a module so the
 				# desk can render a generated avatar instead of the default app-logo header icon.
 				sidebar.from_module = 1
