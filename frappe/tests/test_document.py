@@ -613,9 +613,40 @@ class TestDocument(IntegrationTestCase):
 		frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert(ignore_if_duplicate=True)
 		self.assertEqual(frappe.db.count("Role", {"role_name": "_Test Duplicate Role"}), 1)
 
-		# Without the flag it is still an error, whichever index the backend blames.
+		# A skipped row has to leave the transaction usable. Postgres aborts it on any failed
+		# statement, so a write here is what proves the row was skipped and not caught.
+		role.db_set("disabled", 1)
+		self.assertEqual(frappe.db.get_value("Role", role.name, "disabled"), 1)
+
+		# Without the flag it is still an error, whichever index the backend blames. The
+		# savepoint is for postgres: the failed insert aborts the transaction, so nothing
+		# after this test could read or write without it.
+		frappe.db.savepoint("test_ignore_if_duplicate")
 		with self.assertRaises((frappe.UniqueValidationError, frappe.DuplicateEntryError)):
 			frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+		frappe.db.rollback(save_point="test_ignore_if_duplicate")
+
+	def test_ignore_if_duplicate_on_a_unique_field_that_is_not_the_name(self):
+		"""The clash can be on a unique index alone, with a name that is free.
+
+		The row still has to be skipped, and the transaction still has to work afterwards.
+		Postgres aborts a transaction on any failed statement, so there the row has to be
+		skipped by the database rather than caught in python.
+		"""
+		doctype = new_doctype(unique=True).insert()
+		self.addCleanup(doctype.delete, force=True)
+
+		first = frappe.get_doc(doctype=doctype.name, some_fieldname="_Test Unique Value").insert()
+		frappe.get_doc(doctype=doctype.name, some_fieldname="_Test Unique Value").insert(
+			ignore_if_duplicate=True
+		)
+		self.assertEqual(frappe.db.count(doctype.name, {"some_fieldname": "_Test Unique Value"}), 1)
+
+		# A write, not a read: this is what an aborted postgres transaction would fail on.
+		first.db_set("some_fieldname", "_Test Unique Value 2")
+		self.assertEqual(
+			frappe.db.get_value(doctype.name, first.name, "some_fieldname"), "_Test Unique Value 2"
+		)
 
 
 class TestDocumentWebView(IntegrationTestCase):
