@@ -656,7 +656,10 @@ frappe.views.TreeView = class TreeView {
 	}
 	show_move_dialog(node, excluded) {
 		var me = this;
+		// mirror the server (frappe.desk.treeview): nested sets may use a
+		// custom parent field (e.g. Employee's reports_to)
 		const parent_fieldname =
+			frappe.get_meta(me.doctype)?.nsm_parent_field ||
 			"parent_" + me.doctype.toLowerCase().replace(/ /g, "_").replace(/-/g, "_");
 
 		const dialog = new frappe.ui.Dialog({
@@ -673,9 +676,14 @@ frappe.views.TreeView = class TreeView {
 					// validated server-side
 					ignore_link_validation: 1,
 					get_query: () => {
-						// only groups qualify — never the node or its own
-						// subtree; stay within the tree currently shown
-						const filters = { is_group: 1, name: ["not in", excluded] };
+						// never the node or its own subtree; only groups
+						// qualify where the doctype has that concept (trees
+						// like Employee have none — any node can be a parent);
+						// stay within the tree currently shown
+						const filters = { name: ["not in", excluded] };
+						if (frappe.meta.has_field(me.doctype, "is_group")) {
+							filters.is_group = 1;
+						}
 						Object.keys(me.args).forEach((key) => {
 							if (
 								key !== "doctype" &&

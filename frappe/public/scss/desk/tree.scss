@@ -18,6 +18,15 @@
 	.standard-filter-section .frappe-control:not([data-fieldtype="Check"]) {
 		min-width: 220px;
 	}
+
+	// the checkbox sizes to its label instead of the col-md-2 column, so a
+	// longer label ("Show all (including disabled)") stays on one line
+	.standard-filter-section .frappe-control[data-fieldtype="Check"] {
+		flex: none;
+		width: auto;
+		max-width: none;
+		white-space: nowrap;
+	}
 }
 
 .tree-view-body {
