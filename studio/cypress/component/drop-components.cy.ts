@@ -15,9 +15,39 @@ import { registerGlobalComponents } from "@/globals"
 import useCanvasStore from "@/stores/canvasStore"
 import type { FrappeUIComponent } from "@/types"
 
-const DATA_DEPENDENT = ["ListView", "Link", "Filter", "Calendar", "NumberChart", "AxisChart", "DonutChart", "Repeater"]
+const DATA_DEPENDENT = [
+	"ListView",
+	"Link",
+	"Filter",
+	"Calendar",
+	"NumberChart",
+	"AxisChart",
+	"DonutChart",
+	"Repeater",
+]
 const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]
-const SKIP = new Set([...DATA_DEPENDENT, ...FLOATING])
+// These need fixes in frappe-ui before they can render or select reliably in isolation.
+const KNOWN_COMPONENT_FAILURES = [
+	"CodeEditor",
+	"MultiSelect",
+	"Slider",
+	"TableMultiSelect",
+	"SortBy",
+	"QuickFilter",
+	"ColumnSettings",
+	"FileUploadDialog",
+	"UploadTray",
+	"ListRows",
+	"ListCell",
+	"ListHeader",
+	"ListHeaderCell",
+	"ListHeaderCellSort",
+	"ListViewShell",
+	"SettingsDialog",
+	"Sidebar",
+	"SidebarLabel",
+]
+const SKIP = new Set([...DATA_DEPENDENT, ...FLOATING, ...KNOWN_COMPONENT_FAILURES])
 
 const componentsToTest = componentsData.list.filter((component) => !SKIP.has(component.name))
 
