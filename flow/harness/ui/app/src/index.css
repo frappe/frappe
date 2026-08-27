@@ -17,15 +17,17 @@
    outlines coherently. Overriding the themed variables is the supported
    theming layer — components stay token-pure. */
 [data-theme="dark"] {
-	--surface-white: #171717;
-	--surface-menu-bar: #141414;
+	--surface-base: #171717;
+	--surface-sidebar: #141414;
 	--surface-gray-1: #1f1f1f;
 	--surface-gray-2: #292929;
 	--surface-gray-3: #383838;
 	--surface-gray-4: #424242;
-	--surface-cards: #1f1f1f;
-	--surface-modal: #292929;
-	--outline-white: #242424;
+	--surface-elevation-1: #1f1f1f;
+	--surface-elevation-2: #292929;
+	--surface-elevation-3: #383838;
+	--outline-base: #242424;
+	--outline-elevation-2: #383838;
 	--outline-gray-1: #242424;
 	--outline-gray-2: #383838;
 	--outline-gray-3: #424242;
@@ -40,7 +42,7 @@ body,
 
 body {
 	font-family: Inter, system-ui, sans-serif;
-	background: var(--surface-white);
+	background: var(--surface-base);
 	-webkit-font-smoothing: antialiased;
 }
 

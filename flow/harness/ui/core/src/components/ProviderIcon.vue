@@ -3,7 +3,7 @@
 	     small white tile so monochrome logos stay legible -->
 	<span
 		v-if="source"
-		class="inline-flex flex-none items-center justify-center rounded-md dark:bg-white"
+		class="inline-flex flex-none items-center justify-center rounded-5 dark:bg-white"
 		:style="{ width: `${size}px`, height: `${size}px` }"
 	>
 		<img
@@ -37,7 +37,7 @@ import openai from "@lobehub/icons-static-svg/icons/openai.svg"
 import opencode from "@lobehub/icons-static-svg/icons/opencode.svg"
 import openrouter from "@lobehub/icons-static-svg/icons/openrouter-color.svg"
 import xai from "@lobehub/icons-static-svg/icons/xai.svg"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 const props = defineProps({
 	providerId: { type: String, required: true },

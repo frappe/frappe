@@ -2,7 +2,7 @@
 	<PalettePanel title="Models" back @close="emit('close')" @back="emit('back')">
 		<template #actions>
 			<button
-				class="flex h-7 w-7 items-center justify-center rounded-md text-ink-gray-5 hover:bg-surface-gray-2"
+				class="flex h-7 w-7 items-center justify-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-2"
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
@@ -20,12 +20,12 @@
 				:key="m.name"
 				data-palette-item
 				:aria-current="m.name === currentModel ? 'true' : undefined"
-				class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
 				@click="choose(m.name)"
 			>
 				<span
 					class="flex h-7 w-7 flex-none items-center justify-center"
-					:class="m.custom ? 'rounded-md border border-dashed border-outline-gray-3' : ''"
+					:class="m.custom ? 'rounded-5 border border-dashed border-outline-gray-3' : ''"
 				>
 					<ProviderIcon :provider-id="m.provider" :size="22" />
 				</span>
@@ -44,7 +44,7 @@
 			<div v-if="!options.length" class="flex flex-col items-center gap-2 px-3 py-8 text-center">
 				<span class="text-xs text-ink-gray-5">No models yet — connect a provider to get started.</span>
 				<button
-					class="flex h-7 items-center gap-1.5 rounded-md border border-outline-gray-2 px-2.5 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1"
+					class="flex h-7 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-2.5 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1"
 					@click="emit('providers')"
 				>
 					<FeatherIcon name="key" class="h-3.5 w-3.5" />
@@ -57,7 +57,7 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import PalettePanel from "./PalettePanel.vue"

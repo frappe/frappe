@@ -6,7 +6,7 @@
 				:key="level.id"
 				data-palette-item
 				:aria-current="level.id === currentEffort ? 'true' : undefined"
-				class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
 				@click="choose(level.id)"
 			>
 				<span class="min-w-0 flex-1">
@@ -25,7 +25,7 @@
 
 <script setup>
 import { computed, inject } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { EFFORTS, EFFORT_LABELS } from "../transcript.js"
 import PalettePanel from "./PalettePanel.vue"

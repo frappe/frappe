@@ -31,11 +31,11 @@
 						</div>
 						<button
 							data-palette-item
-							class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
+							class="flex w-full items-center gap-3 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
 							@click="pick(m)"
 						>
 							<span
-								class="flex h-7 w-7 flex-none items-center justify-center rounded-md border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
+								class="flex h-7 w-7 flex-none items-center justify-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
 							>
 								<FeatherIcon :name="m.icon" class="h-3.5 w-3.5" />
 							</span>
@@ -64,11 +64,11 @@
 			</div>
 
 			<div
-				class="flow-composer-surface flex flex-col gap-2 rounded-xl border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
+				class="flow-composer-surface flex flex-col gap-2 rounded-7 border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
 			>
 				<button
 					v-if="needsCwd"
-					class="flex w-full items-center gap-2.5 rounded-lg border border-dashed border-outline-gray-3 bg-surface-gray-1 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+					class="flex w-full items-center gap-2.5 rounded-6 border border-dashed border-outline-gray-3 bg-surface-gray-1 px-2.5 py-2 text-left hover:bg-surface-gray-2"
 					@click="chooseFolder"
 				>
 					<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
@@ -79,13 +79,13 @@
 					<span
 						v-for="(ref, i) in codeRefs"
 						:key="`${ref.path}:${ref.start}-${ref.end}`"
-						class="flex max-w-[260px] items-center gap-1.5 rounded-lg border border-outline-gray-2 bg-surface-white py-1 pl-2 pr-1"
+						class="flex max-w-[260px] items-center gap-1.5 rounded-6 border border-outline-gray-2 bg-surface-base py-1 pl-2 pr-1"
 						:title="`${ref.rel}:${ref.start}-${ref.end}`"
 					>
 						<FeatherIcon name="code" class="h-3 w-3 flex-none text-ink-gray-5" />
 						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ refLabel(ref) }}</span>
 						<button
-							class="grid h-4 w-4 flex-none place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+							class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 							title="Remove reference"
 							:disabled="submitting"
 							@click="flow.removeCodeRef(i)"
@@ -98,12 +98,12 @@
 					<template v-for="(item, i) in attachments" :key="item.key">
 						<figure
 							v-if="item.kind === 'image' && item.previewUrl"
-							class="group/attachment relative h-[72px] w-[72px] flex-none overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-sm"
+							class="group/attachment relative h-[72px] w-[72px] flex-none overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
 							:title="item.name"
 						>
 							<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
 							<button
-								class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-white/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
+								class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
 								title="Remove attachment"
 								:aria-label="`Remove ${item.name}`"
 								:disabled="submitting"
@@ -114,16 +114,16 @@
 						</figure>
 						<span
 							v-else
-							class="flex max-w-[260px] items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-white py-1 pl-1 pr-1"
+							class="flex max-w-[260px] items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base py-1 pl-1 pr-1"
 						>
 							<span
-								class="grid h-6 w-6 flex-none place-items-center rounded-md border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
+								class="grid h-6 w-6 flex-none place-items-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
 							>
 								<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
 							</span>
 							<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
 							<button
-								class="grid h-5 w-5 flex-none place-items-center rounded-md text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+								class="grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 								title="Remove attachment"
 								:aria-label="`Remove ${item.name}`"
 								:disabled="submitting"
@@ -141,7 +141,7 @@
 						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent"
 					>
 						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
-							<span class="text-ink-blue-3">{{ skillPrompt.prefix }}</span><span class="text-ink-gray-9">{{ skillPrompt.rest }}</span>
+							<span class="text-ink-blue-6">{{ skillPrompt.prefix }}</span><span class="text-ink-gray-9">{{ skillPrompt.rest }}</span>
 						</div>
 					</div>
 					<textarea
@@ -166,14 +166,14 @@
 					class="hidden"
 					@change="onFilesPicked"
 				/>
-				<div v-if="visionWarning" class="px-1 text-2xs text-ink-amber-3">
+				<div v-if="visionWarning" class="px-1 text-2xs text-ink-amber-6">
 					The selected model cannot view images. Switch to a vision-capable model before sending.
 				</div>
 				<div class="flex min-w-0 items-center gap-1">
 					<!-- add-context menu -->
 					<span class="relative flex-none">
 						<button
-							class="grid h-7 w-7 place-items-center rounded-md text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
+							class="grid h-7 w-7 place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
 							:class="plusMenu ? 'bg-surface-gray-2' : ''"
 							title="Add context"
 							aria-haspopup="menu"
@@ -214,7 +214,7 @@
 					<!-- model picker: a menu of the two palettes it fronts -->
 					<span class="relative min-w-0">
 						<button
-							class="flex h-7 min-w-0 max-w-[360px] items-center gap-1.5 rounded-md px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
+							class="flex h-7 min-w-0 max-w-[360px] items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
 							:class="modelMenu ? 'bg-surface-gray-2' : ''"
 							:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
 							aria-haspopup="menu"
@@ -262,7 +262,7 @@
 					<!-- approval mode -->
 					<span class="relative flex-none">
 						<button
-							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
+							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
 							:class="modeMenu ? 'bg-surface-gray-2' : ''"
 							title="Approval mode"
 							aria-haspopup="menu"
@@ -296,7 +296,7 @@
 
 					<button
 						v-if="running"
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-lg bg-surface-gray-7 text-ink-white shadow-sm hover:opacity-90"
+						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base shadow-sm hover:opacity-90"
 						title="Stop"
 						@click="flow.abort()"
 					>
@@ -304,10 +304,10 @@
 					</button>
 					<button
 						v-else
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-lg shadow-sm"
+						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 shadow-sm"
 						:class="
 							canSend
-								? 'bg-surface-gray-7 text-ink-white hover:opacity-90'
+								? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
 								: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4'
 						"
 						title="Send"
@@ -323,7 +323,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { EFFORT_LABELS, fileName } from "../transcript.js"

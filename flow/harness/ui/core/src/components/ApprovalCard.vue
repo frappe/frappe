@@ -3,7 +3,7 @@
 		<div
 			v-for="call in calls"
 			:key="call.id"
-			class="overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-sm"
+			class="overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
 		>
 			<div class="px-3.5 py-2.5">
 				<div class="text-base leading-snug text-ink-gray-9">{{ title(call) }}</div>
@@ -17,7 +17,7 @@
 				<div v-for="(r, i) in edits(call)" :key="i" :class="i > 0 ? 'border-t border-outline-gray-1' : ''">
 					<pre
 						class="m-0 overflow-auto px-3.5 py-1 font-mono text-2xs leading-[1.7]"
-					><span v-for="(line, j) in r.old.split('\n')" :key="'o' + j" class="block bg-surface-red-1 text-ink-red-3">- {{ line }}</span><span v-for="(line, j) in r.new.split('\n')" :key="'n' + j" class="block bg-surface-green-1 text-ink-green-3">+ {{ line }}</span></pre>
+					><span v-for="(line, j) in r.old.split('\n')" :key="'o' + j" class="block bg-surface-red-1 text-ink-red-6">- {{ line }}</span><span v-for="(line, j) in r.new.split('\n')" :key="'n' + j" class="block bg-surface-green-1 text-ink-green-6">+ {{ line }}</span></pre>
 				</div>
 			</div>
 
@@ -37,7 +37,7 @@
 					v-model="askText"
 					rows="2"
 					placeholder="Describe what you want instead…"
-					class="w-full resize-none rounded-lg border border-outline-gray-2 bg-surface-white px-2.5 py-2 text-xs leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+					class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-xs leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 					@keydown.enter.exact.prevent="sendAsk(call)"
 					@keydown.esc="cancelAsk"
 				/>

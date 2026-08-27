@@ -11,7 +11,7 @@
 
 <script setup>
 import { onBeforeUnmount, ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 const props = defineProps({
 	text: { type: String, required: true },

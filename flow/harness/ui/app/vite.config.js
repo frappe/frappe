@@ -32,6 +32,13 @@ export default defineConfig({
 	resolve: {
 		alias: [{ find: "frappe-ui/src", replacement: frappeUISrc() }],
 	},
+	// Without this, dev pre-bundles the app's `frappe-ui/src/*.ts` imports while
+	// frappe-ui's own files load the same modules from source — two instances of
+	// singleton state like the imperative dialog stack (prod builds dedupe by
+	// file, so only dev breaks).
+	optimizeDeps: {
+		exclude: ["frappe-ui"],
+	},
 	server: { host: "127.0.0.1", proxy },
 	build: {
 		// `flow web` serves this from inside the package, same-origin with the API

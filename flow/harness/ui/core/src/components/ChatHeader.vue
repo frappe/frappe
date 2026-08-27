@@ -31,7 +31,7 @@
 				<span v-if="contextWindow && contextTokens > 0" class="flex items-center gap-1.5" title="Context used">
 					<span class="h-1 w-10 flex-none overflow-hidden rounded-full bg-surface-gray-3">
 						<span
-							class="block h-full rounded-full bg-surface-gray-6"
+							class="block h-full rounded-full bg-surface-gray-9"
 							:style="{ width: Math.min(100, (contextTokens / contextWindow) * 100) + '%' }"
 						/>
 					</span>
@@ -65,7 +65,7 @@
 
 <script setup>
 import { computed, inject } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { conversationTitle, formatTokens } from "../transcript.js"
 

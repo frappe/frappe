@@ -7,7 +7,7 @@
 	>
 		<template v-if="!selected" #actions>
 			<button
-				class="flex h-7 w-7 items-center justify-center rounded-md text-ink-gray-5 hover:bg-surface-gray-2"
+				class="flex h-7 w-7 items-center justify-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-2"
 				title="Refresh providers"
 				@click="reload"
 			>
@@ -25,7 +25,7 @@
 				v-for="p in filtered"
 				:key="p.id"
 				data-palette-item
-				class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flex w-full items-center gap-3 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
 				@click="select(p)"
 			>
 				<span class="flex h-8 w-8 flex-none items-center justify-center">
@@ -37,7 +37,7 @@
 				</span>
 				<span
 					v-if="p.configured"
-					class="flex items-center gap-1 text-2xs font-medium text-ink-green-3"
+					class="flex items-center gap-1 text-2xs font-medium text-ink-green-6"
 				>
 					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-3" />
 					Connected
@@ -47,11 +47,11 @@
 			<!-- pinned at the bottom: local runtimes and private gateways -->
 			<button
 				data-palette-item
-				class="mt-1 flex w-full items-center gap-3 rounded-md border-t border-outline-gray-1 px-2.5 py-2 pt-3 text-left hover:bg-surface-gray-2"
+				class="mt-1 flex w-full items-center gap-3 rounded-5 border-t border-outline-gray-1 px-2.5 py-2 pt-3 text-left hover:bg-surface-gray-2"
 				@click="select(CUSTOM_OPTION)"
 			>
 				<span
-					class="flex h-8 w-8 flex-none items-center justify-center rounded-md border border-outline-gray-2 text-ink-gray-6"
+					class="flex h-8 w-8 flex-none items-center justify-center rounded-5 border border-outline-gray-2 text-ink-gray-6"
 				>
 					<FeatherIcon name="plus" class="h-3.5 w-3.5" />
 				</span>
@@ -122,7 +122,7 @@
 					<button
 						v-if="editingCustom"
 						type="button"
-						class="flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-red-3 hover:bg-surface-red-1"
+						class="flex h-8 items-center gap-1.5 rounded-5 px-3 text-xs font-medium text-ink-red-6 hover:bg-surface-red-1"
 						:disabled="saving"
 						@click="disconnect"
 					>
@@ -131,7 +131,7 @@
 					</button>
 					<button
 						type="submit"
-						class="flex h-8 items-center gap-1.5 rounded-md bg-surface-gray-7 px-3 text-xs font-medium text-ink-white hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+						class="flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 						:disabled="!canSaveCustom || saving"
 					>
 						<FeatherIcon :name="editingCustom ? 'check' : 'plus'" class="h-3.5 w-3.5" />
@@ -142,14 +142,14 @@
 
 			<div v-else-if="selected.configured" class="mt-5">
 				<div
-					class="flex items-center gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
 				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-3" />
+					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-6" />
 					Ready to use
 				</div>
 				<button
 					v-if="selected.credential_type"
-					class="mt-3 flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-red-3 hover:bg-surface-red-1"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 px-3 text-xs font-medium text-ink-red-6 hover:bg-surface-red-1"
 					:disabled="saving"
 					@click="disconnect"
 				>
@@ -164,12 +164,12 @@
 					v-model="apiKey"
 					type="password"
 					autocomplete="off"
-					class="h-9 w-full rounded-md border border-outline-gray-2 bg-surface-white px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+					class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 					placeholder="Paste your API key"
 				/>
 				<button
 					type="submit"
-					class="mt-3 flex h-8 items-center gap-1.5 rounded-md bg-surface-gray-7 px-3 text-xs font-medium text-ink-white hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 					:disabled="!apiKey.trim() || saving"
 				>
 					<FeatherIcon name="key" class="h-3.5 w-3.5" />
@@ -180,7 +180,7 @@
 			<div v-else class="mt-5">
 				<button
 					v-if="!['pending', 'waiting_manual', 'exchanging', 'connected'].includes(oauthStatus)"
-					class="flex h-9 items-center gap-2 rounded-md bg-surface-gray-7 px-3.5 text-xs font-medium text-ink-white hover:opacity-90 disabled:opacity-50"
+					class="flex h-9 items-center gap-2 rounded-5 bg-surface-gray-10 px-3.5 text-xs font-medium text-ink-base hover:opacity-90 disabled:opacity-50"
 					:disabled="saving"
 					@click="beginOAuth"
 				>
@@ -189,7 +189,7 @@
 				</button>
 				<div
 					v-else-if="oauthStatus !== 'connected'"
-					class="flex items-center gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
 				>
 					<span class="flow-shimmer font-medium">
 						{{ oauthStatus === "exchanging" ? "Finishing sign-in…" : "Waiting for sign-in…" }}
@@ -209,12 +209,12 @@
 				</a>
 				<div
 					v-if="oauthStatus === 'connected'"
-					class="flex items-center gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
 				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-3" />
+					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-6" />
 					Connected
 				</div>
-				<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-3">
+				<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-6">
 					{{ oauthError }}
 				</div>
 				<button
@@ -227,12 +227,12 @@
 				<form v-if="showManual" class="mt-3" @submit.prevent="completeOAuth">
 					<input
 						v-model="callbackUrl"
-						class="h-9 w-full rounded-md border border-outline-gray-2 bg-surface-white px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+						class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 						placeholder="http://localhost:1455/auth/callback?..."
 					/>
 					<button
 						type="submit"
-						class="mt-2 flex h-8 items-center gap-1.5 rounded-md border border-outline-gray-2 px-3 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
+						class="mt-2 flex h-8 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-3 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
 						:disabled="!callbackUrl.trim() || saving"
 					>
 						Complete sign-in
@@ -245,7 +245,7 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, ref } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import PalettePanel from "./PalettePanel.vue"
@@ -269,7 +269,7 @@ const authorizeUrl = ref("")
 let pollTimer = null
 
 const FIELD =
-	"h-9 w-full rounded-md border border-outline-gray-2 bg-surface-white px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+	"h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 
 // the synthetic row that opens the custom-endpoint form
 const CUSTOM_OPTION = {

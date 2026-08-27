@@ -61,7 +61,7 @@
 					<CopyButton
 						:text="item.text"
 						title="Copy response"
-						class="grid h-6 w-6 place-items-center rounded-md text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					/>
 					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
 				</div>
@@ -84,7 +84,7 @@
 				</div>
 				<div
 					v-else-if="item.kind === 'error'"
-					class="rounded-lg border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-sm text-ink-red-3"
+					class="rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-sm text-ink-red-6"
 				>
 					{{ item.error.message }}
 				</div>
@@ -115,7 +115,7 @@
 
 	<button
 		v-if="!stick && !empty"
-		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-white text-ink-gray-6 shadow-md hover:text-ink-gray-9"
+		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 shadow-md hover:text-ink-gray-9"
 		:style="{ bottom: composerHeight + 12 + 'px' }"
 		title="Scroll to bottom"
 		@click="toBottom"
@@ -127,7 +127,7 @@
 
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue"
-import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildItems, formatTime, userAttachments, userText } from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
