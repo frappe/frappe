@@ -7,13 +7,21 @@
 # rot silently.
 
 import re
+from contextlib import ExitStack, contextmanager
 from unittest.mock import patch
 
 import frappe
 from frappe.shell import SHELL_ROOT
+from frappe.shell.doctypes import clear_doctype_owners
 from frappe.shell.install import PrefixCollisionError, before_app_install
 from frappe.shell.manifest import SingletonConflict, enforce_singletons
-from frappe.shell.registry import declared_prefix, default_prefix, shell_base, split_shell_path
+from frappe.shell.registry import (
+	clear_prefix_registry,
+	declared_prefix,
+	default_prefix,
+	shell_base,
+	split_shell_path,
+)
 from frappe.shell.route_guard import ReservedRouteError, is_reserved
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
@@ -41,6 +49,63 @@ def hooks_declaring(hook_name: str, values: dict[str, str]):
 
 def hooks_returning(app_prefixes: dict[str, str]):
 	return hooks_declaring("app_prefix", app_prefixes)
+
+
+#: A second app, invented here rather than borrowed from the bench.
+SECOND_APP = "shell_probe"
+SECOND_PREFIX = "shell-probe"
+
+
+@contextmanager
+def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX):
+	"""Present a second app to the shell without one being installed.
+
+	Most of what the shell promises — that a prefix resolves, that boot is composed per
+	app, that two claimants collide — needs an app besides frappe to mean anything. This
+	suite used to borrow the bench's `crm` for that, which made it assert what a
+	developer's bench happens to contain: on CI, where frappe is the only app installed,
+	fifteen tests failed on `ModuleNotFoundError: No module named 'crm'` and its knock-ons.
+
+	Every seam the shell reads an app through is faked here, and only for `app`:
+
+	- `get_active_apps`, which the prefix registry is built from
+	- `get_installed_apps`, which `get_boot_module_app` filters DB-only modules on
+	- `get_hooks(app_name=...)`, which would otherwise import the app to read them
+
+	Delegation matters as much as it does in `hooks_declaring`: anything asked about a
+	real app must still get the real answer.
+	"""
+	real_hooks = frappe.get_hooks
+	real_active = frappe.get_active_apps
+	real_installed = frappe.get_installed_apps
+
+	def fake_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if app_name == app:
+			# A declared prefix if one was asked for; otherwise the app declares nothing
+			# and the derivation in `default_prefix` is what runs.
+			if hook == "app_prefix" and prefix:
+				return [prefix]
+			return []
+		return real_hooks(hook, default, app_name)
+
+	def with_app(real):
+		def fake(*args, **kwargs):
+			apps = list(real(*args, **kwargs))
+			return apps if app in apps else [*apps, app]
+
+		return fake
+
+	def clear():
+		clear_prefix_registry()
+		clear_doctype_owners()
+
+	clear()
+	with ExitStack() as stack:
+		stack.callback(clear)
+		stack.enter_context(patch.object(frappe, "get_hooks", side_effect=fake_hooks))
+		stack.enter_context(patch.object(frappe, "get_active_apps", side_effect=with_app(real_active)))
+		stack.enter_context(patch.object(frappe, "get_installed_apps", side_effect=with_app(real_installed)))
+		yield app, prefix
 
 
 def strip_html_comments(html: bytes) -> bytes:
@@ -71,9 +136,10 @@ class TestShellPrefixes(IntegrationTestCase):
 		self.assertEqual(default_prefix("frappe_"), "frappe_")
 
 	def test_an_app_that_declares_nothing_gets_its_own_name(self):
-		with hooks_returning({}):
-			# CRM declares no `app_prefix`; this is the derivation running for real.
-			self.assertEqual(declared_prefix("crm"), "crm")
+		# `prefix=None` is the point: the app declares no `app_prefix`, so this is the
+		# derivation in `default_prefix` running for real rather than a hook answering.
+		with a_second_app(prefix=None) as (app, _):
+			self.assertEqual(declared_prefix(app), app)
 
 	def test_the_framework_declares_its_own_prefix(self):
 		"""Charter item 7: no privileged path. The desk uses the door it is building."""
@@ -105,17 +171,19 @@ class TestShellRouting(IntegrationTestCase):
 		return PathResolver(path).resolve()[1]
 
 	def test_a_bare_prefix_resolves(self):
-		"""`Rule("/apps/crm/<path:app_path>")` would NOT match bare `/apps/crm`.
+		"""`Rule("/apps/<prefix>/<path:app_path>")` would NOT match a bare `/apps/<prefix>`.
 
 		v1's `/crm` only works because a file literally named `crm/www/crm.html`
 		happens to exist. The registry-based renderer has no such accident to rely on,
 		so the bare case needs its own test.
 		"""
-		self.assertIsInstance(self.renderer_for("apps/crm"), ShellPage)
 		self.assertIsInstance(self.renderer_for("apps/desk"), ShellPage)
+		with a_second_app() as (_, prefix):
+			self.assertIsInstance(self.renderer_for(f"apps/{prefix}"), ShellPage)
 
 	def test_a_doctype_route_resolves_under_a_prefix(self):
-		self.assertIsInstance(self.renderer_for("apps/crm/crm-deal/CRM-DEAL-001"), ShellPage)
+		with a_second_app() as (_, prefix):
+			self.assertIsInstance(self.renderer_for(f"apps/{prefix}/some-doctype/SOME-001"), ShellPage)
 
 	def test_the_index_resolves(self):
 		self.assertIsInstance(self.renderer_for(SHELL_ROOT), ShellPage)
@@ -124,10 +192,16 @@ class TestShellRouting(IntegrationTestCase):
 		"""The shell owns error states only *inside* a prefix it serves (#42124)."""
 		self.assertIsInstance(self.renderer_for("apps/no-such-app"), NotFoundPage)
 
-	def test_desk_v1_and_crm_v1_are_untouched(self):
-		"""This map must coexist with v1, not replace it."""
+	def test_desk_v1_is_untouched(self):
+		"""This map must coexist with v1, not replace it.
+
+		`/desk` is v1's, and stays v1's, even though the framework claims `/apps/desk`.
+		A second app's bare name is covered by the prefix being claimed only under
+		`/apps` — see `test_a_bare_prefix_resolves`.
+		"""
 		self.assertNotIsInstance(self.renderer_for("desk"), ShellPage)
-		self.assertNotIsInstance(self.renderer_for("crm"), ShellPage)
+		with a_second_app() as (_, prefix):
+			self.assertNotIsInstance(self.renderer_for(prefix), ShellPage)
 
 	def test_a_route_miss_inside_a_prefix_serves_the_shell_at_200(self):
 		"""A client-side route miss, not a server 404.
@@ -137,12 +211,13 @@ class TestShellRouting(IntegrationTestCase):
 		(`website/utils.py:580-581`) — for a document that is about to render
 		perfectly well.
 		"""
-		set_request(method="GET", path="/apps/crm/nothing-is-here")
-		response = get_response()
+		with a_second_app() as (_, prefix):
+			set_request(method="GET", path=f"/apps/{prefix}/nothing-is-here")
+			response = get_response()
 		self.assertEqual(response.status_code, 200)
 
 	def test_the_shell_serves_the_built_document(self):
-		set_request(method="GET", path="/apps/crm")
+		set_request(method="GET", path="/apps/desk")
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
 		self.assertIn(b'<div id="app">', response.data)
@@ -195,9 +270,12 @@ class TestShellIsNeverCached(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.flags.force_website_cache = True
 
+	#: The framework's own prefix, claimed on every bench there is.
+	CACHE_KEY = "website_page::apps/desk"
+
 	def tearDown(self):
 		frappe.flags.force_website_cache = False
-		frappe.cache.delete_value("website_page::apps/crm")
+		frappe.cache.delete_value(self.CACHE_KEY)
 		if hasattr(frappe.local, "request"):
 			delattr(frappe.local, "request")
 
@@ -208,15 +286,15 @@ class TestShellIsNeverCached(IntegrationTestCase):
 		# caching was off anyway.
 		self.assertTrue(can_cache())
 
-		frappe.cache.delete_value("website_page::apps/crm")
-		set_request(method="GET", path="/apps/crm")
+		frappe.cache.delete_value(self.CACHE_KEY)
+		set_request(method="GET", path="/apps/desk")
 		response = get_response()
 
 		self.assertEqual(response.status_code, 200)
-		self.assertIsNone(frappe.cache.get_value("website_page::apps/crm"))
+		self.assertIsNone(frappe.cache.get_value(self.CACHE_KEY))
 
 	def test_rendering_the_shell_turns_local_caching_off(self):
-		set_request(method="GET", path="/apps/crm")
+		set_request(method="GET", path="/apps/desk")
 		get_response()
 		self.assertTrue(getattr(frappe.local, "no_cache", False))
 
@@ -229,13 +307,19 @@ class TestPrefixCollisionGuard(IntegrationTestCase):
 	"""
 
 	def test_a_colliding_prefix_is_refused_naming_both_claimants(self):
-		with hooks_returning({"newapp": "crm"}):
+		"""Collide with the framework's own `desk`, which every bench has.
+
+		Any installed app would do; frappe is the one guaranteed to be there, and using
+		it also proves the framework holds no privileged claim — it collides like anyone.
+		"""
+		with hooks_returning({"newapp": "desk"}):
 			with self.assertRaises(PrefixCollisionError) as caught:
 				before_app_install("newapp")
 
 		message = str(caught.exception)
 		self.assertIn("newapp", message)
-		self.assertIn("crm", message)
+		self.assertIn("desk", message)
+		self.assertIn("frappe", message)
 
 	def test_a_malformed_prefix_is_refused(self):
 		for bad in ["Apps", "with space", "9lives", "trailing/slash", ""]:
@@ -247,13 +331,17 @@ class TestPrefixCollisionGuard(IntegrationTestCase):
 		with hooks_returning({"newapp": "totally-free-prefix"}):
 			before_app_install("newapp")  # must not raise
 
-	def test_crm_v1_does_not_collide_with_crm_v2(self):
+	def test_a_v1_route_does_not_collide_with_the_same_name_under_apps(self):
 		"""The /apps redraw is what removed this collision.
 
-		CRM v1 holds `/crm` and CRM v2 holds `/apps/crm`; they no longer compete, which
-		is why both skeleton consumers ship on their real names.
+		CRM is the real case: v1 holds `/crm`, v2 holds `/apps/crm`, and they no longer
+		compete — which is why both skeleton consumers ship on their real names. Asserted
+		on an invented app so the property is checked, not this bench's app list.
 		"""
-		self.assertEqual(shell_base(declared_prefix("crm")), "/apps/crm")
+		with a_second_app() as (app, prefix):
+			self.assertEqual(shell_base(declared_prefix(app)), f"/apps/{prefix}")
+			# The bare name stays v1's, whoever holds it.
+			self.assertIsNone(split_shell_path(prefix))
 
 
 class TestReservedRouteGuard(IntegrationTestCase):
@@ -326,7 +414,7 @@ class TestSingletonEnforcement(IntegrationTestCase):
 class TestShellBoot(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
-		set_request(method="GET", path="/apps/crm")
+		set_request(method="GET", path="/apps/desk")
 
 	def tearDown(self):
 		if hasattr(frappe.local, "request"):
@@ -335,15 +423,18 @@ class TestShellBoot(IntegrationTestCase):
 	def test_boot_is_core_plus_the_declaring_app(self):
 		from frappe.shell.boot import get_boot
 
-		boot = get_boot("/apps/crm")
+		contributed = {"default_route": "/deals"}
+		with a_second_app() as (app, prefix):
+			with patch("frappe.shell.boot.app_boot", return_value=contributed):
+				boot = get_boot(f"/apps/{prefix}")
 
-		self.assertEqual(boot["shell_base"], "/apps/crm")
-		self.assertEqual(boot["app"], "crm")
+		self.assertEqual(boot["shell_base"], f"/apps/{prefix}")
+		self.assertEqual(boot["app"], app)
 		# Core.
 		self.assertIn("csrf_token", boot)
 		self.assertIn("timezone", boot)
 		# The declaring app's contribution, merged under core.
-		self.assertIn("default_route", boot)
+		self.assertEqual(boot["default_route"], "/deals")
 
 	def test_boot_is_small(self):
 		"""v1's boot is 147,711 bytes, ~120 KB of it desk workspace furniture.
@@ -355,7 +446,9 @@ class TestShellBoot(IntegrationTestCase):
 
 		from frappe.shell.boot import get_boot
 
-		self.assertLess(len(json.dumps(get_boot("/apps/crm"), default=str)), 40_000)
+		with a_second_app() as (_, prefix):
+			payload = get_boot(f"/apps/{prefix}")
+		self.assertLess(len(json.dumps(payload, default=str)), 40_000)
 
 	def test_the_slug_table_is_permission_independent(self):
 		"""An address space cannot change shape per user.
@@ -365,15 +458,16 @@ class TestShellBoot(IntegrationTestCase):
 		"""
 		from frappe.shell.doctypes import slugs_for_app
 
-		as_admin = slugs_for_app("crm")
+		# The framework's own table, which is the one a Guest is most thoroughly refused
+		# from reading — so if the shape were permission-keyed at all, it would show here.
+		as_admin = slugs_for_app("frappe")
 
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
-		as_guest = slugs_for_app("crm")
+		as_guest = slugs_for_app("frappe")
 
 		self.assertEqual(as_admin, as_guest)
-		self.assertIn("crm-deal", as_admin)
-		self.assertEqual(as_admin["crm-deal"], "CRM Deal")
+		self.assertEqual(as_admin["user"], "User")
 
 	def test_the_slug_table_tracks_doctypes_being_added_and_removed(self):
 		"""A new doctype must be addressable, and a deleted one must stop being so.
@@ -419,11 +513,11 @@ class TestShellBoot(IntegrationTestCase):
 
 		poison = {"csrf_token": "stolen", "user": {"name": "nobody"}, "shell_base": "/elsewhere"}
 		with patch("frappe.shell.boot.app_boot", return_value=poison):
-			boot = get_boot("/apps/crm")
+			boot = get_boot("/apps/desk")
 
 		self.assertNotEqual(boot["csrf_token"], "stolen")
 		self.assertNotEqual(boot["user"]["name"], "nobody")
-		self.assertEqual(boot["shell_base"], "/apps/crm")
+		self.assertEqual(boot["shell_base"], "/apps/desk")
 
 	def test_the_desk_prefix_boot_is_small_too(self):
 		"""The framework's own prefix is the biggest one, so it is the one to measure.
@@ -447,42 +541,49 @@ class TestShellBoot(IntegrationTestCase):
 		floor is deliberate for the *unresolvable* case (#42068) — it must not swallow a
 		case that is perfectly resolvable from the database.
 		"""
-		from frappe.shell.doctypes import clear_doctype_owners, get_doctype_owners
+		from frappe.shell.doctypes import get_doctype_owners
 
-		module = frappe.get_doc(
-			doctype="Module Def", module_name="Shell DB Only Module", app_name="crm"
-		).insert()
-		self.addCleanup(lambda: frappe.delete_doc("Module Def", module.name, force=True))
+		with a_second_app() as (owner, _):
+			# `custom=1` keeps this in the database and off the disk: without it
+			# `on_update` writes a module folder and rewrites the owning app's
+			# modules.txt under `developer_mode`, which is a real edit to a real app
+			# for the sake of a test.
+			module = frappe.get_doc(
+				doctype="Module Def",
+				module_name="Shell DB Only Module",
+				app_name=owner,
+				custom=1,
+			).insert()
+			self.addCleanup(lambda: frappe.delete_doc("Module Def", module.name, force=True))
 
-		doctype = frappe.get_doc(
-			doctype="DocType",
-			name="Shell Module Probe",
-			module=module.name,
-			custom=1,
-			fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
-			permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
-		).insert()
-		self.addCleanup(lambda: frappe.delete_doc("DocType", doctype.name, force=True))
+			doctype = frappe.get_doc(
+				doctype="DocType",
+				name="Shell Module Probe",
+				module=module.name,
+				custom=1,
+				fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			).insert()
+			self.addCleanup(lambda: frappe.delete_doc("DocType", doctype.name, force=True))
 
-		# The condition this actually guards against is a process whose `module_app` was
-		# built BEFORE the Module Def existed — a running worker, or any fresh process
-		# reading a cold cache. Inserting the Module Def rebuilds the map in *this*
-		# process, which would make the assertion pass either way, so the pre-existing
-		# state is restored explicitly.
-		stale = {
-			key: app for key, app in frappe.local.module_app.items() if app != "crm" or "shell" not in key
-		}
-		stale.pop(frappe.scrub(module.name), None)
+			# The condition this actually guards against is a process whose `module_app`
+			# was built BEFORE the Module Def existed — a running worker, or any fresh
+			# process reading a cold cache. Inserting the Module Def rebuilds the map in
+			# *this* process, which would make the assertion pass either way, so the
+			# pre-existing state is restored explicitly.
+			stale = dict(frappe.local.module_app)
+			stale.pop(frappe.scrub(module.name), None)
 
-		with patch.object(frappe.local, "module_app", stale):
-			self.assertNotIn(frappe.scrub(module.name), frappe.local.module_app)
-			clear_doctype_owners()
-			self.assertEqual(get_doctype_owners().get("Shell Module Probe"), "crm")
+			with patch.object(frappe.local, "module_app", stale):
+				self.assertNotIn(frappe.scrub(module.name), frappe.local.module_app)
+				clear_doctype_owners()
+				self.assertEqual(get_doctype_owners().get("Shell Module Probe"), owner)
 
 	def test_the_index_lists_installed_apps(self):
 		from frappe.shell.boot import get_boot
 
-		boot = get_boot(f"/{SHELL_ROOT}")
+		with a_second_app() as (app, prefix):
+			boot = get_boot(f"/{SHELL_ROOT}")
 
 		self.assertIsNone(boot["app"])
 		self.assertEqual(boot["shell_base"], "/apps")
@@ -490,7 +591,8 @@ class TestShellBoot(IntegrationTestCase):
 		# The framework is on the index by construction — charter item 7 made true
 		# rather than stated.
 		self.assertEqual(routes["frappe"], "/apps/desk")
-		self.assertEqual(routes["crm"], "/apps/crm")
+		# And so is anyone else who claims a prefix, with no declaration needed beyond it.
+		self.assertEqual(routes[app], f"/apps/{prefix}")
 
 
 class TestAppPermission(IntegrationTestCase):
