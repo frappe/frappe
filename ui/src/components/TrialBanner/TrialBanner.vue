@@ -5,7 +5,7 @@
 	>
 		<div class="flex flex-col gap-1">
 			<div class="inline-flex text-ink-gray-9 gap-2 items-center font-medium">
-				<FeatherIcon class="h-4" name="info" />
+				<span class="lucide-info size-4" aria-hidden="true" />
 				{{ trialTitle }}
 			</div>
 			<div class="text-ink-gray-7 text-p-sm">
@@ -23,7 +23,7 @@
 	</Button>
 </template>
 <script setup lang="ts">
-import { Button, FeatherIcon, createResource } from "frappe-ui";
+import { Button, createResource } from "frappe-ui";
 import { LightningIcon } from "frappe-ui/icons";
 import { ref, computed } from "vue";
 import type { SiteInfo, TrialBannerProps } from "./types";
