@@ -49,6 +49,9 @@
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"
     },
+    "./island": {
+      "import": "./island/index.js"
+    },
     "./vite": {
       "import": "./vite/index.js"
     },
@@ -58,6 +61,8 @@
   },
   "files": [
     "src",
+    "island",
+    "patches",
     "vite"
   ],
   "repository": {
