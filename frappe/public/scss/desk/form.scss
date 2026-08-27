@@ -651,6 +651,52 @@ body.full-width {
 	}
 }
 
+// Below, the mobile.scss/desktop.scss breakpoints above only respond to the
+// browser viewport -- fine for a full-page form, but a form rendered inside
+// a narrower container (the list view's quick view panel) can be squeezed
+// well past those breakpoints while the viewport itself stays desktop-sized.
+// Establish a size container on the form's own page wrapper so its layout
+// can respond to how much room it actually has, not the browser window.
+body[data-route^="Form"] .page-container,
+.list-quick-view-body {
+	container-type: inline-size;
+	container-name: frappe-page;
+}
+
+@container frappe-page (max-width: 560px) {
+	// two-column (and wider) sections don't have room to stay side by side;
+	// let flex-wrap on .section-body stack them the way a mobile-width form
+	// already does via .form-column.col-sm-12 rules elsewhere.
+	.form-column {
+		flex: 1 1 100% !important;
+		max-width: 100% !important;
+	}
+}
+
+@container frappe-page (max-width: 575.98px) {
+	// same icon-only collapse .page-actions already gets below the "sm"
+	// viewport breakpoint (see media-breakpoint-down(sm) above in page.scss),
+	// triggered by the container's width instead. primary/secondary action
+	// are excluded -- unlike View/Actions/Duplicate/etc. they're plain text
+	// buttons with no icon of their own, so hiding their label would leave
+	// an empty square instead of something recognizable.
+	.page-actions {
+		.es-button:not(.primary-action):not(.secondary-action) {
+			.es-button__label {
+				display: none !important;
+			}
+
+			padding-inline: 0;
+			width: var(--es-bt-h);
+			min-width: 0;
+		}
+	}
+
+	.title-area {
+		min-width: 0;
+	}
+}
+
 .popover-header {
 	background: var(--bg-color);
 	color: var(--ink-gray-9);
