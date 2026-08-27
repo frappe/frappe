@@ -24,6 +24,7 @@ from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date
+from frappe.utils.island import get_ui_islands
 
 
 @frappe.whitelist()
@@ -164,6 +165,7 @@ def get():
 
 	bootinfo.notes = get_unseen_notes()
 	bootinfo.assets_json = get_assets_json()
+	bootinfo.ui_islands = get_ui_islands()
 	bootinfo.read_only = bool(frappe.flags.read_only)
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
