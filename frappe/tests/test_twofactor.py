@@ -16,6 +16,7 @@ from frappe.twofactor import (
 	get_default,
 	get_otpsecret_for_,
 	get_verification_obj,
+	process_2fa_for_email,
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
@@ -47,6 +48,34 @@ class TestTwoFactor(IntegrationTestCase):
 		user, pwd = get_cached_user_pass()
 		self.assertTrue(all([not user, not pwd]))
 
+<<<<<<< HEAD
+=======
+	def test_2fa_email_bodies_render(self):
+		code_body = get_email_body_for_2fa({"otp": "123456", "otp_issuer": "Frappe"})
+		self.assertIn("123456", code_body)
+
+		qr_body = get_email_body_for_qr_code({"qrcode_link": "https://example.com/qrcode/abc"})
+		self.assertIn("https://example.com/qrcode/abc", qr_body)
+
+	def test_2fa_email_delivery_status(self):
+		"""Verification object should report failure when the mail is never queued."""
+		otp_secret = get_otpsecret_for_(self.user)
+		token = int(pyotp.TOTP(otp_secret).now())
+
+		verification_obj = process_2fa_for_email(self.user, token, otp_secret, "Frappe")
+		self.assertTrue(verification_obj["setup"])
+		self.assertTrue(verification_obj["prompt"])
+
+		unsubscribe = frappe.get_doc(
+			doctype="Email Unsubscribe", email=self.user, global_unsubscribe=1
+		).insert(ignore_permissions=True)
+		self.addCleanup(unsubscribe.delete, ignore_permissions=True)
+
+		verification_obj = process_2fa_for_email(self.user, token, otp_secret, "Frappe")
+		self.assertFalse(verification_obj["setup"])
+		self.assertFalse(verification_obj["prompt"])
+
+>>>>>>> dcb4a87 (test(twofactor): cover 2FA email status when mail is not queued)
 	def test_authenticate_for_2factor(self):
 		"""Verification obj and tmp_id should be set in frappe.local."""
 		authenticate_for_2factor(self.user)
