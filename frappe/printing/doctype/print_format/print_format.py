@@ -11,6 +11,7 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
+from frappe.utils.print_utils import validate_pdf_generator
 
 #: The fields the builder may hold in `draft_data`. Everything the builder can edit
 #: belongs here — a field left out stays live, so a margin would apply instantly
@@ -127,6 +128,8 @@ class PrintFormat(Document):
 			and not frappe.in_test
 		):
 			frappe.throw(frappe._("Standard Print Format cannot be updated"))
+
+		validate_pdf_generator(self.pdf_generator)
 
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value("Print Format", self.name, "doc_type")

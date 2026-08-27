@@ -46,6 +46,21 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	return frappe.db.get_single_value("Print Settings", "pdf_generator") or "wkhtmltopdf"
 
 
+def validate_pdf_generator(pdf_generator: str | None):
+	"""Reject a generator whose external dependency is missing.
+
+	Without this the choice saves fine and then fails on every download, attachment and
+	auto-email instead of at the point where someone can still pick something else.
+	"""
+	if frappe.flags.in_migrate or frappe.flags.in_install:
+		return
+
+	if pdf_generator == "pinto":
+		from frappe.utils.pdf_generator.pinto import get_pinto_path
+
+		get_pinto_path()
+
+
 def get_print(
 	doctype=None,
 	name=None,

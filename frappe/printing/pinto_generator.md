@@ -21,7 +21,9 @@ Put the binary on `PATH` as `pinto`, or point at it explicitly:
 { "pinto_path": "/path/to/pinto/target/release/pinto", "pinto_timeout": 120 }
 ```
 
-Then set **PDF Generator → pinto** in Print Settings (site-wide) or on a Print Format.
+Then set **PDF Generator → pinto** in Print Settings (site-wide) or on a Print Format. Saving
+that choice without a resolvable binary is rejected, so the failure surfaces there rather than on
+every later download, attachment and auto-email.
 
 ## How it plugs in
 

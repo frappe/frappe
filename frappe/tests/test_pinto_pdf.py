@@ -91,6 +91,24 @@ class TestPintoPdf(IntegrationTestCase):
 
 		inline.assert_called_once_with("<p>hi</p>")
 
+	def test_selecting_pinto_without_the_binary_is_rejected_on_save(self):
+		"""Fail on save, not on every later download/attachment/auto-email."""
+		print_settings = frappe.get_doc("Print Settings")
+		print_settings.pdf_generator = "pinto"
+
+		with patch.dict(frappe.conf, {"pinto_path": "/nonexistent/pinto"}):
+			self.assertRaises(pinto.PintoNotFound, print_settings.validate)
+
+	def test_migrate_does_not_fail_on_a_missing_binary(self):
+		from frappe.utils.print_utils import validate_pdf_generator
+
+		frappe.flags.in_migrate = True
+		try:
+			with patch.dict(frappe.conf, {"pinto_path": "/nonexistent/pinto"}):
+				validate_pdf_generator("pinto")
+		finally:
+			frappe.flags.in_migrate = False
+
 	def test_render_reports_binary_failure(self):
 		error = subprocess.CalledProcessError(1, "pinto", stderr=b"Error: parsing options JSON")
 
