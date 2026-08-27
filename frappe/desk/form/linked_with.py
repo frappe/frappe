@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import hashlib
 import itertools
 from collections import defaultdict, deque
 
@@ -420,8 +421,15 @@ def cancel_all_linked_docs(
 
 	to_cancel = [doc for doc in deduplicated(docs) if validate_linked_doc(doc, ignore_doctypes_on_cancel_all)]
 	if len(to_cancel) > MAX_SYNCHRONOUS_LINKED_DOCS:
-		return enqueue_linked_docs_processing(to_cancel, "cancel", root_doctype, root_name)
+		return enqueue_linked_docs_processing(
+			to_cancel, "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all
+		)
 
+	if root_doctype and root_name:
+		# the list was built by an earlier request; drop what is no longer linked
+		to_cancel = keep_currently_linked(
+			to_cancel, "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all
+		)
 	process_linked_docs_in_dependency_order(to_cancel, cancel_linked_doc, _("Cancelling documents"))
 
 
@@ -464,15 +472,19 @@ def collect_deletion_blockers(doctype: str, name: str, limit: int | None = None)
 	root_key = (doctype, name)
 	depth_by_document = {root_key: 0}
 	queue = deque([root_key])
+	fetch_limit = limit + 1 if limit else None
 	while queue:
 		parent_key = queue.popleft()
 		# a lightweight stand-in is enough for the link lookups; loading the
 		# full document of every node is too expensive
 		parent = frappe._dict(doctype=parent_key[0], name=parent_key[1])
-		links = get_statically_linked_docs(parent, method="Delete") + get_dynamic_linked_docs(
-			parent, method="Delete"
-		)
-		for link in links:
+		links = get_statically_linked_docs(parent, method="Delete", limit=fetch_limit)
+		dynamic_links = get_dynamic_linked_docs(parent, method="Delete", limit=fetch_limit)
+		if fetch_limit and (len(links) >= fetch_limit or len(dynamic_links) >= fetch_limit):
+			# a single document with more direct references than the whole cap;
+			# the bounded queries cannot even tell how many, so give up early
+			return [], True
+		for link in [*links, *dynamic_links]:
 			key = (link["reference_doctype"], link["reference_docname"])
 			if key in depth_by_document:
 				continue
@@ -522,6 +534,12 @@ def delete_all_linked_docs(
 	if len(to_delete) > MAX_SYNCHRONOUS_LINKED_DOCS:
 		return enqueue_linked_docs_processing(to_delete, "delete", root_doctype, root_name)
 
+	if root_doctype and root_name:
+		# the list was built by an earlier request; drop what is no longer linked
+		to_delete = keep_currently_linked(
+			to_delete, "delete", root_doctype, root_name, limit=MAX_LINKED_DELETE_DOCUMENTS
+		)
+
 	# No realtime progress here: the events race the requests and navigation
 	# that follow deletion and can strand the progress dialog; the freeze
 	# overlay of the call covers the feedback.
@@ -529,26 +547,50 @@ def delete_all_linked_docs(
 	return {"deleted": [doc for doc in to_delete if doc not in skipped], "skipped": skipped}
 
 
+def keep_currently_linked(
+	docs, action, root_doctype, root_name, ignore_doctypes_on_cancel_all=None, limit=None
+):
+	"""Drop entries that are no longer linked to the root: the list was built in
+	an earlier request and may be stale by the time it is processed."""
+	if action == "cancel":
+		tree = SubmittableDocumentTree(root_doctype, root_name)
+		visited = tree.get_all_children(frappe.parse_json(ignore_doctypes_on_cancel_all) or [])
+		current = {(dt, docname) for dt, names in visited.items() for docname in names}
+	else:
+		current_docs, truncated = collect_deletion_blockers(root_doctype, root_name, limit=limit)
+		if truncated:
+			# the graph outgrew the cap since it was listed; process nothing
+			return []
+		current = {(doc["doctype"], doc["name"]) for doc in current_docs}
+
+	return [doc for doc in docs if (doc.get("doctype"), doc.get("name")) in current]
+
+
 def delete_linked_doc(docinfo):
 	"""Delete a document; one already removed by another document's on_trash hook is ignored."""
 	frappe.delete_doc(docinfo.get("doctype"), docinfo.get("name"))
 
 
-def enqueue_linked_docs_processing(docs, action, root_doctype, root_name, discover=False):
+def enqueue_linked_docs_processing(
+	docs, action, root_doctype, root_name, ignore_doctypes_on_cancel_all=None, discover=False
+):
 	"""Queue processing of a large set together with the root document, which
 	the caller must not touch before the job has processed its links. With
 	discover, the job walks the graph itself instead of receiving it."""
+	root = (root_doctype, root_name) if root_doctype and root_name else None
 	job_kwargs = {}
-	if root_doctype and root_name:
-		if not discover:
-			docs = [*docs, frappe._dict(doctype=root_doctype, name=root_name)]
-		job_kwargs = {"job_id": f"linked_docs_{action}::{root_doctype}::{root_name}", "deduplicate": True}
+	if root:
+		# hash the identity: doctype and name may contain any separator
+		digest = hashlib.sha256(str((action, root_doctype, root_name)).encode()).hexdigest()[:16]
+		job_kwargs = {"job_id": f"linked_docs_{digest}", "deduplicate": True}
 
 	frappe.enqueue(
 		process_linked_docs_in_background,
 		docs=docs,
 		action=action,
-		discover_root=(root_doctype, root_name) if discover else None,
+		root=root,
+		discover=discover,
+		ignore_doctypes_on_cancel_all=ignore_doctypes_on_cancel_all,
 		queue="long",
 		now=frappe.in_test,
 		**job_kwargs,
@@ -556,18 +598,31 @@ def enqueue_linked_docs_processing(docs, action, root_doctype, root_name, discov
 	return {"queued": True}
 
 
-def process_linked_docs_in_background(docs, action, discover_root=None):
+def process_linked_docs_in_background(
+	docs, action, root=None, discover=False, ignore_doctypes_on_cancel_all=None
+):
 	"""Process the docs and notify the user of the outcome, since a background
-	job has no response to report through. With discover_root, walk the graph
-	here, where the listing cap does not apply.
+	job has no response to report through. With discover, walk the graph here,
+	where the listing cap does not apply.
+
+	The queued list can be stale by the time the job runs, so it is filtered
+	against the current graph, and the root document is processed last, since
+	the caller could not touch it before its links were gone.
 
 	Cancellation is all or nothing, matching the synchronous behaviour, since a
 	half-cancelled tree cannot be uncancelled. Deletion is best effort: some
 	blockers are permanently undeletable yet harmless, so the rest proceeds and
 	the leftovers are counted."""
-	if discover_root:
-		docs, _truncated = collect_deletion_blockers(*discover_root)
-		docs = [*docs, frappe._dict(doctype=discover_root[0], name=discover_root[1])]
+	if not frappe.db.get_value("User", frappe.session.user, "enabled"):
+		# the initiating account was disabled after this job was queued
+		return
+
+	if root:
+		if discover:
+			docs, _truncated = collect_deletion_blockers(*root)
+		else:
+			docs = keep_currently_linked(docs, action, *root, ignore_doctypes_on_cancel_all)
+		docs = [*docs, frappe._dict(doctype=root[0], name=root[1])]
 
 	if action == "cancel":
 		side_effect_counts = capture_pending_side_effects()
@@ -600,10 +655,15 @@ def process_linked_docs_in_background(docs, action, discover_root=None):
 
 
 def notify_linked_docs_processed(message):
-	"""Tell the user live when they are still around, and durably via a notification."""
+	"""Tell the user live when they are still around, and durably via a notification.
+
+	Both wait for commit: reporting an outcome the transaction then fails to
+	commit would be a lie."""
 	from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
-	frappe.publish_realtime("msgprint", {"message": message, "alert": True}, user=frappe.session.user)
+	frappe.publish_realtime(
+		"msgprint", {"message": message, "alert": True}, user=frappe.session.user, after_commit=True
+	)
 	enqueue_create_notification([frappe.session.user], {"type": "Alert", "subject": message})
 
 
@@ -630,6 +690,11 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 	entries that only the on_trash hook of their voucher removes). A document
 	locked by another session or caught in a deadlock defers too, since the
 	lock may be gone by the retry pass.
+
+	The input order is only a heuristic (breadth-first depth, not a topological
+	sort); correctness comes from the retry passes. Hook effects that bypass
+	the transaction (immediate realtime events, external calls) cannot be
+	rolled back and may repeat when an attempt is retried.
 
 	Once stuck, either surface the error of the first blocked document or, with
 	raise_when_stuck disabled, keep the progress made and return the blocked
