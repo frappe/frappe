@@ -807,6 +807,7 @@ export function createFlowStore(client) {
 			localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
 		}
 		if (state.sessionId === sid) startNewChat()
+		notify("Chat deleted")
 	}
 
 	// Pick a cwd via the daemon's native folder dialog; null = cancelled or unavailable.
