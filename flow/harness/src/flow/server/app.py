@@ -18,6 +18,7 @@ import json
 import os
 import re
 import secrets
+import subprocess
 from collections.abc import AsyncIterator
 from dataclasses import asdict
 from typing import Annotated, Literal
@@ -614,6 +615,34 @@ def create_app(
 			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
 		return full_path
 
+	@app.get("/fs/git/changes")
+	async def git_changes(cwd: str):
+		"""The repository's uncommitted files with added/removed line counts."""
+		root = _resolve_allowed_path(cwd, ".")
+		if not os.path.isdir(root):
+			raise HTTPException(status_code=404, detail="directory not found")
+		return await asyncio.to_thread(_git_changes, root, store.allowed_roots)
+
+	@app.get("/fs/git/file/diff")
+	async def git_file_diff(cwd: str, path: str):
+		"""Both sides of one file's uncommitted changes: HEAD and the working tree."""
+		base = _resolve_allowed_path(cwd, ".")
+		full_path = _resolve_allowed_path(cwd, path)
+
+		def compute() -> dict:
+			top = _git_output(base, "rev-parse", "--show-toplevel")
+			if top is None:
+				raise HTTPException(status_code=400, detail="not a git repository")
+			root = top.decode("utf-8", "replace").strip()
+			rel = os.path.relpath(canonical_path(full_path), root)
+			if rel.startswith(".."):
+				raise HTTPException(status_code=400, detail="file is outside the repository")
+			original = _git_head_text(root, rel.replace(os.sep, "/"))
+			modified = _read_text_file(full_path) if os.path.isfile(full_path) else ""
+			return {"path": full_path, "original": original, "modified": modified}
+
+		return await asyncio.to_thread(compute)
+
 	@app.put("/sessions/{sid}/file")
 	async def write_file(sid: str, req: WriteFileRequest):
 		"""Save the file viewer's edits. Same fence as reading; parent directories
@@ -832,6 +861,81 @@ def _search_tree(root: str, needle: str) -> tuple[list[str], bool]:
 			if scanned >= MAX_SEARCH_SCAN:
 				return matches, True
 	return matches, False
+
+
+def _git_changes(cwd: str, allowed_roots: tuple[str, ...]) -> dict:
+	"""Working-tree changes vs HEAD (staged, unstaged, and untracked), whole repo.
+	`root` is None outside a repository; files outside the allowed roots are dropped."""
+	top = _git_output(cwd, "rev-parse", "--show-toplevel")
+	if top is None:
+		return {"root": None, "files": []}
+	root = top.decode("utf-8", "replace").strip()
+	counts: dict[str, tuple[int, int]] = {}
+	# no HEAD yet (fresh repo): every file counts like an untracked one below
+	if _git_output(root, "rev-parse", "--verify", "--quiet", "HEAD") is not None:
+		numstat = _git_output(root, "diff", "--numstat", "--no-renames", "-z", "HEAD") or b""
+		for record in numstat.decode("utf-8", "replace").split("\0"):
+			fields = record.split("\t")
+			if len(fields) != 3:
+				continue
+			added, removed, rel = fields
+			counts[rel] = (
+				int(added) if added.isdigit() else 0,  # "-" marks a binary file
+				int(removed) if removed.isdigit() else 0,
+			)
+	status = _git_output(root, "status", "--porcelain", "--no-renames", "--untracked-files=all", "-z") or b""
+	files = []
+	seen: set[str] = set()
+	for record in status.decode("utf-8", "replace").split("\0"):
+		if len(record) < 4:
+			continue
+		rel = record[3:]
+		# an index/worktree split (e.g. `git rm --cached`) lists one path twice
+		if rel in seen:
+			continue
+		seen.add(rel)
+		full_path = os.path.join(root, rel)
+		if allowed_roots and not is_path_allowed(canonical_path(full_path), allowed_roots):
+			continue
+		added, removed = counts[rel] if rel in counts else (_count_lines(full_path), 0)
+		files.append({"path": full_path, "added": added, "removed": removed})
+	files.sort(key=lambda f: f["path"])
+	return {"root": root, "files": files}
+
+
+def _git_head_text(root: str, rel: str) -> str:
+	"""The file's HEAD content; empty when git has no blob for it (untracked, new repo)."""
+	blob = _git_output(root, "show", f"HEAD:{rel}")
+	if blob is None:
+		return ""
+	if len(blob) > MAX_FILE_VIEW_BYTES:
+		raise HTTPException(status_code=413, detail="file too large to display")
+	try:
+		return blob.decode("utf-8")
+	except UnicodeDecodeError:
+		raise HTTPException(status_code=415, detail="not a text file") from None
+
+
+def _count_lines(full_path: str) -> int:
+	"""Line count of an untracked text file, 0 for anything unreadable/binary/huge."""
+	try:
+		if os.path.getsize(full_path) > MAX_FILE_VIEW_BYTES:
+			return 0
+		with open(full_path, "rb") as f:
+			data = f.read()
+	except OSError:
+		return 0
+	if b"\0" in data:
+		return 0
+	return data.count(b"\n") + (1 if data and not data.endswith(b"\n") else 0)
+
+
+def _git_output(cwd: str, *args: str) -> bytes | None:
+	try:
+		completed = subprocess.run(["git", "-C", cwd, *args], capture_output=True)
+	except OSError:
+		return None
+	return completed.stdout if completed.returncode == 0 else None
 
 
 def _file_change_results(rows: list[dict], full_path: str) -> list[dict]:

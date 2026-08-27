@@ -4,6 +4,7 @@ import json
 import os
 import shlex
 import socket
+import subprocess
 
 import httpx
 import pytest
@@ -442,6 +443,102 @@ def test_file_diff_is_fenced_by_allowed_roots(tmp_path):
 	sid = c.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
 
 	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "../secret.txt"})
+	assert r.status_code == 403
+
+
+def _git(cwd, *args):
+	subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True)
+
+
+def _git_repo(base):
+	repo = base / "repo"
+	repo.mkdir()
+	_git(repo, "init", "-q")
+	_git(repo, "config", "user.email", "test@example.com")
+	_git(repo, "config", "user.name", "Test")
+	return repo
+
+
+def test_git_changes_lists_the_repositorys_uncommitted_files(tmp_path):
+	c = _client(tmp_path)
+	repo = _git_repo(tmp_path)
+	(repo / "app.py").write_text("one\ntwo\n")
+	(repo / "gone.py").write_text("x\n")
+	_git(repo, "add", ".")
+	_git(repo, "commit", "-q", "-m", "init")
+	(repo / "app.py").write_text("one\nthree\nfour\n")
+	(repo / "new.txt").write_text("a\nb\nc")  # no trailing newline: still 3 lines
+	(repo / "gone.py").unlink()
+
+	body = c.get("/fs/git/changes", params={"cwd": str(repo)}).json()
+	root = body["root"]
+	assert root == os.path.realpath(str(repo))
+	rows = {os.path.relpath(f["path"], root): (f["added"], f["removed"]) for f in body["files"]}
+	assert rows == {"app.py": (2, 1), "gone.py": (0, 1), "new.txt": (3, 0)}
+
+	plain = tmp_path / "plain"
+	plain.mkdir()
+	assert c.get("/fs/git/changes", params={"cwd": str(plain)}).json() == {
+		"root": None,
+		"files": [],
+	}
+
+
+def test_git_changes_dedupes_paths_listed_twice_by_status(tmp_path):
+	c = _client(tmp_path)
+	repo = _git_repo(tmp_path)
+	(repo / "f.txt").write_text("hi\n")
+	_git(repo, "add", ".")
+	_git(repo, "commit", "-q", "-m", "init")
+	_git(repo, "rm", "-q", "--cached", "f.txt")  # status lists f.txt as `D ` and `??`
+
+	files = c.get("/fs/git/changes", params={"cwd": str(repo)}).json()["files"]
+	assert [os.path.basename(f["path"]) for f in files] == ["f.txt"]
+
+
+def test_git_file_diff_serves_head_and_worktree_sides(tmp_path):
+	c = _client(tmp_path)
+	repo = _git_repo(tmp_path)
+	(repo / "app.py").write_text("one\ntwo\n")
+	(repo / "gone.py").write_text("x\n")
+	_git(repo, "add", ".")
+	_git(repo, "commit", "-q", "-m", "init")
+	(repo / "app.py").write_text("one\nthree\n")
+	(repo / "new.txt").write_text("fresh\n")
+	(repo / "gone.py").unlink()
+
+	changed = c.get("/fs/git/file/diff", params={"cwd": str(repo), "path": "app.py"}).json()
+	assert changed == {
+		"path": str(repo / "app.py"),
+		"original": "one\ntwo\n",
+		"modified": "one\nthree\n",
+	}
+
+	untracked = c.get("/fs/git/file/diff", params={"cwd": str(repo), "path": "new.txt"}).json()
+	assert (untracked["original"], untracked["modified"]) == ("", "fresh\n")
+
+	deleted = c.get("/fs/git/file/diff", params={"cwd": str(repo), "path": "gone.py"}).json()
+	assert (deleted["original"], deleted["modified"]) == ("x\n", "")
+
+	plain = tmp_path / "plain"
+	plain.mkdir()
+	(plain / "f.txt").write_text("x\n")
+	assert c.get("/fs/git/file/diff", params={"cwd": str(plain), "path": "f.txt"}).status_code == 400
+
+
+def test_git_endpoints_are_fenced_by_allowed_roots(tmp_path):
+	repo = _git_repo(tmp_path)
+	inside = repo / "inside"
+	inside.mkdir()
+	(inside / "a.txt").write_text("a\n")
+	(repo / "outside.txt").write_text("b\n")
+	c = _client(tmp_path, allowed_roots=[str(inside)])
+
+	body = c.get("/fs/git/changes", params={"cwd": str(inside)}).json()
+	assert [os.path.basename(f["path"]) for f in body["files"]] == ["a.txt"]
+
+	assert c.get("/fs/git/changes", params={"cwd": str(repo)}).status_code == 403
+	r = c.get("/fs/git/file/diff", params={"cwd": str(inside), "path": "../outside.txt"})
 	assert r.status_code == 403
 
 

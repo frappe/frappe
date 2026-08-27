@@ -89,7 +89,16 @@ export class DaemonClient {
 	readFile(cwd, path) {
 		return this.request("GET", "/fs/file", { params: { cwd, path } })
 	}
-	// original + current content of a session-changed file, for the diff viewer
+	// the repository's uncommitted files, and one file's HEAD + working-tree
+	// content for the diff viewer — cwd-keyed like the other explorer calls
+	gitChanges(cwd) {
+		return this.request("GET", "/fs/git/changes", { params: { cwd } })
+	}
+	gitFileDiff(cwd, path) {
+		return this.request("GET", "/fs/git/file/diff", { params: { cwd, path } })
+	}
+	// session-recorded original + current content: the diff fallback for files
+	// the session changed outside the project repository
 	fileDiff(sid, path) {
 		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params: { path } })
 	}
