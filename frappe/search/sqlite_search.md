@@ -296,11 +296,11 @@ The framework includes built-in spelling correction using trigram similarity:
 
 ```python
 # Spelling correction happens automatically
-search_result = search.search("projetc managment")  # Will find "project management"
+search_result = search.search("projetc management")  # Will find "project management"
 
 # Access correction information
 print(search_result["summary"]["corrected_words"])
-# Output: {"projetc": "project", "managment": "management"}
+# Output: {"projetc": "project", "management": "management"}
 ```
 
 ### Content Processing
