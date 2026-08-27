@@ -428,7 +428,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 
 		// Sort reports alphabetically
 		var reports =
-			Object.values(frappe.boot.user.all_reports).sort((a, b) =>
+			Object.values(frappe.boot.allowed_reports).sort((a, b) =>
 				a.title.localeCompare(b.title)
 			) || [];
 

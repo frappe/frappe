@@ -1,0 +1,230 @@
+// The editor every navigation surface's arrangement is edited in -- see `arrangement_editor.js`.
+// Two panes: the list you drag, and a preview of what it leaves behind. Nothing here is the dock's
+// or the sidebar's; the kinds differ in what they read and save, not in how a pane is drawn.
+// The layer switch, which hangs in the dialog's header beside the close button rather than in the
+// body -- so it is styled here but scoped outside `.arrangement-editor`, which is only the picker.
+.modal-actions .ws-layer-switch {
+	width: auto;
+	align-self: center;
+	margin-right: var(--margin-sm);
+	color: var(--text-muted);
+}
+
+.arrangement-editor {
+	display: flex;
+	gap: var(--margin-lg);
+
+	.ws-pane {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--margin-sm);
+		min-width: 0;
+	}
+
+	.ws-pane-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-height: 28px;
+		font-size: var(--text-md);
+		font-weight: 600;
+	}
+
+	// Add and Reset sit together at the right of the arrangement pane's head.
+	.ws-pane-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--margin-sm);
+	}
+
+	.ws-add,
+	.ws-reset {
+		padding: 0;
+		font-size: var(--text-sm);
+		font-weight: normal;
+		color: var(--text-muted);
+
+		&:hover {
+			color: var(--text-color);
+		}
+	}
+
+	.ws-pane-sub {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		margin-top: calc(-1 * var(--margin-xs));
+	}
+
+	// A reading rather than an affordance, so it is quieter than the subtitle above it and
+	// carries no control of its own -- the detail is in its tooltip.
+	.ws-pane-note {
+		font-size: var(--text-xs);
+		color: var(--text-light);
+		cursor: default;
+	}
+
+	.ws-list {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--margin-xs);
+		min-height: 220px;
+		max-height: 360px;
+		overflow-y: auto;
+		padding: var(--padding-sm);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius-md);
+		background-color: var(--subtle-fg);
+	}
+
+	// the list being arranged reads like the sidebar selector preview
+	.ws-arrangement {
+		background-color: var(--card-bg);
+	}
+
+	.ws-empty {
+		margin: auto;
+		font-size: var(--text-sm);
+	}
+
+	.ws-item {
+		display: flex;
+		align-items: center;
+		gap: var(--margin-sm);
+		padding: var(--padding-xs) var(--padding-sm);
+		background-color: var(--card-bg);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius-md);
+
+		.ws-item-handle {
+			display: inline-flex;
+			color: var(--text-muted);
+			cursor: grab;
+
+			&:active {
+				cursor: grabbing;
+			}
+		}
+
+		.ws-item-icon {
+			display: inline-flex;
+			align-items: center;
+
+			svg,
+			img {
+				width: 18px;
+				height: 18px;
+				border-radius: var(--border-radius-sm);
+			}
+		}
+
+		.ws-item-label {
+			flex: 1;
+			font-size: var(--text-md);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		// Says who hid a row: the app itself, rather than this site or this person. The eye is
+		// otherwise silent about it, and one click is still all it takes to bring the row back.
+		.ws-item-chip {
+			flex-shrink: 0;
+			padding: 0 var(--padding-xs);
+			font-size: var(--text-xs);
+			line-height: 1.6;
+			color: var(--text-muted);
+			background-color: var(--bg-color);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-sm);
+			white-space: nowrap;
+		}
+
+		.ws-item-edit,
+		.ws-item-remove,
+		.ws-item-eye {
+			display: inline-flex;
+			align-items: center;
+			padding: 0;
+			border: none;
+			background: none;
+			color: var(--text-muted);
+			cursor: pointer;
+
+			&:hover {
+				color: var(--text-color);
+			}
+		}
+	}
+
+	// An entry the eye has taken off: still here, still where it was left, plainly not on the
+	// surface. Its own eye stays at full strength -- it is the way back.
+	.ws-item-hidden {
+		background-color: var(--subtle-fg);
+
+		.ws-item-icon,
+		.ws-item-label,
+		.ws-item-chip {
+			opacity: 0.45;
+		}
+
+		.ws-item-eye {
+			color: var(--text-color);
+		}
+	}
+
+	// A member of a section sits under it, as it does on the sidebar itself.
+	.ws-item-child {
+		margin-left: var(--margin-lg);
+	}
+
+	.ws-item-ghost {
+		opacity: 0.4;
+	}
+
+	// -------------------------------------------------------------------------------------------
+	// The preview: the arrangement drawn as the surface draws it, so it carries the surface's
+	// chrome rather than the editor's -- no borders around a row, no handle, nothing to click.
+	// -------------------------------------------------------------------------------------------
+	.ws-preview {
+		gap: 2px;
+		cursor: default;
+	}
+
+	.ws-preview-item {
+		display: flex;
+		align-items: center;
+		gap: var(--margin-sm);
+		padding: var(--padding-xs) var(--padding-sm);
+		border-radius: var(--border-radius-md);
+
+		.ws-item-icon {
+			display: inline-flex;
+			align-items: center;
+
+			svg,
+			img {
+				width: 18px;
+				height: 18px;
+				border-radius: var(--border-radius-sm);
+			}
+		}
+
+		.ws-item-label {
+			flex: 1;
+			font-size: var(--text-md);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+
+	// A section header leads nowhere on the sidebar and leads nowhere here.
+	.ws-preview-section {
+		padding: var(--padding-sm) var(--padding-sm) var(--padding-xs);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--text-muted);
+	}
+}

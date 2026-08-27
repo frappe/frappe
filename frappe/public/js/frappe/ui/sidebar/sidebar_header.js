@@ -2,56 +2,165 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
-		this.drop_down_expanded = false;
-		this.title = this.get_display_title();
-		// with the dock active it owns workspace switching, so the header dropdown drops the inline
-		// selector list (the dock has it); the workspace picker dialog is added below in both modes
-		this.dock_active = sidebar.workspace_dock_enabled();
-		this.dropdown_items = this.build_dropdown_items();
 		this.make();
+		this.setup_menu();
 	}
-	// Workspaces (the shared selector set, owned by Sidebar) then the Apps section, and finally the
-	// "My Workspaces" picker dialog -- the same entry as the user menu, so it's reachable here too.
-	build_dropdown_items() {
-		let items = this.dock_active ? [] : this.sidebar.get_workspace_selector_items();
 
-		let apps_section = this.fetch_apps();
-		if (apps_section) items.push(apps_section);
+	// The module on screen changed, so the header names a different one. The node stays put and
+	// only its text is rewritten: `frappe.ui.create_menu` binds to the element it is given and
+	// registers a document-level listener per call, so a header rebuilt on every navigation would
+	// leave its menu pointing at a detached node and add a listener each time.
+	// `Sidebar.refresh_header` keeps one header for the life of the desk, and this is all it has
+	// to change between modules.
+	refresh() {
+		this.title = this.get_display_title();
+		this.set_header_icon();
+		this.$header_title.text(__(this.title));
+		this.refresh_menu();
+	}
+
+	// The menu's rows are replaced rather than the menu rebuilt.
+	//
+	// `frappe.ui.menu` re-runs each row's `condition` on every open, but the list is the array it
+	// was given at construction, so the switcher's rows, and the modules and apps nested under
+	// them, would be whichever app was on screen when the desk booted. Rebuilding the menu would
+	// bind a second click handler to the same header and register another document-level
+	// listener, which is what keeping one header for the life of the desk avoids. Replacing the
+	// array does neither.
+	refresh_menu() {
+		if (this.menu) this.menu.menu_items = this.menu_items();
+	}
+
+	// What the header's own menu offers.
+	//
+	// On a docked app it offers only what concerns the sidebar in front of you. Switching between
+	// sidebars belongs to the rail while there is one, and arranging the rail belongs to the user
+	// menu, so the menu is one item long and both switcher rows are absent. A docked app's header
+	// is unchanged.
+	//
+	// On a dock-less app there is no rail to switch with, so the header carries the switcher. Two
+	// nested rows and nothing more:
+	//
+	//     Modules  >   the app's navigable modules
+	//     Apps     >   every app on the desktop screen, then All apps
+	//     ---------
+	//     Edit Sidebar
+	//
+	// Nesting both axes keeps it short: the menu stays four rows tall whether the app has two
+	// modules or twenty-two. Nothing new was added to the menu primitive for it, since nesting,
+	// dividers and group headings all existed.
+	menu_items() {
+		const switching = this.switcher_items();
+		return [
+			...switching,
+			...(switching.length ? [{ is_divider: true }] : []),
+			{
+				name: "edit-sidebar",
+				label: __("Edit Sidebar"),
+				icon: "pencil",
+				// Re-run on every open, so it tracks the sidebar you are looking at rather than
+				// the one the menu was built in, which is why the header keeps one menu instead
+				// of one per module.
+				condition: () => !!this.sidebar.current_module,
+				// The editor is not in the desk bundle, so load it on click and then open
+				// this module's sidebar in it.
+				onClick: () =>
+					frappe
+						.require("arrangement_editor.bundle.js")
+						.then(() => new frappe.ui.SidebarManager())
+						.catch((e) => {
+							console.error(
+								"SidebarHeader: failed to load arrangement_editor.bundle.js",
+								e
+							);
+							frappe.ui.toast({
+								message: __(
+									"Could not open the sidebar editor. Please refresh the page."
+								),
+								type: "error",
+							});
+						}),
+			},
+		];
+	}
+
+	// The switcher, present only where there is no rail to do the switching.
+	//
+	// Rows name the axis, not the current location: "Modules", not "Stock". A row naming where
+	// you are reads as a status line, and a menu row is something you press.
+	switcher_items() {
+		const sidebar = this.sidebar;
+		if (sidebar.workspace_dock_enabled()) return [];
+
+		const items = [];
+		const modules = sidebar.app_modules(sidebar.get_sidebar_app());
+
+		// Absent when the app has one module, following the rail's own refusal to draw a rail of
+		// one: an item permanently active with no alternatives is a switcher that cannot switch.
+		// Helpdesk, Insights, Drive, Wiki and Newsletter each ship exactly one module, so for most
+		// dock-less apps this switcher is an app switcher.
+		if (modules.length > 1) {
+			items.push({
+				name: "switch-module",
+				label: __("Modules"),
+				icon: "layout-grid",
+				items: modules.map((shell) => ({
+					name: `module-${shell}`,
+					label: frappe.boot.module_sidebars[shell]?.label || shell,
+					icon: frappe.boot.module_sidebars[shell]?.header_icon,
+					onClick: () => sidebar.open_module(shell),
+				})),
+			});
+		}
+
 		items.push({
-			name: "workspace-selector",
-			label: __("Manage Dock"),
-			icon: "monitor",
-			onClick: () => new frappe.ui.DockManager(),
+			name: "switch-app",
+			label: __("Apps"),
+			icon: "layout-dashboard",
+			// Every app on the desktop screen, docked ones included. Excluding them would strand
+			// a user on a dock-less app with no route to ERPNext.
+			items: [
+				...(frappe.boot.app_data || [])
+					.filter((app) => app.on_apps_screen)
+					.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100))
+					.map((app) => ({
+						name: `app-${app.app_name}`,
+						label: app.app_title || app.app_name,
+						icon_url: Array.isArray(app.app_logo_url)
+							? app.app_logo_url[0]
+							: app.app_logo_url,
+						onClick: () => {
+							const route = sidebar.app_landing_route(app) || "/desk";
+							route.startsWith("http")
+								? window.open(route, "_blank")
+								: frappe.set_route(route);
+						},
+					})),
+				{ is_divider: true },
+				{ name: "all-apps", label: __("All apps"), icon: "grid-2x2", url: "/desk" },
+			],
 		});
 
 		return items;
 	}
-	fetch_apps() {
-		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
-		if (!apps.length) return null;
 
-		let items = apps.map((app) => {
-			let logo = Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url;
-			return {
-				name: app.app_name,
-				label: app.app_title,
-				// an app that ships no workspaces has no declared route either -- it lands on its
-				// first module sidebar instead (see app_landing_route)
-				url: this.sidebar.app_landing_route(app),
-				icon_url: logo,
-				// no logo declared -> render an alphabet icon, matching the desktop apps screen
-				icon_html: logo
-					? undefined
-					: frappe.utils.desktop_icon(app.app_title, "gray", "sm", "Solid"),
-			};
+	setup_menu() {
+		this.menu = frappe.ui.create_menu({
+			parent: this.wrapper,
+			menu_items: this.menu_items(),
+			onShow: this.toggle_active,
+			onHide: this.toggle_active,
+			onItemClick: this.toggle_active,
 		});
+	}
 
-		return {
-			name: "apps",
-			label: __("Apps"),
-			icon: "layout-grid",
-			items,
-		};
+	// The header shows the open state while its menu is up, except when the sidebar is collapsed
+	// to icons, where there is no header to highlight.
+	toggle_active(wrapper) {
+		$(wrapper).toggleClass("active-sidebar");
+		if (!frappe.app.sidebar.sidebar_expanded) {
+			$(wrapper).removeClass("active-sidebar");
+		}
 	}
 	get_help_siblings() {
 		const navbar_settings = frappe.boot.navbar_settings;
@@ -102,12 +211,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 	make() {
 		$(".sidebar-header").remove();
+		this.title = this.get_display_title();
 		this.set_header_icon();
 		$(
 			frappe.render_template("sidebar_header", {
 				workspace_title: this.title,
-				header_icon: this.header_icon,
-				header_bg_color: this.header_stroke_color,
 			})
 		).prependTo(this.sidebar_wrapper);
 		this.wrapper = $(".sidebar-header");
@@ -115,33 +223,30 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.$drop_icon = this.wrapper.find(".drop-icon");
 		this.toggle_width(this.sidebar.sidebar_expanded);
 	}
-	// The header shows the app the current sidebar belongs to. Custom / app-less / module sidebars
-	// have no owning app, so fall back to the workspace title (private workspaces are stored as
-	// `${title}-${for_user}`; show just the title).
+	// The header names the module whose sidebar is on screen, because the sidebar belongs to a
+	// module. It used to show the owning app's title and fall back to the module only when there
+	// was no app, which meant every module in an app shared one header: "Frappe Framework"
+	// whether you were in Core, Website or Integrations.
+	//
+	// The app is still identifiable from the logo and the dock, so the header names the module.
+	// `label` is the Sidebar's title, which an app or a customization may override, falling back
+	// to the module name.
 	get_display_title() {
-		let app = this.sidebar.get_sidebar_app();
-		if (app) return app.app_title;
-
-		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
-		if (workspace && !workspace.public && workspace.for_user) {
-			return workspace.title;
-		}
-		return this.sidebar.sidebar_title;
+		return (
+			this.sidebar.sidebar_data?.label ||
+			this.sidebar.current_module ||
+			this.sidebar.get_sidebar_app()?.app_title
+		);
 	}
+	// The module's own icon, used by the onboarding widget: an authored `header_icon`, otherwise a
+	// letter icon from its title, the same pair the rail uses. There is no app-logo fallback,
+	// because an app's logo was never this module's icon and the one used was whichever app
+	// happened to be installed first.
 	set_header_icon() {
-		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
-		if (this.sidebar.sidebar_data?.from_module) {
-			// auto-generated module sidebars have no real icon; render a letter icon from the
-			// title (matching the desktop apps screen) instead of the default app logo.
-			this.header_icon = frappe.utils.desktop_icon(this.sidebar.sidebar_title, "gray", "sm");
-		} else if (workspace?.icon) {
-			this.header_icon = frappe.utils.icon(workspace.icon, "md");
-		} else {
-			this.header_icon = `<img src=${this.get_default_icon()}></img>`;
-		}
-	}
-	get_default_icon() {
-		return frappe.boot.app_data[0].app_logo_url;
+		const sidebar = this.sidebar.sidebar_data;
+		this.header_icon = sidebar?.header_icon
+			? frappe.utils.icon(sidebar.header_icon, "md")
+			: frappe.utils.desktop_icon(this.title || "", "gray", "sm");
 	}
 
 	setup_hover() {
