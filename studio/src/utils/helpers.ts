@@ -548,7 +548,7 @@ function scrub(txt: string | null | undefined) {
 	return txt.replace(/ |-/g, "_").toLowerCase()
 }
 
-export function sanitizeHTML(html?: string): string {
+function sanitizeHTML(html?: string): string {
 	return DOMPurify.sanitize(html ?? "")
 }
 
@@ -608,4 +608,5 @@ export {
 	getErrorMessage,
 	throttle,
 	scrub,
+	sanitizeHTML,
 }
