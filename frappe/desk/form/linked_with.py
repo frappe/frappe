@@ -513,7 +513,9 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 	controller may block cancellation until a referencing document is cancelled
 	first, and some documents cannot be processed directly but stop being in
 	the way as a side effect of processing a document near them (e.g. ledger
-	entries that only the on_trash hook of their voucher removes).
+	entries that only the on_trash hook of their voucher removes). A document
+	locked by another session or caught in a deadlock defers too, since the
+	lock may be gone by the retry pass.
 
 	Once stuck, either surface the error of the first blocked document or, with
 	raise_when_stuck disabled, keep the progress made and return the blocked
@@ -528,7 +530,12 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-			except (frappe.ValidationError, frappe.PermissionError):
+			except (
+				frappe.ValidationError,
+				frappe.PermissionError,
+				frappe.QueryTimeoutError,
+				frappe.QueryDeadlockError,
+			):
 				# cancel and delete both run their hooks before the link check, so
 				# roll back the writes of the failed attempt before deferring, and
 				# drop the messages and side effects it queued, which savepoints
