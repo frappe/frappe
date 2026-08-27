@@ -243,4 +243,21 @@ context("List View", () => {
 			cy.location("pathname").should("eq", "/desk/todo");
 		}
 	);
+
+	it(
+		"navigates to the form instead of the quick view on narrow screens",
+		{ scrollBehavior: false },
+		() => {
+			cy.viewport(768, 1024);
+			cy.go_to_list("ToDo");
+			cy.clear_filters();
+
+			cy.get(".list-row-container .list-subject a").first().click();
+
+			cy.location("pathname").should("match", /^\/desk\/todo\/.+/);
+			cy.get(".list-quick-view").should("not.exist");
+
+			cy.viewport(Cypress.config("viewportWidth"), Cypress.config("viewportHeight"));
+		}
+	);
 });

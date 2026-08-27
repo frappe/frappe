@@ -2084,18 +2084,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			// ctrl/cmd+click on the link: let the browser open it in a new tab as usual
 			if ($target.is("a")) {
-				if (e.ctrlKey || e.metaKey || !this.quick_view) return;
+				if (e.ctrlKey || e.metaKey || !this.quick_view?.is_available) return;
 				e.preventDefault();
 				this.quick_view.show($target.attr("data-name"));
 				return false;
 			}
 
-			// clicked on the row, open the quick view (or the form, without one)
+			// clicked on the row, open the quick view where there's room for one,
+			// otherwise navigate to the form as before (phones, small tablets)
 			const $row = $(e.currentTarget);
 			const link = $row.find(".list-subject a").get(0);
 			if (!link) return;
 
-			if (!this.quick_view) {
+			if (!this.quick_view?.is_available) {
 				frappe.set_route(link.pathname);
 				return false;
 			}

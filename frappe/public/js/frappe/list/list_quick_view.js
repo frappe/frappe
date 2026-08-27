@@ -9,6 +9,11 @@ frappe.provide("frappe.views");
  * uses on the form sidebar (a sibling panel next to .layout-main-section-wrapper,
  * driven by a --*-width custom property and a drag handle), not an overlay.
  */
+// Below this, there just isn't a sensible width left over for the list once the
+// panel takes its minimum share -- phones and small tablets get the plain
+// navigate-to-form behavior instead, same as before this existed.
+const MIN_SCREEN_WIDTH_FOR_QUICK_VIEW = 1024;
+
 frappe.views.ListQuickView = class ListQuickView {
 	constructor(list_view) {
 		this.list_view = list_view;
@@ -21,8 +26,12 @@ frappe.views.ListQuickView = class ListQuickView {
 		$(this.list_view.page.wrapper).on("hide", () => this.hide());
 	}
 
+	get is_available() {
+		return window.innerWidth >= MIN_SCREEN_WIDTH_FOR_QUICK_VIEW;
+	}
+
 	show(docname) {
-		if (!docname) return;
+		if (!docname || !this.is_available) return;
 
 		this.setup_panel();
 		this.current_docname = docname;
@@ -141,7 +150,12 @@ frappe.views.ListQuickView = class ListQuickView {
 
 	render_form(docname) {
 		if (!this.frm) {
-			this.frm = new frappe.ui.form.Form(this.list_view.doctype, this.$body.get(0), true, null);
+			this.frm = new frappe.ui.form.Form(
+				this.list_view.doctype,
+				this.$body.get(0),
+				true,
+				null
+			);
 		}
 
 		this.with_route_state_preserved(() => this.frm.refresh(docname));
