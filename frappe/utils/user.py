@@ -259,6 +259,7 @@ class UserPermissions:
 				"mute_sounds",
 				"show_absolute_datetime_in_timeline",
 				"send_me_a_copy",
+				"send_read_receipt",
 				"user_type",
 				"onboarding_status",
 				"default_workspace",

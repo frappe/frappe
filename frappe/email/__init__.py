@@ -50,6 +50,67 @@ def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None 
 	]
 
 
+@frappe.whitelist()
+def get_recipient_avatars(emails: str) -> dict[str, str]:
+	"""Map recipient email -> avatar image. Contact wins over User; unknown addresses are absent."""
+	try:
+		addresses = frappe.parse_json(emails)
+	except ValueError:
+		return {}
+
+	if not isinstance(addresses, list):
+		return {}
+
+	cleaned = (e.strip().lower() for e in addresses if isinstance(e, str) and e.strip())
+	addresses = list(dict.fromkeys(cleaned))
+	if not addresses:
+		return {}
+
+	addresses = addresses[:100]
+
+	avatars = {}
+
+	for row in _get_user_avatars(addresses):
+		for key in (row.name, row.email):
+			if key and key.lower() in addresses:
+				avatars[key.lower()] = row.user_image
+
+	for row in _get_contact_avatars(addresses):
+		if row.email_id:
+			avatars[row.email_id.lower()] = row.image
+
+	return avatars
+
+
+def _get_contact_avatars(addresses: list[str]) -> list[frappe._dict]:
+	"""Contact.image, via get_list so permissions apply."""
+	return frappe.get_list(
+		"Contact",
+		fields=["`tabContact Email`.email_id", "image"],
+		filters=[
+			["Contact Email", "email_id", "in", addresses],
+			["Contact", "image", "is", "set"],
+		],
+		limit_page_length=0,
+	)
+
+
+def _get_user_avatars(addresses: list[str]) -> list[frappe._dict]:
+	"""User.user_image, matched on name or email, limited to enabled internal users."""
+	return frappe.get_all(
+		"User",
+		fields=["name", "email", "user_image"],
+		filters={
+			"name": ["not in", ("Administrator", "Guest")],
+			"enabled": True,
+			"user_type": "System User",
+			"user_image": ["is", "set"],
+		},
+		or_filters={"name": ["in", addresses], "email": ["in", addresses]},
+		limit_page_length=0,
+	)
+
+
 def get_system_managers():
 	return frappe.db.sql_list(
 		"""select parent FROM `tabHas Role`

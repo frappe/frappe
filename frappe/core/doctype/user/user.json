@@ -82,6 +82,7 @@
   "email_signature",
   "thread_notify",
   "send_me_a_copy",
+  "send_read_receipt",
   "allowed_in_mentions",
   "user_emails",
   "workspace_section",
@@ -404,6 +405,12 @@
    "fieldname": "send_me_a_copy",
    "fieldtype": "Check",
    "label": "Send Me A Copy of Outgoing Emails"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_read_receipt",
+   "fieldtype": "Check",
+   "label": "Send Read Receipt"
   },
   {
    "default": "1",
@@ -915,7 +922,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-06-17 16:47:51.772694",
+ "modified": "2026-08-27 15:08:33.939753",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
