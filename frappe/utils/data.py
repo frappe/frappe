@@ -869,6 +869,75 @@ def validate_duration_format(duration):
 		)
 
 
+def humanize_duration(
+	duration: "float | int | datetime.timedelta | str",
+	add_direction: bool = True,
+	granularity: str = "second",
+) -> str:
+	"""Return a human-readable string representation of the given duration.
+
+	Accepts seconds (int/float), a :class:`datetime.timedelta`, or a Frappe
+	duration string (e.g. ``"3h 34m 45s"``).
+
+	By convention, **positive** values represent time that has already elapsed
+	("ago"), while **negative** values represent time still to come ("in X").
+	This matches natural use-cases like overdue book returns or task deadlines.
+
+	Args:
+		duration: The duration to humanize. Accepted types:
+
+		          - ``int`` / ``float``: seconds elapsed (positive = past, negative = future)
+		          - :class:`datetime.timedelta`
+		          - ``str``: Frappe duration string, e.g. ``"1d 3h 20m 5s"``
+
+		add_direction: If ``True`` (default), adds directional phrasing such as
+		               ``"3 hours ago"`` or ``"in 5 minutes"``.
+		               If ``False``, returns the plain magnitude, e.g. ``"3 hours"``.
+
+		granularity: The smallest unit to display. One of ``"second"`` (default),
+		             ``"minute"``, ``"hour"``, or ``"day"``.
+
+	Returns:
+		A localized, human-readable string.
+
+	Examples::
+
+		>>> humanize_duration(3661)
+		'1 hour ago'
+		>>> humanize_duration(-3661)
+		'in 1 hour'
+		>>> humanize_duration(3661, add_direction=False)
+		'1 hour'
+		>>> humanize_duration("3h 34m 45s")
+		'3 hours ago'
+		>>> humanize_duration(datetime.timedelta(days=2))
+		'2 days ago'
+		>>> humanize_duration(45, granularity="minute")
+		'1 minute ago'
+	"""
+	from babel.dates import format_timedelta
+
+	if isinstance(duration, str):
+		seconds = float(duration_to_seconds(duration))
+	elif isinstance(duration, datetime.timedelta):
+		seconds = duration.total_seconds()
+	else:
+		seconds = float(duration)
+
+	# Negate so that positive seconds (elapsed time) produce a past direction,
+	# and negative seconds (remaining time) produce a future direction.
+	delta = datetime.timedelta(seconds=-seconds)
+
+	locale = frappe.local.lang.replace("-", "_") if frappe.local.lang else "en"
+
+	return format_timedelta(
+		delta,
+		add_direction=add_direction,
+		granularity=granularity,
+		locale=locale,
+	)
+
+
 def get_weekdays() -> list[str]:
 	"""Return a list of weekday names.
 

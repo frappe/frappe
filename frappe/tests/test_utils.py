@@ -74,6 +74,7 @@ from frappe.utils.data import (
 	get_url_to_form,
 	get_year_ending,
 	getdate,
+	humanize_duration,
 	is_invalid_date_string,
 	map_trackers,
 	now_datetime,
@@ -871,6 +872,38 @@ class TestDateUtils(IntegrationTestCase):
 		# hide_days parameter
 		self.assertEqual(format_duration(86400, hide_days=True), "24h")
 		self.assertEqual(format_duration(90061, hide_days=True), "25h 1m 1s")
+
+	def test_humanize_duration(self):
+		# Positive seconds → past direction ("ago")
+		self.assertEqual(humanize_duration(3600), "1 hour ago")
+		self.assertEqual(humanize_duration(7200), "2 hours ago")
+		self.assertEqual(humanize_duration(86400), "1 day ago")
+		self.assertEqual(humanize_duration(90), "1 minute ago")
+
+		# Negative seconds → future direction ("in X")
+		self.assertEqual(humanize_duration(-3600), "in 1 hour")
+		self.assertEqual(humanize_duration(-86400), "in 1 day")
+
+		# timedelta input
+		self.assertEqual(humanize_duration(timedelta(hours=3)), "3 hours ago")
+		self.assertEqual(humanize_duration(timedelta(days=-1)), "in 1 day")
+
+		# Frappe duration string input
+		self.assertEqual(humanize_duration("1h"), "1 hour ago")
+		self.assertEqual(humanize_duration("2d"), "2 days ago")
+		self.assertEqual(humanize_duration("3h 34m 45s"), "4 hours ago")
+
+		# add_direction=False → plain magnitude, no "ago" / "in"
+		self.assertEqual(humanize_duration(3600, add_direction=False), "1 hour")
+		self.assertEqual(humanize_duration(-3600, add_direction=False), "1 hour")
+		self.assertEqual(humanize_duration("2d", add_direction=False), "2 days")
+
+		# granularity: suppress sub-minute precision
+		self.assertEqual(humanize_duration(45, granularity="minute"), "1 minute ago")
+		self.assertEqual(humanize_duration(3661, granularity="hour"), "1 hour ago")
+
+		# Zero seconds — Babel returns "in 0 seconds" for a zero timedelta
+		self.assertEqual(humanize_duration(0), "in 0 seconds")
 
 	def test_get_timespan_date_range(self):
 		supported_timespans = [
