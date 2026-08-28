@@ -38,7 +38,12 @@ A disable or an enable is one transaction. If a hook fails, the site keeps the s
 
 1. `get_desktop_icons` - method to get list of desktop icons
 1. `awesomebar_search` - method(txt) returning extra Awesome Bar results (`label`, `description`, `route`, `index`). `route` may be a desk route list, an in-app path (`/desk/...`), or an `http(s)://` URL.
-1. `add_to_apps_screen` - list of dicts, one per app to place on the apps screen
+1. `add_to_apps_screen` - list of dicts, one per app to place on the apps screen. An app whose
+   own UI is not the desk may add `desk_route`, a route back into the desk -- the workspace where
+   it is configured, say. The apps screen renders it under the app's icon as a second link
+   labelled "Open in Desk". It is passed through exactly as `route` is: a literal route the app
+   owns, neither resolved nor permission-checked, so a workspace that gets renamed leaves a link
+   that no longer lands.
 
 #### Navigation an app ships
 

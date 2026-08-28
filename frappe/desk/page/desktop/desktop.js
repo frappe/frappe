@@ -89,6 +89,10 @@ class DesktopPage {
 			const icon_data = {
 				label: app.app_title,
 				logo_url: app.app_logo_url,
+				// A route into the desk for an app whose own UI isn't the desk, declared as
+				// `desk_route` on its `add_to_apps_screen` hook. Empty for a desk-native app,
+				// which renders no subtitle.
+				desk_route: app.desk_route,
 			};
 			this.add_icon($grid, icon_data, app.route);
 		});
@@ -97,10 +101,13 @@ class DesktopPage {
 	}
 	add_icon($grid, icon_data, route) {
 		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
+		// The tile is a <div> so the "Open in Desk" subtitle can be its own link; the logo and
+		// the title are the two anchors that lead to the app itself.
+		const $app_links = $icon.find(".icon-link, .icon-title");
 		if (route.startsWith("http")) {
-			$icon.attr("target", "_blank");
+			$app_links.attr("target", "_blank");
 		}
-		$icon.attr("href", route);
+		$app_links.attr("href", route);
 		$grid.append($icon);
 	}
 	setup() {

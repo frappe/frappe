@@ -321,6 +321,7 @@ def get_app_data() -> list[dict]:
 						or (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
 						or app_name,
 						app_route="",
+						desk_route="",
 						app_logo_url=app_info.get("logo")
 						or frappe.get_hooks("app_logo_url", app_name=app_name)
 						or frappe.get_hooks("app_logo_url", app_name="frappe"),
@@ -367,6 +368,12 @@ def get_app_data() -> list[dict]:
 					and frappe.get_hooks("app_home", app_name=app_name)[0]
 				)
 				or "",
+				# A non-desk app's door back into the desk. Configuring such an app -- its roles,
+				# its custom fields, the workspace it ships -- stays a desk job, so the app may
+				# name a desk route here and the apps screen renders it under the app's icon as a
+				# second link. Passed through exactly as `app_route` is: a literal route the app
+				# author owns, neither resolved nor permission-checked here.
+				desk_route=app_info.get("desk_route") or "",
 				# Only the app's own logo (from add_to_apps_screen or its app_logo_url hook); left
 				# empty when it declares none, so the desk renders an alphabet icon instead.
 				app_logo_url=app_info.get("logo")
