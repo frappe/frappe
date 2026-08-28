@@ -70,6 +70,13 @@ async function load() {
 	if (!doctype.value) return;
 	const mine = ++generation;
 	error.value = "";
+	// Blank the record before fetching the next one. `generation` already stops a slow
+	// response from repainting the record the reader left, but it says nothing about
+	// what is on screen MEANWHILE: the heading reads `route.params.name`, which changes
+	// synchronously, so without this the new record's name sits above the old record's
+	// field values. On a record page that is not a cosmetic flicker -- it is one
+	// record's data presented as another's.
+	doc.value = {};
 	try {
 		const document = await call("frappe.client.get", {
 			doctype: doctype.value,
