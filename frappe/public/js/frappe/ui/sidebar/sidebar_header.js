@@ -45,12 +45,16 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	//     Apps     >   every app on the desktop screen, then All apps
 	//     ---------
 	//     Edit Sidebar
+	//     ---------
+	//     whatever Navbar Settings holds
+	//     Help     >   this page's help links, then the site's help items
 	//
 	// Nesting both axes keeps it short: the menu stays four rows tall whether the app has two
 	// modules or twenty-two. Nothing new was added to the menu primitive for it, since nesting,
 	// dividers and group headings all existed.
 	menu_items() {
 		const switching = this.switcher_items();
+		const system = this.system_items();
 		return [
 			...switching,
 			...(switching.length ? [{ is_divider: true }] : []),
@@ -81,7 +85,55 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 							});
 						}),
 			},
+			...(system.length ? [{ is_divider: true }, ...system] : []),
 		];
+	}
+
+	// Everything Navbar Settings contributes: its settings rows flat in the menu, and its help
+	// rows nested under one "Help" row, the shape the old header dropdown had. The whole block
+	// is absent, divider included, when a site has neither.
+	//
+	// The help row is rebuilt with the rest of the menu because part of it is the help links for
+	// the page you are on, and `Sidebar.refresh_header` runs on every navigation.
+	system_items() {
+		const navbar = this.navbar_items();
+		const help = this.get_help_siblings();
+		if (help.length) {
+			navbar.push({
+				name: "help",
+				label: __("Help"),
+				icon: "info",
+				items: help,
+			});
+		}
+		return navbar;
+	}
+
+	// The rows a site put on its own menu, read from `Navbar Settings.settings_dropdown`: the
+	// standard items an app ships through the `standard_navbar_items` hook, plus anything a user
+	// added by hand. This is where they used to sit, before the header lost its dropdown; for a
+	// while after that they hung off the user menu at the foot of the sidebar instead.
+	//
+	// An item is a route or an action, the two kinds Navbar Settings offers. Its `condition` is
+	// passed through untouched, so `frappe.ui.menu` re-runs it on every open and an item that
+	// only applies to some sites stays hidden on the rest.
+	navbar_items() {
+		return (frappe.boot.navbar_settings?.settings_dropdown || [])
+			.filter((item) => !item.hidden)
+			.map((item) => {
+				const row = {
+					name: item.name,
+					label: __(item.item_label),
+					icon: item.icon,
+					condition: item.condition,
+				};
+				if (item.item_type === "Route") {
+					row.url = item.route;
+				} else if (item.item_type === "Action") {
+					row.onClick = () => frappe.utils.eval(item.action);
+				}
+				return row;
+			});
 	}
 
 	// The switcher, present only where there is no rail to do the switching.
@@ -162,15 +214,16 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			$(wrapper).removeClass("active-sidebar");
 		}
 	}
+	// What goes under the header's "Help" row: the help links registered for the page you are on,
+	// then a divider, then the site's own help items from `Navbar Settings.help_dropdown`.
 	get_help_siblings() {
-		const navbar_settings = frappe.boot.navbar_settings;
 		let help_dropdown_items = [];
 
 		let custom_help_links = this.get_custom_help_links();
 
 		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
 
-		navbar_settings.help_dropdown.forEach((element) => {
+		(frappe.boot.navbar_settings?.help_dropdown || []).forEach((element) => {
 			if (element.hidden) return;
 			if (element.action?.includes("frappe.ui.toolbar.show_shortcuts")) return;
 			if (element.condition && !frappe.utils.eval(element.condition)) return;
@@ -188,6 +241,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			}
 			help_dropdown_items.push(dropdown_children);
 		});
+
+		// The divider `get_custom_help_links` leaves behind separates the page's links from the
+		// site's items. With nothing after it there is nothing to separate, and a menu ending in
+		// a rule looks like it lost its last row.
+		if (help_dropdown_items.at(-1)?.is_divider) help_dropdown_items.pop();
 
 		return help_dropdown_items;
 	}
