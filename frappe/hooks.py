@@ -11,11 +11,32 @@ app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 develop_version = "17.x.x-develop"
 app_home = "/app/build"
 
+# --- desk v2 -----------------------------------------------------------------
+# The desk claims its prefix through the mechanism it is building — no privileged
+# path. If this door is not good enough for the framework's own product it is not
+# good enough for ERPNext (#42062 charter item 7).
+#
+# `desk` rather than the derived default `frappe`, because this names the product
+# rather than the package. It is also the only override on this bench: CRM declares
+# nothing and gets `/apps/crm` from its own name, so the default derivation is
+# exercised by the skeleton running.
+app_prefix = "desk"
+
+# No `app_permission` here on purpose. Its absence means "is a System User", which is
+# what `/desk` has always meant, so the framework declares nothing and still gets the
+# gate it wants (#42112).
+
 app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
+before_app_install = "frappe.shell.install.before_app_install"
 after_install = "frappe.utils.install.after_install"
-after_app_install = "frappe.utils.install.create_desktop_icons_for_app"
+after_app_install = [
+	"frappe.utils.install.create_desktop_icons_for_app",
+	# A newly installed app claims a prefix, so the cached {prefix: app} registry is
+	# stale the moment install finishes.
+	"frappe.shell.registry.clear_prefix_registry_for_app",
+]
 after_app_uninstall = "frappe.utils.install.delete_desktop_icons_for_app"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
@@ -62,7 +83,6 @@ website_route_rules = [
 
 website_redirects = [
 	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
-	{"source": "/apps", "target": "/desk"},
 	{"source": "/app", "target": "/desk"},
 ]
 
@@ -195,6 +215,10 @@ standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {
 	"*": {
+		# Refuses any document whose `route` would land inside `/apps`. Wildcard
+		# because three of WebsiteGenerator's four subclasses bypass its
+		# `validate()` entirely (#42074).
+		"validate": "frappe.shell.route_guard.validate_route",
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
