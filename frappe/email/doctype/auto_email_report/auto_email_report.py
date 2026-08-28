@@ -183,25 +183,8 @@ class AutoEmailReport(Document):
 			report_data["columns"] = columns
 			report_data["result"] = data
 
-<<<<<<< HEAD
 			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
 			return to_csv(xlsx_data)
-=======
-				return xlsx_file.getvalue()
-
-			else:
-				return to_csv(xlsx_data)
-
-		elif self.format == "PDF":
-			columns, data = make_links(columns, data)
-			columns = update_field_types(columns)
-			options = {}
-
-			if len(columns) > 8:
-				options["orientation"] = "landscape"
-			html = get_formatted_html(subject=self.name, message=self.get_html_table(columns, data))
-			return get_pdf(html, options, smart_shrinking=True)
->>>>>>> 44876a5 (fix(auto-email-report): scale wide report tables to fit the page)
 
 		else:
 			frappe.throw(_("Invalid Output Format"))

@@ -10,9 +10,6 @@ from frappe.core.doctype.file.test_file import make_test_image_file
 from frappe.tests.utils import FrappeTestCase
 
 
-<<<<<<< HEAD
-class TestPdf(FrappeTestCase):
-=======
 def blank_pdf() -> bytes:
 	from pypdf import PdfWriter
 
@@ -23,8 +20,7 @@ def blank_pdf() -> bytes:
 	return stream.getvalue()
 
 
-class TestPdf(IntegrationTestCase):
->>>>>>> 4bbd034 (test(pdf): cover smart shrinking opt-in on report PDFs)
+class TestPdf(FrappeTestCase):
 	@property
 	def html(self):
 		return """<style>
