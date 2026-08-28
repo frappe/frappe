@@ -6,6 +6,7 @@
 # (both real consumers agree today). Those are exactly the ones that would otherwise
 # rot silently.
 
+import re
 from contextlib import ExitStack, contextmanager
 from unittest.mock import patch
 
@@ -27,6 +28,7 @@ from frappe.utils import set_request
 from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.page_renderers.shell_page import ShellPage
 from frappe.website.path_resolver import PathResolver
+from frappe.website.serve import get_response
 
 
 def hooks_declaring(hook_name: str, values: dict[str, str]):
@@ -117,6 +119,16 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, acti
 		yield app, prefix
 
 
+def strip_html_comments(html: bytes) -> bytes:
+	"""Comments are commentary, not content.
+
+	The shell's document carries a comment explaining which per-request payloads are
+	deliberately absent — and it names them, so a naive substring search finds the very
+	strings it is checking are gone.
+	"""
+	return re.sub(rb"<!--.*?-->", b"", html, flags=re.DOTALL)
+
+
 class TestShellPrefixes(IntegrationTestCase):
 	def test_default_derivation_when_an_app_declares_nothing(self):
 		"""Charter item 2: install an app and it is served, with no declaration at all.
@@ -201,6 +213,101 @@ class TestShellRouting(IntegrationTestCase):
 		filesystem (see `a_second_app`).
 		"""
 		self.assertNotIsInstance(self.renderer_for("desk"), ShellPage)
+
+	def test_a_route_miss_inside_a_prefix_serves_the_shell_at_200(self):
+		"""A client-side route miss, not a server 404.
+
+		Returning 404 would cost the page its asset preloads —
+		`build_response` skips `add_preload_for_bundled_assets` at 404
+		(`website/utils.py:580-581`) — for a document that is about to render
+		perfectly well.
+		"""
+		with a_second_app() as (_, prefix):
+			set_request(method="GET", path=f"/apps/{prefix}/nothing-is-here")
+			response = get_response()
+		self.assertEqual(response.status_code, 200)
+
+	def test_the_shell_serves_the_built_document(self):
+		set_request(method="GET", path="/apps/desk")
+		response = get_response()
+		self.assertEqual(response.status_code, 200)
+		self.assertIn(b'<div id="app">', response.data)
+
+		# The document carries no per-request content: no boot island, no CSRF token,
+		# no injected route (#42072). If any of these appear, the shell has grown a
+		# second boot producer and #42111 has become unanswerable.
+		markup = strip_html_comments(response.data)
+		self.assertNotIn(b"window.boot", markup)
+		self.assertNotIn(b"__FRONTEND_ROUTE__", markup)
+		self.assertNotIn(b"__SOCKETIO_PORT__", markup)
+		self.assertNotIn(b"csrf_token", markup)
+
+	def test_the_document_is_byte_identical_for_two_different_users(self):
+		"""The premise #42111 will have to argue from, pinned here.
+
+		If this ever fails, the shell has become user-varying and caching it is no
+		longer merely risky but wrong — and the failure mode is a cross-user leak,
+		which is not the kind one finds by looking.
+		"""
+		other = frappe.get_doc(
+			doctype="User",
+			email="shell-second-user@example.com",
+			first_name="Shell",
+			user_type="System User",
+		).insert(ignore_if_duplicate=True)
+		other.add_roles("System Manager")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		set_request(method="GET", path="/apps/desk")
+		as_admin = get_response().data
+
+		frappe.set_user(other.name)
+		set_request(method="GET", path="/apps/desk")
+		as_other = get_response().data
+
+		self.assertEqual(as_admin, as_other)
+
+
+class TestShellIsNeverCached(IntegrationTestCase):
+	"""`@cache_html` is gated on `can_cache()`, which does not consider the session
+	user — so a cached shell response would hand one user's document to the next.
+
+	`can_cache()` returns False under `developer_mode`, which is why this is invisible
+	in development and why the test has to force the flag. Without the force it passes
+	for the wrong reason.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		frappe.flags.force_website_cache = True
+
+	#: The framework's own prefix, claimed on every bench there is.
+	CACHE_KEY = "website_page::apps/desk"
+
+	def tearDown(self):
+		frappe.flags.force_website_cache = False
+		frappe.cache.delete_value(self.CACHE_KEY)
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
+	def test_the_shell_writes_no_page_cache_even_when_caching_is_forced(self):
+		from frappe.website.utils import can_cache
+
+		# The flag really is on: this is the guard against the test passing because
+		# caching was off anyway.
+		self.assertTrue(can_cache())
+
+		frappe.cache.delete_value(self.CACHE_KEY)
+		set_request(method="GET", path="/apps/desk")
+		response = get_response()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertIsNone(frappe.cache.get_value(self.CACHE_KEY))
+
+	def test_rendering_the_shell_turns_local_caching_off(self):
+		set_request(method="GET", path="/apps/desk")
+		get_response()
+		self.assertTrue(getattr(frappe.local, "no_cache", False))
 
 
 class TestPrefixCollisionGuard(IntegrationTestCase):
