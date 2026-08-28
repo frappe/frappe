@@ -364,7 +364,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 		# this method runs in on_update hook of all documents
 		# we dont want the update to fail if file cannot be attached for some reason
 		value = doc.get(df.fieldname)
-		if not (value or "").startswith(("/files", "/private/files")):
+		if not (value or "").startswith(("/files", "/private/files", "http://", "https://")):
 			continue
 
 		if frappe.db.exists(
