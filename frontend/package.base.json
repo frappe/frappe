@@ -2,10 +2,12 @@
   "name": "@frappe/frontend",
   "private": true,
   "type": "module",
-  "comment": "The framework's OWN declaration: the shared library set, pinned here and enforced by the build. `bench build` composes this with each contributing app's own dependencies into the generated package.json beside it, which is what yarn installs. One tree for all apps -- deliberately NOT a yarn workspace root, because workspaces hoist and nest on conflict rather than fail, and the charter wants hard failure at manifest assembly (#42069).",
+  "comment": "The framework's OWN declaration: the shared library set, pinned here and enforced by the build. `bench build` composes this with each contributing app's own dependencies into the generated package.json beside it, which is what yarn installs. One tree for all apps -- deliberately NOT a yarn workspace root, because workspaces hoist and nest on conflict rather than fail, and the charter wants hard failure at manifest assembly (#42069). `resolutions` pins vite because vitest declares its own wide range and yarn would otherwise nest a second copy: the tests would then transform modules with a different vite than the build uses, which is the one module graph this file exists to guarantee. vite is not one of manifest.py's six SINGLETONS -- those are the runtime libraries -- so nothing else would have caught it.",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@framework/ui": "link:../ui",
@@ -20,8 +22,13 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",
     "autoprefixer": "^10.4.20",
+    "happy-dom": "^20.9.0",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.4.15",
+    "vite": "8.1.5",
+    "vitest": "^4.1.4"
+  },
+  "resolutions": {
     "vite": "8.1.5"
   }
 }
