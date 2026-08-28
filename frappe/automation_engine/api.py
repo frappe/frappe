@@ -196,10 +196,25 @@ def _user_options(doctype, params, search_text):
 	return frappe.get_all("User", filters=filters, fields=["name", "full_name"], limit=20)
 
 
+def _notification_recipient_options(doctype, params, search_text):
+	"""Real users, preceded by the tokens SendNotification resolves per run."""
+	from frappe.automation_engine.actions.core import recipient_tokens
+
+	tokens = [token for token in recipient_tokens() if _matches_search(token, search_text)]
+	return tokens + _user_options(doctype, params, search_text)
+
+
+def _matches_search(token, search_text):
+	if not search_text:
+		return True
+	return search_text.lower() in f"{token['name']} {token['full_name']}".lower()
+
+
 # Fixed resolver table - the only server functions get_param_options may call.
 OPTION_RESOLVERS = {
 	"doc_fields": lambda doctype, params, search_text: _doc_fields(doctype),
 	"users": _user_options,
+	"notification_recipients": _notification_recipient_options,
 }
 
 
