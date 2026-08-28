@@ -281,7 +281,7 @@ def load_desktop_data(bootinfo):
 def get_app_data() -> list[dict]:
 	"""Return the apps the desk knows about, each with the ordered set of entries its dock offers.
 
-	This backs the apps (desktop) screen and the workspace dock: the dock renders
+	This backs the apps (desktop) screen and the dock, which renders
 	`app_data[app].dock` for whichever app is in context, ordered by the arrangement in
 	`frappe.boot.dock`. It is one typed list rather than the separate module and workspace lists
 	it replaces, which the client had to reconcile to render a single rail and where the pin

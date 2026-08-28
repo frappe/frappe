@@ -1,11 +1,11 @@
 // Slim vertical rail left of the body sidebar listing the current app's workspaces as icons, with
-// the app logo pinned to the top corner. Rendered by frappe.ui.WorkspaceDock and opt-in per app.
+// the app logo pinned to the top corner. Rendered by frappe.ui.Dock and opt-in per app.
 //
 // Styles mirror the frappe-ui <Rail> / <RailItem> component so the dock renders identically to the
 // Vue rail. Values map straight across: 50px column on --surface-sidebar; 28px items; workspace
 // icons use the `tile` treatment (filled cell + left indicator bar when active) and the bell uses
 // the `ghost` treatment (transparent until hovered).
-.workspace-dock {
+.dock {
 	position: relative;
 	flex: 0 0 50px;
 	width: 50px;
@@ -26,7 +26,7 @@
 		display: none;
 	}
 
-	.workspace-dock-logo {
+	.dock-logo {
 		flex: 0 0 auto;
 		// match the navbar / sidebar-header band so the logo lines up with them
 		height: var(--navbar-height, 48px);
@@ -68,7 +68,7 @@
 		}
 	}
 
-	.workspace-dock-divider {
+	.dock-divider {
 		flex: 0 0 auto;
 		width: 24px;
 		height: 1px;
@@ -79,14 +79,14 @@
 	// The divider right below the logo hugs the navbar-height band -- the logo is already centred in
 	// its 48px band, so no extra top margin is stacked on top of it; its 8px bottom margin then
 	// matches the gap on every other divider, keeping the rhythm even.
-	.workspace-dock-logo + .workspace-dock-divider {
+	.dock-logo + .dock-divider {
 		margin-top: 0;
 	}
 
 	// Icon shortcuts (search, notifications) pinned under the logo, bracketed by a divider above and
 	// below. A centred icon column whose 8px gap matches the dividers' margins, so every gap in the
 	// top of the rail reads the same. Collapses to nothing when no shortcut is enabled.
-	.workspace-dock-shortcuts {
+	.dock-shortcuts {
 		flex: 0 0 auto;
 		width: 100%;
 
@@ -101,11 +101,11 @@
 	}
 
 	// with no shortcuts, drop the divider that would sit under them so two dividers don't stack up
-	.workspace-dock-shortcuts:empty + .workspace-dock-divider {
+	.dock-shortcuts:empty + .dock-divider {
 		display: none;
 	}
 
-	.workspace-dock-items {
+	.dock-items {
 		flex: 1 1 auto;
 		width: 100%;
 
@@ -122,7 +122,7 @@
 		}
 	}
 
-	.workspace-dock-user {
+	.dock-user {
 		flex: 0 0 auto;
 		padding: 0;
 		border: none;
@@ -143,7 +143,7 @@
 
 	// Workspace icon — mirrors <RailItem variant="tile">: a filled 28px cell (7px radius) that darkens
 	// on active, with a left indicator bar sitting flush against the rail's edge.
-	.workspace-dock-item {
+	.dock-item {
 		position: relative;
 		flex: 0 0 auto;
 		width: 28px;
@@ -209,7 +209,7 @@
 
 	// Search / notification shortcuts are not workspaces — mirror <RailItem variant="ghost">:
 	// transparent until hovered, 8px radius.
-	.workspace-dock-shortcuts .workspace-dock-item {
+	.dock-shortcuts .dock-item {
 		background: transparent;
 		border-radius: var(--radius-4);
 
@@ -223,7 +223,7 @@
 // sidebar's copies go. The whole standard-items band goes with them, which is what finally takes
 // background tasks off a docked app's sidebar: it was the one of the three that showed there,
 // while its sibling bell was hidden.
-body.workspace-dock-active .body-sidebar {
+body.dock-active .body-sidebar {
 	.dropdown-navbar-user,
 	.standard-items-band {
 		display: none;
@@ -239,7 +239,7 @@ body.workspace-dock-active .body-sidebar {
 // `.body-sidebar-container` is in the chain only to outweigh the expanded mixin, which sets
 // `display: flex` on the chevron from `.body-sidebar-container.expanded .body-sidebar
 // .collapse-sidebar-link` -- one class more specific than this rule would otherwise be.
-body:not(.workspace-dock-active) .body-sidebar-container .body-sidebar {
+body:not(.dock-active) .body-sidebar-container .body-sidebar {
 	.collapse-sidebar-link,
 	.sidebar-resize-handle {
 		display: none;
@@ -256,15 +256,15 @@ body:not(.workspace-dock-active) .body-sidebar-container .body-sidebar {
 //
 // The selector carries the whole `.standard-sidebar-item .item-anchor` chain only to outweigh the
 // rule that gives the span its `display: flex` in sidebar.scss -- two classes more specific than
-// `body.workspace-dock-active .body-sidebar .sidebar-item-icon` would be on its own.
-body.workspace-dock-active .body-sidebar .standard-sidebar-item .item-anchor .sidebar-item-icon {
+// `body.dock-active .body-sidebar .sidebar-item-icon` would be on its own.
+body.dock-active .body-sidebar .standard-sidebar-item .item-anchor .sidebar-item-icon {
 	display: none;
 }
 
 // The label's own left margin stands in for the icon when there isn't one. Where the icon is
 // drawn it already supplies that gap, so drop the margin rather than paying for it twice --
 // scoped by :has() so section breaks and icon-less rows keep theirs.
-body:not(.workspace-dock-active) .body-sidebar {
+body:not(.dock-active) .body-sidebar {
 	.item-anchor:has(.sidebar-item-icon) .sidebar-item-label {
 		margin-left: 0;
 	}
@@ -289,7 +289,7 @@ body:not(.workspace-dock-active) .body-sidebar {
 // Right-edge handle that reopens the collapsed body sidebar -- the mirror of the sidebar's own
 // .sidebar-resize-handle. Only present while collapsed (body.sidebar-collapsed), so it doesn't
 // offer an expand affordance when the sidebar is already open.
-.workspace-dock-resize-handle {
+.dock-resize-handle {
 	position: absolute;
 	top: 0;
 	right: -4px;
@@ -316,13 +316,13 @@ body:not(.workspace-dock-active) .body-sidebar {
 	}
 }
 
-body.sidebar-collapsed .workspace-dock-resize-handle {
+body.sidebar-collapsed .dock-resize-handle {
 	display: block;
 }
 
 // The visible twin of the handle above, mirroring .body-sidebar .sidebar-toggle-btn so the expand
 // affordance lands in the same spot and looks the same as the collapse one it replaces.
-.workspace-dock-toggle-btn {
+.dock-toggle-btn {
 	position: absolute;
 	right: -12px;
 	bottom: 80px;
@@ -352,18 +352,18 @@ body.sidebar-collapsed .workspace-dock-resize-handle {
 	}
 }
 
-body.sidebar-collapsed .workspace-dock-toggle-btn {
+body.sidebar-collapsed .dock-toggle-btn {
 	display: flex;
 }
 
-body.sidebar-collapsed .workspace-dock:hover .workspace-dock-toggle-btn {
+body.sidebar-collapsed .dock:hover .dock-toggle-btn {
 	opacity: 1;
 	visibility: visible;
 }
 
 // mirror the body sidebar: the rail collapses away on mobile
 @include media-breakpoint-down(sm) {
-	.workspace-dock {
+	.dock {
 		display: none;
 	}
 }

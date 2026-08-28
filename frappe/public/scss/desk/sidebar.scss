@@ -254,7 +254,7 @@
 	@include body-sidebar-expanded();
 }
 
-// Collapsed: the workspace dock is the icon rail now, so the body sidebar leaves entirely rather
+// Collapsed: the dock is the icon rail now, so the body sidebar leaves entirely rather
 // than shrinking to a strip. The placeholder animates its reserved width to 0 (the main section
 // glides left to fill it) while the panel's contents fade and slide out behind the dock. Reopening is done
 // from the dock's right-edge handle. Driven by the container's `expanded` class -- set at render

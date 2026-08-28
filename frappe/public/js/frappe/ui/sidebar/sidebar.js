@@ -1,5 +1,5 @@
 import "./sidebar_item";
-import "./workspace_dock";
+import "./dock";
 
 // The query parameter that carries the shell. Named `sidebar` because that is what the desk
 // already read here before anything wrote it.
@@ -315,7 +315,7 @@ frappe.ui.Sidebar = class Sidebar {
 			// change (e.g. navigating within the same workspace). Refresh the header here so it
 			// always reflects the module resolved above.
 			frappe.app.sidebar.refresh_header();
-			// Keep the workspace dock in sync with the shown module and the active workspace.
+			// Keep the dock in sync with the shown module and the active workspace.
 			frappe.app.sidebar.refresh_dock();
 		});
 
@@ -386,17 +386,17 @@ frappe.ui.Sidebar = class Sidebar {
 	// the sidebar, which is the pre-dock layout and still exists, and the sidebar header carries
 	// a switcher instead. The trade-off is that the layout shifts when moving between a docked
 	// app and a dock-less one.
-	workspace_dock_enabled() {
+	dock_enabled() {
 		return this.collect_dock_entries(this.get_sidebar_app()).length > 0;
 	}
 
-	// Render or re-render the workspace dock to match the current app context. It is created
+	// Render or re-render the dock to match the current app context. It is created
 	// lazily on first refresh and stays hidden unless the page allows it (see page_allows_dock).
 	refresh_dock() {
-		if (!this.workspace_dock) {
-			this.workspace_dock = new frappe.ui.WorkspaceDock(this);
+		if (!this.dock) {
+			this.dock = new frappe.ui.Dock(this);
 		}
-		this.workspace_dock.refresh();
+		this.dock.refresh();
 	}
 
 	// Fired on page change and form refresh. Handles visibility, then runs the same resolver as
@@ -415,8 +415,8 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// -------------------------------------------------------------------------------------------
-	// Visibility. Both shells, the body sidebar and the workspace dock, are hidden by default
-	// (see make_dom and WorkspaceDock.make) and are shown only once the page on screen says it
+	// Visibility. Both shells, the body sidebar and the dock, are hidden by default
+	// (see make_dom and Dock.make) and are shown only once the page on screen says it
 	// allows them. Defaulting to hidden means a page that suppresses them, such as the desktop
 	// or apps screen and the setup wizard, never flashes them first, and a page that has not
 	// rendered yet, whose options are unknown, shows nothing rather than guessing.
@@ -433,13 +433,13 @@ frappe.ui.Sidebar = class Sidebar {
 		return !!page && !page.hide_sidebar;
 	}
 
-	// The dock is displayed unless the page opts out with `hide_workspace_dock`. That and
+	// The dock is displayed unless the page opts out with `hide_dock`. That and
 	// `hide_sidebar` are both standard frappe.ui.Page options, and a page picks either shell on
 	// its own: the print format builder keeps the dock while hiding the body sidebar, and the
 	// desktop or apps screen sets both.
 	page_allows_dock() {
 		const page = this.current_page();
-		return !!page && !page.hide_workspace_dock;
+		return !!page && !page.hide_dock;
 	}
 
 	// Resolve both shells against the current page's options. This is the only place that turns
@@ -496,7 +496,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// Build the user dropdown (profile, workspaces, theme, logout and so on) on a trigger
-	// element. Shared by the sidebar's user button and the workspace dock's avatar so both open
+	// element. Shared by the sidebar's user button and the dock's avatar so both open
 	// the same menu. `button` is the element that gets the active-state class while the menu is
 	// open.
 	create_user_menu({ parent, button }) {
@@ -762,7 +762,7 @@ frappe.ui.Sidebar = class Sidebar {
 	//
 	// The band sits directly under the header, above the module's own items, behind a divider,
 	// rather than after the user button where the generic add-item helper put these two. The
-	// whole band is hidden when the rail is present (`body.workspace-dock-active` hides it),
+	// whole band is hidden when the rail is present (`body.dock-active` hides it),
 	// which is what a docked app's sidebar wants: all three off, including background tasks,
 	// which it used to show while hiding the bell next to it.
 	//
@@ -886,8 +886,8 @@ frappe.ui.Sidebar = class Sidebar {
 			.find("use")
 			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
-		// While collapsed, the body sidebar is hidden and only the workspace dock (rail) shows.
-		// This gates the rail's edge handle that reopens the sidebar (see workspace_dock.scss).
+		// While collapsed, the body sidebar is hidden and only the dock (rail) shows.
+		// This gates the rail's edge handle that reopens the sidebar (see dock.scss).
 		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
