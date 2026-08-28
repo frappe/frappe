@@ -19,7 +19,7 @@
 	border-radius: var(--radius);
 
 	&:hover:has(a) {
-		background-color: var(--sidebar-hover-color);
+		background-color: var(--surface-gray-2);
 	}
 
 	a {
