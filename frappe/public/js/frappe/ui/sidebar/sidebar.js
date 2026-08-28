@@ -495,10 +495,11 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	// Build the user dropdown (profile, workspaces, theme, logout and so on) on a trigger
+	// Build the user dropdown (settings, the dock manager, reload, logout) on a trigger
 	// element. Shared by the sidebar's user button and the dock's avatar so both open
-	// the same menu. `button` is the element that gets the active-state class while the menu is
-	// open.
+	// the same menu. What a site adds in Navbar Settings is not here; that hangs off the sidebar
+	// header's menu, see SidebarHeader.navbar_items. `button` is the element that gets the
+	// active-state class while the menu is open.
 	create_user_menu({ parent, button }) {
 		const me = this;
 		const $btn = button;
@@ -570,22 +571,6 @@ frappe.ui.Sidebar = class Sidebar {
 						frappe.ui.toolbar.clear_cache();
 					},
 				},
-				...frappe.boot.navbar_settings.settings_dropdown
-					.filter((item) => !item.hidden)
-					.map((item) => {
-						const mapped = {
-							name: item.name,
-							label: item.item_label,
-							icon: item.icon,
-							condition: item.condition,
-						};
-						if (item.item_type === "Route") {
-							mapped.url = item.route;
-						} else if (item.item_type === "Action") {
-							mapped.onClick = () => frappe.utils.eval(item.action);
-						}
-						return mapped;
-					}),
 				{ is_divider: true },
 				{
 					name: "logout",
