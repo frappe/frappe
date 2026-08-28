@@ -103,16 +103,12 @@ def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
 	)
 
 
-<<<<<<< HEAD
-def get_pdf(html, options=None, output: PdfWriter | None = None):
-=======
-def get_pdf(html, options=None, output: "PdfWriter" | None = None, smart_shrinking: bool = False):
+def get_pdf(html, options=None, output: PdfWriter | None = None, smart_shrinking: bool = False):
 	"""Render `html` to PDF.
 
 	:param smart_shrinking: scale content that is wider than the page down to fit it, instead of
 	        clipping the overflow.
 	"""
->>>>>>> c6e8c37 (fix(pdf): scale wide report tables to fit the page)
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 
