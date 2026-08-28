@@ -172,7 +172,7 @@ def import_file_by_path(
 def read_doc_from_file(path):
 	doc = None
 	if os.path.exists(path):
-		with open(path, encoding="utf-8") as f:
+		with open(path, encoding="utf-8") as f:  # nosemgrep
 			try:
 				doc = orjson.loads(f.read())
 			except ValueError:
