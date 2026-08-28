@@ -27,6 +27,7 @@ BUILDER_DRAFT_FIELDS = (
 	"margin_right",
 	"label_color",
 	"value_color",
+	"css",
 	# written once when a classic format is converted on open
 	"classic_format_data",
 	"print_format_builder",
