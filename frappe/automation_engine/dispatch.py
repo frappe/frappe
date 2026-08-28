@@ -3,10 +3,10 @@
 
 import frappe
 from frappe.automation_engine import settings
+from frappe.automation_engine.conditions import evaluate_filter_tree
 from frappe.automation_engine.queue import DRAIN_QUEUE, QUEUE, WAITING_STATES, queue_status
 from frappe.automation_engine.registry import get_automations_for
 from frappe.utils import cint, cstr, now
-from frappe.utils.data import evaluate_filters
 
 METHOD_TRIGGER = {
 	"after_insert": "Doc Created",
@@ -77,7 +77,7 @@ def matches_rule(rule, doc) -> bool:
 	try:
 		if rule.trigger_type == "Field Value Changed" and not _field_changed(rule, doc):
 			return False
-		if rule.filters and not evaluate_filters(doc, frappe.parse_json(rule.filters)):
+		if rule.filters and not evaluate_filter_tree(doc, frappe.parse_json(rule.filters)):
 			return False
 		return not rule.condition or bool(frappe.safe_eval(rule.condition, None, {"doc": doc}))
 	except Exception:
