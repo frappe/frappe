@@ -74,11 +74,33 @@ class Contact(Document):
 		self.set_user()
 
 		set_link_title(self)
+		deduplicate_dynamic_links(self)
+		self.validate_primary_contact()
 
 		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
 			frappe.throw(_("Select Google Contacts to which contact should be synced."))
 
-		deduplicate_dynamic_links(self)
+	def validate_primary_contact(self):
+		if not self.is_primary_contact:
+			return
+
+		primary_contacts = set()
+		for link in self.links:
+			primary_contacts.update(
+				frappe.get_all(
+					"Contact",
+					filters=[
+						["Dynamic Link", "link_doctype", "=", link.link_doctype],
+						["Dynamic Link", "link_name", "=", link.link_name],
+						["is_primary_contact", "=", 1],
+						["name", "!=", self.name],
+					],
+					pluck="name",
+				)
+			)
+
+		if primary_contacts:
+			frappe.db.set_value("Contact", {"name": ["in", list(primary_contacts)]}, "is_primary_contact", 0)
 
 	def set_user(self):
 		if not self.user and self.email_id:
