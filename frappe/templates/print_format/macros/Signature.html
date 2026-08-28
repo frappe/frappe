@@ -2,6 +2,10 @@
 
 {%- block value -%}
 <div class="value">
+<<<<<<< HEAD
     <img src="{{ value }}" alt="{{ _(df.label) }}">
+=======
+    <img src="{{ value|e }}" alt="{{ _(df.label)|e }}">
+>>>>>>> aaed8de (fix: escape Attach/Image/Signature/Barcode field values in print format templates)
 </div>
 {%- endblock -%}
