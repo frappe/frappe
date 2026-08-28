@@ -55,6 +55,11 @@ let generation = 0;
 watchEffect(async () => {
 	if (!doctype.value) return;
 	const mine = ++generation;
+	// Same reason as `Record.vue`: the heading switches doctype synchronously, so the
+	// previous doctype's rows would otherwise sit under the new one's title until the
+	// fetch lands. Writing `rows` does not re-trigger this effect -- watchEffect tracks
+	// reads, and nothing here reads it.
+	rows.value = [];
 	const params = new URLSearchParams({
 		doctype: doctype.value,
 		fields: JSON.stringify(["name", ...columns.value]),

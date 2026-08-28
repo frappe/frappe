@@ -100,6 +100,23 @@ async function load() {
 	const target = { doctype: doctype.value, name: docname.value };
 	error.value = "";
 	const carriedActionError = actionError.value;
+
+	// Blank what is on screen before fetching the next record. `generation` already
+	// stops a slow response from repainting the record the reader left, but it says
+	// nothing about what is displayed MEANWHILE: the heading reads `route.params.name`,
+	// which changes synchronously, so without this the new record's name sits above the
+	// old record's field values. On a record page that is not a cosmetic flicker -- it
+	// is one record's data presented as another's.
+	//
+	// `saved` goes with `doc` so `isDirty` stays false across the gap rather than
+	// reading an empty draft against a populated baseline.
+	//
+	// The controller goes too, and that one is not cosmetic at all: its quick actions
+	// belong to the PREVIOUS doctype and close over the previous `page`. Left up, a
+	// reader could click one and run it against a record it was never contributed for.
+	doc.value = {};
+	saved.value = {};
+	controller.value = null;
 	try {
 		const [document, metadata] = await Promise.all([
 			call("frappe.client.get", { doctype: doctype.value, name: docname.value }),
