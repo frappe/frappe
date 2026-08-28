@@ -7,7 +7,11 @@ from urllib.parse import urljoin, urlparse
 
 import frappe
 from frappe import _
-from frappe.automation_engine.actions.base import AutomationAction, AutomationParamError
+from frappe.automation_engine.actions.base import (
+	USER_CONTROL,
+	AutomationAction,
+	AutomationParamError,
+)
 from frappe.utils import cint, flt
 
 NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
@@ -243,6 +247,7 @@ class SendNotification(AutomationAction):
 			"label": "Recipients",
 			"fieldtype": "JSON",
 			"reqd": 1,
+			"control": USER_CONTROL,
 			"options_source": "notification_recipients",
 		},
 		{
@@ -318,6 +323,7 @@ class AssignToUser(AutomationAction):
 			"label": "Assign To",
 			"fieldtype": "JSON",
 			"reqd": 1,
+			"control": USER_CONTROL,
 			"options_source": "users",
 		},
 		{"fieldname": "description", "label": "Description", "fieldtype": "Data"},
