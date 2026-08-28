@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.automation_engine.conditions import evaluate_filter_tree
 from frappe.automation_engine.dispatch import run_automations
 from frappe.automation_engine.registry import clear_automation_cache, get_automations_for
 from frappe.tests import IntegrationTestCase
@@ -136,3 +137,65 @@ class TestDispatch(IntegrationTestCase):
 		user = frappe.get_doc("User", "Administrator")
 		with self.assertQueryCount(0):
 			run_automations(user, "on_update")
+
+
+class TestFilterTreeEvaluation(IntegrationTestCase):
+	"""The builder can save an `or`, so trigger matching has to honour it."""
+
+	def setUp(self):
+		self.doc = frappe._dict({"doctype": "ToDo", "status": "Open", "priority": "High", "description": "x"})
+
+	def test_plain_list_still_means_all_of_these(self):
+		self.assertTrue(evaluate_filter_tree(self.doc, [["status", "=", "Open"], ["priority", "=", "High"]]))
+		self.assertFalse(evaluate_filter_tree(self.doc, [["status", "=", "Open"], ["priority", "=", "Low"]]))
+
+	def test_builder_equality_operator_is_accepted(self):
+		# The condition builder saves "==", which frappe's filter grammar rejects outright.
+		self.assertTrue(evaluate_filter_tree(self.doc, [["status", "==", "Open"]]))
+		self.assertFalse(evaluate_filter_tree(self.doc, [["status", "==", "Closed"]]))
+
+	def test_builder_equality_operator_works_across_an_or(self):
+		rows = [["status", "==", "Closed"], "or", ["priority", "==", "High"]]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_empty_filters_match(self):
+		self.assertTrue(evaluate_filter_tree(self.doc, []))
+
+	def test_and_between_rows_requires_both(self):
+		rows = [["status", "=", "Open"], "and", ["priority", "=", "Low"]]
+		self.assertFalse(evaluate_filter_tree(self.doc, rows))
+
+	def test_or_between_rows_needs_only_one(self):
+		rows = [["status", "=", "Closed"], "or", ["priority", "=", "High"]]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_or_fails_when_neither_side_matches(self):
+		rows = [["status", "=", "Closed"], "or", ["priority", "=", "Low"]]
+		self.assertFalse(evaluate_filter_tree(self.doc, rows))
+
+	def test_or_binds_looser_than_and(self):
+		# (status=Closed and priority=High) or (description=x)
+		rows = [
+			["status", "=", "Closed"],
+			"and",
+			["priority", "=", "High"],
+			"or",
+			["description", "=", "x"],
+		]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_a_group_is_evaluated_on_its_own(self):
+		rows = [
+			["status", "=", "Open"],
+			"and",
+			[["priority", "=", "Low"], "or", ["description", "=", "x"]],
+		]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_a_failing_group_fails_the_whole_and(self):
+		rows = [
+			["status", "=", "Open"],
+			"and",
+			[["priority", "=", "Low"], "or", ["description", "=", "nope"]],
+		]
+		self.assertFalse(evaluate_filter_tree(self.doc, rows))
