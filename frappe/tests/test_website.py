@@ -2,11 +2,11 @@ from unittest.mock import patch
 
 import frappe
 from frappe import get_hooks
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
-from frappe.website.utils import build_response, clear_website_cache, get_home_page
+from frappe.website.utils import build_response, clear_website_cache, get_boot_data, get_home_page
 
 
 class TestWebsite(FrappeTestCase):
@@ -288,6 +288,19 @@ class TestWebsite(FrappeTestCase):
 
 		# assert template block rendered
 		self.assertIn("<p>Test content</p>", content)
+
+	def test_boot_data_number_settings(self):
+		with change_settings(
+			"System Settings",
+			currency_precision=3,
+			float_precision=4,
+			rounding_method="Commercial Rounding",
+		):
+			sysdefaults = get_boot_data()["sysdefaults"]
+
+		self.assertEqual(sysdefaults["currency_precision"], 3)
+		self.assertEqual(sysdefaults["float_precision"], 4)
+		self.assertEqual(sysdefaults["rounding_method"], "Commercial Rounding")
 
 	def test_index_and_next_comment(self):
 		content = get_response_content("/_test/_test_folder")
