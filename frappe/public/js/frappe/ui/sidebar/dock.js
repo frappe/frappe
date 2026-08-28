@@ -1,4 +1,4 @@
-// Workspace dock: a slim vertical rail rendered to the left of the body sidebar. Its top slot says
+// Dock: a slim vertical rail rendered to the left of the body sidebar. Its top slot says
 // what you are inside and links back out of it, and below that it lists the modules you can switch
 // to. Both come from the only question app context answers: which app owns the sidebar on screen
 // (Sidebar.get_sidebar_app):
@@ -7,11 +7,11 @@
 //   standalone  logo = module icon   items = (empty)
 //
 // It is drawn only when the app on screen resolves to at least one visible entry
-// (Sidebar.workspace_dock_enabled) and the page on screen allows it (page_allows_dock; the desktop
+// (Sidebar.dock_enabled) and the page on screen allows it (page_allows_dock; the desktop
 // or apps screen does not). An app that resolves to no entries gets no rail rather than an empty
 // stripe: the user button moves back to the body sidebar and the sidebar header carries a switcher
 // instead.
-frappe.ui.WorkspaceDock = class WorkspaceDock {
+frappe.ui.Dock = class Dock {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.make();
@@ -20,16 +20,16 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 	make() {
 		// The body is a horizontal flex row (body-sidebar-container, then main-section). Insert the
 		// dock as the leftmost element so it sits to the left of the sidebar.
-		this.$dock = $(`<div class="workspace-dock hidden" role="navigation" aria-label="${__(
+		this.$dock = $(`<div class="dock hidden" role="navigation" aria-label="${__(
 			"Workspaces"
 		)}">
-			<div class="workspace-dock-logo"></div>
-			<div class="workspace-dock-divider" role="separator"></div>
-			<div class="workspace-dock-shortcuts"></div>
-			<div class="workspace-dock-divider" role="separator"></div>
-			<div class="workspace-dock-items"></div>
-			<div class="workspace-dock-divider" role="separator"></div>
-			<button class="workspace-dock-user" aria-label="${__("User Menu")}"></button>
+			<div class="dock-logo"></div>
+			<div class="dock-divider" role="separator"></div>
+			<div class="dock-shortcuts"></div>
+			<div class="dock-divider" role="separator"></div>
+			<div class="dock-items"></div>
+			<div class="dock-divider" role="separator"></div>
+			<button class="dock-user" aria-label="${__("User Menu")}"></button>
 		</div>`);
 
 		let $container = $(".body-sidebar-container");
@@ -42,7 +42,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		// collapsed and only the rail shows, clicking the rail's right edge reopens it. CSS shows it
 		// only in the collapsed state (body.sidebar-collapsed), so it does not compete with the
 		// sidebar handle while expanded.
-		let $resize = $(`<div class="workspace-dock-resize-handle" aria-hidden="true"></div>`);
+		let $resize = $(`<div class="dock-resize-handle" aria-hidden="true"></div>`);
 		$resize.on("click", () => this.sidebar.open());
 		this.$dock.append($resize);
 
@@ -50,17 +50,17 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		// the same circular button on the rail's right edge, with the chevron pointing right since
 		// it only expands. Like the handle, CSS keeps it to the collapsed state.
 		let $expand = $(`<button
-			class="expand-sidebar-link workspace-dock-toggle-btn"
+			class="expand-sidebar-link dock-toggle-btn"
 			aria-label="${__("Toggle Sidebar")}"
 			data-placement="right"
 		>${frappe.utils.icon("chevron-right", "sm", "", "", "", true)}</button>`);
 		$expand.on("click", () => this.sidebar.open());
 		this.$dock.append($expand);
 
-		this.$logo = this.$dock.find(".workspace-dock-logo");
-		this.$shortcuts = this.$dock.find(".workspace-dock-shortcuts");
-		this.$items = this.$dock.find(".workspace-dock-items");
-		this.$user = this.$dock.find(".workspace-dock-user");
+		this.$logo = this.$dock.find(".dock-logo");
+		this.$shortcuts = this.$dock.find(".dock-shortcuts");
+		this.$items = this.$dock.find(".dock-items");
+		this.$user = this.$dock.find(".dock-user");
 		this.render_shortcuts();
 		this.render_user();
 	}
@@ -125,7 +125,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 			}
 
 			let $item = $(`<button
-				class="workspace-dock-item ${item.css_class || ""}"
+				class="dock-item ${item.css_class || ""}"
 				title="${frappe.utils.escape_html(item.label)}"
 				data-toggle="tooltip"
 				data-placement="right"
@@ -177,10 +177,10 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		this.app = this.sidebar.get_sidebar_app();
 		// It is drawn only if it has entries and the page on screen allows it. The desktop or apps
 		// screen, and any page that has not rendered yet, do not.
-		let enabled = this.sidebar.workspace_dock_enabled() && this.sidebar.page_allows_dock();
+		let enabled = this.sidebar.dock_enabled() && this.sidebar.page_allows_dock();
 		// Drives the CSS that hides the sidebar's own user button while the rail is active, so
 		// switching this off returns the user button to the sidebar.
-		$("body").toggleClass("workspace-dock-active", enabled);
+		$("body").toggleClass("dock-active", enabled);
 
 		if (!enabled) {
 			this.$dock.addClass("hidden");
@@ -301,7 +301,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 
 		let is_active = this.sidebar.is_active_entry(entry);
 		let $item = $(`<button
-			class="workspace-dock-item ${is_active ? "active" : ""}"
+			class="dock-item ${is_active ? "active" : ""}"
 			title="${frappe.utils.escape_html(label)}"
 			data-toggle="tooltip"
 			data-placement="right"

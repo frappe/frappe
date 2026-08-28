@@ -90,7 +90,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// you are reads as a status line, and a menu row is something you press.
 	switcher_items() {
 		const sidebar = this.sidebar;
-		if (sidebar.workspace_dock_enabled()) return [];
+		if (sidebar.dock_enabled()) return [];
 
 		const items = [];
 		const modules = sidebar.app_modules(sidebar.get_sidebar_app());

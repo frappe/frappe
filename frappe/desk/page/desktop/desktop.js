@@ -8,7 +8,7 @@ frappe.pages["desktop"].on_page_load = function (wrapper) {
 		title: "Desktop",
 		single_column: true,
 		hide_sidebar: true,
-		hide_workspace_dock: true,
+		hide_dock: true,
 	});
 
 	// Desktop Settings -> Desktop Page picks which grid renders here. `Desktop Icons` is the

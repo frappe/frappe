@@ -195,12 +195,12 @@ frappe.ui.Notifications = class Notifications {
 	setup_dropdown_events() {
 		const dropdown = this.dropdown;
 
-		// not a real Bootstrap dropdown -- sidebar.js and workspace_dock.js trigger
+		// not a real Bootstrap dropdown -- sidebar.js and dock.js trigger
 		// this event by hand when they un-hide the drawer, and it is the open signal
 		this.dropdown.on("show.bs.dropdown", () => this.on_open());
 
 		$(document).on("click", function (e) {
-			// the bell may live in the sidebar or the workspace dock; match either
+			// the bell may live in the sidebar or the dock; match either
 			const isInsideNotificationBtn =
 				$(e.target).closest(".sidebar-notification").length > 0;
 			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
@@ -436,7 +436,7 @@ class NotificationsView extends BaseNotificationsView {
 	update_count_badge(count) {
 		this.unread_count = count;
 		// the unread count is the only unread affordance any bell gets -- update it wherever a bell
-		// lives (sidebar, workspace dock, desktop navbar). Re-queried each call so it also covers
+		// lives (sidebar, dock, desktop navbar). Re-queried each call so it also covers
 		// bells created after this view (the dock).
 		const $count = $(".notification-count");
 		if (!$count.length) return;
