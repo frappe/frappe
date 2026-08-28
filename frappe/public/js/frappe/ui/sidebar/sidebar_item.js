@@ -48,10 +48,13 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			name: item.link_to,
 			tab: item.tab,
 		};
-		if (item.filters) {
-			let filters_json = JSON.parse(
-				frappe.utils.get_filter_as_json(JSON.parse(item.filters))
-			);
+		// get_filter_as_json() returns null for an empty filter array, so an item stored
+		// with `filters` of "[]" lands here with nothing to convert.
+		const filters_as_json = item.filters
+			? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
+			: null;
+		if (filters_as_json) {
+			let filters_json = JSON.parse(filters_as_json);
 			for (const [key, value] of Object.entries(filters_json)) {
 				if (Array.isArray(value)) {
 					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
