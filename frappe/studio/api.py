@@ -240,7 +240,7 @@ def write_studio_file(
 ) -> dict:
 	"""Write content to a file (creating parent folders). If known_hash is given and the file changed
 	on disk since it was read, refuse rather than clobber."""
-	_validate_studio_file_access()
+	_validate_studio_file_access("write")
 	_validate_allowed_extension(file_path)
 	_validate_editable(studio_app, file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
@@ -260,7 +260,7 @@ def write_studio_file(
 @has_page_write_perm()
 def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
 	"""Create an empty editable file (and any parent folders); error if it already exists."""
-	_validate_studio_file_access()
+	_validate_studio_file_access("write")
 	_validate_allowed_extension(file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	if os.path.exists(target):
@@ -276,7 +276,7 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 @has_page_write_perm()
 def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> dict:
 	"""Create an empty folder (and any parent folders) within the app folder."""
-	_validate_studio_file_access()
+	_validate_studio_file_access("write")
 	target = _resolve_studio_file(frappe_app, studio_app, folder_path)
 	if os.path.exists(target):
 		frappe.throw(_("{0} already exists.").format(folder_path))
@@ -288,7 +288,7 @@ def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> 
 @has_page_write_perm()
 def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_path: str) -> dict:
 	"""Rename/move an editable file or a folder within the app folder."""
-	_validate_studio_file_access()
+	_validate_studio_file_access("write")
 	source = _resolve_studio_file(frappe_app, studio_app, file_path)
 	destination = _resolve_studio_file(frappe_app, studio_app, new_path)
 	if not os.path.exists(source):
@@ -314,7 +314,7 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 @has_page_write_perm()
 def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None:
 	"""Delete an editable file, or a folder (with its contents), within the app folder."""
-	_validate_studio_file_access()
+	_validate_studio_file_access("write")
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	if os.path.isdir(target):
 		_validate_folder_removable(file_path)
@@ -328,11 +328,10 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 	os.remove(target)
 
 
-def _validate_studio_file_access() -> None:
+def _validate_studio_file_access(permission_type: str = "read") -> None:
 	if not frappe.conf.developer_mode:
 		frappe.throw(_("Editing Studio code files is only allowed in developer mode."))
-	if "System Manager" not in frappe.get_roles():
-		frappe.throw(_("You do not have permission to edit Studio code files."), frappe.PermissionError)
+	frappe.has_permission("Studio App", ptype=permission_type, throw=True)
 
 
 def _studio_app_root(frappe_app: str, studio_app: str) -> str:
