@@ -90,6 +90,18 @@ function wrap(value: unknown, path: string, member: ReadOnlyAdvice): unknown {
     deleteProperty(_owner, key) {
       return refuse(refusal(key));
     },
+    // The other two mutating operations. They take no key, so they are not
+    // reachable through `set` — and an operation with no trap forwards to the
+    // target, so without these `Object.setPrototypeOf(page.roles, ...)` swaps
+    // the prototype of the shared array (every later `roles.includes` answers
+    // the script) and `Object.freeze(page.meta)` locks shared cached state.
+    // Same hole as `page.roles.push`, reached by a door `set` does not watch.
+    setPrototypeOf() {
+      return refuse({ path: `${path}'s prototype`, member });
+    },
+    preventExtensions() {
+      return refuse({ path: `${path}'s extensibility`, member });
+    },
   });
 
   wrappers.set(target, wrapper);

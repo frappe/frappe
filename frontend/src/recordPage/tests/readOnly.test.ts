@@ -193,6 +193,26 @@ describe("page.roles", () => {
     expect(state.roles).toEqual(["Sales User", "Accounts User"]);
   });
 
+  it("refuses setPrototypeOf, the mutation that never reaches the set trap", () => {
+    state.roles = ["Sales User"];
+    const { page } = createRecordPage(makeHost());
+
+    expect(() =>
+      Object.setPrototypeOf(page.roles, { includes: () => true }),
+    ).toThrow("page.roles's prototype is read-only");
+    expect(state.roles!.includes("System Manager")).toBe(false);
+  });
+
+  it("refuses freeze, which would lock the shared array non-extensible", () => {
+    state.roles = ["Sales User"];
+    const { page } = createRecordPage(makeHost());
+
+    expect(() => Object.freeze(page.roles)).toThrow(
+      "page.roles's extensibility is read-only",
+    );
+    expect(Object.isFrozen(state.roles)).toBe(false);
+  });
+
   it("still reads, so a copy sorts fine", () => {
     state.roles = ["Sales User", "Accounts User"];
     const { page } = createRecordPage(makeHost());
