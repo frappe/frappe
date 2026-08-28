@@ -40,7 +40,9 @@ def get_automation_capabilities(doctype: str | None = None, trigger_type: str | 
 		frappe.has_permission(doctype, throw=True)
 	return {
 		"triggers": TRIGGER_TYPES,
+		# Every event, for a Wait step; only those about this DocType, for a trigger.
 		"custom_events": registered_events(),
+		"trigger_events": registered_events(doctype) if doctype else [],
 		"fields": _doc_fields(doctype) if doctype else [],
 		"relationships": get_relationship_definitions(doctype),
 		"actions": [
