@@ -204,7 +204,7 @@ class AutoEmailReport(Document):
 			if len(columns) > 8:
 				options["orientation"] = "landscape"
 			html = get_formatted_html(subject=self.name, message=self.get_html_table(columns, data))
-			return get_pdf(html, options)
+			return get_pdf(html, options, smart_shrinking=True)
 
 		else:
 			frappe.throw(_("Invalid Output Format"))
