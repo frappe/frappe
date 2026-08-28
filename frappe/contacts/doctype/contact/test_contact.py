@@ -65,6 +65,35 @@ class TestContact(IntegrationTestCase):
 		self.assertEqual(results[0].value, "test_contact@example.com")
 		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
 
+	def test_only_one_primary_contact_per_link(self):
+		first_contact = create_contact("First Primary Contact", "Mr", save=False)
+		first_contact.is_primary_contact = 1
+		first_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		first_contact.insert()
+
+		second_contact = create_contact("Second Primary Contact", "Mr", save=False)
+		second_contact.is_primary_contact = 1
+		second_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		second_contact.insert()
+
+		self.assertFalse(first_contact.reload().is_primary_contact)
+		self.assertTrue(second_contact.is_primary_contact)
+
+	def test_promoting_contact_clears_existing_primary_contact(self):
+		first_contact = create_contact("Existing Primary Contact", "Mr", save=False)
+		first_contact.is_primary_contact = 1
+		first_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		first_contact.insert()
+
+		second_contact = create_contact("Promoted Primary Contact", "Mr", save=False)
+		second_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		second_contact.insert()
+		second_contact.is_primary_contact = 1
+		second_contact.save()
+
+		self.assertFalse(first_contact.reload().is_primary_contact)
+		self.assertTrue(second_contact.is_primary_contact)
+
 
 def create_contact(name, salutation, emails=None, phones=None, save=True):
 	doc = frappe.get_doc(
