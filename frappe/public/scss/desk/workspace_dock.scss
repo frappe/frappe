@@ -20,7 +20,7 @@
 	padding: 0 0 12px 0;
 
 	background: var(--surface-sidebar);
-	border-right: 1px solid var(--border-color);
+	border-right: 1px solid var(--outline-gray-1);
 
 	&.hidden {
 		display: none;
@@ -211,7 +211,7 @@
 	// transparent until hovered, 8px radius.
 	.workspace-dock-shortcuts .workspace-dock-item {
 		background: transparent;
-		border-radius: 8px;
+		border-radius: var(--radius-4);
 
 		&:hover {
 			background: var(--surface-gray-3);
@@ -312,7 +312,7 @@ body:not(.workspace-dock-active) .body-sidebar {
 	}
 
 	&:hover::after {
-		background: var(--ink-gray-2);
+		background: var(--outline-gray-2);
 	}
 }
 
@@ -328,10 +328,10 @@ body.sidebar-collapsed .workspace-dock-resize-handle {
 	bottom: 80px;
 	width: 24px;
 	height: 24px;
-	border-radius: 50%;
-	border: 1px solid var(--sidebar-border-color);
+	border-radius: var(--radius-full);
+	border: 1px solid var(--outline-gray-1);
 	background: var(--surface-sidebar);
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-sm);
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
@@ -348,7 +348,7 @@ body.sidebar-collapsed .workspace-dock-resize-handle {
 	}
 
 	&:hover {
-		background: var(--sidebar-hover-color);
+		background: var(--surface-gray-2);
 	}
 }
 
