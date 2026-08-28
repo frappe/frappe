@@ -4,7 +4,12 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.automation_engine.actions.base import AutomationParamError, get_action, get_action_registry
+from frappe.automation_engine.actions.base import (
+	USER_CONTROL,
+	AutomationParamError,
+	get_action,
+	get_action_registry,
+)
 from frappe.automation_engine.actions.core import (
 	AssignToUser,
 	CallWebhook,
@@ -482,3 +487,32 @@ class TestRunScript(IntegrationTestCase):
 	def test_script_cannot_commit(self):
 		with self.assertRaises(Exception):
 			RunScript().execute(None, {"script": "frappe.db.commit()"}, {})
+
+
+class TestParamControls(IntegrationTestCase):
+	"""The schema, not the builder, decides which editor a param needs."""
+
+	KNOWN_CONTROLS = (USER_CONTROL,)
+
+	def test_a_json_param_with_options_declares_its_control(self):
+		# A JSON param renders as a plain textarea unless the schema asks for something else,
+		# so one that resolves options must say which editor it wants.
+		for action in get_action_registry().values():
+			for field in action.params_schema:
+				if field.get("fieldtype") == "JSON" and field.get("options_source"):
+					self.assertTrue(
+						field.get("control"),
+						f"{action.action_type}.{field['fieldname']} needs a control",
+					)
+
+	def test_declared_controls_are_ones_the_builder_knows(self):
+		for action in get_action_registry().values():
+			for field in action.params_schema:
+				control = field.get("control")
+				if control:
+					self.assertIn(control, self.KNOWN_CONTROLS, f"{action.action_type}")
+
+	def test_the_user_backed_params_ask_for_the_user_picker(self):
+		for action_type, fieldname in (("SendNotification", "recipients"), ("AssignToUser", "assign_to")):
+			field = next(f for f in get_action(action_type).params_schema if f["fieldname"] == fieldname)
+			self.assertEqual(field["control"], USER_CONTROL)
