@@ -84,7 +84,7 @@ frappe.views.Container = class Container {
 		return this.page;
 	}
 	toggle_sidebar() {
-		// The body sidebar and the workspace dock are hidden by default and shown only when the
+		// The body sidebar and the dock are hidden by default and shown only when the
 		// page now on screen allows them; the sidebar owns that decision (it reads the same page
 		// options for both shells), so just ask it to re-resolve.
 		frappe.app.sidebar.apply_page_visibility();
