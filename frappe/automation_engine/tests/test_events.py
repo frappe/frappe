@@ -4,7 +4,12 @@
 import json
 
 import frappe
-from frappe.automation_engine.events import emit, registered_events, validate_event
+from frappe.automation_engine.events import (
+	emit,
+	event_subject,
+	registered_events,
+	validate_event,
+)
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import execute_automation
 from frappe.automation_engine.tests.test_runner import make_automation
@@ -185,3 +190,87 @@ class TestRegisteredEvents(IntegrationTestCase):
 			validate_event("tests.replied")
 			with self.assertRaises(frappe.ValidationError):
 				validate_event("tests.unknown")
+
+
+SUBJECT_EVENT = "tests.subject"
+SUBJECT_HOOKS = {
+	"automation_events": [
+		{
+			SUBJECT_EVENT: {
+				"label": "Something happened to a record",
+				"subject": {
+					"doctype_key": "ref_doctype",
+					"name_key": "ref_name",
+					"doctypes": ["ToDo"],
+				},
+			},
+			"tests.fixed_subject": {
+				"label": "Fixed",
+				"subject": {"doctype": "ToDo", "name_key": "todo"},
+			},
+		}
+	]
+}
+
+
+class TestAutomationEventSubjects(IntegrationTestCase):
+	"""An event that names its subject runs flows against that record, not the emitter's doc."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.hooks = self.patch_hooks(SUBJECT_HOOKS)
+		self.hooks.__enter__()
+		clear_automation_cache()
+
+	def tearDown(self):
+		self.hooks.__exit__(None, None, None)
+		frappe.db.rollback()
+		clear_automation_cache()
+
+	def test_dynamic_subject_resolves_from_payload_keys(self):
+		subject = event_subject(SUBJECT_EVENT, {"ref_doctype": "ToDo", "ref_name": "TD-1"})
+		self.assertEqual(subject, {"doctype": "ToDo", "name": "TD-1"})
+
+	def test_fixed_subject_takes_its_doctype_from_the_schema(self):
+		subject = event_subject("tests.fixed_subject", {"todo": "TD-2"})
+		self.assertEqual(subject, {"doctype": "ToDo", "name": "TD-2"})
+
+	def test_subject_outside_the_declared_doctypes_is_ignored(self):
+		self.assertIsNone(event_subject(SUBJECT_EVENT, {"ref_doctype": "User", "ref_name": "x"}))
+
+	def test_event_without_a_subject_resolves_to_none(self):
+		self.hooks.__exit__(None, None, None)
+		self.hooks = self.patch_hooks({"automation_events": ["tests.plain"]})
+		self.hooks.__enter__()
+		clear_automation_cache()
+		self.assertIsNone(event_subject("tests.plain", {"anything": "here"}))
+
+	def test_registered_events_keep_only_those_about_the_doctype(self):
+		self.assertIn(SUBJECT_EVENT, [e["value"] for e in registered_events("ToDo")])
+		self.assertEqual(registered_events("User"), [])
+		self.assertEqual(len(registered_events()), 2)
+
+	def test_flow_runs_against_the_subject_not_the_emitted_document(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "subject-target"}).insert()
+		note = frappe.get_doc({"doctype": "Note", "title": "the-emitter", "public": 1}).insert()
+		auto = make_automation(
+			[{"action_type": "SetFieldValue", "params": '{"field":"priority","value":"High"}'}],
+			trigger_type="Custom Event",
+			document_type="ToDo",
+			custom_event=SUBJECT_EVENT,
+		)
+		emit(SUBJECT_EVENT, doc=note, payload={"ref_doctype": "ToDo", "ref_name": todo.name})
+		row = frappe.get_all(QUEUE, filters={"automation": auto}, fields=["ref_doctype", "ref_name"])
+		self.assertEqual(len(row), 1)
+		self.assertEqual(row[0].ref_doctype, "ToDo")
+		self.assertEqual(row[0].ref_name, todo.name)
+
+	def test_a_subject_that_no_longer_exists_does_not_queue(self):
+		auto = make_automation(
+			[{"action_type": "SetFieldValue", "params": '{"field":"priority","value":"High"}'}],
+			trigger_type="Custom Event",
+			document_type="ToDo",
+			custom_event=SUBJECT_EVENT,
+		)
+		emit(SUBJECT_EVENT, payload={"ref_doctype": "ToDo", "ref_name": "does-not-exist"})
+		self.assertEqual(frappe.db.count(QUEUE, {"automation": auto}), 0)
