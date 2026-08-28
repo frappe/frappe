@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe import _
@@ -19,7 +19,7 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
+from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
@@ -1300,6 +1300,38 @@ class TestFileUtils(IntegrationTestCase):
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
+
+	def test_get_web_image_follows_redirect_to_allowed_address(self):
+		from io import BytesIO
+
+		from PIL import Image as PILImage
+
+		buf = BytesIO()
+		PILImage.new("RGB", (2, 2)).save(buf, format="JPEG")
+		image_bytes = buf.getvalue()
+
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://8.8.4.4/final.jpg"})
+		final_response = MagicMock(is_redirect=False, content=image_bytes)
+		final_response.raise_for_status.return_value = None
+
+		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
+
+		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(extn, "jpg")
+
+	def test_get_web_image_rejects_redirect_to_restricted_address(self):
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
+
+		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+			self.assertRaisesRegex(
+				ValidationError,
+				"restricted address",
+				get_web_image,
+				"http://8.8.8.8/initial.jpg",
+			)
+
+		mock_get.assert_called_once()
 
 
 class TestFileOptimization(IntegrationTestCase):
