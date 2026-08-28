@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe import get_hooks
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
@@ -290,7 +290,7 @@ class TestWebsite(FrappeTestCase):
 		self.assertIn("<p>Test content</p>", content)
 
 	def test_boot_data_number_settings(self):
-		with self.change_settings(
+		with change_settings(
 			"System Settings",
 			currency_precision=3,
 			float_precision=4,
