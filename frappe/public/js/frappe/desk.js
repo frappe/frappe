@@ -429,7 +429,7 @@ frappe.Application = class Application {
 			!Array.isArray(change_log) ||
 			!change_log.length ||
 			window.Cypress ||
-			cint(frappe.boot.sysdefaults.disable_change_log_notification)
+			frappe.defaults.is_enabled("disable_change_log_notification")
 		) {
 			return;
 		}
