@@ -7,6 +7,12 @@ from typing import ClassVar
 import frappe
 from frappe import _
 
+# `control` names the editor a param needs when its fieldtype does not imply one.
+# The builder picks a control from `fieldtype`; a param whose value is not what its
+# fieldtype suggests (a JSON list of users, say) declares `"control": "users"` so the
+# editor never has to infer one from `options_source`, which names a data source.
+USER_CONTROL = "users"
+
 
 class AutomationParamError(frappe.ValidationError):
 	"""Raised when an action's params are invalid; carries the offending fieldname."""
