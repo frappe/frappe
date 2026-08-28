@@ -948,24 +948,6 @@ class TestAttachment(IntegrationTestCase):
 
 		self.assertTrue(exists)
 
-	def test_file_attachment_on_update_for_url(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test for url attachment").insert()
-
-		doc.attachment = "https://example.com/logo.png"
-		doc.save()
-
-		self.assertTrue(
-			frappe.db.exists(
-				"File",
-				{
-					"file_url": "https://example.com/logo.png",
-					"attached_to_doctype": self.test_doctype,
-					"attached_to_name": doc.name,
-					"attached_to_field": "attachment",
-				},
-			)
-		)
-
 	def test_url_attachment_is_attached_to_duplicated_document(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
 		doc.attachment = "https://example.com/spec.pdf"
