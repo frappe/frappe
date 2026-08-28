@@ -73,9 +73,16 @@ def get_wait_outcome(row) -> dict | None:
 	}
 
 
-def registered_events() -> list[dict]:
-	"""Events apps declared via the `automation_events` hook, with their builder metadata."""
-	return [_event_option(name, schema) for name, schema in sorted(_registered_events().items())]
+def registered_events(doctype: str | None = None) -> list[dict]:
+	"""Events apps declared via the `automation_events` hook, with their builder metadata.
+
+	Pass `doctype` to keep only the events that can be *about* that DocType, so the builder
+	can offer them as triggers on it.
+	"""
+	options = [_event_option(name, schema) for name, schema in sorted(_registered_events().items())]
+	if not doctype:
+		return options
+	return [option for option in options if doctype in option["subject_doctypes"]]
 
 
 def _event_option(name, schema) -> dict:
@@ -85,7 +92,35 @@ def _event_option(name, schema) -> dict:
 		"label": schema.get("label") or _prettify(name),
 		"description": schema.get("description") or "",
 		"correlation_options": schema.get("correlation_options") or [],
+		"subject_doctypes": _subject_doctypes(schema.get("subject")),
 	}
+
+
+def _subject_doctypes(subject) -> list[str]:
+	"""The DocTypes an event's subject can be, for a builder that must decide statically."""
+	if not isinstance(subject, dict):
+		return []
+	if subject.get("doctype"):
+		return [subject["doctype"]]
+	return list(subject.get("doctypes") or [])
+
+
+def event_subject(event: str, payload: dict) -> dict | None:
+	"""Resolve the record an event is about, from the keys its schema declares.
+
+	Events without a `subject` return None, and keep matching against the emitted document.
+	"""
+	subject = (_registered_events().get(event) or {}).get("subject")
+	if not isinstance(subject, dict):
+		return None
+	doctype = subject.get("doctype") or (payload or {}).get(subject.get("doctype_key") or "")
+	name = (payload or {}).get(subject.get("name_key") or "")
+	if not doctype or not name:
+		return None
+	allowed = _subject_doctypes(subject)
+	if allowed and doctype not in allowed:
+		return None
+	return {"doctype": doctype, "name": name}
 
 
 def _prettify(name) -> str:
@@ -122,18 +157,39 @@ def _registered_events() -> dict:
 
 
 def _queue_event_flows(event, doc, payload) -> int:
+	"""Queue every flow this event matches, against the record the event is about.
+
+	An event that declares a subject runs its flows on that record rather than on the document
+	the emitter happened to hold, so "we emailed the prospect" is a Lead trigger, not a
+	Communication one.
+	"""
 	queued = 0
 	occurrence = frappe.generate_hash(length=20)
+	subject_doc = _subject_document(event, payload)
 	for rule in get_custom_event_map().get(event, []):
-		if rule.document_type and (not doc or doc.doctype != rule.document_type):
+		target = subject_doc if subject_doc and rule.document_type == subject_doc.doctype else doc
+		if rule.document_type and (not target or target.doctype != rule.document_type):
 			continue
-		if doc and not matches_rule(rule, doc):
+		if target and not matches_rule(rule, target):
 			continue
 		queue_trigger(
-			rule.name, doc.doctype if doc else None, doc.name if doc else occurrence, payload=payload
+			rule.name,
+			target.doctype if target else None,
+			target.name if target else occurrence,
+			payload=payload,
 		)
 		queued += 1
 	return queued
+
+
+def _subject_document(event, payload):
+	"""Load the event's subject, or None when it declares none or it no longer exists."""
+	reference = event_subject(event, payload)
+	if not reference:
+		return None
+	if not frappe.db.exists(reference["doctype"], reference["name"]):
+		return None
+	return frappe.get_doc(reference["doctype"], reference["name"])
 
 
 def _claim_subscriptions(event, correlation_key, payload) -> int:
