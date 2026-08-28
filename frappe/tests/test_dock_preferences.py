@@ -2157,3 +2157,62 @@ class TestTheExportRoad(IntegrationTestCase):
 
 				self.assertTrue(doc.standard)
 				frappe.delete_doc("Dock", doc.name, force=True, ignore_permissions=True)
+
+
+class TestTheDeskDoor(IntegrationTestCase):
+	"""An app whose own UI is not the desk can still name a door back into it.
+
+	Configuring such an app -- its roles, its custom fields, the workspace it ships -- stays a desk
+	job, so `add_to_apps_screen` carries a `desk_route` and the apps screen renders it under the
+	app's icon as a second link. It is a literal route, passed through exactly as `route` is: the
+	app author owns the string, and nothing here resolves or permission-checks it.
+	"""
+
+	def app_entry(self, app_name: str) -> dict:
+		from frappe.boot import get_app_data
+
+		return next(app for app in get_app_data() if app["app_name"] == app_name)
+
+	def test_a_declared_desk_route_is_carried(self):
+		"""The whole feature: an app names a desk route and the boot payload hands it to the apps
+		screen unchanged."""
+		with patch.object(frappe, "get_hooks", _with_desk_route("/desk/crm")):
+			self.assertEqual(self.app_entry("frappe")["desk_route"], "/desk/crm")
+
+	def test_an_app_that_declares_no_desk_route_gets_an_empty_one(self):
+		"""A desk-native app has no door to name -- it is already the desk -- so the key is empty
+		and the apps screen renders no second link. Empty rather than missing, so every entry in
+		the payload has the same shape, exactly as `app_route` does."""
+		self.assertEqual(self.app_entry("frappe")["desk_route"], "")
+
+	def test_an_app_this_user_cannot_access_still_carries_an_empty_desk_route(self):
+		"""The denied branch withholds an app's routes but keeps its entry, so anything that
+		references the app can still label it. `desk_route` is withheld the way `app_route` is --
+		emptied, not dropped -- so every entry in the payload has one shape and a client reading
+		`desk_route` off one never gets `undefined`."""
+		with patch.object(frappe, "get_hooks", _with_desk_route("/desk/crm", denied=True)):
+			self.assertEqual(self.app_entry("frappe")["desk_route"], "")
+
+
+def _with_desk_route(route: str, denied: bool = False):
+	"""`frappe.get_hooks` with a `desk_route` added to frappe's own apps-screen entry, standing in
+	for the non-desk app that would really ship one. `denied` also points the entry's
+	`has_permission` at a hook that turns everyone away, to reach the branch that keeps an app in
+	the payload while withholding its routes."""
+	real = frappe.get_hooks
+
+	def patched(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		hooks = real(hook, default, app_name)
+		if hook == "add_to_apps_screen" and app_name == "frappe":
+			entry = dict(hooks[0]) | {"desk_route": route}
+			if denied:
+				entry["has_permission"] = "frappe.tests.test_dock_preferences._denies_access"
+			return [entry]
+		return hooks
+
+	return patched
+
+
+def _denies_access() -> bool:
+	"""Stands in for an app's `has_permission` hook turning this user away."""
+	return False
