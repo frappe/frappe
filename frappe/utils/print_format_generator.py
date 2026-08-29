@@ -993,7 +993,7 @@ class PrintFormatGenerator:
 		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
 			return
 		name = self.doc.get(link_fieldname)
-		if not name or not frappe.has_permission(link_df.options, "read"):
+		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
 			return
 		target_meta = frappe.get_meta(link_df.options)
 		target_df = target_meta.get_field(target_fieldname)
@@ -1017,7 +1017,10 @@ class PrintFormatGenerator:
 			return
 		child_meta = rows[0].meta
 		numeric_fields = [
-			f.fieldname for f in child_meta.fields if f.fieldtype in ("Currency", "Float", "Int")
+			f.fieldname
+			for f in child_meta.fields
+			if f.fieldtype in ("Currency", "Float", "Int")
+			and self.has_field_access(rows[0], child_meta, f.fieldname)
 		]
 
 		def tax_rate(pattern):

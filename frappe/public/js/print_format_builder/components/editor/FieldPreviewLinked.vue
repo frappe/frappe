@@ -16,6 +16,7 @@ let value = ref("");
 let placeholder = computed(() => props.df.link_path || __("No linked field set"));
 
 const cache = {};
+let pending_key = null;
 
 watchEffect(() => {
 	value.value = "";
@@ -34,9 +35,10 @@ watchEffect(() => {
 		value.value = cache[key];
 		return;
 	}
+	pending_key = key;
 	frappe.db.get_value(link_df.options, name, target_fieldname).then((r) => {
 		cache[key] = r?.message?.[target_fieldname] ?? "";
-		value.value = cache[key];
+		if (pending_key === key) value.value = cache[key];
 	});
 });
 </script>
