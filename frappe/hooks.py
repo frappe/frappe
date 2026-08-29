@@ -580,6 +580,15 @@ user_invitation = {
 # source apps and helps API clients understand what a method does.
 expose_discovery_source = True
 
+# An installed app can draw a desk Dashboard or Dashboard Chart with its own
+# island instead of desk's renderer. The method takes the document and returns
+# either None, or {"island": <island name>, "props": {...}}. Framework reads no
+# field of the app's own, so the app decides how it recognises its documents.
+# Exactly one app may draw a document.
+#
+# dashboard_renderer = "someapp.desk.dashboard.render"
+# dashboard_chart_renderer = "someapp.desk.chart.render"
+
 
 add_to_apps_screen = [
 	{
