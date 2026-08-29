@@ -4,16 +4,20 @@ calling tools, a cap trips, or a gated tool pauses the run.
 `run` and `resume` only yield events and raise errors. The session saves them as they
 arrive, so the transcript the loop reads for the next model call is always current.
 
-A tool call can be intercepted two ways, and they do different jobs:
+A tool call can be intercepted three ways, and they do different jobs:
   - `before_tool_call` / `after_tool_call`: plain in-process callbacks, never saved.
     `before` can change the arguments or answer the call itself; `after` can rewrite
     the result.
+  - extension tool hooks (`inputs.extension_runtime`): block a call or rewrite its arguments
+    before the confirm gate — so an approval prompt always shows what will actually
+    run — and rewrite its result after it ran. A resumed approval re-checks blocking
+    only: the approved arguments are never rewritten behind the approval.
   - the confirm gate: the durable pause. A gated call is not run — the loop finishes
     the turn, yields `ApprovalRequired` + `RunEnded(reason="paused")`, and returns.
     The pause is in the log, so `resume` can arrive later, from any client, even
     after a restart.
 
-Order per call: bad arguments, before hook, confirm gate, then run it.
+Order per call: bad arguments, before hook, extension hooks, confirm gate, then run it.
 """
 
 from __future__ import annotations
@@ -24,7 +28,7 @@ import json
 import uuid
 from collections.abc import AsyncIterator, Callable, Iterator
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from flow.agent.client_tools import call_client
 from flow.agent.compaction import (
@@ -54,6 +58,7 @@ from flow.events import (
 	Usage,
 	UserMessage,
 )
+from flow.extensions.hooks import PreToolUseDecision
 from flow.model import Model, ModelRequest, ProviderError, get_model
 from flow.model.auth import resolve_model_auth
 from flow.model.base import ModelCancelled, await_with_cancellation, iterate_with_cancellation
@@ -62,6 +67,9 @@ from flow.model.reasoning import reasoning_params
 from flow.session.config import SessionConfig
 from flow.session.transcript import PendingApproval
 from flow.tools import Tool, ToolContext
+
+if TYPE_CHECKING:
+	from flow.extensions import ExtensionRuntime
 
 
 @dataclass
@@ -108,6 +116,7 @@ class LoopInputs:
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	server_tools: dict[str, Tool] | None = None
+	extension_runtime: ExtensionRuntime | None = None
 
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
@@ -172,7 +181,13 @@ async def resume(
 		call = ToolCall(id=pending.id, name=pending.name, arguments=pending.args)
 		answer = answers[pending.id]
 		if answer == "Approve":
-			result = await _finished_call(call, tools, ctx, inputs)
+			# A gate added since the pause still gets its veto; the approved arguments
+			# run exactly as approved, so a resume-time rewrite is ignored.
+			verdict = await _hook_verdict(call, ctx, inputs)
+			if verdict.block:
+				result = _result(call, _blocked(verdict.reason), is_error=True)
+			else:
+				result = await _finished_call(call, tools, ctx, inputs)
 		elif answer == "Deny":
 			result = _result(call, _DENIED, is_error=True)
 			denied = True
@@ -436,8 +451,8 @@ async def _settle_call(
 	inputs: LoopInputs,
 	gated: list[PendingCall],
 ) -> AsyncIterator[AnyEvent]:
-	"""Settle one tool call: bad-args feedback, before-hook, confirm gate, dispatch.
-	Appends to `gated` (deferred to approval) instead of running when confirm-gated."""
+	"""Settle one tool call: bad-args feedback, before-hook, extension hooks, confirm gate,
+	dispatch. Appends to `gated` (deferred to approval) instead of running when confirm-gated."""
 	if call.error:  # model emitted malformed args — feed the error back so it can retry
 		yield _result(call, call.error, is_error=True)
 		return
@@ -451,22 +466,54 @@ async def _settle_call(
 		if decision is not None and decision.args is not None:
 			call = call.model_copy(update={"arguments": decision.args})
 
+	# Extension hooks run before the gate so an approval prompt (and the durable
+	# PendingCall) always shows the arguments that will actually run.
+	rewritten = False
+	verdict = await _hook_verdict(call, ctx, inputs)
+	if verdict.block:
+		yield _result(call, _blocked(verdict.reason), is_error=True)
+		return
+	if verdict.arguments is not None:
+		call = call.model_copy(update={"arguments": dict(verdict.arguments)})
+		rewritten = True
+
 	if _needs_confirmation(inputs.config, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
 		return
 
-	yield await _finished_call(call, tools, ctx, inputs)
+	result = await _finished_call(call, tools, ctx, inputs)
+	if rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
+		result = result.model_copy(
+			update={"details": {**result.details, "effective_arguments": dict(call.args)}}
+		)
+	yield result
+
+
+async def _hook_verdict(call: ToolCall, ctx: ToolContext, inputs: LoopInputs) -> PreToolUseDecision:
+	"""One extension `tool_call` dispatch; an empty verdict when no extension hooks exist."""
+	if inputs.extension_runtime is None or not inputs.extension_runtime.has_tool_hooks:
+		return PreToolUseDecision()
+	verdict = await await_with_cancellation(
+		inputs.extension_runtime.run_tool_call_hooks(call, ctx), inputs.abort
+	)
+	_raise_if_aborted(inputs.abort)
+	return verdict
 
 
 async def _finished_call(
 	call: ToolCall, tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
 ) -> ToolResult:
-	"""Dispatch one approved call and give the after-hook its say."""
+	"""Dispatch one approved call, run extension result hooks, give the after-hook its say."""
 	_raise_if_aborted(inputs.abort)
 	result = await await_with_cancellation(_dispatch(call, tools, ctx, inputs), inputs.abort)
 	_raise_if_aborted(inputs.abort)
+	if inputs.extension_runtime is not None and inputs.extension_runtime.has_tool_hooks:
+		result = await await_with_cancellation(
+			inputs.extension_runtime.run_tool_result_hooks(call, result), inputs.abort
+		)
+		_raise_if_aborted(inputs.abort)
 	if inputs.after_tool_call is not None:
 		rewritten = await _maybe_await(inputs.after_tool_call(call, result), inputs.abort)
 		_raise_if_aborted(inputs.abort)
@@ -553,6 +600,10 @@ def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:
 		return
 	while (text := next_steering()) is not None:
 		yield text
+
+
+def _blocked(reason: str | None) -> str:
+	return json.dumps({"status": "blocked", "message": reason or "Blocked by an extension."})
 
 
 def _redirect(feedback: str) -> str:

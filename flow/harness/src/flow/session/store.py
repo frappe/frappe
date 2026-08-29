@@ -102,6 +102,7 @@ class SessionStore:
 		self.extension_runtime = self._load_extensions()
 		for session in list(self._cache.values()):
 			session.server_tools = self._compose_tools(session.config)
+			session.extension_runtime = self.extension_runtime
 
 	def create(self, config: SessionConfig) -> Session:
 		self._validate_create_config(config)
@@ -326,6 +327,7 @@ class SessionStore:
 			attachment_store=AttachmentStore(paths.attachments),
 			skill_catalog=skill_catalog,
 			server_tools=server_tools,
+			extension_runtime=self.extension_runtime,
 			persist_meta=self.save_meta,
 		)
 
