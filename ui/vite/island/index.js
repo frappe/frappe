@@ -57,7 +57,7 @@ const TAILWIND_ENTRY = "virtual:island.css";
  * @param {string} options.app       frappe app the output belongs to, e.g. `insights`
  * @param {string} options.root      the app's frontend directory (the vite root)
  * @param {Object<string,string>} options.entries  asset base name → entry file
- * @param {number} [options.budget]  bytes of JS + CSS one island may load; over it fails the build
+ * @param {number} [options.budget]  bytes of JS + CSS one island may load; over it warns
  * @param {string[]} [options.tailwindPlugins]  the app's Tailwind plugins, by module specifier
  * @param {(string|RegExp)[]} [options.allowUnscanned]  escape hatch: bundled
  *        files that hold no classes, so `content` need not scan them
@@ -300,8 +300,13 @@ function emitIslands(context) {
 				const js = sum(reachable(bundle, entry.fileName).map((n) => measure(n.code)));
 				console.log(`[island] ${name}: ${report(js)} JS, ${report(style)} CSS`);
 
+				// A warning, not an error. The budget is a number an app tunes as its
+				// island grows, and a build that stops leaves the island's assets on
+				// disk with no `assets.json` entry — a broken island, for a size the
+				// app may well accept. `forbiddenImports` is the check that fails the
+				// build, because it names a recoupling rather than measuring one.
 				if (js.raw + style.raw > budget)
-					this.error(
+					this.warn(
 						`island ${name} loads ${kb(js.raw + style.raw)} of JS + CSS, ` +
 							`over the ${kb(budget)} budget. An entry this size ` +
 							"pulls in something it should not. Check the entry's " +

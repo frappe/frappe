@@ -6,8 +6,8 @@
  * it, and reads the output back. It checks what the loader and the mount
  * contract depend on: a self-contained ES module per entry, chunks two entries
  * share, one stylesheet holding preflight and every class the bundle applies,
- * assets.json keys in the `.island.js` and `.island.css` form, and a budget that
- * fails a build.
+ * assets.json keys in the `.island.js` and `.island.css` form, and an island
+ * that registers even when it is over budget.
  *
  * This is a plain node script rather than a unit test, because a build pipeline
  * is what is under test.
@@ -210,23 +210,15 @@ async function run() {
   console.log(`  build  ${kb(weighJs(bench.outDir))} of JS on disk`);
 
   console.log("\nsize budget");
+  // The budget warns, so the build must still finish and still register the
+  // island. A build that stopped here would leave the assets on disk with no
+  // assets.json entry, which is an island the loader cannot resolve at all.
+  await buildIslands({ ...island, budget: 32 * 1024 });
+  const overBudget = JSON.parse(fs.readFileSync(bench.assetsJson, "utf-8"));
   check(
-    await fails(
-      () => buildIslands({ ...island, budget: 32 * 1024 }),
-      /over the/
-    ),
-    "a budget below what an island loads fails the build"
+    !!read(overBudget, "island_fixture_panel.island.js"),
+    "a budget below what an island loads still registers the island"
   );
-}
-
-/** Whether `body` throws a message matching `pattern`. */
-async function fails(body, pattern) {
-  try {
-    await body();
-  } catch (error) {
-    return pattern.test(error.message);
-  }
-  return false;
 }
 
 /* ------------------------------------------------------------------ staging */
