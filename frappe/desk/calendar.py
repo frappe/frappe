@@ -6,6 +6,7 @@ from datetime import date
 
 import frappe
 from frappe import _
+from frappe.utils import get_datetime, getdate
 
 
 @frappe.whitelist()
@@ -32,12 +33,14 @@ def get_event_conditions(doctype, filters=None):
 @frappe.whitelist()
 def get_events(
 	doctype: str,
-	start: date,
-	end: date,
+	start: str | date,
+	end: str | date,
 	field_map: str,
 	filters: str | None = None,
 	fields: str | list[str] | None = None,
 ):
+	start, end = getdate(start), get_datetime(end)
+
 	field_map = frappe._dict(json.loads(field_map))
 	fields = frappe.parse_json(fields)
 
