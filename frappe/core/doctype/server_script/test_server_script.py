@@ -70,7 +70,7 @@ frappe.method_that_doesnt_exist("do some magic")
 		script_type="DocType Event",
 		doctype_event="Before Save",
 		reference_doctype="ToDo",
-		disabled=1,
+		enabled=0,
 		script="""
 frappe.db.commit()
 """,
@@ -80,7 +80,7 @@ frappe.db.commit()
 		script_type="DocType Event",
 		doctype_event="Before Save",
 		reference_doctype="ToDo",
-		disabled=1,
+		enabled=0,
 		script="""
 frappe.db.add_index("Todo", ["color", "date"])
 """,
@@ -101,7 +101,7 @@ doc.save()
 		doctype_event="After Rename",
 		reference_doctype="Role",
 		script="""
-doc.disabled =1
+doc.enabled = 0
 doc.save()
 """,
 	),
@@ -179,22 +179,22 @@ class TestServerScript(IntegrationTestCase):
 
 	def test_commit_in_doctype_event(self):
 		server_script = frappe.get_doc("Server Script", "test_todo_commit")
-		server_script.disabled = 0
+		server_script.enabled = 1
 		server_script.save()
 
 		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
-		server_script.disabled = 1
+		server_script.enabled = 0
 		server_script.save()
 
 	def test_add_index_in_doctype_event(self):
 		server_script = frappe.get_doc("Server Script", "test_add_index")
-		server_script.disabled = 0
+		server_script.enabled = 1
 		server_script.save()
 
 		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
-		server_script.disabled = 1
+		server_script.enabled = 0
 		server_script.save()
 
 	def test_restricted_qb(self):
@@ -385,10 +385,10 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 
 		# manually disable
 
-		script.disabled = 1
+		script.enabled = 0
 		script.save()
 		self.assertTrue(job.reload().stopped)
 
-		script.disabled = 0
+		script.enabled = 1
 		script.save()
 		self.assertFalse(job.reload().stopped)

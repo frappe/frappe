@@ -71,7 +71,7 @@ def get_server_script_map():
 		enabled_server_scripts = frappe.get_all(
 			"Server Script",
 			fields=("name", "reference_doctype", "doctype_event", "api_method", "script_type"),
-			filters={"disabled": 0},
+			filters={"enabled": 1},
 		)
 		for script in enabled_server_scripts:
 			if script.script_type == "DocType Event":

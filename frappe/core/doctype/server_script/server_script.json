@@ -16,7 +16,7 @@
   "allow_guest",
   "column_break_3",
   "module",
-  "disabled",
+  "enabled",
   "section_break_8",
   "script",
   "rate_limiting_section",
@@ -75,7 +75,7 @@
   },
   {
    "default": "0",
-   "fieldname": "disabled",
+   "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Disabled"
   },

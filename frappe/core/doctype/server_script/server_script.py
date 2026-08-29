@@ -36,7 +36,7 @@ class ServerScript(Document):
 		allow_guest: DF.Check
 		api_method: DF.Data | None
 		cron_format: DF.Data | None
-		disabled: DF.Check
+		enabled: DF.Check
 		doctype_event: DF.Literal[
 			"Before Insert",
 			"Before Validate",
@@ -144,7 +144,7 @@ class ServerScript(Document):
 			self.has_value_changed("event_frequency")
 			or self.has_value_changed("cron_format")
 			or self.has_value_changed("queue")
-			or self.has_value_changed("disabled")
+			or self.has_value_changed("enabled")
 			or self.has_value_changed("script_type")
 		):
 			return
@@ -155,7 +155,7 @@ class ServerScript(Document):
 				"frequency": self.event_frequency,
 				"cron_format": self.cron_format if self.event_frequency == "Cron" else "",
 				"queue": self.queue,
-				"stopped": self.disabled,
+				"stopped": not self.enabled,
 			}
 		).save()
 
