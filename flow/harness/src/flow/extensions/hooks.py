@@ -49,7 +49,10 @@ class PostToolUseEvent:
 
 @dataclass(frozen=True, slots=True)
 class PostToolUseOverride:
-	"""Set `content` and/or `details` to override the tool's result; None keeps it."""
+	"""Set `content` and/or `details` to override the tool's result; None keeps it.
+
+	`details` replaces the whole dict (so a hook can also remove keys) — to add a
+	key, spread the old ones: ``details={**event.result.details, "extra": ...}``."""
 
 	content: str | None = None
 	details: dict | None = None
