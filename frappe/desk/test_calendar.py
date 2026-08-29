@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
+
 import frappe
 from frappe.desk.calendar import get_events
 from frappe.tests import IntegrationTestCase
@@ -14,7 +16,7 @@ class TestCalendar(IntegrationTestCase):
 			doctype="ToDo",
 			start="2026-04-30 23:00:00",
 			end="2026-06-10 23:00:00",
-			field_map={"start": "date", "end": "date", "title": "description"},
+			field_map=json.dumps({"start": "date", "end": "date", "title": "description"}),
 		)
 
 		self.assertIn(todo.name, [event.name for event in events])
@@ -32,7 +34,7 @@ class TestCalendar(IntegrationTestCase):
 			doctype="Event",
 			start="2026-04-30 23:00:00",
 			end="2026-05-10 23:00:00",
-			field_map={"start": "starts_on", "end": "ends_on", "title": "subject"},
+			field_map=json.dumps({"start": "starts_on", "end": "ends_on", "title": "subject"}),
 		)
 
 		self.assertIn(maintenance_window.name, [event.name for event in events])
