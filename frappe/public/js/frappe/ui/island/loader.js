@@ -33,33 +33,52 @@ const islands = new Map();
  */
 async function mount_island(name, el, context = {}) {
 	const target = el && el.jquery ? el[0] : el;
-	const assets = resolve_island(name);
+	const entry = { name, context, url: null, handle: null };
 
-	const module = await import(assets.js);
-	if (typeof module.mount !== "function") {
-		throw new Error(`Island "${name}" (${assets.js}) does not export mount()`);
-	}
-
-	unmount_island(target);
-
-	const handle = await module.mount(target, {
-		desk: build_desk(),
-		props: context.props || {},
-		on: context.on || {},
-		styles: assets.css ? [assets.css] : [],
-	});
-
-	const entry = { name, url: assets.js, context, handle };
-	islands.set(target, entry);
+	await load_into(target, entry);
 
 	return {
-		update: (props) => handle.update(props),
+		// Both read `entry`, never the handle this call mounted. A hot re-mount
+		// replaces that handle, and the caller keeps this object across it.
+		update: (props) => entry.handle.update(props),
 		// Tears down this island and only this one. A second call, or a call
 		// after something else has taken the target, does nothing.
 		unmount: () => {
 			if (islands.get(target) === entry) unmount_island(target);
 		},
 	};
+}
+
+/**
+ * Loads the island `entry.name` names into `target`, and records what it mounted
+ * on the entry. A re-mount keeps the entry, so the handle held by whoever
+ * mounted the island still reaches the island that is on the page.
+ *
+ * The target gives up what it holds only once the new module is in hand, so a
+ * module that fails to load leaves the island already on screen alone.
+ */
+async function load_into(target, entry) {
+	const assets = resolve_island(entry.name);
+
+	const module = await import(assets.js);
+	if (typeof module.mount !== "function") {
+		throw new Error(`Island "${entry.name}" (${assets.js}) does not export mount()`);
+	}
+
+	// Whatever holds the target now goes, this entry included on a re-mount. The
+	// handle clears with it, so a mount that fails below leaves nothing dead to
+	// call through.
+	unmount_island(target);
+	entry.handle = null;
+
+	entry.handle = await module.mount(target, {
+		desk: build_desk(),
+		props: entry.context.props || {},
+		on: entry.context.on || {},
+		styles: assets.css ? [assets.css] : [],
+	});
+	entry.url = assets.js;
+	islands.set(target, entry);
 }
 
 /** Tears down the island in `target`, if any. Safe to call at any time. */
@@ -168,7 +187,7 @@ function on_hot_update() {
 			continue;
 		}
 
-		mount_island(entry.name, target, entry.context).catch((e) =>
+		load_into(target, entry).catch((e) =>
 			console.error(`island: could not re-mount "${entry.name}"`, e)
 		);
 	}

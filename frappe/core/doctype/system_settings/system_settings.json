@@ -698,7 +698,7 @@
   },
   {
    "default": "0",
-   "description": "Draw dashboards with Insights instead of the legacy renderer. Needs the Insights app.",
+   "description": "Draw dashboards with Insights instead of the legacy renderer. Needs the Insights app. Takes effect after a desk reload.",
    "fieldname": "render_dashboards_with_insights",
    "fieldtype": "Check",
    "label": "Render Dashboards with Insights"
