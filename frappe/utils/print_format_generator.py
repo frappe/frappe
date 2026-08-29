@@ -893,6 +893,8 @@ class PrintFormatGenerator:
 		df["renderer"] = self._FIELD_RENDERERS.get(fieldtype) or fieldtype.replace(" ", "")
 		df["section"] = section
 		self.prepare_barcode(df)
+		self.prepare_linked_field(df)
+		self.prepare_summary_table(df)
 		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
@@ -966,6 +968,108 @@ class PrintFormatGenerator:
 				},
 				indent=None,
 			)
+
+	def prepare_linked_field(self, df):
+		"""Resolve a Linked Field's one-hop path (link_field.target_field) to a
+		formatted value from the linked document."""
+		if df.get("fieldtype") != "Linked Field" or not df.get("link_path"):
+			return
+		path = df["link_path"]
+		if "." not in path:
+			return
+		link_fieldname, target_fieldname = path.split(".", 1)
+		link_df = self.doc.meta.get_field(link_fieldname)
+		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
+			return
+		name = self.doc.get(link_fieldname)
+		if not name or not frappe.has_permission(link_df.options, "read"):
+			return
+		target_meta = frappe.get_meta(link_df.options)
+		target_df = target_meta.get_field(target_fieldname)
+		if not target_df:
+			return
+		value = frappe.db.get_value(link_df.options, name, target_fieldname)
+		if value is None:
+			return
+		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
+
+	def prepare_summary_table(self, df):
+		"""Group a child table's rows and evaluate per-group column expressions.
+
+		Each column expr sees: key (the group value), g (a dict of summed numeric
+		fields for the group), doc, and tax_rate(pattern) which returns the rate of
+		the first doc.taxes row whose description contains the pattern."""
+		if df.get("fieldtype") != "Summary Table" or not df.get("source") or not df.get("columns"):
+			return
+		rows = self.doc.get(df["source"]) or []
+		if not rows:
+			return
+		child_meta = rows[0].meta
+		numeric_fields = [
+			f.fieldname for f in child_meta.fields if f.fieldtype in ("Currency", "Float", "Int")
+		]
+
+		def tax_rate(pattern):
+			for tax in self.doc.get("taxes") or []:
+				if pattern.lower() in (tax.description or "").lower():
+					return tax.rate or 0
+			return 0
+
+		groups = {}
+		for row in rows:
+			key = row.get(df.get("group_by")) or ""
+			g = groups.setdefault(key, frappe._dict({f: 0 for f in numeric_fields}))
+			for f in numeric_fields:
+				g[f] += row.get(f) or 0
+		total_g = frappe._dict({f: sum(g[f] for g in groups.values()) for f in numeric_fields})
+
+		def format_cell(value, column):
+			if column.get("format") == "currency":
+				return frappe.utils.fmt_money(value, currency=self.doc.get("currency"))
+			return value if isinstance(value, str) else frappe.utils.cstr(value)
+
+		def eval_row(key, g):
+			cells = []
+			for column in df["columns"]:
+				try:
+					value = frappe.safe_eval(
+						column.get("expr") or "''",
+						None,
+						{"key": key, "g": g, "doc": self.doc, "tax_rate": tax_rate},
+					)
+				except Exception:
+					value = ""
+				align = column.get("align") or ("right" if column.get("format") == "currency" else "center")
+				cells.append({"value": format_cell(value, column), "align": align})
+			return cells
+
+		body = [eval_row(key, g) for key, g in groups.items()]
+		totals = None
+		if df.get("show_totals"):
+			totals = eval_row(_("Total"), total_g)
+			for i, column in enumerate(df["columns"]):
+				if not column.get("total"):
+					totals[i]["value"] = _("Total") if i == 0 else ""
+
+		head1, head2 = [], []
+		i = 0
+		columns = df["columns"]
+		while i < len(columns):
+			group = columns[i].get("group")
+			if not group:
+				head1.append({"label": columns[i].get("label") or "", "colspan": 1, "rowspan": 2})
+				i += 1
+				continue
+			span = 0
+			while i + span < len(columns) and columns[i + span].get("group") == group:
+				head2.append({"label": columns[i + span].get("label") or ""})
+				span += 1
+			head1.append({"label": group, "colspan": span, "rowspan": 1})
+			i += span
+		if not head2:
+			head1 = [{**cell, "rowspan": 1} for cell in head1]
+
+		df["_summary"] = {"head1": head1, "head2": head2, "rows": body, "totals": totals}
 
 	def process_margin_texts(self, layout):
 		for key in (*self._TOP_POSITIONS, *self._BOTTOM_POSITIONS):
