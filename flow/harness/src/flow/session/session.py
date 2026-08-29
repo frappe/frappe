@@ -19,7 +19,7 @@ from collections import deque
 from collections.abc import AsyncGenerator, AsyncIterator, Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from flow import config as server_config
 from flow.agent import loop
@@ -63,6 +63,9 @@ from flow.session.log import SessionLog
 from flow.session.skills import SkillCatalog, format_skill_invocation, parse_skill_command
 from flow.session.transcript import PendingApproval, Transcript
 from flow.tools import Tool
+
+if TYPE_CHECKING:
+	from flow.extensions import ExtensionRuntime
 
 _CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
 
@@ -180,6 +183,7 @@ class Session:
 		attachment_store: AttachmentStore | None = None,
 		skill_catalog: SkillCatalog | None = None,
 		server_tools: dict[str, Tool] | None = None,
+		extension_runtime: ExtensionRuntime | None = None,
 		persist_meta: Callable[[Session], None] | None = None,
 	):
 		self.id = sid
@@ -191,6 +195,7 @@ class Session:
 		self.attachment_store = attachment_store
 		self.skill_catalog = skill_catalog or SkillCatalog()
 		self.server_tools = server_tools
+		self.extension_runtime = extension_runtime
 		self._persist_meta = persist_meta
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
@@ -465,6 +470,7 @@ class Session:
 			after_tool_call=after_tool_call,
 			resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
 			server_tools=self.server_tools,
+			extension_runtime=self.extension_runtime,
 		)
 
 	def _next_steering(self) -> UserMessage | None:
