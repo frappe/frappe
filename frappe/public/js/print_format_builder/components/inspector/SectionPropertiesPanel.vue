@@ -106,6 +106,12 @@
 				unit="px"
 				@update:model-value="(v) => (selected_section.cell_padding = v)"
 			/>
+			<ColorField
+				v-if="section_field_borders"
+				:label="__('Border color')"
+				:model-value="selected_section.border_color || ''"
+				@update:model-value="set_border_color"
+			/>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Print')" :init-open="false">
@@ -135,6 +141,7 @@ import StepperRow from "./StepperRow.vue";
 import SpacingRow from "./SpacingRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ToggleRow from "./ToggleRow.vue";
+import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
 import { JUSTIFY_CLASSES } from "../../utils";
@@ -221,6 +228,14 @@ function set_grid_borders(v) {
 		delete selected_section.value.grid_borders;
 	} else {
 		selected_section.value.grid_borders = v;
+	}
+}
+
+function set_border_color(v) {
+	if (v) {
+		selected_section.value.border_color = v;
+	} else {
+		delete selected_section.value.border_color;
 	}
 }
 </script>

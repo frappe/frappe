@@ -501,6 +501,37 @@ const draggable_blocks = computed(() => [
 			{ template: [], align: "right" },
 		],
 	},
+	{
+		label: __("Text"),
+		fieldname: "static_text",
+		fieldtype: "Static Text",
+		custom: 1,
+		icon: "type",
+		desc: __("Fixed text like a title or a note"),
+		text: "",
+	},
+	{
+		label: __("Linked Field"),
+		fieldname: "linked_field",
+		fieldtype: "Linked Field",
+		custom: 1,
+		icon: "link",
+		desc: __("A value from a linked document"),
+		link_path: "",
+		show_label: "inline",
+	},
+	{
+		label: __("Summary Table"),
+		fieldname: "summary_table",
+		fieldtype: "Summary Table",
+		custom: 1,
+		icon: "sigma",
+		desc: __("Group child rows and total them"),
+		source: "",
+		group_by: "",
+		show_totals: 1,
+		columns: [],
+	},
 ]);
 
 function confirm_delete_snippet(name) {
@@ -528,6 +559,16 @@ function clone_field(df) {
 		"barcode_value",
 		"barcode_format",
 		"show_text",
+		"text",
+		"bold",
+		"font_size",
+		"link_path",
+		"show_empty",
+		"hide_colon",
+		"group_by",
+		"columns",
+		"show_totals",
+		"show_label",
 	]);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
@@ -618,6 +659,9 @@ function field_broken(f) {
 
 const FIELD_ICONS = {
 	Table: "table",
+	"Static Text": "type",
+	"Linked Field": "link",
+	"Summary Table": "sigma",
 	Repeater: "rows-3",
 	Image: "image",
 	"Attach Image": "image",
