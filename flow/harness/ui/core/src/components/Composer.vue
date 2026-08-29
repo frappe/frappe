@@ -101,7 +101,13 @@
 							class="group/attachment relative h-[72px] w-[72px] flex-none overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
 							:title="item.name"
 						>
-							<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
+							<button
+								class="block h-full w-full cursor-zoom-in"
+								:aria-label="`View ${item.name}`"
+								@click="viewer = item"
+							>
+								<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
+							</button>
 							<button
 								class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
 								title="Remove attachment"
@@ -317,6 +323,7 @@
 					</button>
 				</div>
 			</div>
+			<ImageViewer v-if="viewer" :src="viewer.previewUrl" :alt="viewer.name" @close="viewer = null" />
 		</div>
 	</div>
 </template>
@@ -327,6 +334,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { EFFORT_LABELS, fileName } from "../transcript.js"
+import ImageViewer from "./ImageViewer.vue"
 import ModelPalette from "./ModelPalette.vue"
 import PalettePanel from "./PalettePanel.vue"
 import PopMenu from "./PopMenu.vue"
@@ -339,6 +347,7 @@ const text = ref("")
 const box = ref(null)
 const fileInput = ref(null)
 const attachments = ref([])
+const viewer = ref(null)
 const submitting = ref(false)
 const textScrollTop = ref(0)
 let attachmentKey = 0
@@ -374,6 +383,7 @@ function revokePreview(item) {
 
 function clearAttachments() {
 	previewGeneration++
+	viewer.value = null
 	for (const item of attachments.value) revokePreview(item)
 	attachments.value = []
 }

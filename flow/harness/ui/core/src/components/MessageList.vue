@@ -84,7 +84,7 @@
 				</div>
 				<div
 					v-else-if="item.kind === 'error'"
-					class="rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-sm text-ink-red-6"
+					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-sm text-ink-red-6"
 				>
 					{{ item.error.message }}
 				</div>
