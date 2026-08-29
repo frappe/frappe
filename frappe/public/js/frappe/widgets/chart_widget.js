@@ -142,9 +142,11 @@ export default class ChartWidget extends Widget {
 			this.prepare_island_actions();
 		}
 
-		// The island sizes its own body. This only holds the frame open while it
-		// loads, so a widget does not collapse and then jump.
-		this.chart_wrapper.css("min-height", `${this.height}px`);
+		// A definite height, not a floor. An island fills the element it is given,
+		// and a `height: 100%` inside it resolves against auto to nothing, so a
+		// floor draws the island's header over an empty body. Desk's own chart
+		// takes the same number as a fixed height.
+		this.chart_wrapper.css("height", `${this.height}px`);
 
 		// The import can outlive the widget. Only the newest mount keeps its
 		// handle, so a teardown during a load leaves no island behind.
