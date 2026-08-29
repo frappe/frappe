@@ -9,7 +9,7 @@
 {%- set _border_color = df.table_border_color if df.table_border_color else none -%}
 {%- set _cell_style = ((_cell_style + ';') if _cell_style else '') + (('border-color:' + _border_color + ' !important') if _border_color else '') -%}
 {%- set _radius = df.table_radius if df.table_radius is defined and df.table_radius is not none else none -%}
-{%- set _frame_style = (('--pfb-radius:' + _radius|string + 'px;') if _radius is not none else '') + (('--pfb-header-bg:' + df.table_header_bg + ';') if df.table_header_bg and not _plain_header else '') -%}
+{%- set _frame_style = (('--pfb-radius:' + _radius|string + 'px;') if _radius is not none else '') + (('--pfb-header-bg:' + df.table_header_bg + ';') if df.table_header_bg and not _plain_header else '') + (('min-height:' + df.table_min_height|int|string + 'px;') if df.table_min_height else '') -%}
 <div class="child-table child-table--{{ _style }}{% if _plain_header %} child-table--plain-header{% endif %}{% if _bordered %} child-table--bordered{% endif %}"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
 	{%- set _show_label = df.show_label if df.show_label else 'show' -%}
 	{% if df.label and _show_label != 'hide' %}
