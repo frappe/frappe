@@ -247,6 +247,9 @@ class Dashboard {
 			// browser tab directly leaves the crumb trail intact.
 			frappe.utils.set_title(__(title));
 			this.set_dropdown();
+			// `empty()` drops the widget nodes without going through the group, so
+			// an island inside a chart would stay mounted on a detached node.
+			this.chart_group?.destroy();
 			this.container.empty();
 			this.refresh();
 		}

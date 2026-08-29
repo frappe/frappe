@@ -40,9 +40,13 @@ export default class ChartWidget extends Widget {
 	}
 
 	setup_container() {
+		// The island lives on a node inside the body, so it goes before the body does.
+		this.unmount_island();
 		this.body.empty();
 
-		if (this.chart_doc.type == "Heatmap") {
+		// `type` says how desk draws a chart, and an island is drawn by an app, so
+		// a heatmap's forced full width and legend do not apply to it.
+		if (!this.island_renderer && this.chart_doc.type == "Heatmap") {
 			this.setup_heatmap_container();
 		}
 
@@ -94,6 +98,8 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
+			if (this.island_renderer) return this.make_island();
+
 			if (!this.settings) {
 				this.deleted = true;
 				this.widget.remove();
@@ -118,6 +124,86 @@ export default class ChartWidget extends Widget {
 				() => this.fetch_and_update_chart(),
 			]);
 		});
+	}
+
+	/**
+	 * Draws a chart an app owns. Desk keeps the frame — the title, the actions and
+	 * the error state — and the island owns the body alone, so a workspace still
+	 * reads as a workspace.
+	 *
+	 * Nothing below this fetches chart data. Desk does not know what the island
+	 * draws, and the props it draws from came down with the document.
+	 */
+	async make_island() {
+		this.setup_container();
+
+		if (!this.in_customize_mode) {
+			this.action_area.empty();
+			this.prepare_island_actions();
+		}
+
+		// The island sizes its own body. This only holds the frame open while it
+		// loads, so a widget does not collapse and then jump.
+		this.chart_wrapper.css("min-height", `${this.height}px`);
+
+		// The import can outlive the widget. Only the newest mount keeps its
+		// handle, so a teardown during a load leaves no island behind.
+		const token = (this.island_token = {});
+
+		try {
+			const island = await frappe.ui.mount_island(
+				this.island_renderer.island,
+				this.chart_wrapper,
+				{ props: this.island_renderer.props }
+			);
+
+			if (this.island_token !== token) return island.unmount();
+			this.island = island;
+			this.loading.hide();
+		} catch (e) {
+			console.error(e);
+			if (this.island_token !== token) return;
+			this.chart_wrapper.hide();
+			this.loading.hide();
+			this.empty.hide();
+			this.error_state.text(__("Could not draw this chart: {0}", [e.message]));
+			this.error_state.show();
+		}
+	}
+
+	/**
+	 * Refresh and Edit alone. Every other chart action drives desk's own fetch:
+	 * Reset Chart clears settings the island never reads, Export writes data desk
+	 * never fetched, and the filters and the time interval reach nothing.
+	 */
+	prepare_island_actions() {
+		this.set_chart_actions([
+			{
+				label: __("Refresh"),
+				action: "action-refresh",
+				handler: () => this.make_chart(),
+			},
+			{
+				label: __("Edit"),
+				action: "action-edit",
+				handler: () => {
+					frappe.set_route("Form", "Dashboard Chart", this.chart_doc.name);
+				},
+			},
+		]);
+	}
+
+	/** Releases the island the body holds, if any. Safe to call at any time. */
+	unmount_island() {
+		this.island_token = null;
+		if (this.island) {
+			this.island.unmount();
+			this.island = null;
+		}
+	}
+
+	destroy() {
+		this.unmount_island();
 	}
 
 	render_time_series_filters() {
@@ -840,6 +926,13 @@ export default class ChartWidget extends Widget {
 		return frappe.model.with_doc("Dashboard Chart", this.chart_name).then((chart_doc) => {
 			if (chart_doc) {
 				this.chart_doc = chart_doc;
+
+				// An app draws this chart. The key is absent when none does, so
+				// absence alone runs desk's own renderer below. Read on every
+				// call, because the document may have changed.
+				this.island_renderer = chart_doc.__onload?.island_renderer;
+				if (this.island_renderer) return Promise.resolve();
+
 				if (this.chart_doc.chart_type == "Custom") {
 					// custom source
 					if (frappe.dashboards.chart_sources[this.chart_doc.source]) {
