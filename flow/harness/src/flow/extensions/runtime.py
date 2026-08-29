@@ -149,7 +149,7 @@ class ExtensionRuntime:
 				self._record(extension_name, "tool_call", f"handler raised: {error!r}", "error")
 				return PreToolUseDecision(
 					block=True,
-					reason=f"extension `{extension_name}` tool_call hook failed: {error}",
+					reason=f"extension `{extension_name}` tool_call hook failed",
 				)
 			if result is None:
 				continue
@@ -170,7 +170,11 @@ class ExtensionRuntime:
 		A raising handler is recorded and skipped — the result stands (fail-open)."""
 		current = result
 		for extension_name, handler in self._handlers.get("tool_result", ()):
-			event = PostToolUseEvent(tool_name=call.name, arguments=call.args, result=current)
+			event = PostToolUseEvent(
+				tool_name=call.name,
+				arguments=dict(call.args),
+				result=current.model_copy(update={"details": dict(current.details)}),
+			)
 			try:
 				outcome = await _resolve(handler(event))
 			except Exception as error:

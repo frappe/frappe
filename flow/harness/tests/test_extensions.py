@@ -310,10 +310,36 @@ def setup(flow):
 
 	assert all(row["is_error"] for row in results)
 	assert "hook failed" in json.loads(results[0]["content"])["message"]
+	# the exception text stays in diagnostics; the model only learns the hook failed
+	assert "gate crashed" not in results[0]["content"]
 	diagnostics = [d for d in store.extension_runtime.diagnostics if d.extension == "hooks"]
 	assert len(diagnostics) == 1  # the repeating failure is recorded once
 	assert diagnostics[0].severity == "error"
 	assert "`tool_call` handler raised" in diagnostics[0].message
+
+
+async def test_mutating_hook_events_does_not_touch_the_transcript(tmp_path):
+	"""In-place edits to hook events must not leak; returning a result is the only channel."""
+	_, session = _hook_session(
+		tmp_path,
+		"""
+def mutate(event):
+    event.arguments["who"] = "mutated"
+    event.result.content = "mutated"
+    event.result.details["mutated"] = True
+    return None
+
+def setup(flow):
+    flow.on("tool_result", mutate)
+""",
+	)
+
+	results = await _run_to_end(session, _hello_call_model())
+
+	assert results[0]["content"] == "Hello, Flow!"
+	assert results[0]["details"] == {}
+	calls = [row for row in session.log.read_since(0) if row["type"] == "assistant_message"]
+	assert calls[0]["content"][0]["arguments"] == {"who": "Flow"}
 
 
 async def test_failing_tool_result_hook_keeps_the_result(tmp_path):
