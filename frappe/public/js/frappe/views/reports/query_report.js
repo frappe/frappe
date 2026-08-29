@@ -1741,7 +1741,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
-		let visible_idx = this.get_validated_visible_indexes();
+		const has_datatable = !!this.datatable;
+		let visible_idx = has_datatable ? this.get_validated_visible_indexes() : [];
 
 		const extra_fields = [];
 		const applied_filters = this.get_applied_filters(this.get_filter_values());
@@ -1812,8 +1813,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				// excluding total row index
 				const ignore_visible_idx =
+					!has_datatable ||
 					visible_idx.length ===
-					this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+						this.data.length - (this.raw_data.add_total_row ? 1 : 0);
 				visible_idx = ignore_visible_idx ? [] : visible_idx;
 
 				const args = {
