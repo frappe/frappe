@@ -2,28 +2,26 @@
 // MIT License. See license.txt
 
 /**
- * `/app/dashboard-view/<reference>` — the one desk dashboard route. Two
- * renderers draw it: the `insights.dashboard` island, or the legacy widget
- * dashboard below.
+ * `/desk/dashboard-view/<name>` — the one desk dashboard route. The page loads
+ * the `Dashboard` the route names before it draws anything.
  *
- * There is one route, not a second page beside this one. Every link ever
- * written to a desk dashboard points here, so a site that turns Insights
- * rendering on upgrades in place and keeps its sidebars.
+ * Two renderers draw the document. An installed app claims it with a
+ * `dashboard_renderer` hook, and the answer rides down on the document as
+ * `__onload.island_renderer` (frappe/desk/island_renderer.py). The key present
+ * means an island draws the dashboard. The key absent means the legacy widget
+ * renderer below draws it. There is no third answer and no null sentinel.
  *
- * The page asks `frappe/utils/dashboard_renderer.py` once per route and
- * branches on the answer. That module decides what a reference names and which
- * renderer draws it.
+ * A name no `Dashboard` answers to belongs to neither renderer, so the page
+ * draws that state itself.
  */
 
 frappe.provide("frappe.dashboards");
 frappe.provide("frappe.dashboards.chart_sources");
 
-const ISLAND = "insights.dashboard";
-
-// Set on <body> while the island renderer is on screen. `dashboard_view.scss`
-// keys the bounded page off this class — read the comment there for why the
-// page stops document scrolling. The legacy renderer grows with its widgets and
-// keeps the scroll it has always had, so the route alone cannot decide this.
+// Set on <body> while an island is on screen. `dashboard_view.scss` keys the
+// bounded page off this class — read the comment there for why the page stops
+// document scrolling. The legacy renderer grows with its widgets and keeps the
+// scroll it has always had, so the route alone cannot decide this.
 const ISLAND_PAGE_CLASS = "dashboard-view-island-page";
 
 frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
@@ -32,112 +30,153 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
-	// This route draws no page head by default. The island draws its own header,
+	// This route draws no page head by default. An island draws its own header,
 	// so desk's would be a second and emptier one above it. The head is off from
-	// the start, not off once the renderer is known: that answer costs a round
-	// trip on a site with Insights, and the head would show for all of it. The
-	// legacy renderer asks for the head back when it draws.
+	// the start, not off once the document is loaded: that answer costs a round
+	// trip, and the head would show for all of it. The two renderers that want
+	// the head ask for it back when they draw.
 	//
 	// The page object itself stays. The body sidebar and the workspace dock
 	// resolve their visibility against it, so a route with no page loses the app
 	// frame too.
 	page.toggle_page_head(false);
 
-	// One container per renderer, both made up front. The legacy renderer empties
-	// what it is given, so the two must never share a parent they draw into.
+	// One container per state, all made up front. The legacy renderer empties what
+	// it is given, so no two of these may share a parent they draw into.
 	const content = $(wrapper).find(".page-content").empty();
 	const legacy_container = $('<div class="dashboard-view-legacy">').appendTo(content);
 	const island_container = $('<div class="dashboard-view-island">').appendTo(content);
+	const missing_container = $('<div class="dashboard-view-missing">').appendTo(content).hide();
 
 	// The legacy renderer has been reachable as `frappe.dashboard` for years.
 	frappe.dashboard = new Dashboard(legacy_container, page);
-	const insights = new InsightsDashboard(island_container, page);
+	const island = new IslandDashboard(island_container, page);
 
 	$(wrapper).on("show", async () => {
-		const route = frappe.get_route_str();
-		const reference = frappe.get_route().slice(1).join("/");
+		const name = frappe.get_route()[1];
+		// The route always carries a name. A bare /desk/dashboard-view names no
+		// document, so send the reader to the list instead.
+		if (!name) return frappe.set_route("List", "Dashboard");
 
-		const renderer = await frappe.ui.get_dashboard_renderer(reference);
+		const route = frappe.get_route_str();
+		const doc = await frappe.model.with_doc("Dashboard", name);
 		// The route can move, inside this page or off it, while the call is out.
+		// Two fetches can also land out of order, and the older one would draw a
+		// document the reader has already left.
 		if (frappe.get_route_str() !== route) return;
 
-		if (renderer === "insights") {
+		if (!doc) {
+			island.hide();
 			frappe.dashboard.hide();
-			insights.show(reference);
+			return show_missing(name);
+		}
+
+		missing_container.hide();
+		frappe.last_dashboard = doc.name;
+
+		const renderer = doc.__onload?.island_renderer;
+		if (renderer) {
+			frappe.dashboard.hide();
+			island.show(renderer);
 		} else {
-			insights.hide();
-			frappe.dashboard.show();
+			island.hide();
+			frappe.dashboard.show(doc);
 		}
 	});
 
-	$(wrapper).on("hide", () => insights.hide());
+	$(wrapper).on("hide", () => island.hide());
+
+	function show_missing(name) {
+		page.toggle_page_head(true);
+		page.clear_menu();
+		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard" });
+		frappe.utils.set_title(__("Dashboard"));
+		missing_container
+			.show()
+			.empty()
+			.append(
+				frappe.ui.empty_state({
+					icon: "layout-dashboard",
+					title: __("No dashboard named {0}", [name]),
+					description: __("Check the link, or open one from the dashboard list."),
+					actions: [
+						{
+							label: __("Dashboard List"),
+							variant: "subtle",
+							onclick: () => frappe.set_route("List", "Dashboard"),
+						},
+					],
+				})
+			);
+	}
 };
 
 /**
- * The Insights renderer: one container for the `insights.dashboard` island.
+ * The island renderer: one container for whatever island the document names.
  *
- * The island owns the whole page — its header (breadcrumbs, title, freshness,
- * actions), the filter bar, the grid, and every state, including the one it
- * shows when a reference resolves to nothing. Desk hides its page head while
- * the island is on screen, so the page has one header.
+ * The island owns the whole page — its header (breadcrumbs, title, actions), the
+ * filter bar, the grid, and every state below the document, the not-permitted
+ * one included. Desk hides its page head while the island is on screen, so the
+ * page has one header.
  *
- * The reference passes through as the route wrote it. A reference can span
- * segments (`insights/sales-performance`), and Insights resolves it. Desk never
- * parses it.
+ * Desk passes the island name and the props through as the hook returned them.
+ * It reads neither.
  */
-class InsightsDashboard {
+class IslandDashboard {
 	constructor(container, page) {
 		this.root = container;
 		this.container = container[0];
 		this.page = page;
 
-		// The island mounts once and takes a new reference as a prop after that.
-		// Desk keeps the page alive across route changes within it, so the island
-		// re-fetches while the Vue app and its shadow root stay put.
+		// The renderer on screen, or the one being mounted. `null` between a hide
+		// and the next show.
+		this.renderer = null;
 		this.handle = null;
-		this.mounting = false;
-		this.reference = null;
 	}
 
-	show(reference) {
+	show(renderer) {
 		this.root.show();
 		document.body.classList.add(ISLAND_PAGE_CLASS);
 
-		// The head is already off for this route, and it carried little: a generic
-		// "Dashboard" title, and a breadcrumb that went blank when the route moved
-		// inside the page. The island's own header carries both correctly. The menu
-		// belongs to the renderer on screen, so the legacy entries go with it.
+		// The legacy renderer asks for the head back when it draws, and it may have
+		// drawn on this page before this document. The menu belongs to the renderer
+		// on screen, so the legacy entries go with it.
+		this.page.toggle_page_head(false);
 		this.page.clear_menu();
 
-		if (this.handle || this.mounting) {
-			if (reference === this.reference) return;
-			this.reference = reference;
-			this.handle?.update({ dashboard: reference });
+		const mounted = this.renderer;
+		this.renderer = renderer;
+
+		// The same island takes the next document as props. Desk keeps the page
+		// alive across route changes within it, so the island re-fetches while its
+		// Vue app and shadow root stay put.
+		if (mounted?.island === renderer.island) {
+			this.handle?.update(renderer.props);
 			return;
 		}
 
-		this.reference = reference;
-		this.mounting = true;
-		frappe.ui
-			.mount_island(ISLAND, this.container, { props: { dashboard: reference } })
-			.then((island) => {
-				this.mounting = false;
-				// The page can be left, or a legacy dashboard routed to inside it,
-				// while the island's module loads. Both clear the reference.
-				if (this.reference === null) return island.unmount();
-				this.handle = island;
-				this.handle.update({ dashboard: this.reference });
-			})
-			.catch((error) => {
-				this.mounting = false;
-				console.error(`could not mount the "${ISLAND}" island`, error);
+		this.mount(renderer);
+	}
+
+	async mount(renderer) {
+		try {
+			const island = await frappe.ui.mount_island(renderer.island, this.container, {
+				props: renderer.props,
 			});
+			// The page can be left, or another island routed to inside it, while
+			// this module loads. Both leave this mount with nothing to draw.
+			if (this.renderer?.island !== renderer.island) return island.unmount();
+			this.handle = island;
+			this.handle.update(this.renderer.props);
+		} catch (error) {
+			console.error(`could not mount the "${renderer.island}" island`, error);
+		}
 	}
 
 	hide() {
 		this.root.hide();
 		document.body.classList.remove(ISLAND_PAGE_CLASS);
-		this.reference = null;
+		this.renderer = null;
 		this.handle?.unmount();
 		this.handle = null;
 	}
@@ -153,55 +192,16 @@ class Dashboard {
 		this.page = page;
 	}
 
-	async show() {
+	// Takes the document the page loaded. The name it draws with is the
+	// document's own, not the route segment: a link reaches this page lowercased
+	// often enough that the crumb and the title would otherwise read `selling`.
+	show(doc) {
 		this.root.show();
 		// This renderer draws its widgets, title and breadcrumb into desk's head,
 		// so it asks for the head back.
 		this.page.toggle_page_head(true);
-		this.route = frappe.get_route();
-		if (this.route.length > 1) {
-			// from route
-			const reference = this.route.slice(-1)[0];
-			// The route is shared with the Insights renderer, so a reference that
-			// names no `Dashboard` reaches this renderer whenever Insights rendering
-			// is off. Without this check `render_cards` and `render_charts` both run
-			// and both raise desk's global "not found" dialog for one route.
-			//
-			// The lookup answers with the document's own name, not the reference the
-			// link was written with. A route reaches here lowercased often enough
-			// that the crumb and the title would otherwise read `selling`.
-			const { message } = await frappe.db.get_value("Dashboard", reference, "name");
-			if (message?.name) {
-				this.set_breadcrumbs(message.name);
-				this.show_dashboard(message.name);
-			} else {
-				this.set_breadcrumbs();
-				this.show_missing(reference);
-			}
-		} else {
-			this.set_breadcrumbs();
-			// last opened
-			if (frappe.last_dashboard) {
-				frappe.set_re_route("dashboard-view", frappe.last_dashboard);
-			} else {
-				// default dashboard
-				frappe.db.get_list("Dashboard", { filters: { is_default: 1 } }).then((data) => {
-					if (data && data.length) {
-						frappe.set_re_route("dashboard-view", data[0].name);
-					} else {
-						// no default, get the latest one
-						frappe.db.get_list("Dashboard", { limit: 1 }).then((data) => {
-							if (data && data.length) {
-								frappe.set_re_route("dashboard-view", data[0].name);
-							} else {
-								// create a new dashboard!
-								frappe.new_doc("Dashboard");
-							}
-						});
-					}
-				});
-			}
-		}
+		this.set_breadcrumbs(doc.name);
+		this.show_dashboard(doc.name);
 	}
 
 	// This renderer gives up the page menu and body, so the next `show` draws
@@ -210,28 +210,6 @@ class Dashboard {
 	hide() {
 		this.root.hide();
 		this.dashboard_name = null;
-	}
-
-	// The reference names nothing this renderer can draw. `dashboard_name` stays
-	// empty so the next real dashboard on this route draws itself again.
-	show_missing(name) {
-		this.dashboard_name = null;
-		frappe.utils.set_title(__("Dashboard"));
-		this.page.clear_menu();
-		this.container.empty().append(
-			frappe.ui.empty_state({
-				icon: "layout-dashboard",
-				title: __("No dashboard named {0}", [name]),
-				description: __("Check the link, or open one from the dashboard list."),
-				actions: [
-					{
-						label: __("Dashboard List"),
-						variant: "subtle",
-						onclick: () => frappe.set_route("List", "Dashboard"),
-					},
-				],
-			})
-		);
 	}
 
 	show_dashboard(current_dashboard_name) {
@@ -254,7 +232,6 @@ class Dashboard {
 			this.refresh();
 		}
 		this.charts = {};
-		frappe.last_dashboard = current_dashboard_name;
 	}
 
 	set_breadcrumbs(label) {

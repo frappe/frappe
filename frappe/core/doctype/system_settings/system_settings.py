@@ -100,7 +100,6 @@ class SystemSettings(Document):
 		otp_sms_template: DF.SmallText | None
 		password_reset_limit: DF.Int
 		rate_limit_email_link_login: DF.Int
-		render_dashboards_with_insights: DF.Check
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]

@@ -99,17 +99,24 @@ class DeskViews:
 	def get_allowed_dashboards(cls, cache=False):
 		"""Return dashboards the user is allowed to see.
 
-		A dashboard is permitted when the user can access at least one of its charts or cards.
+		A dashboard that holds charts or cards is permitted when the user can access at least
+		one of them. A dashboard that holds neither is permitted on the `Dashboard` document's
+		own permission, which `frappe.get_all` has already applied. An app draws such a
+		dashboard with an island, and the app draws its own not-permitted state for anything
+		below the document.
+
 		Evaluated for the current session user and cached like pages and reports.
 		"""
 		from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards, get_permitted_charts
 
+		def is_allowed(name):
+			dashboard = frappe.get_doc("Dashboard", name)
+			if not (dashboard.charts or dashboard.cards):
+				return True
+			return bool(get_permitted_charts(name) or get_permitted_cards(name))
+
 		def build():
-			return [
-				{"name": name}
-				for name in frappe.get_all("Dashboard", pluck="name")
-				if get_permitted_charts(name) or get_permitted_cards(name)
-			]
+			return [{"name": name} for name in frappe.get_all("Dashboard", pluck="name") if is_allowed(name)]
 
 		return cls._allowed_entity_cache("allowed_dashboards", frappe.session.user, build, cache=cache)
 

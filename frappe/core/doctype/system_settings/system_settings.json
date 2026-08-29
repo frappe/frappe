@@ -93,8 +93,6 @@
   "allowed_doctypes_for_guest_uploads",
   "app_tab",
   "default_app",
-  "dashboards_section",
-  "render_dashboards_with_insights",
   "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
@@ -690,18 +688,6 @@
    "fieldname": "default_app",
    "fieldtype": "Select",
    "label": "Default App"
-  },
-  {
-   "fieldname": "dashboards_section",
-   "fieldtype": "Section Break",
-   "label": "Dashboards"
-  },
-  {
-   "default": "0",
-   "description": "Draw dashboards with Insights instead of the legacy renderer. Needs the Insights app. Takes effect after a desk reload.",
-   "fieldname": "render_dashboards_with_insights",
-   "fieldtype": "Check",
-   "label": "Render Dashboards with Insights"
   },
   {
    "depends_on": "login_with_email_link",
