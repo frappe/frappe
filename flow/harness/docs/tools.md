@@ -59,7 +59,20 @@ def setup(flow) -> None:
     flow.register_tool(hello)
 ```
 
-Extension load errors are diagnostics, not daemon failures. Extension tools override selected built-ins with the same name; the first extension to register a duplicate name wins. Extensions are trusted Python code with the daemon's permissions.
+An extension can also hook tool execution with `flow.on(event, handler)`. A `tool_call` handler runs before a tool executes — ahead of any approval gate, so approval prompts show the effective arguments, and a rewrite is recorded in the result's `details.effective_arguments` — and can return `PreToolUseDecision(block=True, reason=...)` to stop the call or `PreToolUseDecision(arguments=...)` to rewrite it; a `tool_result` handler runs after and can return `PostToolUseOverride(content=..., details=...)` to rewrite what the model sees. A resumed approval re-checks blocking only; approved arguments run as approved. Handlers may be sync or async and return `None` to pass. A raising `tool_call` handler blocks the call (fail-safe); a raising `tool_result` handler is skipped and the result stands. A `tool_call` handler can run more than once for the same call — a gated call is checked before the approval prompt and again when it resumes — so keep handlers side-effect free. Payload types live in `flow.extensions.hooks`.
+
+```python
+from flow.extensions import PreToolUseDecision
+
+def gate(event):
+    if event.tool_name == "bash" and "rm -rf" in str(event.arguments):
+        return PreToolUseDecision(block=True, reason="destructive command blocked")
+
+def setup(flow) -> None:
+    flow.on("tool_call", gate)
+```
+
+Extension load errors are diagnostics, not daemon failures — and hook failures at runtime are recorded the same way (once per distinct failure) and appear in `GET /sessions/{id}/extensions`, which also lists each extension's hook subscriptions alongside its tools. Extension tools override selected built-ins with the same name; the first extension to register a duplicate name wins. Extensions are trusted Python code with the daemon's permissions.
 
 `POST /extensions/reload` (TUI and web UI: `/reload`) re-discovers and re-imports all extensions. Sessions use the recomposed tools from their next run — an active run finishes with the tools it started with, and system prompts stay as composed at session creation.
 
