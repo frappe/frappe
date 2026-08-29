@@ -1610,6 +1610,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
+<<<<<<< HEAD
+=======
+		const has_datatable = !!this.datatable;
+		let visible_idx = has_datatable ? this.get_validated_visible_indexes() : [];
+
+>>>>>>> 7d3b515 (fix: allow export when report exceeds max_report_rows)
 		const extra_fields = [];
 		const applied_filters = this.get_applied_filters(this.get_filter_values());
 
@@ -1673,10 +1679,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters.prepared_report_name = this.prepared_report_name;
 				}
 
+<<<<<<< HEAD
 				const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
 				if (visible_idx.length + 1 === this.data?.length) {
 					visible_idx.push(visible_idx.length);
 				}
+=======
+				// visible_idx is a list of ORIGINAL row indices in DISPLAY order
+				// having both search-filter narrowing AND column sort. Only skip sending it
+				// when it exactly matches the default identity order [0, 1, ..., N-1]
+				// (i.e. neither sorted nor filtered), otherwise the server-side
+				// export would silently drop the user's UI sort direction.
+				const totalRows = this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				const isIdentityOrder =
+					visible_idx.length === totalRows && visible_idx.every((idx, i) => idx === i);
+				const ignore_visible_idx = !has_datatable || isIdentityOrder;
+				visible_idx = ignore_visible_idx ? [] : visible_idx;
+
+>>>>>>> 7d3b515 (fix: allow export when report exceeds max_report_rows)
 				const args = {
 					cmd: "frappe.desk.query_report.export_query",
 					report_name: this.report_name,
