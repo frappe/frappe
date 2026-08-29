@@ -118,6 +118,8 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+		if (node.fieldtype === "Linked Field") add(__("Linked Field"));
+		if (node.fieldtype === "Summary Table") add(__("Summary Table"));
 		if (node.fieldtype === "Barcode") {
 			if (node.custom) {
 				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
