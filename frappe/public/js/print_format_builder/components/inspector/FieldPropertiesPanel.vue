@@ -123,6 +123,190 @@
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
 			</template>
+			<template v-else-if="is_static_text">
+				<textarea
+					class="form-control form-control-sm pfb-static-text-input"
+					:placeholder="__('Write the text to print')"
+					rows="4"
+					:value="selected_field.text || ''"
+					@input="(e) => (selected_field.text = e.target.value)"
+				></textarea>
+				<ToggleRow
+					:label="__('Bold')"
+					:model-value="!!selected_field.bold"
+					@update:model-value="(v) => (selected_field.bold = v ? 1 : 0)"
+				/>
+				<StepperRow
+					:label="__('Font size')"
+					:model-value="selected_field.font_size"
+					:base="13"
+					:step="1"
+					unit="px"
+					:placeholder="__('auto')"
+					allow-empty
+					@update:model-value="(v) => (selected_field.font_size = v)"
+				/>
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="current_align"
+					:options="align_opts"
+					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+			</template>
+			<template v-else-if="is_linked_field">
+				<div class="pfb-insp-row">
+					<span class="pfb-insp-label">{{ __("Link") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="link_fieldname"
+						@change="set_link_fieldname($event.target.value)"
+					>
+						<option value="">{{ __("Select a link field") }}</option>
+						<option v-for="f in link_field_options" :key="f.value" :value="f.value">
+							{{ f.label }}
+						</option>
+					</select>
+				</div>
+				<div class="pfb-insp-row" v-if="link_fieldname">
+					<span class="pfb-insp-label">{{ __("Field") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="link_target_fieldname"
+						@change="set_link_target($event.target.value)"
+					>
+						<option value="">{{ __("Select a field") }}</option>
+						<option v-for="f in link_target_options" :key="f.value" :value="f.value">
+							{{ f.label }}
+						</option>
+					</select>
+				</div>
+				<LabelField
+					v-model="selected_field.label"
+					:label="__('Label')"
+					:placeholder="__('Field label')"
+					show-toggle
+					:show="selected_field.show_label"
+					@update:show="(v) => (selected_field.show_label = v)"
+				/>
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="current_align"
+					:options="align_opts"
+					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+				<ToggleRow
+					:label="__('Show when empty')"
+					:model-value="!!selected_field.show_empty"
+					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
+				/>
+			</template>
+			<template v-else-if="is_summary_table">
+				<div class="pfb-insp-row">
+					<span class="pfb-insp-label">{{ __("Source") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="selected_field.source || ''"
+						@change="set_summary_source($event.target.value)"
+					>
+						<option value="">{{ __("Select a child table") }}</option>
+						<option v-for="f in table_field_options" :key="f.value" :value="f.value">
+							{{ f.label }}
+						</option>
+					</select>
+				</div>
+				<div class="pfb-insp-row" v-if="selected_field.source">
+					<span class="pfb-insp-label">{{ __("Group by") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="selected_field.group_by || ''"
+						@change="selected_field.group_by = $event.target.value"
+					>
+						<option value="">{{ __("Select a field") }}</option>
+						<option v-for="f in summary_child_options" :key="f.value" :value="f.value">
+							{{ f.label }}
+						</option>
+					</select>
+				</div>
+				<ToggleRow
+					:label="__('Totals row')"
+					:model-value="!!selected_field.show_totals"
+					@update:model-value="(v) => (selected_field.show_totals = v ? 1 : 0)"
+				/>
+				<div
+					v-for="(col, i) in selected_field.columns || []"
+					:key="i"
+					class="pfb-summary-col"
+				>
+					<div class="pfb-insp-row">
+						<input
+							type="text"
+							class="pfb-insp-input"
+							:placeholder="__('Label')"
+							:value="col.label"
+							@change="col.label = $event.target.value"
+						/>
+						<input
+							type="text"
+							class="pfb-insp-input"
+							:placeholder="__('Group')"
+							:value="col.group || ''"
+							@change="col.group = $event.target.value"
+						/>
+					</div>
+					<div class="pfb-insp-row pfb-insp-row--col">
+						<input
+							type="text"
+							class="pfb-insp-input"
+							:placeholder="__('Expression, e.g. g.amount')"
+							:value="col.expr"
+							@change="col.expr = $event.target.value"
+						/>
+					</div>
+					<div class="pfb-insp-row">
+						<select
+							class="pfb-insp-select"
+							:value="col.format || ''"
+							@change="col.format = $event.target.value"
+						>
+							<option value="">{{ __("Plain") }}</option>
+							<option value="currency">{{ __("Currency") }}</option>
+						</select>
+						<div style="display: flex; align-items: center; gap: 8px">
+							<label class="pfb-insp-check">
+								<input
+									type="checkbox"
+									:checked="!!col.total"
+									@change="col.total = $event.target.checked ? 1 : 0"
+								/>
+								{{ __("Total") }}
+							</label>
+							<button
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-icon-button="true"
+								:title="__('Remove column')"
+								@click="selected_field.columns.splice(i, 1)"
+								v-html="frappe.utils.icon('x', 'xs')"
+							></button>
+						</div>
+					</div>
+				</div>
+				<button class="pfb-add-btn" @click="add_summary_column">
+					<span v-html="frappe.utils.icon('add', 'xs')"></span>
+					{{ __("Add Column") }}
+				</button>
+				<ColorField
+					:label="__('Borders')"
+					:model-value="selected_field.table_border_color || ''"
+					@update:model-value="(v) => set_field_prop('table_border_color', v)"
+				/>
+				<ColorField
+					:label="__('Header')"
+					:model-value="selected_field.table_header_bg || ''"
+					@update:model-value="(v) => set_field_prop('table_header_bg', v)"
+				/>
+			</template>
 			<template v-else-if="is_spacer">
 				<StepperRow
 					:label="__('Height')"
@@ -208,7 +392,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import ToggleRow from "./ToggleRow.vue";
@@ -234,6 +418,8 @@ const NON_TEXT_FIELDTYPES = new Set([
 	"Spacer",
 	"Divider",
 	"Field Template",
+	"Static Text",
+	"Summary Table",
 ]);
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
 
@@ -264,6 +450,9 @@ let is_image_element = computed(
 // dragged Barcode docfields get size/align only — value and format come from
 // the field itself
 let is_barcode_element = computed(() => selected_field.value?.fieldtype === "Barcode");
+let is_static_text = computed(() => selected_field.value?.fieldtype === "Static Text");
+let is_linked_field = computed(() => selected_field.value?.fieldtype === "Linked Field");
+let is_summary_table = computed(() => selected_field.value?.fieldtype === "Summary Table");
 
 // QR comes from Barcode docfields with qrcode options, not the block; the
 // option stays visible only on elements saved as QR before that change
@@ -284,6 +473,75 @@ let barcode_field_options = computed(() => {
 			.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname })),
 	];
 });
+
+// ── linked field ───────────────────────────────────────────
+let link_fieldname = computed(() => (selected_field.value?.link_path || "").split(".")[0] || "");
+let link_target_fieldname = computed(
+	() => (selected_field.value?.link_path || "").split(".")[1] || ""
+);
+let link_field_options = computed(() =>
+	(store.meta.value?.fields || [])
+		.filter((f) => f.fieldtype === "Link" && f.options)
+		.map((f) => ({ label: `${f.label || f.fieldname} (${f.options})`, value: f.fieldname }))
+);
+let link_target_fields = ref([]);
+watch(
+	link_fieldname,
+	(fieldname) => {
+		link_target_fields.value = [];
+		const link_df = (store.meta.value?.fields || []).find((f) => f.fieldname === fieldname);
+		if (!link_df?.options) return;
+		frappe.model.with_doctype(link_df.options, () => {
+			link_target_fields.value = frappe.get_meta(link_df.options).fields;
+		});
+	},
+	{ immediate: true }
+);
+let link_target_options = computed(() =>
+	link_target_fields.value
+		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }))
+);
+function set_link_fieldname(fieldname) {
+	selected_field.value.link_path = fieldname ? fieldname + "." : "";
+}
+function set_link_target(fieldname) {
+	selected_field.value.link_path = `${link_fieldname.value}.${fieldname}`;
+}
+
+// ── summary table ──────────────────────────────────────────
+let table_field_options = computed(() =>
+	(store.meta.value?.fields || [])
+		.filter((f) => f.fieldtype === "Table")
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }))
+);
+let summary_child_fields = ref([]);
+watch(
+	() => [selected_field.value?.fieldtype, selected_field.value?.source],
+	([fieldtype, source]) => {
+		if (fieldtype !== "Summary Table") return;
+		summary_child_fields.value = [];
+		const table_df = (store.meta.value?.fields || []).find((f) => f.fieldname === source);
+		if (!table_df?.options) return;
+		frappe.model.with_doctype(table_df.options, () => {
+			summary_child_fields.value = frappe.get_meta(table_df.options).fields;
+		});
+	},
+	{ immediate: true }
+);
+let summary_child_options = computed(() =>
+	summary_child_fields.value
+		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }))
+);
+function set_summary_source(source) {
+	selected_field.value.source = source;
+	selected_field.value.group_by = "";
+}
+function add_summary_column() {
+	if (!selected_field.value.columns) selected_field.value.columns = [];
+	selected_field.value.columns.push({ label: "", expr: "", format: "", group: "", total: 0 });
+}
 
 let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);
 let barcode_size = computed(

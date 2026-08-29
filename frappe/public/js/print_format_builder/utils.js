@@ -367,6 +367,16 @@ const FIELD_PLUCK_KEYS = [
 	"barcode_value",
 	"barcode_format",
 	"show_text",
+	"text",
+	"bold",
+	"font_size",
+	"link_path",
+	"show_empty",
+	"hide_colon",
+	"group_by",
+	"columns",
+	"show_totals",
+	"table_min_height",
 ];
 
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(

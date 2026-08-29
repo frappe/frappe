@@ -276,6 +276,7 @@ let section_inline_style = computed(() => {
 	// border wrap the padded box. Non-grid sections keep real padding.
 	if (is_grid.value) {
 		style["--pfb-cell-pad"] = `${props.section.cell_padding ?? 8}px`;
+		if (props.section.border_color) style["--pfb-grid-border"] = props.section.border_color;
 		const pad = props.section.padding;
 		if (pad) {
 			style["--pfb-pad-top"] = `${pad.top || 0}px`;

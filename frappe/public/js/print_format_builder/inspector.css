@@ -385,3 +385,17 @@ body.pfb-dragging * {
 .print-format-container .field--preview:focus {
 	outline: none;
 }
+
+.pfb-static-text-input {
+	resize: vertical;
+	margin-bottom: 6px;
+}
+
+.pfb-summary-col {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 6px;
+	border: 1px dashed var(--border-color);
+	border-radius: var(--radius);
+}
