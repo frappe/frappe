@@ -34,6 +34,7 @@ def pt(px, default=0.0) -> float:
 
 #: field types that disqualify a format — each with the reason shown to the user
 # translated at use, not import — a module-level _() would pin the first site's language
+# mirrored client-side in print_format_builder/utils.js typst_blockers_client
 BLOCKER_FIELDTYPES = {
 	"HTML": "Custom HTML block",
 	"Field Template": "Field Template (Jinja HTML)",

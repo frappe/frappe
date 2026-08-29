@@ -391,11 +391,15 @@ body.pfb-dragging * {
 	margin-bottom: 6px;
 }
 
+/* boxed group of related inputs (repeater columns, summary columns) */
+.pfb-insp-card {
+	padding: 8px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+
 .pfb-summary-col {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	padding: 6px;
-	border: 1px dashed var(--border-color);
-	border-radius: var(--radius);
 }

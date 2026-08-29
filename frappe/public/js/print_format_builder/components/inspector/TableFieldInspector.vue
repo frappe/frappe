@@ -61,7 +61,7 @@
 				unit="px"
 				:placeholder="__('auto')"
 				allow-empty
-				@update:model-value="set_table_min_height"
+				@update:model-value="(v) => set_field_prop('table_min_height', v)"
 			/>
 		</InspectorSection>
 
@@ -308,11 +308,6 @@ function set_cell_padding(v) {
 function set_table_radius(v) {
 	if (v === null) delete selected_field.value.table_radius;
 	else selected_field.value.table_radius = v;
-}
-
-function set_table_min_height(v) {
-	if (v === null) delete selected_field.value.table_min_height;
-	else selected_field.value.table_min_height = v;
 }
 
 const LOOKS = {

@@ -154,32 +154,21 @@
 				/>
 			</template>
 			<template v-else-if="is_linked_field">
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Link") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="link_fieldname"
-						@change="set_link_fieldname($event.target.value)"
-					>
-						<option value="">{{ __("Select a link field") }}</option>
-						<option v-for="f in link_field_options" :key="f.value" :value="f.value">
-							{{ f.label }}
-						</option>
-					</select>
-				</div>
-				<div class="pfb-insp-row" v-if="link_fieldname">
-					<span class="pfb-insp-label">{{ __("Field") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="link_target_fieldname"
-						@change="set_link_target($event.target.value)"
-					>
-						<option value="">{{ __("Select a field") }}</option>
-						<option v-for="f in link_target_options" :key="f.value" :value="f.value">
-							{{ f.label }}
-						</option>
-					</select>
-				</div>
+				<SelectRow
+					:label="__('Link')"
+					:model-value="link_fieldname"
+					:options="link_field_options"
+					:placeholder="__('Select a link field')"
+					@update:model-value="set_link_fieldname"
+				/>
+				<SelectRow
+					v-if="link_fieldname"
+					:label="__('Field')"
+					:model-value="link_target_fieldname"
+					:options="link_target_options"
+					:placeholder="__('Select a field')"
+					@update:model-value="set_link_target"
+				/>
 				<LabelField
 					v-model="selected_field.label"
 					:label="__('Label')"
@@ -201,32 +190,21 @@
 				/>
 			</template>
 			<template v-else-if="is_summary_table">
-				<div class="pfb-insp-row">
-					<span class="pfb-insp-label">{{ __("Source") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="selected_field.source || ''"
-						@change="set_summary_source($event.target.value)"
-					>
-						<option value="">{{ __("Select a child table") }}</option>
-						<option v-for="f in table_field_options" :key="f.value" :value="f.value">
-							{{ f.label }}
-						</option>
-					</select>
-				</div>
-				<div class="pfb-insp-row" v-if="selected_field.source">
-					<span class="pfb-insp-label">{{ __("Group by") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="selected_field.group_by || ''"
-						@change="selected_field.group_by = $event.target.value"
-					>
-						<option value="">{{ __("Select a field") }}</option>
-						<option v-for="f in summary_child_options" :key="f.value" :value="f.value">
-							{{ f.label }}
-						</option>
-					</select>
-				</div>
+				<SelectRow
+					:label="__('Source')"
+					:model-value="selected_field.source"
+					:options="table_field_options"
+					:placeholder="__('Select a child table')"
+					@update:model-value="set_summary_source"
+				/>
+				<SelectRow
+					v-if="selected_field.source"
+					:label="__('Group by')"
+					:model-value="selected_field.group_by"
+					:options="summary_child_options"
+					:placeholder="__('Select a field')"
+					@update:model-value="(v) => (selected_field.group_by = v)"
+				/>
 				<ToggleRow
 					:label="__('Totals row')"
 					:model-value="!!selected_field.show_totals"
@@ -235,7 +213,7 @@
 				<div
 					v-for="(col, i) in selected_field.columns || []"
 					:key="i"
-					class="pfb-summary-col"
+					class="pfb-insp-card pfb-summary-col"
 				>
 					<div class="pfb-insp-row">
 						<input
@@ -392,7 +370,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject } from "vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import ToggleRow from "./ToggleRow.vue";
@@ -405,6 +383,9 @@ import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";
 import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
+import SelectRow from "./SelectRow.vue";
+import { useDoctypeFields } from "../../composables/useDoctypeFields";
+import { value_field_opts, table_field_opts } from "../../utils";
 
 defineProps(["fieldIsInline"]);
 
@@ -484,24 +465,16 @@ let link_field_options = computed(() =>
 		.filter((f) => f.fieldtype === "Link" && f.options)
 		.map((f) => ({ label: `${f.label || f.fieldname} (${f.options})`, value: f.fieldname }))
 );
-let link_target_fields = ref([]);
-watch(
-	link_fieldname,
-	(fieldname) => {
-		link_target_fields.value = [];
-		const link_df = (store.meta.value?.fields || []).find((f) => f.fieldname === fieldname);
-		if (!link_df?.options) return;
-		frappe.model.with_doctype(link_df.options, () => {
-			link_target_fields.value = frappe.get_meta(link_df.options).fields;
-		});
-	},
-	{ immediate: true }
+
+let link_target_fields = useDoctypeFields(
+	computed(
+		() =>
+			(store.meta.value?.fields || []).find(
+				(f) => f.fieldname === link_fieldname.value && f.fieldtype === "Link"
+			)?.options
+	)
 );
-let link_target_options = computed(() =>
-	link_target_fields.value
-		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
-		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }))
-);
+let link_target_options = computed(() => value_field_opts(link_target_fields.value));
 function set_link_fieldname(fieldname) {
 	selected_field.value.link_path = fieldname ? fieldname + "." : "";
 }
@@ -510,30 +483,16 @@ function set_link_target(fieldname) {
 }
 
 // ── summary table ──────────────────────────────────────────
-let table_field_options = computed(() =>
-	(store.meta.value?.fields || [])
-		.filter((f) => f.fieldtype === "Table")
-		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }))
+let table_field_options = computed(() => table_field_opts(store.meta.value?.fields));
+let summary_child_fields = useDoctypeFields(
+	computed(
+		() =>
+			(store.meta.value?.fields || []).find(
+				(f) => f.fieldname === selected_field.value?.source && f.fieldtype === "Table"
+			)?.options
+	)
 );
-let summary_child_fields = ref([]);
-watch(
-	() => [selected_field.value?.fieldtype, selected_field.value?.source],
-	([fieldtype, source]) => {
-		if (fieldtype !== "Summary Table") return;
-		summary_child_fields.value = [];
-		const table_df = (store.meta.value?.fields || []).find((f) => f.fieldname === source);
-		if (!table_df?.options) return;
-		frappe.model.with_doctype(table_df.options, () => {
-			summary_child_fields.value = frappe.get_meta(table_df.options).fields;
-		});
-	},
-	{ immediate: true }
-);
-let summary_child_options = computed(() =>
-	summary_child_fields.value
-		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
-		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }))
-);
+let summary_child_options = computed(() => value_field_opts(summary_child_fields.value));
 function set_summary_source(source) {
 	selected_field.value.source = source;
 	selected_field.value.group_by = "";

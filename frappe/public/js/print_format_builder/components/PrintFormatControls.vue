@@ -393,6 +393,7 @@ import {
 	get_table_columns,
 	pluck,
 	setDragging,
+	FIELD_PLUCK_KEYS,
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import { useStore } from "../stores";
@@ -540,36 +541,7 @@ function confirm_delete_snippet(name) {
 
 // ── helpers ────────────────────────────────────────────────
 function clone_field(df) {
-	let cloned = pluck(df, [
-		"label",
-		"fieldname",
-		"fieldtype",
-		"options",
-		"table_columns",
-		"html",
-		"typst",
-		"field_template",
-		"source",
-		"repeater_columns",
-		"custom",
-		"image_url",
-		"width",
-		"height",
-		"barcode_field",
-		"barcode_value",
-		"barcode_format",
-		"show_text",
-		"text",
-		"bold",
-		"font_size",
-		"link_path",
-		"show_empty",
-		"hide_colon",
-		"group_by",
-		"columns",
-		"show_totals",
-		"show_label",
-	]);
+	let cloned = pluck(df, FIELD_PLUCK_KEYS);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
 	}

@@ -865,16 +865,19 @@ class PrintFormatGenerator:
 		row per child row."""
 		if not isinstance(condition, str):
 			return True
+		return bool(self.eval_logged(condition, eval_locals, where, default=True))
+
+	def eval_logged(self, expr, eval_locals, where, default):
 		try:
-			return bool(frappe.safe_eval(condition, None, eval_locals))
+			return frappe.safe_eval(expr, None, eval_locals)
 		except Exception:
-			if condition not in self._logged_conditions:
-				self._logged_conditions.add(condition)
+			if expr not in self._logged_conditions:
+				self._logged_conditions.add(expr)
 				frappe.log_error(
 					title=f"Print format condition failed: {self.print_format.name}",
-					message=f"{where}: {condition}",
+					message=f"{where}: {expr}",
 				)
-			return True
+			return default
 
 	def column_condition_met(self, col, eval_locals):
 		condition = col.get("column_condition")
@@ -1038,14 +1041,12 @@ class PrintFormatGenerator:
 		def eval_row(key, g):
 			cells = []
 			for column in df["columns"]:
-				try:
-					value = frappe.safe_eval(
-						column.get("expr") or "''",
-						None,
-						{"key": key, "g": g, "doc": self.doc, "tax_rate": tax_rate},
-					)
-				except Exception:
-					value = ""
+				value = self.eval_logged(
+					column.get("expr") or "''",
+					{"key": key, "g": g, "doc": self.doc, "tax_rate": tax_rate},
+					f"summary column {column.get('label') or ''}",
+					default="",
+				)
 				align = column.get("align") or ("right" if column.get("format") == "currency" else "center")
 				cells.append({"value": format_cell(value, column), "align": align})
 			return cells
