@@ -1,13 +1,22 @@
-"""The small runtime that owns loaded extensions and their registered tools."""
+"""The small runtime that owns loaded extensions, their registered tools, and tool hooks."""
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from inspect import isawaitable
 from pathlib import Path
 
+from flow.events import ToolCall, ToolResult
+from flow.extensions.hooks import (
+	HOOK_EVENTS,
+	PostToolUseEvent,
+	PostToolUseOverride,
+	PreToolUseDecision,
+	PreToolUseEvent,
+)
 from flow.extensions.loader import ExtensionDiagnostic, LoadedExtension, load_extensions
-from flow.tools import Tool
+from flow.tools import Tool, ToolContext
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,15 +42,28 @@ class ExtensionAPI:
 			raise TypeError("register_tool expects a flow.tools.Tool (usually created with @tool)")
 		self._runtime.register_tool(self._extension_name, tool)
 
+	def on(self, event: str, handler: Callable[..., object]) -> None:
+		"""Subscribe to `tool_call` (block/rewrite a call) or `tool_result` (rewrite a result).
+
+		The handler takes the event payload from `flow.extensions.hooks` and returns the
+		matching result dataclass, or None to pass. Sync or async."""
+		if event not in HOOK_EVENTS:
+			raise ValueError(f"unknown hook event {event!r} (expected one of: {', '.join(HOOK_EVENTS)})")
+		if not callable(handler):
+			raise TypeError(f"handler for `{event}` must be callable")
+		self._runtime.register_handler(self._extension_name, event, handler)
+
 
 class ExtensionRuntime:
-	"""Loads extensions once and exposes their tools and diagnostics."""
+	"""Loads extensions once and exposes their tools, hooks, and diagnostics."""
 
 	def __init__(self) -> None:
 		self._extensions: list[RegisteredExtension] = []
 		self._tools: dict[str, Tool] = {}
 		self._tool_sources: dict[str, str] = {}
+		self._handlers: dict[str, list[tuple[str, Callable[..., object]]]] = {}
 		self._diagnostics: list[ExtensionDiagnostic] = []
+		self._seen_runtime_keys: set[tuple[str, str, str]] = set()
 
 	def load(
 		self,
@@ -64,7 +86,7 @@ class ExtensionRuntime:
 		try:
 			extension.setup(api)
 		except Exception as error:  # extensions are an isolation boundary
-			self._remove_tools(extension.name)
+			self._remove_registrations(extension.name)
 			self._diagnostics.append(
 				ExtensionDiagnostic(
 					message=f"setup failed: {error!r}",
@@ -91,15 +113,94 @@ class ExtensionRuntime:
 		self._tools[tool.name] = tool
 		self._tool_sources[tool.name] = extension_name
 
-	def _remove_tools(self, extension_name: str) -> None:
+	def register_handler(self, extension_name: str, event: str, handler: Callable[..., object]) -> None:
+		self._handlers.setdefault(event, []).append((extension_name, handler))
+
+	def _remove_registrations(self, extension_name: str) -> None:
 		for name, source in tuple(self._tool_sources.items()):
 			if source == extension_name:
 				self._tool_sources.pop(name, None)
 				self._tools.pop(name, None)
+		for event, handlers in self._handlers.items():
+			self._handlers[event] = [entry for entry in handlers if entry[0] != extension_name]
 
 	def compose_tools(self, builtin_tools: dict[str, Tool]) -> dict[str, Tool]:
 		"""Return selected built-ins plus extension tools; extensions override by name."""
 		return {**builtin_tools, **self._tools}
+
+	# --- tool hook dispatch (semantics ported from pi/tau) --------------------
+
+	@property
+	def has_tool_hooks(self) -> bool:
+		return any(self._handlers.values())
+
+	async def run_tool_call_hooks(self, call: ToolCall, ctx: ToolContext) -> PreToolUseDecision:
+		"""Run `tool_call` handlers in load order against one call about to execute.
+
+		Each handler sees the current effective arguments. A raising handler blocks the
+		call (fail-safe: a broken gate must not let the call through)."""
+		arguments = dict(call.args)
+		changed = False
+		for extension_name, handler in self._handlers.get("tool_call", ()):
+			event = PreToolUseEvent(tool_name=call.name, arguments=dict(arguments), cwd=ctx.cwd)
+			try:
+				result = await _resolve(handler(event))
+			except Exception as error:
+				self._record(extension_name, "tool_call", f"handler raised: {error!r}", "error")
+				return PreToolUseDecision(
+					block=True,
+					reason=f"extension `{extension_name}` tool_call hook failed: {error}",
+				)
+			if result is None:
+				continue
+			if not isinstance(result, PreToolUseDecision):
+				self._record(extension_name, "tool_call", _unsupported(result), "warning")
+				continue
+			if result.block:
+				reason = result.reason or f"Blocked by extension `{extension_name}`."
+				return PreToolUseDecision(block=True, reason=reason)
+			if result.arguments is not None:
+				arguments = dict(result.arguments)
+				changed = True
+		return PreToolUseDecision(arguments=arguments) if changed else PreToolUseDecision()
+
+	async def run_tool_result_hooks(self, call: ToolCall, result: ToolResult) -> ToolResult:
+		"""Run `tool_result` handlers in load order; each sees the previous rewrite.
+
+		A raising handler is recorded and skipped — the result stands (fail-open)."""
+		current = result
+		for extension_name, handler in self._handlers.get("tool_result", ()):
+			event = PostToolUseEvent(tool_name=call.name, arguments=call.args, result=current)
+			try:
+				outcome = await _resolve(handler(event))
+			except Exception as error:
+				self._record(extension_name, "tool_result", f"handler raised: {error!r}", "error")
+				continue
+			if outcome is None:
+				continue
+			if not isinstance(outcome, PostToolUseOverride):
+				self._record(extension_name, "tool_result", _unsupported(outcome), "warning")
+				continue
+			updates: dict = {}
+			if outcome.content is not None:
+				updates["content"] = outcome.content
+			if outcome.details is not None:
+				updates["details"] = dict(outcome.details)
+			if updates:
+				current = current.model_copy(update=updates)
+		return current
+
+	def _record(self, extension_name: str, event: str, message: str, severity: str) -> None:
+		# hooks run on every tool call, so a repeat of the same kind is recorded once
+		key = (extension_name, event, severity)
+		if key in self._seen_runtime_keys:
+			return
+		self._seen_runtime_keys.add(key)
+		self._diagnostics.append(
+			ExtensionDiagnostic(message=f"`{event}` {message}", extension=extension_name, severity=severity)
+		)
+
+	# --- inspection -----------------------------------------------------------
 
 	@property
 	def tools(self) -> dict[str, Tool]:
@@ -126,8 +227,21 @@ class ExtensionRuntime:
 					"tools": [
 						name for name, source in self._tool_sources.items() if source == extension.name
 					],
+					"hooks": [
+						event
+						for event in HOOK_EVENTS
+						if any(name == extension.name for name, _ in self._handlers.get(event, ()))
+					],
 				}
 				for extension in self._extensions
 			],
-			"diagnostics": [diagnostic.to_dict() for diagnostic in self._diagnostics],
+			"diagnostics": [diagnostic.to_dict() for diagnostic in self.diagnostics],
 		}
+
+
+def _unsupported(result: object) -> str:
+	return f"handler returned unsupported result type {type(result).__name__}; ignored"
+
+
+async def _resolve(value: object) -> object:
+	return await value if isawaitable(value) else value
