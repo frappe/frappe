@@ -110,7 +110,7 @@
 				v-if="section_field_borders"
 				:label="__('Border color')"
 				:model-value="selected_section.border_color || ''"
-				@update:model-value="set_border_color"
+				@update:model-value="(v) => set_section_prop('border_color', v)"
 			/>
 		</InspectorSection>
 
@@ -231,11 +231,11 @@ function set_grid_borders(v) {
 	}
 }
 
-function set_border_color(v) {
-	if (v) {
-		selected_section.value.border_color = v;
+function set_section_prop(key, value) {
+	if (value) {
+		selected_section.value[key] = value;
 	} else {
-		delete selected_section.value.border_color;
+		delete selected_section.value[key];
 	}
 }
 </script>

@@ -333,7 +333,7 @@ const TABLE_COLUMN_PLUCK_KEYS = [
 	"column_condition",
 ];
 
-const FIELD_PLUCK_KEYS = [
+export const FIELD_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -617,4 +617,17 @@ export function get_image_dimensions(src) {
 		img.onerror = () => reject(new Error(`could not load image: ${src}`));
 		img.src = src;
 	});
+}
+
+// Option lists shared by the inspectors
+export function value_field_opts(fields) {
+	return (fields || [])
+		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
+}
+
+export function table_field_opts(fields) {
+	return (fields || [])
+		.filter((f) => f.fieldtype === "Table")
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
 }

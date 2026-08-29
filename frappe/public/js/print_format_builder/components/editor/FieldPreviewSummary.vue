@@ -41,6 +41,8 @@ const props = defineProps(["df"]);
 
 let leaf_count = computed(() => (props.df.columns || []).length || 1);
 
+// Mirrors the header-group builder in PrintFormatGenerator.prepare_summary_table —
+// the canvas renders headers before any doc exists, so it can't ask the server
 let heads = computed(() => {
 	const columns = props.df.columns || [];
 	const head1 = [];
