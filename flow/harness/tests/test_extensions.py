@@ -318,6 +318,35 @@ def setup(flow):
 	assert "`tool_call` handler raised" in diagnostics[0].message
 
 
+async def test_malformed_decision_fields_are_ignored_with_warnings(tmp_path):
+	"""A well-typed decision with garbage fields degrades per field — never a dead run."""
+	store, session = _hook_session(
+		tmp_path,
+		"""
+from flow.extensions import PreToolUseDecision, PostToolUseOverride
+
+def bad_arguments(event):
+    return PreToolUseDecision(arguments=42)
+
+def bad_override(event):
+    return PostToolUseOverride(content=123, details="not a dict")
+
+def setup(flow):
+    flow.on("tool_call", bad_arguments)
+    flow.on("tool_result", bad_override)
+""",
+	)
+
+	results = await _run_to_end(session, _hello_call_model())
+
+	assert results[0]["content"] == "Hello, Flow!"  # original args ran, result stands
+	assert results[0]["is_error"] is False
+	messages = [d.message for d in store.extension_runtime.diagnostics if d.severity == "warning"]
+	assert any("`arguments` of unsupported type int" in m for m in messages)
+	assert any("`content` of unsupported type int" in m for m in messages)
+	assert any("`details` of unsupported type str" in m for m in messages)
+
+
 async def test_mutating_hook_events_does_not_touch_the_transcript(tmp_path):
 	"""In-place edits to hook events must not leak; returning a result is the only channel."""
 	_, session = _hook_session(

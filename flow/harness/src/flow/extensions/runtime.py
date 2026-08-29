@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from inspect import isawaitable
 from pathlib import Path
@@ -157,9 +157,18 @@ class ExtensionRuntime:
 				self._record(extension_name, "tool_call", _unsupported(result), "warning")
 				continue
 			if result.block:
-				reason = result.reason or f"Blocked by extension `{extension_name}`."
-				return PreToolUseDecision(block=True, reason=reason)
+				reason = result.reason if isinstance(result.reason, str) else None
+				if result.reason is not None and reason is None:
+					self._record(extension_name, "tool_call", _malformed("reason", result.reason), "warning")
+				return PreToolUseDecision(
+					block=True, reason=reason or f"Blocked by extension `{extension_name}`."
+				)
 			if result.arguments is not None:
+				if not isinstance(result.arguments, Mapping):
+					self._record(
+						extension_name, "tool_call", _malformed("arguments", result.arguments), "warning"
+					)
+					continue
 				arguments = dict(result.arguments)
 				changed = True
 		return PreToolUseDecision(arguments=arguments) if changed else PreToolUseDecision()
@@ -187,16 +196,26 @@ class ExtensionRuntime:
 				continue
 			updates: dict = {}
 			if outcome.content is not None:
-				updates["content"] = outcome.content
+				if isinstance(outcome.content, str):
+					updates["content"] = outcome.content
+				else:
+					self._record(
+						extension_name, "tool_result", _malformed("content", outcome.content), "warning"
+					)
 			if outcome.details is not None:
-				updates["details"] = dict(outcome.details)
+				if isinstance(outcome.details, Mapping):
+					updates["details"] = dict(outcome.details)
+				else:
+					self._record(
+						extension_name, "tool_result", _malformed("details", outcome.details), "warning"
+					)
 			if updates:
 				current = current.model_copy(update=updates)
 		return current
 
 	def _record(self, extension_name: str, event: str, message: str, severity: str) -> None:
-		# hooks run on every tool call, so a repeat of the same kind is recorded once
-		key = (extension_name, event, severity)
+		# hooks run on every tool call, so an identical repeat is recorded once
+		key = (extension_name, event, message)
 		if key in self._seen_runtime_keys:
 			return
 		self._seen_runtime_keys.add(key)
@@ -245,6 +264,10 @@ class ExtensionRuntime:
 
 def _unsupported(result: object) -> str:
 	return f"handler returned unsupported result type {type(result).__name__}; ignored"
+
+
+def _malformed(field: str, value: object) -> str:
+	return f"handler returned `{field}` of unsupported type {type(value).__name__}; ignored"
 
 
 async def _resolve(value: object) -> object:
