@@ -1824,9 +1824,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
-		const has_datatable = !!this.datatable;
-		let visible_idx = has_datatable ? this.get_validated_visible_indexes() : [];
-
 		const extra_fields = [];
 		const applied_filters = this.get_applied_filters(this.get_filter_values());
 
@@ -1886,6 +1883,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				csv_decimal_sep,
 			}) => {
 				this.make_access_log("Export", file_format);
+
+				const has_datatable = !!this.datatable;
+				let visible_idx = has_datatable ? this.get_validated_visible_indexes() : [];
 
 				const filters = this.get_filter_values(true);
 				const applied_filters = this.get_applied_filters(filters);
