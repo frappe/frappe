@@ -1094,6 +1094,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
 			);
 
+			if (this.datatable) {
+				this.datatable.destroy();
+				this.datatable = null;
+			}
+
 			this.toggle_message(true, `${frappe.utils.icon("solid-warning")} ${msg}`);
 			return;
 		}
