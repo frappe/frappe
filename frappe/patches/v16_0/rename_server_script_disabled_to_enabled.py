@@ -11,6 +11,6 @@ def execute():
 	frappe.db.sql(
 		"""
 		UPDATE `tabServer Script`
-		SET enabled = IF(disabled = 1, 0, 1)
+		SET enabled = CASE WHEN disabled = 1 THEN 0 ELSE 1 END
 		"""
 	)

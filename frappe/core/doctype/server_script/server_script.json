@@ -74,10 +74,10 @@
    "label": "Allow Guest"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Disabled"
+   "label": "Enabled"
   },
   {
    "fieldname": "column_break_3",
