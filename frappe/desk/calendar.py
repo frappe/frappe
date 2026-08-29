@@ -6,6 +6,11 @@ from datetime import date
 
 import frappe
 from frappe import _
+<<<<<<< HEAD
+=======
+from frappe.query_builder import functions
+from frappe.utils import get_datetime, getdate
+>>>>>>> 37c13e3 (fix: load calendar events when the user timezone differs from the system)
 
 
 @frappe.whitelist()
@@ -32,13 +37,26 @@ def get_event_conditions(doctype, filters=None):
 @frappe.whitelist()
 def get_events(
 	doctype: str,
+<<<<<<< HEAD
 	start: date,
 	end: date,
 	field_map: str,
 	filters: str | None = None,
+=======
+	start: str | date,
+	end: str | date,
+	field_map: str | dict,
+	filters: str | list | dict | None = None,
+>>>>>>> 37c13e3 (fix: load calendar events when the user timezone differs from the system)
 	fields: str | list[str] | None = None,
 ):
+<<<<<<< HEAD
 	field_map = frappe._dict(json.loads(field_map))
+=======
+	start, end = getdate(start), get_datetime(end)
+
+	field_map = frappe._dict(frappe.parse_json(field_map))
+>>>>>>> 37c13e3 (fix: load calendar events when the user timezone differs from the system)
 	fields = frappe.parse_json(fields)
 
 	doc_meta = frappe.get_meta(doctype)
