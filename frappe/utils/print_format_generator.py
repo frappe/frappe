@@ -988,6 +988,10 @@ class PrintFormatGenerator:
 		target_df = target_meta.get_field(target_fieldname)
 		if not target_df:
 			return
+		if target_df.permlevel:
+			target_doc = frappe.get_doc(link_df.options, name)
+			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
+				return
 		value = frappe.db.get_value(link_df.options, name, target_fieldname)
 		if value is None:
 			return
