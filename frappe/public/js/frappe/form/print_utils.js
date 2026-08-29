@@ -3,7 +3,13 @@ frappe.ui.get_print_settings = function (
 	callback,
 	letter_head,
 	pick_columns,
+<<<<<<< HEAD
 	has_filters = false
+=======
+	is_query_report = false,
+	title = null,
+	default_print_format = null
+>>>>>>> 0dd6248 (fix: show print format field only for query/script reports)
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -26,6 +32,7 @@ frappe.ui.get_print_settings = function (
 			default: "Landscape",
 		},
 		{
+<<<<<<< HEAD
 			fieldtype: "Link",
 			fieldname: "print_format",
 			label: __("Print Format"),
@@ -40,6 +47,8 @@ frappe.ui.get_print_settings = function (
 			}),
 		},
 		{
+=======
+>>>>>>> 0dd6248 (fix: show print format field only for query/script reports)
 			fieldtype: "Check",
 			fieldname: "with_letter_head",
 			label: __("With Letter head"),
@@ -54,7 +63,29 @@ frappe.ui.get_print_settings = function (
 		},
 	];
 
-	if (has_filters) {
+	// Print format and include-filters only apply to query/script reports.
+	if (is_query_report) {
+		columns.splice(1, 0, {
+			fieldtype: "Link",
+			fieldname: "print_format",
+			label: __("Print Format"),
+			options: "Print Format",
+			default: default_print_format,
+			description: __(
+				"If no Print Format is selected, the default template for this report will be used."
+			),
+			get_query: () => ({
+				filters: {
+					print_format_for: "Report",
+					print_format_type: "JS",
+					report: frappe.query_report ? frappe.query_report.report_name : "",
+					disabled: 0,
+				},
+			}),
+		});
+	}
+
+	if (is_query_report) {
 		columns.push({
 			label: __("Include filters"),
 			fieldtype: "Check",
