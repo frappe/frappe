@@ -29,14 +29,14 @@
 			{% for row in _summary.rows %}
 			<tr class="table-row">
 				{% for cell in row %}
-				<td class="column-value" style="text-align: {{ cell.align }};{{ _cell_style|e }}">{{ cell.value }}</td>
+				<td class="column-value" style="text-align: {{ cell.align }};{{ _cell_style|e }}">{{ cell.value|e }}</td>
 				{% endfor %}
 			</tr>
 			{% endfor %}
 			{% if _summary.totals %}
 			<tr class="table-row pfb-summary-total">
 				{% for cell in _summary.totals %}
-				<td class="column-value" style="text-align: {{ cell.align }}; font-weight:700;{{ _cell_style|e }}">{{ cell.value }}</td>
+				<td class="column-value" style="text-align: {{ cell.align }}; font-weight:700;{{ _cell_style|e }}">{{ cell.value|e }}</td>
 				{% endfor %}
 			</tr>
 			{% endif %}
