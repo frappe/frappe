@@ -19,12 +19,8 @@ from flow.events import (
 	Usage,
 	UserMessage,
 )
-from flow.model.base import (
-	Model,
-	ModelRequest,
-	tool_call_display_ready_event,
-	with_tool_call_displays,
-)
+from flow.model.base import Model, ModelRequest
+from flow.model.tool_display import tool_call_display_ready_event, with_tool_call_displays
 
 
 class MockModel(Model):

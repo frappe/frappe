@@ -602,7 +602,7 @@ async def test_http_transient_failure_retries_in_stream(status):
 
 
 async def test_timeout_retries_in_stream(monkeypatch):
-	monkeypatch.setattr("flow.model.base._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
 	attempts = 0
 
 	def handler(request):

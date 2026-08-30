@@ -48,7 +48,7 @@ from flow.events import (
 )
 from flow.model import Model, ProviderError, get_model
 from flow.model.auth import resolve_model_auth
-from flow.model.base import ModelCancelled
+from flow.model.cancellation import ModelCancelled
 from flow.model.credentials import CredentialStore
 from flow.model.reasoning import reasoning_params
 from flow.session import titling

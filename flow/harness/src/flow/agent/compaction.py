@@ -23,7 +23,8 @@ from flow.events import (
 	TranscriptMessage,
 	UserMessage,
 )
-from flow.model.base import Model, ModelCancelled, ModelRequest, iterate_with_cancellation
+from flow.model.base import Model, ModelRequest
+from flow.model.cancellation import ModelCancelled, iterate_with_cancellation
 from flow.model.content import attachment_summary
 from flow.session.transcript import COMPACTION_SUMMARY_PREFIX
 

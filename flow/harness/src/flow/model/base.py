@@ -2,11 +2,11 @@
 
 An adapter yields `TextDelta` / `ThinkingDelta` / `ToolCallStarted` / `ToolCallDisplayReady`
 while streaming, then always terminates with an `AssistantMessage` followed by a `Usage`.
-Everything that can go wrong with a provider is owned here too, so the agent loop never
-has to care:
+Everything that can go wrong with a provider is owned by this package too, so the agent
+loop never has to care:
 
   - failures are raised as a typed `ProviderError` (see `errors.py`);
-  - transient failures are retried inside the stream by `run_with_retries`, which
+  - transient failures are retried inside the stream by `retry.run_with_retries`, which
     emits `Retry` progress events between attempts — a retry may only happen before the terminal
     `AssistantMessage` is out, since that is the moment the turn becomes durable;
   - cancellation ends the turn gracefully with an `AssistantMessage(stop_reason=
@@ -17,139 +17,11 @@ from __future__ import annotations
 
 import abc
 import asyncio
-import random
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
-from contextlib import suppress
+from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from pydantic_core import from_json
-
-from flow.events import (
-	AnyEvent,
-	AssistantMessage,
-	DisplaySegment,
-	Retry,
-	ToolCall,
-	ToolCallDisplayReady,
-	TranscriptMessage,
-)
-from flow.model.errors import ProviderError, credential_refresh_error
-from flow.tools.tool import _DISPLAY_VALUE_CHARS, display_template_variables, render_tool_display
-
-_RETRY_BASE_DELAY_SECONDS = 0.5
-_RETRY_MAX_BACKOFF_SECONDS = 8.0
-# A provider hint asking us to wait longer than this means the call is not worth
-# retrying at all.
-_RETRY_MAX_PROVIDER_DELAY_SECONDS = 60.0
-_MAX_TRANSIENT_RETRIES = 2
-_TOOL_METADATA_PREFIX_CHARS = 4096
-
-
-def _tool_call_arguments(
-	arguments: str | Mapping[str, Any], *, complete: bool = False
-) -> Mapping[str, Any] | None:
-	if not isinstance(arguments, str):
-		return arguments
-	if not arguments:
-		return {}
-	try:
-		parsed = from_json(
-			arguments if complete else arguments[:_TOOL_METADATA_PREFIX_CHARS],
-			allow_partial=not complete,
-		)
-	except ValueError:
-		return None
-	return parsed if isinstance(parsed, Mapping) else None
-
-
-def extract_tool_call_display_metadata(
-	arguments: str | Mapping[str, Any], *, allow_empty: bool = False
-) -> dict[str, str] | None:
-	"""Extract complete top-level strings from a bounded prefix of streamed JSON.
-
-	Labels need small fields such as ``path`` or ``command``, not a second copy of a
-	potentially large edit payload. Partial parsing exposes those fields as soon as
-	their string closes while the prefix bound keeps repeated chunk handling cheap.
-	"""
-	parsed = _tool_call_arguments(arguments)
-	if parsed is None:
-		return None
-	metadata = {
-		str(key): value[:_DISPLAY_VALUE_CHARS]
-		for key, value in parsed.items()
-		if isinstance(value, str) and value
-	}
-	return metadata if metadata or allow_empty else None
-
-
-def _render_parsed_tool_display(
-	template: str, arguments: Mapping[str, Any], *, partial: bool
-) -> list[DisplaySegment] | None:
-	# Partial JSON parsing reliably tells us when a string closes. Numbers and
-	# containers can still grow in a later chunk, so render those only from a
-	# complete payload (or an already-materialized mapping, as used by MockModel).
-	if partial:
-		for name in display_template_variables(template):
-			if name in arguments and not isinstance(arguments[name], str):
-				return None
-	return render_tool_display(template, dict(arguments))
-
-
-def tool_call_display_ready_event(
-	call_id: str,
-	name: str,
-	arguments: str | Mapping[str, Any],
-	*,
-	display_template: str | None = None,
-	complete: bool = False,
-) -> ToolCallDisplayReady | None:
-	"""Build the first useful live event for a streamed tool call."""
-	if not call_id or not name:
-		return None
-	complete = complete or not isinstance(arguments, str)
-	parsed = _tool_call_arguments(arguments, complete=complete)
-	if parsed is None:
-		if not complete:
-			return None
-		# Preserve any safe string metadata from a malformed final payload. The
-		# durable ToolCall will carry the provider parse error.
-		metadata = extract_tool_call_display_metadata(arguments, allow_empty=True)
-		if metadata is None:
-			return None
-		return ToolCallDisplayReady(id=call_id, name=name, arguments=metadata)
-
-	display = None
-	if display_template is not None:
-		display = _render_parsed_tool_display(
-			display_template,
-			parsed,
-			partial=isinstance(arguments, str) and not complete,
-		)
-		if display is None and not complete:
-			return None
-	metadata = extract_tool_call_display_metadata(parsed, allow_empty=complete or display is not None)
-	if metadata is None:
-		return None
-	return ToolCallDisplayReady(id=call_id, name=name, arguments=metadata, display=display)
-
-
-def with_tool_call_displays(message: AssistantMessage, templates: Mapping[str, str]) -> AssistantMessage:
-	"""Render configured display text onto the durable tool calls in a message."""
-	content = None
-	for index, block in enumerate(message.content):
-		if not isinstance(block, ToolCall) or block.error is not None:
-			continue
-		template = templates.get(block.name)
-		if template is None:
-			continue
-		display = render_tool_display(template, block.arguments)
-		if display == block.display:
-			continue
-		if content is None:
-			content = list(message.content)
-		content[index] = block.model_copy(update={"display": display})
-	return message if content is None else message.model_copy(update={"content": content})
+from flow.events import AnyEvent, AssistantMessage, TranscriptMessage
 
 
 @dataclass(slots=True)
@@ -168,10 +40,6 @@ class ModelRequest:
 	max_output_tokens: int | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	tool_display_templates: Mapping[str, str] = field(default_factory=dict)
-
-
-class ModelCancelled(Exception):
-	"""Internal control flow raised when a request's cancellation signal is set."""
 
 
 class Model(abc.ABC):
@@ -211,159 +79,3 @@ class Model(abc.ABC):
 	def aborted_message(self) -> AssistantMessage:
 		"""The graceful terminal for a cancelled turn."""
 		return AssistantMessage(api=self.api, provider=self.provider, model=self.model, stop_reason="aborted")
-
-
-# --- cancellation ----------------------------------------------------------
-
-
-async def await_with_cancellation(awaitable: Awaitable[Any], cancellation: asyncio.Event | None) -> Any:
-	"""Await one provider operation while making cancellation win any completion race."""
-	if cancellation is None:
-		return await awaitable
-
-	task = asyncio.ensure_future(awaitable)
-	if cancellation.is_set():
-		task.cancel()
-		with suppress(asyncio.CancelledError):
-			await task
-		raise ModelCancelled
-	cancel_wait = asyncio.create_task(cancellation.wait())
-	try:
-		done, _ = await asyncio.wait({task, cancel_wait}, return_when=asyncio.FIRST_COMPLETED)
-		if cancel_wait in done:
-			task.cancel()
-			with suppress(asyncio.CancelledError):
-				await task
-			raise ModelCancelled
-		return await task
-	except asyncio.CancelledError:
-		task.cancel()
-		with suppress(asyncio.CancelledError):
-			await task
-		raise
-	finally:
-		cancel_wait.cancel()
-		with suppress(asyncio.CancelledError):
-			await cancel_wait
-
-
-async def iterate_with_cancellation(
-	iterator: AsyncIterator[Any], cancellation: asyncio.Event | None
-) -> AsyncIterator[Any]:
-	"""Consume and close an async iterator, stopping the moment cancellation is requested."""
-	try:
-		while True:
-			try:
-				item = await await_with_cancellation(anext(iterator), cancellation)
-			except StopAsyncIteration:
-				return
-			yield item
-	finally:
-		await aclose(iterator)
-
-
-async def aclose(iterator: AsyncIterator[Any]) -> None:
-	"""Release an iterator we are done with.
-
-	`async for` does not close what it iterates, so an abandoned provider stream would
-	otherwise stay suspended — holding its connection — until the event loop shuts down.
-	"""
-	close = getattr(iterator, "aclose", None)
-	if close is not None:
-		with suppress(Exception):
-			await close()
-
-
-# --- the shared retry envelope --------------------------------------------
-
-
-async def run_with_retries(
-	start_attempt: Callable[[], AsyncIterator[AnyEvent]],
-	*,
-	cancellation: asyncio.Event | None = None,
-	refresh_auth: Callable[[], Awaitable[None]] | None = None,
-	provider: str = "unknown",
-) -> AsyncIterator[AnyEvent]:
-	"""Run one model turn with bounded retries, emitting `Retry` progress in-stream.
-
-	``start_attempt`` begins one fresh provider attempt. An attempt may be retried
-	only while nothing durable is out: once it has yielded its `AssistantMessage`, a
-	failure propagates instead. A failed attempt's live deltas have already escaped —
-	`Retry(status="started")` is the boundary at which a client discards them.
-
-	``refresh_auth`` is the one-shot auth recovery: on a retryable auth failure it is awaited
-	once (re-resolving credentials in place) and the turn is attempted again. Transient
-	failures never consume the refresh slot, and auth failures never consume the
-	transient budget.
-	"""
-	attempt = 1
-	max_attempts = 1 + _MAX_TRANSIENT_RETRIES + (1 if refresh_auth is not None else 0)
-	transient_used = 0
-	refresh_used = False
-
-	while True:
-		committed = False
-		attempt_events = start_attempt()
-		try:
-			async for event in attempt_events:
-				committed = committed or isinstance(event, AssistantMessage)
-				yield event
-			return
-		except ProviderError as error:
-			if committed:
-				raise
-			delay = _retry_delay_seconds(error, transient_used)
-			can_refresh = (
-				error.kind == "auth" and error.retryable and refresh_auth is not None and not refresh_used
-			)
-			can_retry = (
-				error.retryable
-				and error.kind != "auth"
-				and transient_used < _MAX_TRANSIENT_RETRIES
-				and delay <= _RETRY_MAX_PROVIDER_DELAY_SECONDS
-			)
-			if not can_refresh and not can_retry:
-				if attempt > 1:  # close a retry lifecycle this turn actually opened
-					yield Retry(status="exhausted", attempt=attempt, kind=error.kind)
-				raise
-
-			next_attempt = attempt + 1
-			if can_refresh:
-				delay = 0.0
-			yield Retry(
-				status="scheduled",
-				attempt=next_attempt,
-				max_attempts=max_attempts,
-				delay_seconds=delay,
-				kind=error.kind,
-			)
-			await await_with_cancellation(asyncio.sleep(delay), cancellation)
-			if can_refresh:
-				assert refresh_auth is not None
-				try:
-					await await_with_cancellation(refresh_auth(), cancellation)
-				except (ModelCancelled, ProviderError) as refresh_error:
-					if isinstance(refresh_error, ProviderError):
-						yield Retry(status="exhausted", attempt=attempt, kind=refresh_error.kind)
-					raise
-				except Exception as exc:
-					# The token endpoint is a second provider call; its faults must
-					# not escape untyped.
-					refreshed_error = credential_refresh_error(exc, provider=error.provider or provider)
-					yield Retry(status="exhausted", attempt=attempt, kind=refreshed_error.kind)
-					raise refreshed_error from exc
-				refresh_used = True
-			else:
-				transient_used += 1
-			yield Retry(status="started", attempt=next_attempt)
-			attempt = next_attempt
-		finally:
-			await aclose(attempt_events)
-
-
-def _retry_delay_seconds(error: ProviderError, retry_index: int) -> float:
-	"""Honour the provider's own retry hint, else jittered exponential backoff."""
-	if error.retry_after_seconds is not None:
-		return error.retry_after_seconds
-	base = min(_RETRY_BASE_DELAY_SECONDS * (2**retry_index), _RETRY_MAX_BACKOFF_SECONDS)
-	return random.uniform(base * 0.75, base)
