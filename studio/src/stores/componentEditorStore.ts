@@ -4,7 +4,7 @@ import { dialog } from "frappe-ui"
 import { studioComponents } from "@/data/studioComponents"
 import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
+import { getBlockObjectCopy, getBlockInstance, getComponentBlock, jsToJson } from "@/utils/serializer"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
@@ -21,11 +21,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	async function createComponent(componentName: string, block?: Block | null) {
 		const component: any = { component_name: componentName }
 		if (block) {
-			component.block = getBlockObjectCopy(block)
-			if (component.block?.parentSlotName) {
-				// remove parentSlotName from the top-level block of the component
-				delete component.block.parentSlotName
-			}
+			component.block = jsToJson(getComponentBlockObject(block))
 		}
 
 		return studioComponents.insert.submit(component, {
@@ -60,7 +56,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	function saveComponent(block: Block, componentName: string) {
 		const payload: any = {
 			name: componentName,
-			block: getBlockObjectCopy(block),
+			block: jsToJson(getComponentBlockObject(block)),
 		}
 
 		payload.inputs = componentInputs.value.map((input) => ({
@@ -84,6 +80,13 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 				})
 			},
 		})
+	}
+
+	function getComponentBlockObject(block: Block) {
+		const blockObject = getBlockObjectCopy(block)
+		// the top-level block of a component is not inside any slot
+		delete blockObject.parentSlotName
+		return blockObject
 	}
 
 	async function editComponent(componentId: string) {
