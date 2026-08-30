@@ -524,8 +524,10 @@ class TestShellBoot(IntegrationTestCase):
 		as_guest = get_address_table()
 
 		self.assertEqual(as_admin, as_guest)
+		# Two modules, so the module half of the address is shown to be per-doctype
+		# rather than one value carried for the whole app.
 		self.assertEqual(as_admin["doctypes"]["User"], ["user", "core"])
-		self.assertEqual(as_admin["doctypes"]["CRM Deal"], ["crm-deal", "fcrm"])
+		self.assertEqual(as_admin["doctypes"]["ToDo"], ["todo", "desk"])
 
 	def test_the_address_table_is_full_bench_and_the_same_under_every_prefix(self):
 		"""The prefix is a LENS: every doctype is addressable under every prefix.
@@ -538,10 +540,20 @@ class TestShellBoot(IntegrationTestCase):
 
 		doctypes = get_address_table()["doctypes"]
 
-		# One from each of three different owners, all in the one table.
-		self.assertIn("CRM Deal", doctypes)
-		self.assertIn("User", doctypes)
-		self.assertIn("Contact", doctypes)
+		# EVERY addressable doctype on the site, not the requesting app's. Asserted as
+		# a set equality rather than by naming a doctype from a second app, because
+		# there is no second app on CI — and this is the stronger statement anyway:
+		# it fails if any owner filter is ever reintroduced, whoever owns what.
+		self.assertEqual(
+			set(doctypes),
+			set(frappe.get_all("DocType", filters={"istable": 0}, pluck="name")),
+		)
+
+		# Child tables have no page and no address, so they are the one exclusion.
+		self.assertNotIn("DocField", doctypes)
+
+		# The table takes no prefix and cannot: there is nothing to vary by.
+		self.assertNotIn("app", get_address_table())
 
 	def test_navigation_is_filtered_where_addressing_is_not(self):
 		"""The other half of the split #42210 made.
@@ -552,16 +564,15 @@ class TestShellBoot(IntegrationTestCase):
 		"""
 		from frappe.shell.doctypes import get_address_table, navigation_for_app
 
-		self.assertIn("CRM Deal", get_address_table()["doctypes"])
-		as_admin = {entry["doctype"] for entry in navigation_for_app("crm")}
-		self.assertIn("CRM Deal", as_admin)
+		self.assertIn("User", get_address_table()["doctypes"])
+		self.assertIn("User", {entry["doctype"] for entry in navigation_for_app("frappe")})
 
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
 		# Still addressable...
-		self.assertIn("CRM Deal", get_address_table()["doctypes"])
+		self.assertIn("User", get_address_table()["doctypes"])
 		# ...and not offered.
-		self.assertNotIn("CRM Deal", {entry["doctype"] for entry in navigation_for_app("crm")})
+		self.assertNotIn("User", {entry["doctype"] for entry in navigation_for_app("frappe")})
 
 	def test_the_slug_table_tracks_doctypes_being_added_and_removed(self):
 		"""A new doctype must be addressable, and a deleted one must stop being so.
@@ -745,25 +756,25 @@ class TestAppPermission(IntegrationTestCase):
 class TestModularAddresses(IntegrationTestCase):
 	"""The three-segment shape an app opts into with `app_modular` (#42211).
 
-	ERPNext declares it on this bench, so most of this could be asserted against the
-	real thing — but it is asserted against a *patched hook* instead, deliberately.
-	These have to keep passing on a bench with no ERPNext, and a test that silently
-	stops testing anything when an app is missing is worse than no test.
+	**Everything here is asserted against `frappe` alone, with the hook patched.** CI
+	installs no other app, so a test naming `crm` or ERPNext does not merely skip — it
+	errors, `get_hooks(app_name=)` raising `KeyError` for an app that is not on the
+	bench. Patching frappe's own hook is also the stronger test: the SAME app is
+	measured in both modes, so the two-segment and three-segment forms are compared
+	with nothing else varying.
 	"""
 
 	def test_an_app_that_declares_nothing_is_not_modular(self):
 		from frappe.shell.registry import is_modular
 
 		self.assertFalse(is_modular("frappe"))
-		self.assertFalse(is_modular("crm"))
 
 	def test_the_boolean_rides_the_prefix_registry_into_boot(self):
 		from frappe.shell.boot import get_boot
 
-		prefixes = get_boot("/apps/crm")["prefixes"]
+		prefixes = get_boot("/apps/desk")["prefixes"]
 
 		self.assertEqual(prefixes["desk"], {"app": "frappe", "modular": False})
-		self.assertEqual(prefixes["crm"], {"app": "crm", "modular": False})
 		# EVERY active app, not only the one serving this prefix: a link to a foreign
 		# app's doctype needs that app's shape, and one boolean per app is cheap.
 		self.assertEqual(
@@ -772,23 +783,31 @@ class TestModularAddresses(IntegrationTestCase):
 		)
 
 	def test_a_modular_app_addresses_every_doctype_through_its_own_module(self):
-		"""Foreign doctypes included, and using the DOCTYPE's module, not the app's.
+		"""The shape is a property of the APP, and the module is the DOCTYPE's own.
 
-		This is the half that only works because the prefix is a lens: a foreign
-		module segment asserts nothing false once the prefix carries context rather
-		than content (#42211 §1).
+		Both halves are read off the same app and the same doctype, with only the hook
+		moving — which is what makes this a test of the shape rather than of whichever
+		apps happen to be installed.
 		"""
 		from frappe.shell.links import canonical_path
 
-		with hooks_declaring("app_modular", {"crm": True}):
-			# CRM's own doctype, in CRM's own module.
-			self.assertEqual(canonical_path("CRM Deal", "CRM-DEAL-01"), "/apps/crm/fcrm/crm-deal/CRM-DEAL-01")
-
-		# And frappe, which declares nothing, keeps two segments for the same kind of
-		# thing. The shape is a property of the app, never of the doctype.
-		# Note the `@` survives unencoded, and is meant to: a docname is not excluded
+		# Declaring nothing: two segments.
+		# Note the `@` survives unencoded, and is meant to — a docname is not excluded
 		# from the address space for containing one (#42214). A space still quotes.
 		self.assertEqual(canonical_path("User", "a@example.org"), "/apps/desk/user/a@example.org")
+		self.assertEqual(canonical_path("User", "Test User"), "/apps/desk/user/Test%20User")
+
+		with hooks_declaring("app_modular", {"frappe": True}):
+			# Three segments, and the middle one is `User`'s own module, `Core`.
+			self.assertEqual(canonical_path("User", "a@example.org"), "/apps/desk/core/user/a@example.org")
+			# A doctype from a DIFFERENT module of the same app takes ITS module, not
+			# one shared per app — the property that lets a modular app serve foreign
+			# doctypes without asserting anything false (#42211 §1).
+			self.assertEqual(canonical_path("ToDo", "TODO-01"), "/apps/desk/desk/todo/TODO-01")
+
+		# And the list form, which has no docname to hang off.
+		with hooks_declaring("app_modular", {"frappe": True}):
+			self.assertEqual(canonical_path("User"), "/apps/desk/core/user")
 
 	def test_the_canonical_address_is_the_owners_prefix(self):
 		"""A link built outside a session has no prefix to inherit, so it picks one.
@@ -799,7 +818,6 @@ class TestModularAddresses(IntegrationTestCase):
 		"""
 		from frappe.utils import get_url_to_form
 
-		self.assertTrue(get_url_to_form("CRM Deal", "CRM-DEAL-01").endswith("/apps/crm/crm-deal/CRM-DEAL-01"))
 		self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
 		self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
 
@@ -811,12 +829,12 @@ class TestModularAddresses(IntegrationTestCase):
 		"""
 		from frappe.shell.doctypes import navigation_for_app
 
-		self.assertTrue(navigation_for_app("crm", "fcrm"))
-		self.assertFalse(navigation_for_app("crm", "no-such-module"))
+		self.assertTrue(navigation_for_app("frappe", "core"))
+		self.assertFalse(navigation_for_app("frappe", "no-such-module"))
 
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
-		self.assertFalse(navigation_for_app("crm", "fcrm"))
+		self.assertFalse(navigation_for_app("frappe", "core"))
 
 
 class TestNoHandBuiltDoctypeUrls(IntegrationTestCase):
