@@ -821,6 +821,53 @@ class TestModularAddresses(IntegrationTestCase):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
 		self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
 
+	def test_a_doctype_reached_only_by_sharing_is_offered(self):
+		"""Roles are not the whole answer, and a role-only read silently drops this.
+
+		`has_permission(doctype, "read")` returns True with **no doc passed** when at
+		least one document of that type is shared with the user (`permissions.py:206`).
+		A navigation list built from roles alone hides every doctype a user reaches
+		purely by sharing — invisible on a bench where nobody shares anything, which is
+		why the first version of this shipped wrong.
+
+		`Role` on purpose, and neither `Note` nor `Tag`: `Note` is a
+		`global_search_doctypes` entry, so inserting one in a test trips
+		`sync_value_in_queue`'s "Should not fail silently in tests" assertion; and `Tag`
+		is readable by a role-less System User already, so it cannot show the
+		difference. `Role` is System Manager only, which is what makes the first
+		assertion mean something.
+		"""
+		import frappe.share
+		from frappe.shell.doctypes import navigation_for_app
+
+		email = "shell-share-probe@example.com"
+		if frappe.db.exists("User", email):
+			frappe.delete_doc("User", email, force=True)
+		user = frappe.get_doc(
+			doctype="User",
+			email=email,
+			first_name="Shell Share Probe",
+			user_type="System User",
+			roles=[],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("User", user.name, force=True, ignore_missing=True))
+
+		role = frappe.get_doc(doctype="Role", role_name="Shell Share Probe Role").insert()
+		self.addCleanup(lambda: frappe.delete_doc("Role", role.name, force=True, ignore_missing=True))
+
+		def offered():
+			return {entry["doctype"] for entry in navigation_for_app("frappe")}
+
+		frappe.set_user(email)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.assertNotIn("Role", offered())
+
+		frappe.set_user("Administrator")
+		frappe.share.add("Role", role.name, email, read=1)
+
+		frappe.set_user(email)
+		self.assertIn("Role", offered())
+
 	def test_the_module_landing_page_is_permission_filtered(self):
 		"""#42210's line, held exactly: addressability is not filtered, navigation is.
 

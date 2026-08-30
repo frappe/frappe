@@ -17,6 +17,7 @@
 			<!-- "0 doctypes you can read" is a real answer for a module you can read
 					 nothing in, so it must not also be what a pending fetch looks like. -->
 			<template v-if="loading">Loading…</template>
+			<template v-else-if="failed"> Could not load this module's doctypes. </template>
 			<template v-else>
 				{{ entries.length }} doctype{{ entries.length === 1 ? "" : "s" }} you can read.
 			</template>
@@ -48,7 +49,7 @@ const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 
 const moduleSlug = computed(() => String(route.params.module ?? ""));
-const { entries, loading } = useNavigation(boot.app, moduleSlug);
+const { entries, loading, failed } = useNavigation(boot.app, moduleSlug);
 // The slug is the address; the name is what a human reads. The server sends both, so
 // neither side has to guess the other.
 const title = computed(() => addresses.moduleName(moduleSlug.value) ?? moduleSlug.value);

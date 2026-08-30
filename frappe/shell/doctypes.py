@@ -174,6 +174,7 @@ def navigation_for_app(app: str, module: str | None = None) -> list[dict]:
 	space now walks up to (#42211 §6).
 	"""
 	from frappe.permissions import get_doctypes_with_read
+	from frappe.share import get_shared_doctypes
 
 	table = get_address_table()
 	owners = get_doctype_owners()
@@ -188,11 +189,18 @@ def navigation_for_app(app: str, module: str | None = None) -> list[dict]:
 	# imports each doctype's controller, so one app's un-importable module took down the
 	# rail for *every* app. This reads DocPerm and Custom DocPerm and imports nothing.
 	#
-	# The sets agree exactly for a real user (162 = 162). They differ for Administrator by
-	# **three** doctypes with *zero* DocPerm rows, which nobody but Administrator could
-	# ever read; not offering them in navigation is the intended reading of "what is
-	# offered", and they stay fully addressable.
-	readable = set(get_doctypes_with_read())
+	# Roles are not the whole answer. `has_permission(doctype, "read")` returns True with
+	# **no doc passed** when at least one document of that type is shared with the user
+	# (`permissions.py:206`), so a role-only set silently drops every doctype a user
+	# reaches purely by sharing. `get_shared_doctypes` is the framework's own bulk answer
+	# to that question — one query, `user = me OR everyone = 1` — so it costs a query
+	# rather than a per-doctype check.
+	#
+	# The two sets agree for a user with no shares, which is why the first measurement
+	# missed this. They differ for Administrator by three doctypes carrying *zero*
+	# DocPerm rows, which nobody but Administrator could ever read; not offering those is
+	# the intended reading of "what is offered", and they stay fully addressable.
+	readable = set(get_doctypes_with_read()) | set(get_shared_doctypes())
 	entries = []
 
 	for doctype, owner in owners.items():

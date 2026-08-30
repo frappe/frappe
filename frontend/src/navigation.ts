@@ -20,25 +20,33 @@ import { ref, watchEffect, type Ref } from "vue";
 
 export type NavigationEntry = { doctype: string; slug: string; module: string };
 
-export function fetchNavigation(
+/**
+ * THROWS rather than answering empty. A swallowed failure is indistinguishable from
+ * "you can read nothing here", which is a real answer — so the caller would render a
+ * confident, false "0 doctypes you can read" over a request that never landed, and an
+ * empty rail that looks like an empty app.
+ */
+export async function fetchNavigation(
 	app: string,
 	module?: string
 ): Promise<NavigationEntry[]> {
 	const params = new URLSearchParams({ app });
 	if (module) params.set("module", module);
-	return fetch(`/api/method/frappe.shell.doctypes.get_navigation?${params}`)
-		.then((res) => (res.ok ? res.json() : null))
-		.then((body) => body?.message ?? [])
-		.catch(() => []);
+
+	const res = await fetch(
+		`/api/method/frappe.shell.doctypes.get_navigation?${params}`
+	);
+	if (!res.ok) throw new Error(`Navigation failed with ${res.status}`);
+	return (await res.json()).message ?? [];
 }
 
 /**
  * Reactive navigation for a prefix, optionally narrowed to one module.
  *
- * `loading` is not decoration. An empty list is a REAL answer here — a module you can
- * read nothing in — so a caller that cannot tell "none" from "not yet" has to assert
- * one of them, and "0 doctypes you can read" is a false statement to put under a
- * heading whose data is still in flight.
+ * `loading` and `failed` are not decoration. An empty list is a REAL answer here — a
+ * module you can read nothing in — so a caller that cannot tell "none" from "not yet"
+ * or from "the request failed" has to assert one of them, and "0 doctypes you can
+ * read" is a false statement to put under either.
  */
 export function useNavigation(
 	app: string | null,
@@ -46,6 +54,7 @@ export function useNavigation(
 ) {
 	const entries = ref<NavigationEntry[]>([]);
 	const loading = ref(false);
+	const failed = ref(false);
 
 	// Which fetch is current. Moving between modules leaves the previous one in
 	// flight, and without this the slower response wins: the page would settle on the
@@ -60,6 +69,7 @@ export function useNavigation(
 		// while the new ones load puts the new module's heading above the previous
 		// module's links -- briefly, and clickably, which is worse than empty.
 		entries.value = [];
+		failed.value = false;
 
 		if (!app) {
 			loading.value = false;
@@ -71,12 +81,19 @@ export function useNavigation(
 		// `module?.value` is read HERE, synchronously, so `watchEffect` tracks it.
 		// Reading it after the await would register no dependency and the list would
 		// never update again.
-		const fetched = await fetchNavigation(app, module?.value);
-		if (mine !== generation) return;
+		try {
+			const fetched = await fetchNavigation(app, module?.value);
+			if (mine !== generation) return;
+			entries.value = fetched;
+		} catch {
+			if (mine !== generation) return;
+			// Reported, not swallowed. The list stays empty either way; what changes is
+			// that the caller can say "could not load" instead of "there is nothing".
+			failed.value = true;
+		}
 
-		entries.value = fetched;
 		loading.value = false;
 	});
 
-	return { entries, loading };
+	return { entries, loading, failed };
 }

@@ -23,6 +23,11 @@
 		</RouterLink>
 
 		<div class="mt-2 overflow-y-auto">
+			<!-- An empty rail and a rail that failed to load look identical, and one of
+					 them is a lie about the app. -->
+			<p v-if="failed" class="px-2 py-1 text-sm text-ink-gray-5">
+				Could not load navigation.
+			</p>
 			<RouterLink
 				v-for="entry in entries"
 				:key="entry.doctype"
@@ -50,5 +55,5 @@ import { routeFor } from "@/router/routeFor";
 import { useNavigation } from "@/navigation";
 
 const boot = inject<Boot>("boot")!;
-const { entries } = useNavigation(boot.app);
+const { entries, failed } = useNavigation(boot.app);
 </script>
