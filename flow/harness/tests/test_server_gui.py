@@ -11,7 +11,7 @@ from flow.model import Model, ModelRequest
 from flow.model.auth import resolve_model_auth
 from flow.model.credentials import CredentialStore
 from flow.server import create_app
-from flow.server.fspick import PickerUnavailable
+from flow.server.utils.fspick import PickerUnavailable
 from flow.session.store import SessionStore
 
 
@@ -173,16 +173,16 @@ async def test_oauth_flow_rejects_state_mismatch(tmp_path):
 
 def test_fs_pick_returns_path_and_maps_unavailable_to_501(tmp_path, monkeypatch):
 	c, _ = _client(tmp_path)
-	monkeypatch.setattr("flow.server.app.pick_folder", lambda: "/projects/demo")
+	monkeypatch.setattr("flow.server.routes.fs.pick_folder", lambda: "/projects/demo")
 	assert c.post("/fs/pick").json() == {"path": "/projects/demo"}
 
-	monkeypatch.setattr("flow.server.app.pick_folder", lambda: None)  # user cancelled
+	monkeypatch.setattr("flow.server.routes.fs.pick_folder", lambda: None)  # user cancelled
 	assert c.post("/fs/pick").json() == {"path": None}
 
 	def unavailable():
 		raise PickerUnavailable("headless")
 
-	monkeypatch.setattr("flow.server.app.pick_folder", unavailable)
+	monkeypatch.setattr("flow.server.routes.fs.pick_folder", unavailable)
 	assert c.post("/fs/pick").status_code == 501
 	# a side-effectful dialog must never open off a plain GET (<img src=…>)
 	assert c.get("/fs/pick").status_code == 405

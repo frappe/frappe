@@ -110,7 +110,7 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 
 	monkeypatch.setattr("flow.agent.loop.get_model", spy)
 	monkeypatch.setattr(
-		"flow.server.app.context_window_for",
+		"flow.server.routes.sessions.context_window_for",
 		lambda model: 1_000_000 if model == "mock/v2" else None,
 	)
 	c = _client(tmp_path)
@@ -1259,7 +1259,7 @@ def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
 
 
 async def test_stream_follow_stays_open_between_runs_with_keepalives(tmp_path, monkeypatch):
-	monkeypatch.setattr("flow.server.app.KEEPALIVE_SECONDS", 0.05)
+	monkeypatch.setattr("flow.server.utils.sse.KEEPALIVE_SECONDS", 0.05)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
