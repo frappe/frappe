@@ -13,6 +13,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 
 	make_picker() {
 		this.inputs = [];
+		this.reposition_picker = () => this.position_picker();
 		this.set_duration_options();
 		this.$picker = $(
 			`<div class="duration-picker">
@@ -103,7 +104,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 
 		this.$input.on("focus", () => {
 			if (this.df.read_only) return;
-			this.$picker.show();
+			this.show_picker();
 			let is_picker_set = this.is_duration_picker_set(this.inputs);
 			if (!is_picker_set) {
 				this.set_duration_picker_value(this.value);
@@ -116,14 +117,12 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 				clicked = false;
 			} else {
 				// blur event was not due to duration inputs
-				this.$picker.hide();
+				this.hide_picker();
 			}
 			this.set_formatted_input(this.value);
 		});
 	}
 
-<<<<<<< HEAD
-=======
 	show_picker() {
 		$(document.body).append(this.$picker);
 		this.$picker.show();
@@ -153,7 +152,6 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 		});
 	}
 
->>>>>>> 4dbea72 (fix(ui): Detach duration picker to avoid css issue (#41109))
 	get_value() {
 		return cint(this.value);
 	}
