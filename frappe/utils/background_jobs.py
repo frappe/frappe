@@ -58,8 +58,11 @@ def get_queues_timeout() -> dict[str, int]:
 	:return: Dictionary of queue name to timeout
 	"""
 	common_site_config = frappe.get_conf()
-	custom_workers_config = common_site_config.get("workers", {})
+	custom_workers_config = common_site_config.get("workers") or {}
 	default_timeout = 300
+
+	if not isinstance(custom_workers_config, dict):
+		custom_workers_config = {}
 
 	# Note: Order matters here
 	# If no queues are specified then RQ prioritizes queues in specified order
@@ -68,7 +71,9 @@ def get_queues_timeout() -> dict[str, int]:
 		"default": default_timeout,
 		"long": 1500,
 		**{
-			worker: config.get("timeout", default_timeout) for worker, config in custom_workers_config.items()
+			worker: config.get("timeout", default_timeout)
+			for worker, config in custom_workers_config.items()
+			if isinstance(config, dict)
 		},
 	}
 	# The three built-in queues must always be present; queue validation relies on this.
