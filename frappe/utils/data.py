@@ -13,6 +13,7 @@ import time
 import typing
 from code import compile_command
 from collections import defaultdict
+from decimal import MAX_PREC, ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Literal, Optional, TypeVar, Union
@@ -1119,7 +1120,8 @@ def _round_away_from_zero(num, precision):
 	# ending with 5 when it's represented by a smaller number. By adding a very small value
 	# close to what's "least count" or smallest representable difference in the scale we force
 	# the number to be bigger than actual value, this increases representation error but
-	# removes rounding error.
+	# removes rounding error. This only holds while the correction stays under the rounding
+	# step, past a quarter step it inflates the value instead, so the value is rounded exactly.
 
 	# References:
 	# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
@@ -1127,7 +1129,14 @@ def _round_away_from_zero(num, precision):
 	# - https://docs.python.org/3/library/functions.html#round
 	# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
 
-	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	epsilon = math.ulp(abs(num))
+	rounding_step = 10.0**-precision
+
+	if math.isfinite(num) and epsilon >= rounding_step / 4:
+		with localcontext() as ctx:
+			ctx.prec = MAX_PREC
+			ctx.rounding = ROUND_HALF_UP
+			return float(Decimal(num).quantize(Decimal(1).scaleb(-precision)))
 
 	return round(num + math.copysign(epsilon, num), precision)
 
@@ -1147,7 +1156,8 @@ def _bankers_rounding(num, precision):
 	decimal_part = num - floor_num
 
 	epsilon = 2.0 ** (math.log(num, 2) - 52.0)
-	if abs(decimal_part - 0.5) < epsilon:
+
+	if epsilon < 0.5 and abs(decimal_part - 0.5) < epsilon:
 		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		num = round(num)

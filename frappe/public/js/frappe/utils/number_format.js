@@ -229,7 +229,9 @@ function _round(num, precision, rounding_method) {
 		// For explanation of this method read python flt implementation notes.
 		let epsilon = 2.0 ** (Math.log2(Math.abs(num)) - 52.0);
 
-		if (Math.abs(decimal_part - 0.5) < epsilon) {
+		let is_tie = epsilon < 0.5 ? Math.abs(decimal_part - 0.5) < epsilon : decimal_part == 0.5;
+
+		if (is_tie) {
 			num = floor_num % 2 == 0 ? floor_num : floor_num + 1;
 		} else {
 			num = Math.round(num);
@@ -246,11 +248,12 @@ function _round(num, precision, rounding_method) {
 
 		// For explanation of this method read python flt implementation notes.
 		let epsilon = 2.0 ** (Math.log2(Math.abs(num)) - 52.0);
-		if (is_negative) {
-			epsilon = -1 * epsilon;
+
+		if (epsilon >= 0.25) {
+			epsilon = 0;
 		}
 
-		num = Math.round(num + epsilon);
+		num = Math.sign(num) * Math.round(Math.abs(num) + epsilon);
 		return num / multiplier;
 	} else {
 		throw new Error(`Unknown rounding method ${rounding_method}`);
