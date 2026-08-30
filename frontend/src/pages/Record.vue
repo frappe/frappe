@@ -53,9 +53,10 @@ import { useRoute, useRouter } from "vue-router";
 import { Button } from "frappe-ui";
 import { createRecordPage, type RecordPageController } from "@/recordPage";
 import type { Boot } from "@/boot";
-import { resolveDoctype } from "@/router";
+import type { Addresses } from "@/addresses";
 
 const boot = inject<Boot>("boot")!;
+const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 const router = useRouter();
 
@@ -74,7 +75,7 @@ const actionsVersion = ref(0);
 // would then POST A's fields -- writing the record the user is not looking at.
 let generation = 0;
 
-const doctype = computed(() => resolveDoctype(boot, String(route.params.doctype)));
+const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const docname = computed(() => String(route.params.name));
 
 const fields = computed(() =>

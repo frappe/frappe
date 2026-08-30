@@ -53,6 +53,11 @@ export default defineConfig(({ command }) => ({
 	resolve: {
 		alias: {
 			"@": fileURLToPath(new URL("./src", import.meta.url)),
+			// The public surface for CONTRIBUTED files, which live in other apps' repos
+			// and cannot use `@/…`. One module, `src/public.ts`, publishing the address
+			// builders and nothing else -- see the header there for why a builder had to
+			// be published at all.
+			"@shell": fileURLToPath(new URL("./src/public.ts", import.meta.url)),
 		},
 		// The framework's tree is the ONE tree, so a package reached through a symlink
 		// must resolve its imports here rather than beside its own source. `@framework/ui`

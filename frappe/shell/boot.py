@@ -11,9 +11,9 @@ from frappe.translate import get_translation_version
 from frappe.utils import get_system_timezone
 
 from . import SHELL_ROOT
-from .doctypes import slugs_for_app
+from .doctypes import metadata_version
 from .permissions import has_app_permission
-from .registry import get_prefix_registry, shell_base, split_shell_path
+from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
 
 
 def core_boot() -> dict:
@@ -48,6 +48,15 @@ def core_boot() -> dict:
 		# no longer on the bench — reading its hooks would raise, and every request
 		# under /apps would 500 with it.
 		"app_order": frappe.get_active_apps(_ensure_on_bench=True),
+		# The address table is fetched, not booted (#42210), so boot carries only the
+		# key that invalidates it. Same treatment and same reason as
+		# `translations_version` two lines up.
+		"metadata_version": metadata_version(),
+		# #42066's registry, widened to carry #42211's per-app modularity boolean.
+		# One entry per active app; the whole point of shipping all of them rather
+		# than the current one is that a link to a foreign app's doctype needs that
+		# app's shape, not this one's.
+		"prefixes": prefix_map(),
 	}
 
 
@@ -149,10 +158,8 @@ def get_boot(path: str | None = None) -> dict:
 		**core_boot(),
 		"shell_base": shell_base(prefix),
 		"app": app,
-		# Prefix-scoped, so the router can de-slug without a round trip. #42068 put
-		# this table in the build; it cannot live there, because `bench build` runs
-		# with no site (#42105) and a site's doctypes include its custom ones. Boot is
-		# the nearest tier that knows them, and the property that mattered —
-		# permission-independence — is unaffected. See the amendment on #42073.
-		"doctype_slugs": slugs_for_app(app),
+		# No `doctype_slugs` here any more. It was prefix-scoped and sat in boot
+		# because it was small; the lens made it full-bench, which broke the 40 KB
+		# budget — and byte-identical for every user and every prefix, which is what
+		# let it move to `get_addresses` instead of being trimmed (#42210).
 	}

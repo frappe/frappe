@@ -2123,17 +2123,20 @@ def get_absolute_url(doctype: str, name: str) -> str:
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
-	"""Return the absolute URL for the form view of the given document in the desk.
+	"""Return the absolute URL for the record view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/desk/sales-invoice/INV-00001'
-	"""
-	if not name:
-		uri = f"/desk/{quoted(slug(doctype))}"
-	else:
-		uri = f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
+	         returns 'https://frappe.io/apps/erpnext/accounts/sales-invoice/INV-00001'
 
-	return get_url(uri=uri)
+	This is the **canonical** address: the owning app's prefix, and that app's route
+	shape (#42210, #42211). Every caller here is a link generated outside a session —
+	a notification, a follow email, a mention — so there is no prefix to inherit and
+	one has to be chosen. Callers hold only `(doctype, name)`, which is why the choice
+	can live entirely in here.
+	"""
+	from frappe.shell.links import canonical_path
+
+	return get_url(uri=canonical_path(doctype, name))
 
 
 def get_url_to_list(doctype: str) -> str:
