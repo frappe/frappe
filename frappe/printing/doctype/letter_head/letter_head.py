@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json
-from frappe.utils import flt, is_image
+from frappe.utils import flt, is_image, nowdate
 
 
 class LetterHead(Document):
@@ -175,3 +175,41 @@ class LetterHead(Document):
 
 			if not self.module:
 				frappe.throw(_("Module is required when Standard is set to 'Yes'"))
+
+
+@frappe.whitelist(methods=["POST"])
+def render_preview(letter_head: str, fieldname: str, content: str | None = None) -> str:
+	"""Render Letter Head HTML with the same Jinja renderer used for printing."""
+	if fieldname not in {"content", "footer"}:
+		frappe.throw(_("Invalid Letter Head field for preview"))
+
+	letter_head_doc = frappe.get_doc("Letter Head", letter_head)
+	letter_head_doc.check_permission("read")
+
+	stored_content = letter_head_doc.get(fieldname) or ""
+	if content is None:
+		content = stored_content
+	elif content != stored_content:
+		letter_head_doc.check_permission("write")
+
+	doc = _get_preview_document()
+	return frappe.utils.jinja.render_template(content, {"doc": doc})
+
+
+def _get_preview_document() -> frappe._dict:
+	"""Build an extensible document context for the Letter Head form preview."""
+	preview_date = nowdate()
+	doc = frappe._dict(
+		{
+			"doctype": "Document",
+			"name": _("PREVIEW"),
+			"transaction_date": preview_date,
+			"posting_date": preview_date,
+			"date": preview_date,
+		}
+	)
+
+	for method in frappe.get_hooks("get_letter_head_preview_context"):
+		doc.update(frappe.get_attr(method)(doc) or {})
+
+	return doc

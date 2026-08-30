@@ -8,8 +8,13 @@ frappe.ui.form.ControlHTMLEditor = class ControlHTMLEditor extends (
 	}
 	update_preview() {
 		if (!this.markdown_preview) return;
-		let value = this.get_value() || "";
-		value = frappe.dom.remove_script_and_style(value);
-		this.markdown_preview.html(value);
+		const value = this.get_value() || "";
+
+		if (this.preview_renderer) {
+			return this.preview_renderer(value, this.markdown_preview);
+		}
+
+		const safe_value = frappe.dom.remove_script_and_style(value);
+		this.markdown_preview.html(safe_value);
 	}
 };
