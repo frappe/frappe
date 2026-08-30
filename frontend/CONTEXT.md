@@ -25,7 +25,9 @@ unrelated Storybook term).
 
 **Prefix**:
 The one bare path segment an app claims beneath `/apps` — `/apps/crm`, `/apps/desk`. An
-app declares it with the `app_prefix` hook, or declares nothing and gets its own name.
+app declares it with the `app_prefix` hook, or declares nothing and gets its own name **with
+a leading `frappe_` stripped**: `frappe_whatsapp` serves `/apps/whatsapp`. Underscores are
+otherwise preserved, so `hr_management` stays `hr_management` rather than being guessed at.
 _Avoid_: route prefix, mount point, base path.
 
 **Claimed prefix**:
