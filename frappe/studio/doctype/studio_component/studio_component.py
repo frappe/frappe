@@ -31,6 +31,10 @@ class StudioComponent(Document):
 	# end: auto-generated types
 
 	def before_insert(self):
+		# the export unpacks `block` into nested JSON (see before_export); the column is Long Text,
+		# so pack it back on import — before_insert, since import_doc skips validate hooks
+		if isinstance(self.block, dict | list):
+			self.block = frappe.as_json(self.block, indent=None)
 		if not self.component_id:
 			self.component_id = append_number_if_name_exists(
 				"Studio Component", frappe.scrub(self.component_name)
