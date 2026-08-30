@@ -9,20 +9,19 @@ terminal. Flows live in memory on the daemon; the browser polls status.
 from __future__ import annotations
 
 import asyncio
-import html
 import os
 import queue
 import re
 import threading
 import time
 from dataclasses import dataclass, field
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from http.server import ThreadingHTTPServer
+from socketserver import BaseServer
 
 from flow.model.auth import AuthError, generate_pkce, get_auth_provider, new_state
 from flow.model.catalog import PROVIDERS, ProviderSpec, get_provider
 from flow.model.credentials import CredentialStore, CustomProviderCredential
-from flow.model.providers.codex import REDIRECT_URI
+from flow.model.oauth_callback import REJECTED, CallbackResult, Rejected, callback_server, parse_callback
 
 OAUTH_TIMEOUT_SECONDS = 300
 
@@ -216,7 +215,7 @@ class OAuthCoordinator:
 		flow = self.flows.get(provider_id)
 		if flow is None:
 			raise AuthError("Start OAuth before completing it")
-		code, state, error = _parse_callback(callback_url)
+		code, state, error = parse_callback(callback_url)
 		await self._exchange(flow, code=code, state=state, error=error)
 		await self._close_server(flow)
 		return self.status(provider_id)
@@ -284,37 +283,18 @@ class OAuthCoordinator:
 
 
 def _callback_server(flow: OAuthFlow) -> ThreadingHTTPServer:
-	redirect = urlparse(REDIRECT_URI)
-
-	class CallbackHandler(BaseHTTPRequestHandler):
-		def do_GET(self) -> None:
-			parsed = urlparse(self.path)
-			if parsed.path != redirect.path:
-				self.send_error(404)
-				return
-			result = _parse_callback(self.path)
-			# without this any local page hitting the port kills a pending login
-			if result[1] != flow.state:
-				self.send_error(404)
-				return
-			try:
-				flow.callbacks.put_nowait(result)
-			except queue.Full:
-				pass
-			threading.Thread(target=self.server.shutdown, daemon=True).start()
-			error = result[2]
-			body = _callback_page(error)
-			self.send_response(200 if not error else 400)
-			self.send_header("Content-Type", "text/html; charset=utf-8")
-			self.send_header("Content-Length", str(len(body)))
-			self.send_header("Cache-Control", "no-store")
-			self.end_headers()
-			self.wfile.write(body)
-
-		def log_message(self, format: str, *args) -> None:
+	def accept(result: CallbackResult, server: BaseServer) -> str | Rejected | None:
+		# without this any local page hitting the port kills a pending login
+		if result[1] != flow.state:
+			return REJECTED
+		try:
+			flow.callbacks.put_nowait(result)
+		except queue.Full:
 			pass
+		threading.Thread(target=server.shutdown, daemon=True).start()
+		return result[2]
 
-	server = ThreadingHTTPServer(("127.0.0.1", redirect.port or 80), CallbackHandler)
+	server = callback_server(accept)
 	server.daemon_threads = True
 	return server
 
@@ -334,28 +314,3 @@ def _serve_callback(flow: OAuthFlow, server: ThreadingHTTPServer, loop: asyncio.
 		loop.call_soon_threadsafe(flow.done.set)
 	except RuntimeError:
 		pass  # loop already closed (daemon shutdown mid-flow)
-
-
-def _parse_callback(value: str) -> tuple[str | None, str | None, str | None]:
-	parsed = urlparse(value.strip())
-	query = parse_qs(parsed.query)
-	return _first(query, "code"), _first(query, "state"), _first(query, "error")
-
-
-def _first(query: dict[str, list[str]], name: str) -> str | None:
-	values = query.get(name)
-	return values[0] if values else None
-
-
-def _callback_page(error: str | None) -> bytes:
-	title = "Authentication failed" if error else "Authentication successful"
-	message = html.escape(error) if error else "You can close this window and return to Flow."
-	return (
-		"<!doctype html><html><head><meta charset='utf-8'>"
-		"<meta name='viewport' content='width=device-width,initial-scale=1'>"
-		f"<title>{title}</title>"
-		"<style>body{font:15px system-ui;margin:0;display:grid;min-height:100vh;"
-		"place-items:center;color:#202020}main{text-align:center;padding:32px}"
-		"h1{font-size:20px;margin:0 0 8px}p{color:#666}</style></head>"
-		f"<body><main><h1>{title}</h1><p>{message}</p></main></body></html>"
-	).encode()
