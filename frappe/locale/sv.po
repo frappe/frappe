@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-26 22:14\n"
+"PO-Revision-Date: 2026-08-30 23:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -42,7 +42,7 @@ msgstr "'Överordnad' betyder överordnad tabell där denna rad skall infogas"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr "\"Team Medlemmar\" eller \"Ledning\""
+msgstr "\"Lag Medlemmar\" eller \"Ledning\""
 
 #: frappe/public/js/frappe/form/form.js:1266
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -50,7 +50,7 @@ msgstr "\"ändrad_från\" fält måste finnas att skapa ändring."
 
 #: frappe/core/doctype/data_import/importer.py:1677
 msgid "\"{0}\" does not match any field — map it in the preview"
-msgstr "\"{0}\" stämmer inte med något fält – koppla det i förhandsgranskningen"
+msgstr "\"{0}\" stämmer inte med något fält – koppla det i förhandsvisning"
 
 #: frappe/utils/csvutils.py:278
 msgid "\"{0}\" is not a valid Google Sheets URL"
@@ -14441,7 +14441,7 @@ msgstr "Dölj Inloggning"
 #: frappe/public/js/form_builder/form_builder.bundle.js:46
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:86
 msgid "Hide Preview"
-msgstr "Dölj Förhandsgranskning"
+msgstr "Dölj Förhandsvisning"
 
 #. Description of the 'Hide Buttons' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -20472,11 +20472,11 @@ msgstr "Inga Behörigheter angavs för dessa kriterier."
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
-msgstr "Ingen Förhandsgranskning"
+msgstr "Ingen Förhandsvisning"
 
 #: frappe/printing/page/print/print.js:844
 msgid "No Preview Available"
-msgstr "Ingen Förhandsgranskning Tillgänglig."
+msgstr "Ingen Förhandsvisning Tillgänglig."
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/print_format.js:112
 msgid "No Print Formats found"
@@ -24002,7 +24002,7 @@ msgstr "Förhandsgransknig Läge"
 #: frappe/public/js/frappe/form/sidebar/attachments.js:310
 #: frappe/public/js/frappe/form/sidebar/attachments.js:375
 msgid "Preview not available for this file type."
-msgstr "Förhandsgranskning inte tillgänglig för denna fil typ."
+msgstr "Förhandsvisning inte tillgänglig för denna fil typ."
 
 #. Label of the series_preview (Text) field in DocType 'Document Naming
 #. Settings'
@@ -24012,7 +24012,7 @@ msgstr "Förhandsvisning av skapade namn"
 
 #: frappe/public/js/frappe/views/render_preview.js:19
 msgid "Preview on {0}"
-msgstr "Förhandsgranskning på {0}"
+msgstr "Förhandsvisning på {0}"
 
 #: frappe/email/doctype/email_group/email_group.js:81
 msgid "Preview:"
@@ -25499,7 +25499,7 @@ msgstr "Uppdatera Lista"
 
 #: frappe/printing/page/print/print.js:421
 msgid "Refresh Print Preview"
-msgstr "Uppdatera Utskrift Förhandsgranskning"
+msgstr "Uppdatera Utskrift Förhandsvisning"
 
 #. Label of the refresh_token (Password) field in DocType 'Google Calendar'
 #. Label of the refresh_token (Password) field in DocType 'Google Contacts'
@@ -28718,7 +28718,7 @@ msgstr "Ange dynamiska filtervärden i JavaScript för erfordrade fält här."
 #. Description of the 'Is Standard' (Check) field in DocType 'DocType Layout'
 #: frappe/core/doctype/doctype_layout/doctype_layout.json
 msgid "Set for layouts shipped with apps or fixtures"
-msgstr "Angiven för Uppsättning som levereras med appar eller fixturer"
+msgstr "Angiven för Uppsättning som levereras med appar eller tillägg"
 
 #. Description of the 'Precision' (Select) field in DocType 'Custom Field'
 #. Description of the 'Precision' (Select) field in DocType 'Customize Form
@@ -29707,7 +29707,7 @@ msgstr "Hoppar över Kolumn {0}"
 
 #: frappe/modules/utils.py:230
 msgid "Skipping fixture syncing for doctype {0} from file {1}"
-msgstr "Hoppar över fixture synkronisering för doctype {0} från fil {1}"
+msgstr "Hoppar över tillägg synkronisering för doctype {0} från fil {1}"
 
 #: frappe/core/doctype/data_import/data_import.js:204
 msgid "Skipping {0} of {1}, {2}"
@@ -31480,19 +31480,19 @@ msgstr "Uppgifter"
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 #: frappe/www/about.html:45
 msgid "Team Members"
-msgstr "Team Medlemmar"
+msgstr "Lag Medlemmar"
 
 #. Label of the team_members_heading (Data) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Heading"
-msgstr "Team Medlemmar Huvud Rubrik"
+msgstr "Lag Medlemmar Huvud Rubrik"
 
 #. Label of the team_members_subtitle (Small Text) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Subtitle"
-msgstr "Team Medlemmar Underbenämning"
+msgstr "Lag Medlemmar Underbenämning"
 
 #. Label of the telemetry_section (Section Break) field in DocType 'System
 #. Settings'
@@ -33343,7 +33343,7 @@ msgstr "Träd Vy"
 #. Label of the import_tree_preview (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Tree Preview"
-msgstr "Träd Förhandsgranskning"
+msgstr "Träd Förhandsvisning"
 
 #: frappe/public/js/frappe/list/base_list.js:227
 msgid "Tree View"
@@ -36936,11 +36936,11 @@ msgstr "Din inbjudan har avbrutits"
 
 #: frappe/templates/emails/user_invitation_expired.html:3
 msgid "Your invitation to join {0} is no longer valid. Ask your team to send a new invitation if you'd still like to join."
-msgstr "Din inbjudan att gå med i {0} är inte längre giltig. Be ditt team att skicka ny inbjudan om du fortfarande vill gå med."
+msgstr "Din inbjudan att gå med i {0} är inte längre giltig. Be ditt lag att skicka ny inbjudan om du fortfarande vill gå med."
 
 #: frappe/templates/emails/user_invitation_cancelled.html:3
 msgid "Your invitation to join {0} was cancelled by the site administrator. If this was a mistake, reach out to your team to request a new invitation."
-msgstr "Din inbjudan att gå med i {0} har återkallats av webbplats administratör. Om detta var ett misstag, kontakta ditt team för att begära ny inbjudan."
+msgstr "Din inbjudan att gå med i {0} har återkallats av webbplats administratör. Om detta var ett misstag, kontakta ditt lag för att begära ny inbjudan."
 
 #: frappe/templates/emails/new_user.html:5
 msgid "Your login ID is:"
