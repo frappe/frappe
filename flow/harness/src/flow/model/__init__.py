@@ -12,12 +12,14 @@ from collections.abc import Callable
 from typing import Any
 
 from flow.model.auth import RefreshAuth, register_auth_provider
-from flow.model.base import Model, ModelCancelled, ModelRequest, run_with_retries
+from flow.model.base import Model, ModelRequest
+from flow.model.cancellation import ModelCancelled
 from flow.model.errors import ProviderError
 from flow.model.litellm import LiteLLMModel
 from flow.model.mock import MockModel
 from flow.model.providers.codex import CodexAuthProvider, CodexModel
 from flow.model.providers.opencode import opencode_go_model
+from flow.model.retry import run_with_retries
 
 BuildModel = Callable[..., Model]
 

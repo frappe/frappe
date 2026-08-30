@@ -26,7 +26,7 @@ from pydantic import BaseModel, ConfigDict, validate_call
 from flow.events import DisplaySegment
 
 _DISPLAY_VARIABLE = re.compile(r"{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}")
-_DISPLAY_VALUE_CHARS = 512
+DISPLAY_VALUE_CHARS = 512
 
 
 def display_template_variables(template: str) -> tuple[str, ...]:
@@ -60,8 +60,8 @@ def _display_value(value: Any) -> str:
 	if value is None:
 		return ""
 	if isinstance(value, (dict, list)):
-		return json.dumps(value, ensure_ascii=False, separators=(",", ":"))[:_DISPLAY_VALUE_CHARS]
-	return str(value)[:_DISPLAY_VALUE_CHARS]
+		return json.dumps(value, ensure_ascii=False, separators=(",", ":"))[:DISPLAY_VALUE_CHARS]
+	return str(value)[:DISPLAY_VALUE_CHARS]
 
 
 @dataclass

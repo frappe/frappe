@@ -61,7 +61,7 @@ from flow.events import (
 from flow.extensions.hooks import PreToolUseDecision
 from flow.model import Model, ModelRequest, ProviderError, get_model
 from flow.model.auth import resolve_model_auth
-from flow.model.base import ModelCancelled, await_with_cancellation, iterate_with_cancellation
+from flow.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
 from flow.model.credentials import CredentialStore
 from flow.model.reasoning import reasoning_params
 from flow.session.config import SessionConfig

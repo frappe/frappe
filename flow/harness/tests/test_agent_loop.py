@@ -1008,7 +1008,7 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 				yield Usage()
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "count_once", count_once)
-	monkeypatch.setattr("flow.model.base._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
 	session, events = _session(tmp_path, tools=["count_once"], auto_approve=True)
 
 	await _run(session, "go", model=ToolThenFlakyModel())
