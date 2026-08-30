@@ -43,6 +43,23 @@ def declared_prefix(app: str) -> str:
 	return declared[0] if declared else default_prefix(app)
 
 
+def is_modular(app: str) -> bool:
+	"""Whether this app addresses its doctypes through their module (#42211).
+
+	A fourth scalar hook beside `app_prefix` / `app_boot` / `app_permission`, read the
+	same way and for the same reason: `get_hooks(app_name=)` is a plain importlib call
+	that works with no site.
+
+	The shape is **fixed per app**, not per doctype: a modular app emits
+	`/apps/<app>/<module>/<doctype>/<name>` for every doctype it serves, foreign ones
+	included, using the doctype's own module. A shape that varied inside one app would
+	be unparseable — frappe's `Workflow` module and `Workflow` doctype share a slug,
+	and nothing could tell the two-segment form from the three.
+	"""
+	declared = frappe.get_hooks("app_modular", app_name=app)
+	return bool(declared and declared[0])
+
+
 def build_prefix_registry() -> dict[str, str]:
 	"""`{prefix: app}` over the apps active on this site.
 
@@ -102,3 +119,14 @@ def split_shell_path(path: str) -> tuple[str, str] | None:
 	remainder = path[len(SHELL_ROOT) + 1 :]
 	prefix, _, rest = remainder.partition("/")
 	return (prefix, rest) if prefix else None
+
+
+def prefix_map() -> dict[str, dict]:
+	"""`{prefix: {app, modular}}` — the registry as boot ships it.
+
+	#42066's registry, widened to carry #42211's boolean. One boolean per app, five
+	apps on this bench, so it costs nothing to carry them all rather than only the
+	prefix that was requested — and carrying them all is what lets a link builder emit
+	a foreign app's shape without a second round trip.
+	"""
+	return {prefix: {"app": app, "modular": is_modular(app)} for prefix, app in get_prefix_registry().items()}

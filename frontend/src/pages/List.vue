@@ -10,8 +10,11 @@
 			<tbody>
 				<tr v-for="row in rows" :key="row.name" class="border-b border-outline-gray-1">
 					<td class="py-1.5">
+						<!-- `routeFor`, never a template literal. Under a modular prefix the
+							hand-built form resolves -- to the module route -- and shows a page
+							that is not the record (#42225). -->
 						<RouterLink
-							:to="`/${route.params.doctype}/${encodeURIComponent(row.name)}`"
+							:to="routeFor(doctype!, row.name)"
 							class="text-ink-blue-3 hover:underline"
 						>
 							{{ row.name }}
@@ -29,15 +32,15 @@
 <script setup lang="ts">
 import { computed, inject, ref, watchEffect } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import type { Boot } from "@/boot";
-import { resolveDoctype } from "@/router";
+import type { Addresses } from "@/addresses";
+import { routeFor } from "@/router/routeFor";
 import { listHandlersFor } from "@/contributions/registry";
 
-const boot = inject<Boot>("boot")!;
+const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 const rows = ref<Record<string, string>[]>([]);
 
-const doctype = computed(() => resolveDoctype(boot, String(route.params.doctype)));
+const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 
 // A contributed `list.js` is read here and nowhere else. It cannot add a route, only
 // shape the view it was colocated with.

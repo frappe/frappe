@@ -129,6 +129,23 @@ def strip_html_comments(html: bytes) -> bytes:
 	return re.sub(rb"<!--.*?-->", b"", html, flags=re.DOTALL)
 
 
+def strip_comments(source: str) -> str:
+	"""Blank out comments, KEEPING line numbers, so a guard can read code only.
+
+	These files argue about URLs at length — `Module.vue`'s header quotes a modular
+	address to explain why the page exists — and a guard that reads prose reports the
+	explanation of the rule as a breach of it. Newlines are preserved rather than the
+	regions removed, because the offence message names a line.
+	"""
+
+	def blank(match: re.Match) -> str:
+		return "\n" * match.group().count("\n")
+
+	source = re.sub(r"<!--.*?-->", blank, source, flags=re.DOTALL)
+	source = re.sub(r"/\*.*?\*/", blank, source, flags=re.DOTALL)
+	return re.sub(r"^\s*(//|\*).*$", "", source, flags=re.MULTILINE)
+
+
 class TestShellPrefixes(IntegrationTestCase):
 	def test_default_derivation_when_an_app_declares_nothing(self):
 		"""Charter item 2: install an app and it is served, with no declaration at all.
@@ -489,24 +506,61 @@ class TestShellBoot(IntegrationTestCase):
 			payload = get_boot(f"/apps/{prefix}")
 		self.assertLess(len(json.dumps(payload, default=str)), 40_000)
 
-	def test_the_slug_table_is_permission_independent(self):
+	def test_the_address_table_is_permission_independent(self):
 		"""An address space cannot change shape per user.
 
 		v1's de-slug table is keyed on `can_read`, so two colleagues pasting the same
 		URL resolve it differently. Access is still refused at the record.
 		"""
-		from frappe.shell.doctypes import slugs_for_app
+		from frappe.shell.doctypes import get_address_table
 
-		# The framework's own table, which is the one a Guest is most thoroughly refused
+		# The framework's own doctypes are the ones a Guest is most thoroughly refused
 		# from reading — so if the shape were permission-keyed at all, it would show here.
-		as_admin = slugs_for_app("frappe")
+		as_admin = get_address_table()
 
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
-		as_guest = slugs_for_app("frappe")
+		as_guest = get_address_table()
 
 		self.assertEqual(as_admin, as_guest)
-		self.assertEqual(as_admin["user"], "User")
+		self.assertEqual(as_admin["doctypes"]["User"], ["user", "core"])
+		self.assertEqual(as_admin["doctypes"]["CRM Deal"], ["crm-deal", "fcrm"])
+
+	def test_the_address_table_is_full_bench_and_the_same_under_every_prefix(self):
+		"""The prefix is a LENS: every doctype is addressable under every prefix.
+
+		This is the property that let the table leave boot (#42210) — it is
+		byte-identical for every user AND every prefix, so it is cacheable, where a
+		per-prefix table never could be.
+		"""
+		from frappe.shell.doctypes import get_address_table
+
+		doctypes = get_address_table()["doctypes"]
+
+		# One from each of three different owners, all in the one table.
+		self.assertIn("CRM Deal", doctypes)
+		self.assertIn("User", doctypes)
+		self.assertIn("Contact", doctypes)
+
+	def test_navigation_is_filtered_where_addressing_is_not(self):
+		"""The other half of the split #42210 made.
+
+		Addressability is full-bench and permission-independent; navigation is per app
+		and permission-filtered. A doctype you cannot read is still addressable — you
+		are refused at the record — it is simply not offered to you.
+		"""
+		from frappe.shell.doctypes import get_address_table, navigation_for_app
+
+		self.assertIn("CRM Deal", get_address_table()["doctypes"])
+		as_admin = {entry["doctype"] for entry in navigation_for_app("crm")}
+		self.assertIn("CRM Deal", as_admin)
+
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		# Still addressable...
+		self.assertIn("CRM Deal", get_address_table()["doctypes"])
+		# ...and not offered.
+		self.assertNotIn("CRM Deal", {entry["doctype"] for entry in navigation_for_app("crm")})
 
 	def test_the_slug_table_tracks_doctypes_being_added_and_removed(self):
 		"""A new doctype must be addressable, and a deleted one must stop being so.
@@ -516,7 +570,10 @@ class TestShellBoot(IntegrationTestCase):
 		an `after_delete` handler, so a deleted doctype stayed addressable. It is keyed
 		on `metadata_version` instead, which every schema-change path already resets.
 		"""
-		from frappe.shell.doctypes import slugs_for_app
+		from frappe.shell.doctypes import get_address_table
+
+		def slugs():
+			return {slug for slug, _module in get_address_table()["doctypes"].values()}
 
 		name = "Shell Slug Probe"
 		# Start from a known state rather than a pristine one: a previous aborted run of
@@ -524,7 +581,7 @@ class TestShellBoot(IntegrationTestCase):
 		# fail for a reason that has nothing to do with what is being tested.
 		if frappe.db.exists("DocType", name):
 			frappe.delete_doc("DocType", name, force=True)
-		self.assertNotIn("shell-slug-probe", slugs_for_app("frappe"))
+		self.assertNotIn("shell-slug-probe", slugs())
 
 		frappe.get_doc(
 			doctype="DocType",
@@ -536,10 +593,10 @@ class TestShellBoot(IntegrationTestCase):
 		).insert()
 		self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
 
-		self.assertEqual(slugs_for_app("frappe").get("shell-slug-probe"), name)
+		self.assertEqual(get_address_table()["doctypes"].get(name), ["shell-slug-probe", "core"])
 
 		frappe.delete_doc("DocType", name, force=True)
-		self.assertNotIn("shell-slug-probe", slugs_for_app("frappe"))
+		self.assertNotIn("shell-slug-probe", slugs())
 
 	def test_a_contributed_boot_key_cannot_overwrite_core(self):
 		"""Core is spread LAST.
@@ -561,16 +618,19 @@ class TestShellBoot(IntegrationTestCase):
 	def test_the_desk_prefix_boot_is_small_too(self):
 		"""The framework's own prefix is the biggest one, so it is the one to measure.
 
-		Child tables are excluded from the slug table — they have no page and no
-		address, and frappe alone has enough of them to dominate this payload.
+		Since #42210 the slug table is not in here at all, which is most of why this
+		passes with room to spare. Child tables are excluded from that table too — they
+		have no page and no address.
 		"""
 		import json
 
 		from frappe.shell.boot import get_boot
-		from frappe.shell.doctypes import slugs_for_app
+		from frappe.shell.doctypes import get_address_table
 
-		self.assertLess(len(json.dumps(get_boot("/apps/desk"), default=str)), 40_000)
-		self.assertNotIn("doc-field", slugs_for_app("frappe"))
+		boot = get_boot("/apps/desk")
+		self.assertLess(len(json.dumps(boot, default=str)), 40_000)
+		self.assertNotIn("doctype_slugs", boot)
+		self.assertNotIn("DocField", get_address_table()["doctypes"])
 
 	def test_a_doctype_in_a_db_only_module_resolves_to_its_real_owner(self):
 		"""A Module Def created from the UI is in no modules.txt.
@@ -679,3 +739,167 @@ class TestAppPermission(IntegrationTestCase):
 
 		with hooks_declaring("app_permission", {"crm": "frappe.shell.nonexistent.handler"}):
 			self.assertFalse(has_app_permission("crm"))
+
+
+class TestModularAddresses(IntegrationTestCase):
+	"""The three-segment shape an app opts into with `app_modular` (#42211).
+
+	ERPNext declares it on this bench, so most of this could be asserted against the
+	real thing — but it is asserted against a *patched hook* instead, deliberately.
+	These have to keep passing on a bench with no ERPNext, and a test that silently
+	stops testing anything when an app is missing is worse than no test.
+	"""
+
+	def test_an_app_that_declares_nothing_is_not_modular(self):
+		from frappe.shell.registry import is_modular
+
+		self.assertFalse(is_modular("frappe"))
+		self.assertFalse(is_modular("crm"))
+
+	def test_the_boolean_rides_the_prefix_registry_into_boot(self):
+		from frappe.shell.boot import get_boot
+
+		prefixes = get_boot("/apps/crm")["prefixes"]
+
+		self.assertEqual(prefixes["desk"], {"app": "frappe", "modular": False})
+		self.assertEqual(prefixes["crm"], {"app": "crm", "modular": False})
+		# EVERY active app, not only the one serving this prefix: a link to a foreign
+		# app's doctype needs that app's shape, and one boolean per app is cheap.
+		self.assertEqual(
+			{entry["app"] for entry in prefixes.values()},
+			set(frappe.get_active_apps(_ensure_on_bench=True)),
+		)
+
+	def test_a_modular_app_addresses_every_doctype_through_its_own_module(self):
+		"""Foreign doctypes included, and using the DOCTYPE's module, not the app's.
+
+		This is the half that only works because the prefix is a lens: a foreign
+		module segment asserts nothing false once the prefix carries context rather
+		than content (#42211 §1).
+		"""
+		from frappe.shell.links import canonical_path
+
+		with hooks_declaring("app_modular", {"crm": True}):
+			# CRM's own doctype, in CRM's own module.
+			self.assertEqual(canonical_path("CRM Deal", "CRM-DEAL-01"), "/apps/crm/fcrm/crm-deal/CRM-DEAL-01")
+
+		# And frappe, which declares nothing, keeps two segments for the same kind of
+		# thing. The shape is a property of the app, never of the doctype.
+		# Note the `@` survives unencoded, and is meant to: a docname is not excluded
+		# from the address space for containing one (#42214). A space still quotes.
+		self.assertEqual(canonical_path("User", "a@example.org"), "/apps/desk/user/a@example.org")
+
+	def test_the_canonical_address_is_the_owners_prefix(self):
+		"""A link built outside a session has no prefix to inherit, so it picks one.
+
+		It picks the owner's, and never redirects: a prefix the reader may not enter
+		answers 403, because an address that changes shape per user is not an address
+		(#42210).
+		"""
+		from frappe.utils import get_url_to_form
+
+		self.assertTrue(get_url_to_form("CRM Deal", "CRM-DEAL-01").endswith("/apps/crm/crm-deal/CRM-DEAL-01"))
+		self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
+		self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
+
+	def test_the_module_landing_page_is_permission_filtered(self):
+		"""#42210's line, held exactly: addressability is not filtered, navigation is.
+
+		Nobody pastes a module page as a record link, so filtering it changes no
+		address's shape.
+		"""
+		from frappe.shell.doctypes import navigation_for_app
+
+		self.assertTrue(navigation_for_app("crm", "fcrm"))
+		self.assertFalse(navigation_for_app("crm", "no-such-module"))
+
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.assertFalse(navigation_for_app("crm", "fcrm"))
+
+
+class TestNoHandBuiltDoctypeUrls(IntegrationTestCase):
+	"""`routeFor` is the ONLY sanctioned way to build a doctype URL — enforced here.
+
+	#42211 §2 measured the cost of per-app modularity and found it was not "accept a
+	constraint" but "build the enforcement, then police the rule forever, with a 404
+	rather than a type error as the failure". This is the policing, and it is a test
+	rather than a lint rule because it has to reach every installed app's CONTRIBUTED
+	files, which live in other repos and are compiled into this bundle at build time.
+
+	Two rules, each with a reason that predates this ticket:
+
+	1. **The literal `/apps/<something>` never appears in frontend source.** The prefix
+	   lives in `hooks.py` and nowhere else (#42072); a file that spells one has
+	   hard-coded another app's address and will not survive a prefix change.
+	2. **No template-literal route path.** `` `/${slug}/${name}` `` is the exact form
+	   that resolves under a modular prefix and shows the wrong page.
+	"""
+
+	#: Each entry needs a reason. The list is short on purpose — a growing allowlist is
+	#: the signal that the rule is wrong, not that the exceptions are.
+	ALLOWED = {
+		# The router's own construction of a contributed page's path. This is the file
+		# the rule exists to concentrate route-building INTO.
+		"frontend/src/router/contributed.ts",
+		# The builders themselves, and the module that publishes them.
+		"frontend/src/router/routeFor.ts",
+		"frontend/src/router/generated.ts",
+		"frontend/src/public.ts",
+		# Documentation of the rule, in the file that explains where the table went.
+		"frontend/src/addresses.ts",
+	}
+
+	HAND_BUILT = re.compile(
+		r"""(?x)
+		(/apps/[a-z][a-z0-9_-]*/)      # rule 1: another app's prefix, spelled out
+		| (:to="`/)                    # rule 2: a template-literal route path...
+		| (href="`/)
+		| (\.href\s*=\s*`/)
+		| (router\.(push|replace)\(`/)
+		"""
+	)
+
+	def sources(self):
+		"""Every frontend file the bundle compiles: the shell's, and contributed ones."""
+		import glob
+		import os
+
+		from frappe.shell.manifest import contribution_globs
+
+		frontend = os.path.join(frappe.get_app_source_path("frappe"), "frontend", "src")
+		for pattern in ("**/*.ts", "**/*.vue"):
+			yield from glob.glob(os.path.join(frontend, pattern), recursive=True)
+
+		for app in frappe.get_all_apps():
+			try:
+				source_dir = frappe.get_app_path(app)
+			except Exception:
+				continue
+			for pattern in contribution_globs(source_dir):
+				yield from glob.glob(pattern)
+
+	def test_no_source_file_builds_a_doctype_url_by_hand(self):
+		import os
+
+		root = os.path.dirname(frappe.get_app_source_path("frappe"))
+		offences = []
+
+		for path in self.sources():
+			relative = os.path.relpath(path, root)
+			# Allowlist entries are written relative to the frappe repo root.
+			if relative.removeprefix("frappe/") in self.ALLOWED:
+				continue
+			with open(path) as handle:
+				source = strip_comments(handle.read())
+			for number, line in enumerate(source.splitlines(), start=1):
+				if self.HAND_BUILT.search(line):
+					offences.append(f"{relative}:{number}: {line.strip()}")
+
+		self.assertEqual(
+			offences,
+			[],
+			"These build a doctype URL by hand. Use `routeFor`/`urlFor` — the shape is "
+			"one segment deeper under an app that declares `app_modular`, so a "
+			"hand-built path resolves to the wrong page rather than failing:\n" + "\n".join(offences),
+		)

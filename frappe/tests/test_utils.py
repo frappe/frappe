@@ -1527,8 +1527,12 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertGreaterEqual(len(info["users"]), 1)
 
 	def test_get_url_to_form(self):
-		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
-		self.assertTrue(get_url_to_form("User", "Test User").endswith("/desk/user/Test%20User"))
+		# The CANONICAL address: the owning app's prefix, and that app's route shape
+		# (frappe/frappe#42210, #42211). These used to read `/desk/…`, desk v1's route.
+		# v1 is untouched and still lives there; what moved is where a link GENERATED
+		# outside a session points, which is now the shell.
+		self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
+		self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})
