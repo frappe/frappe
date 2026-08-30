@@ -137,7 +137,7 @@ async def test_bearer_token_is_sent(tmp_path):
 
 async def test_follow_stream_spans_runs_and_ignores_keepalives(tmp_path, monkeypatch):
 	# a fast cadence proves keepalives really flow between the runs below
-	monkeypatch.setattr("flow.server.app.KEEPALIVE_SECONDS", 0.05)
+	monkeypatch.setattr("flow.server.utils.sse.KEEPALIVE_SECONDS", 0.05)
 	app = create_app(_store(tmp_path))
 	async with _live_server(app) as url, FlowClient(url) as client:
 		sid = await client.create_session(SessionConfig(model="mock", cwd=str(tmp_path)))

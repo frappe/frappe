@@ -1,0 +1,116 @@
+"""cwd-keyed filesystem routes: the folder picker, the explorer, and git views.
+These work before the first message creates a session; diffs and saves that
+belong to a session stay on the session routes."""
+
+from __future__ import annotations
+
+import asyncio
+import os
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, ConfigDict, Field
+
+from flow.path_policy import absolute_path, canonical_path, is_path_allowed
+from flow.server.utils.fspick import PickerUnavailable, pick_folder
+from flow.server.utils.git import git_changes, git_head_text, git_output
+from flow.server.utils.workspace import (
+	MAX_FILE_VIEW_BYTES,
+	list_directory,
+	read_text_file,
+	save_text_file,
+	search_tree,
+)
+from flow.session.store import SessionStore
+
+
+class FsWriteFileRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	cwd: str = Field(min_length=1)
+	path: str = Field(min_length=1)
+	content: str
+
+
+def create_fs_router(store: SessionStore) -> APIRouter:
+	router = APIRouter()
+
+	# POST, not GET: a GET could be fired by a hostile page's <img src=…>.
+	# One at a time — each pick pins a thread until the user answers.
+	pick_lock = asyncio.Lock()
+
+	@router.post("/fs/pick")
+	async def fs_pick():
+		async with pick_lock:
+			try:
+				path = await asyncio.to_thread(pick_folder)
+			except PickerUnavailable as e:
+				raise HTTPException(status_code=501, detail=str(e)) from None
+		return {"path": path}
+
+	def _resolve_allowed_path(cwd: str, path: str) -> str:
+		if not os.path.isabs(cwd):
+			raise HTTPException(status_code=400, detail="cwd must be an absolute path")
+		full_path = absolute_path(path, base=cwd)
+		if store.allowed_roots and not is_path_allowed(canonical_path(full_path), store.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+		return full_path
+
+	@router.get("/fs/files")
+	async def list_files(cwd: str, path: str = ""):
+		full_path = _resolve_allowed_path(cwd, path or ".")
+		return {"path": full_path, "entries": await asyncio.to_thread(list_directory, full_path)}
+
+	@router.get("/fs/files/search")
+	async def search_files(cwd: str, query: str):
+		root = _resolve_allowed_path(cwd, ".")
+		if not os.path.isdir(root):
+			raise HTTPException(status_code=404, detail="directory not found")
+		needle = query.strip().lower()
+		if not needle:
+			return {"path": root, "matches": [], "truncated": False}
+		matches, truncated = await asyncio.to_thread(search_tree, root, needle)
+		return {"path": root, "matches": matches, "truncated": truncated}
+
+	@router.get("/fs/file")
+	async def read_file(cwd: str, path: str):
+		full_path = _resolve_allowed_path(cwd, path)
+		return {"path": full_path, "content": await asyncio.to_thread(read_text_file, full_path)}
+
+	@router.put("/fs/file")
+	async def write_fs_file(req: FsWriteFileRequest):
+		"""The cwd-keyed twin of the session save, so edits work before a session exists."""
+		full_path = _resolve_allowed_path(req.cwd, req.path)
+		if len(req.content.encode()) > MAX_FILE_VIEW_BYTES:
+			raise HTTPException(status_code=413, detail="file too large to save")
+		await asyncio.to_thread(save_text_file, full_path, req.content)
+		return {"path": full_path}
+
+	@router.get("/fs/git/changes")
+	async def fs_git_changes(cwd: str):
+		"""The repository's uncommitted files with added/removed line counts."""
+		root = _resolve_allowed_path(cwd, ".")
+		if not os.path.isdir(root):
+			raise HTTPException(status_code=404, detail="directory not found")
+		return await asyncio.to_thread(git_changes, root, store.allowed_roots)
+
+	@router.get("/fs/git/file/diff")
+	async def git_file_diff(cwd: str, path: str):
+		"""Both sides of one file's uncommitted changes: HEAD and the working tree."""
+		base = _resolve_allowed_path(cwd, ".")
+		full_path = _resolve_allowed_path(cwd, path)
+
+		def compute() -> dict:
+			top = git_output(base, "rev-parse", "--show-toplevel")
+			if top is None:
+				raise HTTPException(status_code=400, detail="not a git repository")
+			root = top.decode("utf-8", "replace").strip()
+			rel = os.path.relpath(canonical_path(full_path), root)
+			if rel.startswith(".."):
+				raise HTTPException(status_code=400, detail="file is outside the repository")
+			original = git_head_text(root, rel.replace(os.sep, "/"))
+			modified = read_text_file(full_path) if os.path.isfile(full_path) else ""
+			return {"path": full_path, "original": original, "modified": modified}
+
+		return await asyncio.to_thread(compute)
+
+	return router
