@@ -338,7 +338,11 @@ $.extend(frappe.meta, {
 			var currency_precision = frappe.defaults.get_default("currency_precision");
 			// an explicit precision of 0 must be honoured, not treated the same
 			// as "not set" (cint(0) is falsy, so `if (!precision)` would discard it)
-			if (currency_precision !== null && currency_precision !== undefined && currency_precision !== "") {
+			if (
+				currency_precision !== null &&
+				currency_precision !== undefined &&
+				currency_precision !== ""
+			) {
 				precision = cint(currency_precision);
 			} else {
 				var currency = frappe.meta.get_field_currency(df, doc);
