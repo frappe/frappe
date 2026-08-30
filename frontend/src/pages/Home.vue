@@ -19,7 +19,13 @@
 				>.
 			</p>
 
-			<ul v-if="modular" class="mt-6 grid max-w-2xl grid-cols-2 gap-2">
+			<!-- Same rule as the rail and the module page: an empty grid and a grid that
+					 failed to load are indistinguishable, and one of them misdescribes the app. -->
+			<p v-if="failed" class="mt-6 text-sm text-ink-gray-6">
+				Could not load this app's navigation.
+			</p>
+
+			<ul v-else-if="modular" class="mt-6 grid max-w-2xl grid-cols-2 gap-2">
 				<li v-for="module in modules" :key="module.slug">
 					<RouterLink
 						:to="routeForModule(module.slug)"
@@ -74,7 +80,7 @@ const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 
 const modular = computed(() => isModular(boot));
-const { entries } = useNavigation(boot.app);
+const { entries, failed } = useNavigation(boot.app);
 
 // The modules a user can reach, derived from what they can read rather than from the
 // module list -- an empty module is a tile that leads nowhere.
