@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-26 22:13\n"
+"PO-Revision-Date: 2026-08-28 22:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Mongolian\n"
 "MIME-Version: 1.0\n"
@@ -488,7 +488,72 @@ msgid "<h3>Print Format Help</h3>\n"
 "\t\t</tr>\n"
 "\t</tbody>\n"
 "</table>\n"
-msgstr ""
+msgstr "\\<h3>Хэвлэх форматын тусламж\\</h3>\n"
+"\\<hr>\n"
+"\\<h4>Танилцуулга\\</h4>\n"
+"\\<p>Хэвлэх форматыг серверийн талд Jinja загварчлалын хэлийг ашиглан үүсгэдэг. Бүх маягт нь форматлагдаж буй баримт бичгийн мэдээллийг агуулсан \\<code>doc\\</code> объектод хандах боломжтой. Мөн \\<code>frappe\\</code> модулиар дамжуулан нийтлэг хэрэгслүүдэд хандаж болно.\\</p>\n"
+"\\<p>Загварчлалын хувьд Bootstrap CSS framework-ийг ашиглах боломжтой бөгөөд бүх ангиллуудыг бүрэн ашиглаж болно.\\</p>\n"
+"\\<hr>\n"
+"\\<h4>Лавлагаа\\</h4>\n"
+"\\<ol>\n"
+"&#x9;\\<li>\\<a href=\"[http://jinja.pocoo.org/docs/templates/](http://jinja.pocoo.org/docs/templates/)\" target=\"\\_blank\">Jinja загварчлалын хэл\\</a>\\</li>\n"
+"&#x9;\\<li>\\<a href=\"[http://getbootstrap.com](http://getbootstrap.com)\" target=\"\\_blank\">Bootstrap CSS framework\\</a>\\</li>\n"
+"\\</ol>\n"
+"\\<hr>\n"
+"\\<h4>Жишээ\\</h4>\n"
+"\\<pre>\\<code>&lt;h3&gt;{{ doc.select\\_print\\_heading or \"Нэхэмжлэх\" }}&lt;/h3&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"&#x9;&lt;div class=\"col-md-3 text-right\"&gt;Харилцагчийн нэр&lt;/div&gt;\n"
+"&#x9;&lt;div class=\"col-md-9\"&gt;{{ doc.customer\\_name }}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"&#x9;&lt;div class=\"col-md-3 text-right\"&gt;Огноо&lt;/div&gt;\n"
+"&#x9;&lt;div class=\"col-md-9\"&gt;{{ doc.get\\_formatted(\"invoice\\_date\") }}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;table class=\"table table-bordered\"&gt;\n"
+"&#x9;&lt;tbody&gt;\n"
+"&#x9;\t&lt;tr&gt;\n"
+"&#x9;\t\t&lt;th&gt;№&lt;/th&gt;\n"
+"&#x9;\t\t&lt;th&gt;Барааны нэр&lt;/th&gt;\n"
+"&#x9;\t\t&lt;th&gt;Тайлбар&lt;/th&gt;\n"
+"&#x9;\t\t&lt;th class=\"text-right\"&gt;Тоо хэмжээ&lt;/th&gt;\n"
+"&#x9;\t\t&lt;th class=\"text-right\"&gt;Үнэ&lt;/th&gt;\n"
+"&#x9;\t\t&lt;th class=\"text-right\"&gt;Дүн&lt;/th&gt;\n"
+"&#x9;\t&lt;/tr&gt;\n"
+"&#x9;\t{%- for row in doc.items -%}\n"
+"&#x9;\t&lt;tr&gt;\n"
+"&#x9;\t\t&lt;td style=\"width: 3%;\"&gt;{{ row\\.idx }}&lt;/td&gt;\n"
+"&#x9;\t\t&lt;td style=\"width: 20%;\"&gt;\n"
+"&#x9;\t\t\t{{ row\\.item\\_name }}\n"
+"&#x9;\t\t\t{% if row\\.item\\_code != row\\.item\\_name -%}\n"
+"&#x9;\t\t\t&lt;br&gt;Барааны код: {{ row\\.item\\_code}}\n"
+"&#x9;\t\t\t{%- endif %}\n"
+"&#x9;\t\t&lt;/td&gt;\n"
+"&#x9;\t\t&lt;td style=\"width: 37%;\"&gt;\n"
+"&#x9;\t\t\t&lt;div style=\"border: 0px;\"&gt;{{ row\\.description }}&lt;/div&gt;&lt;/td&gt;\n"
+"&#x9;\t\t&lt;td style=\"width: 10%; text-align: right;\"&gt;{{ row\\.qty }} {{ row\\.uom or row\\.stock\\_uom }}&lt;/td&gt;\n"
+"&#x9;\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"&#x9;\t\t\trow\\.get\\_formatted(\"rate\", doc) }}&lt;/td&gt;\n"
+"&#x9;\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"&#x9;\t\t\trow\\.get\\_formatted(\"amount\", doc) }}&lt;/td&gt;\n"
+"&#x9;\t&lt;/tr&gt;\n"
+"&#x9;\t{%- endfor -%}\n"
+"&#x9;&lt;/tbody&gt;\n"
+"&lt;/table&gt;\\</code>\\</pre>\n"
+"\\<hr>\n"
+"\\<h4>Түгээмэл функцууд\\</h4>\n"
+"\\<table class=\"table table-bordered\">\n"
+"&#x9;\\<tbody>\n"
+"&#x9;\t\\<tr>\n"
+"&#x9;\t\t\\<td style=\"width: 30%;\">\\<code>doc.get\\_formatted(\"[fieldname]\", [parent\\_doc])\\</code>\\</td>\n"
+"&#x9;\t\t\\<td>Баримт бичгийн утгыг Огноо, Валют зэрэг форматаар авна. Валютын төрлийн талбарт эх \\<code>doc\\</code>-ийг дамжуулна.\\</td>\n"
+"&#x9;\t\\</tr>\n"
+"&#x9;\t\\<tr>\n"
+"&#x9;\t\t\\<td style=\"width: 30%;\">\\<code>frappe.db.get\\_value(\"[doctype]\", \"[name]\", \"fieldname\")\\</code>\\</td>\n"
+"&#x9;\t\t\\<td>Өөр баримт бичгээс утга авна.\\</td>\n"
+"&#x9;\t\\</tr>\n"
+"&#x9;\\</tbody>\n"
+"\\</table>\n"
 
 #. Description of the 'Template' (Code) field in DocType 'Address Template'
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -676,7 +741,19 @@ msgid "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 "<li>frappe.utils.now</li>\n"
 "</ul>\n"
 "<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
-msgstr ""
+msgstr "\\<pre>\\<code>doc.grand\\_total &gt; 0\\</code>\\</pre>\n\n"
+"\\<p>Нөхцөлийг энгийн Python хэлбэрээр бичнэ үү. Зөвхөн маягтад ашиглах боломжтой шинж чанаруудыг ашиглана уу.\\</p>\n"
+"\\<p>Зөвшөөрөгдсөн функцууд:\n"
+"\\</p>\\<ul>\n"
+"\\<li>frappe.db.get\\_value\\</li>\n"
+"\\<li>frappe.db.get\\_list\\</li>\n"
+"\\<li>frappe.session\\</li>\n"
+"\\<li>frappe.utils.now\\_datetime\\</li>\n"
+"\\<li>frappe.utils.get\\_datetime\\</li>\n"
+"\\<li>frappe.utils.add\\_to\\_date\\</li>\n"
+"\\<li>frappe.utils.now\\</li>\n"
+"\\</ul>\n"
+"\\<p>Жишээ: \\</p>\\<pre>\\<code>doc.creation &gt; frappe.utils.add\\_to\\_date(frappe.utils.now\\_datetime(), days=-5, as\\_string=True, as\\_datetime=True) \\</code>\\</pre>\\<p>\\</p>"
 
 #. Header text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
@@ -4334,7 +4411,7 @@ msgstr "Файлд хавтас хавсаргаж чадахгүй байна"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "<b>{0} төлөв</b>-өөс <b>{1} төлөв</b> рүү шилжих үед илгээхээс өмнө цуцлах боломжгүй"
 
 #: frappe/workflow/doctype/workflow/workflow.py:111
 msgid "Cannot cancel before submitting. See Transition {0}"
@@ -13322,7 +13399,7 @@ msgstr "Хэрэв идэвхжүүлсэн бол нууц үгийн бат б
 #. Description of the 'Key required' (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, the web form can only be used with a <i>Key</i> from a corresponding <b>Web Form Request</b>."
-msgstr ""
+msgstr "Хэрэв идэвхжүүлсэн бол энэхүү вэб маягтыг зөвхөн харгалзах <i>Түлхүүр</i>-ийг ашиглан нээж <b>Вэб маягтын хүсэлт</b>-ийг ашиглах боломжтой."
 
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
@@ -14061,7 +14138,7 @@ msgstr "Дараа оруулахыг {0} гэж тохируулах болом
 
 #: frappe/custom/doctype/custom_field/custom_field.py:250
 msgid "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist"
-msgstr ""
+msgstr "Custom Field '{1}'-д заасан, '{2}' шошготой **Insert After** талбар '{0}' байхгүй байна"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:61
 #: frappe/public/js/frappe/form/grid_row_form.js:76
@@ -17241,7 +17318,7 @@ msgstr "Мобайл"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/user/user.json
 msgid "Mobile No"
-msgstr ""
+msgstr "Гар утас"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -32373,7 +32450,7 @@ msgstr "Та ганц DocType-аас хяналтын самбарын диаг�
 
 #: frappe/share.py:261
 msgid "You cannot share `{0}` on {1} `{2}` as you do not have `{0}` permission on `{1}`"
-msgstr ""
+msgstr "Та `{1}` дээр `{0}` эрхгүй тул {1} `{2}`-д `{0}` эрхийг хуваалцах боломжгүй"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:391
 msgid "You cannot unset 'Read Only' for field {0}"
