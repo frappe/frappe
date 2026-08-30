@@ -80,14 +80,20 @@ point.
 
 `@framework/ui` keeps what the desk layer merely *consumes*: `components/FormLayout`,
 `components/Fields`, and the `useDocPermissions` / `useUserRoles` / `useDoctypeMeta`
-composables. The record-page engine, `PanelLayout` and the Page Script editor are desk
-layer and live here.
+composables. The record-page engine (`src/recordPage/`) is desk layer and lives here.
+
+Two components are **classified** desk layer but have not landed yet, and are named here
+because the classification is what the rule is for: `PanelLayout` and the Page Script
+editor. Both exist today only on the `feat/saved-view-sidebar` prototype branch. When they
+come across they come *here*, not into `@framework/ui`.
 
 **Why:** The trap is that a desk-layer module's imports point *into* the generic library,
 and that reads like a co-location argument for moving it there. It is the opposite:
-**consuming generic components is what makes something the desk layer.** `PanelLayout`
-looks generic until you read its props — `surface: Surface<PanelSectionItem>` and `page`,
-straight from the engine. A Page Script editor is the customization layer by definition.
+**consuming generic components is what makes something the desk layer.** `PanelLayout` is
+the worked example: it imports `FormLayout` and `Fields` heavily and so reads as generic,
+until you reach its props — `surface: Surface<PanelSectionItem>` and `page`, both straight
+from the engine. Its imports argued one way and its props settled it the other. A Page
+Script editor is the customization layer by definition and needs no such argument.
 
 The counter-pull is real: a thing in `@framework/ui` is reachable by any app immediately,
 and moving it later costs a deprecation cycle. Take that trade only when the thing passes
