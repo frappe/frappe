@@ -74,7 +74,7 @@ const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 
 const modular = computed(() => isModular(boot));
-const entries = useNavigation(boot.app);
+const { entries } = useNavigation(boot.app);
 
 // The modules a user can reach, derived from what they can read rather than from the
 // module list -- an empty module is a tile that leads nowhere.

@@ -14,7 +14,12 @@
 	<div class="overflow-y-auto p-8">
 		<h1 class="text-xl font-semibold">{{ title }}</h1>
 		<p class="mt-1 text-sm text-ink-gray-6">
-			{{ entries.length }} doctype{{ entries.length === 1 ? "" : "s" }} you can read.
+			<!-- "0 doctypes you can read" is a real answer for a module you can read
+					 nothing in, so it must not also be what a pending fetch looks like. -->
+			<template v-if="loading">Loading…</template>
+			<template v-else>
+				{{ entries.length }} doctype{{ entries.length === 1 ? "" : "s" }} you can read.
+			</template>
 		</p>
 
 		<ul class="mt-6 grid max-w-2xl grid-cols-2 gap-2">
@@ -43,7 +48,7 @@ const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 
 const moduleSlug = computed(() => String(route.params.module ?? ""));
-const entries = useNavigation(boot.app, moduleSlug);
+const { entries, loading } = useNavigation(boot.app, moduleSlug);
 // The slug is the address; the name is what a human reads. The server sends both, so
 // neither side has to guess the other.
 const title = computed(() => addresses.moduleName(moduleSlug.value) ?? moduleSlug.value);

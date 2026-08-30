@@ -50,5 +50,5 @@ import { routeFor } from "@/router/routeFor";
 import { useNavigation } from "@/navigation";
 
 const boot = inject<Boot>("boot")!;
-const entries = useNavigation(boot.app);
+const { entries } = useNavigation(boot.app);
 </script>
