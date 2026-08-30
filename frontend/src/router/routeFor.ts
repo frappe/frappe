@@ -31,26 +31,26 @@ export type Shell = { boot: Boot; addresses: Addresses; router: Router };
 let shell: Shell | null = null;
 
 export function registerShell(context: Shell) {
-  shell = context;
+	shell = context;
 }
 
 function current(): Shell {
-  if (!shell)
-    throw new Error("routeFor was called before the shell was mounted");
-  return shell;
+	if (!shell)
+		throw new Error("routeFor was called before the shell was mounted");
+	return shell;
 }
 
 /** Does the app serving THIS prefix put the module in the address? */
 export function isModular(boot: Boot): boolean {
-  const prefix = boot.shell_base.split("/").filter(Boolean).pop();
-  return Boolean(prefix && boot.prefixes?.[prefix]?.modular);
+	const prefix = boot.shell_base.split("/").filter(Boolean).pop();
+	return Boolean(prefix && boot.prefixes?.[prefix]?.modular);
 }
 
 export type RouteOptions = {
-  /** A saved view id -- `/<doctype>/view/<viewName>`. Never a view *type* (#42068). */
-  view?: string;
-  /** Context, not identity. `?view=`, `?layout=` and friends live here (#42068). */
-  query?: Record<string, string>;
+	/** A saved view id -- `/<doctype>/view/<viewName>`. Never a view *type* (#42068). */
+	view?: string;
+	/** Context, not identity. `?view=`, `?layout=` and friends live here (#42068). */
+	query?: Record<string, string>;
 };
 
 /**
@@ -64,49 +64,49 @@ export type RouteOptions = {
  * OWN module -- foreign doctypes included, because the shape is fixed per app.
  */
 export function routeFor(
-  doctype: string,
-  name?: string | null,
-  options: RouteOptions = {}
+	doctype: string,
+	name?: string | null,
+	options: RouteOptions = {}
 ): RouteLocationRaw {
-  const { boot, addresses } = current();
-  const address = addresses.addressOf(doctype);
+	const { boot, addresses } = current();
+	const address = addresses.addressOf(doctype);
 
-  if (!address) {
-    // A doctype the table has never heard of cannot be addressed, and guessing a slug
-    // would produce a URL that resolves to the shell's not-found anyway -- one hop
-    // later and with the reason lost. Say it here, where the caller is.
-    throw new Error(`routeFor: no address for doctype '${doctype}'`);
-  }
+	if (!address) {
+		// A doctype the table has never heard of cannot be addressed, and guessing a slug
+		// would produce a URL that resolves to the shell's not-found anyway -- one hop
+		// later and with the reason lost. Say it here, where the caller is.
+		throw new Error(`routeFor: no address for doctype '${doctype}'`);
+	}
 
-  const [slug, module] = address;
-  const params: Record<string, string> = { doctype: slug };
-  if (isModular(boot)) {
-    if (!module)
-      throw new Error(
-        `routeFor: '${doctype}' has no module under a modular prefix`
-      );
-    params.module = module;
-  }
+	const [slug, module] = address;
+	const params: Record<string, string> = { doctype: slug };
+	if (isModular(boot)) {
+		if (!module)
+			throw new Error(
+				`routeFor: '${doctype}' has no module under a modular prefix`
+			);
+		params.module = module;
+	}
 
-  if (name)
-    return {
-      name: "record",
-      params: { ...params, name },
-      query: options.query,
-    };
-  if (options.view) {
-    return {
-      name: "saved-view",
-      params: { ...params, viewName: options.view },
-      query: options.query,
-    };
-  }
-  return { name: "list", params, query: options.query };
+	if (name)
+		return {
+			name: "record",
+			params: { ...params, name },
+			query: options.query,
+		};
+	if (options.view) {
+		return {
+			name: "saved-view",
+			params: { ...params, viewName: options.view },
+			query: options.query,
+		};
+	}
+	return { name: "list", params, query: options.query };
 }
 
 /** The route for a module's landing page. Modular prefixes only (#42211 §6). */
 export function routeForModule(moduleSlug: string): RouteLocationRaw {
-  return { name: "module", params: { module: moduleSlug } };
+	return { name: "module", params: { module: moduleSlug } };
 }
 
 /**
@@ -114,9 +114,9 @@ export function routeForModule(moduleSlug: string): RouteLocationRaw {
  * `window.location` assignment from a contributed script, and a plain `<a>`.
  */
 export function urlFor(
-  doctype: string,
-  name?: string | null,
-  options: RouteOptions = {}
+	doctype: string,
+	name?: string | null,
+	options: RouteOptions = {}
 ): string {
-  return current().router.resolve(routeFor(doctype, name, options)).href;
+	return current().router.resolve(routeFor(doctype, name, options)).href;
 }

@@ -8,6 +8,7 @@
 
 import re
 from contextlib import ExitStack, contextmanager
+from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
@@ -838,7 +839,7 @@ class TestNoHandBuiltDoctypeUrls(IntegrationTestCase):
 
 	#: Each entry needs a reason. The list is short on purpose — a growing allowlist is
 	#: the signal that the rule is wrong, not that the exceptions are.
-	ALLOWED = {
+	ALLOWED: ClassVar[set[str]] = {
 		# The router's own construction of a contributed page's path. This is the file
 		# the rule exists to concentrate route-building INTO.
 		"frontend/src/router/contributed.ts",

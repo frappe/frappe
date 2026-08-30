@@ -21,31 +21,44 @@ import { ref, watchEffect, type Ref } from "vue";
 export type NavigationEntry = { doctype: string; slug: string; module: string };
 
 export function fetchNavigation(
-  app: string,
-  module?: string
+	app: string,
+	module?: string
 ): Promise<NavigationEntry[]> {
-  const params = new URLSearchParams({ app });
-  if (module) params.set("module", module);
-  return fetch(`/api/method/frappe.shell.doctypes.get_navigation?${params}`)
-    .then((res) => (res.ok ? res.json() : null))
-    .then((body) => body?.message ?? [])
-    .catch(() => []);
+	const params = new URLSearchParams({ app });
+	if (module) params.set("module", module);
+	return fetch(`/api/method/frappe.shell.doctypes.get_navigation?${params}`)
+		.then((res) => (res.ok ? res.json() : null))
+		.then((body) => body?.message ?? [])
+		.catch(() => []);
 }
 
 /** Reactive navigation for a prefix, optionally narrowed to one module. */
 export function useNavigation(
-  app: string | null,
-  module?: Ref<string | undefined>
+	app: string | null,
+	module?: Ref<string | undefined>
 ) {
-  const entries = ref<NavigationEntry[]>([]);
+	const entries = ref<NavigationEntry[]>([]);
 
-  watchEffect(async () => {
-    if (!app) {
-      entries.value = [];
-      return;
-    }
-    entries.value = await fetchNavigation(app, module?.value);
-  });
+	// Which fetch is current. Moving between modules leaves the previous one in
+	// flight, and without this the slower response wins: the rail would show the
+	// module the reader has left. The same guard `List.vue` and `Record.vue` already
+	// carry, for the same reason.
+	let generation = 0;
 
-  return entries;
+	watchEffect(async () => {
+		const mine = ++generation;
+		if (!app) {
+			entries.value = [];
+			return;
+		}
+
+		// `module?.value` is read HERE, synchronously, so `watchEffect` tracks it.
+		// Reading it after the await would register no dependency and the rail would
+		// never update again.
+		const fetched = await fetchNavigation(app, module?.value);
+		if (mine !== generation) return;
+		entries.value = fetched;
+	});
+
+	return entries;
 }

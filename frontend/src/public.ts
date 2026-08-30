@@ -14,9 +14,9 @@
 // second door into the shell: everything here is address arithmetic.
 
 export {
-  routeFor,
-  routeForModule,
-  urlFor,
-  type RouteOptions,
+	routeFor,
+	routeForModule,
+	urlFor,
+	type RouteOptions,
 } from "@/router/routeFor";
 export type { NavigationEntry } from "@/navigation";
