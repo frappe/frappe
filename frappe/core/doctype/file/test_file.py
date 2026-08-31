@@ -1567,6 +1567,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
 
 	def test_toggling_is_private_does_not_leak_shared_file(self):
@@ -1626,6 +1627,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# B's private copy must survive because B still references it.
 		doc_a_path = doc_a.get_full_path()
 		doc_a.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_a_path),
 			"Public copy not cleaned up after A's deletion",
@@ -1639,6 +1641,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# Deleting B removes the last reference to the private copy.
 		doc_b_path = doc_b.get_full_path()
 		doc_b.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_b_path),
 			"Private copy not cleaned up after B's deletion",

@@ -243,9 +243,14 @@ class File(Document):
 		self.validate_empty_folder()
 		self.validate_protected_file()
 		self.validate_not_referenced_in_attach_field()
-		self._delete_file_on_disk()
+		frappe.db.after_commit.add(self._delete_file_on_disk_after_commit)
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
+
+	def _delete_file_on_disk_after_commit(self):
+		if frappe.db.exists("File", self.name):
+			return
+		self._delete_file_on_disk()
 
 	def on_rollback(self):
 		rollback_flags = ("new_file", "original_content", "original_path")
