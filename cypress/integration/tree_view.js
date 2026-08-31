@@ -49,6 +49,10 @@ context("Tree View", () => {
 			cy.contains('[role="menu"] .es-menu__item', label).click();
 		};
 
+		// wait for the root's children to render before opening the menu — the
+		// expansion state is only meaningful once the tree has actually loaded
+		cy.get('.tree-link[data-label="Parent Node"]').should("be.visible");
+
 		// root auto-expands; both groups underneath are still collapsed -> only "Expand All"
 		assert_buttons(true, false);
 

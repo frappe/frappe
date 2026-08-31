@@ -176,6 +176,10 @@ frappe.ui.Tree = class {
 	 */
 	get_expansion_state() {
 		if (!this.root_node.expanded) return "collapsed";
+		// root is open but its children are still loading (expand_node flips
+		// `expanded` before the async fetch renders them): there is something
+		// to expand, so report "collapsed" rather than a premature "none"
+		if (!this.root_node.loaded) return "collapsed";
 		const expandable = Object.values(this.nodes).filter(
 			(node) =>
 				node.expandable && !node.is_root && document.body.contains(node.$tree_link[0])
