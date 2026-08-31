@@ -250,7 +250,15 @@ class File(Document):
 	def _delete_file_on_disk_after_commit(self):
 		if frappe.db.exists("File", self.name):
 			return
-		self._delete_file_on_disk()
+		try:
+			self._delete_file_on_disk()
+		except Exception:
+			# The delete is already committed; a filesystem error here must not
+			# surface post-commit or abort sibling after_commit callbacks.
+			frappe.log_error(
+				title="File cleanup after commit failed",
+				message=f"Could not remove {self.file_url} from disk",
+			)
 
 	def on_rollback(self):
 		rollback_flags = ("new_file", "original_content", "original_path")
