@@ -340,6 +340,34 @@ frappe.views.TreeView = class TreeView {
 		this.$tree_skeleton = null;
 		this.tree && this.tree.wrapper.show();
 	}
+	update_tree_empty_state() {
+		// once the root has loaded, a tree with no child nodes reads as a lone
+		// bare root; show a quiet in-body prompt beneath it instead. Guarded on
+		// root.loaded so it never flashes while children are still loading.
+		this.$tree_empty_state && this.$tree_empty_state.remove();
+		this.$tree_empty_state = null;
+
+		const root = this.tree && this.tree.root_node;
+		if (!this.body || !root || !root.loaded) return;
+		if (root.$ul && root.$ul.children().length) return;
+
+		const opts = {
+			icon: "list-tree",
+			title: __("No {0} records yet", [__(this.doctype)]),
+			description: __("Records you add will appear here."),
+		};
+		this.$tree_empty_state = (
+			frappe.ui.empty_state
+				? frappe.ui.empty_state(opts)
+				: $(
+						`<div class="text-muted text-center" style="padding: 40px 0;">${frappe.utils.escape_html(
+							opts.title
+						)}</div>`
+				  )
+		)
+			.addClass("tree-empty-state")
+			.appendTo(this.body);
+	}
 	make_tree() {
 		// remember open nodes across rebuilds (see restore_expanded_nodes)
 		this._expanded_labels = this.tree
@@ -349,6 +377,8 @@ frappe.views.TreeView = class TreeView {
 			: [];
 
 		$(this.parent).find(".tree").remove();
+		this.$tree_empty_state && this.$tree_empty_state.remove();
+		this.$tree_empty_state = null;
 		this.reset_search();
 		this.show_tree_skeleton();
 
@@ -363,7 +393,8 @@ frappe.views.TreeView = class TreeView {
 			label: use_label,
 			root_value: use_value,
 			expandable: true,
-			use_row_actions: !this.opts.do_not_make_page,
+			// page trees get full row actions; embedded trees opt in explicitly
+			use_row_actions: this.opts.use_row_actions ?? !this.opts.do_not_make_page,
 			row_style: this.opts.row_style,
 
 			args: this.args,
@@ -378,6 +409,7 @@ frappe.views.TreeView = class TreeView {
 			on_node_render: (node, deep) => {
 				this.hide_tree_skeleton();
 				this.restore_expanded_nodes();
+				this.update_tree_empty_state();
 				this.opts.on_node_render && this.opts.on_node_render(node, deep);
 			},
 			on_click: (node) => {

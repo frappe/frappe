@@ -27,6 +27,13 @@
 		max-width: none;
 		white-space: nowrap;
 	}
+
+	// Pin it to the top and align it with the first
+	// filter row instead (the +4px matches the field's in-section offset).
+	.tree-toolbar-actions {
+		align-self: flex-start;
+		margin-top: 4px;
+	}
 }
 
 .tree-view-body {

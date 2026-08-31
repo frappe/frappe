@@ -572,6 +572,9 @@ frappe.ui.Tree = class {
 	}
 
 	show_toolbar(node) {
+		// row-actions mode has no per-node $toolbar (actions are hover
+		// buttons + context menu), so this is a no-op there
+		if (!node.$toolbar) return;
 		if (this.cur_toolbar) $(this.cur_toolbar).hide();
 		this.cur_toolbar = node.$toolbar;
 		node.$toolbar.show();
