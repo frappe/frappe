@@ -8,7 +8,7 @@ import frappe
 from frappe.api import discovery
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
-from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
+from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 
 authorization_token = None
 
@@ -531,6 +531,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		]
 		frappe.db.commit()  # nosemgrep
 
+		job_id = None
 		try:
 			# Bulk delete > 20 docs
 			names = [doc.name for doc in docs]
@@ -541,8 +542,11 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 
 			self.assertEqual(response.status_code, 202)
 			self.assertIn("job_id", response.json["data"])
+			job_id = response.json["data"]["job_id"]
 		finally:
-			# Clean up
+			# Clean up. Wait first: the job touches these same rows.
+			if job_id:
+				wait_for_job(job_id)
 			for doc in docs:
 				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
 			frappe.db.commit()  # nosemgrep
@@ -555,6 +559,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		]
 		frappe.db.commit()  # nosemgrep
 
+		job_id = None
 		try:
 			# Bulk update > 20 docs
 			updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
@@ -565,8 +570,11 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 
 			self.assertEqual(response.status_code, 202)
 			self.assertIn("job_id", response.json["data"])
+			job_id = response.json["data"]["job_id"]
 		finally:
-			# Clean up
+			# Clean up. Wait first: the job touches these same rows.
+			if job_id:
+				wait_for_job(job_id)
 			for doc in docs:
 				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
 			frappe.db.commit()  # nosemgrep
