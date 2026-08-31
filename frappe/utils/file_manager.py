@@ -379,7 +379,7 @@ def get_file_path(file_name):
 		frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
 	base_path = os.path.realpath(get_files_path(is_private=is_private))
-	if not os.path.realpath(file_path).startswith(base_path):
+	if os.path.commonpath((base_path, os.path.realpath(file_path))) != base_path:
 		frappe.throw(_("Cannot access file path {0}").format(file_path))
 
 	return file_path
