@@ -13,7 +13,6 @@ class TestWebsite(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Guest")
 		self._clearRequest()
-		# The `_test` website fixtures are only routable in developer mode.
 		self._developer_mode = frappe.conf.developer_mode
 		frappe.conf.developer_mode = 1
 

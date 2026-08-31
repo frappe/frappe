@@ -63,7 +63,7 @@ class PathResolver:
 				frappe.flags.redirect_location = e.new_url
 				return frappe.flags.redirect_location, RedirectPage(e.new_url, e.code)
 
-		if not frappe.conf.developer_mode and _is_frappe_test_fixture(endpoint):
+		if not (frappe.conf.developer_mode or frappe.conf.allow_tests) and _is_frappe_test_fixture(endpoint):
 			return endpoint, NotFoundPage(endpoint)
 
 		custom_renderers = self.get_custom_page_renderers()
