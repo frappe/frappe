@@ -245,7 +245,12 @@ class File(Document):
 		self.validate_not_referenced_in_attach_field()
 		self._delete_file_on_disk()
 		if not self.is_folder:
-			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
+			fieldname = escape_html(self.attached_to_field or "")
+			file_name = escape_html(self.file_name)
+			self.add_comment_in_reference_doc(
+				"Attachment Removed",
+				f"<span data-fieldname='{fieldname}'>{file_name}</span>",
+			)
 
 	def on_rollback(self):
 		rollback_flags = ("new_file", "original_content", "original_path")
@@ -972,10 +977,13 @@ class File(Document):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
 		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = escape_html(self.file_name or self.file_url)
+		# fieldname is embedded so the timeline can drop this entry for users without permlevel
+		# access to the field, without needing a structured Comment field of its own
+		fieldname = escape_html(self.attached_to_field or "")
 
 		self.add_comment_in_reference_doc(
 			"Attachment",
-			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
+			f"<a href='{file_url}' target='_blank' data-fieldname='{fieldname}'>{file_name}</a>{icon}",
 		)
 
 	def add_comment_in_reference_doc(self, comment_type, text):
