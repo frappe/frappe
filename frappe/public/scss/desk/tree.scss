@@ -30,7 +30,7 @@
 }
 
 .tree-view-body {
-	padding: 4px var(--padding-sm) var(--padding-sm);
+	padding: var(--spacing) calc(var(--spacing) * 2) calc(var(--spacing) * 2);
 }
 
 // node hover card: the panel is widened past the component default (256px)
@@ -72,21 +72,21 @@
 // ─── tree widget ────────────────────────────────────────────────────────────
 
 .tree {
-	padding: var(--padding-xs);
+	padding: var(--spacing);
 	font-size: var(--text-base);
 
 	// legacy click-injected toolbar (embedded trees: BOM Configurator etc.)
 	.btn-group {
 		.btn {
 			box-shadow: none;
-			outline: 1px solid var(--btn-group-border-color);
+			outline: 1px solid var(--outline-gray-2);
 
 			&:not(:first-child) {
 				margin-left: 1px;
 			}
 
 			&:focus {
-				outline: 2px solid var(--dark-border-color);
+				outline: 2px solid var(--outline-gray-3);
 			}
 		}
 	}
@@ -101,47 +101,47 @@
 	cursor: pointer;
 	display: inline-flex;
 	align-items: center;
-	padding: var(--padding-xs);
-	color: var(--text-color);
+	padding: var(--spacing);
+	color: var(--ink-gray-8);
 }
 
 .tree-label {
-	margin-left: var(--margin-xs);
+	margin-left: var(--spacing);
 	line-height: 1.4em;
 }
 
 .tree-children {
-	padding-left: var(--padding-xl);
+	padding-left: calc(var(--spacing) * 8);
 	margin-bottom: 0;
 }
 
 .tree-link .node-parent {
-	color: var(--text-muted);
+	color: var(--ink-gray-5);
 	text-align: center;
 }
 
 .tree-link .node-leaf {
-	color: var(--text-muted);
+	color: var(--ink-gray-5);
 }
 
 .tree-link.active {
 	a {
-		color: var(--text-color);
+		color: var(--ink-gray-8);
 	}
 }
 
 .tree-node-toolbar {
 	display: inline-flex;
-	padding: 0px var(--padding-xs);
-	margin-left: var(--margin-md);
+	padding: 0px var(--spacing);
+	margin-left: calc(var(--spacing) * 4);
 	margin-bottom: -4px;
 	margin-top: -8px;
 }
 
-.balance-area {
-	color: var(--text-color) !important;
-	font-size: var(--text-md);
-	padding: var(--padding-xs);
+.tree:not(.tree-rows) .balance-area {
+	color: var(--ink-gray-8) !important;
+	font-size: var(--text-base);
+	padding: var(--spacing);
 }
 
 .tree:not(.tree-rows) .tree-link.active ~ .balance-area {
@@ -171,10 +171,11 @@
 		min-width: 0;
 		align-items: center;
 		min-height: 32px;
-		padding: 2px var(--padding-sm);
+		padding: 2px calc(var(--spacing) * 2);
 		border-radius: var(--radius);
 		font-size: var(--text-base);
 		font-weight: var(--font-weight-regular);
+		color: var(--ink-gray-8);
 
 		// icon slot: chevron for groups; leaves keep the slot for alignment
 		// but draw no marker (frappe-ui tree convention)
@@ -192,7 +193,7 @@
 		}
 
 		.tree-label {
-			margin-left: var(--margin-xs);
+			margin-left: var(--spacing);
 			min-width: 0;
 			overflow: hidden;
 			text-overflow: ellipsis;
@@ -204,8 +205,9 @@
 			text-decoration: none;
 		}
 
-		&:hover {
-			background-color: var(--fg-hover-color);
+		&:hover,
+		&[data-state="open"] {
+			background-color: var(--surface-gray-2);
 		}
 	}
 
@@ -233,7 +235,6 @@
 				width: 12px;
 				border-left: 1px solid var(--outline-gray-2);
 				border-bottom: 1px solid var(--outline-gray-2);
-				border-bottom-left-radius: 3px;
 			}
 
 			&:not(:last-child)::after {
@@ -243,6 +244,27 @@
 				top: 16px;
 				bottom: 0;
 				border-left: 1px solid var(--outline-gray-2);
+			}
+
+			> .tree-link {
+				margin-left: 6px;
+				padding-left: calc(var(--spacing) * 2 - 6px);
+			}
+		}
+
+		// an all-leaf sibling group has no chevrons to align with — drop the
+		// empty icon slots so labels start near the elbows, with a touch of
+		// breathing room. Groups that mix leaves and subgroups keep the
+		// slot, so their labels line up. (span.node-parent = a group's
+		// toggle, present from first render; class-based :has re-evaluates
+		// on DOM change only.)
+		&:not(:has(span.node-parent)) {
+			.tree-link > span:first-child {
+				display: none;
+			}
+
+			> li.tree-node > .tree-link {
+				padding-left: calc(var(--spacing) * 2.5);
 			}
 		}
 	}
@@ -255,10 +277,11 @@
 		align-items: center;
 		gap: 2px;
 		flex: none;
-		margin-left: var(--margin-sm);
+		margin-left: calc(var(--spacing) * 2);
 	}
 
-	.tree-link:hover .tree-actions {
+	.tree-link:hover .tree-actions,
+	.tree-link[data-state="open"] .tree-actions {
 		display: inline-flex;
 	}
 
@@ -279,7 +302,7 @@
 		min-height: 32px;
 		display: flex;
 		align-items: center;
-		padding: 2px var(--padding-sm);
+		padding: 2px calc(var(--spacing) * 2);
 		border-radius: 0 var(--radius) var(--radius) 0;
 		font-size: var(--text-sm);
 		color: var(--ink-gray-7);
@@ -292,9 +315,9 @@
 		border-radius: var(--radius) 0 0 var(--radius);
 	}
 
-	// carry the row highlight across the value column
-	li.tree-node:has(> .tree-link:hover) > .balance-area {
-		background-color: var(--fg-hover-color);
+	.tree-link:hover + .balance-area,
+	.tree-link[data-state="open"] + .balance-area {
+		background-color: var(--surface-gray-2);
 	}
 
 	// legacy click-toolbar never shows in row mode
@@ -305,6 +328,6 @@
 
 // legacy hover treatment for embedded trees
 .tree:not(.tree-rows) .tree-node.hover-active {
-	background-color: var(--fg-hover-color);
+	background-color: var(--surface-gray-2);
 	border-radius: var(--radius);
 }

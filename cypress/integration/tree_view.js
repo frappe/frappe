@@ -30,19 +30,24 @@ context("Tree View", () => {
 	it("shows Expand All / Collapse All only when the tree's state warrants it", () => {
 		cy.visit("/app/custom-tree/view/tree");
 
-		const tree_view = (win) => win.frappe.views.trees["Custom Tree"];
-		// both buttons stay in the layout permanently; the inapplicable one
-		// is disabled instead of hidden
+		// both actions live in one dropdown; the menu resolves fresh on every
+		// open, disabling whichever action doesn't apply right now. Rows are
+		// real <button disabled> elements per the es-menu contract.
+		const open_menu = () => cy.get(".tree-toolbar-actions .es-button").click();
+		const close_menu = () => cy.get(".tree-toolbar-actions .es-button").click();
 		const assert_buttons = (expand_enabled, collapse_enabled) => {
-			cy.window().should((win) => {
-				let tv = tree_view(win);
-				expect(tv.$expand_all_btn.prop("disabled")).to.eq(!expand_enabled);
-				expect(tv.$collapse_all_btn.prop("disabled")).to.eq(!collapse_enabled);
-			});
+			open_menu();
+			cy.contains('[role="menu"] .es-menu__item', "Expand All").should(
+				expand_enabled ? "not.be.disabled" : "be.disabled"
+			);
+			cy.contains('[role="menu"] .es-menu__item', "Collapse All").should(
+				collapse_enabled ? "not.be.disabled" : "be.disabled"
+			);
+			close_menu();
 		};
 		const click_toolbar_button = (label) => {
-			// icon-only buttons: the espresso tooltip doubles as aria-label
-			cy.get(`.tree-toolbar-actions .es-button[aria-label="${label}"]`).click();
+			open_menu();
+			cy.contains('[role="menu"] .es-menu__item', label).click();
 		};
 
 		// root auto-expands; both groups underneath are still collapsed -> only "Expand All"

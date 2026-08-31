@@ -186,34 +186,31 @@ frappe.views.TreeView = class TreeView {
 			let $actions = $(
 				'<div class="tree-toolbar-actions ms-auto flex items-center gap-1 py-1"></div>'
 			).appendTo(this.page.page_form);
-			// don't return the load promise from onclick — the button would
-			// show its busy spinner on every toggle
-			// icon-only; both stay in the layout permanently — the
-			// non-applicable one is disabled instead of hidden, so nothing
-			// ever shifts. The espresso tooltip sits on a wrapper: a disabled
-			// es-button has pointer-events:none, so hover falls through to
-			// the wrapper and the tooltip still explains the button.
-			const make_action = (icon, label, onclick) => {
-				const $btn = $(
-					frappe.ui.button({
-						icon,
-						disabled: true,
-						onclick,
-						attrs: { "aria-label": label },
-					})
-				);
-				const $wrapper = $('<span class="inline-flex"></span>')
-					.append($btn)
-					.appendTo($actions);
-				frappe.ui.tooltip($wrapper, { text: label });
-				return $btn;
-			};
-			this.$expand_all_btn = make_action("chevrons-up-down", __("Expand All"), () => {
-				me.tree.load_children(me.tree.root_node, true);
-			});
-			this.$collapse_all_btn = make_action("chevrons-down-up", __("Collapse All"), () => {
-				me.tree.load_children(me.tree.root_node, false);
-			});
+			this.$expand_collapse_dropdown = frappe.ui.dropdown({
+				button: { label: __("Expand/Collapse"), icon_right: "chevron-down" },
+				align: "end",
+				options: () => {
+					const state = this.tree ? this.tree.get_expansion_state() : "none";
+					return [
+						{
+							label: __("Expand All"),
+							icon: "copy-plus",
+							disabled: !(state === "collapsed" || state === "partial"),
+							onclick: () => {
+								me.tree.load_children(me.tree.root_node, true);
+							},
+						},
+						{
+							label: __("Collapse All"),
+							icon: "copy-minus",
+							disabled: !(state === "expanded" || state === "partial"),
+							onclick: () => {
+								me.tree.load_children(me.tree.root_node, false);
+							},
+						},
+					];
+				},
+			}).appendTo($actions);
 		}
 	}
 	set_title() {
@@ -382,13 +379,9 @@ frappe.views.TreeView = class TreeView {
 				this.hide_tree_skeleton();
 				this.restore_expanded_nodes();
 				this.opts.on_node_render && this.opts.on_node_render(node, deep);
-				this.update_expand_collapse_buttons();
 			},
 			on_click: (node) => {
 				this.select_node(node);
-				// node.expanded is flipped synchronously right after this callback
-				// runs, so defer the state check to the next tick
-				setTimeout(() => this.update_expand_collapse_buttons(), 0);
 			},
 		});
 
@@ -412,21 +405,6 @@ frappe.views.TreeView = class TreeView {
 			this.tree.load_children(node);
 			return false;
 		});
-	}
-	update_expand_collapse_buttons() {
-		if (!this.opts.show_expand_all || !this.tree) return;
-
-		// fully collapsed → Expand All; fully expanded → Collapse All;
-		// partially expanded → both. The inapplicable button disables
-		// instead of hiding so the layout never shifts.
-		const state = this.tree.get_expansion_state();
-		this.$expand_all_btn &&
-			this.$expand_all_btn.prop("disabled", !(state === "collapsed" || state === "partial"));
-		this.$collapse_all_btn &&
-			this.$collapse_all_btn.prop(
-				"disabled",
-				!(state === "expanded" || state === "partial")
-			);
 	}
 	reset_search() {
 		this.search_deep_loaded = false;
@@ -801,7 +779,12 @@ frappe.views.TreeView = class TreeView {
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-		var tree = $(".tree:visible").html();
+		// clone so the interactive chrome (hover action buttons) can be
+		// stripped without touching the live tree — a static print page has
+		// no use for buttons
+		var $print_tree = $(".tree:visible").clone();
+		$print_tree.find(".tree-actions").remove();
+		var tree = $print_tree.html();
 		var me = this;
 		frappe.ui.get_print_settings(false, function (print_settings) {
 			var title = __(me.docname || me.doctype);

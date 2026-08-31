@@ -41,7 +41,6 @@ frappe.ui.Tree = class {
 		}
 		if (this.use_row_actions) {
 			this.wrapper.addClass("tree-has-row-actions");
-			this.setup_context_menu();
 		}
 
 		if (!icon_set) {
@@ -368,18 +367,6 @@ frappe.ui.Tree = class {
 
 	// ─── row mode: hover actions + context menu ────────────────────────────
 
-	setup_context_menu() {
-		this.context_node = null;
-		this.context_menu = new frappe.ui.ContextMenu({
-			target: this.wrapper,
-			options: () => this.get_node_menu_options(this.context_node),
-			on_open: (e) => {
-				const $link = $(e.target).closest(".tree-link");
-				this.context_node = $link.length ? $link.data("node") : null;
-			},
-		});
-	}
-
 	get_toolbar_items(node) {
 		// entries whose condition holds for this node, in declared order
 		return Object.values(this.toolbar || {}).filter(
@@ -439,6 +426,10 @@ frappe.ui.Tree = class {
 		});
 
 		if (overflow.length) {
+			node.context_menu = new frappe.ui.ContextMenu({
+				target: node.$tree_link,
+				options: () => this.get_node_menu_options(node),
+			});
 			const $more = $(
 				frappe.ui.button({
 					icon: "ellipsis",
@@ -447,9 +438,8 @@ frappe.ui.Tree = class {
 					title: __("More actions"),
 					onclick: (e) => {
 						e.stopPropagation();
-						this.context_node = node;
 						const rect = e.currentTarget.getBoundingClientRect();
-						this.context_menu.open_at(rect.left, rect.bottom + 2);
+						node.context_menu.open_at(rect.left, rect.bottom + 2);
 					},
 				})
 			).appendTo($actions);
