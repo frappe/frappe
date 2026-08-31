@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-23 21:24\n"
+"PO-Revision-Date: 2026-08-31 10:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -10529,7 +10529,7 @@ msgstr "Tipo di campo"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:192
 msgid "Fieldtype cannot be changed from {0} to {1}"
-msgstr "Il tipo di campo non può essere modificato da {0} a {1}"
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.py:593
 msgid "Fieldtype cannot be changed from {0} to {1} in row {2}"
@@ -30123,7 +30123,7 @@ msgstr "URL di benvenuto"
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
 #: frappe/desk/desktop.py:482
 msgid "Welcome Workspace"
-msgstr "Area di lavoro di benvenuto"
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:365
 msgid "Welcome email sent"
