@@ -74,7 +74,9 @@ def post(method: str, json: dict | None = None):
 	"""POST to a whitelisted method on Frappe Cloud with this site's credentials."""
 	import requests
 
-	return requests.post(f"{get_base_url()}/api/method/{method}", headers=get_headers(), json=json)
+	return requests.post(
+		f"{get_base_url()}/api/method/{method}", headers=get_headers(), json=json, timeout=(5, 10)
+	)
 
 
 @frappe.whitelist()
