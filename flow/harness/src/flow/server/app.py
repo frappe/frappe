@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 
 from flow import config as server_config
@@ -40,6 +41,8 @@ def create_app(
 	(`flow web --append-system-prompt`); it lands after whatever the client sends.
 	`policy` gates tools and route groups; None means the permissive local default."""
 	policy = policy or ServerPolicy()
+	if policy.require_auth and not auth_token:
+		raise ValueError("this server policy requires an auth token; pass auth_token")
 	# docs off: those routes would be reachable without a bearer beside the web UI
 	app = FastAPI(title="flow server", version="0.1.0", docs_url=None, redoc_url=None, openapi_url=None)
 	oauth = OAuthCoordinator(store.credentials)
@@ -70,8 +73,10 @@ def create_app(
 		"""Provider setup problems are client errors, never 500s."""
 		return JSONResponse({"detail": str(error)}, status_code=400)
 
+	# path prefixes of all API routes, e.g. "/sessions"
+	api_roots: set[str] = set()
+
 	if auth_token:
-		api_prefixes = ("/sessions", "/models", "/providers", "/fs")
 
 		@app.middleware("http")
 		async def authenticate(request: Request, call_next):
@@ -83,7 +88,7 @@ def create_app(
 			if (
 				webui_dir
 				and request.method in ("GET", "HEAD")
-				and not request.url.path.startswith(api_prefixes)
+				and "/" + request.url.path.split("/")[1] not in api_roots
 			):
 				return await call_next(request)
 			scheme, _, supplied = request.headers.get("Authorization", "").partition(" ")
@@ -115,9 +120,16 @@ def create_app(
 	async def healthz():
 		return {"ok": True}
 
-	app.include_router(create_providers_router(store.credentials, oauth, policy=policy))
-	app.include_router(create_fs_router(store, policy=policy))
-	app.include_router(create_sessions_router(store, system_append=system_append, policy=policy))
+	routers = (
+		create_providers_router(store.credentials, oauth, policy=policy),
+		create_fs_router(store, policy=policy),
+		create_sessions_router(store, system_append=system_append, policy=policy),
+	)
+	for router in routers:
+		app.include_router(router)
+		api_roots.update(
+			"/" + route.path.split("/")[1] for route in router.routes if isinstance(route, APIRoute)
+		)
 
 	if webui_dir:
 		# registered last, so every API route above wins; "/" serves index.html
