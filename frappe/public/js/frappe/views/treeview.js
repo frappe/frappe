@@ -652,21 +652,15 @@ frappe.views.TreeView = class TreeView {
 					// values are validated server-side
 					ignore_link_validation: 1,
 					get_query: () => {
-						// only groups (where the doctype has them), never the
-						// node or its subtree
-						const filters = { name: ["not in", excluded] };
+						// candidates = nodes the tree rendered (already
+						// server-filtered), minus the node's own subtree
+						const names = Object.values(me.tree.nodes)
+							.filter((n) => !n.is_root && !excluded.includes(n.label))
+							.map((n) => n.label);
+						const filters = { name: ["in", names] };
 						if (frappe.meta.has_field(me.doctype, "is_group")) {
 							filters.is_group = 1;
 						}
-						Object.keys(me.args).forEach((key) => {
-							if (
-								key !== "doctype" &&
-								me.args[key] &&
-								frappe.meta.has_field(me.doctype, key)
-							) {
-								filters[key] = me.args[key];
-							}
-						});
 						return { filters };
 					},
 				},
