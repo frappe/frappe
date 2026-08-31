@@ -326,6 +326,24 @@ def test_webui_mount_serves_shell_but_protects_api(tmp_path):
 	assert bare.get("/").status_code in (401, 404)
 
 
+def test_webui_auth_bypass_covers_only_static_paths(tmp_path):
+	"""The bypass is derived from the registered routes, so API roots outside the
+	old hardcoded prefix list (e.g. /skills, /extensions) still demand a bearer."""
+	webui = tmp_path / "webui"
+	webui.mkdir()
+	(webui / "index.html").write_text("<title>Flow</title>")
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	c = TestClient(create_app(store, auth_token="secret", webui_dir=str(webui)))
+
+	assert c.get("/skills").status_code == 401
+	assert c.get("/extensions/reload").status_code == 401
+	assert c.get("/healthz").status_code == 200
+	assert "<title>Flow</title>" in c.get("/").text
+
+
 def test_tokenless_guard_refuses_foreign_hosts_and_origins(tmp_path):
 	store = SessionStore(
 		str(tmp_path / "data"),

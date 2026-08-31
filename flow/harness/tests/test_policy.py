@@ -32,20 +32,31 @@ def _client(tmp_path, policy: ServerPolicy | None = None, **store_kw) -> TestCli
 	return TestClient(create_app(_store(tmp_path, **store_kw), policy=policy))
 
 
-def _deployed_client(tmp_path) -> TestClient:
-	return _client(tmp_path, policy=DEPLOYED, tool_allowlist=DEPLOYED.tool_allowlist)
+def _deployed_client(tmp_path, **store_kw) -> TestClient:
+	store_kw.setdefault("tool_allowlist", DEPLOYED.tool_allowlist)
+	store_kw.setdefault("callback_hosts", DEPLOYED.callback_hosts)
+	app = create_app(_store(tmp_path, **store_kw), policy=DEPLOYED, auth_token="test-token")
+	return TestClient(app, headers={"Authorization": "Bearer test-token"})
 
 
 def test_resolve_policy_profiles():
 	assert resolve_policy("local") == ServerPolicy()
 	deployed = resolve_policy("deployed")
 	assert deployed.tool_allowlist == frozenset({"read_file", "grep"})
+	assert deployed.require_auth
+	assert deployed.callback_hosts == frozenset()
 	assert not deployed.fs_api
 	assert not deployed.providers_api
 	assert not deployed.extensions_api
 	assert not deployed.skills_api
 	with pytest.raises(ValueError, match="unknown profile"):
 		resolve_policy("production")
+
+
+def test_resolve_policy_fills_callback_hosts_for_deployed_only():
+	deployed = resolve_policy("deployed", callback_hosts=["site.localhost:8000"])
+	assert deployed.callback_hosts == frozenset({"site.localhost:8000"})
+	assert resolve_policy("local", callback_hosts=["site.localhost:8000"]).callback_hosts is None
 
 
 def test_deployed_rejects_explicit_tools_outside_cap(tmp_path):
@@ -114,9 +125,7 @@ def test_allowlist_caps_extension_tools(tmp_path):
 	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
 	open_store = _store(tmp_path / "open", extension_paths=[str(extension)])
 	assert "hello" in open_store.create(SessionConfig(cwd=str(tmp_path))).server_tools
-	capped = _store(
-		tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read_file"]
-	)
+	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read_file"])
 	session = capped.create(SessionConfig(cwd=str(tmp_path)))
 	assert set(session.server_tools) == {"read_file"}
 
@@ -125,3 +134,66 @@ def test_allowlist_filters_stored_session_on_load(tmp_path):
 	sid = _store(tmp_path).create(SessionConfig(cwd=str(tmp_path))).id
 	reopened = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist)
 	assert set(reopened.get(sid).server_tools) == {"read_file", "grep"}
+
+
+def test_callback_url_fenced_to_allowed_hosts(tmp_path):
+	c = _client(tmp_path, callback_hosts=["site.localhost:8000"])
+
+	def create(url: str):
+		return c.post("/sessions", json={"cwd": str(tmp_path), "callback_url": url})
+
+	assert create("http://site.localhost:8000/api/method/tool_callback").status_code == 200
+	for url in (
+		"http://site.localhost:9000/cb",  # wrong port
+		"http://169.254.169.254/latest/meta-data",  # internal service
+		"ftp://site.localhost:8000/cb",  # wrong scheme
+	):
+		response = create(url)
+		assert response.status_code == 400
+		assert "callback_url" in response.json()["detail"]
+
+
+def test_deployed_refuses_callbacks_without_configured_hosts(tmp_path):
+	c = _deployed_client(tmp_path)
+	r = c.post("/sessions", json={"cwd": str(tmp_path), "callback_url": "http://localhost:8000/cb"})
+	assert r.status_code == 400
+	assert "callback_url" in r.json()["detail"]
+
+
+def test_callback_url_checked_when_loading_stored_session(tmp_path):
+	session_config = SessionConfig(cwd=str(tmp_path), callback_url="http://internal:9000/steal")
+	sid = _store(tmp_path).create(session_config).id
+	reopened = _store(tmp_path, callback_hosts=frozenset())
+	with pytest.raises(ValueError, match="callback_url"):
+		reopened.get(sid)
+
+
+def test_create_app_refuses_deployed_without_token(tmp_path):
+	with pytest.raises(ValueError, match="auth token"):
+		create_app(_store(tmp_path), policy=DEPLOYED)
+
+
+def test_serve_refuses_deployed_without_token(tmp_path, monkeypatch):
+	import importlib
+	from argparse import Namespace
+
+	from flow import config
+	from flow.model.auth import AuthError
+
+	cli_main = importlib.import_module("flow.cli.main")
+
+	monkeypatch.setattr(config, "AUTH_TOKEN", None)
+	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
+	args = Namespace(
+		host="127.0.0.1",
+		port=0,
+		data_dir=str(tmp_path),
+		profile="deployed",
+		background=False,
+		uds=None,
+		parent_watch=False,
+		extension=[],
+		no_extensions=False,
+	)
+	with pytest.raises(AuthError, match="FLOW_AUTH_TOKEN"):
+		cli_main._serve(args)
