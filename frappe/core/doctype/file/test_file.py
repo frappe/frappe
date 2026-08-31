@@ -32,6 +32,15 @@ test_content1 = "Hello"
 test_content2 = "Hello World"
 
 
+def fixture_asset_path(filename: str) -> str:
+	return frappe.get_app_path("frappe", "tests", "website_fixtures", "_test", "assets", filename)
+
+
+def publish_fixture_asset(filename: str) -> str:
+	shutil.copy(fixture_asset_path(filename), frappe.get_site_path("public", "files"))
+	return frappe.utils.get_url(f"/files/{filename}")
+
+
 def remove_attach_with_fid(fid):
 	frappe.form_dict.fid = fid
 	try:
@@ -592,7 +601,7 @@ class TestFile(IntegrationTestCase):
 			{
 				"doctype": "File",
 				"file_name": "logo",
-				"file_url": frappe.utils.get_url("/_test/assets/image.jpg"),
+				"file_url": publish_fixture_asset("image.jpg"),
 			}
 		).insert(ignore_permissions=True)
 
@@ -604,7 +613,7 @@ class TestFile(IntegrationTestCase):
 			{
 				"doctype": "File",
 				"file_name": "logo",
-				"file_url": frappe.utils.get_url("/_test/assets/image"),
+				"file_url": publish_fixture_asset("image"),
 			}
 		).insert(ignore_permissions=True)
 
@@ -630,7 +639,7 @@ class TestFile(IntegrationTestCase):
 		self.assertEqual(test_file.thumbnail_url, None)
 
 	def test_file_unzip(self):
-		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		file_path = fixture_asset_path("file.zip")
 		public_file_path = frappe.get_site_path("public", "files")
 		try:
 			import shutil
@@ -661,7 +670,7 @@ class TestFile(IntegrationTestCase):
 
 	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
-		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		file_path = fixture_asset_path("file.zip")
 		public_file_path = frappe.get_site_path("public", "files")
 		try:
 			shutil.copy(file_path, public_file_path)
@@ -687,7 +696,7 @@ class TestFile(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("File"), file_count_before)
 
 	def test_file_unzip_requires_read_permission(self):
-		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		file_path = fixture_asset_path("file.zip")
 		with open(file_path, "rb") as f:
 			zip_content = f.read()
 

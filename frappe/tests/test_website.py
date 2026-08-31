@@ -5,19 +5,26 @@ from frappe import get_hooks
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
+from frappe.website.router import get_start_folders
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import build_response, clear_website_cache, get_boot_data, get_home_page
+
+WEBSITE_FIXTURES_FOLDER = "tests/website_fixtures"
 
 
 class TestWebsite(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Guest")
 		self._clearRequest()
+		frappe.local.flags.web_pages_folders = ("www", "templates/pages", WEBSITE_FIXTURES_FOLDER)
+		clear_website_cache()
 
 	def tearDown(self):
 		frappe.db.delete("Access Log")
 		frappe.set_user("Administrator")
 		self._clearRequest()
+		frappe.local.flags.pop("web_pages_folders", None)
+		clear_website_cache()
 
 	def _clearRequest(self):
 		if hasattr(frappe.local, "request"):
@@ -76,7 +83,8 @@ class TestWebsite(IntegrationTestCase):
 			frappe,
 			"get_hooks",
 			patched_get_hooks(
-				"get_website_user_home_page", ["frappe.www._test._test_home_page.get_website_user_home_page"]
+				"get_website_user_home_page",
+				["frappe.tests.website_fixtures._test._test_home_page.get_website_user_home_page"],
 			),
 		):
 			self.assertEqual(get_home_page(), "_test/_test_folder")
@@ -431,6 +439,28 @@ class TestWebsite(IntegrationTestCase):
 			)
 			delattr(frappe.local, "request")
 			frappe.set_user("Guest")
+
+
+class TestWebsiteFixtureRoutes(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Guest")
+		clear_website_cache()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_website_cache()
+
+	def test_fixtures_are_not_shipped_as_routes(self):
+		self.assertNotIn(WEBSITE_FIXTURES_FOLDER, get_start_folders())
+
+		for path in (
+			"/_test",
+			"/_test/problematic_page",
+			"/_test/_test_folder/_test_page",
+			"/_test/static-file-test.png",
+			"/_test/assets/image.jpg",
+		):
+			self.assertEqual(get_response(path).status_code, 404, f"{path} is publicly routable")
 
 
 def patched_get_hooks(hook, value):

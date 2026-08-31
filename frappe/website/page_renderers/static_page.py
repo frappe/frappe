@@ -7,6 +7,7 @@ from werkzeug.wsgi import wrap_file
 
 import frappe
 from frappe.website.page_renderers.base_renderer import BaseRenderer
+from frappe.website.router import get_start_folders
 from frappe.website.utils import is_binary_file
 
 UNSUPPORTED_STATIC_PAGE_TYPES = (
@@ -35,15 +36,16 @@ class StaticPage(BaseRenderer):
 		if not self.is_valid_file_path():
 			return
 		for app in frappe.get_active_apps():
-			app_path = Path(frappe.get_app_path(app, "www"))
-			requested_path = (app_path / self.path).resolve()
-			if (
-				requested_path.is_relative_to(app_path)
-				and requested_path.is_file()
-				and is_binary_file(requested_path)
-			):
-				self.file_path = requested_path
-				break
+			for folder in get_start_folders():
+				app_path = Path(frappe.get_app_path(app, folder))
+				requested_path = (app_path / self.path).resolve()
+				if (
+					requested_path.is_relative_to(app_path)
+					and requested_path.is_file()
+					and is_binary_file(requested_path)
+				):
+					self.file_path = requested_path
+					return
 
 	def can_render(self):
 		return self.is_valid_file_path() and self.file_path
