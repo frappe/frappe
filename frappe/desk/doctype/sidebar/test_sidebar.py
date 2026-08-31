@@ -1946,10 +1946,54 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			self.assertFalse(os.path.exists(path))
 			self.assertTrue(frappe.db.exists("Sidebar", deals.name), "the other one survives")
 
+	def test_a_shell_the_module_no_longer_owns_is_refused(self):
+		"""An editor left open while that sidebar was renamed is holding a name nothing answers to.
+
+		It is not asking for the fallback. Taking it would arrange, save over or delete whichever
+		sidebar comes first by name, which is another shell under the same module and not the one
+		anybody had open, and reset makes that unrecoverable: the document goes and its exported
+		directory is removed from the app.
+
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			deals = make_sidebar(MODULE, title="Test App Layer Deals")
+			leads = make_sidebar(MODULE, title="Test App Layer Leads")
+			was = leads.name
+			leads.title = "Test App Layer Prospects"
+			leads.save(ignore_permissions=True)
+
+			for call in (
+				lambda: get_app_sidebar_layer(MODULE, shell=was),
+				lambda: save_app_sidebar(MODULE, [], shell=was),
+				lambda: reset_app_sidebar(MODULE, shell=was),
+			):
+				with self.assertRaises(frappe.ValidationError):
+					call()
+
+			self.assertTrue(frappe.db.exists("Sidebar", deals.name), "the other one is still there")
+
+	def test_the_module_s_own_name_is_not_a_way_past_the_check(self):
+		"""The module's name passes because a computed base has no document to check against. A
+		module that does have one, named after itself, is a different case: renaming it leaves the
+		editor holding the module's name with nothing behind it, and letting that through lands on
+		whichever sidebar comes first by name.
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			other = make_sidebar(MODULE, title="Test App Layer Alpha")
+			own = make_sidebar(MODULE)
+			own.title = "Test App Layer Zebra"
+			own.save(ignore_permissions=True)
+
+			with self.assertRaises(frappe.ValidationError):
+				reset_app_sidebar(MODULE, shell=MODULE)
+
+			self.assertTrue(frappe.db.exists("Sidebar", other.name), "the other one is still there")
+
 	def test_a_shell_under_another_module_is_ignored(self):
-		"""The shell says which of a module's sidebars, and the module still says which module. A
-		client naming one that belongs elsewhere, such as a tab left open across a rename, falls
-		back to the naming rule instead of reaching into another module's document.
+		"""The shell says which of a module's sidebars, and the module still says which module. The
+		resolver carries the module into its lookup, so a name belonging elsewhere selects nothing
+		and no caller reaches out of the module it named. Refusing such a name, rather than falling
+		back, is `check_shell`'s job at the endpoints.
 		"""
 		with developer_mode():
 			own = make_sidebar(MODULE)

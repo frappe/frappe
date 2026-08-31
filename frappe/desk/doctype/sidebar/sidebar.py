@@ -506,6 +506,42 @@ def check_developer_mode() -> None:
 	)
 
 
+def check_shell(module: str, shell: str | None) -> None:
+	"""Throw unless `shell` is a sidebar `module` still owns.
+
+	The three app-layer endpoints are told which of a module's sidebars was on screen. One naming
+	a sidebar the module no longer owns is an editor left open while that sidebar was renamed or
+	deleted, and it is not asking for the fallback. Taking the fallback would arrange, save over
+	or delete whichever sidebar comes first by name, which is another shell under the same module
+	and not the one anybody had open; reset makes that unrecoverable, since the exported directory
+	goes with the document.
+
+	Naming no shell is the older client, and a caller holding only a module. Both still get the
+	naming rule.
+
+	The module's own name passes only while the module has no document at all. That is what the
+	client sends for a module whose base is computed, where there is nothing stored to check it
+	against. It stops passing the moment the module owns a sidebar, because then the module's name
+	is either a document this already found or a name someone renamed away from, and the second
+	one is the stale editor this exists to refuse.
+	"""
+	if not shell:
+		return
+
+	if frappe.db.exists("Sidebar", {"name": shell, "module": module}):
+		return
+
+	if shell == module and not frappe.db.exists("Sidebar", {"module": module}):
+		return
+
+	frappe.throw(
+		_("{0} is no longer a sidebar of {1}. Reopen the one you meant to arrange.").format(
+			frappe.bold(shell), frappe.bold(module)
+		),
+		title=_("Sidebar Moved"),
+	)
+
+
 def get_sidebar(module: str) -> "Sidebar | None":
 	"""Return the sidebar that answers for `module`, or `None`.
 
@@ -533,9 +569,13 @@ def get_module_shell(module: str, shell: str | None = None) -> "Sidebar | None":
 	`shell` is what the desk had on screen, and it is the answer whenever it names a sidebar
 	carrying this module. A module may own more than one, and nothing about the module says which
 	of them the person was looking at, so without it a save writes and a reset deletes whichever
-	comes first by name. It is treated as a hint rather than trusted: the module is still the
-	authority, and a shell that does not belong to it, such as one a stale client names after a
-	rename, falls through to the rule below instead of reaching another module's document.
+	comes first by name.
+
+	The lookup carries the module, so a shell belonging to another module selects nothing here and
+	no caller can reach out of the module it named. Whether a shell this module does not own is an
+	error rather than a fallback is `check_shell`'s question, asked at the endpoints, because the
+	answer is yes for the three that took the name from a screen and no for callers that never
+	held one.
 
 	The fallback order is `get_module_base`'s, and deliberately the same one: the shell named
 	after the module when there is one, and otherwise the first by name. That is what an older
@@ -654,6 +694,7 @@ def get_app_sidebar_layer(module: str, shell: str | None = None) -> list[dict]:
 
 	check_developer_mode()
 	check_module(module)
+	check_shell(module, shell)
 
 	base = get_module_base(module, shell)
 	# `is_item_allowed` is a method on `DeskViews`, so the filter needs a context object even
@@ -685,6 +726,7 @@ def save_app_sidebar(module: str, items: list | str, shell: str | None = None) -
 
 	check_developer_mode()
 	check_module(module)
+	check_shell(module, shell)
 
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -723,6 +765,7 @@ def reset_app_sidebar(module: str, shell: str | None = None) -> dict:
 
 	check_developer_mode()
 	check_module(module)
+	check_shell(module, shell)
 
 	document = get_module_shell(module, shell)
 	if document:
