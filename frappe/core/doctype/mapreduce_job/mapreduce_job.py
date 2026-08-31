@@ -17,6 +17,8 @@ class MapReduceJob(Document):
 
 		amended_from: DF.Link | None
 		data: DF.JSON | None
+		document_name: DF.DynamicLink | None
+		document_type: DF.Link | None
 		map: DF.Data | None
 		name: DF.Int | None
 		reduce: DF.Data | None

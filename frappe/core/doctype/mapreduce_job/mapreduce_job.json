@@ -11,7 +11,9 @@
   "reduce",
   "data",
   "result",
-  "amended_from"
+  "amended_from",
+  "document_type",
+  "document_name"
  ],
  "fields": [
   {
@@ -50,13 +52,29 @@
    "label": "Result",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document Type",
+   "no_copy": 1,
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Document Name",
+   "no_copy": 1,
+   "options": "document_type",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-30 18:59:28.407378",
+ "modified": "2026-08-31 16:14:11.899790",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Job",
