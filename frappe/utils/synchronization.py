@@ -45,5 +45,5 @@ def filelock(lock_name: str, *, timeout=30, is_global=False):
 		raise LockTimeoutError(
 			_("Failed to aquire lock: {}. Lock may be held by another process.").format(lock_name)
 			+ "<br>"
-			+ _("Wait for that process to finish. Removing the lock file won't help: {}").format(lock_path)
+			+ _("Wait for it to finish. Deleting the lock file {} will not release the lock.").format(lock_path)
 		) from e
