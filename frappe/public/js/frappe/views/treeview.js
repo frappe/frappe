@@ -186,31 +186,33 @@ frappe.views.TreeView = class TreeView {
 			let $actions = $(
 				'<div class="tree-toolbar-actions ms-auto flex items-center gap-1 py-1"></div>'
 			).appendTo(this.page.page_form);
-			frappe.ui.dropdown({
-				button: { label: __("Expand/Collapse"), icon_right: "chevron-down" },
-				align: "end",
-				options: () => {
-					const state = this.tree ? this.tree.get_expansion_state() : "none";
-					return [
-						{
-							label: __("Expand All"),
-							icon: "copy-plus",
-							disabled: !(state === "collapsed" || state === "partial"),
-							onclick: () => {
-								this.tree.load_children(this.tree.root_node, true);
+			frappe.ui
+				.dropdown({
+					button: { label: __("Expand/Collapse"), icon_right: "chevron-down" },
+					align: "end",
+					options: () => {
+						const state = this.tree ? this.tree.get_expansion_state() : "none";
+						return [
+							{
+								label: __("Expand All"),
+								icon: "copy-plus",
+								disabled: !(state === "collapsed" || state === "partial"),
+								onclick: () => {
+									this.tree.load_children(this.tree.root_node, true);
+								},
 							},
-						},
-						{
-							label: __("Collapse All"),
-							icon: "copy-minus",
-							disabled: !(state === "expanded" || state === "partial"),
-							onclick: () => {
-								this.tree.load_children(this.tree.root_node, false);
+							{
+								label: __("Collapse All"),
+								icon: "copy-minus",
+								disabled: !(state === "expanded" || state === "partial"),
+								onclick: () => {
+									this.tree.load_children(this.tree.root_node, false);
+								},
 							},
-						},
-					];
-				},
-			}).appendTo($actions);
+						];
+					},
+				})
+				.appendTo($actions);
 		}
 	}
 	set_title() {
