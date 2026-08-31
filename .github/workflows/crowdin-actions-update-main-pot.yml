@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - version-16-hotfix
+      - version-15-hotfix
     paths:
       - "frappe/locale/main.pot"
   workflow_dispatch:
