@@ -545,6 +545,166 @@ def materialize_base(module: str) -> "Sidebar":
 	return doc
 
 
+# ---------------------------------------------------------------------------------------
+# The app layer: reading, writing and resetting the sidebar an app ships
+#
+# One editor arranges all three of a sidebar's layers (`frappe.ui.SidebarManager`), so all three
+# answer the same three questions in the same shapes. The two above are `Custom Sidebar`
+# documents and live in `custom_sidebar.py`; this one is the `Sidebar` document itself, so it
+# lives here.
+#
+# Every one of them is developer mode only, which is the gate `validate_app_content` already
+# puts on writing a `Sidebar` by any other route. There is no role check, for the same reason
+# there is none there: a site running in developer mode belongs to a developer.
+# ---------------------------------------------------------------------------------------
+
+# What the editor shows and hands back, under the names the boot payload uses. Each is a
+# `Sidebar Item` column of the same name, except `navigate_to_tab`, which the payload calls
+# `tab` and which is therefore carried on its own.
+#
+# These and the three `app_item` sets itself are every column the child table has, which is what
+# lets a save rebuild the table from what the client sent instead of merging into what was
+# already stored. A column added to `Sidebar Item` and not added here would be dropped by the
+# next save, and `test_the_editor_round_trips_every_column` is the only thing that would say so.
+#
+# Not `SIDEBAR_ITEM_FIELDS`, which answers a different question: what the fixture conversion
+# copies out of a workspace row. That set drops `is_default_module` because a conversion cannot
+# guess an app's claim on an entity; this one keeps it, because a claim the app already made has
+# to survive being arranged.
+ARRANGED_ITEM_FIELDS = (
+	"type",
+	"label",
+	"link_type",
+	"link_to",
+	"icon",
+	"child",
+	"indent",
+	"collapsible",
+	"keep_closed",
+	"url",
+	"show_arrow",
+	"filters",
+	"route_options",
+	"open_in_new_tab",
+	"is_default_module",
+)
+
+
+@frappe.whitelist()
+def get_app_sidebar_layer(module: str) -> list[dict]:
+	"""Return the sidebar `module`'s app ships, as the editor arranges it.
+
+	This is a third answer to "what does this module's sidebar look like", beside the two in
+	`custom_sidebar.py`, and it is the bottom one: the base, with no layer over it. A module no
+	app shipped a `Sidebar` for answers with its computed base, which is what the desk draws for
+	it today and what the first save turns into a document.
+
+	Hidden rows are kept, the same as in the layers above, since an editor that cannot see a
+	hidden row cannot offer to bring it back.
+
+	There is no permission filter, the same as the site layer's read and for the same reason:
+	this editor writes the whole arrangement, so a row filtered off the screen would be dropped
+	from the document on the next save.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_module
+
+	check_developer_mode()
+	check_module(module)
+
+	base = get_module_base(module)
+	# `is_item_allowed` is a method on `DeskViews`, so the filter needs a context object even
+	# when it is not going to check anything with it: one throwaway `Workspace`, the same as
+	# `layer_arrangement` builds.
+	items = filter_sidebar_items(base.rows, frappe.new_doc("Workspace"), check_permission=False)
+
+	# `added` is what a row in a layer above a base says: "I bring my own item". Every row here
+	# is the base, so none of them adds anything to anything, and the editor treats them all as
+	# rows it may hide rather than rows it may delete.
+	return [{**item, "hidden": int(item.get("hidden") or 0), "added": 0} for item in items]
+
+
+@frappe.whitelist()
+def save_app_sidebar(module: str, items: list | str) -> dict:
+	"""Store the arrangement on screen as the sidebar `module`'s app ships, and export it.
+
+	`items` is the whole ordered arrangement rather than a delta, the same as the two saves
+	above. Unlike them, every row is the item itself: this is the base, so there is nothing
+	underneath for a row to refer to.
+
+	The document is made standard here rather than by a later step. The layer is named after the
+	app, and a document that is not standard is not the app's: no file backs it, no migrate
+	re-imports it, and orphan cleanup is not looking for it. A row like that would also replace
+	the computed base on this site while leaving nothing in git to say so. `on_update` writes
+	the file, so the export follows from the flag.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_module, module_payload
+
+	check_developer_mode()
+	check_module(module)
+
+	if isinstance(items, str):
+		items = json.loads(items)
+
+	doc = app_document(module)
+	doc.set("items", [])
+	for row in items:
+		doc.append("items", app_item(row))
+
+	doc.standard = 1
+	doc.app = get_module_placement(module)
+	doc.save()
+
+	return module_payload()
+
+
+@frappe.whitelist()
+def reset_app_sidebar(module: str) -> dict:
+	"""Drop the sidebar `module`'s app ships, so the module goes back to its computed one.
+
+	The two resets above drop a layer and let the one below show through. This is the bottom
+	layer, and what shows through is the computed base, which is worked out from the module's
+	contents on read and is therefore there again in the same request.
+
+	`unmark_as_standard` does the work, including its own developer-mode check: the document and
+	its exported file both go, because a standard row with no file is an orphan and a file with
+	no row comes back on the next migrate.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import module_payload
+
+	unmark_as_standard(module)
+	return module_payload()
+
+
+def app_document(module: str) -> "Sidebar":
+	"""Return the document the app layer writes to, materializing it if there is none.
+
+	It addresses the shell the read addressed (`get_module_base`) rather than asking
+	`get_sidebar`, so a module whose sidebar has been renamed is arranged and saved in the same
+	place. `get_sidebar` answers `None` for that module, and `materialize_base` would then build
+	a second sidebar under it instead of writing the one the editor was showing.
+	"""
+	base = get_module_base(module)
+	if base.get("name"):
+		return frappe.get_doc("Sidebar", base.name)
+
+	return materialize_base(module)
+
+
+def app_item(row: dict) -> dict:
+	"""Return one arranged row as a `Sidebar Item` on the app's own document."""
+	item = {field: row.get(field) for field in ARRANGED_ITEM_FIELDS}
+
+	# The payload calls it `tab`. The column does not.
+	item["navigate_to_tab"] = row.get("tab")
+	item["hidden"] = int(bool(row.get("hidden")))
+	# `added` belongs to a row in a layer above a base, where it says the row brings its own
+	# item. A base row is the item, so the flag has nothing to say here. The `key` the editor
+	# sent is dropped by `clear_stored_keys` on save, for the reason it explains.
+	item["added"] = 0
+
+	return item
+
+
 def is_linked(item) -> bool:
 	"""Return whether this row links somewhere. A Section Break or a spacer does not."""
 	return bool(item.get("link_to") or item.get("url"))
@@ -1170,6 +1330,12 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 		# base never held, so the filter above never saw it. Checking it here keeps the rule
 		# true for rows that bring their own item as well as rows that name an existing one.
 		filtered = [item for item in filtered if allowed_added_item(item, context.perm_ctx)]
+	else:
+		# No layer to fold in, but the base may still hide: an app may ship a row off by
+		# default, and a module nobody has customized has to honour that. `merge_layers` gives
+		# the same answer for an empty list of layers, at the cost of copying every item of
+		# every module on every boot to get there.
+		filtered = [item for item in filtered if not item.get("hidden")]
 
 	# The user's private pages are added after that, which keeps them out of every stored
 	# customization: a customization can only name what it was shown when it was saved, and
@@ -1425,6 +1591,9 @@ def get_sidebar_items(sidebar_names):
 			"navigate_to_tab",
 			"open_in_new_tab",
 			"is_default_module",
+			# Read so the base can hide, which is what the editor's app layer writes. See
+			# `filter_sidebar_items`, which is where the value reaches the merge.
+			"hidden",
 		],
 		order_by="idx asc",
 	):
@@ -1520,10 +1689,11 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 	Two rows with the same identity are the same item, and a customization cannot say something
 	about one and not the other, so the first wins. That is what the desk drew before.
 
-	`check_permission` is off for one caller only: the editor reading the site layer. Permission
-	is a fact about the user, applied to what each user boots, so it is not part of what the
-	site arranged. A curator whose screen filtered an item out would otherwise drop the site's
-	rows for it on the next save. See `layer_arrangement`.
+	`check_permission` is off for two callers: the editor reading the site layer, and the editor
+	reading the app's own. Permission is a fact about the user, applied to what each user boots,
+	so it is not part of what the site or the app arranged. Either editor writes the whole
+	arrangement, so a screen with an item filtered out of it would drop that item's row on the
+	next save. See `layer_arrangement` and `get_app_sidebar_layer`.
 	"""
 	filtered = []
 	seen = set()
@@ -1562,6 +1732,13 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 			"open_in_new_tab": item.open_in_new_tab,
 			"is_default_module": item.is_default_module,
 		}
+		# Carried only when set, which is almost never. This runs for every item of every
+		# module on every boot, and a key on each one saying "not hidden" is bytes on the
+		# largest thing in the bootinfo. `resolve_layers` seeds the hidden map with `.get`, so
+		# an absent key and a false one say the same thing to the merge.
+		if item.hidden:
+			entry["hidden"] = 1
+
 		# One cached read instead of three uncached ones. A missing report and a disabled report
 		# both end up with no `report` block, so neither needs its own check. `cache=True` stops
 		# the same report on ten sidebars costing ten round trips.
