@@ -371,6 +371,9 @@ def get_file_path(file_name):
 	else:
 		frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
+	if not is_safe_path(file_path):
+		frappe.throw(_("Cannot access file path {0}").format(file_path))
+
 	return file_path
 
 
