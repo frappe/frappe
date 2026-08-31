@@ -10,7 +10,7 @@ import json
 import os
 import re
 import uuid
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import mkstemp
@@ -69,6 +69,7 @@ class SessionStore:
 		credential_store: CredentialStore | None = None,
 		extension_paths: builtins.list[str] | None = None,
 		extensions_enabled: bool = False,
+		tool_allowlist: Collection[str] | None = None,
 	):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
@@ -77,6 +78,8 @@ class SessionStore:
 		self.event_sink = event_sink
 		configured_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
 		self.allowed_roots = normalize_roots(configured_roots)
+		# (ServerPolicy.tool_allowlist). None = uncapped.
+		self.tool_allowlist = frozenset(tool_allowlist) if tool_allowlist is not None else None
 		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._extension_paths = tuple(extension_paths or ())
 		self._extensions_enabled = extensions_enabled
@@ -123,6 +126,18 @@ class SessionStore:
 	def _validate_create_config(self, config: SessionConfig) -> None:
 		self._validate_cwd(config.cwd)
 		self._validate_skill_paths(config)
+		self._validate_tools(config)
+
+	def _validate_tools(self, config: SessionConfig) -> None:
+		"""Reject tools the client asked for that the policy does not allow.
+
+		A client that never set `tools` is fine — its default list is clamped
+		at create instead of erroring."""
+		if self.tool_allowlist is None or "tools" not in config.model_fields_set:
+			return
+		blocked = sorted(set(config.tools) - self.tool_allowlist)
+		if blocked:
+			raise ValueError(f"tools not allowed by server policy: {', '.join(blocked)}")
 
 	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
 		return discover_skills(
@@ -134,9 +149,18 @@ class SessionStore:
 
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		selected = {name: BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS}
-		return self.extension_runtime.compose_tools(selected)
+		composed = self.extension_runtime.compose_tools(selected)
+		if self.tool_allowlist is None:
+			return composed
+		# runs on every load, so old sessions and extension tools are capped too
+		return {name: tool for name, tool in composed.items() if name in self.tool_allowlist}
 
 	def _create_with_skills_catalog(self, config: SessionConfig, skill_catalog: SkillCatalog) -> Session:
+		if self.tool_allowlist is not None:
+			# persist the effective builtin list, so meta and API echoes tell the truth
+			config = config.model_copy(
+				update={"tools": [name for name in config.tools if name in self.tool_allowlist]}
+			)
 		# Catalog metadata and the composed prompt are immutable for this session.
 		# Skill files themselves remain live and are read when used, matching Pi.
 		server_tools = self._compose_tools(config)
