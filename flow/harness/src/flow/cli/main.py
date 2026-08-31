@@ -208,10 +208,15 @@ def _serve(args) -> None:
 	from flow.server.policy import resolve_policy
 
 	try:
-		policy = resolve_policy(args.profile)
+		policy = resolve_policy(args.profile, callback_hosts=config.CALLBACK_HOSTS)
 	except ValueError as e:
 		raise DaemonError(str(e)) from None
-	if not args.uds and not _is_loopback(args.host) and not config.AUTH_TOKEN:
+	auth_token = _resolve_auth_token()
+	if policy.require_auth and not auth_token:
+		raise AuthError(
+			f"the {policy.profile!r} profile requires auth: set FLOW_AUTH_TOKEN or FLOW_AUTH_TOKEN_FILE."
+		)
+	if not args.uds and not _is_loopback(args.host) and not auth_token:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
@@ -243,15 +248,16 @@ def _serve(args) -> None:
 		extension_paths=args.extension,
 		extensions_enabled=not args.no_extensions,
 		tool_allowlist=policy.tool_allowlist,
+		callback_hosts=policy.callback_hosts,
 	)
 	_report_extension_diagnostics(store)
-	app = create_app(store, auth_token=config.AUTH_TOKEN, policy=policy)
+	app = create_app(store, auth_token=auth_token, policy=policy)
 	if args.parent_watch:
 		from flow.cli.daemon import watch_parent_stdin
 
 		watch_parent_stdin()
 	rinfo = f" · redis: {config.REDIS_URL}" if sink else ""
-	ainfo = " · auth: bearer" if config.AUTH_TOKEN else ""
+	ainfo = " · auth: bearer" if auth_token else ""
 	pinfo = f" · profile: {policy.profile}" if policy.profile != "local" else ""
 
 	def banner(address: str) -> None:
@@ -274,7 +280,8 @@ def _serve(args) -> None:
 def _web(args) -> None:
 	"""`flow web`: the daemon with the built web UI mounted same-origin (no CORS
 	needed), plus a browser tab pointed at it."""
-	if not _is_loopback(args.host) and not config.AUTH_TOKEN:
+	auth_token = _resolve_auth_token()
+	if not _is_loopback(args.host) and not auth_token:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
@@ -303,7 +310,7 @@ def _web(args) -> None:
 	_report_extension_diagnostics(store)
 	app = create_app(
 		store,
-		auth_token=config.AUTH_TOKEN,
+		auth_token=auth_token,
 		webui_dir=webui,
 		system_append=args.append_system_prompt,
 	)
@@ -359,11 +366,28 @@ def _attach(args) -> None:
 
 	run_app(
 		args.url,
-		token=config.AUTH_TOKEN,
+		token=_resolve_auth_token(),
 		model=settings.resolve_startup_model(),
 		session_id=args.session,
 		append_system_prompt=args.append_system_prompt,
 	)
+
+
+def _resolve_auth_token() -> str | None:
+	"""The daemon bearer: FLOW_AUTH_TOKEN, else the contents of FLOW_AUTH_TOKEN_FILE."""
+	if config.AUTH_TOKEN:
+		return config.AUTH_TOKEN
+	if not config.AUTH_TOKEN_FILE:
+		return None
+	# a broken file must fail loudly, not fall back to an unprotected daemon
+	try:
+		with open(config.AUTH_TOKEN_FILE, encoding="utf-8") as file:
+			token = file.read().strip()
+	except OSError as e:
+		raise DaemonError(f"cannot read FLOW_AUTH_TOKEN_FILE: {e}") from None
+	if not token:
+		raise DaemonError(f"FLOW_AUTH_TOKEN_FILE is empty: {config.AUTH_TOKEN_FILE}")
+	return token
 
 
 def _login(args) -> None:
