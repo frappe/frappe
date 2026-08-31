@@ -12,6 +12,14 @@ frappe.ui.Tree = class {
 		toolbar,
 		expandable,
 		with_skeleton = 1,
+		// row mode: full-width rows, toolbar rendered as hover actions +
+		// context menu instead of the click-injected button group. Embedded
+		// consumers (BOM Configurator, dialogs) keep the legacy behavior.
+		use_row_actions = false,
+		// the visual half of row mode only — rows, connectors, no leaf
+		// markers — without actions, menus, or hover cards. For read-only
+		// embedded previews (CoA importer, setup wizard).
+		row_style = false,
 
 		args,
 		method,
@@ -26,8 +34,14 @@ frappe.ui.Tree = class {
 		}
 		this.setup_treenode_class();
 		this.nodes = {};
-		this.wrapper = $('<div class="tree">').appendTo(this.parent);
+		this.wrapper = $('<div class="tree" role="tree">').appendTo(this.parent);
 		if (with_skeleton) this.wrapper.addClass("with-skeleton");
+		if (this.use_row_actions || this.row_style) {
+			this.wrapper.addClass("tree-rows");
+		}
+		if (this.use_row_actions) {
+			this.wrapper.addClass("tree-has-row-actions");
+		}
 
 		if (!icon_set) {
 			this.icon_set = {
@@ -115,18 +129,327 @@ frappe.ui.Tree = class {
 		this.selected_node.parent_node && this.load_children(this.selected_node.parent_node, true);
 	}
 
+	/**
+	 * Show only nodes whose label or name contains `txt` (with their
+	 * ancestor paths); empty `txt` restores everything. Filters what is
+	 * currently rendered — deep-load first (load_children(root, true)) for
+	 * whole-tree coverage. Returns the match count, or null when cleared.
+	 */
+	filter_nodes(txt) {
+		txt = (txt || "").trim().toLowerCase();
+		const $wrapper = this.wrapper;
+
+		if (!txt) {
+			$wrapper.removeClass("tree-searching");
+			$wrapper.find("li.tree-node").show();
+			return null;
+		}
+
+		$wrapper.addClass("tree-searching");
+		const $nodes = $wrapper.find("li.tree-node");
+		$nodes.hide();
+
+		let matches = 0;
+		$nodes.each((i, li) => {
+			const $li = $(li);
+			const $link = $li.children(".tree-link");
+			// match the visible label AND the real name (data-label) — apps
+			// may display a cleaned label (e.g. account number as a badge)
+			const label =
+				($link.find(".tree-label").text() || "") + " " + ($link.attr("data-label") || "");
+			if (label.toLowerCase().includes(txt)) {
+				matches++;
+				// reveal the path to the match
+				$li.show();
+				$li.parentsUntil($wrapper, "li.tree-node").show();
+				$li.parents("ul.tree-children").show();
+			}
+		});
+		return matches;
+	}
+
+	/**
+	 * Overall expansion state, for expand/collapse-all controls:
+	 * "none" (nothing expandable), "collapsed", "expanded" or "partial".
+	 * A collapsed root hides every descendant, so their stale expanded flags
+	 * don't count.
+	 */
+	get_expansion_state() {
+		if (!this.root_node.expanded) return "collapsed";
+		// root is open but its children are still loading (expand_node flips
+		// `expanded` before the async fetch renders them): there is something
+		// to expand, so report "collapsed" rather than a premature "none"
+		if (!this.root_node.loaded) return "collapsed";
+		const expandable = Object.values(this.nodes).filter(
+			(node) =>
+				node.expandable && !node.is_root && document.body.contains(node.$tree_link[0])
+		);
+		if (!expandable.length) return "none";
+		if (expandable.every((node) => node.expanded)) return "expanded";
+		if (expandable.every((node) => !node.expanded)) return "collapsed";
+		return "partial";
+	}
+
 	make_node_element(node) {
 		node.$tree_link = $('<span class="tree-link">')
 			.attr("data-label", node.label)
+			.attr("role", "treeitem")
+			.attr("aria-expanded", node.expandable ? "false" : null)
 			.data("node", node)
 			.appendTo(node.parent);
 
-		node.$ul = $('<ul class="tree-children">').hide().appendTo(node.parent);
+		node.$ul = $('<ul class="tree-children" role="group">').hide().appendTo(node.parent);
 
 		this.make_icon_and_label(node);
 		if (this.toolbar) {
-			node.$toolbar = this.get_toolbar(node).insertAfter(node.$tree_link);
+			if (this.use_row_actions) {
+				this.make_row_actions(node);
+			} else {
+				node.$toolbar = this.get_toolbar(node).insertAfter(node.$tree_link);
+			}
 		}
+		if (this.use_row_actions && !node.is_root) {
+			this.setup_node_hover_card(node);
+		}
+	}
+
+	// ─── row mode: node hover card ─────────────────────────────────────────
+
+	setup_node_hover_card(node) {
+		// same gate as the generic link preview this card replaces
+		if (!(frappe.boot.link_preview_doctypes || []).includes(this.args.doctype)) return;
+
+		node.hover_card = frappe.ui.hover_card(node.$tree_link.find("a.tree-label"), {
+			side: "bottom",
+			align: "start",
+			css_class: "tree-node-hover-panel",
+			content: () => this.build_node_hover_card(node),
+		});
+
+		// start the fetch on first hover, before the card's open delay
+		// elapses — an empty preview then destroys the card before it ever
+		// opens, instead of flashing a skeleton and vanishing
+		node.$tree_link.one("mouseenter", () => this.get_node_preview(node));
+	}
+
+	build_node_hover_card(node) {
+		if (node.preview_empty) return null;
+
+		const $card = $(`
+			<div class="tree-hover-card">
+				${frappe.ui.skeleton.html({ width: "60%", height: "14px" })}
+				${frappe.ui.skeleton.html({ width: "40%", height: "12px", css_class: "mt-2" })}
+			</div>
+		`);
+		this.get_node_preview(node).then((data) => {
+			if (!document.body.contains($card[0])) return;
+			if (!data) {
+				node.hover_card && node.hover_card.close();
+				return;
+			}
+			$card.empty().append(this.render_node_hover_card(node, data));
+		});
+		return $card;
+	}
+
+	get_node_preview(node) {
+		if (!node.preview_promise) {
+			node.preview_promise = frappe
+				.call({
+					method: "frappe.desk.link_preview.get_preview_data",
+					args: { doctype: this.args.doctype, docname: node.label },
+				})
+				.then((r) => {
+					const data = r.message;
+					const meta = frappe.get_meta(this.args.doctype);
+					const extra_fields =
+						data &&
+						Object.keys(data).filter(
+							(key) => !["preview_image", "preview_title", "name"].includes(key)
+						);
+					const has_value_column =
+						node.parent && node.parent.children(".balance-area").length;
+
+					// nothing worth showing — no card
+					if (
+						!data ||
+						(!meta?.image_field && !extra_fields.length && !has_value_column)
+					) {
+						node.preview_empty = true;
+						node.hover_card && node.hover_card.destroy();
+						return null;
+					}
+					return data;
+				})
+				.catch(() => {
+					node.preview_empty = true;
+					node.hover_card && node.hover_card.destroy();
+					return null;
+				});
+		}
+		return node.preview_promise;
+	}
+
+	render_node_hover_card(node, data) {
+		const doctype = this.args.doctype;
+		const meta = frappe.get_meta(doctype);
+		const title = data.preview_title || data.name;
+		const subtitle =
+			data.preview_title && data.preview_title !== data.name
+				? `${__(doctype)} · ${data.name}`
+				: __(doctype);
+
+		const $content = $("<div></div>");
+		const $head = $(
+			'<div class="tree-hover-card-head flex items-start gap-2.5"></div>'
+		).appendTo($content);
+
+		// avatar only when the doctype defines an image field
+		if (meta && meta.image_field) {
+			$head.append(
+				frappe.ui.avatar.html({
+					label: title,
+					image: data.preview_image || undefined,
+					size: "lg",
+				})
+			);
+		}
+
+		const $titles = $('<div class="flex-1 min-w-0"></div>').appendTo($head);
+		$('<div class="text-base-semibold text-ink-gray-8 truncate"></div>')
+			.text(title)
+			.appendTo($titles);
+		$('<div class="text-sm text-ink-gray-6 truncate mt-0.5"></div>')
+			.text(subtitle)
+			.appendTo($titles);
+
+		$(
+			frappe.ui.button({
+				icon: "external-link",
+				variant: "ghost",
+				size: "xs",
+				title: __("Open"),
+				onclick: () => frappe.set_route("Form", doctype, data.name),
+			})
+		).appendTo($head);
+
+		if (node.expandable) {
+			$('<div class="flex gap-1.5 mt-2"></div>')
+				.append(frappe.ui.badge({ label: __("Group"), size: "sm" }))
+				.appendTo($content);
+		}
+
+		const rows = Object.entries(data).filter(
+			([key, value]) =>
+				!["preview_image", "preview_title", "name"].includes(key) && value != null
+		);
+		const $balance = node.parent && node.parent.children(".balance-area").first();
+		if (rows.length || ($balance && $balance.length)) {
+			$('<div class="border-t my-2.5"></div>').appendTo($content);
+			const add_row = (label, $value) => {
+				const $row = $(
+					'<div class="tree-hover-card-row flex items-center justify-between gap-3"></div>'
+				).appendTo($content);
+				$('<div class="text-sm text-ink-gray-6 shrink-0"></div>')
+					.text(label)
+					.appendTo($row);
+				$value.addClass("value text-sm text-ink-gray-7 truncate").appendTo($row);
+			};
+			rows.forEach(([label, value]) => {
+				// server-side frappe.format output (escaped/translated there)
+				add_row(__(label), $("<div></div>").html(value));
+			});
+			if ($balance && $balance.length) {
+				add_row(__("Balance"), $("<div></div>").text($balance.text().trim()));
+			}
+		}
+
+		return $content;
+	}
+
+	// ─── row mode: hover actions + context menu ────────────────────────────
+
+	get_toolbar_items(node) {
+		// entries whose condition holds for this node, in declared order
+		return Object.values(this.toolbar || {}).filter(
+			(obj) => obj.label && (!obj.condition || obj.condition(node))
+		);
+	}
+
+	get_node_menu_options(node) {
+		if (!node) return [];
+		// inline entries (e.g. Edit) already have their own button beside the
+		// label — repeating them in the menu would be noise. Destructive
+		// entries (danger) sink to the end of the menu.
+		const items = this.get_toolbar_items(node).filter((obj) => !obj.inline);
+		items.sort((a, b) => (a.danger ? 1 : 0) - (b.danger ? 1 : 0));
+		return items.map((obj) => {
+			// an entry can explain why it's unavailable instead of hiding:
+			// get_disabled_reason(node) returning a string renders the row
+			// disabled with the reason as its description
+			const reason = obj.get_disabled_reason && obj.get_disabled_reason(node);
+			return {
+				label: obj.get_label ? obj.get_label() : obj.label,
+				icon: obj.icon,
+				theme: obj.danger ? "red" : undefined,
+				disabled: !!reason,
+				description: reason || undefined,
+				onclick: () => obj.click(node),
+			};
+		});
+	}
+
+	make_row_actions(node) {
+		const items = this.get_toolbar_items(node);
+		if (!items.length) return;
+
+		const $actions = $('<span class="tree-actions">').appendTo(node.$tree_link);
+
+		// entries flagged `inline` (with an icon) become hover icon-buttons
+		// beside the label; everything else collects under the ellipsis,
+		// which opens the same menu as right-click
+		const inline = items.filter((obj) => obj.inline && obj.icon);
+		const overflow = items.filter((obj) => !obj.inline);
+
+		inline.forEach((obj) => {
+			const label = obj.get_label ? obj.get_label() : obj.label;
+			$(
+				frappe.ui.button({
+					icon: obj.icon,
+					variant: "ghost",
+					size: "xs",
+					title: label,
+					onclick: (e) => {
+						e.stopPropagation();
+						obj.click(node);
+					},
+				})
+			).appendTo($actions);
+		});
+
+		if (overflow.length) {
+			node.context_menu = new frappe.ui.ContextMenu({
+				target: node.$tree_link,
+				options: () => this.get_node_menu_options(node),
+			});
+			const $more = $(
+				frappe.ui.button({
+					icon: "ellipsis",
+					variant: "ghost",
+					size: "xs",
+					title: __("More actions"),
+					onclick: (e) => {
+						e.stopPropagation();
+						const rect = e.currentTarget.getBoundingClientRect();
+						node.context_menu.open_at(rect.left, rect.bottom + 2);
+					},
+				})
+			).appendTo($actions);
+			$more.addClass("tree-more-btn");
+		}
+
+		// keep clicks on the action strip from toggling the node
+		$actions.on("click", (e) => e.stopPropagation());
 	}
 
 	add_node(node, data) {
@@ -140,14 +463,6 @@ frappe.ui.Tree = class {
 			expandable: data.expandable,
 			data: data,
 		});
-	}
-
-	reload_node(node) {
-		return this.load_children(node);
-	}
-
-	toggle() {
-		this.get_selected_node().toggle();
 	}
 
 	get_selected_node() {
@@ -217,6 +532,9 @@ frappe.ui.Tree = class {
 
 		node.expanded = !node.expanded;
 		node.parent.toggleClass("opened", node.expanded);
+		if (node.expandable) {
+			node.$tree_link.attr("aria-expanded", String(!!node.expanded));
+		}
 	}
 
 	toggle_node(node) {
@@ -230,16 +548,15 @@ frappe.ui.Tree = class {
 				node.$ul.toggle(!node.expanded);
 			}
 
-			// open close icon
+			// open close icon — scoped to the toggle span (the row's first
+			// child); a bare .find(".icon") would also catch the icons inside
+			// the row's action buttons
 			if (this.icon_set) {
+				let $toggle = node.$tree_link.children().first();
 				if (!node.expanded) {
-					node.$tree_link.find(".icon").parent().html(this.icon_set.open);
+					$toggle.html(this.icon_set.open);
 				} else {
-					node.$tree_link
-						.find(".icon")
-						.parent()
-						.addClass("node-parent")
-						.html(this.icon_set.closed);
+					$toggle.addClass("node-parent").html(this.icon_set.closed);
 				}
 			}
 		}
@@ -251,6 +568,9 @@ frappe.ui.Tree = class {
 	}
 
 	show_toolbar(node) {
+		// row-actions mode has no per-node $toolbar (actions are hover
+		// buttons + context menu), so this is a no-op there
+		if (!node.$toolbar) return;
 		if (this.cur_toolbar) $(this.cur_toolbar).hide();
 		this.cur_toolbar = node.$toolbar;
 		node.$toolbar.show();
@@ -295,14 +615,18 @@ frappe.ui.Tree = class {
 			}, 100);
 		});
 
-		node.$tree_link.hover(
-			function () {
-				$(this).parent().addClass("hover-active");
-			},
-			function () {
-				$(this).parent().removeClass("hover-active");
-			}
-		);
+		// row mode highlights via CSS :hover; the class is only for the
+		// legacy embedded layout (and import_tree_preview's copy of it)
+		if (!this.use_row_actions && !this.row_style) {
+			node.$tree_link.hover(
+				function () {
+					$(this).parent().addClass("hover-active");
+				},
+				function () {
+					$(this).parent().removeClass("hover-active");
+				}
+			);
+		}
 	}
 
 	get_toolbar(node) {
