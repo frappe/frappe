@@ -31,6 +31,8 @@ async for event in agent.run("Summarize this project"):
 
 Start the daemon with `flow serve`. Requests and responses are JSON unless noted. If `FLOW_AUTH_TOKEN` is set, send `Authorization: Bearer <token>` to API routes; `/healthz` does not require it. The default daemon binds to loopback.
 
+`flow serve --profile deployed` hardens a daemon that fronts a remote client: sessions may only compose `read_file` and `grep` (an explicit request for anything else is a 400), and everything outside the core session verbs answers `403 {"detail": "disabled by server policy"}` — all of `/fs/*`, the session file diff, `/models` and `/providers*`, and the extension and skill routes. The default profile (`local`) changes nothing.
+
 `POST /sessions` accepts a `SessionConfig`. Important fields are:
 
 - `model`, `credential_id`, and optional `reasoning_effort` (`off` through `max`);

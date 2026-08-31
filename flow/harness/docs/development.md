@@ -46,6 +46,7 @@ npm run build -w app
 | `FLOW_PORT` | `8787` | TCP port. |
 | `FLOW_DATA_DIR` | `~/.flow/server` | Session data and daemon logs. |
 | `FLOW_AUTH_TOKEN` | unset | Bearer token for the daemon API; required for non-loopback TCP binds. |
+| `FLOW_PROFILE` | `local` | Policy preset for `flow serve` (`--profile` overrides). `local` keeps everything on; `deployed` caps tools to `read_file` and `grep` and answers 403 on everything outside the core session verbs: `/fs/*`, the session file diff, `/models`, `/providers*`, and the extension and skill routes. |
 | `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | Credential-store path. |
 | `FLOW_MODEL` | `mock` | Initial model for a new TUI session; a saved TUI choice is used when it is unset. |
 | `FLOW_ALLOWED_ROOTS` | unset | `os.pathsep`-separated roots for session directories and path-taking tools. It does not sandbox `bash`. |
