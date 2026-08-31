@@ -1000,7 +1000,7 @@ Object.assign(frappe.utils, {
 		display_text = null,
 		query_params_obj = null
 	) {
-		display_text = display_text || name;
+		display_text = display_text || frappe.utils.escape_html(name);
 		name = encodeURIComponent(name);
 		let route = `/desk/${encodeURIComponent(
 			doctype.toLowerCase().replace(/ /g, "-")
