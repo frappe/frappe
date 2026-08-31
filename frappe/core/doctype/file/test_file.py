@@ -1133,6 +1133,9 @@ class TestFileUtils(IntegrationTestCase):
 
 			normal.db_set("file_url", "/private/files/../../../../outside_bounds.txt")
 			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+
+			normal.db_set("file_url", "/private/files/../../site_level_file.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
 		finally:
 			normal.db_set("file_url", original_file_url)
 			normal.delete()
