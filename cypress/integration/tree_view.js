@@ -30,9 +30,6 @@ context("Tree View", () => {
 	it("shows Expand All / Collapse All only when the tree's state warrants it", () => {
 		cy.visit("/app/custom-tree/view/tree");
 
-		// both actions live in one dropdown; the menu resolves fresh on every
-		// open, disabling whichever action doesn't apply right now. Rows are
-		// real <button disabled> elements per the es-menu contract.
 		const toggle_menu = () => cy.get(".tree-toolbar-actions .es-button").first().click();
 		const assert_buttons = (expand_enabled, collapse_enabled) => {
 			toggle_menu();

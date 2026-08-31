@@ -1,5 +1,3 @@
-// the tree page keeps a centered, width-capped column — value columns
-// (balances) stay near their labels
 .treeview {
 	.layout-main-section {
 		margin: auto;
@@ -10,17 +8,11 @@
 	}
 }
 
-// ─── filter bar + tree body (same page_form anatomy as list views) ─────────
-
 .treeview .page-form {
-	// a tree page has few filters, so give them more room than the list
-	// default (150px) — they read cramped otherwise
 	.standard-filter-section .frappe-control:not([data-fieldtype="Check"]) {
 		min-width: 220px;
 	}
 
-	// the checkbox sizes to its label instead of the col-md-2 column, so a
-	// longer label ("Show all (including disabled)") stays on one line
 	.standard-filter-section .frappe-control[data-fieldtype="Check"] {
 		flex: none;
 		width: auto;
@@ -28,8 +20,6 @@
 		white-space: nowrap;
 	}
 
-	// Pin it to the top and align it with the first
-	// filter row instead (the +4px matches the field's in-section offset).
 	.tree-toolbar-actions {
 		align-self: flex-start;
 		margin-top: 4px;
@@ -40,8 +30,6 @@
 	padding: var(--spacing) calc(var(--spacing) * 2) calc(var(--spacing) * 2);
 }
 
-// node hover card: the panel is widened past the component default (256px)
-// so account names and amounts fit without scrolling; the content fills it
 .es-hover-card.tree-node-hover-panel {
 	width: calc(var(--spacing) * 78);
 	max-width: 90vw;
@@ -50,11 +38,7 @@
 .tree-hover-card {
 	width: 100%;
 
-	// layout and type come from utility/typography classes on the markup;
-	// only what those can't express lives here
 	.tree-hover-card-head {
-		// the avatar spans both text lines, so it stays vertically centered
-		// while the open button top-aligns with the title
 		.es-avatar {
 			align-self: center;
 		}
@@ -66,7 +50,6 @@
 	}
 
 	.tree-hover-card-row {
-		// a little breathing room between fields
 		padding-block: 3px;
 
 		.value {
@@ -76,13 +59,10 @@
 	}
 }
 
-// ─── tree widget ────────────────────────────────────────────────────────────
-
 .tree {
 	padding: var(--spacing);
 	font-size: var(--text-base);
 
-	// legacy click-injected toolbar (embedded trees: BOM Configurator etc.)
 	.btn-group {
 		.btn {
 			box-shadow: none;
@@ -151,16 +131,9 @@
 	font-weight: 600;
 }
 
-// ─── row mode (.tree-rows): full-width rows, guides, hover actions ─────────
-// standard desk tree pages only; embedded trees keep the legacy layout above
-
 .tree.tree-rows {
 	padding: 0;
 
-	// a node's <li> holds [row link][optional value column][children <ul>] —
-	// flex-wrap puts link + value on one visual row, children wrap below.
-	// No vertical margins: sibling connector segments must touch to draw as
-	// one continuous line.
 	li.tree-node {
 		display: flex;
 		flex-wrap: wrap;
@@ -180,8 +153,6 @@
 		font-weight: var(--font-weight-regular);
 		color: var(--ink-gray-8);
 
-		// icon slot: chevron for groups; leaves keep the slot for alignment
-		// but draw no marker (frappe-ui tree convention)
 		> span:first-child {
 			flex: none;
 			width: 20px;
@@ -214,14 +185,6 @@
 		}
 	}
 
-	// every label carries the same weight (frappe-ui tree convention) —
-	// hierarchy is shown by indent and chevrons, selection by background
-
-	// indent guides: frappe-ui-style elbow connectors. The line hangs from
-	// the parent's chevron center (8px row padding + half of the 20px icon
-	// slot = 18px into the <ul>, i.e. -6px relative to each 24px-indented
-	// child <li>): an └ elbow into each row, the vertical continuing past
-	// every child except the last
 	ul.tree-children {
 		flex: 1 1 100%;
 		padding-left: 24px;
@@ -255,8 +218,6 @@
 			}
 		}
 
-		// all-leaf levels drop the empty icon slots; mixed levels keep them
-		// so labels align (span.node-parent marks a group from first render)
 		&:not(:has(span.node-parent)) {
 			.tree-link > span:first-child {
 				display: none;
@@ -268,8 +229,6 @@
 		}
 	}
 
-	// hover actions sit beside the label — shortest pointer travel; the
-	// value column at the row's end stays untouched
 	.tree-actions {
 		display: none;
 		align-items: center;
@@ -283,16 +242,12 @@
 		display: inline-flex;
 	}
 
-	// no hover on touch devices — keep the actions always visible
 	@media (hover: none) {
 		.tree-actions {
 			display: inline-flex;
 		}
 	}
 
-	// value column (e.g. account balances) — apps insert .balance-area after
-	// the tree-link; as a flex sibling it sits at the row's right edge and
-	// can never overlap the label
 	li.tree-node > .balance-area {
 		float: none;
 		flex: none;
@@ -307,7 +262,6 @@
 		white-space: nowrap;
 	}
 
-	// link + value paint as ONE continuous row: square the touching corners
 	li.tree-node:has(> .balance-area) > .tree-link {
 		border-radius: var(--radius) 0 0 var(--radius);
 	}
@@ -317,13 +271,11 @@
 		background-color: var(--surface-gray-2);
 	}
 
-	// legacy click-toolbar never shows in row mode
 	.tree-node-toolbar {
 		display: none !important;
 	}
 }
 
-// legacy hover treatment for embedded trees
 .tree:not(.tree-rows) .tree-node.hover-active {
 	background-color: var(--surface-gray-2);
 	border-radius: var(--radius);

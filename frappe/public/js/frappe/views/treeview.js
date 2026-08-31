@@ -160,8 +160,6 @@ frappe.views.TreeView = class TreeView {
 	make_tree_toolbar() {
 		var me = this;
 
-		// same filter-bar anatomy as the list views: page_form holding a
-		// .standard-filter-section, fields added through page.add_field
 		this.page.page_form.removeClass("row").addClass("flex");
 		this.$filter_area = $('<div class="standard-filter-section flex"></div>').appendTo(
 			this.page.page_form
