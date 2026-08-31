@@ -1,0 +1,56 @@
+name: SQLite Individual
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sqlite-individual-tests-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: set-matrix
+        run: |
+          matrix=$(find . -path '*/doctype/*/test_*.py' | xargs grep -l 'def test_' | awk '{
+              gsub(/^\.\//, "", $0)
+              gsub(/\.py$/, "", $0)
+              gsub(/\//, ".", $0)
+              tests[NR] = $0
+          }
+          END {
+              printf "{\n  \"include\": [\n"
+              for (i = 1; i <= NR; i++) {
+                  printf "    {\"test\": \"%s\"}", tests[i]
+                  if (i < NR) printf ","
+                  printf "\n"
+              }
+              printf "  ]\n}"
+          }')
+          echo "matrix=$(echo "$matrix" | jq -c)" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      NODE_ENV: production
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+    name: SQLite / ${{ matrix.test }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: "3.14"
+          node-version: 24
+          db: sqlite
+          db-root-password: db_root
+      - name: Run Tests
+        run: bench --site test_site run-tests --app frappe --module ${{ matrix.test }}
