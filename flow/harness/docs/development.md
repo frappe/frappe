@@ -46,7 +46,9 @@ npm run build -w app
 | `FLOW_PORT` | `8787` | TCP port. |
 | `FLOW_DATA_DIR` | `~/.flow/server` | Session data and daemon logs. |
 | `FLOW_AUTH_TOKEN` | unset | Bearer token for the daemon API; required for non-loopback TCP binds. |
-| `FLOW_PROFILE` | `local` | Policy preset for `flow serve` (`--profile` overrides). `local` keeps everything on; `deployed` caps tools to `read_file` and `grep` and answers 403 on everything outside the core session verbs: `/fs/*`, the session file diff, `/models`, `/providers*`, and the extension and skill routes. |
+| `FLOW_AUTH_TOKEN_FILE` | unset | File holding the bearer token, so an operator can generate and rotate it; used when `FLOW_AUTH_TOKEN` is unset. A configured but missing or empty file is a startup error. |
+| `FLOW_PROFILE` | `local` | Policy preset for `flow serve` (`--profile` overrides). `local` keeps everything on; `deployed` caps tools to `read_file` and `grep`, refuses to start without an auth token (even on a unix socket), and answers 403 on everything outside the core session verbs: `/fs/*`, the session file diff, `/models`, `/providers*`, and the extension and skill routes. |
+| `FLOW_CALLBACK_HOSTS` | unset | Comma-separated `host[:port]` values a session `callback_url` may target. Enforced by the `deployed` profile; unset there means client callbacks are refused. |
 | `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | Credential-store path. |
 | `FLOW_MODEL` | `mock` | Initial model for a new TUI session; a saved TUI choice is used when it is unset. |
 | `FLOW_ALLOWED_ROOTS` | unset | `os.pathsep`-separated roots for session directories and path-taking tools. It does not sandbox `bash`. |

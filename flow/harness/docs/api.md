@@ -29,9 +29,9 @@ async for event in agent.run("Summarize this project"):
 
 ## HTTP basics
 
-Start the daemon with `flow serve`. Requests and responses are JSON unless noted. If `FLOW_AUTH_TOKEN` is set, send `Authorization: Bearer <token>` to API routes; `/healthz` does not require it. The default daemon binds to loopback.
+Start the daemon with `flow serve`. Requests and responses are JSON unless noted. If a token is configured (`FLOW_AUTH_TOKEN`, or a file named by `FLOW_AUTH_TOKEN_FILE`), send `Authorization: Bearer <token>` to API routes; `/healthz` does not require it. The default daemon binds to loopback.
 
-`flow serve --profile deployed` hardens a daemon that fronts a remote client: sessions may only compose `read_file` and `grep` (an explicit request for anything else is a 400), and everything outside the core session verbs answers `403 {"detail": "disabled by server policy"}` — all of `/fs/*`, the session file diff, `/models` and `/providers*`, and the extension and skill routes. The default profile (`local`) changes nothing.
+`flow serve --profile deployed` hardens a daemon that fronts a remote client: it refuses to start without an auth token (even on a unix socket); sessions may only compose `read_file` and `grep` (an explicit request for anything else is a 400); a session `callback_url` may only target a host listed in `FLOW_CALLBACK_HOSTS` (none configured means client callbacks are refused); and everything outside the core session verbs answers `403 {"detail": "disabled by server policy"}` — all of `/fs/*`, the session file diff, `/models` and `/providers*`, and the extension and skill routes. The default profile (`local`) changes nothing.
 
 `POST /sessions` accepts a `SessionConfig`. Important fields are:
 
