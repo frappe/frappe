@@ -362,15 +362,20 @@ def get_file_path(file_name):
 		file_path = "/files/" + file_path
 
 	if file_path.startswith("/private/files/"):
-		file_path = get_files_path(*file_path.split("/private/files/", 1)[1].split("/"), is_private=1)
+		is_private = 1
+		file_path = get_files_path(
+			*file_path.split("/private/files/", 1)[1].split("/"), is_private=is_private
+		)
 
 	elif file_path.startswith("/files/"):
+		is_private = 0
 		file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
 
 	else:
 		frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
-	if not is_safe_path(file_path):
+	base_path = os.path.realpath(get_files_path(is_private=is_private))
+	if not os.path.realpath(file_path).startswith(base_path):
 		frappe.throw(_("Cannot access file path {0}").format(file_path))
 
 	return file_path
