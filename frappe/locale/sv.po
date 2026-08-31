@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-26 22:15\n"
+"PO-Revision-Date: 2026-08-30 23:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -42,7 +42,7 @@ msgstr "'Överordnad' betyder överordnad tabell där denna rad skall infogas"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr "\"Team Medlemmar\" eller \"Ledning\""
+msgstr "\"Lag Medlemmar\" eller \"Ledning\""
 
 #: frappe/public/js/frappe/form/form.js:1013
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -11598,7 +11598,7 @@ msgstr "Hämta PDF"
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Get a preview of generated names with a series."
-msgstr "Förhandsgranskning av Nummer Serie."
+msgstr "Förhandsvisning av Nummer Serie."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:282
 msgid "Get more insights with"
@@ -12391,7 +12391,7 @@ msgstr "Dölj Inloggning"
 #: frappe/public/js/form_builder/form_builder.bundle.js:43
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Hide Preview"
-msgstr "Dölj Förhandsgranskning"
+msgstr "Dölj Förhandsvisning"
 
 #. Description of the 'Hide Buttons' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -12829,7 +12829,7 @@ msgstr "Om den här e-postadressen är registrerad hos oss har vi skickat instru
 
 #: frappe/templates/emails/user_invitation_cancelled.html:8
 msgid "If this was a mistake or you need access again, please reach out to your team."
-msgstr "Om detta var ett misstag eller om du behöver tillgång igen, vänligen kontakta ditt team."
+msgstr "Om detta var ett misstag eller om du behöver tillgång igen, vänligen kontakta ditt lag."
 
 #. Description of the 'Fetch on Save if Empty' (Check) field in DocType
 #. 'DocField'
@@ -17482,11 +17482,11 @@ msgstr "Inga tillåtna Diagram på denna Översikt Panel"
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
-msgstr "Ingen Förhandsgranskning"
+msgstr "Ingen Förhandsvisning"
 
 #: frappe/printing/page/print/print.js:710
 msgid "No Preview Available"
-msgstr "Ingen Förhandsgranskning Tillgänglig."
+msgstr "Ingen Förhandsvisning Tillgänglig."
 
 #: frappe/printing/page/print/print.js:864
 msgid "No Printer is Available."
@@ -20309,11 +20309,11 @@ msgstr "Förhandsgransknig Läge"
 #. Label of a Text field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Preview of generated names"
-msgstr "Förhandsgranskning av genererade namn"
+msgstr "Förhandsvisning av genererade namn"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Förhandsgranskning typ"
+msgstr "Förhandsvisning typ"
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
@@ -25169,7 +25169,7 @@ msgstr "Hoppar över Kolumn {0}"
 
 #: frappe/modules/utils.py:197
 msgid "Skipping fixture syncing for doctype {0} from file {1}"
-msgstr "Hoppar över fixture synkronisering för doctype {0} från fil {1}"
+msgstr "Hoppar över tillägg synkronisering för doctype {0} från fil {1}"
 
 #: frappe/core/doctype/data_import/data_import.js:39
 msgid "Skipping {0} of {1}, {2}"
@@ -26596,17 +26596,17 @@ msgstr "Uppgift"
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 #: frappe/www/about.html:45
 msgid "Team Members"
-msgstr "Team Medlemmar"
+msgstr "Lag Medlemmar"
 
 #. Label of a Data field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Heading"
-msgstr "Team Medlemmar Huvud Rubrik"
+msgstr "Lag Medlemmar Huvud Rubrik"
 
 #. Label of a Small Text field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Subtitle"
-msgstr "Team Medlemmar Undertext"
+msgstr "Lag Medlemmar Undertext"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -30738,7 +30738,7 @@ msgstr "Du kan kopiera och klistra in {0} i webbläsare"
 
 #: frappe/templates/emails/user_invitation_expired.html:8
 msgid "You can ask your team to resend the invitation if you'd still like to join."
-msgstr "Du kan be ditt team att skicka inbjudan igen om ni fortfarande vill gå med."
+msgstr "Du kan be ditt lag att skicka inbjudan igen om ni fortfarande vill gå med."
 
 #: frappe/public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."
