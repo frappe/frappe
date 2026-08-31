@@ -16,6 +16,10 @@ frappe.ui.Tree = class {
 		// context menu instead of the click-injected button group. Embedded
 		// consumers (BOM Configurator, dialogs) keep the legacy behavior.
 		use_row_actions = false,
+		// the visual half of row mode only — rows, connectors, no leaf
+		// markers — without actions, menus, or hover cards. For read-only
+		// embedded previews (CoA importer, setup wizard).
+		row_style = false,
 
 		args,
 		method,
@@ -32,8 +36,11 @@ frappe.ui.Tree = class {
 		this.nodes = {};
 		this.wrapper = $('<div class="tree" role="tree">').appendTo(this.parent);
 		if (with_skeleton) this.wrapper.addClass("with-skeleton");
-		if (this.use_row_actions) {
+		if (this.use_row_actions || this.row_style) {
 			this.wrapper.addClass("tree-rows");
+		}
+		if (this.use_row_actions) {
+			this.wrapper.addClass("tree-has-row-actions");
 			this.setup_context_menu();
 		}
 
@@ -121,6 +128,63 @@ frappe.ui.Tree = class {
 
 	refresh() {
 		this.selected_node.parent_node && this.load_children(this.selected_node.parent_node, true);
+	}
+
+	/**
+	 * Show only nodes whose label or name contains `txt` (with their
+	 * ancestor paths); empty `txt` restores everything. Filters what is
+	 * currently rendered — deep-load first (load_children(root, true)) for
+	 * whole-tree coverage. Returns the match count, or null when cleared.
+	 */
+	filter_nodes(txt) {
+		txt = (txt || "").trim().toLowerCase();
+		const $wrapper = this.wrapper;
+
+		if (!txt) {
+			$wrapper.removeClass("tree-searching");
+			$wrapper.find("li.tree-node").show();
+			return null;
+		}
+
+		$wrapper.addClass("tree-searching");
+		const $nodes = $wrapper.find("li.tree-node");
+		$nodes.hide();
+
+		let matches = 0;
+		$nodes.each((i, li) => {
+			const $li = $(li);
+			const $link = $li.children(".tree-link");
+			// match the visible label AND the real name (data-label) — apps
+			// may display a cleaned label (e.g. account number as a badge)
+			const label =
+				($link.find(".tree-label").text() || "") + " " + ($link.attr("data-label") || "");
+			if (label.toLowerCase().includes(txt)) {
+				matches++;
+				// reveal the path to the match
+				$li.show();
+				$li.parentsUntil($wrapper, "li.tree-node").show();
+				$li.parents("ul.tree-children").show();
+			}
+		});
+		return matches;
+	}
+
+	/**
+	 * Overall expansion state, for expand/collapse-all controls:
+	 * "none" (nothing expandable), "collapsed", "expanded" or "partial".
+	 * A collapsed root hides every descendant, so their stale expanded flags
+	 * don't count.
+	 */
+	get_expansion_state() {
+		if (!this.root_node.expanded) return "collapsed";
+		const expandable = Object.values(this.nodes).filter(
+			(node) =>
+				node.expandable && !node.is_root && document.body.contains(node.$tree_link[0])
+		);
+		if (!expandable.length) return "none";
+		if (expandable.every((node) => node.expanded)) return "expanded";
+		if (expandable.every((node) => !node.expanded)) return "collapsed";
+		return "partial";
 	}
 
 	make_node_element(node) {
@@ -566,7 +630,7 @@ frappe.ui.Tree = class {
 
 		// row mode highlights via CSS :hover; the class is only for the
 		// legacy embedded layout (and import_tree_preview's copy of it)
-		if (!this.use_row_actions) {
+		if (!this.use_row_actions && !this.row_style) {
 			node.$tree_link.hover(
 				function () {
 					$(this).parent().addClass("hover-active");

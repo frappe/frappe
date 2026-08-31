@@ -31,38 +31,28 @@ context("Tree View", () => {
 		cy.visit("/app/custom-tree/view/tree");
 
 		const tree_view = (win) => win.frappe.views.trees["Custom Tree"];
-		// the toolbar only ever hides/shows these buttons via jQuery
-		// .hide()/.show()/.toggle() — assert against "none" vs. not-"none"
-		// instead of a specific display value
-		const assert_buttons = (expand_visible, collapse_visible) => {
+		// both buttons stay in the layout permanently; the inapplicable one
+		// is disabled instead of hidden
+		const assert_buttons = (expand_enabled, collapse_enabled) => {
 			cy.window().should((win) => {
 				let tv = tree_view(win);
-				let expand_display = tv.$expand_all_btn.css("display");
-				let collapse_display = tv.$collapse_all_btn.css("display");
-				if (expand_visible) {
-					expect(expand_display).to.not.eq("none");
-				} else {
-					expect(expand_display).to.eq("none");
-				}
-				if (collapse_visible) {
-					expect(collapse_display).to.not.eq("none");
-				} else {
-					expect(collapse_display).to.eq("none");
-				}
+				expect(tv.$expand_all_btn.prop("disabled")).to.eq(!expand_enabled);
+				expect(tv.$collapse_all_btn.prop("disabled")).to.eq(!collapse_enabled);
 			});
 		};
 		const click_toolbar_button = (label) => {
-			cy.contains(".tree-toolbar-actions .es-button", label).click();
+			// icon-only buttons: the espresso tooltip doubles as aria-label
+			cy.get(`.tree-toolbar-actions .es-button[aria-label="${label}"]`).click();
 		};
 
 		// root auto-expands; both groups underneath are still collapsed -> only "Expand All"
 		assert_buttons(true, false);
 
-		// expand one group, leave its sibling group collapsed -> not yet fully
-		// expanded, so still only "Expand All" (one button at a time)
+		// expand one group, leave its sibling group collapsed -> partially
+		// expanded, so both buttons offer their one-click action
 		cy.get('.tree-link[data-label="Parent Node"]').click();
 		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
-		assert_buttons(true, false);
+		assert_buttons(true, true);
 
 		// Expand All -> every node, including the untouched sibling group, opens -> only "Collapse All"
 		click_toolbar_button("Expand All");

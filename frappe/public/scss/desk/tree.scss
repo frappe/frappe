@@ -58,9 +58,14 @@
 		}
 	}
 
-	.tree-hover-card-row .value {
-		text-align: right;
-		font-variant-numeric: tabular-nums;
+	.tree-hover-card-row {
+		// a little breathing room between fields
+		padding-block: 3px;
+
+		.value {
+			text-align: right;
+			font-variant-numeric: tabular-nums;
+		}
 	}
 }
 

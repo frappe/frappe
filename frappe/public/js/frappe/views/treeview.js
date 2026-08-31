@@ -188,29 +188,32 @@ frappe.views.TreeView = class TreeView {
 			).appendTo(this.page.page_form);
 			// don't return the load promise from onclick — the button would
 			// show its busy spinner on every toggle
-			this.$expand_all_btn = $(
-				frappe.ui.button({
-					label: __("Expand All"),
-					icon: "chevrons-up-down",
-					onclick: () => {
-						me.tree.load_children(me.tree.root_node, true);
-					},
-				})
-			).appendTo($actions);
-			this.$collapse_all_btn = $(
-				frappe.ui.button({
-					label: __("Collapse All"),
-					icon: "chevrons-down-up",
-					onclick: () => {
-						me.tree.load_children(me.tree.root_node, false);
-					},
-				})
-			).appendTo($actions);
-
-			// stay hidden until the tree renders — the applicable one is
-			// shown by update_expand_collapse_buttons
-			this.$expand_all_btn.hide();
-			this.$collapse_all_btn.hide();
+			// icon-only; both stay in the layout permanently — the
+			// non-applicable one is disabled instead of hidden, so nothing
+			// ever shifts. The espresso tooltip sits on a wrapper: a disabled
+			// es-button has pointer-events:none, so hover falls through to
+			// the wrapper and the tooltip still explains the button.
+			const make_action = (icon, label, onclick) => {
+				const $btn = $(
+					frappe.ui.button({
+						icon,
+						disabled: true,
+						onclick,
+						attrs: { "aria-label": label },
+					})
+				);
+				const $wrapper = $('<span class="inline-flex"></span>')
+					.append($btn)
+					.appendTo($actions);
+				frappe.ui.tooltip($wrapper, { text: label });
+				return $btn;
+			};
+			this.$expand_all_btn = make_action("chevrons-up-down", __("Expand All"), () => {
+				me.tree.load_children(me.tree.root_node, true);
+			});
+			this.$collapse_all_btn = make_action("chevrons-down-up", __("Collapse All"), () => {
+				me.tree.load_children(me.tree.root_node, false);
+			});
 		}
 	}
 	set_title() {
@@ -364,6 +367,7 @@ frappe.views.TreeView = class TreeView {
 			root_value: use_value,
 			expandable: true,
 			use_row_actions: !this.opts.do_not_make_page,
+			row_style: this.opts.row_style,
 
 			args: this.args,
 			method: this.get_tree_nodes,
@@ -409,32 +413,20 @@ frappe.views.TreeView = class TreeView {
 			return false;
 		});
 	}
-	get_expandable_nodes() {
-		return Object.values(this.tree.nodes).filter(
-			(node) =>
-				node.expandable && !node.is_root && document.body.contains(node.$tree_link[0])
-		);
-	}
 	update_expand_collapse_buttons() {
 		if (!this.opts.show_expand_all || !this.tree) return;
 
-		if (!this.tree.root_node.expanded) {
-			// root collapsed hides every descendant, so their stale expanded
-			// flags (from before the root was closed) don't reflect what's
-			// actually visible; only offer to expand back out
-			this.$collapse_all_btn && this.$collapse_all_btn.hide();
-			this.$expand_all_btn && this.$expand_all_btn.show();
-			return;
-		}
-
-		let expandable_nodes = this.get_expandable_nodes();
-		let has_expandable_nodes = expandable_nodes.length > 0;
-		let all_expanded = has_expandable_nodes && expandable_nodes.every((node) => node.expanded);
-
-		// exactly one button at a time: Expand All until everything is open,
-		// then Collapse All
-		this.$collapse_all_btn && this.$collapse_all_btn.toggle(all_expanded);
-		this.$expand_all_btn && this.$expand_all_btn.toggle(has_expandable_nodes && !all_expanded);
+		// fully collapsed → Expand All; fully expanded → Collapse All;
+		// partially expanded → both. The inapplicable button disables
+		// instead of hiding so the layout never shifts.
+		const state = this.tree.get_expansion_state();
+		this.$expand_all_btn &&
+			this.$expand_all_btn.prop("disabled", !(state === "collapsed" || state === "partial"));
+		this.$collapse_all_btn &&
+			this.$collapse_all_btn.prop(
+				"disabled",
+				!(state === "expanded" || state === "partial")
+			);
 	}
 	reset_search() {
 		this.search_deep_loaded = false;
@@ -447,12 +439,10 @@ frappe.views.TreeView = class TreeView {
 		this.search_text = txt;
 		if (!this.tree) return;
 
-		const $wrapper = this.tree.wrapper;
 		this.$search_empty_state && this.$search_empty_state.remove();
 
 		if (!txt) {
-			$wrapper.removeClass("tree-searching");
-			$wrapper.find("li.tree-node").show();
+			this.tree.filter_nodes("");
 			return;
 		}
 
@@ -460,28 +450,7 @@ frappe.views.TreeView = class TreeView {
 			// a newer keystroke superseded this one while the deep load ran
 			if (this.search_text !== txt) return;
 
-			$wrapper.addClass("tree-searching");
-			const $nodes = $wrapper.find("li.tree-node");
-			$nodes.hide();
-
-			let matches = 0;
-			$nodes.each((i, li) => {
-				const $li = $(li);
-				const $link = $li.children(".tree-link");
-				// match the visible label AND the real name (data-label) — apps
-				// may display a cleaned label (e.g. account number as a badge)
-				const label =
-					($link.find(".tree-label").text() || "") +
-					" " +
-					($link.attr("data-label") || "");
-				if (label.toLowerCase().includes(txt)) {
-					matches++;
-					$li.show();
-					// reveal the path to the match
-					$li.parentsUntil($wrapper, "li.tree-node").show();
-					$li.parents("ul.tree-children").show();
-				}
-			});
+			const matches = this.tree.filter_nodes(txt);
 
 			if (matches === 0) {
 				this.$search_empty_state = $(
