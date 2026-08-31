@@ -148,6 +148,147 @@ class TestFormLoad(IntegrationTestCase):
 
 		contact.delete()
 
+	def test_get_attachments_filters_permlevel_restricted_top_level_field(self):
+		from frappe.desk.form.load import get_attachments
+
+		blog = frappe.get_doc(
+			{
+				"doctype": "Test Blog Post",
+				"blog_category": "_Test Blog Category 1",
+				"blog_intro": "Test Blog Intro",
+				"blogger": "_Test Blogger 1",
+				"content": "Test Blog Content",
+				"title": f"_Test Blog Post {frappe.utils.now()}",
+				"published": 0,
+			}
+		)
+		blog.insert()
+
+		unrestricted_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "unrestricted.png",
+				"content": b"unrestricted-bytes",
+				"attached_to_doctype": blog.doctype,
+				"attached_to_name": blog.name,
+				"attached_to_field": "content",
+			}
+		).insert()
+		restricted_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "restricted.png",
+				"content": b"restricted-bytes",
+				"attached_to_doctype": blog.doctype,
+				"attached_to_name": blog.name,
+				"attached_to_field": "published",
+			}
+		).insert()
+
+		user = frappe.get_doc("User", "test@example.com")
+		user_roles = frappe.get_roles()
+		user.remove_roles(*user_roles)
+		user.add_roles("Blogger")
+
+		blog_post_property_setter = make_property_setter("Test Blog Post", "published", "permlevel", 1, "Int")
+		reset("Test Blog Post")
+
+		try:
+			# Blogger only has permlevel-0 access: the restricted attachment must be hidden
+			frappe.set_user(user.name)
+			names = {f.file_name for f in get_attachments(blog.doctype, blog.name)}
+			self.assertIn("unrestricted.png", names)
+			self.assertNotIn("restricted.png", names)
+
+			# granting permlevel-1 read access makes the restricted attachment visible again
+			frappe.set_user("Administrator")
+			add("Test Blog Post", "Website Manager", 1)
+			update("Test Blog Post", "Website Manager", 1, "read", 1)
+			user.add_roles("Website Manager")
+
+			frappe.set_user(user.name)
+			names = {f.file_name for f in get_attachments(blog.doctype, blog.name)}
+			self.assertEqual(names, {"unrestricted.png", "restricted.png"})
+
+			# Administrator always bypasses permlevel restrictions
+			frappe.set_user("Administrator")
+			names = {f.file_name for f in get_attachments(blog.doctype, blog.name)}
+			self.assertEqual(names, {"unrestricted.png", "restricted.png"})
+		finally:
+			frappe.set_user("Administrator")
+			user.remove_roles("Blogger", "Website Manager")
+			user.add_roles(*user_roles)
+			unrestricted_file.delete()
+			restricted_file.delete()
+			blog.delete()
+			frappe.delete_doc(blog_post_property_setter.doctype, blog_post_property_setter.name)
+
+	def test_get_attachments_filters_permlevel_restricted_child_table_field(self):
+		from frappe.desk.form.load import get_attachments
+
+		contact = frappe.new_doc("Contact")
+		contact.first_name = "_Test Contact 1"
+		contact.append("phone_nos", {"phone": "123456"})
+		contact.insert()
+
+		unrestricted_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "unrestricted.png",
+				"content": b"unrestricted-bytes",
+				"attached_to_doctype": contact.doctype,
+				"attached_to_name": contact.name,
+				"attached_to_field": "first_name",
+			}
+		).insert()
+		restricted_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "restricted.png",
+				"content": b"restricted-bytes",
+				"attached_to_doctype": contact.doctype,
+				"attached_to_name": contact.name,
+				"attached_to_field": "phone",
+			}
+		).insert()
+
+		user = frappe.get_doc("User", "test@example.com")
+		user_roles = frappe.get_roles()
+		user.remove_roles(*user_roles)
+		user.add_roles("Accounts User")
+
+		make_property_setter("Contact Phone", "phone", "permlevel", 1, "Int")
+		reset("Contact Phone")
+
+		try:
+			# Accounts User only has permlevel-0 access: the restricted attachment must be hidden
+			frappe.set_user(user.name)
+			names = {f.file_name for f in get_attachments(contact.doctype, contact.name)}
+			self.assertIn("unrestricted.png", names)
+			self.assertNotIn("restricted.png", names)
+
+			# granting permlevel-1 read access makes the restricted attachment visible again
+			frappe.set_user("Administrator")
+			add("Contact", "Sales User", 1)
+			update("Contact", "Sales User", 1, "read", 1)
+			user.add_roles("Sales User")
+
+			frappe.set_user(user.name)
+			names = {f.file_name for f in get_attachments(contact.doctype, contact.name)}
+			self.assertEqual(names, {"unrestricted.png", "restricted.png"})
+
+			# Administrator always bypasses permlevel restrictions
+			frappe.set_user("Administrator")
+			names = {f.file_name for f in get_attachments(contact.doctype, contact.name)}
+			self.assertEqual(names, {"unrestricted.png", "restricted.png"})
+		finally:
+			frappe.set_user("Administrator")
+			user.remove_roles("Accounts User", "Sales User")
+			user.add_roles(*user_roles)
+			unrestricted_file.delete()
+			restricted_file.delete()
+			contact.delete()
+
 	def test_get_doc_info(self):
 		note = frappe.new_doc("Note")
 		note.content = "some content"
