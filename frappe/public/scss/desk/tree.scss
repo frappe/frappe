@@ -252,12 +252,8 @@
 			}
 		}
 
-		// an all-leaf sibling group has no chevrons to align with — drop the
-		// empty icon slots so labels start near the elbows, with a touch of
-		// breathing room. Groups that mix leaves and subgroups keep the
-		// slot, so their labels line up. (span.node-parent = a group's
-		// toggle, present from first render; class-based :has re-evaluates
-		// on DOM change only.)
+		// all-leaf levels drop the empty icon slots; mixed levels keep them
+		// so labels align (span.node-parent marks a group from first render)
 		&:not(:has(span.node-parent)) {
 			.tree-link > span:first-child {
 				display: none;
@@ -269,9 +265,8 @@
 		}
 	}
 
-	// hover actions sit right beside the label (Option E): Edit + ⋯,
-	// shortest travel from where the pointer already is; the amount at the
-	// row's end stays untouched
+	// hover actions sit beside the label — shortest pointer travel; the
+	// value column at the row's end stays untouched
 	.tree-actions {
 		display: none;
 		align-items: center;
@@ -285,8 +280,7 @@
 		display: inline-flex;
 	}
 
-	// no hover on touch devices — keep the actions visible (approved mobile
-	// design: the per-row controls are always shown there)
+	// no hover on touch devices — keep the actions always visible
 	@media (hover: none) {
 		.tree-actions {
 			display: inline-flex;

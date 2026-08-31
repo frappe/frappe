@@ -186,7 +186,7 @@ frappe.views.TreeView = class TreeView {
 			let $actions = $(
 				'<div class="tree-toolbar-actions ms-auto flex items-center gap-1 py-1"></div>'
 			).appendTo(this.page.page_form);
-			this.$expand_collapse_dropdown = frappe.ui.dropdown({
+			frappe.ui.dropdown({
 				button: { label: __("Expand/Collapse"), icon_right: "chevron-down" },
 				align: "end",
 				options: () => {
@@ -197,7 +197,7 @@ frappe.views.TreeView = class TreeView {
 							icon: "copy-plus",
 							disabled: !(state === "collapsed" || state === "partial"),
 							onclick: () => {
-								me.tree.load_children(me.tree.root_node, true);
+								this.tree.load_children(this.tree.root_node, true);
 							},
 						},
 						{
@@ -205,7 +205,7 @@ frappe.views.TreeView = class TreeView {
 							icon: "copy-minus",
 							disabled: !(state === "expanded" || state === "partial"),
 							onclick: () => {
-								me.tree.load_children(me.tree.root_node, false);
+								this.tree.load_children(this.tree.root_node, false);
 							},
 						},
 					];
@@ -232,7 +232,7 @@ frappe.views.TreeView = class TreeView {
 				meta: this.opts.meta || frappe.get_meta(this.doctype),
 				settings: frappe.listview_settings[this.doctype] || {},
 			},
-			icon_map: frappe.views.get_view_icon_map(),
+			icon_map: frappe.views.view_icon_map,
 			label_map: frappe.views.get_view_label_map(),
 		});
 	}
@@ -339,9 +339,7 @@ frappe.views.TreeView = class TreeView {
 		this.tree && this.tree.wrapper.show();
 	}
 	make_tree() {
-		// a rebuild (filter change, Include Disabled, reload) must not cost
-		// the user their expansion — remember what was open and restore it
-		// as the nodes reappear (see restore_expanded_nodes)
+		// remember open nodes across rebuilds (see restore_expanded_nodes)
 		this._expanded_labels = this.tree
 			? Object.values(this.tree.nodes)
 					.filter((node) => node.expanded && !node.is_root)
@@ -579,10 +577,8 @@ frappe.views.TreeView = class TreeView {
 	move_node(node) {
 		var me = this;
 
-		// a group must never be offered its own subtree as a target (moving
-		// under a descendant is a cycle) — collect the subtree up front and
-		// exclude it from the picker; the server's validate_loop remains the
-		// backstop for anything this misses
+		// exclude the node's own subtree from the picker (a cycle otherwise);
+		// the server's validate_loop stays the backstop
 		let excluded = [node.label];
 		const fetch_descendants = !node.expandable
 			? Promise.resolve()
@@ -618,15 +614,12 @@ frappe.views.TreeView = class TreeView {
 					label: __("New Parent"),
 					options: me.doctype,
 					reqd: 1,
-					// closing the dialog with half-typed text must not toast
-					// "did not match any results" — a submitted value is still
-					// validated server-side
+					// half-typed text on close must not toast; submitted
+					// values are validated server-side
 					ignore_link_validation: 1,
 					get_query: () => {
-						// never the node or its own subtree; only groups
-						// qualify where the doctype has that concept (trees
-						// like Employee have none — any node can be a parent);
-						// stay within the tree currently shown
+						// only groups (where the doctype has them), never the
+						// node or its subtree
 						const filters = { name: ["not in", excluded] };
 						if (frappe.meta.has_field(me.doctype, "is_group")) {
 							filters.is_group = 1;
@@ -750,8 +743,7 @@ frappe.views.TreeView = class TreeView {
 		];
 
 		if (this.opts.fields) {
-			// work on a copy — the mandatory-field append below must not
-			// accumulate into the app's settings object across dialog opens
+			// copy: the append below must not accumulate into app settings
 			this.fields = this.opts.fields.slice();
 		}
 

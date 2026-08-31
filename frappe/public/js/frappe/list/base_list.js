@@ -210,7 +210,7 @@ frappe.views.BaseList = class BaseList {
 				doctype: this.doctype,
 				page: this.page,
 				list_view: this,
-				icon_map: frappe.views.get_view_icon_map(),
+				icon_map: frappe.views.view_icon_map,
 				label_map: frappe.views.get_view_label_map(),
 			});
 		}
@@ -1425,7 +1425,7 @@ class FilterArea {
 
 // view identity shared by every switcher on a doctype page header — the
 // list-family views and the tree view all build their switcher from these
-frappe.views.get_view_icon_map = () => ({
+frappe.views.view_icon_map = {
 	Image: "image",
 	List: "list",
 	Report: "sheet",
@@ -1435,7 +1435,7 @@ frappe.views.get_view_icon_map = () => ({
 	Dashboard: "layout-dashboard",
 	Map: "map",
 	Tree: "list-tree",
-});
+};
 
 frappe.views.get_view_label_map = () => ({
 	List: __("List View"),

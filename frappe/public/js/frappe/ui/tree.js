@@ -229,7 +229,6 @@ frappe.ui.Tree = class {
 	}
 
 	build_node_hover_card(node) {
-		// a previous fetch found nothing worth showing — stay silent
 		if (node.preview_empty) return null;
 
 		const $card = $(`
@@ -267,8 +266,7 @@ frappe.ui.Tree = class {
 					const has_value_column =
 						node.parent && node.parent.children(".balance-area").length;
 
-					// silence beats an empty box: no avatar, no fields, no
-					// value column means no card
+					// nothing worth showing — no card
 					if (
 						!data ||
 						(!meta?.image_field && !extra_fields.length && !has_value_column)

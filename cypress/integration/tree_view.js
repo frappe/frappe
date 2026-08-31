@@ -33,20 +33,19 @@ context("Tree View", () => {
 		// both actions live in one dropdown; the menu resolves fresh on every
 		// open, disabling whichever action doesn't apply right now. Rows are
 		// real <button disabled> elements per the es-menu contract.
-		const open_menu = () => cy.get(".tree-toolbar-actions .es-button").click();
-		const close_menu = () => cy.get(".tree-toolbar-actions .es-button").click();
+		const toggle_menu = () => cy.get(".tree-toolbar-actions .es-button").first().click();
 		const assert_buttons = (expand_enabled, collapse_enabled) => {
-			open_menu();
+			toggle_menu();
 			cy.contains('[role="menu"] .es-menu__item', "Expand All").should(
 				expand_enabled ? "not.be.disabled" : "be.disabled"
 			);
 			cy.contains('[role="menu"] .es-menu__item', "Collapse All").should(
 				collapse_enabled ? "not.be.disabled" : "be.disabled"
 			);
-			close_menu();
+			toggle_menu();
 		};
 		const click_toolbar_button = (label) => {
-			open_menu();
+			toggle_menu();
 			cy.contains('[role="menu"] .es-menu__item', label).click();
 		};
 
