@@ -250,3 +250,23 @@ execute:from frappe.desk.doctype.notification_type.notification_type import inst
 frappe.patches.v16_0.backfill_notification_log_title_description
 frappe.patches.v16_0.backfill_notification_email_type_preferences
 frappe.patches.v16_0.backfill_notification_log_app
+<<<<<<< HEAD
+=======
+frappe.patches.v16_0.backfill_list_layout_route_signature
+execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation table on existing sites
+frappe.desk.doctype.workspace.patches.set_standard_flag
+frappe.patches.v16_0.backfill_workspace_module
+frappe.patches.v16_0.convert_sidebars
+frappe.patches.v16_0.notify_apps_to_convert_sidebar_fixtures
+frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
+frappe.patches.v16_0.migrate_classic_print_formats
+frappe.patches.v16_0.rename_lucide_workspace_icons
+frappe.patches.v16_0.keep_existing_sites_on_desktop_icons
+frappe.patches.v16_0.repair_converted_print_formats
+frappe.patches.v16_0.repair_converted_print_formats #2026-08-02 section-spacing
+execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
+frappe.patches.v16_0.seed_sms_settings_allowed_roles
+
+
+[post_fixture_sync]
+>>>>>>> a113d0e (fix: add patch)
