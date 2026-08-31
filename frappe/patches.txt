@@ -274,6 +274,7 @@ frappe.patches.v16_0.keep_existing_sites_on_desktop_icons
 frappe.patches.v16_0.repair_converted_print_formats
 frappe.patches.v16_0.repair_converted_print_formats #2026-08-02 section-spacing
 execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
+frappe.patches.v16_0.seed_sms_settings_allowed_roles
 
 
 [post_fixture_sync]
