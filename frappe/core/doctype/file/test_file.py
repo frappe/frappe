@@ -424,6 +424,26 @@ class TestFile(FrappeTestCase):
 		d.save()
 		self.assertEqual(d.folder, "Home")
 
+	def test_folder_file_url_is_always_empty(self):
+		folder = self.get_folder("Test Folder URL", "Home")
+		self.assertFalse(folder.file_url)
+
+		folder.file_url = "/private/files/somewhere.txt"
+		self.assertRaises(ValidationError, folder.save)
+
+		self.assertRaises(
+			ValidationError,
+			frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "another_folder",
+					"is_folder": 1,
+					"folder": "Home",
+					"file_url": "/private/files/somewhere_else.txt",
+				}
+			).insert,
+		)
+
 	def test_on_delete(self):
 		file = frappe.get_doc("File", {"file_name": "file_copy.txt"})
 		file.delete()
@@ -1067,7 +1087,57 @@ class TestFileUtils(FrappeTestCase):
 		self.assertTrue(folder.is_folder)
 
 
+<<<<<<< HEAD
 class TestFileOptimization(FrappeTestCase):
+=======
+		from PIL import Image as PILImage
+
+		buf = BytesIO()
+		PILImage.new("RGB", (2, 2)).save(buf, format="JPEG")
+		image_bytes = buf.getvalue()
+
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://8.8.4.4/final.jpg"})
+		final_response = MagicMock(is_redirect=False, content=image_bytes)
+		final_response.raise_for_status.return_value = None
+
+		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
+
+		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(extn, "jpg")
+
+	def test_resolved_file_path_stays_within_files_directory(self):
+		from frappe.utils.file_manager import get_file_path
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "within_bounds.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			self.assertTrue(get_file_path(normal.name).endswith("within_bounds.txt"))
+
+			normal.db_set("file_url", "/private/files/../../../../outside_bounds.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+
+	def test_get_web_image_rejects_redirect_to_restricted_address(self):
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
+
+		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+			self.assertRaisesRegex(
+				ValidationError,
+				"restricted address",
+				get_web_image,
+				"http://8.8.8.8/initial.jpg",
+			)
+
+		mock_get.assert_called_once()
+
+
+class TestFileOptimization(IntegrationTestCase):
+>>>>>>> 2f85b7a (test(file): add regression test for the validations)
 	def test_optimize_file(self):
 		with make_test_image_file() as test_file:
 			original_size = test_file.file_size
