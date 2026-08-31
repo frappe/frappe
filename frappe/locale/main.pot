@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-08-30 09:32+0000\n"
-"PO-Revision-Date: 2026-08-30 09:32+0000\n"
+"POT-Creation-Date: 2026-08-31 11:05+0000\n"
+"PO-Revision-Date: 2026-08-31 11:05+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -2354,8 +2354,10 @@ msgstr ""
 msgid "Allowed Public Client Origins"
 msgstr ""
 
+#. Label of the allowed_roles (Table) field in DocType 'SMS Settings'
 #. Label of the allowed_roles (Table MultiSelect) field in DocType 'OAuth
 #. Client'
+#: frappe/core/doctype/sms_settings/sms_settings.json
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Allowed Roles"
 msgstr ""
@@ -6109,7 +6111,7 @@ msgstr ""
 msgid "Communication Type"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:32
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:64
 msgid "Communication secret not set"
 msgstr ""
 
@@ -12151,7 +12153,7 @@ msgstr ""
 msgid "Failed to render template: {0}"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:105
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:144
 msgid "Failed to request login to Frappe Cloud"
 msgstr ""
 
@@ -12179,7 +12181,7 @@ msgstr ""
 msgid "Failed to update global settings"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:86
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:122
 msgid "Failed while calling API {0}"
 msgstr ""
 
@@ -16181,7 +16183,7 @@ msgstr ""
 msgid "Invalid CSV Format"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:121
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:160
 msgid "Invalid Code. Please try again."
 msgstr ""
 
@@ -18874,7 +18876,7 @@ msgstr ""
 msgid "Manage 3rd party apps"
 msgstr ""
 
-#: frappe/public/js/billing.bundle.js:79
+#: frappe/public/js/billing.bundle.js:81
 msgid "Manage Billing"
 msgstr ""
 
@@ -22335,6 +22337,11 @@ msgstr ""
 msgid "Only to you"
 msgstr ""
 
+#. Description of the 'Allowed Roles' (Table) field in DocType 'SMS Settings'
+#: frappe/core/doctype/sms_settings/sms_settings.json
+msgid "Only users with one of these roles can send SMS. Leave empty to allow only System Manager."
+msgstr ""
+
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:110
 msgid "Only {0} emailed reports are allowed per user."
 msgstr ""
@@ -23777,7 +23784,7 @@ msgstr ""
 msgid "Please Set Chart"
 msgstr ""
 
-#: frappe/core/doctype/sms_settings/sms_settings.py:97
+#: frappe/core/doctype/sms_settings/sms_settings.py:114
 msgid "Please Update SMS Settings"
 msgstr ""
 
@@ -23965,7 +23972,7 @@ msgctxt "Email Account"
 msgid "Please enter the password for: <b>{0}</b>"
 msgstr ""
 
-#: frappe/core/doctype/sms_settings/sms_settings.py:45
+#: frappe/core/doctype/sms_settings/sms_settings.py:47
 msgid "Please enter valid mobile nos"
 msgstr ""
 
@@ -27584,7 +27591,7 @@ msgstr ""
 msgid "SMS Settings"
 msgstr ""
 
-#: frappe/core/doctype/sms_settings/sms_settings.py:123
+#: frappe/core/doctype/sms_settings/sms_settings.py:140
 msgid "SMS sent successfully"
 msgstr ""
 
@@ -37146,7 +37153,7 @@ msgstr ""
 msgid "You are impersonating {0}."
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:28
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:60
 msgid "You are not allowed to access this resource"
 msgstr ""
 
@@ -37264,6 +37271,10 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:121
 msgid "You are not permitted to change Print Settings"
+msgstr ""
+
+#: frappe/core/doctype/sms_settings/sms_settings.py:82
+msgid "You are not permitted to send SMS"
 msgstr ""
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:129
