@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-08-30 09:32+0000\n"
-"PO-Revision-Date: 2026-08-30 09:32+0000\n"
+"POT-Creation-Date: 2026-08-31 11:04+0000\n"
+"PO-Revision-Date: 2026-08-31 11:04+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -9204,7 +9204,7 @@ msgstr ""
 #. Label of the email_id (Data) field in DocType 'Contact Email'
 #. Label of the email_id (Data) field in DocType 'User Email'
 #. Label of the email_id (Data) field in DocType 'Email Rule'
-#: frappe/contacts/doctype/contact/contact.py:130
+#: frappe/contacts/doctype/contact/contact.py:181
 #: frappe/contacts/doctype/contact_email/contact_email.json
 #: frappe/core/doctype/user_email/user_email.json
 #: frappe/email/doctype/email_rule/email_rule.json
@@ -19403,8 +19403,8 @@ msgstr ""
 msgid "Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
 msgstr ""
 
-#: frappe/contacts/doctype/contact/contact.py:130
-#: frappe/contacts/doctype/contact/contact.py:157
+#: frappe/contacts/doctype/contact/contact.py:181
+#: frappe/contacts/doctype/contact/contact.py:208
 msgid "Only one {0} can be set as primary."
 msgstr ""
 
@@ -20968,7 +20968,7 @@ msgstr ""
 msgid "Please select {0}"
 msgstr ""
 
-#: frappe/contacts/doctype/contact/contact.py:297
+#: frappe/contacts/doctype/contact/contact.py:348
 msgid "Please set Email Address"
 msgstr ""
 
@@ -24851,7 +24851,7 @@ msgstr ""
 msgid "Select Google Calendar to which event should be synced."
 msgstr ""
 
-#: frappe/contacts/doctype/contact/contact.py:76
+#: frappe/contacts/doctype/contact/contact.py:78
 msgid "Select Google Contacts to which contact should be synced."
 msgstr ""
 
@@ -32846,7 +32846,7 @@ msgstr ""
 msgid "cyan"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/duration.js:219
+#: frappe/public/js/frappe/form/controls/duration.js:248
 #: frappe/public/js/frappe/utils/utils.js:1198
 msgctxt "Days (Field: Duration)"
 msgid "d"
@@ -33023,7 +33023,7 @@ msgstr ""
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/duration.js:220
+#: frappe/public/js/frappe/form/controls/duration.js:249
 #: frappe/public/js/frappe/utils/utils.js:1202
 msgctxt "Hours (Field: Duration)"
 msgid "h"
@@ -33093,7 +33093,7 @@ msgstr ""
 msgid "long"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/duration.js:221
+#: frappe/public/js/frappe/form/controls/duration.js:250
 #: frappe/public/js/frappe/utils/utils.js:1206
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
@@ -33277,7 +33277,7 @@ msgstr ""
 msgid "rows"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/duration.js:222
+#: frappe/public/js/frappe/form/controls/duration.js:251
 #: frappe/public/js/frappe/utils/utils.js:1210
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
