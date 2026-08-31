@@ -52,6 +52,11 @@ class PathResolver:
 				frappe.flags.redirect_location = e.new_url
 				return frappe.flags.redirect_location, RedirectPage(e.new_url, e.code)
 
+		# `_`-prefixed website paths (e.g. the framework's `www/_test` fixtures) are
+		# private test pages — never route them in production, only in developer mode.
+		if not frappe.conf.developer_mode and any(part.startswith("_") for part in endpoint.split("/")):
+			return endpoint, NotFoundPage(endpoint)
+
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
 			*custom_renderers,
