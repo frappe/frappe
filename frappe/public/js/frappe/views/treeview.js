@@ -609,27 +609,38 @@ frappe.views.TreeView = class TreeView {
 	move_node(node) {
 		var me = this;
 
-		// exclude the node's own subtree from the picker (a cycle otherwise);
-		// the server's validate_loop stays the backstop
-		let excluded = [node.label];
-		const fetch_descendants = !node.expandable
-			? Promise.resolve()
-			: frappe.db.get_value(me.doctype, node.label, ["lft", "rgt"]).then((r) => {
-					const { lft, rgt } = r.message || {};
-					if (lft == null) return;
-					return frappe.db
-						.get_list(me.doctype, {
-							filters: { lft: [">", lft], rgt: ["<", rgt] },
-							limit: 0,
-						})
-						.then((rows) => {
-							excluded = excluded.concat(rows.map((row) => row.name));
-						});
-			  });
+		// pull the whole server-filtered tree (same get_children + filters the
+		// tree uses) so valid parents in unexpanded branches are offered too
+		me.tree.get_all_nodes(me.tree.root_value, true, me.tree.label).then((groups) => {
+			const children_of = {};
+			const all = [];
+			(groups || []).forEach((group) => {
+				(group.data || []).forEach((d) => {
+					all.push(d.value);
+					children_of[group.parent] = children_of[group.parent] || [];
+					children_of[group.parent].push(d.value);
+				});
+			});
 
-		fetch_descendants.then(() => me.show_move_dialog(node, excluded));
+			// exclude the node's own subtree (cycle; validate_loop is the backstop)
+			const subtree = new Set([node.label]);
+			const stack = [node.label];
+			while (stack.length) {
+				(children_of[stack.pop()] || []).forEach((name) => {
+					if (!subtree.has(name)) {
+						subtree.add(name);
+						stack.push(name);
+					}
+				});
+			}
+
+			me.show_move_dialog(
+				node,
+				all.filter((name) => !subtree.has(name))
+			);
+		});
 	}
-	show_move_dialog(node, excluded) {
+	show_move_dialog(node, candidates) {
 		var me = this;
 		// mirror the server (frappe.desk.treeview): nested sets may use a
 		// custom parent field (e.g. Employee's reports_to)
@@ -650,12 +661,7 @@ frappe.views.TreeView = class TreeView {
 					// values are validated server-side
 					ignore_link_validation: 1,
 					get_query: () => {
-						// candidates = nodes the tree rendered (already
-						// server-filtered), minus the node's own subtree
-						const names = Object.values(me.tree.nodes)
-							.filter((n) => !n.is_root && !excluded.includes(n.label))
-							.map((n) => n.label);
-						const filters = { name: ["in", names] };
+						const filters = { name: ["in", candidates] };
 						if (frappe.meta.has_field(me.doctype, "is_group")) {
 							filters.is_group = 1;
 						}
