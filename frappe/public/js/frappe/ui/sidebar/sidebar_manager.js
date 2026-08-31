@@ -55,6 +55,9 @@ const SIDEBAR_LAYERS = {
 		reset: "frappe.desk.doctype.sidebar.sidebar.reset_app_sidebar",
 		condition: () => !!frappe.boot.developer_mode,
 		saved: () => __("Sidebar saved to its app"),
+		// This layer writes the `Sidebar` document itself, and a module may own more than one,
+		// so its calls are addressed by shell as well as by module. See `layer_args`.
+		takes_shell: true,
 	},
 };
 
@@ -251,8 +254,22 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// unarranged layer answers with the layer below it as that layer renders, so opening this and
 	// saving unchanged writes back what was already there rather than un-hiding what a lower
 	// layer hid.
+	// How a call on the layer being edited is addressed. Both names are already held by
+	// `prepare`: a `Custom Sidebar` is anchored to a module, so the two layers above take the
+	// module alone, and there is one layer per module however many sidebars it owns. The app
+	// layer writes the sidebar document, and the module does not say which of a module's
+	// sidebars that is, so it is told the one on screen. Without it the server takes whichever
+	// comes first by name, and the editor arranges, saves over and resets a sidebar nobody was
+	// looking at.
+	layer_args() {
+		const args = { module: this.module };
+		if (this.layer_config.takes_shell) args.shell = this.shell;
+
+		return args;
+	}
+
 	async read() {
-		const items = await frappe.xcall(this.layer_config.read, { module: this.module });
+		const items = await frappe.xcall(this.layer_config.read, this.layer_args());
 
 		this.entries = new Map(items.map((item) => [item.key, item]));
 		// The layer's own order, with hidden entries kept in place. This read returns every
@@ -719,7 +736,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	save_args() {
 		const rows = this.arranged_rows((key, hidden) => this.stored_row(key, hidden));
 
-		return { module: this.module, items: JSON.stringify(rows) };
+		return { ...this.layer_args(), items: JSON.stringify(rows) };
 	}
 
 	// One row as it goes back: the entry as it came, plus where the arrangement leaves it.
@@ -769,7 +786,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		const copy = this.copy();
 
 		frappe.confirm(copy.reset_confirm, async () => {
-			this.apply(await frappe.xcall(this.layer_config.reset, { module: this.module }));
+			this.apply(await frappe.xcall(this.layer_config.reset, this.layer_args()));
 			this.dialog.hide();
 			frappe.show_alert({ message: copy.reset_done, indicator: "green" });
 		});

@@ -522,7 +522,7 @@ def get_sidebar(module: str) -> "Sidebar | None":
 	return frappe.get_doc("Sidebar", name) if name else None
 
 
-def get_module_shell(module: str) -> "Sidebar | None":
+def get_module_shell(module: str, shell: str | None = None) -> "Sidebar | None":
 	"""Return the stored sidebar an action on `module` writes to, or `None` when there is none.
 
 	`get_sidebar` answers the naming rule alone, and a module whose sidebar was renamed has no
@@ -530,20 +530,25 @@ def get_module_shell(module: str) -> "Sidebar | None":
 	arranges, so an action that writes an arrangement, or undoes one, has to reach the same
 	document rather than work against a name nothing holds.
 
-	The order is `get_module_base`'s, and deliberately the same one: the shell named after the
-	module when there is one, and otherwise the first by name. A module owning two renamed shells
-	has no single answer, and `get_module_base` picks one anyway so the editor has something to
-	show; because this picks the same one, what a save writes and what a reset deletes is the
-	document that was on screen. Answering differently here is what would reach a document nobody
-	was looking at.
+	`shell` is what the desk had on screen, and it is the answer whenever it names a sidebar
+	carrying this module. A module may own more than one, and nothing about the module says which
+	of them the person was looking at, so without it a save writes and a reset deletes whichever
+	comes first by name. It is treated as a hint rather than trusted: the module is still the
+	authority, and a shell that does not belong to it, such as one a stale client names after a
+	rename, falls through to the rule below instead of reaching another module's document.
+
+	The fallback order is `get_module_base`'s, and deliberately the same one: the shell named
+	after the module when there is one, and otherwise the first by name. That is what an older
+	client gets, and what any caller holding only a module gets.
 
 	This asks the table instead of going through `get_module_base`, which computes a base from
 	the module's contents to answer, because the answer here is only ever a document that already
 	exists.
 	"""
-	name = frappe.db.get_value("Sidebar", {"name": module, "module": module}) or frappe.db.get_value(
-		"Sidebar", {"module": module}, order_by="name asc"
-	)
+	name = shell and frappe.db.get_value("Sidebar", {"name": shell, "module": module})
+	name = name or frappe.db.get_value("Sidebar", {"name": module, "module": module})
+	name = name or frappe.db.get_value("Sidebar", {"module": module}, order_by="name asc")
+
 	return frappe.get_doc("Sidebar", name) if name else None
 
 
@@ -625,8 +630,13 @@ ARRANGED_ITEM_FIELDS = (
 
 
 @frappe.whitelist()
-def get_app_sidebar_layer(module: str) -> list[dict]:
+def get_app_sidebar_layer(module: str, shell: str | None = None) -> list[dict]:
 	"""Return the sidebar `module`'s app ships, as the editor arranges it.
+
+	`shell` is the sidebar the desk had on screen when the editor was opened, and the three calls
+	here take it for the reason `get_module_shell` gives: a module may own more than one, so the
+	module alone does not say which. The two layers in `custom_sidebar.py` take no shell, because
+	a `Custom Sidebar` is anchored to a module and there is one layer per module either way.
 
 	This is a third answer to "what does this module's sidebar look like", beside the two in
 	`custom_sidebar.py`, and it is the bottom one: the base, with no layer over it. A module no
@@ -645,7 +655,7 @@ def get_app_sidebar_layer(module: str) -> list[dict]:
 	check_developer_mode()
 	check_module(module)
 
-	base = get_module_base(module)
+	base = get_module_base(module, shell)
 	# `is_item_allowed` is a method on `DeskViews`, so the filter needs a context object even
 	# when it is not going to check anything with it: one throwaway `Workspace`, the same as
 	# `layer_arrangement` builds.
@@ -658,7 +668,7 @@ def get_app_sidebar_layer(module: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def save_app_sidebar(module: str, items: list | str) -> dict:
+def save_app_sidebar(module: str, items: list | str, shell: str | None = None) -> dict:
 	"""Store the arrangement on screen as the sidebar `module`'s app ships, and export it.
 
 	`items` is the whole ordered arrangement rather than a delta, the same as the two saves
@@ -679,7 +689,7 @@ def save_app_sidebar(module: str, items: list | str) -> dict:
 	if isinstance(items, str):
 		items = json.loads(items)
 
-	doc = app_document(module)
+	doc = app_document(module, shell)
 	doc.set("items", [])
 	for row in items:
 		doc.append("items", app_item(row))
@@ -692,7 +702,7 @@ def save_app_sidebar(module: str, items: list | str) -> dict:
 
 
 @frappe.whitelist()
-def reset_app_sidebar(module: str) -> dict:
+def reset_app_sidebar(module: str, shell: str | None = None) -> dict:
 	"""Drop the sidebar `module`'s app ships, so the module goes back to its computed one.
 
 	The two resets above drop a layer and let the one below show through. This is the bottom
@@ -703,32 +713,37 @@ def reset_app_sidebar(module: str) -> dict:
 	standard row with no file is an orphan and a file with no row comes back on the next migrate.
 	It is named the shell rather than the module, since it deletes what it is given.
 
-	Which shell that is has one answer, `get_module_shell`, shared with the read and the save.
-	The three have to agree: this drops what the person on screen arranged, so resolving it any
-	other way here would delete a document they were not looking at. A module owning nothing to
-	drop, which is the ordinary state of one whose base is computed, is left alone.
+	Which shell that is has one answer, `get_module_shell`, shared with the read and the save,
+	and all three are told which one was on screen. The three have to agree: this drops what the
+	person arranged, so resolving it any other way here would delete a document they were not
+	looking at. A module owning nothing to drop, which is the ordinary state of one whose base is
+	computed, is left alone.
 	"""
 	from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_module, module_payload
 
 	check_developer_mode()
 	check_module(module)
 
-	shell = get_module_shell(module)
-	if shell:
-		unmark_as_standard(shell.name)
+	document = get_module_shell(module, shell)
+	if document:
+		unmark_as_standard(document.name)
 
 	return module_payload()
 
 
-def app_document(module: str) -> "Sidebar":
+def app_document(module: str, shell: str | None = None) -> "Sidebar":
 	"""Return the document the app layer writes to, materializing it if there is none.
 
 	It addresses the shell the read addressed rather than asking the naming rule, so a module
 	whose sidebar has been renamed is arranged, saved and reset in the same place.
 	`get_sidebar` answers `None` for that module, and `materialize_base` would then build a
 	second sidebar under it instead of writing the one the editor was showing.
+
+	Materializing happens only when the module has no document at all, and a module with none has
+	one shell, the computed one named after it. So there is no shell to carry into
+	`materialize_base`.
 	"""
-	return get_module_shell(module) or materialize_base(module)
+	return get_module_shell(module, shell) or materialize_base(module)
 
 
 def app_item(row: dict) -> dict:
@@ -1566,13 +1581,17 @@ def module_of_shell(shell: str | None) -> str | None:
 	return frappe.db.get_value("Sidebar", shell, "module", cache=True) or None
 
 
-def get_module_base(module: str) -> frappe._dict:
-	"""Return the base a `Custom Sidebar` layer applies to: the module's own shell.
+def get_module_base(module: str, shell: str | None = None) -> frappe._dict:
+	"""Return the base a layer applies to: the shell named, or the module's own.
 
-	A layer is anchored to a module, not a shell, so the editor that reads and writes one needs
-	a single base however many shells the module owns. The naming rule picks the shell named
-	after the module. If every shell was renamed, the first in order answers, so the editor gets
-	a base instead of a `KeyError`.
+	A `Custom Sidebar` layer is anchored to a module, not a shell, so the editor that reads and
+	writes one needs a single base however many shells the module owns, and those callers name no
+	shell. The naming rule picks the shell named after the module. If every shell was renamed,
+	the first in order answers, so the editor gets a base instead of a `KeyError`.
+
+	The app layer does hold a shell, since it writes the `Sidebar` document itself rather than a
+	layer over it, and naming one here is how its read stays on the sidebar the desk was showing.
+	Only shells under `module` are looked at, so naming another module's shell selects nothing.
 
 	This falls back where `get_sidebar` returns `None`, on purpose. `get_sidebar` answers which
 	sidebar is the module's, and a module whose sidebars are all renamed has no answer. This
@@ -1584,7 +1603,7 @@ def get_module_base(module: str) -> frappe._dict:
 	this function.
 	"""
 	bases = get_sidebar_bases([module])
-	return bases.get(module) or next(iter(bases.values()))
+	return bases.get(shell) or bases.get(module) or next(iter(bases.values()))
 
 
 def sidebar_for_module(payload: dict, module: str) -> dict | None:

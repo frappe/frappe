@@ -14,6 +14,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	filter_sidebar_items,
 	get_app_sidebar_layer,
 	get_computed_base,
+	get_module_shell,
 	get_sidebar,
 	item_key,
 	mark_as_standard,
@@ -1905,6 +1906,55 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			self.assertFalse(frappe.db.exists("Sidebar", renamed))
 			self.assertFalse(os.path.exists(path))
 			self.assertTrue(self.rendered(), "the module falls back to its computed base")
+
+	def test_the_editor_stays_on_the_sidebar_that_was_on_screen(self):
+		"""A module may own more than one sidebar, and the module alone does not say which of them
+		the person had open, so all three calls carry the shell.
+
+		Without it they take whichever sidebar comes first by name. They agree with each other, so
+		nothing looks broken: the editor reads that one, the save writes it and the reset deletes
+		it. They agree on a document nobody was looking at, though, so the rows on screen are not
+		the sidebar the desk is drawing, and the reset takes away the wrong one.
+
+		"""
+		import os
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			deals = make_sidebar(MODULE, title="Test App Layer Deals")
+			leads = make_sidebar(MODULE, title="Test App Layer Leads")
+			for doc, label in ((deals, "Deals Home"), (leads, "Leads Home")):
+				doc.items[0].label = label
+				doc.save(ignore_permissions=True)
+
+			self.assertEqual(
+				get_module_shell(MODULE).name, deals.name, "sanity: the module alone lands elsewhere"
+			)
+
+			rows = get_app_sidebar_layer(MODULE, shell=leads.name)
+			self.assertEqual([row["label"] for row in rows], ["Leads Home"])
+
+			save_app_sidebar(MODULE, rows, shell=leads.name)
+			self.assertTrue(frappe.db.get_value("Sidebar", leads.name, "standard"))
+			self.assertFalse(
+				frappe.db.get_value("Sidebar", deals.name, "standard"), "the other one is untouched"
+			)
+
+			path = frappe.get_doc("Sidebar", leads.name).exported_file_path()
+			reset_app_sidebar(MODULE, shell=leads.name)
+
+			self.assertFalse(frappe.db.exists("Sidebar", leads.name))
+			self.assertFalse(os.path.exists(path))
+			self.assertTrue(frappe.db.exists("Sidebar", deals.name), "the other one survives")
+
+	def test_a_shell_under_another_module_is_ignored(self):
+		"""The shell says which of a module's sidebars, and the module still says which module. A
+		client naming one that belongs elsewhere, such as a tab left open across a rename, falls
+		back to the naming rule instead of reaching into another module's document.
+		"""
+		with developer_mode():
+			own = make_sidebar(MODULE)
+
+			self.assertEqual(get_module_shell(MODULE, "Build").name, own.name)
 
 	def test_none_of_it_works_without_developer_mode(self):
 		"""`standard` means a file inside an app, and only a developer's site writes those. The
