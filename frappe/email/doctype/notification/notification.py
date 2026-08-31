@@ -8,7 +8,7 @@ from collections import namedtuple
 import frappe
 from frappe import _
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
+from frappe.core.doctype.sms_settings.sms_settings import _send_sms as send_via_sms_gateway
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
@@ -364,9 +364,17 @@ def get_context(context):
 		)
 
 	def send_sms(self, doc, context):
+<<<<<<< HEAD
 		send_sms(
 			receiver_list=self.get_receiver_list(doc, context),
 			msg=frappe.render_template(self.message, context),
+=======
+		send_via_sms_gateway(
+			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
+			msg=frappe.utils.strip_html_tags(
+				frappe.render_template(self.message, context, restrict_globals=True)
+			),
+>>>>>>> 3c311c4 (fix(sms_settings): add roles table to sms settings)
 		)
 
 	def get_list_of_recipients(self, doc, context):
