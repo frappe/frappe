@@ -24,6 +24,7 @@ from flow.events import AssistantMessage, ReasoningEffort, parse_event
 from flow.model.catalog import model_supports_images
 from flow.model.discovery import context_window_for
 from flow.path_policy import absolute_path, canonical_path, is_path_allowed
+from flow.server.policy import ServerPolicy, gate
 from flow.server.utils import sse
 from flow.server.utils.workspace import read_text_file
 from flow.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES
@@ -84,7 +85,10 @@ class AttachmentCleanupRequest(BaseModel):
 	attachments: list[str] = Field(min_length=1, max_length=MAX_ATTACHMENTS_PER_MESSAGE * 2)
 
 
-def create_sessions_router(store: SessionStore, *, system_append: str | None = None) -> APIRouter:
+def create_sessions_router(
+	store: SessionStore, *, system_append: str | None = None, policy: ServerPolicy | None = None
+) -> APIRouter:
+	policy = policy or ServerPolicy()
 	router = APIRouter()
 
 	def _get(sid: str) -> Session:
@@ -119,7 +123,7 @@ def create_sessions_router(store: SessionStore, *, system_append: str | None = N
 			"diagnostics": [{"message": diagnostic.message} for diagnostic in skill_catalog.diagnostics],
 		}
 
-	@router.post("/skills")
+	@router.post("/skills", dependencies=gate(policy.skills_api))
 	async def preview_skills(config: SessionConfig):
 		"""Return the catalog a lazy client would get without creating a session."""
 		try:
@@ -158,18 +162,18 @@ def create_sessions_router(store: SessionStore, *, system_append: str | None = N
 			"supports_images": await asyncio.to_thread(model_supports_images, session.model),
 		}
 
-	@router.get("/sessions/{sid}/skills")
+	@router.get("/sessions/{sid}/skills", dependencies=gate(policy.skills_api))
 	async def session_skills(sid: str):
 		session = _get(sid)
 		return skill_catalog_payload(session.skill_catalog)
 
-	@router.get("/sessions/{sid}/extensions")
+	@router.get("/sessions/{sid}/extensions", dependencies=gate(policy.extensions_api))
 	async def session_extensions(sid: str):
 		"""Loaded server extensions, their tools, and non-fatal diagnostics."""
 		_get(sid)
 		return store.extension_runtime.info()
 
-	@router.post("/extensions/reload")
+	@router.post("/extensions/reload", dependencies=gate(policy.extensions_api))
 	async def reload_extensions():
 		"""Re-import all extensions; returns the fresh info payload."""
 		await asyncio.to_thread(store.reload_extensions)  # imports run arbitrary setup code
@@ -332,7 +336,7 @@ def create_sessions_router(store: SessionStore, *, system_append: str | None = N
 			"running": session.is_running,
 		}
 
-	@router.get("/sessions/{sid}/file/diff")
+	@router.get("/sessions/{sid}/file/diff", dependencies=gate(policy.fs_api))
 	async def file_diff(sid: str, path: str):
 		"""Both sides of the session's changes to one file, for the diff viewer.
 		`original` is reconstructed by reverse-applying the recorded edit diffs;

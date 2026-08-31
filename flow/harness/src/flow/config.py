@@ -22,6 +22,9 @@ UDS_URL = "http://flow-daemon"
 # bearer for the daemon API; required by the CLI on non-loopback TCP binds
 AUTH_TOKEN = os.environ.get("FLOW_AUTH_TOKEN") or None
 
+# policy preset for `flow serve` ("local" | "deployed"); see flow/server/policy.py
+PROFILE = os.environ.get("FLOW_PROFILE") or "local"
+
 # also publish events to Redis channel `harness:<sid>` (prefix is the Flow bridge wire contract)
 REDIS_URL = os.environ.get("FLOW_REDIS_URL") or None
 

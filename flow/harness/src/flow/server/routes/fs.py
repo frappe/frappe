@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from flow.path_policy import absolute_path, canonical_path, is_path_allowed
+from flow.server.policy import ServerPolicy, gate
 from flow.server.utils.fspick import PickerUnavailable, pick_folder
 from flow.server.utils.git import git_changes, git_head_text, git_output
 from flow.server.utils.workspace import (
@@ -31,8 +32,9 @@ class FsWriteFileRequest(BaseModel):
 	content: str
 
 
-def create_fs_router(store: SessionStore) -> APIRouter:
-	router = APIRouter()
+def create_fs_router(store: SessionStore, *, policy: ServerPolicy | None = None) -> APIRouter:
+	policy = policy or ServerPolicy()
+	router = APIRouter(dependencies=gate(policy.fs_api))
 
 	# POST, not GET: a GET could be fired by a hostile page's <img src=…>.
 	# One at a time — each pick pins a thread until the user answers.

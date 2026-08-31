@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from flow.model.auth import AuthError
 from flow.model.credentials import CredentialStore
 from flow.model.discovery import available_models
+from flow.server.policy import ServerPolicy, gate
 from flow.server.utils.provider_auth import (
 	OAuthCoordinator,
 	create_custom_provider,
@@ -41,8 +42,12 @@ class OAuthCompleteRequest(BaseModel):
 	callback_url: str = Field(min_length=1)
 
 
-def create_providers_router(credentials: CredentialStore, oauth: OAuthCoordinator) -> APIRouter:
-	router = APIRouter()
+def create_providers_router(
+	credentials: CredentialStore, oauth: OAuthCoordinator, *, policy: ServerPolicy | None = None
+) -> APIRouter:
+	policy = policy or ServerPolicy()
+	# one gate for the whole group: a deployed client brings its own models and keys
+	router = APIRouter(dependencies=gate(policy.providers_api))
 
 	@router.get("/models")
 	async def models():

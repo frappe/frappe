@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 
 from flow import config as server_config
 from flow.model.auth import AuthError
+from flow.server.policy import ServerPolicy
 from flow.server.routes.fs import create_fs_router
 from flow.server.routes.providers import create_providers_router
 from flow.server.routes.sessions import create_sessions_router
@@ -33,9 +34,12 @@ def create_app(
 	cors_origins: list[str] | None = None,
 	webui_dir: str | None = None,
 	system_append: str | None = None,
+	policy: ServerPolicy | None = None,
 ) -> FastAPI:
 	"""`system_append` is text the operator adds to every session's system prompt
-	(`flow web --append-system-prompt`); it lands after whatever the client sends."""
+	(`flow web --append-system-prompt`); it lands after whatever the client sends.
+	`policy` gates tools and route groups; None means the permissive local default."""
+	policy = policy or ServerPolicy()
 	# docs off: those routes would be reachable without a bearer beside the web UI
 	app = FastAPI(title="flow server", version="0.1.0", docs_url=None, redoc_url=None, openapi_url=None)
 	oauth = OAuthCoordinator(store.credentials)
@@ -111,9 +115,9 @@ def create_app(
 	async def healthz():
 		return {"ok": True}
 
-	app.include_router(create_providers_router(store.credentials, oauth))
-	app.include_router(create_fs_router(store))
-	app.include_router(create_sessions_router(store, system_append=system_append))
+	app.include_router(create_providers_router(store.credentials, oauth, policy=policy))
+	app.include_router(create_fs_router(store, policy=policy))
+	app.include_router(create_sessions_router(store, system_append=system_append, policy=policy))
 
 	if webui_dir:
 		# registered last, so every API route above wins; "/" serves index.html
