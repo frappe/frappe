@@ -257,7 +257,7 @@ class TestFormLoad(IntegrationTestCase):
 		user.remove_roles(*user_roles)
 		user.add_roles("Accounts User")
 
-		make_property_setter("Contact Phone", "phone", "permlevel", 1, "Int")
+		contact_phone_property_setter = make_property_setter("Contact Phone", "phone", "permlevel", 1, "Int")
 		reset("Contact Phone")
 
 		try:
@@ -288,6 +288,7 @@ class TestFormLoad(IntegrationTestCase):
 			unrestricted_file.delete()
 			restricted_file.delete()
 			contact.delete()
+			frappe.delete_doc(contact_phone_property_setter.doctype, contact_phone_property_setter.name)
 
 	def test_get_doc_info(self):
 		note = frappe.new_doc("Note")
