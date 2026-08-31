@@ -461,14 +461,6 @@ frappe.ui.Tree = class {
 		});
 	}
 
-	reload_node(node) {
-		return this.load_children(node);
-	}
-
-	toggle() {
-		this.get_selected_node().toggle();
-	}
-
 	get_selected_node() {
 		return this.selected_node;
 	}
