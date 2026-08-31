@@ -14,6 +14,7 @@ from collections.abc import Collection, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import mkstemp
+from urllib.parse import urlsplit
 
 from flow import config as server_config
 from flow.extensions import ExtensionRuntime, unload_extension_modules
@@ -70,6 +71,7 @@ class SessionStore:
 		extension_paths: builtins.list[str] | None = None,
 		extensions_enabled: bool = False,
 		tool_allowlist: Collection[str] | None = None,
+		callback_hosts: Collection[str] | None = None,
 	):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
@@ -80,6 +82,8 @@ class SessionStore:
 		self.allowed_roots = normalize_roots(configured_roots)
 		# (ServerPolicy.tool_allowlist). None = uncapped.
 		self.tool_allowlist = frozenset(tool_allowlist) if tool_allowlist is not None else None
+		# (ServerPolicy.callback_hosts). None = any host.
+		self.callback_hosts = frozenset(callback_hosts) if callback_hosts is not None else None
 		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._extension_paths = tuple(extension_paths or ())
 		self._extensions_enabled = extensions_enabled
@@ -127,6 +131,7 @@ class SessionStore:
 		self._validate_cwd(config.cwd)
 		self._validate_skill_paths(config)
 		self._validate_tools(config)
+		self._validate_callback(config)
 
 	def _validate_tools(self, config: SessionConfig) -> None:
 		"""Reject tools the client asked for that the policy does not allow.
@@ -138,6 +143,16 @@ class SessionStore:
 		blocked = sorted(set(config.tools) - self.tool_allowlist)
 		if blocked:
 			raise ValueError(f"tools not allowed by server policy: {', '.join(blocked)}")
+
+	def _validate_callback(self, config: SessionConfig) -> None:
+		"""Fence callback_url to the allowed hosts (exact host[:port] match), so the
+		daemon cannot be steered into POSTing at arbitrary internal services."""
+		if self.callback_hosts is None or not config.callback_url:
+			return
+		parts = urlsplit(config.callback_url)
+		if parts.scheme in ("http", "https") and parts.netloc in self.callback_hosts:
+			return
+		raise ValueError(f"callback_url host {parts.netloc!r} is not allowed by server policy")
 
 	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
 		return discover_skills(
@@ -196,6 +211,7 @@ class SessionStore:
 			config = SessionConfig.model_validate(json.load(f))
 		self._validate_cwd(config.cwd)
 		self._validate_skill_paths(config)
+		self._validate_callback(config)  # a stored session must not outlive a tightened fence
 		session = self._build(
 			sid,
 			config,
