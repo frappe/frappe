@@ -78,7 +78,7 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 		set
 			reference_doctype = %s,
 			reference_name = %s,
-			status = "Linked"
+			status = 'Linked'
 		where
 			name = %s""",
 		(reference_doctype, reference_name, name),
