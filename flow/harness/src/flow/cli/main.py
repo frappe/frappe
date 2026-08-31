@@ -40,6 +40,12 @@ def main() -> None:
 	p_serve.add_argument("--host", default=config.HOST)
 	p_serve.add_argument("--port", type=int, default=config.PORT)
 	p_serve.add_argument("--data-dir", default=config.DATA_DIR)
+	p_serve.add_argument(
+		"--profile",
+		default=config.PROFILE,
+		help='server policy preset: "local" (default, everything on) or "deployed" '
+		"(no shell or file-mutating tools, daemon-mutating routes off)",
+	)
 	p_serve.add_argument("--background", action="store_true", help="detach, print the address, and return")
 	p_serve.add_argument(
 		"--uds",
@@ -199,6 +205,12 @@ def _daemon_death_notice(daemon) -> str | None:
 
 
 def _serve(args) -> None:
+	from flow.server.policy import resolve_policy
+
+	try:
+		policy = resolve_policy(args.profile)
+	except ValueError as e:
+		raise DaemonError(str(e)) from None
 	if not args.uds and not _is_loopback(args.host) and not config.AUTH_TOKEN:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
@@ -212,6 +224,7 @@ def _serve(args) -> None:
 			args.data_dir,
 			extension_paths=args.extension,
 			extensions_enabled=not args.no_extensions,
+			profile=policy.profile,
 		)
 		print(f"{GREEN}flow daemon{RESET} on {base_url}  {DIM}(data: {args.data_dir}){RESET}")
 		return
@@ -229,18 +242,23 @@ def _serve(args) -> None:
 		event_sink=sink,
 		extension_paths=args.extension,
 		extensions_enabled=not args.no_extensions,
+		tool_allowlist=policy.tool_allowlist,
 	)
 	_report_extension_diagnostics(store)
-	app = create_app(store, auth_token=config.AUTH_TOKEN)
+	app = create_app(store, auth_token=config.AUTH_TOKEN, policy=policy)
 	if args.parent_watch:
 		from flow.cli.daemon import watch_parent_stdin
 
 		watch_parent_stdin()
 	rinfo = f" · redis: {config.REDIS_URL}" if sink else ""
 	ainfo = " · auth: bearer" if config.AUTH_TOKEN else ""
+	pinfo = f" · profile: {policy.profile}" if policy.profile != "local" else ""
 
 	def banner(address: str) -> None:
-		print(f"{GREEN}flow daemon{RESET} on {address}  {DIM}(data: {args.data_dir}{rinfo}{ainfo}){RESET}")
+		print(
+			f"{GREEN}flow daemon{RESET} on {address}  "
+			f"{DIM}(data: {args.data_dir}{rinfo}{ainfo}{pinfo}){RESET}"
+		)
 
 	if args.uds:
 		from flow.cli.daemon import bind_unix
