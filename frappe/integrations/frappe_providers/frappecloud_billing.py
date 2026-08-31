@@ -75,16 +75,11 @@ def get_headers():
 @frappe.whitelist()
 def current_site_info():
 	from frappe.utils import cint
-
-<<<<<<< HEAD
-=======
 	frappe.only_for("System Manager")
 
 	if mock_billing_enabled():
 		# not cached, so tweaking site_config shows up on the next reload
 		return mock_site_info()
-
->>>>>>> c5cc20b (fix: add link for partner discovery)
 	cache_key = f"fc_current_site_info:{frappe.local.site}"
 	cached_data = frappe.cache().get_value(cache_key)
 	if cached_data:
