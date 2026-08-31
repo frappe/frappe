@@ -439,8 +439,14 @@ def mark_as_standard(module: str) -> str:
 
 
 @frappe.whitelist()
-def unmark_as_standard(module: str) -> None:
-	"""Give `module`'s sidebar back to the site by deleting its exported file and its document.
+def unmark_as_standard(sidebar: str) -> None:
+	"""Give `sidebar` back to the site by deleting its exported file and its document.
+
+	It names the document rather than the module, because it destroys one and a module may own
+	more than one. `mark_as_standard` takes a module for the opposite reason: there may be no
+	document yet and it has to build one. Both callers have a document to name: the `Sidebar`
+	form's button is pressed on the one on screen, and the app layer's reset names the shell it
+	arranged.
 
 	The document is deleted rather than just unflagged. Once the app content is gone the module
 	falls back to its computed base, which is worked out from the module's contents on read, so
@@ -458,10 +464,13 @@ def unmark_as_standard(module: str) -> None:
 
 	check_developer_mode()
 
-	doc = get_sidebar(module)
+	if not frappe.db.exists("Sidebar", sidebar):
+		return
+
+	doc = frappe.get_doc("Sidebar", sidebar)
 	# Only a standard sidebar belongs to an app. If it is not standard there is nothing to hand
 	# back, and we should not delete a document someone is still working on.
-	if not doc or not doc.standard:
+	if not doc.standard:
 		return
 
 	path = doc.exported_file_path() if doc.is_exported() else None
@@ -510,6 +519,31 @@ def get_sidebar(module: str) -> "Sidebar | None":
 	sidebar is named something else.
 	"""
 	name = frappe.db.get_value("Sidebar", {"name": module, "module": module})
+	return frappe.get_doc("Sidebar", name) if name else None
+
+
+def get_module_shell(module: str) -> "Sidebar | None":
+	"""Return the stored sidebar an action on `module` writes to, or `None` when there is none.
+
+	`get_sidebar` answers the naming rule alone, and a module whose sidebar was renamed has no
+	answer there. It still has a sidebar, and that one is what the desk draws and what the editor
+	arranges, so an action that writes an arrangement, or undoes one, has to reach the same
+	document rather than work against a name nothing holds.
+
+	The order is `get_module_base`'s, and deliberately the same one: the shell named after the
+	module when there is one, and otherwise the first by name. A module owning two renamed shells
+	has no single answer, and `get_module_base` picks one anyway so the editor has something to
+	show; because this picks the same one, what a save writes and what a reset deletes is the
+	document that was on screen. Answering differently here is what would reach a document nobody
+	was looking at.
+
+	This asks the table instead of going through `get_module_base`, which computes a base from
+	the module's contents to answer, because the answer here is only ever a document that already
+	exists.
+	"""
+	name = frappe.db.get_value("Sidebar", {"name": module, "module": module}) or frappe.db.get_value(
+		"Sidebar", {"module": module}, order_by="name asc"
+	)
 	return frappe.get_doc("Sidebar", name) if name else None
 
 
@@ -665,29 +699,36 @@ def reset_app_sidebar(module: str) -> dict:
 	layer, and what shows through is the computed base, which is worked out from the module's
 	contents on read and is therefore there again in the same request.
 
-	`unmark_as_standard` does the work, including its own developer-mode check: the document and
-	its exported file both go, because a standard row with no file is an orphan and a file with
-	no row comes back on the next migrate.
-	"""
-	from frappe.desk.doctype.custom_sidebar.custom_sidebar import module_payload
+	`unmark_as_standard` does the work: the document and its exported file both go, because a
+	standard row with no file is an orphan and a file with no row comes back on the next migrate.
+	It is named the shell rather than the module, since it deletes what it is given.
 
-	unmark_as_standard(module)
+	Which shell that is has one answer, `get_module_shell`, shared with the read and the save.
+	The three have to agree: this drops what the person on screen arranged, so resolving it any
+	other way here would delete a document they were not looking at. A module owning nothing to
+	drop, which is the ordinary state of one whose base is computed, is left alone.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_module, module_payload
+
+	check_developer_mode()
+	check_module(module)
+
+	shell = get_module_shell(module)
+	if shell:
+		unmark_as_standard(shell.name)
+
 	return module_payload()
 
 
 def app_document(module: str) -> "Sidebar":
 	"""Return the document the app layer writes to, materializing it if there is none.
 
-	It addresses the shell the read addressed (`get_module_base`) rather than asking
-	`get_sidebar`, so a module whose sidebar has been renamed is arranged and saved in the same
-	place. `get_sidebar` answers `None` for that module, and `materialize_base` would then build
-	a second sidebar under it instead of writing the one the editor was showing.
+	It addresses the shell the read addressed rather than asking the naming rule, so a module
+	whose sidebar has been renamed is arranged, saved and reset in the same place.
+	`get_sidebar` answers `None` for that module, and `materialize_base` would then build a
+	second sidebar under it instead of writing the one the editor was showing.
 	"""
-	base = get_module_base(module)
-	if base.get("name"):
-		return frappe.get_doc("Sidebar", base.name)
-
-	return materialize_base(module)
+	return get_module_shell(module) or materialize_base(module)
 
 
 def app_item(row: dict) -> dict:

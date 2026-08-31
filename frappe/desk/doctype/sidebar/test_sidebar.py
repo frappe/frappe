@@ -925,6 +925,27 @@ class TestSidebarStandard(IntegrationTestCase):
 			self.assertFalse(frappe.db.exists("Sidebar", name))
 			self.assertFalse(os.path.exists(path))
 
+	def test_un_marking_takes_the_document_it_is_given(self):
+		"""A module may own more than one sidebar and this deletes one, so it names the document.
+
+		Told only the module it would have to pick, and the form's button is pressed on a sidebar
+		the user is looking at: picking would take a different one away and leave that one on
+		screen.
+
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			own = mark_as_standard(MODULE)
+			other = make_sidebar(MODULE, title="Test Sidebar Second")
+			other.standard = 1
+			other.app = "frappe"
+			other.save(ignore_permissions=True)
+
+			unmark_as_standard(other.name)
+
+			self.assertFalse(frappe.db.exists("Sidebar", other.name))
+			self.assertTrue(frappe.db.exists("Sidebar", own), "the other sidebar is untouched")
+
 	def test_un_marking_returns_the_module_to_its_computed_base(self):
 		"""In the same request. The document going away is not the module losing its navigation, since
 		the base is computed from the module's contents on read.
@@ -1856,6 +1877,34 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			self.assertFalse(frappe.db.exists("Sidebar", MODULE))
 			self.assertFalse(os.path.exists(path))
 			self.assertTrue(self.rendered())
+
+	def test_resetting_reaches_a_sidebar_that_was_renamed(self):
+		"""The document the save wrote is the document the reset has to remove.
+
+		A sidebar is named by its title, so a module's shell need not carry the module's name, and
+		the read and the save both address it however it is named. A reset that asked the naming
+		rule instead would find nothing under the module's name and report success, leaving the
+		document on the site and its file in the app.
+
+		"""
+		import os
+
+		renamed = "Test App Layer Sidebar Renamed"
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			save_app_sidebar(MODULE, get_app_sidebar_layer(MODULE))
+			doc = frappe.get_doc("Sidebar", MODULE)
+			doc.title = renamed
+			doc.save(ignore_permissions=True)
+			path = frappe.get_doc("Sidebar", renamed).exported_file_path()
+			self.assertTrue(os.path.exists(path), "sanity: the rename moved the file")
+
+			reset_app_sidebar(MODULE)
+
+			self.assertFalse(frappe.db.exists("Sidebar", renamed))
+			self.assertFalse(os.path.exists(path))
+			self.assertTrue(self.rendered(), "the module falls back to its computed base")
 
 	def test_none_of_it_works_without_developer_mode(self):
 		"""`standard` means a file inside an app, and only a developer's site writes those. The
