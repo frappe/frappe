@@ -780,7 +780,7 @@ frappe.ui.Sidebar = class Sidebar {
 				if (!$dropdown.hasClass("hidden")) {
 					$dropdown.trigger("show.bs.dropdown");
 				}
-				this.wrapper.find(".dropdown-background-tasks").addClass("hidden");
+				frappe.ui.sidebar_panels.close_all();
 				if (frappe.is_mobile()) {
 					this.wrapper.removeClass("expanded");
 				}
@@ -793,11 +793,11 @@ frappe.ui.Sidebar = class Sidebar {
 			type: "Button",
 			class: "sidebar-background-tasks hidden",
 			onClick: () => {
+				// Collapsing the sidebar on mobile is frappe.ui.sidebar_panels' job now, but
+				// the notification drawer is not a panel yet, so it still has to be closed by
+				// hand. Goes away when it moves over too.
 				this.wrapper.find(".dropdown-notifications").addClass("hidden");
-				this.wrapper.find(".dropdown-background-tasks").toggleClass("hidden");
-				if (frappe.is_mobile()) {
-					this.wrapper.removeClass("expanded");
-				}
+				frappe.ui.sidebar_panels.toggle("background-tasks");
 			},
 		});
 		this.$standard_items_band = this.wrapper.find(".standard-items-band");

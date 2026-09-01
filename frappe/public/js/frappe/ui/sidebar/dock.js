@@ -162,7 +162,7 @@ frappe.ui.Dock = class Dock {
 		if (!$dropdown.hasClass("hidden")) {
 			$dropdown.trigger("show.bs.dropdown");
 		}
-		$wrapper.find(".dropdown-background-tasks").addClass("hidden");
+		frappe.ui.sidebar_panels.close_all();
 	}
 
 	// User avatar pinned to the bottom of the rail, opening the same dropdown as the sidebar's user

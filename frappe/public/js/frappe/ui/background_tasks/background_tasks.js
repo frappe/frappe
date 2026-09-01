@@ -8,73 +8,53 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 
 	make() {
 		this.button = this.wrapper.find(".sidebar-background-tasks");
-		this.dropdown = this.wrapper.find(".dropdown-background-tasks");
-		this.dropdown_list = this.dropdown.find(".background-tasks-list");
-		this.header_items = this.dropdown_list.find(".bg-tasks-header-items");
-		this.header_actions = this.dropdown_list.find(".bg-tasks-header-actions");
-		this.body = this.dropdown_list.find(".background-tasks-body");
 
-		this.setup_headers();
-		this.setup_dropdown_events();
+		this.panel = new frappe.ui.SidebarPanel({
+			name: "background-tasks",
+			title: __("Background Tasks"),
+			trigger_selector: ".sidebar-background-tasks",
+			on_open: () => this.on_open(),
+		});
+		this.body = this.panel.$body;
+
+		this.setup_events();
 		this.update_tasks();
+	}
+
+	/** Whether the panel is on screen. Realtime updates only touch the DOM when it is. */
+	get is_open() {
+		return this.panel.is_open;
+	}
+
+	// The list is fetched once and then kept current by realtime, so opening only has to
+	// catch the DOM up with whatever arrived while the panel was hidden.
+	on_open() {
+		if (this.has_fetched) {
+			this.render_tasks(this.db_tasks);
+		} else {
+			this.update_tasks();
+		}
 	}
 
 	toggle_button_visibility() {
 		this.button.toggleClass("hidden", !this.db_tasks || this.db_tasks.length === 0);
 	}
 
-	setup_headers() {
-		$(`<span class="close-bg-tasks-dialogue pull-right" style="cursor: pointer; color: var(--text-muted);">
-			${frappe.utils.icon("x", "sm")}
-		</span>`)
-			.on("click", () => {
-				this.dropdown.addClass("hidden");
-			})
-			.appendTo(this.header_actions);
-
-		let header_title = $(`<div class="bg-tasks-category">
-			${__("Background Tasks")}
-		</div>`);
-		this.header_items.append(header_title);
-	}
-
-	setup_dropdown_events() {
-		this.wrapper.find(".sidebar-background-tasks").on("click", (e) => {
-			if (!this.dropdown.hasClass("hidden")) {
-				if (!this.has_fetched) {
-					this.update_tasks();
-				} else {
-					// Re-render to sync the DOM with in-memory state that might have updated while hidden
-					this.render_tasks(this.db_tasks);
-				}
-			}
-		});
-
-		$(document).on("click", (e) => {
-			const isInsideBtn = $(e.target).closest(".sidebar-background-tasks").length > 0;
-			const isInsideDropdown =
-				$(e.target).closest(".dropdown-background-tasks .background-tasks-list").length >
-				0;
-
-			if (!isInsideBtn && !isInsideDropdown) {
-				this.dropdown.addClass("hidden");
-			}
-		});
-
-		this.dropdown.on("click", ".bg-task-item", (e) => {
+	setup_events() {
+		this.panel.$panel.on("click", ".bg-task-item", (e) => {
 			let name = $(e.currentTarget).data("name");
 			if (name) {
 				frappe.set_route("background-task", name);
 			}
-			this.dropdown.addClass("hidden");
+			this.panel.hide();
 		});
 
-		this.dropdown.on("click", ".bg-task-footer", () => {
+		this.panel.$panel.on("click", ".bg-task-footer", () => {
 			frappe.set_route("background-task");
-			this.dropdown.addClass("hidden");
+			this.panel.hide();
 		});
 
-		this.dropdown.on("click", ".btn-cancel-task", (e) => {
+		this.panel.$panel.on("click", ".btn-cancel-task", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			let task_id = $(e.currentTarget).data("task-id");
@@ -84,7 +64,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 			});
 		});
 
-		this.dropdown.on("click", ".btn-retry-task", (e) => {
+		this.panel.$panel.on("click", ".btn-retry-task", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			let task_id = $(e.currentTarget).data("task-id");
@@ -111,7 +91,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 					status_changed = true;
 				}
 
-				if (!this.dropdown.hasClass("hidden")) {
+				if (this.is_open) {
 					if (status_changed) {
 						this.render_tasks(this.db_tasks);
 					} else {
@@ -151,7 +131,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 							this.db_tasks.unshift(tasks[0]);
 							if (this.db_tasks.length > 15) this.db_tasks.pop();
 							this.toggle_button_visibility();
-							if (!this.dropdown.hasClass("hidden")) {
+							if (this.is_open) {
 								this.render_tasks(this.db_tasks);
 							}
 						}
