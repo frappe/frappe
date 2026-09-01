@@ -138,6 +138,13 @@ class TestExtensionValidations(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertFalse(bad_file.exists_on_disk())
 
+	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+	def test_allowlist_blocks_extension_without_known_mimetype(self):
+		set_request(method="POST", path="/")
+		file_name = content = frappe.generate_hash()
+		bad_file = frappe.new_doc("File", file_name=f"{file_name}.phtml", content=content)
+		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
+
 
 class TestBase64File(IntegrationTestCase):
 	def setUp(self):
