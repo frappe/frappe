@@ -74,18 +74,11 @@ def check_sms_permission():
 
 @frappe.whitelist()
 def send_sms(receiver_list: str | list[str], msg: str, sender_name: str = "", success_msg: bool = True):
-<<<<<<< HEAD
-=======
 	check_sms_permission()
 	return _send_sms(receiver_list, msg, sender_name, success_msg)
 
 
 def _send_sms(receiver_list: str | list[str], msg: str, sender_name: str = "", success_msg: bool = True):
-	send_sms_hook_methods = frappe.get_hooks("send_sms")
-	if send_sms_hook_methods:
-		return frappe.get_attr(send_sms_hook_methods[-1])(receiver_list, msg, sender_name, success_msg)
-
->>>>>>> 3c311c4 (fix(sms_settings): add roles table to sms settings)
 	import json
 
 	if isinstance(receiver_list, str):

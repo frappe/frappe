@@ -364,17 +364,9 @@ def get_context(context):
 		)
 
 	def send_sms(self, doc, context):
-<<<<<<< HEAD
-		send_sms(
+		send_via_sms_gateway(
 			receiver_list=self.get_receiver_list(doc, context),
 			msg=frappe.render_template(self.message, context),
-=======
-		send_via_sms_gateway(
-			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
-			msg=frappe.utils.strip_html_tags(
-				frappe.render_template(self.message, context, restrict_globals=True)
-			),
->>>>>>> 3c311c4 (fix(sms_settings): add roles table to sms settings)
 		)
 
 	def get_list_of_recipients(self, doc, context):

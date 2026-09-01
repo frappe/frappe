@@ -1,18 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
+
+import frappe
+from frappe.core.doctype.sms_settings.sms_settings import check_sms_permission
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestSMSSettings(FrappeTestCase):
-	pass
-=======
-import frappe
-from frappe.core.doctype.sms_settings.sms_settings import check_sms_permission
-from frappe.tests import IntegrationTestCase
-
-
-class TestSMSSettings(IntegrationTestCase):
 	def setUp(self):
 		self.sms_settings = frappe.get_single("SMS Settings")
 		self._allowed_roles = self.sms_settings.get("allowed_roles")
@@ -55,4 +49,3 @@ class TestSMSSettings(IntegrationTestCase):
 
 		frappe.db.delete("Has Role", {"parent": "test@example.com", "role": "System Manager"})
 		frappe.clear_cache(user="test@example.com")
->>>>>>> 4aa4ae8 (test(sms_settings): add test to check perms. are now respected)
