@@ -8,8 +8,13 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import formatdate, get_last_day, getdate
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils import formatdate, get_last_day, getdate, now_datetime
+>>>>>>> cd2143c (test: replace datetime.now() with now_datetime() (#42333))
 from frappe.utils.dateutils import get_period, get_period_ending
 
 
@@ -47,7 +52,8 @@ class TestDashboardChart(FrappeTestCase):
 			)
 		).insert()
 
-		cur_date = datetime.now() - relativedelta(years=1)
+		# site timezone, same clock the chart uses; datetime.now() drifts a month at midnight
+		cur_date = now_datetime() - relativedelta(years=1)
 
 		result = get(chart_name="Test Dashboard Chart", refresh=1)
 
@@ -77,7 +83,8 @@ class TestDashboardChart(FrappeTestCase):
 			)
 		).insert()
 
-		cur_date = datetime.now() - relativedelta(years=1)
+		# site timezone, same clock the chart uses; datetime.now() drifts a month at midnight
+		cur_date = now_datetime() - relativedelta(years=1)
 
 		result = get(chart_name="Test Empty Dashboard Chart", refresh=1)
 
@@ -110,7 +117,8 @@ class TestDashboardChart(FrappeTestCase):
 			)
 		).insert()
 
-		cur_date = datetime.now() - relativedelta(years=1)
+		# site timezone, same clock the chart uses; datetime.now() drifts a month at midnight
+		cur_date = now_datetime() - relativedelta(years=1)
 
 		result = get(chart_name="Test Empty Dashboard Chart 2", refresh=1)
 
