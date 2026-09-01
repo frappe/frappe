@@ -597,7 +597,13 @@ class Session:
 		"""Runs alongside the first turn on its own model instance, so it never blocks
 		or steals the run's stream. Best-effort: any failure leaves the fallback."""
 		try:
-			auth = await resolve_model_auth(self.model, self.credentials, provider_id=self.credential_id)
+			auth = await resolve_model_auth(
+				self.model,
+				self.credentials,
+				provider_id=self.credential_id,
+				api_key=self.config.api_key,
+				api_base=self.config.api_base,
+			)
 			model = get_model(
 				self.model,
 				api_key=auth.api_key,
