@@ -30,6 +30,14 @@ F_URL_PATTERN = re.compile(
 	re.IGNORECASE,
 )
 
+# bare /f/<blob>/<filename> URLs in a plain-text body
+TEXT_F_URL_PATTERN = re.compile(
+	r"""(?P<prefix>https?://[^\s"'<>]*?)?"""
+	r"""/f/(?P<blob>[^/\s"'?#<>]+)/(?P<filename>[^\s"'?#<>]+)"""
+	r"""(?P<query>\?[^\s"'<>]*)?""",
+	re.IGNORECASE,
+)
+
 
 def get_email_url_ttl() -> int:
 	from frappe.utils import cint
@@ -56,6 +64,24 @@ def rewrite_urls_for_email(html: str) -> str:
 		return html
 
 
+def rewrite_text_urls_for_email(text: str) -> str:
+	"""Sign bare ``/f/`` URLs in an explicit plain-text email body.
+
+	Same behavior as ``rewrite_urls_for_email``, for text parts that never
+	pass through the HTML formatter."""
+	import frappe.storage
+
+	if not text or not frappe.storage.enabled():
+		return text
+
+	try:
+		rewriter = _Rewriter()
+		return TEXT_F_URL_PATTERN.sub(rewriter.rewrite_text_match, text)
+	except Exception:
+		frappe.logger("storage").exception("Failed to sign storage URLs for email text")
+		return text
+
+
 class _Rewriter:
 	"""Per-call rewrite state: site URL, TTL, and a blob-existence cache."""
 
@@ -66,35 +92,46 @@ class _Rewriter:
 
 	def rewrite_match(self, match: re.Match) -> str:
 		try:
-			return self._rewrite(match)
+			url = self._signed_url(match)
+			if url is None:
+				return match.group(0)
+			quote_char = match.group("q")
+			attr = match.group("attr")
+			return f"{attr}={quote_char}{url}{quote_char}"
 		except Exception:
 			frappe.logger("storage").exception("Failed to sign a storage URL for email")
 			return match.group(0)
 
-	def _rewrite(self, match: re.Match) -> str:
+	def rewrite_text_match(self, match: re.Match) -> str:
+		try:
+			url = self._signed_url(match)
+			return match.group(0) if url is None else url
+		except Exception:
+			frappe.logger("storage").exception("Failed to sign a storage URL for email")
+			return match.group(0)
+
+	def _signed_url(self, match: re.Match) -> str | None:
+		"""Signed absolute URL for a matched /f/ reference, or None to keep it."""
 		from frappe.storage.url import make_signature
 
 		query = match.group("query") or ""
 		if is_signed_query(query):
-			return match.group(0)
+			return None
 
 		prefix = match.group("prefix")
 		if prefix and prefix.rstrip("/") != self.site_url:
 			# /f/ URL on a foreign host: not ours to sign
-			return match.group(0)
+			return None
 
 		blob_name = match.group("blob")
 		if not self.blob_exists(blob_name):
-			return match.group(0)
+			return None
 
 		filename = match.group("filename")
 		expires = int(time.time()) + self.ttl
 		# serve.py verifies against the URL-decoded filename
 		signature = make_signature(blob_name, unquote(filename), expires)
-		quote_char = match.group("q")
-		attr = match.group("attr")
-		url = f"{self.site_url}/f/{blob_name}/{filename}?e={expires}&s={signature}"
-		return f"{attr}={quote_char}{url}{quote_char}"
+		return f"{self.site_url}/f/{blob_name}/{filename}?e={expires}&s={signature}"
 
 	def blob_exists(self, blob_name: str) -> bool:
 		if blob_name not in self._known_blobs:

@@ -33,6 +33,19 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
 
 FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+# MIME types never served inline: the URL filename is caller-chosen, so the
+# decision must key on the effective Content-Type, not on the extension alone.
+FORCE_DOWNLOAD_MIME_TYPES = frozenset(
+	{
+		"text/html",
+		"application/xhtml+xml",
+		"image/svg+xml",
+		"application/javascript",
+		"text/javascript",
+		"text/xml",
+		"application/xml",
+	}
+)
 NATIVE_URL_TTL = 60
 
 
@@ -65,8 +78,10 @@ def parse_path(path: str) -> tuple[str, str]:
 
 
 def get_blob(blob_name: str) -> "FileBlob":
-	if not frappe.db.exists("File Blob", blob_name):
-		raise NotFound
+	if not frappe.db.table_exists("File Blob") or not frappe.db.exists("File Blob", blob_name):
+		# same response as a failed permission check, so an unauthenticated
+		# caller cannot probe which blob names exist
+		raise Forbidden(_("You don't have permission to access this file"))
 	return frappe.get_doc("File Blob", blob_name)
 
 
@@ -98,16 +113,20 @@ def build_response(blob: "FileBlob", filename: str) -> Response:
 	driver = get_driver(blob.driver)
 	is_private = bool(blob.is_private)
 
-	native = driver.download_url(blob.key, filename, NATIVE_URL_TTL)
+	native = driver.download_url(blob.key, filename, NATIVE_URL_TTL, is_private=is_private)
 	if native:
 		return werkzeug.utils.redirect(native, 302)
 
-	extension = os.path.splitext(filename)[1].lower()
-	as_attachment = extension in FORCE_DOWNLOAD_EXTENSIONS
 	mime_type = blob.mime_type or "application/octet-stream"
 	if mime_type == "application/octet-stream":
 		# filetype cannot sniff text formats; fall back to the filename
 		mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+
+	# key the inline-vs-download decision on the effective Content-Type, not
+	# only on the caller-supplied filename: /f/<blob>/x.txt naming an HTML
+	# blob must not render inline on the site origin
+	extension = os.path.splitext(filename)[1].lower()
+	as_attachment = extension in FORCE_DOWNLOAD_EXTENSIONS or mime_type in FORCE_DOWNLOAD_MIME_TYPES
 
 	if blob.driver == "local" and frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
 		return x_accel_response(blob, filename, mime_type, as_attachment)

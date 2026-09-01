@@ -135,6 +135,11 @@ class File(Document):
 				)
 			return
 
+		if not self.get("blob") and not self.content and self.file_url and self.file_url.startswith("/f/"):
+			# a copied row (amend, attachment copy) carries only a v2 file_url;
+			# relink the blob instead of failing the legacy URL validation
+			self.adopt_blob_from_file_url()
+
 		if self.flags.from_existing_blob:
 			# Storage v2: the row points at an already stored blob; no bytes to write.
 			self.set_blob_file_url()
@@ -323,7 +328,9 @@ class File(Document):
 			return
 
 		if self.get("blob"):
-			if not self.file_url.startswith(("/files/blobs/", "/f/")):
+			# native v2 rows use /files/blobs/ or /f/; backfilled rows keep
+			# their legacy /files/ or /private/files/ URL
+			if not self.file_url.startswith(("/f/", "/files/", "/private/files/")):
 				frappe.throw(
 					_("The File URL you've entered is incorrect"),
 					title=_("Invalid File URL"),
@@ -429,14 +436,29 @@ class File(Document):
 		self.blob = new_blob.name
 		self.set_blob_file_url(new_blob)
 
+	def adopt_blob_from_file_url(self):
+		"""Set ``blob`` from a ``/f/<blob>/<filename>`` file_url.
+
+		Rows rebuilt from a bare file_url (amend of a submittable doc,
+		attachment copies) reference an existing blob; no bytes to write."""
+		parts = self.file_url.split("/")
+		blob_name = parts[2] if len(parts) > 2 else None
+		if blob_name and frappe.db.exists("File Blob", blob_name):
+			self.blob = blob_name
+			self.flags.from_existing_blob = True
+
 	def set_blob_file_url(self, blob=None):
-		"""Regenerate file_url from the linked blob. Stable and unsigned."""
+		"""Regenerate file_url from the linked blob. Stable and unsigned.
+
+		The plain nginx path applies only to public blobs whose bytes are on
+		the site's disk (local driver); every other driver serves through
+		the ``/f/`` route."""
 		if blob is None:
 			blob = frappe.get_doc("File Blob", self.blob)
-		if cint(blob.is_private):
-			self.file_url = f"/f/{blob.name}/{quote(self.file_name or blob.name)}"
-		else:
+		if not cint(blob.is_private) and blob.driver == "local":
 			self.file_url = f"/files/blobs/{blob.key}"
+		else:
+			self.file_url = f"/f/{blob.name}/{quote(self.file_name or blob.name)}"
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:
@@ -1017,6 +1039,8 @@ class File(Document):
 
 		put_blob owns dedup on (checksum, is_private, driver), so the
 		disk-based duplicate check and generate_file_name do not run."""
+		from frappe.storage.blob import validate_upload
+
 		if isinstance(self._content, str):
 			self._content = self._content.encode()
 		self.check_content()
@@ -1025,6 +1049,9 @@ class File(Document):
 			is_private=bool(self.is_private),
 			filename=self.file_name,
 		)
+		# reject active content hidden under a mismatched extension on the
+		# standard write path too, not only in finish_upload
+		validate_upload(blob, self.file_name)
 		self.blob = blob.name
 		self.file_size = blob.file_size
 		self.set_blob_file_url(blob)

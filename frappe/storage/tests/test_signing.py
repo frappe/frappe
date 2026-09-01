@@ -101,7 +101,7 @@ class TestSigning(IntegrationTestCase):
 		with patch.object(driver, "download_url", return_value=native) as mocked:
 			self.assertEqual(signed_url(file, expires_in=900), native)
 
-		mocked.assert_called_once_with(blob.key, "a.txt", 900)
+		mocked.assert_called_once_with(blob.key, "a.txt", 900, is_private=True)
 		# without a native URL the same file falls back to /f/
 		self.assertTrue(signed_url(file).startswith("/f/"))
 

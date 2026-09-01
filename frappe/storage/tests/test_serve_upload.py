@@ -7,14 +7,16 @@ import time
 from contextlib import contextmanager
 from unittest.mock import patch
 
-from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.exceptions import Forbidden
 
 import frappe
 import frappe.storage
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.storage.blob import put_blob
 from frappe.storage.serve import serve_file
+from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.upload import (
+	claim_session,
 	create_upload,
 	delete_session,
 	expire_stale_upload_sessions,
@@ -165,9 +167,10 @@ class TestServeUpload(IntegrationTestCase):
 			with self.assertRaises(Forbidden):
 				self.serve(f"/f/{blob.name}/secret.txt")
 
-	def test_unknown_blob_not_found(self):
+	def test_unknown_blob_forbidden_like_denied_access(self):
+		# same response as a permission failure: no blob-existence oracle
 		with flag_on(), frappe.storage.fake():
-			with self.assertRaises(NotFound):
+			with self.assertRaises(Forbidden):
 				self.serve("/f/does-not-exist/a.txt")
 
 	def test_svg_forced_attachment(self):
@@ -177,6 +180,21 @@ class TestServeUpload(IntegrationTestCase):
 
 			frappe.set_user("Guest")
 			response = self.serve(f"/f/{blob.name}/image.svg")
+
+			self.assertEqual(response.status_code, 200)
+			disposition = response.headers.get("Content-Disposition") or ""
+			self.assertTrue(disposition.startswith("attachment"))
+
+	def test_active_content_forced_attachment_regardless_of_filename(self):
+		# the URL filename is caller-chosen; an HTML blob requested as x.txt
+		# must not render inline on the site origin
+		html = b"<!DOCTYPE html><html><body>" + frappe.generate_hash(length=16).encode() + b"</body></html>"
+		with flag_on(), frappe.storage.fake():
+			blob = put_blob(io.BytesIO(html), is_private=False)
+			self.assertEqual(blob.mime_type, "text/html")
+
+			frappe.set_user("Guest")
+			response = self.serve(f"/f/{blob.name}/innocent.txt")
 
 			self.assertEqual(response.status_code, 200)
 			disposition = response.headers.get("Content-Disposition") or ""
@@ -242,6 +260,104 @@ class TestServeUpload(IntegrationTestCase):
 				checksum="0" * 64,
 				file_name="sum.txt",
 			)
+
+	def test_upload_session_bound_to_owner(self):
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_session("owned.txt", 10)
+
+			frappe.set_user("Guest")
+			with self.assertRaises(frappe.PermissionError):
+				self.send_chunk(upload_id, 0, b"x")
+			with self.assertRaises(frappe.PermissionError):
+				finish_upload(upload_id, file_name="owned.txt")
+
+	def test_finish_upload_cannot_run_twice(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"only one file row"
+			upload_id = self.open_session("once.txt", len(content))
+			self.send_chunk(upload_id, 0, content)
+
+			file = finish_upload(upload_id, file_name="once.txt")
+			self.addCleanup(
+				frappe.delete_doc, "File", file.name, force=1, ignore_permissions=True, ignore_missing=True
+			)
+			self.assertTrue(file.blob)
+
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload(upload_id, file_name="once.txt")
+			self.assertEqual(frappe.db.count("File", {"blob": file.blob}), 1)
+
+	def test_claim_session_has_a_single_winner(self):
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_session("race.txt", 4)
+			meta_path, part_path = get_session_paths(upload_id)
+
+			claimed = claim_session(meta_path)
+			self.addCleanup(delete_session, claimed)
+
+			with self.assertRaises(frappe.ValidationError):
+				claim_session(meta_path)
+
+	def test_guest_upload_restricted_to_legacy_mimetypes(self):
+		with flag_on(), frappe.storage.fake():
+			with self.change_settings("System Settings", {"allow_guests_to_upload_files": 1}):
+				frappe.set_user("Guest")
+				try:
+					with self.assertRaises(frappe.ValidationError):
+						create_upload("evil.html", 10)
+
+					upload_id = self.open_session("ok.png", 10)
+					self.send_chunk(upload_id, 0, b"x" * 10)
+					# the finish-time file_name override is gated too
+					with self.assertRaises(frappe.ValidationError):
+						finish_upload(upload_id, file_name="evil.html")
+				finally:
+					frappe.set_user("Administrator")
+
+	def test_direct_upload_roundtrip(self):
+		content = b"direct upload bytes " + frappe.generate_hash(length=16).encode()
+
+		class DirectDriver(MemoryDriver):
+			def upload_target(self, key, size, *, is_private=False):
+				return {"mode": "direct", "url": "http://bucket.example/upload"}
+
+		with flag_on():
+			driver = DirectDriver()
+			previous = getattr(frappe.local, "storage_driver_override", None)
+			frappe.local.storage_driver_override = driver
+			try:
+				result = create_upload("direct.txt", len(content), is_private=1)
+				self.assertEqual(result["mode"], "direct")
+				upload_id = result["upload_id"]
+				self._sessions.append(upload_id)
+
+				# chunks are rejected for direct sessions
+				with self.assertRaises(frappe.ValidationError):
+					self.send_chunk(upload_id, 0, b"x")
+
+				# finishing before the browser uploaded fails, session survives
+				with self.assertRaises(frappe.ValidationError):
+					finish_upload(upload_id, file_name="direct.txt")
+
+				# simulate the browser PUT to the native target
+				driver.write(f"uploads/{upload_id}", io.BytesIO(content), is_private=True)
+
+				file = finish_upload(upload_id, file_name="direct.txt")
+				self.addCleanup(
+					frappe.delete_doc,
+					"File",
+					file.name,
+					force=1,
+					ignore_permissions=True,
+					ignore_missing=True,
+				)
+				blob = frappe.get_doc("File Blob", file.blob)
+				self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
+				self.assertTrue(driver.exists(blob.key, is_private=True))
+				# the temporary object is gone
+				self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
+			finally:
+				frappe.local.storage_driver_override = previous
 
 	def test_stale_session_expiry_removes_files(self):
 		with flag_on(), frappe.storage.fake():

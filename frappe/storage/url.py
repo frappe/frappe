@@ -54,7 +54,7 @@ def signed_url(file: "File", expires_in: int = 3600) -> str:
 	filename = file.file_name or blob.name
 
 	driver = get_driver(blob.driver)
-	native = driver.download_url(blob.key, filename, expires_in)
+	native = driver.download_url(blob.key, filename, expires_in, is_private=bool(blob.is_private))
 	if native:
 		return native
 

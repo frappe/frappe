@@ -165,7 +165,7 @@ class TestS3DriverBehavior(IntegrationTestCase):
 
 	def test_download_url_presigned_get(self):
 		self.client.generate_presigned_url.return_value = "https://signed.example.com/x"
-		url = self.driver.download_url(self.key, "report.pdf", 300)
+		url = self.driver.download_url(self.key, "report.pdf", 300, is_private=True)
 		self.assertEqual(url, "https://signed.example.com/x")
 
 		call = self.client.generate_presigned_url.call_args
@@ -178,7 +178,8 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		self.assertIn("attachment", params["ResponseContentDisposition"])
 
 	def test_download_url_public_namespace(self):
-		self.driver.download_url(self.key, "logo.png", 60, is_private=False)
+		# is_private defaults to False: public namespace
+		self.driver.download_url(self.key, "logo.png", 60)
 		params = self.client.generate_presigned_url.call_args.kwargs["Params"]
 		self.assertEqual(params["Key"], f"public/{self.key}")
 
@@ -196,7 +197,7 @@ class TestS3DriverBehavior(IntegrationTestCase):
 			"url": "https://test-bucket.s3.example.com",
 			"fields": {"key": "private/uploads/xyz", "policy": "p", "x-amz-signature": "s"},
 		}
-		target = self.driver.upload_target("uploads/xyz", 1024)
+		target = self.driver.upload_target("uploads/xyz", 1024, is_private=True)
 		self.assertEqual(
 			target,
 			{
@@ -225,7 +226,7 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 		from urllib.parse import parse_qs, urlparse
 
 		driver = self.make_real_driver()
-		url = driver.download_url("ab/cd/deadbeef", "report.pdf", 300)
+		url = driver.download_url("ab/cd/deadbeef", "report.pdf", 300, is_private=True)
 		parsed = urlparse(url)
 		query = parse_qs(parsed.query)
 		self.assertTrue(parsed.path.endswith("/private/ab/cd/deadbeef"))
@@ -238,7 +239,7 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 		import json
 
 		driver = self.make_real_driver()
-		target = driver.upload_target("uploads/abc123", 2048)
+		target = driver.upload_target("uploads/abc123", 2048, is_private=True)
 		self.assertEqual(target["mode"], "direct")
 		self.assertEqual(target["fields"]["key"], "private/uploads/abc123")
 		policy = json.loads(base64.b64decode(target["fields"]["policy"]))

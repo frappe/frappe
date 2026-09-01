@@ -2,10 +2,18 @@
 # License: MIT. See LICENSE
 import hashlib
 import io
+from unittest.mock import patch
 
 import frappe
 from frappe.storage import put_blob
-from frappe.storage.blob import SPOOL_MAX_MEMORY, make_key, sha256_of, sniff_mime, spool_to_tempfile
+from frappe.storage.blob import (
+	SPOOL_MAX_MEMORY,
+	make_key,
+	sha256_of,
+	sniff_mime,
+	spool_to_tempfile,
+	validate_upload,
+)
 from frappe.storage.memory_driver import fake
 from frappe.tests import IntegrationTestCase
 
@@ -87,6 +95,31 @@ class TestPutBlob(IntegrationTestCase):
 			# bytes actually landed in the driver under the key
 			with store.read(blob.key, is_private=True) as stream:
 				self.assertEqual(stream.read(), content)
+
+	def test_rolled_back_write_deletes_bytes(self):
+		# a rolled-back File Blob row must not leave unreachable bytes behind
+		content = unique_content(b"rollback-")
+		with fake() as store:
+			blob = put_blob(io.BytesIO(content))
+			key = blob.key
+			self.assertTrue(store.exists(key))
+
+			frappe.db.rollback()
+
+			self.assertFalse(frappe.db.exists("File Blob", blob.name))
+			self.assertFalse(store.exists(key))
+
+	def test_validate_upload_rejects_pdf_with_javascript(self):
+		# legacy File.check_content parity on the finish_upload path
+		pdf = b"%PDF-1.4\n" + unique_content(prefix=b"")
+		with fake():
+			blob = self.put(pdf)
+			self.assertEqual(blob.mime_type, "application/pdf")
+
+			with patch("frappe.utils.pdf.pdf_contains_js", return_value=True):
+				self.assertRaises(frappe.ValidationError, validate_upload, blob, "doc.pdf")
+			with patch("frappe.utils.pdf.pdf_contains_js", return_value=False):
+				validate_upload(blob, "doc.pdf")
 
 	def test_multi_megabyte_stream(self):
 		# well past SPOOL_MAX_MEMORY, so the spool spills to disk

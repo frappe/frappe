@@ -132,7 +132,9 @@ def application(request: Request):
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
 
-		elif request.path.startswith("/f/") and frappe.storage.enabled():
+		elif request.path.startswith("/f/"):
+			# not gated on storage_v2: /f/ URLs stored while the flag was on
+			# must keep working after it is turned off
 			response = frappe.storage.serve.serve_file(request.path)
 
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":

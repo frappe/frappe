@@ -97,12 +97,12 @@ class S3Driver(StorageDriver):
 		return True
 
 	def download_url(
-		self, key: str, filename: str, expires_in: int, *, is_private: bool = True
+		self, key: str, filename: str, expires_in: int, *, is_private: bool = False
 	) -> str | None:
 		"""Presigned GET with the filename carried in Content-Disposition.
 
-		Defaults to the private namespace: native download URLs exist to
-		serve private blobs; public blobs have plain bucket URLs."""
+		``is_private`` must be the blob's real privacy flag; it picks the
+		``private/`` or ``public/`` object prefix."""
 		ascii_name = filename.encode("ascii", "ignore").decode().replace('"', "").replace("\\", "")
 		disposition = f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
 		return self.client.generate_presigned_url(
@@ -115,7 +115,7 @@ class S3Driver(StorageDriver):
 			ExpiresIn=expires_in,
 		)
 
-	def upload_target(self, key: str, size: int, *, is_private: bool = True) -> dict | None:
+	def upload_target(self, key: str, size: int, *, is_private: bool = False) -> dict | None:
 		"""Presigned POST for direct browser-to-bucket upload.
 
 		The content-length-range condition pins the upload to the declared

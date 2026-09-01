@@ -15,6 +15,7 @@ sessions are swept by ``expire_stale_upload_sessions`` (called from GC).
 """
 
 import json
+import mimetypes
 import os
 import re
 import time
@@ -28,6 +29,7 @@ from frappe.utils import cint
 
 UPLOADS_DIR = ".uploads"
 UPLOAD_ID_PATTERN = re.compile(r"[A-Za-z0-9]+")
+FINISHING_SUFFIX = ".finishing"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -41,19 +43,20 @@ def create_upload(
 	"""Open an upload session. Checks permission and size before any byte lands."""
 	check_enabled()
 	check_upload_permission(doctype, docname)
+	check_restricted_mimetypes(filename)
 
 	size = cint(size)
 	check_declared_size(size)
 
 	upload_id = frappe.generate_hash(length=20)
 
-	native = get_driver().upload_target(f"uploads/{upload_id}", size)
-	if native:
-		return {"mode": "direct", **native}
+	native = get_driver().upload_target(f"uploads/{upload_id}", size, is_private=bool(cint(is_private)))
+	mode = "direct" if native else "chunked"
 
 	save_session_meta(
 		upload_id,
 		{
+			"mode": mode,
 			"filename": filename,
 			"size": size,
 			"is_private": cint(is_private),
@@ -63,6 +66,8 @@ def create_upload(
 			"created_at": int(time.time()),
 		},
 	)
+	if native:
+		return {"mode": "direct", "upload_id": upload_id, **native}
 	return {"mode": "chunked", "upload_id": upload_id}
 
 
@@ -75,6 +80,8 @@ def upload_chunk(upload_id: str, offset: int | str = 0):
 	(idempotent retry), writing past the end of the part file is not."""
 	check_enabled()
 	meta, meta_path, part_path = load_session(upload_id)
+	if meta.get("mode") == "direct":
+		frappe.throw(_("This upload session expects a direct upload, not chunks"))
 
 	offset = cint(offset)
 	received = os.path.getsize(part_path) if os.path.exists(part_path) else 0
@@ -120,12 +127,26 @@ def finish_upload(
 	is_private = cint(meta.get("is_private")) if is_private is None else cint(is_private)
 
 	ignore_permissions = check_upload_permission(doctype, docname)
+	check_restricted_mimetypes(file_name)
 
-	if not os.path.exists(part_path):
+	# fail before claiming when no bytes arrived, so the client can retry
+	direct = meta.get("mode") == "direct"
+	temp_is_private = bool(cint(meta.get("is_private")))
+	if direct:
+		if not get_driver().exists(f"uploads/{upload_id}", is_private=temp_is_private):
+			frappe.throw(_("Upload session has no data"))
+	elif not os.path.exists(part_path):
 		frappe.throw(_("Upload session has no data"))
 
-	with open(part_path, "rb") as stream:
-		blob = put_blob(stream, is_private=bool(is_private), filename=file_name)
+	# atomic claim: a concurrent or replayed finish_upload must not create
+	# a second File row from the same session
+	meta_path = claim_session(meta_path)
+
+	if direct:
+		blob = store_direct_upload(upload_id, temp_is_private, is_private=bool(is_private), filename=file_name)
+	else:
+		with open(part_path, "rb") as stream:
+			blob = put_blob(stream, is_private=bool(is_private), filename=file_name)
 
 	if checksum and blob.checksum != checksum:
 		delete_session(meta_path, part_path)
@@ -147,8 +168,33 @@ def finish_upload(
 	return file
 
 
+def store_direct_upload(upload_id: str, temp_is_private: bool, *, is_private: bool, filename: str | None):
+	"""Spool a driver-native direct upload (browser -> bucket) into a blob.
+
+	The client sent the bytes to ``uploads/<upload_id>`` in the namespace
+	declared at ``create_upload``; the temporary object is deleted once the
+	blob is stored."""
+	from frappe.storage.blob import put_blob
+
+	driver = get_driver()
+	temp_key = f"uploads/{upload_id}"
+	try:
+		stream = driver.read(temp_key, is_private=temp_is_private)
+	except FileNotFoundError:
+		frappe.throw(_("Upload session has no data"))
+
+	with stream:
+		blob = put_blob(stream, is_private=is_private, filename=filename)
+	driver.delete(temp_key, is_private=temp_is_private)
+	return blob
+
+
 def expire_stale_upload_sessions(max_age_hours: int = 24) -> int:
-	"""Delete upload sessions untouched for ``max_age_hours``. Return the count removed."""
+	"""Delete upload sessions untouched for ``max_age_hours``. Return the count removed.
+
+	Sweeps every session artifact (``.meta``, ``.part``, claimed
+	``.meta.finishing``) and, for direct sessions, the driver-side
+	``uploads/<upload_id>`` temporary object."""
 	uploads_dir = frappe.get_site_path("private", "files", UPLOADS_DIR)
 	if not os.path.isdir(uploads_dir):
 		return 0
@@ -162,26 +208,41 @@ def expire_stale_upload_sessions(max_age_hours: int = 24) -> int:
 		except OSError:
 			return 0.0
 
+	sessions: dict[str, list[str]] = {}
 	for entry in os.listdir(uploads_dir):
-		if not entry.endswith(".meta"):
-			continue
-		meta_path = os.path.join(uploads_dir, entry)
-		part_path = os.path.join(uploads_dir, entry[: -len(".meta")] + ".part")
-		# an active chunked upload keeps touching the part file
-		if max(mtime(meta_path), mtime(part_path)) < cutoff:
-			delete_session(meta_path, part_path)
-			removed += 1
+		upload_id = entry.split(".", 1)[0]
+		sessions.setdefault(upload_id, []).append(os.path.join(uploads_dir, entry))
 
-	for entry in os.listdir(uploads_dir):
-		if not entry.endswith(".part"):
+	for upload_id, paths in sessions.items():
+		# an active session keeps touching one of its files
+		if max(mtime(path) for path in paths) >= cutoff:
 			continue
-		part_path = os.path.join(uploads_dir, entry)
-		meta_path = os.path.join(uploads_dir, entry[: -len(".part")] + ".meta")
-		if not os.path.exists(meta_path) and mtime(part_path) < cutoff:
-			delete_session(meta_path, part_path)
-			removed += 1
+		delete_stale_driver_upload(upload_id, paths)
+		delete_session(*paths)
+		removed += 1
 
 	return removed
+
+
+def delete_stale_driver_upload(upload_id: str, paths: list[str]) -> None:
+	"""Best effort: drop the driver-side temp object of a stale direct session."""
+	meta = None
+	for path in paths:
+		if path.endswith((".meta", ".meta" + FINISHING_SUFFIX)):
+			try:
+				with open(path) as f:
+					meta = json.load(f)
+			except (OSError, ValueError):
+				pass
+			break
+	if not meta or meta.get("mode") != "direct":
+		return
+	try:
+		get_driver().delete(f"uploads/{upload_id}", is_private=bool(cint(meta.get("is_private"))))
+	except Exception:
+		frappe.logger("storage").warning(
+			f"storage: could not delete stale direct upload uploads/{upload_id}", exc_info=True
+		)
 
 
 def check_enabled():
@@ -212,6 +273,26 @@ def check_upload_permission(doctype: str | None = None, docname: str | None = No
 
 	check_write_permission(doctype, docname)
 	return False
+
+
+def check_restricted_mimetypes(filename: str | None):
+	"""Legacy parity with ``upload_file``'s ALLOWED_MIMETYPES gate.
+
+	Guests and users without desk access may only upload the legacy
+	allowlisted types. Active content disguised under an allowed extension
+	is caught separately by ``validate_upload``'s content sniff."""
+	from frappe.handler import ALLOWED_MIMETYPES
+
+	if frappe.session.user == "Guest":
+		restricted = True
+	else:
+		user = frappe.get_lazy_doc("User", frappe.session.user)
+		restricted = not user.has_desk_access()
+	if not restricted:
+		return
+
+	if mimetypes.guess_type(filename or "")[0] not in ALLOWED_MIMETYPES:
+		frappe.throw(_("You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."))
 
 
 def check_declared_size(size: int):
@@ -245,7 +326,8 @@ def save_session_meta(upload_id: str, meta: dict):
 	meta_path, part_path = get_session_paths(upload_id)
 	with open(meta_path, "w") as f:
 		json.dump(meta, f)
-	open(part_path, "wb").close()
+	if meta.get("mode") != "direct":
+		open(part_path, "wb").close()
 
 
 def load_session(upload_id: str) -> tuple[dict, str, str]:
@@ -254,11 +336,27 @@ def load_session(upload_id: str) -> tuple[dict, str, str]:
 		frappe.throw(_("Upload session not found or expired"))
 	with open(meta_path) as f:
 		meta = json.load(f)
+	if meta.get("owner") != frappe.session.user:
+		# sessions are bound to the user who opened them
+		raise frappe.PermissionError
 	return meta, meta_path, part_path
 
 
-def delete_session(meta_path: str, part_path: str):
-	for path in (meta_path, part_path):
+def claim_session(meta_path: str) -> str:
+	"""Atomically claim a session for finishing. Return the claimed meta path.
+
+	``os.rename`` guarantees a single winner when two finish_upload calls
+	race on one session; the loser sees the meta file gone."""
+	claimed = meta_path + FINISHING_SUFFIX
+	try:
+		os.rename(meta_path, claimed)
+	except OSError:
+		frappe.throw(_("Upload session not found or expired"))
+	return claimed
+
+
+def delete_session(*paths: str):
+	for path in paths:
 		try:
 			os.remove(path)
 		except OSError:

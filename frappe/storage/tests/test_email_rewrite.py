@@ -9,7 +9,11 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import frappe
 import frappe.storage
-from frappe.storage.email import DEFAULT_EMAIL_URL_TTL, rewrite_urls_for_email
+from frappe.storage.email import (
+	DEFAULT_EMAIL_URL_TTL,
+	rewrite_text_urls_for_email,
+	rewrite_urls_for_email,
+)
 from frappe.storage.url import verify_signature
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_url
@@ -175,6 +179,56 @@ class TestEmailRewrite(IntegrationTestCase):
 		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
 		self.assertEqual(blob_name, blob.name)
 		self.assertEqual(filename, "invoice.pdf")
+		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
+
+	def test_text_urls_signed(self):
+		"""Bare /f/ URLs in a plain-text body are signed too."""
+		blob = self.make_blob()
+		text = f"Download here: /f/{blob.name}/invoice.pdf\nThanks"
+
+		with storage_v2_enabled():
+			rewritten = rewrite_text_urls_for_email(text)
+
+		self.assertNotEqual(rewritten, text)
+		match = re.search(r"(?P<url>\S*/f/\S+)", rewritten)
+		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
+		self.assertEqual(blob_name, blob.name)
+		self.assertEqual(filename, "invoice.pdf")
+		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
+		self.assertTrue(rewritten.startswith("Download here: " + get_url()))
+		self.assertTrue(rewritten.endswith("\nThanks"))
+
+	def test_seam_text_part_contains_signed_url(self):
+		"""An explicit text_content passed to set_html is signed as well."""
+		import email as email_lib
+
+		from frappe.email.email_body import get_email
+
+		blob = self.make_blob()
+		message = f'<p><a href="/f/{blob.name}/invoice.pdf">the invoice</a></p>'
+		text = f"see /f/{blob.name}/invoice.pdf"
+
+		with storage_v2_enabled():
+			emailobj = get_email(
+				recipients=["test_rewrite@example.com"],
+				sender="test_rewrite@example.com",
+				subject="Test Subject",
+				content=message,
+				text_content=text,
+				email_account=frappe._dict(name="Stub Email Account"),
+			)
+			raw = emailobj.as_string()
+
+		msg = email_lib.message_from_string(raw)
+		text_part = next(
+			part.get_payload(decode=True).decode("utf-8")
+			for part in msg.walk()
+			if part.get_content_type() == "text/plain"
+		)
+		match = re.search(r"(?P<url>\S*/f/\S+)", text_part)
+		self.assertIsNotNone(match)
+		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
+		self.assertEqual(blob_name, blob.name)
 		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
 
 	def test_seam_full_message_contains_signed_url(self):

@@ -10,7 +10,7 @@ import filetype
 import frappe
 from frappe import _
 from frappe.storage.driver import get_driver
-from frappe.utils import cint
+from frappe.utils import cint, now
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
@@ -77,7 +77,8 @@ def validate_upload(blob: "FileBlob", claimed_filename: str) -> None:
 
 	Raises frappe.ValidationError when the sniffed MIME type is active
 	content (html, svg, xhtml, pdf, javascript) and does not match the
-	MIME type implied by the claimed filename's extension."""
+	MIME type implied by the claimed filename's extension. PDFs are also
+	scanned for embedded JavaScript, like the legacy ``check_content``."""
 	if blob.mime_type not in ACTIVE_CONTENT_MIME_TYPES:
 		return
 	ext_mime = mimetypes.guess_type(claimed_filename or "")[0]
@@ -86,6 +87,19 @@ def validate_upload(blob: "FileBlob", claimed_filename: str) -> None:
 			_("File content does not match its extension"),
 			frappe.ValidationError,
 		)
+	if blob.mime_type == "application/pdf":
+		validate_pdf_content(blob)
+
+
+def validate_pdf_content(blob: "FileBlob") -> None:
+	"""Reject PDFs with embedded JavaScript (legacy ``File.check_content`` parity)."""
+	from frappe.utils.pdf import pdf_contains_js
+
+	driver = get_driver(blob.driver)
+	with driver.read(blob.key, is_private=bool(blob.is_private)) as f:
+		content = f.read()
+	if pdf_contains_js(content):
+		frappe.throw(_("This PDF cannot be uploaded as it contains unsafe content."))
 
 
 def spool_to_tempfile(stream: IO[bytes]) -> tuple[IO[bytes], int]:
@@ -130,7 +144,7 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 			"File Blob",
 			{"checksum": checksum, "is_private": cint(is_private), "driver": driver.name},
 		)
-		if existing:
+		if existing and revive_blob(existing):
 			return frappe.get_doc("File Blob", existing)
 
 		key = make_key(checksum)
@@ -151,4 +165,42 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 		)
 		driver.write(blob.key, spool, is_private=bool(is_private))
 		blob.insert(ignore_permissions=True)
+		frappe.db.after_rollback.add(delete_bytes_on_rollback(driver, blob.key, bool(is_private)))
 	return blob
+
+
+def revive_blob(blob_name: str) -> bool:
+	"""Lock a deduped blob and pull it out of the GC orphan window.
+
+	Returns False when the row vanished between the dedup lookup and the
+	lock (a concurrent GC pass deleted it); the caller then stores the
+	content again. The ``modified`` bump keeps GC's cutoff away from a
+	blob that is being relinked in an uncommitted transaction."""
+	locked = frappe.db.get_value("File Blob", blob_name, "name", for_update=True)
+	if not locked:
+		return False
+	frappe.db.set_value("File Blob", blob_name, "modified", now(), update_modified=False)
+	return True
+
+
+def delete_bytes_on_rollback(driver, key: str, is_private: bool):
+	"""after_rollback callback: remove bytes whose File Blob row was rolled back.
+
+	Without this, a rolled-back ``put_blob`` (failed validation, explicit
+	rollback) leaves bytes on disk that GC can never find, because GC only
+	sees File Blob rows."""
+
+	def callback():
+		if frappe.db.get_value(
+			"File Blob", {"key": key, "driver": driver.name, "is_private": cint(is_private)}
+		):
+			# a committed row still owns these bytes
+			return
+		try:
+			driver.delete(key, is_private=is_private)
+		except Exception:
+			frappe.logger("storage").warning(
+				f"storage: could not delete rolled-back blob bytes (key {key})", exc_info=True
+			)
+
+	return callback

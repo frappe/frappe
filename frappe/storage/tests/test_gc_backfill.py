@@ -101,7 +101,8 @@ class TestCollectGarbage(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("File Blob", blob.name))
 			self.assertTrue(store.exists(blob.key))
 
-	def test_noop_when_flag_off(self):
+	def test_collects_orphans_even_when_flag_off(self):
+		# turning the flag off must not strand orphans created while it was on
 		with fake() as store:
 			with flag_on():
 				blob = self.put()
@@ -110,7 +111,22 @@ class TestCollectGarbage(IntegrationTestCase):
 
 			stats = collect_garbage()
 
-			self.assertEqual(stats["blobs_deleted"], 0)
+			self.assertGreaterEqual(stats["blobs_deleted"], 1)
+			self.assertFalse(frappe.db.exists("File Blob", blob.name))
+			self.assertFalse(store.exists(blob.key))
+
+	def test_revived_orphan_survives_collection(self):
+		# put_blob's dedup pulls a selected orphan out of the GC window
+		with flag_on(), fake() as store:
+			content = unique_content(b"gc-revive-")
+			blob = self.put(content)
+			backdate(blob.name)
+
+			revived = put_blob(io.BytesIO(content))
+			self.assertEqual(revived.name, blob.name)
+
+			collect_garbage()
+
 			self.assertTrue(frappe.db.exists("File Blob", blob.name))
 			self.assertTrue(store.exists(blob.key))
 

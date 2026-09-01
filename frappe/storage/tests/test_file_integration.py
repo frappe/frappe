@@ -74,7 +74,9 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.assertEqual(blob.is_private, 0)
 			# key carries a sanitized lowercase extension for nginx Content-Type
 			self.assertTrue(blob.key.endswith(".png"))
-			self.assertEqual(file.file_url, f"/files/blobs/{blob.key}")
+			# the plain nginx path is local-driver-only; the memory driver has
+			# no bytes on disk, so public rows get the /f/ route
+			self.assertEqual(file.file_url, f"/f/{blob.name}/{quote(file.file_name)}")
 			self.assertTrue(store.exists(blob.key, is_private=False))
 
 	def test_upload_creates_private_f_url(self):
@@ -252,6 +254,100 @@ class TestFileStorageIntegration(IntegrationTestCase):
 		with storage_flag(), fake():
 			file = self.make_file(unique_png(), "in-memory.png")
 			self.assertRaises(frappe.ValidationError, file.get_full_path)
+
+	def test_standard_write_path_rejects_disguised_html(self):
+		# the sniff check runs on File.insert with content, not only in finish_upload
+		with storage_flag(), fake():
+			self.assertRaises(
+				frappe.ValidationError,
+				self.make_file,
+				unique_html(),
+				"disguised.png",
+			)
+
+	def test_public_file_url_on_local_driver(self):
+		content = unique_png()
+		with storage_flag():
+			file = self.make_file(content, "local-public.png", is_private=0)
+			blob = frappe.get_doc("File Blob", file.blob)
+			driver = get_driver("local")
+			self.addCleanup(driver.delete, blob.key, is_private=False)
+
+			# local driver: bytes are on disk under public/files/blobs, so the
+			# plain nginx path applies
+			self.assertEqual(file.file_url, f"/files/blobs/{blob.key}")
+
+	def test_copied_row_adopts_blob_from_f_url(self):
+		# amend of a submittable doc rebuilds attachments from bare file_url;
+		# a /f/ URL must relink the blob instead of failing validation
+		content = unique_png()
+		with storage_flag(), fake():
+			original = self.make_file(content, "amended.png", is_private=1)
+
+			copy = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_url": original.file_url,
+					"file_name": original.file_name,
+					"is_private": 1,
+				}
+			).insert()
+			self.delete_later("File", copy.name)
+
+			self.assertEqual(copy.blob, original.blob)
+			self.assertEqual(copy.file_url, original.file_url)
+
+	def test_backfilled_row_saves_with_legacy_url(self):
+		import os
+
+		from frappe.storage import backfill
+		from frappe.utils import get_files_path, now_datetime
+
+		content = unique_png()
+		filename = f"storage-v2-bf-{frappe.generate_hash(length=10)}.png"
+		path = get_files_path(filename, is_private=1)
+		with open(path, "wb") as f:
+			f.write(content)
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		doc = frappe.new_doc("File")
+		doc.update(
+			{
+				"file_name": filename,
+				"file_url": f"/private/files/{filename}",
+				"is_private": 1,
+				"is_folder": 0,
+			}
+		)
+		doc.name = frappe.generate_hash(length=10)
+		doc.owner = doc.modified_by = "Administrator"
+		doc.creation = doc.modified = now_datetime()
+		doc.db_insert()
+		self.delete_later("File", doc.name)
+
+		with storage_flag():
+			backfill.run(filters={"name": doc.name})
+			linked = frappe.get_doc("File", doc.name)
+			self.delete_later("File Blob", linked.blob)
+			self.assertTrue(linked.blob)
+			self.assertEqual(linked.file_url, f"/private/files/{filename}")
+
+			# saving a backfilled row must not fail URL validation
+			linked.save()
+			self.assertEqual(linked.file_url, f"/private/files/{filename}")
+
+	def test_file_manager_save_file_creates_blob(self):
+		from frappe.utils.file_manager import save_file
+
+		content = unique_png()
+		with storage_flag(), fake() as store:
+			file = save_file(f"fm-{frappe.generate_hash(length=8)}.png", content, None, None, is_private=1)
+			self.delete_later("File", file.name)
+			self.delete_later("File Blob", file.blob)
+
+			self.assertTrue(file.blob)
+			blob = frappe.get_doc("File Blob", file.blob)
+			self.assertTrue(store.exists(blob.key, is_private=True))
 
 	def test_flag_off_is_legacy(self):
 		content = unique_png()

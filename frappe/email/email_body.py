@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import frappe
 from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.storage.email import rewrite_urls_for_email
+from frappe.storage.email import rewrite_text_urls_for_email, rewrite_urls_for_email
 from frappe.utils import (
 	cint,
 	expand_relative_urls,
@@ -188,6 +188,9 @@ class EMail:
 		# convert to text well
 		if not self.html_set:
 			if text_content:
+				# Storage v2: private /f/ URLs in an explicit text part must be
+				# signed too; the HTML part is signed in get_formatted_html
+				text_content = rewrite_text_urls_for_email(text_content)
 				self.set_text(expand_relative_urls(text_content))
 			else:
 				self.set_html_as_text(expand_relative_urls(formatted))

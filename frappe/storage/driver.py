@@ -40,13 +40,15 @@ class StorageDriver(ABC):
 	@abstractmethod
 	def exists(self, key: str, *, is_private: bool = False) -> bool: ...
 
-	def download_url(self, key: str, filename: str, expires_in: int) -> str | None:
+	def download_url(
+		self, key: str, filename: str, expires_in: int, *, is_private: bool = False
+	) -> str | None:
 		"""Native signed URL (e.g. S3 presigned GET).
 
 		None means: the framework serves the bytes itself."""
 		return None
 
-	def upload_target(self, key: str, size: int) -> dict | None:
+	def upload_target(self, key: str, size: int, *, is_private: bool = False) -> dict | None:
 		"""Native direct-upload target (e.g. S3 presigned POST).
 
 		None means: client must use the framework upload endpoint."""

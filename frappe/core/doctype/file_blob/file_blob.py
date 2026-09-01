@@ -32,16 +32,16 @@ def on_doctype_update():
 	# Best-effort DDL: index support differs across backends (site may be
 	# sqlite); a failure must not break migrate.
 	try:
-		# key is derived from checksum alone, so the same content stored
-		# both public and private shares one key; scope uniqueness to the
-		# driver namespace like dedup does.
+		# the dedup invariant: one blob per content per privacy namespace
+		# per driver. The key derives from the checksum (plus a filename
+		# extension), so it cannot carry the unique constraint itself.
 		frappe.db.add_unique(
-			"File Blob", ["key", "is_private", "driver"], constraint_name="unique_file_blob_key"
+			"File Blob", ["checksum", "is_private", "driver"], constraint_name="unique_file_blob_checksum"
 		)
 	except Exception:
-		frappe.log_error(title="File Blob: could not create unique index on key")
+		frappe.log_error(title="File Blob: could not create unique index on checksum")
 
 	try:
-		frappe.db.add_index("File Blob", ["checksum"])
+		frappe.db.add_index("File Blob", ["key"])
 	except Exception:
-		frappe.log_error(title="File Blob: could not create index on checksum")
+		frappe.log_error(title="File Blob: could not create index on key")
