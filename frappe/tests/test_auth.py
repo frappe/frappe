@@ -6,7 +6,8 @@ import time
 import requests
 
 import frappe
-from frappe.auth import LoginAttemptTracker
+from frappe.auth import LoginAttemptTracker, validate_auth
+from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests.test_api import FrappeAPITestCase
@@ -230,3 +231,75 @@ class TestSessionExpiry(FrappeAPITestCase):
 		with self.freeze_time(time_of_expiry):
 			self.assertIn(sid, get_expired_sessions())
 			self.assertFalse(s.get_session_data_from_db())
+
+
+class TestIPRestrictionForAPIAuth(FrappeTestCase):
+	"""Header-authenticated requests must honour the user's `restrict_ip` allowlist.
+
+	`validate_ip_address` runs in `LoginManager.post_login` for interactive logins and in
+	`Session.resume` for cookie-based requests. A request authenticated purely from an
+	`Authorization` header takes neither path, so `validate_auth` has to enforce it.
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.user_email = "test_api_ip_restriction@test.com"
+		if not frappe.db.exists("User", cls.user_email):
+			frappe.get_doc(doctype="User", email=cls.user_email, first_name="API IP Restricted").insert(
+				ignore_permissions=True
+			)
+
+		cls.api_secret = generate_keys(cls.user_email)["api_secret"]
+		cls.api_key = frappe.db.get_value("User", cls.user_email, "api_key")
+		frappe.db.commit()
+
+	def setUp(self):
+		self._request = getattr(frappe.local, "request", None)
+		self._request_ip = getattr(frappe.local, "request_ip", None)
+		self._login_manager = getattr(frappe.local, "login_manager", None)
+		self.addCleanup(self._restore)
+
+	def _restore(self):
+		frappe.local.request = self._request
+		frappe.local.request_ip = self._request_ip
+		frappe.local.login_manager = self._login_manager
+		frappe.set_user("Administrator")
+
+	def _authenticated_request_from(self, request_ip):
+		"""Simulate an unauthenticated request carrying an API key/secret token."""
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		env = EnvironBuilder(
+			headers={"Authorization": f"token {self.api_key}:{self.api_secret}"}
+		).get_environ()
+		frappe.local.request = Request(env)
+		frappe.local.request_ip = request_ip
+		frappe.local.login_manager = frappe._dict(user="Guest")
+		frappe.set_user("Guest")
+
+	def _set_restrict_ip(self, value):
+		frappe.db.set_value("User", self.user_email, "restrict_ip", value)
+		frappe.clear_cache(user=self.user_email)
+
+	def test_api_auth_blocked_from_disallowed_ip(self):
+		self._set_restrict_ip("192.168.255.254")
+		self._authenticated_request_from("10.0.0.1")
+
+		with self.assertRaises(frappe.AuthenticationError):
+			validate_auth()
+
+	def test_api_auth_allowed_from_allowed_ip(self):
+		self._set_restrict_ip("10.0.0.1")
+		self._authenticated_request_from("10.0.0.1")
+
+		validate_auth()
+		self.assertEqual(frappe.session.user, self.user_email)
+
+	def test_api_auth_unaffected_without_ip_restriction(self):
+		self._set_restrict_ip("")
+		self._authenticated_request_from("10.0.0.1")
+
+		validate_auth()
+		self.assertEqual(frappe.session.user, self.user_email)
