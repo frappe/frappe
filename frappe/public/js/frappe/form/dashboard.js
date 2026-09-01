@@ -488,12 +488,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		);
 
 		this.set_badge_count_common(open_count, count, $link);
-
-		if (names && names.length) {
-			$link.attr("data-names", names.join(","));
-		} else {
-			$link.removeAttr("data-names");
-		}
+		$link.attr("data-names", names ? names.join(",") : "");
 	}
 
 	set_badge_count_for_internal_link(doctype, open_count, count, names) {
@@ -504,9 +499,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.set_badge_count_common(open_count, count, $link);
 
 		if (names && names.length) {
-			$link.attr("data-names", names.join(","));
+			$link.attr("data-names", names ? names.join(",") : "");
 		} else {
-			$link.removeAttr("data-names");
 			$link.find("a").attr("disabled", true);
 		}
 	}

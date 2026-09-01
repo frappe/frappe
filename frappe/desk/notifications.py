@@ -343,10 +343,17 @@ def has_external_link_field(doctype, links):
 	fieldname = get_external_link_fieldname(doctype, links)
 	if not fieldname:
 		return False
-	meta = frappe.get_meta(doctype)
-	return meta.has_field(fieldname) or any(
-		frappe.get_meta(df.options).has_field(fieldname) for df in meta.get_table_fields()
+	return frappe.get_meta(doctype).has_field(fieldname) or bool(
+		get_child_doctypes_with_field(doctype, fieldname)
 	)
+
+
+def get_child_doctypes_with_field(doctype, fieldname):
+	"""Child tables of `doctype` carrying `fieldname`, empty when the parent itself has it."""
+	meta = frappe.get_meta(doctype)
+	if meta.has_field(fieldname):
+		return []
+	return [df.options for df in meta.get_table_fields() if frappe.get_meta(df.options).has_field(fieldname)]
 
 
 def get_external_links(doctype, name, links):
@@ -355,13 +362,8 @@ def get_external_links(doctype, name, links):
 	# updating filters based on dynamic_links
 	filters = get_dynamic_link_filters(doctype, links, fieldname) or {}
 
-	meta = frappe.get_meta(doctype)
-	if not meta.has_field(fieldname):
-		child_doctypes = [
-			df.options for df in meta.get_table_fields() if frappe.get_meta(df.options).has_field(fieldname)
-		]
-		if len(child_doctypes) > 1:
-			return get_external_links_via_child_tables(doctype, name, fieldname, child_doctypes, filters)
+	if len(child_doctypes := get_child_doctypes_with_field(doctype, fieldname)) > 1:
+		return get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters)
 
 	filters[fieldname] = name
 
@@ -375,16 +377,14 @@ def get_external_links(doctype, name, links):
 	return {"doctype": doctype, "count": total_count, "open_count": open_count}
 
 
-def get_external_links_via_child_tables(doctype, name, fieldname, child_doctypes, filters):
-	"""A filter on a fieldname that several child tables share resolves to whichever
-	of them is scanned first, so match the link in any of them."""
-	or_filters = [[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes]
-
+def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
+	"""A filter on a fieldname that several child tables share resolves to whichever of them
+	is scanned first, so match the link in any of them and let the client route by name."""
 	try:
-		names = frappe.get_all(
+		names = frappe.get_list(
 			doctype,
 			filters=filters,
-			or_filters=or_filters,
+			or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
 			limit=100,
 			distinct=True,
 			ignore_ifnull=True,
