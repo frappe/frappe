@@ -631,6 +631,18 @@ class TestParameterization(IntegrationTestCase):
 		self.assertIn("param1", params)
 		self.assertEqual(params["param1"], "some_value")
 
+	def test_bool_conditions(self):
+		# bools go out as 1/0: postgres does not cast `true` to smallint (Check fields)
+		DocType = frappe.qb.DocType("DocType")
+		query, params = frappe.qb.update(DocType).set(DocType.is_submittable, True).walk()
+
+		self.assertIn("=1", query)
+		self.assertNotIn("true", query)
+		self.assertEqual(params, {})
+
+		query, _ = frappe.qb.update(DocType).set(DocType.is_submittable, False).walk()
+		self.assertIn("=0", query)
+
 	def test_where_conditions_functions(self):
 		DocType = frappe.qb.DocType("DocType")
 		query = (
