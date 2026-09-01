@@ -47,6 +47,7 @@ npm run build -w app
 | `FLOW_DATA_DIR` | `~/.flow/server` | Session data and daemon logs. |
 | `FLOW_AUTH_TOKEN` | unset | Bearer token for the daemon API; required for non-loopback TCP binds. |
 | `FLOW_AUTH_TOKEN_FILE` | unset | File holding the bearer token, so an operator can generate and rotate it; used when `FLOW_AUTH_TOKEN` is unset. A configured but missing or empty file is a startup error. |
+| `FLOW_TENANTS_FILE` | unset | Multi-tenant mode for `flow serve`: a JSON file mapping each site to its bearer token and optional `allowed_roots` — `{"site1.localhost": {"token": "…", "allowed_roots": ["…"]}}`. A request's token names its site; each site's sessions live under `data_dir/tenants/<site>` and are invisible to other sites. Mutually exclusive with the single-token variables. |
 | `FLOW_PROFILE` | `local` | Policy preset for `flow serve` (`--profile` overrides). `local` keeps everything on; `deployed` caps tools to `read_file` and `grep`, refuses to start without an auth token (even on a unix socket), and answers 403 on everything outside the core session verbs: `/fs/*`, the session file diff, `/models`, `/providers*`, and the extension and skill routes. |
 | `FLOW_CALLBACK_HOSTS` | unset | Comma-separated `host[:port]` values a session `callback_url` may target. Enforced by the `deployed` profile; unset there means client callbacks are refused. |
 | `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | Credential-store path. |
