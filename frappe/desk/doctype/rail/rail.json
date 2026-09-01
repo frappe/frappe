@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-09-01 10:00:00.000000",
+ "description": "One layer of one app's rail. Three of them share this table, told apart by `app`, `user` and `standard`: the app's own rail, which it ships as an exported document and a developer authors; the site's arrangement of it, curated by a Workspace Manager and applying to everyone; and one person's own, applied last and winning. The order is strict -- app, then site, then user -- and there is no role layer, because a user with three roles would get three competing arrangements and a precedence rule the framework has nowhere else. A rail belongs to an app, so arranging ERPNext's does not touch CRM's. The container is named for where it is and its rows for what they do, which is the only arrangement in which one row type can honestly serve both this and a sidebar.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "app",
+  "user",
+  "standard",
+  "mount_on",
+  "items_section",
+  "items"
+ ],
+ "fields": [
+  {
+   "description": "The app whose rail this layer arranges. Required: a rail belongs to an app, and a layer that named none would be one arrangement spanning every rail. An `Autocomplete` over installed apps rather than a Link, because there is no `App` doctype -- the house spelling, shared with `Sidebar.app` and `Dock.app`.",
+   "fieldname": "app",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App",
+   "options": "Installed Applications",
+   "reqd": 1
+  },
+  {
+   "description": "The person whose own arrangement this is. Blank means the app's own rail or the site's arrangement of it, told apart by `standard`. Not nullable, so that one spelling of \"not a user's own layer\" reaches the index: a blank column stored as `NULL` is distinct from every other `NULL`, and an app could then hold two site layers that both look like one address.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "not_nullable": 1,
+   "options": "User"
+  },
+  {
+   "default": "0",
+   "description": "Owned by the app: exported to `<app>/rail/<app>/<app>.json` and re-imported by migrate. This is the app layer, the one the other two are laid over, and the only one an app ever writes. Writable in developer mode alone, because a standard rail with no exported file is an orphan and gets deleted on the next migrate.",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval:doc.standard == 1",
+   "description": "The app this one mounts on, for a companion app -- one with no rail of its own, whose entries live on a host's. Blank on every ordinary rail. An **app name** rather than a Link to a `Rail`: every consumer wants a string, and a pin aimed at a record would be a pin aimed at one of that app's three layers, which means nothing. App-layer only: `depends_on` hides it elsewhere and `validate` blanks it, because hiding a field does not stop an API write.",
+   "fieldname": "mount_on",
+   "fieldtype": "Autocomplete",
+   "label": "Mount On",
+   "options": "Installed Applications"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "description": "The entries this layer has an opinion about. Order is per parent, so dragging inside one section cannot renumber another, and it is a sparse move-list: an entry this layer never names keeps its shipped position and follows the ones it does. That is what lets an app add an item between two others and have it land there even for someone who has already rearranged the list.",
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Navigation Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 16:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Rail",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Workspace Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "read_only": 1,
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,15 @@
+{
+ "creation": "2026-09-01 10:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Navigation Item Type",
+ "idx": 0,
+ "label": "Link",
+ "modified": "2026-09-01 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Link",
+ "owner": "Administrator",
+ "permission_rule": "Always Visible",
+ "target_doctype": "",
+ "type_name": "Link"
+}
