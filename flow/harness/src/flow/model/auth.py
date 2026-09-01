@@ -250,9 +250,13 @@ async def resolve_model_auth(
 	store: CredentialStore,
 	*,
 	provider_id: str | None = None,
+	api_key: str | None = None,
+	api_base: str | None = None,
 ) -> ResolvedModelAuth:
-	"""Resolve a stored credential first, then the provider's environment."""
-	# first: they have no ProviderSpec, and base_url is the only route to the model
+	"""Inline credentials win; then a stored credential; then the provider's environment."""
+	if api_key or api_base:
+		return ResolvedModelAuth(api_key=api_key, base_url=api_base, source="inline credentials")
+	# custom endpoints first: they have no ProviderSpec, and base_url is the only route to the model
 	custom = _custom_credential_for_model(store, model, provider_id)
 	if custom is not None:
 		custom_id, credential = custom
