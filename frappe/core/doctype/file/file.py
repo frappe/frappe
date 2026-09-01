@@ -522,7 +522,7 @@ class File(Document):
 				exc=frappe.MandatoryError,
 			)
 		elif not self.file_name and self.file_url:
-			self.file_name = self.file_url.split("/")[-1]
+			self.file_name = self.file_url.split("/")[-1].split("?")[0]
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
 
