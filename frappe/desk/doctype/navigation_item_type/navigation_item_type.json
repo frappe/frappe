@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:type_name",
+ "creation": "2026-09-01 10:00:00.000000",
+ "description": "The kinds of thing a `Navigation Item` can be. Code-owned: a row is shipped as a file in an app and arrives on a site by migrate, never by someone filling in this form. An app adds a kind by shipping one of these rows and a renderer beside it, which is the same mechanism the framework's own kinds use.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type_name",
+  "label",
+  "icon",
+  "column_break_defn",
+  "module",
+  "target_doctype",
+  "permission_rule"
+ ],
+ "fields": [
+  {
+   "description": "What this kind is called, on screen and as its record name. Named for its destination, which is the rule the whole set follows: `DocType`, `Record`, `Module`, `Page`, `Link`.",
+   "fieldname": "type_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "How this kind reads when an item of it needs describing and has no label of its own.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "description": "The icon an item of this kind falls back to.",
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "label": "Icon",
+   "options": "Emojis"
+  },
+  {
+   "fieldname": "column_break_defn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The module whose folder ships this row, which is also where it is exported to and where the import walk finds it again.",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "description": "The doctype an item of this kind points into, copied onto the item's `link_doctype` so a row of this kind cannot name a destination in the wrong table. Left blank by the one kind that lets the item choose — `Record`, where the user picks the doctype as well as the document — and by the kinds that point nowhere at all.",
+   "fieldname": "target_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Target DocType",
+   "options": "DocType"
+  },
+  {
+   "description": "Which rule decides whether a user sees an item of this kind. Filtering navigation is a courtesy and never a control — hiding the way to a document is not hiding the document — so a rule may skip an expensive case and be wrong in the safe direction. Declaring a bucket is what keeps a new kind to two files and no framework change; `Custom` is the door for a kind that genuinely needs its own answer, and almost none should.\n\n`Readable DocType`: visible when the user can read the doctype it points at, whether by role or by a share.\n`Module Contents`: visible when any doctype in the module is readable, less an administrator's block.\n`Derived From Children`: visible when anything under it survives, and dropped when nothing does.\n`Permitted Page`: visible when the page is in the user's page set.\n`Always Visible`: never filtered; for a kind that points outside the site.\n`Custom`: answered by the type's own batched `can_see`, contributed alongside its renderer.",
+   "fieldname": "permission_rule",
+   "fieldtype": "Select",
+   "label": "Permission Rule",
+   "options": "Readable DocType\nModule Contents\nDerived From Children\nPermitted Page\nAlways Visible\nCustom",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "naming_rule": "By fieldname",
+ "name": "Navigation Item Type",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

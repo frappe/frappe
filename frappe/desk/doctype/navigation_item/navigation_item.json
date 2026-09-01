@@ -1,0 +1,183 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-09-01 10:00:00.000000",
+ "description": "One row of desk v2 navigation. The same row serves the rail and the sidebar, which is why it is named for what it does rather than for where it sits. A row points at exactly one destination and carries no query of its own.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "identity_section",
+  "key",
+  "parent_key",
+  "column_break_ident",
+  "item_type",
+  "destination_section",
+  "link_doctype",
+  "link_to",
+  "url",
+  "column_break_dest",
+  "payload",
+  "presentation_section",
+  "label",
+  "icon",
+  "column_break_pres",
+  "collapsible",
+  "keep_closed",
+  "customization_section",
+  "hidden",
+  "added",
+  "overrides"
+ ],
+ "fields": [
+  {
+   "fieldname": "identity_section",
+   "fieldtype": "Section Break",
+   "label": "Identity"
+  },
+  {
+   "description": "This row's address, authored once and then frozen. Every site and user edit is filed against it, so changing or dropping a key is a breaking change in the same sense that renaming a `fieldname` is: the deltas that named the old key go inert and the site silently loses its arrangement. Minted from a slug of the destination when the row is first exported, and never recomputed after that — identity is not derived from the destination columns, because an app retargeting an item is an ordinary product change and would otherwise orphan every customization of it.",
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Key"
+  },
+  {
+   "description": "The `key` of the row this one sits under. Blank means top level. This is the whole of hierarchy: there is no `child`, no `indent` and no depth cap, because a renderer that draws two levels says so itself rather than the framework deciding an app's navigation shape. A `parent_key` naming a row that is gone promotes this one to top level rather than dropping it, so an app removing a section never silently deletes navigation.",
+   "fieldname": "parent_key",
+   "fieldtype": "Data",
+   "label": "Parent Key"
+  },
+  {
+   "fieldname": "column_break_ident",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "What kind of thing this row opens. A Link to the code-owned type registry rather than a Select, because a Select's options live in one DocType JSON owned by one app, so a second app could only extend it with a Property Setter. Link rows are additive across apps with no shared field to fight over.",
+   "fieldname": "item_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Navigation Item Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "destination_section",
+   "fieldtype": "Section Break",
+   "label": "Destination"
+  },
+  {
+   "description": "The doctype `link_to` names. Fetched from the type's `Target DocType`, and only when the row leaves it blank -- which is what lets `Record`, the one type that hands the choice to the item, carry its own. Fetched rather than filled in `validate`, because a Dynamic Link is checked before any document hook runs on insert, and the framework resolves Link fields before Dynamic Links in the same pass. A Link rather than Data so that renaming a doctype repairs the pointer through ordinary link renaming.",
+   "fetch_from": "item_type.target_doctype",
+   "fetch_if_empty": 1,
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "label": "Link DocType",
+   "options": "DocType"
+  },
+  {
+   "description": "The record this row opens. A real Dynamic Link, which is what keeps `rename_dynamic_links` repairing every pointer on the site in one statement — base rows and layer rows alike. That matters most for the `Record` type, which has the highest rename traffic of all.",
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link To",
+   "options": "link_doctype"
+  },
+  {
+   "description": "Where a `Link` row goes. The one type with no document behind it, and so the one row with nothing for the Dynamic Link to hold.",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "column_break_dest",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The type-specific tail: whatever a type needs that no other type has, such as a `Link` row's open-in-new-tab choice or a `Page`'s query. Inside the row's identity, because a payload is by definition part of where the row goes. Never a filter or a saved query — what a list shows belongs to the document a `View` row points at, so that an authored item never carries a query it could be reformatted out of.",
+   "fieldname": "payload",
+   "fieldtype": "Code",
+   "label": "Payload",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "presentation_section",
+   "fieldtype": "Section Break",
+   "label": "Presentation"
+  },
+  {
+   "description": "What this row reads as. Outside identity, so re-labelling an item never detaches the customizations filed against it. A label a person authored — one named in `overrides` — renders verbatim and is never translated; a shipped one translates as usual.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "description": "What this row draws with. Outside identity, for the same reason as `label`.",
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "label": "Icon",
+   "options": "Emojis"
+  },
+  {
+   "fieldname": "column_break_pres",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Whether this row's children can be folded away. Generic to any node that has children, which is why it survived the columns that used to describe the tree instead of storing it.",
+   "fieldname": "collapsible",
+   "fieldtype": "Check",
+   "label": "Collapsible"
+  },
+  {
+   "default": "0",
+   "description": "Whether a collapsible row starts folded.",
+   "fieldname": "keep_closed",
+   "fieldtype": "Check",
+   "label": "Keep Closed"
+  },
+  {
+   "collapsible": 1,
+   "description": "Only meaningful on a site or user layer, where a row is either a delta against a row the app ships or an item the layer added outright.",
+   "fieldname": "customization_section",
+   "fieldtype": "Section Break",
+   "label": "Customization"
+  },
+  {
+   "default": "0",
+   "description": "Hide this item. Explicit rather than implied by the row's absence, which is what lets a user's `hidden: 0` un-hide something the site hid. Hiding is a preference and stays in the payload with this flag set; a permission check is a different thing and removes the row before any layer merges.",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
+  },
+  {
+   "default": "0",
+   "description": "0 means this row is a delta against a base row with the same `key`. 1 means a whole item this layer added, rendered as it stands.",
+   "fieldname": "added",
+   "fieldtype": "Check",
+   "label": "Added"
+  },
+  {
+   "description": "On a delta row, the JSON list of fieldnames this layer actually has an opinion about. Naming them explicitly is what lets a site clear a value the app shipped — remove an icon, blank a label — which an empty-means-inherit encoding cannot express, and what makes \"did a human author this label\" answerable at render time.",
+   "fieldname": "overrides",
+   "fieldtype": "Code",
+   "label": "Overrides",
+   "options": "JSON"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-01 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Navigation Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -66,8 +66,30 @@ for the declaring app. Contributed matches beat generated ones — `/deals` must
 `/:doctype` — and they share one flat namespace.
 
 **Rail**:
-The shell-owned navigation strip that never disappears. It lists the doctypes the user can
-**read** at this prefix — permission, not declaration.
+The shell-owned navigation strip that never disappears, and the `Rail` doctype behind it:
+one record per app per layer. Its contents are **declared rows**, not derived doctypes, and
+they are not limited to doctypes — a rail item may be a doctype, a module, a page, a record,
+a link or a section. Permission filters that declaration; it does not produce it. A rail item
+is *independent* or *linked*, and it is linked exactly when it opens a sidebar.
+_Avoid_: dock (that is desk v1's, and a live doctype of its own).
+
+**Sidebar**:
+The panel a linked rail item opens. Named for where it is, like the rail — which is what lets
+one row type serve both honestly.
+_Avoid_: using it bare; see **Words that collide**.
+
+**Navigation Item**:
+One row of navigation, in a rail or a sidebar. Named for what it does, because a name from
+one surface would name only half of it. A row points at exactly one destination and carries
+**no query of its own**. Its address is an authored, frozen `key`, which every site and user
+edit is filed against.
+_Avoid_: sidebar item, dock item, rail item (the last is fine in prose about the rail, never
+as a type name).
+
+**Navigation Item Type**:
+The kind a `Navigation Item` is, as a code-owned record an app ships. Adding a kind is a
+record plus a renderer beside it, and no framework change. The item axis is **type**, never
+*kind* — see below.
 
 **Manifest**:
 The build's description of the one bench-wide bundle: `[{app, app_prefix, source_dir,
@@ -90,7 +112,8 @@ _Avoid_: customization (that is the *effect*; a contribution is the delivery), p
 extension (see below).
 
 **Kind**:
-Which of the four contributions a file is — and a kind **is a path**, not a declaration:
+Which of the four contributions a file is — and a kind **is a path**, not a declaration.
+Only ever this. A navigation item's axis is its **type**, and `Record` appears in both lists:
 
 | path | kind |
 | --- | --- |
@@ -227,6 +250,10 @@ reach for the unambiguous alternative.
   contribution surface", "the shell's own surface". Only (a) is a type.
 - **`page`** — the curated `RecordPageApi`; a contributed standalone page; a Page Script;
   `ShellPage`, the server renderer; and desk v1's `Page` doctype. Qualify it always.
+- **`sidebar`** — (a) the panel a linked rail item opens, and desk v1's `Sidebar` doctype
+  behind it; (b) `Sidebar`, one of the navigation item types, named for that destination;
+  (c) the portal's unrelated `Website Sidebar`; (d) the loose CSS sense, any panel down one
+  side. A blind `sidebar` sweep takes (c) with it.
 - **`record`** — the page kind; the contribution kind and filename; a docname field in the
   error reporter; **and a verb** (`Surface.record`, private, "verbs record ops"). No
   *exported* API may use it as a verb — say `push` or `append`.
