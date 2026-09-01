@@ -932,3 +932,152 @@ body.grid-col-resizing {
 .bulk-edit-panel .file-preview-container + .justify-content-end {
 	display: none;
 }
+
+// The wizard's panels scroll inside the modal, so the scrollbar lands right
+// beside the fields. Keep it thin and hold a gutter open next to it.
+.bulk-edit-tabs .es-tabs__panel {
+	padding-right: var(--padding-sm);
+
+	// beats the global `*:not(#page-form-builder *)` scrollbar width
+	&::-webkit-scrollbar {
+		width: 4px !important;
+	}
+}
+
+// The wizard is sized against the window, so it keeps the same proportions
+// against the page on any screen. modal-xl's pixel max-width would cap the
+// width well short of that on a wide monitor.
+.modal-dialog.bulk-edit-dialog {
+	max-width: min(80vw, 1400px);
+}
+
+// The tab bar reads as a stepper: a ring per step, its label beside it, and a
+// rule running on to the next one. Only the look changes here — the tabs keep
+// their own click, keyboard and disabled behaviour.
+.bulk-edit-tabs .es-tabs__list {
+	justify-content: space-between;
+	gap: var(--padding-sm);
+	padding-block: var(--padding-xs);
+	border-bottom: none;
+	overflow: visible;
+}
+
+.bulk-edit-tabs .es-tabs__tab {
+	// every step but the last stretches, so the rules take up the slack
+	flex: 1 1 0;
+	gap: var(--padding-sm);
+
+	// last-of-type, not last-child: Tabs appends the indicator span after the
+	// buttons, so the last tab is never the list's last child
+	&:last-of-type {
+		flex: 0 0 auto;
+	}
+
+	// the ring. currentColor carries the tab's own state colour, so an active
+	// step darkens and a locked one stays muted without repeating the states
+	&::before {
+		content: "";
+		flex: 0 0 auto;
+		width: 14px;
+		height: 14px;
+		border: 1.5px dashed currentColor;
+		border-radius: 50%;
+	}
+
+	// the rule on to the next step
+	&::after {
+		content: "";
+		flex: 1 1 auto;
+		min-width: var(--padding-md);
+		height: 1px;
+		background: var(--outline-gray-2);
+	}
+
+	&:last-of-type::after {
+		display: none;
+	}
+}
+
+// the sliding underline belongs to a tab bar, not to a stepper
+.bulk-edit-tabs .es-tabs__indicator {
+	display: none;
+}
+
+// ---- the bulk edit preview, which doubles as the mapping step ----
+
+.bulk-edit-preview-head {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--padding-md);
+	margin-bottom: var(--padding-sm);
+}
+
+.bulk-edit-preview-table {
+	overflow-x: auto;
+	// a picker opens inside this box, so keep room for one even when the file
+	// has only a row or two
+	min-height: 260px;
+
+	table {
+		margin-bottom: 0;
+	}
+
+	// bounded so an open picker can never outgrow the space reserved above
+	.awesomplete > ul {
+		max-height: 220px;
+		overflow-y: auto;
+	}
+}
+
+// the file's own line number, so a warning naming a row can be found by eye
+.bulk-edit-preview-row {
+	width: 1%;
+	white-space: nowrap;
+	color: var(--text-muted);
+	text-align: right;
+}
+
+// the header cell is the picker for that column, with a dot carrying whether
+// the column is going anywhere. Absolute, so the cell stays a normal table
+// cell and the columns keep lining up.
+.bulk-edit-preview-table th[data-col] {
+	position: relative;
+	min-width: 150px;
+	padding-left: calc(var(--padding-md) + var(--padding-xs));
+	vertical-align: middle;
+
+	&::before {
+		content: "";
+		position: absolute;
+		left: var(--padding-sm);
+		top: 50%;
+		width: 6px;
+		height: 6px;
+		margin-top: -3px;
+		border-radius: 50%;
+		background: var(--surface-gray-3);
+	}
+
+	&[data-mapped="1"]::before {
+		background: var(--green-500);
+	}
+
+	// the cell is the control: no second border inside a bordered table
+	.frappe-control {
+		margin-bottom: 0;
+	}
+
+	.form-control {
+		height: auto;
+		padding: 0;
+		border: none;
+		background: transparent;
+		box-shadow: none;
+		font-weight: 600;
+	}
+}
+
+// an unmapped column is along for the ride; its values read as context only
+.bulk-edit-preview-table td[data-mapped="0"] {
+	color: var(--text-muted);
+}
