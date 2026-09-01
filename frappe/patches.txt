@@ -267,3 +267,6 @@ frappe.patches.v16_0.backfill_notification_log_title_description
 frappe.patches.v16_0.backfill_notification_email_type_preferences
 frappe.patches.v16_0.backfill_notification_log_app
 execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
+
+
+[post_fixture_sync]
