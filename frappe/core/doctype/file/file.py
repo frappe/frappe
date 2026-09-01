@@ -277,8 +277,9 @@ class File(Document):
 		if self.flags.original_path:
 			target = self.flags.original_path["new"]
 			target_file_url = self.flags.original_path["new_file_url"]
-			if not frappe.db.exists("File", {"file_url": target_file_url}):
-				target.unlink(missing_ok=True)
+			with frappe.db.advisory_lock(f"file:{target_file_url}"):
+				if not frappe.db.exists("File", {"file_url": target_file_url}):
+					target.unlink(missing_ok=True)
 			pop_rollback_flags()
 
 	def get_name_based_on_parent_folder(self) -> str | None:
@@ -360,8 +361,9 @@ class File(Document):
 		if not other_refs_exist:
 
 			def cleanup_source():
-				if not frappe.db.exists("File", {"file_url": old_file_url}):
-					source.unlink(missing_ok=True)
+				with frappe.db.advisory_lock(f"file:{old_file_url}"):
+					if not frappe.db.exists("File", {"file_url": old_file_url}):
+						source.unlink(missing_ok=True)
 
 			frappe.db.after_commit.add(cleanup_source)
 
@@ -900,14 +902,30 @@ class File(Document):
 			)
 
 		if duplicate_file:
-			file_doc: File = frappe.get_cached_doc("File", duplicate_file.name)
-			if file_doc.exists_on_disk():
-				if self.exists_on_disk():
-					if not self.file_url:
+			# excludes handle_is_private_changed's cleanup_source/on_rollback deleting this
+			# exact path out from under this reuse decision — held past this function's return,
+			# through whichever of after_commit/after_rollback actually concludes this
+			# transaction, not released via `with` (which would release it long before this
+			# transaction is durable, since save_file() returning doesn't mean committed)
+			lock_key = f"file:{duplicate_file.file_url}"
+			lock_cm = frappe.db.advisory_lock(lock_key)
+			lock_cm.__enter__()
+			try:
+				file_doc: File = frappe.get_cached_doc("File", duplicate_file.name)
+				if file_doc.exists_on_disk():
+					if self.exists_on_disk():
+						if not self.file_url:
+							self.file_url = duplicate_file.file_url
+					else:
 						self.file_url = duplicate_file.file_url
+					file_exists = True
+			finally:
+				if file_exists:
+					frappe.db.after_commit.add(lambda: lock_cm.__exit__(None, None, None))
+					frappe.db.after_rollback.add(lambda: lock_cm.__exit__(None, None, None))
 				else:
-					self.file_url = duplicate_file.file_url
-				file_exists = True
+					# not reusing after all — nothing left to protect, release immediately
+					lock_cm.__exit__(None, None, None)
 
 		if not file_exists:
 			if not overwrite:
