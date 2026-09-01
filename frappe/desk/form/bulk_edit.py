@@ -85,6 +85,26 @@ def parse_bulk_edit_file(doctype: str, filename: str, dataurl: str) -> list[list
 	return [[stringify(value) for value in row] for row in (rows or [])]
 
 
+@frappe.whitelist()
+def get_invalid_link_values(doctype: str, values_by_doctype: str) -> dict[str, list[str]]:
+	"""Check which Link column values in the bulk edit preview don't exist.
+
+	Batched by target doctype so the grid can validate every mapped Link column in one call.
+
+	:param doctype: doctype of the form the grid belongs to, for the permission check
+	:param values_by_doctype: JSON ``{linked_doctype: [distinct values]}``
+	"""
+	if not frappe.has_permission(doctype, "read"):
+		raise frappe.PermissionError
+
+	values_by_doctype = frappe.parse_json(values_by_doctype)
+	return {
+		linked_doctype: [value for value in values if not frappe.db.exists(linked_doctype, value, cache=True)]
+		for linked_doctype, values in values_by_doctype.items()
+		if frappe.has_permission(linked_doctype, "read")
+	}
+
+
 def get_extension(filename: str) -> str:
 	return (filename or "").rsplit(".", 1)[-1].lower()
 

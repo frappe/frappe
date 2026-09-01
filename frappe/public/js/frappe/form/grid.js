@@ -18,14 +18,13 @@ const BULK_EDIT_DONT_IMPORT = "Don't Import";
 const BULK_EDIT_BLANK_TEMPLATE = "blank_template";
 const BULK_EDIT_ALL_RECORDS = "all";
 const BULK_EDIT_5_RECORDS = "5_records";
-// every step of the flow uses one size so the modals swap without resizing
 // every step shares one size, so switching tabs never resizes the modal.
-// the width matches global search; the height clears the file picker's drop
-// zone (16rem) with room to spare, but never grows past what the window can
-// show, so the modal keeps an even margin above and below instead of
-// running off the screen
+// the modal is sized against the window rather than in pixels: it takes 90%
+// of the height, less the header and footer the body sits between, so the
+// margin above and below stays even on any screen. the width comes with it,
+// from .bulk-edit-dialog in grid.scss
 const BULK_EDIT_DIALOG_SIZE = "extra-large";
-const BULK_EDIT_DIALOG_HEIGHT = "min(520px, calc(100vh - 200px))";
+const BULK_EDIT_DIALOG_HEIGHT = "calc(90vh - 104px)";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -266,7 +265,7 @@ export default class Grid {
 
 	set_doc_url() {
 		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
-			(x) => frappe.model.table_fields.indexOf(x) === -1
+			(x) => frappe.model.table_fields.indexOf(x) === -1,
 		);
 
 		if (
@@ -342,15 +341,15 @@ export default class Grid {
 			} else {
 				this.set_button_label(
 					this.remove_rows_button,
-					__("Delete {0} rows", [num_selected_rows])
+					__("Delete {0} rows", [num_selected_rows]),
 				);
 				this.set_button_label(
 					this.edit_rows_button,
-					__("Edit {0} rows", [num_selected_rows])
+					__("Edit {0} rows", [num_selected_rows]),
 				);
 				this.set_button_label(
 					this.duplicate_rows_button,
-					__("Duplicate {0} rows", [num_selected_rows])
+					__("Duplicate {0} rows", [num_selected_rows]),
 				);
 			}
 
@@ -469,7 +468,7 @@ export default class Grid {
 		this.remove_rows_button.toggleClass("hidden", !has_checked);
 		this.duplicate_rows_button.toggleClass(
 			"hidden",
-			!has_checked || this.cannot_add_rows || (this.df && this.df.cannot_add_rows)
+			!has_checked || this.cannot_add_rows || (this.df && this.df.cannot_add_rows),
 		);
 
 		const all_checked = !!this.wrapper.find(".grid-heading-row .grid-row-check:checked:first")
@@ -481,7 +480,7 @@ export default class Grid {
 		if (show_delete_all_btn) {
 			this.set_button_label(
 				this.remove_all_rows_button,
-				__("Delete all {0} rows", [this.data.length])
+				__("Delete all {0} rows", [this.data.length]),
 			);
 		}
 	}
@@ -503,7 +502,7 @@ export default class Grid {
 
 	debounced_refresh_remove_rows_button = frappe.utils.debounce(
 		this.refresh_remove_rows_button,
-		100
+		100,
 	);
 
 	refresh_duplicate_rows_button() {
@@ -516,7 +515,7 @@ export default class Grid {
 
 	debounced_duplicate_rows_button = frappe.utils.debounce(
 		this.refresh_duplicate_rows_button,
-		100
+		100,
 	);
 
 	get_selected() {
@@ -605,7 +604,7 @@ export default class Grid {
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
 						let width = me.clamp_column_width(
-							start_width + dir * (ev.pageX - start_x)
+							start_width + dir * (ev.pageX - start_x),
 						);
 						me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
 							width: `${width}px`,
@@ -617,10 +616,10 @@ export default class Grid {
 						$("body").removeClass("grid-col-resizing");
 						me.save_column_width(
 							fieldname,
-							me.clamp_column_width(start_width + dir * (ev.pageX - start_x))
+							me.clamp_column_width(start_width + dir * (ev.pageX - start_x)),
 						);
 					});
-			}
+			},
 		);
 	}
 
@@ -695,7 +694,7 @@ export default class Grid {
 			this.display_status = frappe.perm.get_field_display_status(
 				this.df,
 				this.frm.doc,
-				this.perm
+				this.perm,
 			);
 		} else if (this.df.is_web_form && this.control) {
 			this.display_status = this.control.get_status();
@@ -880,7 +879,7 @@ export default class Grid {
 			this.df = frappe.meta.get_docfield(
 				this.frm.doctype,
 				this.df.fieldname,
-				this.frm.docname
+				this.frm.docname,
 			);
 		} else {
 			// use non-doc specific docfield
@@ -1014,7 +1013,7 @@ export default class Grid {
 					this.frm.script_manager.trigger(
 						this.df.fieldname + "_move",
 						this.df.options,
-						doc.name
+						doc.name,
 					);
 				this.refresh();
 				this.frm && this.frm.dirty();
@@ -1103,7 +1102,7 @@ export default class Grid {
 					if (!this.deleted_docs || !this.deleted_docs.includes(data.name)) {
 						return data;
 					}
-			  })
+				})
 			: [];
 	}
 
@@ -1208,7 +1207,7 @@ export default class Grid {
 		return frappe.meta.get_docfield(
 			this.doctype,
 			fieldname,
-			this.frm ? this.frm.docname : null
+			this.frm ? this.frm.docname : null,
 		);
 	}
 
@@ -1266,7 +1265,7 @@ export default class Grid {
 					this.frm.doc,
 					this.df.options,
 					this.df.fieldname,
-					idx
+					idx,
 				);
 				if (copy_doc) {
 					d = this.duplicate_row(d, copy_doc);
@@ -1363,7 +1362,7 @@ export default class Grid {
 		const perm_reference_doc = parent_doc
 			? Object.assign({ doctype: this.doctype }, bulk_edit_reference_row, {
 					docstatus: parent_doc.docstatus,
-			  })
+				})
 			: null;
 
 		/** Match grid editability, including allow-on-submit fields after parent submit. */
@@ -1386,13 +1385,13 @@ export default class Grid {
 				frappe.perm.get_field_display_status(
 					field_doc,
 					perm_reference_doc,
-					this.frm.perm
+					this.frm.perm,
 				) === "Write"
 			);
 		};
 
 		const editable_fields = (this.docfields || []).filter((field_doc) =>
-			is_field_editable(field_doc)
+			is_field_editable(field_doc),
 		);
 		if (!editable_fields.length) {
 			frappe.msgprint(__("No editable fields available for bulk edit."));
@@ -1408,7 +1407,7 @@ export default class Grid {
 		});
 
 		const field_options = Object.keys(field_mappings).sort((a, b) =>
-			__(cstr(field_mappings[a].label)).localeCompare(cstr(__(field_mappings[b].label)))
+			__(cstr(field_mappings[a].label)).localeCompare(cstr(__(field_mappings[b].label))),
 		);
 		const field_autocomplete_options = field_options.map((key) => ({
 			label: __(cstr(field_mappings[key].label)),
@@ -1450,7 +1449,7 @@ export default class Grid {
 
 				const update_value = value || null;
 				const tasks = selected_children.map((doc) =>
-					frappe.model.set_value(doc.doctype, doc.name, fieldname, update_value)
+					frappe.model.set_value(doc.doctype, doc.name, fieldname, update_value),
 				);
 
 				Promise.all(tasks).then(() => {
@@ -1462,7 +1461,7 @@ export default class Grid {
 						__("Updated {0} selected {1}. Save the form to keep changes.", [
 							selected_children.length,
 							row_label,
-						])
+						]),
 					);
 				});
 			},
@@ -1522,7 +1521,7 @@ export default class Grid {
 				dialog.set_df_property(
 					"value",
 					"description",
-					__("You have not entered a value. The field will be set to empty.")
+					__("You have not entered a value. The field will be set to empty."),
 				);
 			} else {
 				dialog.set_df_property("value", "description", "");
@@ -1722,13 +1721,14 @@ export default class Grid {
 			rows: [],
 			row_numbers: [],
 			column_map: {},
+			warnings: [],
 		};
 
 		const panels = {
 			setup: $('<div class="bulk-edit-panel"></div>'),
 			upload: $('<div class="bulk-edit-panel"></div>'),
 			preview: $('<div class="bulk-edit-panel"></div>'),
-			mapping: $('<div class="bulk-edit-panel"></div>'),
+			issues: $('<div class="bulk-edit-panel"></div>'),
 		};
 
 		const dialog = new frappe.ui.Dialog({
@@ -1736,6 +1736,9 @@ export default class Grid {
 			size: BULK_EDIT_DIALOG_SIZE,
 			centered: true,
 		});
+		// the width is a share of the window too, so the modal keeps the same
+		// proportions against the page that the height does
+		$(dialog.wrapper).addClass("bulk-edit-dialog");
 		// the body owns the height and each panel fills what is left under the tab
 		// bar, so a tall panel scrolls inside itself instead of growing the modal
 		dialog.modal_body.css({ height: BULK_EDIT_DIALOG_HEIGHT, "overflow-y": "hidden" });
@@ -1746,8 +1749,8 @@ export default class Grid {
 					{ label: __("Setup"), content: () => panels.setup[0] },
 					{ label: __("Upload"), content: () => build_uploader(), disabled: true },
 					{ label: __("Preview"), content: () => panels.preview[0], disabled: true },
-					{ label: __("Map Columns"), content: () => panels.mapping[0], disabled: true },
-			  ]
+					{ label: __("Fix Issues"), content: () => panels.issues[0], disabled: true },
+				]
 			: [{ label: __("Setup"), content: () => panels.setup[0] }];
 
 		const tabs = new frappe.ui.Tabs({
@@ -1771,7 +1774,7 @@ export default class Grid {
 		const TAB_SETUP = 0;
 		const TAB_UPLOAD = 1;
 		const TAB_PREVIEW = 2;
-		const TAB_MAPPING = 3;
+		const TAB_ISSUES = 3;
 
 		// ---------------------------------------------------------- step 1
 
@@ -1794,7 +1797,7 @@ export default class Grid {
 							"export_records",
 							value === BULK_EDIT_INSERT
 								? BULK_EDIT_BLANK_TEMPLATE
-								: BULK_EDIT_ALL_RECORDS
+								: BULK_EDIT_ALL_RECORDS,
 						);
 						tabs.set_disabled(TAB_UPLOAD, !value);
 					},
@@ -1830,12 +1833,18 @@ export default class Grid {
 					label: __("Fields"),
 					columns: 2,
 					select_all: true,
+					select_mandatory: true,
 					sort_options: false,
-					options: this.get_bulk_edit_docfields().map((df) => ({
-						label: __(df.label || df.fieldname, null, df.parent),
-						value: df.fieldname,
-						checked: 1,
-					})),
+					options: this.get_bulk_edit_docfields().map((df) => {
+						// ID and mandatory fields only; row-matching needs ID and the rest is opt-in
+						const mandatory = df.fieldname === BULK_EDIT_ID_FIELDNAME || !!df.reqd;
+						return {
+							label: __(df.label || df.fieldname, null, df.parent),
+							value: df.fieldname,
+							checked: mandatory ? 1 : 0,
+							danger: mandatory,
+						};
+					}),
 					on_change: () => set_footer(),
 				},
 			],
@@ -1870,7 +1879,7 @@ export default class Grid {
 				setTimeout(() => {
 					sync_uploaded_file();
 					set_footer();
-				}, 0)
+				}, 0),
 			);
 			return panels.upload[0];
 		};
@@ -1885,90 +1894,128 @@ export default class Grid {
 			state.row_numbers = [];
 			state.column_map = {};
 			tabs.set_disabled(TAB_PREVIEW, true);
-			tabs.set_disabled(TAB_MAPPING, true);
+			tabs.set_disabled(TAB_ISSUES, true);
 		};
 
 		// ---------------------------------------------------------- step 3
 
 		let preview_form = null;
-		const build_preview_form = () => {
+		let mapping_controls = [];
+		// set_value fires the control's change hook, so the initial pass would
+		// redraw once per column before the last one exists. One redraw at the end
+		// of the build covers them all.
+		let building_preview = false;
+		// discards a stale link-check response if a newer mapping change started one first
+		let preview_request_id = 0;
+
+		/** "Don't Import", then every field a column can land in. */
+		const mapping_options = () => [
+			{ label: __("Don't Import"), value: BULK_EDIT_DONT_IMPORT },
+			...this.get_bulk_edit_docfields().map((df) => ({
+				label: __(df.label || df.fieldname, null, df.parent),
+				value: df.fieldname,
+				// the file speaks fieldnames, so the picker shows both names
+				description: df.fieldname,
+			})),
+		];
+
+		/**
+		 * The preview is the mapping step: every column of the file gets a picker
+		 * in the header cell above its own values, so a column and the field it
+		 * lands in are read together. Built once per file — a mapping change only
+		 * re-reads the pickers, which keeps them (and any open dropdown) alive.
+		 */
+		const build_preview = () => {
 			panels.preview.empty();
 			preview_form = new frappe.ui.FieldGroup({
 				body: panels.preview[0],
 				no_submit_on_enter: true,
-				fields: [
-					{ fieldtype: "HTML", fieldname: "summary" },
-					{ fieldtype: "HTML", fieldname: "table" },
-				],
+				fields: [{ fieldtype: "HTML", fieldname: "table" }],
 			});
 			preview_form.make();
+
+			const $table = preview_form.get_field("table").$wrapper;
+			$table.html(
+				this.get_bulk_edit_preview_html(state.headers, state.rows, state.row_numbers),
+			);
+
+			const options = mapping_options();
+			building_preview = true;
+			mapping_controls = state.headers.map((header, i) => {
+				const control = frappe.ui.form.make_control({
+					df: {
+						fieldtype: "Autocomplete",
+						fieldname: `map_${i}`,
+						placeholder: header || __("Column {0}", [i + 1]),
+						max_items: Infinity,
+						options,
+						change: () => refresh_preview(),
+					},
+					parent: $table.find(`th[data-col="${i}"]`).get(0),
+					render_input: true,
+					only_input: true,
+				});
+				control.set_value(state.column_map[i] || BULK_EDIT_DONT_IMPORT);
+				return control;
+			});
+			building_preview = false;
+
+			refresh_preview();
 		};
 
 		// ---------------------------------------------------------- step 4
 
-		let mapping_form = null;
-		const build_mapping_form = () => {
-			panels.mapping.empty();
-			const options = [
-				{ label: __("Don't Import"), value: BULK_EDIT_DONT_IMPORT },
-				...this.get_bulk_edit_docfields().map((df) => ({
-					label: __(df.label || df.fieldname, null, df.parent),
-					value: df.fieldname,
-					description: df.fieldname,
-				})),
-			];
-
-			const fields = [];
-			state.headers.forEach((header, i) => {
-				fields.push(
-					{
-						fieldtype: "Data",
-						fieldname: `column_${i}`,
-						label: "",
-						default: header || __("Column {0}", [i + 1]),
-						read_only: 1,
-					},
-					{ fieldtype: "Column Break" },
-					{
-						fieldtype: "Autocomplete",
-						fieldname: `map_${i}`,
-						label: "",
-						max_items: Infinity,
-						options,
-						default: state.column_map[i] || BULK_EDIT_DONT_IMPORT,
-						change: () => refresh_preview(),
-					},
-					{ fieldtype: "Section Break" }
-				);
-			});
-
-			mapping_form = new frappe.ui.FieldGroup({
-				body: panels.mapping[0],
+		let issues_form = null;
+		const build_issues_form = () => {
+			panels.issues.empty();
+			issues_form = new frappe.ui.FieldGroup({
+				body: panels.issues[0],
 				no_submit_on_enter: true,
-				fields,
+				fields: [{ fieldtype: "HTML", fieldname: "issues" }],
 			});
-			mapping_form.make();
+			issues_form.make();
 		};
 
-		/** Re-read the mapping controls, then redraw the summary and the table. */
-		const refresh_preview = () => {
+		/**
+		 * Re-read the pickers, then redraw everything that describes the mapping:
+		 * the column states in the preview, the counts and the warnings.
+		 */
+		const refresh_preview = async () => {
+			if (building_preview) return;
+			const request_id = ++preview_request_id;
+
 			const map = {};
-			state.headers.forEach((header, i) => {
-				const value = mapping_form?.get_value(`map_${i}`);
+			mapping_controls.forEach((control, i) => {
+				const value = control.get_value();
 				if (value && value !== BULK_EDIT_DONT_IMPORT) map[i] = value;
 			});
 			state.column_map = map;
 
-			const counts = this.count_bulk_edit_rows(state.rows, state.import_type, map);
+			// a mapped column carries its values into the table, an unmapped one is
+			// along for the ride; the cells say so without a legend
+			preview_form
+				.get_field("table")
+				.$wrapper.find("[data-col]")
+				.each((_, cell) => {
+					$(cell).attr("data-mapped", map[cint(cell.dataset.col)] ? 1 : 0);
+				});
+
 			const warnings = this.get_bulk_edit_warnings(
 				state.headers,
 				state.rows,
 				state.row_numbers,
 				state.import_type,
-				map
+				map,
 			);
+			warnings.push(
+				...(await this.get_bulk_edit_link_warnings(state.rows, state.row_numbers, map)),
+			);
+			// a later mapping change already started its own refresh; let that one win
+			if (request_id !== preview_request_id) return;
+			state.warnings = warnings;
 
-			preview_form.get_field("summary").$wrapper.html(`
+			const counts = this.count_bulk_edit_rows(state.rows, state.import_type, map);
+			issues_form.get_field("issues").$wrapper.html(`
 				<p class="text-muted small">
 					${__("{0} rows read from the file.", [state.rows.length])}
 					${__("{0} will be added, {1} will update an existing row, {2} will be skipped.", [
@@ -1980,28 +2027,24 @@ export default class Grid {
 				${
 					counts.skip
 						? `<p class="text-muted small">${__(
-								"Rows are skipped when their ID does not match a row in this table."
-						  )}</p>`
+								"Rows are skipped when their ID does not match a row in this table.",
+							)}</p>`
 						: ""
 				}
 				${
-					warnings.length
-						? `<p class="text-warning small">${__("{0} warnings", [
-								`<b>${warnings.length}</b>`,
-						  ])}</p>${this.get_bulk_edit_warnings_html(warnings)}`
-						: ""
+					state.warnings.length
+						? this.get_bulk_edit_warnings_html(state.warnings)
+						: `<p class="text-muted small">${__("Nothing to fix in this file.")}</p>`
 				}
 			`);
 
-			preview_form
-				.get_field("table")
-				.$wrapper.html(this.get_bulk_edit_preview_html(state.rows, map));
+			set_footer();
 		};
 
 		const on_file = (data) => {
 			if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > BULK_EDIT_MAX_ROWS) {
 				frappe.throw(
-					__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS])
+					__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS]),
 				);
 			}
 
@@ -2025,13 +2068,12 @@ export default class Grid {
 			}
 
 			state.column_map = this.get_bulk_edit_column_map(state.headers);
-			build_preview_form();
-			// built now so the mapping controls exist for refresh_preview to read
-			build_mapping_form();
-			refresh_preview();
+			// the issues panel is written to by refresh_preview, so it exists first
+			build_issues_form();
+			build_preview();
 			// both describe the parsed file, so both open together
 			tabs.set_disabled(TAB_PREVIEW, false);
-			tabs.set_disabled(TAB_MAPPING, false);
+			tabs.set_disabled(TAB_ISSUES, false);
 			tabs.set_active(TAB_PREVIEW);
 		};
 
@@ -2043,7 +2085,7 @@ export default class Grid {
 			this.download_bulk_edit_template(
 				values.file_type,
 				values.fields,
-				values.export_records
+				values.export_records,
 			);
 		};
 
@@ -2065,7 +2107,7 @@ export default class Grid {
 		 */
 		const set_footer = () => {
 			const active = tabs.get_active();
-			dialog.get_primary_btn().addClass("hide");
+			dialog.get_primary_btn().addClass("hide").prop("disabled", false);
 			const $secondary = dialog.get_secondary_btn().addClass("hide");
 
 			if (active === TAB_SETUP) {
@@ -2077,25 +2119,34 @@ export default class Grid {
 						tabs.set_disabled(TAB_UPLOAD, false);
 						tabs.set_active(TAB_UPLOAD);
 					});
+					// nothing on this tab should ever block moving on
+					dialog.get_primary_btn().prop("disabled", false);
 				}
 				return;
 			}
 
 			if (active === TAB_PREVIEW) {
-				dialog.set_secondary_action_label(__("Map Columns"));
-				dialog.set_secondary_action(() => tabs.set_active(TAB_MAPPING));
+				// the count rides on the label, so a file with something wrong
+				// says so without the issues tab having to be opened first
+				dialog.set_secondary_action_label(
+					state.warnings.length
+						? __("Fix Issues ({0})", [state.warnings.length])
+						: __("Fix Issues"),
+				);
+				dialog.set_secondary_action(() => tabs.set_active(TAB_ISSUES));
 				set_action(
 					__("Apply"),
 					() => {
 						dialog.hide();
 						this.apply_bulk_edit_rows(state.rows, state.import_type, state.column_map);
 					},
-					{ solid: true }
+					{ solid: true },
 				);
+				dialog.get_primary_btn().prop("disabled", state.warnings.some((w) => w.blocking));
 				return;
 			}
 
-			if (active === TAB_MAPPING) {
+			if (active === TAB_ISSUES) {
 				// the button label is set with .text(), so the arrow has to be a glyph
 				set_action(`← ${__("Back to Preview")}`, () => tabs.set_active(TAB_PREVIEW));
 				return;
@@ -2197,39 +2248,52 @@ export default class Grid {
 		});
 	}
 
-	get_bulk_edit_preview_html(rows, column_map) {
+	/**
+	 * The file exactly as it was read: every column, in file order, under a
+	 * header cell left empty for its mapping picker. The picker is mounted by
+	 * the wizard, which owns the options and the redraw.
+	 */
+	get_bulk_edit_preview_html(headers, rows, row_numbers) {
 		const escape = frappe.utils.escape_html;
-		const columns = Object.keys(column_map).map(cint);
+		const shown = rows.slice(0, BULK_EDIT_PREVIEW_ROWS);
 
-		if (!columns.length) {
-			return `<p class="text-muted">${__(
-				"No column in this file matches a field. Use Map Columns to pair them up."
-			)}</p>`;
-		}
-
-		const head = columns.map((i) => `<th class="text-muted">${escape(column_map[i])}</th>`);
-		const body = rows
-			.slice(0, BULK_EDIT_PREVIEW_ROWS)
-			.map(
-				(row) =>
-					`<tr>${columns.map((i) => `<td>${escape(cstr(row[i]))}</td>`).join("")}</tr>`
-			);
+		const head = headers.map((header, i) => `<th data-col="${i}" data-mapped="0"></th>`);
+		const body = shown.map(
+			(row, r) => `
+				<tr>
+					<td class="bulk-edit-preview-row">${cint(row_numbers[r])}</td>
+					${headers
+						.map(
+							(header, i) =>
+								`<td data-col="${i}" data-mapped="0">${escape(cstr(row[i]))}</td>`,
+						)
+						.join("")}
+				</tr>
+			`,
+		);
 
 		return `
-			<div style="overflow-x: auto;">
-				<table class="table table-bordered" style="margin-bottom: 0;">
-					<thead><tr>${head.join("")}</tr></thead>
+			<div class="bulk-edit-preview-head">
+				<span class="text-muted small">${__(
+					"Map each column of the file to a field. Anything left unmapped is ignored.",
+				)}</span>
+				<span class="text-muted small">${
+					rows.length > shown.length
+						? __("Showing first {0} of {1} rows", [shown.length, rows.length])
+						: __("Showing all {0} rows", [rows.length])
+				}</span>
+			</div>
+			<div class="bulk-edit-preview-table">
+				<table class="table table-bordered">
+					<thead>
+						<tr>
+							<th class="bulk-edit-preview-row">${__("Row")}</th>
+							${head.join("")}
+						</tr>
+					</thead>
 					<tbody>${body.join("")}</tbody>
 				</table>
 			</div>
-			${
-				rows.length > BULK_EDIT_PREVIEW_ROWS
-					? `<p class="text-muted small mt-2">${__("Showing first {0} of {1} rows.", [
-							BULK_EDIT_PREVIEW_ROWS,
-							rows.length,
-					  ])}</p>`
-					: ""
-			}
 		`;
 	}
 
@@ -2258,7 +2322,7 @@ export default class Grid {
 								<b>${__("Row {0}", [row])}</b>
 								<ul>${by_row[row].map(line).join("")}</ul>
 							</div>
-						`
+						`,
 					)
 					.join("")}
 			</div>
@@ -2266,8 +2330,8 @@ export default class Grid {
 	}
 
 	/**
-	 * Everything questionable about the file, found without touching the server.
-	 * Link values are not checked; proving one exists needs a query per value.
+	 * Everything questionable about the file that can be found without touching the
+	 * server. Link existence is checked separately, in {@link get_bulk_edit_link_warnings}.
 	 */
 	get_bulk_edit_warnings(headers, rows, row_numbers, import_type, column_map) {
 		const warnings = [];
@@ -2285,9 +2349,27 @@ export default class Grid {
 
 		if (import_type !== BULK_EDIT_INSERT && id_index === undefined) {
 			warnings.push({
+				blocking: true,
 				message: __(
-					"No ID column is mapped, so no row can be matched. Every row will be skipped."
+					"No ID column is mapped, so no row can be matched. Every row will be skipped.",
 				),
+			});
+		} else if (id_index !== undefined) {
+			// rows sharing an ID target the same row; the last one applied wins
+			const rows_by_id = {};
+			rows.forEach((row, r) => {
+				const id = cstr(row[id_index]).trim();
+				if (id) (rows_by_id[id] ??= []).push(row_numbers[r]);
+			});
+			Object.entries(rows_by_id).forEach(([id, id_rows]) => {
+				if (id_rows.length > 1) {
+					warnings.push({
+						message: __("ID {0} appears in rows {1} — only the last one will apply.", [
+							id,
+							id_rows.join(", "),
+						]),
+					});
+				}
 			});
 		}
 
@@ -2329,6 +2411,7 @@ export default class Grid {
 					const options = (df.options || "").split("\n").map((o) => o.trim());
 					if (!options.includes(value)) {
 						warnings.push({
+							blocking: true,
 							row: row_number,
 							field: df,
 							message: __('"{0}" is not a valid option. Allowed: {1}', [
@@ -2342,6 +2425,7 @@ export default class Grid {
 				// a blank mandatory cell only matters on a row that is being created
 				if (df.reqd && !value && is_new) {
 					warnings.push({
+						blocking: true,
 						row: row_number,
 						field: df,
 						message: __("This field is mandatory and is blank."),
@@ -2350,6 +2434,52 @@ export default class Grid {
 			});
 		});
 
+		return warnings;
+	}
+
+	/** Existence-check every mapped Link column; batched into one call by target doctype. */
+	async get_bulk_edit_link_warnings(rows, row_numbers, column_map) {
+		const link_columns = Object.keys(column_map)
+			.map(cint)
+			.map((i) => ({ i, df: frappe.meta.get_docfield(this.df.options, column_map[i]) }))
+			.filter(({ df }) => df?.fieldtype === "Link");
+
+		if (!link_columns.length) return [];
+
+		const values_by_doctype = {};
+		link_columns.forEach(({ i, df }) => {
+			const values = (values_by_doctype[df.options] ??= new Set());
+			rows.forEach((row) => {
+				const value = cstr(row[i]).trim();
+				if (value) values.add(value);
+			});
+		});
+
+		const invalid = await frappe.xcall("frappe.desk.form.bulk_edit.get_invalid_link_values", {
+			doctype: this.frm.doctype,
+			values_by_doctype: JSON.stringify(
+				Object.fromEntries(
+					Object.entries(values_by_doctype).map(([doctype, values]) => [doctype, [...values]]),
+				),
+			),
+		});
+
+		const warnings = [];
+		link_columns.forEach(({ i, df }) => {
+			const invalid_values = new Set(invalid[df.options] || []);
+			if (!invalid_values.size) return;
+			rows.forEach((row, r) => {
+				const value = cstr(row[i]).trim();
+				if (value && invalid_values.has(value)) {
+					warnings.push({
+						blocking: true,
+						row: row_numbers[r],
+						field: df,
+						message: __('"{0}" is not a valid {1}', [value, df.label]),
+					});
+				}
+			});
+		});
 		return warnings;
 	}
 
