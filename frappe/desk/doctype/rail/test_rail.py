@@ -46,17 +46,18 @@ def item(**kwargs):
 
 
 class TestRail(IntegrationTestCase):
-	def test_the_seven_shipped_types_are_present(self):
+	def test_the_eight_shipped_types_are_present(self):
 		"""The framework's own kinds arrive by migrate, as records rather than through a seeder.
 
-		`Sidebar` and `View` are deliberately absent: each points at a doctype that does not exist
-		on this branch yet, and a type row with a wrong target is worse than a missing one.
+		`Sidebar` joined them once desk v2 had a sidebar container for it to point at. `View` is
+		still deliberately absent: the doctype it points at is a separate effort, and a type row
+		with a wrong target is worse than a missing one.
 		"""
 		shipped = set(frappe.get_all("Navigation Item Type", pluck="name"))
 		self.assertTrue(
-			{"DocType", "Record", "Module", "Module Contents", "Page", "Link", "Section"} <= shipped
+			{"DocType", "Record", "Module", "Module Contents", "Page", "Link", "Section", "Sidebar"}
+			<= shipped
 		)
-		self.assertNotIn("Sidebar", shipped)
 		self.assertNotIn("View", shipped)
 
 	def test_a_type_declares_its_permission_bucket(self):
@@ -68,6 +69,18 @@ class TestRail(IntegrationTestCase):
 		self.assertEqual(buckets["Module"], "Module Contents")
 		self.assertEqual(buckets["Section"], "Derived From Children")
 		self.assertEqual(buckets["Link"], "Always Visible")
+
+	def test_module_and_module_contents_are_two_kinds(self):
+		"""They share a target doctype and are told apart by what they do with it. `Module` opens a
+		module's page and is visible when anything in the module is readable; `Module Contents` is
+		the overflow row that expands into what is left, so it drops when nothing survives under
+		it, exactly as a `Section` does.
+		"""
+		buckets = dict(
+			frappe.get_all("Navigation Item Type", fields=["name", "permission_rule"], as_list=True)
+		)
+		self.assertEqual(buckets["Module"], "Module Contents")
+		self.assertEqual(buckets["Module Contents"], "Derived From Children")
 
 	def test_nobody_may_author_a_type_outside_developer_mode(self):
 		"""A kind is code, so minting one is a developer act and not a permission a role carries."""
@@ -152,7 +165,7 @@ class TestRail(IntegrationTestCase):
 		self.assertEqual(rail.name, APP)
 
 	def test_app_content_is_not_writable_outside_developer_mode(self):
-		"""Otherwise a Workspace Manager could take an app's rail and turn it into a site row."""
+		"""Otherwise anyone who may curate the site could take an app's rail and turn it into a site row."""
 		with developer_mode(False):
 			self.assertRaises(frappe.ValidationError, make_rail(standard=1).insert)
 

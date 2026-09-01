@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "field:type_name",
  "creation": "2026-09-01 10:00:00.000000",
- "description": "The kinds of thing a `Navigation Item` can be. Code-owned: a row is shipped as a file in an app and arrives on a site by migrate, never by someone filling in this form. An app adds a kind by shipping one of these rows and a renderer beside it, which is the same mechanism the framework's own kinds use.",
+ "description": "The kinds of thing a `Navigation Item` can be. Code-owned: a row is shipped as a file in an app and arrives on a site by migrate, never by someone filling in this form. An app adds a kind by shipping one of these rows and a renderer beside it, which is the same mechanism the framework's own kinds use. The framework ships eight: `DocType`, `Record`, `Module`, `Module Contents`, `Page`, `Link`, `Section` and `Sidebar`.",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -18,7 +18,7 @@
  ],
  "fields": [
   {
-   "description": "What this kind is called, on screen and as its record name. Named for its destination, which is the rule the whole set follows: `DocType`, `Record`, `Module`, `Page`, `Link`.",
+   "description": "What this kind is called, on screen and as its record name. Named for its destination, which is the rule the whole set follows: a `DocType` row opens a doctype, a `Sidebar` row opens a sidebar, a `Module` row opens a module's page. The two exceptions are named for what they hold rather than for where they go, because they go nowhere themselves: `Section`, a heading with rows under it, and `Module Contents`, the overflow row that expands into whatever of a module is left.",
    "fieldname": "type_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -53,7 +53,7 @@
    "reqd": 1
   },
   {
-   "description": "The doctype an item of this kind points into, copied onto the item's `link_doctype` so a row of this kind cannot name a destination in the wrong table. Left blank by the one kind that lets the item choose — `Record`, where the user picks the doctype as well as the document — and by the kinds that point nowhere at all.",
+   "description": "The doctype an item of this kind points into, copied onto the item's `link_doctype` so a row of this kind cannot name a destination in the wrong table. Left blank by the one kind that lets the item choose -- `Record`, where the user picks the doctype as well as the document -- and by the kinds that point nowhere at all. Two kinds may share a target and still be two kinds: `Module` and `Module Contents` both name a `Module Def`, and what tells them apart is what they do with it, which is their renderer's business and not a column here.",
    "fieldname": "target_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -61,7 +61,7 @@
    "options": "DocType"
   },
   {
-   "description": "Which rule decides whether a user sees an item of this kind. Filtering navigation is a courtesy and never a control — hiding the way to a document is not hiding the document — so a rule may skip an expensive case and be wrong in the safe direction. Declaring a bucket is what keeps a new kind to two files and no framework change; `Custom` is the door for a kind that genuinely needs its own answer, and almost none should.\n\n`Readable DocType`: visible when the user can read the doctype it points at, whether by role or by a share.\n`Module Contents`: visible when any doctype in the module is readable, less an administrator's block.\n`Derived From Children`: visible when anything under it survives, and dropped when nothing does.\n`Permitted Page`: visible when the page is in the user's page set.\n`Always Visible`: never filtered; for a kind that points outside the site.\n`Custom`: answered by the type's own batched `can_see`, contributed alongside its renderer.",
+   "description": "Which rule decides whether a user sees an item of this kind. Filtering navigation is a courtesy and never a control \u2014 hiding the way to a document is not hiding the document \u2014 so a rule may skip an expensive case and be wrong in the safe direction. Declaring a bucket is what keeps a new kind to two files and no framework change; `Custom` is the door for a kind that genuinely needs its own answer, and almost none should.\n\n`Readable DocType`: visible when the user can read the doctype it points at, whether by role or by a share.\n`Module Contents`: visible when any doctype in the module is readable, less an administrator's block. Named for the question it asks and not for the kind of the same name, which does not use it.\n`Derived From Children`: visible when anything under it survives, and dropped when nothing does.\n`Permitted Page`: visible when the page is in the user's page set.\n`Always Visible`: never filtered; for a kind that points outside the site.\n`Custom`: answered by the type's own batched `can_see`, contributed alongside its renderer.",
    "fieldname": "permission_rule",
    "fieldtype": "Select",
    "label": "Permission Rule",
@@ -72,11 +72,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-01 10:00:00.000000",
+ "modified": "2026-09-01 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
- "naming_rule": "By fieldname",
  "name": "Navigation Item Type",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
