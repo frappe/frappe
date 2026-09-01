@@ -74,6 +74,45 @@ if frappe._tune_gc:
 Request.max_form_memory_size = None
 
 
+# Callbacks that run after every response, before any deferred during the request
+DEFAULT_AFTER_RESPONSE_CALLBACKS = (
+	frappe.rate_limiter.update,
+	frappe.recorder.dump,
+)
+
+
+def get_after_response_callbacks():
+	"""Yield default callbacks, then any deferred during the request, in order of addition.
+
+	The request's queue is consumed as it is yielded, so callbacks registered
+	by other callbacks are picked up too."""
+
+	yield from DEFAULT_AFTER_RESPONSE_CALLBACKS
+
+	request = getattr(frappe.local, "request", None)
+	if callback_manager := getattr(request, "after_response", None):
+		functions = callback_manager._functions
+		while functions:
+			yield functions.popleft()
+	else:
+		frappe.logger("after_response").error("No request or after_response callback manager found")
+
+
+def run_after_response_callbacks():
+	"""Run all after-response callbacks.
+
+	The response is already sent by this point, so a failing callback can
+	neither be reported to the client nor prevent the rest from running."""
+
+	for func in get_after_response_callbacks():
+		try:
+			func()
+		except Exception:
+			frappe.logger("after_response").error(
+				f"Failed to run after response callback: {func}", exc_info=True
+			)
+
+
 def after_response_wrapper(app):
 	"""Wrap a WSGI application to call after_response hooks after we have responded.
 
@@ -84,9 +123,7 @@ def after_response_wrapper(app):
 		return ClosingIterator(
 			app(environ, start_response),
 			(
-				frappe.rate_limiter.update,
-				frappe.recorder.dump,
-				frappe.request.after_response.run,
+				run_after_response_callbacks,
 				frappe.destroy,
 			),
 		)
