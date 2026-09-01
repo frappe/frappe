@@ -1550,10 +1550,17 @@ frappe.ui.form.Form = class FrappeForm {
 			.call({ method: "frappe.desk.form.utils.get_next", args, freeze: true })
 			.then((r) => {
 				if (r.message) {
+					frappe.route_hash = this.get_active_tab_hash();
 					frappe.set_route("Form", this.doctype, r.message);
 					this.focus_on_first_input();
 				}
 			});
+	}
+
+	get_active_tab_hash() {
+		const fieldname = this.get_active_tab()?.df?.fieldname;
+		if (!fieldname || fieldname === "__details") return "";
+		return "#" + fieldname;
 	}
 
 	rename_doc() {
