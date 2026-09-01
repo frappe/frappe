@@ -63,19 +63,21 @@ def toggle_test_mode(enable: bool):
 	frappe.local.flags.in_test = enable
 
 
-def wait_for_job(job_id: str, tries: int = 50):
+def wait_for_job(job_id: str, wait_timeout: float = 10):
 	"""Wait for an enqueued job to stop running, so a test does not race the worker.
 
 	A worker holds a row lock on everything it touches, and frappe asks for those locks with
-	NOWAIT, so a test that writes the same rows fails instead of queueing. Returns quietly if
-	the job never runs, e.g. when no worker is up.
+	NOWAIT, so a test that writes the same rows fails instead of queueing. Returns quietly after
+	`wait_timeout` seconds if the job never runs, e.g. when no worker is up.
 	"""
 	from frappe.utils.background_jobs import is_job_enqueued
 
 	# job_id may be "site||abc123"; is_job_enqueued wants just "abc123"
 	job_id = job_id.split("||", 1)[-1]
 
-	for _ in range(tries):  # 0.2s each
+	deadline = time.monotonic() + wait_timeout
+
+	while time.monotonic() < deadline:
 		if not is_job_enqueued(job_id):
 			return
 		time.sleep(0.2)
