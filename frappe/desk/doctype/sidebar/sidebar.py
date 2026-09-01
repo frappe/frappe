@@ -238,7 +238,26 @@ class Sidebar(Document, DeskViews):
 		if not self.title:
 			self.title = self.link_to if self.is_addressed else self.module
 
-	def validate_title_is_unique(self):
+	def before_import(self):
+		"""Run the title check on the one path that skips `validate`.
+
+		`import_doc` sets `ignore_validate`, so nothing in `validate` runs when an app's sidebar
+		arrives by migrate. That did not matter while uniqueness was an index, because the database
+		held it whatever the caller skipped, and it is the half of the old constraint that moving
+		the check into the controller would otherwise drop.
+
+		The title checked is the record name, not the title in the file: `_sync_autoname_field`
+		copies the name over the column on the way in, so the name is what the row will end up
+		carrying. That is also why this is narrow in practice -- an imported row's title is its own
+		unique name -- and it leaves exactly one way to collide, which is a row whose stored title
+		has drifted away from its name.
+		"""
+		if self.is_addressed:
+			return
+
+		self.validate_title_is_unique(self.name)
+
+	def validate_title_is_unique(self, title: str | None = None):
 		"""Refuse a desk v1 sidebar claiming another v1 sidebar's title.
 
 		This used to be `unique: 1` on the column. It cannot stay there, because desk v2's three
@@ -253,13 +272,14 @@ class Sidebar(Document, DeskViews):
 		if self.is_addressed:
 			return
 
+		title = title or self.title
 		twin = frappe.db.get_value(
-			"Sidebar", {"title": self.title, "link_doctype": ("is", "not set"), "name": ("!=", self.name)}
+			"Sidebar", {"title": title, "link_doctype": ("is", "not set"), "name": ("!=", self.name)}
 		)
 		if twin:
 			frappe.throw(
 				_("{0} is already the title of the sidebar {1}.").format(
-					frappe.bold(self.title), frappe.bold(twin)
+					frappe.bold(title), frappe.bold(twin)
 				),
 				title=_("Pick another title"),
 			)

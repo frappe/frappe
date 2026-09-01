@@ -528,6 +528,34 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			make_sidebar(self.MODULE, title=self.LEADS)
 
+	def test_an_import_cannot_land_on_a_title_that_has_drifted(self):
+		"""The half of the old index that `validate` alone would not have covered.
+
+		`import_doc` sets `ignore_validate`, so an app's sidebar arriving by migrate runs none of
+		the checks above. What the row will store is its name, since the autoname sync copies it
+		over the column, so the collision it can still cause is with a row whose stored title has
+		drifted away from its own name.
+		"""
+		from frappe.modules.import_file import import_doc
+
+		# `import_doc` clears `in_import` after the insert and not in a `finally`, so a refused
+		# import leaves the flag set for whatever runs next
+		self.addCleanup(lambda: frappe.flags.update({"in_import": False}))
+
+		drifted = make_sidebar(self.MODULE)
+		frappe.db.set_value("Sidebar", drifted.name, "title", self.LEADS, update_modified=False)
+
+		with self.assertRaises(frappe.ValidationError):
+			import_doc(
+				{
+					"doctype": "Sidebar",
+					"name": self.LEADS,
+					"title": self.LEADS,
+					"module": self.MODULE,
+					"items": [],
+				}
+			)
+
 	def test_module_is_neither_required_nor_unique(self):
 		module = frappe.get_meta("Sidebar").get_field("module")
 		self.assertFalse(module.reqd)
