@@ -59,7 +59,7 @@ def is_item_allowed(name, item_type, ctx):
 	if item_type == "page":
 		return name in ctx.allowed_pages and name in ctx.restricted_pages
 	if item_type == "report":
-		return not frappe.db.get_value("Report", name, "disabled") and name in ctx.allowed_reports
+		return not frappe.db.get_value("Report", name, "disabled", cache=True) and name in ctx.allowed_reports
 	if item_type == "dashboard":
 		return name in (ctx.allowed_dashboards or [])
 	if item_type in ("help", "url"):

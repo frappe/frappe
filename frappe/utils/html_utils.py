@@ -189,7 +189,9 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 		attributes=attributes,
 		generic_attribute_prefixes={"data-"},
 		strip_comments=False,
-		filter_style_properties=set(bleach_allowlist.all_styles),
+		# bleach's allowlist has column-gap but not gap/row-gap — add them so
+		# flex/grid layouts (already allowed via display/flex) keep their spacing
+		filter_style_properties=set(bleach_allowlist.all_styles) | {"gap", "row-gap"},
 		url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"cid"}),
 	)
 

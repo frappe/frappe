@@ -11,22 +11,8 @@ frappe.ui.form.on("Desktop Icon", {
 			};
 		});
 	},
-	refresh: function (frm) {
-		if (frm.doc.link_to && frm.doc.link_type) {
-			frm.add_custom_button(
-				__("Workspace Sidebar"),
-				function () {
-					frappe.new_doc("Workspace Sidebar", {}, (doc) => {
-						doc.title = frm.doc.label;
-						doc.header_icon = frm.doc.icon;
-						let sidebar_item = frappe.model.add_child(doc, "items");
-						sidebar_item.label = frm.doc.link_to;
-						sidebar_item.link_to = frm.doc.link_to;
-						sidebar_item.link_type = frm.doc.link_type;
-					});
-				},
-				__("Create")
-			);
-		}
-	},
+	// The "Create > Workspace Sidebar" button that used to live here is gone: that doctype is
+	// now an inert archive the sidebar migration reads as its source, so a form minting fresh
+	// rows on it would make the conversion's input a moving target. An icon's `link_to` names
+	// a workspace, and the grid routes it through the module-keyed sidebar payload.
 });

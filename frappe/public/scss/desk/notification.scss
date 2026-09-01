@@ -38,7 +38,7 @@ $notification-dot-size: 8px;
 }
 
 // The unread count is the only unread affordance a bell gets. Where the bell has a label (the
-// sidebar) it reads as a pill next to it; on icon-only bells (desktop navbar, workspace dock) there
+// sidebar) it reads as a pill next to it; on icon-only bells (desktop navbar, dock) there
 // is no room for a number, so the same element is drawn as a dot on the icon's corner.
 .notification-count {
 	padding: 1px 7px;

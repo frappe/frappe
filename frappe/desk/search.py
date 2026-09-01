@@ -261,7 +261,12 @@ def search_widget(
 	# `idx` is number of times a document is referred, check link_count.py
 	order_by = f"idx desc, {order_by_based_on_meta}"
 
-	if not for_link_validation and not meta.translated_doctype:
+	# With an empty `txt`, LOCATE always returns 1, so `_relevance` is the same constant for
+	# every row. The sort key then changes no ordering, but is still evaluated per row and
+	# still forces a filesort. Skip it: link fields search with an empty `txt` on every focus.
+	add_relevance = bool(txt) and not for_link_validation and not meta.translated_doctype
+
+	if add_relevance:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
 		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
@@ -303,7 +308,7 @@ def search_widget(
 		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 		# remove _relevance from results
-		if not meta.translated_doctype:
+		if add_relevance:
 			if as_dict:
 				for r in values:
 					r.pop("_relevance", None)

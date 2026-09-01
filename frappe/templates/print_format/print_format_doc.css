@@ -479,6 +479,14 @@
 	width: auto !important;
 }
 
+/* The shared Redesign print style gives .letter-head a 30px bottom margin for
+   classic formats. Builder layouts space the letterhead through their own
+   section margins, so neutralise it here. body. outranks the print style's
+   .print-format .letter-head, which is injected after this bundle. */
+body.print-format-doc .letter-head {
+	margin-bottom: 0;
+}
+
 /* Keep letterhead images from overflowing their box. The .letter-head selector
    must be here too: the Chrome PDF header/footer overlay renders the letterhead
    in a bare div (no <header>), so a header-only rule never reaches the PDF. */

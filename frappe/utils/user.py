@@ -305,7 +305,8 @@ class UserPermissions:
 		):
 			d[key] = list(set(getattr(self, key)))
 
-		d.all_reports = self.get_all_reports()
+		# not `all_reports`: `DeskViews` already puts the identical dict on `bootinfo` as
+		# `allowed_reports`, and shipping it twice cost ~47 KB of every boot payload.
 		return d
 
 	def get_all_reports(self):

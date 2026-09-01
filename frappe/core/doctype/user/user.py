@@ -70,7 +70,6 @@ class User(Document):
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
 		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
-		from frappe.core.doctype.user_workspaces.user_workspaces import UserWorkspaces
 		from frappe.types import DF
 
 		active_sessions: DF.Table[UserSessionDisplay]
@@ -147,7 +146,6 @@ class User(Document):
 		user_type: DF.Link | None
 		username: DF.Data | None
 		view_switcher: DF.Check
-		workspaces: DF.Table[UserWorkspaces]
 	# end: auto-generated types
 
 	__new_password = None
@@ -653,6 +651,18 @@ class User(Document):
 		# Delete user's List Filters
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
+		# Delete the user's own navigation arrangements: their sidebar layers and their dock.
+		# Delete whole documents rather than rows, because they carry a child table and deleting
+		# the document is what clears the cached set of layers. The site layer, with `user` blank,
+		# is not a personal preference and stays.
+		#
+		# Both doctypes are in `ignore_links_on_delete`, so nothing would have complained about
+		# rows left behind, and `Dock` is uniquely keyed on `user`, so a leftover layer would be
+		# handed to the next user created with the same id.
+		for doctype in ("Custom Sidebar", "Dock"):
+			for name in frappe.get_all(doctype, filters={"user": self.name}, pluck="name"):
+				frappe.delete_doc(doctype, name, ignore_permissions=True, force=True)
+
 		# Remove user from Note's Seen By table
 		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])
 		for note in seen_notes:
@@ -937,6 +947,16 @@ def get_all_roles():
 	)
 
 	return sorted([role.get("name") for role in roles])
+
+
+@frappe.whitelist()
+def get_current_user_roles() -> list[str]:
+	"""Return the logged-in user's roles.
+
+	Desk reads these from `frappe.boot.user.roles`. Clients that do not load
+	bootinfo have no such payload, so they fetch them here.
+	"""
+	return frappe.get_roles()
 
 
 @frappe.whitelist()

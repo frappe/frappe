@@ -110,6 +110,41 @@ class TestWebForm(IntegrationTestCase):
 		)
 		self.assertTrue(frappe.db.exists("Event", {"subject": "someone@example.com"}))
 
+	def test_web_form_phone_fieldtype_is_enforced_on_server(self):
+		"""`Phone` as a Web Form fieldtype is invisible to Meta.get_phone_fields(), which
+		only sees the DocType's own fields."""
+		frappe.set_user("Administrator")
+
+		# Event.location is a plain Data field; the Web Form types it as a phone number
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "location", "fieldtype": "Phone", "label": "Phone"},
+			]
+		)
+
+		doc = {
+			"doctype": "Event",
+			"subject": "_Test Event Bad Phone",
+			"starts_on": "2014-09-09",
+			"location": "definitely not a phone!!",
+		}
+
+		self.assertRaises(
+			frappe.InvalidPhoneNumberError, accept, web_form=web_form.name, data=json.dumps(doc)
+		)
+
+		# same check a `Phone` field on the DocType would get: a country code is required
+		self.assertRaises(
+			frappe.InvalidPhoneNumberError,
+			accept,
+			web_form=web_form.name,
+			data=json.dumps({**doc, "location": "9876543210"}),
+		)
+
+		accept(web_form=web_form.name, data=json.dumps({**doc, "location": "+91-9876543210"}))
+		self.assertTrue(frappe.db.exists("Event", {"subject": "_Test Event Bad Phone"}))
+
 	def test_guest_cannot_skip_web_form_validation(self):
 		"""The reported case: an unauthenticated submission got a success page."""
 		web_form = self.make_temp_web_form(
