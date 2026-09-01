@@ -74,9 +74,9 @@ def resolve_layers(
 	brings it back. The base used to be the one layer whose hiding was discarded, and seeding it
 	removes that special case.
 
-	The sidebar opts out through the shape of its own base rather than a flag here. Its rows are
-	built through a key whitelist (`filter_sidebar_items`) that omits `hidden`, so a sidebar base
-	dict never carries one and the seed is always false.
+	Both surfaces opt in through the shape of their own base rather than through a flag here. A
+	sidebar's rows are built by a key whitelist (`filter_sidebar_items`) that carries `hidden`
+	only where a row sets it, so the seed is false for every row that says nothing.
 	"""
 	resolved = [dict(item) for item in base]
 	hidden: dict[str, bool] = {key(item): bool(item.get("hidden")) for item in base}
