@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 import frappe
 from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
+from frappe.storage.email import rewrite_urls_for_email
 from frappe.utils import (
 	cint,
 	expand_relative_urls,
@@ -442,6 +443,9 @@ def get_formatted_html(
 		rendered_email = frappe.get_template(wrapper).render(params)
 
 	html = scrub_urls(rendered_email)
+	# Storage v2: sign private /f/ blob URLs at egress (no-op when flag is off,
+	# never raises; see frappe/storage/email.py)
+	html = rewrite_urls_for_email(html)
 
 	if unsubscribe_link:
 		html = html.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
