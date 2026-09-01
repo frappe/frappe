@@ -1,7 +1,7 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.contacts.doctype.contact.contact import get_full_name
+from frappe.contacts.doctype.contact.contact import contact_query, get_full_name
 from frappe.email import get_contact_list
 from frappe.tests import IntegrationTestCase, timeout
 
@@ -51,6 +51,17 @@ class TestContact(IntegrationTestCase):
 		# links as a native list of dicts instead of a JSON string (frappe.parse_json passthrough)
 		result = address_query(links=[{"link_doctype": "User", "link_name": "Administrator"}])
 		self.assertIsInstance(result, list)
+
+	def test_contact_query_for_linked_contact(self):
+		contact = create_contact("Contact Query Match", "Mr", save=False)
+		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		contact.insert()
+
+		filters = {"link_doctype": "User", "link_name": "Administrator"}
+		self.assertIsInstance(contact_query("Contact", "", "name", 0, 10, filters), list | tuple)
+
+		results = contact_query("Contact", "Contact Query Match", "name", 0, 10, filters)
+		self.assertEqual(results[0][0], contact.name)
 
 	def test_get_contact_list(self):
 		# First time from database
