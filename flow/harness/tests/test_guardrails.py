@@ -1,0 +1,121 @@
+"""Deployed guardrails: the request size cap, audit log, and the extension-loading
+wire-up of `flow serve`."""
+
+import json
+import os
+
+from fastapi.testclient import TestClient
+
+from flow.model.credentials import CredentialStore
+from flow.server import create_app
+from flow.server.policy import DEPLOYED, ServerPolicy
+from flow.server.request_limits import REFUSAL
+from flow.server.tenants import Tenant
+from flow.session.store import SessionStore
+
+
+def _store(tmp_path, **store_kw) -> SessionStore:
+	store_kw.setdefault("credential_store", CredentialStore(str(tmp_path / "credentials.json")))
+	return SessionStore(str(tmp_path / "data"), **store_kw)
+
+
+def test_request_size_cap(tmp_path):
+	capped = TestClient(create_app(_store(tmp_path), policy=ServerPolicy(max_request_bytes=2048)))
+	assert capped.post("/sessions", json={"cwd": str(tmp_path)}).status_code == 200
+	big = {"cwd": str(tmp_path), "system_suffix": "x" * 4096}
+	response = capped.post("/sessions", json=big)
+	assert response.status_code == 413
+	assert response.json()["detail"] == REFUSAL
+	assert capped.get("/sessions").status_code == 200
+	# the local default stays uncapped
+	open_client = TestClient(create_app(_store(tmp_path / "open")))
+	assert open_client.post("/sessions", json=big).status_code == 200
+
+
+def test_audit_log_records_sensitive_calls(tmp_path):
+	store = _store(tmp_path)
+	app = create_app(store, auth_token="secret", policy=ServerPolicy(audit_log=True))
+	client = TestClient(app, headers={"Authorization": "Bearer secret"})
+	sid = client.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	assert client.get("/sessions").status_code == 200  # reads are not audited
+	assert client.delete(f"/sessions/{sid}").status_code == 200
+	intruder = TestClient(app, headers={"Authorization": "Bearer wrong"})
+	assert intruder.post("/sessions", json={"cwd": str(tmp_path)}).status_code == 401
+
+	path = os.path.join(store.data_dir, "audit.jsonl")
+	assert os.stat(path).st_mode & 0o777 == 0o600
+	rows = [json.loads(line) for line in open(path, encoding="utf-8")]
+	assert [(row["method"], row["path"], row["status"]) for row in rows] == [
+		("POST", "/sessions", 200),
+		("DELETE", f"/sessions/{sid}", 200),
+		("POST", "/sessions", 401),
+	]
+	assert all(isinstance(row["ts"], float) and "site" not in row for row in rows)
+
+
+def test_audit_log_records_the_site(tmp_path):
+	site_root = tmp_path / "site-root"
+	site_root.mkdir()
+	store = _store(tmp_path)
+	tenant = Tenant(site="alpha", token="alpha-token", allowed_roots=(str(site_root),))
+	app = create_app(store, tenants=[tenant], policy=ServerPolicy(audit_log=True))
+	client = TestClient(app, headers={"Authorization": "Bearer alpha-token"})
+	assert client.post("/sessions", json={"cwd": str(site_root)}).status_code == 200
+	rows = [json.loads(line) for line in open(os.path.join(store.data_dir, "audit.jsonl"))]
+	assert rows[0]["site"] == "alpha"
+
+
+def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
+	import importlib
+	from argparse import Namespace
+
+	import uvicorn
+
+	from flow import config
+
+	cli_main = importlib.import_module("flow.cli.main")
+	monkeypatch.setattr(config, "AUTH_TOKEN", "tok")
+	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
+	monkeypatch.setattr(config, "TENANTS_FILE", None)
+	monkeypatch.setattr(config, "REDIS_URL", None)
+	monkeypatch.setattr(config, "CALLBACK_HOSTS", [])
+	monkeypatch.setattr(config, "POLICY", None)
+	monkeypatch.setattr(config, "EXTENSIONS_PATH", str(tmp_path / "no-extensions"))
+	monkeypatch.setattr(cli_main, "_warm_litellm", lambda: None)
+	monkeypatch.setattr(uvicorn, "run", lambda *args, **kwargs: None)
+
+	captured: dict = {}
+
+	def capturing_store(data_dir, **kwargs):
+		captured.clear()
+		captured.update(kwargs)
+		return SessionStore(
+			data_dir, credential_store=CredentialStore(str(tmp_path / "credentials.json")), **kwargs
+		)
+
+	monkeypatch.setattr("flow.session.store.SessionStore", capturing_store)
+
+	def serve(profile: str) -> dict:
+		cli_main._serve(
+			Namespace(
+				host="127.0.0.1",
+				port=0,
+				data_dir=str(tmp_path / profile),
+				profile=profile,
+				background=False,
+				uds=None,
+				parent_watch=False,
+				extension=[],
+				no_extensions=False,
+			)
+		)
+		return dict(captured)
+
+	deployed = serve("deployed")
+	assert deployed["extensions_enabled"] is False
+	assert deployed["tool_allowlist"] == DEPLOYED.tool_allowlist
+	local = serve("local")
+	assert local["extensions_enabled"] is True
+	monkeypatch.setattr(config, "POLICY", '{"tool_allowlist": ["read_file"]}')
+	overridden = serve("deployed")
+	assert overridden["tool_allowlist"] == frozenset({"read_file"})

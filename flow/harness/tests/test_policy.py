@@ -46,9 +46,11 @@ def test_resolve_policy_profiles():
 	assert deployed.require_auth
 	assert deployed.inline_credentials
 	assert deployed.callback_hosts == frozenset()
+	assert not deployed.extensions
+	assert deployed.max_request_bytes == 32 * 1024 * 1024
+	assert deployed.audit_log
 	assert not deployed.fs_api
 	assert not deployed.providers_api
-	assert not deployed.extensions_api
 	assert not deployed.skills_api
 	with pytest.raises(ValueError, match="unknown profile"):
 		resolve_policy("production")
@@ -58,6 +60,42 @@ def test_resolve_policy_fills_callback_hosts_for_deployed_only():
 	deployed = resolve_policy("deployed", callback_hosts=["site.localhost:8000"])
 	assert deployed.callback_hosts == frozenset({"site.localhost:8000"})
 	assert resolve_policy("local", callback_hosts=["site.localhost:8000"]).callback_hosts is None
+
+
+def test_policy_overrides_adjust_individual_switches():
+	overrides = (
+		'{"skills_api": true, "tool_allowlist": ["read_file", "grep", "bash"], "max_request_bytes": null}'
+	)
+	policy = resolve_policy("deployed", overrides=overrides)
+	assert policy.skills_api
+	assert policy.tool_allowlist == frozenset({"read_file", "grep", "bash"})
+	assert policy.max_request_bytes is None
+	assert policy.require_auth and not policy.fs_api  # untouched switches keep the profile
+	hardened = resolve_policy("local", overrides='{"require_auth": true, "extensions": false}')
+	assert hardened.require_auth
+	assert not hardened.extensions
+
+
+def test_policy_overrides_win_over_callback_hosts_env():
+	policy = resolve_policy(
+		"deployed", callback_hosts=["a.local:1"], overrides='{"callback_hosts": ["b.local:2"]}'
+	)
+	assert policy.callback_hosts == frozenset({"b.local:2"})
+
+
+def test_policy_overrides_refuse_bad_input():
+	for overrides in (
+		"not json",
+		'["skills_api"]',
+		'{"profile": "local"}',
+		'{"nope": true}',
+		'{"skills_api": "yes"}',
+		'{"tool_allowlist": "bash"}',
+		'{"max_request_bytes": -5}',
+		'{"max_request_bytes": true}',
+	):
+		with pytest.raises(ValueError, match="FLOW_POLICY"):
+			resolve_policy("deployed", overrides=overrides)
 
 
 def test_deployed_rejects_explicit_tools_outside_cap(tmp_path):
