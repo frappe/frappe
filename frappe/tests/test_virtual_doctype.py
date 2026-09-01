@@ -68,7 +68,7 @@ class VirtualDoctypeTest(Document):
 		self.update_data(data)
 
 	@staticmethod
-	def get_list(args):
+	def get_list(args=None):
 		data = VirtualDoctypeTest.get_current_data()
 		return [frappe._dict(doc) for name, doc in data.items()]
 
