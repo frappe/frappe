@@ -10,6 +10,7 @@ from frappe import _
 BUILTIN_DRIVERS = {
 	"local": "frappe.storage.local_driver.LocalDriver",
 	"memory": "frappe.storage.memory_driver.MemoryDriver",
+	"s3": "frappe.storage.s3_driver.S3Driver",
 }
 
 DEFAULT_DRIVER = "local"
