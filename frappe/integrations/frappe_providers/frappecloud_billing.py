@@ -75,6 +75,7 @@ def get_headers():
 @frappe.whitelist()
 def current_site_info():
 	from frappe.utils import cint
+
 	frappe.only_for("System Manager")
 
 	if mock_billing_enabled():
