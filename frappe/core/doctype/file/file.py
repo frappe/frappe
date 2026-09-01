@@ -326,9 +326,6 @@ class File(Document):
 			source = Path(frappe.get_site_path("private", "files", file_name))
 			url_starts_with = "/files/"
 
-		# if a file document is created by passing dict throught get_doc and __local is not set,
-		# handle_is_private_changed would be executed; we're checking if updated_file_url is same
-		# as old_file_url to avoid a FileNotFoundError for this case.
 		if f"{url_starts_with}{file_name}" == old_file_url:
 			return
 
@@ -353,29 +350,20 @@ class File(Document):
 		updated_file_url = f"{url_starts_with}{target_file_name}"
 		content_hash_match = target_file_name == file_name and target.exists()
 
-		other_refs_exist = self.content_hash and frappe.db.exists(
-			"File",
-			{
-				"content_hash": self.content_hash,
-				"file_url": self.file_url,
-				"name": ["!=", self.name],
-			},
-		)
-
 		if content_hash_match:
-			# target already holds identical content: nothing to write, just stop pointing at source.
-			# whether the source is safe to delete is rechecked inside the callback itself, right
-			# before deleting — another transaction could start referencing this exact source path
-			# any time between this check and when the deferred callback actually runs, and deleting
-			# on stale information would leave that other File's file_url dangling
-			content_hash = self.content_hash
-
-			def cleanup_source():
-				if not frappe.db.exists("File", {"content_hash": content_hash, "file_url": old_file_url}):
-					source.unlink(missing_ok=True)
-
-			frappe.db.after_commit.add(cleanup_source)
+			# target already holds identical content: nothing to write, just stop pointing at
+			# source. source is deliberately left on disk rather than deleted here — matches
+			# save_file()'s own upload-time dedup, which never deletes on a content match either.
+			pass
 		else:
+			other_refs_exist = self.content_hash and frappe.db.exists(
+				"File",
+				{
+					"content_hash": self.content_hash,
+					"file_url": self.file_url,
+					"name": ["!=", self.name],
+				},
+			)
 			if other_refs_exist:
 				shutil.copy2(source, target)
 			else:

@@ -371,7 +371,7 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 	"""handle_is_private_changed(): toggling is_private when the destination namespace already
 	has a same-named file — reuses save_file()'s own dedup instead of throwing FileExistsError."""
 
-	def test_reuses_target_when_identical_content_exists_and_no_other_reference(self):
+	def test_reuses_target_and_keeps_source_when_identical_content_exists(self):
 		file_name = f"toggle_dedup_{frappe.generate_hash(length=6)}.txt"
 		content = f"identical-{frappe.generate_hash(length=8)}"
 		private_file = frappe.get_doc(
@@ -393,48 +393,7 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 		public_file.reload()
 		self.assertEqual(public_file.file_url, private_file.file_url)
 		self.assertEqual(public_file.get_content(), content)
-		# no other File doc depended on the source: it's cleaned up once the commit lands
-		self.assertFalse(os.path.exists(source_path))
-
-	def test_reuse_rechecks_references_at_commit_time_not_check_time(self):
-		file_name = f"toggle_race_{frappe.generate_hash(length=6)}.txt"
-		content = f"identical-{frappe.generate_hash(length=8)}"
-		private_file = frappe.get_doc(
-			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
-		).insert()
-		public_file = frappe.get_doc(
-			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
-		).insert()
-		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
-		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
-
-		source_path = public_file.get_full_path()
-		source_url = public_file.file_url
-
-		public_file.is_private = 1
-		public_file.save()
-
-		late_ref = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": f"late_ref_{frappe.generate_hash(length=6)}.txt",
-				"file_url": source_url,
-				"content_hash": public_file.content_hash,
-				"file_size": public_file.file_size,
-				"is_private": 0,
-			}
-		)
-		late_ref.flags.copy_from_existing_file = True
-		late_ref.insert()
-		self.addCleanup(frappe.delete_doc, "File", late_ref.name, force=True)
-
-		frappe.db.commit()
-
-		public_file.reload()
-		self.assertEqual(public_file.file_url, private_file.file_url)
-		# the late reference must not be left with a dangling file_url
 		self.assertTrue(os.path.exists(source_path))
-		self.assertEqual(late_ref.get_content(), content)
 
 	def test_renames_when_different_content_exists_at_same_name(self):
 		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
@@ -512,10 +471,6 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 		).insert()
 		frappe.db.commit()
 		self.addCleanup(frappe.delete_doc, "File", created.name, force=True)
-
-		# reloaded fresh: the original in-memory object still carries flags.new_file from its own
-		# insert (never cleared by a commit), which would make its on_rollback take the "delete
-		# the file I just inserted" branch instead of restoring the toggle's own move
 		public_file = frappe.get_doc("File", created.name)
 
 		old_path = public_file.get_full_path()
