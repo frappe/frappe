@@ -206,17 +206,27 @@ def _daemon_death_notice(daemon) -> str | None:
 
 def _serve(args) -> None:
 	from flow.server.policy import resolve_policy
+	from flow.server.tenants import load_tenants
 
 	try:
 		policy = resolve_policy(args.profile, callback_hosts=config.CALLBACK_HOSTS)
 	except ValueError as e:
 		raise DaemonError(str(e)) from None
 	auth_token = _resolve_auth_token()
-	if policy.require_auth and not auth_token:
+	tenants = []
+	if config.TENANTS_FILE:
+		if auth_token:
+			raise DaemonError("set either FLOW_AUTH_TOKEN(_FILE) or FLOW_TENANTS_FILE, not both")
+		try:
+			tenants = load_tenants(config.TENANTS_FILE)
+		except (OSError, ValueError) as e:
+			raise DaemonError(f"cannot load FLOW_TENANTS_FILE: {e}") from None
+	if policy.require_auth and not auth_token and not tenants:
 		raise AuthError(
-			f"the {policy.profile!r} profile requires auth: set FLOW_AUTH_TOKEN or FLOW_AUTH_TOKEN_FILE."
+			f"the {policy.profile!r} profile requires auth: set FLOW_AUTH_TOKEN, "
+			"FLOW_AUTH_TOKEN_FILE, or FLOW_TENANTS_FILE."
 		)
-	if not args.uds and not _is_loopback(args.host) and not auth_token:
+	if not args.uds and not _is_loopback(args.host) and not auth_token and not tenants:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
@@ -251,13 +261,13 @@ def _serve(args) -> None:
 		callback_hosts=policy.callback_hosts,
 	)
 	_report_extension_diagnostics(store)
-	app = create_app(store, auth_token=auth_token, policy=policy)
+	app = create_app(store, auth_token=auth_token, tenants=tenants, policy=policy)
 	if args.parent_watch:
 		from flow.cli.daemon import watch_parent_stdin
 
 		watch_parent_stdin()
 	rinfo = f" · redis: {config.REDIS_URL}" if sink else ""
-	ainfo = " · auth: bearer" if auth_token else ""
+	ainfo = f" · auth: {len(tenants)} sites" if tenants else (" · auth: bearer" if auth_token else "")
 	pinfo = f" · profile: {policy.profile}" if policy.profile != "local" else ""
 
 	def banner(address: str) -> None:

@@ -25,6 +25,9 @@ AUTH_TOKEN = os.environ.get("FLOW_AUTH_TOKEN") or None
 # read the bearer token from this file when FLOW_AUTH_TOKEN is unset
 AUTH_TOKEN_FILE = os.environ.get("FLOW_AUTH_TOKEN_FILE") or None
 
+# JSON file mapping each site to its bearer token: multi-tenant mode for `flow serve`
+TENANTS_FILE = os.environ.get("FLOW_TENANTS_FILE") or None
+
 # policy preset for `flow serve` ("local" | "deployed"); see flow/server/policy.py
 PROFILE = os.environ.get("FLOW_PROFILE") or "local"
 
