@@ -320,10 +320,13 @@ frappe.views.Calendar = class Calendar {
 			plugins: frappe.FullCalendar.Plugins,
 			initialView: defaults.initialView || "dayGridMonth",
 			locale: frappe.boot.lang,
+			locales: frappe.FullCalendar.Locales,
 			eventTimeFormat: {
 				hour: "numeric",
 				minute: "2-digit",
-				hour12: true,
+				// Follow the site's Time Format rather than assuming a 12-hour
+				// clock, which most locales do not use.
+				hour12: (frappe.boot.sysdefaults?.time_format || "").includes("hh"),
 			},
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			eventDisplay: "block",
