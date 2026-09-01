@@ -18,8 +18,8 @@ class Tenant:
 	Attributes:
 		site: Site name; also the on-disk partition `data_dir/tenants/<site>`.
 		token: Bearer token that authenticates requests as this site.
-		allowed_roots: Path fence for this site's sessions. None inherits the
-			daemon-wide roots.
+		allowed_roots: Path fence for this site's sessions. The tenants file
+			requires it; None (programmatic use) inherits the daemon-wide roots.
 	"""
 
 	site: str
@@ -57,7 +57,7 @@ def _parse_entry(site: str, entry: object) -> Tenant:
 		raise ValueError(f"site {site!r}: token must be a non-empty string")
 	roots = entry.get("allowed_roots")
 	if roots is None:
-		return Tenant(site=site, token=token)
+		raise ValueError(f"site {site!r}: allowed_roots is required — a non-empty list of paths")
 	bad_roots = f"site {site!r}: allowed_roots must be a non-empty list of paths"
 	if not isinstance(roots, list) or not roots:
 		raise ValueError(bad_roots)

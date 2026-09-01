@@ -35,14 +35,14 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 		json.dumps(
 			{
 				"site1.localhost": {"token": "abc", "allowed_roots": ["/srv/site1"]},
-				"site2.localhost": {"token": "def"},
+				"site2.localhost": {"token": "def", "allowed_roots": ["/srv/site2"]},
 			}
 		)
 	)
 	tenants = load_tenants(str(path))
 	assert tenants == [
 		Tenant(site="site1.localhost", token="abc", allowed_roots=("/srv/site1",)),
-		Tenant(site="site2.localhost", token="def", allowed_roots=None),
+		Tenant(site="site2.localhost", token="def", allowed_roots=("/srv/site2",)),
 	]
 
 
@@ -53,10 +53,15 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 		('{"site1": "just-a-token"}', "must be a JSON object"),
 		('{"site1": {}}', "token must be a non-empty string"),
 		('{"site1": {"token": "  "}}', "token must be a non-empty string"),
+		('{"site1": {"token": "a"}}', "allowed_roots is required"),
 		('{"site1": {"token": "a", "alowed_roots": ["/x"]}}', "unknown keys: alowed_roots"),
 		('{"site1": {"token": "a", "allowed_roots": []}}', "non-empty list of paths"),
 		('{"site1": {"token": "a", "allowed_roots": ["/x", 3]}}', "non-empty list of paths"),
-		('{"site1": {"token": "same"}, "site2": {"token": "same"}}', "reuses another site's token"),
+		(
+			'{"site1": {"token": "same", "allowed_roots": ["/x"]},'
+			' "site2": {"token": "same", "allowed_roots": ["/x"]}}',
+			"reuses another site's token",
+		),
 	]
 	path = tmp_path / "tenants.json"
 	for content, match in cases:
