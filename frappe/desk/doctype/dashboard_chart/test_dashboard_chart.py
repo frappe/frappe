@@ -8,13 +8,8 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
-<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import formatdate, get_last_day, getdate
-=======
-from frappe.tests import IntegrationTestCase
 from frappe.utils import formatdate, get_last_day, getdate, now_datetime
->>>>>>> cd2143c (test: replace datetime.now() with now_datetime() (#42333))
 from frappe.utils.dateutils import get_period, get_period_ending
 
 
