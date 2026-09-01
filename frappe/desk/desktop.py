@@ -11,7 +11,7 @@ from frappe.app_state import get_disabled_modules
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.workspace_customization.workspace_customization import (
+from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	get_customization,
 )
@@ -63,25 +63,30 @@ class Workspace(DeskViews):
 	def is_permitted(self):
 		"""Return true if the workspace is visible to the current user.
 
-		Visibility is gated purely by access (roles / blocked modules):
+		Visibility is gated purely by access (module visibility / roles):
 
-		* If the workspace has `roles`, the user must have one of them.
-		* Otherwise visibility falls back to the user's blocked modules: the workspace is
-		  hidden when its `module` is blocked.
+		1. Its `module` must be visible to the user, meaning not one they have blocked.
+		2. Then, if the workspace has `roles`, the user must have one of them.
 
-		The user's personal selection (`User.workspaces`) is *not* an access filter -- it is a
-		per-user preference for the workspace selector, applied client-side from
-		`frappe.boot.user_workspaces`. Keeping it out of here ensures the full role-permitted
-		pool stays available (e.g. for the "My Workspaces" picker to choose from).
+		The module check runs before the roles branch. It used to sit inside the no-roles branch,
+		so a role-gated workspace in a blocked module stayed visible and the block did nothing for
+		exactly the workspaces someone had restricted.
+
+		No dock layer is an access filter, whether the app's fragment, the site's arrangement or a
+		user's own. All three are arrangements, applied on the client from `frappe.boot.dock`.
+		Keeping them out of here keeps the full permitted pool available for the picker.
 		"""
 		from frappe.utils import has_common
+		from frappe.utils.modules import is_module_visible
+
+		if not is_module_visible(self.doc.module):
+			return False
 
 		allowed = [d.role for d in self.doc.roles]
 		allowed.extend(get_custom_allowed_roles("page", self.doc.name))
 
 		if not allowed:
-			blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
-			return self.doc.module not in blocked_modules
+			return True
 
 		if has_common(frappe.get_roles(), allowed):
 			return True
@@ -359,48 +364,6 @@ def get_desktop_page(page: str | dict):
 		return {}
 
 
-def get_user_workspaces() -> list[str]:
-	"""Return the session user's personal workspace selection (`User.workspaces`), in row order.
-
-	This is the ordered list of public workspaces the user has chosen for their workspace
-	selector (via the "My Workspaces" picker). An empty list means the user has not curated a
-	selection, in which case the selector falls back to the current app's workspaces.
-	"""
-	user_doc = frappe.get_cached_doc("User", frappe.session.user)
-	return [d.workspace for d in user_doc.workspaces if d.workspace]
-
-
-@frappe.whitelist()
-def save_workspace_preferences(workspaces: list | str):
-	"""Persist the "My Workspaces" picker selection into the user's `User.workspaces`.
-
-	`workspaces` is the ordered list of workspaces the user wants in their workspace selector.
-	The order is preserved (it also drives sidebar ordering in `get_workspaces()`). The picker
-	sources its pool of choices from data already on the client (`frappe.boot`), so this only
-	needs to validate the names and store the selection.
-
-	Valid choices are the public workspaces plus the user's own private (`for_user`) ones --
-	the same set the user can actually see.
-	"""
-	workspaces = frappe.parse_json(workspaces) or []
-	valid = set(frappe.get_all("Workspace", filters={"public": 1}, pluck="name"))
-	valid |= set(
-		frappe.get_all("Workspace", filters={"public": 0, "for_user": frappe.session.user}, pluck="name")
-	)
-
-	user_doc = frappe.get_doc("User", frappe.session.user)
-	user_doc.workspaces = []
-	for name in workspaces:
-		if name in valid:
-			user_doc.append("workspaces", {"workspace": name})
-	# ignore_permissions: a user curating their own workspace selector need not hold write
-	# access to the User doctype. We only ever touch the session user's own record, and only
-	# its `workspaces` child table, filtered to workspaces the user can already see (`valid`).
-	user_doc.save(ignore_permissions=True)
-
-	return True
-
-
 def _overlay_customization_properties(pages: list) -> bool:
 	"""Apply each site customization's property facet onto the listed page dict.
 
@@ -416,6 +379,10 @@ def _overlay_customization_properties(pages: list) -> bool:
 		# saved snapshot verbatim (get_desktop_page applies the same on the doc).
 		if customization.content:
 			page["content"] = customization.content
+			# the layout is a snapshot, so this workspace has stopped receiving the app's
+			# layout changes. The desk warns before the save that causes it, and this is
+			# what tells it the warning has already been earned.
+			page["is_layout_customized"] = 1
 		if customization.visibility == "Hidden":
 			# Hidden for regular users; like the soft `is_hidden` flag, a Workspace Manager
 			# still sees it (the workspace shows an in-page "hidden" banner) so it stays
@@ -445,12 +412,9 @@ def get_workspaces():
 	requests (the cache clears when the request ends).
 	"""
 
-	from frappe.modules.utils import get_module_app
+	from frappe.utils.modules import get_module_placement
 
 	has_access = "Workspace Manager" in frappe.get_roles()
-
-	# the user's curated selector order (ordered list of names); empty means "not customised"
-	user_workspaces = get_user_workspaces()
 
 	# adding None to allowed_domains to include pages without domain restriction
 	allowed_domains = [None, *frappe.get_active_domains()]
@@ -483,7 +447,6 @@ def get_workspaces():
 		"is_hidden",
 		"sequence_id",
 		"standard",
-		"app",
 		"type",
 		"link_type",
 		"link_to",
@@ -506,7 +469,7 @@ def get_workspaces():
 		try:
 			workspace = Workspace(page, True)
 			if has_access or workspace.is_permitted():
-				if page.public and (has_access or not page.is_hidden) and page.title != "Welcome Workspace":
+				if page.public and (has_access or not page.is_hidden):
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
@@ -514,10 +477,11 @@ def get_workspaces():
 					pages.append(page)
 				page["label"] = _(page.get("name"))
 
-			if not page["app"] and page["module"]:
-				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
-					page["module"]
-				)
+			# Derived, never stored: there is no `Workspace.app` any more, so the module decides
+			# which app a workspace belongs to. It is `None` for a module no app lists, which a
+			# site's own module may be. Resolving this through `get_module_app` threw for exactly
+			# those modules, and the exception escaped the `PermissionError` handler below.
+			page["app"] = get_module_placement(page["module"]) if page["module"] else None
 			if page["link_type"] == "Report":
 				report_type, ref_doctype = frappe.db.get_value(
 					"Report", page["link_to"], ["report_type", "ref_doctype"]
@@ -531,17 +495,6 @@ def get_workspaces():
 			pass
 	if private_pages:
 		pages.extend(private_pages)
-
-	# respect the order of the user's curated selection; workspaces not in the
-	# selection (e.g. private pages) keep their sequence_id order at the end
-	if user_workspaces:
-		order = {name: idx for idx, name in enumerate(user_workspaces)}
-		pages.sort(key=lambda page: order.get(page["name"], len(order)))
-
-	if len(pages) == 0:
-		welcome_workspace = next((x for x in all_pages if x["title"] == "Welcome Workspace"), None)
-		if welcome_workspace:
-			pages.append(welcome_workspace)
 
 	return {
 		"pages": pages,

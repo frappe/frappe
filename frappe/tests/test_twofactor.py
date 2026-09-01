@@ -18,6 +18,7 @@ from frappe.twofactor import (
 	get_email_body_for_qr_code,
 	get_otpsecret_for_,
 	get_verification_obj,
+	process_2fa_for_email,
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
@@ -55,6 +56,24 @@ class TestTwoFactor(IntegrationTestCase):
 
 		qr_body = get_email_body_for_qr_code({"qrcode_link": "https://example.com/qrcode/abc"})
 		self.assertIn("https://example.com/qrcode/abc", qr_body)
+
+	def test_2fa_email_delivery_status(self):
+		"""Verification object should report failure when the mail is never queued."""
+		otp_secret = get_otpsecret_for_(self.user)
+		token = int(pyotp.TOTP(otp_secret).now())
+
+		verification_obj = process_2fa_for_email(self.user, token, otp_secret, "Frappe")
+		self.assertTrue(verification_obj["setup"])
+		self.assertTrue(verification_obj["prompt"])
+
+		unsubscribe = frappe.get_doc(
+			doctype="Email Unsubscribe", email=self.user, global_unsubscribe=1
+		).insert(ignore_permissions=True)
+		self.addCleanup(unsubscribe.delete, ignore_permissions=True)
+
+		verification_obj = process_2fa_for_email(self.user, token, otp_secret, "Frappe")
+		self.assertFalse(verification_obj["setup"])
+		self.assertFalse(verification_obj["prompt"])
 
 	def test_authenticate_for_2factor(self):
 		"""Verification obj and tmp_id should be set in frappe.local."""

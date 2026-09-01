@@ -14,8 +14,10 @@ $(document).ready(function () {
 		const trial_end_string =
 			trial_end_days > 1 ? `${trial_end_days} days` : `${trial_end_days} day`;
 
+		// the card template renders the message as-is, so the link can sit inside the sentence
+		const partners_link = `<a class="frappe-card-link" href="${getFrappePartnersUrl()}" target="_blank" rel="noopener noreferrer">partners</a>`;
 		const banner_message = isFCUser
-			? "Please upgrade for uninterrupted services"
+			? `Please upgrade for uninterrupted services. Take help from our ${partners_link} to get started.`
 			: "Please contact your system administrator to upgrade your plan.";
 		let card_args = {
 			title: `Your trial ends in ${trial_end_string}`,
@@ -91,6 +93,15 @@ function openFrappeCloudDashboard() {
 		`${frappeCloudBaseEndpoint}/dashboard/sites/${frappe.boot.site_info.name}`,
 		"_blank"
 	);
+}
+
+function getFrappePartnersUrl() {
+	// the partner list filters on country names from the Country doctype,
+	// which is what System Settings stores as the system default
+	const country = frappe.boot.sysdefaults?.country;
+	return country
+		? `https://frappe.io/partners/list?country=${encodeURIComponent(country)}`
+		: "https://frappe.io/partners/regions";
 }
 
 function addChatBubble() {

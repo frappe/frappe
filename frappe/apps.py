@@ -21,12 +21,16 @@ DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 @request_cache
 def get_docked_apps() -> set[str]:
-	"""Apps that surface their workspaces inside another app's workspace dock.
+	"""Apps that surface their entries on another app's rail.
 
-	A companion app (e.g. India Compliance for ERPNext) pins its workspaces into a host app's dock
-	via the `add_to_workspace_dock` hook instead of taking an apps-screen slot of its own. It is
-	kept off the apps screen even when it also declares `add_to_apps_screen` -- companion apps keep
-	that hook so they still appear on older versions, so here the dock hook wins."""
+	A companion app (e.g. India Compliance for ERPNext) mounts its dock onto a host app's rail
+	rather than taking an apps-screen slot of its own. It is kept off the apps screen even when it
+	also declares `add_to_apps_screen` -- companion apps keep that hook so they still appear on
+	older versions, so here the mount wins.
+
+	The rule reads the **mount**, not the mere presence of a dock: every app that ships a rail
+	ships a `Dock` record now, so keying on that would delete each adopting app from the apps
+	screen."""
 	from frappe.boot import get_app_rail_host_map
 
 	return set(get_app_rail_host_map())

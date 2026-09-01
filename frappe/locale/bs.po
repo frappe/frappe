@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-23 21:23\n"
+"PO-Revision-Date: 2026-08-26 22:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3841,7 +3841,7 @@ msgstr "Automatski primijenjen filter za nedavne podatke. Ovo ponašanje možete
 #. Label of the auto_account_deletion (Int) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Automatically delete account within (hours)"
-msgstr "Automatski izbriši račun u roku od (sati)"
+msgstr "Automatski obriši račun u roku od (sati)"
 
 #. Name of a Workspace
 #: frappe/automation/workspace/automation/automation.json
@@ -5582,11 +5582,11 @@ msgstr "Očistite keš memoriju i ponovo učitaj"
 
 #: frappe/public/js/frappe/views/communication.js:506
 msgid "Clear the email message and add the template"
-msgstr "Obrišite poruku e-pošte i dodaj predložak"
+msgstr "Obriši poruku e-pošte i dodaj predložak"
 
 #: frappe/public/js/frappe/list/list_view.js:711
 msgid "Clear the filters to see all records."
-msgstr "Obrišite filtere da biste vidjeli sve zapise."
+msgstr "Obriši filtere da biste vidjeli sve zapise."
 
 #: frappe/website/doctype/web_page/web_page.py:217
 msgid "Clearing end date, as it cannot be in the past for published pages."
@@ -8272,21 +8272,21 @@ msgstr "Odgođeno"
 #: frappe/templates/discussions/reply_card.html:35
 #: frappe/templates/discussions/reply_section.html:29
 msgid "Delete"
-msgstr "Izbriši"
+msgstr "Obriši"
 
 #: frappe/public/js/frappe/list/list_view.js:2845
 msgctxt "Button in list view actions menu"
 msgid "Delete"
-msgstr "Izbriši"
+msgstr "Obriši"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:62
 msgctxt "Button in web form"
 msgid "Delete"
-msgstr "Izbriši"
+msgstr "Obriši"
 
 #: frappe/www/me.html:65
 msgid "Delete Account"
-msgstr "Izbriši Račun"
+msgstr "Obriši Račun"
 
 #. Label of the delete_background_exported_reports_after (Int) field in DocType
 #. 'System Settings'
@@ -8296,16 +8296,16 @@ msgstr "Obriši izvještaje izvezene u pozadini nakon (sati)"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:289
 msgid "Delete Column"
-msgstr "Izbriši Kolonu"
+msgstr "Obriši Kolonu"
 
 #: frappe/public/js/form_builder/components/Section.vue:200
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
-msgstr "Izbriši Kolonu"
+msgstr "Obriši Kolonu"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
-msgstr "Izbriši Podatke"
+msgstr "Obriši Podatke"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:13
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:39
@@ -8314,25 +8314,25 @@ msgstr "Obriši Gravatar URL-ove"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:140
 msgid "Delete Kanban Board"
-msgstr "Izbriši Natpisnu Tablu"
+msgstr "Obriši Natpisnu Tablu"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:288
 msgid "Delete Row"
-msgstr "Izbriši Red"
+msgstr "Obriši Red"
 
 #: frappe/public/js/form_builder/components/Section.vue:129
 msgctxt "Title of confirmation dialog"
 msgid "Delete Section"
-msgstr "Izbriši Odjeljak"
+msgstr "Obriši Odjeljak"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:64
 msgctxt "Title of confirmation dialog"
 msgid "Delete Tab"
-msgstr "Izbriši Karticu"
+msgstr "Obriši Karticu"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:290
 msgid "Delete Table"
-msgstr "Izbriši Tabelu"
+msgstr "Obriši Tabelu"
 
 #: frappe/public/js/frappe/form/grid.js:130
 msgid "Delete all"
@@ -8340,39 +8340,39 @@ msgstr "Obriši sve"
 
 #: frappe/public/js/frappe/form/grid.js:453
 msgid "Delete all {0} rows"
-msgstr "Izbriši svih {0} redova"
+msgstr "Obriši svih {0} redova"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1074
 msgid "Delete and Generate New"
-msgstr "Izbriši i Izradi Novi"
+msgstr "Obriši i Izradi Novi"
 
 #: frappe/public/js/frappe/form/controls/attachment_gallery.js:189
 msgid "Delete attachment"
-msgstr "Izbriši prilog"
+msgstr "Obriši prilog"
 
 #: frappe/public/js/form_builder/components/Section.vue:207
 msgctxt "Button text"
 msgid "Delete column"
-msgstr "Izbriši Kolonu"
+msgstr "Obriši Kolonu"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:750
 msgid "Delete comment?"
-msgstr "Izbriši komentar?"
+msgstr "Obriši komentar?"
 
 #: frappe/public/js/form_builder/components/Section.vue:209
 msgctxt "Button text"
 msgid "Delete entire column with fields"
-msgstr "Izbriši cijelu kolonu s poljima"
+msgstr "Obriši cijelu kolonu s poljima"
 
 #: frappe/public/js/form_builder/components/Section.vue:138
 msgctxt "Button text"
 msgid "Delete entire section with fields"
-msgstr "Izbriši cijelu odjeljak s poljima"
+msgstr "Obriši cijelu odjeljak s poljima"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:73
 msgctxt "Button text"
 msgid "Delete entire tab with fields"
-msgstr "Izbriši cijelu karticu s poljima"
+msgstr "Obriši cijelu karticu s poljima"
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:115
 msgid "Delete layout <strong>{0}</strong>?"
@@ -8380,24 +8380,24 @@ msgstr "Obrisati raspored <strong>{0}</strong>?"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:352
 msgid "Delete naming rule {0}?"
-msgstr "Izbriši pravilo imenovanja {0}?"
+msgstr "Obriši pravilo imenovanja {0}?"
 
 #: frappe/public/js/frappe/form/grid.js:308
 msgid "Delete row"
-msgstr "Izbriši red"
+msgstr "Obriši red"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:361
 msgid "Delete section"
-msgstr "Izbriši odjeljak"
+msgstr "Obriši odjeljak"
 
 #: frappe/public/js/form_builder/components/Section.vue:136
 msgctxt "Button text"
 msgid "Delete section"
-msgstr "Izbriši odjeljak"
+msgstr "Obriši odjeljak"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:114
 msgid "Delete series {0}?"
-msgstr "Izbriši seriju imenovanja {0}?"
+msgstr "Obriši seriju imenovanja {0}?"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:178
 msgid "Delete snippet"
@@ -8406,11 +8406,11 @@ msgstr "Obriši isječak"
 #: frappe/public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
 msgid "Delete tab"
-msgstr "Izbriši karticu"
+msgstr "Obriši karticu"
 
 #: frappe/public/js/frappe/form/template_manager.js:398
 msgid "Delete template"
-msgstr "Izbriši predložak"
+msgstr "Obriši predložak"
 
 #: frappe/public/js/frappe/form/template_manager.js:222
 msgid "Delete template <strong>{0}</strong>?"
@@ -8418,7 +8418,7 @@ msgstr "Obriši predložak <strong>{0}</strong>?"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:705
 msgid "Delete the <b>{0}</b> workspace? This cannot be undone."
-msgstr "Izbriši radni prostor <b>{0}</b>? Ovo se ne može poništiti."
+msgstr "Obriši radni prostor <b>{0}</b>? Ovo se ne može poništiti."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:507
 msgid "Delete the snippet '{0}'?"
@@ -8426,25 +8426,25 @@ msgstr "Obriši isječak '{0}'?"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:31
 msgid "Delete this record to allow sending to this email address"
-msgstr "Izbrišite ovaj zapis da omogućite slanje na ovu adresu e-pošte"
+msgstr "Obriši ovaj zapis da omogućite slanje na ovu adresu e-pošte"
 
 #: frappe/public/js/frappe/form/template_manager.js:400
 msgid "Delete {0}"
-msgstr "Izbriši {0}"
+msgstr "Obriši {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:2850
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
-msgstr "Trajno izbriši stavku {0}?"
+msgstr "Trajno obriši stavku {0}?"
 
 #: frappe/public/js/frappe/list/list_view.js:2856
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
-msgstr "Trajno izbriši {0} stavke?"
+msgstr "Trajno obriši {0} stavke?"
 
 #: frappe/public/js/frappe/form/grid.js:314
 msgid "Delete {0} rows"
-msgstr "Izbriši {0} redova"
+msgstr "Obriši {0} redova"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
@@ -23002,7 +23002,7 @@ msgstr "Trajno Podnesi {0}?"
 
 #: frappe/public/js/frappe/model/model.js:747
 msgid "Permanently delete {0}?"
-msgstr "Trajno izbriši {0}?"
+msgstr "Trajno obriši {0}?"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "Permission"
@@ -23406,7 +23406,7 @@ msgstr "Izradi Grafikon"
 
 #: frappe/desk/form/meta.py:199
 msgid "Please delete the field from {0} or add the required doctype."
-msgstr "Izbriši polje iz {0} ili dodaj traženi dokument."
+msgstr "Obriši polje iz {0} ili dodaj traženi dokument."
 
 #: frappe/core/doctype/data_export/exporter.py:185
 msgid "Please do not change the template headings."
@@ -32301,7 +32301,7 @@ msgstr "Ovo polje će se pojaviti samo ako ovdje definirani naziv polja ima vrij
 
 #: frappe/core/doctype/file/file.py:668
 msgid "This file cannot be deleted as it is set in field {0} in row {1} of {2} {3}. Clear the field first."
-msgstr "Ova datoteka se ne može izbrisati jer je postavljena u polju {0} u redu {1} od {2} {3}. Prvo obrišite polje."
+msgstr "Ova datoteka se ne može izbrisati jer je postavljena u polju {0} u redu {1} od {2} {3}. Prvo obriši polje."
 
 #: frappe/core/doctype/file/file.py:664
 msgid "This file cannot be deleted as it is set in field {0} of {1} {2}. Clear the field first."
@@ -37222,7 +37222,7 @@ msgstr "odloženo"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "delete"
-msgstr "izbriši"
+msgstr "obriši"
 
 #: frappe/public/js/frappe/ui/sort_selector.html:5
 #: frappe/public/js/frappe/ui/sort_selector.js:50

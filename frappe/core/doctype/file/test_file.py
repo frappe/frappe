@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe import _
@@ -19,7 +19,7 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
+from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
@@ -686,6 +686,39 @@ class TestFile(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("File", test_file.name))
 		self.assertEqual(frappe.db.count("File"), file_count_before)
 
+	def test_file_unzip_requires_read_permission(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		with open(file_path, "rb") as f:
+			zip_content = f.read()
+
+		try:
+			frappe.set_user("test@example.com")
+			test_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "file.zip",
+					"content": zip_content,
+					"is_private": 1,
+				}
+			).insert()
+
+			file_count_before = frappe.db.count("File")
+
+			# block unzip
+			frappe.set_user("test4@example.com")
+			self.assertRaises(frappe.PermissionError, unzip_file, test_file.name)
+			self.assertTrue(frappe.db.exists("File", test_file.name))
+			self.assertEqual(frappe.db.count("File"), file_count_before)
+
+			# allow unzip
+			frappe.set_user("test@example.com")
+			self.assertListEqual(
+				[file.file_name for file in unzip_file(test_file.name)],
+				["css_asset.css", "image.jpg", "js_asset.min.js"],
+			)
+		finally:
+			frappe.set_user("Administrator")
+
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
 		zip_path = os.path.join(fixture_dir, "corrupt.zip")
@@ -947,6 +980,41 @@ class TestAttachment(IntegrationTestCase):
 		)
 
 		self.assertTrue(exists)
+
+	def test_url_attachment_is_attached_to_duplicated_document(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
+		doc.attachment = "https://example.com/spec.pdf"
+		doc.insert()
+
+		duplicate = frappe.copy_doc(doc).insert()
+
+		self.assertTrue(
+			frappe.db.exists(
+				"File",
+				{
+					"file_url": "https://example.com/spec.pdf",
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": duplicate.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_no_file_created_for_non_file_attach_value(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test non file attach value")
+		doc.attachment = "not a file"
+		doc.insert()
+
+		self.assertFalse(
+			frappe.db.exists(
+				"File",
+				{
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": doc.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
 
 	def test_delete_file_referenced_in_attach_field(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete referenced file").insert()
@@ -1300,6 +1368,38 @@ class TestFileUtils(IntegrationTestCase):
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
+
+	def test_get_web_image_follows_redirect_to_allowed_address(self):
+		from io import BytesIO
+
+		from PIL import Image as PILImage
+
+		buf = BytesIO()
+		PILImage.new("RGB", (2, 2)).save(buf, format="JPEG")
+		image_bytes = buf.getvalue()
+
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://8.8.4.4/final.jpg"})
+		final_response = MagicMock(is_redirect=False, content=image_bytes)
+		final_response.raise_for_status.return_value = None
+
+		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
+
+		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(extn, "jpg")
+
+	def test_get_web_image_rejects_redirect_to_restricted_address(self):
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
+
+		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+			self.assertRaisesRegex(
+				ValidationError,
+				"restricted address",
+				get_web_image,
+				"http://8.8.8.8/initial.jpg",
+			)
+
+		mock_get.assert_called_once()
 
 
 class TestFileOptimization(IntegrationTestCase):

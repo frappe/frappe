@@ -16,7 +16,7 @@ class TestModuleProfile(IntegrationTestCase):
 			{
 				"doctype": "Module Profile",
 				"module_profile_name": "_Test Module Profile",
-				"block_modules": [{"module": "Accounts"}],
+				"block_modules": [{"module": "Core"}],
 			}
 		).insert()
 
@@ -27,7 +27,7 @@ class TestModuleProfile(IntegrationTestCase):
 		new_user.module_profile = "_Test Module Profile"
 		new_user.save()
 
-		self.assertEqual(new_user.block_modules[0].module, "Accounts")
+		self.assertEqual(new_user.block_modules[0].module, "Core")
 
 	def test_multiple_block_modules(self):
 		"""Assign multiple blocked modules from profile to user"""
@@ -35,7 +35,7 @@ class TestModuleProfile(IntegrationTestCase):
 			{
 				"doctype": "Module Profile",
 				"module_profile_name": "_Test Module Profile",
-				"block_modules": [{"module": "Accounts"}, {"module": "CRM"}, {"module": "HR"}],
+				"block_modules": [{"module": "Core"}, {"module": "Desk"}, {"module": "Website"}],
 			}
 		).insert()
 
@@ -46,7 +46,7 @@ class TestModuleProfile(IntegrationTestCase):
 		user.module_profile = module_profile.name
 		user.save()
 
-		self.assertSetEqual({bm.module for bm in user.block_modules}, {"Accounts", "CRM", "HR"})
+		self.assertSetEqual({bm.module for bm in user.block_modules}, {"Core", "Desk", "Website"})
 
 	def test_update_module_profile_propagates_to_users(self):
 		"""Updating block_modules in profile should update linked users"""
@@ -54,7 +54,7 @@ class TestModuleProfile(IntegrationTestCase):
 			{
 				"doctype": "Module Profile",
 				"module_profile_name": "_Test Module Profile",
-				"block_modules": [{"module": "Accounts"}],
+				"block_modules": [{"module": "Core"}],
 			}
 		).insert()
 
@@ -65,13 +65,13 @@ class TestModuleProfile(IntegrationTestCase):
 		user.module_profile = module_profile.name
 		user.save()
 
-		self.assertEqual({bm.module for bm in user.block_modules}, {"Accounts"})
+		self.assertEqual({bm.module for bm in user.block_modules}, {"Core"})
 
-		module_profile.append("block_modules", {"module": "Projects"})
+		module_profile.append("block_modules", {"module": "Integrations"})
 		module_profile.save()
 
 		user.reload()
-		self.assertSetEqual({bm.module for bm in user.block_modules}, {"Accounts", "Projects"})
+		self.assertSetEqual({bm.module for bm in user.block_modules}, {"Core", "Integrations"})
 
 	def test_clear_block_modules(self):
 		"""Clearing block_modules in profile should also clear them for users"""
@@ -79,7 +79,7 @@ class TestModuleProfile(IntegrationTestCase):
 			{
 				"doctype": "Module Profile",
 				"module_profile_name": "_Test Module Profile",
-				"block_modules": [{"module": "Accounts"}],
+				"block_modules": [{"module": "Core"}],
 			}
 		).insert()
 
@@ -103,7 +103,7 @@ class TestModuleProfile(IntegrationTestCase):
 			{
 				"doctype": "Module Profile",
 				"module_profile_name": "_Test Module Profile",
-				"block_modules": [{"module": "Accounts"}],
+				"block_modules": [{"module": "Core"}],
 			}
 		).insert()
 
@@ -118,13 +118,13 @@ class TestModuleProfile(IntegrationTestCase):
 			u.module_profile = module_profile.name
 			u.save()
 
-		module_profile.append("block_modules", {"module": "Projects"})
+		module_profile.append("block_modules", {"module": "Integrations"})
 		module_profile.save()
 
 		user1.reload()
 		user2.reload()
-		self.assertEqual([bm.module for bm in user1.block_modules], ["Accounts", "Projects"])
-		self.assertEqual([bm.module for bm in user2.block_modules], ["Accounts", "Projects"])
+		self.assertEqual([bm.module for bm in user1.block_modules], ["Core", "Integrations"])
+		self.assertEqual([bm.module for bm in user2.block_modules], ["Core", "Integrations"])
 
 	def test_switch_user_module_profile(self):
 		"""Switching user to a different profile updates their block_modules"""
@@ -132,14 +132,14 @@ class TestModuleProfile(IntegrationTestCase):
 			{
 				"doctype": "Module Profile",
 				"module_profile_name": "_Test Module Profile",
-				"block_modules": [{"module": "Accounts"}],
+				"block_modules": [{"module": "Core"}],
 			}
 		).insert()
 		profile2 = frappe.get_doc(
 			{
 				"doctype": "Module Profile",
 				"module_profile_name": "_Test Module Profile 2",
-				"block_modules": [{"module": "HR"}],
+				"block_modules": [{"module": "Website"}],
 			}
 		).insert()
 
@@ -149,8 +149,8 @@ class TestModuleProfile(IntegrationTestCase):
 
 		user.module_profile = profile1.name
 		user.save()
-		self.assertEqual([bm.module for bm in user.block_modules], ["Accounts"])
+		self.assertEqual([bm.module for bm in user.block_modules], ["Core"])
 
 		user.module_profile = profile2.name
 		user.save()
-		self.assertEqual([bm.module for bm in user.block_modules], ["HR"])
+		self.assertEqual([bm.module for bm in user.block_modules], ["Website"])

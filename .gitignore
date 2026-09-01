@@ -214,3 +214,5 @@ frappe/public/frontend
 # declared RANGES, so without a committed lock two benches with identical hooks.py can
 # still resolve different transitive versions -- which is the one module graph the
 # charter is trying to guarantee.
+# local checkout of frappe-datatable; not a submodule of this repo
+ui/datatable/

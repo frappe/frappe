@@ -360,6 +360,8 @@ class TestUser(IntegrationTestCase):
 				"type": "Workspace",
 				"for_user": old_name,
 				"public": 0,
+				# Mandatory now: a private workspace belongs to a module like any other.
+				"module": "Core",
 				"content": "[]",
 			}
 		).insert(ignore_permissions=True)

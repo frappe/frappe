@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-25 22:02\n"
+"PO-Revision-Date: 2026-08-26 22:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -12184,7 +12184,7 @@ msgstr "نوع فیلد"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:364
 msgid "Field \\u201c{0}\\u201d no longer exists on {1}"
-msgstr ""
+msgstr "فیلد \\u201c{0}\\u201d دیگر در {1} وجود ندارد"
 
 #: frappe/public/js/print_format_builder/utils.js:134
 #: frappe/utils/typst_emitter.py:230
@@ -13441,7 +13441,7 @@ msgstr "نمای گانت"
 
 #: frappe/public/js/frappe/views/gantt/gantt_view.js:233
 msgid "Gantt View Mode"
-msgstr ""
+msgstr "حالت نمایش گانت"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:36
 msgid "Gap"
@@ -13498,7 +13498,7 @@ msgstr "ایجاد URL پیگیری"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:16
 msgid "Generating preview…"
-msgstr ""
+msgstr "ایجاد پیش‌نمایش…"
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -17455,7 +17455,7 @@ msgstr "آخرین همگام سازی {0}"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:409
 msgid "Layers"
-msgstr ""
+msgstr "لایه‌ها"
 
 #. Label of the layout (Code) field in DocType 'Desktop Layout'
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
@@ -20308,7 +20308,7 @@ msgstr "بعدی با کلیک"
 
 #: frappe/public/js/frappe/form/grid_pagination.js:136
 msgid "Next page"
-msgstr ""
+msgstr "صفحه بعد"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:174
 msgid "Next: {0}"
@@ -20526,7 +20526,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/doctype_settings/list_panel.js:271
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:104
 msgid "No access"
-msgstr ""
+msgstr "دسترسی وجود ندارد"
 
 #: frappe/www/login.py:174
 msgid "No active user found with email address {0}"
@@ -21148,7 +21148,7 @@ msgstr "در حالت توسعه دهنده نیست! در site_config.json تن
 #: frappe/public/js/frappe/views/workspace/workspace.js:413
 #: frappe/public/js/frappe/views/workspace/workspace.js:506
 msgid "Not in any app"
-msgstr ""
+msgstr "در هیچ برنامه‌ای نیست"
 
 #: frappe/public/js/frappe/ui/sidebar/dock_manager.js:77
 msgid "Not on the dock"
@@ -24044,7 +24044,7 @@ msgstr "ارسال قبلی"
 
 #: frappe/public/js/frappe/form/grid_pagination.js:129
 msgid "Previous page"
-msgstr ""
+msgstr "صفحه قبل"
 
 #. Option for the 'Button Color' (Select) field in DocType 'DocField'
 #. Option for the 'Button Color' (Select) field in DocType 'Custom Field'
@@ -25542,7 +25542,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_view_select.js:310
 #: frappe/public/js/frappe/views/reports/query_report.js:245
 msgid "Related Reports"
-msgstr ""
+msgstr "گزارش‌های مرتبط"
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:32
 msgid "Relay Server URL missing"
@@ -27287,7 +27287,7 @@ msgstr "ذخیره"
 
 #: frappe/public/js/frappe/list/list_view_select.js:307
 msgid "Saved Reports"
-msgstr ""
+msgstr "گزارش‌های ذخیره شده"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:144
 msgid "Saved Snippets"
@@ -28100,7 +28100,7 @@ msgstr "قالب چاپ انتخاب‌شده برای این گزارش نام�
 
 #: frappe/core/page/component_explorer/component_explorer.js:205
 msgid "Selected row, descriptions and links"
-msgstr ""
+msgstr "ردیف انتخاب شده، توضیحات و پیوندها"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:92
 msgid "Selection"
@@ -28940,12 +28940,12 @@ msgstr "راه‌اندازی انجام نشد"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:132
 msgid "Setup is already in progress. Please try again in a moment."
-msgstr ""
+msgstr "راه‌اندازی در حال انجام است. لطفاً چند لحظه دیگر دوباره امتحان کنید."
 
 #: frappe/core/page/component_explorer/component_explorer.js:1228
 #: frappe/core/page/component_explorer/component_explorer.js:1263
 msgid "Shapes"
-msgstr ""
+msgstr "شکل‌ها"
 
 #. Label of the share (Check) field in DocType 'Custom DocPerm'
 #. Label of the share (Check) field in DocType 'DocPerm'
@@ -29449,7 +29449,7 @@ msgstr ""
 
 #: frappe/core/page/component_explorer/component_explorer.js:936
 msgid "Show with description"
-msgstr ""
+msgstr "نمایش با توضیحات"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:150
 msgid "Show {0} List"
@@ -29519,7 +29519,7 @@ msgstr "نوار کناری و نظرات"
 
 #: frappe/core/page/component_explorer/component_explorer.js:426
 msgid "Sides"
-msgstr ""
+msgstr "کناره‌ها"
 
 #: frappe/www/login.html:87 frappe/www/login.html:109 frappe/www/login.html:125
 #: frappe/www/login.html:182
@@ -29645,11 +29645,11 @@ msgstr "حجم فایل از حداکثر حجم مجاز بیشتر است."
 #: frappe/core/page/component_explorer/component_explorer.js:1255
 #: frappe/core/page/component_explorer/component_explorer.js:1375
 msgid "Sizes"
-msgstr ""
+msgstr "اندازه‌ها"
 
 #: frappe/core/page/component_explorer/component_explorer.js:657
 msgid "Sizes, with icons (sm is the default)"
-msgstr ""
+msgstr "اندازه‌ها، با آیکون‌ها (پیش‌فرض sm است)"
 
 #: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:332
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
@@ -29759,7 +29759,7 @@ msgstr "نمایش اسلاید مانند نمایش برای وب سایت"
 
 #: frappe/core/page/component_explorer/component_explorer.js:458
 msgid "Slow"
-msgstr ""
+msgstr "آهسته"
 
 #. Label of the slug (Data) field in DocType 'UTM Campaign'
 #. Label of the slug (Data) field in DocType 'UTM Medium'
@@ -30148,7 +30148,7 @@ msgstr "سبک چاپ استاندارد قابل تغییر نیست. لطفا 
 
 #: frappe/public/js/frappe/list/list_view_select.js:289
 msgid "Standard Report"
-msgstr ""
+msgstr "گزارش استاندارد"
 
 #: frappe/desk/reportview.py:370
 msgid "Standard Reports cannot be deleted"
@@ -33854,7 +33854,7 @@ msgstr "پرسمان ناامن SQL"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1020
 msgid "Unsafe html gets stripped"
-msgstr ""
+msgstr "Html ناامن حذف می‌شود"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:180
 #: frappe/public/js/frappe/form/controls/multicheck.js:196
@@ -34799,7 +34799,7 @@ msgstr "مقدار بر اساس"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:423
 msgid "Value Based On field is required to create a dashboard chart"
-msgstr ""
+msgstr "فیلد «مقدار بر اساس» برای ایجاد نمودار داشبورد الزامی است"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -35802,24 +35802,24 @@ msgstr ""
 
 #: frappe/core/page/component_explorer/component_explorer.js:1310
 msgid "With click handlers"
-msgstr ""
+msgstr "با کنترل‌کننده‌های کلیک"
 
 #: frappe/core/page/component_explorer/component_explorer.js:933
 #: frappe/core/page/component_explorer/component_explorer.js:1087
 msgid "With description"
-msgstr ""
+msgstr "با توضیحات"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1383
 msgid "With icon"
-msgstr ""
+msgstr "با آیکون"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1185
 msgid "With image"
-msgstr ""
+msgstr "با تصویر"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1236
 msgid "With indicator"
-msgstr ""
+msgstr "با نشانگر"
 
 #. Label of the worker_information_section (Section Break) field in DocType 'RQ
 #. Worker'
@@ -35978,7 +35978,7 @@ msgstr "گردش کار با موفقیت به روز شد"
 
 #: frappe/public/js/frappe/ui/components/toast.js:153
 msgid "Working..."
-msgstr ""
+msgstr "در حال کار..."
 
 #. Label of the workspace_section (Section Break) field in DocType 'User'
 #. Label of the workspace (Link) field in DocType 'User Workspaces'
@@ -36401,7 +36401,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:121
 msgid "You are not permitted to change Print Settings"
-msgstr ""
+msgstr "شما مجاز به تغییر تنظیمات چاپ نیستید"
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:129
 msgid "You are only allowed to update order, do not remove or add apps."
@@ -36985,7 +36985,7 @@ msgstr "گزارش شما در پس‌زمینه در حال تولید است. 
 
 #: frappe/public/js/frappe/desk.js:435
 msgid "Your session has expired due to inactivity. Please log in again to continue."
-msgstr ""
+msgstr "به دلیل عدم فعالیت، نشست شما منقضی شده است. لطفاً برای ادامه دوباره وارد شوید."
 
 #: frappe/app.py:387
 msgid "Your session has expired, please login again to continue."
@@ -37257,7 +37257,7 @@ msgstr "به عنوان مثال replies@yourcomany.com. همه پاسخ‌ها 
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:27
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:249
 msgid "e.g. row.qty > 0"
-msgstr ""
+msgstr "مثلاً row.qty > 0"
 
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Account'
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Domain'
@@ -37934,7 +37934,7 @@ msgstr "wkhtmltopdf 0.12.x (with patched qt)."
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "wkhtmltopdf cannot render multi-column layouts and is no longer maintained. Use chrome unless you depend on a wkhtmltopdf-specific print format."
-msgstr ""
+msgstr "wkhtmltopdf نمی‌تواند طرح‌بندی‌های چند ستونی را نمایش دهد و دیگر پشتیبانی نمی‌شود. از کروم استفاده کنید مگر اینکه به فرمت چاپ مخصوص wkhtmltopdf وابسته باشید."
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -38433,7 +38433,7 @@ msgstr "{0} اجباری است"
 
 #: frappe/printing/doctype/print_format/classic_converter.py:374
 msgid "{0} is not a classic print format"
-msgstr ""
+msgstr "{0} یک قالب چاپ کلاسیک نیست"
 
 #: frappe/custom/__init__.py:51
 msgid "{0} is not a customization doctype."
@@ -38579,7 +38579,7 @@ msgstr "{0} تنظیم شده است"
 
 #: frappe/printing/doctype/print_format/print_format.js:101
 msgid "{0} is the default print format for {1}. Disabling it will remove it as the default. Do you want to continue?"
-msgstr ""
+msgstr "{0} فرمت چاپ پیش‌فرض برای {1} است. غیرفعال کردن آن، آن را از حالت پیش‌فرض خارج می‌کند. آیا می‌خواهید ادامه دهید؟"
 
 #: frappe/public/js/frappe/form/controls/link.js:749
 #: frappe/public/js/frappe/views/reports/report_view.js:1578
@@ -38701,7 +38701,7 @@ msgstr "{0} مجاز به تغییر نام نیست"
 
 #: frappe/core/page/component_explorer/component_explorer.js:807
 msgid "{0} of 120 files"
-msgstr ""
+msgstr "{0} از ۱۲۰ فایل"
 
 #: frappe/desk/reportview.py:746 frappe/desk/reportview.py:762
 #: frappe/public/js/frappe/list/list_view.js:1779
