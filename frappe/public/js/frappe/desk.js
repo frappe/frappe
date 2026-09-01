@@ -651,12 +651,15 @@ frappe.Application = class Application {
 	}
 
 	setup_moment() {
-		moment.updateLocale("en", {
+		// moment resolves a locale it does not have by falling back to English, so
+		// an unknown code is safe here.
+		const lang = (frappe.boot.lang || "en").toLowerCase();
+		moment.updateLocale(lang, {
 			week: {
 				dow: frappe.datetime.get_first_day_of_the_week_index(),
 			},
 		});
-		moment.locale("en");
+		moment.locale(lang);
 		moment.user_utc_offset = moment().utcOffset();
 		if (frappe.boot.timezone_info) {
 			moment.tz.add(frappe.boot.timezone_info);
