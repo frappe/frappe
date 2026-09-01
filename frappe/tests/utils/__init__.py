@@ -72,9 +72,6 @@ def wait_for_job(job_id: str, wait_timeout: float = 10):
 	"""
 	from frappe.utils.background_jobs import is_job_enqueued
 
-	# job_id may be "site||abc123"; is_job_enqueued wants just "abc123"
-	job_id = job_id.split("||", 1)[-1]
-
 	deadline = time.monotonic() + wait_timeout
 
 	while time.monotonic() < deadline:
