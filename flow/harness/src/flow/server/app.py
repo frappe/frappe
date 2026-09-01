@@ -6,6 +6,7 @@ are documented on `routes/sessions`."""
 
 from __future__ import annotations
 
+import os
 import secrets
 from collections.abc import Sequence
 from urllib.parse import urlsplit
@@ -18,7 +19,9 @@ from fastapi.staticfiles import StaticFiles
 
 from flow import config as server_config
 from flow.model.auth import AuthError
+from flow.server.audit import AuditLog
 from flow.server.policy import ServerPolicy
+from flow.server.request_limits import RequestSizeLimit
 from flow.server.routes.fs import create_fs_router
 from flow.server.routes.providers import create_providers_router
 from flow.server.routes.sessions import create_sessions_router
@@ -60,6 +63,10 @@ def create_app(
 			allow_methods=["*"],
 			allow_headers=["Authorization", "Content-Type"],
 		)
+
+	if policy.max_request_bytes is not None:
+		# registered before auth, so the auth middleware wraps (and precedes) it
+		app.add_middleware(RequestSizeLimit, max_bytes=policy.max_request_bytes)
 
 	@app.exception_handler(SessionConflict)
 	@app.exception_handler(ResumeError)
@@ -132,6 +139,22 @@ def create_app(
 				if urlsplit(origin).hostname not in loopback_hosts:
 					return JSONResponse({"detail": "cross-origin request refused"}, status_code=403)
 			return await call_next(request)
+
+	if policy.audit_log:
+		# registered last = outermost, so rows carry the auth verdict and the site
+		audit = AuditLog(os.path.join(store.data_dir, "audit.jsonl"))
+
+		@app.middleware("http")
+		async def audit_sensitive(request: Request, call_next):
+			response = await call_next(request)
+			if request.method not in ("GET", "HEAD", "OPTIONS") or response.status_code in (401, 403):
+				audit.record(
+					method=request.method,
+					path=request.url.path,
+					status=response.status_code,
+					site=getattr(request.state, "site", None),
+				)
+			return response
 
 	@app.get("/healthz")
 	async def healthz():
