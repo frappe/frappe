@@ -351,11 +351,19 @@ def has_external_link_field(doctype, links):
 
 def get_external_links(doctype, name, links):
 	fieldname = get_external_link_fieldname(doctype, links)
-	filters = {fieldname: name}
 
 	# updating filters based on dynamic_links
-	if dynamic_link_filters := get_dynamic_link_filters(doctype, links, fieldname):
-		filters.update(dynamic_link_filters)
+	filters = get_dynamic_link_filters(doctype, links, fieldname) or {}
+
+	meta = frappe.get_meta(doctype)
+	if not meta.has_field(fieldname):
+		child_doctypes = [
+			df.options for df in meta.get_table_fields() if frappe.get_meta(df.options).has_field(fieldname)
+		]
+		if len(child_doctypes) > 1:
+			return get_external_links_via_child_tables(doctype, name, fieldname, child_doctypes, filters)
+
+	filters[fieldname] = name
 
 	total_count = get_doc_count(doctype, filters)
 
@@ -365,6 +373,34 @@ def get_external_links(doctype, name, links):
 		open_count = get_doc_count(doctype, filters)
 
 	return {"doctype": doctype, "count": total_count, "open_count": open_count}
+
+
+def get_external_links_via_child_tables(doctype, name, fieldname, child_doctypes, filters):
+	"""A filter on a fieldname that several child tables share resolves to whichever
+	of them is scanned first, so match the link in any of them."""
+	or_filters = [[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes]
+
+	try:
+		names = frappe.get_all(
+			doctype,
+			filters=filters,
+			or_filters=or_filters,
+			limit=100,
+			distinct=True,
+			ignore_ifnull=True,
+			order_by=None,
+			pluck="name",
+		)
+	except Exception as e:
+		if frappe.db.is_statement_timeout(e):
+			return {"doctype": doctype, "count": "?", "open_count": 0}
+		raise
+
+	open_count = 0
+	if names and (open_count_filters := get_filters_for(doctype)):
+		open_count = get_doc_count(doctype, {"name": ("in", names), **open_count_filters})
+
+	return {"doctype": doctype, "count": len(names), "open_count": open_count, "names": names}
 
 
 def get_doc_count(doctype, filters) -> int | Literal["?"]:
