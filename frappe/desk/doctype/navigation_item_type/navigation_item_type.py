@@ -58,7 +58,7 @@ class NavigationItemType(Document):
 
 		The permission rows already withhold create and write from every role, so this only has to
 		catch what permissions cannot see: a write made with `ignore_permissions`, and Administrator,
-		who is exempt from permission checks entirely. `Dock`'s equivalent guard is conditional
+		who is exempt from permission checks entirely. `Rail`'s equivalent guard is conditional
 		because its three layers share one table and two of them must stay writable at runtime.
 		This one is unconditional, because every row here is app content and there is no second
 		layer to protect.

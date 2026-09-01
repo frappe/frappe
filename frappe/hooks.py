@@ -166,6 +166,7 @@ permission_query_conditions = {
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
 	"Dock": "frappe.desk.doctype.dock.dock.get_permission_query_conditions",
 	"Rail": "frappe.desk.doctype.rail.rail.get_permission_query_conditions",
+	"Sidebar": "frappe.desk.doctype.sidebar.sidebar.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
 	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
@@ -202,6 +203,7 @@ has_permission = {
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
 	"Rail": "frappe.desk.doctype.rail.rail.has_permission",
+	"Sidebar": "frappe.desk.doctype.sidebar.sidebar.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}

@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "hash",
  "creation": "2026-09-01 10:00:00.000000",
- "description": "One layer of one app's rail. Three of them share this table, told apart by `app`, `user` and `standard`: the app's own rail, which it ships as an exported document and a developer authors; the site's arrangement of it, curated by a Workspace Manager and applying to everyone; and one person's own, applied last and winning. The order is strict -- app, then site, then user -- and there is no role layer, because a user with three roles would get three competing arrangements and a precedence rule the framework has nowhere else. A rail belongs to an app, so arranging ERPNext's does not touch CRM's. The container is named for where it is and its rows for what they do, which is the only arrangement in which one row type can honestly serve both this and a sidebar.",
+ "description": "One layer of one app's rail. Three of them share this table, told apart by `app`, `user` and `standard`: the app's own rail, which it ships as an exported document and a developer authors; the site's arrangement of it, curated by a System Manager and applying to everyone; and one person's own, applied last and winning. The order is strict -- app, then site, then user -- and there is no role layer, because a user with three roles would get three competing arrangements and a precedence rule the framework has nowhere else. A rail belongs to an app, so arranging ERPNext's does not touch CRM's. The container is named for where it is and its rows for what they do, which is the only arrangement in which one row type can honestly serve both this and a sidebar.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -68,7 +68,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-01 16:30:00.000000",
+ "modified": "2026-09-01 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Rail",
@@ -81,7 +81,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "Workspace Manager",
+   "role": "System Manager",
    "share": 1,
    "write": 1
   },
