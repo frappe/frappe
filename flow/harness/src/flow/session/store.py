@@ -33,6 +33,10 @@ from flow.tools.builtins import BUILTIN_TOOLS
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
+# site names land in on-disk paths (data_dir/tenants/<site>); the leading
+# alphanumeric bars ".", "..", and hidden names, and no separators can appear
+_SITE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
 _META_SUFFIX = ".meta.json"
 _SKILLS_SUFFIX = ".skills.json"
 _PROJECT_SLUG_RE = re.compile(r"[^A-Za-z0-9._-]+")
@@ -110,6 +114,22 @@ class SessionStore:
 		for session in list(self._cache.values()):
 			session.server_tools = self._compose_tools(session.config)
 			session.extension_runtime = self.extension_runtime
+
+	def for_site(self, site: str, allowed_roots: Collection[str] | None = None) -> SessionStore:
+		"""A tenant partition of this store: sessions live under `data_dir/tenants/<site>`
+		with their own path fence, sharing this store's credentials, sink, and caps."""
+		if not _SITE_RE.match(site):
+			raise ValueError(f"invalid site name {site!r}")
+		return SessionStore(
+			os.path.join(self.data_dir, "tenants", site),
+			event_sink=self.event_sink,
+			allowed_roots=list(allowed_roots if allowed_roots is not None else self.allowed_roots),
+			credential_store=self.credentials,
+			extension_paths=list(self._extension_paths),
+			extensions_enabled=self._extensions_enabled,
+			tool_allowlist=self.tool_allowlist,
+			callback_hosts=self.callback_hosts,
+		)
 
 	def create(self, config: SessionConfig) -> Session:
 		self._validate_create_config(config)
