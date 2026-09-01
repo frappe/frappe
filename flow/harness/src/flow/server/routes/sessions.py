@@ -183,14 +183,14 @@ def create_sessions_router(
 		session = _get(resolve_store(request), sid)
 		return skill_catalog_payload(session.skill_catalog)
 
-	@router.get("/sessions/{sid}/extensions", dependencies=gate(policy.extensions_api))
+	@router.get("/sessions/{sid}/extensions", dependencies=gate(policy.extensions))
 	async def session_extensions(request: Request, sid: str):
 		"""Loaded server extensions, their tools, and non-fatal diagnostics."""
 		store = resolve_store(request)
 		_get(store, sid)
 		return store.extension_runtime.info()
 
-	@router.post("/extensions/reload", dependencies=gate(policy.extensions_api))
+	@router.post("/extensions/reload", dependencies=gate(policy.extensions))
 	async def reload_extensions(request: Request):
 		"""Re-import all extensions; returns the fresh info payload."""
 		store = resolve_store(request)

@@ -34,6 +34,9 @@ PROFILE = os.environ.get("FLOW_PROFILE") or "local"
 # comma-separated host[:port] values a session callback_url may target ("deployed" only)
 CALLBACK_HOSTS = [h.strip() for h in os.environ.get("FLOW_CALLBACK_HOSTS", "").split(",") if h.strip()]
 
+# JSON object overriding individual ServerPolicy fields of the chosen profile (`flow serve` only)
+POLICY = os.environ.get("FLOW_POLICY") or None
+
 # also publish events to Redis channel `harness:<sid>` (prefix is the Flow bridge wire contract)
 REDIS_URL = os.environ.get("FLOW_REDIS_URL") or None
 
