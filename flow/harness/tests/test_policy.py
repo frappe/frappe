@@ -169,7 +169,7 @@ def test_callback_url_checked_when_loading_stored_session(tmp_path):
 
 
 def test_create_app_refuses_deployed_without_token(tmp_path):
-	with pytest.raises(ValueError, match="auth token"):
+	with pytest.raises(ValueError, match="requires auth"):
 		create_app(_store(tmp_path), policy=DEPLOYED)
 
 
@@ -184,6 +184,7 @@ def test_serve_refuses_deployed_without_token(tmp_path, monkeypatch):
 
 	monkeypatch.setattr(config, "AUTH_TOKEN", None)
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
+	monkeypatch.setattr(config, "TENANTS_FILE", None)
 	args = Namespace(
 		host="127.0.0.1",
 		port=0,
