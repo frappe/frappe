@@ -275,7 +275,10 @@ class File(Document):
 				pop_rollback_flags()
 
 		if self.flags.original_path:
-			self.flags.original_path["new"].unlink(missing_ok=True)
+			target = self.flags.original_path["new"]
+			target_file_url = self.flags.original_path["new_file_url"]
+			if not frappe.db.exists("File", {"file_url": target_file_url}):
+				target.unlink(missing_ok=True)
 			pop_rollback_flags()
 
 	def get_name_based_on_parent_folder(self) -> str | None:
@@ -351,7 +354,7 @@ class File(Document):
 
 		if not content_hash_match:
 			shutil.copy2(source, target)
-			self.flags.original_path = {"old": source, "new": target}
+			self.flags.original_path = {"old": source, "new": target, "new_file_url": updated_file_url}
 			frappe.db.after_rollback.add(self.on_rollback)
 
 		if not other_refs_exist:

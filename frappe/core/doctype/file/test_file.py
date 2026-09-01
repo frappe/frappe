@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import zipfile
 from contextlib import contextmanager
+from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
@@ -549,6 +550,43 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 
 		self.assertFalse(os.path.exists(new_path))
 		self.assertTrue(os.path.exists(old_path))
+
+	def test_on_rollback_keeps_target_when_another_file_references_it(self):
+		file_name = f"toggle_target_shared_{frappe.generate_hash(length=6)}.txt"
+		created = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": "shared target content", "is_private": 0}
+		).insert()
+		frappe.db.commit()
+		self.addCleanup(frappe.delete_doc, "File", created.name, force=True)
+
+		target_url = f"/private/files/{file_name}"
+		target_path = frappe.get_site_path("private", "files", file_name)
+		with open(target_path, "w") as f:
+			f.write("shared target content")
+
+		other_ref = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"other_ref_{frappe.generate_hash(length=6)}.txt",
+				"file_url": target_url,
+				"content_hash": created.content_hash,
+				"file_size": created.file_size,
+				"is_private": 1,
+			}
+		)
+		other_ref.flags.copy_from_existing_file = True
+		other_ref.insert()
+		frappe.db.commit()
+		self.addCleanup(frappe.delete_doc, "File", other_ref.name, force=True)
+
+		toggling_file = frappe.get_doc("File", created.name)
+		toggling_file.flags.original_path = {
+			"old": Path(created.get_full_path()),
+			"new": Path(target_path),
+			"new_file_url": target_url,
+		}
+		toggling_file.on_rollback()
+		self.assertTrue(os.path.exists(target_path))
 
 
 class TestFile(IntegrationTestCase):
