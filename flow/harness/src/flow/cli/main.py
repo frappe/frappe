@@ -209,7 +209,7 @@ def _serve(args) -> None:
 	from flow.server.tenants import load_tenants
 
 	try:
-		policy = resolve_policy(args.profile, callback_hosts=config.CALLBACK_HOSTS)
+		policy = resolve_policy(args.profile, callback_hosts=config.CALLBACK_HOSTS, overrides=config.POLICY)
 	except ValueError as e:
 		raise DaemonError(str(e)) from None
 	auth_token = _resolve_auth_token()
@@ -256,7 +256,8 @@ def _serve(args) -> None:
 		args.data_dir,
 		event_sink=sink,
 		extension_paths=args.extension,
-		extensions_enabled=not args.no_extensions,
+		# deployed skips ~/.flow/extensions; explicit -e paths are an operator opt-in
+		extensions_enabled=policy.extensions and not args.no_extensions,
 		tool_allowlist=policy.tool_allowlist,
 		callback_hosts=policy.callback_hosts,
 	)
