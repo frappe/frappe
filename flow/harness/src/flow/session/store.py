@@ -382,7 +382,7 @@ class SessionStore:
 			config,
 			SessionLog(paths.log),
 			event_sink=self.event_sink,
-			credentials=self.credentials,
+			credential_store=self.credentials,
 			allowed_roots=self.allowed_roots,
 			attachment_store=AttachmentStore(paths.attachments),
 			skill_catalog=skill_catalog,
