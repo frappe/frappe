@@ -425,35 +425,12 @@ result = [
 			}
 		).insert()
 
-<<<<<<< HEAD
 		if frappe.db.db_type == "mariadb":
 			col, rows = report.execute_query_report(filters={})
 			self.assertEqual(col[0], "name")
 			self.assertGreaterEqual(len(rows), 1)
 		elif frappe.db.db_type == "postgres":
 			self.assertRaises(frappe.PermissionError, report.execute_query_report, filters={})
-=======
-		try:
-			frappe.sessions.get()
-
-			report_name = _save_report(
-				"Test Cache Invalidation Report",
-				"User",
-				json.dumps([{"fieldname": "email", "fieldtype": "Data", "label": "Email"}]),
-			)
-
-			cached_bootinfo = frappe.sessions.get()
-			self.assertIn(report_name, cached_bootinfo["user"]["all_reports"])
-
-			doc = frappe.get_doc("Report", report_name)
-			delete_report(doc.name)
-
-			cached_bootinfo = frappe.sessions.get()
-			self.assertNotIn(report_name, cached_bootinfo["user"]["all_reports"])
-
-		finally:
-			frappe.local.request = None
-			frappe.set_user("Administrator")
 
 	def test_save_report_group_by_validation(self):
 		"""save_report rejects invalid group_by settings and accepts valid ones"""
@@ -608,4 +585,3 @@ result = [
 
 		finally:
 			frappe.db.rollback()
->>>>>>> 9516bec (test: add test cases for valid & invalid payloads)

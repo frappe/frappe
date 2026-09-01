@@ -22,12 +22,9 @@ from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
-<<<<<<< HEAD
-=======
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
 DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
 _FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
->>>>>>> 9bbbc9c (fix(reportview): validate group_by args before saving report)
 
 
 @frappe.whitelist()
