@@ -302,6 +302,14 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.post(self.method("login"), {"sid": self.sid})
 		return super().setUp()
 
+	def cleanup_docs(self, docs: list, job_id: str | None = None):
+		"""Delete `docs`, waiting for `job_id` first: the job touches these same rows."""
+		if job_id:
+			wait_for_job(job_id)
+		for doc in docs:
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
+		frappe.db.commit()  # nosemgrep
+
 	def test_bulk_delete_docs_single_doctype_v2(self):
 		# Create docs to delete
 		doc1 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete 1"}).insert()
@@ -544,12 +552,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertIn("job_id", response.json["data"])
 			job_id = response.json["data"]["job_id"]
 		finally:
-			# Clean up. Wait first: the job touches these same rows.
-			if job_id:
-				wait_for_job(job_id)
-			for doc in docs:
-				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
-			frappe.db.commit()  # nosemgrep
+			self.cleanup_docs(docs, job_id)
 
 	def test_bulk_update_enqueue_v2(self):
 		# Create 25 docs
@@ -572,12 +575,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertIn("job_id", response.json["data"])
 			job_id = response.json["data"]["job_id"]
 		finally:
-			# Clean up. Wait first: the job touches these same rows.
-			if job_id:
-				wait_for_job(job_id)
-			for doc in docs:
-				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
-			frappe.db.commit()  # nosemgrep
+			self.cleanup_docs(docs, job_id)
 
 
 class TestDocTypeAPIV2(FrappeAPITestCase):
