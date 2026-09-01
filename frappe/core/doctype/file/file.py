@@ -126,6 +126,10 @@ class File(Document):
 					_("File URL is required when copying an existing attachment."),
 					exc=frappe.MandatoryError,
 				)
+			lock_cm = frappe.db.advisory_lock(f"file:{self.file_url}")
+			lock_cm.__enter__()
+			frappe.db.after_commit.add(lambda: lock_cm.__exit__(None, None, None))
+			frappe.db.after_rollback.add(lambda: lock_cm.__exit__(None, None, None))
 			return
 
 		if self.is_remote_file:
@@ -902,11 +906,6 @@ class File(Document):
 			)
 
 		if duplicate_file:
-			# excludes handle_is_private_changed's cleanup_source/on_rollback deleting this
-			# exact path out from under this reuse decision — held past this function's return,
-			# through whichever of after_commit/after_rollback actually concludes this
-			# transaction, not released via `with` (which would release it long before this
-			# transaction is durable, since save_file() returning doesn't mean committed)
 			lock_key = f"file:{duplicate_file.file_url}"
 			lock_cm = frappe.db.advisory_lock(lock_key)
 			lock_cm.__enter__()
