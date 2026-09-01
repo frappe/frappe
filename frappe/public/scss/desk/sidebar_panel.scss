@@ -43,12 +43,19 @@
 		color: var(--ink-gray-8);
 	}
 
-	.panel-actions {
+	// The caller's actions, then the close button. Both get the same icon-button
+	// treatment, so the row reads as one set however it is filled.
+	.panel-header-actions {
 		@include flex(flex, null, center, row);
 		gap: 2px;
 		color: var(--ink-gray-6);
 
-		> span {
+		.panel-actions {
+			@include flex(flex, null, center, row);
+			gap: 2px;
+		}
+
+		span {
 			@include flex(inline-flex, center, center, row);
 			@include size(24px, 24px);
 			border-radius: var(--radius-sm);
@@ -64,6 +71,19 @@
 	// Empty until a panel hangs something here, so it must not reserve space when unused.
 	.panel-items:empty {
 		display: none;
+	}
+
+	// es-tab-buttons ships inline-flex, sized by its labels. In a panel heading it spans
+	// the width with the tabs sharing it evenly, so the rail lines up with the heading
+	// above and the list below. Only the box changes; the rail, pill, sizing and states
+	// all still come from the component.
+	.panel-items .es-tab-buttons {
+		display: flex;
+
+		.es-pill {
+			flex: 1 1 0;
+			min-width: 0;
+		}
 	}
 }
 

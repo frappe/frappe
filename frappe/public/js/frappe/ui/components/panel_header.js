@@ -24,11 +24,16 @@ frappe.provide("frappe.ui");
  * @returns {{$header: JQuery, $title: JQuery, $items: JQuery, $actions: JQuery}}
  */
 frappe.ui.panel_header = function ({ title, closable = true, on_close } = {}) {
+	// The close button is a sibling of the actions slot rather than inside it, so that
+	// actions the caller adds land before it and close stays the rightmost thing in the
+	// heading however many of them there are.
 	const $header = $(`
 		<div class="panel-header">
 			<div class="panel-header-top">
 				<div class="panel-title"></div>
-				<div class="panel-actions"></div>
+				<div class="panel-header-actions">
+					<div class="panel-actions"></div>
+				</div>
 			</div>
 			<div class="panel-items"></div>
 		</div>
@@ -49,7 +54,7 @@ frappe.ui.panel_header = function ({ title, closable = true, on_close } = {}) {
 					on_close?.();
 				}
 			})
-			.appendTo($actions);
+			.appendTo($header.find(".panel-header-actions"));
 	}
 
 	return { $header, $title, $items, $actions };

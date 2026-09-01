@@ -154,15 +154,10 @@ frappe.ui.Dock = class Dock {
 		$bell.find(".notification-count").toggleClass("hidden", count <= 0);
 	}
 
-	// Toggle the shared notifications panel (lives in the sidebar), mirroring the sidebar bell.
+	// Same panel the sidebar bell opens. The registry owns it, so the rail does not have
+	// to know where it lives or what else might be open.
 	toggle_notifications() {
-		let $wrapper = this.sidebar.wrapper;
-		let $dropdown = $wrapper.find(".dropdown-notifications");
-		$dropdown.toggleClass("hidden");
-		if (!$dropdown.hasClass("hidden")) {
-			$dropdown.trigger("show.bs.dropdown");
-		}
-		frappe.ui.sidebar_panels.close_all();
+		frappe.ui.sidebar_panels.toggle("notifications");
 	}
 
 	// User avatar pinned to the bottom of the rail, opening the same dropdown as the sidebar's user

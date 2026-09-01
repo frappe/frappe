@@ -41,14 +41,11 @@
 	width: var(--sidebar-width);
 	background: var(--surface-sidebar);
 	border-right: 1px solid var(--outline-gray-1);
-	// the panel's own chrome fades with its contents when collapsing / expanding, but the element
-	// itself stays put -- see the collapsed state below for why
+	// the panel's own chrome fades with its contents when collapsing / expanding
 	transition: background 0.2s ease, border-color 0.2s ease;
 
-	// slide + fade every band of the panel when collapsing / expanding (see the collapsed state
-	// below); the notification / background-task dropdowns are deliberately excluded there, so
-	// they opt out of the transition here too
-	> *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
+	// slide + fade every band of the panel when collapsing / expanding
+	> * {
 		transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 	}
 
@@ -172,31 +169,6 @@
 	.nav-item {
 		padding: 4px 0px;
 	}
-
-	// The notification / background-task dropdowns are overlays, not bands of the sidebar's flex
-	// column. Take them out of flow so opening one doesn't add the column's 12px gap and shove the
-	// first sidebar item down. `inset: 0` sizes each to the panel box, so the list inside keeps the
-	// same positioning context it had directly on .body-sidebar (no shift in where the panel opens).
-	// The transparent overlay stays click-through so the sidebar underneath is still interactive;
-	// the list itself opts back in.
-	.dropdown-notifications,
-	.dropdown-background-tasks {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-	}
-
-	.notifications-list,
-	.background-tasks-list {
-		pointer-events: auto;
-	}
-
-	// the dropdowns open flush against the sidebar's right edge; the collapsed state repins them
-	// to the dock instead
-	.dropdown-notifications .notifications-list,
-	.dropdown-background-tasks .background-tasks-list {
-		left: 100%;
-	}
 }
 
 @mixin body-sidebar-expanded {
@@ -268,27 +240,17 @@
 		width: 0;
 	}
 
-	// The panel element stays in place because it's the positioning context for the notification /
-	// background-task dropdowns, and the dock's bell opens those while the sidebar is collapsed.
-	// So it's the panel's chrome and its content bands that leave, not the dropdowns themselves --
-	// an `opacity: 0` on the panel would take the dropdowns with it, and a child can't opt back in.
+	// Panels are mounted on the container rather than in here, so the whole panel can leave
+	// without taking an open one with it. The dock's bell opens one while the sidebar is
+	// collapsed, and it lands against the dock's edge because the container has shrunk to 0.
 	.body-sidebar {
 		background: transparent;
 		border-right-color: transparent;
 		pointer-events: none;
 
-		> *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
+		> * {
 			transform: translateX(-12px);
 			opacity: 0;
-		}
-
-		// the dropdowns are absolute overlays (see the base rule) so they stay put while the bands
-		// slide out, and their lists keep pointer-events even though the sidebar is inert. With the
-		// sidebar gone, `left: 100%` would open them a panel-width out into empty space -- pin them
-		// to the dock's right edge instead
-		.dropdown-notifications .notifications-list,
-		.dropdown-background-tasks .background-tasks-list {
-			left: 0;
 		}
 	}
 }
@@ -301,11 +263,6 @@
 			width: 0px;
 			overflow: hidden;
 			transition-property: none;
-
-			.dropdown-notifications .notifications-list,
-			.dropdown-background-tasks .background-tasks-list {
-				left: 0;
-			}
 		}
 	}
 
