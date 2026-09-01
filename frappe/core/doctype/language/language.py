@@ -88,7 +88,7 @@ def sync_languages():
 	"""Create Language records from frappe/geo/languages.csv"""
 	from csv import DictReader
 
-	with open(frappe.get_app_path("frappe", "geo", "languages.csv"), encoding="utf-8") as f:  # nosemgrep
+	with open(frappe.get_app_path("frappe", "geo", "languages.csv"), encoding="utf-8") as f:
 		reader = DictReader(f)
 		for row in reader:
 			if not frappe.db.exists("Language", row["language_code"]):
