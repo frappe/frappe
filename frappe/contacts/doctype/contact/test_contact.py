@@ -63,6 +63,27 @@ class TestContact(IntegrationTestCase):
 		results = contact_query("Contact", "Contact Query Match", "name", 0, 10, filters)
 		self.assertEqual(results[0][0], contact.name)
 
+	def test_contact_query_ranks_company_name_matches(self):
+		later_match = create_contact("A Company Contact", "Mr", save=False)
+		later_match.company_name = "Supplier Company Match"
+		later_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		later_match.insert()
+
+		prefix_match = create_contact("Z Company Contact", "Mr", save=False)
+		prefix_match.company_name = "Company Match Supplier"
+		prefix_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		prefix_match.insert()
+
+		results = contact_query(
+			"Contact",
+			"Company Match",
+			"company_name",
+			0,
+			1,
+			{"link_doctype": "User", "link_name": "Administrator"},
+		)
+		self.assertEqual(results[0][0], prefix_match.name)
+
 	def test_get_contact_list(self):
 		# First time from database
 		results = get_contact_list("_Test Supplier")

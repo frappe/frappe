@@ -419,7 +419,12 @@ def contact_query(
 	)
 
 	if txt:
-		relevance = Coalesce(NullIf(Locate(txt.replace("%", ""), Contact.full_name), 0), 99999)
+		search_text = txt.replace("%", "")
+		relevance = Coalesce(
+			NullIf(Locate(search_text, Contact.full_name), 0),
+			NullIf(Locate(search_text, Contact.company_name), 0),
+			99999,
+		)
 		query = query.orderby(relevance)
 
 	return query.orderby(Contact.idx, order=frappe.qb.desc).orderby(Contact.full_name).run()
