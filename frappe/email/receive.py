@@ -226,27 +226,27 @@ class EmailServer:
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
+		# Remove {"} quotes that are added to handle spaces in IMAP Folder names
+		folder_name = folder[1:-1] if folder[0] == folder[-1] == '"' else folder
+
 		if uid_validity is None:
 			frappe.flags.initial_sync = True
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
-			frappe.db.set_value(
-				"Communication",
-				{"communication_medium": "Email", "email_account": self.settings.email_account},
-				"uid",
-				-1,
-				update_modified=False,
-			)
+			reindexed_filters = {
+				"communication_medium": "Email",
+				"email_account": self.settings.email_account,
+			}
+			if self.settings.use_imap:
+				reindexed_filters["imap_folder"] = folder_name
+
+			frappe.db.set_value("Communication", reindexed_filters, "uid", -1, update_modified=False)
 
 			if self.settings.use_imap:
-				# Remove {"} quotes that are added to handle spaces in IMAP Folder names
-				if folder[0] == folder[-1] == '"':
-					folder = folder[1:-1]
-
 				frappe.db.set_value(
 					"IMAP Folder",
-					{"parent": self.settings.email_account_name, "folder_name": folder},
+					{"parent": self.settings.email_account_name, "folder_name": folder_name},
 					{"uidvalidity": current_uid_validity, "uidnext": uidnext},
 					update_modified=False,
 				)
@@ -263,6 +263,27 @@ class EmailServer:
 			# sync last 100 email
 			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
+		elif (
+			self.settings.use_imap
+			and self.settings.email_sync_rule.startswith("UID ")
+			and not self.has_synced_mail(folder_name)
+		):
+			# reaching back would re-import the folder's whole backlog as new mail
+			self.settings.email_sync_rule = f"UID {uidnext}:*"
+
+	def has_synced_mail(self, folder_name):
+		return bool(
+			frappe.db.exists(
+				"Communication",
+				{
+					"communication_medium": "Email",
+					"sent_or_received": "Received",
+					"email_account": self.settings.email_account,
+					"imap_folder": folder_name,
+					"uid": (">", 0),
+				},
+			)
+		)
 
 	def parse_imap_response(self, cmd, response):
 		pattern = rf"(?<={cmd} )[0-9]*"
@@ -674,10 +695,11 @@ class Email:
 class InboundMail(Email):
 	"""Class representation of incoming mail along with mail handlers."""
 
-	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
+	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None, imap_folder=None):
 		self.email_account = email_account
 		self.uid = uid or -1
 		self.append_to = append_to
+		self.imap_folder = imap_folder
 		self.seen_status = seen_status or 0
 		super().__init__(content)
 
@@ -701,7 +723,11 @@ class InboundMail(Email):
 
 		communication = self.is_exist_in_system()
 		if communication:
-			communication.update_db(uid=self.uid)
+			# a message in two folders keeps the claiming folder's uid, not the other's
+			if not self.imap_folder:
+				communication.update_db(uid=self.uid)
+			elif communication.imap_folder in (None, "", self.imap_folder):
+				communication.update_db(uid=self.uid, imap_folder=self.imap_folder)
 			data = self.as_dict()
 			if data.get("bcc") and not communication.bcc:
 				communication.update_db(bcc=data.get("bcc"))
@@ -714,6 +740,7 @@ class InboundMail(Email):
 	def _build_communication_doc(self):
 		data = self.as_dict()
 		data["doctype"] = "Communication"
+		data["imap_folder"] = self.imap_folder
 
 		if self.parent_communication():
 			data["in_reply_to"] = self.parent_communication().name
