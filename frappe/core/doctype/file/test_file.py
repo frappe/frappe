@@ -464,6 +464,28 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 		self.assertTrue(os.path.exists(source_path))
 		self.assertEqual(other_ref.get_content(), content)
 
+	def test_copies_and_keeps_source_when_no_collision_exists(self):
+		file_name = f"toggle_plain_{frappe.generate_hash(length=6)}.txt"
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": "plain content", "is_private": 0}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		source_path = public_file.get_full_path()
+		self.assertTrue(os.path.exists(source_path))
+
+		public_file.is_private = 1
+		public_file.save()
+		frappe.db.commit()
+
+		public_file.reload()
+		self.assertTrue(public_file.file_url.startswith("/private/files/"))
+		self.assertEqual(public_file.get_content(), "plain content")
+		# copied, not moved — even in the common, no-collision case (see handle_is_private_changed)
+		self.assertTrue(os.path.exists(source_path))
+		with open(source_path) as f:
+			self.assertEqual(f.read(), "plain content")
+
 	def test_rollback_restores_disk_state(self):
 		file_name = f"toggle_rollback_{frappe.generate_hash(length=6)}.txt"
 		created = frappe.get_doc(
@@ -481,9 +503,10 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 
 		new_path = public_file.get_full_path()
 		self.assertTrue(os.path.exists(new_path))
-		self.assertFalse(os.path.exists(old_path))
+		# copied, not moved: source is deliberately left in place (see handle_is_private_changed)
+		self.assertTrue(os.path.exists(old_path))
 
-		# rolling back the whole transaction (insert included) must also undo the disk move
+		# rolling back the whole transaction (insert included) must also undo the disk copy
 		frappe.db.rollback()
 
 		self.assertFalse(os.path.exists(new_path))

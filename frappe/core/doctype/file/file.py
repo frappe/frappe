@@ -356,18 +356,7 @@ class File(Document):
 			# save_file()'s own upload-time dedup, which never deletes on a content match either.
 			pass
 		else:
-			other_refs_exist = self.content_hash and frappe.db.exists(
-				"File",
-				{
-					"content_hash": self.content_hash,
-					"file_url": self.file_url,
-					"name": ["!=", self.name],
-				},
-			)
-			if other_refs_exist:
-				shutil.copy2(source, target)
-			else:
-				shutil.move(source, target)
+			shutil.copy2(source, target)
 			self.flags.original_path = {"old": source, "new": target}
 			frappe.db.after_rollback.add(self.on_rollback)
 
