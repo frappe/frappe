@@ -250,3 +250,4 @@ execute:from frappe.desk.doctype.notification_type.notification_type import inst
 frappe.patches.v16_0.backfill_notification_log_title_description
 frappe.patches.v16_0.backfill_notification_email_type_preferences
 frappe.patches.v16_0.backfill_notification_log_app
+frappe.patches.v16_0.seed_sms_settings_allowed_roles
