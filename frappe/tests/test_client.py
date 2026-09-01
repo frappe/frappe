@@ -3,15 +3,8 @@
 from unittest.mock import patch
 
 import frappe
-<<<<<<< HEAD
+from frappe.tests.ui_test_helpers import whitelist_for_tests
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_site_url
-
-
-class TestClient(FrappeTestCase):
-=======
-from frappe.tests import IntegrationTestCase
-from frappe.tests.utils import whitelist_for_tests
 from frappe.utils import get_site_url
 
 
@@ -20,8 +13,7 @@ def _get_only_marker():
 	return "executed"
 
 
-class TestClient(IntegrationTestCase):
->>>>>>> cbc15eb (test: add regression test for upload_file HTTP method dispatch)
+class TestClient(FrappeTestCase):
 	def test_set_value(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")

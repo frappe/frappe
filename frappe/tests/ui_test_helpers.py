@@ -9,11 +9,17 @@ from frappe.utils import add_to_date, now
 UI_TEST_USER = "frappe@example.com"
 
 
-def whitelist_for_tests(fn):
-	if frappe.request and not (frappe.flags.in_test or getattr(frappe.local, "dev_server", 0)):
-		frappe.throw("Cannot run UI tests. Use a development server with `bench start`")
+def whitelist_for_tests(fn=None, methods=None):
+	def decorator(fn):
+		if frappe.request and not (frappe.flags.in_test or getattr(frappe.local, "dev_server", 0)):
+			frappe.throw("Cannot run UI tests. Use a development server with `bench start`")
 
-	return frappe.whitelist()(fn)
+		return frappe.whitelist(methods=methods)(fn)
+
+	if fn:
+		return decorator(fn)
+
+	return decorator
 
 
 @whitelist_for_tests
