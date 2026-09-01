@@ -371,29 +371,29 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 	"""handle_is_private_changed(): toggling is_private when the destination namespace already
 	has a same-named file — reuses save_file()'s own dedup instead of throwing FileExistsError."""
 
-	def test_reuses_target_and_keeps_source_when_identical_content_exists(self):
+	def test_reuses_target_and_removes_source_when_no_other_refs(self):
 		file_name = f"toggle_dedup_{frappe.generate_hash(length=6)}.txt"
 		content = f"identical-{frappe.generate_hash(length=8)}"
-		private_file = frappe.get_doc(
-			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
-		).insert()
 		public_file = frappe.get_doc(
 			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
 		).insert()
-		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
 		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
 
-		source_path = public_file.get_full_path()
+		source_path = private_file.get_full_path()
 		self.assertTrue(os.path.exists(source_path))
 
-		public_file.is_private = 1
-		public_file.save()
+		private_file.is_private = 0
+		private_file.save()
 		frappe.db.commit()
 
-		public_file.reload()
-		self.assertEqual(public_file.file_url, private_file.file_url)
-		self.assertEqual(public_file.get_content(), content)
-		self.assertTrue(os.path.exists(source_path))
+		private_file.reload()
+		self.assertEqual(private_file.file_url, public_file.file_url)
+		self.assertEqual(private_file.get_content(), content)
+		self.assertFalse(os.path.exists(source_path))
 
 	def test_renames_when_different_content_exists_at_same_name(self):
 		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
@@ -416,16 +416,19 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
 		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
 
+		source_path = public_file.get_full_path()
+
 		# this used to raise FileExistsError; it must now auto-rename instead
 		public_file.is_private = 1
 		public_file.save()
+		frappe.db.commit()
 
 		public_file.reload()
 		self.assertNotEqual(public_file.file_url, private_file.file_url)
 		self.assertTrue(public_file.file_url.startswith("/private/files/"))
 		self.assertEqual(public_file.get_content(), "public different")
-		# the pre-existing private file must be completely untouched
 		self.assertEqual(private_file.get_content(), "private original")
+		self.assertFalse(os.path.exists(source_path))
 
 	def test_keeps_source_when_another_file_references_it(self):
 		file_name = f"toggle_shared_{frappe.generate_hash(length=6)}.txt"
@@ -460,19 +463,39 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 
 		public_file.reload()
 		self.assertEqual(public_file.file_url, private_file.file_url)
-		# other_ref still points at the source path: it must survive the toggle
 		self.assertTrue(os.path.exists(source_path))
 		self.assertEqual(other_ref.get_content(), content)
 
-	def test_copies_and_keeps_source_when_no_collision_exists(self):
-		file_name = f"toggle_plain_{frappe.generate_hash(length=6)}.txt"
-		public_file = frappe.get_doc(
-			{"doctype": "File", "file_name": file_name, "content": "plain content", "is_private": 0}
+	def test_keeps_source_when_content_hash_missing_and_another_file_references_it(self):
+		file_name = f"toggle_nohash_{frappe.generate_hash(length=6)}.txt"
+		content = f"nohash-{frappe.generate_hash(length=8)}"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
 		).insert()
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+		other_ref = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"other_ref_{frappe.generate_hash(length=6)}.txt",
+				"file_url": public_file.file_url,
+				"content_hash": public_file.content_hash,
+				"file_size": public_file.file_size,
+				"is_private": 0,
+			}
+		)
+		other_ref.flags.ignore_duplicate_entry_error = True
+		other_ref.insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
 		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", other_ref.name, force=True)
+
+		frappe.db.set_value("File", public_file.name, "content_hash", None, update_modified=False)
+		public_file.reload()
+		self.assertFalse(public_file.content_hash)
 
 		source_path = public_file.get_full_path()
-		self.assertTrue(os.path.exists(source_path))
 
 		public_file.is_private = 1
 		public_file.save()
@@ -480,11 +503,28 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 
 		public_file.reload()
 		self.assertTrue(public_file.file_url.startswith("/private/files/"))
-		self.assertEqual(public_file.get_content(), "plain content")
-		# copied, not moved — even in the common, no-collision case (see handle_is_private_changed)
+		self.assertEqual(public_file.get_content(), content)
 		self.assertTrue(os.path.exists(source_path))
-		with open(source_path) as f:
-			self.assertEqual(f.read(), "plain content")
+		self.assertEqual(other_ref.get_content(), content)
+
+	def test_removes_source_when_no_collision_and_no_other_refs(self):
+		file_name = f"toggle_plain_{frappe.generate_hash(length=6)}.txt"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": "plain content", "is_private": 1}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+
+		source_path = private_file.get_full_path()
+		self.assertTrue(os.path.exists(source_path))
+
+		private_file.is_private = 0
+		private_file.save()
+		frappe.db.commit()
+
+		private_file.reload()
+		self.assertTrue(private_file.file_url.startswith("/files/"))
+		self.assertEqual(private_file.get_content(), "plain content")
+		self.assertFalse(os.path.exists(source_path))
 
 	def test_rollback_restores_disk_state(self):
 		file_name = f"toggle_rollback_{frappe.generate_hash(length=6)}.txt"
@@ -503,10 +543,8 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 
 		new_path = public_file.get_full_path()
 		self.assertTrue(os.path.exists(new_path))
-		# copied, not moved: source is deliberately left in place (see handle_is_private_changed)
 		self.assertTrue(os.path.exists(old_path))
 
-		# rolling back the whole transaction (insert included) must also undo the disk copy
 		frappe.db.rollback()
 
 		self.assertFalse(os.path.exists(new_path))

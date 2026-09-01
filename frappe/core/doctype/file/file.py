@@ -274,11 +274,8 @@ class File(Document):
 				os.fsync(f.fileno())
 				pop_rollback_flags()
 
-		# used in case file path (File.file_url) has been changed
 		if self.flags.original_path:
-			target = self.flags.original_path["old"]
-			source = self.flags.original_path["new"]
-			shutil.move(source, target)
+			self.flags.original_path["new"].unlink(missing_ok=True)
 			pop_rollback_flags()
 
 	def get_name_based_on_parent_folder(self) -> str | None:
@@ -350,15 +347,19 @@ class File(Document):
 		updated_file_url = f"{url_starts_with}{target_file_name}"
 		content_hash_match = target_file_name == file_name and target.exists()
 
-		if content_hash_match:
-			# target already holds identical content: nothing to write, just stop pointing at
-			# source. source is deliberately left on disk rather than deleted here — matches
-			# save_file()'s own upload-time dedup, which never deletes on a content match either.
-			pass
-		else:
+		other_refs_exist = frappe.db.exists("File", {"file_url": old_file_url, "name": ["!=", self.name]})
+
+		if not content_hash_match:
 			shutil.copy2(source, target)
 			self.flags.original_path = {"old": source, "new": target}
 			frappe.db.after_rollback.add(self.on_rollback)
+
+		if not other_refs_exist:
+			def cleanup_source():
+				if not frappe.db.exists("File", {"file_url": old_file_url}):
+					source.unlink(missing_ok=True)
+
+			frappe.db.after_commit.add(cleanup_source)
 
 		self.file_url = updated_file_url
 
