@@ -29,6 +29,8 @@ class ServerPolicy:
 			None = any; an empty set refuses client callbacks.
 		require_auth: Refuse to serve without a bearer token, even on loopback or
 			a unix socket.
+		inline_credentials: Accept `api_key`/`api_base` on session create and
+			set-model; a request carrying them is a 400 when off.
 		fs_api: /fs/* and the session file diff; 403 when off.
 		providers_api: /models and /providers*; 403 when off.
 		extensions_api: Extension reload and info routes; 403 when off.
@@ -39,6 +41,7 @@ class ServerPolicy:
 	tool_allowlist: frozenset[str] | None = None
 	callback_hosts: frozenset[str] | None = None
 	require_auth: bool = False
+	inline_credentials: bool = False
 	fs_api: bool = True
 	providers_api: bool = True
 	extensions_api: bool = True
@@ -52,6 +55,7 @@ DEPLOYED = ServerPolicy(
 	tool_allowlist=frozenset({"read_file", "grep"}),
 	callback_hosts=frozenset(),
 	require_auth=True,
+	inline_credentials=True,
 	fs_api=False,
 	providers_api=False,
 	extensions_api=False,

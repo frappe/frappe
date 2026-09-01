@@ -48,10 +48,12 @@ class RunRequest(BaseModel):
 class SetModelRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
-	# Names only: provider secrets and endpoints are resolved inside flow.
+	# api_key/api_base are accepted only when the policy allows inline credentials
 	model: str = Field(min_length=1)
 	credential_id: str | None = None
 	reasoning_effort: ReasoningEffort | None = None
+	api_key: str | None = None
+	api_base: str | None = None
 
 
 class ResumeRequest(BaseModel):
@@ -97,6 +99,12 @@ def create_sessions_router(
 	policy = policy or ServerPolicy()
 	router = APIRouter()
 
+	def _refuse_inline_credentials(api_key: str | None, api_base: str | None) -> None:
+		if (api_key or api_base) and not policy.inline_credentials:
+			raise HTTPException(
+				status_code=400, detail="inline model credentials are disabled by server policy"
+			)
+
 	def _get(store: SessionStore, sid: str) -> Session:
 		try:
 			return store.get(sid)
@@ -140,6 +148,7 @@ def create_sessions_router(
 
 	@router.post("/sessions")
 	async def create_session(request: Request, config: SessionConfig):
+		_refuse_inline_credentials(config.api_key, config.api_base)
 		if system_append:
 			joined = "\n\n".join(p for p in (config.system_append, system_append) if p)
 			config = config.model_copy(update={"system_append": joined})
@@ -298,10 +307,22 @@ def create_sessions_router(
 
 	@router.post("/sessions/{sid}/model")
 	async def set_model(request: Request, sid: str, req: SetModelRequest):
-		session = _get(resolve_store(request), sid)
+		_refuse_inline_credentials(req.api_key, req.api_base)
+		store = resolve_store(request)
+		session = _get(store, sid)
 		await session.set_model(
 			req.model, credential_id=req.credential_id, reasoning_effort=req.reasoning_effort
 		)
+		if req.api_key or req.api_base:
+			# the pair is replaced as a unit, so a stale endpoint never outlives its key
+			previous = (session.config.api_key, session.config.api_base)
+			session.config.api_key = req.api_key
+			session.config.api_base = req.api_base
+			try:
+				store.save_meta(session)
+			except OSError:
+				session.config.api_key, session.config.api_base = previous
+				raise HTTPException(status_code=500, detail="failed to persist config") from None
 		context_window, supports_images = await asyncio.gather(
 			asyncio.to_thread(context_window_for, session.model),
 			asyncio.to_thread(model_supports_images, session.model),
