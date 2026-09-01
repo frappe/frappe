@@ -88,7 +88,7 @@ class SessionStore:
 		self.tool_allowlist = frozenset(tool_allowlist) if tool_allowlist is not None else None
 		# (ServerPolicy.callback_hosts). None = any host.
 		self.callback_hosts = frozenset(callback_hosts) if callback_hosts is not None else None
-		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
+		self.credential_store = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._extension_paths = tuple(extension_paths or ())
 		self._extensions_enabled = extensions_enabled
 		self.extension_runtime = self._load_extensions()
@@ -124,7 +124,7 @@ class SessionStore:
 			os.path.join(self.data_dir, "tenants", site),
 			event_sink=self.event_sink,
 			allowed_roots=list(allowed_roots if allowed_roots is not None else self.allowed_roots),
-			credential_store=self.credentials,
+			credential_store=self.credential_store,
 			extension_paths=list(self._extension_paths),
 			extensions_enabled=self._extensions_enabled,
 			tool_allowlist=self.tool_allowlist,
@@ -382,7 +382,7 @@ class SessionStore:
 			config,
 			SessionLog(paths.log),
 			event_sink=self.event_sink,
-			credential_store=self.credentials,
+			credential_store=self.credential_store,
 			allowed_roots=self.allowed_roots,
 			attachment_store=AttachmentStore(paths.attachments),
 			skill_catalog=skill_catalog,

@@ -56,12 +56,12 @@ def test_custom_provider_roundtrip(tmp_path):
 	assert row["source"] == "http://localhost:11434/v1"  # trailing slash trimmed
 	assert row["models"] == ["ollama/llama3.2", "ollama/qwen2.5"]  # deduped, stripped
 
-	credential = store.credentials.get_custom(row["id"])
+	credential = store.credential_store.get_custom(row["id"])
 	assert credential is not None and credential.api_key is None
 
 	# it shows up in the catalog, and its models resolve to its base URL
 	assert any(p["id"] == row["id"] for p in c.get("/providers").json()["providers"])
-	auth = asyncio.run(resolve_model_auth("ollama/llama3.2", store.credentials))
+	auth = asyncio.run(resolve_model_auth("ollama/llama3.2", store.credential_store))
 	assert auth.base_url == "http://localhost:11434/v1"
 	assert auth.provider_id == row["id"]
 
@@ -70,7 +70,7 @@ def test_custom_provider_roundtrip(tmp_path):
 	assert again["id"] == "custom-local-ollama-2"
 
 	assert c.delete(f"/providers/{row['id']}").json() == {"status": "removed"}
-	assert store.credentials.get(row["id"]) is None
+	assert store.credential_store.get(row["id"]) is None
 
 
 def test_custom_provider_update(tmp_path):
@@ -95,7 +95,7 @@ def test_custom_provider_update(tmp_path):
 	assert edited["id"] == row["id"]  # the id survives a rename
 	assert edited["name"] == "Gateway"
 	assert edited["models"] == ["gw/m1", "gw/m2"]
-	credential = store.credentials.get_custom(row["id"])
+	credential = store.credential_store.get_custom(row["id"])
 	assert credential is not None and credential.api_key == "secret"
 
 	# repointing base_url with a blank key drops the key instead of leaking it
@@ -104,11 +104,11 @@ def test_custom_provider_update(tmp_path):
 		json={"name": "Gateway", "base_url": "http://gw:9/v1/", "models": ["gw/m1"]},
 	).json()["provider"]
 	assert moved["source"] == "http://gw:9/v1"
-	assert store.credentials.get_custom(row["id"]).api_key is None
+	assert store.credential_store.get_custom(row["id"]).api_key is None
 
 	# a provided key replaces the stored one
 	c.put(f"/providers/custom/{row['id']}", json={**body, "api_key": "rotated"})
-	assert store.credentials.get_custom(row["id"]).api_key == "rotated"
+	assert store.credential_store.get_custom(row["id"]).api_key == "rotated"
 
 	# create-time validation applies, and only custom credentials are editable
 	assert c.put(f"/providers/custom/{row['id']}", json={**body, "models": ["bare"]}).status_code == 422

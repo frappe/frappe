@@ -69,7 +69,7 @@ def test_for_site_partitions_and_shares(tmp_path):
 	store = _store(tmp_path)
 	site = store.for_site("site1.localhost")
 	assert site.sessions_dir == str(tmp_path / "data" / "tenants" / "site1.localhost" / "sessions")
-	assert site.credentials is store.credentials
+	assert site.credential_store is store.credential_store
 	other = store.for_site("site2.localhost")
 	assert other.sessions_dir != site.sessions_dir
 

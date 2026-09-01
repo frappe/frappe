@@ -50,7 +50,7 @@ def create_app(
 		raise ValueError("this server policy requires auth; pass auth_token or tenants")
 	# docs off: those routes would be reachable without a bearer beside the web UI
 	app = FastAPI(title="flow server", version="0.1.0", docs_url=None, redoc_url=None, openapi_url=None)
-	oauth = OAuthCoordinator(store.credentials)
+	oauth = OAuthCoordinator(store.credential_store)
 
 	origins = cors_origins if cors_origins is not None else server_config.CORS_ORIGINS
 	if origins:
@@ -138,7 +138,7 @@ def create_app(
 		return {"ok": True}
 
 	routers = (
-		create_providers_router(store.credentials, oauth, policy=policy),
+		create_providers_router(store.credential_store, oauth, policy=policy),
 		create_fs_router(resolve_store, policy=policy),
 		create_sessions_router(resolve_store, system_append=system_append, policy=policy),
 	)
