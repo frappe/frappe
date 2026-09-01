@@ -266,7 +266,7 @@ class DatabaseQuery:
 			for idx, field in enumerate(self.fields):
 				# handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
 				if " as " in field.lower():
-					alias = field.split(" as ")[1].strip(" '`")
+					alias = re.split(r"\s+as\s+", field, flags=re.IGNORECASE)[1].strip(" '`")
 					field_index_map[alias] = idx
 				else:
 					# extract last part after `.`
