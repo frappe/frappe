@@ -273,6 +273,7 @@ def report_to_pdf(html: str, orientation: str = "Landscape"):
 			"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
 			"load-error-handling": "ignore",
 		},
+		smart_shrinking=True,
 	)
 	frappe.local.response.type = "pdf"
 

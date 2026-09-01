@@ -24,6 +24,38 @@ def get_site_name():
 	return site_name
 
 
+def mock_billing_enabled() -> bool:
+	"""True when a developer asked for fake Frappe Cloud billing data.
+
+	Put both of these in site_config.json to see the trial/upgrade banner on a
+	local site that has no Frappe Cloud credentials:
+
+	    "developer_mode": 1,
+	    "mock_fc_billing": 1
+
+	Optionally set "mock_fc_trial_days" (default 7) to move the trial end date.
+	"""
+	return bool(frappe.conf.developer_mode and frappe.conf.get("mock_fc_billing"))
+
+
+def mock_site_info() -> dict:
+	"""Stand-in for what Frappe Cloud would report for a site on a trial plan."""
+	from frappe.utils import add_days, cint, nowdate
+
+	trial_days = cint(frappe.conf.get("mock_fc_trial_days")) or 7
+	site_name = get_site_name()
+
+	return {
+		"name": site_name,
+		"site_name": site_name,
+		"base_url": get_base_url(),
+		"trial_end_date": add_days(nowdate(), trial_days),
+		"plan": {"is_trial_plan": True},
+		"is_fc_user": True,
+		"setup_complete": cint(frappe.get_system_settings("setup_complete")),
+	}
+
+
 def get_headers():
 	# check if user is system manager
 	if frappe.get_roles(frappe.session.user).count("System Manager") == 0:
@@ -44,6 +76,11 @@ def get_headers():
 def current_site_info():
 	from frappe.utils import cint
 
+	frappe.only_for("System Manager")
+
+	if mock_billing_enabled():
+		# not cached, so tweaking site_config shows up on the next reload
+		return mock_site_info()
 	cache_key = f"fc_current_site_info:{frappe.local.site}"
 	cached_data = frappe.cache().get_value(cache_key)
 	if cached_data:
@@ -86,7 +123,10 @@ def api(method: str, data: str | dict[str, Any] | None = None):
 @frappe.whitelist()
 def is_fc_site() -> bool:
 	is_system_manager = frappe.get_roles(frappe.session.user).count("System Manager")
-	return bool(is_system_manager and frappe.conf.get("fc_communication_secret"))
+	if not is_system_manager:
+		return False
+
+	return bool(mock_billing_enabled() or frappe.conf.get("fc_communication_secret"))
 
 
 # login to frappe cloud dashboard
