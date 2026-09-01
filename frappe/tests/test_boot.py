@@ -1,5 +1,5 @@
 import frappe
-from frappe.boot import get_unseen_notes, get_user_pages_or_reports
+from frappe.boot import get_allowed_reports, get_unseen_notes, get_user_pages_or_reports
 from frappe.desk.doctype.note.note import _get_unseen_notes, mark_as_seen
 from frappe.tests.utils import FrappeTestCase
 
@@ -65,7 +65,7 @@ class TestBootData(FrappeTestCase):
 
 		enabled = self._make_report("Test Enabled Report")
 
-		allowed_reports = DeskViews.get_allowed_reports()
+		allowed_reports = get_allowed_reports()
 		self.assertNotIn(with_custom_role, allowed_reports)
 		self.assertNotIn(without_roles, allowed_reports)
 		self.assertIn(enabled, allowed_reports)
