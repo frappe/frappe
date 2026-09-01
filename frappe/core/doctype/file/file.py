@@ -358,6 +358,7 @@ class File(Document):
 			frappe.db.after_rollback.add(self.on_rollback)
 
 		if not other_refs_exist:
+
 			def cleanup_source():
 				if not frappe.db.exists("File", {"file_url": old_file_url}):
 					source.unlink(missing_ok=True)
