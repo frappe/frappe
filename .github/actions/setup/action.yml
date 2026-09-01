@@ -83,8 +83,8 @@ runs:
       start_time=$(date +%s)
 
       install_system_deps() {
-        curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale
-
+        # the mariadb server runs as a service container; the client tools come
+        # from ubuntu's archives so CI does not depend on mariadb.com mirrors
         sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
         wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 

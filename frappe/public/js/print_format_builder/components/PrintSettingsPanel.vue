@@ -1,39 +1,31 @@
 <template>
 	<div class="pfb-settings">
 		<div class="form-group">
-			<label class="control-label">{{ __("Style Preset") }}</label>
-			<div class="pfb-preset-row">
-				<select
-					class="form-control form-control-sm"
-					:value="active_preset"
-					@change="apply_preset($event.target.value)"
-				>
-					<option value="">{{ __("Choose a preset…") }}</option>
-					<option v-for="p in store.style_presets.value" :key="p.name" :value="p.name">
-						{{ p.name }}
-					</option>
-				</select>
-				<button
-					class="es-button"
-					data-size="sm"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Save current style as a preset')"
-					@click="save_preset"
-					v-html="frappe.utils.icon('save', 'sm')"
-				></button>
-				<button
-					v-if="active_preset"
-					class="es-button"
-					data-size="sm"
-					data-variant="ghost"
-					data-theme="red"
-					data-icon-button="true"
-					:title="__('Delete preset')"
-					@click="delete_preset"
-					v-html="frappe.utils.icon('trash', 'sm')"
-				></button>
-			</div>
+			<label class="control-label">{{ __("PDF Renderer") }}</label>
+			<select
+				class="form-control form-control-sm"
+				:value="renderer"
+				@change="set_renderer($event.target.value)"
+			>
+				<option value="chrome" :disabled="has_typst_block">{{ __("Chromium") }}</option>
+				<option value="Typst" :disabled="typst_blockers.length > 0">
+					{{ __("Typst (fast)") }}
+				</option>
+			</select>
+			<p v-if="typst_blockers.length" class="pfb-renderer-hint">
+				{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
+			</p>
+			<p v-else-if="has_typst_block" class="pfb-renderer-hint">
+				{{ __("Chromium unavailable: this format uses a Typst block.") }}
+			</p>
+			<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
+				{{ __("Experimental") }}
+			</p>
+		</div>
+
+		<div class="form-group">
+			<label class="control-label">{{ __("Letter Head") }}</label>
+			<div ref="lh_host"></div>
 		</div>
 
 		<div class="form-group">
@@ -93,19 +85,75 @@
 				<option v-for="p in page_number_positions" :value="p.value">{{ p.label }}</option>
 			</select>
 		</div>
+
+		<div class="form-group">
+			<ToggleRow
+				:label="__('Custom CSS')"
+				:model-value="css_enabled"
+				@update:model-value="toggle_css"
+			/>
+			<textarea
+				v-if="css_enabled"
+				class="form-control form-control-sm pfb-css-input"
+				:placeholder="__('.print-format p { margin: 0; }')"
+				spellcheck="false"
+				rows="8"
+				:value="print_format.css || ''"
+				@input="(e) => (print_format.css = e.target.value)"
+			></textarea>
+		</div>
 	</div>
 </template>
 
 <script setup>
 import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
+import ToggleRow from "./inspector/ToggleRow.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 
 let store = inject("$store");
-let { print_format } = useStore();
+let { print_format, letterhead } = useStore();
+let { typst_blockers, has_typst_block } = store;
+
+// ── custom css ─────────────────────────────────────────────
+let css_enabled = ref(!!print_format.value.css);
+// a discarded draft or re-fetch replaces the doc — the toggle follows it
+watch(
+	() => print_format.value,
+	(pf) => (css_enabled.value = !!pf?.css)
+);
+watch(
+	() => print_format.value?.css,
+	(v) => {
+		if (v) css_enabled.value = true;
+	}
+);
+// turning the toggle off clears the css from the format, but keep what was
+// typed so flipping it back on restores it while this panel stays mounted
+let stashed_css = "";
+
+function toggle_css(on) {
+	css_enabled.value = on;
+	if (on) {
+		if (stashed_css && !print_format.value.css) {
+			print_format.value.css = stashed_css;
+		}
+	} else {
+		stashed_css = print_format.value.css || "";
+		print_format.value.css = "";
+	}
+}
 
 let google_fonts = ref([]);
+
+let renderer = computed(() =>
+	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
+);
+function set_renderer(value) {
+	if (value !== "Typst" && has_typst_block.value) return;
+	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+}
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
 	...google_fonts.value.map((f) => ({ label: f, value: f })),
@@ -160,57 +208,40 @@ function mount_color_controls() {
 	}
 }
 
-// a preset rewrites the colours behind the widgets' backs
-watch(
-	() => color_settings.map((c) => print_format.value?.[c.fieldname]),
-	() => {
-		for (const c of color_settings) {
-			const ctrl = color_controls[c.fieldname];
-			if (!ctrl) continue;
-			const model = print_format.value?.[c.fieldname] || "";
-			if ((ctrl.get_value() || "") !== model) ctrl.set_value(model);
-		}
-	}
-);
+// ── letter head ────────────────────────────────────────────
+let lh_host = ref(null);
+let lh_ctrl = null;
 
-// ── style presets ──────────────────────────────────────────
-let active_preset = ref("");
-
-function apply_preset(name) {
-	active_preset.value = name;
-	if (name) store.apply_style_preset(name);
-}
-
-function save_preset() {
-	frappe.prompt(
-		{
-			label: __("Preset name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: active_preset.value || "",
+function mount_letterhead_control() {
+	if (!lh_host.value) return;
+	lh_ctrl = frappe.ui.form.make_control({
+		parent: lh_host.value,
+		df: {
+			fieldname: "letter_head",
+			fieldtype: "Link",
+			options: "Letter Head",
+			placeholder: __("No letter head"),
+			change: () => {
+				const name = lh_ctrl.get_value() || "";
+				if (name === (letterhead.value?.name || "")) return;
+				name ? store.change_letterhead(name) : store.remove_letterhead();
+			},
 		},
-		({ name }) => {
-			store.save_style_preset(name);
-			active_preset.value = name.trim();
-			frappe.show_alert({ message: __("Style preset saved"), indicator: "green" });
-		},
-		__("Save Style Preset"),
-		__("Save")
-	);
-}
-
-function delete_preset() {
-	const name = active_preset.value;
-	if (!name) return;
-	frappe.confirm(__("Delete the style preset '{0}'?", [name]), () => {
-		store.delete_style_preset(name);
-		active_preset.value = "";
+		render_input: true,
 	});
+	lh_ctrl.set_value(letterhead.value?.name || "");
+	lh_host.value.querySelector(".control-label")?.remove();
+	lh_host.value.querySelector(".form-group")?.style.setProperty("margin", "0");
 }
+
+watch(
+	() => letterhead.value?.name,
+	(name) => lh_ctrl?.set_value(name || "")
+);
 
 onMounted(() => {
 	nextTick(mount_color_controls);
+	nextTick(mount_letterhead_control);
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
@@ -222,6 +253,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.pfb-renderer-hint {
+	margin: 6px 0 0;
+	font-size: var(--text-tiny);
+	color: var(--text-muted);
+}
+
 .pfb-settings .form-group {
 	margin-bottom: 12px;
 }
@@ -232,16 +269,6 @@ onMounted(() => {
 
 .pfb-settings :deep(.frappe-control) {
 	margin-bottom: 0;
-}
-
-.pfb-preset-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.pfb-preset-row select {
-	flex: 1;
 }
 
 .pfb-margin-grid {
@@ -258,5 +285,14 @@ onMounted(() => {
 
 .pfb-margin-label {
 	font-size: var(--text-tiny);
+}
+
+.pfb-css-input {
+	margin-top: 6px;
+	font-family: monospace;
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	resize: vertical;
+	min-height: 120px;
 }
 </style>

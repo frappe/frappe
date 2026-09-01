@@ -12,8 +12,8 @@ context("Awesome Bar", () => {
 	beforeEach(() => {
 		cy.get("body").type("{esc}");
 		cy.wait(300);
-		// the global-search trigger moved from the page header into the workspace dock (icon only)
-		cy.get(".workspace-dock .navbar-modal-search-mobile").as("awesome_bar_search");
+		// the global-search trigger moved from the page header into the dock (icon only)
+		cy.get(".dock .navbar-modal-search-mobile").as("awesome_bar_search");
 		cy.get("@awesome_bar_search").click();
 		cy.get("#navbar-search").as("awesome_bar");
 		cy.get("#navbar-search").type("{selectall}");
@@ -36,7 +36,6 @@ context("Awesome Bar", () => {
 
 	it("navigates to doctype list", () => {
 		cy.get("@awesome_bar").type("todo");
-		cy.wait(100); // Wait a bit before hitting enter.
 		cy.get(".awesomplete").findByRole("listbox").should("be.visible");
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
@@ -71,7 +70,6 @@ context("Awesome Bar", () => {
 		cy.wait(150); // Wait a bit before hitting enter.
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "Web Page");
-		cy.wait(200); // Wait a bit longer before checking the filter.
 		cy.location("search").should("be.empty");
 	});
 

@@ -1214,7 +1214,7 @@ class Document(BaseDocument):
 				if fail:
 					frappe.throw(
 						_("Value cannot be changed for {0}").format(
-							frappe.bold(_(self.meta.get_label(field.fieldname), context=self.doctype))
+							frappe.bold(self.meta.get_translated_label(field.fieldname))
 						),
 						exc=frappe.CannotChangeConstantError,
 					)
@@ -1726,11 +1726,16 @@ class Document(BaseDocument):
 
 		def _get_notifications():
 			"""Return enabled notifications for the current doctype."""
+			from frappe.app_state import get_disabled_modules
+
+			filters = {"enabled": 1, "document_type": self.doctype}
+			if disabled_modules := get_disabled_modules():
+				filters["module"] = ["not in", list(disabled_modules)]
 
 			return frappe.get_all(
 				"Notification",
 				fields=["name", "event", "method"],
-				filters={"enabled": 1, "document_type": self.doctype},
+				filters=filters,
 			)
 
 		notifications = frappe.client_cache.get_value(
@@ -1864,7 +1869,7 @@ class Document(BaseDocument):
 	def load_doc_before_save(self, *, raise_exception: bool = False):
 		"""load existing document from db before saving"""
 
-		self._doc_before_save = None
+		self._doc_before_save: "Self | None" = None
 
 		if self.is_new():
 			return
@@ -2122,7 +2127,7 @@ class Document(BaseDocument):
 		val2 = doc.cast(val2, df)
 
 		if not compare(val1, condition, val2):
-			label = _(doc.meta.get_label(fieldname), context=doc.doctype)
+			label = doc.meta.get_translated_label(fieldname)
 			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}:").format(doc.idx)
 			else:
@@ -2145,7 +2150,7 @@ class Document(BaseDocument):
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
 		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
-			label = _(self.meta.get_label(parentfield), context=self.doctype)
+			label = self.meta.get_translated_label(parentfield)
 			frappe.throw(
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
@@ -2385,8 +2390,8 @@ class Document(BaseDocument):
 			frappe.throw(
 				table_row
 				+ _("{0} must be after {1}").format(
-					frappe.bold(_(self.meta.get_label(to_date_field), context=self.doctype)),
-					frappe.bold(_(self.meta.get_label(from_date_field), context=self.doctype)),
+					frappe.bold(self.meta.get_translated_label(to_date_field)),
+					frappe.bold(self.meta.get_translated_label(from_date_field)),
 				),
 				frappe.exceptions.InvalidDates,
 			)

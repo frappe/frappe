@@ -95,20 +95,6 @@
 					</template>
 				</td>
 			</tr>
-			<tr v-if="!preview_doc[df.fieldname]?.length">
-				<td :colspan="df.table_columns?.length || 1" class="text-muted pfb-table-note">
-					{{ __("No rows") }}
-				</td>
-			</tr>
-			<tr v-if="(preview_doc[df.fieldname] || []).length > 4">
-				<td :colspan="df.table_columns?.length || 1" class="text-muted pfb-table-note">
-					{{
-						__("+ {0} more rows in this document — all print in the real output", [
-							preview_doc[df.fieldname].length - 4,
-						])
-					}}
-				</td>
-			</tr>
 		</tbody>
 		<!-- after tbody (HTML5 order): user styles that remap tfoot's display can
 		     no longer float the cap up under the header -->
@@ -118,6 +104,18 @@
 			</tr>
 		</tfoot>
 	</table>
+	<!-- outside the table: a note row inside tbody would take over `tr:last-child`,
+	     which every last-row border rule is keyed on -->
+	<div v-if="!preview_doc[df.fieldname]?.length" class="text-muted pfb-table-note">
+		{{ __("No rows") }}
+	</div>
+	<div v-else-if="preview_doc[df.fieldname].length > 4" class="text-muted pfb-table-note">
+		{{
+			__("+ {0} more rows in this document — all print in the real output", [
+				preview_doc[df.fieldname].length - 4,
+			])
+		}}
+	</div>
 </template>
 
 <script setup>

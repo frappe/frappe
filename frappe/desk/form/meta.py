@@ -4,7 +4,7 @@ import os
 
 import frappe
 from frappe import _
-from frappe.build import scrub_html_template
+from frappe.app_state import get_disabled_modules
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
@@ -26,7 +26,6 @@ ASSET_KEYS = (
 	"__templates",
 	"__custom_js",
 	"__custom_list_js",
-	"__workspaces",
 )
 
 
@@ -66,7 +65,6 @@ class FormMeta(Meta):
 			self.load_templates()
 			self.load_dashboard()
 			self.load_kanban_meta()
-			self.load_workspaces()
 
 		self.set("__assets_loaded", True)
 
@@ -127,6 +125,9 @@ class FormMeta(Meta):
 	def add_html_templates(self, path):
 		if self.custom:
 			return
+
+		from frappe.bundler import scrub_html_template
+
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
@@ -142,10 +143,14 @@ class FormMeta(Meta):
 	def add_custom_script(self):
 		"""embed all require files"""
 		# custom script
+		filters = {"dt": self.name, "enabled": 1}
+		if disabled_modules := get_disabled_modules():
+			filters["module"] = ["not in", list(disabled_modules)]
+
 		client_scripts = (
 			frappe.get_all(
 				"Client Script",
-				filters={"dt": self.name, "enabled": 1},
+				filters=filters,
 				fields=["name", "script", "view"],
 				order_by="creation asc",
 			)
@@ -203,7 +208,7 @@ class FormMeta(Meta):
 			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
 			(self.name,),
 			as_dict=1,
-			update={"doctype": "Print Format"},
+			update={"doctype": ":Print Format"},
 		)
 
 		self.set("__print_formats", print_formats)
@@ -234,37 +239,6 @@ class FormMeta(Meta):
 	def load_dashboard(self):
 		self.set("__dashboard", self.get_dashboard_data())
 
-	def load_workspaces(self):
-		Shortcut = frappe.qb.DocType("Workspace Shortcut")
-		Workspace = frappe.qb.DocType("Workspace")
-		shortcut = (
-			frappe.qb.from_(Shortcut)
-			.select(Shortcut.parent)
-			.inner_join(Workspace)
-			.on(Workspace.name == Shortcut.parent)
-			.where(Shortcut.link_to == self.name)
-			.where(Shortcut.type == "DocType")
-			.where(Workspace.public == 1)
-			.run()
-		)
-		if shortcut:
-			self.set("__workspaces", [shortcut[0][0]])
-		else:
-			Link = frappe.qb.DocType("Workspace Link")
-			link = (
-				frappe.qb.from_(Link)
-				.select(Link.parent)
-				.inner_join(Workspace)
-				.on(Workspace.name == Link.parent)
-				.where(Link.link_type == "DocType")
-				.where(Link.link_to == self.name)
-				.where(Workspace.public == 1)
-				.run()
-			)
-
-			if link:
-				self.set("__workspaces", [link[0][0]])
-
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()
 
@@ -284,7 +258,7 @@ class FormMeta(Meta):
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []
-	for app_name in frappe.get_installed_apps():
+	for app_name in frappe.get_active_apps():
 		code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
 		if not code_hook:
 			continue

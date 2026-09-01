@@ -74,11 +74,62 @@ class Contact(Document):
 		self.set_user()
 
 		set_link_title(self)
+		deduplicate_dynamic_links(self)
+		self.validate_primary_contact()
 
 		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
 			frappe.throw(_("Select Google Contacts to which contact should be synced."))
 
-		deduplicate_dynamic_links(self)
+	def validate_primary_contact(self) -> None:
+		if not self.is_primary_contact:
+			return
+
+		links = {(link.link_doctype, link.link_name) for link in self.links}
+		if not links:
+			return
+
+		self._lock_linked_documents(links)
+		primary_contacts = self._get_linked_primary_contacts(links)
+
+		if primary_contacts:
+			frappe.db.set_value("Contact", {"name": ["in", primary_contacts]}, "is_primary_contact", 0)
+
+	def _lock_linked_documents(self, links: set[tuple[str, str]]) -> None:
+		links_by_doctype = {}
+		for doctype, name in links:
+			links_by_doctype.setdefault(doctype, set()).add(name)
+
+		# Lock in a stable order so concurrent primary-contact updates serialize without deadlocking.
+		for doctype, names in sorted(links_by_doctype.items()):
+			frappe.qb.get_query(
+				doctype,
+				fields=["name"],
+				filters={"name": ["in", sorted(names)]},
+				order_by="name",
+				for_update=True,
+			).run()
+
+	def _get_linked_primary_contacts(self, links: set[tuple[str, str]]) -> list[str]:
+		Contact = frappe.qb.DocType("Contact")
+		DynamicLink = frappe.qb.DocType("Dynamic Link")
+
+		link_filter = None
+		for doctype, name in links:
+			condition = (DynamicLink.link_doctype == doctype) & (DynamicLink.link_name == name)
+			link_filter = condition if link_filter is None else link_filter | condition
+
+		return (
+			frappe.qb.from_(Contact)
+			.join(DynamicLink)
+			.on(DynamicLink.parent == Contact.name)
+			.select(Contact.name)
+			.distinct()
+			.where(Contact.is_primary_contact == 1)
+			.where(Contact.name != self.name)
+			.where(DynamicLink.parenttype == "Contact")
+			.where(DynamicLink.parentfield == "links")
+			.where(link_filter)
+		).run(pluck=True)
 
 	def set_user(self):
 		if not self.user and self.email_id:
@@ -479,12 +530,10 @@ def get_full_name(
 
 
 def get_contact_display_list(doctype: str, name: str) -> list[dict]:
-	from frappe.contacts.doctype.address.address import get_condensed_address
-
 	if not frappe.has_permission("Contact", "read"):
 		return []
 
-	contact_list = frappe.get_list(
+	return frappe.get_list(
 		"Contact",
 		filters=[
 			["Dynamic Link", "link_doctype", "=", doctype],
@@ -494,27 +543,3 @@ def get_contact_display_list(doctype: str, name: str) -> list[dict]:
 		fields=["*"],
 		order_by="is_primary_contact DESC, creation ASC",
 	)
-
-	for contact in contact_list:
-		contact["email_ids"] = frappe.get_all(
-			"Contact Email",
-			filters={"parenttype": "Contact", "parent": contact.name, "is_primary": 0},
-			fields=["email_id"],
-		)
-
-		contact["phone_nos"] = frappe.get_all(
-			"Contact Phone",
-			filters={
-				"parenttype": "Contact",
-				"parent": contact.name,
-				"is_primary_phone": 0,
-				"is_primary_mobile_no": 0,
-			},
-			fields=["phone"],
-		)
-
-		if contact.address and frappe.has_permission("Address", "read"):
-			address = frappe.get_doc("Address", contact.address)
-			contact["address"] = get_condensed_address(address)
-
-	return contact_list

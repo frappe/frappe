@@ -1,5 +1,4 @@
 {
- "app": "frappe",
  "charts": [],
  "content": "[]",
  "creation": "2026-06-11 11:51:23.081729",
@@ -15,7 +14,7 @@
  "label": "Printing",
  "link_type": "DocType",
  "links": [],
- "modified": "2026-07-15 00:51:27.452467",
+ "modified": "2026-08-03 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Printing",
@@ -26,73 +25,6 @@
  "roles": [],
  "sequence_id": 53.0,
  "shortcuts": [],
- "sidebar_items": [
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "printer",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Print Format",
-   "link_to": "Print Format",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "heading",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Print Heading",
-   "link_to": "Print Heading",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "book-text",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Letter Head",
-   "link_to": "Letter Head",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "pen-tool",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Print Format Builder",
-   "link_to": "print-format-builder",
-   "link_type": "Page",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "settings",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Print Settings",
-   "link_to": "Print Settings",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  }
- ],
  "standard": 1,
  "title": "Printing",
  "type": "Workspace"

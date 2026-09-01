@@ -36,7 +36,9 @@ from frappe.utils import (
 	get_time,
 	get_timespan_date_range,
 )
-from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+from frappe.utils.data import convert_type_for_between_filters, sbool
+
+_convert_type_for_between_filters = convert_type_for_between_filters  # bw compatibility
 
 
 @lru_cache(maxsize=128)
@@ -264,7 +266,7 @@ class DatabaseQuery:
 			for idx, field in enumerate(self.fields):
 				# handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
 				if " as " in field.lower():
-					alias = field.split(" as ")[1].strip(" '")
+					alias = re.split(r"\s+as\s+", field, flags=re.IGNORECASE)[1].strip(" '`")
 					field_index_map[alias] = idx
 				else:
 					# extract last part after `.`
@@ -366,7 +368,7 @@ from {tables}
 		if self.with_childnames:
 			for t in self.tables:
 				if t != f"`tab{self.doctype}`":
-					self.fields.append(f"{t}.name as '{t[4:-1]}:name'")
+					self.fields.append(f"{t}.name as `{t[4:-1]}:name`")
 
 		# query dict
 		assert self.tables, "extract_tables must have populated at least the primary table"
@@ -1595,8 +1597,8 @@ def get_between_date_filter(value, df=None):
 
 	# if filter value is date but fieldtype is datetime:
 	if fieldtype == "Datetime":
-		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
-		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
+		from_date = convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
 	# If filter value is already datetime, do nothing.
 	if fieldtype == "Datetime":
@@ -1605,23 +1607,6 @@ def get_between_date_filter(value, df=None):
 		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
 	return cond
-
-
-def _convert_type_for_between_filters(
-	value: DateTimeLikeObject, set_time: datetime.time
-) -> datetime.datetime:
-	if isinstance(value, str):
-		if " " in value.strip():
-			value = get_datetime(value)
-		else:
-			value = getdate(value)
-
-	if isinstance(value, datetime.datetime):
-		return value
-	elif isinstance(value, datetime.date):
-		return datetime.datetime.combine(value, set_time)
-
-	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

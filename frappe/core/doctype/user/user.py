@@ -70,7 +70,6 @@ class User(Document):
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
 		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
-		from frappe.core.doctype.user_workspaces.user_workspaces import UserWorkspaces
 		from frappe.types import DF
 
 		active_sessions: DF.Table[UserSessionDisplay]
@@ -147,7 +146,6 @@ class User(Document):
 		user_type: DF.Link | None
 		username: DF.Data | None
 		view_switcher: DF.Check
-		workspaces: DF.Table[UserWorkspaces]
 	# end: auto-generated types
 
 	__new_password = None
@@ -515,15 +513,20 @@ class User(Document):
 	def password_reset_mail(self, link):
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
+		expiry_seconds = cint(frappe.get_system_settings("reset_password_link_expiry_duration"))
+		expiry_minutes = (expiry_seconds // 60) or None
+
 		self.send_login_mail(
 			_("Password Reset"),
 			"password_reset",
-			{"link": link},
+			{"link": link, "expiry_minutes": expiry_minutes},
 			now=True,
 			custom_template=reset_password_template,
+			wrapper=None if reset_password_template else "templates/emails/auth_email.html",
 		)
 
 	def send_welcome_mail_to_user(self):
+		from frappe.email.email_body import get_brand_name
 		from frappe.utils import get_url
 
 		link = self._reset_password()
@@ -546,11 +549,13 @@ class User(Document):
 			dict(
 				link=link,
 				site_url=get_url(),
+				app_name=get_brand_name() or "Frappe",
 			),
 			custom_template=welcome_email_template,
+			wrapper=None if welcome_email_template else "templates/emails/auth_email.html",
 		)
 
-	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
+	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None, wrapper=None):
 		"""send mail with login details"""
 		if not self.enabled:
 			return
@@ -577,9 +582,9 @@ class User(Document):
 		) or None
 
 		if custom_template:
-			from frappe.email.doctype.email_template.email_template import get_email_template
-
-			email_template = get_email_template(custom_template, args, sender=sender)
+			email_template = frappe.get_doc("Email Template", custom_template).get_formatted_email(
+				args, sender=sender
+			)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
@@ -591,6 +596,7 @@ class User(Document):
 			content=content if custom_template else None,
 			args=args,
 			with_container=True,
+			wrapper=wrapper,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
 			retry=3,
 			redact_message_after_send=True,
@@ -644,6 +650,18 @@ class User(Document):
 
 		# Delete user's List Filters
 		frappe.db.delete("List Filter", {"for_user": self.name})
+
+		# Delete the user's own navigation arrangements: their sidebar layers and their dock.
+		# Delete whole documents rather than rows, because they carry a child table and deleting
+		# the document is what clears the cached set of layers. The site layer, with `user` blank,
+		# is not a personal preference and stays.
+		#
+		# Both doctypes are in `ignore_links_on_delete`, so nothing would have complained about
+		# rows left behind, and `Dock` is uniquely keyed on `user`, so a leftover layer would be
+		# handed to the next user created with the same id.
+		for doctype in ("Custom Sidebar", "Dock"):
+			for name in frappe.get_all(doctype, filters={"user": self.name}, pluck="name"):
+				frappe.delete_doc(doctype, name, ignore_permissions=True, force=True)
 
 		# Remove user from Note's Seen By table
 		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])
@@ -887,8 +905,7 @@ class User(Document):
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.set_route",
-				"args": ["Form", self.doctype, self.name],
+				"client_action": "frappe.scroll_to_user_roles_field",
 			},
 		)
 
@@ -930,6 +947,16 @@ def get_all_roles():
 	)
 
 	return sorted([role.get("name") for role in roles])
+
+
+@frappe.whitelist()
+def get_current_user_roles() -> list[str]:
+	"""Return the logged-in user's roles.
+
+	Desk reads these from `frappe.boot.user.roles`. Clients that do not load
+	bootinfo have no such payload, so they fetch them here.
+	"""
+	return frappe.get_roles()
 
 
 @frappe.whitelist()
@@ -1326,20 +1353,19 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager
 	):
-		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
-		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
+		date_and_time = format_datetime(now_datetime(), format_string="medium")
 		ip_address = frappe.local.request_ip
-
-		access_message = _("Administrator accessed {0} on {1} via IP Address {2}.").format(
-			site, date_and_time, ip_address
-		)
 
 		frappe.sendmail(
 			recipients=get_system_managers(),
 			subject=_("Administrator Logged In"),
 			template="administrator_logged_in",
-			args={"access_message": access_message},
-			header=["Access Notification", "orange"],
+			args={
+				"date_and_time": date_and_time,
+				"ip_address": ip_address,
+			},
+			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 		)
 
 

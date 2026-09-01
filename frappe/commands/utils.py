@@ -57,7 +57,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.build import bundle
+	from frappe.bundler import bundle
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -102,22 +102,34 @@ def build(
 		run_after_build_hook(apps)
 
 
-def run_after_build_hook(apps):
+def run_after_build_hook(built_apps: list[str]):
+	"""Run build hooks after assets are built.
+
+	- `after_build`: self-referential - runs only for apps that were just built, called with no arguments.
+	- `after_app_build`: cross-app - runs for every app on the bench, called with the list of built apps,
+	  so an app can react to another app's build (e.g. compile frontends it owns for that app).
+	"""
 	from importlib import import_module
 
-	for app in apps:
+	def _get_method(fn):
+		modulename = ".".join(fn.split(".")[:-1])
+		methodname = fn.split(".")[-1]
+		return getattr(import_module(modulename), methodname)
+
+	for app in built_apps:
 		for fn in frappe.get_hooks("after_build", app_name=app):
-			modulename = ".".join(fn.split(".")[:-1])
-			methodname = fn.split(".")[-1]
-			method = getattr(import_module(modulename), methodname)
-			method()
+			_get_method(fn)()
+
+	for app in frappe.get_all_apps():
+		for fn in frappe.get_hooks("after_app_build", app_name=app):
+			_get_method(fn)(built_apps)
 
 
 @click.command("watch")
 @click.option("--apps", help="Watch assets for specific apps")
 def watch(apps=None):
 	"Watch and compile JS and CSS files as and when they change"
-	from frappe.build import watch
+	from frappe.bundler import watch
 
 	frappe.init("")
 	watch(apps)
@@ -362,6 +374,43 @@ def export_fixtures(context: CliCtxObj, app=None):
 			frappe.init(site)
 			frappe.connect()
 			export_fixtures(app=app)
+		finally:
+			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("convert-sidebar-fixtures")
+@click.option("--app", default=None, help="Convert one app's fixtures; omit for every installed app")
+@click.option("--dry-run", is_flag=True, default=False, help="Report what would be written")
+@pass_context
+def convert_sidebar_fixtures(context: CliCtxObj, app=None, dry_run=False):
+	"Convert an app's old workspace_sidebar fixtures into per-module Sidebar exports"
+	from frappe.desk.doctype.sidebar.convert_fixtures import apps_with_old_fixtures, convert_app
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+
+			if app and app not in frappe.get_installed_apps():
+				click.secho(f"{app} is not installed on {site}.", fg="red")
+				continue
+
+			apps = [app] if app else sorted(apps_with_old_fixtures())
+			if not apps:
+				click.secho("No installed app still ships the old sidebar fixtures.", fg="green")
+
+			for name in apps:
+				click.secho(f"\n{name}", bold=True)
+				results = convert_app(name, dry_run=dry_run)
+				if not results:
+					click.echo("  nothing to convert")
+				for result in results:
+					colour = {"converted": "green", "already converted": "cyan"}.get(
+						result["state"], "yellow"
+					)
+					click.secho(f"  {result['state']:18} {result['module'] or result['path']}", fg=colour)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -737,6 +786,12 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 
 @click.command("serve")
 @click.option("--port", default=8000)
+@click.option(
+	"--host",
+	"bind_addr",
+	default=None,
+	help="Address to bind the development server to. Defaults to 127.0.0.1, use 0.0.0.0 to expose it on all interfaces.",
+)
 @click.option("--profile", is_flag=True, default=False)
 @click.option(
 	"--proxy",
@@ -751,6 +806,7 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 def serve(
 	context: CliCtxObj,
 	port=None,
+	bind_addr=None,
 	profile=False,
 	proxy=False,
 	no_reload=False,
@@ -773,6 +829,7 @@ def serve(
 			no_reload = True
 		frappe.app.serve(
 			port=port,
+			bind_addr=bind_addr,
 			profile=profile,
 			proxy=proxy,
 			no_reload=no_reload,
@@ -1016,6 +1073,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	convert_sidebar_fixtures,
 	database,
 	transform_database,
 	jupyter,

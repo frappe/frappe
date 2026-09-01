@@ -4,21 +4,10 @@
 		class="builder-root"
 		:class="{ 'pfb-multi-select': $store.is_multi_select.value }"
 	>
-		<PrintFormatControls />
+		<PrintFormatControls v-if="!$store.needs_setup.value" />
 		<div class="canvas-area">
-			<!-- Sidebar-open hint -->
-			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
-				<span v-html="frappe.utils.icon('info', 'sm', 'pfb-hint-icon')"></span>
-				<span class="pfb-hint-text">{{
-					__("Tip: Close the left sidebar for more editing space.")
-				}}</span>
-				<button class="pfb-hint-dismiss" @click="dismiss_hint" :aria-label="__('Dismiss')">
-					<span v-html="frappe.utils.icon('x', 'xs')"></span>
-				</button>
-			</div>
-
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
-			<div class="canvas-toolbar">
+			<div class="canvas-toolbar" v-if="!$store.needs_setup.value">
 				<div class="canvas-toolbar-left">
 					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
@@ -66,7 +55,7 @@
 				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<FieldInspector />
+		<FieldInspector v-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
 		<ContextMenu />
 		<Teleport to="body">
@@ -93,11 +82,10 @@ import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
-const HINT_KEY = "pfb_sidebar_hint_dismissed";
 const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_STEP = 10;
 const ZOOM_MIN = 50;
@@ -106,10 +94,7 @@ const ZOOM_MAX = 150;
 let show_preview = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
-let sidebar_open = ref(false);
-let hint_dismissed = ref(localStorage.getItem(HINT_KEY) === "1");
 let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
-let sidebar_observer_ref = null;
 
 let $store = computed(() => {
 	return getStore(props.print_format_name);
@@ -173,6 +158,8 @@ function clear_selection() {
 	}
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
+	$store.value.selected_letterhead.value = false;
+	$store.value.selected_lh_footer.value = false;
 }
 
 // ── Marquee (rubber-band) selection ──────────────────────────
@@ -412,6 +399,11 @@ function handle_keydown(e) {
 		// Navigate up: section → canvas (clear all)
 		$store.value.selected_section.value = null;
 		e.stopPropagation();
+	} else if ($store.value.selected_letterhead.value || $store.value.selected_lh_footer.value) {
+		// letter head zones have no parent — Escape just deselects them
+		$store.value.selected_letterhead.value = false;
+		$store.value.selected_lh_footer.value = false;
+		e.stopPropagation();
 	}
 }
 
@@ -428,15 +420,6 @@ function zoom_out() {
 function reset_zoom() {
 	canvas_zoom.value = 100;
 	localStorage.setItem(ZOOM_KEY, 100);
-}
-
-function check_sidebar() {
-	sidebar_open.value = frappe.app?.sidebar?.wrapper?.is(":visible") ?? false;
-}
-
-function dismiss_hint() {
-	hint_dismissed.value = true;
-	localStorage.setItem(HINT_KEY, "1");
 }
 
 function init_doc_picker() {
@@ -496,17 +479,21 @@ function init_doc_picker() {
 	}
 }
 
+watch(
+	() => $store.value.needs_setup.value,
+	(needs_setup) => {
+		if (!needs_setup && !doc_picker_ctrl.value) nextTick(init_doc_picker);
+	}
+);
+
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
 
-	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
-	check_sidebar();
-	const sidebar_el = frappe.app?.sidebar?.wrapper?.[0];
-	if (sidebar_el) {
-		sidebar_observer_ref = new MutationObserver(check_sidebar);
-		sidebar_observer_ref.observe(sidebar_el, { attributes: true, attributeFilter: ["style"] });
-	}
 	$store.value.fetch().then(() => {
+		if ($store.value.print_format.value?.custom_format) {
+			frappe.set_route("Form", "Print Format", props.print_format_name);
+			return;
+		}
 		if (!$store.value.layout.value) {
 			$store.value.layout.value = $store.value.get_default_layout();
 			$store.value.save_changes();
@@ -519,7 +506,6 @@ onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
 	window.removeEventListener("pointermove", on_canvas_pointermove);
 	window.removeEventListener("pointerup", on_canvas_pointerup);
-	sidebar_observer_ref?.disconnect();
 });
 
 defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
@@ -553,47 +539,6 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	display: flex;
 	flex-direction: column;
 	height: calc(100vh - var(--pfb-chrome-offset));
-}
-
-/* ── Sidebar hint ────────────────────────────────────────── */
-.pfb-sidebar-hint {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 4px 12px;
-	background: var(--gray-50);
-	border-bottom: 1px solid var(--gray-200);
-	font-size: var(--text-xs);
-	color: var(--gray-700);
-}
-
-.pfb-hint-icon {
-	flex-shrink: 0;
-	opacity: 0.7;
-}
-
-.pfb-hint-text {
-	flex: 1;
-}
-
-.pfb-hint-dismiss {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	padding: 2px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-500);
-	border-radius: var(--radius);
-	line-height: 1;
-	opacity: 0.7;
-}
-
-.pfb-hint-dismiss:hover {
-	opacity: 1;
-	background: var(--gray-200);
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */

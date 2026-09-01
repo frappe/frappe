@@ -102,6 +102,15 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		# no source -> block is skipped entirely
 		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
 
+	def test_allow_page_break_marks_field_breakable(self):
+		# the class name also lives in the stylesheet, so assert on the body markup only
+		def body(html):
+			return html.split("<body", 1)[-1]
+
+		df = {"fieldname": "first_name", "fieldtype": "Data", "label": "First Name"}
+		self.assertNotIn("field--breakable", body(self.render(df)))
+		self.assertIn("field--breakable", body(self.render(df | {"allow_page_break": 1})))
+
 	def test_barcode_element(self):
 		df = {"fieldname": "barcode_test", "fieldtype": "Barcode", "custom": 1, "label": ""}
 
@@ -154,6 +163,129 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		prefix = "data:image/svg+xml;base64,"
 		self.assertTrue(data_uri.startswith(prefix))
 		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))
+
+
+class TestPrintFormatHardening(IntegrationTestCase):
+	"""Malformed layouts and conditions must not take the print down."""
+
+	NAME = "_Test Hardening"
+
+	def make(self, layout, **kwargs):
+		frappe.delete_doc("Print Format", self.NAME, force=True, ignore_missing=True)
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.NAME,
+				"doc_type": "User",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": layout if isinstance(layout, str) else frappe.as_json(layout),
+				**kwargs,
+			}
+		)
+		doc.insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.NAME, force=True, ignore_missing=True)
+		return doc
+
+	def render(self, layout, **kwargs):
+		from frappe.utils.print_format_generator import get_html
+
+		self.make(layout, **kwargs)
+		return get_html("User", "Administrator", self.NAME)
+
+	@staticmethod
+	def layout(*fields, **section):
+		sec = {"label": "", "columns": [{"label": "", "fields": list(fields)}]}
+		sec.update(section)
+		return {"sections": [sec], "header": {"columns": []}, "footer": {"columns": []}}
+
+	DATA: ClassVar[dict] = {"label": "First Name", "fieldname": "first_name", "fieldtype": "Data"}
+
+	def test_malformed_layout_renders_empty_instead_of_erroring(self):
+		for label, format_data in {
+			"corrupt json": '{"sections": [BROKEN',
+			"sections is a string": '{"sections": "nope"}',
+			"sections is null": '{"sections": null}',
+			"section without columns": '{"sections": [{"label": "x"}]}',
+			"column without fields": '{"sections": [{"columns": [{"label": ""}]}]}',
+			"non-dict field": '{"sections": [{"columns": [{"fields": ["nope"]}]}]}',
+		}.items():
+			with self.subTest(layout=label):
+				self.assertIn("print-format-doc", self.render(format_data))
+
+	def test_broken_condition_is_rejected_on_save(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.make(self.layout({**self.DATA, "visible_if": "doc.first_name ==== 'x'"}))
+
+		self.make(self.layout({**self.DATA, "visible_if": "   "}))
+
+	def test_runtime_condition_failure_shows_field_and_logs(self):
+		before = frappe.db.count("Error Log")
+		html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": "doc.nope.nope"}))
+		self.assertIn("PROBE", html)
+		self.assertGreater(frappe.db.count("Error Log"), before)
+
+	def test_malformed_table_columns_do_not_crash(self):
+		table = {"label": "T", "fieldname": "roles", "fieldtype": "Table", "options": "Has Role"}
+		for table_columns in (["nope", 3], "nope", {"a": 1}, 7, ""):
+			with self.subTest(table_columns=table_columns):
+				html = self.render(self.layout({**table, "table_columns": table_columns}))
+				self.assertIn("print-format-doc", html)
+
+	def test_non_string_condition_does_not_crash(self):
+		for condition in (5, ["a"], {"a": 1}):
+			with self.subTest(condition=condition):
+				html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": condition}))
+				self.assertIn("PROBE", html)
+
+	def test_failing_row_condition_logs_once_not_once_per_row(self):
+		frappe.db.delete("Error Log")
+		self.render(
+			self.layout(
+				{
+					"label": "T",
+					"fieldname": "roles",
+					"fieldtype": "Table",
+					"options": "Has Role",
+					"row_condition": "row.nope.nope",
+					"table_columns": [
+						{"label": "Role", "fieldname": "role", "fieldtype": "Link", "width": 100}
+					],
+				}
+			)
+		)
+		self.assertGreater(frappe.db.count("Has Role", {"parent": "Administrator"}), 1)
+		self.assertEqual(frappe.db.count("Error Log"), 1)
+
+	def test_labels_are_escaped(self):
+		payload = "<script>alert(1)</script>"
+		self.assertNotIn(payload, self.render(self.layout({**self.DATA, "label": payload})))
+		self.assertNotIn(
+			payload,
+			self.render(
+				{
+					"sections": [{"label": payload, "columns": [{"label": "", "fields": [self.DATA]}]}],
+					"header": {"columns": []},
+					"footer": {"columns": []},
+				}
+			),
+		)
+		self.assertNotIn(
+			payload,
+			self.render(
+				self.layout(
+					{
+						"label": "T",
+						"fieldname": "roles",
+						"fieldtype": "Table",
+						"options": "Has Role",
+						"table_columns": [
+							{"label": payload, "fieldname": "role", "fieldtype": "Link", "width": 100}
+						],
+					}
+				)
+			),
+		)
 
 
 class TestClassicConverter(IntegrationTestCase):
@@ -619,106 +751,6 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertNotIn(bad_name, report)
 
 
-class TestPrintFormatPreview(IntegrationTestCase):
-	FORMAT_NAME = "_Test Preview Sweep"
-
-	def setUp(self):
-		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
-		frappe.get_doc(
-			{
-				"doctype": "Print Format",
-				"name": self.FORMAT_NAME,
-				"doc_type": "ToDo",
-				"print_format_builder_beta": 1,
-				"format_data": frappe.as_json(
-					{
-						"sections": [{"label": "", "columns": [{"label": "", "fields": []}]}],
-						"header": {"columns": []},
-						"footer": {"columns": []},
-					}
-				),
-			}
-		).insert()
-		frappe.get_doc({"doctype": "ToDo", "description": "preview sample"}).insert()
-		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
-
-	def _preview_files(self):
-		return frappe.get_all(
-			"File",
-			filters={
-				"attached_to_doctype": "Print Format",
-				"attached_to_name": self.FORMAT_NAME,
-				"attached_to_field": "preview_image",
-			},
-			pluck="name",
-		)
-
-	def test_regenerate_keeps_single_preview_and_spares_user_files(self):
-		from unittest.mock import patch
-
-		from frappe.printing.doctype.print_format.print_format import generate_preview
-		from frappe.utils.file_manager import save_file
-
-		user_file = save_file("my-notes.txt", b"keep me", "Print Format", self.FORMAT_NAME, is_private=1)
-
-		with (
-			patch("frappe.get_print", return_value="<html><body>x</body></html>"),
-			patch("frappe.utils.preview.get_preview_from_html", side_effect=[b"webp-AAAA", b"webp-BBBB"]),
-		):
-			generate_preview(self.FORMAT_NAME)
-			generate_preview(self.FORMAT_NAME)
-
-		previews = self._preview_files()
-		self.assertEqual(len(previews), 1, "regenerating a preview must not accumulate files")
-
-		cooldown_key = f"pf_preview_cooldown::{self.FORMAT_NAME}"
-		self.addCleanup(frappe.cache.delete_value, cooldown_key)
-		self.assertTrue(frappe.cache.get_value(cooldown_key), "a completed render must stamp the cooldown")
-
-		self.assertTrue(frappe.db.exists("File", user_file.name), "user attachment must not be swept")
-
-		url = frappe.db.get_value("Print Format", self.FORMAT_NAME, "preview_image")
-		self.assertEqual(frappe.db.get_value("File", previews[0], "file_url"), url)
-
-	def test_autosave(self):
-		from frappe.printing.doctype.print_format.print_format import autosave
-
-		doc = frappe.get_doc("Print Format", self.FORMAT_NAME).as_dict()
-		doc["format_data"] = frappe.as_json(
-			{
-				"sections": [{"label": "Edited", "columns": [{"label": "", "fields": []}]}],
-				"header": {"columns": []},
-				"footer": {"columns": []},
-			}
-		)
-		result = autosave(frappe.as_json(doc))
-		self.assertEqual(result["name"], self.FORMAT_NAME)
-		self.assertIn("Edited", frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"))
-
-	def test_autosave_preview_throttle(self):
-		"""Autosaves refresh the preview at most once per cooldown window; manual
-		saves always refresh."""
-		from unittest.mock import patch
-
-		pf = frappe.get_doc("Print Format", self.FORMAT_NAME)
-		cooldown_key = f"pf_preview_cooldown::{pf.name}"
-		frappe.cache.delete_value(cooldown_key)
-		self.addCleanup(frappe.cache.delete_value, cooldown_key)
-
-		with patch.object(frappe, "in_test", False), patch("frappe.enqueue") as enqueue:
-			pf.flags.pfb_autosave = True
-			pf.enqueue_preview_generation()
-			self.assertEqual(enqueue.call_count, 1, "no cooldown: autosave refreshes")
-
-			frappe.cache.set_value(cooldown_key, 1, expires_in_sec=60)
-			pf.enqueue_preview_generation()
-			self.assertEqual(enqueue.call_count, 1, "cooldown: autosave skips the refresh")
-
-			pf.flags.pfb_autosave = False
-			pf.enqueue_preview_generation()
-			self.assertEqual(enqueue.call_count, 2, "manual save refreshes despite cooldown")
-
-
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	"""Per-row and per-column conditional visibility for child Table fields."""
 
@@ -738,7 +770,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "Contact", self.contact.name, force=True)
 
-	def render(self, df):
+	def render(self, df, skip_validation=False):
 		from frappe.utils.print_format_generator import get_html
 
 		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
@@ -747,7 +779,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 			"header": {"columns": []},
 			"footer": {"columns": []},
 		}
-		frappe.get_doc(
+		doc = frappe.get_doc(
 			{
 				"doctype": "Print Format",
 				"name": self.FORMAT_NAME,
@@ -756,7 +788,10 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 				"print_format_builder_beta": 1,
 				"format_data": frappe.as_json(format_data),
 			}
-		).insert()
+		)
+		if skip_validation:
+			doc.flags.ignore_validate = True
+		doc.insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
 		return get_html("Contact", self.contact.name, self.FORMAT_NAME)
 
@@ -780,7 +815,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		self.assertNotIn("secondary@example.com", html)
 
 	def test_bad_row_condition_keeps_all_rows(self):
-		html = self.render(self.table_field(row_condition="row.does_not_exist >"))
+		html = self.render(self.table_field(row_condition="row.does_not_exist >"), skip_validation=True)
 		self.assertIn("primary@example.com", html)
 		self.assertIn("secondary@example.com", html)
 
@@ -820,7 +855,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	def test_bad_column_condition_keeps_column(self):
 		df = self.table_field()
 		df["table_columns"][1]["column_condition"] = "doc.does_not_exist >"
-		html = self.render(df)
+		html = self.render(df, skip_validation=True)
 		self.assertIn('data-fieldname="is_primary"', html)
 		self.assertIn('data-fieldname="email_id"', html)
 
@@ -836,3 +871,84 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		html = self.render(df)
 		self.assertNotIn('data-fieldname="is_primary"', html)
 		self.assertIn('data-fieldname="email_id"', html)
+
+
+class TestPrintFormatDraft(IntegrationTestCase):
+	"""The builder parks edits in draft_data; only Save & Apply touches what prints."""
+
+	def setUp(self):
+		self.pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Draft {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json({"sections": [], "header": {}, "footer": {}}),
+				"margin_top": 10,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.pf.name, force=True)
+
+	def live(self, *fields):
+		return frappe.db.get_value("Print Format", self.pf.name, list(fields), as_dict=True)
+
+	def stamp(self):
+		"""The format's current `modified` — every draft endpoint requires it."""
+		return frappe.db.get_value("Print Format", self.pf.name, "modified")
+
+	def test_draft_does_not_change_what_prints(self):
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			discard_draft,
+			save_draft,
+		)
+
+		save_draft(self.pf.name, {"margin_top": 25, "font": "Inter"}, self.stamp())
+		live = self.live("margin_top", "font", "draft_data")
+		self.assertEqual(live.margin_top, 10)
+		self.assertIsNone(live.font)
+		self.assertEqual(frappe.parse_json(live.draft_data)["margin_top"], 25)
+
+		apply_draft(self.pf.name, self.stamp())
+		live = self.live("margin_top", "font", "draft_data")
+		self.assertEqual(live.margin_top, 25)
+		self.assertEqual(live.font, "Inter")
+		self.assertFalse(live.draft_data)
+
+		save_draft(self.pf.name, {"margin_top": 99}, self.stamp())
+		discard_draft(self.pf.name, self.stamp())
+		live = self.live("margin_top", "draft_data")
+		self.assertEqual(live.margin_top, 25)
+		self.assertFalse(live.draft_data)
+
+	def test_draft_ignores_fields_outside_the_whitelist(self):
+		from frappe.printing.doctype.print_format.print_format import apply_draft, save_draft
+
+		save_draft(self.pf.name, {"margin_top": 25, "disabled": 1, "standard": "Yes"}, self.stamp())
+		self.assertNotIn("disabled", frappe.parse_json(self.live("draft_data").draft_data))
+
+		apply_draft(self.pf.name, self.stamp(), {"margin_top": 30, "disabled": 1})
+		live = self.live("margin_top", "disabled")
+		self.assertEqual(live.margin_top, 30)
+		self.assertEqual(live.disabled, 0)
+
+	def test_a_stale_write_cannot_clobber_a_newer_draft(self):
+		"""db_set skips the timestamp check save() runs, so the endpoints do it."""
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			discard_draft,
+			save_draft,
+		)
+
+		stale = self.stamp()
+		save_draft(self.pf.name, {"margin_top": 20}, stale)
+
+		for call in (
+			lambda: save_draft(self.pf.name, {"margin_top": 55}, stale),
+			lambda: apply_draft(self.pf.name, stale),
+			lambda: discard_draft(self.pf.name, stale),
+		):
+			with self.assertRaises(frappe.TimestampMismatchError):
+				call()
+
+		self.assertEqual(frappe.parse_json(self.live("draft_data").draft_data)["margin_top"], 20)

@@ -4,7 +4,8 @@
 // link validation
 // custom queries
 // add_fetches
-import Awesomplete from "awesomplete";
+import Awesomplete from "../../ui/awesomplete";
+
 frappe.ui.form.recent_link_validations = {};
 
 frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlData {
@@ -82,7 +83,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	is_clear_button_enabled() {
-		return Boolean(cint(frappe.boot?.sysdefaults?.allow_clearing_link_fields));
+		return frappe.defaults.is_enabled("allow_clearing_link_fields");
 	}
 
 	hide_link_and_clear_buttons() {

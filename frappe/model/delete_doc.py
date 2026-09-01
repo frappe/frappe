@@ -91,7 +91,18 @@ def delete_doc(
 
 	for name in names or []:
 		if is_virtual:
-			frappe.get_doc(doctype, name).delete()
+			doc = frappe.get_doc(doctype, name)
+			update_flags(doc, flags, ignore_permissions)
+			check_permission_and_not_submitted(doc)
+
+			from frappe.model.document import Document
+
+			if type(doc).delete == Document.delete:
+				frappe.throw(
+					_("{0} is a Virtual DocType and must implement its own delete() method.").format(doctype)
+				)
+
+			doc.delete()
 			continue
 
 		# already deleted..?
@@ -160,6 +171,7 @@ def delete_doc(
 			if not for_reload:
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
+				doc.flags.force_delete = force
 
 				if not ignore_on_trash:
 					doc.run_method("on_trash")

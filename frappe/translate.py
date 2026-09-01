@@ -18,6 +18,7 @@ from contextlib import contextmanager, suppress
 from csv import reader, writer
 
 import frappe
+from frappe.app_state import filter_out_disabled_doctypes
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, get_build_version, is_html, strip, strip_html_tags, unique
 from frappe.utils.caching import http_cache
@@ -972,7 +973,7 @@ def get_translated_doctypes():
 	custom_dts = frappe.get_all(
 		"Property Setter", {"property": "translated_doctype", "value": "1"}, pluck="doc_type"
 	)
-	return unique(dts + custom_dts)
+	return filter_out_disabled_doctypes(unique(dts + custom_dts))
 
 
 @contextmanager

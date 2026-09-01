@@ -4,6 +4,7 @@
 """build query for doclistview and return results"""
 
 import json
+import re
 from functools import lru_cache
 from typing import Any
 
@@ -23,6 +24,7 @@ from frappe.utils.data import sbool
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
 DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
+_FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
 
 
 @frappe.whitelist()
@@ -210,6 +212,39 @@ def raise_invalid_field(fieldname):
 	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
+def _validate_group_by_field(raw: str, doctype: str):
+	"""Validate a single `tabDoctype`.`fieldname` expression from saved report JSON."""
+	if not isinstance(raw, str) or not raw:
+		raise_invalid_field(raw)
+	try:
+		field_doctype, fieldname = parse_field(raw)
+	except ValueError:
+		raise_invalid_field(raw)
+	field_doctype = field_doctype or doctype
+	if not _FIELDNAME_RE.match(fieldname):
+		raise_invalid_field(raw)
+	try:
+		has_col = frappe.db.has_column(field_doctype, fieldname)
+	except frappe.db.TableMissingError:
+		raise_invalid_field(raw)
+	if not has_col:
+		raise_invalid_field(raw)
+
+
+def _validate_group_by_args(group_by: dict, doctype: str):
+	raw_func = group_by.get("aggregate_function")
+	if not isinstance(raw_func, str):
+		frappe.throw(_("Invalid aggregate function: {0}").format(raw_func), frappe.DataError)
+	func = raw_func.lower()
+	if func not in SUPPORTED_AGGREGATE_FUNCTIONS:
+		frappe.throw(_("Invalid aggregate function: {0}").format(func), frappe.DataError)
+
+	_validate_group_by_field(group_by.get("group_by", ""), doctype)
+
+	if func != "count":
+		_validate_group_by_field(group_by.get("aggregate_on", ""), doctype)
+
+
 def is_standard(fieldname):
 	if "." in fieldname:
 		fieldname = fieldname.split(".")[1].strip("`")
@@ -349,6 +384,10 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 		report = frappe.new_doc("Report")
 		report.report_name = name
 		report.ref_doctype = doctype
+
+	settings = json.loads(report_settings)
+	if isinstance(settings, dict) and isinstance(group_by := settings.get("group_by"), dict):
+		_validate_group_by_args(group_by, report.ref_doctype)
 
 	report.report_type = "Report Builder"
 	report.json = report_settings
@@ -832,11 +871,13 @@ def delete_items():
 
 	if len(items) > 10:
 		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
-	else:
-		delete_bulk(doctype, items)
+		return None
+
+	return delete_bulk(doctype, items)
 
 
 def delete_bulk(doctype, items):
+	"""Delete documents one by one. Returns names that could not be deleted."""
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
@@ -861,19 +902,21 @@ def delete_bulk(doctype, items):
 			frappe.db.rollback()
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
-		delete_bulk(doctype, undeleted_items)
+		return delete_bulk(doctype, undeleted_items)
 	elif undeleted_items:
 		frappe.msgprint(
 			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
 			realtime=True,
 			title=_("Bulk Operation Failed"),
 		)
-	else:
-		frappe.msgprint(
-			_(f"Deleted {len(items)} records from {doctype} doctype"),
-			realtime=True,
-			title=_("Bulk Operation Successful"),
-		)
+		return undeleted_items
+
+	frappe.msgprint(
+		_("Deleted {0} records from {1} doctype").format(len(items), doctype),
+		realtime=True,
+		title=_("Bulk Operation Successful"),
+	)
+	return []
 
 
 @frappe.whitelist()

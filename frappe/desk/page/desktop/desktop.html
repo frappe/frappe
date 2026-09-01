@@ -33,31 +33,16 @@
                     <use href="#icon-cloud"></use>
                 </svg>
             </button>
+            <!-- the panel is a popover built by frappe.ui.Notifications off this button -->
             <div class="desktop-notifications">
-                <div class="dropdown dropdown-notifications">
-                    <button class="btn-reset nav-link text-muted desktop-notification-icon" data-toggle="dropdown" aria-label="{{ _("Notifications") }}" aria-haspopup="true">
-                        <svg
-                            class="icon icon-md" aria-hidden="true"
-                        >
-                            <use href="#icon-bell"></use>
-                        </svg>
-                        <span class="notification-count hidden" aria-live="polite"></span>
-                    </button>
-                    <div
-                        style="top: unset"
-                        class="dropdown-menu dropdown-menu-right notifications-list"
-                        role="menu"
+                <button class="btn-reset nav-link text-muted desktop-notification-icon" aria-label="{{ _("Notifications") }}">
+                    <svg
+                        class="icon icon-md" aria-hidden="true"
                     >
-                        <div class="notification-list-header">
-                            <div class="header-items"></div>
-                            <div class="header-actions"></div>
-                        </div>
-                        <div class="notification-list-body">
-                            <div class="panel-notifications"></div>
-                            <div class="panel-events"></div>
-                        </div>
-                    </div>
-                </div>
+                        <use href="#icon-bell"></use>
+                    </svg>
+                    <span class="notification-count hidden" aria-live="polite"></span>
+                </button>
             </div>
             <button class="desktop-avatar btn-reset" aria-label="{{ _('User Menu') }}">
             </button>

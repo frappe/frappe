@@ -3,6 +3,12 @@
 	height: $h;
 }
 
+// A notification row's unread dot is centred on the row's avatar, so the two
+// sizes are declared together -- changing one without the other would knock the
+// dot off centre.
+$notification-avatar-size: 36px;
+$notification-dot-size: 8px;
+
 .navbar {
 	perspective: 3200px;
 }
@@ -12,13 +18,9 @@
 	cursor: pointer;
 }
 
-.close-notification-dialogue {
-	cursor: pointer;
-}
-
+// Layout for these lives on .header-actions in the panel; only the affordance is global.
+.close-notification-dialogue,
 .notification-settings {
-	margin-top: 2px;
-	margin-right: 4px;
 	cursor: pointer;
 }
 
@@ -36,7 +38,7 @@
 }
 
 // The unread count is the only unread affordance a bell gets. Where the bell has a label (the
-// sidebar) it reads as a pill next to it; on icon-only bells (desktop navbar, workspace dock) there
+// sidebar) it reads as a pill next to it; on icon-only bells (desktop navbar, dock) there
 // is no room for a number, so the same element is drawn as a dot on the icon's corner.
 .notification-count {
 	padding: 1px 7px;
@@ -50,11 +52,22 @@
 
 .desktop-notification-icon {
 	position: relative;
+	// Same 28px box as the avatar sitting next to it. Both open their panel with
+	// the same 4px offset off the trigger's bottom edge, so matching the boxes is
+	// what lines the notification popover up with the profile menu -- rather than
+	// hand-tuning an offset that would drift if the header ever changed.
+	@include size(28px, 28px);
+	// `flex`, not `inline-flex`: an inline-level button sits on its wrapper's text
+	// baseline, which adds a descender's worth of slack and drops it a pixel out of
+	// line with the avatar.
+	@include flex(flex, center, center, row);
 
 	.notification-count {
 		position: absolute;
-		top: 0;
-		right: 0;
+		// inset by the 4px of breathing room the box adds around the 20px icon, so
+		// the dot still sits on the bell's corner rather than the button's
+		top: 4px;
+		right: 4px;
 		width: 8px;
 		height: 8px;
 		padding: 0;
@@ -78,66 +91,99 @@
 	text-decoration: underline;
 }
 
+// The sidebar drawer: edge-anchored against the sidebar and full height, so it
+// casts sideways (away from that edge) and keeps square corners. The desk host
+// puts this same content inside an .es-popover, which is styled further down.
 .notifications-list {
-	width: 360px;
+	width: min(360px, 100vw);
 	padding: 0px;
-	min-height: 480px;
 	position: absolute;
 	top: 0;
-	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
-	background-color: var(--bg-color);
 	height: 100vh;
+	min-height: 480px;
+	background-color: var(--bg-color);
+	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
 	overflow: hidden;
+	@include flex(flex, null, null, column);
 
 	.notification-list-header {
-		margin: 0px 10px;
-		@include flex(flex, space-between, center, null);
-		border-bottom: 1px solid var(--border-color);
+		flex-shrink: 0;
+		padding: 14px 16px 10px 16px;
+
+		.notification-header-top {
+			@include flex(flex, space-between, center, row);
+			margin-bottom: 12px;
+		}
+
+		.notification-panel-title {
+			@include get_textstyle("lg", "semibold");
+			color: var(--ink-gray-8);
+		}
+
+		.header-actions {
+			@include flex(flex, null, center, row);
+			gap: 2px;
+			color: var(--ink-gray-6);
+
+			> span {
+				@include flex(inline-flex, center, center, row);
+				@include size(24px, 24px);
+				border-radius: var(--radius-sm);
+				cursor: pointer;
+
+				&:hover {
+					background-color: var(--surface-gray-2);
+					color: var(--ink-gray-8);
+				}
+			}
+		}
 	}
 
 	.notification-list-body {
+		flex: 1;
+		min-height: 0;
 		overflow-y: auto;
-		height: 93%;
+		padding: 0px 10px 10px 10px;
 
 		.panel-events,
 		.panel-notifications {
 			@include size(100%, null);
 		}
-
-		.notification-null-state {
-			min-height: 300px;
-			@include flex(flex, null, center, null);
-			place-content: center;
-
-			.title {
-				margin-top: var(--margin-lg);
-				@include get_textstyle("base", "semibold");
-			}
-
-			.subtitle {
-				margin-top: var(--margin-sm);
-				@include get_textstyle("base", "regular");
-				color: var(--text-muted);
-			}
-		}
 	}
 
-	.notification-item-tabs {
-		border: none;
+	// es-tab-buttons ships inline-flex, sized by its labels. Here it spans the
+	// panel with the tabs sharing the width evenly -- the rail then lines up with
+	// the header and the list below it. Only the box changes; the rail, pill,
+	// sizing and states all still come from the component.
+	.header-items .es-tab-buttons {
+		display: flex;
 
-		.notifications-category {
-			padding: var(--padding-md) 0px;
-			margin-bottom: -1px;
-			margin-right: var(--margin-lg);
-			color: var(--text-light);
-			font-weight: var(--weight-medium);
-			cursor: pointer;
-
-			&.active {
-				color: var(--text-color);
-				border-bottom: 1px solid var(--primary-color);
-			}
+		.es-pill {
+			flex: 1 1 0;
+			min-width: 0;
 		}
+	}
+}
+
+// Desk host: the panel is a real popover, so .es-popover brings the surface
+// itself (rounded-lg / bg-surface-elevation-2 / shadow-2xl) -- nothing is copied
+// here. Only the sizing the notification list needs is overridden: the component
+// defaults to a narrow, padded, self-scrolling panel, and this one is wider,
+// unpadded, and scrolls in its own body so the header stays put.
+.es-popover.notifications-popover {
+	width: min(360px, calc(100vw - 16px));
+	padding: 0;
+	overflow: hidden;
+
+	.notifications-list {
+		position: static;
+		width: 100%;
+		// fixed, not max-height: the popover must stay the same size across tabs
+		// (e.g. Events has far fewer rows than All) instead of shrinking to fit
+		// whichever tab's content is currently shown.
+		height: min(500px, calc(100vh - var(--navbar-height) - 32px));
+		background: transparent;
+		box-shadow: none;
 	}
 }
 
@@ -148,63 +194,62 @@
 
 .recent-item {
 	padding: 10px;
-	margin: 4px 0px;
+	margin: 2px 0px;
 	border-radius: var(--radius-md, 8px);
 	white-space: normal;
 	display: flex;
 	@include get_textstyle("base", "regular");
 	line-height: 20px;
-	color: var(--text-light);
-	max-width: 455px;
-
-	&:first-child {
-		margin-top: 10px;
-	}
+	color: var(--ink-gray-7);
 
 	&:not(.no-hover):hover {
-		color: var(--text-muted);
+		color: var(--ink-gray-8);
 		text-decoration: none;
-		background-color: var(--fg-hover-color);
+		background-color: var(--surface-gray-1);
 	}
 }
 
 .recent-item.notification-item {
-	padding: 10px 10px 10px 0px;
-	margin: 10px 10px 10px 10px;
-	justify-content: space-between;
+	padding: 10px 8px;
+	margin: 2px 0px;
+	gap: 8px;
+
+	// Unread marker on the left. Purely an indicator -- rows are not individually
+	// dismissible, so it has no hover or pressed state. The box is kept on read
+	// rows too, so every row's avatar starts at the same x.
+	//
+	// Pinned to the top and nudged down onto the avatar's midline, rather than
+	// centred on the row: the avatar sits at the top, so a row-centred dot slides
+	// further out of line the more the message wraps.
+	&::before {
+		content: "";
+		flex-shrink: 0;
+		align-self: flex-start;
+		margin-top: ($notification-avatar-size - $notification-dot-size) * 0.5;
+		@include size($notification-dot-size, $notification-dot-size);
+		border-radius: var(--radius-full);
+	}
 
 	&.unread {
-		.mark-as-read {
-			flex-shrink: 0;
-			align-self: center;
-			justify-self: end;
-			width: 8px;
-			height: 8px;
+		// reads off the same blue the bell's unread dot uses
+		&::before {
+			background: var(--surface-blue-5);
 		}
 
-		&:hover .mark-as-read {
-			border: 2px solid var(--invert-neutral);
-			border-radius: 1000px;
-		}
-
-		.notification-body::before {
-			background: var(--invert-neutral);
+		// Unread rows read a step heavier than the ones already seen -- "medium" is
+		// the weight below semibold on the Espresso scale, so this stays a nudge
+		// rather than a shout. The timestamp opts back out below.
+		.message {
+			@include get_textstyle("base", "medium");
+			color: var(--ink-gray-8);
 		}
 	}
 
 	.notification-body {
 		display: flex;
+		flex: 1;
+		min-width: 0;
 		gap: 10px;
-
-		&::before {
-			content: "";
-			display: inline-block;
-			@include size(6px, 6px);
-			min-width: 6px;
-			margin-top: 16px;
-			margin-left: 2px;
-			border-radius: 10px;
-		}
 
 		.message {
 			max-width: 360px;
@@ -212,42 +257,116 @@
 	}
 
 	b {
-		font-weight: 500;
-		color: var(--text-light);
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
 	}
 
 	.notification-timestamp {
-		font-size: var(--text-xs);
+		margin-top: 2px;
+		// nested inside .message, so it opts out of the unread row's heavier weight
+		@include get_textstyle("xs", "regular");
+		color: var(--ink-gray-5);
 	}
 
 	.user-avatar {
 		margin-right: 10px;
 
 		.avatar-frame {
-			height: 36px;
-			width: 36px;
+			@include size($notification-avatar-size, $notification-avatar-size);
+		}
+	}
+}
+
+// Events are grouped under a collapsible section header, mirroring the calendar tile rows.
+.event-group {
+	.event-group-header {
+		@include flex(flex, null, center, row);
+		gap: 6px;
+		padding: 8px 4px;
+		color: var(--ink-gray-7);
+		cursor: pointer;
+		user-select: none;
+
+		// .icon ships `margin: 0 auto`, which would push the row apart inside this flex header
+		.event-group-chevron {
+			@include size(16px, 16px);
+			margin: 0;
+			color: var(--ink-gray-5);
+			transition: transform 0.15s ease;
+		}
+
+		.event-group-label {
+			@include get_textstyle("base", "regular");
+		}
+
+		.event-group-count {
+			@include get_textstyle("base", "regular");
+			margin-left: 6px;
+			color: var(--ink-gray-5);
+		}
+	}
+
+	&.collapsed {
+		.event-group-chevron {
+			transform: rotate(-90deg);
+		}
+
+		.event-group-items {
+			display: none;
 		}
 	}
 }
 
 .recent-item.event {
-	.event-border {
-		width: 1px;
-		border: 1px solid var(--primary-color);
-		border-radius: 4px;
+	gap: 10px;
+	align-items: flex-start;
+
+	// Calendar-tile date chip: month above, day below.
+	.event-date {
+		flex-shrink: 0;
+		@include size(44px, 44px);
+		@include flex(flex, center, center, column);
+		border: 1px solid var(--outline-gray-1);
+		border-radius: var(--radius-md);
+		background-color: var(--bg-color);
+		line-height: 1.1;
+
+		.event-date-month {
+			@include get_textstyle("xs", "medium");
+			text-transform: uppercase;
+			color: var(--ink-red-6);
+		}
+
+		.event-date-day {
+			@include get_textstyle("lg", "medium");
+			color: var(--ink-gray-8);
+		}
 	}
 
 	.event-item {
-		padding-left: 10px;
+		min-width: 0;
+
+		.event-subject-row {
+			@include flex(flex, null, center, row);
+			gap: 8px;
+		}
+
+		.event-dot {
+			flex-shrink: 0;
+			@include size(8px, 8px);
+			border-radius: var(--radius-full);
+			background-color: var(--ink-green-6);
+		}
 
 		.event-subject {
 			@include get_textstyle("base", "medium");
-			color: var(--text-light);
+			color: var(--ink-gray-8);
+			@include truncate;
 		}
 
 		.event-time {
-			@include get_textstyle("sm", "regular");
-			margin-right: 10px;
+			@include get_textstyle("base", "regular");
+			color: var(--ink-gray-6);
 		}
 
 		.avatar-group {
@@ -316,12 +435,16 @@
 .list-footer {
 	display: block;
 	text-align: center;
+	margin-top: 4px;
 	padding: 10px;
-	color: var(--text-muted);
+	border-radius: var(--radius-md);
+	@include get_textstyle("base", "regular");
+	color: var(--ink-gray-5);
 
 	&:hover {
 		text-decoration: none;
-		color: var(--text-color);
+		color: var(--ink-gray-8);
+		background-color: var(--surface-gray-1);
 	}
 }
 
@@ -330,18 +453,23 @@
 }
 
 @include media-breakpoint-down(sm) {
+	// Drawer: the sidebar collapses on mobile, so the panel takes the screen.
 	.dropdown-notifications {
 		.notifications-list {
 			position: fixed;
+			width: 100vw;
 			max-height: 100vh;
-			min-width: 100vw;
-			width: calc(90vw - 60px);
-			right: -68px;
 		}
 
 		.recent-item .user-avatar {
 			margin-right: 10px;
 			margin-left: 5px;
 		}
+	}
+
+	// Popover: .es-popover already caps itself at the viewport width; this just
+	// keeps the list from insisting on 360px inside it.
+	.es-popover.notifications-popover {
+		width: calc(100vw - 16px);
 	}
 }

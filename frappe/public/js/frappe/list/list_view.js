@@ -2948,6 +2948,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							const field_key = `${field_doc.label} (${doctype})`;
 							field_mappings[field_key] = Object.assign({}, field_doc, {
 								is_child_field: false,
+								translated_label: `${__(field_doc.label, null, doctype)} (${__(
+									doctype
+								)})`,
 							});
 						}
 
@@ -2963,6 +2966,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 										is_child_field: true,
 										child_doctype: child_doctype,
 										parent_table_field: field_doc.fieldname,
+										translated_label: `${__(
+											child_field.label,
+											null,
+											child_doctype
+										)} (${__(field_doc.label, null, doctype)})`,
 									});
 								}
 							});

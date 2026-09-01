@@ -34,6 +34,13 @@
 	page-break-inside: avoid;
 }
 
+/* Long-content fields (Terms, notes) opt into flowing across a page boundary
+   instead of jumping whole and leaving the previous page half empty */
+.print-format-doc .field.field--breakable {
+	break-inside: auto;
+	page-break-inside: auto;
+}
+
 /* Stacked (default): muted label above value */
 .print-format-doc .field .label {
 	font-size: 1em;
@@ -210,11 +217,14 @@
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
-.print-format-doc .child-table .table tbody tr:last-child td:first-child {
+/* bordered tables close their bottom corners through the .table-foot cap, so
+   the last body row must not also round them — two curved closes stack into a
+   doubled bottom edge otherwise */
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:first-child {
 	border-bottom-left-radius: var(--pfb-radius, 0);
 }
 
-.print-format-doc .child-table .table tbody tr:last-child td:last-child {
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:last-child {
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
@@ -359,9 +369,12 @@
 	gap: 0.5556em;
 }
 
-/* size comes from an inline style (column.image_size) */
+/* size comes from --thumb-size (column.image_size); !important because the
+   Standard print style forces td img to width: 100% !important */
 .print-format-doc .child-table .cell-thumb-img,
 .print-format-doc .child-table .cell-thumb {
+	width: var(--thumb-size, 40px) !important;
+	height: var(--thumb-size, 40px) !important;
 	border-radius: 6px;
 	flex-shrink: 0;
 }
@@ -437,33 +450,41 @@
 	}
 }
 
-/*
- * Column right-align layout modes
- *
- * row-col-space-between (2+ cols, at least one right-aligned):
- *   Columns sit at natural content width. justify-content:space-between
- *   pushes the leftmost to the left edge and rightmost to the right edge.
- *   No empty-box spacer needed.
- *
- * row-col-right-end (1 col, right-aligned):
- *   Single column is pushed to the right edge with justify-content:flex-end.
- */
+/* How a section distributes its columns — set by the section's justify, or by a
+   right-aligned column on formats that predate it. */
 .print-format-doc .row-col-space-between {
 	justify-content: space-between !important;
 }
 
-.print-format-doc .row-col-space-between .col {
-	flex: none !important;
-	max-width: 48% !important;
+.print-format-doc .row-col-space-evenly {
+	justify-content: space-evenly !important;
+}
+
+.print-format-doc .row-col-center {
+	justify-content: center !important;
 }
 
 .print-format-doc .row-col-right-end {
 	justify-content: flex-end !important;
 }
 
+/* The grid gives every column `width: 100%`, so a row has no free space for
+   justify-content to distribute. These take their content width instead, and
+   still shrink when the row runs out of room — so any column count behaves. */
+.print-format-doc .row-col-space-between .col,
+.print-format-doc .row-col-space-evenly .col,
+.print-format-doc .row-col-center .col,
 .print-format-doc .row-col-right-end .col {
-	flex: none !important;
-	max-width: 50% !important;
+	flex: 0 1 auto !important;
+	width: auto !important;
+}
+
+/* The shared Redesign print style gives .letter-head a 30px bottom margin for
+   classic formats. Builder layouts space the letterhead through their own
+   section margins, so neutralise it here. body. outranks the print style's
+   .print-format .letter-head, which is injected after this bundle. */
+body.print-format-doc .letter-head {
+	margin-bottom: 0;
 }
 
 /* Keep letterhead images from overflowing their box. The .letter-head selector

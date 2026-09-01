@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="print-format-main"
+		class="print-format-main print-format"
 		data-theme="light"
 		:style="rootStyles"
 		:class="{
@@ -10,27 +10,23 @@
 		}"
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
+		<component :is="'style'" v-if="user_css">{{ user_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
 
-		<LetterHeadZoneEditor zone="header" />
+		<!-- One header area: the letterhead and the header fields zone read as a single
+		     region. The fields wrapper carries the body font (letterhead stays unstyled),
+		     and the empty header drop-zone only surfaces while a drag is in progress. -->
+		<div class="pfb-header-area">
+			<LetterHeadZoneEditor zone="header" />
+			<div class="pfb-header-fields" :style="bodyStyles">
+				<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
+			</div>
+		</div>
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
-			<div class="zone-divider">
-				<span class="zone-divider-label">
-					{{ __("Header") }}
-					<span v-if="repeat_header_footer" class="zone-divider-hint"
-						>· {{ __("repeats on all pages") }}</span
-					>
-				</span>
-			</div>
-			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-			<div class="zone-divider">
-				<span class="zone-divider-label">{{ __("Body") }}</span>
-			</div>
-
 			<draggable
 				class="sections-container"
 				v-model="layout.sections"
@@ -70,14 +66,6 @@
 				</span>
 			</button>
 
-			<div class="zone-divider">
-				<span class="zone-divider-label">
-					{{ __("Footer") }}
-					<span v-if="repeat_header_footer" class="zone-divider-hint"
-						>· {{ __("repeats on all pages") }}</span
-					>
-				</span>
-			</div>
 			<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
 		</div>
 
@@ -199,6 +187,43 @@ let bodyStyles = computed(() => {
 	return styles;
 });
 
+// The format's custom CSS applies to the whole document in the printed PDF;
+// on the canvas that document is this component, so every selector is scoped
+// to it before the style hits the desk DOM
+let user_css = computed(() => scope_css(print_format.value.css, ".print-format-main"));
+
+function scope_css(css, scope) {
+	if (!(css || "").trim()) return "";
+	const style = document.createElement("style");
+	style.media = "not all";
+	style.textContent = css;
+	document.head.appendChild(style);
+	const prefix_rule = (rule) => {
+		if (rule.type === CSSRule.MEDIA_RULE || rule.type === CSSRule.SUPPORTS_RULE) {
+			const inner = [...rule.cssRules].map(prefix_rule).join("\n");
+			const head = rule.cssText.slice(0, rule.cssText.indexOf("{"));
+			return `${head}{\n${inner}\n}`;
+		}
+		if (rule.selectorText) {
+			const scoped = rule.selectorText
+				.split(",")
+				.map((sel) => {
+					sel = sel.trim();
+					const rootless = sel.replace(/^(html|body)(?![\w-])\s*/i, "");
+					return rootless ? `${scope} ${rootless}` : scope;
+				})
+				.join(", ");
+			return rule.cssText.replace(rule.selectorText, scoped);
+		}
+		return rule.cssText;
+	};
+	try {
+		return [...(style.sheet?.cssRules || [])].map(prefix_rule).join("\n");
+	} finally {
+		style.remove();
+	}
+}
+
 // Same scoped colour rules the server appends after the shared stylesheet;
 // rendered as a style element inside the component so it dies with the DOM
 let color_css = computed(() => {
@@ -216,10 +241,6 @@ let color_css = computed(() => {
 	}
 	return css;
 });
-
-let repeat_header_footer = computed(
-	() => !!frappe.model.get_doc(":Print Settings", "Print Settings")?.repeat_header_footer
-);
 
 let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
 
@@ -310,36 +331,6 @@ let page_number_style = computed(() => {
 
 .body-empty-hint {
 	font-size: var(--text-sm);
-}
-
-/* ── Zone dividers ────────────────────────────────────────── */
-.zone-divider {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	margin: 0.75rem 0 0.5rem;
-}
-
-.zone-divider::before,
-.zone-divider::after {
-	content: "";
-	flex: 1;
-	height: 1px;
-	background: var(--gray-200);
-}
-
-.zone-divider-label {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	letter-spacing: 0;
-	white-space: nowrap;
-	color: var(--gray-400);
-}
-
-.zone-divider-hint {
-	text-transform: none;
-	font-weight: var(--weight-regular);
-	letter-spacing: 0.02em;
 }
 
 .section-with-insert {

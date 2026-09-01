@@ -1,8 +1,9 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "allow_rename": 0,
  "autoname": "field:title",
  "creation": "2025-08-12 12:06:45.016314",
+ "deprecated": 1,
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -79,7 +80,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-20 15:19:27.520469",
+ "modified": "2026-08-12 06:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar",
@@ -87,7 +88,7 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
+   "create": 0,
    "delete": 1,
    "email": 1,
    "export": 1,
@@ -96,10 +97,10 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "write": 1
+   "write": 0
   },
   {
-   "create": 1,
+   "create": 0,
    "delete": 1,
    "email": 1,
    "export": 1,
@@ -108,11 +109,12 @@
    "report": 1,
    "role": "Desk User",
    "share": 1,
-   "write": 1
+   "write": 0
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "description": "Archive of the previous navigation. Nothing reads it at runtime; it is kept as the migration's source so the conversion to module sidebars can be run again."
 }

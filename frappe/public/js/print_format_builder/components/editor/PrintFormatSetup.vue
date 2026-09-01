@@ -1,38 +1,24 @@
 <template>
 	<div class="pfb-setup">
 		<div class="pfb-setup-card">
-			<div class="pfb-setup-icon" v-html="frappe.utils.icon('file', 'xl')"></div>
 			<h3 class="pfb-setup-title">{{ __("How do you want to start?") }}</h3>
 			<p class="pfb-setup-subtitle">
 				{{ __("Choose a starting point for your print format.") }}
 			</p>
 			<div class="pfb-setup-options">
-				<button class="pfb-setup-option" @click="$emit('start-default')">
+				<button
+					v-for="opt in options"
+					:key="opt.event"
+					class="pfb-setup-option"
+					@click="$emit(opt.event)"
+				>
 					<div
 						class="pfb-setup-option-icon"
-						v-html="frappe.utils.icon('list', 'md')"
+						v-html="frappe.utils.icon(opt.icon, 'md')"
 					></div>
 					<div class="pfb-setup-option-body">
-						<div class="pfb-setup-option-label">{{ __("Start from default") }}</div>
-						<div class="pfb-setup-option-desc">
-							{{ __("Pre-filled with all document fields. Customize from there.") }}
-						</div>
-					</div>
-					<div
-						class="pfb-setup-option-arrow"
-						v-html="frappe.utils.icon('chevron-right', 'xs')"
-					></div>
-				</button>
-				<button class="pfb-setup-option" @click="$emit('start-blank')">
-					<div
-						class="pfb-setup-option-icon"
-						v-html="frappe.utils.icon('plus', 'md')"
-					></div>
-					<div class="pfb-setup-option-body">
-						<div class="pfb-setup-option-label">{{ __("Start blank") }}</div>
-						<div class="pfb-setup-option-desc">
-							{{ __("Empty canvas. Drag and drop fields to build from scratch.") }}
-						</div>
+						<div class="pfb-setup-option-label">{{ opt.label }}</div>
+						<div class="pfb-setup-option-desc">{{ opt.desc }}</div>
 					</div>
 					<div
 						class="pfb-setup-option-arrow"
@@ -46,6 +32,21 @@
 
 <script setup>
 defineEmits(["start-default", "start-blank"]);
+
+const options = [
+	{
+		event: "start-default",
+		icon: "list",
+		label: __("Start from default"),
+		desc: __("Pre-filled with all document fields. Customize from there."),
+	},
+	{
+		event: "start-blank",
+		icon: "plus",
+		label: __("Start blank"),
+		desc: __("Empty canvas. Drag and drop fields to build from scratch."),
+	},
+];
 </script>
 
 <style scoped>
@@ -66,11 +67,6 @@ defineEmits(["start-default", "start-blank"]);
 	width: 100%;
 	text-align: center;
 	box-shadow: var(--shadow-sm);
-}
-
-.pfb-setup-icon {
-	color: var(--text-muted);
-	margin-bottom: var(--margin-md);
 }
 
 .pfb-setup-title {

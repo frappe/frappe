@@ -21,12 +21,16 @@ DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 @request_cache
 def get_docked_apps() -> set[str]:
-	"""Apps that surface their workspaces inside another app's workspace dock.
+	"""Apps that surface their entries on another app's rail.
 
-	A companion app (e.g. India Compliance for ERPNext) pins its workspaces into a host app's dock
-	via the `add_to_workspace_dock` hook instead of taking an apps-screen slot of its own. It is
-	kept off the apps screen even when it also declares `add_to_apps_screen` -- companion apps keep
-	that hook so they still appear on older versions, so here the dock hook wins."""
+	A companion app (e.g. India Compliance for ERPNext) mounts its dock onto a host app's rail
+	rather than taking an apps-screen slot of its own. It is kept off the apps screen even when it
+	also declares `add_to_apps_screen` -- companion apps keep that hook so they still appear on
+	older versions, so here the mount wins.
+
+	The rule reads the **mount**, not the mere presence of a dock: every app that ships a rail
+	ships a `Dock` record now, so keying on that would delete each adopting app from the apps
+	screen."""
 	from frappe.boot import get_app_rail_host_map
 
 	return set(get_app_rail_host_map())
@@ -35,8 +39,9 @@ def get_docked_apps() -> set[str]:
 @frappe.whitelist()
 @request_cache
 def get_apps():
-	apps = frappe.get_installed_apps()
+	apps = frappe.get_active_apps()
 	docked_apps = get_docked_apps()
+
 	app_list = []
 	for app in apps:
 		if (
@@ -74,7 +79,7 @@ def get_apps():
 
 
 def get_route(app_name):
-	if app_name not in frappe.get_installed_apps():
+	if app_name not in frappe.get_active_apps():
 		return "/apps"  # Invalid defaults
 	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 	app = next((app for app in apps if app.get("name") == app_name), None)
@@ -112,7 +117,10 @@ def get_default_path():
 
 @frappe.whitelist()
 def set_app_as_default(app_name: str):
-	if app_name not in frappe.get_installed_apps():
+	if app_name in get_disabled_apps():
+		frappe.throw(_("App {} is disabled on this site").format(frappe.bold(app_name)))
+
+	if app_name not in get_installed_apps():
 		frappe.throw(_("App {} is not installed").format(frappe.bold(app_name)))
 
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
@@ -179,3 +187,24 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 		installed = [app for app in installed if app in all_apps]
 
 	return installed
+
+
+@request_cache
+def get_disabled_apps() -> list[str]:
+	"""Return apps that are installed on current site but logically disabled."""
+	if frappe.flags.in_install_db:
+		return []
+
+	if not frappe.db:
+		frappe.connect()
+
+	return orjson.loads(frappe.db.get_global("disabled_apps") or "[]")
+
+
+@request_cache
+def get_active_apps(*, _ensure_on_bench: bool = False) -> list[str]:
+	"""Installed apps excluding those logically disabled on this site."""
+	installed = get_installed_apps(_ensure_on_bench=_ensure_on_bench)
+	disabled = get_disabled_apps()
+
+	return [app for app in installed if app not in disabled]

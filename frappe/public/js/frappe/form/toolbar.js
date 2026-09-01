@@ -156,9 +156,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 				)
 				.then((new_docname) => {
 					const reload_form = (input_name) => {
+						frappe.model.rename_doc_in_locals(doctype, docname, input_name, merge);
 						$(document).trigger("rename", [doctype, docname, input_name]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						this.frm.reload_doc();
 					};
 

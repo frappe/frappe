@@ -63,6 +63,8 @@ class ParameterizedValueWrapper(ValueWrapper):
 				self.value = format_time(self.value)
 			elif isinstance(self.value, datetime):
 				self.value = frappe.db.format_datetime(self.value)
+			elif isinstance(self.value, bool):
+				self.value = int(self.value)
 
 			sql = self.get_value_sql(
 				quote_char=quote_char,

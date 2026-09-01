@@ -17,14 +17,13 @@ def frappe_context(site: str, user: str):
 	forces a DB connection into the realtime process, so use it sparingly; the cheap
 	default is the HTTP permission check on Socket.
 
-	The DB connection is forced onto the pure-python PyMySQL driver (see
-	server.force_pymysql) — the mysqlclient C extension would stall the gevent hub.
+	Runs on a worker thread, never on the event loop, so a blocking driver is fine.
+	force=True is required: frappe.local is a shared mutable dict behind a
+	ContextVar, and only init(force=True) rebinds a fresh one for this call.
 	"""
 	import frappe
-	from frappe.realtime.server import force_pymysql
 
-	frappe.init(site)
-	force_pymysql(frappe.local.conf)
+	frappe.init(site, force=True)
 	frappe.connect()
 	frappe.set_user(user)  # nosemgrep
 	try:

@@ -107,6 +107,7 @@ def rate_limit(
 	seconds: int = 24 * 60 * 60,
 	methods: str | list = "ALL",
 	ip_based: bool = True,
+	endpoint: str | None = None,
 ):
 	"""Decorator to rate limit an endpoint.
 
@@ -122,11 +123,17 @@ def rate_limit(
 	:type methods: string or list or tuple
 	:param ip_based: flag to allow ip based rate-limiting
 	:type ip_based: Boolean
+	:param endpoint: name of the counter, required when the decorated callable has no stable
+	        dotted path of its own, e.g. a `functools.partial`.
 
 	Return: a decorator function that limit the number of requests per endpoint
 	"""
 
 	def ratelimit_decorator(fn):
+		# `cmd` is only set by the v1 API, deriving the counter from the function keeps a single
+		# counter per endpoint no matter which API version was used to reach it.
+		counter = endpoint or f"{fn.__module__}.{fn.__qualname__}"
+
 		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
@@ -151,7 +158,7 @@ def rate_limit(
 			if not identity:
 				frappe.throw(_("Either key or IP flag is required."))
 
-			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
+			cache_key = frappe.cache.make_key(f"rl:{counter}:{identity}")
 
 			if not callable(seconds):
 				cache_key += f":{seconds}".encode()

@@ -11,7 +11,6 @@
   "report",
   "module",
   "default_print_language",
-  "preview_image",
   "column_break_3",
   "standard",
   "custom_format",
@@ -44,6 +43,7 @@
   "section_break_13",
   "print_format_help",
   "format_data",
+  "draft_data",
   "classic_format_data",
   "print_format_builder",
   "print_format_builder_beta"
@@ -87,14 +87,16 @@
    "oldfieldtype": "Select",
    "options": "No\nYes",
    "reqd": 1,
-   "search_index": 1
+   "search_index": 1,
+   "description": "Ship as files in an app, tracked in git. Developer mode only; duplicate to edit."
   },
   {
    "default": "0",
    "fieldname": "custom_format",
    "fieldtype": "Check",
    "label": "Custom Format",
-   "read_only_depends_on": "eval:doc.print_format_for===\"Report\";"
+   "read_only_depends_on": "eval:doc.print_format_for===\"Report\";",
+   "description": "Write the format by hand in HTML and Jinja."
   },
   {
    "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
@@ -114,7 +116,8 @@
    "depends_on": "custom_format",
    "fieldname": "raw_printing",
    "fieldtype": "Check",
-   "label": "Raw Printing"
+   "label": "Raw Printing",
+   "description": "Send raw ESC/POS commands to a label or thermal printer."
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -145,19 +148,22 @@
    "default": "0",
    "fieldname": "align_labels_right",
    "fieldtype": "Check",
-   "label": "Align Labels to the Right"
+   "label": "Align Labels to the Right",
+   "hidden": 1
   },
   {
    "default": "0",
    "fieldname": "show_section_headings",
    "fieldtype": "Check",
-   "label": "Show Section Headings"
+   "label": "Show Section Headings",
+   "hidden": 1
   },
   {
    "default": "0",
    "fieldname": "line_breaks",
    "fieldtype": "Check",
-   "label": "Show Line Breaks after Sections"
+   "label": "Show Line Breaks after Sections",
+   "hidden": 1
   },
   {
    "fieldname": "column_break_11",
@@ -168,15 +174,6 @@
    "fieldtype": "Link",
    "label": "Default Print Language",
    "options": "Language"
-  },
-  {
-   "description": "Auto-generated thumbnail of this format. Use the 'Generate Preview' button to (re)generate.",
-   "fieldname": "preview_image",
-   "fieldtype": "Attach Image",
-   "label": "Preview Image",
-   "no_copy": 1,
-   "print_hide": 1,
-   "hidden": 1
   },
   {
    "depends_on": "eval:!doc.custom_format",
@@ -197,7 +194,7 @@
    "label": "Value Color"
   },
   {
-   "depends_on": "eval:!doc.raw_printing",
+   "depends_on": "eval:!doc.raw_printing && !doc.print_format_builder_beta",
    "fieldname": "css_section",
    "fieldtype": "Section Break"
   },
@@ -258,7 +255,8 @@
    "default": "0",
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
-   "label": "Print Format Builder Beta"
+   "label": "Print Format Builder Beta",
+   "description": "Edit in the visual builder."
   },
   {
    "default": "15",
@@ -310,7 +308,7 @@
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome"
+   "options": "wkhtmltopdf\nchrome\nTypst"
   },
   {
    "default": "DocType",
@@ -329,12 +327,20 @@
    "label": "Report",
    "mandatory_depends_on": "eval:doc.print_format_for == \"Report\"",
    "options": "Report"
+  },
+  {
+   "fieldname": "draft_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Draft Data",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-07-12 12:00:00.000000",
+ "modified": "2026-08-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -360,7 +366,5 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 1,
- "image_field": "preview_image"
+ "states": []
 }

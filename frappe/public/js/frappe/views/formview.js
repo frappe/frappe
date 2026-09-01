@@ -99,19 +99,26 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	fetch_and_render(doctype, name, doctype_layout) {
-		frappe.model.with_doc(doctype, name, (name, r) => {
-			if (r && r["403"]) return; // not permitted
+		return frappe.model.with_doc(
+			doctype,
+			name,
+			(name, r) => {
+				if (r && r["403"]) return; // not permitted
 
-			if (!(locals[doctype] && locals[doctype][name])) {
-				if (name && name.substr(0, 3) === "new") {
-					this.render_new_doc(doctype, name, doctype_layout);
-				} else {
-					frappe.show_not_found();
+				if (!(locals[doctype] && locals[doctype][name])) {
+					if (name && name.substr(0, 3) === "new") {
+						this.render_new_doc(doctype, name, doctype_layout);
+					} else {
+						frappe.show_not_found();
+					}
+					return;
 				}
-				return;
-			}
-			this.render(doctype_layout, name);
-		});
+				this.render(doctype_layout, name);
+			},
+			// Passing any error_callback here (even a no-op) makes with_doc() skip its
+			// cache and recheck with the server.
+			() => {}
+		);
 	}
 
 	render_new_doc(doctype, name, doctype_layout) {

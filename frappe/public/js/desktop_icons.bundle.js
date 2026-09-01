@@ -2,9 +2,9 @@
 // `Desktop Icons` (folders, drag-to-reorder, edit mode). The default `Apps` mode uses the
 // hook-driven grid in desktop.js instead.
 //
-// Loaded lazily by frappe/desk/page/desktop/desktop.js, because Page.load_assets reads
-// exactly one `<page_name>.js` per page -- a second file in that folder would never be
-// served. Keeping it out of desk.bundle also keeps ~1200 lines off every desk page load.
+// Loaded lazily by frappe/desk/page/desktop/desktop.js, because Page.load_assets reads exactly
+// one `<page_name>.js` per page, so a second file in that folder would never be served. Keeping
+// it out of desk.bundle also keeps about 1200 lines off every desk page load.
 import "./frappe/ui/desktop_icons_item.html";
 
 frappe.desktop_utils = {};
@@ -27,11 +27,18 @@ $.extend(frappe.desktop_utils, {
 		}
 	},
 });
+// The workspaces on an app's rail, read from the one list `app_data` carries. This is a
+// behaviour change: that list holds the workspaces the app's `Dock` record names, its own plus
+// the ones companions mount onto it, rather than every workspace whose module belongs to the app.
+// The icon grid is a retired surface an Apps-mode site never renders.
 function get_workspaces_from_app_name(app_name) {
 	const app = frappe.boot.app_data.filter((a) => {
 		return a.app_title === app_name;
 	});
-	if (app.length > 0) return app[0].workspaces;
+	if (app.length > 0)
+		return (app[0].dock || [])
+			.filter((row) => row.link_type === "Workspace")
+			.map((row) => row.link_to);
 }
 
 function get_route(desktop_icon) {
@@ -44,7 +51,7 @@ function get_route(desktop_icon) {
 			route = desktop_icon.link;
 		}
 	} else {
-		let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+		let sidebar = frappe.utils.sidebar_for_module(desktop_icon.module || desktop_icon.label);
 		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
 			let first_link = sidebar.items.find((i) => i.type == "Link");
 			if (first_link) {
@@ -422,7 +429,7 @@ class DesktopPage {
 	setup_notifications() {
 		this.notifications = new frappe.ui.Notifications({
 			wrapper: $(".desktop-notifications"),
-			full_height: false,
+			popover: true,
 		});
 	}
 
@@ -509,15 +516,7 @@ class DesktopPage {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
 		}
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+g",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
+		// Only rebind Ctrl/Cmd+K to trigger the desktop-page Awesome Bar wrapper.
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+k",
 			action: function (e) {
@@ -555,11 +554,11 @@ class DesktopIconGrid {
 	init() {
 		this.icons = [];
 		this.icons_html = [];
-		// Only a grid given a `page_size` paginates: `.icons` is a fixed columns x rows CSS
+		// Only a grid given a `page_size` paginates: `.icons` is a fixed columns-by-rows CSS
 		// grid, so anything past one screenful has nowhere to go. The folder thumbnail, the
-		// folder modal and the hidden-icons pane pass none -- each clips or scrolls its own
-		// overflow -- and stay on a single page. Mobile renders 3 columns (see make()), so
-		// the page has to shrink with it or the last rows spill off screen again.
+		// folder modal and the hidden-icons pane pass none, each clipping or scrolling its own
+		// overflow, and stay on a single page. Mobile renders 3 columns (see make()), so the
+		// page size has to shrink with it or the last rows spill off screen.
 		if (this.page_size) {
 			this.icons_per_page =
 				(frappe.is_mobile() ? 3 : this.page_size.columns) * this.page_size.rows;
@@ -765,8 +764,8 @@ class DesktopIconGrid {
 		this.hoverTarget = null;
 		this.hoverTimer = null;
 		if (!frappe.is_mobile()) {
-			// one Sortable per page, kept in `sortables` -- `idx` is numbered across the whole
-			// grid, so a drop has to read every page's order, not just the page it landed on
+			// One Sortable per page, kept in `sortables`. `idx` is numbered across the whole
+			// grid, so a drop has to read every page's order, not just the page it landed on.
 			this.sortable = new Sortable($(grid).get(0), {
 				swapThreshold: 0.09,
 				desktop: true,
@@ -834,7 +833,8 @@ class DesktopIconGrid {
 		}
 	}
 	get_ordered_labels() {
-		// every page's icon labels, in page order -- what `reorder_icons` renumbers `idx` from
+		// Every page's icon labels, in page order, which is what `reorder_icons` renumbers `idx`
+		// from.
 		return this.sortables.flatMap((sortable) => sortable.toArray());
 	}
 	update_grid(icons) {
@@ -944,11 +944,6 @@ class DesktopIcon {
 		});
 	}
 	validate_icon() {
-		// validate if my workspaces are empty
-		if (this.icon_data.label == "My Workspaces") {
-			if (frappe.boot.workspace_sidebar_item["my workspaces"].items.length == 0)
-				return false;
-		}
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}

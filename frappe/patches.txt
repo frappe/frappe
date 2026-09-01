@@ -242,7 +242,6 @@ frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressi
 frappe.patches.v16_0.switch_default_sort_order
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
-frappe.desk.doctype.workspace.patches.update_app
 frappe.patches.v16_0.move_role_desk_settings_to_user
 frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
 frappe.patches.v14_0.fix_user_settings_collation
@@ -264,9 +263,10 @@ frappe.patches.v16_0.backfill_notification_email_type_preferences
 frappe.patches.v16_0.backfill_notification_log_app
 frappe.patches.v16_0.backfill_list_layout_route_signature
 execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation table on existing sites
-frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
-frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
 frappe.desk.doctype.workspace.patches.set_standard_flag
+frappe.patches.v16_0.backfill_workspace_module
+frappe.patches.v16_0.convert_sidebars
+frappe.patches.v16_0.notify_apps_to_convert_sidebar_fixtures
 frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
 frappe.patches.v16_0.migrate_classic_print_formats
 frappe.patches.v16_0.rename_lucide_workspace_icons
@@ -274,4 +274,8 @@ frappe.patches.v16_0.keep_existing_sites_on_desktop_icons
 frappe.patches.v16_0.repair_converted_print_formats
 frappe.patches.v16_0.repair_converted_print_formats #2026-08-02 section-spacing
 execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
+frappe.patches.v16_0.seed_sms_settings_allowed_roles
 execute:frappe.db.set_single_value("Website Settings", "max_signups_per_minute", 500)
+
+
+[post_fixture_sync]

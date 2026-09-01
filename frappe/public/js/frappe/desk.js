@@ -145,20 +145,27 @@ frappe.Application = class Application {
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.user_roles.includes("System Manager")) {
+		if (
+			frappe.user_roles.includes("System Manager") ||
+			frappe.user_roles.includes("Workspace Manager")
+		) {
 			// delayed following requests to make boot faster
 			setTimeout(() => {
-				if (
-					!frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt({
-						onhide: () => {
-							this.show_change_log();
-							this.show_update_available();
-						},
-					})
-				) {
+				// One prompt per boot, in order: whichever has something to say takes the
+				// turn, and the rest of the notices follow whenever it closes.
+				const rest = () => {
 					this.show_change_log();
 					this.show_update_available();
+				};
+				const prompts = [
+					frappe.ui.maybe_show_new_navigation_prompt,
+					frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt,
+				];
+
+				for (const prompt of prompts) {
+					if (prompt({ onhide: rest })) return;
 				}
+				rest();
 			}, 1000);
 		}
 
@@ -282,9 +289,36 @@ frappe.Application = class Application {
 		});
 		d.show();
 	}
+	// `frappe.boot.user.all_reports` held an exact duplicate of `frappe.boot.allowed_reports` --
+	// the same dict from the same call, so ~47 KB of every boot payload was spent twice. The key
+	// is gone from the payload; this getter keeps app code reading it working, and because it
+	// hands back the very same object, writes through it still land where they used to.
+	//
+	// Ends: delete this in the release after the one that ships it, by which point every app has
+	// had a version in which to move to `frappe.boot.allowed_reports`.
+	alias_removed_boot_keys() {
+		if (!frappe.boot.user || "all_reports" in frappe.boot.user) return;
+
+		let warned = false;
+		Object.defineProperty(frappe.boot.user, "all_reports", {
+			configurable: true,
+			get: () => {
+				if (!warned) {
+					warned = true;
+					console.warn(
+						"frappe.boot.user.all_reports is deprecated and will be removed; " +
+							"read frappe.boot.allowed_reports instead."
+					);
+				}
+				return frappe.boot.allowed_reports;
+			},
+		});
+	}
 	load_bootinfo() {
 		if (frappe.boot) {
+			this.alias_removed_boot_keys();
 			this.setup_workspaces();
+			this.load_custom_icons();
 			frappe.model.sync(frappe.boot.docs);
 			this.check_metadata_cache_status();
 			this.set_globals();
@@ -301,6 +335,21 @@ frappe.Application = class Application {
 			this.set_as_guest();
 		}
 		frappe.ui.toolbar.fetch_session_defaults();
+	}
+
+	load_custom_icons() {
+		// Custom Icons join the sprite the bundled icon files are fetched into, so
+		// `frappe.utils.icon()` and the Icon field resolve them like any other icon.
+		let icons = frappe.boot.custom_icons || [];
+		if (!icons.length) return;
+
+		let symbols = icons.map((icon) => icon.symbol).join("");
+		document
+			.getElementById("all-symbols")
+			?.insertAdjacentHTML(
+				"beforeend",
+				`<svg xmlns="http://www.w3.org/2000/svg" style="display: none">${symbols}</svg>`
+			);
 	}
 
 	setup_workspaces() {
@@ -463,7 +512,7 @@ frappe.Application = class Application {
 			!Array.isArray(change_log) ||
 			!change_log.length ||
 			window.Cypress ||
-			cint(frappe.boot.sysdefaults.disable_change_log_notification)
+			frappe.defaults.is_enabled("disable_change_log_notification")
 		) {
 			return;
 		}

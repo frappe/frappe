@@ -224,7 +224,7 @@ def set_name_from_naming_options(autoname, doc):
 		# notify
 		if not doc.name:
 			fieldname = autoname[6:]
-			frappe.throw(_("{0} is required").format(_(doc.meta.get_label(fieldname), context=doc.doctype)))
+			frappe.throw(_("{0} is required").format(doc.meta.get_translated_label(fieldname)))
 
 	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)

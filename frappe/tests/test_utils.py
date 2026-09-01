@@ -241,6 +241,47 @@ class TestFilters(IntegrationTestCase):
 		}
 		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 
+	def test_between_operator(self):
+		"""Test 'between' operator for inclusive range checks."""
+		# Numbers
+		self.assertTrue(compare(5, "between", [1, 10]))
+		self.assertTrue(compare(1, "between", [1, 10]))
+		self.assertTrue(compare(10, "between", [1, 10]))
+		self.assertFalse(compare(0, "between", [1, 10]))
+		self.assertFalse(compare(11, "between", [1, 10]))
+		self.assertFalse(compare(None, "between", [1, 10]))
+
+		# Numbers with fieldtype casting
+		self.assertTrue(compare("5", "between", ["1", "10"], "Int"))
+		self.assertFalse(compare("0", "between", ["1", "10"], "Int"))
+
+		# Dates
+		self.assertTrue(compare("2024-06-15", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertTrue(compare("2024-01-01", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertTrue(compare("2024-12-31", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertFalse(compare("2023-12-31", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertFalse(compare(None, "between", ["2024-01-01", "2024-12-31"], "Date"))
+
+		# Datetime: date-only upper bound includes the full final day (matches DB between)
+		self.assertTrue(compare("2024-12-31 15:30:00", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		self.assertTrue(compare("2024-12-31 23:59:59", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		self.assertFalse(compare("2025-01-01 00:00:00", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		# Explicit datetime upper bound is not expanded to end-of-day
+		self.assertFalse(
+			compare(
+				"2024-12-31 15:30:00",
+				"between",
+				["2024-01-01 00:00:00", "2024-12-31 12:00:00"],
+				"Datetime",
+			)
+		)
+
+		# evaluate_filters: API lowercase and UI capitalized form
+		doc = {"doctype": "User", "birth_date": "2024-06-15"}
+		self.assertTrue(evaluate_filters(doc, [("birth_date", "between", ["2024-01-01", "2024-12-31"])]))
+		self.assertTrue(evaluate_filters(doc, [("birth_date", "Between", ["2024-01-01", "2024-12-31"])]))
+		self.assertFalse(evaluate_filters(doc, [("birth_date", "between", ["2025-01-01", "2025-12-31"])]))
+
 	def test_is_operator(self):
 		"""Test 'is' operator for checking if values are set or not set."""
 		# Test "is set" with different fieldtypes and values
@@ -539,6 +580,25 @@ class TestHTMLUtils(IntegrationTestCase):
 		clean = sanitize_html("<ol data-list='ordered' unknown_attr='xyz'></ol>")
 		self.assertIn("ordered", clean)
 		self.assertNotIn("xyz", clean)
+
+		# content that happens to parse as JSON is still sanitized when it carries tags
+		self.assertNotIn("<script>", sanitize_html('"<script>alert(1)</script>"'))
+		self.assertNotIn("<script>", sanitize_html('["<script>alert(1)</script>"]'))
+		self.assertNotIn("<script>", sanitize_html('{"x": "<script>alert(1)</script>"}'))
+
+		# tag-free content (including JSON) is returned unchanged
+		self.assertEqual(sanitize_html('[["name", "=", "x"]]'), '[["name", "=", "x"]]')
+		self.assertEqual(sanitize_html("plain text"), "plain text")
+
+	def test_sanitize_svg(self):
+		from frappe.utils.html_utils import sanitize_svg
+
+		clean = sanitize_svg('<svg onload="alert(1)"><script>alert(1)</script><circle r="4"/></svg>')
+		self.assertIn("<circle", clean)
+		self.assertNotIn("script", clean)
+		self.assertNotIn("onload", clean)
+
+		self.assertIsNone(sanitize_svg(None))
 
 
 class TestValidationUtils(IntegrationTestCase):
@@ -1116,6 +1176,107 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertIn("html data >", val)
 		self.assertEqual("abc", handle_html("abc"))
 
+	def test_formula_like_strings_are_not_written_as_formulas(self):
+		"""A leading =, +, -, @ etc must not cause the cell to be written as a real formula."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import make_xlsx
+
+		data = [
+			["notes", "amount", "phone"],
+			["=1+1", 1500.5, "+1-555-0100"],
+			["+91-1234567890", -5, "555-1234"],
+			["normal text", 10, "@handle-as-text"],
+		]
+		xlsx_file = make_xlsx(data, "Test Sheet")
+		wb = load_workbook(xlsx_file, data_only=False)
+		ws = wb.active
+
+		rows = list(ws.iter_rows(values_only=False))
+
+		# formula-trigger strings must be forced to string type, value unchanged
+		for coord, expected_value in (
+			((1, 0), "=1+1"),
+			((1, 2), "+1-555-0100"),
+			((2, 0), "+91-1234567890"),
+			((2, 2), "555-1234"),
+			((3, 2), "@handle-as-text"),
+		):
+			row_idx, col_idx = coord
+			cell = rows[row_idx][col_idx]
+			self.assertEqual(cell.data_type, "s")
+			self.assertEqual(cell.value, expected_value)
+
+		# real numeric values must keep their native type, not get stringified
+		self.assertEqual(rows[1][1].data_type, "n")
+		self.assertEqual(rows[1][1].value, 1500.5)
+		self.assertEqual(rows[2][1].data_type, "n")
+		self.assertEqual(rows[2][1].value, -5)
+
+
+class TestCsvUtils(IntegrationTestCase):
+	def test_escape_formula_injection_prefixes_trigger_chars(self):
+		from frappe.utils.csvutils import FORMULA_TRIGGER_CHARS, escape_formula_injection
+
+		for char in FORMULA_TRIGGER_CHARS:
+			value = f"{char}1+1"
+			self.assertEqual(escape_formula_injection(value), "'" + value)
+
+	def test_escape_formula_injection_leaves_normal_values_untouched(self):
+		from frappe.utils.csvutils import escape_formula_injection
+
+		self.assertEqual(escape_formula_injection("normal text"), "normal text")
+		self.assertEqual(escape_formula_injection("555-1234"), "555-1234")
+		self.assertEqual(escape_formula_injection(100), 100)
+		self.assertEqual(escape_formula_injection(None), None)
+
+	def test_unescape_reverses_escape(self):
+		from frappe.utils.csvutils import (
+			FORMULA_TRIGGER_CHARS,
+			escape_formula_injection,
+			unescape_formula_injection,
+		)
+
+		for char in FORMULA_TRIGGER_CHARS:
+			original = f"{char}1+1"
+			self.assertEqual(unescape_formula_injection(escape_formula_injection(original)), original)
+
+	def test_unescape_does_not_strip_literal_leading_quote(self):
+		"""A user-typed apostrophe not followed by a trigger char must survive untouched."""
+		from frappe.utils.csvutils import unescape_formula_injection
+
+		self.assertEqual(unescape_formula_injection("'hello"), "'hello")
+		self.assertEqual(unescape_formula_injection("'"), "'")
+
+	def test_to_csv_escapes_formula_like_values(self):
+		from frappe.utils.csvutils import to_csv
+
+		out = to_csv([["notes", "amount"], ["=1+1", "10"]])
+		self.assertIn("'=1+1", out)
+		self.assertNotIn('"=1+1"', out)
+
+	def test_export_reimport_round_trip_preserves_legit_data(self):
+		"""Export followed by reimport must not corrupt values that start with trigger chars."""
+		from frappe.utils.csvutils import read_csv_content, to_csv
+
+		rows = [
+			["name", "notes", "phone", "qty_text"],
+			["REC-001", "=1+1", "+1-555-0100", "-5"],
+			["REC-002", "normal text", "555-1234", "10"],
+		]
+
+		exported = to_csv(rows)
+		# a formula-like value must round-trip through escape_formula_injection
+		self.assertIn("'=1+1", exported)
+
+		reimported = read_csv_content(exported)
+		self.assertEqual(reimported, rows)
+
+		# a second export/import cycle must not accumulate extra quote markers
+		reexported = to_csv(reimported)
+		self.assertEqual(reexported, exported)
+		self.assertEqual(read_csv_content(reexported), rows)
+
 
 class TestLinkTitle(IntegrationTestCase):
 	def test_link_title_doctypes_in_boot_info(self):
@@ -1205,6 +1366,29 @@ class TestLinkTitle(IntegrationTestCase):
 
 		todo.delete()
 		user.delete()
+		prop_setter.delete()
+
+	def test_link_title_of_missing_document(self):
+		"""
+		Test that a link value with no target returns the docname without raising
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "User",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		from frappe.desk.search import get_link_title
+
+		frappe.clear_messages()
+		self.assertEqual(get_link_title("User", "meera.iyer@example.com"), "meera.iyer@example.com")
+		self.assertEqual(frappe.get_message_log(), [])
+
 		prop_setter.delete()
 
 
@@ -1509,6 +1693,27 @@ class TestRounding(IntegrationTestCase):
 		self.assertEqual(flt(2.5, 0, rounding_method=method), 2)
 		self.assertEqual(flt(-0.5, 0, rounding_method=method), 0)
 		self.assertEqual(flt(2.675, 2, rounding_method=method), 2.68)
+
+	def test_rounding_does_not_inflate_exactly_representable_values(self):
+		self.assertEqual(flt(9750000.0, 9, rounding_method="Commercial Rounding"), 9750000.0)
+		self.assertEqual(flt(6500000.0, 9, rounding_method="Commercial Rounding"), 6500000.0)
+		self.assertEqual(flt(26509905246072.0, 2, rounding_method="Commercial Rounding"), 26509905246072.0)
+		self.assertEqual(flt(26509905246072.01, 2, rounding_method="Banker's Rounding"), 26509905246072.01)
+
+	def test_commercial_rounding_breaks_representable_ties_away_from_zero(self):
+		# Past 2**50 floats are spaced 0.25 apart, so a .5 tie is exactly representable.
+		method = "Commercial Rounding"
+		self.assertEqual(flt(2**50 + 0.5, 0, rounding_method=method), 2**50 + 1)
+		self.assertEqual(flt(-(2**50) - 0.5, 0, rounding_method=method), -(2**50) - 1)
+
+	@given(
+		st.sampled_from(["Commercial Rounding", "Banker's Rounding"]),
+		st.floats(min_value=-1e14, max_value=1e14, allow_nan=False, allow_infinity=False),
+		st.integers(min_value=0, max_value=9),
+	)
+	def test_rounding_is_idempotent(self, rounding_method, number, precision):
+		rounded_once = flt(number, precision, rounding_method=rounding_method)
+		self.assertEqual(flt(rounded_once, precision, rounding_method=rounding_method), rounded_once)
 
 	@IntegrationTestCase.change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	@given(

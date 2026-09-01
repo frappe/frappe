@@ -31,7 +31,7 @@ TESTED_VIA_CLI = [
 	"*/frappe/utils/install.py",
 	"*/frappe/utils/scheduler.py",
 	"*/frappe/utils/doctor.py",
-	"*/frappe/build.py",
+	"*/frappe/bundler.py",
 	"*/frappe/database/__init__.py",
 	"*/frappe/database/db_manager.py",
 	"*/frappe/database/**/setup_db.py",
