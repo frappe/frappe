@@ -9,7 +9,7 @@ from flow.model.credentials import CredentialStore
 from flow.server import create_app
 from flow.server.policy import DEPLOYED, ServerPolicy, resolve_policy
 from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
+from flow.session.store import PolicyError, SessionStore
 
 HELLO_EXTENSION = """
 from flow.tools import ToolResult, tool
@@ -203,8 +203,17 @@ def test_callback_url_checked_when_loading_stored_session(tmp_path):
 	session_config = SessionConfig(cwd=str(tmp_path), callback_url="http://internal:9000/steal")
 	sid = _store(tmp_path).create(session_config).id
 	reopened = _store(tmp_path, callback_hosts=frozenset())
-	with pytest.raises(ValueError, match="callback_url"):
+	with pytest.raises(PolicyError, match="callback_url"):
 		reopened.get(sid)
+
+
+def test_stored_session_behind_a_tightened_fence_answers_400(tmp_path):
+	session_config = SessionConfig(cwd=str(tmp_path), callback_url="http://internal:9000/steal")
+	sid = _store(tmp_path).create(session_config).id
+	client = _client(tmp_path, callback_hosts=frozenset())
+	response = client.get(f"/sessions/{sid}")
+	assert response.status_code == 400
+	assert "callback_url" in response.json()["detail"]
 
 
 def test_create_app_refuses_deployed_without_token(tmp_path):

@@ -30,7 +30,7 @@ from flow.server.utils.provider_auth import OAuthCoordinator
 from flow.session.attachments import AttachmentError
 from flow.session.session import ResumeError, RewindError, SessionConflict
 from flow.session.skills import SkillError
-from flow.session.store import SessionStore
+from flow.session.store import PolicyError, SessionStore
 
 
 def create_app(
@@ -77,7 +77,10 @@ def create_app(
 
 	@app.exception_handler(AttachmentError)
 	@app.exception_handler(SkillError)
+	@app.exception_handler(PolicyError)
 	async def input_error(request: Request, error: Exception):
+		"""PolicyError also fires on load, when a stored session no longer passes a
+		tightened fence — still the caller's 400, never a 500."""
 		return JSONResponse({"detail": str(error)}, status_code=400)
 
 	@app.exception_handler(AuthError)

@@ -37,6 +37,13 @@ _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 # alphanumeric bars ".", "..", and hidden names, and no separators can appear
 _SITE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
+
+class PolicyError(ValueError):
+	"""A session config refused by a policy fence (roots, tools, callback hosts) —
+	checked at create and again on load, so a stored session never outlives a
+	tightened fence."""
+
+
 _META_SUFFIX = ".meta.json"
 _SKILLS_SUFFIX = ".skills.json"
 _PROJECT_SLUG_RE = re.compile(r"[^A-Za-z0-9._-]+")
@@ -162,7 +169,7 @@ class SessionStore:
 			return
 		blocked = sorted(set(config.tools) - self.tool_allowlist)
 		if blocked:
-			raise ValueError(f"tools not allowed by server policy: {', '.join(blocked)}")
+			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
 
 	def _validate_callback(self, config: SessionConfig) -> None:
 		"""Fence callback_url to the allowed hosts (exact host[:port] match), so the
@@ -172,7 +179,7 @@ class SessionStore:
 		parts = urlsplit(config.callback_url)
 		if parts.scheme in ("http", "https") and parts.netloc in self.callback_hosts:
 			return
-		raise ValueError(f"callback_url host {parts.netloc!r} is not allowed by server policy")
+		raise PolicyError(f"callback_url host {parts.netloc!r} is not allowed by server policy")
 
 	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
 		return discover_skills(
@@ -457,7 +464,7 @@ class SessionStore:
 			expanded = os.path.expanduser(value)
 			path = expanded if os.path.isabs(expanded) else os.path.join(config.cwd, expanded)
 			if not is_path_allowed(canonical_path(path), self.allowed_roots):
-				raise ValueError(f"skill path {raw!r} is not under an allowed root")
+				raise PolicyError(f"skill path {raw!r} is not under an allowed root")
 
 	def _validate_cwd(self, cwd: str) -> None:
 		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`
@@ -465,7 +472,7 @@ class SessionStore:
 		if not self.allowed_roots:
 			return
 		if not is_path_allowed(canonical_path(cwd), self.allowed_roots):
-			raise ValueError(f"cwd {cwd!r} is not under an allowed root")
+			raise PolicyError(f"cwd {cwd!r} is not under an allowed root")
 
 
 def _project_directory_name(cwd: str) -> str:
