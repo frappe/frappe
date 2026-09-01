@@ -310,6 +310,7 @@ def create_sessions_router(
 		_refuse_inline_credentials(req.api_key, req.api_base)
 		store = resolve_store(request)
 		session = _get(store, sid)
+		model_before = (session.model, session.credential_id, session.reasoning_effort)
 		await session.set_model(
 			req.model, credential_id=req.credential_id, reasoning_effort=req.reasoning_effort
 		)
@@ -322,6 +323,9 @@ def create_sessions_router(
 				store.save_meta(session)
 			except OSError:
 				session.config.api_key, session.config.api_base = previous
+				# the model change is already durable — undo it, or the 500 lies
+				model, credential_id, effort = model_before
+				await session.set_model(model, credential_id=credential_id, reasoning_effort=effort)
 				raise HTTPException(status_code=500, detail="failed to persist config") from None
 		context_window, supports_images = await asyncio.gather(
 			asyncio.to_thread(context_window_for, session.model),

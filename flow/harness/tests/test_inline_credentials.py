@@ -80,6 +80,24 @@ def test_set_model_replaces_the_inline_pair(tmp_path):
 	assert (config.api_key, config.api_base) == (None, "http://gw.localhost")
 
 
+def test_failed_persist_reverts_the_model_change_too(tmp_path, monkeypatch):
+	"""set_model commits the model durably before the creds land in meta; a failed
+	meta write must undo it, or the 500 leaves a new model on the old key."""
+	store = _store(tmp_path)
+	c = _client(store, ServerPolicy(inline_credentials=True))
+	sid = c.post("/sessions", json={"cwd": str(tmp_path), "api_key": KEY}).json()["session_id"]
+	session = store.get(sid)
+
+	def boom(session):
+		raise OSError("disk full")
+
+	monkeypatch.setattr(store, "save_meta", boom)
+	r = c.post(f"/sessions/{sid}/model", json={"model": "mock-b", "api_key": "sk-new"})
+	assert r.status_code == 500
+	assert session.model == "mock"
+	assert session.config.api_key == KEY
+
+
 def test_inline_credentials_survive_restart(tmp_path):
 	store = _store(tmp_path)
 	c = _client(store, ServerPolicy(inline_credentials=True))
