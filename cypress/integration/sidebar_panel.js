@@ -102,6 +102,19 @@ context("Sidebar Panel", () => {
 		cy.get(".sidebar-panel-notifications").should("have.class", "hidden");
 	});
 
+	it("gives the rail its own background-tasks trigger", () => {
+		// Rendered whether or not the site has any; BackgroundTasks un-hides every trigger
+		// once it has fetched a non-empty list.
+		cy.get(".dock .sidebar-background-tasks").should("exist");
+	});
+
+	it("opens the background tasks panel from the rail", () => {
+		// Forced because the button is hidden on a site with no tasks, and this is about the
+		// wiring from the rail to the registry, not about the button's visibility.
+		cy.get(".dock .sidebar-background-tasks").click({ force: true });
+		cy.get(".sidebar-panel-background-tasks").should("not.have.class", "hidden");
+	});
+
 	it("opens from the sidebar bell", () => {
 		// The bell is only drawn on an app without a dock; the rail carries it otherwise.
 		cy.get("body").then(($body) => {

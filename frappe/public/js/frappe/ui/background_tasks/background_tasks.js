@@ -1,14 +1,11 @@
 frappe.ui.BackgroundTasks = class BackgroundTasks {
-	constructor(opts) {
-		this.wrapper = opts?.wrapper || $(".body-sidebar");
+	constructor() {
 		this.db_tasks = [];
 		this.has_fetched = false;
 		this.make();
 	}
 
 	make() {
-		this.button = this.wrapper.find(".sidebar-background-tasks");
-
 		this.panel = new frappe.ui.SidebarPanel({
 			name: "background-tasks",
 			title: __("Background Tasks"),
@@ -36,8 +33,11 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 		}
 	}
 
+	// A trigger lives in the sidebar and another in the dock's rail, and the rail is built
+	// after this view on some navigations. Re-queried each call so both are covered, the same
+	// way the unread count reaches every bell.
 	toggle_button_visibility() {
-		this.button.toggleClass("hidden", !this.db_tasks || this.db_tasks.length === 0);
+		$(".sidebar-background-tasks").toggleClass("hidden", !this.db_tasks?.length);
 	}
 
 	setup_events() {
