@@ -377,6 +377,7 @@ def create_test_doctype_c_with_duplicate_link_to_doctype_a():
 		"Test Doctype C With Duplicate Link To Doctype A",
 		fields=[
 			{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
+			# scanned before `child_table`, so a filter on the shared fieldname lands here
 			{
 				"fieldname": "unrelated_child_table",
 				"fieldtype": "Table",
