@@ -396,6 +396,46 @@ class TestTogglePrivateNameCollision(IntegrationTestCase):
 		# no other File doc depended on the source: it's cleaned up once the commit lands
 		self.assertFalse(os.path.exists(source_path))
 
+	def test_reuse_rechecks_references_at_commit_time_not_check_time(self):
+		file_name = f"toggle_race_{frappe.generate_hash(length=6)}.txt"
+		content = f"identical-{frappe.generate_hash(length=8)}"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		source_path = public_file.get_full_path()
+		source_url = public_file.file_url
+
+		public_file.is_private = 1
+		public_file.save()
+
+		late_ref = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"late_ref_{frappe.generate_hash(length=6)}.txt",
+				"file_url": source_url,
+				"content_hash": public_file.content_hash,
+				"file_size": public_file.file_size,
+				"is_private": 0,
+			}
+		)
+		late_ref.flags.copy_from_existing_file = True
+		late_ref.insert()
+		self.addCleanup(frappe.delete_doc, "File", late_ref.name, force=True)
+
+		frappe.db.commit()
+
+		public_file.reload()
+		self.assertEqual(public_file.file_url, private_file.file_url)
+		# the late reference must not be left with a dangling file_url
+		self.assertTrue(os.path.exists(source_path))
+		self.assertEqual(late_ref.get_content(), content)
+
 	def test_renames_when_different_content_exists_at_same_name(self):
 		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
 		private_file = frappe.get_doc(

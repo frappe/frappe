@@ -363,9 +363,18 @@ class File(Document):
 		)
 
 		if content_hash_match:
-			# target already holds identical content: nothing to write, just stop pointing at source
-			if not other_refs_exist:
-				frappe.db.after_commit.add(lambda: source.unlink(missing_ok=True))
+			# target already holds identical content: nothing to write, just stop pointing at source.
+			# whether the source is safe to delete is rechecked inside the callback itself, right
+			# before deleting — another transaction could start referencing this exact source path
+			# any time between this check and when the deferred callback actually runs, and deleting
+			# on stale information would leave that other File's file_url dangling
+			content_hash = self.content_hash
+
+			def cleanup_source():
+				if not frappe.db.exists("File", {"content_hash": content_hash, "file_url": old_file_url}):
+					source.unlink(missing_ok=True)
+
+			frappe.db.after_commit.add(cleanup_source)
 		else:
 			if other_refs_exist:
 				shutil.copy2(source, target)
