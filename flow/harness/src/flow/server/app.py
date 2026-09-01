@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import secrets
 from collections.abc import Sequence
+from dataclasses import replace
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
@@ -163,8 +164,10 @@ def create_app(
 	async def healthz():
 		return {"ok": True}
 
+	# the credential store is daemon-wide, so no site token may manage it
+	providers_policy = replace(policy, providers_api=False) if tenants else policy
 	routers = (
-		create_providers_router(store.credential_store, oauth, policy=policy),
+		create_providers_router(store.credential_store, oauth, policy=providers_policy),
 		create_fs_router(resolve_store, policy=policy),
 		create_sessions_router(resolve_store, system_append=system_append, policy=policy),
 	)

@@ -102,6 +102,17 @@ def test_sites_only_see_their_own_sessions(tmp_path):
 	assert c.get("/healthz").status_code == 200
 
 
+def test_tenant_tokens_never_reach_provider_routes(tmp_path):
+	"""The credential store is daemon-wide; a site token managing it could tamper
+	with every other site's providers — so tenants mode disables those routes."""
+	c = TestClient(create_app(_store(tmp_path), tenants=TENANTS))
+	auth = _auth("token-one")
+	assert c.get("/providers", headers=auth).status_code == 403
+	r = c.post("/providers/anthropic/api-key", json={"api_key": "sk-x"}, headers=auth)
+	assert r.status_code == 403
+	assert "server policy" in r.json()["detail"]
+
+
 def test_same_session_id_allowed_on_two_sites(tmp_path):
 	c = TestClient(create_app(_store(tmp_path), tenants=TENANTS))
 	body = {"cwd": str(tmp_path), "session_id": "shared-id"}
