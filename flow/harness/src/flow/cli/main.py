@@ -21,7 +21,7 @@ def main() -> None:
 	parser = argparse.ArgumentParser(prog="flow")
 	sub = parser.add_subparsers(dest="cmd")
 
-	p_tui = sub.add_parser("tui", help="start a private daemon and open the TUI (the default command)")
+	p_tui = sub.add_parser("tui", help="start a private daemon and open the TUI")
 	p_tui.add_argument(
 		"-c",
 		"--continue",
@@ -52,7 +52,9 @@ def main() -> None:
 	)
 	_add_extension_options(p_serve)
 
-	p_web = sub.add_parser("web", help="run the daemon and serve the web UI, opening a browser")
+	p_web = sub.add_parser(
+		"web", help="run the daemon and serve the web UI, opening a browser (the default command)"
+	)
 	p_web.add_argument("--host", default=config.HOST)
 	p_web.add_argument("--port", type=int, default=config.PORT)
 	p_web.add_argument("--data-dir", default=config.DATA_DIR)
@@ -139,10 +141,10 @@ def _report_extension_diagnostics(store) -> None:
 
 
 def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
-	"""Bare `flow` (and `flow -c`) opens the TUI, so the common case needs no verb."""
+	"""Bare `flow` opens the web UI, so the common case needs no verb."""
 	if argv and (argv[0] in commands or argv[0] in ("-h", "--help")):
 		return argv
-	return ["tui", *argv]
+	return ["web", *argv]
 
 
 def _tui(args) -> None:
@@ -254,7 +256,7 @@ def _serve(args) -> None:
 
 
 def _web(args) -> None:
-	"""`flow web`: the daemon with the built web UI mounted same-origin (no CORS
+	"""Bare `flow` (or `flow web`): the daemon with the built web UI mounted same-origin (no CORS
 	needed), plus a browser tab pointed at it."""
 	if not _is_loopback(args.host) and not config.AUTH_TOKEN:
 		raise AuthError(
