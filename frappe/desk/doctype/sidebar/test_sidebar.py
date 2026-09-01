@@ -504,8 +504,11 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		"""
 		make_sidebar(self.MODULE, title=self.LEADS)
 
+		# postgres aborts the transaction on a failed statement, so recover to a savepoint
+		frappe.db.savepoint("duplicate_title")
 		with self.assertRaises(frappe.DuplicateEntryError):
 			make_sidebar(self.MODULE, title=self.LEADS)
+		frappe.db.rollback(save_point="duplicate_title")
 
 	def test_the_title_index_catches_a_row_whose_name_has_drifted(self):
 		"""What `unique` on `title` buys over the primary key, which already forbids two records of
@@ -519,8 +522,10 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		drifted = make_sidebar(self.MODULE)
 		frappe.db.set_value("Sidebar", drifted.name, "title", self.LEADS, update_modified=False)
 
+		frappe.db.savepoint("drifted_title")
 		with self.assertRaises(frappe.UniqueValidationError):
 			make_sidebar(self.MODULE, title=self.LEADS)
+		frappe.db.rollback(save_point="drifted_title")
 
 	def test_module_is_neither_required_nor_unique(self):
 		module = frappe.get_meta("Sidebar").get_field("module")
