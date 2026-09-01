@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.model
+import frappe.storage
 import frappe.utils
 from frappe import _
 from frappe.desk.reportview import validate_args
@@ -393,6 +394,14 @@ def attach_file(
 	:param docfield: file to attach to (optional)"""
 
 	doc = frappe.get_lazy_doc(doctype, docname, check_permission="write")
+
+	if frappe.storage.enabled() and not doc.has_permission("write"):
+		# Storage v2 tightening: attaching requires write permission on the
+		# target document, matching upload_file
+		frappe.throw(
+			_("You need write permission on {0} {1} to attach a file").format(_(doctype), docname),
+			frappe.PermissionError,
+		)
 
 	file = frappe.get_doc(
 		{

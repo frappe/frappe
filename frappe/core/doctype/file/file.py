@@ -13,6 +13,7 @@ import filetype
 from PIL import Image, ImageFile, ImageOps
 
 import frappe
+import frappe.storage
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.exceptions import DoesNotExistError
@@ -62,6 +63,7 @@ class File(Document):
 		attached_to_doctype: DF.Link | None
 		attached_to_field: DF.Data | None
 		attached_to_name: DF.Data | None
+		blob: DF.Link | None
 		content_hash: DF.Data | None
 		file_name: DF.Data | None
 		file_size: DF.Int
@@ -133,6 +135,11 @@ class File(Document):
 				)
 			return
 
+		if self.flags.from_existing_blob:
+			# Storage v2: the row points at an already stored blob; no bytes to write.
+			self.set_blob_file_url()
+			return
+
 		if self.is_remote_file:
 			self.validate_remote_file()
 		else:
@@ -140,7 +147,9 @@ class File(Document):
 			self.flags.new_file = True
 			frappe.db.after_rollback.add(self.on_rollback)
 
-		self.validate_duplicate_entry()  # Hash is generated in save_file
+		if not self.get("blob"):
+			# v2 rows dedup inside put_blob; the disk-based duplicate check does not apply
+			self.validate_duplicate_entry()  # Hash is generated in save_file
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -297,6 +306,11 @@ class File(Document):
 		if self.is_remote_file:
 			return
 
+		if self.get("blob"):
+			# Storage v2: the path derives from the blob key; the driver rejects
+			# keys that escape the blobs directory
+			return
+
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
 		if not os.path.realpath(self.get_full_path()).startswith(base_path):
 			frappe.throw(
@@ -308,6 +322,14 @@ class File(Document):
 		if self.is_remote_file or not self.file_url:
 			return
 
+		if self.get("blob"):
+			if not self.file_url.startswith(("/files/blobs/", "/f/")):
+				frappe.throw(
+					_("The File URL you've entered is incorrect"),
+					title=_("Invalid File URL"),
+				)
+			return
+
 		if not self.file_url.startswith(("/files/", "/private/files/")):
 			# Probably an invalid URL since it doesn't start with http either
 			frappe.throw(
@@ -317,6 +339,13 @@ class File(Document):
 
 	def handle_is_private_changed(self):
 		if self.is_remote_file:
+			return
+
+		if self.get("blob"):
+			# Storage v2: blobs are immutable; no file moves on disk
+			old_file_url = self.file_url
+			self.flip_blob_privacy()
+			self.update_attached_to_field(old_file_url)
 			return
 
 		from pathlib import Path
@@ -360,7 +389,9 @@ class File(Document):
 
 		self.file_url = updated_file_url
 		update_existing_file_docs(self)
+		self.update_attached_to_field(old_file_url)
 
+	def update_attached_to_field(self, old_file_url):
 		if (
 			not self.attached_to_doctype
 			or not self.attached_to_name
@@ -381,6 +412,31 @@ class File(Document):
 				self.attached_to_field,
 				self.file_url,
 			)
+
+	def flip_blob_privacy(self):
+		"""Create or dedup a blob in the other privacy namespace and repoint.
+
+		Storage v2 blobs are immutable, so a privacy change never moves
+		bytes in place. The old blob is left for garbage collection."""
+		old_blob = frappe.get_doc("File Blob", self.blob)
+		driver = frappe.storage.get_driver(old_blob.driver)
+		with driver.read(old_blob.key, is_private=bool(old_blob.is_private)) as stream:
+			new_blob = frappe.storage.put_blob(
+				stream,
+				is_private=bool(cint(self.is_private)),
+				filename=self.file_name,
+			)
+		self.blob = new_blob.name
+		self.set_blob_file_url(new_blob)
+
+	def set_blob_file_url(self, blob=None):
+		"""Regenerate file_url from the linked blob. Stable and unsigned."""
+		if blob is None:
+			blob = frappe.get_doc("File Blob", self.blob)
+		if cint(blob.is_private):
+			self.file_url = f"/f/{blob.name}/{quote(self.file_name or blob.name)}"
+		else:
+			self.file_url = f"/files/blobs/{blob.key}"
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:
@@ -451,6 +507,11 @@ class File(Document):
 
 	def validate_file_on_disk(self):
 		"""Validates existence file"""
+		if self.get("blob"):
+			if not self.exists_on_disk():
+				frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
+			return True
+
 		full_path = self.get_full_path()
 
 		if full_path.startswith(URL_PREFIXES):
@@ -664,6 +725,11 @@ class File(Document):
 
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
+		if self.get("blob"):
+			# Storage v2: garbage collection owns the bytes and thumbnails;
+			# deleting a File row never deletes them synchronously
+			return
+
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
 			"File",
 			filters={
@@ -746,6 +812,10 @@ class File(Document):
 		return files
 
 	def exists_on_disk(self):
+		if self.get("blob"):
+			blob = frappe.get_doc("File Blob", self.blob)
+			driver = frappe.storage.get_driver(blob.driver)
+			return driver.exists(blob.key, is_private=bool(blob.is_private))
 		return os.path.exists(self.get_full_path())
 
 	def get_content(self, encodings=None) -> bytes | str:
@@ -762,32 +832,43 @@ class File(Document):
 			# self.content = None # TODO: This needs to happen; make it happen somehow
 			return self._content
 
-		if self.file_url:
-			self.validate_file_url()
-		file_path = self.get_full_path()
+		if self.get("blob"):
+			# Storage v2: every byte access goes through the driver
+			blob = frappe.get_doc("File Blob", self.blob)
+			driver = frappe.storage.get_driver(blob.driver)
+			with driver.read(blob.key, is_private=bool(blob.is_private)) as f:
+				self._content = f.read()
+		else:
+			if self.file_url:
+				self.validate_file_url()
+			file_path = self.get_full_path()
+
+			with open(file_path, mode="rb") as f:
+				self._content = f.read()
 
 		if encodings is None:
 			encodings = FILE_ENCODING_OPTIONS
-		with open(file_path, mode="rb") as f:
-			self._content = f.read()
-			# Only decode if not a binary file
-			kind = filetype.guess(self._content)
-			if not kind and not self._content.startswith(OLE_FILE_SIGNATURE):
-				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
-				# encoded so the first iteration will be enough most of the time
-				for encoding in encodings:
-					try:
-						# read file with proper encoding
-						self._content = self._content.decode(encoding)
-						break
-					except UnicodeDecodeError:
-						# for .png, .jpg, etc
-						continue
+		# Only decode if not a binary file
+		kind = filetype.guess(self._content)
+		if not kind and not self._content.startswith(OLE_FILE_SIGNATURE):
+			# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
+			# encoded so the first iteration will be enough most of the time
+			for encoding in encodings:
+				try:
+					# read file with proper encoding
+					self._content = self._content.decode(encoding)
+					break
+				except UnicodeDecodeError:
+					# for .png, .jpg, etc
+					continue
 
 		return self._content
 
 	def get_full_path(self):
 		"""Return file path using the set file name."""
+
+		if self.get("blob"):
+			return self._get_blob_local_path()
 
 		file_path = self.file_url or self.file_name
 
@@ -821,6 +902,23 @@ class File(Document):
 
 		return file_path
 
+	def _get_blob_local_path(self):
+		"""Real disk path of a v2 row stored by the local driver.
+
+		Non-local drivers have no local path; callers must stream through
+		``get_content`` instead."""
+		from frappe.storage.local_driver import LocalDriver
+
+		blob = frappe.get_doc("File Blob", self.blob)
+		driver = frappe.storage.get_driver(blob.driver)
+		if not isinstance(driver, LocalDriver):
+			frappe.throw(
+				_("File {0} is stored in the {1} storage driver and has no local file path").format(
+					self.name, blob.driver
+				)
+			)
+		return driver.get_path(blob.key, bool(blob.is_private))
+
 	def write_file(self):
 		"""write file to disk with a random name (to compare)"""
 		if self.is_remote_file:
@@ -849,7 +947,8 @@ class File(Document):
 		if self.is_remote_file:
 			return
 
-		if not self.flags.new_file:
+		if not self.flags.new_file and not self.get("blob"):
+			# v2 blobs are immutable; there is no in-place write to roll back
 			self.flags.original_content = self.get_content()
 
 		if content:
@@ -876,6 +975,9 @@ class File(Document):
 
 		self.file_size = self.check_max_file_size()
 		self.content_hash = get_content_hash(self._content)
+
+		if frappe.storage.enabled():
+			return self.save_file_into_storage()
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
 		if not ignore_existing_file_check:
@@ -909,6 +1011,24 @@ class File(Document):
 			if write_file_method:
 				return write_file_method(self)
 			return self.save_file_on_filesystem()
+
+	def save_file_into_storage(self):
+		"""Storage v2 write path: dedup and write through the active driver.
+
+		put_blob owns dedup on (checksum, is_private, driver), so the
+		disk-based duplicate check and generate_file_name do not run."""
+		if isinstance(self._content, str):
+			self._content = self._content.encode()
+		self.check_content()
+		blob = frappe.storage.put_blob(
+			io.BytesIO(self._content),
+			is_private=bool(self.is_private),
+			filename=self.file_name,
+		)
+		self.blob = blob.name
+		self.file_size = blob.file_size
+		self.set_blob_file_url(blob)
+		return {"file_name": self.file_name, "file_url": self.file_url}
 
 	def save_file_on_filesystem(self):
 		safe_file_name = get_safe_file_name(self.file_name)
@@ -1036,6 +1156,49 @@ class File(Document):
 			zf.writestr(_file.file_name, _file.get_content())
 		zf.close()
 		return zip_file.getvalue()
+
+
+def create_file_from_blob(
+	blob,
+	file_name: str,
+	*,
+	attached_to_doctype: str | None = None,
+	attached_to_name: str | None = None,
+	attached_to_field: str | None = None,
+	is_private: bool = False,
+	ignore_permissions: bool = False,
+) -> "File":
+	"""Create a File row for an existing Ready blob without re-writing bytes.
+
+	``blob`` is a File Blob doc or name. The row goes through the normal
+	insert lifecycle (permissions, attachment limits, attachment comment),
+	but skips save_file: the bytes are already stored."""
+	if isinstance(blob, str):
+		blob = frappe.get_doc("File Blob", blob)
+
+	if blob.status != "Ready":
+		frappe.throw(_("Blob {0} is not ready").format(blob.name))
+
+	if cint(blob.is_private) != cint(is_private):
+		frappe.throw(
+			_("Blob {0} privacy does not match the requested file privacy").format(blob.name)
+		)
+
+	file = frappe.new_doc("File")
+	file.update(
+		{
+			"file_name": file_name,
+			"is_private": cint(is_private),
+			"attached_to_doctype": attached_to_doctype,
+			"attached_to_name": attached_to_name,
+			"attached_to_field": attached_to_field,
+			"blob": blob.name,
+			"file_size": blob.file_size,
+		}
+	)
+	file.flags.from_existing_blob = True
+	file.insert(ignore_permissions=ignore_permissions)
+	return file
 
 
 def on_doctype_update():
