@@ -7,6 +7,7 @@ are documented on `routes/sessions`."""
 from __future__ import annotations
 
 import secrets
+from collections.abc import Sequence
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
@@ -21,6 +22,7 @@ from flow.server.policy import ServerPolicy
 from flow.server.routes.fs import create_fs_router
 from flow.server.routes.providers import create_providers_router
 from flow.server.routes.sessions import create_sessions_router
+from flow.server.tenants import Tenant
 from flow.server.utils.provider_auth import OAuthCoordinator
 from flow.session.attachments import AttachmentError
 from flow.session.session import ResumeError, RewindError, SessionConflict
@@ -32,6 +34,7 @@ def create_app(
 	store: SessionStore,
 	*,
 	auth_token: str | None = None,
+	tenants: Sequence[Tenant] = (),
 	cors_origins: list[str] | None = None,
 	webui_dir: str | None = None,
 	system_append: str | None = None,
@@ -39,10 +42,12 @@ def create_app(
 ) -> FastAPI:
 	"""`system_append` is text the operator adds to every session's system prompt
 	(`flow web --append-system-prompt`); it lands after whatever the client sends.
-	`policy` gates tools and route groups; None means the permissive local default."""
+	`policy` gates tools and route groups; None means the permissive local default.
+	`tenants` turns on multi-tenant mode: each tenant token authenticates as its
+	site, and the request then acts on that site's own partition of `store`."""
 	policy = policy or ServerPolicy()
-	if policy.require_auth and not auth_token:
-		raise ValueError("this server policy requires an auth token; pass auth_token")
+	if policy.require_auth and not auth_token and not tenants:
+		raise ValueError("this server policy requires auth; pass auth_token or tenants")
 	# docs off: those routes would be reachable without a bearer beside the web UI
 	app = FastAPI(title="flow server", version="0.1.0", docs_url=None, redoc_url=None, openapi_url=None)
 	oauth = OAuthCoordinator(store.credentials)
@@ -76,7 +81,16 @@ def create_app(
 	# path prefixes of all API routes, e.g. "/sessions"
 	api_roots: set[str] = set()
 
-	if auth_token:
+	# one isolated store per site; a request only ever sees its own site's store
+	session_store_by_tenant = {
+		tenant.site: store.for_site(tenant.site, tenant.allowed_roots) for tenant in tenants
+	}
+
+	def resolve_store(request: Request) -> SessionStore:
+		site = getattr(request.state, "site", None)
+		return session_store_by_tenant[site] if site else store
+
+	if auth_token or tenants:
 
 		@app.middleware("http")
 		async def authenticate(request: Request, call_next):
@@ -92,11 +106,14 @@ def create_app(
 			):
 				return await call_next(request)
 			scheme, _, supplied = request.headers.get("Authorization", "").partition(" ")
-			if scheme.lower() != "bearer" or not secrets.compare_digest(
-				supplied.encode(), auth_token.encode()
-			):
-				return JSONResponse({"detail": "unauthorized"}, status_code=401)
-			return await call_next(request)
+			if scheme.lower() == "bearer":
+				if auth_token and secrets.compare_digest(supplied.encode(), auth_token.encode()):
+					return await call_next(request)
+				for tenant in tenants:
+					if secrets.compare_digest(supplied.encode(), tenant.token.encode()):
+						request.state.site = tenant.site  # scopes this request to the site
+						return await call_next(request)
+			return JSONResponse({"detail": "unauthorized"}, status_code=401)
 	else:
 		# Tokenless mode trusts the local machine, so browsers are the threat:
 		# DNS rebinding forges a loopback Host, cross-site requests a foreign Origin.
@@ -122,8 +139,8 @@ def create_app(
 
 	routers = (
 		create_providers_router(store.credentials, oauth, policy=policy),
-		create_fs_router(store, policy=policy),
-		create_sessions_router(store, system_append=system_append, policy=policy),
+		create_fs_router(resolve_store, policy=policy),
+		create_sessions_router(resolve_store, system_append=system_append, policy=policy),
 	)
 	for router in routers:
 		app.include_router(router)

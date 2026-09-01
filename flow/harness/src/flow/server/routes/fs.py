@@ -6,8 +6,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+from collections.abc import Callable
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from flow.path_policy import absolute_path, canonical_path, is_path_allowed
@@ -32,7 +33,11 @@ class FsWriteFileRequest(BaseModel):
 	content: str
 
 
-def create_fs_router(store: SessionStore, *, policy: ServerPolicy | None = None) -> APIRouter:
+def create_fs_router(
+	resolve_store: Callable[[Request], SessionStore], *, policy: ServerPolicy | None = None
+) -> APIRouter:
+	"""`resolve_store` picks the store a request acts on — the authenticated site's
+	partition in multi-tenant mode, else the daemon's root store."""
 	policy = policy or ServerPolicy()
 	router = APIRouter(dependencies=gate(policy.fs_api))
 
@@ -49,7 +54,7 @@ def create_fs_router(store: SessionStore, *, policy: ServerPolicy | None = None)
 				raise HTTPException(status_code=501, detail=str(e)) from None
 		return {"path": path}
 
-	def _resolve_allowed_path(cwd: str, path: str) -> str:
+	def _resolve_allowed_path(store: SessionStore, cwd: str, path: str) -> str:
 		if not os.path.isabs(cwd):
 			raise HTTPException(status_code=400, detail="cwd must be an absolute path")
 		full_path = absolute_path(path, base=cwd)
@@ -58,13 +63,13 @@ def create_fs_router(store: SessionStore, *, policy: ServerPolicy | None = None)
 		return full_path
 
 	@router.get("/fs/files")
-	async def list_files(cwd: str, path: str = ""):
-		full_path = _resolve_allowed_path(cwd, path or ".")
+	async def list_files(request: Request, cwd: str, path: str = ""):
+		full_path = _resolve_allowed_path(resolve_store(request), cwd, path or ".")
 		return {"path": full_path, "entries": await asyncio.to_thread(list_directory, full_path)}
 
 	@router.get("/fs/files/search")
-	async def search_files(cwd: str, query: str):
-		root = _resolve_allowed_path(cwd, ".")
+	async def search_files(request: Request, cwd: str, query: str):
+		root = _resolve_allowed_path(resolve_store(request), cwd, ".")
 		if not os.path.isdir(root):
 			raise HTTPException(status_code=404, detail="directory not found")
 		needle = query.strip().lower()
@@ -74,32 +79,34 @@ def create_fs_router(store: SessionStore, *, policy: ServerPolicy | None = None)
 		return {"path": root, "matches": matches, "truncated": truncated}
 
 	@router.get("/fs/file")
-	async def read_file(cwd: str, path: str):
-		full_path = _resolve_allowed_path(cwd, path)
+	async def read_file(request: Request, cwd: str, path: str):
+		full_path = _resolve_allowed_path(resolve_store(request), cwd, path)
 		return {"path": full_path, "content": await asyncio.to_thread(read_text_file, full_path)}
 
 	@router.put("/fs/file")
-	async def write_fs_file(req: FsWriteFileRequest):
+	async def write_fs_file(request: Request, req: FsWriteFileRequest):
 		"""The cwd-keyed twin of the session save, so edits work before a session exists."""
-		full_path = _resolve_allowed_path(req.cwd, req.path)
+		full_path = _resolve_allowed_path(resolve_store(request), req.cwd, req.path)
 		if len(req.content.encode()) > MAX_FILE_VIEW_BYTES:
 			raise HTTPException(status_code=413, detail="file too large to save")
 		await asyncio.to_thread(save_text_file, full_path, req.content)
 		return {"path": full_path}
 
 	@router.get("/fs/git/changes")
-	async def fs_git_changes(cwd: str):
+	async def fs_git_changes(request: Request, cwd: str):
 		"""The repository's uncommitted files with added/removed line counts."""
-		root = _resolve_allowed_path(cwd, ".")
+		store = resolve_store(request)
+		root = _resolve_allowed_path(store, cwd, ".")
 		if not os.path.isdir(root):
 			raise HTTPException(status_code=404, detail="directory not found")
 		return await asyncio.to_thread(git_changes, root, store.allowed_roots)
 
 	@router.get("/fs/git/file/diff")
-	async def git_file_diff(cwd: str, path: str):
+	async def git_file_diff(request: Request, cwd: str, path: str):
 		"""Both sides of one file's uncommitted changes: HEAD and the working tree."""
-		base = _resolve_allowed_path(cwd, ".")
-		full_path = _resolve_allowed_path(cwd, path)
+		store = resolve_store(request)
+		base = _resolve_allowed_path(store, cwd, ".")
+		full_path = _resolve_allowed_path(store, cwd, path)
 
 		def compute() -> dict:
 			top = git_output(base, "rev-parse", "--show-toplevel")
