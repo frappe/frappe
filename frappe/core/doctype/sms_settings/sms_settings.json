@@ -10,7 +10,9 @@
   "receiver_parameter",
   "static_parameters_section",
   "parameters",
-  "use_post"
+  "use_post",
+  "allowed_roles_section",
+  "allowed_roles"
  ],
  "fields": [
   {
@@ -54,13 +56,24 @@
    "fieldname": "use_post",
    "fieldtype": "Check",
    "label": "Use POST"
+  },
+  {
+   "fieldname": "allowed_roles_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Only users with one of these roles can send SMS. Leave empty to allow only System Manager.",
+   "fieldname": "allowed_roles",
+   "fieldtype": "Table",
+   "label": "Allowed Roles",
+   "options": "Has Role"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-09-21 19:45:26.809793",
+ "modified": "2026-08-31 10:48:45.735288",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "SMS Settings",
@@ -74,7 +87,8 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "track_changes": 1
 }
