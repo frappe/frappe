@@ -1140,57 +1140,64 @@ def verify_password(password: str):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
+def get_signup_limit():
+	return frappe.db.get_single_value("Website Settings", "max_signups_per_minute")
+
+
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=get_signup_limit, seconds=60)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
+	allow = True
 	if is_signup_disabled():
-		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
+		allow = False
 
-	user = frappe.db.get("User", {"email": email})
-	if user:
-		if user.enabled:
-			return 0, _("Already Registered")
-		else:
-			return 0, _("Registered but disabled")
-	else:
-		max_signups_allowed_per_hour = cint(frappe.get_system_settings("max_signups_allowed_per_hour") or 300)
-		users_created_past_hour = frappe.db.get_creation_count("User", 60)
-		if users_created_past_hour >= max_signups_allowed_per_hour:
-			frappe.respond_as_web_page(
-				_("Temporarily Disabled"),
-				_(
-					"Too many users signed up recently, so the registration is disabled. Please try back in an hour"
-				),
-				http_status_code=429,
-			)
+	existing_user = frappe.db.get("User", {"email": email})
+	if existing_user:
+		allow = False
 
-		from frappe.utils import random_string
+	if not allow:
+		return 0, _("We could not create an account with the provided details.")
 
-		user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": escape_html(full_name),
-				"enabled": 1,
-				"new_password": random_string(10),
-				"user_type": "Website User",
-			}
+	max_signups_allowed_per_hour = cint(frappe.get_system_settings("max_signups_allowed_per_hour") or 300)
+	users_created_past_hour = frappe.db.get_creation_count("User", 60)
+	if users_created_past_hour >= max_signups_allowed_per_hour:
+		frappe.respond_as_web_page(
+			_("Temporarily Disabled"),
+			_(
+				"Too many users signed up recently, so the registration is disabled. Please try back in an hour"
+			),
+			http_status_code=429,
 		)
-		user.flags.ignore_permissions = True
-		user.flags.ignore_password_policy = True
-		user.insert()
+		return
 
-		# set default signup role as per Portal Settings
-		default_role = frappe.get_single_value("Portal Settings", "default_role")
-		if default_role:
-			user.add_roles(default_role)
+	from frappe.utils import random_string
 
-		if redirect_to:
-			frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
+	user = frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": email,
+			"first_name": escape_html(full_name),
+			"enabled": 1,
+			"new_password": random_string(10),
+			"user_type": "Website User",
+		}
+	)
+	user.flags.ignore_permissions = True
+	user.flags.ignore_password_policy = True
+	user.insert()
 
-		if user.flags.email_sent:
-			return 1, _("Please check your email for verification")
-		else:
-			return 2, _("Please ask your administrator to verify your sign-up")
+	# set default signup role as per Portal Settings
+	default_role = frappe.get_single_value("Portal Settings", "default_role")
+	if default_role:
+		user.add_roles(default_role)
+
+	if redirect_to:
+		frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
+
+	if user.flags.email_sent:
+		return 1, _("Please check your email for verification")
+	else:
+		return 2, _("Please ask your administrator to verify your sign-up")
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])

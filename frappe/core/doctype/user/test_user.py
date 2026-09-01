@@ -384,13 +384,9 @@ class TestUser(IntegrationTestCase):
 		random_user_name = frappe.mock("name")
 		# disabled signup
 		with patch.object(user_module, "is_signup_disabled", return_value=True):
-			self.assertRaisesRegex(
-				frappe.exceptions.ValidationError,
-				"Sign Up is disabled",
-				sign_up,
-				random_user,
-				random_user_name,
-				"/signup",
+			self.assertTupleEqual(
+				sign_up(random_user, random_user_name, "/signup"),
+				(0, "We could not create an account with the provided details."),
 			)
 
 		self.assertTupleEqual(
@@ -402,7 +398,10 @@ class TestUser(IntegrationTestCase):
 		)
 
 		# re-register
-		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
+		self.assertTupleEqual(
+			sign_up(random_user, random_user_name, "/welcome"),
+			(0, "We could not create an account with the provided details."),
+		)
 
 		# disabled user
 		user = frappe.get_doc("User", random_user)
@@ -410,19 +409,19 @@ class TestUser(IntegrationTestCase):
 		user.save()
 
 		self.assertTupleEqual(
-			sign_up(random_user, random_user_name, "/welcome"), (0, "Registered but disabled")
+			sign_up(random_user, random_user_name, "/welcome"),
+			(0, "We could not create an account with the provided details."),
 		)
 
 		# throttle user creation
 		with patch.object(user_module.frappe.db, "get_creation_count", return_value=301):
-			self.assertRaisesRegex(
-				frappe.exceptions.ValidationError,
-				"Throttled",
-				sign_up,
-				frappe.mock("email"),
-				random_user_name,
-				"/signup",
-			)
+			response = frappe.local.response
+			frappe.local.response = frappe._dict()
+			try:
+				self.assertIsNone(sign_up(frappe.mock("email"), random_user_name, "/signup"))
+				self.assertEqual(frappe.local.response["http_status_code"], 429)
+			finally:
+				frappe.local.response = response
 
 	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
