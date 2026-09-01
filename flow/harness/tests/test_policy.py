@@ -44,6 +44,7 @@ def test_resolve_policy_profiles():
 	deployed = resolve_policy("deployed")
 	assert deployed.tool_allowlist == frozenset({"read_file", "grep"})
 	assert deployed.require_auth
+	assert deployed.inline_credentials
 	assert deployed.callback_hosts == frozenset()
 	assert not deployed.fs_api
 	assert not deployed.providers_api

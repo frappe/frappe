@@ -374,7 +374,7 @@ async def test_run_wires_the_resolved_refresh_hook_into_the_model(tmp_path, monk
 	async def refresh(rejected_token):
 		raise AssertionError("never called here")
 
-	async def fake_resolve(model, store, *, provider_id=None):
+	async def fake_resolve(*_args, **_kwargs):
 		return ResolvedModelAuth(api_key="live", source="OAuth", provider_id="codex", refresh=refresh)
 
 	captured = {}
