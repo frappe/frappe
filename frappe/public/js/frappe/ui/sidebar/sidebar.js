@@ -816,7 +816,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_background_tasks() {
 		if (frappe.session.user !== "Guest") {
-			this.background_tasks = new frappe.ui.BackgroundTasks({ full_height: true });
+			this.background_tasks = new frappe.ui.BackgroundTasks();
 		}
 	}
 	add_item(container, item) {

@@ -1,0 +1,85 @@
+// The drawer that slides out beside the body sidebar, and the heading it shares with
+// the desk's notification popover. The panels' own contents stay in notification.scss
+// and background_task.scss; only the frame around them lives here.
+
+// The frame. This used to sit on the content elements themselves (.notifications-list
+// and .background-tasks-list), which is why the popover host had to undo every bit of
+// it. Owning it here means a content element is just content, in either host.
+.sidebar-panel {
+	position: absolute;
+	top: 0;
+	// The mount point is .body-sidebar-container, whose width is the placeholder's:
+	// 220px expanded, 0 collapsed, 0 on mobile. So this one rule opens the panel flush
+	// against the sidebar's right edge when it is out, and against the dock's edge when
+	// it is away, with nothing to override per state.
+	left: 100%;
+	z-index: 1000;
+
+	width: min(360px, 100vw);
+	height: 100vh; // fallback for engines without dvh
+	height: 100dvh;
+	min-height: 480px;
+	overflow: hidden;
+
+	@include flex(flex, null, null, column);
+
+	background-color: var(--surface-base);
+	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
+}
+
+// The heading. Not scoped under .sidebar-panel: the desktop screen puts this same
+// markup inside an .es-popover, which is not a panel.
+.panel-header {
+	flex-shrink: 0;
+	padding: 14px 16px 10px 16px;
+
+	.panel-header-top {
+		@include flex(flex, space-between, center, row);
+		margin-bottom: 12px;
+	}
+
+	.panel-title {
+		@include get_textstyle("lg", "semibold");
+		color: var(--ink-gray-8);
+	}
+
+	.panel-actions {
+		@include flex(flex, null, center, row);
+		gap: 2px;
+		color: var(--ink-gray-6);
+
+		> span {
+			@include flex(inline-flex, center, center, row);
+			@include size(24px, 24px);
+			border-radius: var(--radius-sm);
+			cursor: pointer;
+
+			&:hover {
+				background-color: var(--surface-gray-2);
+				color: var(--ink-gray-8);
+			}
+		}
+	}
+
+	// Empty until a panel hangs something here, so it must not reserve space when unused.
+	.panel-items:empty {
+		display: none;
+	}
+}
+
+// Scrolls on its own so the heading above it stays put.
+.sidebar-panel-body {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+@include media-breakpoint-down(sm) {
+	// The sidebar is an overlay at this width and the panel takes the screen, so it is
+	// pinned to the viewport rather than to a container that is 0px wide.
+	.sidebar-panel {
+		position: fixed;
+		left: 0;
+		width: 100vw;
+	}
+}

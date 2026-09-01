@@ -21,6 +21,10 @@
 	flex-direction: column;
 	height: fit-content;
 	width: fit-content;
+	// positioning context for .sidebar-panel, which opens at `left: 100%` of this box.
+	// The width here is the placeholder's, so that lands the panel correctly whether the
+	// sidebar is out, collapsed behind the dock, or off-screen on mobile.
+	position: relative;
 
 	.body-sidebar-placeholder {
 		// reserves the panel's width in-flow so the main section glides across as the panel animates
