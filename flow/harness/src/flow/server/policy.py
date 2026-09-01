@@ -66,7 +66,9 @@ DEPLOYED = ServerPolicy(
 	require_auth=True,
 	inline_credentials=True,
 	extensions=False,
-	max_request_bytes=32 * 1024 * 1024,
+	# fits the largest legitimate request — a full attachment batch (10 files of 20 MiB)
+	# plus multipart overhead — while still refusing runaway bodies
+	max_request_bytes=224 * 1024 * 1024,
 	audit_log=True,
 	fs_api=False,
 	providers_api=False,

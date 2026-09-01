@@ -47,7 +47,7 @@ def test_resolve_policy_profiles():
 	assert deployed.inline_credentials
 	assert deployed.callback_hosts == frozenset()
 	assert not deployed.extensions
-	assert deployed.max_request_bytes == 32 * 1024 * 1024
+	assert deployed.max_request_bytes == 224 * 1024 * 1024
 	assert deployed.audit_log
 	assert not deployed.fs_api
 	assert not deployed.providers_api
