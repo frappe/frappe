@@ -367,6 +367,134 @@ class TestSameContent(IntegrationTestCase):
 		self.assertEqual(file_content_properly_decoded, test_content1)
 
 
+class TestTogglePrivateNameCollision(IntegrationTestCase):
+	"""handle_is_private_changed(): toggling is_private when the destination namespace already
+	has a same-named file — reuses save_file()'s own dedup instead of throwing FileExistsError."""
+
+	def test_reuses_target_when_identical_content_exists_and_no_other_reference(self):
+		file_name = f"toggle_dedup_{frappe.generate_hash(length=6)}.txt"
+		content = f"identical-{frappe.generate_hash(length=8)}"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		source_path = public_file.get_full_path()
+		self.assertTrue(os.path.exists(source_path))
+
+		public_file.is_private = 1
+		public_file.save()
+		frappe.db.commit()
+
+		public_file.reload()
+		self.assertEqual(public_file.file_url, private_file.file_url)
+		self.assertEqual(public_file.get_content(), content)
+		# no other File doc depended on the source: it's cleaned up once the commit lands
+		self.assertFalse(os.path.exists(source_path))
+
+	def test_renames_when_different_content_exists_at_same_name(self):
+		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
+		private_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": "private original",
+				"is_private": 1,
+			}
+		).insert()
+		public_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": "public different",
+				"is_private": 0,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		# this used to raise FileExistsError; it must now auto-rename instead
+		public_file.is_private = 1
+		public_file.save()
+
+		public_file.reload()
+		self.assertNotEqual(public_file.file_url, private_file.file_url)
+		self.assertTrue(public_file.file_url.startswith("/private/files/"))
+		self.assertEqual(public_file.get_content(), "public different")
+		# the pre-existing private file must be completely untouched
+		self.assertEqual(private_file.get_content(), "private original")
+
+	def test_keeps_source_when_another_file_references_it(self):
+		file_name = f"toggle_shared_{frappe.generate_hash(length=6)}.txt"
+		content = f"shared-{frappe.generate_hash(length=8)}"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+		other_ref = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"other_ref_{frappe.generate_hash(length=6)}.txt",
+				"file_url": public_file.file_url,
+				"content_hash": public_file.content_hash,
+				"file_size": public_file.file_size,
+				"is_private": 0,
+			}
+		)
+		other_ref.flags.ignore_duplicate_entry_error = True
+		other_ref.insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", other_ref.name, force=True)
+
+		source_path = public_file.get_full_path()
+
+		public_file.is_private = 1
+		public_file.save()
+		frappe.db.commit()
+
+		public_file.reload()
+		self.assertEqual(public_file.file_url, private_file.file_url)
+		# other_ref still points at the source path: it must survive the toggle
+		self.assertTrue(os.path.exists(source_path))
+		self.assertEqual(other_ref.get_content(), content)
+
+	def test_rollback_restores_disk_state(self):
+		file_name = f"toggle_rollback_{frappe.generate_hash(length=6)}.txt"
+		created = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": "rollback me", "is_private": 0}
+		).insert()
+		frappe.db.commit()
+		self.addCleanup(frappe.delete_doc, "File", created.name, force=True)
+
+		# reloaded fresh: the original in-memory object still carries flags.new_file from its own
+		# insert (never cleared by a commit), which would make its on_rollback take the "delete
+		# the file I just inserted" branch instead of restoring the toggle's own move
+		public_file = frappe.get_doc("File", created.name)
+
+		old_path = public_file.get_full_path()
+		self.assertTrue(os.path.exists(old_path))
+
+		public_file.is_private = 1
+		public_file.save()
+
+		new_path = public_file.get_full_path()
+		self.assertTrue(os.path.exists(new_path))
+		self.assertFalse(os.path.exists(old_path))
+
+		# rolling back the whole transaction (insert included) must also undo the disk move
+		frappe.db.rollback()
+
+		self.assertFalse(os.path.exists(new_path))
+		self.assertTrue(os.path.exists(old_path))
+
+
 class TestFile(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")

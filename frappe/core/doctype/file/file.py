@@ -318,23 +318,18 @@ class File(Document):
 
 		old_file_url = self.file_url
 		file_name = self.file_url.split("/")[-1]
-		private_file_path = Path(frappe.get_site_path("private", "files", file_name))
-		public_file_path = Path(frappe.get_site_path("public", "files", file_name))
 
 		if cint(self.is_private):
-			source = public_file_path
-			target = private_file_path
+			source = Path(frappe.get_site_path("public", "files", file_name))
 			url_starts_with = "/private/files/"
 		else:
-			source = private_file_path
-			target = public_file_path
+			source = Path(frappe.get_site_path("private", "files", file_name))
 			url_starts_with = "/files/"
-		updated_file_url = f"{url_starts_with}{file_name}"
 
 		# if a file document is created by passing dict throught get_doc and __local is not set,
 		# handle_is_private_changed would be executed; we're checking if updated_file_url is same
 		# as old_file_url to avoid a FileNotFoundError for this case.
-		if updated_file_url == old_file_url:
+		if f"{url_starts_with}{file_name}" == old_file_url:
 			return
 
 		if not source.exists():
@@ -342,11 +337,21 @@ class File(Document):
 				_("Cannot find file {} on disk").format(source),
 				exc=FileNotFoundError,
 			)
-		if target.exists():
-			frappe.throw(
-				_("A file with same name {} already exists").format(target),
-				exc=FileExistsError,
-			)
+
+		# reuse the same dedup as a fresh upload: a different file already at the target name
+		# gets a generated suffix (matches save_file()/generate_file_name()); identical content
+		# at the target name is reused instead of duplicated
+		target_file_name = generate_file_name(
+			name=file_name,
+			suffix=self.content_hash[-6:] if self.content_hash else None,
+			is_private=cint(self.is_private),
+			content_hash=self.content_hash,
+		)
+		target = Path(
+			frappe.get_site_path("private" if cint(self.is_private) else "public", "files", target_file_name)
+		)
+		updated_file_url = f"{url_starts_with}{target_file_name}"
+		content_hash_match = target_file_name == file_name and target.exists()
 
 		other_refs_exist = self.content_hash and frappe.db.exists(
 			"File",
@@ -356,12 +361,18 @@ class File(Document):
 				"name": ["!=", self.name],
 			},
 		)
-		if other_refs_exist:
-			shutil.copy2(source, target)
+
+		if content_hash_match:
+			# target already holds identical content: nothing to write, just stop pointing at source
+			if not other_refs_exist:
+				frappe.db.after_commit.add(lambda: source.unlink(missing_ok=True))
 		else:
-			shutil.move(source, target)
-		self.flags.original_path = {"old": source, "new": target}
-		frappe.db.after_rollback.add(self.on_rollback)
+			if other_refs_exist:
+				shutil.copy2(source, target)
+			else:
+				shutil.move(source, target)
+			self.flags.original_path = {"old": source, "new": target}
+			frappe.db.after_rollback.add(self.on_rollback)
 
 		self.file_url = updated_file_url
 
