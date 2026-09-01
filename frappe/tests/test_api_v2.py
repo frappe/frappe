@@ -539,20 +539,20 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		]
 		frappe.db.commit()  # nosemgrep
 
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
 		job_id = None
-		try:
-			# Bulk delete > 20 docs
-			names = [doc.name for doc in docs]
-			response = self.post(
-				self.resource(self.DOCTYPE, "bulk_delete"),
-				{"names": names, "sid": self.sid},
-			)
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
 
-			self.assertEqual(response.status_code, 202)
-			self.assertIn("job_id", response.json["data"])
-			job_id = response.json["data"]["job_id"]
-		finally:
-			self.cleanup_docs(docs, job_id)
+		# Bulk delete > 20 docs
+		names = [doc.name for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_delete"),
+			{"names": names, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertIn("job_id", response.json["data"])
+		job_id = response.json["data"]["job_id"]
 
 	def test_bulk_update_enqueue_v2(self):
 		# Create 25 docs
@@ -562,20 +562,20 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		]
 		frappe.db.commit()  # nosemgrep
 
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
 		job_id = None
-		try:
-			# Bulk update > 20 docs
-			updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
-			response = self.post(
-				self.resource(self.DOCTYPE, "bulk_update"),
-				{"docs": updates, "sid": self.sid},
-			)
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
 
-			self.assertEqual(response.status_code, 202)
-			self.assertIn("job_id", response.json["data"])
-			job_id = response.json["data"]["job_id"]
-		finally:
-			self.cleanup_docs(docs, job_id)
+		# Bulk update > 20 docs
+		updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_update"),
+			{"docs": updates, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertIn("job_id", response.json["data"])
+		job_id = response.json["data"]["job_id"]
 
 
 class TestDocTypeAPIV2(FrappeAPITestCase):
