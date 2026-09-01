@@ -119,3 +119,24 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 	monkeypatch.setattr(config, "POLICY", '{"tool_allowlist": ["read_file"]}')
 	overridden = serve("deployed")
 	assert overridden["tool_allowlist"] == frozenset({"read_file"})
+
+
+def test_spawn_private_scrubs_daemon_env(tmp_path, monkeypatch):
+	"""Stray FLOW_POLICY/FLOW_TENANTS_FILE in the shell must not reach the TUI's own
+	daemon — a tenants file would even refuse startup beside the injected token."""
+	from flow.cli import daemon as cli_daemon
+
+	captured: dict = {}
+
+	def fake_popen(argv, **kwargs):
+		captured["env"] = kwargs["env"]
+		return object()
+
+	monkeypatch.setenv("FLOW_POLICY", '{"skills_api": false}')
+	monkeypatch.setenv("FLOW_TENANTS_FILE", str(tmp_path / "tenants.json"))
+	monkeypatch.setattr(cli_daemon.subprocess, "Popen", fake_popen)
+	monkeypatch.setattr(cli_daemon, "_wait_healthz", lambda *args, **kwargs: None)
+	spawned = cli_daemon.spawn_private(str(tmp_path))
+	assert "FLOW_POLICY" not in captured["env"]
+	assert "FLOW_TENANTS_FILE" not in captured["env"]
+	assert captured["env"]["FLOW_AUTH_TOKEN"] == spawned.token

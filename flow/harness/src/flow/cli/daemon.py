@@ -74,8 +74,9 @@ def spawn_private(
 				*([] if extensions_enabled else ["--no-extensions"]),
 				*[argument for path in (extension_paths or []) for argument in ("--extension", path)],
 			],
-			# no FLOW_POLICY: a stray env var must not reconfigure the TUI's own daemon
-			env={k: v for k, v in os.environ.items() if k != "FLOW_POLICY"} | {"FLOW_AUTH_TOKEN": token},
+			# no FLOW_POLICY/FLOW_TENANTS_FILE: stray env vars must not reconfigure the TUI's own daemon
+			env={k: v for k, v in os.environ.items() if k not in ("FLOW_POLICY", "FLOW_TENANTS_FILE")}
+			| {"FLOW_AUTH_TOKEN": token},
 			stdin=subprocess.PIPE,
 			stdout=log_file,
 			stderr=subprocess.STDOUT,
