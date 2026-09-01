@@ -22,10 +22,21 @@ class LocalDriver(StorageDriver):
 		return frappe.utils.get_files_path("blobs", is_private=is_private)
 
 	def get_path(self, key: str, is_private: bool = False) -> str:
-		"""Resolve key to an absolute path. Reject keys that escape the blobs dir."""
+		"""Resolve key to an absolute path.
+
+		Keys resolve relative to the blobs dir. Backfilled legacy blobs keep
+		their bytes at the original location under the files root, so the
+		confinement check runs against the whole ``{public,private}/files``
+		root, not only ``blobs/``. Absolute keys and keys that resolve
+		outside the files root (traversal, symlink escape) are rejected."""
 		blobs_dir = os.path.realpath(self.get_blobs_dir(is_private))
+		files_root = os.path.dirname(blobs_dir)
 		path = os.path.realpath(os.path.join(blobs_dir, key))
-		if os.path.commonpath((blobs_dir, path)) != blobs_dir:
+		if (
+			os.path.isabs(key)
+			or path == files_root
+			or os.path.commonpath((files_root, path)) != files_root
+		):
 			raise ValueError(f"Invalid storage key: {key}")
 		return path
 
