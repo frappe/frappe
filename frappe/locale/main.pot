@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-08-31 11:04+0000\n"
-"PO-Revision-Date: 2026-08-31 11:04+0000\n"
+"POT-Creation-Date: 2026-09-01 12:53+0000\n"
+"PO-Revision-Date: 2026-09-01 12:53+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -68,7 +68,7 @@ msgstr ""
 msgid "&lt;head&gt; HTML"
 msgstr ""
 
-#: frappe/database/query.py:2371
+#: frappe/database/query.py:2379
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr ""
 
@@ -552,7 +552,7 @@ msgid ""
 "</code></pre>"
 msgstr ""
 
-#: frappe/twofactor.py:457
+#: frappe/twofactor.py:458
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
 msgstr ""
 
@@ -1645,7 +1645,7 @@ msgstr ""
 msgid "Aggregate Function field is required to create a dashboard chart"
 msgstr ""
 
-#: frappe/database/query.py:2420
+#: frappe/database/query.py:2428
 msgid "Alias must be a string"
 msgstr ""
 
@@ -2042,8 +2042,10 @@ msgstr ""
 msgid "Allowed Public Client Origins"
 msgstr ""
 
+#. Label of the allowed_roles (Table) field in DocType 'SMS Settings'
 #. Label of the allowed_roles (Table MultiSelect) field in DocType 'OAuth
 #. Client'
+#: frappe/core/doctype/sms_settings/sms_settings.json
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Allowed Roles"
 msgstr ""
@@ -3888,11 +3890,11 @@ msgstr ""
 msgid "Bulk Edit {0}"
 msgstr ""
 
-#: frappe/desk/reportview.py:706
+#: frappe/desk/reportview.py:747
 msgid "Bulk Operation Failed"
 msgstr ""
 
-#: frappe/desk/reportview.py:711
+#: frappe/desk/reportview.py:752
 msgid "Bulk Operation Successful"
 msgstr ""
 
@@ -5179,7 +5181,7 @@ msgstr ""
 msgid "Column 2"
 msgstr ""
 
-#: frappe/desk/doctype/kanban_board/kanban_board.py:84
+#: frappe/desk/doctype/kanban_board/kanban_board.py:85
 msgid "Column <b>{0}</b> already exist."
 msgstr ""
 
@@ -5361,7 +5363,7 @@ msgstr ""
 msgid "Communication Type"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:34
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:66
 msgid "Communication secret not set"
 msgstr ""
 
@@ -7392,7 +7394,7 @@ msgstr ""
 msgid "Deleted Name"
 msgstr ""
 
-#: frappe/desk/reportview.py:711
+#: frappe/desk/reportview.py:752
 msgid "Deleted all documents successfully"
 msgstr ""
 
@@ -7400,7 +7402,7 @@ msgstr ""
 msgid "Deleted!"
 msgstr ""
 
-#: frappe/desk/reportview.py:687
+#: frappe/desk/reportview.py:728
 msgid "Deleting {0}"
 msgstr ""
 
@@ -9406,7 +9408,7 @@ msgstr ""
 msgid "Embed code copied"
 msgstr ""
 
-#: frappe/database/query.py:2424
+#: frappe/database/query.py:2432
 msgid "Empty alias is not allowed"
 msgstr ""
 
@@ -9414,7 +9416,7 @@ msgstr ""
 msgid "Empty column"
 msgstr ""
 
-#: frappe/database/query.py:2365
+#: frappe/database/query.py:2373
 msgid "Empty string arguments are not allowed"
 msgstr ""
 
@@ -9579,7 +9581,7 @@ msgstr ""
 #. Label of the enable_two_factor_auth (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/twofactor.py:444
+#: frappe/twofactor.py:445
 msgid "Enable Two Factor Auth"
 msgstr ""
 
@@ -9940,7 +9942,7 @@ msgstr ""
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr ""
 
-#: frappe/desk/search.py:285
+#: frappe/desk/search.py:290
 msgid "Error validating \"Ignore User Permissions\""
 msgstr ""
 
@@ -10457,7 +10459,7 @@ msgstr ""
 msgid "Failed to connect to server"
 msgstr ""
 
-#: frappe/auth.py:706
+#: frappe/auth.py:714
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr ""
 
@@ -10469,7 +10471,7 @@ msgstr ""
 msgid "Failed to delete communication"
 msgstr ""
 
-#: frappe/desk/reportview.py:704
+#: frappe/desk/reportview.py:745
 msgid "Failed to delete {0} documents: {1}"
 msgstr ""
 
@@ -10518,7 +10520,7 @@ msgstr ""
 msgid "Failed to render subject: {}"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:103
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:143
 msgid "Failed to request login to Frappe Cloud"
 msgstr ""
 
@@ -10538,7 +10540,7 @@ msgstr ""
 msgid "Failed to update global settings"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:83
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:120
 msgid "Failed while calling API {0}"
 msgstr ""
 
@@ -10648,7 +10650,7 @@ msgstr ""
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr ""
 
-#: frappe/desk/search.py:323
+#: frappe/desk/search.py:328
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr ""
 
@@ -10687,7 +10689,7 @@ msgstr ""
 msgid "Field Type"
 msgstr ""
 
-#: frappe/desk/reportview.py:208
+#: frappe/desk/reportview.py:212
 msgid "Field not permitted in query"
 msgstr ""
 
@@ -11840,7 +11842,7 @@ msgstr ""
 msgid "Function {0} is not whitelisted."
 msgstr ""
 
-#: frappe/database/query.py:2269
+#: frappe/database/query.py:2277
 msgid "Function {0} requires arguments but none were provided"
 msgstr ""
 
@@ -13015,7 +13017,7 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: frappe/desk/reportview.py:574
+#: frappe/desk/reportview.py:615
 #: frappe/public/js/frappe/views/reports/report_view.js:1080
 msgctxt "Label of name column in report"
 msgid "ID"
@@ -14066,11 +14068,11 @@ msgstr ""
 msgid "Insufficient Permission for {0}"
 msgstr ""
 
-#: frappe/desk/reportview.py:374
+#: frappe/desk/reportview.py:415
 msgid "Insufficient Permissions for deleting Report"
 msgstr ""
 
-#: frappe/desk/reportview.py:338
+#: frappe/desk/reportview.py:375
 msgid "Insufficient Permissions for editing Report"
 msgstr ""
 
@@ -14208,7 +14210,7 @@ msgstr ""
 msgid "Invalid CSV Format"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:120
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:160
 msgid "Invalid Code. Please try again."
 msgstr ""
 
@@ -14386,11 +14388,15 @@ msgstr ""
 msgid "Invalid action"
 msgstr ""
 
-#: frappe/desk/reportview.py:194
+#: frappe/desk/reportview.py:198
 msgid "Invalid aggregate function"
 msgstr ""
 
-#: frappe/database/query.py:2430
+#: frappe/desk/reportview.py:237 frappe/desk/reportview.py:240
+msgid "Invalid aggregate function: {0}"
+msgstr ""
+
+#: frappe/database/query.py:2438
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr ""
 
@@ -14398,11 +14404,11 @@ msgstr ""
 msgid "Invalid app"
 msgstr ""
 
-#: frappe/database/query.py:2390 frappe/database/query.py:2406
+#: frappe/database/query.py:2398 frappe/database/query.py:2414
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr ""
 
-#: frappe/database/query.py:2354
+#: frappe/database/query.py:2362
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr ""
 
@@ -14446,7 +14452,7 @@ msgstr ""
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr ""
 
-#: frappe/database/query.py:2157
+#: frappe/database/query.py:2165
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr ""
 
@@ -14486,7 +14492,7 @@ msgstr ""
 msgid "Invalid format. Supported formats are {0}"
 msgstr ""
 
-#: frappe/database/query.py:2274
+#: frappe/database/query.py:2282
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr ""
 
@@ -14511,7 +14517,7 @@ msgstr ""
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr ""
 
-#: frappe/database/query.py:2346
+#: frappe/database/query.py:2354
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr ""
 
@@ -14577,7 +14583,7 @@ msgstr ""
 msgid "Invalid {0} condition"
 msgstr ""
 
-#: frappe/database/query.py:2235
+#: frappe/database/query.py:2243
 msgid "Invalid {0} dictionary format"
 msgstr ""
 
@@ -16547,7 +16553,7 @@ msgstr ""
 msgid "Manage 3rd party apps"
 msgstr ""
 
-#: frappe/public/js/billing.bundle.js:79
+#: frappe/public/js/billing.bundle.js:81
 msgid "Manage Billing"
 msgstr ""
 
@@ -18266,7 +18272,7 @@ msgstr ""
 msgid "No Suggestions"
 msgstr ""
 
-#: frappe/desk/reportview.py:779 frappe/public/js/frappe/list/base_list.js:1071
+#: frappe/desk/reportview.py:820 frappe/public/js/frappe/list/base_list.js:1071
 msgid "No Tags"
 msgstr ""
 
@@ -19135,11 +19141,11 @@ msgstr ""
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
 msgstr ""
 
-#: frappe/twofactor.py:456
+#: frappe/twofactor.py:457
 msgid "OTP Secret Reset - {0}"
 msgstr ""
 
-#: frappe/twofactor.py:475
+#: frappe/twofactor.py:476
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
 msgstr ""
 
@@ -19412,11 +19418,11 @@ msgstr ""
 msgid "Only pending invitations can be resent"
 msgstr ""
 
-#: frappe/desk/reportview.py:371
+#: frappe/desk/reportview.py:412
 msgid "Only reports of type Report Builder can be deleted"
 msgstr ""
 
-#: frappe/desk/reportview.py:335
+#: frappe/desk/reportview.py:372
 msgid "Only reports of type Report Builder can be edited"
 msgstr ""
 
@@ -19430,6 +19436,11 @@ msgstr ""
 
 #: frappe/desk/form/assign_to.py:207
 msgid "Only the assignee can complete this to-do."
+msgstr ""
+
+#. Description of the 'Allowed Roles' (Table) field in DocType 'SMS Settings'
+#: frappe/core/doctype/sms_settings/sms_settings.json
+msgid "Only users with one of these roles can send SMS. Leave empty to allow only System Manager."
 msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:108
@@ -19584,7 +19595,7 @@ msgstr ""
 msgid "Operator must be one of {0}"
 msgstr ""
 
-#: frappe/database/query.py:2302
+#: frappe/database/query.py:2310
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr ""
 
@@ -20304,7 +20315,7 @@ msgstr ""
 msgid "Path {0} is not within module {1}"
 msgstr ""
 
-#: frappe/website/path_resolver.py:230
+#: frappe/website/path_resolver.py:244
 msgid "Path {0} it not a valid path"
 msgstr ""
 
@@ -20651,7 +20662,7 @@ msgstr ""
 msgid "Please Set Chart"
 msgstr ""
 
-#: frappe/core/doctype/sms_settings/sms_settings.py:95
+#: frappe/core/doctype/sms_settings/sms_settings.py:112
 msgid "Please Update SMS Settings"
 msgstr ""
 
@@ -20830,7 +20841,7 @@ msgctxt "Email Account"
 msgid "Please enter the password for: <b>{0}</b>"
 msgstr ""
 
-#: frappe/core/doctype/sms_settings/sms_settings.py:43
+#: frappe/core/doctype/sms_settings/sms_settings.py:45
 msgid "Please enter valid mobile nos"
 msgstr ""
 
@@ -23241,7 +23252,7 @@ msgstr ""
 msgid "Report {0}"
 msgstr ""
 
-#: frappe/desk/reportview.py:378
+#: frappe/desk/reportview.py:419
 msgid "Report {0} deleted"
 msgstr ""
 
@@ -23249,7 +23260,7 @@ msgstr ""
 msgid "Report {0} is disabled"
 msgstr ""
 
-#: frappe/desk/reportview.py:355
+#: frappe/desk/reportview.py:396
 msgid "Report {0} saved"
 msgstr ""
 
@@ -24054,7 +24065,7 @@ msgstr ""
 msgid "SMS Settings"
 msgstr ""
 
-#: frappe/core/doctype/sms_settings/sms_settings.py:121
+#: frappe/core/doctype/sms_settings/sms_settings.py:138
 msgid "SMS sent successfully"
 msgstr ""
 
@@ -24092,7 +24103,7 @@ msgstr ""
 msgid "SQL Queries"
 msgstr ""
 
-#: frappe/database/query.py:2147
+#: frappe/database/query.py:2155
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr ""
 
@@ -26628,7 +26639,7 @@ msgstr ""
 msgid "Splash Image"
 msgstr ""
 
-#: frappe/desk/reportview.py:470
+#: frappe/desk/reportview.py:511
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:162
 #: frappe/public/js/frappe/web_form/web_form_list.js:198
 #: frappe/templates/print_formats/standard_macros.html:44
@@ -26688,11 +26699,11 @@ msgstr ""
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
 msgstr ""
 
-#: frappe/desk/reportview.py:368
+#: frappe/desk/reportview.py:409
 msgid "Standard Reports cannot be deleted"
 msgstr ""
 
-#: frappe/desk/reportview.py:332
+#: frappe/desk/reportview.py:369
 msgid "Standard Reports cannot be edited"
 msgstr ""
 
@@ -27791,7 +27802,7 @@ msgstr ""
 msgid "Table MultiSelect"
 msgstr ""
 
-#: frappe/desk/search.py:336
+#: frappe/desk/search.py:341
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr ""
 
@@ -28126,11 +28137,11 @@ msgstr ""
 msgid "The email button is enabled for the user in the document."
 msgstr ""
 
-#: frappe/desk/search.py:349
+#: frappe/desk/search.py:354
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr ""
 
-#: frappe/desk/search.py:364
+#: frappe/desk/search.py:369
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr ""
 
@@ -29930,7 +29941,7 @@ msgstr ""
 msgid "Unsupported function or operator: {0}"
 msgstr ""
 
-#: frappe/database/query.py:2238
+#: frappe/database/query.py:2246
 msgid "Unsupported {0}: {1}"
 msgstr ""
 
@@ -30856,7 +30867,7 @@ msgstr ""
 msgid "Verification"
 msgstr ""
 
-#: frappe/templates/includes/login/login.js:374 frappe/twofactor.py:363
+#: frappe/templates/includes/login/login.js:374 frappe/twofactor.py:364
 msgid "Verification Code"
 msgstr ""
 
@@ -31076,6 +31087,10 @@ msgstr ""
 #. Label of the visitor_id (Data) field in DocType 'Web Page View'
 #: frappe/website/doctype/web_page_view/web_page_view.json
 msgid "Visitor ID"
+msgstr ""
+
+#: frappe/utils/synchronization.py:48
+msgid "Wait for it to finish. Deleting the lock file {} will not release the lock."
 msgstr ""
 
 #: frappe/templates/discussions/reply_section.html:39
@@ -32070,7 +32085,7 @@ msgstr ""
 msgid "You are connected to internet."
 msgstr ""
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:30
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:62
 msgid "You are not allowed to access this resource"
 msgstr ""
 
@@ -32104,7 +32119,7 @@ msgstr ""
 
 #: frappe/core/doctype/data_import/exporter.py:132
 #: frappe/core/doctype/data_import/exporter.py:136
-#: frappe/desk/reportview.py:459 frappe/desk/reportview.py:462
+#: frappe/desk/reportview.py:500 frappe/desk/reportview.py:503
 #: frappe/permissions.py:653
 msgid "You are not allowed to export {} doctype"
 msgstr ""
@@ -32143,6 +32158,10 @@ msgstr ""
 
 #: frappe/__init__.py:484
 msgid "You are not permitted to access this resource. Login to access"
+msgstr ""
+
+#: frappe/core/doctype/sms_settings/sms_settings.py:80
+msgid "You are not permitted to send SMS"
 msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:128
@@ -32200,10 +32219,6 @@ msgstr ""
 
 #: frappe/core/doctype/file/file.py:872
 msgid "You can increase the limit from System Settings."
-msgstr ""
-
-#: frappe/utils/synchronization.py:48
-msgid "You can manually remove the lock if you think it's safe: {}"
 msgstr ""
 
 #: frappe/website/doctype/discussion_topic/discussion_topic.py:37
@@ -32369,11 +32384,11 @@ msgstr ""
 msgid "You don't have permission to access this file"
 msgstr ""
 
-#: frappe/desk/reportview.py:341
+#: frappe/desk/reportview.py:378
 msgid "You don't have permission to create Report records."
 msgstr ""
 
-#: frappe/desk/reportview.py:344
+#: frappe/desk/reportview.py:381
 msgid "You don't have permission to create report for {0}"
 msgstr ""
 
@@ -32410,7 +32425,7 @@ msgstr ""
 msgid "You have not entered a value. The field will be set to empty."
 msgstr ""
 
-#: frappe/twofactor.py:443
+#: frappe/twofactor.py:444
 msgid "You have to enable Two Factor Auth from System Settings."
 msgstr ""
 
@@ -32706,7 +32721,7 @@ msgstr ""
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
 msgstr ""
 
-#: frappe/desk/query_report.py:427 frappe/desk/reportview.py:410
+#: frappe/desk/query_report.py:427 frappe/desk/reportview.py:451
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr ""
 
