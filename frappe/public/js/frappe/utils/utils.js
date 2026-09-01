@@ -1000,7 +1000,7 @@ Object.assign(frappe.utils, {
 		display_text = null,
 		query_params_obj = null
 	) {
-		display_text = display_text || name;
+		display_text = display_text || frappe.utils.escape_html(name);
 		name = encodeURIComponent(name);
 		let route = `/desk/${encodeURIComponent(
 			doctype.toLowerCase().replace(/ /g, "-")
@@ -1408,6 +1408,19 @@ Object.assign(frappe.utils, {
 		icon_html.find("svg").css("color", stroke_color);
 		return icon_html.get(0).outerHTML;
 	},
+	// The boot entry for a module's own shell, or undefined.
+	//
+	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's
+	// name where the base was computed. A sidebar is named after its module unless it was renamed,
+	// so a module is its own key in almost every case, and the renamed ones are found by the
+	// `module` every entry carries. That is one pass over a payload already in memory. There is no
+	// module-to-shell index in the boot, because the naming rule answers this.
+	sidebar_for_module(module) {
+		if (!module) return undefined;
+		const all = frappe.boot.module_sidebars || {};
+		return all[module] || Object.values(all).find((entry) => entry.module === module);
+	},
+
 	// --- Desktop Icon grid -----------------------------------------------------------
 	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
 	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
@@ -1418,7 +1431,9 @@ Object.assign(frappe.utils, {
 		if (desktop_icon.link_type == "External" && desktop_icon.link) {
 			route = desktop_icon.link;
 		} else {
-			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+			let sidebar = frappe.utils.sidebar_for_module(
+				desktop_icon.module || desktop_icon.label
+			);
 			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
 				let first_link = sidebar.items.find((i) => i.type == "Link");
 				if (first_link) {
@@ -1681,7 +1696,13 @@ Object.assign(frappe.utils, {
 			route +=
 				"?" +
 				$.map(item.route_options, function (value, key) {
-					return encodeURIComponent(key) + "=" + encodeURIComponent(value);
+					// An array is a filter: [operator, value]. Left to implicit string coercion it
+					// arrives as "like,%Admin%", one string, and the list view reads it as an
+					// equals against that whole text. JSON is what the decoder already expects:
+					// parse_filters_from_route_options() parses any value that looks like a JSON
+					// array and splits the pair back out.
+					const encoded = Array.isArray(value) ? JSON.stringify(value) : value;
+					return encodeURIComponent(key) + "=" + encodeURIComponent(encoded);
 				}).join("&");
 		}
 

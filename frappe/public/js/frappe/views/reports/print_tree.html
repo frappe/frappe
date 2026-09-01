@@ -8,62 +8,133 @@
 		<meta name="author" content="">
 		<title>{{ title }}</title>
 		<link href="{{ base_url }}/assets/frappe/css/bootstrap.css" rel="stylesheet">
-		<link rel="stylesheet" type="text/css" href="{{ base_url }}/assets/frappe/css/tree.css">
 		<link rel="stylesheet" type="text/css" href="{{ base_url }}{{ print_format_css_path }}">
 		<style>
 			{{ print_css }}
 		</style>
 		<style>
-			.tree.opened::before,
-			.tree-node.opened::before,
-			.tree:last-child::after,
-			.tree-node:last-child::after {
-				z-index: 1;
-				border-left: 1px solid #d1d8dd;
-				background: none;
+			/* Self-contained print styles for the row-mode tree markup.
+			   This page loads no desk CSS, so colors are literal (no espresso
+			   vars here) and :has() is avoided (unsupported by the old WebKit
+			   in wkhtmltopdf). NOTE: this file compiles through the frappe
+			   microtemplate engine, which cannot handle single quotes in
+			   static text — never use apostrophes here. */
+			.tree {
+				font-size: 13px;
+				color: #1c2126;
+			}
+			.tree ul {
+				margin: 0;
+				padding: 0;
+				list-style: none;
 			}
 			.tree a,
 			.tree-link {
 				text-decoration: none;
+				color: inherit;
 				cursor: default;
 			}
-			.tree.opened > .tree-children > .tree-node > .tree-link::before,
-			.tree-node.opened > .tree-children > .tree-node > .tree-link::before {
-				border-top: 1px solid #d1d8dd;
-				z-index: 1;
-				background: none;
+			li.tree-node {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				margin: 0;
 			}
-			svg.icon {
-				z-index: 2;
+			.tree-link {
+				display: flex;
+				flex: 1 1 0%;
+				min-width: 0;
+				align-items: center;
+				min-height: 26px;
+				padding: 2px 8px;
+			}
+			/* icon slot: chevron for groups, empty for leaves (alignment) */
+			.tree-link > span:first-child {
+				flex: none;
+				width: 20px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			.tree-link > span:first-child:not(.node-parent) svg {
+				display: none;
+			}
+			.tree-link svg {
+				width: 14px;
+				height: 14px;
+				stroke: #74808b;
+				fill: none;
+				stroke-width: 1.5;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+			.tree-label {
+				margin-left: 4px;
+				min-width: 0;
+			}
+			/* elbow guides — same geometry as the screen styles */
+			ul.tree-children {
+				flex: 1 1 100%;
+				padding-left: 24px;
+			}
+			ul.tree-children > li.tree-node {
 				position: relative;
 			}
-			.tree:last-child::after, .tree-node:last-child::after {
-				display: none;
+			ul.tree-children > li.tree-node::before {
+				content: "";
+				position: absolute;
+				left: -6px;
+				top: 0;
+				height: 13px;
+				width: 12px;
+				border-left: 1px solid #d1d8dd;
+				border-bottom: 1px solid #d1d8dd;
 			}
-			.tree-node-toolbar {
-				display: none;
+			ul.tree-children > li.tree-node:not(:last-child)::after {
+				content: "";
+				position: absolute;
+				left: -6px;
+				top: 13px;
+				bottom: 0;
+				border-left: 1px solid #d1d8dd;
 			}
-			@media (max-width: 767px) {
-				ul.tree-children {
-					padding-left: 20px;
-				}
+			ul.tree-children > li.tree-node > .tree-link {
+				margin-left: 6px;
+				padding-left: 2px;
+			}
+			/* value column (balances) at the right edge of the row */
+			li.tree-node > .balance-area {
+				float: none;
+				flex: none;
+				margin-left: auto;
+				padding: 2px 8px;
+				font-variant-numeric: tabular-nums;
+				white-space: nowrap;
+				color: #383e42;
+			}
+			/* interactive chrome has no place on paper */
+			.tree-node-toolbar,
+			.tree-actions,
+			.es-button {
+				display: none;
 			}
 		</style>
   	</head>
 	<body>
 		<svg id="frappe-symbols" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;" class="d-block" xmlns="http://www.w3.org/2000/svg">
-			<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-dot">
-				<path d="M9.5 6a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"></path>
+			<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-chevron-down">
+				<path d="m6 9 6 6 6-6"></path>
 			</symbol>
 
-			<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-folder-open">
-				<path d="M8.024 6.5H3a.5.5 0 0 0-.5.5v8a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9.5A.5.5 0 0 0 17 9h-6.783a.5.5 0 0 1-.417-.224L8.441 6.724a.5.5 0 0 0-.417-.224z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"></path>
-				<path d="M3.88 4.5v-1a.5.5 0 0 1 .5-.5h11.24a.5.5 0 0 1 .5.5V7" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+			<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-chevron-right">
+				<path d="m9 18 6-6-6-6"></path>
 			</symbol>
 
-			<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-folder">
-				<path d="M2.5 4v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V6.5a1 1 0 0 0-1-1h-6.283a.5.5 0 0 1-.417-.224L8.441 3.224A.5.5 0 0 0 8.024 3H3.5a1 1 0 0 0-1 1z" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="square"></path>
+			<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-chevron-left">
+				<path d="m15 18-6-6 6-6"></path>
 			</symbol>
+
+
 		</svg>
 		<div class="print-format-gutter">
 			{% if print_settings.repeat_header_footer %}
@@ -85,7 +156,7 @@
 					<div class="letter-head">{{ print_settings.letter_head.header }}</div>
 				</div>
 					{% endif %}
-					<div class="tree opened">
+					<div class="tree tree-rows opened">
 						{{ tree }}
 					</div>
 			</div>

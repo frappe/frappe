@@ -17,6 +17,36 @@ SCRIPT_TAG_PATTERN = re.compile(r"\<script[^<]*\</script\>")
 CLOSING_SCRIPT_TAG_PATTERN = re.compile(r"</script\>")
 
 
+def get_session_boot_failed_error(e: Exception) -> "frappe.SessionBootFailed":
+	"""Build the error shown when the desk fails to boot.
+
+	The usual cause is a site whose database is behind the code, so say that plainly and give
+	the command that fixes it instead of a bare traceback."""
+	error = frappe.SessionBootFailed()
+
+	if is_schema_out_of_date(e):
+		error.title = _("This site needs a migration")
+		error.message = _("Don't panic. Run this command and reload the page:")
+		error.command = f"bench --site {frappe.local.site} migrate"
+
+	return error
+
+
+def is_schema_out_of_date(e: Exception) -> bool:
+	"""True if this failure, or anything that caused it, was a missing table or column."""
+	seen = set()
+
+	while e is not None and id(e) not in seen:
+		seen.add(id(e))
+
+		if frappe.db.is_missing_table_or_column(e):
+			return True
+
+		e = e.__cause__ or e.__context__
+
+	return False
+
+
 def get_context(context):
 	if frappe.session.user == "Guest":
 		frappe.response["status_code"] = 403
@@ -29,7 +59,7 @@ def get_context(context):
 	try:
 		boot = frappe.sessions.get()
 	except Exception as e:
-		raise frappe.SessionBootFailed from e
+		raise get_session_boot_failed_error(e) from e
 
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()
