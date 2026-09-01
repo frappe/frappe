@@ -439,8 +439,14 @@ def mark_as_standard(module: str) -> str:
 
 
 @frappe.whitelist()
-def unmark_as_standard(module: str) -> None:
-	"""Give `module`'s sidebar back to the site by deleting its exported file and its document.
+def unmark_as_standard(sidebar: str) -> None:
+	"""Give `sidebar` back to the site by deleting its exported file and its document.
+
+	It names the document rather than the module, because it destroys one and a module may own
+	more than one. `mark_as_standard` takes a module for the opposite reason: there may be no
+	document yet and it has to build one. Both callers have a document to name: the `Sidebar`
+	form's button is pressed on the one on screen, and the app layer's reset names the shell it
+	arranged.
 
 	The document is deleted rather than just unflagged. Once the app content is gone the module
 	falls back to its computed base, which is worked out from the module's contents on read, so
@@ -458,10 +464,13 @@ def unmark_as_standard(module: str) -> None:
 
 	check_developer_mode()
 
-	doc = get_sidebar(module)
+	if not frappe.db.exists("Sidebar", sidebar):
+		return
+
+	doc = frappe.get_doc("Sidebar", sidebar)
 	# Only a standard sidebar belongs to an app. If it is not standard there is nothing to hand
 	# back, and we should not delete a document someone is still working on.
-	if not doc or not doc.standard:
+	if not doc.standard:
 		return
 
 	path = doc.exported_file_path() if doc.is_exported() else None
@@ -497,6 +506,42 @@ def check_developer_mode() -> None:
 	)
 
 
+def check_shell(module: str, shell: str | None) -> None:
+	"""Throw unless `shell` is a sidebar `module` still owns.
+
+	The three app-layer endpoints are told which of a module's sidebars was on screen. One naming
+	a sidebar the module no longer owns is an editor left open while that sidebar was renamed or
+	deleted, and it is not asking for the fallback. Taking the fallback would arrange, save over
+	or delete whichever sidebar comes first by name, which is another shell under the same module
+	and not the one anybody had open; reset makes that unrecoverable, since the exported directory
+	goes with the document.
+
+	Naming no shell is the older client, and a caller holding only a module. Both still get the
+	naming rule.
+
+	The module's own name passes only while the module has no document at all. That is what the
+	client sends for a module whose base is computed, where there is nothing stored to check it
+	against. It stops passing the moment the module owns a sidebar, because then the module's name
+	is either a document this already found or a name someone renamed away from, and the second
+	one is the stale editor this exists to refuse.
+	"""
+	if not shell:
+		return
+
+	if frappe.db.exists("Sidebar", {"name": shell, "module": module}):
+		return
+
+	if shell == module and not frappe.db.exists("Sidebar", {"module": module}):
+		return
+
+	frappe.throw(
+		_("{0} is no longer a sidebar of {1}. Reopen the one you meant to arrange.").format(
+			frappe.bold(shell), frappe.bold(module)
+		),
+		title=_("Sidebar Moved"),
+	)
+
+
 def get_sidebar(module: str) -> "Sidebar | None":
 	"""Return the sidebar that answers for `module`, or `None`.
 
@@ -510,6 +555,40 @@ def get_sidebar(module: str) -> "Sidebar | None":
 	sidebar is named something else.
 	"""
 	name = frappe.db.get_value("Sidebar", {"name": module, "module": module})
+	return frappe.get_doc("Sidebar", name) if name else None
+
+
+def get_module_shell(module: str, shell: str | None = None) -> "Sidebar | None":
+	"""Return the stored sidebar an action on `module` writes to, or `None` when there is none.
+
+	`get_sidebar` answers the naming rule alone, and a module whose sidebar was renamed has no
+	answer there. It still has a sidebar, and that one is what the desk draws and what the editor
+	arranges, so an action that writes an arrangement, or undoes one, has to reach the same
+	document rather than work against a name nothing holds.
+
+	`shell` is what the desk had on screen, and it is the answer whenever it names a sidebar
+	carrying this module. A module may own more than one, and nothing about the module says which
+	of them the person was looking at, so without it a save writes and a reset deletes whichever
+	comes first by name.
+
+	The lookup carries the module, so a shell belonging to another module selects nothing here and
+	no caller can reach out of the module it named. Whether a shell this module does not own is an
+	error rather than a fallback is `check_shell`'s question, asked at the endpoints, because the
+	answer is yes for the three that took the name from a screen and no for callers that never
+	held one.
+
+	The fallback order is `get_module_base`'s, and deliberately the same one: the shell named
+	after the module when there is one, and otherwise the first by name. That is what an older
+	client gets, and what any caller holding only a module gets.
+
+	This asks the table instead of going through `get_module_base`, which computes a base from
+	the module's contents to answer, because the answer here is only ever a document that already
+	exists.
+	"""
+	name = shell and frappe.db.get_value("Sidebar", {"name": shell, "module": module})
+	name = name or frappe.db.get_value("Sidebar", {"name": module, "module": module})
+	name = name or frappe.db.get_value("Sidebar", {"module": module}, order_by="name asc")
+
 	return frappe.get_doc("Sidebar", name) if name else None
 
 
@@ -543,6 +622,186 @@ def materialize_base(module: str) -> "Sidebar":
 		# these rows belong to the cached base, which must not be modified.
 		doc.append("items", dict(row))
 	return doc
+
+
+# ---------------------------------------------------------------------------------------
+# The app layer: reading, writing and resetting the sidebar an app ships
+#
+# One editor arranges all three of a sidebar's layers (`frappe.ui.SidebarManager`), so all three
+# answer the same three questions in the same shapes. The two above are `Custom Sidebar`
+# documents and live in `custom_sidebar.py`; this one is the `Sidebar` document itself, so it
+# lives here.
+#
+# Every one of them is developer mode only, which is the gate `validate_app_content` already
+# puts on writing a `Sidebar` by any other route. There is no role check, for the same reason
+# there is none there: a site running in developer mode belongs to a developer.
+# ---------------------------------------------------------------------------------------
+
+# What the editor shows and hands back, under the names the boot payload uses. Each is a
+# `Sidebar Item` column of the same name, except `navigate_to_tab`, which the payload calls
+# `tab` and which is therefore carried on its own.
+#
+# These and the three `app_item` sets itself are every column the child table has, which is what
+# lets a save rebuild the table from what the client sent instead of merging into what was
+# already stored. A column added to `Sidebar Item` and not added here would be dropped by the
+# next save, and `test_the_editor_round_trips_every_column` is the only thing that would say so.
+#
+# Not `SIDEBAR_ITEM_FIELDS`, which answers a different question: what the fixture conversion
+# copies out of a workspace row. That set drops `is_default_module` because a conversion cannot
+# guess an app's claim on an entity; this one keeps it, because a claim the app already made has
+# to survive being arranged.
+ARRANGED_ITEM_FIELDS = (
+	"type",
+	"label",
+	"link_type",
+	"link_to",
+	"icon",
+	"child",
+	"indent",
+	"collapsible",
+	"keep_closed",
+	"url",
+	"show_arrow",
+	"filters",
+	"route_options",
+	"open_in_new_tab",
+	"is_default_module",
+)
+
+
+@frappe.whitelist()
+def get_app_sidebar_layer(module: str, shell: str | None = None) -> list[dict]:
+	"""Return the sidebar `module`'s app ships, as the editor arranges it.
+
+	`shell` is the sidebar the desk had on screen when the editor was opened, and the three calls
+	here take it for the reason `get_module_shell` gives: a module may own more than one, so the
+	module alone does not say which. The two layers in `custom_sidebar.py` take no shell, because
+	a `Custom Sidebar` is anchored to a module and there is one layer per module either way.
+
+	This is a third answer to "what does this module's sidebar look like", beside the two in
+	`custom_sidebar.py`, and it is the bottom one: the base, with no layer over it. A module no
+	app shipped a `Sidebar` for answers with its computed base, which is what the desk draws for
+	it today and what the first save turns into a document.
+
+	Hidden rows are kept, the same as in the layers above, since an editor that cannot see a
+	hidden row cannot offer to bring it back.
+
+	There is no permission filter, the same as the site layer's read and for the same reason:
+	this editor writes the whole arrangement, so a row filtered off the screen would be dropped
+	from the document on the next save.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_module
+
+	check_developer_mode()
+	check_module(module)
+	check_shell(module, shell)
+
+	base = get_module_base(module, shell)
+	# `is_item_allowed` is a method on `DeskViews`, so the filter needs a context object even
+	# when it is not going to check anything with it: one throwaway `Workspace`, the same as
+	# `layer_arrangement` builds.
+	items = filter_sidebar_items(base.rows, frappe.new_doc("Workspace"), check_permission=False)
+
+	# `added` is what a row in a layer above a base says: "I bring my own item". Every row here
+	# is the base, so none of them adds anything to anything, and the editor treats them all as
+	# rows it may hide rather than rows it may delete.
+	return [{**item, "hidden": int(item.get("hidden") or 0), "added": 0} for item in items]
+
+
+@frappe.whitelist()
+def save_app_sidebar(module: str, items: list | str, shell: str | None = None) -> dict:
+	"""Store the arrangement on screen as the sidebar `module`'s app ships, and export it.
+
+	`items` is the whole ordered arrangement rather than a delta, the same as the two saves
+	above. Unlike them, every row is the item itself: this is the base, so there is nothing
+	underneath for a row to refer to.
+
+	The document is made standard here rather than by a later step. The layer is named after the
+	app, and a document that is not standard is not the app's: no file backs it, no migrate
+	re-imports it, and orphan cleanup is not looking for it. A row like that would also replace
+	the computed base on this site while leaving nothing in git to say so. `on_update` writes
+	the file, so the export follows from the flag.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_module, module_payload
+
+	check_developer_mode()
+	check_module(module)
+	check_shell(module, shell)
+
+	if isinstance(items, str):
+		items = json.loads(items)
+
+	doc = app_document(module, shell)
+	doc.set("items", [])
+	for row in items:
+		doc.append("items", app_item(row))
+
+	doc.standard = 1
+	doc.app = get_module_placement(module)
+	doc.save()
+
+	return module_payload()
+
+
+@frappe.whitelist()
+def reset_app_sidebar(module: str, shell: str | None = None) -> dict:
+	"""Drop the sidebar `module`'s app ships, so the module goes back to its computed one.
+
+	The two resets above drop a layer and let the one below show through. This is the bottom
+	layer, and what shows through is the computed base, which is worked out from the module's
+	contents on read and is therefore there again in the same request.
+
+	`unmark_as_standard` does the work: the document and its exported file both go, because a
+	standard row with no file is an orphan and a file with no row comes back on the next migrate.
+	It is named the shell rather than the module, since it deletes what it is given.
+
+	Which shell that is has one answer, `get_module_shell`, shared with the read and the save,
+	and all three are told which one was on screen. The three have to agree: this drops what the
+	person arranged, so resolving it any other way here would delete a document they were not
+	looking at. A module owning nothing to drop, which is the ordinary state of one whose base is
+	computed, is left alone.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_module, module_payload
+
+	check_developer_mode()
+	check_module(module)
+	check_shell(module, shell)
+
+	document = get_module_shell(module, shell)
+	if document:
+		unmark_as_standard(document.name)
+
+	return module_payload()
+
+
+def app_document(module: str, shell: str | None = None) -> "Sidebar":
+	"""Return the document the app layer writes to, materializing it if there is none.
+
+	It addresses the shell the read addressed rather than asking the naming rule, so a module
+	whose sidebar has been renamed is arranged, saved and reset in the same place.
+	`get_sidebar` answers `None` for that module, and `materialize_base` would then build a
+	second sidebar under it instead of writing the one the editor was showing.
+
+	Materializing happens only when the module has no document at all, and a module with none has
+	one shell, the computed one named after it. So there is no shell to carry into
+	`materialize_base`.
+	"""
+	return get_module_shell(module, shell) or materialize_base(module)
+
+
+def app_item(row: dict) -> dict:
+	"""Return one arranged row as a `Sidebar Item` on the app's own document."""
+	item = {field: row.get(field) for field in ARRANGED_ITEM_FIELDS}
+
+	# The payload calls it `tab`. The column does not.
+	item["navigate_to_tab"] = row.get("tab")
+	item["hidden"] = int(bool(row.get("hidden")))
+	# `added` belongs to a row in a layer above a base, where it says the row brings its own
+	# item. A base row is the item, so the flag has nothing to say here. The `key` the editor
+	# sent is dropped by `clear_stored_keys` on save, for the reason it explains.
+	item["added"] = 0
+
+	return item
 
 
 def is_linked(item) -> bool:
@@ -1170,6 +1429,12 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 		# base never held, so the filter above never saw it. Checking it here keeps the rule
 		# true for rows that bring their own item as well as rows that name an existing one.
 		filtered = [item for item in filtered if allowed_added_item(item, context.perm_ctx)]
+	else:
+		# No layer to fold in, but the base may still hide: an app may ship a row off by
+		# default, and a module nobody has customized has to honour that. `merge_layers` gives
+		# the same answer for an empty list of layers, at the cost of copying every item of
+		# every module on every boot to get there.
+		filtered = [item for item in filtered if not item.get("hidden")]
 
 	# The user's private pages are added after that, which keeps them out of every stored
 	# customization: a customization can only name what it was shown when it was saved, and
@@ -1359,13 +1624,17 @@ def module_of_shell(shell: str | None) -> str | None:
 	return frappe.db.get_value("Sidebar", shell, "module", cache=True) or None
 
 
-def get_module_base(module: str) -> frappe._dict:
-	"""Return the base a `Custom Sidebar` layer applies to: the module's own shell.
+def get_module_base(module: str, shell: str | None = None) -> frappe._dict:
+	"""Return the base a layer applies to: the shell named, or the module's own.
 
-	A layer is anchored to a module, not a shell, so the editor that reads and writes one needs
-	a single base however many shells the module owns. The naming rule picks the shell named
-	after the module. If every shell was renamed, the first in order answers, so the editor gets
-	a base instead of a `KeyError`.
+	A `Custom Sidebar` layer is anchored to a module, not a shell, so the editor that reads and
+	writes one needs a single base however many shells the module owns, and those callers name no
+	shell. The naming rule picks the shell named after the module. If every shell was renamed,
+	the first in order answers, so the editor gets a base instead of a `KeyError`.
+
+	The app layer does hold a shell, since it writes the `Sidebar` document itself rather than a
+	layer over it, and naming one here is how its read stays on the sidebar the desk was showing.
+	Only shells under `module` are looked at, so naming another module's shell selects nothing.
 
 	This falls back where `get_sidebar` returns `None`, on purpose. `get_sidebar` answers which
 	sidebar is the module's, and a module whose sidebars are all renamed has no answer. This
@@ -1377,7 +1646,7 @@ def get_module_base(module: str) -> frappe._dict:
 	this function.
 	"""
 	bases = get_sidebar_bases([module])
-	return bases.get(module) or next(iter(bases.values()))
+	return bases.get(shell) or bases.get(module) or next(iter(bases.values()))
 
 
 def sidebar_for_module(payload: dict, module: str) -> dict | None:
@@ -1425,6 +1694,9 @@ def get_sidebar_items(sidebar_names):
 			"navigate_to_tab",
 			"open_in_new_tab",
 			"is_default_module",
+			# Read so the base can hide, which is what the editor's app layer writes. See
+			# `filter_sidebar_items`, which is where the value reaches the merge.
+			"hidden",
 		],
 		order_by="idx asc",
 	):
@@ -1520,10 +1792,11 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 	Two rows with the same identity are the same item, and a customization cannot say something
 	about one and not the other, so the first wins. That is what the desk drew before.
 
-	`check_permission` is off for one caller only: the editor reading the site layer. Permission
-	is a fact about the user, applied to what each user boots, so it is not part of what the
-	site arranged. A curator whose screen filtered an item out would otherwise drop the site's
-	rows for it on the next save. See `layer_arrangement`.
+	`check_permission` is off for two callers: the editor reading the site layer, and the editor
+	reading the app's own. Permission is a fact about the user, applied to what each user boots,
+	so it is not part of what the site or the app arranged. Either editor writes the whole
+	arrangement, so a screen with an item filtered out of it would drop that item's row on the
+	next save. See `layer_arrangement` and `get_app_sidebar_layer`.
 	"""
 	filtered = []
 	seen = set()
@@ -1562,6 +1835,13 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 			"open_in_new_tab": item.open_in_new_tab,
 			"is_default_module": item.is_default_module,
 		}
+		# Carried only when set, which is almost never. This runs for every item of every
+		# module on every boot, and a key on each one saying "not hidden" is bytes on the
+		# largest thing in the bootinfo. `resolve_layers` seeds the hidden map with `.get`, so
+		# an absent key and a false one say the same thing to the merge.
+		if item.hidden:
+			entry["hidden"] = 1
+
 		# One cached read instead of three uncached ones. A missing report and a disabled report
 		# both end up with no `report` block, so neither needs its own check. `cache=True` stops
 		# the same report on ten sidebars costing ten round trips.

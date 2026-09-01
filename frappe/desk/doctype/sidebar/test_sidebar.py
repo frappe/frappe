@@ -6,15 +6,20 @@ from contextlib import contextmanager
 
 import frappe
 from frappe.desk.doctype.sidebar.sidebar import (
+	ARRANGED_ITEM_FIELDS,
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
 	SYSTEM_WRITE_FLAGS,
 	clear_computed_base_cache,
 	filter_sidebar_items,
+	get_app_sidebar_layer,
 	get_computed_base,
+	get_module_shell,
 	get_sidebar,
 	item_key,
 	mark_as_standard,
+	reset_app_sidebar,
+	save_app_sidebar,
 	unmark_as_standard,
 )
 from frappe.tests import IntegrationTestCase
@@ -926,6 +931,27 @@ class TestSidebarStandard(IntegrationTestCase):
 			self.assertFalse(frappe.db.exists("Sidebar", name))
 			self.assertFalse(os.path.exists(path))
 
+	def test_un_marking_takes_the_document_it_is_given(self):
+		"""A module may own more than one sidebar and this deletes one, so it names the document.
+
+		Told only the module it would have to pick, and the form's button is pressed on a sidebar
+		the user is looking at: picking would take a different one away and leave that one on
+		screen.
+
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			own = mark_as_standard(MODULE)
+			other = make_sidebar(MODULE, title="Test Sidebar Second")
+			other.standard = 1
+			other.app = "frappe"
+			other.save(ignore_permissions=True)
+
+			unmark_as_standard(other.name)
+
+			self.assertFalse(frappe.db.exists("Sidebar", other.name))
+			self.assertTrue(frappe.db.exists("Sidebar", own), "the other sidebar is untouched")
+
 	def test_un_marking_returns_the_module_to_its_computed_base(self):
 		"""In the same request. The document going away is not the module losing its navigation, since
 		the base is computed from the module's contents on read.
@@ -1618,3 +1644,380 @@ class TestComputedSidebarBase(IntegrationTestCase):
 				frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, self.module),
 				f"{doctype}.clear_cache() does not bust the computed sidebar base",
 			)
+
+
+class TestAppSidebarLayer(IntegrationTestCase):
+	"""The editor's third layer, which is the `Sidebar` document itself.
+
+	The two layers above are `Custom Sidebar` documents laid over a base. This one is the base, so
+	arranging it writes the document its app ships and exports the file behind it. A module no app
+	shipped a sidebar for starts from the one computed from its contents, which is what the desk
+	is already drawing, so the first save turns what is on screen into a fixture.
+
+	Everything here is developer mode only, which is the gate `validate_app_content` already puts
+	on writing a `Sidebar` by any other route.
+
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("Module Def", MODULE):
+			with no_developer_mode():
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
+				).insert()
+		self.clear_module_content()
+		clear_computed_base_cache(MODULE)
+		self.addCleanup(clear_computed_base_cache, MODULE)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		self.clear_module_content()
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
+		# `remove_orphan_entities` commits, so anything written before it is already durable and
+		# the framework's rollback will not undo it. See `TestSidebarStandard.tearDown`.
+		frappe.db.commit()  # nosemgrep
+
+	def clear_module_content(self):
+		for name in frappe.get_all("Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		for name in frappe.get_all("Custom Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Custom Sidebar", name, force=True, ignore_permissions=True)
+		frappe.db.delete("Report", {"module": MODULE})
+
+	def with_content(self):
+		"""Two reports, so the module's computed base has an order worth rearranging."""
+		make_report(MODULE, "Test App Layer Report A")
+		make_report(MODULE, "Test App Layer Report B")
+		clear_computed_base_cache(MODULE)
+
+	def rendered(self):
+		"""The module's sidebar as the desk draws it, which is where hiding has to show up."""
+		from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
+
+		clear_computed_base_cache(MODULE)
+		resolved = resolve_sidebar(MODULE, "Administrator")
+		return [item["label"] for item in resolved.items] if resolved else []
+
+	def test_a_module_with_no_document_reads_its_computed_base(self):
+		"""The starting point is what the desk already shows.
+
+		Nothing persists a base, so the ordinary state of a module is to have no document, and the
+		editor has to open on the sidebar generated from the module's contents rather than on an
+		empty list to fill in by hand.
+
+		"""
+		with developer_mode():
+			self.with_content()
+			self.assertFalse(frappe.db.exists("Sidebar", MODULE))
+
+			self.assertEqual(
+				[row["key"] for row in get_app_sidebar_layer(MODULE)],
+				[item_key(row) for row in get_computed_base(MODULE).rows],
+			)
+
+	def test_every_row_reads_as_the_item_rather_than_a_reference_to_one(self):
+		"""`added` says a row brings its own item to a layer above a base. This is the base, so
+		nothing here adds anything to anything, and the editor has to treat every row as one it may
+		hide rather than one it may delete."""
+		with developer_mode():
+			self.with_content()
+
+			self.assertTrue(all(row["added"] == 0 for row in get_app_sidebar_layer(MODULE)))
+
+	def test_saving_writes_a_standard_document_and_exports_it(self):
+		"""One action. The layer is named after the app, and a document that is not standard is not
+		the app's: no file backs it and no migrate re-imports it."""
+		import os
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = get_app_sidebar_layer(MODULE)
+
+			save_app_sidebar(MODULE, rows)
+
+			doc = frappe.get_doc("Sidebar", MODULE)
+			self.assertEqual(doc.standard, 1)
+			self.assertEqual(doc.app, "frappe")
+			self.assertTrue(os.path.exists(doc.exported_file_path()))
+			self.assertEqual([item_key(row) for row in doc.items], [row["key"] for row in rows])
+
+	def test_saving_stores_the_order_on_screen(self):
+		"""The whole arrangement is written, not a delta, so the order the editor was left in is
+		the order the document ends up holding."""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = get_app_sidebar_layer(MODULE)
+			reversed_rows = list(reversed(rows))
+
+			save_app_sidebar(MODULE, reversed_rows)
+
+			self.assertEqual(
+				[item_key(row) for row in frappe.get_doc("Sidebar", MODULE).items],
+				[row["key"] for row in reversed_rows],
+			)
+
+	def test_a_hidden_row_is_kept_and_stops_rendering(self):
+		"""Hiding is how an entry leaves an app's sidebar, and the row stays so it can come back.
+
+		This is the half that used not to work: a base row's `hidden` was neither read from the
+		table nor carried into the merge, so an app could ship one and it would render anyway.
+
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = get_app_sidebar_layer(MODULE)
+			target = next(row for row in rows if row["link_to"] == "Test App Layer Report A")
+			self.assertIn(target["label"], self.rendered())
+
+			target["hidden"] = 1
+			save_app_sidebar(MODULE, rows)
+
+			stored = {item_key(row): row.hidden for row in frappe.get_doc("Sidebar", MODULE).items}
+			self.assertEqual(stored[target["key"]], 1, "the row was dropped instead of hidden")
+			self.assertNotIn(target["label"], self.rendered())
+
+	def test_a_row_left_out_is_deleted_from_the_document_and_the_file(self):
+		"""Removing an entry is not the same as hiding it, and this layer is the only one where
+		the difference can be had.
+
+		Its arrangement is the base, so a row left out of it is gone: out of the document's table
+		and out of the file the save exports, with nothing underneath for it to fall back to. On
+		the two layers above, a row left out means "no opinion" and the base shows through, which
+		is why hiding is the only way to take something off up there.
+
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = get_app_sidebar_layer(MODULE)
+			dropped = next(row for row in rows if row["link_to"] == "Test App Layer Report A")
+
+			save_app_sidebar(MODULE, [row for row in rows if row["key"] != dropped["key"]])
+
+			doc = frappe.get_doc("Sidebar", MODULE)
+			self.assertNotIn(dropped["key"], [item_key(row) for row in doc.items])
+
+			with open(doc.exported_file_path()) as f:
+				exported = json.load(f)
+			self.assertNotIn(dropped["link_to"], [item.get("link_to") for item in exported["items"]])
+
+			self.assertNotIn(dropped["label"], self.rendered())
+
+	def test_a_hidden_row_can_be_brought_back(self):
+		"""Which is the reason for keeping it. A row that was deleted could only be re-added from
+		the pool; one that was hidden is still in the arrangement to un-hide."""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = get_app_sidebar_layer(MODULE)
+			target = next(row for row in rows if row["link_to"] == "Test App Layer Report A")
+			target["hidden"] = 1
+			save_app_sidebar(MODULE, rows)
+
+			back = get_app_sidebar_layer(MODULE)
+			hidden_again = next(row for row in back if row["key"] == target["key"])
+			self.assertEqual(hidden_again["hidden"], 1, "the editor cannot see what it hid")
+
+			hidden_again["hidden"] = 0
+			save_app_sidebar(MODULE, back)
+
+			self.assertIn(target["label"], self.rendered())
+
+	def test_a_section_keeps_the_shape_it_was_given(self):
+		"""What the editor's pencil decides about a section: whether it draws as a heading over a
+		divider or as an indented row with its entries nested under it, and how it folds.
+
+		They are columns like any other, so they survive on the same terms as the rest. This pins
+		them because they are the ones the editor offers, and a section whose shape did not
+		survive a save would be the one thing the editor cannot work around.
+
+		"""
+		shape = {"indent": 1, "collapsible": 0, "show_arrow": 1, "keep_closed": 1}
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = get_app_sidebar_layer(MODULE)
+			section = next(row for row in rows if row["type"] == "Section Break")
+			section.update(shape)
+
+			save_app_sidebar(MODULE, rows)
+
+			# The key is a hash of the row's type and label, neither of which the shape touches,
+			# so the section is still the one that was changed.
+			back = next(row for row in get_app_sidebar_layer(MODULE) if row["key"] == section["key"])
+			self.assertEqual({field: back[field] for field in shape}, shape)
+
+	def test_the_editor_round_trips_every_column(self):
+		"""A save rebuilds the table from what the client sent rather than merging into what was
+		stored, so a column the editor does not carry is a column the next save drops.
+
+		This is the only thing that says so. It fails when a column is added to `Sidebar Item`
+		and not to `ARRANGED_ITEM_FIELDS`, which is a change nothing else would notice until
+		someone arranged a sidebar and lost the value.
+
+		"""
+		layout = {"Section Break", "Column Break", "HTML", "Tab Break", "Heading"}
+		columns = {
+			field.fieldname
+			for field in frappe.get_meta("Sidebar Item").fields
+			if field.fieldtype not in layout
+		}
+		# `navigate_to_tab`, `hidden` and `added` are set by `app_item` itself; `key` is cleared
+		# by `clear_stored_keys`, for the reason it gives.
+		handled = set(ARRANGED_ITEM_FIELDS) | {"navigate_to_tab", "hidden", "added", "key"}
+
+		self.assertEqual(columns - handled, set())
+
+	def test_resetting_removes_the_document_and_its_file(self):
+		"""The layer below this one is the computed base, which is worked out on read, so the
+		module has a working sidebar again in the same request."""
+		import os
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			save_app_sidebar(MODULE, get_app_sidebar_layer(MODULE))
+			path = frappe.get_doc("Sidebar", MODULE).exported_file_path()
+
+			reset_app_sidebar(MODULE)
+
+			self.assertFalse(frappe.db.exists("Sidebar", MODULE))
+			self.assertFalse(os.path.exists(path))
+			self.assertTrue(self.rendered())
+
+	def test_resetting_reaches_a_sidebar_that_was_renamed(self):
+		"""The document the save wrote is the document the reset has to remove.
+
+		A sidebar is named by its title, so a module's shell need not carry the module's name, and
+		the read and the save both address it however it is named. A reset that asked the naming
+		rule instead would find nothing under the module's name and report success, leaving the
+		document on the site and its file in the app.
+
+		"""
+		import os
+
+		renamed = "Test App Layer Sidebar Renamed"
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			save_app_sidebar(MODULE, get_app_sidebar_layer(MODULE))
+			doc = frappe.get_doc("Sidebar", MODULE)
+			doc.title = renamed
+			doc.save(ignore_permissions=True)
+			path = frappe.get_doc("Sidebar", renamed).exported_file_path()
+			self.assertTrue(os.path.exists(path), "sanity: the rename moved the file")
+
+			reset_app_sidebar(MODULE)
+
+			self.assertFalse(frappe.db.exists("Sidebar", renamed))
+			self.assertFalse(os.path.exists(path))
+			self.assertTrue(self.rendered(), "the module falls back to its computed base")
+
+	def test_the_editor_stays_on_the_sidebar_that_was_on_screen(self):
+		"""A module may own more than one sidebar, and the module alone does not say which of them
+		the person had open, so all three calls carry the shell.
+
+		Without it they take whichever sidebar comes first by name. They agree with each other, so
+		nothing looks broken: the editor reads that one, the save writes it and the reset deletes
+		it. They agree on a document nobody was looking at, though, so the rows on screen are not
+		the sidebar the desk is drawing, and the reset takes away the wrong one.
+
+		"""
+		import os
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			deals = make_sidebar(MODULE, title="Test App Layer Deals")
+			leads = make_sidebar(MODULE, title="Test App Layer Leads")
+			for doc, label in ((deals, "Deals Home"), (leads, "Leads Home")):
+				doc.items[0].label = label
+				doc.save(ignore_permissions=True)
+
+			self.assertEqual(
+				get_module_shell(MODULE).name, deals.name, "sanity: the module alone lands elsewhere"
+			)
+
+			rows = get_app_sidebar_layer(MODULE, shell=leads.name)
+			self.assertEqual([row["label"] for row in rows], ["Leads Home"])
+
+			save_app_sidebar(MODULE, rows, shell=leads.name)
+			self.assertTrue(frappe.db.get_value("Sidebar", leads.name, "standard"))
+			self.assertFalse(
+				frappe.db.get_value("Sidebar", deals.name, "standard"), "the other one is untouched"
+			)
+
+			path = frappe.get_doc("Sidebar", leads.name).exported_file_path()
+			reset_app_sidebar(MODULE, shell=leads.name)
+
+			self.assertFalse(frappe.db.exists("Sidebar", leads.name))
+			self.assertFalse(os.path.exists(path))
+			self.assertTrue(frappe.db.exists("Sidebar", deals.name), "the other one survives")
+
+	def test_a_shell_the_module_no_longer_owns_is_refused(self):
+		"""An editor left open while that sidebar was renamed is holding a name nothing answers to.
+
+		It is not asking for the fallback. Taking it would arrange, save over or delete whichever
+		sidebar comes first by name, which is another shell under the same module and not the one
+		anybody had open, and reset makes that unrecoverable: the document goes and its exported
+		directory is removed from the app.
+
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			deals = make_sidebar(MODULE, title="Test App Layer Deals")
+			leads = make_sidebar(MODULE, title="Test App Layer Leads")
+			was = leads.name
+			leads.title = "Test App Layer Prospects"
+			leads.save(ignore_permissions=True)
+
+			for call in (
+				lambda: get_app_sidebar_layer(MODULE, shell=was),
+				lambda: save_app_sidebar(MODULE, [], shell=was),
+				lambda: reset_app_sidebar(MODULE, shell=was),
+			):
+				with self.assertRaises(frappe.ValidationError):
+					call()
+
+			self.assertTrue(frappe.db.exists("Sidebar", deals.name), "the other one is still there")
+
+	def test_the_module_s_own_name_is_not_a_way_past_the_check(self):
+		"""The module's name passes because a computed base has no document to check against. A
+		module that does have one, named after itself, is a different case: renaming it leaves the
+		editor holding the module's name with nothing behind it, and letting that through lands on
+		whichever sidebar comes first by name.
+		"""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			other = make_sidebar(MODULE, title="Test App Layer Alpha")
+			own = make_sidebar(MODULE)
+			own.title = "Test App Layer Zebra"
+			own.save(ignore_permissions=True)
+
+			with self.assertRaises(frappe.ValidationError):
+				reset_app_sidebar(MODULE, shell=MODULE)
+
+			self.assertTrue(frappe.db.exists("Sidebar", other.name), "the other one is still there")
+
+	def test_a_shell_under_another_module_is_ignored(self):
+		"""The shell says which of a module's sidebars, and the module still says which module. The
+		resolver carries the module into its lookup, so a name belonging elsewhere selects nothing
+		and no caller reaches out of the module it named. Refusing such a name, rather than falling
+		back, is `check_shell`'s job at the endpoints.
+		"""
+		with developer_mode():
+			own = make_sidebar(MODULE)
+
+			self.assertEqual(get_module_shell(MODULE, "Build").name, own.name)
+
+	def test_none_of_it_works_without_developer_mode(self):
+		"""`standard` means a file inside an app, and only a developer's site writes those. The
+		editor hides the layer, and each endpoint refuses as well, because the layer being absent
+		from a screen is not what stops a call."""
+		with developer_mode():
+			self.with_content()
+			rows = get_app_sidebar_layer(MODULE)
+
+		with no_developer_mode():
+			for call in (
+				lambda: get_app_sidebar_layer(MODULE),
+				lambda: save_app_sidebar(MODULE, rows),
+				lambda: reset_app_sidebar(MODULE),
+			):
+				with self.assertRaises(frappe.ValidationError):
+					call()
