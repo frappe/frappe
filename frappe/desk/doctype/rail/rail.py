@@ -3,7 +3,6 @@
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.workspace.workspace import is_workspace_manager
 from frappe.model.document import Document
 
 # Blank, not `None`: the column is not nullable so that one spelling of "not a user's own layer"
@@ -167,25 +166,28 @@ def on_doctype_update():
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-	"""Allow a Workspace Manager to curate the site and the apps; everyone else gets only their own.
+	"""Allow a System Manager to curate the site and the apps; everyone else gets only their own.
 
 	This is the document-level half of the gate the endpoints hold. A `Desk User` has `read` and
 	nothing more: rearranging a rail goes through an endpoint that writes one person's own layer
 	with `ignore_permissions`, so no write permission is needed or granted. This stops the read
 	they do have from being a read of everyone else's layers.
 
-	The manager check is the same one the sidebar's layers use. A second role for "may rearrange
-	what everyone sees" would be two ways to grant one capability.
+	`System Manager`, not `Workspace Manager`: this table is not about workspaces, and `Sidebar`,
+	the other container desk v2 uses, has always granted `System Manager` and has never had a
+	`Workspace Manager` row. Reaching for the narrower role here made the branch disagree with
+	itself about who may curate. The cost is real and accepted: curating the site layer can no
+	longer be delegated without full site administration.
 	"""
 	user = user or frappe.session.user
-	if user == "Administrator" or is_workspace_manager(user):
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return True
 
 	return bool(doc.user) and doc.user == user
 
 
 def get_permission_query_conditions(user=None):
-	"""Restrict list queries so everyone but a Workspace Manager sees only their own layer.
+	"""Restrict list queries so everyone but a System Manager sees only their own layer.
 
 	This pairs with `has_permission` and is not redundant: reports, the API and the desk's export
 	go through this rather than through the document-level check.
@@ -197,7 +199,7 @@ def get_permission_query_conditions(user=None):
 	left alone.
 	"""
 	user = user or frappe.session.user
-	if user == "Administrator" or is_workspace_manager(user):
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return None
 
 	return frappe.qb.DocType("Rail").user == user
