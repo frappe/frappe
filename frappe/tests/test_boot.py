@@ -1,5 +1,5 @@
 import frappe
-from frappe.boot import get_unseen_notes, get_user_pages_or_reports
+from frappe.boot import get_allowed_reports, get_unseen_notes, get_user_pages_or_reports
 from frappe.desk.doctype.note.note import _get_unseen_notes, mark_as_seen
 from frappe.tests.utils import FrappeTestCase
 
@@ -45,6 +45,46 @@ class TestBootData(FrappeTestCase):
 
 			self.assertEqual(get_user_pages_or_reports("Report", cache=True), {})
 			self.assertEqual(has_perm.call_count, builds)
+
+	def test_disabled_reports_are_not_allowed(self):
+		frappe.set_user("Administrator")
+
+		# role wiring decides which branch of the allowed-reports query a report comes from
+		with_custom_role = self._make_report("Test Disabled Custom Role Report", disabled=1)
+		frappe.get_doc(
+			{
+				"doctype": "Custom Role",
+				"report": with_custom_role,
+				"ref_doctype": "ToDo",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		without_roles = self._make_report("Test Disabled Roleless Report", disabled=1)
+		frappe.db.delete("Has Role", {"parent": without_roles, "parenttype": "Report"})
+
+		enabled = self._make_report("Test Enabled Report")
+
+		allowed_reports = get_allowed_reports()
+		self.assertNotIn(with_custom_role, allowed_reports)
+		self.assertNotIn(without_roles, allowed_reports)
+		self.assertIn(enabled, allowed_reports)
+
+	def _make_report(self, report_name, disabled=0):
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"ref_doctype": "ToDo",
+					"report_name": report_name,
+					"report_type": "Report Builder",
+					"is_standard": "No",
+					"disabled": disabled,
+				}
+			)
+			.insert()
+			.name
+		)
 
 
 class TestPermissionQueries(FrappeTestCase):

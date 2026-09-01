@@ -561,6 +561,8 @@ class File(Document):
 		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
 
+		self.check_permission("read")
+
 		zip_path = self.get_full_path()
 		max_extracted_size = get_max_extract_size()
 

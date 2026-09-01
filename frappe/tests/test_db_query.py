@@ -1577,6 +1577,143 @@ class TestDotNotationPermission(FrappeTestCase):
 				self.fail("DataError raised — _user_tables split is not working")
 
 
+class TestChildTableParentRowPermission(FrappeTestCase):
+	"""Direct child-table queries (parent_doctype=...) must respect the parent's own
+	row-level restrictions (User Permissions), not just doctype-level read on the parent."""
+
+	ROLE = "CT Test Role"
+	USER = "ct_test@example.com"
+	OWNER = "CT Test Owner"  # linked doctype that User Permission scopes against
+	PARENT = "CT Test Parent"
+	CHILD = "CT Test Child"
+
+	@classmethod
+	def _cleanup(cls):
+		frappe.set_user("Administrator")
+		for dt in (cls.PARENT, cls.CHILD, cls.OWNER):
+			if frappe.db.exists("DocType", dt):
+				for n in frappe.get_all(dt, pluck="name"):
+					frappe.delete_doc(dt, n, force=True, ignore_permissions=True)
+				frappe.delete_doc("DocType", dt, force=True, ignore_permissions=True)
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls._cleanup()
+		frappe.set_user("Administrator")
+
+		if not frappe.db.exists("Role", cls.ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": cls.ROLE}).insert()
+		if not frappe.db.exists("User", cls.USER):
+			frappe.get_doc(
+				{"doctype": "User", "email": cls.USER, "first_name": "CT", "new_password": "test"}
+			).insert(ignore_permissions=True)
+		frappe.get_doc("User", cls.USER).add_roles(cls.ROLE)
+
+		new_doctype(cls.OWNER).insert(ignore_permissions=True)
+		new_doctype(
+			cls.CHILD,
+			istable=1,
+			fields=[{"fieldname": "value", "fieldtype": "Data", "label": "Value"}],
+		).insert(ignore_permissions=True)
+		new_doctype(
+			cls.PARENT,
+			fields=[
+				{"fieldname": "owner_ref", "fieldtype": "Link", "label": "Owner Ref", "options": cls.OWNER},
+				{"fieldname": "items", "fieldtype": "Table", "label": "Items", "options": cls.CHILD},
+			],
+			# plain doctype-level read, no if_owner: row scoping relies entirely on the
+			# User Permission on the linked OWNER doctype, same shape as many real-world setups
+			permissions=[
+				{"role": cls.ROLE, "read": 1},
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1},
+			],
+		).insert(ignore_permissions=True)
+
+		cls.owner_a = frappe.get_doc({"doctype": cls.OWNER, "some_fieldname": "a"}).insert(
+			ignore_permissions=True
+		)
+		cls.owner_b = frappe.get_doc({"doctype": cls.OWNER, "some_fieldname": "b"}).insert(
+			ignore_permissions=True
+		)
+
+		def ins(owner):
+			return frappe.get_doc(
+				{
+					"doctype": cls.PARENT,
+					"owner_ref": owner.name,
+					"items": [{"value": f"{owner.name}-row"}],
+				}
+			).insert(ignore_permissions=True)
+
+		cls.parent_a = ins(cls.owner_a)
+		cls.parent_b = ins(cls.owner_b)
+
+	@classmethod
+	def tearDownClass(cls):
+		cls._cleanup()
+		for dt, name in [("User", cls.USER), ("Role", cls.ROLE)]:
+			if frappe.db.exists(dt, name):
+				frappe.delete_doc(dt, name, force=True, ignore_permissions=True)
+		super().tearDownClass()
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		clear_user_permissions_for_doctype(self.OWNER, self.USER)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_user_permissions_for_doctype(self.OWNER, self.USER)
+
+	def _child_rows(self, parent):
+		return DatabaseQuery(self.CHILD).execute(
+			filters=[["parent", "=", parent.name], ["parenttype", "=", self.PARENT]],
+			fields=["value", "parent"],
+			parent_doctype=self.PARENT,
+		)
+
+	def test_build_match_conditions_without_execute_does_not_crash(self):
+		"""build_match_conditions() can be called directly on a child doctype without going
+		through execute() first (e.g. reportview.get_match_cond/build_match_conditions) —
+		parent_doctype must not be read before it's ever been set."""
+		frappe.set_user(self.USER)
+		self.assertEqual(DatabaseQuery(self.CHILD).build_match_conditions(), "")
+
+	def test_child_query_blocks_out_of_scope_parent_rows(self):
+		add_user_permission(self.OWNER, self.owner_a.name, self.USER)
+		frappe.set_user(self.USER)
+		self.assertEqual(self._child_rows(self.parent_b), [])
+
+	def test_child_query_allows_in_scope_parent_rows(self):
+		add_user_permission(self.OWNER, self.owner_a.name, self.USER)
+		frappe.set_user(self.USER)
+		rows = self._child_rows(self.parent_a)
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0]["value"], f"{self.owner_a.name}-row")
+
+	def test_child_query_honors_contextual_permission_on_parent_identity(self):
+		"""A User Permission scoped directly to the parent doctype's own identity, with
+		applicable_for set to the doctype actually being queried (the reference doctype),
+		must still be honored on the child-table route — not just permissions on a link field.
+
+		If the reference doctype isn't threaded through correctly, this doesn't merely deny
+		access: the applicable_for check silently matches nothing, no restricting condition
+		gets added at all, and every parent's rows become visible — so both directions must
+		be checked, not just that the in-scope row is still readable."""
+		try:
+			add_user_permission(self.PARENT, self.parent_a.name, self.USER, applicable_for=self.CHILD)
+			frappe.set_user(self.USER)
+
+			rows_a = self._child_rows(self.parent_a)
+			self.assertEqual(len(rows_a), 1)
+			self.assertEqual(rows_a[0]["value"], f"{self.owner_a.name}-row")
+
+			self.assertEqual(self._child_rows(self.parent_b), [])
+		finally:
+			frappe.set_user("Administrator")
+			clear_user_permissions_for_doctype(self.PARENT, self.USER)
+
+
 class TestReportView(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
 	def test_get_count(self):

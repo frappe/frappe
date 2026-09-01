@@ -254,15 +254,9 @@ class NotificationsView extends BaseNotificationsView {
 			? message.replace(title[1], frappe.ellipsis(strip_html(title[1]), 100))
 			: message;
 
-		let description = notification_log.description || "";
-		let description_html = description
-			? `<div class="notification-description text-muted">${description}</div>`
-			: "";
-
 		let timestamp = frappe.datetime.comment_when(notification_log.creation);
 		let message_html = `<div class="message">
 			<div>${message}</div>
-			${description_html}
 			<div class="notification-timestamp text-muted">
 				${timestamp}
 			</div>
