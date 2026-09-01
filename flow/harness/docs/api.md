@@ -42,7 +42,7 @@ One daemon can serve many sites (a Frappe bench): point `FLOW_TENANTS_FILE` at a
 - `system_prompt` for a complete prompt override, or `system_preamble`, `system_suffix`, and `system_append` for composition;
 - `skills_enabled`, `skill_paths`, and compaction settings.
 
-The server resolves credentials and prompt context itself. Do not send API keys, provider URLs, or tokens in session or run requests.
+The server resolves credentials and prompt context itself; do not send API keys, provider URLs, or tokens in session or run requests. The one exception is a policy opt-in for clients that manage credentials themselves (the deployed profile turns it on, since e.g. Frappe resolves credentials per site): `api_key` and an optional `api_base` may then be sent on session create and on `POST /sessions/{sid}/model`, and replace the daemon's credential resolution for that session. On set-model the pair is replaced as a unit — sending either field replaces both, sending neither keeps the stored pair. The key persists with the session (owner-only files) and is redacted to `***` in every API response. When the policy switch is off (the default), a request carrying these fields is a 400.
 
 ## Service and provider routes
 
@@ -72,7 +72,7 @@ The server resolves credentials and prompt context itself. Do not send API keys,
 | `POST /extensions/reload` | Re-imports all extensions and returns the fresh info payload. |
 | `POST /skills` | Previews the skills a supplied `SessionConfig` would discover. |
 | `PATCH /sessions/{sid}/config` | Currently updates `{"auto_approve": true|false}`. |
-| `POST /sessions/{sid}/model` | Sets `model`, optional `credential_id`, and optional `reasoning_effort`. |
+| `POST /sessions/{sid}/model` | Sets `model`, optional `credential_id`, and optional `reasoning_effort`. With the inline-credentials policy on, also accepts `api_key`/`api_base`. |
 | `POST /sessions/{sid}/rewind` | Moves the active branch to `{"target_seq": N}`; `0` means an empty conversation. |
 | `POST /sessions/{sid}/compact` | Runs manual compaction; the optional body is `{"instructions": "..."}`. |
 
