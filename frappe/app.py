@@ -56,21 +56,30 @@ DEFAULT_AFTER_RESPONSE_CALLBACKS = (
 )
 
 
+def get_after_response_callbacks():
+	"""Yield default callbacks, then any deferred during the request, in order of addition.
+
+	The request's queue is consumed as it is yielded, so callbacks registered
+	by other callbacks are picked up too."""
+
+	yield from DEFAULT_AFTER_RESPONSE_CALLBACKS
+
+	request = getattr(frappe.local, "request", None)
+	if callback_manager := getattr(request, "after_response", None):
+		functions = callback_manager._functions
+		while functions:
+			yield functions.popleft()
+	else:
+		frappe.logger("after_response").error("No request or after_response callback manager found")
+
+
 def run_after_response_callbacks():
-	"""Run default callbacks, then any deferred during the request, in order of addition.
+	"""Run all after-response callbacks.
 
 	The response is already sent by this point, so a failing callback can
 	neither be reported to the client nor prevent the rest from running."""
 
-	functions = list(DEFAULT_AFTER_RESPONSE_CALLBACKS)
-	request = getattr(frappe.local, "request", None)
-	if callback_manager := getattr(request, "after_response", None):
-		functions.extend(callback_manager._functions)
-		callback_manager.reset()
-	else:
-		frappe.logger("after_response").error("No request or after_response callback manager found")
-
-	for func in functions:
+	for func in get_after_response_callbacks():
 		try:
 			func()
 		except Exception:
