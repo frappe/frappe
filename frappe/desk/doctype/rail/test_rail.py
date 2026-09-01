@@ -7,6 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.rail.rail import Rail
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import set_user
 
 # An app that is certainly installed on any site running these tests. Which app it is does not
 # matter: these tests are about the layers and the rows, not about anyone's actual navigation.
@@ -166,3 +167,35 @@ class TestRail(IntegrationTestCase):
 
 		with self.assertRaises(frappe.UniqueValidationError):
 			make_rail().insert()
+
+	def test_a_person_lists_only_their_own_layer(self):
+		"""The list query is the half `has_permission` does not cover.
+
+		Reports, the API and the desk's own export go through the query condition rather than
+		through the document check, so without it a `Desk User`'s read would be a read of
+		everyone else's arrangements.
+		"""
+		site = make_rail()
+		site.insert()
+		self.addCleanup(site.delete)
+
+		person = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "rail-layer-tester@example.com",
+				"first_name": "Rail",
+				"roles": [{"role": "Desk User"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(person.delete)
+
+		mine = make_rail(user=person.name)
+		mine.insert()
+		self.addCleanup(mine.delete)
+
+		# `get_list`, not `get_all`: the latter bypasses permissions by design, so it would pass
+		# whether or not the condition exists.
+		with set_user(person.name):
+			visible = frappe.get_list("Rail", pluck="name")
+
+		self.assertEqual(visible, [mine.name])

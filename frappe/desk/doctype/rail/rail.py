@@ -189,9 +189,15 @@ def get_permission_query_conditions(user=None):
 
 	This pairs with `has_permission` and is not redundant: reports, the API and the desk's export
 	go through this rather than through the document-level check.
+
+	Returns a query-builder term rather than a SQL string. The hook accepts either -- `query.py`
+	wraps a string in a `RawCriterion` and lets a term through as it is -- and the term keeps the
+	identifier quoting out of this file, which a hand-written `` `tabRail` `` spells the way only
+	MySQL accepts. The sidebar's two older hooks still build strings; they are desk v1's and are
+	left alone.
 	"""
 	user = user or frappe.session.user
 	if user == "Administrator" or is_workspace_manager(user):
-		return ""
+		return None
 
-	return f"`tabRail`.`user` = {frappe.db.escape(user)}"
+	return frappe.qb.DocType("Rail").user == user
