@@ -81,8 +81,8 @@ class TestSearch(FrappeTestCase):
 				"allowed_in_mentions": True,
 			}
 		)
+		# saved when roles are added
 		user.add_roles("System Manager")
-		user.insert()
 
 		# Populate the users_for_mentions cache.
 		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
