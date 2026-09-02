@@ -80,6 +80,10 @@ def upload_chunk(upload_id: str, offset: int | str = 0):
 	(idempotent retry), writing past the end of the part file is not."""
 	check_enabled()
 	meta, meta_path, part_path = load_session(upload_id)
+	# re-checked per chunk, not only at create_upload: the session outlives
+	# the request that opened it, and every guest is the same session user,
+	# so the owner check in load_session does not gate guests on its own
+	check_upload_permission(meta.get("doctype"), meta.get("docname"))
 	if meta.get("mode") == "direct":
 		frappe.throw(_("This upload session expects a direct upload, not chunks"))
 

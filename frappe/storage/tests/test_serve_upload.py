@@ -274,6 +274,18 @@ class TestServeUpload(IntegrationTestCase):
 			with self.assertRaises(frappe.PermissionError):
 				finish_upload(upload_id, file_name="owned.txt")
 
+	def test_guest_chunks_stop_when_guest_uploads_are_turned_off(self):
+		"""Every guest is the same session user, so the owner check does not
+		gate them. The permission check has to run per chunk."""
+		with flag_on(), frappe.storage.fake():
+			with self.change_settings("System Settings", allow_guests_to_upload_files=1):
+				frappe.set_user("Guest")
+				upload_id = self.open_session("guest.txt", 10)
+				self.assertEqual(self.send_chunk(upload_id, 0, b"abc")["received"], 3)
+
+			with self.assertRaises(frappe.PermissionError):
+				self.send_chunk(upload_id, 3, b"def")
+
 	def test_finish_upload_cannot_run_twice(self):
 		with flag_on(), frappe.storage.fake():
 			content = b"only one file row"
