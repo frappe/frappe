@@ -14,7 +14,9 @@ site the way an install does. What is added here is the other side of that: a pe
 import json
 
 import frappe
+from frappe.exceptions import FrappeTypeError
 from frappe.shell.arrangement import (
+	_target,
 	anchors_for,
 	get_arrangement,
 	reduce_arrangement,
@@ -400,6 +402,20 @@ class TestTheGate(NavigationTestCase):
 		for body in ("{not json", '{"key": "a"}'):
 			with self.assertRaises(frappe.ValidationError):
 				save_arrangement("Rail", APP, body)
+
+	def test_an_argument_that_is_not_a_name_is_refused_at_the_boundary(self):
+		"""Explicitly, not on the annotations alone: they apply only inside a request or a test,
+		and Frappe accepts complex values throughout — so a filter list arriving where a name was
+		expected turns `{"name": address}` into a different query entirely."""
+		for address in (["!=", ""], {"name": "x"}):
+			# Inside a request or a test the annotation gets there first, which is the belt...
+			with self.assertRaises(FrappeTypeError):
+				get_arrangement("Sidebar", address)
+
+			# ...and this is the braces, for the contexts where annotations are not applied:
+			# a background job, `bench execute`, or any other caller off a request.
+			with self.assertRaises(frappe.ValidationError):
+				_target("Sidebar", address, "user")
 
 	def test_a_container_that_is_not_one_is_refused(self):
 		with self.assertRaises(frappe.ValidationError):

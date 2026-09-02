@@ -75,6 +75,19 @@ describe("moving a row", () => {
     expect(keys(move(nested, "x", 1))).toEqual(["s", "x", "b"]);
   });
 
+  it("takes a section's children with it", () => {
+    // The list is flat and the tree is `parent_key`, so swapping two headers alone would leave
+    // each section's children sitting under the other one on screen.
+    const sections = [
+      item("s1"),
+      item("a", { parent_key: "s1" }),
+      item("s2"),
+      item("b", { parent_key: "s2" }),
+    ];
+
+    expect(keys(move(sections, "s1", 1))).toEqual(["s2", "b", "s1", "a"]);
+  });
+
   it("leaves a list it cannot find the row in alone", () => {
     expect(move(flat, "nope", 1)).toBe(flat);
   });
@@ -98,6 +111,17 @@ describe("dropping a row", () => {
 
   it("refuses a drop on itself", () => {
     expect(dropOn(flat, "a", "a")).toBe(flat);
+  });
+
+  it("carries a dragged section's children too", () => {
+    const sections = [
+      item("s1"),
+      item("a", { parent_key: "s1" }),
+      item("s2"),
+      item("b", { parent_key: "s2" }),
+    ];
+
+    expect(keys(dropOn(sections, "s2", "s1"))).toEqual(["s2", "b", "s1", "a"]);
   });
 });
 

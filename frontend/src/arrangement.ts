@@ -86,22 +86,16 @@ export function move(items: ArrangedItem[], key: string, by: 1 | -1): ArrangedIt
 	const item = items.find((entry) => entry.key === key);
 	if (!item) return items;
 
-	const siblings = items.filter(
-		(entry) => (entry.parent_key ?? null) === (item.parent_key ?? null)
-	);
-	const swapWith = siblings[siblings.indexOf(item) + by];
-	if (!swapWith) return items;
+	const order = siblings(items);
+	const group = order.get(parentOf(item)) ?? [];
+	const at = group.indexOf(key);
+	if (at + by < 0 || at + by >= group.length) return items;
 
-	// Swapped in the flat list by position, so a section's children travel with neither row —
-	// the tree is rebuilt from `parent_key` on every render, and only the order of these two
-	// keys among their siblings has changed.
-	const next = [...items];
-	const here = next.indexOf(item);
-	const there = next.indexOf(swapWith);
-	next[here] = swapWith;
-	next[there] = item;
+	const swapped = [...group];
+	[swapped[at], swapped[at + by]] = [swapped[at + by], swapped[at]];
+	order.set(parentOf(item), swapped);
 
-	return next;
+	return flatten(items, order);
 }
 
 /**
@@ -117,10 +111,68 @@ export function dropOn(items: ArrangedItem[], key: string, onto: string): Arrang
 	const target = items.find((entry) => entry.key === onto);
 
 	if (!item || !target || item === target) return items;
-	if ((item.parent_key ?? null) !== (target.parent_key ?? null)) return items;
+	if (parentOf(item) !== parentOf(target)) return items;
 
-	const next = items.filter((entry) => entry !== item);
-	next.splice(next.indexOf(target) + (items.indexOf(item) < items.indexOf(target) ? 1 : 0), 0, item);
+	const order = siblings(items);
+	const group = [...(order.get(parentOf(item)) ?? [])];
+	// Dragged downwards a row lands after the row it was dropped on, upwards before it — which
+	// is the same rule either way: it takes the place the target is standing in.
+	const downwards = group.indexOf(key) < group.indexOf(onto);
 
-	return next;
+	group.splice(group.indexOf(key), 1);
+	group.splice(group.indexOf(onto) + (downwards ? 1 : 0), 0, key);
+	order.set(parentOf(item), group);
+
+	return flatten(items, order);
+}
+
+function parentOf(item: ArrangedItem): string | null {
+	return item.parent_key ?? null;
+}
+
+/** The keys under each parent, in their current order. `null` is the top level. */
+function siblings(items: ArrangedItem[]): Map<string | null, string[]> {
+	const order = new Map<string | null, string[]>();
+
+	for (const item of items) {
+		const group = order.get(parentOf(item)) ?? [];
+		group.push(item.key);
+		order.set(parentOf(item), group);
+	}
+
+	return order;
+}
+
+/**
+ * Rebuild the flat list from the sibling order, depth first, so a section's children travel
+ * with it.
+ *
+ * The list is flat and the tree is `parent_key`, so moving a section by swapping two rows leaves
+ * its children where they were — the saved arrangement is still right, because the reduction
+ * compares each parent's children separately, but the editor would draw rows under a heading
+ * they do not belong to. Re-flattening makes what is on screen and what is in the list the same
+ * thing, which is the only version anybody can check by looking.
+ *
+ * A row whose parent is not in the list is appended rather than dropped. The server promotes
+ * orphans before sending, so this should not arise; losing a row to a rule about drawing it
+ * would be much worse than showing it at the end.
+ */
+function flatten(items: ArrangedItem[], order: Map<string | null, string[]>): ArrangedItem[] {
+	const byKey = new Map(items.map((item) => [item.key, item]));
+	const flat: ArrangedItem[] = [];
+	const seen = new Set<string>();
+
+	const walk = (parent: string | null) => {
+		for (const key of order.get(parent) ?? []) {
+			const item = byKey.get(key);
+			if (!item || seen.has(key)) continue;
+			seen.add(key);
+			flat.push(item);
+			walk(key);
+		}
+	};
+
+	walk(null);
+
+	return [...flat, ...items.filter((item) => !seen.has(item.key))];
 }

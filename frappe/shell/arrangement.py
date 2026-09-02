@@ -138,6 +138,14 @@ def _target(container: str, address: str, scope: str) -> Target:
 	session user and can be nothing else, so "write somebody else's arrangement" is not a request
 	that can be made and does not need refusing.
 	"""
+	# Explicitly, not on the annotations alone. `validate_argument_types` only applies inside a
+	# request or a test, and Frappe accepts complex values throughout — so a parameter expected
+	# to be a string can arrive as a filter list, and `address` is read straight into a
+	# `get_value` filter below. `{"name": ["!=", ""]}` is a whole different query from
+	# `{"name": "..."}`, and the difference is invisible at the call site.
+	if not all(isinstance(argument, str) for argument in (container, address, scope)):
+		frappe.throw(_("A container, an address and a scope are each one name."))
+
 	if container not in CONTAINERS:
 		frappe.throw(_("{0} is not a navigation container.").format(container))
 
