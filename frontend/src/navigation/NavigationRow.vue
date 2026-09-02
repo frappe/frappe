@@ -1,5 +1,9 @@
 <!--
-  One row on the rail, and whatever hangs under it.
+  One row of navigation, and whatever hangs under it.
+
+  The rail and the sidebar panel are two presentations of one model (charter point 1), so
+  they draw their rows with one component. It was `shell/RailItem.vue` until the panel
+  arrived (#42421) and there was a second consumer to name it for.
 
   Recursive, because `parent_key` puts no limit on depth and a two-level component would
   silently swallow the third — the same class of quiet drop the tree builder's cycle guard
@@ -20,7 +24,8 @@
 			:to="destination.to"
 			:data-key="item.key"
 			:data-sidebar="destination.sidebar"
-			:class="ROW"
+			:aria-current="isCurrent ? 'page' : undefined"
+			:class="[ROW, isCurrent && CURRENT]"
 		>
 			{{ label }}
 		</RouterLink>
@@ -33,7 +38,8 @@
 			:href="destination.href"
 			:data-key="item.key"
 			:data-sidebar="destination.sidebar"
-			:class="ROW"
+			:aria-current="isCurrent ? 'page' : undefined"
+			:class="[ROW, isCurrent && CURRENT]"
 		>
 			{{ label }}
 		</a>
@@ -67,22 +73,24 @@
 		</component>
 
 		<ul v-if="node.children.length && open" class="ml-2 border-l border-outline-gray-2 pl-1">
-			<RailItem
+			<NavigationRow
 				v-for="child in node.children"
 				:key="child.item.key"
 				:node="child"
 				:context="context"
+				:current="current"
 			/>
 		</ul>
 
 		<!-- Expanded rows sit at this row's OWN level, not under it. "N more" is an overflow
 				 of the list it is in, so indenting what it reveals would say the module contains
 				 the overflow row, which is backwards. -->
-		<RailItem
+		<NavigationRow
 			v-for="child in expandedNodes"
 			:key="child.item.key"
 			:node="child"
 			:context="context"
+			:current="current"
 		/>
 	</li>
 </template>
@@ -96,12 +104,29 @@ import type { ItemContext } from "@/navigation/types";
 
 const ROW =
 	"flex w-full items-center truncate rounded px-2 py-1 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2";
+// A step past `hover:bg-surface-gray-2` rather than the same shade, or a reader could not
+// tell the row they are on from the row under the pointer.
+//
+// Marked on the row itself and not left to `router-link-active`: a linked rail item points at
+// the first row INSIDE its sidebar, so its own link is inactive from the second row on. The
+// explicit `aria-current` binding also SUPPRESSES the one `RouterLink` sets on an exactly
+// active link, which is what keeps the count at one row — the rail and the panel can hold the
+// same destination, and two independent highlights would light both.
+const CURRENT = "bg-surface-gray-3 font-medium text-ink-gray-9";
 const HEADING =
 	"w-full truncate px-2 pb-0.5 pt-3 text-left text-xs font-medium uppercase text-ink-gray-5";
 
-const props = defineProps<{ node: ItemNode; context: ItemContext }>();
+// `current` is the key of the one row the address is standing on, in THIS container
+// (`navigation/current.ts`). It is passed down rather than computed here because exactly one
+// row wins across the rail and the open panel together, and no row can know that alone.
+const props = defineProps<{
+	node: ItemNode;
+	context: ItemContext;
+	current?: string;
+}>();
 
 const item = computed(() => props.node.item);
+const isCurrent = computed(() => !!props.current && props.current === item.value.key);
 const rendering = computed(() => renderingOf(item.value, props.context));
 const label = computed(() => labelOf(item.value, props.context));
 

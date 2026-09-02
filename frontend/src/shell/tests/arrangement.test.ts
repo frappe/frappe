@@ -24,6 +24,7 @@ vi.mock("frappe-ui", () => ({
 
 import { call as mockedCall } from "frappe-ui";
 import AppRail from "../AppRail.vue";
+import type { ItemContext } from "@/navigation/types";
 import ArrangementEditor from "../ArrangementEditor.vue";
 import { dropOn, move, saveArrangement, type ArrangedItem } from "@/arrangement";
 
@@ -269,7 +270,9 @@ describe("the rail's way in", () => {
   function rail(arrangeable: boolean) {
     const host = document.createElement("div");
     const app = createApp({
-      render: () => h(AppRail, { items: [], arrangeable }),
+      // An empty rail draws no rows, so the context is never asked anything here.
+      render: () =>
+        h(AppRail, { items: [], context: {} as unknown as ItemContext, arrangeable }),
     });
     app.provide("boot", { app: arrangeable ? "frappe" : null });
     // A real router, because the rail's home link is a real `RouterLink` and resolves through

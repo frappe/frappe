@@ -12,6 +12,7 @@ import type { Boot, NavigationItem } from "@/boot";
 import { registerContributions } from "@/contributions/registry";
 import { generatedRoutes } from "@/router/generated";
 import { registerShell } from "@/router/routeFor";
+import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
 import AppRail from "../AppRail.vue";
 
@@ -55,7 +56,15 @@ function mount(
 	});
 	registerShell({ boot, addresses, router });
 
-	const app = createApp({ render: () => h(AppRail, { items: items.value, sidebars }) });
+	// The shell composes the context now, because the panel draws out of the same one
+	// (#42421). The rail is mounted here alone, so this stands in for it.
+	const app = createApp({
+		render: () =>
+			h(AppRail, {
+				items: items.value,
+				context: itemContext(boot, addresses, router, items.value, sidebars),
+			}),
+	});
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);
 	app.use(router);
