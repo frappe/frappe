@@ -184,7 +184,7 @@
   },
   {
    "default": "0",
-   "description": "Only enable this if you trust this provider's user accounts to be legitimate even when it doesn't send an <code>email_verified</code> claim (e.g. a self-hosted identity provider where email verification isn't enforced). Otherwise, logins presenting an unverified email are rejected.",
+   "description": "Only enable this if you trust this provider's user accounts to be legitimate even when it omits the <code>email_verified</code> claim entirely (e.g. a self-hosted identity provider where email verification isn't enforced). This does not override a provider that explicitly sends <code>email_verified: false</code> — that login is always rejected.",
    "fieldname": "trust_email_without_verified_claim",
    "fieldtype": "Check",
    "label": "Trust Email Without Verified Claim"
