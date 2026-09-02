@@ -6,18 +6,18 @@
 				<button class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
 					<FeatherIcon name="arrow-left" class="h-4 w-4" />
 				</button>
-				<h2 class="text-xl font-semibold text-ink-gray-9">{{ draft.id ? "Edit preset" : "New preset" }}</h2>
+				<h2 class="text-base font-semibold text-ink-gray-9">{{ draft.id ? "Edit preset" : "New preset" }}</h2>
 			</div>
 
 			<div class="mt-6 flex flex-col gap-5 pb-6">
 				<TextInput v-model="draft.name" label="Name" placeholder="Reviewer" autofocus />
 
 				<div>
-					<div class="text-base font-medium text-ink-gray-9">Tools</div>
-					<p v-if="!flow.state.tools.length" class="mt-1.5 text-sm text-ink-gray-5">The daemon did not report any tools.</p>
+					<div class="text-sm font-medium text-ink-gray-9">Tools</div>
+					<p v-if="!flow.state.tools.length" class="mt-1.5 text-xs text-ink-gray-5">The daemon did not report any tools.</p>
 					<div v-else class="mt-2 max-h-64 divide-y divide-outline-gray-1 overflow-y-auto rounded-6 border border-outline-gray-2">
 						<template v-for="group in toolGroups" :key="group.key">
-							<div v-if="group.label" class="bg-surface-gray-1 px-4 py-1.5 text-xs font-medium text-ink-gray-5">{{ group.label }}</div>
+							<div v-if="group.label" class="bg-surface-gray-1 px-4 py-1.5 text-2xs font-medium text-ink-gray-5">{{ group.label }}</div>
 							<label
 								v-for="tool in group.tools"
 								:key="tool.name"
@@ -27,15 +27,15 @@
 									:model-value="draft[group.key].includes(tool.name)"
 									@update:model-value="toggleTool(group.key, tool.name, $event)"
 								/>
-								<span class="w-20 flex-none text-sm font-medium text-ink-gray-9">{{ tool.name }}</span>
-								<span class="min-w-0 flex-1 truncate text-sm text-ink-gray-5">{{ tool.description }}</span>
+								<span class="w-20 flex-none text-xs font-medium text-ink-gray-9">{{ tool.name }}</span>
+								<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-5">{{ tool.description }}</span>
 							</label>
 						</template>
 					</div>
 				</div>
 
 				<div>
-					<div class="text-base font-medium text-ink-gray-9">Prompt</div>
+					<div class="text-sm font-medium text-ink-gray-9">Prompt</div>
 					<div class="mt-2 grid grid-cols-2 gap-2">
 						<button
 							v-for="option in PROMPT_MODES"
@@ -44,8 +44,8 @@
 							:class="draft.promptMode === option.value ? 'border-outline-gray-4 bg-surface-gray-1' : 'border-outline-gray-2'"
 							@click="draft.promptMode = option.value"
 						>
-							<span class="block text-sm font-medium text-ink-gray-9">{{ option.label }}</span>
-							<span class="mt-0.5 block text-sm leading-5 text-ink-gray-5">{{ option.desc }}</span>
+							<span class="block text-xs font-medium text-ink-gray-9">{{ option.label }}</span>
+							<span class="mt-0.5 block text-xs leading-5 text-ink-gray-5">{{ option.desc }}</span>
 						</button>
 					</div>
 					<Textarea
@@ -59,7 +59,7 @@
 		</div>
 
 		<div class="flex items-center justify-end gap-3 border-t border-outline-gray-1 px-8 py-4">
-			<span v-if="dirty" class="text-sm text-ink-gray-5">Unsaved changes</span>
+			<span v-if="dirty" class="text-xs text-ink-gray-5">Unsaved changes</span>
 			<Button v-if="draft.id" label="Delete" variant="ghost" theme="red" @click="confirmDelete" />
 			<Button variant="solid" label="Save" :disabled="!draft.name.trim() || !dirty" @click="save" />
 		</div>
@@ -69,8 +69,8 @@
 	<div v-else class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-xl font-semibold text-ink-gray-9">Agent presets</h2>
-				<p class="mt-1 text-sm leading-5 text-ink-gray-6">
+				<h2 class="text-base font-semibold text-ink-gray-9">Agent presets</h2>
+				<p class="mt-1 text-xs leading-5 text-ink-gray-6">
 					{{ inSession ? "This chat keeps the preset it started with. Start a new chat to switch." : "Saved setups for new chats. Pick the one to use." }}
 				</p>
 			</div>
@@ -94,8 +94,8 @@
 						:class="row.active ? 'border-4 border-outline-gray-5' : 'border-outline-gray-4'"
 					/>
 					<span class="min-w-0 flex-1">
-						<span class="block text-base font-medium text-ink-gray-9">{{ row.name }}</span>
-						<span class="mt-1 block truncate text-sm text-ink-gray-6">{{ row.summary }}</span>
+						<span class="block text-sm font-medium text-ink-gray-9">{{ row.name }}</span>
+						<span class="mt-1 block truncate text-xs text-ink-gray-6">{{ row.summary }}</span>
 					</span>
 				</button>
 				<button v-if="row.preset" class="flow-icon-btn" title="Edit preset" @click="edit(row.preset)">

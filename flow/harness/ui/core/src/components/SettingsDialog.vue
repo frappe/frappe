@@ -9,9 +9,9 @@
 		<SettingsSidebar class="sm:pt-3">
 			<SettingsNavGroup>
 				<template #label>
-					<span class="mb-1 block text-xs font-medium text-ink-gray-7">Settings</span>
+					<span class="mb-1 block text-2xs font-medium text-ink-gray-7">Settings</span>
 				</template>
-				<SettingsNavItem v-for="s in SECTIONS" :key="s.id" :value="s.id" class="h-8 gap-2.5 px-3 text-sm">
+				<SettingsNavItem v-for="s in SECTIONS" :key="s.id" :value="s.id" class="h-8 gap-2.5 px-3 text-xs">
 					<template #prefix>
 						<FeatherIcon :name="s.icon" class="h-4 w-4 text-ink-gray-6" />
 					</template>
@@ -25,21 +25,21 @@
 		<SettingsContent class="min-w-0">
 			<SettingsPanel value="general" class="min-w-0">
 				<div class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
-					<h2 class="text-xl font-semibold text-ink-gray-9">General</h2>
-					<p class="mt-1 text-sm leading-5 text-ink-gray-6">Defaults for new chats.</p>
+					<h2 class="text-base font-semibold text-ink-gray-9">General</h2>
+					<p class="mt-1 text-xs leading-5 text-ink-gray-6">Defaults for new chats.</p>
 
 					<div class="mt-4 divide-y divide-outline-gray-1">
 						<div class="flex items-center gap-8 py-4">
 							<div class="min-w-0 flex-1">
-								<div class="text-base font-medium text-ink-gray-9">Approval mode</div>
-								<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Applies to new chats and the current one.</p>
+								<div class="text-sm font-medium text-ink-gray-9">Approval mode</div>
+								<p class="mt-1.5 text-xs leading-5 text-ink-gray-6">Applies to new chats and the current one.</p>
 							</div>
 							<Select :model-value="flow.state.prefs.mode" :options="MODES" @update:model-value="flow.setMode($event)" />
 						</div>
 
 						<div class="py-4">
-							<div class="text-base font-medium text-ink-gray-9">Custom instructions</div>
-							<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">
+							<div class="text-sm font-medium text-ink-gray-9">Custom instructions</div>
+							<p class="mt-1.5 text-xs leading-5 text-ink-gray-6">
 								Added to the prompt of every new chat.
 							</p>
 							<Textarea
@@ -66,12 +66,12 @@
 
 			<SettingsPanel value="appearance" class="min-w-0">
 				<div class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
-					<h2 class="text-xl font-semibold text-ink-gray-9">Appearance</h2>
-					<p class="mt-1 text-sm leading-5 text-ink-gray-6">Pick a theme.</p>
+					<h2 class="text-base font-semibold text-ink-gray-9">Appearance</h2>
+					<p class="mt-1 text-xs leading-5 text-ink-gray-6">Pick a theme.</p>
 
 					<div class="mt-4 py-4">
-						<div class="text-base font-medium text-ink-gray-9">Theme</div>
-						<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Switch between light, dark, or system theme.</p>
+						<div class="text-sm font-medium text-ink-gray-9">Theme</div>
+						<p class="mt-1.5 text-xs leading-5 text-ink-gray-6">Switch between light, dark, or system theme.</p>
 						<!-- own heading above: the switcher's built-in one uses a smaller type scale -->
 						<ThemeSwitcher class="flow-theme-switcher mt-4" label="" description="" name="Flow" />
 					</div>
@@ -133,6 +133,12 @@ const MODES = [
 :deep([data-slot="label"]) {
 	color: var(--ink-gray-9);
 	font-weight: 500;
+}
+/* one step below frappe-ui's default control size, matching the panels' text */
+:deep([data-slot="label"]),
+:deep([data-slot="control"]),
+:deep([data-slot="trigger"]) {
+	font-size: 14px;
 }
 /* desk layout: cards share the row evenly at equal height, System first */
 .flow-theme-switcher :deep([data-slot="control"]) {

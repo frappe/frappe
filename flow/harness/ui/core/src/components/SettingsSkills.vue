@@ -10,31 +10,31 @@
 			<button class="flow-icon-btn -my-1 -ml-1.5" title="Back to skills" @click="back">
 				<FeatherIcon name="arrow-left" class="h-4 w-4" />
 			</button>
-			<h2 class="text-xl font-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
+			<h2 class="text-base font-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
 			<Badge v-if="!editing.isNew" :label="SCOPE_LABELS[editing.scope]" variant="subtle" theme="gray" />
 		</div>
 		<template v-if="editing.isNew">
 			<TextInput v-model="editing.name" class="mt-4" label="Name" placeholder="review-changes" autofocus />
-			<p class="mt-1.5 text-xs" :class="editing.name && !validName ? 'text-ink-red-6' : 'text-ink-gray-5'">
+			<p class="mt-1.5 text-2xs" :class="editing.name && !validName ? 'text-ink-red-6' : 'text-ink-gray-5'">
 				Lowercase letters, digits, and single hyphens.
 			</p>
 			<Select v-model="editing.scope" class="mt-6 w-56" label="Where" :options="scopeOptions" />
-			<p class="mt-1.5 text-xs text-ink-gray-5">Saved as {{ shortPath(editing) }}</p>
+			<p class="mt-1.5 text-2xs text-ink-gray-5">Saved as {{ shortPath(editing) }}</p>
 		</template>
-		<p v-else class="mt-1 text-sm leading-5 text-ink-gray-6" :title="editing.path">{{ shortPath(editing) }}</p>
+		<p v-else class="mt-2 text-xs leading-5 text-ink-gray-6" :title="editing.path">{{ shortPath(editing) }}</p>
 
 		<textarea
 			v-model="editing.content"
-			class="mt-6 min-h-0 flex-1 resize-none rounded-5 border border-outline-gray-2 bg-surface-base p-3 font-mono text-xs leading-relaxed text-ink-gray-9 outline-none focus:border-outline-gray-4 focus:ring-0"
+			class="mt-6 min-h-0 flex-1 resize-none rounded-5 border border-outline-gray-2 bg-surface-base p-3 font-mono text-2xs leading-relaxed text-ink-gray-9 outline-none focus:border-outline-gray-4 focus:ring-0"
 			spellcheck="false"
 		/>
-		<p v-if="editing.error" class="mt-2 flex items-center gap-1.5 text-sm text-ink-red-6">
+		<p v-if="editing.error" class="mt-2 flex items-center gap-1.5 text-xs text-ink-red-6">
 			<FeatherIcon name="alert-circle" class="h-3.5 w-3.5 flex-none" />
 			{{ editing.error }}
 		</p>
 
 		<div class="mt-4 flex items-center justify-end gap-3">
-			<span v-if="dirty" class="text-sm text-ink-gray-5">Unsaved changes</span>
+			<span v-if="dirty" class="text-xs text-ink-gray-5">Unsaved changes</span>
 			<Button v-if="!editing.isNew" label="Delete" variant="ghost" theme="red" :disabled="saving" @click="confirmDelete" />
 			<Button variant="solid" label="Save" :disabled="!canSave" @click="save" />
 		</div>
@@ -44,27 +44,27 @@
 	<div v-else class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-xl font-semibold text-ink-gray-9">Skills</h2>
-				<p class="mt-1 text-sm leading-5 text-ink-gray-6">Reusable instructions the agent can load.</p>
+				<h2 class="text-base font-semibold text-ink-gray-9">Skills</h2>
+				<p class="mt-1 text-xs leading-5 text-ink-gray-6">Reusable instructions the agent can load.</p>
 			</div>
 			<Button v-if="!disabled" variant="solid" label="New skill" :disabled="!roots.global" @click="startNew" />
 		</div>
 
-		<div v-if="disabled" class="mt-6 rounded-5 border border-outline-gray-2 bg-surface-gray-1 px-4 py-3 text-sm text-ink-gray-7">
+		<div v-if="disabled" class="mt-6 rounded-5 border border-outline-gray-2 bg-surface-gray-1 px-4 py-3 text-xs text-ink-gray-7">
 			Skill management is turned off by this daemon's policy.
 		</div>
 
 		<template v-else>
 			<section v-for="scope in scopes" :key="scope.id" class="mt-8">
 				<div class="flex items-center justify-between gap-4">
-					<div class="text-base font-medium text-ink-gray-9">{{ scope.title }}</div>
+					<div class="text-sm font-medium text-ink-gray-9">{{ scope.title }}</div>
 					<Select
 						v-if="scope.id === 'project' && projects.length"
 						:model-value="projectCwd ?? ''"
 						:options="projectOptions"
 						@update:model-value="selectedProject = $event"
 					/>
-					<span v-else class="truncate text-sm text-ink-gray-5" :title="scope.root">{{ scope.hint }}</span>
+					<span v-else class="truncate text-xs text-ink-gray-5" :title="scope.root">{{ scope.hint }}</span>
 				</div>
 				<div v-if="scope.rows.length" class="mt-3 divide-y divide-outline-gray-1 rounded-6 border border-outline-gray-2">
 					<button
@@ -74,18 +74,18 @@
 						@click="open(row)"
 					>
 						<div class="min-w-0 flex-1">
-							<div class="text-base font-medium text-ink-gray-9">{{ row.name }}</div>
-							<p v-if="row.error" class="mt-1 flex items-center gap-1.5 truncate text-sm text-ink-red-6">
+							<div class="text-sm font-medium text-ink-gray-9">{{ row.name }}</div>
+							<p v-if="row.error" class="mt-1 flex items-center gap-1.5 truncate text-xs text-ink-red-6">
 								<FeatherIcon name="alert-circle" class="h-3.5 w-3.5 flex-none" />
 								{{ row.error }}
 							</p>
-							<p v-else class="mt-1 truncate text-sm text-ink-gray-6">{{ row.description }}</p>
+							<p v-else class="mt-1 truncate text-xs text-ink-gray-6">{{ row.description }}</p>
 						</div>
 						<FeatherIcon name="chevron-right" class="h-4 w-4 flex-none text-ink-gray-4" />
 					</button>
 				</div>
-				<p v-else-if="!loading" class="mt-3 text-sm text-ink-gray-5">{{ scope.empty }}</p>
-				<p v-if="scope.cut" class="mt-2 text-sm text-ink-gray-5">Not every skill is shown: this folder has too many entries.</p>
+				<p v-else-if="!loading" class="mt-3 text-xs text-ink-gray-5">{{ scope.empty }}</p>
+				<p v-if="scope.cut" class="mt-2 text-xs text-ink-gray-5">Not every skill is shown: this folder has too many entries.</p>
 			</section>
 		</template>
 	</div>
