@@ -92,25 +92,35 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 	below = target.resolve(upto=BELOW[scope], keep_hidden=True)
 	desired = _as_items(items)
 
-	# An empty *reduction* is ordinary and means the layer goes: dragging an item away and back
-	# leaves nothing to store, and storing nothing is how that ends in the same state as a reset.
-	# An empty *submission* is not ordinary, because the client is always showing the list below
-	# it -- so a body that names none of it would arrive here as "nothing differs" and quietly do
-	# a reset's work. The two are different requests and one may not become the other by accident.
+	rows = reduce_arrangement(below, desired)
+
+	# Deleting is spelled the same way here as saving nothing, and that is deliberate: an empty
+	# reduction drops the layer, which is what keeps "drag it away and back" and "reset" from
+	# ending in two states that only look alike. It also means the one place a save can turn into
+	# a reset is this one, so it is the only place that has to be sure.
 	#
-	# The test is against the list below rather than against the body alone, because the body is
-	# filtered twice: `_as_items` drops what is not a row, and the reduction drops keys the list
-	# no longer holds. A stale editor sends rows that are shaped perfectly well and name items the
-	# app has since removed, and those survive the first filter to die at the second.
-	if below and _names_none_of(below, desired):
+	# It is sure when the submission **accounted for the whole list below**. The client is always
+	# showing that list, so a save that names every row of it and still reduces to nothing has
+	# genuinely said "this matches" -- while one that names only part of it has said nothing about
+	# the rest, and reading that as "delete everything" is a statement it did not make. Three
+	# separate ways of arriving at an empty reduction fall under this: a body where every row was
+	# malformed, one whose keys the list no longer holds, and one that keeps a single unchanged
+	# row and drops the others.
+	#
+	# The completeness test is only on this path on purpose. A save that *does* write rows is
+	# allowed to be incomplete, because rows nobody mentioned keeping the position the layer below
+	# gave them is the whole design -- and `reduce_arrangement` already drops an unknown key
+	# rather than refusing the save it came in, for the same reason. Missing rows only change the
+	# outcome catastrophically when the answer is delete.
+	if below and not rows and not _accounts_for(below, desired):
 		frappe.throw(
 			_(
-				"An arrangement has to name at least one item {0} still has. To go back to how it arrived, reset it."
+				"This arrangement does not cover everything {0} is showing, so it cannot be saved as one. Reload it, or reset it to go back to how it arrived."
 			).format(frappe.bold(target.app)),
 			title=_("Not an Arrangement"),
 		)
 
-	_write(target, reduce_arrangement(below, desired))
+	_write(target, rows)
 
 	return resolve_navigation(target.app)
 
@@ -287,15 +297,15 @@ def _is_name(value) -> bool:
 	return isinstance(value, str) and bool(value)
 
 
-def _names_none_of(below: list[dict], desired: list[dict]) -> bool:
-	"""Whether a submission names no row of the list it claims to be an arrangement of.
+def _accounts_for(below: list[dict], desired: list[dict]) -> bool:
+	"""Whether a submission names every row of the list it claims to be an arrangement of.
 
-	Only membership is asked about, not difference: a full list that happens to differ in
-	nothing names every row of it, and that save is the ordinary one whose layer goes.
+	Membership only, never difference: a full list that happens to differ in nothing names every
+	row of it, and that is the ordinary save whose layer goes.
 	"""
-	keys = {item["key"] for item in below if item.get("key")}
+	named = {item["key"] for item in desired}
 
-	return not any(item["key"] in keys for item in desired)
+	return all(item["key"] in named for item in below if item.get("key"))
 
 
 # The reduction

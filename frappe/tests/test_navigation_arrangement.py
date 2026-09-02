@@ -496,6 +496,33 @@ class TestReset(NavigationTestCase):
 
 		self.assertEqual(rail_keys(), ["role", "user"], "their arrangement survives")
 
+	def test_a_save_that_covers_only_part_of_the_list_does_not_do_a_resets_work(self):
+		"""The third way to an empty reduction, and the narrowest. One row survives and says
+		nothing, the rest were dropped -- so the save named something, but it said nothing about
+		most of the list. Reading that as "delete everything" is a statement it did not make."""
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("role"), shown("user")))
+
+		with self.assertRaises(frappe.ValidationError):
+			save_arrangement("Rail", APP, showing(shown("role"), {"key": ["!=", ""]}))
+
+		self.assertEqual(rail_keys(), ["role", "user"], "their arrangement survives")
+
+	def test_an_incomplete_save_that_has_something_to_say_is_still_kept(self):
+		"""The other side of the check above: completeness is asked about only when the answer
+		would be to delete. A save that writes rows is allowed to be incomplete, because rows
+		nobody mentioned keeping the position the layer below gave them is the design."""
+		make_rail(
+			[doctype_item("user", "User"), doctype_item("role", "Role"), doctype_item("page", "Page")],
+			standard=1,
+		)
+
+		save_arrangement("Rail", APP, showing(shown("page"), shown("user", label="Mine")))
+
+		# `role` was never mentioned, so it keeps the position the layer below gave it -- the
+		# front -- and the two rows that were mentioned land in the order they were sent.
+		self.assertEqual(rail_keys(), ["role", "page", "user"])
+
 	def test_arranging_it_back_still_leaves_no_row(self):
 		"""The case the check above must not catch: a full list that happens to differ in
 		nothing is not malformed, and the layer still goes."""
