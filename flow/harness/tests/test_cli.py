@@ -70,10 +70,11 @@ def test_resolve_auth_token_rejects_missing_or_empty_file(tmp_path, monkeypatch)
 		_resolve_auth_token()
 
 
-def test_bare_invocation_defaults_to_tui():
-	commands = {"tui", "serve", "attach", "login", "providers", "logout"}
-	assert _with_default_command([], commands) == ["tui"]
-	assert _with_default_command(["-c"], commands) == ["tui", "-c"]
+def test_bare_invocation_defaults_to_web():
+	commands = {"tui", "web", "serve", "attach", "login", "providers", "logout"}
+	assert _with_default_command([], commands) == ["web"]
+	assert _with_default_command(["--no-browser"], commands) == ["web", "--no-browser"]
+	assert _with_default_command(["tui", "-c"], commands) == ["tui", "-c"]
 	assert _with_default_command(["serve", "--port", "9001"], commands) == ["serve", "--port", "9001"]
 	assert _with_default_command(["login", "openai"], commands) == ["login", "openai"]
 	assert _with_default_command(["--help"], commands) == ["--help"]

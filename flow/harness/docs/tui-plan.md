@@ -5,8 +5,8 @@ This file documents the shipped Textual client. It is not a phased implementatio
 ## Start it
 
 ```bash
-flow                 # private local daemon and a new TUI session
-flow -c              # continue the newest session for this directory
+flow tui             # private local daemon and a new TUI session
+flow tui -c          # continue the newest session for this directory
 flow attach          # connect to the configured long-lived daemon
 flow attach --session <id>
 ```

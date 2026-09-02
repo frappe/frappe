@@ -20,17 +20,17 @@ Formatting and static checks use Ruff and ty. The codebase uses tabs, double quo
 
 | Command | Behavior |
 | --- | --- |
-| `flow` or `flow tui` | Starts a private Unix-socket daemon and opens the Textual UI. |
-| `flow -c` | Opens the most recent session for the current directory. |
+| `flow` or `flow web` | Serves the built Vue UI and opens a browser. Use `--no-browser` to suppress it. |
+| `flow tui` | Starts a private Unix-socket daemon and opens the Textual UI. |
+| `flow tui -c` | Opens the most recent session for the current directory. |
 | `flow serve` | Runs the daemon on the configured host and port, logging one timestamped line per request. |
 | `flow serve --background` | Starts a detached daemon and prints its address. |
-| `flow web` | Serves the built Vue UI and opens a browser. Use `--no-browser` to suppress it. |
 | `flow attach` | Opens the TUI against an existing daemon. `--session` selects a session. |
 | `flow login`, `flow logout`, `flow providers` | Manage provider credentials. |
 
-The private daemon used by `flow` has a fresh bearer token, a private socket, and exits when its parent TUI exits. It is POSIX-only. `flow serve` is the long-lived option; closing an attached client never stops its run.
+The private daemon used by `flow tui` has a fresh bearer token, a private socket, and exits when its parent TUI exits. It is POSIX-only. `flow serve` is the long-lived option; closing an attached client never stops its run.
 
-Build the web UI before `flow web` if packaged assets are unavailable:
+Build the web UI before `flow` or `flow web` if packaged assets are unavailable:
 
 ```bash
 cd ui
