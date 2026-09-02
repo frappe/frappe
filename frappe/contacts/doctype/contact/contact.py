@@ -420,10 +420,14 @@ def contact_query(
 
 	if txt:
 		search_text = txt.replace("%", "")
-		relevance = Coalesce(
-			NullIf(Locate(search_text, Contact.full_name), 0),
-			NullIf(Locate(search_text, Contact.company_name), 0),
-			99999,
+		full_name_position = NullIf(Locate(search_text, Contact.full_name), 0)
+		company_name_position = NullIf(Locate(search_text, Contact.company_name), 0)
+		relevance = (
+			frappe.qb.terms.Case()
+			.when(full_name_position.isnull(), Coalesce(company_name_position, 99999))
+			.when(company_name_position.isnull(), full_name_position)
+			.when(full_name_position <= company_name_position, full_name_position)
+			.else_(company_name_position)
 		)
 		query = query.orderby(relevance)
 
