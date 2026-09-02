@@ -249,8 +249,10 @@ def _serve(args) -> None:
 	import uvicorn
 
 	from flow.server import create_app
+	from flow.server.logs import setup_terminal_logging
 	from flow.session.store import SessionStore
 
+	setup_terminal_logging()
 	sink = _redis_sink()
 	store = SessionStore(
 		args.data_dir,
@@ -282,10 +284,10 @@ def _serve(args) -> None:
 
 		sock = bind_unix(args.uds)
 		banner(args.uds)
-		uvicorn.Server(uvicorn.Config(app, log_level="warning")).run(sockets=[sock])
+		uvicorn.Server(uvicorn.Config(app, log_config=None)).run(sockets=[sock])
 	else:
 		banner(f"http://{args.host}:{args.port}")
-		uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+		uvicorn.run(app, host=args.host, port=args.port, log_config=None)
 
 
 def _web(args) -> None:
@@ -309,8 +311,10 @@ def _web(args) -> None:
 	import uvicorn
 
 	from flow.server import create_app
+	from flow.server.logs import setup_terminal_logging
 	from flow.session.store import SessionStore
 
+	setup_terminal_logging()
 	sink = _redis_sink()
 	store = SessionStore(
 		args.data_dir,
@@ -333,7 +337,7 @@ def _web(args) -> None:
 		timer = threading.Timer(0.8, webbrowser.open, [url])
 		timer.daemon = True  # a Ctrl-C before it fires must not hold the process
 		timer.start()
-	uvicorn.run(app, host=args.host, port=args.port, log_level="warning", timeout_graceful_shutdown=1)
+	uvicorn.run(app, host=args.host, port=args.port, log_config=None, timeout_graceful_shutdown=1)
 
 
 def _webui_dist() -> str | None:
@@ -355,7 +359,10 @@ def _warm_litellm() -> None:
 
 	def _import() -> None:
 		try:
-			import litellm  # noqa: F401
+			import litellm
+
+			# silence the "Provider List / Give Feedback" lines litellm prints on errors
+			litellm.suppress_debug_info = True
 		except Exception:
 			pass  # the request path imports it again and reports the real error
 

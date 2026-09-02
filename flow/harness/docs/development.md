@@ -22,7 +22,7 @@ Formatting and static checks use Ruff and ty. The codebase uses tabs, double quo
 | --- | --- |
 | `flow` or `flow tui` | Starts a private Unix-socket daemon and opens the Textual UI. |
 | `flow -c` | Opens the most recent session for the current directory. |
-| `flow serve` | Runs the daemon on the configured host and port. |
+| `flow serve` | Runs the daemon on the configured host and port, logging one timestamped line per request. |
 | `flow serve --background` | Starts a detached daemon and prints its address. |
 | `flow web` | Serves the built Vue UI and opens a browser. Use `--no-browser` to suppress it. |
 | `flow attach` | Opens the TUI against an existing daemon. `--session` selects a session. |
