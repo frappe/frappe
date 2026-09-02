@@ -149,9 +149,26 @@ class TestSocialLoginKey(IntegrationTestCase):
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			self.assertRaises(frappe.ValidationError, get_info_via_oauth, key.name, "iwriu")
 
-	def test_custom_provider_trust_flag_allows_unverified_email(self):
+	def test_custom_provider_trust_flag_allows_silent_provider(self):
+		"""Trust flag fills in only when the provider omits the claim entirely."""
 		frappe.set_user("Administrator")
 		key = custom_social_login_setup("testcustom-trusted")
+		key.trust_email_without_verified_claim = 1
+		key.save(ignore_permissions=True)
+
+		mock_session = MagicMock()
+		mock_session.get.return_value = MagicMock(
+			status_code=200,
+			json=MagicMock(return_value={"email": "victim@example.com", "sub": "attacker"}),
+		)
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			info = get_info_via_oauth(key.name, "iwriu")
+		self.assertEqual(info.get("email"), "victim@example.com")
+
+	def test_custom_provider_trust_flag_never_overrides_explicit_false(self):
+		"""Trust flag must not override a provider's explicit email_verified: false."""
+		frappe.set_user("Administrator")
+		key = custom_social_login_setup("testcustom-trusted-explicit-false")
 		key.trust_email_without_verified_claim = 1
 		key.save(ignore_permissions=True)
 
@@ -163,8 +180,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 			),
 		)
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			info = get_info_via_oauth(key.name, "iwriu")
-		self.assertEqual(info.get("email"), "victim@example.com")
+			self.assertRaises(frappe.ValidationError, get_info_via_oauth, key.name, "iwriu")
 
 
 def custom_social_login_setup(provider_name: str):
