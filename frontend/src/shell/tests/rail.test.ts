@@ -1,0 +1,325 @@
+// What the rail DRAWS, once every kind has a renderer (#42420).
+//
+// Mounted with Vue's own `createApp` into happy-dom, the way `arrangement.test.ts` does
+// and for the same reason: this package has no `@vue/test-utils`, and a new shared
+// devDependency for one component is a cost #42069's singleton rules make every app pay.
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp, h, nextTick, ref, type Ref } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
+
+import { Addresses } from "@/addresses";
+import type { Boot, NavigationItem } from "@/boot";
+import { registerContributions } from "@/contributions/registry";
+import { generatedRoutes } from "@/router/generated";
+import { registerShell } from "@/router/routeFor";
+import { resetNavigationReports } from "@/navigation/registry";
+import AppRail from "../AppRail.vue";
+
+const addresses = new Addresses({
+	doctypes: {
+		"CRM Deal": ["crm-deal", "fcrm"],
+		"CRM Lead": ["crm-lead", "fcrm"],
+		"Sales Invoice": ["sales-invoice", "accounts"],
+	},
+	modules: { fcrm: "FCRM", accounts: "Accounts" },
+});
+
+const boot = {
+	app: "crm",
+	shell_base: "/apps/crm",
+	prefixes: { crm: { app: "crm", modular: false } },
+} as unknown as Boot;
+
+async function flush() {
+	await Promise.resolve();
+	await Promise.resolve();
+	await nextTick();
+}
+
+/** The mounted rail, plus the list it is rendering — so a test can replace it, which is
+ *  what a save does (#42363). */
+function mount(
+	initial: NavigationItem[],
+	sidebars: Record<string, NavigationItem[]> = {}
+): { host: HTMLElement; items: Ref<NavigationItem[]> } {
+	const items = ref<NavigationItem[]>(initial);
+	const host = document.createElement("div");
+	document.body.appendChild(host);
+
+	const router = createRouter({
+		history: createMemoryHistory(),
+		routes: [
+			{ path: "/", name: "home", component: { render: () => null } },
+			...generatedRoutes(false),
+		],
+	});
+	registerShell({ boot, addresses, router });
+
+	const app = createApp({ render: () => h(AppRail, { items: items.value, sidebars }) });
+	app.provide("boot", boot);
+	app.provide("addresses", addresses);
+	app.use(router);
+	app.mount(host);
+
+	return { host, items };
+}
+
+function rail(
+	items: NavigationItem[],
+	sidebars: Record<string, NavigationItem[]> = {}
+) {
+	return mount(items, sidebars).host;
+}
+
+function row(host: HTMLElement, key: string) {
+	return host.querySelector(`[data-key="${CSS.escape(key)}"]`);
+}
+
+function doctype(key: string, parent_key?: string): NavigationItem {
+	return { key, item_type: "DocType", link_to: key, ...(parent_key ? { parent_key } : {}) };
+}
+
+beforeAll(async () => {
+	await registerContributions(["frappe"]);
+});
+
+beforeEach(() => {
+	document.body.innerHTML = "";
+	resetNavigationReports();
+	vi.restoreAllMocks();
+});
+
+describe("the kinds the rail used to drop", () => {
+	it("draws all of them, not only DocType", () => {
+		// It filtered to `item_type === "DocType"` and silently dropped the other seven,
+		// which was #42228's skip-a-missing-renderer rule reached by accident: there were no
+		// renderers, so there was nothing to miss.
+		const host = rail([
+			doctype("CRM Deal"),
+			{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" },
+			{ key: "reports", item_type: "Section" },
+			{ key: "invoice", item_type: "Record", link_doctype: "CRM Deal", link_to: "D-1" },
+		]);
+
+		expect(row(host, "CRM Deal")).not.toBeNull();
+		expect(row(host, "docs")).not.toBeNull();
+		expect(row(host, "invoice")).not.toBeNull();
+	});
+
+	it("makes a Link a plain anchor, not a router link", () => {
+		// Following it leaves this prefix, which is a full document load; the router this
+		// document holds is scoped to one prefix and cannot resolve the other (#42364).
+		const host = rail([{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" }]);
+		const anchor = row(host, "docs") as HTMLAnchorElement;
+		expect(anchor.tagName).toBe("A");
+		expect(anchor.getAttribute("href")).toBe("https://docs.frappe.io");
+	});
+
+	it("makes a DocType an in-prefix link", () => {
+		const host = rail([doctype("CRM Deal")]);
+		expect((row(host, "CRM Deal") as HTMLAnchorElement).getAttribute("href")).toBe(
+			"/crm-deal"
+		);
+	});
+});
+
+describe("sections and nesting", () => {
+	it("draws a section as a heading and files its children under it", () => {
+		const host = rail([
+			{ key: "sales", item_type: "Section", label: "Sales" },
+			doctype("CRM Deal", "sales"),
+		]);
+
+		const heading = row(host, "sales")!;
+		expect(heading.textContent).toContain("Sales");
+		// The child is INSIDE the section's own list item, which is what makes the tree the
+		// tree rather than an indent class on a flat list.
+		expect(heading.closest("li")!.contains(row(host, "CRM Deal"))).toBe(true);
+	});
+
+	it("nests to a third level", () => {
+		const host = rail([
+			{ key: "a", item_type: "Section" },
+			{ key: "b", item_type: "Section", parent_key: "a" },
+			doctype("CRM Deal", "b"),
+		]);
+		expect(row(host, "b")!.closest("li")!.contains(row(host, "CRM Deal"))).toBe(true);
+		expect(row(host, "a")!.closest("li")!.contains(row(host, "b"))).toBe(true);
+	});
+
+	it("gives a plain section no control, because most are not closable", () => {
+		const host = rail([{ key: "sales", item_type: "Section" }, doctype("CRM Deal", "sales")]);
+		expect(row(host, "sales")!.tagName).toBe("P");
+	});
+
+	it("makes a collapsible section a button that closes it", async () => {
+		const host = rail([
+			{ key: "sales", item_type: "Section", collapsible: 1 },
+			doctype("CRM Deal", "sales"),
+		]);
+		const heading = row(host, "sales") as HTMLButtonElement;
+
+		expect(heading.tagName).toBe("BUTTON");
+		expect(heading.getAttribute("aria-expanded")).toBe("true");
+
+		heading.click();
+		await flush();
+
+		expect(row(host, "CRM Deal")).toBeNull();
+		expect(row(host, "sales")!.getAttribute("aria-expanded")).toBe("false");
+	});
+
+	it("starts a keep_closed section closed", () => {
+		const host = rail([
+			{ key: "sales", item_type: "Section", collapsible: 1, keep_closed: 1 },
+			doctype("CRM Deal", "sales"),
+		]);
+		expect(row(host, "CRM Deal")).toBeNull();
+	});
+
+	it("keeps a heading whose own renderer is missing, and its children", () => {
+		// The same choice `_promote_orphans` makes on the server: an item that cannot be
+		// placed never silently takes what is under it.
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const host = rail([
+			{ key: "mystery", item_type: "Chart", label: "Charts" },
+			doctype("CRM Deal", "mystery"),
+		]);
+		expect(row(host, "mystery")!.textContent).toContain("Charts");
+		expect(row(host, "CRM Deal")).not.toBeNull();
+	});
+});
+
+describe("a linked item", () => {
+	it("carries the sidebar it opens, so the panel can mount off it", () => {
+		// A `Sidebar` item is what makes a rail item LINKED (#42227), and the panel that
+		// shows one is #42421's. The rail draws it as linked either way, or the two tickets
+		// deadlock on each other.
+		const host = rail(
+			[
+				{
+					key: "accounts",
+					item_type: "Sidebar",
+					link_doctype: "Sidebar",
+					link_to: "module_def_accounts",
+				},
+			],
+			{
+				module_def_accounts: [
+					{ key: "Sales Invoice", item_type: "DocType", link_to: "Sales Invoice" },
+				],
+			}
+		);
+
+		const link = row(host, "accounts") as HTMLAnchorElement;
+		expect(link.getAttribute("data-sidebar")).toBe("module_def_accounts");
+		// And it is real navigation, not shell state — charter point 7.
+		expect(link.getAttribute("href")).toBe("/sales-invoice");
+	});
+
+	it("is not drawn when its sidebar is absent", () => {
+		const host = rail([
+			{ key: "accounts", item_type: "Sidebar", link_to: "module_def_accounts" },
+		]);
+		expect(row(host, "accounts")).toBeNull();
+	});
+});
+
+describe("Module Contents", () => {
+	const overflow: NavigationItem = {
+		key: "more",
+		item_type: "Module Contents",
+		link_doctype: "Module Def",
+		link_to: "Accounts",
+		label: "More",
+	};
+
+	it("is a button, and reveals the rest of the module on click", async () => {
+		const fetched = vi.fn().mockResolvedValue([
+			{ doctype: "Sales Invoice", slug: "sales-invoice", module: "accounts" },
+		]);
+		const host = rail([overflow]);
+		// The context is built in the component, so the fetch is stubbed at its source.
+		const contents = await import("@/contents");
+		vi.spyOn(contents, "fetchContents").mockImplementation(fetched);
+
+		const button = row(host, "more") as HTMLButtonElement;
+		expect(button.tagName).toBe("BUTTON");
+		expect(button.getAttribute("aria-expanded")).toBe("false");
+
+		button.click();
+		await flush();
+
+		expect(fetched).toHaveBeenCalledWith("crm", "accounts");
+		expect(row(host, "more:Sales Invoice")).not.toBeNull();
+		// At the row's OWN level: "N more" is an overflow of the list it is in, so indenting
+		// what it reveals would say the module contains the overflow row.
+		expect(row(host, "more:Sales Invoice")!.closest("ul")).toBe(
+			row(host, "more")!.closest("ul")
+		);
+	});
+
+	it("stays collapsed and says so when the fetch fails", async () => {
+		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+		const contents = await import("@/contents");
+		vi.spyOn(contents, "fetchContents").mockRejectedValue(new Error("offline"));
+
+		const host = rail([overflow]);
+		(row(host, "more") as HTMLButtonElement).click();
+		await flush();
+
+		// Expanding is the one thing on the rail that costs a request, so it is the one
+		// thing that can fail from a dropped connection rather than from a bad row.
+		expect(row(host, "more")!.getAttribute("aria-expanded")).toBe("false");
+		expect(logged).toHaveBeenCalled();
+	});
+});
+
+describe("a row that cannot be drawn", () => {
+	it("is skipped, and the rest of the rail still renders", () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const host = rail([{ key: "x", item_type: "Chart" }, doctype("CRM Deal")]);
+		expect(row(host, "x")).toBeNull();
+		expect(row(host, "CRM Deal")).not.toBeNull();
+	});
+
+	it("does not blank the rail when a renderer throws", () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const host = rail([doctype("Nonexistent Doctype"), doctype("CRM Deal")]);
+		expect(row(host, "Nonexistent Doctype")).toBeNull();
+		expect(row(host, "CRM Deal")).not.toBeNull();
+	});
+});
+
+describe("an expanded overflow row when the list changes under it", () => {
+	it("collapses rather than keeping rows it worked out about the old list", async () => {
+		// A save returns the whole `{rail, sidebars}` and the shell swaps it in, while this
+		// component survives because `v-for` keys on the item's key. What it was showing was
+		// "what is left of the module" measured against the list the save replaced — so a
+		// doctype the save has just put on the rail by hand would be on screen twice.
+		const contents = await import("@/contents");
+		vi.spyOn(contents, "fetchContents").mockResolvedValue([
+			{ doctype: "Sales Invoice", slug: "sales-invoice", module: "accounts" },
+		]);
+
+		const overflow: NavigationItem = {
+			key: "more",
+			item_type: "Module Contents",
+			link_doctype: "Module Def",
+			link_to: "Accounts",
+			label: "More",
+		};
+		const { host, items } = mount([overflow]);
+
+		(row(host, "more") as HTMLButtonElement).click();
+		await flush();
+		expect(row(host, "more:Sales Invoice")).not.toBeNull();
+
+		items.value = [overflow, doctype("Sales Invoice")];
+		await flush();
+
+		expect(row(host, "more:Sales Invoice")).toBeNull();
+		expect(row(host, "more")!.getAttribute("aria-expanded")).toBe("false");
+		expect(row(host, "Sales Invoice")).not.toBeNull();
+	});
+});

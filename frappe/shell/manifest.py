@@ -29,13 +29,19 @@ class SingletonConflict(Exception):
 
 
 def contribution_globs(source_dir: str) -> list[str]:
-	"""The four contribution kinds, as paths. If a file is not at one of these, it is
-	not a contribution — that closure is charter item 1 (#42072)."""
+	"""The five contribution kinds, as paths. If a file is not at one of these, it is
+	not a contribution — that closure is charter item 1 (#42072).
+
+	The fifth is a navigation item kind's renderer (#42420), colocated with the
+	`Navigation Item Type` record it draws — which is what lets the plugin read the type's
+	real NAME off the JSON beside it rather than title-casing the folder. The framework's
+	own eight kinds are here too, so shipping one is the whole of shipping a kind."""
 	return [
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "record.js"),
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "list.js"),
 		os.path.join(source_dir, "*", "custom", "*", "record.js"),
 		os.path.join(source_dir, "*", "frontend", "pages", "*.js"),
+		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
 	]
 
 

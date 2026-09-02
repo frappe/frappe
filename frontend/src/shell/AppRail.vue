@@ -40,20 +40,9 @@
 			{{ boot.app ?? "Apps" }}
 		</RouterLink>
 
-		<div class="mt-2 overflow-y-auto">
-			<component
-				v-for="item in doctypeItems"
-				:key="item.key"
-				:is="item.url ? 'a' : RouterLink"
-				:to="item.url ? undefined : routeFor(item.link_to!)"
-				:href="item.url"
-				class="block truncate rounded px-2 py-1 text-sm text-ink-gray-7 hover:bg-surface-gray-2"
-			>
-				<!-- An item nobody labelled falls back to its destination, which is what a
-						 derived rail row is: an address and no authored presentation. -->
-				{{ item.label ?? item.link_to }}
-			</component>
-		</div>
+		<ul class="mt-2 overflow-y-auto">
+			<RailItem v-for="node in tree" :key="node.item.key" :node="node" :context="context" />
+		</ul>
 
 		<button
 			v-if="arrangeable"
@@ -75,33 +64,52 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
+import type { Addresses } from "@/addresses";
 import type { Boot, NavigationItem } from "@/boot";
-import { routeFor } from "@/router/routeFor";
+import { itemContext } from "@/navigation/context";
+import { buildTree } from "@/navigation/tree";
+import RailItem from "./RailItem.vue";
 
 // `arrangeable` is off on the index at `/apps`, which belongs to no app: there is no rail to
 // arrange there and no address to name one by, since `boot.app` is null and `boot.navigation`
 // is absent. The shell decides it, because the shell is what knows it is on the index.
-const props = defineProps<{ items: NavigationItem[]; arrangeable?: boolean }>();
+const props = defineProps<{
+	items: NavigationItem[];
+	sidebars?: Record<string, NavigationItem[]>;
+	arrangeable?: boolean;
+}>();
 const emit = defineEmits<{ arrange: [] }>();
 
 const boot = inject<Boot>("boot")!;
+const addresses = inject<Addresses>("addresses")!;
+const router = useRouter();
 
-// `DocType` only, for now. A kind is two files — a type record and the JS that says
-// what an item of that kind does on click (#42228) — and none of the other seven kinds
-// has its half yet, so a row of one is a row this cannot render. Skipping it is what
-// #42228 chose for a missing renderer, and no app ships such a row today: every rail on
-// the branch is derived, and derivation produces `DocType` items and nothing else.
-// Renderers, and a rail that draws sections and opens sidebars, are the walking
-// skeleton's (#42233).
-//
-// A row carrying a `url` is rendered as a plain `<a>` above. That is a contributed item
-// whose app said `switches_app`, and leaving a prefix is a full document load — a
-// `RouterLink` would resolve it against this document's router, which cannot reach
-// another prefix at all. A contributed item that does NOT switch is an ordinary
-// `RouterLink` like any other, and needs nothing here: addresses are bench-wide, so a
-// foreign doctype opens under the host's prefix (#42364).
-const doctypeItems = computed(() =>
-	props.items.filter((item) => item.item_type === "DocType" && item.link_to)
+// The renderers decide what every row does; this file no longer knows one kind from
+// another. It used to render `DocType` and drop the other seven, which was #42228's
+// skip-a-missing-renderer rule arrived at by accident: there were no renderers at all, so
+// there was nothing to miss. There are eight now, each shipped the way an app would ship
+// one — the type record plus `frontend/item.js` beside it — so the framework's own kinds
+// and a contributed ninth reach this list through the same door (DP2, #42420).
+const context = computed(() =>
+	itemContext(boot, addresses, router, props.items, props.sidebars ?? {})
+);
+
+// `parent_key` is the whole of hierarchy (#42227), and the server sends the tree flat. A
+// cycle in it is broken here and reported: every row in one has a parent that is present,
+// so the server's orphan promotion passes it through, and rendering the tree would then
+// simply omit the rows — a silent drop of authored navigation.
+const reportedCycles = new Set<string>();
+const tree = computed(() =>
+	buildTree(props.items, (key) => {
+		// Once per key per page session. `buildTree` is pure and recomputes whenever the list
+		// changes, which is what a save does — and a rail that is wrong stays wrong, so the
+		// line would repeat on every save without saying anything new.
+		if (reportedCycles.has(key)) return;
+		reportedCycles.add(key);
+		console.error(
+			`[frappe] navigation item '${key}' is its own ancestor; it is drawn at the top level.`
+		);
+	})
 );
 </script>

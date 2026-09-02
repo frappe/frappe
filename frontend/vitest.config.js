@@ -2,8 +2,8 @@
 //
 // Deliberately NOT `vite.config.js`. That config reads `manifest.json`, which Python
 // generates during `bench build` and .gitignore excludes -- so on a fresh clone, and on
-// CI, it does not exist. The tests have no need of the manifest, the contributions
-// plugin or the build's output settings, so this config takes only what they do need.
+// CI, it does not exist. This config takes only what the tests need, and states the
+// manifest inline rather than reading one.
 //
 // The engine's tests used to run through `crm/frontend2`'s vitest, because that was the
 // only place `frappe-ui` was installed. Now that the engine lives here, the runner and
@@ -13,6 +13,17 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
 import frappeui from "frappe-ui/vite";
+import contributions from "./plugin/contributions.js";
+
+// The contributions plugin IS wanted here, and it is not the reason this config is
+// separate. What it must not do is read `manifest.json`, which `bench build` generates and
+// .gitignore excludes -- so the manifest is written out here instead, with the one app the
+// tests need: frappe's own eight navigation item renderers are contributions like any
+// other (#42420), and a test that mocked the virtual module would exercise the mock rather
+// than the door the whole design rests on.
+const manifest = [
+	{ app: "frappe", source_dir: fileURLToPath(new URL("../frappe", import.meta.url)) },
+];
 
 export default defineConfig({
 	plugins: [
@@ -21,9 +32,19 @@ export default defineConfig({
 		// to resolve them. Every other option this plugin has belongs to the build.
 		...frappeui({ lucideIcons: true }),
 		vue(),
+		contributions(
+			manifest,
+			manifest.map((entry) => entry.source_dir)
+		),
 	],
 	resolve: {
-		alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+		alias: {
+			"@": fileURLToPath(new URL("./src", import.meta.url)),
+			// The surface a CONTRIBUTED file imports from, and the framework's own renderers
+			// are contributed files. Aliased in `vite.config.js` since #42068 and never here,
+			// because until now nothing under test reached one.
+			"@shell": fileURLToPath(new URL("./src/public.ts", import.meta.url)),
+		},
 		// Same reason as the build: `@framework/ui` is linked in as raw source and must
 		// resolve its imports in this tree rather than beside its own.
 		preserveSymlinks: true,

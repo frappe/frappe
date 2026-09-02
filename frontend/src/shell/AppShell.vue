@@ -6,6 +6,11 @@
   contributeSidebarItem, no contributeCommand, no shell-level hook of any kind
   (#42072).
 
+  Both halves go to the rail, and that is why they are one prop pair rather than two
+  components: a rail item of type `Sidebar` is what makes an item LINKED (#42227), and it
+  resolves its own destination out of the sidebar it opens — so the rail cannot draw the
+  rail without holding the sidebars too. The panel that shows one is #42421's.
+
   Navigation lives here, one level above the rail, because it is not the rail's. A save
   returns the WHOLE `{rail, sidebars}` for the prefix and the client swaps it in wholesale
   (#42363) — so hiding a rail item of type `Sidebar` changes which sidebars are reachable, and
@@ -14,7 +19,12 @@
 -->
 <template>
 	<div class="flex h-screen w-screen bg-surface-white text-ink-gray-9">
-		<AppRail :items="navigation.rail" :arrangeable="!!boot.app" @arrange="arranging = true" />
+		<AppRail
+			:items="navigation.rail"
+			:sidebars="navigation.sidebars"
+			:arrangeable="!!boot.app"
+			@arrange="arranging = true"
+		/>
 		<main class="flex min-w-0 flex-1 flex-col">
 			<RouterView />
 		</main>
