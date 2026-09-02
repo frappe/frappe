@@ -1223,6 +1223,33 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
+	def test_distinct_keeps_valid_order_by(self):
+		for field, order_by in (
+			("user_type", "user_type asc"),
+			("user_type as type", "type asc"),
+			("user_type", "`tabUser`.`user_type` asc"),
+		):
+			with self.subTest(field=field, order_by=order_by):
+				query = DatabaseQuery("User").execute(
+					fields=[field], distinct=True, order_by=order_by, run=False
+				)
+				result = DatabaseQuery("User").execute(
+					fields=[field], distinct=True, order_by=order_by, as_list=True
+				)
+
+				self.assertIn("order by", query.lower())
+				self.assertEqual(list(result), sorted(result))
+
+	def test_distinct_drops_unselected_order_by_on_postgres(self):
+		query = DatabaseQuery("User").execute(
+			fields=["user_type"], distinct=True, order_by="creation desc", run=False
+		)
+
+		if frappe.db.db_type == "postgres":
+			self.assertNotIn("order by", query.lower())
+		else:
+			self.assertIn("order by", query.lower())
+
 	def test_field_comparison(self):
 		"""Test DatabaseQuery.execute to test field comparison"""
 		users_unedited = frappe.get_all(

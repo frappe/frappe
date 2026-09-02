@@ -328,7 +328,7 @@ class DatabaseQuery:
 
 		if self.distinct:
 			args.fields = "distinct " + args.fields
-			if frappe.db.db_type == "postgres":
+			if frappe.db.db_type == "postgres" and not self._can_apply_distinct_order_by(args.order_by):
 				# PostgreSQL requires ORDER BY expressions to appear in SELECT list when using DISTINCT
 				args.order_by = ""
 
@@ -473,6 +473,41 @@ from {tables}
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
+
+	def _can_apply_distinct_order_by(self, order_by: str) -> bool:
+		if not order_by:
+			return True
+
+		selected_fields = set()
+		for field in self.fields:
+			if field is None:
+				continue
+			field, *alias = re.split(r"\s+as\s+", field, maxsplit=1, flags=re.IGNORECASE)
+			field = self._normalize_field_reference(field)
+			if field == "*" or field.endswith(".*"):
+				return True
+			if "(" not in field:
+				selected_fields.add(field)
+				selected_fields.add(field.rsplit(".", 1)[-1])
+				if "." not in field:
+					selected_fields.add(f"tab{self.doctype}.{field}")
+			if alias:
+				selected_fields.add(self._normalize_field_reference(alias[0]))
+
+		order_by = re.sub(r"^\s*order\s+by\s+", "", order_by, flags=re.IGNORECASE)
+		for order_field in order_by.split(","):
+			order_field = re.sub(r"\s+(asc|desc)\s*$", "", order_field, flags=re.IGNORECASE)
+			order_field = self._normalize_field_reference(order_field)
+			if order_field.isdigit():
+				if not 0 < cint(order_field) <= len(self.fields):
+					return False
+			elif order_field not in selected_fields:
+				return False
+		return True
+
+	@staticmethod
+	def _normalize_field_reference(field: str) -> str:
+		return field.replace("`", "").replace('"', "").strip()
 
 	def parse_args(self):
 		"""Convert fields and filters from strings to list, dicts."""
