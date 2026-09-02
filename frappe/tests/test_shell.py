@@ -562,7 +562,7 @@ class TestShellBoot(IntegrationTestCase):
 		per app and permission-filtered. A doctype you cannot read is still addressable — you
 		are refused at the record — it is simply not offered to you.
 		"""
-		from frappe.shell.doctypes import get_address_table, contents_for_app
+		from frappe.shell.doctypes import contents_for_app, get_address_table
 
 		self.assertIn("User", get_address_table()["doctypes"])
 		self.assertIn("User", {entry["doctype"] for entry in contents_for_app("frappe")})

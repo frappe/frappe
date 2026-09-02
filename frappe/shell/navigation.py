@@ -242,6 +242,13 @@ def _promote_orphans(items: list[dict]) -> list[dict]:
 	`parent_key` naming a row that is no longer there promotes the child instead of taking it
 	with it, so an app removing a section never silently removes everything under it. It also
 	matches #42230's rule for a user who has reparented into a section the site later withdrew.
+
+	It runs after hidden items are dropped, so hiding a section currently promotes its children
+	rather than taking them with it. That is the rule above applied to a case nobody has decided:
+	an app *removing* a section should not remove what was under it, but a person *hiding* one
+	may well mean the whole branch. Nothing exercises it -- no app ships a section and nothing
+	writes a hide -- and #42363 owns the editor that would first produce one, so it is recorded
+	here rather than settled by whichever line happened to be written first.
 	"""
 	present = {item_key(item) for item in items}
 	return [
@@ -365,7 +372,11 @@ def _sidebar_layers(addresses: list[tuple[str, str]]) -> dict[tuple[str, str], d
 		},
 		fields=["name", "standard", "user", "link_doctype", "link_to"],
 	)
-	records = [record for record in records if (record.link_doctype, record.link_to) in set(addresses)]
+	# The query filters on `link_doctype` alone, since a tuple is not a filter; the pair is
+	# checked here. A row at an address this app does not ship is another app's, or a delta over
+	# an address nobody ships, and neither belongs in this payload.
+	wanted = set(addresses)
+	records = [record for record in records if (record.link_doctype, record.link_to) in wanted]
 
 	# `navigation_items`, never `items`. One `Sidebar` document holds both tables — desk v1's
 	# rows and desk v2's — so naming the parentfield is what keeps a v2 resolver from silently

@@ -37,6 +37,7 @@ import frappe
 from frappe import _
 from frappe.app_state import get_disabled_modules
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.navigation_item.navigation_item import validate_item_keys
 from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
@@ -204,6 +205,7 @@ class Sidebar(Document, DeskViews):
 		self.validate_title_is_unique()
 		self.validate_standard()
 		self.clear_stored_keys()
+		self.validate_navigation_item_keys()
 
 	def before_save(self):
 		self.rename_to_title()
@@ -348,6 +350,21 @@ class Sidebar(Document, DeskViews):
 		from frappe.desk.doctype.dock.dock import rename_sidebar_rows
 
 		rename_sidebar_rows(old_name, new_name)
+
+	def validate_navigation_item_keys(self):
+		"""Hold desk v2's rows to the same rule `Rail` holds its own to: an app's rows each carry
+		a unique key.
+
+		Desk v1's `items` are exempt, and `clear_stored_keys` above blanks their key column
+		outright -- a v1 base row is identified by its own columns, so a stored key there would be
+		a second, possibly stale answer. Desk v2 reversed that: the key *is* the identity, so it
+		has to exist and it has to be unique, or the deltas filed against it go inert and the site
+		silently loses its arrangement.
+		"""
+		if not self.standard:
+			return
+
+		validate_item_keys(self.navigation_items)
 
 	def clear_stored_keys(self):
 		"""Blank the `key` column on every item.
