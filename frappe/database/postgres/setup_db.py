@@ -1,6 +1,8 @@
 import os
 import re
 
+from psycopg2 import sql
+
 import frappe
 from frappe.database.db_manager import DbManager
 from frappe.utils import cint
@@ -22,7 +24,12 @@ def setup_database():
 	if psql_version := root_conn.sql("SHOW server_version_num", as_dict=True):
 		semver_version_num = psql_version[0].get("server_version_num") or "140000"
 		if cint(semver_version_num) > 150000:
-			root_conn.sql(f'ALTER DATABASE "{frappe.conf.db_name}" OWNER TO "{frappe.conf.db_user}"')
+			_set_database_owner(
+				root_conn,
+				frappe.conf.db_name,
+				frappe.conf.db_user,
+				cint(semver_version_num),
+			)
 	root_conn.close()
 
 	# On Azure Managed PostgreSQL the public schema is owned by the azure_pg_admin role.
@@ -58,6 +65,30 @@ def setup_database():
 			db_conn.rollback()
 	finally:
 		db_conn.close()
+
+
+def _set_database_owner(root_conn, db_name: str, db_user: str, postgres_version: int) -> None:
+	role_privilege = "SET" if postgres_version >= 160000 else "MEMBER"
+	can_set_role = root_conn.sql(
+		"SELECT pg_has_role(current_user, %s, %s)",
+		(db_user, role_privilege),
+		pluck=True,
+	)
+	needs_membership = not can_set_role or not can_set_role[0]
+
+	if needs_membership:
+		root_conn.execute_query(sql.SQL("GRANT {} TO current_user").format(sql.Identifier(db_user)))
+
+	try:
+		root_conn.execute_query(
+			sql.SQL("ALTER DATABASE {} OWNER TO {}").format(
+				sql.Identifier(db_name),
+				sql.Identifier(db_user),
+			)
+		)
+	finally:
+		if needs_membership:
+			root_conn.execute_query(sql.SQL("REVOKE {} FROM current_user").format(sql.Identifier(db_user)))
 
 
 def bootstrap_database(verbose, source_sql=None):
