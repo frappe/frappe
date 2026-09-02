@@ -12,17 +12,24 @@ const event = (over = {}) => ({
 	...over,
 })
 
-test("cmd+b matches the sidebar shortcut", () => {
+test("cmd+b and ctrl+b match the sidebar shortcut", () => {
 	assert.equal(findShortcut(event({ metaKey: true })), SHORTCUTS[0])
+	assert.equal(findShortcut(event({ ctrlKey: true })), SHORTCUTS[0])
 })
 
 test("cmd+option+b matches the workspace shortcut", () => {
 	assert.equal(findShortcut(event({ metaKey: true, altKey: true })), SHORTCUTS[1])
+	assert.equal(findShortcut(event({ ctrlKey: true, altKey: true })), SHORTCUTS[1])
+})
+
+test("cmd+comma and ctrl+comma open settings", () => {
+	assert.equal(findShortcut(event({ metaKey: true, code: "Comma" })), SHORTCUTS[2])
+	assert.equal(findShortcut(event({ ctrlKey: true, code: "Comma" })), SHORTCUTS[2])
+	assert.equal(findShortcut(event({ code: "Comma" })), null)
 })
 
 test("modifiers must match exactly", () => {
 	assert.equal(findShortcut(event()), null)
 	assert.equal(findShortcut(event({ metaKey: true, shiftKey: true })), null)
-	assert.equal(findShortcut(event({ metaKey: true, ctrlKey: true })), null)
 	assert.equal(findShortcut(event({ metaKey: true, code: "KeyA" })), null)
 })
