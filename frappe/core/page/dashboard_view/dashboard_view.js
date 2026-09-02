@@ -72,7 +72,6 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		}
 
 		missing_container.hide();
-		frappe.last_dashboard = doc.name;
 
 		const renderer = doc.__onload?.island_renderer;
 		if (renderer) {

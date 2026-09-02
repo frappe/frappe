@@ -203,8 +203,8 @@ the detail.
 ### Budget
 
 `budget` sets the JS plus CSS bytes one island may load — its entry chunk, the chunks it
-statically imports, and the app's stylesheet. An island over the budget **fails the
-build**. The default is 2 MB, which is a backstop and not a target: an island rendering
+statically imports, and the app's stylesheet. An island over the budget makes the build
+**warn**. The default is 2 MB, which is a backstop and not a target: an island rendering
 one frappe-ui Button already weighs 288 kB, and Insights' dashboard island weighs 1.78 MB.
 Pin `budget` to your own first clean build plus slack, where the number means something.
 `forbiddenImports` is an optional app-local escape hatch that names a coupling by
