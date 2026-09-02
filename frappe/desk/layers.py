@@ -375,7 +375,13 @@ def _leads_back(target: str, key: str, anchored: dict[str, str]) -> bool:
 
 
 def _place(items: list[dict], item: dict, anchor: dict, *, key: Key):
-	"""Move `item` to where the anchor says, and give it the parent that implies.
+	"""Move `item` and everything under it to where the anchor says.
+
+	The row travels with its **subtree**. The list is flat and the tree is `parent_key`, so
+	moving a section on its own leaves its children sitting where they were: the tree is still
+	right, since a reader groups by `parent_key`, but the flat order no longer has children
+	following their parent -- and that invariant is what every reader of this list assumes,
+	including the editor that will read it straight back and draw it in order.
 
 	`after` and `before` put a row beside another, so it takes that row's parent: beside means
 	beside, and a sibling that landed at a different depth would be somewhere else entirely. An
@@ -387,25 +393,72 @@ def _place(items: list[dict], item: dict, anchor: dict, *, key: Key):
 	that section would give, which is what it asked for.
 	"""
 	beside = anchor["after"] or anchor["before"]
-	if _index_of(items, beside or anchor["parent_key"], key=key) is None:
+	target = beside or anchor["parent_key"]
+	if _index_of(items, target, key=key) is None:
 		# Unreachable as long as an anchor only ever resolves against a key that is in the list,
 		# which is what `target_key` promises. Checked anyway because one caller is boot: an
 		# exception here would blank the shell over a misplaced navigation row.
 		return
 
-	items.pop(_position_of(items, item))
+	block = _subtree(items, item, key=key)
 
-	if beside:
-		at = _index_of(items, beside, key=key)
-		parent = anchor["parent_key"]
-		if parent is None:
-			parent = items[at].get("parent_key")
-		item["parent_key"] = parent
-		items.insert(at + 1 if anchor["after"] else at, item)
+	# An anchor naming a row inside the subtree being moved has nowhere to land, because the
+	# target travels with it. Refused rather than resolved, which is what the cycle guard does
+	# with the same shape of request one level up.
+	if any(entry is not item and key(entry) == target for entry in block):
 		return
 
-	item["parent_key"] = anchor["parent_key"]
-	items.insert(_last_child(items, anchor["parent_key"], key=key) + 1, item)
+	for entry in block:
+		items.pop(_position_of(items, entry))
+
+	if beside:
+		parent = anchor["parent_key"]
+		if parent is None:
+			parent = items[_index_of(items, beside, key=key)].get("parent_key")
+		item["parent_key"] = parent
+		# `after` clears the target's own subtree, for the same reason the moving row brings its
+		# own: landing between a row and its children is not a position anybody can mean.
+		at = _end_of(items, beside, key=key) + 1 if anchor["after"] else _index_of(items, beside, key=key)
+	else:
+		item["parent_key"] = anchor["parent_key"]
+		# Appending to a section is landing after everything already in it.
+		at = _end_of(items, anchor["parent_key"], key=key) + 1
+
+	items[at:at] = block
+
+
+def _subtree(items: list[dict], item: dict, *, key: Key) -> list[dict]:
+	"""`item` and every row beneath it, in the order they already sit in."""
+	inside = _beneath(items, key(item), key=key)
+
+	return [entry for entry in items if key(entry) in inside]
+
+
+def _end_of(items: list[dict], root: str, *, key: Key) -> int:
+	"""The index of the last row in `root`'s subtree, or of `root` itself when it has none."""
+	inside = _beneath(items, root, key=key)
+
+	return max(index for index, entry in enumerate(items) if key(entry) in inside)
+
+
+def _beneath(items: list[dict], root: str, *, key: Key) -> set[str]:
+	"""`root` and every key under it.
+
+	Grown to a fixpoint rather than in one pass, so it does not depend on a parent preceding its
+	children -- which is the very invariant this exists to keep, and so is not one to assume
+	while keeping it.
+	"""
+	inside = {root}
+
+	while True:
+		found = {
+			key(entry) for entry in items if entry.get("parent_key") in inside and key(entry) not in inside
+		}
+		if not found:
+			break
+		inside |= found
+
+	return inside
 
 
 def _index_of(items: list[dict], name: str, *, key: Key) -> int | None:
@@ -416,14 +469,3 @@ def _position_of(items: list[dict], item: dict) -> int:
 	"""Where this exact row is. By identity, not by equality: `list.remove` takes the first row
 	that compares equal, which is the right one only for as long as no two rows can match."""
 	return next(index for index, entry in enumerate(items) if entry is item)
-
-
-def _last_child(items: list[dict], parent: str, *, key: Key) -> int:
-	"""The index of `parent`'s last child, or of `parent` itself when it has none."""
-	at = _index_of(items, parent, key=key)
-
-	for index, entry in enumerate(items):
-		if entry.get("parent_key") == parent:
-			at = index
-
-	return at

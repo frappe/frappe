@@ -302,6 +302,57 @@ class TestHidingASection(NavigationTestCase):
 		entry = resolve_navigation(APP)["rail"][0]
 		self.assertNotIn("parent_key", entry)
 
+	def test_moving_a_section_takes_its_children_in_the_list_too(self):
+		"""The list is flat and the tree is `parent_key`, so a section that moved on its own
+		would leave its children sitting where they were. The tree would still read correctly --
+		a reader groups by `parent_key` -- but the flat order would no longer have children
+		following their parent, and the editor reads this list straight back and draws it in
+		order. So a save would come back looking like a different arrangement.
+		"""
+		make_rail(
+			[
+				item("s1", item_type="Section"),
+				doctype_item("a", "User", parent_key="s1"),
+				item("s2", item_type="Section"),
+				doctype_item("b", "Role", parent_key="s2"),
+			],
+			standard=1,
+		)
+
+		shown = showing(
+			{"key": "s2"},
+			{"key": "b", "parent_key": "s2"},
+			{"key": "s1"},
+			{"key": "a", "parent_key": "s1"},
+		)
+		save_arrangement("Rail", APP, shown)
+
+		self.assertEqual(rail_keys(), ["s2", "b", "s1", "a"])
+
+	def test_what_the_editor_saves_is_what_it_reads_back(self):
+		"""The property the one above protects, stated end to end: a save followed by a read
+		gives the same list, so the editor never redraws itself into an arrangement nobody
+		made."""
+		make_rail(
+			[
+				item("s1", item_type="Section"),
+				doctype_item("a", "User", parent_key="s1"),
+				item("s2", item_type="Section"),
+				doctype_item("b", "Role", parent_key="s2"),
+			],
+			standard=1,
+		)
+
+		shown = showing(
+			{"key": "s2"},
+			{"key": "b", "parent_key": "s2"},
+			{"key": "s1"},
+			{"key": "a", "parent_key": "s1"},
+		)
+		save_arrangement("Rail", APP, shown)
+
+		self.assertEqual(keys(get_arrangement("Rail", APP)), [row["key"] for row in shown])
+
 	def test_a_section_nested_in_a_hidden_one_goes_too(self):
 		make_rail(
 			[
