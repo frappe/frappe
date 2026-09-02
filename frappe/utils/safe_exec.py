@@ -561,6 +561,7 @@ def exec_safe_globals():
 			request=getattr(frappe.local, "request", {}),
 		)
 	)
+<<<<<<< HEAD
 	out.frappe.db.update(
 		NamespaceDict(
 			get_list=frappe.get_list,
@@ -585,6 +586,9 @@ def exec_safe_globals():
 		)
 	)
 	return out
+=======
+	return _update_namespace(render_safe, exec_safe)
+>>>>>>> 6e15334 (fix(safe_exec): remove request completely)
 
 
 def get_keys_for_autocomplete(
