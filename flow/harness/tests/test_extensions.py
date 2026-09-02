@@ -123,6 +123,21 @@ async def test_extension_tool_is_available_to_agent_loop(tmp_path):
 	assert results[0]["content"] == "Hello, Flow!"
 
 
+def test_extension_tools_can_be_selected_per_session(tmp_path):
+	path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(path)])
+
+	every = store.create(SessionConfig(cwd=str(tmp_path), tools=["grep"]))
+	none = store.create(SessionConfig(cwd=str(tmp_path), tools=["grep"], extension_tools=[]))
+	named = store.create(SessionConfig(cwd=str(tmp_path), tools=[], extension_tools=["hello", "gone"]))
+
+	assert list(every.server_tools) == ["grep", "hello"]
+	assert list(none.server_tools) == ["grep"]
+	assert list(named.server_tools) == ["hello"]
+	assert "Greet someone" in named.config.system_prompt
+	assert "Greet someone" not in none.config.system_prompt
+
+
 def test_extension_diagnostics_endpoint(tmp_path):
 	extension = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
 	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(extension)])

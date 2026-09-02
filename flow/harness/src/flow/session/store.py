@@ -166,10 +166,12 @@ class SessionStore:
 		"""Reject tools the client asked for that the policy does not allow.
 
 		A client that never set `tools` is fine — its default list is clamped
-		at create instead of erroring."""
-		if self.tool_allowlist is None or "tools" not in config.model_fields_set:
+		at create instead of erroring. `extension_tools` is explicit whenever sent."""
+		if self.tool_allowlist is None:
 			return
-		blocked = sorted(set(config.tools) - self.tool_allowlist)
+		requested = set(config.tools) if "tools" in config.model_fields_set else set()
+		requested.update(config.extension_tools or ())
+		blocked = sorted(requested - self.tool_allowlist)
 		if blocked:
 			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
 
@@ -202,7 +204,7 @@ class SessionStore:
 
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		selected = {name: BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS}
-		composed = self.extension_runtime.compose_tools(selected)
+		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed
 		# runs on every load, so old sessions and extension tools are capped too

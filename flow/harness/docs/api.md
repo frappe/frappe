@@ -38,7 +38,7 @@ One daemon can serve many sites (a Frappe bench): point `FLOW_TENANTS_FILE` at a
 `POST /sessions` accepts a `SessionConfig`. Important fields are:
 
 - `model`, `credential_id`, and optional `reasoning_effort` (`off` through `max`);
-- `cwd`, `tools`, `client_tools`, and `auto_approve` (default: `false`);
+- `cwd`, `tools`, `extension_tools` (omit it to get every loaded extension tool), `client_tools`, and `auto_approve` (default: `false`);
 - `system_prompt` for a complete prompt override, or `system_preamble`, `system_suffix`, and `system_append` for composition;
 - `skills_enabled`, `skill_paths`, and compaction settings.
 

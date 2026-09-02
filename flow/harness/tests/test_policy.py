@@ -179,6 +179,15 @@ def test_allowlist_caps_extension_tools(tmp_path):
 	assert set(session.server_tools) == {"read_file"}
 
 
+def test_allowlist_rejects_explicitly_requested_extension_tools(tmp_path):
+	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
+	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read_file"])
+	with pytest.raises(PolicyError, match="hello"):
+		capped.create(SessionConfig(cwd=str(tmp_path), extension_tools=["hello"]))
+	# left unsent, the list is clamped rather than refused, like the built-in default
+	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read_file"}
+
+
 def test_allowlist_filters_stored_session_on_load(tmp_path):
 	sid = _store(tmp_path).create(SessionConfig(cwd=str(tmp_path))).id
 	reopened = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist)

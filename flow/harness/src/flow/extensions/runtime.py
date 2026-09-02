@@ -124,9 +124,17 @@ class ExtensionRuntime:
 		for event, handlers in self._handlers.items():
 			self._handlers[event] = [entry for entry in handlers if entry[0] != extension_name]
 
-	def compose_tools(self, builtin_tools: dict[str, Tool]) -> dict[str, Tool]:
-		"""Return selected built-ins plus extension tools; extensions override by name."""
-		return {**builtin_tools, **self._tools}
+	def compose_tools(
+		self, builtin_tools: dict[str, Tool], extension_names: list[str] | None = None
+	) -> dict[str, Tool]:
+		"""Return selected built-ins plus extension tools — every one, or just
+		`extension_names`; extensions override by name."""
+		extension_tools = (
+			self._tools
+			if extension_names is None
+			else {name: tool for name, tool in self._tools.items() if name in extension_names}
+		)
+		return {**builtin_tools, **extension_tools}
 
 	# --- tool hook dispatch (semantics ported from pi/tau) --------------------
 
