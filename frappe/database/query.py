@@ -9,7 +9,6 @@ from pypika.queries import QueryBuilder, Table
 from pypika.terms import (
 	AggregateFunction,
 	ArithmeticExpression,
-	Bracket,
 	ExistsCriterion,
 	Star,
 	Term,
@@ -267,6 +266,7 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
+		self._user_permissions = None
 		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
@@ -1624,7 +1624,7 @@ class Engine:
 		if self.ignore_user_permissions:
 			return conditions
 
-		user_permissions = frappe.permissions.get_user_permissions(self.user)
+		user_permissions = self._get_user_permissions()
 
 		if not user_permissions:
 			return conditions
@@ -1640,11 +1640,14 @@ class Engine:
 		return conditions
 
 	def get_child_user_permission_conditions(self, doctype: str, table: Table) -> list[Criterion]:
-		"""Exclude parents that contain a restricted value in a stored child Link field."""
+		"""Exclude parents containing a stored child Link value denied by User Permissions.
+
+		This mirrors `has_user_permission`; target DocType permissions do not restrict the parent.
+		"""
 		if self.ignore_user_permissions:
 			return []
 
-		user_permissions = frappe.permissions.get_user_permissions(self.user)
+		user_permissions = self._get_user_permissions()
 		if not user_permissions:
 			return []
 
@@ -1677,9 +1680,16 @@ class Engine:
 				.where(child_table.parentfield == table_field.fieldname)
 				.where(Criterion.any(restricted_value_conditions))
 			)
-			conditions.append(ExistsCriterion(Bracket(restricted_child_query)).negate())
+			conditions.append(ExistsCriterion(restricted_child_query).negate())
 
 		return conditions
+
+	def _get_user_permissions(self):
+		"""Fetch User Permissions once while building a query."""
+		if self._user_permissions is None:
+			self._user_permissions = frappe.permissions.get_user_permissions(self.user)
+
+		return self._user_permissions
 
 	def get_user_permission_values(self, df, doctype: str, user_permissions) -> list[str]:
 		"""Return values from User Permissions that apply to the given DocType."""
@@ -1900,7 +1910,7 @@ class Engine:
 
 		if not self.ignore_user_permissions:
 			match_filters = []
-			user_permissions = frappe.permissions.get_user_permissions(self.user)
+			user_permissions = self._get_user_permissions()
 			if not user_permissions:
 				return match_filters
 
@@ -1911,24 +1921,8 @@ class Engine:
 
 				options = df.get("options")
 
-				if user_permission_values := user_permissions.get(options, {}):
-					docs = []
-
-					for permission in user_permission_values:
-						applicable_for = permission.get("applicable_for")
-						doc = permission.get("doc")
-						if not applicable_for:
-							docs.append(doc)
-
-						elif df.get("fieldname") == "name" and self.reference_doctype:
-							if applicable_for == self.reference_doctype:
-								docs.append(doc)
-
-						elif applicable_for == self.doctype:
-							docs.append(doc)
-
-					if docs:
-						permission_filters[options] = docs
+				if docs := self.get_user_permission_values(df, self.doctype, user_permissions):
+					permission_filters[options] = docs
 
 			if permission_filters:
 				match_filters.append(permission_filters)

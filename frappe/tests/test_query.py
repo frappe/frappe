@@ -2456,7 +2456,7 @@ class TestQuery(IntegrationTestCase):
 		# Query should succeed and return results (tuple or list)
 		self.assertTrue(len(result) >= 0, "Query should succeed with proper permissions")
 
-	def test_ignore_user_permissions_applies_to_child_fields(self):
+	def test_child_query_checks_user_permissions_on_sibling_rows(self):
 		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
 		test_user = "test2@example.com"
@@ -2481,6 +2481,8 @@ class TestQuery(IntegrationTestCase):
 			clear_user_permissions_for_doctype("Role", test_user)
 			add_user_permission("Role", "Blogger", test_user, ignore_permissions=True, applicable_for="User")
 			frappe.set_user(test_user)
+			self.assertTrue(frappe.has_permission("User", doc=allowed_user))
+			self.assertFalse(frappe.has_permission("User", doc=mixed_user))
 
 			def get_visible_users(ignore_user_permissions=False):
 				return frappe.qb.get_query(
