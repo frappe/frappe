@@ -492,6 +492,7 @@ export function createFlowStore(client) {
 	async function reloadExtensions() {
 		const info = await guard(() => client.reloadExtensions())
 		if (info === null) return
+		await refreshTools() // a reload can add or drop extension tools
 		const names = info.extensions.map((extension) => extension.name)
 		const errors = info.diagnostics.filter((diagnostic) => diagnostic.severity === "error")
 		if (errors.length) notify(`Extension error: ${errors[0].message}`, "error")

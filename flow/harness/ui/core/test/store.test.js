@@ -420,3 +420,17 @@ test("the active preset shapes new sessions and joins the custom instructions", 
 	assert.equal(configs[2].system_suffix, "Be brief.")
 	assert.equal("s3" in flow.state.sessionPresets, false)
 })
+
+test("reloading extensions refetches the tool list", async () => {
+	const client = {
+		async reloadExtensions() {
+			return { extensions: [{ name: "hello" }], diagnostics: [] }
+		},
+		async tools() {
+			return { tools: [{ name: "hello", description: "Say hi", extension: "hello" }] }
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.reloadExtensions()
+	assert.deepEqual(flow.state.tools, [{ name: "hello", description: "Say hi", extension: "hello" }])
+})
