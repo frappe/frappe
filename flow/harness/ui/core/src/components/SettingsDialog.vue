@@ -6,7 +6,7 @@
 		:open="flow.state.settingsOpen"
 		@update:open="flow.setSettingsOpen($event)"
 	>
-		<SettingsSidebar class="sm:pt-4">
+		<SettingsSidebar class="sm:pt-3">
 			<SettingsNavGroup>
 				<template #label>
 					<span class="mb-1 block text-xs font-medium text-ink-gray-7">Settings</span>
@@ -20,25 +20,27 @@
 			</SettingsNavGroup>
 		</SettingsSidebar>
 
-		<SettingsContent>
-			<SettingsPanel value="general">
-				<div class="flow-settings-body">
+		<!-- min-w-0 on the pane and each panel: long unbreakable content (paths)
+		     must not widen them past the dialog -->
+		<SettingsContent class="min-w-0">
+			<SettingsPanel value="general" class="min-w-0">
+				<div class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
 					<h2 class="text-xl font-semibold text-ink-gray-9">General</h2>
-					<p class="mt-1.5 text-sm text-ink-gray-6">Instructions and defaults for new chats.</p>
+					<p class="mt-1 text-sm leading-5 text-ink-gray-6">Defaults for new chats.</p>
 
 					<div class="mt-4 divide-y divide-outline-gray-1">
 						<div class="flex items-center gap-8 py-4">
 							<div class="min-w-0 flex-1">
 								<div class="text-base font-medium text-ink-gray-9">Approval mode</div>
-								<p class="mt-2 text-sm text-ink-gray-6">Default for new chats, and applied to the current one.</p>
+								<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Applies to new chats and the current one.</p>
 							</div>
 							<Select :model-value="flow.state.prefs.mode" :options="MODES" @update:model-value="flow.setMode($event)" />
 						</div>
 
 						<div class="py-4">
 							<div class="text-base font-medium text-ink-gray-9">Custom instructions</div>
-							<p class="mt-2 text-sm text-ink-gray-6">
-								Added to the system prompt of every new chat. The current chat keeps its prompt.
+							<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">
+								Added to the prompt of every new chat.
 							</p>
 							<Textarea
 								v-model="draft"
@@ -54,13 +56,20 @@
 				</div>
 			</SettingsPanel>
 
-			<SettingsPanel value="appearance">
-				<div class="flow-settings-body">
+			<SettingsPanel value="skills" class="min-w-0">
+				<SettingsSkills />
+			</SettingsPanel>
+
+			<SettingsPanel value="appearance" class="min-w-0">
+				<div class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
 					<h2 class="text-xl font-semibold text-ink-gray-9">Appearance</h2>
-					<p class="mt-1.5 text-sm text-ink-gray-6">Theme for the Flow interface.</p>
+					<p class="mt-1 text-sm leading-5 text-ink-gray-6">Pick a theme.</p>
 
 					<div class="mt-4 py-4">
-						<ThemeSwitcher class="flow-theme-switcher" name="Flow" />
+						<div class="text-base font-medium text-ink-gray-9">Theme</div>
+						<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Switch between light, dark, or system theme.</p>
+						<!-- own heading above: the switcher's built-in one uses a smaller type scale -->
+						<ThemeSwitcher class="flow-theme-switcher mt-4" label="" description="" name="Flow" />
 					</div>
 				</div>
 			</SettingsPanel>
@@ -83,6 +92,7 @@ import {
 import { Textarea } from "frappe-ui/src/components/Textarea"
 import { ThemeSwitcher } from "frappe-ui/src/components/ThemeSwitcher"
 import FeatherIcon from "./FeatherIcon.vue"
+import SettingsSkills from "./SettingsSkills.vue"
 
 const flow = inject("flow")
 const tab = ref("general")
@@ -104,6 +114,7 @@ function save() {
 const SECTIONS = [
 	{ id: "general", label: "General", icon: "sliders" },
 	{ id: "appearance", label: "Appearance", icon: "sun" },
+	{ id: "skills", label: "Skills", icon: "book-open" },
 ]
 const MODES = [
 	{ label: "Ask for approval", value: "ask" },
@@ -112,13 +123,11 @@ const MODES = [
 </script>
 
 <style scoped>
-.flow-settings-body {
-	min-height: 0;
-	flex: 1;
-	overflow-y: auto;
-	padding: 2rem 2rem 2.5rem;
+/* field labels read like the section titles next to them */
+:deep([data-slot="label"]) {
+	color: var(--ink-gray-9);
+	font-weight: 500;
 }
-
 /* desk layout: cards share the row evenly at equal height, System first */
 .flow-theme-switcher :deep([data-slot="control"]) {
 	align-items: stretch;

@@ -15,7 +15,7 @@
 		<Transition name="flow-toast">
 			<div
 				v-if="toast"
-				class="fixed bottom-5 right-5 z-50 flex max-w-[360px] items-start gap-2 rounded-6 border border-outline-gray-2 bg-surface-base px-3.5 py-2.5 shadow-md"
+				class="fixed bottom-5 right-5 z-[9999] flex max-w-[360px] items-start gap-2 rounded-6 border border-outline-gray-2 bg-surface-base px-3.5 py-2.5 shadow-md"
 			>
 				<FeatherIcon
 					:name="toast.kind === 'error' ? 'alert-circle' : 'info'"
