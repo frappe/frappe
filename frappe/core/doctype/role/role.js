@@ -770,7 +770,7 @@ class WorkspacesTab extends RoleAccessTab {
 					fieldname: "title",
 					type: "link",
 					text: (row) => row.title || row.name,
-					route: (row) => [row.name],
+					route: (row) => [frappe.router.slug(row.name)],
 				},
 				{ label: __("Module"), fieldname: "module" },
 				this.remove_action_column(),
