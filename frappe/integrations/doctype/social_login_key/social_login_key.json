@@ -20,6 +20,11 @@
   "base_url",
   "configuration_section",
   "sign_ups",
+<<<<<<< HEAD
+=======
+  "show_in_resource_metadata",
+  "trust_email_without_verified_claim",
+>>>>>>> c959da8 (feat(oauth): add config. to social login key doctype)
   "client_urls",
   "authorize_url",
   "access_token_url",
@@ -172,11 +177,32 @@
    "fieldtype": "Select",
    "label": "Sign ups",
    "options": "\nAllow\nDeny"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "1",
+   "description": "Allows clients to view this as an Authorization Server when querying the <code>/.well-known/oauth-protected-resource</code> end point.",
+   "fieldname": "show_in_resource_metadata",
+   "fieldtype": "Check",
+   "label": "Show in Resource Metadata"
+  },
+  {
+   "default": "0",
+   "description": "Only enable this if you trust this provider's user accounts to be legitimate even when it doesn't send an <code>email_verified</code> claim (e.g. a self-hosted identity provider where email verification isn't enforced). Otherwise, logins presenting an unverified email are rejected.",
+   "fieldname": "trust_email_without_verified_claim",
+   "fieldtype": "Check",
+   "label": "Trust Email Without Verified Claim"
+>>>>>>> c959da8 (feat(oauth): add config. to social login key doctype)
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-09-06 15:22:46.342392",
+=======
+ "modified": "2026-09-02 15:59:29.520731",
+>>>>>>> c959da8 (feat(oauth): add config. to social login key doctype)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",
