@@ -271,3 +271,36 @@ class TestEmailRewrite(IntegrationTestCase):
 		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
 		self.assertEqual(blob_name, blob.name)
 		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
+
+	def test_rewriter_setup_failure_returns_original_html(self):
+		"""A failure before any match (site URL lookup) never blocks sending."""
+		blob = self.make_blob()
+		html = f'<a href="/f/{blob.name}/a.txt">a</a>'
+
+		with (
+			storage_v2_enabled(),
+			patch("frappe.storage.email.get_url", side_effect=Exception("boom")),
+		):
+			self.assertEqual(rewrite_urls_for_email(html), html)
+
+	def test_rewriter_setup_failure_returns_original_text(self):
+		"""Same guard on the plain-text body."""
+		blob = self.make_blob()
+		text = f"see /f/{blob.name}/a.txt"
+
+		with (
+			storage_v2_enabled(),
+			patch("frappe.storage.email.get_url", side_effect=Exception("boom")),
+		):
+			self.assertEqual(rewrite_text_urls_for_email(text), text)
+
+	def test_text_match_failure_leaves_that_url_unsigned(self):
+		"""A per-match failure keeps the original URL, the rest of the text sends."""
+		blob = self.make_blob()
+		text = f"see /f/{blob.name}/a.txt now"
+
+		with (
+			storage_v2_enabled(),
+			patch("frappe.storage.url.make_signature", side_effect=Exception("boom")),
+		):
+			self.assertEqual(rewrite_text_urls_for_email(text), text)

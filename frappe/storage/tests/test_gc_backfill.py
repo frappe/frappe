@@ -3,11 +3,13 @@
 import hashlib
 import io
 import os
+import sys
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 import frappe.storage
-from frappe.storage import backfill
+from frappe.storage import backfill, gc
 from frappe.storage.blob import put_blob
 from frappe.storage.gc import collect_garbage
 from frappe.storage.memory_driver import fake
@@ -133,9 +135,104 @@ class TestCollectGarbage(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("File Blob", blob.name))
 			self.assertTrue(store.exists(blob.key))
 
+	def blob_row(self, blob):
+		"""The row shape get_orphan_blobs hands to delete_blob."""
+		return frappe._dict(name=blob.name, key=blob.key, driver=blob.driver, is_private=blob.is_private)
+
+	def empty_stats(self):
+		return {"blobs_deleted": 0, "bytes_delete_errors": 0, "upload_sessions_expired": 0}
+
+	def gc_cutoff(self):
+		return add_to_date(now_datetime(), hours=-gc.MIN_AGE_HOURS)
+
+	def test_no_file_blob_table_is_a_no_op(self):
+		# a site that never ran the v2 migration must not error out
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+
+			with patch("frappe.database.database.Database.table_exists", return_value=False) as exists:
+				stats = collect_garbage()
+
+			exists.assert_called_once_with("File Blob")
+			self.assertEqual(stats, self.empty_stats())
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertTrue(store.exists(blob.key))
+
+	def test_driver_delete_failure_keeps_row_and_counts_error(self):
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+			stats = self.empty_stats()
+
+			with patch.object(store, "delete", side_effect=OSError("driver down")):
+				deleted = gc.delete_blob(
+					self.blob_row(blob), self.gc_cutoff(), frappe.logger("storage"), stats
+				)
+
+			self.assertFalse(deleted)
+			self.assertEqual(stats["bytes_delete_errors"], 1)
+			self.assertEqual(stats["blobs_deleted"], 0)
+			# row kept so the next run retries the bytes
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertTrue(store.exists(blob.key))
+
+	def test_row_delete_failure_keeps_row(self):
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+			stats = self.empty_stats()
+
+			with patch("frappe.delete_doc", side_effect=Exception("row locked")):
+				deleted = gc.delete_blob(
+					self.blob_row(blob), self.gc_cutoff(), frappe.logger("storage"), stats
+				)
+
+			self.assertFalse(deleted)
+			self.assertEqual(stats["blobs_deleted"], 0)
+			self.assertEqual(stats["bytes_delete_errors"], 0)  # bytes went, only the row failed
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertFalse(store.exists(blob.key))
+
+	def test_blob_touched_after_selection_is_not_deleted(self):
+		# the re-check under the row lock rejects a blob that is no longer stale
+		with flag_on(), fake() as store:
+			blob = self.put()  # modified = now, so younger than the cutoff
+			cutoff = self.gc_cutoff()
+			stats = self.empty_stats()
+
+			deleted = gc.delete_blob(self.blob_row(blob), cutoff, frappe.logger("storage"), stats)
+
+			self.assertFalse(deleted)
+			self.assertEqual(stats, self.empty_stats())
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertTrue(store.exists(blob.key))
+			self.assertFalse(gc.is_still_orphan(blob.name, cutoff))
+
+	def test_is_still_orphan_is_false_for_a_missing_row(self):
+		self.assertFalse(gc.is_still_orphan(frappe.generate_hash(length=20), self.gc_cutoff()))
+
 	def test_gc_is_registered_as_daily_scheduler_event(self):
 		daily = frappe.get_hooks("scheduler_events").get("daily", [])
 		self.assertIn("frappe.storage.gc.collect_garbage", daily)
+
+
+class TestExpireUploadSessions(IntegrationTestCase):
+	"""The upload sweep is best effort: it must never break the GC run."""
+
+	def logger(self):
+		return frappe.logger("storage")
+
+	def test_missing_upload_module_returns_zero(self):
+		with patch.dict(sys.modules, {"frappe.storage.upload": None}):
+			self.assertEqual(gc.expire_upload_sessions(self.logger()), 0)
+
+	def test_failing_sweep_is_logged_and_returns_zero(self):
+		with patch(
+			"frappe.storage.upload.expire_stale_upload_sessions", side_effect=Exception("disk gone")
+		) as sweep:
+			self.assertEqual(gc.expire_upload_sessions(self.logger()), 0)
+		sweep.assert_called_once()
 
 
 class TestBackfill(IntegrationTestCase):
@@ -171,6 +268,16 @@ class TestBackfill(IntegrationTestCase):
 			is_private=cint(is_private),
 			is_folder=0,
 			content_hash=content_hash or frappe.generate_hash(length=16),
+		)
+
+	def insert_legacy_row(self, file_url, is_private=False):
+		"""A legacy File row with an arbitrary file_url and no bytes of its own."""
+		return insert_file_row(
+			name=self.prefix + frappe.generate_hash(length=10),
+			file_name=file_url.rsplit("/", 1)[-1],
+			file_url=file_url,
+			is_private=cint(is_private),
+			is_folder=0,
 		)
 
 	def reload(self, doc):
@@ -281,3 +388,46 @@ class TestBackfill(IntegrationTestCase):
 		self.assertEqual(second["blobs_created"], 0)
 		self.assertEqual(self.reload(legacy).blob, blob_name)
 		self.assertEqual(frappe.db.count("File Blob", {"key": ("like", f"../{self.prefix}%")}), 1)
+
+	def test_locate_rejects_remote_and_escaping_urls(self):
+		self.assertIsNone(backfill.locate("https://cdn.example.com/logo.png"))
+		self.assertIsNone(backfill.locate("/assets/frappe/images/logo.png"))
+		self.assertIsNone(backfill.locate("/files/"))
+		self.assertIsNone(backfill.locate("/files/../secrets.txt"))
+		self.assertIsNone(backfill.locate("/private/files/a/../../secrets.txt"))
+		self.assertEqual(backfill.locate("/files/logo.png"), (False, "logo.png"))
+		self.assertEqual(backfill.locate("/private/files/a/b.png"), (True, "a/b.png"))
+
+	def test_traversing_file_url_is_skipped_and_the_batch_continues(self):
+		escaping = self.insert_legacy_row(f"/files/../{self.prefix}-escape.txt")
+		fine = self.make_legacy_file()
+
+		stats = backfill.run(filters=self.filters())
+
+		self.assertIsNone(self.reload(escaping).blob)
+		self.assertTrue(self.reload(fine).blob)
+		self.assertEqual(stats["linked"], 1)
+		self.assertEqual(
+			stats["skipped"],
+			[
+				{
+					"name": escaping.name,
+					"file_url": escaping.file_url,
+					"reason": "file_url is not a local files path",
+				}
+			],
+		)
+
+	def test_rows_sharing_a_file_url_reuse_the_cached_blob(self):
+		legacy = self.make_legacy_file()
+		twin = self.insert_legacy_row(legacy.file_url)
+
+		with patch(
+			"frappe.storage.backfill.find_or_create_blob", wraps=backfill.find_or_create_blob
+		) as find_or_create:
+			stats = backfill.run(filters=self.filters())
+
+		self.assertEqual(find_or_create.call_count, 1)  # second row came from blob_cache
+		self.assertEqual(stats["linked"], 2)
+		self.assertEqual(stats["blobs_created"], 1)
+		self.assertEqual(self.reload(twin).blob, self.reload(legacy).blob)
