@@ -54,13 +54,13 @@ def export_languages_json():
 
 	languages.sort(key=lambda a: a["code"])
 
-	with open(frappe.get_app_path("frappe", "geo", "languages.json"), "w") as f:
+	with open(frappe.get_app_path("frappe", "geo", "languages.json"), "w", encoding="utf-8") as f:
 		f.write(frappe.as_json(languages))
 
 
 def sync_languages():
 	"""Sync frappe/geo/languages.json with Language"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
+	with open(frappe.get_app_path("frappe", "geo", "languages.json"), encoding="utf-8") as f:
 		data = json.loads(f.read())
 
 	for l in data:
@@ -77,7 +77,7 @@ def sync_languages():
 
 def update_language_names():
 	"""Update frappe/geo/languages.json names (for use via patch)"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
+	with open(frappe.get_app_path("frappe", "geo", "languages.json"), encoding="utf-8") as f:
 		data = json.loads(f.read())
 
 	for l in data:

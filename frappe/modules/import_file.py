@@ -173,7 +173,7 @@ def import_file_by_path(
 def read_doc_from_file(path):
 	doc = None
 	if os.path.exists(path):
-		with open(path) as f:
+		with open(path, encoding="utf-8") as f:
 			try:
 				doc = json.loads(f.read())
 			except ValueError:
