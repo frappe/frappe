@@ -453,9 +453,11 @@ def _rail_contributions(host: str) -> list[tuple[str, list[dict]]]:
 	if not records:
 		return []
 
-	order = frappe.get_active_apps(_ensure_on_bench=True)
+	# One pass over the app list, not a scan per record: both the membership test and the sort
+	# key would otherwise walk it, and this runs inside boot's blocking pre-mount fetch.
+	position = {app: index for index, app in enumerate(frappe.get_active_apps(_ensure_on_bench=True))}
 	records = sorted(
-		(record for record in records if record.app in order), key=lambda record: order.index(record.app)
+		(record for record in records if record.app in position), key=lambda record: position[record.app]
 	)
 	rows = _rows_by_parent("Rail", "items", [record.name for record in records])
 
