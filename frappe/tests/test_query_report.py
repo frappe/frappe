@@ -18,8 +18,6 @@ class TestQueryReport(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-<<<<<<< HEAD
-=======
 	def test_save_report_accepts_native_columns_and_filters(self):
 		from frappe.desk.query_report import save_report
 
@@ -173,7 +171,6 @@ class TestQueryReport(IntegrationTestCase):
 			"CSV row order should follow visible_idx sequence, not default order",
 		)
 
->>>>>>> 8a71564 (fix(report): preserve ui sort order for query report)
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
