@@ -402,8 +402,28 @@ class TestSameContent(IntegrationTestCase):
 		self.assertNotEqual(public_file.file_url, private_file.file_url)
 		self.assertTrue(public_file.file_url.startswith("/private/files/"))
 		self.assertEqual(public_file.get_content(), "public different")
-		# the pre-existing private file must be completely untouched
 		self.assertEqual(private_file.get_content(), "private original")
+
+	def test_toggle_is_private_renames_even_on_identical_content_collision(self):
+		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
+		content = f"identical-{frappe.generate_hash(length=8)}"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		public_file.is_private = 1
+		public_file.save()
+
+		public_file.reload()
+		self.assertNotEqual(public_file.file_url, private_file.file_url)
+		self.assertTrue(public_file.file_url.startswith("/private/files/"))
+		self.assertEqual(public_file.get_content(), content)
+		self.assertEqual(private_file.get_content(), content)
 
 
 class TestFile(IntegrationTestCase):

@@ -346,7 +346,6 @@ class File(Document):
 			target_file_name = generate_file_name(
 				name=file_name,
 				is_private=cint(self.is_private),
-				content_hash=self.content_hash,
 			)
 			target = Path(
 				frappe.get_site_path(
