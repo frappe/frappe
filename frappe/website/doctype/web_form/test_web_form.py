@@ -217,6 +217,82 @@ class TestWebForm(IntegrationTestCase):
 		self.event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form"})
 		self.assertTrue(self.event_name)
 
+<<<<<<< HEAD
+=======
+	def test_guest_payload_survives_form_dict_sanitisation(self):
+		"""A guest's arguments reach `form_dict` as JSON, and every string in it is
+		sanitized before the method runs. A Text Editor value carries a quoted
+		attribute, so sanitizing the serialized payload rewrote that quote as
+		`&quot;` and `data` stopped parsing."""
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text Editor", "label": "Description"},
+			],
+		)
+		subject = "_Test Event Sanitised Payload"
+		description = '<div class="ql-editor read-mode"><p>Hi</p></div>'
+		data = json.dumps(
+			{
+				"doctype": "Event",
+				"subject": subject,
+				"description": description,
+				"starts_on": "2014-09-09",
+			}
+		)
+
+		frappe.set_user("Guest")
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.local.form_dict = frappe._dict(web_form=web_form.name, data=data)
+
+		frappe.is_whitelisted(accept)
+		self.assertEqual(frappe.form_dict.data, data)
+
+		event = accept(web_form=web_form.name, data=frappe.form_dict.data)
+		self.addCleanup(frappe.delete_doc, "Event", event.name, force=True, ignore_permissions=True)
+		self.assertIn("ql-editor", event.description)
+
+		# markup in the same payload is still sanitized
+		frappe.local.form_dict = frappe._dict(
+			web_form=web_form.name,
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": subject,
+					"description": "<script>alert(1)</script>",
+					"starts_on": "2014-09-09",
+				}
+			),
+		)
+		frappe.is_whitelisted(accept)
+		self.assertNotIn("<script>", frappe.form_dict.data)
+
+	def test_accept_and_delete_multiple_accept_native_payloads(self):
+		frappe.set_user("Administrator")
+
+		# accept with a native dict instead of a JSON string (frappe.parse_json passthrough)
+		accept(
+			web_form="manage-events",
+			data={
+				"doctype": "Event",
+				"subject": "_Test Event Web Form Native",
+				"description": "_Test Event Description",
+				"starts_on": "2014-09-09",
+			},
+		)
+		event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form Native"})
+		self.assertTrue(event_name)
+
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		web_form.allow_delete = 1
+		web_form.save(ignore_permissions=True)
+
+		# delete_multiple with a native list of docnames
+		delete_multiple("manage-events", [event_name])
+		self.assertFalse(frappe.db.exists("Event", event_name))
+
+>>>>>>> ee413e5 (fix: keep json payloads parseable)
 	def test_edit(self):
 		self.test_accept()
 
