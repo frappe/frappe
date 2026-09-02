@@ -31,10 +31,7 @@
 				<span class="flex h-8 w-8 flex-none items-center justify-center">
 					<ProviderIcon :provider-id="p.id" :icon="p.icon" :size="21" />
 				</span>
-				<span class="min-w-0 flex-1">
-					<span class="block truncate text-xs font-medium leading-4 text-ink-gray-9">{{ p.name }}</span>
-					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ summary(p) }}</span>
-				</span>
+				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-9">{{ p.name }}</span>
 				<span
 					v-if="p.configured"
 					class="flex items-center gap-1 text-2xs font-medium text-ink-green-7"
@@ -346,11 +343,6 @@ const filtered = computed(() => {
 	if (!q) return rows.value
 	return rows.value.filter((p) => p.name.toLowerCase().includes(q) || p.id.includes(q))
 })
-
-function summary(p) {
-	if (p.configured) return p.source
-	return p.auth_methods.includes("oauth") ? "Sign in with OAuth" : "Needs an API key"
-}
 
 function select(p) {
 	stopPolling() // a poll started for another provider must not follow us here
