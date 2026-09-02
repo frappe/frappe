@@ -95,13 +95,17 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 	# An empty *reduction* is ordinary and means the layer goes: dragging an item away and back
 	# leaves nothing to store, and storing nothing is how that ends in the same state as a reset.
 	# An empty *submission* is not ordinary, because the client is always showing the list below
-	# it -- so a body whose every row was malformed would arrive here as "nothing differs" and
-	# quietly do a reset's work. The two are different requests and one may not become the other
-	# by accident.
-	if below and not desired:
+	# it -- so a body that names none of it would arrive here as "nothing differs" and quietly do
+	# a reset's work. The two are different requests and one may not become the other by accident.
+	#
+	# The test is against the list below rather than against the body alone, because the body is
+	# filtered twice: `_as_items` drops what is not a row, and the reduction drops keys the list
+	# no longer holds. A stale editor sends rows that are shaped perfectly well and name items the
+	# app has since removed, and those survive the first filter to die at the second.
+	if below and _names_none_of(below, desired):
 		frappe.throw(
 			_(
-				"An arrangement has to name at least one item. To go back to how {0} arrived, reset it."
+				"An arrangement has to name at least one item {0} still has. To go back to how it arrived, reset it."
 			).format(frappe.bold(target.app)),
 			title=_("Not an Arrangement"),
 		)
@@ -281,6 +285,17 @@ def _named(item) -> dict | None:
 
 def _is_name(value) -> bool:
 	return isinstance(value, str) and bool(value)
+
+
+def _names_none_of(below: list[dict], desired: list[dict]) -> bool:
+	"""Whether a submission names no row of the list it claims to be an arrangement of.
+
+	Only membership is asked about, not difference: a full list that happens to differ in
+	nothing names every row of it, and that save is the ordinary one whose layer goes.
+	"""
+	keys = {item["key"] for item in below if item.get("key")}
+
+	return not any(item["key"] in keys for item in desired)
 
 
 # The reduction

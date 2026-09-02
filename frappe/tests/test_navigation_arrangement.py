@@ -457,6 +457,19 @@ class TestReset(NavigationTestCase):
 
 		self.assertEqual(rail_keys(), ["role", "user"], "their arrangement survives")
 
+	def test_a_save_of_rows_the_list_no_longer_holds_does_not_do_a_resets_work(self):
+		"""The same hazard one filter later. These rows are shaped perfectly well, so the check
+		on the submission lets them through -- but the app has since dropped every key they
+		name, so the reduction drops them all and the layer would go. A save that names nothing
+		*of this list* is as stale as one that names nothing at all."""
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("role"), shown("user")))
+
+		with self.assertRaises(frappe.ValidationError):
+			save_arrangement("Rail", APP, showing(shown("gone"), shown("also_gone")))
+
+		self.assertEqual(rail_keys(), ["role", "user"], "their arrangement survives")
+
 	def test_arranging_it_back_still_leaves_no_row(self):
 		"""The case the check above must not catch: a full list that happens to differ in
 		nothing is not malformed, and the layer still goes."""
