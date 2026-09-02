@@ -180,7 +180,7 @@ def _tui(args) -> None:
 
 
 def _latest_session_for_cwd(daemon, cwd: str) -> str | None:
-	"""`flow -c`: newest session whose cwd is this directory; None means start fresh."""
+	"""`flow tui -c`: newest session whose cwd is this directory; None means start fresh."""
 	import httpx
 
 	with httpx.Client(
@@ -202,7 +202,7 @@ def _daemon_death_notice(daemon) -> str | None:
 		return None
 	return (
 		f"flow daemon exited unexpectedly (code {daemon.process.returncode}). "
-		f"Sessions are durable — run `flow -c` to continue. Log: {daemon.log_path}"
+		f"Sessions are durable — run `flow tui -c` to continue. Log: {daemon.log_path}"
 	)
 
 

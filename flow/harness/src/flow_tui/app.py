@@ -330,7 +330,7 @@ def run_app(
 	returns the last active session id.
 
 	With `session_id` the TUI attaches to that session and replays its history
-	(`flow -c`, `flow attach --session`); otherwise it creates a fresh one. The
+	(`flow tui -c`, `flow attach --session`); otherwise it creates a fresh one. The
 	server composes the system prompt (preamble + AGENTS.md); the TUI only adds its
 	client suffix and the user's `append_system_prompt`, which lands at the very end.
 	`auto_approve=True` is the permanent default for TUI sessions;
