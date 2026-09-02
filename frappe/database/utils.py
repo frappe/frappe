@@ -25,6 +25,7 @@ NestedSetHierarchy = (
 	"not descendants of",
 	"descendants of (inclusive)",
 )
+TEXT_SQL_TYPES = frozenset(("varchar", "text", "longtext", "smalltext"))
 # split when non-alphabetical character is found
 QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
 
@@ -37,6 +38,36 @@ def convert_to_value(o: FilterValue):
 	elif isinstance(o, (KeysView, ValuesView)):
 		return tuple(convert_to_value(item) for item in o)
 	return o
+
+
+def is_non_text_field(doctype: str, fieldname: str, df=None) -> bool:
+	"""Return whether a DocField is stored in a non-text database column."""
+	if fieldname == "name":
+		try:
+			if frappe.get_meta(doctype).autoname == "autoincrement":
+				return True
+		except frappe.DoesNotExistError:
+			return False
+
+	if df is None:
+		try:
+			df = frappe.get_meta(doctype).get_field(fieldname)
+		except frappe.DoesNotExistError:
+			return False
+
+	if df is None:
+		from frappe.model.meta import get_default_df
+
+		df = get_default_df(fieldname)
+	if df is None:
+		return False
+
+	db_type = frappe.db.type_map.get(df.fieldtype)
+	if not db_type:
+		return False
+
+	db_type = db_type[0] if isinstance(db_type, tuple | list) else db_type
+	return str(db_type).lower() not in TEXT_SQL_TYPES
 
 
 def get_query_type(query: str) -> str:

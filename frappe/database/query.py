@@ -18,6 +18,7 @@ from frappe.database.utils import (
 	convert_to_value,
 	get_doctype_name,
 	get_doctype_sort_info,
+	is_non_text_field,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
@@ -768,10 +769,9 @@ class Engine:
 			target_doctype = filter_doctype
 
 			# Skip applying ifnull if field already has null-handling function
-			if isinstance(_field, functions.IfNull | functions.Coalesce):
-				return operator_fn(_field, _value)
-
-			if self._should_apply_ifnull(target_doctype, filter_field_name, _operator, _value):
+			if not isinstance(_field, functions.IfNull | functions.Coalesce) and self._should_apply_ifnull(
+				target_doctype, filter_field_name, _operator, _value
+			):
 				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
 				if fallback_sql == "''":
 					fallback_value = ""
@@ -790,6 +790,13 @@ class Engine:
 						return operator_fn(_field, _value)
 
 				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
+
+			if (
+				self.is_postgres
+				and _operator.casefold() in ("like", "not like", "ilike")
+				and is_non_text_field(target_doctype, filter_field_name)
+			):
+				_field = functions.Cast(_field, "varchar")
 
 			return operator_fn(_field, _value)
 
