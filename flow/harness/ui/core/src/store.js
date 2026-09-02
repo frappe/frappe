@@ -9,6 +9,10 @@ import {
 	skillCommand,
 } from "./transcript.js"
 
+// mirrors MAX_ATTACHMENTS_PER_MESSAGE on the daemon; the client has no endpoint to
+// learn it from, so it is restated here and enforced before anything is staged
+export const MAX_ATTACHMENTS = 10
+
 const PREFS_KEY = "flow.ui.prefs"
 const TITLES_KEY = "flow.ui.titles"
 const SESSION_PRESETS_KEY = "flow.ui.sessionPresets"
@@ -407,6 +411,13 @@ export function createFlowStore(client) {
 	async function send(text, attachments = []) {
 		const message = text.trim()
 		if (!message && !attachments.length) return false
+		// uploads and @-mentions stage through separate endpoints that each cap at
+		// MAX_ATTACHMENTS; only their sum rides the run, so check it before staging
+		// anything — otherwise both succeed and the run is rejected as oversized.
+		if (attachments.length > MAX_ATTACHMENTS) {
+			notify(`A message can carry at most ${MAX_ATTACHMENTS} attachments.`, "error")
+			return false
+		}
 		if (!state.sessionId) {
 			if (!state.prefs.cwd) {
 				notify("Choose a project folder before sending a message.", "error")
@@ -425,13 +436,19 @@ export function createFlowStore(client) {
 		let admitted = false
 		try {
 			const uploads = attachments.filter((item) => item.file).map((item) => item.file)
-			if (uploads.length) {
-				const uploaded = await guard(() => client.uploadAttachments(sid, uploads))
-				if (!uploaded) return false
-				const ids = uploaded.attachments.map((item) => item.id)
+			const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
+			// independent sources — resolve concurrently rather than paying two round trips
+			const [uploaded, attached] = await Promise.all([
+				uploads.length ? guard(() => client.uploadAttachments(sid, uploads)) : null,
+				mentionPaths.length ? guard(() => client.attachFiles(sid, mentionPaths)) : null,
+			])
+			for (const resolved of [uploaded, attached]) {
+				if (!resolved) continue
+				const ids = resolved.attachments.map((item) => item.id)
 				attachmentIds.push(...ids)
 				createdIds.push(...ids)
 			}
+			if ((uploads.length && !uploaded) || (mentionPaths.length && !attached)) return false
 			const result = await guard(() => client.run(sid, message, attachmentIds))
 			if (!result) return false
 			admitted = true

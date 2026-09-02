@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { FlowAPIError } from "../src/client.js"
-import { createFlowStore } from "../src/store.js"
+import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
 
 globalThis.localStorage = {
 	getItem() {
@@ -79,6 +79,145 @@ test("multiline skill steering uses the expanded event's canonical queue key", a
 
 	assert.equal(await flow.send("/skill:review\n\ncheck auth"), true)
 	assert.equal(flow.state.queued[0].text, "/skill:review check auth")
+})
+
+test("send() resolves @-mention paths into attachments before running", async () => {
+	const attachCalls = []
+	const runCalls = []
+	const client = {
+		async attachFiles(sid, paths) {
+			attachCalls.push({ sid, paths })
+			return { attachments: paths.map((path, i) => ({ id: `att-${i}`, name: path })) }
+		},
+		async run(sid, message, attachments) {
+			runCalls.push({ sid, message, attachments })
+			return { status: "ok" }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "session-1"
+
+	const sent = await flow.send("check this file", [
+		{ key: "mention:0", name: "foo.py", kind: "file", mentionPath: "src/foo.py" },
+	])
+
+	assert.equal(sent, true)
+	assert.deepEqual(attachCalls, [{ sid: "session-1", paths: ["src/foo.py"] }])
+	assert.deepEqual(runCalls[0].attachments, ["att-0"])
+})
+
+test("a run that fails after resolving a mention cleans up the newly created attachment", async () => {
+	const cleaned = []
+	const client = {
+		async attachFiles() {
+			return { attachments: [{ id: "att-0", name: "foo.py" }] }
+		},
+		async run() {
+			throw new Error("boom")
+		},
+		async cleanupAttachments(sid, attachments) {
+			cleaned.push({ sid, attachments })
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "session-1"
+
+	const sent = await flow.send("check this file", [
+		{ key: "mention:0", name: "foo.py", kind: "file", mentionPath: "src/foo.py" },
+	])
+
+	assert.equal(sent, false)
+	assert.deepEqual(cleaned, [{ sid: "session-1", attachments: ["att-0"] }])
+})
+
+test("send() resolves an upload and a mention concurrently, not sequentially", async () => {
+	let uploadFinished = false
+	let mentionRanBeforeUploadFinished = false
+	const client = {
+		async uploadAttachments() {
+			await new Promise((resolve) => setTimeout(resolve, 10))
+			uploadFinished = true
+			return { attachments: [{ id: "att-upload" }] }
+		},
+		async attachFiles() {
+			// sequential code awaits uploadAttachments to completion first, so this
+			// would only ever see uploadFinished === true if the two aren't parallel
+			if (!uploadFinished) mentionRanBeforeUploadFinished = true
+			return { attachments: [{ id: "att-mention" }] }
+		},
+		async run(sid, message, attachments) {
+			return { status: "ok", attachments }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "session-1"
+
+	const sent = await flow.send("check these", [
+		{ key: "local:0", name: "screen.png", kind: "image", file: {} },
+		{ key: "mention:0", name: "foo.py", kind: "file", mentionPath: "src/foo.py" },
+	])
+
+	assert.equal(sent, true)
+	assert.equal(mentionRanBeforeUploadFinished, true)
+})
+
+test("uploads and mentions share one cap, checked before anything is staged", async () => {
+	// each staging endpoint caps at MAX_ATTACHMENTS on its own, so 6 + 6 passes both
+	// and only the combined run payload is oversized — catch it before staging.
+	const calls = []
+	const client = {
+		async uploadAttachments() {
+			calls.push("upload")
+			return { attachments: [] }
+		},
+		async attachFiles() {
+			calls.push("attach")
+			return { attachments: [] }
+		},
+		async run() {
+			calls.push("run")
+			return { status: "ok" }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "session-1"
+
+	const attachments = [
+		...Array.from({ length: 6 }, (_, i) => ({ key: `local:${i}`, kind: "image", file: {} })),
+		...Array.from({ length: 6 }, (_, i) => ({ key: `mention:${i}`, kind: "file", mentionPath: `f${i}.py` })),
+	]
+	assert.equal(attachments.length, MAX_ATTACHMENTS + 2)
+
+	const sent = await flow.send("too many", attachments)
+
+	assert.equal(sent, false)
+	assert.deepEqual(calls, []) // nothing staged, so nothing to clean up
+	assert.match(flow.state.toast.message, /at most 10 attachments/)
+})
+
+test("a failed upload still queues cleanup for an already-resolved mention attachment", async () => {
+	const cleaned = []
+	const client = {
+		async uploadAttachments() {
+			throw new Error("upload failed")
+		},
+		async attachFiles() {
+			return { attachments: [{ id: "att-mention" }] }
+		},
+		async cleanupAttachments(sid, attachments) {
+			cleaned.push({ sid, attachments })
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "session-1"
+
+	const sent = await flow.send("check these", [
+		{ key: "local:0", name: "screen.png", kind: "image", file: {} },
+		{ key: "mention:0", name: "foo.py", kind: "file", mentionPath: "src/foo.py" },
+	])
+
+	assert.equal(sent, false)
+	assert.deepEqual(cleaned, [{ sid: "session-1", attachments: ["att-mention"] }])
 })
 
 function approvalStore(resumes) {
