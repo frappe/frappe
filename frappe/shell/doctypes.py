@@ -161,46 +161,66 @@ def get_addresses(v: str | None = None) -> dict:
 	return get_address_table()
 
 
-def navigation_for_app(app: str, module: str | None = None) -> list[dict]:
-	"""What an app's chrome LISTS — curated per app and permission-filtered.
+def get_readable_doctypes() -> set[str]:
+	"""Every doctype this user may read, in ONE pass. The single input both filters share.
 
-	The counterpart of the address table, and deliberately a different list. #42210
-	split what `boot.doctype_slugs` conflated: **addressability** is full-bench and
-	permission-independent, **navigation** is per-app and filtered. A doctype you
-	cannot read is still addressable (you get refused at the record, by ordinary
-	doctype permissions); it is simply not offered to you.
+	Measured on this bench for an ordinary System User: **3,594 ms** for 553 per-doctype
+	`has_permission` calls against **25 ms** for this. The per-doctype loop looked free
+	only because it was first measured as Administrator, who short-circuits every check
+	— 6 ms, and nothing like what a real user pays. The rail loads on every page, so that
+	was 3.6 s of worker time per load.
 
-	`module` narrows it further, for the module landing page a modular app's address
-	space now walks up to (#42211 §6).
+	It also removes a failure mode outright rather than guarding it: `has_permission`
+	imports each doctype's controller, so one app's un-importable module took down the
+	rail for *every* app. This reads DocPerm and Custom DocPerm and imports nothing.
+
+	Roles are not the whole answer. `has_permission(doctype, "read")` returns True with
+	**no doc passed** when at least one document of that type is shared with the user
+	(`permissions.py:206`), so a role-only set silently drops every doctype a user
+	reaches purely by sharing. `get_shared_doctypes` is the framework's own bulk answer
+	to that question — one query, `user = me OR everyone = 1` — so it costs a query
+	rather than a per-doctype check.
+
+	The two sets agree for a user with no shares, which is why the first measurement
+	missed this. They differ for Administrator by three doctypes carrying *zero* DocPerm
+	rows, which nobody but Administrator could ever read; not offering those is the
+	intended reading of "what is offered", and they stay fully addressable.
+
+	This lives here, and `shell/navigation.py` derives an unconverted app's rail from it,
+	because two answers to "may this user read this doctype" is exactly the divergence
+	#42231 exists to close. Filtering an app's *authored* rows against their declared
+	permission bucket is the other half of that rule and belongs to the walking skeleton
+	(#42233), which is where authored rows first exist to be filtered.
 	"""
 	from frappe.permissions import get_doctypes_with_read
 	from frappe.share import get_shared_doctypes
 
+	return set(get_doctypes_with_read()) | set(get_shared_doctypes())
+
+
+def contents_for_app(app: str, module: str | None = None) -> list[dict]:
+	"""What an app CONTAINS — its own doctypes, permission-filtered.
+
+	The counterpart of the address table, and deliberately a different list. #42210
+	split what `boot.doctype_slugs` conflated: **addressability** is full-bench and
+	permission-independent, **contents** are per-app and filtered. A doctype you cannot
+	read is still addressable (you get refused at the record, by ordinary doctype
+	permissions); it is simply not offered to you.
+
+	`module` narrows it further, for the module landing page a modular app's address
+	space now walks up to (#42211 §6).
+
+	This used to be called `navigation_for_app`, and it used to feed the rail. It no
+	longer does: the rail is authored navigation, resolved into boot by
+	`shell/navigation.py`, while this stays the derived list of what is *in* an app.
+	#42357 settled that those are two lists and nothing reconciles them — measured
+	across ERPNext, 107 doctypes sit on a module page and not in that module's sidebar
+	while 101 sidebar links point outside the module. The app home and the module page
+	answer *what does this contain*; the rail answers *what do you do here*.
+	"""
 	table = get_address_table()
 	owners = get_doctype_owners()
-
-	# ONE role-based pass, not `has_permission` per doctype. Measured on this bench for
-	# an ordinary System User: **3,594 ms** for 553 per-doctype checks against **25 ms**
-	# for this. The per-doctype loop looked free only because it was first measured as
-	# Administrator, who short-circuits every check — 6 ms, and nothing like what a real
-	# user pays. The rail loads on every page, so that was 3.6 s of worker time per load.
-	#
-	# It also removes the failure mode outright rather than guarding it: `has_permission`
-	# imports each doctype's controller, so one app's un-importable module took down the
-	# rail for *every* app. This reads DocPerm and Custom DocPerm and imports nothing.
-	#
-	# Roles are not the whole answer. `has_permission(doctype, "read")` returns True with
-	# **no doc passed** when at least one document of that type is shared with the user
-	# (`permissions.py:206`), so a role-only set silently drops every doctype a user
-	# reaches purely by sharing. `get_shared_doctypes` is the framework's own bulk answer
-	# to that question — one query, `user = me OR everyone = 1` — so it costs a query
-	# rather than a per-doctype check.
-	#
-	# The two sets agree for a user with no shares, which is why the first measurement
-	# missed this. They differ for Administrator by three doctypes carrying *zero*
-	# DocPerm rows, which nobody but Administrator could ever read; not offering those is
-	# the intended reading of "what is offered", and they stay fully addressable.
-	readable = set(get_doctypes_with_read()) | set(get_shared_doctypes())
+	readable = get_readable_doctypes()
 	entries = []
 
 	for doctype, owner in owners.items():
@@ -221,7 +241,13 @@ def navigation_for_app(app: str, module: str | None = None) -> list[dict]:
 
 
 @frappe.whitelist(methods=["GET"])
-def get_navigation(app: str, module: str | None = None) -> list[dict]:
+def get_contents(app: str, module: str | None = None) -> list[dict]:
+	"""An app's contents, or one module's, fetched on arrival at the page that shows them.
+
+	Kept as a fetch rather than folded into boot, where the rail went. A module page is a
+	destination, and paying one request on arrival is ordinary; a rail click must cost
+	none, which is why only the rail moved (#42357).
+	"""
 	from .permissions import has_app_permission
 	from .registry import get_prefix_registry
 
@@ -232,7 +258,7 @@ def get_navigation(app: str, module: str | None = None) -> list[dict]:
 
 	# And validate it against the registry BEFORE it reaches `has_app_permission`,
 	# which passes it to `get_hooks(app_name=)` — an importlib call on a
-	# caller-supplied name. An app that serves no prefix has no navigation to ask
+	# caller-supplied name. An app that serves no prefix has no contents to ask
 	# about, so this costs nothing real.
 	if app not in set(get_prefix_registry().values()):
 		frappe.throw(_("No app named {0} is installed").format(app), frappe.DoesNotExistError)
@@ -240,4 +266,4 @@ def get_navigation(app: str, module: str | None = None) -> list[dict]:
 	if not has_app_permission(app):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
-	return navigation_for_app(app, module)
+	return contents_for_app(app, module)

@@ -555,24 +555,24 @@ class TestShellBoot(IntegrationTestCase):
 		# The table takes no prefix and cannot: there is nothing to vary by.
 		self.assertNotIn("app", get_address_table())
 
-	def test_navigation_is_filtered_where_addressing_is_not(self):
+	def test_the_contents_list_is_filtered_where_addressing_is_not(self):
 		"""The other half of the split #42210 made.
 
-		Addressability is full-bench and permission-independent; navigation is per app
-		and permission-filtered. A doctype you cannot read is still addressable — you
+		Addressability is full-bench and permission-independent; an app's contents are
+		per app and permission-filtered. A doctype you cannot read is still addressable — you
 		are refused at the record — it is simply not offered to you.
 		"""
-		from frappe.shell.doctypes import get_address_table, navigation_for_app
+		from frappe.shell.doctypes import get_address_table, contents_for_app
 
 		self.assertIn("User", get_address_table()["doctypes"])
-		self.assertIn("User", {entry["doctype"] for entry in navigation_for_app("frappe")})
+		self.assertIn("User", {entry["doctype"] for entry in contents_for_app("frappe")})
 
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
 		# Still addressable...
 		self.assertIn("User", get_address_table()["doctypes"])
 		# ...and not offered.
-		self.assertNotIn("User", {entry["doctype"] for entry in navigation_for_app("frappe")})
+		self.assertNotIn("User", {entry["doctype"] for entry in contents_for_app("frappe")})
 
 	def test_the_slug_table_tracks_doctypes_being_added_and_removed(self):
 		"""A new doctype must be addressable, and a deleted one must stop being so.
@@ -826,7 +826,7 @@ class TestModularAddresses(IntegrationTestCase):
 
 		`has_permission(doctype, "read")` returns True with **no doc passed** when at
 		least one document of that type is shared with the user (`permissions.py:206`).
-		A navigation list built from roles alone hides every doctype a user reaches
+		A contents list built from roles alone hides every doctype a user reaches
 		purely by sharing — invisible on a bench where nobody shares anything, which is
 		why the first version of this shipped wrong.
 
@@ -838,7 +838,7 @@ class TestModularAddresses(IntegrationTestCase):
 		assertion mean something.
 		"""
 		import frappe.share
-		from frappe.shell.doctypes import navigation_for_app
+		from frappe.shell.doctypes import contents_for_app
 
 		email = "shell-share-probe@example.com"
 		if frappe.db.exists("User", email):
@@ -856,7 +856,7 @@ class TestModularAddresses(IntegrationTestCase):
 		self.addCleanup(lambda: frappe.delete_doc("Role", role.name, force=True, ignore_missing=True))
 
 		def offered():
-			return {entry["doctype"] for entry in navigation_for_app("frappe")}
+			return {entry["doctype"] for entry in contents_for_app("frappe")}
 
 		frappe.set_user(email)
 		self.addCleanup(frappe.set_user, "Administrator")
@@ -869,19 +869,19 @@ class TestModularAddresses(IntegrationTestCase):
 		self.assertIn("Role", offered())
 
 	def test_the_module_landing_page_is_permission_filtered(self):
-		"""#42210's line, held exactly: addressability is not filtered, navigation is.
+		"""#42210's line, held exactly: addressability is not filtered, contents are.
 
 		Nobody pastes a module page as a record link, so filtering it changes no
 		address's shape.
 		"""
-		from frappe.shell.doctypes import navigation_for_app
+		from frappe.shell.doctypes import contents_for_app
 
-		self.assertTrue(navigation_for_app("frappe", "core"))
-		self.assertFalse(navigation_for_app("frappe", "no-such-module"))
+		self.assertTrue(contents_for_app("frappe", "core"))
+		self.assertFalse(contents_for_app("frappe", "no-such-module"))
 
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
-		self.assertFalse(navigation_for_app("frappe", "core"))
+		self.assertFalse(contents_for_app("frappe", "core"))
 
 
 class TestNoHandBuiltDoctypeUrls(IntegrationTestCase):

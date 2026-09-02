@@ -1,17 +1,25 @@
 <!--
   The rail. Shell-owned, and it never disappears.
 
-  It shows the doctypes of the app serving this prefix that the user can READ --
-  permission, not declaration. A per-app `rail_doctypes` hook was rejected as strictly
-  narrower than what already exists, moving a runtime user choice to a build-time
-  author guess (#42102).
+  It renders `boot.navigation.rail` — the app's own rows, the site's arrangement and
+  this person's, already merged by the server (#42232). The browser never restacks
+  those layers and holds no permission logic: an item that reached this list is one
+  this person may be offered.
 
-  It used to derive that list from `boot.doctype_slugs`, which was the ADDRESS space,
-  so the comment above was false: it listed what was addressable, unfiltered. The
-  address table is full-bench since #42210 -- 553 doctypes -- so deriving a rail from
-  it is no longer merely wrong, it is unusable. It now reads `get_navigation`, which
-  is per-app and filtered. See `navigation.ts` for what this is still NOT: the
-  navigation model itself, which #42211 left unnamed.
+  Two data sources have gone before this one. It first derived from
+  `boot.doctype_slugs`, which was the ADDRESS space, so "permission, not declaration"
+  was false — it listed what was addressable, unfiltered. It then fetched the endpoint
+  now called `get_contents`, which was per-app and filtered, and made the claim true.
+  It is in boot for a reason neither of those had: a rail click must cost no request,
+  which a fetched rail cannot promise. What an app CONTAINS is still fetched, by the app home
+  and the module page that show it (`contents.ts`, #42357).
+
+  There is no "could not load" state left. Navigation arrives with boot, and a boot
+  that fails never mounts a shell for this to render in.
+
+  An app that ships no rail rows still gets a rail: its own doctypes, permission-
+  filtered, exactly the list this showed before. So the rail's appearance changes when
+  an app ships rows and not when this lands (#42356).
 -->
 <template>
 	<nav class="flex w-52 shrink-0 flex-col gap-1 border-r border-outline-gray-2 p-2">
@@ -23,18 +31,15 @@
 		</RouterLink>
 
 		<div class="mt-2 overflow-y-auto">
-			<!-- An empty rail and a rail that failed to load look identical, and one of
-					 them is a lie about the app. -->
-			<p v-if="failed" class="px-2 py-1 text-sm text-ink-gray-5">
-				Could not load navigation.
-			</p>
 			<RouterLink
-				v-for="entry in entries"
-				:key="entry.doctype"
-				:to="routeFor(entry.doctype)"
+				v-for="item in doctypeItems"
+				:key="item.key"
+				:to="routeFor(item.link_to!)"
 				class="block truncate rounded px-2 py-1 text-sm text-ink-gray-7 hover:bg-surface-gray-2"
 			>
-				{{ entry.doctype }}
+				<!-- An item nobody labelled falls back to its destination, which is what a
+						 derived rail row is: an address and no authored presentation. -->
+				{{ item.label ?? item.link_to }}
 			</RouterLink>
 		</div>
 
@@ -48,12 +53,21 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { computed, inject } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot } from "@/boot";
 import { routeFor } from "@/router/routeFor";
-import { useNavigation } from "@/navigation";
 
 const boot = inject<Boot>("boot")!;
-const { entries, failed } = useNavigation(boot.app);
+
+// `DocType` only, for now. A kind is two files — a type record and the JS that says
+// what an item of that kind does on click (#42228) — and none of the other seven kinds
+// has its half yet, so a row of one is a row this cannot render. Skipping it is what
+// #42228 chose for a missing renderer, and no app ships such a row today: every rail on
+// the branch is derived, and derivation produces `DocType` items and nothing else.
+// Renderers, and a rail that draws sections and opens sidebars, are the walking
+// skeleton's (#42233).
+const doctypeItems = computed(() =>
+	(boot.navigation?.rail ?? []).filter((item) => item.item_type === "DocType" && item.link_to)
+);
 </script>

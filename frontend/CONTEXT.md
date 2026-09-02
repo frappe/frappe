@@ -49,6 +49,14 @@ A new, small per-prefix payload — deliberately *not* `frappe.sessions.get()`. 
 (the keys every prefix gets) plus app boot (the declaring app's contribution, merged
 under core). `location.pathname` is its only input; the document carries nothing.
 
+**`boot.navigation`**:
+This prefix's rail and *every* sidebar in it, already resolved: the app's rows, the site's
+arrangement and this person's, merged server-side. The browser never restacks those layers.
+It rides boot so that no rail click costs a request; what an app *contains* is a different
+list and is still fetched by the pages that show it (`contents.ts`).
+_Avoid_: navigation as a word for an app's contents — the rail is authored, the contents
+list is derived, and the two disagree on purpose.
+
 **`app_order`**:
 The site's ordered array of **active** apps, used to order contributions. Deliberately not
 `installed_apps` — that name is taken client-side for a permission-filtered list, and only
@@ -70,7 +78,10 @@ The shell-owned navigation strip that never disappears, and the `Rail` doctype b
 one record per app per layer. Its contents are **declared rows**, not derived doctypes, and
 they are not limited to doctypes — a rail item may be a doctype, a module, a page, a record,
 a link or a section. Permission filters that declaration; it does not produce it. A rail item
-is *independent* or *linked*, and it is linked exactly when it opens a sidebar.
+is *independent* or *linked*, and it is linked exactly when it opens a sidebar. An app that
+ships **no** `Rail` record still gets a rail, derived from its own doctypes and permission-
+filtered — which is every app until one converts, and it goes through the same layer merge
+as a declared one, so a person can arrange a derived rail too.
 _Avoid_: dock (that is desk v1's, and a live doctype of its own).
 
 **Sidebar**:

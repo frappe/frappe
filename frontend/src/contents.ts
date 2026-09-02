@@ -1,24 +1,24 @@
-// NAVIGATION -- what an app's chrome offers you. Deliberately a different list from
-// the address table beside it.
+// CONTENTS -- what an app CONTAINS. Deliberately a different list from the address
+// table beside it, and a different list from the rail.
 //
 // #42210 split what `boot.doctype_slugs` conflated. ADDRESSABILITY is full-bench and
 // permission-independent: two colleagues must resolve a pasted URL identically, so
-// the address space cannot change shape per user. NAVIGATION is per app and
+// the address space cannot change shape per user. CONTENTS are per app and
 // permission-filtered: a doctype you cannot read is still addressable -- you are
 // refused at the record by ordinary permissions -- it is simply not offered to you.
 //
-// The rail derived from the address space before this, and its "permission, not
-// declaration" comment was already false. It is true now.
-//
-// What this is NOT is the navigation MODEL. #42211 §8 retired `Navigation Section`
-// without naming a replacement; a single item kind used in both rail and sidebar is
-// the direction, and it is a data model rather than a decision, so it is not this
-// ticket's. This is the smallest honest thing that keeps the chrome rendering now
-// that the table it read has moved: the owning app's doctypes, filtered.
+// The rail read this until #42357, and no longer does. The rail is AUTHORED
+// navigation, resolved server-side and delivered in boot, because a rail click must
+// not cost a request. This list is DERIVED, and it is fetched by the two pages that
+// show it -- the app home and a module page -- because arriving somewhere and paying
+// one request for what is there is ordinary. The two lists disagree on purpose:
+// measured across ERPNext, 107 doctypes sit on a module page and not in that module's
+// sidebar, while 101 sidebar links point outside their module. The page answers what
+// does this contain; the rail answers what do you do here.
 
 import { ref, watchEffect, type Ref } from "vue";
 
-export type NavigationEntry = { doctype: string; slug: string; module: string };
+export type ContentEntry = { doctype: string; slug: string; module: string };
 
 /**
  * THROWS rather than answering empty. A swallowed failure is indistinguishable from
@@ -26,33 +26,33 @@ export type NavigationEntry = { doctype: string; slug: string; module: string };
  * confident, false "0 doctypes you can read" over a request that never landed, and an
  * empty rail that looks like an empty app.
  */
-export async function fetchNavigation(
+export async function fetchContents(
 	app: string,
 	module?: string
-): Promise<NavigationEntry[]> {
+): Promise<ContentEntry[]> {
 	const params = new URLSearchParams({ app });
 	if (module) params.set("module", module);
 
 	const res = await fetch(
-		`/api/method/frappe.shell.doctypes.get_navigation?${params}`
+		`/api/method/frappe.shell.doctypes.get_contents?${params}`
 	);
-	if (!res.ok) throw new Error(`Navigation failed with ${res.status}`);
+	if (!res.ok) throw new Error(`Contents failed with ${res.status}`);
 	return (await res.json()).message ?? [];
 }
 
 /**
- * Reactive navigation for a prefix, optionally narrowed to one module.
+ * Reactive contents for a prefix, optionally narrowed to one module.
  *
  * `loading` and `failed` are not decoration. An empty list is a REAL answer here — a
  * module you can read nothing in — so a caller that cannot tell "none" from "not yet"
  * or from "the request failed" has to assert one of them, and "0 doctypes you can
  * read" is a false statement to put under either.
  */
-export function useNavigation(
+export function useContents(
 	app: string | null,
 	module?: Ref<string | undefined>
 ) {
-	const entries = ref<NavigationEntry[]>([]);
+	const entries = ref<ContentEntry[]>([]);
 	const loading = ref(false);
 	const failed = ref(false);
 
@@ -82,7 +82,7 @@ export function useNavigation(
 		// Reading it after the await would register no dependency and the list would
 		// never update again.
 		try {
-			const fetched = await fetchNavigation(app, module?.value);
+			const fetched = await fetchContents(app, module?.value);
 			if (mine !== generation) return;
 			entries.value = fetched;
 		} catch {

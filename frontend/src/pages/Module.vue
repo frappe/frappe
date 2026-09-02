@@ -42,14 +42,14 @@ import { RouterLink, useRoute } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 import { routeFor } from "@/router/routeFor";
-import { useNavigation } from "@/navigation";
+import { useContents } from "@/contents";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 
 const moduleSlug = computed(() => String(route.params.module ?? ""));
-const { entries, loading, failed } = useNavigation(boot.app, moduleSlug);
+const { entries, loading, failed } = useContents(boot.app, moduleSlug);
 // The slug is the address; the name is what a human reads. The server sends both, so
 // neither side has to guess the other.
 const title = computed(() => addresses.moduleName(moduleSlug.value) ?? moduleSlug.value);

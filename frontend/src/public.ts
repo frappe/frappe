@@ -19,4 +19,4 @@ export {
 	urlFor,
 	type RouteOptions,
 } from "@/router/routeFor";
-export type { NavigationEntry } from "@/navigation";
+export type { ContentEntry } from "@/contents";
