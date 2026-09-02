@@ -259,6 +259,33 @@ class NavigationContext:
 	def page_is_permitted(self, page: str | None) -> bool:
 		return bool(page) and (self.administrator or page in self.permitted_pages)
 
+	def address_is_offered(self, link_doctype: str | None, link_to: str | None) -> bool:
+		"""Whether a whole sidebar's address survives this user's own vetoes.
+
+		A veto and never a permission, so this asks one question and not the two
+		`module_is_offered` asks. Whether a module holds anything readable is already decided
+		row by row, and a module sidebar may link outside its own module — 101 of ERPNext's
+		rows do — so requiring the module's *contents* here would empty a sidebar whose rows
+		are all fine. What is left over is the block, which nothing else can ask on this user's
+		behalf.
+
+		It exists because a module-primary rail reaches a module through a `Sidebar` item whose
+		rows are `DocType` items, and `block_modules` gates module-derived items only. So the
+		veto #42323 settled — a blocked module ships nothing, its page stays reachable — held
+		for a `Module` item and missed the case charter point 2 exists for. Blocking Accounts on
+		ERPNext's rail left all 73 rows and the rail item standing.
+
+		The address is where it lands rather than the rail item, and that is what keeps it one
+		rule: a desk v2 module sidebar is *addressed* at its `Module Def`, so the sidebar is the
+		thing the block can name. The rail item then goes on its own, through the
+		`Derived From Children` cascade it already runs under — no new bucket, no second path,
+		and a site or user layer over that sidebar goes with it for free.
+		"""
+		if link_doctype != "Module Def":
+			return True
+
+		return bool(link_to) and link_to not in self.blocked_modules
+
 	@cached_property
 	def readable_doctypes(self) -> set[str]:
 		"""`get_doctypes_with_read() | get_shared_doctypes()`, once.

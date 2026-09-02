@@ -23,6 +23,7 @@ from frappe.shell.arrangement import get_arrangement, save_arrangement
 from frappe.shell.navigation import resolve_navigation, resolve_rail
 from frappe.tests.classes.context_managers import set_user
 from frappe.tests.test_shell_navigation import (
+	ADDRESS,
 	ADDRESS_KEY,
 	APP,
 	NavigationTestCase,
@@ -383,6 +384,120 @@ class TestLinkedSidebars(FilterTestCase):
 
 		self.assertEqual(keys(payload["rail"]), ["core"])
 		self.assertEqual(keys(payload["sidebars"][ADDRESS_KEY]), ["mine"])
+
+
+class TestTheModuleVetoOnASidebar(FilterTestCase):
+	"""`block_modules` reaching a sidebar through the module it is *addressed* at.
+
+	The tests above cover a `Module` item, which is how a doctype-primary app meets a module.
+	A module-primary app never authors one: it reaches a module through a `Sidebar` item, and
+	that sidebar holds `DocType` rows, which the veto deliberately does not touch. So blocking
+	Accounts on ERPNext's rail left all 73 rows and the rail item standing (#42423), and the
+	rule #42323 settled missed the case charter point 2 exists for.
+
+	`Module Def` is the whole test: a desk v2 module sidebar is addressed at its module, so the
+	block has something to name. The rail item then goes on its own through the
+	`Derived From Children` cascade, which is why nothing below asserts a second mechanism.
+	"""
+
+	DOCTYPE_ADDRESS = ("DocType", READABLE)
+	DOCTYPE_ADDRESS_KEY = "doctype_todo"
+
+	def module_sidebar_on_the_rail(self):
+		"""What a module-primary rail ships: a linked item over a sidebar of readable rows."""
+		make_sidebar([doctype_item("mine", READABLE)], standard=1)
+		make_rail(
+			[item("core", item_type="Sidebar", link_doctype="Sidebar", link_to=ADDRESS_KEY)],
+			standard=1,
+		)
+
+	def test_a_module_sidebar_goes_when_its_module_is_blocked(self):
+		self.module_sidebar_on_the_rail()
+		block("Core", self.user)
+
+		with set_user(self.user):
+			payload = resolve_navigation(APP)
+
+		self.assertNotIn(ADDRESS_KEY, payload["sidebars"])
+		self.assertEqual(keys(payload["rail"]), [], "the rail item goes with its sidebar")
+
+	def test_the_same_sidebar_survives_when_another_module_is_blocked(self):
+		"""The veto names one module, so it is worth showing that it names only that one."""
+		self.module_sidebar_on_the_rail()
+		block(FULL_MODULE, self.user)
+
+		with set_user(self.user):
+			payload = resolve_navigation(APP)
+
+		self.assertEqual(keys(payload["sidebars"][ADDRESS_KEY]), ["mine"])
+		self.assertEqual(keys(payload["rail"]), ["core"])
+
+	def test_a_row_inside_a_blocked_module_is_still_reachable_elsewhere(self):
+		"""Unchanged, and the reason this rule sits on the address rather than on the rows.
+		Hiding a module hides the way to a document, never the document."""
+		make_rail([doctype_item("todo", READABLE)], standard=1)
+		block("Core", self.user)
+
+		self.assertEqual(rail_keys(self.user), ["todo"])
+
+	def test_a_doctype_addressed_sidebar_is_not_subject_to_the_veto(self):
+		"""CRM's shape. A sidebar addressed at a doctype names no module, so no block reaches it
+		-- including the block on the module that doctype happens to belong to."""
+		make_sidebar(
+			[doctype_item("mine", READABLE)],
+			standard=1,
+			link_doctype=self.DOCTYPE_ADDRESS[0],
+			link_to=self.DOCTYPE_ADDRESS[1],
+		)
+		block("Core", self.user)
+
+		with set_user(self.user):
+			payload = resolve_navigation(APP)
+
+		self.assertEqual(keys(payload["sidebars"][self.DOCTYPE_ADDRESS_KEY]), ["mine"])
+
+	def test_no_layer_can_resurface_a_blocked_module_s_sidebar(self):
+		"""The address is judged before the layers are read, so a person's own additions to that
+		sidebar never get the chance to bring it back."""
+		self.module_sidebar_on_the_rail()
+		make_sidebar([doctype_item("added", READABLE, added=1)], user=self.user)
+		block("Core", self.user)
+
+		with set_user(self.user):
+			payload = resolve_navigation(APP)
+
+		self.assertNotIn(ADDRESS_KEY, payload["sidebars"])
+
+	def test_the_veto_outranks_administrator_here_too(self):
+		"""Same reason as the `Module` item: it is this account's own preference row."""
+		self.module_sidebar_on_the_rail()
+		block("Core", "Administrator")
+
+		self.assertNotIn(ADDRESS_KEY, resolve_navigation(APP)["sidebars"])
+
+	def test_one_sidebar_read_on_its_own_answers_the_same_way(self):
+		"""`resolve_sidebar` is the arrangement editor's read, and a rule that held only on the
+		boot path would let a person arrange a sidebar boot will never send them."""
+		from frappe.shell.navigation import resolve_sidebar
+
+		make_sidebar([doctype_item("mine", READABLE)], standard=1)
+		block("Core", self.user)
+
+		with set_user(self.user):
+			self.assertEqual(resolve_sidebar(*ADDRESS), [])
+
+	def test_the_editor_bypass_still_sees_it(self):
+		"""`check_permission=False` is the layer editor's, and a manager arranging the site's
+		sidebar must not silently delete rows out of a list their own block shortened."""
+		from frappe.shell.navigation import resolve_sidebar
+
+		make_sidebar([doctype_item("mine", READABLE)], standard=1)
+		block("Core", self.user)
+
+		with set_user(self.user):
+			rows = resolve_sidebar(*ADDRESS, check_permission=False)
+
+		self.assertEqual(keys(rows), ["mine"])
 
 
 class TestFailingClosed(FilterTestCase):
