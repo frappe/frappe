@@ -934,8 +934,11 @@ body.grid-col-resizing {
 }
 
 // The wizard's panels scroll inside the modal, so the scrollbar lands right
-// beside the fields. Keep it thin and hold a gutter open next to it.
+// beside the fields. Keep it thin and hold a gutter open next to it. The
+// panel now sits inside .bulk-edit-card (white), so it also carries the
+// card's own inner padding on every other side.
 .bulk-edit-tabs .es-tabs__panel {
+	padding: var(--padding-md);
 	padding-right: var(--padding-sm);
 
 	// beats the global `*:not(#page-form-builder *)` scrollbar width
@@ -951,56 +954,36 @@ body.grid-col-resizing {
 	max-width: min(80vw, 1400px);
 }
 
-// The tab bar reads as a stepper: a ring per step, its label beside it, and a
-// rule running on to the next one. Only the look changes here — the tabs keep
-// their own click, keyboard and disabled behaviour.
-.bulk-edit-tabs .es-tabs__list {
-	justify-content: space-between;
-	gap: var(--padding-sm);
+// The step row is a real frappe.ui.Stepper (same component as the Data
+// Import wizard's dialog — ported in from Doctype-PR-changes), sitting
+// directly on the modal's grey body. Tabs still drives the panels; its own
+// bar is hidden (see .bulk-edit-tabs .es-tabs__list below) and the Stepper's
+// on_step_click calls tabs.set_active() instead.
+.bulk-edit-dialog .es-stepper {
 	padding-block: var(--padding-xs);
-	border-bottom: none;
-	overflow: visible;
 }
 
-.bulk-edit-tabs .es-tabs__tab {
-	// every step but the last stretches, so the rules take up the slack
-	flex: 1 1 0;
-	gap: var(--padding-sm);
-
-	// last-of-type, not last-child: Tabs appends the indicator span after the
-	// buttons, so the last tab is never the list's last child
-	&:last-of-type {
-		flex: 0 0 auto;
-	}
-
-	// the ring. currentColor carries the tab's own state colour, so an active
-	// step darkens and a locked one stays muted without repeating the states
-	&::before {
-		content: "";
-		flex: 0 0 auto;
-		width: 14px;
-		height: 14px;
-		border: 1.5px dashed currentColor;
-		border-radius: 50%;
-	}
-
-	// the rule on to the next step
-	&::after {
-		content: "";
-		flex: 1 1 auto;
-		min-width: var(--padding-md);
-		height: 1px;
-		background: var(--outline-gray-2);
-	}
-
-	&:last-of-type::after {
-		display: none;
-	}
-}
-
-// the sliding underline belongs to a tab bar, not to a stepper
-.bulk-edit-tabs .es-tabs__indicator {
+.bulk-edit-tabs .es-tabs__list {
 	display: none;
+}
+
+// Grey modal body (the step row reads directly on it), with the tab panel
+// and the dialog's own footer actions boxed together in one white card —
+// dialog.footer is moved into that card in grid.js, not rebuilt, so this is
+// styling only. The modal-body's existing padding is what gives the card its
+// margin on every side; the card only adds the gap under the step row.
+.bulk-edit-dialog .modal-body {
+	background: var(--subtle-fg);
+}
+
+.bulk-edit-card {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	margin-top: var(--padding-sm);
+	background: var(--fg-color);
+	border-radius: var(--radius-md);
 }
 
 // ---- the bulk edit preview, which doubles as the mapping step ----
