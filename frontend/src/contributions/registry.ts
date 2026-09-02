@@ -31,6 +31,10 @@ export function listHandlersFor(doctype: string) {
  * owner's; a file at `<module>/custom/<x>/` is by construction somebody else's. The
  * arrow rule 1 actually wanted was "baseline first, more-specific intent last", not
  * "framework first" -- and this is that, derived rather than declared.
+ *
+ * Item renderers pass no `isForeign`, because a kind has no owning app to be foreign to:
+ * the type record and the JS ship together, so `app_order` alone decides, and what it
+ * decides is which app wins a collision rather than what runs after what.
  */
 function ordered<T extends { app: string }>(
   all: T[],

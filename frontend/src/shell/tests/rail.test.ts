@@ -323,3 +323,43 @@ describe("an expanded overflow row when the list changes under it", () => {
 		expect(row(host, "Sales Invoice")).not.toBeNull();
 	});
 });
+
+describe("a section's disclosure when the list changes under it", () => {
+	const section = (extra: Partial<NavigationItem> = {}): NavigationItem => ({
+		key: "sales",
+		item_type: "Section",
+		label: "Sales",
+		collapsible: 1,
+		...extra,
+	});
+
+	it("follows a reset that ships a different keep_closed", () => {
+		// A reset returns the app's own layer (#42363), so the same key comes back with a
+		// different shipped value while this component survives — `v-for` keys on the key.
+		// Without this the section sits open against what it now ships, until a reload.
+		const { host, items } = mount([section({ keep_closed: 1 }), doctype("CRM Deal", "sales")]);
+		expect(row(host, "CRM Deal")).toBeNull();
+
+		items.value = [section(), doctype("CRM Deal", "sales")];
+		return nextTick().then(() => {
+			expect(row(host, "CRM Deal")).not.toBeNull();
+		});
+	});
+
+	it("does not re-open what the reader just closed", async () => {
+		// The watch is on the shipped value, not on the row. A toggle changes `open` and
+		// never `keep_closed`, so a save that leaves the section alone leaves it closed —
+		// otherwise every save would undo the last thing somebody did to the rail.
+		const { host, items } = mount([section(), doctype("CRM Deal", "sales")]);
+
+		(row(host, "sales") as HTMLButtonElement).click();
+		await flush();
+		expect(row(host, "CRM Deal")).toBeNull();
+
+		items.value = [section(), doctype("CRM Deal", "sales"), doctype("CRM Lead")];
+		await flush();
+
+		expect(row(host, "CRM Deal")).toBeNull();
+		expect(row(host, "CRM Lead")).not.toBeNull();
+	});
+});

@@ -123,7 +123,21 @@ const heading = computed(
 // `keep_closed` is what makes a section START closed; `collapsible` is what lets a reader
 // close it. Neither is the same as "open", so a section that is neither stays open and has
 // no control (#42227).
+//
+// The watch is on the SHIPPED value, not on the item: a reset returns the app's own layer
+// (#42363), so the same key can come back with a different `keep_closed` while this
+// component survives — `v-for` keys on the key — and the section would sit open or closed
+// against what it now ships until a reload. Watching the value rather than the row is what
+// keeps that distinct from a reader's own toggle, which changes `open` and never
+// `keep_closed`, so a save cannot re-open what somebody just closed.
 const open = ref(!item.value.keep_closed);
+
+watch(
+	() => item.value.keep_closed,
+	(keepClosed) => {
+		open.value = !keepClosed;
+	}
+);
 
 const expanded = ref(false);
 const expandedNodes = ref<ItemNode[]>([]);
