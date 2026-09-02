@@ -3,13 +3,9 @@ frappe.ui.get_print_settings = function (
 	callback,
 	letter_head,
 	pick_columns,
-<<<<<<< HEAD
-	has_filters = false
-=======
 	is_query_report = false,
 	title = null,
 	default_print_format = null
->>>>>>> 0dd6248 (fix: show print format field only for query/script reports)
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -32,23 +28,6 @@ frappe.ui.get_print_settings = function (
 			default: "Landscape",
 		},
 		{
-<<<<<<< HEAD
-			fieldtype: "Link",
-			fieldname: "print_format",
-			label: __("Print Format"),
-			options: "Print Format",
-			get_query: () => ({
-				filters: {
-					print_format_for: "Report",
-					print_format_type: "JS",
-					report: frappe.query_report ? frappe.query_report.report_name : "",
-					disabled: 0,
-				},
-			}),
-		},
-		{
-=======
->>>>>>> 0dd6248 (fix: show print format field only for query/script reports)
 			fieldtype: "Check",
 			fieldname: "with_letter_head",
 			label: __("With Letter head"),
