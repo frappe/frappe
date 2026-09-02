@@ -22,6 +22,13 @@ export type NavigationItem = {
 	parent_key?: string;
 	link_doctype?: string;
 	link_to?: string;
+	/**
+	 * An absolute href, for the two rows that are not a route in this prefix: a `Link`
+	 * item, which points off the desk entirely, and a contributed item marked
+	 * `switches_app`, whose URL the server finishes because the router this document
+	 * holds cannot build one into another prefix (#42364). Either way, following it is
+	 * a full document load, so a row carrying one is an `<a>` and not a `RouterLink`.
+	 */
 	url?: string;
 	payload?: Record<string, unknown>;
 	label?: string;

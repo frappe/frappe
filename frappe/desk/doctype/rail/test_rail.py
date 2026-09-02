@@ -13,6 +13,13 @@ from frappe.tests.classes.context_managers import set_user
 # matter: these tests are about the layers and the rows, not about anyone's actual navigation.
 APP = "frappe"
 
+# Hosts an extension names. Neither has to be installed: `Rail.app` and `Rail.extends` are
+# `Autocomplete` columns over installed apps rather than Links, so nothing on the document
+# resolves them. Resolution is where an uninstalled app stops counting, and that is tested
+# against the resolver in `frappe/tests/test_shell_navigation.py`.
+HOST = "erpnext"
+OTHER_HOST = "helpdesk"
+
 
 @contextlib.contextmanager
 def authoring():
@@ -143,11 +150,73 @@ class TestRail(IntegrationTestCase):
 		self.assertEqual(rail.items[0].link_doctype, "User")
 
 	def test_a_site_layer_cannot_claim_another_apps_rail(self):
-		"""`mount_on` is an app-layer claim, and hiding the field does not stop an API write."""
-		rail = make_rail(mount_on="crm")
+		"""`extends` is an app-layer claim, and hiding the field does not stop an API write.
+
+		A site or user row naming a host would be one person's arrangement filed onto a rail
+		they do not own — and it is unnecessary besides, since arranging a host rail is one row
+		at the host's own address covering every contributed item in the list.
+		"""
+		rail = make_rail(extends=HOST)
 		rail.insert()
 		self.addCleanup(rail.delete)
-		self.assertFalse(rail.mount_on)
+		self.assertFalse(rail.extends)
+
+	def test_an_app_cannot_extend_itself(self):
+		"""It is its own rail written twice, and both copies would merge into one list."""
+		rail = make_rail(standard=1, extends=APP, items=[item(key="users", link_to="User")])
+		with authoring():
+			self.assertRaises(frappe.ValidationError, rail.insert)
+
+	def test_an_extension_is_named_after_the_address_and_not_the_app(self):
+		"""An app ships its own rail and one record per host, so the app name is not enough.
+
+		The record name is the export path, so two records sharing a name would overwrite one
+		file — which is exactly what `mount_on`'s single column made unavoidable.
+		"""
+		own = make_rail(standard=1, items=[item(key="users", link_to="User")])
+		extension = make_rail(standard=1, extends=HOST, items=[item(key="users", link_to="User")])
+		with authoring():
+			own.insert()
+			self.addCleanup(own.delete)
+			extension.insert()
+			self.addCleanup(extension.delete)
+
+		self.assertEqual(own.name, APP)
+		self.assertEqual(extension.name, f"{APP}-{HOST}")
+
+	def test_one_app_may_extend_two_hosts_and_keep_its_own_rail(self):
+		"""The whole reason `mount_on` came off: a scalar could name one host, and Payments and
+		Telephony each extend ERPNext *or* CRM *or* Helpdesk, choosing per site.
+
+		This is also what the old three-column index made unstorable rather than merely
+		unresolvable — every one of these rows is `(app, "", 1)` under it.
+		"""
+		with authoring():
+			for extends in ("", HOST, OTHER_HOST):
+				rail = make_rail(standard=1, extends=extends, items=[item(key="users", link_to="User")])
+				rail.insert()
+				self.addCleanup(rail.delete)
+
+		self.assertEqual(
+			frappe.db.count("Rail", {"app": APP, "standard": 1}),
+			3,
+		)
+
+	def test_two_extensions_of_one_host_by_one_app_are_still_refused(self):
+		"""The index widened; it did not stop enforcing one layer per address.
+
+		A shipped row is refused by name rather than by the index, and says so: its name is its
+		address, so the second one collides on the primary key — which `db_insert` reads as a
+		hash collision, retries five times against an `autoname` that keeps returning the same
+		string, and then re-raises the driver's own error naming a column and no cause.
+		"""
+		with authoring():
+			first = make_rail(standard=1, extends=HOST, items=[item(key="users", link_to="User")])
+			first.insert()
+			self.addCleanup(first.delete)
+
+			with self.assertRaises(frappe.ValidationError):
+				make_rail(standard=1, extends=HOST, items=[item(key="roles", link_to="Role")]).insert()
 
 	def test_a_layer_with_no_user_is_the_site_layer(self):
 		"""One spelling of "not a user's own", so two site layers cannot look like one address."""

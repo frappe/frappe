@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.database.utils import drop_index_if_exists
 from frappe.desk.doctype.navigation_item.navigation_item import validate_item_keys
 from frappe.model.document import Document
 
@@ -10,6 +11,10 @@ from frappe.model.document import Document
 # reaches the index. Every `NULL` is distinct to an index, so a nullable column would let one app
 # hold two site layers that both look like one address.
 SITE_LAYER = ""
+
+# Blank, for the same reason and read the same way: "this layer extends nobody, it is the app's
+# own rail". A nullable column would not reach the unique index below.
+NO_HOST = ""
 
 # The writes that are an app's content arriving on a site rather than a person editing it. Each is
 # a real route by which a shipped rail reaches a site, and without them, installing or updating an
@@ -20,7 +25,7 @@ SYSTEM_WRITE_FLAGS = ("in_install", "in_patch", "in_migrate", "in_import", "in_s
 class Rail(Document):
 	"""One layer of one app's rail.
 
-	The document holds the layer; how three of them resolve into the list a person sees is not
+	The document holds the layer; how they resolve into the list a person sees is not
 	here. That resolution is one engine shared with the sidebar -- the rail and the sidebar are two
 	presentations of one model, not two models -- and it runs at read time, against the whole of a
 	prefix, on the way into boot.
@@ -36,39 +41,92 @@ class Rail(Document):
 		from frappe.types import DF
 
 		app: DF.Autocomplete
+		extends: DF.Autocomplete
 		items: DF.Table[NavigationItem]
-		mount_on: DF.Autocomplete | None
 		standard: DF.Check
 		user: DF.Link
 	# end: auto-generated types
 
 	def autoname(self):
-		"""Name an app's own rail after the app; everything else gets a hash.
+		"""Name a shipped rail after what it arranges; everything else gets a hash.
 
 		The export path requires it, because the record name is the file path. A hash-named
 		standard record would write `<app>/rail/6a1f9c2e/6a1f9c2e.json`, and a re-export from a
 		fresh bench would create a second file, leaving the first as a permanent orphan.
 
+		An app ships more than one of these once it extends somebody: its own rail, plus a record
+		per host. So the name is the address and not the app alone — `telephony` for its own,
+		`telephony-erpnext` for what it adds to ERPNext's. A hyphen separates them because an app
+		name is a Python module name and can never contain one.
+
 		An opaque name costs the other two layers nothing, because a layer is looked up by filter
 		and never by name.
 		"""
-		if self.standard:
-			self.name = self.app
+		if not self.standard:
+			return
+
+		self.name = f"{self.app}-{self.extends}" if self.extends else self.app
 
 	def validate(self):
 		self.user = self.user or SITE_LAYER
+		self.extends = self.extends or NO_HOST
 		self.validate_app_content()
-		self.blank_the_mount()
+		self.blank_the_host()
+		self.refuse_extending_itself()
+		self.refuse_a_second_record_at_this_address()
 		self.validate_item_keys()
 
-	def blank_the_mount(self):
-		"""Clear `mount_on` outside the app layer, because mounting is an app-layer claim.
+	def blank_the_host(self):
+		"""Clear `extends` outside the app layer, because extending is an app-layer claim.
 
 		`depends_on` hides the field on the two writable layers but does not stop an API write, and
-		a site row carrying a mount would put a user's arrangement on another app's rail.
+		a site or user row naming a host would be one person's arrangement of a rail they do not
+		own — which is also the row that already exists, since a person arranges a host rail
+		through the host's own address and gets every contributed item in the same list.
 		"""
 		if not self.standard:
-			self.mount_on = None
+			self.extends = NO_HOST
+
+	def refuse_extending_itself(self):
+		"""An app extending itself is its own rail written twice, and the two would both merge.
+
+		Cheap to state and impossible to mean: the second record would be appended to the first
+		with its keys namespaced `<app>:<key>`, so every item would appear once addressable and
+		once not.
+		"""
+		if self.extends and self.extends == self.app:
+			frappe.throw(
+				_("{0} cannot extend its own rail. Ship the items on its own rail instead.").format(
+					frappe.bold(self.app)
+				),
+				title=_("Extends Itself"),
+			)
+
+	def refuse_a_second_record_at_this_address(self):
+		"""Say plainly that a shipped rail is already there, rather than letting the insert fail.
+
+		The unique index below is the guarantee and stays the guarantee — it holds against a bulk
+		write and against anything that skips the document. This is about the message. A shipped
+		rail's name *is* its address, while the doctype autonames by `hash` for the sake of the
+		other two layers, so `db_insert` reads the primary-key collision as a hash collision and
+		retries. `autoname` puts the same name back each time, so it retries five times and then
+		re-raises the driver's own `IntegrityError`, which names a column and no cause.
+
+		Only shipped rows have a deterministic name, so only they can reach that path. Everything
+		else keeps its hash and meets the index, which reports itself properly.
+
+		In `validate` rather than `before_insert`, which runs before the name exists: `insert`
+		calls `before_insert`, then `set_new_name`, then the before-save methods.
+		"""
+		if not self.is_new() or not self.standard or not frappe.db.exists("Rail", self.name):
+			return
+
+		frappe.throw(
+			_("{0} already has a rail at this address. Edit {1} rather than shipping a second.").format(
+				frappe.bold(self.app), frappe.bold(self.name)
+			),
+			title=_("Already Shipped"),
+		)
 
 	def validate_app_content(self):
 		"""Allow only developer mode to set or clear the standard flag, because it is app content.
@@ -116,10 +174,11 @@ class Rail(Document):
 	def export_rail(self):
 		"""Write this rail to its file, so authoring it and shipping it are one step.
 
-		The path is `<app>/rail/<app>/<app>.json`: the usual per-record folder, rooted at the app
-		instead of a module, because an app has one rail and no module owns it. The import walk and
-		the orphan sweep both work on that shape unchanged, because the filename and the record
-		name agree.
+		The path is `<app>/rail/<name>/<name>.json`: the usual per-record folder, rooted at the app
+		instead of a module, because no module owns a rail. The import walk and the orphan sweep
+		both work on that shape unchanged, because the filename and the record name agree — which
+		is why `autoname` makes the name the address, so an app that extends two hosts writes three
+		files rather than overwriting one.
 		"""
 		from frappe.modules.export_file import export_to_files
 
@@ -135,12 +194,22 @@ def on_doctype_update():
 	A hook is bypassed by `db_insert`, a bulk write, or anything that skips the document, and two
 	documents at one address would give the merge two answers for the same layer.
 
-	The index is composite because an address is three columns. `user` alone would let one person
+	The index is composite because an address is four columns. `user` alone would let one person
 	arrange only one app's rail. `standard` is in it because an app's own rail and the site's
 	arrangement of it are two documents at the same `(app, user)`: one shipped, one curated, and
-	resetting the site's must not touch the app's.
+	resetting the site's must not touch the app's. `extends` is in it because an app ships one
+	record per rail it joins and one for its own, and the three-column form made extending
+	unstorable rather than merely unresolvable: `telephony` already owns `(telephony, "", 1)`, so
+	its second record collided with its first.
+
+	The old three-column index is dropped by name. `add_unique` is keyed on the constraint name
+	and does nothing when one already exists, so widening the columns under the same name would
+	have been a silent no-op on every bench that has already migrated this branch.
 	"""
-	frappe.db.add_unique("Rail", ("app", "user", "standard"), constraint_name="unique_layer_address")
+	drop_index_if_exists("tabRail", "unique_layer_address")
+	frappe.db.add_unique(
+		"Rail", ("app", "extends", "user", "standard"), constraint_name="unique_rail_address"
+	)
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
