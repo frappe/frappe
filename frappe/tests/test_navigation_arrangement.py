@@ -16,6 +16,7 @@ import json
 import frappe
 from frappe.exceptions import FrappeTypeError
 from frappe.shell.arrangement import (
+	_as_items,
 	_target,
 	anchors_for,
 	get_arrangement,
@@ -111,6 +112,18 @@ class TestReduction(NavigationTestCase):
 	def test_a_hide_is_written_and_an_unhide_is_written(self):
 		self.assertEqual(reduce_arrangement([shown("a")], [shown("a", hidden=1)])[0]["hidden"], 1)
 		self.assertEqual(reduce_arrangement([shown("a", hidden=1)], [shown("a")])[0]["hidden"], 0)
+
+	def test_a_key_or_parent_that_is_not_a_name_is_dropped(self):
+		"""Both are read as dictionary keys from here on, and a list is not hashable — so one
+		arriving in either column would end a whitelisted save in an uncaught `TypeError`."""
+		base = [shown("a"), shown("b")]
+
+		self.assertEqual(reduce_arrangement(base, _as_items([{"key": ["!=", ""]}, shown("a")])), [])
+		self.assertEqual(
+			_as_items([shown("a", parent_key={"x": 1})])[0]["parent_key"],
+			None,
+			"a parent that is not a name is no parent, not a crash",
+		)
 
 	def test_a_key_the_base_does_not_hold_is_dropped(self):
 		"""An app removed an item while somebody had the editor open. Refusing would lose the

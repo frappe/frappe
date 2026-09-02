@@ -222,6 +222,12 @@ def _as_items(items: str | list) -> list[dict]:
 	A string that will not parse is refused with the same message as a body that is not a list,
 	rather than raising the decoder's own error: both mean the caller sent something this is not,
 	and a `JSONDecodeError` off a whitelisted method is a 500 where the caller needs a sentence.
+
+	What comes back is rows whose `key` and `parent_key` are names, because both are read as
+	dictionary keys from here on. A list is not hashable, so one arriving in either column would
+	end a whitelisted save in an uncaught `TypeError` rather than in an answer. The row is
+	dropped rather than the request refused, for the reason `reduce_arrangement` drops an
+	unknown key: the rest of the arrangement is still what the person meant.
 	"""
 	if isinstance(items, str):
 		try:
@@ -232,7 +238,21 @@ def _as_items(items: str | list) -> list[dict]:
 	if not isinstance(items, list):
 		frappe.throw(_("An arrangement is a list of items."), title=_("Not an Arrangement"))
 
-	return [item for item in items if isinstance(item, dict) and item.get("key")]
+	return [row for item in items if (row := _named(item))]
+
+
+def _named(item) -> dict | None:
+	"""One row of the client's list, or None if it does not name an item."""
+	if not isinstance(item, dict) or not _is_name(item.get("key")):
+		return None
+
+	parent = item.get("parent_key")
+
+	return {**item, "parent_key": parent if _is_name(parent) else None}
+
+
+def _is_name(value) -> bool:
+	return isinstance(value, str) and bool(value)
 
 
 # The reduction
