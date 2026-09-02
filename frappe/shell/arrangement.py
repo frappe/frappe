@@ -242,13 +242,22 @@ def _as_items(items: str | list) -> list[dict]:
 
 
 def _named(item) -> dict | None:
-	"""One row of the client's list, or None if it does not name an item."""
+	"""One row of the client's list, or None if it does not name an item.
+
+	A `parent_key` that is *blank* is the top level and is the ordinary case. A `parent_key` that
+	is present but is not a name drops the whole row, rather than being read as blank: reading it
+	as blank would say the row belongs at the top level, which is a placement nobody asked for
+	and one the reduction would faithfully write down. Dropping the row says nothing about it
+	instead, so it stays exactly where the layer below put it.
+	"""
 	if not isinstance(item, dict) or not _is_name(item.get("key")):
 		return None
 
 	parent = item.get("parent_key")
+	if parent and not _is_name(parent):
+		return None
 
-	return {**item, "parent_key": parent if _is_name(parent) else None}
+	return {**item, "parent_key": parent or None}
 
 
 def _is_name(value) -> bool:

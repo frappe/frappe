@@ -119,11 +119,26 @@ class TestReduction(NavigationTestCase):
 		base = [shown("a"), shown("b")]
 
 		self.assertEqual(reduce_arrangement(base, _as_items([{"key": ["!=", ""]}, shown("a")])), [])
-		self.assertEqual(
-			_as_items([shown("a", parent_key={"x": 1})])[0]["parent_key"],
-			None,
-			"a parent that is not a name is no parent, not a crash",
+
+		# And a parent that is not a name drops the row rather than being read as blank. Blank
+		# means the top level, which is a placement nobody asked for and one the reduction would
+		# faithfully write down; dropping the row says nothing about it, so it stays put.
+		self.assertEqual(_as_items([shown("a", parent_key={"x": 1})]), [])
+		self.assertEqual(_as_items([shown("a", parent_key="")])[0]["parent_key"], None)
+
+	def test_a_malformed_parent_does_not_move_a_row_to_the_top_level(self):
+		make_rail(
+			[
+				item("people", item_type="Section", label="People"),
+				doctype_item("user", "User", parent_key="people"),
+			],
+			standard=1,
 		)
+
+		save_arrangement("Rail", APP, showing(shown("people"), shown("user", parent_key=["oops"])))
+
+		entry = next(e for e in resolve_navigation(APP)["rail"] if e["key"] == "user")
+		self.assertEqual(entry["parent_key"], "people")
 
 	def test_a_key_the_base_does_not_hold_is_dropped(self):
 		"""An app removed an item while somebody had the editor open. Refusing would lose the
