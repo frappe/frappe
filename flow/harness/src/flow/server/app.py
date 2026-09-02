@@ -122,7 +122,9 @@ def create_app(
 		try:
 			fresh = load_tenants(tenants_file)
 		except (OSError, ValueError) as error:
-			logging.getLogger("flow").warning("tenants file reload failed, keeping the last good list: %s", error)
+			logging.getLogger("flow").warning(
+				"tenants file reload failed, keeping the last good list: %s", error
+			)
 			return
 		fresh_by_site = {tenant.site: tenant for tenant in fresh}
 		for old in tenants:
