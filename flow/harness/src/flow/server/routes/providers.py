@@ -43,7 +43,7 @@ class OAuthCompleteRequest(BaseModel):
 
 
 def create_providers_router(
-	credentials: CredentialStore, oauth: OAuthCoordinator, *, policy: ServerPolicy | None = None
+	credential_store: CredentialStore, oauth: OAuthCoordinator, *, policy: ServerPolicy | None = None
 ) -> APIRouter:
 	policy = policy or ServerPolicy()
 	# one gate for the whole group: a deployed client brings its own models and keys
@@ -51,19 +51,19 @@ def create_providers_router(
 
 	@router.get("/models")
 	async def models():
-		catalog = await available_models(credentials)
+		catalog = await available_models(credential_store)
 		return {"models": [asdict(model) for model in catalog.models], "errors": catalog.errors}
 
 	@router.get("/providers")
 	async def providers():
-		return {"providers": provider_catalog(credentials)}
+		return {"providers": provider_catalog(credential_store)}
 
 	@router.post("/providers/custom")
 	async def save_custom_provider(req: CustomProviderRequest):
 		"""Register an OpenAI-compatible endpoint (Ollama, LM Studio, a gateway)."""
 		name, base_url, models, api_key = _normalized_custom_provider_request(req)
 		row = create_custom_provider(
-			credentials,
+			credential_store,
 			name=name,
 			base_url=base_url,
 			models=models,
@@ -76,7 +76,7 @@ def create_providers_router(
 		"""Rewrite a stored endpoint in place; a blank api_key keeps the saved one."""
 		name, base_url, models, api_key = _normalized_custom_provider_request(req)
 		row = update_custom_provider(
-			credentials,
+			credential_store,
 			provider_id,
 			name=name,
 			base_url=base_url,
@@ -92,16 +92,16 @@ def create_providers_router(
 		provider = require_provider(provider_id)
 		if "api_key" not in provider.auth_methods:
 			raise AuthError(f"{provider.display_name} does not take an API key")
-		credentials.set_api_key(provider_id, req.key)
+		credential_store.set_api_key(provider_id, req.key)
 		return {"status": "saved"}
 
 	@router.delete("/providers/{provider_id}")
 	async def remove_provider_credential(provider_id: str):
 		# custom endpoints have no ProviderSpec; a stored credential proves the id
-		if credentials.get(provider_id) is None:
+		if credential_store.get(provider_id) is None:
 			require_provider(provider_id)  # unknown id → 400, known-but-unset → 404
 			raise HTTPException(status_code=404, detail="no stored credential")
-		credentials.delete(provider_id)
+		credential_store.delete(provider_id)
 		return {"status": "removed"}
 
 	@router.post("/providers/{provider_id}/oauth/start")

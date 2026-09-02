@@ -139,7 +139,7 @@ def test_run_path_passes_inline_credentials(tmp_path, monkeypatch):
 	inputs = loop.LoopInputs(
 		config=SessionConfig(cwd=str(tmp_path), api_key="sk-run", api_base="http://gw.localhost"),
 		messages=[],
-		credentials=CredentialStore(str(tmp_path / "credentials.json")),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
 		abort=asyncio.Event(),
 		model_name="mock",
 	)

@@ -100,7 +100,7 @@ class LoopInputs:
 
 	config: SessionConfig
 	messages: list[TranscriptMessage]
-	credentials: CredentialStore
+	credential_store: CredentialStore
 	abort: asyncio.Event
 	model_name: str  # the session's effective selection at admission, not config
 	credential_id: str | None = None
@@ -574,7 +574,7 @@ async def _authenticated_model(inputs: LoopInputs) -> Model:
 	auth = await await_with_cancellation(
 		resolve_model_auth(
 			inputs.model_name,
-			inputs.credentials,
+			inputs.credential_store,
 			provider_id=inputs.credential_id,
 			api_key=inputs.config.api_key,
 			api_base=inputs.config.api_base,

@@ -454,7 +454,7 @@ class Session:
 		return loop.LoopInputs(
 			config=self.config,
 			messages=self.transcript.messages,
-			credentials=self.credential_store,
+			credential_store=self.credential_store,
 			abort=self.abort_signal,
 			model_name=self.model,
 			credential_id=self.credential_id,
