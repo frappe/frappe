@@ -7,13 +7,17 @@ registers in assets.json:
 
     ui_islands = {"insights.dashboard": "insights_dashboard"}
 
-Boot carries the registry, and `frappe.ui.mount_island` resolves a name through
-it. The `.island.js` and `.island.css` key forms differ from the legacy
-`.bundle.js` one, so the module loader and the classic loader never claim the
-same asset.
+Two hosts resolve a name against the registry. Desk reads it from boot, and
+`frappe.ui.mount_island` does the lookup on the client. A page without desk boot
+calls `get_island_assets`, which does the same lookup on the server.
+
+The `.island.js` and `.island.css` key forms differ from the legacy `.bundle.js`
+one, so the module loader and the classic loader never claim the same asset.
 """
 
 import frappe
+from frappe import _
+from frappe.utils import get_assets_json
 
 ISLAND_JS_SUFFIX = ".island.js"
 ISLAND_CSS_SUFFIX = ".island.css"
@@ -29,3 +33,27 @@ def get_ui_islands() -> dict[str, str]:
 		islands[name] = value[-1] if isinstance(value, list) else value
 
 	return islands
+
+
+@frappe.whitelist()
+def get_island_assets(name: str) -> dict:
+	"""Island name -> `{"js": url, "css": url or None}`.
+
+	For a host page that has no desk boot to resolve the name against.
+	"""
+	bundle = get_ui_islands().get(name)
+	if not bundle:
+		frappe.throw(
+			_('Island "{0}" is not declared. Add it to ui_islands in the app\'s hooks.py.').format(name)
+		)
+
+	assets_json = get_assets_json()
+	js = assets_json.get(bundle + ISLAND_JS_SUFFIX)
+	if not js:
+		frappe.throw(
+			_(
+				'Island "{0}" points at bundle "{1}", but "{2}" is not in assets.json. Build the app that ships it.'
+			).format(name, bundle, bundle + ISLAND_JS_SUFFIX)
+		)
+
+	return {"js": js, "css": assets_json.get(bundle + ISLAND_CSS_SUFFIX) or None}
