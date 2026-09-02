@@ -1,10 +1,26 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import shutil
 
 from flow.tools.builtins.common import resolve, truncate
 from flow.tools.tool import ToolContext, ToolResult, tool
+
+# A catch-all pattern over a big tree yields gigabytes; only the head is ever shown.
+MAX_READ_BYTES = 1 << 20
+
+
+async def _read_capped(stream: asyncio.StreamReader) -> tuple[bytes, bool]:
+	chunks: list[bytes] = []
+	size = 0
+	while size < MAX_READ_BYTES:
+		chunk = await stream.read(65536)
+		if not chunk:
+			return b"".join(chunks), False
+		chunks.append(chunk)
+		size += len(chunk)
+	return b"".join(chunks), True
 
 
 @tool(
@@ -25,18 +41,23 @@ async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult
 		*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
 	)
 	try:
-		stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=ctx.timeout)
+		stdout, capped = await asyncio.wait_for(_read_capped(proc.stdout), timeout=ctx.timeout)
 	except TimeoutError:
 		proc.kill()
 		return ToolResult(content="[grep timed out]", is_error=True)
+	if capped:
+		with contextlib.suppress(ProcessLookupError):
+			proc.kill()
+		stdout = stdout.rsplit(b"\n", 1)[0]  # drop the cut-off last line
+	await proc.wait()
 	out = stdout.decode("utf-8", "replace").strip()
 	if not out:
 		return ToolResult(content="[no matches]", details={"pattern": pattern, "matches": 0})
 	matches = out.count("\n") + 1
 	body, trunc = truncate(out, keep="head")
 	notice = ""
-	if trunc["truncated"]:
-		notice = f"\n[showing {trunc['output_lines']} of {matches} match lines]"
+	if trunc["truncated"] or capped:
+		notice = f"\n[showing {trunc['output_lines']} of {matches}{'+' if capped else ''} match lines]"
 	return ToolResult(
 		content=body + notice,
 		details={"pattern": pattern, "matches": matches, "truncation": trunc},
