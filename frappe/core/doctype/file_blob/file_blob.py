@@ -29,8 +29,14 @@ class FileBlob(Document):
 
 
 def on_doctype_update():
+	# The index on `key` is declared as search_index in the doctype, not
+	# built here: `key` is a reserved word and add_index does not quote
+	# field names, while schema sync does.
+	#
 	# Best-effort DDL: index support differs across backends (site may be
-	# sqlite); a failure must not break migrate.
+	# sqlite); a failure must not break migrate. Logged through the logger,
+	# not frappe.log_error, because this also runs during install, before
+	# the Error Log doctype exists.
 	try:
 		# the dedup invariant: one blob per content per privacy namespace
 		# per driver. The key derives from the checksum (plus a filename
@@ -39,9 +45,6 @@ def on_doctype_update():
 			"File Blob", ["checksum", "is_private", "driver"], constraint_name="unique_file_blob_checksum"
 		)
 	except Exception:
-		frappe.log_error(title="File Blob: could not create unique index on checksum")
-
-	try:
-		frappe.db.add_index("File Blob", ["key"])
-	except Exception:
-		frappe.log_error(title="File Blob: could not create index on key")
+		frappe.logger("storage").warning(
+			"File Blob: could not create unique index on checksum", exc_info=True
+		)
