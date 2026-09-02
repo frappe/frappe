@@ -24,8 +24,14 @@
 #    against a host it does not ship and cannot pin, so a missing anchor is the expected
 #    case rather than a broken one. Landing in the wrong place is cosmetic; vanishing is a
 #    bug report against the wrong app.
+#
+# The placement itself is not here. It is `frappe.desk.layers`, beside the layer merge, because
+# the overlay endpoints move a person's rows by the same anchors one phase later (#42363) -- and
+# `layers.py` is where a list operation with no database under it already lives. What stays here
+# is the one thing that differs: how a written name becomes a key, which for a contributed row
+# means the host first and this app's own rows second.
 
-import json
+from frappe.desk.layers import anchor_attempts, place_by_anchors
 
 # `<app>:<key>`. A colon because it cannot occur in an app name, which is a Python module
 # name, and because it reads as a qualifier rather than as part of a slug — `telephony:leads`
@@ -107,179 +113,36 @@ def _anchor(merged: list[dict], placed: list[dict], targets: set[str]) -> list[d
 	"""Move each contributed root to the first position it asks for that resolves.
 
 	Roots only. A row with a `parent_key` of its own is inside a contributed subtree, and
-	where that subtree sits is its root's business — an anchor on a child would tear the
+	where that subtree sits is its root's business -- an anchor on a child would tear the
 	subtree apart to satisfy a row that never had a say in the first place.
-
-	`anchored` is the cycle guard and the whole of it: it records what each moved row was
-	moved next to, so an anchor whose target chain leads back to the row being placed is
-	refused and the next anchor is tried. Two apps naming each other is the case, and neither
-	an exception nor an arbitrary winner would be right — falling through to the next anchor,
-	and then to the append, is the same answer the design gives every other unresolvable one.
 	"""
-	anchored: dict[str, str] = {}
+	roots = [(item, anchor_attempts(item.get("anchors"))) for item in placed if not item.get("parent_key")]
+	roots = [(item, attempts) for item, attempts in roots if attempts]
+	if not roots:
+		return merged
 
-	for item in placed:
-		if item.get("parent_key"):
-			continue
-
-		attempt = _first_resolving(item, targets, anchored)
-		if attempt is None:
-			continue
-
-		_place(merged, item, attempt)
-		anchored[item["key"]] = attempt["target"]
-
-	return merged
+	return place_by_anchors(merged, roots, key=_key, target_key=_written_then_own(targets))
 
 
-def _first_resolving(item: dict, targets: set[str], anchored: dict[str, str]) -> dict | None:
-	"""The first of this row's anchors whose every named key is present and not circular."""
-	for anchor in _attempts(item):
-		resolved = _resolve(item, anchor, targets, anchored)
-		if resolved:
-			return resolved
-
-	return None
+def _key(item: dict) -> str | None:
+	return item.get("key")
 
 
-def _attempts(item: dict) -> list[dict]:
-	"""This row's anchors, as an ordered list of well-formed attempts.
+def _written_then_own(targets: set[str]):
+	"""Resolve a name as written first and as this app's own second.
 
-	A malformed list is no anchors rather than an error. The rows are authored by an app
-	against a host it cannot see, so the reader of any complaint would be the wrong person;
-	the row still appears, at the end, which is what an app with no anchors gets anyway.
-
-	An attempt naming both `after` and `before` names two positions and so names none. It is
-	dropped rather than resolved by precedence, because picking one would make a typo into a
-	silent placement nobody wrote.
+	Written-first is what makes an anchor aimed at a host resolve to the host, which is the
+	case an app is nearly always writing; the own-namespace fallback is what lets an app
+	anchor to a row it shipped itself without having to write its own name into its own
+	file. It can never shadow a host key, because it is only reached when the host has no
+	such key.
 	"""
-	try:
-		anchors = json.loads(item.get("anchors") or "[]")
-	except (TypeError, ValueError):
-		return []
 
-	if not isinstance(anchors, list):
-		return []
+	def target_key(item: dict, name: str) -> str | None:
+		if name in targets:
+			return name
 
-	attempts = []
+		own = namespaced(item["app"], name)
+		return own if own in targets else None
 
-	for anchor in anchors:
-		if not isinstance(anchor, dict):
-			continue
-
-		after, before, parent = anchor.get("after"), anchor.get("before"), anchor.get("parent_key")
-		if after and before:
-			continue
-		if not (after or before or parent):
-			continue
-
-		attempts.append({"after": after, "before": before, "parent_key": parent})
-
-	return attempts
-
-
-def _resolve(item: dict, anchor: dict, targets: set[str], anchored: dict[str, str]) -> dict | None:
-	"""One attempt against the finished list, or None if any key it names is not there.
-
-	A key is read as written first and as this app's own second. Written-first is what makes
-	an anchor aimed at a host resolve to the host, which is the case an app is nearly always
-	writing; the own-namespace fallback is what lets an app anchor to a row it shipped itself
-	without having to write its own name into its own file. It can never shadow a host key,
-	because it is only reached when the host has no such key.
-	"""
-	app = item["app"]
-	resolved = {"after": None, "before": None, "parent_key": None, "target": None}
-
-	for field in ("after", "before", "parent_key"):
-		name = anchor.get(field)
-		if not name:
-			continue
-
-		key = _target_key(app, name, targets)
-		if key is None:
-			return None
-
-		if _leads_back(key, item["key"], anchored):
-			return None
-
-		resolved[field] = key
-
-	resolved["target"] = resolved["after"] or resolved["before"] or resolved["parent_key"]
-	return resolved
-
-
-def _target_key(app: str, name: str, targets: set[str]) -> str | None:
-	if name in targets:
-		return name
-
-	own = namespaced(app, name)
-	return own if own in targets else None
-
-
-def _leads_back(target: str, key: str, anchored: dict[str, str]) -> bool:
-	"""Whether following what each row was anchored to gets back to `key`."""
-	seen = set()
-
-	while target and target not in seen:
-		if target == key:
-			return True
-		seen.add(target)
-		target = anchored.get(target)
-
-	return False
-
-
-def _place(merged: list[dict], item: dict, anchor: dict):
-	"""Move `item` to where the anchor says, and give it the parent that implies.
-
-	`after` and `before` put a row beside another, so it takes that row's parent: beside
-	means beside, and a sibling that landed at a different depth would be somewhere else
-	entirely. An explicit `parent_key` wins over that, for the app that means *under this
-	section, next to that row*.
-
-	A `parent_key` with no `after` or `before` lands the row after the last child that parent
-	already has, or immediately after the parent when it has none — the position an app would
-	get by appending to that section, which is what it asked for.
-	"""
-	beside = anchor["after"] or anchor["before"]
-	target = _index_of(merged, beside or anchor["parent_key"])
-	if target is None:
-		# Unreachable as long as an anchor only ever resolves against a key that is in the list,
-		# which is what `targets` is. Checked anyway because the caller is boot: an exception here
-		# would blank the shell over a misplaced navigation row.
-		return
-
-	merged.pop(_position_of(merged, item))
-
-	if beside:
-		at = _index_of(merged, beside)
-		parent = anchor["parent_key"]
-		if parent is None:
-			parent = merged[at].get("parent_key")
-		item["parent_key"] = parent
-		merged.insert(at + 1 if anchor["after"] else at, item)
-		return
-
-	item["parent_key"] = anchor["parent_key"]
-	merged.insert(_last_child(merged, anchor["parent_key"]) + 1, item)
-
-
-def _index_of(merged: list[dict], key: str) -> int | None:
-	return next((index for index, entry in enumerate(merged) if entry.get("key") == key), None)
-
-
-def _position_of(merged: list[dict], item: dict) -> int:
-	"""Where this exact row is. By identity, not by equality: `list.remove` takes the first row
-	that compares equal, which is the right one only for as long as no two rows can match."""
-	return next(index for index, entry in enumerate(merged) if entry is item)
-
-
-def _last_child(merged: list[dict], parent: str) -> int:
-	"""The index of `parent`'s last child, or of `parent` itself when it has none."""
-	at = _index_of(merged, parent)
-
-	for index, entry in enumerate(merged):
-		if entry.get("parent_key") == parent:
-			at = index
-
-	return at
+	return target_key

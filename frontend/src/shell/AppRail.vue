@@ -25,6 +25,11 @@
   record naming this app in `extends`. Nothing here can tell, and nothing here should:
   the server merged them into the base before the layers went on, so they arrive as
   ordinary items in one ordered list (#42364).
+
+  The list arrives as a PROP rather than off `boot`, which is what lets it change without a
+  reload: a save returns the whole `{rail, sidebars}` and the shell swaps it in, so the rail
+  re-renders from the same server-resolved list it always renders from and never restacks a
+  layer of its own (#42232).
 -->
 <template>
 	<nav class="flex w-52 shrink-0 flex-col gap-1 border-r border-outline-gray-2 p-2">
@@ -50,9 +55,18 @@
 			</component>
 		</div>
 
+		<button
+			v-if="arrangeable"
+			class="mt-auto rounded px-2 py-1 text-left text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+			@click="emit('arrange')"
+		>
+			Arrange
+		</button>
+
 		<a
 			href="/apps"
-			class="mt-auto rounded px-2 py-1 text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+			:class="arrangeable ? '' : 'mt-auto'"
+			class="rounded px-2 py-1 text-xs text-ink-gray-5 hover:bg-surface-gray-2"
 		>
 			All apps
 		</a>
@@ -62,8 +76,14 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { RouterLink } from "vue-router";
-import type { Boot } from "@/boot";
+import type { Boot, NavigationItem } from "@/boot";
 import { routeFor } from "@/router/routeFor";
+
+// `arrangeable` is off on the index at `/apps`, which belongs to no app: there is no rail to
+// arrange there and no address to name one by, since `boot.app` is null and `boot.navigation`
+// is absent. The shell decides it, because the shell is what knows it is on the index.
+const props = defineProps<{ items: NavigationItem[]; arrangeable?: boolean }>();
+const emit = defineEmits<{ arrange: [] }>();
 
 const boot = inject<Boot>("boot")!;
 
@@ -82,6 +102,6 @@ const boot = inject<Boot>("boot")!;
 // `RouterLink` like any other, and needs nothing here: addresses are bench-wide, so a
 // foreign doctype opens under the host's prefix (#42364).
 const doctypeItems = computed(() =>
-	(boot.navigation?.rail ?? []).filter((item) => item.item_type === "DocType" && item.link_to)
+	props.items.filter((item) => item.item_type === "DocType" && item.link_to)
 );
 </script>

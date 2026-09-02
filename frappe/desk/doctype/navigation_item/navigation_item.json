@@ -57,13 +57,12 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "What kind of thing this row opens. A Link to the code-owned type registry rather than a Select, because a Select's options live in one DocType JSON owned by one app, so a second app could only extend it with a Property Setter. Link rows are additive across apps with no shared field to fight over.",
+   "description": "What kind of thing this row opens. A Link to the code-owned type registry rather than a Select, because a Select's options live in one DocType JSON owned by one app, so a second app could only extend it with a Property Setter. Link rows are additive across apps with no shared field to fight over. Required on a row that IS an item — one an app ships, or one a layer added — and blank on a delta, which is an opinion about an item the layer below it holds and says nothing about what that item opens.",
    "fieldname": "item_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Type",
-   "options": "Navigation Item Type",
-   "reqd": 1
+   "options": "Navigation Item Type"
   },
   {
    "fieldname": "destination_section",
@@ -171,13 +170,13 @@
   },
   {
    "collapsible": 1,
-   "description": "Only meaningful on a row one app contributes to another app's rail — a `Rail` layer with `extends` set. An app's own rows are already where their author put them, and a site or user layer says where a row goes by the order it lists it in.",
+   "description": "Only meaningful on a row one app contributes to another app's rail — a `Rail` layer with `extends` set. An app's own rows are already where their author put them. A site or user layer says where a row goes with an anchor too, but stores it on the row it is moving rather than here, because that row is a delta over somebody else's item.",
    "fieldname": "contribution_section",
    "fieldtype": "Section Break",
    "label": "Contribution"
   },
   {
-   "description": "Where this row wants to land in the host's list, as an ordered JSON list of attempts. Each attempt is an object naming at most one of `after` and `before`, a sibling to sit next to, and optionally `parent_key`, a row to nest under; every key it names has to be in the merged list for the attempt to resolve. The first that resolves wins and the rest are ignored, which is how an app says \"beside Customers, or failing that beside Contacts, or failing that anywhere\" without knowing which version of the host is installed. None resolving means the row is appended at the top level and never dropped, because a contributed item that lands in the wrong place is a cosmetic problem and one that vanishes is a bug report. Keys are written as the host wrote them, unprefixed; the merge namespaces contributed keys but never the anchors that name them.",
+   "description": "Where this row wants to land in the host's list, as an ordered JSON list of attempts. Each attempt is an object naming at most one of `after` and `before`, a sibling to sit next to, and optionally `parent_key`, a row to nest under; every key it names has to be in the merged list for the attempt to resolve. The first that resolves wins and the rest are ignored, which is how an app says \"beside Customers, or failing that beside Contacts, or failing that anywhere\" without knowing which version of the host is installed. None resolving means the row is appended at the top level and never dropped, because a contributed item that lands in the wrong place is a cosmetic problem and one that vanishes is a bug report. Keys are written as the host wrote them, unprefixed; the merge namespaces contributed keys but never the anchors that name them. A layer row uses the same list for the same reason one phase later: a person's move is stored as what it landed beside, not as a position, so an item an app ships afterwards lands where the app put it instead of after everything that person has arranged. There the fallback is the row's own shipped position rather than the end, because unlike a contributed row it has one.",
    "fieldname": "anchors",
    "fieldtype": "Code",
    "label": "Anchors",

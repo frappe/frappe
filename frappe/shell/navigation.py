@@ -95,11 +95,16 @@ def resolve_navigation(app: str) -> dict:
 	item of type `Sidebar` already carries in `link_to`, so the browser still does one dictionary
 	lookup on a value it is holding.
 	"""
-	return {"rail": _resolve_rail(app), "sidebars": _resolve_sidebars(app)}
+	return {"rail": resolve_rail(app), "sidebars": _resolve_sidebars(app)}
 
 
-def _resolve_rail(app: str) -> list[dict]:
+def resolve_rail(app: str, *, upto: str = "user", keep_hidden: bool = False) -> list[dict]:
 	"""One app's rail: its own layer plus what other apps add to it, then the site's, then this user's.
+
+	`upto` stops the stack short, and `keep_hidden` leaves the hidden rows in. Both are the
+	arrangement editor's (#42363): it reads at the scope it writes, hidden rows and all, because
+	otherwise nothing a person hid could ever be unhidden, and it reads one scope lower to find
+	the list a person's moves are anchored against.
 
 	Extension happens to the *base*, before the site and user layers are laid over it. That is
 	what makes a person's arrangement of a host rail one row rather than one row per extending
@@ -123,7 +128,7 @@ def _resolve_rail(app: str) -> list[dict]:
 
 	base = extend(base, _rail_contributions(app), anchorable=shipped)
 
-	return _merge(base, [layers.get("site", []), layers.get("user", [])])
+	return _merge(base, _upto(layers, upto), keep_hidden=keep_hidden)
 
 
 def _resolve_sidebars(app: str) -> dict[str, list[dict]]:
@@ -147,7 +152,7 @@ def _resolve_sidebars(app: str) -> dict[str, list[dict]]:
 	for address in addresses:
 		by_layer = layers.get(address, {})
 		base = by_layer.get("standard", [])
-		items = _merge(base, [by_layer.get("site", []), by_layer.get("user", [])])
+		items = _merge(base, _upto(by_layer, "user"))
 		if items:
 			# An address that resolves to nothing is absent rather than empty. The payload is read
 			# by key, so the two mean the same thing to the browser, and a linked rail item whose
@@ -157,7 +162,32 @@ def _resolve_sidebars(app: str) -> dict[str, list[dict]]:
 	return resolved
 
 
-def _merge(base: list[dict], layers: list[list[dict]]) -> list[dict]:
+def resolve_sidebar(
+	link_doctype: str, link_to: str, *, upto: str = "user", keep_hidden: bool = False
+) -> list[dict]:
+	"""One sidebar at one address, for a caller that wants that one and not the prefix.
+
+	Boot resolves every sidebar in the prefix in one pair of queries, because a modular app has
+	one per module and per-address reads would put two queries per module into the blocking
+	pre-mount path. The arrangement editor is the other kind of caller: it is holding one sidebar
+	and paying one request for it, so it reads that one.
+	"""
+	by_layer = _sidebar_layers([(link_doctype, link_to)]).get((link_doctype, link_to), {})
+
+	return _merge(by_layer.get("standard", []), _upto(by_layer, upto), keep_hidden=keep_hidden)
+
+
+# The layers a resolution stacks, in order, up to and including the scope asked for. The editor
+# reads at the scope it is writing, so a person is shown their own arrangement and edits it; the
+# save then re-reads one scope *below* to get the list its anchors are relative to.
+LAYERS_UPTO = {"base": (), "site": ("site",), "user": ("site", "user")}
+
+
+def _upto(layers: dict[str, list[dict]], upto: str) -> list[list[dict]]:
+	return [layers.get(role, []) for role in LAYERS_UPTO[upto]]
+
+
+def _merge(base: list[dict], layers: list[list[dict]], *, keep_hidden: bool = False) -> list[dict]:
 	"""Fold the layers into the base and return what the browser renders.
 
 	The merge itself is `frappe.desk.layers`, imported rather than copied. It is 165 lines that
@@ -165,35 +195,70 @@ def _merge(base: list[dict], layers: list[list[dict]]) -> list[dict]:
 	desk v2 passes its own `key` and `apply_row` exactly as the dock and the sidebar each pass
 	theirs.
 
-	Hidden items are dropped here. `resolve_layers` returns `(resolved, hidden)` as two values and
-	deliberately leaves the flag unapplied, because the surface decides: desk v1's dock keeps a
-	hidden entry so its manager can list it under Hidden. Desk v2's payload has no manager UI to
-	feed, so shipping a row the client cannot use would spend bytes against the budget boot
-	already manages. Nothing is foreclosed — when the overlay editor lands (#42363) it calls the
-	resolver with the flag kept, which the engine already takes as a parameter.
-	"""
-	resolved, hidden = resolve_layers(
-		base,
-		layers,
-		key=item_key,
-		apply_row=apply_item_row,
-		# An item no layer named survives, after the ones a layer did name. This is the sidebar's
-		# side of that flag rather than the dock's, so an item an app ships later still reaches a
-		# person who has already arranged their rail instead of waiting in a manager that does not
-		# exist yet.
-		#
-		# It is not the whole of #42229's sparse move-list, which asks that a newly-shipped item
-		# land at its *shipped position* rather than after the arranged rows. Today's engine has
-		# no third option between "keep, at the end" and "drop", and with no writer on the branch
-		# the two behave identically. #42363 owns what a drag saves, and that decides whether the
-		# engine needs the position or whether a saved layer names every row anyway.
-		keep_unnamed=True,
-	)
+	Hidden items are dropped here, and `keep_hidden` is the one caller that wants them: the
+	arrangement editor, which has to show a person what they hid in order to let them unhide it
+	(#42363). `resolve_layers` returns `(resolved, hidden)` as two values and deliberately leaves
+	the flag unapplied, because the surface decides — desk v1's dock keeps a hidden entry so its
+	manager can list it under Hidden, and boot drops it, since shipping a row the browser cannot
+	render would spend bytes against a budget boot already manages.
 
-	return [
-		on_the_wire(item)
-		for item in _promote_orphans([item for item in resolved if not hidden.get(item_key(item))])
-	]
+	The arrangement is **anchored**: a layer moves the rows it anchored and leaves the rest of the
+	list where the layer below it put it. That is what #42229's sparse move-list asked for and
+	what neither half of `keep_unnamed` could give — an item an app ships later lands at its
+	shipped position rather than after everything a person has arranged. #42363 settled the writer
+	that produces the anchors, so the flag now has nothing left to decide and is not passed.
+	"""
+	resolved, hidden = resolve_layers(base, layers, key=item_key, apply_row=apply_item_row, anchored=True)
+
+	items = resolved if keep_hidden else _drop_hidden(resolved, hidden)
+
+	return [_on_the_wire(item, hidden) for item in _promote_orphans(items)]
+
+
+def _drop_hidden(items: list[dict], hidden: dict[str, bool]) -> list[dict]:
+	"""Drop every hidden item, and everything under one.
+
+	A person hiding a section means the branch, not the header. That is the opposite of an app
+	*removing* a section, where `_promote_orphans` lifts the children to the top level so an app
+	never silently withdraws what was under one — and the two look identical by the time the list
+	is flat, which is why the subtree has to go before orphans are promoted rather than after
+	(#42363 decision 9).
+
+	Walked upward from each row rather than downward from each section, so the cost is one pass
+	over a chain per item and a section nested in a hidden section needs no second sweep. The
+	`seen` set is the cycle guard: `parent_key` is authored, and a row that is its own ancestor
+	would otherwise loop here rather than merely render oddly.
+	"""
+	parents = {item_key(item): item.get("parent_key") for item in items}
+	dropped: set[str] = set()
+
+	for key in parents:
+		chain, at, seen = [], key, set()
+
+		while at and at not in seen:
+			seen.add(at)
+			chain.append(at)
+			if hidden.get(at) or at in dropped:
+				dropped.update(chain)
+				break
+			at = parents.get(at)
+
+	return [item for item in items if item_key(item) not in dropped]
+
+
+def _on_the_wire(item: dict, hidden: dict[str, bool]) -> dict:
+	"""One resolved item, carrying its hidden flag only when the caller kept hidden rows.
+
+	`on_the_wire` drops every blank field, so an item that is not hidden says nothing about it
+	either way — which is right for boot, where the flag cannot be false and is never read, and
+	right for the editor, which asks whether the key is there.
+	"""
+	wire = on_the_wire(item)
+
+	if hidden.get(item_key(item)):
+		wire["hidden"] = 1
+
+	return wire
 
 
 def item_key(row) -> str | None:
@@ -270,12 +335,11 @@ def _promote_orphans(items: list[dict]) -> list[dict]:
 	with it, so an app removing a section never silently removes everything under it. It also
 	matches #42230's rule for a user who has reparented into a section the site later withdrew.
 
-	It runs after hidden items are dropped, so hiding a section currently promotes its children
-	rather than taking them with it. That is the rule above applied to a case nobody has decided:
-	an app *removing* a section should not remove what was under it, but a person *hiding* one
-	may well mean the whole branch. Nothing exercises it -- no app ships a section and nothing
-	writes a hide -- and #42363 owns the editor that would first produce one, so it is recorded
-	here rather than settled by whichever line happened to be written first.
+	It runs after `_drop_hidden`, which is what keeps the two cases apart. A person *hiding* a
+	section means the whole branch, so its children are already gone by the time this runs; an app
+	*removing* one does not, so its children arrive here and are lifted. The passes stopped being
+	independent when #42363 gave a person a way to hide anything at all: before that, a hidden
+	section and a removed one reached this line looking exactly alike.
 	"""
 	present = {item_key(item) for item in items}
 	return [
