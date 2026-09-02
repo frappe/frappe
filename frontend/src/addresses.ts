@@ -55,6 +55,22 @@ export class Addresses {
 		return match?.[1][0] ?? null;
 	}
 
+	/**
+	 * The slug a module NAME is spelled with, or null.
+	 *
+	 * The reverse of `moduleName`, and the reason it exists rather than a `frappe.scrub`
+	 * here: a navigation item names a module by its `Module Def` name, and the address is
+	 * its slug. Re-implementing the scrub would put a second, divergent spelling of every
+	 * module address in the browser -- which is the trap this file already refuses for
+	 * doctypes.
+	 */
+	slugOfModule(name: string): string | null {
+		const match = Object.entries(this.payload.modules).find(
+			([, moduleName]) => moduleName === name
+		);
+		return match?.[0] ?? null;
+	}
+
 	moduleName(slug: string): string | null {
 		return Object.hasOwn(this.payload.modules, slug)
 			? this.payload.modules[slug]

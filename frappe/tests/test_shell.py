@@ -969,3 +969,90 @@ class TestNoHandBuiltDoctypeUrls(IntegrationTestCase):
 			"one segment deeper under an app that declares `app_modular`, so a "
 			"hand-built path resolves to the wrong page rather than failing:\n" + "\n".join(offences),
 		)
+
+
+class TestNavigationItemRenderers(IntegrationTestCase):
+	"""A kind is two files, and this is what keeps them together (#42420).
+
+	#42228 settled that an item kind is a `Navigation Item Type` record plus a colocated
+	`frontend/item.js` saying what the item does on click, arriving on two independent
+	channels — the record at `bench migrate`, the JS at build. Independent channels are
+	what makes the pairing unenforceable at runtime: a record with no renderer is an item
+	the rail silently declines to draw, and a renderer with no record is registered under a
+	name no row carries and never runs. Neither says anything at the moment it goes wrong.
+
+	The framework's own eight kinds are shipped exactly this way, with no built-in table
+	anywhere for them to fall back to (DP2), so this is also what pins that claim: the day
+	a renderer moves out of the contribution path, the rail loses a kind and this fails.
+	"""
+
+	def type_root(self) -> str:
+		return frappe.get_app_path("frappe", "desk", "navigation_item_type")
+
+	def shipped_types(self) -> list[str]:
+		import os
+
+		return sorted(
+			entry
+			for entry in os.listdir(self.type_root())
+			if os.path.isdir(os.path.join(self.type_root(), entry))
+		)
+
+	def test_every_shipped_item_type_has_a_renderer_beside_it(self):
+		import os
+
+		missing = [
+			scrubbed
+			for scrubbed in self.shipped_types()
+			if not os.path.isfile(os.path.join(self.type_root(), scrubbed, "frontend", "item.js"))
+		]
+
+		self.assertEqual(
+			missing,
+			[],
+			"These item types ship a record and no renderer, so the rail resolves them into "
+			"boot and then drops them without drawing anything: " + ", ".join(missing),
+		)
+
+	def test_every_renderer_has_a_type_record_beside_it(self):
+		import os
+
+		orphaned = [
+			scrubbed
+			for scrubbed in self.shipped_types()
+			if os.path.isfile(os.path.join(self.type_root(), scrubbed, "frontend", "item.js"))
+			and not os.path.isfile(os.path.join(self.type_root(), scrubbed, f"{scrubbed}.json"))
+		]
+
+		self.assertEqual(
+			orphaned,
+			[],
+			"These renderers have no type record beside them. The plugin reads the type's "
+			"NAME off that JSON rather than title-casing the folder — `doctype` title-cases "
+			"to 'Doctype', and the kind is called `DocType` — so it cannot even be named: "
+			+ ", ".join(orphaned),
+		)
+
+	def test_an_app_shipping_only_a_kind_reaches_the_bundle(self):
+		"""`contributes` is what decides whether an app's source is compiled in at all.
+
+		An app whose whole contribution is one item kind has no record page, no list
+		customization and no page — so if the renderer path is missing from
+		`contribution_globs`, its files are never bundled and its kind never registers,
+		with the type record arriving at migrate regardless. That is #42424's hazard, and
+		it is cheaper to pin here than to meet there.
+		"""
+		import os
+		import tempfile
+
+		from frappe.shell.manifest import contributes
+
+		with tempfile.TemporaryDirectory() as source_dir:
+			renderer = os.path.join(source_dir, "widgets", "navigation_item_type", "chart", "frontend")
+			os.makedirs(renderer)
+			self.assertFalse(contributes(source_dir), "nothing shipped yet")
+
+			with open(os.path.join(renderer, "item.js"), "w") as handle:
+				handle.write("export default { render: () => null }\n")
+
+			self.assertTrue(contributes(source_dir))

@@ -12,8 +12,14 @@
 //
 // Deliberately small. This is not the record-page `page` surface (maps 1-4) and not a
 // second door into the shell: everything here is address arithmetic.
+//
+// `isModular` is here for the same reason as the builders. `routeForModule` only resolves
+// under a modular prefix, so a contributed navigation renderer that offers a module
+// destination has to be able to ASK before it builds one -- and the answer is a property
+// of the app serving the prefix, which the reader cannot see (#42211 §2).
 
 export {
+	isModular,
 	routeFor,
 	routeForModule,
 	urlFor,
