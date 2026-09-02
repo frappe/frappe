@@ -12,6 +12,7 @@ from frappe.utils import get_system_timezone
 
 from . import SHELL_ROOT
 from .doctypes import metadata_version
+from .navigation import resolve_navigation
 from .permissions import has_app_permission
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
 
@@ -158,6 +159,17 @@ def get_boot(path: str | None = None) -> dict:
 		**core_boot(),
 		"shell_base": shell_base(prefix),
 		"app": app,
+		# The rail and every sidebar in this prefix, resolved server-side. A framework key
+		# and not an `app_boot` contribution: apps shape navigation through the rows and
+		# the item types they ship, and a code-level second route in would be two
+		# mechanisms for one thing (#42232).
+		#
+		# It rides boot because #42070 already makes boot a blocking pre-mount fetch, so a
+		# separate navigation request would be a second blocking round trip for the same
+		# wait — and because a rail click that costs a request is the thing this payload
+		# exists to prevent. What an app *contains* is still fetched, by the app home and
+		# the module page that show it (`doctypes.get_contents`, #42357).
+		"navigation": resolve_navigation(app),
 		# No `doctype_slugs` here any more. It was prefix-scoped and sat in boot
 		# because it was small; the lens made it full-bench, which broke the 40 KB
 		# budget — and byte-identical for every user and every prefix, which is what

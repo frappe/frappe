@@ -74,13 +74,13 @@ import { RouterLink } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 import { routeFor, routeForModule, isModular } from "@/router/routeFor";
-import { useNavigation } from "@/navigation";
+import { useContents } from "@/contents";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 
 const modular = computed(() => isModular(boot));
-const { entries, failed } = useNavigation(boot.app);
+const { entries, failed } = useContents(boot.app);
 
 // The modules a user can reach, derived from what they can read rather than from the
 // module list -- an empty module is a tile that leads nowhere.

@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.navigation_item.navigation_item import validate_item_keys
 from frappe.model.document import Document
 
 # Blank, not `None`: the column is not nullable so that one spelling of "not a user's own layer"
@@ -99,38 +100,15 @@ class Rail(Document):
 		)
 
 	def validate_item_keys(self):
-		"""Refuse a shipped rail whose rows are not addressable, one by one.
+		"""The shared rule, in `navigation_item.py`: an app's rows must each carry a unique key.
 
-		A `key` is what every site and user edit is filed against, so a missing or duplicated one
-		is not a cosmetic slip: the deltas naming it go inert and the site quietly loses its
-		arrangement while the rail still renders correctly. Navigation that breaks quietly gets
-		misdiagnosed as a permission problem, so this fails at write time instead.
-
-		Only the app layer is checked. A layer's rows are addressed by the base key they name, and
-		a row the layer *added* is minted a key on export alongside the rest.
+		Only the app layer is checked. A layer's rows are addressed by the base key they name,
+		and a row the layer *added* is minted a key on export alongside the rest.
 		"""
 		if not self.standard:
 			return
 
-		seen = set()
-		for item in self.items:
-			if not item.key:
-				frappe.throw(
-					_("Row {0} ({1}) has no key. Every item an app ships needs one, frozen for good.").format(
-						item.idx, frappe.bold(item.label or item.link_to or item.item_type)
-					),
-					title=_("Missing Key"),
-				)
-
-			if item.key in seen:
-				frappe.throw(
-					_(
-						"Row {0} repeats the key {1}. Two rows with one address cannot both be customized."
-					).format(item.idx, frappe.bold(item.key)),
-					title=_("Duplicate Key"),
-				)
-
-			seen.add(item.key)
+		validate_item_keys(self.items)
 
 	def on_update(self):
 		self.export_rail()

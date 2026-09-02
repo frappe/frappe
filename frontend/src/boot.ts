@@ -4,6 +4,47 @@
 // furniture. That is why CRM and Gameplan each rebuilt the generic keys by hand. This
 // one starts small; v1's is left untouched and retires with v1.
 
+/**
+ * One resolved navigation item, on the rail or in a sidebar. The SAME shape in both:
+ * they are two presentations of one model, not two models (charter point 1).
+ *
+ * Everything but `key` and `item_type` is optional because the server omits a blank
+ * field rather than sending `null` — navigation is the largest thing in a payload with
+ * a 40 KB ceiling, and most fields on most rows are blank.
+ *
+ * `item_type` decides what the item does; the client does not branch on it beyond
+ * picking a renderer (#42228). An item with no `label` was never labelled by anyone, so
+ * a renderer falls back to its destination.
+ */
+export type NavigationItem = {
+	key: string;
+	item_type: string;
+	parent_key?: string;
+	link_doctype?: string;
+	link_to?: string;
+	url?: string;
+	payload?: Record<string, unknown>;
+	label?: string;
+	icon?: string;
+	collapsible?: 1;
+	keep_closed?: 1;
+};
+
+export type Navigation = {
+	rail: NavigationItem[];
+	/**
+	 * Every sidebar in this prefix, keyed by SCRUBBED ADDRESS — `module_def_accounts`,
+	 * not a record name. A resolved sidebar is the merge of up to three records with
+	 * three different names, so no one name identifies it; the address is what they
+	 * share. A rail item of type `Sidebar` already carries that string in `link_to`, so
+	 * opening one is a dictionary lookup on a value the item is holding (#42356).
+	 *
+	 * An address that resolved to nothing is absent rather than empty, and a linked rail
+	 * item whose sidebar is absent renders as an independent one (#42357).
+	 */
+	sidebars: Record<string, NavigationItem[]>;
+};
+
 export type Boot = {
 	// --- framework core ---
 	frappe_version: string;
@@ -36,6 +77,18 @@ export type Boot = {
 	// not in here -- it went full-bench when the prefix became a lens and broke the
 	// 40 KB budget (#42210). Same treatment as `translations_version`.
 	metadata_version: string;
+
+	// --- navigation ---
+	//
+	// The rail and every sidebar in this prefix, already resolved: the app's own rows,
+	// then the site's arrangement, then this person's, merged server-side. The browser
+	// never restacks those layers and never re-filters the list (#42232).
+	//
+	// It is here rather than fetched because a rail click must cost no request. What an
+	// app CONTAINS is still fetched, by the pages that show it -- see `contents.ts`.
+	//
+	// Absent on the index, which belongs to no app.
+	navigation?: Navigation;
 
 	// Present on the index only (#42124).
 	apps?: {

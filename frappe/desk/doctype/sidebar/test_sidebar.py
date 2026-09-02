@@ -1670,7 +1670,13 @@ class TestSidebarForDeskV2(IntegrationTestCase):
 		"""
 		doc = frappe.new_doc("Sidebar")
 		doc.update(self.ADDRESS | kwargs)
-		doc.append("navigation_items", {"item_type": "DocType", "link_to": "User", "label": "Users"})
+		# `key` on every row, because an app layer is held to the same rule `Rail` holds its own
+		# to: the key is what a site or user delta is filed against, so a shipped row without one
+		# is a row nobody can ever customize.
+		doc.append(
+			"navigation_items",
+			{"item_type": "DocType", "link_to": "User", "label": "Users", "key": "user"},
+		)
 		with developer_mode(), patch.object(Sidebar, "export_sidebar"):
 			doc.insert(ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "Sidebar", doc.name, force=True, ignore_permissions=True)
@@ -1684,6 +1690,35 @@ class TestSidebarForDeskV2(IntegrationTestCase):
 			doc = frappe.new_doc("Sidebar")
 			doc.update(self.ADDRESS | {"standard": 1, "title": "Desk"})
 			self.assertRaises(frappe.ValidationError, doc.insert, ignore_permissions=True)
+
+	def test_an_app_layer_needs_a_key_on_every_row(self):
+		"""The same rule `Rail` holds its own rows to, and it lives in one place now.
+
+		The key is the identity of a shipped row: every site and user delta is filed against it,
+		so a row without one renders correctly and can never be arranged, which is the quiet
+		failure that gets misdiagnosed as a permission problem. This is the reverse of desk v1's
+		rule for `items`, whose keys `clear_stored_keys` blanks outright.
+		"""
+		doc = frappe.new_doc("Sidebar")
+		doc.update(self.ADDRESS | {"standard": 1, "app": "frappe", "title": "Desk"})
+		doc.append("navigation_items", {"item_type": "DocType", "link_to": "User"})
+
+		with developer_mode(), patch.object(Sidebar, "export_sidebar"):
+			self.assertRaises(frappe.ValidationError, doc.insert, ignore_permissions=True)
+
+	def test_an_app_layer_refuses_two_rows_with_one_key(self):
+		doc = frappe.new_doc("Sidebar")
+		doc.update(self.ADDRESS | {"standard": 1, "app": "frappe", "title": "Desk"})
+		for link_to in ("User", "Role"):
+			doc.append("navigation_items", {"item_type": "DocType", "link_to": link_to, "key": "same"})
+
+		with developer_mode(), patch.object(Sidebar, "export_sidebar"):
+			self.assertRaises(frappe.ValidationError, doc.insert, ignore_permissions=True)
+
+	def test_a_layer_is_not_asked_for_keys(self):
+		"""A layer's rows are addressed by the base key they name, and a row a layer added is
+		minted one when it is written."""
+		self.assertTrue(self.layer().name)
 
 	def test_an_app_layer_is_named_after_its_address(self):
 		"""The record name is the export path, and it is also what a rail item points at.
