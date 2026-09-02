@@ -186,13 +186,25 @@ def _target(container: str, address: str, scope: str) -> Target:
 	# the app's.
 	stored = {"user": frappe.session.user if scope == "user" else SITE_LAYER, "standard": 0}
 
+	# The one deliberate bypass of the permission filter (#42231 decision 12), and it is the
+	# **site** scope that earns it: a manager arranging the site's navigation is arranging it for
+	# everybody, so a list filtered down to what they personally may see would let them delete
+	# other people's items by saving a list those items were never on. It stays off at user
+	# scope, where the person is arranging their own list and showing them rows they may not see
+	# would be a leak with nothing to buy it.
+	#
+	# It is set once, here, so the read and the reduce base a save is computed against are always
+	# filtered the same way. A save whose `below` held rows the editor never showed would anchor
+	# moves against a list the client was not looking at.
+	check_permission = scope != "site"
+
 	if container == "Rail":
 		app = address
-		resolve = partial(resolve_rail, app)
+		resolve = partial(resolve_rail, app, check_permission=check_permission)
 		stored |= {"app": app, "extends": ""}
 	else:
 		app, link_doctype, link_to = _sidebar_address(address)
-		resolve = partial(resolve_sidebar, link_doctype, link_to)
+		resolve = partial(resolve_sidebar, link_doctype, link_to, check_permission=check_permission)
 		stored |= {"app": app, "link_doctype": link_doctype, "link_to": link_to}
 
 	# Before the gate, because `has_app_permission` falls back to "is a System User" for an app

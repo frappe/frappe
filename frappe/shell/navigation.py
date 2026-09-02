@@ -23,6 +23,7 @@ import frappe
 from frappe.desk.layers import resolve_layers
 
 from .extensions import extend
+from .navigation_filter import NavigationContext, filter_items
 
 # What a stored row carries. Read as columns rather than as a document, because `Sidebar`'s
 # document is desk v1's: the class subclasses `DeskViews` and the record holds v1's `items`
@@ -73,12 +74,12 @@ WIRE_FIELDS = (
 SITE_LAYER = ""
 
 # `Rail.NO_HOST`, and the same empty string for the same reason: an app's own rail extends
-# nobody, and one spelling of that has to reach the unique index — and this filter.
+# nobody, and one spelling of that has to reach the unique index — and the layer query below.
 NO_HOST = ""
 
-# #42231's bucket for a kind whose destination is a doctype, and the one bucket this module
-# applies. The other five are #42233's, along with every authored row that is not contributed.
-READABLE_DOCTYPE = "Readable DocType"
+# Permission filtering is `navigation_filter`, imported rather than written here. One rule
+# dispatched on the bucket each type declares, in place of the single `Readable DocType` pass
+# this module used to apply to contributed rows alone (#42231).
 
 
 def resolve_navigation(app: str) -> dict:
@@ -94,11 +95,27 @@ def resolve_navigation(app: str) -> dict:
 	scrubbed address is byte-identical to the standard row's name — which is the string a rail
 	item of type `Sidebar` already carries in `link_to`, so the browser still does one dictionary
 	lookup on a value it is holding.
+
+	The sidebars resolve **first**, and the rail is filtered against what survived them. A rail
+	item of type `Sidebar` is visible only while its sidebar still holds a row (#42231's
+	`Derived From Children`), so the order is forced rather than chosen. Both halves share one
+	`NavigationContext`, so the permitted-doctype pass, the module sets and the type table are
+	each read once for the whole payload.
 	"""
-	return {"rail": resolve_rail(app), "sidebars": _resolve_sidebars(app)}
+	context = NavigationContext(app)
+	sidebars = context.sidebars
+
+	return {"rail": resolve_rail(app, context=context), "sidebars": sidebars}
 
 
-def resolve_rail(app: str, *, upto: str = "user", keep_hidden: bool = False) -> list[dict]:
+def resolve_rail(
+	app: str,
+	*,
+	upto: str = "user",
+	keep_hidden: bool = False,
+	check_permission: bool = True,
+	context: NavigationContext | None = None,
+) -> list[dict]:
 	"""One app's rail: its own layer plus what other apps add to it, then the site's, then this user's.
 
 	`upto` stops the stack short, and `keep_hidden` leaves the hidden rows in. Both are the
@@ -116,6 +133,11 @@ def resolve_rail(app: str, *, upto: str = "user", keep_hidden: bool = False) -> 
 	walking skeleton (#42233) converts one. Short-circuiting would make the per-user overlay
 	(#42230) work on converted apps only, so whether a person may reorder their own rail would
 	depend on something they cannot see.
+
+	`check_permission=False` is the one deliberate bypass in the system, and the layer editor is
+	its only permitted caller (#42231 decision 12). A manager arranging the site's rail is
+	arranging it for everybody, so a rail filtered down to what *they* may see would let them
+	silently delete other people's items by saving a list those items were never on.
 	"""
 	layers = _rail_layers(app)
 	base = layers.pop("standard", None)
@@ -128,10 +150,15 @@ def resolve_rail(app: str, *, upto: str = "user", keep_hidden: bool = False) -> 
 
 	base = extend(base, _rail_contributions(app), anchorable=shipped)
 
-	return _merge(base, _upto(layers, upto), keep_hidden=keep_hidden)
+	return _merge(
+		base,
+		_upto(layers, upto),
+		keep_hidden=keep_hidden,
+		context=_context(app, context, check_permission),
+	)
 
 
-def _resolve_sidebars(app: str) -> dict[str, list[dict]]:
+def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict[str, list[dict]]:
 	"""Every sidebar this app ships, resolved and keyed by scrubbed address.
 
 	Empty until an app ships rows, and deliberately so: derivation produces a rail and nothing
@@ -146,24 +173,34 @@ def _resolve_sidebars(app: str) -> dict[str, list[dict]]:
 	if not addresses:
 		return {}
 
+	# Always filtered. The editor's bypass is the rail's and the single-sidebar read's; boot is
+	# the only caller that wants a whole prefix, and boot never bypasses.
+	context = context or NavigationContext(app)
 	layers = _sidebar_layers(addresses)
 	resolved = {}
 
 	for address in addresses:
 		by_layer = layers.get(address, {})
 		base = by_layer.get("standard", [])
-		items = _merge(base, _upto(by_layer, "user"))
+		items = _merge(base, _upto(by_layer, "user"), context=context)
 		if items:
 			# An address that resolves to nothing is absent rather than empty. The payload is read
-			# by key, so the two mean the same thing to the browser, and a linked rail item whose
-			# sidebar has no rows renders as an independent one (#42357).
+			# by key, so the two mean the same thing to the browser — and to the rail, whose item
+			# for this address goes with it. #42421 found "renders as an independent one" (#42357)
+			# has no observable form: a `Sidebar` item's whole content is the sidebar, so with no
+			# rows it has no destination and is not drawn.
 			resolved[frappe.scrub(f"{address[0]} {address[1]}")] = items
 
 	return resolved
 
 
 def resolve_sidebar(
-	link_doctype: str, link_to: str, *, upto: str = "user", keep_hidden: bool = False
+	link_doctype: str,
+	link_to: str,
+	*,
+	upto: str = "user",
+	keep_hidden: bool = False,
+	check_permission: bool = True,
 ) -> list[dict]:
 	"""One sidebar at one address, for a caller that wants that one and not the prefix.
 
@@ -174,7 +211,14 @@ def resolve_sidebar(
 	"""
 	by_layer = _sidebar_layers([(link_doctype, link_to)]).get((link_doctype, link_to), {})
 
-	return _merge(by_layer.get("standard", []), _upto(by_layer, upto), keep_hidden=keep_hidden)
+	return _merge(
+		by_layer.get("standard", []),
+		_upto(by_layer, upto),
+		keep_hidden=keep_hidden,
+		# No app to build a context for, and none needed: a sidebar's own rows are filtered on
+		# their buckets alone, and the one rule that reaches across containers runs on the rail.
+		context=NavigationContext("") if check_permission else None,
+	)
 
 
 # The layers a resolution stacks, in order, up to and including the scope asked for. The editor
@@ -187,7 +231,25 @@ def _upto(layers: dict[str, list[dict]], upto: str) -> list[list[dict]]:
 	return [layers.get(role, []) for role in LAYERS_UPTO[upto]]
 
 
-def _merge(base: list[dict], layers: list[list[dict]], *, keep_hidden: bool = False) -> list[dict]:
+def _context(app: str, context: "NavigationContext | None", check_permission: bool):
+	"""The context a resolution filters against, or `None` for the editor's bypass.
+
+	One place decides it, so `check_permission=False` stays the single named exception it was
+	settled as rather than becoming a second code path through the merge.
+	"""
+	if not check_permission:
+		return None
+
+	return context or NavigationContext(app)
+
+
+def _merge(
+	base: list[dict],
+	layers: list[list[dict]],
+	*,
+	keep_hidden: bool = False,
+	context: "NavigationContext | None" = None,
+) -> list[dict]:
 	"""Fold the layers into the base and return what the browser renders.
 
 	The merge itself is `frappe.desk.layers`, imported rather than copied. It is 165 lines that
@@ -211,6 +273,12 @@ def _merge(base: list[dict], layers: list[list[dict]], *, keep_hidden: bool = Fa
 	resolved, hidden = resolve_layers(base, layers, key=item_key, apply_row=apply_item_row, anchored=True)
 
 	items = resolved if keep_hidden else _drop_hidden(resolved, hidden)
+
+	# Permission filtering goes here and nowhere else: after the arrangement has resolved, so a
+	# stored move means the same thing for two people, and after `_drop_hidden`, so a hidden
+	# subtree is never counted as a section's surviving children. `None` is the editor's bypass.
+	if context is not None:
+		items = filter_items(items, context)
 
 	return [_on_the_wire(item, hidden) for item in _promote_orphans(items)]
 
@@ -512,6 +580,13 @@ def _rail_contributions(host: str) -> list[tuple[str, list[dict]]]:
 
 	Standard rows only, which the schema already guarantees: `extends` is blanked on any row that
 	is not app content, so a site or a person cannot file one app's items onto another's rail.
+
+	Unfiltered. Contributed rows used to be the one thing this module filtered, on the narrow
+	`Readable DocType` rule and here, before the merge — the stopgap #42364 needed because the
+	host is the one party that cannot refuse a row another app files onto its rail. They now go
+	through the same pass as everything else, on whatever bucket their own type declares, which
+	is what "replace it rather than reconcile with it" asked for. A contributed `Page` item used
+	to ride in unchecked; it no longer does.
 	"""
 	records = frappe.get_all("Rail", filters={"extends": host, "standard": 1}, fields=["name", "app"])
 	if not records:
@@ -525,59 +600,7 @@ def _rail_contributions(host: str) -> list[tuple[str, list[dict]]]:
 	)
 	rows = _rows_by_parent("Rail", "items", [record.name for record in records])
 
-	return [(record.app, _readable(rows.get(record.name, []))) for record in records]
-
-
-def _readable(rows: list[dict]) -> list[dict]:
-	"""Drop a contributed row pointing at a doctype this person cannot read.
-
-	#42364's rule 6: doctype read is the only filter on a contribution, and the target app's
-	`app_permission` door does **not** run — that gate is about entering a prefix, and following
-	a foreign item does not leave the host.
-
-	It is here rather than waiting for #42233, which owns filtering authored rows generally,
-	because the host is the one party that cannot refuse: an app's own rows are its own problem,
-	while these arrive on somebody else's rail. The narrowness is the point — this is #42231's
-	`Readable DocType` bucket and only that one, read off the type table rather than hardcoded,
-	so #42233 replaces it with the full dispatch rather than finding a second rule to reconcile.
-
-	Which column names the doctype depends on the type: a `DocType` item's destination *is* the
-	doctype, in `link_to`, while `Record` is the one kind that carries its own `link_doctype`.
-
-	A dropped section leaves its children behind, and `_promote_orphans` lifts them to the top
-	level on the way out — the same treatment as an app removing a section.
-	"""
-	if not rows:
-		return rows
-
-	from .doctypes import get_readable_doctypes
-
-	buckets = _permission_rules()
-	readable = None
-
-	kept = []
-
-	for row in rows:
-		if buckets.get(row.get("item_type")) != READABLE_DOCTYPE:
-			kept.append(row)
-			continue
-
-		if readable is None:
-			# Read once, and only if a row actually asks. `get_readable_doctypes` is one
-			# role-based pass measured at 25 ms against 3,594 ms for per-doctype checks, but a
-			# bench where nothing extends anything should not pay even that.
-			readable = get_readable_doctypes()
-
-		doctype = row.get("link_to") if row.get("item_type") == "DocType" else row.get("link_doctype")
-		if doctype in readable:
-			kept.append(row)
-
-	return kept
-
-
-def _permission_rules() -> dict[str, str]:
-	"""`{type: permission_rule}` — the rule each kind declares for itself (#42231)."""
-	return dict(frappe.get_all("Navigation Item Type", fields=["name", "permission_rule"], as_list=True))
+	return [(record.app, rows.get(record.name, [])) for record in records]
 
 
 def _layer_role(record) -> str:
