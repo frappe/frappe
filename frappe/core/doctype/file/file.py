@@ -343,10 +343,17 @@ class File(Document):
 				exc=FileNotFoundError,
 			)
 		if target.exists():
-			frappe.throw(
-				_("A file with same name {} already exists").format(target),
-				exc=FileExistsError,
+			target_file_name = generate_file_name(
+				name=file_name,
+				is_private=cint(self.is_private),
+				content_hash=self.content_hash,
 			)
+			target = Path(
+				frappe.get_site_path(
+					"private" if cint(self.is_private) else "public", "files", target_file_name
+				)
+			)
+			updated_file_url = f"{url_starts_with}{target_file_name}"
 
 		other_refs_exist = self.content_hash and frappe.db.exists(
 			"File",
