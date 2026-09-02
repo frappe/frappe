@@ -239,6 +239,20 @@ class TestTheBaseIsLeftAlone(UnitTestCase):
 		self.assertEqual(keys(merged), ["customers"])
 		self.assertIsNot(merged[0], base[0], "the base rows are copied, not handed out")
 
+	def test_two_rows_that_look_alike_are_told_apart_by_identity(self):
+		"""`list.remove` takes the first row that compares equal, so moving one row by value
+		would move whichever matched first. Nothing produces two equal rows today — keys are
+		unique by construction — and that is exactly the kind of invariant that stops being true
+		later, silently, in a list a person is looking at."""
+		merged = extend(
+			[item("customers")],
+			[(APP, [item("calls"), anchored("calls", {"after": "customers"})])],
+			anchorable=True,
+		)
+
+		self.assertEqual(len(merged), 3)
+		self.assertEqual(keys(merged).count("telephony:calls"), 2)
+
 	def test_a_contributed_row_records_which_app_contributed_it(self):
 		"""Which is the one thing `switches_app` needs and the only thing that can supply it: a
 		merged item is otherwise indistinguishable from a host row, deliberately."""

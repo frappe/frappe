@@ -536,6 +536,29 @@ class TestExtendedRail(NavigationTestCase):
 				["user", "payments:invoices", "telephony:calls"],
 			)
 
+	def test_a_contributed_item_is_filtered_by_doctype_read(self):
+		"""#42364 rule 6: doctype read is the only filter on a contribution — and the host is the
+		one party that cannot refuse one, which is why this does not wait for #42233."""
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role"), doctype_item("todos", "ToDo")])
+
+		with active(EXTENDER), set_user("Guest"):
+			rail = resolve_navigation(APP)["rail"]
+
+		self.assertNotIn("telephony:calls", keys(rail))
+
+	def test_the_target_apps_own_door_does_not_run(self):
+		"""`app_permission` gates entering a prefix, and following a contributed item does not
+		leave the host. Running it here would let an app you may not enter withhold items it put
+		on a rail you may."""
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role")])
+
+		with active(EXTENDER), patch("frappe.shell.permissions.has_app_permission") as door:
+			resolve_navigation(APP)
+
+		door.assert_not_called()
+
 	def test_the_stored_columns_never_reach_the_browser(self):
 		"""`anchors` is spent at merge and `switches_app` becomes a `url`. Both are read into the
 		merge because `overrides` may name any field a layer has an opinion about, and neither is

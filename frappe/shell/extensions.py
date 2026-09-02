@@ -241,28 +241,37 @@ def _place(merged: list[dict], item: dict, anchor: dict):
 	already has, or immediately after the parent when it has none — the position an app would
 	get by appending to that section, which is what it asked for.
 	"""
-	merged.remove(item)
 	beside = anchor["after"] or anchor["before"]
-	parent = anchor["parent_key"]
+	target = _index_of(merged, beside or anchor["parent_key"])
+	if target is None:
+		# Unreachable as long as an anchor only ever resolves against a key that is in the list,
+		# which is what `targets` is. Checked anyway because the caller is boot: an exception here
+		# would blank the shell over a misplaced navigation row.
+		return
+
+	merged.pop(_position_of(merged, item))
 
 	if beside:
 		at = _index_of(merged, beside)
+		parent = anchor["parent_key"]
 		if parent is None:
-			parent = _entry(merged, beside).get("parent_key")
+			parent = merged[at].get("parent_key")
 		item["parent_key"] = parent
 		merged.insert(at + 1 if anchor["after"] else at, item)
 		return
 
-	item["parent_key"] = parent
-	merged.insert(_last_child(merged, parent) + 1, item)
+	item["parent_key"] = anchor["parent_key"]
+	merged.insert(_last_child(merged, anchor["parent_key"]) + 1, item)
 
 
-def _index_of(merged: list[dict], key: str) -> int:
-	return next(index for index, entry in enumerate(merged) if entry.get("key") == key)
+def _index_of(merged: list[dict], key: str) -> int | None:
+	return next((index for index, entry in enumerate(merged) if entry.get("key") == key), None)
 
 
-def _entry(merged: list[dict], key: str) -> dict:
-	return merged[_index_of(merged, key)]
+def _position_of(merged: list[dict], item: dict) -> int:
+	"""Where this exact row is. By identity, not by equality: `list.remove` takes the first row
+	that compares equal, which is the right one only for as long as no two rows can match."""
+	return next(index for index, entry in enumerate(merged) if entry is item)
 
 
 def _last_child(merged: list[dict], parent: str) -> int:

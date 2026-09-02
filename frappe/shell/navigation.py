@@ -76,6 +76,10 @@ SITE_LAYER = ""
 # nobody, and one spelling of that has to reach the unique index — and this filter.
 NO_HOST = ""
 
+# #42231's bucket for a kind whose destination is a doctype, and the one bucket this module
+# applies. The other five are #42233's, along with every authored row that is not contributed.
+READABLE_DOCTYPE = "Readable DocType"
+
 
 def resolve_navigation(app: str) -> dict:
 	"""The whole navigation payload for one prefix, as the session user sees it.
@@ -455,7 +459,59 @@ def _rail_contributions(host: str) -> list[tuple[str, list[dict]]]:
 	)
 	rows = _rows_by_parent("Rail", "items", [record.name for record in records])
 
-	return [(record.app, rows.get(record.name, [])) for record in records]
+	return [(record.app, _readable(rows.get(record.name, []))) for record in records]
+
+
+def _readable(rows: list[dict]) -> list[dict]:
+	"""Drop a contributed row pointing at a doctype this person cannot read.
+
+	#42364's rule 6: doctype read is the only filter on a contribution, and the target app's
+	`app_permission` door does **not** run — that gate is about entering a prefix, and following
+	a foreign item does not leave the host.
+
+	It is here rather than waiting for #42233, which owns filtering authored rows generally,
+	because the host is the one party that cannot refuse: an app's own rows are its own problem,
+	while these arrive on somebody else's rail. The narrowness is the point — this is #42231's
+	`Readable DocType` bucket and only that one, read off the type table rather than hardcoded,
+	so #42233 replaces it with the full dispatch rather than finding a second rule to reconcile.
+
+	Which column names the doctype depends on the type: a `DocType` item's destination *is* the
+	doctype, in `link_to`, while `Record` is the one kind that carries its own `link_doctype`.
+
+	A dropped section leaves its children behind, and `_promote_orphans` lifts them to the top
+	level on the way out — the same treatment as an app removing a section.
+	"""
+	if not rows:
+		return rows
+
+	from .doctypes import get_readable_doctypes
+
+	buckets = _permission_rules()
+	readable = None
+
+	kept = []
+
+	for row in rows:
+		if buckets.get(row.get("item_type")) != READABLE_DOCTYPE:
+			kept.append(row)
+			continue
+
+		if readable is None:
+			# Read once, and only if a row actually asks. `get_readable_doctypes` is one
+			# role-based pass measured at 25 ms against 3,594 ms for per-doctype checks, but a
+			# bench where nothing extends anything should not pay even that.
+			readable = get_readable_doctypes()
+
+		doctype = row.get("link_to") if row.get("item_type") == "DocType" else row.get("link_doctype")
+		if doctype in readable:
+			kept.append(row)
+
+	return kept
+
+
+def _permission_rules() -> dict[str, str]:
+	"""`{type: permission_rule}` — the rule each kind declares for itself (#42231)."""
+	return dict(frappe.get_all("Navigation Item Type", fields=["name", "permission_rule"], as_list=True))
 
 
 def _layer_role(record) -> str:
