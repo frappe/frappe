@@ -30,7 +30,7 @@
 			<div
 				v-if="text"
 				ref="textEl"
-				class="whitespace-pre-wrap"
+				class="whitespace-pre-wrap break-words"
 				:class="expanded ? '' : 'line-clamp-[12]'"
 			>{{ text }}</div>
 			<button

@@ -21,5 +21,8 @@
 	"peerDependencies": {
 		"frappe-ui": "1.0.0-beta.55",
 		"vue": "^3.5.0"
+	},
+	"devDependencies": {
+		"jsdom": "^30.0.1"
 	}
 }

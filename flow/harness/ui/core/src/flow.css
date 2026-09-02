@@ -207,6 +207,9 @@
 }
 
 /* rendered markdown */
+.flow-md {
+	overflow-wrap: break-word;
+}
 .flow-md > :first-child {
 	margin-top: 0;
 }
@@ -292,9 +295,19 @@
 .flow-md a:hover {
 	color: var(--ink-gray-9);
 }
+/* wrapper element from markdown.js — a wide table scrolls here, not the thread */
+.flow-md-table {
+	width: fit-content;
+	max-width: 100%;
+	margin: 0.6em 0;
+	overflow-x: auto;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: 8px;
+}
 .flow-md table {
 	border-collapse: collapse;
-	margin: 0.6em 0;
+	/* the wrapper draws the outer edge; `hidden` wins the collapse against cell borders */
+	border: hidden;
 	font-size: 0.9em;
 }
 .flow-md th,
