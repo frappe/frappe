@@ -344,6 +344,20 @@ class File(Document):
 				title=_("Invalid URL"),
 			)
 
+	def before_save(self):
+		# A File subclass may override validate() without calling super()
+		# for existing rows (Drive's override does). Re-assert the blob
+		# privacy invariant here: a blob-backed File must point at a blob
+		# in its own privacy namespace.
+		if self.is_folder or self.is_new() or not self.get("blob"):
+			return
+		blob_is_private = frappe.db.get_value("File Blob", self.blob, "is_private")
+		if blob_is_private is None or cint(blob_is_private) == cint(self.is_private):
+			return
+		old_file_url = self.file_url
+		self.flip_blob_privacy()
+		self.update_attached_to_field(old_file_url)
+
 	def handle_is_private_changed(self):
 		if self.is_remote_file:
 			return
@@ -1105,6 +1119,7 @@ class File(Document):
 		return os.path.splitext(self.file_name)
 
 	def create_attachment_record(self):
+		self.flags.attachment_record_created = True
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
 		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = escape_html(self.file_name or self.file_url)
@@ -1225,6 +1240,10 @@ def create_file_from_blob(
 	)
 	file.flags.from_existing_blob = True
 	file.insert(ignore_permissions=ignore_permissions)
+	if not file.flags.attachment_record_created and not file.is_folder:
+		# a File subclass may override after_insert() without calling
+		# super(); keep attachment-comment parity with the upload path
+		file.create_attachment_record()
 	return file
 
 
