@@ -8,10 +8,11 @@ from urllib.parse import quote
 
 import frappe
 from frappe.client import attach_file
-from frappe.core.doctype.file.file import create_file_from_blob
+from frappe.core.doctype.file.file_v2 import create_file_from_blob
 from frappe.storage import get_driver, put_blob
 from frappe.storage.blob import validate_upload
 from frappe.storage.memory_driver import fake
+from frappe.storage.tests import reset_file_controller
 from frappe.tests import IntegrationTestCase
 
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -23,6 +24,7 @@ def storage_flag(value=1):
 	"""Patch frappe.conf.storage_v2 for the duration of the block."""
 	previous = frappe.conf.get("storage_v2")
 	frappe.conf.storage_v2 = value
+	reset_file_controller()
 	try:
 		yield
 	finally:
@@ -30,6 +32,7 @@ def storage_flag(value=1):
 			frappe.conf.pop("storage_v2", None)
 		else:
 			frappe.conf.storage_v2 = previous
+		reset_file_controller()
 
 
 def unique_png():

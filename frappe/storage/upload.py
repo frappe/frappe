@@ -116,7 +116,7 @@ def finish_upload(
 	not passed falls back to the session meta."""
 	check_enabled()
 
-	from frappe.core.doctype.file.file import create_file_from_blob
+	from frappe.core.doctype.file.file_v2 import create_file_from_blob
 	from frappe.storage.blob import put_blob, validate_upload
 
 	meta, meta_path, part_path = load_session(upload_id)

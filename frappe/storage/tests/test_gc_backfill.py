@@ -11,6 +11,7 @@ from frappe.storage import backfill
 from frappe.storage.blob import put_blob
 from frappe.storage.gc import collect_garbage
 from frappe.storage.memory_driver import fake
+from frappe.storage.tests import reset_file_controller
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, cint, get_files_path, now_datetime
 
@@ -20,6 +21,7 @@ def flag_on():
 	"""Enable storage_v2 in site conf for the duration of the block."""
 	previous = frappe.conf.get("storage_v2")
 	frappe.conf["storage_v2"] = 1
+	reset_file_controller()
 	try:
 		yield
 	finally:
@@ -27,6 +29,7 @@ def flag_on():
 			frappe.conf.pop("storage_v2", None)
 		else:
 			frappe.conf["storage_v2"] = previous
+		reset_file_controller()
 
 
 def unique_content(prefix=b"storage-v2-gc-test-"):

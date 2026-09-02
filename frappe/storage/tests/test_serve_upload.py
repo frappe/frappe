@@ -25,6 +25,7 @@ from frappe.storage.upload import (
 	upload_chunk,
 )
 from frappe.storage.url import make_signature
+from frappe.storage.tests import reset_file_controller
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
@@ -34,6 +35,7 @@ def flag_on():
 	"""Enable storage_v2 in site conf for the duration of the block."""
 	previous = frappe.conf.get("storage_v2")
 	frappe.conf["storage_v2"] = 1
+	reset_file_controller()
 	try:
 		yield
 	finally:
@@ -41,6 +43,7 @@ def flag_on():
 			frappe.conf.pop("storage_v2", None)
 		else:
 			frappe.conf["storage_v2"] = previous
+		reset_file_controller()
 
 
 def response_body(response) -> bytes:
@@ -146,7 +149,7 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertEqual(response_body(response), b"public content")
 
 	def test_session_with_permission_serves(self):
-		from frappe.core.doctype.file.file import create_file_from_blob
+		from frappe.core.doctype.file.file_v2 import create_file_from_blob
 
 		with flag_on(), frappe.storage.fake():
 			blob = put_blob(io.BytesIO(b"attached content"), is_private=True)

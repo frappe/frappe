@@ -15,6 +15,7 @@ from frappe.storage.email import (
 	rewrite_urls_for_email,
 )
 from frappe.storage.url import verify_signature
+from frappe.storage.tests import reset_file_controller
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_url
 
@@ -26,6 +27,7 @@ def storage_v2_enabled():
 	"""Enable storage_v2 in site conf for the duration of the block."""
 	previous = frappe.conf.get("storage_v2")
 	frappe.conf["storage_v2"] = 1
+	reset_file_controller()
 	try:
 		yield
 	finally:
@@ -33,6 +35,7 @@ def storage_v2_enabled():
 			frappe.conf.pop("storage_v2", None)
 		else:
 			frappe.conf["storage_v2"] = previous
+		reset_file_controller()
 
 
 @contextmanager
