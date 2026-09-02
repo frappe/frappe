@@ -123,8 +123,14 @@ class TestReduction(NavigationTestCase):
 		# And a parent that is not a name drops the row rather than being read as blank. Blank
 		# means the top level, which is a placement nobody asked for and one the reduction would
 		# faithfully write down; dropping the row says nothing about it, so it stays put.
-		self.assertEqual(_as_items([shown("a", parent_key={"x": 1})]), [])
-		self.assertEqual(_as_items([shown("a", parent_key="")])[0]["parent_key"], None)
+		# Blank means `None` or `""` and nothing else. A truthiness test would let the *falsy*
+		# non-names through and read each of them as the top level, which is the reparenting
+		# this exists to refuse.
+		for parent in ({"x": 1}, ["s"], 0, False, [], {}):
+			self.assertEqual(_as_items([shown("a", parent_key=parent)]), [], f"parent {parent!r}")
+
+		for blank in ("", None):
+			self.assertEqual(_as_items([shown("a", parent_key=blank)])[0]["parent_key"], None)
 
 	def test_a_malformed_parent_does_not_move_a_row_to_the_top_level(self):
 		make_rail(
@@ -135,7 +141,8 @@ class TestReduction(NavigationTestCase):
 			standard=1,
 		)
 
-		save_arrangement("Rail", APP, showing(shown("people"), shown("user", parent_key=["oops"])))
+		for parent in (["oops"], 0, []):
+			save_arrangement("Rail", APP, showing(shown("people"), shown("user", parent_key=parent)))
 
 		entry = next(e for e in resolve_navigation(APP)["rail"] if e["key"] == "user")
 		self.assertEqual(entry["parent_key"], "people")

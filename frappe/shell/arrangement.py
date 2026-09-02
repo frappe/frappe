@@ -249,12 +249,16 @@ def _named(item) -> dict | None:
 	as blank would say the row belongs at the top level, which is a placement nobody asked for
 	and one the reduction would faithfully write down. Dropping the row says nothing about it
 	instead, so it stays exactly where the layer below put it.
+
+	Blank means `None` or `""` and nothing else. A truthiness test would let the *falsy*
+	non-names through -- `0`, `false`, `[]`, `{}` -- and then read each of them as the top level,
+	which is the very reparenting this exists to refuse.
 	"""
 	if not isinstance(item, dict) or not _is_name(item.get("key")):
 		return None
 
 	parent = item.get("parent_key")
-	if parent and not _is_name(parent):
+	if parent is not None and parent != "" and not _is_name(parent):
 		return None
 
 	return {**item, "parent_key": parent or None}
