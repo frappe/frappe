@@ -26,6 +26,16 @@
   the server merged them into the base before the layers went on, so they arrive as
   ordinary items in one ordered list (#42364).
 
+  The renderers decide what every row does; this file never knows one kind from
+  another. It used to render `DocType` and drop the other seven, which was #42228's
+  skip-a-missing-renderer rule arrived at by accident: there were no renderers at all,
+  so there was nothing to miss. There are eight now, each shipped the way an app would
+  ship one — the type record plus `frontend/item.js` beside it — so the framework's own
+  kinds and a contributed ninth reach this list through the same door (DP2, #42420). One
+  of those kinds, `Sidebar`, is what makes a rail item LINKED; the panel it opens is the
+  shell's, not the rail's, because a rail that owned it would own a surface that outlives
+  any one of its rows (#42421).
+
   The list arrives as a PROP rather than off `boot`, which is what lets it change without a
   reload: a save returns the whole `{rail, sidebars}` and the shell swaps it in, so the rail
   re-renders from the same server-resolved list it always renders from and never restacks a
@@ -41,7 +51,13 @@
 		</RouterLink>
 
 		<ul class="mt-2 overflow-y-auto">
-			<RailItem v-for="node in tree" :key="node.item.key" :node="node" :context="context" />
+			<NavigationRow
+				v-for="node in tree"
+				:key="node.item.key"
+				:node="node"
+				:context="context"
+				:current="current"
+			/>
 		</ul>
 
 		<button
@@ -63,53 +79,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
-import { RouterLink, useRouter } from "vue-router";
-import type { Addresses } from "@/addresses";
+import { inject } from "vue";
+import { RouterLink } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
-import { itemContext } from "@/navigation/context";
-import { buildTree } from "@/navigation/tree";
-import RailItem from "./RailItem.vue";
+import NavigationRow from "@/navigation/NavigationRow.vue";
+import { useItemTree } from "@/navigation/useItemTree";
+import type { ItemContext } from "@/navigation/types";
 
 // `arrangeable` is off on the index at `/apps`, which belongs to no app: there is no rail to
 // arrange there and no address to name one by, since `boot.app` is null and `boot.navigation`
 // is absent. The shell decides it, because the shell is what knows it is on the index.
+//
+// `context` and `current` arrive as props rather than being computed here, and that moved with
+// the panel (#42421). The context is composed once per list and the panel draws the same rows
+// off the same one; and exactly one row is current across the rail and the panel together, so
+// neither surface can work it out alone.
 const props = defineProps<{
 	items: NavigationItem[];
-	sidebars?: Record<string, NavigationItem[]>;
+	context: ItemContext;
+	current?: string;
 	arrangeable?: boolean;
 }>();
 const emit = defineEmits<{ arrange: [] }>();
 
 const boot = inject<Boot>("boot")!;
-const addresses = inject<Addresses>("addresses")!;
-const router = useRouter();
-
-// The renderers decide what every row does; this file no longer knows one kind from
-// another. It used to render `DocType` and drop the other seven, which was #42228's
-// skip-a-missing-renderer rule arrived at by accident: there were no renderers at all, so
-// there was nothing to miss. There are eight now, each shipped the way an app would ship
-// one — the type record plus `frontend/item.js` beside it — so the framework's own kinds
-// and a contributed ninth reach this list through the same door (DP2, #42420).
-const context = computed(() =>
-	itemContext(boot, addresses, router, props.items, props.sidebars ?? {})
-);
 
 // `parent_key` is the whole of hierarchy (#42227), and the server sends the tree flat. A
-// cycle in it is broken here and reported: every row in one has a parent that is present,
-// so the server's orphan promotion passes it through, and rendering the tree would then
-// simply omit the rows — a silent drop of authored navigation.
-const reportedCycles = new Set<string>();
-const tree = computed(() =>
-	buildTree(props.items, (key) => {
-		// Once per key per page session. `buildTree` is pure and recomputes whenever the list
-		// changes, which is what a save does — and a rail that is wrong stays wrong, so the
-		// line would repeat on every save without saying anything new.
-		if (reportedCycles.has(key)) return;
-		reportedCycles.add(key);
-		console.error(
-			`[frappe] navigation item '${key}' is its own ancestor; it is drawn at the top level.`
-		);
-	})
-);
+// cycle in it is broken and reported by `useItemTree`: every row in one has a parent that is
+// present, so the server's orphan promotion passes it through, and rendering the tree would
+// then simply omit the rows — a silent drop of authored navigation.
+const tree = useItemTree(() => props.items, "the rail");
 </script>
