@@ -100,7 +100,7 @@ class LoopInputs:
 
 	config: SessionConfig
 	messages: list[TranscriptMessage]
-	credentials: CredentialStore
+	credential_store: CredentialStore
 	abort: asyncio.Event
 	model_name: str  # the session's effective selection at admission, not config
 	credential_id: str | None = None
@@ -572,7 +572,13 @@ def _needs_confirmation(config: SessionConfig, name: str, tools: dict[str, Tool]
 
 async def _authenticated_model(inputs: LoopInputs) -> Model:
 	auth = await await_with_cancellation(
-		resolve_model_auth(inputs.model_name, inputs.credentials, provider_id=inputs.credential_id),
+		resolve_model_auth(
+			inputs.model_name,
+			inputs.credential_store,
+			provider_id=inputs.credential_id,
+			api_key=inputs.config.api_key,
+			api_base=inputs.config.api_base,
+		),
 		inputs.abort,
 	)
 	_raise_if_aborted(inputs.abort)

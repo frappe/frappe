@@ -69,10 +69,14 @@ def spawn_private(
 				*_SERVE_ARGV,
 				*("--uds", socket_path, "--data-dir", data_dir),
 				"--parent-watch",
+				# always local: a FLOW_PROFILE in the env must not harden the TUI's own daemon
+				*("--profile", "local"),
 				*([] if extensions_enabled else ["--no-extensions"]),
 				*[argument for path in (extension_paths or []) for argument in ("--extension", path)],
 			],
-			env={**os.environ, "FLOW_AUTH_TOKEN": token},
+			# no FLOW_POLICY/FLOW_TENANTS_FILE: stray env vars must not reconfigure the TUI's own daemon
+			env={k: v for k, v in os.environ.items() if k not in ("FLOW_POLICY", "FLOW_TENANTS_FILE")}
+			| {"FLOW_AUTH_TOKEN": token},
 			stdin=subprocess.PIPE,
 			stdout=log_file,
 			stderr=subprocess.STDOUT,
@@ -94,6 +98,7 @@ def spawn_background(
 	timeout: float = 5.0,
 	extension_paths: list[str] | None = None,
 	extensions_enabled: bool = True,
+	profile: str = "local",
 ) -> str:
 	"""`flow serve --background`: detach a daemon on the configured host/port; returns its base URL."""
 	log_path = _log_path(data_dir, f"{host}-{port}")
@@ -107,6 +112,7 @@ def spawn_background(
 				str(port),
 				"--data-dir",
 				data_dir,
+				*("--profile", profile),
 				*([] if extensions_enabled else ["--no-extensions"]),
 				*[argument for path in (extension_paths or []) for argument in ("--extension", path)],
 			],

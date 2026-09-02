@@ -178,7 +178,7 @@ class Session:
 		log: SessionLog,
 		*,
 		event_sink=None,  # optional (session_id, event_dict) callback, e.g. Redis
-		credentials: CredentialStore | None = None,
+		credential_store: CredentialStore | None = None,
 		allowed_roots: tuple[str, ...] = (),
 		attachment_store: AttachmentStore | None = None,
 		skill_catalog: SkillCatalog | None = None,
@@ -190,7 +190,7 @@ class Session:
 		self.config = config
 		self.log = log
 		self.event_sink = event_sink
-		self.credentials = credentials or CredentialStore(server_config.CREDENTIALS_PATH)
+		self.credential_store = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
 		self.attachment_store = attachment_store
 		self.skill_catalog = skill_catalog or SkillCatalog()
@@ -454,7 +454,7 @@ class Session:
 		return loop.LoopInputs(
 			config=self.config,
 			messages=self.transcript.messages,
-			credentials=self.credentials,
+			credential_store=self.credential_store,
 			abort=self.abort_signal,
 			model_name=self.model,
 			credential_id=self.credential_id,
@@ -597,7 +597,13 @@ class Session:
 		"""Runs alongside the first turn on its own model instance, so it never blocks
 		or steals the run's stream. Best-effort: any failure leaves the fallback."""
 		try:
-			auth = await resolve_model_auth(self.model, self.credentials, provider_id=self.credential_id)
+			auth = await resolve_model_auth(
+				self.model,
+				self.credential_store,
+				provider_id=self.credential_id,
+				api_key=self.config.api_key,
+				api_base=self.config.api_base,
+			)
 			model = get_model(
 				self.model,
 				api_key=auth.api_key,

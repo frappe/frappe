@@ -56,12 +56,12 @@ def test_custom_provider_roundtrip(tmp_path):
 	assert row["source"] == "http://localhost:11434/v1"  # trailing slash trimmed
 	assert row["models"] == ["ollama/llama3.2", "ollama/qwen2.5"]  # deduped, stripped
 
-	credential = store.credentials.get_custom(row["id"])
+	credential = store.credential_store.get_custom(row["id"])
 	assert credential is not None and credential.api_key is None
 
 	# it shows up in the catalog, and its models resolve to its base URL
 	assert any(p["id"] == row["id"] for p in c.get("/providers").json()["providers"])
-	auth = asyncio.run(resolve_model_auth("ollama/llama3.2", store.credentials))
+	auth = asyncio.run(resolve_model_auth("ollama/llama3.2", store.credential_store))
 	assert auth.base_url == "http://localhost:11434/v1"
 	assert auth.provider_id == row["id"]
 
@@ -70,7 +70,7 @@ def test_custom_provider_roundtrip(tmp_path):
 	assert again["id"] == "custom-local-ollama-2"
 
 	assert c.delete(f"/providers/{row['id']}").json() == {"status": "removed"}
-	assert store.credentials.get(row["id"]) is None
+	assert store.credential_store.get(row["id"]) is None
 
 
 def test_custom_provider_update(tmp_path):
@@ -95,7 +95,7 @@ def test_custom_provider_update(tmp_path):
 	assert edited["id"] == row["id"]  # the id survives a rename
 	assert edited["name"] == "Gateway"
 	assert edited["models"] == ["gw/m1", "gw/m2"]
-	credential = store.credentials.get_custom(row["id"])
+	credential = store.credential_store.get_custom(row["id"])
 	assert credential is not None and credential.api_key == "secret"
 
 	# repointing base_url with a blank key drops the key instead of leaking it
@@ -104,11 +104,11 @@ def test_custom_provider_update(tmp_path):
 		json={"name": "Gateway", "base_url": "http://gw:9/v1/", "models": ["gw/m1"]},
 	).json()["provider"]
 	assert moved["source"] == "http://gw:9/v1"
-	assert store.credentials.get_custom(row["id"]).api_key is None
+	assert store.credential_store.get_custom(row["id"]).api_key is None
 
 	# a provided key replaces the stored one
 	c.put(f"/providers/custom/{row['id']}", json={**body, "api_key": "rotated"})
-	assert store.credentials.get_custom(row["id"]).api_key == "rotated"
+	assert store.credential_store.get_custom(row["id"]).api_key == "rotated"
 
 	# create-time validation applies, and only custom credentials are editable
 	assert c.put(f"/providers/custom/{row['id']}", json={**body, "models": ["bare"]}).status_code == 422
@@ -324,6 +324,24 @@ def test_webui_mount_serves_shell_but_protects_api(tmp_path):
 	# without a webui dir, "/" stays a 404 and nothing is exempt
 	bare = TestClient(create_app(store, auth_token="secret"))
 	assert bare.get("/").status_code in (401, 404)
+
+
+def test_webui_auth_bypass_covers_only_static_paths(tmp_path):
+	"""The bypass is derived from the registered routes, so API roots outside the
+	old hardcoded prefix list (e.g. /skills, /extensions) still demand a bearer."""
+	webui = tmp_path / "webui"
+	webui.mkdir()
+	(webui / "index.html").write_text("<title>Flow</title>")
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	c = TestClient(create_app(store, auth_token="secret", webui_dir=str(webui)))
+
+	assert c.get("/skills").status_code == 401
+	assert c.get("/extensions/reload").status_code == 401
+	assert c.get("/healthz").status_code == 200
+	assert "<title>Flow</title>" in c.get("/").text
 
 
 def test_tokenless_guard_refuses_foreign_hosts_and_origins(tmp_path):

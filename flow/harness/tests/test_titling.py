@@ -50,7 +50,7 @@ def _titling_session(tmp_path, monkeypatch, replies):
 	session = store.create(SessionConfig(model="titled/model", cwd=str(tmp_path)))
 	calls = []
 
-	async def fake_auth(model, credentials, *, provider_id=None):
+	async def fake_auth(*_args, **_kwargs):
 		return SimpleNamespace(api_key=None, base_url=None, headers={}, refresh=None)
 
 	def fake_get_model(name, **_kwargs):

@@ -1,5 +1,9 @@
+import pytest
+
+from flow import config
+from flow.cli.daemon import DaemonError
 from flow.cli.login import _parse_callback, login, logout, show_providers
-from flow.cli.main import _is_loopback, _with_default_command
+from flow.cli.main import _is_loopback, _resolve_auth_token, _with_default_command
 from flow.model.credentials import CredentialStore
 
 
@@ -40,6 +44,30 @@ def test_loopback_detection():
 	assert _is_loopback("::1")
 	assert not _is_loopback("0.0.0.0")
 	assert not _is_loopback("example.com")
+
+
+def test_resolve_auth_token_prefers_env_then_file(tmp_path, monkeypatch):
+	token_file = tmp_path / "token"
+	token_file.write_text("file-token\n")
+	monkeypatch.setattr(config, "AUTH_TOKEN", "env-token")
+	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", str(token_file))
+	assert _resolve_auth_token() == "env-token"
+	monkeypatch.setattr(config, "AUTH_TOKEN", None)
+	assert _resolve_auth_token() == "file-token"
+	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
+	assert _resolve_auth_token() is None
+
+
+def test_resolve_auth_token_rejects_missing_or_empty_file(tmp_path, monkeypatch):
+	monkeypatch.setattr(config, "AUTH_TOKEN", None)
+	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", str(tmp_path / "missing"))
+	with pytest.raises(DaemonError, match="cannot read"):
+		_resolve_auth_token()
+	empty = tmp_path / "empty"
+	empty.write_text(" \n")
+	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", str(empty))
+	with pytest.raises(DaemonError, match="empty"):
+		_resolve_auth_token()
 
 
 def test_bare_invocation_defaults_to_tui():

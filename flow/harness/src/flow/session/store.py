@@ -10,10 +10,11 @@ import json
 import os
 import re
 import uuid
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import mkstemp
+from urllib.parse import urlsplit
 
 from flow import config as server_config
 from flow.extensions import ExtensionRuntime, unload_extension_modules
@@ -31,6 +32,17 @@ from flow.tools.builtins import BUILTIN_TOOLS
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+# site names land in on-disk paths (data_dir/tenants/<site>); the leading
+# alphanumeric bars ".", "..", and hidden names, and no separators can appear
+_SITE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+
+class PolicyError(ValueError):
+	"""A session config refused by a policy fence (roots, tools, callback hosts) —
+	checked at create and again on load, so a stored session never outlives a
+	tightened fence."""
+
 
 _META_SUFFIX = ".meta.json"
 _SKILLS_SUFFIX = ".skills.json"
@@ -69,6 +81,8 @@ class SessionStore:
 		credential_store: CredentialStore | None = None,
 		extension_paths: builtins.list[str] | None = None,
 		extensions_enabled: bool = False,
+		tool_allowlist: Collection[str] | None = None,
+		callback_hosts: Collection[str] | None = None,
 	):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
@@ -77,7 +91,11 @@ class SessionStore:
 		self.event_sink = event_sink
 		configured_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
 		self.allowed_roots = normalize_roots(configured_roots)
-		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
+		# (ServerPolicy.tool_allowlist). None = uncapped.
+		self.tool_allowlist = frozenset(tool_allowlist) if tool_allowlist is not None else None
+		# (ServerPolicy.callback_hosts). None = any host.
+		self.callback_hosts = frozenset(callback_hosts) if callback_hosts is not None else None
+		self.credential_store = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._extension_paths = tuple(extension_paths or ())
 		self._extensions_enabled = extensions_enabled
 		self.extension_runtime = self._load_extensions()
@@ -104,6 +122,24 @@ class SessionStore:
 			session.server_tools = self._compose_tools(session.config)
 			session.extension_runtime = self.extension_runtime
 
+	def for_site(self, site: str, allowed_roots: Collection[str] | None = None) -> SessionStore:
+		"""A tenant partition of this store: sessions and credentials live under
+		`data_dir/tenants/<site>` with their own path fence, sharing sink and caps.
+		The daemon-wide credential store is never a site's to consume."""
+		if not _SITE_RE.match(site):
+			raise ValueError(f"invalid site name {site!r}")
+		partition_dir = os.path.join(self.data_dir, "tenants", site)
+		return SessionStore(
+			partition_dir,
+			event_sink=self.event_sink,
+			allowed_roots=list(allowed_roots if allowed_roots is not None else self.allowed_roots),
+			credential_store=CredentialStore(os.path.join(partition_dir, "credentials.json")),
+			extension_paths=list(self._extension_paths),
+			extensions_enabled=self._extensions_enabled,
+			tool_allowlist=self.tool_allowlist,
+			callback_hosts=self.callback_hosts,
+		)
+
 	def create(self, config: SessionConfig) -> Session:
 		self._validate_create_config(config)
 		skill_catalog = self._discover_skills(config)
@@ -123,6 +159,29 @@ class SessionStore:
 	def _validate_create_config(self, config: SessionConfig) -> None:
 		self._validate_cwd(config.cwd)
 		self._validate_skill_paths(config)
+		self._validate_tools(config)
+		self._validate_callback(config)
+
+	def _validate_tools(self, config: SessionConfig) -> None:
+		"""Reject tools the client asked for that the policy does not allow.
+
+		A client that never set `tools` is fine — its default list is clamped
+		at create instead of erroring."""
+		if self.tool_allowlist is None or "tools" not in config.model_fields_set:
+			return
+		blocked = sorted(set(config.tools) - self.tool_allowlist)
+		if blocked:
+			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
+
+	def _validate_callback(self, config: SessionConfig) -> None:
+		"""Fence callback_url to the allowed hosts (exact host[:port] match), so the
+		daemon cannot be steered into POSTing at arbitrary internal services."""
+		if self.callback_hosts is None or not config.callback_url:
+			return
+		parts = urlsplit(config.callback_url)
+		if parts.scheme in ("http", "https") and parts.netloc in self.callback_hosts:
+			return
+		raise PolicyError(f"callback_url host {parts.netloc!r} is not allowed by server policy")
 
 	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
 		return discover_skills(
@@ -134,9 +193,18 @@ class SessionStore:
 
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		selected = {name: BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS}
-		return self.extension_runtime.compose_tools(selected)
+		composed = self.extension_runtime.compose_tools(selected)
+		if self.tool_allowlist is None:
+			return composed
+		# runs on every load, so old sessions and extension tools are capped too
+		return {name: tool for name, tool in composed.items() if name in self.tool_allowlist}
 
 	def _create_with_skills_catalog(self, config: SessionConfig, skill_catalog: SkillCatalog) -> Session:
+		if self.tool_allowlist is not None:
+			# persist the effective builtin list, so meta and API echoes tell the truth
+			config = config.model_copy(
+				update={"tools": [name for name in config.tools if name in self.tool_allowlist]}
+			)
 		# Catalog metadata and the composed prompt are immutable for this session.
 		# Skill files themselves remain live and are read when used, matching Pi.
 		server_tools = self._compose_tools(config)
@@ -172,6 +240,7 @@ class SessionStore:
 			config = SessionConfig.model_validate(json.load(f))
 		self._validate_cwd(config.cwd)
 		self._validate_skill_paths(config)
+		self._validate_callback(config)  # a stored session must not outlive a tightened fence
 		session = self._build(
 			sid,
 			config,
@@ -322,7 +391,7 @@ class SessionStore:
 			config,
 			SessionLog(paths.log),
 			event_sink=self.event_sink,
-			credentials=self.credentials,
+			credential_store=self.credential_store,
 			allowed_roots=self.allowed_roots,
 			attachment_store=AttachmentStore(paths.attachments),
 			skill_catalog=skill_catalog,
@@ -397,7 +466,7 @@ class SessionStore:
 			expanded = os.path.expanduser(value)
 			path = expanded if os.path.isabs(expanded) else os.path.join(config.cwd, expanded)
 			if not is_path_allowed(canonical_path(path), self.allowed_roots):
-				raise ValueError(f"skill path {raw!r} is not under an allowed root")
+				raise PolicyError(f"skill path {raw!r} is not under an allowed root")
 
 	def _validate_cwd(self, cwd: str) -> None:
 		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`
@@ -405,7 +474,7 @@ class SessionStore:
 		if not self.allowed_roots:
 			return
 		if not is_path_allowed(canonical_path(cwd), self.allowed_roots):
-			raise ValueError(f"cwd {cwd!r} is not under an allowed root")
+			raise PolicyError(f"cwd {cwd!r} is not under an allowed root")
 
 
 def _project_directory_name(cwd: str) -> str:

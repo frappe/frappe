@@ -117,12 +117,12 @@ def test_store_fences_cwd_to_allowed_roots(tmp_path):
 
 def test_reload_rejects_tampered_meta(tmp_path):
 	"""The config schema is closed: a meta file with fields the daemon never wrote
-	(e.g. an injected api_key) fails loudly instead of being silently accepted."""
+	fails loudly instead of being silently accepted."""
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
 	meta = Path(session.log.path).with_name(f"{session.id}.meta.json")
 	config = json.loads(meta.read_text())
-	config["api_key"] = "injected-secret"
+	config["injected_field"] = "injected-secret"
 	meta.write_text(json.dumps(config))
 
 	with pytest.raises(ValidationError):

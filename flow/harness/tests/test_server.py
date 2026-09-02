@@ -181,13 +181,15 @@ def test_run_does_not_accept_model_overrides(tmp_path):
 
 
 def test_provider_secrets_and_endpoints_are_not_client_inputs(tmp_path):
+	# the session fields exist but need a policy opt-in (see test_inline_credentials)
 	c = _client(tmp_path)
 	for field, value in (("api_key", "secret"), ("api_base", "https://attacker.test")):
 		response = c.post(
 			"/sessions",
 			json={"model": "mock", "cwd": str(tmp_path), field: value},
 		)
-		assert response.status_code == 422
+		assert response.status_code == 400
+		assert "server policy" in response.json()["detail"]
 
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 	for field, value in (("api_key", "secret"), ("api_base", "https://attacker.test")):
