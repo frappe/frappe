@@ -592,6 +592,7 @@ def get_userinfo(user):
 			"given_name": user.first_name,
 			"family_name": user.last_name,
 			"email": user.email,
+			"email_verified": True,
 			"picture": picture,
 			"roles": frappe.get_roles(user.name),
 			"iss": frappe_server_url,
