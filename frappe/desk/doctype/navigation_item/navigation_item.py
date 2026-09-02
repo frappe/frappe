@@ -24,6 +24,7 @@ class NavigationItem(Document):
 		from frappe.types import DF
 
 		added: DF.Check
+		anchors: DF.Code | None
 		collapsible: DF.Check
 		hidden: DF.Check
 		icon: DF.Icon | None
@@ -39,6 +40,7 @@ class NavigationItem(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		payload: DF.Code | None
+		switches_app: DF.Check
 		url: DF.Data | None
 	# end: auto-generated types
 

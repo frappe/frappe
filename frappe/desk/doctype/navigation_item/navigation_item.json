@@ -27,7 +27,11 @@
   "customization_section",
   "hidden",
   "added",
-  "overrides"
+  "overrides",
+  "contribution_section",
+  "anchors",
+  "column_break_contrib",
+  "switches_app"
  ],
  "fields": [
   {
@@ -164,13 +168,38 @@
    "fieldtype": "Code",
    "label": "Overrides",
    "options": "JSON"
+  },
+  {
+   "collapsible": 1,
+   "description": "Only meaningful on a row one app contributes to another app's rail — a `Rail` layer with `extends` set. An app's own rows are already where their author put them, and a site or user layer says where a row goes by the order it lists it in.",
+   "fieldname": "contribution_section",
+   "fieldtype": "Section Break",
+   "label": "Contribution"
+  },
+  {
+   "description": "Where this row wants to land in the host's list, as an ordered JSON list of attempts. Each attempt is an object naming at most one of `after` and `before`, a sibling to sit next to, and optionally `parent_key`, a row to nest under; every key it names has to be in the merged list for the attempt to resolve. The first that resolves wins and the rest are ignored, which is how an app says \"beside Customers, or failing that beside Contacts, or failing that anywhere\" without knowing which version of the host is installed. None resolving means the row is appended at the top level and never dropped, because a contributed item that lands in the wrong place is a cosmetic problem and one that vanishes is a bug report. Keys are written as the host wrote them, unprefixed; the merge namespaces contributed keys but never the anchors that name them.",
+   "fieldname": "anchors",
+   "fieldtype": "Code",
+   "label": "Anchors",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "column_break_contrib",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Whether following this row leaves the host app for the app that contributed it. Off by default, and that default needs no code: a contributed row is an ordinary prefix-relative link, so clicking it keeps you where you are — addresses are bench-wide, so a foreign doctype opens under the host's prefix. On, the server sends the finished absolute URL, because the client resolves routes through the router it is standing in and cannot build one into another prefix. A column rather than a corner of `payload`, so that `overrides` can name it: a site that wants a contributed item to stay put, or to leave, is stating an opinion about a field, and `payload` sits inside the row's identity.",
+   "fieldname": "switches_app",
+   "fieldtype": "Check",
+   "label": "Switches App"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-01 10:00:00.000000",
+ "modified": "2026-09-02 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Navigation Item",

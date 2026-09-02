@@ -20,6 +20,11 @@
   An app that ships no rail rows still gets a rail: its own doctypes, permission-
   filtered, exactly the list this showed before. So the rail's appearance changes when
   an app ships rows and not when this lands (#42356).
+
+  Some of these rows may belong to another app entirely — one that ships a `Rail`
+  record naming this app in `extends`. Nothing here can tell, and nothing here should:
+  the server merged them into the base before the layers went on, so they arrive as
+  ordinary items in one ordered list (#42364).
 -->
 <template>
 	<nav class="flex w-52 shrink-0 flex-col gap-1 border-r border-outline-gray-2 p-2">
@@ -31,16 +36,18 @@
 		</RouterLink>
 
 		<div class="mt-2 overflow-y-auto">
-			<RouterLink
+			<component
 				v-for="item in doctypeItems"
 				:key="item.key"
-				:to="routeFor(item.link_to!)"
+				:is="item.url ? 'a' : RouterLink"
+				:to="item.url ? undefined : routeFor(item.link_to!)"
+				:href="item.url"
 				class="block truncate rounded px-2 py-1 text-sm text-ink-gray-7 hover:bg-surface-gray-2"
 			>
 				<!-- An item nobody labelled falls back to its destination, which is what a
 						 derived rail row is: an address and no authored presentation. -->
 				{{ item.label ?? item.link_to }}
-			</RouterLink>
+			</component>
 		</div>
 
 		<a
@@ -67,6 +74,13 @@ const boot = inject<Boot>("boot")!;
 // the branch is derived, and derivation produces `DocType` items and nothing else.
 // Renderers, and a rail that draws sections and opens sidebars, are the walking
 // skeleton's (#42233).
+//
+// A row carrying a `url` is rendered as a plain `<a>` above. That is a contributed item
+// whose app said `switches_app`, and leaving a prefix is a full document load — a
+// `RouterLink` would resolve it against this document's router, which cannot reach
+// another prefix at all. A contributed item that does NOT switch is an ordinary
+// `RouterLink` like any other, and needs nothing here: addresses are bench-wide, so a
+// foreign doctype opens under the host's prefix (#42364).
 const doctypeItems = computed(() =>
 	(boot.navigation?.rail ?? []).filter((item) => item.item_type === "DocType" && item.link_to)
 );

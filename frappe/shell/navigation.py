@@ -17,9 +17,12 @@
 # and `resolve_sidebar` are both unwhitelisted with one caller each.
 
 import json
+from urllib.parse import quote
 
 import frappe
 from frappe.desk.layers import resolve_layers
+
+from .extensions import extend
 
 # What a stored row carries. Read as columns rather than as a document, because `Sidebar`'s
 # document is desk v1's: the class subclasses `DeskViews` and the record holds v1's `items`
@@ -40,6 +43,12 @@ ITEM_FIELDS = (
 	"hidden",
 	"added",
 	"overrides",
+	# Read for the extension merge, not for the browser. `anchors` is consumed there and
+	# `switches_app` becomes a `url` on the way out — but both are in this list rather than
+	# read separately, because `overrides` may name any field a layer has an opinion about,
+	# and a site turning a contributed item's app-switching off is exactly such an opinion.
+	"anchors",
+	"switches_app",
 )
 
 # What reaches the browser. `hidden`, `added` and `overrides` are how a layer was *stored*;
@@ -63,6 +72,10 @@ WIRE_FIELDS = (
 # reason: one spelling of "not a person's own layer" has to reach the unique index.
 SITE_LAYER = ""
 
+# `Rail.NO_HOST`, and the same empty string for the same reason: an app's own rail extends
+# nobody, and one spelling of that has to reach the unique index — and this filter.
+NO_HOST = ""
+
 
 def resolve_navigation(app: str) -> dict:
 	"""The whole navigation payload for one prefix, as the session user sees it.
@@ -82,7 +95,11 @@ def resolve_navigation(app: str) -> dict:
 
 
 def _resolve_rail(app: str) -> list[dict]:
-	"""One app's rail: its own layer, then the site's, then this user's.
+	"""One app's rail: its own layer plus what other apps add to it, then the site's, then this user's.
+
+	Extension happens to the *base*, before the site and user layers are laid over it. That is
+	what makes a person's arrangement of a host rail one row rather than one row per extending
+	app: they are shown one list and they arrange one list (#42364).
 
 	When the app ships no `Rail` record the base is *derived* from the address table, and it goes
 	through the same merge as any other base rather than short-circuiting past it. That is not a
@@ -93,8 +110,14 @@ def _resolve_rail(app: str) -> list[dict]:
 	"""
 	layers = _rail_layers(app)
 	base = layers.pop("standard", None)
+	# A derived base's keys are doctype names nobody authored, so an anchor may not name one
+	# (#42364). The flag is computed here rather than inside the merge because this is the only
+	# line that knows which of the two bases it is holding.
+	shipped = base is not None
 	if base is None:
 		base = _derive_rail(app)
+
+	base = extend(base, _rail_contributions(app), anchorable=shipped)
 
 	return _merge(base, [layers.get("site", []), layers.get("user", [])])
 
@@ -274,7 +297,81 @@ def on_the_wire(item: dict) -> dict:
 	if wire.get("payload"):
 		wire["payload"] = _parse_payload(item)
 
+	if item.get("switches_app"):
+		wire["url"] = _switching_url(item) or wire.get("url")
+
 	return {field: value for field, value in wire.items() if value}
+
+
+def _switching_url(item: dict) -> str | None:
+	"""The absolute URL of a contributed item that leaves the host, or None if it has none.
+
+	The server builds it because the browser cannot. `routeFor` resolves through the router the
+	document is standing in, so every URL it can produce is inside the current prefix — which is
+	the whole reason a contributed item stays in the host by default and needs no code to do it.
+	Crossing is the exception, and it is a full document load either way (#42102).
+
+	The destination is the **contributing** app's prefix, which is what `app` on a merged item
+	says. A host's own row can never reach here: nothing sets `app` on one, because nothing about
+	it is foreign.
+
+	An item whose destination has no address under that prefix falls back to the ordinary
+	in-prefix link and logs — a working link in the wrong app beats no link at all. A `Module`
+	under a non-modular prefix is the case: there is no module route to land on (#42211).
+
+	A `Link` row is the one kind that is silently left alone. It already carries an absolute URL
+	that goes wherever its author pointed it, so switching apps says nothing about it, and
+	logging would report a mistake nobody made.
+	"""
+	from .doctypes import get_address_table, slug
+	from .registry import declared_prefix, is_modular, shell_base
+
+	app = item.get("app")
+	if not app:
+		return None
+
+	base = shell_base(declared_prefix(app))
+	modular = is_modular(app)
+	item_type = item.get("item_type")
+
+	if item_type == "Module":
+		return f"{base}/{slug(item['link_to'])}" if modular and item.get("link_to") else _no_address(item)
+
+	if item_type == "DocType":
+		doctype, record = item.get("link_to"), None
+	elif item_type == "Record":
+		doctype, record = item.get("link_doctype"), item.get("link_to")
+	elif item_type == "Link":
+		return None
+	else:
+		return _no_address(item)
+
+	address = get_address_table()["doctypes"].get(doctype)
+	if not address:
+		return _no_address(item)
+
+	doctype_slug, module_slug = address
+	if modular and not module_slug:
+		return _no_address(item)
+
+	segments = [base, module_slug, doctype_slug] if modular else [base, doctype_slug]
+	if record:
+		# The one request-shaped value in the path. Everything else is a slug the framework
+		# computed; a record name is user data and can hold a slash.
+		segments.append(quote(record, safe=""))
+
+	return "/".join(segments)
+
+
+def _no_address(item: dict) -> None:
+	frappe.log_error(
+		title="Navigation item cannot switch apps",
+		message=(
+			f"{item.get('item_type')} item {item.get('key')!r} contributed by {item.get('app')!r} "
+			"has no address under that app's prefix; it stays in the host prefix."
+		),
+	)
+	return None
 
 
 def _parse_payload(item: dict) -> dict:
@@ -312,7 +409,11 @@ def _rail_layers(app: str) -> dict[str, list[dict]]:
 	"""
 	records = frappe.get_all(
 		"Rail",
-		filters={"app": app, "user": ("in", (SITE_LAYER, frappe.session.user))},
+		filters={
+			"app": app,
+			"extends": NO_HOST,
+			"user": ("in", (SITE_LAYER, frappe.session.user)),
+		},
 		fields=["name", "standard", "user"],
 	)
 
@@ -322,11 +423,39 @@ def _rail_layers(app: str) -> dict[str, list[dict]]:
 	for record in records:
 		layers[_layer_role(record)] = rows.get(record.name, [])
 
-	# `mount_on` is read by nothing here, deliberately. #42364 took the question up and answered
-	# it against the column: a scalar cannot say what an app extending two hosts needs, so `Rail`
-	# gains `extends` and `mount_on` comes off. That is #42398's build, and it merges into this
-	# derived-and-shipped rail rather than replacing it.
+	# `extends` is blank in the filter above, so this returns the app's own three layers and never
+	# a record it ships for somebody else's rail. Those share this app's name and would otherwise
+	# arrive here as a second standard layer, which the merge has no way to tell from the first.
 	return layers
+
+
+def _rail_contributions(host: str) -> list[tuple[str, list[dict]]]:
+	"""What other apps add to this app's rail, in installation order.
+
+	Installation order, not name order, because it is the order the site actually did things in
+	and the only one an administrator can change. It decides the appended tail, and it decides
+	nothing else: anchors resolve against the finished list, so an anchor naming another
+	extender's item works whichever went on first (#42364).
+
+	Active apps only — `get_active_apps` rather than the installed list, for the reason boot uses
+	it: a **disabled** app must not keep serving anything, and an app still in `installed_apps`
+	but gone from the bench would raise on the next hook read. An app off that list contributes
+	nothing rather than contributing at the end.
+
+	Standard rows only, which the schema already guarantees: `extends` is blanked on any row that
+	is not app content, so a site or a person cannot file one app's items onto another's rail.
+	"""
+	records = frappe.get_all("Rail", filters={"extends": host, "standard": 1}, fields=["name", "app"])
+	if not records:
+		return []
+
+	order = frappe.get_active_apps(_ensure_on_bench=True)
+	records = sorted(
+		(record for record in records if record.app in order), key=lambda record: order.index(record.app)
+	)
+	rows = _rows_by_parent("Rail", "items", [record.name for record in records])
+
+	return [(record.app, rows.get(record.name, [])) for record in records]
 
 
 def _layer_role(record) -> str:

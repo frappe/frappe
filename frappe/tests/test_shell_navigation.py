@@ -71,8 +71,17 @@ def doctype_item(key: str, doctype: str, **kwargs) -> dict:
 	return item(key, link_doctype="DocType", link_to=doctype, **kwargs)
 
 
-def make_rail(items: list[dict], *, standard: int = 0, user: str | None = None):
-	doc = frappe.get_doc(doctype="Rail", app=APP, standard=standard, user=user or "", items=items)
+def make_rail(
+	items: list[dict], *, standard: int = 0, user: str | None = None, app: str = APP, extends: str = ""
+):
+	doc = frappe.get_doc(
+		doctype="Rail",
+		app=app,
+		extends=extends,
+		standard=standard,
+		user=user or "",
+		items=items,
+	)
 	with shipping():
 		return doc.insert(ignore_permissions=True)
 
@@ -419,3 +428,209 @@ class TestNavigationInBoot(NavigationTestCase):
 		from frappe.shell.boot import get_boot
 
 		self.assertLess(len(json.dumps(get_boot("/apps/desk"), default=str)), 40_000)
+
+
+# Extension — one app's rows on another app's rail
+#
+# No app on any bench ships a v2 rail, let alone one extending somebody else's, so there is
+# nothing here to convert and these fixtures are the only consumer the mechanism has (#42398).
+# The extending apps are named but never installed, which the resolver has to be told: it drops
+# a contribution from an app that is not active, so `active` below is what makes one count.
+
+EXTENDER = "telephony"
+OTHER_EXTENDER = "payments"
+
+
+@contextlib.contextmanager
+def active(*apps: str):
+	"""Present these apps to the resolver as installed and enabled, in this order.
+
+	`get_active_apps` is what decides whether a contribution counts and where in the appended
+	tail it lands, and it is the only thing in the merge that asks about an app at all.
+	"""
+	with patch("frappe.get_active_apps", return_value=[APP, *apps]):
+		yield
+
+
+def make_extension(items: list[dict], *, app: str = EXTENDER, host: str = APP):
+	return make_rail(items, standard=1, app=app, extends=host)
+
+
+def anchored(key: str, doctype: str, *anchors: dict, **kwargs) -> dict:
+	return doctype_item(key, doctype, anchors=json.dumps(list(anchors)), **kwargs)
+
+
+class TestExtendedRail(NavigationTestCase):
+	def test_a_contributed_item_reaches_the_hosts_rail(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role")])
+
+		with active(EXTENDER):
+			rail = resolve_navigation(APP)["rail"]
+
+		self.assertEqual(keys(rail), ["user", "telephony:calls"])
+
+	def test_an_apps_own_rail_is_not_its_extension_of_somebody_elses(self):
+		"""Both records carry `app = frappe`, so the layer read has to name `extends` as well.
+		Without it the extension arrives as a second standard layer and the merge has no way to
+		tell it from the first."""
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_rail([doctype_item("elsewhere", "Role")], standard=1, extends="erpnext")
+
+		with active(EXTENDER):
+			self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["user"])
+
+	def test_an_app_that_is_not_active_contributes_nothing(self):
+		"""A disabled app must not keep serving anything, which is the rule boot already applies
+		to the app list and the prefix registry."""
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role")])
+
+		with active():
+			self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["user"])
+
+	def test_extension_merges_into_a_derived_rail(self):
+		"""No app ships a `Rail` record, so this is the path every extension takes today. The
+		derived base offers no anchor targets, so the contribution appends."""
+		make_extension([anchored("calls", "Role", {"after": "User"})])
+
+		with active(EXTENDER):
+			rail = resolve_navigation(APP)["rail"]
+
+		self.assertIn("User", keys(rail))
+		self.assertEqual(keys(rail)[-1], "telephony:calls")
+
+	def test_a_person_arranges_one_list_and_not_one_per_app(self):
+		"""`extends` is standard-rows-only, so a person's arrangement of a host rail is one row
+		covering every item on it — including the ones another app put there."""
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		make_extension([doctype_item("calls", "Role")])
+		make_rail([item("telephony:calls"), item("user"), item("role")], user=frappe.session.user)
+
+		with active(EXTENDER):
+			self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["telephony:calls", "user", "role"])
+
+	def test_a_person_may_hide_a_contributed_item(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role")])
+		make_rail([item("telephony:calls", hidden=1)], user=frappe.session.user)
+
+		with active(EXTENDER):
+			self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["user"])
+
+	def test_a_contribution_is_positioned_and_not_only_appended(self):
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		make_extension([anchored("calls", "Role", {"after": "user"})])
+
+		with active(EXTENDER):
+			self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["user", "telephony:calls", "role"])
+
+	def test_two_apps_contribute_in_installation_order(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role")])
+		make_extension([doctype_item("invoices", "Role")], app=OTHER_EXTENDER)
+
+		with active(OTHER_EXTENDER, EXTENDER):
+			self.assertEqual(
+				keys(resolve_navigation(APP)["rail"]),
+				["user", "payments:invoices", "telephony:calls"],
+			)
+
+	def test_the_stored_columns_never_reach_the_browser(self):
+		"""`anchors` is spent at merge and `switches_app` becomes a `url`. Both are read into the
+		merge because `overrides` may name any field a layer has an opinion about, and neither is
+		anything the client renders — navigation is 88% of a payload with a 40 KB ceiling."""
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([anchored("calls", "Role", {"after": "user"})])
+
+		with active(EXTENDER):
+			entry = resolve_navigation(APP)["rail"][1]
+
+		self.assertNotIn("anchors", entry)
+		self.assertNotIn("switches_app", entry)
+		self.assertNotIn("app", entry)
+
+
+class TestSwitchingApps(NavigationTestCase):
+	"""Following a contributed item keeps you in the host unless its app says otherwise.
+
+	That default needs no code — a contributed row is an ordinary prefix-relative link, because
+	addresses are bench-wide. Leaving is the exception, and only the server can build it: the
+	client resolves routes through the router this document holds, which cannot reach another
+	prefix at all (`routeFor.ts` says so in as many words).
+	"""
+
+	@contextlib.contextmanager
+	def prefixed(self, prefix: str = "telephony", modular: bool = False):
+		with (
+			patch("frappe.shell.registry.declared_prefix", return_value=prefix),
+			patch("frappe.shell.registry.is_modular", return_value=modular),
+		):
+			yield
+
+	def test_an_item_that_does_not_switch_carries_no_url(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role")])
+
+		with active(EXTENDER):
+			entry = resolve_navigation(APP)["rail"][1]
+
+		self.assertNotIn("url", entry)
+
+	def test_a_switching_item_carries_the_finished_absolute_url(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role", switches_app=1)])
+
+		with active(EXTENDER), self.prefixed():
+			entry = resolve_navigation(APP)["rail"][1]
+
+		self.assertEqual(entry["url"], "/apps/telephony/role")
+
+	def test_a_modular_prefix_puts_the_module_in_the_address(self):
+		"""The shape is the destination app's, not the host's — which is the whole reason the
+		server builds this and the client cannot."""
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([doctype_item("calls", "Role", switches_app=1)])
+
+		with active(EXTENDER), self.prefixed(modular=True):
+			entry = resolve_navigation(APP)["rail"][1]
+
+		self.assertEqual(entry["url"], "/apps/telephony/core/role")
+
+	def test_a_record_item_carries_the_record(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension(
+			[
+				item(
+					"admin",
+					item_type="Record",
+					link_doctype="User",
+					link_to="Administrator",
+					switches_app=1,
+				)
+			]
+		)
+
+		with active(EXTENDER), self.prefixed():
+			entry = resolve_navigation(APP)["rail"][1]
+
+		self.assertEqual(entry["url"], "/apps/telephony/user/Administrator")
+
+	def test_a_kind_with_no_cross_app_address_falls_back_to_the_host(self):
+		"""A working link in the wrong app beats no link at all, and `Link` already carries an
+		absolute URL of its own, so switching says nothing about it."""
+		make_rail([doctype_item("user", "User")], standard=1)
+		make_extension([item("docs", item_type="Link", url="https://frappe.io", switches_app=1)])
+
+		with active(EXTENDER), self.prefixed():
+			entry = resolve_navigation(APP)["rail"][1]
+
+		self.assertEqual(entry["url"], "https://frappe.io")
+
+	def test_a_host_row_never_switches(self):
+		"""Nothing sets `app` on one, because nothing about it is foreign — so the column is
+		inert on the rows it cannot mean anything for, rather than guarded against them."""
+		make_rail([doctype_item("user", "User", switches_app=1)], standard=1)
+
+		with active(), self.prefixed():
+			self.assertNotIn("url", resolve_navigation(APP)["rail"][0])
