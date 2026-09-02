@@ -90,8 +90,23 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 	"""
 	target = _target(container, address, scope)
 	below = target.resolve(upto=BELOW[scope], keep_hidden=True)
+	desired = _as_items(items)
 
-	_write(target, reduce_arrangement(below, _as_items(items)))
+	# An empty *reduction* is ordinary and means the layer goes: dragging an item away and back
+	# leaves nothing to store, and storing nothing is how that ends in the same state as a reset.
+	# An empty *submission* is not ordinary, because the client is always showing the list below
+	# it -- so a body whose every row was malformed would arrive here as "nothing differs" and
+	# quietly do a reset's work. The two are different requests and one may not become the other
+	# by accident.
+	if below and not desired:
+		frappe.throw(
+			_(
+				"An arrangement has to name at least one item. To go back to how {0} arrived, reset it."
+			).format(frappe.bold(target.app)),
+			title=_("Not an Arrangement"),
+		)
+
+	_write(target, reduce_arrangement(below, desired))
 
 	return resolve_navigation(target.app)
 

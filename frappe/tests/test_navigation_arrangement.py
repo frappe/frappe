@@ -445,6 +445,27 @@ class TestReset(NavigationTestCase):
 		self.assertEqual(rail_keys(), ["role", "user"])
 		self.assertTrue(frappe.db.exists("Rail", {"app": APP, "standard": 0, "user": ""}))
 
+	def test_a_malformed_save_does_not_do_a_resets_work(self):
+		"""Every row unusable reduces to nothing, and storing nothing is how a *reset* ends. The
+		client is always showing the list below it, so a submission that names nothing is
+		malformed rather than a statement that nothing differs."""
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("role"), shown("user")))
+
+		with self.assertRaises(frappe.ValidationError):
+			save_arrangement("Rail", APP, showing({"key": ["!=", ""]}, {"nokey": 1}))
+
+		self.assertEqual(rail_keys(), ["role", "user"], "their arrangement survives")
+
+	def test_arranging_it_back_still_leaves_no_row(self):
+		"""The case the check above must not catch: a full list that happens to differ in
+		nothing is not malformed, and the layer still goes."""
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("role"), shown("user")))
+		save_arrangement("Rail", APP, showing(shown("user"), shown("role")))
+
+		self.assertFalse(frappe.db.exists("Rail", {"app": APP, "standard": 0}))
+
 	def test_a_reset_of_a_layer_that_is_not_there_is_not_an_error(self):
 		make_rail([doctype_item("user", "User")], standard=1)
 
