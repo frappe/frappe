@@ -329,6 +329,32 @@ class TestHidingASection(NavigationTestCase):
 
 		self.assertEqual(rail_keys(), ["s2", "b", "s1", "a"])
 
+	def test_a_nested_subtree_moves_whole(self):
+		"""One level deeper than the pair above: the moved section holds a section of its own,
+		so carrying "the row's children" is not enough and it has to be the whole subtree."""
+		make_rail(
+			[
+				item("s1", item_type="Section"),
+				item("s1a", item_type="Section", parent_key="s1"),
+				doctype_item("deep", "User", parent_key="s1a"),
+				item("s2", item_type="Section"),
+				doctype_item("b", "Role", parent_key="s2"),
+			],
+			standard=1,
+		)
+
+		shown = showing(
+			{"key": "s2"},
+			{"key": "b", "parent_key": "s2"},
+			{"key": "s1"},
+			{"key": "s1a", "parent_key": "s1"},
+			{"key": "deep", "parent_key": "s1a"},
+		)
+		save_arrangement("Rail", APP, shown)
+
+		self.assertEqual(rail_keys(), ["s2", "b", "s1", "s1a", "deep"])
+		self.assertEqual(keys(get_arrangement("Rail", APP)), [row["key"] for row in shown])
+
 	def test_what_the_editor_saves_is_what_it_reads_back(self):
 		"""The property the one above protects, stated end to end: a save followed by a read
 		gives the same list, so the editor never redraws itself into an arrangement nobody
