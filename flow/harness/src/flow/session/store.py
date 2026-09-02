@@ -123,15 +123,17 @@ class SessionStore:
 			session.extension_runtime = self.extension_runtime
 
 	def for_site(self, site: str, allowed_roots: Collection[str] | None = None) -> SessionStore:
-		"""A tenant partition of this store: sessions live under `data_dir/tenants/<site>`
-		with their own path fence, sharing this store's credentials, sink, and caps."""
+		"""A tenant partition of this store: sessions and credentials live under
+		`data_dir/tenants/<site>` with their own path fence, sharing sink and caps.
+		The daemon-wide credential store is never a site's to consume."""
 		if not _SITE_RE.match(site):
 			raise ValueError(f"invalid site name {site!r}")
+		partition_dir = os.path.join(self.data_dir, "tenants", site)
 		return SessionStore(
-			os.path.join(self.data_dir, "tenants", site),
+			partition_dir,
 			event_sink=self.event_sink,
 			allowed_roots=list(allowed_roots if allowed_roots is not None else self.allowed_roots),
-			credential_store=self.credential_store,
+			credential_store=CredentialStore(os.path.join(partition_dir, "credentials.json")),
 			extension_paths=list(self._extension_paths),
 			extensions_enabled=self._extensions_enabled,
 			tool_allowlist=self.tool_allowlist,

@@ -70,11 +70,16 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 			load_tenants(str(path))
 
 
-def test_for_site_partitions_and_shares(tmp_path):
+def test_for_site_partitions_sessions_and_credentials(tmp_path):
 	store = _store(tmp_path)
 	site = store.for_site("site1.localhost")
 	assert site.sessions_dir == str(tmp_path / "data" / "tenants" / "site1.localhost" / "sessions")
-	assert site.credential_store is store.credential_store
+	# own credential store: a bench-wide key is never a site's to consume
+	assert site.credential_store.path == str(
+		tmp_path / "data" / "tenants" / "site1.localhost" / "credentials.json"
+	)
+	store.credential_store.set_api_key("anthropic", "sk-shared")
+	assert site.credential_store.get("anthropic") is None
 	other = store.for_site("site2.localhost")
 	assert other.sessions_dir != site.sessions_dir
 
