@@ -1,7 +1,5 @@
 context("Grid Configuration", () => {
-	// set by the footer test below; restored in afterEach so a failed
-	// assertion never leaves the shared Website Settings singleton with the
-	// test's rows instead of whatever was actually configured for the site.
+	// restored in afterEach(), even on failure, so the shared Website Settings singleton isn't left mutated
 	let saved_footer_items;
 
 	beforeEach(() => {
@@ -42,15 +40,11 @@ context("Grid Configuration", () => {
 		cy.get('[title="Align Right"').should("be.visible");
 	});
 
-	it("Populates footer parent label options on page load (#20918)", () => {
+	it("Populates footer parent label options on page load", () => {
 		cy.findByRole("tab", { name: "Footer" }).click();
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				// snapshot every real data field on Top Bar Item (label, url,
-				// parent_label, right, open_in_new_tab) — not full rows, since
-				// name/idx/etc belong to the rows being deleted and shouldn't
-				// be reused below
 				saved_footer_items = (frm.doc.footer_items || []).map((row) => ({
 					label: row.label,
 					url: row.url,
@@ -66,15 +60,9 @@ context("Grid Configuration", () => {
 			});
 		cy.save();
 
-		// reload the page so onload_post_render actually runs; asserting in the
-		// same session would go through the reactive (field-change) path instead
-		// and mask the bug where options stayed empty on a fresh load
 		cy.reload();
 		cy.findByRole("tab", { name: "Footer" }).click();
 
-		// .should() re-queries cur_frm and retries the assertion until it
-		// passes or the command timeout elapses, instead of a fixed cy.wait()
-		// racing onload_post_render on slower (CI) runs
 		cy.window()
 			.its("cur_frm")
 			.should((frm) => {
