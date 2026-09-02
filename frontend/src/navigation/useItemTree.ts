@@ -14,6 +14,12 @@ import { computed, type ComputedRef, type MaybeRefOrGetter, toValue } from "vue"
 import type { NavigationItem } from "@/boot";
 import { buildTree, type ItemNode } from "./tree";
 
+/**
+ * The tree for one container's rows, rebuilt whenever they change.
+ *
+ * @param items The container's flat, ordered list — a ref or a getter.
+ * @param container What to call it in a cycle report: `the rail`, `the <address> sidebar`.
+ */
 export function useItemTree(
 	items: MaybeRefOrGetter<NavigationItem[]>,
 	container: MaybeRefOrGetter<string>
