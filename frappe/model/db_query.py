@@ -380,7 +380,10 @@ from {tables}
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			link_name = f"{link.table_alias}.`name`"
+			if frappe.db.db_type == "postgres" and frappe.get_meta(link.doctype).autoname == "autoincrement":
+				link_name = f"cast({link_name} as varchar)"
+			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link_name} = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")

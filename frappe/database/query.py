@@ -40,6 +40,12 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 )
 
 
+def _cast_autoincrement_name(field: Field, doctype: str) -> Term:
+	if frappe.db.db_type == "postgres" and frappe.get_meta(doctype).autoname == "autoincrement":
+		return functions.Cast(field, "varchar")
+	return field
+
+
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
 	"""Apply datetime to date conversion for Date fieldtype filters.
 
@@ -1698,9 +1704,8 @@ class Engine:
 				# permissions are already checked by has_permission
 				return
 
-			self.query = self.query.inner_join(self.permission_table).on(
-				self.table.parent == self.permission_table.name
-			)
+			parent_name = _cast_autoincrement_name(self.permission_table.name, self.permission_doctype)
+			self.query = self.query.inner_join(self.permission_table).on(self.table.parent == parent_name)
 
 		if condition := self.get_permission_conditions(self.permission_doctype, self.permission_table):
 			self.query = self.query.where(condition)
@@ -2206,7 +2211,8 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			clause = table.name == getattr(main_table, self.link_fieldname)
+			link_name = _cast_autoincrement_name(table.name, self.doctype)
+			clause = link_name == getattr(main_table, self.link_fieldname)
 
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):

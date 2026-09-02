@@ -49,6 +49,44 @@ def setup_patched_blog_post():
 	yield
 
 
+@contextmanager
+def setup_autoincrement_link_doctypes():
+	target_dt_name = "Test Auto Link Target"
+	source_dt_name = "Test Auto Link Source"
+
+	frappe.delete_doc_if_exists("DocType", source_dt_name, force=True)
+	frappe.delete_doc_if_exists("DocType", target_dt_name, force=True)
+
+	try:
+		new_doctype(
+			target_dt_name,
+			autoname="autoincrement",
+			fields=[{"label": "Target Title", "fieldname": "target_title", "fieldtype": "Data"}],
+		).insert(ignore_permissions=True)
+		new_doctype(
+			source_dt_name,
+			fields=[
+				{
+					"label": "Link Field",
+					"fieldname": "link_field",
+					"fieldtype": "Link",
+					"options": target_dt_name,
+				}
+			],
+		).insert(ignore_permissions=True)
+
+		target_doc = frappe.get_doc(doctype=target_dt_name, target_title="Target").insert(
+			ignore_permissions=True
+		)
+		source_doc = frappe.get_doc(doctype=source_dt_name, link_field=target_doc.name).insert(
+			ignore_permissions=True
+		)
+		yield target_dt_name, source_dt_name, target_doc, source_doc
+	finally:
+		frappe.delete_doc_if_exists("DocType", source_dt_name, force=True)
+		frappe.delete_doc_if_exists("DocType", target_dt_name, force=True)
+
+
 class TestDBQuery(IntegrationTestCase):
 	def setUp(self):
 		setup_for_tests()
@@ -466,6 +504,29 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertEqual(result[0].allocated_user_email, "admin@example.com")
 		todo.delete()
+
+	def test_autoincrement_link_field_join(self):
+		with setup_autoincrement_link_doctypes() as (
+			_target_dt_name,
+			source_dt_name,
+			target_doc,
+			source_doc,
+		):
+			query = DatabaseQuery(source_dt_name).execute(
+				fields=["name", "link_field.target_title"],
+				filters={"name": source_doc.name},
+				run=False,
+			)
+			result = DatabaseQuery(source_dt_name).execute(
+				fields=["name", "link_field.target_title"],
+				filters={"name": source_doc.name},
+			)
+
+			self.assertEqual(result[0].target_title, target_doc.target_title)
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO LINK TARGET_1"."NAME" AS VARCHAR)', query.upper())
+			else:
+				self.assertNotIn("CAST(", query.upper())
 
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
