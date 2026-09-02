@@ -618,7 +618,7 @@ class User(Document):
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
 
-		if self.get("allow_in_mentions"):
+		if self.get("allowed_in_mentions"):
 			frappe.cache.delete_key("users_for_mentions")
 
 		frappe.cache.delete_key("enabled_users")
