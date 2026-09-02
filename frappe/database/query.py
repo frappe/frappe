@@ -343,8 +343,11 @@ class Engine:
 
 		if order_by:
 			if not (
-				self.is_postgres and is_select and distinct
-			):  # ignore in Postgres since order by fields need to appear in select distinct
+				self.is_postgres
+				and is_select
+				and distinct
+				and not self._can_apply_distinct_order_by(order_by)
+			):
 				self.apply_order_by(order_by)
 			else:
 				warnings.warn(
@@ -1349,6 +1352,44 @@ class Engine:
 				)
 			else:
 				self.query = self.query.orderby(order_field, order=order_direction)
+
+	def _can_apply_distinct_order_by(self, order_by: str) -> bool:
+		if not isinstance(order_by, str):
+			return True
+
+		selected_field_count = 0
+		selected_fields = set(self.field_aliases | self.function_aliases)
+		for field in self.fields:
+			if isinstance(field, ChildQuery):
+				continue
+			selected_field_count += 1
+			if isinstance(field, DynamicTableField):
+				term = field.field
+				if field.parent_fieldname:
+					selected_fields.add(f"{field.parent_fieldname}.{field.fieldname}")
+			else:
+				term = field
+
+			if isinstance(term, Star):
+				return True
+			if alias := getattr(field, "alias", None):
+				selected_fields.add(alias)
+			if isinstance(term, Field):
+				selected_fields.add(term.name)
+				if term.table is not None:
+					selected_fields.add(f"{term.table.get_table_name()}.{term.name}")
+
+		if order_by == DefaultOrderBy:
+			order_by = get_doctype_sort_info(self.doctype)[0]
+		for order_field in order_by.split(","):
+			order_field = re.sub(r"\s+(asc|desc)\s*$", "", order_field, flags=re.IGNORECASE)
+			order_field = order_field.replace("`", "").replace('"', "").strip()
+			if order_field.isdigit():
+				if not 0 < int(order_field) <= selected_field_count:
+					return False
+			elif order_field not in selected_fields:
+				return False
+		return True
 
 	def _apply_default_order_by(self):
 		"""Apply default ordering based on configured DocType metadata"""

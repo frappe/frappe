@@ -2246,6 +2246,30 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
+	def test_distinct_keeps_valid_order_by(self):
+		for field, order_by in (
+			("user_type", "user_type asc"),
+			("user_type as type", "type asc"),
+			("`tabUser`.`user_type`", "`tabUser`.`user_type` asc"),
+		):
+			with self.subTest(field=field, order_by=order_by):
+				query = frappe.qb.get_query("User", fields=[field], distinct=True, order_by=order_by)
+				result = query.run()
+
+				self.assertIn("order by", query.get_sql().lower())
+				self.assertEqual(list(result), sorted(result))
+
+	def test_distinct_drops_unselected_order_by_on_postgres(self):
+		if frappe.db.db_type == "postgres":
+			with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+				query = frappe.qb.get_query(
+					"User", fields=["user_type"], distinct=True, order_by="creation desc"
+				)
+			self.assertNotIn("order by", query.get_sql().lower())
+		else:
+			query = frappe.qb.get_query("User", fields=["user_type"], distinct=True, order_by="creation desc")
+			self.assertIn("order by", query.get_sql().lower())
+
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
 			"User",
