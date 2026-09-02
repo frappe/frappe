@@ -28,6 +28,21 @@ function readJSON(key, fallback) {
 // One store per connected daemon. `client` implements the DaemonClient surface;
 // Flow's Frappe shell passes a proxy-backed client instead.
 export function createFlowStore(client) {
+	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here
+	const prefs = {
+		mode: "ask", // "ask" | "auto" — applied at session create
+		customInstructions: "", // sent as system_suffix at session create
+		lastModel: null,
+		lastEffort: null,
+		cwd: null,
+		sidebarOpen: true,
+		sidebarWidth: 288,
+		workspaceWidth: 460,
+		explorerWidth: 220,
+		...readJSON(PREFS_KEY, {}),
+	}
+	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
+
 	const state = reactive({
 		sessions: [],
 		sessionId: null,
@@ -45,18 +60,8 @@ export function createFlowStore(client) {
 		// later) — editor tabs: { kind, path, name, content, error, loading, dirty },
 		// content being the last server-confirmed text (the editor owns unsaved edits)
 		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
-		prefs: {
-			theme: "light",
-			mode: "ask", // "ask" | "auto" — applied at session create
-			lastModel: null,
-			lastEffort: null,
-			cwd: null,
-			sidebarOpen: true,
-			sidebarWidth: 288,
-			workspaceWidth: 460,
-			explorerWidth: 220,
-			...readJSON(PREFS_KEY, {}),
-		},
+		settingsOpen: false,
+		prefs,
 		titles: readJSON(TITLES_KEY, {}),
 	})
 
@@ -68,6 +73,13 @@ export function createFlowStore(client) {
 
 	function savePrefs() {
 		localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs))
+	}
+
+	// the theme used to live in prefs; frappe-ui's useColorScheme keeps it under "theme"
+	if ("theme" in state.prefs) {
+		if (!localStorage.getItem("theme")) localStorage.setItem("theme", state.prefs.theme)
+		delete state.prefs.theme
+		savePrefs()
 	}
 
 	function notify(message, kind = "info") {
@@ -320,6 +332,8 @@ export function createFlowStore(client) {
 		const config = {
 			auto_approve: state.prefs.mode === "auto",
 		}
+		const instructions = state.prefs.customInstructions.trim()
+		if (instructions) config.system_suffix = instructions
 		const useCwd = cwd ?? state.prefs.cwd
 		if (useCwd) config.cwd = useCwd
 		const useModel = model ?? state.prefs.lastModel
@@ -816,10 +830,13 @@ export function createFlowStore(client) {
 		savePrefs()
 	}
 
-	function setTheme(theme) {
-		state.prefs.theme = theme
+	function setCustomInstructions(text) {
+		state.prefs.customInstructions = text
 		savePrefs()
-		document.documentElement.setAttribute("data-theme", theme)
+	}
+
+	function setSettingsOpen(open) {
+		state.settingsOpen = open
 	}
 
 	async function renameSession(sid, title) {
@@ -908,7 +925,8 @@ export function createFlowStore(client) {
 		setExplorerWidth,
 		setSidebarOpen,
 		setSidebarWidth,
-		setTheme,
+		setCustomInstructions,
+		setSettingsOpen,
 		renameSession,
 		deleteSession,
 		pickFolder,

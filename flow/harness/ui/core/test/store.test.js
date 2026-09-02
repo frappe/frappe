@@ -311,3 +311,50 @@ test("files save against the browsed cwd even before a session", async () => {
 	assert.deepEqual(calls, [["/project", "/project/a.txt", "new"]])
 	assert.equal(flow.state.workspace.tabs[0].content, "new")
 })
+
+test("custom instructions travel as system_suffix on new sessions", async () => {
+	const configs = []
+	const client = {
+		async createSession(config) {
+			configs.push(config)
+			return { session_id: "s1", config: { model: "mock" } }
+		},
+		async sessions() {
+			return { sessions: [] }
+		},
+		async session() {
+			return { session_id: "s1", config: { cwd: "." }, events: [] }
+		},
+		async events() {
+			return { events: [] }
+		},
+		stream() {
+			return { close() {}, [Symbol.asyncIterator]: async function* () {} }
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.newSession()
+	flow.setCustomInstructions("  Reply tersely.  ")
+	await flow.newSession()
+
+	assert.equal("system_suffix" in configs[0], false)
+	assert.equal(configs[1].system_suffix, "Reply tersely.")
+})
+
+test("a theme saved in the old prefs moves to frappe-ui's storage key", () => {
+	const previousStorage = globalThis.localStorage
+	const stored = { "flow.ui.prefs": JSON.stringify({ theme: "dark", mode: "auto" }) }
+	globalThis.localStorage = {
+		getItem: (key) => stored[key] ?? null,
+		setItem: (key, value) => (stored[key] = value),
+	}
+	try {
+		const flow = createFlowStore({})
+		assert.equal(stored.theme, "dark")
+		assert.equal("theme" in flow.state.prefs, false)
+		assert.equal(JSON.parse(stored["flow.ui.prefs"]).theme, undefined)
+		assert.equal(flow.state.prefs.mode, "auto")
+	} finally {
+		globalThis.localStorage = previousStorage
+	}
+})
