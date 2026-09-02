@@ -66,6 +66,35 @@ class TestSearch(IntegrationTestCase):
 		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
 		self.assertNotIn(email, names_for_mention)
 
+	def test_allowed_in_mentions_cache_invalidation(self):
+		email = "test_allowed_in_mentions@example.com"
+		frappe.delete_doc("User", email, ignore_missing=True)
+
+		user = frappe.new_doc("User")
+		user.update(
+			{
+				"email": email,
+				"first_name": email.split("@", 1)[0],
+				"enabled": True,
+				"allowed_in_mentions": True,
+			}
+		)
+		# saved when roles are added
+		user.add_roles("System Manager")
+
+		# Populate the users_for_mentions cache.
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		self.assertIn(email, names_for_mention)
+
+		# Changing Allowed In Mentions should invalidate the cache.
+		user.allowed_in_mentions = False
+		user.save()
+
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		self.assertNotIn(email, names_for_mention)
+
+		frappe.delete_doc("User", email)
+
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
 		results = search_link(
