@@ -390,6 +390,17 @@ class TestTheGate(NavigationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			get_arrangement("Rail", "no_such_app")
 
+	def test_a_body_that_is_not_an_arrangement_is_refused_with_a_sentence(self):
+		"""Not with the JSON decoder's own error, which off a whitelisted method is a 500 where
+		the caller needs to be told what it sent."""
+		make_rail([doctype_item("user", "User")], standard=1)
+
+		# A body that is neither a string nor a list never reaches here: the endpoint's type
+		# annotation refuses it first. These two are the cases that do.
+		for body in ("{not json", '{"key": "a"}'):
+			with self.assertRaises(frappe.ValidationError):
+				save_arrangement("Rail", APP, body)
+
 	def test_a_container_that_is_not_one_is_refused(self):
 		with self.assertRaises(frappe.ValidationError):
 			get_arrangement("Custom Sidebar", APP)

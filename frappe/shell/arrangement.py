@@ -210,12 +210,19 @@ def _as_items(items: str | list) -> list[dict]:
 	`frappe.whitelist` hands a JSON body through as a list and a form post as a string, and both
 	reach this endpoint — the client sends JSON, and a test or a `bench execute` passes the list
 	itself.
+
+	A string that will not parse is refused with the same message as a body that is not a list,
+	rather than raising the decoder's own error: both mean the caller sent something this is not,
+	and a `JSONDecodeError` off a whitelisted method is a 500 where the caller needs a sentence.
 	"""
 	if isinstance(items, str):
-		items = json.loads(items)
+		try:
+			items = json.loads(items)
+		except ValueError:
+			items = None
 
 	if not isinstance(items, list):
-		frappe.throw(_("An arrangement is a list of items."))
+		frappe.throw(_("An arrangement is a list of items."), title=_("Not an Arrangement"))
 
 	return [item for item in items if isinstance(item, dict) and item.get("key")]
 
