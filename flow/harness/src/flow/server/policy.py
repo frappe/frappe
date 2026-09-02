@@ -42,6 +42,7 @@ class ServerPolicy:
 		fs_api: /fs/* and the session file diff; 403 when off.
 		providers_api: /models and /providers*; 403 when off.
 		skills_api: Skill discovery routes; 403 when off.
+		tools_api: `/tools`, the list of tools a session may enable; 403 when off.
 	"""
 
 	profile: str = "local"
@@ -55,6 +56,7 @@ class ServerPolicy:
 	fs_api: bool = True
 	providers_api: bool = True
 	skills_api: bool = True
+	tools_api: bool = True
 
 
 # Only the session verbs the remote client actually uses stay on; everything that
@@ -73,6 +75,7 @@ DEPLOYED = ServerPolicy(
 	fs_api=False,
 	providers_api=False,
 	skills_api=False,
+	tools_api=False,
 )
 
 
@@ -105,6 +108,7 @@ _BOOL_FIELDS = frozenset(
 		"fs_api",
 		"providers_api",
 		"skills_api",
+		"tools_api",
 	}
 )
 

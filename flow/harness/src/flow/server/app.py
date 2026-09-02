@@ -1,7 +1,7 @@
 """The daemon's HTTP boundary: thin handlers over the Session verbs.
 
 Assembly only — auth/origin middleware, error mapping, and the route groups
-(`routes/sessions`, `routes/providers`, `routes/fs`, `routes/skills`). The run/stream ergonomics
+(`routes/sessions`, `routes/providers`, `routes/fs`, `routes/skills`, `routes/tools`). The run/stream ergonomics
 are documented on `routes/sessions`."""
 
 from __future__ import annotations
@@ -28,6 +28,7 @@ from flow.server.routes.fs import create_fs_router
 from flow.server.routes.providers import create_providers_router
 from flow.server.routes.sessions import create_sessions_router
 from flow.server.routes.skills import create_skills_router
+from flow.server.routes.tools import create_tools_router
 from flow.server.tenants import Tenant, load_tenants
 from flow.server.utils.provider_auth import OAuthCoordinator
 from flow.session.attachments import AttachmentError
@@ -219,6 +220,7 @@ def create_app(
 		create_fs_router(resolve_store, policy=policy),
 		create_sessions_router(resolve_store, system_append=system_append, policy=policy),
 		create_skills_router(resolve_store, policy=policy),
+		create_tools_router(resolve_store, policy=policy),
 	)
 	for router in routers:
 		app.include_router(router)

@@ -1,4 +1,4 @@
-"""Skill file management routes."""
+"""Skill file management routes and the policy-capped tool list."""
 
 import os
 
@@ -136,7 +136,26 @@ def test_project_root_obeys_the_cwd_fence(tmp_path, monkeypatch):
 	assert c.get("/skills", params={"cwd": str(tmp_path / "other")}).status_code == 400
 
 
-def test_deployed_policy_disables_skill_management(tmp_path, monkeypatch):
-	c, _ = _client(tmp_path, monkeypatch, policy=DEPLOYED, auth="t")
+def test_deployed_policy_disables_skill_management_and_the_tool_list(tmp_path, monkeypatch):
+	c, _ = _client(tmp_path, monkeypatch, policy=DEPLOYED, auth="t", tool_allowlist=DEPLOYED.tool_allowlist)
 	assert c.get("/skills").status_code == 403
 	assert c.put("/skills/file", json={"path": "/x/y/SKILL.md", "content": ""}).status_code == 403
+	assert c.get("/tools").status_code == 403
+
+
+def test_tools_list_is_capped_by_the_allowlist(tmp_path, monkeypatch):
+	c, _ = _client(tmp_path, monkeypatch, tool_allowlist={"read_file", "grep"})
+	assert [t["name"] for t in c.get("/tools").json()["tools"]] == ["read_file", "grep"]
+
+
+def test_tools_lists_every_builtin_without_a_cap(tmp_path, monkeypatch):
+	c, _ = _client(tmp_path, monkeypatch)
+	tools = c.get("/tools").json()["tools"]
+	assert [t["name"] for t in tools if t["extension"] is None] == [
+		"bash",
+		"read_file",
+		"write",
+		"edit",
+		"grep",
+	]
+	assert all(t["description"] for t in tools)
