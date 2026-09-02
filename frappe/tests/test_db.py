@@ -705,6 +705,12 @@ class TestDB(IntegrationTestCase):
 		self.assertIsInstance(note_docs, tuple)
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_table_columns_description_binds_table_name(self):
+		columns = frappe.db.get_table_columns_description("tabUser' OR TRUE --")
+
+		self.assertFalse(columns)
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):
 		from frappe.database.postgres.database import modify_query
 
