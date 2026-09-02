@@ -7,7 +7,7 @@ from pypika.functions import Cast
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.operator_map import func_in
-from frappe.query_builder import Case
+from frappe.query_builder import Case, ValueWrapper
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import (
@@ -632,16 +632,23 @@ class TestParameterization(IntegrationTestCase):
 		self.assertEqual(params["param1"], "some_value")
 
 	def test_bool_conditions(self):
-		# bools go out as 1/0: postgres does not cast `true` to smallint (Check fields)
+		# bools go out as '1'/'0': quoted, so they work as a value and as a condition
 		DocType = frappe.qb.DocType("DocType")
 		query, params = frappe.qb.update(DocType).set(DocType.is_submittable, True).walk()
 
-		self.assertIn("=1", query)
+		self.assertIn("='1'", query)
 		self.assertNotIn("true", query)
 		self.assertEqual(params, {})
 
 		query, _ = frappe.qb.update(DocType).set(DocType.is_submittable, False).walk()
-		self.assertIn("=0", query)
+		self.assertIn("='0'", query)
+
+		# a bool used as a condition, as apps do: `(a < b) | ValueWrapper(flag)`
+		user = frappe.qb.DocType("User")
+		query, _ = (
+			frappe.qb.from_(user).select(user.name).where((user.enabled == 1) | ValueWrapper(False)).walk()
+		)
+		self.assertIn("'0'", query)
 
 	def test_where_conditions_functions(self):
 		DocType = frappe.qb.DocType("DocType")
