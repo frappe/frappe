@@ -389,15 +389,10 @@ class TestLinkedSidebars(FilterTestCase):
 class TestTheModuleVetoOnASidebar(FilterTestCase):
 	"""`block_modules` reaching a sidebar through the module it is *addressed* at.
 
-	The tests above cover a `Module` item, which is how a doctype-primary app meets a module.
-	A module-primary app never authors one: it reaches a module through a `Sidebar` item, and
-	that sidebar holds `DocType` rows, which the veto deliberately does not touch. So blocking
-	Accounts on ERPNext's rail left all 73 rows and the rail item standing (#42423), and the
-	rule #42323 settled missed the case charter point 2 exists for.
-
-	`Module Def` is the whole test: a desk v2 module sidebar is addressed at its module, so the
-	block has something to name. The rail item then goes on its own through the
-	`Derived From Children` cascade, which is why nothing below asserts a second mechanism.
+	The tests above cover a `Module` item, which is how a doctype-primary app meets a module. A
+	module-primary app never authors one: it reaches a module through a `Sidebar` item holding
+	`DocType` rows, which the veto deliberately does not touch — so it used to miss that whole
+	shape of rail (#42423).
 	"""
 
 	DOCTYPE_ADDRESS = ("DocType", READABLE)
@@ -498,6 +493,36 @@ class TestTheModuleVetoOnASidebar(FilterTestCase):
 			rows = resolve_sidebar(*ADDRESS, check_permission=False)
 
 		self.assertEqual(keys(rows), ["mine"])
+
+	def test_arranging_a_blocked_module_s_sidebar_is_refused(self):
+		"""A save against a list that resolves to nothing is a **delete**: every submitted row
+		reduces away and an empty reduction drops the layer. So an editor still open when the
+		block landed would destroy an arrangement its owner can no longer see to rebuild."""
+		make_sidebar([doctype_item("mine", READABLE), doctype_item("also", "Note")], standard=1)
+
+		with set_user(self.user):
+			showing = [dict(entry) for entry in get_arrangement("Sidebar", ADDRESS_KEY)]
+			showing.insert(0, showing.pop())
+			save_arrangement("Sidebar", ADDRESS_KEY, showing)
+
+		block("Core", self.user)
+
+		with set_user(self.user):
+			with self.assertRaises(frappe.ValidationError):
+				save_arrangement("Sidebar", ADDRESS_KEY, showing)
+
+		self.assertTrue(
+			frappe.db.exists("Sidebar", {"link_to": "Core", "user": self.user, "standard": 0}),
+			"the arrangement is still there",
+		)
+
+	def test_the_site_scope_may_still_arrange_it(self):
+		"""The block is one person's and the site's list is everybody's, so site scope bypasses
+		this with the rest of the filter."""
+		make_sidebar([doctype_item("mine", READABLE)], standard=1)
+		block("Core", "Administrator")
+
+		self.assertEqual(keys(get_arrangement("Sidebar", ADDRESS_KEY, scope="site")), ["mine"])
 
 
 class TestFailingClosed(FilterTestCase):
