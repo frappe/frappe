@@ -25,7 +25,7 @@ from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.prompt import build_system_prompt
 from flow.session.session import Session, SessionConflict
-from flow.session.skills import SkillCatalog, discover_skills, parse_skill_invocation
+from flow.session.skills import SkillCatalog, discover_skills, global_skills_root, parse_skill_invocation
 from flow.tools import Tool
 from flow.tools.builtins import BUILTIN_TOOLS
 
@@ -182,6 +182,15 @@ class SessionStore:
 		if parts.scheme in ("http", "https") and parts.netloc in self.callback_hosts:
 			return
 		raise PolicyError(f"callback_url host {parts.netloc!r} is not allowed by server policy")
+
+	def skill_roots(self, cwd: str | None = None) -> dict[str, str]:
+		"""Skill directories a client may manage, by scope: the global root, plus the
+		project's when `cwd` is given (fenced like a session's cwd)."""
+		roots = {"global": global_skills_root()}
+		if cwd:
+			self._validate_cwd(cwd)
+			roots["project"] = os.path.join(canonical_path(cwd), ".agents", "skills")
+		return roots
 
 	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
 		return discover_skills(
