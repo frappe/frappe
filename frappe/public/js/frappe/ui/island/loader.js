@@ -8,8 +8,13 @@
  *     island.update({ filters });
  *     island.unmount();
  *
+ * Desk is one host of an island; a frappe-ui app is another. The loop both run —
+ * import the module, call its `mount`, keep the handle — is
+ * `@framework/ui/island/host`. This file is desk's half: it resolves a name
+ * against boot, assembles the desk context, and publishes the `frappe.ui` API.
+ *
  * Resolution runs name -> the `ui_islands` registry (hooks, carried in boot) ->
- * assets.json -> dynamic `import()` -> the module's `mount`. An island is a
+ * assets.json -> the module URL the host loop imports. An island is a
  * self-contained ES module, so this file rides desk's normal esbuild bundle and
  * the page needs nothing loaded ahead of the island itself.
  *
@@ -18,12 +23,14 @@
  * ui/island/decisions/0001-an-app-bundles-its-own-island.md.
  */
 
+import {
+	mountIsland,
+	reloadChangedIslands,
+	unmountIsland,
+} from "../../../../../../ui/island/host.js";
+
 const ISLAND_JS_SUFFIX = ".island.js";
 const ISLAND_CSS_SUFFIX = ".island.css";
-
-// target element -> { name, url, context, handle }. A Map, not a WeakMap,
-// because hot_update must walk what is live on the page.
-const islands = new Map();
 
 /**
  * @param {string} name        Island name as declared in an app's `ui_islands` hook.
@@ -31,62 +38,13 @@ const islands = new Map();
  * @param {{ props?: Object, on?: Object }} [context]
  * @returns {Promise<{ update: (props: Object) => void, unmount: () => void }>}
  */
-async function mount_island(name, el, context = {}) {
-	const target = el && el.jquery ? el[0] : el;
-	const entry = { name, context, url: null, handle: null };
-
-	await load_into(target, entry);
-
-	return {
-		// Both read `entry`, never the handle this call mounted. A hot re-mount
-		// replaces that handle, and the caller keeps this object across it.
-		update: (props) => entry.handle.update(props),
-		// Tears down this island and only this one. A second call, or a call
-		// after something else has taken the target, does nothing.
-		unmount: () => {
-			if (islands.get(target) === entry) unmount_island(target);
-		},
-	};
-}
-
-/**
- * Loads the island `entry.name` names into `target`, and records what it mounted
- * on the entry. A re-mount keeps the entry, so the handle held by whoever
- * mounted the island still reaches the island that is on the page.
- *
- * The target gives up what it holds only once the new module is in hand, so a
- * module that fails to load leaves the island already on screen alone.
- */
-async function load_into(target, entry) {
-	const assets = resolve_island(entry.name);
-
-	const module = await import(assets.js);
-	if (typeof module.mount !== "function") {
-		throw new Error(`Island "${entry.name}" (${assets.js}) does not export mount()`);
-	}
-
-	// Whatever holds the target now goes, this entry included on a re-mount. The
-	// handle clears with it, so a mount that fails below leaves nothing dead to
-	// call through.
-	unmount_island(target);
-	entry.handle = null;
-
-	entry.handle = await module.mount(target, {
+function mount_island(name, el, context = {}) {
+	return mountIsland(name, el, {
+		resolve: resolve_island,
 		desk: build_desk(),
-		props: entry.context.props || {},
-		on: entry.context.on || {},
-		styles: assets.css ? [assets.css] : [],
+		props: context.props,
+		on: context.on,
 	});
-	entry.url = assets.js;
-	islands.set(target, entry);
-}
-
-/** Tears down the island in `target`, if any. Safe to call at any time. */
-function unmount_island(target) {
-	const entry = islands.get(target);
-	if (!entry) return;
-	islands.delete(target);
-	entry.handle.unmount();
 }
 
 function resolve_island(name) {
@@ -169,35 +127,13 @@ function entry_breadcrumbs() {
 	];
 }
 
-/**
- * Re-mounts after a rebuild. Teardown is idempotent, so a re-mount in place is
- * safe. This touches only the islands whose asset hash moved.
- */
-function on_hot_update() {
-	for (const [target, entry] of [...islands]) {
-		if (!document.body.contains(target)) {
-			unmount_island(target);
-			continue;
-		}
-
-		try {
-			if (resolve_island(entry.name).js === entry.url) continue;
-		} catch (e) {
-			console.error(e);
-			continue;
-		}
-
-		load_into(target, entry).catch((e) =>
-			console.error(`island: could not re-mount "${entry.name}"`, e)
-		);
-	}
-}
-
 frappe.provide("frappe.ui");
 frappe.ui.mount_island = mount_island;
-frappe.ui.unmount_island = unmount_island;
+frappe.ui.unmount_island = unmountIsland;
 
 if (frappe.boot?.developer_mode) {
 	frappe.hot_update = frappe.hot_update || [];
-	frappe.hot_update.push(on_hot_update);
+	// A rebuild moves the asset hash, so the islands on the page point at a stale
+	// module. Only those whose URL moved are re-mounted.
+	frappe.hot_update.push(() => reloadChangedIslands());
 }

@@ -96,13 +96,19 @@ it imports, so nothing has to be on the page before it loads. Framework owns one
 a name, a URL and a `mount(el, context)` export. See
 [the decisions](island/decisions/).
 
-Three pieces:
+The pieces:
 
 | Piece | Where |
 | --- | --- |
 | `mountVueIsland`, the mount contract | `@framework/ui/island` |
 | `buildIslands`, the build preset | `@framework/ui/vite/island` |
-| `frappe.ui.mount_island`, the desk loader | framework |
+| `mountIsland`, the host loop | `@framework/ui/island/host` |
+| `frappe.ui.mount_island`, desk's host | framework |
+| `<Island>`, a Vue app's host | `@framework/ui/island/Island.vue` |
+
+Both hosts wrap the one loop: it imports the module a name resolves to and calls its
+`mount`. They differ in how a name resolves — desk reads `frappe.boot`, `<Island>` calls
+the API. See [the decision](island/decisions/0008-one-host-loop-two-hosts.md).
 
 ### 1. Write an entry — `@framework/ui/island`
 
@@ -166,6 +172,36 @@ const island = await frappe.ui.mount_island("insights.dashboard", el, {
   on: { navigate: (intent) => frappe.set_route(intent.route) },
 });
 ```
+
+### Hosting an island from a Vue app
+
+A frappe-ui app hosts the same island with `<Island>`:
+
+```vue
+<script setup>
+import Island from "@framework/ui/island/Island.vue";
+</script>
+
+<template>
+  <Island
+    name="insights.dashboard"
+    :props="{ dashboard: 'sales' }"
+    :context="{ user, locale, navigate }"
+    @navigate="router.push($event.route)"
+  />
+</template>
+```
+
+`name` is the same name `hooks.py` declares; the component resolves it through
+`frappe.utils.island.get_island_assets`. `props` reaches the island's component and a
+change to it updates the island in place. `context` is what `useDesk()` reads inside the
+island — the same shape desk builds, minus `theme`, which the mount contract adds. Every
+listener the parent attaches reaches the island as a callback, so `@navigate` here is
+`on.navigate` there. `@error` is the component's own: it fires with the `Error` when a
+load fails, and the component renders nothing.
+
+The component imports vue and nothing else, so an app on an older frappe-ui can still
+host an island.
 
 ### CSS
 
