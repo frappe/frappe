@@ -228,7 +228,10 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 			# per-user "verified" field is deprecated/unreliable, so trust presence directly.
 			info["email_verified"] = True
 
-	if not (get_email(info) and info.get("email_verified")):
+	provider_trusts_unverified_email = frappe.db.get_value(
+		"Social Login Key", provider, "trust_email_without_verified_claim"
+	)
+	if not (get_email(info) and (info.get("email_verified") or provider_trusts_unverified_email)):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
