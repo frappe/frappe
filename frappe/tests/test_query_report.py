@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import json
 
 import frappe
 from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
