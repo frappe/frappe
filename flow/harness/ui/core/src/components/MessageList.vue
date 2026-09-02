@@ -19,7 +19,7 @@
 		</div>
 		<div
 			v-else
-			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-4"
+			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-10"
 			:style="{ paddingBottom: composerHeight + 40 + 'px' }"
 		>
 			<template v-for="(item, i) in items" :key="item.key">
