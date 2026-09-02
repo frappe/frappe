@@ -393,7 +393,7 @@ function translucent(name, alpha) {
 
 function applyTheme() {
 	if (!monaco) return
-	const dark = flow.state.prefs.theme === "dark"
+	const dark = document.documentElement.getAttribute("data-theme") === "dark"
 	const name = dark ? "flow-dark" : "flow-light"
 	const colors = {
 		focusBorder: "#00000000",
@@ -415,9 +415,12 @@ function applyTheme() {
 	monaco.editor.setTheme(name)
 }
 
-watch(() => flow.state.prefs.theme, applyTheme)
+// frappe-ui's useColorScheme owns data-theme; follow it instead of the store
+const themeObserver = new MutationObserver(applyTheme)
+themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] })
 
 onBeforeUnmount(() => {
+	themeObserver.disconnect()
 	editor?.dispose()
 	editor = null
 	diffEditor?.dispose()

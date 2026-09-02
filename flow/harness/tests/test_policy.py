@@ -52,6 +52,7 @@ def test_resolve_policy_profiles():
 	assert not deployed.fs_api
 	assert not deployed.providers_api
 	assert not deployed.skills_api
+	assert not deployed.tools_api
 	with pytest.raises(ValueError, match="unknown profile"):
 		resolve_policy("production")
 
@@ -177,6 +178,15 @@ def test_allowlist_caps_extension_tools(tmp_path):
 	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read_file"])
 	session = capped.create(SessionConfig(cwd=str(tmp_path)))
 	assert set(session.server_tools) == {"read_file"}
+
+
+def test_allowlist_rejects_explicitly_requested_extension_tools(tmp_path):
+	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
+	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read_file"])
+	with pytest.raises(PolicyError, match="hello"):
+		capped.create(SessionConfig(cwd=str(tmp_path), extension_tools=["hello"]))
+	# left unsent, the list is clamped rather than refused, like the built-in default
+	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read_file"}
 
 
 def test_allowlist_filters_stored_session_on_load(tmp_path):

@@ -264,6 +264,18 @@ async def test_grep_finds_and_misses(tmp_path):
 	assert miss.details["matches"] == 0
 
 
+async def test_grep_stops_reading_a_flood_of_matches(tmp_path):
+	"""A catch-all pattern over a big tree must not be buffered whole: 3 GB of it once froze the daemon."""
+	(tmp_path / "big.txt").write_text("match line\n" * 400_000)
+	ctx = _ctx(tmp_path)
+
+	result = await grep(pattern=".", path=".", ctx=ctx)
+
+	assert result.content.endswith("+ match lines]")
+	assert 0 < result.details["matches"] < 400_000
+	assert result.details["truncation"]["output_lines"] <= 2000
+
+
 async def test_grep_treats_an_option_like_pattern_as_a_pattern(tmp_path):
 	"""An unseparated pattern would be read as a flag, dropping the search path."""
 	allowed = tmp_path / "allowed"

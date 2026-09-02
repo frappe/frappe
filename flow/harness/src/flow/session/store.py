@@ -25,7 +25,7 @@ from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.prompt import build_system_prompt
 from flow.session.session import Session, SessionConflict
-from flow.session.skills import SkillCatalog, discover_skills, parse_skill_invocation
+from flow.session.skills import SkillCatalog, discover_skills, global_skills_root, parse_skill_invocation
 from flow.tools import Tool
 from flow.tools.builtins import BUILTIN_TOOLS
 
@@ -166,10 +166,12 @@ class SessionStore:
 		"""Reject tools the client asked for that the policy does not allow.
 
 		A client that never set `tools` is fine — its default list is clamped
-		at create instead of erroring."""
-		if self.tool_allowlist is None or "tools" not in config.model_fields_set:
+		at create instead of erroring. `extension_tools` is explicit whenever sent."""
+		if self.tool_allowlist is None:
 			return
-		blocked = sorted(set(config.tools) - self.tool_allowlist)
+		requested = set(config.tools) if "tools" in config.model_fields_set else set()
+		requested.update(config.extension_tools or ())
+		blocked = sorted(requested - self.tool_allowlist)
 		if blocked:
 			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
 
@@ -183,6 +185,15 @@ class SessionStore:
 			return
 		raise PolicyError(f"callback_url host {parts.netloc!r} is not allowed by server policy")
 
+	def skill_roots(self, cwd: str | None = None) -> dict[str, str]:
+		"""Skill directories a client may manage, by scope: the global root, plus the
+		project's when `cwd` is given (fenced like a session's cwd)."""
+		roots = {"global": global_skills_root()}
+		if cwd:
+			self._validate_cwd(cwd)
+			roots["project"] = os.path.join(canonical_path(cwd), ".agents", "skills")
+		return roots
+
 	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
 		return discover_skills(
 			config.cwd,
@@ -193,7 +204,7 @@ class SessionStore:
 
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		selected = {name: BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS}
-		composed = self.extension_runtime.compose_tools(selected)
+		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed
 		# runs on every load, so old sessions and extension tools are capped too

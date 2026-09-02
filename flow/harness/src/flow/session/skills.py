@@ -82,6 +82,16 @@ class ParsedSkillInvocation:
 		return f"{command} {self.instructions}" if self.instructions else command
 
 
+def global_skills_root() -> str:
+	return os.path.join(os.path.realpath(os.path.expanduser("~")), ".agents", "skills")
+
+
+def list_skill_files(root: str) -> tuple[tuple[str, ...], bool]:
+	"""Every `<name>/SKILL.md` directly under `root`, valid or not, and whether the
+	scan stopped at the entry cap."""
+	return _skill_files(root, include_root_skill=False)
+
+
 def discover_skills(
 	cwd: str,
 	*,
@@ -194,12 +204,30 @@ def load_skill(path: str, *, expected_path: str | None = None) -> Skill:
 	"""Read and validate one SKILL.md's bounded frontmatter."""
 	canonical = expected_path or canonical_path(path)
 	raw = _read_frontmatter(path, expected_path=canonical)
+	metadata = _validate_metadata(raw, os.path.basename(os.path.dirname(os.path.abspath(path))))
+	return Skill(
+		name=metadata["name"],
+		description=metadata["description"],
+		path=os.path.abspath(path),
+		canonical_path=canonical,
+		disable_model_invocation=metadata.get("disable-model-invocation") is True,
+	)
+
+
+def validate_skill_text(text: str, parent_name: str) -> None:
+	"""Reject SKILL.md content the loader would reject, before it is written."""
+	match = _FRONTMATTER_RE.match(text)
+	if match is not None and len(match.group(0).encode("utf-8")) > MAX_SKILL_FRONTMATTER_BYTES:
+		raise SkillError(f"skill frontmatter exceeds {MAX_SKILL_FRONTMATTER_BYTES // 1024} KB")
+	_validate_metadata(text, parent_name)
+
+
+def _validate_metadata(raw: str, parent_name: str) -> dict:
 	metadata, _ = _parse(raw)
 	name = metadata.get("name")
 	description = metadata.get("description")
-	if not isinstance(name, str) or not _NAME_RE.fullmatch(name) or len(name) > 64:
+	if not isinstance(name, str) or not valid_skill_name(name):
 		raise SkillError("skill name must be 1-64 lowercase letters, digits, or single hyphens")
-	parent_name = os.path.basename(os.path.dirname(os.path.abspath(path)))
 	if name != parent_name:
 		raise SkillError(f"skill name {name!r} must match parent directory {parent_name!r}")
 	if not isinstance(description, str) or not description.strip():
@@ -207,13 +235,11 @@ def load_skill(path: str, *, expected_path: str | None = None) -> Skill:
 	description = description.strip()
 	if len(description) > 1024:
 		raise SkillError("skill description exceeds 1024 characters")
-	return Skill(
-		name=name,
-		description=description,
-		path=os.path.abspath(path),
-		canonical_path=canonical,
-		disable_model_invocation=metadata.get("disable-model-invocation") is True,
-	)
+	return {**metadata, "name": name, "description": description}
+
+
+def valid_skill_name(name: str) -> bool:
+	return bool(_NAME_RE.fullmatch(name)) and len(name) <= 64
 
 
 def parse_skill_command(text: str, skills: Sequence[Skill]) -> SkillInvocation | None:

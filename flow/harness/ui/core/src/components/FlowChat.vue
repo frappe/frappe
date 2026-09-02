@@ -10,11 +10,12 @@
 
 		<!-- host for frappe-ui's imperative dialog.* stack (confirm/danger/prompt) -->
 		<Dialogs />
+		<SettingsDialog />
 
 		<Transition name="flow-toast">
 			<div
 				v-if="toast"
-				class="fixed bottom-5 right-5 z-50 flex max-w-[360px] items-start gap-2 rounded-6 border border-outline-gray-2 bg-surface-base px-3.5 py-2.5 shadow-md"
+				class="fixed bottom-5 right-5 z-[9999] flex max-w-[360px] items-start gap-2 rounded-6 border border-outline-gray-2 bg-surface-base px-3.5 py-2.5 shadow-md"
 			>
 				<FeatherIcon
 					:name="toast.kind === 'error' ? 'alert-circle' : 'info'"
@@ -30,6 +31,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
 import Dialogs from "frappe-ui/src/components/Dialogs.vue"
+import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { installShortcuts } from "../shortcuts.js"
@@ -37,6 +39,7 @@ import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
 import MessageList from "./MessageList.vue"
 import SessionSidebar from "./SessionSidebar.vue"
+import SettingsDialog from "./SettingsDialog.vue"
 import WorkspacePanel from "./WorkspacePanel.vue"
 
 const props = defineProps({
@@ -44,6 +47,7 @@ const props = defineProps({
 })
 
 provide("flow", props.store)
+useColorScheme() // restores the saved theme and applies data-theme
 
 const sidebarOpen = computed(() => props.store.state.prefs.sidebarOpen !== false)
 const composer = ref(null)
@@ -80,7 +84,7 @@ watch(
 
 onMounted(async () => {
 	props.store.refreshModels()
-	document.documentElement.setAttribute("data-theme", props.store.state.prefs.theme)
+	props.store.refreshTools()
 	await props.store.refreshSessions()
 	// a refresh mid-session returns to that session, not to a blank chat
 	const last = props.store.state.prefs.lastSession

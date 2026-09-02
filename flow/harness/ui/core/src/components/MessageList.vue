@@ -36,7 +36,12 @@
 					:expanded="item.expanded"
 					@toggle="toggleTurn(item.turnKey)"
 				/>
-				<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
+				<!-- a tool or thinking row's own py-2.5 already pads it; offset the thread gap -->
+				<AssistantText
+					v-else-if="item.kind === 'text'"
+					:class="['group', 'thinking'].includes(items[i - 1]?.kind) ? '-mt-3' : ''"
+					:block="item.block"
+				/>
 				<!-- like ToolGroup below: the row's own py-2.5 already pads it -->
 				<ThinkingBlock
 					v-else-if="item.kind === 'thinking'"

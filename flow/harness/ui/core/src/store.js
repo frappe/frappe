@@ -11,7 +11,9 @@ import {
 
 const PREFS_KEY = "flow.ui.prefs"
 const TITLES_KEY = "flow.ui.titles"
+const SESSION_PRESETS_KEY = "flow.ui.sessionPresets"
 const WORKSPACE_KEY = "flow.ui.workspace"
+const PRESETS_KEY = "flow.ui.presets"
 
 function sameArray(left, right) {
 	return left.length === right.length && left.every((value, index) => value === right[index])
@@ -28,6 +30,22 @@ function readJSON(key, fallback) {
 // One store per connected daemon. `client` implements the DaemonClient surface;
 // Flow's Frappe shell passes a proxy-backed client instead.
 export function createFlowStore(client) {
+	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here
+	const prefs = {
+		mode: "ask", // "ask" | "auto" — applied at session create
+		customInstructions: "", // sent as system_suffix at session create
+		activePreset: null, // id of the agent preset applied to new chats
+		lastModel: null,
+		lastEffort: null,
+		cwd: null,
+		sidebarOpen: true,
+		sidebarWidth: 288,
+		workspaceWidth: 460,
+		explorerWidth: 220,
+		...readJSON(PREFS_KEY, {}),
+	}
+	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
+
 	const state = reactive({
 		sessions: [],
 		sessionId: null,
@@ -36,6 +54,7 @@ export function createFlowStore(client) {
 		queued: [], // steered messages not yet durable
 		models: [],
 		modelErrors: [],
+		tools: [], // what the daemon lets a session enable: { name, description, extension }
 		skills: [],
 		loading: false,
 		toast: null,
@@ -45,19 +64,14 @@ export function createFlowStore(client) {
 		// later) — editor tabs: { kind, path, name, content, error, loading, dirty },
 		// content being the last server-confirmed text (the editor owns unsaved edits)
 		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
-		prefs: {
-			theme: "light",
-			mode: "ask", // "ask" | "auto" — applied at session create
-			lastModel: null,
-			lastEffort: null,
-			cwd: null,
-			sidebarOpen: true,
-			sidebarWidth: 288,
-			workspaceWidth: 460,
-			explorerWidth: 220,
-			...readJSON(PREFS_KEY, {}),
-		},
+		settingsOpen: false,
+		prefs,
+		// agent presets: { id, name, tools, extensionTools, promptMode, prompt }
+		presets: [].concat(readJSON(PRESETS_KEY, [])).filter(
+			(p) => p && typeof p.id === "string" && Array.isArray(p.tools),
+		),
 		titles: readJSON(TITLES_KEY, {}),
+		sessionPresets: readJSON(SESSION_PRESETS_KEY, {}), // session id -> the preset it was created with
 	})
 
 	let stream = null
@@ -68,6 +82,13 @@ export function createFlowStore(client) {
 
 	function savePrefs() {
 		localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs))
+	}
+
+	// the theme used to live in prefs; frappe-ui's useColorScheme keeps it under "theme"
+	if ("theme" in state.prefs) {
+		if (!localStorage.getItem("theme")) localStorage.setItem("theme", state.prefs.theme)
+		delete state.prefs.theme
+		savePrefs()
 	}
 
 	function notify(message, kind = "info") {
@@ -119,6 +140,15 @@ export function createFlowStore(client) {
 		if (data) {
 			state.models = data.models
 			state.modelErrors = data.errors ?? []
+		}
+	}
+
+	// silent: an older daemon has no /tools route, and the list is optional
+	async function refreshTools() {
+		try {
+			state.tools = (await client.tools()).tools
+		} catch {
+			state.tools = []
 		}
 	}
 
@@ -317,20 +347,34 @@ export function createFlowStore(client) {
 	}
 
 	async function newSession({ cwd = null, model = null } = {}) {
+		const preset = activePreset()
 		const config = {
 			auto_approve: state.prefs.mode === "auto",
 		}
+		if (preset?.tools) config.tools = preset.tools
+		if (preset?.extensionTools) config.extension_tools = preset.extensionTools
+		const prompt = preset?.prompt?.trim() ?? ""
+		if (prompt && preset.promptMode === "replace") config.system_preamble = prompt
+		const suffix = [preset?.promptMode === "append" ? prompt : "", state.prefs.customInstructions.trim()]
+			.filter(Boolean)
+			.join("\n\n")
+		if (suffix) config.system_suffix = suffix
 		const useCwd = cwd ?? state.prefs.cwd
 		if (useCwd) config.cwd = useCwd
 		const useModel = model ?? state.prefs.lastModel
 		if (useModel) config.model = useModel
 		const data = await guard(() => client.createSession(config), { rethrow: false })
 		if (!data) return null
-		if (state.prefs.lastEffort) {
+		if (preset) {
+			state.sessionPresets[data.session_id] = preset.id
+			localStorage.setItem(SESSION_PRESETS_KEY, JSON.stringify(state.sessionPresets))
+		}
+		const effort = state.prefs.lastEffort
+		if (effort) {
 			await guard(() =>
 				client.setModel(data.session_id, {
 					model: useModel ?? data.config.model,
-					reasoning_effort: state.prefs.lastEffort === "default" ? null : state.prefs.lastEffort,
+					reasoning_effort: effort === "default" ? null : effort,
 				}),
 			)
 		}
@@ -816,10 +860,47 @@ export function createFlowStore(client) {
 		savePrefs()
 	}
 
-	function setTheme(theme) {
-		state.prefs.theme = theme
+	function setCustomInstructions(text) {
+		state.prefs.customInstructions = text
 		savePrefs()
-		document.documentElement.setAttribute("data-theme", theme)
+	}
+
+	function setSettingsOpen(open) {
+		state.settingsOpen = open
+	}
+
+	function savePresets() {
+		localStorage.setItem(PRESETS_KEY, JSON.stringify(state.presets))
+	}
+
+	function activePreset() {
+		return state.presets.find((p) => p.id === state.prefs.activePreset) ?? null
+	}
+
+	// create (no id) or update; returns the id
+	function savePreset(preset) {
+		const id = preset.id ?? crypto.randomUUID()
+		const row = { ...preset, id }
+		const index = state.presets.findIndex((p) => p.id === id)
+		if (index === -1) state.presets.push(row)
+		else state.presets[index] = row
+		savePresets()
+		return id
+	}
+
+	function deletePreset(id) {
+		state.presets = state.presets.filter((p) => p.id !== id)
+		savePresets()
+		if (state.prefs.activePreset === id) setActivePreset(null)
+		for (const [sid, presetId] of Object.entries(state.sessionPresets)) {
+			if (presetId === id) delete state.sessionPresets[sid]
+		}
+		localStorage.setItem(SESSION_PRESETS_KEY, JSON.stringify(state.sessionPresets))
+	}
+
+	function setActivePreset(id) {
+		state.prefs.activePreset = id
+		savePrefs()
 	}
 
 	async function renameSession(sid, title) {
@@ -842,6 +923,10 @@ export function createFlowStore(client) {
 		if (workspaceBySession[sid]) {
 			delete workspaceBySession[sid]
 			localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
+		}
+		if (state.sessionPresets[sid]) {
+			delete state.sessionPresets[sid]
+			localStorage.setItem(SESSION_PRESETS_KEY, JSON.stringify(state.sessionPresets))
 		}
 		if (state.sessionId === sid) startNewChat()
 		notify("Chat deleted")
@@ -869,6 +954,7 @@ export function createFlowStore(client) {
 		client,
 		refreshSessions,
 		refreshModels,
+		refreshTools,
 		openSession,
 		startNewChat,
 		newSession,
@@ -908,7 +994,12 @@ export function createFlowStore(client) {
 		setExplorerWidth,
 		setSidebarOpen,
 		setSidebarWidth,
-		setTheme,
+		setCustomInstructions,
+		setSettingsOpen,
+		activePreset,
+		savePreset,
+		deletePreset,
+		setActivePreset,
 		renameSession,
 		deleteSession,
 		pickFolder,
