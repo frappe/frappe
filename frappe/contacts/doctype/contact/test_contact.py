@@ -1,7 +1,7 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.contacts.doctype.contact.contact import get_full_name
+from frappe.contacts.doctype.contact.contact import contact_query, get_full_name
 from frappe.email import get_contact_list
 from frappe.tests import IntegrationTestCase, timeout
 
@@ -51,6 +51,59 @@ class TestContact(IntegrationTestCase):
 		# links as a native list of dicts instead of a JSON string (frappe.parse_json passthrough)
 		result = address_query(links=[{"link_doctype": "User", "link_name": "Administrator"}])
 		self.assertIsInstance(result, list)
+
+	def test_contact_query_for_linked_contact(self):
+		contact = create_contact("Contact Query Match", "Mr", save=False)
+		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		contact.insert()
+
+		filters = {"link_doctype": "User", "link_name": "Administrator"}
+		self.assertIsInstance(contact_query("Contact", "", "name", 0, 10, filters), list | tuple)
+
+		results = contact_query("Contact", "Contact Query Match", "name", 0, 10, filters)
+		self.assertEqual(results[0][0], contact.name)
+
+	def test_contact_query_ranks_company_name_matches(self):
+		later_match = create_contact("A Company Contact", "Mr", save=False)
+		later_match.company_name = "Supplier Company Match"
+		later_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		later_match.insert()
+
+		prefix_match = create_contact("Z Company Contact", "Mr", save=False)
+		prefix_match.company_name = "Company Match Supplier"
+		prefix_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		prefix_match.insert()
+
+		results = contact_query(
+			"Contact",
+			"Company Match",
+			"company_name",
+			0,
+			1,
+			{"link_doctype": "User", "link_name": "Administrator"},
+		)
+		self.assertEqual(results[0][0], prefix_match.name)
+
+	def test_contact_query_uses_best_name_match(self):
+		full_name_match = create_contact("A Match Contact", "Mr", save=False)
+		full_name_match.company_name = "Supplier Match"
+		full_name_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		full_name_match.insert()
+
+		company_name_match = create_contact("Z Supplier Match", "Mr", save=False)
+		company_name_match.company_name = "Match Supplier"
+		company_name_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		company_name_match.insert()
+
+		results = contact_query(
+			"Contact",
+			"Match",
+			"company_name",
+			0,
+			1,
+			{"link_doctype": "User", "link_name": "Administrator"},
+		)
+		self.assertEqual(results[0][0], company_name_match.name)
 
 	def test_get_contact_list(self):
 		# First time from database
