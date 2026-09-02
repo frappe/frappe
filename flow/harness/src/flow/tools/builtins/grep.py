@@ -11,18 +11,6 @@ from flow.tools.tool import ToolContext, ToolResult, tool
 MAX_READ_BYTES = 1 << 20
 
 
-async def _read_capped(stream: asyncio.StreamReader) -> tuple[bytes, bool]:
-	chunks: list[bytes] = []
-	size = 0
-	while size < MAX_READ_BYTES:
-		chunk = await stream.read(65536)
-		if not chunk:
-			return b"".join(chunks), False
-		chunks.append(chunk)
-		size += len(chunk)
-	return b"".join(chunks), True
-
-
 @tool(
 	prompt_snippet="Search file contents for regex patterns",
 	display_template="Searching code for {{ pattern }}",
@@ -40,6 +28,7 @@ async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult
 	proc = await asyncio.create_subprocess_exec(
 		*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
 	)
+	assert proc.stdout is not None  # stdout=PIPE above
 	try:
 		stdout, capped = await asyncio.wait_for(_read_capped(proc.stdout), timeout=ctx.timeout)
 	except TimeoutError:
@@ -62,3 +51,15 @@ async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult
 		content=body + notice,
 		details={"pattern": pattern, "matches": matches, "truncation": trunc},
 	)
+
+
+async def _read_capped(stream: asyncio.StreamReader) -> tuple[bytes, bool]:
+	chunks: list[bytes] = []
+	size = 0
+	while size < MAX_READ_BYTES:
+		chunk = await stream.read(65536)
+		if not chunk:
+			return b"".join(chunks), False
+		chunks.append(chunk)
+		size += len(chunk)
+	return b"".join(chunks), True
