@@ -9,7 +9,7 @@ from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
-from frappe.utils.oauth import consume_oauth_state, create_oauth_state, login_via_oauth2
+from frappe.utils.oauth import consume_oauth_state, create_oauth_state, get_info_via_oauth, login_via_oauth2
 
 TEST_GITHUB_USER = "githublogin@example.com"
 
@@ -134,6 +134,61 @@ class TestSocialLoginKey(IntegrationTestCase):
 			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+
+	def test_custom_provider_rejects_unverified_email_by_default(self):
+		frappe.set_user("Administrator")
+		key = custom_social_login_setup("testcustom-unverified")
+
+		mock_session = MagicMock()
+		mock_session.get.return_value = MagicMock(
+			status_code=200,
+			json=MagicMock(
+				return_value={"email": "victim@example.com", "email_verified": False, "sub": "attacker"}
+			),
+		)
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			self.assertRaises(frappe.ValidationError, get_info_via_oauth, key.name, "iwriu")
+
+	def test_custom_provider_trust_flag_allows_unverified_email(self):
+		frappe.set_user("Administrator")
+		key = custom_social_login_setup("testcustom-trusted")
+		key.trust_email_without_verified_claim = 1
+		key.save(ignore_permissions=True)
+
+		mock_session = MagicMock()
+		mock_session.get.return_value = MagicMock(
+			status_code=200,
+			json=MagicMock(
+				return_value={"email": "victim@example.com", "email_verified": False, "sub": "attacker"}
+			),
+		)
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			info = get_info_via_oauth(key.name, "iwriu")
+		self.assertEqual(info.get("email"), "victim@example.com")
+
+
+def custom_social_login_setup(provider_name: str):
+	set_request(path="/random")
+	frappe.local.cookie_manager = CookieManager()
+	frappe.local.login_manager = LoginManager()
+
+	if frappe.db.exists("Social Login Key", frappe.scrub(provider_name)):
+		return frappe.get_doc("Social Login Key", frappe.scrub(provider_name))
+
+	return frappe.get_doc(
+		doctype="Social Login Key",
+		social_login_provider="Custom",
+		provider_name=provider_name,
+		client_id="x",
+		client_secret="y",
+		base_url="http://127.0.0.1:9001",
+		authorize_url="/authorize",
+		access_token_url="/token",
+		api_endpoint="/userinfo",
+		redirect_url=f"/api/method/frappe.integrations.oauth2_logins.custom/{frappe.scrub(provider_name)}",
+		custom_base_url=1,
+		enable_social_login=1,
+	).insert(ignore_permissions=True)
 
 
 def make_social_login_key(**kwargs):
