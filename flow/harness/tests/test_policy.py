@@ -83,6 +83,16 @@ def test_policy_overrides_win_over_callback_hosts_env():
 	assert policy.callback_hosts == frozenset({"b.local:2"})
 
 
+def test_policy_overrides_cannot_weaken_auth_or_audit():
+	for field in ("require_auth", "audit_log"):
+		with pytest.raises(ValueError, match=f"cannot turn off {field}"):
+			resolve_policy("deployed", overrides=f'{{"{field}": false}}')
+	# hardening local on stays allowed; false-on-false is a no-op, not an error
+	hardened = resolve_policy("local", overrides='{"require_auth": true, "audit_log": true}')
+	assert hardened.require_auth and hardened.audit_log
+	assert resolve_policy("local", overrides='{"audit_log": false}').audit_log is False
+
+
 def test_policy_overrides_refuse_bad_input():
 	for overrides in (
 		"not json",

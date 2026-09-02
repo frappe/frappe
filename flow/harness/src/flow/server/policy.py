@@ -108,6 +108,9 @@ _BOOL_FIELDS = frozenset(
 	}
 )
 
+# overrides may turn these on, never off — dropping them means choosing another profile
+_NO_WEAKENING = frozenset({"require_auth", "audit_log"})
+
 
 def _apply_overrides(policy: ServerPolicy, raw: str) -> ServerPolicy:
 	"""FLOW_POLICY: a JSON object overriding individual policy fields, e.g.
@@ -124,6 +127,11 @@ def _apply_overrides(policy: ServerPolicy, raw: str) -> ServerPolicy:
 		if key in _BOOL_FIELDS:
 			if not isinstance(value, bool):
 				raise ValueError(f"FLOW_POLICY: {key} must be true or false")
+			locked = key in _NO_WEAKENING and getattr(policy, key)
+			if locked and value is False:
+				raise ValueError(
+					f"FLOW_POLICY: cannot turn off {key} — the {policy.profile!r} profile guarantees it"
+				)
 		elif key in ("tool_allowlist", "callback_hosts"):
 			if value is not None:
 				if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
