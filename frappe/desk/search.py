@@ -164,6 +164,8 @@ def search_widget(
 
 		try:
 			is_whitelisted(frappe.get_attr(query))
+			# guarded by is_whitelisted above
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 			values = frappe.call(
 				query,
 				doctype,
