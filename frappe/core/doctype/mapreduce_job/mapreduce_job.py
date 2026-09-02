@@ -4,6 +4,8 @@
 import frappe
 from frappe import qb
 from frappe.model.document import Document
+from frappe.query_builder.functions import Count
+from frappe.utils import cint
 
 
 class MapReduceJob(Document):
@@ -16,6 +18,7 @@ class MapReduceJob(Document):
 		from frappe.types import DF
 
 		amended_from: DF.Link | None
+		callback: DF.Data | None
 		data: DF.JSON | None
 		document_name: DF.DynamicLink | None
 		document_type: DF.Link | None
@@ -98,7 +101,7 @@ def task_execution_flow(current_task: str):
 def atomically_schedule_tasks(job, count):
 	frappe.db.commit()
 	mpt = qb.DocType("MapReduce Task")
-	for x in (
+	if queued := (
 		qb.from_(mpt)
 		.select(mpt.name)
 		.where(mpt.status.eq("Queued") & mpt.master.eq(job))
@@ -107,10 +110,28 @@ def atomically_schedule_tasks(job, count):
 		.for_update(skip_locked=True)
 		.run(as_dict=True, pluck="name")
 	):
-		frappe.db.set_value("MapReduce Task", x, "status", "Running")
-		frappe.enqueue(
-			method="frappe.core.doctype.mapreduce_job.mapreduce_job.task_execution_flow",
-			enqueue_after_commit=True,
-			current_task=x,
-		)
+		for x in queued:
+			frappe.db.set_value("MapReduce Task", x, "status", "Running")
+			frappe.enqueue(
+				method="frappe.core.doctype.mapreduce_job.mapreduce_job.task_execution_flow",
+				enqueue_after_commit=True,
+				current_task=x,
+			)
+	else:
+		total = frappe.db.count("MapReduce Task", {"master": job})
+		completed = frappe.db.count("MapReduce Task", {"master": job, "status": "Completed"})
+		if total == completed:
+			# execute callback
+			if callback := frappe.db.get_value("MapReduce Job", filters={"name": job}, fieldname="callback"):
+				result, ref_dt, ref_dn = frappe.db.get_value(
+					"MapReduce Job",
+					filters={"name": job},
+					fieldname=["result", "document_type", "document_name"],
+				)
+				result = frappe.parse_json(result)
+
+				frappe.call(callback, result, ref_dt, ref_dn) if ref_dt and ref_dn else frappe.call(
+					callback, result
+				)
+
 	frappe.db.commit()

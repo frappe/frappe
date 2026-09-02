@@ -7,13 +7,14 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_ruuv",
+  "document_type",
+  "document_name",
   "map",
   "reduce",
+  "callback",
   "data",
   "result",
-  "amended_from",
-  "document_type",
-  "document_name"
+  "amended_from"
  ],
  "fields": [
   {
@@ -68,13 +69,18 @@
    "no_copy": 1,
    "options": "document_type",
    "read_only": 1
+  },
+  {
+   "fieldname": "callback",
+   "fieldtype": "Data",
+   "label": "Callback"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-31 16:14:11.899790",
+ "modified": "2026-09-01 16:32:52.553573",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Job",

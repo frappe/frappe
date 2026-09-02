@@ -806,6 +806,7 @@ def _start_sentry():
 def mapreduce(
 	map_method: str | Callable,
 	reduce_method: str | Callable,
+	callback_method: str | Callable,
 	data: str,
 	document_type: str,
 	document_name: str,
@@ -813,6 +814,7 @@ def mapreduce(
 	doc = frappe.new_doc("MapReduce Job")
 	doc.map = map_method
 	doc.reduce = reduce_method
+	doc.callback = callback_method
 	doc.data = frappe.json.dumps(data)
 	doc.document_type = document_type
 	doc.document_name = document_name
