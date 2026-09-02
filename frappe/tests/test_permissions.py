@@ -116,6 +116,18 @@ class TestPermissions(IntegrationTestCase):
 		self.assertTrue(post1.has_permission("read"))
 		self.assertTrue(get_doc_permissions(post1).get("read"))
 
+	def test_user_permission_denial_is_explained(self):
+		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
+
+		with self.set_user("test2@example.com"):
+			frappe.local.message_log = []
+			post = frappe.get_doc("Test Blog Post", "_Test Blog Post")
+			self.assertRaises(frappe.PermissionError, post.check_permission, "read")
+
+			message = frappe.local.message_log[-1]["message"]
+			self.assertIn("Test Blog Category", message)
+			self.assertIn("_Test Blog Category", message)
+
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
 

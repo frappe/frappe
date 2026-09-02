@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe import _
@@ -19,7 +19,7 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
+from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
@@ -137,6 +137,13 @@ class TestExtensionValidations(IntegrationTestCase):
 		bad_file = frappe.new_doc("File", file_name=f"{file_name}.csv", content=content).insert()
 		frappe.db.rollback()
 		self.assertFalse(bad_file.exists_on_disk())
+
+	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+	def test_allowlist_blocks_extension_without_known_mimetype(self):
+		set_request(method="POST", path="/")
+		file_name = content = frappe.generate_hash()
+		bad_file = frappe.new_doc("File", file_name=f"{file_name}.phtml", content=content)
+		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
 
 
 class TestBase64File(IntegrationTestCase):
@@ -366,6 +373,58 @@ class TestSameContent(IntegrationTestCase):
 		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
 		self.assertEqual(file_content_properly_decoded, test_content1)
 
+	def test_toggle_is_private_renames_on_name_collision(self):
+		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
+		private_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": "private original",
+				"is_private": 1,
+			}
+		).insert()
+		public_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": "public different",
+				"is_private": 0,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		# this used to raise FileExistsError; it must now auto-rename instead
+		public_file.is_private = 1
+		public_file.save()
+
+		public_file.reload()
+		self.assertNotEqual(public_file.file_url, private_file.file_url)
+		self.assertTrue(public_file.file_url.startswith("/private/files/"))
+		self.assertEqual(public_file.get_content(), "public different")
+		self.assertEqual(private_file.get_content(), "private original")
+
+	def test_toggle_is_private_renames_even_on_identical_content_collision(self):
+		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
+		content = f"identical-{frappe.generate_hash(length=8)}"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		public_file.is_private = 1
+		public_file.save()
+
+		public_file.reload()
+		self.assertNotEqual(public_file.file_url, private_file.file_url)
+		self.assertTrue(public_file.file_url.startswith("/private/files/"))
+		self.assertEqual(public_file.get_content(), content)
+		self.assertEqual(private_file.get_content(), content)
+
 
 class TestFile(IntegrationTestCase):
 	def setUp(self):
@@ -521,7 +580,8 @@ class TestFile(IntegrationTestCase):
 			}
 		).insert()
 
-		self.assertEqual(file1.is_private, file2.is_private, 1)
+		self.assertEqual(file1.is_private, 1)
+		self.assertEqual(file2.is_private, 1)
 		self.assertEqual(file1.file_url, file2.file_url)
 		self.assertTrue(os.path.exists(file1.get_full_path()))
 
@@ -530,8 +590,17 @@ class TestFile(IntegrationTestCase):
 
 		file2 = frappe.get_doc("File", file2.name)
 
-		self.assertEqual(file1.is_private, file2.is_private, 0)
-		self.assertEqual(file1.file_url, file2.file_url)
+		# file1 flipped correctly.
+		self.assertEqual(file1.is_private, 0)
+		self.assertTrue(file1.file_url.startswith("/files/"))
+
+		# file2 must be untouched — this is the fix. Old behaviour propagated
+		# file1's is_private and file_url to file2 via update_existing_file_docs.
+		self.assertEqual(file2.is_private, 1)
+		self.assertTrue(file2.file_url.startswith("/private/files/"))
+
+		# Bytes readable at both paths after the flip.
+		self.assertTrue(os.path.exists(file1.get_full_path()))
 		self.assertTrue(os.path.exists(file2.get_full_path()))
 
 	def test_parent_directory_validation_in_file_url(self):
@@ -675,6 +744,39 @@ class TestFile(IntegrationTestCase):
 
 		self.assertTrue(frappe.db.exists("File", test_file.name))
 		self.assertEqual(frappe.db.count("File"), file_count_before)
+
+	def test_file_unzip_requires_read_permission(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		with open(file_path, "rb") as f:
+			zip_content = f.read()
+
+		try:
+			frappe.set_user("test@example.com")
+			test_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "file.zip",
+					"content": zip_content,
+					"is_private": 1,
+				}
+			).insert()
+
+			file_count_before = frappe.db.count("File")
+
+			# block unzip
+			frappe.set_user("test4@example.com")
+			self.assertRaises(frappe.PermissionError, unzip_file, test_file.name)
+			self.assertTrue(frappe.db.exists("File", test_file.name))
+			self.assertEqual(frappe.db.count("File"), file_count_before)
+
+			# allow unzip
+			frappe.set_user("test@example.com")
+			self.assertListEqual(
+				[file.file_name for file in unzip_file(test_file.name)],
+				["css_asset.css", "image.jpg", "js_asset.min.js"],
+			)
+		finally:
+			frappe.set_user("Administrator")
 
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
@@ -937,6 +1039,41 @@ class TestAttachment(IntegrationTestCase):
 		)
 
 		self.assertTrue(exists)
+
+	def test_url_attachment_is_attached_to_duplicated_document(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
+		doc.attachment = "https://example.com/spec.pdf"
+		doc.insert()
+
+		duplicate = frappe.copy_doc(doc).insert()
+
+		self.assertTrue(
+			frappe.db.exists(
+				"File",
+				{
+					"file_url": "https://example.com/spec.pdf",
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": duplicate.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_no_file_created_for_non_file_attach_value(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test non file attach value")
+		doc.attachment = "not a file"
+		doc.insert()
+
+		self.assertFalse(
+			frappe.db.exists(
+				"File",
+				{
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": doc.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
 
 	def test_delete_file_referenced_in_attach_field(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete referenced file").insert()
@@ -1291,6 +1428,38 @@ class TestFileUtils(IntegrationTestCase):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
 
+	def test_get_web_image_follows_redirect_to_allowed_address(self):
+		from io import BytesIO
+
+		from PIL import Image as PILImage
+
+		buf = BytesIO()
+		PILImage.new("RGB", (2, 2)).save(buf, format="JPEG")
+		image_bytes = buf.getvalue()
+
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://8.8.4.4/final.jpg"})
+		final_response = MagicMock(is_redirect=False, content=image_bytes)
+		final_response.raise_for_status.return_value = None
+
+		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
+
+		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(extn, "jpg")
+
+	def test_get_web_image_rejects_redirect_to_restricted_address(self):
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
+
+		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+			self.assertRaisesRegex(
+				ValidationError,
+				"restricted address",
+				get_web_image,
+				"http://8.8.8.8/initial.jpg",
+			)
+
+		mock_get.assert_called_once()
+
 
 class TestFileOptimization(IntegrationTestCase):
 	def test_optimize_file(self):
@@ -1458,6 +1627,81 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
+
+	def test_toggling_is_private_does_not_leak_shared_file(self):
+		"""Flipping is_private on one File must not silently change another
+		File row that happens to share the same content_hash."""
+		file_name = "shared" + frappe.generate_hash()
+		content = file_name.encode()
+
+		# Row A: private upload
+		doc_a: File = frappe.new_doc("File")  # type: ignore
+		doc_a.file_name = f"{file_name}.txt"
+		doc_a.is_private = 1
+		doc_a.content = content
+		doc_a.save()
+
+		# Row B: independent private upload of identical bytes.
+		doc_b: File = frappe.new_doc("File")  # type: ignore
+		doc_b.file_name = f"{file_name}.txt"
+		doc_b.is_private = 1
+		doc_b.content = content
+		doc_b.save()
+
+		doc_a.reload()
+		doc_b.reload()
+
+		# Precondition: dedup collapsed both rows onto the same file_url.
+		self.assertEqual(doc_a.content_hash, doc_b.content_hash)
+		self.assertEqual(doc_a.file_url, doc_b.file_url)
+		self.assertTrue(doc_a.file_url.startswith("/private/files/"))
+
+		private_path = doc_a.get_full_path()
+		self.assertTrue(os.path.exists(private_path))
+
+		# Flip A to public. B must NOT be affected.
+		doc_a.is_private = 0
+		doc_a.save()
+		doc_a.reload()
+		doc_b.reload()
+
+		# A's row: flipped correctly
+		self.assertEqual(doc_a.is_private, 0)
+		self.assertTrue(doc_a.file_url.startswith("/files/"))
+
+		# B's row: unchanged (the actual regression this test guards)
+		self.assertEqual(doc_b.is_private, 1, "B's is_private silently changed to public — data leak")
+		self.assertTrue(
+			doc_b.file_url.startswith("/private/files/"),
+			"B's file_url was rewritten to the public path — data leak",
+		)
+
+		self.assertTrue(os.path.exists(doc_a.get_full_path()))
+		self.assertTrue(os.path.exists(doc_b.get_full_path()))
+		self.assertEqual(doc_a.get_content(), content)
+		self.assertEqual(doc_b.get_content(), content)
+
+		# Cleanup: deleting A's row should remove ONLY the public copy;
+		# B's private copy must survive because B still references it.
+		doc_a_path = doc_a.get_full_path()
+		doc_a.delete()
+		self.assertFalse(
+			os.path.exists(doc_a_path),
+			"Public copy not cleaned up after A's deletion",
+		)
+		self.assertTrue(
+			os.path.exists(doc_b.get_full_path()),
+			"B's private copy was wrongly deleted when A's row was removed",
+		)
+		self.assertEqual(doc_b.get_content(), content)
+
+		# Deleting B removes the last reference to the private copy.
+		doc_b_path = doc_b.get_full_path()
+		doc_b.delete()
+		self.assertFalse(
+			os.path.exists(doc_b_path),
+			"Private copy not cleaned up after B's deletion",
+		)
 
 
 class TestPublicFileRestriction(IntegrationTestCase):

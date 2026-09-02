@@ -6,7 +6,6 @@ import shutil
 
 import frappe
 from frappe import _, conf, get_module_path, safe_decode
-from frappe.build import html_to_js_template
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 from frappe.desk.utils import validate_route_conflict
@@ -107,6 +106,13 @@ class Page(Document):
 			d[key] = self.get(key)
 		return d
 
+	def clear_cache(self):
+		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
+
+		# a module with no `Sidebar` has its sidebar computed from pages like this one
+		clear_computed_base_for(self)
+		return super().clear_cache()
+
 	def on_trash(self):
 		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
 			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
@@ -145,6 +151,7 @@ class Page(Document):
 	def load_assets(self):
 		import os
 
+		from frappe.bundler import html_to_js_template
 		from frappe.modules import get_module_path, scrub
 
 		self.script = ""

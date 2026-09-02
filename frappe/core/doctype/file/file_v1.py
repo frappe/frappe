@@ -37,7 +37,6 @@ from .utils import (
 	generate_file_name,
 	get_content_hash,
 	get_safe_file_name,
-	update_existing_file_docs,
 )
 
 
@@ -176,18 +175,33 @@ class FileV1(File):
 				exc=FileNotFoundError,
 			)
 		if target.exists():
-			frappe.throw(
-				_("A file with same name {} already exists").format(target),
-				exc=FileExistsError,
+			target_file_name = generate_file_name(
+				name=file_name,
+				is_private=cint(self.is_private),
 			)
+			target = Path(
+				frappe.get_site_path(
+					"private" if cint(self.is_private) else "public", "files", target_file_name
+				)
+			)
+			updated_file_url = f"{url_starts_with}{target_file_name}"
 
-		# Uses os.rename which is an atomic operation
-		shutil.move(source, target)
+		other_refs_exist = self.content_hash and frappe.db.exists(
+			"File",
+			{
+				"content_hash": self.content_hash,
+				"file_url": self.file_url,
+				"name": ["!=", self.name],
+			},
+		)
+		if other_refs_exist:
+			shutil.copy2(source, target)
+		else:
+			shutil.move(source, target)
 		self.flags.original_path = {"old": source, "new": target}
 		frappe.db.after_rollback.add(self.on_rollback)
 
 		self.file_url = updated_file_url
-		update_existing_file_docs(self)
 		self.update_attached_to_field(old_file_url)
 
 	def validate_file_on_disk(self):
@@ -247,7 +261,7 @@ class FileV1(File):
 			frappe.throw(_("File {0} does not exist").format(file_path))
 
 	def _delete_file_on_disk(self):
-		"""If file not attached to any other record, delete it"""
+		"""If no other row references this specific physical file, delete it."""
 		if self.get("blob"):
 			# compat shim: garbage collection owns blob bytes and thumbnails;
 			# deleting a File row never deletes them synchronously
@@ -257,9 +271,8 @@ class FileV1(File):
 			"File",
 			filters={
 				"content_hash": self.content_hash,
+				"file_url": self.file_url,
 				"name": ["!=", self.name],
-				# NOTE: Some old Files might share file_urls while not sharing the is_private value
-				# "is_private": self.is_private,
 			},
 			limit=1,
 		)

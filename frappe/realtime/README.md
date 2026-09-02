@@ -1,7 +1,7 @@
 # Realtime handlers for custom apps
 
 This is the Python Socket.IO realtime server (`python -m frappe.realtime.server`).
-It runs as a **separate gevent process** from the web/gunicorn process.
+It runs on asyncio/uvicorn as a **separate process** from the web/gunicorn process.
 
 This guide is for app authors who want to add their own realtime events. You do not need to touch this folder — you register handlers from inside your own app.
 
@@ -18,19 +18,26 @@ The server imports `<app>.realtime.handlers` for every app installed on the site
 ## Writing a handler
 
 ```python
-import frappe
 from frappe.realtime import Socket, realtime
 
 
 @realtime.on("project_subscribe")
-def project_subscribe(socket: Socket, project: str) -> None:
-    if socket.has_permission("Project", project):
-        socket.join(f"project:{project}")
+async def project_subscribe(socket: Socket, project: str) -> None:
+    if await socket.has_permission("Project", project):
+        await socket.join(f"project:{project}")
 ```
 
 - The event name (`"project_subscribe"`) is what the browser emits with `frappe.realtime.on(...)` / the client's `socket.emit(...)`.
 - The first argument is always the typed `Socket`. The rest are the payload the client sent, positionally.
 - The decorator returns the function unchanged — it is a plain function you can also call/test directly.
+
+### async or plain
+
+Write handlers `async def`. They run on the event loop and `await` the socket calls.
+
+A plain `def` handler also works: it runs in a worker thread, and gets a blocking
+`SyncSocket` with the same API minus the awaits. Use it when the body has to block
+(a library with no async client, `frappe_context`).
 
 ### Decorator options
 
@@ -43,6 +50,9 @@ def project_subscribe(socket: Socket, project: str) -> None:
 ```
 
 Defaults: `frappe_context=False`, `allow_guest=False`.
+
+`frappe_context=True` needs the worker thread, so the handler must be a plain
+function. Marking an `async def` handler with it raises at import.
 
 ## Install scoping (important)
 
@@ -63,29 +73,34 @@ socket.installed_apps  # list[str]
 Rooms and emit:
 
 ```python
-socket.join(room)                       # add this socket to a room
-socket.leave(room)                       # remove it
-socket.emit(event, data=None, room=None) # emit to a room, or to this client if room is None
+await socket.join(room)                       # add this socket to a room
+await socket.leave(room)                      # remove it
+await socket.emit(event, data=None, room=None)  # emit to a room, or to this client if room is None
 ```
 
 Permission check (default, cheap — no DB in the realtime process):
 
 ```python
-socket.has_permission(doctype, name=None) -> bool   # HTTP call to the web process
+await socket.has_permission(doctype, name=None) -> bool   # HTTP call to the web process
 ```
+
+It holds no worker thread, so it never queues behind blocking handlers. In a plain
+`def` handler it is the same call without `await`.
 
 Transient per-socket state (cleared when the socket disconnects):
 
 ```python
-socket.set("key", value)
+await socket.set("key", value)
 socket.get("key", default=None)
 ```
+
+In a plain (non-async) handler these are the same calls without `await`.
 
 ## Permission checks: two ways
 
 Pick one per handler; do not mix silently.
 
-1. **HTTP (default, recommended).** `socket.has_permission(doctype, name)` asks the web process — exactly like the core handlers. No DB connection in the realtime process. Cheap. Use this unless you have a reason not to.
+1. **HTTP (default, recommended).** `await socket.has_permission(doctype, name)` asks the web process — exactly like the core handlers. No DB connection in the realtime process. Cheap. Use this unless you have a reason not to.
 
 2. **In-process (`frappe_context=True`).** Opens a full Frappe context for the handler body so you can call `frappe.has_permission(...)`, query the DB, etc. directly:
 
@@ -96,7 +111,7 @@ Pick one per handler; do not mix silently.
            socket.join(f"project:{project}")
    ```
 
-   Cost: **every such event** pays `frappe.init -> connect -> set_user -> commit/rollback -> destroy` and forces a DB connection into the realtime process. Use sparingly. The DB driver is forced to PyMySQL (the mysqlclient C extension would stall the gevent hub).
+   Cost: **every such event** pays `frappe.init -> connect -> set_user -> commit/rollback -> destroy` and forces a DB connection into the realtime process. Use sparingly. The body runs in a worker thread, so the normal DB driver is fine.
 
 ## Pushing events to clients (from the web process)
 
@@ -144,6 +159,5 @@ NOT the cross-site no-room broadcast that build events use — that path stays i
 
 ## Rules of thumb
 
-- Keep handlers small and non-blocking in spirit — gevent yields on I/O (DB, HTTP, Redis), but tight CPU loops block the hub for every other socket.
-- Never import `mysqlclient` / `MySQLdb` anywhere reachable from a handler. It is a C extension whose blocking socket cannot be monkeypatched and will stall the server.
+- Never block the event loop from an `async def` handler. Blocking I/O and tight CPU loops stall every other socket. If the work blocks, write the handler as a plain `def` so it runs in a worker thread.
 - Room and event names are a shared contract with the browser client — keep them stable.

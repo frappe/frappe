@@ -1,26 +1,18 @@
 // clean-this-file
+// Colours, radii and shadows come from Espresso tokens, so the panel tracks the
+// theme the same way frappe-ui's <Sidebar> / <SidebarItem> do -- the hand-rolled
+// --sidebar-* colour variables this file used to define carried their own dark
+// values and drifted from them. Only the panel's width is still a local variable:
+// it is layout, not a design token, and the resize handle writes to it.
 :root {
-	--sidebar-hover-color: #f3f3f3;
-	--sidebar-active-color: rgba(255, 255, 255, 1);
-	--sidebar-border-color: #ededed;
-	--divider-color: rgba(237, 237, 237, 1);
 	--sidebar-width: 220px;
-	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
 }
 
-[data-theme="dark"] {
-	--sidebar-hover-color: rgba(43, 43, 43, 1);
-	--sidebar-active-color: rgba(66, 66, 66, 1);
-	--sidebar-border-color: #232323;
-	--divider-color: rgba(52, 52, 52, 1);
-	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.5), 0 1px 3px 0 rgba(0, 0, 0, 0.4),
-		inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-// sidebar-item states
+// sidebar-item states -- mirrors <SidebarItem>'s `hover:bg-surface-gray-2` on a
+// `rounded` (8px) row.
 @mixin hover-mixin {
-	background-color: var(--sidebar-hover-color);
-	border-radius: 8px;
+	background-color: var(--surface-gray-2);
+	border-radius: var(--radius);
 	text-decoration: none;
 }
 
@@ -44,7 +36,7 @@
 	position: absolute;
 	width: var(--sidebar-width);
 	background: var(--surface-sidebar);
-	border-right: 1px solid var(--sidebar-border-color);
+	border-right: 1px solid var(--outline-gray-1);
 	// the panel's own chrome fades with its contents when collapsing / expanding, but the element
 	// itself stays put -- see the collapsed state below for why
 	transition: background 0.2s ease, border-color 0.2s ease;
@@ -92,8 +84,8 @@
 	}
 
 	.divider {
-		margin: var(--margin-xs) 0;
-		border-top: 1px solid var(--gray-300);
+		margin: var(--spacing) 0;
+		border-top: 1px solid var(--outline-gray-2);
 		width: 100%;
 	}
 
@@ -124,7 +116,7 @@
 			align-items: center;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
-			margin-left: var(--margin-sm);
+			margin-left: calc(var(--spacing) * 2);
 		}
 
 		.item-anchor {
@@ -152,7 +144,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		margin: var(--margin-sm) 0;
+		margin: calc(var(--spacing) * 2) 0;
 	}
 
 	.onboarding-sidebar,
@@ -262,7 +254,7 @@
 	@include body-sidebar-expanded();
 }
 
-// Collapsed: the workspace dock is the icon rail now, so the body sidebar leaves entirely rather
+// Collapsed: the dock is the icon rail now, so the body sidebar leaves entirely rather
 // than shrinking to a strip. The placeholder animates its reserved width to 0 (the main section
 // glides left to fill it) while the panel's contents fade and slide out behind the dock. Reopening is done
 // from the dock's right-edge handle. Driven by the container's `expanded` class -- set at render
@@ -350,9 +342,9 @@
 }
 
 .active-sidebar {
-	background: var(--sidebar-active-color);
-	box-shadow: var(--sidebar-active-shadow);
-	border-radius: 8px;
+	background: var(--surface-elevation-3);
+	box-shadow: var(--shadow-sm);
+	border-radius: var(--radius);
 
 	:hover {
 		text-decoration: none;
@@ -369,10 +361,10 @@
 	bottom: 80px;
 	width: 24px;
 	height: 24px;
-	border-radius: 50%;
-	border: 1px solid var(--sidebar-border-color);
+	border-radius: var(--radius-full);
+	border: 1px solid var(--outline-gray-1);
 	background: var(--surface-sidebar);
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-sm);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -389,7 +381,7 @@
 	}
 
 	&:hover {
-		background: var(--sidebar-hover-color);
+		background: var(--surface-gray-2);
 	}
 }
 
@@ -420,7 +412,7 @@
 	}
 
 	&:hover::after {
-		background: var(--ink-gray-2);
+		background: var(--outline-gray-2);
 	}
 }
 
@@ -447,11 +439,11 @@
 }
 
 .indent + .nested-container {
-	margin-left: calc(var(--margin-sm) + 1px);
-	border-left: 1px solid var(--border-color);
+	margin-left: calc(var(--spacing) * 2 + 1px);
+	border-left: 1px solid var(--outline-gray-1);
 
 	.sidebar-item-container {
-		margin-left: var(--margin-xs);
+		margin-left: var(--spacing);
 	}
 }
 
@@ -460,7 +452,7 @@
 	padding: 7px;
 
 	.keyboard-shortcut {
-		color: var(--ink-gray-4, #999999);
+		color: var(--ink-gray-4);
 		font-size: var(--text-sm);
 		line-height: 1.15;
 		letter-spacing: 0.02em;

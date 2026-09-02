@@ -23,6 +23,7 @@ from frappe.utils.background_jobs import get_queues, get_redis_conn
 
 QUEUES = ["default", "long", "short"]
 JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "scheduled", "canceled"]
+MAX_MATCHED_JOBS = 5000
 
 
 def check_permissions(method):
@@ -78,21 +79,32 @@ class RQJob(Document):
 		return self._job_obj
 
 	@staticmethod
-	def get_list(filters=None, start=0, page_length=20, order_by="creation desc"):
-		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)[start : start + page_length]
+	def get_list(
+		filters=None, start=0, page_length=20, order_by="creation desc", fields=None, as_list=False, **kwargs
+	):
+		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)
 
 		conn = get_redis_conn()
 		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
 
 		order_desc = "desc" in order_by
-		return sorted(jobs, key=lambda j: j.creation, reverse=order_desc)
+		jobs = sorted(jobs, key=lambda j: j.creation, reverse=order_desc)
+		jobs = jobs[start : start + page_length]
+
+		if as_list:
+			fields = fields or ["name"]
+			return [[job.get(f) if isinstance(f, str) else None for f in fields] for job in jobs]
+
+		return jobs
 
 	@staticmethod
 	def get_matching_job_ids(filters) -> list[str]:
 		filters = make_filter_dict(filters or [])
 
 		queues = _eval_filters(filters.get("queue"), QUEUES + get_custom_queues())
-		statuses = _eval_filters(filters.get("status"), JOB_STATUSES)
+		status_filter = has_filter_value(filters.get("status"))
+		job_name_filter = has_filter_value(filters.get("job_name"))
+		name_filter = has_filter_value(filters.get("name"))
 
 		matched_job_ids = []
 		for queue in get_queues():
@@ -102,10 +114,19 @@ class RQJob(Document):
 			# standard one (e.g. `schedulelong` under `queue=long`).
 			if queue.name.rsplit(":", 1)[-1] not in queues:
 				continue
-			for status in statuses:
+			for status in JOB_STATUSES:
 				matched_job_ids.extend(fetch_job_ids(queue, status))
 
-		return filter_current_site_jobs(matched_job_ids)
+		matched_job_ids = list(dict.fromkeys(filter_current_site_jobs(matched_job_ids)))
+		matched_job_ids = _eval_filters(name_filter, matched_job_ids)
+
+		if job_name_filter:
+			matched_job_ids = filter_job_ids_by_field(matched_job_ids, job_name_filter, get_job_name)
+
+		if status_filter:
+			matched_job_ids = filter_job_ids_by_field(matched_job_ids, status_filter, get_job_status)
+
+		return matched_job_ids[:MAX_MATCHED_JOBS]
 
 	@check_permissions
 	def delete(self):
@@ -200,6 +221,38 @@ def _eval_filters(filter, values: list[str]) -> list[str]:
 		operator, operand = filter
 		return [val for val in values if compare(val, operator, operand)]
 	return values
+
+
+def has_filter_value(field_filter):
+	if field_filter and field_filter[1] not in (None, ""):
+		return field_filter
+	return None
+
+
+def get_job_name(job: Job) -> str:
+	return serialize_job(job).job_name
+
+
+def get_job_status(job: Job) -> str | None:
+	try:
+		return job.get_status(refresh=True)
+	except InvalidJobOperation:
+		return None
+
+
+def filter_job_ids_by_field(job_ids: list[str], field_filter, get_field_value) -> list[str]:
+	operator, operand = field_filter
+
+	conn = get_redis_conn()
+	matched_ids = []
+	for job in Job.fetch_many(job_ids=job_ids, connection=conn):
+		if not job:
+			continue
+		value = get_field_value(job)
+		if value is not None and compare(value, operator, operand):
+			matched_ids.append(job.id)
+
+	return matched_ids
 
 
 def fetch_job_ids(queue: Queue, status: str) -> list[str]:

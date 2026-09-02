@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 import frappe
 
@@ -78,7 +78,7 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 		set
 			reference_doctype = %s,
 			reference_name = %s,
-			status = "Linked"
+			status = 'Linked'
 		where
 			name = %s""",
 		(reference_doctype, reference_name, name),

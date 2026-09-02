@@ -5,10 +5,11 @@ import re
 from contextlib import contextmanager
 from functools import partial
 from typing import Any
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.desk.search import awesomebar_search, get_names_for_mentions, search_link, search_widget
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -64,6 +65,35 @@ class TestSearch(IntegrationTestCase):
 
 		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
 		self.assertNotIn(email, names_for_mention)
+
+	def test_allowed_in_mentions_cache_invalidation(self):
+		email = "test_allowed_in_mentions@example.com"
+		frappe.delete_doc("User", email, ignore_missing=True)
+
+		user = frappe.new_doc("User")
+		user.update(
+			{
+				"email": email,
+				"first_name": email.split("@", 1)[0],
+				"enabled": True,
+				"allowed_in_mentions": True,
+			}
+		)
+		# saved when roles are added
+		user.add_roles("System Manager")
+
+		# Populate the users_for_mentions cache.
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		self.assertIn(email, names_for_mention)
+
+		# Changing Allowed In Mentions should invalidate the cache.
+		user.allowed_in_mentions = False
+		user.save()
+
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		self.assertNotIn(email, names_for_mention)
+
+		frappe.delete_doc("User", email)
 
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
@@ -178,6 +208,39 @@ class TestSearch(IntegrationTestCase):
 		# Assume that "es" is used at least 10 times, it should now be first
 		frappe.db.set_value("Language", "es", "idx", 10)
 		self.assertEqual("es", search(txt="es")[0]["value"])
+
+	def test_relevance_skipped_without_txt(self):
+		"""`_relevance` is a constant when txt is empty, so it must not be selected or sorted on."""
+
+		def search_and_capture(txt):
+			captured = []
+			orig_sql = frappe.db.__class__.sql
+
+			def _capture(*args, **kwargs):
+				result = orig_sql(*args, **kwargs)
+				captured.append(str(args[0].last_query))
+				return result
+
+			with patch.object(frappe.db.__class__, "sql", _capture):
+				values = search_widget(doctype="Language", txt=txt, page_length=5)
+
+			return values, "\n".join(captured)
+
+		empty, empty_sql = search_and_capture("")
+		typed, typed_sql = search_and_capture("e")
+
+		self.assertNotIn("_relevance", empty_sql)
+		self.assertIn("_relevance", typed_sql)
+
+		# the result shape must not change: a mismatched strip would drop a real column
+		self.assertEqual(len(empty[0]), len(typed[0]))
+
+	def test_empty_search_still_orders_by_idx(self):
+		"""Dropping the constant relevance key must not change the order of an empty search."""
+		frappe.db.set_value("Language", "es", {"enabled": 1, "idx": 500})
+
+		# page_length=1 leaves the python relevance_sorter no second row to reorder
+		self.assertEqual("es", search_link("Language", "", page_length=1)[0]["value"])
 
 	def test_search_with_paren(self):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
@@ -567,6 +630,116 @@ class TestSearch(IntegrationTestCase):
 				reference_doctype="Test Search Dangling Parent",
 				link_fieldname="nonexistent_field",
 			)
+
+	def test_awesomebar_search_hook(self):
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "awesomebar_search":
+				return [
+					"frappe.tests.test_search._awesomebar_help",
+					"frappe.tests.test_search._awesomebar_broken",
+					"frappe.tests.test_search._awesomebar_bad_items",
+				]
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			self.assertEqual(awesomebar_search(""), [])
+			self.assertEqual(awesomebar_search("   "), [])
+
+			results = awesomebar_search("help")
+			self.assertEqual(
+				results,
+				[
+					{
+						"label": "Open Help",
+						"value": "Open Help",
+						"index": 50,
+						"route": ["https://docs.example.com"],
+						"description": "Docs",
+					},
+					{
+						"label": "ToDo List",
+						"value": "ToDo List",
+						"index": 0,
+						"route": ["List", "ToDo"],
+					},
+				],
+			)
+
+			http_results = awesomebar_search("intranet")
+			self.assertEqual(
+				http_results,
+				[
+					{
+						"label": "Intranet",
+						"value": "Intranet",
+						"index": 40,
+						"route": ["http://docs.local"],
+					},
+				],
+			)
+
+			inapp_results = awesomebar_search("inapp")
+			self.assertEqual(
+				inapp_results,
+				[
+					{
+						"label": "Desk Docs",
+						"value": "Desk Docs",
+						"index": 30,
+						"route": ["/desk/docs/some/page"],
+					},
+				],
+			)
+
+			self.assertEqual(awesomebar_search("unrelated"), [])
+
+
+def _awesomebar_help(txt):
+	query = txt.lower()
+	if "help" in query:
+		return [
+			{
+				"label": "Open Help",
+				"description": "Docs",
+				"route": "https://docs.example.com",
+				"index": 50,
+			}
+		]
+	if "intranet" in query:
+		return [
+			{
+				"label": "Intranet",
+				"route": "http://docs.local",
+				"index": 40,
+			}
+		]
+	if "inapp" in query:
+		return [
+			{
+				"label": "Desk Docs",
+				"route": "/desk/docs/some/page",
+				"index": 30,
+			}
+		]
+	return []
+
+
+def _awesomebar_broken(txt):
+	raise RuntimeError("boom")
+
+
+def _awesomebar_bad_items(txt):
+	if "help" not in txt.lower():
+		return []
+	return [
+		"not a dict",
+		{},
+		{"label": "JS", "route": "javascript:alert(1)"},
+		{"label": "Proto", "route": "//evil.com"},
+		{"label": "ToDo List", "route": ["List", "ToDo"]},
+	]
 
 
 @frappe.validate_and_sanitize_search_inputs

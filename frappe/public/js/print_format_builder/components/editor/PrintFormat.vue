@@ -10,17 +10,27 @@
 		}"
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
-		<component :is="'style'" v-if="print_format.css">{{ print_format.css }}</component>
+		<component :is="'style'" v-if="user_css">{{ user_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
 
-		<LetterHeadZoneEditor zone="header" />
+		<!-- One header area: the letterhead and the header fields zone read as a single
+		     region. The fields wrapper carries the body font (letterhead stays unstyled),
+		     and the empty header drop-zone only surfaces while a drag is in progress. -->
+		<div class="pfb-header-area">
+			<LetterHeadZoneEditor zone="header" />
+			<div
+				class="pfb-header-fields"
+				:class="{ 'pfb-header-fields--empty': header_is_empty }"
+				:style="bodyStyles"
+			>
+				<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
+			</div>
+		</div>
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
-			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-
 			<draggable
 				class="sections-container"
 				v-model="layout.sections"
@@ -77,6 +87,14 @@ import { useStore } from "../../stores";
 import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
 let { layout, letterhead, print_format } = useStore();
+
+// one definition of "the header holds no fields" — the tree and the canvas
+// both key off it, so a deleted field (kept in the DOM as a tombstone) can't
+// make them disagree
+let header_is_empty = computed(
+	() =>
+		!(layout.value.header?.columns || []).some((c) => (c.fields || []).some((f) => !f.remove))
+);
 let store = inject("$store");
 
 const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
@@ -180,6 +198,43 @@ let bodyStyles = computed(() => {
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
+
+// The format's custom CSS applies to the whole document in the printed PDF;
+// on the canvas that document is this component, so every selector is scoped
+// to it before the style hits the desk DOM
+let user_css = computed(() => scope_css(print_format.value.css, ".print-format-main"));
+
+function scope_css(css, scope) {
+	if (!(css || "").trim()) return "";
+	const style = document.createElement("style");
+	style.media = "not all";
+	style.textContent = css;
+	document.head.appendChild(style);
+	const prefix_rule = (rule) => {
+		if (rule.type === CSSRule.MEDIA_RULE || rule.type === CSSRule.SUPPORTS_RULE) {
+			const inner = [...rule.cssRules].map(prefix_rule).join("\n");
+			const head = rule.cssText.slice(0, rule.cssText.indexOf("{"));
+			return `${head}{\n${inner}\n}`;
+		}
+		if (rule.selectorText) {
+			const scoped = rule.selectorText
+				.split(",")
+				.map((sel) => {
+					sel = sel.trim();
+					const rootless = sel.replace(/^(html|body)(?![\w-])\s*/i, "");
+					return rootless ? `${scope} ${rootless}` : scope;
+				})
+				.join(", ");
+			return rule.cssText.replace(rule.selectorText, scoped);
+		}
+		return rule.cssText;
+	};
+	try {
+		return [...(style.sheet?.cssRules || [])].map(prefix_rule).join("\n");
+	} finally {
+		style.remove();
+	}
+}
 
 // Same scoped colour rules the server appends after the shared stylesheet;
 // rendered as a style element inside the component so it dies with the DOM

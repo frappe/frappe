@@ -22,6 +22,8 @@ dependabot[bot]
 frappe-pr-bot
 gajjug004
 gavindsouza
+g-sowani
+harshp4114
 HenningWendtland
 karm1000
 kaulith
@@ -31,6 +33,8 @@ mainshivam
 MarcCon
 marination
 mergify[bot]
+niraj2477
+Pandiyan5273
 PatrickDEissler
 Priyal208
 priyanshshah2442

@@ -201,7 +201,9 @@ class CustomField(Document):
 			and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype)
 		):
 			frappe.throw(
-				_("Fieldtype cannot be changed from {0} to {1}").format(old_fieldtype, self.fieldtype)
+				_("Fieldtype of {0} in {1} cannot be changed from {2} to {3}").format(
+					frappe.bold(self.fieldname), self.dt, old_fieldtype, self.fieldtype
+				)
 			)
 
 		if not self.fieldname:
@@ -260,9 +262,7 @@ class CustomField(Document):
 
 		if self.fieldname == self.insert_after:
 			frappe.throw(
-				_("Insert After cannot be set as {0}").format(
-					_(meta.get_label(self.insert_after), context=self.dt)
-				)
+				_("Insert After cannot be set as {0}").format(meta.get_translated_label(self.insert_after))
 			)
 
 	def get_permission_log_options(self, event=None):

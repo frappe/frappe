@@ -190,7 +190,7 @@ def get_milestones(doctype, name, start=0, limit=20):
 
 
 def get_attachments(dt, dn):
-	return frappe.get_all(
+	files = frappe.get_all(
 		"File",
 		fields=[
 			"name",
@@ -204,6 +204,40 @@ def get_attachments(dt, dn):
 		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
+	restricted = get_permlevel_restricted_fieldnames(dt)
+	if not restricted:
+		return files
+	return [f for f in files if f.attached_to_field not in restricted]
+
+
+def get_permlevel_restricted_fieldnames(dt) -> set:
+	"""Fieldnames (top-level and child table) whose permlevel the current user can't read."""
+	from frappe.desk.form.activity import readable_permlevels
+
+	if frappe.session.user == "Administrator":
+		return set()
+
+	meta = frappe.get_meta(dt)
+	all_fields = meta.fields.copy()
+	for table_field in meta.get_table_fields(include_computed=True):
+		all_fields += frappe.get_meta(table_field.options).fields or []
+
+	if all(df.permlevel == 0 for df in all_fields):
+		return set()
+
+	def restricted_fieldnames(field_meta, permitted):
+		if permitted is None:
+			return set()
+		return {df.fieldname for df in field_meta.fields or [] if df.permlevel not in permitted}
+
+	# a fieldname restricted in any table it appears in fails closed (dropped everywhere), since
+	# attached_to_field alone can't identify which table a given file's field actually came from
+	restricted = restricted_fieldnames(meta, readable_permlevels(meta))
+	for table_field in meta.get_table_fields(include_computed=True):
+		child_meta = frappe.get_meta(table_field.options)
+		restricted |= restricted_fieldnames(child_meta, readable_permlevels(child_meta, parenttype=dt))
+
+	return restricted
 
 
 @frappe.whitelist()
@@ -211,9 +245,12 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 	frappe.get_doc(dt, dn).check_permission("read")
 	filters = frappe.parse_json(filters)
 	if not isinstance(filters, list) or any(
-		not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in filters
+		not isinstance(filter_row, list)
+		or len(filter_row) != 4
+		or not all(isinstance(value, str) for value in filter_row[:3])
+		for filter_row in filters
 	):
-		frappe.throw(_("Filters must be a list of four-value filter rows."))
+		frappe.throw(_("Filters must be four-value rows with string doctypes, fields, and operators."))
 	if any(filter_row[0] != "File" for filter_row in filters):
 		frappe.throw(_("Attachment Gallery filters must target File."))
 
@@ -241,13 +278,17 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
-	return frappe.get_all(
+
+	from frappe.model.utils.mask import mask_version_data
+
+	versions = frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
 	)
+	return mask_version_data(versions, doc.doctype)
 
 
 @frappe.whitelist()

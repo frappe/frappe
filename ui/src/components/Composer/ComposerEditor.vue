@@ -27,7 +27,7 @@
 						class="flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
 					>
 						<EditorContent
-							class="prose-sm max-w-full flex-1 pb-8 pt-2 [&_p.reply-to-content]:hidden"
+							class="prose-sm max-w-full flex-1 pb-8 pt-4 [&_p.reply-to-content]:hidden"
 						/>
 						<!--
 							Quoted reply lives outside the editor: tiptap parses HTML into its
@@ -42,7 +42,7 @@
 							@toggle="onQuoteToggle"
 						>
 							<summary
-								class="w-fit cursor-pointer select-none rounded px-1 text-sm leading-none text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
+								class="w-fit cursor-pointer select-none rounded px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
 							>
 								•••
 							</summary>
@@ -56,24 +56,23 @@
 					</div>
 
 					<div class="mt-auto">
-						<div
-							v-if="attachments.length"
-							ref="attachmentRow"
-							class="my-2 flex overflow-x-auto gap-2 px-2.5"
-						>
+						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2 px-2.5">
 							<Button
 								v-for="attachment in attachments"
 								:key="attachment.file_url"
 								theme="gray"
 								variant="subtle"
-								:label="compactAttachments ? undefined : attachment.file_name"
+								:label="attachment.file_name"
 								:title="attachment.file_name"
-								:class="compactAttachments ? 'w-8 shrink-0' : 'min-w-0 max-w-36'"
+								class="min-w-0 max-w-36"
 							>
 								<template #prefix>
-									<LucideFileImage class="size-3.5 shrink-0" />
+									<component
+										:is="attachmentIcon(attachment)"
+										class="size-3.5 shrink-0"
+									/>
 								</template>
-								<template v-if="!compactAttachments" #suffix>
+								<template #suffix>
 									<span
 										class="lucide-x size-3.5 cursor-pointer shrink-0"
 										@click.self.stop="removeAttachment(attachment)"
@@ -83,21 +82,24 @@
 						</div>
 
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<div class="relative overflow-hidden" style="max-width: 70%">
+							<div class="relative -ml-1.5 overflow-hidden" style="max-width: 70%">
 								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
-									class="flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+									ref="toolbarScroller"
+									class="ml-1 flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
-									<button
+									<Button
 										v-if="uploadFunction"
-										type="button"
+										variant="ghost"
+										size="sm"
+										:icon="LucidePaperclip"
 										aria-label="Attach file"
-										class="flex shrink-0 rounded p-1 text-ink-gray-8 transition-colors hover:bg-surface-gray-3 disabled:opacity-50"
-										:disabled="isUploading"
+										class="shrink-0"
+										:disabled="
+											isUploading || attachments.length >= maxAttachments
+										"
 										@click="attachInput?.click()"
-									>
-										<LucidePaperclip class="h-4 w-4" />
-									</button>
+									/>
 									<input
 										ref="attachInput"
 										type="file"
@@ -108,9 +110,27 @@
 										name="actions"
 										v-bind="{ addAttachment, setUploading }"
 									/>
+									<!-- Same divider the menu uses between its own sections. -->
+									<span
+										v-if="uploadFunction || $slots.actions"
+										class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
+										aria-hidden="true"
+									/>
 									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
 								</div>
 								<div
+									v-show="!toolbarArrived.left"
+									class="pointer-events-none absolute inset-y-0 left-0 w-8"
+									style="
+										background: linear-gradient(
+											to right,
+											var(--surface-base, white),
+											transparent
+										);
+									"
+								/>
+								<div
+									v-show="!toolbarArrived.right"
 									class="pointer-events-none absolute inset-y-0 right-0 w-8"
 									style="
 										background: linear-gradient(
@@ -122,7 +142,7 @@
 								/>
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
-								<Button label="Discard" :disabled="isEmpty" @click="reset" />
+								<Button v-if="!isEmpty" label="Discard" @click="reset" />
 								<Button
 									variant="solid"
 									:label="submitLabel"
@@ -140,8 +160,16 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
+import { useScroll } from "@vueuse/core";
 import { Button, toast } from "frappe-ui";
+import LucideFile from "~icons/lucide/file";
+import LucideFileArchive from "~icons/lucide/file-archive";
+import LucideFileAudio from "~icons/lucide/file-audio";
+import LucideFileCode from "~icons/lucide/file-code";
 import LucideFileImage from "~icons/lucide/file-image";
+import LucideFileSpreadsheet from "~icons/lucide/file-spreadsheet";
+import LucideFileText from "~icons/lucide/file-text";
+import LucideFileVideo from "~icons/lucide/file-video";
 import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
@@ -203,6 +231,7 @@ const emailToolbar = [
 const props = withDefaults(defineProps<ComposerEditorProps>(), {
 	placeholder: "Type your message…",
 	submitLabel: "Send",
+	maxAttachments: 10,
 });
 
 const emit = defineEmits<{
@@ -215,6 +244,10 @@ const emit = defineEmits<{
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const editor = computed(() => editorRef.value?.editor);
 
+// Edge fades track scroll position so each side fades only while clipped.
+const toolbarScroller = useTemplateRef<HTMLElement>("toolbarScroller");
+const { arrivedState: toolbarArrived } = useScroll(toolbarScroller);
+
 const mentionItems = computed(() =>
 	(props.mentions ?? []).map((option) => ({
 		id: option.value,
@@ -222,12 +255,14 @@ const mentionItems = computed(() =>
 	}))
 );
 
-// Built once so the editor isn't torn down on change; reactive bits thread in via getters.
+// Built once so the editor isn't torn down on change; reactive bits thread in via
+// getters. Host extensions land after RichTextKit so they can override its defaults.
 const extensions = [
 	RichTextKit.configure({
 		heading: { levels: [2, 3, 4, 5, 6] },
 		mention: { items: () => mentionItems.value },
 	}),
+	...(props.extensions ?? []),
 ];
 
 const body = defineModel<string>("body", { default: "" });
@@ -310,27 +345,28 @@ function buildMessage() {
 
 const attachments = ref<UploadedFile[]>([]);
 const isUploading = ref(false);
-const attachmentRow = useTemplateRef<HTMLElement>("attachmentRow");
-const compactAttachments = ref(false);
-
-watch(attachmentRow, (el, _prev, onCleanup) => {
-	if (!el) return;
-	const observer = new ResizeObserver(() => {
-		compactAttachments.value = el.scrollWidth > el.clientWidth;
-	});
-	observer.observe(el);
-	onCleanup(() => observer.disconnect());
-});
-
-watch(attachments, () => {
-	nextTick(() => {
-		const el = attachmentRow.value;
-		if (el) compactAttachments.value = el.scrollWidth > el.clientWidth;
-	});
-});
-
 function addAttachment(file: UploadedFile) {
+	if (attachments.value.length >= props.maxAttachments) {
+		toast.error(`Attachment limit reached (${props.maxAttachments}).`);
+		return;
+	}
 	attachments.value.push(file);
+}
+
+// Chip icon by MIME type.
+function attachmentIcon(file: UploadedFile) {
+	const type = file.file_type ?? "";
+	if (type.startsWith("image/")) return LucideFileImage;
+	if (type.startsWith("video/")) return LucideFileVideo;
+	if (type.startsWith("audio/")) return LucideFileAudio;
+	if (type.includes("csv") || type.includes("sheet") || type.includes("excel"))
+		return LucideFileSpreadsheet;
+	if (type.includes("zip") || type.includes("tar") || type.includes("compressed"))
+		return LucideFileArchive;
+	if (type.includes("json") || type.includes("xml") || type.includes("html"))
+		return LucideFileCode;
+	if (type.includes("pdf") || type.startsWith("text/")) return LucideFileText;
+	return LucideFile;
 }
 
 function setUploading(value: boolean) {

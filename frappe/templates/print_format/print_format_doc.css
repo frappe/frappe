@@ -34,6 +34,13 @@
 	page-break-inside: avoid;
 }
 
+/* Long-content fields (Terms, notes) opt into flowing across a page boundary
+   instead of jumping whole and leaving the previous page half empty */
+.print-format-doc .field.field--breakable {
+	break-inside: auto;
+	page-break-inside: auto;
+}
+
 /* Stacked (default): muted label above value */
 .print-format-doc .field .label {
 	font-size: 1em;
@@ -210,11 +217,14 @@
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
-.print-format-doc .child-table .table tbody tr:last-child td:first-child {
+/* bordered tables close their bottom corners through the .table-foot cap, so
+   the last body row must not also round them — two curved closes stack into a
+   doubled bottom edge otherwise */
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:first-child {
 	border-bottom-left-radius: var(--pfb-radius, 0);
 }
 
-.print-format-doc .child-table .table tbody tr:last-child td:last-child {
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:last-child {
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
@@ -467,6 +477,15 @@
 .print-format-doc .row-col-right-end .col {
 	flex: 0 1 auto !important;
 	width: auto !important;
+}
+
+/* The shared Redesign print style gives .letter-head a 30px bottom margin for
+   classic formats. Builder layouts space the letterhead through their own
+   section margins, so neutralise it here. body. outranks the print style's
+   .print-format .letter-head, which is injected after this bundle. */
+body.print-format-doc .letter-head,
+.wrapper.print-format-doc .letter-head {
+	margin-bottom: 0;
 }
 
 /* Keep letterhead images from overflowing their box. The .letter-head selector

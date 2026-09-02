@@ -397,8 +397,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return false;
 		}
 
-		// validation hack: get_values will check for missing data
-		let doc_values = super.get_values(this.allow_incomplete);
+		// validation hack: get_values will check for missing and invalid data
+		let doc_values = super.get_values(this.allow_incomplete, true);
 
 		if (!doc_values) return false;
 
