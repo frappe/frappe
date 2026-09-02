@@ -219,7 +219,7 @@ class TestBackfill(IntegrationTestCase):
 		with driver.read(blob.key) as stream:
 			self.assertEqual(stream.read(), content)
 
-	def test_same_hash_rows_share_one_blob(self):
+	def test_identical_bytes_share_one_blob(self):
 		content = unique_content(b"backfill-dedup-")
 		content_hash = frappe.generate_hash(length=16)
 		first = self.make_legacy_file(content, content_hash=content_hash)
@@ -232,6 +232,29 @@ class TestBackfill(IntegrationTestCase):
 		first_blob = self.reload(first).blob
 		self.assertTrue(first_blob)
 		self.assertEqual(self.reload(second).blob, first_blob)
+
+	def test_rows_sharing_a_stale_content_hash_keep_their_own_bytes(self):
+		"""Legacy content_hash is MD5 and can be stale: never group on it."""
+		content_hash = frappe.generate_hash(length=16)
+		first_content = unique_content(b"backfill-collide-a-")
+		second_content = unique_content(b"backfill-collide-b-")
+		first = self.make_legacy_file(first_content, content_hash=content_hash)
+		second = self.make_legacy_file(second_content, content_hash=content_hash)
+
+		stats = backfill.run(filters=self.filters())
+
+		self.assertEqual(stats["blobs_created"], 2)
+		first_blob = frappe.get_doc("File Blob", self.reload(first).blob)
+		second_blob = frappe.get_doc("File Blob", self.reload(second).blob)
+		self.assertNotEqual(first_blob.name, second_blob.name)
+		self.assertEqual(first_blob.checksum, hashlib.sha256(first_content).hexdigest())
+		self.assertEqual(second_blob.checksum, hashlib.sha256(second_content).hexdigest())
+
+		driver = frappe.storage.get_driver("local")
+		with driver.read(first_blob.key) as stream:
+			self.assertEqual(stream.read(), first_content)
+		with driver.read(second_blob.key) as stream:
+			self.assertEqual(stream.read(), second_content)
 
 	def test_missing_disk_file_is_skipped_and_logged(self):
 		missing = self.make_legacy_file(create_bytes=False)

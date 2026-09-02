@@ -3,8 +3,8 @@
 """Backfill File Blob rows for legacy File rows.
 
 Groups legacy rows (no blob, non-folder, non-remote, local ``file_url``)
-by ``(content_hash, is_private)`` and creates one Ready ``local`` blob
-per group. Bytes are NOT moved: the blob key points at the legacy path,
+by ``(path, is_private)`` and creates one Ready ``local`` blob per
+group. Bytes are NOT moved: the blob key points at the legacy path,
 and ``file_url`` stays unchanged. Rows link to the blob through plain
 ``db.set_value`` (no doc events). Missing or unreadable disk files are
 logged and skipped. Idempotent: linked rows are not refetched and
@@ -74,7 +74,7 @@ def get_legacy_rows(limit: int, after_name: str, filters: dict | None) -> list[d
 			["file_url", "like", PUBLIC_PREFIX + "%"],
 			["file_url", "like", PRIVATE_PREFIX + "%"],
 		],
-		fields=["name", "file_url", "is_private", "content_hash"],
+		fields=["name", "file_url", "is_private"],
 		order_by="name asc",
 		limit=limit,
 	)
@@ -87,9 +87,12 @@ def process_row(row, blob_cache: dict, stats: dict, logger) -> None:
 		return
 	is_private, rel_path = located
 
-	# one blob per (content_hash, is_private) group; rows without a
-	# content_hash are hashed individually
-	group = (row.content_hash or row.name, is_private)
+	# Cache by resolved path, never by the legacy content_hash: that hash
+	# is MD5 and may be stale, so two rows can share it while their bytes
+	# differ. Rows that share a path share bytes by definition. Distinct
+	# paths are hashed and still collapse onto one blob through the
+	# SHA-256 dedup lookup in find_or_create_blob.
+	group = (rel_path, is_private)
 	blob_name = blob_cache.get(group)
 	if not blob_name:
 		blob_name = find_or_create_blob(rel_path, is_private, row, stats, logger)
