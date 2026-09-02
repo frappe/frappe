@@ -360,6 +360,4 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.assertFalse(file.get("blob"))
 			self.assertTrue(file.file_url.startswith("/files/"))
 			self.assertFalse(file.file_url.startswith("/files/blobs/"))
-			self.assertFalse(
-				frappe.db.exists("File Blob", {"checksum": hashlib.sha256(content).hexdigest()})
-			)
+			self.assertFalse(frappe.db.exists("File Blob", {"checksum": hashlib.sha256(content).hexdigest()}))

@@ -40,8 +40,8 @@ def fake() -> Iterator[MemoryDriver]:
 	Usage::
 
 	        with frappe.storage.fake() as store:
-	                blob = put_blob(io.BytesIO(b"hello"), is_private=True)
-	                assert store.exists(blob.key, is_private=True)
+	            blob = put_blob(io.BytesIO(b"hello"), is_private=True)
+	            assert store.exists(blob.key, is_private=True)
 
 	The previous driver is restored on exit. No test touches
 	``sites/<site>/public/files``."""

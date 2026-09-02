@@ -698,9 +698,7 @@ class File(Document):
 		self.file_size = self.check_max_file_size()
 		self.content_hash = get_content_hash(self._content)
 
-		return self._store_content(
-			ignore_existing_file_check=ignore_existing_file_check, overwrite=overwrite
-		)
+		return self._store_content(ignore_existing_file_check=ignore_existing_file_check, overwrite=overwrite)
 
 	def check_max_file_size(self):
 		from frappe.core.api.file import get_max_file_size

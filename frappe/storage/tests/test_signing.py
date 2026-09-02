@@ -86,9 +86,7 @@ class TestSigning(IntegrationTestCase):
 
 		self.assertTrue(url.startswith(f"/f/{blob.name}/hello%20world.txt?"))
 		query = parse_qs(urlparse(url).query)
-		self.assertTrue(
-			verify_signature(blob.name, "hello world.txt", query["e"][0], query["s"][0])
-		)
+		self.assertTrue(verify_signature(blob.name, "hello world.txt", query["e"][0], query["s"][0]))
 
 	def test_native_url_preferred(self):
 		blob = self.make_blob(b"native url content")

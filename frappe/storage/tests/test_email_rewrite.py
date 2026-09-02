@@ -14,8 +14,8 @@ from frappe.storage.email import (
 	rewrite_text_urls_for_email,
 	rewrite_urls_for_email,
 )
-from frappe.storage.url import verify_signature
 from frappe.storage.tests import reset_file_controller
+from frappe.storage.url import verify_signature
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_url
 
@@ -119,7 +119,9 @@ class TestEmailRewrite(IntegrationTestCase):
 			rewritten = rewrite_urls_for_email(html)
 
 		self.assertNotEqual(rewritten, html)
-		blob_name, filename, expires, signature = self.parse_signed(SIGNED_F_URL.search(rewritten).group("url"))
+		blob_name, filename, expires, signature = self.parse_signed(
+			SIGNED_F_URL.search(rewritten).group("url")
+		)
 		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
 
 	def test_already_signed_url_untouched(self):
@@ -174,7 +176,11 @@ class TestEmailRewrite(IntegrationTestCase):
 		with storage_v2_enabled():
 			# stub account: the test site has no outgoing Email Account
 			html = get_formatted_html(
-				"Test Subject", message, email_account=frappe._dict(name="Stub Email Account"), raw_html=True, add_css=False
+				"Test Subject",
+				message,
+				email_account=frappe._dict(name="Stub Email Account"),
+				raw_html=True,
+				add_css=False,
 			)
 
 		match = SIGNED_F_URL.search(html)

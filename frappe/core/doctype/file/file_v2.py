@@ -101,9 +101,7 @@ class FileV2(File):
 		# validate() also lands here for docs rebuilt from a dict, where
 		# has_value_changed() is True without a real change (no before-save
 		# doc); only an actual privacy change repoints the blob
-		if self.name and cint(self.is_private) == cint(
-			frappe.db.get_value("File", self.name, "is_private")
-		):
+		if self.name and cint(self.is_private) == cint(frappe.db.get_value("File", self.name, "is_private")):
 			return
 
 		old_file_url = self.file_url
@@ -251,9 +249,7 @@ def create_file_from_blob(
 		frappe.throw(_("Blob {0} is not ready").format(blob.name))
 
 	if cint(blob.is_private) != cint(is_private):
-		frappe.throw(
-			_("Blob {0} privacy does not match the requested file privacy").format(blob.name)
-		)
+		frappe.throw(_("Blob {0} privacy does not match the requested file privacy").format(blob.name))
 
 	file = frappe.new_doc("File")
 	file.update(

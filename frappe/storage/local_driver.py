@@ -32,11 +32,7 @@ class LocalDriver(StorageDriver):
 		blobs_dir = os.path.realpath(self.get_blobs_dir(is_private))
 		files_root = os.path.dirname(blobs_dir)
 		path = os.path.realpath(os.path.join(blobs_dir, key))
-		if (
-			os.path.isabs(key)
-			or path == files_root
-			or os.path.commonpath((files_root, path)) != files_root
-		):
+		if os.path.isabs(key) or path == files_root or os.path.commonpath((files_root, path)) != files_root:
 			raise ValueError(f"Invalid storage key: {key}")
 		return path
 

@@ -143,7 +143,9 @@ def finish_upload(
 	meta_path = claim_session(meta_path)
 
 	if direct:
-		blob = store_direct_upload(upload_id, temp_is_private, is_private=bool(is_private), filename=file_name)
+		blob = store_direct_upload(
+			upload_id, temp_is_private, is_private=bool(is_private), filename=file_name
+		)
 	else:
 		with open(part_path, "rb") as stream:
 			blob = put_blob(stream, is_private=bool(is_private), filename=file_name)

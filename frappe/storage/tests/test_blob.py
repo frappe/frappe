@@ -40,9 +40,7 @@ class TestPutBlob(IntegrationTestCase):
 			second = self.put(content, is_private=True)
 
 			self.assertEqual(first.name, second.name)
-			self.assertEqual(
-				frappe.db.count("File Blob", {"checksum": first.checksum, "is_private": 1}), 1
-			)
+			self.assertEqual(frappe.db.count("File Blob", {"checksum": first.checksum, "is_private": 1}), 1)
 
 	def test_public_and_private_get_distinct_blobs(self):
 		content = unique_content()

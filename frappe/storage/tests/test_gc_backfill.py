@@ -257,6 +257,4 @@ class TestBackfill(IntegrationTestCase):
 		self.assertEqual(second["linked"], 0)
 		self.assertEqual(second["blobs_created"], 0)
 		self.assertEqual(self.reload(legacy).blob, blob_name)
-		self.assertEqual(
-			frappe.db.count("File Blob", {"key": ("like", f"../{self.prefix}%")}), 1
-		)
+		self.assertEqual(frappe.db.count("File Blob", {"key": ("like", f"../{self.prefix}%")}), 1)

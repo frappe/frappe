@@ -87,7 +87,9 @@ def delete_blob(blob, cutoff, logger, stats: dict) -> bool:
 		driver.delete(blob.key, is_private=bool(blob.is_private))
 	except Exception:
 		stats["bytes_delete_errors"] += 1
-		logger.warning(f"storage gc: could not delete bytes of blob {blob.name} (key {blob.key})", exc_info=True)
+		logger.warning(
+			f"storage gc: could not delete bytes of blob {blob.name} (key {blob.key})", exc_info=True
+		)
 		return False
 
 	try:

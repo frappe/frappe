@@ -78,8 +78,9 @@ class TestS3DriverConfig(IntegrationTestCase):
 			S3Driver()
 
 	def test_missing_config_raises(self):
-		with patch.object(frappe, "conf", frappe._dict()), self.assertRaisesRegex(
-			frappe.ValidationError, "bucket"
+		with (
+			patch.object(frappe, "conf", frappe._dict()),
+			self.assertRaisesRegex(frappe.ValidationError, "bucket"),
 		):
 			S3Driver()
 

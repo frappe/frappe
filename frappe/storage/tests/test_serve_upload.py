@@ -13,8 +13,9 @@ import frappe
 import frappe.storage
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.storage.blob import put_blob
-from frappe.storage.serve import serve_file
 from frappe.storage.memory_driver import MemoryDriver
+from frappe.storage.serve import serve_file
+from frappe.storage.tests import reset_file_controller
 from frappe.storage.upload import (
 	claim_session,
 	create_upload,
@@ -25,7 +26,6 @@ from frappe.storage.upload import (
 	upload_chunk,
 )
 from frappe.storage.url import make_signature
-from frappe.storage.tests import reset_file_controller
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
@@ -293,7 +293,7 @@ class TestServeUpload(IntegrationTestCase):
 	def test_claim_session_has_a_single_winner(self):
 		with flag_on(), frappe.storage.fake():
 			upload_id = self.open_session("race.txt", 4)
-			meta_path, part_path = get_session_paths(upload_id)
+			meta_path, _part_path = get_session_paths(upload_id)
 
 			claimed = claim_session(meta_path)
 			self.addCleanup(delete_session, claimed)
