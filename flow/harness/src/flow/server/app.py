@@ -6,6 +6,7 @@ are documented on `routes/sessions`."""
 
 from __future__ import annotations
 
+import logging
 import os
 import secrets
 from collections.abc import Sequence
@@ -26,7 +27,7 @@ from flow.server.request_limits import RequestSizeLimit
 from flow.server.routes.fs import create_fs_router
 from flow.server.routes.providers import create_providers_router
 from flow.server.routes.sessions import create_sessions_router
-from flow.server.tenants import Tenant
+from flow.server.tenants import Tenant, load_tenants
 from flow.server.utils.provider_auth import OAuthCoordinator
 from flow.session.attachments import AttachmentError
 from flow.session.session import ResumeError, RewindError, SessionConflict
@@ -39,6 +40,7 @@ def create_app(
 	*,
 	auth_token: str | None = None,
 	tenants: Sequence[Tenant] = (),
+	tenants_file: str | None = None,
 	cors_origins: list[str] | None = None,
 	webui_dir: str | None = None,
 	system_append: str | None = None,
@@ -48,7 +50,10 @@ def create_app(
 	(`flow web --append-system-prompt`); it lands after whatever the client sends.
 	`policy` gates tools and route groups; None means the permissive local default.
 	`tenants` turns on multi-tenant mode: each tenant token authenticates as its
-	site, and the request then acts on that site's own partition of `store`."""
+	site, and the request then acts on that site's own partition of `store`.
+	`tenants_file` is the path those tenants came from: when a token matches
+	nothing, the file is re-read, so sites added while the daemon runs (a signup
+	bench) are picked up without a restart."""
 	policy = policy or ServerPolicy()
 	if policy.require_auth and not auth_token and not tenants:
 		raise ValueError("this server policy requires auth; pass auth_token or tenants")
@@ -101,7 +106,39 @@ def create_app(
 		site = getattr(request.state, "site", None)
 		return session_store_by_tenant[site] if site else store
 
+	tenants = list(tenants)
+	tenants_mtime = _stat_mtime(tenants_file)
+
+	def refresh_tenants() -> None:
+		"""Re-read the tenants file so sites added while the daemon runs are picked
+		up without a restart. Called only when a token matches nothing, so the steady
+		state never stats the file; a broken file keeps the last good list."""
+		nonlocal tenants, tenants_mtime
+		if tenants_file is None:
+			return
+		mtime = _stat_mtime(tenants_file)
+		if mtime is None or mtime == tenants_mtime:
+			return
+		try:
+			fresh = load_tenants(tenants_file)
+		except (OSError, ValueError) as error:
+			logging.getLogger("flow").warning("tenants file reload failed, keeping the last good list: %s", error)
+			return
+		fresh_by_site = {tenant.site: tenant for tenant in fresh}
+		for old in tenants:
+			new = fresh_by_site.get(old.site)
+			if new is None or new.allowed_roots != old.allowed_roots:
+				session_store_by_tenant.pop(old.site, None)  # rebuilt on next match, if any
+		tenants = fresh
+		tenants_mtime = mtime
+
 	if auth_token or tenants:
+
+		def match_tenant(supplied: str) -> Tenant | None:
+			for tenant in tenants:
+				if secrets.compare_digest(supplied.encode(), tenant.token.encode()):
+					return tenant
+			return None
 
 		@app.middleware("http")
 		async def authenticate(request: Request, call_next):
@@ -120,10 +157,18 @@ def create_app(
 			if scheme.lower() == "bearer":
 				if auth_token and secrets.compare_digest(supplied.encode(), auth_token.encode()):
 					return await call_next(request)
-				for tenant in tenants:
-					if secrets.compare_digest(supplied.encode(), tenant.token.encode()):
-						request.state.site = tenant.site  # scopes this request to the site
-						return await call_next(request)
+				tenant = match_tenant(supplied)
+				if tenant is None and tenants_file:
+					refresh_tenants()
+					tenant = match_tenant(supplied)
+				if tenant is not None:
+					if tenant.site not in session_store_by_tenant:
+						# a site added after startup gets its partition on first use
+						session_store_by_tenant[tenant.site] = store.for_site(
+							tenant.site, tenant.allowed_roots
+						)
+					request.state.site = tenant.site  # scopes this request to the site
+					return await call_next(request)
 			return JSONResponse({"detail": "unauthorized"}, status_code=401)
 	else:
 		# Tokenless mode trusts the local machine, so browsers are the threat:
@@ -182,3 +227,12 @@ def create_app(
 		app.mount("/", StaticFiles(directory=webui_dir, html=True), name="webui")
 
 	return app
+
+
+def _stat_mtime(path: str | None) -> int | None:
+	if not path:
+		return None
+	try:
+		return os.stat(path).st_mtime_ns
+	except OSError:
+		return None

@@ -153,6 +153,46 @@ def test_tenants_satisfy_deployed_auth(tmp_path):
 	assert r.json()["config"]["tools"] == ["read_file", "grep"]
 
 
+def _entry(root, token="token-one") -> dict:
+	return {"token": token, "allowed_roots": [str(root)]}
+
+
+def _live_client(tmp_path, sites: dict) -> tuple[TestClient, object]:
+	path = tmp_path / "tenants.json"
+	path.write_text(json.dumps(sites))
+	client = TestClient(create_app(_store(tmp_path), tenants=load_tenants(str(path)), tenants_file=str(path)))
+	return client, path
+
+
+def test_new_site_in_tenants_file_works_without_restart(tmp_path):
+	c, path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
+	assert c.get("/sessions", headers=_auth("token-two")).status_code == 401
+	path.write_text(
+		json.dumps({"site1.localhost": _entry(tmp_path), "site2.localhost": _entry(tmp_path, "token-two")})
+	)
+	r = c.post("/sessions", json={"cwd": str(tmp_path)}, headers=_auth("token-two"))
+	assert r.status_code == 200
+	assert c.get("/sessions", headers=_auth("token-one")).status_code == 200
+
+
+def test_broken_tenants_reload_keeps_the_last_good_list(tmp_path):
+	c, path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
+	path.write_text("not json")
+	assert c.get("/sessions", headers=_auth("nope")).status_code == 401
+	assert c.get("/sessions", headers=_auth("token-one")).status_code == 200
+
+
+def test_tenants_reload_applies_changed_roots(tmp_path):
+	inside = tmp_path / "inside"
+	inside.mkdir()
+	c, path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
+	assert c.post("/sessions", json={"cwd": str(tmp_path)}, headers=_auth("token-one")).status_code == 200
+	path.write_text(json.dumps({"site1.localhost": _entry(inside)}))
+	assert c.get("/sessions", headers=_auth("bogus")).status_code == 401  # triggers the reload
+	assert c.post("/sessions", json={"cwd": str(tmp_path)}, headers=_auth("token-one")).status_code == 400
+	assert c.post("/sessions", json={"cwd": str(inside)}, headers=_auth("token-one")).status_code == 200
+
+
 def _serve_args(tmp_path) -> Namespace:
 	return Namespace(
 		host="127.0.0.1",

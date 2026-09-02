@@ -264,7 +264,13 @@ def _serve(args) -> None:
 		callback_hosts=policy.callback_hosts,
 	)
 	_report_extension_diagnostics(store)
-	app = create_app(store, auth_token=auth_token, tenants=tenants, policy=policy)
+	app = create_app(
+		store,
+		auth_token=auth_token,
+		tenants=tenants,
+		tenants_file=config.TENANTS_FILE or None,
+		policy=policy,
+	)
 	if args.parent_watch:
 		from flow.cli.daemon import watch_parent_stdin
 
