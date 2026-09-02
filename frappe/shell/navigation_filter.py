@@ -259,6 +259,24 @@ class NavigationContext:
 	def page_is_permitted(self, page: str | None) -> bool:
 		return bool(page) and (self.administrator or page in self.permitted_pages)
 
+	def address_is_offered(self, link_doctype: str | None, link_to: str | None) -> bool:
+		"""Whether a whole sidebar's address survives this user's own vetoes.
+
+		The block only, and not the two questions `module_is_offered` asks. A module sidebar may
+		link outside its own module — 101 of ERPNext's rows do — so asking about the module's
+		*contents* here would empty a sidebar whose rows are all fine.
+
+		It lands on the address rather than on the rail item because that is what keeps it one
+		rule: a module sidebar is addressed at its `Module Def`, so the block has something to
+		name, and the rail item then goes on its own through the `Derived From Children` cascade
+		(#42423). Without it the veto misses every module-primary rail, since such a rail reaches
+		a module through a `Sidebar` item whose rows are `DocType` items.
+		"""
+		if link_doctype != "Module Def":
+			return True
+
+		return bool(link_to) and link_to not in self.blocked_modules
+
 	@cached_property
 	def readable_doctypes(self) -> set[str]:
 		"""`get_doctypes_with_read() | get_shared_doctypes()`, once.

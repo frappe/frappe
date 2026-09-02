@@ -34,6 +34,7 @@ import frappe
 from frappe import _
 
 from .navigation import SITE_LAYER, resolve_navigation, resolve_rail, resolve_sidebar
+from .navigation_filter import NavigationContext
 from .permissions import has_app_permission
 
 # The two containers, and what each needs to find or write a layer. `field` is the table the
@@ -206,6 +207,21 @@ def _target(container: str, address: str, scope: str) -> Target:
 		app, link_doctype, link_to = _sidebar_address(address)
 		resolve = partial(resolve_sidebar, link_doctype, link_to, check_permission=check_permission)
 		stored |= {"app": app, "link_doctype": link_doctype, "link_to": link_to}
+
+		# A sidebar this person's blocked module takes away resolves to nothing, and a save
+		# against nothing is a **delete**: the reduction drops every submitted row and `_write`
+		# reads an empty one as "drop the layer". So an editor still open when the block landed
+		# would quietly destroy an arrangement its owner cannot see to rebuild. Refused rather
+		# than special-cased in the reducer, because the honest answer to "arrange this" is that
+		# there is no longer a list to arrange. Site scope bypasses this with the rest of the
+		# filter, since the block is one person's and the site's list is everybody's.
+		if check_permission and not NavigationContext("").address_is_offered(link_doctype, link_to):
+			frappe.throw(
+				_("{0} is not available to you, so there is nothing here to arrange.").format(
+					frappe.bold(link_to)
+				),
+				title=_("Nothing to Arrange"),
+			)
 
 	# Before the gate, because `has_app_permission` falls back to "is a System User" for an app
 	# that declares no `app_permission` hook -- and an app that is not on the bench declares

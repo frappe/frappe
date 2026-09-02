@@ -180,6 +180,12 @@ def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict
 	resolved = {}
 
 	for address in addresses:
+		# Before the rows and before the layers, because a blocked module ships nothing and no
+		# layer may put it back (#42323). The rows would each survive on their own: they are
+		# `DocType` items, and the block deliberately does not cascade down to them.
+		if not context.address_is_offered(*address):
+			continue
+
 		by_layer = layers.get(address, {})
 		base = by_layer.get("standard", [])
 		items = _merge(base, _upto(by_layer, "user"), context=context)
@@ -209,15 +215,20 @@ def resolve_sidebar(
 	pre-mount path. The arrangement editor is the other kind of caller: it is holding one sidebar
 	and paying one request for it, so it reads that one.
 	"""
+	# No app to build a context for, and none needed: a sidebar's own rows are filtered on their
+	# buckets alone, and the one rule that reaches across containers runs on the rail.
+	context = NavigationContext("") if check_permission else None
+
+	if context is not None and not context.address_is_offered(link_doctype, link_to):
+		return []
+
 	by_layer = _sidebar_layers([(link_doctype, link_to)]).get((link_doctype, link_to), {})
 
 	return _merge(
 		by_layer.get("standard", []),
 		_upto(by_layer, upto),
 		keep_hidden=keep_hidden,
-		# No app to build a context for, and none needed: a sidebar's own rows are filtered on
-		# their buckets alone, and the one rule that reaches across containers runs on the rail.
-		context=NavigationContext("") if check_permission else None,
+		context=context,
 	)
 
 
