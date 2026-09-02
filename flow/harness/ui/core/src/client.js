@@ -74,6 +74,10 @@ export class DaemonClient {
 	previewSkills(config = {}) {
 		return this.request("POST", "/skills", { body: config })
 	}
+	// built-in and extension tools a session may enable under the daemon's policy
+	tools() {
+		return this.request("GET", "/tools")
+	}
 	// skill files under the global root and, with a cwd, the project's
 	skillFiles(cwd = null) {
 		return this.request("GET", "/skills", { params: cwd ? { cwd } : {} })

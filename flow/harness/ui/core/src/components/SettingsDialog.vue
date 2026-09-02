@@ -60,6 +60,10 @@
 				<SettingsSkills />
 			</SettingsPanel>
 
+			<SettingsPanel value="presets" class="min-w-0">
+				<SettingsPresets />
+			</SettingsPanel>
+
 			<SettingsPanel value="appearance" class="min-w-0">
 				<div class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
 					<h2 class="text-xl font-semibold text-ink-gray-9">Appearance</h2>
@@ -92,6 +96,7 @@ import {
 import { Textarea } from "frappe-ui/src/components/Textarea"
 import { ThemeSwitcher } from "frappe-ui/src/components/ThemeSwitcher"
 import FeatherIcon from "./FeatherIcon.vue"
+import SettingsPresets from "./SettingsPresets.vue"
 import SettingsSkills from "./SettingsSkills.vue"
 
 const flow = inject("flow")
@@ -114,6 +119,7 @@ function save() {
 const SECTIONS = [
 	{ id: "general", label: "General", icon: "sliders" },
 	{ id: "appearance", label: "Appearance", icon: "sun" },
+	{ id: "presets", label: "Agent presets", icon: "layers" },
 	{ id: "skills", label: "Skills", icon: "book-open" },
 ]
 const MODES = [

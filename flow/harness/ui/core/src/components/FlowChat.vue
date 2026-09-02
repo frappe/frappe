@@ -84,6 +84,7 @@ watch(
 
 onMounted(async () => {
 	props.store.refreshModels()
+	props.store.refreshTools()
 	await props.store.refreshSessions()
 	// a refresh mid-session returns to that session, not to a blank chat
 	const last = props.store.state.prefs.lastSession

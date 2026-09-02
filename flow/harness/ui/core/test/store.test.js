@@ -358,3 +358,65 @@ test("a theme saved in the old prefs moves to frappe-ui's storage key", () => {
 		globalThis.localStorage = previousStorage
 	}
 })
+
+function sessionClient(configs) {
+	return {
+		async createSession(config) {
+			configs.push(config)
+			return { session_id: `s${configs.length}`, config: { model: config.model ?? "mock" } }
+		},
+		async setModel(sid, body) {
+			configs.at(-1).effort = body.reasoning_effort
+		},
+		async sessions() {
+			return { sessions: [] }
+		},
+		async session(sid) {
+			return { session_id: sid, config: { cwd: "." }, events: [] }
+		},
+		async events() {
+			return { events: [] }
+		},
+		stream() {
+			return { close() {}, [Symbol.asyncIterator]: async function* () {} }
+		},
+	}
+}
+
+test("the active preset shapes new sessions and joins the custom instructions", async () => {
+	const configs = []
+	const flow = createFlowStore(sessionClient(configs))
+	flow.setCustomInstructions("Be brief.")
+	const id = flow.savePreset({
+		name: "Reviewer",
+		tools: ["read_file", "grep"],
+		extensionTools: ["hello"],
+		promptMode: "append",
+		prompt: "Review for risks.",
+	})
+	flow.setActivePreset(id)
+	await flow.newSession()
+	assert.deepEqual(configs[0].tools, ["read_file", "grep"])
+	assert.deepEqual(configs[0].extension_tools, ["hello"])
+	assert.equal(configs[0].system_suffix, "Review for risks.\n\nBe brief.")
+	assert.equal("system_preamble" in configs[0], false)
+	// model, thinking, and approval come from the chat, never the preset
+	assert.equal(configs[0].auto_approve, false)
+	assert.equal("model" in configs[0], false)
+	assert.equal("effort" in configs[0], false)
+	assert.equal(flow.state.sessionPresets.s1, id) // remembered per chat, for the settings tab
+
+	flow.savePreset({ ...flow.activePreset(), promptMode: "replace" })
+	await flow.newSession()
+	assert.equal(configs[1].system_preamble, "Review for risks.")
+	assert.equal(configs[1].system_suffix, "Be brief.")
+
+	flow.deletePreset(id)
+	assert.equal(flow.state.prefs.activePreset, null)
+	assert.equal("s1" in flow.state.sessionPresets, false) // the chat's record goes with the preset
+	await flow.newSession()
+	assert.equal("tools" in configs[2], false)
+	assert.equal("extension_tools" in configs[2], false)
+	assert.equal(configs[2].system_suffix, "Be brief.")
+	assert.equal("s3" in flow.state.sessionPresets, false)
+})
