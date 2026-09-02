@@ -36,7 +36,7 @@ from frappe.deprecation_dumpster import (
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from frappe.utils.html_utils import sanitize_html
+from frappe.utils.html_utils import sanitize_html, sanitize_html_payload
 
 if TYPE_CHECKING:
 	from werkzeug.test import Client
