@@ -23,8 +23,22 @@ Three things differ between the two, and each is a parameter:
 
 None of those is the merge itself, so the merge lives here and they are passed in as `key`,
 `apply_row` and `keep_unnamed`.
+
+Desk v2 arranges by a fourth rule, `anchored`. Its writer saves a person's move as an *anchor* --
+next to this row -- rather than as a position, so a layer names only what moved and everything
+else stays where the layer below it put it. The two rules cannot both be right for one surface:
+v1's positions the whole list from the rows a layer names, and desk v2's moves the named rows
+within a list it otherwise leaves alone. It is a parameter defaulted off, so v1's two callers are
+unchanged.
+
+Placement is at the bottom of this file rather than beside the merge, because the layer merge is
+not its only caller: `frappe/shell/extensions.py` places one app's rows into another app's rail by
+the same anchors, before any layer applies. Those are different phases of one resolution and they
+share exactly this -- given a list and some rows that want to sit next to something in it, produce
+one list.
 """
 
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -45,6 +59,7 @@ def resolve_layers(
 	key: Key,
 	apply_row: ApplyRow,
 	keep_unnamed: bool = True,
+	anchored: bool = False,
 ) -> tuple[list[dict], dict[str, bool]]:
 	"""Fold each layer into the one below it. Later layers win, for order and for hiding.
 
@@ -69,6 +84,10 @@ def resolve_layers(
 	`keep_unnamed` says what happens to an entry the layer never mentioned: kept after the ones it
 	did name (the sidebar), or dropped (the dock). See `apply_layer`.
 
+	`anchored` reads each row's `anchors` and moves only the rows that carry one, leaving the rest
+	of the list alone. It supersedes `keep_unnamed`, which has nothing left to decide once an
+	unnamed entry simply stays where it is.
+
 	The map is seeded from the base, so the base hides on the same terms as the layers above it:
 	an app may ship an entry off by default, and one row above naming that entry with hiding off
 	brings it back. The base used to be the one layer whose hiding was discarded, and seeding it
@@ -83,7 +102,13 @@ def resolve_layers(
 
 	for rows in layers:
 		resolved = apply_layer(
-			resolved, rows, hidden, key=key, apply_row=apply_row, keep_unnamed=keep_unnamed
+			resolved,
+			rows,
+			hidden,
+			key=key,
+			apply_row=apply_row,
+			keep_unnamed=keep_unnamed,
+			anchored=anchored,
 		)
 
 	return resolved, hidden
@@ -97,6 +122,7 @@ def apply_layer(
 	key: Key,
 	apply_row: ApplyRow,
 	keep_unnamed: bool = True,
+	anchored: bool = False,
 ) -> list[dict]:
 	"""Apply one layer's arrangement to `items`. Mutates `hidden`, which spans the layers.
 
@@ -113,6 +139,7 @@ def apply_layer(
 	base_keys = set(by_key)
 	arranged: list[str] = []
 	named: set[str] = set()
+	attempts: dict[str, list[dict]] = {}
 
 	for row in rows:
 		row_key = key(row)
@@ -132,8 +159,18 @@ def apply_layer(
 		arranged.append(row_key)
 		named.add(row_key)
 
+		if anchored:
+			# Read off the row rather than the entry. An anchor says where this *layer* wants the
+			# item, so it is the layer's own statement and not part of the item -- `apply_row`
+			# carries it into the entry only if the layer also declared it an override, which is
+			# a site turning a contributed row's anchor off and a different thing entirely.
+			attempts[row_key] = anchor_attempts(row.get("anchors"))
+
 	if not named:
 		return items
+
+	if anchored:
+		return anchor_layer(items, by_key, base_keys, arranged, attempts, key=key)
 
 	arranged_items = [by_key[row_key] for row_key in arranged]
 	# Entries the layer never named. The sidebar keeps them after the ones it did name, so an app
@@ -163,3 +200,230 @@ def apply_layer(
 		return unnamed + arranged_items
 
 	return arranged_items + unnamed
+
+
+def anchor_layer(
+	items: list[dict],
+	by_key: dict[str, dict],
+	base_keys: set[str],
+	arranged: list[str],
+	attempts: dict[str, list[dict]],
+	*,
+	key: Key,
+) -> list[dict]:
+	"""One layer applied by anchors: the list below, updated in place, then the moves.
+
+	The list keeps the order it arrived in. That is the whole difference from `apply_layer`'s
+	other half, and it is what makes a newly-shipped item land at its shipped position rather
+	than after everything a person has arranged: nothing but an anchored row moves, so an item
+	nobody moved is exactly where the layer below it put it.
+
+	A row the layer *added* has no place in that list to keep, so it is appended, in the order
+	the layer wrote its rows. Its anchors then move it like any other, and an added row whose
+	anchor does not resolve stays at the end -- the one case where the fallback is not a shipped
+	position, because it has none.
+	"""
+	merged = [by_key[key(item)] for item in items]
+	merged += [by_key[row_key] for row_key in arranged if row_key not in base_keys]
+
+	placed = [(by_key[row_key], attempts[row_key]) for row_key in arranged if attempts.get(row_key)]
+	if not placed:
+		return merged
+
+	# An overlay row was written against the very list it is being applied to, so a name it wrote
+	# is a key or it is nothing.
+	present = {key(item) for item in merged}
+	return place_by_anchors(
+		merged, placed, key=key, target_key=lambda _item, name: name if name in present else None
+	)
+
+
+# Placement
+#
+# An anchor is `{"after": key}`, `{"before": key}` or `{"parent_key": key}`, and a row carries an
+# ordered list of them: the first that resolves wins, and a row none of whose anchors resolve is
+# left where it already is. Two callers, two phases, one rule.
+#
+# What differs between them is only how a written name becomes a key in the list, so that is the
+# parameter. An overlay row names a key as it stands, because it was written against the very list
+# it is being applied to. A contributed row was written against a host its app cannot see, so its
+# names resolve to the host first and to the app's own namespaced rows second (#42364).
+
+
+Attempt = dict
+# `(item, written name) -> the key in the list it names, or a falsy value if there is none.`
+TargetKey = Callable[[Row, str], Any]
+
+
+def anchor_attempts(raw: Any) -> list[Attempt]:
+	"""A row's stored anchors, as an ordered list of well-formed attempts.
+
+	A malformed list is no anchors rather than an error. On a contributed row the reader of any
+	complaint would be the wrong person, since an app writes anchors against a host it cannot see;
+	on an overlay row the writer is an endpoint, so a malformed one is a bug that shows up as an
+	item that did not move rather than as a save that failed. Either way the row still appears.
+
+	An attempt naming both `after` and `before` names two positions and so names none. It is
+	dropped rather than resolved by precedence, because picking one would make a typo into a
+	silent placement nobody wrote.
+	"""
+	try:
+		anchors = json.loads(raw or "[]") if isinstance(raw, str) else (raw or [])
+	except (TypeError, ValueError):
+		return []
+
+	if not isinstance(anchors, list):
+		return []
+
+	attempts = []
+
+	for anchor in anchors:
+		if not isinstance(anchor, dict):
+			continue
+
+		after, before, parent = anchor.get("after"), anchor.get("before"), anchor.get("parent_key")
+		if after and before:
+			continue
+		if not (after or before or parent):
+			continue
+
+		attempts.append({"after": after, "before": before, "parent_key": parent})
+
+	return attempts
+
+
+def place_by_anchors(
+	items: list[dict],
+	placed: list[tuple[dict, list[Attempt]]],
+	*,
+	key: Key,
+	target_key: TargetKey,
+) -> list[dict]:
+	"""Move each row in `placed` to the first position it asks for that resolves.
+
+	`placed` pairs a row that is already in `items` with its ordered attempts. It is a pair rather
+	than a read off the row because the two callers store anchors in different places: an
+	extension reads them off the contributed row, and a layer reads them off the layer row rather
+	than off the entry it resolved to.
+
+	`anchored` is the cycle guard and the whole of it: it records what each moved row was moved
+	next to, so an anchor whose target chain leads back to the row being placed is refused and the
+	next anchor is tried. Two rows naming each other is the case, and neither an exception nor an
+	arbitrary winner would be right -- falling through to the next anchor, and then to leaving the
+	row alone, is the same answer this gives every other unresolvable one.
+	"""
+	anchored: dict[str, str] = {}
+
+	for item, attempts in placed:
+		attempt = _first_resolving(item, attempts, key=key, target_key=target_key, anchored=anchored)
+		if attempt is None:
+			continue
+
+		_place(items, item, attempt, key=key)
+		anchored[key(item)] = attempt["target"]
+
+	return items
+
+
+def _first_resolving(
+	item: dict, attempts: list[Attempt], *, key: Key, target_key: TargetKey, anchored: dict[str, str]
+) -> dict | None:
+	"""The first of this row's anchors whose every named key is present and not circular."""
+	for attempt in attempts:
+		resolved = _resolve(item, attempt, key=key, target_key=target_key, anchored=anchored)
+		if resolved:
+			return resolved
+
+	return None
+
+
+def _resolve(
+	item: dict, attempt: Attempt, *, key: Key, target_key: TargetKey, anchored: dict[str, str]
+) -> dict | None:
+	"""One attempt against the finished list, or None if any key it names is not there."""
+	resolved = {"after": None, "before": None, "parent_key": None, "target": None}
+
+	for field in ("after", "before", "parent_key"):
+		name = attempt.get(field)
+		if not name:
+			continue
+
+		target = target_key(item, name)
+		if not target:
+			return None
+
+		if _leads_back(target, key(item), anchored):
+			return None
+
+		resolved[field] = target
+
+	resolved["target"] = resolved["after"] or resolved["before"] or resolved["parent_key"]
+	return resolved
+
+
+def _leads_back(target: str, key: str, anchored: dict[str, str]) -> bool:
+	"""Whether following what each row was anchored to gets back to `key`."""
+	seen = set()
+
+	while target and target not in seen:
+		if target == key:
+			return True
+		seen.add(target)
+		target = anchored.get(target)
+
+	return False
+
+
+def _place(items: list[dict], item: dict, anchor: dict, *, key: Key):
+	"""Move `item` to where the anchor says, and give it the parent that implies.
+
+	`after` and `before` put a row beside another, so it takes that row's parent: beside means
+	beside, and a sibling that landed at a different depth would be somewhere else entirely. An
+	explicit `parent_key` wins over that, for the writer that means *under this section, next to
+	that row*.
+
+	A `parent_key` with no `after` or `before` lands the row after the last child that parent
+	already has, or immediately after the parent when it has none -- the position appending to
+	that section would give, which is what it asked for.
+	"""
+	beside = anchor["after"] or anchor["before"]
+	if _index_of(items, beside or anchor["parent_key"], key=key) is None:
+		# Unreachable as long as an anchor only ever resolves against a key that is in the list,
+		# which is what `target_key` promises. Checked anyway because one caller is boot: an
+		# exception here would blank the shell over a misplaced navigation row.
+		return
+
+	items.pop(_position_of(items, item))
+
+	if beside:
+		at = _index_of(items, beside, key=key)
+		parent = anchor["parent_key"]
+		if parent is None:
+			parent = items[at].get("parent_key")
+		item["parent_key"] = parent
+		items.insert(at + 1 if anchor["after"] else at, item)
+		return
+
+	item["parent_key"] = anchor["parent_key"]
+	items.insert(_last_child(items, anchor["parent_key"], key=key) + 1, item)
+
+
+def _index_of(items: list[dict], name: str, *, key: Key) -> int | None:
+	return next((index for index, entry in enumerate(items) if key(entry) == name), None)
+
+
+def _position_of(items: list[dict], item: dict) -> int:
+	"""Where this exact row is. By identity, not by equality: `list.remove` takes the first row
+	that compares equal, which is the right one only for as long as no two rows can match."""
+	return next(index for index, entry in enumerate(items) if entry is item)
+
+
+def _last_child(items: list[dict], parent: str, *, key: Key) -> int:
+	"""The index of `parent`'s last child, or of `parent` itself when it has none."""
+	at = _index_of(items, parent, key=key)
+
+	for index, entry in enumerate(items):
+		if entry.get("parent_key") == parent:
+			at = index
+
+	return at

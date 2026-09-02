@@ -71,6 +71,15 @@ def doctype_item(key: str, doctype: str, **kwargs) -> dict:
 	return item(key, link_doctype="DocType", link_to=doctype, **kwargs)
 
 
+def moved(key: str, *anchors: dict, **kwargs) -> dict:
+	"""A layer row that moves the item it names, which is the only way a layer moves anything.
+
+	The order of a layer's rows says nothing: an arrangement is a set of anchors, not a list of
+	positions (#42363), so a layer that names two rows and anchors neither leaves both alone.
+	"""
+	return item(key, anchors=json.dumps(list(anchors)), **kwargs)
+
+
 def make_rail(
 	items: list[dict], *, standard: int = 0, user: str | None = None, app: str = APP, extends: str = ""
 ):
@@ -183,11 +192,29 @@ class TestShippedRail(NavigationTestCase):
 			[doctype_item("user", "User"), doctype_item("role", "Role")],
 			standard=1,
 		)
-		make_rail([item("role"), item("user")])
+		make_rail([moved("role", {"before": "user"})])
 		self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["role", "user"])
 
-		make_rail([item("user"), item("role")], user=frappe.session.user)
+		make_rail([moved("user", {"before": "role"})], user=frappe.session.user)
 		self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["user", "role"])
+
+	def test_a_layer_that_anchors_nothing_moves_nothing(self):
+		"""The rule the two above rest on, stated on its own.
+
+		Desk v1 read a layer's row order as the arrangement, so naming two rows in the other
+		order swapped them. A desk v2 layer names rows to say something *about* them -- a label,
+		a hide -- and says where only through an anchor, which is what lets an app ship a new
+		item into its own position rather than after everything a person has touched.
+		"""
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		make_rail(
+			[item("role", label="Roles", overrides=json.dumps(["label"])), item("user")],
+			user=frappe.session.user,
+		)
+
+		rail = resolve_navigation(APP)["rail"]
+		self.assertEqual(keys(rail), ["user", "role"])
+		self.assertEqual(rail[1]["label"], "Roles")
 
 	def test_a_hidden_item_never_reaches_the_payload(self):
 		"""`resolve_layers` returns the hidden map unapplied because the surface decides.
@@ -505,7 +532,7 @@ class TestExtendedRail(NavigationTestCase):
 		covering every item on it — including the ones another app put there."""
 		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
 		make_extension([doctype_item("calls", "Role")])
-		make_rail([item("telephony:calls"), item("user"), item("role")], user=frappe.session.user)
+		make_rail([moved("telephony:calls", {"before": "user"})], user=frappe.session.user)
 
 		with active(EXTENDER):
 			self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["telephony:calls", "user", "role"])

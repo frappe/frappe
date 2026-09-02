@@ -44,11 +44,33 @@ class NavigationItem(Document):
 		url: DF.Data | None
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		self.validate_type_on_an_item()
+
+	def validate_type_on_an_item(self):
+		"""A row that *is* an item names its type; a delta does not have one to name.
+
+		`item_type` is not `reqd` on the field, because two different kinds of row live in this
+		table. An **added** row brings an item nothing below it holds, and a row an app ships is
+		an item by definition -- both open something, so both must say what. A **delta** states an
+		opinion about an item a lower layer already holds, and what that item opens is not its
+		business: a person renaming a row would otherwise have to restate a type they have no view
+		on, and the copy would go stale the day the app changed it.
+
+		The shipped case is checked by the container instead, in `validate_item_keys`, because a
+		row cannot see whether its parent is standard without loading it.
+		"""
+		if self.added and not self.item_type:
+			frappe.throw(
+				_("Row {0} adds an item but does not say what kind. An added row is the item.").format(
+					self.idx
+				),
+				title=_("Missing Type"),
+			)
 
 
 def validate_item_keys(items):
-	"""Refuse a shipped list whose rows are not addressable, one by one.
+	"""Refuse a shipped list whose rows are not addressable or not typed, one by one.
 
 	A `key` is what every site and user edit is filed against, so a missing or duplicated one
 	is not a cosmetic slip: the deltas naming it go inert and the site quietly loses its
@@ -62,6 +84,14 @@ def validate_item_keys(items):
 	seen = set()
 
 	for item in items:
+		if not item.item_type:
+			# Checked here rather than on the field, which cannot be `reqd` because a delta row
+			# in a site or user layer has no type to give -- see `validate_type_on_an_item`.
+			frappe.throw(
+				_("Row {0} does not say what kind of item it is.").format(item.idx),
+				title=_("Missing Type"),
+			)
+
 		if not item.key:
 			frappe.throw(
 				_("Row {0} ({1}) has no key. Every item an app ships needs one, frozen for good.").format(
