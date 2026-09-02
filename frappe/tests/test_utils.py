@@ -1422,7 +1422,6 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(1.455, 0), 1)
 		self.assertEqual(flt(1.5, 0), 2)
 
-<<<<<<< HEAD
 		# negative rounding to integers
 		self.assertEqual(flt(-0.5, 0), -1)
 		self.assertEqual(flt(-1.5, 0), -2)
@@ -1485,10 +1484,6 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(2.25, 1, rounding_method=rounding_method), 2.3)
 		self.assertEqual(flt(3.35, 1, rounding_method=rounding_method), 3.4)
 
-	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
-	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
-	def test_normal_rounding_property(self, number, precision):
-=======
 	def test_rounding_does_not_inflate_exactly_representable_values(self):
 		self.assertEqual(flt(9750000.0, 9, rounding_method="Commercial Rounding"), 9750000.0)
 		self.assertEqual(flt(6500000.0, 9, rounding_method="Commercial Rounding"), 6500000.0)
@@ -1510,13 +1505,9 @@ class TestRounding(FrappeTestCase):
 		rounded_once = flt(number, precision, rounding_method=rounding_method)
 		self.assertEqual(flt(rounded_once, precision, rounding_method=rounding_method), rounded_once)
 
-	@IntegrationTestCase.change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
-	@given(
-		st.decimals(min_value=-1e8, max_value=1e8),
-		st.integers(min_value=-2, max_value=4),
-	)
-	def test_commercial_rounding_matches_round_half_up(self, number, precision):
->>>>>>> 5946cf3 (test(rounding): cover epsilon inflation and rounding idempotence)
+	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
+	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
+	def test_normal_rounding_property(self, number, precision):
 		with localcontext() as ctx:
 			ctx.rounding = ROUND_HALF_UP
 			self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
