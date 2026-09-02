@@ -115,10 +115,11 @@ const destinations = computed(() =>
 // by a click. It is a walk over resolved paths, with no router in it.
 const current = computed(() => currentFrom(destinations.value, route.path));
 
-// The panel, or nothing. `current.sidebar` is only ever a key `renderingOf` read off a rail
-// item, so the rows are there — but a sidebar that resolved to nothing is absent from the
-// payload rather than empty (#42356), and the `?? []` would draw a headed, empty panel if that
-// ever changed. An empty panel is the one state #42357 ruled out, so it is checked here too.
+// The panel, or nothing. `current.sidebar` is only ever a key a rail item's renderer read out
+// of this same payload, so the rows are there — the row count is checked anyway because an
+// empty panel is the one state #42357 ruled out, and it is fenced twice before this: a sidebar
+// that resolved to nothing is absent from the payload rather than empty (#42356), and the
+// `Sidebar` renderer then draws no rail item to open it.
 const panel = computed(() => {
 	const address = current.value.sidebar;
 	const items = address ? navigation.value.sidebars[address] : undefined;
