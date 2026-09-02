@@ -9,6 +9,7 @@ import time
 import typing
 from collections import Counter
 from collections.abc import Callable
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 import sqlparse
@@ -167,6 +168,90 @@ def _doc_event_contributors(doctype: str, method: str, doc=None) -> tuple[list[s
 _run_method_traced = False
 
 
+def _active_recorder():
+	recorder = getattr(frappe.local, "_recorder", None)
+	if recorder is None or not recorder._recording or not recorder.config.capture_doc_events:
+		return None
+	return recorder
+
+
+@contextmanager
+def _span(recorder, method, ref_doctype, ref_name, contributors):
+	"""Record one timed, nested timeline event. `contributors` is called after the body
+	ran, since webhook conditions are evaluated against the post-execution document."""
+	seq = recorder._seq
+	depth = recorder._depth
+	recorder._seq += 1
+	recorder._depth += 1
+	queries_before = len(recorder.calls)
+	start_time = time.monotonic()
+	try:
+		yield
+	finally:
+		recorder._depth -= 1
+		apps, handlers = contributors()
+		recorder.register_event(
+			{
+				"seq": seq,
+				"depth": depth,
+				"method": method,
+				"ref_doctype": ref_doctype,
+				"ref_name": ref_name or "",
+				"duration": float(f"{(time.monotonic() - start_time) * 1000:.3f}"),
+				"queries": len(recorder.calls) - queries_before,
+				"apps": apps,
+				"handlers": handlers,
+			}
+		)
+
+
+UNTRACED_HOOKS = frozenset(
+	{
+		"doc_events",
+		"filters_config",
+		"override_doctype_class",
+		"override_doctype_dashboards",
+		"override_whitelisted_methods",
+		"scheduler_events",
+	}
+)
+
+
+def _hook_handlers(hooks) -> dict[str, str]:
+	"""Map every dotted handler path declared in hooks.py to the hook it serves, so a
+	`frappe.get_attr(path)` during recording can be attributed to that hook."""
+	handlers: dict[str, str] = {}
+
+	def walk(hook, value):
+		if isinstance(value, str):
+			if "." in value and all(part.isidentifier() for part in value.split(".")):
+				handlers.setdefault(value, hook)
+		elif isinstance(value, dict):
+			for item in value.values():
+				walk(hook, item)
+		elif isinstance(value, list | tuple):
+			for item in value:
+				walk(hook, item)
+
+	for hook, value in hooks.items():
+		if hook not in UNTRACED_HOOKS:
+			walk(hook, value)
+	return handlers
+
+
+def _hook_ref(args, kwargs) -> tuple[str, str]:
+	from frappe.model.document import Document
+
+	doc = kwargs.get("doc", args[0] if args else None)
+	if isinstance(doc, Document):
+		return doc.doctype, doc.name or ""
+	if doctype := kwargs.get("doctype"):
+		return str(doctype), str(kwargs.get("name") or kwargs.get("docname") or "")
+	if len(args) >= 2 and isinstance(args[0], str) and isinstance(args[1], str | int):
+		return args[0], str(args[1])
+	return "", ""
+
+
 def _install_run_method_tracer():
 	"""Wrap Document.run_method once per process so every lifecycle phase / doc_events
 	handler is recorded as a timed, nested span on the active recorder — attributed to
@@ -182,43 +267,18 @@ def _install_run_method_tracer():
 
 	@functools.wraps(original_run_method)
 	def run_method(doc, method, *args, **kwargs):
-		recorder = getattr(frappe.local, "_recorder", None)
-		if (
-			recorder is None
-			or not getattr(recorder, "_recording", False)
-			or not recorder.config.capture_doc_events
-			or method.startswith("__")
-		):
+		recorder = None if method.startswith("__") else _active_recorder()
+		if recorder is None:
 			return original_run_method(doc, method, *args, **kwargs)
 
-		seq = recorder._seq
-		depth = recorder._depth
-		recorder._seq += 1
-		recorder._depth += 1
-		queries_before = len(recorder.calls)
-		start_time = time.monotonic()
-		try:
+		with _span(
+			recorder,
+			method,
+			doc.doctype,
+			doc.name,
+			lambda: _doc_event_contributors(doc.doctype, method, doc=doc),
+		):
 			return original_run_method(doc, method, *args, **kwargs)
-		finally:
-			recorder._depth -= 1
-			duration = float(f"{(time.monotonic() - start_time) * 1000:.3f}")
-			queries = len(recorder.calls) - queries_before
-			# compute contributors after the method ran: run_webhooks evaluates each
-			# webhook's condition against the post-execution doc, so we must too.
-			apps, handlers = _doc_event_contributors(doc.doctype, method, doc=doc)
-			recorder.register_event(
-				{
-					"seq": seq,
-					"depth": depth,
-					"method": method,
-					"ref_doctype": doc.doctype,
-					"ref_name": doc.name or "",
-					"duration": duration,
-					"queries": queries,
-					"apps": apps,
-					"handlers": handlers,
-				}
-			)
 
 	Document.run_method = run_method
 	_run_method_traced = True
@@ -328,6 +388,7 @@ class Recorder:
 		self.headers = None
 		self.form_dict = None
 		self.patched_databases = []
+		self._original_get_attr = None
 		self.events = []
 		self._depth = 0
 		self._seq = 0
@@ -362,6 +423,7 @@ class Recorder:
 		self._patch_sql(frappe.db)
 		if self.config.capture_doc_events:
 			_install_run_method_tracer()
+			self._patch_get_attr()
 
 		if self.config.profile:
 			import cProfile
@@ -379,6 +441,7 @@ class Recorder:
 		if self.profiler:
 			self.profiler.disable()
 		self._unpatch_sql()
+		self._unpatch_get_attr()
 
 	def process_profiler(self):
 		if self.config.profile or self.profiler:
@@ -424,6 +487,7 @@ class Recorder:
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 		self._unpatch_sql()
+		self._unpatch_get_attr()
 
 	def _patch_sql(self, db: "Database"):
 		if not self.config.record_sql:
@@ -436,6 +500,47 @@ class Recorder:
 	def _unpatch_sql(self):
 		for db in self.patched_databases:
 			db.sql = db._sql
+
+	def _patch_get_attr(self):
+		"""Wrap frappe.get_attr while recording so every hooks.py handler it resolves is
+		recorded as a timeline span attributed to its hook and app. Restored on cleanup."""
+		import frappe.utils
+
+		original = getattr(frappe.utils.get_attr, "_recorder_original", frappe.utils.get_attr)
+		hook_map = _hook_handlers(frappe.get_hooks())
+
+		@functools.wraps(original)
+		def get_attr(method_string: str):
+			attr = original(method_string)
+			hook = hook_map.get(method_string)
+			if hook is None or not inspect.isfunction(attr):
+				return attr
+
+			@functools.wraps(attr)
+			def traced(*args, **kwargs):
+				recorder = _active_recorder()
+				if recorder is None:
+					return attr(*args, **kwargs)
+				ref_doctype, ref_name = _hook_ref(args, kwargs)
+				contributors = lambda: ([method_string.split(".")[0]], [method_string])  # noqa: E731
+				with _span(recorder, hook, ref_doctype, ref_name, contributors):
+					return attr(*args, **kwargs)
+
+			return traced
+
+		get_attr._recorder_original = original
+		self._original_get_attr = original
+		frappe.utils.get_attr = get_attr
+		frappe.get_attr = get_attr
+
+	def _unpatch_get_attr(self):
+		if self._original_get_attr is None:
+			return
+		import frappe.utils
+
+		frappe.utils.get_attr = self._original_get_attr
+		frappe.get_attr = self._original_get_attr
+		self._original_get_attr = None
 
 
 def do_not_record(function):
