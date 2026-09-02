@@ -1592,6 +1592,27 @@ class TestRounding(IntegrationTestCase):
 		self.assertEqual(flt(2.25, 1, rounding_method=rounding_method), 2.3)
 		self.assertEqual(flt(3.35, 1, rounding_method=rounding_method), 3.4)
 
+	def test_rounding_does_not_inflate_exactly_representable_values(self):
+		self.assertEqual(flt(9750000.0, 9, rounding_method="Commercial Rounding"), 9750000.0)
+		self.assertEqual(flt(6500000.0, 9, rounding_method="Commercial Rounding"), 6500000.0)
+		self.assertEqual(flt(26509905246072.0, 2, rounding_method="Commercial Rounding"), 26509905246072.0)
+		self.assertEqual(flt(26509905246072.01, 2, rounding_method="Banker's Rounding"), 26509905246072.01)
+
+	def test_commercial_rounding_breaks_representable_ties_away_from_zero(self):
+		# Past 2**50 floats are spaced 0.25 apart, so a .5 tie is exactly representable.
+		method = "Commercial Rounding"
+		self.assertEqual(flt(2**50 + 0.5, 0, rounding_method=method), 2**50 + 1)
+		self.assertEqual(flt(-(2**50) - 0.5, 0, rounding_method=method), -(2**50) - 1)
+
+	@given(
+		st.sampled_from(["Commercial Rounding", "Banker's Rounding"]),
+		st.floats(min_value=-1e14, max_value=1e14, allow_nan=False, allow_infinity=False),
+		st.integers(min_value=0, max_value=9),
+	)
+	def test_rounding_is_idempotent(self, rounding_method, number, precision):
+		rounded_once = flt(number, precision, rounding_method=rounding_method)
+		self.assertEqual(flt(rounded_once, precision, rounding_method=rounding_method), rounded_once)
+
 	@IntegrationTestCase.change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	@given(
 		st.decimals(min_value=-1e8, max_value=1e8),
