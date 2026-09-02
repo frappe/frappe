@@ -1742,7 +1742,7 @@ export default class Grid {
 		// the body owns the height and each panel fills what is left under the tab
 		// bar, so a tall panel scrolls inside itself instead of growing the modal
 		dialog.modal_body.css({ height: BULK_EDIT_DIALOG_HEIGHT, "overflow-y": "hidden" });
-		dialog.$body.css({ height: "100%" });
+		dialog.$body.css({ height: "100%", display: "flex", "flex-direction": "column" });
 
 		const tab_defs = can_import
 			? [
@@ -1755,18 +1755,48 @@ export default class Grid {
 
 		const tabs = new frappe.ui.Tabs({
 			tabs: tab_defs,
-			on_change: () => {
+			on_change: (index) => {
+				stepper.set_current(index);
 				sync_uploaded_file();
 				set_footer();
 			},
 		});
-		dialog.$body.append(tabs.$el);
 		tabs.$el.addClass("bulk-edit-tabs");
-		tabs.$el.css({ height: "100%", display: "flex", "flex-direction": "column" });
-		// the bar keeps its own height; without this it shrinks and the scrolling
-		// panel rides up over the tab labels. its inline padding goes too, so the
-		// first tab starts on the same edge as the panel content below it
-		tabs.$el.find(".es-tabs__list").css({ flex: "0 0 auto", "padding-inline": 0 });
+		// Tabs' own bar still exists (it drives the panels) but the Stepper
+		// below replaces it visually — same component the Data Import wizard
+		// uses for its step row, so the two dialogs read identically.
+		tabs.$el.find(".es-tabs__list").hide();
+
+		const stepper = new frappe.ui.Stepper({
+			steps: tab_defs.map((tab) => ({ label: tab.label })),
+			is_locked: (index) => tab_defs[index].disabled,
+			on_step_click: (index) => tabs.set_active(index),
+		});
+
+		// tabs.set_disabled() is called from several places below to lock/unlock
+		// steps as the flow progresses; wrapping it here means the stepper's
+		// lock icons stay in sync everywhere, without touching each call site.
+		const set_disabled = tabs.set_disabled.bind(tabs);
+		tabs.set_disabled = (index, disabled) => {
+			set_disabled(index, disabled);
+			stepper.refresh();
+		};
+
+		// The step row reads on the modal's grey body; the panel it governs and
+		// the dialog's own footer actions live together in one white card
+		// underneath it — same shape as the Data Import wizard's dialog. Moving
+		// dialog.footer's actual node (not rebuilding it) means set_footer()'s
+		// primary/secondary action calls below need no changes.
+		const $card = $('<div class="bulk-edit-card"></div>');
+		dialog.$body.append(stepper.$el, $card);
+		$card.append(tabs.$el, dialog.footer);
+
+		tabs.$el.css({
+			flex: "1 1 auto",
+			"min-height": 0,
+			display: "flex",
+			"flex-direction": "column",
+		});
 		tabs.$el
 			.find(".es-tabs__panel")
 			.css({ flex: "1 1 auto", "min-height": 0, "overflow-y": "auto" });
