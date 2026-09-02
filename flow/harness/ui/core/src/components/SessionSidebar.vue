@@ -181,17 +181,13 @@
 			@dblclick="resetWidth"
 		/>
 
-		<footer class="flex min-h-[44px] items-center gap-2 border-t border-outline-gray-1 px-3.5 py-2">
-			<span class="h-1.5 w-1.5 flex-none rounded-full bg-surface-green-7" />
-			<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-5" :title="daemonUrl">
-				{{ daemonUrl }}
-			</span>
+		<footer class="border-t border-outline-gray-1 px-2.5 py-1.5">
 			<button
-				class="flex-none rounded-4 p-1 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-7"
-				title="Refresh sessions"
-				@click="flow.refreshSessions()"
+				class="flex h-9 w-full items-center gap-2 rounded-6 px-2.5 text-xs font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-2"
+				@click="flow.setSettingsOpen(true)"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" />
+				<FeatherIcon name="settings" class="h-4 w-4 text-ink-gray-6" />
+				Settings
 			</button>
 		</footer>
 	</aside>
@@ -333,11 +329,6 @@ const emptyMessage = computed(() => {
 	if (query.value) return "No matches."
 	if (selectedProject.value) return "No chats in this project."
 	return "No chats yet — start one."
-})
-
-const daemonUrl = computed(() => {
-	const base = flow.client.baseUrl?.replace(/^https?:\/\//, "")
-	return base || window.location.host
 })
 </script>
 

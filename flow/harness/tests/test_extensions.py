@@ -11,6 +11,7 @@ from flow.extensions import ExtensionRuntime
 from flow.extensions.loader import discover_extensions
 from flow.model.mock import MockModel
 from flow.server import create_app
+from flow.server.policy import ServerPolicy
 from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
 from flow.tools import ToolContext
@@ -121,6 +122,43 @@ async def test_extension_tool_is_available_to_agent_loop(tmp_path):
 
 	results = [row for row in session.log.read_since(0) if row["type"] == "tool_result"]
 	assert results[0]["content"] == "Hello, Flow!"
+
+
+def test_extension_tools_can_be_selected_per_session(tmp_path):
+	path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(path)])
+
+	every = store.create(SessionConfig(cwd=str(tmp_path), tools=["grep"]))
+	none = store.create(SessionConfig(cwd=str(tmp_path), tools=["grep"], extension_tools=[]))
+	named = store.create(SessionConfig(cwd=str(tmp_path), tools=[], extension_tools=["hello", "gone"]))
+
+	assert list(every.server_tools) == ["grep", "hello"]
+	assert list(none.server_tools) == ["grep"]
+	assert list(named.server_tools) == ["hello"]
+	assert "Greet someone" in named.config.system_prompt
+	assert "Greet someone" not in none.config.system_prompt
+
+
+def test_tools_route_lists_extension_tools_with_their_source(tmp_path):
+	path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(path)])
+	client = TestClient(create_app(store))
+
+	tools = client.get("/tools").json()["tools"]
+
+	assert [t["name"] for t in tools] == ["bash", "read_file", "write", "edit", "grep", "hello"]
+	assert tools[-1] == {"name": "hello", "description": "Greet someone by name.", "extension": "hello"}
+	assert all(t["extension"] is None for t in tools[:-1])
+
+
+def test_tools_route_hides_extension_tools_when_the_policy_switch_is_off(tmp_path):
+	path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(path)])
+	client = TestClient(create_app(store, policy=ServerPolicy(extensions=False)))
+
+	tools = client.get("/tools").json()["tools"]
+
+	assert [t["name"] for t in tools] == ["bash", "read_file", "write", "edit", "grep"]
 
 
 def test_extension_diagnostics_endpoint(tmp_path):

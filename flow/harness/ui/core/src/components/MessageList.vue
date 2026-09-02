@@ -19,7 +19,7 @@
 		</div>
 		<div
 			v-else
-			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-4"
+			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-10"
 			:style="{ paddingBottom: composerHeight + 40 + 'px' }"
 		>
 			<template v-for="(item, i) in items" :key="item.key">
@@ -36,7 +36,12 @@
 					:expanded="item.expanded"
 					@toggle="toggleTurn(item.turnKey)"
 				/>
-				<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
+				<!-- a tool or thinking row's own py-2.5 already pads it; offset the thread gap -->
+				<AssistantText
+					v-else-if="item.kind === 'text'"
+					:class="['group', 'thinking'].includes(items[i - 1]?.kind) ? '-mt-3' : ''"
+					:block="item.block"
+				/>
 				<!-- like ToolGroup below: the row's own py-2.5 already pads it -->
 				<ThinkingBlock
 					v-else-if="item.kind === 'thinking'"

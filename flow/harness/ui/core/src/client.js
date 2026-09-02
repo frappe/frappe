@@ -74,6 +74,23 @@ export class DaemonClient {
 	previewSkills(config = {}) {
 		return this.request("POST", "/skills", { body: config })
 	}
+	// built-in and extension tools a session may enable under the daemon's policy
+	tools() {
+		return this.request("GET", "/tools")
+	}
+	// skill files under the global root and, with a cwd, the project's
+	skillFiles(cwd = null) {
+		return this.request("GET", "/skills", { params: cwd ? { cwd } : {} })
+	}
+	readSkill(path, cwd = null) {
+		return this.request("GET", "/skills/file", { params: cwd ? { path, cwd } : { path } })
+	}
+	writeSkill(path, content, cwd = null) {
+		return this.request("PUT", "/skills/file", { body: { path, content, cwd } })
+	}
+	deleteSkill(path, cwd = null) {
+		return this.request("DELETE", "/skills/file", { params: cwd ? { path, cwd } : { path } })
+	}
 	// the session's active branch — replay-safe seed for a fresh transcript
 	entries(sid) {
 		return this.request("GET", `/sessions/${enc(sid)}/entries`)

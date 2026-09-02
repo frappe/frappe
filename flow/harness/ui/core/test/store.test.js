@@ -311,3 +311,126 @@ test("files save against the browsed cwd even before a session", async () => {
 	assert.deepEqual(calls, [["/project", "/project/a.txt", "new"]])
 	assert.equal(flow.state.workspace.tabs[0].content, "new")
 })
+
+test("custom instructions travel as system_suffix on new sessions", async () => {
+	const configs = []
+	const client = {
+		async createSession(config) {
+			configs.push(config)
+			return { session_id: "s1", config: { model: "mock" } }
+		},
+		async sessions() {
+			return { sessions: [] }
+		},
+		async session() {
+			return { session_id: "s1", config: { cwd: "." }, events: [] }
+		},
+		async events() {
+			return { events: [] }
+		},
+		stream() {
+			return { close() {}, [Symbol.asyncIterator]: async function* () {} }
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.newSession()
+	flow.setCustomInstructions("  Reply tersely.  ")
+	await flow.newSession()
+
+	assert.equal("system_suffix" in configs[0], false)
+	assert.equal(configs[1].system_suffix, "Reply tersely.")
+})
+
+test("a theme saved in the old prefs moves to frappe-ui's storage key", () => {
+	const previousStorage = globalThis.localStorage
+	const stored = { "flow.ui.prefs": JSON.stringify({ theme: "dark", mode: "auto" }) }
+	globalThis.localStorage = {
+		getItem: (key) => stored[key] ?? null,
+		setItem: (key, value) => (stored[key] = value),
+	}
+	try {
+		const flow = createFlowStore({})
+		assert.equal(stored.theme, "dark")
+		assert.equal("theme" in flow.state.prefs, false)
+		assert.equal(JSON.parse(stored["flow.ui.prefs"]).theme, undefined)
+		assert.equal(flow.state.prefs.mode, "auto")
+	} finally {
+		globalThis.localStorage = previousStorage
+	}
+})
+
+function sessionClient(configs) {
+	return {
+		async createSession(config) {
+			configs.push(config)
+			return { session_id: `s${configs.length}`, config: { model: config.model ?? "mock" } }
+		},
+		async setModel(sid, body) {
+			configs.at(-1).effort = body.reasoning_effort
+		},
+		async sessions() {
+			return { sessions: [] }
+		},
+		async session(sid) {
+			return { session_id: sid, config: { cwd: "." }, events: [] }
+		},
+		async events() {
+			return { events: [] }
+		},
+		stream() {
+			return { close() {}, [Symbol.asyncIterator]: async function* () {} }
+		},
+	}
+}
+
+test("the active preset shapes new sessions and joins the custom instructions", async () => {
+	const configs = []
+	const flow = createFlowStore(sessionClient(configs))
+	flow.setCustomInstructions("Be brief.")
+	const id = flow.savePreset({
+		name: "Reviewer",
+		tools: ["read_file", "grep"],
+		extensionTools: ["hello"],
+		promptMode: "append",
+		prompt: "Review for risks.",
+	})
+	flow.setActivePreset(id)
+	await flow.newSession()
+	assert.deepEqual(configs[0].tools, ["read_file", "grep"])
+	assert.deepEqual(configs[0].extension_tools, ["hello"])
+	assert.equal(configs[0].system_suffix, "Review for risks.\n\nBe brief.")
+	assert.equal("system_preamble" in configs[0], false)
+	// model, thinking, and approval come from the chat, never the preset
+	assert.equal(configs[0].auto_approve, false)
+	assert.equal("model" in configs[0], false)
+	assert.equal("effort" in configs[0], false)
+	assert.equal(flow.state.sessionPresets.s1, id) // remembered per chat, for the settings tab
+
+	flow.savePreset({ ...flow.activePreset(), promptMode: "replace" })
+	await flow.newSession()
+	assert.equal(configs[1].system_preamble, "Review for risks.")
+	assert.equal(configs[1].system_suffix, "Be brief.")
+
+	flow.deletePreset(id)
+	assert.equal(flow.state.prefs.activePreset, null)
+	assert.equal("s1" in flow.state.sessionPresets, false) // the chat's record goes with the preset
+	await flow.newSession()
+	assert.equal("tools" in configs[2], false)
+	assert.equal("extension_tools" in configs[2], false)
+	assert.equal(configs[2].system_suffix, "Be brief.")
+	assert.equal("s3" in flow.state.sessionPresets, false)
+})
+
+test("reloading extensions refetches the tool list", async () => {
+	const client = {
+		async reloadExtensions() {
+			return { extensions: [{ name: "hello" }], diagnostics: [] }
+		},
+		async tools() {
+			return { tools: [{ name: "hello", description: "Say hi", extension: "hello" }] }
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.reloadExtensions()
+	assert.deepEqual(flow.state.tools, [{ name: "hello", description: "Say hi", extension: "hello" }])
+})

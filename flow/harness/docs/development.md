@@ -23,7 +23,7 @@ Formatting and static checks use Ruff and ty. The codebase uses tabs, double quo
 | `flow` or `flow web` | Serves the built Vue UI and opens a browser. Use `--no-browser` to suppress it. |
 | `flow tui` | Starts a private Unix-socket daemon and opens the Textual UI. |
 | `flow tui -c` | Opens the most recent session for the current directory. |
-| `flow serve` | Runs the daemon on the configured host and port. |
+| `flow serve` | Runs the daemon on the configured host and port, logging one timestamped line per request. |
 | `flow serve --background` | Starts a detached daemon and prints its address. |
 | `flow attach` | Opens the TUI against an existing daemon. `--session` selects a session. |
 | `flow login`, `flow logout`, `flow providers` | Manage provider credentials. |
@@ -46,6 +46,11 @@ npm run build -w app
 | `FLOW_PORT` | `8787` | TCP port. |
 | `FLOW_DATA_DIR` | `~/.flow/server` | Session data and daemon logs. |
 | `FLOW_AUTH_TOKEN` | unset | Bearer token for the daemon API; required for non-loopback TCP binds. |
+| `FLOW_AUTH_TOKEN_FILE` | unset | File holding the bearer token, so an operator can generate and rotate it; used when `FLOW_AUTH_TOKEN` is unset. A configured but missing or empty file is a startup error. |
+| `FLOW_TENANTS_FILE` | unset | Multi-tenant mode for `flow serve`: a JSON file mapping each site to its bearer token and `allowed_roots` — `{"site1.localhost": {"token": "…", "allowed_roots": ["…"]}}`. A request's token names its site; each site's sessions and credentials live under `data_dir/tenants/<site>` and are invisible to other sites. Sites added to the file are picked up without a restart: it is re-read when a token matches nothing. `allowed_roots` is required: each site is fenced to its own paths. Disables the provider and credential routes: the credential store is daemon-wide, so no site token may manage it. Mutually exclusive with the single-token variables. |
+| `FLOW_PROFILE` | `local` | Policy preset for `flow serve` (`--profile` overrides). `local` keeps everything on; `deployed` caps tools to `read_file` and `grep`, refuses to start without an auth token (even on a unix socket), and answers 403 on everything outside the core session verbs: `/fs/*`, the session file diff, `/models`, `/providers*`, and the extension and skill routes. |
+| `FLOW_CALLBACK_HOSTS` | unset | Comma-separated `host[:port]` values a session `callback_url` may target. Enforced by the `deployed` profile; unset there means client callbacks are refused. |
+| `FLOW_POLICY` | unset | JSON object overriding individual policy fields of the chosen profile for `flow serve`, e.g. `{"skills_api": true, "tool_allowlist": ["read_file", "grep", "bash"]}`. Applied last, so it wins over the profile and `FLOW_CALLBACK_HOSTS`; unknown fields or wrong types refuse startup, as does switching off `require_auth` or `audit_log` where the profile guarantees them. |
 | `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | Credential-store path. |
 | `FLOW_MODEL` | `mock` | Initial model for a new TUI session; a saved TUI choice is used when it is unset. |
 | `FLOW_ALLOWED_ROOTS` | unset | `os.pathsep`-separated roots for session directories and path-taking tools. It does not sandbox `bash`. |

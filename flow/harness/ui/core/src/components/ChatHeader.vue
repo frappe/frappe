@@ -46,19 +46,14 @@
 				</span>
 			</span>
 
-			<span class="flex items-center gap-1">
-				<button class="flow-icon-btn" title="Toggle theme" @click="toggleTheme">
-					<FeatherIcon :name="theme === 'dark' ? 'moon' : 'sun'" class="h-3.5 w-3.5" />
-				</button>
-				<button
-					v-if="!workspaceOpen"
-					class="flow-icon-btn"
-					title="Open panel"
-					@click="flow.setWorkspaceOpen(true)"
-				>
-					<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
-				</button>
-			</span>
+			<button
+				v-if="!workspaceOpen"
+				class="flow-icon-btn"
+				title="Open panel"
+				@click="flow.setWorkspaceOpen(true)"
+			>
+				<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
+			</button>
 		</span>
 	</header>
 </template>
@@ -93,9 +88,4 @@ const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)
 const contextWindow = computed(() => flow.state.conversation.contextWindow ?? null)
 
 const workspaceOpen = computed(() => flow.state.workspace.open)
-
-const theme = computed(() => flow.state.prefs.theme)
-function toggleTheme() {
-	flow.setTheme(theme.value === "dark" ? "light" : "dark")
-}
 </script>

@@ -31,11 +31,15 @@ class SessionConfig(BaseModel):
 		system_append: Appended to the end of the resolved prompt, composed or verbatim
 			(the `--append-system-prompt` flag of the TUI and the web command).
 		tools: Built-in tools available to the agent.
+		extension_tools: Extension tools available to the agent; None means every loaded one.
 		client_tools: Schemas registered by a client.
 		callback_url: Where client tools are dispatched.
 		callback_token: Bearer sent to the client on callbacks (shared secret).
 		user_context: Opaque context passed back on callbacks.
 		credential_id: Named user-global credential; inferred from model prefix when absent.
+		api_key: Client-supplied model API key, used instead of the daemon's credential
+			store. Redacted in API responses.
+		api_base: Endpoint override that travels with `api_key`.
 		confirm_tools: Extra tools that pause for approval, on top of each tool's own
 			default. `auto_approve` is the only way to switch approval off.
 		auto_approve: Unattended runs (triggers) skip approval.
@@ -60,11 +64,14 @@ class SessionConfig(BaseModel):
 	system_prompt: str | None = None
 	system_append: str | None = None
 	tools: list[str] = Field(default_factory=lambda: ["bash", "read_file", "write", "edit", "grep"])
+	extension_tools: list[str] | None = None
 	client_tools: list[dict] = Field(default_factory=list)
 	callback_url: str | None = None
 	callback_token: str | None = None
 	user_context: dict = Field(default_factory=dict)
 	credential_id: str | None = None
+	api_key: str | None = None
+	api_base: str | None = None
 	confirm_tools: list[str] = Field(default_factory=list)
 	auto_approve: bool = False
 	skills_enabled: bool = True
@@ -78,7 +85,7 @@ class SessionConfig(BaseModel):
 
 	def redacted(self) -> dict:
 		data = self.model_dump()
-		for secret in ("callback_token",):
+		for secret in ("callback_token", "api_key"):
 			if data.get(secret):
 				data[secret] = "***"
 		return data

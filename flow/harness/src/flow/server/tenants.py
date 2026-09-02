@@ -1,0 +1,67 @@
+"""Multi-tenant mode: one daemon serving many sites (a Frappe bench).
+
+The tenants file maps each site to its bearer token. A request's token names its
+site, and every session verb then acts on that site's own store partition
+(`data_dir/tenants/<site>`), so sites can never see each other's sessions.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Tenant:
+	"""One site this daemon serves, as declared in `FLOW_TENANTS_FILE`.
+
+	Attributes:
+		site: Site name; also the on-disk partition `data_dir/tenants/<site>`.
+		token: Bearer token that authenticates requests as this site.
+		allowed_roots: Path fence for this site's sessions. The tenants file
+			requires it; None (programmatic use) inherits the daemon-wide roots.
+	"""
+
+	site: str
+	token: str
+	allowed_roots: tuple[str, ...] | None = None
+
+
+def load_tenants(path: str) -> list[Tenant]:
+	"""Parse `{"<site>": {"token": "...", "allowed_roots": ["..."]}}`.
+
+	Strict on shape — a typo must fail loudly, not silently drop a fence."""
+	with open(path, encoding="utf-8") as file:
+		data = json.load(file)
+	if not isinstance(data, dict) or not data:
+		raise ValueError("tenants file must be a non-empty JSON object keyed by site")
+	tenants: list[Tenant] = []
+	tokens: set[str] = set()
+	for site, entry in data.items():
+		tenant = _parse_entry(site, entry)
+		if tenant.token in tokens:
+			raise ValueError(f"site {site!r} reuses another site's token")
+		tokens.add(tenant.token)
+		tenants.append(tenant)
+	return tenants
+
+
+def _parse_entry(site: str, entry: object) -> Tenant:
+	if not isinstance(entry, dict):
+		raise ValueError(f"site {site!r}: entry must be a JSON object")
+	unknown = sorted(str(key) for key in entry if key not in ("token", "allowed_roots"))
+	if unknown:
+		raise ValueError(f"site {site!r}: unknown keys: {', '.join(unknown)}")
+	token = entry.get("token")
+	if not isinstance(token, str) or not token.strip():
+		raise ValueError(f"site {site!r}: token must be a non-empty string")
+	roots = entry.get("allowed_roots")
+	if roots is None:
+		raise ValueError(f"site {site!r}: allowed_roots is required — a non-empty list of paths")
+	bad_roots = f"site {site!r}: allowed_roots must be a non-empty list of paths"
+	if not isinstance(roots, list) or not roots:
+		raise ValueError(bad_roots)
+	values = tuple(root for root in roots if isinstance(root, str) and root)
+	if len(values) != len(roots):
+		raise ValueError(bad_roots)
+	return Tenant(site=site, token=token, allowed_roots=values)

@@ -1,8 +1,16 @@
 import DOMPurify from "dompurify"
 import hljs from "highlight.js/lib/common"
-import { marked } from "marked"
+import { marked, Renderer } from "marked"
 
 marked.setOptions({ gfm: true, breaks: false })
+
+marked.use({
+	renderer: {
+		table(token) {
+			return `<div class="flow-md-table">${Renderer.prototype.table.call(this, token)}</div>\n`
+		},
+	},
+})
 
 DOMPurify.addHook("afterSanitizeAttributes", (node) => {
 	if (node.tagName === "A") {

@@ -40,6 +40,12 @@ def main() -> None:
 	p_serve.add_argument("--host", default=config.HOST)
 	p_serve.add_argument("--port", type=int, default=config.PORT)
 	p_serve.add_argument("--data-dir", default=config.DATA_DIR)
+	p_serve.add_argument(
+		"--profile",
+		default=config.PROFILE,
+		help='server policy preset: "local" (default, everything on) or "deployed" '
+		"(no shell or file-mutating tools, daemon-mutating routes off)",
+	)
 	p_serve.add_argument("--background", action="store_true", help="detach, print the address, and return")
 	p_serve.add_argument(
 		"--uds",
@@ -201,7 +207,28 @@ def _daemon_death_notice(daemon) -> str | None:
 
 
 def _serve(args) -> None:
-	if not args.uds and not _is_loopback(args.host) and not config.AUTH_TOKEN:
+	from flow.server.policy import resolve_policy
+	from flow.server.tenants import load_tenants
+
+	try:
+		policy = resolve_policy(args.profile, callback_hosts=config.CALLBACK_HOSTS, overrides=config.POLICY)
+	except ValueError as e:
+		raise DaemonError(str(e)) from None
+	auth_token = _resolve_auth_token()
+	tenants = []
+	if config.TENANTS_FILE:
+		if auth_token:
+			raise DaemonError("set either FLOW_AUTH_TOKEN(_FILE) or FLOW_TENANTS_FILE, not both")
+		try:
+			tenants = load_tenants(config.TENANTS_FILE)
+		except (OSError, ValueError) as e:
+			raise DaemonError(f"cannot load FLOW_TENANTS_FILE: {e}") from None
+	if policy.require_auth and not auth_token and not tenants:
+		raise AuthError(
+			f"the {policy.profile!r} profile requires auth: set FLOW_AUTH_TOKEN, "
+			"FLOW_AUTH_TOKEN_FILE, or FLOW_TENANTS_FILE."
+		)
+	if not args.uds and not _is_loopback(args.host) and not auth_token and not tenants:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
@@ -214,6 +241,7 @@ def _serve(args) -> None:
 			args.data_dir,
 			extension_paths=args.extension,
 			extensions_enabled=not args.no_extensions,
+			profile=policy.profile,
 		)
 		print(f"{GREEN}flow daemon{RESET} on {base_url}  {DIM}(data: {args.data_dir}){RESET}")
 		return
@@ -223,42 +251,58 @@ def _serve(args) -> None:
 	import uvicorn
 
 	from flow.server import create_app
+	from flow.server.logs import setup_terminal_logging
 	from flow.session.store import SessionStore
 
+	setup_terminal_logging()
 	sink = _redis_sink()
 	store = SessionStore(
 		args.data_dir,
 		event_sink=sink,
 		extension_paths=args.extension,
-		extensions_enabled=not args.no_extensions,
+		# deployed skips ~/.flow/extensions; explicit -e paths are an operator opt-in
+		extensions_enabled=policy.extensions and not args.no_extensions,
+		tool_allowlist=policy.tool_allowlist,
+		callback_hosts=policy.callback_hosts,
 	)
 	_report_extension_diagnostics(store)
-	app = create_app(store, auth_token=config.AUTH_TOKEN)
+	app = create_app(
+		store,
+		auth_token=auth_token,
+		tenants=tenants,
+		tenants_file=config.TENANTS_FILE or None,
+		policy=policy,
+	)
 	if args.parent_watch:
 		from flow.cli.daemon import watch_parent_stdin
 
 		watch_parent_stdin()
 	rinfo = f" · redis: {config.REDIS_URL}" if sink else ""
-	ainfo = " · auth: bearer" if config.AUTH_TOKEN else ""
+	ainfo = f" · auth: {len(tenants)} sites" if tenants else (" · auth: bearer" if auth_token else "")
+	pinfo = f" · profile: {policy.profile}" if policy.profile != "local" else ""
 
 	def banner(address: str) -> None:
-		print(f"{GREEN}flow daemon{RESET} on {address}  {DIM}(data: {args.data_dir}{rinfo}{ainfo}){RESET}")
+		print(
+			f"{GREEN}flow daemon{RESET} on {address}  "
+			f"{DIM}(data: {args.data_dir}{rinfo}{ainfo}{pinfo}){RESET}"
+		)
 
 	if args.uds:
 		from flow.cli.daemon import bind_unix
 
 		sock = bind_unix(args.uds)
 		banner(args.uds)
-		uvicorn.Server(uvicorn.Config(app, log_level="warning")).run(sockets=[sock])
+		uvicorn.Server(uvicorn.Config(app, log_config=None)).run(sockets=[sock])
 	else:
 		banner(f"http://{args.host}:{args.port}")
-		uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+		uvicorn.run(app, host=args.host, port=args.port, log_config=None)
 
 
 def _web(args) -> None:
 	"""Bare `flow` (or `flow web`): the daemon with the built web UI mounted same-origin (no CORS
 	needed), plus a browser tab pointed at it."""
-	if not _is_loopback(args.host) and not config.AUTH_TOKEN:
+	auth_token = _resolve_auth_token()
+	if not _is_loopback(args.host) and not auth_token:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
@@ -275,8 +319,10 @@ def _web(args) -> None:
 	import uvicorn
 
 	from flow.server import create_app
+	from flow.server.logs import setup_terminal_logging
 	from flow.session.store import SessionStore
 
+	setup_terminal_logging()
 	sink = _redis_sink()
 	store = SessionStore(
 		args.data_dir,
@@ -287,7 +333,7 @@ def _web(args) -> None:
 	_report_extension_diagnostics(store)
 	app = create_app(
 		store,
-		auth_token=config.AUTH_TOKEN,
+		auth_token=auth_token,
 		webui_dir=webui,
 		system_append=args.append_system_prompt,
 	)
@@ -299,7 +345,7 @@ def _web(args) -> None:
 		timer = threading.Timer(0.8, webbrowser.open, [url])
 		timer.daemon = True  # a Ctrl-C before it fires must not hold the process
 		timer.start()
-	uvicorn.run(app, host=args.host, port=args.port, log_level="warning", timeout_graceful_shutdown=1)
+	uvicorn.run(app, host=args.host, port=args.port, log_config=None, timeout_graceful_shutdown=1)
 
 
 def _webui_dist() -> str | None:
@@ -321,7 +367,10 @@ def _warm_litellm() -> None:
 
 	def _import() -> None:
 		try:
-			import litellm  # noqa: F401
+			import litellm
+
+			# silence the "Provider List / Give Feedback" lines litellm prints on errors
+			litellm.suppress_debug_info = True
 		except Exception:
 			pass  # the request path imports it again and reports the real error
 
@@ -343,11 +392,28 @@ def _attach(args) -> None:
 
 	run_app(
 		args.url,
-		token=config.AUTH_TOKEN,
+		token=_resolve_auth_token(),
 		model=settings.resolve_startup_model(),
 		session_id=args.session,
 		append_system_prompt=args.append_system_prompt,
 	)
+
+
+def _resolve_auth_token() -> str | None:
+	"""The daemon bearer: FLOW_AUTH_TOKEN, else the contents of FLOW_AUTH_TOKEN_FILE."""
+	if config.AUTH_TOKEN:
+		return config.AUTH_TOKEN
+	if not config.AUTH_TOKEN_FILE:
+		return None
+	# a broken file must fail loudly, not fall back to an unprotected daemon
+	try:
+		with open(config.AUTH_TOKEN_FILE, encoding="utf-8") as file:
+			token = file.read().strip()
+	except OSError as e:
+		raise DaemonError(f"cannot read FLOW_AUTH_TOKEN_FILE: {e}") from None
+	if not token:
+		raise DaemonError(f"FLOW_AUTH_TOKEN_FILE is empty: {config.AUTH_TOKEN_FILE}")
+	return token
 
 
 def _login(args) -> None:
