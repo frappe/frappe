@@ -10,7 +10,7 @@ from frappe.core.doctype.recorder.recorder import _optimize_query, serialize_req
 from frappe.query_builder.utils import db_type_is
 from frappe.recorder import get as get_recorder_data
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import unimplemented_for
 from frappe.utils import set_request
 
 
@@ -203,17 +203,18 @@ class TestRecorder(IntegrationTestCase):
 
 
 class TestQueryOptimization(IntegrationTestCase):
-	@run_only_if(db_type_is.MARIADB)
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_query_optimizer(self):
-		suggested_index = _optimize_query(
-			"""select name from
-			`tabUser` u
-			join `tabHas Role` r
-			on r.parent = u.name
-			where email='xyz'
-			and creation > '2023'
-			and bio like '%xyz%'
-			"""
-		)
-		self.assertEqual(suggested_index.table, "tabUser")
-		self.assertEqual(suggested_index.column, "email")
+		for quote in ('"', "`"):
+			with self.subTest(quote=quote):
+				suggested_index = _optimize_query(
+					f"""select name from
+					{quote}tabUser{quote} u
+					join {quote}tabHas Role{quote} r
+					on r.parent = u.name
+					where email='xyz'
+					and bio like '%xyz%'
+					"""
+				)
+				self.assertEqual(suggested_index.table, "tabUser")
+				self.assertEqual(suggested_index.column, "email")
