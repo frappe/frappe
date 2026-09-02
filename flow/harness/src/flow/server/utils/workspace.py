@@ -19,21 +19,26 @@ MAX_SEARCH_SCAN = 20_000
 
 def read_text_file(full_path: str, *, strip_bom: bool = False) -> str:
 	"""Workspace file bytes as text, with the viewer's caps mapped to HTTP errors."""
-	if not os.path.isfile(full_path):
-		raise HTTPException(status_code=404, detail="file not found")
-	if os.path.getsize(full_path) > MAX_FILE_VIEW_BYTES:
-		raise HTTPException(status_code=413, detail="file too large to display")
-	try:
-		with open(full_path, "rb") as f:
-			data = f.read()
-	except PermissionError:
-		raise HTTPException(status_code=403, detail="file is not readable") from None
+	data = read_file_bytes(full_path, MAX_FILE_VIEW_BYTES)
 	try:
 		text = data.decode("utf-8")
 	except UnicodeDecodeError:
 		raise HTTPException(status_code=415, detail="not a text file") from None
 	# BOM-stripped callers diff line one cleanly (the edit tool records BOM-less diffs)
 	return text.removeprefix("\ufeff") if strip_bom else text
+
+
+def read_file_bytes(full_path: str, max_bytes: int, *, purpose: str = "display") -> bytes:
+	"""Raw file bytes under a size cap, with the workspace routes' error mapping."""
+	if not os.path.isfile(full_path):
+		raise HTTPException(status_code=404, detail="file not found")
+	if os.path.getsize(full_path) > max_bytes:
+		raise HTTPException(status_code=413, detail=f"file too large to {purpose}")
+	try:
+		with open(full_path, "rb") as f:
+			return f.read()
+	except PermissionError:
+		raise HTTPException(status_code=403, detail="file is not readable") from None
 
 
 def save_text_file(full_path: str, content: str) -> None:

@@ -27,8 +27,8 @@ from flow.model.discovery import context_window_for
 from flow.path_policy import absolute_path, canonical_path, is_path_allowed
 from flow.server.policy import ServerPolicy, gate
 from flow.server.utils import sse
-from flow.server.utils.workspace import read_text_file
-from flow.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES
+from flow.server.utils.workspace import read_file_bytes, read_text_file
+from flow.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES, is_image_bytes
 from flow.session.config import SessionConfig
 from flow.session.file_changes import file_change_results, reconstruct_original
 from flow.session.log import SessionLogError
@@ -88,6 +88,12 @@ class AttachmentCleanupRequest(BaseModel):
 	attachments: list[str] = Field(min_length=1, max_length=MAX_ATTACHMENTS_PER_MESSAGE * 2)
 
 
+class AttachFilesRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	paths: list[str] = Field(min_length=1, max_length=MAX_ATTACHMENTS_PER_MESSAGE)
+
+
 def create_sessions_router(
 	resolve_store: Callable[[Request], SessionStore],
 	*,
@@ -123,6 +129,13 @@ def create_sessions_router(
 					"reason": e.reason,
 				},
 			) from None
+
+	def _fenced_path(session: Session, path: str) -> str:
+		"""A cwd-relative client path, refused outside the session's allowed roots."""
+		full_path = absolute_path(path, base=session.config.cwd)
+		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
+			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+		return full_path
 
 	@router.get("/sessions")
 	async def list_sessions(request: Request):
@@ -225,6 +238,31 @@ def create_sessions_router(
 						data,
 					)
 				)
+		except Exception:
+			for item in stored:
+				session.attachment_store.remove(item.id)
+			raise
+		return {"attachments": [item.model_dump(exclude_none=True) for item in stored]}
+
+	@router.post("/sessions/{sid}/attachments/files", dependencies=gate(policy.fs_api))
+	async def attach_files(request: Request, sid: str, req: AttachFilesRequest):
+		"""Read project files by path and store them as attachments (@-mentions):
+		images are sniffed and stored as such, everything else as text."""
+		session = _get(resolve_store(request), sid)
+		assert session.attachment_store is not None
+		stored = []
+		try:
+			for path in req.paths:
+				full_path = _fenced_path(session, path)
+				# read under the wider image cap, then let the bytes decide: a filename
+				# is not evidence of type, and add_text_file still applies the text cap
+				data = await asyncio.to_thread(read_file_bytes, full_path, MAX_SOURCE_BYTES, purpose="attach")
+				store_one = (
+					session.attachment_store.add_bytes
+					if is_image_bytes(data)
+					else session.attachment_store.add_text_file
+				)
+				stored.append(await asyncio.to_thread(store_one, path, data))
 		except Exception:
 			for item in stored:
 				session.attachment_store.remove(item.id)
@@ -377,9 +415,7 @@ def create_sessions_router(
 		`original` is reconstructed by reverse-applying the recorded edit diffs;
 		a write marks the file as created, so its original is empty."""
 		session = _get(resolve_store(request), sid)
-		full_path = absolute_path(path, base=session.config.cwd)
-		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+		full_path = _fenced_path(session, path)
 
 		def compute() -> dict:
 			# the log scan and the string-heavy reconstruction stay off the event loop

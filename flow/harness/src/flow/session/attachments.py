@@ -203,6 +203,20 @@ class AttachmentStore:
 		return os.path.join(self.path, f"{attachment_id}.used")
 
 
+def is_image_bytes(data: bytes) -> bool:
+	"""Whether `data` is a supported image, judged by content rather than filename.
+
+	Only the header is parsed, so this stays cheap for a file that turns out to be text.
+	Callers use it to pick between `add_bytes` and `add_text_file`; each still applies
+	its own format and size policy.
+	"""
+	try:
+		with Image.open(io.BytesIO(data)) as image:
+			return image.format in _SUPPORTED_IMAGE_FORMATS
+	except (UnidentifiedImageError, OSError, ValueError):
+		return False
+
+
 def _safe_name(name: str) -> str:
 	name = name.replace("\\", "/").strip()
 	name = name.split("/")[-1]

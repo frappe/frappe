@@ -348,6 +348,119 @@ def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
 	assert base64.b64encode(image).decode() not in log.read_text()
 
 
+def test_attach_files_http_reads_project_files_by_path(tmp_path):
+	data_dir = tmp_path / "data"
+	store = SessionStore(str(data_dir))
+	client = TestClient(create_app(store))
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "notes.txt").write_text("hello from disk")
+
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["notes.txt"]})
+
+	assert response.status_code == 200
+	attachment = response.json()["attachments"][0]
+	assert attachment["kind"] == "text"
+	assert attachment["name"] == "notes.txt"
+
+	run = client.post(
+		f"/sessions/{sid}/run",
+		params={"wait": "true"},
+		json={"message": "read this", "attachments": [attachment["id"]]},
+	)
+	assert run.status_code == 200
+	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
+	user = next(entry for entry in entries if entry["type"] == "user_message")
+	assert user["content"][1]["name"] == "notes.txt"
+
+
+def test_attach_files_http_classifies_by_content_not_extension(tmp_path):
+	"""A filename is not evidence of type: an extensionless image still attaches as one,
+	and a .png that holds text is stored as text rather than failing the image sniff."""
+	store = SessionStore(str(tmp_path / "data"))
+	client = TestClient(create_app(store))
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "screenshot").write_bytes(_png())  # image, no extension
+	(project / "notes.png").write_text("actually just text")  # text wearing an image name
+
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["screenshot", "notes.png"]})
+
+	assert response.status_code == 200
+	by_name = {item["name"]: item for item in response.json()["attachments"]}
+	assert by_name["screenshot"]["kind"] == "image"
+	assert by_name["screenshot"]["mime_type"] == "image/png"
+	assert by_name["notes.png"]["kind"] == "text"
+
+
+def test_attach_files_http_reads_image_files_by_extension(tmp_path):
+	data_dir = tmp_path / "data"
+	store = SessionStore(str(data_dir))
+	client = TestClient(create_app(store))
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "logo.png").write_bytes(_png())
+
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["logo.png"]})
+
+	assert response.status_code == 200
+	attachment = response.json()["attachments"][0]
+	assert attachment["kind"] == "image"
+	assert attachment["mime_type"] == "image/png"
+	assert (attachment["width"], attachment["height"]) == (8, 6)
+
+	run = client.post(
+		f"/sessions/{sid}/run",
+		params={"wait": "true"},
+		json={"message": "what is this", "attachments": [attachment["id"]]},
+	)
+	assert run.status_code == 200
+	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
+	user = next(entry for entry in entries if entry["type"] == "user_message")
+	assert user["content"][1]["kind"] == "image"
+
+
+def test_attach_files_http_rejects_path_outside_allowed_roots(tmp_path):
+	allowed = tmp_path / "allowed"
+	outside = tmp_path / "outside"
+	allowed.mkdir()
+	outside.mkdir()
+	(outside / "secret.txt").write_text("nope")
+	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(allowed)])
+	client = TestClient(create_app(store))
+
+	sid = client.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
+	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["../outside/secret.txt"]})
+
+	# the shared explorer fence answers 403 for a path outside the allowed roots
+	assert response.status_code == 403
+	attachments_dir = next((tmp_path / "data" / "sessions").rglob(f"{sid}.attachments"))
+	assert list(attachments_dir.iterdir()) == []
+
+
+def test_attach_files_http_cleans_up_partial_batch_on_missing_file(tmp_path):
+	data_dir = tmp_path / "data"
+	store = SessionStore(str(data_dir))
+	client = TestClient(create_app(store))
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "real.txt").write_text("present")
+
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	response = client.post(
+		f"/sessions/{sid}/attachments/files",
+		json={"paths": ["real.txt", "missing.txt"]},
+	)
+
+	assert response.status_code == 404
+	assert response.json() == {"detail": "file not found"}
+	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
+	assert list(attachments_dir.iterdir()) == []
+
+
 async def test_abort_discards_undelivered_steering_attachments(tmp_path):
 	class BlockingModel(Model):
 		name = "blocking"
