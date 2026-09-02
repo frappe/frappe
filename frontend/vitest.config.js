@@ -49,6 +49,14 @@ export default defineConfig({
 		// resolve its imports in this tree rather than beside its own.
 		preserveSymlinks: true,
 	},
+	// No postcss, which means no Tailwind. `postcss.config.js` loads
+	// `tailwind.config.js`, which reads `manifest.json` at module scope -- the very file
+	// this config exists to avoid needing, reached by a second route: a frappe-ui component
+	// with a `<style>` block sends the transform through `vite:css`, and the run dies on a
+	// clean clone with a postcss error naming a `.vue` file nobody wrote a test about. An
+	// empty object here overrides the project config rather than merging with it, and these
+	// tests assert on DOM structure and never on a class taking effect.
+	css: { postcss: {} },
 	test: {
 		globals: true,
 		environment: "happy-dom",

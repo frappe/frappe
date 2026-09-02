@@ -134,9 +134,15 @@ const expandedNodes = ref<ItemNode[]>([]);
 // measured against the OLD list, so a doctype the save has just added to the rail by hand
 // would now be on screen twice. Collapsing is the honest state: the answer it was showing
 // was computed about a list that no longer exists.
+// Which expansion is current. A fetch left in flight by the reset below would otherwise
+// land afterwards and put its rows back, with the button already saying collapsed — the
+// same guard `contents.ts`, `List.vue` and `Record.vue` each carry, for the same reason.
+let generation = 0;
+
 watch(
 	() => props.context,
 	() => {
+		generation += 1;
 		expanded.value = false;
 		expandedNodes.value = [];
 	}
@@ -148,14 +154,16 @@ async function expand() {
 	// Set before the await, so a second click while the first is in flight cannot fire a
 	// second request against the same row.
 	expanded.value = true;
+	const mine = generation;
 
 	try {
-		expandedNodes.value = buildTree(await expander.value.expand());
+		const nodes = buildTree(await expander.value.expand());
+		if (mine === generation) expandedNodes.value = nodes;
 	} catch (error) {
 		// Back to unexpanded, so it can be tried again. Expanding is the one thing on the
 		// rail that costs a request, so it is the one thing that can fail from a dropped
 		// connection rather than from a bad row.
-		expanded.value = false;
+		if (mine === generation) expanded.value = false;
 		console.error(`[frappe] could not expand navigation item '${item.value.key}'`, error);
 	}
 }
