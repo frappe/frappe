@@ -47,7 +47,7 @@ def run(batch_size: int = 500, filters: dict | None = None) -> dict:
 			process_row(row, blob_cache, stats, logger)
 		after_name = rows[-1].name
 		if not frappe.flags.in_test:
-			frappe.db.commit()
+			frappe.db.commit()  # batched migration: each page is committed so a rerun resumes  # nosemgrep
 		if len(rows) < batch_size:
 			break
 
@@ -125,6 +125,8 @@ def find_or_create_blob(rel_path: str, is_private: bool, row, stats: dict, logge
 	"""Reuse a blob by checksum or create one keyed at the legacy path."""
 	full_path = get_files_path(rel_path, is_private=is_private)
 	try:
+		# path comes from locate(), which rejects absolute paths and any '..' segment
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(full_path, "rb") as f:
 			checksum = sha256_of(f)
 			mime_type = sniff_mime(f)

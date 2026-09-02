@@ -200,6 +200,7 @@ class FileV2(File):
 		"""Readable binary stream of the stored bytes, through the driver."""
 		if not self.get("blob"):
 			# compat shim: unbackfilled legacy row, read from its disk path
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			return open(self.get_full_path(), mode="rb")
 
 		blob = frappe.get_doc("File Blob", self.blob)

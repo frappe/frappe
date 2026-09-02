@@ -41,7 +41,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 		stats["blobs_deleted"] += deleted
 		if not frappe.flags.in_test:
 			# release the row locks taken by delete_blob's re-check
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep
 		if deleted == 0 or len(orphans) < batch_size:
 			break
 

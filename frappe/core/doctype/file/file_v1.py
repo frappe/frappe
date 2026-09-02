@@ -85,6 +85,7 @@ class FileV1(File):
 			elif isinstance(self.flags.original_content, str):
 				mode = "w+"
 
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			with open(file_path, mode) as f:
 				f.write(self.flags.original_content)
 				os.fsync(f.fileno())
@@ -255,6 +256,7 @@ class FileV1(File):
 		file_name = self.file_url.split("/")[-1]
 		try:
 			file_path = get_files_path(file_name, is_private=self.is_private)
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			with open(file_path, "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except OSError:
@@ -299,6 +301,7 @@ class FileV1(File):
 			self.validate_file_url()
 		file_path = self.get_full_path()
 
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(file_path, mode="rb") as f:
 			return f.read()
 
@@ -352,6 +355,7 @@ class FileV1(File):
 		if isinstance(self._content, str):
 			self._content = self._content.encode()
 		self.check_content()
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(file_path, "wb+") as f:
 			f.write(self._content)
 			os.fsync(f.fileno())

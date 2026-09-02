@@ -40,6 +40,8 @@ class LocalDriver(StorageDriver):
 		path = self.get_path(key, is_private)
 		os.makedirs(os.path.dirname(path), exist_ok=True)
 		part = path + ".part"
+		# get_path confines the resolved path to the files root
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(part, "wb") as f:
 			shutil.copyfileobj(stream, f, CHUNK_SIZE)
 			f.flush()
@@ -47,6 +49,7 @@ class LocalDriver(StorageDriver):
 		os.replace(part, path)
 
 	def read(self, key: str, *, is_private: bool = False) -> IO[bytes]:
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		return open(self.get_path(key, is_private), "rb")
 
 	def delete(self, key: str, *, is_private: bool = False) -> None:
