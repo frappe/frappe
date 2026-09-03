@@ -7,6 +7,8 @@ import os
 
 from fastapi import HTTPException
 
+from flow.path_policy import absolute_path, canonical_path, is_path_allowed
+
 # viewer payload cap; anything bigger is not a file to render in a chat UI
 MAX_FILE_VIEW_BYTES = 2 * 1024 * 1024
 
@@ -15,6 +17,14 @@ MAX_FILE_VIEW_BYTES = 2 * 1024 * 1024
 SEARCH_SKIP_DIRS = {"node_modules", "__pycache__", "venv", "dist", "build", "target"}
 MAX_SEARCH_RESULTS = 200
 MAX_SEARCH_SCAN = 20_000
+
+
+def resolve_allowed_path(cwd: str, path: str, allowed_roots) -> str:
+	"""A cwd-relative client path, refused outside the allowed roots."""
+	full_path = absolute_path(path, base=cwd)
+	if allowed_roots and not is_path_allowed(canonical_path(full_path), allowed_roots):
+		raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+	return full_path
 
 
 def read_text_file(full_path: str, *, strip_bom: bool = False) -> str:

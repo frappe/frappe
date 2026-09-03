@@ -24,10 +24,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from flow.events import AssistantMessage, ReasoningEffort, parse_event
 from flow.model.catalog import model_supports_images
 from flow.model.discovery import context_window_for
-from flow.path_policy import absolute_path, canonical_path, is_path_allowed
 from flow.server.policy import ServerPolicy, gate
 from flow.server.utils import sse
-from flow.server.utils.workspace import read_file_bytes, read_text_file
+from flow.server.utils.workspace import read_file_bytes, read_text_file, resolve_allowed_path
 from flow.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES, is_image_bytes
 from flow.session.config import SessionConfig
 from flow.session.file_changes import file_change_results, reconstruct_original
@@ -129,13 +128,6 @@ def create_sessions_router(
 					"reason": e.reason,
 				},
 			) from None
-
-	def _fenced_path(session: Session, path: str) -> str:
-		"""A cwd-relative client path, refused outside the session's allowed roots."""
-		full_path = absolute_path(path, base=session.config.cwd)
-		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
-		return full_path
 
 	@router.get("/sessions")
 	async def list_sessions(request: Request):
@@ -253,7 +245,7 @@ def create_sessions_router(
 		stored = []
 		try:
 			for path in req.paths:
-				full_path = _fenced_path(session, path)
+				full_path = resolve_allowed_path(session.config.cwd, path, session.allowed_roots)
 				# read under the wider image cap, then let the bytes decide: a filename
 				# is not evidence of type, and add_text_file still applies the text cap
 				data = await asyncio.to_thread(read_file_bytes, full_path, MAX_SOURCE_BYTES, purpose="attach")
@@ -415,7 +407,7 @@ def create_sessions_router(
 		`original` is reconstructed by reverse-applying the recorded edit diffs;
 		a write marks the file as created, so its original is empty."""
 		session = _get(resolve_store(request), sid)
-		full_path = _fenced_path(session, path)
+		full_path = resolve_allowed_path(session.config.cwd, path, session.allowed_roots)
 
 		def compute() -> dict:
 			# the log scan and the string-heavy reconstruction stay off the event loop
