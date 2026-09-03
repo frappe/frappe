@@ -1,13 +1,7 @@
-# The build manifest — Python's half of the one bench-wide bundle.
-#
-# vite cannot discover any of this for itself. `app_prefix` is a Python scalar hook
-# (#42065) and a prefix cannot be globbed for the way v1 globs `*.bundle.js`, so
-# Python assembles `[{app, app_prefix, source_dir, deps}]` and hands it over (#42069).
-#
-# Everything here runs with **no site**: `bench build` calls `frappe.init("")`
-# (`frappe/commands/utils.py:64`), which is why apps are enumerated with
-# `get_all_apps()` and hooks are read with `get_hooks(app_name=)` — a pure importlib
-# path that needs no site (#42105).
+# The build manifest — Python's half of the one bench-wide bundle, assembled for vite.
+
+# Everything here runs with no site: `bench build` calls `frappe.init("")`, so apps come
+# from `get_all_apps()` and hooks from `get_hooks(app_name=)`.
 
 import json
 import os
@@ -16,9 +10,7 @@ import frappe
 
 from .registry import declared_prefix
 
-#: Enforced by the build, not documented. The charter's four plus `reka-ui` and
-#: `dompurify`, which are on today's SINGLETONS list (`ui/vite/index.js:21`) because
-#: duplicate instances broke provide/inject in real bugs (#42069).
+#: Enforced by the build and documented nowhere else; a duplicate instance breaks provide/inject.
 SINGLETONS = ("vue", "vue-router", "frappe-ui", "@framework/ui", "reka-ui", "dompurify")
 
 MANIFEST_FILENAME = "manifest.json"
@@ -29,18 +21,13 @@ class SingletonConflict(Exception):
 
 
 def contribution_globs(source_dir: str) -> list[str]:
-	"""The five contribution kinds, as paths. If a file is not at one of these, it is
-	not a contribution — that closure is charter item 1 (#42072).
-
-	The fifth is a navigation item kind's renderer (#42420), colocated with the
-	`Navigation Item Type` record it draws — which is what lets the plugin read the type's
-	real NAME off the JSON beside it rather than title-casing the folder. The framework's
-	own eight kinds are here too, so shipping one is the whole of shipping a kind."""
+	"""The five contribution kinds, as paths; a file anywhere else is not a contribution."""
 	return [
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "record.js"),
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "list.js"),
 		os.path.join(source_dir, "*", "custom", "*", "record.js"),
 		os.path.join(source_dir, "*", "frontend", "pages", "*.js"),
+		# Beside the `Navigation Item Type` JSON, where the plugin reads the kind's real name.
 		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
 	]
 
@@ -60,18 +47,9 @@ def read_package(path: str) -> dict:
 
 
 def app_deps(app: str) -> dict[str, str]:
-	"""The app's own declared dependencies.
-
-	Apps keep declaring deps in their own `package.json`; the framework installs one
-	tree. Yarn workspaces were rejected because they hoist and nest on conflict rather
-	than fail, and the charter wants hard failure (#42069).
-
-	The framework is the exception, and it has to be: `frappe/package.json` is desk
-	v1's esbuild stack, which is a different bundle with different pins. The shell's
-	own declaration is `frontend/package.base.json`, so that is what frappe's entry
-	reports — otherwise the enforced singleton versions would be read off a tree that
-	has nothing to do with the one being enforced.
-	"""
+	"""The app's own declared dependencies, dev included."""
+	# frappe's own declaration is `frontend/package.base.json`; `frappe/package.json` is desk v1's
+	# esbuild stack, a different bundle with different pins.
 	if app == "frappe":
 		package = read_package(os.path.join(frontend_dir(), "package.base.json"))
 	else:
@@ -81,14 +59,7 @@ def app_deps(app: str) -> dict[str, str]:
 
 
 def app_runtime_deps(app: str) -> dict[str, str]:
-	"""Only what contributed source can actually import.
-
-	`dependencies`, never `devDependencies`: an app's playwright and its own vite are
-	tooling for a build the framework has taken over, and installing them into the
-	shell's tree would be carrying dead weight. They are still read by
-	`enforce_singletons`, because a disagreement about a shared library is a
-	disagreement wherever it is declared.
-	"""
+	"""Only what contributed source can import: `dependencies`, never `devDependencies`."""
 	if app == "frappe":
 		package = read_package(os.path.join(frontend_dir(), "package.base.json"))
 	else:
@@ -102,23 +73,14 @@ def frontend_dir() -> str:
 
 
 def assemble() -> list[dict]:
-	"""The manifest, in bench-wide `sites/apps.txt` order.
-
-	Note what decides membership: an app is in the *bundle* only if it actually
-	contributes source. Every installed app still gets a prefix and is still served by
-	the shell with no declaration at all — that is charter item 2 and it needs no
-	build. But an app that contributes no modules has nothing in the module graph, so
-	its dependency ranges are not part of the graph's version agreement either.
-	"""
+	"""The manifest in `sites/apps.txt` order; an app is in it only if it contributes source."""
 	manifest = []
 
 	for app in frappe.get_all_apps():
 		try:
 			source_dir = frappe.get_app_path(app)
 		except Exception as e:
-			# Fail, naming the app. A silently skipped app is a prefix that silently
-			# stops resolving, and frappe today does all three possible things in
-			# three places; we follow the one that raises (#42105).
+			# Fail naming the app: a silently skipped app is a prefix that silently stops resolving.
 			raise RuntimeError(f"Could not locate source for app '{app}': {e}") from e
 
 		if app != "frappe" and not contributes(source_dir):
@@ -138,13 +100,8 @@ def assemble() -> list[dict]:
 
 
 def enforce_singletons(manifest: list[dict]):
-	"""Fail the build when two apps in the bundle disagree on a shared library.
-
-	This runs at manifest assembly, **before vite starts**, and explicitly not as
-	`resolve.dedupe` — dedupe silently picks a winner, and under one module graph a
-	version conflict is a real disagreement between two app authors that somebody has
-	to settle (#42069).
-	"""
+	"""Fail the build when two apps in the bundle disagree on a shared library."""
+	# Before vite starts, and not `resolve.dedupe`, which silently picks a winner.
 	claims: dict[str, list[tuple[str, str]]] = {}
 
 	for entry in manifest:
@@ -169,14 +126,8 @@ def enforce_singletons(manifest: list[dict]):
 
 
 def compose_package_json(manifest: list[dict], frontend: str) -> bool:
-	"""The one tree yarn installs: the framework's pins plus every app's own deps.
-
-	Generated rather than committed, because its content depends on which apps are on
-	the bench. `package.base.json` is the committed half — the framework's own
-	declaration — and it always wins, so an app cannot quietly move a singleton by
-	naming it (the singleton check has already refused that case by the time we get
-	here, but the precedence is worth being explicit about).
-	"""
+	"""The one tree yarn installs: the framework's pins plus every app's own deps, generated."""
+	# `package.base.json` always wins, so an app cannot move a singleton by naming it.
 	base = read_package(os.path.join(frontend, "package.base.json"))
 	dependencies = dict(base.get("dependencies", {}))
 
@@ -195,8 +146,7 @@ def compose_package_json(manifest: list[dict], frontend: str) -> bool:
 	}
 
 	path = os.path.join(frontend, "package.json")
-	# Report whether the dependency set moved, so the caller knows to reinstall. A
-	# rewritten file with identical contents must not trigger one.
+	# A rewritten file with identical contents must not trigger a reinstall.
 	changed = read_package(path).get("dependencies") != dependencies
 
 	# Bench-internal path, composed from `frontend_dir()`; never request-derived.
@@ -207,19 +157,13 @@ def compose_package_json(manifest: list[dict], frontend: str) -> bool:
 
 
 def write(frontend: str | None = None) -> bool:
-	"""Assemble, enforce, drop the manifest where vite will read it.
-
-	Returns whether the composed dependency set changed, which is the caller's cue to
-	reinstall.
-	"""
+	"""Assemble, enforce, write the manifest; returns whether the dependency set changed."""
 	frontend = frontend or frontend_dir()
 	manifest = assemble()
 	enforce_singletons(manifest)
 
-	# `apps` is the bundle: contributors only. `source_dirs` is every app on the bench,
-	# which the contributions plugin needs separately — a `custom/` folder may name a
-	# doctype owned by an app that contributes nothing, and the plugin has to read that
-	# doctype's real name off disk rather than guess it from the folder.
+	# `source_dirs` is every app, not just contributors: a `custom/` folder may name a doctype
+	# owned by an app that contributes nothing.
 	# Bench-internal path, composed from `frontend_dir()`; never request-derived.
 	with open(os.path.join(frontend, MANIFEST_FILENAME), "w") as f:  # nosemgrep
 		json.dump(
