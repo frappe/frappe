@@ -131,6 +131,7 @@ class IslandDashboard {
 		// trail is right for the round trip the island spends loading. The menu
 		// belongs to the renderer on screen, so the entries of whatever drew here
 		// before — the legacy renderer, or the previous document's island — go.
+		this.docname = name;
 		this.set_title(name);
 		this.page.clear_menu();
 
@@ -174,7 +175,12 @@ class IslandDashboard {
 	 */
 	set_title(title) {
 		const label = title || __("Dashboard");
-		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard", label: label });
+		frappe.breadcrumbs.add({
+			module: "Desk",
+			doctype: "Dashboard",
+			docname: this.docname,
+			label: label,
+		});
 		frappe.utils.set_title(label);
 	}
 
@@ -253,8 +259,8 @@ class Dashboard {
 		this.charts = {};
 	}
 
-	set_breadcrumbs(label) {
-		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard", label: label });
+	set_breadcrumbs(docname) {
+		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard", docname: docname });
 	}
 
 	refresh() {
