@@ -38,6 +38,7 @@
 				:node="node"
 				:context="context"
 				:current="current"
+				:reserve="reserve"
 			/>
 		</ul>
 
@@ -52,6 +53,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
 import { useItemTree } from "@/navigation/useItemTree";
@@ -75,4 +77,7 @@ const tree = useItemTree(
 	() => props.items,
 	() => `the ${props.address} sidebar`
 );
+
+// As on the rail: the icon slot is a property of the container, not of the row.
+const reserve = computed(() => props.items.some((item) => item.icon));
 </script>

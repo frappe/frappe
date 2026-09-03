@@ -57,6 +57,7 @@
 				:node="node"
 				:context="context"
 				:current="current"
+				:reserve="reserve"
 			/>
 		</ul>
 
@@ -79,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { computed, inject } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
@@ -109,4 +110,7 @@ const boot = inject<Boot>("boot")!;
 // present, so the server's orphan promotion passes it through, and rendering the tree would
 // then simply omit the rows — a silent drop of authored navigation.
 const tree = useItemTree(() => props.items, "the rail");
+
+// Whether an unadorned row holds its icon slot open, decided for the whole container.
+const reserve = computed(() => props.items.some((item) => item.icon));
 </script>
