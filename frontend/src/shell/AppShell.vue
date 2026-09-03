@@ -152,15 +152,23 @@ function resolve() {
 watch(
 	[() => route.fullPath, destinations],
 	() => {
+		// Repeated in the address (`?panel=a&panel=b`) it arrives as an array. Nothing we hand
+		// out looks like that, but it still has to be consumed rather than left in the bar
+		// forever, so the first one is read and the rest go with it.
 		const panel = route.query.panel;
-		asked.value = typeof panel === "string" ? panel : undefined;
+		const named = Array.isArray(panel) ? panel[0] : panel;
+		asked.value = typeof named === "string" ? named : undefined;
 
 		resolve();
 
-		if (asked.value !== undefined) {
+		if (panel !== undefined) {
 			const { panel: _consumed, ...query } = route.query;
 			asked.value = undefined;
-			router.replace({ path: route.path, query });
+			// `hash` survives: it addresses a place within the page, which has nothing to do
+			// with the panel and is not ours to drop. An aborted or redirected replace rejects,
+			// and there is nothing to do about it — the panel is already resolved and recorded,
+			// so the only loss is a parameter left in the bar.
+			router.replace({ path: route.path, query, hash: route.hash }).catch(() => {});
 		}
 	},
 	{ immediate: true }
@@ -174,7 +182,8 @@ const shareLink = computed(() => {
 	const query =
 		panel && panel !== canonical.value.sidebar ? { ...route.query, panel } : route.query;
 
-	return new URL(router.resolve({ path: route.path, query }).href, window.location.origin).href;
+	const to = router.resolve({ path: route.path, query, hash: route.hash });
+	return new URL(to.href, window.location.origin).href;
 });
 
 // The panel, or nothing. `current.sidebar` is only ever a key a rail item's renderer read out

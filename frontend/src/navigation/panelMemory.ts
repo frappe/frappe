@@ -18,6 +18,13 @@
 
 const KEY = "frappe:desk:panel";
 
+// How many addresses to keep, most recently resolved last. Every address that opens a panel is
+// recorded, and records get their own — reading 500 items writes 500 entries — so without a cap
+// this grows for as long as the tab lives and every navigation re-serialises all of it. The
+// oldest entry falls off, which costs that address its continuity and nothing else: it resolves
+// off the address again, the way it did before any of this.
+const KEEP = 100;
+
 /**
  * The whole record, or an empty one.
  *
@@ -58,7 +65,17 @@ export function rememberPanel(path: string, panel: string): void {
 	const record = read();
 	if (record[path] === panel) return;
 
+	// Re-inserted rather than assigned in place, so the freshest address is always last and the
+	// cap drops the least recently resolved one. Object key order is insertion order for string
+	// keys, which is what makes this work without a second structure to keep in step.
+	delete record[path];
 	record[path] = panel;
+
+	const addresses = Object.keys(record);
+	for (const stale of addresses.slice(0, Math.max(0, addresses.length - KEEP))) {
+		delete record[stale];
+	}
+
 	try {
 		sessionStorage.setItem(KEY, JSON.stringify(record));
 	} catch {
