@@ -1,11 +1,5 @@
-// The eight kinds the framework ships, through the door an app would use (#42420).
-//
-// Nothing is stubbed in place of the renderers: `vitest.config.js` runs the real
-// contributions plugin over frappe's own source, so these tests fail if a renderer file is
-// misplaced, if its type record's `name` stops matching the item rows, or if the plugin
-// stops finding either. That is the point — a mocked registry would test the mock, and the
-// claim being made here is that the framework's own kinds go through the contribution
-// mechanism with no built-in table anywhere (DP2).
+// The framework's own kinds, through the door an app would use. Nothing is stubbed: the real
+// contributions plugin runs over frappe's source, so a misplaced renderer or a name mismatch fails here.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
@@ -89,9 +83,7 @@ describe("what the framework ships", () => {
 	});
 
 	it("names DocType exactly, which title-casing the folder cannot", () => {
-		// `doctype` title-cases to "Doctype". The name is read off the record's own JSON, so
-		// the framework's very first kind is the case that proves the guess would be wrong —
-		// a renderer under a name no row carries never runs and says nothing about it.
+		// `doctype` title-cases to "Doctype"; the name is read off the record's own JSON.
 		expect(rendererFor("DocType")).toBeDefined();
 		expect(rendererFor("Doctype")).toBeUndefined();
 	});
@@ -111,8 +103,7 @@ describe("DocType", () => {
 	});
 
 	it("goes one segment deeper under a modular prefix", () => {
-		// The trap `routeFor` exists for: a hand-built `/crm-deal` resolves HERE, to the
-		// module route, and shows a page that is not the list (#42211).
+		// The trap `routeFor` exists for: a hand-built `/crm-deal` resolves here, to the module route.
 		const modular = boot({
 			prefixes: { crm: { app: "crm", modular: true } },
 		});
@@ -290,8 +281,7 @@ describe("Sidebar", () => {
 	};
 
 	it("navigates to the first destination inside the sidebar it opens", () => {
-		// Charter point 7: selecting a rail item is ordinary navigation. A click that only
-		// changed shell state would be a selection no address could express.
+		// Selecting a rail item is ordinary navigation, so an address can express it.
 		const sidebars = {
 			module_def_accounts: [
 				{ key: "Sales Invoice", item_type: "DocType", link_to: "Sales Invoice" },
@@ -321,7 +311,7 @@ describe("Sidebar", () => {
 	});
 
 	it("renders as an independent item when its sidebar is absent", () => {
-		// An address that resolved to nothing is absent rather than empty (#42356).
+		// An address that resolved to nothing is absent, not empty.
 		expect(renderingOf(item, context([item], { sidebars: {} }))).toBeNull();
 	});
 
@@ -370,8 +360,8 @@ describe("a renderer that throws", () => {
 });
 
 describe("what a bad renderer cannot do", () => {
-	// A contributed renderer is another app's code, and the registry promises that one of
-	// them cannot take the rail down (#42228's degrade). These are the two ways it could.
+	// A contributed renderer is another app's code and must not take the rail down. These are
+	// the two ways it could.
 	function withRenderer(type: string, renderer: ItemRenderer, run: () => void) {
 		itemRenderers[type] = renderer;
 		try {
@@ -382,9 +372,8 @@ describe("what a bad renderer cannot do", () => {
 	}
 
 	it("cannot blank the rail by naming a route that does not exist", () => {
-		// The failure this catches happens INSIDE `RouterLink`, during render, where nothing
-		// catches it — so checking the route here is what keeps the promise true for a value
-		// a renderer returns rather than only for one it throws on.
+		// The failure would happen inside `RouterLink` during render, where nothing catches it;
+		// checking the route here keeps the promise for a returned value too.
 		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 		const item: NavigationItem = { key: "x", item_type: "Widget" };
 
@@ -407,10 +396,8 @@ describe("what a bad renderer cannot do", () => {
 
 describe("the recursion guard", () => {
 	it("does not confuse two containers' rows that share a key", () => {
-		// A `key` identifies a row within ONE container, so a rail item and a row in the
-		// sidebar it opens may both be called `accounts` without either being a cycle.
-		// Reading the second as a repeat of the first would render the rail item as
-		// independent — a link silently missing, with nothing said.
+		// A `key` identifies a row within one container, so a rail item and a sidebar row may
+		// both be called `accounts` without either being a cycle.
 		const item: NavigationItem = {
 			key: "accounts",
 			item_type: "Sidebar",
@@ -436,8 +423,7 @@ describe("the recursion guard", () => {
 
 describe("off the index, which belongs to no app", () => {
 	it("refuses a contents fetch rather than answering that a module is empty", async () => {
-		// `[]` is a REAL answer — a module whose contents this person may not read — so it
-		// must not also be what "there was no app to ask about" looks like (`contents.ts`).
+		// `[]` is a real answer, so it must not also be what "no app to ask about" looks like.
 		const ctx = itemContext(boot({ app: null }), addresses, router, [], {});
 		await expect(ctx.contentsOf("accounts")).rejects.toThrow();
 	});

@@ -1,7 +1,5 @@
-// What an authored icon name draws, and what an unknown one does not.
-//
-// Mounted with Vue's own `createApp` into happy-dom: this package has no
-// `@vue/test-utils`, and a shared devDependency for one component is a cost every app pays.
+// What an authored icon name draws, and what an unknown one does not. Mounted with Vue's
+// own `createApp`: this package has no `@vue/test-utils`.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick } from "vue";
 
