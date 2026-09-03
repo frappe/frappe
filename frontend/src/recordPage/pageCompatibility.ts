@@ -56,7 +56,7 @@ function guard(target: any, prefix: string, removals: Removal[]): any {
   return new Proxy(target, {
     get(owner, key, receiver) {
       const removal = typeof key === "string" ? here.get(key) : undefined;
-      // Never any unknown key: `if (page.dialog.prompt)` is feature detection and must stay silent.
+      // Only a listed name: `if (page.dialog.prompt)` is feature detection and must stay silent.
       if (!removal) return Reflect.get(owner, key, receiver);
       if (removal.stage === "gone") {
         warnRemoved(removal);
