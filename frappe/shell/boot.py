@@ -144,9 +144,10 @@ def report_oversized_keys(boot: dict, prefix: str | None) -> None:
 			if size <= KEY_BUDGET:
 				continue
 
-			# An atomic `SET NX`: two workers weighing the same payload claim the day's
-			# row once between them.
+			# An atomic `SET NX`: two workers weighing one payload claim the day's row
+			# once between them. `make_key` applies the site prefix `set_value` would.
 			claim = frappe.cache.make_key(f"boot_budget:{key}:{prefix or SHELL_ROOT}")
+			# nosemgrep: frappe-cache-breaks-multitenancy
 			if not frappe.cache.set(name=claim, value=1, ex=_BUDGET_LOG_TTL, nx=True):
 				continue
 

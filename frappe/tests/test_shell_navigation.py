@@ -552,6 +552,7 @@ class TestBootBudget(NavigationTestCase):
 
 		claim = frappe.cache.make_key("boot_budget:huge:desk")
 
+		# nosemgrep: frappe-cache-breaks-multitenancy
 		self.assertFalse(frappe.cache.set(name=claim, value=1, ex=60, nx=True))
 		self.assertGreater(frappe.cache.ttl(claim), 0)
 
