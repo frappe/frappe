@@ -9,25 +9,17 @@ from frappe.desk.doctype.rail.rail import Rail
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
-# An app that is certainly installed on any site running these tests. Which app it is does not
-# matter: these tests are about the layers and the rows, not about anyone's actual navigation.
+# Any app certainly installed on a site running these tests.
 APP = "frappe"
 
-# Hosts an extension names. Neither has to be installed: `Rail.app` and `Rail.extends` are
-# `Autocomplete` columns over installed apps rather than Links, so nothing on the document
-# resolves them. Resolution is where an uninstalled app stops counting, and that is tested
-# against the resolver in `frappe/tests/test_shell_navigation.py`.
+# Hosts need not be installed: `Rail.app` and `Rail.extends` are `Autocomplete`, not Links.
 HOST = "erpnext"
 OTHER_HOST = "helpdesk"
 
 
 @contextlib.contextmanager
 def authoring():
-	"""Author app content the way a developer does, without writing a file into the working tree.
-
-	`export_rail` is what makes authoring and shipping one step, and in a test that is a fixture
-	leaking into the repo: the database is rolled back afterwards and the file is not.
-	"""
+	"""Author app content as a developer, with `export_rail` patched so no file lands in the working tree."""
 	with developer_mode(True), patch.object(Rail, "export_rail"):
 		yield
 
@@ -54,12 +46,7 @@ def item(**kwargs):
 
 class TestRail(IntegrationTestCase):
 	def test_the_eight_shipped_types_are_present(self):
-		"""The framework's own kinds arrive by migrate, as records rather than through a seeder.
-
-		`Sidebar` joined them once desk v2 had a sidebar container for it to point at. `View` is
-		still deliberately absent: the doctype it points at is a separate effort, and a type row
-		with a wrong target is worse than a missing one.
-		"""
+		"""The framework's own kinds arrive by migrate; `View` is deliberately absent until its doctype exists."""
 		shipped = set(frappe.get_all("Navigation Item Type", pluck="name"))
 		self.assertTrue(
 			{"DocType", "Record", "Module", "Module Contents", "Page", "Link", "Section", "Sidebar"}
@@ -78,11 +65,7 @@ class TestRail(IntegrationTestCase):
 		self.assertEqual(buckets["Link"], "Always Visible")
 
 	def test_module_and_module_contents_are_two_kinds(self):
-		"""They share a target doctype and are told apart by what they do with it. `Module` opens a
-		module's page and is visible when anything in the module is readable; `Module Contents` is
-		the overflow row that expands into what is left, so it drops when nothing survives under
-		it, exactly as a `Section` does.
-		"""
+		"""They share a target doctype and are told apart by their permission rule."""
 		buckets = dict(
 			frappe.get_all("Navigation Item Type", fields=["name", "permission_rule"], as_list=True)
 		)
@@ -150,12 +133,7 @@ class TestRail(IntegrationTestCase):
 		self.assertEqual(rail.items[0].link_doctype, "User")
 
 	def test_a_site_layer_cannot_claim_another_apps_rail(self):
-		"""`extends` is an app-layer claim, and hiding the field does not stop an API write.
-
-		A site or user row naming a host would be one person's arrangement filed onto a rail
-		they do not own — and it is unnecessary besides, since arranging a host rail is one row
-		at the host's own address covering every contributed item in the list.
-		"""
+		"""`extends` is an app-layer claim, and hiding the field does not stop an API write."""
 		rail = make_rail(extends=HOST)
 		rail.insert()
 		self.addCleanup(rail.delete)
@@ -168,11 +146,7 @@ class TestRail(IntegrationTestCase):
 			self.assertRaises(frappe.ValidationError, rail.insert)
 
 	def test_an_extension_is_named_after_the_address_and_not_the_app(self):
-		"""An app ships its own rail and one record per host, so the app name is not enough.
-
-		The record name is the export path, so two records sharing a name would overwrite one
-		file — which is exactly what `mount_on`'s single column made unavoidable.
-		"""
+		"""An app ships its own rail and one record per host, so the app name alone is not enough."""
 		own = make_rail(standard=1, items=[item(key="users", link_to="User")])
 		extension = make_rail(standard=1, extends=HOST, items=[item(key="users", link_to="User")])
 		with authoring():
@@ -185,12 +159,7 @@ class TestRail(IntegrationTestCase):
 		self.assertEqual(extension.name, f"{APP}-{HOST}")
 
 	def test_one_app_may_extend_two_hosts_and_keep_its_own_rail(self):
-		"""The whole reason `mount_on` came off: a scalar could name one host, and Payments and
-		Telephony each extend ERPNext *or* CRM *or* Helpdesk, choosing per site.
-
-		This is also what the old three-column index made unstorable rather than merely
-		unresolvable — every one of these rows is `(app, "", 1)` under it.
-		"""
+		"""One app extends several hosts, each as its own record beside its own rail."""
 		with authoring():
 			for extends in ("", HOST, OTHER_HOST):
 				rail = make_rail(standard=1, extends=extends, items=[item(key="users", link_to="User")])
@@ -203,13 +172,7 @@ class TestRail(IntegrationTestCase):
 		)
 
 	def test_two_extensions_of_one_host_by_one_app_are_still_refused(self):
-		"""The index widened; it did not stop enforcing one layer per address.
-
-		A shipped row is refused by name rather than by the index, and says so: its name is its
-		address, so the second one collides on the primary key — which `db_insert` reads as a
-		hash collision, retries five times against an `autoname` that keeps returning the same
-		string, and then re-raises the driver's own error naming a column and no cause.
-		"""
+		"""A second shipped row at one address is refused by name, with a message and not a driver error."""
 		with authoring():
 			first = make_rail(standard=1, extends=HOST, items=[item(key="users", link_to="User")])
 			first.insert()
@@ -239,10 +202,7 @@ class TestRail(IntegrationTestCase):
 			self.assertRaises(frappe.ValidationError, make_rail(standard=1).insert)
 
 	def test_two_layers_cannot_share_one_address(self):
-		"""The database holds this, not a hook, because a bulk write skips the document entirely.
-
-		Two rows at one `(app, user, standard)` would give the merge two answers for one layer.
-		"""
+		"""The database holds this, not a hook, because a bulk write skips the document entirely."""
 		first = make_rail()
 		first.insert()
 		self.addCleanup(first.delete)
@@ -251,12 +211,7 @@ class TestRail(IntegrationTestCase):
 			make_rail().insert()
 
 	def test_a_person_lists_only_their_own_layer(self):
-		"""The list query is the half `has_permission` does not cover.
-
-		Reports, the API and the desk's own export go through the query condition rather than
-		through the document check, so without it a `Desk User`'s read would be a read of
-		everyone else's arrangements.
-		"""
+		"""The list query is the half `has_permission` does not cover."""
 		site = make_rail()
 		site.insert()
 		self.addCleanup(site.delete)
@@ -275,8 +230,7 @@ class TestRail(IntegrationTestCase):
 		mine.insert()
 		self.addCleanup(mine.delete)
 
-		# `get_list`, not `get_all`: the latter bypasses permissions by design, so it would pass
-		# whether or not the condition exists.
+		# `get_list`, not `get_all`, which bypasses permissions and would pass either way.
 		with set_user(person.name):
 			visible = frappe.get_list("Rail", pluck="name")
 

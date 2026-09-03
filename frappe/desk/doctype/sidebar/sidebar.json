@@ -24,7 +24,7 @@
  ],
  "fields": [
   {
-   "description": "What this sidebar is called, on screen and -- on desk v1's sidebars -- as its record name (`autoname: field:title`). Defaults to the module's name there, and the default is stored, so a module's own sidebar keeps the name it has always had and a second sidebar under that module is told apart by being called something else. On a desk v2 sidebar the name comes from the address instead and this is only the label, which is why uniqueness is enforced in the controller for v1's rows rather than by an index over both.",
+   "description": "Desk v1 names a sidebar after this, unique among them; on desk v2 it is only the label.",
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -32,7 +32,7 @@
    "reqd": 1
   },
   {
-   "description": "The module this sidebar belongs to. Neither required nor unique: one module may own several sidebars, and which of them answers for the module itself is decided by the name -- the one called after the module -- rather than by a column here. May also be blank, which means the sidebar belongs to its app rather than to any one of the app's modules; such a sidebar is exported to the app's own folder and says which app in `app`.",
+   "description": "Optional. A module may own several sidebars; the one named after the module answers for it.",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -50,28 +50,28 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "The app this sidebar is placed in. Derived from the module when there is one -- a module sits in exactly one app. Author-set when there is not: an app-rooted sidebar has no module to derive it from, and this is then the only thing that says which app ships the file.",
+   "description": "Derived from the module when there is one; set by hand on a sidebar with no module.",
    "fieldname": "app",
    "fieldtype": "Autocomplete",
    "label": "App",
    "options": "Installed Applications"
   },
   {
-   "description": "Desk v2 only. The doctype half of the address this sidebar hangs on -- `Module Def` for a module's sidebar, a doctype for a doctype's. Blank on desk v1's sidebars, which are addressed by `module` and named by `title` instead. A Link rather than Data so that renaming a doctype repairs the pointer through ordinary link renaming, matching `Navigation Item.link_doctype`.",
+   "description": "Desk v2 only: Module Def for a module's sidebar, a doctype for a doctype's. Blank on desk v1 sidebars.",
    "fieldname": "link_doctype",
    "fieldtype": "Link",
    "label": "Link DocType",
    "options": "DocType"
   },
   {
-   "description": "The record this sidebar belongs to. With `link_doctype` this is the whole address, and it is what a rail item of type `Sidebar` points at: a linked rail item names the sidebar the address produced. A real Dynamic Link, so `rename_dynamic_links` repairs every pointer on the site in one statement.",
+   "description": "The module or doctype this sidebar hangs on. With Link DocType, this is its address.",
    "fieldname": "link_to",
    "fieldtype": "Dynamic Link",
    "label": "Link To",
    "options": "link_doctype"
   },
   {
-   "description": "The person whose own arrangement this is. Blank means the app's own sidebar or the site's arrangement of it, told apart by `standard` -- the same three layers, in the same strict order, that `Rail` holds for the rail. Not nullable, so that one spelling of \"not a user's own layer\" reaches the index: every `NULL` is distinct to an index, so a nullable column would let one address hold two site layers that both look like one address.",
+   "description": "Whose own arrangement this is. Blank means the app's or the site's layer, told apart by Standard.",
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "User",
@@ -90,7 +90,7 @@
    "options": "Sidebar Item"
   },
   {
-   "description": "Desk v2's rows, in the same table type the rail holds -- one row model serving both surfaces. Beside v1's `items` rather than replacing them: v1's sidebars keep rendering from `Sidebar Item` untouched, and a row can only be read by the desk that understands its columns. Order is per parent and sparse, so an item this layer never names keeps its shipped position.",
+   "description": "Desk v2's rows, the same row type the rail holds. Desk v1 sidebars keep rendering from Items.",
    "fieldname": "navigation_items",
    "fieldtype": "Table",
    "label": "Navigation Items",
@@ -103,7 +103,7 @@
   },
   {
    "default": "0",
-   "description": "Owned by an app: exported to its module's folder -- or to the app's own folder when it has no module -- and re-imported by migrate. Set via the Mark as Standard action, not by hand -- a standard sidebar with no exported file is an orphan and gets deleted on the next migrate. Everything else belongs to this site, however it got here.",
+   "description": "Owned by an app and exported to its module or app folder. Set via Mark as Standard, not by hand.",
    "fieldname": "standard",
    "fieldtype": "Check",
    "label": "Standard",
@@ -124,7 +124,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-01 18:45:00.000000",
+ "modified": "2026-09-03 17:55:12.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar",
