@@ -64,11 +64,6 @@ def _display_value(value: Any) -> str:
 	return str(value)[:DISPLAY_VALUE_CHARS]
 
 
-# Stores image bytes beside the session log and returns their metadata. Injected by the
-# loop so a tool can produce an image without knowing that sessions exist.
-StoreImage = Callable[[str, bytes], Awaitable[AttachmentContent]]
-
-
 @dataclass
 class ToolContext:
 	"""Runtime state injected into a tool call by the loop; never seen by the model."""
@@ -81,9 +76,9 @@ class ToolContext:
 	read_only_roots: tuple[str, ...] = ()
 	abort: asyncio.Event = field(default_factory=asyncio.Event)
 	timeout: float = 120.0
-	# None when the caller has no attachment store (an embedded Agent, say); a tool that
-	# produces images must degrade to text rather than fail.
-	store_image: StoreImage | None = None
+	# (name, bytes) -> stored image metadata, injected by the loop. None when the caller
+	# has no attachment store, so a tool that produces images must degrade to text.
+	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
 
 
 @dataclass

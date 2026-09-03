@@ -26,7 +26,7 @@ import asyncio
 import inspect
 import json
 import uuid
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -67,7 +67,7 @@ from flow.model.credentials import CredentialStore
 from flow.model.reasoning import reasoning_params
 from flow.session.config import SessionConfig
 from flow.session.transcript import PendingApproval
-from flow.tools import StoreImage, Tool, ToolContext
+from flow.tools import Tool, ToolContext
 
 if TYPE_CHECKING:
 	from flow.extensions import ExtensionRuntime
@@ -116,7 +116,7 @@ class LoopInputs:
 	before_tool_call: BeforeHook | None = None
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
-	store_image: StoreImage | None = None
+	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
 

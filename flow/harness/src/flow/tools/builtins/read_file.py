@@ -7,9 +7,6 @@ from flow.tools.builtins.common import resolve, truncate
 from flow.tools.tool import ToolContext, ToolResult, tool
 
 _IMAGE_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"})
-# Guards against loading an enormous file into memory before the attachment store can
-# reject it. The store enforces the authoritative size policy; this is only a ceiling.
-_MAX_IMAGE_READ_BYTES = 20 * 1024 * 1024
 
 
 @tool(
@@ -66,8 +63,6 @@ async def _read_image(full: str, path: str, ctx: ToolContext) -> ToolResult:
 	"""
 	if ctx.store_image is None:
 		return ToolResult(content=f"[image file: {path} — images are unavailable in this session]")
-	if os.path.getsize(full) > _MAX_IMAGE_READ_BYTES:
-		return ToolResult(content=f"[image too large to read: {path}]", is_error=True)
 	try:
 		with open(full, "rb") as f:
 			data = f.read()
