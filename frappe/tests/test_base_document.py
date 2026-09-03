@@ -58,6 +58,24 @@ class TestBaseDocument(IntegrationTestCase):
 		# Text field: sanitized, onclick attribute stripped
 		self.assertNotIn("onclick", doc.description)
 
+	def test_json_field_accepts_list(self):
+		"""A JSON fieldtype holding a list is valid JSON and must serialize like a dict does."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		if not frappe.db.exists("DocType", "Test JSON List"):
+			new_doctype(
+				"Test JSON List",
+				fields=[{"label": "Config", "fieldname": "config", "fieldtype": "JSON"}],
+			).insert()
+
+		doc = frappe.new_doc("Test JSON List")
+
+		doc.config = {"a": 1}
+		self.assertEqual(doc.get_valid_dict()["config"], '{"a":1}')
+
+		doc.config = [{"a": 1}, {"b": 2}]
+		self.assertEqual(doc.get_valid_dict()["config"], '[{"a":1},{"b":2}]')
+
 	def test_docstatus(self):
 		doc = BaseDocument({"docstatus": 0, "doctype": "ToDo"})
 		self.assertTrue(doc.docstatus.is_draft())

@@ -587,7 +587,7 @@ class BaseDocument:
 					value = self.get_virtual_field_value(df)
 
 				fieldtype = df.fieldtype
-				if isinstance(value, list) and fieldtype not in table_fields:
+				if isinstance(value, list) and fieldtype not in table_fields and fieldtype != "JSON":
 					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
 
 				if fieldtype == "Check":
@@ -596,7 +596,7 @@ class BaseDocument:
 				elif fieldtype == "Int" and not isinstance(value, int):
 					value = cint(value)
 
-				elif fieldtype == "JSON" and isinstance(value, dict):
+				elif fieldtype == "JSON" and isinstance(value, dict | list):
 					value = json.dumps(value, separators=(",", ":"))
 
 				elif fieldtype in float_like_fields and not isinstance(value, float):
