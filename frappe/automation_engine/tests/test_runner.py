@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.automation_engine.actions.base import AutomationAction, get_action_registry
@@ -12,7 +13,9 @@ from frappe.automation_engine.runner import (
 	automation_task_name,
 	execute_automation,
 )
+from frappe.automation_engine.tests.test_actions import FakeResponse, public_dns
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import enable_safe_exec
 
 QUEUE = "Automation Trigger Queue"
 
@@ -446,3 +449,70 @@ class TestWaitResume(AutomationRunnerTestCase):
 		auto = make_automation([if_step("doc.priority == 'High'"), branch(wait(5), 1, "If")])
 		execute_automation(self.queue_row(auto, todo.name))
 		self.assertEqual(self.run_result(auto)["branches"], {"1": "If"})
+
+
+class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
+	def test_webhook_step_sends_the_request_and_records_the_response(self):
+		todo = make_todo(description="ping")
+		auto = make_automation(
+			[
+				{
+					"action_type": "CallWebhook",
+					"params": json.dumps(
+						{"url": "https://example.com/hook", "payload": {"note": "{{ doc.description }}"}}
+					),
+				}
+			]
+		)
+		name = self.queue_row(auto, todo.name)
+		with (
+			public_dns({"example.com": "93.184.216.34"}),
+			patch("requests.request", return_value=FakeResponse(text="ok")) as request,
+		):
+			execute_automation(name)
+
+		self.assertEqual(self.run_status(auto), "Success")
+		self.assertEqual(frappe.parse_json(request.call_args.kwargs["data"]), {"note": "ping"})
+
+	def test_webhook_step_pointed_at_an_internal_address_fails_the_run(self):
+		todo = make_todo()
+		auto = make_automation(
+			[
+				{
+					"action_type": "CallWebhook",
+					"params": json.dumps({"url": "http://169.254.169.254/latest/meta-data/"}),
+				}
+			]
+		)
+		with patch("requests.request") as request:
+			execute_automation(self.queue_row(auto, todo.name))
+			request.assert_not_called()
+
+		self.assertEqual(self.run_status(auto), "Failed")
+
+	def test_script_step_is_refused_at_save_time_when_server_scripts_are_disabled(self):
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False):
+			self.assertRaises(
+				frappe.ValidationError,
+				make_automation,
+				[{"action_type": "RunScript", "params": json.dumps({"script": "pass"})}],
+			)
+
+	def test_script_step_runs_against_the_target_document(self):
+		with enable_safe_exec():
+			todo = make_todo(description="scripted")
+			auto = make_automation(
+				[
+					{
+						"action_type": "RunScript",
+						"params": json.dumps(
+							{"script": "doc.priority = 'High'\ndoc.save()\nresult['detail'] = doc.name"}
+						),
+					}
+				]
+			)
+			execute_automation(self.queue_row(auto, todo.name))
+
+		self.assertEqual(self.run_status(auto), "Success")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
+		self.assertEqual(self.run_result(auto)["steps"][0]["detail"], todo.name)
