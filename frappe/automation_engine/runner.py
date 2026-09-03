@@ -39,7 +39,11 @@ def execute_automation(queue_name: str):
 
 def _execute_plan(rule, row, run, doc, steps, snapshot, event):
 	previous_depth = frappe.flags.get("automation_depth", 0)
+	previous_run = frappe.flags.get("in_automation_run")
 	frappe.flags.automation_depth = cint(row.depth)
+	# Actions revalidate their params before running. The flag lets an action tell that apart
+	# from the flow being authored, so a save-time gate is not re-applied to the run.
+	frappe.flags.in_automation_run = True
 	context = None
 	try:
 		with _execution_identity(rule, row, doc):
@@ -53,6 +57,7 @@ def _execute_plan(rule, row, run, doc, steps, snapshot, event):
 		return "Failed", context
 	finally:
 		frappe.flags.automation_depth = previous_depth
+		frappe.flags.in_automation_run = previous_run
 
 
 def _run_state(rule, row, doc):
@@ -254,27 +259,59 @@ def _resolve_if(step, doc, context, pos, start_idx, taken):
 	The arm is run state, not a derivation: the document may have changed during the Wait.
 	"""
 	key = _branch_key(step.get("idx"))
+	forced = _forced_arm(key)
 	if pos < start_idx:
 		# Already decided, unless this run parked before arms were recorded.
 		if key in taken:
 			return None, None, None
-		taken[key] = "If" if _step_condition_matches(step, doc, context) else "Else"
+		taken[key] = forced or _evaluated_arm(step, doc, context)
 		return None, None, None
-	taken[key] = arm = "If" if _step_condition_matches(step, doc, context) else "Else"
+	taken[key] = arm = forced or _evaluated_arm(step, doc, context)
+	if forced:
+		return "Success", _("Forced the {0} branch").format(arm), 0
 	return "Success", _("Condition took the {0} branch").format(arm), 0
+
+
+def _evaluated_arm(step, doc, context) -> str:
+	return "If" if _step_condition_matches(step, doc, context) else "Else"
+
+
+def _forced_arm(key) -> str | None:
+	"""A trial can ask for the arm the record itself would not take, to test the other path."""
+	if not frappe.flags.get("in_automation_trial"):
+		return None
+	arm = (frappe.flags.get("automation_branch_overrides") or {}).get(key)
+	return arm if arm in ("If", "Else") else None
 
 
 def _begin_wait(step, context, pos):
 	started = time.monotonic()
-	seconds = _wait_seconds(_step_params(step))
+	params = _step_params(step)
+	if frappe.flags.get("in_automation_trial"):
+		# Nothing will ever resume a trial, so parking here would hide every later step.
+		return "Success", _simulated_wait(params), _ms(started)
+	seconds = _wait_seconds(params)
 	schedule_wait(context, seconds, pos + 1)
 	return "Waiting", _("Waiting {0} seconds").format(seconds), _ms(started)
 
 
+def _simulated_wait(params) -> str:
+	return _("Waited {0} {1} (simulated)").format(cint(params.get("value")), params.get("unit") or "Minutes")
+
+
 def _begin_event_wait(step, context, pos):
 	started = time.monotonic()
-	subscription = schedule_event_wait(context, _step_params(step), step["step_key"], pos + 1)
+	params = _step_params(step)
+	if frappe.flags.get("in_automation_trial"):
+		# Nothing will ever emit the event for a trial, so parking here would hide every later
+		# step. Steps behind it read an empty event payload.
+		return "Success", _simulated_event_wait(params), _ms(started)
+	subscription = schedule_event_wait(context, params, step["step_key"], pos + 1)
 	return "Waiting", _("Waiting for {0}").format(subscription.event_name), _ms(started)
+
+
+def _simulated_event_wait(params) -> str:
+	return _("Waited for {0} (simulated)").format(params.get("event_name") or _("event"))
 
 
 def _wait_seconds(params) -> int:
