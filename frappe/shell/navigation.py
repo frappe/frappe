@@ -137,7 +137,7 @@ def resolve_sidebar(
 	check_permission: bool = True,
 ) -> list[dict]:
 	"""One sidebar at one address, for a caller that wants that one and not the prefix."""
-	# No app and no context needed: the one rule that reaches across containers runs on the rail.
+	# No app to build a context for: the one rule that reaches across containers runs on the rail.
 	context = NavigationContext("") if check_permission else None
 
 	if context is not None and not context.address_is_offered(link_doctype, link_to):

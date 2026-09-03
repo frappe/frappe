@@ -4,7 +4,7 @@
 """The desk v2 navigation filter: `frappe/shell/navigation_filter.py`."""
 
 # Never as Administrator: the short-circuit passes every permission bucket, so a suite written
-# as Administrator would pass against a filter that does nothing. `ToDo` yes, `Role` no.
+# as Administrator would pass against a filter that does nothing. A Desk User reads `ToDo`, not `Role`.
 
 import contextlib
 from unittest.mock import patch

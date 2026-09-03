@@ -70,5 +70,5 @@ string literals, which cannot change behaviour in either language; inside a docs
 template literal both are content, and a change to either is reported. And it does not
 prove a docstring *removal* is safe — a docstring is a runtime value in Python, so
 anything reading `__doc__` changes behaviour. `--ignore-docstrings` compares the parsed
-code with every docstring dropped, which shows nothing *but* docstrings moved; the test
-suites remain the proof that moving them was safe.
+code with every docstring dropped, so the two revisions differ only in docstrings and
+formatting; the test suites remain the proof that moving them was safe.

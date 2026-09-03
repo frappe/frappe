@@ -291,6 +291,19 @@ DOCSTRING_CASES = [
 	("py docstring turned into a comment", True, PY_DOCSTRING, "def f():\n\t# Doc.\n\treturn 1\n"),
 	("py string that is not a docstring", False, "def f():\n\treturn 1\n\t'x'\n", "def f():\n\treturn 1\n"),
 	("py syntax error", False, PY_DOCSTRING, "def f(:\n"),
+	("py docstring-only body", True, 'def f():\n\t"""Doc."""\n', "def f():\n\tpass\n"),
+	(
+		"py class and module docstrings",
+		True,
+		'"""M."""\n\nclass C:\n\t"""C."""\n\n\tx = 1\n',
+		"class C:\n\tx = 1\n",
+	),
+	(
+		"py async docstring",
+		True,
+		'async def f():\n\t"""Doc."""\n\treturn 1\n',
+		"async def f():\n\treturn 1\n",
+	),
 ]
 
 

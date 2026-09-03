@@ -73,7 +73,7 @@ def frontend_dir() -> str:
 
 
 def assemble() -> list[dict]:
-	"""The manifest in `sites/apps.txt` order; an app is in it only if it contributes source."""
+	"""The manifest in `sites/apps.txt` order: frappe, plus every app that contributes source."""
 	manifest = []
 
 	for app in frappe.get_all_apps():
@@ -163,8 +163,7 @@ def write(frontend: str | None = None) -> bool:
 	enforce_singletons(manifest)
 
 	# `source_dirs` is every app, not just contributors: a `custom/` folder may name a doctype
-	# owned by an app that contributes nothing.
-	# Bench-internal path, composed from `frontend_dir()`; never request-derived.
+	# owned by an app that contributes nothing. Bench-internal path; never request-derived.
 	with open(os.path.join(frontend, MANIFEST_FILENAME), "w") as f:  # nosemgrep
 		json.dump(
 			{

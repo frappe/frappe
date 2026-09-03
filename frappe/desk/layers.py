@@ -214,7 +214,7 @@ def anchor_layer(
 
 
 # Placement
-#
+
 # An anchor is `{"after": key}`, `{"before": key}` or `{"parent_key": key}`; the first that
 # resolves wins. The callers differ only in how a written name becomes a key, so that is the parameter.
 

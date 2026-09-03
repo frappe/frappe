@@ -167,8 +167,8 @@ class NavigationContext:
 
 	def module_is_offered(self, module: str | None) -> bool:
 		"""A module is offered when something in it is readable, unless this user blocked it."""
-		# The block is a veto, not a permission, so it runs ahead of the Administrator branch and
-		# before any layer is added; it gates module-derived items only.
+		# The block is a veto, not a permission, so it runs ahead of the Administrator branch; it
+		# gates module-derived items only.
 		if not module or module in self.blocked_modules:
 			return False
 

@@ -62,7 +62,6 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 
 	# The whole prefix comes back: hiding a rail item of type `Sidebar` changes which sidebars
 	# are reachable, so a response scoped to the one list would be a half-truth.
-
 	return resolve_navigation(target.app)
 
 
@@ -180,7 +179,7 @@ def _as_items(items: str | list) -> list[dict]:
 
 def _named(item) -> dict | None:
 	"""One row of the client's list, or None if it does not name an item."""
-	# A `parent_key` that is present but not a name drops the row rather than reading as top
+	# A `parent_key` that is present but not a name drops the row instead of reading as top
 	# level; blank means `None` or `""` only, since `0`, `[]` and `{}` are not the top level.
 	if not isinstance(item, dict) or not _is_name(item.get("key")):
 		return None

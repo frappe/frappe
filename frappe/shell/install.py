@@ -1,5 +1,5 @@
 # The install-time prefix guard: refuse an app whose prefix is malformed or already claimed.
-# Hooked on `before_app_install`, not `before_install`: a raise there exits 0 and reports success.
+# Hooked on `before_app_install`, not `before_install`, whose refusal path exits 0 and reports success.
 
 import frappe
 from frappe import _

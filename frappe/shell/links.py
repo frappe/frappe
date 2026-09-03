@@ -16,7 +16,7 @@ def canonical_path(doctype: str, name: str | None = None) -> str:
 	prefix = declared_prefix(app)
 
 	address = get_address_table()["doctypes"].get(doctype)
-	# A doctype the table has not seen yet still gets a link: the table lags `metadata_version`.
+	# A doctype not yet in the table still gets a link: the cache lags a new DocType until the version resets.
 	slug, module = address if address else (frappe.scrub(doctype).replace("_", "-"), "")
 
 	segments = [SHELL_ROOT, prefix]

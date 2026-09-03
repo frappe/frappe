@@ -281,7 +281,7 @@ def remove_orphan_entities(entity_types=None):
 		"Dock": {"standard": 1},
 		# Desk v2's rail: the app layer is file-backed; the site's and each person's are never candidates.
 		"Rail": {"standard": 1},
-		# No filter: every navigation kind is app content, so every row is file-backed.
+		# `Navigation Item Type` has no filter: every kind is app content, so every row is file-backed.
 	}
 	if entity_types:
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]

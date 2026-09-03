@@ -1,4 +1,5 @@
 # The runtime half of the claim surface: no website document may take a route under /apps.
+
 # A wildcard `doc_events` validate, not a `WebsiteGenerator` guard: three of its four
 # subclasses override `validate()` without calling `super()`.
 
@@ -30,7 +31,7 @@ def validate_route(doc, method=None):
 	if not route or not is_reserved(route):
 		return
 
-	# Existing claims skip migrate, as `validate_route_conflict` does; the patch reports them.
+	# Existing claims skip migrate, patch and install, as `validate_route_conflict` does.
 	if frappe.flags.in_migrate or frappe.flags.in_patch or frappe.flags.in_install:
 		return
 
