@@ -14,7 +14,7 @@
 			<Badge v-if="!editing.isNew" :label="SCOPE_LABELS[editing.scope]" variant="subtle" theme="gray" />
 		</div>
 		<template v-if="editing.isNew">
-			<TextInput v-model="editing.name" class="mt-4" label="Name" placeholder="review-changes" autofocus />
+			<TextInput v-model="editing.name" class="mt-6" label="Name" placeholder="review-changes" autofocus />
 			<p class="mt-1.5 text-2xs" :class="editing.name && !validName ? 'text-ink-red-6' : 'text-ink-gray-5'">
 				Lowercase letters, digits, and single hyphens.
 			</p>
