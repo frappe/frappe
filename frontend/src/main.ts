@@ -14,6 +14,7 @@ import { fetchAddresses, type Addresses } from "@/addresses";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { loadTranslations } from "@/i18n";
+import { loadSprite } from "@/icons/sprite";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
 import Unauthorized from "@/shell/Unauthorized.vue";
@@ -38,6 +39,9 @@ async function start() {
 
 	// 2. Translations are fired, NOT awaited (#42070).
 	loadTranslations(boot.translations_version, boot.lang);
+
+	// 2a. The icon sprite, fired and not awaited for the same reason.
+	loadSprite();
 
 	// 2b. The address table, which IS awaited -- unlike translations, because the route
 	//     table cannot resolve a single URL without it and an untranslated first frame

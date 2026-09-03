@@ -54,21 +54,23 @@
 					:aria-label="`Name of ${item.key}`"
 					@input="rename(item.key, ($event.target as HTMLInputElement).value)"
 				/>
+				<!-- `lucide-` prefixed: frappe-ui's Button takes a CSS class, and a bare name
+						 draws nothing. Literal here, so Tailwind's JIT emits the class. -->
 				<Button
 					variant="ghost"
-					icon="chevron-up"
+					icon="lucide-chevron-up"
 					:aria-label="`Move ${item.key} up`"
 					@click="items = move(items, item.key, -1)"
 				/>
 				<Button
 					variant="ghost"
-					icon="chevron-down"
+					icon="lucide-chevron-down"
 					:aria-label="`Move ${item.key} down`"
 					@click="items = move(items, item.key, 1)"
 				/>
 				<Button
 					variant="ghost"
-					:icon="item.hidden ? 'eye-off' : 'eye'"
+					:icon="item.hidden ? 'lucide-eye-off' : 'lucide-eye'"
 					:aria-label="`${item.hidden ? 'Show' : 'Hide'} ${item.key}`"
 					@click="toggleHidden(item.key)"
 				/>

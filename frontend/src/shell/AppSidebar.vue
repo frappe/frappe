@@ -38,6 +38,7 @@
 				:node="node"
 				:context="context"
 				:current="current"
+				:reserve="reserve"
 			/>
 		</ul>
 
@@ -55,6 +56,7 @@
 import type { NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
 import { useItemTree } from "@/navigation/useItemTree";
+import { useIconSlot } from "@/navigation/iconSlot";
 import type { ItemContext } from "@/navigation/types";
 
 // `address` is the scrubbed key, and it is a prop because it is also what the arrangement
@@ -74,5 +76,10 @@ const emit = defineEmits<{ arrange: [] }>();
 const tree = useItemTree(
 	() => props.items,
 	() => `the ${props.address} sidebar`
+);
+
+const reserve = useIconSlot(
+	() => props.items,
+	() => props.context
 );
 </script>
