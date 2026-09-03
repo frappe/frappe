@@ -11,11 +11,20 @@ from threading import Event
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from flow.events import AssistantMessage, AttachmentContent, TextContent, Usage, UserMessage
+from flow.events import (
+	AssistantMessage,
+	AttachmentContent,
+	TextContent,
+	ToolCall,
+	ToolResult,
+	Usage,
+	UserMessage,
+)
 from flow.model.base import Model
 from flow.model.catalog import model_supports_images
-from flow.model.content import NON_VISION_IMAGE_PLACEHOLDER, resolve_user_content
-from flow.model.litellm import LiteLLMModel, _openai_messages
+from flow.model.content import NON_VISION_IMAGE_PLACEHOLDER, resolve_tool_images, resolve_user_content
+from flow.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
+from flow.model.mock import MockModel
 from flow.model.providers.codex import CodexModel, _responses_input
 from flow.model.providers.opencode import opencode_go_model
 from flow.server import create_app
@@ -23,6 +32,8 @@ from flow.session import attachments as attachment_module
 from flow.session.attachments import AttachmentError, AttachmentStore
 from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
+from flow.tools.builtins.read_file import read_file
+from flow.tools.tool import ToolContext
 
 
 def _png(width: int = 8, height: int = 6) -> bytes:
@@ -131,7 +142,7 @@ def test_attachment_store_add_file_rejects_empty_oversized_and_binary(tmp_path):
 		raise AssertionError("non-UTF8 attachment was accepted")
 
 
-def test_non_vision_model_gets_explicit_image_placeholder():
+def test_images_resolve_when_capability_is_unknown():
 	attachment = AttachmentContent(
 		id="a" * 24,
 		name="screen.png",
@@ -140,15 +151,26 @@ def test_non_vision_model_gets_explicit_image_placeholder():
 		kind="image",
 	)
 	message = UserMessage(content=[TextContent(text="inspect this"), attachment])
-	text, images = resolve_user_content(
-		message,
-		resolve_attachment=lambda _: b"png",
-		supports_images=False,
+	text, images = resolve_user_content(message, resolve_attachment=lambda _: b"png")
+
+	assert [(image.name, image.mime_type, image.data) for image in images] == [
+		("screen.png", "image/png", b"png")
+	]
+	assert text == "inspect this"
+
+
+def test_known_non_vision_model_gets_image_placeholder():
+	attachment = AttachmentContent(
+		id="a" * 24, name="screen.png", mime_type="image/png", size=3, kind="image"
 	)
+	message = UserMessage(content=[TextContent(text="inspect this"), attachment])
+	text, images = resolve_user_content(message, resolve_attachment=lambda _: b"png", supports_images=False)
 
 	assert images == []
-	assert NON_VISION_IMAGE_PLACEHOLDER in text
-	assert "screen.png" in text
+	assert NON_VISION_IMAGE_PLACEHOLDER in text and "screen.png" in text
+	result = _tool_result("c1", "shot.png", [attachment])
+	assert resolve_tool_images(result, resolve_attachment=lambda _: b"png", supports_images=False) == []
+	assert LiteLLMModel("custom/gpt-4o").supports_images is None  # a gateway model stays ungated
 
 
 def test_litellm_wire_contains_text_file_and_image_data_url():
@@ -500,3 +522,192 @@ async def test_abort_discards_undelivered_steering_attachments(tmp_path):
 		pass
 	else:
 		raise AssertionError("aborted undelivered steering attachment was retained")
+
+
+# --- images produced by a tool ---------------------------------------------
+
+
+def _tool_result(cid: str, name: str, attachments: list[AttachmentContent]) -> ToolResult:
+	return ToolResult(tool_call_id=cid, name="read_file", content=f"[Image: {name}]", attachments=attachments)
+
+
+def _stored(store: AttachmentStore, name: str = "shot.png") -> AttachmentContent:
+	return store.add_bytes(name, _png())
+
+
+async def test_read_file_stores_an_image_and_returns_only_metadata(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	target = tmp_path / "diagram.png"
+	target.write_bytes(_png(40, 30))
+
+	async def sink(name: str, data: bytes) -> AttachmentContent:
+		return await asyncio.to_thread(store.add_bytes, name, data)
+
+	result = await read_file(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
+
+	assert not result.is_error
+	[stored] = result.attachments
+	assert (stored.name, stored.mime_type, stored.width, stored.height) == (
+		"diagram.png",
+		"image/png",
+		40,
+		30,
+	)
+	assert store.read(stored.id) == target.read_bytes()
+	# the model sees a summary, never the bytes
+	assert result.content == f"[Image: {target} (image/png, 40x30)]"
+	assert "base64" not in result.content
+
+
+async def test_read_file_image_without_a_store_degrades_to_text(tmp_path):
+	target = tmp_path / "diagram.png"
+	target.write_bytes(_png())
+
+	result = await read_file(path=str(target), ctx=ToolContext(cwd=str(tmp_path)))
+
+	# no attachment store (an embedded Agent) is not an error; the file is fine
+	assert not result.is_error
+	assert result.attachments == []
+	assert "unavailable in this session" in result.content
+
+
+async def test_read_file_sniffs_images_by_content_not_name(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	(tmp_path / "screenshot").write_bytes(_png())  # image, no extension
+	(tmp_path / "notes.png").write_text("just text")  # text wearing an image name
+
+	async def sink(name: str, data: bytes) -> AttachmentContent:
+		return await asyncio.to_thread(store.add_bytes, name, data)
+
+	ctx = ToolContext(cwd=str(tmp_path), store_image=sink)
+	image = await read_file(path="screenshot", ctx=ctx)
+	text = await read_file(path="notes.png", ctx=ctx)
+
+	assert [item.kind for item in image.attachments] == ["image"]
+	assert not text.is_error and text.attachments == []
+	assert text.content == "just text"
+
+
+async def test_read_file_reports_a_broken_image_as_an_error(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	target = tmp_path / "broken.png"
+	target.write_bytes(b"\x89PNG\r\n\x1a\n" + b"junk")  # a real signature, no image behind it
+
+	async def sink(name: str, data: bytes) -> AttachmentContent:
+		return await asyncio.to_thread(store.add_bytes, name, data)
+
+	result = await read_file(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
+
+	assert result.is_error
+	assert result.attachments == []
+	assert "cannot read image" in result.content
+
+
+async def test_tool_image_bytes_never_reach_the_session_log(tmp_path):
+	image = _png(40, 30)
+	(tmp_path / "diagram.png").write_bytes(image)
+	store = SessionStore(str(tmp_path / "data"))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	call = AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "diagram.png"})])
+	model = MockModel(replies=[call, AssistantMessage(content="that is a diagram")])
+
+	handle = await session.run("read diagram.png", model=model)
+	assert handle.task is not None
+	await handle.task
+
+	[result] = [m for m in session.transcript.messages if isinstance(m, ToolResult)]
+	[stored] = result.attachments
+	assert stored.mime_type == "image/png"
+
+	log = next((tmp_path / "data" / "sessions").rglob(f"{session.id}.jsonl")).read_text()
+	assert base64.b64encode(image).decode() not in log
+	assert stored.id in log  # the reference is there, the bytes are not
+
+
+def test_litellm_wire_sends_tool_result_images_after_the_result(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	stored = _stored(store)
+	messages = [
+		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		_tool_result("c1", "shot.png", [stored]),
+	]
+
+	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
+
+	assert [m["role"] for m in wire] == ["system", "assistant", "tool", "user"]
+	parts = wire[-1]["content"]
+	assert parts[0] == {"type": "text", "text": _TOOL_IMAGE_PREFACE}
+	assert parts[1]["image_url"]["url"].startswith("data:image/png;base64,")
+
+
+def test_codex_wire_puts_tool_result_images_inside_the_output(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	stored = _stored(store)
+	messages = [
+		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		_tool_result("c1", "shot.png", [stored]),
+	]
+
+	items = _responses_input(
+		messages, CodexModel("codex/gpt-5.4", api_key="token"), resolve_attachment=store.read
+	)
+
+	output = items[-1]
+	assert output["type"] == "function_call_output"
+	assert output["output"][0] == {"type": "input_text", "text": "[Image: shot.png]"}
+	assert output["output"][1]["type"] == "input_image"
+	assert output["output"][1]["image_url"].startswith("data:image/png;base64,")
+
+
+def test_tool_images_flush_once_after_a_batch_of_results(tmp_path):
+	"""Inline images would split the tool batch, which the provider rejects."""
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	first, second = _stored(store, "a.png"), _stored(store, "b.png")
+	messages = [
+		AssistantMessage(
+			content=[
+				ToolCall(id="c1", name="read_file", arguments={}),
+				ToolCall(id="c2", name="read_file", arguments={}),
+			],
+			stop_reason="tool_use",
+		),
+		_tool_result("c1", "a.png", [first]),
+		_tool_result("c2", "b.png", [second]),
+	]
+
+	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
+
+	# both tool results stay adjacent to their call; one user turn carries both images
+	assert [m["role"] for m in wire] == ["system", "assistant", "tool", "tool", "user"]
+	images = [p for p in wire[-1]["content"] if p["type"] == "image_url"]
+	assert len(images) == 2
+
+
+def test_tool_images_flush_before_the_next_assistant_turn(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	stored = _stored(store)
+	messages = [
+		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		_tool_result("c1", "shot.png", [stored]),
+		AssistantMessage(content="I can see it."),
+	]
+
+	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
+
+	# the images land before the reply, not stranded at the end of the conversation
+	assert [m["role"] for m in wire] == ["system", "assistant", "tool", "user", "assistant"]
+
+
+def test_missing_tool_image_bytes_are_skipped_not_fatal(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	stored = _stored(store)
+	store.remove(stored.id)  # the bytes went away; the event still references them
+	messages = [
+		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		_tool_result("c1", "shot.png", [stored]),
+	]
+
+	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
+
+	# no image turn, no crash: the tool's own text already names what it read
+	assert [m["role"] for m in wire] == ["system", "assistant", "tool"]

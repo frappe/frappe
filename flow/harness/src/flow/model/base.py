@@ -49,9 +49,9 @@ class Model(abc.ABC):
 	model: str = "unknown"
 
 	@property
-	def supports_images(self) -> bool:
-		"""Whether this exact serving surface accepts image input."""
-		return False
+	def supports_images(self) -> bool | None:
+		"""Whether this serving surface accepts image input; None when unknown."""
+		return None
 
 	@property
 	def context_window(self) -> int | None:

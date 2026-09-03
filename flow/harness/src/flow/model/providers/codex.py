@@ -46,7 +46,7 @@ from flow.model.auth import (
 )
 from flow.model.base import Model, ModelRequest
 from flow.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
-from flow.model.content import resolve_user_content
+from flow.model.content import resolve_tool_images, resolve_user_content
 from flow.model.credentials import OAuthCredential
 from flow.model.errors import (
 	normalize_provider_error,
@@ -739,12 +739,13 @@ def _responses_input(
 	items: list[dict] = []
 	text_index = 0
 	dropped_calls: set[str] = set()
+	supports_images = model.supports_images
 	for message in messages:
 		if isinstance(message, UserMessage):
 			text, images = resolve_user_content(
 				message,
 				resolve_attachment=resolve_attachment,
-				supports_images=model.supports_images,
+				supports_images=supports_images,
 			)
 			content = []
 			if text:
@@ -779,11 +780,21 @@ def _responses_input(
 		elif isinstance(message, ToolResult):
 			if message.tool_call_id in dropped_calls:
 				continue
+			images = resolve_tool_images(
+				message, resolve_attachment=resolve_attachment, supports_images=supports_images
+			)
+			output: str | list[dict] = message.content
+			if images:
+				# the Responses API takes image parts inside the tool output itself
+				output = [
+					{"type": "input_text", "text": message.content},
+					*({"type": "input_image", "image_url": image.data_url} for image in images),
+				]
 			items.append(
 				{
 					"type": "function_call_output",
 					"call_id": message.tool_call_id,
-					"output": message.content,
+					"output": output,
 				}
 			)
 	return items

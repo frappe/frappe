@@ -9,7 +9,7 @@ from flow.tools.tool import ToolContext, ToolResult, tool
 
 @tool(
 	prompt_snippet="Read file contents",
-	prompt_guidelines=("Use read_file to examine files instead of cat or sed.",),
+	prompt_guidelines=("Use read_file to examine files and images instead of cat or sed.",),
 	display_template="Reading file {{ path }}",
 )
 async def read_file(
@@ -19,10 +19,17 @@ async def read_file(
 	*,
 	ctx: ToolContext,
 ) -> ToolResult:
-	"""Read a text file. Use offset/limit to page through large files."""
+	"""Read a text or image file. Use offset/limit to page through large text files."""
 	full = resolve(ctx, path, read_only=True)
 	if not os.path.isfile(full):
 		return ToolResult(content=f"[no such file: {path}]", is_error=True)
+	try:
+		with open(full, "rb") as f:
+			head = f.read(12)
+	except OSError as e:
+		return ToolResult(content=f"[cannot read {path}: {e.strerror or e}]", is_error=True)
+	if _is_image(head):
+		return await _read_image(full, path, ctx)
 	if offset is not None and offset < 1:
 		return ToolResult(content="[offset must be >= 1]", is_error=True)
 	if limit is not None and limit < 1:
@@ -48,6 +55,36 @@ async def read_file(
 	limited_end = end if end < len(lines) else None
 	content = body + _notice(start, trunc, total, limited_end)
 	return ToolResult(content=content, details={"path": full, "truncation": trunc})
+
+
+async def _read_image(full: str, path: str, ctx: ToolContext) -> ToolResult:
+	"""Store the image beside the session log; the model sees only a summary line."""
+	if ctx.store_image is None:
+		return ToolResult(content=f"[image file: {path} — images are unavailable in this session]")
+	try:
+		with open(full, "rb") as f:
+			data = f.read()
+	except OSError as e:
+		return ToolResult(content=f"[cannot read {path}: {e.strerror or e}]", is_error=True)
+	try:
+		# AttachmentError is a ValueError; tools must not import session code
+		stored = await ctx.store_image(os.path.basename(full), data)
+	except ValueError as e:
+		return ToolResult(content=f"[cannot read image {path}: {e}]", is_error=True)
+	return ToolResult(
+		content=f"[Image: {path} ({stored.mime_type}, {stored.width}x{stored.height})]",
+		details={"path": full},
+		attachments=[stored],
+	)
+
+
+def _is_image(head: bytes) -> bool:
+	"""File signature check for the formats the attachment store accepts."""
+	return (
+		head.startswith((b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n", b"GIF8"))
+		or (head[:4] == b"RIFF" and head[8:12] == b"WEBP")
+		or (head[:2] == b"BM" and head[6:10] == b"\0\0\0\0")
+	)
 
 
 def _notice(start: int, trunc: dict, total: int, limited_end: int | None) -> str:

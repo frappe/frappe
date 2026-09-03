@@ -31,7 +31,8 @@ from flow.events import (
 )
 from flow.model.base import Model, ModelRequest
 from flow.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
-from flow.model.content import resolve_user_content
+from flow.model.catalog import model_supports_images
+from flow.model.content import ResolvedImage, resolve_tool_images, resolve_user_content
 from flow.model.errors import normalize_litellm_error
 from flow.model.retry import run_with_retries
 from flow.model.tool_display import tool_call_display_ready_event, with_tool_call_displays
@@ -63,16 +64,10 @@ class LiteLLMModel(Model):
 		self._supports_images: bool | None = supports_images
 
 	@property
-	def supports_images(self) -> bool:
+	def supports_images(self) -> bool | None:
 		if self._supports_images is not None:
 			return self._supports_images
-		try:
-			import litellm
-
-			self._supports_images = bool(litellm.supports_vision(model=self.name))
-		except Exception:
-			self._supports_images = False
-		return self._supports_images
+		return model_supports_images(self.model)
 
 	@property
 	def context_window(self) -> int | None:
@@ -451,12 +446,18 @@ def _openai_messages(
 	"""Translate canonical transcript messages at the provider boundary."""
 	out: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 	dropped_calls: set[str] = set()
+	# a tool message must directly follow its assistant call, so tool images wait and
+	# go out as one user turn after the batch
+	pending_images: list[ResolvedImage] = []
+	supports_images = model.supports_images
 	for message in messages:
+		if not isinstance(message, ToolResult):
+			_flush_tool_images(out, pending_images)
 		if isinstance(message, UserMessage):
 			text, images = resolve_user_content(
 				message,
 				resolve_attachment=resolve_attachment,
-				supports_images=model.supports_images,
+				supports_images=supports_images,
 			)
 			if images:
 				content: str | list[dict[str, Any]] = []
@@ -484,7 +485,34 @@ def _openai_messages(
 					"content": message.content,
 				}
 			)
+			pending_images.extend(
+				resolve_tool_images(
+					message, resolve_attachment=resolve_attachment, supports_images=supports_images
+				)
+			)
+	_flush_tool_images(out, pending_images)
 	return out
+
+
+# labels the user turn that carries tool images, so the model knows where they came from
+_TOOL_IMAGE_PREFACE = "Images returned by the tool calls above:"
+
+
+def _flush_tool_images(out: list[dict[str, Any]], pending_images: list[ResolvedImage]) -> None:
+	"""Send the images gathered from the preceding tool results as one user message,
+	then empty the list. Tool messages themselves cannot carry images."""
+	if not pending_images:
+		return
+	out.append(
+		{
+			"role": "user",
+			"content": [
+				{"type": "text", "text": _TOOL_IMAGE_PREFACE},
+				*({"type": "image_url", "image_url": {"url": image.data_url}} for image in pending_images),
+			],
+		}
+	)
+	pending_images.clear()
 
 
 _CACHE_CONTROL = {"type": "ephemeral"}

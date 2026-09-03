@@ -6,7 +6,7 @@ import base64
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from flow.events import AttachmentContent, UserMessage
+from flow.events import AttachmentContent, ToolResult, UserMessage
 
 NON_VISION_IMAGE_PLACEHOLDER = "(image contents unavailable to the current model)"
 MISSING_ATTACHMENT_PLACEHOLDER = "(attachment unavailable: {name})"
@@ -28,9 +28,10 @@ def resolve_user_content(
 	message: UserMessage,
 	*,
 	resolve_attachment: Callable[[str], bytes] | None,
-	supports_images: bool,
+	supports_images: bool | None = None,
 ) -> tuple[str, list[ResolvedImage]]:
-	"""Return provider-ready text and images, with a safe text-only downgrade."""
+	"""Return provider-ready text and images. Only a model known not to accept images
+	gets a placeholder; unknown capability sends the image and lets the provider decide."""
 	text = message.text
 	images: list[ResolvedImage] = []
 	for attachment in message.attachments:
@@ -45,11 +46,29 @@ def resolve_user_content(
 				text = _append(text, MISSING_ATTACHMENT_PLACEHOLDER.format(name=attachment.name))
 				continue
 			text = _append(text, f'<file name="{_xml_attr(attachment.name)}">\n{body}\n</file>')
-		elif supports_images:
-			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
-		else:
+		elif supports_images is False:
 			text = _append(text, f"[Attached image: {attachment.name}]\n{NON_VISION_IMAGE_PLACEHOLDER}")
+		else:
+			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
 	return text, images
+
+
+def resolve_tool_images(
+	message: ToolResult,
+	*,
+	resolve_attachment: Callable[[str], bytes] | None,
+	supports_images: bool | None = None,
+) -> list[ResolvedImage]:
+	"""The images a tool produced; none for a model known not to accept images, and one
+	whose bytes went missing is skipped, since the result text already names it."""
+	images: list[ResolvedImage] = []
+	if supports_images is False:
+		return images
+	for attachment in message.attachments:
+		data = _resolve(attachment, resolve_attachment)
+		if data is not None:
+			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
+	return images
 
 
 def attachment_summary(

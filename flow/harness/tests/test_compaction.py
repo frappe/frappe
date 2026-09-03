@@ -6,6 +6,7 @@ import json
 import pytest
 
 from flow.agent.compaction import (
+	ESTIMATED_IMAGE_TOKENS,
 	KEEP_RECENT_TOKENS,
 	MESSAGE_OVERHEAD_TOKENS,
 	TOOL_OVERHEAD_TOKENS,
@@ -14,6 +15,7 @@ from flow.agent.compaction import (
 	calculate_reserved_output_tokens,
 	compact_events,
 	estimate_context_tokens,
+	estimate_message_tokens,
 	estimate_text_tokens,
 	plan_all,
 	plan_keep_recent,
@@ -352,3 +354,11 @@ def test_reserved_output_is_proportional_for_small_windows():
 	assert calculate_reserved_output_tokens(128_000) == 16_384
 	assert calculate_reserved_output_tokens(10_000) == 2_500
 	assert calculate_reserved_output_tokens(1) == 1
+
+
+def test_tool_result_images_count_toward_the_estimate():
+	image = AttachmentContent(id="a" * 24, name="shot.png", mime_type="image/png", size=3, kind="image")
+	plain = ToolResult(tool_call_id="c1", name="read_file", content="[Image: shot.png]")
+	with_image = plain.model_copy(update={"attachments": [image]})
+
+	assert estimate_message_tokens(with_image) == estimate_message_tokens(plain) + ESTIMATED_IMAGE_TOKENS

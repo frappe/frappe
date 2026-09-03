@@ -26,7 +26,7 @@ import asyncio
 import inspect
 import json
 import uuid
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -45,6 +45,7 @@ from flow.events import (
 	AnyEvent,
 	ApprovalRequired,
 	AssistantMessage,
+	AttachmentContent,
 	Compaction,
 	CompactionReason,
 	PendingCall,
@@ -115,6 +116,7 @@ class LoopInputs:
 	before_tool_call: BeforeHook | None = None
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
+	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
 
@@ -529,7 +531,13 @@ async def _dispatch(
 		tool = tools.get(call.name)
 		if tool is not None:
 			outcome = await tool(**call.args, ctx=ctx)  # Tool.__call__ validates/coerces args
-			return _result(call, outcome.content, is_error=outcome.is_error, details=outcome.details)
+			return _result(
+				call,
+				outcome.content,
+				is_error=outcome.is_error,
+				details=outcome.details,
+				attachments=outcome.attachments,
+			)
 		if inputs.config.callback_url:
 			response = await call_client(inputs.config, inputs.session_id, call, mode="execute")
 			return _result(call, response.get("content", ""), is_error=bool(response.get("is_error", False)))
@@ -598,6 +606,7 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		allowed_roots=inputs.allowed_roots,
 		read_only_roots=inputs.read_only_roots,
 		abort=inputs.abort,
+		store_image=inputs.store_image,
 	)
 
 
@@ -624,10 +633,20 @@ def _redirect(feedback: str) -> str:
 
 
 def _result(
-	call: ToolCall, content: str, *, is_error: bool = False, details: dict | None = None
+	call: ToolCall,
+	content: str,
+	*,
+	is_error: bool = False,
+	details: dict | None = None,
+	attachments: list[AttachmentContent] | None = None,
 ) -> ToolResult:
 	return ToolResult(
-		tool_call_id=call.id, name=call.name, content=content, is_error=is_error, details=details or {}
+		tool_call_id=call.id,
+		name=call.name,
+		content=content,
+		is_error=is_error,
+		details=details or {},
+		attachments=attachments or [],
 	)
 
 

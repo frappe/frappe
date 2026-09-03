@@ -28,6 +28,7 @@ from flow.events import (
 	AnyEvent,
 	AssistantContent,
 	AssistantMessage,
+	AttachmentContent,
 	ModelChanged,
 	ProviderErrorKind,
 	ReasoningEffort,
@@ -469,9 +470,18 @@ class Session:
 			before_tool_call=before_tool_call,
 			after_tool_call=after_tool_call,
 			resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
+			store_image=self._store_tool_image if self.attachment_store is not None else None,
 			server_tools=self.server_tools,
 			extension_runtime=self.extension_runtime,
 		)
+
+	async def _store_tool_image(self, name: str, data: bytes) -> AttachmentContent:
+		"""Store a tool's image and claim it at once: the result referencing it is
+		committed as soon as the call returns."""
+		assert self.attachment_store is not None
+		stored = await asyncio.to_thread(self.attachment_store.add_bytes, name, data)
+		self.attachment_store.claim([stored.id])
+		return stored
 
 	def _next_steering(self) -> UserMessage | None:
 		return self._steering_queue.popleft().message if self._steering_queue else None
