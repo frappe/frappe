@@ -50,6 +50,17 @@ def get_csv_bytes(data: list[list], csv_params: dict) -> bytes:
 	from csv import writer
 	from io import StringIO
 
+<<<<<<< HEAD
+=======
+	from frappe.utils.csvutils import escape_formula_injection
+
+	decimal_sep = csv_params.pop("decimal_sep", None)
+
+	_data = [[escape_formula_injection(v) for v in row] for row in data]
+	if decimal_sep:
+		_data = apply_csv_decimal_sep(_data, decimal_sep)
+
+>>>>>>> bb7622d (fix(utils): escape in get_cvs_bytes too)
 	file = StringIO()
 	csv_writer = writer(file, **csv_params)
 	csv_writer.writerows(data)
