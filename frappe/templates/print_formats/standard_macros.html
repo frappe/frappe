@@ -143,18 +143,18 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Check" and not doc[df.fieldname] %}
 		<!-- empty -->
 	{% elif df.fieldtype in ("Image", "Attach Image") and frappe.utils.is_image(doc[doc.meta.get_field(df.fieldname).options]) %}
-		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
+		<img src="{{ doc[doc.meta.get_field(df.fieldname).options]|e }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Attach Image" and frappe.utils.is_image(doc[df.fieldname]) %}
-		<img src="{{ doc[df.fieldname] }}"
+		<img src="{{ doc[df.fieldname]|e }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Signature" %}
-		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
+		<img src="{{ doc[df.fieldname]|e }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Attach" and frappe.utils.is_image(doc[df.fieldname]) %}
-		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
+		<img src="{{ doc[df.fieldname]|e }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="HTML" %}
 		{{ frappe.render_template(df.options, {"doc":doc}) }}
