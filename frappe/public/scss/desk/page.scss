@@ -57,7 +57,9 @@
 		}
 
 		.sub-heading {
-			@include get_textstyle("sm", "regular");
+			@include get_textstyle("xs", "regular");
+			line-height: 1.15;
+			display: none;
 		}
 	}
 }
