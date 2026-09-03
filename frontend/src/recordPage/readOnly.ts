@@ -1,5 +1,4 @@
 // Every object `page` hands back is read-only: reads pass through, writes throw.
-//
 // Not deep-freeze: a frozen object is non-extensible, so Vue's `reactive()` hands
 // back the raw object and `meta` stops being deeply reactive.
 import { runningSource } from "./context";

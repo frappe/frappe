@@ -36,7 +36,7 @@ const LAYOUT: FormLayoutSchema = [
   },
 ];
 
-/** The host's two halves of activation, recorded rather than performed. */
+/** The host's two halves of activation, recorded, not performed. */
 function makeHost(overrides: Partial<RecordPageHost> = {}) {
   const moved: string[] = [];
   const movedInForm: string[] = [];

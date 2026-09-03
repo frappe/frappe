@@ -193,7 +193,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
         resolve(result);
       };
       // Navigating away closes the dialog without frappe-ui firing `onCancel`,
-      // so the promise is settled here rather than left to that callback.
+      // so the promise is settled here, not in that callback.
       const untrack = track(() => {
         handle?.close();
         settle(null);

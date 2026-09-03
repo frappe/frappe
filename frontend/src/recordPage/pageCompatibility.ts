@@ -1,8 +1,5 @@
 // What happens to a script that reaches for a removed `page` name: a tombstone
 // throws naming the replacement, a gone name warns once on read.
-//
-// Narrowed to the list, never any unknown key: `if (page.dialog.prompt)` is the
-// feature detection authors are told to write, and it must stay silent.
 import { runningSource } from "./context";
 import { toastScriptError } from "./pageScripts";
 import { reportCustomizationError } from "./reportError";
@@ -59,6 +56,7 @@ function guard(target: any, prefix: string, removals: Removal[]): any {
   return new Proxy(target, {
     get(owner, key, receiver) {
       const removal = typeof key === "string" ? here.get(key) : undefined;
+      // Never any unknown key: `if (page.dialog.prompt)` is feature detection and must stay silent.
       if (!removal) return Reflect.get(owner, key, receiver);
       if (removal.stage === "gone") {
         warnRemoved(removal);

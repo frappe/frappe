@@ -106,7 +106,7 @@ describe("names that are not names", () => {
     // such write would hide a field in every form for the rest of the session.
     expect(({} as any).override).toBeUndefined();
     // Recorded as an ordinary own key instead — inert, since no field can be
-    // named this, and attributable rather than invisible.
+    // named this, and attributable, not invisible.
     expect(Object.hasOwn(patches, "__proto__")).toBe(true);
     expect(Object.getPrototypeOf(patches)).toBe(Object.prototype);
   });
