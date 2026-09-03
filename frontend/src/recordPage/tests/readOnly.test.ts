@@ -1,7 +1,5 @@
-// The outbound half of the compatibility policy (wayfinder ticket 47) as
-// executable claims: nothing `page` hands back may be mutated into shared
-// state, the refusal names the path and the supported verb, and `page.doc` is
-// the one exception.
+// The outbound half of the compatibility policy: nothing `page` hands back may
+// be mutated into shared state, and `page.doc` is the one exception.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
@@ -145,8 +143,7 @@ describe("readOnly", () => {
   });
 
   // A Proxy `get` must hand back a non-configurable, non-writable property
-  // exactly as the target holds it. Deep-freezing meta at source is still on the
-  // table (ticket 47 §1); without this, the day it lands every read throws.
+  // exactly as the target holds it, or every read throws.
   it("reads a frozen property without the engine refusing the read", () => {
     const frozen = { fields: Object.freeze([{ fieldname: "qty" }]) };
     const held = readOnly(frozen as any, ADVICE);
@@ -251,8 +248,8 @@ describe("page.meta and page.perms at the door", () => {
   });
 });
 
-// The saved mirror (wayfinder ticket 46): the v2 answer to "what was the
-// previous value", and one letter away from the draft you may edit.
+// The saved mirror: the answer to "what was the previous value", one letter
+// away from the draft you may edit.
 describe("page.saved", () => {
   beforeEach(reset);
 

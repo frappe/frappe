@@ -1,5 +1,4 @@
-// The three renderings (ticket 65) and the fitting rule (ticket 66) as
-// executable claims.
+// The three header renderings and the fitting rule as executable claims.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   HeaderActionsSurface,
@@ -96,8 +95,7 @@ describe("the three renderings", () => {
     ).toEqual(["call", "sms"]);
   });
 
-  // A member never relocates the button it hangs off: the container's own
-  // position places it (ticket 65).
+  // A member never relocates the button it hangs off: the container's own position places it.
   it("places a dropdown by its own item, not by its first member", () => {
     const items = [
       action("sms", { group: "telephony" }),
@@ -195,8 +193,7 @@ describe("the fitting rule", () => {
     ]);
   });
 
-  // A promoted built-in overflows on the same rule and does not return to its
-  // home band: provenance orders nothing here (ticket 66 §4).
+  // A promoted built-in overflows on the same rule and does not return to its home band.
   it("demotes a promoted built-in to the front, not back to its own band", () => {
     const items = [
       button("one"),
@@ -207,7 +204,7 @@ describe("the fitting rule", () => {
     expect(bandNames(items)).toEqual(["delete[delete]", "actions[copy_url]"]);
   });
 
-  // An empty dropdown is a button that opens nothing (ticket 66 §5).
+  // An empty dropdown is a button that opens nothing.
   it("drops a dropdown with no visible members before the budget applies", () => {
     const items = [dropdown("telephony"), button("one"), button("two")];
     expect(controlNames(items)).toEqual(["button:one", "button:two"]);
@@ -245,8 +242,8 @@ describe("the fitting rule", () => {
   });
 });
 
-// Ticket 77 §1-§4: a section is a container spelled the way a dropdown is, a
-// submenu is a container inside a container, and both fall out of one rule.
+// A section is a container spelled the way a dropdown is, and a submenu is a
+// container inside a container; both fall out of one rule.
 describe("sections and submenus", () => {
   const section = (name: string, extra: Partial<HeaderAction> = {}) =>
     action(name, { display: "section", ...extra });
@@ -295,8 +292,8 @@ describe("sections and submenus", () => {
     ).toEqual(["share{share_email,share_link}"]);
   });
 
-  // Ticket 77 §4: `MenuOption` excludes `MenuGroupOption`, so a band cannot hold
-  // a titled group — but `MenuSubmenuOption` is a legal `MenuOption`.
+  // `MenuOption` excludes `MenuGroupOption`, so a band cannot hold a titled
+  // group; `MenuSubmenuOption` is a legal `MenuOption`.
   it("flattens a demoted dropdown's section and keeps its submenu", () => {
     const items = [
       button("one"),
@@ -350,8 +347,7 @@ describe("sections and submenus", () => {
     warn.mockRestore();
   });
 
-  // Ticket 77 §6: `MenuSubmenuOption` forbids `onClick` outright, so what was
-  // incidental for a dropdown is now a rule in the dependency.
+  // `MenuSubmenuOption` forbids `onClick` outright.
   it("warns that a container's run never fires", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const items = [
@@ -364,8 +360,7 @@ describe("sections and submenus", () => {
   });
 });
 
-// Ticket 77 §3: clamped, never ignored — ignoring `group` would promote the
-// container to a top-level control, where it would eat a budget slot.
+// Clamped, never ignored: ignoring `group` would promote the container to a top-level control.
 describe("the depth cap", () => {
   const section = (name: string, extra: Partial<HeaderAction> = {}) =>
     action(name, { display: "section", ...extra });
@@ -389,9 +384,8 @@ describe("the depth cap", () => {
     warn.mockRestore();
   });
 
-  // Clamping is what actually produces an empty container, and a dropdown with
-  // nothing in it is a trigger that opens nothing — 66 §5's rule, applied at
-  // every level and not only to a top-level control.
+  // Clamping is what produces an empty container, and an empty dropdown is a
+  // trigger that opens nothing, at every level.
   it("drops the dropdown clamping emptied, at any depth", () => {
     const items = [
       dropdown("e1", { label: "One" }),
@@ -442,8 +436,7 @@ describe("the depth cap", () => {
   });
 });
 
-// Ticket 77 §5. `order(names[])` was the precedent; this is the same shape for
-// the verb that made a dropdown four calls.
+// A block splices as a unit, the same shape `order(names[])` set.
 describe("add takes a block", () => {
   it("splices the block as a unit at the anchor, in list order", () => {
     const built = new HeaderActionsSurface();
@@ -491,8 +484,7 @@ describe("add takes a block", () => {
     ]);
   });
 
-  // Ticket 77 §5: the icon bridge and the raw-component guard run per item, or
-  // only the head of a block gets them.
+  // The icon bridge and the raw-component guard run per item, or only the head of a block gets them.
   it("bridges every item's icon, not just the head's", () => {
     const built = new HeaderActionsSurface();
     built.provideBuiltins(() => []);
@@ -539,7 +531,7 @@ describe("add takes a block", () => {
     built.provideBuiltins(() => [action("copy_url")]);
     built.beginReplay();
     built.add([action("a"), action("b")]);
-    // The self-read resolves over the replay in flight (ticket 70).
+    // The self-read resolves over the replay in flight.
     expect(built.has("b")).toBe(true);
     built.commitReplay();
     expect(built.visible().map((item) => item.name)).toEqual([
@@ -634,9 +626,8 @@ describe("the cross-rendering anchor warning", () => {
     warn.mockRestore();
   });
 
-  // A container and its own members sit in different lists, but one of them
-  // *is* the other's list: anchoring a member at its container is how an author
-  // says "first in this dropdown", and it does exactly that.
+  // Anchoring a member at its own container is how an author says "first in
+  // this dropdown", and it does exactly that.
   it("says nothing when a member is anchored at its own container", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const built = surface([dropdown("telephony", { label: "Telephony" })]);
@@ -647,7 +638,7 @@ describe("the cross-rendering anchor warning", () => {
   });
 
   // ...and the converse: a dropdown button and a bare button are ordered
-  // together by the fitting rule, so they are one rendering (ticket 77).
+  // together by the fitting rule, so they are one rendering.
   it("says nothing between a bare button and a dropdown button", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const built = surface([dropdown("telephony", { label: "Telephony" })]);
@@ -676,11 +667,8 @@ describe("the cross-rendering anchor warning", () => {
   });
 });
 
-// Ticket 77 §2. `group: 'x'` now means "put me inside the item named `x`", and
-// an undeclared `x` synthesises an anonymous, untitled container. Every shipped
-// script points at a name it never declared, so it lands on that branch and must
-// render exactly as it did before sections existed: same bands, same order, no
-// headings anywhere.
+// An undeclared `group` synthesises an anonymous container, so every shipped
+// script renders exactly as it did before sections existed.
 describe("the undeclared branch renders as it always did", () => {
   const shipped = [
     button("refresh_quote"),
@@ -726,7 +714,7 @@ describe("the undeclared branch renders as it always did", () => {
 
 describe("renderingOf", () => {
   // Read off the declared display, never the effective one, so nothing
-  // computed from it can become width-dependent (ticket 66 §5).
+  // computed from it can become width-dependent.
   it("answers from the declared display alone", () => {
     const items = [button("one"), button("two"), button("three")];
     expect(renderingOf(items[2], items)).toBe("row");

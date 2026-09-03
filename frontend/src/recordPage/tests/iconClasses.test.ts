@@ -1,5 +1,5 @@
-// The icon bridge (wayfinder ticket 21): a script may name any lucide icon, and
-// the class is generated from the sprite already in the page.
+// The icon bridge: a script may name any lucide icon, and the class is
+// generated from the sprite already in the page.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const STYLE_ID = "record-page-icon-classes";

@@ -1,6 +1,5 @@
-// The script-side permission API (wayfinder ticket 18) as executable claims:
-// what `page.perms` holds, what `page.roles` answers, and how `fieldAccess`
-// treats a permlevel and a typo.
+// The script-side permission API as executable claims: what `page.perms` holds,
+// what `page.roles` answers, and how `fieldAccess` treats a permlevel and a typo.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, ref } from "vue";
 
@@ -101,9 +100,8 @@ describe("page.perms", () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  // Two Proxies on one object (ticket 49 §2): read-only is the outer one, so a
-  // write is refused before the advisory underneath it gets a say, and a read
-  // still reaches the advisory.
+  // Two Proxies on one object: read-only is the outer one, so a write is refused
+  // before the advisory underneath gets a say, and a read still reaches it.
   it("still warns on an unknown right through the read-only wrapper", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});

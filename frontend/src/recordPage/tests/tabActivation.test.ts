@@ -1,6 +1,5 @@
-// `activate` on both tab strips (wayfinder ticket 75) as executable claims: a
-// verb rather than a writable `active`, three ways to miss, a name resolved at
-// the moment of the call, and a replay's move delivered when the strip settles.
+// `activate` on both tab strips as executable claims: three ways to miss, a name
+// resolved at the call, and a replay's move delivered when the strip settles.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
@@ -37,11 +36,7 @@ const LAYOUT: FormLayoutSchema = [
   },
 ];
 
-/**
- * The host's two halves of activation, recorded rather than performed: where
- * the reader is *kept* is the host's business, and the engine's claim is only
- * about what it hands over and when.
- */
+/** The host's two halves of activation, recorded rather than performed. */
 function makeHost(overrides: Partial<RecordPageHost> = {}) {
   const moved: string[] = [];
   const movedInForm: string[] = [];
@@ -113,10 +108,8 @@ describe("moving the reader", () => {
   });
 
   it("resolves during load against the strip the host has, not the one it draws", () => {
-    // The gap the pre-ready window opens: the host renders nothing until the
-    // first replay commits, while the surface already holds the built-ins. The
-    // strip a name resolves against is the surface's, so an activation before
-    // `ready` lands — and the reader arrives on it when the strip paints.
+    // The host renders nothing until the first replay commits, while the surface
+    // already holds the built-ins, so an activation before `ready` lands.
     const { controller, page, moved } = makePage();
 
     expect(controller.ready.value).toBe(false);
@@ -184,9 +177,8 @@ describe("the three ways to miss", () => {
   });
 
   it("says nothing about the form's strip while its layout is still loading", () => {
-    // "The administrator never authored this" and "it has not arrived yet" are
-    // the same answer in that window, and `hide`/`show`/`update` already keep
-    // quiet in it. The move is dropped, not queued.
+    // "Never authored" and "not arrived yet" are the same answer in that window;
+    // the move is dropped, not queued.
     const { page, movedInForm } = makePage({ formLayout: () => [] });
 
     page.formTabs.activate("lead_details");
@@ -215,9 +207,8 @@ describe("the three ways to miss", () => {
 
 describe("why this is a verb and not a writable `active`", () => {
   it("leaves `active` reading the tab the reader is really on", () => {
-    // The round trip an assignment could not survive: `active` is derived from
-    // what the strip can show, so `page.tabs.active = 'nope'` would read back
-    // as something the script never wrote. A verb can say so instead.
+    // `active` is derived from what the strip can show, so an assignment naming
+    // a missing tab would read back as something the script never wrote.
     const { page } = makePage();
 
     page.tabs.activate("nope");
@@ -229,9 +220,8 @@ describe("why this is a verb and not a writable `active`", () => {
 
 describe("a replay's activation", () => {
   it("is delivered once the strip has settled, not from the middle", async () => {
-    // The name resolves against the staged strip — the script can see its own
-    // work — but the reader is moved only after the commit, since until then
-    // the host is still rendering the strip the tab is not on yet.
+    // The name resolves against the staged strip, but the reader is moved only
+    // after the commit: until then the host renders the strip the tab is not on yet.
     const seen: boolean[] = [];
     registerRecordPage("CRM Deal", {
       onRefresh: (page) => {
@@ -282,10 +272,8 @@ describe("a replay's activation", () => {
   });
 
   it("is dropped when a later source takes the tab off the strip", async () => {
-    // The held move is re-read against the strip that settled, not delivered on
-    // the strength of the strip it was decided against — otherwise the reader
-    // lands on `?tab=emails` with no `emails` to resolve it, which is the
-    // fallback-tab dumping a miss exists to prevent.
+    // The held move is re-read against the strip that settled: otherwise the
+    // reader lands on `?tab=emails` with no `emails` to resolve it.
     registerRecordPage("CRM Deal", {
       onRefresh: (page) => {
         page.tabs.activate("emails");

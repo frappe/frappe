@@ -1,4 +1,4 @@
-// The Page Script tier (wayfinder ticket 15) as executable claims.
+// The Page Script tier as executable claims.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { call, toast, evaluatePageScript } = vi.hoisted(() => ({
@@ -114,7 +114,7 @@ describe("the Page Script tier", () => {
   });
 
   // The editor's entry affordance is gated on this, and the tier's fetch is the
-  // only thing that asks the server the question (ticket 16).
+  // only thing that asks the server the question.
   it("publishes whether the session may write Page Scripts", async () => {
     expect(canWritePageScripts.value).toBe(false);
 
