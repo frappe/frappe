@@ -1,4 +1,4 @@
-"""Prove a comment-only change left the code byte-identical."""
+"""Prove a comment-only change left the code identical."""
 
 import io
 import subprocess
@@ -7,7 +7,7 @@ import tokenize
 
 SOURCE_SUFFIXES = (".py", ".ts", ".js", ".vue", ".mjs")
 JS_STRING_QUOTES = "\"'`"
-REGEX_CANNOT_FOLLOW = ")]}" + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$"
+REGEX_CANNOT_FOLLOW = ")]}abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$"
 
 
 def main(base, head):
@@ -38,32 +38,49 @@ def read(ref, path):
 
 
 def strip(path, source):
-	stripped = strip_python(source) if path.endswith(".py") else strip_curly(source)
-	return "\n".join(line.rstrip() for line in stripped.split("\n") if line.strip())
+	lines, protected = strip_python(source) if path.endswith(".py") else strip_curly(source)
+	return "\n".join(normalised(lines, protected))
+
+
+def normalised(lines, protected):
+	"""Blank lines and trailing space are inert outside a string literal, and content inside one."""
+	for index, line in enumerate(lines):
+		if index in protected:
+			yield line
+		elif line.strip():
+			yield line.rstrip()
 
 
 def strip_python(source):
-	"""Drops comment tokens; docstrings are runtime values and survive as code."""
+	"""Blanks comment spans; a docstring is a runtime value and survives as code."""
+	lines = source.split("\n")
 	try:
 		tokens = list(tokenize.generate_tokens(io.StringIO(source).readline))
 	except (tokenize.TokenError, IndentationError):
-		return source
-	kept = [token for token in tokens if token.type != tokenize.COMMENT]
-	return tokenize.untokenize(kept)
+		return lines, set(range(len(lines)))
+	protected = set()
+	for token in tokens:
+		if token.type == tokenize.COMMENT:
+			row = token.start[0] - 1
+			lines[row] = lines[row][: token.start[1]] + lines[row][token.end[1] :]
+		elif token.type == tokenize.STRING and token.end[0] > token.start[0]:
+			protected.update(range(token.start[0] - 1, token.end[0]))
+	return lines, protected
 
 
 def strip_curly(source):
-	reader = CurlySource(source)
-	return reader.without_comments()
+	return CurlySource(source).without_comments()
 
 
 class CurlySource:
-	"""Line and block comment removal for JS, TS and Vue, string- and regex-aware."""
+	"""Comment removal for JS, TS and Vue, aware of strings, template literals and regexes."""
 
 	def __init__(self, source):
 		self.source = source
 		self.position = 0
+		self.line = 0
 		self.output = []
+		self.protected = set()
 
 	def without_comments(self):
 		while self.position < len(self.source):
@@ -78,7 +95,7 @@ class CurlySource:
 				self.copy_regex()
 			else:
 				self.emit(character)
-		return "".join(self.output)
+		return "".join(self.output).split("\n"), self.protected
 
 	def starts(self, text):
 		return self.source.startswith(text, self.position)
@@ -86,8 +103,10 @@ class CurlySource:
 	def emit(self, text):
 		self.output.append(text)
 		self.position += len(text)
+		self.line += text.count("\n")
 
 	def copy_string(self, quote):
+		opened_at = self.line
 		self.emit(quote)
 		while self.position < len(self.source):
 			character = self.source[self.position]
@@ -96,7 +115,9 @@ class CurlySource:
 				continue
 			self.emit(character)
 			if character == quote:
-				return
+				break
+		if self.line > opened_at:
+			self.protected.update(range(opened_at, self.line + 1))
 
 	def copy_regex(self):
 		self.emit("/")
@@ -127,7 +148,72 @@ def run(command):
 	return subprocess.run(command, capture_output=True, check=True, text=True).stdout
 
 
+JS_TEMPLATE = "const t = `line one\n\nline two   \n`\n"
+PY_DOCSTRING = '# header\ndef f():\n\t"""Doc.\n\n\tBody   \n\t"""\n\treturn 1  # trailing\n'
+
+SELF_TEST_CASES = [
+	(
+		"js comments only",
+		True,
+		"x.ts",
+		"// h\nconst a = 1 // t\n/* b\n c */\nconst b = 2\n",
+		"const a = 1\nconst b = 2\n",
+	),
+	("js code change", False, "x.ts", "const b = 2\n", "const b = 3\n"),
+	("js trailing space outside a string", True, "x.ts", "const a = 1\n", "const a = 1   \n"),
+	(
+		"js blank line in a template literal",
+		False,
+		"x.ts",
+		JS_TEMPLATE,
+		"const t = `line one\nline two   \n`\n",
+	),
+	(
+		"js trailing space in a template literal",
+		False,
+		"x.ts",
+		JS_TEMPLATE,
+		"const t = `line one\n\nline two\n`\n",
+	),
+	("py comments only", True, "x.py", PY_DOCSTRING, 'def f():\n\t"""Doc.\n\n\tBody   \n\t"""\n\treturn 1\n'),
+	(
+		"py blank line in a docstring",
+		False,
+		"x.py",
+		PY_DOCSTRING,
+		'def f():\n\t"""Doc.\n\tBody   \n\t"""\n\treturn 1  # trailing\n',
+	),
+	(
+		"py trailing space in a docstring",
+		False,
+		"x.py",
+		PY_DOCSTRING,
+		'def f():\n\t"""Doc.\n\n\tBody\n\t"""\n\treturn 1  # trailing\n',
+	),
+	(
+		"py indentation change",
+		False,
+		"x.py",
+		"def f():\n\tif a:\n\t\treturn 1\n",
+		"def f():\n\tif a:\n\t\t\treturn 1\n",
+	),
+	("py hash inside a string", False, "x.py", 'a = "# not a comment"\n', 'a = ""\n'),
+]
+
+
+def self_test():
+	failures = 0
+	for name, equivalent, path, before, after in SELF_TEST_CASES:
+		if (strip(path, before) == strip(path, after)) != equivalent:
+			print(f"self-test failed: {name}")
+			failures += 1
+	print(f"{len(SELF_TEST_CASES) - failures} of {len(SELF_TEST_CASES)} self-test cases pass.")
+	return 1 if failures else 0
+
+
 if __name__ == "__main__":
+	if sys.argv[1:] == ["--self-test"]:
+		sys.exit(self_test())
 	if len(sys.argv) != 3:
-		sys.exit("usage: comment_equivalence.py <base-ref> <head-ref>")
+		sys.exit("usage: comment_equivalence.py <base-ref> <head-ref> | --self-test")
 	sys.exit(main(sys.argv[1], sys.argv[2]))

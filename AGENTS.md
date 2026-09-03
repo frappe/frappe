@@ -58,11 +58,15 @@ field's design belongs in its ticket.
 
 Run `/quality-code-review`, and read your diff against the comment rule above. For a
 change that is comments only, `.github/helper/comment_equivalence.py` proves it: it strips
-comments from both revisions and asserts the code is byte-identical.
+comments from both revisions and asserts the remaining code is identical.
 
 ```bash
 python .github/helper/comment_equivalence.py upstream/desk-v2 HEAD
+python .github/helper/comment_equivalence.py --self-test
 ```
 
-It cannot prove a docstring removal is safe — a docstring is a runtime value in Python, so
+Two things it does not claim. It ignores blank lines and trailing whitespace **outside**
+string literals, which cannot change behaviour in either language; inside a docstring or a
+template literal both are content, and a change to either is reported. And it does not
+prove a docstring *removal* is safe — a docstring is a runtime value in Python, so
 anything reading `__doc__` changes behaviour. The test suites are the proof there.
