@@ -2504,6 +2504,13 @@ class TestQuery(IntegrationTestCase):
 
 			# Reports and link searches embed the SQL-string form in raw queries.
 			match_conditions = frappe.build_match_conditions("User")
+			self.assertIn("EXISTS (SELECT 1 FROM", match_conditions)
+			if frappe.db.db_type == "mariadb":
+				# A top-level NOT EXISTS would be materialised into a full child table scan.
+				self.assertNotIn("NOT EXISTS", match_conditions)
+				self.assertIn(")=0", match_conditions)
+			else:
+				self.assertIn("NOT EXISTS (SELECT 1 FROM", match_conditions)
 			visible_users = frappe.db.sql(
 				f"select name from `tabUser` where name in %(users)s and ({match_conditions})",
 				{"users": [allowed_user, mixed_user]},
