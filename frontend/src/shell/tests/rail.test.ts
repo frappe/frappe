@@ -222,8 +222,10 @@ describe("a linked item", () => {
 
 		const link = row(host, "accounts") as HTMLAnchorElement;
 		expect(link.getAttribute("data-sidebar")).toBe("module_def_accounts");
-		// And it is real navigation, not shell state — charter point 7.
-		expect(link.getAttribute("href")).toBe("/sales-invoice");
+		// And it is real navigation, not shell state — charter point 7. The panel it opens is
+		// named in the href rather than held in a click handler, so middle-click and
+		// open-in-new-tab still work and a paste lands in the same panel (#42464).
+		expect(link.getAttribute("href")).toBe("/sales-invoice?panel=module_def_accounts");
 	});
 
 	it("is not drawn when its sidebar is absent", () => {
