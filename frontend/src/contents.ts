@@ -23,9 +23,8 @@ export async function fetchContents(
 }
 
 /**
- * Reactive contents for a prefix, optionally narrowed to one module.
- *
-  * `loading` and `failed` let a caller tell "none" from "not yet" and "failed".
+  * Reactive contents for a prefix, optionally narrowed to one module. `loading` and `failed`
+  * let a caller tell "none" from "not yet" and "failed".
  */
 export function useContents(
 	app: string | null,

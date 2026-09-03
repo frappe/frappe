@@ -48,7 +48,7 @@ export function symbolId(name: string): string {
 	return `icon-${name}`;
 }
 
-/** Whether an `Icon` field's value is an emoji glyph rather than a symbol name. */
+/** Whether an `Icon` field's value is an emoji glyph, not a symbol name. */
 // The same test as `frappe.utils.is_emoji`, since one picker writes for both.
 export function isEmoji(value: string): boolean {
 	return /^\p{Extended_Pictographic}(‍\p{Extended_Pictographic}|️|⃣)*$/u.test(value);

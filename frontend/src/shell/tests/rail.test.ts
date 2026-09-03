@@ -149,8 +149,7 @@ describe("sections and nesting", () => {
 
 		const heading = row(host, "sales")!;
 		expect(heading.textContent).toContain("Sales");
-		// The child is INSIDE the section's own list item, which is what makes the tree the
-		// tree rather than an indent class on a flat list.
+		// The child is inside the section's own list item, not an indent class on a flat list.
 		expect(heading.closest("li")!.contains(row(host, "CRM Deal"))).toBe(true);
 	});
 
@@ -284,8 +283,8 @@ describe("Module Contents", () => {
 		(row(host, "more") as HTMLButtonElement).click();
 		await flush();
 
-		// Expanding is the one thing on the rail that costs a request, so it is the one
-		// thing that can fail from a dropped connection rather than from a bad row.
+		// Expanding is the one thing on the rail that costs a request, so the one that can fail
+		// from a dropped connection.
 		expect(row(host, "more")!.getAttribute("aria-expanded")).toBe("false");
 		expect(logged).toHaveBeenCalled();
 	});
