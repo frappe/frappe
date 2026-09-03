@@ -8,14 +8,14 @@ import type { Navigation, NavigationItem } from "@/boot";
 export type Container = "Rail" | "Sidebar";
 
 /**
-  * Whose layer. `user` is always the session user; `site` is what everyone sees and needs a
-  * System Manager.
+ * Whose layer. `user` is always the session user; `site` is what everyone sees and needs a
+ * System Manager.
  */
 export type Scope = "user" | "site";
 
 /**
-  * A row as the editor holds it. `hidden` is absent from `boot.navigation`, so the editor
-  * asks for it back.
+ * A row as the editor holds it. `hidden` is absent from `boot.navigation`, so the editor
+ * asks for it back.
  */
 export type ArrangedItem = NavigationItem & { hidden?: 1 };
 
@@ -58,8 +58,8 @@ export async function resetArrangement(
 }
 
 /**
-  * Move one row one place among its siblings, not its neighbours in the flat list. At the
-  * end of its group it stays put.
+ * Move one row one place among its siblings, not its neighbours in the flat list. At the
+ * end of its group it stays put.
  */
 export function move(items: ArrangedItem[], key: string, by: 1 | -1): ArrangedItem[] {
 	const item = items.find((entry) => entry.key === key);
@@ -78,8 +78,8 @@ export function move(items: ArrangedItem[], key: string, by: 1 | -1): ArrangedIt
 }
 
 /**
-  * Move one row to where another sits. Refused, list unchanged, unless they share a parent:
-  * a drop must never reparent.
+ * Move one row to where another sits. Refused, list unchanged, unless they share a parent:
+ * a drop must never reparent.
  */
 export function dropOn(items: ArrangedItem[], key: string, onto: string): ArrangedItem[] {
 	const item = items.find((entry) => entry.key === key);
@@ -118,8 +118,8 @@ function siblings(items: ArrangedItem[]): Map<string | null, string[]> {
 }
 
 /**
-  * Rebuild the flat list from the sibling order, depth first, so a section's children travel
-  * with it. A row whose parent is missing is appended, never dropped.
+ * Rebuild the flat list from the sibling order, depth first, so a section's children travel
+ * with it. A row whose parent is missing is appended, never dropped.
  */
 function flatten(items: ArrangedItem[], order: Map<string | null, string[]>): ArrangedItem[] {
 	const byKey = new Map(items.map((item) => [item.key, item]));

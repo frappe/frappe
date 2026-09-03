@@ -9,8 +9,8 @@ import type { ItemContext, ItemRenderer, Rendering } from "./types";
 const reported = new Set<string>();
 
 /**
-  * A `Sidebar` item resolves rows inside its sidebar, so two sidebars pointing at each other
-  * would recurse. A depth, not a key set: a key is unique only within one container.
+ * A `Sidebar` item resolves rows inside its sidebar, so two sidebars pointing at each other
+ * would recurse. A depth, not a key set: a key is unique only within one container.
  */
 const MAX_DEPTH = 8;
 let depth = 0;
@@ -60,7 +60,7 @@ export function renderingOf(
 }
 
 /**
-  * An authored label wins and is never translated; then the renderer's fallback; then the destination.
+ * An authored label wins and is never translated; then the renderer's fallback; then the destination.
  */
 export function labelOf(item: NavigationItem, context: ItemContext): string {
 	if (item.label) return item.label;

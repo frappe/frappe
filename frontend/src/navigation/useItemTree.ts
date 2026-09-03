@@ -6,8 +6,8 @@ import type { NavigationItem } from "@/boot";
 import { buildTree, type ItemNode } from "./tree";
 
 /**
-  * The tree for one container's rows, rebuilt whenever they change. `container` names it in
-  * a cycle report: `the rail`, `the <address> sidebar`.
+ * The tree for one container's rows, rebuilt whenever they change. `container` names it in
+ * a cycle report: `the rail`, `the <address> sidebar`.
  */
 export function useItemTree(
 	items: MaybeRefOrGetter<NavigationItem[]>,

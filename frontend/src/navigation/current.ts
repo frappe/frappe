@@ -8,8 +8,8 @@ import type { ItemContext, Rendering } from "./types";
 export type Destination = { path: string; found: CurrentNavigation };
 
 /**
-  * One context per container: `Module Contents` measures against `context.items`, and a
-  * sidebar row handed the rail's list would hide the wrong doctypes.
+ * One context per container: `Module Contents` measures against `context.items`, and a
+ * sidebar row handed the rail's list would hide the wrong doctypes.
  */
 export type NavigationContexts = {
 	rail: ItemContext;
@@ -26,8 +26,8 @@ export type CurrentNavigation = {
 };
 
 /**
-  * How specifically `itemPath` covers `currentPath`: its segment count, or -1 for no cover.
-  * Segment-wise, or `/sales-orders` would sit under `/sales-order`.
+ * How specifically `itemPath` covers `currentPath`: its segment count, or -1 for no cover.
+ * Segment-wise, or `/sales-orders` would sit under `/sales-order`.
  */
 export function coverage(currentPath: string, itemPath: string): number {
 	const current = currentPath.split("/").filter(Boolean);
@@ -42,8 +42,8 @@ export function coverage(currentPath: string, itemPath: string): number {
 }
 
 /**
-  * Every route navigation can stand on, computed once per payload, not per click. A rail
-  * item that opens a sidebar competes through that sidebar's rows, not its own destination.
+ * Every route navigation can stand on, computed once per payload, not per click. A rail
+ * item that opens a sidebar competes through that sidebar's rows, not its own destination.
  */
 export function navigationDestinations(
 	rail: NavigationItem[],
@@ -81,8 +81,8 @@ export function navigationDestinations(
 }
 
 /**
-  * The rail row, sidebar and row inside it that `path` is standing on. `prefer` breaks ties
-  * only: deeper coverage still wins, and an address nothing covers returns `{}`.
+ * The rail row, sidebar and row inside it that `path` is standing on. `prefer` breaks ties
+ * only: deeper coverage still wins, and an address nothing covers returns `{}`.
  */
 export function currentFrom(
 	destinations: Destination[],

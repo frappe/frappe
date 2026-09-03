@@ -40,7 +40,7 @@ export type RouteOptions = {
  *   routeFor('CRM Deal', 'CRM-DEAL-01')           -> /crm-deal/CRM-DEAL-01
  *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/open
  *
-  * Under a modular prefix each is one segment deeper, with the doctype's own module.
+ * Under a modular prefix each is one segment deeper, with the doctype's own module.
  */
 export function routeFor(
 	doctype: string,
@@ -87,7 +87,7 @@ export function routeForModule(moduleSlug: string): RouteLocationRaw {
 }
 
 /**
-  * The same address as an href, for a `window.location` assignment or a plain `<a>`.
+ * The same address as an href, for a `window.location` assignment or a plain `<a>`.
  */
 export function urlFor(
 	doctype: string,

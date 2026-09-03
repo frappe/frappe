@@ -6,7 +6,7 @@ import { ref, watchEffect, type Ref } from "vue";
 export type ContentEntry = { doctype: string; slug: string; module: string };
 
 /**
-  * Throws on failure: an empty list is a real answer here and must not be forged.
+ * Throws on failure: an empty list is a real answer here and must not be forged.
  */
 export async function fetchContents(
 	app: string,
@@ -23,8 +23,8 @@ export async function fetchContents(
 }
 
 /**
-  * Reactive contents for a prefix, optionally narrowed to one module. `loading` and `failed`
-  * let a caller tell "none" from "not yet" and "failed".
+ * Reactive contents for a prefix, optionally narrowed to one module. `loading` and `failed`
+ * let a caller tell "none" from "not yet" and "failed".
  */
 export function useContents(
 	app: string | null,

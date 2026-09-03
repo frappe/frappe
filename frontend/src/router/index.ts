@@ -60,8 +60,8 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 }
 
 /**
-  * The flat form of an address this prefix spells with a module, `/sales-invoice` or
-  * `/sales-invoice/SI-001`. Returns the canonical location, or null.
+ * The flat form of an address this prefix spells with a module, `/sales-invoice` or
+ * `/sales-invoice/SI-001`. Returns the canonical location, or null.
  */
 function flatAddress(to: any, addresses: Addresses) {
 	const doctype = addresses.doctypeOf(String(to.params.module));

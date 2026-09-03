@@ -9,8 +9,8 @@ export type ItemNode = {
 };
 
 /**
-  * Build the tree. The server promotes orphans, but a `parent_key` cycle passes its check, so
-  * every row in one is lifted to the top level here and reported through `onCycle`.
+ * Build the tree. The server promotes orphans, but a `parent_key` cycle passes its check, so
+ * every row in one is lifted to the top level here and reported through `onCycle`.
  */
 export function buildTree(
 	items: NavigationItem[],

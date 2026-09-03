@@ -32,7 +32,6 @@ async function start() {
 
 	// Translations and the icon sprite are fired, not awaited.
 	loadTranslations(boot.translations_version, boot.lang);
-
 	loadSprite();
 
 	// The address table is awaited: the route table cannot resolve a URL without it, and

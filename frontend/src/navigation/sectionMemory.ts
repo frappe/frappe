@@ -36,7 +36,7 @@ function write(stored: Stored): void {
 }
 
 /**
-  * This reader's disclosures for one container, read once and pruned against what it ships.
+ * This reader's disclosures for one container, read once and pruned against what it ships.
  */
 export function sectionMemory(
 	user: string,

@@ -7,8 +7,8 @@ import type { Addresses } from "@/addresses";
 import type { ContentEntry } from "@/contents";
 
 /**
-  * What one item resolves to: a route in this prefix, an absolute href (a full document
-  * load, so an `<a>`), a heading, or rows fetched on demand. `sidebar` annotates a destination.
+ * What one item resolves to: a route in this prefix, an absolute href (a full document
+ * load, so an `<a>`), a heading, or rows fetched on demand. `sidebar` annotates a destination.
  */
 export type Rendering =
 	| { to: RouteLocationRaw; sidebar?: string }
@@ -17,7 +17,7 @@ export type Rendering =
 	| { expand: () => Promise<NavigationItem[]> };
 
 /**
-  * Everything a renderer may know, as a parameter: a contributed renderer imports only `@shell`.
+ * Everything a renderer may know, as a parameter: a contributed renderer imports only `@shell`.
  */
 export type ItemContext = {
 	boot: Boot;
@@ -44,8 +44,8 @@ export type ItemContext = {
 };
 
 /**
-  * A renderer, as an app's `item.js` default-exports it. `render` returns `null` when the
-  * item cannot be drawn here and the row is skipped; `label` is only the unlabelled fallback.
+ * A renderer, as an app's `item.js` default-exports it. `render` returns `null` when the
+ * item cannot be drawn here and the row is skipped; `label` is only the unlabelled fallback.
  */
 export type ItemRenderer = {
 	render(item: NavigationItem, context: ItemContext): Rendering | null;

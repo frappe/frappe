@@ -36,8 +36,8 @@ function isFile(path) {
 }
 
 /**
-  * `crm_deal` -> `CRM Deal`, read from the doctype's own JSON: title-casing the folder
-  * yields "Crm Deal".
+ * `crm_deal` -> `CRM Deal`, read from the doctype's own JSON: title-casing the folder
+ * yields "Crm Deal".
  */
 function buildDoctypeNames(sourceDirs) {
 	const names = new Map();

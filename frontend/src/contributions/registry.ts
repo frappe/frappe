@@ -18,8 +18,8 @@ export function listHandlersFor(doctype: string) {
 }
 
 /**
-  * Run order per doctype: the owning app first, then the site's `app_order`. Ownership is
-  * structural: a file under `custom/` is somebody else's doctype.
+ * Run order per doctype: the owning app first, then the site's `app_order`. Ownership is
+ * structural: a file under `custom/` is somebody else's doctype.
  */
 function ordered<T extends { app: string }>(
   all: T[],
@@ -40,8 +40,8 @@ function ordered<T extends { app: string }>(
 }
 
 /**
-  * Runs before the router's first resolution. App identity comes from the generated
-  * module, never from a path inspected at runtime.
+ * Runs before the router's first resolution. App identity comes from the generated
+ * module, never from a path inspected at runtime.
  */
 export async function registerContributions(appOrder: string[]) {
   registerItemTypes(appOrder)
@@ -72,7 +72,7 @@ export async function registerContributions(appOrder: string[]) {
 }
 
 /**
-  * One renderer per kind; the first app in the site's order wins and the collision is logged.
+ * One renderer per kind; the first app in the site's order wins and the collision is logged.
  */
 function registerItemTypes(appOrder: string[]) {
   const owner: Record<string, string> = {}

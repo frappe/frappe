@@ -1,8 +1,8 @@
 // The shell's boot payload: small, per prefix, separate from desk v1's `frappe.sessions.get()`.
 
 /**
-  * One resolved navigation item; the rail and a sidebar share this shape. A blank field
-  * is omitted, never sent as `null`.
+ * One resolved navigation item; the rail and a sidebar share this shape. A blank field
+ * is omitted, never sent as `null`.
  */
 export type NavigationItem = {
 	key: string;
