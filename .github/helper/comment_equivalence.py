@@ -1,5 +1,6 @@
 """Prove a comment-only change left the code identical."""
 
+import ast
 import io
 import subprocess
 import sys
@@ -10,10 +11,20 @@ JS_STRING_QUOTES = "\"'`"
 REGEX_CANNOT_FOLLOW = ")]}abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$"
 
 
-def main(base, head):
-	differing = [path for path in changed_sources(base, head) if not is_equivalent(path, base, head)]
-	for path in differing:
+def main(base, head, ignore_docstrings=False):
+	differing = []
+	for path in changed_sources(base, head):
+		if is_equivalent(path, base, head):
+			continue
+		if (
+			ignore_docstrings
+			and path.endswith(".py")
+			and same_without_docstrings(read(base, path), read(head, path))
+		):
+			print(f"docstrings only: {path}")
+			continue
 		print(f"code changed: {path}")
+		differing.append(path)
 	if differing:
 		print(f"\n{len(differing)} file(s) are not comment-only.")
 		return 1
@@ -28,6 +39,23 @@ def changed_sources(base, head):
 
 def is_equivalent(path, base, head):
 	return strip(path, read(base, path)) == strip(path, read(head, path))
+
+
+def same_without_docstrings(before, after):
+	"""Whether the parsed code is identical once every docstring is dropped; a syntax error is a change."""
+	try:
+		return ast.dump(without_docstrings(before)) == ast.dump(without_docstrings(after))
+	except SyntaxError:
+		return False
+
+
+def without_docstrings(source):
+	tree = ast.parse(source)
+	for node in ast.walk(tree):
+		if isinstance(node, ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef):
+			if ast.get_docstring(node, clean=False) is not None:
+				node.body = node.body[1:] or [ast.Pass()]
+	return tree
 
 
 def read(ref, path):
@@ -256,19 +284,35 @@ SELF_TEST_CASES = [
 ]
 
 
+DOCSTRING_CASES = [
+	("py docstring cut", True, PY_DOCSTRING, 'def f():\n\t"""Doc."""\n\treturn 1\n'),
+	("py docstring removed", True, PY_DOCSTRING, "def f():\n\treturn 1\n"),
+	("py docstring cut beside a code change", False, PY_DOCSTRING, 'def f():\n\t"""Doc."""\n\treturn 2\n'),
+	("py docstring turned into a comment", True, PY_DOCSTRING, "def f():\n\t# Doc.\n\treturn 1\n"),
+	("py string that is not a docstring", False, "def f():\n\treturn 1\n\t'x'\n", "def f():\n\treturn 1\n"),
+	("py syntax error", False, PY_DOCSTRING, "def f(:\n"),
+]
+
+
 def self_test():
 	failures = 0
 	for name, equivalent, path, before, after in SELF_TEST_CASES:
 		if (strip(path, before) == strip(path, after)) != equivalent:
 			print(f"self-test failed: {name}")
 			failures += 1
-	print(f"{len(SELF_TEST_CASES) - failures} of {len(SELF_TEST_CASES)} self-test cases pass.")
+	for name, same, before, after in DOCSTRING_CASES:
+		if same_without_docstrings(before, after) != same:
+			print(f"self-test failed: {name}")
+			failures += 1
+	total = len(SELF_TEST_CASES) + len(DOCSTRING_CASES)
+	print(f"{total - failures} of {total} self-test cases pass.")
 	return 1 if failures else 0
 
 
 if __name__ == "__main__":
 	if sys.argv[1:] == ["--self-test"]:
 		sys.exit(self_test())
-	if len(sys.argv) != 3:
-		sys.exit("usage: comment_equivalence.py <base-ref> <head-ref> | --self-test")
-	sys.exit(main(sys.argv[1], sys.argv[2]))
+	arguments = [argument for argument in sys.argv[1:] if argument != "--ignore-docstrings"]
+	if len(arguments) != 2:
+		sys.exit("usage: comment_equivalence.py [--ignore-docstrings] <base-ref> <head-ref> | --self-test")
+	sys.exit(main(*arguments, ignore_docstrings="--ignore-docstrings" in sys.argv))
