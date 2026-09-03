@@ -298,9 +298,7 @@ describe("Sidebar", () => {
 			],
 		};
 		expect(renderingOf(item, context([item], { sidebars }))).toEqual({
-			// The panel it opens rides in the link, because the first row is usually in
-			// several panels and the address alone cannot say which one this item means
-			// (#42464). The shell consumes it and strips it on arrival.
+			// The panel rides in the link; the shell consumes and strips it on arrival.
 			to: {
 				name: "list",
 				params: { doctype: "sales-invoice" },
@@ -425,9 +423,7 @@ describe("the recursion guard", () => {
 		};
 
 		expect(renderingOf(item, context([item], { sidebars }))).toEqual({
-			// The panel it opens rides in the link, because the first row is usually in
-			// several panels and the address alone cannot say which one this item means
-			// (#42464). The shell consumes it and strips it on arrival.
+			// The panel rides in the link; the shell consumes and strips it on arrival.
 			to: {
 				name: "list",
 				params: { doctype: "sales-invoice" },

@@ -1,4 +1,4 @@
-// What this tab remembers about which panel an address opened in (#42464).
+// What this tab remembers about which panel an address opened in.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { recallPanel, rememberPanel } from "@/navigation/panelMemory";
@@ -34,8 +34,7 @@ describe("remembering a panel", () => {
 });
 
 describe("the cap on how much it keeps", () => {
-	// Every address that opens a panel is recorded, records included, so an uncapped record
-	// grows for as long as the tab lives and every navigation re-serialises all of it.
+	// Records get their own entry, so browsing alone fills this.
 	it("keeps the most recent addresses and drops the oldest", () => {
 		for (let index = 0; index < 120; index += 1) {
 			rememberPanel(`/item/ITEM-${index}`, "module_def_stock");
@@ -43,8 +42,7 @@ describe("the cap on how much it keeps", () => {
 
 		expect(recallPanel("/item/ITEM-119")).toBe("module_def_stock");
 		expect(recallPanel("/item/ITEM-20")).toBe("module_def_stock");
-		// The first twenty fell off, which costs those addresses their continuity and nothing
-		// else: they resolve off the address again.
+		// The first twenty fell off, costing those addresses continuity and nothing else.
 		expect(recallPanel("/item/ITEM-0")).toBeUndefined();
 		expect(Object.keys(JSON.parse(sessionStorage.getItem("frappe:desk:panel")!))).toHaveLength(
 			100
@@ -67,8 +65,7 @@ describe("the cap on how much it keeps", () => {
 });
 
 describe("when storage will not cooperate", () => {
-	// A tab that cannot remember falls back to resolving off the address alone, which is what
-	// shipped before this — never wrong, only less continuous. So none of this may throw.
+	// A tab that cannot remember resolves off the address, so none of this may throw.
 	it("recalls nothing rather than throwing when reading is forbidden", () => {
 		vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
 			throw new Error("SecurityError");
@@ -87,8 +84,7 @@ describe("when storage will not cooperate", () => {
 	});
 
 	it("ignores a value that is not the record it wrote", () => {
-		// `sessionStorage` is shared with anything else on the tab, and a half-written value is
-		// not worth a broken shell.
+		// Storage is shared, and a half-written value is not worth a broken shell.
 		sessionStorage.setItem("frappe:desk:panel", "not json at all");
 		expect(recallPanel("/item")).toBeUndefined();
 

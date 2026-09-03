@@ -725,23 +725,14 @@ def _derive_rail(app: str) -> list[dict]:
 
 
 def report_overlaps(app: str) -> dict:
-	"""Which destinations this app's navigation offers from more than one panel (#42464).
+	"""Which destinations this app offers from more than one panel, as the session user sees it.
 
-	Run it by hand — `bench execute frappe.shell.navigation.report_overlaps --kwargs
-	"{'app': 'erpnext'}"`. Deliberately **not** wired to install or migrate: one address in two
-	panels is usually correct rather than a mistake, so a warning there would fire 45 times on
-	ERPNext's current fixtures and teach authors to ignore it (#42432). Since #42464 the reader
-	keeps the panel they are in, so an overlap costs a cold-load choice, not a relocation.
-
-	Returns `{"shared": [...], "repeated": [...]}`: destinations offered by several panels with
-	the one a cold load takes, and destinations a single panel lists twice, where the first row
-	going down the panel wins the highlight.
+	Run by hand, never on install or migrate: one address in two panels is usually correct.
 	"""
 	navigation = resolve_navigation(app)
 	sidebars = navigation["sidebars"]
 
-	# Cold-load order is the order the reader is looking at: the rail top to bottom. Panels not
-	# opened by any rail item sort last — they are unreachable, which #42357 already fences.
+	# Cold-load order is the rail top to bottom. A panel no rail item opens sorts last.
 	rail_order = {
 		item.get("link_to"): index
 		for index, item in enumerate(navigation["rail"])
@@ -791,9 +782,8 @@ def report_overlaps(app: str) -> dict:
 def _destination_of(item: dict) -> tuple | None:
 	"""What an item points at, or None for a row that goes nowhere.
 
-	The `(link_doctype, link_to)` pair is the address in the model (#42227), so two rows pointing
-	at one destination compare equal here whatever kind or label they carry. `Link` rows leave
-	the prefix and `Section` rows go nowhere, so neither can be somewhere you are standing.
+	The `(link_doctype, link_to)` pair is the address, so kind and label do not distinguish two
+	rows aimed at one place.
 	"""
 	if item.get("item_type") in ("Link", "Section") or not item.get("link_to"):
 		return None

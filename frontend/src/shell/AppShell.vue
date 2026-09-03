@@ -114,30 +114,21 @@ const destinations = computed(() =>
 	navigationDestinations(navigation.value.rail, navigation.value.sidebars, contexts.value)
 );
 
-// The panel the reader is in, resolved on every arrival however they got there — click, paste,
-// reload, back. Still nothing set by a click: this is a walk over resolved paths, and the only
-// thing the reader's history contributes is which of several EQUALLY correct panels to pick
-// (#42432).
-//
-// A ref driven by a watcher rather than a computed, because the resolution feeds itself: the
-// panel open now is the first preference for the next address, and remembering the answer is a
-// write. A computed that stored its own result would run on every read.
+// A ref off a watcher, not a computed: the resolution feeds itself, since the panel open now
+// is the next address's first preference and recording the answer is a write.
 const current = ref<CurrentNavigation>({});
 
-// The panel named in the address, most-wanted preference and consumed once. A pasted `?panel=`
-// is a deliberate act, so it outranks whatever this tab happens to have open.
+// The panel the address asked for, outranking the open one because a paste is deliberate.
 const asked = ref<string | undefined>(undefined);
 
-// What the address alone says, with no reader in it — the cold-load answer. Used to keep the
-// copy link honest: naming the panel a stranger would land in anyway says nothing.
+// What the address alone says. Keeps the copy link honest: naming the panel a stranger lands
+// in anyway says nothing.
 const canonical = computed(() => currentFrom(destinations.value, route.path));
 
 function resolve() {
 	const path = route.path;
-	// Most wanted first: the panel just asked for, then the one already open, then whatever
-	// this tab last resolved here. Each is only a tie-break — a panel that does not cover the
-	// address, or covers it less deeply than another, loses regardless, which is how a
-	// `?panel=` that is stale, misspelled or filtered away by permissions degrades silently.
+	// Most wanted first, and each a tie-break only — which is how a `?panel=` that is stale,
+	// misspelled or filtered away by permissions loses and degrades silently.
 	const prefer = [asked.value, current.value.sidebar, recallPanel(path)].filter(
 		(panel): panel is string => !!panel
 	);
@@ -146,15 +137,13 @@ function resolve() {
 	if (current.value.sidebar) rememberPanel(path, current.value.sidebar);
 }
 
-// The parameter seeds the same per-tab record ordinary browsing fills, then leaves the address.
-// `replace`, so the clean URL is not a second history entry the back button has to walk
-// through; and the record is already written, so back and reload still land in the same panel.
+// The parameter seeds the same record browsing fills, then leaves the address by `replace`, so
+// the bar is clean without a second history entry for back to walk through.
 watch(
 	[() => route.fullPath, destinations],
 	() => {
-		// Repeated in the address (`?panel=a&panel=b`) it arrives as an array. Nothing we hand
-		// out looks like that, but it still has to be consumed rather than left in the bar
-		// forever, so the first one is read and the rest go with it.
+		// Repeated in the address it arrives as an array, which must still be consumed or it
+		// sits in the bar for the rest of the session.
 		const panel = route.query.panel;
 		const named = Array.isArray(panel) ? panel[0] : panel;
 		asked.value = typeof named === "string" ? named : undefined;
@@ -164,19 +153,16 @@ watch(
 		if (panel !== undefined) {
 			const { panel: _consumed, ...query } = route.query;
 			asked.value = undefined;
-			// `hash` survives: it addresses a place within the page, which has nothing to do
-			// with the panel and is not ours to drop. An aborted or redirected replace rejects,
-			// and there is nothing to do about it — the panel is already resolved and recorded,
-			// so the only loss is a parameter left in the bar.
+			// `hash` addresses a place within the page, so it is not ours to drop. An aborted
+			// or redirected replace rejects, and the panel is recorded by then regardless.
 			router.replace({ path: route.path, query, hash: route.hash }).catch(() => {});
 		}
 	},
 	{ immediate: true }
 );
 
-// The link to hand someone else, or nothing to offer. The parameter goes on only where it says
-// something: in the canonical panel it is a tautology, the rule already set for `?from=` on
-// re-entering its own prefix.
+// The link to hand someone else. The parameter goes on only where it says something, matching
+// the rule `?from=` already follows on re-entering its own prefix.
 const shareLink = computed(() => {
 	const panel = current.value.sidebar;
 	const query =

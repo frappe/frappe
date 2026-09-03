@@ -1,47 +1,21 @@
-// What panel this tab was last in, per address (#42464).
-//
-// The first thing the desk v2 shell stores. It narrows charter point 7 on purpose, and the
-// narrowing is exactly this wide: the record NEVER invents a panel and never beats a deeper
-// cover. It only ever picks among panels the address itself already allows, all of which are
-// equally correct answers to it (#42432). So a cold load in a fresh tab is still a pure
-// function of the address, and two colleagues opening one URL get one shell.
-//
-// `sessionStorage`, not `localStorage`, because the unit is the TAB. A reload and the back
-// button keep the panel, which is the whole point; a second tab on the same address starts
-// from the address again, which is what makes the cold load still mean something. Outliving
-// the tab would make the canonical panel unreachable without clearing site data.
-//
-// Keyed by path alone. The panel is a fact about which rows cover this address, and the query
-// is context rather than identity (#42102) — `?view=` and `?tab=` move you inside a list, not
-// into another panel, so hanging a separate record off each of them would only make the
-// panel flicker as you switch views.
+// What panel this tab was last in, per address. `sessionStorage`, so the unit is the TAB: a
+// reload and back keep the panel, while a second tab resolves off the address again.
 
 const KEY = "frappe:desk:panel";
 
-// How many addresses to keep, most recently resolved last. Every address that opens a panel is
-// recorded, and records get their own — reading 500 items writes 500 entries — so without a cap
-// this grows for as long as the tab lives and every navigation re-serialises all of it. The
-// oldest entry falls off, which costs that address its continuity and nothing else: it resolves
-// off the address again, the way it did before any of this.
+// Every address that opens a panel is recorded and records get their own, so an uncapped
+// record grows for the life of the tab and every navigation re-serialises all of it.
 const KEEP = 100;
 
-/**
- * The whole record, or an empty one.
- *
- * Every read goes through here rather than caching, because `sessionStorage` is shared with
- * anything else on the tab and this is a handful of short strings read once per navigation.
- * Storage throws in more places than it looks — Safari's private mode has historically thrown
- * on WRITE with a zero quota, and a sandboxed frame throws on ACCESS — so both sides swallow.
- * A tab that cannot remember its panel falls back to resolving off the address, which is the
- * behaviour that shipped before this and is never wrong, only less continuous.
- */
+/** The whole record, or an empty one. */
 function read(): Record<string, string> {
 	try {
 		const raw = sessionStorage.getItem(KEY);
 		const parsed = raw ? JSON.parse(raw) : null;
-		// Anything but an object of strings is someone else's data or a half-written value.
 		return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
 	} catch {
+		// Storage throws on access in a sandboxed frame and at zero quota. A tab that cannot
+		// remember resolves off the address, which is never wrong, only less continuous.
 		return {};
 	}
 }
@@ -53,21 +27,17 @@ export function recallPanel(path: string): string | undefined {
 }
 
 /**
- * Record `panel` as the answer for `path`.
+ * Record `panel` as the answer for `path`, called when the panel resolves.
  *
- * Called when the panel RESOLVES, not when a row is clicked. Rows are plain `RouterLink`s
- * (`NavigationRow.vue`) and Vue Router's `RouterLink` cannot carry history state, so anything
- * hung off the click would have cost the plain link and broken middle-click and
- * open-in-new-tab. Resolution happens on every arrival however you got there — click, paste,
- * reload, back — so this is the one hook that catches all of them.
+ * Never off a click: rows are plain `RouterLink`s, which cannot carry history state, so a
+ * click handler would break middle-click and open-in-new-tab.
  */
 export function rememberPanel(path: string, panel: string): void {
 	const record = read();
 	if (record[path] === panel) return;
 
-	// Re-inserted rather than assigned in place, so the freshest address is always last and the
-	// cap drops the least recently resolved one. Object key order is insertion order for string
-	// keys, which is what makes this work without a second structure to keep in step.
+	// Re-insertion keeps key order least-recent first, so the cap below evicts the address
+	// that has gone longest without resolving.
 	delete record[path];
 	record[path] = panel;
 
@@ -79,6 +49,6 @@ export function rememberPanel(path: string, panel: string): void {
 	try {
 		sessionStorage.setItem(KEY, JSON.stringify(record));
 	} catch {
-		// Full or forbidden. The panel still resolves; it just will not survive a reload.
+		// Full or forbidden. The panel still resolves; it will not survive a reload.
 	}
 }

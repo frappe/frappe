@@ -61,7 +61,7 @@
 			/>
 		</ul>
 
-		<!-- One footer group, so `mt-auto` sits in one place however many controls are on. -->
+		<!-- One group, so `mt-auto` sits in one place however many controls are on. -->
 		<div class="mt-auto flex flex-col">
 			<button
 				v-if="arrangeable"
@@ -106,11 +106,9 @@ import type { ItemContext } from "@/navigation/types";
 // the panel (#42421). The context is composed once per list and the panel draws the same rows
 // off the same one; and exactly one row is current across the rail and the panel together, so
 // neither surface can work it out alone.
-// `shareLink` is the whole address to hand someone, built by the shell because only the shell
-// knows whether the panel needs naming (#42464). The button lives down here rather than by the
-// panel it can carry: the rail's footer is the shell's only chrome that is present on every
-// page, and "copy a link to this view" is useful with no panel open at all. It is expected to
-// collect other context later, which is the other reason it is not the panel's.
+//
+// `shareLink` is built by the shell, which is what knows whether the panel needs naming. The
+// button is here because the rail's footer is the only chrome present on every page.
 const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
@@ -122,8 +120,7 @@ const emit = defineEmits<{ arrange: [] }>();
 
 const boot = inject<Boot>("boot")!;
 
-// Confirmation in the button itself. A copy that silently succeeds looks identical to one that
-// silently failed, and there is no toast in the desk v2 shell to borrow.
+// Confirmation in the button itself: there is no toast in the shell to borrow.
 const copied = ref(false);
 let clearCopied: ReturnType<typeof setTimeout> | undefined;
 
@@ -133,8 +130,8 @@ async function copyLink() {
 	try {
 		await navigator.clipboard.writeText(props.shareLink);
 	} catch {
-		// Denied permission, or an insecure origin, where `navigator.clipboard` is undefined.
-		// Nothing was copied, so say nothing rather than claim it was.
+		// Denied, or an insecure origin where `navigator.clipboard` is undefined. Nothing was
+		// copied, so claim nothing.
 		return;
 	}
 
