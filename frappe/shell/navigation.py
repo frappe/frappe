@@ -431,8 +431,8 @@ def on_the_wire(item: dict) -> dict:
 	"""One resolved item as the browser gets it: the fields it renders, and only those set.
 
 	Blank fields are omitted rather than sent as `null`. Navigation is the largest thing in a
-	payload #42232 measured at 5,684 B against a 40 KB ceiling, and most fields on most rows are
-	blank — a derived rail row sets four of eleven.
+	payload measured at 19,064 B of 21,576 B against `boot.KEY_BUDGET`, and most fields on most
+	rows are blank — a derived rail row sets four of eleven.
 
 	`payload` is parsed here rather than sent as the string it is stored as, so the type-specific
 	tail is a JSON object on both sides of the wire and no renderer parses it again. A payload

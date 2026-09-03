@@ -13,6 +13,8 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.shell.boot import BUDGET_LOG_TITLE as TITLE
+from frappe.shell.boot import KEY_BUDGET, get_boot
 from frappe.shell.navigation import resolve_navigation
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
@@ -451,10 +453,134 @@ class TestNavigationInBoot(NavigationTestCase):
 	def test_boot_stays_under_the_ceiling_with_navigation_in_it(self):
 		"""The framework's own prefix is the biggest one, and Administrator is the worst
 		case: every doctype on the site is readable, so the derived rail is as long as it
-		can get."""
+		can get. A total; the shipped per-key budget is `TestBootBudget` below."""
 		from frappe.shell.boot import get_boot
 
 		self.assertLess(len(json.dumps(get_boot("/apps/desk"), default=str)), 40_000)
+
+
+class TestBootBudget(NavigationTestCase):
+	"""The per-key growth alarm at `get_boot`'s exit."""
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		set_request(method="GET", path="/apps/desk")
+		self._clear()
+
+	def tearDown(self):
+		self._clear()
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
+	def _clear(self):
+		frappe.cache.delete_keys("boot_budget:")
+		frappe.db.delete("Error Log", {"method": TITLE})
+
+	def _logged(self) -> list[str]:
+		"""The rows this check has written, oldest first; MyISAM, so `_clear` deletes them."""
+		return [
+			row.error
+			for row in frappe.get_all(
+				"Error Log", filters={"method": TITLE}, fields=["error"], order_by="creation asc"
+			)
+		]
+
+	def test_navigation_for_frappes_own_prefix_is_inside_the_budget(self):
+		"""Administrator at `frappe`'s prefix, the worst case frappe's own CI can measure: 19,064 B."""
+		payload = json.dumps(resolve_navigation(APP), separators=(",", ":"), default=str)
+
+		self.assertLess(len(payload), KEY_BUDGET)
+
+	def test_a_key_over_budget_is_logged_and_shipped_whole(self):
+		"""An over-budget payload ships whole; the row is the only thing the check adds."""
+		oversized = "x" * (KEY_BUDGET + 1)
+
+		with patch("frappe.shell.boot.app_boot", return_value={"huge": oversized}):
+			boot = get_boot("/apps/desk")
+
+		self.assertEqual(boot["huge"], oversized)
+		self.assertEqual(len(self._logged()), 1)
+		self.assertIn("huge is 100,003 B", self._logged()[0])
+		self.assertIn("Administrator", self._logged()[0])
+		self.assertIn("at prefix desk", self._logged()[0])
+		self.assertIn("over the 100,000 B key budget", self._logged()[0])
+
+	def test_a_key_inside_the_budget_logs_nothing(self):
+		with patch("frappe.shell.boot.app_boot", return_value={"snug": "x" * 10}):
+			get_boot("/apps/desk")
+
+		self.assertEqual(self._logged(), [])
+
+	def test_one_row_per_key_per_prefix_per_day_however_many_users_trip_it(self):
+		"""The user is named in the message and never in the cache key."""
+		with patch("frappe.shell.boot.app_boot", return_value={"huge": "x" * (KEY_BUDGET + 1)}):
+			get_boot("/apps/desk")
+			get_boot("/apps/desk")
+			with set_user(self.a_second_user()):
+				get_boot("/apps/desk")
+
+		self.assertEqual(len(self._logged()), 1)
+
+	def test_the_same_key_at_two_addresses_gets_a_row_each(self):
+		"""The guard is keyed on the key and the prefix, so one address cannot mute another."""
+		with patch("frappe.shell.boot.core_boot", return_value={"huge": "x" * (KEY_BUDGET + 1)}):
+			get_boot("/apps/desk")
+			get_boot("/apps")
+
+		logged = self._logged()
+
+		self.assertEqual(len(logged), 2)
+		self.assertIn("at prefix desk", logged[0])
+		self.assertIn("at the /apps index", logged[1])
+
+	def test_a_failed_write_is_retried_rather_than_muting_the_alarm_for_a_day(self):
+		with patch("frappe.shell.boot.app_boot", return_value={"huge": "x" * (KEY_BUDGET + 1)}):
+			with patch("frappe.log_error", side_effect=ValueError("nope")):
+				get_boot("/apps/desk")
+			get_boot("/apps/desk")
+
+		self.assertEqual(len(self._logged()), 1)
+
+	def test_the_index_payload_is_weighed_too(self):
+		"""The index belongs to no app, and shares `get_boot`'s exit and so its alarm."""
+		with patch("frappe.shell.boot.core_boot", return_value={"huge": "x" * (KEY_BUDGET + 1)}):
+			get_boot("/apps")
+
+		self.assertEqual(len(self._logged()), 1)
+		self.assertIn("at the /apps index", self._logged()[0])
+
+	def test_the_boot_total_is_context_and_never_a_second_threshold(self):
+		"""Two keys inside the budget summing past it is not an alarm."""
+		half = "x" * (KEY_BUDGET - 10)
+
+		with patch("frappe.shell.boot.app_boot", return_value={"a": half, "b": half}):
+			get_boot("/apps/desk")
+
+		self.assertEqual(self._logged(), [])
+
+	def test_a_key_that_will_not_serialise_drops_the_check_rather_than_the_shell(self):
+		"""The response layer raises the real error moments later; the check stays silent."""
+
+		class Unserialisable:
+			def __repr__(self):
+				raise ValueError("nope")
+
+		with patch("frappe.shell.boot.app_boot", return_value={"bad": Unserialisable()}):
+			boot = get_boot("/apps/desk")
+
+		self.assertIn("bad", boot)
+		self.assertEqual(self._logged(), [])
+
+	def a_second_user(self) -> str:
+		user = frappe.get_doc(
+			doctype="User",
+			email="boot-budget@example.com",
+			first_name="Boot Budget",
+			roles=[{"role": "System Manager"}],
+		).insert(ignore_if_duplicate=True)
+
+		return user.name
 
 
 # Extension — one app's rows on another app's rail
@@ -589,7 +715,7 @@ class TestExtendedRail(NavigationTestCase):
 	def test_the_stored_columns_never_reach_the_browser(self):
 		"""`anchors` is spent at merge and `switches_app` becomes a `url`. Both are read into the
 		merge because `overrides` may name any field a layer has an opinion about, and neither is
-		anything the client renders — navigation is 88% of a payload with a 40 KB ceiling."""
+		anything the client renders — navigation is 88% of the payload."""
 		make_rail([doctype_item("user", "User")], standard=1)
 		make_extension([anchored("calls", "Role", {"after": "user"})])
 

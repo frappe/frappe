@@ -139,8 +139,8 @@ def get_addresses(v: str | None = None) -> dict:
 	`#42070`'s translations treatment, for the same reason: the payload varies with
 	the site's schema and with nothing else, so `metadata_version` in the query string
 	is the only thing that may ever invalidate it. Measured on this bench: 19,235 B as
-	`{doctype: slug}`, 25,530 B widened (+33%) — comfortable on a fetch and
-	unaffordable inside a 40 KB boot.
+	`{doctype: slug}`, 25,530 B widened (+33%) — free on a fetch cached for a year, and a
+	quarter of `boot.KEY_BUDGET` on every boot.
 
 	`methods=["GET"]` is not decoration: `http_cache` only sets its header on a GET,
 	so a POST would silently answer uncached forever.
