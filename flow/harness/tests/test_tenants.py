@@ -34,14 +34,23 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 	path.write_text(
 		json.dumps(
 			{
-				"site1.localhost": {"token": "abc", "allowed_roots": ["/srv/site1"]},
+				"site1.localhost": {
+					"token": "abc",
+					"allowed_roots": ["/srv/site1"],
+					"callback_hosts": ["site1.localhost:8000"],
+				},
 				"site2.localhost": {"token": "def", "allowed_roots": ["/srv/site2"]},
 			}
 		)
 	)
 	tenants = load_tenants(str(path))
 	assert tenants == [
-		Tenant(site="site1.localhost", token="abc", allowed_roots=("/srv/site1",)),
+		Tenant(
+			site="site1.localhost",
+			token="abc",
+			allowed_roots=("/srv/site1",),
+			callback_hosts=("site1.localhost:8000",),
+		),
 		Tenant(site="site2.localhost", token="def", allowed_roots=("/srv/site2",)),
 	]
 
@@ -57,6 +66,14 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 		('{"site1": {"token": "a", "alowed_roots": ["/x"]}}', "unknown keys: alowed_roots"),
 		('{"site1": {"token": "a", "allowed_roots": []}}', "non-empty list of paths"),
 		('{"site1": {"token": "a", "allowed_roots": ["/x", 3]}}', "non-empty list of paths"),
+		(
+			'{"site1": {"token": "a", "allowed_roots": ["/x"], "callback_hosts": "site1:8000"}}',
+			"callback_hosts must be a list",
+		),
+		(
+			'{"site1": {"token": "a", "allowed_roots": ["/x"], "callback_hosts": ["site1:8000", ""]}}',
+			"callback_hosts must be a list",
+		),
 		(
 			'{"site1": {"token": "same", "allowed_roots": ["/x"]},'
 			' "site2": {"token": "same", "allowed_roots": ["/x"]}}',
@@ -145,6 +162,43 @@ def test_per_site_allowed_roots(tmp_path):
 	assert c.post("/sessions", json={"cwd": str(fenced)}, headers=_auth("token-two")).status_code == 400
 
 
+def test_per_site_callback_hosts(tmp_path):
+	tenants = [
+		Tenant(site="site1.localhost", token="token-one", callback_hosts=("site1.localhost:8000",)),
+		Tenant(site="site2.localhost", token="token-two"),
+	]
+	c = TestClient(create_app(_store(tmp_path, callback_hosts=["shared.localhost:8000"]), tenants=tenants))
+
+	def create(token: str, host: str) -> int:
+		body = {"cwd": str(tmp_path), "callback_url": f"http://{host}/api/method/tool_callback"}
+		return c.post("/sessions", json=body, headers=_auth(token)).status_code
+
+	# a site's own list replaces the daemon-wide fence
+	assert create("token-one", "site1.localhost:8000") == 200
+	assert create("token-one", "shared.localhost:8000") == 400
+	# no list of its own: site2 keeps the daemon-wide fence
+	assert create("token-two", "shared.localhost:8000") == 200
+	assert create("token-two", "site1.localhost:8000") == 400
+
+
+def test_site_callback_hosts_satisfy_deployed(tmp_path):
+	"""Deployed refuses callbacks until hosts are configured; a site's own list is
+	enough, so a bench needs neither FLOW_CALLBACK_HOSTS nor a restart per site."""
+	store = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist, callback_hosts=DEPLOYED.callback_hosts)
+	tenants = [
+		Tenant(site="site1.localhost", token="token-one", callback_hosts=("site1.localhost:8000",)),
+		Tenant(site="site2.localhost", token="token-two"),
+	]
+	c = TestClient(create_app(store, policy=DEPLOYED, tenants=tenants))
+
+	def create(token: str, host: str) -> int:
+		body = {"cwd": str(tmp_path), "callback_url": f"http://{host}/api/method/tool_callback"}
+		return c.post("/sessions", json=body, headers=_auth(token)).status_code
+
+	assert create("token-one", "site1.localhost:8000") == 200
+	assert create("token-two", "site2.localhost:8000") == 400
+
+
 def test_tenants_satisfy_deployed_auth(tmp_path):
 	store = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist, callback_hosts=DEPLOYED.callback_hosts)
 	c = TestClient(create_app(store, policy=DEPLOYED, tenants=TENANTS))
@@ -175,22 +229,70 @@ def test_new_site_in_tenants_file_works_without_restart(tmp_path):
 	assert c.get("/sessions", headers=_auth("token-one")).status_code == 200
 
 
-def test_broken_tenants_reload_keeps_the_last_good_list(tmp_path):
+def test_reload_route_requires_a_site_token(tmp_path):
+	c, _path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
+	assert c.post("/tenants/reload").status_code == 401
+	assert c.post("/tenants/reload", headers=_auth("nope")).status_code == 401
+	assert c.post("/tenants/reload", headers=_auth("token-one")).json() == {"sites": 1}
+
+
+def test_reload_without_a_tenants_file_changes_nothing(tmp_path):
+	c = TestClient(create_app(_store(tmp_path), tenants=TENANTS))
+	assert c.post("/tenants/reload", headers=_auth("token-one")).json() == {"sites": 2}
+
+
+def test_site_removed_from_tenants_file_is_refused(tmp_path):
+	sites = {"site1.localhost": _entry(tmp_path), "site2.localhost": _entry(tmp_path, "token-two")}
+	c, path = _live_client(tmp_path, sites)
+	assert c.get("/sessions", headers=_auth("token-two")).status_code == 200
+	path.write_text(json.dumps({"site1.localhost": _entry(tmp_path)}))
+	assert c.post("/tenants/reload", headers=_auth("token-one")).json() == {"sites": 1}
+	assert c.get("/sessions", headers=_auth("token-two")).status_code == 401
+	assert c.get("/sessions", headers=_auth("token-one")).status_code == 200
+
+
+def test_broken_tenants_reload_answers_400_and_keeps_the_last_good_list(tmp_path):
 	c, path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
-	path.write_text("not json")
-	assert c.get("/sessions", headers=_auth("nope")).status_code == 401
+	for content in ("not json", "{}"):  # unreadable, and emptied of every site
+		path.write_text(content)
+		assert c.post("/tenants/reload", headers=_auth("token-one")).status_code == 400
 	assert c.get("/sessions", headers=_auth("token-one")).status_code == 200
 
 
 def test_tenants_reload_applies_changed_roots(tmp_path):
-	inside = tmp_path / "inside"
-	inside.mkdir()
-	c, path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
-	assert c.post("/sessions", json={"cwd": str(tmp_path)}, headers=_auth("token-one")).status_code == 200
-	path.write_text(json.dumps({"site1.localhost": _entry(inside)}))
-	assert c.get("/sessions", headers=_auth("bogus")).status_code == 401  # triggers the reload
-	assert c.post("/sessions", json={"cwd": str(tmp_path)}, headers=_auth("token-one")).status_code == 400
-	assert c.post("/sessions", json={"cwd": str(inside)}, headers=_auth("token-one")).status_code == 200
+	old, new = tmp_path / "old", tmp_path / "new"
+	old.mkdir()
+	new.mkdir()
+	c, path = _live_client(tmp_path, {"site1.localhost": _entry(old)})
+
+	def create(root) -> int:
+		return c.post("/sessions", json={"cwd": str(root)}, headers=_auth("token-one")).status_code
+
+	started = c.post("/sessions", json={"cwd": str(old)}, headers=_auth("token-one"))
+	assert started.status_code == 200
+	path.write_text(json.dumps({"site1.localhost": _entry(new)}))
+	assert c.post("/tenants/reload", headers=_auth("token-one")).status_code == 200
+	assert create(new) == 200
+	assert create(old) == 400
+	sid = started.json()["session_id"]  # the session already loaded is fenced out too
+	assert c.get(f"/sessions/{sid}", headers=_auth("token-one")).status_code == 400
+
+
+def test_tenants_reload_applies_changed_callback_hosts(tmp_path):
+	def entry(host: str) -> dict:
+		return {"token": "token-one", "allowed_roots": [str(tmp_path)], "callback_hosts": [host]}
+
+	c, path = _live_client(tmp_path, {"site1.localhost": entry("a.localhost:8000")})
+
+	def create(host: str) -> int:
+		body = {"cwd": str(tmp_path), "callback_url": f"http://{host}/cb"}
+		return c.post("/sessions", json=body, headers=_auth("token-one")).status_code
+
+	assert create("a.localhost:8000") == 200
+	path.write_text(json.dumps({"site1.localhost": entry("b.localhost:8000")}))
+	assert c.post("/tenants/reload", headers=_auth("token-one")).status_code == 200
+	assert create("b.localhost:8000") == 200
+	assert create("a.localhost:8000") == 400
 
 
 def _serve_args(tmp_path) -> Namespace:

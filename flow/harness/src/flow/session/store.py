@@ -122,10 +122,16 @@ class SessionStore:
 			session.server_tools = self._compose_tools(session.config)
 			session.extension_runtime = self.extension_runtime
 
-	def for_site(self, site: str, allowed_roots: Collection[str] | None = None) -> SessionStore:
+	def for_site(
+		self,
+		site: str,
+		allowed_roots: Collection[str] | None = None,
+		callback_hosts: Collection[str] | None = None,
+	) -> SessionStore:
 		"""A tenant partition of this store: sessions and credentials live under
-		`data_dir/tenants/<site>` with their own path fence, sharing sink and caps.
-		The daemon-wide credential store is never a site's to consume."""
+		`data_dir/tenants/<site>` with their own path fence — and their own callback
+		fence when the site lists hosts — sharing sink and caps. The daemon-wide
+		credential store is never a site's to consume."""
 		if not _SITE_RE.match(site):
 			raise ValueError(f"invalid site name {site!r}")
 		partition_dir = os.path.join(self.data_dir, "tenants", site)
@@ -137,7 +143,7 @@ class SessionStore:
 			extension_paths=list(self._extension_paths),
 			extensions_enabled=self._extensions_enabled,
 			tool_allowlist=self.tool_allowlist,
-			callback_hosts=self.callback_hosts,
+			callback_hosts=callback_hosts if callback_hosts is not None else self.callback_hosts,
 		)
 
 	def create(self, config: SessionConfig) -> Session:

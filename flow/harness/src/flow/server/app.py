@@ -53,9 +53,9 @@ def create_app(
 	`policy` gates tools and route groups; None means the permissive local default.
 	`tenants` turns on multi-tenant mode: each tenant token authenticates as its
 	site, and the request then acts on that site's own partition of `store`.
-	`tenants_file` is the path those tenants came from: when a token matches
-	nothing, the file is re-read, so sites added while the daemon runs (a signup
-	bench) are picked up without a restart."""
+	`tenants_file` is where those tenants came from. It is re-read on an unknown
+	token (a new site) and on `POST /tenants/reload` (an edited or removed one), so
+	the file can change without a restart."""
 	policy = policy or ServerPolicy()
 	if policy.require_auth and not auth_token and not tenants:
 		raise ValueError("this server policy requires auth; pass auth_token or tenants")
@@ -101,7 +101,8 @@ def create_app(
 
 	# one isolated store per site; a request only ever sees its own site's store
 	session_store_by_tenant = {
-		tenant.site: store.for_site(tenant.site, tenant.allowed_roots) for tenant in tenants
+		tenant.site: store.for_site(tenant.site, tenant.allowed_roots, tenant.callback_hosts)
+		for tenant in tenants
 	}
 
 	def resolve_store(request: Request) -> SessionStore:
@@ -111,30 +112,35 @@ def create_app(
 	tenants = list(tenants)
 	tenants_mtime = _stat_mtime(tenants_file)
 
-	def refresh_tenants() -> None:
-		"""Re-read the tenants file so sites added while the daemon runs are picked
-		up without a restart. Called only when a token matches nothing, so the steady
-		state never stats the file; a broken file keeps the last good list."""
+	def refresh_tenants(force: bool = False) -> str | None:
+		"""Re-read the tenants file if it changed; `force` re-reads either way. A site
+		whose fences changed, or that is gone, loses its partition. Returns the error
+		if the file cannot be read, leaving the last good list in place."""
 		nonlocal tenants, tenants_mtime
 		if tenants_file is None:
-			return
+			return None
 		mtime = _stat_mtime(tenants_file)
-		if mtime is None or mtime == tenants_mtime:
-			return
+		if not force and (mtime is None or mtime == tenants_mtime):
+			return None
 		try:
 			fresh = load_tenants(tenants_file)
 		except (OSError, ValueError) as error:
 			logging.getLogger("flow").warning(
 				"tenants file reload failed, keeping the last good list: %s", error
 			)
-			return
+			return str(error)
 		fresh_by_site = {tenant.site: tenant for tenant in fresh}
 		for old in tenants:
 			new = fresh_by_site.get(old.site)
-			if new is None or new.allowed_roots != old.allowed_roots:
+			if (
+				new is None
+				or new.allowed_roots != old.allowed_roots
+				or new.callback_hosts != old.callback_hosts
+			):
 				session_store_by_tenant.pop(old.site, None)  # rebuilt on next match, if any
 		tenants = fresh
 		tenants_mtime = mtime
+		return None
 
 	if auth_token or tenants:
 
@@ -169,7 +175,7 @@ def create_app(
 					if tenant.site not in session_store_by_tenant:
 						# a site added after startup gets its partition on first use
 						session_store_by_tenant[tenant.site] = store.for_site(
-							tenant.site, tenant.allowed_roots
+							tenant.site, tenant.allowed_roots, tenant.callback_hosts
 						)
 					request.state.site = tenant.site  # scopes this request to the site
 					return await call_next(request)
@@ -212,6 +218,15 @@ def create_app(
 	@app.get("/healthz")
 	async def healthz():
 		return {"ok": True}
+
+	@app.post("/tenants/reload")
+	async def reload_tenants():
+		"""Called by the tenants file's writer after editing or removing a site; a file
+		it cannot read is the caller's 400."""
+		error = refresh_tenants(force=True)
+		if error:
+			return JSONResponse({"detail": error}, status_code=400)
+		return {"sites": len(tenants)}
 
 	# the credential store is daemon-wide, so no site token may manage it
 	providers_policy = replace(policy, providers_api=False) if tenants else policy
