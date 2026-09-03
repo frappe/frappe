@@ -1,14 +1,8 @@
-// What happens to a script that reaches for a name we removed (wayfinder ticket
-// 20 §4, §5). Two nets over one list: a removal still inside its tombstone major
-// stays on `page` as a function that throws, naming the removal and what replaced
-// it; a removal past that is gone, and reading the name is all there is left to
-// catch.
+// What happens to a script that reaches for a removed `page` name: a tombstone
+// throws naming the replacement, a gone name warns once on read.
 //
-// The list is empty — nothing has been removed yet — and an empty list installs no
-// Proxy at all, so the mechanism costs the replay nothing until it has something
-// to say. That is also why the warning is narrowed to this list rather than firing
-// on any unknown key: `if (page.dialog.prompt)` is the feature detection
-// COMPATIBILITY.md tells authors to write, and it must stay silent.
+// Narrowed to the list, never any unknown key: `if (page.dialog.prompt)` is the
+// feature detection authors are told to write, and it must stay silent.
 import { runningSource } from "./context";
 import { toastScriptError } from "./pageScripts";
 import { reportCustomizationError } from "./reportError";
@@ -20,10 +14,7 @@ export interface Removal {
   removedIn: string;
   /** What to write instead — the other half. */
   instead: string;
-  /**
-   * `tombstone` while the name is still there as a thrower (one major), `gone`
-   * once it has been deleted and only the read can be seen.
-   */
+  /** `tombstone` while the name is still there as a thrower (one major); `gone` once deleted. */
   stage: "tombstone" | "gone";
 }
 
@@ -33,10 +24,7 @@ export const REMOVALS: Removal[] = [];
 const throwers = new Map<Removal, () => never>();
 const warned = new Set<string>();
 
-/**
- * Wraps `page` so the removals list is answered rather than read past. Returns
- * the object itself when there is nothing to answer.
- */
+/** Wraps `page` so the removals list is answered; returns the object itself when the list is empty. */
 export function withRemovals<Page extends object>(
   page: Page,
   removals: Removal[] = REMOVALS,
@@ -50,9 +38,8 @@ export function resetRemovalNotices() {
   throwers.clear();
 }
 
-// One Proxy per object that owns a removed name, built from the top down: the
-// nested ones are installed on the way in, so `page.dialog` is a guarded object
-// before anything reads a member off it.
+// One Proxy per object that owns a removed name, built top down so `page.dialog`
+// is guarded before anything reads a member off it.
 function guard(target: any, prefix: string, removals: Removal[]): any {
   const here = new Map<string, Removal>();
   const below = new Map<string, Removal[]>();
@@ -92,9 +79,7 @@ function tombstone(removal: Removal) {
   return thrower;
 }
 
-// Not dev-gated, deliberately (20 §5): a removal firing is an upgrade breaking a
-// customer's customization on a site no developer is watching, and no production
-// site runs a dev build.
+// Not dev-gated: a removal firing is an upgrade breaking a site no developer is watching.
 function reportAndThrow(removal: Removal): never {
   const source = runningSource();
   const error = new Error(`page.${removal.path} was ${detail(removal)}`);
@@ -112,8 +97,7 @@ function reportAndThrow(removal: Removal): never {
   throw error;
 }
 
-// Console only, always on: probing is legitimate, so this has to be cheap enough
-// to be wrong about — an Error Log row per probe is not.
+// Console only: probing is legitimate, and an Error Log row per probe is not cheap enough to be wrong about.
 function warnRemoved(removal: Removal) {
   const source = runningSource();
   const message = `[record-page] ${source} read page.${removal.path}, ${detail(removal)}`;

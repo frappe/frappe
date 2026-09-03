@@ -1,21 +1,11 @@
-// A table's handlers nest under its fieldname (ticket 54), and the engine
-// dispatches against one flat keyspace — so the authored shape is flattened
-// here, once, at the choke point every script passes through.
-//
-//   products: { onAdd, onRemove, qty }  →  'products.onAdd', 'products.onRemove',
-//                                          'products.qty'
-//
-// The lifecycle events are spelled `onAdd` / `onRemove` rather than `add` /
-// `remove` because `add` is a legal, unreserved fieldname: `products.add` is the
-// same string as the commit event of a child field called `add`, which is the
-// collision ticket 45 rejected the underscore spelling for and then shipped one
-// level down. `on`-prefixing moves the lifecycle keys out of the fieldname
-// namespace, and the two child fields that could still collide are warned about
-// by name at load (`createRecordPage`) — an announced capability hole rather
-// than a silent misfire.
+// A table's handlers nest under its fieldname and the engine dispatches against one
+// flat keyspace, so `products: { onAdd, qty }` becomes `'products.onAdd'`, `'products.qty'`.
 import type { AuthoredHandlers, Handler, RecordPageHandlers } from "./types";
 
-/** The lifecycle half of a table's vocabulary, in the one spelling used end to end. */
+/**
+ * The lifecycle half of a table's vocabulary. `on`-prefixed because `add` is a
+ * legal fieldname, and `products.add` would be a child field's commit event.
+ */
 export const ROW_EVENTS = { add: "onAdd", remove: "onRemove" } as const;
 
 export function flattenHandlers(
@@ -23,17 +13,14 @@ export function flattenHandlers(
   source: string,
   doctype: string,
 ): RecordPageHandlers {
-  // Null-prototype, so `handlers[event]` can only answer with what the author
-  // wrote: a doctype may have a field called `constructor` or `toString`, and
-  // an inherited hit there would dispatch an event to `Object.prototype`.
+  // Null-prototype: a doctype may have a field called `constructor` or `toString`,
+  // and an inherited hit would dispatch an event to `Object.prototype`.
   const flat: RecordPageHandlers = Object.create(null);
   const said = (key: string, message: string) =>
     warn(`${source}.${key} on ${doctype} ${message}`);
 
   const put = (key: string, handler: Handler) => {
-    // Both spellings are accepted, so one can quietly land on the other. Last
-    // wins, as it would anywhere else — but not in silence, in a module that
-    // names every other authoring mistake.
+    // Both spellings are accepted, so one can land on the other; last wins, but not in silence.
     if (key in flat) said(key, "is written twice — the later one wins");
     flat[key] = handler;
   };
@@ -49,8 +36,7 @@ export function flattenHandlers(
       continue;
     }
     const nested = Object.entries(value);
-    // Vacuously a block of functions, and the one authoring mistake this would
-    // otherwise wave through.
+    // Vacuously a block of functions, so it would otherwise pass unnoticed.
     if (!nested.length) said(key, "is an empty block — it registers nothing");
     for (const [child, handler] of nested) put(`${key}.${child}`, handler);
   }
@@ -58,15 +44,8 @@ export function flattenHandlers(
 }
 
 /**
- * The spelling this replaced, named at the one moment the engine can say what to
- * write instead. It is a *legal* key — a child field may genuinely be called
- * `add`, which is the whole reason the lifecycle names moved — so this is advice
- * rather than a refusal, and it belongs here rather than in the vocabulary
- * check, which has no reason to doubt a key it can resolve.
- *
- * The underscore spelling is deliberately not named here: `<parent>_add` is an
- * ordinary parent fieldname, and accusing one would be a warning that lies. The
- * vocabulary check already names it if it is not a fieldname at all.
+ * Names the retired `.add`/`.remove` spelling; advice, not a refusal, since a child
+ * field may be called `add`. `<parent>_add` is not named: it is an ordinary fieldname.
  */
 function warnRetiredSpelling(
   key: string,
@@ -81,11 +60,7 @@ function warnRetiredSpelling(
   );
 }
 
-/**
- * A plain object of functions and nothing else. Anything else nested under a
- * fieldname is a mistake the author wants named rather than a shape to guess
- * at — and a non-function value would flatten to a key that could never fire.
- */
+/** A plain object of functions and nothing else; a non-function value would flatten to a key that never fires. */
 function isHandlerBlock(value: unknown): value is Record<string, Handler> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const proto = Object.getPrototypeOf(value);

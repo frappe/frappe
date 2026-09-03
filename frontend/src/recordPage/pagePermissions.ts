@@ -1,6 +1,4 @@
-// What a script may ask about permissions (wayfinder ticket 18): the rights
-// dict, the session's roles, and a field's access — one vocabulary with the
-// host, since both sides come from `useDocPermissions`.
+// What a script may ask about permissions: the rights dict, the session's roles, and a field's access.
 import { watch, type ComputedRef, type Ref } from "vue";
 import {
   useDocPermissions,

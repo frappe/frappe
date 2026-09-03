@@ -19,9 +19,7 @@ export function registerRecordPage(
   handlers: AuthoredHandlers,
 ) {
   const source = registeringSource();
-  // The one place a nested table block is flattened: file scripts and stored
-  // scripts both land here, so neither the loader nor the evaluator has to know
-  // the authored shape from the dispatched one.
+  // The one place a nested table block is flattened; every delivery lands here.
   registrations.push({
     source,
     doctype,
