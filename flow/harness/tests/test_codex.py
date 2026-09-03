@@ -818,13 +818,13 @@ def test_does_not_replay_aborted_assistant_response():
 def test_drops_results_answering_a_dropped_assistant_turn():
 	target = CodexModel("codex/gpt-test", api_key="token")
 	aborted = AssistantMessage(
-		content=[ToolCall(id="call_1", name="read_file", arguments={"path": "a.txt"})],
+		content=[ToolCall(id="call_1", name="read", arguments={"path": "a.txt"})],
 		api=target.api,
 		provider=target.provider,
 		model=target.model,
 		stop_reason="aborted",
 	)
-	repair = ToolResult(tool_call_id="call_1", name="read_file", content="interrupted", is_error=True)
+	repair = ToolResult(tool_call_id="call_1", name="read", content="interrupted", is_error=True)
 
 	# the call and its answer must both be dropped
 	assert _responses_input([aborted, repair], target) == []

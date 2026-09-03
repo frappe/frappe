@@ -21,7 +21,7 @@ def test_default_compose_shape(tmp_path):
 	assert prompt.startswith(DEFAULT_INTRO)
 	assert "Available tools:" in prompt
 	assert "- bash: " in prompt
-	assert "- read_file: " in prompt
+	assert "- read: " in prompt
 	assert "Guidelines:" in prompt
 	assert "- Be concise in your responses" in prompt
 	assert prompt.endswith(f"Current working directory: {tmp_path / 'work'}")
@@ -30,14 +30,14 @@ def test_default_compose_shape(tmp_path):
 
 def test_tools_list_follows_config(tmp_path):
 	home = _home(tmp_path)
-	config = SessionConfig(cwd=str(tmp_path), tools=["read_file", "grep"])
+	config = SessionConfig(cwd=str(tmp_path), tools=["read", "grep"])
 	prompt = build_system_prompt(config, home=str(home))
-	assert "- read_file: " in prompt
+	assert "- read: " in prompt
 	assert "- grep: " in prompt
 	assert "- bash: " not in prompt
 	assert "- edit: " not in prompt
 	# guidelines follow the active tools too
-	assert "Use read_file to examine files" in prompt
+	assert "Use read to examine files" in prompt
 	assert "Use write only" not in prompt
 
 

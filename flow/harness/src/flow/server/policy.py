@@ -63,7 +63,7 @@ class ServerPolicy:
 # reads or mutates the host directly is off.
 DEPLOYED = ServerPolicy(
 	profile="deployed",
-	tool_allowlist=frozenset({"read_file", "grep"}),
+	tool_allowlist=frozenset({"read", "grep"}),
 	callback_hosts=frozenset(),
 	require_auth=True,
 	inline_credentials=True,
@@ -118,7 +118,7 @@ _NO_WEAKENING = frozenset({"require_auth", "audit_log"})
 
 def _apply_overrides(policy: ServerPolicy, raw: str) -> ServerPolicy:
 	"""FLOW_POLICY: a JSON object overriding individual policy fields, e.g.
-	`{"skills_api": true, "tool_allowlist": ["read_file", "grep", "bash"]}`.
+	`{"skills_api": true, "tool_allowlist": ["read", "grep", "bash"]}`.
 	Strict on names and types — a typo must fail startup, not silently drop a fence."""
 	try:
 		data = json.loads(raw)

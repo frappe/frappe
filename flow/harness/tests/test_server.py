@@ -639,8 +639,8 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 		replies=[
 			AssistantMessage(
 				content=[
-					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
-					ToolCall(id="c2", name="read_file", arguments={"path": "a.txt"}),
+					ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read", arguments={"path": "a.txt"}),
 				]
 			),
 			AssistantMessage(content="done"),
@@ -652,7 +652,7 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 		"/sessions",
 		json={
 			"cwd": str(tmp_path),
-			"confirm_tools": ["read_file"],
+			"confirm_tools": ["read"],
 		},
 	).json()["session_id"]
 
@@ -705,7 +705,7 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 
 def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	mock = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
 	)
 	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
 	data_dir = tmp_path / "data"
@@ -716,7 +716,7 @@ def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	c = TestClient(create_app(store))
 	sid = c.post(
 		"/sessions",
-		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+		json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
 	).json()["session_id"]
 	paused = c.post(
 		f"/sessions/{sid}/run",
@@ -759,7 +759,7 @@ class _ResumeBlockingModel(Model):
 	async def run(self, request: ModelRequest):
 		self.call_count += 1
 		if self.call_count == 1:
-			yield AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])
+			yield AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])
 			yield Usage()
 			return
 		self.started.set()
@@ -951,7 +951,7 @@ async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp
 		sid = (
 			await client.post(
 				"/sessions",
-				json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+				json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
 			)
 		).json()["session_id"]
 		paused = (
@@ -1046,7 +1046,7 @@ async def test_stream_reconnect_with_since_continues_a_live_run(tmp_path, monkey
 def test_cancel_pending_closes_a_paused_run(tmp_path, monkeypatch):
 	mock = MockModel(
 		replies=[
-			AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})]),
+			AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})]),
 			AssistantMessage(content="done"),
 		]
 	)
@@ -1054,7 +1054,7 @@ def test_cancel_pending_closes_a_paused_run(tmp_path, monkeypatch):
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
-		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+		json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
 	).json()["session_id"]
 	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
 	assert paused["reason"] == "paused"
@@ -1239,7 +1239,7 @@ def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
 	(tmp_path / "a.txt").write_text("x")
 	mock = MockModel(
 		replies=[
-			AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})]),
+			AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})]),
 			AssistantMessage(content="done"),
 		]
 	)
@@ -1247,7 +1247,7 @@ def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
-		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+		json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
 	).json()["session_id"]
 	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
 	assert paused["reason"] == "paused"

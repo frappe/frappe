@@ -146,7 +146,7 @@ def test_tools_route_lists_extension_tools_with_their_source(tmp_path):
 
 	tools = client.get("/tools").json()["tools"]
 
-	assert [t["name"] for t in tools] == ["bash", "read_file", "write", "edit", "grep", "hello"]
+	assert [t["name"] for t in tools] == ["bash", "read", "write", "edit", "grep", "hello"]
 	assert tools[-1] == {"name": "hello", "description": "Greet someone by name.", "extension": "hello"}
 	assert all(t["extension"] is None for t in tools[:-1])
 
@@ -158,7 +158,7 @@ def test_tools_route_hides_extension_tools_when_the_policy_switch_is_off(tmp_pat
 
 	tools = client.get("/tools").json()["tools"]
 
-	assert [t["name"] for t in tools] == ["bash", "read_file", "write", "edit", "grep"]
+	assert [t["name"] for t in tools] == ["bash", "read", "write", "edit", "grep"]
 
 
 def test_extension_diagnostics_endpoint(tmp_path):
@@ -204,17 +204,17 @@ def test_extension_can_override_builtin(tmp_path):
 from flow.tools import ToolResult, tool
 
 @tool
-async def read_file(path: str, *, ctx):
+async def read(path: str, *, ctx):
     return ToolResult(content="overridden")
 
 def setup(flow):
-    flow.register_tool(read_file)
+    flow.register_tool(read)
 """,
 	)
 	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(extension)])
-	session = store.create(SessionConfig(cwd=str(tmp_path), tools=["read_file"]))
+	session = store.create(SessionConfig(cwd=str(tmp_path), tools=["read"]))
 
-	assert session.server_tools["read_file"].func.__module__.startswith("flow_extension_override_")
+	assert session.server_tools["read"].func.__module__.startswith("flow_extension_override_")
 
 
 def test_cli_reports_extension_diagnostics_on_stderr(tmp_path, capsys):

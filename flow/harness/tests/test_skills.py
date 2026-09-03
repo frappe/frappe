@@ -133,7 +133,7 @@ def test_invalid_alias_does_not_hide_a_valid_lower_precedence_alias(tmp_path):
 	assert any("must match parent directory" in item.message for item in catalog.diagnostics)
 
 
-def test_prompt_index_is_omitted_without_read_file_or_during_verbatim_override(tmp_path):
+def test_prompt_index_is_omitted_without_read_or_during_verbatim_override(tmp_path):
 	path = _skill(tmp_path, "testing")
 	catalog = discover_skills(str(tmp_path), enabled=False, extra_paths=[str(path)])
 
@@ -252,7 +252,7 @@ class _ReadsSkillModel(Model):
 		self.prompts.append(request.system_prompt)
 		if self.calls == 1:
 			yield AssistantMessage(
-				content=[ToolCall(id="read-skill", name="read_file", arguments={"path": str(self.path)})],
+				content=[ToolCall(id="read-skill", name="read", arguments={"path": str(self.path)})],
 				stop_reason="tool_use",
 			)
 		else:
@@ -296,7 +296,7 @@ async def test_skill_read_roots_do_not_grant_write_access(tmp_path):
 		read_only_roots=(str(global_skills),),
 	)
 
-	result = await BUILTIN_TOOLS["read_file"](path=str(path), ctx=ctx)
+	result = await BUILTIN_TOOLS["read"](path=str(path), ctx=ctx)
 	assert result.content == "reference"
 	grep_result = await BUILTIN_TOOLS["grep"](pattern="reference", path=str(global_skills), ctx=ctx)
 	assert "reference.txt:1:reference" in grep_result.content

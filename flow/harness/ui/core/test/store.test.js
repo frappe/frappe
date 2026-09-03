@@ -528,14 +528,14 @@ test("the active preset shapes new sessions and joins the custom instructions", 
 	flow.setCustomInstructions("Be brief.")
 	const id = flow.savePreset({
 		name: "Reviewer",
-		tools: ["read_file", "grep"],
+		tools: ["read", "grep"],
 		extensionTools: ["hello"],
 		promptMode: "append",
 		prompt: "Review for risks.",
 	})
 	flow.setActivePreset(id)
 	await flow.newSession()
-	assert.deepEqual(configs[0].tools, ["read_file", "grep"])
+	assert.deepEqual(configs[0].tools, ["read", "grep"])
 	assert.deepEqual(configs[0].extension_tools, ["hello"])
 	assert.equal(configs[0].system_suffix, "Review for risks.\n\nBe brief.")
 	assert.equal("system_preamble" in configs[0], false)

@@ -33,14 +33,14 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |
 | `bash` | `command`, `timeout?` | Yes | Runs in `cwd`, combines output, records exit code, and kills its process group on timeout or abort. |
-| `read_file` | `path`, `offset?`, `limit?` | No | Reads text with 1-indexed paging. |
+| `read` | `path`, `offset?`, `limit?` | No | Reads text with 1-indexed paging. |
 | `write` | `path`, `content` | Yes | Creates parent directories and overwrites the file. |
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |
 | `grep` | `pattern`, `path?` | No | Searches with ripgrep when available, otherwise `grep`. |
 
 Tool output is capped at 2,000 lines or 50 KB. `bash` keeps the tail and saves oversized full output to a temporary log; reading and search keep the head. `edit` returns a unified diff in `details` and preserves BOM and line-ending style.
 
-Paths for `read_file`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLOW_ALLOWED_ROOTS`, those tools reject targets outside the configured roots, including symlink escapes. This is a path policy, not a sandbox: `bash` can still access anything the daemon process can access.
+Paths for `read`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLOW_ALLOWED_ROOTS`, those tools reject targets outside the configured roots, including symlink escapes. This is a path policy, not a sandbox: `bash` can still access anything the daemon process can access.
 
 ## Extensions
 

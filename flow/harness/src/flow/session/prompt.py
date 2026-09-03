@@ -54,7 +54,7 @@ def build_system_prompt(
 	context = _project_context(config, home)
 	if context is not None:
 		sections.append(context)
-	if "read_file" in config.tools:
+	if "read" in config.tools:
 		skill_index = format_skills_for_prompt(skills)
 		if skill_index:
 			sections.append(skill_index)

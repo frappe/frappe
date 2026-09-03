@@ -418,7 +418,7 @@ def test_build_tool_call_valid():
 
 
 def test_build_tool_call_empty_args():
-	tc = _build_tool_call("c1", "read_file", "")
+	tc = _build_tool_call("c1", "read", "")
 	assert tc.args == {}
 	assert tc.error is None
 
@@ -655,13 +655,13 @@ def test_litellm_does_not_replay_failed_assistant_response():
 
 def test_litellm_drops_results_answering_a_dropped_assistant_turn():
 	aborted = AssistantMessage(
-		content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})],
+		content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})],
 		api="litellm",
 		provider="openai",
 		model="openai/gpt",
 		stop_reason="aborted",
 	)
-	repair = ToolResult(tool_call_id="c1", name="read_file", content="interrupted", is_error=True)
+	repair = ToolResult(tool_call_id="c1", name="read", content="interrupted", is_error=True)
 
 	# the call and its answer must both be dropped
 	assert _openai_messages([aborted, repair], LiteLLMModel("openai/gpt"), "system") == [
@@ -671,7 +671,7 @@ def test_litellm_drops_results_answering_a_dropped_assistant_turn():
 
 def test_litellm_marks_cache_breakpoints_for_anthropic():
 	tools = [
-		{"type": "function", "function": {"name": "read_file", "parameters": {}}},
+		{"type": "function", "function": {"name": "read", "parameters": {}}},
 		{"type": "function", "function": {"name": "bash", "parameters": {}}},
 	]
 	request = ModelRequest(messages=[UserMessage(content="hi")], tools=tools, system_prompt="system")

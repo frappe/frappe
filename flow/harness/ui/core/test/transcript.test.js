@@ -73,7 +73,7 @@ test("declarative tool displays drive live labels", () => {
 	]
 	// the live line shortens read paths to the file name; the full path stays in displayText
 	assert.equal(
-		stepLiveLabel({ name: "read_file", arguments: { path: "src/flow/model/base.py" }, display }),
+		stepLiveLabel({ name: "read", arguments: { path: "src/flow/model/base.py" }, display }),
 		"Reading file base.py",
 	)
 	assert.equal(displayText(display), "Reading file src/flow/model/base.py")
@@ -81,7 +81,7 @@ test("declarative tool displays drive live labels", () => {
 
 test("known tools retain generic fallbacks for older events", () => {
 	assert.equal(
-		stepLiveLabel({ name: "read_file", arguments: { path: "src/app.py" } }),
+		stepLiveLabel({ name: "read", arguments: { path: "src/app.py" } }),
 		"Reading file app.py",
 	)
 	assert.equal(stepLiveLabel({ name: "bash", arguments: { command: "git status" } }), "Running command")
@@ -125,12 +125,12 @@ test("live chat statuses do not use ellipses", () => {
 	applyEvent(conversation, { type: "run_started" })
 	assert.equal(conversation.liveLabel, "Working")
 	// tool names never reach the status line — the row is the tool's only UI
-	applyEvent(conversation, { type: "tool_call_started", name: "read_file" })
+	applyEvent(conversation, { type: "tool_call_started", name: "read" })
 	assert.equal(conversation.liveLabel, "Working")
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
 		id: "call-1",
-		name: "read_file",
+		name: "read",
 		arguments: { path: "src/events.py" },
 		display: [{ text: "Inspecting " }, { text: "src/events.py", arg: "path" }],
 	})
@@ -185,10 +185,10 @@ test("usage keeps cumulative spend separate from the current context", () => {
 test("identity-only tool starts stay hidden until actionable arguments arrive", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
 
 	assert.deepEqual(conversation.partial, [
-		{ type: "tool_call", id: "call-1", name: "read_file", arguments: null },
+		{ type: "tool_call", id: "call-1", name: "read", arguments: null },
 	])
 	assert.deepEqual(toolGroups(conversation), [])
 	assert.equal(conversation.liveLabel, "Working")
@@ -223,7 +223,7 @@ test("ready tool metadata creates one exact provisional step", () => {
 test("repeated identity-only tool starts never create ghost steps", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "write" })
 
 	assert.deepEqual(conversation.partial, [
@@ -235,7 +235,7 @@ test("repeated identity-only tool starts never create ghost steps", () => {
 test("ready metadata preserves the provider order for parallel calls", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "bash" })
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
@@ -246,7 +246,7 @@ test("ready metadata preserves the provider order for parallel calls", () => {
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
 		id: "call-1",
-		name: "read_file",
+		name: "read",
 		arguments: { path: "README.md" },
 	})
 
@@ -259,12 +259,12 @@ test("ready metadata preserves the provider order for parallel calls", () => {
 test("durable assistant call creates the first visible step and receives the result", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
 
 	const durableCall = {
 		type: "tool_call",
 		id: "call-1",
-		name: "read_file",
+		name: "read",
 		arguments: { path: "src/flow/events.py" },
 	}
 	applyEvent(conversation, {
@@ -279,7 +279,7 @@ test("durable assistant call creates the first visible step and receives the res
 		type: "tool_result",
 		seq: 2,
 		tool_call_id: "call-1",
-		name: "read_file",
+		name: "read",
 		content: "contents",
 	})
 
@@ -338,7 +338,7 @@ test("whitespace-only text between a thought and its tool call renders nothing",
 		content: [
 			{ type: "thinking", thinking: "look at the file" },
 			{ type: "text", text: "  " },
-			{ type: "tool_call", id: "call-1", name: "read_file", arguments: { path: "sign.jpg" } },
+			{ type: "tool_call", id: "call-1", name: "read", arguments: { path: "sign.jpg" } },
 		],
 		stop_reason: "tool_use",
 	})
@@ -360,7 +360,7 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 	assert.equal(live.block.thinking, "let me see")
 
 	// Identity alone does not hide the thought or announce a metadata-free tool.
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
 	assert.equal(buildItems(conversation).find((item) => item.kind === "thinking")?.block.thinking, "let me see")
 	assert.deepEqual(toolGroups(conversation), [])
 
@@ -369,7 +369,7 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
 		id: "call-1",
-		name: "read_file",
+		name: "read",
 		arguments: { path: "src/app.js" },
 		display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
 	})
@@ -387,7 +387,7 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 			{
 				type: "tool_call",
 				id: "call-1",
-				name: "read_file",
+				name: "read",
 				arguments: { path: "src/app.js" },
 				display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
 			},
@@ -464,7 +464,7 @@ test("settled turns collapse intermediate work and preserve the final response",
 		content: [
 			{ type: "thinking", thinking: "I should inspect it." },
 			{ type: "text", text: "I'll inspect the implementation." },
-			{ type: "tool_call", id: "call-1", name: "read_file", arguments: { path: "src/app.js" } },
+			{ type: "tool_call", id: "call-1", name: "read", arguments: { path: "src/app.js" } },
 		],
 		stop_reason: "tool_use",
 	})
@@ -473,7 +473,7 @@ test("settled turns collapse intermediate work and preserve the final response",
 		seq: 4,
 		ts: 107,
 		tool_call_id: "call-1",
-		name: "read_file",
+		name: "read",
 		content: "contents",
 	})
 	applyEvent(conversation, {

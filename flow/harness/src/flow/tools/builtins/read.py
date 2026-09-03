@@ -9,10 +9,10 @@ from flow.tools.tool import ToolContext, ToolResult, tool
 
 @tool(
 	prompt_snippet="Read file contents",
-	prompt_guidelines=("Use read_file to examine files and images instead of cat or sed.",),
+	prompt_guidelines=("Use read to examine files and images instead of cat or sed.",),
 	display_template="Reading file {{ path }}",
 )
-async def read_file(
+async def read(
 	path: str,
 	offset: Annotated[int | None, "1-indexed line to start reading from"] = None,
 	limit: Annotated[int | None, "maximum number of lines to read"] = None,

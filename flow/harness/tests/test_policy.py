@@ -42,7 +42,7 @@ def _deployed_client(tmp_path, **store_kw) -> TestClient:
 def test_resolve_policy_profiles():
 	assert resolve_policy("local") == ServerPolicy()
 	deployed = resolve_policy("deployed")
-	assert deployed.tool_allowlist == frozenset({"read_file", "grep"})
+	assert deployed.tool_allowlist == frozenset({"read", "grep"})
 	assert deployed.require_auth
 	assert deployed.inline_credentials
 	assert deployed.callback_hosts == frozenset()
@@ -64,12 +64,10 @@ def test_resolve_policy_fills_callback_hosts_for_deployed_only():
 
 
 def test_policy_overrides_adjust_individual_switches():
-	overrides = (
-		'{"skills_api": true, "tool_allowlist": ["read_file", "grep", "bash"], "max_request_bytes": null}'
-	)
+	overrides = '{"skills_api": true, "tool_allowlist": ["read", "grep", "bash"], "max_request_bytes": null}'
 	policy = resolve_policy("deployed", overrides=overrides)
 	assert policy.skills_api
-	assert policy.tool_allowlist == frozenset({"read_file", "grep", "bash"})
+	assert policy.tool_allowlist == frozenset({"read", "grep", "bash"})
 	assert policy.max_request_bytes is None
 	assert policy.require_auth and not policy.fs_api  # untouched switches keep the profile
 	hardened = resolve_policy("local", overrides='{"require_auth": true, "extensions": false}')
@@ -114,7 +112,7 @@ def test_deployed_rejects_explicit_tools_outside_cap(tmp_path):
 	r = c.post("/sessions", json={"cwd": str(tmp_path), "tools": ["bash"]})
 	assert r.status_code == 400
 	assert "bash" in r.json()["detail"]
-	r = c.post("/sessions", json={"cwd": str(tmp_path), "tools": ["read_file", "write", "edit"]})
+	r = c.post("/sessions", json={"cwd": str(tmp_path), "tools": ["read", "write", "edit"]})
 	assert r.status_code == 400
 	assert "edit, write" in r.json()["detail"]
 
@@ -123,7 +121,7 @@ def test_deployed_clamps_defaulted_tools(tmp_path):
 	c = _deployed_client(tmp_path)
 	r = c.post("/sessions", json={"cwd": str(tmp_path)})
 	assert r.status_code == 200
-	assert r.json()["config"]["tools"] == ["read_file", "grep"]
+	assert r.json()["config"]["tools"] == ["read", "grep"]
 
 
 def test_deployed_allows_capped_subset(tmp_path):
@@ -175,24 +173,24 @@ def test_allowlist_caps_extension_tools(tmp_path):
 	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
 	open_store = _store(tmp_path / "open", extension_paths=[str(extension)])
 	assert "hello" in open_store.create(SessionConfig(cwd=str(tmp_path))).server_tools
-	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read_file"])
+	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read"])
 	session = capped.create(SessionConfig(cwd=str(tmp_path)))
-	assert set(session.server_tools) == {"read_file"}
+	assert set(session.server_tools) == {"read"}
 
 
 def test_allowlist_rejects_explicitly_requested_extension_tools(tmp_path):
 	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
-	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read_file"])
+	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read"])
 	with pytest.raises(PolicyError, match="hello"):
 		capped.create(SessionConfig(cwd=str(tmp_path), extension_tools=["hello"]))
 	# left unsent, the list is clamped rather than refused, like the built-in default
-	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read_file"}
+	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read"}
 
 
 def test_allowlist_filters_stored_session_on_load(tmp_path):
 	sid = _store(tmp_path).create(SessionConfig(cwd=str(tmp_path))).id
 	reopened = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist)
-	assert set(reopened.get(sid).server_tools) == {"read_file", "grep"}
+	assert set(reopened.get(sid).server_tools) == {"read", "grep"}
 
 
 def test_callback_url_fenced_to_allowed_hosts(tmp_path):

@@ -84,13 +84,13 @@ def test_results_are_ordered_by_call_order_not_arrival(tmp_path):
 		tmp_path,
 		AssistantMessage(
 			content=[
-				ToolCall(id="c1", name="read_file", arguments={"path": "first.txt"}),
-				ToolCall(id="c2", name="read_file", arguments={"path": "second.txt"}),
+				ToolCall(id="c1", name="read", arguments={"path": "first.txt"}),
+				ToolCall(id="c2", name="read", arguments={"path": "second.txt"}),
 			],
 			stop_reason="tool_use",
 		),
-		ToolResult(tool_call_id="c2", name="read_file", content="second result"),
-		ToolResult(tool_call_id="c1", name="read_file", content=INTERRUPTED, is_error=True),
+		ToolResult(tool_call_id="c2", name="read", content="second result"),
+		ToolResult(tool_call_id="c1", name="read", content=INTERRUPTED, is_error=True),
 	)
 
 	transcript = Transcript.replay(log)
@@ -108,7 +108,7 @@ def test_missing_results_close_an_interrupted_turn(tmp_path):
 		tmp_path,
 		AssistantMessage(
 			content=[
-				ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
+				ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
 				ToolCall(id="c2", name="bash", arguments={"command": "ls"}),
 			],
 			stop_reason="tool_use",
@@ -122,7 +122,7 @@ def test_missing_results_close_an_interrupted_turn(tmp_path):
 	assert repairs[0].is_error
 	assert repairs[0].content == INTERRUPTED
 	assert repairs[0].details == {"repair": "interrupted"}
-	assert repairs[0].name == "read_file"
+	assert repairs[0].name == "read"
 
 
 def test_missing_results_spare_calls_awaiting_approval(tmp_path):
@@ -143,13 +143,13 @@ def test_missing_results_spare_calls_awaiting_approval(tmp_path):
 
 
 def test_pending_approval_scopes_reused_tool_ids_to_the_latest_approval(tmp_path):
-	call = ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})
-	pending = PendingCall(id="c1", name="read_file", args={"path": "a.txt"})
+	call = ToolCall(id="c1", name="read", arguments={"path": "a.txt"})
+	pending = PendingCall(id="c1", name="read", args={"path": "a.txt"})
 	log = make_log(
 		tmp_path,
 		AssistantMessage(content=[call], stop_reason="tool_use"),
 		ApprovalRequired(calls=[pending]),
-		ToolResult(tool_call_id="c1", name="read_file", content="old"),
+		ToolResult(tool_call_id="c1", name="read", content="old"),
 		RunEnded(reason="done"),
 		UserMessage(content="again"),
 		AssistantMessage(content=[call], stop_reason="tool_use"),
@@ -195,11 +195,11 @@ def test_a_free_siblings_result_does_not_settle_the_pause(tmp_path):
 		AssistantMessage(
 			content=[
 				ToolCall(id="c1", name="bash", arguments={"command": "rm x"}),
-				ToolCall(id="c2", name="read_file", arguments={"path": "a.txt"}),
+				ToolCall(id="c2", name="read", arguments={"path": "a.txt"}),
 			],
 			stop_reason="tool_use",
 		),
-		ToolResult(tool_call_id="c2", name="read_file", content="contents"),
+		ToolResult(tool_call_id="c2", name="read", content="contents"),
 		ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={"command": "rm x"})]),
 		RunEnded(reason="paused"),
 	)
@@ -222,7 +222,7 @@ def test_a_pause_does_not_outlive_the_turn_it_belongs_to(tmp_path):
 		ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={"command": "rm x"})]),
 		UserMessage(content="do something else"),
 		AssistantMessage(
-			content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})],
+			content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})],
 			stop_reason="tool_use",
 		),
 	)
@@ -276,16 +276,16 @@ def test_replay_spans_runs_with_a_repair_and_a_reused_call_id(tmp_path):
 		UserMessage(content="read two files"),
 		AssistantMessage(
 			content=[
-				ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
-				ToolCall(id="c2", name="read_file", arguments={"path": "b.txt"}),
+				ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+				ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
 			],
 			stop_reason="tool_use",
 		),
-		ToolResult(tool_call_id="c2", name="read_file", content="b"),
+		ToolResult(tool_call_id="c2", name="read", content="b"),
 		# the run was interrupted here; the repair is appended before any new entry
 		ToolResult(
 			tool_call_id="c1",
-			name="read_file",
+			name="read",
 			content=INTERRUPTED,
 			is_error=True,
 			details={"repair": "interrupted"},
@@ -551,13 +551,13 @@ def test_compaction_boundary_is_by_seq_not_list_position(tmp_path):
 		tmp_path,
 		AssistantMessage(
 			content=[
-				ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
-				ToolCall(id="c2", name="read_file", arguments={"path": "b.txt"}),
+				ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+				ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
 			],
 			stop_reason="tool_use",
 		),  # 1
-		ToolResult(tool_call_id="c2", name="read_file", content="second"),  # 2, list index 2
-		ToolResult(tool_call_id="c1", name="read_file", content="first"),  # 3, list index 1
+		ToolResult(tool_call_id="c2", name="read", content="second"),  # 2, list index 2
+		ToolResult(tool_call_id="c1", name="read", content="first"),  # 3, list index 1
 		UserMessage(content="next"),  # 4
 		Compaction(reason="manual", summary="S", compact_up_to_seq=3),  # 5
 	)

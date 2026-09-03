@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from flow.tools.builtins import BUILTIN_TOOLS, bash, edit, grep, read_file, write
+from flow.tools.builtins import BUILTIN_TOOLS, bash, edit, grep, read, write
 from flow.tools.tool import ToolContext, ToolResult
 
 
@@ -13,9 +13,9 @@ def _ctx(tmp_path, **kw) -> ToolContext:
 
 
 def test_registry_keys():
-	assert set(BUILTIN_TOOLS) == {"bash", "read_file", "write", "edit", "grep"}
+	assert set(BUILTIN_TOOLS) == {"bash", "read", "write", "edit", "grep"}
 	assert BUILTIN_TOOLS["bash"].requires_confirmation is True
-	assert BUILTIN_TOOLS["read_file"].requires_confirmation is False
+	assert BUILTIN_TOOLS["read"].requires_confirmation is False
 
 
 async def test_write_then_read_roundtrip(tmp_path):
@@ -25,7 +25,7 @@ async def test_write_then_read_roundtrip(tmp_path):
 	assert "wrote sub/note.txt" in res.content
 	assert res.details == {"path": str(tmp_path / "sub" / "note.txt"), "chars": 5, "lines": 1}
 	assert (tmp_path / "sub" / "note.txt").read_text() == "hello"
-	assert (await read_file(path="sub/note.txt", ctx=ctx)).content == "hello"
+	assert (await read(path="sub/note.txt", ctx=ctx)).content == "hello"
 
 
 async def test_path_tools_reject_traversal_outside_allowed_roots(tmp_path):
@@ -36,7 +36,7 @@ async def test_path_tools_reject_traversal_outside_allowed_roots(tmp_path):
 	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
 
 	for call in (
-		read_file(path="../outside.txt", ctx=ctx),
+		read(path="../outside.txt", ctx=ctx),
 		write(path="../created.txt", content="nope", ctx=ctx),
 		edit(path="../outside.txt", edits=[{"old": "secret", "new": "changed"}], ctx=ctx),
 		grep(pattern="secret", path="..", ctx=ctx),
@@ -58,7 +58,7 @@ async def test_path_tools_reject_symlink_escape(tmp_path):
 	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
 
 	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
-		await read_file(path="link/secret.txt", ctx=ctx)
+		await read(path="link/secret.txt", ctx=ctx)
 	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
 		await write(path="link/new.txt", content="nope", ctx=ctx)
 
@@ -74,7 +74,7 @@ async def test_path_tools_preserve_addressed_path_for_allowed_symlink(tmp_path):
 	(allowed / "link").symlink_to(target, target_is_directory=True)
 	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
 
-	result = await read_file(path="link/note.txt", ctx=ctx)
+	result = await read(path="link/note.txt", ctx=ctx)
 
 	assert result.content == "hello"
 	assert result.details["path"] == str(allowed / "link" / "note.txt")
@@ -88,13 +88,13 @@ async def test_path_tools_allow_any_configured_root(tmp_path):
 	(shared / "context.txt").write_text("shared context")
 	ctx = _ctx(project, allowed_roots=(str(project), str(shared)))
 
-	result = await read_file(path=str(shared / "context.txt"), ctx=ctx)
+	result = await read(path=str(shared / "context.txt"), ctx=ctx)
 
 	assert result.content == "shared context"
 
 
 async def test_read_missing_file(tmp_path):
-	res = await read_file(path="nope.txt", ctx=_ctx(tmp_path))
+	res = await read(path="nope.txt", ctx=_ctx(tmp_path))
 	assert res.is_error
 	assert "no such file" in res.content
 
@@ -159,15 +159,15 @@ async def test_edit_preserves_bom(tmp_path):
 async def test_read_offset_and_limit(tmp_path):
 	(tmp_path / "n.txt").write_text("l1\nl2\nl3\nl4\nl5")
 	ctx = _ctx(tmp_path)
-	windowed = await read_file(path="n.txt", offset=2, limit=2, ctx=ctx)
+	windowed = await read(path="n.txt", offset=2, limit=2, ctx=ctx)
 	assert windowed.content.startswith("l2\nl3")
 	assert "use offset=4 to continue" in windowed.content
-	assert (await read_file(path="n.txt", offset=4, ctx=ctx)).content == "l4\nl5"
+	assert (await read(path="n.txt", offset=4, ctx=ctx)).content == "l4\nl5"
 
 
 async def test_read_offset_beyond_eof(tmp_path):
 	(tmp_path / "n.txt").write_text("l1\nl2")
-	res = await read_file(path="n.txt", offset=99, ctx=_ctx(tmp_path))
+	res = await read(path="n.txt", offset=99, ctx=_ctx(tmp_path))
 	assert res.is_error
 	assert "beyond end of file" in res.content
 
