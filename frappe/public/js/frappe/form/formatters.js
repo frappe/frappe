@@ -197,8 +197,20 @@ frappe.form.formatters = {
 			return value.substring(1, value.length - 1);
 		}
 		if (docfield && docfield.link_onclick) {
+			// Cmd/Ctrl+click should open the destination in a new tab instead of
+			// navigating away from the current page. `link_onclick` is arbitrary,
+			// report-authored code that (by convention) ends in frappe.set_route(),
+			// so instead of parsing a URL out of it, flip the same
+			// frappe.open_in_new_tab flag set_route() already honours, before that
+			// code runs. `event` here is the implicit Event object HTML provides
+			// to inline onclick="..." handlers. This fixes every report/list cell
+			// that sets `link_onclick`, in any app, with no changes on their end.
+			const onclick =
+				"if(event.ctrlKey||event.metaKey){frappe.open_in_new_tab=true;}" +
+				docfield.link_onclick.replace(/"/g, "&quot;") +
+				"; return false;";
 			return repl('<a onclick="%(onclick)s" href="#">%(value)s</a>', {
-				onclick: docfield.link_onclick.replace(/"/g, "&quot;") + "; return false;",
+				onclick: onclick,
 				value: value,
 			});
 		} else if (docfield && doctype) {
