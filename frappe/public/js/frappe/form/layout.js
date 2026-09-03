@@ -484,7 +484,7 @@ frappe.ui.form.Layout = class Layout {
 		// Set active tab based on hash (for regular forms only)
 		const tab_from_hash = window.location.hash.replace("#", "");
 		const tab = this.tabs.find((tab) => tab.df.fieldname === tab_from_hash);
-		if (tab) {
+		if (tab && !tab.is_hidden()) {
 			tab.set_active();
 			return;
 		}
