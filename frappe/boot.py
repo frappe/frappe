@@ -266,7 +266,7 @@ def add_home_page(bootinfo, docs):
 
 
 def add_timezone_info(bootinfo):
-	system = bootinfo.sysdefaults.get("time_zone")
+	system = get_system_timezone()
 	import frappe.utils.momentjs
 
 	bootinfo.timezone_info = {"zones": {}, "rules": {}, "links": {}}

@@ -109,7 +109,10 @@ frappe.ui.form.on("User", {
 		});
 
 		if (frm.is_new()) {
-			frm.set_value("time_zone", frappe.sys_defaults.time_zone);
+			frm.set_value(
+				"time_zone",
+				frappe.boot.time_zone?.system || frappe.sys_defaults.time_zone
+			);
 		}
 
 		if (

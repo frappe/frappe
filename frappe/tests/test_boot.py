@@ -1,10 +1,22 @@
+from unittest.mock import patch
+
 import frappe
+from frappe.boot import add_timezone_info
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.tests import IntegrationTestCase
 
 
 class TestBootData(IntegrationTestCase):
+	def test_timezone_info_uses_system_timezone(self):
+		bootinfo = frappe._dict(sysdefaults={"time_zone": "Asia/Kolkata"})
+
+		with patch("frappe.boot.get_system_timezone", return_value="Africa/Nairobi"):
+			with patch("frappe.utils.momentjs.update") as update:
+				add_timezone_info(bootinfo)
+
+		update.assert_called_once_with("Africa/Nairobi", bootinfo.timezone_info)
+
 	def test_get_unseen_notes(self):
 		frappe.db.delete("Note")
 		frappe.db.delete("Note Seen By")
