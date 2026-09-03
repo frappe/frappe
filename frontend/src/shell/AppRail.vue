@@ -61,26 +61,36 @@
 			/>
 		</ul>
 
-		<button
-			v-if="arrangeable"
-			class="mt-auto rounded px-2 py-1 text-left text-xs text-ink-gray-5 hover:bg-surface-gray-2"
-			@click="emit('arrange')"
-		>
-			Arrange
-		</button>
+		<!-- One group, so `mt-auto` sits in one place however many controls are on. -->
+		<div class="mt-auto flex flex-col">
+			<button
+				v-if="arrangeable"
+				class="rounded px-2 py-1 text-left text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+				@click="emit('arrange')"
+			>
+				Arrange
+			</button>
 
-		<a
-			href="/apps"
-			:class="arrangeable ? '' : 'mt-auto'"
-			class="rounded px-2 py-1 text-xs text-ink-gray-5 hover:bg-surface-gray-2"
-		>
-			All apps
-		</a>
+			<button
+				v-if="shareLink"
+				class="rounded px-2 py-1 text-left text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+				@click="copyLink"
+			>
+				{{ copied ? "Link copied" : "Copy link" }}
+			</button>
+
+			<a
+				href="/apps"
+				class="rounded px-2 py-1 text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+			>
+				All apps
+			</a>
+		</div>
 	</nav>
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject, onBeforeUnmount, ref } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
@@ -96,15 +106,41 @@ import type { ItemContext } from "@/navigation/types";
 // the panel (#42421). The context is composed once per list and the panel draws the same rows
 // off the same one; and exactly one row is current across the rail and the panel together, so
 // neither surface can work it out alone.
+//
+// `shareLink` is built by the shell, which is what knows whether the panel needs naming. The
+// button is here because the rail's footer is the only chrome present on every page.
 const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
 	arrangeable?: boolean;
+	shareLink?: string;
 }>();
 const emit = defineEmits<{ arrange: [] }>();
 
 const boot = inject<Boot>("boot")!;
+
+// Confirmation in the button itself: there is no toast in the shell to borrow.
+const copied = ref(false);
+let clearCopied: ReturnType<typeof setTimeout> | undefined;
+
+async function copyLink() {
+	if (!props.shareLink) return;
+
+	try {
+		await navigator.clipboard.writeText(props.shareLink);
+	} catch {
+		// Denied, or an insecure origin where `navigator.clipboard` is undefined. Nothing was
+		// copied, so claim nothing.
+		return;
+	}
+
+	copied.value = true;
+	clearTimeout(clearCopied);
+	clearCopied = setTimeout(() => (copied.value = false), 1500);
+}
+
+onBeforeUnmount(() => clearTimeout(clearCopied));
 
 // `parent_key` is the whole of hierarchy (#42227), and the server sends the tree flat. A
 // cycle in it is broken and reported by `useItemTree`: every row in one has a parent that is

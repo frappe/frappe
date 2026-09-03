@@ -1,9 +1,7 @@
 // Which row the address is on, and therefore which sidebar is open.
 //
-// Charter point 7: navigation follows the address, never the reverse. Nothing stores a
-// selection, so clicking a rail item and pasting its URL into a fresh tab have to end in
-// the same shell — which means the open panel is a FUNCTION OF THE PATH and of nothing
-// else. This module is that function.
+// Charter point 7: navigation follows the address, never the reverse. Among panels covering
+// it EQUALLY the reader's open one wins, but a cold load is still the path alone.
 //
 // It is not `router-link-active`. Two reasons, and both are real rather than tidiness. A
 // rail item of type `Sidebar` resolves to the first destination INSIDE its sidebar
@@ -122,19 +120,35 @@ export function navigationDestinations(
 /**
  * The rail row, the sidebar and the row inside it that `path` is standing on.
  *
- * Deepest coverage wins; where two cover the address equally, the first in the list does.
- *
- * An address no destination covers returns `{}`: no highlight, and no panel. There is no
- * last panel to fall back to, because falling back is storing a selection.
+ * `prefer` holds the reader's panels, most wanted first, and breaks ties only: deeper
+ * coverage still wins, and an address nothing covers returns `{}`.
  */
-export function currentFrom(destinations: Destination[], path: string): CurrentNavigation {
+export function currentFrom(
+	destinations: Destination[],
+	path: string,
+	prefer: string[] = []
+): CurrentNavigation {
+	const rank = (found: CurrentNavigation) => {
+		const place = found.sidebar ? prefer.indexOf(found.sidebar) : -1;
+		return place === -1 ? prefer.length : place;
+	};
+
 	let best: CurrentNavigation = {};
 	let depth = -1;
+	let wanted = prefer.length;
 
 	for (const destination of destinations) {
 		const covers = coverage(path, destination.path);
-		if (covers > depth) {
+		// -1 ties the starting depth, so a row covering nothing must be dropped before the
+		// compare or a preferred panel wins on an address it does not hold.
+		if (covers < 0 || covers < depth) continue;
+
+		// Strictly more wanted, so list order still breaks a tie nothing prefers: the rail top
+		// to bottom, and the first of two rows one panel points at the same place.
+		const place = rank(destination.found);
+		if (covers > depth || place < wanted) {
 			depth = covers;
+			wanted = place;
 			best = destination.found;
 		}
 	}
@@ -147,7 +161,8 @@ export function currentNavigation(
 	rail: NavigationItem[],
 	sidebars: Record<string, NavigationItem[]>,
 	contexts: NavigationContexts,
-	path: string
+	path: string,
+	prefer: string[] = []
 ): CurrentNavigation {
-	return currentFrom(navigationDestinations(rail, sidebars, contexts), path);
+	return currentFrom(navigationDestinations(rail, sidebars, contexts), path, prefer);
 }

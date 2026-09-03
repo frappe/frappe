@@ -31,6 +31,7 @@
 			:context="contexts.rail"
 			:current="current.railKey"
 			:arrangeable="!!boot.app"
+			:share-link="shareLink"
 			@arrange="arrangeRail"
 		/>
 		<AppSidebar
@@ -59,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
@@ -68,8 +69,10 @@ import { itemContext } from "@/navigation/context";
 import {
 	currentFrom,
 	navigationDestinations,
+	type CurrentNavigation,
 	type NavigationContexts,
 } from "@/navigation/current";
+import { recallPanel, rememberPanel } from "@/navigation/panelMemory";
 import AppRail from "./AppRail.vue";
 import AppSidebar from "./AppSidebar.vue";
 import ArrangementEditor from "./ArrangementEditor.vue";
@@ -111,9 +114,63 @@ const destinations = computed(() =>
 	navigationDestinations(navigation.value.rail, navigation.value.sidebars, contexts.value)
 );
 
-// And this is recomputed on every navigation, which is the whole design: nothing here is set
-// by a click. It is a walk over resolved paths, with no router in it.
-const current = computed(() => currentFrom(destinations.value, route.path));
+// A ref off a watcher, not a computed: the resolution feeds itself, since the panel open now
+// is the next address's first preference and recording the answer is a write.
+const current = ref<CurrentNavigation>({});
+
+// The panel the address asked for, outranking the open one because a paste is deliberate.
+const asked = ref<string | undefined>(undefined);
+
+// What the address alone says. Keeps the copy link honest: naming the panel a stranger lands
+// in anyway says nothing.
+const canonical = computed(() => currentFrom(destinations.value, route.path));
+
+function resolve() {
+	const path = route.path;
+	// Most wanted first, and each a tie-break only — which is how a `?panel=` that is stale,
+	// misspelled or filtered away by permissions loses and degrades silently.
+	const prefer = [asked.value, current.value.sidebar, recallPanel(path)].filter(
+		(panel): panel is string => !!panel
+	);
+
+	current.value = currentFrom(destinations.value, path, prefer);
+	if (current.value.sidebar) rememberPanel(path, current.value.sidebar);
+}
+
+// The parameter seeds the same record browsing fills, then leaves the address by `replace`, so
+// the bar is clean without a second history entry for back to walk through.
+watch(
+	[() => route.fullPath, destinations],
+	() => {
+		// Repeated in the address it arrives as an array, which must still be consumed or it
+		// sits in the bar for the rest of the session.
+		const panel = route.query.panel;
+		const named = Array.isArray(panel) ? panel[0] : panel;
+		asked.value = typeof named === "string" ? named : undefined;
+
+		resolve();
+
+		if (panel !== undefined) {
+			const { panel: _consumed, ...query } = route.query;
+			asked.value = undefined;
+			// `hash` addresses a place within the page, so it is not ours to drop. An aborted
+			// or redirected replace rejects, and the panel is recorded by then regardless.
+			router.replace({ path: route.path, query, hash: route.hash }).catch(() => {});
+		}
+	},
+	{ immediate: true }
+);
+
+// The link to hand someone else. The parameter goes on only where it says something, matching
+// the rule `?from=` already follows on re-entering its own prefix.
+const shareLink = computed(() => {
+	const panel = current.value.sidebar;
+	const query =
+		panel && panel !== canonical.value.sidebar ? { ...route.query, panel } : route.query;
+
+	const to = router.resolve({ path: route.path, query, hash: route.hash });
+	return new URL(to.href, window.location.origin).href;
+});
 
 // The panel, or nothing. `current.sidebar` is only ever a key a rail item's renderer read out
 // of this same payload, so the rows are there — the row count is checked anyway because an

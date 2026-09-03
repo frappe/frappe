@@ -722,3 +722,70 @@ def _derive_rail(app: str) -> list[dict]:
 		for doctype in sorted(owners)
 		if owners[doctype] == app and doctype in addressable and doctype in readable
 	]
+
+
+def report_overlaps(app: str) -> dict:
+	"""Which destinations this app offers from more than one panel, as the session user sees it.
+
+	Run by hand, never on install or migrate: one address in two panels is usually correct.
+	"""
+	navigation = resolve_navigation(app)
+	sidebars = navigation["sidebars"]
+
+	# Cold-load order is the rail top to bottom. A panel no rail item opens sorts last.
+	rail_order = {
+		item.get("link_to"): index
+		for index, item in enumerate(navigation["rail"])
+		if item.get("item_type") == "Sidebar" and item.get("link_to")
+	}
+
+	shared: dict[tuple, list[tuple[str, str]]] = {}
+	repeated = []
+
+	for address, rows in sorted(sidebars.items()):
+		seen: dict[tuple, str] = {}
+		for row in rows:
+			destination = _destination_of(row)
+			if not destination:
+				continue
+
+			if destination in seen:
+				repeated.append(
+					{
+						"panel": address,
+						"destination": " ".join(destination),
+						"kept": seen[destination],
+						"shadowed": row.get("key"),
+					}
+				)
+			else:
+				seen[destination] = row.get("key")
+				shared.setdefault(destination, []).append((address, row.get("key")))
+
+	return {
+		"shared": [
+			{
+				"destination": " ".join(destination),
+				"panels": [address for address, _ in places],
+				"cold_load": min(
+					(address for address, _ in places),
+					key=lambda address: rail_order.get(address, len(rail_order)),
+				),
+			}
+			for destination, places in sorted(shared.items())
+			if len(places) > 1
+		],
+		"repeated": repeated,
+	}
+
+
+def _destination_of(item: dict) -> tuple | None:
+	"""What an item points at, or None for a row that goes nowhere.
+
+	The `(link_doctype, link_to)` pair is the address, so kind and label do not distinguish two
+	rows aimed at one place.
+	"""
+	if item.get("item_type") in ("Link", "Section") or not item.get("link_to"):
+		return None
+
+	return (item.get("link_doctype") or item.get("item_type"), item.get("link_to"))

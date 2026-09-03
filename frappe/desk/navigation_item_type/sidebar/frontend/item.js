@@ -29,8 +29,19 @@ export default {
 			// A `group` has no destination and an `expand` is not one either — following an
 			// item must not fire a request. Both are skipped, so a sidebar whose first row is
 			// a section opens at the first thing under it, which is what a reader sees anyway.
-			if (rendering && ("to" in rendering || "href" in rendering))
-				return { ...rendering, sidebar: item.link_to };
+			if (!rendering || !("to" in rendering || "href" in rendering)) continue;
+
+			// The first row usually sits in several panels, so the address alone cannot say
+			// which this item opens. In the href, not a handler: these are `RouterLink`s.
+			if ("to" in rendering)
+				return {
+					...rendering,
+					to: { ...rendering.to, query: { ...rendering.to.query, panel: item.link_to } },
+					sidebar: item.link_to,
+				};
+
+			// An `href` leaves the prefix, so there is no panel of ours to name.
+			return { ...rendering, sidebar: item.link_to };
 		}
 
 		return null;
