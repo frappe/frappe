@@ -192,7 +192,10 @@ export default class ChartWidget extends Widget {
 	 * desk never fetched, and the filters and the time interval reach nothing.
 	 * Refresh is the island's to report, if reloading means anything to it.
 	 *
-	 * @param {{ label: string, icon?: string, onClick: Function }[]} actions
+	 * An action carries either an `onClick` or an `href`. An `href` leaves the app,
+	 * and desk opens what leaves it in a new tab.
+	 *
+	 * @param {{ label: string, icon?: string, onClick?: Function, href?: string }[]} actions
 	 */
 	prepare_island_actions(actions) {
 		// Customize mode owns the action area — it draws its own controls there.
@@ -205,7 +208,9 @@ export default class ChartWidget extends Widget {
 			...(actions || []).map((action, i) => ({
 				label: action.label,
 				action: `island-action-${i}`,
-				handler: () => action.onClick(),
+				handler: action.href
+					? () => window.open(action.href, "_blank")
+					: () => action.onClick(),
 			})),
 			{
 				label: __("Edit"),

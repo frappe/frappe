@@ -10,7 +10,13 @@ An island ships no header. It emits what a header would say, as child-owned
 state:
 
 - `update:title` — a `string` or `null`.
-- `update:actions` — an `Action[]`, `Action` being `{ label, icon?, onClick }`.
+- `update:actions` — an `Action[]`, `Action` being `{ label, icon? }` plus either an
+  `onClick` or an `href`.
+
+An `onClick` runs in the island. An `href` is a URL — absolute or site-relative — to a
+page outside the host app: the action reports where it goes, and the host decides how a
+link into another app behaves. A host opens it in a new tab, and may mark the action as
+leaving the app, in its own idiom.
 
 Each host draws its own chrome from them. Desk sets the page title and fills the
 page menu; a frappe-ui app fills its `LayoutHeader`. Nothing in the island knows
@@ -30,6 +36,16 @@ dashboard page had to hide desk's page head to make room — which cost it the
 breadcrumb trail, the page menu and the title slot, all of which then reached the
 island as context it had to redraw. A second host would repeat the whole
 negotiation.
+
+## Rejected: the island opens the other app itself
+
+An action that leaves for another app is an `onClick` that calls `window.open`.
+
+Then the island chose the new tab and a label naming the destination, both of which
+belong to the host: a desk menu row and an in-app header read differently, and only the
+host knows which it draws. The SPA host had to un-know it through a provider flag,
+telling the island not to leave, which is the island holding a decision it cannot make.
+An `href` states the destination and stops.
 
 ## Rejected: a `header: boolean` prop
 

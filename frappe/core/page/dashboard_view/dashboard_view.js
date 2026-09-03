@@ -185,16 +185,21 @@ class IslandDashboard {
 	}
 
 	/**
-	 * `Action = { label, icon?, onClick }`. Desk's menu rows carry no icon, so the
-	 * icon goes unread: it names a lucide icon the island ships, and desk resolves
-	 * a name against its own sprite.
+	 * `Action = { label, icon? }` plus either `onClick` or `href`. An `href` leaves
+	 * the app, and desk opens what leaves it in a new tab. Desk's menu rows carry no
+	 * icon, so the icon goes unread: it names a lucide icon the island ships, and
+	 * desk resolves a name against its own sprite.
+	 *
+	 * A desk menu row is a click handler, not a link — `add_dropdown_item` writes
+	 * `href="#"` itself — so the new tab is `window.open`, not a `target`.
 	 *
 	 * An empty list clears the menu, which hides the button with it.
 	 */
 	set_actions(actions) {
 		this.page.clear_menu();
 		(actions || []).forEach((action) => {
-			this.page.add_menu_item(action.label, action.onClick);
+			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;
+			this.page.add_menu_item(action.label, click);
 		});
 	}
 

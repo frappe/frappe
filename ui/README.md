@@ -217,7 +217,13 @@ An island draws no page header. It reports what a header would say, and each hos
 its own chrome from it:
 
 - `update:title` — a `string` or `null`, the name of what the island shows.
-- `update:actions` — an `Action[]`, where `Action` is `{ label, icon?, onClick }`.
+- `update:actions` — an `Action[]`, where `Action` is `{ label, icon? }` plus either an
+  `onClick` or an `href`.
+
+An `onClick` runs in the island. An `href` is a URL — absolute or site-relative — to a
+page outside the host app: the island says where the action goes, and the host decides
+what a link out of the app does. A host opens it in a new tab, and may mark it as leaving
+the app in its own idiom.
 
 Desk turns them into the page title and the page menu; a frappe-ui app turns them into
 its `LayoutHeader`. A hyphen or a colon in an event name has to stay quoted, because Vue
@@ -226,7 +232,13 @@ camelizes neither:
 ```js
 await frappe.ui.mount_island("insights.dashboard", el, {
   "onUpdate:title": (title) => page.set_title(title || __("Dashboard")),
-  "onUpdate:actions": (actions) => draw_menu(actions),
+  "onUpdate:actions": (actions) =>
+    draw_menu(
+      actions.map((a) => ({
+        label: a.label,
+        click: a.href ? () => window.open(a.href, "_blank") : a.onClick,
+      }))
+    ),
 });
 ```
 
