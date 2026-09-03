@@ -28,7 +28,7 @@
 				</span>
 				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-9">{{ row.label }}</span>
 			</button>
-			<div v-if="!loading && !rows.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
+			<div v-if="rows && !rows.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
 				{{ searchActive ? "No matching files" : "No files here" }}
 			</div>
 			<div v-if="truncated" class="px-3 pb-1 pt-2 text-center text-2xs text-ink-gray-5">
@@ -50,8 +50,7 @@ const emit = defineEmits(["pick", "close"])
 const flow = inject("flow")
 
 const dir = ref("") // cwd-relative directory being browsed while not searching
-const rows = ref([])
-const loading = ref(false)
+const rows = ref(null) // null until the first listing or search answers
 const truncated = ref(false)
 
 const debouncedQuery = useDebouncedValue(toRef(props, "query"), 150)
@@ -73,8 +72,8 @@ async function load() {
 	const query = debouncedQuery.value.trim()
 	const at = dir.value
 	const cwd = flow.explorerCwd()
-	loading.value = true
-	truncated.value = false
+	// the previous rows stay rendered while the request is in flight — blanking
+	// the list between keystrokes is what makes it flicker
 	const data = query ? await flow.searchFiles(query) : await flow.listFiles(at)
 	// stale response: the query, the browsed directory, or the cwd moved on
 	if (debouncedQuery.value.trim() !== query || dir.value !== at || flow.explorerCwd() !== cwd) return
@@ -86,7 +85,6 @@ async function load() {
 				dir: entry.type === "dir",
 			}))
 	truncated.value = !!query && !!data?.truncated
-	loading.value = false
 }
 
 watch([debouncedQuery, dir, () => flow.explorerCwd()], load, { immediate: true })

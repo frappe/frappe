@@ -4,6 +4,7 @@ viewer's caps mapped to HTTP errors."""
 from __future__ import annotations
 
 import os
+import re
 
 from fastapi import HTTPException
 
@@ -79,7 +80,10 @@ def list_directory(full_path: str) -> list[dict]:
 
 
 def search_tree(root: str, needle: str) -> tuple[list[str], bool]:
-	"""File-name matches under root; hidden and dependency directories are pruned."""
+	"""Files whose cwd-relative path contains each slash- or space-separated term of
+	the needle, in order — "src/agent" finds src/flow/agent/loop.py, so a partial
+	path skips levels. Hidden and dependency directories are pruned."""
+	terms = [term for term in re.split(r"[\s/]+", needle) if term]
 	matches: list[str] = []
 	scanned = 0
 	for dirpath, dirnames, filenames in os.walk(root):
@@ -93,10 +97,21 @@ def search_tree(root: str, needle: str) -> tuple[list[str], bool]:
 		)
 		for name in sorted(filenames, key=str.lower):
 			scanned += 1
-			if needle in name.lower():
-				matches.append(os.path.relpath(os.path.join(dirpath, name), root))
+			rel = os.path.relpath(os.path.join(dirpath, name), root)
+			if _path_matches(rel.lower(), terms):
+				matches.append(rel)
 				if len(matches) >= MAX_SEARCH_RESULTS:
 					return matches, True
 			if scanned >= MAX_SEARCH_SCAN:
 				return matches, True
 	return matches, False
+
+
+def _path_matches(path: str, terms: list[str]) -> bool:
+	position = 0
+	for term in terms:
+		position = path.find(term, position)
+		if position == -1:
+			return False
+		position += len(term)
+	return True
