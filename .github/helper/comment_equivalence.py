@@ -73,7 +73,7 @@ def strip_curly(source):
 
 
 class CurlySource:
-	"""Comment removal for JS, TS and Vue, aware of strings, template literals and regexes."""
+	"""Comment removal for JS, TS and Vue templates, aware of strings, template literals and regexes."""
 
 	def __init__(self, source):
 		self.source = source
@@ -91,6 +91,8 @@ class CurlySource:
 				self.skip_to("\n")
 			elif self.starts("/*"):
 				self.skip_past("*/")
+			elif self.starts("<!--"):
+				self.skip_past("-->")
 			elif character == "/" and self.regex_may_start():
 				self.copy_regex()
 			else:
@@ -160,6 +162,13 @@ SELF_TEST_CASES = [
 		"const a = 1\nconst b = 2\n",
 	),
 	("js code change", False, "x.ts", "const b = 2\n", "const b = 3\n"),
+	(
+		"vue template comment only",
+		True,
+		"x.vue",
+		"<template>\n\t<!-- a\n\t\tb -->\n\t<p>x</p>\n</template>\n",
+		"<template>\n\t<!-- c -->\n\t<p>x</p>\n</template>\n",
+	),
 	("js trailing space outside a string", True, "x.ts", "const a = 1\n", "const a = 1   \n"),
 	(
 		"js blank line in a template literal",
