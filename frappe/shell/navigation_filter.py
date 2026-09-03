@@ -1,23 +1,10 @@
 # NAVIGATION FILTERING — one rule, dispatched on the bucket each item type declares.
-#
-# #42231: filtering navigation is a courtesy and never a control. `frappe/utils/modules.py:48`
-# says it in the framework's own words — "Hiding a module hides the way to a document, never the
-# document itself" — so a rule here may skip an expensive case and be wrong in the safe
+
+# A courtesy, never a control: a rule here may skip an expensive case and be wrong in the safe
 # direction. What a document costs to open is decided at the document, by DocPerm.
-#
-# The single home is the whole point of the ticket. `is_item_allowed` (`desk/utils.py:70`)
-# returns False for a type it does not know and the dock's `is_reachable` (`dock.py:1043`)
-# returns True: one question, two answers, arrived at by nobody's decision and only because
-# there were two places to put it.
-#
-# It sits beside the resolver rather than beside the `Sidebar` model, which is where #42231
-# decision 10 put it. #42356 then moved resolution itself out of both containers' controllers,
-# for the reason that decision was reaching for — the rule spans two surfaces, so it belongs to
-# neither — and this filter's only caller is that resolver.
-#
-# No per-item permission call anywhere below. #42231 decision 7 measured 553 `has_permission`
-# calls at **3,594 ms** for an ordinary System User against **25 ms** for one role-based pass,
-# and this runs inside boot's blocking pre-mount fetch.
+
+# No per-item permission call anywhere below: 553 `has_permission` calls cost 3,594 ms against
+# 25 ms for one role-based pass, and this runs inside boot's blocking fetch.
 
 from functools import cached_property
 
@@ -34,19 +21,9 @@ CUSTOM = "Custom"
 
 
 def filter_items(items: list[dict], context: "NavigationContext") -> list[dict]:
-	"""Drop every item this user may not see, then drop whatever is left holding nothing.
-
-	One pass for the buckets that decide an item on its own, then a fixpoint for the two that
-	decide it from what survived under it. The order is forced: a `Section` cannot know whether
-	it is empty until everything below it has been judged.
-
-	Runs on the **merged** list, after the layers have been folded in. #42231 decision 11 read
-	#42230's decisions 4 and 8 as opposite orderings and found they are not: a layer does two
-	things and they gate differently. *Arrangement* — order and parenting — resolves against the
-	full base, so one person's stored move means the same thing whatever they may see; then this
-	runs, over the arrangement's result, which is what stops an *addition* from bringing back an
-	item the person is not allowed to see.
-	"""
+	"""Drop every item this user may not see, then drop whatever is left holding nothing."""
+	# Runs on the merged list, after the layers: arrangement resolves against the full base, and
+	# this then stops an addition from bringing back an item the person may not see.
 	if not items:
 		return items
 
@@ -93,14 +70,7 @@ def _decide(bucket: str, item: dict, context: "NavigationContext") -> bool:
 
 
 def _destination_doctype(item: dict, context: "NavigationContext") -> str | None:
-	"""Which column names the doctype, read off the type row rather than off a list of names.
-
-	A type whose `target_doctype` is `DocType` points *at* a doctype, so the doctype is its
-	`link_to`; every other type that reads this bucket points at a document and carries the
-	doctype separately in `link_doctype`. Both of the framework's cases fall out of that —
-	`DocType` and `Record` — and so does a contributed type that picks the bucket, which is what
-	#42228's two-files-and-no-framework-change property requires.
-	"""
+	"""Which column names the doctype: `link_to` for a type pointing at a DocType, else `link_doctype`."""
 	if context.target(item.get("item_type")) == "DocType":
 		return item.get("link_to")
 
@@ -110,18 +80,9 @@ def _destination_doctype(item: dict, context: "NavigationContext") -> str | None
 def _ask_the_type(
 	item_type: str, indexes: list[int], items: list[dict], context: "NavigationContext"
 ) -> dict[int, bool]:
-	"""The `Custom` bucket: hand the type's own `can_see` every item of its kind at once.
-
-	Batched, and that is the signature #42231 decision 9 settled rather than a detail of it. A
-	per-item `can_see(item, user)` is the shape that produced the 3,594 ms measurement, and it
-	invites an override to loop over `frappe.has_permission`; handing over the whole list plus
-	the context this pass has already computed makes the cheap implementation the obvious one.
-
-	A type that declares `Custom` and ships no `can_see` fails closed, like a type with no row
-	at all — the declaration is a promise of code, and the missing half is a bug in an app.
-	Anything the resolver raises is the same: a rail that silently shows everything because one
-	app's filter threw is the failure this bucket exists to make impossible.
-	"""
+	"""The `Custom` bucket: hand the type's own `can_see` every item of its kind at once."""
+	# Batched, so the cheap implementation is the obvious one; a type that declares `Custom`
+	# and ships no `can_see`, or whose `can_see` raises, fails closed.
 	mine = [items[index] for index in indexes]
 	can_see = context.resolver(item_type)
 
@@ -139,19 +100,9 @@ def _ask_the_type(
 
 
 def _cascade(items: list[dict], verdicts: dict[int, bool | None], context: "NavigationContext") -> list[dict]:
-	"""Drop a `Derived From Children` item holding nothing, and keep going until nothing moves.
-
-	To a fixpoint because emptiness propagates: a Section holding only an emptied Section is
-	itself empty, and one pass would leave the outer one standing (#42231 decision 6). `develop`
-	never checks a Section Break at all (`sidebar.py:1539`), so a section whose every row was
-	filtered away survives there as a heading over nothing — a door you cannot open, which is
-	exactly what a courtesy filter should not leave behind.
-
-	An item dropped by any *other* bucket leaves its children where they are; `_promote_orphans`
-	lifts them to the top level on the way out. That is deliberate and is the same treatment as
-	an app removing a section: a permission rule about a heading says nothing about the rows
-	under it.
-	"""
+	"""Drop a `Derived From Children` item holding nothing, and keep going until nothing moves."""
+	# A fixpoint because emptiness propagates: a Section holding only an emptied Section is empty.
+	# An item dropped by another bucket leaves its children; `_promote_orphans` lifts them later.
 	children: dict[str, list[int]] = {}
 	for index, item in enumerate(items):
 		parent = item.get("parent_key")
@@ -180,17 +131,8 @@ def _holds_something(
 	kept: set[int],
 	context: "NavigationContext",
 ) -> bool:
-	"""What is *under* a derived item, which is two different places depending on the type.
-
-	A `Section` holds its own child rows, found by `parent_key`. A type pointing at a `Sidebar`
-	holds that sidebar's rows, which are not on this list at all — so a rail item whose sidebar
-	filtered away to nothing goes with it. #42421 found that has no other observable form: a
-	`Sidebar` item's whole content is the sidebar, so with no rows it has no destination, and
-	"renders as independent" and "is not drawn" are the same picture.
-
-	`None` from `linked` means the sidebars are not resolved here and the question cannot be
-	asked, which keeps the item. Unknown is not empty.
-	"""
+	"""What is under a derived item: a `Section`'s child rows, or the rows of the sidebar it points at."""
+	# `None` from `linked` means the sidebars are not resolved here; unknown is not empty.
 	item = items[index]
 
 	if context.target(item.get("item_type")) == "Sidebar":
@@ -201,35 +143,20 @@ def _holds_something(
 
 
 class NavigationContext:
-	"""Every input the buckets read, computed at most once per resolution.
-
-	Per resolution, not per request, and `frappe.utils.caching.request_cache` is the obvious
-	home that would be wrong: nothing clears it on `frappe.set_user`, so a request that changes
-	user would answer the second one out of the first one's sets. These are per-user sets, and a
-	cache with no invalidation for the thing it varies on is worse than no cache.
-
-	It is also what the `Custom` bucket is handed, so an app's own `can_see` gets the sets this
-	pass has already paid for rather than computing its own.
-	"""
+	"""Every input the buckets read, computed at most once per resolution."""
+	# Per resolution, not `request_cache`: nothing clears that on `frappe.set_user`, and these
+	# are per-user sets.
 
 	def __init__(self, app: str):
 		self.app = app
 		self.user = frappe.session.user
-		# #42231 decision 13: Administrator short-circuits every permission check, matching
-		# `permissions.py:109` — removing it would make navigation stricter than the permission
-		# system it is a courtesy over. It buys the consequence worth writing down: **Administrator
-		# is the worst possible account to test this filter with**, and every bug in these rules is
-		# invisible to the person most likely to be looking.
-		#
-		# It covers the permission buckets and nothing else. An empty section is a stray heading
-		# for Administrator too, and a type nobody can filter is a bug an administrator especially
-		# needs to see, so the cascade and the fail-closed path below run for everyone.
+		# Administrator short-circuits the permission buckets only, as `has_permission` does; the
+		# cascade and the fail-closed path run for everyone. Never test this filter as Administrator.
 		self.administrator = self.user == "Administrator"
 		self._sidebars: dict[str, list[dict]] | None = None
 		self._resolving = False
 		self._reported: set[str] = set()
-		# Looked up once per type, not once per container: a modular app resolves one sidebar per
-		# module, and `get_attr` re-checks the installed-app list on every call.
+		# Once per type, not per container: `get_attr` re-checks the installed-app list every call.
 		self._resolvers: dict[str, object] = {}
 
 	# The buckets' inputs
@@ -238,19 +165,9 @@ class NavigationContext:
 		return bool(doctype) and (self.administrator or doctype in self.readable_doctypes)
 
 	def module_is_offered(self, module: str | None) -> bool:
-		"""A module is offered when something in it is readable, unless this user blocked it.
-
-		The union of its contents is the only rule that needs no second thing for an
-		administrator to maintain, and desk v1 never had another one: a module became visible
-		there purely as a consequence of its workspaces surviving (`desktop.py:63-92`).
-
-		The block is a **veto and not a permission**, which is why it runs ahead of the
-		Administrator branch: it is this user's own `User.block_modules` row, so an administrator
-		who hid a module meant it. It gates module-derived items only — block Accounts and a
-		`DocType` item pointing at Sales Invoice stays, because cascading downward is what
-		`is_module_visible`'s docstring forbids. And it runs here, before any layer is added on
-		top, so no layer can resurface a blocked module (#42323).
-		"""
+		"""A module is offered when something in it is readable, unless this user blocked it."""
+		# The block is a veto, not a permission, so it runs ahead of the Administrator branch and
+		# before any layer is added; it gates module-derived items only.
 		if not module or module in self.blocked_modules:
 			return False
 
@@ -260,18 +177,9 @@ class NavigationContext:
 		return bool(page) and (self.administrator or page in self.permitted_pages)
 
 	def address_is_offered(self, link_doctype: str | None, link_to: str | None) -> bool:
-		"""Whether a whole sidebar's address survives this user's own vetoes.
-
-		The block only, and not the two questions `module_is_offered` asks. A module sidebar may
-		link outside its own module — 101 of ERPNext's rows do — so asking about the module's
-		*contents* here would empty a sidebar whose rows are all fine.
-
-		It lands on the address rather than on the rail item because that is what keeps it one
-		rule: a module sidebar is addressed at its `Module Def`, so the block has something to
-		name, and the rail item then goes on its own through the `Derived From Children` cascade
-		(#42423). Without it the veto misses every module-primary rail, since such a rail reaches
-		a module through a `Sidebar` item whose rows are `DocType` items.
-		"""
+		"""Whether a whole sidebar's address survives this user's own vetoes."""
+		# The block only: a module sidebar may link outside its module, so asking about the
+		# module's contents would empty a sidebar whose rows are all fine.
 		if link_doctype != "Module Def":
 			return True
 
@@ -279,43 +187,23 @@ class NavigationContext:
 
 	@cached_property
 	def readable_doctypes(self) -> set[str]:
-		"""`get_doctypes_with_read() | get_shared_doctypes()`, once.
-
-		The shell's own set, not a second answer to the same question: `shell/doctypes.py:164`
-		already computes it for the derived rail and for an app's contents, and #42231 decision 10
-		exists because two functions answering "may this user read this doctype" is how the two
-		surfaces came to disagree in the first place.
-		"""
+		"""`get_doctypes_with_read() | get_shared_doctypes()`, once, from the shell's one answer."""
 		from .doctypes import get_readable_doctypes
 
 		return get_readable_doctypes()
 
 	@cached_property
 	def blocked_modules(self) -> set[str]:
-		"""Module names this user has hidden, as the complement of the framework's own answer.
-
-		`get_visible_modules` and not `User.get_blocked_modules()`, which `desktop.py:83` and
-		`desktop_icon.py:133` still read directly — a second module-visibility helper is the
-		divergence this ticket is closing on the item side, and it would be no better here. One
-		call for the whole list, since the batched helper exists precisely for that.
-
-		Over every `Module Def`, not over the modules in the address table. The address table only
-		names a module that owns at least one non-child doctype, so reading the universe off it
-		would make "this module has nothing addressable in it" and "this user blocked it" the same
-		answer — two different facts, and only one of them is a veto that outranks Administrator.
-		"""
+		"""Module names this user has hidden, as the complement of `get_visible_modules`."""
+		# Over every `Module Def`, not the address table's modules: a module with nothing
+		# addressable and a blocked one are different facts.
 		modules = frappe.get_all("Module Def", pluck="name")
 
 		return set(modules) - set(get_visible_modules(modules))
 
 	@cached_property
 	def readable_modules(self) -> set[str]:
-		"""The modules holding at least one doctype this user may read.
-
-		A set operation over two things already in hand, which is what makes decision 5 nearly
-		free: the address table is cached on `metadata_version` and shared by every user, and the
-		readable set is the one pass above.
-		"""
+		"""The modules holding at least one doctype this user may read."""
 		from .doctypes import get_address_table
 
 		table = get_address_table()
@@ -329,13 +217,7 @@ class NavigationContext:
 
 	@cached_property
 	def permitted_pages(self) -> set[str]:
-		"""The `DeskViews` page set, read fresh rather than out of its six-hour per-user cache.
-
-		`get_allowed_pages(cache=True)` is what desk v1 reads, and #42231 decision 7 named that
-		cache a precedent not to extend: a stale set means a user keeps seeing an item for up to
-		six hours after losing the permission. Uncached it is one query, and only when a `Page`
-		item is actually on the list to ask about.
-		"""
+		"""The `DeskViews` page set, uncached: the six-hour cache keeps a lost permission visible."""
 		from frappe.desk.desk_views import DeskViews
 
 		return set(DeskViews.get_allowed_pages())
@@ -349,19 +231,8 @@ class NavigationContext:
 		return self._types.get(item_type, (None, None))[1]
 
 	def resolver(self, item_type: str):
-		"""The `can_see` an app contributed beside its renderer, or None.
-
-		One hook and not a second one: #42228 found that a kind is one contribution rather than a
-		scattering, so the override rides in the same `navigation_item_resolvers` entry as the
-		rest of the type's server code. (#42228 spelled the hook `sidebar_item_resolvers`, before
-		#42312 renamed the row family to `Navigation Item`.)
-
-		Two apps claiming one type name is a collision rather than an ordering: the type row
-		itself is owned by whichever app ships it, so a second app's resolver is filing code
-		against somebody else's kind. The later app wins, loudly — `override_doctype_class` taking
-		`[-1]` *silently* (`base_document.py:151`) is the precedent #42228 rejected, and the noise
-		is the whole difference.
-		"""
+		"""The `can_see` an app contributed beside its renderer, or None."""
+		# Two apps claiming one type is a collision, not an ordering: the later app wins, loudly.
 		if item_type in self._resolvers:
 			return self._resolvers[item_type]
 
@@ -379,23 +250,15 @@ class NavigationContext:
 				self._resolvers[item_type] = frappe.get_attr(f"{path}.can_see")
 				return self._resolvers[item_type]
 			except Exception:
-				# A path an app got wrong is a bug in that app, and every way of getting it wrong
-				# lands here: a missing attribute, an unimportable module, and `get_attr`'s own
-				# throw for an app that is not installed. The type falls through to failing
-				# closed, which logs and names it.
+				# Every way of getting the path wrong lands here, including `get_attr`'s throw for an
+				# app that is not installed; the type falls through to failing closed.
 				frappe.log_error(title=f"Navigation item type {item_type} has an unusable resolver")
 
 		return None
 
 	@cached_property
 	def _types(self) -> dict[str, tuple[str, str]]:
-		"""`{type: (bucket, target_doctype)}` — what every kind declares about itself.
-
-		One query for both columns. The bucket lives on the type's own standard JSON record
-		because the server needs it before it runs anything, and because that keeps #42228's
-		property intact: a doctype-pointing kind picks a bucket in its JSON and writes no Python
-		at all (#42231 decision 9).
-		"""
+		"""`{type: (bucket, target_doctype)}` — what every kind declares about itself, in one query."""
 		return {
 			row.name: (row.permission_rule, row.target_doctype)
 			for row in frappe.get_all(
@@ -407,17 +270,9 @@ class NavigationContext:
 
 	@property
 	def sidebars(self) -> dict[str, list[dict]] | None:
-		"""This app's resolved sidebars, filtered, computed once and shared with the rail.
-
-		The rail is resolved *after* them and reads this, because a rail item pointing at a
-		sidebar derives from that sidebar's rows. Boot wants both anyway, so sharing costs
-		nothing there; the arrangement editor resolves a rail on its own and pays one pair of
-		queries to answer the same question honestly.
-
-		`None` while they are themselves being resolved. A sidebar row that points at a sidebar
-		would otherwise re-enter this and never come back, and "not resolved yet" is genuinely
-		not the same answer as "resolved to nothing".
-		"""
+		"""This app's resolved sidebars, filtered, computed once and shared with the rail."""
+		# `None` while they are being resolved: a sidebar row pointing at a sidebar would re-enter
+		# this forever, and "not resolved yet" is not "resolved to nothing".
 		if not self.app:
 			# A caller holding one sidebar and no prefix. Unknown, not empty.
 			return None
@@ -442,17 +297,8 @@ class NavigationContext:
 	# Failing closed, loudly
 
 	def report_unfilterable(self, item_type: str | None, count: int, *, custom: bool = False):
-		"""One log row per type per resolution, naming the kind and how many items it cost.
-
-		Deduped because `Error Log` writes are buffered and flushed at commit, so forty items of
-		one broken kind would land as forty near-identical rows nobody reads — which is how a
-		loud failure becomes a quiet one.
-
-		Failing closed is #42228's verdict on a missing *renderer* wearing its other hat: "no rule"
-		and "no renderer" behave identically, so an item that cannot be filtered is skipped and
-		logged. Not a security argument — under a courtesy filter an invisible item plus a log
-		entry surfaces the bug, while a silently visible one never does.
-		"""
+		"""One log row per type per resolution, naming the kind and how many items it cost."""
+		# Deduped: Error Log writes are buffered, so forty items of one kind would be forty rows.
 		if item_type in self._reported:
 			return
 
