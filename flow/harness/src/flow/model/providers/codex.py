@@ -739,11 +739,13 @@ def _responses_input(
 	items: list[dict] = []
 	text_index = 0
 	dropped_calls: set[str] = set()
+	supports_images = model.supports_images
 	for message in messages:
 		if isinstance(message, UserMessage):
 			text, images = resolve_user_content(
 				message,
 				resolve_attachment=resolve_attachment,
+				supports_images=supports_images,
 			)
 			content = []
 			if text:
@@ -778,7 +780,9 @@ def _responses_input(
 		elif isinstance(message, ToolResult):
 			if message.tool_call_id in dropped_calls:
 				continue
-			images = resolve_tool_images(message, resolve_attachment=resolve_attachment)
+			images = resolve_tool_images(
+				message, resolve_attachment=resolve_attachment, supports_images=supports_images
+			)
 			output: str | list[dict] = message.content
 			if images:
 				# the Responses API takes image parts inside the tool output itself

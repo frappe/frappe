@@ -22,7 +22,7 @@ from flow.events import (
 )
 from flow.model.base import Model
 from flow.model.catalog import model_supports_images
-from flow.model.content import resolve_user_content
+from flow.model.content import NON_VISION_IMAGE_PLACEHOLDER, resolve_tool_images, resolve_user_content
 from flow.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
 from flow.model.mock import MockModel
 from flow.model.providers.codex import CodexModel, _responses_input
@@ -142,7 +142,7 @@ def test_attachment_store_add_file_rejects_empty_oversized_and_binary(tmp_path):
 		raise AssertionError("non-UTF8 attachment was accepted")
 
 
-def test_images_resolve_without_consulting_model_capability():
+def test_images_resolve_when_capability_is_unknown():
 	attachment = AttachmentContent(
 		id="a" * 24,
 		name="screen.png",
@@ -157,6 +157,20 @@ def test_images_resolve_without_consulting_model_capability():
 		("screen.png", "image/png", b"png")
 	]
 	assert text == "inspect this"
+
+
+def test_known_non_vision_model_gets_image_placeholder():
+	attachment = AttachmentContent(
+		id="a" * 24, name="screen.png", mime_type="image/png", size=3, kind="image"
+	)
+	message = UserMessage(content=[TextContent(text="inspect this"), attachment])
+	text, images = resolve_user_content(message, resolve_attachment=lambda _: b"png", supports_images=False)
+
+	assert images == []
+	assert NON_VISION_IMAGE_PLACEHOLDER in text and "screen.png" in text
+	result = _tool_result("c1", "shot.png", [attachment])
+	assert resolve_tool_images(result, resolve_attachment=lambda _: b"png", supports_images=False) == []
+	assert LiteLLMModel("custom/gpt-4o").supports_images is None  # a gateway model stays ungated
 
 
 def test_litellm_wire_contains_text_file_and_image_data_url():

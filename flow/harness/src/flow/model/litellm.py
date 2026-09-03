@@ -31,6 +31,7 @@ from flow.events import (
 )
 from flow.model.base import Model, ModelRequest
 from flow.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
+from flow.model.catalog import model_supports_images
 from flow.model.content import ResolvedImage, resolve_tool_images, resolve_user_content
 from flow.model.errors import normalize_litellm_error
 from flow.model.retry import run_with_retries
@@ -63,16 +64,10 @@ class LiteLLMModel(Model):
 		self._supports_images: bool | None = supports_images
 
 	@property
-	def supports_images(self) -> bool:
+	def supports_images(self) -> bool | None:
 		if self._supports_images is not None:
 			return self._supports_images
-		try:
-			import litellm
-
-			self._supports_images = bool(litellm.supports_vision(model=self.name))
-		except Exception:
-			self._supports_images = False
-		return self._supports_images
+		return model_supports_images(self.model)
 
 	@property
 	def context_window(self) -> int | None:
@@ -476,6 +471,7 @@ def _openai_messages(
 		)
 		pending_images.clear()
 
+	supports_images = model.supports_images
 	for message in messages:
 		if not isinstance(message, ToolResult):
 			flush_images()
@@ -483,6 +479,7 @@ def _openai_messages(
 			text, images = resolve_user_content(
 				message,
 				resolve_attachment=resolve_attachment,
+				supports_images=supports_images,
 			)
 			if images:
 				content: str | list[dict[str, Any]] = []
@@ -510,7 +507,11 @@ def _openai_messages(
 					"content": message.content,
 				}
 			)
-			pending_images.extend(resolve_tool_images(message, resolve_attachment=resolve_attachment))
+			pending_images.extend(
+				resolve_tool_images(
+					message, resolve_attachment=resolve_attachment, supports_images=supports_images
+				)
+			)
 	flush_images()
 	return out
 
