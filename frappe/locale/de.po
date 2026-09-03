@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:39+0000\n"
-"PO-Revision-Date: 2026-08-23 21:22\n"
+"PO-Revision-Date: 2026-08-25 22:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -8577,7 +8577,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:50
 #: frappe/public/js/frappe/list/base_list.js:197
 msgid "Deprecated"
-msgstr ""
+msgstr "Veraltet"
 
 #. Label of the depth (Int) field in DocType 'Recorder Event'
 #: frappe/core/doctype/recorder_event/recorder_event.json
@@ -20978,7 +20978,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:76
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:86
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #. Label of the normalized_copies (Int) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
@@ -33911,7 +33911,7 @@ msgstr "Nicht unterstützt {0}: {1}"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:21
 msgid "Untitled"
-msgstr ""
+msgstr "Ohne Titel"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:75
 msgid "Untitled Column"

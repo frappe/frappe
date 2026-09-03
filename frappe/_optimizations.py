@@ -47,6 +47,70 @@ def optimize_regex_cache():
 	os.register_at_fork(before=re.purge)
 
 
+def preload_modules():
+	"""Import modules before forking so that workers share their memory.
+
+	These modules are used on the hot path of most requests but are not imported by
+	``import frappe.app``. Importing them here lets forked workers share the memory
+	through copy-on-write instead of each paying the import cost after the fork.
+
+	Eager import by default.
+	"""
+	if os.environ.get("FRAPPE_PRELOAD_MODULES", "1").strip().lower() in ("0", "false"):
+		return
+
+	import gettext
+
+	import babel
+	import babel.dates
+	import bs4
+	import nh3
+	import num2words
+	import pydantic
+
+	import frappe.boot
+	import frappe.client
+	import frappe.core.doctype.file.file
+	import frappe.core.doctype.user.user
+	import frappe.database.query
+	import frappe.desk.desktop  # workspace
+	import frappe.desk.form.save
+	import frappe.model.db_query
+	import frappe.query_builder
+	import frappe.utils.background_jobs  # Enqueue is very common
+	import frappe.utils.data  # common utils
+	import frappe.utils.jinja  # web page rendering
+	import frappe.utils.jinja_globals
+	import frappe.utils.redis_wrapper  # Exact redis_wrapper
+	import frappe.utils.safe_exec
+	import frappe.utils.typing_validations  # any whitelisted method uses this
+	import frappe.website.path_resolver  # all the page types and resolver
+	import frappe.website.router  # Website router
+	import frappe.website.website_generator  # web page doctypes
+
+
+def preload_database_drivers():
+	"""Import database drivers before forking so that workers share their memory.
+
+	`FRAPPE_PRELOAD_DATABASE_DRIVERS` takes a comma separated list of driver names, e.g.
+	"mariadb,postgres". Blank loads mariadb, "none" loads nothing.
+	"""
+	value = os.environ.get("FRAPPE_PRELOAD_DATABASE_DRIVERS", "").strip().lower() or "mariadb"
+	if value == "none":
+		return
+
+	drivers = {driver.strip() for driver in value.split(",") if driver.strip()}
+
+	if "mariadb" in drivers:
+		import frappe.database.mariadb.mysqlclient
+
+	if "postgres" in drivers:
+		import frappe.database.postgres.database
+
+	if "sqlite" in drivers:
+		import frappe.database.sqlite.database
+
+
 def register_fault_handler():
 	# Some libraries monkey patch stderr, we need actual fd
 	if isinstance(sys.__stderr__, io.TextIOWrapper):

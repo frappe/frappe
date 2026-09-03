@@ -2977,6 +2977,60 @@ class TestQuery(IntegrationTestCase):
 			self.assertNotIn("LIMIT", query)
 			self.assertIn("OFFSET 10", query)
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_build_filter_conditions_escapes_backslash_safely(self):
+		"""A filter value ending in a backslash must not let its string literal
+		swallow the next condition as live SQL.
+
+		Engine.build_filter_conditions renders filter values via pypika, which
+		only doubles quote characters, not backslashes. On MariaDB's default
+		sql_mode a trailing backslash escapes the closing quote, so two chained
+		filters on the same field could splice arbitrary SQL into the
+		surrounding WHERE clause.
+		"""
+		from frappe.database.query import Engine
+
+		bs = chr(92)  # a single backslash
+		tail = " or sleep(0) -- "
+
+		engine = Engine()
+		engine.get_query("DocType", db_query_compat=True)
+		conditions = []
+		engine.build_filter_conditions(
+			[
+				["DocType", "name", "=", bs],
+				["DocType", "name", "=", tail],
+			],
+			conditions,
+		)
+		cond = " and ".join(conditions)
+
+		# The backslash must be doubled so it stays inside its own literal
+		# instead of escaping the closing quote and exposing `tail` as code.
+		self.assertIn(f"'{bs * 2}'", cond)
+		self.assertIn(f"='{tail}'", cond)
+
+		# The fragment must still be syntactically valid, harmless SQL.
+		frappe.db.sql(f"SELECT name FROM `tabDocType` WHERE 1=1 and {cond} LIMIT 0")
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_build_filter_conditions_matches_literal_backslash_value(self):
+		"""A filter value that genuinely contains a backslash
+		must still match the row it's meant to after the escaping fix."""
+		from frappe.database.query import Engine
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": r"C:\Users\test"}).insert()
+		self.addCleanup(todo.delete)
+
+		engine = Engine()
+		engine.get_query("ToDo", db_query_compat=True)
+		conditions = []
+		engine.build_filter_conditions([["ToDo", "description", "=", r"C:\Users\test"]], conditions)
+		cond = " and ".join(conditions)
+
+		rows = frappe.db.sql(f"SELECT name FROM `tabToDo` WHERE 1=1 and {cond}", as_dict=True)
+		self.assertIn(todo.name, [r.name for r in rows])
+
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):

@@ -29,6 +29,21 @@ import urllib.request
 from functools import cache
 from urllib.error import HTTPError
 
+import impact_map
+
+# Restored from the nightly run by the workflow; absent means "run everything".
+IMPACT_MAP_FILE = "impact-map.json"
+
+# A change here can affect any test, so the map's answer is not worth trusting.
+CORE_PATHS = (
+	"frappe/__init__.py",
+	"frappe/hooks.py",
+	"frappe/database/",
+	"frappe/model/",
+	"frappe/parallel_test_runner.py",
+	"frappe/tests/",
+)
+
 
 @cache
 def fetch_pr_data(pr_number, repo, endpoint=""):
@@ -152,6 +167,36 @@ def matches_postgres_filenames(files_list):
 	return any(any(word in f.lower() for word in db_keywords) for f in files_list)
 
 
+def report_shadow_selection(files_list):
+	"""Log which test modules the impact map would have selected, without acting on it.
+
+	Shadow mode: the full suite still runs. The point is to measure how much a real
+	selector would skip, and how often it has to bail out, before enabling it. See #42028.
+	"""
+	try:
+		with open(IMPACT_MAP_FILE) as f:
+			loaded_map = json.load(f)
+	except (OSError, ValueError) as exc:
+		print(f"SHADOW: would run full suite, no usable impact map ({exc})")
+		return
+
+	relevant_files = [f for f in files_list if f.endswith((".py", ".json", ".po"))]
+
+	if schema_files := [f for f in relevant_files if not f.endswith(".py")]:
+		print(f"SHADOW: would run full suite, schema/translation changes: {schema_files}")
+	elif core_files := [f for f in relevant_files if f.startswith(CORE_PATHS)]:
+		print(f"SHADOW: would run full suite, core changes: {core_files}")
+	elif impact_map.is_stale(loaded_map):
+		print(f"SHADOW: would run full suite, map from {loaded_map['generated_at']} is stale")
+	elif (selected := impact_map.select(loaded_map, relevant_files)) is None:
+		print("SHADOW: would run full suite, some changed files are absent from the map")
+	else:
+		total = len(impact_map.all_tests(loaded_map))
+		print(f"SHADOW: would run {len(selected)}/{total} test modules for {relevant_files}:")
+		for test_file in selected:
+			print(f"SHADOW:   {test_file}")
+
+
 def is_docs(file):
 	"""Check if the file is documentation or image."""
 	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE")
@@ -210,5 +255,8 @@ if __name__ == "__main__":
 		sys.exit(0)
 
 	# If we reach here, run the build
+	if build_type == "server":
+		report_shadow_selection(files_list)
+
 	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
 	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')

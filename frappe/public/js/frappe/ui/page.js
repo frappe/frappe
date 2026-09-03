@@ -59,9 +59,9 @@ frappe.ui.Page = class Page {
 
 		this.make();
 		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
-		// pages can hide just the workspace dock (while keeping the body sidebar) via this option;
+		// pages can hide just the dock (while keeping the body sidebar) via this option;
 		// a page that hides the whole sidebar hides the dock too (see Sidebar.page_allows_dock)
-		if (!Object.keys(opts).includes("hide_workspace_dock")) this.hide_workspace_dock = false;
+		if (!Object.keys(opts).includes("hide_dock")) this.hide_dock = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 

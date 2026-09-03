@@ -37,7 +37,7 @@ from frappe.utils import (
 	strip_html,
 )
 from frappe.utils.defaults import get_not_null_defaults
-from frappe.utils.html_utils import unescape_html
+from frappe.utils.html_utils import has_html_tags, unescape_html
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -790,9 +790,15 @@ class BaseDocument:
 			and frappe.db.db_type == "postgres"
 			and (self.flags.retry_count or 0) < 5
 		):
-			conflict_handler = "on conflict (name) do nothing"
 			if self.meta.autoname == "hash":
+				# A hash name that collides has to be regenerated, so only `name` may be skipped.
+				conflict_handler = "on conflict (name) do nothing"
 				returning = "RETURNING name"
+			else:
+				# Any unique index, not only the primary key: a doctype named after a unique field
+				# breaks both with one row. Letting postgres skip the row keeps the transaction
+				# usable, which catching the error below would not.
+				conflict_handler = "on conflict do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -837,8 +843,13 @@ class BaseDocument:
 					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
-				# unique constraint
-				self.show_unique_validation_message(e)
+				# A doctype named after a unique field breaks two indexes with one row, and which
+				# one the backend blames is its own choice: MariaDB says PRIMARY and is handled
+				# above, SQLite says the secondary index and arrives here. `ignore_if_duplicate`
+				# has to mean the same thing in both places.
+				if not ignore_if_duplicate:
+					# unique constraint
+					self.show_unique_validation_message(e)
 
 			else:
 				raise
@@ -1381,8 +1392,6 @@ class BaseDocument:
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
-		from bs4 import BeautifulSoup
-
 		if frappe.flags.in_install:
 			return
 
@@ -1396,7 +1405,7 @@ class BaseDocument:
 				# doesn't look like html so no need
 				continue
 
-			elif "<!-- markdown -->" in value and not bool(BeautifulSoup(value, "html.parser").find()):
+			elif "<!-- markdown -->" in value and not has_html_tags(value):
 				# should be handled separately via the markdown converter function
 				continue
 

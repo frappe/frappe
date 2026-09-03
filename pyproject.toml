@@ -22,7 +22,7 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.15.0",
+    "pypdf==6.16.1",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.8",
     "PyQRCode~=1.2.1",
@@ -96,10 +96,11 @@ dependencies = [
     # Pin exact versions after a manual handshake check (polling + websocket upgrade).
     "python-socketio~=5.16.2",
     "python-engineio~=4.13.2",
-    "gevent~=25.9.1",
-    # gevent-websocket is effectively unmaintained but is the documented websocket
-    # path for python-socketio's gevent WSGIServer. Pinned deliberately.
-    "gevent-websocket~=0.10.1",
+    # ASGI server for the realtime process.
+    "uvicorn~=0.52.1",
+    "a2wsgi~=1.10.10",
+    # async HTTP client for the realtime connect/auth path.
+    "httpx~=0.28.0",
 ]
 
 [project.urls]

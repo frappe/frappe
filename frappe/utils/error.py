@@ -4,6 +4,7 @@
 import functools
 import hashlib
 import inspect
+import os
 import re
 import sys
 import traceback as traceback_module
@@ -44,7 +45,6 @@ def log_error(
 ) -> "ErrorLog":
 	"""Log error to Error Log"""
 	from frappe.monitor import get_trace_id
-	from frappe.utils.sentry import capture_exception
 
 	# Parameter ALERT:
 	# the title and message may be swapped
@@ -91,7 +91,10 @@ def log_error(
 		error_log.insert(ignore_permissions=True)
 
 	# Capture exception data if telemetry is enabled
-	capture_exception(message=f"{title}\n{traceback}")
+	if os.getenv("FRAPPE_SENTRY_DSN"):
+		from frappe.utils.sentry import capture_exception
+
+		capture_exception(message=f"{title}\n{traceback}")
 
 	return error_log
 

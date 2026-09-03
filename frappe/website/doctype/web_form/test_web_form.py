@@ -110,6 +110,41 @@ class TestWebForm(IntegrationTestCase):
 		)
 		self.assertTrue(frappe.db.exists("Event", {"subject": "someone@example.com"}))
 
+	def test_web_form_phone_fieldtype_is_enforced_on_server(self):
+		"""`Phone` as a Web Form fieldtype is invisible to Meta.get_phone_fields(), which
+		only sees the DocType's own fields."""
+		frappe.set_user("Administrator")
+
+		# Event.location is a plain Data field; the Web Form types it as a phone number
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "location", "fieldtype": "Phone", "label": "Phone"},
+			]
+		)
+
+		doc = {
+			"doctype": "Event",
+			"subject": "_Test Event Bad Phone",
+			"starts_on": "2014-09-09",
+			"location": "definitely not a phone!!",
+		}
+
+		self.assertRaises(
+			frappe.InvalidPhoneNumberError, accept, web_form=web_form.name, data=json.dumps(doc)
+		)
+
+		# same check a `Phone` field on the DocType would get: a country code is required
+		self.assertRaises(
+			frappe.InvalidPhoneNumberError,
+			accept,
+			web_form=web_form.name,
+			data=json.dumps({**doc, "location": "9876543210"}),
+		)
+
+		accept(web_form=web_form.name, data=json.dumps({**doc, "location": "+91-9876543210"}))
+		self.assertTrue(frappe.db.exists("Event", {"subject": "_Test Event Bad Phone"}))
+
 	def test_guest_cannot_skip_web_form_validation(self):
 		"""The reported case: an unauthenticated submission got a success page."""
 		web_form = self.make_temp_web_form(
@@ -182,6 +217,55 @@ class TestWebForm(IntegrationTestCase):
 
 		self.event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form"})
 		self.assertTrue(self.event_name)
+
+	def test_guest_payload_survives_form_dict_sanitisation(self):
+		"""A guest's arguments reach `form_dict` as JSON, and every string in it is
+		sanitized before the method runs. A Text Editor value carries a quoted
+		attribute, so sanitizing the serialized payload rewrote that quote as
+		`&quot;` and `data` stopped parsing."""
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text Editor", "label": "Description"},
+			],
+		)
+		subject = "_Test Event Sanitised Payload"
+		description = '<div class="ql-editor read-mode"><p>Hi</p></div>'
+		data = json.dumps(
+			{
+				"doctype": "Event",
+				"subject": subject,
+				"description": description,
+				"starts_on": "2014-09-09",
+			}
+		)
+
+		frappe.set_user("Guest")
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.local.form_dict = frappe._dict(web_form=web_form.name, data=data)
+
+		frappe.is_whitelisted(accept)
+		self.assertEqual(frappe.form_dict.data, data)
+
+		event = accept(web_form=web_form.name, data=frappe.form_dict.data)
+		self.addCleanup(frappe.delete_doc, "Event", event.name, force=True, ignore_permissions=True)
+		self.assertIn("ql-editor", event.description)
+
+		# markup in the same payload is still sanitized
+		frappe.local.form_dict = frappe._dict(
+			web_form=web_form.name,
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": subject,
+					"description": "<script>alert(1)</script>",
+					"starts_on": "2014-09-09",
+				}
+			),
+		)
+		frappe.is_whitelisted(accept)
+		self.assertNotIn("<script>", frappe.form_dict.data)
 
 	def test_accept_and_delete_multiple_accept_native_payloads(self):
 		frappe.set_user("Administrator")

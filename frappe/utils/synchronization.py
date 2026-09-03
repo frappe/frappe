@@ -3,9 +3,6 @@
 import os
 from contextlib import contextmanager
 
-from filelock import FileLock as _StrongFileLock
-from filelock import Timeout
-
 import frappe
 from frappe import _
 from frappe.utils import get_bench_path, get_site_path
@@ -29,6 +26,9 @@ def filelock(lock_name: str, *, timeout=30, is_global=False):
 	        site - {bench_dir}/sites/sitename/{name}.lock
 
 	"""
+	# Lazy: filelock imports the asyncio stack.
+	from filelock import FileLock as _StrongFileLock
+	from filelock import Timeout
 
 	lock_filename = lock_name + ".lock"
 	if not is_global:
@@ -45,5 +45,7 @@ def filelock(lock_name: str, *, timeout=30, is_global=False):
 		raise LockTimeoutError(
 			_("Failed to aquire lock: {}. Lock may be held by another process.").format(lock_name)
 			+ "<br>"
-			+ _("You can manually remove the lock if you think it's safe: {}").format(lock_path)
+			+ _("Wait for it to finish. Deleting the lock file {} will not release the lock.").format(
+				lock_path
+			)
 		) from e
