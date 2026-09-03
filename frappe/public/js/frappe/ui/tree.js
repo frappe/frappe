@@ -362,10 +362,16 @@ frappe.ui.Tree = class {
 				$('<div class="text-sm text-ink-gray-6 shrink-0"></div>')
 					.text(label)
 					.appendTo($row);
+				// values truncate in the narrow card — keep the full text reachable.
+				// The tooltip is plain text, so turn the line breaks of formatted
+				// values (<br>, block ends) into newlines instead of gluing lines
+				const plain_text = $("<div></div>")
+					.html($value.html().replace(/<br\s*\/?>|<\/(p|div)>/gi, "\n"))
+					.text()
+					.trim();
 				$value
 					.addClass("value text-sm text-ink-gray-7 truncate")
-					// values truncate in the narrow card — keep the full text reachable
-					.attr("title", $value.text().trim())
+					.attr("title", plain_text)
 					.appendTo($row);
 			};
 			rows.forEach(([label, value]) => {
