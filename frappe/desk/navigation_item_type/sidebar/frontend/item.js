@@ -31,16 +31,19 @@ export default {
 			// a section opens at the first thing under it, which is what a reader sees anyway.
 			if (!rendering || !("to" in rendering || "href" in rendering)) continue;
 
-			// The first row usually sits in several panels, so the address alone cannot say
+			// The first row usually sits in several sidebars, so the address alone cannot say
 			// which this item opens. In the href, not a handler: these are `RouterLink`s.
 			if ("to" in rendering)
 				return {
 					...rendering,
-					to: { ...rendering.to, query: { ...rendering.to.query, panel: item.link_to } },
+					to: {
+						...rendering.to,
+						query: { ...rendering.to.query, sidebar: item.link_to },
+					},
 					sidebar: item.link_to,
 				};
 
-			// An `href` leaves the prefix, so there is no panel of ours to name.
+			// An `href` leaves the prefix, so there is no sidebar of ours to name.
 			return { ...rendering, sidebar: item.link_to };
 		}
 
