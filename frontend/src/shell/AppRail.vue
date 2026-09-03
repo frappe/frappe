@@ -60,26 +60,36 @@
 			/>
 		</ul>
 
-		<button
-			v-if="arrangeable"
-			class="mt-auto rounded px-2 py-1 text-left text-xs text-ink-gray-5 hover:bg-surface-gray-2"
-			@click="emit('arrange')"
-		>
-			Arrange
-		</button>
+		<!-- One footer group, so `mt-auto` sits in one place however many controls are on. -->
+		<div class="mt-auto flex flex-col">
+			<button
+				v-if="arrangeable"
+				class="rounded px-2 py-1 text-left text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+				@click="emit('arrange')"
+			>
+				Arrange
+			</button>
 
-		<a
-			href="/apps"
-			:class="arrangeable ? '' : 'mt-auto'"
-			class="rounded px-2 py-1 text-xs text-ink-gray-5 hover:bg-surface-gray-2"
-		>
-			All apps
-		</a>
+			<button
+				v-if="shareLink"
+				class="rounded px-2 py-1 text-left text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+				@click="copyLink"
+			>
+				{{ copied ? "Link copied" : "Copy link" }}
+			</button>
+
+			<a
+				href="/apps"
+				class="rounded px-2 py-1 text-xs text-ink-gray-5 hover:bg-surface-gray-2"
+			>
+				All apps
+			</a>
+		</div>
 	</nav>
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject, onBeforeUnmount, ref } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
@@ -94,15 +104,44 @@ import type { ItemContext } from "@/navigation/types";
 // the panel (#42421). The context is composed once per list and the panel draws the same rows
 // off the same one; and exactly one row is current across the rail and the panel together, so
 // neither surface can work it out alone.
+// `shareLink` is the whole address to hand someone, built by the shell because only the shell
+// knows whether the panel needs naming (#42464). The button lives down here rather than by the
+// panel it can carry: the rail's footer is the shell's only chrome that is present on every
+// page, and "copy a link to this view" is useful with no panel open at all. It is expected to
+// collect other context later, which is the other reason it is not the panel's.
 const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
 	arrangeable?: boolean;
+	shareLink?: string;
 }>();
 const emit = defineEmits<{ arrange: [] }>();
 
 const boot = inject<Boot>("boot")!;
+
+// Confirmation in the button itself. A copy that silently succeeds looks identical to one that
+// silently failed, and there is no toast in the desk v2 shell to borrow.
+const copied = ref(false);
+let clearCopied: ReturnType<typeof setTimeout> | undefined;
+
+async function copyLink() {
+	if (!props.shareLink) return;
+
+	try {
+		await navigator.clipboard.writeText(props.shareLink);
+	} catch {
+		// Denied permission, or an insecure origin, where `navigator.clipboard` is undefined.
+		// Nothing was copied, so say nothing rather than claim it was.
+		return;
+	}
+
+	copied.value = true;
+	clearTimeout(clearCopied);
+	clearCopied = setTimeout(() => (copied.value = false), 1500);
+}
+
+onBeforeUnmount(() => clearTimeout(clearCopied));
 
 // `parent_key` is the whole of hierarchy (#42227), and the server sends the tree flat. A
 // cycle in it is broken and reported by `useItemTree`: every row in one has a parent that is

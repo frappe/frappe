@@ -31,6 +31,7 @@
 			:context="contexts.rail"
 			:current="current.railKey"
 			:arrangeable="!!boot.app"
+			:share-link="shareLink"
 			@arrange="arrangeRail"
 		/>
 		<AppSidebar
@@ -59,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
@@ -68,8 +69,10 @@ import { itemContext } from "@/navigation/context";
 import {
 	currentFrom,
 	navigationDestinations,
+	type CurrentNavigation,
 	type NavigationContexts,
 } from "@/navigation/current";
+import { recallPanel, rememberPanel } from "@/navigation/panelMemory";
 import AppRail from "./AppRail.vue";
 import AppSidebar from "./AppSidebar.vue";
 import ArrangementEditor from "./ArrangementEditor.vue";
@@ -111,9 +114,68 @@ const destinations = computed(() =>
 	navigationDestinations(navigation.value.rail, navigation.value.sidebars, contexts.value)
 );
 
-// And this is recomputed on every navigation, which is the whole design: nothing here is set
-// by a click. It is a walk over resolved paths, with no router in it.
-const current = computed(() => currentFrom(destinations.value, route.path));
+// The panel the reader is in, resolved on every arrival however they got there — click, paste,
+// reload, back. Still nothing set by a click: this is a walk over resolved paths, and the only
+// thing the reader's history contributes is which of several EQUALLY correct panels to pick
+// (#42432).
+//
+// A ref driven by a watcher rather than a computed, because the resolution feeds itself: the
+// panel open now is the first preference for the next address, and remembering the answer is a
+// write. A computed that stored its own result would run on every read.
+const current = ref<CurrentNavigation>({});
+
+// The panel named in the address, most-wanted preference and consumed once. A pasted `?panel=`
+// is a deliberate act, so it outranks whatever this tab happens to have open.
+const asked = ref<string | undefined>(undefined);
+
+// What the address alone says, with no reader in it — the cold-load answer. Used to keep the
+// copy link honest: naming the panel a stranger would land in anyway says nothing.
+const canonical = computed(() => currentFrom(destinations.value, route.path));
+
+function resolve() {
+	const path = route.path;
+	// Most wanted first: the panel just asked for, then the one already open, then whatever
+	// this tab last resolved here. Each is only a tie-break — a panel that does not cover the
+	// address, or covers it less deeply than another, loses regardless, which is how a
+	// `?panel=` that is stale, misspelled or filtered away by permissions degrades silently.
+	const prefer = [asked.value, current.value.sidebar, recallPanel(path)].filter(
+		(panel): panel is string => !!panel
+	);
+
+	current.value = currentFrom(destinations.value, path, prefer);
+	if (current.value.sidebar) rememberPanel(path, current.value.sidebar);
+}
+
+// The parameter seeds the same per-tab record ordinary browsing fills, then leaves the address.
+// `replace`, so the clean URL is not a second history entry the back button has to walk
+// through; and the record is already written, so back and reload still land in the same panel.
+watch(
+	[() => route.fullPath, destinations],
+	() => {
+		const panel = route.query.panel;
+		asked.value = typeof panel === "string" ? panel : undefined;
+
+		resolve();
+
+		if (asked.value !== undefined) {
+			const { panel: _consumed, ...query } = route.query;
+			asked.value = undefined;
+			router.replace({ path: route.path, query });
+		}
+	},
+	{ immediate: true }
+);
+
+// The link to hand someone else, or nothing to offer. The parameter goes on only where it says
+// something: in the canonical panel it is a tautology, the rule already set for `?from=` on
+// re-entering its own prefix.
+const shareLink = computed(() => {
+	const panel = current.value.sidebar;
+	const query =
+		panel && panel !== canonical.value.sidebar ? { ...route.query, panel } : route.query;
+
+	return new URL(router.resolve({ path: route.path, query }).href, window.location.origin).href;
+});
 
 // The panel, or nothing. `current.sidebar` is only ever a key a rail item's renderer read out
 // of this same payload, so the rows are there — the row count is checked anyway because an

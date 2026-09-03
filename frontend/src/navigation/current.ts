@@ -1,9 +1,15 @@
 // Which row the address is on, and therefore which sidebar is open.
 //
-// Charter point 7: navigation follows the address, never the reverse. Nothing stores a
-// selection, so clicking a rail item and pasting its URL into a fresh tab have to end in
-// the same shell — which means the open panel is a FUNCTION OF THE PATH and of nothing
-// else. This module is that function.
+// Charter point 7: navigation follows the address, never the reverse. This module is the
+// function from the address to the shell around it.
+//
+// That function takes one extra input, and #42432 narrowed the charter point to allow it:
+// where SEVERAL panels cover the address equally, the one the reader is already in wins.
+// One in five ERPNext destinations sits in more than one panel and `Item` sits in six, so
+// without it a reader is yanked out of the panel they are working in as the ordinary case.
+// The narrowing is bounded: the preference only ever picks among panels the address itself
+// already allows, never invents one and never beats a deeper cover — so a COLD load is
+// still a pure function of the path, and one URL still gives two colleagues one shell.
 //
 // It is not `router-link-active`. Two reasons, and both are real rather than tidiness. A
 // rail item of type `Sidebar` resolves to the first destination INSIDE its sidebar
@@ -122,19 +128,55 @@ export function navigationDestinations(
 /**
  * The rail row, the sidebar and the row inside it that `path` is standing on.
  *
- * Deepest coverage wins; where two cover the address equally, the first in the list does.
+ * Deepest coverage always wins. Among covers of EQUAL depth, `prefer` decides: the earliest
+ * of its sidebars to appear wins, and where it names none of them the first in list order
+ * does, which is the rail read top to bottom.
  *
- * An address no destination covers returns `{}`: no highlight, and no panel. There is no
- * last panel to fall back to, because falling back is storing a selection.
+ * `prefer` is the reader's continuity, most wanted first — the panel open right now, then
+ * whatever this tab last resolved for this address (#42464). It is a tie-break and only a
+ * tie-break: a panel in it that does not cover the address, or covers it less deeply than
+ * another, loses anyway. That is what keeps a cold load a function of the path.
+ *
+ * Where ONE panel lists a destination twice, the first row going down the panel wins the
+ * highlight — the `>` below, since both rows are the same depth in the same panel. Recorded
+ * as a decision rather than left as an accident (#42432): the reader is never relocated, so
+ * the cost is a highlight one row from where they clicked, and the likely real case is a
+ * pinned row above a categorised copy of itself, where reading order highlights the pinned
+ * one. Lighting both stays out — this module exists because `router-link-active` lit two
+ * rows at once, and two rows carrying `aria-current="page"` tell a screen reader there are
+ * two current pages.
+ *
+ * An address no destination covers returns `{}`: no highlight, and no panel. The preference
+ * cannot rescue it, because there is nothing for it to choose between.
  */
-export function currentFrom(destinations: Destination[], path: string): CurrentNavigation {
+export function currentFrom(
+	destinations: Destination[],
+	path: string,
+	prefer: string[] = []
+): CurrentNavigation {
+	// How wanted this panel is: its place in `prefer`, or one past the end for a panel nobody
+	// asked for. Lower is better, so an unpreferred cover never displaces a preferred one.
+	const rank = (found: CurrentNavigation) => {
+		const place = found.sidebar ? prefer.indexOf(found.sidebar) : -1;
+		return place === -1 ? prefer.length : place;
+	};
+
 	let best: CurrentNavigation = {};
 	let depth = -1;
+	let wanted = prefer.length;
 
 	for (const destination of destinations) {
 		const covers = coverage(path, destination.path);
-		if (covers > depth) {
+		// A row that does not cover the address is not a candidate at all, however wanted its
+		// panel is. Checked before the depth compare, since -1 ties the "nothing yet" depth.
+		if (covers < 0 || covers < depth) continue;
+
+		const place = rank(destination.found);
+		// Strictly deeper always wins. At equal depth only a STRICTLY more wanted panel does,
+		// so first-in-list still breaks a tie nothing prefers.
+		if (covers > depth || place < wanted) {
 			depth = covers;
+			wanted = place;
 			best = destination.found;
 		}
 	}
@@ -147,7 +189,8 @@ export function currentNavigation(
 	rail: NavigationItem[],
 	sidebars: Record<string, NavigationItem[]>,
 	contexts: NavigationContexts,
-	path: string
+	path: string,
+	prefer: string[] = []
 ): CurrentNavigation {
-	return currentFrom(navigationDestinations(rail, sidebars, contexts), path);
+	return currentFrom(navigationDestinations(rail, sidebars, contexts), path, prefer);
 }

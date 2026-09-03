@@ -722,3 +722,80 @@ def _derive_rail(app: str) -> list[dict]:
 		for doctype in sorted(owners)
 		if owners[doctype] == app and doctype in addressable and doctype in readable
 	]
+
+
+def report_overlaps(app: str) -> dict:
+	"""Which destinations this app's navigation offers from more than one panel (#42464).
+
+	Run it by hand — `bench execute frappe.shell.navigation.report_overlaps --kwargs
+	"{'app': 'erpnext'}"`. Deliberately **not** wired to install or migrate: one address in two
+	panels is usually correct rather than a mistake, so a warning there would fire 45 times on
+	ERPNext's current fixtures and teach authors to ignore it (#42432). Since #42464 the reader
+	keeps the panel they are in, so an overlap costs a cold-load choice, not a relocation.
+
+	Returns `{"shared": [...], "repeated": [...]}`: destinations offered by several panels with
+	the one a cold load takes, and destinations a single panel lists twice, where the first row
+	going down the panel wins the highlight.
+	"""
+	navigation = resolve_navigation(app)
+	sidebars = navigation["sidebars"]
+
+	# Cold-load order is the order the reader is looking at: the rail top to bottom. Panels not
+	# opened by any rail item sort last — they are unreachable, which #42357 already fences.
+	rail_order = {
+		item.get("link_to"): index
+		for index, item in enumerate(navigation["rail"])
+		if item.get("item_type") == "Sidebar" and item.get("link_to")
+	}
+
+	shared: dict[tuple, list[tuple[str, str]]] = {}
+	repeated = []
+
+	for address, rows in sorted(sidebars.items()):
+		seen: dict[tuple, str] = {}
+		for row in rows:
+			destination = _destination_of(row)
+			if not destination:
+				continue
+
+			if destination in seen:
+				repeated.append(
+					{
+						"panel": address,
+						"destination": " ".join(destination),
+						"kept": seen[destination],
+						"shadowed": row.get("key"),
+					}
+				)
+			else:
+				seen[destination] = row.get("key")
+				shared.setdefault(destination, []).append((address, row.get("key")))
+
+	return {
+		"shared": [
+			{
+				"destination": " ".join(destination),
+				"panels": [address for address, _ in places],
+				"cold_load": min(
+					(address for address, _ in places),
+					key=lambda address: rail_order.get(address, len(rail_order)),
+				),
+			}
+			for destination, places in sorted(shared.items())
+			if len(places) > 1
+		],
+		"repeated": repeated,
+	}
+
+
+def _destination_of(item: dict) -> tuple | None:
+	"""What an item points at, or None for a row that goes nowhere.
+
+	The `(link_doctype, link_to)` pair is the address in the model (#42227), so two rows pointing
+	at one destination compare equal here whatever kind or label they carry. `Link` rows leave
+	the prefix and `Section` rows go nowhere, so neither can be somewhere you are standing.
+	"""
+	if item.get("item_type") in ("Link", "Section") or not item.get("link_to"):
+		return None
+
+	return (item.get("link_doctype") or item.get("item_type"), item.get("link_to"))
