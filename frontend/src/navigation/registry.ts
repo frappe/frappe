@@ -1,19 +1,5 @@
-// Type name -> renderer, and what happens when there is no renderer to find.
-//
-// There is no built-in table here. The framework's eight kinds arrive through
-// `contributions/registry.ts` exactly as an app's would, so this file cannot tell one
-// from the other and has no case to grow when a ninth lands (DP2).
-//
-// It also owns the two failure paths, because both must be answered once rather than in
-// eight renderers:
-//
-//   - **No renderer.** #42228 chose skip-and-log over failing the render, which is
-//     #42070's degrade rather than #42069's fail-hard. The item is silently absent from
-//     the rail today; this is what makes it loud.
-//   - **A renderer that throws.** `routeFor` throws for a doctype the address table has
-//     never heard of, which is a real state for an item pointing at an app that has since
-//     been uninstalled. A renderer is app code, so it is treated exactly as a missing one:
-//     skip the item, log once. One app's bad row must not blank the rail.
+// Type name -> renderer, and the two failure paths: no renderer, and a renderer that throws.
+// Both skip the item and log once; one app's bad row must not blank the rail.
 
 import type { NavigationItem } from "@/boot";
 import { itemRenderers } from "@/contributions/registry";
@@ -23,16 +9,8 @@ import type { ItemContext, ItemRenderer, Rendering } from "./types";
 const reported = new Set<string>();
 
 /**
- * A `Sidebar` item's destination is the first destination INSIDE its sidebar, so resolving
- * one item can resolve others, and two sidebars pointing at each other would otherwise be
- * a stack overflow that takes the shell down with it.
- *
- * A DEPTH count rather than a set of keys, and the difference is a real bug rather than
- * taste: a key identifies a row within one container, so the rail and a sidebar may each
- * hold a row called `accounts` without either being a cycle. Guarding on the key would
- * read the second as a repeat of the first and quietly render the rail item as
- * independent — a link silently missing, with nothing said. Depth cannot confuse two rows
- * for one, and the ceiling is far above any real nesting.
+  * A `Sidebar` item resolves rows inside its sidebar, so two sidebars pointing at each other
+  * would recurse. A depth, not a key set: a key is unique only within one container.
  */
 const MAX_DEPTH = 8;
 let depth = 0;
@@ -64,10 +42,7 @@ export function renderingOf(
 	try {
 		const rendering = renderer.render(item, context);
 
-		// A route that does not resolve throws inside `RouterLink`, during render, where
-		// nothing catches it — so one contributed renderer returning a name the route table
-		// does not hold would blank the whole rail. Resolving it HERE puts that failure back
-		// inside the handler this file already promises, which is skip-and-log (#42228).
+		// Resolved here so an unresolvable route fails in this handler, not inside `RouterLink`.
 		if (rendering && "to" in rendering) context.router.resolve(rendering.to);
 
 		return rendering;
@@ -85,12 +60,7 @@ export function renderingOf(
 }
 
 /**
- * What a reader sees on this item.
- *
- * An authored label always wins and is rendered literally — never translated, because
- * whoever typed it typed it in the language they meant (#42230). Only the fallback is the
- * renderer's, and only when it has one: the last resort is the item's own destination,
- * which is what a derived rail row is — an address and no authored presentation.
+  * An authored label wins and is never translated; then the renderer's fallback; then the destination.
  */
 export function labelOf(item: NavigationItem, context: ItemContext): string {
 	if (item.label) return item.label;
@@ -101,8 +71,7 @@ export function labelOf(item: NavigationItem, context: ItemContext): string {
 		const fallback = renderer?.label?.(item, context);
 		if (fallback) return fallback;
 	} catch {
-		// A renderer that cannot even name the item still gets its destination drawn, if
-		// `render` managed one. Falling through is the whole handler.
+		// A renderer that cannot name the item still gets its destination drawn.
 	}
 
 	return item.link_to ?? item.key;
@@ -111,11 +80,7 @@ export function labelOf(item: NavigationItem, context: ItemContext): string {
 function report(itemType: string, message: string, error?: unknown) {
 	if (reported.has(itemType)) return;
 	reported.add(itemType);
-	// Console only. #42228 asked for `frappe.log_error` as well, and the client's one
-	// channel to the Error Log — `reportCustomizationError`, which posts to
-	// `frappe.desk.customization_error.report_customization_error` — has no Python side on
-	// this branch at all; the endpoint exists in no app on the bench. Calling it would be a
-	// line that reads as reporting and does nothing, so this says what it does.
+	// Console only: the client has no working Error Log channel on this branch.
 	if (error) console.error(message, error);
 	else console.error(message);
 }

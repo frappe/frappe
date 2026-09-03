@@ -1,8 +1,5 @@
-// The world one renderer is handed.
-//
-// Composed once per list rather than once per item: `items` and `sidebars` are the same
-// for every row, and `renderingOf` has to close over the finished context so that a
-// `Sidebar` item can resolve rows it did not author.
+// The world one renderer is handed, composed once per list so `renderingOf` closes over
+// the finished context and a `Sidebar` item can resolve rows it did not author.
 
 import type { Router } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
@@ -25,13 +22,9 @@ export function itemContext(
 		router,
 		items,
 		sidebars,
-		// This prefix's pages only, which is the same filter the route table applies: a
-		// `Page` item can only point at a page this document can actually route to.
+		// This prefix's pages only, the same filter the route table applies.
 		pages: pages.filter((page) => page.app === boot.app),
-		// Rejects rather than answering empty off the index, which belongs to no app. `[]`
-		// is a REAL answer here — a module whose contents this person may not read — so
-		// returning it for a question that was never asked would put "nothing left in this
-		// module" on screen over a request that never happened (`contents.ts`).
+		// Rejects off the index: `[]` is a real answer here and must not be forged.
 		contentsOf: (moduleSlug) =>
 			boot.app
 				? fetchContents(boot.app, moduleSlug)

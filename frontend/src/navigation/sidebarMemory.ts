@@ -3,8 +3,7 @@
 
 const KEY = "frappe:desk:sidebar";
 
-// Every address that opens a sidebar is recorded and records get their own, so an uncapped
-// record grows for the life of the tab and every navigation re-serialises all of it.
+// Uncapped, the record would grow for the life of the tab.
 const KEEP = 100;
 
 /** The whole record, or an empty one. */
@@ -14,8 +13,7 @@ function read(): Record<string, string> {
 		const parsed = raw ? JSON.parse(raw) : null;
 		return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
 	} catch {
-		// Storage throws on access in a sandboxed frame and at zero quota. A tab that cannot
-		// remember resolves off the address, which is never wrong, only less continuous.
+		// Storage throws in a sandboxed frame and at zero quota.
 		return {};
 	}
 }

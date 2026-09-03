@@ -1,16 +1,5 @@
-// Which row the address is on, and therefore which sidebar is open.
-//
-// Charter point 7: navigation follows the address, never the reverse. Among panels covering
-// it EQUALLY the reader's open one wins, but a cold load is still the path alone.
-//
-// It is not `router-link-active`. Two reasons, and both are real rather than tidiness. A
-// rail item of type `Sidebar` resolves to the first destination INSIDE its sidebar
-// (`sidebar/frontend/item.js`), so standing on the third row of that sidebar leaves the
-// rail item's own link inactive while the panel it opens is exactly where you are; and
-// `router-link-active` is prefix-based per link, so a list and one of its saved views both
-// match `/sales-invoice/view/open` and two rows light up. One winner, chosen here, is the
-// only version of "the rail and the panel highlight whatever the current URL resolves to"
-// that a reader can act on.
+// Which row the address is on, and so which sidebar is open. Not `router-link-active`: a
+// `Sidebar` rail item's link resolves to a row inside its panel, and prefix matching lights two rows.
 
 import type { NavigationItem } from "@/boot";
 import type { ItemContext, Rendering } from "./types";
@@ -19,11 +8,8 @@ import type { ItemContext, Rendering } from "./types";
 export type Destination = { path: string; found: CurrentNavigation };
 
 /**
- * One item context per container, because a context is composed once per LIST and there are
- * two kinds of list here. `Module Contents` is what makes the difference real: it measures
- * "what is left of this module" against `context.items`, so a row in a sidebar handed the
- * rail's context would hide the doctypes the RAIL already shows and repeat the ones its own
- * panel does.
+  * One context per container: `Module Contents` measures against `context.items`, and a
+  * sidebar row handed the rail's list would hide the wrong doctypes.
  */
 export type NavigationContexts = {
 	rail: ItemContext;
@@ -33,19 +19,15 @@ export type NavigationContexts = {
 export type CurrentNavigation = {
 	/** The rail row to highlight: the destination itself, or the item that opens the panel. */
 	railKey?: string;
-	/** The scrubbed address of the sidebar to show, if the address is inside one (#42356). */
+	/** The scrubbed address of the sidebar to show, if the address is inside one. */
 	sidebar?: string;
 	/** The row inside that sidebar to highlight. */
 	rowKey?: string;
 };
 
 /**
- * How specifically `itemPath` covers `currentPath` — its segment count, or -1 for no cover.
- *
- * Segment-wise rather than `startsWith`, which would read `/sales-orders` as sitting under
- * `/sales-order`. A list covers its own records and its saved views, so `/sales-invoice`
- * stays lit while you read `/sales-invoice/SI-001`; and where a list and a view both cover
- * the address, the view is deeper and wins.
+  * How specifically `itemPath` covers `currentPath`: its segment count, or -1 for no cover.
+  * Segment-wise, or `/sales-orders` would sit under `/sales-order`.
  */
 export function coverage(currentPath: string, itemPath: string): number {
 	const current = currentPath.split("/").filter(Boolean);
@@ -60,25 +42,8 @@ export function coverage(currentPath: string, itemPath: string): number {
 }
 
 /**
- * Every route in this prefix that navigation can be standing on, and what each one means.
- *
- * Separate from the match because the two change at different rates. Resolving a
- * destination costs a `renderingOf` and a `router.resolve`, twice over — the registry
- * resolves once to keep an unresolvable route out of `RouterLink` — and the framework's own
- * prefix carries 194 rail items (#42362). Doing that per navigation would put hundreds of
- * route resolutions in the way of every click. The payload changes only on a save, so this
- * is computed against the payload and the match against the path.
- *
- * Everything with a route competes: the rail's own rows, and the rows of every sidebar the
- * rail can open. A rail item that opens a sidebar competes THROUGH that sidebar's rows
- * rather than through its own destination, because its own destination is one of those rows
- * already (`sidebar/frontend/item.js`) and counting it twice would let the linked item beat
- * the panel it opens — the panel would then open with nothing marked inside it.
- *
- * Order is the order the person is looking at: the rail top to bottom, and a linked item's
- * panel where the item sits. That is what breaks a tie, and ties are ordinary rather than
- * exotic — #42357 counted 101 rows in ERPNext linking outside their own module, so one
- * address really does sit in two places.
+  * Every route navigation can stand on, computed once per payload, not per click. A rail
+  * item that opens a sidebar competes through that sidebar's rows, not its own destination.
  */
 export function navigationDestinations(
 	rail: NavigationItem[],
@@ -89,8 +54,7 @@ export function navigationDestinations(
 	const router = contexts.rail.router;
 
 	const add = (rendering: Rendering | null, found: CurrentNavigation) => {
-		// `href` rows leave the prefix and `group`/`expand` rows go nowhere, so neither can be
-		// where you are standing.
+		// `href` rows leave the prefix and `group`/`expand` rows go nowhere.
 		if (!rendering || !("to" in rendering)) return;
 
 		// Resolvable, because `renderingOf` already resolved it once (`registry.ts`).
@@ -102,8 +66,7 @@ export function navigationDestinations(
 		const sidebar = rendering && "sidebar" in rendering ? rendering.sidebar : undefined;
 
 		if (sidebar) {
-			// Its own rows, through their own context — the one the panel will draw them with,
-			// so what is a destination here is a destination there.
+			// Through the sidebar's own context, the one the panel draws them with.
 			const inside = contexts.sidebars[sidebar] ?? contexts.rail;
 			for (const row of sidebars[sidebar] ?? []) {
 				add(inside.renderingOf(row), { railKey: item.key, sidebar, rowKey: row.key });
@@ -118,10 +81,8 @@ export function navigationDestinations(
 }
 
 /**
- * The rail row, the sidebar and the row inside it that `path` is standing on.
- *
- * `prefer` holds the reader's panels, most wanted first, and breaks ties only: deeper
- * coverage still wins, and an address nothing covers returns `{}`.
+  * The rail row, sidebar and row inside it that `path` is standing on. `prefer` breaks ties
+  * only: deeper coverage still wins, and an address nothing covers returns `{}`.
  */
 export function currentFrom(
 	destinations: Destination[],
@@ -143,8 +104,7 @@ export function currentFrom(
 		// compare or a preferred panel wins on an address it does not hold.
 		if (covers < 0 || covers < depth) continue;
 
-		// Strictly more wanted, so list order still breaks a tie nothing prefers: the rail top
-		// to bottom, and the first of two rows one panel points at the same place.
+		// Strictly more wanted, so list order still breaks a tie nothing prefers.
 		const place = rank(destination.found);
 		if (covers > depth || place < wanted) {
 			depth = covers;
