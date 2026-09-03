@@ -330,6 +330,25 @@ test("streamed thinking joins the trailing tool group's dropdown", () => {
 	assert.equal(conversation.liveLabel, "Working")
 })
 
+test("whitespace-only text between a thought and its tool call renders nothing", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 1,
+		content: [
+			{ type: "thinking", thinking: "look at the file" },
+			{ type: "text", text: "  " },
+			{ type: "tool_call", id: "call-1", name: "read_file", arguments: { path: "sign.jpg" } },
+		],
+		stop_reason: "tool_use",
+	})
+
+	const items = buildItems(conversation)
+	// the thought folds into the tool group instead of standing alone above an empty text item
+	assert.deepEqual(items.map((item) => item.kind), ["group"])
+	assert.deepEqual(items[0].steps[0].thought, { type: "thinking", thinking: "look at the file" })
+})
+
 test("streamed thinking stays visible until the actionable tool call arrives", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })

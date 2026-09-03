@@ -479,7 +479,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 			const key = provisional
 				? `p:${blockIdx}`
 				: `${block.type === "thinking" ? "th" : "t"}:${entry.seq}:${blockIdx}`
-			if (block.type === "text" && block.text) {
+			if (block.type === "text" && block.text.trim()) {
 				flushThoughts()
 				items.push({ kind: "text", key, turnKey: currentTurnKey, block, entry, provisional })
 			} else if (block.type === "thinking") {
