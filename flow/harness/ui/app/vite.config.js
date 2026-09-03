@@ -20,7 +20,7 @@ function frappeUISrc() {
 // the app talks same-origin. FLOW_DAEMON_URL overrides the target.
 const daemon = process.env.FLOW_DAEMON_URL ?? "http://127.0.0.1:8787"
 const proxy = Object.fromEntries(
-	["/healthz", "/models", "/sessions", "/providers", "/fs"].map((path) => [
+	["/healthz", "/models", "/sessions", "/providers", "/fs", "/skills", "/tools", "/extensions"].map((path) => [
 		path,
 		{ target: daemon, changeOrigin: true },
 	]),
