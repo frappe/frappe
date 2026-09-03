@@ -1,7 +1,5 @@
 // The shell's runtime icon source: the sprite desk v1 loads through `app_include_icons`.
-//
-// Both of frappe-ui's lucide paths are build-time and cannot draw a name that arrives
-// with boot, and `tailwind.config.js` gives nobody a safelist.
+// frappe-ui's lucide paths are build-time and cannot draw a name that arrives with boot.
 
 import { ref } from "vue";
 
@@ -10,9 +8,7 @@ const SPRITE_URL = "/assets/frappe/icons/lucide/icons.svg";
 // `recordPage/iconClasses.ts` reads it.
 const CONTAINER_ID = "frappe-icon-sprite";
 
-/** Flips once the sprite is in the document. */
-// A ref and not a plain flag: `<use>` picking up a symbol that arrives later is not
-// something every browser agrees on, so arrival has to be a reactive dependency.
+/** Flips once the sprite is in the document. A ref: not every browser lets a `<use>` pick up a symbol that arrives later. */
 export const spriteLoaded = ref(false);
 
 let loading: Promise<void> | null = null;

@@ -38,7 +38,7 @@ def read(ref, path):
 
 
 def strip(path, source):
-	lines, protected = strip_python(source) if path.endswith(".py") else strip_curly(source)
+	lines, protected = strip_python(source) if path.endswith(".py") else strip_curly(source, path)
 	return "\n".join(normalised(lines, protected))
 
 
@@ -68,15 +68,23 @@ def strip_python(source):
 	return lines, protected
 
 
-def strip_curly(source):
-	return CurlySource(source).without_comments()
+def strip_curly(source, path=""):
+	return CurlySource(source, template_span(source) if path.endswith(".vue") else None).without_comments()
+
+
+def template_span(source):
+	"""The outer `<template>` block of a Vue file, where only `"` delimits a string."""
+	start = source.find("<template")
+	end = source.rfind("</template>")
+	return (start, end) if 0 <= start < end else None
 
 
 class CurlySource:
 	"""Comment removal for JS, TS and Vue templates, aware of strings, template literals and regexes."""
 
-	def __init__(self, source):
+	def __init__(self, source, template=None):
 		self.source = source
+		self.template = template
 		self.position = 0
 		self.line = 0
 		self.output = []
@@ -85,7 +93,7 @@ class CurlySource:
 	def without_comments(self):
 		while self.position < len(self.source):
 			character = self.source[self.position]
-			if character in JS_STRING_QUOTES:
+			if character in self.quotes():
 				self.copy_string(character)
 			elif self.starts("//"):
 				self.skip_to("\n")
@@ -98,6 +106,12 @@ class CurlySource:
 			else:
 				self.emit(character)
 		return "".join(self.output).split("\n"), self.protected
+
+	def quotes(self):
+		"""An apostrophe in template text is not a string; only `"` delimits one there."""
+		if self.template and self.template[0] <= self.position < self.template[1]:
+			return '"'
+		return JS_STRING_QUOTES
 
 	def starts(self, text):
 		return self.source.startswith(text, self.position)
@@ -162,6 +176,13 @@ SELF_TEST_CASES = [
 		"const a = 1\nconst b = 2\n",
 	),
 	("js code change", False, "x.ts", "const b = 2\n", "const b = 3\n"),
+	(
+		"vue apostrophe in template text",
+		True,
+		"x.vue",
+		"<template>\n\t<p>the app's home</p>\n\t<!-- a -->\n</template>\n<script>\nconst a = 1 // t\n</script>\n",
+		"<template>\n\t<p>the app's home</p>\n</template>\n<script>\nconst a = 1\n</script>\n",
+	),
 	(
 		"vue template comment only",
 		True,
