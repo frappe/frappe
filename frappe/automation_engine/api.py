@@ -12,7 +12,7 @@ from frappe.automation_engine.events import registered_events
 from frappe.automation_engine.queue import QUEUE
 from frappe.automation_engine.relationships import get_relationship_definitions
 from frappe.automation_engine.runner import TASK_METHOD, execute_automation
-from frappe.utils import now
+from frappe.utils import cint, now
 
 TRIGGER_TYPES = [
 	"Doc Created",
@@ -224,16 +224,20 @@ TRIAL_SAVEPOINT = "automation_trial"
 
 
 @frappe.whitelist()
-def trial_run(automation: str, docname: str | None = None) -> dict:
+def trial_run(
+	automation: str, docname: str | None = None, branch_overrides: dict | str | None = None
+) -> dict:
 	"""Execute `automation` against `docname` for real, then roll everything back.
 
 	The runner builds its trace in memory, so the rollback discards every write the run made
-	and still leaves the trace to return.
+	and still leaves the trace to return. `branch_overrides` maps an If step's idx to the arm
+	to take, so the arm this record would not reach can still be tried.
 	"""
 	rule = _trial_target(automation, docname)
+	overrides = _branch_overrides(rule, branch_overrides)
 	frappe.db.savepoint(TRIAL_SAVEPOINT)
 	try:
-		with _trial_mode():
+		with _trial_mode(overrides):
 			row_name = _trial_queue_row(rule, docname)
 			execute_automation(row_name)
 			return _trial_result(row_name, docname)
@@ -242,7 +246,7 @@ def trial_run(automation: str, docname: str | None = None) -> dict:
 
 
 @contextmanager
-def _trial_mode():
+def _trial_mode(branch_overrides: dict):
 	"""Keep the trial inside the transaction, and out of the flow's live bookkeeping.
 
 	An action that commits mid-step would make the trial real, and the circuit breaker (Redis)
@@ -250,13 +254,29 @@ def _trial_mode():
 	"""
 	original = frappe.db.commit
 	previous = frappe.flags.get("in_automation_trial")
+	previous_overrides = frappe.flags.get("automation_branch_overrides")
 	frappe.db.commit = lambda *args, **kwargs: None
 	frappe.flags.in_automation_trial = True
+	frappe.flags.automation_branch_overrides = branch_overrides
 	try:
 		yield
 	finally:
 		frappe.db.commit = original
 		frappe.flags.in_automation_trial = previous
+		frappe.flags.automation_branch_overrides = previous_overrides
+
+
+def _branch_overrides(rule, overrides) -> dict:
+	"""Keyed by the If step's idx as a string, matching the branch map the run records."""
+	overrides = frappe.parse_json(overrides) if isinstance(overrides, str) else (overrides or {})
+	chosen = {}
+	for idx, arm in overrides.items():
+		if arm not in ("If", "Else"):
+			frappe.throw(_("Branch for step {0} must be If or Else").format(idx))
+		if not rule.if_step_at(cint(idx)):
+			frappe.throw(_("Step {0} is not an If step").format(idx))
+		chosen[str(cint(idx))] = arm
+	return chosen
 
 
 def _trial_target(automation: str, docname: str | None):
@@ -297,5 +317,6 @@ def _trial_result(row_name: str, docname: str | None) -> dict:
 		"status": status,
 		"document": docname,
 		"steps": steps,
+		"branches": parsed.get("branches") or {},
 		"error_summary": parsed.get("error_summary"),
 	}
