@@ -110,7 +110,7 @@ class CurlySource:
 	def quotes(self):
 		"""In template text an apostrophe is not a string; `'` delimits one only as an attribute value."""
 		if self.template and self.template[0] <= self.position < self.template[1]:
-			return "\"'" if self.source.endswith("=", 0, self.position) else '"'
+			return "\"'" if self.source[: self.position].rstrip().endswith("=") else '"'
 		return JS_STRING_QUOTES
 
 	def starts(self, text):
@@ -189,6 +189,13 @@ SELF_TEST_CASES = [
 		"x.vue",
 		"<template>\n\t<a href='https://a.example/x'>the app's home</a>\n</template>\n",
 		"<template>\n\t<a href='https://b.example/x'>the app's home</a>\n</template>\n",
+	),
+	(
+		"vue single-quoted attribute with spaces around =",
+		False,
+		"x.vue",
+		"<template>\n\t<a href = 'https://a.example/x'>the app's home</a>\n</template>\n",
+		"<template>\n\t<a href = 'https://b.example/x'>the app's home</a>\n</template>\n",
 	),
 	(
 		"vue template comment only",
