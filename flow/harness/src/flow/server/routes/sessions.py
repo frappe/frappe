@@ -13,6 +13,7 @@ Two ergonomics from one durable log:
 from __future__ import annotations
 
 import asyncio
+import os
 from collections.abc import Callable
 from dataclasses import asdict
 from typing import Annotated, Literal
@@ -27,7 +28,7 @@ from flow.model.discovery import context_window_for
 from flow.server.policy import ServerPolicy, gate
 from flow.server.utils import sse
 from flow.server.utils.workspace import read_file_bytes, read_text_file, resolve_allowed_path
-from flow.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES, is_image_bytes
+from flow.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES
 from flow.session.config import SessionConfig
 from flow.session.file_changes import file_change_results, reconstruct_original
 from flow.session.log import SessionLogError
@@ -246,15 +247,10 @@ def create_sessions_router(
 		try:
 			for path in req.paths:
 				full_path = resolve_allowed_path(session.config.cwd, path, session.allowed_roots)
-				# read under the wider image cap, then let the bytes decide: a filename
-				# is not evidence of type, and add_text_file still applies the text cap
 				data = await asyncio.to_thread(read_file_bytes, full_path, MAX_SOURCE_BYTES, purpose="attach")
-				store_one = (
-					session.attachment_store.add_bytes
-					if is_image_bytes(data)
-					else session.attachment_store.add_text_file
-				)
-				stored.append(await asyncio.to_thread(store_one, path, data))
+				# named by its cwd-relative path, so the model can address the file
+				name = os.path.relpath(full_path, session.config.cwd)
+				stored.append(await asyncio.to_thread(session.attachment_store.add_file, name, data))
 		except Exception:
 			for item in stored:
 				session.attachment_store.remove(item.id)

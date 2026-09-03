@@ -63,26 +63,22 @@ class AttachmentStore:
 		processed = _process_image(data)
 		if processed is None:
 			raise AttachmentError(f"{name} is not a supported image")
-		data, mime_type, width, height = processed
-		content = AttachmentContent(
-			id=uuid.uuid4().hex[:24],
-			name=name,
-			mime_type=mime_type,
-			size=len(data),
-			kind="image",
-			width=width,
-			height=height,
-		)
-		self._write(content, data)
-		return content
+		return self._store_image(name, processed)
 
-	def add_text_file(self, name: str, data: bytes) -> AttachmentContent:
-		"""Validate and store one server-read project file (the @file-mention path)."""
+	def add_file(self, name: str, data: bytes) -> AttachmentContent:
+		"""Validate and store one server-read project file (the @-mention path): an
+		image by content, else UTF-8 text under the text cap. `name` keeps its
+		directories so the model can address the file."""
 		if not data:
 			raise AttachmentError("attachment is empty")
+		if len(data) > MAX_SOURCE_BYTES:
+			raise AttachmentError(f"attachment exceeds the {MAX_SOURCE_BYTES // 1024 // 1024} MB limit")
+		name = _safe_name(name, keep_dirs=True)
+		processed = _process_image(data)
+		if processed is not None:
+			return self._store_image(name, processed)
 		if len(data) > MAX_TEXT_BYTES:
-			raise AttachmentError(f"attachment exceeds the {MAX_TEXT_BYTES // 1024} KB limit")
-		name = _safe_name(name)
+			raise AttachmentError(f"{name} exceeds the {MAX_TEXT_BYTES // 1024} KB limit for text")
 		try:
 			data.decode("utf-8")
 		except UnicodeDecodeError:
@@ -93,6 +89,20 @@ class AttachmentStore:
 			mime_type=mimetypes.guess_type(name)[0] or "text/plain",
 			size=len(data),
 			kind="text",
+		)
+		self._write(content, data)
+		return content
+
+	def _store_image(self, name: str, processed: tuple[bytes, str, int, int]) -> AttachmentContent:
+		data, mime_type, width, height = processed
+		content = AttachmentContent(
+			id=uuid.uuid4().hex[:24],
+			name=name,
+			mime_type=mime_type,
+			size=len(data),
+			kind="image",
+			width=width,
+			height=height,
 		)
 		self._write(content, data)
 		return content
@@ -203,23 +213,10 @@ class AttachmentStore:
 		return os.path.join(self.path, f"{attachment_id}.used")
 
 
-def is_image_bytes(data: bytes) -> bool:
-	"""Whether `data` is a supported image, judged by content rather than filename.
-
-	Only the header is parsed, so this stays cheap for a file that turns out to be text.
-	Callers use it to pick between `add_bytes` and `add_text_file`; each still applies
-	its own format and size policy.
-	"""
-	try:
-		with Image.open(io.BytesIO(data)) as image:
-			return image.format in _SUPPORTED_IMAGE_FORMATS
-	except (UnidentifiedImageError, OSError, ValueError):
-		return False
-
-
-def _safe_name(name: str) -> str:
+def _safe_name(name: str, *, keep_dirs: bool = False) -> str:
 	name = name.replace("\\", "/").strip()
-	name = name.split("/")[-1]
+	if not keep_dirs:
+		name = name.split("/")[-1]
 	name = "".join(char for char in name if char >= " " and char != "\x7f")[:255]
 	if not name or name in {".", ".."}:
 		raise AttachmentError("attachment needs a valid filename")

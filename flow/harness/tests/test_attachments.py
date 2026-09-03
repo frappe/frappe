@@ -92,21 +92,24 @@ def test_attachment_store_rejects_non_images(tmp_path):
 			raise AssertionError(f"non-image attachment was accepted: {name}")
 
 
-def test_attachment_store_add_text_file_round_trips(tmp_path):
+def test_attachment_store_add_file_keeps_the_path_and_decides_by_content(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	attachment = store.add_text_file("src/notes.txt", b"hello world")
+	attachment = store.add_file("src/notes.txt", b"hello world")
 
 	assert attachment.kind == "text"
-	assert attachment.name == "notes.txt"  # _safe_name strips the directory
+	assert attachment.name == "src/notes.txt"  # mentions keep their directories
 	assert attachment.mime_type == "text/plain"
 	assert store.read(attachment.id) == b"hello world"
 
+	image = store.add_file("img/shot", _png())  # image bytes under an extensionless name
+	assert (image.kind, image.name, image.mime_type) == ("image", "img/shot", "image/png")
 
-def test_attachment_store_add_text_file_rejects_empty_oversized_and_binary(tmp_path):
+
+def test_attachment_store_add_file_rejects_empty_oversized_and_binary(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 
 	try:
-		store.add_text_file("empty.txt", b"")
+		store.add_file("empty.txt", b"")
 	except AttachmentError as error:
 		assert "empty" in str(error)
 	else:
@@ -114,14 +117,14 @@ def test_attachment_store_add_text_file_rejects_empty_oversized_and_binary(tmp_p
 
 	oversized = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
 	try:
-		store.add_text_file("big.txt", oversized)
+		store.add_file("big.txt", oversized)
 	except AttachmentError as error:
 		assert "KB limit" in str(error)
 	else:
 		raise AssertionError("oversized text attachment was accepted")
 
 	try:
-		store.add_text_file("binary.bin", b"\xff\xfe\x00\x01")
+		store.add_file("binary.bin", b"\xff\xfe\x00\x01")
 	except AttachmentError as error:
 		assert "not a UTF-8 text file" in str(error)
 	else:
@@ -354,15 +357,16 @@ def test_attach_files_http_reads_project_files_by_path(tmp_path):
 	client = TestClient(create_app(store))
 	project = tmp_path / "project"
 	project.mkdir()
-	(project / "notes.txt").write_text("hello from disk")
+	(project / "src").mkdir()
+	(project / "src" / "notes.txt").write_text("hello from disk")
 
 	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["notes.txt"]})
+	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["src/notes.txt"]})
 
 	assert response.status_code == 200
 	attachment = response.json()["attachments"][0]
 	assert attachment["kind"] == "text"
-	assert attachment["name"] == "notes.txt"
+	assert attachment["name"] == "src/notes.txt"  # the cwd-relative path, not the basename
 
 	run = client.post(
 		f"/sessions/{sid}/run",
@@ -372,7 +376,7 @@ def test_attach_files_http_reads_project_files_by_path(tmp_path):
 	assert run.status_code == 200
 	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
 	user = next(entry for entry in entries if entry["type"] == "user_message")
-	assert user["content"][1]["name"] == "notes.txt"
+	assert user["content"][1]["name"] == "src/notes.txt"
 
 
 def test_attach_files_http_classifies_by_content_not_extension(tmp_path):

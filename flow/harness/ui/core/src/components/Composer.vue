@@ -498,7 +498,7 @@ function pickMention(path) {
 	if (!attachments.value.some((item) => item.mentionPath === path) && !atAttachmentLimit()) {
 		attachments.value.push({
 			key: `mention:${attachmentKey++}`,
-			name: path.split("/").pop() || path,
+			name: path,
 			kind: "file",
 			mentionPath: path,
 		})
