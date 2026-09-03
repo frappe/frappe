@@ -1,4 +1,4 @@
-// The merge & ordering rules (wayfinder ticket 06) as executable claims.
+// The merge & ordering rules as executable claims.
 import { describe, expect, it } from "vitest";
 import { nextTick, watchEffect } from "vue";
 import { Surface } from "../surface";
@@ -93,10 +93,8 @@ describe("surface verbs", () => {
 	});
 });
 
-// Ticket 71: a replay used to clear the ops synchronously and re-add them a
-// microtask later, so the host rendered the strip without its scripted items in
-// between -- and a keyless `v-for` rebuilt everything under it, losing the
-// reader's place. The staged replay is the fix, and these are its rules.
+// A replay used to clear the ops and re-add them a microtask later, so a keyless
+// `v-for` rebuilt the strip and lost the reader's place. These are the staged replay's rules.
 describe("staged replay", () => {
 	it("never renders the middle of a replay", async () => {
 		const surface = new Surface();

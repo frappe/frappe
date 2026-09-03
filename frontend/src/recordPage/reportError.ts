@@ -1,8 +1,5 @@
-// The third destination for a customization failure (ticket 19): console always,
-// toast for script editors, and — from here — one Error Log row an admin can read
-// without being in the room. Fire-and-forget in every direction: a failed report
-// never toasts, never logs, never retries, because an error channel that can
-// itself error is a loop.
+// A customization failure's Error Log row, which an admin can read without being in
+// the room. Fire-and-forget: an error channel that can itself error is a loop.
 import { call } from "frappe-ui";
 import { HOST_SOURCE } from "./context";
 
@@ -14,13 +11,10 @@ const STACK_LIMIT = 4000;
 
 export type CustomizationTier = "page_script" | "extension" | "file_script";
 
-// One report per (source, event) per page session. This is the layer that kills
-// the replay storm before a request is made, and still yields one row per user
-// per visit — "50 people hit this today" at a volume the log can hold.
+// One report per (source, event) per page session, which kills a replay storm before a request is made.
 const reported = new Set<string>();
-// An error already filed where more was known about it — a tombstone hit names
-// the removal and its replacement — must not be filed a second time by the
-// handler catch that sees it on the way out.
+// An error already filed where more was known about it must not be filed again
+// by the handler catch that sees it on the way out.
 const filed = new WeakSet<object>();
 
 export interface CustomizationErrorContext {
@@ -53,8 +47,7 @@ export function reportCustomizationError(
   if (reported.has(key)) return;
   reported.add(key);
   // Every call site is already inside a catch, so a throw from here would escape
-  // as the failure of whatever it was reporting. `call` is guarded both ways:
-  // synchronously, and for whatever it hands back.
+  // as the failure of whatever it was reporting.
   try {
     const sent = call(REPORT_METHOD, {
       source: context.source,

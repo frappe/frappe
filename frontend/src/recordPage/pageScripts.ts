@@ -1,6 +1,5 @@
 // The Page Script tier: the doctype's stored scripts, fetched once per doctype,
-// evaluated as modules and registered as sources in creation order — after the
-// host's file scripts and app extensions, because this runs at page mount.
+// evaluated as modules and registered as sources after file scripts and extensions.
 import { readonly, ref } from "vue";
 import { call, toast } from "frappe-ui";
 import { withRegisteringSource } from "./context";
@@ -19,24 +18,18 @@ const TIER_SOURCE = "page-scripts";
 const tiers = new Map<string, Promise<void>>();
 const sources = new Map<string, string[]>();
 const toasted = new Set<string>();
-// 08 §6's toast as a shared channel: the compatibility layer reports a
-// removal hit through it, keyed by source and removed name.
+// The shared toast channel; the compatibility layer reports a removal hit through it.
 const notified = new Set<string>();
 // Two saves in quick succession overlap: the later build must win, and the
 // earlier one must not register its now-stale scripts behind it.
 const builds = new Map<string, number>();
-// Whether this session may write Page Scripts — the permission is on the
-// doctype, so it is one answer for every doctype, and the tier's fetch already
-// carries it. Gates the failure toast below and the editor's entry affordance.
+// Whether this session may write Page Scripts; the permission is on the doctype,
+// so it is one answer for every doctype. Gates the failure toast and the editor.
 const writable = ref(false);
 
 export const canWritePageScripts = readonly(writable);
 
-/**
- * Tells a script author, and only a script author, about a customization failure
- * — once per key per page session. A reader who cannot edit Page Scripts is being
- * told about somebody else's bug, so they are not told at all.
- */
+/** Tells a script author, and only a script author, about a customization failure, once per key. */
 export function toastScriptError(key: string, message: string) {
   if (!writable.value || notified.has(key)) return;
   notified.add(key);

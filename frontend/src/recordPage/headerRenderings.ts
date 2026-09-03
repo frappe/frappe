@@ -1,5 +1,5 @@
-// How the header's one flat list becomes its renderings (tickets 65 and 77),
-// and what happens when it asks for more top-level controls than fit (66).
+// How the header's one flat list becomes its renderings, and what happens when
+// it asks for more top-level controls than fit.
 import { Surface, type ResolvedItem } from "./surface";
 import type { HeaderAction, Position } from "./types";
 
@@ -7,31 +7,17 @@ import type { HeaderAction, Position } from "./types";
 export type ContainerDisplay = "dropdown" | "section";
 
 /**
- * How many containers may be stacked (ticket 76 §3). Ours to choose, but half
- * of it is forced: `MenuGroupOption.options` is `MenuOption[]` and `MenuOption`
- * excludes `MenuGroupOption`, so a section inside a band cannot keep its title
- * at any depth. A *submenu* could nest further — `MenuSubmenuOption.submenu` is
- * `MenuOptions`, which does admit groups — and is capped anyway, so `order` and
- * the overflow projection stay unambiguous.
+ * Half of this is forced: `MenuOption` excludes `MenuGroupOption`, so a section
+ * inside a band cannot keep its title at any depth.
  */
 export const MAX_CONTAINER_DEPTH = 2;
 
-/**
- * One row of a rendered list: an action, or a container holding more rows.
- *
- * The *authored* vocabulary stays flat — every item is still addressable by its
- * one name — and the nesting appears only here, where the rendering is decided
- * (ticket 77 §3).
- */
+/** One row of a rendered list: an action, or a container holding more rows. */
 export interface HeaderNode {
   item: HeaderAction;
   /** Set when this row holds others; absent on a plain action row. */
   container?: ContainerDisplay;
-  /**
-   * Set when this container could not render where it was declared. It is then
-   * a band of the `⋯` menu and never a top-level control, so a `group` cycle
-   * cannot win a slot in the header row (ticket 77 §3).
-   */
+  /** Set when this container could not render where declared; it is then a band of `⋯`, never a control. */
   clamped?: boolean;
   members: HeaderNode[];
 }
@@ -41,11 +27,7 @@ export type HeaderControl =
   | { kind: "button"; item: HeaderAction }
   | { kind: "dropdown"; item: HeaderAction; members: HeaderNode[] };
 
-/**
- * One band of the `⋯` menu. A band shows a heading iff its container was
- * declared — a `section` the author wrote, or a dropdown that did not fit and
- * collapsed whole (ticket 77 §7, restating 66 §4).
- */
+/** One band of the `⋯` menu; it shows a heading iff its container was declared. */
 export interface HeaderBand {
   group: string;
   label?: string;
@@ -58,16 +40,8 @@ export interface HeaderProjection {
 }
 
 /**
- * Project the resolved items into the header's controls and the `⋯` menu's
- * bands, given how many top-level controls the host has room for.
- *
- * Takes the resolved list rather than the visible one because a **hidden
- * container takes its members with it**, however deep: it is a floor above them,
- * as a hidden `panelSection` is above its fields, and `hide('telephony')` is how
- * a script removes the whole control (tickets 66 §5 and 77).
- *
- * Overflow is host-side and unobservable: a script cannot read back that its
- * button was demoted, so nothing here writes to the surface.
+ * Projects the resolved items into the header's controls and the `⋯` menu's bands.
+ * Takes the resolved list, not the visible one: a hidden container takes its members with it.
  */
 export function projectHeaderActions(
   resolved: ResolvedItem<HeaderAction>[],
@@ -77,8 +51,7 @@ export function projectHeaderActions(
   const items = surviving(resolved);
   const containers = containersOf(items);
   const tree = prune(build(items, containers));
-  // An empty dropdown is a button that opens nothing, so it is dropped before
-  // the budget applies and its slot passes to the next control in order.
+  // An empty dropdown is a button that opens nothing, so it is dropped before the budget applies.
   const controls = tree
     .filter(isControl)
     .map(asControl)
@@ -103,13 +76,7 @@ function containersOf(items: HeaderAction[]) {
   return containers;
 }
 
-/**
- * The items a hidden container has not taken with it.
- *
- * Only a *container* is a floor: a `group` naming a plain item names no
- * container at all, which is the undeclared branch, so that item's own
- * visibility says nothing about the band.
- */
+/** The items a hidden container has not taken with it; a `group` naming a plain item is no floor. */
 function surviving(resolved: ResolvedItem<HeaderAction>[]): HeaderAction[] {
   const containers = containersOf(resolved.map((entry) => entry.item));
   const hidden = new Set(
@@ -148,12 +115,8 @@ function depthOf(name: string, containers: Map<string, HeaderAction>): number {
 }
 
 /**
- * Where a container actually renders. One that nests too deep is **clamped to
- * the deepest level it can reach, never ignored**: ignoring its `group` would
- * promote it to a top-level control, where it would eat a budget slot and
- * compete with the record's title (ticket 77 §3). A cycle reaches no level at
- * all, so it lands in `⋯` as a band of its own — reachable, titled, and costing
- * nothing.
+ * Where a container renders. One nesting too deep is clamped to the deepest level
+ * it can reach, never promoted to a control; a cycle lands in `⋯` as a band of its own.
  */
 function placeContainer(
   item: HeaderAction,
@@ -162,9 +125,7 @@ function placeContainer(
   const depth = depthOf(item.name, containers);
   if (depth <= MAX_CONTAINER_DEPTH) {
     const group = declaredGroup(item, containers);
-    // Legal depth, but a band cannot hold a band, so this one renders with its
-    // title dropped. Said out loud because it is the author's own declaration
-    // losing, not the viewport taking it (which is demotion, and silent).
+    // A band cannot hold a band, so this one renders with its title dropped.
     if (group && containerDisplay(item) === "section")
       if (containers.get(group)!.display === "section")
         warnOnce(
@@ -190,11 +151,7 @@ function declaredGroup(
   return item.group && containers.has(item.group) ? item.group : undefined;
 }
 
-/**
- * The one rule, with its default: `group: 'x'` puts an item inside the item
- * named `x`; an undeclared `x` synthesises an anonymous, untitled container,
- * which is the adjacency band a script has always got (ticket 77 §2).
- */
+/** `group: 'x'` puts an item inside the item named `x`; an undeclared `x` synthesises an anonymous container. */
 function build(items: HeaderAction[], containers: Map<string, HeaderAction>) {
   const nodes = new Map<string, HeaderNode>();
   const top: HeaderNode[] = [];
@@ -214,8 +171,7 @@ function build(items: HeaderAction[], containers: Map<string, HeaderAction>) {
     if (placed.clamped) node.clamped = true;
     parents.push(placed.group);
   }
-  // A member joins its container wherever the container sits: a container is
-  // placed by its own item, never by its first member (ticket 65).
+  // A container is placed by its own item, never by its first member.
   items.forEach((item, index) => {
     const node = nodes.get(item.name)!;
     const parent = parents[index];
@@ -226,11 +182,8 @@ function build(items: HeaderAction[], containers: Map<string, HeaderAction>) {
 }
 
 /**
- * Drop every dropdown left with nothing in it, at any depth: it is a trigger
- * that opens nothing, which is 66 §5's rule about a top-level control applied
- * where clamping actually produces the case — a container whose only member was
- * lifted out from under it. A *section* needs no such rule; an empty group is
- * dropped by frappe-ui's own normalization.
+ * Drops every dropdown left empty, at any depth. A section needs no such rule:
+ * frappe-ui drops an empty group itself.
  */
 function prune(nodes: HeaderNode[]): HeaderNode[] {
   return nodes.flatMap((node) => {
@@ -253,10 +206,8 @@ function asControl(node: HeaderNode): HeaderControl {
     : { kind: "button", item: node.item };
 }
 
-// A demoted control keeps a band of its own, ahead of the built-ins and in
-// top-level order, with no signal that it wanted to be a button (ticket 66 §4).
-// Banding by its own name, not by its `group`, is what keeps a demoted button
-// from reading as a member of a dropdown that was demoted beside it.
+// A demoted control keeps a band of its own, ahead of the built-ins. Banded by its
+// own name, not its `group`, so it does not read as a member of a dropdown demoted beside it.
 function demotedBands(controls: HeaderControl[]): HeaderBand[] {
   return controls.map((control) =>
     control.kind === "button"
@@ -273,21 +224,15 @@ function row(item: HeaderAction): HeaderNode {
   return { item, members: [] };
 }
 
-/**
- * A band's rows. A submenu survives here — `MenuSubmenuOption` is a legal
- * `MenuOption` — but a section cannot keep its title inside a band, so it
- * flattens and its members are spliced in where it sat (ticket 77 §4). That is
- * demotion being lossy, silent and unobservable, as 66 already had it.
- */
+/** A band's rows: a section cannot keep its title inside a band, so it flattens in place. */
 function bandRows(nodes: HeaderNode[]): HeaderNode[] {
   return nodes.flatMap((node) =>
     node.container === "section" ? bandRows(node.members) : [node]
   );
 }
 
-// Bands are derived from the one flat list by adjacency, except where an author
-// declared a container: a top-level `section` titles a band and consumes no
-// budget slot, since it is not a control (ticket 77 §2).
+// Bands are derived by adjacency, except where an author declared a container:
+// a top-level `section` titles a band and consumes no budget slot.
 function menuBands(top: HeaderNode[]): HeaderBand[] {
   const bands: HeaderBand[] = [];
   for (const node of top) {
@@ -311,11 +256,8 @@ function menuBands(top: HeaderNode[]): HeaderBand[] {
 }
 
 /**
- * Which list an item is ordered within, as a comparable key. Read off the
- * **declared** `display` and never off the effective one, so nothing computed
- * from it can become width-dependent (ticket 66 §5): a demoted control is still
- * `row` here, because demotion is the host's answer to a width, not the
- * author's to a question.
+ * Which list an item is ordered within. Read off the declared `display`, never
+ * the effective one, so nothing computed from it can become width-dependent.
  */
 export function renderingOf(item: HeaderAction, items: HeaderAction[]): string {
   const containers = containersOf(items);
@@ -328,20 +270,14 @@ export function renderingOf(item: HeaderAction, items: HeaderAction[]): string {
 type AnchorClaim = { verb: string; name: string; anchor: string };
 
 /**
- * The header's surface, which is an ordinary `Surface` plus one warning: an
- * anchor naming an item in a different rendering still splices where it always
- * did, and says so (ticket 65).
- *
- * The check runs over the *resolved* list rather than at call time, because a
- * member can be added before the container that decides its rendering.
+ * An ordinary `Surface` plus one warning: an anchor naming an item in a different
+ * rendering. Checked over the resolved list, since a member can be added before its container.
  */
 export class HeaderActionsSurface extends Surface<HeaderAction> {
   private claims: AnchorClaim[] = [];
   private said = new Set<string>();
 
-  // One claim per **block**, not per item: a block splices as a unit, so only
-  // its head is anchored where the caller asked. Claiming the rest would
-  // report an anchor they were never given.
+  // One claim per block: a block splices as a unit, so only its head is anchored.
   add(item: HeaderAction | HeaderAction[], position?: Position) {
     const block = Array.isArray(item) ? item : [item];
     if (block.length) this.claim("add", block[0].name, position);
@@ -353,8 +289,7 @@ export class HeaderActionsSurface extends Surface<HeaderAction> {
     super.move(name, position);
   }
 
-  // Claims are staged with the ops they belong to: a replay rebuilds the list
-  // from built-ins, so the claims that produced the old one go with it.
+  // Claims are staged with the ops they belong to; a replay rebuilds the list from built-ins.
   beginReplay() {
     this.claims = [];
     super.beginReplay();
@@ -378,9 +313,7 @@ export class HeaderActionsSurface extends Surface<HeaderAction> {
       const anchor = items.find((one) => one.name === claim.anchor);
       if (!item || !anchor) continue;
       if (renderingOf(item, items) === renderingOf(anchor, items)) continue;
-      // Anchoring a member at its own container is how an author says "first
-      // in this dropdown", and it does exactly that. The two sit in different
-      // lists, but one of them *is* the other's list.
+      // Anchoring a member at its own container means "first in this dropdown", and does that.
       if (renderingOf(item, items) === `container:${claim.anchor}`) continue;
       if (renderingOf(anchor, items) === `container:${claim.name}`) continue;
       const message =
@@ -411,9 +344,7 @@ function describe(item: HeaderAction, items: HeaderAction[]) {
   return "an entry in the ⋯ menu";
 }
 
-// Said once per message, for the same reason the anchor warning is: a
-// projection runs on every render, and a warning that repeats with the frame
-// rate is a warning nobody reads.
+// Once per message: a projection runs on every render.
 const warned = new Set<string>();
 
 function warnOnce(message: string) {
@@ -438,11 +369,8 @@ function warnClamp(item: HeaderAction, depth: number) {
   );
 }
 
-// What an item declared about itself, checked before anything is placed —
-// including for a hidden item, since these are complaints about the
-// declaration and not about the rendering. `display` type-checks whatever it is
-// given (`SurfaceItem` carries an index signature), so an unknown value is
-// silently the default: 65's trap a second time, and worth a word.
+// Checked before anything is placed, hidden items included. `display` type-checks
+// anything (`SurfaceItem` has an index signature), so an unknown value is silently the default.
 function warnItem(item: HeaderAction) {
   const display = item.display;
   if (display && !containerDisplay(item) && display !== "button")
@@ -455,9 +383,7 @@ function warnItem(item: HeaderAction) {
       `headerActions: '${item.name}' is a ${display}, a container, so its ` +
         `\`run\` never fires; the items inside it run.`
     );
-  // `group` decides *where* an item goes and `display` only decides what it
-  // looks like once it is there, so a button inside a container is an ordinary
-  // row. Two declarations that disagree should not be settled in silence.
+  // `group` decides where an item goes; `display` only what it looks like once there.
   if (display === "button" && item.group)
     warnOnce(
       `headerActions: '${item.name}' is a button inside '${item.group}', and a ` +

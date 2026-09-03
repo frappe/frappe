@@ -1,7 +1,5 @@
-// A stored script is literally a file script: it is evaluated as a real ES module
-// through a blob URL, so `export default {…}` is the same text in both places and
-// bare imports resolve through the page's import map — the four shared deps and
-// nothing else.
+// A stored script is evaluated as a real ES module through a blob URL, so `export
+// default {…}` is the same text as a file script and bare imports resolve through the import map.
 import type { PageScriptRow } from "./pageScriptTypes";
 import type { AuthoredHandlers } from "./types";
 

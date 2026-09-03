@@ -1,14 +1,5 @@
-// `page.dialog` — the one dialog surface scripts are taught. `confirm` and
-// `danger` are frappe-ui's own imperative dialogs, narrowed; `open` and `form`
-// render on this page's own stack, which `<PageDialogs>` mounts.
-//
-// What the facade buys over importing frappe-ui's `dialog` directly:
-//   - every verb is a promise, `null` meaning dismissed, so `if (!result) return`
-//   - the page owns the stack, so navigating off the record cannot strand an
-//     awaiting script behind a dialog the reader can no longer see
-//   - opens are tagged with the running source, so a stuck dialog has a name
-//   - nothing an author writes is forwarded to frappe-ui unnamed, so an option
-//     whose meaning frappe-ui changes cannot change what a stored script does
+// `page.dialog`: `confirm` and `danger` are frappe-ui's own dialogs, narrowed;
+// `open` and `form` render on this page's own stack, which `<PageDialogs>` mounts.
 import { shallowRef, type Component, type Ref } from "vue";
 import { dialog as frappeDialog } from "frappe-ui";
 import { runningSource } from "./context";
@@ -34,10 +25,8 @@ export interface PageDialogEntry {
   /** `form`: what the form host renders. */
   form?: PageDialogFormOptions;
   /**
-   * Resolves the opener's promise. Idempotent, and deliberately separate from
-   * `dismiss`: the promise settles the moment the answer is known, not when the
-   * leave transition ends, so a page that unmounts mid-transition cannot turn a
-   * submitted dialog into a cancelled one.
+   * Resolves the opener's promise. Separate from `dismiss` so a page unmounting
+   * mid-transition cannot turn a submitted dialog into a cancelled one.
    */
   settle: (result?: any) => void;
   /** Takes the dialog off the stack — the host calls it after the leave transition. */
@@ -47,11 +36,7 @@ export interface PageDialogEntry {
 }
 
 export interface PageDialogHost {
-  /**
-   * True while a replay is running. A dialog opened from `refresh` re-opens on
-   * every replay, so dev builds name the source rather than block the call —
-   * a deliberate on-load gate stays possible.
-   */
+  /** True while a replay is running; a dialog opened from `refresh` re-opens on every replay. */
   isReplaying: () => boolean;
 }
 
@@ -59,16 +44,11 @@ export interface PageDialogs {
   api: PageDialog;
   /** The renderable stack, oldest first. */
   entries: Ref<PageDialogEntry[]>;
-  /**
-   * The page is gone: close every open dialog newest-first, each promise
-   * resolving `null`, and refuse every later open — with nothing left to render
-   * them, a script awaiting one would wait forever.
-   */
+  /** Closes every open dialog newest-first, each resolving `null`, and refuses every later open. */
   closeAll: () => void;
 }
 
-// frappe-ui's `ConfirmArgs`, named key by key: `page` forwards an option it names
-// and drops one it does not (COMPATIBILITY.md, ticket 20 §2).
+// frappe-ui's `ConfirmArgs`, named key by key: an option not named here is dropped.
 const CONFIRM_OPTIONS = [
   "title",
   "message",
@@ -83,15 +63,12 @@ const CONFIRM_OPTIONS = [
   "actions",
 ];
 
-// `DangerArgs` is `Omit<ConfirmArgs, 'theme' | 'icon'>` — frappe-ui forces red and
-// its own icon — so passing either here is the mistake the warning exists for.
+// frappe-ui forces red and its own icon on `danger`, so passing either is the mistake warned about.
 const DANGER_OPTIONS = CONFIRM_OPTIONS.filter(
   (option) => option !== "theme" && option !== "icon",
 );
 
-// frappe-ui's `DialogAction` is `Omit<ButtonProps, 'onClick' | 'loading'>`: a whole
-// component's prop surface, moving on frappe-ui's cadence. These five are the ones
-// `page` means by an action.
+// frappe-ui's `DialogAction` is a whole button's prop surface; these five are what `page` means by an action.
 const ACTION_OPTIONS = ["label", "variant", "theme", "icon", "onClick"];
 
 let nextId = 0;
@@ -194,9 +171,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
     });
   }
 
-  // `confirm`/`danger` are curated three layers deep — the options, the nested
-  // actions, and the object each callback receives — so that no part of what an
-  // author writes reaches frappe-ui, or comes back from it, unnamed by `page`.
+  // Curated three layers deep: the options, the nested actions, and the object each callback receives.
   function native(
     verb: "confirm" | "danger",
     args: PageDialogConfirmOptions,
@@ -218,7 +193,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
         resolve(result);
       };
       // Navigating away closes the dialog without frappe-ui firing `onCancel`,
-      // so the promise is settled here rather than left to that callback.
+      // so the promise is settled here, not in that callback.
       const untrack = track(() => {
         handle?.close();
         settle(null);
@@ -265,9 +240,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
   };
 }
 
-// The engine's own object rather than frappe-ui's `DialogControl` — the subtlest
-// of the three layers, and the one that matters most to a stored script: a rename
-// under us must not change what the script does on an upgrade nobody reviewed.
+// The engine's own object, not frappe-ui's `DialogControl`: a rename underneath must not change a stored script.
 function controlFor(control: any): PageDialogControl {
   return {
     close: () => control?.close?.(),

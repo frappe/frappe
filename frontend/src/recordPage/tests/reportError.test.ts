@@ -1,5 +1,5 @@
-// The reporter (wayfinder ticket 19 §3) as executable claims: it caps itself, and
-// it never becomes the failure it is reporting.
+// The reporter as executable claims: it caps itself, and it never becomes the
+// failure it is reporting.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { call } = vi.hoisted(() => ({ call: vi.fn() }));

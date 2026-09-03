@@ -1,12 +1,5 @@
-// Script-named icons, bridged to CSS classes at runtime.
-//
-// The host renders an item's `icon` as a `lucide-*` class, and those classes are
-// generated at build time by frappe-ui's `iconPackPlugin` — so only the icons the
-// host bundle already mentions exist. A third-party app can ship CSS for the rest,
-// but a Page Script is a string in a table and can never ship a file: unbridged,
-// `icon: 'lucide-flag'` renders a silent blank box. So we generate the missing rule
-// from the lucide sprite frappe-ui's `spritePlugin` already put in the DOM, in
-// exactly the shape `iconPackPlugin` emits.
+// Script-named icons bridged to CSS classes at runtime: `lucide-*` classes are built
+// at build time and a Page Script can never ship a file, so the rule is built from the sprite.
 import type { SurfaceItem } from "./types";
 
 const PREFIX = "lucide-";
@@ -72,9 +65,7 @@ function styleElement() {
 	if (existing) return existing;
 	const style = document.createElement("style");
 	style.id = STYLE_ID;
-	// Prepended so utilities loaded later — `size-4` at the call site — still beat the
-	// `width: 1em` here, the same way Tailwind's utilities layer beats its components
-	// layer for the build-time classes this mirrors.
+	// Prepended so utilities loaded later (`size-4` at the call site) still beat the `width: 1em` here.
 	document.head.prepend(style);
 	return style;
 }

@@ -21,32 +21,13 @@ export interface QuickAction extends SurfaceItem {
 }
 
 /**
- * An action in the record's header. `display` picks how it renders: a top-level
- * button of its own, a top-level dropdown button of its own, a titled section,
- * or — omitted, the default — an ordinary entry.
- *
- * A `dropdown` and a `section` are **containers**: ordinary addressable items
- * that carry the label and the icon, differing only in when their members are
- * visible — a dropdown hides them behind a trigger, a section shows them under
- * a grey title. Either way the members point at the container with `group`, and
- * a container that points at another container renders inside it.
- *
- * The list a script writes stays flat, so every item is reachable by its one
- * name; only the rendering nests, and only two containers deep.
- *
- * How many top-level controls fit is the host's business and a script cannot
- * observe it: one that does not fit is demoted into `⋯`, which is `add`'s
- * promise — that the item is *reachable* — being kept.
+ * An action in the record's header. A `dropdown` or a `section` is a container:
+ * its members point at it with `group`, and containers nest two deep.
  */
 export interface HeaderAction extends SurfaceItem {
   label: string;
   display?: "button" | "dropdown" | "section";
-  /**
-   * Put me inside the item named this. If an item of that name is declared, you
-   * get what it declares; if nothing of that name exists, the engine
-   * synthesises an anonymous, untitled container — the adjacency band inside
-   * `⋯` that an omitted `group` (meaning `actions`) has always given.
-   */
+  /** The container this sits in; an undeclared name gets an anonymous one inside `⋯`. */
   group?: string;
   run?: (page: RecordPageApi) => any;
 }
@@ -86,19 +67,8 @@ export interface SurfaceVerbs<Item extends SurfaceItem = SurfaceItem> {
 export interface TabsApi extends SurfaceVerbs<TabItem> {
   readonly active: string;
   /**
-   * Move the reader to a tab on *this* strip. A verb rather than a writable
-   * `active` because `active` is derived from what the strip can currently show:
-   * an assignment naming a hidden or unknown tab would read back as something
-   * the script never wrote, where a verb can say so. Hidden, unknown, or on the
-   * other strip all warn in a development build and do nothing — activation
-   * does not reveal a hidden tab, since `show()` is that verb already.
-   *
-   * The name resolves against the strip as it stands at the moment of the call;
-   * an activation fired before its tab is added misses, and is not queued.
-   *
-   * A *hit* is not synchronous either: the reader arrives by way of the host's
-   * own navigation, so `active` still reads the old tab on the line after the
-   * call. Read it in the next handler, not this one.
+   * Moves the reader to a tab on this strip. Resolved at the call, never queued,
+   * and `active` still reads the old tab on the next line: read it in the next handler.
    */
   activate(name: string): void;
 }
@@ -122,22 +92,15 @@ export interface PageDialogField {
   mandatory_depends_on?: string;
   read_only_depends_on?: string;
   description?: string;
-  /** Closed on purpose: `page.fields`' patch vocabulary is enumerated too, so
-   *  the two script-facing field types agree on what a script may write. */
+  /** Closed on purpose: it agrees with `PageFieldPatch` on what a script may write. */
 }
 
 /**
- * What a script may override on one of the record's fields — v1's
- * `setFieldProperty` vocabulary, enumerated and spelled as a DocField spells it
- * (`PageDialogField`'s precedent: an author reads DocType Customize and writes
- * what they read there). Closed, like every other curated forward: a key not
- * named here is dropped with a dev-mode warning.
- *
- * v1's `button_color` is absent — no renderer here honours it.
+ * What a script may override on one of the record's fields, spelled as a
+ * DocField spells it. Closed: a key not named here is dropped with a dev warning.
  */
 export interface PageFieldPatch {
-  // `0 | 1` alongside the boolean, as `PageDialogField` has it: a DocField
-  // spells these as ints, and `page.meta`'s own refusal advises `{ hidden: 1 }`.
+  // `0 | 1` alongside the boolean: a DocField spells these as ints.
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
   reqd?: boolean | 0 | 1;
@@ -156,12 +119,7 @@ export interface PageFieldPatch {
   props?: Record<string, any>;
 }
 
-/**
- * What `get` hands back: the same keys `update` writes, resolved as the renderer
- * resolves them, plus the two that identify the field. Deliberately the *same*
- * vocabulary rather than the internal `FieldMeta` — v1's `getField` cannot read
- * back what its own setter wrote, and that asymmetry is the bug this avoids.
- */
+/** What `get` hands back: the keys `update` writes, resolved, plus the two that identify the field. */
 export interface PageField extends PageFieldPatch {
   fieldname: string;
   fieldtype: string;
@@ -172,19 +130,8 @@ export interface PageField extends PageFieldPatch {
 }
 
 /**
- * The fields surface: a script overriding the properties of fields authored
- * elsewhere. It speaks a strict subset of the surface verbs — there is no `add`,
- * `move` or `order`, because a script that adds a field is inventing a docfield
- * and ordering is the Form Layout's job.
- *
- * Overrides are a render-time overlay: never written into the layout, the Form
- * Layout row, or the doctype meta, and cleared by the ordinary replay before
- * every re-fire — so a conditional override is a plain `if` with no `else`.
- *
- * Two floors an override cannot cross: a permlevel denial (a `show()` on a
- * denied field is a no-op with a dev warning), and a hidden `panelSection`,
- * which is a container above its fields. Between an override and `depends_on`,
- * the override wins.
+ * The fields surface: a render-time overlay on fields authored elsewhere, cleared
+ * before every replay. No `add`, `move` or `order`; ordering is the Form Layout's job.
  */
 export interface PageFields {
   hide(fieldname: string): void;
@@ -212,21 +159,8 @@ export interface PageFormTab {
 }
 
 /**
- * The Form Layout tabs surface: the strip *inside* the record's Details form,
- * which `page.tabs` has never reached — that one is the record's own strip, and
- * it stays what `page.tabs` means. Reaches the Details form and no other place
- * `FormLayout` renders (a `page.dialog` form's tabs are the script's own).
- *
- * A strict subset of the surface verbs, on the clause that already governs
- * `page.fields`: these tabs are authored in a doctype an administrator edits, so
- * a script overrides their properties and there is no `add`, `move` or `order`
- * to mean anything.
- *
- * A tab is addressed by its **identity** (`name` if the author wrote one, else
- * the label slugified, else its position), never by its position, and never by
- * its label — a relabelled tab keeps its address. Between an override and
- * `depends_on` the override wins, in both directions: `show()` lifts a tab the
- * expression hides.
+ * The Form Layout's own tab strip, inside the Details form. A tab is addressed
+ * by its identity (`name`, else the slugified label, else its position), never by label.
  */
 export interface PageFormTabs {
   hide(identity: string): void;
@@ -236,47 +170,18 @@ export interface PageFormTabs {
   has(identity: string): boolean;
   /** The tab as it currently resolves — post-override, post-`depends_on`. */
   get(identity: string): PageFormTab | null;
-  /**
-   * The identity of the tab the reader is on, or `''` when they are not in the
-   * form at all. Deliberately asymmetric with `page.tabs.active`, which returns
-   * a **name**: the record strip's tabs are named by their author, while a Form
-   * Layout tab's address is a resolved identity.
-   */
+  /** The identity of the tab the reader is on, or `''` outside the form; not a name. */
   readonly active: string;
-  /**
-   * Move the reader to a tab of the form, on `TabsApi.activate`'s terms and
-   * missing in the same three ways. What it writes is the reader's *intent*,
-   * which is what this strip has always run on — so activating while the reader
-   * is elsewhere on the record is not a queued activation but an answer to a
-   * question the form will ask when it mounts: the identity resolves now, and
-   * that is where they arrive.
-   */
+  /** Moves the reader to a tab of the form, on `TabsApi.activate`'s terms. */
   activate(identity: string): void;
 }
 
 /**
- * A child row, as a script addresses it (ticket 43): an object holding
- * `(parentfield, key)` that **re-finds its row on every access**, so nothing
- * about a row's position is ever captured. Fields are read and written bare —
- * `row.amount = row.qty * row.rate`, character for character what a v1 script
- * writes — and a write through it is identical in effect to writing
- * `page.doc.products[2].amount`: the handle is an address, not a write channel,
- * and per ticket 44 neither fires anything.
- *
- * Reading or writing a row that has been removed **throws**, naming the path and
- * aborting the handler. v1 loses those writes silently.
+ * A child row as a script addresses it: re-finds its row on every access, with
+ * fields read and written bare. Access to a removed row throws.
  */
 export interface PageRow {
-  /**
-   * Fires this row's handler for one child field — `row.trigger('rate')`
-   * dispatches `'products.rate'` — across every registered source, and resolves
-   * when they have all run. The fieldname is bare: the handle knows its table.
-   *
-   * The one engine member on a row. It shares a namespace with the child
-   * doctype's fieldnames, and a child field literally named `trigger` is legal
-   * (Frappe reserves five names, and this is not one), so the collision is
-   * warned about once at load rather than defended against on every access.
-   */
+  /** Fires this row's handler for one child field: `row.trigger('rate')` dispatches `'products.rate'`. */
   trigger(fieldname: string): Promise<void>;
   [fieldname: string]: any;
 }
@@ -360,11 +265,7 @@ export interface PageDialogOpenOptions {
   dismissible?: boolean;
 }
 
-/**
- * What a `confirm`/`danger` callback receives: the engine's own object, not
- * frappe-ui's `DialogControl`. A rename underneath must not change what a stored
- * script does on an upgrade nobody reviewed.
- */
+/** What a `confirm`/`danger` callback receives: the engine's own object, not frappe-ui's. */
 export interface PageDialogControl {
   /** Closes the dialog; the verb's promise settles from the verb, as ever. */
   close(): void;
@@ -404,12 +305,7 @@ export type PageDialogDangerOptions = Omit<
   "theme" | "icon"
 >;
 
-/**
- * The dialog capability. Every verb resolves `null` when the reader dismissed
- * the dialog — by Esc, the backdrop, the close button, or by navigating off the
- * record — so `if (!result) return` is the idiom. Un-awaited promises are
- * ignored: fire-and-forget stays legal.
- */
+/** The dialog capability. Every verb resolves `null` on dismissal, so `if (!result) return` is the idiom. */
 export interface PageDialog {
   /** Renders `component` in a dialog, passing it a `close(result)` prop. */
   open(
@@ -430,18 +326,10 @@ export interface RecordPageApi {
   doctype: string;
   docname: string;
   doc: Record<string, any>;
-  /**
-   * The document as the server last showed it — the v2 answer to "what was the
-   * previous value": `page.saved.status !== page.doc.status`. Defined on the
-   * first paint, readable in any handler, and read-only (`page.doc` is the
-   * draft you edit).
-   */
+  /** The document as the server last showed it; read-only, `page.doc` is the draft. */
   saved: Record<string, any>;
   meta: Record<string, any> | null;
-  /**
-   * Every right frappe would check for this doctype — the 15 standard ones plus
-   * any `Permission Type` registered against it — valued `0` or `1`.
-   */
+  /** Every right frappe would check for this doctype, valued `0` or `1`. */
   perms: Record<string, any>;
   /** The session user's roles, resolved before any handler runs. */
   roles: string[];
@@ -455,11 +343,7 @@ export interface RecordPageApi {
   fields: PageFields;
   /** The Form Layout's own tab strip, inside the Details form. */
   formTabs: PageFormTabs;
-  /**
-   * The child table's rows as handles, in array order. Not a surface — there is
-   * nothing here to arrange or override; it is how a row is *addressed*. A
-   * fieldname that is not a child table dev-warns and answers empty.
-   */
+  /** The child table's rows as handles, in array order; a non-table fieldname answers empty. */
   rows(parentfield: string): PageRow[];
   save(): Promise<void>;
   reload(): Promise<void>;
@@ -473,33 +357,16 @@ export interface RecordPageApi {
 export type { FieldAccess };
 
 /**
- * A handler's arguments are determined by its key (tickets 45 §3, 54). A
- * top-level key — an event or a parent fieldname — receives `(page)`. One
- * nested under a child table receives the row it happened to:
- *
- * ```js
- * products: { onAdd(page, row) {}, qty(page, row) {} }
- * ```
- *
- * `onRemove` is the exception, and gets `(page)` alone: its row is gone.
- *
- * The row is an address, not a payload: it carries no event data, and the same
- * handle is obtainable from `page.rows()` in any handler at all. That is why
- * ticket 14's rule against invisible arguments survives — the key announces it.
+ * A top-level key receives `(page)`; one nested under a child table receives
+ * `(page, row)`, except `onRemove`, whose row is gone.
  */
 export type Handler = (page: RecordPageApi, row?: PageRow) => any;
 
-/**
- * What an author writes: named event handlers, plus — for a child table — a
- * block of them nested under the table's fieldname (ticket 54).
- */
+/** What an author writes: event handlers, plus a block nested under a child table's fieldname. */
 export type AuthoredHandlers = Record<
   string,
   Handler | Record<string, Handler>
 >;
 
-/**
- * What the engine dispatches against: one flat keyspace, a nested block having
- * been flattened onto dotted keys at registration.
- */
+/** What the engine dispatches against: nested blocks flattened onto dotted keys. */
 export type RecordPageHandlers = Record<string, Handler>;

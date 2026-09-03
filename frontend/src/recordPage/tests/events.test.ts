@@ -1,4 +1,4 @@
-// The event vocabulary's firing semantics (wayfinder ticket 14) as executable claims.
+// The event vocabulary's firing semantics as executable claims.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
@@ -106,9 +106,8 @@ describe("fireEvent", () => {
   });
 });
 
-// Ticket 74 respelled the four top-level keys to camelCase, a hard break with no
-// dual-accept: the old spellings are legal *fieldnames*, which is the collision the
-// rename exists to remove. Both halves are claims, not conventions.
+// The four top-level keys are camelCase with no dual-accept: the old spellings
+// are legal fieldnames, which is the collision the rename removes.
 describe("the event vocabulary is camelCase (ticket 74)", () => {
   beforeEach(() => resetRegistry());
 
@@ -205,8 +204,7 @@ describe("unknown handler keys", () => {
     warnings.mockRestore();
   });
 
-  // 45 §5: only reachable because the deleted deep watch could not tell one
-  // row's edit from another's, and retiring it is what makes the warning useful.
+  // Nothing commits under a table's own name, so its bare fieldname is not a key.
   it("rejects a Table fieldname, its underscore keys, and an unknown child field", async () => {
     const warnings = vi.spyOn(console, "warn").mockImplementation(() => {});
     registerRecordPage("CRM Deal", {
@@ -223,8 +221,7 @@ describe("unknown handler keys", () => {
     warnings.mockRestore();
   });
 
-  // 45 §7: a Table MultiSelect has no per-cell editing, so a child-field key on
-  // one could never fire — and naming that is what the warning is for.
+  // A Table MultiSelect has no per-cell editing, so a child-field key on one could never fire.
   it("gives a Table MultiSelect add and remove only", async () => {
     const warnings = vi.spyOn(console, "warn").mockImplementation(() => {});
     registerRecordPage("CRM Deal", {
@@ -294,8 +291,7 @@ describe("unknown handler keys", () => {
     warnings.mockRestore();
   });
 
-  // 54 §3: the convention is not a construction, so the two fieldnames that can
-  // still collide are named at load — an announced hole, not a silent misfire.
+  // The two child fieldnames that can still collide are named at load.
   it("warns when a child doctype has a field named onAdd or onRemove (ticket 54)", async () => {
     const warnings = vi.spyOn(console, "warn").mockImplementation(() => {});
     resetRowWarnings();
@@ -318,9 +314,8 @@ describe("unknown handler keys", () => {
     warnings.mockRestore();
   });
 
-  // The collision is a *misfire*, not an inert gap — the thing the warning has
-  // to say, and the reason it says it. Editing the child field commits under
-  // the same string the row-added event dispatches.
+  // The collision is a misfire: editing the child field commits under the same
+  // string the row-added event dispatches.
   it("routes a colliding child field's commit into the table's lifecycle handler", async () => {
     const fired: string[] = [];
     registerRecordPage("CRM Deal", { items: { onAdd: () => fired.push("onAdd") } });
@@ -331,9 +326,8 @@ describe("unknown handler keys", () => {
     expect(fired).toEqual(["onAdd"]);
   });
 
-  // 48/50's lesson in its own shape: the shadow check reads the *child* meta,
-  // which can land after the parent's, so latching on the parent alone dropped
-  // the warning for the session.
+  // The shadow check reads the child meta, which can land after the parent's,
+  // so latching on the parent alone would drop the warning for the session.
   it("still warns when the child meta lands after the parent's", async () => {
     const warnings = vi.spyOn(console, "warn").mockImplementation(() => {});
     resetRowWarnings();
@@ -414,9 +408,8 @@ describe("the replay clears the field overlay too (ticket 42)", () => {
     expect(controller.fields.resolve()).toEqual({});
   });
 
-  // Ticket 71: the replay stages its ops now, so the commit has to happen on
-  // the way out of a failed replay too — otherwise the overlay would be frozen
-  // on the previous replay for the rest of the session.
+  // The replay stages its ops, so the commit has to happen on the way out of a
+  // failed replay too, or the overlay freezes on the previous one for good.
   it("commits what a failed replay managed to record", async () => {
     registerRecordPage("CRM Deal", {
       onRefresh: (page) => {

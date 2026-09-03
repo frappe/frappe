@@ -171,9 +171,11 @@ Do not "fix" these:
 - **The router cannot be a module-scope singleton** — boot must resolve first, because the
   router's base comes from boot (`main.ts`). Contributions register before the router's
   first resolution.
-- **`createRecordPage.ts` exempts the `doc` getter from the read-only rule**, and hands
-  `router` straight through as the single exception. The file says in a comment not to
-  delete the member and not to hand a second one through on its precedent.
+- **`createRecordPage.ts` exempts the `doc` getter from the read-only rule** (mutating
+  the document is the API), and hands `router` straight through as the single
+  exception: it is vue-router's object, so neither the inbound nor the outbound
+  compatibility rule covers it. Do not delete the member, and do not hand a second one
+  through on its precedent.
 - **`generated.ts` defines 4 routes for any number of doctypes** — `doctype` is a param,
   and `view`/`layout`/`from` are query params by decision.
 - **The shared library list is `SINGLETONS` (`frappe/shell/manifest.py:22`)** — `vue`,

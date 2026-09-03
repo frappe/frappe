@@ -1,6 +1,5 @@
 // One customizable region of a Record page. Verbs record ops; the rendered list
-// is those ops replayed over the host's built-ins, so a refresh replay and a
-// built-in that changed underneath both resolve to the same answer.
+// is those ops replayed over the host's built-ins.
 import { markRaw, reactive } from "vue";
 import { runningSource } from "./context";
 import { ensureIcons } from "./iconClasses";
@@ -24,18 +23,13 @@ export const BUILTIN = "builtin";
 export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceVerbs<Item> {
 	private ops: Op<Item>[] = reactive([]);
 	// Where a replay's ops accumulate until it commits. Non-null only inside a
-	// replay: ops recorded anywhere else -- a `run` handler, `onTabChange`, a
-	// quick-action callback -- go straight to `ops` and render immediately, as
-	// they always have. Staging is a property of the replay, not of the surface.
+	// replay; ops recorded anywhere else render immediately.
 	private pending: Op<Item>[] | null = null;
 	private replaying = 0;
 	private builtins: () => Item[] = () => [];
 
-	// A block splices as a unit at the anchor, in list order: the first item
-	// takes the caller's position and each one after it follows the one before,
-	// so `add([a, b, c], { before: 'delete' })` reads in the list the way it
-	// reads in the call (ticket 77 §5). No new op: an array is the sugar, the
-	// flat namespace underneath is unchanged.
+	// A block splices as a unit at the anchor: the first item takes the caller's
+	// position and each one after it follows the one before.
 	add(item: Item | Item[], position?: Position) {
 		let anchor = position;
 		for (const one of Array.isArray(item) ? item : [item]) {
@@ -68,17 +62,13 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		this.record({ verb: "order", source: runningSource(), names });
 	}
 
-	// The one read a script makes, and the one that resolves over the replay in
-	// flight: a source that calls `add('x')` and then `has('x')` in its own
-	// `refresh` handler is told the truth about its own work. Outside a replay
-	// there is no pending list and this is the committed answer.
+	// Resolves over the replay in flight: a source that calls `add('x')` and then
+	// `has('x')` in its own `refresh` handler is told about its own work.
 	has(name: string) {
 		return this.fold(this.pending ?? this.ops).some((entry) => entry.item.name === name);
 	}
 
-	// Host side, but reading the way `has` reads and for its reason: `activate`
-	// asks this to tell a hidden tab from an absent one, and a source that adds a
-	// tab and activates it in its own replay must be answered about its own work.
+	// Host side, reading the way `has` reads: `activate` asks this to tell a hidden tab from an absent one.
 	isVisible(name: string) {
 		return this.fold(this.pending ?? this.ops).some(
 			(entry) => entry.item.name === name && !entry.hidden,
@@ -92,14 +82,8 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	}
 
 	/**
-	 * Open a replay: from here until the matching commit, ops are staged instead
-	 * of rendered.
-	 *
-	 * Emptying the staged list is the replay clear that `reset()` used to be --
-	 * a replay rebuilds from built-ins alone. A nested replay (a script calling
-	 * `page.refresh()` from a `refresh` handler) clears it the same way, but
-	 * only the outermost commit publishes, so an inner one cannot put a
-	 * half-built outer list on screen.
+	 * Opens a replay: ops are staged until the matching commit, and a replay
+	 * rebuilds from built-ins alone. Only the outermost commit publishes.
 	 */
 	beginReplay() {
 		this.pending = [];
@@ -113,9 +97,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		if (this.replaying > 0) return;
 		const staged = this.pending ?? [];
 		this.pending = null;
-		// One splice, not a clear and a refill: `ops` is reactive and this is
-		// the whole point of staging -- the host renders the replay's result
-		// without ever rendering its middle.
+		// One splice, not a clear and a refill: `ops` is reactive, and the host must never render the replay's middle.
 		this.ops.splice(0, this.ops.length, ...staged);
 	}
 
@@ -145,9 +127,8 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	}
 }
 
-// `ops` is reactive, so a component stored on an item would be deep-reactified
-// on its way in -- which Vue warns about, and pays for proxying a whole render
-// function. The item's own keys stay reactive; only the component opts out.
+// `ops` is reactive, so a component stored on an item would be deep-reactified on
+// its way in, which Vue warns about. Only the component opts out.
 function keepComponentRaw<Item extends SurfaceItem>(item: Partial<Item>) {
 	if (item.component) item.component = markRaw(item.component);
 }

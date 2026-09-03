@@ -1,15 +1,5 @@
-// The fields surface (wayfinder ticket 42) — clause 2 of the v1-parity map.
-//
-// Not a `Surface`. The four list surfaces arrange items a script may also
-// create; fields are a set authored elsewhere whose *properties* a script
-// overrides, so the verbs are a strict subset and the key is a fieldname
-// rather than an item name.
-//
-// Ops are recorded, not applied: `resolve()` folds them into one patch per
-// field, which the host hands to `useFormLayout` as plain data. That keeps the
-// override a render-time overlay — nothing is written into the layout, the Form
-// Layout row or the doctype meta — and makes `reset()` the whole of the replay
-// clear, so an authored script is a plain `if` with no `else`.
+// The fields surface: a script overrides properties of fields authored elsewhere.
+// Ops are recorded, not applied; `resolve()` folds them into one patch per field.
 import { markRaw, shallowReactive } from "vue";
 import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
@@ -41,11 +31,7 @@ interface Landing {
   /** Its name there — the pipeline is camelCase, the script vocabulary is not. */
   as: string;
   coerce?: (value: any) => any;
-  /**
-   * A reference rather than data, so it is handed back as itself: comparing and
-   * re-feeding it is the point, and a read-only view of a component's options
-   * breaks both. `markRaw` is how that is said to the rest of Vue.
-   */
+  /** Handed back as itself, not a read-only view: comparing and re-feeding it is the point. */
   opaque?: boolean;
 }
 
@@ -59,14 +45,8 @@ function asPrecision(value: any): number | undefined {
 }
 
 /**
- * The enumerated vocabulary and where each key goes: v1's ten minus
- * `button_color` (nothing renders it), plus `component`/`props`, which
- * `FieldUI` already carries through the render path.
- *
- * The split is not cosmetic. `hidden`/`read_only`/`reqd` are recomputed on
- * every keystroke from the `depends_on` family, so they ride the carrier
- * `resolveFieldConditionals` applies last; the rest are computed once when the
- * node is built, so they are merged there.
+ * The vocabulary and where each key lands. `hidden`/`read_only`/`reqd` are recomputed
+ * on every keystroke from `depends_on`, so they ride the slot applied last.
  */
 const PATCH_KEYS: Record<string, Landing> = {
   hidden: { on: "override", as: "hidden", coerce: asBoolean },
@@ -78,17 +58,12 @@ const PATCH_KEYS: Record<string, Landing> = {
   options: { on: "meta", as: "options" },
   link_filters: { on: "meta", as: "filters" },
   precision: { on: "meta", as: "precision", coerce: asPrecision },
-  // Belt and braces beside `shallowReactive` — and the stamp is also what tells
-  // the outbound read-only wrapper to leave the component alone.
+  // The stamp is what tells the outbound read-only wrapper to leave the component alone.
   component: { on: "ui", as: "component", coerce: markRaw, opaque: true },
   props: { on: "ui", as: "props" },
 };
 
-/**
- * The reader's key list, derived from the writer's rather than written twice —
- * and carrying each key's whole landing, so a key added above is read back from
- * the right slot without anyone remembering to come here.
- */
+/** The reader's keys, derived from the writer's so a key added above is read back from the right slot. */
 const SNAPSHOT_KEYS = Object.entries(PATCH_KEYS);
 
 export interface FieldsSurfaceHost {
@@ -97,11 +72,7 @@ export interface FieldsSurfaceHost {
   /** The draft document conditional expressions resolve against. */
   doc: () => Record<string, any>;
   fieldAccess: (fieldname: string) => FieldAccess;
-  /**
-   * The same per-field UI overlay hook the host passes its layout source. `get`
-   * needs it or it would report `component`/`props` the renderer disagrees
-   * with, which is the asymmetry `get` exists to abolish.
-   */
+  /** The host's per-field overlay hook; without it `get` would report a `component` the renderer disagrees with. */
   decorate?: Decorator;
 }
 
@@ -110,16 +81,11 @@ type Op =
   | { verb: "update"; fieldname: string; patch: FieldPatch };
 
 export class FieldsSurface implements PageFields {
-  // Reactive so the host's layout re-joins when a replay changes the overlay,
-  // exactly as the four list surfaces re-resolve. *Shallow*: a deep proxy would
-  // reach inside a patch's `props` and hand `v-bind` a Proxy of whatever a
-  // script put there — a nested component, a `Date`, a class instance — which
-  // is the internal-slots hazard `readOnly.ts` documents for its own wrapper.
+  // Reactive so the host's layout re-joins on a replay. Shallow: a deep proxy would
+  // hand `v-bind` a Proxy of whatever a script put in `props`, breaking a class instance.
   private ops: Op[] = shallowReactive([]);
-  // The replay's ops until it commits, so the host's overlay never carries a
-  // half-applied replay — which is what made a script-hidden field flash into
-  // view for a tick on every save. Non-null only inside a replay; see
-  // `Surface.beginReplay`, which this mirrors.
+  // The replay's ops until it commits, so a script-hidden field does not flash into
+  // view for a tick on every save. Non-null only inside a replay.
   private pending: Op[] | null = null;
   private replaying = 0;
 
@@ -136,8 +102,7 @@ export class FieldsSurface implements PageFields {
   }
 
   update(fieldname: string, patch: PageFieldPatch) {
-    // Named before the keys are read, so an author who mistyped the fieldname
-    // hears that first rather than after a list of keys it would never reach.
+    // Named before the keys are read, so a mistyped fieldname is heard first.
     this.warnIfAbsent(fieldname, "update");
     this.record({ verb: "update", fieldname, patch: translate(fieldname, patch) });
   }
@@ -152,16 +117,14 @@ export class FieldsSurface implements PageFields {
       this.warnIfAbsent(fieldname, "get");
       return null;
     }
-    // The same three calls the join makes for one field, in the same order, so
-    // the reader cannot drift from what the renderer decided.
+    // The same calls the join makes, in the same order, so the reader cannot drift from the renderer.
     const node = mapField(
       withAccess(raw, (field) => this.host.fieldAccess(field.fieldname)),
       {},
       this.host.decorate,
     );
-    // Over the replay in flight when there is one, the same way `Surface.has`
-    // reads: a source that hides a field and then reads it back inside its own
-    // `refresh` handler is told about its own work, not about last replay's.
+    // Over the replay in flight when there is one, as `Surface.has` reads: a source
+    // reading back its own `refresh` work is told about it, not about last replay's.
     const patched = applyFieldPatch(node, this.fold(this.pending ?? this.ops)[fieldname]);
     const resolved = resolveFieldConditionals(patched, this.host.doc());
     return readOnly(snapshot(resolved), SNAPSHOT_IS_READ_ONLY);
@@ -169,12 +132,7 @@ export class FieldsSurface implements PageFields {
 
   // Host side, below: not part of what a script may call.
 
-  /**
-   * Open a replay: ops recorded from here are staged, not applied. The clear is
-   * the replay clear `reset()` used to be — the next commit starts from the
-   * authored layout alone. Counted, so a nested `page.refresh()` re-enters
-   * without publishing a half-built overlay.
-   */
+  /** Opens a replay: ops from here are staged. Counted, so a nested `page.refresh()` re-enters. */
   beginReplay() {
     this.pending = [];
     this.replaying += 1;
@@ -200,12 +158,8 @@ export class FieldsSurface implements PageFields {
   }
 
   /**
-   * One patch per field, in op order — later verbs win, key by key.
-   *
-   * Folded in a `Map`, not an object literal: a fieldname is a string a script
-   * chooses, and `patches["__proto__"] ??= {}` would leave `into` pointing at
-   * `Object.prototype`, so the next `override.hidden` would be inherited by
-   * every field object in the application for the rest of the session.
+   * One patch per field, in op order, later keys winning. A `Map`, not an object
+   * literal: a script-chosen `"__proto__"` would otherwise land on `Object.prototype`.
    */
   private fold(ops: Op[]): Record<string, FieldPatch> {
     const patches = new Map<string, FieldPatch>();
@@ -218,11 +172,7 @@ export class FieldsSurface implements PageFields {
     return Object.fromEntries(patches);
   }
 
-  /**
-   * Layout breaks are excluded: `joinLayout` drops them before any patch is
-   * applied, so an override on one could never render, and sections and tabs
-   * have their own surfaces anyway.
-   */
+  /** Layout breaks are excluded: `joinLayout` drops them before any patch could apply. */
   private raw(fieldname: string): RawMetaField | undefined {
     const field = this.host
       .fields()
@@ -231,10 +181,8 @@ export class FieldsSurface implements PageFields {
   }
 
   /**
-   * The op is recorded either way — a patch keyed by a fieldname the layout
-   * does not carry is simply never applied, and dropping it here would lose it
-   * for good in the window before the meta lands, when "absent" and "not here
-   * yet" are indistinguishable. This only says so when it can tell.
+   * The op is recorded either way: before the meta lands, "absent" and "not here
+   * yet" are indistinguishable, and dropping it would lose it for good.
    */
   private warnIfAbsent(fieldname: string, verb: string) {
     const fields = this.host.fields();
@@ -247,8 +195,7 @@ export class FieldsSurface implements PageFields {
 function translate(fieldname: string, patch: PageFieldPatch): FieldPatch {
   const translated: FieldPatch = {};
   for (const [key, value] of Object.entries(patch)) {
-    // `hasOwn`, or `toString` and `constructor` would each resolve to a truthy
-    // `Object.prototype` member and slip through the enumeration unwarned.
+    // `hasOwn`, or `toString` and `constructor` would slip through as truthy prototype members.
     const landing = Object.hasOwn(PATCH_KEYS, key) ? PATCH_KEYS[key] : undefined;
     if (!landing) {
       warnOnce(
@@ -269,12 +216,7 @@ function mergeInto(into: FieldPatch, from: FieldPatch) {
   if (from.ui) into.ui = { ...into.ui, ...from.ui };
 }
 
-/**
- * Read a resolved node back out in the vocabulary `update` writes. Curated the
- * same way, and for the same reason: the internal node also carries the child
- * doctype's whole layout, the raw conditional expressions and the permission
- * bookkeeping, none of which is a field property a script asked about.
- */
+/** Reads a resolved node back in the vocabulary `update` writes; the internal node carries far more. */
 function snapshot(resolved: Record<string, any>): PageField {
   const field: PageField = {
     fieldname: resolved.fieldname,
@@ -283,8 +225,7 @@ function snapshot(resolved: Record<string, any>): PageField {
   for (const [key, { on, as, opaque }] of SNAPSHOT_KEYS) {
     const value = on === "ui" ? resolved.ui?.[as] : resolved[as];
     if (value === undefined) continue;
-    // A decorator's component arrives unstamped, unlike one a script passed
-    // through `update` — stamp it here so the wrapper below leaves it alone.
+    // A decorator's component arrives unstamped; stamp it so the wrapper leaves it alone.
     (field as Record<string, any>)[key] = opaque ? markRaw(value) : value;
   }
   return field;

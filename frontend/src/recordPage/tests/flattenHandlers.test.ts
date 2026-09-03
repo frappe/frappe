@@ -1,5 +1,4 @@
-// The authored shape (ticket 54) against the flat keyspace the engine dispatches
-// on: what a script writes, and what `registerRecordPage` stores.
+// The authored shape against the flat keyspace the engine dispatches on.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { flattenHandlers } from "../flattenHandlers";
@@ -90,8 +89,7 @@ describe("flattenHandlers", () => {
     warnings.mockRestore();
   });
 
-  // 51's lesson, one level down: a keyspace argument about fieldnames says
-  // nothing about strings that were never fieldnames.
+  // A keyspace argument about fieldnames says nothing about strings that were never fieldnames.
   it("cannot be made to write onto Object.prototype", () => {
     const flat = flattenHandlers(
       { ["__proto__"]: noop, evil: { ["__proto__"]: noop } } as any,

@@ -1,6 +1,5 @@
-// The Form Layout tabs surface (wayfinder ticket 73) as executable claims: a
-// tab addressed by identity, an overlay that beats `depends_on` in both
-// directions, a reader that resolves both, and a replay that stages.
+// The Form Layout tabs surface as executable claims: a tab addressed by
+// identity, an overlay that beats `depends_on`, and a replay that stages.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("frappe-ui", () => ({

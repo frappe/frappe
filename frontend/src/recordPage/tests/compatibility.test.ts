@@ -1,6 +1,5 @@
-// The compatibility mechanisms (wayfinder ticket 20 §4, §5) as executable claims:
-// a name we removed is answered by name, and a name that never existed is left
-// alone — because probing for one is the feature detection the policy recommends.
+// The compatibility mechanisms as executable claims: a removed name is answered
+// by name, and a name that never existed is left alone.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { call, toast } = vi.hoisted(() => ({

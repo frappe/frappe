@@ -1,4 +1,4 @@
-// `page.rows`, the row handle and the dotted vocabulary (wayfinder tickets 43, 45).
+// `page.rows`, the row handle and the dotted vocabulary.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { isRef, reactive, ref, toRaw } from "vue";
 
@@ -114,8 +114,8 @@ describe("page.rows", () => {
     expect(host.doc.value.products[2].qty).toBe(99);
   });
 
-  // 47's rule, and its exemption: pushing to the array is meaningless, while
-  // writing through a handle is the whole point of having one.
+  // Pushing to the array is meaningless, while writing through a handle is the
+  // whole point of having one.
   it("refuses a write to the array but not to a handle", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { controller } = makePage();
@@ -245,8 +245,8 @@ describe("row.trigger", () => {
     expect(() => row.trigger("rate")).toThrow("no longer in the document");
   });
 
-  // 45 §3 gives `.onRemove` no row, so a verb that could fire it from a live row
-  // would hand a handler the grenade that decision exists to withhold.
+  // `.onRemove` gets no row, so a verb that could fire it from a live row would
+  // hand a handler one anyway.
   it("refuses the structural keys, a dotted argument and an unknown field", async () => {
     const fired: string[] = [];
     registerRecordPage("CRM Deal", {
@@ -270,9 +270,8 @@ describe("row.trigger", () => {
     warnings.mockRestore();
   });
 
-  // The whole reason the lifecycle keys are `on`-prefixed (ticket 54): `add` is
-  // a legal, unreserved fieldname, so under the old spelling this row's own
-  // field was unaddressable and `products.add` meant two different events.
+  // `add` is a legal fieldname, so under the old spelling this row's own field
+  // was unaddressable and `products.add` meant two different events.
   it("triggers a child field genuinely called add", async () => {
     const fired: string[] = [];
     registerRecordPage("CRM Deal", { products: { add: () => fired.push("add") } });

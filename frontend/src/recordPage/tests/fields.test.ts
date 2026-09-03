@@ -1,6 +1,5 @@
-// The fields surface (wayfinder ticket 42) as executable claims: an enumerated
-// snake_case patch, a render-time overlay cleared by the replay, a reader that
-// speaks the writer's vocabulary, and a permlevel floor an override cannot lift.
+// The fields surface as executable claims: an enumerated snake_case patch, a
+// render-time overlay cleared by the replay, and a permlevel floor.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("frappe-ui", () => ({
@@ -103,12 +102,11 @@ describe("names that are not names", () => {
     fields.hide("__proto__");
     const patches = fields.resolve();
 
-    // The damage this avoids: `resolveFieldConditionals` reads `override` off
-    // the prototype chain, so one such write would hide a field in every form
-    // in the application for the rest of the session.
+    // `resolveFieldConditionals` reads `override` off the prototype chain, so one
+    // such write would hide a field in every form for the rest of the session.
     expect(({} as any).override).toBeUndefined();
     // Recorded as an ordinary own key instead — inert, since no field can be
-    // named this, and attributable rather than invisible.
+    // named this, and attributable, not invisible.
     expect(Object.hasOwn(patches, "__proto__")).toBe(true);
     expect(Object.getPrototypeOf(patches)).toBe(Object.prototype);
   });
@@ -168,9 +166,8 @@ describe("the verbs", () => {
     expect(fields.resolve()).toEqual({});
   });
 
-  // Ticket 71: the overlay used to empty on `reset()` and refill a microtask
-  // later, which is the `page.fields` flash — a script-hidden field visible for
-  // a tick on every save.
+  // The overlay used to empty on `reset()` and refill a microtask later: a
+  // script-hidden field visible for a tick on every save.
   it("keeps the applied overlay whole while a replay is in flight", () => {
     const fields = makeSurface();
     fields.hide("status");
@@ -208,8 +205,8 @@ describe("get — the reader", () => {
     });
   });
 
-  // The other half of ticket 71's read split: the host renders the committed
-  // overlay, but a source reading its own work back mid-replay must see it.
+  // The host renders the committed overlay, but a source reading its own work
+  // back mid-replay must see it.
   it("reads the replay in flight, not the overlay the host is still rendering", () => {
     const fields = makeSurface();
     fields.update("status", { label: "Stage" });
