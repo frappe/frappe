@@ -284,6 +284,23 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json, {"active": False})
 
+	def test_introspect_token_rejects_non_string_credentials_from_json_body(self):
+		"""A JSON body preserves non-string types in form_dict (unlike form-encoded data);
+		a non-string client_secret must not reach hmac.compare_digest and crash the request."""
+		access_token, _token = self._make_bearer_token()
+		frappe.db.commit()  # nosemgrep
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers={"content-type": "application/json"},
+			data=frappe.as_json(
+				{"token": access_token, "client_id": self.client_id, "client_secret": {"a": 1}}
+			),
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json, {"active": False})
+
 	def test_invalid_login(self):
 		with suppress_stdout():
 			self.assertFalse(check_valid_openid_response(client=self))
