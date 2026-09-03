@@ -268,7 +268,12 @@ def authenticate_introspection_caller() -> str | None:
 	client_id = frappe.form_dict.get("client_id")
 	client_secret = frappe.form_dict.get("client_secret")
 
-	if not client_id or not client_secret:
+	if (
+		not isinstance(client_id, str)
+		or not isinstance(client_secret, str)
+		or not client_id
+		or not client_secret
+	):
 		return None
 
 	stored_secret = frappe.db.get_value("OAuth Client", client_id, "client_secret")
