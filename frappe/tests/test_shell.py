@@ -496,8 +496,8 @@ class TestShellBoot(IntegrationTestCase):
 	def test_boot_is_small(self):
 		"""v1's boot is 147,711 bytes, ~120 KB of it desk workspace furniture.
 
-		A generous ceiling: the point is to fail loudly if v1's furniture ever creeps
-		back in, not to police a few hundred bytes.
+		A total, and tighter than the per-key `boot.KEY_BUDGET`: this fails loudly if v1's
+		furniture creeps back in.
 		"""
 		import json
 
@@ -632,7 +632,7 @@ class TestShellBoot(IntegrationTestCase):
 
 		Since #42210 the slug table is not in here at all, which is most of why this
 		passes with room to spare. Child tables are excluded from that table too — they
-		have no page and no address.
+		have no page and no address. A total, and tighter than `boot.KEY_BUDGET`.
 		"""
 		import json
 
