@@ -40,6 +40,7 @@ let node = ref({
 	children: [],
 	children_start: 0,
 	children_loading: false,
+	seen_files: [],
 	is_leaf: false,
 	fetching: false,
 	fetched: false,
@@ -57,13 +58,15 @@ function toggle_node(node) {
 		node.fetching = true;
 		node.children_start = 0;
 		node.children_loading = false;
-		get_files_in_folder(node.value, 0).then(({ files, has_more }) => {
+		node.seen_files = [];
+		get_files_in_folder(node.value, 0, []).then(({ files, has_more, seen_files }) => {
 			node.open = true;
 			node.children = files;
 			node.fetched = true;
 			node.fetching = false;
 			node.children_start += page_length.value;
 			node.has_more_children = has_more;
+			node.seen_files = seen_files;
 		});
 	} else {
 		node.open = !node.open;
@@ -74,12 +77,15 @@ function load_more(node) {
 	if (node.has_more_children) {
 		let start = node.children_start;
 		node.children_loading = true;
-		get_files_in_folder(node.value, start).then(({ files, has_more }) => {
-			node.children = node.children.concat(files);
-			node.children_start += page_length.value;
-			node.has_more_children = has_more;
-			node.children_loading = false;
-		});
+		get_files_in_folder(node.value, start, node.seen_files || []).then(
+			({ files, has_more, seen_files }) => {
+				node.children = node.children.concat(files);
+				node.children_start += page_length.value;
+				node.has_more_children = has_more;
+				node.children_loading = false;
+				node.seen_files = seen_files;
+			}
+		);
 	}
 }
 function select_node(node) {
@@ -87,15 +93,20 @@ function select_node(node) {
 		selected_node.value = node;
 	}
 }
-function get_files_in_folder(folder, start) {
+function get_files_in_folder(folder, start, seen_files = []) {
 	return frappe
 		.call("frappe.core.api.file.get_files_in_folder", {
 			folder,
 			start,
 			page_length: page_length.value,
+			seen_files,
 		})
 		.then((r) => {
-			let { files = [], has_more = false } = r.message || {};
+			let {
+				files = [],
+				has_more = false,
+				seen_files: next_seen_files = [],
+			} = r.message || {};
 			files.sort((a, b) => {
 				if (a.is_folder && b.is_folder) {
 					return a.modified < b.modified ? -1 : 1;
@@ -109,7 +120,7 @@ function get_files_in_folder(folder, start) {
 				return 0;
 			});
 			files = files.map((file) => make_file_node(file));
-			return { files, has_more };
+			return { files, has_more, seen_files: next_seen_files };
 		});
 }
 function search_by_name() {
@@ -146,11 +157,13 @@ function make_file_node(file) {
 		filename: filename,
 		file_url: file.file_url,
 		value: file.name,
+		is_private: file.is_private,
 		is_leaf: !file.is_folder,
 		fetched: !file.is_folder, // fetched if node is leaf
 		children: [],
 		children_loading: false,
 		children_start: 0,
+		seen_files: [],
 		open: false,
 		fetching: false,
 		filtered: true,
