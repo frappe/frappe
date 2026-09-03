@@ -67,7 +67,7 @@ def _as_list(value) -> list:
 class SetFieldValue(AutomationAction):
 	action_type = "SetFieldValue"
 	label = "Set Field Value"
-	description = "Set one or more fields on the triggering document."
+	description = "Set value of document fields."
 	params_schema: ClassVar[list] = [
 		{"fieldname": "field", "label": "Field", "fieldtype": "Select", "options_source": "doc_fields"},
 		{"fieldname": "value", "label": "Value", "fieldtype": "Data"},
@@ -316,7 +316,7 @@ class SendNotification(AutomationAction):
 class AssignToUser(AutomationAction):
 	action_type = "AssignToUser"
 	label = "Assign to User"
-	description = "Assign the triggering document to one or more users."
+	description = "Assign the document to user(s)."
 	params_schema: ClassVar[list] = [
 		{
 			"fieldname": "assign_to",
@@ -391,6 +391,11 @@ class CallWebhook(AutomationAction):
 		headers = _rendered_json(params.get("headers"), doc, context, "headers")
 		payload = _rendered_json(params.get("payload"), doc, context, "payload")
 		timeout = cint(params.get("timeout")) or DEFAULT_WEBHOOK_TIMEOUT
+		if frappe.flags.get("in_automation_trial"):
+			# The one step a rollback cannot undo. Guard the URL anyway, so a trial reports the
+			# same refusal a live run would.
+			_guard_url(url)
+			return {"detail": _("Would {0} {1} (not sent)").format(method, url)}
 		response = _send_guarded_request(method, url, headers, payload, timeout)
 		body = (response.text or "")[:WEBHOOK_RESPONSE_LIMIT]
 		if response.status_code >= 400:
@@ -407,7 +412,7 @@ class CallWebhook(AutomationAction):
 class RunScript(AutomationAction):
 	action_type = "RunScript"
 	label = "Run Script"
-	description = "Run a server script with the flow's documents in scope."
+	description = "Run a server script."
 	requires_document = False
 	params_schema: ClassVar[list] = [
 		{"fieldname": "script", "label": "Script", "fieldtype": "Code", "options": "Python", "reqd": 1},
