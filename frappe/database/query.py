@@ -32,6 +32,7 @@ from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
+from frappe.query_builder.terms import SubQuery
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
@@ -1680,7 +1681,7 @@ class Engine:
 				.where(child_table.parentfield == table_field.fieldname)
 				.where(Criterion.any(restricted_value_conditions))
 			)
-			conditions.append(ExistsCriterion(restricted_child_query).negate())
+			conditions.append(ExistsCriterion(SubQuery(restricted_child_query)).negate())
 
 		return conditions
 
