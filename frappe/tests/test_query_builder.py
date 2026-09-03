@@ -3,11 +3,12 @@ from collections.abc import Callable
 from datetime import time
 
 from pypika.functions import Cast
+from pypika.terms import ValueWrapper
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.operator_map import func_in
-from frappe.query_builder import Case, ValueWrapper
+from frappe.query_builder import Case
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import (
@@ -643,12 +644,16 @@ class TestParameterization(IntegrationTestCase):
 		query, _ = frappe.qb.update(DocType).set(DocType.is_submittable, False).walk()
 		self.assertIn("='0'", query)
 
-		# a bool used as a condition, as apps do: `(a < b) | ValueWrapper(flag)`
+		# a bool as a condition, not as a value: it must stay a quoted literal, since
+		# postgres accepts neither a bare 1 nor `true` as an operand of OR
 		user = frappe.qb.DocType("User")
-		query, _ = (
-			frappe.qb.from_(user).select(user.name).where((user.enabled == 1) | ValueWrapper(False)).walk()
-		)
-		self.assertIn("'0'", query)
+		condition = frappe.qb.from_(user).select(user.name).where((user.enabled == 1) | ValueWrapper(False))
+
+		query, _ = condition.walk()
+		self.assertIn("OR '0'", query)
+		self.assertNotIn("OR 0", query)
+		self.assertNotIn("OR false", query)
+		condition.run()  # and the database accepts it
 
 	def test_where_conditions_functions(self):
 		DocType = frappe.qb.DocType("DocType")
