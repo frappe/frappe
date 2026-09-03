@@ -503,7 +503,6 @@ class TestTheCustomBucket(FilterTestCase):
 		self.assertEqual(seen, [3])
 
 	def test_a_resolver_that_raises_fails_closed(self):
-
 		def boom(items, context):
 			raise ValueError("no")
 

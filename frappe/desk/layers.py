@@ -24,18 +24,8 @@ Three things differ between the two, and each is a parameter:
 None of those is the merge itself, so the merge lives here and they are passed in as `key`,
 `apply_row` and `keep_unnamed`.
 
-Desk v2 arranges by a fourth rule, `anchored`. Its writer saves a person's move as an *anchor* --
-next to this row -- rather than as a position, so a layer names only what moved and everything
-else stays where the layer below it put it. The two rules cannot both be right for one surface:
-v1's positions the whole list from the rows a layer names, and desk v2's moves the named rows
-within a list it otherwise leaves alone. It is a parameter defaulted off, so v1's two callers are
-unchanged.
-
-Placement is at the bottom of this file rather than beside the merge, because the layer merge is
-not its only caller: `frappe/shell/extensions.py` places one app's rows into another app's rail by
-the same anchors, before any layer applies. Those are different phases of one resolution and they
-share exactly this -- given a list and some rows that want to sit next to something in it, produce
-one list.
+Desk v2 arranges by a fourth rule, `anchored`: a layer moves only the rows that carry an anchor.
+Placement is at the bottom, shared with `frappe/shell/extensions.py`, which places by the same anchors.
 """
 
 import json
@@ -84,9 +74,7 @@ def resolve_layers(
 	`keep_unnamed` says what happens to an entry the layer never mentioned: kept after the ones it
 	did name (the sidebar), or dropped (the dock). See `apply_layer`.
 
-	`anchored` reads each row's `anchors` and moves only the rows that carry one, leaving the rest
-	of the list alone. It supersedes `keep_unnamed`, which has nothing left to decide once an
-	unnamed entry simply stays where it is.
+	`anchored` moves only the rows that carry an anchor and supersedes `keep_unnamed`.
 
 	The map is seeded from the base, so the base hides on the same terms as the layers above it:
 	an app may ship an entry off by default, and one row above naming that entry with hiding off
@@ -160,10 +148,7 @@ def apply_layer(
 		named.add(row_key)
 
 		if anchored:
-			# Read off the row rather than the entry. An anchor says where this *layer* wants the
-			# item, so it is the layer's own statement and not part of the item -- `apply_row`
-			# carries it into the entry only if the layer also declared it an override, which is
-			# a site turning a contributed row's anchor off and a different thing entirely.
+			# Off the row, not the entry: an anchor is the layer's own statement, not part of the item.
 			attempts[row_key] = anchor_attempts(row.get("anchors"))
 
 	if not named:
@@ -211,18 +196,9 @@ def anchor_layer(
 	*,
 	key: Key,
 ) -> list[dict]:
-	"""One layer applied by anchors: the list below, updated in place, then the moves.
-
-	The list keeps the order it arrived in. That is the whole difference from `apply_layer`'s
-	other half, and it is what makes a newly-shipped item land at its shipped position rather
-	than after everything a person has arranged: nothing but an anchored row moves, so an item
-	nobody moved is exactly where the layer below it put it.
-
-	A row the layer *added* has no place in that list to keep, so it is appended, in the order
-	the layer wrote its rows. Its anchors then move it like any other, and an added row whose
-	anchor does not resolve stays at the end -- the one case where the fallback is not a shipped
-	position, because it has none.
-	"""
+	"""One layer applied by anchors: the list below, updated in place, then the moves."""
+	# Nothing but an anchored row moves, so a newly shipped item lands at its shipped position.
+	# An added row has no place to keep, so it is appended, then moved like any other.
 	merged = [by_key[key(item)] for item in items]
 	merged += [by_key[row_key] for row_key in arranged if row_key not in base_keys]
 
@@ -230,8 +206,7 @@ def anchor_layer(
 	if not placed:
 		return merged
 
-	# An overlay row was written against the very list it is being applied to, so a name it wrote
-	# is a key or it is nothing.
+	# An overlay row was written against this very list, so a name it wrote is a key or nothing.
 	present = {key(item) for item in merged}
 	return place_by_anchors(
 		merged, placed, key=key, target_key=lambda _item, name: name if name in present else None
@@ -240,14 +215,8 @@ def anchor_layer(
 
 # Placement
 #
-# An anchor is `{"after": key}`, `{"before": key}` or `{"parent_key": key}`, and a row carries an
-# ordered list of them: the first that resolves wins, and a row none of whose anchors resolve is
-# left where it already is. Two callers, two phases, one rule.
-#
-# What differs between them is only how a written name becomes a key in the list, so that is the
-# parameter. An overlay row names a key as it stands, because it was written against the very list
-# it is being applied to. A contributed row was written against a host its app cannot see, so its
-# names resolve to the host first and to the app's own namespaced rows second (#42364).
+# An anchor is `{"after": key}`, `{"before": key}` or `{"parent_key": key}`; the first that
+# resolves wins. The callers differ only in how a written name becomes a key, so that is the parameter.
 
 
 Attempt = dict
@@ -256,17 +225,8 @@ TargetKey = Callable[[Row, str], Any]
 
 
 def anchor_attempts(raw: Any) -> list[Attempt]:
-	"""A row's stored anchors, as an ordered list of well-formed attempts.
-
-	A malformed list is no anchors rather than an error. On a contributed row the reader of any
-	complaint would be the wrong person, since an app writes anchors against a host it cannot see;
-	on an overlay row the writer is an endpoint, so a malformed one is a bug that shows up as an
-	item that did not move rather than as a save that failed. Either way the row still appears.
-
-	An attempt naming both `after` and `before` names two positions and so names none. It is
-	dropped rather than resolved by precedence, because picking one would make a typo into a
-	silent placement nobody wrote.
-	"""
+	"""A row's stored anchors, as an ordered list of well-formed attempts; malformed is no anchors."""
+	# An attempt naming both `after` and `before` names two positions and so names none.
 	try:
 		anchors = json.loads(raw or "[]") if isinstance(raw, str) else (raw or [])
 	except (TypeError, ValueError):
@@ -299,19 +259,9 @@ def place_by_anchors(
 	key: Key,
 	target_key: TargetKey,
 ) -> list[dict]:
-	"""Move each row in `placed` to the first position it asks for that resolves.
-
-	`placed` pairs a row that is already in `items` with its ordered attempts. It is a pair rather
-	than a read off the row because the two callers store anchors in different places: an
-	extension reads them off the contributed row, and a layer reads them off the layer row rather
-	than off the entry it resolved to.
-
-	`anchored` is the cycle guard and the whole of it: it records what each moved row was moved
-	next to, so an anchor whose target chain leads back to the row being placed is refused and the
-	next anchor is tried. Two rows naming each other is the case, and neither an exception nor an
-	arbitrary winner would be right -- falling through to the next anchor, and then to leaving the
-	row alone, is the same answer this gives every other unresolvable one.
-	"""
+	"""Move each row in `placed` to the first position it asks for that resolves."""
+	# `anchored` is the cycle guard: an anchor whose target chain leads back to the row being
+	# placed is refused and the next attempt is tried.
 	anchored: dict[str, str] = {}
 
 	for item, attempts in placed:
@@ -375,36 +325,18 @@ def _leads_back(target: str, key: str, anchored: dict[str, str]) -> bool:
 
 
 def _place(items: list[dict], item: dict, anchor: dict, *, key: Key):
-	"""Move `item` and everything under it to where the anchor says.
-
-	The row travels with its **subtree**. The list is flat and the tree is `parent_key`, so
-	moving a section on its own leaves its children sitting where they were: the tree is still
-	right, since a reader groups by `parent_key`, but the flat order no longer has children
-	following their parent -- and that invariant is what every reader of this list assumes,
-	including the editor that will read it straight back and draw it in order.
-
-	`after` and `before` put a row beside another, so it takes that row's parent: beside means
-	beside, and a sibling that landed at a different depth would be somewhere else entirely. An
-	explicit `parent_key` wins over that, for the writer that means *under this section, next to
-	that row*.
-
-	A `parent_key` with no `after` or `before` lands the row after the last child that parent
-	already has, or immediately after the parent when it has none -- the position appending to
-	that section would give, which is what it asked for.
-	"""
+	"""Move `item` and everything under it to where the anchor says."""
+	# The subtree travels too: the list is flat, and every reader assumes children follow their parent.
+	# Beside means beside, so `after`/`before` take the target's parent; an explicit `parent_key` wins.
 	beside = anchor["after"] or anchor["before"]
 	target = beside or anchor["parent_key"]
 	if _index_of(items, target, key=key) is None:
-		# Unreachable as long as an anchor only ever resolves against a key that is in the list,
-		# which is what `target_key` promises. Checked anyway because one caller is boot: an
-		# exception here would blank the shell over a misplaced navigation row.
+		# Unreachable while `target_key` keeps its promise; checked because one caller is boot.
 		return
 
 	block = _subtree(items, item, key=key)
 
-	# An anchor naming a row inside the subtree being moved has nowhere to land, because the
-	# target travels with it. Refused rather than resolved, which is what the cycle guard does
-	# with the same shape of request one level up.
+	# An anchor naming a row inside the moving subtree has nowhere to land.
 	if any(entry is not item and key(entry) == target for entry in block):
 		return
 
@@ -416,8 +348,7 @@ def _place(items: list[dict], item: dict, anchor: dict, *, key: Key):
 		if parent is None:
 			parent = items[_index_of(items, beside, key=key)].get("parent_key")
 		item["parent_key"] = parent
-		# `after` clears the target's own subtree, for the same reason the moving row brings its
-		# own: landing between a row and its children is not a position anybody can mean.
+		# `after` clears the target's own subtree: landing between a row and its children is no position.
 		at = _end_of(items, beside, key=key) + 1 if anchor["after"] else _index_of(items, beside, key=key)
 	else:
 		item["parent_key"] = anchor["parent_key"]
@@ -442,12 +373,7 @@ def _end_of(items: list[dict], root: str, *, key: Key) -> int:
 
 
 def _beneath(items: list[dict], root: str, *, key: Key) -> set[str]:
-	"""`root` and every key under it.
-
-	Grown to a fixpoint rather than in one pass, so it does not depend on a parent preceding its
-	children -- which is the very invariant this exists to keep, and so is not one to assume
-	while keeping it.
-	"""
+	"""`root` and every key under it, grown to a fixpoint so a parent need not precede its children."""
 	inside = {root}
 
 	while True:
@@ -466,6 +392,5 @@ def _index_of(items: list[dict], name: str, *, key: Key) -> int | None:
 
 
 def _position_of(items: list[dict], item: dict) -> int:
-	"""Where this exact row is. By identity, not by equality: `list.remove` takes the first row
-	that compares equal, which is the right one only for as long as no two rows can match."""
+	"""Where this exact row is, by identity: `list.remove` takes the first row that compares equal."""
 	return next(index for index, entry in enumerate(items) if entry is item)

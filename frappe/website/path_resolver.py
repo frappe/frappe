@@ -70,8 +70,7 @@ class PathResolver:
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
 			*custom_renderers,
-			# Ahead of StaticPage, so a file under an app's `www/` cannot shadow the
-			# framework's own shell at a claimed prefix (#42066).
+			# Ahead of StaticPage, so a file under an app's `www/` cannot shadow the shell at a claimed prefix.
 			ShellPage,
 			StaticPage,
 			WebFormPage,

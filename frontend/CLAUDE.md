@@ -178,7 +178,7 @@ Do not "fix" these:
   through on its precedent.
 - **`generated.ts` defines 4 routes for any number of doctypes** — `doctype` is a param,
   and `view`/`layout`/`from` are query params by decision.
-- **The shared library list is `SINGLETONS` (`frappe/shell/manifest.py:22`)** — `vue`,
+- **The shared library list is `SINGLETONS` (`frappe/shell/manifest.py:14`)** — `vue`,
   `vue-router`, `frappe-ui`, `@framework/ui`, `reka-ui`, `dompurify` — enforced at build
   time and documented nowhere else. For the `frappe` app itself, deps are read from
   `frontend/package.base.json`, **not** `frappe/package.json`, which is desk v1's esbuild

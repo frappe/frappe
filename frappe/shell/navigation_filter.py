@@ -144,6 +144,7 @@ def _holds_something(
 
 class NavigationContext:
 	"""Every input the buckets read, computed at most once per resolution."""
+
 	# Per resolution, not `request_cache`: nothing clears that on `frappe.set_user`, and these
 	# are per-user sets.
 

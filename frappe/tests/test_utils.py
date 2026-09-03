@@ -1527,10 +1527,7 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertGreaterEqual(len(info["users"]), 1)
 
 	def test_get_url_to_form(self):
-		# The CANONICAL address: the owning app's prefix, and that app's route shape
-		# (frappe/frappe#42210, #42211). These used to read `/desk/…`, desk v1's route.
-		# v1 is untouched and still lives there; what moved is where a link GENERATED
-		# outside a session points, which is now the shell.
+		# The canonical address: the owning app's prefix under the shell. Desk v1 still lives at `/desk/…`.
 		self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
 		self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
 
