@@ -112,6 +112,9 @@ class Event(Document):
 		if not self.sync_with_google_calendar:
 			self.add_video_conferencing = 0
 
+		if self.google_meet_link and not self.google_meet_link.startswith("https://"):
+			self.google_meet_link = ""
+
 	def before_save(self):
 		self.set_participants_email()
 
