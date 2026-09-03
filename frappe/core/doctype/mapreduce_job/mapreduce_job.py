@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from types import NoneType
+
 import frappe
 from frappe import qb
 from frappe.model.document import Document
@@ -19,6 +21,7 @@ class MapReduceJob(Document):
 
 		amended_from: DF.Link | None
 		callback: DF.Data | None
+		callback_executed: DF.Check
 		data: DF.JSON | None
 		document_name: DF.DynamicLink | None
 		document_type: DF.Link | None
@@ -123,15 +126,20 @@ def atomically_schedule_tasks(job, count):
 		if total == completed:
 			# execute callback
 			if callback := frappe.db.get_value("MapReduce Job", filters={"name": job}, fieldname="callback"):
-				result, ref_dt, ref_dn = frappe.db.get_value(
-					"MapReduce Job",
-					filters={"name": job},
-					fieldname=["result", "document_type", "document_name"],
+				callback_executed = frappe.db.get_value(
+					"MapReduce Job", job, "callback_executed", for_update=True, skip_locked=True
 				)
-				result = frappe.parse_json(result)
+				if not isinstance(callback_executed, NoneType) and callback_executed == 0:
+					result, ref_dt, ref_dn = frappe.db.get_value(
+						"MapReduce Job",
+						filters={"name": job},
+						fieldname=["result", "document_type", "document_name"],
+					)
+					result = frappe.parse_json(result)
 
-				frappe.call(callback, result, ref_dt, ref_dn) if ref_dt and ref_dn else frappe.call(
-					callback, result
-				)
+					frappe.call(callback, result, ref_dt, ref_dn) if ref_dt and ref_dn else frappe.call(
+						callback, result
+					)
+					frappe.db.set_value("MapReduce Job", job, "callback_executed", True)
 
 	frappe.db.commit()

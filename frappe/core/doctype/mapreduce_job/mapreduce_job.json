@@ -9,9 +9,12 @@
   "section_break_ruuv",
   "document_type",
   "document_name",
+  "column_break_gjhv",
   "map",
   "reduce",
   "callback",
+  "callback_executed",
+  "section_break_vjfs",
   "data",
   "result",
   "amended_from"
@@ -32,14 +35,18 @@
    "search_index": 1
   },
   {
+   "description": "Each element of data will be passed to this function",
    "fieldname": "map",
    "fieldtype": "Data",
-   "label": "Map Function"
+   "label": "Map Function",
+   "show_description_on_click": 1
   },
   {
+   "description": "Result from Map function will be passed to this function",
    "fieldname": "reduce",
    "fieldtype": "Data",
-   "label": "Reduce Function"
+   "label": "Reduce Function",
+   "show_description_on_click": 1
   },
   {
    "fieldname": "data",
@@ -71,16 +78,33 @@
    "read_only": 1
   },
   {
+   "description": "Executed only once all elements of data is processed. ",
    "fieldname": "callback",
    "fieldtype": "Data",
-   "label": "Callback"
+   "label": "Callback",
+   "show_description_on_click": 1
+  },
+  {
+   "fieldname": "column_break_gjhv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_vjfs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "callback_executed",
+   "fieldtype": "Check",
+   "label": "Callback Executed",
+   "no_copy": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-01 16:32:52.553573",
+ "modified": "2026-09-03 14:31:34.711409",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Job",
