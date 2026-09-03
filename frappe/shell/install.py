@@ -1,13 +1,5 @@
-# The install-time prefix guard.
-#
-# #42067 put this in `before_app_install` rather than `before_install`: a raise here
-# leaves the site byte-identical, while `before_install`'s refusal path exits 0 and
-# reports success. It fires 27 lines after `installer.py` has already refused any app
-# missing from `apps.txt`, so it is lag-free by construction (#42105).
-#
-# Since the /apps redraw the surface is app-vs-app and nothing else. Legacy
-# `website_route_rules`, `www/` files and the reserved-segment enumeration are no
-# longer part of the check, because apps no longer claim top-level segments.
+# The install-time prefix guard: refuse an app whose prefix is malformed or already claimed.
+# Hooked on `before_app_install`, not `before_install`: a raise there exits 0 and reports success.
 
 import frappe
 from frappe import _
@@ -35,24 +27,14 @@ def before_app_install(app_name: str):
 			title=_("Invalid Route Prefix"),
 		)
 
-	# `get_installed_apps`, NOT `get_active_apps` — and this is deliberately the opposite
-	# of what `build_prefix_registry` reads. A *disabled* app must stop serving its
-	# prefix, so the registry skips it; but it can be re-enabled at any time, so its
-	# claim must still block a new app from taking the prefix. Checking active apps only
-	# would let disable-A / install-B / re-enable-A end with two claimants, which the
-	# registry resolves by silently letting one win.
-	#
-	# `_ensure_on_bench=True` is kept for the reason it exists: an app left in
-	# `installed_apps` but no longer on the bench would raise from `get_hooks(app_name=)`
-	# in `declared_prefix` below, turning one missing directory into a failed install.
+	# Installed apps, not active: a disabled app can be re-enabled, so its claim still blocks.
+	# `_ensure_on_bench=True`: an app missing from the bench would raise from `get_hooks` below.
 	for installed in frappe.get_installed_apps(_ensure_on_bench=True):
 		if installed == app_name:
 			continue
 		if declared_prefix(installed) != prefix:
 			continue
 
-		# Name both claimants. The whole point of failing hard is that the operator
-		# can act on the message without going and reading two hooks.py files.
 		frappe.throw(
 			_(
 				"App {0} claims the route prefix {1}, which is already claimed by the "
