@@ -2501,6 +2501,15 @@ class TestQuery(IntegrationTestCase):
 				get_visible_users(ignore_user_permissions=True),
 				[allowed_user, mixed_user],
 			)
+
+			# Reports and link searches embed the SQL-string form in raw queries.
+			match_conditions = frappe.build_match_conditions("User")
+			visible_users = frappe.db.sql(
+				f"select name from `tabUser` where name in %(users)s and ({match_conditions})",
+				{"users": [allowed_user, mixed_user]},
+				pluck=True,
+			)
+			self.assertListEqual(visible_users, [allowed_user])
 		finally:
 			frappe.set_user("Administrator")
 			clear_user_permissions_for_doctype("Role", test_user)
