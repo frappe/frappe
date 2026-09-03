@@ -64,7 +64,9 @@ class ParameterizedValueWrapper(ValueWrapper):
 			elif isinstance(self.value, datetime):
 				self.value = frappe.db.format_datetime(self.value)
 			elif isinstance(self.value, bool):
-				self.value = int(self.value)
+				# emit '1'/'0': fits both `SET check_field = '1'` (smallint) and
+				# `WHERE ... OR '0'` (a condition), where postgres rejects a bare 1
+				self.value = str(int(self.value))
 
 			sql = self.get_value_sql(
 				quote_char=quote_char,
