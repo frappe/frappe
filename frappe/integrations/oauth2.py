@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+import datetime
+import hmac
+>>>>>>> 26c399c (fix(oauth2): require client authentication on token introspection endpoint)
 import json
 from urllib.parse import quote, urlencode
 
@@ -228,8 +233,35 @@ def openid_configuration():
 	)
 
 
+def authenticate_introspection_caller() -> str | None:
+	"""Verify the calling OAuth client's credentials per RFC 7662 §2.1 (Client Secret Post).
+
+	Note: HTTP Basic auth (Client Secret Basic) is not supported here - Frappe's own
+	request-level auth (validate_auth_via_api_keys) claims the Authorization: Basic
+	header globally for API key/secret pairs and 401s before this handler ever runs.
+
+	Returns the authenticated client_id, or None if the caller could not be authenticated.
+	"""
+	client_id = frappe.form_dict.get("client_id")
+	client_secret = frappe.form_dict.get("client_secret")
+
+	if not client_id or not client_secret:
+		return None
+
+	stored_secret = frappe.db.get_value("OAuth Client", client_id, "client_secret")
+	if not stored_secret or not hmac.compare_digest(stored_secret, client_secret):
+		return None
+
+	return client_id
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def introspect_token(token: str, token_type_hint: str | None = None):
+	authenticated_client_id = authenticate_introspection_caller()
+	if not authenticated_client_id:
+		frappe.local.response = frappe._dict({"active": False})
+		return
+
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:
@@ -240,6 +272,10 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 			bearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": token})
 
 		client = frappe.get_doc("OAuth Client", bearer_token.client)
+
+		if client.client_id != authenticated_client_id:
+			frappe.local.response = frappe._dict({"active": False})
+			return
 
 		token_response = frappe._dict(
 			{
