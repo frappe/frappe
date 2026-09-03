@@ -11,6 +11,15 @@ Walk both before drafting or refactoring a component, and cite principles by ID
 (`FP1`, `P3`) in reviews. The notes below are operational specifics that support
 those rules — the design *rules* themselves live in PHILOSOPHY.md, not here.
 
+## Comments and field descriptions — read `../AGENTS.md`
+
+[`../AGENTS.md`](../AGENTS.md) carries the comment rule for all desk v2 work: a comment
+earns its place only where the code cannot speak for itself, two lines maximum, one
+summary line per docstring, no commented-out code, and a DocType field `description` is
+one line. It is not restated here, so the two cannot drift apart. Check your diff against
+it before closing a ticket.
+
+
 ## frappe-ui vs `@framework/ui` — which package is which
 
 The compose-atoms-don't-rebuild rule is [`FP1`](./PHILOSOPHY.md); this note is the
