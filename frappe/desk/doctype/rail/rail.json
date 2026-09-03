@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "hash",
  "creation": "2026-09-01 10:00:00.000000",
- "description": "One layer of one app's rail. Four kinds of row share this table, told apart by `app`, `extends`, `user` and `standard`: the app's own rail, which it ships as an exported document and a developer authors; the site's arrangement of it, curated by a System Manager and applying to everyone; and one person's own, applied last and winning. The order is strict -- app, then site, then user -- and there is no role layer, because a user with three roles would get three competing arrangements and a precedence rule the framework has nowhere else. A rail belongs to an app, so arranging ERPNext's does not touch CRM's. The fourth kind is another app's contribution to this one's rail, which names its host in `extends` and is merged into the base before any of those three are laid over it. The container is named for where it is and its rows for what they do, which is the only arrangement in which one row type can honestly serve both this and a sidebar.",
+ "description": "One layer of one app's rail: the app's own, the site's arrangement, one user's own, or another app's contribution.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -15,7 +15,7 @@
  ],
  "fields": [
   {
-   "description": "The app whose rail this layer arranges. Required: a rail belongs to an app, and a layer that named none would be one arrangement spanning every rail. An `Autocomplete` over installed apps rather than a Link, because there is no `App` doctype -- the house spelling, shared with `Sidebar.app` and `Dock.app`.",
+   "description": "The app whose rail this layer arranges.",
    "fieldname": "app",
    "fieldtype": "Autocomplete",
    "in_list_view": 1,
@@ -26,7 +26,7 @@
   },
   {
    "depends_on": "eval:doc.standard == 1",
-   "description": "The app whose rail this layer joins, for an app that adds entries to somebody else's. Blank on an app's own rail, which is what nearly every row is. This replaces `mount_on`, which was desk v1's arrangement and a different claim: there, a companion app surrendered its own rail and its apps-screen tile to live inside a host, and one column could only ever name one host. An app that extends ERPNext *or* CRM *or* Helpdesk ships one row per host and keeps its own, which is why this belongs to the address rather than to the app. An **app name** rather than a Link to a `Rail`, because a pin aimed at a record would be a pin aimed at one of that app's three layers, which means nothing. Not nullable, for the reason `user` is not: one spelling of \"extends nobody\" has to reach the unique index. App-layer only -- `depends_on` hides it elsewhere and `validate` blanks it, because hiding a field does not stop an API write, and a site or user layer naming a host would be one person's arrangement of a rail they do not own.",
+   "description": "The host app whose rail this layer joins. App layer only; blank on an app's own rail.",
    "fieldname": "extends",
    "fieldtype": "Autocomplete",
    "in_standard_filter": 1,
@@ -35,7 +35,7 @@
    "options": "Installed Applications"
   },
   {
-   "description": "The person whose own arrangement this is. Blank means the app's own rail or the site's arrangement of it, told apart by `standard`. Not nullable, so that one spelling of \"not a user's own layer\" reaches the index: a blank column stored as `NULL` is distinct from every other `NULL`, and an app could then hold two site layers that both look like one address.",
+   "description": "Whose own arrangement this is. Blank means the app's or the site's layer, told apart by Standard.",
    "fieldname": "user",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -46,7 +46,7 @@
   },
   {
    "default": "0",
-   "description": "Owned by the app: exported to `<app>/rail/<app>/<app>.json` and re-imported by migrate. This is the app layer, the one the other two are laid over, and the only one an app ever writes. Writable in developer mode alone, because a standard rail with no exported file is an orphan and gets deleted on the next migrate.",
+   "description": "Owned by the app and exported to its rail folder by name. Authored in developer mode only.",
    "fieldname": "standard",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -60,7 +60,7 @@
    "label": "Items"
   },
   {
-   "description": "The entries this layer has an opinion about. Order is per parent, so dragging inside one section cannot renumber another, and it is a sparse move-list: an entry this layer never names keeps its shipped position and follows the ones it does. That is what lets an app add an item between two others and have it land there even for someone who has already rearranged the list.",
+   "description": "Rows this layer has an opinion about. Order is sparse and per parent: unnamed rows keep their place.",
    "fieldname": "items",
    "fieldtype": "Table",
    "label": "Items",
@@ -70,7 +70,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-02 12:00:00.000000",
+ "modified": "2026-09-03 18:03:47.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Rail",

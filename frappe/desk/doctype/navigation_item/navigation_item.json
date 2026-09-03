@@ -2,7 +2,7 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "creation": "2026-09-01 10:00:00.000000",
- "description": "One row of desk v2 navigation. The same row serves the rail and the sidebar, which is why it is named for what it does rather than for where it sits. A row points at exactly one destination and carries no query of its own.",
+ "description": "One row of desk v2 navigation, serving both the rail and the sidebar.",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -40,14 +40,14 @@
    "label": "Identity"
   },
   {
-   "description": "This row's address, authored once and then frozen. Every site and user edit is filed against it, so changing or dropping a key is a breaking change in the same sense that renaming a `fieldname` is: the deltas that named the old key go inert and the site silently loses its arrangement. Minted from a slug of the destination when the row is first exported, and never recomputed after that — identity is not derived from the destination columns, because an app retargeting an item is an ordinary product change and would otherwise orphan every customization of it.",
+   "description": "Frozen address every site and user edit is filed against. Never changed once shipped.",
    "fieldname": "key",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Key"
   },
   {
-   "description": "The `key` of the row this one sits under. Blank means top level. This is the whole of hierarchy: there is no `child`, no `indent` and no depth cap, because a renderer that draws two levels says so itself rather than the framework deciding an app's navigation shape. A `parent_key` naming a row that is gone promotes this one to top level rather than dropping it, so an app removing a section never silently deletes navigation.",
+   "description": "Key of the row this one sits under. Blank, or naming a missing row, means top level.",
    "fieldname": "parent_key",
    "fieldtype": "Data",
    "label": "Parent Key"
@@ -57,7 +57,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "What kind of thing this row opens. A Link to the code-owned type registry rather than a Select, because a Select's options live in one DocType JSON owned by one app, so a second app could only extend it with a Property Setter. Link rows are additive across apps with no shared field to fight over. Required on a row that IS an item — one an app ships, or one a layer added — and blank on a delta, which is an opinion about an item the layer below it holds and says nothing about what that item opens.",
+   "description": "What this row opens. Required on an item, blank on a delta over a lower layer's item.",
    "fieldname": "item_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -70,7 +70,7 @@
    "label": "Destination"
   },
   {
-   "description": "The doctype `link_to` names. Fetched from the type's `Target DocType`, and only when the row leaves it blank -- which is what lets `Record`, the one type that hands the choice to the item, carry its own. Fetched rather than filled in `validate`, because a Dynamic Link is checked before any document hook runs on insert, and the framework resolves Link fields before Dynamic Links in the same pass. A Link rather than Data so that renaming a doctype repairs the pointer through ordinary link renaming.",
+   "description": "Fetched from the type's Target DocType when blank; only a Record row sets its own.",
    "fetch_from": "item_type.target_doctype",
    "fetch_if_empty": 1,
    "fieldname": "link_doctype",
@@ -79,7 +79,7 @@
    "options": "DocType"
   },
   {
-   "description": "The record this row opens. A real Dynamic Link, which is what keeps `rename_dynamic_links` repairing every pointer on the site in one statement — base rows and layer rows alike. That matters most for the `Record` type, which has the highest rename traffic of all.",
+   "description": "The record this row opens.",
    "fieldname": "link_to",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
@@ -87,7 +87,7 @@
    "options": "link_doctype"
   },
   {
-   "description": "Where a `Link` row goes. The one type with no document behind it, and so the one row with nothing for the Dynamic Link to hold.",
+   "description": "Where a Link row goes.",
    "fieldname": "url",
    "fieldtype": "Data",
    "label": "URL"
@@ -97,7 +97,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "The type-specific tail: whatever a type needs that no other type has, such as a `Link` row's open-in-new-tab choice or a `Page`'s query. Inside the row's identity, because a payload is by definition part of where the row goes. Never a filter or a saved query — what a list shows belongs to the document a `View` row points at, so that an authored item never carries a query it could be reformatted out of.",
+   "description": "Type-specific JSON, such as a Link row's open-in-new-tab. Never a filter or a saved query.",
    "fieldname": "payload",
    "fieldtype": "Code",
    "label": "Payload",
@@ -109,14 +109,13 @@
    "label": "Presentation"
   },
   {
-   "description": "What this row reads as. Outside identity, so re-labelling an item never detaches the customizations filed against it. A label a person authored — one named in `overrides` — renders verbatim and is never translated; a shipped one translates as usual.",
+   "description": "Shown as typed, never translated. Blank falls back to the type's label, then the destination.",
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Label"
   },
   {
-   "description": "What this row draws with. Outside identity, for the same reason as `label`.",
    "fieldname": "icon",
    "fieldtype": "Icon",
    "label": "Icon",
@@ -128,7 +127,6 @@
   },
   {
    "default": "0",
-   "description": "Whether this row's children can be folded away. Generic to any node that has children, which is why it survived the columns that used to describe the tree instead of storing it.",
    "fieldname": "collapsible",
    "fieldtype": "Check",
    "label": "Collapsible"
@@ -142,27 +140,27 @@
   },
   {
    "collapsible": 1,
-   "description": "Only meaningful on a site or user layer, where a row is either a delta against a row the app ships or an item the layer added outright.",
+   "description": "Site and user layers only: a delta against a shipped row, or an item this layer added.",
    "fieldname": "customization_section",
    "fieldtype": "Section Break",
    "label": "Customization"
   },
   {
    "default": "0",
-   "description": "Hide this item. Explicit rather than implied by the row's absence, which is what lets a user's `hidden: 0` un-hide something the site hid. Hiding is a preference and stays in the payload with this flag set; a permission check is a different thing and removes the row before any layer merges.",
+   "description": "Hides the item. Explicit, so a user's unticked Hidden can un-hide what the site hid.",
    "fieldname": "hidden",
    "fieldtype": "Check",
    "label": "Hidden"
   },
   {
    "default": "0",
-   "description": "0 means this row is a delta against a base row with the same `key`. 1 means a whole item this layer added, rendered as it stands.",
+   "description": "0: a delta against the base row with this key. 1: an item this layer added outright.",
    "fieldname": "added",
    "fieldtype": "Check",
    "label": "Added"
   },
   {
-   "description": "On a delta row, the JSON list of fieldnames this layer actually has an opinion about. Naming them explicitly is what lets a site clear a value the app shipped — remove an icon, blank a label — which an empty-means-inherit encoding cannot express, and what makes \"did a human author this label\" answerable at render time.",
+   "description": "JSON list of fieldnames this delta has an opinion about, so a blank can clear a shipped value.",
    "fieldname": "overrides",
    "fieldtype": "Code",
    "label": "Overrides",
@@ -170,13 +168,13 @@
   },
   {
    "collapsible": 1,
-   "description": "Only meaningful on a row one app contributes to another app's rail — a `Rail` layer with `extends` set. An app's own rows are already where their author put them. A site or user layer says where a row goes with an anchor too, but stores it on the row it is moving rather than here, because that row is a delta over somebody else's item.",
+   "description": "Where a contributed row lands. A site or user layer's moves are stored as anchors too.",
    "fieldname": "contribution_section",
    "fieldtype": "Section Break",
    "label": "Contribution"
   },
   {
-   "description": "Where this row wants to land in the host's list, as an ordered JSON list of attempts. Each attempt is an object naming at most one of `after` and `before`, a sibling to sit next to, and optionally `parent_key`, a row to nest under; every key it names has to be in the merged list for the attempt to resolve. The first that resolves wins and the rest are ignored, which is how an app says \"beside Customers, or failing that beside Contacts, or failing that anywhere\" without knowing which version of the host is installed. None resolving means the row is appended at the top level and never dropped, because a contributed item that lands in the wrong place is a cosmetic problem and one that vanishes is a bug report. Keys are written as the host wrote them, unprefixed; the merge namespaces contributed keys but never the anchors that name them. A layer row uses the same list for the same reason one phase later: a person's move is stored as what it landed beside, not as a position, so an item an app ships afterwards lands where the app put it instead of after everything that person has arranged. There the fallback is the row's own shipped position rather than the end, because unlike a contributed row it has one.",
+   "description": "Ordered JSON list of placements naming after, before or parent_key. First to resolve wins.",
    "fieldname": "anchors",
    "fieldtype": "Code",
    "label": "Anchors",
@@ -188,7 +186,7 @@
   },
   {
    "default": "0",
-   "description": "Whether following this row leaves the host app for the app that contributed it. Off by default, and that default needs no code: a contributed row is an ordinary prefix-relative link, so clicking it keeps you where you are — addresses are bench-wide, so a foreign doctype opens under the host's prefix. On, the server sends the finished absolute URL, because the client resolves routes through the router it is standing in and cannot build one into another prefix. A column rather than a corner of `payload`, so that `overrides` can name it: a site that wants a contributed item to stay put, or to leave, is stating an opinion about a field, and `payload` sits inside the row's identity.",
+   "description": "Following this row leaves the host app for the app that contributed it.",
    "fieldname": "switches_app",
    "fieldtype": "Check",
    "label": "Switches App"
@@ -198,7 +196,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-02 12:00:00.000000",
+ "modified": "2026-09-03 18:03:47.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Navigation Item",
