@@ -6,8 +6,6 @@ from typing import Annotated
 from flow.tools.builtins.common import resolve, truncate
 from flow.tools.tool import ToolContext, ToolResult, tool
 
-_IMAGE_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"})
-
 
 @tool(
 	prompt_snippet="Read file contents",
@@ -25,7 +23,12 @@ async def read_file(
 	full = resolve(ctx, path, read_only=True)
 	if not os.path.isfile(full):
 		return ToolResult(content=f"[no such file: {path}]", is_error=True)
-	if os.path.splitext(full)[1].lower() in _IMAGE_EXTENSIONS:
+	try:
+		with open(full, "rb") as f:
+			head = f.read(12)
+	except OSError as e:
+		return ToolResult(content=f"[cannot read {path}: {e.strerror or e}]", is_error=True)
+	if _is_image(head):
 		return await _read_image(full, path, ctx)
 	if offset is not None and offset < 1:
 		return ToolResult(content="[offset must be >= 1]", is_error=True)
@@ -72,6 +75,15 @@ async def _read_image(full: str, path: str, ctx: ToolContext) -> ToolResult:
 		content=f"[Image: {path} ({stored.mime_type}, {stored.width}x{stored.height})]",
 		details={"path": full},
 		attachments=[stored],
+	)
+
+
+def _is_image(head: bytes) -> bool:
+	"""File signature check for the formats the attachment store accepts."""
+	return (
+		head.startswith((b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n", b"GIF8"))
+		or (head[:4] == b"RIFF" and head[8:12] == b"WEBP")
+		or (head[:2] == b"BM" and head[6:10] == b"\0\0\0\0")
 	)
 
 

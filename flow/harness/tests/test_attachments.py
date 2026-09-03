@@ -557,10 +557,27 @@ async def test_read_file_image_without_a_store_degrades_to_text(tmp_path):
 	assert "unavailable in this session" in result.content
 
 
-async def test_read_file_reports_an_unreadable_image_as_an_error(tmp_path):
+async def test_read_file_sniffs_images_by_content_not_name(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	target = tmp_path / "fake.png"
-	target.write_bytes(b"not an image")
+	(tmp_path / "screenshot").write_bytes(_png())  # image, no extension
+	(tmp_path / "notes.png").write_text("just text")  # text wearing an image name
+
+	async def sink(name: str, data: bytes) -> AttachmentContent:
+		return await asyncio.to_thread(store.add_bytes, name, data)
+
+	ctx = ToolContext(cwd=str(tmp_path), store_image=sink)
+	image = await read_file(path="screenshot", ctx=ctx)
+	text = await read_file(path="notes.png", ctx=ctx)
+
+	assert [item.kind for item in image.attachments] == ["image"]
+	assert not text.is_error and text.attachments == []
+	assert text.content == "just text"
+
+
+async def test_read_file_reports_a_broken_image_as_an_error(tmp_path):
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	target = tmp_path / "broken.png"
+	target.write_bytes(b"\x89PNG\r\n\x1a\n" + b"junk")  # a real signature, no image behind it
 
 	async def sink(name: str, data: bytes) -> AttachmentContent:
 		return await asyncio.to_thread(store.add_bytes, name, data)
@@ -569,7 +586,7 @@ async def test_read_file_reports_an_unreadable_image_as_an_error(tmp_path):
 
 	assert result.is_error
 	assert result.attachments == []
-	assert "not a supported image" in result.content
+	assert "cannot read image" in result.content
 
 
 async def test_tool_image_bytes_never_reach_the_session_log(tmp_path):
