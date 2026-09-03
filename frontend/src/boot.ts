@@ -1,20 +1,8 @@
-// The v2 boot: a NEW small payload, not `frappe.sessions.get()`.
-//
-// #42070 measured the existing boot at 147,711 bytes, ~120 KB of it desk v1 workspace
-// furniture. That is why CRM and Gameplan each rebuilt the generic keys by hand. This
-// one starts small; v1's is left untouched and retires with v1.
+// The shell's boot payload: small, per prefix, separate from desk v1's `frappe.sessions.get()`.
 
 /**
- * One resolved navigation item, on the rail or in a sidebar. The SAME shape in both:
- * they are two presentations of one model, not two models (charter point 1).
- *
- * Everything but `key` and `item_type` is optional because the server omits a blank
- * field rather than sending `null` — navigation is the largest thing in a payload with
- * a 40 KB ceiling, and most fields on most rows are blank.
- *
- * `item_type` decides what the item does; the client does not branch on it beyond
- * picking a renderer (#42228). An item with no `label` was never labelled by anyone, so
- * a renderer falls back to its destination.
+  * One resolved navigation item; the rail and a sidebar share this shape. A blank field
+  * is omitted, never sent as `null`.
  */
 export type NavigationItem = {
 	key: string;
@@ -23,11 +11,8 @@ export type NavigationItem = {
 	link_doctype?: string;
 	link_to?: string;
 	/**
-	 * An absolute href, for the two rows that are not a route in this prefix: a `Link`
-	 * item, which points off the desk entirely, and a contributed item marked
-	 * `switches_app`, whose URL the server finishes because the router this document
-	 * holds cannot build one into another prefix (#42364). Either way, following it is
-	 * a full document load, so a row carrying one is an `<a>` and not a `RouterLink`.
+	 * An absolute href off this prefix (a `Link` item, or a contributed item that switches
+	 * app). Following it is a full document load, so the row is an `<a>`, not a `RouterLink`.
 	 */
 	url?: string;
 	payload?: Record<string, unknown>;
@@ -40,14 +25,8 @@ export type NavigationItem = {
 export type Navigation = {
 	rail: NavigationItem[];
 	/**
-	 * Every sidebar in this prefix, keyed by SCRUBBED ADDRESS — `module_def_accounts`,
-	 * not a record name. A resolved sidebar is the merge of up to three records with
-	 * three different names, so no one name identifies it; the address is what they
-	 * share. A rail item of type `Sidebar` already carries that string in `link_to`, so
-	 * opening one is a dictionary lookup on a value the item is holding (#42356).
-	 *
-	 * An address that resolved to nothing is absent rather than empty, and a linked rail
-	 * item whose sidebar is absent renders as an independent one (#42357).
+	 * Keyed by scrubbed address, the string a `Sidebar` rail item holds in `link_to`, never
+	 * by record name. An address that resolved to nothing is absent, not empty.
 	 */
 	sidebars: Record<string, NavigationItem[]>;
 };
@@ -69,35 +48,24 @@ export type Boot = {
 
 	// --- routing ---
 	//
-	// `shell_base` is the router's base: the COMPOSED path (`/apps/crm`), not the bare
-	// segment. Boot carries it composed so the literal `/apps` never has to appear in
-	// JS at all (#42125). It is `/apps` itself on the index, which belongs to no app.
+	// `shell_base` is the composed path (`/apps/crm`), so the literal `/apps` never appears
+	// in JS. It is `/apps` itself on the index, which belongs to no app.
 	shell_base: string;
 	app: string | null;
 
-	// #42066's `{prefix: app}` registry, widened to carry #42211's modularity boolean.
-	// Every active app, not just this one: a link to a foreign app's doctype needs that
-	// app's shape, and one boolean per app is five entries on this bench.
+	// Every active app, not just this one: a link into a foreign app needs that app's shape.
 	prefixes: Record<string, { app: string; modular: boolean }>;
 
-	// The key that invalidates the ADDRESS TABLE, which is fetched separately and is
-	// not in here -- it went full-bench when the prefix became a lens and broke the
-	// 40 KB budget (#42210). Same treatment as `translations_version`.
+	// Invalidates the address table, which is fetched separately; see `addresses.ts`.
 	metadata_version: string;
 
 	// --- navigation ---
 	//
-	// The rail and every sidebar in this prefix, already resolved: the app's own rows,
-	// then the site's arrangement, then this person's, merged server-side. The browser
-	// never restacks those layers and never re-filters the list (#42232).
-	//
-	// It is here rather than fetched because a rail click must cost no request. What an
-	// app CONTAINS is still fetched, by the pages that show it -- see `contents.ts`.
-	//
-	// Absent on the index, which belongs to no app.
+	// The rail and every sidebar in this prefix, resolved and merged server-side so a rail
+	// click costs no request. Absent on the index. What an app contains is `contents.ts`.
 	navigation?: Navigation;
 
-	// Present on the index only (#42124).
+	// Present on the index only.
 	apps?: {
 		app: string;
 		prefix: string;
@@ -106,16 +74,14 @@ export type Boot = {
 		route: string;
 	}[];
 
-	// --- the declaring app's contribution, merged under core (#42070) ---
+	// --- the declaring app's contribution, merged under core ---
 	[appKey: string]: unknown;
 };
 
 export class BootUnauthorized extends Error {}
 
 export async function fetchBoot(): Promise<Boot> {
-	// `location.pathname` is the only input the client has: the document carries
-	// nothing. Composition is prefix-dependent, so the server needs the path to know
-	// which app's contribution to merge in.
+	// The server needs the path to know which app's contribution to merge in.
 	const res = await fetch(
 		`/api/method/frappe.shell.boot.get_boot?path=${encodeURIComponent(
 			location.pathname
@@ -123,8 +89,8 @@ export async function fetchBoot(): Promise<Boot> {
 		{ headers: { Accept: "application/json" } }
 	);
 
-	// 401 as well as 403: an expired session answers 401, and treating it as a generic
-	// failure would show "something went wrong" where the user needs a way back to login.
+	// 401 as well as 403: an expired session answers 401, and the user needs the way back
+	// to login, not a generic failure.
 	if (res.status === 401 || res.status === 403)
 		throw new BootUnauthorized("Not permitted");
 	if (!res.ok) throw new Error(`Boot failed with ${res.status}`);
