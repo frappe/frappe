@@ -1,17 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-"""The extension merge: `frappe/shell/extensions.py`.
-
-Pure list operations, so these are unit tests with no site behind them. That is the point of
-the module being separable at all — the ordering rules below are where #42364's design lives,
-and they are worth reading and exercising without a rail, a layer or a user in the way. What
-the merge does inside the resolver is `test_shell_navigation.py`'s.
-
-`erpnext` is the host and `telephony` the extender throughout. Neither has to be installed:
-nothing here resolves an app name, and the one place that does — dropping a disabled app's
-contribution — is a query in `navigation.py`.
-"""
+"""The extension merge, `frappe/shell/extensions.py`: pure list operations, no site."""
 
 import json
 
@@ -37,31 +27,22 @@ def keys(items: list[dict]) -> list[str]:
 
 class TestKeyNamespacing(UnitTestCase):
 	def test_a_contributed_key_is_namespaced_and_the_hosts_are_not(self):
-		"""The key is what every user edit is filed against (#42229), so a host key that changed
-		when a second app was installed would silently detach the site's arrangement. Namespacing
-		the newcomer is the only direction that leaves existing identities alone."""
 		merged = extend([item("leads")], [(APP, [item("leads")])], anchorable=True)
 
 		self.assertEqual(keys(merged), ["leads", "telephony:leads"])
 
 	def test_two_apps_may_ship_the_same_key(self):
-		"""`validate_item_keys` checks one record, so it never could have caught this. The merge
-		is where it has to hold, and it holds by construction rather than by a check."""
 		merged = extend([], [(APP, [item("calls")]), (OTHER, [item("calls")])], anchorable=True)
 
 		self.assertEqual(keys(merged), ["telephony:calls", "payments:calls"])
 
 	def test_a_contributed_subtree_keeps_its_own_shape(self):
-		"""`parent_key` names a sibling in the app's own list, so it is namespaced with the key
-		and the subtree travels as a unit. Nesting into the *host* is an anchor's job — reading
-		one column as sometimes-mine-sometimes-theirs would break an app's own hierarchy the day
-		a host happened to ship a row with the same key."""
 		merged = extend([], [(APP, [item("calls"), item("missed", parent_key="calls")])], anchorable=True)
 
 		self.assertEqual(merged[1]["parent_key"], "telephony:calls")
 
 	def test_a_keyless_row_is_skipped(self):
-		"""It would namespace to a bare `telephony:` that every other keyless row also produced."""
+		"""It would namespace to a bare `telephony:` shared with every other keyless row."""
 		merged = extend([], [(APP, [{"item_type": "DocType"}, item("calls")])], anchorable=True)
 
 		self.assertEqual(keys(merged), ["telephony:calls"])
@@ -82,8 +63,6 @@ class TestAnchors(UnitTestCase):
 		self.assertEqual(keys(merged), ["customers", "telephony:calls", "orders", "settings"])
 
 	def test_the_first_anchor_that_resolves_wins(self):
-		"""Which is how an app says "beside Invoices, or failing that beside Orders" without
-		knowing which version of the host is installed."""
 		merged = extend(
 			self.base(),
 			[(APP, [anchored("calls", {"after": "invoices"}, {"after": "orders"})])],
@@ -93,16 +72,11 @@ class TestAnchors(UnitTestCase):
 		self.assertEqual(keys(merged), ["customers", "orders", "telephony:calls", "settings"])
 
 	def test_an_item_that_resolves_nothing_is_appended_and_never_dropped(self):
-		"""An app writes anchors against a host it does not ship and cannot pin, so a missing
-		anchor is the expected case. Landing in the wrong place is cosmetic; vanishing is a bug
-		report filed against the wrong app."""
 		merged = extend(self.base(), [(APP, [anchored("calls", {"after": "invoices"})])], anchorable=True)
 
 		self.assertEqual(keys(merged)[-1], "telephony:calls")
 
 	def test_an_anchor_naming_both_sides_names_neither(self):
-		"""Two positions is no position. Resolving it by precedence would turn a typo into a
-		silent placement nobody wrote."""
 		merged = extend(
 			self.base(),
 			[(APP, [anchored("calls", {"after": "customers", "before": "orders"})])],
@@ -112,24 +86,17 @@ class TestAnchors(UnitTestCase):
 		self.assertEqual(keys(merged)[-1], "telephony:calls")
 
 	def test_an_unreadable_anchor_list_is_no_anchors(self):
-		"""The rows are authored by an app against a host it cannot see, so the reader of any
-		complaint would be the wrong person. The item still appears, where an app with no
-		anchors would have put it."""
+		"""The item still appears, where an app with no anchors would have put it."""
 		merged = extend(self.base(), [(APP, [item("calls", anchors="{not json")])], anchorable=True)
 
 		self.assertEqual(keys(merged)[-1], "telephony:calls")
 
 	def test_a_derived_base_offers_no_anchor_targets(self):
-		"""A derived rail's keys are doctype names nobody authored, and one of them is a side
-		effect of what the reader happens to be allowed to see. An anchor cannot name one."""
 		merged = extend(self.base(), [(APP, [anchored("calls", {"after": "customers"})])], anchorable=False)
 
 		self.assertEqual(keys(merged)[-1], "telephony:calls")
 
 	def test_an_anchor_may_name_the_apps_own_row_without_writing_its_own_name(self):
-		"""Written-first is what makes the common case — aiming at the host — resolve to the
-		host. The own-namespace fallback is only reached when the host has no such key, so it
-		can never shadow one."""
 		merged = extend(
 			self.base(),
 			[(APP, [item("calls"), anchored("missed", {"after": "calls"})])],
@@ -160,8 +127,6 @@ class TestNesting(UnitTestCase):
 		self.assertEqual(merged[2]["parent_key"], "sales")
 
 	def test_sitting_beside_a_row_means_sitting_at_its_depth(self):
-		"""Beside means beside. A sibling that landed at a different depth would be somewhere
-		else entirely."""
 		merged = extend(
 			[item("sales"), item("customers", parent_key="sales")],
 			[(APP, [anchored("calls", {"after": "customers"})])],
@@ -180,8 +145,6 @@ class TestNesting(UnitTestCase):
 		self.assertEqual(merged[2]["parent_key"], "support")
 
 	def test_an_anchor_is_read_on_a_root_and_ignored_on_a_child(self):
-		"""Where a contributed subtree sits is its root's business. An anchor on a child would
-		tear the subtree apart to satisfy a row that never had a say in where it went."""
 		merged = extend(
 			[item("sales"), item("settings")],
 			[
@@ -201,10 +164,7 @@ class TestNesting(UnitTestCase):
 
 
 class TestTwoPasses(UnitTestCase):
-	"""Placing and anchoring in one pass would make an anchor that names another extender's item
-	resolve or not depending on which app was installed first — a property of a bench rather than
-	of either app. So every row is placed first, and only then does anything look for a key.
-	"""
+	"""Every row is placed first, then anchored, so install order cannot decide an anchor."""
 
 	def test_an_anchor_may_name_another_extenders_item_whichever_went_on_first(self):
 		calls = [(APP, [item("calls")])]
@@ -240,10 +200,7 @@ class TestTheBaseIsLeftAlone(UnitTestCase):
 		self.assertIsNot(merged[0], base[0], "the base rows are copied, not handed out")
 
 	def test_two_rows_that_look_alike_are_told_apart_by_identity(self):
-		"""`list.remove` takes the first row that compares equal, so moving one row by value
-		would move whichever matched first. Nothing produces two equal rows today — keys are
-		unique by construction — and that is exactly the kind of invariant that stops being true
-		later, silently, in a list a person is looking at."""
+		"""`list.remove` takes the first row that compares equal, so a move must go by identity."""
 		merged = extend(
 			[item("customers")],
 			[(APP, [item("calls"), anchored("calls", {"after": "customers"})])],
@@ -254,8 +211,6 @@ class TestTheBaseIsLeftAlone(UnitTestCase):
 		self.assertEqual(keys(merged).count("telephony:calls"), 2)
 
 	def test_a_contributed_row_records_which_app_contributed_it(self):
-		"""Which is the one thing `switches_app` needs and the only thing that can supply it: a
-		merged item is otherwise indistinguishable from a host row, deliberately."""
 		merged = extend([], [(APP, [item("calls")])], anchorable=True)
 
 		self.assertEqual(merged[0]["app"], APP)
