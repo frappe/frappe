@@ -1681,9 +1681,22 @@ class Engine:
 				.where(child_table.parentfield == table_field.fieldname)
 				.where(Criterion.any(restricted_value_conditions))
 			)
-			conditions.append(ExistsCriterion(SubQuery(restricted_child_query)).negate())
+			conditions.append(self.get_no_restricted_child_condition(restricted_child_query))
 
 		return conditions
+
+	def get_no_restricted_child_condition(self, restricted_child_query: QueryBuilder) -> Criterion:
+		"""Return a condition that holds when the restricted child query has no rows.
+
+		MariaDB rewrites a top-level NOT EXISTS into a materialised IN subquery that scans
+		the whole child table on every query. Comparing EXISTS with 0 keeps the subquery
+		correlated, so each parent row costs one lookup on the child's parent index.
+		"""
+		exists_condition = ExistsCriterion(SubQuery(restricted_child_query))
+		if self.is_mariadb:
+			return exists_condition == 0
+
+		return exists_condition.negate()
 
 	def _get_user_permissions(self):
 		"""Fetch User Permissions once while building a query."""
