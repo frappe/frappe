@@ -13,7 +13,7 @@ import datetime
 
 import frappe
 from frappe import _
-from frappe.utils.csvutils import read_csv_content
+from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.xlsxutils import (
 	build_xlsx_response,
 	read_xls_file_from_attached_file,
@@ -81,6 +81,22 @@ def parse_bulk_edit_file(doctype: str, filename: str, dataurl: str) -> list[list
 		rows = read_xlsx_file_from_attached_file(fcontent=content, read_only=True)
 	else:
 		rows = read_xls_file_from_attached_file(content)
+
+	return [[stringify(value) for value in row] for row in (rows or [])]
+
+
+@frappe.whitelist()
+def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
+	"""Read a public Google Sheet into the same row shape parse_bulk_edit_file returns.
+
+	Fetches and validates the URL the same way Data Import does for its own
+	Google Sheets import (frappe.utils.csvutils.get_csv_content_from_google_sheets).
+	"""
+	if not frappe.has_permission(doctype, "write"):
+		raise frappe.PermissionError
+
+	content = get_csv_content_from_google_sheets(url)
+	rows = read_csv_content(content)
 
 	return [[stringify(value) for value in row] for row in (rows or [])]
 
