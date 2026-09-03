@@ -136,6 +136,8 @@ frappe.ui.form.Layout = class Layout {
 
 		// Show parent container if hidden
 		this.message.removeClass("hidden");
+
+		return $html;
 	}
 
 	render(new_fields) {
