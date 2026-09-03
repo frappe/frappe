@@ -10,6 +10,9 @@
   exists to prevent. Nothing here decides what a row DOES: it asks the renderer, and draws
   one of the four shapes it can come back with (`navigation/types.ts`).
 
+  An icon is drawn on every shape that goes somewhere, and never on a heading; a heading
+  that carries one has it ignored.
+
   A row with no rendering and no children is not drawn at all. That is #42228's degrade for
   a kind with no renderer, widened to every reason an item cannot be placed here — a
   `Module` under a non-modular prefix, a `Page` whose slug this prefix does not serve. Its
@@ -27,7 +30,8 @@
 			:aria-current="isCurrent ? 'page' : undefined"
 			:class="[ROW, isCurrent && CURRENT]"
 		>
-			{{ label }}
+			<Icon :name="item.icon" :reserve="reserve" />
+			<span class="truncate">{{ label }}</span>
 		</RouterLink>
 
 		<!-- A destination outside it. Following this is a full document load, so it is an
@@ -41,7 +45,8 @@
 			:aria-current="isCurrent ? 'page' : undefined"
 			:class="[ROW, isCurrent && CURRENT]"
 		>
-			{{ label }}
+			<Icon :name="item.icon" :reserve="reserve" />
+			<span class="truncate">{{ label }}</span>
 		</a>
 
 		<!-- Rows that are not known until they are asked for. A BUTTON, not a link: it goes
@@ -54,7 +59,8 @@
 			:class="ROW"
 			@click="expand"
 		>
-			{{ label }}
+			<Icon :name="item.icon" :reserve="reserve" />
+			<span class="truncate">{{ label }}</span>
 		</button>
 
 		<!-- A heading. Collapsible ones are a button, because a heading a reader can close is
@@ -79,6 +85,7 @@
 				:node="child"
 				:context="context"
 				:current="current"
+				:reserve="reserve"
 			/>
 		</ul>
 
@@ -91,6 +98,7 @@
 			:node="child"
 			:context="context"
 			:current="current"
+			:reserve="reserve"
 		/>
 	</li>
 </template>
@@ -100,10 +108,11 @@ import { computed, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { buildTree, type ItemNode } from "@/navigation/tree";
 import { labelOf, renderingOf } from "@/navigation/registry";
+import Icon from "@/icons/Icon.vue";
 import type { ItemContext } from "@/navigation/types";
 
 const ROW =
-	"flex w-full items-center truncate rounded px-2 py-1 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2";
+	"flex w-full items-center gap-2 truncate rounded px-2 py-1 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2";
 // A step past `hover:bg-surface-gray-2` rather than the same shade, or a reader could not
 // tell the row they are on from the row under the pointer.
 //
@@ -119,10 +128,14 @@ const HEADING =
 // `current` is the key of the one row the address is standing on, in THIS container
 // (`navigation/current.ts`). It is passed down rather than computed here because exactly one
 // row wins across the rail and the open panel together, and no row can know that alone.
+//
+// `reserve` is decided once for a whole container and handed to every row in it, so a
+// container where only some rows carry an icon still reads as one list.
 const props = defineProps<{
 	node: ItemNode;
 	context: ItemContext;
 	current?: string;
+	reserve?: boolean;
 }>();
 
 const item = computed(() => props.node.item);

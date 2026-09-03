@@ -14,6 +14,7 @@ import { generatedRoutes } from "@/router/generated";
 import { registerShell } from "@/router/routeFor";
 import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
+import { loadSprite, resetSprite } from "@/icons/sprite";
 import AppRail from "../AppRail.vue";
 
 const addresses = new Addresses({
@@ -92,9 +93,25 @@ beforeAll(async () => {
 	await registerContributions(["frappe"]);
 });
 
+const SPRITE =
+	'<svg id="frappe-symbols" style="display:none">' +
+	'<symbol id="icon-users" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/></symbol>' +
+	"</svg>";
+
+/** The sprite the rail's icons resolve against, loaded the way `main.ts` loads it. */
+function withSprite() {
+	vi.stubGlobal(
+		"fetch",
+		vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve(SPRITE) })
+	);
+	return loadSprite();
+}
+
 beforeEach(() => {
 	document.body.innerHTML = "";
 	resetNavigationReports();
+	resetSprite();
+	vi.unstubAllGlobals();
 	vi.restoreAllMocks();
 });
 
@@ -372,5 +389,70 @@ describe("a section's disclosure when the list changes under it", () => {
 
 		expect(row(host, "CRM Deal")).toBeNull();
 		expect(row(host, "CRM Lead")).not.toBeNull();
+	});
+});
+
+
+describe("an authored icon", () => {
+	// Every rail row CRM and ERPNext ship carries one; every sidebar row but four does not.
+	it("draws beside the label", async () => {
+		await withSprite();
+
+		const host = rail([{ ...doctype("CRM Deal"), icon: "users" }]);
+
+		expect(row(host, "CRM Deal")?.querySelector("use")?.getAttribute("href")).toBe(
+			"#icon-users"
+		);
+	});
+
+	it("leaves the label readable", async () => {
+		await withSprite();
+
+		const host = rail([{ ...doctype("CRM Deal"), icon: "users", label: "Deals" }]);
+
+		expect(row(host, "CRM Deal")?.textContent?.trim()).toBe("Deals");
+	});
+
+	it("is not drawn on a Section heading", async () => {
+		// A section that carries one has it ignored, never refused.
+		await withSprite();
+
+		const host = rail([
+			{ key: "sales", item_type: "Section", label: "Sales", icon: "users" },
+			doctype("CRM Deal", "sales"),
+		]);
+
+		expect(row(host, "sales")?.querySelector("use")).toBeNull();
+		expect(row(host, "sales")?.textContent?.trim()).toBe("Sales");
+	});
+
+	it("holds the slot open on the rows that have none", async () => {
+		// Decided for the whole container, so one unadorned row still reads as part of it.
+		await withSprite();
+
+		const host = rail([{ ...doctype("CRM Deal"), icon: "users" }, doctype("CRM Lead")]);
+
+		expect(row(host, "CRM Lead")?.querySelector("span[aria-hidden]")).not.toBeNull();
+	});
+
+	it("holds no slot open in a container where nothing has one", async () => {
+		await withSprite();
+
+		const host = rail([doctype("CRM Deal"), doctype("CRM Lead")]);
+
+		expect(row(host, "CRM Deal")?.querySelector("span[aria-hidden]")).toBeNull();
+	});
+
+	it("holds none open for an icon only a heading carries", async () => {
+		// A heading draws no icon, so one on a section would indent every row under it
+		// for a slot nothing fills.
+		await withSprite();
+
+		const host = rail([
+			{ key: "sales", item_type: "Section", label: "Sales", icon: "users" },
+			doctype("CRM Deal", "sales"),
+		]);
+
+		expect(row(host, "CRM Deal")?.querySelector("span[aria-hidden]")).toBeNull();
 	});
 });

@@ -57,6 +57,7 @@
 				:node="node"
 				:context="context"
 				:current="current"
+				:reserve="reserve"
 			/>
 		</ul>
 
@@ -94,6 +95,7 @@ import { RouterLink } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
 import { useItemTree } from "@/navigation/useItemTree";
+import { useIconSlot } from "@/navigation/iconSlot";
 import type { ItemContext } from "@/navigation/types";
 
 // `arrangeable` is off on the index at `/apps`, which belongs to no app: there is no rail to
@@ -148,4 +150,9 @@ onBeforeUnmount(() => clearTimeout(clearCopied));
 // present, so the server's orphan promotion passes it through, and rendering the tree would
 // then simply omit the rows — a silent drop of authored navigation.
 const tree = useItemTree(() => props.items, "the rail");
+
+const reserve = useIconSlot(
+	() => props.items,
+	() => props.context
+);
 </script>

@@ -12,6 +12,7 @@ import type { Boot, NavigationItem } from "@/boot";
 import { registerContributions } from "@/contributions/registry";
 import { registerShell } from "@/router/routeFor";
 import { resetNavigationReports } from "@/navigation/registry";
+import { loadSprite, resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
 
 // `Module Contents` is the one kind that reads the list it is in, so it is the one that can
@@ -106,6 +107,8 @@ beforeAll(async () => {
 beforeEach(() => {
 	document.body.innerHTML = "";
 	resetNavigationReports();
+	resetSprite();
+	vi.unstubAllGlobals();
 });
 
 describe("what opens the panel", () => {
@@ -317,5 +320,53 @@ describe("the panel's heading", () => {
 
 		expect(panel(host)).not.toBeNull();
 		expect(panel(host)?.textContent).not.toContain("module_def_accounts");
+	});
+});
+
+
+describe("icons in the panel", () => {
+	// One model, two presentations, so the icon question is answered once for both. Only
+	// four sidebar rows on the bench carry one, all of them CRM's.
+	function withSprite() {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue({
+				ok: true,
+				text: () =>
+					Promise.resolve(
+						'<svg id="frappe-symbols"><symbol id="icon-users"/></svg>'
+					),
+			})
+		);
+		return loadSprite();
+	}
+
+	it("draws one", async () => {
+		await withSprite();
+
+		const { host } = await shell(
+			[accounts],
+			{ module_def_accounts: [{ ...invoice, icon: "users" }, lead] },
+			"/sales-invoice"
+		);
+
+		expect(
+			panel(host)?.querySelector('[data-key="invoice"] use')?.getAttribute("href")
+		).toBe("#icon-users");
+	});
+
+	it("holds the slot open on the rest of that panel", async () => {
+		// The mixed container is CRM's case, where one jutting row would read as a mistake.
+		await withSprite();
+
+		const { host } = await shell(
+			[accounts],
+			{ module_def_accounts: [{ ...invoice, icon: "users" }, lead] },
+			"/sales-invoice"
+		);
+
+		expect(
+			panel(host)?.querySelector('[data-key="lead"] span[aria-hidden]')
+		).not.toBeNull();
 	});
 });
