@@ -20,10 +20,9 @@ class Tenant:
 		token: Bearer token that authenticates requests as this site.
 		allowed_roots: Path fence for this site's sessions. The tenants file
 			requires it; None (programmatic use) inherits the daemon-wide roots.
-		callback_hosts: host[:port] values this site's session callback_url may
-			target, replacing the daemon-wide FLOW_CALLBACK_HOSTS for the site. None
-			(the key absent) keeps the daemon-wide fence; an empty list refuses
-			callbacks for the site.
+		callback_hosts: host[:port] values a session callback_url may target,
+			replacing FLOW_CALLBACK_HOSTS for this site. None inherits it; an
+			empty list refuses callbacks.
 	"""
 
 	site: str
@@ -33,8 +32,7 @@ class Tenant:
 
 
 def load_tenants(path: str) -> list[Tenant]:
-	"""Parse `{"<site>": {"token": "...", "allowed_roots": ["..."], "callback_hosts": ["..."]}}`;
-	`callback_hosts` is optional.
+	"""Parse `{"<site>": {"token": "...", "allowed_roots": ["..."], "callback_hosts": ["..."]}}`.
 
 	Strict on shape — a typo must fail loudly, not silently drop a fence."""
 	with open(path, encoding="utf-8") as file:
