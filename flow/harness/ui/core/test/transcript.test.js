@@ -4,6 +4,7 @@ import test from "node:test"
 import {
 	applyEvent,
 	buildItems,
+	codeRefLabel,
 	compactDisplayText,
 	conversationTitle,
 	displayText,
@@ -13,6 +14,7 @@ import {
 	normalizeSkillCommand,
 	parseSkillInvocation,
 	skillCommand,
+	splitCodeRefs,
 	stepLiveLabel,
 	userAttachments,
 	userText,
@@ -32,6 +34,18 @@ test("user content helpers support durable attachment blocks", () => {
 	assert.equal(userText(entry), "review this")
 	assert.deepEqual(userAttachments(entry).map((item) => item.name), ["screen.png"])
 	assert.equal(userText({ content: "legacy" }), "legacy")
+})
+
+test("code references appended by the composer split back out of the text", () => {
+	const { body, refs } = splitCodeRefs("hi\n\n@src/flow/agent/agent.py:10-15\n@/abs/config.py:17")
+	assert.equal(body, "hi")
+	assert.deepEqual(refs, [
+		{ path: "src/flow/agent/agent.py", start: 10, end: 15 },
+		{ path: "/abs/config.py", start: 17, end: 17 },
+	])
+	assert.equal(codeRefLabel(refs[0]), "agent.py (10-15)")
+	assert.equal(codeRefLabel(refs[1]), "config.py (17)")
+	assert.deepEqual(splitCodeRefs("plain text"), { body: "plain text", refs: [] })
 })
 
 test("expanded skill messages render compactly like Pi and Tau", () => {
@@ -314,6 +328,25 @@ test("streamed thinking joins the trailing tool group's dropdown", () => {
 	const settled = toolGroups(conversation)[0].steps
 	assert.equal(settled.findLast((step) => step.thought)?.live, false)
 	assert.equal(conversation.liveLabel, "Working")
+})
+
+test("whitespace-only text between a thought and its tool call renders nothing", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 1,
+		content: [
+			{ type: "thinking", thinking: "look at the file" },
+			{ type: "text", text: "  " },
+			{ type: "tool_call", id: "call-1", name: "read_file", arguments: { path: "sign.jpg" } },
+		],
+		stop_reason: "tool_use",
+	})
+
+	const items = buildItems(conversation)
+	// the thought folds into the tool group instead of standing alone above an empty text item
+	assert.deepEqual(items.map((item) => item.kind), ["group"])
+	assert.deepEqual(items[0].steps[0].thought, { type: "thinking", thinking: "look at the file" })
 })
 
 test("streamed thinking stays visible until the actionable tool call arrives", () => {

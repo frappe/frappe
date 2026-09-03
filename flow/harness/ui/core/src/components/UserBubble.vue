@@ -3,36 +3,37 @@
 	     absolute buttons can never overlap the next message -->
 	<div class="group relative flex justify-end pb-7">
 		<div class="flow-prose max-w-[76%] rounded-7 bg-surface-gray-2 px-3.5 py-2.5 text-ink-gray-9">
-			<div v-if="attachments.length" class="flex flex-wrap gap-1.5" :class="text ? 'mb-2' : ''">
-				<template v-for="item in attachments" :key="item.id">
-					<button
-						v-if="previews[item.id]"
-						class="h-[72px] w-[72px] flex-none cursor-zoom-in overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
-						:title="item.name"
-						:aria-label="`View ${item.name}`"
-						@click="viewer = item"
-					>
-						<img :src="previews[item.id]" :alt="item.name" class="h-full w-full object-cover" />
-					</button>
-					<span
-						v-else
-						class="flex max-w-full items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base py-1 pl-1 pr-2.5"
-					>
-						<span
-							class="grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6"
-						>
-							<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
-						</span>
-						<span class="truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
+			<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5" :class="body || chips.length ? 'mb-2' : ''">
+				<button
+					v-for="item in imageTiles"
+					:key="item.id"
+					class="h-[72px] w-[72px] flex-none cursor-zoom-in overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
+					:title="item.name"
+					:aria-label="`View ${item.name}`"
+					@click="viewer = item"
+				>
+					<img :src="previews[item.id]" :alt="item.name" class="h-full w-full object-cover" />
+				</button>
+			</div>
+			<div v-if="chips.length" class="flex flex-wrap items-center gap-1.5" :class="body ? 'mb-2' : ''">
+				<span
+					v-for="chip in chips"
+					:key="chip.key"
+					class="flex h-8 max-w-full items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base pl-1 pr-2.5"
+					:title="chip.title"
+				>
+					<span class="grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6">
+						<FeatherIcon :name="chip.icon" class="h-3.5 w-3.5" />
 					</span>
-				</template>
+					<span class="truncate text-xs font-medium text-ink-gray-8">{{ chip.label }}</span>
+				</span>
 			</div>
 			<div
-				v-if="text"
+				v-if="body"
 				ref="textEl"
 				class="whitespace-pre-wrap break-words"
 				:class="expanded ? '' : 'line-clamp-[12]'"
-			>{{ text }}</div>
+			>{{ body }}</div>
 			<button
 				v-if="clampable"
 				class="mt-1.5 text-xs font-medium text-ink-gray-5 hover:text-ink-gray-8"
@@ -67,15 +68,30 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
-import { formatTime, userAttachments, userText } from "../transcript.js"
+import { codeRefLabel, formatTime, splitCodeRefs, userAttachments, userText } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 import ImageViewer from "./ImageViewer.vue"
 
 const props = defineProps({ entry: { type: Object, required: true } })
 const flow = inject("flow")
 const time = computed(() => formatTime(props.entry.ts))
-const text = computed(() => userText(props.entry))
+const text = computed(() => userText(props.entry)) // full text, for copy
 const attachments = computed(() => userAttachments(props.entry))
+const split = computed(() => splitCodeRefs(text.value))
+const body = computed(() => split.value.body)
+// images stage as full previews on their own row; code refs and files share one row of chips
+const imageTiles = computed(() => attachments.value.filter((item) => previews.value[item.id]))
+const chips = computed(() => [
+	...split.value.refs.map((ref) => ({
+		key: `ref:${ref.path}:${ref.start}-${ref.end}`,
+		icon: "code",
+		label: codeRefLabel(ref),
+		title: `${ref.path}:${ref.start}-${ref.end}`,
+	})),
+	...attachments.value
+		.filter((item) => !previews.value[item.id])
+		.map((item) => ({ key: item.id, icon: item.kind === "image" ? "image" : "file-text", label: item.name, title: item.name })),
+])
 
 const previews = ref({}) // attachment id → object URL of the stored image
 const viewer = ref(null)
