@@ -19,9 +19,10 @@ frappe.provide("frappe.dashboards");
 frappe.provide("frappe.dashboards.chart_sources");
 
 // Set on <body> while an island is on screen. `dashboard_view.scss` keys the
-// bounded page off this class — read the comment there for why the page stops
-// document scrolling. The legacy renderer grows with its widgets and keeps the
-// scroll it has always had, so the route alone cannot decide this.
+// bounded page off this class — read the comment there for why the island gets a
+// fixed box instead of the page scroll. The legacy renderer grows with its
+// widgets and keeps the scroll it has always had, so the route alone cannot
+// decide this.
 const ISLAND_PAGE_CLASS = "dashboard-view-island-page";
 
 frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
@@ -29,17 +30,6 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		parent: wrapper,
 		single_column: true,
 	});
-
-	// This route draws no page head by default. An island draws its own header,
-	// so desk's would be a second and emptier one above it. The head is off from
-	// the start, not off once the document is loaded: that answer costs a round
-	// trip, and the head would show for all of it. The two renderers that want
-	// the head ask for it back when they draw.
-	//
-	// The page object itself stays. The body sidebar and the workspace dock
-	// resolve their visibility against it, so a route with no page loses the app
-	// frame too.
-	page.toggle_page_head(false);
 
 	// One container per state, all made up front. The legacy renderer empties what
 	// it is given, so no two of these may share a parent they draw into.
@@ -76,7 +66,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		const renderer = doc.__onload?.island_renderer;
 		if (renderer) {
 			frappe.dashboard.hide();
-			island.show(renderer);
+			island.show(renderer, doc.name);
 		} else {
 			island.hide();
 			frappe.dashboard.show(doc);
@@ -86,7 +76,6 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	$(wrapper).on("hide", () => island.hide());
 
 	function show_missing(name) {
-		page.toggle_page_head(true);
 		page.clear_menu();
 		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard" });
 		frappe.utils.set_title(__("Dashboard"));
@@ -113,10 +102,11 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 /**
  * The island renderer: one container for whatever island the document names.
  *
- * The island owns the whole page — its header (breadcrumbs, title, actions), the
- * filter bar, the grid, and every state below the document, the not-permitted
- * one included. Desk hides its page head while the island is on screen, so the
- * page has one header.
+ * The island owns the body — the filter bar, the grid, and every state below the
+ * document, the not-permitted one included. Desk keeps its page head and draws
+ * the chrome from what the island reports: `update:title` names the page,
+ * `update:actions` fills the page menu
+ * (ui/island/decisions/0010-an-island-reports-title-and-actions.md).
  *
  * Desk passes the island name and the props through as the hook returned them.
  * It reads neither.
@@ -133,14 +123,15 @@ class IslandDashboard {
 		this.handle = null;
 	}
 
-	show(renderer) {
+	show(renderer, name) {
 		this.root.show();
 		document.body.classList.add(ISLAND_PAGE_CLASS);
 
-		// The legacy renderer asks for the head back when it draws, and it may have
-		// drawn on this page before this document. The menu belongs to the renderer
-		// on screen, so the legacy entries go with it.
-		this.page.toggle_page_head(false);
+		// The document's own name until the island reports a title, so the crumb
+		// trail is right for the round trip the island spends loading. The menu
+		// belongs to the renderer on screen, so the entries of whatever drew here
+		// before — the legacy renderer, or the previous document's island — go.
+		this.set_title(name);
 		this.page.clear_menu();
 
 		const mounted = this.renderer;
@@ -148,7 +139,8 @@ class IslandDashboard {
 
 		// The same island takes the next document as props. Desk keeps the page
 		// alive across route changes within it, so the island re-fetches while its
-		// Vue app and shadow root stay put.
+		// Vue app and shadow root stay put. `update` merges, so the listeners the
+		// mount passed stay bound.
 		if (mounted?.island === renderer.island) {
 			this.handle?.update(renderer.props);
 			return;
@@ -160,7 +152,9 @@ class IslandDashboard {
 	async mount(renderer) {
 		try {
 			const island = await frappe.ui.mount_island(renderer.island, this.container, {
-				props: renderer.props,
+				...renderer.props,
+				"onUpdate:title": (title) => this.set_title(title),
+				"onUpdate:actions": (actions) => this.set_actions(actions),
 			});
 			// The page can be left, or another island routed to inside it, while
 			// this module loads. Both leave this mount with nothing to draw.
@@ -172,12 +166,41 @@ class IslandDashboard {
 		}
 	}
 
+	/**
+	 * The page head has no title slot of its own: `page.set_title` writes into the
+	 * `.title-text` crumb, which is the "Dashboard" list link, and the next
+	 * `breadcrumbs.update()` overwrites it anyway. So the title is the last crumb,
+	 * where the legacy renderer's document name also is, plus the browser tab.
+	 */
+	set_title(title) {
+		const label = title || __("Dashboard");
+		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard", label: label });
+		frappe.utils.set_title(label);
+	}
+
+	/**
+	 * `Action = { label, icon?, onClick }`. Desk's menu rows carry no icon, so the
+	 * icon goes unread: it names a lucide icon the island ships, and desk resolves
+	 * a name against its own sprite.
+	 *
+	 * An empty list clears the menu, which hides the button with it.
+	 */
+	set_actions(actions) {
+		this.page.clear_menu();
+		(actions || []).forEach((action) => {
+			this.page.add_menu_item(action.label, action.onClick);
+		});
+	}
+
 	hide() {
 		this.root.hide();
 		document.body.classList.remove(ISLAND_PAGE_CLASS);
 		this.renderer = null;
 		this.handle?.unmount();
 		this.handle = null;
+		// What this island reported goes with it. The next renderer to draw here
+		// names the page itself.
+		this.page.clear_menu();
 	}
 }
 
@@ -196,9 +219,6 @@ class Dashboard {
 	// often enough that the crumb and the title would otherwise read `selling`.
 	show(doc) {
 		this.root.show();
-		// This renderer draws its widgets, title and breadcrumb into desk's head,
-		// so it asks for the head back.
-		this.page.toggle_page_head(true);
 		this.set_breadcrumbs(doc.name);
 		this.show_dashboard(doc.name);
 	}

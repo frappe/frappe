@@ -139,8 +139,8 @@ export default class ChartWidget extends Widget {
 
 		if (!this.in_customize_mode) {
 			this.action_area.empty();
-			this.prepare_island_actions();
 		}
+		this.prepare_island_actions([]);
 
 		// A definite height, not a floor. An island fills the element it is given,
 		// and a `height: 100%` inside it resolves against auto to nothing, so a
@@ -156,7 +156,16 @@ export default class ChartWidget extends Widget {
 			const island = await frappe.ui.mount_island(
 				this.island_renderer.island,
 				this.chart_wrapper,
-				{ props: this.island_renderer.props }
+				{
+					...this.island_renderer.props,
+					// The island reports its actions as it loads them, and again
+					// whenever they change. `update:title` goes unread: desk heads
+					// the widget with the chart document's own name.
+					"onUpdate:actions": (actions) => {
+						if (this.island_token !== token) return;
+						this.prepare_island_actions(actions);
+					},
+				}
 			);
 
 			if (this.island_token !== token) return island.unmount();
@@ -174,17 +183,30 @@ export default class ChartWidget extends Widget {
 	}
 
 	/**
-	 * Refresh and Edit alone. Every other chart action drives desk's own fetch:
-	 * Reset Chart clears settings the island never reads, Export writes data desk
-	 * never fetched, and the filters and the time interval reach nothing.
+	 * The island's own actions, then Edit — desk's, because the document behind
+	 * the chart is desk's. Called again on every `update:actions`, so the menu
+	 * says what the island says now.
+	 *
+	 * None of desk's other chart actions apply: they drive a fetch desk does not
+	 * make. Reset Chart clears settings the island never reads, Export writes data
+	 * desk never fetched, and the filters and the time interval reach nothing.
+	 * Refresh is the island's to report, if reloading means anything to it.
+	 *
+	 * @param {{ label: string, icon?: string, onClick: Function }[]} actions
 	 */
-	prepare_island_actions() {
+	prepare_island_actions(actions) {
+		// Customize mode owns the action area — it draws its own controls there.
+		if (this.in_customize_mode) return;
+
+		// `set_chart_actions` appends a menu; a rebuild replaces the one it made.
+		this.chart_actions?.remove();
+
 		this.set_chart_actions([
-			{
-				label: __("Refresh"),
-				action: "action-refresh",
-				handler: () => this.make_chart(),
-			},
+			...(actions || []).map((action, i) => ({
+				label: action.label,
+				action: `island-action-${i}`,
+				handler: () => action.onClick(),
+			})),
 			{
 				label: __("Edit"),
 				action: "action-edit",
@@ -607,9 +629,9 @@ export default class ChartWidget extends Widget {
 				${actions
 					.map(
 						(action) =>
-							`<li><a class="dropdown-item" data-action="${action.action}">${__(
-								action.label
-							)}</a></li>`
+							`<li><a class="dropdown-item" data-action="${
+								action.action
+							}">${frappe.utils.escape_html(__(action.label))}</a></li>`
 					)
 					.join("")}
 			</ul>
@@ -619,7 +641,9 @@ export default class ChartWidget extends Widget {
 
 		this.chart_actions.find("a[data-action]").each((i, o) => {
 			const action = o.dataset.action;
-			$(o).click(actions.find((a) => a.action === action));
+			// the handler, not the action: jQuery binds whatever it is given and
+			// throws on click when that is not a function
+			$(o).click(actions.find((a) => a.action === action).handler);
 		});
 		this.chart_actions.appendTo(this.action_area);
 	}
