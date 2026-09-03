@@ -30,7 +30,7 @@ Names use lowercase letters, digits, and single hyphens.
 
 ## How Flow uses a skill
 
-At session creation, Flow records the selected skill catalog and adds model-invocable skill names, descriptions, and locations to the system prompt. The model can use `read_file` to load an applicable skill.
+At session creation, Flow records the selected skill catalog and adds model-invocable skill names, descriptions, and locations to the system prompt. The model can use `read` to load an applicable skill.
 
 Users can invoke one directly:
 

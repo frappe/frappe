@@ -305,7 +305,7 @@ def format_skills_for_prompt(skills: Iterable[Skill]) -> str:
 		return ""
 	lines = [
 		"The following skills provide specialized instructions for specific tasks.",
-		"Use read_file to load a skill's file when the task matches its description.",
+		"Use read to load a skill's file when the task matches its description.",
 		"Resolve relative paths in a skill against the directory containing its SKILL.md file.",
 		"",
 		"<available_skills>",

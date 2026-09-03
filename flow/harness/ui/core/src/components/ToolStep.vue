@@ -168,7 +168,7 @@ const expandable = computed(() => {
 	if (!props.step.result) return false
 	if (decision.value) return true
 	if (diffLines.value) return true
-	if (["read_file", "write", "edit"].includes(props.step.call.name)) return false
+	if (["read", "write", "edit"].includes(props.step.call.name)) return false
 	return !!output.value
 })
 

@@ -43,12 +43,12 @@ def _user(seq, content):
 
 def _assistant(seq, text="", call_ids=()):
 	content = [TextContent(text=text)] if text else []
-	content += [ToolCall(id=cid, name="read_file", arguments={"path": "a.txt"}) for cid in call_ids]
+	content += [ToolCall(id=cid, name="read", arguments={"path": "a.txt"}) for cid in call_ids]
 	return AssistantMessage(seq=seq, content=content, stop_reason="tool_use" if call_ids else "stop")
 
 
 def _result(seq, call_id, content, is_error=False):
-	return ToolResult(seq=seq, tool_call_id=call_id, name="read_file", content=content, is_error=is_error)
+	return ToolResult(seq=seq, tool_call_id=call_id, name="read", content=content, is_error=is_error)
 
 
 # --- estimation -------------------------------------------------------------
@@ -174,8 +174,8 @@ def test_serialize_renders_calls_and_results_as_text():
 	text = serialize_messages(messages)
 
 	assert "<message index=1 role=user>" in text
-	assert '- read_file: {"path": "a.txt"}' in text
-	assert "role=tool_result name=read_file error=true" in text
+	assert '- read: {"path": "a.txt"}' in text
+	assert "role=tool_result name=read error=true" in text
 	assert serialize_messages([]) == "(no new messages)"
 
 
@@ -358,7 +358,7 @@ def test_reserved_output_is_proportional_for_small_windows():
 
 def test_tool_result_images_count_toward_the_estimate():
 	image = AttachmentContent(id="a" * 24, name="shot.png", mime_type="image/png", size=3, kind="image")
-	plain = ToolResult(tool_call_id="c1", name="read_file", content="[Image: shot.png]")
+	plain = ToolResult(tool_call_id="c1", name="read", content="[Image: shot.png]")
 	with_image = plain.model_copy(update={"attachments": [image]})
 
 	assert estimate_message_tokens(with_image) == estimate_message_tokens(plain) + ESTIMATED_IMAGE_TOKENS

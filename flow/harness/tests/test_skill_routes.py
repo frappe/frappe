@@ -144,8 +144,8 @@ def test_deployed_policy_disables_skill_management_and_the_tool_list(tmp_path, m
 
 
 def test_tools_list_is_capped_by_the_allowlist(tmp_path, monkeypatch):
-	c, _ = _client(tmp_path, monkeypatch, tool_allowlist={"read_file", "grep"})
-	assert [t["name"] for t in c.get("/tools").json()["tools"]] == ["read_file", "grep"]
+	c, _ = _client(tmp_path, monkeypatch, tool_allowlist={"read", "grep"})
+	assert [t["name"] for t in c.get("/tools").json()["tools"]] == ["read", "grep"]
 
 
 def test_tools_lists_every_builtin_without_a_cap(tmp_path, monkeypatch):
@@ -153,7 +153,7 @@ def test_tools_lists_every_builtin_without_a_cap(tmp_path, monkeypatch):
 	tools = c.get("/tools").json()["tools"]
 	assert [t["name"] for t in tools if t["extension"] is None] == [
 		"bash",
-		"read_file",
+		"read",
 		"write",
 		"edit",
 		"grep",

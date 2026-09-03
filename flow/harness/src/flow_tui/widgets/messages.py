@@ -53,7 +53,6 @@ SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 _PREVIEW_LINES = 3
 _DIFF_PREVIEW_LINES = 32
 THINKING_MARKER = "Thinking… ctrl+t to expand"
-TOOL_LABELS = {"read_file": "read"}
 
 
 def tool_label(name: str) -> Text:
@@ -61,7 +60,7 @@ def tool_label(name: str) -> Text:
 	that follow it."""
 	# the style rides on a span, not on the Text itself: a base style would bleed
 	# into every argument appended after the name
-	return Text().append(TOOL_LABELS.get(name, name), style=STYLE_TOOL_NAME)
+	return Text().append(name, style=STYLE_TOOL_NAME)
 
 
 def call_line(name: str, args: dict | None, display: list[DisplaySegment] | None = None) -> Text:
@@ -83,7 +82,7 @@ def call_line(name: str, args: dict | None, display: list[DisplaySegment] | None
 	if name == "write":
 		line.append(f" {args.get('path', '')}")
 		return line.append(f" ({len(args.get('content') or '')} chars)", style=STYLE_MUTED)
-	if name == "read_file":
+	if name == "read":
 		return line.append(f" {args.get('path', '')}")
 	if name == "grep":
 		return line.append(f" {args.get('pattern', '')} {args.get('path', '')}".rstrip())

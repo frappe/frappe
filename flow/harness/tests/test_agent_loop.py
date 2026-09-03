@@ -43,7 +43,7 @@ def _of(events, t):
 
 
 def _read_call(cid="c1", path="a.txt"):
-	return AssistantMessage(content=[ToolCall(id=cid, name="read_file", arguments={"path": path})])
+	return AssistantMessage(content=[ToolCall(id=cid, name="read", arguments={"path": path})])
 
 
 async def test_full_turn_no_tools(tmp_path):
@@ -123,7 +123,7 @@ async def test_before_hook_rewrites_args(tmp_path):
 	mock = MockModel(replies=[_read_call(path="a.txt"), AssistantMessage(content="ok")])
 
 	def before(tc, ctx):
-		return HookDecision(args={"path": "b.txt"}) if tc.name == "read_file" else None
+		return HookDecision(args={"path": "b.txt"}) if tc.name == "read" else None
 
 	await _run(session, "read", model=mock, before_tool_call=before)
 	assert _of(events, "tool_result")[0]["content"] == "BBB"  # hook redirected the read
@@ -157,7 +157,7 @@ async def test_after_hook_rewrites_result(tmp_path):
 
 async def test_pause_and_resume(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
-	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	session, events = _session(tmp_path, confirm_tools=["read"])
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="all done")])
 
 	await _run(session, "read", model=mock)
@@ -175,7 +175,7 @@ async def test_pause_and_resume(tmp_path):
 
 async def test_resume_deny_stops_run(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
-	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	session, events = _session(tmp_path, confirm_tools=["read"])
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="unreached")])
 
 	await _run(session, "read", model=mock)
@@ -189,7 +189,7 @@ async def test_resume_deny_stops_run(tmp_path):
 
 async def test_resume_redirect_feeds_the_model_the_users_feedback(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
-	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	session, events = _session(tmp_path, confirm_tools=["read"])
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="adjusted")])
 
 	await _run(session, "read", model=mock)
@@ -204,13 +204,13 @@ async def test_resume_redirect_feeds_the_model_the_users_feedback(tmp_path):
 
 async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
-	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	session, events = _session(tmp_path, confirm_tools=["read"])
 	mock = MockModel(
 		replies=[
 			AssistantMessage(
 				content=[
-					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
-					ToolCall(id="c2", name="read_file", arguments={"path": "a.txt"}),
+					ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read", arguments={"path": "a.txt"}),
 				]
 			)
 		]
@@ -245,7 +245,7 @@ async def test_gating_a_client_tool_does_not_ungate_the_builtins(tmp_path):
 
 
 async def test_run_while_paused_is_a_conflict(tmp_path):
-	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	session, events = _session(tmp_path, confirm_tools=["read"])
 	await _run(session, "read", model=MockModel(replies=[_read_call()]))
 	assert _of(events, "run_ended")[0]["reason"] == "paused"
 
@@ -254,7 +254,7 @@ async def test_run_while_paused_is_a_conflict(tmp_path):
 
 
 async def test_cancel_pending_closes_the_batch_and_frees_the_session(tmp_path):
-	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	session, events = _session(tmp_path, confirm_tools=["read"])
 	await _run(session, "read", model=MockModel(replies=[_read_call()]))
 	assert session.state == "paused"
 
@@ -432,8 +432,8 @@ async def test_hook_failure_repairs_all_unreturned_tool_calls(tmp_path):
 		replies=[
 			AssistantMessage(
 				content=[
-					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
-					ToolCall(id="c2", name="read_file", arguments={"path": "b.txt"}),
+					ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
 				]
 			)
 		]
@@ -544,7 +544,7 @@ async def test_aborted_terminal_with_tool_calls_closes_them_durably(tmp_path):
 	model = MockModel(
 		replies=[
 			AssistantMessage(
-				content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})],
+				content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})],
 				stop_reason="aborted",
 			)
 		]

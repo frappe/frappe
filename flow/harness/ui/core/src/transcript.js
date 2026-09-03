@@ -193,7 +193,7 @@ const END_NOTICES = {
 }
 
 const STEP_LABELS = {
-	read_file: "Reading file",
+	read: "Reading file",
 	grep: "Searching code",
 	bash: "Running command",
 	edit: "Editing file",
@@ -206,7 +206,7 @@ export function stepLabel(name) {
 
 // Leading row icons for the built-in tools; extension tools get the generic wrench.
 const STEP_ICONS = {
-	read_file: "file-text",
+	read: "file-text",
 	grep: "search",
 	bash: "terminal",
 	edit: "edit-3",
@@ -246,14 +246,14 @@ export function stepLiveLabel(call) {
 	const name = call?.name ?? ""
 	if (call?.display?.length) {
 		// the live line shows only the file name for file tools; the dropdown keeps the full path
-		if (["read_file", "write", "edit"].includes(name))
+		if (["read", "write", "edit"].includes(name))
 			return call.display
 				.map((segment) => (segment.arg === "path" ? fileName(segment.text) : segment.text))
 				.join("")
 		return displayText(call.display)
 	}
 	const label = stepLabel(name)
-	if (["read_file", "write", "edit"].includes(name)) {
+	if (["read", "write", "edit"].includes(name)) {
 		const subject = fileName((call.arguments ?? call.args ?? {}).path)
 		return subject ? `${label} ${subject}` : label
 	}
@@ -281,7 +281,7 @@ export function compactDisplayText(text, cwd) {
 export function stepSubject(call) {
 	const a = call.arguments ?? call.args ?? {}
 	switch (call.name) {
-		case "read_file":
+		case "read":
 		case "write":
 			return a.path ?? ""
 		case "edit":

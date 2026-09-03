@@ -32,7 +32,7 @@ from flow.session import attachments as attachment_module
 from flow.session.attachments import AttachmentError, AttachmentStore
 from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
-from flow.tools.builtins.read_file import read_file
+from flow.tools.builtins.read import read
 from flow.tools.tool import ToolContext
 
 
@@ -528,14 +528,14 @@ async def test_abort_discards_undelivered_steering_attachments(tmp_path):
 
 
 def _tool_result(cid: str, name: str, attachments: list[AttachmentContent]) -> ToolResult:
-	return ToolResult(tool_call_id=cid, name="read_file", content=f"[Image: {name}]", attachments=attachments)
+	return ToolResult(tool_call_id=cid, name="read", content=f"[Image: {name}]", attachments=attachments)
 
 
 def _stored(store: AttachmentStore, name: str = "shot.png") -> AttachmentContent:
 	return store.add_bytes(name, _png())
 
 
-async def test_read_file_stores_an_image_and_returns_only_metadata(tmp_path):
+async def test_read_stores_an_image_and_returns_only_metadata(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	target = tmp_path / "diagram.png"
 	target.write_bytes(_png(40, 30))
@@ -543,7 +543,7 @@ async def test_read_file_stores_an_image_and_returns_only_metadata(tmp_path):
 	async def sink(name: str, data: bytes) -> AttachmentContent:
 		return await asyncio.to_thread(store.add_bytes, name, data)
 
-	result = await read_file(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
+	result = await read(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
 
 	assert not result.is_error
 	[stored] = result.attachments
@@ -559,11 +559,11 @@ async def test_read_file_stores_an_image_and_returns_only_metadata(tmp_path):
 	assert "base64" not in result.content
 
 
-async def test_read_file_image_without_a_store_degrades_to_text(tmp_path):
+async def test_read_image_without_a_store_degrades_to_text(tmp_path):
 	target = tmp_path / "diagram.png"
 	target.write_bytes(_png())
 
-	result = await read_file(path=str(target), ctx=ToolContext(cwd=str(tmp_path)))
+	result = await read(path=str(target), ctx=ToolContext(cwd=str(tmp_path)))
 
 	# no attachment store (an embedded Agent) is not an error; the file is fine
 	assert not result.is_error
@@ -571,7 +571,7 @@ async def test_read_file_image_without_a_store_degrades_to_text(tmp_path):
 	assert "unavailable in this session" in result.content
 
 
-async def test_read_file_sniffs_images_by_content_not_name(tmp_path):
+async def test_read_sniffs_images_by_content_not_name(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	(tmp_path / "screenshot").write_bytes(_png())  # image, no extension
 	(tmp_path / "notes.png").write_text("just text")  # text wearing an image name
@@ -580,15 +580,15 @@ async def test_read_file_sniffs_images_by_content_not_name(tmp_path):
 		return await asyncio.to_thread(store.add_bytes, name, data)
 
 	ctx = ToolContext(cwd=str(tmp_path), store_image=sink)
-	image = await read_file(path="screenshot", ctx=ctx)
-	text = await read_file(path="notes.png", ctx=ctx)
+	image = await read(path="screenshot", ctx=ctx)
+	text = await read(path="notes.png", ctx=ctx)
 
 	assert [item.kind for item in image.attachments] == ["image"]
 	assert not text.is_error and text.attachments == []
 	assert text.content == "just text"
 
 
-async def test_read_file_reports_a_broken_image_as_an_error(tmp_path):
+async def test_read_reports_a_broken_image_as_an_error(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	target = tmp_path / "broken.png"
 	target.write_bytes(b"\x89PNG\r\n\x1a\n" + b"junk")  # a real signature, no image behind it
@@ -596,7 +596,7 @@ async def test_read_file_reports_a_broken_image_as_an_error(tmp_path):
 	async def sink(name: str, data: bytes) -> AttachmentContent:
 		return await asyncio.to_thread(store.add_bytes, name, data)
 
-	result = await read_file(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
+	result = await read(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
 
 	assert result.is_error
 	assert result.attachments == []
@@ -608,7 +608,7 @@ async def test_tool_image_bytes_never_reach_the_session_log(tmp_path):
 	(tmp_path / "diagram.png").write_bytes(image)
 	store = SessionStore(str(tmp_path / "data"))
 	session = store.create(SessionConfig(cwd=str(tmp_path)))
-	call = AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "diagram.png"})])
+	call = AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "diagram.png"})])
 	model = MockModel(replies=[call, AssistantMessage(content="that is a diagram")])
 
 	handle = await session.run("read diagram.png", model=model)
@@ -628,7 +628,7 @@ def test_litellm_wire_sends_tool_result_images_after_the_result(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	stored = _stored(store)
 	messages = [
-		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
 		_tool_result("c1", "shot.png", [stored]),
 	]
 
@@ -644,7 +644,7 @@ def test_codex_wire_puts_tool_result_images_inside_the_output(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	stored = _stored(store)
 	messages = [
-		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
 		_tool_result("c1", "shot.png", [stored]),
 	]
 
@@ -666,8 +666,8 @@ def test_tool_images_flush_once_after_a_batch_of_results(tmp_path):
 	messages = [
 		AssistantMessage(
 			content=[
-				ToolCall(id="c1", name="read_file", arguments={}),
-				ToolCall(id="c2", name="read_file", arguments={}),
+				ToolCall(id="c1", name="read", arguments={}),
+				ToolCall(id="c2", name="read", arguments={}),
 			],
 			stop_reason="tool_use",
 		),
@@ -687,7 +687,7 @@ def test_tool_images_flush_before_the_next_assistant_turn(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	stored = _stored(store)
 	messages = [
-		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
 		_tool_result("c1", "shot.png", [stored]),
 		AssistantMessage(content="I can see it."),
 	]
@@ -703,7 +703,7 @@ def test_missing_tool_image_bytes_are_skipped_not_fatal(tmp_path):
 	stored = _stored(store)
 	store.remove(stored.id)  # the bytes went away; the event still references them
 	messages = [
-		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})], stop_reason="tool_use"),
+		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
 		_tool_result("c1", "shot.png", [stored]),
 	]
 

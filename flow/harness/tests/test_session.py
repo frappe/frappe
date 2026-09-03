@@ -27,7 +27,7 @@ from flow.session.store import SessionStore
 
 
 def test_session_config_includes_all_builtin_tools_by_default():
-	assert SessionConfig().tools == ["bash", "read_file", "write", "edit", "grep"]
+	assert SessionConfig().tools == ["bash", "read", "write", "edit", "grep"]
 
 
 def test_store_create_and_reload(tmp_path):
@@ -173,12 +173,12 @@ def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
 	session.log.append(
 		AssistantMessage(
 			content=[
-				ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
-				ToolCall(id="c2", name="read_file", arguments={"path": "b.txt"}),
+				ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+				ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
 			]
 		)
 	)
-	session.log.append(ToolResult(tool_call_id="c2", name="read_file", content="second result"))
+	session.log.append(ToolResult(tool_call_id="c2", name="read", content="second result"))
 	crashed_seq = session.log.latest_seq
 
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
@@ -206,7 +206,7 @@ def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
 def test_reload_does_not_repair_calls_waiting_for_approval(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
-	call = ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})
+	call = ToolCall(id="c1", name="read", arguments={"path": "a.txt"})
 	session.log.append(AssistantMessage(content=[call]))
 	session.log.append(ApprovalRequired(calls=[PendingCall(id=call.id, name=call.name, args=call.args)]))
 	session.log.append(RunEnded(reason="paused"))
@@ -340,9 +340,9 @@ async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read_file"]))
+	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read"]))
 	model = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
 	)
 	handle = await session.run("read", model=model)
 	assert handle.task is not None
@@ -361,9 +361,9 @@ async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read_file"]))
+	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read"]))
 	model = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
 	)
 	handle = await session.run("read", model=model)
 	assert handle.task is not None
@@ -489,10 +489,10 @@ async def test_rewind_to_before_a_model_change_restores_the_old_selection(tmp_pa
 async def test_set_model_while_paused_keeps_the_pause(tmp_path):
 	(tmp_path / "a.txt").write_text("x")
 	session = SessionStore(str(tmp_path)).create(
-		SessionConfig(model="mock", cwd=str(tmp_path), confirm_tools=["read_file"])
+		SessionConfig(model="mock", cwd=str(tmp_path), confirm_tools=["read"])
 	)
 	model = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
 	)
 	handle = await session.run("read", model=model)
 	assert handle.task is not None
@@ -572,9 +572,9 @@ async def test_compact_conflicts_while_running_paused_or_empty(tmp_path):
 	assert handle.task is not None
 	await handle.task
 
-	paused = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read_file"]))
+	paused = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read"]))
 	gate = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
 	)
 	handle = await paused.run("read", model=gate)
 	assert handle.task is not None

@@ -116,9 +116,9 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 	assert deployed["tool_allowlist"] == DEPLOYED.tool_allowlist
 	local = serve("local")
 	assert local["extensions_enabled"] is True
-	monkeypatch.setattr(config, "POLICY", '{"tool_allowlist": ["read_file"]}')
+	monkeypatch.setattr(config, "POLICY", '{"tool_allowlist": ["read"]}')
 	overridden = serve("deployed")
-	assert overridden["tool_allowlist"] == frozenset({"read_file"})
+	assert overridden["tool_allowlist"] == frozenset({"read"})
 
 
 def test_spawn_private_scrubs_daemon_env(tmp_path, monkeypatch):

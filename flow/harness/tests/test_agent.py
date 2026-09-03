@@ -29,9 +29,9 @@ async def test_run_streams_a_full_turn(tmp_path):
 
 async def test_run_then_resume_across_pause(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
-	call = ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})
+	call = ToolCall(id="c1", name="read", arguments={"path": "a.txt"})
 	mock = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
-	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path), confirm_tools=["read_file"])
+	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path), confirm_tools=["read"])
 
 	pending = None
 	async for ev in agent.run("read it"):

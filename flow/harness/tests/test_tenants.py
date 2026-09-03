@@ -204,7 +204,7 @@ def test_tenants_satisfy_deployed_auth(tmp_path):
 	c = TestClient(create_app(store, policy=DEPLOYED, tenants=TENANTS))
 	r = c.post("/sessions", json={"cwd": str(tmp_path)}, headers=_auth("token-one"))
 	assert r.status_code == 200
-	assert r.json()["config"]["tools"] == ["read_file", "grep"]
+	assert r.json()["config"]["tools"] == ["read", "grep"]
 
 
 def _entry(root, token="token-one") -> dict:

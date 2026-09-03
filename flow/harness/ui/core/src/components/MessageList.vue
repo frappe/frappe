@@ -36,23 +36,14 @@
 					:expanded="item.expanded"
 					@toggle="toggleTurn(item.turnKey)"
 				/>
-				<!-- a tool or thinking row's own py-2.5 already pads it; offset the thread gap -->
-				<AssistantText
-					v-else-if="item.kind === 'text'"
-					:class="['group', 'thinking'].includes(items[i - 1]?.kind) ? '-mt-3' : ''"
-					:block="item.block"
-				/>
-				<!-- like ToolGroup below: the row's own py-2.5 already pads it -->
+				<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
 				<ThinkingBlock
 					v-else-if="item.kind === 'thinking'"
-					:class="items[i - 1]?.kind === 'turn-fold' ? '-mt-3' : ''"
 					:block="item.block"
 					:live="item.live"
 				/>
-				<!-- the first row's own py-2.5 already pads it; offset the thread gap -->
 				<ToolGroup
 					v-else-if="item.kind === 'group'"
-					:class="items[i - 1]?.kind === 'turn-fold' ? '-mt-3' : ''"
 					:steps="item.steps"
 					:sealed="i < items.length - 1 || !conversation.running"
 					:live-label="conversation.liveLabel"
