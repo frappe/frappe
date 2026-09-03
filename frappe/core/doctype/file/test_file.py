@@ -1473,6 +1473,47 @@ class TestChildTableAttachments(IntegrationTestCase):
 		self.assertEqual(untouched_cards_file.file_url, cards_old_url)
 		self.assertEqual(untouched_cards_file.is_private, 1)
 
+	def test_toggle_is_private_fails_closed_when_two_rows_share_the_same_url(self):
+		# row A and row B, same table, both holding the identical file_url string -- but
+		# attached via two *separate* File records, since attached_to_field alone can't tell
+		# rows apart. Only file_a is toggled; row B's own File (file_b) never changes.
+		file_a = self.make_unattached_file(b"row-a-bytes", is_private=1)
+		doc = self.make_parent_doc(cards=[{"image": file_a.file_url}])
+		doc.append("cards", {"image": file_a.file_url})
+		doc.save(ignore_permissions=True)
+
+		shared_url = file_a.file_url
+		file_b = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"row_b_{frappe.generate_hash(length=6)}.png",
+				"file_url": shared_url,
+				"content_hash": file_a.content_hash,
+				"file_size": file_a.file_size,
+				"is_private": 1,
+				"attached_to_doctype": self.parent_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "image",
+			}
+		)
+		file_b.flags.copy_from_existing_file = True
+		file_b.insert(ignore_permissions=True)
+
+		attached_file_a = frappe.get_doc("File", file_a.name)
+		attached_file_a.is_private = 0
+		attached_file_a.save(ignore_permissions=True)
+
+		reloaded_file_a = frappe.get_doc("File", file_a.name)
+		self.assertNotEqual(reloaded_file_a.file_url, shared_url)
+
+		reloaded_doc = frappe.get_doc(self.parent_doctype, doc.name)
+		self.assertEqual(reloaded_doc.cards[0].image, shared_url)
+		self.assertEqual(reloaded_doc.cards[1].image, shared_url)
+
+		reloaded_file_b = frappe.get_doc("File", file_b.name)
+		self.assertEqual(reloaded_file_b.file_url, shared_url)
+		self.assertEqual(reloaded_file_b.is_private, 1)
+
 	def test_toggle_is_private_does_not_let_parent_field_capture_child_update(self):
 		file = self.make_unattached_file(b"collision-bytes", is_private=1)
 		old_url = file.file_url

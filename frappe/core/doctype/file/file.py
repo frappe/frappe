@@ -408,17 +408,13 @@ class File(Document):
 				"parentfield": table_df.fieldname,
 				self.attached_to_field: old_file_url,
 			}
-			if not frappe.db.exists(table_df.options, match_filters):
+			matching_rows = frappe.get_all(table_df.options, filters=match_filters, pluck="name")
+			if not matching_rows:
+				continue
+			if len(matching_rows) > 1:
 				continue
 
-			child_table = frappe.qb.DocType(table_df.options)
-			(
-				frappe.qb.update(child_table)
-				.set(child_table[self.attached_to_field], self.file_url)
-				.where(child_table.parent == self.attached_to_name)
-				.where(child_table.parentfield == table_df.fieldname)
-				.where(child_table[self.attached_to_field] == old_file_url)
-			).run()
+			frappe.db.set_value(table_df.options, matching_rows[0], self.attached_to_field, self.file_url)
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:
