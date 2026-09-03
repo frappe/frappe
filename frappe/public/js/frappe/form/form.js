@@ -2320,7 +2320,7 @@ frappe.ui.form.Form = class FrappeForm {
 				!doc.reference_doctype ||
 				!doc.reference_name ||
 				doc.reference_doctype !== doctype ||
-				doc.reference_name !== docname
+				cstr(doc.reference_name) !== cstr(docname)
 			) {
 				return;
 			}
