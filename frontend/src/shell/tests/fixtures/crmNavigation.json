@@ -1,0 +1,186 @@
+{
+	"rail": [
+		{
+			"key": "leads",
+			"item_type": "Sidebar",
+			"link_doctype": "Sidebar",
+			"link_to": "doctype_crm_lead",
+			"label": "Leads",
+			"icon": "users"
+		},
+		{
+			"key": "deals",
+			"item_type": "Sidebar",
+			"link_doctype": "Sidebar",
+			"link_to": "doctype_crm_deal",
+			"label": "Deals",
+			"icon": "handshake"
+		},
+		{
+			"key": "contacts",
+			"item_type": "Sidebar",
+			"link_doctype": "Sidebar",
+			"link_to": "doctype_contact",
+			"label": "Contacts",
+			"icon": "contact-round"
+		},
+		{
+			"key": "organizations",
+			"item_type": "Sidebar",
+			"link_doctype": "Sidebar",
+			"link_to": "doctype_crm_organization",
+			"label": "Organizations",
+			"icon": "building-2"
+		},
+		{
+			"key": "tasks",
+			"item_type": "DocType",
+			"link_doctype": "DocType",
+			"link_to": "CRM Task",
+			"label": "Tasks",
+			"icon": "list-checks"
+		},
+		{
+			"key": "notes",
+			"item_type": "DocType",
+			"link_doctype": "DocType",
+			"link_to": "FCRM Note",
+			"label": "Notes",
+			"icon": "notebook-pen"
+		}
+	],
+	"sidebars": {
+		"doctype_contact": [
+			{
+				"key": "contacts",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "Contact",
+				"label": "All Contacts",
+				"icon": "contact-round"
+			},
+			{
+				"key": "call-logs",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Call Log",
+				"label": "Call Logs"
+			}
+		],
+		"doctype_crm_deal": [
+			{
+				"key": "deals",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Deal",
+				"label": "All Deals",
+				"icon": "handshake"
+			},
+			{
+				"key": "deals-configure",
+				"item_type": "Section",
+				"label": "Configure",
+				"collapsible": 1,
+				"keep_closed": 1
+			},
+			{
+				"key": "deal-statuses",
+				"parent_key": "deals-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Deal Status",
+				"label": "Statuses"
+			},
+			{
+				"key": "products",
+				"parent_key": "deals-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Product",
+				"label": "Products"
+			},
+			{
+				"key": "territories",
+				"parent_key": "deals-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Territory",
+				"label": "Territories"
+			}
+		],
+		"doctype_crm_lead": [
+			{
+				"key": "leads",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Lead",
+				"label": "All Leads",
+				"icon": "users"
+			},
+			{
+				"key": "leads-configure",
+				"item_type": "Section",
+				"label": "Configure",
+				"collapsible": 1,
+				"keep_closed": 1
+			},
+			{
+				"key": "lead-statuses",
+				"parent_key": "leads-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Lead Status",
+				"label": "Statuses"
+			},
+			{
+				"key": "lead-sources",
+				"parent_key": "leads-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Lead Source",
+				"label": "Sources"
+			},
+			{
+				"key": "lost-reasons",
+				"parent_key": "leads-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Lost Reason",
+				"label": "Lost Reasons"
+			}
+		],
+		"doctype_crm_organization": [
+			{
+				"key": "organizations",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Organization",
+				"label": "All Organizations",
+				"icon": "building-2"
+			},
+			{
+				"key": "organizations-configure",
+				"item_type": "Section",
+				"label": "Configure",
+				"collapsible": 1,
+				"keep_closed": 1
+			},
+			{
+				"key": "industries",
+				"parent_key": "organizations-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Industry",
+				"label": "Industries"
+			},
+			{
+				"key": "territories",
+				"parent_key": "organizations-configure",
+				"item_type": "DocType",
+				"link_doctype": "DocType",
+				"link_to": "CRM Territory",
+				"label": "Territories"
+			}
+		]
+	}
+}
