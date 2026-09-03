@@ -549,6 +549,7 @@ def estimate_message_tokens(message: TranscriptMessage) -> int:
 	else:
 		estimated_message_tokens += estimate_text_tokens(message.name)
 		estimated_message_tokens += estimate_text_tokens(message.content)
+		estimated_message_tokens += ESTIMATED_IMAGE_TOKENS * len(message.attachments)
 	return estimated_message_tokens
 
 
