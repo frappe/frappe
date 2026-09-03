@@ -29,7 +29,18 @@ yarn --cwd frontend test:run
 That is exactly what CI does (`.github/workflows/frontend-tests.yml`). The **base** file
 is the correct input, not a `bench build`-generated one: `yarn.lock` was resolved from
 `package.base.json` alone, and no test needs anything an app contributes. Baseline is
-**14 files / 249 tests**, all under `frontend/src/recordPage/tests/`.
+**18 files / 328 tests**, under `recordPage/tests/`, `shell/tests/` and
+`navigation/tests/`.
+
+**`vitest.config.js` runs with `css: { postcss: {} }`, and that is not cosmetic.**
+`postcss.config.js` loads `tailwind.config.js`, which reads `manifest.json` at module
+scope — the very file this whole section is about not having. Any test that imports a
+frappe-ui component with a `<style>` block sends the transform through `vite:css` and the
+run dies on a clean clone with a postcss error naming a `.vue` file nobody wrote a test
+about. It also runs the **contributions plugin**, over a manifest stated inline rather
+than read: frappe's eight navigation item renderers are contributions like any other, and
+a test that mocked `virtual:frappe/contributions` would exercise the mock rather than the
+door.
 
 Two things to know:
 
@@ -106,7 +117,7 @@ mysteriously fails to resolve, look at that map before anything else.
 
 ## Where a contribution lives
 
-Four paths, and nothing is parsed from file *contents* — app, module, doctype and kind all
+Five paths, and nothing is parsed from file *contents* — app, module, doctype and kind all
 fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py` and
 `frontend/plugin/contributions.js`:
 
@@ -116,6 +127,7 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
 | `<app>/<module>/doctype/<scrubbed>/frontend/list.js` | list, owning app |
 | `<app>/<module>/custom/<scrubbed>/record.js` | record page, *foreign* doctype |
 | `<app>/<module>/frontend/pages/<slug>.js` | a standalone page |
+| `<app>/<module>/navigation_item_type/<scrubbed>/frontend/item.js` | a navigation item kind |
 
 - **The `frontend/` segment in the page path is load-bearing** — `<module>/page/` is desk
   v1's Page doctype and `templates/pages/` is website templates.
@@ -124,6 +136,10 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
   the bench, not just contributing ones, because a `custom/` folder can name a doctype
   owned by an app that contributes nothing — otherwise the contribution would bundle,
   register, and silently never run.
+- **An app whose *only* contribution is an item kind still reaches the bundle.** Whether an
+  app is compiled in at all is `contributes()`, which globs exactly this table — so a path
+  missing from it means the app's files are never bundled and its kind never registers,
+  while its type record arrives at `bench migrate` regardless.
 - **A contribution file with no default export is dropped with a `console.warn`, never a
   throw.** `registry.ts` is imported by `main.ts` before anything renders, so one app's
   typo must not fail the mount bench-wide. If your contribution "isn't running", check the
