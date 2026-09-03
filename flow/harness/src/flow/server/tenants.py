@@ -20,15 +20,21 @@ class Tenant:
 		token: Bearer token that authenticates requests as this site.
 		allowed_roots: Path fence for this site's sessions. The tenants file
 			requires it; None (programmatic use) inherits the daemon-wide roots.
+		callback_hosts: host[:port] values this site's session callback_url may
+			target, replacing the daemon-wide FLOW_CALLBACK_HOSTS for the site. None
+			(the key absent) keeps the daemon-wide fence; an empty list refuses
+			callbacks for the site.
 	"""
 
 	site: str
 	token: str
 	allowed_roots: tuple[str, ...] | None = None
+	callback_hosts: tuple[str, ...] | None = None
 
 
 def load_tenants(path: str) -> list[Tenant]:
-	"""Parse `{"<site>": {"token": "...", "allowed_roots": ["..."]}}`.
+	"""Parse `{"<site>": {"token": "...", "allowed_roots": ["..."], "callback_hosts": ["..."]}}`;
+	`callback_hosts` is optional.
 
 	Strict on shape — a typo must fail loudly, not silently drop a fence."""
 	with open(path, encoding="utf-8") as file:
@@ -49,7 +55,7 @@ def load_tenants(path: str) -> list[Tenant]:
 def _parse_entry(site: str, entry: object) -> Tenant:
 	if not isinstance(entry, dict):
 		raise ValueError(f"site {site!r}: entry must be a JSON object")
-	unknown = sorted(str(key) for key in entry if key not in ("token", "allowed_roots"))
+	unknown = sorted(str(key) for key in entry if key not in ("token", "allowed_roots", "callback_hosts"))
 	if unknown:
 		raise ValueError(f"site {site!r}: unknown keys: {', '.join(unknown)}")
 	token = entry.get("token")
@@ -64,4 +70,13 @@ def _parse_entry(site: str, entry: object) -> Tenant:
 	values = tuple(root for root in roots if isinstance(root, str) and root)
 	if len(values) != len(roots):
 		raise ValueError(bad_roots)
-	return Tenant(site=site, token=token, allowed_roots=values)
+	hosts = entry.get("callback_hosts")
+	parsed = None
+	if hosts is not None:
+		bad_hosts = f"site {site!r}: callback_hosts must be a list of host[:port] strings"
+		if not isinstance(hosts, list):
+			raise ValueError(bad_hosts)
+		parsed = tuple(host for host in hosts if isinstance(host, str) and host)
+		if len(parsed) != len(hosts):
+			raise ValueError(bad_hosts)
+	return Tenant(site=site, token=token, allowed_roots=values, callback_hosts=parsed)

@@ -101,7 +101,8 @@ def create_app(
 
 	# one isolated store per site; a request only ever sees its own site's store
 	session_store_by_tenant = {
-		tenant.site: store.for_site(tenant.site, tenant.allowed_roots) for tenant in tenants
+		tenant.site: store.for_site(tenant.site, tenant.allowed_roots, tenant.callback_hosts)
+		for tenant in tenants
 	}
 
 	def resolve_store(request: Request) -> SessionStore:
@@ -131,7 +132,11 @@ def create_app(
 		fresh_by_site = {tenant.site: tenant for tenant in fresh}
 		for old in tenants:
 			new = fresh_by_site.get(old.site)
-			if new is None or new.allowed_roots != old.allowed_roots:
+			if (
+				new is None
+				or new.allowed_roots != old.allowed_roots
+				or new.callback_hosts != old.callback_hosts
+			):
 				session_store_by_tenant.pop(old.site, None)  # rebuilt on next match, if any
 		tenants = fresh
 		tenants_mtime = mtime
@@ -169,7 +174,7 @@ def create_app(
 					if tenant.site not in session_store_by_tenant:
 						# a site added after startup gets its partition on first use
 						session_store_by_tenant[tenant.site] = store.for_site(
-							tenant.site, tenant.allowed_roots
+							tenant.site, tenant.allowed_roots, tenant.callback_hosts
 						)
 					request.state.site = tenant.site  # scopes this request to the site
 					return await call_next(request)
