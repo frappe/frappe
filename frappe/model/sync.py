@@ -34,9 +34,7 @@ IMPORTABLE_DOCTYPES = [
 	("desk", "workspace"),
 	("desk", "workspace_sidebar"),
 	("desk", "sidebar"),
-	# Desk v2's navigation kinds. A kind is contributed as a record here plus a renderer beside
-	# it, on two independent channels: the row arrives at migrate through this walk, the JS at
-	# build. There is no bespoke seeder, so a manifest and a seeder cannot disagree.
+	# Desk v2's navigation kinds: the record arrives at migrate through this walk, the JS at build.
 	("desk", "navigation_item_type"),
 	("desk", "onboarding_step"),
 	("desk", "module_onboarding"),
@@ -281,11 +279,9 @@ def remove_orphan_entities(entity_types=None):
 		# the same rule one table down: the app's own dock is the file-backed layer, and the
 		# site's arrangement and every person's own are never candidates
 		"Dock": {"standard": 1},
-		# The same rule again for desk v2's rail: the app layer is the file-backed one, and the
-		# site's arrangement and each person's own are never candidates.
+		# Desk v2's rail: the app layer is file-backed; the site's and each person's are never candidates.
 		"Rail": {"standard": 1},
-		# No filter, deliberately. Every navigation kind is app content -- nobody has create
-		# permission on the table -- so every row is file-backed and every row is a candidate.
+		# `Navigation Item Type` has no filter: every kind is app content, so every row is file-backed.
 	}
 	if entity_types:
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]
