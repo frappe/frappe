@@ -6,8 +6,11 @@
  *     const island = await mountIsland("insights.dashboard", el, {
  *         resolve: (name) => ({ js: "/assets/…island.js", css: "/assets/…island.css" }),
  *         desk: { locale, user, navigate },
- *         props: { dashboard: "sales" },
- *         on: { navigate: (intent) => router.push(intent.route) },
+ *         props: {
+ *             dashboard: "sales",
+ *             onNavigate: (route) => router.push(route),
+ *             "onUpdate:title": (title) => (document.title = title),
+ *         },
  *     });
  *     island.update({ filters });
  *     island.unmount();
@@ -42,9 +45,14 @@
 const islands = new Map();
 
 /**
+ * `props` is Vue's render-function props object: data keys and `on*` listener
+ * keys in one flat object, exactly as `h(Component, props)` takes them. A hyphen
+ * or a colon in an event name stays quoted — `"onUpdate:title"`, not
+ * `onUpdateTitle`, which Vue never resolves.
+ *
  * @param {string} name       Island name, as the host's resolver knows it.
  * @param {HTMLElement|JQuery} el
- * @param {{ resolve: IslandResolver, desk?: Object, props?: Object, on?: Object }} options
+ * @param {{ resolve: IslandResolver, desk?: Object, props?: Object }} options
  * @returns {Promise<IslandHandle>}
  */
 export async function mountIsland(name, el, options = {}) {
@@ -58,7 +66,6 @@ export async function mountIsland(name, el, options = {}) {
 		resolve: options.resolve,
 		desk: options.desk || {},
 		props: { ...(options.props || {}) },
-		on: options.on || {},
 		url: null,
 		handle: null,
 	};
@@ -148,7 +155,6 @@ async function loadInto(target, entry) {
 		// mount.js: the name is the seam, whichever host fills it.
 		desk: entry.desk,
 		props: entry.props,
-		on: entry.on,
 		styles: assets.css ? [assets.css] : [],
 	});
 	entry.url = assets.js;

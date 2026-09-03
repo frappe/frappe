@@ -3,10 +3,17 @@
 
 		<Island
 			name="insights.dashboard"
-			:props="{ dashboard: 'sales' }"
+			:dashboard="dashboard"
 			:context="{ user, locale, navigate }"
-			@navigate="router.push($event.route)"
+			v-model:title="title"
+			v-model:actions="actions"
+			@navigate="router.push($event)"
 		/>
+
+	The component is transparent: everything but `name` and `context` is the
+	island's props object, passed to its component verbatim — data attributes and
+	`on*` listeners alike, exactly as `h()` takes them. `class` and `style` stay
+	here, on the host element.
 
 	Desk's other host is `frappe.ui.mount_island`. Both wrap the same loop in
 	`./host.js`; this component adds the Vue lifecycle and resolves a name over
@@ -18,14 +25,15 @@
 
 <template>
 	<!-- The island fills what it is given: `mountVueIsland` chains `height: 100%`
-	     from here down, and the chain breaks at the first auto height. -->
-	<div ref="root" v-bind="passthrough" style="height: 100%"></div>
+	     from here down, and the chain breaks at the first auto height. The static
+	     style comes first, so a style the parent passes wins over it. -->
+	<div ref="root" style="height: 100%" :class="attrs.class" :style="attrs.style"></div>
 </template>
 
 <script>
 export default {
-	// The parent's listeners are the island's `on` callbacks, not DOM listeners
-	// on the root element, so nothing falls through by itself.
+	// Everything the parent passes is the island's, not the host element's, so
+	// nothing falls through by itself. `class` and `style` are bound above.
 	inheritAttrs: false,
 };
 </script>
@@ -37,13 +45,12 @@ import { mountIsland } from "./host.js";
 
 const props = defineProps({
 	name: { type: String, required: true },
-	/** Props for the island's component. */
-	props: { type: Object, default: () => ({}) },
 	/** The host context the island reads through `useDesk()`. All fields optional. */
 	context: { type: Object, default: () => ({}) },
 });
 
-// `@error` is this component's own event and never reaches the island.
+// `@error` is this component's own event. Vue keeps a declared emit out of
+// `attrs`, so `onError` never reaches the island.
 const emit = defineEmits(["error"]);
 
 const attrs = useAttrs();
@@ -54,8 +61,9 @@ const root = ref(null);
 let token = null;
 let handle = null;
 
-const passthrough = computed(() =>
-	Object.fromEntries(Object.entries(attrs).filter(([key]) => !isListener(key)))
+/** The island's props object: every attr but the two the host element keeps. */
+const islandProps = computed(() =>
+	Object.fromEntries(Object.entries(attrs).filter(([key]) => key !== "class" && key !== "style"))
 );
 
 onMounted(load);
@@ -63,14 +71,13 @@ onBeforeUnmount(teardown);
 
 watch(() => props.name, load);
 
-// Deep, because the usual call site passes an object literal — a new identity on
-// every render of the parent, which an identity watch cannot tell from a change.
-// Island props are plain data, so the traversal is bounded.
-watch(
-	() => props.props,
-	(next) => handle?.update(next),
-	{ deep: true }
-);
+// `useAttrs()` returns a proxy that refreshes on each render of the parent, so
+// the object above is a new one every time whether or not anything changed.
+// Compare per key, or every parent render would push a redundant update through
+// the shadow boundary.
+watch(islandProps, (next, previous) => {
+	if (!sameProps(next, previous)) handle?.update(next);
+});
 
 async function load() {
 	const mine = (token = {});
@@ -79,8 +86,7 @@ async function load() {
 		const island = await mountIsland(props.name, root.value, {
 			resolve: resolveAssets,
 			desk: props.context,
-			props: props.props,
-			on: listeners(),
+			props: islandProps.value,
 		});
 
 		if (token !== mine) return island.unmount();
@@ -98,17 +104,10 @@ function teardown() {
 	handle = null;
 }
 
-/** `{ onNavigate: fn }` -> `{ navigate: fn }`, the shape the mount contract takes. */
-function listeners() {
-	return Object.fromEntries(
-		Object.entries(attrs)
-			.filter(([key, value]) => isListener(key) && typeof value === "function")
-			.map(([key, value]) => [key.charAt(2).toLowerCase() + key.slice(3), value])
-	);
-}
-
-function isListener(key) {
-	return /^on[A-Z]/.test(key);
+function sameProps(a, b) {
+	const keys = Object.keys(a);
+	if (keys.length !== Object.keys(b).length) return false;
+	return keys.every((key) => a[key] === b[key]);
 }
 
 /**

@@ -45,11 +45,8 @@ const mounted = new WeakMap();
  * @property {string|null} [timezone]
  * @property {string|null} [user]
  * @property {string} [base_url]
- * @property {{label: string, route: string}[]} [breadcrumbs]  ancestors of this
- *           page, never the page itself
  * @property {(route: string) => void} [navigate]  route the host to one of its
  *           own pages
- * @property {(title: string) => void} [set_title]  name the browser tab
  * @property {string} [theme]  the host's live theme, added by `mountVueIsland`
  */
 
@@ -57,9 +54,8 @@ const mounted = new WeakMap();
  * @typedef {Object} MountVueIslandOptions
  * @property {any} component            Vue component to render.
  * @property {IslandDesk} [desk]        Ambient desk context (host-injected).
- * @property {Object} [props]           Props for the component.
- * @property {Object} [on]              Callbacks. `on.navigate` reaches the
- *                                      component as the `onNavigate` listener.
+ * @property {Object} [props]           Vue's props object: data and `on*`
+ *                                      listeners, as `h()` takes them.
  * @property {string[]} [styles]        Stylesheet URLs to adopt, in order
  *                                      (host-injected).
  * @property {(app: any) => void} [configure]  Called with the Vue app before
@@ -73,15 +69,7 @@ const mounted = new WeakMap();
  * @returns {Promise<{ app: any, shadow_root: ShadowRoot, update: (props: Object) => void, unmount: () => void }>}
  */
 export async function mountVueIsland(el, options) {
-	const {
-		component,
-		desk = {},
-		props = {},
-		on = {},
-		styles = [],
-		configure,
-		routes,
-	} = options || {};
+	const { component, desk = {}, props = {}, styles = [], configure, routes } = options || {};
 
 	const target = resolveElement(el);
 	if (!component) {
@@ -159,11 +147,10 @@ export async function mountVueIsland(el, options) {
 		shadowRoot.adoptedStyleSheets = await Promise.all(styles.map(sharedStyleSheet));
 
 		const currentProps = shallowRef({ ...props });
-		const listeners = toListeners(on);
 
 		const app = createApp({
 			name: "FrappeIsland",
-			render: () => h(component, { ...currentProps.value, ...listeners }),
+			render: () => h(component, currentProps.value),
 		});
 
 		// Desk globals, so components that call `__()` or read `frappe` work.
@@ -208,16 +195,6 @@ export async function mountVueIsland(el, options) {
 		mounted.set(target, handle);
 		return handle;
 	}
-}
-
-/** `{ navigate: fn }` -> `{ onNavigate: fn }`, the shape Vue emits into. */
-function toListeners(on) {
-	return Object.fromEntries(
-		Object.entries(on || {}).map(([event, handler]) => [
-			`on${event.charAt(0).toUpperCase()}${event.slice(1)}`,
-			handler,
-		])
-	);
 }
 
 function sharedStyleSheet(url) {

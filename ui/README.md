@@ -127,8 +127,8 @@ theme, gives frappe-ui's overlays a portal target inside the root, and returns t
 global components, and `routes` if the island wants real navigation.
 
 Inside a component, `useDesk()` reads the ambient context desk injected — `locale`,
-`timezone`, `user`, `theme`, `breadcrumbs`, `navigate`, `set_title`. Every field is
-optional, so a component still renders in a unit test.
+`timezone`, `user`, `theme`, `navigate`. Every field is optional, so a component still
+renders in a unit test.
 
 ### 2. Build it — `@framework/ui/vite/island`
 
@@ -168,10 +168,16 @@ Desk then mounts it by name:
 
 ```js
 const island = await frappe.ui.mount_island("insights.dashboard", el, {
-  props: { dashboard: "sales" },
-  on: { navigate: (intent) => frappe.set_route(intent.route) },
+  dashboard: "sales",
+  onNavigate: (route) => frappe.set_route(route),
 });
+island.update({ filters });
 ```
+
+The third argument is Vue's render-function props object — data keys and `on*` listener
+keys in one flat object, exactly what `h(Component, props)` takes. `update` merges into
+it, like a re-render. See
+[the decision](island/decisions/0009-an-island-takes-vues-props-object.md).
 
 ### Hosting an island from a Vue app
 
@@ -185,23 +191,46 @@ import Island from "@framework/ui/island/Island.vue";
 <template>
   <Island
     name="insights.dashboard"
-    :props="{ dashboard: 'sales' }"
+    :dashboard="dashboard"
     :context="{ user, locale, navigate }"
-    @navigate="router.push($event.route)"
+    v-model:title="title"
+    v-model:actions="actions"
+    @navigate="router.push($event)"
   />
 </template>
 ```
 
 `name` is the same name `hooks.py` declares; the component resolves it through
-`frappe.utils.island.get_island_assets`. `props` reaches the island's component and a
-change to it updates the island in place. `context` is what `useDesk()` reads inside the
-island — the same shape desk builds, minus `theme`, which the mount contract adds. Every
-listener the parent attaches reaches the island as a callback, so `@navigate` here is
-`on.navigate` there. `@error` is the component's own: it fires with the `Error` when a
-load fails, and the component renders nothing.
+`frappe.utils.island.get_island_assets`. The component is transparent: everything but
+`name` and `context` is the island's props object, passed through verbatim, and a change
+to it updates the island in place. `class` and `style` stay on the host element.
+`context` is what `useDesk()` reads inside the island — the same shape desk builds, minus
+`theme`, which the mount contract adds. `@error` is the component's own: it fires with
+the `Error` when a load fails, and the component renders nothing.
 
 The component imports vue and nothing else, so an app on an older frappe-ui can still
 host an island.
+
+### What an island reports
+
+An island draws no page header. It reports what a header would say, and each host draws
+its own chrome from it:
+
+- `update:title` — a `string` or `null`, the name of what the island shows.
+- `update:actions` — an `Action[]`, where `Action` is `{ label, icon?, onClick }`.
+
+Desk turns them into the page title and the page menu; a frappe-ui app turns them into
+its `LayoutHeader`. A hyphen or a colon in an event name has to stay quoted, because Vue
+camelizes neither:
+
+```js
+await frappe.ui.mount_island("insights.dashboard", el, {
+  "onUpdate:title": (title) => page.set_title(title || __("Dashboard")),
+  "onUpdate:actions": (actions) => draw_menu(actions),
+});
+```
+
+See [the decision](island/decisions/0010-an-island-reports-title-and-actions.md).
 
 ### CSS
 

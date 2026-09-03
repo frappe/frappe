@@ -2,8 +2,9 @@
  * frappe.ui.mount_island — the one call desk makes to put an app's island on a page.
  *
  *     const island = await frappe.ui.mount_island("insights.dashboard", el, {
- *         props: { dashboard: "sales" },
- *         on: { navigate: (intent) => frappe.set_route(intent.route) },
+ *         dashboard: "sales",
+ *         onNavigate: (route) => frappe.set_route(route),
+ *         "onUpdate:title": (title) => page.set_title(title || __("Dashboard")),
  *     });
  *     island.update({ filters });
  *     island.unmount();
@@ -18,7 +19,7 @@
  * self-contained ES module, so this file rides desk's normal esbuild bundle and
  * the page needs nothing loaded ahead of the island itself.
  *
- * The caller passes `{ props, on }`. Desk adds `desk` and `styles`. Everything
+ * The caller passes the island's props. Desk adds `desk` and `styles`. Everything
  * the island then does with them is the app's own build:
  * ui/island/decisions/0001-an-app-bundles-its-own-island.md.
  */
@@ -35,15 +36,14 @@ const ISLAND_CSS_SUFFIX = ".island.css";
 /**
  * @param {string} name        Island name as declared in an app's `ui_islands` hook.
  * @param {HTMLElement|JQuery} el
- * @param {{ props?: Object, on?: Object }} [context]
+ * @param {Object} [props]     Vue's props object: data and `on*` listeners.
  * @returns {Promise<{ update: (props: Object) => void, unmount: () => void }>}
  */
-function mount_island(name, el, context = {}) {
+function mount_island(name, el, props = {}) {
 	return mountIsland(name, el, {
 		resolve: resolve_island,
 		desk: build_desk(),
-		props: context.props,
-		on: context.on,
+		props,
 	});
 }
 
@@ -82,49 +82,13 @@ function build_desk() {
 		user: frappe.session?.user || boot.user?.name || null,
 		base_url: frappe.urllib ? frappe.urllib.get_base_url() : window.location.origin,
 
-		// Ancestors only, for an island that draws its own page header. Desk's
-		// breadcrumbs are page-head markup (`page.html`) that such a page does not
-		// draw, so the trail reaches the island as data or not at all.
-		breadcrumbs: entry_breadcrumbs(),
-
 		// Desk routing, which an island cannot do for itself. The browser
 		// retargets a click inside a shadow root to the island's host element, so
 		// desk's anchor delegation never matches and a plain link reloads the page.
 		navigate: (route) => frappe.set_route(route),
-
-		// Names the browser tab, for an island that is the whole page. Desk keeps
-		// the unread count as a title prefix over a remembered original, and it
-		// restores that original over any direct write to `document.title`.
-		set_title: (title) => frappe.utils.set_title(title),
 	};
 
 	return desk;
-}
-
-/**
- * One crumb: the workspace the reader was on immediately before this page. Only
- * the previous route counts, the rule `frappe.breadcrumbs.set_workspace` already
- * follows, because a workspace further back is a parent the reader never came
- * through. With no workspace behind this page, the island gets no crumb.
- */
-function entry_breadcrumbs() {
-	const previous = frappe.route_history?.slice(-2)[0];
-	if (!previous || previous[0] !== "Workspaces") return [];
-
-	const is_private = previous[1] === "private";
-	const name = is_private ? previous[2] : previous[1];
-	if (!name) return [];
-
-	const workspace = frappe.workspaces?.[frappe.router.slug(name)];
-	return [
-		{
-			label: __(workspace?.title || name),
-			// The path form, not the ["Workspaces", slug] standard route. Only
-			// the path form carries a private workspace's prefix, and it is how
-			// the sidebar routes.
-			route: frappe.router.slug(is_private ? `private/${name}` : name),
-		},
-	];
 }
 
 frappe.provide("frappe.ui");

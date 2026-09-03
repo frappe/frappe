@@ -31,7 +31,7 @@ const FIXTURE_MODULE = `
 		const render = () => (node.textContent = props.label || "");
 		render();
 
-		context.on?.ready?.(context.desk);
+		context.props?.onReady?.(context.desk);
 
 		return Promise.all((context.styles || []).map(adopt)).then((sheets) => {
 			root.adoptedStyleSheets = sheets;
@@ -102,12 +102,10 @@ context("Island", () => {
 	it("resolves a declared name and mounts what it names", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-1");
-			return win.frappe.ui
-				.mount_island(ISLAND, el, { props: { label: "hello" } })
-				.then(() => {
-					expect(win.__island_mounts).to.equal(1);
-					expect(shadow_text(el)).to.equal("hello");
-				});
+			return win.frappe.ui.mount_island(ISLAND, el, { label: "hello" }).then(() => {
+				expect(win.__island_mounts).to.equal(1);
+				expect(shadow_text(el)).to.equal("hello");
+			});
 		});
 	});
 
@@ -119,9 +117,7 @@ context("Island", () => {
 				expect(desk.user).to.equal(win.frappe.session.user);
 				expect(desk.locale).to.be.a("string");
 				expect(desk.base_url).to.be.a("string");
-				expect(desk.breadcrumbs).to.be.an("array");
 				expect(desk.navigate).to.be.a("function");
-				expect(desk.set_title).to.be.a("function");
 			});
 		});
 	});
@@ -139,11 +135,11 @@ context("Island", () => {
 		});
 	});
 
-	it("routes `on` callbacks to the island", () => {
+	it("hands the island the listeners in its props", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-4");
 			const ready = cy.stub();
-			return win.frappe.ui.mount_island(ISLAND, el, { on: { ready } }).then(() => {
+			return win.frappe.ui.mount_island(ISLAND, el, { onReady: ready }).then(() => {
 				expect(ready).to.have.been.calledOnce;
 			});
 		});
@@ -152,13 +148,11 @@ context("Island", () => {
 	it("update(props) reaches the island without re-mounting it", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-5");
-			return win.frappe.ui
-				.mount_island(ISLAND, el, { props: { label: "before" } })
-				.then((island) => {
-					island.update({ label: "after" });
-					expect(shadow_text(el)).to.equal("after");
-					expect(win.__island_mounts).to.equal(1);
-				});
+			return win.frappe.ui.mount_island(ISLAND, el, { label: "before" }).then((island) => {
+				island.update({ label: "after" });
+				expect(shadow_text(el)).to.equal("after");
+				expect(win.__island_mounts).to.equal(1);
+			});
 		});
 	});
 
@@ -178,8 +172,8 @@ context("Island", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-7");
 			return win.frappe.ui
-				.mount_island(ISLAND, el, { props: { label: "first" } })
-				.then(() => win.frappe.ui.mount_island(ISLAND, el, { props: { label: "second" } }))
+				.mount_island(ISLAND, el, { label: "first" })
+				.then(() => win.frappe.ui.mount_island(ISLAND, el, { label: "second" }))
 				.then(() => {
 					expect(win.__island_unmounts).to.equal(1);
 					expect(el.querySelectorAll(".fixture-island")).to.have.length(1);
