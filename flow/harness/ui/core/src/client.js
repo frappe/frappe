@@ -130,6 +130,9 @@ export class DaemonClient {
 			body: { message, attachments },
 		})
 	}
+	attachFiles(sid, paths) {
+		return this.request("POST", `/sessions/${enc(sid)}/attachments/files`, { body: { paths } })
+	}
 	async uploadAttachments(sid, files) {
 		const form = new FormData()
 		for (const file of files) form.append("files", file, file.name)

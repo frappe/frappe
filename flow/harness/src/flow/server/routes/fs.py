@@ -11,7 +11,7 @@ from collections.abc import Callable
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
-from flow.path_policy import absolute_path, canonical_path, is_path_allowed
+from flow.path_policy import canonical_path
 from flow.server.policy import ServerPolicy, gate
 from flow.server.utils.fspick import PickerUnavailable, pick_folder
 from flow.server.utils.git import git_changes, git_head_text, git_output
@@ -19,6 +19,7 @@ from flow.server.utils.workspace import (
 	MAX_FILE_VIEW_BYTES,
 	list_directory,
 	read_text_file,
+	resolve_allowed_path,
 	save_text_file,
 	search_tree,
 )
@@ -57,10 +58,7 @@ def create_fs_router(
 	def _resolve_allowed_path(store: SessionStore, cwd: str, path: str) -> str:
 		if not os.path.isabs(cwd):
 			raise HTTPException(status_code=400, detail="cwd must be an absolute path")
-		full_path = absolute_path(path, base=cwd)
-		if store.allowed_roots and not is_path_allowed(canonical_path(full_path), store.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
-		return full_path
+		return resolve_allowed_path(cwd, path, store.allowed_roots)
 
 	@router.get("/fs/files")
 	async def list_files(request: Request, cwd: str, path: str = ""):

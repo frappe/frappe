@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 import json
+import mimetypes
 import os
 import re
 import shutil
@@ -62,6 +63,37 @@ class AttachmentStore:
 		processed = _process_image(data)
 		if processed is None:
 			raise AttachmentError(f"{name} is not a supported image")
+		return self._store_image(name, processed)
+
+	def add_file(self, name: str, data: bytes) -> AttachmentContent:
+		"""Validate and store one server-read project file (the @-mention path): an
+		image by content, else UTF-8 text under the text cap. `name` keeps its
+		directories so the model can address the file."""
+		if not data:
+			raise AttachmentError("attachment is empty")
+		if len(data) > MAX_SOURCE_BYTES:
+			raise AttachmentError(f"attachment exceeds the {MAX_SOURCE_BYTES // 1024 // 1024} MB limit")
+		name = _safe_name(name, keep_dirs=True)
+		processed = _process_image(data)
+		if processed is not None:
+			return self._store_image(name, processed)
+		if len(data) > MAX_TEXT_BYTES:
+			raise AttachmentError(f"{name} exceeds the {MAX_TEXT_BYTES // 1024} KB limit for text")
+		try:
+			data.decode("utf-8")
+		except UnicodeDecodeError:
+			raise AttachmentError(f"{name} is not a UTF-8 text file") from None
+		content = AttachmentContent(
+			id=uuid.uuid4().hex[:24],
+			name=name,
+			mime_type=mimetypes.guess_type(name)[0] or "text/plain",
+			size=len(data),
+			kind="text",
+		)
+		self._write(content, data)
+		return content
+
+	def _store_image(self, name: str, processed: tuple[bytes, str, int, int]) -> AttachmentContent:
 		data, mime_type, width, height = processed
 		content = AttachmentContent(
 			id=uuid.uuid4().hex[:24],
@@ -181,9 +213,10 @@ class AttachmentStore:
 		return os.path.join(self.path, f"{attachment_id}.used")
 
 
-def _safe_name(name: str) -> str:
+def _safe_name(name: str, *, keep_dirs: bool = False) -> str:
 	name = name.replace("\\", "/").strip()
-	name = name.split("/")[-1]
+	if not keep_dirs:
+		name = name.split("/")[-1]
 	name = "".join(char for char in name if char >= " " and char != "\x7f")[:255]
 	if not name or name in {".", ".."}:
 		raise AttachmentError("attachment needs a valid filename")

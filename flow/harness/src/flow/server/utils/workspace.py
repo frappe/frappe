@@ -4,8 +4,11 @@ viewer's caps mapped to HTTP errors."""
 from __future__ import annotations
 
 import os
+import re
 
 from fastapi import HTTPException
+
+from flow.path_policy import absolute_path, canonical_path, is_path_allowed
 
 # viewer payload cap; anything bigger is not a file to render in a chat UI
 MAX_FILE_VIEW_BYTES = 2 * 1024 * 1024
@@ -17,23 +20,36 @@ MAX_SEARCH_RESULTS = 200
 MAX_SEARCH_SCAN = 20_000
 
 
+def resolve_allowed_path(cwd: str, path: str, allowed_roots) -> str:
+	"""A cwd-relative client path, refused outside the allowed roots."""
+	full_path = absolute_path(path, base=cwd)
+	if allowed_roots and not is_path_allowed(canonical_path(full_path), allowed_roots):
+		raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+	return full_path
+
+
 def read_text_file(full_path: str, *, strip_bom: bool = False) -> str:
 	"""Workspace file bytes as text, with the viewer's caps mapped to HTTP errors."""
-	if not os.path.isfile(full_path):
-		raise HTTPException(status_code=404, detail="file not found")
-	if os.path.getsize(full_path) > MAX_FILE_VIEW_BYTES:
-		raise HTTPException(status_code=413, detail="file too large to display")
-	try:
-		with open(full_path, "rb") as f:
-			data = f.read()
-	except PermissionError:
-		raise HTTPException(status_code=403, detail="file is not readable") from None
+	data = read_file_bytes(full_path, MAX_FILE_VIEW_BYTES)
 	try:
 		text = data.decode("utf-8")
 	except UnicodeDecodeError:
 		raise HTTPException(status_code=415, detail="not a text file") from None
 	# BOM-stripped callers diff line one cleanly (the edit tool records BOM-less diffs)
 	return text.removeprefix("\ufeff") if strip_bom else text
+
+
+def read_file_bytes(full_path: str, max_bytes: int, *, purpose: str = "display") -> bytes:
+	"""Raw file bytes under a size cap, with the workspace routes' error mapping."""
+	if not os.path.isfile(full_path):
+		raise HTTPException(status_code=404, detail="file not found")
+	if os.path.getsize(full_path) > max_bytes:
+		raise HTTPException(status_code=413, detail=f"file too large to {purpose}")
+	try:
+		with open(full_path, "rb") as f:
+			return f.read()
+	except PermissionError:
+		raise HTTPException(status_code=403, detail="file is not readable") from None
 
 
 def save_text_file(full_path: str, content: str) -> None:
@@ -64,7 +80,10 @@ def list_directory(full_path: str) -> list[dict]:
 
 
 def search_tree(root: str, needle: str) -> tuple[list[str], bool]:
-	"""File-name matches under root; hidden and dependency directories are pruned."""
+	"""Files whose cwd-relative path contains each slash- or space-separated term of
+	the needle, in order — "src/agent" finds src/flow/agent/loop.py, so a partial
+	path skips levels. Hidden and dependency directories are pruned."""
+	terms = [term for term in re.split(r"[\s/]+", needle) if term]
 	matches: list[str] = []
 	scanned = 0
 	for dirpath, dirnames, filenames in os.walk(root):
@@ -78,10 +97,21 @@ def search_tree(root: str, needle: str) -> tuple[list[str], bool]:
 		)
 		for name in sorted(filenames, key=str.lower):
 			scanned += 1
-			if needle in name.lower():
-				matches.append(os.path.relpath(os.path.join(dirpath, name), root))
+			rel = os.path.relpath(os.path.join(dirpath, name), root)
+			if _path_matches(rel.lower(), terms):
+				matches.append(rel)
 				if len(matches) >= MAX_SEARCH_RESULTS:
 					return matches, True
 			if scanned >= MAX_SEARCH_SCAN:
 				return matches, True
 	return matches, False
+
+
+def _path_matches(path: str, terms: list[str]) -> bool:
+	position = 0
+	for term in terms:
+		position = path.find(term, position)
+		if position == -1:
+			return False
+		position += len(term)
+	return True

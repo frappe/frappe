@@ -13,6 +13,7 @@ Two ergonomics from one durable log:
 from __future__ import annotations
 
 import asyncio
+import os
 from collections.abc import Callable
 from dataclasses import asdict
 from typing import Annotated, Literal
@@ -24,10 +25,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from flow.events import AssistantMessage, ReasoningEffort, parse_event
 from flow.model.catalog import model_supports_images
 from flow.model.discovery import context_window_for
-from flow.path_policy import absolute_path, canonical_path, is_path_allowed
 from flow.server.policy import ServerPolicy, gate
 from flow.server.utils import sse
-from flow.server.utils.workspace import read_text_file
+from flow.server.utils.workspace import read_file_bytes, read_text_file, resolve_allowed_path
 from flow.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES
 from flow.session.config import SessionConfig
 from flow.session.file_changes import file_change_results, reconstruct_original
@@ -86,6 +86,12 @@ class AttachmentCleanupRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
 	attachments: list[str] = Field(min_length=1, max_length=MAX_ATTACHMENTS_PER_MESSAGE * 2)
+
+
+class AttachFilesRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	paths: list[str] = Field(min_length=1, max_length=MAX_ATTACHMENTS_PER_MESSAGE)
 
 
 def create_sessions_router(
@@ -225,6 +231,26 @@ def create_sessions_router(
 						data,
 					)
 				)
+		except Exception:
+			for item in stored:
+				session.attachment_store.remove(item.id)
+			raise
+		return {"attachments": [item.model_dump(exclude_none=True) for item in stored]}
+
+	@router.post("/sessions/{sid}/attachments/files", dependencies=gate(policy.fs_api))
+	async def attach_files(request: Request, sid: str, req: AttachFilesRequest):
+		"""Read project files by path and store them as attachments (@-mentions):
+		images are sniffed and stored as such, everything else as text."""
+		session = _get(resolve_store(request), sid)
+		assert session.attachment_store is not None
+		stored = []
+		try:
+			for path in req.paths:
+				full_path = resolve_allowed_path(session.config.cwd, path, session.allowed_roots)
+				data = await asyncio.to_thread(read_file_bytes, full_path, MAX_SOURCE_BYTES, purpose="attach")
+				# named by its cwd-relative path, so the model can address the file
+				name = os.path.relpath(full_path, session.config.cwd)
+				stored.append(await asyncio.to_thread(session.attachment_store.add_file, name, data))
 		except Exception:
 			for item in stored:
 				session.attachment_store.remove(item.id)
@@ -377,9 +403,7 @@ def create_sessions_router(
 		`original` is reconstructed by reverse-applying the recorded edit diffs;
 		a write marks the file as created, so its original is empty."""
 		session = _get(resolve_store(request), sid)
-		full_path = absolute_path(path, base=session.config.cwd)
-		if session.allowed_roots and not is_path_allowed(canonical_path(full_path), session.allowed_roots):
-			raise HTTPException(status_code=403, detail="path is outside the allowed roots")
+		full_path = resolve_allowed_path(session.config.cwd, path, session.allowed_roots)
 
 		def compute() -> dict:
 			# the log scan and the string-heavy reconstruction stay off the event loop

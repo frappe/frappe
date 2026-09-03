@@ -52,6 +52,14 @@
 				</div>
 			</PalettePanel>
 
+			<!-- @-mention file picker -->
+			<FileMentionPalette
+				v-if="mentionActive"
+				:query="mention.query"
+				@pick="pickMention"
+				@close="mentionDismissed = true"
+			/>
+
 			<!-- queued steering -->
 			<div
 				v-if="flow.state.queued.length"
@@ -162,6 +170,10 @@
 						@keydown="onKey"
 						@paste="onPaste"
 						@scroll="textScrollTop = $event.currentTarget.scrollTop"
+						@input="syncCaret"
+						@keyup="syncCaret"
+						@click="syncCaret"
+						@select="syncCaret"
 					/>
 				</div>
 				<input
@@ -333,7 +345,9 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
+import { MAX_ATTACHMENTS } from "../store.js"
 import { EFFORT_LABELS, fileName } from "../transcript.js"
+import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
 import ModelPalette from "./ModelPalette.vue"
 import PalettePanel from "./PalettePanel.vue"
@@ -350,10 +364,19 @@ const attachments = ref([])
 const viewer = ref(null)
 const submitting = ref(false)
 const textScrollTop = ref(0)
+const caretPos = ref(0)
+const mentionDismissed = ref(false)
 let attachmentKey = 0
 let previewGeneration = 0
 
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
+
+// the store owns the cap; blocking here just makes it visible before send time
+function atAttachmentLimit() {
+	if (attachments.value.length < MAX_ATTACHMENTS) return false
+	flow.notify(`A message can carry at most ${MAX_ATTACHMENTS} attachments.`, "error")
+	return true
+}
 
 function isSupportedImage(file) {
 	const mimeType = file.type.toLowerCase()
@@ -362,6 +385,7 @@ function isSupportedImage(file) {
 
 function addLocalFiles(files) {
 	for (const file of files) {
+		if (atAttachmentLimit()) return
 		if (!isSupportedImage(file)) {
 			flow.notify("Flow currently supports PNG, JPEG, GIF, WebP, and BMP images only.", "error")
 			continue
@@ -435,6 +459,57 @@ function removeAttachment(index) {
 	revokePreview(removed)
 	nextTick(() => box.value?.focus())
 }
+
+// plain DOM selectionStart reads aren't reactive on their own (arrow keys, clicks) —
+// resync it explicitly so the @-mention computed below can see caret moves
+function syncCaret() {
+	caretPos.value = box.value?.selectionStart ?? text.value.length
+}
+
+// an active @-mention: the nearest "@" at or before the caret that starts a word
+// (line/word start, or preceded by whitespace) with no whitespace between it and
+// the caret. Unlike `slash` below this isn't anchored to the start of the message.
+const mention = computed(() => {
+	const head = text.value.slice(0, caretPos.value)
+	const at = head.lastIndexOf("@")
+	if (at === -1) return null
+	const query = head.slice(at + 1)
+	if (/\s/.test(query)) return null
+	if (at > 0 && !/\s/.test(head[at - 1])) return null
+	return { start: at, query }
+})
+const mentionActive = computed(() => !!mention.value && !mentionDismissed.value)
+// a fresh "@" re-arms the picker even if a previous one was dismissed with Escape
+watch(
+	() => mention.value?.start,
+	(start) => {
+		if (start !== undefined) mentionDismissed.value = false
+	},
+)
+
+function pickMention(path) {
+	const m = mention.value
+	if (!m) return
+	// remove the whole "@word" the caret sits in, not just its "@"-to-caret prefix —
+	// picking mid-word (caret moved back into the query) must not strand the tail
+	const queryEnd = m.start + 1 + m.query.length
+	const tailLength = text.value.slice(queryEnd).match(/^\S*/)[0].length
+	text.value = text.value.slice(0, m.start) + text.value.slice(queryEnd + tailLength)
+	if (!attachments.value.some((item) => item.mentionPath === path) && !atAttachmentLimit()) {
+		attachments.value.push({
+			key: `mention:${attachmentKey++}`,
+			name: path,
+			kind: "file",
+			mentionPath: path,
+		})
+	}
+	nextTick(() => {
+		box.value?.focus()
+		box.value?.setSelectionRange(m.start, m.start)
+		syncCaret()
+	})
+}
+
 // the palette is one stacked surface: commands is the root page, models,
 // thinking and providers are sub-pages whose back arrow returns to it
 const paletteView = ref(null) // null | "commands" | "models" | "thinking" | "providers"
@@ -639,6 +714,7 @@ function onKey(e) {
 			modeMenu.value = false
 			plusMenu.value = false
 			modelMenu.value = false
+			mentionDismissed.value = true
 		} else if (running.value && !e.repeat) {
 			flow.abort()
 		}
@@ -650,6 +726,7 @@ function anyMenuOpen() {
 	return !!(
 		paletteView.value ||
 		menuOpen.value ||
+		mentionActive.value ||
 		modeMenu.value ||
 		plusMenu.value ||
 		modelMenu.value ||
