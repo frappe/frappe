@@ -1,17 +1,5 @@
-// HOW ONE ROUTER SERVES N PREFIXES.
-//
-// The router's base is `boot.shell_base`, set at runtime, and every route path in the
-// system is prefix-relative. There is exactly one prefix live in a given page load --
-// the one the request came in at -- so the router never sees two.
-//
-// The rejected alternative was `base: '/'` with prefix-carrying route paths. Its only
-// advantage is cross-prefix `router.push`, and that is precisely what boot being
-// prefix-scoped already makes impossible without a re-fetch: arriving at `/apps/desk`
-// carrying `/apps/crm`'s boot gives you the wrong app's contributed keys with nothing
-// to notice it. So it pays a real cost -- the prefix leaves hooks.py and enters JS --
-// to enable something already known not to be free (#42072).
-//
-// The consequence that shapes main.ts: the router CANNOT be a module-scope singleton.
+// One router per document, based at `boot.shell_base`; every route path is prefix-relative.
+// It is created after boot, never at module scope: the base comes out of boot.
 
 import { createRouter, createWebHistory } from "vue-router";
 import type { Boot } from "@/boot";
@@ -24,19 +12,10 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
 
 	const router = createRouter({
-		// The prefix, asked for at runtime. The one line this file argues about.
 		history: createWebHistory(boot.shell_base),
 		routes: [
-			// Order matters and is not arbitrary: contributed pages match BEFORE generated
-			// doctype routes, because `/deals` must beat `/:doctype`. They share one flat
-			// namespace (#42068) -- and since #42211 that namespace holds MODULES too, both
-			// sitting at depth one.
-			//
-			// #42068 said an install-time check would guard it. It is NOT built -- neither
-			// `install.py` nor the manifest validates slugs -- so today a page file named
-			// `crm-deal.js` silently shadows the CRM Deal list, and under a modular prefix a
-			// page named `accounts.js` would shadow the Accounts module. Still fog on the
-			// map, now one item wider.
+			// Contributed pages match before generated routes: `/deals` must beat `/:doctype`.
+			// Nothing validates a page slug against a doctype or module slug; a clash shadows silently.
 			...contributedRoutes(boot.app),
 			...generatedRoutes(modular),
 			{
@@ -47,32 +26,13 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		],
 	});
 
-	// Canonicalise the doctype segment TO its slug -- never away from it. The slug is
-	// the address, so a pasted `/apps/crm/CRM Deal/CRM-DEAL-01` is redirected to
-	// `/apps/crm/crm-deal/CRM-DEAL-01` and not the other way about. Rewriting the
-	// param to the real doctype name would put `CRM Deal` in the URL bar, which is the
-	// opposite of "path is identity" (#42068).
-	//
-	// Synchronous, because the table came down with the address fetch before the router
-	// existed; CRM's frontend2 needs a server round-trip in `beforeResolve` today.
+	// Canonicalise the doctype segment to its slug, never away from it: the slug is the address.
 	router.beforeResolve((to) => {
-		// A modular prefix has to agree about the module too, and it is checked FIRST:
-		// `/apps/erpnext/nonsense/sales-invoice/SI-001` addresses nothing, and letting it
-		// through would render the record under a module it does not belong to -- the URL
-		// asserting something false, which is the whole reason the segment is the
-		// doctype's own module and never the app's (#42211 §1).
+		// The module is checked first: a record must not render under a module it does not belong to.
 		if (modular && typeof to.params.module === "string" && to.params.module) {
 			if (!addresses.hasModule(to.params.module)) {
-				// The segment is not a module. Before calling it a miss, ask whether it is a
-				// DOCTYPE -- which is what a flat two-segment address looks like once it has
-				// been parsed by a modular route table. `/apps/erpnext/sales-invoice/SI-001`
-				// is somebody's old link, or a reader who deleted the module out of the path.
-				// It gets what a wrong-cased doctype segment already gets: a redirect to the
-				// canonical address, because there is one record and one address for it.
-				//
-				// Only these two forms, and only when the first segment resolves to a
-				// doctype. Anything longer is genuinely ambiguous -- which is the whole
-				// reason the shape is fixed per app -- and stays a miss.
+				// Not a module: it may be a flat address read through a modular table, somebody's old
+				// link. Redirect it to the canonical address; anything longer is ambiguous and stays a miss.
 				const flat = flatAddress(to, addresses);
 				return flat ?? miss(to);
 			}
@@ -92,11 +52,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 				replace: true,
 			};
 
-		// A segment that is neither a slug nor a doctype is a route miss, and the SHELL
-		// owns that state -- an app cannot brand its own 404 (#42072). Without this the
-		// `/:doctype` route swallows every unknown path and shows an empty list, which
-		// reads as "this doctype has no records" rather than "there is no such thing".
-		// The document was already served at 200; the miss is the router's to report.
+		// The shell owns the miss; otherwise `/:doctype` swallows every unknown path as an empty list.
 		return miss(to);
 	});
 
@@ -104,9 +60,8 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 }
 
 /**
- * `/sales-invoice` or `/sales-invoice/SI-001` seen through a modular route table:
- * the flat form of an address this prefix spells with a module. Returns the canonical
- * location, or null if the first segment names no doctype.
+  * The flat form of an address this prefix spells with a module, `/sales-invoice` or
+  * `/sales-invoice/SI-001`. Returns the canonical location, or null.
  */
 function flatAddress(to: any, addresses: Addresses) {
 	const doctype = addresses.doctypeOf(String(to.params.module));
@@ -122,10 +77,8 @@ function flatAddress(to: any, addresses: Addresses) {
 	if (!to.params.doctype)
 		return { name: "list", params, query: to.query, replace: true };
 
-	// `/:module/:doctype` matched, so the second segment is really a docname. A third
-	// segment cannot be read this way: `/a/b/c` under a modular table is already a
-	// complete record address, and re-reading it as a flat one would need a rule for
-	// which of the two wins.
+	// `/:module/:doctype` matched, so the second segment is a docname. Three segments is
+	// already a complete record address and is not re-read.
 	if (!to.params.name) {
 		return {
 			name: "record",
@@ -146,15 +99,13 @@ function miss(to: { path: string }) {
 	};
 }
 
-/** Under a modular prefix the module segment must be the doctype's OWN module. */
+/** Under a modular prefix the module segment must be the doctype's own module. */
 function checkModule(to: any, addresses: Addresses) {
 	const doctype = addresses.doctypeOf(String(to.params.doctype));
 	const address = doctype ? addresses.addressOf(doctype) : null;
 	if (!address || address[1] === to.params.module) return true;
 
-	// Not a 404: the record exists and this is the wrong spelling of its address, which
-	// is exactly the case the slug canonicalisation above already redirects. Same
-	// treatment, same reason -- one record, one canonical address.
+	// Not a miss: the record exists and this is the wrong spelling of its address.
 	return { ...to, params: { ...to.params, module: address[1] }, replace: true };
 }
 
