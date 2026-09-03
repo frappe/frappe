@@ -241,7 +241,7 @@ describe("a linked item", () => {
 		expect(link.getAttribute("data-sidebar")).toBe("module_def_accounts");
 		// Real navigation, not shell state — charter point 7. The panel is named in the href,
 		// so middle-click and open-in-new-tab still work.
-		expect(link.getAttribute("href")).toBe("/sales-invoice?panel=module_def_accounts");
+		expect(link.getAttribute("href")).toBe("/sales-invoice?sidebar=module_def_accounts");
 	});
 
 	it("is not drawn when its sidebar is absent", () => {

@@ -229,7 +229,7 @@ describe("the panel the reader is already in", () => {
 	});
 
 	it("ignores a preference no panel here answers to", () => {
-		// The whole of `?panel=` validation: an unknown name is not among the covers, so it
+		// The whole of `?sidebar=` validation: an unknown name is not among the covers, so it
 		// loses and the canonical panel answers.
 		expect(at(rail, sidebars, "/sales-invoice", ["module_def_nowhere"]).sidebar).toBe(
 			"module_def_buying"

@@ -111,6 +111,10 @@ beforeAll(async () => {
 beforeEach(() => {
 	document.body.innerHTML = "";
 	localStorage.clear();
+	// The shell stamps the sidebar it resolves onto the history entry, and these mount over
+	// one window.
+	window.history.replaceState(null, "", "/");
+
 	resetNavigationReports();
 	resetSprite();
 	vi.unstubAllGlobals();

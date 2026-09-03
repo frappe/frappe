@@ -298,11 +298,11 @@ describe("Sidebar", () => {
 			],
 		};
 		expect(renderingOf(item, context([item], { sidebars }))).toEqual({
-			// The panel rides in the link; the shell consumes and strips it on arrival.
+			// The sidebar rides in the link; the shell consumes and strips it on arrival.
 			to: {
 				name: "list",
 				params: { doctype: "sales-invoice" },
-				query: { panel: "module_def_accounts" },
+				query: { sidebar: "module_def_accounts" },
 			},
 			sidebar: "module_def_accounts",
 		});
@@ -423,11 +423,11 @@ describe("the recursion guard", () => {
 		};
 
 		expect(renderingOf(item, context([item], { sidebars }))).toEqual({
-			// The panel rides in the link; the shell consumes and strips it on arrival.
+			// The sidebar rides in the link; the shell consumes and strips it on arrival.
 			to: {
 				name: "list",
 				params: { doctype: "sales-invoice" },
-				query: { panel: "module_def_accounts" },
+				query: { sidebar: "module_def_accounts" },
 			},
 			sidebar: "module_def_accounts",
 		});

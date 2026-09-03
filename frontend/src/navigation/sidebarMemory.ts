@@ -1,9 +1,9 @@
-// What panel this tab was last in, per address. `sessionStorage`, so the unit is the TAB: a
-// reload and back keep the panel, while a second tab resolves off the address again.
+// What sidebar this tab last resolved for an address. `sessionStorage`, so the unit is the
+// TAB: a second tab resolves off the address again.
 
-const KEY = "frappe:desk:panel";
+const KEY = "frappe:desk:sidebar";
 
-// Every address that opens a panel is recorded and records get their own, so an uncapped
+// Every address that opens a sidebar is recorded and records get their own, so an uncapped
 // record grows for the life of the tab and every navigation re-serialises all of it.
 const KEEP = 100;
 
@@ -20,26 +20,21 @@ function read(): Record<string, string> {
 	}
 }
 
-/** The panel this tab last resolved for `path`, if it remembers one. */
-export function recallPanel(path: string): string | undefined {
+/** The sidebar this tab last resolved for `path`, if it remembers one. */
+export function recallSidebar(path: string): string | undefined {
 	const remembered = read()[path];
 	return typeof remembered === "string" ? remembered : undefined;
 }
 
-/**
- * Record `panel` as the answer for `path`, called when the panel resolves.
- *
- * Never off a click: rows are plain `RouterLink`s, which cannot carry history state, so a
- * click handler would break middle-click and open-in-new-tab.
- */
-export function rememberPanel(path: string, panel: string): void {
+/** Record `sidebar` as the answer for `path`, called when a push resolves one. */
+export function rememberSidebar(path: string, sidebar: string): void {
 	const record = read();
-	if (record[path] === panel) return;
+	if (record[path] === sidebar) return;
 
 	// Re-insertion keeps key order least-recent first, so the cap below evicts the address
 	// that has gone longest without resolving.
 	delete record[path];
-	record[path] = panel;
+	record[path] = sidebar;
 
 	const addresses = Object.keys(record);
 	for (const stale of addresses.slice(0, Math.max(0, addresses.length - KEEP))) {
@@ -49,6 +44,6 @@ export function rememberPanel(path: string, panel: string): void {
 	try {
 		sessionStorage.setItem(KEY, JSON.stringify(record));
 	} catch {
-		// Full or forbidden. The panel still resolves; it will not survive a reload.
+		// Full or forbidden. The sidebar still resolves; it will not survive a reload.
 	}
 }
