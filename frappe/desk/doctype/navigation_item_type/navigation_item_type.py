@@ -5,27 +5,12 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-# The writes that are an app's content arriving on a site rather than a person editing it: an
-# install, an app update, a migrate, or a fixture import. Each is a real route by which a type
-# ships, and without them installing an app that contributes a kind would fail on every site.
+# The routes by which a shipped type reaches a site without a person editing it.
 SYSTEM_WRITE_FLAGS = ("in_install", "in_patch", "in_migrate", "in_import", "in_setup_wizard")
 
 
 class NavigationItemType(Document):
-	"""A kind of navigation item, contributed by an app as a file.
-
-	Two things make a kind, and neither of them is a row of code. The kind's *declaration* is this
-	record, shipped at `<app>/<module>/navigation_item_type/<name>/<name>.json` and re-imported by
-	the ordinary migrate sync. What an item of the kind *does* on click is a JS module shipped
-	beside it. Server code is optional, and arrives through a hook keyed by type name rather than
-	through a dotted path stored here: a path in a database row is code-in-data, and since a type
-	row and its handler are always edited in the same commit, storing the path would buy nothing
-	and cost a way to change behaviour by editing a record.
-
-	Rows are therefore code-owned. Nobody has create or write permission on this doctype — a
-	non-developer minting a row would be minting behaviour — and the guard below stops the two
-	remaining routes, developer-mode authoring aside.
-	"""
+	"""A kind of navigation item, shipped by an app as a file beside its renderer; rows are code-owned."""
 
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -54,15 +39,7 @@ class NavigationItemType(Document):
 		self.validate_app_content()
 
 	def validate_app_content(self):
-		"""Refuse a write that is not an app shipping its own content.
-
-		The permission rows already withhold create and write from every role, so this only has to
-		catch what permissions cannot see: a write made with `ignore_permissions`, and Administrator,
-		who is exempt from permission checks entirely. `Rail`'s equivalent guard is conditional
-		because its three layers share one table and two of them must stay writable at runtime.
-		This one is unconditional, because every row here is app content and there is no second
-		layer to protect.
-		"""
+		"""Refuse writes outside developer mode or a system write; permissions miss Administrator."""
 		if frappe.conf.developer_mode:
 			return
 
@@ -81,12 +58,7 @@ class NavigationItemType(Document):
 		self.export_type()
 
 	def export_type(self):
-		"""Write this type to its file, so authoring it and shipping it are one step.
-
-		The path is the usual per-record folder inside the module — the same walk that imports
-		`Sidebar` and `Workspace` — which is what lets the row arrive at migrate and its renderer
-		at build on two independent channels, with no manifest to disagree with a seeder.
-		"""
+		"""Write this type to its module folder, the same walk that imports `Sidebar` and `Workspace`."""
 		from frappe.modules.export_file import export_to_files
 
 		if frappe.flags.in_import or not frappe.conf.developer_mode:
