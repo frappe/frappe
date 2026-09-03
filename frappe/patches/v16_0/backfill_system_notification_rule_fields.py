@@ -2,7 +2,7 @@ import frappe
 
 
 def execute():
-	"""Backfill notification_title and notification_type on System Notification rules."""
+	"""Backfill subject and notification_type on System Notification rules."""
 	frappe.reload_doctype("Notification")
 
 	notification = frappe.qb.DocType("Notification")
@@ -12,9 +12,10 @@ def execute():
 
 	is_system_notification = notification.channel == "System Notification"
 
-	frappe.qb.update(notification).set(notification.notification_title, notification.subject).where(
-		is_system_notification & _empty(notification.notification_title) & ~_empty(notification.subject)
-	).run()
+	if frappe.db.has_column("Notification", "notification_title"):
+		frappe.qb.update(notification).set(notification.subject, notification.notification_title).where(
+			is_system_notification & _empty(notification.subject) & ~_empty(notification.notification_title)
+		).run()
 
 	frappe.qb.update(notification).set(notification.notification_type, "Alert").where(
 		is_system_notification & _empty(notification.notification_type)
