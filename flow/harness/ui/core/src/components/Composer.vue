@@ -83,70 +83,55 @@
 					<span class="min-w-0 flex-1 text-xs font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
 					<span class="flex-none text-2xs font-medium text-ink-gray-6">Browse…</span>
 				</button>
-				<div v-if="codeRefs.length" class="flex flex-wrap items-center gap-2 px-1 pt-0.5">
+				<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5 px-1 pt-0.5">
+					<figure
+						v-for="{ item, i } in imageTiles"
+						:key="item.key"
+						class="group/attachment relative h-[72px] w-[72px] flex-none overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
+						:title="item.name"
+					>
+						<button class="block h-full w-full cursor-zoom-in" :aria-label="`View ${item.name}`" @click="viewer = item">
+							<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
+						</button>
+						<button
+							class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
+							title="Remove attachment"
+							:aria-label="`Remove ${item.name}`"
+							:disabled="submitting"
+							@click="removeAttachment(i)"
+						>
+							<FeatherIcon name="x" class="h-3 w-3" />
+						</button>
+					</figure>
+				</div>
+				<div v-if="codeRefs.length || fileChips.length" class="flex flex-wrap items-center gap-1.5 px-1 pt-0.5">
 					<span
 						v-for="(ref, i) in codeRefs"
 						:key="`${ref.path}:${ref.start}-${ref.end}`"
-						class="flex max-w-[260px] items-center gap-1.5 rounded-6 border border-outline-gray-2 bg-surface-base py-1 pl-2 pr-1"
+						:class="chipClass"
 						:title="`${ref.rel}:${ref.start}-${ref.end}`"
 					>
-						<FeatherIcon name="code" class="h-3 w-3 flex-none text-ink-gray-5" />
-						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ refLabel(ref) }}</span>
+						<span :class="chipIconClass"><FeatherIcon name="code" class="h-3.5 w-3.5" /></span>
+						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
+						<button :class="chipRemoveClass" title="Remove reference" :disabled="submitting" @click="flow.removeCodeRef(i)">
+							<FeatherIcon name="x" class="h-3 w-3" />
+						</button>
+					</span>
+					<span v-for="{ item, i } in fileChips" :key="item.key" :class="chipClass" :title="item.name">
+						<span :class="chipIconClass">
+							<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
+						</span>
+						<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
 						<button
-							class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
-							title="Remove reference"
+							:class="chipRemoveClass"
+							title="Remove attachment"
+							:aria-label="`Remove ${item.name}`"
 							:disabled="submitting"
-							@click="flow.removeCodeRef(i)"
+							@click="removeAttachment(i)"
 						>
 							<FeatherIcon name="x" class="h-3 w-3" />
 						</button>
 					</span>
-				</div>
-				<div v-if="attachments.length" class="flex flex-wrap items-start gap-2 px-1 pt-0.5">
-					<template v-for="(item, i) in attachments" :key="item.key">
-						<figure
-							v-if="item.kind === 'image' && item.previewUrl"
-							class="group/attachment relative h-[72px] w-[72px] flex-none overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
-							:title="item.name"
-						>
-							<button
-								class="block h-full w-full cursor-zoom-in"
-								:aria-label="`View ${item.name}`"
-								@click="viewer = item"
-							>
-								<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
-							</button>
-							<button
-								class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
-								title="Remove attachment"
-								:aria-label="`Remove ${item.name}`"
-								:disabled="submitting"
-								@click="removeAttachment(i)"
-							>
-								<FeatherIcon name="x" class="h-3 w-3" />
-							</button>
-						</figure>
-						<span
-							v-else
-							class="flex max-w-[260px] items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base py-1 pl-1 pr-1"
-						>
-							<span
-								class="grid h-6 w-6 flex-none place-items-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
-							>
-								<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
-							</span>
-							<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
-							<button
-								class="grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
-								title="Remove attachment"
-								:aria-label="`Remove ${item.name}`"
-								:disabled="submitting"
-								@click="removeAttachment(i)"
-							>
-								<FeatherIcon name="x" class="h-3.5 w-3.5" />
-							</button>
-						</span>
-					</template>
 				</div>
 				<div class="relative">
 					<div
@@ -346,7 +331,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { MAX_ATTACHMENTS } from "../store.js"
-import { EFFORT_LABELS, fileName } from "../transcript.js"
+import { EFFORT_LABELS, codeRefLabel } from "../transcript.js"
 import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
 import ModelPalette from "./ModelPalette.vue"
@@ -630,9 +615,16 @@ watch(
 		if (count > (prev ?? 0)) nextTick(() => box.value?.focus())
 	},
 )
-const refLabel = (ref) =>
-	`${fileName(ref.path)} (${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""})`
 const refToken = (ref) => `@${ref.rel}:${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""}`
+// images stage as full previews on their own row; code refs and files share one row of chips
+const isImageTile = (item) => item.kind === "image" && !!item.previewUrl
+const staged = (keep) => attachments.value.map((item, i) => ({ item, i })).filter(({ item }) => keep(item))
+const imageTiles = computed(() => staged(isImageTile))
+const fileChips = computed(() => staged((item) => !isImageTile(item)))
+const chipClass = "flex h-8 max-w-[260px] items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base pl-1 pr-1"
+const chipIconClass = "grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6"
+const chipRemoveClass =
+	"grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 // an existing session's cwd is frozen in its config; only new chats need one picked
 const needsCwd = computed(() => !flow.state.sessionId && !flow.state.prefs.cwd)
 const canSend = computed(

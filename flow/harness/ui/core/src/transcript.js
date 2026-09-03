@@ -687,6 +687,26 @@ export function userAttachments(entry) {
 		: []
 }
 
+const CODE_REF_LINE = /^@(.+):(\d+)(?:-(\d+))?$/
+
+// "Add to chat" selections travel as @path:start-end lines appended to the message;
+// split them back out so a bubble can show chips instead of the raw tokens
+export function splitCodeRefs(text) {
+	const lines = String(text ?? "").split("\n")
+	const refs = []
+	while (lines.length) {
+		const match = CODE_REF_LINE.exec(lines[lines.length - 1].trim())
+		if (!match) break
+		lines.pop()
+		refs.unshift({ path: match[1], start: Number(match[2]), end: Number(match[3] ?? match[2]) })
+	}
+	return { body: lines.join("\n").trimEnd(), refs }
+}
+
+export function codeRefLabel(ref) {
+	return `${fileName(ref.path)} (${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""})`
+}
+
 export function conversationTitle(conversation) {
 	const first = conversation.entries.find((e) => e.type === "user_message")
 	if (!first) return null
