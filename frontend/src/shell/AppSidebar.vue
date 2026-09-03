@@ -39,6 +39,7 @@
 				:context="context"
 				:current="current"
 				:reserve="reserve"
+				:sections="sections"
 			/>
 		</ul>
 
@@ -55,6 +56,7 @@
 <script setup lang="ts">
 import type { NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
+import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
 import { useIconSlot } from "@/navigation/iconSlot";
 import type { ItemContext } from "@/navigation/types";
@@ -69,6 +71,7 @@ const props = defineProps<{
 	context: ItemContext;
 	title?: string;
 	current?: string;
+	sections?: SectionMemory;
 	arrangeable?: boolean;
 }>();
 const emit = defineEmits<{ arrange: [] }>();

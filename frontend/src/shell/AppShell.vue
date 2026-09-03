@@ -30,6 +30,7 @@
 			:items="navigation.rail"
 			:context="contexts.rail"
 			:current="current.railKey"
+			:sections="sections.rail"
 			:arrangeable="!!boot.app"
 			:share-link="shareLink"
 			@arrange="arrangeRail"
@@ -42,6 +43,7 @@
 			:context="panel.context"
 			:title="panel.title"
 			:current="current.rowKey"
+			:sections="sections.sidebars[panel.address]"
 			arrangeable
 			@arrange="arrangeSidebar"
 		/>
@@ -73,6 +75,7 @@ import {
 	type NavigationContexts,
 } from "@/navigation/current";
 import { recallPanel, rememberPanel } from "@/navigation/panelMemory";
+import { sectionMemory } from "@/navigation/sectionMemory";
 import AppRail from "./AppRail.vue";
 import AppSidebar from "./AppSidebar.vue";
 import ArrangementEditor from "./ArrangementEditor.vue";
@@ -106,6 +109,20 @@ const contexts = computed<NavigationContexts>(() => {
 		),
 	};
 });
+
+// A reader's own disclosures, one store per container and rebuilt when the payload is. A
+// container is named by what the shell knows: the rail by its app, a panel by its address.
+const sections = computed(() => ({
+	rail: boot.app
+		? sectionMemory(boot.user.name, `Rail:${boot.app}`, navigation.value.rail)
+		: undefined,
+	sidebars: Object.fromEntries(
+		Object.entries(navigation.value.sidebars).map(([address, rows]) => [
+			address,
+			sectionMemory(boot.user.name, `Sidebar:${address}`, rows),
+		])
+	),
+}));
 
 // Every route navigation can be standing on. Off the PAYLOAD, so it survives a navigation:
 // building it costs a route resolution per row and the framework's own prefix carries 194 of

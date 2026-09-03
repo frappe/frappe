@@ -68,12 +68,12 @@
 				 that should simply be visible. -->
 		<component
 			v-else-if="heading"
-			:is="item.collapsible ? 'button' : 'p'"
-			:type="item.collapsible ? 'button' : undefined"
+			:is="collapsible ? 'button' : 'p'"
+			:type="collapsible ? 'button' : undefined"
 			:data-key="item.key"
-			:aria-expanded="item.collapsible ? String(open) : undefined"
+			:aria-expanded="collapsible ? String(open) : undefined"
 			:class="HEADING"
-			@click="item.collapsible ? (open = !open) : undefined"
+			@click="collapsible ? toggle() : undefined"
 		>
 			{{ label }}
 		</component>
@@ -86,12 +86,16 @@
 				:context="context"
 				:current="current"
 				:reserve="reserve"
+				:sections="sections"
 			/>
 		</ul>
 
 		<!-- Expanded rows sit at this row's OWN level, not under it. "N more" is an overflow
 				 of the list it is in, so indenting what it reveals would say the module contains
-				 the overflow row, which is backwards. -->
+				 the overflow row, which is backwards.
+
+				 No `sections`: these rows are fetched, not in the container's payload, so a
+				 toggle stored against one would be pruned as stale on the next read. -->
 		<NavigationRow
 			v-for="child in expandedNodes"
 			:key="child.item.key"
@@ -106,7 +110,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
-import { buildTree, type ItemNode } from "@/navigation/tree";
+import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
+import type { SectionMemory } from "@/navigation/sectionMemory";
 import { labelOf, renderingOf } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
 import type { ItemContext } from "@/navigation/types";
@@ -136,6 +141,7 @@ const props = defineProps<{
 	context: ItemContext;
 	current?: string;
 	reserve?: boolean;
+	sections?: SectionMemory;
 }>();
 
 const item = computed(() => props.node.item);
@@ -161,21 +167,33 @@ const heading = computed(
 // `keep_closed` is what makes a section START closed; `collapsible` is what lets a reader
 // close it. Neither is the same as "open", so a section that is neither stays open and has
 // no control (#42227).
-//
-// The watch is on the SHIPPED value, not on the item: a reset returns the app's own layer
-// (#42363), so the same key can come back with a different `keep_closed` while this
-// component survives — `v-for` keys on the key — and the section would sit open or closed
-// against what it now ships until a reload. Watching the value rather than the row is what
-// keeps that distinct from a reader's own toggle, which changes `open` and never
-// `keep_closed`, so a save cannot re-open what somebody just closed.
-const open = ref(!item.value.keep_closed);
+const shippedOpen = computed(() => !item.value.keep_closed);
 
-watch(
-	() => item.value.keep_closed,
-	(keepClosed) => {
-		open.value = !keepClosed;
-	}
-);
+// The one section the address is standing in opens itself, transiently and writing nothing.
+const holdsCurrent = computed(() => !!props.current && containsKey(props.node, props.current));
+
+// No control while the address is inside: the section may not shut over the row you are on,
+// and a heading that reports `aria-expanded` and refuses the click is worse than no control.
+const collapsible = computed(() => !!item.value.collapsible && !holdsCurrent.value);
+
+/** Where this section rests when the address is not inside it. */
+function settled(): boolean {
+	return props.sections?.recall(item.value.key) ?? shippedOpen.value;
+}
+
+const open = ref(holdsCurrent.value || settled());
+
+// Re-derived, not assigned: a save returns the app's own layer, so the same key can come
+// back with a different `keep_closed` while this component survives.
+watch([() => item.value.keep_closed, holdsCurrent], () => {
+	open.value = holdsCurrent.value || settled();
+});
+
+/** A click on the heading, the one thing here that writes. */
+function toggle() {
+	open.value = !open.value;
+	props.sections?.remember(item.value.key, open.value);
+}
 
 const expanded = ref(false);
 const expandedNodes = ref<ItemNode[]>([]);

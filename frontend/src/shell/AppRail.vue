@@ -58,6 +58,7 @@
 				:context="context"
 				:current="current"
 				:reserve="reserve"
+				:sections="sections"
 			/>
 		</ul>
 
@@ -94,6 +95,7 @@ import { inject, onBeforeUnmount, ref } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
+import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
 import { useIconSlot } from "@/navigation/iconSlot";
 import type { ItemContext } from "@/navigation/types";
@@ -113,6 +115,7 @@ const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
+	sections?: SectionMemory;
 	arrangeable?: boolean;
 	shareLink?: string;
 }>();

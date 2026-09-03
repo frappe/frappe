@@ -81,3 +81,8 @@ function descends(
 
 	return false;
 }
+
+/** Is `key` this node or anywhere beneath it? */
+export function containsKey(node: ItemNode, key: string): boolean {
+	return node.item.key === key || node.children.some((child) => containsKey(child, key));
+}
