@@ -56,13 +56,24 @@ def sync_standard_items():
 
 def sync_table(key, hook):
 	navbar_settings = NavbarSettings("Navbar Settings")
-	existing_items = {d.item_label: d for d in navbar_settings.get(key)}
+	existing_items = {d.item_label: d for d in navbar_settings.get(key) if d.get("is_standard") == 1}
 	new_standard_items = {}
+	fields_to_process = ["action", "hidden", "item_label", "item_type", "route", "icon"]
 
 	# add new items
-	count = 0  # matain count because list may come from seperate apps
+	count = 0  # maintain count because list may come from seperate apps
 	for item in frappe.get_hooks(hook):
+		# For existing NavbarItem, delete existing records and update with key-value pair from hooks.
+		if item.get("item_label") in existing_items:
+			for field in fields_to_process:
+				if hasattr(existing_items[item.get("item_label")], field):
+					delattr(existing_items[item.get("item_label")], field)
+
+			for k, v in item.items():
+				existing_items[item.get("item_label")].update({k: v})
+
 		if item.get("item_label") not in existing_items:
+			item.update({"is_standard": 1})
 			navbar_settings.append(key, item, count)
 		new_standard_items[item.get("item_label")] = True
 		count += 1
