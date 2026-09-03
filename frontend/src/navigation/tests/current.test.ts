@@ -1,4 +1,4 @@
-// Which row the address is standing on (#42421).
+// Which row the address is standing on.
 import { describe, expect, it } from "vitest";
 import { createMemoryHistory, createRouter } from "vue-router";
 
@@ -90,8 +90,7 @@ describe("the rail alone", () => {
 	});
 
 	it("keeps the list marked while you read one of its records", () => {
-		// A record has no row of its own and never will — a rail cannot list 553 doctypes'
-		// records — so the list it belongs to is the honest answer.
+		// A record has no row of its own, so the list it belongs to is the answer.
 		expect(at([deal, invoice], {}, "/crm-deal/CRM-DEAL-01")).toEqual({ railKey: "deal" });
 	});
 
@@ -119,8 +118,7 @@ describe("the rail alone", () => {
 	});
 
 	it("marks nothing when no row covers the address", () => {
-		// And so shows no panel. There is no last panel to fall back to, because falling back
-		// is storing a selection (charter point 7).
+		// And so shows no panel: falling back would be storing a selection.
 		expect(at([deal], {}, "/sales-invoice")).toEqual({});
 	});
 });
@@ -149,10 +147,8 @@ describe("a rail item that opens a sidebar", () => {
 	});
 
 	it("wins a tie against a later rail row on the same doctype", () => {
-		// Sidebars link outside their own module all the time — #42357 counted 101 rows doing
-		// it in ERPNext — so one address really can sit in two places. The tie-break is the
-		// order the person is looking at: the rail top to bottom, and a linked item's panel
-		// where the item sits. Accounts is above Deals here and contains it.
+		// One address really can sit in two places. The tie-break is reading order: the rail top
+		// to bottom, and a linked item's panel where the item sits. Accounts is above Deals here.
 		expect(at(rail, sidebars, "/crm-deal")).toEqual({
 			railKey: "accounts",
 			sidebar: "module_def_accounts",
@@ -167,13 +163,13 @@ describe("a rail item that opens a sidebar", () => {
 	});
 
 	it("is absent when its sidebar has no rows", () => {
-		// #42356 leaves a sidebar that resolved to nothing out of the payload, and the renderer
-		// then draws the rail item as an independent one — which here means not at all.
+		// A sidebar that resolved to nothing is left out of the payload, and its rail item is
+		// drawn as independent, which here means not at all.
 		expect(at(rail, { module_def_accounts: [] }, "/sales-invoice")).toEqual({});
 	});
 });
 
-// One in five ERPNext destinations sits in more than one panel, and `Item` sits in six.
+// Many destinations sit in more than one panel; `Item` sits in six on ERPNext.
 describe("the panel the reader is already in", () => {
 	// Two panels both listing Sales Invoice, Buying above Stock. Rail order answers Buying.
 	const rail: NavigationItem[] = [

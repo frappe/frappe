@@ -1,22 +1,10 @@
-// The address table: every doctype on the bench, and how each one is spelled in a URL.
-//
-// Fetched, not booted. It used to be `boot.doctype_slugs`, scoped to one app because
-// a doctype was addressable only inside its owner's prefix. The prefix is a LENS
-// (#42210) -- every doctype is addressable under every prefix -- so the table went
-// full-bench, broke the 40 KB boot budget on an ERPNext bench, and became
-// byte-identical for every user and every prefix in the same move. That last property
-// is what let it leave boot rather than be trimmed: it is now cacheable, keyed on
-// `metadata_version`, exactly as translations are keyed on `translations_version`
-// (#42070).
-//
-// It carries the module too (#42211), because a modular app's address is
-// `/<module>/<doctype>/<name>` and the two halves must not be able to disagree. The
-// server sends the module SLUG, so `frappe.scrub` is never re-implemented here.
+// The address table: every doctype on the bench and its URL spelling. Full-bench and the
+// same for every user, so it is fetched and cached by `metadata_version`, not booted.
 
 export type AddressPayload = {
 	/** `{doctype: [slug, moduleSlug]}` */
 	doctypes: Record<string, [string, string]>;
-	/** `{moduleSlug: moduleName}` -- display data, 35 entries against 553 doctypes. */
+	/** `{moduleSlug: moduleName}`, display data. */
 	modules: Record<string, string>;
 };
 
@@ -34,9 +22,8 @@ export class Addresses {
 
 	/** The real doctype behind a URL segment, or null. */
 	doctypeOf(slug: string): string | null {
-		// `Object.hasOwn`, not a bare read: a plain object inherits from
-		// Object.prototype, so `/apps/crm/constructor` would otherwise pass the guard
-		// and hand the page a function.
+		// `Object.hasOwn`, not a bare read: `/apps/crm/constructor` would otherwise pass the
+		// guard and hand the page a function.
 		return Object.hasOwn(this.bySlug, slug) ? this.bySlug[slug] : null;
 	}
 
@@ -47,7 +34,7 @@ export class Addresses {
 			: null;
 	}
 
-	/** The slug a doctype NAME resolves to, case-insensitively -- the de-slug path. */
+	/** The slug a doctype name resolves to, case-insensitively. */
 	slugOfName(segment: string): string | null {
 		const match = Object.entries(this.payload.doctypes).find(
 			([doctype]) => doctype.toLowerCase() === segment.toLowerCase()
@@ -56,13 +43,7 @@ export class Addresses {
 	}
 
 	/**
-	 * The slug a module NAME is spelled with, or null.
-	 *
-	 * The reverse of `moduleName`, and the reason it exists rather than a `frappe.scrub`
-	 * here: a navigation item names a module by its `Module Def` name, and the address is
-	 * its slug. Re-implementing the scrub would put a second, divergent spelling of every
-	 * module address in the browser -- which is the trap this file already refuses for
-	 * doctypes.
+	 * The slug a module name is spelled with, or null. The scrub is never re-implemented here.
 	 */
 	slugOfModule(name: string): string | null {
 		const match = Object.entries(this.payload.modules).find(
@@ -83,8 +64,7 @@ export class Addresses {
 }
 
 export async function fetchAddresses(version: string): Promise<Addresses> {
-	// `v=` in the query string is the ONLY thing that invalidates this: the endpoint
-	// carries `@http_cache(max_age=31536000)`, a full year, private.
+	// Cached server-side for a year; `v=` is the only invalidator.
 	const res = await fetch(
 		`/api/method/frappe.shell.doctypes.get_addresses?v=${encodeURIComponent(
 			version

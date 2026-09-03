@@ -1,10 +1,5 @@
-// Reads the Python-assembled build manifest.
-//
-// Assembly and singleton enforcement both live in Python (`frappe/shell/manifest.py`),
-// not here. #42069 put the check "at manifest assembly, before vite starts" — and
-// assembly is Python's, so a conflict fails before vite is even spawned. Keeping a
-// second implementation on this side would be one of the hand-synced copies the map
-// has been retiring.
+// Reads the build manifest Python assembles; singleton enforcement lives there too,
+// in `frappe/shell/manifest.py`.
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -30,7 +25,7 @@ export function readManifest() {
 	return read().apps;
 }
 
-/** Every app on the bench, contributing or not -- see the plugin's doctype-name index. */
+/** Every app on the bench, contributing or not; see the plugin's doctype-name index. */
 export function readAllSourceDirs() {
 	return read().source_dirs;
 }

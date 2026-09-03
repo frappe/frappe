@@ -1,13 +1,5 @@
-// The vite plugin that synthesises `virtual:frappe/contributions`.
-//
-// Why synthesise rather than glob: `import.meta.glob` needs a static literal pattern
-// and would sweep every app on the bench, installed or not -- and a raw glob loses
-// the app name, which is the one attribution the whole contract needs (#42068). The
-// Python manifest supplies both: which apps are in the bundle, and what each is
-// called.
-//
-// App, module, doctype and kind all fall out of the PATH. Nothing is parsed out of
-// file contents, so a file that fails to import cannot break discovery.
+// Synthesises `virtual:frappe/contributions` from the Python manifest, since a raw glob would
+// sweep every app on the bench and lose the app name. Everything falls out of the path.
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
@@ -44,12 +36,8 @@ function isFile(path) {
 }
 
 /**
- * `crm_deal` -> `CRM Deal`.
- *
- * Title-casing the folder cannot do this -- it yields "Crm Deal", and acronyms are
- * common in doctype names. The real name is on disk in the doctype's own JSON, which
- * is readable at build time with no site, so the index is built from the definitions
- * rather than guessed from the folder.
+ * `crm_deal` -> `CRM Deal`, read from the doctype's own JSON: title-casing the folder
+ * yields "Crm Deal".
  */
 function buildDoctypeNames(sourceDirs) {
 	const names = new Map();
@@ -64,8 +52,7 @@ function buildDoctypeNames(sourceDirs) {
 					const { name } = JSON.parse(readFileSync(definition, "utf-8"));
 					if (name) names.set(scrubbed, name);
 				} catch {
-					// A malformed definition is the doctype loader's problem to report, not
-					// the bundler's. Fall back to the folder.
+					// A malformed definition is the doctype loader's to report. Fall back to the folder.
 				}
 			}
 		}
@@ -86,10 +73,8 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const pages = [];
 	const itemTypes = [];
 	const warnings = [];
-	// Every app on the bench, not just the ones in the manifest. A `custom/` folder can
-	// name a FOREIGN doctype owned by an app that contributes nothing itself -- and
-	// title-casing the folder would then answer "Hd Ticket" where the registry says
-	// "HD Ticket", so the contribution would bundle, register and silently never run.
+	// Every app on the bench, not just the manifest: a `custom/` folder can name a doctype
+	// owned by an app that contributes nothing.
 	const names = buildDoctypeNames(allSourceDirs);
 	const unscrub = (scrubbed) => names.get(scrubbed) ?? titleCase(scrubbed);
 
@@ -97,7 +82,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		for (const module of directories(source_dir)) {
 			const modulePath = join(source_dir, module);
 
-			// 1 & 2. Your own doctype: <module>/doctype/<scrubbed>/frontend/{record,list}.js
+			// Your own doctype: <module>/doctype/<scrubbed>/frontend/{record,list}.js
 			const doctypeRoot = join(modulePath, "doctype");
 			for (const scrubbed of directories(doctypeRoot)) {
 				for (const kind of ["record", "list"]) {
@@ -107,9 +92,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				}
 			}
 
-			// 3. A foreign doctype: <module>/custom/<scrubbed>/record.js
-			//    Same shape as your own; only the folder differs, mirroring the split
-			//    frappe already makes for schema customizations (`custom/contact.json`).
+			// A foreign doctype: <module>/custom/<scrubbed>/record.js
 			const customRoot = join(modulePath, "custom");
 			for (const scrubbed of directories(customRoot)) {
 				const file = join(customRoot, scrubbed, "record.js");
@@ -117,26 +100,15 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 					doctypes.push({ kind: "custom", app, doctype: unscrub(scrubbed), file });
 			}
 
-			// 4. A genuinely new page: <module>/frontend/pages/<slug>.js
-			//    The `frontend/` segment is load-bearing: `<module>/page/` is already desk
-			//    v1's Page doctype and `templates/pages/` is already website templates, so
-			//    a bare `<module>/pages/` would sit one character from a different meaning
-			//    (#42072).
+			// A new page: <module>/frontend/pages/<slug>.js. The `frontend/` segment is load-bearing:
+			// `<module>/page/` is desk v1's Page doctype and `templates/pages/` is website templates.
 			const pagesRoot = join(modulePath, "frontend", "pages");
 			for (const file of files(pagesRoot)) {
 				pages.push({ app, slug: basename(file, ".js"), file: join(pagesRoot, file) });
 			}
 
-			// 5. An item kind for the rail and the sidebar:
-			//    <module>/navigation_item_type/<scrubbed>/frontend/item.js
-			//
-			//    Colocated with the type RECORD, in the record's own folder, which is the
-			//    doctype pattern rather than the page one. The reason is the same reason
-			//    `buildDoctypeNames` exists: the type's real name has to come off the JSON
-			//    beside it, never from title-casing the folder. `doctype` title-cases to
-			//    "Doctype", and the framework's own first kind is called `DocType` — so the
-			//    guessed form is wrong on the very first row, and a renderer registered
-			//    under a name no item carries never runs and says nothing.
+			// An item kind: <module>/navigation_item_type/<scrubbed>/frontend/item.js. Its name comes
+			// off the JSON beside it: `doctype` title-cases to "Doctype" and the kind is `DocType`.
 			const typeRoot = join(modulePath, "navigation_item_type");
 			for (const scrubbed of directories(typeRoot)) {
 				const file = join(typeRoot, scrubbed, "frontend", "item.js");
@@ -145,9 +117,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				const definition = join(typeRoot, scrubbed, `${scrubbed}.json`);
 				const name = recordName(definition);
 				if (!name) {
-					// A renderer with no type record beside it names nothing. Guessing would
-					// register it under a string no item can carry, which is a contribution that
-					// silently never runs -- the failure the whole file is arranged to avoid.
+					// A guessed name would register the renderer under a string no item carries.
 					warnings.push(
 						`[frappe] ${file} has no ${scrubbed}.json beside it; the item type it renders cannot be named, so it is ignored.`
 					);
@@ -168,8 +138,7 @@ function recordName(definition) {
 	try {
 		return JSON.parse(readFileSync(definition, "utf-8")).name ?? null;
 	} catch {
-		// A malformed record is `import_file`'s problem to report at migrate, not the
-		// bundler's. It is still not a name, so the renderer is dropped either way.
+		// A malformed record is `import_file`'s to report at migrate; it is still not a name.
 		return null;
 	}
 }
@@ -206,10 +175,8 @@ function generate({ doctypes, pages, itemTypes, warnings }) {
 				`handlers: d${index}, __file: ${JSON.stringify(entry.file)} },`
 		);
 	});
-	// Entries with no usable default export are dropped with a warning naming the file,
-	// NOT allowed to throw: this module is imported by main.ts before anything renders,
-	// so one app's typo would otherwise fail the mount for every prefix on the bench.
-	// Same degrade-don't-fail asymmetry `app_boot` chose on the Python side.
+	// Dropped with a warning, never a throw: `main.ts` imports this before anything renders,
+	// so one app's typo must not fail the mount bench-wide.
 	lines.push("  ].filter(usable),");
 
 	lines.push("  pages: [");
@@ -222,10 +189,7 @@ function generate({ doctypes, pages, itemTypes, warnings }) {
 	});
 	lines.push("  ].filter(usable),");
 
-	// The renderer for one item kind. `handlers` is the same key the other two carry, so
-	// the `usable` filter that drops a file with no default export covers this one too --
-	// and it has to, because `registerContributions` indexes these by type NAME and an
-	// undefined entry would take a whole kind of item off the rail with no line said.
+	// `handlers` is the same key the other two carry, so `usable` covers item types too.
 	lines.push("  itemTypes: [");
 	itemTypes.forEach((entry, index) => {
 		lines.push(
@@ -239,10 +203,7 @@ function generate({ doctypes, pages, itemTypes, warnings }) {
 
 	lines.push("}");
 
-	// Discovery's own complaints, replayed in the browser rather than at build time: a
-	// `vite build` scrolls past and nobody reads it, while this reaches the console of the
-	// person whose kind is not appearing. Same channel `usable` already uses, for the same
-	// audience.
+	// Discovery's warnings are replayed in the browser, where the person missing a kind looks.
 	for (const warning of warnings) {
 		lines.push(`console.warn(${JSON.stringify(warning)})`);
 	}

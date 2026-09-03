@@ -1,8 +1,5 @@
-// The panel a linked rail item opens (#42421).
-//
-// Mounted through `AppShell`, not through `AppSidebar`, and that is the point: which sidebar
-// is open is a fact about the address, so a test that handed the panel its own rows would be
-// testing a list renderer and calling it navigation.
+// The panel a linked rail item opens. Mounted through `AppShell`: which sidebar is open is
+// a fact about the address, so handing the panel its own rows would test a list renderer.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
@@ -120,15 +117,13 @@ describe("what opens the panel", () => {
 	it("opens it because of where you are, not because of a click", async () => {
 		const { host } = await shell([accounts], sidebars, "/crm-lead");
 
-		// Nothing was clicked. `/crm-lead` is a row inside the Accounts sidebar, and that is
-		// the whole of it — which is what makes a pasted URL land on the same shell.
+		// Nothing was clicked: `/crm-lead` is a row inside the Accounts sidebar, and that is all.
 		expect(panel(host)?.textContent).toContain("Sales Invoice");
 		expect(panel(host)?.textContent).toContain("CRM Lead");
 	});
 
 	it("heads it with the rail item's own label", async () => {
-		// `sidebars` is keyed by scrubbed address and carries rows, not a record, so there is
-		// no other title available — and the rail item is the words a reader clicked anyway.
+		// `sidebars` carries rows, not a record, so the rail item's label is the only title there is.
 		const { host } = await shell([accounts], sidebars, "/sales-invoice");
 		expect(panel(host)?.textContent).toContain("Accounts");
 	});
@@ -154,9 +149,8 @@ describe("what opens the panel", () => {
 
 describe("the empty case", () => {
 	it("draws no panel and no rail item when the sidebar has no rows", async () => {
-		// #42357: a linked rail item whose sidebar has nothing in it renders as an independent
-		// one — and a `Sidebar` item's whole content IS the sidebar, so it is simply not drawn.
-		// There is no empty panel anywhere in this design.
+		// A linked rail item whose sidebar is empty renders as independent, and a `Sidebar` item's
+		// whole content is the sidebar, so it is not drawn at all.
 		const { host } = await shell([accounts], { module_def_accounts: [] }, "/sales-invoice");
 		expect(panel(host)).toBeNull();
 		expect(host.querySelector("[data-key='accounts']")).toBeNull();
@@ -204,8 +198,7 @@ describe("what is marked current", () => {
 
 describe("two containers, one key", () => {
 	it("does not confuse a rail row with a sidebar row of the same name", async () => {
-		// A key identifies a row within ONE container — the same thing `registry.ts`'s depth
-		// guard exists for. Here it is the highlight: the rail's `lead` must not light up
+		// A key identifies a row within one container: the rail's `lead` must not light up
 		// because the panel's `lead` is current.
 		const { host } = await shell(
 			[accounts, { ...lead, link_to: "CRM Deal" }],
@@ -220,9 +213,8 @@ describe("two containers, one key", () => {
 
 describe("the panel is a container, not a view of the rail", () => {
 	it("offers its own Arrange, addressed at the sidebar", async () => {
-		// The three arrangement endpoints take the container as an argument and read the
-		// `(link_doctype, link_to)` pair back off the scrubbed address (`arrangement.py`), so
-		// the panel arranges on exactly the terms the rail does (#42363).
+		// The arrangement endpoints take the container as an argument, so the panel arranges on
+		// the rail's terms.
 		const { host } = await shell([accounts], sidebars, "/sales-invoice");
 		expect(panel(host)?.textContent).toContain("Arrange");
 	});
@@ -237,8 +229,7 @@ describe("what the panel draws", () => {
 
 		const heading = panel(host)?.querySelector("[data-key='billing']");
 		expect(heading?.textContent?.trim()).toBe("Billing");
-		// The row is inside the section's list, not beside it. `parent_key` is the whole of
-		// hierarchy and the server sends the tree flat (#42227).
+		// The row is inside the section's list, not beside it.
 		expect(heading?.parentElement?.querySelector("[data-key='invoice']")).not.toBeNull();
 	});
 
@@ -250,9 +241,8 @@ describe("what the panel draws", () => {
 	});
 
 	it("reports a cycle in each container it happens in", async () => {
-		// A key identifies a row within one container, so one shared "reported once" set would
-		// swallow the panel's report as a repeat of the rail's and leave a sidebar silently
-		// missing rows.
+		// A key is unique within one container, so a shared "reported once" set would swallow
+		// the panel's report as a repeat of the rail's.
 		const errors: string[] = [];
 		const original = console.error;
 		console.error = (...args: unknown[]) => errors.push(String(args[0]));
@@ -281,9 +271,8 @@ describe("what the panel draws", () => {
 
 describe("the panel's own context", () => {
 	it("measures what is left of a module against the sidebar, not against the rail", async () => {
-		// A context is composed once per LIST, and there are two lists here. `Module Contents`
-		// expands into "what this module holds that the list does not already show" — so a row
-		// handed the rail's context would hide the doctypes the RAIL shows and repeat its own.
+		// A context is composed once per list: a row handed the rail's context would hide the
+		// doctypes the rail shows and repeat its own.
 		fetchContents.mockResolvedValue([
 			{ doctype: "CRM Lead", slug: "crm-lead", module: "FCRM" },
 			{ doctype: "Sales Invoice", slug: "sales-invoice", module: "Accounts" },
@@ -319,8 +308,7 @@ describe("the panel's heading", () => {
 	});
 
 	it("is absent rather than a scrubbed address when nobody labelled the item", async () => {
-		// `labelOf` would fall through to `link_to`, which for this kind is the key boot files
-		// the sidebar under. A heading reading `module_def_accounts` is worse than none.
+		// `labelOf` would fall through to `link_to`, here the scrubbed address; no heading beats that.
 		const { host } = await shell([{ ...accounts, label: undefined }], sidebars, "/sales-invoice");
 
 		expect(panel(host)).not.toBeNull();
@@ -330,8 +318,7 @@ describe("the panel's heading", () => {
 
 
 describe("icons in the panel", () => {
-	// One model, two presentations, so the icon question is answered once for both. Only
-	// four sidebar rows on the bench carry one, all of them CRM's.
+	// One model, two presentations, so the icon question is answered once for both.
 	function withSprite() {
 		vi.stubGlobal(
 			"fetch",

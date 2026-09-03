@@ -1,25 +1,6 @@
 <!--
-  The arrangement editor: reorder, hide, rename, on either container.
-
-  ONE component for the rail and for a sidebar, because they are one model. It takes a container
-  and an address and nothing else about which surface it is editing — the moment it branched on
-  that, desk v2 would have desk v1's shape, where one base class and two subclasses spend about
-  1,800 lines saying the same thing twice.
-
-  It shows the list ONE SCOPE DEEP, hidden rows included, which is not what the rail shows. A
-  person cannot unhide what they cannot see, so an editor that rendered `boot.navigation` would
-  make hiding a one-way door.
-
-  A drag saves nothing on its own, and neither does an arrow or a rename. The write is the Save
-  button, and until then every edit is local — the same choice desk v1 made, and it is a choice
-  rather than a constraint: a save costs a request and a round trip that replaces the whole of
-  `boot.navigation`, which is not what anybody wants per keystroke.
-
-  There is no drag library. `sortablejs` and `vuedraggable` sit in the lockfile but are asked for
-  by neither `package.base.json` nor frappe-ui, so adopting one would be a new shared dependency
-  under #42069's singleton rule — a real cost, weighed here against about fifteen lines of the
-  platform's own drag events. The arrows are not a fallback for the drag; they are the half that
-  works from a keyboard.
+  The arrangement editor: reorder, hide, rename, one component for either container. It shows one
+  scope deep with hidden rows, writes only on Save, and uses the platform's own drag events plus arrows.
 -->
 <template>
 	<div class="flex w-80 shrink-0 flex-col border-l border-outline-gray-2 bg-surface-white">
@@ -104,9 +85,7 @@ const emit = defineEmits<{ close: []; saved: [Navigation] }>();
 const items = ref<ArrangedItem[]>([]);
 const dragging = ref<string | null>(null);
 const busy = ref(false);
-// A message rather than a boolean. An editor that failed to load its list is indistinguishable
-// from one whose navigation is empty, and "you have nothing to arrange" is a false statement to
-// put over a request that never landed.
+// A message, not a boolean: an editor that failed to load must not read as "nothing to arrange".
 const failed = ref<string | null>(null);
 
 onMounted(load);
@@ -120,8 +99,7 @@ async function load() {
 }
 
 function rename(key: string, label: string) {
-	// The whole row is replaced rather than mutated, so `items` is a list of values and a stale
-	// reference cannot leak an edit into a list this has already sent.
+	// Replaced, not mutated, so a stale reference cannot leak an edit into a list already sent.
 	items.value = items.value.map((item) => (item.key === key ? { ...item, label } : item));
 }
 

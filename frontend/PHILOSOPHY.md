@@ -115,9 +115,9 @@ that was never designed to be extended — and the result is a tier apps route *
 rather than through. An optional customization API is one that rots, because the
 framework's own pressure never lands on it.
 
-The tell that this is holding: `frontend/src/contributions/registry.ts` is tiny, and its
-size is the argument. Its own comment says so. The tell that it is slipping is a growing
-list of things the framework can do that a contribution cannot name.
+The tell that this is holding: `frontend/src/contributions/registry.ts` is tiny, an index
+over a module generated at build time, and its size is the argument. The tell that it is
+slipping is a growing list of things the framework can do that a contribution cannot name.
 
 ---
 

@@ -1,7 +1,5 @@
-// Which sidebar a page is read in, as the reader walks back and forward (#42480).
-//
-// `createWebHistory`, not the memory history the other shell tests use: the sidebar is
-// stamped on the history entry, and only a real one carries state through a pop.
+// Which sidebar a page is read in, as the reader walks back and forward. `createWebHistory`,
+// not the memory history: only a real one carries state through a pop.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick, type App } from "vue";
 import { createRouter, createWebHistory, type Router } from "vue-router";
@@ -131,7 +129,7 @@ beforeEach(async () => {
 	vi.unstubAllGlobals();
 });
 
-/** Steps 1-5 of #42479's walk: `Item` read in Stock, then `Item` read in Buying. */
+/** `Item` read in Stock, then `Item` read in Buying. */
 async function walk() {
 	const { host, router, app } = await shell("/stock-entry?sidebar=module_def_stock");
 	const panel = () => host.querySelector("aside")!;
@@ -159,8 +157,7 @@ describe("the sidebar a page was read in", () => {
 
 		router.go(-1);
 		await settle();
-		// The same address, and the sidebar it was READ in rather than the one open a moment
-		// ago, which is the whole fix.
+		// The same address, and the sidebar it was read in, not the one open a moment ago.
 		expect(router.currentRoute.value.path).toBe("/item");
 		expect(open(host)).toBe("module_def_stock");
 

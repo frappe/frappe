@@ -10,9 +10,8 @@
 			<tbody>
 				<tr v-for="row in rows" :key="row.name" class="border-b border-outline-gray-1">
 					<td class="py-1.5">
-						<!-- `routeFor`, never a template literal. Under a modular prefix the
-							hand-built form resolves -- to the module route -- and shows a page
-							that is not the record (#42225). -->
+						<!-- `routeFor`, never a template literal: under a modular prefix the hand-built form
+													resolves to the wrong page. -->
 						<RouterLink
 							:to="routeFor(doctype!, row.name)"
 							class="text-ink-blue-3 hover:underline"
@@ -42,8 +41,7 @@ const rows = ref<Record<string, string>[]>([]);
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 
-// A contributed `list.js` is read here and nowhere else. It cannot add a route, only
-// shape the view it was colocated with.
+// A contributed `list.js` is read here and nowhere else; it shapes the view, never adds a route.
 const columns = computed(() => {
 	if (!doctype.value) return [];
 	return listHandlersFor(doctype.value).flatMap(({ handlers }) =>
@@ -51,17 +49,14 @@ const columns = computed(() => {
 	);
 });
 
-// Which fetch is current: navigating away leaves the previous one in flight, and
-// without this a slower response repaints the list of the doctype the reader left.
+// The slower of two in-flight fetches must not repaint the list the reader left.
 let generation = 0;
 
 watchEffect(async () => {
 	if (!doctype.value) return;
 	const mine = ++generation;
-	// Same reason as `Record.vue`: the heading switches doctype synchronously, so the
-	// previous doctype's rows would otherwise sit under the new one's title until the
-	// fetch lands. Writing `rows` does not re-trigger this effect -- watchEffect tracks
-	// reads, and nothing here reads it.
+	// Cleared before the fetch: the heading switches synchronously. Writing `rows` does not
+	// re-trigger this effect, since nothing here reads it.
 	rows.value = [];
 	const params = new URLSearchParams({
 		doctype: doctype.value,

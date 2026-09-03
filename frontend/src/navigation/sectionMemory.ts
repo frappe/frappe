@@ -22,8 +22,7 @@ function read(): Stored {
 		const parsed = raw ? JSON.parse(raw) : null;
 		return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
 	} catch {
-		// Storage throws in a sandboxed frame and at zero quota. A browser that cannot
-		// remember shows every section as its app ships it.
+		// Storage throws in a sandboxed frame and at zero quota.
 		return {};
 	}
 }
@@ -37,8 +36,7 @@ function write(stored: Stored): void {
 }
 
 /**
- * This reader's disclosures for one container (`Rail:crm`, `Sidebar:doctype_crm_lead`), read
- * once and pruned against the `items` that container currently ships.
+ * This reader's disclosures for one container, read once and pruned against what it ships.
  */
 export function sectionMemory(
 	user: string,
@@ -63,7 +61,6 @@ export function sectionMemory(
 		if (!Object.keys(kept).length) delete forUser[container];
 
 		const next = { ...stored, [user]: forUser };
-		// A reader who toggles everything back leaves nothing behind, not an empty shell.
 		if (!Object.keys(forUser).length) delete next[user];
 
 		write(next);
@@ -75,8 +72,7 @@ export function sectionMemory(
 		},
 
 		remember(key, open) {
-			// Back to what the app ships is a decision to forget, and the only way a reader
-			// has of clearing one.
+			// Back to what the app ships is a decision to forget.
 			if (open === shippedOpen.get(key)) delete kept[key];
 			else kept[key] = open;
 

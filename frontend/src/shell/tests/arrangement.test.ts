@@ -1,9 +1,5 @@
-// The arrangement editor and the list operations under it (#42363).
-//
-// Mounted with Vue's own `createApp` into happy-dom rather than through `@vue/test-utils`,
-// which this package does not have. The editor is small enough that the difference is a
-// `nextTick` and a `querySelector`, and a new devDependency for one component is a cost the
-// shell's singleton rules make everyone else pay too.
+// The arrangement editor and the list operations under it. Mounted with Vue's own
+// `createApp`: this package has no `@vue/test-utils`.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
@@ -203,8 +199,7 @@ describe("the editor", () => {
   });
 
   it("saves the whole list it is showing, not the difference", async () => {
-    // The reduction is the server's. A client that sent anchors would be computing identity
-    // against a base it may be holding stale, which is desk v1's mistake in reverse.
+    // The reduction is the server's; the client sends the whole list.
     const editing = await editor([item("a"), item("b")]);
     call.mockResolvedValue({ rail: [], sidebars: {} });
 

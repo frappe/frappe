@@ -113,7 +113,7 @@ returns **200, never 404** — a 404 loses the asset preloads.
 - **`@/` → `frontend/src`.** That is the *only* alias, in both `vite.config.js` and
   `tsconfig.json`.
 - **`@framework/ui` is not an alias** — it is a real dependency, `link:../ui`. Aliasing it
-  was rejected on purpose (`frontend/vite.config.js:63-67`): aliasing a package to a
+  was rejected on purpose (`frontend/vite.config.js`): aliasing a package to a
   directory bypasses its `exports` map and breaks every subpath import. `resolve.dedupe`
   was rejected for the same class of reason — it silently picks a winner. Singleton
   identity is established earlier, by `enforce_singletons`, which is what
@@ -157,8 +157,8 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
   Ownership is structural, derived from which folder the file is in, with no registry
   lookup.
 
-`frontend/src/contributions/registry.ts` is the seam. Its own comment says it is
-deliberately tiny and that its size is the argument — keep it that way (`DP2`).
+`frontend/src/contributions/registry.ts` is the seam: an index over a generated module,
+deliberately tiny, and its size is the argument. Keep it that way (`DP2`).
 
 ## Things that look wrong and are deliberate
 
@@ -167,7 +167,7 @@ Do not "fix" these:
 - **`frontend/index.html` has no boot island**, no `__FRONTEND_ROUTE__`, no
   `__SOCKETIO_PORT__` and no import map. It is supposed to look under-populated.
 - **`frappeui()` is called with `jinjaBootData: false` and `buildConfig: false`, and no
-  `frontendRoute`** (`vite.config.js:43-48`). Turning any of them back on is a regression.
+  `frontendRoute`** (`vite.config.js`). Turning any of them back on is a regression.
 - **The router cannot be a module-scope singleton** — boot must resolve first, because the
   router's base comes from boot (`main.ts`). Contributions register before the router's
   first resolution.

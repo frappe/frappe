@@ -1,36 +1,21 @@
-// ARRANGING — the client half of desk v2's first user-state write.
-//
-// The whole ordered list goes up; the reduction to what actually changed happens on the server
-// (#42363). That division is not an accident of where the code was easier to write. A client
-// that sent anchors would be computing identity and difference against a copy of the base it
-// may already be holding stale, which is the mistake desk v1 makes in the other direction: its
-// sidebar manager recomputes the server's item key in JS and gets it wrong two ways, leaving
-// `filters` out of a key the server includes and returning a raw `"type|label"` where the server
-// returns a hash. Desk v2's key is authored, arrives on the wire, and is never computed here.
-//
-// Nothing in this file is a store. A save returns the whole `{rail, sidebars}` for the prefix and
-// the caller swaps it into `boot.navigation` wholesale, so the arrangement a person is looking at
-// and the navigation the shell renders never drift into two copies that have to be reconciled.
+// The client half of arranging: the whole ordered list goes up and the server reduces it.
+// Nothing here is a store; a save returns the prefix's navigation and the caller swaps it in.
 
 import { call } from "frappe-ui";
 import type { Navigation, NavigationItem } from "@/boot";
 
-/** Which of the two containers is being arranged. They are two presentations of one model. */
+/** Which of the two containers is being arranged. */
 export type Container = "Rail" | "Sidebar";
 
 /**
- * Whose layer. `user` is always the session user — the endpoints take no user argument, so
- * arranging somebody else's navigation is not a request this client could make even by mistake.
- * `site` is what everyone sees and needs a System Manager.
+ * Whose layer. `user` is always the session user; `site` is what everyone sees and needs a
+ * System Manager.
  */
 export type Scope = "user" | "site";
 
 /**
- * A row as the editor holds it: what the payload carries, plus the hidden flag.
- *
- * `hidden` is absent from `boot.navigation` — boot drops hidden rows, because the browser cannot
- * render a row it must not show. The editor asks for them back, since a hide nobody can see is a
- * hide nobody can undo.
+ * A row as the editor holds it. `hidden` is absent from `boot.navigation`, so the editor
+ * asks for it back.
  */
 export type ArrangedItem = NavigationItem & { hidden?: 1 };
 
@@ -73,14 +58,8 @@ export async function resetArrangement(
 }
 
 /**
- * Move one row one place among its own siblings, and give back a new list.
- *
- * Siblings, not neighbours in the flat list. The payload is flat and the rail draws it as a
- * tree, so the row above a section's first child is the section itself — stepping onto it would
- * read as "move out of this section", which is a different edit and not the one the arrow means.
- *
- * A row already at the end of its group does not move, and does not wrap. The list is short
- * enough to see all of, so wrapping would look like a bug rather than a feature.
+ * Move one row one place among its siblings, not its neighbours in the flat list. At the
+ * end of its group it stays put.
  */
 export function move(items: ArrangedItem[], key: string, by: 1 | -1): ArrangedItem[] {
 	const item = items.find((entry) => entry.key === key);
@@ -99,12 +78,8 @@ export function move(items: ArrangedItem[], key: string, by: 1 | -1): ArrangedIt
 }
 
 /**
- * Move one row to where another sits, which is what a drag means.
- *
- * Only between siblings. Dropping onto a row under a different parent would mean two edits at
- * once — a reparent and a reorder — and a drag that silently did the first is how somebody's
- * whole section ends up somewhere they did not put it. A drop that is not a sibling's is
- * refused by returning the list unchanged, which reads as the row springing back.
+ * Move one row to where another sits. Refused, list unchanged, unless they share a parent:
+ * a drop must never reparent.
  */
 export function dropOn(items: ArrangedItem[], key: string, onto: string): ArrangedItem[] {
 	const item = items.find((entry) => entry.key === key);
@@ -115,8 +90,7 @@ export function dropOn(items: ArrangedItem[], key: string, onto: string): Arrang
 
 	const order = siblings(items);
 	const group = [...(order.get(parentOf(item)) ?? [])];
-	// Dragged downwards a row lands after the row it was dropped on, upwards before it — which
-	// is the same rule either way: it takes the place the target is standing in.
+	// Downwards lands after the target, upwards before it: the row takes the target's place.
 	const downwards = group.indexOf(key) < group.indexOf(onto);
 
 	group.splice(group.indexOf(key), 1);
@@ -145,17 +119,7 @@ function siblings(items: ArrangedItem[]): Map<string | null, string[]> {
 
 /**
  * Rebuild the flat list from the sibling order, depth first, so a section's children travel
- * with it.
- *
- * The list is flat and the tree is `parent_key`, so moving a section by swapping two rows leaves
- * its children where they were — the saved arrangement is still right, because the reduction
- * compares each parent's children separately, but the editor would draw rows under a heading
- * they do not belong to. Re-flattening makes what is on screen and what is in the list the same
- * thing, which is the only version anybody can check by looking.
- *
- * A row whose parent is not in the list is appended rather than dropped. The server promotes
- * orphans before sending, so this should not arise; losing a row to a rule about drawing it
- * would be much worse than showing it at the end.
+ * with it. A row whose parent is missing is appended, never dropped.
  */
 function flatten(items: ArrangedItem[], order: Map<string | null, string[]>): ArrangedItem[] {
 	const byKey = new Map(items.map((item) => [item.key, item]));

@@ -1,16 +1,6 @@
 <!--
-  The generated record page: what every app gets at /apps/<prefix>/<slug>/<name> with
-  no declaration at all. Charter item 2's "default first" made literal.
-
-  It hosts the REAL record-page engine (`@/recordPage`), which is what makes a
-  contributed `record.js` run rather than merely be discovered. Deliberately a MINIMAL
-  host: no form layout, no tabs, no panel. `RecordPageHost` documents `formLayout` and
-  friends as "absent for a host that renders no form", so this is a supported shape
-  rather than a fork of the engine.
-
-  What it is NOT is a port of `crm/frontend2`'s record page. That is 1,962 lines across
-  a dozen components plus a 400-line composable, and migrating it wholesale is a later
-  map. The skeleton's job is to prove the seam carries a contribution end to end.
+  The generated record page every app gets at /apps/<prefix>/<slug>/<name>: a minimal host for
+  the record-page engine, with no form layout, tabs or panel.
 -->
 <template>
 	<div class="overflow-y-auto p-8">
@@ -64,15 +54,12 @@ const doc = ref<Record<string, any>>({});
 const saved = ref<Record<string, any>>({});
 const meta = ref<any>(null);
 const error = ref("");
-// Kept apart from `error`: a failed ACTION must not blank the record the reader is
-// looking at, which sharing one ref would do (the field list renders in its v-else).
+// Apart from `error`: a failed action must not blank the record (the field list is in its v-else).
 const actionError = ref("");
 const controller = shallowRef<RecordPageController | null>(null);
 const actionsVersion = ref(0);
 
-// Which load is current. Navigating A -> B leaves A's fetch in flight, and without
-// this the slower response wins: `doc` would hold A while the URL says B, and `save()`
-// would then POST A's fields -- writing the record the user is not looking at.
+// The slower of two in-flight loads must not win: `save()` would then POST the wrong record.
 let generation = 0;
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
@@ -102,19 +89,8 @@ async function load() {
 	error.value = "";
 	const carriedActionError = actionError.value;
 
-	// Blank what is on screen before fetching the next record. `generation` already
-	// stops a slow response from repainting the record the reader left, but it says
-	// nothing about what is displayed MEANWHILE: the heading reads `route.params.name`,
-	// which changes synchronously, so without this the new record's name sits above the
-	// old record's field values. On a record page that is not a cosmetic flicker -- it
-	// is one record's data presented as another's.
-	//
-	// `saved` goes with `doc` so `isDirty` stays false across the gap rather than
-	// reading an empty draft against a populated baseline.
-	//
-	// The controller goes too, and that one is not cosmetic at all: its quick actions
-	// belong to the PREVIOUS doctype and close over the previous `page`. Left up, a
-	// reader could click one and run it against a record it was never contributed for.
+	// Blanked before the fetch: the heading changes synchronously, and the old controller's quick
+	// actions close over the previous page. `saved` goes with `doc` so `isDirty` stays false.
 	doc.value = {};
 	saved.value = {};
 	controller.value = null;
@@ -145,8 +121,7 @@ async function load() {
 		meta,
 		perms: () => ({}),
 		isDirty: () => JSON.stringify(doc.value) !== JSON.stringify(saved.value),
-		// No strip on this page, so the reader is never on a tab and activation is a
-		// no-op. The engine already refuses to activate a tab it cannot see.
+		// No tab strip on this page, so activation is a no-op.
 		activeTab: () => "",
 		activateTab: () => {},
 		save,
@@ -162,8 +137,7 @@ async function load() {
 }
 
 async function save() {
-	// Refuse rather than write the wrong record: if the route moved while an action was
-	// running, the draft in `doc` no longer belongs to what the URL addresses.
+	// Refuse to write the wrong record if the route moved while an action ran.
 	if (doc.value.name !== docname.value || doctype.value === null) {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
@@ -185,10 +159,8 @@ async function save() {
 }
 
 async function runAction(action: { run: (page: unknown) => unknown }) {
-	// Awaited and caught. Neither, and a failing action leaves the draft mutated on
-	// screen with no error at all -- CRM's `markWon` sets status to Won *before*
-	// awaiting save(), so a user without write permission would watch the record flip
-	// to Won and nothing else happen. Reloading discards the rejected draft.
+	// Awaited and caught: a failing action would otherwise leave the draft mutated on screen
+	// with no error. Reloading discards the rejected draft.
 	actionError.value = "";
 	try {
 		await action.run(controller.value?.page);

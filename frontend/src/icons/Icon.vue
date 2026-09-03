@@ -1,8 +1,6 @@
 <!--
-  One icon, drawn from a name.
-
-  `fieldtype: Icon` stores an emoji glyph or a bare sprite symbol name, and its picker
-  writes both. A name the sprite does not hold draws nothing and logs once.
+  One icon from a name: an emoji glyph or a bare sprite symbol name, which is what `fieldtype: Icon`
+  stores. A name the sprite does not hold draws nothing and logs once.
 -->
 <template>
 	<span v-if="emoji" :class="SLOT" aria-hidden="true">{{ name }}</span>
@@ -31,8 +29,7 @@ import { hasSymbol, isEmoji, reportMissingIcon, spriteLoaded, symbolId } from ".
 // `shrink-0` because a row truncates its label and must never truncate the icon instead.
 const SLOT = "size-4 shrink-0 text-center leading-4";
 
-// Every shape is `aria-hidden`: the icon sits beside the label it illustrates, and naming
-// it would read the row twice.
+// Every shape is `aria-hidden`: the icon sits beside the label it illustrates.
 const props = defineProps<{
 	/** An emoji glyph, or a sprite symbol name. */
 	name?: string;

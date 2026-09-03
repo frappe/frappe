@@ -1,8 +1,4 @@
-// What the rail DRAWS, once every kind has a renderer (#42420).
-//
-// Mounted with Vue's own `createApp` into happy-dom, the way `arrangement.test.ts` does
-// and for the same reason: this package has no `@vue/test-utils`, and a new shared
-// devDependency for one component is a cost #42069's singleton rules make every app pay.
+// What the rail draws. Mounted with Vue's own `createApp`: this package has no `@vue/test-utils`.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type Ref } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
@@ -38,8 +34,7 @@ async function flush() {
 	await nextTick();
 }
 
-/** The mounted rail, plus the list it is rendering — so a test can replace it, which is
- *  what a save does (#42363). */
+/** The mounted rail plus the list it renders, so a test can replace it as a save does. */
 function mount(
 	initial: NavigationItem[],
 	sidebars: Record<string, NavigationItem[]> = {}
@@ -57,8 +52,7 @@ function mount(
 	});
 	registerShell({ boot, addresses, router });
 
-	// The shell composes the context now, because the panel draws out of the same one
-	// (#42421). The rail is mounted here alone, so this stands in for it.
+	// The shell composes the context; the rail is mounted alone here, so this stands in for it.
 	const app = createApp({
 		render: () =>
 			h(AppRail, {
@@ -117,9 +111,7 @@ beforeEach(() => {
 
 describe("the kinds the rail used to drop", () => {
 	it("draws all of them, not only DocType", () => {
-		// It filtered to `item_type === "DocType"` and silently dropped the other seven,
-		// which was #42228's skip-a-missing-renderer rule reached by accident: there were no
-		// renderers, so there was nothing to miss.
+		// It once drew only `DocType` rows and dropped the other seven.
 		const host = rail([
 			doctype("CRM Deal"),
 			{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" },
@@ -133,8 +125,7 @@ describe("the kinds the rail used to drop", () => {
 	});
 
 	it("makes a Link a plain anchor, not a router link", () => {
-		// Following it leaves this prefix, which is a full document load; the router this
-		// document holds is scoped to one prefix and cannot resolve the other (#42364).
+		// Following it leaves this prefix: a full document load the router cannot resolve.
 		const host = rail([{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" }]);
 		const anchor = row(host, "docs") as HTMLAnchorElement;
 		expect(anchor.tagName).toBe("A");
@@ -158,8 +149,7 @@ describe("sections and nesting", () => {
 
 		const heading = row(host, "sales")!;
 		expect(heading.textContent).toContain("Sales");
-		// The child is INSIDE the section's own list item, which is what makes the tree the
-		// tree rather than an indent class on a flat list.
+		// The child is inside the section's own list item, not an indent class on a flat list.
 		expect(heading.closest("li")!.contains(row(host, "CRM Deal"))).toBe(true);
 	});
 
@@ -218,9 +208,8 @@ describe("sections and nesting", () => {
 
 describe("a linked item", () => {
 	it("carries the sidebar it opens, so the panel can mount off it", () => {
-		// A `Sidebar` item is what makes a rail item LINKED (#42227), and the panel that
-		// shows one is #42421's. The rail draws it as linked either way, or the two tickets
-		// deadlock on each other.
+		// A `Sidebar` item is what makes a rail item linked; the rail draws it so whether or not
+		// a panel exists.
 		const host = rail(
 			[
 				{
@@ -239,8 +228,7 @@ describe("a linked item", () => {
 
 		const link = row(host, "accounts") as HTMLAnchorElement;
 		expect(link.getAttribute("data-sidebar")).toBe("module_def_accounts");
-		// Real navigation, not shell state — charter point 7. The panel is named in the href,
-		// so middle-click and open-in-new-tab still work.
+		// Real navigation, not shell state: the panel is named in the href, so middle-click works.
 		expect(link.getAttribute("href")).toBe("/sales-invoice?sidebar=module_def_accounts");
 	});
 
@@ -295,8 +283,8 @@ describe("Module Contents", () => {
 		(row(host, "more") as HTMLButtonElement).click();
 		await flush();
 
-		// Expanding is the one thing on the rail that costs a request, so it is the one
-		// thing that can fail from a dropped connection rather than from a bad row.
+		// Expanding is the one thing on the rail that costs a request, so the one that can fail
+		// from a dropped connection.
 		expect(row(host, "more")!.getAttribute("aria-expanded")).toBe("false");
 		expect(logged).toHaveBeenCalled();
 	});
@@ -320,10 +308,8 @@ describe("a row that cannot be drawn", () => {
 
 describe("an expanded overflow row when the list changes under it", () => {
 	it("collapses rather than keeping rows it worked out about the old list", async () => {
-		// A save returns the whole `{rail, sidebars}` and the shell swaps it in, while this
-		// component survives because `v-for` keys on the item's key. What it was showing was
-		// "what is left of the module" measured against the list the save replaced — so a
-		// doctype the save has just put on the rail by hand would be on screen twice.
+		// A save swaps in a new list while the component survives (`v-for` keys on the key), so
+		// what the expansion showed was measured against a list that no longer exists.
 		const contents = await import("@/contents");
 		vi.spyOn(contents, "fetchContents").mockResolvedValue([
 			{ doctype: "Sales Invoice", slug: "sales-invoice", module: "accounts" },
@@ -361,9 +347,8 @@ describe("a section's disclosure when the list changes under it", () => {
 	});
 
 	it("follows a reset that ships a different keep_closed", () => {
-		// A reset returns the app's own layer (#42363), so the same key comes back with a
-		// different shipped value while this component survives — `v-for` keys on the key.
-		// Without this the section sits open against what it now ships, until a reload.
+		// A reset returns the app's own layer while the component survives, so the same key
+		// comes back with a different shipped value.
 		const { host, items } = mount([section({ keep_closed: 1 }), doctype("CRM Deal", "sales")]);
 		expect(row(host, "CRM Deal")).toBeNull();
 
@@ -374,9 +359,8 @@ describe("a section's disclosure when the list changes under it", () => {
 	});
 
 	it("does not re-open what the reader just closed", async () => {
-		// The watch is on the shipped value, not on the row. A toggle changes `open` and
-		// never `keep_closed`, so a save that leaves the section alone leaves it closed —
-		// otherwise every save would undo the last thing somebody did to the rail.
+		// The watch is on the shipped value, not the row: a toggle changes `open` and never
+		// `keep_closed`, so a save that leaves the section alone leaves it closed.
 		const { host, items } = mount([section(), doctype("CRM Deal", "sales")]);
 
 		(row(host, "sales") as HTMLButtonElement).click();

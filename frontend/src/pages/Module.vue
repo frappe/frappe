@@ -1,21 +1,12 @@
 <!--
-  A module's landing page -- framework-generated, and reachable only under a prefix
-  whose app declares `app_modular`.
-
-  It exists because an addressable level that 404s is a navigation dead end. A reader
-  who deletes the tail of `/apps/erpnext/accounts/sales-invoice/SI-001` expects to
-  land somewhere, and now does, all the way up: record, module, app, /apps (#42211 §6).
-
-  PERMISSION-FILTERED, and that is the line #42210 drew held exactly: addressability
-  is permission-independent, navigation is filtered. Nobody pastes a module page as a
-  record link, so filtering it changes no address's shape.
+  A module's landing page, reachable only under a modular prefix. Permission-filtered, unlike the
+  address space.
 -->
 <template>
 	<div class="overflow-y-auto p-8">
 		<h1 class="text-xl font-semibold">{{ title }}</h1>
 		<p class="mt-1 text-sm text-ink-gray-6">
-			<!-- "0 doctypes you can read" is a real answer for a module you can read
-					 nothing in, so it must not also be what a pending fetch looks like. -->
+			<!-- "0 doctypes you can read" is a real answer, so it must not also be what a pending fetch looks like. -->
 			<template v-if="loading">Loading…</template>
 			<template v-else-if="failed"> Could not load this module's doctypes. </template>
 			<template v-else>
@@ -50,7 +41,6 @@ const route = useRoute();
 
 const moduleSlug = computed(() => String(route.params.module ?? ""));
 const { entries, loading, failed } = useContents(boot.app, moduleSlug);
-// The slug is the address; the name is what a human reads. The server sends both, so
-// neither side has to guess the other.
+// The slug is the address; the name is what a human reads.
 const title = computed(() => addresses.moduleName(moduleSlug.value) ?? moduleSlug.value);
 </script>

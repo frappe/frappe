@@ -1,8 +1,5 @@
 // A section that ships shut, and the two things that open it: the address, and the reader.
-//
-// Driven off a real resolved payload rather than rows built here. `keep_closed` went months
-// exercised only where no route pointed inside a shut section, which is the defect this is
-// about, so the fixture is what an app actually ships.
+// Driven off a real resolved payload: the defect only shows where a route points inside one.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
@@ -128,9 +125,8 @@ describe("the fixture this is driven off", () => {
 });
 
 describe("the address opens the section it is standing in", () => {
-	// Asserted on the ROW, not on a named section: one fixture row sits behind a shut section
-	// in two panels, and which of them the address opens is a separate open question (#42465).
-	// A row only renders at all if the section holding it is open, so this covers both.
+	// Asserted on the row, not a named section: one fixture row sits behind a shut section in
+	// two panels. A row renders only if its section is open, so this covers both.
 	it.each(behindShutSections())(
 		"shows $item.key, shipped behind $section",
 		async ({ item }) => {
