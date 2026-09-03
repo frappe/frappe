@@ -1,7 +1,5 @@
-// Builds the curated `page` and the controller that fires events into it.
-// Handlers run serially in run order, each in its own try/catch: a thrower is
-// skipped half-applied, never taking the page or another source down with it.
-// The one exception is `beforeSave`, the veto point: its throw aborts the save.
+// Builds the curated `page` and the controller that fires events into it. Handlers
+// run serially, each in its own try/catch; only a `beforeSave` throw aborts anything.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
 import type { Router } from "vue-router";
 import { call, toast } from "frappe-ui";
@@ -33,7 +31,7 @@ import type {
   TabsApi,
 } from "./types";
 
-/** The closed event vocabulary (wayfinder ticket 14); every other key is a fieldname. */
+/** The closed event vocabulary; every other key is a fieldname. */
 export const RECORD_PAGE_EVENTS = [
   "onRefresh",
   "beforeSave",
@@ -42,9 +40,7 @@ export const RECORD_PAGE_EVENTS = [
   "onFormTabChange",
 ];
 
-// Everything `page` hands back is read-only (ticket 47), and each member names
-// the verb that does support what the write was reaching for — a refusal that
-// names nothing is a removal wearing a Proxy.
+// Each refusal names the verb that does support what the write was reaching for.
 const META_IS_READ_ONLY: ReadOnlyAdvice = {
   path: "page.meta",
   instead: "page.fields.update('qty', { hidden: 1 })",
@@ -61,10 +57,8 @@ const ROLES_ARE_READ_ONLY: ReadOnlyAdvice = {
     "a copy: [...page.roles], since roles belong to the session, not the page",
 };
 
-// The two differ by one letter and hold structurally identical objects, so
-// `page.saved.qty = 5` is a plausible typo for `page.doc.qty = 5` — and it would
-// otherwise silently rewrite the baseline `isDirty`, the layout conditions and
-// the conflict path all read.
+// `page.saved.qty = 5` is a plausible typo for `page.doc.qty = 5`, and would
+// otherwise silently rewrite the baseline `isDirty` reads.
 const SAVED_IS_READ_ONLY: ReadOnlyAdvice = {
   path: "page.saved",
   instead: "page.doc, which is the draft this is the saved counterpart of",
@@ -90,48 +84,20 @@ export interface RecordPageHost {
   isDirty: () => boolean;
   /** The name of the tab the reader is on, as the host's strip resolves it. */
   activeTab: () => string;
-  /**
-   * Move the reader to a named tab of the record's strip — `activeTab`'s
-   * symmetric partner, and the host's half of `page.tabs.activate`. The engine
-   * has already resolved the name against the strip, so this is handed only
-   * tabs that are there and on screen; how a strip *records* where the reader is
-   * — a URL query here, a ref elsewhere — stays the host's business, which is
-   * what keeps activation from having to be spelled as a `page.router` edit.
-   */
+  /** Moves the reader to a tab of the record's strip; the engine has already resolved the name. */
   activateTab: (name: string) => void;
-  /**
-   * The record's Details layout, which is the strip `page.formTabs` addresses.
-   * Absent for a host that renders no form.
-   */
+  /** The record's Details layout, which `page.formTabs` addresses; absent for a host with no form. */
   formLayout?: () => FormLayoutSchema | undefined;
-  /**
-   * The **identity** of the Form Layout tab the reader is on, as `FormLayout`
-   * resolves it and the host's strip reports it, or `''` when the reader is not
-   * looking at the form.
-   */
+  /** The identity of the Form Layout tab the reader is on, or `''` outside the form. */
   activeFormTab?: () => string;
-  /**
-   * Move the reader to a tab of the form, by identity. Optional on the same
-   * terms as `activeFormTab`: a host that renders no form has no strip to move,
-   * and one absent here simply never receives an activation, because the
-   * identity will have missed against an empty layout first.
-   */
+  /** Moves the reader to a tab of the form, by identity; absent for a host with no form. */
   activateFormTab?: (identity: string) => void;
   save: () => Promise<void>;
   reload: () => Promise<void>;
   router: Router;
-  /**
-   * The per-field UI overlay hook the host also passes its layout source. Only
-   * `page.fields.get` reads it here, and only so its answer cannot disagree
-   * with what the host actually renders.
-   */
+  /** The host's per-field overlay hook; `page.fields.get` reads it to match what renders. */
   decorate?: Decorator;
-  /**
-   * A child doctype's meta fields, by doctype name — what makes the row half of
-   * the event vocabulary knowable. Absent while the metas load, and for a host
-   * that has none: the tables then speak `.onAdd` / `.onRemove` only, which is
-   * what the vocabulary check assumes rather than warns about.
-   */
+  /** A child doctype's meta fields, by doctype name; absent while the metas load. */
   childFields?: (doctype: string) => RawMetaField[] | undefined;
   /** Resolves when sources that register after mount (Page Scripts) are in. */
   sourcesReady?: () => Promise<void>;
@@ -153,11 +119,7 @@ export interface RecordPageController {
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
   /** True once the first replay has run — before it, surfaces are only built-ins. */
   ready: Ref<boolean>;
-  /**
-   * True while a replay is staging. Reactive because a host that announces a
-   * *settled* strip has to wait for the commit, and the commit is the moment
-   * this goes false.
-   */
+  /** True while a replay is staging; a host announcing a settled strip waits for it to go false. */
   isReplaying: ComputedRef<boolean>;
   /** The `open`/`form` dialogs on screen, for the host's `<PageDialogs>`. */
   dialogs: Ref<PageDialogEntry[]>;
@@ -187,8 +149,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     childFields: host.childFields,
     dispatch: (event, row) => fireEvent(event, row),
   });
-  // Every overlay a replay stages. `fields` and `formTabs` are not `Surface`s —
-  // they override properties rather than arranging items — but they stage here.
+  // Every overlay a replay stages; `fields` and `formTabs` are not `Surface`s but stage here.
   const surfaces: { beginReplay: () => void; commitReplay: () => void }[] = [
     quickActions,
     headerActions,
@@ -199,8 +160,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   ];
 
   Object.defineProperty(tabs, "active", { get: () => host.activeTab() });
-  // The same shape as the record strip's: `active` is stored nowhere here
-  // either, it is a read into whichever strip the host is drawing.
   Object.defineProperty(formTabs, "active", {
     get: () => host.activeFormTab?.() ?? "",
   });
@@ -210,17 +169,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const replaying = ref(0);
   const isReplaying = computed(() => replaying.value > 0);
 
-  // An activation made while a replay is in flight, held until it commits — one
-  // name per strip, so a second call replaces the first the way the reader's own
-  // last move would. This is not the queueing `activate` refuses: the name is
-  // resolved at the moment of the call, against the strip the caller can see
-  // (`isVisible` reads the staged ops, as `has` does). Only the *delivery*
-  // waits, because until the commit the host is still rendering last replay's
-  // strip, and moving the reader to a tab that is not on it yet would show them
-  // the fallback for a tick — the replay's middle, leaking through the one
-  // channel ticket 71's staging does not cover. That is true of any activation
-  // made in the window, not only the ones the replay's own handlers make, which
-  // is why the gate is `isReplaying` and not "am I inside `onRefresh`".
+  // Resolved at the call, delivered on commit: until then the host still renders the
+  // last replay's strip, and a move onto a tab not yet on it shows the fallback for a tick.
   const heldActivations = new Map<TabStrip, string>();
 
   Object.defineProperty(tabs, "activate", {
@@ -235,8 +185,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const capabilities: RecordPageApi = {
     doctype: host.doctype,
     docname: host.docname,
-    // Exempt from the read-only rule below, and deliberately: mutating the
-    // document *is* the API. Do not "fix" this.
+    // Exempt from the read-only rule: mutating the document *is* the API.
     get doc() {
       return host.doc.value;
     },
@@ -246,8 +195,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     get meta() {
       return readOnly(host.meta.value, META_IS_READ_ONLY);
     },
-    // Read-only goes outermost, so a write is refused before the DEV-only
-    // unknown-right advisory inside `permissions.perms()` gets to fire.
+    // Read-only goes outermost, so a write is refused before the unknown-right
+    // advisory inside `permissions.perms()` gets to fire.
     get perms() {
       return readOnly(permissions.perms(), PERMS_ARE_READ_ONLY);
     },
@@ -274,19 +223,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     },
     dialog: dialogs.api,
     call: (method, params) => call(method, params),
-    // The one member handed straight through: it is vue-router's object, not
-    // ours, so neither the inbound nor the outbound rule catches it. That is a
-    // real cost, not a technicality, and COMPATIBILITY.md's "The one
-    // hand-through" section now states it and the two rules that bound it —
-    // chiefly that no capability may *require* the router. Do not "fix" this
-    // by deleting the member, and do not hand a second one through on its
-    // precedent.
+    // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
     router: host.router,
   };
 
-  // Nothing has been removed yet, so this hands the same object straight back:
-  // the guard, and its cost on every member read in every handler, exists only
-  // once the removals list has something to say (ticket 20 §4).
+  // With an empty removals list this hands the same object straight back.
   const page = withRemovals(capabilities);
 
   async function refresh() {
@@ -294,21 +235,17 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     warnUnknownHandlers();
     // Counted, not a boolean: a script's own `page.refresh()` re-enters this.
     replaying.value += 1;
-    // Staged, not cleared: clearing here and re-adding one microtask later is
-    // what tore the rendered strip down between the two, taking the reader's
-    // place in it with them (ticket 70). The surfaces publish on commit, in one
-    // flush, so the host only ever sees a replay's result.
+    // Staged, not cleared: clearing here and re-adding a microtask later tears the
+    // rendered strip down between the two, and the reader's place in it with them.
     for (const surface of surfaces) surface.beginReplay();
     try {
       await fireEvent("onRefresh");
     } finally {
-      // In `finally` so a throwing handler cannot leave the page staged, which
-      // would freeze the overlay on the previous replay for good.
+      // In `finally` so a throwing handler cannot leave the page staged for good.
       for (const surface of surfaces) surface.commitReplay();
       replaying.value -= 1;
-      // After the commit, so the strip the reader is being moved onto is the one
-      // on screen; and inside the same `finally`, so a throwing handler cannot
-      // strand a move that had already been decided.
+      // After the commit, so the strip the reader lands on is the one on screen;
+      // inside the `finally`, so a throwing handler cannot strand a decided move.
       if (!isReplaying.value) releaseActivations();
     }
     ready.value = true;
@@ -318,11 +255,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     const held = [...heldActivations];
     heldActivations.clear();
     for (const [strip, name] of held) {
-      // Re-read, not replayed. The strip a held move was decided against is not
-      // the one that necessarily settled: a later source can hide the tab an
-      // earlier one activated, and delivering that move would land the reader on
-      // the strip's fallback — the very outcome a miss exists to prevent. A tab
-      // that left before the strip settled is a miss like any other.
+      // Re-read, not replayed: a later source can hide the tab an earlier one
+      // activated, and delivering that move would land the reader on the fallback.
       if (!surfaceFor(strip).isVisible(name)) {
         warnActivate(strip, name, "it left the strip before the replay settled");
         continue;
@@ -335,13 +269,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     return strip === "tabs" ? tabs : formTabs;
   }
 
-  /**
-   * `page.tabs.activate` and `page.formTabs.activate`, both of them, because the
-   * interesting miss is the one that names the *other* strip: the two are not
-   * interchangeable, an author will mix them up, and only a caller holding both
-   * can say which one they wanted. The engine resolves the name and the host
-   * moves the reader — activation never reaches for `page.router`.
-   */
+  /** Both strips' `activate`: the interesting miss names the other strip, and only a caller holding both can say so. */
   function activate(strip: TabStrip, name: string) {
     if (!canReach(strip, name)) return;
     if (isReplaying.value) heldActivations.set(strip, name);
@@ -349,11 +277,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   function canReach(strip: TabStrip, name: string) {
-    // The Details layout can land after the first replay has run, and until it
-    // does, "the administrator never authored this" and "it is not here yet"
-    // are the same answer — which is why `FormTabsSurface.warnIfAbsent` holds
-    // its tongue in the same window. The move is dropped either way: an
-    // activation is resolved at the moment of the call and is not queued.
+    // Until the Details layout lands, "never authored" and "not here yet" are the
+    // same answer; an activation is never queued, so the move is dropped either way.
     if (strip === "formTabs" && !host.formLayout?.()?.length) return false;
     const here = surfaceFor(strip);
     const there = surfaceFor(strip === "tabs" ? "formTabs" : "tabs");
@@ -367,8 +292,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       );
       return false;
     }
-    // Hidden is a miss and not an invitation: `show()` is the verb that reveals
-    // a tab, and one call should not quietly perform two.
+    // Hidden is a miss: `show()` is the verb that reveals a tab.
     if (!here.isVisible(name)) {
       warnActivate(strip, name, "it is hidden — show() reveals a tab");
       return false;
@@ -378,9 +302,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   /** The host's half, and the only place the engine hands a strip a name. */
   function move(strip: TabStrip, name: string) {
-    // A host that draws the form's strip but cannot move it would otherwise
-    // swallow an activation that passed every check — the one silent failure
-    // this verb exists to abolish.
+    // A host that draws the form's strip but cannot move it must not swallow the move silently.
     if (strip === "formTabs" && !host.activateFormTab) {
       warnActivate(strip, name, "this host cannot move the reader on that strip");
       return;
@@ -389,10 +311,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       if (strip === "tabs") host.activateTab(name);
       else host.activateFormTab?.(name);
     } catch (error) {
-      // Reported, never rethrown: a released move runs inside `refresh`'s
-      // `finally`, so a throwing host hook would take the rest of the release
-      // with it and leave `ready` false — a page stuck on its skeleton because
-      // a router guard said no.
+      // Reported, never rethrown: a released move runs inside `refresh`'s `finally`,
+      // and a throw here would leave `ready` false and the page stuck on its skeleton.
       console.error(
         `[record-page] page.${strip}.activate("${name}") — the host threw`,
         error,
@@ -400,11 +320,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     }
   }
 
-  /**
-   * Said every time, not once: a miss here is an act the script just performed —
-   * the reader was not moved — rather than a standing fault in its text, and the
-   * second failed move is not the first one repeated.
-   */
+  /** Said every time, not once: a miss is an act just performed, not a standing fault in the script. */
   function warnActivate(strip: TabStrip, name: string, because: string) {
     if (!import.meta.env.DEV) return;
     console.warn(
@@ -413,8 +329,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   async function fireEvent(event: string, row?: RowAddress) {
-    // One handle for the whole dispatch, and the same object `page.rows()` hands
-    // back: it is an address, so every source is looking at the same live row.
+    // One handle for the whole dispatch, and the same object `page.rows()` hands back.
     const handle = row ? rows.handle(row) : undefined;
     for (const { source, handlers } of registrationsFor(host.doctype)) {
       const handler = handlers[event];
@@ -423,17 +338,15 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         try {
           await handler(page, handle);
         } catch (error) {
-          // `beforeSave` rethrows to abort the save, and is the one catch site
-          // that does not report: the user is looking straight at a failed save,
-          // so logging it would file a working veto as an error.
+          // `beforeSave` rethrows to abort the save and is not reported: the user
+          // is looking straight at a failed save, and a working veto is not an error.
           if (event === "beforeSave") throw error;
           console.error(
             `[record-page] ${source}.${event} on ${host.doctype} threw`,
             error,
           );
-          // No `route`: the reporter reads `location`, which is the URL an admin
-          // can paste. `router.fullPath` drops the app's base and would make this
-          // one site disagree with the other three.
+          // No `route`: the reporter reads `location`, the URL an admin can paste;
+          // `router.fullPath` drops the app's base.
           reportCustomizationError(error, {
             source,
             event,
@@ -451,15 +364,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     const fields = host.meta.value?.fields;
     if (!fields) return;
     const registrations = registrationsFor(host.doctype);
-    // Nothing to shadow and no keys to check when no source is registered — and
-    // saying so anyway would fire the warning on every record a plain app opens.
+    // With no source registered, warning would fire on every record a plain app opens.
     if (!registrations.length) return;
-    // Deliberately *not* behind the latch below: this one reads the **child**
-    // meta, which can land after the parent's — `handlerVocabulary`'s
-    // `unresolved` list exists for exactly that window — so latching on the
-    // parent alone would drop the collision warning for the whole session.
-    // Re-attempting it costs a loop over the tables, and `warnRowIssue`
-    // remembers what it has already said.
+    // Not behind the latch below: this reads the child meta, which can land after
+    // the parent's, and `warnRowIssue` remembers what it has already said.
     warnShadowedChildFields(fields);
     if (vocabularyChecked) return;
     vocabularyChecked = true;
@@ -468,8 +376,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     for (const { source, handlers } of registrations)
       for (const key of Object.keys(handlers)) {
         if (known.has(key)) continue;
-        // A whole block written under a fieldname that holds no rows is one
-        // mistake, not one per handler in it — so it is named by its table.
+        // A block under a fieldname that holds no rows is one mistake, named by its table.
         const [table] = key.split(".");
         const nested = key.includes(".") && !known.isTable(table);
         const message = nested
@@ -482,18 +389,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   /**
-   * The three child fieldnames the table vocabulary occupies, named at load
-   * because the engine knows the child's fields where v1 could only warn on
-   * every access. Frappe reserves none of them (`RESERVED_KEYWORDS` is five
-   * names plus the cached properties), so a child doctype may legitimately
-   * carry any — and ticket 54 traded a guarantee for this warning knowingly.
-   *
-   * 54 called the result "an announced capability hole, never a misfire", and
-   * for `trigger` that is exact. For the two lifecycle names it is not: a child
-   * field named `onAdd` commits as `<table>.onAdd`, which is the *same string*
-   * the row-added event dispatches, so the author's `onAdd` handler runs — with
-   * a live row — on that field being edited. The hole is announced, but it is a
-   * misfire, and the warning says so rather than the comfortable thing.
+   * Frappe reserves none of the three names the row vocabulary occupies. A child
+   * field named `onAdd` commits as the string the row-added event dispatches, so it misfires.
    */
   function warnShadowedChildFields(fields: RawMetaField[]) {
     for (const field of fields) {
@@ -502,16 +399,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       if (!child) continue;
       const has = (fieldname: string) =>
         child.some((one) => one.fieldname === fieldname);
-      // The verb wins and the field stays reachable through `page.doc`.
       if (has("trigger"))
-        // Warned per child doctype for the session, not per controller: the same
-        // shadow is the same fact on every record of the doctype, and navigating
-        // between them must not restate it.
+        // Once per child doctype for the session; navigating between records must not restate it.
         warnRowIssue(
           `${field.options}.trigger is shadowed by the row handle's own trigger() — read it from page.doc.${field.fieldname} instead`,
         );
-      // One string cannot be two events, and the field's commit is the one that
-      // arrives unannounced — so the warning names the direction that bites.
       for (const lifecycle of Object.values(ROW_EVENTS))
         if (has(lifecycle))
           warnRowIssue(
@@ -538,26 +430,17 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 }
 
 /**
- * The whole vocabulary a handler key may be drawn from (tickets 44, 45): the
- * four events, every parent fieldname, and — for a child table — the dotted
- * family and nothing else.
- *
- * A Table fieldtype's **bare** fieldname is deliberately not here. It was only
- * ever firable because the deleted deep watch could not tell one row's edit from
- * another's, so a table has no control that commits under its own name; leaving
- * it in would accept `products() {}` silently and never fire it.
+ * The whole vocabulary a handler key may be drawn from. A Table's bare fieldname is
+ * not in it: nothing commits under a table's own name, so `products() {}` would never fire.
  */
 function handlerVocabulary(
   fields: RawMetaField[],
   childFields?: (doctype: string) => RawMetaField[] | undefined,
 ) {
   const known = new Set(RECORD_PAGE_EVENTS);
-  // Every child table on the doctype, so a nested block written under something
-  // that is not one can be named as that rather than as a generic typo.
   const tables = new Set<string>();
-  // Tables whose child doctype we cannot see. A host with no `childFields`, or
-  // one whose child meta has not landed, must not accuse a correct key of being
-  // a typo — so those tables are answered by prefix instead.
+  // Tables whose child meta has not landed must not make a correct key look like
+  // a typo, so they are answered by prefix.
   const unresolved: string[] = [];
   for (const field of fields) {
     if (!holdsChildRows(field.fieldtype)) {
@@ -567,13 +450,11 @@ function handlerVocabulary(
     tables.add(field.fieldname);
     known.add(`${field.fieldname}.${ROW_EVENTS.add}`);
     known.add(`${field.fieldname}.${ROW_EVENTS.remove}`);
-    // A Table MultiSelect has no per-cell editing, so its vocabulary is add and
-    // remove alone — an honest gap rather than keys that would never fire.
+    // A Table MultiSelect has no per-cell editing, so its vocabulary is add and remove alone.
     if (field.fieldtype !== "Table") continue;
     const child = field.options && childFields?.(field.options);
     if (!child) unresolved.push(field.fieldname);
-    // A layout break has no value and so no commit; `page.fields` excludes them
-    // for the same reason, and accepting one here would be a key that never fires.
+    // A layout break has no value and so no commit; `page.fields` excludes them too.
     else
       for (const one of child)
         if (!LAYOUT_BREAKS.has(one.fieldtype))
