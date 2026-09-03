@@ -53,10 +53,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
 import type { NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
 import { useItemTree } from "@/navigation/useItemTree";
+import { useIconSlot } from "@/navigation/iconSlot";
 import type { ItemContext } from "@/navigation/types";
 
 // `address` is the scrubbed key, and it is a prop because it is also what the arrangement
@@ -78,6 +78,8 @@ const tree = useItemTree(
 	() => `the ${props.address} sidebar`
 );
 
-// As on the rail: the icon slot is a property of the container, not of the row.
-const reserve = computed(() => props.items.some((item) => item.icon));
+const reserve = useIconSlot(
+	() => props.items,
+	() => props.context
+);
 </script>

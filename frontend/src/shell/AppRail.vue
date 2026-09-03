@@ -80,11 +80,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { inject } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot, NavigationItem } from "@/boot";
 import NavigationRow from "@/navigation/NavigationRow.vue";
 import { useItemTree } from "@/navigation/useItemTree";
+import { useIconSlot } from "@/navigation/iconSlot";
 import type { ItemContext } from "@/navigation/types";
 
 // `arrangeable` is off on the index at `/apps`, which belongs to no app: there is no rail to
@@ -111,6 +112,8 @@ const boot = inject<Boot>("boot")!;
 // then simply omit the rows — a silent drop of authored navigation.
 const tree = useItemTree(() => props.items, "the rail");
 
-// Whether an unadorned row holds its icon slot open, decided for the whole container.
-const reserve = computed(() => props.items.some((item) => item.icon));
+const reserve = useIconSlot(
+	() => props.items,
+	() => props.context
+);
 </script>

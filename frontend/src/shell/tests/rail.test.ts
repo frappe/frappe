@@ -440,4 +440,17 @@ describe("an authored icon", () => {
 
 		expect(row(host, "CRM Deal")?.querySelector("span[aria-hidden]")).toBeNull();
 	});
+
+	it("holds none open for an icon only a heading carries", async () => {
+		// A heading draws no icon, so one on a section would indent every row under it
+		// for a slot nothing fills.
+		await withSprite();
+
+		const host = rail([
+			{ key: "sales", item_type: "Section", label: "Sales", icon: "users" },
+			doctype("CRM Deal", "sales"),
+		]);
+
+		expect(row(host, "CRM Deal")?.querySelector("span[aria-hidden]")).toBeNull();
+	});
 });
