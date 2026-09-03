@@ -61,10 +61,24 @@ const root = ref(null);
 let token = null;
 let handle = null;
 
-/** The island's props object: every attr but the two the host element keeps. */
-const islandProps = computed(() =>
-	Object.fromEntries(Object.entries(attrs).filter(([key]) => key !== "class" && key !== "style"))
-);
+/**
+ * The island's props object: every attr but the two the host element keeps, and
+ * but the states the island reports. `v-model:title` passes `title` down as well
+ * as listening for it, and the island owns that value: sent back, it lands as a
+ * stray attribute on the island's root and echoes every report through `update`.
+ */
+const islandProps = computed(() => {
+	const reported = new Set(
+		Object.keys(attrs)
+			.filter((key) => key.startsWith("onUpdate:"))
+			.map((key) => key.slice("onUpdate:".length))
+	);
+	return Object.fromEntries(
+		Object.entries(attrs).filter(
+			([key]) => key !== "class" && key !== "style" && !reported.has(key)
+		)
+	);
+});
 
 onMounted(load);
 onBeforeUnmount(teardown);
