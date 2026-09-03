@@ -3,19 +3,25 @@
 
 import json
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 from frappe.automation_engine.actions.base import get_action_registry
 from frappe.automation_engine.api import trial_run
+from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import _failure_key, automation_task_name
+from frappe.automation_engine.tests.test_actions import public_dns
 from frappe.automation_engine.tests.test_runner import (
 	AutomationRunnerTestCase,
+	branch,
+	if_step,
 	make_automation,
 	make_todo,
 	set_field,
 )
 
 QUEUE = "Automation Trigger Queue"
+REPLY_EVENT = "tests.reply"
 
 
 @contextmanager
@@ -106,7 +112,7 @@ class TestTrialRun(AutomationRunnerTestCase):
 		self.assertEqual(result["status"], "Success")
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "trial-artifact"}))
 
-	def test_wait_step_reports_waiting_without_parking_a_resume_row(self):
+	def test_wait_step_is_simulated_so_the_trial_reaches_the_steps_behind_it(self):
 		todo = make_todo()
 		auto = make_automation(
 			[
@@ -117,9 +123,107 @@ class TestTrialRun(AutomationRunnerTestCase):
 
 		result = trial_run(auto, todo.name)
 
-		self.assertEqual(result["status"], "Waiting")
-		self.assertEqual(result["steps"][0]["status"], "Waiting")
+		self.assertEqual(result["status"], "Success")
+		self.assertEqual(result["steps"][0]["status"], "Success")
+		self.assertIn("simulated", result["steps"][0]["detail"])
+		self.assertEqual(result["steps"][1]["status"], "Success")
 		self.assertFalse(frappe.db.exists(QUEUE, {"automation": auto}))
+
+	def test_event_wait_is_simulated_so_the_trial_reaches_the_steps_behind_it(self):
+		todo = make_todo()
+		params = {
+			"event_name": REPLY_EVENT,
+			"correlation_key": "{{ doc.name }}",
+			"timeout_value": 2,
+			"timeout_unit": "Days",
+		}
+		with self.patch_hooks({"automation_events": [REPLY_EVENT]}):
+			clear_automation_cache()
+			auto = make_automation(
+				[
+					{"step_type": "WaitForEvent", "params": json.dumps(params)},
+					set_field("priority", "High"),
+				]
+			)
+			result = trial_run(auto, todo.name)
+		clear_automation_cache()
+
+		self.assertEqual(result["status"], "Success")
+		self.assertIn("simulated", result["steps"][0]["detail"])
+		self.assertEqual(result["steps"][1]["status"], "Success")
+		self.assertFalse(frappe.db.exists("Automation Event Subscription", {"event_name": REPLY_EVENT}))
+
+	def test_trial_reports_which_arm_each_if_step_took(self):
+		todo = make_todo(priority="Low")
+		auto = make_automation(
+			[
+				if_step("doc.priority == 'High'"),
+				branch(set_field("description", "not reached"), 1, "If"),
+				branch(set_field("description", "reached"), 1, "Else"),
+			]
+		)
+
+		result = trial_run(auto, todo.name)
+
+		self.assertEqual(result["branches"], {"1": "Else"})
+		self.assertEqual([step["step_idx"] for step in result["steps"]], [0, 2])
+
+	def test_branch_override_runs_the_arm_the_record_would_not_take(self):
+		todo = make_todo(priority="Low")
+		auto = make_automation(
+			[
+				if_step("doc.priority == 'High'"),
+				branch(set_field("description", "if-arm"), 1, "If"),
+				branch(set_field("description", "else-arm"), 1, "Else"),
+			]
+		)
+
+		result = trial_run(auto, todo.name, {"1": "If"})
+
+		self.assertEqual(result["branches"], {"1": "If"})
+		self.assertIn("Forced", result["steps"][0]["detail"])
+		self.assertEqual([step["step_idx"] for step in result["steps"]], [0, 1])
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), todo.description)
+
+	def test_branch_override_must_name_an_if_step(self):
+		todo = make_todo()
+		auto = make_automation([set_field("priority", "High")])
+
+		self.assertRaises(frappe.ValidationError, trial_run, auto, todo.name, {"1": "If"})
+
+	def test_webhook_step_is_not_sent_during_a_trial(self):
+		todo = make_todo()
+		auto = make_automation(
+			[
+				{
+					"action_type": "CallWebhook",
+					"params": json.dumps({"url": "https://example.com/hook"}),
+				}
+			]
+		)
+
+		with (
+			public_dns({"example.com": "93.184.216.34"}),
+			patch("requests.request") as request,
+		):
+			result = trial_run(auto, todo.name)
+			request.assert_not_called()
+
+		self.assertEqual(result["status"], "Success")
+		self.assertIn("not sent", result["steps"][0]["detail"])
+
+	def test_webhook_step_pointed_at_an_internal_address_still_fails_the_trial(self):
+		todo = make_todo()
+		auto = make_automation(
+			[
+				{
+					"action_type": "CallWebhook",
+					"params": json.dumps({"url": "http://169.254.169.254/latest/meta-data/"}),
+				}
+			]
+		)
+
+		self.assertEqual(trial_run(auto, todo.name)["status"], "Failed")
 
 	def test_a_committing_action_still_leaves_nothing_behind(self):
 		todo = make_todo(priority="Low")
