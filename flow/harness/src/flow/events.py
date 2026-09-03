@@ -191,8 +191,7 @@ class ToolResult(_Event):
 	is_error: bool = False
 	# structured render metadata (diff, truncation, exit code, ...); never sent to the model
 	details: dict = Field(default_factory=dict)
-	# images the tool produced, stored beside the log exactly like user attachments.
-	# Metadata only: the bytes are resolved at the provider boundary, never in the event.
+	# images the tool produced; metadata only, the bytes live beside the log
 	attachments: list[AttachmentContent] = Field(default_factory=list)
 
 

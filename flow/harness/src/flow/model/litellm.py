@@ -456,9 +456,8 @@ def _openai_messages(
 	"""Translate canonical transcript messages at the provider boundary."""
 	out: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 	dropped_calls: set[str] = set()
-	# Images a run of tool results produced. A `tool` message must follow its
-	# `tool_calls` assistant message with nothing in between, so images cannot be
-	# emitted inline; they are flushed as one user turn once the run ends.
+	# a tool message must directly follow its assistant call, so tool images wait and
+	# go out as one user turn after the batch
 	pending_images: list[ResolvedImage] = []
 
 	def flush_images() -> None:

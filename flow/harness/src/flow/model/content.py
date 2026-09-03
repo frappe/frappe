@@ -9,9 +9,8 @@ from dataclasses import dataclass
 from flow.events import AttachmentContent, ToolResult, UserMessage
 
 MISSING_ATTACHMENT_PLACEHOLDER = "(attachment unavailable: {name})"
-# Neither chat-completions nor the Responses API accepts image parts inside a tool
-# result, so tool images ride in a following user turn. This labels that turn so the
-# model reads the images as tool output rather than as something the user just sent.
+# Tool results cannot carry image parts on either provider API, so tool images follow
+# as a user turn; this line tells the model where they came from.
 TOOL_IMAGE_PREFACE = "Images returned by the tool calls above:"
 
 
@@ -32,13 +31,8 @@ def resolve_user_content(
 	*,
 	resolve_attachment: Callable[[str], bytes] | None,
 ) -> tuple[str, list[ResolvedImage]]:
-	"""Return provider-ready text and images.
-
-	Images are always resolved. Provider capability metadata is too unreliable to gate
-	on — LiteLLM reports "no vision" for any model missing from its catalog, which
-	silently replaced real images with a placeholder and left the model describing
-	something it was never shown. A provider that cannot accept an image says so.
-	"""
+	"""Return provider-ready text and images. Images are never gated on capability
+	metadata: LiteLLM reports no vision for any model it does not list."""
 	text = message.text
 	images: list[ResolvedImage] = []
 	for attachment in message.attachments:
@@ -63,11 +57,8 @@ def resolve_tool_images(
 	*,
 	resolve_attachment: Callable[[str], bytes] | None,
 ) -> list[ResolvedImage]:
-	"""Return the images a tool produced, skipping any whose bytes have gone missing.
-
-	A missing image needs no placeholder: the tool's own result text already names what
-	it read, so the model is told about the image either way.
-	"""
+	"""The images a tool produced; one whose bytes went missing is skipped, since the
+	result text already names it."""
 	images: list[ResolvedImage] = []
 	for attachment in message.attachments:
 		data = _resolve(attachment, resolve_attachment)

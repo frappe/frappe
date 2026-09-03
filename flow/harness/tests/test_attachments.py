@@ -143,8 +143,6 @@ def test_attachment_store_add_file_rejects_empty_oversized_and_binary(tmp_path):
 
 
 def test_images_resolve_without_consulting_model_capability():
-	"""Capability metadata is unreliable — LiteLLM reports "no vision" for any model it
-	holds no catalog entry for. Resolution must not drop an image on that basis."""
 	attachment = AttachmentContent(
 		id="a" * 24,
 		name="screen.png",
@@ -575,8 +573,6 @@ async def test_read_file_reports_an_unreadable_image_as_an_error(tmp_path):
 
 
 async def test_tool_image_bytes_never_reach_the_session_log(tmp_path):
-	"""The whole point of routing through the store: a tool result names its image,
-	it never carries it. A regression here silently reinflates every session log."""
 	image = _png(40, 30)
 	(tmp_path / "diagram.png").write_bytes(image)
 	store = SessionStore(str(tmp_path / "data"))
@@ -634,8 +630,7 @@ def test_codex_wire_sends_tool_result_images(tmp_path):
 
 
 def test_tool_images_flush_once_after_a_batch_of_results(tmp_path):
-	"""A `tool` message must follow its `tool_calls` assistant message with nothing in
-	between. Emitting images inline would split the batch and the provider rejects it."""
+	"""Inline images would split the tool batch, which the provider rejects."""
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	first, second = _stored(store, "a.png"), _stored(store, "b.png")
 	messages = [

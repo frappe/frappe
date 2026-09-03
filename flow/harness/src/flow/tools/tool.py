@@ -76,8 +76,7 @@ class ToolContext:
 	read_only_roots: tuple[str, ...] = ()
 	abort: asyncio.Event = field(default_factory=asyncio.Event)
 	timeout: float = 120.0
-	# (name, bytes) -> stored image metadata, injected by the loop. None when the caller
-	# has no attachment store, so a tool that produces images must degrade to text.
+	# stores image bytes beside the session log; None when the caller has no attachment store
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
 
 

@@ -55,12 +55,7 @@ async def read_file(
 
 
 async def _read_image(full: str, path: str, ctx: ToolContext) -> ToolResult:
-	"""Hand an image to the session's attachment store; the model sees only a summary.
-
-	The bytes travel as an attachment rather than in the result text, so they stay out
-	of the event log. Storing also validates: format sniffing, size and dimension caps,
-	and decode-bomb protection all come from the same path browser uploads take.
-	"""
+	"""Store the image beside the session log; the model sees only a summary line."""
 	if ctx.store_image is None:
 		return ToolResult(content=f"[image file: {path} — images are unavailable in this session]")
 	try:
@@ -69,8 +64,7 @@ async def _read_image(full: str, path: str, ctx: ToolContext) -> ToolResult:
 	except OSError as e:
 		return ToolResult(content=f"[cannot read {path}: {e.strerror or e}]", is_error=True)
 	try:
-		# AttachmentError subclasses ValueError; catching the base keeps tools/ from
-		# importing session/, which the dependency direction forbids.
+		# AttachmentError is a ValueError; tools must not import session code
 		stored = await ctx.store_image(os.path.basename(full), data)
 	except ValueError as e:
 		return ToolResult(content=f"[cannot read image {path}: {e}]", is_error=True)

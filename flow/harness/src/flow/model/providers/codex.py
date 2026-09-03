@@ -744,8 +744,7 @@ def _responses_input(
 	items: list[dict] = []
 	text_index = 0
 	dropped_calls: set[str] = set()
-	# `function_call_output` carries text only, so a tool's images follow the run of
-	# results as one user item rather than being emitted inline.
+	# function_call_output is text-only, so tool images follow the batch as one user item
 	pending_images: list[ResolvedImage] = []
 
 	def flush_images() -> None:

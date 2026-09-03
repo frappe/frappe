@@ -476,13 +476,8 @@ class Session:
 		)
 
 	async def _store_tool_image(self, name: str, data: bytes) -> AttachmentContent:
-		"""Store a tool's image in the attachment store and return its metadata.
-
-		`add_bytes` sniffs the format and re-encodes through PIL, so it runs off the
-		event loop. The claim is immediate because a tool image has no staging window:
-		an upload stays unclaimed until an admitted message references it, while the
-		tool result referencing this one is committed as soon as the call returns.
-		"""
+		"""Store a tool's image and claim it at once: the result referencing it is
+		committed as soon as the call returns."""
 		assert self.attachment_store is not None
 		stored = await asyncio.to_thread(self.attachment_store.add_bytes, name, data)
 		self.attachment_store.claim([stored.id])
