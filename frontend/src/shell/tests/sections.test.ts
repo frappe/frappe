@@ -141,8 +141,31 @@ describe("the address opens the section it is standing in", () => {
 		const { host } = await shell("/crm-lead-status");
 		const { host: shut } = await shell("/crm-deal");
 
-		expect(row(host, "leads-configure")?.getAttribute("aria-expanded")).toBe("true");
+		expect(row(host, "lead-statuses")).not.toBeNull();
 		expect(row(shut, "deals-configure")?.getAttribute("aria-expanded")).toBe("false");
+		expect(row(shut, "deal-statuses")).toBeNull();
+	});
+
+	it("offers no control to shut it over the row you are on", async () => {
+		const { host } = await shell("/crm-lead-status");
+		const heading = row(host, "leads-configure")!;
+
+		// A plain heading, not a button reporting a state a click would not change.
+		expect(heading.tagName).toBe("P");
+		expect(heading.getAttribute("aria-expanded")).toBeNull();
+
+		await click(heading);
+		expect(row(host, "lead-statuses")).not.toBeNull();
+		expect(localStorage.getItem("frappe:desk:sections")).toBeNull();
+	});
+
+	it("gives the control back on the way out", async () => {
+		const { host, router } = await shell("/crm-lead-status");
+
+		await router.push("/crm-lead");
+		await flush();
+
+		expect(row(host, "leads-configure")!.tagName).toBe("BUTTON");
 	});
 
 	it("shuts it again on the way out, and records nothing", async () => {

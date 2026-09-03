@@ -68,12 +68,12 @@
 				 that should simply be visible. -->
 		<component
 			v-else-if="heading"
-			:is="item.collapsible ? 'button' : 'p'"
-			:type="item.collapsible ? 'button' : undefined"
+			:is="collapsible ? 'button' : 'p'"
+			:type="collapsible ? 'button' : undefined"
 			:data-key="item.key"
-			:aria-expanded="item.collapsible ? String(open) : undefined"
+			:aria-expanded="collapsible ? String(open) : undefined"
 			:class="HEADING"
-			@click="item.collapsible ? toggle() : undefined"
+			@click="collapsible ? toggle() : undefined"
 		>
 			{{ label }}
 		</component>
@@ -171,6 +171,10 @@ const shippedOpen = computed(() => !item.value.keep_closed);
 
 // The one section the address is standing in opens itself, transiently and writing nothing.
 const holdsCurrent = computed(() => !!props.current && containsKey(props.node, props.current));
+
+// No control while the address is inside: the section may not shut over the row you are on,
+// and a heading that reports `aria-expanded` and refuses the click is worse than no control.
+const collapsible = computed(() => !!item.value.collapsible && !holdsCurrent.value);
 
 /** Where this section rests when the address is not inside it. */
 function settled(): boolean {
