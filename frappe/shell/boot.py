@@ -5,12 +5,10 @@
 # each rebuilt the generic keys by hand. v1's boot is left untouched and retires with
 # v1; this one starts small and is composed of core plus the *declaring app* only.
 
-import json
-
 import frappe
 from frappe import _
 from frappe.translate import get_translation_version
-from frappe.utils import get_system_timezone
+from frappe.utils import get_system_timezone, orjson_dumps
 
 from . import SHELL_ROOT
 from .doctypes import metadata_version
@@ -137,34 +135,32 @@ def index_boot() -> dict:
 def report_oversized_keys(boot: dict, prefix: str | None) -> None:
 	"""Weigh every top-level boot key and log the ones past `KEY_BUDGET`, shipping it whole."""
 	try:
-		sizes = {
-			key: len(json.dumps(value, separators=(",", ":"), default=str)) for key, value in boot.items()
-		}
+		# `orjson_dumps` is what serialises the response, so these are the bytes that
+		# actually go on the wire: UTF-8, and never `\uXXXX` as `json.dumps` would.
+		sizes = {key: len(orjson_dumps(value, default=str, decode=False)) for key, value in boot.items()}
 		total = sum(sizes.values())
 
 		for key, size in sorted(sizes.items()):
 			if size <= KEY_BUDGET:
 				continue
 
-			# `frappe.cache`, not `client_cache`: a per-process copy would let every
-			# gunicorn worker write its own row for the same key.
-			seen = f"boot_budget:{key}:{prefix or SHELL_ROOT}"
-			if frappe.cache.get_value(seen):
+			# An atomic `SET NX`: two workers weighing the same payload claim the day's
+			# row once between them.
+			claim = frappe.cache.make_key(f"boot_budget:{key}:{prefix or SHELL_ROOT}")
+			if not frappe.cache.set(name=claim, value=1, ex=_BUDGET_LOG_TTL, nx=True):
 				continue
 
 			where = f"prefix {prefix}" if prefix else f"the /{SHELL_ROOT} index"
-			# `Error Log` is MyISAM, so this survives the rollback `frappe.app` does on a
-			# GET and does not need deferring.
+			# Deferred because boot is a GET: `frappe.app` rolls back every request that
+			# is not an unsafe method, which on Postgres would discard the row.
 			frappe.log_error(
 				title=BUDGET_LOG_TITLE,
 				message=(
 					f"{key} is {size:,} B for {frappe.session.user} at {where}, "
 					f"over the {KEY_BUDGET:,} B key budget; boot total {total:,} B."
 				),
+				defer_insert=True,
 			)
-			# Claimed after the write, so a failed one is retried on the next boot
-			# instead of muting the alarm for a day.
-			frappe.cache.set_value(seen, 1, expires_in_sec=_BUDGET_LOG_TTL)
 	except Exception:
 		# A key that will not serialise raises at the response layer moments later; a
 		# size check that can blank the shell is worse than no size check.

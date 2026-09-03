@@ -13,6 +13,7 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.deferred_insert import queue_prefix
 from frappe.shell.boot import BUDGET_LOG_TITLE as TITLE
 from frappe.shell.boot import KEY_BUDGET, get_boot
 from frappe.shell.navigation import resolve_navigation
@@ -475,16 +476,18 @@ class TestBootBudget(NavigationTestCase):
 
 	def _clear(self):
 		frappe.cache.delete_keys("boot_budget:")
-		frappe.db.delete("Error Log", {"method": TITLE})
+		frappe.cache.delete_value(f"{queue_prefix}Error Log")
 
 	def _logged(self) -> list[str]:
-		"""The rows this check has written, oldest first; MyISAM, so `_clear` deletes them."""
-		return [
-			row.error
-			for row in frappe.get_all(
-				"Error Log", filters={"method": TITLE}, fields=["error"], order_by="creation asc"
-			)
-		]
+		"""The rows this check has queued, oldest first. Read from redis, not the table.
+
+		Boot is a GET, so `frappe.app` rolls the request back and a direct insert would
+		never land on a transactional engine.
+		"""
+		queued = frappe.cache.lrange(f"{queue_prefix}Error Log", 0, -1) or []
+		records = [json.loads(raw.decode()) for raw in queued]
+
+		return [record["error"] for record in records if record.get("method") == TITLE]
 
 	def test_navigation_for_frappes_own_prefix_is_inside_the_budget(self):
 		"""Administrator at `frappe`'s prefix, the worst case frappe's own CI can measure: 19,064 B."""
@@ -534,13 +537,33 @@ class TestBootBudget(NavigationTestCase):
 		self.assertIn("at prefix desk", logged[0])
 		self.assertIn("at the /apps index", logged[1])
 
-	def test_a_failed_write_is_retried_rather_than_muting_the_alarm_for_a_day(self):
+	def test_the_row_is_queued_rather_than_inserted_into_a_rolled_back_request(self):
+		"""Boot is a GET, so a direct insert would be discarded on a transactional engine."""
 		with patch("frappe.shell.boot.app_boot", return_value={"huge": "x" * (KEY_BUDGET + 1)}):
-			with patch("frappe.log_error", side_effect=ValueError("nope")):
-				get_boot("/apps/desk")
 			get_boot("/apps/desk")
 
 		self.assertEqual(len(self._logged()), 1)
+		self.assertEqual(frappe.db.count("Error Log", {"method": TITLE}), 0)
+
+	def test_the_daily_claim_is_atomic(self):
+		"""`SET NX`, so two workers weighing one payload write one row between them."""
+		with patch("frappe.shell.boot.app_boot", return_value={"huge": "x" * (KEY_BUDGET + 1)}):
+			get_boot("/apps/desk")
+
+		claim = frappe.cache.make_key("boot_budget:huge:desk")
+
+		self.assertFalse(frappe.cache.set(name=claim, value=1, ex=60, nx=True))
+		self.assertGreater(frappe.cache.ttl(claim), 0)
+
+	def test_a_non_ascii_key_is_weighed_as_the_wire_carries_it(self):
+		"""`json.dumps` would escape each character to `\\uXXXX` and over-report by 3x."""
+		# 30,000 three-byte characters: 90,000 B as UTF-8, 180,000 B escaped.
+		under_budget_as_utf8 = "\u0928" * 30_000
+
+		with patch("frappe.shell.boot.app_boot", return_value={"devanagari": under_budget_as_utf8}):
+			get_boot("/apps/desk")
+
+		self.assertEqual(self._logged(), [])
 
 	def test_the_index_payload_is_weighed_too(self):
 		"""The index belongs to no app, and shares `get_boot`'s exit and so its alarm."""
