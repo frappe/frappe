@@ -436,10 +436,6 @@ def _build_tool_call(call_id: str, name: str, raw_args: str) -> ToolCall:
 	return ToolCall(id=call_id, name=name, arguments=parsed)
 
 
-# labels the user turn that carries tool images, so the model knows where they came from
-_TOOL_IMAGE_PREFACE = "Images returned by the tool calls above:"
-
-
 def _openai_messages(
 	messages: list[TranscriptMessage],
 	model: LiteLLMModel,
@@ -453,28 +449,10 @@ def _openai_messages(
 	# a tool message must directly follow its assistant call, so tool images wait and
 	# go out as one user turn after the batch
 	pending_images: list[ResolvedImage] = []
-
-	def flush_images() -> None:
-		if not pending_images:
-			return
-		out.append(
-			{
-				"role": "user",
-				"content": [
-					{"type": "text", "text": _TOOL_IMAGE_PREFACE},
-					*(
-						{"type": "image_url", "image_url": {"url": image.data_url}}
-						for image in pending_images
-					),
-				],
-			}
-		)
-		pending_images.clear()
-
 	supports_images = model.supports_images
 	for message in messages:
 		if not isinstance(message, ToolResult):
-			flush_images()
+			_flush_tool_images(out, pending_images)
 		if isinstance(message, UserMessage):
 			text, images = resolve_user_content(
 				message,
@@ -512,8 +490,29 @@ def _openai_messages(
 					message, resolve_attachment=resolve_attachment, supports_images=supports_images
 				)
 			)
-	flush_images()
+	_flush_tool_images(out, pending_images)
 	return out
+
+
+# labels the user turn that carries tool images, so the model knows where they came from
+_TOOL_IMAGE_PREFACE = "Images returned by the tool calls above:"
+
+
+def _flush_tool_images(out: list[dict[str, Any]], pending_images: list[ResolvedImage]) -> None:
+	"""Send the images gathered from the preceding tool results as one user message,
+	then empty the list. Tool messages themselves cannot carry images."""
+	if not pending_images:
+		return
+	out.append(
+		{
+			"role": "user",
+			"content": [
+				{"type": "text", "text": _TOOL_IMAGE_PREFACE},
+				*({"type": "image_url", "image_url": {"url": image.data_url}} for image in pending_images),
+			],
+		}
+	)
+	pending_images.clear()
 
 
 _CACHE_CONTROL = {"type": "ephemeral"}
