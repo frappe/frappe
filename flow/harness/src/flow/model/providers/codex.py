@@ -46,12 +46,7 @@ from flow.model.auth import (
 )
 from flow.model.base import Model, ModelRequest
 from flow.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
-from flow.model.content import (
-	TOOL_IMAGE_PREFACE,
-	ResolvedImage,
-	resolve_tool_images,
-	resolve_user_content,
-)
+from flow.model.content import resolve_tool_images, resolve_user_content
 from flow.model.credentials import OAuthCredential
 from flow.model.errors import (
 	normalize_provider_error,
@@ -744,26 +739,7 @@ def _responses_input(
 	items: list[dict] = []
 	text_index = 0
 	dropped_calls: set[str] = set()
-	# function_call_output is text-only, so tool images follow the batch as one user item
-	pending_images: list[ResolvedImage] = []
-
-	def flush_images() -> None:
-		if not pending_images:
-			return
-		items.append(
-			{
-				"role": "user",
-				"content": [
-					{"type": "input_text", "text": TOOL_IMAGE_PREFACE},
-					*({"type": "input_image", "image_url": image.data_url} for image in pending_images),
-				],
-			}
-		)
-		pending_images.clear()
-
 	for message in messages:
-		if not isinstance(message, ToolResult):
-			flush_images()
 		if isinstance(message, UserMessage):
 			text, images = resolve_user_content(
 				message,
@@ -802,15 +778,21 @@ def _responses_input(
 		elif isinstance(message, ToolResult):
 			if message.tool_call_id in dropped_calls:
 				continue
+			images = resolve_tool_images(message, resolve_attachment=resolve_attachment)
+			output: str | list[dict] = message.content
+			if images:
+				# the Responses API takes image parts inside the tool output itself
+				output = [
+					{"type": "input_text", "text": message.content},
+					*({"type": "input_image", "image_url": image.data_url} for image in images),
+				]
 			items.append(
 				{
 					"type": "function_call_output",
 					"call_id": message.tool_call_id,
-					"output": message.content,
+					"output": output,
 				}
 			)
-			pending_images.extend(resolve_tool_images(message, resolve_attachment=resolve_attachment))
-	flush_images()
 	return items
 
 

@@ -9,9 +9,6 @@ from dataclasses import dataclass
 from flow.events import AttachmentContent, ToolResult, UserMessage
 
 MISSING_ATTACHMENT_PLACEHOLDER = "(attachment unavailable: {name})"
-# Tool results cannot carry image parts on either provider API, so tool images follow
-# as a user turn; this line tells the model where they came from.
-TOOL_IMAGE_PREFACE = "Images returned by the tool calls above:"
 
 
 @dataclass(frozen=True)

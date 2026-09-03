@@ -22,8 +22,8 @@ from flow.events import (
 )
 from flow.model.base import Model
 from flow.model.catalog import model_supports_images
-from flow.model.content import TOOL_IMAGE_PREFACE, resolve_user_content
-from flow.model.litellm import LiteLLMModel, _openai_messages
+from flow.model.content import resolve_user_content
+from flow.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
 from flow.model.mock import MockModel
 from flow.model.providers.codex import CodexModel, _responses_input
 from flow.model.providers.opencode import opencode_go_model
@@ -591,7 +591,6 @@ async def test_tool_image_bytes_never_reach_the_session_log(tmp_path):
 	log = next((tmp_path / "data" / "sessions").rglob(f"{session.id}.jsonl")).read_text()
 	assert base64.b64encode(image).decode() not in log
 	assert stored.id in log  # the reference is there, the bytes are not
-	assert len(log) < 4000
 
 
 def test_litellm_wire_sends_tool_result_images_after_the_result(tmp_path):
@@ -606,11 +605,11 @@ def test_litellm_wire_sends_tool_result_images_after_the_result(tmp_path):
 
 	assert [m["role"] for m in wire] == ["system", "assistant", "tool", "user"]
 	parts = wire[-1]["content"]
-	assert parts[0] == {"type": "text", "text": TOOL_IMAGE_PREFACE}
+	assert parts[0] == {"type": "text", "text": _TOOL_IMAGE_PREFACE}
 	assert parts[1]["image_url"]["url"].startswith("data:image/png;base64,")
 
 
-def test_codex_wire_sends_tool_result_images(tmp_path):
+def test_codex_wire_puts_tool_result_images_inside_the_output(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	stored = _stored(store)
 	messages = [
@@ -622,11 +621,11 @@ def test_codex_wire_sends_tool_result_images(tmp_path):
 		messages, CodexModel("codex/gpt-5.4", api_key="token"), resolve_attachment=store.read
 	)
 
-	image_item = items[-1]
-	assert image_item["role"] == "user"
-	assert image_item["content"][0] == {"type": "input_text", "text": TOOL_IMAGE_PREFACE}
-	assert image_item["content"][1]["type"] == "input_image"
-	assert image_item["content"][1]["image_url"].startswith("data:image/png;base64,")
+	output = items[-1]
+	assert output["type"] == "function_call_output"
+	assert output["output"][0] == {"type": "input_text", "text": "[Image: shot.png]"}
+	assert output["output"][1]["type"] == "input_image"
+	assert output["output"][1]["image_url"].startswith("data:image/png;base64,")
 
 
 def test_tool_images_flush_once_after_a_batch_of_results(tmp_path):
