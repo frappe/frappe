@@ -60,6 +60,42 @@ class TestSocialLoginKey(IntegrationTestCase):
 			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
 
+	def test_repeat_login_with_same_provider_identity_succeeds(self):
+		"""logging in again with the SAME provider subject must keep working."""
+		github_social_login_setup()
+
+		mock_session = MagicMock()
+		mock_session.get.side_effect = github_response_for_login
+
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))
+		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+
+		frappe.set_user("Guest")
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))
+		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+
+	def test_login_with_different_provider_identity_for_linked_account_is_rejected(self):
+		"""A different GitHub account presenting the SAME email but a DIFFERENT subject must
+		not be able to log in as the account already linked to the original identity."""
+		github_social_login_setup()
+
+		legit_session = MagicMock()
+		legit_session.get.side_effect = github_response_for_login
+		with patch.object(OAuth2Service, "get_auth_session", return_value=legit_session):
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))
+		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+
+		frappe.set_user("Guest")
+
+		attacker_session = MagicMock()
+		attacker_session.get.side_effect = github_response_for_login_different_identity
+		with patch.object(OAuth2Service, "get_auth_session", return_value=attacker_session):
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))
+
+		self.assertEqual(frappe.session.user, "Guest")
+
 	def test_oauth_state_helpers_reject_unknown_and_reused_tokens(self):
 		"""consume_oauth_state must only resolve tokens it minted itself, and only once."""
 		self.assertIsNone(consume_oauth_state("attacker-forged-token"))
@@ -176,7 +212,7 @@ def github_response_for_private_email(url, *args, **kwargs):
 	if url == "user":
 		return_value = {
 			"login": "dummy_username",
-			"id": "223342",
+			"id": 223342,
 			"email": None,
 			"first_name": "Github Private",
 		}
@@ -190,7 +226,7 @@ def github_response_for_public_email(url, *args, **kwargs):
 	if url == "user":
 		return_value = {
 			"login": "dummy_username",
-			"id": "223343",
+			"id": 223343,
 			"email": "github_public@example.com",
 			"first_name": "Github Public",
 		}
@@ -202,9 +238,23 @@ def github_response_for_login(url, *args, **kwargs):
 	if url == "user":
 		return_value = {
 			"login": "dummy_username",
-			"id": "223346",
+			"id": 223346,
 			"email": None,
 			"first_name": "Github Login",
+		}
+	else:
+		return_value = [{"email": TEST_GITHUB_USER, "primary": True, "verified": True}]
+
+	return MagicMock(status_code=200, json=MagicMock(return_value=return_value))
+
+
+def github_response_for_login_different_identity(url, *args, **kwargs):
+	if url == "user":
+		return_value = {
+			"login": "attacker_username",
+			"id": 999999,
+			"email": None,
+			"first_name": "Attacker",
 		}
 	else:
 		return_value = [{"email": TEST_GITHUB_USER, "primary": True, "verified": True}]
