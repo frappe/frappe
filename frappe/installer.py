@@ -18,7 +18,7 @@ from semantic_version import Version
 import frappe
 from frappe import _
 from frappe.defaults import _clear_cache
-from frappe.utils import cint, is_git_url
+from frappe.utils import cint, comma_and, is_git_url
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
 
@@ -357,6 +357,19 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	sync_for(name, force=force, reset_permissions=True)
 
+	if name == "frappe":
+		# The framework's own rows can only be written after the sync, because a bare site has no
+		# `tabModule Def` for them to go in, which is why the call above skips `frappe`.
+		#
+		# They used to arrive as a side effect of `make_module_and_roles`, which gives a module a
+		# row when one of its doctypes is synced, so a module shipping no doctype got none. That
+		# never mattered until the framework split its navigation, and a nav-only module carrying
+		# a workspace and a sidebar now falls through it. The fixtures still import, since
+		# `import_file` ignores links, but a module with no row does not exist as far as the site
+		# is concerned: it is absent from every module list the desk builds, so the module is
+		# missing from the dock on a fresh site and present on a migrated one.
+		add_module_defs(name, ignore_if_duplicate=True)
+
 	add_to_installed_apps(name)
 
 	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
@@ -549,8 +562,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	if not dry_run and not yes:
 		confirm = click.confirm(
-			"All doctypes (including custom), modules related to this app will be"
-			" deleted. Are you sure you want to continue?"
+			"All doctypes (including custom) and modules belonging to this app will be"
+			" deleted. This site's own custom modules are kept. Are you sure you want to continue?"
 		)
 		if not confirm:
 			return
@@ -569,10 +582,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	for fn in frappe.get_hooks("before_app_uninstall"):
 		frappe.get_attr(fn)(app_name)
 
-	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
-
-	drop_doctypes = _delete_modules(modules, dry_run=dry_run)
+	drop_doctypes = _delete_modules(get_app_owned_modules(app_name), dry_run=dry_run)
 	_delete_doctypes(drop_doctypes, dry_run=dry_run)
+	release_custom_module_placements(app_name, dry_run=dry_run)
 
 	if not dry_run:
 		remove_from_installed_apps(app_name)
@@ -870,10 +882,192 @@ def make_site_dirs():
 def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
+		rename_conflicting_custom_module(module, app)
+
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
 		d.module_name = module
 		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)
+
+
+def sync_module_defs() -> list[str]:
+	"""Give every module an installed app declares a `Module Def` row. Returns what it added.
+
+	`add_module_defs` runs once, when an app is installed, so a module an app adds *later* never
+	reaches a site that already has that app -- and a module with no row does not exist as far as
+	the site is concerned. Nothing can link to it, which means the workspaces, dashboards and
+	`Sidebar` the app ships for it are skipped on import: `module` is a Link field. Every
+	app that ever split its navigation has had to carry a patch calling `add_module_defs` to
+	work around this. Running the sync on every migrate is what retires that patch, for every
+	app at once and for the ones that have not been written yet.
+
+	Only the missing rows are inserted, which is the difference from calling `add_module_defs`
+	here directly. That one re-inserts every module of every app and runs
+	`rename_conflicting_custom_module` over each -- fine as a one-shot at install, but on a
+	migrate it would put a site's custom module through a rename check on every run.
+
+	An existing row is changed in one case only: an app's own module with no `app_name` is given
+	one, because a row with no placement is a row no dock lists. This is insurance rather than a
+	live repair, since nothing clears a non-custom module's `app_name`, so on a healthy site the
+	branch never fires. It costs nothing: `app_name` is already in `existing`, and the write
+	happens only when it is empty. `ModuleDef.validate_placement` fills the same field on save;
+	this covers rows that are never saved. A repaired row is printed rather than returned, since
+	the return value is what the site gained, not what it fixed.
+
+	A row naming a different app is left alone: two apps claiming one module name is a conflict to
+	resolve deliberately, not by whichever app this loop reaches last.
+
+	It only adds. A module dropped from `modules.txt` keeps its row, because deleting one cascades
+	through `DocType.module` and every link to it, and an app temporarily renaming a module would
+	take the site's data with it. Removal stays something an app does explicitly, in a patch.
+
+	App-declared beats site-authored, as it does at install: a custom module holding a name an app
+	now ships is renamed out of the way (see `rename_conflicting_custom_module`), because the
+	namespace is flat and the app's module has nowhere else to go.
+	"""
+	existing = {row.name: row for row in frappe.get_all("Module Def", fields=["name", "app_name", "custom"])}
+
+	added, repaired = [], []
+	for app in frappe.get_installed_apps():
+		for module in frappe.get_module_list(app):
+			row = existing.get(module)
+			# an app's module already has its row; only a *custom* module holding the name is
+			# something to act on
+			if row and not row.custom:
+				# `db.set_value` skips `on_update`, so nothing clears the module cache here --
+				# safe only because migrate clears it once, at the end.
+				if not row.app_name:
+					frappe.db.set_value("Module Def", module, "app_name", app, update_modified=False)
+					row.app_name = app  # so a second app declaring the name does not take it
+					repaired.append(module)
+				continue
+
+			rename_conflicting_custom_module(module, app)
+
+			doc = frappe.new_doc("Module Def")
+			doc.app_name = app
+			doc.module_name = module
+			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+			# `existing` has to keep up: a second app declaring this same module must see the
+			# row it just gained, or it counts as added twice and renames against itself
+			existing[module] = doc
+			added.append(module)
+
+	if repaired:
+		print(f"Placed modules that had no app: {comma_and(repaired, add_quotes=False)}")
+
+	return added
+
+
+def rename_conflicting_custom_module(module: str, app: str) -> str | None:
+	"""Move a site's custom module out of the way of an app that ships `module`.
+
+	The module namespace is flat -- `Module Def` is named after `module_name`, and that name is
+	the foreign key everywhere (`DocType.module`, `scrub(module)`, every link) -- and it stays
+	flat. So when the two collide **the app wins**: an install must never be blocked by a
+	naming choice the site made months earlier, which is what failing here would do to a
+	customer mid-upgrade.
+
+	The site loses the name, not the module: the rename cascades through every link to it, so
+	its doctypes, workspaces and sidebar follow it across, and the admin is told what moved.
+
+	Return the module's new name, or `None` when nothing was in the way. An app's own module
+	re-declaring itself is not a conflict.
+	"""
+	# `None` when nothing holds the name, `0` when the app's own module already does
+	if not frappe.db.get_value("Module Def", module, "custom"):
+		return None
+
+	from frappe.model.rename_doc import rename_doc
+
+	new_name = available_module_name(module)
+	# `force`: the install is not a user edit, and whether to give up the name is not the site's
+	# decision, because the app already ships a module with it.
+	rename_doc(
+		doctype="Module Def",
+		old=module,
+		new=new_name,
+		force=True,
+		ignore_permissions=True,
+		show_alert=False,
+	)
+
+	# A `Sidebar` is named by its title (`autoname: field:title`), and the title defaults to the
+	# module's name, so the site's sidebar for this module is probably sitting on the name the
+	# app's own sidebar is about to be imported under. Renaming the module updated the sidebar's
+	# link to it but left its name alone, so the name has to move too.
+	#
+	# The collision is on the title, not the module. Two sidebars may share a module but cannot
+	# share a name, so a site sidebar titled "Leads" collides with an app's "Leads" whichever
+	# modules the two belong to.
+	if held := frappe.db.get_value("Sidebar", {"title": module}, "name"):
+		rename_doc(
+			doctype="Sidebar",
+			old=held,
+			new=new_name,
+			force=True,
+			ignore_permissions=True,
+			show_alert=False,
+		)
+
+	message = _("Module {0} is now shipped by {1}; this site's module of that name is now {2}.").format(
+		module, app, new_name
+	)
+	click.secho(f"* {message}", fg="yellow")
+	frappe.msgprint(message, title=_("Custom Module Renamed"), indicator="orange")
+
+	return new_name
+
+
+def reclaim_module_name_for_its_app(module: str) -> str | None:
+	"""`rename_conflicting_custom_module` for the paths that don't know the app.
+
+	An app can also reach a site's module name sideways: a doctype imported by `bench migrate`
+	brings its module with it, and the module is created on the spot if nothing holds the name.
+	`modules.txt` is what says the name is an app's rather than the site's, so that is what
+	decides -- and a module no app declares is the site's, left exactly where it is.
+	"""
+	app = frappe.local.module_app.get(frappe.scrub(module))
+	return rename_conflicting_custom_module(module, app) if app else None
+
+
+def available_module_name(module: str) -> str:
+	"""`<module> (Custom)`, counting up until the name is free."""
+	candidate = f"{module} (Custom)"
+	suffix = 1
+	while frappe.db.exists("Module Def", candidate):
+		suffix += 1
+		candidate = f"{module} (Custom {suffix})"
+	return candidate
+
+
+def get_app_owned_modules(app_name: str) -> list[str]:
+	"""The modules `app_name` brought with it, which are the ones its uninstall may take.
+
+	`custom = 0` is the whole of the guard, and it is a lifecycle question rather than a
+	placement one: a site's own module may well name this app -- that is how an admin puts
+	their module inside the app their team already works in -- but naming it does not hand the
+	app the right to delete it. See `Module Def.validate_placement` for the other half.
+	"""
+	return frappe.get_all("Module Def", filters={"app_name": app_name, "custom": 0}, pluck="name")
+
+
+def release_custom_module_placements(app_name: str, dry_run: bool = False) -> list[str]:
+	"""Clear the placement of every custom module that named `app_name`, and return them.
+
+	The dock they pointed at is going away with the app. Left set, the placement would name an
+	app that is no longer installed and the module would be listed nowhere at all -- so it is
+	dropped, and the module falls back to standing on its own. A custom module can never become
+	unreachable.
+	"""
+	modules = frappe.get_all("Module Def", filters={"app_name": app_name, "custom": 1}, pluck="name")
+
+	for module in modules:
+		print(f"* releasing custom Module Def '{module}' from '{app_name}'...")
+		if not dry_run:
+			frappe.db.set_value("Module Def", module, "app_name", None)
+
+	return modules
 
 
 def remove_missing_apps():

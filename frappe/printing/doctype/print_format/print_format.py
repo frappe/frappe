@@ -27,6 +27,7 @@ BUILDER_DRAFT_FIELDS = (
 	"margin_right",
 	"label_color",
 	"value_color",
+	"css",
 	# written once when a classic format is converted on open
 	"classic_format_data",
 	"print_format_builder",
@@ -262,7 +263,7 @@ class PrintFormat(Document):
 			if value and not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
 				frappe.throw(
 					_("{0} must be a hex color code like #1a5fb4").format(
-						frappe.bold(_(self.meta.get_label(fieldname), context=self.doctype))
+						frappe.bold(self.meta.get_translated_label(fieldname))
 					)
 				)
 

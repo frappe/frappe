@@ -8,7 +8,6 @@ import sys
 
 import orjson
 from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response  # nosemgrep: frappe-monkey-patching-not-allowed
@@ -37,38 +36,10 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
-import gettext
+from frappe._optimizations import preload_database_drivers, preload_modules
 
-import babel
-import babel.messages
-import nh3
-import num2words
-import pydantic
-
-import frappe.boot
-import frappe.client
-import frappe.core.doctype.file.file
-import frappe.core.doctype.user.user
-
-# Skipped under the companion manager: the gevent socketio companion forks this
-# master and refuses to start if MySQLdb is already imported. Loaded lazily there.
-if not os.environ.get("FRAPPE_GUNICORN_COMPANION"):
-	import frappe.database.mariadb.mysqlclient  # Load database related utils
-import frappe.database.query
-import frappe.desk.desktop  # workspace
-import frappe.desk.form.save
-import frappe.model.db_query
-import frappe.query_builder
-import frappe.utils.background_jobs  # Enqueue is very common
-import frappe.utils.data  # common utils
-import frappe.utils.jinja  # web page rendering
-import frappe.utils.jinja_globals
-import frappe.utils.redis_wrapper  # Exact redis_wrapper
-import frappe.utils.safe_exec
-import frappe.utils.typing_validations  # any whitelisted method uses this
-import frappe.website.path_resolver  # all the page types and resolver
-import frappe.website.router  # Website router
-import frappe.website.website_generator  # web page doctypes
+preload_modules()
+preload_database_drivers()
 
 # end: module pre-loading
 
@@ -76,6 +47,45 @@ import frappe.website.website_generator  # web page doctypes
 # this is necessary because frappe desk sends most requests as form data
 # and some of them can exceed werkzeug's default limit of 500kb
 Request.max_form_memory_size = None  # nosemgrep: frappe-monkey-patching-not-allowed
+
+
+# Callbacks that run after every response, before any deferred during the request
+DEFAULT_AFTER_RESPONSE_CALLBACKS = (
+	frappe.rate_limiter.update,
+	frappe.recorder.dump,
+)
+
+
+def get_after_response_callbacks():
+	"""Yield default callbacks, then any deferred during the request, in order of addition.
+
+	The request's queue is consumed as it is yielded, so callbacks registered
+	by other callbacks are picked up too."""
+
+	yield from DEFAULT_AFTER_RESPONSE_CALLBACKS
+
+	request = getattr(frappe.local, "request", None)
+	if callback_manager := getattr(request, "after_response", None):
+		functions = callback_manager._functions
+		while functions:
+			yield functions.popleft()
+	else:
+		frappe.logger("after_response").error("No request or after_response callback manager found")
+
+
+def run_after_response_callbacks():
+	"""Run all after-response callbacks.
+
+	The response is already sent by this point, so a failing callback can
+	neither be reported to the client nor prevent the rest from running."""
+
+	for func in get_after_response_callbacks():
+		try:
+			func()
+		except Exception:
+			frappe.logger("after_response").error(
+				f"Failed to run after response callback: {func}", exc_info=True
+			)
 
 
 def after_response_wrapper(app):
@@ -88,9 +98,7 @@ def after_response_wrapper(app):
 		return ClosingIterator(
 			app(environ, start_response),
 			(
-				frappe.rate_limiter.update,
-				frappe.recorder.dump,
-				frappe.request.after_response.run,
+				run_after_response_callbacks,
 				frappe.destroy,
 			),
 		)
@@ -579,6 +587,8 @@ def serve(
 	from werkzeug.serving import run_simple
 
 	if profile or os.environ.get("USE_PROFILER"):
+		from werkzeug.middleware.profiler import ProfilerMiddleware
+
 		application = ProfilerMiddleware(application, sort_by=("cumtime", "calls"), restrictions=(200,))
 
 	if not os.environ.get("NO_STATICS"):

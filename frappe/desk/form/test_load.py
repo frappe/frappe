@@ -57,6 +57,23 @@ class TestLoad(IntegrationTestCase):
 
 		self.assertEqual([attachment.name for attachment in attachments], [matching_file.name])
 
+	def test_get_filtered_attachments_rejects_structured_field_and_operator(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Attachment filter type test"}).insert()
+
+		with self.assertRaises(frappe.ValidationError):
+			get_filtered_attachments(
+				todo.doctype,
+				todo.name,
+				json.dumps([["File", ["file_name", "like", "x"], "=", "x"]]),
+			)
+
+		with self.assertRaises(frappe.ValidationError):
+			get_filtered_attachments(
+				todo.doctype,
+				todo.name,
+				json.dumps([["File", "file_name", ["like", "x"], "x"]]),
+			)
+
 	def test_get_document_email(self):
 		with patch(
 			"frappe.email.doctype.email_account.email_account.get_automatic_email_link",

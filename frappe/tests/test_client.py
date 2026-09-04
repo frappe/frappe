@@ -4,7 +4,14 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_site_url
+
+
+@whitelist_for_tests(methods=["GET"])
+def _get_only_marker():
+	return "executed"
 
 
 class TestClient(IntegrationTestCase):
@@ -71,6 +78,17 @@ class TestClient(IntegrationTestCase):
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, "frappe.client.save")
 
+	def test_upload_file_respects_method_http_restriction(self):
+		"""`upload_file`'s `method` param must respect the target's HTTP method policy."""
+		from frappe.handler import upload_file
+
+		frappe.set_user("Administrator")
+
+		frappe.local.request = frappe._dict(method="POST", files={})
+		frappe.local.form_dict = frappe._dict(method="frappe.tests.test_client._get_only_marker")
+
+		self.assertRaises(frappe.PermissionError, upload_file)
+
 	def test_run_doc_method(self):
 		from frappe.handler import execute_cmd
 
@@ -114,6 +132,7 @@ class TestClient(IntegrationTestCase):
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.local.form_dict.cmd)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_array_values_in_request_args(self):
 		import requests
 
@@ -196,14 +215,14 @@ class TestClient(IntegrationTestCase):
 		self.addCleanup(frappe.db.rollback)
 
 		user = frappe.get_doc("User", "Administrator")
-		user.append("block_modules", {"module": "Setup"})
+		user.append("block_modules", {"module": "Core"})
 		user.save()
 
 		child_row = user.block_modules[-1]
 
 		result = validate_link_and_fetch("Block Module", child_row.name, fields_to_fetch=["module"])
 		self.assertEqual(result.get("name"), child_row.name)
-		self.assertEqual(result.get("module"), "Setup")
+		self.assertEqual(result.get("module"), "Core")
 
 	def test_client_insert(self):
 		from frappe.client import insert

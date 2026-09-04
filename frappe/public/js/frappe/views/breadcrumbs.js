@@ -1,34 +1,15 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+// The trail names the entity, never the shell it lives in: the dock names the app and the module
+// sidebar names the module and highlights the entity within it, so a workspace crumb would
+// repeat what the shell already says. This file therefore does not resolve an entity to a module
+// or a workspace; that is resolve_initial_sidebar's job, and its answer is a module. See
+// ui/sidebar/sidebar.js.
 frappe.breadcrumbs = {
 	all: {},
 
-	preferred: {
-		File: "",
-		Dashboard: "Customization",
-		"Dashboard Chart": "Customization",
-		"Dashboard Chart Source": "Customization",
-	},
-
-	module_map: {
-		Core: "Settings",
-		Email: "Settings",
-		Custom: "Settings",
-		Workflow: "Settings",
-		Printing: "Settings",
-		Setup: "Settings",
-		Automation: "Tools",
-	},
-
-	set_doctype_module(doctype, module) {
-		localStorage["preferred_breadcrumbs:" + doctype] = module;
-	},
-
-	get_doctype_module(doctype) {
-		return localStorage["preferred_breadcrumbs:" + doctype];
-	},
-
+	// `module` is kept in the signature for callers outside this app; nothing reads it.
 	add(module, doctype, type) {
 		let obj;
 		if (typeof module === "object") {
@@ -84,9 +65,6 @@ frappe.breadcrumbs = {
 				});
 			}
 		} else {
-			// workspace
-			this.set_workspace_breadcrumb(breadcrumbs);
-
 			// form / print
 			let view = frappe.get_route()[0];
 			view = view ? view.toLowerCase() : null;
@@ -137,84 +115,6 @@ frappe.breadcrumbs = {
 		a.innerHTML = label;
 		el.appendChild(a);
 		this.$breadcrumbs.append(el);
-	},
-
-	get last_route() {
-		return frappe.route_history.slice(-2)[0];
-	},
-
-	set_workspace_breadcrumb(breadcrumbs) {
-		// get preferred module for breadcrumbs, based on history and module
-
-		if (!breadcrumbs.workspace) {
-			this.set_workspace(breadcrumbs);
-		}
-
-		if (!breadcrumbs.workspace) {
-			return;
-		}
-
-		if (
-			breadcrumbs.module_info &&
-			(breadcrumbs.module_info.blocked ||
-				!frappe.visible_modules.includes(breadcrumbs.module_info.module))
-		) {
-			return;
-		}
-
-		let worksapce_crumb = this.$breadcrumbs.find("li a.worksapce-breadcrumb");
-
-		worksapce_crumb.parent().addClass("ellipsis");
-	},
-
-	set_workspace(breadcrumbs) {
-		// try and get module from doctype or other settings
-		// then get the workspace for that module
-
-		this.setup_modules();
-		var from_module = this.get_doctype_module(breadcrumbs.doctype);
-
-		if (from_module) {
-			breadcrumbs.module = from_module;
-		} else if (this.preferred[breadcrumbs.doctype] !== undefined) {
-			// get preferred module for breadcrumbs
-			breadcrumbs.module = this.preferred[breadcrumbs.doctype];
-		}
-
-		// guess from last route
-		if (this.last_route?.[0] == "Workspaces") {
-			let last_workspace = this.last_route[1];
-
-			if (
-				breadcrumbs.module &&
-				frappe.boot.module_wise_workspaces[breadcrumbs.module]?.includes(last_workspace)
-			) {
-				breadcrumbs.workspace = last_workspace;
-			}
-		} else {
-			// choose from __workspaces
-			const doctype_meta = frappe.get_meta(breadcrumbs.doctype);
-			if (doctype_meta?.__workspaces?.length) {
-				breadcrumbs.workspace = doctype_meta.__workspaces[0];
-			}
-
-			if (breadcrumbs.module) {
-				if (this.module_map[breadcrumbs.module]) {
-					breadcrumbs.module = this.module_map[breadcrumbs.module];
-				}
-
-				breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
-
-				// set workspace
-				if (
-					breadcrumbs.module_info &&
-					frappe.boot.module_wise_workspaces[breadcrumbs.module]
-				) {
-					breadcrumbs.workspace =
-						frappe.boot.module_wise_workspaces[breadcrumbs.module][0];
-				}
-			}
-		}
 	},
 
 	set_list_breadcrumb(breadcrumbs) {
@@ -302,14 +202,6 @@ frappe.breadcrumbs = {
 				__(label)
 			)}</a></li>`
 		).appendTo(this.$breadcrumbs);
-	},
-
-	setup_modules() {
-		if (!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, (m) => {
-				return m.module;
-			});
-		}
 	},
 
 	rename(doctype, old_name, new_name) {

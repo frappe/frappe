@@ -1123,8 +1123,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					? this.max_number_of_avatars
 					: assign_to_length
 			);
-			has_assignto = true;
 		}
+		has_assignto = assign_to_count > 0;
 
 		return { has_assignto, assign_to_count };
 	}
@@ -1589,7 +1589,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	update_listview_classes(has_assignto, assign_to_count) {
+		// widest comment count on the page, in characters ("99+" is 3); sizes the count slot
+		const count_length = this.data.reduce(
+			(max, doc) => Math.max(max, Math.min(3, String(doc._comment_count || 0).length)),
+			1
+		);
+		this.$result.attr("data-comment-count-length", count_length);
+
 		// add class to result to indetify that it has assignto
+		this.$result.removeClass("assign-to-length-1 assign-to-length-2 assign-to-length-3");
 		if (has_assignto) {
 			this.$result.addClass(["has-assign-to", `assign-to-length-${assign_to_count}`]);
 			this.$result.removeClass("no-assign-to");
@@ -1658,13 +1666,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
 			comment_count = `<span class="comment-count d-flex align-items-center">
 				${frappe.utils.icon("message-circle")}
-				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}
+				<span class="count">${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}</span>
 			</span>`;
 		}
 
 		html += `
 			<div class="level-item list-row-activity hidden-xs">
-				<div class="hidden-md hidden-xs d-flex">
+				<div class="list-assignments-container hidden-md hidden-xs d-flex">
 					${assigned_to}
 				</div>
 				<span class="modified">${modified}</span>
@@ -2948,6 +2956,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							const field_key = `${field_doc.label} (${doctype})`;
 							field_mappings[field_key] = Object.assign({}, field_doc, {
 								is_child_field: false,
+								translated_label: `${__(field_doc.label, null, doctype)} (${__(
+									doctype
+								)})`,
 							});
 						}
 
@@ -2963,6 +2974,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 										is_child_field: true,
 										child_doctype: child_doctype,
 										parent_table_field: field_doc.fieldname,
+										translated_label: `${__(
+											child_field.label,
+											null,
+											child_doctype
+										)} (${__(field_doc.label, null, doctype)})`,
 									});
 								}
 							});

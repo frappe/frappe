@@ -1,4 +1,5 @@
 import type { Component } from "vue";
+import type { UploadedFile } from "frappe-ui/editor";
 
 export interface ActivityTimelineProps {
   /** Rows in display order. Custom types render via the `#item-{type}` slot. */
@@ -74,6 +75,7 @@ export type CommentActivity = BaseActivity<
   {
     name: string;
     content: string;
+    attachments?: EmailAttachment[];
   }
 >;
 
@@ -186,6 +188,10 @@ export interface EmailItemSlots {
 export interface CommentItemProps {
   comment: CommentActivity;
   editable?: boolean;
+  /** classes on the editor content; default "prose-sm max-w-none" */
+  editorClass?: string;
+  /** image upload handler passed through to the editor while editing */
+  uploadFunction?: (file: File) => Promise<UploadedFile>;
 }
 export interface CommentItemSlots {
   /** Replaces the row header (author, timestamp). */

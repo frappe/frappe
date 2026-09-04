@@ -33,7 +33,8 @@
 @import "../common/awesomeplete";
 @import "main";
 @import "sidebar";
-@import "workspace_dock";
+@import "sidebar_panel";
+@import "dock";
 @import "list_sidebar";
 @import "form_sidebar";
 @import "filters";
@@ -62,5 +63,5 @@
 @import "menu";
 @import "sidebar_header";
 @import "card";
-@import "dock_manager";
+@import "arrangement_editor";
 @import "document_template";

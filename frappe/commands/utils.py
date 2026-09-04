@@ -57,7 +57,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.build import bundle
+	from frappe.bundler import bundle
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -129,7 +129,7 @@ def run_after_build_hook(built_apps: list[str]):
 @click.option("--apps", help="Watch assets for specific apps")
 def watch(apps=None):
 	"Watch and compile JS and CSS files as and when they change"
-	from frappe.build import watch
+	from frappe.bundler import watch
 
 	frappe.init("")
 	watch(apps)
@@ -374,6 +374,43 @@ def export_fixtures(context: CliCtxObj, app=None):
 			frappe.init(site)
 			frappe.connect()
 			export_fixtures(app=app)
+		finally:
+			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("convert-sidebar-fixtures")
+@click.option("--app", default=None, help="Convert one app's fixtures; omit for every installed app")
+@click.option("--dry-run", is_flag=True, default=False, help="Report what would be written")
+@pass_context
+def convert_sidebar_fixtures(context: CliCtxObj, app=None, dry_run=False):
+	"Convert an app's old workspace_sidebar fixtures into per-module Sidebar exports"
+	from frappe.desk.doctype.sidebar.convert_fixtures import apps_with_old_fixtures, convert_app
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+
+			if app and app not in frappe.get_installed_apps():
+				click.secho(f"{app} is not installed on {site}.", fg="red")
+				continue
+
+			apps = [app] if app else sorted(apps_with_old_fixtures())
+			if not apps:
+				click.secho("No installed app still ships the old sidebar fixtures.", fg="green")
+
+			for name in apps:
+				click.secho(f"\n{name}", bold=True)
+				results = convert_app(name, dry_run=dry_run)
+				if not results:
+					click.echo("  nothing to convert")
+				for result in results:
+					colour = {"converted": "green", "already converted": "cyan"}.get(
+						result["state"], "yellow"
+					)
+					click.secho(f"  {result['state']:18} {result['module'] or result['path']}", fg=colour)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -1036,6 +1073,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	convert_sidebar_fixtures,
 	database,
 	transform_database,
 	jupyter,

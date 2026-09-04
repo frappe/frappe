@@ -1,32 +1,18 @@
 <div class="body-sidebar-container {%= expanded ? 'expanded' : ''%}">
 	<div class="body-sidebar-placeholder"></div>
 		<div class="body-sidebar">
-			<div class="dropdown-notifications hidden">
-				<!-- contents are rendered by frappe.ui.Notifications -->
-				<div class="notifications-list" role="menu"></div>
-			</div>
-			<div class="dropdown-background-tasks hidden">
-				<div class="background-tasks-list" role="menu">
-					<div class="background-tasks-header">
-						<div class="bg-tasks-header-items"></div>
-						<div class="bg-tasks-header-actions"></div>
-					</div>
-					<div class="background-tasks-body"></div>
-				</div>
-			</div>
 			<div class="body-sidebar-top">
+				<!-- The standard-items band: search, notifications and background tasks, as
+				     full-width rows directly under the header and above the module's own items.
+				     Only drawn on a dock-less app, where the rail is not there to carry them --
+				     see Sidebar.add_standard_items and body.dock-active. -->
+				<div class="standard-items-band"></div>
 				<div class="sidebar-items">
 				</div>
 			</div>
 			<div class="body-sidebar-cards"></div>
 			<div class="body-sidebar-bottom">
 				<div class="promotional-banners"></div>
-				<p>
-					<a class="onboarding-sidebar px-2">
-						{%= frappe.utils.icon("user-check" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
-						 <span> {%= __("Getting Started") %} </span>
-					</a>
-				</p>
 				<div class="nav-item dropdown-navbar-user dropdown-mobile mt-3">
 					<a
 						class="align-center btn-reset flex nav-link sidebar-user-button"

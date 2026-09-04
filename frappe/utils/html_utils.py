@@ -7,6 +7,11 @@ from bleach_allowlist import bleach_allowlist
 import frappe
 from frappe.utils.data import escape_html
 
+# Matches the first opening tag. Deliberately equivalent to
+# `bool(BeautifulSoup(html, "html.parser").find())`, which treats comments, `<3`
+# and unmatched end tags as text rather than tags — see `test_html_utils.py`.
+HTML_TAG_PATTERN = re.compile(r"<[a-zA-Z][^>]*>")
+
 EMOJI_PATTERN = re.compile(
 	"(\ud83d[\ude00-\ude4f])|"
 	"(\ud83c[\udf00-\uffff])|"
@@ -129,6 +134,11 @@ def clean_email_html(html):
 	)
 
 
+def has_html_tags(html: str) -> bool:
+	"""Return True if `html` contains at least one HTML tag."""
+	return bool(HTML_TAG_PATTERN.search(html))
+
+
 def clean_script_and_style(html):
 	"""
 	Remove script and style tags.
@@ -148,18 +158,13 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on nh3 clean, bleach whitelist and html5lib's Sanitizer defaults
 
-	Does not sanitize JSON unless explicitly specified, as it could lead to future problems
+	Content without any HTML tags is returned unchanged; everything else is sanitized.
 	"""
-	from bs4 import BeautifulSoup
-
 	if not isinstance(html, str):
 		return html
 
 	if not always_sanitize:
-		if is_json(html):
-			return html
-
-		if not bool(BeautifulSoup(html, "html.parser").find()):
+		if not has_html_tags(html):
 			return html
 
 	tags = (
@@ -184,11 +189,93 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 		attributes=attributes,
 		generic_attribute_prefixes={"data-"},
 		strip_comments=False,
-		filter_style_properties=set(bleach_allowlist.all_styles),
+		# bleach's allowlist has column-gap but not gap/row-gap — add them so
+		# flex/grid layouts (already allowed via display/flex) keep their spacing
+		filter_style_properties=set(bleach_allowlist.all_styles) | {"gap", "row-gap"},
 		url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"cid"}),
 	)
 
 	return escaped_html
+
+
+# A request argument is a few levels deep at most: a document holding a child table
+# of rows of fields is four. Past this the walk gives up and the text is sanitized
+# as one blob, the way it was before it learned to look inside. A guest can post
+# arbitrarily nested JSON, and walking it without a bound is a 500.
+MAX_PAYLOAD_DEPTH = 20
+
+
+class PayloadTooDeep(Exception):
+	pass
+
+
+def sanitize_html_payload(text):
+	"""Sanitize HTML in a string that may be carrying a JSON payload.
+
+	`sanitize_html` treats its input as a document that is itself HTML. A request
+	argument is not that: anything richer than a scalar reaches `form_dict` as
+	JSON, so the string is a container whose values may carry HTML.
+
+	Sanitizing the serialized container rewrites the container. The parser reads
+	an embedded tag such as `<div class=\\"x y\\">` (the backslashes are JSON
+	escaping) as `class` holding the unquoted value `\\"x`, drops `y\\"` as a junk
+	attribute, and writes the value back as `class="\\&quot;x"`. That bare quote
+	ends the JSON string early and the payload no longer parses.
+
+	So look inside instead. Decode, sanitize each string in the structure, and
+	re-encode. A payload that needed no cleaning is returned exactly as it
+	arrived, and anything that is not JSON is sanitized as before.
+
+	The walk stops at `MAX_PAYLOAD_DEPTH` and falls back to sanitizing the text
+	as one blob. The content is sanitized either way, and the walk cannot run the
+	interpreter out of stack on a payload built to be deep.
+	"""
+	if not isinstance(text, str):
+		return text
+
+	return _sanitize_payload(text, MAX_PAYLOAD_DEPTH)
+
+
+def _sanitize_payload(text, depth):
+	try:
+		payload = json.loads(text)
+	except (ValueError, RecursionError):
+		return sanitize_html(text)
+
+	try:
+		sanitized = _sanitize_json_strings(payload, depth)
+	except PayloadTooDeep:
+		return sanitize_html(text)
+
+	if sanitized == payload:
+		return text
+
+	return json.dumps(sanitized)
+
+
+def _sanitize_json_strings(value, depth):
+	"""Sanitize every string inside a decoded JSON value, leaving its shape alone.
+
+	Strings go back through `_sanitize_payload`, so a payload nested inside another
+	payload is handled the same way.
+
+	Keys are left as they are. They are looked up as argument and field names,
+	never rendered, and rewriting one could collide with another key and drop a
+	value.
+	"""
+	if depth <= 0:
+		raise PayloadTooDeep
+
+	if isinstance(value, str):
+		return _sanitize_payload(value, depth - 1)
+
+	if isinstance(value, dict):
+		return {key: _sanitize_json_strings(item, depth - 1) for key, item in value.items()}
+
+	if isinstance(value, list):
+		return [_sanitize_json_strings(item, depth - 1) for item in value]
+
+	return value
 
 
 def sanitize_svg(svg: str) -> str:

@@ -22,6 +22,10 @@ inputs:
   disable-socketio:
     required: false
     default: false
+  disable-workers:
+    required: false
+    description: 'Whether to disable background workers'
+    default: false
   db:
     required: false
     default: mariadb
@@ -83,8 +87,8 @@ runs:
       start_time=$(date +%s)
 
       install_system_deps() {
-        curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale
-
+        # the mariadb server runs as a service container; the client tools come
+        # from ubuntu's archives so CI does not depend on mariadb.com mirrors
         sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
         wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
@@ -140,6 +144,21 @@ runs:
       fi
       if [ "${{ inputs.disable-socketio }}" == "true" ]; then
         sed -i '/^socketio:/d' Procfile
+      fi
+      if [ "${{ inputs.disable-workers }}" == "true" ]; then
+        sed -i '/^worker[^:]*:/d' Procfile
+      fi
+
+      # Tests declare the services they need with requires_test_service(). Derive those flags from the same inputs that trim the Procfile, so a job cannot  start a service it tells the tests is absent (or the reverse).
+      if [ "${{ inputs.disable-web }}" == "true" ]; then
+        echo "FRAPPE_TEST_WEB_SERVER=0" >> "$GITHUB_ENV"
+      else
+        echo "FRAPPE_TEST_WEB_SERVER=1" >> "$GITHUB_ENV"
+      fi
+      if [ "${{ inputs.disable-workers }}" == "true" ]; then
+        echo "FRAPPE_TEST_BACKGROUND_WORKER=0" >> "$GITHUB_ENV"
+      else
+        echo "FRAPPE_TEST_BACKGROUND_WORKER=1" >> "$GITHUB_ENV"
       fi
 
       end_time=$(date +%s)
@@ -203,6 +222,7 @@ runs:
       bench set-config -g root_login "$DB_ROOT_USER"
       bench set-config -g root_password "$DB_ROOT_PWD"
       bench set-config -g admin_password admin
+      bench set-config -g server_script_enabled 1 --parse
 
       bench new-site test_site \
         --db-type "$DB" \
@@ -211,7 +231,6 @@ runs:
         --db-password test_frappe \
         --verbose
       bench --site test_site set-config allow_tests 1 --parse
-      bench --site test_site set-config server_script_enabled 1 --parse
       bench --site test_site set-config host_name "http://test_site:8000"
       bench --site test_site set-config auto_email_id "test@example.com"
       bench --site test_site set-config mail_server localhost

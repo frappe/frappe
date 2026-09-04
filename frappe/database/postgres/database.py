@@ -902,6 +902,9 @@ def modify_values(values):
 		if isinstance(value, list | tuple):
 			value = tuple(modify_values(value))
 
+		elif isinstance(value, bool):
+			value = str(int(value))
+
 		elif isinstance(value, int):
 			value = str(value)
 

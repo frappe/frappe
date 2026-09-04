@@ -58,8 +58,11 @@ def get_queues_timeout() -> dict[str, int]:
 	:return: Dictionary of queue name to timeout
 	"""
 	common_site_config = frappe.get_conf()
-	custom_workers_config = common_site_config.get("workers", {})
+	custom_workers_config = common_site_config.get("workers") or {}
 	default_timeout = 300
+
+	if not isinstance(custom_workers_config, dict):
+		custom_workers_config = {}
 
 	# Note: Order matters here
 	# If no queues are specified then RQ prioritizes queues in specified order
@@ -68,7 +71,9 @@ def get_queues_timeout() -> dict[str, int]:
 		"default": default_timeout,
 		"long": 1500,
 		**{
-			worker: config.get("timeout", default_timeout) for worker, config in custom_workers_config.items()
+			worker: config.get("timeout", default_timeout)
+			for worker, config in custom_workers_config.items()
+			if isinstance(config, dict)
 		},
 	}
 	# The three built-in queues must always be present; queue validation relies on this.
@@ -427,6 +432,8 @@ def start_worker_pool(
 	_start_sentry()
 
 	# If gc.freeze is done then importing modules before forking allows us to share the memory
+	import filelock  # monitor.flush() takes a filelock inside the forked work horse
+
 	import frappe.database.query  # sqlparse and indirect imports
 	import frappe.query_builder  # pypika
 	import frappe.utils  # common utils
@@ -656,6 +663,9 @@ def create_job_id(job_id: str | None = None) -> str:
 	"""
 	Generate unique job id for deduplication
 
+	Idempotent: an id already namespaced for the current site is returned unchanged, so a
+	round-tripped id (e.g. `rq.job.Job.id`) can be passed straight back in.
+
 	:param job_id: Optional job id, if not provided, a UUID is generated for it
 	:return: Unique job id, namespaced by site
 	"""
@@ -664,7 +674,8 @@ def create_job_id(job_id: str | None = None) -> str:
 		job_id = str(uuid4())
 	else:
 		job_id = job_id.replace(":", "|")
-	namespaced_id = f"{frappe.local.site}||{job_id}"
+	site_prefix = f"{frappe.local.site}||"
+	namespaced_id = job_id if job_id.startswith(site_prefix) else site_prefix + job_id
 	assert "||" in namespaced_id, "namespaced job id must contain site separator '||'"
 	return namespaced_id
 
