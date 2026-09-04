@@ -101,22 +101,34 @@ class DeskViews:
 
 		A dashboard that holds charts or cards is permitted when the user can access at least
 		one of them. A dashboard that holds neither is permitted on the `Dashboard` document's
-		own permission, which `frappe.get_list` applies. An app draws such a
-		dashboard with an island, and the app draws its own not-permitted state for anything
-		below the document.
+		own permission, which `frappe.get_list` applies. An app draws such a dashboard with an
+		island, and draws its own not-permitted state below the document.
 
 		Evaluated for the current session user and cached like pages and reports.
 		"""
 		from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards, get_permitted_charts
 
-		def is_allowed(name):
-			dashboard = frappe.get_doc("Dashboard", name)
-			if not (dashboard.charts or dashboard.cards):
-				return True
-			return bool(get_permitted_charts(name) or get_permitted_cards(name))
-
 		def build():
-			return [{"name": name} for name in frappe.get_list("Dashboard", pluck="name") if is_allowed(name)]
+			names = frappe.get_list("Dashboard", pluck="name")
+			if not names:
+				return []
+
+			# One query per child table, so no dashboard is loaded to learn it is empty.
+			filled = set()
+			for child in ("Dashboard Chart Link", "Number Card Link"):
+				filled.update(
+					frappe.get_all(
+						child,
+						filters={"parenttype": "Dashboard", "parent": ("in", names)},
+						pluck="parent",
+					)
+				)
+
+			return [
+				{"name": name}
+				for name in names
+				if name not in filled or get_permitted_charts(name) or get_permitted_cards(name)
+			]
 
 		return cls._allowed_entity_cache("allowed_dashboards", frappe.session.user, build, cache=cache)
 

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
@@ -69,6 +71,39 @@ class TestBootData(IntegrationTestCase):
 
 			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
 			self.assertEqual(build.call_count, 1)
+
+
+class TestAllowedDashboards(IntegrationTestCase):
+	"""`get_allowed_dashboards` reads the child tables, not a document per dashboard."""
+
+	def dashboard(self, **kwargs):
+		return frappe.get_doc(doctype="Dashboard", dashboard_name=frappe.generate_hash(), **kwargs).insert()
+
+	def allowed(self):
+		return {d["name"] for d in DeskViews.get_allowed_dashboards()}
+
+	def test_a_dashboard_holding_neither_charts_nor_cards_is_allowed(self):
+		frappe.set_user("Administrator")
+		self.assertIn(self.dashboard().name, self.allowed())
+
+	def test_a_dashboard_whose_charts_are_all_out_of_reach_is_not(self):
+		frappe.set_user("Administrator")
+		chart = frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name=frappe.generate_hash(),
+			chart_type="Count",
+			document_type="ToDo",
+			based_on="creation",
+			filters_json="[]",
+		).insert()
+		empty = self.dashboard()
+		filled = self.dashboard(charts=[{"chart": chart.name}])
+
+		with patch("frappe.desk.doctype.dashboard.dashboard.get_permitted_charts", return_value=[]):
+			allowed = self.allowed()
+
+		self.assertIn(empty.name, allowed)
+		self.assertNotIn(filled.name, allowed)
 
 
 class TestPermissionQueries(IntegrationTestCase):
