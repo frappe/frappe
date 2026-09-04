@@ -141,7 +141,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		"""
 		client_secret = request.client_secret
 
-		if not client_secret or not oc.client_secret:
+		if not isinstance(client_secret, str) or not oc.client_secret:
 			return False
 
 		return hmac.compare_digest(client_secret, oc.client_secret)
@@ -211,6 +211,16 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
 		return grant_type in ["authorization_code", "refresh_token"]
+
+	def validate_user(self, username, password, client, request, *args, **kwargs):
+		"""Resource Owner Password Credentials Grant is not supported.
+
+		oauthlib's ResourceOwnerPasswordCredentialsGrant handler calls this
+		unconditionally regardless of validate_grant_type, so this must
+		exist and reject cleanly rather than fall through to the base
+		RequestValidator's NotImplementedError.
+		"""
+		return False
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
