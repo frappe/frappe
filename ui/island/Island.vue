@@ -5,8 +5,8 @@
 			name="insights.dashboard"
 			:dashboard="dashboard"
 			:context="{ user, locale, navigate }"
-			v-model:title="title"
-			v-model:actions="actions"
+			@title="title = $event"
+			@actions="actions = $event"
 			@navigate="router.push($event)"
 		/>
 
@@ -45,7 +45,7 @@ import { mountIsland } from "./host.js";
 
 const props = defineProps({
 	name: { type: String, required: true },
-	/** The host context the island reads through `useDesk()`. All fields optional. */
+	/** The host context the island reads through `useHost()`. All fields optional. */
 	context: { type: Object, default: () => ({}) },
 });
 
@@ -56,29 +56,17 @@ const emit = defineEmits(["error"]);
 const attrs = useAttrs();
 const root = ref(null);
 
-// A token per load. An import can outlive the component, so only the newest load
-// keeps its handle and anything later tears down what it mounted.
-let token = null;
 let handle = null;
 
 /**
- * The island's props object: every attr but the two the host element keeps, and
- * but the states the island reports. `v-model:title` passes `title` down as well
- * as listening for it, and the island owns that value: sent back, it lands as a
- * stray attribute on the island's root and echoes every report through `update`.
+ * The island's props object: every attr but the two the host element keeps.
+ *
+ * What an island reports is a plain event, so a host binds a listener and passes
+ * no value down. Nothing has to be held back here.
  */
-const islandProps = computed(() => {
-	const reported = new Set(
-		Object.keys(attrs)
-			.filter((key) => key.startsWith("onUpdate:"))
-			.map((key) => key.slice("onUpdate:".length))
-	);
-	return Object.fromEntries(
-		Object.entries(attrs).filter(
-			([key]) => key !== "class" && key !== "style" && !reported.has(key)
-		)
-	);
-});
+const islandProps = computed(() =>
+	Object.fromEntries(Object.entries(attrs).filter(([key]) => key !== "class" && key !== "style"))
+);
 
 onMounted(load);
 onBeforeUnmount(teardown);
@@ -93,27 +81,22 @@ watch(islandProps, (next, previous) => {
 	if (!sameProps(next, previous)) handle?.update(next);
 });
 
-async function load() {
-	const mine = (token = {});
+function load() {
+	// The handle is the component's from here on, load or no load: `update`
+	// reaches a mount still to come, and `unmount` cancels it.
+	handle?.unmount();
+	handle = mountIsland(props.name, root.value, {
+		resolve: resolveAssets,
+		host: props.context,
+		props: islandProps.value,
+	});
 
-	try {
-		const island = await mountIsland(props.name, root.value, {
-			resolve: resolveAssets,
-			desk: props.context,
-			props: islandProps.value,
-		});
-
-		if (token !== mine) return island.unmount();
-		handle = island;
-	} catch (e) {
-		if (token !== mine) return;
-		handle = null;
-		emit("error", e instanceof Error ? e : new Error(String(e)));
-	}
+	// A load this component moved on from reports nothing: the loop resolves a
+	// cancelled load rather than failing it.
+	handle.ready.catch((e) => emit("error", e instanceof Error ? e : new Error(String(e))));
 }
 
 function teardown() {
-	token = {};
 	handle?.unmount();
 	handle = null;
 }

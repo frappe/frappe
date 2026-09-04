@@ -5,14 +5,13 @@
  * `/desk/dashboard-view/<name>` — the one desk dashboard route. The page loads
  * the `Dashboard` the route names before it draws anything.
  *
- * Two renderers draw the document. An installed app claims it with a
- * `dashboard_renderer` hook, and the answer rides down on the document as
- * `__onload.island_renderer` (frappe/desk/island_renderer.py). The key present
- * means an island draws the dashboard. The key absent means the legacy widget
- * renderer below draws it. There is no third answer and no null sentinel.
+ * Two renderers draw the document. An installed app claims it in its own
+ * `onload` handler, which puts `{name, props}` on `__onload.island`. The key
+ * present means an island draws the dashboard. The key absent means the legacy
+ * widget renderer below draws it. There is no third answer and no null sentinel.
  *
- * A name no `Dashboard` answers to belongs to neither renderer, so the page
- * draws that state itself.
+ * A name no `Dashboard` answers to belongs to neither, and a third renderer
+ * draws that state. The page owns the switch between all three.
  */
 
 frappe.provide("frappe.dashboards");
@@ -40,7 +39,13 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 	// The legacy renderer has been reachable as `frappe.dashboard` for years.
 	frappe.dashboard = new Dashboard(legacy_container, page);
-	const island = new IslandDashboard(island_container, page);
+	const island_dashboard = new IslandDashboard(island_container, page);
+	const missing = new MissingDashboard(missing_container);
+	const renderers = [frappe.dashboard, island_dashboard, missing];
+
+	// What is on screen. A renderer draws again only when one of the two moves,
+	// so returning to a dashboard the page still shows costs no redraw.
+	let current = { renderer: null, name: null };
 
 	$(wrapper).on("show", async () => {
 		const name = frappe.get_route()[1];
@@ -55,31 +60,56 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		// document the reader has already left.
 		if (frappe.get_route_str() !== route) return;
 
-		if (!doc) {
-			island.hide();
-			frappe.dashboard.hide();
-			return show_missing(name);
-		}
+		// A name no `Dashboard` answers to belongs to neither renderer.
+		if (!doc) return show_renderer(missing, { name });
 
-		missing_container.hide();
-
-		const renderer = doc.__onload?.island_renderer;
-		if (renderer) {
-			frappe.dashboard.hide();
-			island.show(renderer, doc.name);
-		} else {
-			island.hide();
-			frappe.dashboard.show(doc);
-		}
+		show_renderer(doc.__onload?.island ? island_dashboard : frappe.dashboard, doc);
 	});
 
-	$(wrapper).on("hide", () => island.hide());
+	$(wrapper).on("hide", () => {
+		// Leaving the page releases the island: its Vue app and its shadow root
+		// go with the route. The legacy renderer keeps what it drew, as it
+		// always has, so coming back to it costs no redraw.
+		if (current.renderer !== island_dashboard) return;
+		hide_renderer(island_dashboard);
+		current = { renderer: null, name: null };
+	});
 
-	function show_missing(name) {
+	// The one place a renderer starts or stops drawing. Everything the page owns
+	// across the switch — the body class, the page menu — is set here, so no
+	// renderer has to know what drew before it.
+	function show_renderer(next, doc) {
+		if (current.renderer === next && current.name === doc.name) return;
+
+		for (const renderer of renderers) {
+			if (renderer !== next) hide_renderer(renderer);
+		}
+
+		// The menu belongs to what is on screen. Whatever drew here before —
+		// the other renderer, or this one on another document — leaves none.
 		page.clear_menu();
+		document.body.classList.toggle(ISLAND_PAGE_CLASS, next === island_dashboard);
+
+		current = { renderer: next, name: doc.name };
+		next.show(doc);
+	}
+
+	function hide_renderer(renderer) {
+		renderer.hide();
+		if (renderer === island_dashboard) document.body.classList.remove(ISLAND_PAGE_CLASS);
+	}
+};
+
+/** The state for a name no `Dashboard` answers to. It draws from the name alone. */
+class MissingDashboard {
+	constructor(container) {
+		this.root = container;
+	}
+
+	show({ name }) {
 		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard" });
 		frappe.utils.set_title(__("Dashboard"));
-		missing_container
+		this.root
 			.show()
 			.empty()
 			.append(
@@ -97,19 +127,23 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 				})
 			);
 	}
-};
+
+	hide() {
+		this.root.hide();
+	}
+}
 
 /**
  * The island renderer: one container for whatever island the document names.
  *
  * The island owns the body — the filter bar, the grid, and every state below the
  * document, the not-permitted one included. Desk keeps its page head and draws
- * the chrome from what the island reports: `update:title` names the page,
- * `update:actions` fills the page menu
+ * the chrome from what the island reports: `title` names the page, `actions`
+ * fills the page menu
  * (ui/island/decisions/0010-an-island-reports-title-and-actions.md).
  *
- * Desk passes the island name and the props through as the hook returned them.
- * It reads neither.
+ * Desk passes the island name and the props through as the document carried
+ * them. It reads neither.
  */
 class IslandDashboard {
 	constructor(container, page) {
@@ -117,54 +151,37 @@ class IslandDashboard {
 		this.container = container[0];
 		this.page = page;
 
-		// The renderer on screen, or the one being mounted. `null` between a hide
-		// and the next show.
-		this.renderer = null;
+		// The island the container holds, mounted or still loading, and its name.
 		this.handle = null;
+		this.island_name = null;
 	}
 
-	show(renderer, name) {
+	show(doc) {
+		const island = doc.__onload.island;
 		this.root.show();
-		document.body.classList.add(ISLAND_PAGE_CLASS);
 
 		// The document's own name until the island reports a title, so the crumb
-		// trail is right for the round trip the island spends loading. The menu
-		// belongs to the renderer on screen, so the entries of whatever drew here
-		// before — the legacy renderer, or the previous document's island — go.
-		this.docname = name;
-		this.set_title(name);
-		this.page.clear_menu();
+		// trail is right for the round trip the island spends loading.
+		this.docname = doc.name;
+		this.set_title(doc.name);
 
-		const mounted = this.renderer;
-		this.renderer = renderer;
-
-		// The same island takes the next document as props. Desk keeps the page
-		// alive across route changes within it, so the island re-fetches while its
-		// Vue app and shadow root stay put. `update` merges, so the listeners the
-		// mount passed stay bound.
-		if (mounted?.island === renderer.island) {
-			this.handle?.update(renderer.props);
+		// The same island takes the next document as props, so its Vue app and
+		// shadow root stay put while it re-fetches.
+		if (this.handle && this.island_name === island.name) {
+			this.handle.update(island.props);
 			return;
 		}
 
-		this.mount(renderer);
-	}
-
-	async mount(renderer) {
-		try {
-			const island = await frappe.ui.mount_island(renderer.island, this.container, {
-				...renderer.props,
-				"onUpdate:title": (title) => this.set_title(title),
-				"onUpdate:actions": (actions) => this.set_actions(actions),
-			});
-			// The page can be left, or another island routed to inside it, while
-			// this module loads. Both leave this mount with nothing to draw.
-			if (this.renderer?.island !== renderer.island) return island.unmount();
-			this.handle = island;
-			this.handle.update(this.renderer.props);
-		} catch (error) {
-			console.error(`could not mount the "${renderer.island}" island`, error);
-		}
+		this.island_name = island.name;
+		this.handle?.unmount();
+		this.handle = frappe.ui.mount_island(island.name, this.container, {
+			...island.props,
+			onTitle: (title) => this.set_title(title),
+			onActions: (actions) => this.set_actions(actions),
+		});
+		this.handle.ready.catch((error) =>
+			console.error(`could not mount the "${island.name}" island`, error)
+		);
 	}
 
 	/**
@@ -205,13 +222,9 @@ class IslandDashboard {
 
 	hide() {
 		this.root.hide();
-		document.body.classList.remove(ISLAND_PAGE_CLASS);
-		this.renderer = null;
 		this.handle?.unmount();
 		this.handle = null;
-		// What this island reported goes with it. The next renderer to draw here
-		// names the page itself.
-		this.page.clear_menu();
+		this.island_name = null;
 	}
 }
 
@@ -225,43 +238,35 @@ class Dashboard {
 		this.page = page;
 	}
 
-	// Takes the document the page loaded. The name it draws with is the
-	// document's own, not the route segment: a link reaches this page lowercased
-	// often enough that the crumb and the title would otherwise read `selling`.
+	// Takes the document the page loaded, and draws it. The page decides when
+	// that is worth doing. The name it draws with is the document's own, not the
+	// route segment: a link reaches this page lowercased often enough that the
+	// crumb and the title would otherwise read `selling`.
 	show(doc) {
 		this.root.show();
+		this.dashboard_name = doc.name;
 		this.set_breadcrumbs(doc.name);
-		this.show_dashboard(doc.name);
+
+		let title = this.dashboard_name;
+		if (!this.dashboard_name.toLowerCase().includes(__("dashboard"))) {
+			// ensure dashboard title has "dashboard"
+			title = __("{0} Dashboard", [__(title)]);
+		}
+		// The page head has no title slot: `set_title` writes into the
+		// `.title-text` crumb, which is the "Dashboard" list link. Naming the
+		// browser tab directly leaves the crumb trail intact.
+		frappe.utils.set_title(__(title));
+		this.set_dropdown();
+		// `empty()` drops the widget nodes without going through the group, so
+		// an island inside a chart would stay mounted on a detached node.
+		this.chart_group?.destroy();
+		this.container.empty();
+		this.charts = {};
+		this.refresh();
 	}
 
-	// This renderer gives up the page menu and body, so the next `show` draws
-	// both again. Only a renderer switch inside the page reaches here. Leaving
-	// the page keeps what was drawn, as it always has.
 	hide() {
 		this.root.hide();
-		this.dashboard_name = null;
-	}
-
-	show_dashboard(current_dashboard_name) {
-		if (this.dashboard_name !== current_dashboard_name) {
-			this.dashboard_name = current_dashboard_name;
-			let title = this.dashboard_name;
-			if (!this.dashboard_name.toLowerCase().includes(__("dashboard"))) {
-				// ensure dashboard title has "dashboard"
-				title = __("{0} Dashboard", [__(title)]);
-			}
-			// The page head has no title slot: `set_title` writes into the
-			// `.title-text` crumb, which is the "Dashboard" list link. Naming the
-			// browser tab directly leaves the crumb trail intact.
-			frappe.utils.set_title(__(title));
-			this.set_dropdown();
-			// `empty()` drops the widget nodes without going through the group, so
-			// an island inside a chart would stay mounted on a detached node.
-			this.chart_group?.destroy();
-			this.container.empty();
-			this.refresh();
-		}
-		this.charts = {};
 	}
 
 	set_breadcrumbs(docname) {

@@ -107,8 +107,9 @@ The pieces:
 | `<Island>`, a Vue app's host | `@framework/ui/island/Island.vue` |
 
 Both hosts wrap the one loop: it imports the module a name resolves to and calls its
-`mount`. They differ in how a name resolves — desk reads `frappe.boot`, `<Island>` calls
-the API. See [the decision](island/decisions/0008-one-host-loop-two-hosts.md).
+`mount`, and it hands back the handle at once. They differ in how a name resolves — desk
+reads `frappe.boot`, `<Island>` calls the API. See
+[the decision](island/decisions/0008-one-host-loop-two-hosts.md).
 
 ### 1. Write an entry — `@framework/ui/island`
 
@@ -126,9 +127,10 @@ theme, gives frappe-ui's overlays a portal target inside the root, and returns t
 `update`/`unmount` handle desk holds. Pass `configure(app)` to register plugins and
 global components, and `routes` if the island wants real navigation.
 
-Inside a component, `useDesk()` reads the ambient context desk injected — `locale`,
-`timezone`, `user`, `theme`, `navigate`. Every field is optional, so a component still
-renders in a unit test.
+Inside a component, `useHost()` reads the ambient context the host injected — `locale`,
+`timezone`, `user`, `theme`, `navigate`. The name is the seam, whichever host fills it:
+inside an island CRM hosts, `useHost()` reads CRM's context. Every field is optional, so
+a component still renders in a unit test.
 
 ### 2. Build it — `@framework/ui/vite/island`
 
@@ -167,7 +169,7 @@ ui_islands = {"insights.dashboard": "insights_dashboard"}
 Desk then mounts it by name:
 
 ```js
-const island = await frappe.ui.mount_island("insights.dashboard", el, {
+const island = frappe.ui.mount_island("insights.dashboard", el, {
   dashboard: "sales",
   onNavigate: (route) => frappe.set_route(route),
 });
@@ -178,6 +180,12 @@ The third argument is Vue's render-function props object — data keys and `on*`
 keys in one flat object, exactly what `h(Component, props)` takes. `update` merges into
 it, like a re-render. See
 [the decision](island/decisions/0009-an-island-takes-vues-props-object.md).
+
+The handle comes back at once, before the module is in hand, so no caller waits to hold
+what it must later release. `update` merges into the props the mount will start from, and
+`unmount` cancels a load still out. `await island.ready` where a caller needs the mount to
+be done: it resolves with the handle, rejects with what the load threw, and resolves after
+a cancel, because nothing failed.
 
 ### Hosting an island from a Vue app
 
@@ -193,8 +201,8 @@ import Island from "@framework/ui/island/Island.vue";
     name="insights.dashboard"
     :dashboard="dashboard"
     :context="{ user, locale, navigate }"
-    v-model:title="title"
-    v-model:actions="actions"
+    @title="title = $event"
+    @actions="actions = $event"
     @navigate="router.push($event)"
   />
 </template>
@@ -204,7 +212,7 @@ import Island from "@framework/ui/island/Island.vue";
 `frappe.utils.island.get_island_assets`. The component is transparent: everything but
 `name` and `context` is the island's props object, passed through verbatim, and a change
 to it updates the island in place. `class` and `style` stay on the host element.
-`context` is what `useDesk()` reads inside the island — the same shape desk builds, minus
+`context` is what `useHost()` reads inside the island — the same shape desk builds, minus
 `theme`, which the mount contract adds. `@error` is the component's own: it fires with
 the `Error` when a load fails, and the component renders nothing.
 
@@ -216,8 +224,8 @@ host an island.
 An island draws no page header. It reports what a header would say, and each host draws
 its own chrome from it:
 
-- `update:title` — a `string` or `null`, the name of what the island shows.
-- `update:actions` — an `Action[]`, where `Action` is `{ label, icon? }` plus either an
+- `title` — a `string` or `null`, the name of what the island shows.
+- `actions` — an `Action[]`, where `Action` is `{ label, icon? }` plus either an
   `onClick` or an `href`.
 
 An `onClick` runs in the island. An `href` is a URL — absolute or site-relative — to a
@@ -225,14 +233,15 @@ page outside the host app: the island says where the action goes, and the host d
 what a link out of the app does. A host opens it in a new tab, and may mark it as leaving
 the app in its own idiom.
 
-Desk turns them into the page title and the page menu; a frappe-ui app turns them into
-its `LayoutHeader`. A hyphen or a colon in an event name has to stay quoted, because Vue
-camelizes neither:
+Desk turns them into the page title and the page menu. A frappe-ui app turns them into
+its `LayoutHeader`. Both are plain events, because a host never sets either one: a Vue
+host binds them with `@title` and `@actions`, and a desk caller passes `onTitle` and
+`onActions`.
 
 ```js
-await frappe.ui.mount_island("insights.dashboard", el, {
-  "onUpdate:title": (title) => page.set_title(title || __("Dashboard")),
-  "onUpdate:actions": (actions) =>
+frappe.ui.mount_island("insights.dashboard", el, {
+  onTitle: (title) => page.set_title(title || __("Dashboard")),
+  onActions: (actions) =>
     draw_menu(
       actions.map((a) => ({
         label: a.label,

@@ -12,18 +12,25 @@ over it.
 
 The loop imports nothing — not vue, not frappe-ui, not frappe. What differs
 between hosts is injected: a `resolve(name)` that returns the module and
-stylesheet URLs, and the context the island reads through `useDesk()`. Desk
+stylesheet URLs, and the context the island reads through `useHost()`. Desk
 resolves against `frappe.boot`, `<Island>` calls
 `frappe.utils.island.get_island_assets`.
 
 Desk keeps what is desk's: the boot registry, the desk context, the
 `frappe.ui.mount_island` API and the hot-update registration. `<Island>` keeps
-what is Vue's: the lifecycle, the prop watch, and the token that unmounts an
-island whose load finished after the component was gone.
+what is Vue's: the lifecycle and the prop watch.
+
+The handle is synchronous, so the loop owns the load as well as the mount. A
+caller holds what it must later release from the first line, and `update` and
+`unmount` work before the module lands: an update merges into the props the
+mount starts from, and an unmount cancels the load. Every host would otherwise
+carry the same guard against an import that finishes after the caller moved on,
+and three did.
 
 The rules the loop carries are the ones that were each found once and are silent
 when wrong. A re-mount keeps the handle the caller holds. A module that fails to
-load leaves the island already on screen alone. The context key is `desk`.
+load leaves the island already on screen alone. The context key is `host`, not
+`desk`: inside an island CRM hosts, the context is CRM's.
 
 ## Rejected: two loaders, each with its own loop
 

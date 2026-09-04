@@ -6,11 +6,10 @@ header belongs to the host, which already draws one for every other page.
 
 ## Decision
 
-An island ships no header. It emits what a header would say, as child-owned
-state:
+An island ships no header. It emits what a header would say:
 
-- `update:title` — a `string` or `null`.
-- `update:actions` — an `Action[]`, `Action` being `{ label, icon? }` plus either an
+- `title` — a `string` or `null`.
+- `actions` — an `Action[]`, `Action` being `{ label, icon? }` plus either an
   `onClick` or an `href`.
 
 An `onClick` runs in the island. An `href` is a URL — absolute or site-relative — to a
@@ -23,9 +22,23 @@ page menu; a frappe-ui app fills its `LayoutHeader`. Nothing in the island knows
 which host it is in, and each host's header stays native — desk's menu is a desk
 menu, and it is where a desk reader looks for it.
 
-The two are `update:` events, so a Vue host binds them with `v-model:title` and
-`v-model:actions` and a desk caller passes `"onUpdate:title"`. See
+Both are plain events. A Vue host binds them with `@title` and `@actions`, and a
+desk caller passes `onTitle` and `onActions`. See
 [0009](0009-an-island-takes-vues-props-object.md).
+
+## Rejected: `update:` events, bound with `v-model`
+
+`update:title` and `update:actions`, so that a Vue host writes `v-model:title`.
+
+`v-model:actions` is `:actions` plus `@update:actions`, and the island declares
+neither prop. The binding passes a value into a component that ignores it, and it
+reads as state the host and the island share. Nothing is shared. The island
+reports and the host stores, which is what a plain event says.
+
+The sugar also cost `<Island>` a filter. It had to strip every `update:`-shaped
+attr out of the island's props object, or the value a host bound came back down
+as a stray attribute and echoed each report through `update`. A plain event
+passes nothing down, so the filter went with it.
 
 ## Rejected: the island draws its own header
 

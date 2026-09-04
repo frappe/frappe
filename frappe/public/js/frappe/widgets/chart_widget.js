@@ -46,7 +46,7 @@ export default class ChartWidget extends Widget {
 
 		// `type` says how desk draws a chart, and an island is drawn by an app, so
 		// a heatmap's forced full width and legend do not apply to it.
-		if (!this.island_renderer && this.chart_doc.type == "Heatmap") {
+		if (!this.island && this.chart_doc.type == "Heatmap") {
 			this.setup_heatmap_container();
 		}
 
@@ -98,7 +98,7 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
-			if (this.island_renderer) return this.make_island();
+			if (this.island) return this.make_island();
 
 			if (!this.settings) {
 				this.deleted = true;
@@ -134,7 +134,7 @@ export default class ChartWidget extends Widget {
 	 * Nothing below this fetches chart data. Desk does not know what the island
 	 * draws, and the props it draws from came down with the document.
 	 */
-	async make_island() {
+	make_island() {
 		this.setup_container();
 
 		if (!this.in_customize_mode) {
@@ -148,43 +148,30 @@ export default class ChartWidget extends Widget {
 		// takes the same number as a fixed height.
 		this.chart_wrapper.css("height", `${this.height}px`);
 
-		// The import can outlive the widget. Only the newest mount keeps its
-		// handle, so a teardown during a load leaves no island behind.
-		const token = (this.island_token = {});
+		this.island_handle = frappe.ui.mount_island(this.island.name, this.chart_wrapper, {
+			...this.island.props,
+			// The island reports its actions as it loads them, and again whenever
+			// they change. It reports no title: desk heads the widget with the
+			// chart document's own name.
+			onActions: (actions) => this.prepare_island_actions(actions),
+		});
 
-		try {
-			const island = await frappe.ui.mount_island(
-				this.island_renderer.island,
-				this.chart_wrapper,
-				{
-					...this.island_renderer.props,
-					// The island reports its actions as it loads them, and again
-					// whenever they change. `update:title` goes unread: desk heads
-					// the widget with the chart document's own name.
-					"onUpdate:actions": (actions) => {
-						if (this.island_token !== token) return;
-						this.prepare_island_actions(actions);
-					},
-				}
-			);
-
-			if (this.island_token !== token) return island.unmount();
-			this.island = island;
-			this.loading.hide();
-		} catch (e) {
-			console.error(e);
-			if (this.island_token !== token) return;
-			this.chart_wrapper.hide();
-			this.loading.hide();
-			this.empty.hide();
-			this.error_state.text(__("Could not draw this chart: {0}", [e.message]));
-			this.error_state.show();
-		}
+		this.island_handle.ready.then(
+			() => this.loading.hide(),
+			(e) => {
+				console.error(e);
+				this.chart_wrapper.hide();
+				this.loading.hide();
+				this.empty.hide();
+				this.error_state.text(__("Could not draw this chart: {0}", [e.message]));
+				this.error_state.show();
+			}
+		);
 	}
 
 	/**
 	 * The island's own actions, then Edit — desk's, because the document behind
-	 * the chart is desk's. Called again on every `update:actions`, so the menu
+	 * the chart is desk's. Called again on every `actions` report, so the menu
 	 * says what the island says now.
 	 *
 	 * None of desk's other chart actions apply: they drive a fetch desk does not
@@ -224,11 +211,8 @@ export default class ChartWidget extends Widget {
 
 	/** Releases the island the body holds, if any. Safe to call at any time. */
 	unmount_island() {
-		this.island_token = null;
-		if (this.island) {
-			this.island.unmount();
-			this.island = null;
-		}
+		this.island_handle?.unmount();
+		this.island_handle = null;
 	}
 
 	destroy() {
@@ -961,8 +945,8 @@ export default class ChartWidget extends Widget {
 				// An app draws this chart. The key is absent when none does, so
 				// absence alone runs desk's own renderer below. Read on every
 				// call, because the document may have changed.
-				this.island_renderer = chart_doc.__onload?.island_renderer;
-				if (this.island_renderer) return Promise.resolve();
+				this.island = chart_doc.__onload?.island;
+				if (this.island) return Promise.resolve();
 
 				if (this.chart_doc.chart_type == "Custom") {
 					// custom source

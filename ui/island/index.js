@@ -4,5 +4,5 @@
 // `frappe.ui.mount_island`, which resolves an island's name and calls the
 // `mount` export this module's `mountVueIsland` returns a handle for.
 
-export { mountVueIsland, deskKey } from "./mount.js";
-export { useDesk } from "./desk.js";
+export { mountVueIsland } from "./mount.js";
+export { hostKey, useHost } from "./context.js";

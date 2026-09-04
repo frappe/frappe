@@ -31,7 +31,7 @@ const FIXTURE_MODULE = `
 		const render = () => (node.textContent = props.label || "");
 		render();
 
-		context.props?.onReady?.(context.desk);
+		context.props?.onReady?.(context.host);
 
 		return Promise.all((context.styles || []).map(adopt)).then((sheets) => {
 			root.adoptedStyleSheets = sheets;
@@ -102,7 +102,7 @@ context("Island", () => {
 	it("resolves a declared name and mounts what it names", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-1");
-			return win.frappe.ui.mount_island(ISLAND, el, { label: "hello" }).then(() => {
+			return win.frappe.ui.mount_island(ISLAND, el, { label: "hello" }).ready.then(() => {
 				expect(win.__island_mounts).to.equal(1);
 				expect(shadow_text(el)).to.equal("hello");
 			});
@@ -112,12 +112,12 @@ context("Island", () => {
 	it("hands the island desk's context", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-2");
-			return win.frappe.ui.mount_island(ISLAND, el, {}).then(() => {
-				const desk = win.__island_context.desk;
-				expect(desk.user).to.equal(win.frappe.session.user);
-				expect(desk.locale).to.be.a("string");
-				expect(desk.base_url).to.be.a("string");
-				expect(desk.navigate).to.be.a("function");
+			return win.frappe.ui.mount_island(ISLAND, el, {}).ready.then(() => {
+				const host = win.__island_context.host;
+				expect(host.user).to.equal(win.frappe.session.user);
+				expect(host.locale).to.be.a("string");
+				expect(host.base_url).to.be.a("string");
+				expect(host.navigate).to.be.a("function");
 			});
 		});
 	});
@@ -125,7 +125,7 @@ context("Island", () => {
 	it("hands the island its own stylesheet", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-3");
-			return win.frappe.ui.mount_island(ISLAND, el, {}).then(() => {
+			return win.frappe.ui.mount_island(ISLAND, el, {}).ready.then(() => {
 				expect(win.__island_context.styles).to.deep.equal([
 					win.frappe.boot.assets_json[`${BUNDLE}.island.css`],
 				]);
@@ -139,7 +139,7 @@ context("Island", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-4");
 			const ready = cy.stub();
-			return win.frappe.ui.mount_island(ISLAND, el, { onReady: ready }).then(() => {
+			return win.frappe.ui.mount_island(ISLAND, el, { onReady: ready }).ready.then(() => {
 				expect(ready).to.have.been.calledOnce;
 			});
 		});
@@ -148,18 +148,20 @@ context("Island", () => {
 	it("update(props) reaches the island without re-mounting it", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-5");
-			return win.frappe.ui.mount_island(ISLAND, el, { label: "before" }).then((island) => {
-				island.update({ label: "after" });
-				expect(shadow_text(el)).to.equal("after");
-				expect(win.__island_mounts).to.equal(1);
-			});
+			return win.frappe.ui
+				.mount_island(ISLAND, el, { label: "before" })
+				.ready.then((island) => {
+					island.update({ label: "after" });
+					expect(shadow_text(el)).to.equal("after");
+					expect(win.__island_mounts).to.equal(1);
+				});
 		});
 	});
 
 	it("unmounts idempotently", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-6");
-			return win.frappe.ui.mount_island(ISLAND, el, {}).then((island) => {
+			return win.frappe.ui.mount_island(ISLAND, el, {}).ready.then((island) => {
 				island.unmount();
 				island.unmount();
 				expect(win.__island_unmounts).to.equal(1);
@@ -173,7 +175,9 @@ context("Island", () => {
 			const el = host_element(win, "island-7");
 			return win.frappe.ui
 				.mount_island(ISLAND, el, { label: "first" })
-				.then(() => win.frappe.ui.mount_island(ISLAND, el, { label: "second" }))
+				.ready.then(
+					() => win.frappe.ui.mount_island(ISLAND, el, { label: "second" }).ready
+				)
 				.then(() => {
 					expect(win.__island_unmounts).to.equal(1);
 					expect(el.querySelectorAll(".fixture-island")).to.have.length(1);
@@ -185,7 +189,7 @@ context("Island", () => {
 	it("explains an island name no app declares", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-8");
-			return win.frappe.ui.mount_island("nosuchapp.nosuchisland", el, {}).then(
+			return win.frappe.ui.mount_island("nosuchapp.nosuchisland", el, {}).ready.then(
 				() => {
 					throw new Error("expected mount_island to reject");
 				},
@@ -200,7 +204,7 @@ context("Island", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-9");
 			win.frappe.boot.ui_islands["frappe.unbuilt"] = "unbuilt_fixture";
-			return win.frappe.ui.mount_island("frappe.unbuilt", el, {}).then(
+			return win.frappe.ui.mount_island("frappe.unbuilt", el, {}).ready.then(
 				() => {
 					throw new Error("expected mount_island to reject");
 				},
@@ -216,7 +220,7 @@ context("Island", () => {
 			const el = host_element(win, "island-10");
 			return win.frappe.ui
 				.mount_island(ISLAND, el, {})
-				.then(() => win.frappe.require("dialog.bundle.js"))
+				.ready.then(() => win.frappe.require("dialog.bundle.js"))
 				.then(() => {
 					const dialog = new win.frappe.ui.Dialog({ title: "classic" });
 					dialog.show();

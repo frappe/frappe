@@ -20,7 +20,7 @@ Desk's half is the other side of the same seam and stays in desk:
 `frappe.ui.mount_island` resolves the name, assembles the desk context, and calls
 the island's `mount`. It touches no Vue, so desk's bundle stays what it is.
 
-`@framework/ui/island` also exports `deskKey` and `useDesk`, so an island reads
+`@framework/ui/island` also exports `hostKey` and `useHost`, so an island reads
 its host context through the same module that provides it, rather than each app
 declaring the symbol again.
 

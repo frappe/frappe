@@ -1,13 +1,16 @@
 /**
  * frappe.ui.mount_island — the one call desk makes to put an app's island on a page.
  *
- *     const island = await frappe.ui.mount_island("insights.dashboard", el, {
+ *     const island = frappe.ui.mount_island("insights.dashboard", el, {
  *         dashboard: "sales",
  *         onNavigate: (route) => frappe.set_route(route),
- *         "onUpdate:title": (title) => page.set_title(title || __("Dashboard")),
+ *         onTitle: (title) => page.set_title(title || __("Dashboard")),
  *     });
  *     island.update({ filters });
  *     island.unmount();
+ *
+ * The handle comes back at once. `island.ready` is the load: it resolves when the
+ * island is on the page and rejects with what the load threw.
  *
  * Desk is one host of an island; a frappe-ui app is another. The loop both run —
  * import the module, call its `mount`, keep the handle — is
@@ -19,16 +22,12 @@
  * self-contained ES module, so this file rides desk's normal esbuild bundle and
  * the page needs nothing loaded ahead of the island itself.
  *
- * The caller passes the island's props. Desk adds `desk` and `styles`. Everything
+ * The caller passes the island's props. Desk adds `host` and `styles`. Everything
  * the island then does with them is the app's own build:
  * ui/island/decisions/0001-an-app-bundles-its-own-island.md.
  */
 
-import {
-	mountIsland,
-	reloadChangedIslands,
-	unmountIsland,
-} from "../../../../../../ui/island/host.js";
+import { mountIsland, reloadChangedIslands, unmountIsland } from "@framework/ui/island/host";
 
 const ISLAND_JS_SUFFIX = ".island.js";
 const ISLAND_CSS_SUFFIX = ".island.css";
@@ -37,12 +36,12 @@ const ISLAND_CSS_SUFFIX = ".island.css";
  * @param {string} name        Island name as declared in an app's `ui_islands` hook.
  * @param {HTMLElement|JQuery} el
  * @param {Object} [props]     Vue's props object: data and `on*` listeners.
- * @returns {Promise<{ update: (props: Object) => void, unmount: () => void }>}
+ * @returns {{ update: (props: Object) => void, unmount: () => void, ready: Promise }}
  */
 function mount_island(name, el, props = {}) {
 	return mountIsland(name, el, {
 		resolve: resolve_island,
-		desk: build_desk(),
+		host: build_desk_context(),
 		props,
 	});
 }
@@ -74,9 +73,9 @@ function resolve_island(name) {
  * Everything here is data or a desk call. Nothing in it is a Vue value, because
  * desk's bundle and the island run on separate copies of Vue.
  */
-function build_desk() {
+function build_desk_context() {
 	const boot = frappe.boot || {};
-	const desk = {
+	const context = {
 		locale: boot.lang || "en",
 		timezone: boot.time_zone?.user || boot.time_zone?.system || null,
 		user: frappe.session?.user || boot.user?.name || null,
@@ -88,7 +87,7 @@ function build_desk() {
 		navigate: (route) => frappe.set_route(route),
 	};
 
-	return desk;
+	return context;
 }
 
 frappe.provide("frappe.ui");
