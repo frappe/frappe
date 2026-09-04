@@ -222,8 +222,11 @@ export default class BulkEdit {
 
 		// the cell message goes in the footer's own left slot, opposite the actions,
 		// so the preview keeps that line of height for the table instead
+		// .indicator red is how frappe marks a red status inline — the Data Import
+		// preview marks its own errored columns the same way. The text sits in a
+		// child so it can be clipped; .indicator itself is a flex row.
 		this.$message = $(
-			'<div class="bulk-edit-footer-message text-muted small"></div>',
+			'<div class="bulk-edit-footer-message indicator red small hide"><span></span></div>',
 		).appendTo(this.dialog.custom_actions);
 
 		this.tabs.$el.css({
@@ -525,7 +528,8 @@ export default class BulkEdit {
 	 */
 	show_cell_message(control) {
 		const message = control?._warning?.message || "";
-		this.$message.text(message).attr("title", message);
+		this.$message.toggleClass("hide", !message).attr("title", message);
+		this.$message.children("span").text(message);
 	}
 
 	pin_dropdown(control) {
@@ -1051,6 +1055,9 @@ export default class BulkEdit {
 						: __("Showing all {0} rows", [rows.length])
 				}</span>
 			</div>
+			<div class="bulk-edit-preview-hint text-muted small">${__(
+				"Fix the highlighted cells. Click one to see and resolve its error.",
+			)}</div>
 			<div class="bulk-edit-preview-table">
 				<table class="table table-bordered">
 					<thead>
