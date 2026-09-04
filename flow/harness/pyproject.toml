@@ -1,5 +1,5 @@
 [project]
-name = "flow"
+name = "frappe-flow"
 version = "0.1.0"
 description = "A standalone, client-server agent harness (the brain). Frappe/Flow is one client among many."
 requires-python = ">=3.14"
@@ -31,6 +31,15 @@ flow = "flow.cli.main:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build]
+# built by the hook below, and gitignored, but ships in the package
+artifacts = ["src/flow/server/webui/"]
+# only ui/.gitignore lists these, and hatchling reads the root one
+exclude = ["**/node_modules"]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/flow", "src/flow_tui"]
