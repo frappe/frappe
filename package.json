@@ -20,6 +20,7 @@
   },
   "homepage": "https://frappeframework.com",
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^2.0.1",
     "@editorjs/editorjs": "^2.28.2",
     "@fullcalendar/core": "^6.1.11",
     "@fullcalendar/daygrid": "^6.1.11",

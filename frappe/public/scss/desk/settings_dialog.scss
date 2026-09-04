@@ -255,11 +255,23 @@ table + .settings-dialog-section-heading {
 
 .settings-dialog-panel-body .form-section:not(:first-child) {
 	border-top: none;
+	margin-top: 0;
 }
 
 .settings-dialog-panel-body .form-section:not(:first-child):has(> .section-head) {
 	border-top: 1px solid var(--outline-gray-2);
 	padding-top: var(--padding-sm);
+	margin-top: var(--margin-sm);
+}
+
+// Consistent column spacing (match modal form layout)
+.settings-dialog-panel-body .form-section .form-column {
+	&:first-child {
+		padding-left: 0;
+	}
+	&:last-child {
+		padding-right: 0;
+	}
 }
 
 .settings-dialog-panel-body .control-label {

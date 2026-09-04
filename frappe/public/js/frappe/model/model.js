@@ -279,7 +279,13 @@ $.extend(frappe.model, {
 		}
 		// custom scripts run last so they can override the standard
 		// definitions for any view, calendar included (#37460)
-		for (const asset_key of ["__list_js", "__calendar_js", "__tree_js", "__custom_list_js"]) {
+		for (const asset_key of [
+			"__list_js",
+			"__calendar_js",
+			"__tree_js",
+			"__kanban_js",
+			"__custom_list_js",
+		]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}
