@@ -18,7 +18,9 @@ from frappe.database.utils import (
 	convert_to_value,
 	get_doctype_name,
 	get_doctype_sort_info,
+	get_order_by_fields,
 	is_non_text_field,
+	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
@@ -343,8 +345,11 @@ class Engine:
 
 		if order_by:
 			if not (
-				self.is_postgres and is_select and distinct
-			):  # ignore in Postgres since order by fields need to appear in select distinct
+				self.is_postgres
+				and is_select
+				and distinct
+				and not self._can_apply_distinct_order_by(order_by)
+			):
 				self.apply_order_by(order_by)
 			else:
 				warnings.warn(
@@ -1293,6 +1298,10 @@ class Engine:
 	def _normalize_postgres_order_field(self, field):
 		"""In PostgreSQL order_by fields need to either be in group_by or be aggregated
 		when used with select and group_by"""
+		# DISTINCT ordering already refers to selected expressions. Wrapping them would
+		# create an unselected expression and PostgreSQL would reject the query.
+		if self.query._distinct or isinstance(field, int):
+			return field
 		current_sql = field.get_sql() if hasattr(field, "get_sql") else str(field)
 		if current_sql in self._grouped_queries:
 			return field
@@ -1350,6 +1359,45 @@ class Engine:
 			else:
 				self.query = self.query.orderby(order_field, order=order_direction)
 
+	def _can_apply_distinct_order_by(self, order_by: str) -> bool:
+		if not isinstance(order_by, str):
+			return True
+
+		selected_field_count = 0
+		selected_fields = set()
+		for field in self.fields:
+			if isinstance(field, ChildQuery):
+				continue
+			term = field.field if isinstance(field, DynamicTableField) else field
+			if isinstance(field, LinkTableField):
+				selected_fields.add(f"{field.link_fieldname}.{field.fieldname}")
+			elif isinstance(field, ChildTableField) and field.parent_fieldname:
+				selected_fields.add(f"{field.parent_fieldname}.{field.fieldname}")
+
+			if alias := getattr(field, "alias", None):
+				selected_fields.add(alias)
+			terms = self._get_star_fields(term) if isinstance(term, Star) else [term]
+			selected_field_count += len(terms)
+			for term in terms:
+				if not isinstance(term, Field):
+					continue
+				table = term.table if term.table is not None else self.table
+				if table == self.table:
+					selected_fields.add(term.name)
+				selected_fields.add(f"{table.get_table_name()}.{term.name}")
+
+		if order_by == DefaultOrderBy:
+			order_by = ", ".join(
+				f"{self.table.get_table_name()}.{field}"
+				for field in get_order_by_fields(get_doctype_sort_info(self.doctype)[0])
+			)
+		return is_order_by_in_select(order_by, selected_fields, selected_field_count)
+
+	def _get_star_fields(self, star: Star) -> list[Field]:
+		table = star.table if star.table is not None else self.table
+		columns = frappe.db.get_table_columns(get_doctype_name(table.get_table_name()))
+		return [table[column] for column in columns]
+
 	def _apply_default_order_by(self):
 		"""Apply default ordering based on configured DocType metadata"""
 		from pypika.enums import Order
@@ -1398,7 +1446,7 @@ class Engine:
 
 		return (match.group(1), match.group(3))
 
-	def _validate_and_parse_field_for_clause(self, field_name: str, clause_name: str) -> Field:
+	def _validate_and_parse_field_for_clause(self, field_name: str, clause_name: str) -> Field | int:
 		"""
 		Common helper to validate and parse field names for GROUP BY and ORDER BY clauses.
 
@@ -1410,8 +1458,7 @@ class Engine:
 			Parsed Field object ready for use in pypika query
 		"""
 		if field_name.isdigit():
-			# For numeric field references, return as-is (will be handled by caller)
-			return field_name
+			return int(field_name)
 
 		# Allow function aliases and field aliases - return as Field (no table prefix)
 		if field_name in self.function_aliases or field_name in self.field_aliases:
@@ -1479,7 +1526,7 @@ class Engine:
 
 		return parsed_fields
 
-	def _validate_order_by(self, order_by: str) -> list[tuple[Field | str, Order]]:
+	def _validate_order_by(self, order_by: str) -> list[tuple[Field | int, Order]]:
 		"""Validate the order_by string argument, apply joins for dynamic fields, and return parsed Field objects with directions."""
 		if not isinstance(order_by, str):
 			frappe.throw(_("Order By must be a string"), TypeError)
