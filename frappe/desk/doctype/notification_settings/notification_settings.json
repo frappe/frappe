@@ -18,14 +18,9 @@
   "enable_email_assignment",
   "enable_email_energy_point",
   "enable_email_share",
-<<<<<<< HEAD
-  "user",
   "seen",
   "system_notifications_section",
   "energy_points_system_notifications"
-=======
-  "seen"
->>>>>>> 0317a7e (refactor: drop unused `user` field from Notification Settings)
  ],
  "fields": [
   {
