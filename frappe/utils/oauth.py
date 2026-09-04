@@ -199,17 +199,46 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 		token = parsed_access["id_token"]
 		info = jwt.decode(token, flow.client_secret, options={"verify_signature": False})
 
+		if provider == "office_365" and "email_verified" not in info:
+			# Azure AD's id_token doesn't emit this claim; base_url/authorize_url for this
+			# provider are hardcoded (not attacker-registrable), so the identity is trusted.
+			info["email_verified"] = True
+
 	else:
 		api_endpoint = oauth2_providers[provider].get("api_endpoint")
 		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
 		info = session.get(api_endpoint, params=api_endpoint_args).json()
 
-		if provider == "github" and not info.get("email"):
-			emails = session.get("/user/emails", params=api_endpoint_args).json()
-			email_dict = next(filter(lambda x: x.get("primary"), emails))
-			info["email"] = email_dict.get("email")
+		if provider == "github":
+			if info.get("email"):
+				# GitHub only allows a verified address to be set as the public profile email.
+				info["email_verified"] = True
+			else:
+				emails = session.get("/user/emails", params=api_endpoint_args).json()
+				email_dict = next(filter(lambda x: x.get("primary"), emails), None)
+				if email_dict:
+					info["email"] = email_dict.get("email")
+					info["email_verified"] = email_dict.get("verified", False)
 
-	if not (info.get("email_verified") or get_email(info)):
+		if provider == "google" and "verified_email" in info:
+			info["email_verified"] = info.get("verified_email")
+
+		if provider == "facebook" and info.get("email"):
+			# Facebook only returns "email" once the user has confirmed it, and the
+			# per-user "verified" field is deprecated/unreliable, so trust presence directly.
+			info["email_verified"] = True
+
+	provider_trusts_unverified_email = frappe.db.get_value(
+		"Social Login Key", provider, "trust_email_without_verified_claim"
+	)
+	if not (
+		get_email(info)
+		and (
+			info.get("email_verified")
+			# never override an explicit "email_verified": false, only its absence
+			or ("email_verified" not in info and provider_trusts_unverified_email)
+		)
+	):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
