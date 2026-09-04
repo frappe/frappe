@@ -38,6 +38,8 @@ npm install
 npm run build -w app
 ```
 
+Packaging does this for you: `uv build` runs the same npm build, so a published wheel always carries the UI. Only a source checkout needs the step above.
+
 ## Environment
 
 | Variable | Default | Meaning |
