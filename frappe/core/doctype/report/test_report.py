@@ -465,6 +465,78 @@ result = [
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
 
+	def test_read_path_blocked_by_has_role(self):
+		"""has_permission hook raises PermissionError for unpermitted user on frappe.get_doc."""
+		role = "Test Read Path Role"
+		report_name = "Test Read Path Block Report"
+		try:
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
+
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"report_name": report_name,
+					"ref_doctype": "User",
+					"report_type": "Query Report",
+					"is_standard": "No",
+					"query": "select name from tabUser limit 1",
+					"roles": [{"role": role}],
+				}
+			).insert(ignore_permissions=True)
+
+			unpermitted = create_user("test_read_blocked@example.com", "Website Manager")
+			permitted = create_user("test_read_allowed@example.com", role)
+
+			with self.set_user(unpermitted.email):
+				with self.assertRaises(frappe.PermissionError):
+					frappe.get_doc("Report", report_name, check_permission=True)
+
+			with self.set_user(permitted.email):
+				doc = frappe.get_doc("Report", report_name, check_permission=True)
+				self.assertEqual(doc.name, report_name)
+
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.delete("Report", {"name": report_name})
+
+	def test_get_list_filtered_by_has_role(self):
+		"""get_permission_query_conditions excludes restricted reports from list for unpermitted users."""
+		role = "Test List Filter Role"
+		report_name = "Test List Filter Report"
+		try:
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
+
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"report_name": report_name,
+					"ref_doctype": "User",
+					"report_type": "Query Report",
+					"is_standard": "No",
+					"query": "select name from tabUser limit 1",
+					"roles": [{"role": role}],
+				}
+			).insert(ignore_permissions=True)
+
+			unpermitted = create_user("test_list_blocked@example.com", "Website Manager")
+			permitted = create_user("test_list_allowed@example.com", role)
+
+			with self.set_user(unpermitted.email):
+				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
+				self.assertEqual(results, [])
+
+			with self.set_user(permitted.email):
+				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
+				self.assertEqual(len(results), 1)
+				self.assertEqual(results[0].name, report_name)
+				self.assertEqual(results[0].query, "select name from tabUser limit 1")
+
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.delete("Report", {"name": report_name})
+
 	def test_report_cache_invalidation(self):
 		import frappe.sessions
 		from frappe.utils import set_request

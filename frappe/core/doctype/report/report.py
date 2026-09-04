@@ -146,7 +146,7 @@ class Report(Document):
 				roles = [{"role": d.role} for d in meta.permissions if d.permlevel == 0]
 				self.set("roles", roles)
 
-	def is_permitted(self):
+	def is_permitted(self, user=None):
 		"""Return True if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
@@ -160,7 +160,7 @@ class Report(Document):
 		if not allowed:
 			return True
 
-		if has_common(frappe.get_roles(), allowed):
+		if has_common(frappe.get_roles(user), allowed):
 			return True
 
 	def update_report_json(self):
@@ -561,12 +561,70 @@ def enable_prepared_report(report: str, site: str):
 
 def get_permission_query_conditions(user=None):
 	"""Hide Postgres-only diagnostic reports (named with a "Postgres " prefix) from the report
-	list on other database backends, where they raise instead of running."""
+	list on other database backends, where they raise instead of running.
+
+	Also hide reports whose Has Role table is set but does not include any role held by the
+	current user — mirroring the gate applied on the run path by get_report_doc()."""
+	user = user or frappe.session.user
+	user_roles = frappe.get_roles(user)
+	escaped_roles = ", ".join(frappe.db.escape(r) for r in user_roles)
+
 	if frappe.db.db_type == "postgres":
-		return None
+		role_condition = f"""(
+			EXISTS (
+				SELECT 1 FROM "tabCustom Role" cr
+				JOIN "tabHas Role" hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+				WHERE cr.report = "tabReport"."name" AND hr.role IN ({escaped_roles})
+			)
+			OR (
+				NOT EXISTS (
+					SELECT 1 FROM "tabCustom Role" cr
+					JOIN "tabHas Role" hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+					WHERE cr.report = "tabReport"."name"
+				)
+				AND (
+					NOT EXISTS (
+						SELECT 1 FROM "tabHas Role"
+						WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
+					)
+					OR EXISTS (
+						SELECT 1 FROM "tabHas Role"
+						WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
+						AND "role" IN ({escaped_roles})
+					)
+				)
+			)
+		)"""
+		return role_condition
+
 	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
 	# printf placeholder when the list query is parameterized, raising "not enough arguments".
-	return "substr(`tabReport`.`name`, 1, 9) != 'Postgres '"
+	role_condition = f"""(
+		EXISTS (
+			SELECT 1 FROM `tabCustom Role` cr
+			JOIN `tabHas Role` hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+			WHERE cr.report = `tabReport`.`name` AND hr.role IN ({escaped_roles})
+		)
+		OR (
+			NOT EXISTS (
+				SELECT 1 FROM `tabCustom Role` cr
+				JOIN `tabHas Role` hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+				WHERE cr.report = `tabReport`.`name`
+			)
+			AND (
+				NOT EXISTS (
+					SELECT 1 FROM `tabHas Role`
+					WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
+				)
+				OR EXISTS (
+					SELECT 1 FROM `tabHas Role`
+					WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
+					AND `role` IN ({escaped_roles})
+				)
+			)
+		)
+	)"""
+	return f"substr(`tabReport`.`name`, 1, 9) != 'Postgres ' AND {role_condition}"
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
@@ -574,5 +632,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
 	report list's SQL filter under MariaDB's case-insensitive collation."""
 	if frappe.db.db_type != "postgres" and doc.name and doc.name.lower().startswith("postgres "):
+		return False
+	if ptype in ("read", "report") and not doc.is_permitted(user):
 		return False
 	return True
