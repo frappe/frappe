@@ -1,5 +1,5 @@
 [project]
-name = "flow"
+name = "frappe-flow"
 version = "0.1.0"
 description = "A standalone, client-server agent harness (the brain). Frappe/Flow is one client among many."
 requires-python = ">=3.14"
