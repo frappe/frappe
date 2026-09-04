@@ -13,6 +13,10 @@ from frappe import _
 # editor never has to infer one from `options_source`, which names a data source.
 USER_CONTROL = "users"
 
+# Two more hints an editor reads off a param, both optional:
+# `link_filters` narrows what a Link param may point at, and `exclusive_with` names the param
+# this one stands in for, so the editor can hide whichever of the pair is not in use.
+
 
 class AutomationParamError(frappe.ValidationError):
 	"""Raised when an action's params are invalid; carries the offending fieldname."""
