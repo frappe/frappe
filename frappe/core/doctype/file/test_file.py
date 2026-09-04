@@ -23,6 +23,7 @@ from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extensio
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -645,6 +646,7 @@ class TestFile(IntegrationTestCase):
 		test_file.file_name = "/private/files/_file"
 		self.assertRaisesRegex(ValidationError, "File name cannot have", test_file.validate)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_make_thumbnail(self):
 		# test web image
 		test_file: File = frappe.get_doc(
