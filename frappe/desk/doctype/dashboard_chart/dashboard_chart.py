@@ -8,7 +8,6 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.island_renderer import set_island_renderer
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -386,9 +385,6 @@ class DashboardChart(Document):
 		x_field: DF.Literal[None]
 		y_axis: DF.Table[DashboardChartField]
 	# end: auto-generated types
-
-	def onload(self):
-		set_island_renderer(self, "dashboard_chart_renderer")
 
 	def on_update(self):
 		frappe.cache.delete_key(f"chart-data:{self.name}")

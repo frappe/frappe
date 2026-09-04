@@ -5,7 +5,6 @@ import json
 
 import frappe
 from frappe import _
-from frappe.desk.island_renderer import set_island_renderer
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.query_builder import DocType
@@ -33,9 +32,6 @@ class Dashboard(Document):
 		is_standard: DF.Check
 		module: DF.Link | None
 	# end: auto-generated types
-
-	def onload(self):
-		set_island_renderer(self, "dashboard_renderer")
 
 	def on_update(self):
 		if self.is_default:
