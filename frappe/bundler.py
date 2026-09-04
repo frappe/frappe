@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import errno
 import os
 import re
 import shlex
@@ -164,12 +165,31 @@ def swap_shell_assets(staging: str, published: str):
 	"""Move a built tree into place; a reader mid-request sees one tree or the other."""
 	previous = published + ".previous"
 	shutil.rmtree(previous, ignore_errors=True)
-	# `shutil.move` copies when the rename is refused. A container image build refuses it for a
-	# directory an earlier layer created: overlayfs answers EXDEV, and nothing is serving then.
 	if os.path.exists(published):
-		shutil.move(published, previous)
-	shutil.move(staging, published)
+		try:
+			os.rename(published, previous)
+		except OSError as exc:
+			# overlayfs refuses to rename a directory an earlier image layer created.
+			if exc.errno != errno.EXDEV:
+				raise
+			overlay_shell_assets(staging, published)
+			return
+	os.rename(staging, published)
 	shutil.rmtree(previous, ignore_errors=True)
+
+
+def overlay_shell_assets(staging: str, published: str):
+	"""Copy the new tree over the old one, so the old shell stays readable until the new one is whole."""
+	shutil.copytree(staging, published, dirs_exist_ok=True)
+	for root, dirs, files in os.walk(published, topdown=False):
+		counterpart = os.path.join(staging, os.path.relpath(root, published))
+		for name in files:
+			if not os.path.exists(os.path.join(counterpart, name)):
+				os.remove(os.path.join(root, name))
+		for name in dirs:
+			if not os.path.isdir(os.path.join(counterpart, name)):
+				shutil.rmtree(os.path.join(root, name))
+	shutil.rmtree(staging)
 
 
 def watch(apps=None):

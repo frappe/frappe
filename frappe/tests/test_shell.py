@@ -835,11 +835,14 @@ class TestShellAssetSwap(IntegrationTestCase):
 			os.makedirs(os.path.join(tree, "assets"))
 			with open(os.path.join(tree, "index.html"), "w") as f:
 				f.write(marker)
+			with open(os.path.join(tree, "assets", f"app-{marker}.js"), "w") as f:
+				f.write(marker)
 		return published, staging
 
 	def _assert_swapped(self, published, staging):
 		with open(os.path.join(published, "index.html")) as f:
 			self.assertEqual(f.read(), "new")
+		self.assertEqual(os.listdir(os.path.join(published, "assets")), ["app-new.js"])
 		self.assertFalse(os.path.exists(staging))
 		self.assertFalse(os.path.exists(published + ".previous"))
 
@@ -848,8 +851,28 @@ class TestShellAssetSwap(IntegrationTestCase):
 		swap_shell_assets(staging, published)
 		self._assert_swapped(published, staging)
 
-	def test_a_refused_rename_falls_back_to_a_copy(self):
+	def test_a_refused_rename_copies_the_new_tree_over_the_old(self):
 		published, staging = self._trees()
 		with patch("os.rename", side_effect=OSError(errno.EXDEV, "Invalid cross-device link")):
 			swap_shell_assets(staging, published)
 		self._assert_swapped(published, staging)
+
+	def test_a_failed_copy_leaves_the_old_shell_readable(self):
+		published, staging = self._trees()
+		with (
+			patch("os.rename", side_effect=OSError(errno.EXDEV, "Invalid cross-device link")),
+			patch("shutil.copytree", side_effect=OSError(errno.ENOSPC, "No space left on device")),
+			self.assertRaises(OSError),
+		):
+			swap_shell_assets(staging, published)
+		with open(os.path.join(published, "index.html")) as f:
+			self.assertEqual(f.read(), "old")
+		self.assertTrue(os.path.exists(os.path.join(staging, "index.html")))
+
+	def test_any_other_rename_failure_is_raised(self):
+		published, staging = self._trees()
+		with (
+			patch("os.rename", side_effect=OSError(errno.EACCES, "Permission denied")),
+			self.assertRaises(PermissionError),
+		):
+			swap_shell_assets(staging, published)
