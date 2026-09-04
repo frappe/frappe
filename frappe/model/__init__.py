@@ -226,7 +226,12 @@ def get_permitted_fields(
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
 
+<<<<<<< HEAD
 	if doctype in CORE_DOCTYPES:
+=======
+	# note: any change here should also be made in _get_filterable_fields in query.py
+	if doctype in CORE_DOCTYPES and doctype != "User":
+>>>>>>> b53338e (fix: filter User fields based on perms. instead of ret. unconditionally)
 		return valid_columns
 
 	# DocType has only fields of type Table (Table, Table MultiSelect)
