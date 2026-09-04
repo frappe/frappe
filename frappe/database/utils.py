@@ -28,6 +28,8 @@ NestedSetHierarchy = (
 TEXT_SQL_TYPES = frozenset(("varchar", "text", "longtext", "smalltext"))
 # split when non-alphabetical character is found
 QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
+ORDER_BY_PREFIX_PATTERN = re.compile(r"^\s*order\s+by\s+", flags=re.IGNORECASE)
+ORDER_DIRECTION_PATTERN = re.compile(r"\s+(asc|desc)\s*$", flags=re.IGNORECASE)
 
 
 def convert_to_value(o: FilterValue):
@@ -99,6 +101,31 @@ def get_doctype_sort_info(doctype: str) -> tuple[str, str]:
 		return meta.sort_field or "creation", meta.sort_order or "DESC"
 	except frappe.DoesNotExistError:
 		return "creation", "DESC"
+
+
+def unquote_identifier(identifier: str) -> str:
+	return identifier.replace("`", "").replace('"', "").strip()
+
+
+def get_order_by_fields(order_by: str) -> list[str]:
+	"""Return the unquoted field references of an ORDER BY clause without directions."""
+	order_by = ORDER_BY_PREFIX_PATTERN.sub("", order_by)
+	fields = []
+	for order_field in order_by.split(","):
+		order_field = ORDER_DIRECTION_PATTERN.sub("", order_field)
+		fields.append(unquote_identifier(order_field))
+	return fields
+
+
+def is_order_by_in_select(order_by: str, selected_fields: set[str], selected_field_count: int) -> bool:
+	"""Return whether every ORDER BY field is a selected field, alias or valid result position."""
+	for order_field in get_order_by_fields(order_by):
+		if order_field.isdigit():
+			if not 0 < int(order_field) <= selected_field_count:
+				return False
+		elif order_field not in selected_fields:
+			return False
+	return True
 
 
 class LazyString:
