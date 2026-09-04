@@ -269,11 +269,10 @@ def parse_skill_command(
 		skill = resolve(name) if resolve is not None else None
 		if skill is None:
 			raise SkillError(f"unknown skill: {name}")
-	# The catalog records the canonical file selected at session creation. Refuse a
-	# later symlink swap rather than reading a different file under the same name.
-	# A just-resolved skill was read a moment ago, so only cataloged ones need this.
-	elif canonical_path(skill.path) != skill.canonical_path:
-		raise SkillError(f"skill path changed since session creation: {name}")
+	# Refuse a symlink swapped in since the skill was discovered, rather than reading
+	# a different file under the same name.
+	if canonical_path(skill.path) != skill.canonical_path:
+		raise SkillError(f"skill path changed: {name}")
 	raw = _read_bounded(skill.path, expected_path=skill.canonical_path)
 	_, body = _parse(raw)
 	instructions = parts[1].strip() if len(parts) > 1 and parts[1].strip() else None

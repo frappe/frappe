@@ -14,6 +14,7 @@ from flow.session.prompt import build_system_prompt
 from flow.session.skills import (
 	MAX_SKILL_INDEX_BYTES,
 	MAX_SKILLS,
+	Skill,
 	SkillError,
 	discover_skills,
 	format_skill_invocation,
@@ -521,6 +522,22 @@ def test_skill_added_after_session_creation_is_invocable(tmp_path, monkeypatch):
 	]
 	# the prompt the model sees was composed once and does not gain the new skill
 	assert "Added later" not in store.get(sid).config.system_prompt
+
+
+def test_resolved_skill_refuses_a_path_swapped_since_discovery(tmp_path):
+	project = tmp_path / "project"
+	project.mkdir()
+	path = _skill(project / ".agents" / "skills", "review")
+	# what discovery recorded no longer resolves to the file about to be opened
+	swapped = Skill(
+		name="review",
+		description="Use for tests.",
+		path=str(path),
+		canonical_path=str(tmp_path / "elsewhere" / "SKILL.md"),
+	)
+
+	with pytest.raises(SkillError, match="skill path changed: review"):
+		parse_skill_command("/skill:review", (), resolve=lambda name: swapped)
 
 
 def test_late_skill_outside_allowed_roots_is_not_invocable(tmp_path, monkeypatch):
