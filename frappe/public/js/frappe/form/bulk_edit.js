@@ -911,7 +911,7 @@ export default class BulkEdit {
 		}
 
 		// the desk bundle cannot write xlsx, so the sheet is rendered on the server
-		open_url_post("/api/method/frappe.desk.form.bulk_edit.download_template", {
+		open_url_post("/api/method/frappe.desk.form.bulk_edit.download_bulk_edit_template", {
 			doctype: this.grid.frm.doctype,
 			title: title,
 			file_type: file_type,
@@ -1290,7 +1290,7 @@ export default class BulkEdit {
 	 * fieldname or "Label (fieldname)" all resolve — see bulk_edit.py.
 	 */
 	get_column_map(headers) {
-		return frappe.xcall("frappe.desk.form.bulk_edit.get_column_map", {
+		return frappe.xcall("frappe.desk.form.bulk_edit.get_bulk_edit_column_map", {
 			doctype: this.grid.frm.doctype,
 			fieldname: this.grid.df.fieldname,
 			headers: JSON.stringify(headers),
