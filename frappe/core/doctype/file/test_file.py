@@ -2106,3 +2106,144 @@ class TestPublicFileRestriction(IntegrationTestCase):
 
 		file_doc.insert()
 		self.assertFalse(file_doc.is_private)
+
+
+class TestFileListOwnerRestriction(IntegrationTestCase):
+	"""Test file list owner restriction."""
+
+	OWNER = "test1@example.com"
+	OTHER = "test2@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		other_user = frappe.get_doc("User", self.OTHER)
+		if not any(r.role == "Blogger" for r in other_user.roles):
+			other_user.append("roles", {"role": "Blogger"})
+			other_user.save(ignore_permissions=True)
+
+		frappe.set_user(self.OWNER)
+		self.pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.OWNER}).insert(
+			ignore_permissions=True
+		)
+		self.file = frappe.new_doc(
+			"File",
+			file_name="secret_export.json",
+			attached_to_doctype="Personal Data Download Request",
+			attached_to_name=self.pddr.name,
+			content="secret data",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_other_user_file_count_excludes_owner_restricted_file(self):
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 0)
+
+	def test_owner_file_count_includes_owner_restricted_file(self):
+		frappe.set_user(self.OWNER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 1)
+
+	def test_shared_but_not_owned_document_still_shows_its_file(self):
+		frappe.set_user("Administrator")
+		frappe.share.add_docshare("Personal Data Download Request", self.pddr.name, self.OTHER, read=1)
+
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 1)
+
+
+class TestFileListUserPermissionRestriction(IntegrationTestCase):
+	"""A doctype can grant unconditional role-level read (no if_owner) while still being scoped
+	per-user via User Permissions (e.g. multi-company setups). A File attached to a record
+	outside that scope must not be listable either."""
+
+	RESTRICTED = "test1@example.com"
+	OTHER = "test2@example.com"
+	DOCTYPE = "Test User Perm Attachment"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.DOCTYPE,
+			module="Custom",
+			custom=1,
+			fields=[
+				{"label": "Linked Role", "fieldname": "linked_role", "fieldtype": "Link", "options": "Role"}
+			],
+			permissions=[{"role": "All", "read": 1, "create": 1}],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		super().tearDownClass()
+		frappe.delete_doc("DocType", cls.DOCTYPE, force=True, ignore_permissions=True)
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		for user in (self.RESTRICTED, self.OTHER):
+			user_doc = frappe.get_doc("User", user)
+			if not any(r.role == "Blogger" for r in user_doc.roles):
+				user_doc.append("roles", {"role": "Blogger"})
+				user_doc.save(ignore_permissions=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": self.RESTRICTED,
+				"allow": "Role",
+				"for_value": "Blogger",
+			}
+		).insert(ignore_permissions=True)
+
+		self.permitted_record = frappe.get_doc({"doctype": self.DOCTYPE, "linked_role": "Blogger"}).insert(
+			ignore_permissions=True
+		)
+		self.out_of_scope_record = frappe.get_doc(
+			{"doctype": self.DOCTYPE, "linked_role": "Website Manager"}
+		).insert(ignore_permissions=True)
+
+		self.permitted_file = frappe.new_doc(
+			"File",
+			file_name="permitted.txt",
+			attached_to_doctype=self.DOCTYPE,
+			attached_to_name=self.permitted_record.name,
+			content="in scope",
+			is_private=1,
+		).insert(ignore_permissions=True)
+		self.out_of_scope_file = frappe.new_doc(
+			"File",
+			file_name="out_of_scope.txt",
+			attached_to_doctype=self.DOCTYPE,
+			attached_to_name=self.out_of_scope_record.name,
+			content="out of scope",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_restricted_user_excludes_out_of_scope_file(self):
+		frappe.set_user(self.RESTRICTED)
+		files = frappe.get_list("File", filters={"name": self.out_of_scope_file.name})
+		self.assertEqual(len(files), 0)
+
+	def test_restricted_user_includes_permitted_file(self):
+		frappe.set_user(self.RESTRICTED)
+		files = frappe.get_list("File", filters={"name": self.permitted_file.name})
+		self.assertEqual(len(files), 1)
+
+	def test_unrestricted_user_sees_both_files(self):
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list(
+			"File",
+			filters={"name": ["in", [self.permitted_file.name, self.out_of_scope_file.name]]},
+		)
+		self.assertEqual(len(files), 2)
