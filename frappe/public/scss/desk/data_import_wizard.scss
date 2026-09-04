@@ -1,0 +1,633 @@
+// Data Import stepper wizard — see data_import_wizard.bundle.js and data_import.js
+// Layout/spacing/border utilities live on the markup (utilities.scss). Keep only
+// component-specific rules here: states, form overrides, grids, and chrome tokens.
+
+// The custom Data Import page keeps the navbar to Search only: hide the standard Save
+// primary button (Ctrl/Cmd+S still saves via page.save_action). Scoped to the shell so
+// the Data Import list's own "Add Data Import" primary button is unaffected.
+.data-import-custom-shell .page-head .primary-action {
+	display: none;
+}
+
+.data-import-custom-page {
+	.data-import-std-form,
+	.std-form-layout {
+		display: none !important;
+	}
+
+	&.layout-main-section {
+		min-height: calc(100vh - var(--navbar-height));
+		padding: var(--padding-lg);
+		background: var(--surface-gray-1);
+	}
+
+	.layout-main-section-wrapper,
+	.data-import-custom-wrapper {
+		background: var(--bg-light-gray);
+	}
+}
+
+.diw-shell {
+	max-width: 840px;
+}
+
+// ---- stepper ----
+// The stepper itself is frappe.ui.Stepper (es-stepper) — states, markers,
+// connectors and focus all live in espresso/components/stepper.css.
+
+.diw-file-dropzone-icon,
+.diw-tree-filter-icon,
+.diw-tree-chevron,
+.diw-tree-warning-icon,
+.diw-card-icon-well {
+	line-height: 0;
+}
+
+.diw-card-icon-well .icon {
+	width: 20px;
+	height: 20px;
+}
+
+// ---- panels / chrome (padding utilities on the markup; mobile overrides below) ----
+.diw-step-content {
+	.form-section {
+		margin-bottom: 0;
+	}
+}
+
+.diw-status-area {
+	&:empty {
+		display: none;
+	}
+}
+
+.diw-mobile-step-header {
+	display: none;
+}
+
+// ---- config step ----
+.diw-config-grid {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.diw-config-main,
+.diw-config-options {
+	.form-group {
+		margin-bottom: var(--padding-md);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+}
+
+// ---- file drop zone ----
+.diw-file-dropzone-host {
+	.form-group {
+		margin-bottom: 0;
+	}
+
+	.control-label {
+		display: none;
+	}
+
+	// Invisible hit target over the whole zone; real clicks open the uploader.
+	.btn-attach {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		border: none;
+		pointer-events: none;
+	}
+
+	&:not(.has-file) {
+		.control-input,
+		.diw-file-dropzone-target {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 12rem;
+			padding: var(--padding-lg);
+			border: 1px dashed var(--dark-border-color, var(--border-color));
+			border-radius: var(--radius);
+			background-color: var(--bg-color);
+			cursor: pointer;
+		}
+
+		&:hover,
+		&.is-dragover {
+			.control-input,
+			.diw-file-dropzone-target {
+				border-color: var(--gray-500);
+				background-color: var(--control-bg);
+			}
+		}
+	}
+
+	&.has-file {
+		.control-input,
+		.diw-file-dropzone-target {
+			align-items: stretch;
+			min-height: 0;
+			padding: 0;
+			border: none;
+			background: transparent;
+			cursor: default;
+		}
+
+		.diw-file-dropzone-ui,
+		.attached-file,
+		.control-value {
+			display: none !important;
+		}
+	}
+}
+
+.diw-import-file-card-name,
+.diw-google-sheet-card-url {
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+.diw-import-file-card-name {
+	line-height: 1.35;
+}
+
+.diw-google-sheet-host.is-locked {
+	.control-value,
+	.like-disabled-input {
+		display: none !important;
+	}
+}
+
+// ---- preview step ----
+.diw-preview-step {
+	.form-section,
+	.section-body .form-column {
+		padding: 0;
+		margin: 0;
+		border: none;
+		box-shadow: none;
+		background: transparent;
+	}
+
+	.form-section > .section-body,
+	.form-section > .section-body:first-child {
+		margin: 0;
+		padding: 0;
+	}
+}
+
+.diw-table-preview {
+	.table-preview .datatable {
+		border: none;
+		border-radius: inherit;
+		min-width: 0;
+		max-width: 100%;
+
+		.dt-scrollable {
+			overflow-x: auto;
+		}
+
+		// The .table-preview container draws the single rounded frame, so drop the
+		// datatable's own perimeter borders — otherwise they double at the edges and
+		// the rounded corners clip the square cell borders (the erased-corner look).
+		.dt-header .dt-cell {
+			border-top: 0;
+		}
+
+		.dt-cell--col-0 {
+			border-left: 0;
+		}
+
+		// The header row now hosts the inline column mapper (Autocomplete); give the
+		// header cell room to seat the control without clipping it, and paint it
+		// surface-gray-2 (the file-header row below it is surface-gray-1).
+		.dt-header .dt-cell__content {
+			min-height: 42px;
+		}
+
+		.dt-header .dt-row-header,
+		.dt-header .dt-cell--header .dt-cell__content {
+			background-color: var(--surface-gray-2);
+		}
+	}
+}
+
+// Inline column mapper (Autocomplete) sitting in the preview header row. Style it
+// like a normal form field — base (white in light) surface + border — so it reads
+// as an editable control, not header text. Scoped under .diw-table-preview to
+// outrank `.datatable .form-control { background: transparent; border: none }`,
+// which otherwise leaves the input transparent (showing the gray header through it).
+.diw-table-preview .diw-col-map-field {
+	width: 100%;
+
+	.awesomplete {
+		display: block;
+		width: 100%;
+	}
+
+	input {
+		width: 100%;
+		height: 28px;
+		padding: 0 var(--padding-sm);
+		background-color: var(--surface-base);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		color: var(--text-color);
+		box-shadow: none;
+
+		&:focus {
+			border-color: var(--outline-gray-3);
+			box-shadow: none;
+			outline: none;
+		}
+	}
+
+	// Completed / partial imports render the frozen mapping as this static field
+	// (see mount_column_map_controls) — same footprint as the editable input, but
+	// muted text and a default cursor so it clearly reads as read-only.
+	.diw-col-map-readonly {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		height: 28px;
+		padding: 0 var(--padding-sm);
+		background-color: var(--surface-base);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+		cursor: default;
+	}
+}
+
+// The mapper dropdown is reparented to <body> when open (to escape the datatable
+// header's transform/overflow clipping), so it no longer inherits the scoped
+// `.awesomplete > [role=listbox]` styles — re-apply the essentials here. Position,
+// width and z-index are set inline by setup_mapping_dropdown_portal.
+ul.diw-map-dropdown-portaled {
+	list-style: none;
+	margin: 0;
+	padding: var(--padding-xs);
+	background-color: var(--bg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-md);
+	max-height: unquote("min(60vh, 300px)");
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	&:empty {
+		display: none;
+	}
+
+	> li,
+	> [role="option"] {
+		cursor: pointer;
+		padding: var(--padding-sm);
+		font-size: var(--text-sm);
+		color: var(--text-color);
+		border-radius: var(--radius);
+		white-space: unset;
+
+		&:not(:last-child) {
+			margin-bottom: var(--margin-xs);
+		}
+
+		p {
+			margin-bottom: 0;
+			text-overflow: ellipsis;
+		}
+
+		strong {
+			font-weight: var(--weight-semibold);
+		}
+
+		&:hover,
+		&[aria-selected="true"] {
+			background-color: var(--awesomplete-hover-bg);
+			color: var(--text-color);
+		}
+	}
+}
+
+// ---- fix issues step ----
+.diw-step-panel[data-step="2"] {
+	.form-section:not(.form-in-grid *) {
+		border: none;
+		border-radius: 0;
+		background: transparent;
+		padding: 0;
+		overflow: visible;
+
+		.section-head:not(.form-in-grid *) {
+			border-bottom: none;
+			color: var(--heading-color);
+		}
+	}
+
+	.warnings {
+		.warning {
+			.body {
+				color: var(--text-color);
+				line-height: 1.5;
+			}
+
+			h5,
+			.warning-row-header,
+			.warning-col-header {
+				border-left: none !important;
+				text-transform: none;
+				color: var(--heading-color);
+			}
+		}
+	}
+
+	.diw-row-warning-label {
+		text-underline-offset: 2px;
+	}
+}
+
+// Override fixed hover-card width for the row preview popover.
+.diw-row-preview-hover-card {
+	width: auto;
+	max-width: min(90vw, 56rem);
+	padding: var(--padding-sm);
+}
+
+.diw-fix-issues-step {
+	[data-fieldname="value_mappings"] {
+		> .tooltip-content {
+			display: none !important;
+		}
+
+		.grid-field {
+			margin: 0;
+		}
+
+		.form-grid-container {
+			border: 1px solid var(--table-border-color) !important;
+			border-radius: var(--radius-md) !important;
+			overflow-x: auto !important;
+			overflow-y: hidden !important;
+		}
+
+		.grid-footer,
+		.grid-add-row,
+		.grid-add-multiple-rows {
+			display: none !important;
+		}
+	}
+}
+
+// ---- import log + progress ----
+.diw-import-progress-standard {
+	.es-progress__label {
+		font-size: var(--text-md);
+		font-weight: 400;
+		color: var(--heading-color);
+	}
+
+	.es-progress__hint {
+		font-size: var(--text-md);
+		color: var(--text-muted);
+	}
+}
+
+.diw-import-progress-stats {
+	grid-template-columns: repeat(var(--diw-import-progress-stat-count, 3), minmax(0, 1fr));
+}
+
+.diw-import-log-expand-btn[aria-expanded="true"] .icon {
+	transform: rotate(180deg);
+}
+
+.diw-import-log-error-trace {
+	max-height: 14rem;
+}
+
+// ---- wizard tree preview overrides ----
+.diw-preview-step .import-tree-preview-panel {
+	.import-tree-body {
+		height: min(360px, 48vh);
+		min-height: min(360px, 48vh);
+		max-height: min(360px, 48vh);
+
+		.tree {
+			padding: var(--padding-sm) var(--padding-md);
+		}
+	}
+
+	.tree-node.hover-active > .diw-tree-row {
+		background: var(--fg-hover-color, var(--highlight-color));
+	}
+
+	// File-tree guide lines: nested rows indent and connect to the parent
+	// chevron with a vertical guide + elbow; last child stops the vertical.
+	.tree-children {
+		position: relative;
+		margin-left: 12px;
+		padding-left: 8px;
+	}
+
+	.tree > .tree-children {
+		margin-left: 0;
+		padding-left: 0;
+	}
+
+	.tree-node > .tree-children > .tree-node::before {
+		content: "";
+		position: absolute;
+		left: -4px;
+		top: 0;
+		bottom: 0;
+		width: 1px;
+		background: var(--border-color);
+	}
+
+	.tree-node > .tree-children > .tree-node:last-child::before {
+		bottom: auto;
+		height: 14px;
+	}
+
+	.tree-node > .tree-children > .tree-node > .diw-tree-row::before {
+		content: "";
+		position: absolute;
+		left: -4px;
+		top: 14px;
+		width: 12px;
+		height: 1px;
+		background: var(--border-color);
+	}
+
+	.diw-tree-row-main {
+		width: auto;
+		padding: 0;
+		font-weight: 500;
+	}
+
+	.tree-children .diw-tree-row-main {
+		font-weight: 400;
+	}
+
+	.diw-tree-label,
+	.tree-label {
+		margin-left: 0 !important;
+		line-height: 1.4;
+		font-size: inherit;
+		font-weight: inherit;
+		color: var(--text-color);
+	}
+}
+
+.diw-preview-pane-tree .import-tree-body {
+	max-height: none;
+}
+
+.diw-tree-filter-input {
+	box-sizing: border-box;
+	// Match the standard input height (28px) so the field lines up with the
+	// adjacent es-button (size sm = 28px) — was min-h-8 (32px) and sat taller.
+	height: var(--input-height);
+	// It's a <label>: Bootstrap's reset adds margin-bottom: .5rem, which inflated
+	// the flex row to 36px and top-aligned the field while the buttons centered.
+	margin: 0;
+
+	input,
+	.form-control {
+		flex: 1;
+		width: 100% !important;
+		max-width: 100%;
+		min-width: 0;
+		border: none;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		box-shadow: none;
+		height: auto;
+		font-size: var(--text-sm);
+
+		&:focus {
+			outline: none;
+			box-shadow: none;
+		}
+	}
+}
+
+// ---- import log summary (Result / Details key-value tables) ----
+
+.diw-import-log-summary {
+	// Hairline between rows lives on the cells so it spans only the table width,
+	// aligning with the section heading rather than bleeding to the step edge.
+	.diw-log-kv-row:not(:first-child) .diw-log-kv-key,
+	.diw-log-kv-row:not(:first-child) .diw-log-kv-val {
+		border-top: 1px solid var(--outline-gray-2);
+	}
+
+	// Keep Result and Details row heights aligned even when some Result rows
+	// include inline action buttons (Go to list / download actions).
+	.diw-log-kv-row .diw-log-kv-key,
+	.diw-log-kv-row .diw-log-kv-val {
+		vertical-align: middle;
+	}
+
+	.diw-log-kv-row .diw-log-kv-key {
+		padding-inline-end: var(--padding-sm);
+	}
+
+	.diw-log-kv-row .diw-log-kv-val {
+		padding-inline-start: var(--padding-md);
+	}
+
+	.diw-log-kv-key-inner,
+	.diw-log-kv-val-inner {
+		height: 2.25rem;
+
+		.es-button {
+			white-space: nowrap;
+		}
+	}
+
+	.diw-log-kv-val {
+		white-space: nowrap;
+	}
+}
+
+// ---- mobile (phones + narrow tablets) ----
+// Layout shifts that are specific to the wizard — keep them here, not in utilities.scss.
+// Use a parent + child selector wherever the markup also has a utility for the same
+// property: utilities.scss loads last, so a single class would otherwise lose.
+@media (max-width: 768px) {
+	.data-import-custom-page.layout-main-section {
+		padding: var(--padding-sm);
+	}
+
+	.data-import-custom-ui .diw-shell {
+		max-width: 100%;
+		gap: var(--padding-md);
+	}
+
+	.diw-stepper-wrap {
+		display: none;
+	}
+
+	.diw-mobile-step-header {
+		display: block;
+	}
+
+	.diw-config-step .diw-config-grid {
+		grid-template-columns: 1fr;
+		gap: var(--padding-md);
+	}
+
+	.diw-card .diw-step-content,
+	.diw-card .diw-status-area,
+	.diw-card .diw-footer {
+		padding-left: var(--padding-md);
+		padding-right: var(--padding-md);
+	}
+
+	.diw-table-preview .diw-preview-toolbar {
+		flex-wrap: wrap;
+	}
+
+	.diw-preview-toolbar .diw-preview-toolbar-meta {
+		width: 100%;
+		margin-inline-start: 0;
+		text-align: left;
+		white-space: normal;
+	}
+
+	.diw-fix-empty-stats {
+		flex-direction: column;
+
+		.diw-fix-empty-stat--divided {
+			border-inline-start: none !important;
+			border-top: 1px solid var(--outline-gray-2);
+		}
+	}
+
+	// Stack the Result / Details tables on narrow screens.
+	.diw-import-log-summary-grid {
+		flex-direction: column;
+		gap: var(--padding-md);
+	}
+
+	.diw-import-progress-hero .diw-import-progress-stats {
+		gap: var(--padding-xs, 8px);
+	}
+
+	.diw-import-progress-stat .value {
+		font-size: 22px;
+	}
+}

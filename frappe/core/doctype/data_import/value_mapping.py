@@ -175,6 +175,7 @@ def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list
 	Info warnings are ignored. ``value_mapping`` warnings stay only while unmapped invalid values
 	remain; fully mapped columns keep their warning for display but no longer block import.
 	Row warnings for user-skipped rows are ignored.
+	Duplicate ID warnings are ignored when all duplicate rows except the first are skipped.
 	"""
 	cols = {c.column_number: c for c in import_file.header.columns}
 	skipped_rows = get_skipped_row_numbers(data_import)
@@ -191,6 +192,14 @@ def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list
 			):
 				blocking.append(warning)
 			continue
+		# Duplicate ID warnings: skip if all rows except the first are in skipped_rows
+		if warning.get("type") == "duplicate_id" and skipped_rows:
+			rows = warning.get("rows") or []
+			if len(rows) > 1:
+				# Check if all duplicate rows except the first are skipped
+				rows_to_skip = rows[1:]  # All rows except the first
+				if all(cint(row) in skipped_rows for row in rows_to_skip):
+					continue  # Not blocking - duplicates are handled by skipping
 		blocking.append(warning)
 	return blocking
 
@@ -264,8 +273,10 @@ def warn_invalid_link_select_values(col) -> None:
 		lines.append(line)
 
 	if col.df.fieldtype == "Select" and options_string and lines:
+		# Put "Allowed:" on its own line below the last row-numbers line so it
+		# doesn't run together with the row list (avoids the awkward "· " separator).
 		allowed = _("Allowed: {0}").format(frappe.bold(options_string))
-		lines[-1] = f"{lines[-1]} · {allowed}"
+		lines[-1] = f"{lines[-1]}<br><span class='text-muted'>{allowed}</span>"
 
 	message = "<br>".join(lines)
 	col.warnings.append({"col": col.column_number, "message": message, "type": "value_mapping"})

@@ -10,6 +10,7 @@ from frappe.core.doctype.data_import.importer import (
 	Importer,
 	_get_tree_node_key,
 	build_fields_dict_for_column_matching,
+	create_import_log,
 	get_tree_alias_fieldname,
 	uses_tree_alias_references,
 )
@@ -150,6 +151,48 @@ class TestImporter(IntegrationTestCase):
 
 		self.assertEqual(len(preview.data), 4)
 		self.assertEqual(len(preview.columns), 16)
+
+	def test_preview_from_template_uses_server_cache(self):
+		from frappe.core.doctype.data_import.preview_cache import (
+			clear_preview_cache,
+			get_cached_preview,
+			get_preview_cache_key,
+		)
+
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+		clear_preview_cache(data_import.name)
+
+		first = data_import.get_preview_from_template()
+		cached = get_cached_preview(data_import)
+		self.assertIsNotNone(cached)
+		self.assertEqual(len(cached.data), len(first.data))
+		self.assertEqual(get_preview_cache_key(data_import), get_preview_cache_key(data_import))
+
+		# Second call must hit Redis — no re-parse.
+		second = data_import.get_preview_from_template()
+		self.assertEqual(len(second.data), len(first.data))
+		self.assertEqual(len(second.columns), len(first.columns))
+
+		# Mapping fingerprint change must miss the previous cache entry.
+		key_before = get_preview_cache_key(data_import)
+		data_import.append(
+			"value_mappings",
+			{
+				"column": "Title",
+				"fieldname": "title",
+				"source_value": "mapped-source",
+				"target_value": "mapped-target",
+			},
+		)
+		key_after = get_preview_cache_key(data_import)
+		self.assertNotEqual(key_before, key_after)
+		self.assertIsNone(get_cached_preview(data_import))
+
+		# Recompute under the new fingerprint and cache again.
+		remapped = data_import.get_preview_from_template()
+		self.assertIsNotNone(get_cached_preview(data_import))
+		self.assertEqual(len(remapped.data), len(first.data))
 
 	# ignored on postgres because myisam doesn't exist on pg
 	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
@@ -319,6 +362,60 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(import_logs), 1)
 		self.assertEqual(import_logs[0].import_action, ACTION_UPDATE)
 
+	def test_retry_after_timed_out_clears_failed_logs(self):
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		for name in SAMPLE_IMPORT_DOC_NAMES:
+			frappe.delete_doc_if_exists(doctype_name, name)
+		frappe.db.commit()  # nosemgrep
+
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+
+		# "Test" carries a second child-table row, so its payload spans sheet rows 2-3;
+		# "Test 2" is row 4 and "Test 3" is row 5. Seed a previous attempt that imported
+		# "Test" and "Test 3" but failed on "Test 2" before timing out.
+		for name in ("Test", "Test 3"):
+			frappe.get_doc({"doctype": doctype_name, "title": name}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		create_import_log(
+			data_import.name,
+			0,
+			{"success": True, "docname": "Test", "row_indexes": [2, 3]},
+		)
+		create_import_log(
+			data_import.name,
+			1,
+			{
+				"success": False,
+				"row_indexes": [4],
+				"messages": [{"message": "Previous attempt timed out"}],
+			},
+		)
+		create_import_log(
+			data_import.name,
+			2,
+			{"success": True, "docname": "Test 3", "row_indexes": [5]},
+		)
+		frappe.db.commit()  # nosemgrep
+		data_import.db_set("status", "Timed Out")
+
+		i = Importer(data_import.reference_doctype, data_import=data_import)
+		i.import_data()
+		data_import.reload()
+
+		self.assertEqual(data_import.status, "Success")
+		self.assertTrue(frappe.db.exists(doctype_name, "Test 2"))
+
+		import_logs = frappe.get_all(
+			"Data Import Log",
+			fields=["success", "row_indexes"],
+			filters={"data_import": data_import.name},
+			order_by="log_index",
+		)
+		self.assertEqual(len(import_logs), 3)
+		self.assertFalse(any(not log.success for log in import_logs))
+
 	def test_get_import_status_upsert_counts(self):
 		existing_doc = frappe.get_doc(
 			doctype=doctype_name,
@@ -364,6 +461,19 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(status["success"], 2)
 		self.assertEqual(status["total_records"], 2)
 
+		from frappe.core.doctype.data_import.data_import import get_import_log_count, get_import_logs
+
+		all_logs = get_import_logs(data_import.name, status="all")
+		success_logs = get_import_logs(data_import.name, status="success")
+		failed_logs = get_import_logs(data_import.name, status="failed")
+		self.assertEqual(len(all_logs), 2)
+		self.assertEqual(len(success_logs), 2)
+		self.assertEqual(len(failed_logs), 0)
+		self.assertTrue(all(log.success for log in success_logs))
+		self.assertEqual(get_import_log_count(data_import.name, status="success"), 2)
+		self.assertEqual(get_import_log_count(data_import.name, status="failed"), 0)
+		self.assertEqual(get_import_log_count(data_import.name, status="all"), 2)
+
 	def test_mapped_select_still_shows_warning_but_unmapped_blocks_import(self):
 		from frappe.core.doctype.data_import.value_mapping import (
 			build_lookup_from_mappings,
@@ -392,7 +502,10 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn("Opn", col.warnings[0]["message"])
 		self.assertIn("Pasiv", col.warnings[0]["message"])
 		self.assertIn("is not valid", col.warnings[0]["message"])
-		self.assertIn("row 3 · Allowed:", col.warnings[0]["message"])
+		message = col.warnings[0]["message"]
+		self.assertIn("row 3", message)
+		# "Allowed:" renders on its own line below the last row-numbers line
+		self.assertLess(message.index("row 3"), message.index("Allowed:"))
 		unmapped = get_unmapped_invalid_values_for_column(col, value_lookup, "Contact")
 		self.assertEqual(len(unmapped), 1)
 		self.assertEqual(unmapped[0]["source"], "Opn")
@@ -788,11 +901,52 @@ class TestTreeDataImport(IntegrationTestCase):
 		payload_ids = [p.doc.node_name for p in imp.import_file.get_payloads_for_import()]
 		self.assertEqual(payload_ids, ["Root", "Division", "Leaf"])
 
+	def test_tree_parent_overrides_update_preview_and_cache_key(self):
+		"""Tree move edits must change the preview parent and bust the Redis preview cache."""
+		from frappe.core.doctype.data_import.preview_cache import (
+			clear_preview_cache,
+			get_cached_preview,
+			get_preview_cache_key,
+		)
+
+		rows = [
+			("Root", "1", ""),
+			("Division", "1", "Root"),
+			("Leaf", "0", "Division"),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		clear_preview_cache(data_import.name)
+
+		baseline = data_import.get_preview_from_template()
+		leaf = next(node for node in baseline.tree_preview.nodes if node.id == "Leaf")
+		self.assertEqual(leaf.parent, "Division")
+		self.assertEqual(leaf.orig_parent, "Division")
+		key_before = get_preview_cache_key(data_import)
+
+		# Move Leaf under Root via the same JSON the wizard persists.
+		data_import.tree_parent_overrides = frappe.as_json({leaf.row_number: {"parent": "Root"}})
+		data_import.db_set("tree_parent_overrides", data_import.tree_parent_overrides)
+		self.assertNotEqual(key_before, get_preview_cache_key(data_import))
+		self.assertIsNone(get_cached_preview(data_import))
+
+		preview = data_import.get_preview_from_template()
+		moved = next(node for node in preview.tree_preview.nodes if node.id == "Leaf")
+		self.assertEqual(moved.parent, "Root")
+		self.assertEqual(moved.orig_parent, "Division")
+		self.assertTrue(moved.edited)
+
+		# Import-time cell patch must follow the same override.
+		imp = Importer(self.doctype_name, data_import=data_import)
+		leaf_payload = next(p for p in imp.import_file.get_payloads_for_import() if p.doc.node_name == "Leaf")
+		meta = frappe.get_meta(self.doctype_name)
+		self.assertEqual(leaf_payload.doc.get(meta.nsm_parent_field), "Root")
+
 	def test_tree_import(self):
 		meta = frappe.get_meta(self.doctype_name)
 		parent_field = meta.nsm_parent_field
 
-		for name in ("Root", "Division", "Leaf"):
+		# Delete leaves before parents — NestedSet blocks deleting a node with children.
+		for name in ("Leaf", "Division", "Root"):
 			frappe.delete_doc_if_exists(self.doctype_name, name)
 		frappe.db.commit()  # ensure deletions are flushed to DB before import; # nosemgrep
 
@@ -805,6 +959,11 @@ class TestTreeDataImport(IntegrationTestCase):
 		Importer(self.doctype_name, data_import=data_import).import_data()
 
 		self.assertEqual(frappe.db.get_value(self.doctype_name, "Leaf", parent_field), "Division")
+
+		# Same child-first order for teardown after the import.
+		for name in ("Leaf", "Division", "Root"):
+			frappe.delete_doc_if_exists(self.doctype_name, name)
+		frappe.db.commit()  # nosemgrep
 
 	def test_field_autoname_tree_skips_alias_mode(self):
 		self.assertFalse(uses_tree_alias_references(self.doctype_name))
@@ -997,6 +1156,26 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		self.assertTrue(frappe.db.get_value(self.doctype_name, {"node_label": "New Child"}))
 
 		self._cleanup_docs((existing_label, "New Child"))
+
+	def test_blocked_import_resets_status_to_pending(self):
+		"""A run stopped by prechecks must stay actionable instead of sticking on In Progress."""
+		self._cleanup_docs(("Orphan Child",))
+
+		# "Ghost Parent" exists neither in the file nor in the DB, so the parent warning blocks.
+		rows = [("Orphan Child", "0", "Ghost Parent")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		data_import.db_set("status", "In Progress")
+
+		imp = Importer(self.doctype_name, data_import=data_import)
+		imp.import_data()
+		data_import.reload()
+
+		self.assertTrue(imp.blocked_by_warnings)
+		self.assertEqual(data_import.status, "Pending")
+		self.assertTrue(frappe.parse_json(data_import.template_warnings or "[]"))
+		self.assertFalse(frappe.db.exists(self.doctype_name, {"node_label": "Orphan Child"}))
+
+		self._cleanup_docs(("Orphan Child",))
 
 	def test_tree_preview_nests_subtree_with_external_db_parent(self):
 		"""In-file subtree under a DB-only parent is nested in preview, not shown as orphans."""

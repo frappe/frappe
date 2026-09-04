@@ -768,6 +768,106 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Stepper: {
+			helper: "frappe.ui.stepper",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (active + completed states)"),
+					items: [
+						{
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Fix issues" },
+								{ label: "Import" },
+							],
+							current: 1,
+						},
+					],
+				},
+				{
+					title: __("Locked steps"),
+					items: [
+						{
+							steps: [
+								{ label: "Details" },
+								{ label: "Review" },
+								{ label: "Submit" },
+							],
+							current: 0,
+							is_locked: (index) => index === 2,
+						},
+					],
+				},
+				{
+					title: __("Click to navigate"),
+					items: [
+						{
+							steps: [{ label: "One" }, { label: "Two" }, { label: "Three" }],
+							current: 0,
+							on_step_click: function (index) {
+								this.set_current(index);
+							},
+						},
+					],
+				},
+				{
+					title: __("Revisiting a finished flow (factual completion)"),
+					items: [
+						{
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Import" },
+							],
+							current: 1,
+							is_completed: () => true,
+						},
+					],
+				},
+				{
+					title: __("Compact (narrow layouts)"),
+					items: [
+						{
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Fix issues" },
+								{ label: "Import" },
+							],
+							current: 1,
+							compact: true,
+						},
+					],
+				},
+				{
+					title: __("Live (next / previous on the first stepper above)"),
+					items: [
+						{
+							__label: __("Next step"),
+							__code: '$(".es-stepper").first().data("es-stepper").next_step();',
+							__run: () => {
+								$(".explorer-preview .es-stepper")
+									.first()
+									.data("es-stepper")
+									?.next_step();
+							},
+						},
+						{
+							__label: __("Previous step"),
+							__code: '$(".es-stepper").first().data("es-stepper").prev_step();',
+							__run: () => {
+								$(".explorer-preview .es-stepper")
+									.first()
+									.data("es-stepper")
+									?.prev_step();
+							},
+						},
+					],
+				},
+			],
+		},
 		Progress: {
 			helper: "frappe.ui.progress",
 			stacked: true,
