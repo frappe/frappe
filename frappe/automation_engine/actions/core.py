@@ -21,6 +21,8 @@ DEFAULT_WEBHOOK_TIMEOUT = 30
 MAX_WEBHOOK_TIMEOUT = 120
 MAX_REDIRECTS = 5
 WEBHOOK_RESPONSE_LIMIT = 2000
+# The one Server Script type written to be called rather than bound to its own trigger.
+SCRIPT_TYPE = "API"
 
 
 def _render(value, doc, context=None):
@@ -415,45 +417,97 @@ class RunScript(AutomationAction):
 	description = "Run a server script."
 	requires_document = False
 	params_schema: ClassVar[list] = [
-		{"fieldname": "script", "label": "Script", "fieldtype": "Code", "options": "Python", "reqd": 1},
+		{
+			"fieldname": "server_script",
+			"label": "Server Script",
+			"fieldtype": "Link",
+			"options": "Server Script",
+			# Only an API script is written to be called on demand; every other type already
+			# runs itself off its own trigger.
+			"link_filters": {"script_type": SCRIPT_TYPE, "disabled": 0},
+		},
+		{
+			"fieldname": "script",
+			"label": "Script",
+			"fieldtype": "Code",
+			"options": "Python",
+			"exclusive_with": "server_script",
+		},
 	]
 
 	def validate(self, params, doctype):
 		from frappe.utils.safe_exec import is_safe_exec_enabled
 
+		name = (params.get("server_script") or "").strip()
 		script = (params.get("script") or "").strip()
-		if not script:
-			raise AutomationParamError(_("Script is required"), fieldname="script")
+		if name and script:
+			raise AutomationParamError(
+				_("Pick a Server Script or write one here, not both"), fieldname="script"
+			)
 		if not is_safe_exec_enabled():
 			raise AutomationParamError(
 				_("Server Scripts are disabled. Enable them from the bench configuration."),
 				fieldname="script",
 			)
+		if name:
+			self.validate_linked_script(name)
+		else:
+			self.validate_own_script(script)
+
+	def validate_linked_script(self, name):
+		"""Wiring a script up is not authoring one: anyone who may read it may point a flow at it."""
+		script = frappe.db.get_value("Server Script", name, ["script_type", "disabled"], as_dict=True)
+		if not script:
+			raise AutomationParamError(_("Unknown Server Script"), fieldname="server_script")
+		# A save-time gate, like the one on writing a script inline: the run's own identity is
+		# not the author's, and must not have to read the script to run it.
+		if not frappe.flags.get("in_automation_run"):
+			frappe.has_permission("Server Script", "read", doc=name, throw=True)
+		if script.script_type != SCRIPT_TYPE:
+			raise AutomationParamError(
+				_("Only an {0} Server Script can be run from a flow").format(SCRIPT_TYPE),
+				fieldname="server_script",
+			)
+		if script.disabled:
+			raise AutomationParamError(_("That Server Script is disabled"), fieldname="server_script")
+
+	def validate_own_script(self, script):
+		if not script:
+			raise AutomationParamError(
+				_("Pick a Server Script, or write one here"), fieldname="server_script"
+			)
 		_compile_script(script)
 		# Who may author a script step is a save-time question. The step itself runs under the
 		# flow's execution identity, which is deliberately not a System Manager most of the time.
 		if not frappe.flags.get("in_automation_run") and "System Manager" not in frappe.get_roles():
-			raise AutomationParamError(
-				_("Only a System Manager can add a Run Script step"), fieldname="script"
-			)
+			raise AutomationParamError(_("Only a System Manager can write a script step"), fieldname="script")
 
 	def execute(self, doc, params, context):
 		from frappe.utils.safe_exec import safe_exec
 
 		scope = _render_context(doc, context)
 		scope["result"] = frappe._dict()
-		rule = context.get("rule") if context else None
+		script, filename = self._source(params, context)
 		safe_exec(
-			params.get("script") or "",
+			script,
 			_locals=scope,
 			# The drainer owns the transaction: a step that commits would strand the rows it
 			# leaves behind mid-run.
 			restrict_commit_rollback=True,
-			script_filename=f"automation_{rule.name}" if rule else "automation",
+			script_filename=filename,
 		)
 		result = dict(scope.get("result") or {})
 		result.setdefault("detail", _("Ran script"))
 		return result
+
+	def _source(self, params, context) -> tuple[str, str]:
+		"""The code to run, and the name a traceback should point at."""
+		name = params.get("server_script")
+		if name:
+			# Read at run time, not from the step: the script is edited where it lives.
+			return frappe.get_cached_doc("Server Script", name).script or "", name
+		rule = context.get("rule") if context else None
+		return params.get("script") or "", f"automation_{rule.name}" if rule else "automation"
 
 
 def _check_url_shape(url: str):
