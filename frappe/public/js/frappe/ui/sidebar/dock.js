@@ -251,21 +251,10 @@ frappe.ui.Dock = class Dock {
 		this.$header_title.text(title);
 	}
 
-	// A module belonging to an app shows that app's logo. An app that declares none gets a letter
-	// icon, matching the desktop apps screen.
+	// A module belonging to an app shows that app's logo. The dock-less sidebar's header draws
+	// the same mark, so both read it from frappe.utils.
 	app_logo() {
-		const title = this.app.app_title || this.app.app_name;
-		const logo_url = Array.isArray(this.app.app_logo_url)
-			? this.app.app_logo_url[0]
-			: this.app.app_logo_url;
-
-		const icon = logo_url
-			? `<img src="${frappe.utils.escape_html(logo_url)}" alt="${frappe.utils.escape_html(
-					title
-			  )}" />`
-			: frappe.utils.desktop_icon(title, "gray", "sm");
-
-		return { icon, title };
+		return frappe.utils.app_logo(this.app);
 	}
 
 	// A module belonging to no app shows its own icon. No new boot payload is needed, because the

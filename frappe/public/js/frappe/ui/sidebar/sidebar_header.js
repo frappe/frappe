@@ -19,10 +19,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.title = this.get_display_title();
 		this.set_header_icon();
 		this.$header_title.text(__(this.title));
-		// The mark names the same module the title does, so it is replaced along with it. Before
-		// the header drew one, set_header_icon's result was only ever read by the onboarding widget
-		// and a stale icon here could not be seen.
-		this.$header_logo.html(this.header_icon);
+		// The mark is replaced along with the title. Before the header drew one, set_header_icon's
+		// result was only ever read by the onboarding widget and a stale icon here could not be
+		// seen. Which mark it is depends on whether there is a rail (see get_header_logo), and
+		// that can change from one module to the next, so it is re-resolved here too.
+		this.$header_logo.html(this.get_header_logo());
 		this.refresh_menu();
 	}
 
@@ -302,7 +303,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		$(
 			frappe.render_template("sidebar_header", {
 				workspace_title: this.title,
-				header_icon: this.header_icon,
+				header_icon: this.get_header_logo(),
 				// Which site you are on, under what you are inside. `boot.sitename` is the site's
 				// own name, which is its domain on any real deployment; the hostname stands in
 				// where boot carries none. Who you are is the user row's to say, at the foot of
@@ -342,6 +343,25 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.header_icon = sidebar?.header_icon
 			? frappe.utils.icon(sidebar.header_icon, "md")
 			: frappe.utils.desktop_icon(this.title || "", "gray", "sm");
+	}
+
+	// The mark the header draws.
+	//
+	// On a docked app the rail carries the app's logo one column to the left, so the header is
+	// free to mark the module its title names, and two logos side by side would say the same
+	// thing twice.
+	//
+	// A dock-less app has no rail, so nothing on screen says which app you are in -- the header
+	// title names the module, and the title bar names the page. There the header takes the mark
+	// the rail would have carried, which is the app's own logo. The module keeps the title, so
+	// between the two the header still says both.
+	//
+	// `header_icon` is left alone either way: it is the module's icon, and the onboarding widget
+	// reads it as one.
+	get_header_logo() {
+		if (this.sidebar.dock_enabled()) return this.header_icon;
+		const app = frappe.utils.app_logo(this.sidebar.get_sidebar_app());
+		return app ? app.icon : this.header_icon;
 	}
 
 	setup_hover() {
