@@ -1046,15 +1046,26 @@ body.grid-col-resizing {
 // to wrap (a Select naming all its allowed options, say) would otherwise push
 // the table down as it appears and pull it back as it clears, moving the very
 // cell that was just clicked. The full text stays available as the title.
-// what is wrong with the cell being edited, in the footer's left slot. One
-// clipped line with the full text on hover; the actions opposite set the row
-// height, so nothing moves as it comes and goes.
+// what is wrong with the cell being edited, in the footer's left slot. The red
+// dot comes from .indicator; this adds the matching text colour and clips the
+// sentence to one line, with the whole of it on hover. The actions opposite set
+// the row height, so nothing moves as the message comes and goes.
 .bulk-edit-footer-message {
 	align-self: center;
 	max-width: 60ch;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	color: var(--error-color);
+
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+// sits under the mapping line and stays put whether or not anything is flagged,
+// so the table below it never shifts
+.bulk-edit-preview-hint {
+	margin-bottom: var(--padding-sm);
 }
 
 .bulk-edit-preview-table {
