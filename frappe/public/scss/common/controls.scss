@@ -619,9 +619,17 @@ button.data-pill {
 
 .capture-remove-btn {
 	position: absolute;
-	top: 0;
-	right: 0;
+	top: var(--margin-xs);
+	right: var(--margin-xs);
+	display: flex;
+	padding: 2px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-full);
+	background-color: var(--fg-color);
+	box-shadow: var(--shadow-sm);
 	cursor: pointer;
+
+	--icon-stroke: var(--text-color);
 }
 
 //switch
