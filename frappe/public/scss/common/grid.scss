@@ -1046,9 +1046,12 @@ body.grid-col-resizing {
 // to wrap (a Select naming all its allowed options, say) would otherwise push
 // the table down as it appears and pull it back as it clears, moving the very
 // cell that was just clicked. The full text stays available as the title.
-.bulk-edit-preview-message {
-	height: calc(var(--text-sm) * 1.4);
-	margin-bottom: var(--padding-sm);
+// what is wrong with the cell being edited, in the footer's left slot. One
+// clipped line with the full text on hover; the actions opposite set the row
+// height, so nothing moves as it comes and goes.
+.bulk-edit-footer-message {
+	align-self: center;
+	max-width: 60ch;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
