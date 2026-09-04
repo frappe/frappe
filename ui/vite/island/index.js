@@ -1,14 +1,14 @@
 // The island build preset. It sets everything the mount contract depends on, so
 // an app supplies only its entry list. Usage and options in ../../README.md.
 //
-// The preset runs one vite build for all of an app's islands. Rollup then lifts
-// what two entries share into a chunk both import, and the app pays for Vue and
-// frappe-ui once however many islands it ships.
+// The preset runs one Vite build for all of an app's islands. Rollup then lifts
+// what two entries share into a chunk both import. The app pays for Vue and
+// frappe-ui once, whatever the island count.
 // ../../island/decisions/0002-an-app-builds-its-islands-together.md
 //
-// What is left after that is three jobs: scan the app's stylesheet from what the
-// bundle is made of, weigh each island against a budget, and register the built
-// files under the asset keys desk resolves.
+// Three jobs remain. The preset scans the app's stylesheet from what the bundle
+// is made of. It weighs each island against a budget. It registers the built
+// files under the asset keys the desk loader resolves.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -33,17 +33,15 @@ import { islandVue } from "./vue.js";
 /**
  * Bytes of JS plus CSS one island may load, before compression.
  *
- * This is a backstop, not a target, and it has to clear a real island to be
- * either. An island carries its own Vue, its own frappe-ui and its own
- * preflight, so the floor is high. The fixture in `tests/`, which renders one
- * frappe-ui Button, weighs 288 kB. Insights' dashboard island, which draws a
- * grid of live charts, weighs 1.78 MB. The failure this catches is higher
- * still: an entry that reaches into the SPA's router graph, measured on the
- * first Insights island at 2.3 MB of JS alone.
+ * This is a backstop, not a target. An island carries its own Vue, its own
+ * frappe-ui and its own preflight, so the floor is high. Measured:
  *
- * So the default sits above a working island of that size and below that
- * failure. Apps pin `budget` to their own first clean build, where the number
- * means something.
+ * - the fixture in `tests/`, one frappe-ui Button: 288 kB
+ * - the Insights dashboard island, a grid of live charts: 1.78 MB
+ * - an entry that reached into the Insights SPA's router graph: 2.3 MB of JS
+ *
+ * The default sits above the working islands and below that failure. An app
+ * pins `budget` to its own first clean build, where the number is meaningful.
  */
 export const DEFAULT_BUDGET = 2 * 1024 * 1024;
 
@@ -56,12 +54,12 @@ const TAILWIND_ENTRY = "virtual:island.css";
  * @param {Object} options
  * @param {string} options.app       frappe app the output belongs to, e.g. `insights`
  * @param {string} options.root      the app's frontend directory (the vite root)
- * @param {Object<string,string>} options.entries  asset base name → entry file
- * @param {number} [options.budget]  bytes of JS + CSS one island may load; over it warns
+ * @param {Object<string,string>} options.entries  bundle name → entry file
+ * @param {number} [options.budget]  bytes of JS + CSS one island may load. Over it, the build warns
  * @param {string[]} [options.tailwindPlugins]  the app's Tailwind plugins, by module specifier
- * @param {(string|RegExp)[]} [options.allowUnscanned]  escape hatch: bundled
- *        files that hold no classes, so `content` need not scan them
- * @param {(string|RegExp)[]} [options.forbiddenImports]  escape hatch: fail on a matching import
+ * @param {(string|RegExp)[]} [options.allowUnscanned]  bundled files that hold no
+ *        classes, so the scan check passes over them
+ * @param {(string|RegExp)[]} [options.forbiddenImports]  fail the build on a matching import
  * @param {import('vite').PluginOption[]} [options.plugins]  extra plugins
  * @param {boolean} [options.production]
  * @param {boolean} [options.watch]
@@ -92,7 +90,7 @@ export async function buildIslands(options) {
  * The source the app's islands are built from, for Tailwind to scan.
  *
  * The preset runs a first build with no stylesheet, keeps its module list, and
- * throws the output away. That pass costs about the time of the real build.
+ * discards the output. That pass costs about the time of the real build.
  * ../../island/decisions/0003-tailwind-scans-the-module-list-not-a-glob.md
  */
 async function discoverSources(context) {
@@ -131,7 +129,7 @@ export async function islandContext(options) {
 		Object.entries(options.entries).map(([name, file]) => {
 			if (!/^[\w.-]+$/.test(name))
 				throw new Error(
-					`island: entry name "${name}" must be a bare word — it becomes ` +
+					`island: entry name "${name}" must be a bare word. It becomes ` +
 						"an assets.json key and an output file name."
 				);
 			return [name, fs.realpathSync(path.resolve(root, file))];
@@ -197,7 +195,7 @@ export function islandConfig(context) {
 			outDir: context.paths.distDir,
 			// The app's islands own this directory, so emptying it cannot touch
 			// the legacy pipeline's output or another app's islands. An entry
-			// the app has dropped leaves in the same build.
+			// the app dropped leaves in the same build.
 			emptyOutDir: true,
 			minify: context.mode === "production" ? "esbuild" : false,
 			sourcemap: false,
@@ -210,14 +208,14 @@ export function islandConfig(context) {
 			rollupOptions: {
 				input: context.entries,
 				// Desk imports an island for its `mount` export. Without this
-				// flag vite treats each entry as an app entry, drops its
+				// flag Vite treats each entry as an app entry, drops its
 				// exports, and tree-shakes the island away.
 				preserveEntrySignatures: "exports-only",
 				output: {
 					format: "es",
 					entryFileNames: "[name].island.[hash].js",
 					chunkFileNames: "chunks/[name].[hash].js",
-					// Rollup 4 reports `names`, and vite's extracted
+					// Rollup 4 reports `names`, and Vite's extracted
 					// stylesheet arrives with `name` alone.
 					assetFileNames: (asset) =>
 						(asset.names?.[0] ?? asset.name ?? "").endsWith(".css")
@@ -256,7 +254,7 @@ function tailwindEntry(entryPaths) {
 	};
 }
 
-/** Optional, app-local: refuse an import the app has decided not to allow. */
+/** Optional and app-local. Refuses an import the app decided not to allow. */
 function forbiddenImports(patterns) {
 	const matches = (source) =>
 		patterns.some((pattern) =>
@@ -282,7 +280,7 @@ function forbiddenImports(patterns) {
  * register the whole app's islands in assets.json.
  *
  * All of it sits in one `writeBundle` hook. It is the only hook a watcher
- * replays, and the first one that sees the stylesheet, because vite's css-post
+ * replays, and the first one that sees the stylesheet, because Vite's css-post
  * plugin emits it after every user `generateBundle`. Rollup runs `writeBundle`
  * hooks in parallel, so a separate gate plugin could not run before this one.
  */
@@ -301,10 +299,10 @@ function emitIslands(context) {
 				console.log(`[island] ${name}: ${report(js)} JS, ${report(style)} CSS`);
 
 				// A warning, not an error. The budget is a number an app tunes as its
-				// island grows, and a build that stops leaves the island's assets on
-				// disk with no `assets.json` entry — a broken island, for a size the
-				// app may well accept. `forbiddenImports` is the check that fails the
-				// build, because it names a recoupling rather than measuring one.
+				// island grows. A build that stops leaves the island's assets on disk
+				// with no `assets.json` entry, which is a broken island, for a size the
+				// app may accept. `forbiddenImports` is the check that fails the build,
+				// because it names a coupling instead of measuring one.
 				if (js.raw + style.raw > budget)
 					this.warn(
 						`island ${name} loads ${kb(js.raw + style.raw)} of JS + CSS, ` +

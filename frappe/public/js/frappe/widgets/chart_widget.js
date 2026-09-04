@@ -44,8 +44,8 @@ export default class ChartWidget extends Widget {
 		this.unmount_island();
 		this.body.empty();
 
-		// `type` says how desk draws a chart, and an island is drawn by an app, so
-		// a heatmap's forced full width and legend do not apply to it.
+		// `type` says how desk draws a chart. An app draws an island, so a
+		// heatmap's forced full width and legend do not apply to it.
 		if (!this.island && this.chart_doc.type == "Heatmap") {
 			this.setup_heatmap_container();
 		}
@@ -127,12 +127,12 @@ export default class ChartWidget extends Widget {
 	}
 
 	/**
-	 * Draws a chart an app owns. Desk keeps the frame — the title, the actions and
-	 * the error state — and the island owns the body alone, so a workspace still
-	 * reads as a workspace.
+	 * Draws a chart an app owns. Desk keeps the frame, which is the title, the
+	 * actions and the error state. The island owns the body alone, so a workspace
+	 * still reads as a workspace.
 	 *
 	 * Nothing below this fetches chart data. Desk does not know what the island
-	 * draws, and the props it draws from came down with the document.
+	 * draws, and the props came with the document.
 	 */
 	make_island() {
 		this.setup_container();
@@ -142,17 +142,17 @@ export default class ChartWidget extends Widget {
 		}
 		this.prepare_island_actions([]);
 
-		// A definite height, not a floor. An island fills the element it is given,
-		// and a `height: 100%` inside it resolves against auto to nothing, so a
-		// floor draws the island's header over an empty body. Desk's own chart
-		// takes the same number as a fixed height.
+		// A definite height, not a floor. An island fills the element it is given.
+		// A `height: 100%` inside it resolves against auto to nothing, so a floor
+		// puts the island's header over an empty body. Desk's own chart takes the
+		// same number as a fixed height.
 		this.chart_wrapper.css("height", `${this.height}px`);
 
 		this.island_handle = frappe.ui.mount_island(this.island.name, this.chart_wrapper, {
 			...this.island.props,
 			// The island reports its actions as it loads them, and again whenever
-			// they change. It reports no title: desk heads the widget with the
-			// chart document's own name.
+			// they change. It reports no title, because desk heads the widget with
+			// the chart document's own name.
 			onActions: (actions) => this.prepare_island_actions(actions),
 		});
 
@@ -170,25 +170,25 @@ export default class ChartWidget extends Widget {
 	}
 
 	/**
-	 * The island's own actions, then Edit — desk's, because the document behind
-	 * the chart is desk's. Called again on every `actions` report, so the menu
-	 * says what the island says now.
+	 * The island's own actions, then Edit. Edit is desk's, because the document
+	 * behind the chart is desk's. Every `actions` report calls this again, so the
+	 * menu says what the island says now.
 	 *
-	 * None of desk's other chart actions apply: they drive a fetch desk does not
-	 * make. Reset Chart clears settings the island never reads, Export writes data
-	 * desk never fetched, and the filters and the time interval reach nothing.
-	 * Refresh is the island's to report, if reloading means anything to it.
+	 * None of desk's other chart actions apply, because they drive a fetch desk
+	 * does not make. Reset Chart clears settings the island never reads. Export
+	 * writes data desk never fetched. The filters and the time interval reach
+	 * nothing. The island reports Refresh itself, if a reload means anything to it.
 	 *
-	 * An action carries either an `onClick` or an `href`. An `href` leaves the app,
-	 * and desk opens what leaves it in a new tab.
+	 * An action carries either an `onClick` or an `href`. An `href` leads out of
+	 * the app, and desk opens it in a new tab.
 	 *
 	 * @param {{ label: string, icon?: string, onClick?: Function, href?: string }[]} actions
 	 */
 	prepare_island_actions(actions) {
-		// Customize mode owns the action area — it draws its own controls there.
+		// Customize mode owns the action area and puts its own controls there.
 		if (this.in_customize_mode) return;
 
-		// `set_chart_actions` appends a menu; a rebuild replaces the one it made.
+		// `set_chart_actions` appends a menu. A rebuild replaces the one it made.
 		this.chart_actions?.remove();
 
 		this.set_chart_actions([
@@ -630,8 +630,8 @@ export default class ChartWidget extends Widget {
 
 		this.chart_actions.find("a[data-action]").each((i, o) => {
 			const action = o.dataset.action;
-			// the handler, not the action: jQuery binds whatever it is given and
-			// throws on click when that is not a function
+			// Bind the handler, not the action object. jQuery binds whatever it is
+			// given and throws on click when that is not a function.
 			$(o).click(actions.find((a) => a.action === action).handler);
 		});
 		this.chart_actions.appendTo(this.action_area);
@@ -942,9 +942,9 @@ export default class ChartWidget extends Widget {
 			if (chart_doc) {
 				this.chart_doc = chart_doc;
 
-				// An app draws this chart. The key is absent when none does, so
-				// absence alone runs desk's own renderer below. Read on every
-				// call, because the document may have changed.
+				// An app draws this chart. When no app does, the key is absent, and
+				// desk's own renderer below runs. Read on every call, because the
+				// document may have changed.
 				this.island = chart_doc.__onload?.island;
 				if (this.island) return Promise.resolve();
 

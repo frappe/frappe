@@ -50,7 +50,7 @@ class TestUiIslandsRegistry(IntegrationTestCase):
 			self.assertEqual(get_ui_islands(), {})
 
 	def test_registry_reaches_the_browser_through_boot(self):
-		# The loader resolves island names on the client, so boot must carry them.
+		# The desk loader resolves island names on the client, so boot must carry them.
 		with patch.object(frappe.local, "request", None, create=True):
 			self.assertIn("ui_islands", frappe.sessions.get())
 

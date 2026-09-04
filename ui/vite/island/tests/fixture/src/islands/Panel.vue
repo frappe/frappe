@@ -1,6 +1,6 @@
 <template>
-	<!-- `@container`/`@xl:` come from the app's own Tailwind plugin, not from
-	frappe-ui's preset — they compile only if the app's plugins reach the
+	<!-- `@container` and `@xl:` come from the app's own Tailwind plugin, not
+	from frappe-ui's preset. They compile only if the app's plugins reach the
 	island's generated config. -->
 	<div class="@container">
 		<div class="grid grid-cols-1 gap-2 @xl:grid-cols-3">

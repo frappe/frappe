@@ -1,5 +1,5 @@
 /**
- * `mountVueIsland` — the mount contract an island entry is built on.
+ * `mountVueIsland`: the mount contract an island entry is built on.
  *
  *     import { mountVueIsland } from "@framework/ui/island";
  *     import App from "./App.vue";
@@ -7,12 +7,12 @@
  *     export const mount = (el, context) =>
  *         mountVueIsland(el, { ...context, component: App });
  *
- * The entry ships one `mount(el, context)` export. A host calls it through the
- * host loop, which resolves the island's name, hands over an empty element and
- * the `context` below, and holds the returned handle.
+ * The entry ships one `mount(el, context)` export. The host loop resolves the
+ * island's name, hands over an empty element and the `context` below, and holds
+ * the returned handle.
  *
- * A shadow root isolates the island. The boundary encapsulates CSS both ways, so
- * the island ships its normal preflight and nothing crosses into desk's
+ * A shadow root isolates the island. The boundary encapsulates CSS both ways.
+ * The island ships its normal preflight, and nothing crosses into desk's
  * Bootstrap DOM. See decisions/0001-an-app-bundles-its-own-island.md.
  */
 
@@ -23,12 +23,12 @@ import { portalTargetKey } from "frappe-ui";
 import { hostKey } from "./context.js";
 import { currentTheme, onThemeChange } from "./theme.js";
 
-// Desk's modal tier (Bootstrap's `.modal`), level with a desk dialog and above
-// every page-level control desk paints: the icon rail at 1020, menus at 1030.
+// Desk's modal tier, Bootstrap's `.modal`. It is level with a desk dialog and
+// above every page-level control: the icon rail at 1020, menus at 1030.
 const OVERLAY_Z_INDEX = "1050";
 
 // url -> Promise<CSSStyleSheet>. One sheet object per URL for the whole page,
-// adopted into every shadow root. Fetched once and parsed once.
+// adopted into every shadow root. The browser fetches and parses it once.
 const styleSheets = new Map();
 
 /**
@@ -46,8 +46,8 @@ const styleSheets = new Map();
  */
 
 /**
- * `el` is the empty element the host loop gives this island. The loop owns what
- * holds a target, so nothing here tears down what it finds there.
+ * `el` is the empty element the host loop gives this island. The loop owns the
+ * target, so nothing here unmounts what it finds there.
  *
  * @param {HTMLElement} el
  * @param {MountVueIslandOptions} options
@@ -80,17 +80,18 @@ export async function mountVueIsland(el, options) {
 	root.className = "frappe-island-root";
 	root.style.height = "100%";
 
-	// Overlays (Dialog, Popover, Select, …) portal here, not to <body>, so they
-	// render inside the styled tree. reka-ui resolves its target as explicit prop
-	// > host inject > its own default. Only an element survives the shadow
-	// boundary. The browser queries a selector string against the document.
+	// Overlays such as Dialog, Popover and Select portal here, not to <body>, so
+	// they render inside the styled tree. reka-ui reads its target from an
+	// explicit prop first, then from the host inject, then from its own default.
+	// Only an element survives the shadow boundary, because the browser queries
+	// a selector string against the document.
 	const portal = document.createElement("div");
 	portal.className = "frappe-island-portal";
 	// A shadow root is not a stacking context, so an overlay inside it competes
-	// with desk's chrome directly. At `z-index: auto` the browser paints the icon
-	// rail (1020) and desk's menus (1030) over the overlay, although the overlay
-	// covers them for hit testing. The portal carries the tier, not the host, so
-	// the island's content stays in the page flow.
+	// with desk's page-level controls directly. At `z-index: auto` the browser
+	// paints the icon rail and desk's menus over the overlay, although the
+	// overlay covers them for hit testing. The portal carries the tier, not the
+	// host, so the island's content stays in the page flow.
 	portal.style.position = "relative";
 	portal.style.zIndex = OVERLAY_Z_INDEX;
 
@@ -109,8 +110,8 @@ export async function mountVueIsland(el, options) {
 	});
 
 	// Theme joins the host context here, because only this side of the boundary
-	// can make it a tracked read — a mid-session theme switch then re-renders the
-	// island. A new object: the one the host passed is the host's.
+	// can make it a tracked read. A mid-session theme switch then re-renders the
+	// island. This is a new object, because the one the host passed is the host's.
 	const context = {
 		...host,
 		get theme() {
@@ -142,9 +143,9 @@ export async function mountVueIsland(el, options) {
 		// Desk globals, so components that call `__()` or read `frappe` work.
 		window.SetVueGlobals?.(app);
 
-		// frappe-ui components (Button, MultiSelect, …) call useRouter() always. A
-		// memory router keeps that inject resolvable. An island that wants
-		// navigation of its own passes real routes.
+		// frappe-ui components such as Button and MultiSelect always call
+		// useRouter(). A memory router keeps that inject resolvable. An island that
+		// wants navigation of its own passes real routes.
 		app.use(createRouter({ history: createMemoryHistory(), routes: routes || [] }));
 
 		app.provide(portalTargetKey, portal);
@@ -169,7 +170,7 @@ export async function mountVueIsland(el, options) {
 				try {
 					app.unmount();
 				} catch (e) {
-					// A failed unmount must not block teardown of the host.
+					// A failed unmount must not block the removal of the shadow host.
 					console.error("island: error during unmount", e);
 				}
 				// Drops the shadow root and everything in it.

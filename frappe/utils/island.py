@@ -2,14 +2,14 @@
 # License: MIT. See LICENSE
 """Desk islands: the registry that turns an island's name into its bundle.
 
-An app declares an island in `hooks.py`, against the bundle base name its build
+An app declares an island in `hooks.py`, against the bundle name its build
 registers in assets.json:
 
     ui_islands = {"insights.dashboard": "insights_dashboard"}
 
-Two hosts resolve a name against the registry. Desk reads it from boot, and
-`frappe.ui.mount_island` does the lookup on the client. A page without desk boot
-calls `get_island_assets`, which does the same lookup on the server.
+Two hosts resolve a name against the registry. The desk loader,
+`frappe.ui.mount_island`, reads it from boot on the client. A page without desk
+boot calls `get_island_assets`, which does the same lookup on the server.
 
 The `.island.js` and `.island.css` key forms differ from the legacy `.bundle.js`
 one, so the module loader and the classic loader never claim the same asset.
@@ -24,7 +24,7 @@ ISLAND_CSS_SUFFIX = ".island.css"
 
 
 def get_ui_islands() -> dict[str, str]:
-	"""Island name -> bundle base name, across every installed app."""
+	"""Island name -> bundle name, across every installed app."""
 	islands = {}
 
 	for name, value in frappe.get_hooks("ui_islands", default={}).items():

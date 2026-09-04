@@ -1,5 +1,5 @@
 <!--
-	`<Island>` — an island inside a frappe-ui app.
+	`<Island>`: the Vue host, an island inside a frappe-ui app.
 
 		<Island
 			name="insights.dashboard"
@@ -10,21 +10,20 @@
 			@navigate="router.push($event)"
 		/>
 
-	The component is transparent: everything but `name` and `context` is the
-	island's props object, passed to its component verbatim — data attributes and
-	`on*` listeners alike, exactly as `h()` takes them. `class` and `style` stay
-	here, on the host element.
+	The component is transparent. Everything but `name` and `context` is the
+	island's props object, passed to its component verbatim. `class` and `style`
+	stay here, on the host element.
 
-	Desk's other host is `frappe.ui.mount_island`. Both wrap the same loop in
-	`./host.js`; this component adds the Vue lifecycle and resolves a name over
-	the API instead of out of `frappe.boot`.
+	The desk loader, `frappe.ui.mount_island`, is the other host. Both wrap the
+	host loop in `./host.js`. This component adds the Vue lifecycle, and it
+	resolves a name over the API instead of from `frappe.boot`.
 
-	It imports nothing but vue — not frappe-ui — because an app can pin a
+	It imports nothing but Vue, and not frappe-ui, because an app can pin a
 	frappe-ui older than this package's peer range and still host an island.
 -->
 
 <template>
-	<!-- The island fills what it is given: `mountVueIsland` chains `height: 100%`
+	<!-- The island fills what it is given. `mountVueIsland` chains `height: 100%`
 	     from here down, and the chain breaks at the first auto height. The static
 	     style comes first, so a style the parent passes wins over it. -->
 	<div ref="root" style="height: 100%" :class="attrs.class" :style="attrs.style"></div>
@@ -59,10 +58,9 @@ const root = ref(null);
 let handle = null;
 
 /**
- * The island's props object: every attr but the two the host element keeps.
- *
- * What an island reports is a plain event, so a host binds a listener and passes
- * no value down. Nothing has to be held back here.
+ * The island's props object, which is every attribute but the two the host
+ * element keeps. An island reports through plain events, so a host binds a
+ * listener and passes no value down. Nothing has to be filtered out here.
  */
 const islandProps = computed(() =>
 	Object.fromEntries(Object.entries(attrs).filter(([key]) => key !== "class" && key !== "style"))
@@ -82,8 +80,8 @@ watch(islandProps, (next, previous) => {
 });
 
 function load() {
-	// The handle is the component's from here on, load or no load: `update`
-	// reaches a mount still to come, and `unmount` cancels it.
+	// The handle is the component's from here on, loaded or not. `update`
+	// reaches a pending mount, and `unmount` cancels it.
 	handle?.unmount();
 	handle = mountIsland(props.name, root.value, {
 		resolve: resolveAssets,
@@ -91,8 +89,8 @@ function load() {
 		props: islandProps.value,
 	});
 
-	// A load this component moved on from reports nothing: the loop resolves a
-	// cancelled load rather than failing it.
+	// A load this component moved on from reports nothing. The loop resolves a
+	// cancelled load instead of failing it.
 	handle.ready.catch((e) => emit("error", e instanceof Error ? e : new Error(String(e))));
 }
 
@@ -126,8 +124,8 @@ async function resolveAssets(name) {
 }
 
 /**
- * The message `frappe.throw` sent. It rides `_server_messages`, a JSON list of
- * JSON strings, and not the response status.
+ * The message `frappe.throw` sent. It is in `_server_messages`, a JSON list of
+ * JSON strings, and not in the response status.
  */
 function serverMessage(body) {
 	try {

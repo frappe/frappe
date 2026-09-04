@@ -1,13 +1,14 @@
 /**
- * The bounded page shell, for the island renderer only (`dashboard_view.js` puts
- * the class on <body> while that renderer is on screen).
+ * The bounded page shell, for the island renderer only. `dashboard_view.js`
+ * puts the class on <body> while that renderer is on screen.
  *
  * The island scrolls its own body, which needs a definite height to scroll in.
- * Against desk's document-scrolled page its `height: 100%` resolves to auto, so
- * it grows and its filter bar scrolls away with the grid it filters.
+ * Against desk's document-scrolled page its `height: 100%` resolves to auto.
+ * The island then grows, and its filter bar scrolls away with the grid it
+ * filters.
  *
- * Flex the column rather than `calc(100vh - var(--page-head-height))` (the
- * report view's idiom): that number is wrong by the head's border, and wrong
+ * Flex the column instead of `calc(100vh - var(--page-head-height))`, the
+ * report view's idiom. That number is wrong by the head's border, and wrong
  * again wherever `.main-section` does not start at the top of the viewport.
  */
 body.dashboard-view-island-page {
@@ -15,9 +16,9 @@ body.dashboard-view-island-page {
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-		// dead space here: a bounded box has no page to scroll past the chat
-		// bubble and the onboarding panel. `!important` beats the inline
-		// padding those two write.
+		// A bounded box has no page to scroll past the chat bubble and the
+		// onboarding panel, so their padding is dead space. `!important` beats
+		// the inline padding those two write.
 		padding-bottom: 0 !important;
 	}
 
@@ -28,11 +29,11 @@ body.dashboard-view-island-page {
 		display: flex;
 		flex-direction: column;
 		flex: 1;
-		// or each box floors at its content height, which is the whole dashboard
+		// Without this, each box floors at its content height, which is the
+		// whole dashboard.
 		min-height: 0;
 	}
 
-	// desk's head takes its own height; the island gets what is left.
 	.page-head {
 		flex: none;
 	}

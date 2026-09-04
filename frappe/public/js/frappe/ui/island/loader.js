@@ -1,29 +1,25 @@
 /**
- * frappe.ui.mount_island — the one call desk makes to put an app's island on a page.
+ * frappe.ui.mount_island: the desk loader, the one call desk makes to put an
+ * app's island on a page.
  *
  *     const island = frappe.ui.mount_island("insights.dashboard", el, {
  *         dashboard: "sales",
- *         onNavigate: (route) => frappe.set_route(route),
- *         onTitle: (title) => page.set_title(title || __("Dashboard")),
+ *         onTitle: (title) => frappe.utils.set_title(title || __("Dashboard")),
  *     });
  *     island.update({ filters });
  *     island.unmount();
  *
- * The handle comes back at once. `island.ready` is the load: it resolves when the
- * island is on the page and rejects with what the load threw.
+ * The host loop in `@framework/ui/island/host` defines the props object, the
+ * handle and `ready`. This file is desk's half. It resolves a name against
+ * boot, assembles the desk context, and publishes the `frappe.ui` API.
  *
- * Desk is one host of an island; a frappe-ui app is another. The loop both run —
- * import the module, call its `mount`, keep the handle — is
- * `@framework/ui/island/host`. This file is desk's half: it resolves a name
- * against boot, assembles the desk context, and publishes the `frappe.ui` API.
+ * Resolution runs from the name to the `ui_islands` registry in boot, then to
+ * assets.json, then to the module URL the host loop imports. An island is a
+ * self-contained ES module, so this file is part of desk's normal esbuild
+ * bundle, and the page needs nothing loaded ahead of the island.
  *
- * Resolution runs name -> the `ui_islands` registry (hooks, carried in boot) ->
- * assets.json -> the module URL the host loop imports. An island is a
- * self-contained ES module, so this file rides desk's normal esbuild bundle and
- * the page needs nothing loaded ahead of the island itself.
- *
- * The caller passes the island's props. Desk adds `host` and `styles`. Everything
- * the island then does with them is the app's own build:
+ * The caller passes the island's props. Desk adds `host` and `styles`. What the
+ * island does with them is the app's own build. See
  * ui/island/decisions/0001-an-app-bundles-its-own-island.md.
  */
 
@@ -82,8 +78,9 @@ function build_desk_context() {
 		base_url: frappe.urllib ? frappe.urllib.get_base_url() : window.location.origin,
 
 		// Desk routing, which an island cannot do for itself. The browser
-		// retargets a click inside a shadow root to the island's host element, so
-		// desk's anchor delegation never matches and a plain link reloads the page.
+		// retargets a click inside a shadow root to the island's host element.
+		// Desk's anchor delegation then never matches, and a plain link reloads
+		// the page.
 		navigate: (route) => frappe.set_route(route),
 	};
 
@@ -97,6 +94,6 @@ frappe.ui.unmount_island = unmountIsland;
 if (frappe.boot?.developer_mode) {
 	frappe.hot_update = frappe.hot_update || [];
 	// A rebuild moves the asset hash, so the islands on the page point at a stale
-	// module. Only those whose URL moved are re-mounted.
+	// module. Only the islands whose URL moved re-mount.
 	frappe.hot_update.push(() => reloadChangedIslands());
 }

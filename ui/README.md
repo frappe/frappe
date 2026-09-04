@@ -90,11 +90,7 @@ Subpaths work too (via the `./*` export), e.g. `import { FormLayout } from '@fra
 
 ## Desk islands
 
-An **island** is a Vue UI unit an app builds and desk mounts in a shadow root. The app
-owns the bundle: an island carries its own Vue, its own frappe-ui and everything else
-it imports, so nothing has to be on the page before it loads. Framework owns one seam —
-a name, a URL and a `mount(el, context)` export. See
-[the decisions](island/decisions/).
+An **island** is a Vue UI unit. An app builds it, and a host mounts it in a shadow root. The app owns the bundle. The island carries its own Vue, its own frappe-ui and everything else it imports, so the page needs nothing loaded before the island. Framework owns one **seam**, the contract between a host and the app: a name, a URL and a `mount(el, context)` export. See [the decisions](island/decisions/).
 
 The pieces:
 
@@ -103,13 +99,10 @@ The pieces:
 | `mountVueIsland`, the mount contract | `@framework/ui/island` |
 | `buildIslands`, the build preset | `@framework/ui/vite/island` |
 | `mountIsland`, the host loop | `@framework/ui/island/host` |
-| `frappe.ui.mount_island`, desk's host | framework |
-| `<Island>`, a Vue app's host | `@framework/ui/island/Island.vue` |
+| `frappe.ui.mount_island`, the desk loader | framework |
+| `<Island>`, the Vue host | `@framework/ui/island/Island.vue` |
 
-Both hosts wrap the one loop: it imports the module a name resolves to and calls its
-`mount`, and it hands back the handle at once. They differ in how a name resolves — desk
-reads `frappe.boot`, `<Island>` calls the API. See
-[the decision](island/decisions/0008-one-host-loop-two-hosts.md).
+The desk loader and `<Island>` wrap the one host loop. They differ only in how they resolve a name. See [decision 0008](island/decisions/0008-one-host-loop-two-hosts.md).
 
 ### 1. Write an entry — `@framework/ui/island`
 
@@ -122,15 +115,9 @@ export const mount = (el, context) =>
   mountVueIsland(el, { ...context, component: Dashboard });
 ```
 
-`mountVueIsland` opens the shadow root, adopts the island's stylesheet, mirrors desk's
-theme, gives frappe-ui's overlays a portal target inside the root, and returns the
-`update`/`unmount` handle desk holds. Pass `configure(app)` to register plugins and
-global components, and `routes` if the island wants real navigation.
+`mountVueIsland` opens the shadow root, adopts the app's stylesheet, mirrors the host theme, gives frappe-ui's overlays a portal target inside the root, and returns the handle. Pass `configure(app)` to register plugins and global components. Pass `routes` if the island needs navigation of its own.
 
-Inside a component, `useHost()` reads the ambient context the host injected — `locale`,
-`timezone`, `user`, `theme`, `navigate`. The name is the seam, whichever host fills it:
-inside an island CRM hosts, `useHost()` reads CRM's context. Every field is optional, so
-a component still renders in a unit test.
+Inside a component, `useHost()` returns the host context: `locale`, `timezone`, `user`, `theme`, `navigate`. Every field is optional, so a component still renders in a unit test.
 
 ### 2. Build it — `@framework/ui/vite/island`
 
@@ -150,15 +137,9 @@ await buildIslands({
 });
 ```
 
-All of an app's entries build together, so rollup lifts what two of them share into a
-chunk both import. Output lands in `sites/assets/<app>/dist/island/`, and each entry
-registers `<name>.island.js` and `<name>.island.css` in `assets.json`. These are the
-keys `frappe.ui.mount_island` resolves, and they differ from the legacy `.bundle.js`
-ones on purpose. Entry names share one namespace with every other app's, so prefix them
-with the app.
+One build takes all of an app's entries, so Rollup shares chunks between them. Output lands in `sites/assets/<app>/dist/island/`. Each entry registers `<name>.island.js` and `<name>.island.css` in `assets.json`. These are the keys the desk loader resolves. Entry names share one namespace with every other app, so prefix them with the app.
 
-The build runs on the app's own vite, `@vitejs/plugin-vue`, Tailwind, autoprefixer,
-TypeScript and frappe-ui. All six are peer dependencies of this package.
+The build runs on the app's own Vite, `@vitejs/plugin-vue`, Tailwind, autoprefixer, TypeScript and frappe-ui. All six are peer dependencies of this package. See [decision 0005](island/decisions/0005-the-preset-resolves-its-tooling-from-the-app.md).
 
 ### 3. Declare it — `hooks.py`
 
@@ -166,26 +147,17 @@ TypeScript and frappe-ui. All six are peer dependencies of this package.
 ui_islands = {"insights.dashboard": "insights_dashboard"}
 ```
 
-Desk then mounts it by name:
+The value is the bundle name, which is the key the build registers. Desk then mounts the island by name:
 
 ```js
 const island = frappe.ui.mount_island("insights.dashboard", el, {
   dashboard: "sales",
-  onNavigate: (route) => frappe.set_route(route),
+  onTitle: (title) => frappe.utils.set_title(title),
 });
 island.update({ filters });
 ```
 
-The third argument is Vue's render-function props object — data keys and `on*` listener
-keys in one flat object, exactly what `h(Component, props)` takes. `update` merges into
-it, like a re-render. See
-[the decision](island/decisions/0009-an-island-takes-vues-props-object.md).
-
-The handle comes back at once, before the module is in hand, so no caller waits to hold
-what it must later release. `update` merges into the props the mount will start from, and
-`unmount` cancels a load still out. `await island.ready` where a caller needs the mount to
-be done: it resolves with the handle, rejects with what the load threw, and resolves after
-a cancel, because nothing failed.
+The third argument is the island's props object. The header of `island/host.js` defines its shape and the handle. See [decision 0009](island/decisions/0009-an-island-takes-vues-props-object.md).
 
 ### Hosting an island from a Vue app
 
@@ -208,80 +180,36 @@ import Island from "@framework/ui/island/Island.vue";
 </template>
 ```
 
-`name` is the same name `hooks.py` declares; the component resolves it through
-`frappe.utils.island.get_island_assets`. The component is transparent: everything but
-`name` and `context` is the island's props object, passed through verbatim, and a change
-to it updates the island in place. `class` and `style` stay on the host element.
-`context` is what `useHost()` reads inside the island — the same shape desk builds, minus
-`theme`, which the mount contract adds. `@error` is the component's own: it fires with
-the `Error` when a load fails, and the component renders nothing.
+`name` is the name `hooks.py` declares. The component resolves it through `frappe.utils.island.get_island_assets`. Every attribute but `name` and `context` is the island's props object. A change to it updates the island in place. `class` and `style` stay on the host element. `context` is what `useHost()` returns inside the island. The mount contract adds `theme` to it. `@error` fires with the `Error` when a load fails, and the component then renders nothing.
 
-The component imports vue and nothing else, so an app on an older frappe-ui can still
-host an island.
+The component imports Vue and nothing else, so an app on an older frappe-ui can still host an island.
 
 ### What a page island reports
 
-An island that fills a page draws no page header. It reports what a header would say,
-and each host draws its own chrome from it. An island that fills less than a page reports
-neither, and a host that draws no header binds neither:
+A page island fills a page. It draws no page header. It reports two things, and each host sets its own **chrome** from them. Chrome is the page title and the page menu around the island.
 
-- `title` — a `string` or `null`, the name of what the island shows.
-- `actions` — an `Action[]`, where `Action` is `{ label, icon? }` plus either an
-  `onClick` or an `href`.
+- `title`, a `string` or `null`.
+- `actions`, an `Action[]`. An `Action` is `{ label, icon? }` plus either an `onClick` or an `href`.
 
-An `onClick` runs in the island. An `href` is a URL — absolute or site-relative — to a
-page outside the host app: the island says where the action goes, and the host decides
-what a link out of the app does. A host opens it in a new tab, and may mark it as leaving
-the app in its own idiom.
+An `onClick` runs in the island. An `href` is a URL to a page outside the host app. The host decides what a link out of the app does. Desk opens it in a new tab.
 
-Desk turns them into the page title and the page menu. A frappe-ui app turns them into
-its `LayoutHeader`. Both are plain events, because a host never sets either one: a Vue
-host binds them with `@title` and `@actions`, and a desk caller passes `onTitle` and
-`onActions`.
-
-```js
-frappe.ui.mount_island("insights.dashboard", el, {
-  onTitle: (title) => page.set_title(title || __("Dashboard")),
-  onActions: (actions) =>
-    draw_menu(
-      actions.map((a) => ({
-        label: a.label,
-        click: a.href ? () => window.open(a.href, "_blank") : a.onClick,
-      }))
-    ),
-});
-```
-
-See [the decision](island/decisions/0010-an-island-reports-title-and-actions.md).
+Both are plain events. A Vue host binds `@title` and `@actions`. A desk caller passes `onTitle` and `onActions`. An island that fills less than a page reports neither. See [decision 0010](island/decisions/0010-a-page-island-reports-title-and-actions.md).
 
 ### CSS
 
-The app ships one stylesheet for all its islands, adopted into every island's shadow
-root. It carries preflight and the theme tokens, because a shadow root inherits nothing
-from the document. The preset rewrites `:root`, `html` and `body` to `:host`, and puts
-dark mode on `[data-theme="dark"]`.
+The app ships one stylesheet for all its islands. Tailwind scans the modules the bundle is built from, so there is no `content` option. Under `watch` the scan list is fixed at start-up. A file imported after start-up **fails the build**. Restart the watch to scan it. See [decision 0003](island/decisions/0003-tailwind-scans-the-module-list-not-a-glob.md) and [decision 0004](island/decisions/0004-an-app-ships-one-island-stylesheet.md).
 
-Tailwind scans the modules the bundle is built from — the app's source and frappe-ui's
-alike — which a first throwaway build discovers. There is no `content` option, because a
-hand-kept list goes stale: Tailwind then writes no rule for a class in a file the list
-missed, and the component renders unstyled with nothing reporting it. Under `watch` the
-list is fixed at start-up, so a file imported after start-up **fails the build** instead
-of rendering wrong. Restart the watch to pick it up.
-
-Pass `tailwindPlugins` for the app's own Tailwind plugins, by module specifier. Without
-them its `@container` and the like compile to nothing here while they work in its SPA.
+Pass `tailwindPlugins` for the app's own Tailwind plugins, by module specifier. Without them, the app's `@container` variants compile to nothing.
 
 ### Overlays
 
-Apply the reka-ui patch this package ships, or a popover opened over a dialog closes the
-dialog under it:
+Apply the reka-ui patch this package ships. Without it, a popover opened over a dialog closes the dialog under it:
 
 ```jsonc
 "postinstall": "patch-package && patch-package --patch-dir node_modules/@framework/ui/patches"
 ```
 
-[The decision](island/decisions/0007-reka-ui-is-patched-to-read-the-shadow-root.md) has
-the detail.
+See [decision 0007](island/decisions/0007-reka-ui-is-patched-to-read-the-shadow-root.md).
 
 ### Icons
 
@@ -289,22 +217,13 @@ the detail.
 
 ### Budget
 
-`budget` sets the JS plus CSS bytes one island may load — its entry chunk, the chunks it
-statically imports, and the app's stylesheet. An island over the budget makes the build
-**warn**. The default is 2 MB, which is a backstop and not a target: an island rendering
-one frappe-ui Button already weighs 288 kB, and Insights' dashboard island weighs 1.78 MB.
-Pin `budget` to your own first clean build plus slack, where the number means something.
-`forbiddenImports` is an optional app-local escape hatch that names a coupling by
-specifier rather than catching it late by weight.
+`budget` sets the JS plus CSS bytes one island may load: its entry chunk, the chunks it statically imports, and the app's stylesheet. An island over the budget makes the build **warn**. The default is a backstop, not a target. `DEFAULT_BUDGET` in `vite/island/index.js` records the measurements behind it. Pin `budget` to your own first clean build plus slack. `forbiddenImports` names an import that fails the build.
 
 ### Watch
 
-`watch: true` rebuilds into the same place and registers again. Firing frappe's
-`hot_update` is still to come — see the TODO in `vite/island/assets.js`.
+`watch: true` rebuilds into the same place and registers again. A rebuild does not fire frappe's `hot_update` yet. See the TODO in `vite/island/assets.js`.
 
-`node ui/vite/island/tests/verify.mjs <app-frontend>` builds a fixture app's islands and
-reads the output back. Name any frontend that has run `yarn install`; the fixture
-borrows its tooling.
+`node ui/vite/island/tests/verify.mjs <app-frontend>` builds a fixture app's islands and reads the output back. Name any frontend where `yarn install` ran. The fixture borrows its tooling.
 
 ## Adding to the package
 

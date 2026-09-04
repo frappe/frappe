@@ -2,10 +2,10 @@
 //
 // This preset ships as source inside `@framework/ui`, which a bench links by
 // relative path. Node resolves a bare specifier from a module's real path, so an
-// `import "vite"` here would look beside the framework checkout — a tree a bench
-// never installs a frontend's dependencies into. The app is the one place vite,
-// Tailwind and frappe-ui are certainly installed, so every build-time dependency
-// is resolved from there.
+// `import "vite"` here would look beside the framework checkout. A bench never
+// installs a frontend's dependencies there. The app is the one place where
+// Vite, Tailwind and frappe-ui are installed, so the preset resolves every
+// build-time dependency from there.
 // ../../../island/decisions/0005-the-preset-resolves-its-tooling-from-the-app.md
 
 import fs from "node:fs";
@@ -23,18 +23,18 @@ const TOOLS = {
 	typescript: "typescript",
 };
 
-/** Generated modules live where every other build artefact does. */
+/** Generated modules live where every other build artifact does. */
 const GENERATED_DIR = "node_modules/.island";
 
 /**
  * Load the preset's build tooling out of the app at `root`.
  *
  * The preset writes a module into the app's `node_modules` and imports that,
- * rather than resolving each specifier itself. A bare import inside the written
- * file resolves against the app's dependencies, through node's own resolver and
- * its `import` condition. Resolving from here instead would mean reimplementing
- * that: `require.resolve` reads the `require` condition, and refuses an
- * ESM-only subpath such as `frappe-ui/vite/lucideIconsPlugin`.
+ * instead of resolving each specifier itself. A bare import inside the written
+ * file resolves against the app's dependencies, through Node's own resolver and
+ * its `import` condition. To resolve from here instead, the preset would
+ * re-implement that. `require.resolve` reads the `require` condition, and it
+ * refuses an ESM-only subpath such as `frappe-ui/vite/lucideIconsPlugin`.
  *
  * @param {string} root  the app's frontend directory
  * @returns {Promise<Object>}  one loaded module per key of `TOOLS`
@@ -59,7 +59,7 @@ export async function loadTools(root) {
 		tools = await import(pathToFileURL(file).href);
 	} catch (error) {
 		throw new Error(
-			`island: the build tooling does not resolve from ${root} — ` +
+			`island: the build tooling does not resolve from ${root}: ` +
 				`${error.message}\nThe island build runs on the app's own ` +
 				"tooling, so the app has to depend on it. Add the missing " +
 				"package to the frontend's devDependencies."

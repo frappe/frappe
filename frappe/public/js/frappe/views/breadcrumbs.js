@@ -191,9 +191,9 @@ frappe.breadcrumbs = {
 	set_dashboard_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
 		// The page names the document it drew. The route segment is only a
-		// fallback: it carries whatever casing the link that reached here used.
-		// The label is what the reader sees; an island may title a document
-		// differently from its name, and the route must still reach the document.
+		// fallback, because it carries whatever casing the link used. The label is
+		// what the reader sees. An island may title a document differently from
+		// its name, and the route must still reach the document.
 		const docname = breadcrumbs.docname || frappe.get_route()[1];
 		const label = breadcrumbs.label || docname;
 		let dashboard_route = `/desk/${frappe.router.slug(doctype)}/${docname}`;

@@ -1,20 +1,23 @@
 /**
  * Verify the island preset against a fixture app.
  *
- * The preset's seam is the build, so this script runs one. It stages
+ * The preset's output is a build, so this script runs one. It stages
  * `tests/fixture/` as a frontend inside a throwaway bench, runs the preset over
- * it, and reads the output back. It checks what the loader and the mount
- * contract depend on: a self-contained ES module per entry, chunks two entries
- * share, one stylesheet holding preflight and every class the bundle applies,
- * assets.json keys in the `.island.js` and `.island.css` form, and an island
- * that registers even when it is over budget.
+ * it, and reads the output back. It checks what the desk loader and the mount
+ * contract depend on:
  *
- * This is a plain node script rather than a unit test, because a build pipeline
- * is what is under test.
+ * - a self-contained ES module per entry
+ * - chunks two entries share
+ * - one stylesheet with preflight and every class the bundle applies
+ * - assets.json keys in the `.island.js` and `.island.css` form
+ * - an island that registers even when it is over budget
+ *
+ * This is a plain Node script, not a unit test, because the build pipeline is
+ * under test.
  *
  * The preset builds on the app's own tooling, so the fixture borrows an
- * installed frontend's `node_modules` — vite, Tailwind, frappe-ui and the rest.
- * Name any app frontend that has run `yarn install`.
+ * installed frontend's `node_modules`: Vite, Tailwind, frappe-ui and the rest.
+ * Name any app frontend where `yarn install` ran.
  *
  * Usage:
  *   node ui/vite/island/tests/verify.mjs ../insights/frontend
@@ -45,7 +48,7 @@ const kb = (bytes) => `${(bytes / 1024).toFixed(1)} kB`;
 
 const check = (ok, what, detail = "") => {
   console.log(
-    `  ${ok ? "ok  " : "FAIL"} ${what}${detail ? ` — ${detail}` : ""}`
+    `  ${ok ? "ok  " : "FAIL"} ${what}${detail ? `: ${detail}` : ""}`
   );
   if (!ok) failures.push(what);
 };
@@ -212,7 +215,7 @@ async function run() {
   console.log("\nsize budget");
   // The budget warns, so the build must still finish and still register the
   // island. A build that stopped here would leave the assets on disk with no
-  // assets.json entry, which is an island the loader cannot resolve at all.
+  // assets.json entry, which is an island the desk loader cannot resolve.
   await buildIslands({ ...island, budget: 32 * 1024 });
   const overBudget = JSON.parse(fs.readFileSync(bench.assetsJson, "utf-8"));
   check(
@@ -230,7 +233,7 @@ function donorTree() {
     throw new Error(
       "island: name an installed app frontend to build against, e.g. " +
         "`node ui/vite/island/tests/verify.mjs ../insights/frontend`. The " +
-        "preset runs on the app's own vite, Tailwind and frappe-ui."
+        "preset runs on the app's own Vite, Tailwind and frappe-ui."
     );
 
   const donor = path.resolve(given);

@@ -25,9 +25,9 @@ export const hostKey = Symbol.for("frappe:island-host");
 /**
  * The host's context, inside an island component.
  *
- * An empty context is a working context: every field is optional, so a component
- * still renders where nothing is provided — a unit test, or a host that predates
- * the field it wants.
+ * An empty context is a working context. Every field is optional, so a component
+ * still renders where nothing is provided, such as in a unit test or under a
+ * host that predates the field it wants.
  *
  * @returns {IslandHost}
  */

@@ -1,6 +1,6 @@
 // Bench paths and assets.json registration for the island build. Registration
 // merges into the file, rewrites only the keys this build owns, and drops the
-// Redis copy so python re-reads the file.
+// Redis copy so Python re-reads the file.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,7 +20,7 @@ export const islandCssKey = (name) => `${name}${ISLAND_CSS_SUFFIX}`;
  * The bench root: the directory holding `sites/` and `apps/`. The preset always
  * runs inside a bench, so it discovers the root instead of taking it as an
  * option. `FRAPPE_BENCH_ROOT` overrides the walk, the same escape hatch frappe's
- * own esbuild/utils.js honours.
+ * own esbuild/utils.js honors.
  *
  * @param {string} from  Directory to start walking up from (the vite root).
  */
@@ -59,7 +59,7 @@ export function readAssetsJson(assetsJsonPath) {
 	try {
 		return JSON.parse(fs.readFileSync(assetsJsonPath, "utf-8"));
 	} catch {
-		// Missing or empty — the esbuild pipeline populates the rest.
+		// Missing or empty. The esbuild pipeline populates the rest.
 		return {};
 	}
 }
@@ -68,7 +68,7 @@ export function readAssetsJson(assetsJsonPath) {
  * Register an app's built islands in assets.json.
  *
  * The app's island build owns every key that points into its own output
- * directory, and each build rewrites that whole set. An entry the app has
+ * directory, and each build rewrites that whole set. An entry the app
  * dropped loses its keys in the same build, instead of leaving dangling ones
  * behind. This leaves the keys of other apps and of the legacy pipeline
  * untouched.

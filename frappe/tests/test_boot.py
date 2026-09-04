@@ -227,7 +227,7 @@ class TestAllowedDashboards(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		self.assertIn(self.dashboard().name, self.allowed())
 
-	def test_a_dashboard_whose_charts_are_all_out_of_reach_is_not(self):
+	def test_a_dashboard_whose_charts_are_all_out_of_reach_is_not_allowed(self):
 		frappe.set_user("Administrator")
 		chart = frappe.get_doc(
 			doctype="Dashboard Chart",

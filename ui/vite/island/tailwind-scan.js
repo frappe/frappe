@@ -1,7 +1,7 @@
 // What Tailwind scans: the source files the bundle is made of.
 //
 // The island's stylesheet is the only one inside its shadow root, so it has to
-// carry a rule for every class the bundle applies — the app's own and
+// carry a rule for every class the bundle applies, the app's own and
 // frappe-ui's alike. Both are modules of the same build, so both are here.
 // ../../island/decisions/0003-tailwind-scans-the-module-list-not-a-glob.md
 
@@ -9,7 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
- * Extensions that can hold a class *usage*, and so are worth scanning.
+ * Extensions that can hold a class usage, and so are worth a scan.
  *
  * A stylesheet in the graph defines rules rather than uses them, and an imported
  * `.json` or image is data. Scanning those finds nothing, and the check below

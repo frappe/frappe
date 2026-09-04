@@ -594,7 +594,7 @@ expose_discovery_source = True
 # An island draws a desk Dashboard or Dashboard Chart whose `__onload.island` is
 # {"name": <a name in ui_islands>, "props": {...}}. Desk draws the document
 # itself while the key is absent. An app sets the key from its own onload
-# handler, so it decides how it recognises its documents:
+# handler, so it decides how it recognizes its documents:
 #
 # doc_events = {"Dashboard": {"onload": "someapp.desk.island.dashboard"}}
 #

@@ -16,19 +16,24 @@
  *     await island.ready;
  *     island.unmount();
  *
- * Import the module a name resolves to, check it exports `mount`, hand the target
- * over to it, and return a handle that survives a re-mount.
+ * The loop imports the module a name resolves to, checks that it exports
+ * `mount`, hands the target to it, and returns a handle that survives a
+ * re-mount.
  *
- * The handle comes back at once, before the module is in hand, so no caller waits
- * to hold what it must later release. `update` and `unmount` work from that
- * moment: an update merges into the props the mount will start from, and an
- * unmount cancels a load still out. `ready` reports the load — it resolves with
- * the handle once the island is on the page, and rejects with what the load
- * threw. A cancelled load resolves, because nothing failed.
+ * The handle returns at once, before the module loads, so a caller holds what
+ * it must later release from the first line. `update` merges into the props the
+ * mount starts from. `unmount` cancels a pending load. `ready` reports the load.
+ * It resolves with the handle when the island is on the page, and it rejects
+ * with what the load threw. A cancelled load resolves, because nothing failed.
  *
- * This module imports nothing — not vue, not frappe-ui, not frappe. Resolution is
- * injected, so desk resolves against `frappe.boot` and a frappe-ui app resolves
- * against an API call, and both run this same loop. See
+ * `props` is Vue's props object: data keys and `on*` listener keys in one flat
+ * object, exactly as `h(Component, props)` takes them. A hyphen or a colon in an
+ * event name stays quoted. Write `"onUpdate:modelValue"`, not
+ * `onUpdateModelValue`, which Vue never resolves.
+ *
+ * This module imports nothing: not Vue, not frappe-ui, not frappe. Each host
+ * injects its resolver. The desk loader resolves against `frappe.boot`, and
+ * `<Island>` resolves over an API call. See
  * decisions/0008-one-host-loop-two-hosts.md.
  */
 
@@ -49,17 +54,12 @@
  * @property {Promise<IslandHandle>} ready
  */
 
-// target element -> entry. One entry per target: a mount into a target replaces
+// target element -> entry. One entry per target. A mount into a target replaces
 // what holds it. A Map, not a WeakMap, because `reloadChangedIslands` must walk
 // what is live on the page.
 const islands = new Map();
 
 /**
- * `props` is Vue's render-function props object: data keys and `on*` listener
- * keys in one flat object, exactly as `h(Component, props)` takes them. A hyphen
- * or a colon in an event name stays quoted — `"onUpdate:modelValue"`, not
- * `onUpdateModelValue`, which Vue never resolves.
- *
  * @param {string} name       Island name, as the host's resolver knows it.
  * @param {HTMLElement|JQuery} el
  * @param {{ resolve: IslandResolver, host?: Object, props?: Object }} options
@@ -71,8 +71,8 @@ export function mountIsland(name, el, options = {}) {
 		throw new Error("mountIsland: no resolve(name) given");
 	}
 
-	// The target holds one island. Whatever holds it gives it up here, a load
-	// still out included — that load mounts nothing when it lands.
+	// The target holds one island. This releases whatever holds it, a pending
+	// load included. That load mounts nothing when it lands.
 	unmountIsland(target);
 
 	const entry = {
@@ -91,13 +91,13 @@ export function mountIsland(name, el, options = {}) {
 		// Both read `entry`, never the handle a load mounted. A re-mount
 		// replaces that handle, and the caller keeps this object across it.
 		update: (props) => {
-			// Kept on the entry too, so a mount still to come starts from the
-			// latest props, and a re-mount from what the island last showed.
+			// The entry keeps the props too, so a pending mount starts from the
+			// latest props, and a re-mount starts from what the island last showed.
 			entry.props = { ...entry.props, ...props };
 			entry.handle?.update(props);
 		},
-		// Tears down this island and only this one. A second call, or a call
-		// after something else has taken the target, does nothing.
+		// Unmounts this island and only this one. A second call does nothing. A
+		// call after another mount took the target does nothing.
 		unmount: () => {
 			if (islands.get(target) === entry) unmountIsland(target);
 		},
@@ -107,7 +107,7 @@ export function mountIsland(name, el, options = {}) {
 	handle.ready = loadInto(target, entry).then(
 		() => handle,
 		(e) => {
-			// The caller that cancelled this load has moved on already.
+			// The caller cancelled this load and moved on.
 			if (entry.cancelled) return handle;
 			throw e;
 		}
@@ -116,7 +116,7 @@ export function mountIsland(name, el, options = {}) {
 	return handle;
 }
 
-/** Tears down the island in `target`, if any. Safe to call at any time. */
+/** Unmounts the island in `target`, if any. Safe to call at any time. */
 export function unmountIsland(el) {
 	const target = el && el.jquery ? el[0] : el;
 	const entry = islands.get(target);
@@ -128,8 +128,8 @@ export function unmountIsland(el) {
 }
 
 /**
- * Re-mounts the live islands whose module URL has moved — what a host calls after
- * a rebuild. Teardown is idempotent, so a re-mount in place is safe.
+ * Re-mounts the live islands whose module URL moved. A host calls this after a
+ * rebuild. Unmount is idempotent, so a re-mount in place is safe.
  *
  * @param {IslandResolver} [resolve]  Overrides each entry's own resolver, for a
  *                                    host whose resolution changed with the build.
@@ -162,14 +162,14 @@ export async function reloadChangedIslands(resolve) {
 }
 
 /**
- * Loads the island `entry.name` names into `target`, and records what it mounted
- * on the entry. A re-mount keeps the entry, so the handle held by whoever mounted
- * the island still reaches the island that is on the page.
+ * Loads the island `entry.name` names into `target`, and records the mounted
+ * handle on the entry. A re-mount keeps the entry, so the handle the caller
+ * holds still reaches the island on the page.
  *
- * The entry gives up what it holds only once the new module is in hand, so a
- * module that fails to load leaves the island already on screen alone.
+ * The entry releases what it holds only after the new module loads. A module
+ * that fails to load leaves the island already on screen alone.
  *
- * A cancelled entry mounts nothing, and drops what it has already mounted. The
+ * A cancelled entry mounts nothing, and drops what it already mounted. The
  * cancel can land at any await, the one inside `mount` included.
  */
 async function loadInto(target, entry) {
@@ -185,14 +185,14 @@ async function loadInto(target, entry) {
 			throw new Error(`Island "${entry.name}" (${assets.js}) does not export mount()`);
 		}
 
-		// The handle clears with the island it names, so a mount that fails
-		// below leaves nothing dead to call through.
+		// The handle clears with the island it names. A mount that fails below
+		// then leaves no dead handle to call through.
 		entry.handle?.unmount();
 		entry.handle = null;
 
 		const handle = await module.mount(target, {
 			// `host` is the context key the mount contract reads. See
-			// `IslandHost` in context.js: the name is the seam, whichever host
+			// `IslandHost` in context.js. The key is the same whichever host
 			// fills it.
 			host: entry.host,
 			props: entry.props,

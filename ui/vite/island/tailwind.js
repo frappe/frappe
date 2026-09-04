@@ -4,13 +4,13 @@
 import fs from "node:fs";
 import path from "node:path";
 
-/** Generated configs live where every other build artefact does. */
+/** Generated configs live where every other build artifact does. */
 const CONFIG_DIR = "node_modules/.island";
 
 /**
  * Write the island Tailwind config and return its path.
  *
- * The preset writes a file rather than passing a config object, because only
+ * The preset writes a file instead of passing a config object, because only
  * Tailwind's own config loader resolves `tailwindcss/plugin`. Tailwind 3
  * publishes no `exports` entry for that subpath, and `frappe-ui/tailwind` is ESM
  * that imports it. Plugins arrive as module specifiers for the same reason. The
