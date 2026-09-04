@@ -32,7 +32,6 @@ class NotificationSettings(Document):
 		energy_points_system_notifications: DF.Check
 		seen: DF.Check
 		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
-		user: DF.Link | None
 
 	# end: auto-generated types
 	def on_update(self):
