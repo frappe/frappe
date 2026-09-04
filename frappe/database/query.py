@@ -74,7 +74,7 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 			return value
 
 		# Convert datetime to date if the fieldtype is date
-		if operator.lower() == "between" and isinstance(value, list | tuple) and len(value) == 2:
+		if operator.lower() == "between" and isinstance(value, (list, tuple)) and len(value) == 2:
 			from_val, to_val = value
 			if isinstance(from_val, datetime.datetime):
 				from_val = from_val.date()
@@ -365,7 +365,7 @@ class Engine:
 
 		# Track field aliases for use in group_by/order_by
 		for field in self.fields:
-			if isinstance(field, Field | DynamicTableField | AggregateFunction) and field.alias:
+			if isinstance(field, (Field, DynamicTableField, AggregateFunction)) and field.alias:
 				self.field_aliases.add(field.alias)
 
 		if self.apply_permissions:
@@ -408,7 +408,7 @@ class Engine:
 			self.apply_dict_filters(filters, collect=collect)
 			return
 
-		if isinstance(filters, list | tuple):
+		if isinstance(filters, (list, tuple)):
 			if not filters:
 				return
 
@@ -434,7 +434,7 @@ class Engine:
 			is_single_group = False
 
 			# Check for single grouped condition [[cond_a, op, cond_b]]
-			if len(filters) == 1 and isinstance(filters[0], list | tuple):
+			if len(filters) == 1 and isinstance(filters[0], (list, tuple)):
 				inner_list = filters[0]
 				# Ensure inner list also looks like a nested structure
 				# Check if the operator is a string, and specifically a logical operator
@@ -454,7 +454,7 @@ class Engine:
 			# Condition: Starts with a list/tuple and contains a string at an odd index OR starts with a string.
 			elif (
 				len(filters) >= 2
-				and isinstance(filters[0], list | tuple)
+				and isinstance(filters[0], (list, tuple))
 				and any(isinstance(item, str) for i, item in enumerate(filters) if i % 2 != 0)
 			) or (len(filters) > 0 and isinstance(filters[0], str)):
 				is_nested_structure = True
@@ -481,11 +481,11 @@ class Engine:
 
 			else:  # Not a nested structure, assume it's a list of simple filters (implicitly ANDed)
 				for filter_item in filters:
-					if isinstance(filter_item, list | tuple):
+					if isinstance(filter_item, (list, tuple)):
 						self.apply_list_filters(
 							filter_item, collect=collect
 						)  # Handles simple [field, op, value] lists
-					elif isinstance(filter_item, dict | Criterion):
+					elif isinstance(filter_item, (dict, Criterion)):
 						self.apply_filters(filter_item, collect=collect)  # Recursive call for dict/criterion
 					else:
 						# Disallow single values (strings, numbers, etc.) directly in the list
@@ -541,7 +541,7 @@ class Engine:
 	def apply_dict_filters(self, filters: dict[str, FilterValue | list], collect: list | None = None):
 		for field, value in filters.items():
 			operator = "="
-			if isinstance(value, list | tuple):
+			if isinstance(value, (list, tuple)):
 				operator, value = value
 
 			self._apply_filter(field, value, operator, collect=collect)
@@ -604,6 +604,7 @@ class Engine:
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+		_operator_lowered: str = operator.lower()
 
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.
@@ -612,21 +613,22 @@ class Engine:
 			if isinstance(_value, str) and _value:
 				_value = f"%{_value}%"
 
-		if _operator.lower() in ("timespan", "previous", "next"):
+		if _operator_lowered in ("timespan", "previous", "next"):
 			from frappe.model.db_query import get_date_range
 
-			_value = get_date_range(_operator.lower(), _value)
+			_value = get_date_range(_operator_lowered, _value)
 			_operator = "between"
+			_operator_lowered = "between"
 
 		# For Date fields with datetime values, convert to date to match db_query behavior
 		if isinstance(_value, datetime.datetime) or (
-			isinstance(_value, list | tuple) and any(isinstance(v, datetime.datetime) for v in _value)
+			isinstance(_value, (list, tuple)) and any(isinstance(v, datetime.datetime) for v in _value)
 		):
 			_value = _apply_date_field_filter_conversion(_value, _operator, doctype or self.doctype, field)
 
 		# For Datetime fields with date values and 'between' operator, convert to datetime range to match db_query
-		if _operator.lower() == "between":
-			if isinstance(_value, list | tuple) and len(_value) == 2:
+		if _operator_lowered == "between":
+			if isinstance(_value, (list, tuple)) and len(_value) == 2:
 				_value = _apply_datetime_field_filter_conversion(_value, doctype or self.doctype, field)
 			elif isinstance(_value, str):
 				from frappe.model.db_query import get_between_date_filter
@@ -640,9 +642,9 @@ class Engine:
 		# Handle empty lists for IN/NOT IN operators before conversion
 		# IN with empty list should return 0 results (always False)
 		# NOT IN with empty list should return all results (always True)
-		if _operator.lower() in ("in", "not in"):
+		if _operator_lowered in ("in", "not in"):
 			if isinstance(_value, (list, tuple, set)) and len(_value) == 0:
-				if _operator.lower() == "in":
+				if _operator_lowered == "in":
 					# Return a criterion that always evaluates to False (1=0)
 					# This ensures IN with empty list returns 0 results
 					return RawCriterion("1=0")
@@ -651,7 +653,7 @@ class Engine:
 					# NOT IN with empty set matches all rows since nothing is excluded
 					return RawCriterion("1=1")
 
-		if not _value and isinstance(_value, list | tuple | set):
+		if not _value and isinstance(_value, (list, tuple, set)):
 			_value = ("",)
 
 		# db_query compatibility: handle None values for 'in' and 'not in' operators
@@ -789,14 +791,14 @@ class Engine:
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""
-		if not isinstance(nested_list, list | tuple):
+		if not isinstance(nested_list, (list, tuple)):
 			frappe.throw(_("Nested filters must be provided as a list or tuple."))
 
 		if not nested_list:
 			return None
 
 		# First item must be a condition (list/tuple)
-		if not isinstance(nested_list[0], list | tuple):
+		if not isinstance(nested_list[0], (list, tuple)):
 			frappe.throw(
 				_("Invalid start for filter condition: {0}. Expected a list or tuple.").format(nested_list[0])
 			)
@@ -819,7 +821,7 @@ class Engine:
 
 			# Expect a condition (list/tuple)
 			next_condition = nested_list[idx]
-			if not isinstance(next_condition, list | tuple):
+			if not isinstance(next_condition, (list, tuple)):
 				frappe.throw(
 					_("Invalid filter condition: {0}. Expected a list or tuple.").format(next_condition)
 				)
@@ -837,13 +839,13 @@ class Engine:
 
 	def _condition_to_criterion(self, condition: list | tuple) -> "Criterion":
 		"""Converts a single condition (simple filter list or nested list) into a pypika Criterion."""
-		if not isinstance(condition, list | tuple):
+		if not isinstance(condition, (list, tuple)):
 			frappe.throw(_("Invalid condition type in nested filters: {0}").format(type(condition)))
 
 		# Check if it's a nested condition list [cond1, op, cond2, ...]
 		is_nested = False
 		# Broaden check here as well: length >= 2 and second element is string
-		if len(condition) >= 2 and isinstance(condition[1], str) and isinstance(condition[0], list | tuple):
+		if len(condition) >= 2 and isinstance(condition[1], str) and isinstance(condition[0], (list, tuple)):
 			is_nested = True
 
 		if is_nested:
@@ -1196,7 +1198,7 @@ class Engine:
 		if isinstance(fields, str):
 			# Split comma-separated fields passed as a single string
 			initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(fields) if f.strip())
-		elif isinstance(fields, list | tuple | set):
+		elif isinstance(fields, (list, tuple, set)):
 			for item in fields:
 				if item is None:
 					continue
@@ -1257,7 +1259,7 @@ class Engine:
 						)
 
 					# Ensure child_fields_list is a list or tuple
-					if not isinstance(child_fields_list, list | tuple | set):
+					if not isinstance(child_fields_list, (list, tuple, set)):
 						frappe.throw(
 							_("Child query fields for '{0}' must be a list or tuple.").format(child_field)
 						)
@@ -1937,7 +1939,7 @@ class Engine:
 				columns = info_schema.columns
 				current_schema = frappe.conf.get("db_schema", "public")
 				res = (
-					frappe.qb.from_(columns)
+					frappe.qb.from_(columns, immutable=False)
 					.select(columns.data_type)
 					.where(
 						(columns.table_name == target_table)
@@ -1975,7 +1977,7 @@ class Engine:
 		try:
 			db_type_info = frappe.db.type_map.get(fieldtype, ("varchar",))
 			if db_type_info:
-				db_type = db_type_info[0] if isinstance(db_type_info, tuple | list) else db_type_info
+				db_type = db_type_info[0] if isinstance(db_type_info, (tuple, list)) else db_type_info
 				if db_type in ("varchar", "text", "longtext", "smalltext", "json"):
 					return "''"
 		except Exception:
@@ -2031,7 +2033,7 @@ class Engine:
 				return False
 
 		if operator.lower() == "in":
-			if isinstance(value, list | tuple):
+			if isinstance(value, (list, tuple)):
 				# if values contain '' or falsy values then only coalesce column
 				# for `in` query this is only required if values contain '' or values are empty.
 				has_null_or_empty = any(v is None or v == "" for v in value)
@@ -2252,13 +2254,15 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 	"""Get matching nodes based on operator."""
 	table = frappe.qb.DocType(doctype)
 	try:
-		lft, rgt = frappe.qb.from_(table).select("lft", "rgt").where(table.name == name).run()[0]
+		lft, rgt = (
+			frappe.qb.from_(table, immutable=False).select("lft", "rgt").where(table.name == name).run()[0]
+		)
 	except IndexError:
 		lft, rgt = None, None
 
 	if hierarchy in ("descendants of", "not descendants of", "descendants of (inclusive)"):
 		result = (
-			frappe.qb.from_(table)
+			frappe.qb.from_(table, immutable=False)
 			.select(table.name)
 			.where(table.lft > lft)
 			.where(table.rgt < rgt)
@@ -2270,7 +2274,7 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 	else:
 		# Get ancestor elements of a DocType with a tree structure
 		result = (
-			frappe.qb.from_(table)
+			frappe.qb.from_(table, immutable=False)
 			.select(table.name)
 			.where(table.lft < lft)
 			.where(table.rgt > rgt)
@@ -2412,7 +2416,7 @@ class SQLFunctionParser:
 				parsed_arg = self._parse_and_validate_argument(arg, function_name=function_name)
 				parsed_args.append(parsed_arg)
 			function_call = func_class(*parsed_args)
-		elif isinstance(function_args, (int | float)):
+		elif isinstance(function_args, (int, float)):
 			function_call = func_class(function_args)
 		elif function_args is None:
 			try:
@@ -2485,7 +2489,7 @@ class SQLFunctionParser:
 		- Strings: field names or quoted literals
 		- Nested dicts: functions {"COUNT": "name"} or operators {"ADD": [1, 2]}
 		"""
-		if isinstance(arg, (int | float)):
+		if isinstance(arg, (int, float)):
 			return arg
 		elif isinstance(arg, str):
 			return self._validate_string_argument(arg, function_name=function_name)

@@ -3,7 +3,10 @@ from pypika import *
 from pypika import Field
 from pypika.utils import ignore_copy
 
-from frappe.query_builder.terms import ParameterizedFunction, ParameterizedValueWrapper
+from frappe.query_builder.terms import (
+	ParameterizedFunction,
+	ParameterizedValueWrapper
+)
 from frappe.query_builder.utils import (
 	Column,
 	DocType,
