@@ -39,7 +39,7 @@ frappe.ui.Dock = class Dock {
 			</div>
 			<div class="dock-shortcuts"></div>
 			<div class="dock-items"></div>
-			<button class="dock-user" aria-label="${__("User Menu")}"></button>
+			<button class="dock-user shell-header" aria-label="${__("User Menu")}"></button>
 		</div>`);
 
 		let $container = $(".body-sidebar-container");
@@ -188,9 +188,14 @@ frappe.ui.Dock = class Dock {
 	// User avatar pinned to the bottom of the rail, opening the same dropdown as the sidebar's user
 	// button. This runs once, from make(), so the menu is not re-bound on every refresh().
 	render_user() {
+		// The same two lines the header carries, in the same classes: who you are over how you are
+		// addressed, which is what the body sidebar's own user button has always shown.
 		this.$user.html(
 			`${frappe.avatar(frappe.session.user, "avatar-medium")}
-			<span class="dock-user-label">${frappe.utils.escape_html(frappe.session.user_fullname)}</span>`
+			<div class="title-container">
+				<div class="header-title">${frappe.utils.escape_html(frappe.session.user_fullname)}</div>
+				<div class="header-subtitle">${frappe.utils.escape_html(frappe.session.user_email)}</div>
+			</div>`
 		);
 		this.sidebar.create_user_menu({ parent: this.$user, button: this.$user });
 	}

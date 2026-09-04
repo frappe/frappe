@@ -98,26 +98,18 @@
 		}
 	}
 
-	// The user row is the header's twin at the other end of the rail: a 28px mark, a name beside it,
-	// and a menu behind the whole thing. So it takes the header's measurements rather than a row's
-	// -- `h-10 px-1.5` inside the `px-1` gutter, which puts the avatar on the same column as the
-	// header's mark, 10px in, while the rows' glyphs sit at 16px.
+	// The user row is the header's twin at the other end of the rail: a 28px mark, two lines of text
+	// beside it, a menu behind the whole thing. So it wears .shell-header and adds only what is its
+	// own -- the gutter it sits in, and the class its menu toggles. That also puts the avatar on the
+	// header mark's column, 10px in, while the rows' glyphs stay at 16px.
 	//
 	// No `width: 100%`: the rail stretches its children already, and 100% plus a side margin is 100%
 	// of the rail *and then* the margin, which is how this row came to hang 8px off the edge.
 	.dock-user {
 		flex: 0 0 auto;
-		height: 40px;
 		margin: 8px 4px 0;
-		gap: 8px;
-		padding: 0 6px;
 		border: none;
-		border-radius: var(--radius);
 		background: transparent;
-		color: var(--ink-gray-8);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
 		text-align: left;
 
 		.avatar {
@@ -125,18 +117,9 @@
 			flex: 0 0 auto;
 		}
 
-		.dock-user-label {
-			@include truncate();
-			min-width: 0;
-			font-size: var(--text-base);
-		}
-
-		// The header's states, for the same reason: a fill on the row rather than a ring on the
-		// avatar, because a ring on a 28px mark in a full-width row marks the wrong thing.
-		&:hover {
-			background: var(--surface-gray-3);
-		}
-
+		// What .shell-header calls .active-sidebar, the user menu calls this. Same state, same
+		// surface: a fill on the row rather than a ring on the avatar, because a ring on a 28px
+		// mark in a full-width row marks the wrong thing.
 		&.user-menu-active {
 			background: var(--surface-elevation-2);
 			box-shadow: var(--shadow-sm);

@@ -433,6 +433,17 @@ frappe.ui.Sidebar = class Sidebar {
 		return !!page && !page.hide_sidebar;
 	}
 
+	// Whether the panel is allowed to close at all.
+	//
+	// Closing takes it off screen entirely rather than shrinking it to a strip, and the way back in
+	// is the rail: its rows open the panel, and its edge handle reopens it. A dock-less app has no
+	// rail, and the panel's own collapse chevron is gone, so closing one there would leave its only
+	// navigation unreachable -- and `sidebar-expanded` persists, so it would still be gone on the
+	// next load. Where there is nothing to reopen it, it does not close.
+	panel_can_close() {
+		return this.dock_enabled() && this.page_allows_dock();
+	}
+
 	// The dock is displayed unless the page opts out with `hide_dock`. That and
 	// `hide_sidebar` are both standard frappe.ui.Page options, and a page picks either shell on
 	// its own: the print format builder keeps the dock while hiding the body sidebar, and the
@@ -489,7 +500,9 @@ frappe.ui.Sidebar = class Sidebar {
 		// the page it just navigated, so leaving it up would cover the thing that was asked for.
 		// Rows that only toggle a group carry no href and are left alone, since expanding a group
 		// is a request to see more of this list rather than to leave it.
-		this.wrapper.on("click", ".body-sidebar a.item-anchor[href]", () => this.close());
+		this.wrapper.on("click", ".body-sidebar a.item-anchor[href]", () => {
+			if (this.panel_can_close()) this.close();
+		});
 		this.setup_click_away();
 		this.setup_user_menu();
 	}
@@ -701,6 +714,13 @@ frappe.ui.Sidebar = class Sidebar {
 			this.sidebar_expanded = JSON.parse(localStorage.getItem("sidebar-expanded"));
 		}
 
+		// A stored `false` is only meaningful where something can open it again. It is read before
+		// this rather than skipped so that closing a docked app's panel and then walking into a
+		// dock-less one shows that one's sidebar instead of nothing at all.
+		if (!this.panel_can_close()) {
+			this.sidebar_expanded = true;
+		}
+
 		if (frappe.is_mobile()) {
 			this.sidebar_expanded = false;
 		}
@@ -838,7 +858,7 @@ frappe.ui.Sidebar = class Sidebar {
 			// than stacking another on the document.
 			.off(".sidebar-click-away")
 			.on("click.sidebar-click-away", (e) => {
-				if (!this.sidebar_expanded) return;
+				if (!this.sidebar_expanded || !this.panel_can_close()) return;
 				// A sidebar panel -- notifications, background tasks -- is mounted beside the
 				// panel rather than inside it, but a click in one is still a click on the
 				// sidebar's own furniture.

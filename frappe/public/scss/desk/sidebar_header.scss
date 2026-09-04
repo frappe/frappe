@@ -20,6 +20,9 @@
 	padding: 0 6px;
 	border-radius: var(--radius);
 	color: var(--ink-gray-8);
+	// worn by a <button> at the foot of the rail as well as by the header proper, and a button
+	// inherits neither
+	font-family: inherit;
 	text-decoration: none;
 	cursor: pointer;
 	overflow: hidden;
