@@ -36,14 +36,20 @@
 					:expanded="item.expanded"
 					@toggle="toggleTurn(item.turnKey)"
 				/>
-				<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
+				<AssistantText
+					v-else-if="item.kind === 'text'"
+					:class="tightGap(i)"
+					:block="item.block"
+				/>
 				<ThinkingBlock
 					v-else-if="item.kind === 'thinking'"
+					:class="tightGap(i)"
 					:block="item.block"
 					:live="item.live"
 				/>
 				<ToolGroup
 					v-else-if="item.kind === 'group'"
+					:class="tightGap(i)"
 					:steps="item.steps"
 					:sealed="i < items.length - 1 || !conversation.running"
 					:live-label="conversation.liveLabel"
@@ -148,6 +154,19 @@ const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
 )
 const lastItem = computed(() => items.value[items.value.length - 1])
+
+// Tool and thought rows carry their own py-2.5, so the thread gap over-spaces
+// them: standalone thoughts stack like they do inside a group, and a row
+// meeting a text blob or the turn fold gives back most of that padding.
+function tightGap(i) {
+	const isRow = (kind) => kind === "group" || kind === "thinking"
+	const prev = items.value[i - 1]?.kind
+	const cur = items.value[i]?.kind
+	if (prev === "thinking" && cur === "thinking") return "-mt-5"
+	const meetsText = (isRow(prev) && cur === "text") || (prev === "text" && isRow(cur))
+	return meetsText || (prev === "turn-fold" && isRow(cur)) ? "-mt-1.5" : ""
+}
+
 // Streamed thinking and tool groups render their own status. The fallback is
 // reserved for statuses that have no preview item yet.
 const lastIsOpenGroup = computed(
