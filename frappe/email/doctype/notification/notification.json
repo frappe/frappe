@@ -14,7 +14,6 @@
   "channel",
   "slack_webhook_url",
   "filters_section",
-  "subject",
   "event",
   "document_type",
   "col_break_1",
@@ -45,8 +44,10 @@
   "send_to_all_assignees",
   "recipients",
   "message_sb",
+  "subject",
   "message_type",
   "message",
+  "fetch_email_template",
   "message_examples",
   "view_properties",
   "column_break_25",
@@ -241,7 +242,13 @@
    "depends_on": "eval: doc.channel != 'System Notification'",
    "fieldname": "message_sb",
    "fieldtype": "Section Break",
-   "label": "Message"
+   "label": "Content"
+  },
+  {
+   "depends_on": "eval: frappe.meta.has_field('Notification', 'subject') || frappe.meta.has_field('Notification', 'message')",
+   "fieldname": "fetch_email_template",
+   "fieldtype": "Button",
+   "label": "Fetch from Email Template"
   },
   {
    "default": "Add your message here",
@@ -393,7 +400,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-22 15:37:19.355265",
+ "modified": "2026-09-03 17:40:00.000000",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
