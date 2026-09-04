@@ -15,7 +15,8 @@ USER_CONTROL = "users"
 
 # Two more hints an editor reads off a param, both optional:
 # `link_filters` narrows what a Link param may point at, and `exclusive_with` names the param
-# this one stands in for, so the editor can hide whichever of the pair is not in use.
+# this one stands in for, declared on both, so an editor showing either knows to clear the
+# other and to show whichever of the pair is in use.
 
 
 class AutomationParamError(frappe.ValidationError):
