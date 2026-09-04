@@ -9,7 +9,8 @@ import "./tabs/naming";
 import "./tabs/global_search";
 import "./tabs/workflow";
 import "./tabs/print_format";
-import "./tabs/permissions";
+import "./tabs/roles";
+import "./tabs/user_permissions";
 import "./tabs/settings_map";
 
 /**

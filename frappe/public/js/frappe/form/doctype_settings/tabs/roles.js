@@ -1,24 +1,17 @@
-// Per-role permissions for this doctype, rendered with frappe.ui.EmbeddedList (the same
-// component the Role form's Documents tab uses). Each granted right shows as a badge.
-// Reuses the Role Permissions Manager page methods — no custom backend. System-Manager-
-// gated in the registry.
-
-// Document-level rights, always shown.
 const DOC_RIGHTS = ["read", "write", "create", "delete"];
-// Submit-flow rights, only meaningful for submittable doctypes.
 const SUBMIT_RIGHTS = ["submit", "cancel", "amend"];
 
-frappe.doctype_settings.register("permissions", function (panel, doctype) {
+frappe.doctype_settings.register("roles", function (panel, doctype) {
 	const reload = () => draw(panel, doctype);
 	panel.set_view({
-		title: __("Permissions"),
-		description: __("Control who can access {0}.", [doctype]),
+		title: __("Roles"),
+		description: __("Control who can access {0}, by role.", [doctype]),
 		actions: [
 			{
 				label: __("Add role"),
 				icon: "plus",
-				// Add mode of the shared editor (doctype-centric: doctype fixed, pick the role)
-				// — sets the role + all its rights in one dialog.
+				// Add mode of the shared editor (doctype fixed, pick the role) — sets the role
+				// and all its rights in one dialog.
 				click: () => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), {}).show(),
 			},
 		],
@@ -48,7 +41,6 @@ function draw(panel, doctype) {
 			const is_customized = (custom || []).length > 0;
 			render(panel, doctype, {
 				is_customized,
-				// `source` (Standard vs Custom) drives the edit dialog title + save path.
 				roles: perms.map((p) => ({ ...p, source: is_customized ? "Custom" : "Standard" })),
 			});
 		})
@@ -69,6 +61,7 @@ function render(panel, doctype, { roles, is_customized }) {
 	const list = new frappe.ui.EmbeddedList({
 		wrapper: $("<div></div>").appendTo($body),
 		empty_message: __("No roles have access yet."),
+		show_search: false,
 		get_data: () => Promise.resolve(roles),
 		// Clicking a row opens the shared permission editor for that role (same dialog
 		// the Role form's Documents tab uses).
@@ -211,7 +204,7 @@ function customized_banner(panel, doctype, reload) {
 			]),
 			() =>
 				perm_call("reset", { doctype }).then(() => {
-					frappe.show_alert({ message: __("Permissions reset"), indicator: "green" });
+					frappe.ui.toast({ message: __("Permissions reset"), type: "success" });
 					reload();
 				})
 		);
@@ -231,9 +224,12 @@ function customized_banner(panel, doctype, reload) {
 }
 
 function footer(panel, doctype) {
-	const $footer = $('<div class="dts-perm-footer"></div>');
-	$("<span></span>").appendTo($footer); // spacer to keep the link right-aligned
-	$('<a href="#" class="dts-perm-footer-link text-base-medium"></a>')
+	const $footer = $(
+		'<div class="flex items-center justify-end gap-4 mt-3 pt-4 border-t"></div>'
+	);
+	$(
+		'<a href="#" class="inline-flex items-center gap-1 text-ink-gray-7 text-base-medium whitespace-nowrap"></a>'
+	)
 		.append($("<span></span>").text(__("Open Role Permissions Manager")))
 		.append(frappe.utils.icon("external-link", "sm"))
 		.appendTo($footer)

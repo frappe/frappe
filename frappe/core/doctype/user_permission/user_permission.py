@@ -9,6 +9,7 @@ from frappe import _
 from frappe.core.utils import find
 from frappe.desk.form.linked_with import get_linked_doctypes
 from frappe.model.document import Document
+from frappe.query_builder import Order
 from frappe.utils import cstr
 
 
@@ -244,6 +245,38 @@ def clear_user_permissions(user: str, for_doctype: str):
 		frappe.clear_cache()
 
 	return total
+
+
+@frappe.whitelist()
+def get_user_permission_list(allow: str):
+	"""User Permissions for `allow`, joined with each user's name + image in one query.
+
+	Used by the DocType Settings "User Permissions" tab (frappe.ui.EmbeddedList), which
+	handles search and paging client-side (same model as the form grid for child tables).
+	The left join resolves the user display info in a single round-trip instead of a second
+	batched lookup.
+	"""
+	frappe.only_for("System Manager")
+
+	up = frappe.qb.DocType("User Permission")
+	user = frappe.qb.DocType("User")
+	return (
+		frappe.qb.from_(up)
+		.left_join(user)
+		.on(up.user == user.name)
+		.select(
+			up.name,
+			up.user,
+			up.for_value,
+			up.applicable_for,
+			up.apply_to_all_doctypes,
+			user.full_name,
+			user.user_image,
+		)
+		.where(up.allow == allow)
+		.orderby(up.modified, order=Order.desc)
+		.run(as_dict=True)
+	)
 
 
 @frappe.whitelist()
