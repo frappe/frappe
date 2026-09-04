@@ -40,7 +40,7 @@ Compaction creates a durable summary entry. The original entries remain in the l
 
 `SessionStore` validates the working directory, discovers skills, selects built-in and extension tools, builds the system prompt once, and creates private per-session files for the log, metadata, skills catalog, and attachments.
 
-The prompt is either a verbatim `system_prompt` or a composed prompt containing the active tools, optional suffix, global and project `AGENTS.md` files, skill index, working directory, and final append text. Prompt text and the skill catalog are fixed at session creation; skill instructions are read when a skill is invoked.
+The prompt is either a verbatim `system_prompt` or a composed prompt containing the active tools, optional suffix, global and project `AGENTS.md` files, skill index, working directory, and final append text. Prompt text is fixed at session creation; skill instructions are read when a skill is invoked. The catalog is fixed too, except that explicitly invoking a skill added later records it.
 
 ## Tools and safety boundaries
 

@@ -12,6 +12,7 @@ import re
 import uuid
 from collections.abc import Collection, Iterator
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from tempfile import mkstemp
 from urllib.parse import urlsplit
@@ -25,7 +26,14 @@ from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.prompt import build_system_prompt
 from flow.session.session import Session, SessionConflict
-from flow.session.skills import SkillCatalog, discover_skills, global_skills_root, parse_skill_invocation
+from flow.session.skills import (
+	Skill,
+	SkillCatalog,
+	discover_skills,
+	global_skills_root,
+	parse_skill_invocation,
+	sorted_skills,
+)
 from flow.tools import Tool
 from flow.tools.builtins import BUILTIN_TOOLS
 
@@ -200,6 +208,21 @@ class SessionStore:
 			roots["project"] = os.path.join(canonical_path(cwd), ".agents", "skills")
 		return roots
 
+	async def invocable_skills(self, session: Session) -> SkillCatalog:
+		"""The catalog plus skills added since the session was created — what
+		`/skill:<name>` resolves now. Diagnostics and the prompt stay as created."""
+		catalog = session.skill_catalog
+		live = await asyncio.to_thread(self._discover_skills, session.config)
+		known = {skill.name for skill in catalog.skills}
+		added = tuple(skill for skill in live.skills if skill.name not in known)
+		return catalog.model_copy(update={"skills": sorted_skills(catalog.skills + added)})
+
+	def resolve_skill(self, config: SessionConfig, name: str) -> Skill | None:
+		"""Find a skill the catalog does not hold. Runs the same discovery as `create`,
+		so roots, precedence, and the fence are identical."""
+		catalog = self._discover_skills(config)
+		return next((skill for skill in catalog.skills if skill.name == name), None)
+
 	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
 		return discover_skills(
 			config.cwd,
@@ -242,7 +265,7 @@ class SessionStore:
 		paths = self._project_paths(sid, config.cwd)
 		_make_private_dir(paths.directory)
 		session = self._build(sid, config, paths, skill_catalog=skill_catalog, server_tools=server_tools)
-		self._save_catalog(paths, skill_catalog)
+		self._write_skill_catalog(paths, skill_catalog)
 		self.save_meta(session)
 		self._cache[sid] = session
 		return session
@@ -262,7 +285,7 @@ class SessionStore:
 			sid,
 			config,
 			paths,
-			skill_catalog=self._load_catalog(paths),
+			skill_catalog=self._read_skill_catalog(paths),
 			server_tools=self._compose_tools(config),
 		)
 		self._cache[sid] = session
@@ -415,9 +438,16 @@ class SessionStore:
 			server_tools=server_tools,
 			extension_runtime=self.extension_runtime,
 			persist_meta=self.save_meta,
+			resolve_skill=partial(self.resolve_skill, config),
+			persist_skill_catalog=self.save_skill_catalog,
 		)
 
-	def _save_catalog(self, paths: _SessionPaths, skill_catalog: SkillCatalog) -> None:
+	def save_skill_catalog(self, session: Session) -> None:
+		"""Write the skill catalog after an invoked skill was added to it."""
+		paths = _session_paths(os.path.dirname(session.log.path), session.id)
+		self._write_skill_catalog(paths, session.skill_catalog)
+
+	def _write_skill_catalog(self, paths: _SessionPaths, skill_catalog: SkillCatalog) -> None:
 		fd, tmp = mkstemp(prefix=f".{os.path.basename(paths.skills)}.", dir=paths.directory)
 		try:
 			os.chmod(tmp, 0o600)
@@ -428,17 +458,17 @@ class SessionStore:
 			if os.path.exists(tmp):
 				os.unlink(tmp)
 
-	def _load_catalog(self, paths: _SessionPaths) -> SkillCatalog:
+	def _read_skill_catalog(self, paths: _SessionPaths) -> SkillCatalog:
 		try:
 			with open(paths.skills, encoding="utf-8") as file:
 				skill_catalog = SkillCatalog.model_validate(json.load(file))
 		except FileNotFoundError:
 			return SkillCatalog()  # sessions created before skills support
-		self._validate_catalog(skill_catalog)
+		self._validate_skill_catalog(skill_catalog)
 		return skill_catalog
 
-	def _validate_catalog(self, skill_catalog: SkillCatalog) -> None:
-		"""Do not let a persisted catalog outlive a tightened filesystem fence."""
+	def _validate_skill_catalog(self, skill_catalog: SkillCatalog) -> None:
+		"""Do not let a persisted skill catalog outlive a tightened filesystem fence."""
 		if not self.allowed_roots:
 			return
 		global_root = canonical_path(os.path.join(os.path.expanduser("~"), ".agents", "skills"))

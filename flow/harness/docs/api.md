@@ -73,7 +73,7 @@ The server resolves credentials and prompt context itself; do not send API keys,
 | `GET /sessions` | Lists known sessions, newest first. |
 | `GET /sessions/{sid}` | Returns state, config, effective model, title, context information, and image support. |
 | `DELETE /sessions/{sid}` | Permanently deletes an idle session and its attachments. |
-| `GET /sessions/{sid}/skills` | Returns the session's skill catalog and diagnostics. |
+| `GET /sessions/{sid}/skills` | Returns the skills the session can invoke — its catalog plus any added since it was created — and the diagnostics recorded at creation. |
 | `GET /sessions/{sid}/extensions` | Returns loaded server extensions and diagnostics. |
 | `POST /extensions/reload` | Re-imports all extensions and returns the fresh info payload. |
 | `POST /skills` | Previews the skills a supplied `SessionConfig` would discover. |

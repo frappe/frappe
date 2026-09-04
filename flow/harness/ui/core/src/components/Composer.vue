@@ -507,16 +507,15 @@ function closePalettes() {
 
 function openCommands() {
 	paletteView.value = "commands"
-	if (!flow.state.sessionId) void flow.loadSkills?.()
+	void flow.loadSkills?.()
 	nextTick(() => box.value?.focus())
 }
 
 // typing a normal message dismisses a commands page left open by back-navigation
 watch(text, (value) => {
 	if (paletteView.value === "commands" && value && !value.startsWith("/")) paletteView.value = null
-	// Preview the default catalog without creating the otherwise-lazy first session.
-	if (value.startsWith("/") && !flow.state.sessionId)
-		void flow.loadSkills?.()
+	// Load the invocable skills; without a session this previews without creating one.
+	if (value.startsWith("/")) void flow.loadSkills?.()
 })
 
 // grow with content (wrapped lines included) up to the CSS max-height, then scroll

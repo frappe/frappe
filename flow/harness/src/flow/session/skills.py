@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import re
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from html import escape
 
@@ -31,7 +31,7 @@ class SkillError(ValueError):
 
 
 class Skill(BaseModel):
-	"""Validated metadata retained in a session's immutable skill catalog."""
+	"""Validated metadata retained in a session's skill catalog."""
 
 	model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -191,9 +191,14 @@ def discover_skills(
 			break
 
 	return SkillCatalog(
-		skills=tuple(sorted(by_name.values(), key=_skill_name)),
+		skills=sorted_skills(by_name.values()),
 		diagnostics=tuple(diagnostics),
 	)
+
+
+def sorted_skills(skills: Iterable[Skill]) -> tuple[Skill, ...]:
+	"""Catalog order: by name."""
+	return tuple(sorted(skills, key=_skill_name))
 
 
 def _skill_name(skill: Skill) -> str:
@@ -242,8 +247,15 @@ def valid_skill_name(name: str) -> bool:
 	return bool(_NAME_RE.fullmatch(name)) and len(name) <= 64
 
 
-def parse_skill_command(text: str, skills: Sequence[Skill]) -> SkillInvocation | None:
-	"""Expand `/skill:name [instructions]`; return None for ordinary messages."""
+def parse_skill_command(
+	text: str,
+	skills: Sequence[Skill],
+	*,
+	resolve: Callable[[str], Skill | None] | None = None,
+) -> SkillInvocation | None:
+	"""Expand `/skill:name [instructions]`; return None for ordinary messages.
+
+	`resolve` finds a skill added after the session was created."""
 	stripped = text.strip()
 	if not stripped.startswith("/skill:"):
 		return None
@@ -254,11 +266,13 @@ def parse_skill_command(text: str, skills: Sequence[Skill]) -> SkillInvocation |
 		raise SkillError("skill command must include a name")
 	skill = next((item for item in skills if item.name == name), None)
 	if skill is None:
-		raise SkillError(f"unknown skill: {name}")
-	# The catalog records the canonical file selected at session creation. Refuse a
-	# later symlink swap rather than reading a different file under the same name.
+		skill = resolve(name) if resolve is not None else None
+		if skill is None:
+			raise SkillError(f"unknown skill: {name}")
+	# Refuse a symlink swapped in since the skill was discovered, rather than reading
+	# a different file under the same name.
 	if canonical_path(skill.path) != skill.canonical_path:
-		raise SkillError(f"skill path changed since session creation: {name}")
+		raise SkillError(f"skill path changed: {name}")
 	raw = _read_bounded(skill.path, expected_path=skill.canonical_path)
 	_, body = _parse(raw)
 	instructions = parts[1].strip() if len(parts) > 1 and parts[1].strip() else None

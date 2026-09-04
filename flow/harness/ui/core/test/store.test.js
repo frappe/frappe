@@ -30,6 +30,77 @@ test("skill completion previews the catalog without creating a session", async (
 	assert.deepEqual(flow.state.skills, [{ name: "review", description: "Review changes" }])
 })
 
+test("an open session refetches its skills only when forced", async () => {
+	let skills = [{ name: "review", description: "Review changes" }]
+	let fetches = 0
+	const client = {
+		async session() {
+			return { session_id: "s1", model: "m", latest_seq: 1 }
+		},
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		async skills(sid) {
+			fetches += 1
+			assert.equal(sid, "s1")
+			return { skills }
+		},
+		stream() {
+			return { close() {}, async *[Symbol.asyncIterator]() {} }
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	assert.equal(fetches, 1)
+
+	// a skill written after the session started is invocable, so it reaches the list
+	skills = [...skills, { name: "testing", description: "Added later" }]
+	await flow.loadSkills()
+	assert.equal(fetches, 1)
+	assert.deepEqual(flow.state.skills.map((skill) => skill.name), ["review"])
+
+	await flow.loadSkills({ force: true })
+
+	assert.equal(fetches, 2)
+	assert.deepEqual(flow.state.skills.map((skill) => skill.name), ["review", "testing"])
+	flow.detach()
+})
+
+test("a forced skill refetch is not overwritten by an older response", async () => {
+	const requests = []
+	const client = {
+		async session() {
+			return { session_id: "s1", model: "m", latest_seq: 1 }
+		},
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		skills() {
+			return new Promise((resolve) => requests.push(resolve))
+		},
+		stream() {
+			return { close() {}, async *[Symbol.asyncIterator]() {} }
+		},
+	}
+	const flow = createFlowStore(client)
+	const opened = flow.openSession("s1")
+	requests[0]({ skills: [{ name: "old" }] })
+	await opened
+
+	const stale = flow.loadSkills({ force: true })
+	const fresh = flow.loadSkills({ force: true })
+	requests[2]({ skills: [{ name: "new" }] })
+	await fresh
+	requests[1]({ skills: [{ name: "old" }] })
+	await stale
+
+	assert.deepEqual(
+		flow.state.skills.map((skill) => skill.name),
+		["new"],
+	)
+	flow.detach()
+})
+
 test("skill previews do not reuse a request from another working directory", async () => {
 	const requests = []
 	const client = {

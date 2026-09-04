@@ -81,8 +81,8 @@ export function createFlowStore(client) {
 	let stream = null
 	let streamTask = null
 	let creating = null // in-flight lazy session creation; a double-send shares it
-	let loadingSkills = null // { cwd, promise }
-	let previewedSkillsFor = null
+	let loadingSkills = null // { key, promise }
+	let loadedSkillsFor = null // key of the list in state.skills
 
 	function savePrefs() {
 		localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs))
@@ -229,6 +229,7 @@ export function createFlowStore(client) {
 		state.session = listed ? { title: sessionTitle(listed), config: { cwd: listed.cwd } } : null
 		state.queued = []
 		state.skills = []
+		loadedSkillsFor = null
 		state.conversation = initialConversation()
 		state.loading = true
 		const [info, catalog] = await Promise.all([
@@ -259,6 +260,7 @@ export function createFlowStore(client) {
 		if (switching && state.workspace.open && state.workspace.active)
 			selectFile(state.workspace.active)
 		state.skills = catalog?.skills ?? []
+		loadedSkillsFor = skillsKey()
 		state.conversation.model = info.model
 		state.conversation.reasoningEffort = info.reasoning_effort ?? null
 		state.conversation.contextTokens = info.context_tokens ?? 0
@@ -344,7 +346,7 @@ export function createFlowStore(client) {
 		state.queued = []
 		state.skills = []
 		state.conversation = initialConversation()
-		previewedSkillsFor = null
+		loadedSkillsFor = null
 		state.prefs.lastSession = null
 		if (nextCwd) state.prefs.cwd = nextCwd
 		savePrefs()
@@ -387,24 +389,38 @@ export function createFlowStore(client) {
 		return data.session_id
 	}
 
-	async function loadSkills() {
-		if (state.sessionId || typeof client.previewSkills !== "function") return
-		const cwd = state.prefs.cwd ?? ""
-		if (previewedSkillsFor === cwd) return
+	// state.skills belongs to a live session, or to the folder a new chat would use
+	function skillsKey() {
+		return state.sessionId ? `session:${state.sessionId}` : `cwd:${state.prefs.cwd ?? ""}`
+	}
+
+	// `force` refetches after a skill is written or deleted.
+	async function loadSkills({ force = false } = {}) {
+		const sid = state.sessionId
+		const cwd = state.prefs.cwd
+		// a live session reports what it can invoke; before one exists, preview the folder
+		const fetcher = sid ? client.skills : client.previewSkills
+		if (typeof fetcher !== "function") return
+		const fetchSkills = sid
+			? () => client.skills(sid)
+			: () => client.previewSkills(cwd ? { cwd } : {})
+		const key = skillsKey()
+		if (force) loadedSkillsFor = null
+		else if (loadedSkillsFor === key) return
 		const pending =
-			loadingSkills?.cwd === cwd
-				? loadingSkills.promise
-				: guard(() => client.previewSkills(cwd ? { cwd } : {}))
-		loadingSkills = { cwd, promise: pending }
+			!force && loadingSkills?.key === key ? loadingSkills.promise : guard(fetchSkills)
+		loadingSkills = { key, promise: pending }
 		try {
 			const catalog = await pending
-			if (!state.sessionId && (state.prefs.cwd ?? "") === cwd && catalog) {
+			// a forced refetch supersedes an older request for the same key
+			if (loadingSkills?.promise === pending && skillsKey() === key && catalog) {
 				state.skills = catalog.skills ?? []
-				previewedSkillsFor = cwd
+				loadedSkillsFor = key
 			}
 		} finally {
 			if (loadingSkills?.promise === pending) loadingSkills = null
-			if (!state.sessionId && (state.prefs.cwd ?? "") !== cwd) void loadSkills()
+			// the session or folder changed while this was in flight; load the new one
+			if (skillsKey() !== key) void loadSkills()
 		}
 	}
 
@@ -630,7 +646,7 @@ export function createFlowStore(client) {
 		state.prefs.cwd = path
 		if (!state.sessionId) {
 			state.skills = []
-			previewedSkillsFor = null
+			loadedSkillsFor = null
 		}
 		savePrefs()
 	}

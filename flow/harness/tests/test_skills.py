@@ -14,6 +14,7 @@ from flow.session.prompt import build_system_prompt
 from flow.session.skills import (
 	MAX_SKILL_INDEX_BYTES,
 	MAX_SKILLS,
+	Skill,
 	SkillError,
 	discover_skills,
 	format_skill_invocation,
@@ -494,6 +495,73 @@ def test_existing_session_reads_current_skill_body(tmp_path):
 
 	assert invocation is not None
 	assert "Updated body" in format_skill_invocation(invocation)
+
+
+def test_skill_added_after_session_creation_is_invocable(tmp_path, monkeypatch):
+	home = tmp_path / "home"
+	project = tmp_path / "project"
+	home.mkdir()
+	project.mkdir()
+	monkeypatch.setenv("HOME", str(home))
+	_skill(project / ".agents" / "skills", "testing")
+	data = str(tmp_path / "data")
+	store = SessionStore(data)
+	client = TestClient(create_app(store))
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	_skill(project / ".agents" / "skills", "review", "Added later")
+
+	listed = client.get(f"/sessions/{sid}/skills").json()["skills"]
+	response = client.post(f"/sessions/{sid}/run?wait=true", json={"message": "/skill:review"})
+
+	assert response.status_code == 200
+	assert [skill["name"] for skill in listed] == ["review", "testing"]
+	# invoking adopts it, so its directory keeps its read root across a restart
+	assert [skill.name for skill in SessionStore(data).get(sid).skill_catalog.skills] == [
+		"review",
+		"testing",
+	]
+	# the prompt the model sees was composed once and does not gain the new skill
+	assert "Added later" not in store.get(sid).config.system_prompt
+
+
+def test_resolved_skill_refuses_a_path_swapped_since_discovery(tmp_path):
+	project = tmp_path / "project"
+	project.mkdir()
+	path = _skill(project / ".agents" / "skills", "review")
+	# what discovery recorded no longer resolves to the file about to be opened
+	swapped = Skill(
+		name="review",
+		description="Use for tests.",
+		path=str(path),
+		canonical_path=str(tmp_path / "elsewhere" / "SKILL.md"),
+	)
+
+	with pytest.raises(SkillError, match="skill path changed: review"):
+		parse_skill_command("/skill:review", (), resolve=lambda name: swapped)
+
+
+def test_late_skill_outside_allowed_roots_is_not_invocable(tmp_path, monkeypatch):
+	home = tmp_path / "home"
+	project = tmp_path / "project"
+	outside = tmp_path / "outside"
+	home.mkdir()
+	project.mkdir()
+	outside.mkdir()
+	monkeypatch.setenv("HOME", str(home))
+	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(project)])
+	session = store.create(SessionConfig(cwd=str(project)))
+	outside_skill = _skill(outside, "review")
+	alias = project / ".agents" / "skills" / "review"
+	alias.mkdir(parents=True)
+	(alias / "SKILL.md").symlink_to(outside_skill)
+
+	assert store.resolve_skill(session.config, "review") is None
+	with pytest.raises(SkillError, match="unknown skill: review"):
+		parse_skill_command(
+			"/skill:review",
+			session.skill_catalog.skills,
+			resolve=lambda name: store.resolve_skill(session.config, name),
+		)
 
 
 class _SteeringSkillModel(Model):
