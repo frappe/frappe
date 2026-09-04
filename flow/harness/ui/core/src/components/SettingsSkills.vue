@@ -238,6 +238,8 @@ async function save() {
 		draft.isNew = false
 		flow.notify("Skill saved")
 		load()
+		// the open session can invoke this now, so refresh its command list
+		flow.loadSkills?.({ force: true })
 	} catch (error) {
 		// the daemon refuses invalid content and says why; the draft stays unsaved
 		draft.error = error.message
@@ -279,6 +281,7 @@ function confirmDelete() {
 						editing.value = null
 						flow.notify("Skill deleted")
 						load()
+						flow.loadSkills?.({ force: true })
 					} catch (error) {
 						flow.notify(error.message, "error")
 					}

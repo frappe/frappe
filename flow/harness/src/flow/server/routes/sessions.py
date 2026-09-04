@@ -186,8 +186,9 @@ def create_sessions_router(
 
 	@router.get("/sessions/{sid}/skills", dependencies=gate(policy.skills_api))
 	async def session_skills(request: Request, sid: str):
-		session = _get(resolve_store(request), sid)
-		return skill_catalog_payload(session.skill_catalog)
+		"""The skills this session can invoke now, including ones added after it started."""
+		store = resolve_store(request)
+		return skill_catalog_payload(await store.invocable_skills(_get(store, sid)))
 
 	@router.get("/sessions/{sid}/extensions", dependencies=gate(policy.extensions))
 	async def session_extensions(request: Request, sid: str):

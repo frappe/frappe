@@ -61,7 +61,13 @@ from flow.session.attachments import (
 )
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
-from flow.session.skills import SkillCatalog, format_skill_invocation, parse_skill_command
+from flow.session.skills import (
+	Skill,
+	SkillCatalog,
+	format_skill_invocation,
+	parse_skill_command,
+	sorted_skills,
+)
 from flow.session.transcript import PendingApproval, Transcript
 from flow.tools import Tool
 
@@ -186,6 +192,8 @@ class Session:
 		server_tools: dict[str, Tool] | None = None,
 		extension_runtime: ExtensionRuntime | None = None,
 		persist_meta: Callable[[Session], None] | None = None,
+		resolve_skill: Callable[[str], Skill | None] | None = None,
+		persist_skill_catalog: Callable[[Session], None] | None = None,
 	):
 		self.id = sid
 		self.config = config
@@ -198,6 +206,8 @@ class Session:
 		self.server_tools = server_tools
 		self.extension_runtime = extension_runtime
 		self._persist_meta = persist_meta
+		self._resolve_skill = resolve_skill
+		self._persist_skill_catalog = persist_skill_catalog
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
@@ -491,7 +501,9 @@ class Session:
 			raise AttachmentError(f"a message can include at most {MAX_ATTACHMENTS_PER_MESSAGE} attachments")
 		if len(set(attachment_ids)) != len(attachment_ids):
 			raise AttachmentError("a message cannot include the same attachment twice")
-		invocation = parse_skill_command(message, self.skill_catalog.skills)
+		invocation = parse_skill_command(message, self.skill_catalog.skills, resolve=self._resolve_skill)
+		if invocation is not None:
+			self._adopt_skill(invocation.skill)
 		if not attachment_ids:
 			if invocation is not None:
 				return UserMessage(content=format_skill_invocation(invocation)), ()
@@ -511,6 +523,16 @@ class Session:
 		content.extend(attachments)
 		owned_attachment_claims = self.attachment_store.claim(attachment_ids)
 		return UserMessage(content=content), owned_attachment_claims
+
+	def _adopt_skill(self, skill: Skill) -> None:
+		"""Add an invoked skill to the session's catalog, so its directory stays readable."""
+		if any(item.name == skill.name for item in self.skill_catalog.skills):
+			return
+		self.skill_catalog = self.skill_catalog.model_copy(
+			update={"skills": sorted_skills((*self.skill_catalog.skills, skill))}
+		)
+		if self._persist_skill_catalog is not None:
+			self._persist_skill_catalog(self)
 
 	def _discard_steering(self) -> None:
 		claims: list[str] = []

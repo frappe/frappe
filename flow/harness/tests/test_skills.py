@@ -496,6 +496,57 @@ def test_existing_session_reads_current_skill_body(tmp_path):
 	assert "Updated body" in format_skill_invocation(invocation)
 
 
+def test_skill_added_after_session_creation_is_invocable(tmp_path, monkeypatch):
+	home = tmp_path / "home"
+	project = tmp_path / "project"
+	home.mkdir()
+	project.mkdir()
+	monkeypatch.setenv("HOME", str(home))
+	_skill(project / ".agents" / "skills", "testing")
+	data = str(tmp_path / "data")
+	store = SessionStore(data)
+	client = TestClient(create_app(store))
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	_skill(project / ".agents" / "skills", "review", "Added later")
+
+	listed = client.get(f"/sessions/{sid}/skills").json()["skills"]
+	response = client.post(f"/sessions/{sid}/run?wait=true", json={"message": "/skill:review"})
+
+	assert response.status_code == 200
+	assert [skill["name"] for skill in listed] == ["review", "testing"]
+	# invoking adopts it, so its directory keeps its read root across a restart
+	assert [skill.name for skill in SessionStore(data).get(sid).skill_catalog.skills] == [
+		"review",
+		"testing",
+	]
+	# the prompt the model sees was composed once and does not gain the new skill
+	assert "Added later" not in store.get(sid).config.system_prompt
+
+
+def test_late_skill_outside_allowed_roots_is_not_invocable(tmp_path, monkeypatch):
+	home = tmp_path / "home"
+	project = tmp_path / "project"
+	outside = tmp_path / "outside"
+	home.mkdir()
+	project.mkdir()
+	outside.mkdir()
+	monkeypatch.setenv("HOME", str(home))
+	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(project)])
+	session = store.create(SessionConfig(cwd=str(project)))
+	outside_skill = _skill(outside, "review")
+	alias = project / ".agents" / "skills" / "review"
+	alias.mkdir(parents=True)
+	(alias / "SKILL.md").symlink_to(outside_skill)
+
+	assert store.resolve_skill(session.config, "review") is None
+	with pytest.raises(SkillError, match="unknown skill: review"):
+		parse_skill_command(
+			"/skill:review",
+			session.skill_catalog.skills,
+			resolve=lambda name: store.resolve_skill(session.config, name),
+		)
+
+
 class _SteeringSkillModel(Model):
 	def __init__(self):
 		self.started = asyncio.Event()
