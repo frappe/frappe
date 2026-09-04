@@ -1272,6 +1272,59 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
+	def test_distinct_keeps_valid_order_by(self):
+		for field, order_by in (
+			("user_type", "user_type asc"),
+			("user_type as type", "type asc"),
+			("user_type", "`tabUser`.`user_type` asc"),
+		):
+			with self.subTest(field=field, order_by=order_by):
+				query = DatabaseQuery("User").execute(
+					fields=[field], distinct=True, order_by=order_by, run=False
+				)
+				result = DatabaseQuery("User").execute(
+					fields=[field], distinct=True, order_by=order_by, as_list=True
+				)
+
+				self.assertIn("order by", query.lower())
+				self.assertEqual(list(result), sorted(result))
+
+	def test_distinct_drops_unselected_order_by_on_postgres(self):
+		query = DatabaseQuery("User").execute(
+			fields=["user_type"], distinct=True, order_by="creation desc", run=False
+		)
+
+		if frappe.db.db_type == "postgres":
+			self.assertNotIn("order by", query.lower())
+		else:
+			self.assertIn("order by", query.lower())
+
+	def test_distinct_keeps_order_by_on_star_column(self):
+		query = DatabaseQuery("User").execute(
+			fields=["*"], distinct=True, order_by="user_type asc", run=False
+		)
+		result = DatabaseQuery("User").execute(fields=["*"], distinct=True, order_by="user_type asc")
+
+		self.assertIn("order by", query.lower())
+		self.assertEqual([row.user_type for row in result], sorted(row.user_type for row in result))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_order_by_preserves_link_table_identity(self):
+		for order_by, keeps_order in (
+			("creation desc", False),
+			("`tabUser`.`creation` desc", False),
+			("language_creation asc", True),
+		):
+			with self.subTest(order_by=order_by):
+				query = DatabaseQuery("User").execute(
+					fields=["language.creation as language_creation"],
+					distinct=True,
+					order_by=order_by,
+					run=False,
+				)
+				self.assertEqual("order by" in query.lower(), keeps_order)
+				frappe.db.sql(query)
+
 	def test_field_comparison(self):
 		"""Test DatabaseQuery.execute to test field comparison"""
 		users_unedited = frappe.get_all(
