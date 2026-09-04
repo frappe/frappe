@@ -455,8 +455,6 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!this.wrapper) return;
 		let allowed = this.page_allows_sidebar();
 		this.wrapper.toggle(allowed);
-		// A hidden panel cannot be peeking, and it leaves without a mouseleave to say so.
-		if (!allowed) this.end_peek();
 		this.refresh_dock();
 	}
 
@@ -465,7 +463,6 @@ frappe.ui.Sidebar = class Sidebar {
 	toggle(hide) {
 		if (!this.wrapper) return;
 		this.wrapper.toggle(!hide);
-		if (hide) this.end_peek();
 		this.refresh_dock();
 	}
 	make_dom() {
@@ -867,49 +864,6 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 	}
 
-	// Whether the panel is floating out over the page right now, as opposed to docked or gone.
-	is_peeking() {
-		return !!this.wrapper && this.wrapper.hasClass("peeking");
-	}
-
-	// Whether the panel is on screen at full width, whichever way it got there. A peeked panel is
-	// as wide and as legible as a pinned one, so anything sizing itself to the panel -- the header
-	// and its padding -- follows this rather than `sidebar_expanded`, which is only about docking.
-	panel_is_open() {
-		return this.sidebar_expanded || this.is_peeking();
-	}
-
-	// Float the collapsed panel out, or let it go. Nothing peeks while the sidebar is already open,
-	// while the page hides it, on mobile (where the panel is a full drawer with its own overlay), or
-	// while a sidebar panel is open, since those stand in the panel's spot and sliding it out behind
-	// one would only shuffle things around. Retracting is never refused, so the panel cannot be left
-	// hanging out.
-	set_peek(peeking) {
-		if (!this.wrapper) return;
-
-		if (peeking) {
-			if (this.sidebar_expanded || frappe.is_mobile()) return;
-			if (!this.wrapper.is(":visible")) return;
-			// Notifications and background tasks moved off dropdowns inside the panel and onto
-			// SidebarPanel, which keeps the open one on its registry rather than in the DOM here.
-			if (frappe.ui.sidebar_panels?.open_panel) return;
-		}
-
-		this.wrapper.toggleClass("peeking", peeking);
-		// Gates the rail's expand affordances, which the peeked panel covers (see dock.scss).
-		$("body").toggleClass("sidebar-peeking", peeking);
-		// The header lays itself out for a panel that is on screen or one that is not, and the
-		// panel just changed which of those it is.
-		this.sidebar_header?.toggle_width(this.panel_is_open());
-	}
-
-	// Retract the peek now, rather than waiting for the pointer to leave. For whatever takes the
-	// panel's place on screen, and for the sidebar opening for real.
-	end_peek() {
-		clearTimeout(this.peek_timer);
-		this.set_peek(false);
-	}
-
 	toggle_width() {
 		if (!this.sidebar_expanded) {
 			this.open();
@@ -931,10 +885,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
-		this.sidebar_header.toggle_width(this.panel_is_open());
-		// A sidebar that is open for real has nothing left to peek at, and the peeked panel and the
-		// pinned one are the same element.
-		if (this.sidebar_expanded) this.end_peek();
+		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		// While collapsed, the body sidebar is hidden and only the dock (rail) shows.
 		// This gates the rail's edge handle that reopens the sidebar (see dock.scss).
 		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);

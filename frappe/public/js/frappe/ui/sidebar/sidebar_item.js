@@ -282,11 +282,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 				me.save_section_break_state();
 			}
 			// Docking the sidebar is how a collapsed one shows the group that was just
-			// expanded, since the group itself is off screen while collapsed. A panel that is
-			// peeking out is already showing it, so the click toggled the group above and that
-			// is the whole of it: it stays floating rather than being put back into the layout
-			// for something it is already displaying.
-			if (!frappe.app.sidebar.sidebar_expanded && !frappe.app.sidebar.is_peeking()) {
+			// expanded, since the group itself is off screen while collapsed.
+			if (!frappe.app.sidebar.sidebar_expanded) {
 				frappe.app.sidebar.open();
 				this.open();
 			}

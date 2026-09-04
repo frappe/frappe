@@ -239,7 +239,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			? $(wrapper).closest(".shell-header")
 			: $(wrapper);
 		$wrapper.toggleClass("active-sidebar");
-		if ($wrapper.closest(".body-sidebar").length && !frappe.app.sidebar.panel_is_open()) {
+		if ($wrapper.closest(".body-sidebar").length && !frappe.app.sidebar.sidebar_expanded) {
 			$wrapper.removeClass("active-sidebar");
 		}
 	}
@@ -315,9 +315,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.$header_title = this.wrapper.find(".header-title");
 		this.$header_logo = this.wrapper.find(".header-logo");
 		this.$drop_icon = this.wrapper.find(".drop-icon");
-		// A header rebuilt while the panel is peeking is a header on screen, so it lays itself out
-		// as one. `sidebar_expanded` alone would say otherwise and put the title back at the edge.
-		this.toggle_width(this.sidebar.panel_is_open());
+		this.toggle_width(this.sidebar.sidebar_expanded);
 	}
 	// The header names the module whose sidebar is on screen, because the sidebar belongs to a
 	// module. It used to show the owning app's title and fall back to the module only when there

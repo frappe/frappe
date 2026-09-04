@@ -238,31 +238,6 @@
 	}
 }
 
-// Hover peek. While the panel is collapsed, resting the pointer on the rail floats it back over
-// the page for as long as the pointer stays on either of them; frappe.ui.Sidebar.set_peek puts this
-// class on and takes it off.
-//
-// Everything here is the collapsed state above, undone, and nothing more: the peeked panel is the
-// pinned one, drawn flat on the same surface behind the same 1px right border, with no shadow or
-// raised edge to mark it as floating. The placeholder is deliberately left at zero width, so the
-// main section keeps the space the panel is floating over and nothing reflows under the pointer.
-//
-// The notification and background-task dropdowns keep the position the collapsed state gave them,
-// against the rail. They are overlays the rail's own bell opens, so they stay put whether the panel
-// happens to be peeking or not.
-.body-sidebar-container:not(.expanded).peeking {
-	.body-sidebar {
-		background: var(--surface-sidebar);
-		border-right-color: var(--outline-gray-1);
-		pointer-events: auto;
-
-		> * {
-			transform: none;
-			opacity: 1;
-		}
-	}
-}
-
 // Mobile is the same overlay on the same terms: the panel keeps its width and its place, and the
 // collapsed state fades it out, rather than being squeezed to `width: 0` on rules of its own. It
 // used to need those, because a panel that reserved space in flow had to give the space back on a

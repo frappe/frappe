@@ -361,13 +361,6 @@ body.sidebar-collapsed .dock-resize-handle {
 	display: block;
 }
 
-// While the collapsed panel is peeking out, the rail's expand handle sits on top of the panel it
-// was there to reveal: it hangs off the rail's right edge, which is where the panel now is. The
-// peeked panel carries its own handle at its right edge, so hand the job over to that.
-body.sidebar-peeking .dock-resize-handle {
-	display: none;
-}
-
 // mirror the body sidebar: the rail collapses away on mobile
 @include media-breakpoint-down(sm) {
 	.dock {
