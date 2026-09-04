@@ -193,8 +193,13 @@ frappe.ui.Capture = class {
 		this.images.forEach((image, idx) => {
 			images += `
 				<div class="mt-1 p-1 rounded col-md-3 col-sm-4 col-xs-4" data-idx="${idx}">
+<<<<<<< HEAD
 					<span class="capture-remove-btn" data-idx="${idx}">
 						${frappe.utils.icon("close", "lg")}
+=======
+					<span class="capture-remove-btn" data-idx="${idx}" title="${__("Remove")}">
+						${frappe.utils.icon("x", "sm")}
+>>>>>>> 5c387cb (fix(ui): improve contrast and sizing of capture preview remove icon)
 					</span>
 					<img class="rounded img-fluid" src="${image}" data-idx="${idx}">
 				</div>
