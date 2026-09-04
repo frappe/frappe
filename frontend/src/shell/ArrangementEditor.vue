@@ -3,7 +3,7 @@
   scope deep with hidden rows, writes only on Save, and uses the platform's own drag events plus arrows.
 -->
 <template>
-	<div class="flex w-80 shrink-0 flex-col border-l border-outline-gray-2 bg-surface-white">
+	<div class="flex w-80 shrink-0 flex-col border-l border-outline-gray-2 bg-surface-base">
 		<header class="flex items-center justify-between border-b border-outline-gray-2 p-3">
 			<h2 class="text-base font-medium text-ink-gray-8">{{ title }}</h2>
 			<Button variant="ghost" label="Close" @click="emit('close')" />

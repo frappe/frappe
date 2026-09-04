@@ -3,7 +3,7 @@
   here because a save replaces the whole `{rail, sidebars}`, and the open sidebar is a fact about the address.
 -->
 <template>
-	<div class="flex h-screen w-screen bg-surface-white text-ink-gray-9">
+	<div class="flex h-screen w-screen bg-surface-base text-ink-gray-9">
 		<AppRail
 			:items="navigation.rail"
 			:context="contexts.rail"
