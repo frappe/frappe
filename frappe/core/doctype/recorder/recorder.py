@@ -10,7 +10,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.model.document import Document
 from frappe.recorder import RECORDER_REQUEST_HASH
 from frappe.recorder import get as get_recorder_data
-from frappe.utils import cint, cstr, evaluate_filters, get_table_name
+from frappe.utils import cstr, evaluate_filters, get_table_name
 from frappe.utils.caching import redis_cache
 
 
@@ -239,24 +239,19 @@ def _optimize_query(query):
 
 
 def _fetch_table_stats(doctype: str, columns: list[str]) -> dict | None:
-	def sql_bool(val):
-		return cstr(val).lower() in ("yes", "1", "true")
-
 	if not frappe.db.table_exists(doctype):
 		return
 
-	table = get_table_name(doctype, wrap_in_backticks=True)
-
-	schema = []
-	for field in frappe.db.sql(f"describe {table}", as_dict=True):
-		schema.append(
-			{
-				"column": field["Field"],
-				"type": field["Type"],
-				"is_nullable": sql_bool(field["Null"]),
-				"default": field["Default"],
-			}
-		)
+	table_name = get_table_name(doctype)
+	schema = [
+		{
+			"column": field.name,
+			"type": field.type,
+			"is_nullable": not field.not_nullable,
+			"default": field.default,
+		}
+		for field in frappe.db.get_table_columns_description(table_name)
+	]
 
 	def update_cardinality(column, value):
 		for col in schema:
@@ -264,46 +259,91 @@ def _fetch_table_stats(doctype: str, columns: list[str]) -> dict | None:
 				col["cardinality"] = value
 				break
 
-	indexes = []
-	for idx in frappe.db.sql(f"show index from {table}", as_dict=True):
-		indexes.append(
-			{
-				"unique": not sql_bool(idx["Non_unique"]),
-				"cardinality": idx["Cardinality"],
-				"name": idx["Key_name"],
-				"sequence": idx["Seq_in_index"],
-				"nullable": sql_bool(idx["Null"]),
-				"column": idx["Column_name"],
-				"type": idx["Index_type"],
-			}
-		)
-		if idx["Seq_in_index"] == 1:
-			update_cardinality(idx["Column_name"], idx["Cardinality"])
-
-	total_rows = cint(
-		frappe.db.sql(
-			f"""select table_rows
-			   from  information_schema.tables
-			   where table_name = 'tab{doctype}'"""
-		)[0][0]
-	)
+	indexes = _fetch_table_indexes(table_name)
+	for index in indexes:
+		if index["sequence"] == 1 and index["cardinality"] is not None:
+			update_cardinality(index["column"], index["cardinality"])
 
 	# fetch accurate cardinality for columns by query. WARN: This can take A LOT of time.
 	for column in columns:
-		cardinality = _get_column_cardinality(table, column)
+		cardinality = _get_column_cardinality(table_name, column)
 		update_cardinality(column, cardinality)
 
 	return {
-		"table_name": table.strip("`"),
-		"total_rows": total_rows,
+		"table_name": table_name,
+		"total_rows": frappe.db.estimate_count(doctype),
 		"schema": schema,
 		"indexes": indexes,
 	}
 
 
+def _fetch_table_indexes(table_name: str) -> list[dict]:
+	if frappe.db.db_type == "postgres":
+		return _fetch_postgres_table_indexes(table_name)
+	return _fetch_mariadb_table_indexes(table_name)
+
+
+def _fetch_postgres_table_indexes(table_name: str) -> list[dict]:
+	return frappe.db.sql(
+		"""
+		SELECT
+			i.indisunique AS "unique",
+			NULL::bigint AS cardinality,
+			index_info.relname AS name,
+			indexed_column.ordinality AS sequence,
+			NOT column_info.attnotnull AS nullable,
+			column_info.attname AS column,
+			method.amname AS type
+		FROM pg_index i
+		JOIN pg_class table_info ON table_info.oid = i.indrelid
+		JOIN pg_class index_info ON index_info.oid = i.indexrelid
+		JOIN pg_namespace namespace ON namespace.oid = table_info.relnamespace
+		JOIN pg_am method ON method.oid = index_info.relam
+		JOIN LATERAL unnest(i.indkey) WITH ORDINALITY AS indexed_column(attnum, ordinality) ON TRUE
+		JOIN pg_attribute column_info
+			ON column_info.attrelid = table_info.oid AND column_info.attnum = indexed_column.attnum
+		WHERE table_info.relname = %(table_name)s
+			AND namespace.nspname = %(schema)s
+			AND indexed_column.ordinality <= i.indnkeyatts
+			AND i.indisvalid
+			AND i.indisready
+			AND i.indislive
+			AND i.indpred IS NULL
+			AND i.indexprs IS NULL
+			AND method.amname = 'btree'
+		ORDER BY index_info.relname, indexed_column.ordinality
+		""",
+		{"table_name": table_name, "schema": frappe.db.db_schema},
+		as_dict=True,
+	)
+
+
+def _fetch_mariadb_table_indexes(table_name: str) -> list[dict]:
+	return frappe.db.sql(
+		"""
+		SELECT
+			NOT non_unique AS `unique`,
+			cardinality,
+			index_name AS name,
+			seq_in_index AS sequence,
+			nullable = 'YES' AS nullable,
+			column_name AS `column`,
+			index_type AS type
+		FROM information_schema.statistics
+		WHERE table_schema = %(schema)s AND table_name = %(table_name)s
+		ORDER BY index_name, seq_in_index
+		""",
+		{"schema": frappe.db.cur_db_name, "table_name": table_name},
+		as_dict=True,
+	)
+
+
 @redis_cache
 def _get_column_cardinality(table, column):
-	return frappe.db.sql(f"select count(distinct {column}) from {table}")[0][0]
+	from frappe.query_builder.functions import Count
+
+	table = frappe.qb.Table(table)
+	return frappe.qb.from_(table).select(Count(table[column]).distinct()).run()[0][0]
 
 
 def get_doctype_name(table_name: str) -> str:
