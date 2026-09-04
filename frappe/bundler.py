@@ -145,7 +145,6 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	# the running site's assets down on a failed build or leak every previous build.
 	published = os.path.join(frappe.get_app_path("frappe"), "public", "frontend")
 	staging = published + ".staging"
-	previous = published + ".previous"
 
 	shutil.rmtree(staging, ignore_errors=True)
 
@@ -158,11 +157,18 @@ def build_shell(frappe_app_path: str, production: bool = False):
 		shutil.rmtree(staging, ignore_errors=True)
 		raise RuntimeError("The shell build produced no index.html; leaving the existing assets in place.")
 
-	# Swap with a rename, so a reader mid-request sees one tree or the other.
+	swap_shell_assets(staging, published)
+
+
+def swap_shell_assets(staging: str, published: str):
+	"""Move a built tree into place; a reader mid-request sees one tree or the other."""
+	previous = published + ".previous"
 	shutil.rmtree(previous, ignore_errors=True)
+	# `shutil.move` copies when the rename is refused. A container image build refuses it for a
+	# directory an earlier layer created: overlayfs answers EXDEV, and nothing is serving then.
 	if os.path.exists(published):
-		os.rename(published, previous)
-	os.rename(staging, published)
+		shutil.move(published, previous)
+	shutil.move(staging, published)
 	shutil.rmtree(previous, ignore_errors=True)
 
 
