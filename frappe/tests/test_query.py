@@ -10,6 +10,8 @@ from frappe.tests.classes.context_managers import enable_safe_exec
 from frappe.tests.test_db_query import (
 	create_nested_doctype,
 	create_nested_doctype_records,
+	setup_autoincrement_link_doctypes,
+	setup_autoincrement_parent_doctypes,
 	setup_patched_blog_post,
 	setup_test_user,
 )
@@ -1471,6 +1473,53 @@ class TestQuery(IntegrationTestCase):
 		test_user_doc.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, force=True)
 
+	def test_autoincrement_link_field_join(self):
+		with setup_autoincrement_link_doctypes() as (
+			_target_dt_name,
+			source_dt_name,
+			target_doc,
+			source_doc,
+		):
+			query = frappe.qb.get_query(
+				source_dt_name,
+				fields=["name", "link_field.target_title"],
+				filters={"name": source_doc.name},
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(result[0].target_title, target_doc.target_title)
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO LINK TARGET"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
+
+	def test_autoincrement_child_table_join(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, _child_dt_name, parent_doc):
+			query = frappe.qb.get_query(
+				parent_dt_name,
+				fields=["name", "child_table.child_value"],
+				filters={"name": parent_doc.name, "child_table.child_value": "Child"},
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(len(result), 1)
+			self.assertEqual(result[0].child_value, "Child")
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO PARENT"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
+
+	def test_autoincrement_child_query(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, _child_dt_name, parent_doc):
+			result = frappe.qb.get_query(
+				parent_dt_name,
+				fields=["name", {"child_table": ["child_value"]}],
+				filters={"name": parent_doc.name},
+			).run(as_dict=True)
+
+			self.assertEqual(len(result), 1)
+			self.assertEqual(result[0].child_table[0].child_value, "Child")
+
 	def test_filter_direct_field_permission(self):
 		"""Test that filtering is only allowed on permitted direct fields."""
 		with setup_patched_blog_post(), setup_test_user(set_user=True) as user:
@@ -2455,6 +2504,24 @@ class TestQuery(IntegrationTestCase):
 		).run()
 		# Query should succeed and return results (tuple or list)
 		self.assertTrue(len(result) >= 0, "Query should succeed with proper permissions")
+
+	def test_autoincrement_parent_permission_join(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, child_dt_name, parent_doc):
+			query = frappe.qb.get_query(
+				child_dt_name,
+				fields=["name", "child_value"],
+				filters={"parent": parent_doc.name},
+				parent_doctype=parent_dt_name,
+				ignore_permissions=False,
+				user="Administrator",
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(result[0].child_value, "Child")
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO PARENT"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
 
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
