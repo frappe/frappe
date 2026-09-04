@@ -13,17 +13,6 @@ $notification-dot-size: 8px;
 	perspective: 3200px;
 }
 
-.dropdown-notifications .header {
-	margin: 7px 15px 10px 15px;
-	cursor: pointer;
-}
-
-// Layout for these lives on .header-actions in the panel; only the affordance is global.
-.close-notification-dialogue,
-.notification-settings {
-	cursor: pointer;
-}
-
 .collapse-indicator {
 	padding: 0px 5px;
 	color: #d1d8dd;
@@ -91,99 +80,38 @@ $notification-dot-size: 8px;
 	text-decoration: underline;
 }
 
-// The sidebar drawer: edge-anchored against the sidebar and full height, so it
-// casts sideways (away from that edge) and keeps square corners. The desk host
-// puts this same content inside an .es-popover, which is styled further down.
-.notifications-list {
-	width: min(360px, 100vw);
-	padding: 0px;
-	position: absolute;
-	top: 0;
-	height: 100vh;
-	min-height: 480px;
-	background-color: var(--bg-color);
-	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
-	overflow: hidden;
-	@include flex(flex, null, null, column);
+// The tab bodies, in either host. The surface around them is the host's: .sidebar-panel
+// in the sidebar, .es-popover on the desk.
+.notification-list-body {
+	padding: 0px 10px 10px 10px;
 
-	.notification-list-header {
-		flex-shrink: 0;
-		padding: 14px 16px 10px 16px;
-
-		.notification-header-top {
-			@include flex(flex, space-between, center, row);
-			margin-bottom: 12px;
-		}
-
-		.notification-panel-title {
-			@include get_textstyle("lg", "semibold");
-			color: var(--ink-gray-8);
-		}
-
-		.header-actions {
-			@include flex(flex, null, center, row);
-			gap: 2px;
-			color: var(--ink-gray-6);
-
-			> span {
-				@include flex(inline-flex, center, center, row);
-				@include size(24px, 24px);
-				border-radius: var(--radius-sm);
-				cursor: pointer;
-
-				&:hover {
-					background-color: var(--surface-gray-2);
-					color: var(--ink-gray-8);
-				}
-			}
-		}
-	}
-
-	.notification-list-body {
-		flex: 1;
-		min-height: 0;
-		overflow-y: auto;
-		padding: 0px 10px 10px 10px;
-
-		.panel-events,
-		.panel-notifications {
-			@include size(100%, null);
-		}
-	}
-
-	// es-tab-buttons ships inline-flex, sized by its labels. Here it spans the
-	// panel with the tabs sharing the width evenly -- the rail then lines up with
-	// the header and the list below it. Only the box changes; the rail, pill,
-	// sizing and states all still come from the component.
-	.header-items .es-tab-buttons {
-		display: flex;
-
-		.es-pill {
-			flex: 1 1 0;
-			min-width: 0;
-		}
+	.panel-events,
+	.panel-notifications {
+		@include size(100%, null);
 	}
 }
 
-// Desk host: the panel is a real popover, so .es-popover brings the surface
-// itself (rounded-lg / bg-surface-elevation-2 / shadow-2xl) -- nothing is copied
-// here. Only the sizing the notification list needs is overridden: the component
-// defaults to a narrow, padded, self-scrolling panel, and this one is wider,
-// unpadded, and scrolls in its own body so the header stays put.
+// Desk host: .es-popover brings the surface itself (rounded-lg /
+// bg-surface-elevation-2 / shadow-2xl), so nothing is copied here. The component
+// defaults to a narrow, padded, self-scrolling panel; this one is wider, unpadded,
+// and scrolls in its body so the heading stays put.
 .es-popover.notifications-popover {
 	width: min(360px, calc(100vw - 16px));
 	padding: 0;
 	overflow: hidden;
 
 	.notifications-list {
-		position: static;
-		width: 100%;
+		@include flex(flex, null, null, column);
 		// fixed, not max-height: the popover must stay the same size across tabs
 		// (e.g. Events has far fewer rows than All) instead of shrinking to fit
 		// whichever tab's content is currently shown.
 		height: min(500px, calc(100vh - var(--navbar-height) - 32px));
-		background: transparent;
-		box-shadow: none;
+
+		.notification-list-body {
+			flex: 1;
+			min-height: 0;
+			overflow-y: auto;
+		}
 	}
 }
 
@@ -453,18 +381,9 @@ $notification-dot-size: 8px;
 }
 
 @include media-breakpoint-down(sm) {
-	// Drawer: the sidebar collapses on mobile, so the panel takes the screen.
-	.dropdown-notifications {
-		.notifications-list {
-			position: fixed;
-			width: 100vw;
-			max-height: 100vh;
-		}
-
-		.recent-item .user-avatar {
-			margin-right: 10px;
-			margin-left: 5px;
-		}
+	.sidebar-panel-notifications .recent-item .user-avatar {
+		margin-right: 10px;
+		margin-left: 5px;
 	}
 
 	// Popover: .es-popover already caps itself at the viewport width; this just

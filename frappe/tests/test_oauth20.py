@@ -13,6 +13,7 @@ from frappe.oauth import OAuthWebRequestValidator
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.oauth import build_oauth_url
 
 if TYPE_CHECKING:
@@ -378,7 +379,9 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		self.assertEqual(token_response.status_code, 400)
 		self.assertEqual(token_response.json.get("error"), "invalid_grant")
+    
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_using_implicit_token(self):
 		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
 		oauth_client.grant_type = "Implicit"

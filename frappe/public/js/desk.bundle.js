@@ -25,6 +25,8 @@ import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
 import "./frappe/ui/components/progress.js";
 import "./frappe/ui/components/empty_state.js";
+import "./frappe/ui/components/panel_header.js";
+import "./frappe/ui/sidebar/sidebar_panel.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";

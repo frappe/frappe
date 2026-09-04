@@ -293,10 +293,10 @@
    render at all (display beats the section's data-driven inline margins), and
    surfaces as a drop target the moment a drag starts. Fields dropped there
    render right under the letterhead — same region. */
-.pfb-header-area:has(.letter-head) .pfb-header-fields:not(:has([data-field-uid])) {
+.pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: none;
 }
-body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields {
+body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: block;
 }
 

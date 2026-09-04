@@ -343,10 +343,16 @@ class File(Document):
 				exc=FileNotFoundError,
 			)
 		if target.exists():
-			frappe.throw(
-				_("A file with same name {} already exists").format(target),
-				exc=FileExistsError,
+			target_file_name = generate_file_name(
+				name=file_name,
+				is_private=cint(self.is_private),
 			)
+			target = Path(
+				frappe.get_site_path(
+					"private" if cint(self.is_private) else "public", "files", target_file_name
+				)
+			)
+			updated_file_url = f"{url_starts_with}{target_file_name}"
 
 		other_refs_exist = self.content_hash and frappe.db.exists(
 			"File",
@@ -372,19 +378,43 @@ class File(Document):
 		):
 			return
 
-		if frappe.get_meta(self.attached_to_doctype).issingle:
+		parent_meta = frappe.get_meta(self.attached_to_doctype)
+
+		if parent_meta.issingle:
 			frappe.db.set_single_value(
 				self.attached_to_doctype,
 				self.attached_to_field,
 				self.file_url,
 			)
-		else:
+			return
+		if parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
+			self.attached_to_doctype,
+			{"name": self.attached_to_name, self.attached_to_field: old_file_url},
+		):
 			frappe.db.set_value(
 				self.attached_to_doctype,
 				self.attached_to_name,
 				self.attached_to_field,
 				self.file_url,
 			)
+
+		for table_df in parent_meta.get_table_fields():
+			child_meta = frappe.get_meta(table_df.options)
+			if not child_meta.has_field(self.attached_to_field):
+				continue
+
+			match_filters = {
+				"parent": self.attached_to_name,
+				"parentfield": table_df.fieldname,
+				self.attached_to_field: old_file_url,
+			}
+			matching_rows = frappe.get_all(table_df.options, filters=match_filters, pluck="name")
+			if not matching_rows:
+				continue
+			if len(matching_rows) > 1:
+				continue
+
+			frappe.db.set_value(table_df.options, matching_rows[0], self.attached_to_field, self.file_url)
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:

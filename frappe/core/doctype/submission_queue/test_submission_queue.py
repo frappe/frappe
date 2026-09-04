@@ -6,12 +6,14 @@ import typing
 
 import frappe
 from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.background_jobs import get_queue
 
 if typing.TYPE_CHECKING:
 	from rq.job import Job
 
 
+@requires_test_service(TestService.BACKGROUND_WORKER)
 class TestSubmissionQueue(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
