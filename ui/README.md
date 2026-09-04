@@ -219,10 +219,11 @@ the `Error` when a load fails, and the component renders nothing.
 The component imports vue and nothing else, so an app on an older frappe-ui can still
 host an island.
 
-### What an island reports
+### What a page island reports
 
-An island draws no page header. It reports what a header would say, and each host draws
-its own chrome from it:
+An island that fills a page draws no page header. It reports what a header would say,
+and each host draws its own chrome from it. An island that fills less than a page reports
+neither, and a host that draws no header binds neither:
 
 - `title` — a `string` or `null`, the name of what the island shows.
 - `actions` — an `Action[]`, where `Action` is `{ label, icon? }` plus either an

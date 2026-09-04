@@ -1,4 +1,4 @@
-# An island reports its title and its actions
+# A page island reports its title and its actions
 
 An island that fills a page still needs a page header: a title, and the actions
 that belong to what it shows. The island knows both — it loaded the document. The
@@ -6,7 +6,7 @@ header belongs to the host, which already draws one for every other page.
 
 ## Decision
 
-An island ships no header. It emits what a header would say:
+An island that fills a page ships no header. It emits what a header would say:
 
 - `title` — a `string` or `null`.
 - `actions` — an `Action[]`, `Action` being `{ label, icon? }` plus either an
@@ -16,6 +16,11 @@ An `onClick` runs in the island. An `href` is a URL — absolute or site-relativ
 page outside the host app: the action reports where it goes, and the host decides how a
 link into another app behaves. A host opens it in a new tab, and may mark the action as
 leaving the app, in its own idiom.
+
+This is what a page island reports. An island that fills less — a widget in a
+workspace, a card in a grid — reports neither, and a host that draws no header
+binds neither. The `Action` fields are what one island needs, and both hosts draw
+them as a menu row today. A new field is a change both hosts make together.
 
 Each host draws its own chrome from them. Desk sets the page title and fills the
 page menu; a frappe-ui app fills its `LayoutHeader`. Nothing in the island knows
