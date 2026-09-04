@@ -438,8 +438,8 @@ frappe.ui.Sidebar = class Sidebar {
 	// Closing takes it off screen entirely rather than shrinking it to a strip, and the way back in
 	// is the rail: its rows open the panel, and its edge handle reopens it. A dock-less app has no
 	// rail, and the panel's own collapse chevron is gone, so closing one there would leave its only
-	// navigation unreachable -- and `sidebar-expanded` persists, so it would still be gone on the
-	// next load. Where there is nothing to reopen it, it does not close.
+	// navigation unreachable. Where there is nothing to reopen it, it does not close -- and it is
+	// this same question that decides where the panel starts (see load_sidebar_state).
 	panel_can_close() {
 		return this.dock_enabled() && this.page_allows_dock();
 	}
@@ -708,18 +708,18 @@ frappe.ui.Sidebar = class Sidebar {
 		this.expand_sidebar();
 	}
 
+	// Where the panel starts, which is decided by whether the app has a rail rather than by anything
+	// the user left behind.
+	//
+	// A docked app opens with the rail alone and the panel at nothing: the panel is an overlay you
+	// call up from a rail row, it covers the page while it is out, and it closes again on the next
+	// click elsewhere -- so it starts closed on every load rather than restoring where it was left.
+	// A dock-less app has no rail, so the panel is the whole of its navigation and is always out.
+	//
+	// Between those two there is no per-user state left to keep, which is why `sidebar-expanded` is
+	// no longer read or written.
 	load_sidebar_state() {
-		this.sidebar_expanded = true;
-		if (localStorage.getItem("sidebar-expanded") !== null) {
-			this.sidebar_expanded = JSON.parse(localStorage.getItem("sidebar-expanded"));
-		}
-
-		// A stored `false` is only meaningful where something can open it again. It is read before
-		// this rather than skipped so that closing a docked app's panel and then walking into a
-		// dock-less one shows that one's sidebar instead of nothing at all.
-		if (!this.panel_can_close()) {
-			this.sidebar_expanded = true;
-		}
+		this.sidebar_expanded = !this.panel_can_close();
 
 		if (frappe.is_mobile()) {
 			this.sidebar_expanded = false;
@@ -863,8 +863,9 @@ frappe.ui.Sidebar = class Sidebar {
 				// panel rather than inside it, but a click in one is still a click on the
 				// sidebar's own furniture.
 				if (
-					$(e.target).closest(".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel")
-						.length
+					$(e.target).closest(
+						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel"
+					).length
 				)
 					return;
 				this.close();
@@ -935,7 +936,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
-		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
 		this.sidebar_header.toggle_width(this.panel_is_open());
 		// A sidebar that is open for real has nothing left to peek at, and the peeked panel and the
 		// pinned one are the same element.

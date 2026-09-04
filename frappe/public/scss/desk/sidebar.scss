@@ -21,22 +21,24 @@
 	flex-direction: column;
 	height: fit-content;
 	width: fit-content;
-	// positioning context for .sidebar-panel, which opens at `left: 100%` of this box.
-	// The width here is the placeholder's, so that lands the panel correctly whether the
-	// sidebar is out, collapsed behind the dock, or off-screen on mobile.
+	// Positioning context for the body sidebar and for .sidebar-panel, both of which are absolute
+	// inside it. It reserves no width of its own: the sidebar is an overlay in every state, so this
+	// box is 0 wide and sits between the rail and the main section, which runs the shell's full
+	// width underneath. It used to hold a placeholder element the width of the sidebar, so the main
+	// section could glide across as the sidebar came and went; nothing moves now, and the panel
+	// names its own offset (see sidebar_panel.scss) rather than reading it off this box.
 	position: relative;
-
-	// The panel is an overlay in every state, so nothing is reserved for it in flow: the main
-	// section runs the full width of the shell and the panel floats over it, whether it was opened
-	// from the rail or is sitting there pinned. This used to hold the panel's width so the main
-	// section could glide across as it came and went; now the main section does not move at all.
-	.body-sidebar-placeholder {
-		display: none;
-	}
 }
 
 .body-sidebar {
-	position: absolute;
+	// In flow by default, and a positioning context for the handle on its edge. Its container is
+	// `fit-content`, so in flow the container measures the panel's own 220px and the page starts
+	// after it -- which is what a dock-less app wants, since its sidebar is permanent.
+	//
+	// A docked app takes it out of flow instead (see dock.scss): there the panel is called up from
+	// a rail row and covers the page while it is out, so the container measures 0 and the page runs
+	// the full width underneath. That one declaration is the whole difference between the modes.
+	position: relative;
 	width: var(--sidebar-width);
 	background: var(--surface-sidebar);
 	border-right: 1px solid var(--outline-gray-1);
@@ -183,7 +185,6 @@
 @mixin body-sidebar-expanded {
 	.body-sidebar {
 		// make it an overlay on hover
-		position: absolute;
 		width: var(--sidebar-width);
 
 		.nav-item {
@@ -262,15 +263,19 @@
 	}
 }
 
+// Mobile is the same overlay on the same terms: the panel keeps its width and its place, and the
+// collapsed state fades it out, rather than being squeezed to `width: 0` on rules of its own. It
+// used to need those, because a panel that reserved space in flow had to give the space back on a
+// narrow screen; it reserves none anywhere now.
+//
+// What is mobile's own is the dimming overlay behind the panel and the full-height pin, because
+// here the panel covers the page rather than standing beside it.
 @include media-breakpoint-down(sm) {
-	// body sidebar hidded in mobile view
-	.body-sidebar-container {
-		.body-sidebar {
-			padding: 0px;
-			width: 0px;
-			overflow: hidden;
-			transition-property: none;
-		}
+	// A drawer over the page in either mode and in either state -- out of flow even while closed,
+	// because a closed panel left in flow would hold 220px of a phone screen for something that is
+	// not on it.
+	.body-sidebar {
+		position: absolute;
 	}
 
 	// expands when navbar-brand is clicked
@@ -278,10 +283,7 @@
 		position: relative;
 
 		.body-sidebar {
-			padding: 8px 8px 10px 8px;
-			width: var(--sidebar-width);
 			height: 100%;
-			position: absolute;
 			bottom: 0;
 			top: 0;
 		}
@@ -295,12 +297,6 @@
 			left: var(--sidebar-width);
 			overflow: auto;
 			background-color: rgba(128, 128, 128, 0.5);
-		}
-
-		// acts a overlay when in mobile view
-		.body-sidebar-placeholder {
-			display: flex;
-			width: 0px;
 		}
 	}
 }

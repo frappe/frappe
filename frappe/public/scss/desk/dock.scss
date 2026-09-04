@@ -238,30 +238,8 @@
 // It still opens the menu, and the chevron still says so; the rail's header carries a second copy
 // of the same menu (see Dock.refresh). A dock-less app draws the full header, since there is no
 // rail there to carry any of it.
-body.dock-active .body-sidebar {
-	.dropdown-navbar-user,
-	.standard-items-band {
-		display: none;
-	}
-
-	.sidebar-header {
-		height: 36px;
-
-		.header-logo,
-		.header-subtitle {
-			display: none;
-		}
-
-		// With the mark gone the title leads the row, so it takes the inset the rows below have:
-		// 1px of .body-sidebar-top's padding plus the 8px their labels carry.
-		.header-title {
-			margin-left: 2px;
-			font-size: var(--text-base);
-		}
-	}
-}
-
-// ...and the mirror of that: with no rail there is nothing to collapse *to*. Collapsing takes the
+//
+// With no rail there is nothing to collapse *to*. Collapsing takes the
 // body sidebar off screen entirely (see .body-sidebar-container:not(.expanded)) and the way back
 // in is the rail's right-edge handle -- which a dock-less app does not have. So on a dock-less app
 // the panel's own collapse handle goes too.
@@ -269,27 +247,68 @@ body:not(.dock-active) .body-sidebar .sidebar-resize-handle {
 	display: none;
 }
 
-// Leading icons on the sidebar's own rows. A docked app leaves iconography to the rail and keeps
-// a label-only sidebar next to it; a dock-less app has no rail, so the rows carry their icons
-// themselves -- which is also what gives the standard-items band (search, notifications,
-// background tasks) the icon-plus-label shape it is described as having.
-//
-// The template renders the span either way; the docked case hides it, so toggling the rail on or
-// off is a class flip rather than a re-render.
-//
-// The selector carries the whole `.standard-sidebar-item .item-anchor` chain only to outweigh the
-// rule that gives the span its `display: flex` in sidebar.scss -- two classes more specific than
-// `body.dock-active .body-sidebar .sidebar-item-icon` would be on its own.
-body.dock-active .body-sidebar .standard-sidebar-item .item-anchor .sidebar-item-icon {
-	display: none;
-}
+// All of this is scoped to the widths where the rail is actually drawn. `dock-active` says the app
+// has a rail, not that one is on screen: the rail is display:none below md, and handing its jobs to
+// something that is not there left the drawer with no search, no notifications, no user button and
+// a stripped header.
+@include media-breakpoint-up(md) {
+	body.dock-active .body-sidebar {
+		.dropdown-navbar-user,
+		.standard-items-band {
+			display: none;
+		}
 
-// The label's 8px margin is the gap between a glyph and its label. A docked app draws no glyph on
-// these rows (see above), so there is nothing for that gap to be between: the label leads the row
-// and the row's own 8px of padding is its whole inset.
-body.dock-active .body-sidebar .standard-sidebar-item .sidebar-item-label {
-	margin-left: 0;
-}
+		.sidebar-header {
+			height: 36px;
+
+			.header-logo,
+			.header-subtitle {
+				display: none;
+			}
+
+			// With the mark gone the title leads the row, so it takes the inset the rows below have:
+			// 1px of .body-sidebar-top's padding plus the 8px their labels carry.
+			.header-title {
+				margin-left: 2px;
+				font-size: var(--text-base);
+			}
+		}
+	}
+
+	// The panel is an overlay only where something calls it up and something closes it, which is to say
+	// only where there is a rail: a docked app opens it from a rail row, it covers the page while it is
+	// out, and the next click elsewhere takes it away. So it goes out of flow here, its container
+	// measures 0, and the page runs the full width underneath.
+	//
+	// A dock-less app leaves it in flow (the default, see sidebar.scss), because there it is permanent
+	// and a permanent overlay is just a strip of the page you cannot use. Mobile leaves it out of flow
+	// in both modes, since there it is a drawer either way.
+	body.dock-active .body-sidebar {
+		position: absolute;
+	}
+
+	// Leading icons on the sidebar's own rows. A docked app leaves iconography to the rail and keeps
+	// a label-only sidebar next to it; a dock-less app has no rail, so the rows carry their icons
+	// themselves -- which is also what gives the standard-items band (search, notifications,
+	// background tasks) the icon-plus-label shape it is described as having.
+	//
+	// The template renders the span either way; the docked case hides it, so toggling the rail on or
+	// off is a class flip rather than a re-render.
+	//
+	// The selector carries the whole `.standard-sidebar-item .item-anchor` chain only to outweigh the
+	// rule that gives the span its `display: flex` in sidebar.scss -- two classes more specific than
+	// `body.dock-active .body-sidebar .sidebar-item-icon` would be on its own.
+	body.dock-active .body-sidebar .standard-sidebar-item .item-anchor .sidebar-item-icon {
+		display: none;
+	}
+
+	// The label's 8px margin is the gap between a glyph and its label. A docked app draws no glyph on
+	// these rows (see above), so there is nothing for that gap to be between: the label leads the row
+	// and the row's own 8px of padding is its whole inset.
+	body.dock-active .body-sidebar .standard-sidebar-item .sidebar-item-label {
+		margin-left: 0;
+	}
+} // media-breakpoint-up(md)
 
 // The standard-items band: search, notifications and background tasks, directly under the header
 // and above the module's own items, behind a divider. Full-width rows in the sidebar's own
