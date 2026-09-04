@@ -29,13 +29,6 @@ const BULK_EDIT_NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
 // datepicker, NaN boxes from a duration picker, no word at all from a checkbox. A
 // flagged cell of one keeps the file's text and builds its control on click.
 const BULK_EDIT_DEFERRED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", "Check"];
-const BULK_EDIT_RAW_TEXT_FIELDTYPES = [
-	...BULK_EDIT_NUMERIC_FIELDTYPES,
-	"Date",
-	"Datetime",
-	"Time",
-	"Duration",
-];
 // every step shares one size, so switching tabs never resizes the modal.
 // the modal is sized against the window rather than in pixels: it takes 90%
 // of the height, less the header and footer the body sits between, so the
@@ -629,10 +622,14 @@ export default class BulkEdit {
 			this.pin_dropdown(control);
 		}
 
-		if (BULK_EDIT_RAW_TEXT_FIELDTYPES.includes(df.fieldtype)) {
-			// each of these discards a value it cannot read (null, 0, or "" on
-			// "Invalid date"), blanking the very cell it is flagged for. Hold the
-			// text; converting it is BULK_EDIT_VALUE_FORMATTERS' job, on apply.
+		if (BULK_EDIT_NUMERIC_FIELDTYPES.includes(df.fieldtype)) {
+			// ControlFloat.parse() returns null for what parseFloat cannot read and
+			// ControlInt.parse() turns "abc" into 0, blanking the very cell they are
+			// flagged for. Hold the text; converting it is the formatters' job, on
+			// apply. Only these: a deferred fieldtype is seeded empty, so it never
+			// holds a bad value, and overriding its parse breaks the picker — the
+			// datepicker feeds parse()'s result back through str_to_obj(), which
+			// reads system format, and a user-format string there renders NaN.
 			control.parse = (value) => value;
 			control.format_for_input = (value) => cstr(value);
 			control.validate = (value) => value;
