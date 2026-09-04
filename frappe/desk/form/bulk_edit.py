@@ -13,6 +13,9 @@ import datetime
 
 import frappe
 from frappe import _
+from frappe.core.doctype.data_import.importer import get_df_for_column_header
+from frappe.model import no_value_fields, table_fields
+from frappe.utils import cstr
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.xlsxutils import (
 	build_xlsx_response,
@@ -99,6 +102,57 @@ def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
 	rows = read_csv_content(content)
 
 	return [[stringify(value) for value in row] for row in (rows or [])]
+
+
+@frappe.whitelist()
+def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]:
+	"""Map an uploaded file's column headers onto fieldnames of the grid's child doctype.
+
+	The matching is the Data Import doctype's own (``get_df_for_column_header``,
+	which is cached per doctype), so a column may be headed with the field's
+	label, its fieldname, or ``Label (fieldname)`` — the same three forms that
+	doctype accepts. Labels are why the downloaded template needs only one
+	header row; fieldnames are why a file written against the old template, or
+	by hand, still maps.
+
+	:param doctype: doctype of the form the grid belongs to, for the permission check
+	:param fieldname: the table field on it, which names the child doctype to match against
+	:param headers: JSON list of the file's header cells, in column order
+	"""
+	if not frappe.has_permission(doctype, "write"):
+		raise frappe.PermissionError
+
+	table_df = frappe.get_meta(doctype).get_field(fieldname)
+	if not table_df or table_df.fieldtype not in table_fields:
+		frappe.throw(_("{0} is not a table field").format(frappe.bold(fieldname)))
+
+	child_doctype = table_df.options
+
+	# For a child doctype the matcher also offers parent, parenttype, parentfield
+	# and idx (importer.py get_standard_fields). The grid writes only the value
+	# fields it lists in its own mapping picker, so those are dropped here rather
+	# than left for a spreadsheet to re-parent or renumber a row with. Read-only
+	# fields go with them: the document's own code writes those on save, so a
+	# column mapped to one would be overwritten the moment the form is saved.
+	# Mirrors get_bulk_edit_docfields() in grid.js.
+	writable = {
+		df.fieldname
+		for df in frappe.get_meta(child_doctype).fields
+		if df.fieldtype not in no_value_fields and not df.read_only
+	}
+	# the ID is matched on, never written — apply_bulk_edit_rows skips it
+	writable.add("name")
+
+	column_map = {}
+	for i, header in enumerate(frappe.parse_json(headers) or []):
+		header = cstr(header).strip()
+		if not header:
+			continue
+		df = get_df_for_column_header(child_doctype, header)
+		if df and df.fieldname in writable:
+			column_map[i] = df.fieldname
+
+	return column_map
 
 
 @frappe.whitelist()

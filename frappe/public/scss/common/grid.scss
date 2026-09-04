@@ -1050,6 +1050,8 @@ body.grid-col-resizing {
 }
 
 .bulk-edit-preview-table {
+	// one row height, shared by the cells and by anything that has to fill one
+	--bulk-edit-row-height: 38px;
 	overflow-x: auto;
 	// a picker opens inside this box, so keep room for one even when the file
 	// has only a row or two
@@ -1202,4 +1204,58 @@ body.grid-col-resizing {
 	background: transparent;
 	box-shadow: none;
 	cursor: pointer;
+}
+
+// The cell owns the error styling; the control inside it must not paint its
+// own, or a red-bordered box reads as a second error nested in the first.
+// base_input.js sets these on the control's wrapper from set_mandatory() and
+// set_invalid(), both of which run on every set_value — so clearing the class
+// in JS wouldn't hold, and the reset belongs here.
+// (`.frappe-control:not(...)` in controls.scss is what draws the border.)
+.bulk-edit-preview-table .bulk-edit-editable-cell .frappe-control.has-error input {
+	border: none;
+
+	&:focus {
+		box-shadow: none;
+	}
+}
+
+// Rows keep one height whether or not they currently hold a control or a Skip
+// button. Both come and go as values are fixed, and each is taller than the
+// plain text it replaces — without this the table reflows under the cursor
+// mid-edit, which is the same "grid moves" the overflow note above warns about.
+.bulk-edit-preview-table tbody td {
+	height: var(--bulk-edit-row-height);
+}
+
+// A cell whose control cannot draw the value — a checkbox, or a picker that
+// would write its own state over it — keeps the file's own word on show until
+// it is clicked. It is the word that is wrong, so it is the word that carries
+// the error colour; every other fieldtype shows its bad value inside a control,
+// with the red cell around it saying the same thing.
+.bulk-edit-preview-table td.bulk-edit-pending-cell {
+	color: var(--error-color);
+	cursor: pointer;
+}
+
+// ControlCheck strips .form-control from its input (check.js make_input), so the
+// rule above never reaches it, and its label is inline-flex aligned to the start
+// (global.scss). A checkbox also carries none of the padding that gives every
+// other cell its height. Centre it in the row instead, both ways.
+.bulk-edit-preview-table .bulk-edit-editable-cell .checkbox {
+	margin-bottom: 0;
+
+	label {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: var(--bulk-edit-row-height);
+		margin-bottom: 0;
+		padding-top: 0;
+	}
+
+	.input-area {
+		display: flex;
+		align-items: center;
+	}
 }
