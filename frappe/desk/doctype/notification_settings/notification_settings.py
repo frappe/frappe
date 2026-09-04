@@ -32,7 +32,11 @@ class NotificationSettings(Document):
 		energy_points_system_notifications: DF.Check
 		seen: DF.Check
 		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
+<<<<<<< HEAD
 		user: DF.Link | None
+=======
+	# end: auto-generated types
+>>>>>>> 0317a7e (refactor: drop unused `user` field from Notification Settings)
 
 	# end: auto-generated types
 	def on_update(self):
