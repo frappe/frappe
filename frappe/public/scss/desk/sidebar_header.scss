@@ -77,19 +77,6 @@
 		}
 	}
 
-	// The half of the header that is a link. The panel's header has no such element -- its whole
-	// row opens the menu -- so this only ever wraps the rail's mark and title.
-	.shell-header-main {
-		flex: 1 1 auto;
-		min-width: 0;
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		color: inherit;
-		text-decoration: none;
-		overflow: hidden;
-	}
-
 	.title-container {
 		min-width: 0;
 	}

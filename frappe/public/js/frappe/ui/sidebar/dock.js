@@ -24,20 +24,15 @@ frappe.ui.Dock = class Dock {
 			"Workspaces"
 		)}">
 			<div class="dock-logo">
-				<div class="shell-header">
-					<a class="shell-header-main" href="/desk" aria-label="${__("Apps")}">
-						<div class="header-logo"></div>
-						<div class="title-container">
-							<div class="header-title"></div>
-							<div class="header-subtitle">${frappe.utils.escape_html(
-								frappe.boot.sitename || window.location.hostname
-							)}</div>
-						</div>
-					</a>
-					<button class="btn-reset drop-icon" aria-label="${__("Sidebar Menu")}">
-						${frappe.utils.icon("chevron-down", "sm", "", "", "", true)}
-					</button>
-				</div>
+				<a class="shell-header" href="/desk" aria-label="${__("Apps")}">
+					<div class="header-logo"></div>
+					<div class="title-container">
+						<div class="header-title"></div>
+						<div class="header-subtitle">${frappe.utils.escape_html(
+							frappe.boot.sitename || window.location.hostname
+						)}</div>
+					</div>
+				</a>
 			</div>
 			<div class="dock-shortcuts"></div>
 			<div class="dock-items"></div>
@@ -60,15 +55,12 @@ frappe.ui.Dock = class Dock {
 
 		// Built once and never replaced: the header's menu binds to this node, and render_logo
 		// rewrites what is inside it rather than the node itself.
-		this.$header = this.$dock.find(".shell-header");
+		this.$header = this.$dock.find(".dock-logo .shell-header");
 		this.$header_logo = this.$header.find(".header-logo");
 		this.$header_title = this.$header.find(".header-title");
-		// The chevron is what opens the menu; the rest of the header is a way out to the apps
-		// screen. They are siblings rather than one nested in the other because a <button> inside
-		// an <a> is not valid markup -- the same reason frappe-ui keeps a row's trailing zone
-		// outside its link.
-		this.$header_menu = this.$header.find(".drop-icon");
-		this.$header.find(".shell-header-main").on("click", (e) => {
+		// The whole header is the link now: with no chevron there is no second thing in it to aim
+		// at, so it needs no inner anchor to keep the two apart.
+		this.$header.on("click", (e) => {
 			e.preventDefault();
 			frappe.set_route("/desk");
 		});
@@ -203,14 +195,6 @@ frappe.ui.Dock = class Dock {
 	}
 
 	refresh() {
-		// While the rail is up the panel's header is hidden, so the menu that hung on it -- the
-		// sidebar switcher, Edit Sidebar and the system items -- hangs on this header instead. Done
-		// here rather than in make() because the rail can be built before the header it borrows the
-		// menu from, and only ever once.
-		if (!this.header_menu && this.sidebar.sidebar_header) {
-			this.header_menu = this.sidebar.sidebar_header.attach_menu(this.$header_menu);
-		}
-
 		// The dock belongs to the app whose body sidebar is on screen.
 		this.app = this.sidebar.get_sidebar_app();
 		// It is drawn only if it has entries and the page on screen allows it. The desktop or apps
