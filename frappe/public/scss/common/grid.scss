@@ -1013,6 +1013,11 @@ body.grid-col-resizing {
 // margin on every side; the card only adds the gap under the step row.
 .bulk-edit-dialog .modal-body {
 	background: var(--subtle-fg);
+	// the footer moved into the card, so the body is the last thing in the modal
+	// and carries its bottom corners — square ones read as a seam against the
+	// rounded card sitting on them
+	border-bottom-left-radius: var(--radius-md);
+	border-bottom-right-radius: var(--radius-md);
 	// overflow-y left alone here too, and for the same reason as the panel
 	// above: toggling it moves the layout under the click that triggered it
 }
@@ -1052,7 +1057,11 @@ body.grid-col-resizing {
 .bulk-edit-preview-table {
 	// one row height, shared by the cells and by anything that has to fill one
 	--bulk-edit-row-height: 38px;
-	overflow-x: auto;
+	// takes the height the step has left instead of sitting at its content
+	// height with dead space under it; build_preview() stretches the wrappers
+	// FieldGroup puts between this and the panel
+	flex: 1 1 auto;
+	overflow: auto;
 	// a picker opens inside this box, so keep room for one even when the file
 	// has only a row or two
 	min-height: 260px;

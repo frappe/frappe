@@ -481,6 +481,17 @@ export default class BulkEdit {
 		$table.html(
 			this.get_preview_html(this.state.headers, this.state.rows, this.state.row_numbers),
 		);
+		// FieldGroup nests the field several levels below the panel, and each level
+		// sits at its content height by default — so the table would stop short and
+		// leave the rest of the step empty. Walked rather than named, since the
+		// depth is FieldGroup's business, not ours.
+		this.panels.preview.css({ height: "100%", display: "flex", "flex-direction": "column" });
+		$table.parentsUntil(this.panels.preview).addBack().css({
+			display: "flex",
+			"flex-direction": "column",
+			flex: "1 1 auto",
+			"min-height": 0,
+		});
 		const options = this.mapping_options();
 		this.building_preview = true;
 		this.mapping_controls = this.state.headers.map((header, i) => {
