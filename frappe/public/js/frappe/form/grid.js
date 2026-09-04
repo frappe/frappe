@@ -4,8 +4,8 @@
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
 
-const BULK_EDIT_CSV_HEADER_ROWS = 7; // title, labels, fieldnames, descriptions, 2 instructions, separator
-const BULK_EDIT_FIELDNAME_ROW = 2; // third header row carries the fieldnames
+// one row of labels, same as the Data Import doctype's own template (exporter.py add_header)
+const BULK_EDIT_CSV_HEADER_ROWS = 1;
 const BULK_EDIT_MAX_ROWS = 5000;
 const BULK_EDIT_FILE_TYPES = [".csv", ".xlsx", ".xls"];
 const BULK_EDIT_ID_FIELDNAME = "name";
@@ -20,6 +20,31 @@ const BULK_EDIT_ALL_RECORDS = "all";
 const BULK_EDIT_5_RECORDS = "5_records";
 // same pattern as DURATION_PATTERN in importer.py (frappe/core/doctype/data_import/importer.py)
 const BULK_EDIT_DURATION_PATTERN = /^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$/;
+// a Duration is stored as a number of seconds, which is what the template
+// exports, so a file coming back round-trip carries digits rather than "1h 30m"
+const BULK_EDIT_SECONDS_PATTERN = /^\d+$/;
+// the words importer.py's Row.parse_value accepts for a Check field, alongside 0/1
+const BULK_EDIT_CHECK_TRUE = ["t", "true", "y", "yes"];
+const BULK_EDIT_CHECK_FALSE = ["f", "false", "n", "no"];
+const BULK_EDIT_NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
+// Fieldtypes whose control refuses a value it cannot read: it parses to null or
+// "Invalid date" and then renders blank. A flagged cell holds exactly such a
+// value, so these controls are told to keep the text as the file wrote it.
+// Fieldtypes whose control cannot show a value it cannot read, and paints over
+// the cell rather than leave it alone: a datepicker rewrites the input from its
+// own state ("NaN:NaN:NaN" out of ControlTime.set_input, an invalid date out of
+// ControlDate.set_formatted_input), a duration picker resolves every box to NaN
+// (seconds_to_duration of a word), and a checkbox can draw no word at all. A
+// flagged cell of one of these keeps the file's own text on show and builds its
+// control on the click that goes to resolve it.
+const BULK_EDIT_DEFERRED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", "Check"];
+const BULK_EDIT_RAW_TEXT_FIELDTYPES = [
+	...BULK_EDIT_NUMERIC_FIELDTYPES,
+	"Date",
+	"Datetime",
+	"Time",
+	"Duration",
+];
 // every step shares one size, so switching tabs never resizes the modal.
 // the modal is sized against the window rather than in pixels: it takes 90%
 // of the height, less the header and footer the body sits between, so the
@@ -31,16 +56,93 @@ const BULK_EDIT_PREVIEW_ROWS = 10;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
 
+// Every fieldtype whose stored value is not the string the file carries. These
+// mirror importer.py Row.parse_value — a value that passed validation still has
+// to be converted, or it reaches the doc as text and is silently wrong.
 const BULK_EDIT_VALUE_FORMATTERS = {
 	Date: (val) => {
 		if (!val) return val;
 		return SYSTEM_DATE_PATTERN.test(val) ? val.slice(0, 10) : frappe.datetime.user_to_str(val);
 	},
+	Datetime: (val) => (val ? frappe.datetime.user_to_str(val) : val),
+	Time: (val) => bulk_edit_to_system_time(val),
 	Int: (val) => cint(val),
-	Check: (val) => cint(val),
+	Check: (val) => {
+		const word = cstr(val).trim().toLowerCase();
+		if (BULK_EDIT_CHECK_TRUE.includes(word)) return 1;
+		if (BULK_EDIT_CHECK_FALSE.includes(word)) return 0;
+		return cint(val);
+	},
 	Float: (val) => flt(val),
 	Currency: (val) => flt(val),
+	Percent: (val) => flt(val),
+	Duration: (val) => bulk_edit_to_seconds(val),
 };
+
+/** "1d 2h 30m" to seconds, via the same helper the Duration control uses. */
+function bulk_edit_to_seconds(value) {
+	const text = cstr(value).trim();
+	if (!text) return 0;
+	// already seconds — the template exports the stored value, not a duration string
+	if (BULK_EDIT_SECONDS_PATTERN.test(text)) return cint(text);
+
+	const part = (unit) => cint((text.match(new RegExp(`(\\d+)${unit}`)) || [])[1]);
+	return frappe.utils.duration_to_seconds(part("d"), part("h"), part("m"), part("s"));
+}
+
+/**
+ * What a freshly mounted cell control starts on. The file's own value goes in
+ * unchanged wherever the control can hold it; where it cannot, the control is
+ * seeded clean and the cell's own text is what keeps the faulty value on show.
+ */
+function bulk_edit_seed_value(fieldtype, value) {
+	// ControlCheck.set_input() runs the value through cint(), reading "Yes" as 0
+	if (fieldtype === "Check") return BULK_EDIT_VALUE_FORMATTERS.Check(value);
+	// the rest of the deferred set is only ever mounted over a flagged cell, so the
+	// value here is one the widget cannot read; starting clean opens the picker on
+	// a real time rather than on nonsense, and the cell's own text is what kept the
+	// faulty value on show until this click
+	if (BULK_EDIT_DEFERRED_FIELDTYPES.includes(fieldtype)) return "";
+	return value;
+}
+
+/** A time in the user's format to the "HH:mm:ss" the doc stores. */
+function bulk_edit_to_system_time(value) {
+	if (!value) return value;
+	const parsed = moment(value, BULK_EDIT_TIME_FORMATS(), true);
+	return parsed.isValid() ? parsed.format(frappe.defaultTimeFormat) : value;
+}
+
+/** The two time formats a file may carry: the user's own, and the stored one. */
+const BULK_EDIT_TIME_FORMATS = () => [
+	frappe.datetime.get_user_time_fmt(),
+	frappe.defaultTimeFormat,
+];
+
+/**
+ * Whether the whole value reads as a number. Written against flt()'s own steps —
+ * the same currency strip and the same strip_number_groups — so the locale's
+ * group and decimal separators are read here exactly as they will be when the
+ * value is applied, which a regex of our own would not manage.
+ *
+ * The last step is deliberately stricter than flt: parseFloat stops at the first
+ * character it cannot read, so flt turns "12abc" into 12 and "1.2.3" into 1.2.
+ * Number() rejects both, which is the point — a value that only half parses is
+ * the kind that imports quietly wrong.
+ */
+function bulk_edit_is_number(value) {
+	let text = cstr(value).trim();
+	if (!text) return false;
+
+	// flt drops a currency symbol when a space separates it from the figure
+	if (text.includes(" ")) {
+		const parts = text.split(" ");
+		if (isNaN(parseFloat(parts[0]))) text = parts.slice(parts.length - 1).join(" ");
+	}
+
+	text = strip_number_groups(text);
+	return text !== "" && !isNaN(Number(text));
+}
 
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
@@ -1699,13 +1801,20 @@ export default class Grid {
 		return this.df.label || frappe.model.unscrub(this.df.fieldname);
 	}
 
-	/** Value fields of the child doctype, with ID first so rows can be matched on it. */
+	/**
+	 * Value fields of the child doctype, with ID first so rows can be matched on
+	 * it. Read-only fields are left out: the document's own code writes them on
+	 * save (amount = rate * qty, and so on), so a column for one is a column
+	 * whose values never survive. This is the single gate — it feeds the download
+	 * template and the mapping picker alike, so nothing downstream has to test
+	 * for read_only again. Its server-side twin is in bulk_edit.py.
+	 */
 	get_bulk_edit_docfields() {
 		return [
 			{ fieldname: BULK_EDIT_ID_FIELDNAME, label: __("ID"), fieldtype: "Data" },
 			...frappe
 				.get_meta(this.df.options)
-				.fields.filter((df) => frappe.model.is_value_type(df.fieldtype)),
+				.fields.filter((df) => frappe.model.is_value_type(df.fieldtype) && !df.read_only),
 		];
 	}
 
@@ -2009,6 +2118,55 @@ export default class Grid {
 		let preview_request_id = 0;
 		// live edit controls mounted over an invalid Link/Select cell, keyed "row:col"
 		let cell_controls = {};
+		/**
+		 * Drop a control's picker along with the control. air-datepicker mounts into a
+		 * container on the body, so one left behind outlives the cell it belonged to —
+		 * still on screen, with nothing left that could close it.
+		 */
+		const discard_cell_control = (control) => {
+			control?.hide_picker?.();
+			control?.datepicker?.destroy?.();
+		};
+		const discard_cell_controls = () =>
+			Object.values(cell_controls).forEach(discard_cell_control);
+
+		/**
+		 * One listener for every cell picker rather than one each, so a control whose
+		 * cell has since been redrawn is still reached — its picker lives in the body,
+		 * not in the cell.
+		 */
+		const on_dialog_mousedown = (event) => {
+			Object.values(cell_controls).forEach((control) => {
+				const picker = picker_of(control);
+				// no picker, or the click is someone using it
+				if (!picker || picker.contains(event.target)) return;
+
+				if (control.$wrapper.closest("td").get(0)?.contains(event.target)) {
+					// the cell toggles, since the control's own handler only ever opens
+					if (!picker_is_open(control)) {
+						open_picker(control);
+						return;
+					}
+					close_picker(control);
+					// Closing alone is not enough: both pickers open on the input's focus
+					// (air-datepicker's showEvent, and ControlDuration's own focus handler),
+					// and air-datepicker's hide() blurs the input on its way out — so the
+					// focus this mousedown is about to deliver would open it straight back
+					// up. Taking the default away leaves the input unfocused and the picker
+					// shut; the next click on the cell opens it again through the branch
+					// above.
+					event.preventDefault();
+					return;
+				}
+				if (picker_is_open(control)) close_picker(control);
+			});
+		};
+		// capture, so it runs before the dialog or the table can swallow the click
+		document.addEventListener("mousedown", on_dialog_mousedown, true);
+		dialog.$wrapper.on("hidden.bs.modal", () => {
+			discard_cell_controls();
+			document.removeEventListener("mousedown", on_dialog_mousedown, true);
+		});
 
 		/** "Don't Import", then every field a column can land in. */
 		const mapping_options = () => [
@@ -2028,6 +2186,7 @@ export default class Grid {
 		 * re-reads the pickers, which keeps them (and any open dropdown) alive.
 		 */
 		const build_preview = () => {
+			discard_cell_controls();
 			panels.preview.empty();
 			cell_controls = {};
 			state.skipped_rows = new Set();
@@ -2058,6 +2217,9 @@ export default class Grid {
 					render_input: true,
 					only_input: true,
 				});
+				// this list is every field of the child doctype, so it is long and
+				// has to scroll; unpinned it is clipped by the table's own overflow
+				pin_dropdown(control);
 				control.set_value(state.column_map[i] || BULK_EDIT_DONT_IMPORT);
 				return control;
 			});
@@ -2067,26 +2229,195 @@ export default class Grid {
 		};
 
 		/**
-		 * Mark every cell a warning names — same has-error convention the
-		 * doctype's own editable grid rows use. Every such cell also gets a
-		 * live control of its own fieldtype (the same one that field uses on a
-		 * real form) so the value can be fixed without leaving the preview,
-		 * and stays that way for as long as this column maps to that field.
+		 * What's wrong with the cell being edited, in the one shared line under
+		 * the "Map each column..." text — not inside the cell, since only_input
+		 * mode (needed for the borderless in-table look) suppresses
+		 * set_description() outright anyway. title as well as text: the gap is a
+		 * single clipped line, so a long message stays readable on hover.
+		 * Reads _warning live, so it says what is true now.
 		 */
-		const sync_preview_errors = (warnings) => {
-			const by_cell = {};
-			warnings.forEach((w) => {
-				if (w.row !== undefined && w.col !== undefined) by_cell[`${w.row}:${w.col}`] = w;
+		const show_cell_message = (control) => {
+			const message = control?._warning?.message || "";
+			preview_form
+				.get_field("table")
+				.$wrapper.find(".bulk-edit-preview-message")
+				.text(message)
+				.attr("title", message);
+		};
+
+		/**
+		 * Pin an open dropdown to where its input is on screen. The list sits in a
+		 * container that scrolls and clips, and freeing it by switching that
+		 * container's overflow moves the whole grid (see grid.scss). Fixed takes it
+		 * out of every ancestor's flow and clipping instead, so nothing reflows.
+		 * Re-pinned on each open, since the row may have moved; closed on scroll,
+		 * since a fixed element doesn't travel with the container it came from.
+		 */
+		const pin_dropdown = (control) => {
+			const list = () => control.$input.closest(".awesomplete").children("ul").get(0);
+			// The list is closed when the page moves under it, since a fixed element
+			// doesn't travel with the container it came from. Its own scrolling is
+			// not that: the list is taller than its max-height and scrolls inside
+			// itself, and closing on that would leave the last options reachable
+			// only by typing.
+			const close = (event) => {
+				if (event && list()?.contains(event.target)) return;
+				control.awesomplete?.close();
+			};
+			control.$input.on("awesomplete-open", () => {
+				const rect = control.$input[0].getBoundingClientRect();
+				$(list()).css({
+					position: "fixed",
+					top: `${rect.bottom}px`,
+					left: `${rect.left}px`,
+					width: `${rect.width}px`,
+					"min-width": 0,
+					// above the dialog and its sticky footer, which a fixed element
+					// is no longer stacked against by nesting alone
+					"z-index": 1050,
+				});
+				// capture: scroll doesn't bubble, and what scrolls here is an ancestor
+				document.addEventListener("scroll", close, true);
+			});
+			control.$input.on("awesomplete-close", () =>
+				document.removeEventListener("scroll", close, true),
+			);
+		};
+
+		/**
+		 * Date, Datetime and Time carry an air-datepicker, Duration its own box; both
+		 * mount in the body, open on focus, and leave closing to the input's blur —
+		 * which never comes while that input keeps focus. So the picker hung over the
+		 * table when the same cell was clicked again, or the dialog around it was.
+		 */
+		const picker_of = (control) =>
+			control?.$picker?.get(0) || control?.datepicker?.$datepicker?.get(0) || null;
+		const picker_is_open = (control) =>
+			control.$picker
+				? control.$picker.is(":visible")
+				: Boolean(control.datepicker?.visible);
+		const open_picker = (control) =>
+			control.$picker ? control.show_picker() : control.datepicker?.show();
+		const close_picker = (control) =>
+			control.$picker ? control.hide_picker() : control.datepicker?.hide();
+
+		/**
+		 * A control of the field's own type, mounted over a cell so a value the
+		 * file got wrong can be seen and corrected in place. Every fieldtype's own
+		 * "reject what doesn't fit" behaviour has to be turned off first, or it
+		 * blanks the cell the moment the value is set.
+		 */
+		const make_cell_control = (cell, r, col, warning, fieldname) => {
+			const original = state.rows[r][col];
+			const df = { ...warning.field };
+
+			// A hidden field renders no control at all (base_control.js get_status
+			// returns "None"), which would leave the cell looking empty and dead.
+			// Hidden describes how the field behaves on a form; the value here is the
+			// file's, still being corrected on its way in, and the import writes it
+			// either way. Read-only needs no such reset — those fields are never
+			// offered for mapping (get_bulk_edit_docfields), so no cell is ever one.
+			df.hidden = 0;
+			df.hidden_due_to_dependency = 0;
+
+			if (df.fieldtype === "Select") {
+				// a <select> can't display a value with no matching <option> — add
+				// the file's own value as one, so it shows instead of blank
+				const options = (df.options || "").split("\n").map((o) => o.trim());
+				if (original && !options.includes(cstr(original).trim())) {
+					df.options = [original, ...options].join("\n");
+				}
+			} else if (df.fieldtype === "Link") {
+				// ControlLink.validate() existence-checks against the server and
+				// returns empty when there's no such record — exactly our case. The
+				// value's invalidity is already reported by our own warning.
+				df.ignore_link_validation = true;
+			}
+
+			// the input fills the whole cell (grid.scss) rather than sitting inside
+			// it, so any click in the cell is a genuine click on the input — the
+			// only way a native <select> reliably opens its list across browsers is
+			// a real click, not a programmatic .focus()/.click()
+			$(cell).addClass("bulk-edit-editable-cell");
+			const control = frappe.ui.form.make_control({
+				df: {
+					...df,
+					change: () => {
+						state.rows[r][col] = control.get_value();
+						refresh_preview();
+					},
+				},
+				parent: $(cell).empty().get(0),
+				render_input: true,
+				only_input: true,
+			});
+			control._fieldname = fieldname;
+			control._warning = warning;
+			// what the dropdown cue below positions itself against
+			control.$wrapper.css("position", "relative");
+
+			if (df.fieldtype === "Link") {
+				// an invalid value has no record to fetch a title for, which would
+				// otherwise blank the input — show it as plain text, same as every
+				// other fieldtype already does
+				control.set_link_title = async (value) =>
+					control.translate_and_set_input_value(value, value);
+				// Select gets a dropdown cue for free (ControlSelect.set_icon);
+				// Link's autocomplete input doesn't. Inline position, not a
+				// stylesheet rule: .select-icon's own CSS needs a positioned
+				// ancestor this cell's markup doesn't reliably give it.
+				$(`<div class="select-icon">${frappe.utils.icon("chevrons-up-down", "sm")}</div>`)
+					.css({
+						position: "absolute",
+						top: "3px",
+						right: "12px",
+						"pointer-events": "none",
+					})
+					.appendTo(control.$wrapper);
+				pin_dropdown(control);
+			}
+
+			if (BULK_EDIT_RAW_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+				// Each of these throws the value away rather than show one it cannot
+				// read: ControlFloat.parse() returns null, ControlInt.parse() turns
+				// "abc" into 0, and ControlDate/Datetime/Time return "" on "Invalid
+				// date". The cell would then come up blank on the very value it is
+				// flagged for, leaving nothing to see or correct. Hold the text as the
+				// file wrote it; converting it is BULK_EDIT_VALUE_FORMATTERS' job,
+				// once, on apply. validate() goes with them — ControlDate's calls
+				// frappe.datetime.validate() and blanks the input just as surely.
+				control.parse = (value) => value;
+				control.format_for_input = (value) => cstr(value);
+				control.validate = (value) => value;
+			}
+
+			control.set_value(bulk_edit_seed_value(df.fieldtype, original));
+
+			// click as well as focus: focus fires once and the cell stays focused,
+			// so every click after the first would otherwise do nothing. Link's own
+			// focus handler (link.js) only opens the list when the input is empty,
+			// and ours never is — it always holds the file's value — so opening has
+			// to be asked for explicitly, every time. The empty term matters:
+			// on_input() searches on whatever the input holds, which here is the
+			// value no record matches, so the list would come up empty; searching on
+			// "" lists the real options while the cell goes on showing what the file
+			// said. link.js sets filter: () => true, so awesomplete won't filter
+			// them back out.
+			control.$input?.on("focus click", () => {
+				show_cell_message(control);
+				if (df.fieldtype === "Link") control.on_input({ target: { value: "" } });
 			});
 
-			const $table = preview_form.get_field("table").$wrapper;
-			const $message = $table.find(".bulk-edit-preview-message");
+			return control;
+		};
 
-			// A row nothing can be done about is skippable: leaving it out is what
-			// lets the rest of the file through, since its warnings stop counting
-			// against Apply once it is (see set_footer). Only rows that actually
-			// have something wrong get the button — plus any already skipped, so
-			// there's always a way back.
+		/**
+		 * A row nothing can be done about is skippable: leaving it out is what lets
+		 * the rest of the file through, since its warnings stop counting against
+		 * Apply once it is (see set_footer). Only rows that actually have something
+		 * wrong get a button — plus any already skipped, so there's a way back.
+		 */
+		const render_skip_buttons = ($table, warnings) => {
 			const rows_with_warnings = new Set(
 				warnings.filter((w) => w.row !== undefined).map((w) => cint(w.row)),
 			);
@@ -2101,9 +2432,9 @@ export default class Grid {
 					.button({
 						label: skipped ? __("Restore") : __("Skip"),
 						// same options this grid's own footer buttons use (Add row,
-						// Edit, Duplicate rows): default subtle variant, size sm,
-						// and no red theme — skipping a row is an ordinary action,
-						// not a destructive one
+						// Edit, Duplicate rows): default subtle variant, size sm, and
+						// no red theme — skipping a row is an ordinary action, not a
+						// destructive one
 						size: "sm",
 						onclick: () => {
 							state.skipped_rows[skipped ? "delete" : "add"](row);
@@ -2112,168 +2443,96 @@ export default class Grid {
 					})
 					.appendTo($cell);
 			});
+		};
 
-			$table.find("td[data-col]").each((_, cell) => {
+		/**
+		 * Mark every cell a warning names — same has-error convention the doctype's
+		 * own editable grid rows use — and give each one a live control of its own
+		 * fieldtype, so the value can be fixed without leaving the preview. The
+		 * control stays for as long as the column maps to that same field.
+		 */
+		const sync_preview_errors = (warnings) => {
+			const by_cell = {};
+			warnings.forEach((w) => {
+				if (w.row !== undefined && w.col !== undefined) by_cell[`${w.row}:${w.col}`] = w;
+			});
+
+			const $table = preview_form.get_field("table").$wrapper;
+			render_skip_buttons($table, warnings);
+
+			// tr[data-row] scopes this to the data rows: the mapping row carries
+			// td[data-col] cells of its own, and they hold pickers, not values
+			$table.find("tr[data-row] td[data-col]").each((_, cell) => {
 				const row = cint(cell.closest("tr").dataset.row);
 				const col = cint(cell.dataset.col);
 				const key = `${row}:${col}`;
 				const warning = by_cell[key];
-				const mapped_fieldname = state.column_map[col];
+				const fieldname = state.column_map[col];
+				const existing = cell_controls[key];
+
 				// red only while the value is actually invalid — the control
-				// underneath, once built below, stays put either way
+				// underneath stays put either way
 				$(cell).toggleClass("has-error", Boolean(warning));
 
-				const existing = cell_controls[key];
 				if (existing) {
-					// still the same target field: keep the control, and just
-					// keep its warning current (a later refresh may have fixed
-					// it, or not — the focus handler below always reads the
-					// live value, so re-editing is never a one-shot thing)
-					if (existing._fieldname === mapped_fieldname) {
+					// still the same target field: keep the control and just keep its
+					// warning current, so re-editing is never a one-shot thing
+					if (existing._fieldname === fieldname) {
 						existing._warning = warning;
 						return;
 					}
-					// the column got remapped to a different field — this
-					// control is for the field that used to be here, not what's
-					// mapped now, so it's stale; drop it and fall through to
-					// (maybe) build a fresh one for the new mapping below
+					// the column got remapped — this control is for the field that
+					// used to be here, so drop it and fall through to build a fresh
+					// one for what's mapped now
+					discard_cell_control(existing);
 					delete cell_controls[key];
 					$(cell)
 						.removeClass("bulk-edit-editable-cell")
 						.empty()
 						.text(state.rows[state.row_numbers.indexOf(row)][col]);
 				}
-				// any fieldtype a warning names becomes editable in place —
-				// not just Link/Select
-				if (!warning || !warning.field) return;
 
 				const r = state.row_numbers.indexOf(row);
-				const original = state.rows[r][col];
-				const df = { ...warning.field };
+				const mapped_df =
+					fieldname && frappe.meta.get_docfield(this.df.options, fieldname);
+				const fieldtype = mapped_df?.fieldtype;
+				$(cell).removeClass("bulk-edit-pending-cell").off("click.bulk-edit-reveal");
 
-				// The whole point of this control is to hold a value the file got
-				// wrong so it can be seen and corrected — so every fieldtype's own
-				// "reject what doesn't fit" behaviour has to be turned off first,
-				// or it blanks the cell the moment the value is set:
-				if (df.fieldtype === "Select") {
-					// a <select> can't display a value with no matching <option> —
-					// add the file's own value as one, so it shows instead of blank
-					const options = (df.options || "").split("\n").map((o) => o.trim());
-					if (original && !options.includes(cstr(original).trim())) {
-						df.options = [original, ...options].join("\n");
-					}
-				} else if (df.fieldtype === "Link") {
-					// ControlLink.validate() existence-checks against the server and
-					// returns empty when there's no such record — which is exactly
-					// our case. This is the flag it checks to skip that; the value's
-					// invalidity is already reported by our own warning.
-					df.ignore_link_validation = true;
-				}
-
-				// the input fills the whole cell (CSS) rather than sitting inside
-				// it, so any click in the cell is a genuine click on the input —
-				// the only way a native <select> reliably opens its list across
-				// browsers is a real click, not a programmatic .focus()/.click()
-				$(cell).addClass("bulk-edit-editable-cell");
-				const control = frappe.ui.form.make_control({
-					df: {
-						...df,
-						change: () => {
-							state.rows[r][col] = control.get_value();
-							refresh_preview();
-						},
-					},
-					parent: $(cell).empty().get(0),
-					render_input: true,
-					only_input: true,
-				});
-				control._fieldname = mapped_fieldname;
-				// the anchor Link's own dropdown cue (added below) positions
-				// itself against. The control's own chrome (border, grey
-				// background, shadow) is cleared in grid.scss — the has-error red
-				// belongs to the cell, and a second box inside it reads as two
-				const $control_wrapper = $(control.$wrapper || control.wrapper);
-				$control_wrapper.css("position", "relative");
-
-				if (control.df.fieldtype === "Link") {
-					// an invalid value has no record to fetch a title for, which
-					// would otherwise blank the input — show it as plain text,
-					// same as every other fieldtype already does
-					control.set_link_title = async (value) =>
-						control.translate_and_set_input_value(value, value);
-					// Select gets a dropdown cue for free (ControlSelect.set_icon);
-					// Link's own autocomplete input doesn't, so it needs its own —
-					// inline position, not a stylesheet rule, since .select-icon's
-					// own CSS needs a positioned ancestor this cell's markup
-					// doesn't reliably give it
-					$(`<div class="select-icon">${frappe.utils.icon("chevrons-up-down", "sm")}</div>`)
-						.css({ position: "absolute", top: "3px", right: "12px", "pointer-events": "none" })
-						.appendTo($control_wrapper);
-					// Link's own focus handler (link.js) only opens the list when
-					// the input is empty — ours never is, it always starts on the
-					// file's value, so opening it has to be asked for explicitly,
-					// every time (not once — a value picked from it can still be
-					// wrong, and needs re-opening just as freely as the first time).
-					// The empty term matters: on_input() searches on whatever the
-					// input holds, and the whole reason we're here is that it holds
-					// something no record matches — searching on it finds nothing
-					// and the list comes up empty until the value is backspaced
-					// away. Searching on "" lists the real options instead, while
-					// the cell goes on showing what the file actually said.
-					// Awesomplete won't re-filter them out: link.js sets
-					// filter: () => true, leaving the filtering to the server.
-					control.$input?.on("focus", () => control.on_input({ target: { value: "" } }));
-
-					// Pin the open list to the input's position on screen. It sits
-					// inside a container that scrolls and clips, and freeing it by
-					// switching that container's overflow moves the whole grid (see
-					// grid.scss). Fixed takes it out of every ancestor's flow and
-					// clipping instead, so nothing around it reflows at all.
-					// It's re-pinned on each open, since the row may have moved
-					// since the last one; and closed on scroll, because a fixed
-					// element doesn't travel with the container it came from.
-					const $list = () => control.$input.closest(".awesomplete").children("ul");
-					const close_on_scroll = () => control.awesomplete?.close();
-					control.$input?.on("awesomplete-open", () => {
-						const rect = control.$input[0].getBoundingClientRect();
-						$list().css({
-							position: "fixed",
-							top: `${rect.bottom}px`,
-							left: `${rect.left}px`,
-							width: `${rect.width}px`,
-							"min-width": 0,
-							// above the dialog and its sticky footer, which a fixed
-							// element is no longer stacked against by nesting alone
-							"z-index": 1050,
+				// A picker or a checkbox cannot show a value it cannot read — it draws
+				// its own state over the input instead, which is where "NaN:NaN:NaN"
+				// came from. So the faulty value stays on show as the cell's own text,
+				// in the error colour, and the control is built by the click that goes
+				// to resolve it: seeded clean, so the picker opens on a real time.
+				if (warning?.field && BULK_EDIT_DEFERRED_FIELDTYPES.includes(fieldtype)) {
+					$(cell)
+						.addClass("bulk-edit-pending-cell")
+						.one("click.bulk-edit-reveal", () => {
+							const control = make_cell_control(cell, r, col, warning, fieldname);
+							cell_controls[key] = control;
+							// the click that revealed it landed on the cell, not on the control
+							control.$input?.trigger("focus");
 						});
-						// capture: scroll doesn't bubble, and the container that
-						// scrolls here is an ancestor, not the window
-						document.addEventListener("scroll", close_on_scroll, true);
-					});
-					control.$input?.on("awesomplete-close", () =>
-						document.removeEventListener("scroll", close_on_scroll, true),
-					);
+					return;
 				}
-				control.set_value(original);
 
-				// what's wrong with this value shows in the one shared message
-				// area under the "Map each column..." line, not inside the
-				// cell — only_input mode (needed for the borderless in-table
-				// look) suppresses set_description() outright anyway
-				// (base_input.js). _warning is read fresh, not the value
-				// captured when this closure was created, so a later refresh
-				// (fixed, or remapped to a different problem) is what shows
-				// on the next click, not what was true when first built
-				control._warning = warning;
-				control.$input?.on("focus", () => {
-					// title as well as text: the gap is one line and clips, so a
-					// long message stays readable on hover
-					const message = control._warning?.message || "";
-					$message.text(message).attr("title", message);
-				});
+				// a Check whose value the box can represent reads as the box itself:
+				// "Yes" and "1" both mean a tick, which is what will be imported
+				if (!warning?.field && fieldtype !== "Check") return;
 
-				cell_controls[key] = control;
+				cell_controls[key] = make_cell_control(
+					cell,
+					r,
+					col,
+					warning || { field: mapped_df },
+					fieldname,
+				);
 			});
+
+			// the edit that prompted this recompute may well have fixed the very
+			// cell being edited, in which case the sentence saying what was wrong
+			// with it has to go too. Focus doesn't move when a value is picked, so
+			// the handler above won't fire again to clear it.
+			show_cell_message(Object.values(cell_controls).find((c) => c.$input?.is(":focus")));
 		};
 
 		/**
@@ -2292,26 +2551,15 @@ export default class Grid {
 			state.column_map = map;
 
 			// a mapped column carries its values into the table, an unmapped one is
-			// along for the ride; the cells say so without a legend
+			// along for the ride; the cells say so without a legend. The header
+			// text itself is the file's own and never changes with the mapping —
+			// which field a column lands in is the picker's job to show, one row
+			// down, and a column stays recognisable by what the file called it.
 			preview_form
 				.get_field("table")
 				.$wrapper.find("[data-col]")
 				.each((_, cell) => {
 					$(cell).attr("data-mapped", map[cint(cell.dataset.col)] ? 1 : 0);
-				});
-
-			// the header names the target field once the row-1 picker has one —
-			// plain text, so the picker (which shows the same value) is the only
-			// thing on this table that's actually clickable to change it
-			const field_labels = Object.fromEntries(
-				this.get_bulk_edit_docfields().map((df) => [df.fieldname, df.label || df.fieldname]),
-			);
-			preview_form
-				.get_field("table")
-				.$wrapper.find("th[data-col]")
-				.each((_, th) => {
-					const i = cint(th.dataset.col);
-					$(th).text(map[i] ? __(field_labels[map[i]]) : state.headers[i] || "");
 				});
 
 			const warnings = this.get_bulk_edit_warnings(
@@ -2334,14 +2582,14 @@ export default class Grid {
 			set_footer();
 		};
 
-		const on_file = (data) => {
+		const on_file = async (data) => {
 			if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > BULK_EDIT_MAX_ROWS) {
 				frappe.throw(
 					__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS]),
 				);
 			}
 
-			state.headers = data[BULK_EDIT_FIELDNAME_ROW] || [];
+			state.headers = data[0] || [];
 			state.rows = [];
 			// kept alongside rows so a warning can name the line in the file
 			state.row_numbers = [];
@@ -2360,7 +2608,7 @@ export default class Grid {
 				return;
 			}
 
-			state.column_map = this.get_bulk_edit_column_map(state.headers);
+			state.column_map = await this.get_bulk_edit_column_map(state.headers);
 			build_preview();
 			tabs.set_disabled(TAB_PREVIEW, false);
 			tabs.set_active(TAB_PREVIEW);
@@ -2432,12 +2680,10 @@ export default class Grid {
 				// longer stands in the way of the rest of the file — same rule the
 				// Data Import doctype applies (value_mapping.py: "Row warnings for
 				// user-skipped rows are ignored")
-				dialog
-					.get_primary_btn()
-					.prop(
-						"disabled",
-						state.warnings.some((w) => w.blocking && !state.skipped_rows.has(cint(w.row))),
-					);
+				dialog.get_primary_btn().prop(
+					"disabled",
+					state.warnings.some((w) => w.blocking && !state.skipped_rows.has(cint(w.row))),
+				);
 				return;
 			}
 
@@ -2450,7 +2696,9 @@ export default class Grid {
 				}
 				tabs.set_active(TAB_PREVIEW);
 			});
-			dialog.get_primary_btn().prop("disabled", !uploaded_file_count() && tab_defs[TAB_PREVIEW].disabled);
+			dialog
+				.get_primary_btn()
+				.prop("disabled", !uploaded_file_count() && tab_defs[TAB_PREVIEW].disabled);
 		};
 
 		dialog.show();
@@ -2478,42 +2726,42 @@ export default class Grid {
 	}
 
 	get_bulk_edit_data(fieldnames, export_records) {
-		const title = this.get_bulk_edit_title();
-		const data = [
-			[__("Bulk Edit {0}", [title])],
-			[],
-			[],
-			[],
-			[__("The file format is case sensitive")],
-			[__("Do not edit headers which are preset in the template")],
-			["------"],
-		];
 		let docfields = this.get_bulk_edit_docfields();
 		if (fieldnames && fieldnames.length) {
 			docfields = docfields.filter((df) => fieldnames.includes(df.fieldname));
 		}
 
-		docfields.forEach((df) => {
-			data[1].push(df.label);
-			data[BULK_EDIT_FIELDNAME_ROW].push(df.fieldname);
-			let description = (df.description || "") + " ";
-			if (df.fieldtype === "Date") description += frappe.boot.sysdefaults.date_format;
-			data[3].push(description);
-		});
+		// One header row of "Label (fieldname)" — a form get_bulk_edit_column_map
+		// resolves like any other, since it is one of the three the Data Import
+		// doctype's own matcher registers for every field. That doctype's template
+		// prints the fieldname only when two fields share a label (exporter.py
+		// add_header); here it is always printed, because a label alone can be
+		// read as the wrong column while filling the sheet, where there is no
+		// picker to say which field it feeds — "Item" and "Item Name" on Sales
+		// Invoice Item being the case that costs an import.
+		// The ID column is the exception: the matcher registers "ID" and "name" for
+		// it but never "ID (name)" (importer.py builds it from name_df, outside the
+		// loop that adds the parenthesised form), and a header it cannot resolve is
+		// a column that silently stops matching rows on Update.
+		const header = docfields.map((df) =>
+			df.fieldname === BULK_EDIT_ID_FIELDNAME
+				? __("ID")
+				: `${__(df.label || df.fieldname)} (${df.fieldname})`,
+		);
+		const data = [header];
 
 		let grid_rows = this.frm.doc[this.df.fieldname] || [];
 		if (export_records === BULK_EDIT_BLANK_TEMPLATE) grid_rows = [];
 		else if (export_records === BULK_EDIT_5_RECORDS) grid_rows = grid_rows.slice(0, 5);
 
 		grid_rows.forEach((d) => {
-			const row = data[BULK_EDIT_FIELDNAME_ROW].map((fieldname, i) => {
-				let value = d[fieldname];
-				if (docfields[i].fieldtype === "Date" && value) {
-					value = frappe.datetime.str_to_user(value);
-				}
-				return value || "";
-			});
-			data.push(row);
+			data.push(
+				docfields.map((df) => {
+					const value = d[df.fieldname];
+					if (!value) return "";
+					return df.fieldtype === "Date" ? frappe.datetime.str_to_user(value) : value;
+				}),
+			);
 		});
 
 		return data;
@@ -2553,16 +2801,18 @@ export default class Grid {
 	}
 
 	/**
-	 * The header names the target field once a column is mapped (plain text —
-	 * the picker itself lives one row down); the first body row is that
-	 * picker, one per column, showing what the file itself called it until
-	 * it's mapped to something else.
+	 * The header keeps the file's own column name, so a column stays findable by
+	 * what the file calls it however it's mapped; the first body row is the
+	 * picker naming the field it lands in. Two different things, one above the
+	 * other, neither standing in for the other.
 	 */
 	get_bulk_edit_preview_html(headers, rows, row_numbers) {
 		const escape = frappe.utils.escape_html;
 		const shown = rows.slice(0, BULK_EDIT_PREVIEW_ROWS);
 
-		const head = headers.map((header, i) => `<th data-col="${i}" data-mapped="0"></th>`);
+		const head = headers.map(
+			(header, i) => `<th data-col="${i}" data-mapped="0">${escape(cstr(header))}</th>`,
+		);
 		// trailing column: the per-row Skip button, mounted by sync_preview_errors
 		// on the rows that need one. Header and mapping row carry an empty cell
 		// each so the columns stay aligned.
@@ -2719,7 +2969,10 @@ export default class Grid {
 					const formats =
 						df.fieldtype === "Date"
 							? [user_fmt, frappe.defaultDateFormat]
-							: [`${user_fmt} ${frappe.datetime.get_user_time_fmt()}`, frappe.defaultDatetimeFormat];
+							: [
+									`${user_fmt} ${frappe.datetime.get_user_time_fmt()}`,
+									frappe.defaultDatetimeFormat,
+								];
 					if (!moment(value, formats, true).isValid()) {
 						warnings.push({
 							blocking: true,
@@ -2737,14 +2990,72 @@ export default class Grid {
 					}
 				}
 
-				// exact port of importer.py's DURATION_PATTERN
-				if (df.fieldtype === "Duration" && value && !BULK_EDIT_DURATION_PATTERN.test(value)) {
+				// exact port of importer.py's DURATION_PATTERN, plus the plain
+				// seconds the template itself exports
+				if (
+					df.fieldtype === "Duration" &&
+					value &&
+					!BULK_EDIT_DURATION_PATTERN.test(value) &&
+					!BULK_EDIT_SECONDS_PATTERN.test(value)
+				) {
 					warnings.push({
 						blocking: true,
 						row: row_number,
 						col: i,
 						field: df,
 						message: __('"{0}" is not valid. Use duration format: d h m s', [value]),
+					});
+				}
+
+				if (
+					df.fieldtype === "Time" &&
+					value &&
+					!moment(value, BULK_EDIT_TIME_FORMATS(), true).isValid()
+				) {
+					warnings.push({
+						blocking: true,
+						row: row_number,
+						col: i,
+						field: df,
+						message: __('"{0}" is not a valid time. Use {1}', [
+							value,
+							frappe.datetime.get_user_time_fmt(),
+						]),
+					});
+				}
+
+				// flt() and cint() turn anything unparseable into 0 without a word —
+				// the same blind spot importer.py Row.parse_value has — so "abc"
+				// would import as 0 and read afterwards as a real figure
+				if (
+					BULK_EDIT_NUMERIC_FIELDTYPES.includes(df.fieldtype) &&
+					value &&
+					!bulk_edit_is_number(value)
+				) {
+					warnings.push({
+						blocking: true,
+						row: row_number,
+						col: i,
+						field: df,
+						message: __('"{0}" is not a valid number.', [value]),
+					});
+				}
+
+				// a Check holds 0 or 1, and cint() reads every other word as 0 — so
+				// an unrecognised one would quietly import as unticked
+				if (
+					df.fieldtype === "Check" &&
+					value &&
+					!["0", "1", ...BULK_EDIT_CHECK_TRUE, ...BULK_EDIT_CHECK_FALSE].includes(
+						value.toLowerCase(),
+					)
+				) {
+					warnings.push({
+						blocking: true,
+						row: row_number,
+						col: i,
+						field: df,
+						message: __('"{0}" is not valid. Use {1}', [value, "0, 1, Yes, No"]),
 					});
 				}
 
@@ -2786,7 +3097,10 @@ export default class Grid {
 			doctype: this.frm.doctype,
 			values_by_doctype: JSON.stringify(
 				Object.fromEntries(
-					Object.entries(values_by_doctype).map(([doctype, values]) => [doctype, [...values]]),
+					Object.entries(values_by_doctype).map(([doctype, values]) => [
+						doctype,
+						[...values],
+					]),
 				),
 			),
 		});
@@ -2811,19 +3125,17 @@ export default class Grid {
 		return warnings;
 	}
 
-	/** Column index to fieldname, for every header that names a field. */
+	/**
+	 * Column index to fieldname, for every header that names a field. Matched
+	 * server-side by the Data Import doctype's own header map, so a label, a
+	 * fieldname or "Label (fieldname)" all resolve — see bulk_edit.py.
+	 */
 	get_bulk_edit_column_map(headers) {
-		const map = {};
-		headers.forEach((header, i) => {
-			if (!header) return;
-			if (
-				header === BULK_EDIT_ID_FIELDNAME ||
-				frappe.meta.get_docfield(this.df.options, header)
-			) {
-				map[i] = header;
-			}
+		return frappe.xcall("frappe.desk.form.bulk_edit.get_bulk_edit_column_map", {
+			doctype: this.frm.doctype,
+			fieldname: this.df.fieldname,
+			headers: JSON.stringify(headers),
 		});
-		return map;
 	}
 
 	get_bulk_edit_row_by_id(id) {
@@ -2869,7 +3181,7 @@ export default class Grid {
 
 		this.frm.refresh_field(this.df.fieldname);
 		frappe.show_alert({
-			message: __("{0} added, {1} updated, {2} skipped", [
+			message: __("{0} added, {1} updated, {2} skipped — save to apply", [
 				counts.insert,
 				counts.update,
 				counts.skip,
@@ -2879,11 +3191,9 @@ export default class Grid {
 
 		// add_child() and assigning to target[fieldname] both write straight to
 		// the local doc without going through frappe.model.set_value, so the form
-		// is never marked changed — and an unchanged form saves as "No changes in
-		// document". Without both of these the imported rows only ever exist in
-		// this browser and are gone on reload.
+		// is never marked changed. Without this the rows would exist only in this
+		// browser and be lost on reload with no unsaved-changes warning.
 		this.frm.dirty();
-		return this.frm.save();
 	}
 
 	add_custom_button(label, click, position = "bottom") {
