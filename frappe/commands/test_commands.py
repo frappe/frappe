@@ -763,6 +763,8 @@ class TestBackups(BaseTestCommands):
 			db_port=frappe.conf.db_port,
 			db_type=frappe.conf.db_type,
 		)
+		# without a destination the dump would fail before it ever ran
+		odb.set_backup_file_name()
 		with self.assertRaises(Exception):
 			odb.take_dump()
 
