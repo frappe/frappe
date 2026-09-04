@@ -6,7 +6,11 @@ import requests
 import frappe
 from frappe.email.receive import InboundMail
 from frappe.tests import IntegrationTestCase
+<<<<<<< HEAD
 from frappe.tests.test_pdf import pdf_with_document_level_js
+=======
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+>>>>>>> 7252658 (test: annotate tests with service requirements)
 from frappe.utils import get_url
 
 if TYPE_CHECKING:
@@ -65,6 +69,7 @@ class TestEmailAttachments(IntegrationTestCase):
 		file.save()
 		self.assertEqual(file.file_name, "tést%42.txt")
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_file_with_percent_in_filename(self):
 		def make_and_check_file(index: int, literal_file_name: str, disk_file_name: str):
 			content = "abcdefghijklmnop_attachment"

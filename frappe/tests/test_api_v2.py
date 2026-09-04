@@ -11,10 +11,16 @@ from frappe.api.v2 import run_doc_method
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
+<<<<<<< HEAD
 from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
 from frappe.utils import get_test_client, set_request
+=======
+from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+>>>>>>> 7252658 (test: annotate tests with service requirements)
 
 authorization_token = None
 
@@ -47,6 +53,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource("User"))

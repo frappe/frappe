@@ -8,9 +8,10 @@ import frappe
 from frappe.core.doctype.prepared_report.prepared_report import delete_prepared_reports
 from frappe.desk.query_report import generate_report_result, get_prepared_report_result, get_report_doc
 from frappe.tests import IntegrationTestCase, timeout
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
 
+@requires_test_service(TestService.BACKGROUND_WORKER)
 class TestPreparedReport(IntegrationTestCase):
 	@classmethod
 	def tearDownClass(cls):

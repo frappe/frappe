@@ -6,6 +6,7 @@ import frappe
 from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_site_url
 
 
@@ -142,6 +143,7 @@ class TestClient(IntegrationTestCase):
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.local.form_dict.cmd)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_array_values_in_request_args(self):
 		import requests
 

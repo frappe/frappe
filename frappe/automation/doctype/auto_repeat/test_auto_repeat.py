@@ -13,7 +13,11 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.tests import IntegrationTestCase
+<<<<<<< HEAD
 from frappe.tests.test_model_utils import set_user
+=======
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+>>>>>>> 7252658 (test: annotate tests with service requirements)
 from frappe.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
@@ -187,6 +191,7 @@ class TestAutoRepeat(IntegrationTestCase):
 		docnames = frappe.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
 		self.assertEqual(len(docnames), months)
 
+<<<<<<< HEAD
 	def test_auto_repeat_period(self):
 		cases = [
 			# full calendar months
@@ -237,6 +242,9 @@ class TestAutoRepeat(IntegrationTestCase):
 		self.assertEqual(getdate(new_todo.from_date), getdate(today()))
 		self.assertEqual(getdate(new_todo.to_date), getdate(today()))
 
+=======
+	@requires_test_service(TestService.WEB_SERVER)
+>>>>>>> 7252658 (test: annotate tests with service requirements)
 	def test_email_notification(self):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="Test recurring notification attachment", assigned_by="Administrator"
