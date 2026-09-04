@@ -95,5 +95,8 @@ export async function fetchBoot(): Promise<Boot> {
 		throw new BootUnauthorized("Not permitted");
 	if (!res.ok) throw new Error(`Boot failed with ${res.status}`);
 
-	return (await res.json()).message;
+	const boot: Boot = (await res.json()).message;
+	// frappe-ui's request layer reads the token from this global; the shell has no Jinja to set it.
+	window.csrf_token = boot.csrf_token;
+	return boot;
 }
