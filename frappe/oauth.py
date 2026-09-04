@@ -1,6 +1,7 @@
 import base64
 import datetime
 import hashlib
+import hmac
 import re
 from urllib.parse import urljoin, urlparse
 
@@ -95,8 +96,9 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def authenticate_client(self, request: Request, *args, **kwargs) -> bool | None:
 		"""
-		Loads the client based on request parameters and sets in oauth request.
-		Returns True on success, None on error.
+		Loads the client based on request parameters, verifies its client_secret
+		for confidential clients, and sets it in the oauth request.
+		Returns True on success, False/None on error.
 		"""
 		# Get ClientID in URL
 		if request.client_id:
@@ -113,13 +115,36 @@ class OAuthWebRequestValidator(RequestValidator):
 
 			client_name = frappe.db.get_value("OAuth Bearer Token", filters=token_filters, fieldname="client")
 
-		oc: OAuthClient = frappe.get_cached_doc("OAuth Client", client_name)
+		try:
+			oc: OAuthClient = frappe.get_cached_doc("OAuth Client", client_name)
+		except frappe.DoesNotExistError:
+			return False
+
+		if not oc.is_public_client() and not self.verify_client_secret(oc, request):
+			return False
+
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception as e:
 			return generate_json_error_response(e)
 
 		return True
+
+	def verify_client_secret(self, oc: OAuthClient, request: Request) -> bool:
+		"""Verify the client_secret of a confidential client.
+
+		Only client_secret_post (a client_secret body/query param) is
+		supported: an Authorization: Basic header never reaches this code,
+		since frappe.auth.validate_auth_via_api_keys() intercepts any Basic
+		auth header at the request level and treats it as a Frappe User API
+		key/secret, before this whitelisted method ever runs.
+		"""
+		client_secret = request.client_secret
+
+		if not client_secret or not oc.client_secret:
+			return False
+
+		return hmac.compare_digest(client_secret, oc.client_secret)
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
 		try:

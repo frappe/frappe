@@ -214,6 +214,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 				"scope": self.scope,
 			},
 		)
@@ -265,6 +266,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 				"scope": self.scope,
 				"code_verifier": "420",
 			},
@@ -312,6 +314,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 			},
 		)
 
@@ -322,7 +325,11 @@ class TestOAuth20(FrappeRequestTestCase):
 		revoke_token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.revoke_token",
 			headers=self.form_header,
-			data={"token": bearer_token.get("access_token")},
+			data={
+				"token": bearer_token.get("access_token"),
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+			},
 		)
 
 		self.assertTrue(revoke_token_response.status_code == 200)
@@ -427,6 +434,7 @@ class TestOAuth20(FrappeRequestTestCase):
 					"code": auth_code,
 					"redirect_uri": self.redirect_uri,
 					"client_id": self.client_id,
+					"client_secret": self.client_secret,
 					"scope": self.scope,
 				}
 			),
