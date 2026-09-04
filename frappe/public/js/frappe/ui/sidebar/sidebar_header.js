@@ -303,9 +303,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			frappe.render_template("sidebar_header", {
 				workspace_title: this.title,
 				header_icon: this.header_icon,
-				// Who you are, under what you are inside. The rail's header carries the same line,
-				// and it is the one fact neither header's title already tells you.
-				subtitle: frappe.session.user_fullname,
+				// Which site you are on, under what you are inside. `boot.sitename` is the site's
+				// own name, which is its domain on any real deployment; the hostname stands in
+				// where boot carries none. Who you are is the user row's to say, at the foot of
+				// the rail, and it says it there in full.
+				subtitle: frappe.boot.sitename || window.location.hostname,
 			})
 		).prependTo(this.sidebar_wrapper);
 		this.wrapper = $(".sidebar-header");

@@ -29,7 +29,9 @@ frappe.ui.Dock = class Dock {
 						<div class="header-logo"></div>
 						<div class="title-container">
 							<div class="header-title"></div>
-							<div class="header-subtitle">${frappe.utils.escape_html(frappe.session.user_fullname)}</div>
+							<div class="header-subtitle">${frappe.utils.escape_html(
+								frappe.boot.sitename || window.location.hostname
+							)}</div>
 						</div>
 					</a>
 					<button class="btn-reset drop-icon" aria-label="${__("Sidebar Menu")}">
