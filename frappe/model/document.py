@@ -17,6 +17,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.automation_engine.dispatch import run_automations
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.database.utils import commit_after_response
@@ -1703,6 +1704,7 @@ class Document(BaseDocument):
 		self.run_notifications(method)
 		run_webhooks(self, method)
 		run_server_script_for_doc_event(self, method)
+		run_automations(self, method)
 
 		return out
 
