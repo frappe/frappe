@@ -220,6 +220,12 @@ export default class BulkEdit {
 		this.dialog.$body.append(this.stepper.$el, $card);
 		$card.append(this.tabs.$el, this.dialog.footer);
 
+		// the cell message goes in the footer's own left slot, opposite the actions,
+		// so the preview keeps that line of height for the table instead
+		this.$message = $(
+			'<div class="bulk-edit-footer-message text-muted small"></div>',
+		).appendTo(this.dialog.custom_actions);
+
 		this.tabs.$el.css({
 			flex: "1 1 auto",
 			"min-height": 0,
@@ -512,13 +518,14 @@ export default class BulkEdit {
 		this.refresh_preview();
 	}
 
+	/**
+	 * What is wrong with the cell being edited, in the footer's left slot. Reads
+	 * _warning live, so it says what is true now rather than when the control was
+	 * built; title as well as text, since one clipped line cannot hold a long one.
+	 */
 	show_cell_message(control) {
 		const message = control?._warning?.message || "";
-		this.preview_form
-			.get_field("table")
-			.$wrapper.find(".bulk-edit-preview-message")
-			.text(message)
-			.attr("title", message);
+		this.$message.text(message).attr("title", message);
 	}
 
 	pin_dropdown(control) {
@@ -1044,7 +1051,6 @@ export default class BulkEdit {
 						: __("Showing all {0} rows", [rows.length])
 				}</span>
 			</div>
-			<div class="bulk-edit-preview-message text-muted small"></div>
 			<div class="bulk-edit-preview-table">
 				<table class="table table-bordered">
 					<thead>
