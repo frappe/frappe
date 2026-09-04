@@ -456,6 +456,16 @@ frappe.ui.Sidebar = class Sidebar {
 		let allowed = this.page_allows_sidebar();
 		this.wrapper.toggle(allowed);
 		this.refresh_dock();
+		// This is also the first moment the panel's start state can be decided honestly: it is
+		// read off the rail, and a cold load into a document resolves its module and builds its
+		// page after the sidebar was constructed (see load_sidebar_state). Settle it once, so a
+		// panel the user opened by hand is not shut again by the next page change.
+		//
+		// Only once the sidebar has been built for a module, since a half-built one has no rail
+		// to read and no header for expand_sidebar to lay out.
+		if (!this.sidebar_state_settled && this.current_module && this.sidebar_header) {
+			this.set_sidebar_state();
+		}
 	}
 
 	// Explicit override for callers that want the body sidebar hidden or shown regardless of the
@@ -710,7 +720,14 @@ frappe.ui.Sidebar = class Sidebar {
 	//
 	// Between those two there is no per-user state left to keep, which is why `sidebar-expanded` is
 	// no longer read or written.
+	//
+	// The rail is only knowable once the module has resolved and a page is on screen to allow it,
+	// and on a cold load into a document neither is true yet: `panel_can_close` answers "no rail",
+	// which opens the panel over the form that is about to render. So the answer counts as settled
+	// only when both were there to ask, and apply_page_visibility takes another pass when they
+	// were not.
 	load_sidebar_state() {
+		this.sidebar_state_settled = !!this.current_page() && !!this.current_module;
 		this.sidebar_expanded = !this.panel_can_close();
 
 		if (frappe.is_mobile()) {
