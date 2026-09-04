@@ -268,6 +268,24 @@ def if_step(condition):
 	return {"step_type": "If", "step_condition": condition}
 
 
+def run_script(params):
+	return {"action_type": "RunScript", "params": json.dumps(params)}
+
+
+def make_server_script(script, script_type="API", **kwargs):
+	name = f"automation_test_{frappe.generate_hash(length=8)}"
+	return frappe.get_doc(
+		{
+			"doctype": "Server Script",
+			"name": name,
+			"script_type": script_type,
+			"api_method": name,
+			"script": script,
+			**kwargs,
+		}
+	).insert(ignore_permissions=True)
+
+
 class TestBranching(AutomationRunnerTestCase):
 	def branching_rule(self):
 		"""High priority takes the If arm, anything else the Else arm."""
@@ -496,6 +514,62 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 				frappe.ValidationError,
 				make_automation,
 				[{"action_type": "RunScript", "params": json.dumps({"script": "pass"})}],
+			)
+
+	def test_a_linked_server_script_runs_in_place_of_a_written_one(self):
+		with enable_safe_exec():
+			todo = make_todo(description="linked")
+			script = make_server_script("doc.priority = 'High'\ndoc.save()\nresult['detail'] = 'linked'")
+			auto = make_automation([run_script({"server_script": script.name})])
+			execute_automation(self.queue_row(auto, todo.name))
+
+		self.assertEqual(self.run_status(auto), "Success")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
+		self.assertEqual(self.run_result(auto)["steps"][0]["detail"], "linked")
+
+	def test_a_linked_script_is_read_when_the_step_runs_not_when_it_is_saved(self):
+		with enable_safe_exec():
+			todo = make_todo()
+			script = make_server_script("result['detail'] = 'first'")
+			auto = make_automation([run_script({"server_script": script.name})])
+			script.script = "result['detail'] = 'second'"
+			script.save()
+			execute_automation(self.queue_row(auto, todo.name))
+
+		self.assertEqual(self.run_result(auto)["steps"][0]["detail"], "second")
+
+	def test_a_disabled_linked_script_fails_the_run(self):
+		with enable_safe_exec():
+			todo = make_todo()
+			script = make_server_script("result['detail'] = 'ok'")
+			auto = make_automation([run_script({"server_script": script.name})])
+			script.db_set("disabled", 1)
+			execute_automation(self.queue_row(auto, todo.name))
+
+		self.assertEqual(self.run_status(auto), "Failed")
+		self.assertIn("disabled", self.run_result(auto)["steps"][0]["message"])
+
+	def test_a_script_step_takes_a_link_or_a_script_but_not_both(self):
+		with enable_safe_exec():
+			script = make_server_script("pass")
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"not both",
+				make_automation,
+				[run_script({"server_script": script.name, "script": "pass"})],
+			)
+			self.assertRaisesRegex(
+				frappe.ValidationError, "Pick a Server Script", make_automation, [run_script({})]
+			)
+
+	def test_only_an_api_server_script_can_be_linked(self):
+		with enable_safe_exec():
+			script = make_server_script("pass", script_type="Scheduler Event", event_frequency="Daily")
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"API Server Script",
+				make_automation,
+				[run_script({"server_script": script.name})],
 			)
 
 	def test_script_step_runs_against_the_target_document(self):
