@@ -4,8 +4,9 @@ frappe.ui.Notifications = class Notifications {
 	constructor(opts) {
 		this.tabs = {};
 		this.notification_settings = frappe.boot.notification_settings;
-		// The desk bell opens a popover; the sidebar bell slides out a full-height
-		// drawer, which is a different thing and keeps its own show/hide.
+		// Two hosts. The sidebar bell opens a frappe.ui.SidebarPanel; the desk bell opens
+		// a popover, which brings its own surface and its own dismissal. The heading and
+		// the tab bodies below are the same either way.
 		this.as_popover = opts?.popover || false;
 
 		this.wrapper = opts?.wrapper || $(".body-sidebar");
@@ -14,41 +15,66 @@ frappe.ui.Notifications = class Notifications {
 
 	make() {
 		this.wrapper.find(".sidebar-notification").removeClass("hidden");
-		this.dropdown = this.as_popover
-			? this.wrapper
-			: this.wrapper.find(".dropdown-notifications");
-		this.dropdown_list = this.as_popover
-			? $(`<div class="notifications-list"></div>`)
-			: this.dropdown.find(".notifications-list");
-
-		this.render_shell();
-
 		this.user = frappe.session.user;
+
+		if (this.as_popover) {
+			this.make_popover_host();
+		} else {
+			this.make_panel_host();
+		}
 
 		this.setup_header_actions();
 		this.setup_tabs();
-
-		if (this.as_popover) {
-			this.setup_popover();
-		} else {
-			this.setup_dropdown_events();
-		}
-
-		// closing on navigation is wanted either way
-		$(document).on("page-change", () => this.close_panel());
 	}
 
-	setup_popover() {
+	/**
+	 * Sidebar host. The panel supplies the surface and the heading, and dismissal is
+	 * frappe.ui.sidebar_panels' job, so there is nothing to wire up here beyond saying
+	 * what goes in the body.
+	 */
+	make_panel_host() {
+		this.panel = new frappe.ui.SidebarPanel({
+			name: "notifications",
+			title: __("Notifications"),
+			trigger_selector: ".sidebar-notification",
+			on_open: () => this.on_open(),
+		});
+		this.$host = this.panel.$panel;
+		this.header_items = this.panel.$items;
+		this.header_actions = this.panel.$actions;
+		this.render_body().appendTo(this.panel.$body);
+	}
+
+	/**
+	 * Desk host. There is only a bell here, so the heading and the body are built into a
+	 * content element and handed to the popover, which supplies the surface itself.
+	 */
+	make_popover_host() {
+		const header = frappe.ui.panel_header({
+			title: __("Notifications"),
+			on_close: () => this.close_panel(),
+		});
+		this.header_items = header.$items;
+		this.header_actions = header.$actions;
+
+		this.$list = $(`<div class="notifications-list"></div>`)
+			.append(header.$header)
+			.append(this.render_body());
+		this.$host = this.wrapper;
+
 		this.popover = new frappe.ui.Popover({
 			trigger: this.wrapper.find(".desktop-notification-icon"),
 			// the same element every time, so the fetched list and the selected tab
 			// survive a close/open round trip
-			content: () => this.dropdown_list[0],
+			content: () => this.$list[0],
 			css_class: "notifications-popover",
 			side: "bottom",
 			align: "end",
 			on_open: () => this.on_open(),
 		});
+
+		// The panel host gets this from the registry; the popover has no notion of routing.
+		$(document).on("page-change", () => this.close_panel());
 	}
 
 	/** Fanned out to the views so neither of them has to know how it was opened. */
@@ -59,37 +85,22 @@ frappe.ui.Notifications = class Notifications {
 	close_panel() {
 		if (this.as_popover) {
 			this.popover?.close();
-		} else if (this.dropdown?.length) {
-			this.dropdown.addClass("hidden");
+		} else {
+			this.panel?.hide();
 		}
 	}
 
-	/**
-	 * The panel's insides are owned here rather than copied into each host
-	 * template. The sidebar drawer supplies an empty `.notifications-list` for
-	 * this to fill; the desk hosts supply only a bell, and the list is built
-	 * above and handed to the popover as its content.
-	 */
-	render_shell() {
-		this.dropdown_list.html(`
-			<div class="notification-list-header">
-				<div class="notification-header-top">
-					<div class="notification-panel-title">${__("Notifications")}</div>
-					<div class="header-actions"></div>
-				</div>
-				<div class="header-items"></div>
-			</div>
+	/** The tab bodies. Everything around them belongs to whichever host is in use. */
+	render_body() {
+		this.body = $(`
 			<div class="notification-list-body">
 				<div class="panel-notifications"></div>
 				<div class="panel-events"></div>
 			</div>
 		`);
-
-		this.header_items = this.dropdown_list.find(".header-items");
-		this.header_actions = this.dropdown_list.find(".header-actions");
-		this.body = this.dropdown_list.find(".notification-list-body");
-		this.panel_events = this.dropdown_list.find(".panel-events");
-		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
+		this.panel_events = this.body.find(".panel-events");
+		this.panel_notifications = this.body.find(".panel-notifications");
+		return this.body;
 	}
 
 	setup_header_actions() {
@@ -131,13 +142,6 @@ frappe.ui.Notifications = class Notifications {
 			title: __("Mark all as read"),
 			on_click: (e) => this.mark_all_as_read(e),
 		});
-
-		add_action({
-			css_class: "close-notification-dialogue",
-			icon: "x",
-			title: __("Close"),
-			on_click: () => this.close_panel(),
-		});
 	}
 
 	setup_tabs() {
@@ -178,36 +182,15 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	make_tab_view(item) {
-		let tabView = new item.view(item.el, this.dropdown, this.notification_settings);
+		let tabView = new item.view(item.el, this.$host, this.notification_settings);
 		this.tabs[item.id] = tabView;
 	}
 
 	mark_all_as_read(e) {
 		e.stopImmediatePropagation();
-		this.dropdown_list.find(".unread").removeClass("unread");
+		this.body.find(".unread").removeClass("unread");
 		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
 		this.tabs.notifications?.update_count_badge(0);
-	}
-
-	// The drawer is shown by toggling `.hidden` on its container, so it has to do its
-	// own outside-click dismissal. (The popover host needs none of this -- Escape,
-	// outside-click, focus-out and repositioning all come from the component.)
-	setup_dropdown_events() {
-		const dropdown = this.dropdown;
-
-		// not a real Bootstrap dropdown -- sidebar.js and dock.js trigger
-		// this event by hand when they un-hide the drawer, and it is the open signal
-		this.dropdown.on("show.bs.dropdown", () => this.on_open());
-
-		$(document).on("click", function (e) {
-			// the bell may live in the sidebar or the dock; match either
-			const isInsideNotificationBtn =
-				$(e.target).closest(".sidebar-notification").length > 0;
-			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
-			if (!isInsideNotificationBtn && !isInsideDropdown) {
-				dropdown.addClass("hidden");
-			}
-		});
 	}
 };
 

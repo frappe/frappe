@@ -774,16 +774,7 @@ frappe.ui.Sidebar = class Sidebar {
 			type: "Button",
 			class: "sidebar-notification hidden",
 			suffix: "<span class='notification-count hidden' aria-live='polite'></span>",
-			onClick: () => {
-				const $dropdown = this.wrapper.find(".dropdown-notifications");
-				$dropdown.toggleClass("hidden");
-				if (!$dropdown.hasClass("hidden")) {
-					$dropdown.trigger("show.bs.dropdown");
-				}
-				if (frappe.is_mobile()) {
-					this.wrapper.removeClass("expanded");
-				}
-			},
+			onClick: () => frappe.ui.sidebar_panels.toggle("notifications"),
 		});
 		this.$standard_items_band = this.wrapper.find(".standard-items-band");
 		this.standard_items.forEach((w) => {
