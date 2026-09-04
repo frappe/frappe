@@ -3,6 +3,10 @@
 
 import frappe
 from frappe import _
+<<<<<<< HEAD
+=======
+from frappe.query_builder import functions
+>>>>>>> 17826e9002 (refactor: Use get_query instead of raw query (#41366))
 
 
 @frappe.whitelist()
@@ -44,9 +48,11 @@ def get_children(doctype: str, parent: str = "", **filters):
 
 def _get_children(doctype, parent="", ignore_permissions=False):
 	meta = frappe.get_meta(doctype)
+	table = frappe.qb.DocType(doctype)
 	parent_field = meta.get("nsm_parent_field") or "parent_" + frappe.scrub(doctype)
 	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
 
+<<<<<<< HEAD
 	return frappe.get_list(
 		doctype,
 		fields=[
@@ -58,6 +64,26 @@ def _get_children(doctype, parent="", ignore_permissions=False):
 		order_by="name",
 		ignore_permissions=ignore_permissions,
 	)
+=======
+	filters = [["docstatus", "<", 2]]
+	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
+		# used 0 instead of `false` since type of check in postgres is smallint
+		filters.append(["disabled", "=", 0])
+
+	qb = frappe.qb.get_query(
+		doctype,
+		fields=[
+			"name as value",
+			f"{meta.get('title_field') or 'name'} as title",
+			"is_group as expandable",
+		],
+		filters=filters,
+		order_by="name asc",
+		ignore_permissions=ignore_permissions,
+	).where(functions.IfNull(table[parent_field], "").eq(parent))
+
+	return qb.run(as_dict=True)
+>>>>>>> 17826e9002 (refactor: Use get_query instead of raw query (#41366))
 
 
 @frappe.whitelist()
