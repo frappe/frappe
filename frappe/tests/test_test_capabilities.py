@@ -4,6 +4,10 @@ import unittest
 from types import ModuleType
 from unittest.mock import patch
 
+from click.testing import CliRunner
+
+import frappe
+from frappe.commands.testing import main, run_tests
 from frappe.testing.config import TestConfig, TestParameters
 from frappe.testing.discovery import _add_module_tests
 from frappe.testing.loader import FrappeTestLoader
@@ -133,3 +137,47 @@ class TestTestCapabilities(unittest.TestCase):
 
 		self.assertEqual(standard_suite.countTestCases(), 1)
 		self.assertEqual(light_loader.testsuite.countTestCases(), 1)
+
+	def test_run_tests_cli_passes_selected_service_to_main(self):
+		from frappe.utils.bench_helper import CliCtxObj
+
+		context = CliCtxObj(sites=["test.local"], force=False, profile=False, verbose=False)
+		with (
+			patch.object(frappe, "init"),
+			patch.object(frappe, "conf", frappe._dict(allow_tests=True)),
+			patch("frappe.commands.testing.main") as test_main,
+		):
+			result = CliRunner().invoke(
+				run_tests,
+				["--app", "frappe", "--test-service", "web-server"],
+				obj=context,
+			)
+
+		self.assertEqual(result.exit_code, 0, result.output)
+		self.assertEqual(test_main.call_args.kwargs["test_service"], TestService.WEB_SERVER)
+
+	def test_main_passes_selected_service_to_standard_runner(self):
+		with (
+			patch("frappe.tests.utils.generators._clear_test_log"),
+			patch("frappe.testing.environment._initialize_test_environment") as initialize,
+			patch("frappe.testing.environment._cleanup_after_tests"),
+			patch("frappe.testing.TestRunner") as runner,
+			patch("frappe.testing.discover_all_tests"),
+		):
+			runner.return_value.iterRun.return_value = ()
+			main(site="test.local", app="frappe", test_service=TestService.WEB_SERVER)
+
+		test_config = initialize.call_args.args[1]
+		self.assertEqual(test_config.test_service, TestService.WEB_SERVER)
+
+	def test_main_passes_selected_service_to_lightmode_runner(self):
+		with patch("frappe.commands.testing.run_tests_in_light_mode") as lightmode_runner:
+			main(
+				site="test.local",
+				app="frappe",
+				lightmode=True,
+				test_service=TestService.WEB_SERVER,
+			)
+
+		test_parameters = lightmode_runner.call_args.args[0]
+		self.assertEqual(test_parameters.test_service, TestService.WEB_SERVER)
