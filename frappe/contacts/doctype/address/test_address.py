@@ -9,6 +9,7 @@ from frappe.contacts.doctype.address.address import (
 	get_address_display,
 	get_address_list,
 	get_list_context,
+	get_preferred_address,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -111,3 +112,13 @@ class TestAddress(IntegrationTestCase):
 
 		self.assertGreaterEqual(len(query(txt="Admin")), 1)
 		self.assertEqual(len(query(txt="what_zyx")), 0)
+
+	def test_get_preferred_address(self):
+		addr_name = self.create_test_address(address_title="_Test Preferred Address")
+		addr_doc = frappe.get_doc("Address", addr_name)
+		addr_doc.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		addr_doc.is_primary_address = 1
+		addr_doc.save()
+
+		preferred = get_preferred_address("User", "Administrator", "is_primary_address")
+		self.assertEqual(preferred, addr_name)

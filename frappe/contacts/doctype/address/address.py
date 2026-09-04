@@ -11,6 +11,7 @@ from frappe.contacts.address_and_contact import set_link_title
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
+from frappe.query_builder.functions import Coalesce
 from frappe.utils import cstr
 
 
@@ -122,22 +123,25 @@ class Address(Document):
 
 def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 	if preferred_key in ["is_shipping_address", "is_primary_address"]:
-		address = frappe.db.sql(
-			""" SELECT
-				addr.name
-			FROM
-				`tabAddress` addr, `tabDynamic Link` dl
-			WHERE
-				dl.parent = addr.name and dl.link_doctype = {} and
-				dl.link_name = {} and ifnull(addr.disabled, 0) = 0 and
-				{} = {}
-			""".format("%s", "%s", preferred_key, "%s"),
-			(doctype, name, 1),
-			as_dict=1,
+		Address = frappe.qb.DocType("Address")
+		DynamicLink = frappe.qb.DocType("Dynamic Link")
+
+		address = (
+			frappe.qb.from_(Address)
+			.inner_join(DynamicLink)
+			.on(DynamicLink.parent == Address.name)
+			.select(Address.name)
+			.where(
+				(DynamicLink.link_doctype == doctype)
+				& (DynamicLink.link_name == name)
+				& (Coalesce(Address.disabled, 0) == 0)
+				& (Address[preferred_key] == 1)
+			)
+			.run(pluck=True)
 		)
 
 		if address:
-			return address[0].name
+			return address[0]
 
 	return
 

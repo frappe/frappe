@@ -442,29 +442,29 @@ def address_query(links: str | list):
 	]
 	result = []
 
+	Address = frappe.qb.DocType("Address")
+	DynamicLink = frappe.qb.DocType("Dynamic Link")
+
 	for link in links:
 		if not frappe.has_permission(
 			doctype=link.get("link_doctype"), ptype="read", doc=link.get("link_name")
 		):
 			continue
 
-		res = frappe.db.sql(
-			"""
-			SELECT `tabAddress`.name
-			FROM `tabAddress`, `tabDynamic Link`
-			WHERE `tabDynamic Link`.parenttype='Address'
-				AND `tabDynamic Link`.parent=`tabAddress`.name
-				AND `tabDynamic Link`.link_doctype = %(link_doctype)s
-				AND `tabDynamic Link`.link_name = %(link_name)s
-		""",
-			{
-				"link_doctype": link.get("link_doctype"),
-				"link_name": link.get("link_name"),
-			},
-			as_dict=True,
+		res = (
+			frappe.qb.from_(Address)
+			.inner_join(DynamicLink)
+			.on(DynamicLink.parent == Address.name)
+			.select(Address.name)
+			.where(
+				(DynamicLink.parenttype == "Address")
+				& (DynamicLink.link_doctype == link.get("link_doctype"))
+				& (DynamicLink.link_name == link.get("link_name"))
+			)
+			.run(pluck=True)
 		)
 
-		result.extend([l.name for l in res])
+		result.extend(res)
 
 	return result
 

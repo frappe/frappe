@@ -52,6 +52,24 @@ class TestContact(IntegrationTestCase):
 		result = address_query(links=[{"link_doctype": "User", "link_name": "Administrator"}])
 		self.assertIsInstance(result, list)
 
+	def test_address_query_returns_linked_address(self):
+		from frappe.contacts.doctype.contact.contact import address_query
+
+		addr = frappe.get_doc(
+			{
+				"doctype": "Address",
+				"address_title": "Contact Address Link Test",
+				"address_type": "Billing",
+				"address_line1": "Link Street",
+				"city": "Link City",
+				"country": "India",
+				"links": [{"link_doctype": "User", "link_name": "Administrator"}],
+			}
+		).insert()
+
+		result = address_query(links=[{"link_doctype": "User", "link_name": "Administrator"}])
+		self.assertIn(addr.name, result)
+
 	def test_contact_query_for_linked_contact(self):
 		contact = create_contact("Contact Query Match", "Mr", save=False)
 		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
