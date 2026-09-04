@@ -59,6 +59,7 @@
 		flex: 0 0 auto;
 		width: 100%;
 		margin-bottom: 8px;
+		margin-top: 2px;
 		padding: 0 8px;
 
 		display: flex;
@@ -81,7 +82,7 @@
 		flex: 1 1 auto;
 		// `px-2`, and 4px of it vertically so the active row's shadow lands inside the scroll box
 		// rather than on its clip edge; the top 4px is pulled back so the first row keeps its place
-		margin-top: -4px;
+		margin-top: 8px;
 		padding: 4px 8px;
 
 		display: flex;
