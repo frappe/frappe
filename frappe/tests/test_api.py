@@ -17,6 +17,7 @@ import frappe
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import cint, get_test_client, get_url
 
 try:
@@ -178,6 +179,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		frappe.delete_doc_if_exists("User", cls.TEST_USER)
 		frappe.db.commit()
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_unauthorized_call_v1(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource("User"))
@@ -594,6 +596,7 @@ def after_request(*args, **kwargs):
 
 
 class TestAPIResponse(FrappeAPITestCase):
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_generate_pdf_v1(self):
 		response = self.get(
 			"/api/method/frappe.utils.print_format.download_pdf",
