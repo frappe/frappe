@@ -425,6 +425,7 @@ class RunScript(AutomationAction):
 			# Only an API script is written to be called on demand; every other type already
 			# runs itself off its own trigger.
 			"link_filters": {"script_type": SCRIPT_TYPE, "disabled": 0},
+			"exclusive_with": "script",
 		},
 		{
 			"fieldname": "script",
