@@ -196,7 +196,7 @@ frappe.ui.Capture = class {
 					<span class="capture-remove-btn" data-idx="${idx}">
 						${frappe.utils.icon("close", "lg")}
 					</span>
-					<img class="rounded" src="${image}" data-idx="${idx}">
+					<img class="rounded img-fluid" src="${image}" data-idx="${idx}">
 				</div>
 			`;
 		});
