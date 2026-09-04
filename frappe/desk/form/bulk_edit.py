@@ -3,9 +3,7 @@
 
 """Download and upload helpers for the in-grid bulk edit of child tables.
 
-Child tables whose docfield has ``allow_bulk_edit`` set show Download and Upload
-buttons under the grid. Both support CSV and Excel; Excel needs the server
-because the desk bundle has no spreadsheet reader or writer.
+Excel needs the server because the desk bundle has no spreadsheet reader or writer.
 """
 
 import base64
@@ -29,13 +27,12 @@ SUPPORTED_EXTENSIONS = ("csv", "xlsx", "xls")
 MAX_TEMPLATE_ROWS = 10000
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def download_bulk_edit_template(doctype: str, title: str, data: str, file_type: str = "Excel"):
-	"""Send the grid's bulk edit template back as an Excel file.
+	"""Render the grid's bulk edit template as an Excel file.
 
 	The sheet is built on the client and posted here because the grid may hold
-	unsaved rows that are not in the database yet. CSV is written in the browser
-	and never reaches this method.
+	unsaved rows that are not in the database yet. CSV is written in the browser.
 	"""
 	if not frappe.has_permission(doctype, "read"):
 		raise frappe.PermissionError
@@ -50,21 +47,19 @@ def download_bulk_edit_template(doctype: str, title: str, data: str, file_type: 
 			title=_("Download Failed"),
 		)
 
-	rows = [row if isinstance(row, list) else [row] for row in rows]
-
 	if file_type != "Excel":
 		frappe.throw(_("{0} is not a supported file type").format(file_type), title=_("Download Failed"))
 
+	rows = [row if isinstance(row, list) else [row] for row in rows]
 	build_xlsx_response(rows, title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def parse_bulk_edit_file(doctype: str, filename: str, dataurl: str) -> list[list[str]]:
-	"""Read an uploaded CSV, XLSX or XLS file into a list of rows of strings.
+	"""Read an uploaded CSV, XLSX or XLS file into rows of strings.
 
-	Values are stringified so that the grid can apply the same per-fieldtype
-	formatters regardless of which format the row came from — a spreadsheet
-	hands back real numbers and datetimes where a CSV hands back text.
+	Stringified so one set of per-fieldtype formatters serves every format: a
+	spreadsheet hands back real numbers and datetimes where a CSV hands back text.
 	"""
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
@@ -88,12 +83,11 @@ def parse_bulk_edit_file(doctype: str, filename: str, dataurl: str) -> list[list
 	return [[stringify(value) for value in row] for row in (rows or [])]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
-	"""Read a public Google Sheet into the same row shape parse_bulk_edit_file returns.
+	"""Read a public Google Sheet into the rows parse_bulk_edit_file returns.
 
-	Fetches and validates the URL the same way Data Import does for its own
-	Google Sheets import (frappe.utils.csvutils.get_csv_content_from_google_sheets).
+	Fetched and validated by the same helper the Data Import doctype uses.
 	"""
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
@@ -104,19 +98,16 @@ def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
 	return [[stringify(value) for value in row] for row in (rows or [])]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]:
-	"""Map an uploaded file's column headers onto fieldnames of the grid's child doctype.
+	"""Map a file's column headers onto fieldnames of the grid's child doctype.
 
-	The matching is the Data Import doctype's own (``get_df_for_column_header``,
-	which is cached per doctype), so a column may be headed with the field's
-	label, its fieldname, or ``Label (fieldname)`` — the same three forms that
-	doctype accepts. Labels are why the downloaded template needs only one
-	header row; fieldnames are why a file written against the old template, or
-	by hand, still maps.
+	Matching is the Data Import doctype's own, so a header may be a label, a
+	fieldname or "Label (fieldname)" — labels are why the template needs one
+	header row, fieldnames are why a hand-written file still maps.
 
-	:param doctype: doctype of the form the grid belongs to, for the permission check
-	:param fieldname: the table field on it, which names the child doctype to match against
+	:param doctype: the form's doctype, for the permission check
+	:param fieldname: its table field, which names the child doctype to match against
 	:param headers: JSON list of the file's header cells, in column order
 	"""
 	if not frappe.has_permission(doctype, "write"):
@@ -128,19 +119,15 @@ def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict
 
 	child_doctype = table_df.options
 
-	# For a child doctype the matcher also offers parent, parenttype, parentfield
-	# and idx (importer.py get_standard_fields). The grid writes only the value
-	# fields it lists in its own mapping picker, so those are dropped here rather
-	# than left for a spreadsheet to re-parent or renumber a row with. Read-only
-	# fields go with them: the document's own code writes those on save, so a
-	# column mapped to one would be overwritten the moment the form is saved.
-	# Mirrors get_bulk_edit_docfields() in grid.js.
+	# The matcher also offers parent, parenttype, parentfield and idx for a child
+	# doctype, and read-only fields the document rewrites on save. Neither is
+	# something a spreadsheet should reach. Mirrors get_bulk_edit_docfields() in JS.
 	writable = {
 		df.fieldname
 		for df in frappe.get_meta(child_doctype).fields
 		if df.fieldtype not in no_value_fields and not df.read_only
 	}
-	# the ID is matched on, never written — apply_bulk_edit_rows skips it
+	# the ID is matched on, never written
 	writable.add("name")
 
 	column_map = {}
@@ -155,13 +142,11 @@ def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict
 	return column_map
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def get_invalid_link_values(doctype: str, values_by_doctype: str) -> dict[str, list[str]]:
-	"""Check which Link column values in the bulk edit preview don't exist.
+	"""Report which Link column values do not exist, batched by target doctype.
 
-	Batched by target doctype so the grid can validate every mapped Link column in one call.
-
-	:param doctype: doctype of the form the grid belongs to, for the permission check
+	:param doctype: the form's doctype, for the permission check
 	:param values_by_doctype: JSON ``{linked_doctype: [distinct values]}``
 	"""
 	if not frappe.has_permission(doctype, "read"):
@@ -195,11 +180,8 @@ def decode_dataurl(dataurl: str) -> bytes:
 def stringify(value) -> str:
 	"""Render one spreadsheet cell as text the grid can hand to a field.
 
-	Dates are written in system format. A spreadsheet has no date-only type, so a
-	date cell always reads back as a datetime, and guessing which of the two the
-	column meant would get it wrong either way. The grid knows the fieldtype and
-	trims the time itself; a CSV, by contrast, still carries the user-format date
-	string it was exported with, which the grid also still understands.
+	A spreadsheet has no date-only type, so a date cell always reads back as a
+	datetime; the grid knows the fieldtype and trims the time itself.
 	"""
 	if value is None:
 		return ""
