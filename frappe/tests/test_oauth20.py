@@ -346,7 +346,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		client.save()
 		frappe.db.commit()
 
-		# Request for bearer token
+		# Request for bearer token, no client_secret: rejected at client authentication
 		token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
 			data={
@@ -360,7 +360,24 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 
 		self.assertEqual(token_response.status_code, 400)
-		self.assertEqual(token_response.json.get("error"), "unsupported_grant_type")
+		self.assertEqual(token_response.json.get("error"), "invalid_client")
+
+		# Even with a valid client_secret, credentials are never checked and no token is issued
+		token_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			data={
+				"grant_type": "password",
+				"username": "test@example.com",
+				"password": "Eastern_43A1W",
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+				"scope": self.scope,
+			},
+			headers=self.form_header,
+		)
+
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_grant")
 
 	def test_login_using_implicit_token(self):
 		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
