@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import errno
 import os
 import re
 import shlex
@@ -145,7 +146,6 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	# the running site's assets down on a failed build or leak every previous build.
 	published = os.path.join(frappe.get_app_path("frappe"), "public", "frontend")
 	staging = published + ".staging"
-	previous = published + ".previous"
 
 	shutil.rmtree(staging, ignore_errors=True)
 
@@ -158,12 +158,38 @@ def build_shell(frappe_app_path: str, production: bool = False):
 		shutil.rmtree(staging, ignore_errors=True)
 		raise RuntimeError("The shell build produced no index.html; leaving the existing assets in place.")
 
-	# Swap with a rename, so a reader mid-request sees one tree or the other.
+	swap_shell_assets(staging, published)
+
+
+def swap_shell_assets(staging: str, published: str):
+	"""Move a built tree into place; a reader mid-request sees one tree or the other."""
+	previous = published + ".previous"
 	shutil.rmtree(previous, ignore_errors=True)
 	if os.path.exists(published):
-		os.rename(published, previous)
+		try:
+			os.rename(published, previous)
+		except OSError as exc:
+			# overlayfs refuses to rename a directory an earlier image layer created.
+			if exc.errno != errno.EXDEV:
+				raise
+			overlay_shell_assets(staging, published)
+			return
 	os.rename(staging, published)
 	shutil.rmtree(previous, ignore_errors=True)
+
+
+def overlay_shell_assets(staging: str, published: str):
+	"""Copy the new tree over the old one, so the old shell stays readable until the new one is whole."""
+	shutil.copytree(staging, published, dirs_exist_ok=True)
+	for root, dirs, files in os.walk(published, topdown=False):
+		counterpart = os.path.join(staging, os.path.relpath(root, published))
+		for name in files:
+			if not os.path.exists(os.path.join(counterpart, name)):
+				os.remove(os.path.join(root, name))
+		for name in dirs:
+			if not os.path.isdir(os.path.join(counterpart, name)):
+				shutil.rmtree(os.path.join(root, name))
+	shutil.rmtree(staging)
 
 
 def watch(apps=None):

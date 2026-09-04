@@ -1,11 +1,16 @@
 # The desk v2 shell: routing, the prefix contract, and the two guards.
 
+import errno
+import os
 import re
+import shutil
+import tempfile
 from contextlib import ExitStack, contextmanager
 from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
+from frappe.bundler import swap_shell_assets
 from frappe.shell import SHELL_ROOT
 from frappe.shell.doctypes import clear_doctype_owners
 from frappe.shell.install import PrefixCollisionError, before_app_install
@@ -816,3 +821,58 @@ class TestNavigationItemRenderers(IntegrationTestCase):
 				handle.write("export default { render: () => null }\n")
 
 			self.assertTrue(contributes(source_dir))
+
+
+class TestShellAssetSwap(IntegrationTestCase):
+	"""The swap must survive a filesystem that refuses to rename the published directory."""
+
+	def _trees(self):
+		root = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+		published = os.path.join(root, "frontend")
+		staging = published + ".staging"
+		for tree, marker in ((published, "old"), (staging, "new")):
+			os.makedirs(os.path.join(tree, "assets"))
+			with open(os.path.join(tree, "index.html"), "w") as f:
+				f.write(marker)
+			with open(os.path.join(tree, "assets", f"app-{marker}.js"), "w") as f:
+				f.write(marker)
+		return published, staging
+
+	def _assert_swapped(self, published, staging):
+		with open(os.path.join(published, "index.html")) as f:
+			self.assertEqual(f.read(), "new")
+		self.assertEqual(os.listdir(os.path.join(published, "assets")), ["app-new.js"])
+		self.assertFalse(os.path.exists(staging))
+		self.assertFalse(os.path.exists(published + ".previous"))
+
+	def test_the_new_tree_replaces_the_old(self):
+		published, staging = self._trees()
+		swap_shell_assets(staging, published)
+		self._assert_swapped(published, staging)
+
+	def test_a_refused_rename_copies_the_new_tree_over_the_old(self):
+		published, staging = self._trees()
+		with patch("os.rename", side_effect=OSError(errno.EXDEV, "Invalid cross-device link")):
+			swap_shell_assets(staging, published)
+		self._assert_swapped(published, staging)
+
+	def test_a_failed_copy_leaves_the_old_shell_readable(self):
+		published, staging = self._trees()
+		with (
+			patch("os.rename", side_effect=OSError(errno.EXDEV, "Invalid cross-device link")),
+			patch("shutil.copytree", side_effect=OSError(errno.ENOSPC, "No space left on device")),
+			self.assertRaises(OSError),
+		):
+			swap_shell_assets(staging, published)
+		with open(os.path.join(published, "index.html")) as f:
+			self.assertEqual(f.read(), "old")
+		self.assertTrue(os.path.exists(os.path.join(staging, "index.html")))
+
+	def test_any_other_rename_failure_is_raised(self):
+		published, staging = self._trees()
+		with (
+			patch("os.rename", side_effect=OSError(errno.EACCES, "Permission denied")),
+			self.assertRaises(PermissionError),
+		):
+			swap_shell_assets(staging, published)
