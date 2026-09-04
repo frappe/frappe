@@ -1,21 +1,125 @@
-.sidebar-header {
+// The header both shells wear: a mark, the name of what you are inside, a second line under it,
+// and whatever control the shell hangs on the end -- the panel's opens a menu and shows a chevron,
+// the rail's is a link out to the apps screen and shows none. Everything about how the two are
+// drawn lives in this one class, which is the point: two classes that merely looked alike would
+// drift the first time either was touched.
+.shell-header {
 	position: relative;
 	display: flex;
 	align-items: center;
-	padding: 8px;
-	height: 36px;
+	// frappe-ui's <SidebarHeader> trigger, read off the component rather than measured off a
+	// screenshot: `h-10 rounded px-1.5`, a `size-7` mark, `ml-2` to the text and again to the
+	// chevron. The 48px band it is centred in belongs to whatever puts the header there -- the rail
+	// gives it the navbar's height and the `px-1` gutter that goes with it.
+	//
+	// That gutter plus this padding puts the mark 10px from the shell's edge, where the rows' 16px
+	// glyphs do not reach: a mark is wider than a glyph and the reference lets it hang further out
+	// rather than lining the two up.
+	gap: 8px;
+	height: 40px;
+	padding: 0 6px;
+	border-radius: var(--radius);
+	color: var(--ink-gray-8);
+	text-decoration: none;
 	cursor: pointer;
-	button {
-		margin-left: 8px;
-		@include truncate();
+	overflow: hidden;
+
+	// `.hover` is the class SidebarHeader.setup_hover puts on; :hover covers the rail's, which has
+	// no such handler
+	// `hover:bg-surface-gray-3` -- a step heavier than the rows' hover, which is gray-2
+	&:hover,
+	&.hover {
+		background: var(--surface-gray-3);
+		text-decoration: none;
+	}
+
+	// `open:bg-surface-elevation-2 shadow-sm`. A row's active surface is elevation-3; the header
+	// sits one step under it, because a menu being open is a passing state and being somewhere is
+	// not. This wins over .active-sidebar, which the menu puts on whatever it opens from.
+	&.active-sidebar {
+		background: var(--surface-elevation-2);
+	}
+
+	// The app's logo, or the letter tile desktop_icon() builds for whatever has no logo of its own.
+	// Both bring their own colour, so nothing is drawn behind them.
+	.header-logo {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		// `size-7 rounded-[6px]`
+		width: 28px;
+		height: 28px;
+		border-radius: 6px;
+		overflow: hidden;
+		background: transparent;
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+		}
+
+		.icon-container {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		svg {
+			width: 16px;
+			height: 16px;
+		}
+	}
+
+	// The half of the header that is a link. The panel's header has no such element -- its whole
+	// row opens the menu -- so this only ever wraps the rail's mark and title.
+	.shell-header-main {
+		flex: 1 1 auto;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: inherit;
+		text-decoration: none;
+		overflow: hidden;
+	}
+
+	.title-container {
+		min-width: 0;
+	}
+
+	// `text-base-medium text-ink-gray-8` in a `leading-none` line
+	.header-title {
+		font-size: var(--text-md);
+		color: var(--ink-gray-8);
+		// the shared .header-title carries a 2px nudge for the logo-less header this replaced
+		margin-left: 0;
+	}
+
+	// `mt-0.5 leading-none` around `text-sm text-ink-gray-6`: a step down in ink rather than the
+	// fade a caption usually takes, because it is a second fact about where you are and not a
+	// footnote to the first
+	.header-subtitle {
+		color: var(--ink-gray-6);
+		line-height: 1;
+		margin-top: 2px;
 	}
 
 	// The header's own menu opens from anywhere on it; the chevron is what says so.
+	// `lucide-chevron-down size-4 text-ink-gray-7`.
 	.drop-icon {
 		flex-shrink: 0;
 		display: flex;
 		align-items: center;
-		color: var(--ink-gray-6);
+		color: var(--ink-gray-7);
+
+		svg {
+			width: 16px;
+			height: 16px;
+		}
 	}
 
 	&:hover .drop-icon {
@@ -69,9 +173,9 @@
 }
 
 .header-subtitle {
-	color: var(--ink-gray-6);
+	color: var(--ink-gray-5);
 	line-height: 1.2;
 	font-size: var(--text-sm);
 	@include truncate();
-	margin-top: 3px;
+	margin-top: 2px;
 }

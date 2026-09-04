@@ -447,7 +447,10 @@ frappe.ui.Sidebar = class Sidebar {
 	// re-evaluates them.
 	apply_page_visibility() {
 		if (!this.wrapper) return;
-		this.wrapper.toggle(this.page_allows_sidebar());
+		let allowed = this.page_allows_sidebar();
+		this.wrapper.toggle(allowed);
+		// A hidden panel cannot be peeking, and it leaves without a mouseleave to say so.
+		if (!allowed) this.end_peek();
 		this.refresh_dock();
 	}
 
@@ -456,6 +459,7 @@ frappe.ui.Sidebar = class Sidebar {
 	toggle(hide) {
 		if (!this.wrapper) return;
 		this.wrapper.toggle(!hide);
+		if (hide) this.end_peek();
 		this.refresh_dock();
 	}
 	make_dom() {
@@ -478,13 +482,15 @@ frappe.ui.Sidebar = class Sidebar {
 			this.toggle_width();
 		});
 
-		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
-			this.toggle_width();
-		});
-
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
 		});
+		// Any row that goes somewhere takes the panel down behind it: the panel is an overlay over
+		// the page it just navigated, so leaving it up would cover the thing that was asked for.
+		// Rows that only toggle a group carry no href and are left alone, since expanding a group
+		// is a request to see more of this list rather than to leave it.
+		this.wrapper.on("click", ".body-sidebar a.item-anchor[href]", () => this.close());
+		this.setup_click_away();
 		this.setup_user_menu();
 	}
 
@@ -707,7 +713,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
-		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
 		this.create_sidebar(this.sidebar_items);
 
 		// Scroll sidebar to selected page if it is not in viewport.
@@ -729,7 +734,6 @@ frappe.ui.Sidebar = class Sidebar {
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
 			this.wrapper.find(".sidebar-items").append(no_items_message);
-			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
 		}
 	}
 	// Search, notifications and background tasks, as full-width rows in their own band.
@@ -820,6 +824,76 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
+	// Close the panel when the click lands anywhere else. It reserves no space in the layout any
+	// more, so everything it covers is still there underneath and a click on it is a click on the
+	// page, not on the sidebar.
+	//
+	// Three things are not "elsewhere". The panel itself, plainly. The rail, because that is what
+	// opens the panel and a row there asks to keep it open on a different module -- without this
+	// the panel would close on the same click that opened it, since the handler runs after. And the
+	// page header's own toggle, for the same reason.
+	setup_click_away() {
+		$(document)
+			// The panel is rebuilt on some navigations; drop the previous instance's handler rather
+			// than stacking another on the document.
+			.off(".sidebar-click-away")
+			.on("click.sidebar-click-away", (e) => {
+				if (!this.sidebar_expanded) return;
+				// A sidebar panel -- notifications, background tasks -- is mounted beside the
+				// panel rather than inside it, but a click in one is still a click on the
+				// sidebar's own furniture.
+				if (
+					$(e.target).closest(".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel")
+						.length
+				)
+					return;
+				this.close();
+			});
+	}
+
+	// Whether the panel is floating out over the page right now, as opposed to docked or gone.
+	is_peeking() {
+		return !!this.wrapper && this.wrapper.hasClass("peeking");
+	}
+
+	// Whether the panel is on screen at full width, whichever way it got there. A peeked panel is
+	// as wide and as legible as a pinned one, so anything sizing itself to the panel -- the header
+	// and its padding -- follows this rather than `sidebar_expanded`, which is only about docking.
+	panel_is_open() {
+		return this.sidebar_expanded || this.is_peeking();
+	}
+
+	// Float the collapsed panel out, or let it go. Nothing peeks while the sidebar is already open,
+	// while the page hides it, on mobile (where the panel is a full drawer with its own overlay), or
+	// while a sidebar panel is open, since those stand in the panel's spot and sliding it out behind
+	// one would only shuffle things around. Retracting is never refused, so the panel cannot be left
+	// hanging out.
+	set_peek(peeking) {
+		if (!this.wrapper) return;
+
+		if (peeking) {
+			if (this.sidebar_expanded || frappe.is_mobile()) return;
+			if (!this.wrapper.is(":visible")) return;
+			// Notifications and background tasks moved off dropdowns inside the panel and onto
+			// SidebarPanel, which keeps the open one on its registry rather than in the DOM here.
+			if (frappe.ui.sidebar_panels?.open_panel) return;
+		}
+
+		this.wrapper.toggleClass("peeking", peeking);
+		// Gates the rail's expand affordances, which the peeked panel covers (see dock.scss).
+		$("body").toggleClass("sidebar-peeking", peeking);
+		// The header lays itself out for a panel that is on screen or one that is not, and the
+		// panel just changed which of those it is.
+		this.sidebar_header?.toggle_width(this.panel_is_open());
+	}
+
+	// Retract the peek now, rather than waiting for the pointer to leave. For whatever takes the
+	// panel's place on screen, and for the sidebar opening for real.
+	end_peek() {
+		clearTimeout(this.peek_timer);
+		this.set_peek(false);
+	}
+
 	toggle_width() {
 		if (!this.sidebar_expanded) {
 			this.open();
@@ -829,7 +903,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
-		const is_rtl = frappe.utils.is_rtl();
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
 			this.wrapper.find(".avatar-name-email").show();
@@ -843,18 +916,10 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
-		const chevron_icon = this.sidebar_expanded
-			? is_rtl
-				? "chevron-right"
-				: "chevron-left"
-			: is_rtl
-			? "chevron-left"
-			: "chevron-right";
-		this.wrapper
-			.find(".body-sidebar .collapse-sidebar-link")
-			.find("use")
-			.attr("href", `#icon-${chevron_icon}`);
-		this.sidebar_header.toggle_width(this.sidebar_expanded);
+		this.sidebar_header.toggle_width(this.panel_is_open());
+		// A sidebar that is open for real has nothing left to peek at, and the peeked panel and the
+		// pinned one are the same element.
+		if (this.sidebar_expanded) this.end_peek();
 		// While collapsed, the body sidebar is hidden and only the dock (rail) shows.
 		// This gates the rail's edge handle that reopens the sidebar (see dock.scss).
 		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);
@@ -1165,16 +1230,24 @@ frappe.ui.Sidebar = class Sidebar {
 	open_dock_entry(entry) {
 		if (!entry) return;
 
-		// A shell entry has no page of its own, so it opens the shell's landing route. That route
-		// is resolved from the sidebar this user actually has, so it moves when they reorder it.
+		// A shell entry names a sidebar, not a page. Clicking it swaps the panel to that shell and
+		// opens the panel; where to go from there is the user's to pick from the rows it now shows.
+		// It used to route to the shell's landing page as well, which is to say it opened the
+		// sidebar's first link on their behalf -- the rail's own row for a module and the first row
+		// of that module's sidebar are not the same destination, and only one of them was asked
+		// for. The switcher menu still lands on it (see `open_module`), because picking a module
+		// out of a menu is a request to go there.
 		if (entry.link_type === "Sidebar") {
-			this.open_module(entry.module);
+			this.select_module(entry.module);
+			this.open();
 			return;
 		}
 
-		// Select the shell first, so the sidebar is correct when the route lands. A URL row
-		// selects nothing, because it has no shell.
+		// A pinned row is a destination of its own, so it still travels. Select the shell first, so
+		// the sidebar is correct when the route lands. A URL row selects nothing, because it has no
+		// shell.
 		if (entry.module) this.select_module(entry.module);
+		this.open();
 		const route = frappe.ui.sidebar_item.get_route({
 			type: "Link",
 			link_type: entry.link_type,

@@ -26,13 +26,12 @@
 	// sidebar is out, collapsed behind the dock, or off-screen on mobile.
 	position: relative;
 
+	// The panel is an overlay in every state, so nothing is reserved for it in flow: the main
+	// section runs the full width of the shell and the panel floats over it, whether it was opened
+	// from the rail or is sitting there pinned. This used to hold the panel's width so the main
+	// section could glide across as it came and went; now the main section does not move at all.
 	.body-sidebar-placeholder {
-		// reserves the panel's width in-flow so the main section glides across as the panel animates
-		// in/out; the panel itself is absolutely positioned over this
-		width: var(--sidebar-width);
-		height: 100vh; // fallback for engines without dvh
-		height: 100dvh;
-		transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+		display: none;
 	}
 }
 
@@ -90,12 +89,15 @@
 		width: 100%;
 	}
 
+	// The panel's rows and the rail's are one row drawn twice, both to frappe-ui's <SidebarItem>:
+	// `h-7 rounded`, `pl-2` inside it, a `size-4` glyph, the label `ml-2 truncate text-sm`, and
+	// `space-y-0.5` between rows.
 	.standard-sidebar-item {
 		display: flex;
 		position: relative;
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
-		margin-bottom: 1px;
+		margin-bottom: 2px;
 
 		.sidebar-item-control {
 			.drop-icon {
@@ -117,26 +119,33 @@
 			align-items: center;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
-			margin-left: calc(var(--spacing) * 2);
+			// `ml-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
+			margin-left: 8px;
 		}
 
 		.item-anchor {
 			@include truncate();
 			display: flex;
-			gap: 2px;
 			align-items: center;
-			// padding: 3px 0px 3px 11px;
 			flex: 1;
 			height: 28px;
+			padding: 0 0 0 8px;
+			border-radius: var(--radius);
 			color: var(--ink-gray-6);
 			text-decoration: none;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
+			// no colour of its own: the glyph is the row's ink through currentColor, so it darkens
+			// with the label when the row goes active
 			.sidebar-item-icon {
-				padding: 7px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
+
+				svg {
+					width: 16px;
+					height: 16px;
+				}
 			}
 		}
 	}
@@ -177,25 +186,6 @@
 		position: absolute;
 		width: var(--sidebar-width);
 
-		.collapse-sidebar-link {
-			text-decoration: none;
-			font-size: var(--text-sm);
-			display: flex;
-			align-items: center;
-
-			svg {
-				margin: 0px;
-				flex: 0 0 auto;
-			}
-
-			span {
-				margin-left: 10px;
-				@include truncate();
-			}
-
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
-		}
-
 		.nav-item {
 			padding: 4px 8px;
 		}
@@ -215,12 +205,6 @@
 		}
 	}
 
-	// show placeholder so that main section remains static
-	.body-sidebar-placeholder {
-		display: flex;
-		width: var(--sidebar-width);
-	}
-
 	.sidebar-resize-handle {
 		cursor: w-resize;
 	}
@@ -236,13 +220,11 @@
 // from the dock's right-edge handle. Driven by the container's `expanded` class -- set at render
 // time -- so the initial paint lands in the right state with no flash or stray animation.
 .body-sidebar-container:not(.expanded) {
-	.body-sidebar-placeholder {
-		width: 0;
-	}
-
 	// Panels are mounted on the container rather than in here, so the whole panel can leave
 	// without taking an open one with it. The dock's bell opens one while the sidebar is
-	// collapsed, and it lands against the dock's edge because the container has shrunk to 0.
+	// collapsed, and it lands against the dock's edge because the container is 0 wide -- which it
+	// is in every state now, not only this one: the placeholder that used to hold the panel's
+	// width in flow is gone, so there is nothing here left to squeeze.
 	.body-sidebar {
 		background: transparent;
 		border-right-color: transparent;
@@ -251,6 +233,31 @@
 		> * {
 			transform: translateX(-12px);
 			opacity: 0;
+		}
+	}
+}
+
+// Hover peek. While the panel is collapsed, resting the pointer on the rail floats it back over
+// the page for as long as the pointer stays on either of them; frappe.ui.Sidebar.set_peek puts this
+// class on and takes it off.
+//
+// Everything here is the collapsed state above, undone, and nothing more: the peeked panel is the
+// pinned one, drawn flat on the same surface behind the same 1px right border, with no shadow or
+// raised edge to mark it as floating. The placeholder is deliberately left at zero width, so the
+// main section keeps the space the panel is floating over and nothing reflows under the pointer.
+//
+// The notification and background-task dropdowns keep the position the collapsed state gave them,
+// against the rail. They are overlays the rail's own bell opens, so they stay put whether the panel
+// happens to be peeking or not.
+.body-sidebar-container:not(.expanded).peeking {
+	.body-sidebar {
+		background: var(--surface-sidebar);
+		border-right-color: var(--outline-gray-1);
+		pointer-events: auto;
+
+		> * {
+			transform: none;
+			opacity: 1;
 		}
 	}
 }
@@ -316,41 +323,6 @@
 	display: none;
 }
 
-.body-sidebar .sidebar-toggle-btn {
-	position: absolute;
-	right: -12px;
-	bottom: 80px;
-	width: 24px;
-	height: 24px;
-	border-radius: var(--radius-full);
-	border: 1px solid var(--outline-gray-1);
-	background: var(--surface-sidebar);
-	box-shadow: var(--shadow-sm);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	padding: 0;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.15s ease, visibility 0.15s ease;
-	z-index: 1023;
-
-	svg {
-		width: 12px;
-		height: 12px;
-	}
-
-	&:hover {
-		background: var(--surface-gray-2);
-	}
-}
-
-.body-sidebar:hover .sidebar-toggle-btn {
-	opacity: 1;
-	visibility: visible;
-}
-
 .sidebar-resize-handle {
 	position: absolute;
 	top: 0;
@@ -377,10 +349,18 @@
 	}
 }
 
+// A group's own heading, to frappe-ui's <SidebarLabel>: `h-7 pl-2` around `text-base
+// text-ink-gray-5`. It names the rows under it rather than being one of them, which is why it is
+// the one line here that is not --text-sm -- and why it is not bold either: the size and the fade
+// do the work.
 .section-break {
 	color: var(--ink-gray-5) !important;
-	margin-left: 7px;
-	gap: 0px !important;
+	gap: 0 !important;
+
+	.sidebar-item-label {
+		font-size: var(--text-base);
+		margin-left: 0 !important;
+	}
 }
 
 .section-item {
@@ -408,9 +388,12 @@
 	}
 }
 
+// A count, or a shortcut hint: `mr-2 text-sm text-ink-gray-4` on a zone the label's flex-grow has
+// already stranded at the row's end.
 .sidebar-item-suffix {
 	margin-left: auto;
-	padding: 7px;
+	margin-right: 8px;
+	padding: 0;
 
 	.keyboard-shortcut {
 		color: var(--ink-gray-4);
