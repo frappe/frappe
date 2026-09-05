@@ -77,6 +77,7 @@ if TYPE_CHECKING:
 	from flow.extensions import ExtensionRuntime
 
 _CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
+_SUBSCRIBER_QUEUE_SIZE = 256
 
 
 class SessionState(StrEnum):
@@ -217,7 +218,7 @@ class Session:
 		self._title_task: asyncio.Task[None] | None = None
 		self._operation_type: Literal["run", "compact"] = "run"
 		self._steering_queue: deque[_QueuedSteering] = deque()
-		self._subscribers: set[asyncio.Queue[AnyEvent]] = set()
+		self._subscribers: set[asyncio.Queue[AnyEvent | None]] = set()
 		self._preview_replay: list[AnyEvent] = []
 		# a run this process never settled (daemon crash) left open calls; close them
 		# now, before anything newer can be admitted
@@ -399,12 +400,12 @@ class Session:
 
 	# --- live subscription ------------------------------------------------
 
-	def subscribe(self) -> asyncio.Queue[AnyEvent]:
-		queue: asyncio.Queue[AnyEvent] = asyncio.Queue()
+	def subscribe(self) -> asyncio.Queue[AnyEvent | None]:
+		queue: asyncio.Queue[AnyEvent | None] = asyncio.Queue(maxsize=_SUBSCRIBER_QUEUE_SIZE)
 		self._subscribers.add(queue)
 		return queue
 
-	def unsubscribe(self, queue: asyncio.Queue[AnyEvent]) -> None:
+	def unsubscribe(self, queue: asyncio.Queue[AnyEvent | None]) -> None:
 		self._subscribers.discard(queue)
 
 	async def events(self, since: int = 0) -> AsyncGenerator[AnyEvent]:
@@ -426,6 +427,8 @@ class Session:
 					yield event
 			while True:
 				event = await queue.get()
+				if event is None:
+					return
 				if event.durable and event.seq is not None and event.seq <= cursor:
 					continue
 				yield event
@@ -459,7 +462,13 @@ class Session:
 		elif isinstance(event, (ToolCallStarted, ToolCallDisplayReady, Retry)):
 			self._preview_replay.append(event)
 		for queue in list(self._subscribers):
-			queue.put_nowait(event)
+			try:
+				queue.put_nowait(event)
+			except asyncio.QueueFull:
+				self.unsubscribe(queue)
+				while not queue.empty():
+					queue.get_nowait()
+				queue.put_nowait(None)
 		if self.event_sink is not None:
 			try:
 				self.event_sink(self.id, event.model_dump(exclude_none=True))

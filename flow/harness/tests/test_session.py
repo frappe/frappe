@@ -327,6 +327,55 @@ async def test_reconnecting_event_stream_replays_in_progress_deltas(tmp_path):
 	assert [event.text for event in seen if isinstance(event, TextDelta)] == ["prefix", " suffix"]
 
 
+async def test_slow_event_subscriber_is_dropped_and_can_reconnect(tmp_path, monkeypatch):
+	monkeypatch.setattr("flow.session.session._SUBSCRIBER_QUEUE_SIZE", 2)
+
+	class BurstyModel(MockModel):
+		def __init__(self):
+			super().__init__()
+			self.preview_sent = asyncio.Event()
+			self.release = asyncio.Event()
+
+		async def run(self, request):
+			for text in ("a", "b", "c"):
+				yield TextDelta(text=text)
+			self.preview_sent.set()
+			await self.release.wait()
+			yield AssistantMessage(content="abc")
+
+	model = BurstyModel()
+	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
+	stream = session.events()
+	first_event = asyncio.create_task(anext(stream))
+	await asyncio.sleep(0)
+	handle = await session.run("hi", model=model)
+	assert (await asyncio.wait_for(first_event, timeout=1)).type == "run_started"
+
+	try:
+		await model.preview_sent.wait()
+		assert not session._subscribers
+		with pytest.raises(StopAsyncIteration):
+			await asyncio.wait_for(anext(stream), timeout=1)
+
+		reconnected = session.events(since=1)
+		try:
+			replayed = [await asyncio.wait_for(anext(reconnected), timeout=1) for _ in range(3)]
+			assert [event.type for event in replayed] == [
+				"user_message",
+				"preview_replay_started",
+				"text_delta",
+			]
+			assert isinstance(replayed[-1], TextDelta)
+			assert replayed[-1].text == "abc"
+		finally:
+			await reconnected.aclose()
+	finally:
+		model.release.set()
+		assert handle.task is not None
+		await handle.task
+		await stream.aclose()
+
+
 async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(cwd=str(tmp_path)))
