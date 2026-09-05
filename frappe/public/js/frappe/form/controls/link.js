@@ -520,8 +520,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					}
 
 					// advanced search
-					if (locals && locals["DocType"]) {
-						// not applicable in web forms
+					if (locals && locals["DocType"] && !frappe.model.is_single(doctype)) {
+						// not applicable in web forms and single doctype for dynamic link
 						r.message.push({
 							html:
 								"<span class='link-option'>" +
