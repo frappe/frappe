@@ -50,6 +50,10 @@ def get_submitted_linked_docs(
 	for dt, names in visited_documents.items():
 		docs.extend([{"doctype": dt, "name": name, "docstatus": 1} for name in names])
 
+	# Deepest documents first, so referencing documents get cancelled before
+	# the documents they reference.
+	docs.sort(key=lambda doc: tree.depth_by_document[doc["doctype"], doc["name"]], reverse=True)
+
 	return {"docs": docs, "count": len(docs)}
 
 
@@ -69,6 +73,7 @@ class SubmittableDocumentTree:
 		# Documents those are yet to be visited for linked documents.
 		self.to_be_visited_documents = {doctype: [name]}
 		self.visited_documents = defaultdict(list)
+		self.depth_by_document = {(doctype, name): 0}
 
 		self._submittable_doctypes = None  # All submittable doctypes in the system
 		self._references_across_doctypes = None  # doctype wise links/references
@@ -77,23 +82,22 @@ class SubmittableDocumentTree:
 		"""Get all nodes of a tree except the root node (all the nested submitted
 		documents those are present in referencing tables dependent tables).
 		"""
+		depth = 0
 		while self.to_be_visited_documents:
+			depth += 1
+			current_level = self.visit_current_level(ignore_doctypes_on_cancel_all)
 			next_level_children = defaultdict(list)
-			for parent_dt in list(self.to_be_visited_documents):
-				parent_docs = self.to_be_visited_documents.get(parent_dt)
-				if not parent_docs or (
-					ignore_doctypes_on_cancel_all and parent_dt in ignore_doctypes_on_cancel_all
-				):
-					del self.to_be_visited_documents[parent_dt]
-					continue
-
+			for parent_dt, parent_docs in current_level.items():
 				child_docs = self.get_next_level_children(parent_dt, parent_docs)
-				self.visited_documents[parent_dt].extend(parent_docs)
 				for linked_dt, linked_names in child_docs.items():
-					not_visited_child_docs = set(linked_names) - set(
-						self.visited_documents.get(linked_dt, [])
+					new_child_docs = (
+						set(linked_names)
+						- set(self.visited_documents.get(linked_dt, []))
+						- set(next_level_children[linked_dt])
 					)
-					next_level_children[linked_dt].extend(not_visited_child_docs)
+					next_level_children[linked_dt].extend(new_child_docs)
+					for linked_name in new_child_docs:
+						self.depth_by_document[(linked_dt, linked_name)] = depth
 
 			self.to_be_visited_documents = next_level_children
 
@@ -105,6 +109,19 @@ class SubmittableDocumentTree:
 			"root document must be excluded from linked children"
 		)
 		return self.visited_documents
+
+	def visit_current_level(self, ignore_doctypes_on_cancel_all):
+		"""Mark all documents of the current level as visited before expanding them,
+		so a document referenced from its own level is not visited twice."""
+		current_level = {}
+		for parent_dt, parent_docs in self.to_be_visited_documents.items():
+			if not parent_docs or (
+				ignore_doctypes_on_cancel_all and parent_dt in ignore_doctypes_on_cancel_all
+			):
+				continue
+			current_level[parent_dt] = parent_docs
+			self.visited_documents[parent_dt].extend(parent_docs)
+		return current_level
 
 	def get_next_level_children(self, parent_dt, parent_names):
 		"""Get immediate children of a Node(parent_dt, parent_names)"""
@@ -372,6 +389,9 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
+	A document that other submitted documents still reference is deferred and
+	retried after the rest, so callers need not pass docs in dependency order.
+
 	Arguments:
 	        docs (json str) - It contains list of dictionaries of a linked documents.
 	        ignore_doctypes_on_cancel_all (list) - List of doctypes to ignore while cancelling.
@@ -381,11 +401,109 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 
 	docs = frappe.parse_json(docs)
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
-	for i, doc in enumerate(docs, 1):
-		if validate_linked_doc(doc, ignore_doctypes_on_cancel_all):
-			linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
-			linked_doc.cancel()
-		frappe.publish_progress(percent=i / len(docs) * 100, title=_("Cancelling documents"))
+
+	to_cancel = [doc for doc in deduplicated(docs) if validate_linked_doc(doc, ignore_doctypes_on_cancel_all)]
+	process_linked_docs_in_dependency_order(to_cancel, cancel_linked_doc, _("Cancelling documents"))
+
+
+def cancel_linked_doc(docinfo):
+	"""Cancel a document unless the on_cancel hook of another document already cancelled it."""
+	doc = frappe.get_doc(docinfo.get("doctype"), docinfo.get("name"))
+	if doc.docstatus.is_submitted():
+		doc.cancel()
+
+
+def deduplicated(docs):
+	"""Preserve order, dropping repeated (doctype, name) entries."""
+	seen = set()
+	unique = []
+	for doc in docs:
+		key = (doc.get("doctype"), doc.get("name"))
+		if key not in seen:
+			seen.add(key)
+			unique.append(doc)
+	return unique
+
+
+def process_linked_docs_in_dependency_order(docs, process, progress_title):
+	"""Run process over docs, deferring a document blocked by a linked document
+	to a later pass, until a full pass makes no progress."""
+	total = len(docs)
+	processed = 0
+	save_point = "process_linked_doc"
+	while docs:
+		deferred = []
+		for doc in docs:
+			side_effect_counts = capture_pending_side_effects()
+			frappe.db.savepoint(save_point)
+			try:
+				process(doc)
+			except frappe.LinkExistsError:
+				# cancel and delete both run their hooks before the link check, so
+				# roll back the writes of the failed attempt before deferring, and
+				# drop the side effects it queued, which savepoints cannot undo
+				frappe.db.rollback(save_point=save_point)
+				discard_side_effects_since(side_effect_counts)
+				deferred.append(doc)
+				continue
+			frappe.db.release_savepoint(save_point)
+			processed += 1
+			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+
+		if len(deferred) == len(docs):
+			# A full pass processed nothing, so a document outside `docs` blocks
+			# it. Process without catching to surface the link error.
+			process(deferred[0])
+		docs = deferred
+
+
+def capture_pending_side_effects() -> dict:
+	"""The pending side-effect queues, which savepoints cannot restore.
+
+	The message log and currently_saving are captured as copies, not lengths:
+	some permission checks swap the message log out without restoring it when
+	they raise, and a failed document save leaks its currently_saving entry."""
+	return {
+		"message_log": list(frappe.local.message_log),
+		"currently_saving": list(frappe.flags.currently_saving or []),
+		"before_commit": len(frappe.db.before_commit),
+		"after_commit": len(frappe.db.after_commit),
+		"before_rollback": len(frappe.db.before_rollback),
+		"after_rollback": len(frappe.db.after_rollback),
+		"realtime_log": len(frappe.local._realtime_log) if hasattr(frappe.local, "_realtime_log") else None,
+		"webhook_queue": len(getattr(frappe.local, "_webhook_queue", None) or []),
+	}
+
+
+def discard_side_effects_since(counts: dict):
+	"""Drop side effects queued after capture: the messages, commit hooks,
+	realtime events and webhook executions of a rolled-back attempt would
+	otherwise still run.
+
+	Rollback watchers the attempt registered are executed rather than dropped:
+	a savepoint rollback does not run them, yet the work they compensate for
+	(files written, caches primed) is being undone right here."""
+	frappe.local.message_log = counts["message_log"]
+	frappe.flags.currently_saving = counts["currently_saving"]
+	frappe.db.before_commit.truncate(counts["before_commit"])
+	frappe.db.after_commit.truncate(counts["after_commit"])
+
+	for callback in [
+		*frappe.db.before_rollback.cut(counts["before_rollback"]),
+		*frappe.db.after_rollback.cut(counts["after_rollback"]),
+	]:
+		callback()
+
+	if counts["realtime_log"] is None:
+		if hasattr(frappe.local, "_realtime_log"):
+			# the attempt created the log and its flush hook, which the truncation
+			# above removed; drop the log so the next event re-registers the flush
+			del frappe.local._realtime_log
+	elif hasattr(frappe.local, "_realtime_log"):
+		frappe.local._realtime_log = frappe.local._realtime_log[: counts["realtime_log"]]
+
+	if getattr(frappe.local, "_webhook_queue", None):
+		frappe.local._webhook_queue = frappe.local._webhook_queue[: counts["webhook_queue"]]
 
 
 def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
