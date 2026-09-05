@@ -735,6 +735,43 @@ class TestBuilderMaria(IntegrationTestCase, TestBuilderBase):
 		qb = get_query_builder(frappe.db.db_type)
 		self.assertEqual("SELECT * FROM `tabDocType`", qb().from_("DocType").select("*").get_sql())
 
+	def test_joined_update_qualifies_set_columns(self):
+		doctype = frappe.qb.DocType("DocType")
+		docfield = frappe.qb.DocType("DocField")
+		query = (
+			frappe.qb.update(doctype)
+			.join(docfield)
+			.on(docfield.parent == doctype.name)
+			.set(doctype.module, docfield.fieldname)
+			.set(doctype.description, docfield.label)
+		)
+		self.assertEqual(
+			"UPDATE `tabDocType` JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` "
+			"SET `tabDocType`.`module`=`tabDocField`.`fieldname`,"
+			"`tabDocType`.`description`=`tabDocField`.`label`",
+			query.get_sql(),
+		)
+
+	def test_joined_update_qualifies_set_columns_passed_as_string(self):
+		doctype = frappe.qb.DocType("DocType")
+		docfield = frappe.qb.DocType("DocField")
+		query = (
+			frappe.qb.update(doctype)
+			.join(docfield)
+			.on(docfield.parent == doctype.name)
+			.set("module", docfield.fieldname)
+		)
+		self.assertEqual(
+			"UPDATE `tabDocType` JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` "
+			"SET `tabDocType`.`module`=`tabDocField`.`fieldname`",
+			query.get_sql(),
+		)
+
+	def test_update_without_join_keeps_set_columns_unqualified(self):
+		doctype = frappe.qb.DocType("DocType")
+		query = frappe.qb.update(doctype).set(doctype.module, "Core")
+		self.assertEqual("UPDATE `tabDocType` SET `module`='Core'", query.get_sql())
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestBuilderPostgres(IntegrationTestCase, TestBuilderBase):
