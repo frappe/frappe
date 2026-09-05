@@ -265,6 +265,8 @@ def create_file_from_blob(
 		}
 	)
 	file.flags.from_existing_blob = True
+	for hook in frappe.get_hooks("after_file_upload"):
+		file = frappe.call(hook, doc=file)
 	file.insert(ignore_permissions=ignore_permissions)
 	if not file.flags.attachment_record_created and not file.is_folder:
 		# a File subclass may override after_insert() without calling

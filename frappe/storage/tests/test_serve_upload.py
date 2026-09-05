@@ -352,8 +352,108 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertFalse(os.path.exists(meta_path))
 			self.assertFalse(os.path.exists(part_path))
 
+	def test_finish_upload_runs_file_adoption_hook_before_insert_and_saves_mutation(self):
+		content = b"file adoption hook " + frappe.generate_hash(length=16).encode()
+		adopted_name = f"adopted-{frappe.generate_hash(length=10)}.txt"
+		observed = []
+
+		def adopt(*, doc):
+			observed.append((doc.is_new(), bool(frappe.db.exists("File", {"blob": doc.blob}))))
+			doc.file_name = adopted_name
+			return doc
+
+		original_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "after_file_upload":
+				return [adopt]
+			return original_get_hooks(hook, *args, **kwargs)
+
+		with flag_on(), frappe.storage.fake(), patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			upload_id = self.open_session("before-hook.txt", len(content))
+			self.send_chunk(upload_id, 0, content)
+			file = finish_upload(upload_id)
+
+		self.assertEqual(observed, [(True, False)])
+		self.assertEqual(file.file_name, adopted_name)
+		self.assertEqual(frappe.db.get_value("File", file.name, "file_name"), adopted_name)
+
+	def test_finish_upload_propagates_hook_failure_for_transaction_rollback(self):
+		content = b"failing file adoption hook " + frappe.generate_hash(length=16).encode()
+		file_name = f"failure-{frappe.generate_hash(length=10)}.txt"
+		marker = f"file-hook-{frappe.generate_hash(length=12)}"
+
+		def fail_after_writing(*, doc):
+			frappe.get_doc(doctype="ToDo", description=marker).insert()
+			raise RuntimeError("file adoption failed")
+
+		original_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "after_file_upload":
+				return [fail_after_writing]
+			return original_get_hooks(hook, *args, **kwargs)
+
+		frappe.db.savepoint("file_upload_hook_failure")
+		try:
+			with flag_on(), frappe.storage.fake(), patch.object(
+				frappe, "get_hooks", side_effect=get_hooks
+			):
+				upload_id = self.open_session(file_name, len(content))
+				self.send_chunk(upload_id, 0, content)
+				with self.assertRaisesRegex(RuntimeError, "file adoption failed"):
+					finish_upload(upload_id)
+				self.assertFalse(frappe.db.exists("File", {"file_name": file_name}))
+		finally:
+			frappe.db.rollback(save_point="file_upload_hook_failure")
+
+		self.assertFalse(frappe.db.exists("ToDo", {"description": marker}))
+
+	def test_legacy_upload_file_runs_file_adoption_hook_once(self):
+		from frappe.handler import upload_file
+
+		calls = []
+
+		def adopt(*, doc):
+			calls.append(doc)
+			return doc
+
+		original_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "after_file_upload":
+				return [adopt]
+			return original_get_hooks(hook, *args, **kwargs)
+
+		content = b"legacy upload " + frappe.generate_hash(length=16).encode()
+		with flag_on(), frappe.storage.fake(), patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			set_request(
+				method="POST",
+				path="/api/method/upload_file",
+				data={"file": (io.BytesIO(content), "legacy.txt")},
+			)
+			file = upload_file()
+
+		self.assertEqual(len(calls), 1)
+		self.assertIs(calls[0], file)
+
 	def test_trusted_chunked_roundtrip_creates_blob_without_file(self):
-		with flag_on(), frappe.storage.fake() as store:
+		hook_calls = []
+
+		def adopt(*, doc):
+			hook_calls.append(doc)
+			return doc
+
+		original_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "after_file_upload":
+				return [adopt]
+			return original_get_hooks(hook, *args, **kwargs)
+
+		with flag_on(), frappe.storage.fake() as store, patch.object(
+			frappe, "get_hooks", side_effect=get_hooks
+		):
 			content = b"trusted blob upload " + frappe.generate_hash(length=16).encode()
 			upload_id = self.open_blob_session("trusted.bin", len(content))
 
@@ -371,6 +471,7 @@ class TestServeUpload(IntegrationTestCase):
 
 			self.assertEqual(blob.file_size, len(content))
 			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+			self.assertEqual(hook_calls, [])
 			self.assertTrue(store.exists(blob.key, is_private=True))
 			meta_path, part_path = get_session_paths(upload_id)
 			self.assertFalse(os.path.exists(meta_path))
