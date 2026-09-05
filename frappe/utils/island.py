@@ -44,7 +44,7 @@ def get_island_assets(name: str) -> dict:
 	bundle = get_ui_islands().get(name)
 	if not bundle:
 		frappe.throw(
-			_('Island "{0}" is not declared. Add it to ui_islands in the app\'s hooks.py.').format(name)
+			_('Island "{0}" is not declared. Add it to ui_islands in the hooks.py of the app.').format(name)
 		)
 
 	assets_json = get_assets_json()
