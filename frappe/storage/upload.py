@@ -19,6 +19,7 @@ import mimetypes
 import os
 import re
 import time
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.storage
@@ -27,9 +28,14 @@ from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.storage.driver import get_driver
 from frappe.utils import cint
 
+if TYPE_CHECKING:
+	from frappe.core.doctype.file_blob.file_blob import FileBlob
+
 UPLOADS_DIR = ".uploads"
 UPLOAD_ID_PATTERN = re.compile(r"[A-Za-z0-9]+")
 FINISHING_SUFFIX = ".finishing"
+FILE_SESSION = "file"
+BLOB_SESSION = "blob"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
@@ -44,6 +50,42 @@ def create_upload(
 	check_enabled()
 	check_upload_permission(doctype, docname)
 	check_restricted_mimetypes(filename)
+	return _create_upload(
+		filename,
+		size,
+		is_private=is_private,
+		session_policy=FILE_SESSION,
+		doctype=doctype,
+		docname=docname,
+	)
+
+
+def create_blob_upload(filename: str, size: int, *, is_private: bool = True) -> dict:
+	"""Open a trusted blob-only upload session.
+
+	The caller is responsible for authorizing its destination. This function is
+	deliberately not HTTP-whitelisted and skips only the framework attachment
+	permission and restricted-filename MIME gates.
+	"""
+	check_enabled()
+	return _create_upload(
+		filename,
+		size,
+		is_private=is_private,
+		session_policy=BLOB_SESSION,
+	)
+
+
+def _create_upload(
+	filename: str,
+	size: int,
+	*,
+	is_private: bool | int | str,
+	session_policy: str,
+	doctype: str | None = None,
+	docname: str | None = None,
+) -> dict:
+	"""Create a session whose File-versus-blob policy is chosen by its server wrapper."""
 
 	size = cint(size)
 	check_declared_size(size)
@@ -57,6 +99,7 @@ def create_upload(
 		upload_id,
 		{
 			"mode": mode,
+			"session_policy": session_policy,
 			"filename": filename,
 			"size": size,
 			"is_private": cint(is_private),
@@ -80,10 +123,34 @@ def upload_chunk(upload_id: str, offset: int | str = 0):
 	(idempotent retry), writing past the end of the part file is not."""
 	check_enabled()
 	meta, meta_path, part_path = load_session(upload_id)
+	require_session_policy(meta, FILE_SESSION)
 	# re-checked per chunk, not only at create_upload: the session outlives
 	# the request that opened it, and every guest is the same session user,
 	# so the owner check in load_session does not gate guests on its own
 	check_upload_permission(meta.get("doctype"), meta.get("docname"))
+	return _write_upload_chunk(upload_id, offset, get_request_bytes(), meta, meta_path, part_path)
+
+
+def upload_blob_chunk(upload_id: str, offset: int, data: bytes) -> dict:
+	"""Append bytes to a trusted blob-only session after caller authorization.
+
+	This ordinary Python interface is deliberately not HTTP-whitelisted.
+	"""
+	check_enabled()
+	meta, meta_path, part_path = load_session(upload_id)
+	require_session_policy(meta, BLOB_SESSION)
+	return _write_upload_chunk(upload_id, offset, data, meta, meta_path, part_path)
+
+
+def _write_upload_chunk(
+	upload_id: str,
+	offset: int | str,
+	data: bytes,
+	meta: dict,
+	meta_path: str,
+	part_path: str,
+) -> dict:
+	"""Write one chunk for either public File or trusted blob sessions."""
 	if meta.get("mode") == "direct":
 		frappe.throw(_("This upload session expects a direct upload, not chunks"))
 
@@ -92,8 +159,7 @@ def upload_chunk(upload_id: str, offset: int | str = 0):
 	if offset < 0 or offset > received:
 		frappe.throw(_("Invalid chunk offset"))
 
-	chunk = get_request_bytes()
-	if offset + len(chunk) > cint(meta.get("size")):
+	if offset + len(data) > cint(meta.get("size")):
 		delete_session(meta_path, part_path)
 		frappe.throw(_("Upload exceeds the declared file size"))
 
@@ -101,7 +167,7 @@ def upload_chunk(upload_id: str, offset: int | str = 0):
 	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(part_path, "r+b" if os.path.exists(part_path) else "wb") as f:
 		f.seek(offset)
-		f.write(chunk)
+		f.write(data)
 
 	return {"upload_id": upload_id, "received": os.path.getsize(part_path)}
 
@@ -123,9 +189,9 @@ def finish_upload(
 	check_enabled()
 
 	from frappe.core.doctype.file.file_v2 import create_file_from_blob
-	from frappe.storage.blob import put_blob, validate_upload
 
 	meta, meta_path, part_path = load_session(upload_id)
+	require_session_policy(meta, FILE_SESSION)
 
 	doctype = doctype or meta.get("doctype")
 	docname = docname or meta.get("docname")
@@ -134,36 +200,17 @@ def finish_upload(
 
 	ignore_permissions = check_upload_permission(doctype, docname)
 	check_restricted_mimetypes(file_name)
+	blob = _finish_upload_to_blob(
+		upload_id,
+		meta,
+		meta_path,
+		part_path,
+		checksum=checksum,
+		filename=file_name,
+		is_private=bool(is_private),
+	)
 
-	# fail before claiming when no bytes arrived, so the client can retry
-	direct = meta.get("mode") == "direct"
-	temp_is_private = bool(cint(meta.get("is_private")))
-	if direct:
-		if not get_driver().exists(f"uploads/{upload_id}", is_private=temp_is_private):
-			frappe.throw(_("Upload session has no data"))
-	elif not os.path.exists(part_path):
-		frappe.throw(_("Upload session has no data"))
-
-	# atomic claim: a concurrent or replayed finish_upload must not create
-	# a second File row from the same session
-	meta_path = claim_session(meta_path)
-
-	if direct:
-		blob = store_direct_upload(
-			upload_id, temp_is_private, is_private=bool(is_private), filename=file_name
-		)
-	else:
-		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-		with open(part_path, "rb") as stream:
-			blob = put_blob(stream, is_private=bool(is_private), filename=file_name)
-
-	if checksum and blob.checksum != checksum:
-		delete_session(meta_path, part_path)
-		frappe.throw(_("Checksum mismatch"))
-
-	validate_upload(blob, file_name)
-
-	file = create_file_from_blob(
+	return create_file_from_blob(
 		blob,
 		file_name,
 		attached_to_doctype=doctype,
@@ -173,8 +220,80 @@ def finish_upload(
 		ignore_permissions=ignore_permissions,
 	)
 
-	delete_session(meta_path, part_path)
-	return file
+
+def finish_upload_to_blob(
+	upload_id: str,
+	*,
+	checksum: str | None = None,
+	filename: str | None = None,
+	is_private: bool | None = None,
+) -> "FileBlob":
+	"""Finish a trusted blob-only session without creating a File row.
+
+	This ordinary Python interface is deliberately not HTTP-whitelisted. The
+	caller must have re-authorized its destination before invoking it.
+	"""
+	check_enabled()
+	meta, meta_path, part_path = load_session(upload_id)
+	require_session_policy(meta, BLOB_SESSION)
+	filename = filename or meta.get("filename")
+	is_private = bool(cint(meta.get("is_private"))) if is_private is None else bool(cint(is_private))
+	return _finish_upload_to_blob(
+		upload_id,
+		meta,
+		meta_path,
+		part_path,
+		checksum=checksum,
+		filename=filename,
+		is_private=is_private,
+	)
+
+
+def _finish_upload_to_blob(
+	upload_id: str,
+	meta: dict,
+	meta_path: str,
+	part_path: str,
+	*,
+	checksum: str | None,
+	filename: str | None,
+	is_private: bool,
+) -> "FileBlob":
+	"""Claim, validate, and clean up either kind of upload session."""
+	from frappe.storage.blob import put_blob, validate_upload
+
+	# fail before claiming when no bytes arrived, so the client can retry
+	direct = meta.get("mode") == "direct"
+	temp_is_private = bool(cint(meta.get("is_private")))
+	if direct:
+		if not get_driver().exists(f"uploads/{upload_id}", is_private=temp_is_private):
+			frappe.throw(_("Upload session has no data"))
+	elif not os.path.exists(part_path) or os.path.getsize(part_path) == 0:
+		frappe.throw(_("Upload session has no data"))
+
+	# atomic claim: a concurrent or replayed finish_upload must not create
+	# a second File row from the same session
+	meta_path = claim_session(meta_path)
+
+	try:
+		if direct:
+			blob = store_direct_upload(upload_id, temp_is_private, is_private=is_private, filename=filename)
+		else:
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+			with open(part_path, "rb") as stream:
+				blob = put_blob(stream, is_private=is_private, filename=filename)
+
+		if blob.file_size == 0:
+			frappe.throw(_("Upload session has no data"))
+		if blob.file_size > cint(meta.get("size")):
+			frappe.throw(_("Upload exceeds the declared file size"))
+		if checksum and blob.checksum != checksum:
+			frappe.throw(_("Checksum mismatch"))
+
+		validate_upload(blob, filename)
+		return blob
+	finally:
+		delete_session(meta_path, part_path)
 
 
 def store_direct_upload(upload_id: str, temp_is_private: bool, *, is_private: bool, filename: str | None):
@@ -192,10 +311,16 @@ def store_direct_upload(upload_id: str, temp_is_private: bool, *, is_private: bo
 	except FileNotFoundError:
 		frappe.throw(_("Upload session has no data"))
 
-	with stream:
-		blob = put_blob(stream, is_private=is_private, filename=filename)
-	driver.delete(temp_key, is_private=temp_is_private)
-	return blob
+	try:
+		with stream:
+			return put_blob(stream, is_private=is_private, filename=filename)
+	finally:
+		try:
+			driver.delete(temp_key, is_private=temp_is_private)
+		except Exception:
+			frappe.logger("storage").warning(
+				f"storage: could not delete finished direct upload {temp_key}", exc_info=True
+			)
 
 
 def expire_stale_upload_sessions(max_age_hours: int = 24) -> int:
@@ -353,6 +478,17 @@ def load_session(upload_id: str) -> tuple[dict, str, str]:
 		# sessions are bound to the user who opened them
 		raise frappe.PermissionError
 	return meta, meta_path, part_path
+
+
+def require_session_policy(meta: dict, expected: str) -> None:
+	"""Reject a session created for the other server-owned finish policy.
+
+	Sessions from before this field was added are normal File sessions, which
+	keeps in-flight public uploads compatible across an update.
+	"""
+	policy = meta.get("session_policy", FILE_SESSION)
+	if policy != expected:
+		frappe.throw(_("Upload session cannot be used by this endpoint"))
 
 
 def claim_session(meta_path: str) -> str:

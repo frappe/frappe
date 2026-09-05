@@ -5,7 +5,10 @@ import io
 import os
 import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from contextvars import copy_context
+from threading import Barrier
 from unittest.mock import patch
 
 from werkzeug.exceptions import Forbidden, NotFound
@@ -19,14 +22,19 @@ from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.serve import serve_file
 from frappe.storage.tests import reset_file_controller
 from frappe.storage.upload import (
+	BLOB_SESSION,
 	FINISHING_SUFFIX,
 	claim_session,
+	create_blob_upload,
 	create_upload,
 	delete_session,
 	expire_stale_upload_sessions,
 	finish_upload,
+	finish_upload_to_blob,
 	get_session_paths,
 	get_uploads_dir,
+	load_session,
+	upload_blob_chunk,
 	upload_chunk,
 )
 from frappe.storage.url import make_signature
@@ -202,6 +210,13 @@ class TestServeUpload(IntegrationTestCase):
 		self._sessions.append(upload_id)
 		return upload_id
 
+	def open_blob_session(self, filename: str, size: int, is_private=True) -> str:
+		result = create_blob_upload(filename, size, is_private=is_private)
+		self.assertEqual(result["mode"], "chunked")
+		upload_id = result["upload_id"]
+		self._sessions.append(upload_id)
+		return upload_id
+
 	# ---- serve route ----
 
 	def test_signed_url_serves_private_blob_without_session(self):
@@ -337,6 +352,67 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertFalse(os.path.exists(meta_path))
 			self.assertFalse(os.path.exists(part_path))
 
+	def test_trusted_chunked_roundtrip_creates_blob_without_file(self):
+		with flag_on(), frappe.storage.fake() as store:
+			content = b"trusted blob upload " + frappe.generate_hash(length=16).encode()
+			upload_id = self.open_blob_session("trusted.bin", len(content))
+
+			first = upload_blob_chunk(upload_id, 0, content[:8])
+			self.assertEqual(first["received"], 8)
+			meta, _meta_path, _part_path = load_session(upload_id)
+			self.assertEqual(meta["session_policy"], BLOB_SESSION)
+
+			second = upload_blob_chunk(upload_id, 8, content[8:])
+			self.assertEqual(second["received"], len(content))
+			blob = finish_upload_to_blob(
+				upload_id,
+				checksum=hashlib.sha256(content).hexdigest(),
+			)
+
+			self.assertEqual(blob.file_size, len(content))
+			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+			self.assertTrue(store.exists(blob.key, is_private=True))
+			meta_path, part_path = get_session_paths(upload_id)
+			self.assertFalse(os.path.exists(meta_path))
+			self.assertFalse(os.path.exists(part_path))
+
+	def test_public_endpoints_reject_blob_only_sessions(self):
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("private.bin", 4)
+
+			with self.assertRaises(frappe.ValidationError):
+				self.send_chunk(upload_id, 0, b"data")
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload(upload_id)
+
+			# Rejection does not consume the session; the trusted path can finish it.
+			upload_blob_chunk(upload_id, 0, b"data")
+			blob = finish_upload_to_blob(upload_id)
+			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+
+	def test_trusted_endpoints_reject_file_sessions(self):
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_session("public.txt", 4)
+
+			with self.assertRaises(frappe.ValidationError):
+				upload_blob_chunk(upload_id, 0, b"data")
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(upload_id)
+
+	def test_trusted_upload_interfaces_are_not_http_whitelisted(self):
+		self.assertNotIn(create_blob_upload, frappe.whitelisted)
+		self.assertNotIn(upload_blob_chunk, frappe.whitelisted)
+		self.assertNotIn(finish_upload_to_blob, frappe.whitelisted)
+
+	def test_public_upload_cannot_choose_or_waive_session_policy(self):
+		with flag_on(), frappe.storage.fake():
+			with self.assertRaises(TypeError):
+				create_upload("bypass.txt", 4, session_policy=BLOB_SESSION)
+			with self.assertRaises(TypeError):
+				create_upload("bypass.txt", 4, check_permission=False)
+			with self.assertRaises(TypeError):
+				create_upload("bypass.html", 4, restrict_mimetypes=False)
+
 	def test_cumulative_size_violation_kills_session(self):
 		with flag_on(), frappe.storage.fake():
 			upload_id = self.open_session("small.txt", 10)
@@ -352,6 +428,30 @@ class TestServeUpload(IntegrationTestCase):
 			with self.assertRaises(frappe.ValidationError):
 				self.send_chunk(upload_id, 0, b"x")
 
+	def test_trusted_cumulative_size_violation_kills_session(self):
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("small.bin", 3)
+
+			with self.assertRaises(frappe.ValidationError):
+				upload_blob_chunk(upload_id, 0, b"four")
+
+			meta_path, part_path = get_session_paths(upload_id)
+			self.assertFalse(os.path.exists(meta_path))
+			self.assertFalse(os.path.exists(part_path))
+
+	def test_trusted_empty_session_is_retryable(self):
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("empty.bin", 10)
+
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(upload_id)
+
+			meta_path, _part_path = get_session_paths(upload_id)
+			self.assertTrue(os.path.exists(meta_path))
+			upload_blob_chunk(upload_id, 0, b"data")
+			blob = finish_upload_to_blob(upload_id)
+			self.assertEqual(blob.file_size, 4)
+
 	def test_checksum_mismatch_throws(self):
 		with flag_on(), frappe.storage.fake():
 			content = b"checksum mismatch content"
@@ -366,6 +466,33 @@ class TestServeUpload(IntegrationTestCase):
 				file_name="sum.txt",
 			)
 
+	def test_trusted_checksum_failure_cleans_the_session(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"trusted checksum mismatch"
+			upload_id = self.open_blob_session("sum.txt", len(content))
+			upload_blob_chunk(upload_id, 0, content)
+
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(upload_id, checksum="0" * 64)
+
+			meta_path, part_path = get_session_paths(upload_id)
+			self.assertFalse(os.path.exists(meta_path))
+			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
+			self.assertFalse(os.path.exists(part_path))
+
+	def test_trusted_finish_keeps_content_validation(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"<html><script>bad()</script></html>"
+			upload_id = self.open_blob_session("disguised.png", len(content))
+			upload_blob_chunk(upload_id, 0, content)
+
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(upload_id)
+
+			meta_path, part_path = get_session_paths(upload_id)
+			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
+			self.assertFalse(os.path.exists(part_path))
+
 	def test_upload_session_bound_to_owner(self):
 		with flag_on(), frappe.storage.fake():
 			upload_id = self.open_session("owned.txt", 10)
@@ -375,6 +502,16 @@ class TestServeUpload(IntegrationTestCase):
 				self.send_chunk(upload_id, 0, b"x")
 			with self.assertRaises(frappe.PermissionError):
 				finish_upload(upload_id, file_name="owned.txt")
+
+	def test_trusted_upload_session_bound_to_owner(self):
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("owned.bin", 10)
+
+			frappe.set_user("Guest")
+			with self.assertRaises(frappe.PermissionError):
+				upload_blob_chunk(upload_id, 0, b"x")
+			with self.assertRaises(frappe.PermissionError):
+				finish_upload_to_blob(upload_id)
 
 	def test_guest_chunks_stop_when_guest_uploads_are_turned_off(self):
 		"""Every guest is the same session user, so the owner check does not
@@ -404,16 +541,39 @@ class TestServeUpload(IntegrationTestCase):
 				finish_upload(upload_id, file_name="once.txt")
 			self.assertEqual(frappe.db.count("File", {"blob": file.blob}), 1)
 
-	def test_claim_session_has_a_single_winner(self):
+	def test_trusted_finish_cannot_run_twice(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"only one trusted finish"
+			upload_id = self.open_blob_session("once.bin", len(content))
+			upload_blob_chunk(upload_id, 0, content)
+
+			blob = finish_upload_to_blob(upload_id)
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(upload_id)
+
+			self.assertEqual(frappe.db.count("File Blob", {"name": blob.name}), 1)
+			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+
+	def test_concurrent_session_claim_has_a_single_winner(self):
 		with flag_on(), frappe.storage.fake():
 			upload_id = self.open_session("race.txt", 4)
 			meta_path, _part_path = get_session_paths(upload_id)
+			barrier = Barrier(2)
 
-			claimed = claim_session(meta_path)
-			self.addCleanup(delete_session, claimed)
+			def compete():
+				barrier.wait()
+				try:
+					return claim_session(meta_path)
+				except frappe.ValidationError:
+					return None
 
-			with self.assertRaises(frappe.ValidationError):
-				claim_session(meta_path)
+			with ThreadPoolExecutor(max_workers=2) as pool:
+				futures = [pool.submit(copy_context().run, compete) for _ in range(2)]
+				results = [future.result() for future in futures]
+
+			winners = [claimed for claimed in results if claimed]
+			self.assertEqual(len(winners), 1)
+			self.addCleanup(delete_session, winners[0])
 
 	def test_guest_upload_restricted_to_legacy_mimetypes(self):
 		with flag_on(), frappe.storage.fake():
@@ -430,6 +590,19 @@ class TestServeUpload(IntegrationTestCase):
 						finish_upload(upload_id, file_name="evil.html")
 				finally:
 					frappe.set_user("Administrator")
+
+	def test_trusted_create_skips_legacy_permission_and_filename_mime_gates(self):
+		content = b"trusted opaque content"
+		with flag_on(), frappe.storage.fake():
+			frappe.set_user("Guest")
+			try:
+				upload_id = self.open_blob_session("trusted.html", len(content))
+				upload_blob_chunk(upload_id, 0, content)
+				blob = finish_upload_to_blob(upload_id)
+				self.assertEqual(blob.file_size, len(content))
+				self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+			finally:
+				frappe.set_user("Administrator")
 
 	def test_direct_upload_roundtrip(self):
 		content = b"direct upload bytes " + frappe.generate_hash(length=16).encode()
@@ -475,6 +648,36 @@ class TestServeUpload(IntegrationTestCase):
 				self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
 			finally:
 				frappe.local.storage_driver_override = previous
+
+	def test_trusted_direct_upload_finishes_to_blob_and_deletes_temporary_object(self):
+		content = b"trusted direct bytes " + frappe.generate_hash(length=16).encode()
+		with flag_on(), use_driver(DirectTargetDriver()) as driver:
+			result = create_blob_upload("direct.bin", len(content))
+			self.assertEqual(result["mode"], "direct")
+			upload_id = result["upload_id"]
+			self._sessions.append(upload_id)
+			driver.write(f"uploads/{upload_id}", io.BytesIO(content), is_private=True)
+
+			blob = finish_upload_to_blob(upload_id)
+
+			self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
+			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+			self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
+
+	def test_trusted_direct_upload_enforces_declared_size(self):
+		with flag_on(), use_driver(DirectTargetDriver()) as driver:
+			result = create_blob_upload("oversize.bin", 3)
+			upload_id = result["upload_id"]
+			self._sessions.append(upload_id)
+			driver.write(f"uploads/{upload_id}", io.BytesIO(b"four"), is_private=True)
+
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(upload_id)
+
+			meta_path, _part_path = get_session_paths(upload_id)
+			self.assertFalse(os.path.exists(meta_path))
+			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
+			self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
 
 	def test_stale_session_expiry_removes_files(self):
 		with flag_on(), frappe.storage.fake():
