@@ -309,6 +309,21 @@ def get_user_record(user: str, data: dict, provider: str) -> "User":
 	return user
 
 
+def get_oauth_userid(data: dict, provider: str) -> str:
+	"""Return the provider's subject/id claim that identifies this user at `provider`."""
+	match provider:
+		case "facebook" | "google" | "github":
+			userid = data["id"]
+		case "frappe" | "office_365":
+			userid = data["sub"]
+		case "salesforce":
+			userid = "/".join(data["sub"].split("/")[-2:])
+		case _:
+			user_id_property = frappe.db.get_value("Social Login Key", provider, "user_id_property") or "sub"
+			userid = data[user_id_property]
+	return str(userid)
+
+
 def update_oauth_user(user: str, data: dict, provider: str):
 	if isinstance(data.get("location"), dict):
 		data["location"] = data["location"].get("name")
@@ -320,25 +335,28 @@ def update_oauth_user(user: str, data: dict, provider: str):
 		frappe.respond_as_web_page(_("Not Allowed"), _("User {0} is disabled").format(user.email))
 		return False
 
-	if not user.get_social_login_userid(provider):
+	incoming_userid = get_oauth_userid(data, provider)
+	stored_userid = user.get_social_login_userid(provider)
+
+	if stored_userid:
+		# the presented identity must match the one linked previously,
+		# regardless of how convincingly this login's email claim checks out.
+		if stored_userid != incoming_userid:
+			frappe.respond_as_web_page(
+				_("Not Allowed"),
+				_("This account is already linked to a different {0} account.").format(provider.title()),
+			)
+			return False
+	else:
 		update_user_record = True
 		match provider:
 			case "facebook":
-				user.set_social_login_userid(provider, userid=data["id"], username=data.get("username"))
 				user.update({"user_image": f"https://graph.facebook.com/{data['id']}/picture"})
-			case "google":
-				user.set_social_login_userid(provider, userid=data["id"])
+				user.set_social_login_userid(provider, userid=incoming_userid, username=data.get("username"))
 			case "github":
-				user.set_social_login_userid(provider, userid=data["id"], username=data.get("login"))
-			case "frappe" | "office_365":
-				user.set_social_login_userid(provider, userid=data["sub"])
-			case "salesforce":
-				user.set_social_login_userid(provider, userid="/".join(data["sub"].split("/")[-2:]))
+				user.set_social_login_userid(provider, userid=incoming_userid, username=data.get("login"))
 			case _:
-				user_id_property = (
-					frappe.db.get_value("Social Login Key", provider, "user_id_property") or "sub"
-				)
-				user.set_social_login_userid(provider, userid=data[user_id_property])
+				user.set_social_login_userid(provider, userid=incoming_userid)
 
 	if update_user_record:
 		user.flags.ignore_permissions = True
