@@ -46,6 +46,28 @@ class TestClient(IntegrationTestCase):
 		self.assertRaises(frappe.DoesNotExistError, delete, "Note", note.name)
 		self.assertRaises(frappe.DoesNotExistError, delete, "Note Seen By", child_row_name)
 
+	def test_get_count_with_or_filters(self):
+		from frappe.client import get_count
+
+		frappe.db.delete("Note")
+
+		frappe.get_doc(doctype="Note", title="note1", content="something").insert()
+		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
+		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
+
+		# simulate a non-HTTP call: nothing pre-loaded into form_dict by a request
+		original_form_dict = frappe.local.form_dict
+		frappe.local.form_dict = frappe._dict()
+		self.addCleanup(setattr, frappe.local, "form_dict", original_form_dict)
+
+		# note1 matches on title, note3 matches on content
+		self.assertEqual(get_count("Note", or_filters={"title": "note1", "content": "something other"}), 2)
+
+		# a following call must not inherit the previous call's or_filters
+		self.assertEqual(get_count("Note"), 3)
+
+		frappe.db.rollback()
+
 	def test_http_valid_method_access(self):
 		from frappe.client import delete
 		from frappe.handler import execute_cmd
