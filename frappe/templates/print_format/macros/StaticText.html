@@ -1,0 +1,9 @@
+{%- set _align = df.align if df.align else '' -%}
+{%- set _fstyle = (('font-size:' + df.font_size|int|string + 'px;') if df.font_size else '') + (('font-weight:700;') if df.bold else '') + (df.custom_style or '') -%}
+<div class="field field--static-text{% if _align %} field-align-{{ _align }}{% endif %}" {% if _fstyle %}style="{{ _fstyle|e }}"{% endif %} {{ field_attributes(df) }}>
+	<div class="value">
+		{%- for line in (df.text or '').split('\n') -%}
+			{{ _(line)|e }}{% if not loop.last %}<br>{% endif %}
+		{%- endfor -%}
+	</div>
+</div>

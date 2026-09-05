@@ -53,6 +53,16 @@
 				allow-empty
 				@update:model-value="set_table_radius"
 			/>
+			<StepperRow
+				:label="__('Min height')"
+				:model-value="table_min_height"
+				:base="100"
+				:step="10"
+				unit="px"
+				:placeholder="__('auto')"
+				allow-empty
+				@update:model-value="(v) => set_field_prop('table_min_height', v)"
+			/>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Columns')" :padded="false">
@@ -280,6 +290,7 @@ let table_bordered = computed(() => selected_field.value?.table_bordered ?? true
 let table_header = computed(() => selected_field.value?.table_header ?? "styled");
 let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
 let table_radius = computed(() => selected_field.value?.table_radius ?? null);
+let table_min_height = computed(() => selected_field.value?.table_min_height ?? null);
 let table_header_bg = computed(() => selected_field.value?.table_header_bg ?? "");
 let table_border_color = computed(() => selected_field.value?.table_border_color ?? "");
 let has_lines = computed(

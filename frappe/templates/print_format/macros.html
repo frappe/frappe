@@ -1,6 +1,6 @@
 {% macro render_field(df, doc) %}
 {%- if not df.get('_hidden') -%}
-{%- set value = doc.get(df.fieldname) -%}
+{%- set value = df.get('_value') if df.get('_value') is not none else doc.get(df.fieldname) -%}
 {% include ['templates/print_format/macros/' + df.renderer + '.html', 'templates/print_format/macros/Data.html'] ignore missing %}
 {%- endif -%}
 {% endmacro %}
@@ -13,3 +13,27 @@ data-fieldname="{{ df.fieldname }}"
 data-fieldtype="{{ df.fieldtype }}"
 {%- endif -%}
 {% endmacro %}
+
+{#- shared by Table.html and SummaryTable.html so table_* props behave the same -#}
+{% macro table_cell_style(df) -%}
+{%- set _cell_pad = df.table_cell_padding if df.table_cell_padding is defined and df.table_cell_padding is not none else none -%}
+{%- if _cell_pad is not none %}padding:{{ _cell_pad }}px;{% endif -%}
+{%- if df.table_border_color %}border-color:{{ df.table_border_color }} !important{% endif -%}
+{%- endmacro %}
+
+{% macro table_frame_style(df, plain_header=False) -%}
+{%- set _radius = df.table_radius if df.table_radius is defined and df.table_radius is not none else none -%}
+{%- if _radius is not none %}--pfb-radius:{{ _radius }}px;{% endif -%}
+{%- if df.table_header_bg and not plain_header %}--pfb-header-bg:{{ df.table_header_bg }};{% endif -%}
+{%- if df.table_min_height %}min-height:{{ df.table_min_height|int }}px;{% endif -%}
+{%- endmacro %}
+
+{#- one empty cap cell per column: draws the closing bottom border (and rounded
+   corners) on every page a bordered table spans -#}
+{% macro table_foot_cap(columns) -%}
+<tfoot>
+	<tr>
+		{% for column in columns %}<td class="table-foot"></td>{% endfor %}
+	</tr>
+</tfoot>
+{%- endmacro %}
