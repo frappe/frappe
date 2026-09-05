@@ -2456,6 +2456,135 @@ class TestQuery(IntegrationTestCase):
 		# Query should succeed and return results (tuple or list)
 		self.assertTrue(len(result) >= 0, "Query should succeed with proper permissions")
 
+	def test_child_query_checks_user_permissions_on_sibling_rows(self):
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		self.ensure_system_manager(frappe.get_doc("User", test_user), should_have=True)
+		user_suffix = frappe.generate_hash(length=6)
+		allowed_user = f"allowed-role-{user_suffix}@example.com"
+		mixed_user = f"mixed-roles-{user_suffix}@example.com"
+
+		try:
+			for email, roles in (
+				(allowed_user, ["Blogger"]),
+				(mixed_user, ["Blogger", "System Manager"]),
+			):
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="Child Permission Test",
+					send_welcome_email=0,
+					roles=[{"role": role} for role in roles],
+				).insert(ignore_permissions=True)
+
+			clear_user_permissions_for_doctype("Role", test_user)
+			add_user_permission("Role", "Blogger", test_user, ignore_permissions=True, applicable_for="User")
+			frappe.set_user(test_user)
+			self.assertTrue(frappe.has_permission("User", doc=allowed_user))
+			self.assertFalse(frappe.has_permission("User", doc=mixed_user))
+
+			def get_visible_users(ignore_user_permissions=False):
+				return frappe.qb.get_query(
+					"Has Role",
+					fields=["parent"],
+					filters={"parent": ["in", [allowed_user, mixed_user]]},
+					distinct=True,
+					parent_doctype="User",
+					ignore_permissions=False,
+					ignore_user_permissions=ignore_user_permissions,
+				).run(pluck=True)
+
+			# A restricted role hides the whole User, not only that role row.
+			self.assertListEqual(get_visible_users(), [allowed_user])
+			self.assertCountEqual(
+				get_visible_users(ignore_user_permissions=True),
+				[allowed_user, mixed_user],
+			)
+		finally:
+			frappe.set_user("Administrator")
+			clear_user_permissions_for_doctype("Role", test_user)
+			for user in (allowed_user, mixed_user):
+				if frappe.db.exists("User", user):
+					frappe.delete_doc("User", user, force=True, ignore_permissions=True)
+
+	def test_child_user_permissions_in_strict_mode(self):
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		self.ensure_system_manager(frappe.get_doc("User", test_user), should_have=True)
+		linked_note = empty_link_note = None
+
+		try:
+			linked_note = frappe.get_doc(
+				doctype="Note",
+				title="Allowed child link",
+				public=1,
+				seen_by=[{"user": test_user}],
+			).insert()
+			empty_link_note = frappe.get_doc(
+				doctype="Note",
+				title="Empty child link",
+				public=1,
+				seen_by=[{"user": None}],
+			).insert()
+
+			clear_user_permissions_for_doctype("User", test_user)
+			add_user_permission("User", test_user, test_user, ignore_permissions=True, applicable_for="Note")
+			frappe.set_user(test_user)
+
+			def get_visible_notes():
+				return frappe.qb.get_query(
+					"Note",
+					filters={"name": ["in", [linked_note.name, empty_link_note.name]]},
+					ignore_permissions=False,
+				).run(pluck=True)
+
+			with self.change_settings("System Settings", {"apply_strict_user_permissions": 0}):
+				self.assertCountEqual(get_visible_notes(), [linked_note.name, empty_link_note.name])
+
+			with self.change_settings("System Settings", {"apply_strict_user_permissions": 1}):
+				self.assertListEqual(get_visible_notes(), [linked_note.name])
+		finally:
+			frappe.set_user("Administrator")
+			clear_user_permissions_for_doctype("User", test_user)
+			for note in (linked_note, empty_link_note):
+				if note:
+					note.delete()
+
+	def test_child_user_permissions_skip_unrelated_applicable_for(self):
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		self.ensure_system_manager(frappe.get_doc("User", test_user), should_have=True)
+		restricted_link_note = None
+
+		try:
+			restricted_link_note = frappe.get_doc(
+				doctype="Note",
+				title="Unrelated applicable_for",
+				public=1,
+				seen_by=[{"user": "Administrator"}],
+			).insert()
+
+			clear_user_permissions_for_doctype("User", test_user)
+			add_user_permission("User", test_user, test_user, ignore_permissions=True, applicable_for="ToDo")
+			frappe.set_user(test_user)
+
+			visible_notes = frappe.qb.get_query(
+				"Note",
+				filters={"name": restricted_link_note.name},
+				ignore_permissions=False,
+			).run(pluck=True)
+
+			# The permission only applies to ToDo, so the Note stays visible.
+			self.assertListEqual(visible_notes, [restricted_link_note.name])
+		finally:
+			frappe.set_user("Administrator")
+			clear_user_permissions_for_doctype("User", test_user)
+			if restricted_link_note:
+				restricted_link_note.delete()
+
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
 		test_user = "test2@example.com"
