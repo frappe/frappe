@@ -310,9 +310,12 @@ def check_permission_and_not_submitted(doc):
 		)
 
 
-def get_linked_docs(doc, method="Delete") -> list[dict]:
+def get_linked_docs(doc, method="Delete", limit: int | None = None) -> list[dict]:
 	"""
 	Return a list of documents that are statically linked to the given document.
+
+	With limit, stop collecting once that many links are found, so callers that
+	only need to detect "too many" do not materialize every referencing row.
 	"""
 	from frappe.model.rename_doc import get_link_fields
 
@@ -351,12 +354,16 @@ def get_linked_docs(doc, method="Delete") -> list[dict]:
 		if meta.istable:
 			fields.extend(["parent", "parenttype"])
 
+		if limit and len(linked_docs) >= limit:
+			return linked_docs
+
 		for item in frappe.db.get_values(
 			link_dt,
 			{link_field: doc.name},
 			fields,
 			as_dict=True,
 			order_by=None,
+			limit=limit,
 		):
 			# available only in child table cases
 			item_parent = getattr(item, "parent", None)
@@ -395,13 +402,18 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		raise_link_exists_exception(doc, link["reference_doctype"], link["reference_docname"])
 
 
-def get_dynamic_linked_docs(doc, method="Delete") -> list[dict]:
+def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> list[dict]:
 	"""
 	Return a list of documents that are dynamically linked to the given document.
+
+	With limit, stop collecting once that many links are found, so callers that
+	only need to detect "too many" do not materialize every referencing row.
 	"""
 	linked_docs = []
 
 	for df in get_dynamic_link_map().get(doc.doctype, []):
+		if limit and len(linked_docs) >= limit:
+			return linked_docs
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
 
 		if df.parent in frappe.get_hooks("ignore_links_on_delete") or (
@@ -444,6 +456,8 @@ def get_dynamic_linked_docs(doc, method="Delete") -> list[dict]:
 				.where(RefDoc[df.options] == doc.doctype)
 				.where(RefDoc[df.fieldname] == doc.name)
 			)
+			if limit:
+				query = query.limit(limit)
 			for refdoc in query.run(as_dict=True):
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
