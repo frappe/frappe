@@ -650,8 +650,8 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 	seen = {}
 
 	class RecordingClient:
-		def __init__(self, *args, **kwargs):
-			pass
+		def __init__(self, *args, timeout, **kwargs):
+			seen["timeout"] = timeout
 
 		async def __aenter__(self):
 			return self
@@ -687,6 +687,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 		],
 		callback_url="https://client.invalid/tools",
 		callback_token="shared-secret",
+		callback_timeout=7,
 		user_context={"user": "alice"},
 		auto_approve=True,
 	)
@@ -701,6 +702,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 
 	assert seen["url"] == "https://client.invalid/tools"
 	assert seen["headers"]["X-Harness-Token"] == "shared-secret"
+	assert seen["timeout"] == 7
 	assert seen["payload"] == {
 		"session_id": session.id,
 		"tool": "check_mail",
