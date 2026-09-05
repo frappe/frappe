@@ -5,7 +5,7 @@ import io
 import os
 import sys
 from contextlib import contextmanager
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 import frappe.storage
@@ -145,6 +145,20 @@ class TestCollectGarbage(IntegrationTestCase):
 	def gc_cutoff(self):
 		return add_to_date(now_datetime(), hours=-gc.MIN_AGE_HOURS)
 
+	def reference_columns(self, *extra):
+		return [
+			{"doctype": "File", "fieldname": "blob", "issingle": 0},
+			*extra,
+		]
+
+	def insert_metadata_row(self, doctype, **values):
+		doc = frappe.new_doc(doctype)
+		doc.name = "storage-gc-" + frappe.generate_hash(length=16)
+		doc.update(values)
+		doc.db_insert()
+		self.addCleanup(frappe.db.delete, doctype, {"name": doc.name})
+		return doc
+
 	def test_no_file_blob_table_is_a_no_op(self):
 		# a site that never ran the v2 migration must not error out
 		with flag_on(), fake() as store:
@@ -208,6 +222,188 @@ class TestCollectGarbage(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("File Blob", blob.name))
 			self.assertTrue(store.exists(blob.key))
 			self.assertFalse(gc.is_still_orphan(blob.name, cutoff))
+
+	def test_keeps_blob_referenced_outside_file(self):
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+			reference = frappe.get_doc({"doctype": "ToDo", "description": "storage gc reference"}).insert()
+			self.addCleanup(frappe.db.delete, "ToDo", {"name": reference.name})
+			frappe.db.set_value("ToDo", reference.name, "allocated_to", blob.name, update_modified=False)
+			columns = self.reference_columns(
+				{"doctype": "ToDo", "fieldname": "allocated_to", "issingle": 0}
+			)
+
+			with patch.object(gc, "blob_reference_columns", return_value=columns):
+				stats = collect_garbage()
+
+			self.assertEqual(stats["blobs_deleted"], 0)
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertTrue(store.exists(blob.key))
+
+	def test_keeps_blob_referenced_by_single(self):
+		fieldname = "storage_gc_blob_reference"
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+			frappe.db.set_single_value("System Settings", fieldname, blob.name, update_modified=False)
+			self.addCleanup(
+				frappe.db.delete,
+				"Singles",
+				{"doctype": "System Settings", "field": fieldname},
+			)
+			columns = self.reference_columns(
+				{"doctype": "System Settings", "fieldname": fieldname, "issingle": 1}
+			)
+
+			with patch.object(gc, "blob_reference_columns", return_value=columns):
+				stats = collect_garbage()
+
+			self.assertEqual(stats["blobs_deleted"], 0)
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertTrue(store.exists(blob.key))
+
+	def test_discovery_failure_deletes_nothing_and_still_expires_uploads(self):
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+
+			with (
+				patch.object(gc, "blob_reference_columns", side_effect=RuntimeError("metadata unavailable")),
+				patch.object(gc, "expire_upload_sessions", return_value=3) as expire,
+				patch("frappe.logger", return_value=MagicMock()),
+			):
+				stats = collect_garbage()
+
+			expire.assert_called_once()
+			self.assertEqual(stats, {**self.empty_stats(), "upload_sessions_expired": 3})
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertTrue(store.exists(blob.key))
+
+	def test_missing_referenced_table_deletes_nothing_and_still_expires_uploads(self):
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+			columns = self.reference_columns(
+				{
+					"doctype": "Missing Blob Reference " + frappe.generate_hash(length=8),
+					"fieldname": "blob",
+					"issingle": 0,
+				}
+			)
+
+			with (
+				patch.object(gc, "blob_reference_columns", return_value=columns),
+				patch.object(gc, "expire_upload_sessions", return_value=2) as expire,
+				patch("frappe.logger", return_value=MagicMock()),
+			):
+				stats = collect_garbage()
+
+			expire.assert_called_once()
+			self.assertEqual(stats, {**self.empty_stats(), "upload_sessions_expired": 2})
+			self.assertTrue(frappe.db.exists("File Blob", blob.name))
+			self.assertTrue(store.exists(blob.key))
+
+	def test_candidate_and_lock_recheck_receive_same_discovered_predicate(self):
+		columns = self.reference_columns()
+		blob = frappe._dict(name="candidate", key="key", driver="memory", is_private=0)
+		with (
+			patch.object(gc, "blob_reference_columns", return_value=columns),
+			patch.object(gc, "_warn_unindexed_reference_columns"),
+			patch.object(gc, "get_orphan_blobs", return_value=[blob]) as candidates,
+			patch.object(gc, "delete_blob", return_value=False) as delete,
+			patch.object(gc, "expire_upload_sessions", return_value=0),
+		):
+			collect_garbage()
+
+		predicate = candidates.call_args.kwargs["predicate"]
+		self.assertEqual(delete.call_args.kwargs["predicate"], predicate)
+
+	def test_warns_once_for_each_unindexed_reference_column(self):
+		logger = MagicMock()
+		columns = [
+			{"doctype": "Indexed Reference", "fieldname": "blob", "issingle": 0},
+			{"doctype": "Unindexed Reference", "fieldname": "blob", "issingle": 0},
+			{"doctype": "Single Reference", "fieldname": "blob", "issingle": 1},
+		]
+		with patch.object(
+			frappe.db,
+			"get_column_index",
+			side_effect=[{"Key_name": "blob_index"}, None, None],
+		):
+			gc._warn_unindexed_reference_columns(columns, logger)
+
+		logger.warning.assert_called_once_with(
+			"storage gc: unindexed File Blob reference Unindexed Reference.blob"
+		)
+
+	def test_blob_reference_columns_normalizes_and_deduplicates_discovery(self):
+		discovered = [
+			{"parent": "Standard Reference", "fieldname": "blob", "issingle": 0},
+			{"parent": "Child Reference", "fieldname": "blob", "issingle": 0},
+			{"parent": "Custom Reference", "fieldname": "custom_blob", "issingle": 0},
+			{"parent": "Property Reference", "fieldname": "changed_link", "issingle": 0},
+			{"parent": "Single Reference", "fieldname": "blob", "issingle": 1},
+			{"parent": "Custom Reference", "fieldname": "custom_blob", "issingle": 0},
+		]
+		with patch.object(gc, "get_link_fields", return_value=discovered) as get_links:
+			columns = gc.blob_reference_columns()
+
+		get_links.assert_called_once_with("File Blob")
+		self.assertEqual(
+			columns,
+			[
+				{"doctype": "Standard Reference", "fieldname": "blob", "issingle": 0},
+				{"doctype": "Child Reference", "fieldname": "blob", "issingle": 0},
+				{"doctype": "Custom Reference", "fieldname": "custom_blob", "issingle": 0},
+				{"doctype": "Property Reference", "fieldname": "changed_link", "issingle": 0},
+				{"doctype": "Single Reference", "fieldname": "blob", "issingle": 1},
+			],
+		)
+
+	def test_discovers_standard_child_custom_property_setter_and_single_links(self):
+		suffix = frappe.generate_hash(length=8).lower()
+		custom_field = f"gc_custom_blob_{suffix}"
+		child_field = f"gc_child_blob_{suffix}"
+		single_field = f"gc_single_blob_{suffix}"
+		virtual_field = f"gc_virtual_blob_{suffix}"
+		for dt, fieldname in (
+			("ToDo", custom_field),
+			("Role Profile Role", child_field),
+			("System Settings", single_field),
+			("RQ Job", virtual_field),
+		):
+			self.insert_metadata_row(
+				"Custom Field",
+				dt=dt,
+				label=fieldname,
+				fieldname=fieldname,
+				fieldtype="Link",
+				options="File Blob",
+			)
+		self.insert_metadata_row(
+			"Property Setter",
+			doc_type="ToDo",
+			doctype_or_field="DocField",
+			field_name="assignment_rule",
+			property="options",
+			property_type="Data",
+			value="File Blob",
+		)
+		frappe.flags.link_fields = {}
+		self.addCleanup(setattr, frappe.flags, "link_fields", {})
+
+		columns = {
+			(column["doctype"], column["fieldname"], column["issingle"])
+			for column in gc.blob_reference_columns()
+		}
+
+		self.assertIn(("File", "blob", 0), columns)
+		self.assertIn(("ToDo", custom_field, 0), columns)
+		self.assertIn(("Role Profile Role", child_field, 0), columns)
+		self.assertIn(("ToDo", "assignment_rule", 0), columns)
+		self.assertIn(("System Settings", single_field, 1), columns)
+		self.assertNotIn(("RQ Job", virtual_field, 0), columns)
 
 	def test_is_still_orphan_is_false_for_a_missing_row(self):
 		self.assertFalse(gc.is_still_orphan(frappe.generate_hash(length=20), self.gc_cutoff()))

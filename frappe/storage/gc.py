@@ -3,14 +3,15 @@
 """Garbage collection for Storage v2.
 
 Deleting a File row never touches bytes synchronously; this daily job
-does. A blob is garbage when no File row references it and it is older
-than ``MIN_AGE_HOURS``. That covers rolled-back writes and stale
-``Pending`` blobs from aborted uploads. Stale upload sessions are swept
-through ``frappe.storage.upload.expire_stale_upload_sessions``.
+does. A blob is garbage when no Link field pointing to File Blob references
+it and it is older than ``MIN_AGE_HOURS``. That covers rolled-back writes
+and stale ``Pending`` blobs from aborted uploads. Stale upload sessions are
+swept through ``frappe.storage.upload.expire_stale_upload_sessions``.
 """
 
 import frappe
 import frappe.storage
+from frappe.model.rename_doc import get_link_fields
 from frappe.utils import add_to_date, get_datetime, now_datetime
 
 BATCH_SIZE = 500
@@ -32,11 +33,22 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	logger = frappe.logger("storage")
 	cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
 
+	try:
+		columns = blob_reference_columns()
+		_warn_unindexed_reference_columns(columns, logger)
+		predicate = orphan_predicate(columns=columns)
+		orphans = get_orphan_blobs(cutoff, batch_size, predicate=predicate)
+	except Exception:
+		# An incomplete set of references must fail closed. Upload expiry is
+		# independent and remains useful even when blob collection cannot run.
+		logger.error("storage gc: could not inspect all blob references; deleting no blobs", exc_info=True)
+		stats["upload_sessions_expired"] = expire_upload_sessions(logger)
+		return stats
+
 	while True:
-		orphans = get_orphan_blobs(cutoff, batch_size)
 		deleted = 0
 		for blob in orphans:
-			if delete_blob(blob, cutoff, logger, stats):
+			if delete_blob(blob, cutoff, logger, stats, predicate=predicate):
 				deleted += 1
 		stats["blobs_deleted"] += deleted
 		if not frappe.flags.in_test:
@@ -44,6 +56,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 			frappe.db.commit()  # nosemgrep
 		if deleted == 0 or len(orphans) < batch_size:
 			break
+		orphans = get_orphan_blobs(cutoff, batch_size, predicate=predicate)
 
 	stats["upload_sessions_expired"] = expire_upload_sessions(logger)
 
@@ -56,22 +69,90 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	return stats
 
 
-def get_orphan_blobs(cutoff, limit: int) -> list[dict]:
-	"""Blobs no File row references, untouched since ``cutoff``."""
-	Blob = frappe.qb.DocType("File Blob")
-	File = frappe.qb.DocType("File")
-	return (
-		frappe.qb.from_(Blob)
-		.left_join(File)
-		.on(File.blob == Blob.name)
-		.select(Blob.name, Blob.key, Blob.driver, Blob.is_private)
-		.where(File.name.isnull())
-		.where(Blob.modified < cutoff)
-		.limit(limit)
-	).run(as_dict=True)
+def blob_reference_columns() -> list[dict]:
+	"""Return every persisted Link column pointing to File Blob."""
+	columns = []
+	seen = set()
+	for field in get_link_fields("File Blob"):
+		key = (field["parent"], field["fieldname"])
+		if key in seen:
+			continue
+		seen.add(key)
+		columns.append(
+			{"doctype": key[0], "fieldname": key[1], "issingle": int(field.get("issingle") or 0)}
+		)
+	return columns
 
 
-def delete_blob(blob, cutoff, logger, stats: dict) -> bool:
+def orphan_predicate(blob_alias: str = "b", *, columns: list[dict] | None = None) -> str:
+	"""Return one NOT EXISTS probe per discovered File Blob Link column."""
+	return _orphan_predicate(
+		blob_reference_columns() if columns is None else columns,
+		blob_alias=blob_alias,
+	)
+
+
+def _orphan_predicate(columns: list[dict], blob_alias: str = "b") -> str:
+	predicates = []
+	blob = _quote_identifier(blob_alias)
+	for column in columns:
+		doctype = column["doctype"]
+		fieldname = column["fieldname"]
+		if column["issingle"]:
+			predicates.append(
+				"not exists ("
+				"select 1 from `tabSingles` ref "
+				f"where ref.`doctype` = {frappe.db.escape(doctype)} "
+				f"and ref.`field` = {frappe.db.escape(fieldname)} "
+				f"and ref.`value` = {blob}.`name`"
+				")"
+			)
+		else:
+			table = _quote_identifier(f"tab{doctype}")
+			field = _quote_identifier(fieldname)
+			predicates.append(
+				f"not exists (select 1 from {table} ref where ref.{field} = {blob}.`name`)"
+			)
+	return "\n  and ".join(predicates) or "1 = 1"
+
+
+def _quote_identifier(value: str) -> str:
+	return f"`{value.replace('`', '``')}`"
+
+
+def _warn_unindexed_reference_columns(columns: list[dict], logger) -> None:
+	for column in columns:
+		if column["issingle"]:
+			continue
+		table = f"tab{column['doctype']}"
+		indexed = frappe.db.get_column_index(table, column["fieldname"], unique=False)
+		if not indexed:
+			indexed = frappe.db.get_column_index(table, column["fieldname"], unique=True)
+		if not indexed:
+			logger.warning(
+				"storage gc: unindexed File Blob reference {0}.{1}".format(
+					column["doctype"], column["fieldname"]
+				)
+			)
+
+
+def get_orphan_blobs(cutoff, limit: int, *, predicate: str | None = None) -> list[dict]:
+	"""Blobs no discovered Link column references, untouched since ``cutoff``."""
+	predicate = orphan_predicate() if predicate is None else predicate
+	return frappe.db.sql(
+		f"""
+		select b.name, b.key, b.driver, b.is_private
+		from `tabFile Blob` b
+		where b.modified < %(cutoff)s
+		  and {predicate}
+		limit %(limit)s
+		""",
+		{"cutoff": cutoff, "limit": limit},
+		as_dict=True,
+	)
+
+
+def delete_blob(blob, cutoff, logger, stats: dict, *, predicate: str | None = None) -> bool:
 	"""Delete one blob's bytes, then its row. Return True when the row is gone.
 
 	Re-verifies the orphan status under a row lock first: ``put_blob``'s
@@ -79,7 +160,7 @@ def delete_blob(blob, cutoff, logger, stats: dict) -> bool:
 	bumps ``modified``), and a new File row may have appeared since
 	``get_orphan_blobs`` ran. Drivers treat a missing object as a no-op
 	delete. On a driver error the row is kept so the next run retries."""
-	if not is_still_orphan(blob.name, cutoff):
+	if not is_still_orphan(blob.name, cutoff, predicate=predicate):
 		return False
 
 	try:
@@ -101,12 +182,23 @@ def delete_blob(blob, cutoff, logger, stats: dict) -> bool:
 		return False
 
 
-def is_still_orphan(blob_name: str, cutoff) -> bool:
+def is_still_orphan(blob_name: str, cutoff, *, predicate: str | None = None) -> bool:
 	"""Lock the blob row and re-check that it is still unreferenced and stale."""
 	modified = frappe.db.get_value("File Blob", blob_name, "modified", for_update=True)
 	if not modified or get_datetime(modified) >= get_datetime(cutoff):
 		return False
-	return not frappe.db.exists("File", {"blob": blob_name})
+	predicate = orphan_predicate() if predicate is None else predicate
+	return bool(
+		frappe.db.sql(
+			f"""
+			select b.name
+			from `tabFile Blob` b
+			where b.name = %(blob_name)s
+			  and {predicate}
+			""",
+			{"blob_name": blob_name},
+		)
+	)
 
 
 def expire_upload_sessions(logger) -> int:
