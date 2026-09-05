@@ -104,4 +104,6 @@ Most invalid session states return `409`; unknown sessions return `404`.
 
 `GET /sessions/{sid}/stream?since=N` is an SSE feed. It first replays durable entries after `N`, then streams live events. Reconnect with the last durable `seq`. Without `follow=true`, the stream closes at a run boundary. With `follow=true`, it stays open across idle periods and sends `: keepalive` comments.
 
+When a run already has provisional assistant output, the stream emits `preview_replay_started` followed by a snapshot of the current text, thinking, tool-call, and retry events before continuing live. Clear only the existing provisional preview when that marker arrives, then fold the snapshot normally. Durable transcript entries are unaffected. This makes a fresh attachment restore output emitted before it connected and makes transport reconnects idempotent.
+
 Durable events have a monotonic `seq`; live preview events such as `text_delta` do not. Render durable `assistant_message` and `tool_result` events as the source of truth, using deltas only for temporary output.

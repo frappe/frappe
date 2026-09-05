@@ -1,8 +1,6 @@
-"""Typed events — the one contract between the loop, the log, and clients.
+"""Events shared by the loop, log, and clients.
 
-Durable events get a monotonic `seq` and persist to the session log; they rebuild the
-conversation on replay/restart. Live-only events (deltas, retry progress) are a
-transient UI feed — never persisted, healed by replay when missed.
+Durable events are stored. Active previews are kept in memory for reconnects.
 """
 
 from __future__ import annotations
@@ -331,6 +329,13 @@ class CompactionEnded(_Event):
 	error_message: str | None = None
 
 
+class PreviewReplayStarted(_Event):
+	"""Starts a full replay of the active preview."""
+
+	durable: ClassVar[bool] = False
+	type: Literal["preview_replay_started"] = "preview_replay_started"
+
+
 class TitleChanged(_Event):
 	"""The session's generated display title landed; it lives in session meta, not the
 	log, so late subscribers read it from the session detail instead of replay."""
@@ -359,6 +364,7 @@ AnyEvent = (
 	| Retry
 	| CompactionStarted
 	| CompactionEnded
+	| PreviewReplayStarted
 	| TitleChanged
 )
 

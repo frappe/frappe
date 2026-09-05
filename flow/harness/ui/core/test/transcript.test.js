@@ -304,6 +304,22 @@ test("announced calls stay hidden and failed attempts leave no ghost steps", () 
 	assert.deepEqual(toolGroups(conversation), [])
 })
 
+test("a preview replay replaces an existing provisional preview", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "text_delta", text: "prefix" })
+	conversation.compacting = true
+	conversation.liveLabel = "Compacting context"
+
+	applyEvent(conversation, { type: "preview_replay_started" })
+	assert.equal(conversation.compacting, true)
+	assert.equal(conversation.liveLabel, "Compacting context")
+	applyEvent(conversation, { type: "text_delta", text: "prefix" })
+	applyEvent(conversation, { type: "text_delta", text: " suffix" })
+
+	assert.deepEqual(conversation.partial, [{ type: "text", text: "prefix suffix" }])
+})
+
 test("streamed thinking joins the trailing tool group's dropdown", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })

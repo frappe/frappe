@@ -30,12 +30,14 @@ from flow.events import (
 	AssistantMessage,
 	AttachmentContent,
 	ModelChanged,
+	PreviewReplayStarted,
 	ProviderErrorKind,
 	ReasoningEffort,
 	Retry,
 	Rewind,
 	RunEnded,
 	RunError,
+	RunStarted,
 	TextContent,
 	TextDelta,
 	ThinkingContent,
@@ -216,6 +218,7 @@ class Session:
 		self._operation_type: Literal["run", "compact"] = "run"
 		self._steering_queue: deque[_QueuedSteering] = deque()
 		self._subscribers: set[asyncio.Queue[AnyEvent]] = set()
+		self._preview_replay: list[AnyEvent] = []
 		# a run this process never settled (daemon crash) left open calls; close them
 		# now, before anything newer can be admitted
 		for repair in self.transcript.missing_results():
@@ -405,18 +408,22 @@ class Session:
 		self._subscribers.discard(queue)
 
 	async def events(self, since: int = 0) -> AsyncGenerator[AnyEvent]:
-		"""Replay the log from a cursor, then stay attached to the live stream.
+		"""Replay stored events, then follow the live stream.
 
-		The one subscription surface: SSE and embedded callers both read this. The
-		subscription opens before the replay so nothing can fall between them; a
-		durable event seen by both sides is deduplicated by seq.
+		Subscribe before replay to avoid gaps. Skip durable duplicates by sequence
+		number, and capture the active preview at the same point.
 		"""
 		queue = self.subscribe()
+		preview_replay = tuple(self._preview_replay)
 		try:
 			cursor = since
 			for row in self.log.read_since(since):
 				cursor = row["seq"]
 				yield parse_event(row)
+			if preview_replay:
+				yield PreviewReplayStarted()
+				for event in preview_replay:
+					yield event
 			while True:
 				event = await queue.get()
 				if event.durable and event.seq is not None and event.seq <= cursor:
@@ -432,7 +439,25 @@ class Session:
 		if event.durable:
 			event.parent_seq = self.transcript.leaf_seq  # after a rewind, not the last row
 			self.log.append(event)
+			if isinstance(event, (RunStarted, AssistantMessage, RunEnded)):
+				self._preview_replay.clear()
 			self.transcript.record(event)
+		elif isinstance(event, Retry) and event.status == "started":
+			self._preview_replay[:] = [event]
+		elif isinstance(event, TextDelta):
+			previous = self._preview_replay[-1] if self._preview_replay else None
+			if isinstance(previous, TextDelta):
+				self._preview_replay[-1] = TextDelta(text=previous.text + event.text)
+			else:
+				self._preview_replay.append(event)
+		elif isinstance(event, ThinkingDelta):
+			previous = self._preview_replay[-1] if self._preview_replay else None
+			if isinstance(previous, ThinkingDelta):
+				self._preview_replay[-1] = ThinkingDelta(thinking=previous.thinking + event.thinking)
+			else:
+				self._preview_replay.append(event)
+		elif isinstance(event, (ToolCallStarted, ToolCallDisplayReady, Retry)):
+			self._preview_replay.append(event)
 		for queue in list(self._subscribers):
 			queue.put_nowait(event)
 		if self.event_sink is not None:

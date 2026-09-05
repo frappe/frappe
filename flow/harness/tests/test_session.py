@@ -15,6 +15,8 @@ from flow.events import (
 	AssistantMessage,
 	PendingCall,
 	RunEnded,
+	TextDelta,
+	ThinkingDelta,
 	ToolCall,
 	ToolResult,
 	UserMessage,
@@ -281,6 +283,48 @@ async def test_events_replays_then_stays_live_without_duplicates(tmp_path):
 	assert durable_seqs == sorted(durable_seqs)
 	assert len(durable_seqs) == len(set(durable_seqs))  # replay/live overlap deduplicated
 	assert [event.content for event in seen if event.type == "user_message"] == ["one", "two"]
+
+
+async def test_reconnecting_event_stream_replays_in_progress_deltas(tmp_path):
+	class StreamingModel(MockModel):
+		def __init__(self):
+			super().__init__()
+			self.prefix_sent = asyncio.Event()
+			self.release = asyncio.Event()
+
+		async def run(self, request):
+			yield ThinkingDelta(thinking="think")
+			yield ThinkingDelta(thinking="ing")
+			yield TextDelta(text="pre")
+			yield TextDelta(text="fix")
+			self.prefix_sent.set()
+			await self.release.wait()
+			yield TextDelta(text=" suffix")
+			yield AssistantMessage(content="prefix suffix")
+
+	model = StreamingModel()
+	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
+	handle = await session.run("hi", model=model)
+	await model.prefix_sent.wait()
+	reconnect_cursor = session.log.latest_seq
+	seen = []
+
+	async def reconnect():
+		async for event in session.events(since=reconnect_cursor):
+			seen.append(event)
+			if event.type == "run_ended":
+				return
+
+	watcher = asyncio.create_task(reconnect())
+	await asyncio.sleep(0)  # let the reconnect subscribe
+	model.release.set()
+	assert handle.task is not None
+	await handle.task
+	await asyncio.wait_for(watcher, timeout=1)
+
+	assert seen[0].type == "preview_replay_started"
+	assert [event.thinking for event in seen if isinstance(event, ThinkingDelta)] == ["thinking"]
+	assert [event.text for event in seen if isinstance(event, TextDelta)] == ["prefix", " suffix"]
 
 
 async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):

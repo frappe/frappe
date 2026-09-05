@@ -400,6 +400,55 @@ test("session replay restores the selected model's limit after a trailing model 
 	flow.detach()
 })
 
+test("refresh restores the in-progress assistant prefix before continuing live", async () => {
+	let releaseSuffix
+	let prefixDelivered
+	let suffixDelivered
+	const suffixGate = new Promise((resolve) => (releaseSuffix = resolve))
+	const sawPrefix = new Promise((resolve) => (prefixDelivered = resolve))
+	const sawSuffix = new Promise((resolve) => (suffixDelivered = resolve))
+	const client = {
+		async session() {
+			return { session_id: "s1", model: "mock", running: true, latest_seq: 2 }
+		},
+		async entries() {
+			return {
+				entries: [
+					{ type: "run_started", seq: 1, run_id: "r1" },
+					{ type: "user_message", seq: 2, content: "write a story" },
+				],
+				latest_seq: 2,
+			}
+		},
+		stream(sid, since) {
+			assert.equal(sid, "s1")
+			assert.equal(since, 2)
+			return {
+				close() {},
+				async *[Symbol.asyncIterator]() {
+					yield { type: "preview_replay_started" }
+					yield { type: "text_delta", text: "prefix" }
+					prefixDelivered()
+					await suffixGate
+					yield { type: "text_delta", text: " suffix" }
+					suffixDelivered()
+				},
+			}
+		},
+	}
+	const flow = createFlowStore(client)
+
+	await flow.openSession("s1")
+	await sawPrefix
+	assert.deepEqual(flow.state.conversation.partial, [{ type: "text", text: "prefix" }])
+	assert.deepEqual(flow.state.conversation.entries.map((entry) => entry.type), ["user_message"])
+
+	releaseSuffix()
+	await sawSuffix
+	assert.deepEqual(flow.state.conversation.partial, [{ type: "text", text: "prefix suffix" }])
+	flow.detach()
+})
+
 test("workspace tabs persist per session and restore after a refresh", async () => {
 	const backing = new Map()
 	const previousStorage = globalThis.localStorage

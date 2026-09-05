@@ -127,6 +127,9 @@ export function applyEvent(s, e) {
 			// only always-correct recovery. The store watches this flag.
 			s.needsReload = true
 			break
+		case "preview_replay_started":
+			s.partial = []
+			break
 		case "text_delta":
 			appendPartialText(s.partial, e.text)
 			s.liveLabel = null

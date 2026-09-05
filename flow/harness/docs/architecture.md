@@ -24,7 +24,7 @@ The loop owns model calls, tool execution, confirmation pauses, steering, retrie
 `flow.events` is the shared wire contract.
 
 - Durable events are append-only JSONL rows with a monotonic `seq`: messages, tool results, approval requests, model changes, compactions, run endings, errors, and rewinds.
-- Live-only events are display hints: text/thinking deltas, tool-start notifications, retry progress, compaction progress, and generated titles.
+- Live-only events are display hints: text/thinking deltas, tool-start notifications, retry progress, compaction progress, and generated titles. While a run is active, `Session` retains its provisional assistant events in memory so a newly attached client can rebuild the preview; the terminal durable assistant message supersedes them.
 
 The `Transcript` reducer rebuilds state from the active log branch and updates it incrementally during a run. It holds the provider-facing messages, unresolved tool calls, pending approvals, model selection, and context usage. A session is `running` while its task is alive, `paused` while an approval remains, and otherwise `idle`.
 
@@ -50,6 +50,6 @@ Built-in, extension, and client-side tools are combined into one model-facing sc
 
 ## Clients
 
-The HTTP server exposes session operations and SSE. SSE replays durable rows from a cursor, then emits live events, so a reconnect can recover without guessing.
+The HTTP server exposes session operations and SSE. SSE replays durable rows from a cursor, then any retained provisional preview, and finally new live events, so a reconnect can recover without guessing.
 
 The Textual TUI is a separate client package. Its reducer and stream client use the same events as the server, and it never imports server internals. The Vue web UI is served by the daemon but uses the HTTP API as well.

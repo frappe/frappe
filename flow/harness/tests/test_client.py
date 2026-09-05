@@ -8,13 +8,14 @@ import httpx
 import pytest
 import uvicorn
 
-from flow.events import AssistantMessage, Usage
+from flow.events import AssistantMessage, TextDelta, Usage
 from flow.model import Model, ModelRequest
 from flow.model.credentials import CredentialStore
 from flow.server import create_app
 from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
 from flow_tui.client import EventStream, FlowAPIError, FlowClient
+from flow_tui.client.state import ConversationState, PartialText
 
 
 def _store(tmp_path) -> SessionStore:
@@ -57,11 +58,17 @@ class _BlockingModel(Model):
 	def __init__(self):
 		self.started = asyncio.Event()
 		self.release = asyncio.Event()
+		self.suffix_sent = asyncio.Event()
+		self.finish = asyncio.Event()
 
 	async def run(self, request: ModelRequest):
+		yield TextDelta(text="prefix")
 		self.started.set()
 		await self.release.wait()
-		yield AssistantMessage(content="done")
+		yield TextDelta(text=" suffix")
+		self.suffix_sent.set()
+		await self.finish.wait()
+		yield AssistantMessage(content="prefix suffix")
 		yield Usage()
 
 
@@ -167,22 +174,37 @@ async def test_reconnect_mid_run_resumes_from_cursor_without_duplicates(tmp_path
 		sid = await client.create_session(SessionConfig(cwd=str(tmp_path)))
 		stream = EventStream(client, sid, backoff_initial=0.05)
 		events = []
-		collector = asyncio.create_task(_collect(stream, events))
+		state = ConversationState()
+
+		async def collect():
+			async for event in stream:
+				events.append(event)
+				state.apply(event)
+
+		def partial_text():
+			return "".join(part.text for part in state.partial if isinstance(part, PartialText))
+
+		collector = asyncio.create_task(collect())
 
 		await client.run(sid, "go")
 		await asyncio.wait_for(model.started.wait(), timeout=5)
-		await _until(lambda: any(e.type == "user_message" for e in events))
+		await _until(lambda: partial_text() == "prefix")
 
 		# drop the transport mid-run; the stream must reconnect from its cursor
 		assert stream._response is not None
 		await stream._response.aclose()
 
 		model.release.set()
+		await model.suffix_sent.wait()
+		await _until(lambda: partial_text().endswith(" suffix"))
+		partial_after_reconnect = partial_text()
+		model.finish.set()
 		await _until(lambda: _ended(events) == 1)
 
 		seqs = [e.seq for e in events if e.durable and e.seq is not None]
 		assert seqs == sorted(seqs) and len(seqs) == len(set(seqs))
 		assert sum(e.type == "assistant_message" for e in events) == 1
+		assert partial_after_reconnect == "prefix suffix"
 
 		await stream.stop()
 		await asyncio.wait_for(collector, timeout=5)

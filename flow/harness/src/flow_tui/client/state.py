@@ -29,6 +29,7 @@ from flow.events import (
 	DisplaySegment,
 	ModelChanged,
 	PendingCall,
+	PreviewReplayStarted,
 	ReasoningEffort,
 	Retry,
 	Rewind,
@@ -262,6 +263,16 @@ class ConversationState:
 				self.context_window = event.context_window
 			self.cost += event.cost
 			return [StatusChanged()]
+
+		if isinstance(event, PreviewReplayStarted):
+			changes = []
+			if self.partial:
+				self.partial = []
+				changes.append(PartialCleared())
+			if self.retry is not None:
+				self.retry = None
+				changes.append(StatusChanged())
+			return changes
 
 		if isinstance(event, TextDelta):
 			tail = self.partial[-1] if self.partial else None
