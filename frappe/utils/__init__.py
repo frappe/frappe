@@ -466,7 +466,14 @@ def unesc(s, esc_chars):
 	return s
 
 
-def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False):
+def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False, stdout=None):
+	"""Run ``cmd`` through bash and return its ``(stderr, stdout)``.
+
+	:param stdout: file object or descriptor to send the command's stdout to. By
+	        default the output is captured and returned; pass a destination when the
+	        command produces a payload rather than a message - the bytes then go
+	        straight there and the returned stdout is empty.
+	"""
 	# using Popen instead of os.system - as recommended by python docs
 	import shlex
 	import tempfile
@@ -476,10 +483,10 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 		# ensure it's properly escaped; only a single string argument executes via shell
 		cmd = shlex.join(cmd)
 
-	with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+	with tempfile.TemporaryFile() as captured_stdout, tempfile.TemporaryFile() as stderr:
 		kwargs = {
 			"shell": True,
-			"stdout": stdout,
+			"stdout": captured_stdout if stdout is None else stdout,
 			"stderr": stderr,
 			"executable": shutil.which("bash") or "/bin/bash",
 		}
@@ -490,8 +497,10 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 		p = Popen(cmd, **kwargs)
 		exit_code = p.wait()
 
-		stdout.seek(0)
-		out = stdout.read()
+		out = b""
+		if stdout is None:
+			captured_stdout.seek(0)
+			out = captured_stdout.read()
 
 		stderr.seek(0)
 		err = stderr.read()
@@ -937,12 +946,8 @@ def get_html_for_route(route):
 	return frappe.safe_decode(response.get_data())
 
 
-def get_file_size(path, format=False):
-	num = os.path.getsize(path)
-
-	if not format:
-		return num
-
+def format_bytes(num: float) -> str:
+	"""Render a byte count in binary units, e.g. `1.5MiB`."""
 	suffix = "B"
 
 	for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
@@ -951,6 +956,15 @@ def get_file_size(path, format=False):
 		num /= 1024
 
 	return "{:.1f}{}{}".format(num, "Yi", suffix)
+
+
+def get_file_size(path, format=False):
+	num = os.path.getsize(path)
+
+	if not format:
+		return num
+
+	return format_bytes(num)
 
 
 def get_build_version():
