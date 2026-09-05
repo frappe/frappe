@@ -163,9 +163,11 @@ def _write_upload_chunk(
 		delete_session(meta_path, part_path)
 		frappe.throw(_("Upload exceeds the declared file size"))
 
-	# part_path is built by get_session_paths from an alphanumeric-only upload_id
-	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-	with open(part_path, "r+b" if os.path.exists(part_path) else "wb") as f:
+	# save_session_meta creates the part file with the session, so a missing one
+	# means a concurrent finish already consumed it. Open it in one call and
+	# refuse: probing first would raise, and re-creating it would resurrect a
+	# dead session and report bytes as received that nobody will ever read.
+	with open_session_part(part_path, write=True) as f:
 		f.seek(offset)
 		f.write(data)
 
@@ -279,8 +281,7 @@ def _finish_upload_to_blob(
 		if direct:
 			blob = store_direct_upload(upload_id, temp_is_private, is_private=is_private, filename=filename)
 		else:
-			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-			with open(part_path, "rb") as stream:
+			with open_session_part(part_path) as stream:
 				blob = put_blob(stream, is_private=is_private, filename=filename)
 
 		if blob.file_size == 0:
@@ -476,14 +477,24 @@ def load_session(upload_id: str) -> tuple[dict, str, str]:
 
 
 def read_session_meta(meta_path: str) -> dict | None:
-	"""Read a session meta file. Return None when it is gone or unreadable."""
+	"""Read a session meta file. Return None when it is gone or unreadable.
+
+	A gone file is the ordinary race, so it stays quiet. Bad permissions, a
+	truncated file, or a bad device also read as an expired session. Log those:
+	otherwise a broken uploads directory fails every upload with no signal."""
 	try:
 		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(meta_path) as f:
 			meta = json.load(f)
-	except (OSError, ValueError):
+	except FileNotFoundError:
 		return None
-	return meta if isinstance(meta, dict) else None
+	except (OSError, ValueError):
+		frappe.logger("storage").warning(f"storage: unreadable session meta {meta_path}", exc_info=True)
+		return None
+	if not isinstance(meta, dict):
+		frappe.logger("storage").warning(f"storage: session meta {meta_path} is not an object")
+		return None
+	return meta
 
 
 def session_size(part_path: str) -> int:
@@ -493,8 +504,32 @@ def session_size(part_path: str) -> int:
 	existence check would raise instead of reporting an empty session."""
 	try:
 		return os.path.getsize(part_path)
-	except OSError:
+	except FileNotFoundError:
 		return 0
+	except OSError:
+		frappe.logger("storage").warning(f"storage: unreadable upload part {part_path}", exc_info=True)
+		return 0
+
+
+def open_session_part(part_path: str, *, write: bool = False):
+	"""Open a session's part file. Throw when it is gone or unreadable.
+
+	Claiming a session does not pin its part file: a chunk write that loaded
+	the session before the claim still deletes both files when it overruns the
+	declared size, and the stale-session sweep does not spare a claimed
+	session. So even a claimed finish can find the bytes gone. Neither mode
+	creates the file, because a session without a part file is already dead."""
+	flags = os.O_RDWR if write else os.O_RDONLY
+	try:
+		# part_path is built by get_session_paths from an alphanumeric-only upload_id
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+		fd = os.open(part_path, flags)
+	except FileNotFoundError:
+		frappe.throw(_("Upload session has no data"))
+	except OSError:
+		frappe.logger("storage").warning(f"storage: unreadable upload part {part_path}", exc_info=True)
+		frappe.throw(_("Upload session has no data"))
+	return os.fdopen(fd, "r+b" if write else "rb")
 
 
 def require_session_policy(meta: dict, expected: str) -> None:

@@ -695,12 +695,85 @@ class TestServeUpload(IntegrationTestCase):
 				return real_open(file, *args, **kwargs)
 
 			with patch("builtins.open", consume_then_open):
-				with self.assertRaises(frappe.ValidationError):
+				with self.assertRaisesRegex(frappe.ValidationError, "not found or expired"):
 					finish_upload_to_blob(upload_id)
 
 			# the loser claimed nothing and left no session artifact behind
 			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
 			self.assertFalse(os.path.exists(meta_path))
+
+	def test_finish_refuses_a_session_whose_part_vanishes_after_the_claim(self):
+		"""Claiming the session does not pin the part file. A concurrent chunk
+		write that overruns the declared size deletes it, so the finisher has to
+		see the stable session error, not the raw OSError of the vanished part."""
+		content = b"claimed then robbed"
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("robbed.bin", len(content))
+			upload_blob_chunk(upload_id, 0, content)
+			meta_path, part_path = get_session_paths(upload_id)
+			real_rename = os.rename
+
+			def rob_after_claim(src, dst, *args, **kwargs):
+				result = real_rename(src, dst, *args, **kwargs)
+				if src == meta_path:
+					# stands in for a concurrent oversize chunk write
+					delete_session(part_path)
+				return result
+
+			with patch("os.rename", rob_after_claim):
+				with self.assertRaisesRegex(frappe.ValidationError, "no data"):
+					finish_upload_to_blob(upload_id)
+
+			# the claim was still released, so nothing survives the failure
+			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
+			self.assertFalse(os.path.exists(part_path))
+
+	def test_finish_refuses_a_vanished_part_before_claiming_the_session(self):
+		"""The no-data check runs before the claim, so a session whose part file
+		is gone stays unclaimed and the client can retry it."""
+		content = b"bytes that go missing"
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("missing.bin", len(content))
+			upload_blob_chunk(upload_id, 0, content)
+			meta_path, part_path = get_session_paths(upload_id)
+			delete_session(part_path)
+
+			with self.assertRaisesRegex(frappe.ValidationError, "no data"):
+				finish_upload_to_blob(upload_id)
+
+			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
+			self.assertTrue(os.path.exists(meta_path))
+
+	def test_chunk_write_refuses_a_session_whose_part_is_already_gone(self):
+		"""A finish that consumed the session deleted its part file. A chunk
+		still in flight has to refuse: re-creating the file would resurrect a
+		dead session and report bytes as received that no finish ever reads."""
+		content = b"written after the end"
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("resurrected.bin", len(content))
+			_meta_path, part_path = get_session_paths(upload_id)
+			# stands in for the winner's delete_session in _finish_upload_to_blob
+			delete_session(part_path)
+
+			with self.assertRaisesRegex(frappe.ValidationError, "no data"):
+				upload_blob_chunk(upload_id, 0, content)
+
+			self.assertFalse(os.path.exists(part_path))
+
+	def test_chunk_write_resumes_without_truncating_earlier_bytes(self):
+		"""Opening the part file without an existence probe must still append
+		to an in-progress session rather than restart it."""
+		first, second = b"first half ", b"second half"
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("resumed.bin", len(first) + len(second))
+			_meta_path, part_path = get_session_paths(upload_id)
+
+			self.assertEqual(upload_blob_chunk(upload_id, 0, first)["received"], len(first))
+			result = upload_blob_chunk(upload_id, len(first), second)
+
+			self.assertEqual(result["received"], len(first) + len(second))
+			with open(part_path, "rb") as f:
+				self.assertEqual(f.read(), first + second)
 
 	def test_guest_upload_restricted_to_legacy_mimetypes(self):
 		with flag_on(), frappe.storage.fake():
