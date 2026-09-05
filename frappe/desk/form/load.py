@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import re
 import typing
 from typing import Any
 from urllib.parse import quote
@@ -139,6 +140,9 @@ def get_docinfo(
 	frappe.response["docinfo"] = docinfo
 
 
+ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
+
+
 def add_comments(doc, docinfo):
 	# divide comments into separate lists
 	docinfo.comments = []
@@ -155,6 +159,8 @@ def add_comments(doc, docinfo):
 		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
 
+	restricted_fieldnames = None
+
 	for c in comments:
 		match c.comment_type:
 			case "Comment":
@@ -165,6 +171,11 @@ def add_comments(doc, docinfo):
 			case "Assignment Completed" | "Assigned":
 				docinfo.assignment_logs.append(c)
 			case "Attachment" | "Attachment Removed":
+				if restricted_fieldnames is None:
+					restricted_fieldnames = get_permlevel_restricted_fieldnames(doc.doctype)
+				m = ATTACHMENT_FIELDNAME_RE.search(c.content or "")
+				if m and m.group(1) in restricted_fieldnames:
+					continue
 				docinfo.attachment_logs.append(c)
 			case "Info" | "Edit" | "Label":
 				docinfo.info_logs.append(c)
@@ -208,6 +219,36 @@ def get_attachments(dt, dn):
 	if not restricted:
 		return files
 	return [f for f in files if f.attached_to_field not in restricted]
+
+
+def get_permlevel_restricted_fieldnames(dt) -> set:
+	"""Fieldnames (top-level and child table) whose permlevel the current user can't read."""
+	from frappe.desk.form.activity import readable_permlevels
+
+	if frappe.session.user == "Administrator":
+		return set()
+
+	meta = frappe.get_meta(dt)
+	all_fields = meta.fields.copy()
+	for table_field in meta.get_table_fields(include_computed=True):
+		all_fields += frappe.get_meta(table_field.options).fields or []
+
+	if all(df.permlevel == 0 for df in all_fields):
+		return set()
+
+	def restricted_fieldnames(field_meta, permitted):
+		if permitted is None:
+			return set()
+		return {df.fieldname for df in field_meta.fields or [] if df.permlevel not in permitted}
+
+	# a fieldname restricted in any table it appears in fails closed (dropped everywhere), since
+	# attached_to_field alone can't identify which table a given file's field actually came from
+	restricted = restricted_fieldnames(meta, readable_permlevels(meta))
+	for table_field in meta.get_table_fields(include_computed=True):
+		child_meta = frappe.get_meta(table_field.options)
+		restricted |= restricted_fieldnames(child_meta, readable_permlevels(child_meta, parenttype=dt))
+
+	return restricted
 
 
 def get_permlevel_restricted_fieldnames(dt) -> set:
