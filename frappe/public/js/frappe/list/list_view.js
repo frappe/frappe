@@ -2840,6 +2840,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_assign_role = () => {
+			return {
+				label: __("Assign Role", null, "Button in list view actions menu"),
+				action: () => {
+					this.disable_list_update = true;
+					bulk_operations.assign_role(this.get_checked_items(true), () => {
+						this.disable_list_update = false;
+						this.clear_checked_items();
+						this.refresh();
+					});
+				},
+				standard: true,
+			};
+		};
+
 		const bulk_printing = () => {
 			return {
 				label: __("Print", null, "Button in list view actions menu"),
@@ -3154,6 +3169,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		actions_menu_items.push(bulk_assignment_rule());
 
 		actions_menu_items.push(bulk_add_tags());
+
+		// bulk assign role — only for User doctype
+		if (doctype === "User" && frappe.user.has_role("System Manager")) {
+			actions_menu_items.push(bulk_assign_role());
+		}
 
 		// bulk printing
 		if (frappe.model.can_print(doctype)) {

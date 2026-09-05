@@ -149,3 +149,86 @@ class TestBulkUpdate(IntegrationTestCase):
 			for name in todo_names:
 				frappe.delete_doc("ToDo", name)
 			frappe.db.commit()
+
+
+class TestBulkAssignRoles(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls) -> None:
+		super().setUpClass()
+		cls.test_users = []
+		for i in range(2):
+			email = f"bulk_role_test_{i}@example.com"
+			if frappe.db.exists("User", email):
+				frappe.delete_doc("User", email, force=True)
+				frappe.db.commit()
+
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": f"BulkRoleTest{i}",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Desk User"}],
+				}
+			)
+			user.insert(ignore_permissions=True)
+			frappe.db.commit()  # ← commit after each insert
+
+			# verify it was created
+			if not frappe.db.exists("User", email):
+				frappe.throw(f"Failed to create test user {email}")
+
+			cls.test_users.append(email)
+
+		frappe.db.set_value("User", "Administrator", "bulk_actions", 1)
+		frappe.db.commit()
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		for email in cls.test_users:
+			frappe.delete_doc("User", email, force=True)
+		frappe.db.commit()
+		super().tearDownClass()
+
+	def test_bulk_assign_roles_as_system_manager(self):
+		"""System Manager can bulk assign roles to multiple users"""
+		from frappe.desk.doctype.bulk_update.bulk_update import bulk_assign_roles
+
+		failed = bulk_assign_roles(self.test_users, ["Accounts User"])
+		self.assertEqual(failed, [])
+
+		for email in self.test_users:
+			user = frappe.get_doc("User", email)
+			roles = [r.role for r in user.roles]
+			self.assertIn("Accounts User", roles)
+			self.assertIn("Desk User", roles)
+
+	def test_bulk_assign_roles_failed_list(self):
+		"""Invalid docname should appear in failed list not raise exception"""
+		from frappe.desk.doctype.bulk_update.bulk_update import bulk_assign_roles
+
+		failed = bulk_assign_roles(["nonexistent@example.com"], ["Accounts User"])
+		self.assertIn("nonexistent@example.com", failed)
+
+	def test_bulk_assign_roles_duplicate_skip(self):
+		"""Assigning an already assigned role should not create duplicate rows"""
+		from frappe.desk.doctype.bulk_update.bulk_update import bulk_assign_roles
+
+		bulk_assign_roles([self.test_users[0]], ["Accounts User"])
+		bulk_assign_roles([self.test_users[0]], ["Accounts User"])
+
+		user = frappe.get_doc("User", self.test_users[0])
+		blogger_count = sum(1 for r in user.roles if r.role == "Accounts User")
+		self.assertEqual(blogger_count, 1)
+
+	def test_bulk_assign_multiple_roles(self):
+		"""Multiple roles can be assigned in a single call"""
+		from frappe.desk.doctype.bulk_update.bulk_update import bulk_assign_roles
+
+		failed = bulk_assign_roles([self.test_users[0]], ["Accounts User", "Sales User"])
+		self.assertEqual(failed, [])
+
+		user = frappe.get_doc("User", self.test_users[0])
+		roles = [r.role for r in user.roles]
+		self.assertIn("Accounts User", roles)
+		self.assertIn("Sales User", roles)

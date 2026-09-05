@@ -147,4 +147,38 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 	return failed
 
 
+@frappe.whitelist()
+def bulk_assign_roles(docnames: str | list[str], roles: str | list[str]) -> list[str]:
+	if isinstance(docnames, str):
+		docnames = frappe.parse_json(docnames)
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
+	if not frappe.db.get_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
+	frappe.only_for("System Manager")
+
+	failed = []
+	for docname in docnames:
+		if not frappe.has_permission("User", "write", doc=docname):
+			failed.append(docname)
+			continue
+		savepoint = "bulk_assign_roles"
+		try:
+			frappe.db.savepoint(savepoint)
+			user = frappe.get_doc("User", docname)
+			existing_roles = {r.role for r in user.roles}
+			for role in roles:
+				if role not in existing_roles:
+					user.append("roles", {"role": role})
+			user.save()
+		except Exception:
+			frappe.db.rollback(save_point=savepoint)
+			frappe.log_error("Bulk role assignment failed", frappe.get_traceback())
+			failed.append(docname)
+
+	return failed
+
+
 from frappe.deprecation_dumpster import show_progress
