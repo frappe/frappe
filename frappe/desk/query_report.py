@@ -1162,6 +1162,10 @@ def get_user_match_filters(doctypes, user):
 	match_filters = {}
 
 	for dt in doctypes:
+		# skip linked doctypes the user can't read; build_match_conditions would otherwise throw
+		if not frappe.has_permission(dt, "read", user=user):
+			continue
+
 		filter_list = frappe.desk.reportview.build_match_conditions(dt, user, False)
 		if filter_list:
 			match_filters[dt] = filter_list
