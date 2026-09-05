@@ -34,6 +34,12 @@ def savedocs(doc: str, action: str):
 		"Cancel": DocStatus.CANCELLED,
 	}[action]
 
+	if not doc.docstatus.is_draft() and not doc.meta.is_submittable:
+		frappe.throw(
+			frappe._("Cannot change docstatus of non submittable doctype {0}").format(doc.doctype),
+			frappe.DocstatusTransitionError,
+		)
+
 	if doc.docstatus.is_submitted():
 		if action == "Submit" and doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, action)
