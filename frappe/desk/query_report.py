@@ -478,15 +478,16 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	has_total_row = cint(data.get("add_total_row"))
-	needs_visible_filtering = (
-		visible_idx
-		and not ignore_visible_idx
-		and len(visible_idx) < len(data.result) - (1 if has_total_row else 0)
-	)
 
-	if needs_visible_filtering:
-		visible_idx = set(visible_idx)
-		filtered_result = [row for idx, row in enumerate(data.result) if idx in visible_idx]
+	# visible_idx is the client's display-order list of row indices into
+	# data.result. Iterate it as an ordered list (not a set) so the UI
+	# sort direction the user applied before Export survives into the file.
+	if visible_idx and not ignore_visible_idx:
+		row_count = len(data.result)
+		# Guard out-of-range indices in case the server's re-run returned
+		# fewer rows than the client had (data changed, or the report is
+		# non-deterministic).
+		filtered_result = [data.result[idx] for idx in visible_idx if 0 <= idx < row_count]
 
 		if has_total_row:
 			filtered_result = add_total_row(filtered_result, data.columns)
@@ -878,7 +879,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report: str, report_name: str, columns: str, filters: str):
+def save_report(reference_report: str, report_name: str, columns: str | list, filters: str | list | dict):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(
