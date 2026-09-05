@@ -28,6 +28,34 @@ NestedSetHierarchy = (
 # split when non-alphabetical character is found
 QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
 
+# One quoted span: a '...' string, a "..." identifier or a `...` identifier, each allowing its own
+# quote char doubled inside itself. Scanned left to right, so a quote char only opens a span when
+# it is not already inside one.
+QUOTED_SPAN_PATTERN = re.compile(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"|`(?:[^`]|``)*`")
+
+
+def convert_backtick_identifiers(query: str) -> str:
+	"""Rewrite MySQL-style ```identifier``` quoting as ANSI ``"identifier"``.
+
+	frappe writes raw SQL in MySQL's dialect, so the postgres and sqlite drivers translate it. A
+	blanket ``query.replace("`", '"')`` also rewrites backticks that are *content*: one inside a
+	caller-supplied column name became a real quote char, closing the identifier and leaving the
+	rest to be parsed as SQL, and one inside a string literal was silently corrupted.
+
+	Only backticks that open or close an identifier are translated.
+	"""
+	if "`" not in query:
+		return query
+
+	def translate(match: re.Match) -> str:
+		span = match.group()
+		if not span.startswith("`"):
+			return span  # a literal or an already-ANSI identifier
+		name = span[1:-1].replace("``", "`")  # unescape MySQL's doubled backtick
+		return '"{}"'.format(name.replace('"', '""'))  # re-escape for ANSI
+
+	return QUOTED_SPAN_PATTERN.sub(translate, query)
+
 
 def convert_to_value(o: FilterValue):
 	if isinstance(o, bool):

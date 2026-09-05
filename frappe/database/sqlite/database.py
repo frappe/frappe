@@ -11,6 +11,7 @@ from frappe.database.database import (
 	ImplicitCommitError,
 )
 from frappe.database.sqlite.schema import SQLiteTable
+from frappe.database.utils import convert_backtick_identifiers
 from frappe.utils import get_table_name
 
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
@@ -608,9 +609,9 @@ def modify_query(query):
 	"""
 	Modifies query according to the requirements of SQLite
 	"""
-	# Replace ` with " for definitions
+	# Replace ` with " only where a backtick delimits an identifier
 	query = str(query)
-	query = query.replace("`", '"')
+	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_instr(query)
 
 	# Select from requires ""
