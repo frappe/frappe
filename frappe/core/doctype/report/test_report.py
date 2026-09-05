@@ -391,6 +391,66 @@ result = [
 		# check values
 		self.assertTrue("System User" in [d.get("type") for d in data[1]])
 
+	def create_custom_report_pair(self, **custom_report_args):
+		"""A script report, and a custom report built on top of it."""
+		reference_report_name = "Test Prepared Report Automation"
+		custom_report_name = "Test Prepared Report Automation - Warehouse Wise"
+
+		for name in (custom_report_name, reference_report_name):
+			frappe.delete_doc("Report", name, force=True, ignore_permissions=True, ignore_missing=True)
+
+		frappe.cache.hdel("report_execution_time", [reference_report_name, custom_report_name])
+
+		reference_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": reference_report_name,
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"report_script": "result = []",
+			}
+		).insert(ignore_permissions=True)
+
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": custom_report_name,
+				"report_type": "Custom Report",
+				"reference_report": reference_report.name,
+				"is_standard": "No",
+				**custom_report_args,
+			}
+		).insert(ignore_permissions=True)
+
+		return reference_report.name, custom_report.name
+
+	def armed_watchdog_targets(self, report_name):
+		"""Reports the prepared report watchdog was armed for while running `report_name`."""
+		import threading
+		from unittest.mock import MagicMock, patch
+
+		timer = MagicMock()
+		with patch.object(threading, "Timer", timer):
+			run(report_name=report_name, filters={}, are_default_filters=False)
+
+		return [call.kwargs["kwargs"]["report"] for call in timer.call_args_list]
+
+	def test_prepared_report_automation_targets_the_report_that_ran(self):
+		"""A custom report auto-enables prepared report on itself, not on its reference report."""
+		reference_report, custom_report = self.create_custom_report_pair()
+
+		self.assertEqual(self.armed_watchdog_targets(custom_report), [custom_report])
+		self.assertIsNotNone(frappe.cache.hget("report_execution_time", custom_report))
+		self.assertIsNone(frappe.cache.hget("report_execution_time", reference_report))
+
+	def test_prepared_report_automation_honours_custom_report_opt_out(self):
+		"""A custom report opting out of automation is never auto-enabled."""
+		_, custom_report = self.create_custom_report_pair(disable_prepared_report_automation=1)
+
+		self.assertEqual(self.armed_watchdog_targets(custom_report), [])
+
 	def test_toggle_disabled(self):
 		"""Make sure that authorization is respected."""
 		# Assuming that there will be reports in the system.
