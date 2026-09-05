@@ -23,13 +23,20 @@ frappe.ui.Dock = class Dock {
 		this.$dock = $(`<div class="dock hidden" role="navigation" aria-label="${__(
 			"Workspaces"
 		)}">
-			<div class="dock-logo"></div>
-			<div class="dock-divider" role="separator"></div>
+			<div class="dock-logo">
+				<a class="shell-header" href="/desk" aria-label="${__("Apps")}">
+					<div class="header-logo"></div>
+					<div class="title-container">
+						<div class="header-title"></div>
+						<div class="header-subtitle">${frappe.utils.escape_html(
+							frappe.boot.sitename || window.location.hostname
+						)}</div>
+					</div>
+				</a>
+			</div>
 			<div class="dock-shortcuts"></div>
-			<div class="dock-divider" role="separator"></div>
 			<div class="dock-items"></div>
-			<div class="dock-divider" role="separator"></div>
-			<button class="dock-user" aria-label="${__("User Menu")}"></button>
+			<button class="dock-user shell-header" aria-label="${__("User Menu")}"></button>
 		</div>`);
 
 		let $container = $(".body-sidebar-container");
@@ -46,18 +53,17 @@ frappe.ui.Dock = class Dock {
 		$resize.on("click", () => this.sidebar.open());
 		this.$dock.append($resize);
 
-		// A visible control for the same action, mirroring the sidebar's own .sidebar-toggle-btn:
-		// the same circular button on the rail's right edge, with the chevron pointing right since
-		// it only expands. Like the handle, CSS keeps it to the collapsed state.
-		let $expand = $(`<button
-			class="expand-sidebar-link dock-toggle-btn"
-			aria-label="${__("Toggle Sidebar")}"
-			data-placement="right"
-		>${frappe.utils.icon("chevron-right", "sm", "", "", "", true)}</button>`);
-		$expand.on("click", () => this.sidebar.open());
-		this.$dock.append($expand);
-
-		this.$logo = this.$dock.find(".dock-logo");
+		// Built once and never replaced: the header's menu binds to this node, and render_logo
+		// rewrites what is inside it rather than the node itself.
+		this.$header = this.$dock.find(".dock-logo .shell-header");
+		this.$header_logo = this.$header.find(".header-logo");
+		this.$header_title = this.$header.find(".header-title");
+		// The whole header is the link now: with no chevron there is no second thing in it to aim
+		// at, so it needs no inner anchor to keep the two apart.
+		this.$header.on("click", (e) => {
+			e.preventDefault();
+			frappe.set_route("/desk");
+		});
 		this.$shortcuts = this.$dock.find(".dock-shortcuts");
 		this.$items = this.$dock.find(".dock-items");
 		this.$user = this.$dock.find(".dock-user");
@@ -67,13 +73,13 @@ frappe.ui.Dock = class Dock {
 
 	// Icon shortcuts pinned directly under the app logo: search and notifications, replacing the
 	// page header's buttons. They are declared as configuration so the set, the order and each
-	// item's tooltip live in one place, and render_shortcuts() turns each entry into a rail button.
+	// item's label live in one place, and render_shortcuts() turns each entry into a rail row.
 	// Every item mirrors <RailItem variant="ghost">: transparent until hovered.
 	//
 	// Item shape:
 	//   name      identifier
 	//   icon      icon name passed to frappe.utils.icon
-	//   label     tooltip text and accessible label
+	//   label     the row's visible label, and its accessible label
 	//   css_class extra classes on the button (external code hooks off these)
 	//   condition () => bool, whether to render this shortcut at all
 	//   badge     optional extra markup appended inside the button, such as a count dot
@@ -95,7 +101,7 @@ frappe.ui.Dock = class Dock {
 				icon: "bell",
 				label: __("Notifications"),
 				// The Notifications view keeps the unread count in sync from these classes (see
-				// notifications.js) and toggles the same dropdown the sidebar bell does.
+				// notifications.js) and opens the same SidebarPanel the sidebar's own bell does.
 				css_class: "sidebar-notification",
 				condition: () => frappe.boot.desk_settings.notifications,
 				badge: `<span class="notification-count hidden" aria-live="polite"></span>`,
@@ -127,8 +133,8 @@ frappe.ui.Dock = class Dock {
 		];
 	}
 
-	// Render the configured shortcuts under the logo, each as an icon button with a hover tooltip.
-	// This runs once, from make(), so handlers are not re-bound.
+	// Render the configured shortcuts under the logo, each as one labelled row. This runs once, from
+	// make(), so handlers are not re-bound.
 	render_shortcuts() {
 		if (frappe.session.user === "Guest") {
 			return;
@@ -141,13 +147,13 @@ frappe.ui.Dock = class Dock {
 
 			let $item = $(`<button
 				class="dock-item ${item.css_class || ""}"
-				title="${frappe.utils.escape_html(item.label)}"
-				data-toggle="tooltip"
-				data-placement="right"
 				aria-label="${frappe.utils.escape_html(item.label)}"
 			>
-				<span class="sidebar-item-icon">${frappe.utils.icon(item.icon, "md")}</span>
-				${item.badge || ""}
+				<span class="dock-item-icon">
+					${frappe.utils.icon(item.icon, "md")}
+					${item.badge || ""}
+				</span>
+				<span class="dock-item-label">${frappe.utils.escape_html(item.label)}</span>
 			</button>`);
 
 			if (item.on_click) {
@@ -156,15 +162,13 @@ frappe.ui.Dock = class Dock {
 			if (item.setup) {
 				item.setup($item);
 			}
-			// Icon-only button, so show its label as a hover tooltip.
-			$item.tooltip({ boundary: "window", container: "body", trigger: "hover" });
 
 			this.$shortcuts.append($item);
 		});
 	}
 
-	// The dock shows unread as a small dot rather than a number, so toggle it on whether any
-	// exist.
+	// The rail shows unread as a small dot on the bell rather than a number, so toggle it on whether
+	// any exist.
 	sync_notification_count($bell, count) {
 		$bell.find(".notification-count").toggleClass("hidden", count <= 0);
 	}
@@ -178,7 +182,15 @@ frappe.ui.Dock = class Dock {
 	// User avatar pinned to the bottom of the rail, opening the same dropdown as the sidebar's user
 	// button. This runs once, from make(), so the menu is not re-bound on every refresh().
 	render_user() {
-		this.$user.html(frappe.avatar(frappe.session.user, "avatar-medium"));
+		// The same two lines the header carries, in the same classes: who you are over how you are
+		// addressed, which is what the body sidebar's own user button has always shown.
+		this.$user.html(
+			`${frappe.avatar(frappe.session.user, "avatar-medium")}
+			<div class="title-container">
+				<div class="header-title">${frappe.utils.escape_html(frappe.session.user_fullname)}</div>
+				<div class="header-subtitle">${frappe.utils.escape_html(frappe.session.user_email)}</div>
+			</div>`
+		);
 		this.sidebar.create_user_menu({ parent: this.$user, button: this.$user });
 	}
 
@@ -200,12 +212,12 @@ frappe.ui.Dock = class Dock {
 
 		// One navigation calls this up to three times: once from the router and twice from
 		// Sidebar.refresh(), its own call plus the one inside apply_page_visibility. Each call
-		// disposes every tooltip and rebuilds every button, so rendering unconditionally did that
-		// two or three times for a rail that had not changed.
+		// rebuilds every button, so rendering unconditionally did that two or three times for a
+		// rail that had not changed.
 		//
 		// Everything the rail draws goes into this signature, labels and icons as well as the
-		// entries, so renaming a module's sidebar still redraws its tooltip. If the signature
-		// matches, there is nothing to redraw.
+		// entries, so renaming a module's sidebar still redraws its row. If the signature matches,
+		// there is nothing to redraw.
 		const entries = this.sidebar.collect_dock_entries(this.app);
 		const signature = JSON.stringify([
 			this.app ? this.app.app_name : null,
@@ -233,34 +245,16 @@ frappe.ui.Dock = class Dock {
 	render_logo() {
 		const { icon, title } = this.app ? this.app_logo() : this.module_logo();
 
-		this.$logo.empty();
-		let $link = $(
-			`<a href="/desk" title="${frappe.utils.escape_html(title)}" aria-label="${__("Apps")}">
-				${icon}
-			</a>`
-		);
-		$link.on("click", (e) => {
-			e.preventDefault();
-			frappe.set_route("/desk");
-		});
-		this.$logo.append($link);
+		// Only the mark and the name change here. The way out to the apps screen is the menu's
+		// "All apps" row now, so the header is a menu trigger rather than the link it used to be.
+		this.$header_logo.html(icon);
+		this.$header_title.text(title);
 	}
 
-	// A module belonging to an app shows that app's logo. An app that declares none gets a letter
-	// icon, matching the desktop apps screen.
+	// A module belonging to an app shows that app's logo. The dock-less sidebar's header draws
+	// the same mark, so both read it from frappe.utils.
 	app_logo() {
-		const title = this.app.app_title || this.app.app_name;
-		const logo_url = Array.isArray(this.app.app_logo_url)
-			? this.app.app_logo_url[0]
-			: this.app.app_logo_url;
-
-		const icon = logo_url
-			? `<img src="${frappe.utils.escape_html(logo_url)}" alt="${frappe.utils.escape_html(
-					title
-			  )}" />`
-			: frappe.utils.desktop_icon(title, "gray", "sm");
-
-		return { icon, title };
+		return frappe.utils.app_logo(this.app);
 	}
 
 	// A module belonging to no app shows its own icon. No new boot payload is needed, because the
@@ -284,20 +278,11 @@ frappe.ui.Dock = class Dock {
 	// entries, and an empty items region is better than a rail of one, since an item permanently
 	// active with no alternatives is a switcher that cannot switch.
 	render_entries(entries = this.sidebar.collect_dock_entries(this.app)) {
-		// Dispose tooltips from the previous render before removing their elements.
-		this.$items.find('[data-toggle="tooltip"]').tooltip("dispose");
 		this.$items.empty();
 
 		entries.forEach((entry) => {
 			let $item = this.make_dock_item(entry);
 			if ($item) this.$items.append($item);
-		});
-
-		// The rail is icon-only, so show each entry's name as a hover tooltip.
-		this.$items.find('[data-toggle="tooltip"]').tooltip({
-			boundary: "window",
-			container: "body",
-			trigger: "hover",
 		});
 	}
 
@@ -312,12 +297,12 @@ frappe.ui.Dock = class Dock {
 		let is_active = this.sidebar.is_active_entry(entry);
 		let $item = $(`<button
 			class="dock-item ${is_active ? "active" : ""}"
-			title="${frappe.utils.escape_html(label)}"
-			data-toggle="tooltip"
-			data-placement="right"
 			aria-label="${frappe.utils.escape_html(label)}"
 			${is_active ? 'aria-current="page"' : ""}
-		>${icon}</button>`);
+		>
+			<span class="dock-item-icon">${icon}</span>
+			<span class="dock-item-label">${frappe.utils.escape_html(label)}</span>
+		</button>`);
 
 		$item.on("click", () => this.sidebar.open_dock_entry(entry));
 		return $item;
