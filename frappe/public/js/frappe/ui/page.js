@@ -149,7 +149,7 @@ frappe.ui.Page = class Page {
 	setup_page() {
 		this.$title_area = this.wrapper.find(".title-area");
 
-		this.$sub_title_area = this.wrapper.find("h6");
+		this.$sub_title_area = this.$title_area.find(".sub-heading");
 
 		if (this.title) this.set_title(this.title);
 

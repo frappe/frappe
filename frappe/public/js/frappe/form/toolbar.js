@@ -51,23 +51,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 		} else if (this.frm.meta.title_field) {
 			let title_field = (this.frm.doc[this.frm.meta.title_field] || "").toString().trim();
 			title = strip_html(title_field || this.frm.docname);
-			if (
-				this.frm.doc.__islocal ||
-				title === this.frm.docname ||
-				this.frm.meta.autoname === "hash"
-			) {
-				this.page.set_title_sub("");
-			} else {
-				this.page.set_title_sub(this.frm.docname);
-				this.page.$sub_title_area.css("cursor", "copy");
-				this.page.$sub_title_area.on("click", (event) => {
-					event.stopImmediatePropagation();
-					frappe.utils.copy_to_clipboard(this.frm.docname);
-				});
-			}
 		} else {
 			title = this.frm.docname;
 		}
+
+		this.set_docname_subtitle(title);
 
 		title = __(title);
 		this.page.set_title(title);
@@ -80,6 +68,18 @@ frappe.ui.form.Toolbar = class Toolbar {
 		);
 
 		this.set_indicator();
+	}
+	set_docname_subtitle(title) {
+		if (this.frm.is_new() || title === this.frm.docname || this.frm.meta.autoname === "hash") {
+			this.page.set_title_sub("");
+			return;
+		}
+		this.page.set_title_sub(frappe.utils.escape_html(this.frm.docname));
+		this.page.$sub_title_area.css("cursor", "copy");
+		this.page.$sub_title_area.off("click.docname").on("click.docname", (event) => {
+			event.stopImmediatePropagation();
+			frappe.utils.copy_to_clipboard(this.frm.docname);
+		});
 	}
 	is_title_editable() {
 		let title_field = this.frm.meta.title_field;

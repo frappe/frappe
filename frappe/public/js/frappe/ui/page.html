@@ -14,7 +14,10 @@
 					</span>
 				</button>
 				<div class="flex title-area ellipsis">
-					<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis {{frappe.is_mobile() ? "mobile-no-divider" : ""}}  "></ul>
+					<div class="ellipsis title-area-text">
+						<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis {{frappe.is_mobile() ? "mobile-no-divider" : ""}}  "></ul>
+						<div class="ellipsis sub-heading hide text-muted"></div>
+					</div>
 					<button class="btn btn-default more-button hide">
 						<svg class="icon icon-sm">
 							<use href="#icon-ellipsis">
