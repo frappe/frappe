@@ -85,6 +85,16 @@ class DriverContractTests:
 		finally:
 			stream.close()
 
+	def test_read_range_returns_inclusive_slice(self):
+		self.driver.write(self.key, io.BytesIO(self.content), is_private=True)
+		with self.driver.read_range(self.key, 2, 8, is_private=True) as stream:
+			self.assertEqual(stream.read(), self.content[2:9])
+
+	def test_read_range_open_end_returns_tail(self):
+		self.driver.write(self.key, io.BytesIO(self.content))
+		with self.driver.read_range(self.key, 7, None) as stream:
+			self.assertEqual(stream.read(), self.content[7:])
+
 	def test_streamed_write(self):
 		# write must consume any readable, not only BytesIO
 		chunks = [b"chunk-one:", b"chunk-two:", b"chunk-three"]

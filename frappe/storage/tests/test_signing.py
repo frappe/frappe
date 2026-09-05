@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 import frappe
 import frappe.storage
-from frappe.storage.url import make_signature, signed_url, verify_signature
+from frappe.storage.url import make_signature, signed_url, signed_url_for_blob, verify_signature
 from frappe.tests import IntegrationTestCase
 
 
@@ -88,6 +88,15 @@ class TestSigning(IntegrationTestCase):
 		query = parse_qs(urlparse(url).query)
 		self.assertTrue(verify_signature(blob.name, "hello world.txt", query["e"][0], query["s"][0]))
 
+	def test_signed_url_for_blob_accepts_name_or_document(self):
+		blob = self.make_blob()
+
+		for blob_arg in (blob.name, blob):
+			url = signed_url_for_blob(blob_arg, "node name.txt")
+			self.assertTrue(url.startswith(f"/f/{blob.name}/node%20name.txt?"))
+			query = parse_qs(urlparse(url).query)
+			self.assertTrue(verify_signature(blob.name, "node name.txt", query["e"][0], query["s"][0]))
+
 	def test_native_url_preferred(self):
 		blob = self.make_blob(b"native url content")
 		file = frappe._dict(blob=blob.name, file_name="a.txt")
@@ -102,6 +111,16 @@ class TestSigning(IntegrationTestCase):
 		mocked.assert_called_once_with(blob.key, "a.txt", 900, is_private=True)
 		# without a native URL the same file falls back to /f/
 		self.assertTrue(signed_url(file).startswith("/f/"))
+
+	def test_signed_url_for_blob_prefers_native_url(self):
+		blob = self.make_blob(b"native blob url content")
+		driver = frappe.storage.get_driver(blob.driver)
+		native = "https://storage.example.com/presigned/node.txt"
+
+		with patch.object(driver, "download_url", return_value=native) as mocked:
+			self.assertEqual(signed_url_for_blob(blob, "node.txt", expires_in=120), native)
+
+		mocked.assert_called_once_with(blob.key, "node.txt", 120, is_private=True)
 
 	def test_signature_is_stable_for_same_inputs(self):
 		expires = int(time.time()) + 60

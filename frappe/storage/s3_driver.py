@@ -74,14 +74,19 @@ class S3Driver(StorageDriver):
 		self.client.upload_fileobj(stream, self.bucket, self.object_key(key, is_private))
 
 	def read(self, key: str, *, is_private: bool = False) -> IO[bytes]:
+		return self._get_object(key, is_private=is_private)["Body"]
+
+	def read_range(self, key: str, start: int, end: int | None, *, is_private: bool = False) -> IO[bytes]:
+		byte_range = f"bytes={start}-{'' if end is None else end}"
+		return self._get_object(key, is_private=is_private, Range=byte_range)["Body"]
+
+	def _get_object(self, key: str, *, is_private: bool = False, **kwargs):
 		try:
-			response = self.client.get_object(Bucket=self.bucket, Key=self.object_key(key, is_private))
+			return self.client.get_object(Bucket=self.bucket, Key=self.object_key(key, is_private), **kwargs)
 		except self._client_error as e:
 			if e.response.get("Error", {}).get("Code") in MISSING_KEY_CODES:
 				raise FileNotFoundError(key) from e
 			raise
-		# botocore's StreamingBody is already file-like: read() and close()
-		return response["Body"]
 
 	def delete(self, key: str, *, is_private: bool = False) -> None:
 		# delete_object is idempotent; a missing key is not an error

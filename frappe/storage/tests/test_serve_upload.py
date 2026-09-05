@@ -19,7 +19,7 @@ from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.storage.blob import put_blob
 from frappe.storage.local_driver import LocalDriver
 from frappe.storage.memory_driver import MemoryDriver
-from frappe.storage.serve import serve_file
+from frappe.storage.serve import serve_file, stream_blob
 from frappe.storage.tests import reset_file_controller
 from frappe.storage.upload import (
 	BLOB_SESSION,
@@ -721,6 +721,23 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertIn("name=n.txt", location)
 			self.assertIn("ttl=60", location)
 
+	def test_authorized_stream_uses_native_url_only_when_enabled(self):
+		with flag_on(), use_driver(NativeUrlDriver()):
+			content = b"dav native " + frappe.generate_hash(length=16).encode()
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="n.txt")
+			set_request(method="GET", path="/dav/n.txt")
+
+			response = stream_blob(blob, "n.txt")
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response_body(response), content)
+			response.close()
+
+			with patch.dict(frappe.conf, {"drive_webdav_s3_redirect": 1}):
+				response = stream_blob(blob, "n.txt")
+
+			self.assertEqual(response.status_code, 302)
+			self.assertIn(blob.key, response.headers["Location"])
+
 	def test_missing_blob_bytes_are_not_found(self):
 		with flag_on(), frappe.storage.fake() as store:
 			blob = put_blob(io.BytesIO(b"vanishing " + frappe.generate_hash(length=16).encode()))
@@ -788,6 +805,77 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertEqual(response.status_code, 206)
 			self.assertEqual(response.headers["Content-Range"], f"bytes 5-14/{len(content)}")
 			self.assertEqual(response_body(response), content[5:15])
+			response.close()
+
+	def test_range_request_served_from_non_local_driver(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"0123456789abcdefghijklmnopqrstuvwxyz"
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="data.bin")
+			set_request(method="GET", path="/dav/data.bin", headers={"Range": "bytes=5-14"})
+
+			response = stream_blob(blob, "data.bin")
+
+			self.assertEqual(response.status_code, 206)
+			self.assertEqual(response.headers["Content-Range"], f"bytes 5-14/{len(content)}")
+			self.assertEqual(response.headers["Accept-Ranges"], "bytes")
+			self.assertEqual(response_body(response), content[5:15])
+			response.close()
+
+	def test_open_ended_range_returns_tail(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"0123456789abcdefghijklmnopqrstuvwxyz"
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="data.bin")
+			set_request(method="GET", path="/dav/data.bin", headers={"Range": "bytes=20-"})
+
+			response = stream_blob(blob, "data.bin")
+
+			self.assertEqual(response.status_code, 206)
+			self.assertEqual(response.headers["Content-Range"], f"bytes 20-35/{len(content)}")
+			self.assertEqual(response_body(response), content[20:])
+			response.close()
+
+	def test_unsatisfiable_range_returns_416(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"short content"
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="data.bin")
+			set_request(method="GET", path="/dav/data.bin", headers={"Range": "bytes=100-200"})
+
+			response = stream_blob(blob, "data.bin")
+
+			self.assertEqual(response.status_code, 416)
+			self.assertEqual(response.headers["Content-Range"], f"bytes */{len(content)}")
+			self.assertEqual(response_body(response), b"")
+
+	def test_matching_etag_returns_304_without_reading_driver(self):
+		with flag_on(), frappe.storage.fake() as store:
+			blob = put_blob(io.BytesIO(b"conditional content"), is_private=True, filename="data.bin")
+			set_request(method="GET", path="/dav/data.bin", headers={"If-None-Match": f'"{blob.checksum}"'})
+
+			with patch.object(store, "read") as read, patch.object(store, "read_range") as read_range:
+				response = stream_blob(blob, "data.bin")
+
+			self.assertEqual(response.status_code, 304)
+			self.assertEqual(response.headers["ETag"], f'"{blob.checksum}"')
+			read.assert_not_called()
+			read_range.assert_not_called()
+
+	def test_stream_blob_skips_permission_and_access_log(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"already authorized"
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="private.bin")
+			frappe.set_user("Guest")
+			set_request(method="GET", path="/dav/private.bin")
+
+			with (
+				patch("frappe.storage.serve.has_file_permission") as has_permission,
+				patch("frappe.storage.serve.make_access_log") as access_log,
+			):
+				response = stream_blob(blob, "private.bin")
+
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response_body(response), content)
+			has_permission.assert_not_called()
+			access_log.assert_not_called()
 			response.close()
 
 	def test_local_blob_with_missing_file_is_not_found(self):

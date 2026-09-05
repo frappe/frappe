@@ -138,6 +138,24 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		self.assertEqual(stream.read(), b"stored bytes")
 		self.client.get_object.assert_called_once_with(Bucket="test-bucket", Key=f"private/{self.key}")
 
+	def test_read_range_uses_native_s3_range(self):
+		body = io.BytesIO(b"stored")
+		self.client.get_object.return_value = {"Body": body}
+
+		self.assertIs(self.driver.read_range(self.key, 10, 19, is_private=True), body)
+		self.client.get_object.assert_called_once_with(
+			Bucket="test-bucket", Key=f"private/{self.key}", Range="bytes=10-19"
+		)
+
+	def test_read_range_open_end_uses_native_s3_range(self):
+		body = io.BytesIO(b"tail")
+		self.client.get_object.return_value = {"Body": body}
+
+		self.assertIs(self.driver.read_range(self.key, 10, None), body)
+		self.client.get_object.assert_called_once_with(
+			Bucket="test-bucket", Key=f"public/{self.key}", Range="bytes=10-"
+		)
+
 	def test_read_missing_key_raises_file_not_found(self):
 		self.client.get_object.side_effect = StubClientError("NoSuchKey")
 		self.assertRaises(FileNotFoundError, self.driver.read, self.key)

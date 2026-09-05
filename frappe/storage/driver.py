@@ -1,5 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+import io
 from abc import ABC, abstractmethod
 from typing import IO
 
@@ -39,6 +40,20 @@ class StorageDriver(ABC):
 
 	@abstractmethod
 	def exists(self, key: str, *, is_private: bool = False) -> bool: ...
+
+	def read_range(self, key: str, start: int, end: int | None, *, is_private: bool = False) -> IO[bytes]:
+		"""Return bytes from *start* through inclusive *end*.
+
+		Drivers with native ranged reads should override this. The default keeps
+		other drivers compatible by reading once and returning the requested
+		slice as a stream.
+		"""
+		stream = self.read(key, is_private=is_private)
+		try:
+			content = stream.read()
+		finally:
+			stream.close()
+		return io.BytesIO(content[start : None if end is None else end + 1])
 
 	def download_url(
 		self, key: str, filename: str, expires_in: int, *, is_private: bool = False

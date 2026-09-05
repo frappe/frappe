@@ -17,6 +17,7 @@ from frappe.storage.driver import get_driver
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
+	from frappe.core.doctype.file_blob.file_blob import FileBlob
 
 KEY_CONTEXT = b"frappe-storage-v2-url"
 
@@ -45,13 +46,13 @@ def verify_signature(blob_name: str, filename: str, expires: str | int, signatur
 	return hmac.compare_digest(expected, signature or "")
 
 
-def signed_url(file: "File", expires_in: int = 3600) -> str:
-	"""Return an expiring download URL for a v2 File row.
+def signed_url_for_blob(blob: "str | FileBlob", filename: str, expires_in: int = 3600) -> str:
+	"""Return an expiring download URL for a blob and caller-chosen filename.
 
 	Prefers the driver's native signed URL (e.g. S3 presigned GET) when the
 	driver returns one."""
-	blob = frappe.get_doc("File Blob", file.blob)
-	filename = file.file_name or blob.name
+	if isinstance(blob, str):
+		blob = frappe.get_doc("File Blob", blob)
 
 	driver = get_driver(blob.driver)
 	native = driver.download_url(blob.key, filename, expires_in, is_private=bool(blob.is_private))
@@ -61,3 +62,8 @@ def signed_url(file: "File", expires_in: int = 3600) -> str:
 	expires = int(time.time()) + expires_in
 	sig = make_signature(blob.name, filename, expires)
 	return f"/f/{blob.name}/{quote(filename)}?e={expires}&s={sig}"
+
+
+def signed_url(file: "File", expires_in: int = 3600) -> str:
+	"""Return an expiring download URL for a v2 File row."""
+	return signed_url_for_blob(file.blob, file.file_name or file.blob, expires_in)

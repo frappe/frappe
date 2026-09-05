@@ -21,7 +21,9 @@ from urllib.parse import quote
 
 import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
-from werkzeug.wrappers import Response
+from werkzeug.http import parse_range_header
+from werkzeug.wrappers import Request, Response
+from werkzeug.wsgi import wrap_file
 
 import frappe
 from frappe import _
@@ -64,7 +66,10 @@ def serve_file(path: str) -> Response:
 			file_type=os.path.splitext(filename)[1].lstrip("."),
 		)
 
-	return build_response(blob, filename)
+	if response := _native_url_response(blob, filename):
+		return response
+
+	return stream_blob(blob, filename)
 
 
 def parse_path(path: str) -> tuple[str, str]:
@@ -109,13 +114,33 @@ def has_file_permission(blob_name: str) -> bool:
 	return False
 
 
-def build_response(blob: "FileBlob", filename: str) -> Response:
+def stream_blob(
+	blob: "str | FileBlob",
+	filename: str,
+	*,
+	as_attachment: bool = False,
+	environ: dict | None = None,
+) -> Response:
+	"""Serve a blob after the caller has authorized the read.
+
+	Unlike :func:`serve_file`, this function performs no permission lookup and
+	writes no File access log. Non-local drivers are streamed directly so Range
+	requests work without requiring a seekable driver stream. WebDAV's optional
+	native redirect remains controlled by ``drive_webdav_s3_redirect``.
+	"""
+	if isinstance(blob, str):
+		blob = frappe.get_doc("File Blob", blob)
+
+	request = Request(environ) if environ is not None else frappe.local.request
 	driver = get_driver(blob.driver)
 	is_private = bool(blob.is_private)
 
-	native = driver.download_url(blob.key, filename, NATIVE_URL_TTL, is_private=is_private)
-	if native:
-		return werkzeug.utils.redirect(native, 302)
+	# Some DAV clients cannot follow cross-host redirects, so an authorized
+	# stream redirects only when the deployment explicitly opts in. /f/ keeps
+	# its established native redirect in serve_file above.
+	if frappe.conf.get("drive_webdav_s3_redirect"):
+		if response := _native_url_response(blob, filename):
+			return response
 
 	mime_type = blob.mime_type or "application/octet-stream"
 	if mime_type == "application/octet-stream":
@@ -126,31 +151,104 @@ def build_response(blob: "FileBlob", filename: str) -> Response:
 	# only on the caller-supplied filename: /f/<blob>/x.txt naming an HTML
 	# blob must not render inline on the site origin
 	extension = os.path.splitext(filename)[1].lower()
-	as_attachment = extension in FORCE_DOWNLOAD_EXTENSIONS or mime_type in FORCE_DOWNLOAD_MIME_TYPES
+	as_attachment = (
+		as_attachment or extension in FORCE_DOWNLOAD_EXTENSIONS or mime_type in FORCE_DOWNLOAD_MIME_TYPES
+	)
 
-	if blob.driver == "local" and frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
-		return x_accel_response(blob, filename, mime_type, as_attachment)
+	etag = blob.checksum
+	if etag and request.if_none_match.contains_weak(etag):
+		response = Response(status=304)
+		response.set_etag(etag)
+		return response
+
+	if blob.driver == "local" and request.headers.get("X-Use-X-Accel-Redirect"):
+		response = x_accel_response(blob, filename, mime_type, as_attachment)
+		if etag:
+			response.set_etag(etag)
+		return response
 
 	if local_path := getattr(driver, "get_path", None):
 		# real file on disk: send_file gets size + mtime, so Range works
 		filepath = local_path(blob.key, is_private)
 		if not os.path.exists(filepath):
 			raise NotFound
-		file = filepath
-	else:
-		try:
-			file = driver.read(blob.key, is_private=is_private)
-		except FileNotFoundError:
-			raise NotFound
+		return werkzeug.utils.send_file(
+			filepath,
+			environ=request.environ,
+			mimetype=mime_type,
+			conditional=True,
+			as_attachment=as_attachment,
+			download_name=filename,
+			etag=etag or True,
+		)
 
-	return werkzeug.utils.send_file(
-		file,
-		environ=frappe.local.request.environ,
-		mimetype=mime_type,
-		conditional=True,
-		as_attachment=as_attachment,
-		download_name=filename,
+	return _stream_driver_response(blob, filename, request, mime_type=mime_type, as_attachment=as_attachment)
+
+
+def build_response(blob: "FileBlob", filename: str) -> Response:
+	"""Compatibility wrapper for the original internal response builder."""
+	if response := _native_url_response(blob, filename):
+		return response
+	return stream_blob(blob, filename)
+
+
+def _native_url_response(blob: "FileBlob", filename: str) -> Response | None:
+	driver = get_driver(blob.driver)
+	native = driver.download_url(blob.key, filename, NATIVE_URL_TTL, is_private=bool(blob.is_private))
+	return werkzeug.utils.redirect(native, 302) if native else None
+
+
+def _stream_driver_response(
+	blob: "FileBlob", request_filename: str, request: Request, *, mime_type: str, as_attachment: bool
+) -> Response:
+	driver = get_driver(blob.driver)
+	is_private = bool(blob.is_private)
+	file_size = int(blob.file_size or 0)
+	range_header = request.headers.get("Range")
+	status = 200
+	content_range = None
+
+	try:
+		if range_header:
+			requested = parse_range_header(range_header)
+			resolved = (
+				requested.range_for_length(file_size)
+				if requested and requested.units == "bytes" and len(requested.ranges) == 1
+				else None
+			)
+			if resolved is None:
+				response = Response(status=416)
+				response.headers["Content-Range"] = f"bytes */{file_size}"
+				response.headers["Accept-Ranges"] = "bytes"
+				if blob.checksum:
+					response.set_etag(blob.checksum)
+				return response
+
+			start, stop = resolved
+			end = stop - 1
+			file = driver.read_range(blob.key, start, end, is_private=is_private)
+			content_length = stop - start
+			content_range = f"bytes {start}-{end}/{file_size}"
+			status = 206
+		else:
+			file = driver.read(blob.key, is_private=is_private)
+			content_length = file_size
+	except FileNotFoundError:
+		raise NotFound from None
+
+	response = Response(
+		wrap_file(request.environ, file), status=status, mimetype=mime_type, direct_passthrough=True
 	)
+	response.content_length = content_length
+	response.headers["Accept-Ranges"] = "bytes"
+	if content_range:
+		response.headers["Content-Range"] = content_range
+	response.headers.set(
+		"Content-Disposition", "attachment" if as_attachment else "inline", filename=request_filename
+	)
+	if blob.checksum:
+		response.set_etag(blob.checksum)
+	return response
 
 
 def x_accel_response(blob: "FileBlob", filename: str, mime_type: str, as_attachment: bool) -> Response:
