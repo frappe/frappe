@@ -50,6 +50,6 @@ Built-in, extension, and client-side tools are combined into one model-facing sc
 
 ## Clients
 
-The HTTP server exposes session operations and SSE. SSE replays durable rows from a cursor, then any retained provisional preview, and finally new live events, so a reconnect can recover without guessing.
+The HTTP server exposes session operations and SSE. SSE replays durable rows from a cursor, then any retained provisional preview, and finally new live events. Subscriber queues are bounded, so slow clients reconnect instead of growing server memory.
 
 The Textual TUI is a separate client package. Its reducer and stream client use the same events as the server, and it never imports server internals. The Vue web UI is served by the daemon but uses the HTTP API as well.

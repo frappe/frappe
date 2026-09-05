@@ -27,6 +27,33 @@ async def test_run_streams_a_full_turn(tmp_path):
 	assert types[-1] == "run_ended"
 
 
+async def test_slow_embedded_subscriber_fails_cleanly(tmp_path, monkeypatch):
+	monkeypatch.setattr("flow.session.session._SUBSCRIBER_QUEUE_SIZE", 2)
+
+	class BurstyModel(Model):
+		name = "bursty"
+
+		def __init__(self):
+			self.finished = asyncio.Event()
+
+		async def run(self, request: ModelRequest):
+			for text in ("a", "b", "c"):
+				yield TextDelta(text=text)
+			yield AssistantMessage(content="abc")
+			yield Usage()
+			self.finished.set()
+
+	model = BurstyModel()
+	agent = Agent(model=model, data_dir=str(tmp_path), cwd=str(tmp_path))
+	events = agent.run("hi")
+	assert (await anext(events)).type == "run_started"
+	await model.finished.wait()
+
+	with pytest.raises(RuntimeError, match="subscriber fell behind"):
+		await anext(events)
+	assert agent.session.is_running is False
+
+
 async def test_run_then_resume_across_pause(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
 	call = ToolCall(id="c1", name="read", arguments={"path": "a.txt"})

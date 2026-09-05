@@ -87,7 +87,7 @@ class Agent:
 	async def _events(self, submit: Callable[[], Awaitable[RunHandle]]) -> AsyncIterator[AnyEvent]:
 		queue = self._session.subscribe()  # subscribe before the run starts so no event is missed
 		task: asyncio.Task[None] | None = None
-		next_event: asyncio.Task[AnyEvent] | None = None
+		next_event: asyncio.Task[AnyEvent | None] | None = None
 		try:
 			handle = await submit()
 			if handle.status != "started":
@@ -106,6 +106,8 @@ class Agent:
 						await next_event
 					continue
 				event = next_event.result()
+				if event is None:
+					raise RuntimeError("event subscriber fell behind")
 				yield event
 				if event.type == "run_ended":  # always the terminal event
 					break
