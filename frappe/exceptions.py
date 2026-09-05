@@ -266,6 +266,13 @@ class QueryDeadlockError(Exception):
 	http_status_code = 508
 
 
+class TransactionConflictError(QueryDeadlockError):
+	# Not a true deadlock: the transaction lost a snapshot conflict (SERIALIZATION_FAILURE
+	# on postgres, ER_CHECKREAD on mariadb) and was rolled back. Subclassed so existing
+	# deadlock handling (508, retries) applies; catch this to tell the two apart.
+	pass
+
+
 class InReadOnlyMode(ValidationError):
 	http_status_code = 503  # temporarily not available
 	skip_error_log = True

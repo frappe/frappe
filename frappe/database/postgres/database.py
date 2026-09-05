@@ -127,6 +127,10 @@ class PostgresExceptionUtil:
 		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
 
 	@staticmethod
+	def is_transaction_conflict(e) -> bool:
+		return getattr(e, "pgcode", None) == SERIALIZATION_FAILURE
+
+	@staticmethod
 	def is_timedout(e):
 		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
 		return isinstance(e, (psycopg2.extensions.QueryCanceledError | LockNotAvailable))

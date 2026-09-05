@@ -289,6 +289,10 @@ class Database:
 			if self.is_syntax_error(e):
 				frappe.log(f"Syntax error in query:\n{query} {values or ''}")
 
+			elif self.is_transaction_conflict(e):
+				self.db_type == "mariadb" and frappe.log_error("Transaction conflict", defer_insert=True)
+				raise frappe.TransactionConflictError(e) from e
+
 			elif self.is_deadlocked(e):
 				self.db_type == "mariadb" and frappe.log_error("Query deadlocked", defer_insert=True)
 				raise frappe.QueryDeadlockError(e) from e

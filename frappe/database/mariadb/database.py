@@ -29,6 +29,10 @@ class MariaDBExceptionUtil:
 		return e.args and e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
 
 	@staticmethod
+	def is_transaction_conflict(e: pymysql.Error) -> bool:
+		return e.args and e.args[0] == ER.CHECKREAD
+
+	@staticmethod
 	def is_timedout(e: pymysql.Error) -> bool:
 		return e.args and e.args[0] == ER.LOCK_WAIT_TIMEOUT
 

@@ -1425,6 +1425,21 @@ class TestDDLCommandsPost(IntegrationTestCase):
 
 @run_only_if(db_type_is.POSTGRES)
 class TestTransactionManagement(IntegrationTestCase):
+	def test_transaction_conflict_classification(self):
+		conflict, deadlock = Exception(), Exception()
+		if frappe.db.db_type == "postgres":
+			conflict.pgcode = "40001"
+			deadlock.pgcode = "40P01"
+		else:
+			conflict.args = (1020, "Record has changed since last read")
+			deadlock.args = (1213, "Deadlock found")
+
+		self.assertTrue(frappe.db.is_transaction_conflict(conflict))
+		self.assertTrue(frappe.db.is_deadlocked(conflict))
+		self.assertFalse(frappe.db.is_transaction_conflict(deadlock))
+		self.assertTrue(frappe.db.is_deadlocked(deadlock))
+		self.assertTrue(issubclass(frappe.TransactionConflictError, frappe.QueryDeadlockError))
+
 	def test_create_proper_transactions(self):
 		def _get_transaction_id():
 			return frappe.db.sql("select txid_current()", pluck=True)
