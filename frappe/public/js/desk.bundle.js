@@ -72,6 +72,7 @@ import "./frappe/ui/capture.js";
 import "./frappe/ui/permission_dialog.js";
 import "./frappe/ui/app_icon.js";
 import "./frappe/ui/theme_switcher.js";
+import "./frappe/ui/island/index.js";
 import "./frappe/ui/naming_series.js";
 
 import "./frappe/model/model.js";

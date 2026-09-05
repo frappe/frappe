@@ -99,7 +99,11 @@ class DeskViews:
 	def get_allowed_dashboards(cls, cache=False):
 		"""Return dashboards the user is allowed to see.
 
-		A dashboard is permitted when the user can access at least one of its charts or cards.
+		A dashboard that holds charts or cards is permitted when the user can access at least
+		one of them. A dashboard that holds neither is permitted on the `Dashboard` document's
+		own permission, which `frappe.get_list` applies. An app draws such a dashboard with an
+		island, and draws its own not-permitted state below the document.
+
 		Evaluated for the current session user and cached like pages and reports.
 		"""
 		from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards, get_permitted_charts
@@ -108,10 +112,25 @@ class DeskViews:
 			# `module` rides along so the client can resolve a dashboard's home sidebar; the row
 			# stays a dict in a list rather than becoming a name-keyed map, so search_utils'
 			# get_dashboards() is untouched.
+			dashboards = frappe.get_list("Dashboard", fields=["name", "module"])
+			if not dashboards:
+				return []
+
+			# One query per child table, so no dashboard is loaded to learn it is empty.
+			filled = set()
+			for child in ("Dashboard Chart Link", "Number Card Link"):
+				filled.update(
+					frappe.get_all(
+						child,
+						filters={"parenttype": "Dashboard", "parent": ("in", [d.name for d in dashboards])},
+						pluck="parent",
+					)
+				)
+
 			return [
 				{"name": d.name, "module": d.module}
-				for d in frappe.get_all("Dashboard", fields=["name", "module"])
-				if get_permitted_charts(d.name) or get_permitted_cards(d.name)
+				for d in dashboards
+				if d.name not in filled or get_permitted_charts(d.name) or get_permitted_cards(d.name)
 			]
 
 		return cls._allowed_entity_cache("allowed_dashboards", frappe.session.user, build, cache=cache)

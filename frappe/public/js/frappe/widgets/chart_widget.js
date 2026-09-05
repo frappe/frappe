@@ -40,9 +40,13 @@ export default class ChartWidget extends Widget {
 	}
 
 	setup_container() {
+		// The island lives on a node inside the body, so it goes before the body does.
+		this.unmount_island();
 		this.body.empty();
 
-		if (this.chart_doc.type == "Heatmap") {
+		// `type` says how desk draws a chart. An app draws an island, so a
+		// heatmap's forced full width and legend do not apply to it.
+		if (!this.island && this.chart_doc.type == "Heatmap") {
 			this.setup_heatmap_container();
 		}
 
@@ -94,6 +98,8 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
+			if (this.island) return this.make_island();
+
 			if (!this.settings) {
 				this.deleted = true;
 				this.widget.remove();
@@ -118,6 +124,99 @@ export default class ChartWidget extends Widget {
 				() => this.fetch_and_update_chart(),
 			]);
 		});
+	}
+
+	/**
+	 * Draws a chart an app owns. Desk keeps the frame, which is the title, the
+	 * actions and the error state. The island owns the body alone, so a workspace
+	 * still reads as a workspace.
+	 *
+	 * Nothing below this fetches chart data. Desk does not know what the island
+	 * draws, and the props came with the document.
+	 */
+	make_island() {
+		this.setup_container();
+
+		if (!this.in_customize_mode) {
+			this.action_area.empty();
+		}
+		this.prepare_island_actions([]);
+
+		// A definite height, not a floor. An island fills the element it is given.
+		// A `height: 100%` inside it resolves against auto to nothing, so a floor
+		// puts the island's header over an empty body. Desk's own chart takes the
+		// same number as a fixed height.
+		this.chart_wrapper.css("height", `${this.height}px`);
+
+		this.island_handle = frappe.ui.mount_island(this.island.name, this.chart_wrapper, {
+			...this.island.props,
+			// The island reports its actions as it loads them, and again whenever
+			// they change. It reports no title, because desk heads the widget with
+			// the chart document's own name.
+			onActions: (actions) => this.prepare_island_actions(actions),
+		});
+
+		this.island_handle.ready.then(
+			() => this.loading.hide(),
+			(e) => {
+				console.error(e);
+				this.chart_wrapper.hide();
+				this.loading.hide();
+				this.empty.hide();
+				this.error_state.text(__("Could not draw this chart: {0}", [e.message]));
+				this.error_state.show();
+			}
+		);
+	}
+
+	/**
+	 * The island's own actions, then Edit. Edit is desk's, because the document
+	 * behind the chart is desk's. Every `actions` report calls this again, so the
+	 * menu says what the island says now.
+	 *
+	 * None of desk's other chart actions apply, because they drive a fetch desk
+	 * does not make. Reset Chart clears settings the island never reads. Export
+	 * writes data desk never fetched. The filters and the time interval reach
+	 * nothing. The island reports Refresh itself, if a reload means anything to it.
+	 *
+	 * An action carries either an `onClick` or an `href`. An `href` leads out of
+	 * the app, and desk opens it in a new tab.
+	 *
+	 * @param {{ label: string, icon?: string, onClick?: Function, href?: string }[]} actions
+	 */
+	prepare_island_actions(actions) {
+		// Customize mode owns the action area and puts its own controls there.
+		if (this.in_customize_mode) return;
+
+		// `set_chart_actions` appends a menu. A rebuild replaces the one it made.
+		this.chart_actions?.remove();
+
+		this.set_chart_actions([
+			...(actions || []).map((action, i) => ({
+				label: action.label,
+				action: `island-action-${i}`,
+				handler: action.href
+					? () => window.open(action.href, "_blank")
+					: () => action.onClick(),
+			})),
+			{
+				label: __("Edit"),
+				action: "action-edit",
+				handler: () => {
+					frappe.set_route("Form", "Dashboard Chart", this.chart_doc.name);
+				},
+			},
+		]);
+	}
+
+	/** Releases the island the body holds, if any. Safe to call at any time. */
+	unmount_island() {
+		this.island_handle?.unmount();
+		this.island_handle = null;
+	}
+
+	destroy() {
+		this.unmount_island();
 	}
 
 	render_time_series_filters() {
@@ -519,9 +618,9 @@ export default class ChartWidget extends Widget {
 				${actions
 					.map(
 						(action) =>
-							`<li><a class="dropdown-item" data-action="${action.action}">${__(
-								action.label
-							)}</a></li>`
+							`<li><a class="dropdown-item" data-action="${
+								action.action
+							}">${frappe.utils.escape_html(__(action.label))}</a></li>`
 					)
 					.join("")}
 			</ul>
@@ -531,7 +630,9 @@ export default class ChartWidget extends Widget {
 
 		this.chart_actions.find("a[data-action]").each((i, o) => {
 			const action = o.dataset.action;
-			$(o).click(actions.find((a) => a.action === action));
+			// Bind the handler, not the action object. jQuery binds whatever it is
+			// given and throws on click when that is not a function.
+			$(o).click(actions.find((a) => a.action === action).handler);
 		});
 		this.chart_actions.appendTo(this.action_area);
 	}
@@ -840,6 +941,13 @@ export default class ChartWidget extends Widget {
 		return frappe.model.with_doc("Dashboard Chart", this.chart_name).then((chart_doc) => {
 			if (chart_doc) {
 				this.chart_doc = chart_doc;
+
+				// An app draws this chart. When no app does, the key is absent, and
+				// desk's own renderer below runs. Read on every call, because the
+				// document may have changed.
+				this.island = chart_doc.__onload?.island;
+				if (this.island) return Promise.resolve();
+
 				if (this.chart_doc.chart_type == "Custom") {
 					// custom source
 					if (frappe.dashboards.chart_sources[this.chart_doc.source]) {

@@ -591,6 +591,17 @@ user_invitation = {
 # source apps and helps API clients understand what a method does.
 expose_discovery_source = True
 
+# An island draws a desk Dashboard or Dashboard Chart whose `__onload.island` is
+# {"name": <a name in ui_islands>, "props": {...}}. Desk draws the document
+# itself while the key is absent. An app sets the key from its own onload
+# handler, so it decides how it recognizes its documents:
+#
+# doc_events = {"Dashboard": {"onload": "someapp.desk.island.dashboard"}}
+#
+# def dashboard(doc, method=None):
+# 	if doc.someapp_dashboard:
+# 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
+
 
 add_to_apps_screen = [
 	{

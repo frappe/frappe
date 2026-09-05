@@ -1,3 +1,53 @@
+/**
+ * The bounded page shell, for the island renderer only. `dashboard_view.js`
+ * puts the class on <body> while that renderer is on screen.
+ *
+ * The island scrolls its own body, which needs a definite height to scroll in.
+ * Against desk's document-scrolled page its `height: 100%` resolves to auto.
+ * The island then grows, and its filter bar scrolls away with the grid it
+ * filters.
+ *
+ * Flex the column instead of `calc(100vh - var(--page-head-height))`, the
+ * report view's idiom. That number is wrong by the head's border, and wrong
+ * again wherever `.main-section` does not start at the top of the viewport.
+ */
+body.dashboard-view-island-page {
+	.main-section {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		// A bounded box has no page to scroll past the chat bubble and the
+		// onboarding panel, so their padding is dead space. `!important` beats
+		// the inline padding those two write.
+		padding-bottom: 0 !important;
+	}
+
+	#body,
+	.page-container,
+	.page-body,
+	.page-wrapper {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		// Without this, each box floors at its content height, which is the
+		// whole dashboard.
+		min-height: 0;
+	}
+
+	.page-head {
+		flex: none;
+	}
+
+	.page-content {
+		flex: 1;
+		min-height: 0;
+	}
+
+	.dashboard-view-island {
+		height: 100%;
+	}
+}
+
 .dashboard-page {
 	.dashboard-view {
 		min-height: calc(100vh - 284px);
