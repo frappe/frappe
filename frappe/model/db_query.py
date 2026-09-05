@@ -20,7 +20,15 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy, is_non_text_field
+from frappe.database.utils import (
+	DefaultOrderBy,
+	FallBackDateTimeStr,
+	NestedSetHierarchy,
+	get_doctype_name,
+	is_non_text_field,
+	is_order_by_in_select,
+	unquote_identifier,
+)
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -328,7 +336,7 @@ class DatabaseQuery:
 
 		if self.distinct:
 			args.fields = "distinct " + args.fields
-			if frappe.db.db_type == "postgres":
+			if frappe.db.db_type == "postgres" and not self._can_apply_distinct_order_by(args.order_by):
 				# PostgreSQL requires ORDER BY expressions to appear in SELECT list when using DISTINCT
 				args.order_by = ""
 
@@ -471,6 +479,39 @@ from {tables}
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
+
+	def _can_apply_distinct_order_by(self, order_by: str) -> bool:
+		if not order_by:
+			return True
+
+		selected_fields = set()
+		has_joins = len(self.tables) > 1 or bool(self.link_tables)
+		for field in self.fields:
+			if field is None:
+				continue
+			field, *alias = re.split(r"\s+as\s+", field, maxsplit=1, flags=re.IGNORECASE)
+			field = unquote_identifier(field)
+			if field == "*" or field.endswith(".*"):
+				selected_fields.update(self._get_star_columns(field))
+			elif "(" not in field:
+				selected_fields.add(field)
+				# An unqualified sort can use the output name, but an alias replaces that name.
+				if not alias or not has_joins:
+					selected_fields.add(field.rsplit(".", 1)[-1])
+				if "." not in field:
+					selected_fields.add(f"tab{self.doctype}.{field}")
+			if alias:
+				selected_fields.add(unquote_identifier(alias[0]))
+
+		return is_order_by_in_select(order_by, selected_fields, len(self.fields))
+
+	def _get_star_columns(self, field: str) -> set[str]:
+		doctype = self.doctype if field == "*" else get_doctype_name(field[:-2])
+		columns = set()
+		for column in get_table_columns(doctype):
+			columns.add(column)
+			columns.add(f"tab{doctype}.{column}")
+		return columns
 
 	def parse_args(self):
 		"""Convert fields and filters from strings to list, dicts."""
