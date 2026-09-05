@@ -78,6 +78,6 @@ Extension load errors are diagnostics, not daemon failures — and hook failures
 
 ## Client-side tools and hooks
 
-A client can provide JSON schemas in `SessionConfig.client_tools` with a `callback_url`, optional `callback_token`, and `user_context`. Flow sends `execute` or `confirm` callbacks containing the session id, tool, arguments, and user context. The token is sent as `X-Harness-Token`. A callback may return its result directly or in `{"message": ...}`.
+A client can provide JSON schemas in `SessionConfig.client_tools` with a `callback_url`, optional `callback_token`, and `user_context`. Flow sends `execute` or `confirm` callbacks containing the session id, tool, arguments, and user context. The token is sent as `X-Harness-Token`. A callback may return its result directly or in `{"message": ...}`. `callback_timeout` is how many seconds Flow waits for a callback to answer (default 120).
 
 Embedded Python callers can instead pass `before_tool_call` and `after_tool_call` to `Agent.run` or `Agent.resume`. The before hook can rewrite arguments or supply a result; the after hook can replace result text. Hooks are in-process only and are never stored or sent over HTTP.

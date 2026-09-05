@@ -27,7 +27,7 @@ async def call_client(config: SessionConfig, session_id: str, call: ToolCall, *,
 	headers = {}
 	if config.callback_token:
 		headers["X-Harness-Token"] = config.callback_token
-	async with httpx.AsyncClient(timeout=120) as client:
+	async with httpx.AsyncClient(timeout=config.callback_timeout) as client:
 		response = await client.post(url, json=payload, headers=headers)
 		response.raise_for_status()
 		body = response.json()
