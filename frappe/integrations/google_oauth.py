@@ -1,5 +1,3 @@
-import json
-
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from requests import get, post
@@ -29,6 +27,32 @@ _DOMAIN_CALLBACK_METHODS = {
 
 class GoogleAuthenticationError(Exception):
 	pass
+
+
+GOOGLE_OAUTH_STATE_CACHE_PREFIX = "frappe_google_oauth_state"
+
+
+def create_google_oauth_state(state: dict) -> str:
+	"""Store this authorization attempt's state server-side and return a single-use token for it.
+
+	The returned token is what gets sent to Google as `state`.
+	"""
+	token = frappe.generate_hash(length=32)
+	frappe.cache.set_value(f"{GOOGLE_OAUTH_STATE_CACHE_PREFIX}:{token}", state, expires_in_sec=600)
+	return token
+
+
+def consume_google_oauth_state(token: str) -> dict | None:
+	"""Look up and invalidate the state stored for this authorization attempt.
+
+	Returns None if `token` doesn't reference a known, unused authorization attempt.
+	"""
+	if not token:
+		return None
+	key = f"{GOOGLE_OAUTH_STATE_CACHE_PREFIX}:{token}"
+	state = frappe.cache.get_value(key)
+	frappe.cache.delete_value(key)
+	return state
 
 
 class GoogleOAuth:
@@ -105,14 +129,14 @@ class GoogleOAuth:
 		"""
 
 		state.update({"domain": self.domain})
-		state = json.dumps(state)
+		state_token = create_google_oauth_state(state)
 		callback_url = get_request_site_address(True) + CALLBACK_METHOD
 
 		return {
 			"url": "https://accounts.google.com/o/oauth2/v2/auth?"
 			+ "access_type=offline&response_type=code&prompt=consent&include_granted_scopes=true&"
 			+ "client_id={}&scope={}&redirect_uri={}&state={}".format(
-				self.google_settings.client_id, self.scopes, callback_url, state
+				self.google_settings.client_id, self.scopes, callback_url, state_token
 			)
 		}
 
@@ -170,7 +194,13 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 	Invokes functions using `frappe.get_attr` and also adds required (keyworded) arguments
 	along with committing and redirecting us back to frappe site."""
 
-	state = json.loads(state)
+	state = consume_google_oauth_state(state)
+	if state is None:
+		return frappe.respond_as_web_page(
+			frappe._("Invalid Request"),
+			frappe._("Your authorization attempt is invalid or has expired. Please try again."),
+			http_status_code=417,
+		)
 	redirect = state.pop("redirect", "/app")
 	success_query_param = state.pop("success_query_param", "")
 	failure_query_param = state.pop("failure_query_param", "")
