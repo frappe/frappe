@@ -155,7 +155,7 @@ def _write_upload_chunk(
 		frappe.throw(_("This upload session expects a direct upload, not chunks"))
 
 	offset = cint(offset)
-	received = os.path.getsize(part_path) if os.path.exists(part_path) else 0
+	received = session_size(part_path)
 	if offset < 0 or offset > received:
 		frappe.throw(_("Invalid chunk offset"))
 
@@ -169,7 +169,7 @@ def _write_upload_chunk(
 		f.seek(offset)
 		f.write(data)
 
-	return {"upload_id": upload_id, "received": os.path.getsize(part_path)}
+	return {"upload_id": upload_id, "received": session_size(part_path)}
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
@@ -268,7 +268,7 @@ def _finish_upload_to_blob(
 	if direct:
 		if not get_driver().exists(f"uploads/{upload_id}", is_private=temp_is_private):
 			frappe.throw(_("Upload session has no data"))
-	elif not os.path.exists(part_path) or os.path.getsize(part_path) == 0:
+	elif session_size(part_path) == 0:
 		frappe.throw(_("Upload session has no data"))
 
 	# atomic claim: a concurrent or replayed finish_upload must not create
@@ -363,12 +363,7 @@ def delete_stale_driver_upload(upload_id: str, paths: list[str]) -> None:
 	meta = None
 	for path in paths:
 		if path.endswith((".meta", ".meta" + FINISHING_SUFFIX)):
-			try:
-				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-				with open(path) as f:
-					meta = json.load(f)
-			except (OSError, ValueError):
-				pass
+			meta = read_session_meta(path)
 			break
 	if not meta or meta.get("mode") != "direct":
 		return
@@ -469,15 +464,37 @@ def save_session_meta(upload_id: str, meta: dict):
 
 def load_session(upload_id: str) -> tuple[dict, str, str]:
 	meta_path, part_path = get_session_paths(upload_id)
-	if not os.path.exists(meta_path):
+	meta = read_session_meta(meta_path)
+	if meta is None:
+		# a concurrent finish claims and deletes the session, so an
+		# existence check before the read would leave a race window
 		frappe.throw(_("Upload session not found or expired"))
-	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-	with open(meta_path) as f:
-		meta = json.load(f)
 	if meta.get("owner") != frappe.session.user:
 		# sessions are bound to the user who opened them
 		raise frappe.PermissionError
 	return meta, meta_path, part_path
+
+
+def read_session_meta(meta_path: str) -> dict | None:
+	"""Read a session meta file. Return None when it is gone or unreadable."""
+	try:
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+		with open(meta_path) as f:
+			meta = json.load(f)
+	except (OSError, ValueError):
+		return None
+	return meta if isinstance(meta, dict) else None
+
+
+def session_size(part_path: str) -> int:
+	"""Bytes received so far. Return 0 when the part file is gone.
+
+	A concurrent finish deletes the part file, so a size read after an
+	existence check would raise instead of reporting an empty session."""
+	try:
+		return os.path.getsize(part_path)
+	except OSError:
+		return 0
 
 
 def require_session_policy(meta: dict, expected: str) -> None:

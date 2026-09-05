@@ -1,5 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+import builtins
 import hashlib
 import io
 import os
@@ -675,6 +676,31 @@ class TestServeUpload(IntegrationTestCase):
 			winners = [claimed for claimed in results if claimed]
 			self.assertEqual(len(winners), 1)
 			self.addCleanup(delete_session, winners[0])
+
+	def test_finish_refuses_a_session_consumed_while_it_is_read(self):
+		"""The winner of a finish race deletes the session while the loser is
+		still reading its meta file. The loser has to see the stable session
+		error, not the raw OSError of the vanished file."""
+		content = b"one winner only"
+		with flag_on(), frappe.storage.fake():
+			upload_id = self.open_blob_session("race.bin", len(content))
+			upload_blob_chunk(upload_id, 0, content)
+			meta_path, part_path = get_session_paths(upload_id)
+			real_open = builtins.open
+
+			def consume_then_open(file, *args, **kwargs):
+				if file == meta_path:
+					# stands in for the winner claiming and dropping the session
+					delete_session(meta_path, part_path)
+				return real_open(file, *args, **kwargs)
+
+			with patch("builtins.open", consume_then_open):
+				with self.assertRaises(frappe.ValidationError):
+					finish_upload_to_blob(upload_id)
+
+			# the loser claimed nothing and left no session artifact behind
+			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
+			self.assertFalse(os.path.exists(meta_path))
 
 	def test_guest_upload_restricted_to_legacy_mimetypes(self):
 		with flag_on(), frappe.storage.fake():
