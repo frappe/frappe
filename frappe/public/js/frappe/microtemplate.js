@@ -153,6 +153,7 @@ frappe.render_template = function (name, data) {
 
 	(opts.lang = opts.lang || frappe.boot.lang),
 		(opts.layout_direction = opts.layout_direction || frappe.utils.is_rtl() ? "rtl" : "ltr");
+	opts.can_use_smaller_font = opts.can_use_smaller_font || 0;
 
 	var html = frappe.render_template("print_template", opts);
 

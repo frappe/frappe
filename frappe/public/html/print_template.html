@@ -15,10 +15,8 @@
 <body>
 	<div class="print-format-gutter">
 		<div class="print-format {% if landscape %}landscape{% endif %}"
-				{% if columns.length > 20 %}
-					{% if can_use_smaller_font %}
-						style="font-size: 4.0pt"
-					{% endif %}
+				{% if can_use_smaller_font %}
+					style="font-size: 4.0pt"
 				{% endif %}
 			>
 			{% if print_settings.letter_head %}

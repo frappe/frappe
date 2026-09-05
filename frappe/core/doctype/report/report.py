@@ -468,7 +468,7 @@ class Report(Document):
 			not pf
 			or pf.report != self.name
 			or pf.print_format_for != "Report"
-			or pf.print_format_type != "JS"
+			or pf.print_format_type not in ("JS", "Jinja")
 			or pf.disabled
 		):
 			frappe.throw(_("Selected Print Format is invalid for this Report."))

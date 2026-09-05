@@ -66,7 +66,7 @@ def get_print_format_data(print_format: str):
 	pf = frappe.db.get_value(
 		"Print Format",
 		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
-		["report", "html", "css"],
+		["report", "html", "css", "print_format_type"],
 		as_dict=True,
 	)
 	if not pf:
@@ -84,7 +84,7 @@ def get_print_format_data(print_format: str):
 			frappe.PermissionError,
 		)
 
-	return {"html": pf.html, "css": pf.css}
+	return {"html": pf.html, "css": pf.css, "print_format_type": pf.print_format_type}
 
 
 def get_report_result(report, filters):
