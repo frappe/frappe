@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import itertools
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import frappe
 import frappe.desk.form.load
@@ -389,8 +389,10 @@ def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str 
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
-	A document that other submitted documents still reference is deferred and
-	retried after the rest, so callers need not pass docs in dependency order.
+	A document whose cancellation another document blocks, through a link or a
+	controller check that wants the other document cancelled first, is deferred
+	and retried after the rest, so callers need not pass docs in dependency
+	order.
 
 	Arguments:
 	        docs (json str) - It contains list of dictionaries of a linked documents.
@@ -413,6 +415,84 @@ def cancel_linked_doc(docinfo):
 		doc.cancel()
 
 
+MAX_LINKED_DELETE_DOCUMENTS = 500
+
+
+@frappe.whitelist()
+def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
+	"""Get all documents that block deletion of the given document, including
+	documents that block deletion of those documents, and so on.
+
+	Documents the user cannot read are neither returned nor traversed, so their
+	identities stay hidden and their deletion fails with the regular link error.
+
+	Deepest documents come first, so deleting in list order resolves the links.
+
+	Traversal stops once MAX_LINKED_DELETE_DOCUMENTS is exceeded and returns no
+	documents, so deleting a heavily referenced document falls back to a plain
+	delete instead of tying up the worker walking its graph.
+	"""
+	from frappe.model.delete_doc import get_dynamic_linked_docs
+	from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
+
+	frappe.has_permission(doctype, doc=name, throw=True)
+
+	root_key = (doctype, name)
+	depth_by_document = {root_key: 0}
+	queue = deque([root_key])
+	while queue:
+		parent_key = queue.popleft()
+		# a lightweight stand-in is enough for the link lookups; loading the
+		# full document of every node is too expensive on this request path
+		parent = frappe._dict(doctype=parent_key[0], name=parent_key[1])
+		links = get_statically_linked_docs(parent, method="Delete") + get_dynamic_linked_docs(
+			parent, method="Delete"
+		)
+		for link in links:
+			key = (link["reference_doctype"], link["reference_docname"])
+			if key in depth_by_document:
+				continue
+			if len(depth_by_document) > MAX_LINKED_DELETE_DOCUMENTS:
+				return {"docs": [], "count": 0, "truncated": True}
+			if not frappe.has_permission(key[0], doc=key[1]):
+				continue
+			depth_by_document[key] = depth_by_document[parent_key] + 1
+			queue.append(key)
+
+	docs = [
+		{"doctype": dt, "name": docname} for dt, docname in depth_by_document if (dt, docname) != root_key
+	]
+	docs.sort(key=lambda doc: depth_by_document[doc["doctype"], doc["name"]], reverse=True)
+	return {"docs": docs, "count": len(docs), "truncated": False}
+
+
+@frappe.whitelist()
+def delete_all_linked_docs(docs: str | list) -> dict:
+	"""
+	Delete as many of the given documents as their links allow.
+
+	A document that other documents still reference is deferred and retried
+	after the rest, so callers need not pass docs in dependency order. A
+	document that stays undeletable is skipped without undoing the rest.
+	Return the deleted and the skipped documents.
+
+	Arguments:
+	        docs (json str) - It contains list of dictionaries of the documents to delete.
+	"""
+	to_delete = deduplicated(frappe.parse_json(docs))
+
+	# No realtime progress here: the events race the requests and navigation
+	# that follow deletion and can strand the progress dialog; the freeze
+	# overlay of the call covers the feedback.
+	skipped = process_linked_docs_in_dependency_order(to_delete, delete_linked_doc, raise_when_stuck=False)
+	return {"deleted": [doc for doc in to_delete if doc not in skipped], "skipped": skipped}
+
+
+def delete_linked_doc(docinfo):
+	"""Delete a document; one already removed by another document's on_trash hook is ignored."""
+	frappe.delete_doc(docinfo.get("doctype"), docinfo.get("name"))
+
+
 def deduplicated(docs):
 	"""Preserve order, dropping repeated (doctype, name) entries."""
 	seen = set()
@@ -425,9 +505,21 @@ def deduplicated(docs):
 	return unique
 
 
-def process_linked_docs_in_dependency_order(docs, process, progress_title):
-	"""Run process over docs, deferring a document blocked by a linked document
-	to a later pass, until a full pass makes no progress."""
+def process_linked_docs_in_dependency_order(docs, process, progress_title=None, raise_when_stuck=True):
+	"""Run process over docs, deferring a document blocked by another document
+	to a later pass, until a full pass makes no progress.
+
+	Any validation or permission failure defers, not just link errors: a
+	controller may block cancellation until a referencing document is cancelled
+	first, and some documents cannot be processed directly but stop being in
+	the way as a side effect of processing a document near them (e.g. ledger
+	entries that only the on_trash hook of their voucher removes). A document
+	locked by another session or caught in a deadlock defers too, since the
+	lock may be gone by the retry pass.
+
+	Once stuck, either surface the error of the first blocked document or, with
+	raise_when_stuck disabled, keep the progress made and return the blocked
+	documents."""
 	total = len(docs)
 	processed = 0
 	save_point = "process_linked_doc"
@@ -438,23 +530,33 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-			except frappe.LinkExistsError:
+			except (
+				frappe.ValidationError,
+				frappe.PermissionError,
+				frappe.QueryTimeoutError,
+				frappe.QueryDeadlockError,
+			):
 				# cancel and delete both run their hooks before the link check, so
 				# roll back the writes of the failed attempt before deferring, and
-				# drop the side effects it queued, which savepoints cannot undo
+				# drop the messages and side effects it queued, which savepoints
+				# cannot undo
 				frappe.db.rollback(save_point=save_point)
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
 				continue
 			frappe.db.release_savepoint(save_point)
 			processed += 1
-			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+			if progress_title:
+				frappe.publish_progress(percent=processed / total * 100, title=progress_title)
 
 		if len(deferred) == len(docs):
-			# A full pass processed nothing, so a document outside `docs` blocks
-			# it. Process without catching to surface the link error.
-			process(deferred[0])
+			if raise_when_stuck:
+				# a document outside `docs` blocks the rest; process without
+				# catching to surface the link error
+				process(deferred[0])
+			return deferred
 		docs = deferred
+	return []
 
 
 def capture_pending_side_effects() -> dict:
