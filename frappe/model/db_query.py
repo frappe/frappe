@@ -20,7 +20,7 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
+from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy, is_non_text_field
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -977,6 +977,13 @@ from {tables}
 		meta = self.get_meta(f.doctype)
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
+		if (
+			frappe.db.db_type == "postgres"
+			and f.operator.lower() in ("like", "not like")
+			and is_non_text_field(f.doctype, f.fieldname, df)
+			and "cast(" not in column_name.lower()
+		):
+			column_name = f"cast({column_name} as varchar)"
 
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.

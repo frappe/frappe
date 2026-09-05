@@ -634,6 +634,17 @@ class TestDBQuery(IntegrationTestCase):
 			{"name": "DocType"} in DatabaseQuery("DocType").execute(filters={"name": ["like", "J%"]})
 		)
 
+	def test_like_filter_on_non_text_field(self):
+		filters = {"docstatus": ["like", "0"]}
+		query = DatabaseQuery("DocType").execute(fields=["name"], filters=filters, run=False)
+		names = DatabaseQuery("DocType").execute(filters=filters, pluck="name")
+
+		self.assertIn("DocType", names)
+		if frappe.db.db_type == "postgres":
+			self.assertIn('CAST("TABDOCTYPE"."DOCSTATUS" AS VARCHAR) ILIKE', query.upper())
+		else:
+			self.assertNotIn("CAST(", query.upper())
+
 	def test_filters_4(self):
 		self.assertTrue(
 			{"name": "DocField"} in DatabaseQuery("DocType").execute(filters={"name": "DocField"})

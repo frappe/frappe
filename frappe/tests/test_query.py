@@ -95,6 +95,16 @@ class TestQuery(IntegrationTestCase):
 			query,
 		)
 
+	def test_like_filter_on_non_text_field(self):
+		query = frappe.qb.get_query("DocType", fields=["name"], filters={"docstatus": ["like", "0"]})
+		names = query.run(pluck=True)
+
+		self.assertIn("DocType", names)
+		if frappe.db.db_type == "postgres":
+			self.assertIn('CAST("DOCSTATUS" AS VARCHAR) ILIKE', query.get_sql().upper())
+		else:
+			self.assertNotIn("CAST(", query.get_sql().upper())
+
 	def test_string_fields(self):
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="name, email", filters={"name": "Administrator"}).get_sql(),
