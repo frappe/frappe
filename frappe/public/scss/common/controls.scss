@@ -571,8 +571,9 @@ button.data-pill {
 
 .capture-remove-btn {
 	position: absolute;
-	top: var(--margin-xs);
-	right: var(--margin-xs);
+	top: 0;
+	right: 0;
+	cursor: pointer;
 }
 
 .frappe-control[data-fieldtype="Attachment Gallery"] {
