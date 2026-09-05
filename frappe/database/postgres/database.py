@@ -729,12 +729,13 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def _estimate_count(self, table: str) -> int:
 		from frappe.utils.data import cint
 
-		# Scope to current schema to avoid cross-site estimates
+		# Scope to current schema to avoid cross-site estimates.
+		# reltuples is -1 until the table has been vacuumed or analyzed.
 		count = self.sql(
 			"select c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relname = %s and n.nspname = %s and c.relkind = 'r'",
 			(table, self.db_schema),
 		)
-		return cint(count[0][0]) if count else 0
+		return max(cint(count[0][0]), 0) if count else 0
 
 	@contextmanager
 	def unbuffered_cursor(self):
