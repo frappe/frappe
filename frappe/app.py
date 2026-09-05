@@ -212,13 +212,27 @@ def init_request(request):
 		else:
 			raise frappe.SessionStopped("Session Stopped")
 
-	if request.path.startswith("/api/method/upload_file"):
+	streaming_paths = {
+		path.rstrip("/") for path in frappe.get_hooks("streaming_request_paths") if path.rstrip("/")
+	}
+	streaming_request = request.method == "PUT" and any(
+		request.path == path or request.path.startswith(f"{path}/") for path in streaming_paths
+	)
+	if streaming_request:
+		request.max_content_length = None
+		args = {}
+		args.update(request.args or {})
+		frappe.local.form_dict = frappe._dict(args)
+		# Keep query handling consistent with make_form_dict without reading the body.
+		frappe.local.form_dict.pop("_", None)
+	elif request.path.startswith("/api/method/upload_file"):
 		from frappe.core.api.file import get_max_file_size
 
 		request.max_content_length = get_max_file_size()
 	else:
 		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
-	make_form_dict(request)
+	if not streaming_request:
+		make_form_dict(request)
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = HTTPRequest()
