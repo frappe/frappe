@@ -40,6 +40,12 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 )
 
 
+def _cast_autoincrement_name(field: Field, doctype: str) -> Term:
+	if frappe.db.db_type == "postgres" and frappe.get_meta(doctype).autoname == "autoincrement":
+		return functions.Cast(field, "varchar")
+	return field
+
+
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
 	"""Apply datetime to date conversion for Date fieldtype filters.
 
@@ -1698,9 +1704,8 @@ class Engine:
 				# permissions are already checked by has_permission
 				return
 
-			self.query = self.query.inner_join(self.permission_table).on(
-				self.table.parent == self.permission_table.name
-			)
+			parent_name = _cast_autoincrement_name(self.permission_table.name, self.permission_doctype)
+			self.query = self.query.inner_join(self.permission_table).on(self.table.parent == parent_name)
 
 		if condition := self.get_permission_conditions(self.permission_doctype, self.permission_table):
 			self.query = self.query.where(condition)
@@ -2174,7 +2179,8 @@ class ChildTableField(DynamicTableField):
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(self.table):
-			join_conditions = (self.table.parent == main_table.name) & (
+			parent_name = _cast_autoincrement_name(main_table.name, self.parent_doctype)
+			join_conditions = (self.table.parent == parent_name) & (
 				self.table.parenttype == self.parent_doctype
 			)
 			if self.parent_fieldname:
@@ -2206,7 +2212,8 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			clause = table.name == getattr(main_table, self.link_fieldname)
+			link_name = _cast_autoincrement_name(table.name, self.doctype)
+			clause = link_name == getattr(main_table, self.link_fieldname)
 
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):
@@ -2238,7 +2245,7 @@ class ChildQuery:
 		filters = {
 			"parenttype": self.parent_doctype,
 			"parentfield": self.fieldname,
-			"parent": ["in", parent_names],
+			"parent": ["in", [str(name) for name in parent_names or ()]],
 		}
 		return frappe.qb.get_query(
 			self.doctype,

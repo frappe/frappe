@@ -380,7 +380,8 @@ from {tables}
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			link_name = cast_name(f"{link.table_alias}.`name`")
+			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link_name} = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
