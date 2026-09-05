@@ -6,6 +6,7 @@ from flow.events import (
 	DisplaySegment,
 	ModelChanged,
 	PendingCall,
+	PreviewReplayStarted,
 	Retry,
 	Rewind,
 	RunEnded,
@@ -122,6 +123,18 @@ def test_retry_started_discards_the_preview():
 	# the durable message means the attempt succeeded
 	state.apply(AssistantMessage(content="done", seq=1))
 	assert state.retry is None
+
+
+def test_preview_replay_replaces_the_existing_provisional_preview():
+	state = State()
+	state.apply(RunStarted(run_id="r1", seq=1))
+	state.apply(TextDelta(text="prefix"))
+
+	assert state.apply(PreviewReplayStarted()) == [PartialCleared()]
+	state.apply(TextDelta(text="prefix"))
+	state.apply(TextDelta(text=" suffix"))
+
+	assert state.partial == [PartialText("prefix suffix")]
 
 
 def test_approval_lifecycle_settled_by_matching_results():
