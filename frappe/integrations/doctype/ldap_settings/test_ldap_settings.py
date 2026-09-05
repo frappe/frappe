@@ -8,11 +8,15 @@ import typing
 from unittest import TestCase, mock
 
 import ldap3
+import pyotp
 from ldap3 import MOCK_SYNC, OFFLINE_AD_2012_R2, OFFLINE_SLAPD_2_4, Connection, Server
 
 import frappe
+from frappe.auth import HTTPRequest
 from frappe.exceptions import MandatoryError, ValidationError
+from frappe.integrations.doctype.ldap_settings import ldap_settings as ldap_settings_module
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+from frappe.utils import set_request
 
 
 class LDAP_TestCase:
@@ -589,6 +593,212 @@ class LDAP_TestCase:
 					"posix.user1@unit.testing", "posix_user_password"
 				)  # Change Password
 			connect_to_ldap.assert_called_with(self.base_dn, self.base_password, read_only=False)
+
+	@mock_ldap_connection
+	def test_login_with_2fa_completes_via_cached_ldap_identity(self):
+		user_name = "posix.user1@unit.testing"
+		original_session_user = frappe.session.user
+
+		system_settings = frappe.get_doc("System Settings")
+		original_2fa_state = system_settings.enable_two_factor_auth
+		original_2fa_method = system_settings.two_factor_method
+		all_role = frappe.get_doc("Role", "All")
+		original_role_2fa = all_role.two_factor_auth
+
+		def enable_2fa():
+			settings = frappe.get_doc("System Settings")
+			settings.enable_two_factor_auth = 1
+			settings.two_factor_method = "OTP App"
+			settings.flags.ignore_mandatory = True
+			settings.save(ignore_permissions=True)
+
+			role = frappe.get_doc("Role", "All")
+			role.two_factor_auth = 1
+			role.save(ignore_permissions=True)
+
+		def restore_2fa():
+			settings = frappe.get_doc("System Settings")
+			settings.enable_two_factor_auth = original_2fa_state
+			settings.two_factor_method = original_2fa_method
+			settings.flags.ignore_mandatory = True
+			settings.save(ignore_permissions=True)
+
+			role = frappe.get_doc("Role", "All")
+			role.two_factor_auth = original_role_2fa
+			role.save(ignore_permissions=True)
+
+		ldap_login_path = "/api/method/frappe.integrations.doctype.ldap_settings.ldap_settings.login"
+
+		enable_2fa()
+		try:
+			# Local password intentionally does not match the LDAP password, so the
+			# test fails loudly if the OTP step ever falls back to local auth.
+			user_doc = frappe.get_doc("User", user_name)
+			user_doc.new_password = "not-the-ldap-password-!@#123"
+			user_doc.save(ignore_permissions=True)
+			frappe.db.commit()
+
+			# Step 1: LDAP bind + password, triggers the OTP challenge.
+			set_request(method="POST", path=ldap_login_path)
+			frappe.form_dict.usr = "posix.user"
+			frappe.form_dict.pwd = "posix_user_password"
+			HTTPRequest()
+
+			with mock.patch(
+				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.fetch_ldap_groups"
+			):
+				first_step_result = ldap_settings_module.login()
+
+			self.assertFalse(first_step_result)
+			self.assertEqual(frappe.local.login_manager.user, user_name)
+			tmp_id = frappe.local.response.get("tmp_id")
+			self.assertTrue(tmp_id)
+
+			otp_secret = frappe.safe_decode(frappe.cache.get(f"{tmp_id}_otp_secret"))
+			otp = pyotp.TOTP(otp_secret).now()
+
+			# Step 2: OTP submission only, no usr/pwd resubmitted.
+			set_request(method="POST", path=ldap_login_path)
+			frappe.form_dict.otp = otp
+			frappe.form_dict.tmp_id = tmp_id
+			HTTPRequest()
+
+			with mock.patch("frappe.core.doctype.user.user.User.find_by_credentials") as find_by_credentials:
+				ldap_settings_module.login()
+
+			find_by_credentials.assert_not_called()
+			self.assertEqual(frappe.local.login_manager.user, user_name)
+			self.assertEqual(frappe.session.user, user_name)
+		finally:
+			frappe.set_user(original_session_user)
+			restore_2fa()
+
+	@mock_ldap_connection
+	def test_login_with_2fa_rejects_tampered_cached_password_on_otp_step(self):
+		system_settings = frappe.get_doc("System Settings")
+		original_2fa_state = system_settings.enable_two_factor_auth
+		original_2fa_method = system_settings.two_factor_method
+		all_role = frappe.get_doc("Role", "All")
+		original_role_2fa = all_role.two_factor_auth
+
+		def enable_2fa():
+			settings = frappe.get_doc("System Settings")
+			settings.enable_two_factor_auth = 1
+			settings.two_factor_method = "OTP App"
+			settings.flags.ignore_mandatory = True
+			settings.save(ignore_permissions=True)
+
+			role = frappe.get_doc("Role", "All")
+			role.two_factor_auth = 1
+			role.save(ignore_permissions=True)
+
+		def restore_2fa():
+			settings = frappe.get_doc("System Settings")
+			settings.enable_two_factor_auth = original_2fa_state
+			settings.two_factor_method = original_2fa_method
+			settings.flags.ignore_mandatory = True
+			settings.save(ignore_permissions=True)
+
+			role = frappe.get_doc("Role", "All")
+			role.two_factor_auth = original_role_2fa
+			role.save(ignore_permissions=True)
+
+		ldap_login_path = "/api/method/frappe.integrations.doctype.ldap_settings.ldap_settings.login"
+
+		enable_2fa()
+		try:
+			set_request(method="POST", path=ldap_login_path)
+			frappe.form_dict.usr = "posix.user"
+			frappe.form_dict.pwd = "posix_user_password"
+			HTTPRequest()
+
+			with mock.patch(
+				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.fetch_ldap_groups"
+			):
+				ldap_settings_module.login()
+
+			tmp_id = frappe.local.response.get("tmp_id")
+			self.assertTrue(tmp_id)
+
+			otp_secret = frappe.safe_decode(frappe.cache.get(f"{tmp_id}_otp_secret"))
+			otp = pyotp.TOTP(otp_secret).now()
+
+			frappe.cache.set(f"{tmp_id}_pwd", "wrong-password")
+
+			set_request(method="POST", path=ldap_login_path)
+			frappe.form_dict.otp = otp
+			frappe.form_dict.tmp_id = tmp_id
+			HTTPRequest()
+
+			with self.assertRaises(ValidationError):
+				ldap_settings_module.login()
+		finally:
+			restore_2fa()
+
+	@mock_ldap_connection
+	def test_login_with_2fa_blocked_when_ldap_disabled_mid_flow(self):
+		system_settings = frappe.get_doc("System Settings")
+		original_2fa_state = system_settings.enable_two_factor_auth
+		original_2fa_method = system_settings.two_factor_method
+		all_role = frappe.get_doc("Role", "All")
+		original_role_2fa = all_role.two_factor_auth
+
+		def enable_2fa():
+			settings = frappe.get_doc("System Settings")
+			settings.enable_two_factor_auth = 1
+			settings.two_factor_method = "OTP App"
+			settings.flags.ignore_mandatory = True
+			settings.save(ignore_permissions=True)
+
+			role = frappe.get_doc("Role", "All")
+			role.two_factor_auth = 1
+			role.save(ignore_permissions=True)
+
+		def restore_2fa():
+			settings = frappe.get_doc("System Settings")
+			settings.enable_two_factor_auth = original_2fa_state
+			settings.two_factor_method = original_2fa_method
+			settings.flags.ignore_mandatory = True
+			settings.save(ignore_permissions=True)
+
+			role = frappe.get_doc("Role", "All")
+			role.two_factor_auth = original_role_2fa
+			role.save(ignore_permissions=True)
+
+		ldap_login_path = "/api/method/frappe.integrations.doctype.ldap_settings.ldap_settings.login"
+
+		enable_2fa()
+		try:
+			set_request(method="POST", path=ldap_login_path)
+			frappe.form_dict.usr = "posix.user"
+			frappe.form_dict.pwd = "posix_user_password"
+			HTTPRequest()
+
+			with mock.patch(
+				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.fetch_ldap_groups"
+			):
+				ldap_settings_module.login()
+
+			tmp_id = frappe.local.response.get("tmp_id")
+			self.assertTrue(tmp_id)
+
+			otp_secret = frappe.safe_decode(frappe.cache.get(f"{tmp_id}_otp_secret"))
+			otp = pyotp.TOTP(otp_secret).now()
+
+			ldap_settings = frappe.get_doc("LDAP Settings")
+			ldap_settings.enabled = 0
+			ldap_settings.flags.ignore_mandatory = True
+			ldap_settings.save(ignore_permissions=True)
+
+			set_request(method="POST", path=ldap_login_path)
+			frappe.form_dict.otp = otp
+			frappe.form_dict.tmp_id = tmp_id
+			HTTPRequest()
+
+			with self.assertRaises(ValidationError):
+				ldap_settings_module.login()
+		finally:
+			restore_2fa()
 
 	@mock_ldap_connection
 	def test_convert_ldap_entry_to_dict(self):
