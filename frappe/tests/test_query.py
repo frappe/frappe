@@ -2274,6 +2274,116 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
+	def test_distinct_keeps_valid_order_by(self):
+		for field, order_by in (
+			("user_type", "user_type asc"),
+			("user_type as type", "type asc"),
+			("`tabUser`.`user_type`", "`tabUser`.`user_type` asc"),
+		):
+			with self.subTest(field=field, order_by=order_by):
+				query = frappe.qb.get_query("User", fields=[field], distinct=True, order_by=order_by)
+				result = query.run()
+
+				self.assertIn("order by", query.get_sql().lower())
+				self.assertEqual(list(result), sorted(result))
+
+	def test_distinct_drops_unselected_order_by_on_postgres(self):
+		if frappe.db.db_type == "postgres":
+			with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+				query = frappe.qb.get_query(
+					"User", fields=["user_type"], distinct=True, order_by="creation desc"
+				)
+			self.assertNotIn("order by", query.get_sql().lower())
+		else:
+			query = frappe.qb.get_query("User", fields=["user_type"], distinct=True, order_by="creation desc")
+			self.assertIn("order by", query.get_sql().lower())
+
+	def test_distinct_keeps_order_by_on_star_column(self):
+		query = frappe.qb.get_query("User", fields=["*"], distinct=True, order_by="user_type asc")
+		result = query.run(as_dict=True)
+
+		self.assertIn("order by", query.get_sql().lower())
+		self.assertEqual([row.user_type for row in result], sorted(row.user_type for row in result))
+
+	def test_distinct_keeps_order_by_on_link_field(self):
+		query = frappe.qb.get_query(
+			"User",
+			fields=["name", "language.language_name"],
+			distinct=True,
+			order_by="language.language_name asc",
+		)
+		query.run()
+
+		self.assertIn("order by", query.get_sql().lower())
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_order_by_preserves_link_table_identity(self):
+		for order_by in ("creation desc", "`tabUser`.`creation` desc"):
+			with self.subTest(order_by=order_by):
+				with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+					query = frappe.qb.get_query(
+						"User",
+						fields=["language.creation as language_creation"],
+						distinct=True,
+						order_by=order_by,
+					)
+				self.assertNotIn("order by", query.get_sql().lower())
+				query.run()
+
+		for order_by in ("language_creation asc", "language.creation asc"):
+			with self.subTest(order_by=order_by):
+				query = frappe.qb.get_query(
+					"User",
+					fields=["language.creation as language_creation"],
+					distinct=True,
+					order_by=order_by,
+				)
+				self.assertIn("order by", query.get_sql().lower())
+				query.run()
+
+	def test_distinct_order_by_result_position(self):
+		for group_by in (None, "user_type, enabled"):
+			for position, direction in ((1, "asc"), (2, "desc")):
+				with self.subTest(group_by=group_by, position=position):
+					query = frappe.qb.get_query(
+						"User",
+						fields=["user_type", "enabled"],
+						distinct=True,
+						group_by=group_by,
+						order_by=f"{position} {direction}",
+					)
+					values = [row[position - 1] for row in query.run()]
+					self.assertEqual(values, sorted(values, reverse=direction == "desc"))
+
+	def test_distinct_order_by_star_result_position(self):
+		query = frappe.qb.get_query("User", fields=["*"], distinct=True, order_by="2 asc")
+		self.assertIn("ORDER BY 2 ASC", query.get_sql())
+		query.run()
+
+	def test_distinct_order_by_selected_grouped_field(self):
+		for field in ("creation", "enabled"):
+			with self.subTest(field=field):
+				query = frappe.qb.get_query(
+					"User",
+					fields=["name", field],
+					group_by="name",
+					distinct=True,
+					order_by=f"{field} asc",
+				)
+				values = [row[1] for row in query.run()]
+				self.assertEqual(values, sorted(values))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_drops_invalid_result_position(self):
+		for position in (0, 2):
+			with self.subTest(position=position):
+				with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+					query = frappe.qb.get_query(
+						"User", fields=["user_type"], distinct=True, order_by=f"{position} asc"
+					)
+				self.assertNotIn("order by", query.get_sql().lower())
+				query.run()
+
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
 			"User",
