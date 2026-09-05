@@ -130,13 +130,41 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"redirect_to_message": ("frappe.utils.response", "redirect_to_message"),
 }
 
+# --------------------------------------------------------------------------------------------
+# We argue that most of _LAZY_IMPORT attributes are hit anyway on `bench start` and/or very first request to server.
+# So it doesn't make sense to do Lazy Imports for Frappe (namespace) code, as we end up with adding significant "perceived" latency on User side .
+# We also argue it is SAFE, as a dedicated lock/sync is used by Python internally to cleanly initialize a module (Even if it has some code that could run on init, so no side-effects).
+# https://docs.python.org/3/whatsnew/3.3.html#a-finer-grained-import-lock
+import_thread_lock = threading.RLock()
+
+
+def _import_frappe_modules_in_background():
+	for name, (module_path, attr_name) in _LAZY_IMPORTS.items():
+		with import_thread_lock:
+			if name not in globals():
+				mod = importlib.import_module(module_path)
+				value = getattr(mod, attr_name)
+				globals()[name] = value
+
+
+# ----------------------------------------------------------------------------------------------
+
 
 def __getattr__(name: str):
 	if name in _LAZY_IMPORTS:
-		module_path, attr_name = _LAZY_IMPORTS[name]
-		mod = importlib.import_module(module_path)
-		value = getattr(mod, attr_name)
-		globals()[name] = value
+		value = None
+		# NOTE: we priortize the direct request to load a module from parent thread, `globals()` and `import_thread_lock` are used to sync this information to the background thread.
+		with import_thread_lock:
+			if name not in globals():
+				module_path, attr_name = _LAZY_IMPORTS[name]
+				mod = importlib.import_module(module_path)
+				value = getattr(mod, attr_name)
+				globals()[name] = value
+			else:
+				value = globals()[name]
+		assert value is not None, (
+			f"Failed to load an Expected module {name}, most likely bug in our background import loading thread!"
+		)
 		return value
 	raise AttributeError(f"module 'frappe' has no attribute {name!r}")
 
@@ -1506,3 +1534,27 @@ delete_doc_if_exists = delete_doc
 
 frappe._optimizations.optimize_all()
 frappe._optimizations.register_fault_handler()
+
+# ===========================================================================================================================================
+# background_thread should be run at the end, as it would compete through `per module` lock (as itself would be importing from frappe namespace).
+# So only after `__init__`finished importing it could start importing (through importlib machinery).
+background_thread = threading.Thread(target=_import_frappe_modules_in_background, args=())
+
+
+def finish_background_import_loading():
+	# NOTE: we make sure to check no dead-lock, if __init__ has been imported, then should be NO reason to deadlock, just may take few 100s Of milliseconds to load.
+	# by the time it would get `forked` it would already be finished almost always. (if not, timeout should compensate for that).
+	global background_thread
+	background_thread.join(
+		timeout=6
+	)  # can be joined many times, so for each fork, if finished once , then would be instant.
+	if background_thread.is_alive():
+		raise Exception(
+			"Thread responsible for loading import didn't finish in expected time or Deadlocked, either way its a BUG. !!"
+		)
+
+
+# Background threads are difficut to manage in case of `forks`, not a clearly defined behaviour. Ideally no background thread should be running just before forking.
+os.register_at_fork(before=finish_background_import_loading)
+background_thread.start()
+# ========================================================================================================================================================
