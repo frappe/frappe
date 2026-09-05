@@ -1,6 +1,7 @@
 import base64
 import datetime
 import hashlib
+import hmac
 import re
 from urllib.parse import urljoin, urlparse
 
@@ -8,7 +9,6 @@ from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
 
 import frappe
-from frappe.auth import LoginManager
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
 from frappe.utils.data import cstr, get_system_timezone, now_datetime
@@ -96,8 +96,9 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def authenticate_client(self, request: Request, *args, **kwargs) -> bool | None:
 		"""
-		Loads the client based on request parameters and sets in oauth request.
-		Returns True on success, None on error.
+		Loads the client based on request parameters, verifies its client_secret
+		for confidential clients, and sets it in the oauth request.
+		Returns True on success, False/None on error.
 		"""
 		# Get ClientID in URL
 		if request.client_id:
@@ -114,13 +115,36 @@ class OAuthWebRequestValidator(RequestValidator):
 
 			client_name = frappe.db.get_value("OAuth Bearer Token", filters=token_filters, fieldname="client")
 
-		oc: OAuthClient = frappe.get_cached_doc("OAuth Client", client_name)
+		try:
+			oc: OAuthClient = frappe.get_cached_doc("OAuth Client", client_name)
+		except frappe.DoesNotExistError:
+			return False
+
+		if not oc.is_public_client() and not self.verify_client_secret(oc, request):
+			return False
+
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception as e:
 			return generate_json_error_response(e)
 
 		return True
+
+	def verify_client_secret(self, oc: OAuthClient, request: Request) -> bool:
+		"""Verify the client_secret of a confidential client.
+
+		Only client_secret_post (a client_secret body/query param) is
+		supported: an Authorization: Basic header never reaches this code,
+		since frappe.auth.validate_auth_via_api_keys() intercepts any Basic
+		auth header at the request level and treats it as a Frappe User API
+		key/secret, before this whitelisted method ever runs.
+		"""
+		client_secret = request.client_secret
+
+		if not isinstance(client_secret, str) or not oc.client_secret:
+			return False
+
+		return hmac.compare_digest(client_secret, oc.client_secret)
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
 		try:
@@ -186,7 +210,17 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
-		return grant_type in ["authorization_code", "refresh_token", "password"]
+		return grant_type in ["authorization_code", "refresh_token"]
+
+	def validate_user(self, username, password, client, request, *args, **kwargs):
+		"""Resource Owner Password Credentials Grant is not supported.
+
+		oauthlib's ResourceOwnerPasswordCredentialsGrant handler calls this
+		unconditionally regardless of validate_grant_type, so this must
+		exist and reject cleanly rather than fall through to the base
+		RequestValidator's NotImplementedError.
+		"""
+		return False
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
@@ -521,21 +555,6 @@ class OAuthWebRequestValidator(RequestValidator):
 			return True
 
 		return False
-
-	def validate_user(self, username, password, client, request, *args, **kwargs):
-		"""Ensure the username and password is valid.
-
-		Method is used by:
-		- Resource Owner Password Credentials Grant
-		"""
-		login_manager = LoginManager()
-		login_manager.authenticate(username, password)
-
-		if login_manager.user == "Guest":
-			return False
-
-		request.user = login_manager.user
-		return True
 
 
 def calculate_at_hash(access_token, hash_alg):
