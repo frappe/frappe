@@ -31,7 +31,7 @@
   height: calc(var(--spacing) * 5);
   padding-inline: calc(var(--spacing) * 1.5);
   font-size: 0.75rem;
-  line-height: 1;
+  line-height: 1.3;
 
   /* default variant = subtle */
   background: var(--c-fill);
