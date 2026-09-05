@@ -20,6 +20,10 @@ if TYPE_CHECKING:
 	from frappe.integrations.doctype.social_login_key.social_login_key import SocialLoginKey
 
 
+PKCE_CODE_VERIFIER = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+PKCE_CODE_CHALLENGE = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+
+
 class FrappeRequestTestCase(IntegrationTestCase):
 	@property
 	def sid(self) -> str:
@@ -235,12 +239,42 @@ class TestOAuth20(FrappeRequestTestCase):
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
-	def test_login_using_authorization_code_with_pkce(self):
-		update_client_for_auth_code_grant(self.client_id)
+	def test_public_client_requires_pkce(self):
+		update_client_for_auth_code_grant(self.client_id, public=True)
 
-		# Go to Authorize url
 		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
-		resp = self.get(
+		response = self.get(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			{
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"response_type": "code",
+				"redirect_uri": self.redirect_uri,
+			},
+			follow_redirects=True,
+		)
+
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.json["error"], "invalid_request")
+		self.assertEqual(response.json["description"], "Code challenge required.")
+
+	def test_public_client_rejects_invalid_pkce_verifier(self):
+		response = self.request_pkce_token("invalid-verifier")
+
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.json["error"], "invalid_grant")
+
+	def test_public_client_accepts_valid_s256_pkce_verifier(self):
+		response = self.request_pkce_token(PKCE_CODE_VERIFIER)
+
+		self.assertTrue(response.json.get("access_token"))
+		self.assertTrue(response.json.get("id_token"))
+
+	def request_pkce_token(self, code_verifier):
+		update_client_for_auth_code_grant(self.client_id, public=True)
+
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+		response = self.get(
 			"/api/method/frappe.integrations.oauth2.authorize",
 			{
 				"client_id": self.client_id,
@@ -248,37 +282,24 @@ class TestOAuth20(FrappeRequestTestCase):
 				"response_type": "code",
 				"redirect_uri": self.redirect_uri,
 				"code_challenge_method": "S256",
-				"code_challenge": "21XaP8MJjpxCMRxgEzBP82sZ73PRLqkyBUta1R309J0",
+				"code_challenge": PKCE_CODE_CHALLENGE,
 			},
 			follow_redirects=True,
 		)
+		query = parse_qs(response.request.environ["QUERY_STRING"])
 
-		# Get authorization code from redirected URL
-		query = parse_qs(resp.request.environ["QUERY_STRING"])
-		auth_code = query.get("code")[0]
-
-		# Request for bearer token
-		token_response = self.post(
+		return self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
 			headers=self.form_header,
 			data={
 				"grant_type": "authorization_code",
-				"code": auth_code,
+				"code": query["code"][0],
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
 				"scope": self.scope,
-				"code_verifier": "420",
+				"code_verifier": code_verifier,
 			},
 		)
-
-		# Parse bearer token json
-		bearer_token = token_response.json
-
-		self.assertTrue(bearer_token.get("access_token"))
-		self.assertTrue(bearer_token.get("id_token"))
-
-		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
-		self.assertEqual(decoded_token["email"], "test@example.com")
 
 	def test_revoke_token(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
@@ -508,10 +529,12 @@ def get_full_url(endpoint):
 	return urljoin(frappe.utils.get_url(), endpoint)
 
 
-def update_client_for_auth_code_grant(client_id):
+def update_client_for_auth_code_grant(client_id, public=False):
 	client = frappe.get_doc("OAuth Client", client_id)
 	client.grant_type = "Authorization Code"
 	client.response_type = "Code"
+	if public:
+		client.token_endpoint_auth_method = "None"
 	client.save()
 	frappe.db.commit()
 	return client
