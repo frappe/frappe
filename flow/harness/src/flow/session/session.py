@@ -444,7 +444,19 @@ class Session:
 			self.transcript.record(event)
 		elif isinstance(event, Retry) and event.status == "started":
 			self._preview_replay[:] = [event]
-		elif isinstance(event, (TextDelta, ThinkingDelta, ToolCallStarted, ToolCallDisplayReady, Retry)):
+		elif isinstance(event, TextDelta):
+			previous = self._preview_replay[-1] if self._preview_replay else None
+			if isinstance(previous, TextDelta):
+				self._preview_replay[-1] = TextDelta(text=previous.text + event.text)
+			else:
+				self._preview_replay.append(event)
+		elif isinstance(event, ThinkingDelta):
+			previous = self._preview_replay[-1] if self._preview_replay else None
+			if isinstance(previous, ThinkingDelta):
+				self._preview_replay[-1] = ThinkingDelta(thinking=previous.thinking + event.thinking)
+			else:
+				self._preview_replay.append(event)
+		elif isinstance(event, (ToolCallStarted, ToolCallDisplayReady, Retry)):
 			self._preview_replay.append(event)
 		for queue in list(self._subscribers):
 			queue.put_nowait(event)

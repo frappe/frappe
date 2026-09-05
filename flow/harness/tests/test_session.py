@@ -16,6 +16,7 @@ from flow.events import (
 	PendingCall,
 	RunEnded,
 	TextDelta,
+	ThinkingDelta,
 	ToolCall,
 	ToolResult,
 	UserMessage,
@@ -292,7 +293,10 @@ async def test_reconnecting_event_stream_replays_in_progress_deltas(tmp_path):
 			self.release = asyncio.Event()
 
 		async def run(self, request):
-			yield TextDelta(text="prefix")
+			yield ThinkingDelta(thinking="think")
+			yield ThinkingDelta(thinking="ing")
+			yield TextDelta(text="pre")
+			yield TextDelta(text="fix")
 			self.prefix_sent.set()
 			await self.release.wait()
 			yield TextDelta(text=" suffix")
@@ -319,7 +323,8 @@ async def test_reconnecting_event_stream_replays_in_progress_deltas(tmp_path):
 	await asyncio.wait_for(watcher, timeout=1)
 
 	assert seen[0].type == "preview_replay_started"
-	assert "".join(event.text for event in seen if isinstance(event, TextDelta)) == "prefix suffix"
+	assert [event.thinking for event in seen if isinstance(event, ThinkingDelta)] == ["thinking"]
+	assert [event.text for event in seen if isinstance(event, TextDelta)] == ["prefix", " suffix"]
 
 
 async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
