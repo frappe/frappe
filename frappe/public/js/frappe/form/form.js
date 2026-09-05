@@ -2224,13 +2224,21 @@ frappe.ui.form.Form = class FrappeForm {
 
 	set_link_field(doctype, new_doc, fieldname) {
 		let me = this;
-		frappe.get_meta(doctype).fields.forEach(function (df) {
+		const fields = frappe.get_meta(doctype).fields;
+		const link_field = fields.find(
+			(df) =>
+				df.fieldname === fieldname && df.fieldtype === "Link" && df.options === me.doctype
+		);
+
+		if (link_field) {
+			new_doc[link_field.fieldname] = me.doc.name;
+			return;
+		}
+
+		fields.forEach(function (df) {
 			const isLinkToParent = df.fieldtype === "Link" && df.options === me.doctype;
 
 			if (fieldname) {
-				if (df.fieldname === fieldname && isLinkToParent) {
-					new_doc[df.fieldname] = me.doc.name;
-				}
 				if (df.fieldtype === "Table" && df.options && df.reqd) {
 					me.set_link_field(df.options, new_doc[df.fieldname][0]);
 				}

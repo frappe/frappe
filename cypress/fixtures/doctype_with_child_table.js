@@ -15,6 +15,18 @@ export default {
 			unique: 1,
 		},
 		{
+			fieldname: "doctype_to_link",
+			fieldtype: "Link",
+			label: "Doctype to Link",
+			options: "Doctype to Link",
+		},
+		{
+			fieldname: "secondary_link",
+			fieldtype: "Link",
+			label: "Secondary Link",
+			options: "Doctype to Link",
+		},
+		{
 			fieldname: "child_table",
 			fieldtype: "Table",
 			label: "Child Table",

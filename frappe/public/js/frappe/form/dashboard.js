@@ -250,6 +250,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		if (!this.data.transactions) this.data.transactions = [];
 		if (!this.data.internal_links) this.data.internal_links = {};
 		if (!this.data.internal_and_external_links) this.data.internal_and_external_links = {};
+		if (!this.data.non_standard_fieldnames) this.data.non_standard_fieldnames = {};
+		if (!this.data.fieldname) this.data.fieldname = "";
 		this.filter_permissions();
 	}
 

@@ -64,15 +64,17 @@ context("Dashboard links", () => {
 		cy.select_form_tab("Connections");
 		cy.get('.document-link[data-doctype="Contact"]').contains("Contact");
 		cy.window()
-			.its("cur_frm")
-			.then((cur_frm) => {
-				cur_frm.dashboard.data.reports = [
+			.its("frappe")
+			.then((frappe) => {
+				const frm = frappe.views.formview.User.frm;
+
+				frm.dashboard.data.reports = [
 					{
 						label: "Reports",
 						items: ["Website Analytics"],
 					},
 				];
-				cur_frm.dashboard.render_report_links();
+				frm.dashboard.render_report_links();
 				cy.get('.document-link[data-report="Website Analytics"]')
 					.contains("Website Analytics")
 					.click();
@@ -88,5 +90,40 @@ context("Dashboard links", () => {
 		cy.get(
 			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
 		).should("contain.text", "Test Linking");
+	});
+
+	it("only populates the selected parent link field", () => {
+		cy.new_form(doctype_to_link_name);
+		cy.fill_field("title", "Test Direct Linking");
+		cy.findByRole("button", { name: "Save" }).click();
+
+		// wait for the dashboard to render before mutating its data
+		cy.get('.document-link[data-doctype="Doctype With Child Table"]');
+
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				const frm = frappe.views.formview[doctype_to_link_name].frm;
+				const group = frm.dashboard.data.transactions.find((group) =>
+					group.items.includes("Doctype With Child Table")
+				);
+
+				delete group.fieldnames;
+				frm.dashboard.data.non_standard_fieldnames["Doctype With Child Table"] =
+					"doctype_to_link";
+				frm.dashboard.transactions_area.empty();
+				frm.dashboard.data_rendered = false;
+				frm.dashboard.render_links();
+			});
+
+		cy.get('.document-link[data-doctype="Doctype With Child Table"] .btn-new')
+			.should("have.attr", "data-fieldname", "doctype_to_link")
+			.click({ force: true });
+
+		cy.get_field("doctype_to_link").should("have.value", "Test Direct Linking");
+		cy.get_field("secondary_link").should("have.value", "");
+		cy.get(
+			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
+		).should("not.contain.text", "Test Direct Linking");
 	});
 });
