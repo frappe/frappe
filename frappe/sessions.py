@@ -212,7 +212,16 @@ def generate_csrf_token():
 
 
 class Session:
-	__slots__ = ("_update_in_cache", "data", "full_name", "sid", "time_diff", "user", "user_type")
+	__slots__ = (
+		"_update_in_cache",
+		"data",
+		"full_name",
+		"sid",
+		"sid_from_params",
+		"time_diff",
+		"user",
+		"user_type",
+	)
 
 	def __init__(
 		self,
@@ -223,9 +232,9 @@ class Session:
 		session_end: str | None = None,
 		audit_user: str | None = None,
 	):
-		self.sid = cstr(
-			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
-		)
+		params_sid = frappe.form_dict.pop("sid", None)
+		self.sid_from_params = bool(params_sid)
+		self.sid = cstr(params_sid or unquote(frappe.request.cookies.get("sid", "Guest")))
 		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
 		self.user = user
 		self.user_type = user_type
@@ -262,6 +271,7 @@ class Session:
 
 		self.data.user = self.user
 		self.sid = self.data.sid = sid
+		self.sid_from_params = False
 		self.data.data.user = self.user
 		self.data.data.session_ip = frappe.local.request_ip
 

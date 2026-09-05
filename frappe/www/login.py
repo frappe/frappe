@@ -11,6 +11,7 @@ from frappe.apps import get_default_path
 from frappe.auth import LoginManager
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
 from frappe.rate_limiter import rate_limit
+from frappe.sessions import get_expiry_in_seconds
 from frappe.utils import cint, get_url
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import get_icon_html
@@ -122,6 +123,7 @@ def login_via_token(login_token: str):
 
 	frappe.local.form_dict.sid = sid
 	frappe.local.login_manager = LoginManager()
+	frappe.local.cookie_manager.set_cookie("sid", sid, max_age=get_expiry_in_seconds(), httponly=True)
 
 	redirect_post_login(
 		desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"

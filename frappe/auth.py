@@ -403,6 +403,12 @@ class CookieManager:
 		if not frappe.local.session.get("sid"):
 			return
 
+		# A session id supplied as a request parameter is only honoured for that request. Callers
+		# that intentionally hand a session over to a browser set the cookie themselves.
+		session_obj = getattr(frappe.local, "session_obj", None)
+		if session_obj and session_obj.sid_from_params:
+			return
+
 		if frappe.session.sid:
 			self.set_cookie("sid", frappe.session.sid, max_age=get_expiry_in_seconds(), httponly=True)
 

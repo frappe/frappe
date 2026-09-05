@@ -1354,7 +1354,9 @@ def browse(
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = frappe.session.sid
-			login_path = f"/app?sid={sid}"
+			login_token = frappe.generate_hash(length=32)
+			frappe.cache.set_value(f"login_token:{login_token}", sid, expires_in_sec=120)
+			login_path = f"/api/method/frappe.www.login.login_via_token?login_token={login_token}"
 		else:
 			click.echo("Please enable developer mode to login as a user")
 
