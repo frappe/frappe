@@ -51,7 +51,8 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 		clear();
 		if (!doc) return show_missing(name);
-		if (doc.__onload.island) return show_island(doc);
+		// `as_dict` drops an empty `__onload`, so no key at all is the common case.
+		if (doc.__onload?.island) return show_island(doc);
 		show_legacy(doc);
 	});
 
