@@ -12,10 +12,10 @@ from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.database import get_db, savepoint
 from frappe.database.database import get_query_execution_timeout
-from frappe.database.utils import FallBackDateTimeStr
+from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifiers
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
-from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
 from frappe.tests.test_query_builder import db_type_is, run_only_if, unimplemented_for
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.data import now_datetime
@@ -2022,3 +2022,59 @@ class TestBulkInsertCopy(IntegrationTestCase):
 		got = dict(frappe.db.sql('SELECT "name", "flag" FROM "tabBulkFlagTest"'))
 		self.assertEqual(got["a"], 1)
 		self.assertEqual(got["b"], 0)
+
+
+class TestBacktickIdentifierConversion(UnitTestCase):
+	"""The postgres and sqlite drivers translate MySQL-style raw SQL into ANSI quoting.
+
+	Only backticks that delimit an identifier may be rewritten: one inside a string literal or a
+	``"..."`` identifier is content, and promoting it into a quote char ends the identifier early.
+	"""
+
+	def test_identifiers_are_translated(self):
+		for src, want in (
+			("select `name` from `tabUser`", 'select "name" from "tabUser"'),
+			("select `tabA`.`b` from `tabA`", 'select "tabA"."b" from "tabA"'),
+			("select `Note Seen By`.`user`", 'select "Note Seen By"."user"'),
+			("select `na``me` from t", 'select "na`me" from t'),
+			('select `na"me` from t', 'select "na""me" from t'),
+		):
+			with self.subTest(src=src):
+				self.assertEqual(want, convert_backtick_identifiers(src))
+
+	def test_query_without_backticks_is_untouched(self):
+		self.assertEqual("select 1", convert_backtick_identifiers("select 1"))
+
+	def test_string_literals_are_not_rewritten(self):
+		for src in (
+			"select * from t where c = 'a`b'",
+			"select * from t where c = 'it''s `x`'",
+			"select * from t where c = 'SELECT `x` FROM `y`'",
+		):
+			with self.subTest(src=src):
+				self.assertEqual(src, convert_backtick_identifiers(src))
+
+	def test_existing_ansi_identifiers_are_not_rewritten(self):
+		for src in (
+			'select "na`me" from t',
+			'select "a""b" from t',
+			'select "name` FROM `tabUser` -- " from "tabUser"',
+		):
+			with self.subTest(src=src):
+				self.assertEqual(src, convert_backtick_identifiers(src))
+
+	def test_injected_column_name_stays_one_identifier(self):
+		# as pypika renders `table[payload]` when the quote char is "
+		for payload in (
+			"name` FROM `tabUser` WHERE `name`='Administrator' -- ",
+			"name`=1 UNION SELECT `name` FROM `tabUser` -- ",
+			"` blah`",
+			'a`b"c',
+		):
+			with self.subTest(payload=payload):
+				rendered = '"{}"'.format(payload.replace('"', '""'))
+				out = convert_backtick_identifiers(f'SELECT {rendered} FROM "tabUser"')
+				body = out[len("SELECT ") : out.index(' FROM "tabUser"')]
+				self.assertTrue(body.startswith('"') and body.endswith('"'), body)
+				for run in body[1:-1].split('""'):  # every quote char must be in an escaped pair
+					self.assertNotIn('"', run, f"identifier closed early: {body}")

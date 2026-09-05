@@ -31,7 +31,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 import frappe
 from frappe.database.database import CREATE_OR_DROP, Database
 from frappe.database.postgres.schema import PostgresTable
-from frappe.database.utils import EmptyQueryValues, LazyDecode
+from frappe.database.utils import EmptyQueryValues, LazyDecode, convert_backtick_identifiers
 from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
@@ -879,8 +879,8 @@ def _copy_flush(cursor, copy_sql, buffer):
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
-	# replace ` with " for definitions
-	query = str(query).replace("`", '"')
+	# replace ` with " only where a backtick delimits an identifier
+	query = convert_backtick_identifiers(str(query))
 	query = replace_locate_with_strpos(query)
 	# MySQL REGEXP operator -> postgres case-insensitive regex match
 	query = REGEXP_PATTERN.sub(_replace_regexp_operator, query)
