@@ -170,8 +170,24 @@ def import_controller(doctype):
 	if not issubclass(class_, BaseDocument):
 		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
+	class_ = _resolve_controller(class_)
 	class_ = _get_extended_class(class_, doctype)
 	return _update_computed_ct_props(class_, doctype)
+
+
+def _resolve_controller(class_):
+	"""Let a controller pick its concrete class per site via `resolve_controller`.
+
+	The result is cached per site by `get_controller`."""
+	if resolve := getattr(class_, "resolve_controller", None):
+		resolved = resolve()
+		if isinstance(resolved, type) and issubclass(resolved, class_):
+			return resolved
+		frappe.logger().warning(
+			f"{class_.__name__}.resolve_controller returned {resolved!r}, "
+			f"which is not a subclass of {class_.__name__}; ignoring it"
+		)
+	return class_
 
 
 def _update_computed_ct_props(class_, doctype):

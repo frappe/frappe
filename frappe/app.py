@@ -19,6 +19,7 @@ import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
+import frappe.storage.serve
 import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
@@ -138,6 +139,11 @@ def application(request: Request):
 
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
+
+		elif request.path.startswith("/f/"):
+			# not gated on storage_v2: /f/ URLs stored while the flag was on
+			# must keep working after it is turned off
+			response = frappe.storage.serve.serve_file(request.path)
 
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":
 			if request.scheme != "https":
