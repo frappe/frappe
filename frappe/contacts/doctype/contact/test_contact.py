@@ -1,9 +1,9 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.contacts.doctype.contact.contact import get_full_name
+from frappe.contacts.doctype.contact.contact import contact_query, get_full_name
 from frappe.email import get_contact_list
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Contact", "Salutation"]
 
@@ -52,6 +52,59 @@ class TestContact(IntegrationTestCase):
 		result = address_query(links=[{"link_doctype": "User", "link_name": "Administrator"}])
 		self.assertIsInstance(result, list)
 
+	def test_contact_query_for_linked_contact(self):
+		contact = create_contact("Contact Query Match", "Mr", save=False)
+		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		contact.insert()
+
+		filters = {"link_doctype": "User", "link_name": "Administrator"}
+		self.assertIsInstance(contact_query("Contact", "", "name", 0, 10, filters), list | tuple)
+
+		results = contact_query("Contact", "Contact Query Match", "name", 0, 10, filters)
+		self.assertEqual(results[0][0], contact.name)
+
+	def test_contact_query_ranks_company_name_matches(self):
+		later_match = create_contact("A Company Contact", "Mr", save=False)
+		later_match.company_name = "Supplier Company Match"
+		later_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		later_match.insert()
+
+		prefix_match = create_contact("Z Company Contact", "Mr", save=False)
+		prefix_match.company_name = "Company Match Supplier"
+		prefix_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		prefix_match.insert()
+
+		results = contact_query(
+			"Contact",
+			"Company Match",
+			"company_name",
+			0,
+			1,
+			{"link_doctype": "User", "link_name": "Administrator"},
+		)
+		self.assertEqual(results[0][0], prefix_match.name)
+
+	def test_contact_query_uses_best_name_match(self):
+		full_name_match = create_contact("A Match Contact", "Mr", save=False)
+		full_name_match.company_name = "Supplier Match"
+		full_name_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		full_name_match.insert()
+
+		company_name_match = create_contact("Z Supplier Match", "Mr", save=False)
+		company_name_match.company_name = "Match Supplier"
+		company_name_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		company_name_match.insert()
+
+		results = contact_query(
+			"Contact",
+			"Match",
+			"company_name",
+			0,
+			1,
+			{"link_doctype": "User", "link_name": "Administrator"},
+		)
+		self.assertEqual(results[0][0], company_name_match.name)
+
 	def test_get_contact_list(self):
 		# First time from database
 		results = get_contact_list("_Test Supplier")
@@ -64,6 +117,59 @@ class TestContact(IntegrationTestCase):
 		self.assertEqual(results[0].label, "test_contact@example.com")
 		self.assertEqual(results[0].value, "test_contact@example.com")
 		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
+
+	def test_only_one_primary_contact_per_link(self):
+		first_contact = create_contact("First Primary Contact", "Mr", save=False)
+		first_contact.is_primary_contact = 1
+		first_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		first_contact.insert()
+
+		second_contact = create_contact("Second Primary Contact", "Mr", save=False)
+		second_contact.is_primary_contact = 1
+		second_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		second_contact.insert()
+
+		self.assertFalse(first_contact.reload().is_primary_contact)
+		self.assertTrue(second_contact.is_primary_contact)
+
+	def test_promoting_contact_clears_existing_primary_contact(self):
+		first_contact = create_contact("Existing Primary Contact", "Mr", save=False)
+		first_contact.is_primary_contact = 1
+		first_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		first_contact.insert()
+
+		second_contact = create_contact("Promoted Primary Contact", "Mr", save=False)
+		second_contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		second_contact.insert()
+		second_contact.is_primary_contact = 1
+		second_contact.save()
+
+		self.assertFalse(first_contact.reload().is_primary_contact)
+		self.assertTrue(second_contact.is_primary_contact)
+
+	@timeout(5, "Primary Contact validation did not lock the linked party")
+	def test_primary_contact_locks_linked_party(self):
+		contact = create_contact("Locking Primary Contact", "Mr", save=False)
+		contact.is_primary_contact = 1
+		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+
+		with self.primary_connection():
+			contact.insert()
+
+			with self.secondary_connection():
+				self.assertRaises(
+					frappe.QueryTimeoutError,
+					lambda: frappe.db.get_value("User", "Administrator", for_update=True, wait=False),
+				)
+
+	def test_primary_contact_fetches_existing_primaries_once(self):
+		contact = create_contact("Multi-link Primary Contact", "Mr", save=False)
+		contact.is_primary_contact = 1
+		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		contact.append("links", {"link_doctype": "User", "link_name": "Guest"})
+
+		with self.assertQueryCount(2):
+			contact.validate_primary_contact()
 
 
 def create_contact(name, salutation, emails=None, phones=None, save=True):

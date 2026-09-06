@@ -86,7 +86,6 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
-  "workspaces",
   "app_section",
   "default_app",
   "sb2",
@@ -856,12 +855,6 @@
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
    "label": "Show navigation buttons"
-  },
-  {
-   "fieldname": "workspaces",
-   "fieldtype": "Table",
-   "label": "Workspaces",
-   "options": "User Workspaces"
   }
  ],
  "icon": "fa fa-user",
@@ -915,7 +908,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-06-17 16:47:51.772694",
+ "modified": "2026-08-16 20:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

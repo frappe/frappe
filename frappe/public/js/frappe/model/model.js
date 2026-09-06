@@ -290,17 +290,19 @@ $.extend(frappe.model, {
 		}
 	},
 
-	with_doc: function (doctype, name, callback) {
-		return new Promise((resolve) => {
+	with_doc: function (doctype, name, callback, error_callback) {
+		return new Promise((resolve, reject) => {
 			if (!name) name = doctype; // single type
-			if (
+			const use_cache =
+				!error_callback &&
 				locals[doctype] &&
 				locals[doctype][name] &&
-				frappe.model.get_docinfo(doctype, name)
-			) {
+				frappe.model.get_docinfo(doctype, name);
+			if (use_cache) {
 				callback && callback(name);
 				resolve(frappe.get_doc(doctype, name));
 			} else {
+				let permission_denied = false;
 				return frappe.call({
 					method: "frappe.desk.form.load.getdoc",
 					type: "GET",
@@ -311,6 +313,18 @@ $.extend(frappe.model, {
 					callback: function (r) {
 						callback && callback(name, r);
 						resolve(frappe.get_doc(doctype, name));
+					},
+					error_handlers: {
+						PermissionError: () => {
+							permission_denied = true;
+						},
+					},
+					error: function (r) {
+						if (permission_denied) {
+							frappe.model.remove_from_locals(doctype, name);
+						}
+						error_callback && error_callback(r, permission_denied);
+						reject(r);
 					},
 				});
 			}
@@ -843,10 +857,10 @@ $.extend(frappe.model, {
 			frappe.throw(
 				__("Please specify") +
 					": " +
-					__(
-						frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name),
-						null,
-						doc.doctype
+					frappe.meta.get_translated_label(
+						doc.doctype,
+						fieldname,
+						doc.parent || doc.name
 					)
 			);
 		}

@@ -336,6 +336,36 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_drop_index_for_accent_colliding_fields(self):
+		# removing two fields whose names collide under the collation must not fail schema sync
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "some_fieldname", "fieldtype": "Data"},
+				{"fieldname": "patrimonio", "fieldtype": "Data", "unique": 1},
+				{"fieldname": "patrimônio", "fieldtype": "Data", "unique": 1},
+			]
+		).insert()
+		try:
+			self.assertTrue(self.get_unique_index(doctype.name, "patrimonio"))
+			self.assertTrue(self.get_unique_index(doctype.name, "patrimônio"))
+
+			doctype.fields = [f for f in doctype.fields if f.fieldname not in ("patrimonio", "patrimônio")]
+			doctype.save()
+
+			self.assertFalse(self.get_unique_index(doctype.name, "patrimonio"))
+			self.assertFalse(self.get_unique_index(doctype.name, "patrimônio"))
+		finally:
+			# DDL in this test auto-commits, so the cleanup delete must be committed explicitly
+			doctype.delete()
+			frappe.db.commit()  # nosemgrep
+
+	def get_unique_index(self, doctype: str, column: str):
+		# binary match so colliding names are compared exactly
+		return frappe.db.sql(
+			f"show index from `tab{doctype}` where column_name = binary %s and Non_unique = 0", column
+		)
+
 	def test_uuid_varchar_migration(self):
 		doctype = new_doctype().insert()
 		doctype.autoname = "UUID"

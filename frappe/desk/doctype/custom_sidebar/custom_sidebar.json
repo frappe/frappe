@@ -1,0 +1,100 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-11 21:30:00.000000",
+ "description": "Sidebar intent for a module, at either of the two layers a site has. `user` is what tells them apart: blank is the site layer, curated by a Workspace Manager and applying to everyone; a user's name is that person's own arrangement, which is applied on top and wins. The `Custom *` prefix elsewhere in this repo means site-owned override of app-shipped content, and this doctype knowingly overloads it: with the layers structurally identical there is nothing to gain from a second doctype, and `user` makes the layer unambiguous at a glance. Do not \"fix\" this by splitting it.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "module",
+  "user",
+  "column_break_head",
+  "label",
+  "header_icon",
+  "items_section",
+  "sidebar_items"
+ ],
+ "fields": [
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "description": "Blank means the site layer, which applies to everyone and is overridden by each user's own arrangement.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Overrides the dock label for this module.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "fieldname": "header_icon",
+   "fieldtype": "Icon",
+   "label": "Header Icon",
+   "options": "Emojis"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Sidebar Items"
+  },
+  {
+   "description": "One ordered list holding both references to base items (`added` unset -- non-empty fields override, empty fields mean no opinion) and items this layer added (`added` set -- full items, rendered as they stand). Row order is the arrangement; base items not named here keep their base order and follow the ones that are, which is how a newly installed app's items still reach someone who has already reordered.",
+   "fieldname": "sidebar_items",
+   "fieldtype": "Table",
+   "label": "Sidebar Items",
+   "options": "Sidebar Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-11 21:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Custom Sidebar",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Workspace Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Desk User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

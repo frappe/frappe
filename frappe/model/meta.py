@@ -20,8 +20,6 @@ import os
 import typing
 from datetime import datetime
 
-import click
-
 import frappe
 from frappe import N_, _
 from frappe.app_state import is_disabled_app_filtering_active, is_module_disabled
@@ -311,6 +309,10 @@ class Meta(Document):
 			return DEFAULT_FIELD_LABELS[fieldname]
 
 		return "No Label"
+
+	def get_translated_label(self, fieldname):
+		"""Return the translated label of the given fieldname."""
+		return _(self.get_label(fieldname), context=self.name)
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
@@ -742,12 +744,11 @@ class Meta(Document):
 		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
-		has_access_to = []
+		has_access_to = set()
 		roles = set(frappe.get_roles(user))
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
-				if perm.permlevel not in has_access_to:
-					has_access_to.append(perm.permlevel)
+				has_access_to.add(perm.permlevel)
 
 		return has_access_to
 
@@ -1004,6 +1005,8 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	as maintenance since removing a field in a DocType doesn't automatically
 	delete the db field.
 	"""
+	import click
+
 	UPDATED_TABLES = {}
 	filters = {"issingle": 0, "is_virtual": 0}
 	if doctype:

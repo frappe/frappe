@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:module_name",
  "creation": "2013-01-10 16:34:03",
@@ -28,13 +29,13 @@
    "unique": 1
   },
   {
-   "depends_on": "eval:!doc.custom",
+   "description": "The app whose dock lists this module. A custom module may leave it empty and stand on its own.",
    "fieldname": "app_name",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "App Name",
-   "reqd": 1,
+   "mandatory_depends_on": "eval:!doc.custom",
    "search_index": 1
   },
   {
@@ -138,9 +139,14 @@
    "group": "Customization",
    "link_doctype": "Notification",
    "link_fieldname": "module"
+  },
+  {
+   "group": "DocType",
+   "link_doctype": "Sidebar",
+   "link_fieldname": "module"
   }
  ],
- "modified": "2026-08-05 12:00:00.000000",
+ "modified": "2026-08-11 12:10:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
@@ -175,6 +181,7 @@
    "select": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_name_in_global_search": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

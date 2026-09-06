@@ -15,7 +15,6 @@
   "for_user",
   "parent_page",
   "module",
-  "app",
   "type",
   "link_type",
   "link_to",
@@ -42,9 +41,7 @@
   "custom_blocks_tab",
   "custom_blocks",
   "roles_tab",
-  "roles",
-  "sidebar_tab",
-  "sidebar_items"
+  "roles"
  ],
  "fields": [
   {
@@ -82,13 +79,14 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval: doc.standard",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Module",
-   "options": "Module Def"
+   "options": "Module Def",
+   "reqd": 1,
+   "description": "The module this workspace belongs to. Decides which module's dock entry and sidebar it appears under."
   },
   {
    "fieldname": "column_break_3",
@@ -228,12 +226,6 @@
    "options": "green\ncyan\nblue\norange\nyellow\ngray\ngrey\nred\npink\ndarkgrey\npurple\nlight-blue"
   },
   {
-   "description": "The app this workspace is mounted to. Decides which app's dock (workspace rail) lists it. A standard workspace inherits this from its module; a custom one must be mounted explicitly, or it appears on no dock at all.",
-   "fieldname": "app",
-   "fieldtype": "Data",
-   "label": "App"
-  },
-  {
    "default": "Workspace",
    "fieldname": "type",
    "fieldtype": "Select",
@@ -272,17 +264,6 @@
    "label": "Standard"
   },
   {
-   "fieldname": "sidebar_tab",
-   "fieldtype": "Tab Break",
-   "label": "Sidebar"
-  },
-  {
-   "fieldname": "sidebar_items",
-   "fieldtype": "Table",
-   "label": "Sidebar Items",
-   "options": "Workspace Sidebar Item"
-  },
-  {
    "fieldname": "module_onboarding",
    "fieldtype": "Link",
    "label": "Module Onboarding",
@@ -291,7 +272,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-07-26 19:50:45.000000",
+ "modified": "2026-08-12 06:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

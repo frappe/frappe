@@ -37,6 +37,21 @@ def patch_db(endpoints: list[str] | None = None):
 		frappe.db.rollback(save_point=savepoint)
 
 
+class TestRenameSingleDocType(IntegrationTestCase):
+	def test_rename_single_doctype(self):
+		old_name = "Test Single Rename Old"
+		new_name = "Test Single Rename New"
+		new_doctype(old_name, issingle=1).insert()
+		single = frappe.get_single(old_name)
+		single.some_fieldname = "some value"
+		single.save()
+
+		self.assertEqual(new_name, frappe.rename_doc("DocType", old_name, new_name, force=True))
+		self.assertEqual(frappe.db.get_single_value(new_name, "some_fieldname"), "some value")
+		self.assertEqual(frappe.db.get_single_value(new_name, "name"), new_name)
+		self.assertEqual(frappe.db.count("Singles", {"doctype": old_name}), 0)
+
+
 class TestRenameDoc(IntegrationTestCase):
 	@classmethod
 	def setUpClass(self):

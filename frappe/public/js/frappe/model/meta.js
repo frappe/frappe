@@ -225,6 +225,10 @@ $.extend(frappe.meta, {
 		}
 	},
 
+	get_translated_label: function (dt, fn, dn) {
+		return __(frappe.meta.get_label(dt, fn, dn), null, dt);
+	},
+
 	get_print_sizes: function () {
 		return [
 			"A0",

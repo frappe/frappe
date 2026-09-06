@@ -1,8 +1,6 @@
 import os
 from importlib.machinery import all_suffixes
 
-import click
-
 import frappe
 from frappe.website.page_renderers.base_template_page import BaseTemplatePage
 from frappe.website.router import get_base_template, get_page_info
@@ -210,6 +208,8 @@ class TemplatePage(BaseTemplatePage):
 		for comment, (context_key, value) in COMMENT_PROPERTY_KEY_VALUE_MAP.items():
 			comment_tag = f"<!-- {comment} -->"
 			if comment_tag in self.source:
+				import click
+
 				self.context[context_key] = value
 				click.echo(f"\n⚠️  DEPRECATION WARNING: {comment_tag} will be deprecated on 2021-12-31.")
 				click.echo(f"Please remove it from {self.template_path} in {self.app}")
