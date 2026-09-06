@@ -15,7 +15,7 @@ def get_context(context):
 		frappe.throw(_("You need to be a system user to access this page."), frappe.PermissionError)
 
 	apps = []
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_active_apps():
 		app_info = get_app_info(app)
 		if any([app_info.get("authors"), app_info.get("dependencies"), app_info.get("description")]):
 			apps.append(app_info)

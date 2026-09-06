@@ -17,6 +17,7 @@ import frappe
 from frappe import _
 from frappe.core.utils import html2text
 from frappe.utils import cint
+from frappe.utils.csvutils import FORMULA_TRIGGER_CHARS
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -584,11 +585,14 @@ def make_xlsx(
 	illegal_chars_sub = ILLEGAL_CHARACTERS_RE.sub
 
 	write = ws.write
+	write_string = ws.write_string
 	has_cell_formats = bool(cell_formats)
 	get_cell_format = cell_formats.get
 
 	for row_idx, row in enumerate(data):
 		for col_idx, value in enumerate(row):
+			is_formula_like = False
+
 			if isinstance(value, str):
 				if handle_html_content:
 					value = handle_html(value)
@@ -596,8 +600,15 @@ def make_xlsx(
 				if illegal_chars_search(value):
 					value = illegal_chars_sub("", value)
 
+				is_formula_like = value.startswith(FORMULA_TRIGGER_CHARS)
+
 			cell_format = get_cell_format((row_idx, col_idx)) if has_cell_formats else None
-			write(row_idx, col_idx, value, cell_format)
+
+			if is_formula_like:
+				# force literal text so the cell isn't parsed as a formula
+				write_string(row_idx, col_idx, value, cell_format)
+			else:
+				write(row_idx, col_idx, value, cell_format)
 
 	if not created_wb:
 		return

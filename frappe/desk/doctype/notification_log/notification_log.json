@@ -12,6 +12,8 @@
   "reference_section",
   "document_type",
   "document_name",
+  "source_doctype",
+  "source_name",
   "app",
   "column_break_ref",
   "link",
@@ -70,6 +72,20 @@
    "fieldtype": "Data",
    "label": "Document Name",
    "search_index": 1
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Source Document Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Source Document Name",
+   "options": "source_doctype",
+   "read_only": 1
   },
   {
    "description": "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly.",

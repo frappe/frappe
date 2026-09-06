@@ -592,7 +592,10 @@ def get_context(context):
 				context.comment_list = get_comment_list(reference_doc.doctype, reference_doc.name)
 
 			doc_dict = reference_doc.as_dict(no_nulls=True)
-			if frappe.session.user == "Guest":
+			# A request key authorises access to the bound document without any
+			# document permission check, so its holder must only ever see the
+			# fields the Web Form itself exposes.
+			if frappe.session.user == "Guest" or web_form_request:
 				allowed_fields = {"name", "doctype", *(field.fieldname for field in self.web_form_fields)}
 				context.reference_doc = {
 					fieldname: doc_dict[fieldname] for fieldname in allowed_fields if fieldname in doc_dict
@@ -641,15 +644,91 @@ def get_context(context):
 
 		return parents
 
-	def validate_mandatory(self, doc):
-		"""Validate mandatory web form fields"""
-		missing = [f for f in self.web_form_fields if f.reqd and doc.get(f.fieldname) in (None, [], "")]
+	def validate_submission(self, doc, uploaded_fields=None):
+		"""Check the submitted values against the rules set on the Web Form itself.
+
+		`reqd` and Data `options` on a Web Form Field row belong to the Web Form, not
+		to the target DocType, so `doc.insert()` never looks at them. Without this the
+		browser is the only thing enforcing them, which anyone can walk past by posting
+		straight to `accept` -- guests included, since the endpoint allows them.
+		"""
+		if not self.allow_incomplete:
+			self.validate_mandatory(doc, uploaded_fields)
+
+		self.validate_data_field_options(doc)
+
+	def validate_mandatory(self, doc, uploaded_fields=None):
+		"""Validate mandatory web form fields.
+
+		`uploaded_fields` are attach fields whose file is still being written, so the
+		document does not carry their value yet.
+		"""
+		uploaded_fields = uploaded_fields or set()
+		missing = [
+			f
+			for f in self.web_form_fields
+			if f.reqd and f.fieldname not in uploaded_fields and doc.get(f.fieldname) in (None, [], "")
+		]
 		if missing:
 			frappe.throw(
 				_("Mandatory Information missing:")
 				+ "<br><br>"
 				+ "<br>".join(f"{d.label} ({d.fieldtype})" for d in missing)
 			)
+
+	def validate_data_field_options(self, doc):
+		"""Validate fields the Web Form types as a phone number, Email, Name or URL.
+
+		A Web Form row can carry a type its DocType field does not: the `Phone`
+		fieldtype, or `Data` with `options`. `Document._validate_data_fields` reads the
+		DocType's own meta, so it never sees either, and nothing checks these values
+		unless we do it here.
+
+		Types the DocType field already carries are left alone, so the document reports
+		them itself and the message stays the same. The two spellings of a phone number
+		get the check their DocType counterpart would get, not one merged check.
+		"""
+		from frappe.utils import (
+			split_emails,
+			validate_email_address,
+			validate_name,
+			validate_phone_number,
+			validate_phone_number_with_country_code,
+			validate_url,
+		)
+
+		meta = frappe.get_meta(self.doc_type)
+
+		for field in self.web_form_fields:
+			value = doc.get(field.fieldname)
+			if not value:
+				continue
+
+			df = meta.get_field(field.fieldname)
+
+			if field.fieldtype == "Phone":
+				if not (df and df.fieldtype == "Phone"):
+					validate_phone_number_with_country_code(value, field.fieldname)
+				continue
+
+			if field.fieldtype != "Data" or not field.options:
+				continue
+
+			if df and df.fieldtype == "Data" and df.options == field.options:
+				continue
+
+			if field.options == "Email":
+				for email_address in split_emails(value):
+					validate_email_address(email_address, throw=True)
+
+			elif field.options == "Name":
+				validate_name(value, throw=True)
+
+			elif field.options == "Phone":
+				validate_phone_number(value, throw=True)
+
+			elif field.options == "URL":
+				validate_url(value, throw=True)
 
 	def allow_website_search_indexing(self):
 		return False
@@ -721,9 +800,6 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
-	ensure_guest_key_link_doctype_allowed(web_form, field.options)
-
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
@@ -806,6 +882,8 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 			if meta.has_field(fieldname):
 				doc.set(fieldname, value)
 
+	web_form.validate_submission(doc, uploaded_fields={fieldname for fieldname, _ in files})
+
 	if doc.name:
 		if web_form_request:
 			# Access was granted by the request key (often as Guest), not by
@@ -879,7 +957,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 
 
 @frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
-@rate_limit(key="web_form_name", limit=10, seconds=60)
+@rate_limit(key="web_form_name", limit=999, seconds=60)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
 	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
@@ -916,7 +994,7 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])
-@rate_limit(key="web_form_name", limit=10, seconds=60)
+@rate_limit(key="web_form_name", limit=999, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
@@ -1150,7 +1228,7 @@ def get_link_options(
 	web_form_request_key=None,
 	docname=None,
 ):
-	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
@@ -1201,4 +1279,4 @@ def get_link_options(
 
 @redis_cache(ttl=60 * 60)
 def get_published_web_forms() -> dict[str, str]:
-	return frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+	return frappe.get_all("Web Form", ["name", "route", "modified", "module"], {"published": 1})

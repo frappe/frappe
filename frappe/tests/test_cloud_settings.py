@@ -176,7 +176,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response({"url": "http://central.localhost:8001"}),
 			) as request,
 		):
@@ -212,7 +212,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response({"domains": ["shop.example.com"], "primary": "shop.example.com"}),
 			) as request,
 		):
@@ -235,7 +235,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response({"ok": True, "task_id": "task-1"}),
 			) as request,
 		):
@@ -253,7 +253,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response(payload, ok=False),
 			),
 			self.assertRaises(CloudMigrationConflictError),
@@ -266,7 +266,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response(payload, ok=False),
 			),
 			self.assertRaises(frappe.ValidationError) as caught,
@@ -283,7 +283,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response(payload),
 			) as request,
 		):
@@ -430,7 +430,7 @@ class TestCloudTask(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				# The bench nests task metadata under "task" alongside the log output.
 				return_value=Response(
 					{"output": ["…"], "task": {"task_id": "task-1", "status": "success", "exit_code": 0}}

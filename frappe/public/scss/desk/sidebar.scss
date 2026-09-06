@@ -1,26 +1,18 @@
 // clean-this-file
+// Colours, radii and shadows come from Espresso tokens, so the panel tracks the
+// theme the same way frappe-ui's <Sidebar> / <SidebarItem> do -- the hand-rolled
+// --sidebar-* colour variables this file used to define carried their own dark
+// values and drifted from them. Only the panel's width is still a local variable:
+// it is layout, not a design token, and the resize handle writes to it.
 :root {
-	--sidebar-hover-color: #f3f3f3;
-	--sidebar-active-color: rgba(255, 255, 255, 1);
-	--sidebar-border-color: #ededed;
-	--divider-color: rgba(237, 237, 237, 1);
 	--sidebar-width: 220px;
-	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
 }
 
-[data-theme="dark"] {
-	--sidebar-hover-color: rgba(43, 43, 43, 1);
-	--sidebar-active-color: rgba(66, 66, 66, 1);
-	--sidebar-border-color: #232323;
-	--divider-color: rgba(52, 52, 52, 1);
-	--sidebar-active-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.5), 0 1px 3px 0 rgba(0, 0, 0, 0.4),
-		inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-// sidebar-item states
+// sidebar-item states -- mirrors <SidebarItem>'s `hover:bg-surface-gray-2` on a
+// `rounded` (8px) row.
 @mixin hover-mixin {
-	background-color: var(--sidebar-hover-color);
-	border-radius: 8px;
+	background-color: var(--surface-gray-2);
+	border-radius: var(--radius);
 	text-decoration: none;
 }
 
@@ -29,6 +21,10 @@
 	flex-direction: column;
 	height: fit-content;
 	width: fit-content;
+	// positioning context for .sidebar-panel, which opens at `left: 100%` of this box.
+	// The width here is the placeholder's, so that lands the panel correctly whether the
+	// sidebar is out, collapsed behind the dock, or off-screen on mobile.
+	position: relative;
 
 	.body-sidebar-placeholder {
 		// reserves the panel's width in-flow so the main section glides across as the panel animates
@@ -44,21 +40,17 @@
 	position: absolute;
 	width: var(--sidebar-width);
 	background: var(--surface-sidebar);
-	border-right: 1px solid var(--sidebar-border-color);
-	// the panel's own chrome fades with its contents when collapsing / expanding, but the element
-	// itself stays put -- see the collapsed state below for why
+	border-right: 1px solid var(--outline-gray-1);
+	// the panel's own chrome fades with its contents when collapsing / expanding
 	transition: background 0.2s ease, border-color 0.2s ease;
 
-	// slide + fade every band of the panel when collapsing / expanding (see the collapsed state
-	// below); the notification / background-task dropdowns are deliberately excluded there, so
-	// they opt out of the transition here too
-	> *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
+	// slide + fade every band of the panel when collapsing / expanding
+	> * {
 		transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 	}
 
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
 	height: 100vh; // fallback for engines without dvh
 	height: 100dvh;
 	z-index: 1020;
@@ -67,6 +59,7 @@
 	.body-sidebar-top {
 		flex: 1 1;
 		padding: 1px;
+		margin-top: calc(var(--margin-sm) + 2px);
 		width: auto;
 		display: flex;
 		align-items: flex-start;
@@ -92,8 +85,8 @@
 	}
 
 	.divider {
-		margin: var(--margin-xs) 0;
-		border-top: 1px solid var(--gray-300);
+		margin: var(--spacing) 0;
+		border-top: 1px solid var(--outline-gray-2);
 		width: 100%;
 	}
 
@@ -124,7 +117,7 @@
 			align-items: center;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
-			margin-left: var(--margin-sm);
+			margin-left: calc(var(--spacing) * 2);
 		}
 
 		.item-anchor {
@@ -152,7 +145,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		margin: var(--margin-sm) 0;
+		margin: calc(var(--spacing) * 2) 0;
 	}
 
 	.onboarding-sidebar,
@@ -175,31 +168,6 @@
 
 	.nav-item {
 		padding: 4px 0px;
-	}
-
-	// The notification / background-task dropdowns are overlays, not bands of the sidebar's flex
-	// column. Take them out of flow so opening one doesn't add the column's 12px gap and shove the
-	// first sidebar item down. `inset: 0` sizes each to the panel box, so the list inside keeps the
-	// same positioning context it had directly on .body-sidebar (no shift in where the panel opens).
-	// The transparent overlay stays click-through so the sidebar underneath is still interactive;
-	// the list itself opts back in.
-	.dropdown-notifications,
-	.dropdown-background-tasks {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-	}
-
-	.notifications-list,
-	.background-tasks-list {
-		pointer-events: auto;
-	}
-
-	// the dropdowns open flush against the sidebar's right edge; the collapsed state repins them
-	// to the dock instead
-	.dropdown-notifications .notifications-list,
-	.dropdown-background-tasks .background-tasks-list {
-		left: 100%;
 	}
 }
 
@@ -262,7 +230,7 @@
 	@include body-sidebar-expanded();
 }
 
-// Collapsed: the workspace dock is the icon rail now, so the body sidebar leaves entirely rather
+// Collapsed: the dock is the icon rail now, so the body sidebar leaves entirely rather
 // than shrinking to a strip. The placeholder animates its reserved width to 0 (the main section
 // glides left to fill it) while the panel's contents fade and slide out behind the dock. Reopening is done
 // from the dock's right-edge handle. Driven by the container's `expanded` class -- set at render
@@ -272,27 +240,17 @@
 		width: 0;
 	}
 
-	// The panel element stays in place because it's the positioning context for the notification /
-	// background-task dropdowns, and the dock's bell opens those while the sidebar is collapsed.
-	// So it's the panel's chrome and its content bands that leave, not the dropdowns themselves --
-	// an `opacity: 0` on the panel would take the dropdowns with it, and a child can't opt back in.
+	// Panels are mounted on the container rather than in here, so the whole panel can leave
+	// without taking an open one with it. The dock's bell opens one while the sidebar is
+	// collapsed, and it lands against the dock's edge because the container has shrunk to 0.
 	.body-sidebar {
 		background: transparent;
 		border-right-color: transparent;
 		pointer-events: none;
 
-		> *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
+		> * {
 			transform: translateX(-12px);
 			opacity: 0;
-		}
-
-		// the dropdowns are absolute overlays (see the base rule) so they stay put while the bands
-		// slide out, and their lists keep pointer-events even though the sidebar is inert. With the
-		// sidebar gone, `left: 100%` would open them a panel-width out into empty space -- pin them
-		// to the dock's right edge instead
-		.dropdown-notifications .notifications-list,
-		.dropdown-background-tasks .background-tasks-list {
-			left: 0;
 		}
 	}
 }
@@ -305,11 +263,6 @@
 			width: 0px;
 			overflow: hidden;
 			transition-property: none;
-
-			.dropdown-notifications .notifications-list,
-			.dropdown-background-tasks .background-tasks-list {
-				left: 0;
-			}
 		}
 	}
 
@@ -350,9 +303,9 @@
 }
 
 .active-sidebar {
-	background: var(--sidebar-active-color);
-	box-shadow: var(--sidebar-active-shadow);
-	border-radius: 8px;
+	background: var(--surface-elevation-3);
+	box-shadow: var(--shadow-sm);
+	border-radius: var(--radius);
 
 	:hover {
 		text-decoration: none;
@@ -369,10 +322,10 @@
 	bottom: 80px;
 	width: 24px;
 	height: 24px;
-	border-radius: 50%;
-	border: 1px solid var(--sidebar-border-color);
+	border-radius: var(--radius-full);
+	border: 1px solid var(--outline-gray-1);
 	background: var(--surface-sidebar);
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-sm);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -389,7 +342,7 @@
 	}
 
 	&:hover {
-		background: var(--sidebar-hover-color);
+		background: var(--surface-gray-2);
 	}
 }
 
@@ -420,7 +373,7 @@
 	}
 
 	&:hover::after {
-		background: var(--ink-gray-2);
+		background: var(--outline-gray-2);
 	}
 }
 
@@ -447,11 +400,11 @@
 }
 
 .indent + .nested-container {
-	margin-left: calc(var(--margin-sm) + 1px);
-	border-left: 1px solid var(--border-color);
+	margin-left: calc(var(--spacing) * 2 + 1px);
+	border-left: 1px solid var(--outline-gray-1);
 
 	.sidebar-item-container {
-		margin-left: var(--margin-xs);
+		margin-left: var(--spacing);
 	}
 }
 
@@ -460,7 +413,7 @@
 	padding: 7px;
 
 	.keyboard-shortcut {
-		color: var(--ink-gray-4, #999999);
+		color: var(--ink-gray-4);
 		font-size: var(--text-sm);
 		line-height: 1.15;
 		letter-spacing: 0.02em;

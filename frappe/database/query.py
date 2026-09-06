@@ -18,6 +18,9 @@ from frappe.database.utils import (
 	convert_to_value,
 	get_doctype_name,
 	get_doctype_sort_info,
+	get_order_by_fields,
+	is_non_text_field,
+	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
@@ -38,6 +41,12 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 		"Series",
 	)
 )
+
+
+def _cast_autoincrement_name(field: Field, doctype: str) -> Term:
+	if frappe.db.db_type == "postgres" and frappe.get_meta(doctype).autoname == "autoincrement":
+		return functions.Cast(field, "varchar")
+	return field
 
 
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
@@ -101,7 +110,7 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 	Returns:
 		Tuple with dates expanded to datetime ranges for Datetime fields
 	"""
-	from frappe.model.db_query import _convert_type_for_between_filters
+	from frappe.utils.data import convert_type_for_between_filters
 
 	# Extract field name
 	field_name = field
@@ -121,9 +130,9 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 
 	from_val, to_val = between_values
 
-	# Convert to datetime using db_query helper (handles strings, dates, datetimes)
-	from_val = _convert_type_for_between_filters(from_val, set_time=datetime.time())
-	to_val = _convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
+	# Convert to datetime using shared helper (handles strings, dates, datetimes)
+	from_val = convert_type_for_between_filters(from_val, set_time=datetime.time())
+	to_val = convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
 
 	return (from_val, to_val)
 
@@ -278,6 +287,9 @@ class Engine:
 
 		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
 
+		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
+			self.ignore_user_permissions = True
+
 		if self.apply_permissions:
 			self.check_select_permission()
 			self.permission_doctype = parent_doctype or self.doctype
@@ -333,8 +345,11 @@ class Engine:
 
 		if order_by:
 			if not (
-				self.is_postgres and is_select and distinct
-			):  # ignore in Postgres since order by fields need to appear in select distinct
+				self.is_postgres
+				and is_select
+				and distinct
+				and not self._can_apply_distinct_order_by(order_by)
+			):
 				self.apply_order_by(order_by)
 			else:
 				warnings.warn(
@@ -759,10 +774,9 @@ class Engine:
 			target_doctype = filter_doctype
 
 			# Skip applying ifnull if field already has null-handling function
-			if isinstance(_field, functions.IfNull | functions.Coalesce):
-				return operator_fn(_field, _value)
-
-			if self._should_apply_ifnull(target_doctype, filter_field_name, _operator, _value):
+			if not isinstance(_field, functions.IfNull | functions.Coalesce) and self._should_apply_ifnull(
+				target_doctype, filter_field_name, _operator, _value
+			):
 				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
 				if fallback_sql == "''":
 					fallback_value = ""
@@ -781,6 +795,13 @@ class Engine:
 						return operator_fn(_field, _value)
 
 				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
+
+			if (
+				self.is_postgres
+				and _operator.casefold() in ("like", "not like", "ilike")
+				and is_non_text_field(target_doctype, filter_field_name)
+			):
+				_field = functions.Cast(_field, "varchar")
 
 			return operator_fn(_field, _value)
 
@@ -1113,7 +1134,7 @@ class Engine:
 			# for select permission on parent doctype, allow all permlevel 0 fields in filters
 			cache_key = (doctype, None, "_filterable_select")
 			if cache_key not in self.permitted_fields_cache:
-				if doctype in PERMITTED_CORE_DOCTYPES:
+				if doctype in PERMITTED_CORE_DOCTYPES and doctype != "User":
 					# no restrictions - return all valid columns
 					self.permitted_fields_cache[cache_key] = set(meta.get_valid_columns())
 				else:
@@ -1121,6 +1142,10 @@ class Engine:
 					for df in meta.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=False):
 						if df.permlevel == 0:
 							permlevel_0_fields.add(df.fieldname)
+					if doctype == "User":
+						# user_type is permlevel 1 but not itself sensitive, and the built-in
+						# Link-field search (user.user_query) filters by it for every select-only caller
+						permlevel_0_fields.add("user_type")
 					self.permitted_fields_cache[cache_key] = permlevel_0_fields
 			return self.permitted_fields_cache[cache_key]
 		else:
@@ -1273,6 +1298,10 @@ class Engine:
 	def _normalize_postgres_order_field(self, field):
 		"""In PostgreSQL order_by fields need to either be in group_by or be aggregated
 		when used with select and group_by"""
+		# DISTINCT ordering already refers to selected expressions. Wrapping them would
+		# create an unselected expression and PostgreSQL would reject the query.
+		if self.query._distinct or isinstance(field, int):
+			return field
 		current_sql = field.get_sql() if hasattr(field, "get_sql") else str(field)
 		if current_sql in self._grouped_queries:
 			return field
@@ -1330,6 +1359,45 @@ class Engine:
 			else:
 				self.query = self.query.orderby(order_field, order=order_direction)
 
+	def _can_apply_distinct_order_by(self, order_by: str) -> bool:
+		if not isinstance(order_by, str):
+			return True
+
+		selected_field_count = 0
+		selected_fields = set()
+		for field in self.fields:
+			if isinstance(field, ChildQuery):
+				continue
+			term = field.field if isinstance(field, DynamicTableField) else field
+			if isinstance(field, LinkTableField):
+				selected_fields.add(f"{field.link_fieldname}.{field.fieldname}")
+			elif isinstance(field, ChildTableField) and field.parent_fieldname:
+				selected_fields.add(f"{field.parent_fieldname}.{field.fieldname}")
+
+			if alias := getattr(field, "alias", None):
+				selected_fields.add(alias)
+			terms = self._get_star_fields(term) if isinstance(term, Star) else [term]
+			selected_field_count += len(terms)
+			for term in terms:
+				if not isinstance(term, Field):
+					continue
+				table = term.table if term.table is not None else self.table
+				if table == self.table:
+					selected_fields.add(term.name)
+				selected_fields.add(f"{table.get_table_name()}.{term.name}")
+
+		if order_by == DefaultOrderBy:
+			order_by = ", ".join(
+				f"{self.table.get_table_name()}.{field}"
+				for field in get_order_by_fields(get_doctype_sort_info(self.doctype)[0])
+			)
+		return is_order_by_in_select(order_by, selected_fields, selected_field_count)
+
+	def _get_star_fields(self, star: Star) -> list[Field]:
+		table = star.table if star.table is not None else self.table
+		columns = frappe.db.get_table_columns(get_doctype_name(table.get_table_name()))
+		return [table[column] for column in columns]
+
 	def _apply_default_order_by(self):
 		"""Apply default ordering based on configured DocType metadata"""
 		from pypika.enums import Order
@@ -1378,7 +1446,7 @@ class Engine:
 
 		return (match.group(1), match.group(3))
 
-	def _validate_and_parse_field_for_clause(self, field_name: str, clause_name: str) -> Field:
+	def _validate_and_parse_field_for_clause(self, field_name: str, clause_name: str) -> Field | int:
 		"""
 		Common helper to validate and parse field names for GROUP BY and ORDER BY clauses.
 
@@ -1390,8 +1458,7 @@ class Engine:
 			Parsed Field object ready for use in pypika query
 		"""
 		if field_name.isdigit():
-			# For numeric field references, return as-is (will be handled by caller)
-			return field_name
+			return int(field_name)
 
 		# Allow function aliases and field aliases - return as Field (no table prefix)
 		if field_name in self.function_aliases or field_name in self.field_aliases:
@@ -1459,7 +1526,7 @@ class Engine:
 
 		return parsed_fields
 
-	def _validate_order_by(self, order_by: str) -> list[tuple[Field | str, Order]]:
+	def _validate_order_by(self, order_by: str) -> list[tuple[Field | int, Order]]:
 		"""Validate the order_by string argument, apply joins for dynamic fields, and return parsed Field objects with directions."""
 		if not isinstance(order_by, str):
 			frappe.throw(_("Order By must be a string"), TypeError)
@@ -1691,9 +1758,8 @@ class Engine:
 				# permissions are already checked by has_permission
 				return
 
-			self.query = self.query.inner_join(self.permission_table).on(
-				self.table.parent == self.permission_table.name
-			)
+			parent_name = _cast_autoincrement_name(self.permission_table.name, self.permission_doctype)
+			self.query = self.query.inner_join(self.permission_table).on(self.table.parent == parent_name)
 
 		if condition := self.get_permission_conditions(self.permission_doctype, self.permission_table):
 			self.query = self.query.where(condition)
@@ -1880,6 +1946,14 @@ class Engine:
 
 			quote_char = "`" if self.is_mariadb else '"'
 			for c in criteria_list:
+				if self.is_mariadb:
+					# pypika's ValueWrapper only escapes quote characters, not backslashes.
+					# MariaDB's default sql_mode treats `\` as an escape char inside string
+					# literals, so an unescaped trailing backslash lets a filter value break
+					# out of its quotes.
+					for node in c.nodes_():
+						if isinstance(node, ValueWrapper) and isinstance(node.value, str):
+							node.value = node.value.replace("\\", "\\\\")
 				conditions.append(c.get_sql(with_namespace=True, quote_char=quote_char))
 		finally:
 			self.apply_permissions = original_apply_permissions
@@ -2159,7 +2233,8 @@ class ChildTableField(DynamicTableField):
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(self.table):
-			join_conditions = (self.table.parent == main_table.name) & (
+			parent_name = _cast_autoincrement_name(main_table.name, self.parent_doctype)
+			join_conditions = (self.table.parent == parent_name) & (
 				self.table.parenttype == self.parent_doctype
 			)
 			if self.parent_fieldname:
@@ -2191,7 +2266,8 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			clause = table.name == getattr(main_table, self.link_fieldname)
+			link_name = _cast_autoincrement_name(table.name, self.doctype)
+			clause = link_name == getattr(main_table, self.link_fieldname)
 
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):
@@ -2223,7 +2299,7 @@ class ChildQuery:
 		filters = {
 			"parenttype": self.parent_doctype,
 			"parentfield": self.fieldname,
-			"parent": ["in", parent_names],
+			"parent": ["in", [str(name) for name in parent_names or ()]],
 		}
 		return frappe.qb.get_query(
 			self.doctype,

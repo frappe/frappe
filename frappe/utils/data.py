@@ -13,6 +13,7 @@ import time
 import typing
 from code import compile_command
 from collections import defaultdict
+from decimal import MAX_PREC, ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Literal, Optional, TypeVar
@@ -20,7 +21,6 @@ from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunpa
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import orjson
-from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
@@ -1032,6 +1032,8 @@ def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
 
 def cast_fieldtype(fieldtype, value, show_warning=True):
 	if show_warning:
+		from click import secho
+
 		message = (
 			"Function `frappe.utils.data.cast_fieldtype` has been deprecated in favour"
 			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
@@ -1301,7 +1303,8 @@ def _round_away_from_zero(num, precision):
 	# ending with 5 when it's represented by a smaller number. By adding a very small value
 	# close to what's "least count" or smallest representable difference in the scale we force
 	# the number to be bigger than actual value, this increases representation error but
-	# removes rounding error.
+	# removes rounding error. This only holds while the correction stays under the rounding
+	# step, past a quarter step it inflates the value instead, so the value is rounded exactly.
 
 	# References:
 	# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
@@ -1309,7 +1312,14 @@ def _round_away_from_zero(num, precision):
 	# - https://docs.python.org/3/library/functions.html#round
 	# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
 
-	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	epsilon = math.ulp(abs(num))
+	rounding_step = 10.0**-precision
+
+	if math.isfinite(num) and epsilon >= rounding_step / 4:
+		with localcontext() as ctx:
+			ctx.prec = MAX_PREC
+			ctx.rounding = ROUND_HALF_UP
+			return float(Decimal(num).quantize(Decimal(1).scaleb(-precision)))
 
 	return round(num + math.copysign(epsilon, num), precision)
 
@@ -1329,7 +1339,8 @@ def _bankers_rounding(num, precision):
 	decimal_part = num - floor_num
 
 	epsilon = 2.0 ** (math.log(num, 2) - 52.0)
-	if abs(decimal_part - 0.5) < epsilon:
+
+	if epsilon < 0.5 and abs(decimal_part - 0.5) < epsilon:
 		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		num = round(num)
@@ -2244,6 +2255,30 @@ def filter_operator_timespan(value: str, pattern: str) -> bool:
 	return date_range[0] <= getdate(value) <= date_range[1]
 
 
+def convert_type_for_between_filters(value: DateTimeLikeObject, set_time: datetime.time) -> datetime.datetime:
+	"""Expand a date-only bound to a datetime using set_time; leave datetimes as-is."""
+	if isinstance(value, str):
+		if " " in value.strip():
+			value = get_datetime(value)
+		else:
+			value = getdate(value)
+
+	if isinstance(value, datetime.datetime):
+		return value
+	elif isinstance(value, datetime.date):
+		return datetime.datetime.combine(value, set_time)
+
+	return value
+
+
+def filter_operator_between(value: Any, pattern: list | tuple) -> bool:
+	"""Return True if value is between pattern[0] and pattern[1] (inclusive)."""
+	if value is None:
+		return False
+
+	return pattern[0] <= value <= pattern[1]
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -2263,6 +2298,8 @@ operator_map = {
 	"not like": lambda a, b: not sql_like(a, b),
 	"is": filter_operator_is,
 	"Timespan": filter_operator_timespan,
+	"between": filter_operator_between,
+	"Between": filter_operator_between,  # UI sends capitalized form
 }
 
 
@@ -2293,6 +2330,8 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) 
 	Note:
 	- For "is" operator: No casting is performed to preserve None values
 	- For "in"/"not in" operators: Only val1 is cast (if not None), val2 remains unchanged
+	- For "between"/"Between" operators: Cast val1 and each bound in val2.
+	  For Datetime, date-only bounds expand to start/end of day (same as DB filters).
 	- For "Timespan" operator: No casting is performed
 	- For other operators: Both val1 and val2 are cast to the specified fieldtype
 	"""
@@ -2304,6 +2343,16 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) 
 			# Cast only val1 (if not None), preserve val2 container
 			if val1 is not None:
 				val1 = cast(fieldtype, val1)
+		elif condition in {"between", "Between"}:
+			if val1 is not None:
+				val1 = cast(fieldtype, val1)
+			if fieldtype == "Datetime":
+				val2 = [
+					convert_type_for_between_filters(val2[0], set_time=datetime.time()),
+					convert_type_for_between_filters(val2[1], set_time=datetime.time(23, 59, 59, 999999)),
+				]
+			else:
+				val2 = [cast(fieldtype, v) for v in val2]
 		else:
 			# Cast both values for comparison operators (=, !=, >, <, >=, <=, like, etc.)
 			val1 = cast(fieldtype, val1)

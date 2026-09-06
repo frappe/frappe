@@ -1,5 +1,4 @@
 {
- "app": "frappe",
  "charts": [],
  "content": "[]",
  "creation": "2026-06-11 11:51:24.095163",
@@ -26,86 +25,6 @@
  "roles": [],
  "sequence_id": 56.0,
  "shortcuts": [],
- "sidebar_items": [
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "mail",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Email Account",
-   "link_to": "Email Account",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "message-square-reply",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Communication",
-   "link_to": "Communication",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "at-sign",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Email Domain",
-   "link_to": "Email Domain",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "list-end",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Email Queue",
-   "link_to": "Email Queue",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "notepad-text",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Email Template",
-   "link_to": "Email Template",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "mail-x",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Unhandled Email",
-   "link_to": "Unhandled Email",
-   "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  }
- ],
  "standard": 1,
  "title": "Email",
  "type": "Workspace"

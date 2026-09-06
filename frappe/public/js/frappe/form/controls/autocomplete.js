@@ -1,4 +1,4 @@
-import Awesomplete from "awesomplete";
+import Awesomplete from "../../ui/awesomplete";
 
 frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;

@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.desk.form.utils import get_pdf_link
 from frappe.desk.notifications import clear_doctype_notifications
-from frappe.email.doctype.email_template.email_template import get_email_template
 from frappe.model.document import Document
 from frappe.model.workflow import (
 	apply_workflow,
@@ -453,12 +452,15 @@ def get_confirm_workflow_action_url(doc, action, user):
 
 
 def is_workflow_action_already_created(doc):
+	# Only an open action means the current state is already being acted upon. Completed ones must not
+	# block, or a document re-entering a state it has left gets no new action and no notification.
 	return frappe.db.exists(
 		{
 			"doctype": "Workflow Action",
 			"reference_name": doc.get("name"),
 			"reference_doctype": doc.get("doctype"),
 			"workflow_state": get_doc_workflow_state(doc),
+			"status": "Open",
 		}
 	)
 
@@ -533,7 +535,7 @@ def get_email_template_from_workflow(doc):
 
 	if isinstance(doc, Document):
 		doc = doc.as_dict()
-	return get_email_template(template_name, doc)
+	return frappe.get_doc("Email Template", template_name).get_formatted_email(doc)
 
 
 def get_state_optional_field_value(workflow_name, state):

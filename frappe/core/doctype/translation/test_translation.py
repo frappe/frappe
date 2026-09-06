@@ -48,7 +48,7 @@ class TestTranslation(IntegrationTestCase):
 			with self.subTest(fieldname=fieldname):
 				self.assertEqual(meta.get_label(fieldname), source_string)
 				self.assertEqual(
-					_(meta.get_label(fieldname), context=doctype),
+					meta.get_translated_label(fieldname),
 					f"Translated {source_string}",
 				)
 

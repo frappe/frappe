@@ -1,9 +1,9 @@
-<div class="kanban-column" data-column-value="{{title}}" style="background-color: var(--bg-{{indicator}});">
+<div class="kanban-column" data-column-value="{{title}}" style="background-color: var(--kanban-column-bg);">
 	<div class="kanban-column-header">
 		<span class="kanban-column-title">
-			{%= frappe.ui.badge.html({ theme: indicator, icon: "circle" }) %}
+			<span class="kanban-col-dot indicator {{indicator}}"></span>
 			<span class="kanban-title ellipsis" title="{{title}}">{{ __(title) }}</span>
-			<span class="kanban-column-count es-badge" data-theme="{{indicator}}" data-variant="subtle" data-size="sm">0</span>
+			<span class="kanban-column-count es-badge" data-variant="subtle" data-size="sm">0</span>
 		</span>
 		<div class="column-options dropdown pull-right">
 			<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

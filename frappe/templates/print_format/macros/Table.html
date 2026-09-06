@@ -54,13 +54,13 @@
 								{%- set _src = (row.get(ns.img_fn) or "")|string|trim -%}
 								{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
 								{%- if _safe -%}
-								<img class="cell-thumb-img" style="width:{{ _size }}px;height:{{ _size }}px" src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" />
+								<img class="cell-thumb-img" style="--thumb-size:{{ _size }}px" src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" />
 								{%- else -%}
 								{# Fallback: initials, coloured to match the builder canvas (same hue formula, no shared palette table). #}
 								{%- set _abbr = frappe.utils.get_abbr(ns.first_txt) or "?" -%}
 								{%- set _fc = "abcdefghijklmnopqrstuvwxyz0123456789".find((_abbr[:1] or "a")|lower) -%}
 								{%- set _hue = ((_fc if _fc >= 0 else 0) * 37) % 360 -%}
-								<span class="cell-thumb" style="width:{{ _size }}px;height:{{ _size }}px;font-size:{{ (_size * 0.4)|int }}px;background:hsl({{ _hue }},65%,92%);color:hsl({{ _hue }},55%,35%)">{{ _abbr|e }}</span>
+								<span class="cell-thumb" style="--thumb-size:{{ _size }}px;font-size:{{ (_size * 0.4)|int }}px;background:hsl({{ _hue }},65%,92%);color:hsl({{ _hue }},55%,35%)">{{ _abbr|e }}</span>
 								{%- endif -%}
 							{%- endif -%}
 							<div class="cell-lines{% if column.merge_direction == 'horizontal' %} cell-lines--horizontal{% endif %}">

@@ -201,6 +201,10 @@ class AppNotInstalledError(ValidationError):
 	pass
 
 
+class AppDisabledError(AppNotInstalledError):
+	pass
+
+
 class IncorrectSitePath(NotFound):
 	pass
 

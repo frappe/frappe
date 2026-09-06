@@ -906,9 +906,18 @@ export default class GridRow {
 		}
 		let input_class = this._get_fieldtype_class(df.fieldtype);
 
+		let add_class = "";
+		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
+		if (df.sticky) {
+			add_class = " sticky-grid-col";
+			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
+		}
+
 		let $col = $(
-			`<div class="col grid-static-col search" style="flex: 1 0 ${width}px; width: ${width}px;"></div>`
-		).appendTo(this.row);
+			`<div class="col grid-static-col search${add_class}" style="${add_style}"></div>`
+		)
+			.attr("data-fieldname", df.fieldname)
+			.appendTo(this.row);
 
 		let $search_input = $(`
 			<input

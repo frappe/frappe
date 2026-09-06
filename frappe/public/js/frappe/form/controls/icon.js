@@ -15,12 +15,30 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 		});
 	}
 
+	get_icon_sections() {
+		// Custom Icons live in the same sprite, so split them back out by name
+		let custom_names = new Set((frappe.boot.custom_icons || []).map((icon) => icon.name));
+		let custom = frappe.symbols.filter((icon) => custom_names.has(icon));
+		if (!custom.length) {
+			return [{ icons: frappe.symbols }];
+		}
+
+		return [
+			{ label: __("Custom"), icons: custom },
+			{
+				// the bundled set is named, not called "Icons", since every section holds icons
+				label: "Lucide",
+				icons: frappe.symbols.filter((icon) => !custom_names.has(icon)),
+			},
+		];
+	}
+
 	make_icon_input() {
 		let picker_wrapper = $("<div>");
 		this.picker = new Picker({
 			parent: picker_wrapper,
 			icon: this.get_icon(),
-			icons: frappe.symbols,
+			sections: this.get_icon_sections(),
 			include_emoji: this.df.options == "Emojis",
 		});
 

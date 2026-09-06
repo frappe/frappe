@@ -10,6 +10,7 @@ import frappe
 
 # Backward compatbility
 from frappe import _, bold, is_whitelisted
+from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
@@ -148,23 +149,29 @@ def search_widget(
 
 	if query:  # Query = custom search query i.e. python function
 		meta = frappe.get_meta(doctype)
-		# For translated doctypes, pass empty txt and a large page_length so the custom query
-		# returns all records without SQL-level text filtering; Python-level filtering against
-		# translated values is applied below.
+		# For translated doctypes, pass empty txt, no offset and a large page_length so the custom
+		# query returns all records without SQL-level text filtering or paging; Python-level
+		# filtering against translated values and paging are applied below.
 		query_txt = "" if meta.translated_doctype else txt
+		query_start = 0 if meta.translated_doctype else start
 		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
 
 		if sbool(query_filters_as_dict) and isinstance(filters, list):
 			filters = make_dict_from_filter_list(filters)
 
+		if ignore_user_permissions:
+			frappe.flags.ignore_user_permissions_for_doctype = doctype
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
+			# guarded by is_whitelisted above
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 			values = frappe.call(
 				query,
 				doctype,
 				query_txt,
 				searchfield,
-				start,
+				query_start,
 				query_page_length,
 				filters,
 				as_dict=as_dict,
@@ -183,12 +190,14 @@ def search_widget(
 					http_status_code=404,
 				)
 				return []
+		finally:
+			frappe.flags.ignore_user_permissions_for_doctype = None
 
 		if not for_link_validation:
 			if meta.translated_doctype:
 				values = filter_translated(values, txt, as_dict)
 				values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-				values = values[:page_length]
+				values = values[start : start + page_length]
 
 		return values
 
@@ -255,7 +264,12 @@ def search_widget(
 	# `idx` is number of times a document is referred, check link_count.py
 	order_by = f"idx desc, {order_by_based_on_meta}"
 
-	if not for_link_validation and not meta.translated_doctype:
+	# With an empty `txt`, LOCATE always returns 1, so `_relevance` is the same constant for
+	# every row. The sort key then changes no ordering, but is still evaluated per row and
+	# still forces a filesort. Skip it: link fields search with an empty `txt` on every focus.
+	add_relevance = bool(txt) and not for_link_validation and not meta.translated_doctype
+
+	if add_relevance:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
 		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
@@ -265,12 +279,20 @@ def search_widget(
 		formatted_fields.append(_relevance)
 		order_by = f"_relevance desc, {order_by}"
 
+	# DocType searches run with ignore_permissions, so exclude disabled apps explicitly
+	if doctype == "DocType" and (disabled_modules := get_disabled_modules()):
+		if isinstance(filters, dict):
+			filters["module"] = ["not in", list(disabled_modules)]
+		elif isinstance(filters, list):
+			filters.append(["module", "not in", list(disabled_modules)])
+
 	values = frappe.get_list(
 		doctype,
 		filters=filters,
 		fields=formatted_fields,
 		or_filters=or_filters,
-		limit_start=start,
+		# translated doctypes are matched and paged in Python below, so the whole set is fetched
+		limit_start=0 if meta.translated_doctype else start,
 		limit_page_length=None if meta.translated_doctype else page_length,
 		order_by=order_by,
 		ignore_permissions=doctype == "DocType",
@@ -289,8 +311,11 @@ def search_widget(
 		# Then it will bring the rest of the elements and sort them in lexicographical order
 		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
+		if meta.translated_doctype:
+			values = values[start : start + page_length]
+
 		# remove _relevance from results
-		if not meta.translated_doctype:
+		if add_relevance:
 			if as_dict:
 				for r in values:
 					r.pop("_relevance", None)
@@ -508,12 +533,82 @@ def get_user_groups():
 
 
 @frappe.whitelist()
+def awesomebar_search(txt: str) -> list[dict]:
+	"""Collect extra Awesome Bar results from the `awesomebar_search` hook.
+
+	Each hooked method receives `txt` and should return a list of dicts with:
+	- `label` (or `value`): title shown in the dropdown
+	- `description`: optional snippet under the title
+	- `route`: desk route list (`["List", "ToDo"]`), in-app path (`/desk/docs/some/page`),
+	  or URL string (`http://` / `https://` opens in a new tab)
+	- `index`: optional ranking score (higher ranks first; built-in Search is 100)
+	- `route_options`: optional dict passed to `frappe.route_options` on select
+	"""
+	txt = cstr(txt).strip()
+	if not txt:
+		return []
+
+	results = []
+	for method in frappe.get_hooks("awesomebar_search"):
+		try:
+			items = frappe.get_attr(method)(txt) or []
+		except Exception:
+			frappe.logger("awesomebar").error(f"awesomebar_search hook failed: {method}", exc_info=True)
+			continue
+		if not isinstance(items, list | tuple):
+			continue
+		for item in items[:20]:
+			if normalized := _normalize_awesomebar_result(item):
+				results.append(normalized)
+	return results
+
+
+def _normalize_awesomebar_result(item) -> dict | None:
+	if not isinstance(item, dict):
+		return None
+
+	label = cstr(item.get("label") or item.get("value"))
+	if not label:
+		return None
+
+	route = item.get("route")
+	if isinstance(route, str):
+		route = [route]
+	elif route:
+		route = [cstr(part) for part in route]
+	else:
+		return None
+
+	if not route or route[0].startswith("//"):
+		return None
+	if ":" in route[0] and not route[0].startswith(("http://", "https://")):
+		return None
+
+	result = {
+		"label": label,
+		"value": cstr(item.get("value") or label),
+		"index": cint(item.get("index")),
+		"route": route,
+	}
+	if description := item.get("description"):
+		result["description"] = cstr(description)
+	if result_type := item.get("type"):
+		result["type"] = cstr(result_type)
+	if (route_options := item.get("route_options")) and isinstance(route_options, dict):
+		result["route_options"] = route_options
+	return result
+
+
+@frappe.whitelist()
 def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:
-		doc = frappe.get_lazy_doc(doctype, docname)
-		doc.check_permission()
-		return doc.get(meta.title_field)
+		try:
+			doc = frappe.get_lazy_doc(doctype, docname)
+			doc.check_permission()
+			return doc.get(meta.title_field)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 
 	return docname

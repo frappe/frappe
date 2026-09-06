@@ -305,6 +305,7 @@
 
 // The page peeking up from the bottom of the preview region.
 .dts-pf-thumb {
+	position: relative;
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
@@ -316,11 +317,17 @@
 	cursor: pointer;
 }
 
-.dts-pf-img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	object-position: top center;
+// The card renders the format itself at page width, scaled down to fit; the frame is
+// inert, so clicks reach the thumbnail behind it and open the full preview.
+.dts-pf-frame {
+	// a scaled element keeps its full layout box, so it is pinned rather than laid out
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: top left;
+	border: 0;
+	pointer-events: none;
+	background-color: var(--surface-base);
 }
 
 .dts-pf-placeholder {

@@ -20,6 +20,18 @@ app.module.patch2
 app.module.patch3
 
 """
+FILLED_SECTIONS_WITH_POST_FIXTURE_SYNC = """
+[pre_model_sync]
+app.module.patch1
+app.module.patch2
+
+[post_model_sync]
+app.module.patch3
+
+[post_fixture_sync]
+app.module.patch4
+
+"""
 OLD_STYLE_PATCH_TXT = """
 app.module.patch1
 app.module.patch2
@@ -65,11 +77,14 @@ class TestPatches(IntegrationTestCase):
 	def test_get_patch_list(self):
 		pre = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.pre_model_sync)
 		post = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_model_sync)
+		post_fixture = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_fixture_sync)
 		all_patches = patch_handler.get_patches_from_app("frappe")
 		self.assertGreater(len(pre), 0)
 		self.assertGreater(len(post), 0)
+		# frappe's own patches.txt doesn't (yet) use this optional section
+		self.assertEqual(post_fixture, [])
 
-		self.assertEqual(len(all_patches), len(pre) + len(post))
+		self.assertEqual(len(all_patches), len(pre) + len(post) + len(post_fixture))
 
 	def test_all_patches_are_marked_completed(self):
 		all_patches = patch_handler.get_patches_from_app("frappe")
@@ -84,25 +99,28 @@ class TestPatchReader(IntegrationTestCase):
 			patch_handler.get_patches_from_app("frappe"),
 			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.pre_model_sync),
 			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_model_sync),
+			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_fixture_sync),
 		)
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EMTPY_FILE)
 	def test_empty_file(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, [])
 		self.assertEqual(pre, [])
 		self.assertEqual(post, [])
+		self.assertEqual(post_fixture, [])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EMTPY_SECTION)
 	def test_empty_sections(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, [])
 		self.assertEqual(pre, [])
 		self.assertEqual(post, [])
+		self.assertEqual(post_fixture, [])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=FILLED_SECTIONS)
 	def test_new_style(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2"])
 		self.assertEqual(
@@ -111,17 +129,31 @@ class TestPatchReader(IntegrationTestCase):
 				"app.module.patch3",
 			],
 		)
+		# section is optional and missing here, must not raise
+		self.assertEqual(post_fixture, [])
+
+	@patch("builtins.open", new_callable=mock_open, read_data=FILLED_SECTIONS_WITH_POST_FIXTURE_SYNC)
+	def test_new_style_with_post_fixture_sync(self, _file):
+		all, pre, post, post_fixture = self.get_patches()
+		self.assertEqual(
+			all,
+			["app.module.patch1", "app.module.patch2", "app.module.patch3", "app.module.patch4"],
+		)
+		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2"])
+		self.assertEqual(post, ["app.module.patch3"])
+		self.assertEqual(post_fixture, ["app.module.patch4"])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=OLD_STYLE_PATCH_TXT)
 	def test_old_style(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(post, [])
+		self.assertEqual(post_fixture, [])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EDGE_CASES)
 	def test_new_style_edge_cases(self, _file):
-		_all, pre, _post = self.get_patches()
+		_all, pre, _post, _post_fixture = self.get_patches()
 		self.assertEqual(
 			pre,
 			[
@@ -134,7 +166,7 @@ class TestPatchReader(IntegrationTestCase):
 
 	@patch("builtins.open", new_callable=mock_open, read_data=COMMENTED_OUT)
 	def test_ignore_comments(self, _file):
-		_all, pre, _post = self.get_patches()
+		_all, pre, _post, _post_fixture = self.get_patches()
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch3"])
 
 	def test_verify_patch_txt(self):

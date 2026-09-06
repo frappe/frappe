@@ -6,6 +6,7 @@ import functools
 import frappe
 import frappe.share
 from frappe import _, msgprint
+from frappe.app_state import is_module_disabled
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr
@@ -54,7 +55,8 @@ def print_has_permission_check_logs(func):
 		# print only if access denied
 		# and if user is checking their own permission
 		if not result and self_perm_check and print_logs:
-			msgprint(("<br>").join(frappe.flags.get("has_permission_check_logs", [])))
+			if logs := frappe.flags.get("has_permission_check_logs"):
+				msgprint(("<br>").join(logs))
 
 		if print_logs:
 			frappe.flags.pop("has_permission_check_logs", None)
@@ -130,6 +132,10 @@ def has_permission(
 
 	meta = frappe.get_meta(doctype)
 
+	if is_module_disabled(meta.module):
+		debug and _debug_log(f"Not allowed because {meta.module} belongs to a disabled app")
+		return False
+
 	# docname == doctype for single doctypes
 	if not doc and meta.issingle:
 		doc = meta.name
@@ -143,12 +149,13 @@ def has_permission(
 			debug and _debug_log(
 				"Permission check failed from role permission system. Check if user's role grant them permission to the document."
 			)
-			msg = _("User {0} does not have access to this document").format(frappe.bold(user))
-			if meta.issingle:
-				msg += f": {_(doc.doctype)}"
-			elif has_permission(doc.doctype):
-				msg += f": {_(doc.doctype)} - {doc.name}"
-			push_perm_check_log(msg, debug=debug)
+			if not frappe.flags.get("has_permission_check_logs"):
+				msg = _("User {0} does not have access to this document").format(frappe.bold(user))
+				if meta.issingle:
+					msg += f": {_(doc.doctype)}"
+				elif has_permission(doc.doctype, print_logs=False):
+					msg += f": {_(doc.doctype)} - {doc.name}"
+				push_perm_check_log(msg, debug=debug)
 	else:
 		if ptype == "submit" and not cint(meta.is_submittable):
 			push_perm_check_log(_("Document Type is not submittable"), debug=debug)
@@ -502,22 +509,27 @@ def get_doctypes_with_read(user: str | None = None):
 	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
 
 
-def get_valid_perms(doctype=None, user=None):
+def get_valid_perms(doctype=None, user=None, roles=None):
 	"""Get valid permissions for the current user from DocPerm and Custom DocPerm"""
-	roles = get_roles(user)
+	roles = roles or get_roles(user)
 
-	perms = get_perms_for(roles)
-	custom_perms = get_perms_for(roles, "Custom DocPerm")
+	filters = {}
+	if doctype:
+		filters["parent"] = doctype
+
+	perms = get_perms_for(roles, filters=filters)
+	custom_perms = get_perms_for(roles, "Custom DocPerm", filters=filters)
 
 	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
-	for p in perms:
-		if p.parent not in doctypes_with_custom_perms:
-			custom_perms.append(p)
+	if doctype and doctype not in doctypes_with_custom_perms:
+		custom_perms.extend(perms)
 
-	if doctype:
-		return [p for p in custom_perms if p.parent == doctype]
-	else:
-		return custom_perms
+	elif not doctype:
+		for p in perms:
+			if p["parent"] not in doctypes_with_custom_perms:
+				custom_perms.append(p)
+
+	return custom_perms
 
 
 def get_all_perms(role):
@@ -575,10 +587,14 @@ def get_doctype_roles(doctype, access_type="read"):
 	return [d.role for d in meta.get("permissions") if d.get(access_type)]
 
 
-def get_perms_for(roles, perm_doctype="DocPerm"):
+def get_perms_for(roles, perm_doctype="DocPerm", filters=None):
 	"""Get perms for given roles"""
-	filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
-	return frappe.get_all(perm_doctype, fields=["*"], filters=filters)
+	query_filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
+
+	if filters:
+		query_filters.update(filters)
+
+	return frappe.get_all(perm_doctype, fields=["*"], filters=query_filters)
 
 
 def get_doctypes_with_custom_docperms():

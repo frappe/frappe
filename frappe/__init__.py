@@ -123,6 +123,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	# frappe.apps
 	"get_all_apps": ("frappe.apps", "get_all_apps"),
 	"get_installed_apps": ("frappe.apps", "get_installed_apps"),
+	"get_disabled_apps": ("frappe.apps", "get_disabled_apps"),
+	"get_active_apps": ("frappe.apps", "get_active_apps"),
 	# frappe.utils.response
 	"respond_as_web_page": ("frappe.utils.response", "respond_as_web_page"),
 	"redirect_to_message": ("frappe.utils.response", "redirect_to_message"),
@@ -148,7 +150,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from werkzeug.wrappers import Request
 
 	# Lazy-imported names — resolved at runtime via __getattr__; listed here for editors/type checkers
-	from frappe.apps import get_all_apps, get_installed_apps
+	from frappe.apps import get_active_apps, get_all_apps, get_disabled_apps, get_installed_apps
 	from frappe.cache_manager import clear_cache, reset_metadata_version
 	from frappe.concurrency_limiter import concurrent_limit
 	from frappe.config import get_common_site_config, get_conf, get_site_config
@@ -626,7 +628,13 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 
 
 def is_whitelisted(method):
-	from frappe.utils import sanitize_html
+	from frappe.utils import sanitize_html_payload
+
+	app_name = (method.__module__ or "").split(".", 1)[0]
+	from frappe.apps import get_disabled_apps
+
+	if app_name in get_disabled_apps():
+		throw(_("App {0} is disabled on this site").format(app_name), AppDisabledError)
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or (is_guest and method not in guest_methods):
@@ -641,9 +649,11 @@ def is_whitelisted(method):
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
 		# escapes html characters like <> except for predefined tags like a, b, ul etc.
+		# an argument that arrived as JSON is sanitized inside the payload, so the
+		# payload still parses on the other side
 		for key, value in form_dict.items():
 			if isinstance(value, str):
-				form_dict[key] = sanitize_html(value)
+				form_dict[key] = sanitize_html_payload(value)
 
 
 def read_only():
@@ -1008,11 +1018,11 @@ def get_doc_hooks():
 def _load_app_hooks(app_name: str | None = None):
 	import types
 
-	from frappe.apps import get_installed_apps
+	from frappe.apps import get_active_apps
 	from frappe.utils import get_module
 
 	hooks = {}
-	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
+	apps = [app_name] if app_name else get_active_apps(_ensure_on_bench=True)
 
 	for app in apps:
 		try:
@@ -1448,10 +1458,14 @@ def is_setup_complete():
 	if not frappe.db.table_exists("Installed Application"):
 		return setup_complete
 
+	from frappe.apps import get_disabled_apps
+
+	disabled_apps = get_disabled_apps()
+	wizard_apps = [app for app in ["frappe", "erpnext"] if app not in disabled_apps]
 	if all(
 		frappe.get_all(
 			"Installed Application",
-			{"app_name": ("in", ["frappe", "erpnext"])},
+			{"app_name": ("in", wizard_apps)},
 			pluck="is_setup_complete",
 		)
 	):

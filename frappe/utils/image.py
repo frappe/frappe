@@ -3,9 +3,11 @@
 import io
 import os
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageFile, ImageOps  # nosemgrep: frappe-monkey-patching-not-allowed
 
 import frappe
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 def resize_images(path, maxdim=700):

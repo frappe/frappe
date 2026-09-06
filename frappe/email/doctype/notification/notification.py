@@ -9,7 +9,7 @@ from functools import partial
 import frappe
 from frappe import _
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
+from frappe.core.doctype.sms_settings.sms_settings import _send_sms as send_via_sms_gateway
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
@@ -566,7 +566,7 @@ def get_context(context):
 		)
 
 	def send_sms(self, doc, context):
-		send_sms(
+		send_via_sms_gateway(
 			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
 			msg=frappe.utils.strip_html_tags(
 				frappe.render_template(self.message, context, restrict_globals=True)
@@ -796,15 +796,24 @@ def trigger_daily_alerts():
 	trigger_notifications(None, "daily")
 
 
+def get_scheduled_notifications(events: tuple[str, ...]) -> list[dict]:
+	"""Return the enabled notifications for these events, minus those of a disabled app."""
+	from frappe.app_state import get_disabled_modules
+
+	filters = {"event": ("in", events), "enabled": 1}
+	if disabled_modules := get_disabled_modules():
+		filters["module"] = ("not in", list(disabled_modules))
+
+	return frappe.get_all("Notification", filters=filters)
+
+
 def trigger_notifications(doc, method=None):
 	if frappe.flags.in_import or frappe.flags.in_patch:
 		# don't send notifications while syncing or patching
 		return
 
 	if method == "daily":
-		doc_list = frappe.get_all(
-			"Notification", filters={"event": ("in", ("Days Before", "Days After")), "enabled": 1}
-		)
+		doc_list = get_scheduled_notifications(("Days Before", "Days After"))
 		for d in doc_list:
 			alert = frappe.get_doc("Notification", d.name)
 
@@ -814,9 +823,7 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()  # nosemgrep
 
 	elif method == "offset":
-		doc_list = frappe.get_all(
-			"Notification", filters={"event": ("in", ("Minutes Before", "Minutes After")), "enabled": 1}
-		)
+		doc_list = get_scheduled_notifications(("Minutes Before", "Minutes After"))
 		for d in doc_list:
 			alert = frappe.get_doc("Notification", d.name)
 

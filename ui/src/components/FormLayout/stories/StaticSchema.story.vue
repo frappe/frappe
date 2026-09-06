@@ -8,14 +8,18 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { provide, reactive } from "vue";
 import FormLayout from "../FormLayout.vue";
+import { CommitKey, NO_COMMIT } from "../types";
 import { registerFieldType } from "../../Fields/fieldTypes";
 import DemoLinkField from "./DemoLinkField.vue";
 import DemoCurrencyField from "./DemoCurrencyField.vue";
 import DemoTableMultiSelectField from "./DemoTableMultiSelectField.vue";
 import type { FormLayoutSchema } from "../types";
 import type { UploadTransport } from "../../FileUpload/types";
+
+// A story has no page behind it, so its fields commit to nothing.
+provide(CommitKey, NO_COMMIT);
 
 // Fake transport for the stories: no backend, just a placeholder URL and a
 // simulated progress ramp (honoring the abort signal). The Attach/Attach Image

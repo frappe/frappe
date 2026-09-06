@@ -29,10 +29,15 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	The beta renderer emits flexbox layouts that only Chromium lays out correctly, so a
 	beta format pins itself to Chrome. Everything else honours an explicit choice, then
 	the format's own setting, then the site default in Print Settings.
+
+	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
+	HTML pipeline's PDF consumers reach the Typst renderer too.
 	"""
 	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
 	if print_format and uses_beta_renderer(print_format):
+		if print_format.get("pdf_generator") == "Typst":
+			return "Typst"
 		return "chrome"
 	if pdf_generator:
 		return pdf_generator
@@ -195,7 +200,9 @@ def attach_print(
 					validate_print_for_docstatus(doc_obj)
 					letterhead_name = letterhead if print_letterhead else None
 					pf = pf_doc or get_default_print_format(doc_obj.doctype)
-					generator = PrintFormatGenerator(pf, doc_obj, letterhead_name)
+					generator = PrintFormatGenerator(
+						pf, doc_obj, letterhead_name, no_letterhead=not print_letterhead
+					)
 					content = generator.render_pdf(password=password)
 				else:
 					kwargs["as_pdf"] = True

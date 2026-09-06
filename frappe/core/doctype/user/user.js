@@ -4,16 +4,6 @@ frappe.ui.form.on("User", {
 			return {
 				filters: {
 					for_user: ["in", ["", frappe.session.user]],
-					title: ["!=", "Welcome Workspace"],
-				},
-			};
-		});
-
-		frm.set_query("workspace", "workspaces", () => {
-			return {
-				filters: {
-					public: 1,
-					title: ["!=", "Welcome Workspace"],
 				},
 			};
 		});
@@ -111,6 +101,11 @@ frappe.ui.form.on("User", {
 	},
 	refresh: function (frm) {
 		let doc = frm.doc;
+
+		frappe.scroll_to_user_roles_field = function () {
+			frappe.hide_msgprint(true);
+			frm.scroll_to_field("roles_html");
+		};
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];

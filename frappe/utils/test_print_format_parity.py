@@ -31,7 +31,8 @@ SERVER_SOURCES = [
 ]
 
 BUILDER_DIR = APP_PATH / "public" / "js" / "print_format_builder"
-CANVAS_SOURCES = sorted(BUILDER_DIR.rglob("*.vue"))
+# utils.js holds class names the components render from, so it speaks the markup too
+CANVAS_SOURCES = [*sorted(BUILDER_DIR.rglob("*.vue")), BUILDER_DIR / "utils.js"]
 
 # Classes that legitimately exist on only one surface.
 SERVER_ONLY_CLASSES = {
@@ -43,6 +44,9 @@ SERVER_ONLY_CLASSES = {
 	# per-section "page break" is page-break-after:always — likewise pagination-only;
 	# the canvas renders a separate .page-break-indicator element, not this class
 	"page-break",
+	# per-field "split across pages" flips break-inside to auto — pagination-only,
+	# invisible on the continuously-scrolled canvas
+	"field--breakable",
 }
 CANVAS_ONLY_CLASSES = set()
 
@@ -234,7 +238,8 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 
 	def _assert_df_props_mirrored(self, macro_path):
 		# properties that are server-render concerns, not canvas inputs
-		skip = {"get", "renderer", "section", "html"}
+		# (allow_page_break flips break-inside — pagination only, no canvas effect)
+		skip = {"get", "renderer", "section", "html", "allow_page_break"}
 		macro = macro_path.read_text()
 		props = set(re.findall(r"df\.([a-z_]+)", macro)) - skip
 		missing = sorted(p for p in props if f"df.{p}" not in _canvas_logic_text())

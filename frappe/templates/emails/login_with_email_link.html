@@ -1,6 +1,12 @@
-<h1 class="email-header-title">{{ _("Log in to {0}").format(app_name) }}</h1>
-<p>{{ _("Click the button below to sign in to your account. This link will expire in {0} minutes.").format(minutes) }}</p>
-<p>
-	<a href="{{ link or '#'}}" class="btn btn-primary">{{ _("Log In to {0}").format(app_name) }}</a>
-</p>
-<p class="text-muted text-small">{{ _("If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake.") }}</p>
+<h1 class="email-title">{{ _("Login with email link") }}</h1>
+<div class="email-body">
+	<p>{{ _("Click below to login.") }} {% if minutes == 1 %}{{ _("The link expires in 1 minute.") }}{% else %}{{ _("The link expires in {0} minutes.").format(minutes) }}{% endif %}</p>
+	<div class="email-action">
+		<a class="email-btn email-btn-primary" href="{{ link or '#' }}">{{ _("Login to {0}").format(app_name) }}</a>
+	</div>
+	<div class="email-copy">
+		<p>{{ _("Or copy and paste:") }}</p>
+		<a href="{{ link or '#' }}">{{ link }}</a>
+	</div>
+	<p class="email-ignore">{{ _("If you didn't request this, you can safely ignore this email. Your account is safe.") }}</p>
+</div>

@@ -6,7 +6,11 @@
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
+		:newRow="newRow"
 		@change="(r: Record<string, any>[]) => emit('change', r)"
+		@commit="onCellCommit"
+		@add="onRowAdd"
+		@remove="onRowRemove"
 		@edit="openEdit"
 	>
 		<template #cell="{ row, column, value, update, commit }">
@@ -39,7 +43,7 @@
 							:field="f"
 							:modelValue="value"
 							:row="row"
-							@update:modelValue="update"
+							@update:modelValue="(v: any) => editCell(update, f, row, v)"
 							@change="commit"
 							v-bind="f.ui?.props"
 							v-on="cellListeners(f, row)"
@@ -52,7 +56,7 @@
 						:field="f"
 						:modelValue="value"
 						:row="row"
-						@update:modelValue="update"
+						@update:modelValue="(v: any) => editCell(update, f, row, v)"
 						@change="commit"
 						v-bind="f.ui?.props"
 						v-on="cellListeners(f, row)"
@@ -67,9 +71,11 @@
 		</template>
 	</Grid>
 
-	<!-- Row-edit: render the full row as a FormLayout form (Grid only emits `edit`). -->
+	<!-- Row-edit: render the full row as a FormLayout form (Grid only emits `edit`).
+	     The row object itself is the model — the dialog writes through, the way a
+	     grid cell already does. -->
 	<Dialog v-model:open="showEdit" :title="dialogTitle" size="3xl">
-		<FormLayout v-if="editIndex !== null" v-model:doc="editDoc" :layout="editLayout" />
+		<FormLayout v-if="editRow" v-model:doc="editRow" :layout="editLayout" />
 	</Dialog>
 </template>
 
@@ -80,8 +86,11 @@ import { Grid } from "../Grid";
 import type { GridColumn } from "../Grid";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
-import { DocKey, ParentDocKey } from "./types";
+import { layoutFields, newRowValues } from "../FormLayout/newRowValues";
+import { CommitKey, DocKey, NO_COMMIT, ParentDocKey } from "./types";
+import { identify, rowKey } from "./rowIdentity";
 import { ResolveFieldKey } from "../FormLayout/types";
+import type { CommitChannel, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
 
@@ -99,6 +108,65 @@ const resolveField = inject(ResolveFieldKey)!;
 // currency formatting from the grid. Null at the top level.
 const parentDoc = inject(DocKey, null);
 provide(ParentDocKey, parentDoc);
+
+const commit = inject(CommitKey, NO_COMMIT);
+
+// The row-edit dialog's FormLayout would otherwise commit the child's fieldnames
+// as if they were the parent's, so its commits are re-addressed to the open row.
+// Without an address the channel would fall back to the bare fieldname, firing
+// the PARENT's handler for a child field — the misfire this wrapper exists to
+// prevent — so a commit arriving with no open row is dropped instead.
+const rowChannel: CommitChannel = {
+	pending: (fieldname, value) => withAddress((row) => commit.pending(fieldname, value, row)),
+	commit: (fieldname, value) => withAddress((row) => commit.commit(fieldname, value, row)),
+	rowChanged: (row, change) => commit.rowChanged(row, change),
+};
+provide(CommitKey, rowChannel);
+
+function withAddress(dispatch: (row: RowAddress) => void) {
+	const row = editAddress();
+	if (row) dispatch(row);
+}
+
+function editAddress(): RowAddress | undefined {
+	return editKey.value === null
+		? undefined
+		: { parentfield: props.field.fieldname, key: editKey.value };
+}
+
+function addressOf(row: Record<string, any>): RowAddress {
+	return { parentfield: props.field.fieldname, key: rowKey(identify(row))! };
+}
+
+function newRow(): Record<string, any> {
+	const fields = props.field.childLayout
+		? layoutFields(props.field.childLayout)
+		: props.field.childFields ?? [];
+	return newRowValues(fields);
+}
+
+// A cell being typed owes a commit too: a save mid-edit must fire its handler.
+function editCell(
+	update: (value: any) => void,
+	field: FieldNode,
+	row: Record<string, any>,
+	value: any
+) {
+	update(value);
+	commit.pending(field.fieldname, value, addressOf(row));
+}
+
+function onCellCommit({ row, column }: { row: Record<string, any>; column: GridColumn }) {
+	commit.commit(column.fieldname, row[column.fieldname], addressOf(row));
+}
+
+function onRowAdd({ row }: { row: Record<string, any> }) {
+	commit.rowChanged(addressOf(row), "add");
+}
+
+function onRowRemove({ rows: removed }: { rows: Record<string, any>[] }) {
+	for (const row of removed) commit.rowChanged(addressOf(row), "remove");
+}
 
 // Per-fieldtype alignment, applied to header + cells so they agree. Numeric
 // right-aligns (desk); checkbox/rating center.
@@ -232,24 +300,91 @@ const rows = computed<Record<string, any>[]>({
 
 // --- Row-edit dialog ---------------------------------------------------------
 
-// `editIndex` null = dialog closed. `editDoc` is a clone so the dialog edits in
-// isolation; commits copy it back into the rows array.
-const editIndex = ref<number | null>(null);
-const editDoc = ref<Record<string, any>>({});
-// The row object being edited, tracked by identity so write-back survives a
-// parent re-sort/filter of the rows array between watcher fires (a cached
-// positional index would point at the wrong row after reorder).
-const editRow = ref<Record<string, any> | null>(null);
+// The dialog holds an ADDRESS, not a row reference: a save replaces every row
+// object (`paintSaved`) and the parent may reorder the array underneath, so the
+// row is re-found by `name ?? __row_id` on every access — the shape `page.rows`'
+// handles use. `editKey` null = dialog closed.
+const editKey = ref<string | null>(null);
+// The row object the reader clicked. Only a tiebreak, never the address: a
+// script that duplicates a saved row (`{ ...products[0] }`) copies its `name`,
+// so two rows can answer to one key and a bare first-match would open on the
+// wrong one. Deliberately NOT a position — a reorder leaves the index pointing
+// at the other row while its key still matches, which is the same wrong answer
+// arrived at more confidently. A save replaces every row object, so this goes
+// stale by design; the key is what survives it.
+let openedRow: Record<string, any> | null = null;
 
-const showEdit = computed({
-	get: () => editIndex.value !== null,
-	set: (open) => {
-		if (!open) editIndex.value = null;
+const editIndex = computed(() => {
+	if (editKey.value === null) return -1;
+	const matching = answering();
+	if (matching.length <= 1) return matching[0] ?? -1;
+	const clicked = openedRow ? rows.value.indexOf(openedRow) : -1;
+	// The clicked row still has to answer to the address: a script can rename a
+	// row under the dialog, and then it is no longer the row that was opened.
+	if (clicked !== -1 && rowKey(rows.value[clicked]) === editKey.value) return clicked;
+	// Two rows answer to this address and the object that told them apart is gone
+	// (a save replaces every row object). There is no answer left, only a guess —
+	// and guessing is how the reader silently edits the other row, so the dialog
+	// closes on the same rule as a row that has vanished.
+	return -1;
+});
+
+/** Every row currently answering to the open address, by index. */
+function answering(): number[] {
+	const found: number[] = [];
+	rows.value.forEach((row, index) => {
+		if (rowKey(row) === editKey.value) found.push(index);
+	});
+	return found;
+}
+
+// Writable, though `FormLayout` only ever mutates it: a getter-only computed
+// would swallow a reassignment in production and warn only in dev.
+const editRow = computed<Record<string, any> | null>({
+	get: () => (editIndex.value === -1 ? null : rows.value[editIndex.value]),
+	set: (row) => {
+		if (row && editIndex.value !== -1) rows.value[editIndex.value] = row;
 	},
 });
 
+// Open exactly while the address resolves. When it stops — the row is removed,
+// reordered out by the parent, or detached by a save (the server strips
+// `__row_id`, so a row added this session has neither identifier afterwards) —
+// the dialog closes, rather than staying open with every keystroke going nowhere.
+const showEdit = computed({
+	get: () => editRow.value !== null,
+	set: (open) => {
+		if (!open) closeEdit();
+	},
+});
+
+// Closing is a WRITE, not a derivation: leaving `editKey` set would re-open the
+// dialog by itself the moment a row answering to that key came back — which the
+// save-conflict path does routinely (it repaints the server's rows, then
+// re-applies the reader's).
+watch(editRow, (row) => {
+	if (row) return;
+	// An ambiguous close looks identical to a removal from the outside, so say so:
+	// the rows are still there, and the reader's edits stopped landing.
+	if (import.meta.env?.DEV && answering().length > 1) {
+		console.warn(
+			`[TableField] closed the row-edit dialog for "${props.field.fieldname}": ` +
+				`${answering().length} rows answer to ${editKey.value}, and the row that was ` +
+				`opened is no longer among them. Rows that share a name cannot be told apart ` +
+				`once a save replaces them — give a copied row a fresh identity instead of ` +
+				`reusing its name.`
+		);
+	}
+	closeEdit();
+});
+
+function closeEdit() {
+	editKey.value = null;
+	openedRow = null;
+}
+
 const dialogTitle = computed(() =>
-	editIndex.value === null ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
+	editIndex.value === -1 ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
 );
 
 // Dialog renders the child's full form via `childLayout`; fall back to a flat form of
@@ -273,42 +408,20 @@ function readOnlyLayout(schema: FormLayoutSchema): FormLayoutSchema {
 	}));
 }
 
-function openEdit({ index }: { row: Record<string, any>; index: number }) {
-	// Seeding the clone reassigns `editDoc`, which would trip the write-back watch
-	// (a no-op echo of the unedited row that needlessly churns the row's identity
-	// and emits a phantom change). Suppress that one open-time fire.
-	skipWriteBack = true;
-	editRow.value = rows.value[index];
-	editDoc.value = { ...editRow.value };
-	editIndex.value = index;
+function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
+	// `identify` covers a row that reached the table with neither a name nor an id
+	// (a script's own `push({})`), which would otherwise have no address at all.
+	// The stamp is safe to write: such a row can only have been pushed this
+	// session, so the document is already dirty, and `__row_id` never reaches the
+	// server (`rowIdentity.ts`).
+	editKey.value = addressOf(row).key;
+	openedRow = row;
 }
 
-// Write the working copy back into the row. `FormLayout` emits nothing now, so we
-// watch the dialog's reactive doc (deep) instead of an `@change` event; the doc
-// syncs live, so this writes back as the user edits (vs. the old commit-only
-// `@change`), flowing through the same `update:modelValue`/`change` the grid expects.
-let skipWriteBack = false;
-watch(
-	editDoc,
-	() => {
-		if (editIndex.value === null) return;
-		if (skipWriteBack) {
-			skipWriteBack = false;
-			return;
-		}
-		const next = rows.value.slice();
-		// Locate the row by identity, not the cached index: the parent may have
-		// re-sorted/filtered `rows` since open, so the positional index can now
-		// point at a different row.
-		const i = editRow.value ? next.indexOf(editRow.value) : -1;
-		if (i === -1) return; // row was removed/reordered out externally
-		// Mutate the row in place (vs. replacing it) so its object reference is
-		// preserved — the Grid keys rows by identity via a WeakMap, so a fresh
-		// object would re-key and re-mount the row, dropping its selection state.
-		Object.assign(next[i], editDoc.value);
-		emit("update:modelValue", next);
-		emit("change", next);
-	},
-	{ deep: true }
-);
+// There is no write-back: `FormLayout` mutates `doc.value[fieldname]` and never
+// reassigns `doc.value` (FormLayout.vue:88-90), so binding the row object edits
+// the row in the parent's array directly — the same in-place write the grid cells
+// have always done. Nothing here reassigns the array either, so the dialog emits
+// no `update:modelValue`/`change` for the whole table; `change` still fires from
+// the Grid on cell commit, add, remove and reorder, so it keeps its meaning.
 </script>

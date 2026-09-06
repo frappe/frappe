@@ -4,6 +4,8 @@
 		:placeholder="placeholder"
 		:submit-label="submitLabel"
 		:upload-function="uploadFunction"
+		:extensions="extensions"
+		:max-attachments="maxAttachments"
 		v-model:body="body"
 		v-model:quoted="quoted"
 		@submit="handleSubmit"
@@ -13,11 +15,17 @@
 		<template #top>
 			<slot v-if="$slots.header" name="header" />
 			<HeaderFields
-				v-else-if="headerFields.length"
-				v-model="recipients"
+				v-else-if="hasHeader"
+				v-model:to="to"
+				v-model:cc="cc"
+				v-model:bcc="bcc"
 				v-model:subject="subject"
 				v-model:from="from"
-				:fields="headerFields"
+				:show-to="showTo"
+				:show-cc="showCc"
+				:show-bcc="showBcc"
+				:show-from="showFrom"
+				:show-subject="showSubject"
 				:senders="senders"
 				:search="searchRecipients"
 			/>
@@ -38,21 +46,29 @@ import type {
 	EmailComposerEmits,
 	EmailComposerProps,
 	EmailComposerSlots,
-	Recipients,
+	Recipient,
 } from "../types";
 
-withDefaults(defineProps<EmailComposerProps>(), {
-	headerFields: () => ["to", "cc", "bcc"],
+const props = withDefaults(defineProps<EmailComposerProps>(), {
+	showTo: true,
+	showCc: true,
+	showBcc: true,
+	showFrom: false,
+	showSubject: false,
 });
+
+const hasHeader = computed(
+	() => props.showTo || props.showCc || props.showBcc || props.showFrom || props.showSubject
+);
 
 const emit = defineEmits<EmailComposerEmits>();
 defineSlots<EmailComposerSlots>();
 
 const body = defineModel<string>({ default: "" });
 const quoted = defineModel<string | null>("quoted", { default: null });
-const recipients = defineModel<Recipients>("recipients", {
-	default: () => ({ to: [], cc: [], bcc: [] }),
-});
+const to = defineModel<Recipient[]>("to", { default: () => [] });
+const cc = defineModel<Recipient[]>("cc", { default: () => [] });
+const bcc = defineModel<Recipient[]>("bcc", { default: () => [] });
 const subject = defineModel<string>("subject", { default: "" });
 const from = defineModel<string>("from", { default: "" });
 
@@ -64,14 +80,18 @@ function handleSubmit({ body: message, attachments }: CoreSubmitPayload) {
 		from: from.value,
 		subject: subject.value,
 		body: message,
-		recipients: recipients.value,
+		to: to.value,
+		cc: cc.value,
+		bcc: bcc.value,
 		attachments,
 	});
 }
 
 // `from` survives reset — the sender identity carries over.
 function reset() {
-	recipients.value = { to: [], cc: [], bcc: [] };
+	to.value = [];
+	cc.value = [];
+	bcc.value = [];
 	subject.value = "";
 	core.value?.reset();
 }

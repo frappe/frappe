@@ -70,7 +70,6 @@ class User(Document):
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
 		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
-		from frappe.core.doctype.user_workspaces.user_workspaces import UserWorkspaces
 		from frappe.types import DF
 
 		active_sessions: DF.Table[UserSessionDisplay]
@@ -147,7 +146,6 @@ class User(Document):
 		user_type: DF.Link | None
 		username: DF.Data | None
 		view_switcher: DF.Check
-		workspaces: DF.Table[UserWorkspaces]
 	# end: auto-generated types
 
 	__new_password = None
@@ -358,7 +356,7 @@ class User(Document):
 		if self.has_value_changed("enabled"):
 			frappe.cache.delete_key("users_for_mentions")
 			frappe.cache.delete_key("enabled_users")
-		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
+		elif self.has_value_changed("allowed_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
 
 		if self.has_value_changed("user_type"):
@@ -515,15 +513,20 @@ class User(Document):
 	def password_reset_mail(self, link):
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
+		expiry_seconds = cint(frappe.get_system_settings("reset_password_link_expiry_duration"))
+		expiry_minutes = (expiry_seconds // 60) or None
+
 		self.send_login_mail(
 			_("Password Reset"),
 			"password_reset",
-			{"link": link},
+			{"link": link, "expiry_minutes": expiry_minutes},
 			now=True,
 			custom_template=reset_password_template,
+			wrapper=None if reset_password_template else "templates/emails/auth_email.html",
 		)
 
 	def send_welcome_mail_to_user(self):
+		from frappe.email.email_body import get_brand_name
 		from frappe.utils import get_url
 
 		link = self._reset_password()
@@ -546,11 +549,13 @@ class User(Document):
 			dict(
 				link=link,
 				site_url=get_url(),
+				app_name=get_brand_name() or "Frappe",
 			),
 			custom_template=welcome_email_template,
+			wrapper=None if welcome_email_template else "templates/emails/auth_email.html",
 		)
 
-	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
+	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None, wrapper=None):
 		"""send mail with login details"""
 		if not self.enabled:
 			return
@@ -577,9 +582,9 @@ class User(Document):
 		) or None
 
 		if custom_template:
-			from frappe.email.doctype.email_template.email_template import get_email_template
-
-			email_template = get_email_template(custom_template, args, sender=sender)
+			email_template = frappe.get_doc("Email Template", custom_template).get_formatted_email(
+				args, sender=sender
+			)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
@@ -591,6 +596,7 @@ class User(Document):
 			content=content if custom_template else None,
 			args=args,
 			with_container=True,
+			wrapper=wrapper,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
 			retry=3,
 			redact_message_after_send=True,
@@ -627,7 +633,7 @@ class User(Document):
 		# delete notification settings
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
 
-		if self.get("allow_in_mentions"):
+		if self.get("allowed_in_mentions"):
 			frappe.cache.delete_key("users_for_mentions")
 
 		frappe.cache.delete_key("enabled_users")
@@ -644,6 +650,18 @@ class User(Document):
 
 		# Delete user's List Filters
 		frappe.db.delete("List Filter", {"for_user": self.name})
+
+		# Delete the user's own navigation arrangements: their sidebar layers and their dock.
+		# Delete whole documents rather than rows, because they carry a child table and deleting
+		# the document is what clears the cached set of layers. The site layer, with `user` blank,
+		# is not a personal preference and stays.
+		#
+		# Both doctypes are in `ignore_links_on_delete`, so nothing would have complained about
+		# rows left behind, and `Dock` is uniquely keyed on `user`, so a leftover layer would be
+		# handed to the next user created with the same id.
+		for doctype in ("Custom Sidebar", "Dock"):
+			for name in frappe.get_all(doctype, filters={"user": self.name}, pluck="name"):
+				frappe.delete_doc(doctype, name, ignore_permissions=True, force=True)
 
 		# Remove user from Note's Seen By table
 		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])
@@ -887,8 +905,7 @@ class User(Document):
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.set_route",
-				"args": ["Form", self.doctype, self.name],
+				"client_action": "frappe.scroll_to_user_roles_field",
 			},
 		)
 
@@ -930,6 +947,16 @@ def get_all_roles():
 	)
 
 	return sorted([role.get("name") for role in roles])
+
+
+@frappe.whitelist()
+def get_current_user_roles() -> list[str]:
+	"""Return the logged-in user's roles.
+
+	Desk reads these from `frappe.boot.user.roles`. Clients that do not load
+	bootinfo have no such payload, so they fetch them here.
+	"""
+	return frappe.get_roles()
 
 
 @frappe.whitelist()
@@ -1113,57 +1140,64 @@ def verify_password(password: str):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
+def get_signup_limit():
+	return frappe.db.get_single_value("Website Settings", "max_signups_per_minute")
+
+
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=get_signup_limit, seconds=60)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
+	allow = True
 	if is_signup_disabled():
-		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
+		allow = False
 
-	user = frappe.db.get("User", {"email": email})
-	if user:
-		if user.enabled:
-			return 0, _("Already Registered")
-		else:
-			return 0, _("Registered but disabled")
-	else:
-		max_signups_allowed_per_hour = cint(frappe.get_system_settings("max_signups_allowed_per_hour") or 300)
-		users_created_past_hour = frappe.db.get_creation_count("User", 60)
-		if users_created_past_hour >= max_signups_allowed_per_hour:
-			frappe.respond_as_web_page(
-				_("Temporarily Disabled"),
-				_(
-					"Too many users signed up recently, so the registration is disabled. Please try back in an hour"
-				),
-				http_status_code=429,
-			)
+	existing_user = frappe.db.get("User", {"email": email})
+	if existing_user:
+		allow = False
 
-		from frappe.utils import random_string
+	if not allow:
+		return 0, _("We could not create an account with the provided details.")
 
-		user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": escape_html(full_name),
-				"enabled": 1,
-				"new_password": random_string(10),
-				"user_type": "Website User",
-			}
+	max_signups_allowed_per_hour = cint(frappe.get_system_settings("max_signups_allowed_per_hour") or 300)
+	users_created_past_hour = frappe.db.get_creation_count("User", 60)
+	if users_created_past_hour >= max_signups_allowed_per_hour:
+		frappe.respond_as_web_page(
+			_("Temporarily Disabled"),
+			_(
+				"Too many users signed up recently, so the registration is disabled. Please try back in an hour"
+			),
+			http_status_code=429,
 		)
-		user.flags.ignore_permissions = True
-		user.flags.ignore_password_policy = True
-		user.insert()
+		return
 
-		# set default signup role as per Portal Settings
-		default_role = frappe.get_single_value("Portal Settings", "default_role")
-		if default_role:
-			user.add_roles(default_role)
+	from frappe.utils import random_string
 
-		if redirect_to:
-			frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
+	user = frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": email,
+			"first_name": escape_html(full_name),
+			"enabled": 1,
+			"new_password": random_string(10),
+			"user_type": "Website User",
+		}
+	)
+	user.flags.ignore_permissions = True
+	user.flags.ignore_password_policy = True
+	user.insert()
 
-		if user.flags.email_sent:
-			return 1, _("Please check your email for verification")
-		else:
-			return 2, _("Please ask your administrator to verify your sign-up")
+	# set default signup role as per Portal Settings
+	default_role = frappe.get_single_value("Portal Settings", "default_role")
+	if default_role:
+		user.add_roles(default_role)
+
+	if redirect_to:
+		frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
+
+	if user.flags.email_sent:
+		return 1, _("Please check your email for verification")
+	else:
+		return 2, _("Please ask your administrator to verify your sign-up")
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -1319,20 +1353,19 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager
 	):
-		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
-		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
+		date_and_time = format_datetime(now_datetime(), format_string="medium")
 		ip_address = frappe.local.request_ip
-
-		access_message = _("Administrator accessed {0} on {1} via IP Address {2}.").format(
-			site, date_and_time, ip_address
-		)
 
 		frappe.sendmail(
 			recipients=get_system_managers(),
 			subject=_("Administrator Logged In"),
 			template="administrator_logged_in",
-			args={"access_message": access_message},
-			header=["Access Notification", "orange"],
+			args={
+				"date_and_time": date_and_time,
+				"ip_address": ip_address,
+			},
+			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 		)
 
 

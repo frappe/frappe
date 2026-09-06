@@ -9,15 +9,16 @@
   slot (the controls' future home) plus a `#table` slot. The default table slot
   renders the doctype's fields as placeholder column headers so a visitor can see
   that meta resolved.
+
+  Bounded flex column so only the rows scroll (CRM-parity): the toolbar and footer are
+  fixed (`shrink-0`), the table region takes the remaining height (`flex-1 min-h-0`), and
+  the list's own `ListRows` (`overflow-y-auto`) is the sole scroller. Needs a height from
+  the parent (the story gives it `flex-1`); `min-h-0` lets it shrink, `overflow-hidden`
+  clips so nothing spills the card.
 -->
 <template>
-	<!-- Bounded flex column so only the rows scroll (CRM-parity): the toolbar and
-	     footer are fixed (`shrink-0`), the table region takes the remaining height
-	     (`flex-1 min-h-0`), and the list's own `ListRows` (`overflow-y-auto`) is the
-	     sole scroller. Needs a height from the parent (the story gives it `flex-1`);
-	     `min-h-0` lets it shrink, `overflow-hidden` clips so nothing spills the card. -->
 	<div
-		class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-white"
+		class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-base"
 	>
 		<!-- Toolbar region: the home of the list-view controls. The slotted content
 		     owns its own alignment (quick filters left, Filter/Sort right). -->

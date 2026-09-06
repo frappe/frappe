@@ -65,3 +65,40 @@ frappe.ui.form.on("Installed Applications", {
 			});
 	},
 });
+
+frappe.ui.form.on("Installed Application", {
+	disable_application(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		frappe.confirm(
+			__("Disable <b>{0}</b> on this site? It keeps its data, but stops taking effect.", [
+				row.app_name,
+			]),
+			() => {
+				frappe.call({
+					method: "frappe.core.doctype.installed_applications.installed_applications.set_app_state",
+					freeze: true,
+					args: { app_name: row.app_name, disabled: 1 },
+					callback() {
+						frappe.toast(__("{0} has been disabled", [row.app_name]));
+						frm.reload_doc();
+					},
+				});
+			}
+		);
+	},
+
+	enable_application(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		frappe.confirm(__("Enable <b>{0}</b> on this site again?", [row.app_name]), () => {
+			frappe.call({
+				method: "frappe.core.doctype.installed_applications.installed_applications.set_app_state",
+				freeze: true,
+				args: { app_name: row.app_name, disabled: 0 },
+				callback() {
+					frappe.toast(__("{0} has been enabled", [row.app_name]));
+					frm.reload_doc();
+				},
+			});
+		});
+	},
+});

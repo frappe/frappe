@@ -94,8 +94,10 @@ describe("buildLayoutFromMeta", () => {
     expect(section.label).toBe("More");
     expect(section.hideBorder).toBe(true);
     expect(section.collapsible).toBe(true);
-    // collapsible sections start collapsed
-    expect(section.opened).toBe(false);
+    // Open by default whether collapsible or not — the same default the
+    // stored-layout path (`joinSection`) uses, so a collapsible section no
+    // longer opens or closes depending on which constructor built it.
+    expect(section.opened).toBe(true);
   });
 
   it("keeps statically hidden fields in the schema, marked hidden", () => {

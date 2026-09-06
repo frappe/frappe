@@ -1,4 +1,11 @@
 {% import "templates/print_format/macros.html" as macros %}
+{#- A section's justify names one of these classes and nothing else -#}
+{%- set justify_classes = {
+	'space-between': 'row-col-space-between',
+	'space-evenly': 'row-col-space-evenly',
+	'center': 'row-col-center',
+	'right-end': 'row-col-right-end',
+} -%}
 
 <!DOCTYPE html>
 <html lang="{{ lang or 'en' }}"{% if layout_direction %} dir="{{ layout_direction }}"{% endif %}>
@@ -40,7 +47,7 @@
 	{%- if ns_h.has_fields -%}
 	{%- set col_gap = (layout.header.gap if layout.header.gap is defined and layout.header.gap != None else 20)|string + 'px' -%}
 	<div class="section document-header-content">
-	<div class="section-columns row" style="gap:{{ col_gap }}">
+	<div class="section-columns row {{ justify_classes.get(layout.header.justify, '') }}" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
 	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
@@ -112,10 +119,12 @@
 		<div class="section-label">{{ _(section.label)|e }}</div>
 		{% endif %}
 
-		{#- Detect right-aligned columns to pick the right row layout class -#}
+		{#- The section's own justify wins; a right-aligned column is the older way to ask -#}
 		{%- set ns2 = namespace(has_right=false) -%}
 		{%- for col in section.columns -%}{%- if col.align == 'right' -%}{%- set ns2.has_right = true -%}{%- endif -%}{%- endfor -%}
-		{%- if ns2.has_right and section.columns | length == 1 -%}
+		{%- if section.justify in justify_classes -%}
+			{%- set row_layout = justify_classes[section.justify] -%}
+		{%- elif ns2.has_right and section.columns | length == 1 -%}
 			{%- set row_layout = 'row-col-right-end' -%}
 		{%- elif ns2.has_right -%}
 			{%- set row_layout = 'row-col-space-between' -%}
@@ -151,7 +160,7 @@
 	{%- if ns_f.has_fields -%}
 	{%- set col_gap_f = (layout.footer.gap if layout.footer.gap is defined and layout.footer.gap != None else 20)|string + 'px' -%}
 	<div class="section document-footer-content">
-	<div class="section-columns row" style="gap:{{ col_gap_f }}">
+	<div class="section-columns row {{ justify_classes.get(layout.footer.justify, '') }}" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
 	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
