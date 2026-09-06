@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-30 21:08\n"
+"PO-Revision-Date: 2026-08-30 23:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -42,7 +42,7 @@ msgstr "'Överordnad' betyder överordnad tabell där denna rad skall infogas"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr "\"Team Medlemmar\" eller \"Ledning\""
+msgstr "\"Lag Medlemmar\" eller \"Ledning\""
 
 #: frappe/public/js/frappe/form/form.js:1013
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -72,11 +72,11 @@ msgstr "&lt;head&gt; HTML"
 
 #: frappe/public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
-msgstr "\"I Global Sök\" är inte tillåtet för fält {0} av typ {1}"
+msgstr "\"I System Sök\" är inte tillåtet för fält {0} av typ {1}"
 
 #: frappe/core/doctype/doctype/doctype.py:1332
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr "\"I Global Sökning\" är otillåtet för {0} på rad {1}"
+msgstr "\"I System Sökning\" är otillåtet för {0} på rad {1}"
 
 #: frappe/public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
@@ -2367,7 +2367,7 @@ msgstr "Annan {0} med namn {1} existerar, välj ett annat namn"
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr "Alla strängbaserade skrivarspråk kan användas. Att skriva rå kommando kräver kunskap om skrivarens skrivarspråk som tillhandahålls av tillverkare. Se utvecklarhandbok som tillhandahålls av tillverkare om hur man skriver deras ursprungliga kommando. Dessa kommando återges på serversidan med hjälp av Jinja Templating Language."
+msgstr "Alla strängbaserade skrivarspråk kan användas. Att skriva rå kommando erfordrar kunskap om skrivarens skrivarspråk som tillhandahålls av tillverkare. Se utvecklarhandbok som tillhandahålls av tillverkare om hur man skriver deras ursprungliga kommando. Dessa kommando återges på serversidan med hjälp av Jinja Templating Language."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:103
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
@@ -4500,7 +4500,7 @@ msgstr "Kan inte redigera standard översikt panel"
 
 #: frappe/email/doctype/notification/notification.py:127
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
-msgstr "Kan inte redigera standard avisering. Kopiera och skapa ny"
+msgstr "Kan inte redigera Standard Avisering. För att redigera, inaktivera detta och duplicera det"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:378
 msgid "Cannot edit Standard charts"
@@ -4508,7 +4508,7 @@ msgstr "Kan inte redigera standard diagram"
 
 #: frappe/core/doctype/report/report.py:73
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
-msgstr "Kan inte redigera standard rapport.Kopiera och skapa ny"
+msgstr "Kan inte redigera standard rapport. Duplicera och skapa ny"
 
 #: frappe/model/document.py:918
 msgid "Cannot edit cancelled document"
@@ -5953,7 +5953,7 @@ msgstr "System DocType kan inte anpassas."
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:36
 msgid "Core Modules {0} cannot be searched in Global Search."
-msgstr "System Moduler {0} kan inte sökas i Global Sök."
+msgstr "System Moduler {0} kan inte sökas i System Sök."
 
 #: frappe/printing/page/print/print.js:622
 msgid "Correct version :"
@@ -6095,7 +6095,7 @@ msgstr "Skapa Anpassade Fält"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:970
 msgid "Create Duplicate"
-msgstr "Skapa Kopia"
+msgstr "Skapa Dubblett"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -7397,7 +7397,7 @@ msgstr "Borttagen DocType"
 #. Name of a DocType
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted Document"
-msgstr "Papperskorg"
+msgstr "Raderad Dokument"
 
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -8612,36 +8612,36 @@ msgstr "Förfallodatum baserat på"
 #: frappe/public/js/frappe/views/workspace/workspace.js:853
 #: frappe/public/js/frappe/views/workspace/workspace.js:1020
 msgid "Duplicate"
-msgstr "Kopiera"
+msgstr "Duplicera"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:53
 msgid "Duplicate Entry"
-msgstr "Kopiera Post"
+msgstr "Duplicera Post"
 
 #: frappe/public/js/frappe/list/list_filter.js:137
 msgid "Duplicate Filter Name"
-msgstr "Kopiera Filter Namn"
+msgstr "Duplicera Filter Namn"
 
 #: frappe/model/base_document.py:603 frappe/model/rename_doc.py:111
 msgid "Duplicate Name"
-msgstr "Kopiera Namn"
+msgstr "Duplicera Namn"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:592
 #: frappe/public/js/frappe/views/workspace/workspace.js:854
 msgid "Duplicate Workspace"
-msgstr "Kopiera Arbetsyta"
+msgstr "Duplicera Arbetsyta"
 
 #: frappe/public/js/frappe/form/form.js:208
 msgid "Duplicate current row"
-msgstr "Kopiera Aktuell Rad"
+msgstr "Duplicera aktuell rad"
 
 #: frappe/public/js/form_builder/components/Field.vue:247
 msgid "Duplicate field"
-msgstr "Kopiera fält"
+msgstr "Duplicera fält"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1035
 msgid "Duplicate of {0} named as {1} is created successfully"
-msgstr "Kopia av {0} med namn {1} är skapad"
+msgstr "Dubblett av {0} med namn {1} är skapad"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Float field in DocType 'Recorder'
@@ -10353,7 +10353,7 @@ msgstr "Hämta vid Spara om Tom"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:61
 msgid "Fetching default Global Search documents."
-msgstr "Hämtar standard Global Sökning dokument."
+msgstr "Hämtar standard System Sökning dokument."
 
 #: frappe/website/doctype/web_form/web_form.js:165
 msgid "Fetching fields from {0}..."
@@ -11598,7 +11598,7 @@ msgstr "Hämta PDF"
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Get a preview of generated names with a series."
-msgstr "Förhandsgranskning av Nummer Serie."
+msgstr "Förhandsvisning av Nummer Serie."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:282
 msgid "Get more insights with"
@@ -11613,7 +11613,7 @@ msgstr "Få avisering när e-post meddelande tas emot om någo av dokument som t
 #. Description of the 'User Image' (Attach Image) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Get your globally recognized avatar from Gravatar.com"
-msgstr "Hämta globalt erkänd avatar från Gravatar.com"
+msgstr "Hämta system erkänd avatar från Gravatar.com"
 
 #. Label of a Data field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json
@@ -11638,11 +11638,11 @@ msgstr "Lämna Recension Poäng"
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
 msgid "Global Search DocType"
-msgstr "Global Sökning DocType"
+msgstr "System Sökning DocType"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.js:24
 msgid "Global Search Document Types Reset."
-msgstr "Global Sökning Dokument Typ Återställning."
+msgstr "System Sökning Dokument Typ Återställning."
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_settings/global_search_settings.json
@@ -11656,7 +11656,7 @@ msgstr "Standard Genvägar"
 #. Label of a Check field in DocType 'Email Unsubscribe'
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
 msgid "Global Unsubscribe"
-msgstr "Globalt Avregistrering"
+msgstr "System Avregistrering"
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:68
 #: frappe/public/js/frappe/form/toolbar.js:801
@@ -12391,7 +12391,7 @@ msgstr "Dölj Inloggning"
 #: frappe/public/js/form_builder/form_builder.bundle.js:43
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Hide Preview"
-msgstr "Dölj Förhandsgranskning"
+msgstr "Dölj Förhandsvisning"
 
 #. Description of the 'Hide Buttons' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -12829,7 +12829,7 @@ msgstr "Om den här e-postadressen är registrerad hos oss har vi skickat instru
 
 #: frappe/templates/emails/user_invitation_cancelled.html:8
 msgid "If this was a mistake or you need access again, please reach out to your team."
-msgstr "Om detta var ett misstag eller om du behöver tillgång igen, vänligen kontakta ditt team."
+msgstr "Om detta var ett misstag eller om du behöver tillgång igen, vänligen kontakta ditt lag."
 
 #. Description of the 'Fetch on Save if Empty' (Check) field in DocType
 #. 'DocField'
@@ -13167,7 +13167,7 @@ msgstr "I Filter"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Global Search"
-msgstr "I Global Sök"
+msgstr "I System Sök"
 
 #: frappe/core/doctype/doctype/doctype.js:96
 msgid "In Grid View"
@@ -14060,7 +14060,7 @@ msgstr "Är Mapp"
 
 #: frappe/public/js/frappe/list/list_filter.js:43
 msgid "Is Global"
-msgstr "Är Global"
+msgstr "Är System"
 
 #: frappe/public/js/frappe/views/treeview.js:384
 msgid "Is Group"
@@ -15770,7 +15770,7 @@ msgstr "Stora"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make \"name\" searchable in Global Search"
-msgstr "'namn' sökbar i Global Sökning"
+msgstr "'namn' sökbar i System Sökning"
 
 #. Label of a Check field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -17482,11 +17482,11 @@ msgstr "Inga tillåtna Diagram på denna Översikt Panel"
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
-msgstr "Ingen Förhandsgranskning"
+msgstr "Ingen Förhandsvisning"
 
 #: frappe/printing/page/print/print.js:710
 msgid "No Preview Available"
-msgstr "Ingen Förhandsgranskning Tillgänglig."
+msgstr "Ingen Förhandsvisning Tillgänglig."
 
 #: frappe/printing/page/print/print.js:864
 msgid "No Printer is Available."
@@ -17712,11 +17712,11 @@ msgstr "Ingen {0}"
 
 #: frappe/public/js/frappe/list/list_view_select.js:158
 msgid "No {0} Found"
-msgstr "Ingen {0} Hittades"
+msgstr "{0} hittades inte"
 
 #: frappe/public/js/frappe/web_form/web_form_list.js:243
 msgid "No {0} found"
-msgstr "Ingen {0} Hittades"
+msgstr "{0} hittades inte"
 
 #: frappe/public/js/frappe/list/list_view.js:504
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
@@ -19651,7 +19651,7 @@ msgstr "Vänligen Auktorisera OAuth för E-post Konto {}"
 
 #: frappe/website/doctype/website_theme/website_theme.py:75
 msgid "Please Duplicate this Website Theme to customize."
-msgstr "Vänligen Kopiera denna Webbplats Tema för att anpassa."
+msgstr "Duplicera denna Webbplats Tema för att anpassa."
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:162
 msgid "Please Install the ldap3 library via pip to use ldap functionality."
@@ -19751,7 +19751,7 @@ msgstr "Ändra inte mall huvud rubriker."
 
 #: frappe/printing/doctype/print_format/print_format.js:19
 msgid "Please duplicate this to make changes"
-msgstr "Vänligen kopiera detta för att göra ändringar"
+msgstr "Duplicera detta för att göra ändringar"
 
 #: frappe/core/doctype/system_settings/system_settings.py:180
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
@@ -20283,24 +20283,24 @@ msgstr "Tryck på Enter att Spara"
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:31
 #: frappe/public/js/frappe/ui/capture.js:229
 msgid "Preview"
-msgstr "Förhandsgranska"
+msgstr "Förhandsvisa"
 
 #. Label of a HTML field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Preview HTML"
-msgstr "Förhandsgranska HTML"
+msgstr "Förhandsvisa HTML"
 
 #. Label of a Attach Image field in DocType 'Blog Category'
 #. Label of a Attach Image field in DocType 'Blog Settings'
 #: frappe/website/doctype/blog_category/blog_category.json
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Preview Image"
-msgstr "Förhandsgranska Bild"
+msgstr "Förhandsvisa Bild"
 
 #. Label of a Button field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Preview Message"
-msgstr "Förhandsgranska Meddelande"
+msgstr "Förhandsvisa Meddelande"
 
 #: frappe/public/js/form_builder/form_builder.bundle.js:83
 msgid "Preview Mode"
@@ -20309,15 +20309,15 @@ msgstr "Förhandsgransknig Läge"
 #. Label of a Text field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Preview of generated names"
-msgstr "Förhandsgranskning av genererade namn"
+msgstr "Förhandsvisning av genererade namn"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Förhandsgranskning typ"
+msgstr "Förhandsvisning typ"
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
-msgstr "Förhandsgranska:"
+msgstr "Förhandsvisa:"
 
 #: frappe/public/js/frappe/form/form_tour.js:15
 #: frappe/public/js/frappe/web_form/web_form.js:98
@@ -23826,7 +23826,7 @@ msgstr "Välj dokument för att kontrollera om det uppfyller villkoren."
 
 #: frappe/integrations/doctype/webhook/webhook.py:145
 msgid "Select a document to preview request data"
-msgstr "Välj dokument för att förhandsgranska begäran om data"
+msgstr "Välj dokument för att förhandsvisa begäran om data"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:56
 msgid "Select a field to edit its properties."
@@ -24553,7 +24553,7 @@ msgstr "Ange denna Adress Mall som standard eftersom det inte finns någon annan
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:86
 msgid "Setting up Global Search documents."
-msgstr "Konfigurerar Global Sökning Dokument."
+msgstr "Konfigurerar System Sökning Dokument."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:292
 msgid "Setting up your system"
@@ -24854,14 +24854,14 @@ msgstr "Visa Behörigheter"
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:18
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Show Preview"
-msgstr "Förhandsgranska"
+msgstr "Förhandsvisa"
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Show Preview Popup"
-msgstr "Visa Förhandsgranska Pop-upp"
+msgstr "Visa Förhandsvisa Pop-upp"
 
 #. Label of a Check field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -25157,7 +25157,7 @@ msgstr "Hoppade över"
 
 #: frappe/core/doctype/data_import/importer.py:918
 msgid "Skipping Duplicate Column {0}"
-msgstr "Hoppar över Kolumn Kopia {0}"
+msgstr "Hoppar över Dubblett Kolumn {0}"
 
 #: frappe/core/doctype/data_import/importer.py:947
 msgid "Skipping Untitled Column"
@@ -25169,7 +25169,7 @@ msgstr "Hoppar över Kolumn {0}"
 
 #: frappe/modules/utils.py:197
 msgid "Skipping fixture syncing for doctype {0} from file {1}"
-msgstr "Hoppar över fixture synkronisering för doctype {0} från fil {1}"
+msgstr "Hoppar över tillägg synkronisering för doctype {0} från fil {1}"
 
 #: frappe/core/doctype/data_import/data_import.js:39
 msgid "Skipping {0} of {1}, {2}"
@@ -25474,7 +25474,7 @@ msgstr "Standard Utskrift Format kan inte uppdateras"
 
 #: frappe/printing/doctype/print_style/print_style.py:30
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
-msgstr "Standard Utskrift Stil kan inte ändras. Kopiera för att redigera."
+msgstr "Standard Utskrift Stil kan inte ändras. Duplicera för att redigera."
 
 #: frappe/desk/reportview.py:336
 msgid "Standard Reports cannot be deleted"
@@ -25491,7 +25491,7 @@ msgstr "Standard Sidofält Meny"
 
 #: frappe/website/doctype/web_form/web_form.js:40
 msgid "Standard Web Forms can not be modified, duplicate the Web Form instead."
-msgstr "Standard Webb Formulär kan inte modifieras, kopiera Webb Formulär istället."
+msgstr "Standard Webb Formulär kan inte modifieras, duplicera Webb Formulär istället."
 
 #: frappe/core/doctype/report/report.py:400
 msgid "Standard reports can only be created in developer mode."
@@ -26596,17 +26596,17 @@ msgstr "Uppgift"
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 #: frappe/www/about.html:45
 msgid "Team Members"
-msgstr "Team Medlemmar"
+msgstr "Lag Medlemmar"
 
 #. Label of a Data field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Heading"
-msgstr "Team Medlemmar Huvud Rubrik"
+msgstr "Lag Medlemmar Huvud Rubrik"
 
 #. Label of a Small Text field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Subtitle"
-msgstr "Team Medlemmar Undertext"
+msgstr "Lag Medlemmar Undertext"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -28568,7 +28568,7 @@ msgstr "Lås upp Referens Dokument"
 #: frappe/website/doctype/blog_post/blog_post.js:36
 #: frappe/website/doctype/web_form/web_form.js:86
 msgid "Unpublish"
-msgstr "Avpublicera"
+msgstr "Ångra Publicering"
 
 #. Option for the 'Action' (Select) field in DocType 'Email Flag Queue'
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
@@ -30738,7 +30738,7 @@ msgstr "Du kan kopiera och klistra in {0} i webbläsare"
 
 #: frappe/templates/emails/user_invitation_expired.html:8
 msgid "You can ask your team to resend the invitation if you'd still like to join."
-msgstr "Du kan be ditt team att skicka inbjudan igen om ni fortfarande vill gå med."
+msgstr "Du kan be ditt lag att skicka inbjudan igen om ni fortfarande vill gå med."
 
 #: frappe/public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."

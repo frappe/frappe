@@ -418,7 +418,13 @@ def get_formatted_html(
 
 
 @frappe.whitelist()
-def get_email_html(template, args, subject, header=None, with_container=False):
+def get_email_html(
+	template: str,
+	args: str,
+	subject: str,
+	header: str | list | None = None,
+	with_container: str | int | bool = False,
+):
 	import json
 
 	with_container = cint(with_container)

@@ -78,6 +78,7 @@ class SystemSettings(Document):
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
 		minimum_password_score: DF.Literal["2", "3", "4"]
+		max_zip_extract_size: DF.Int
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",
@@ -102,6 +103,7 @@ class SystemSettings(Document):
 		show_absolute_datetime_in_timeline: DF.Check
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
+		sync_in_batch: DF.Check
 		sync_timeout: DF.Int
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
 		time_zone: DF.Literal[None]

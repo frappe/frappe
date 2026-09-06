@@ -56,7 +56,13 @@ class Comment(Document):
 	no_feed_on_delete = True
 
 	def after_insert(self):
-		notify_mentions(self.reference_doctype, self.reference_name, self.content)
+		notify_mentions(
+			self.reference_doctype,
+			self.reference_name,
+			self.content,
+			source_doctype=self.doctype,
+			source_name=self.name,
+		)
 		self.notify_change("add")
 
 	def validate(self):

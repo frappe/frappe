@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-21 13:57\n"
+"PO-Revision-Date: 2026-08-23 21:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -17556,7 +17556,7 @@ msgstr "Nenhum documento encontrado marcado com {0}"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr "Nenhuma conta de e-mail associada ao usuário. Por favor, adicione uma conta em Usuário > Caixa de entrada de e-mail."
+msgstr ""
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -19771,7 +19771,7 @@ msgstr "Por favor, insira seu e-mail e sua mensagem para que possamos retornar o
 
 #: frappe/www/update-password.html:232
 msgid "Please enter the password"
-msgstr "Por favor, insira a senha"
+msgstr ""
 
 #: frappe/public/js/frappe/desk.js:211
 msgctxt "Email Account"
@@ -26670,7 +26670,7 @@ msgstr "Editor de Texto"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Thank you"
-msgstr "Obrigado"
+msgstr ""
 
 #: frappe/www/contact.py:47
 msgid "Thank you for reaching out to us. We will get back to you at the earliest.\n\n\n"
@@ -27869,7 +27869,7 @@ msgstr "URI do token"
 
 #: frappe/utils/oauth.py:213
 msgid "Token is missing"
-msgstr "O token está ausente"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:744
 msgid "Tomorrow"
@@ -30661,7 +30661,7 @@ msgstr "Você não tem permissão para acessar este recurso. Entre para acessar"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
-msgstr "Agora você está seguindo este documento. Você receberá atualizações diárias via e-mail. Você pode alterar isso nas Configurações do Usuário."
+msgstr ""
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:125
 msgid "You are only allowed to update order, do not remove or add apps."

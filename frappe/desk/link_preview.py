@@ -3,7 +3,7 @@ from frappe.model import no_value_fields, table_fields
 
 
 @frappe.whitelist()
-def get_preview_data(doctype, docname):
+def get_preview_data(doctype: str, docname: str | int):
 	preview_fields = []
 	meta = frappe.get_meta(doctype)
 	if not meta.show_preview_popup:

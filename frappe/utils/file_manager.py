@@ -399,7 +399,7 @@ def get_file_name(fname, optional_suffix):
 
 
 @frappe.whitelist()
-def add_attachments(doctype, name, attachments):
+def add_attachments(doctype: str, name: str | int, attachments: str | list[str]):
 	"""Add attachments to the given DocType"""
 	if not frappe.has_permission(doctype, "write", doc=name):
 		frappe.throw(_("You need write permissions to add attachments to this record."))

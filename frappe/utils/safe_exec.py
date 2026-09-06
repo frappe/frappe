@@ -455,7 +455,6 @@ def render_safe_globals():
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
-			request=getattr(frappe.local, "request", {}),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
@@ -556,6 +555,7 @@ def exec_safe_globals():
 			render_template=frappe.render_template,
 			enqueue=safe_enqueue,
 			is_job_queued=is_job_queued,
+			request=getattr(frappe.local, "request", {}),
 		)
 	)
 	out.frappe.db.update(

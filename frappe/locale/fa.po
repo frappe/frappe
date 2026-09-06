@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-21 13:57\n"
+"PO-Revision-Date: 2026-08-25 22:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2573,7 +2573,7 @@ msgstr "آیا مطمئن هستید که می‌خواهید دعوت را لغ
 
 #: frappe/public/js/frappe/form/grid.js:306
 msgid "Are you sure you want to delete all rows?"
-msgstr "آیا مطمئن هستید که می‌خواهید همه ردیف ها را حذف کنید؟"
+msgstr "آیا مطمئن هستید که می‌خواهید همه ردیف‌ها را حذف کنید؟"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:930
 msgid "Are you sure you want to delete page {0}?"
@@ -7605,7 +7605,7 @@ msgstr "سرور دایرکتوری"
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Auto Refresh"
-msgstr "غیر فعال کردن Refresh خودکار"
+msgstr "غیرفعال کردن Refresh خودکار"
 
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -10009,7 +10009,7 @@ msgstr "برون‌بُرد داده‌ها"
 #: frappe/core/doctype/data_import/data_import.js:86
 #: frappe/public/js/frappe/data_import/import_preview.js:201
 msgid "Export Errored Rows"
-msgstr "صادر کردن ردیف های خطا"
+msgstr "صادر کردن ردیف‌های خطا"
 
 #. Label of a Data field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -10915,7 +10915,7 @@ msgstr "دنبال کردن"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr "به دنبال"
+msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:132
 msgid "Following Report Filters have missing values:"
@@ -13198,7 +13198,7 @@ msgstr "بر حسب ثانیه"
 
 #: frappe/public/js/frappe/form/save.js:223
 msgid "In {0}, {1} is required in every row."
-msgstr ""
+msgstr "در {0}، {1} در هر ردیف الزامی است."
 
 #: frappe/public/js/frappe/form/save.js:229
 msgid "In {0}, {1} is required in row {2}."
@@ -13214,7 +13214,7 @@ msgstr ""
 
 #: frappe/core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
-msgstr "غیر فعال"
+msgstr "غیرفعال"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -14256,7 +14256,7 @@ msgstr "جاوا اسکریپت"
 
 #: frappe/www/login.html:73
 msgid "Javascript is disabled on your browser"
-msgstr "جاوا اسکریپت بر روی مرورگر شما غیر فعال شده است"
+msgstr "جاوا اسکریپت بر روی مرورگر شما غیرفعال شده است"
 
 #. Option for the 'Print Format Type' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -17825,7 +17825,7 @@ msgstr "یک اقدام گردش کار معتبر نیست"
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:7
 msgid "Not active"
-msgstr "غیر فعال"
+msgstr "غیرفعال"
 
 #: frappe/permissions.py:368
 msgid "Not allowed for {0}: {1}"
@@ -18986,7 +18986,7 @@ msgstr "ارتفاع صفحه (بر حسب میلی‌متر)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr ""
+msgstr "حاشیه‌های صفحه"
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -22807,7 +22807,7 @@ msgstr "ردیف‌ها افزوده شدند"
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/core/doctype/version/version_view.html:96
 msgid "Rows Removed"
-msgstr "ردیف ها حذف شدند"
+msgstr "ردیف‌ها حذف شدند"
 
 #. Label of a Int field in DocType 'DocType'
 #. Label of a Int field in DocType 'Customize Form'
@@ -23252,7 +23252,7 @@ msgstr "زمان‌بندی: فعال"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:30
 msgid "Scheduler: Inactive"
-msgstr "زمان‌بندی: غیر فعال"
+msgstr "زمان‌بندی: غیرفعال"
 
 #. Label of a Data field in DocType 'OAuth Scope'
 #: frappe/integrations/doctype/oauth_scope/oauth_scope.json
@@ -25730,7 +25730,7 @@ msgstr "تاریخ تولید آخرین کلید گذرواژه بازنشان�
 
 #: frappe/utils/password_strength.py:91
 msgid "Straight rows of keys are easy to guess"
-msgstr "ردیف های مستقیم کلیدها به راحتی قابل حدس زدن هستند"
+msgstr "ردیف‌های مستقیم کلیدها به راحتی قابل حدس زدن هستند"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -26608,7 +26608,7 @@ msgstr "قالب ها"
 
 #: frappe/core/doctype/user/user.py:1010
 msgid "Temporarily Disabled"
-msgstr "موقتا غیر فعال می باشد"
+msgstr "موقتا غیرفعال می باشد"
 
 #: frappe/core/doctype/translation/test_translation.py:51
 #: frappe/core/doctype/translation/test_translation.py:58
@@ -31051,7 +31051,7 @@ msgstr "برای تغییر نام به اجازه نوشتن در {0} {1} نی�
 
 #: frappe/utils/file_manager.py:405
 msgid "You need write permissions to add attachments to this record."
-msgstr ""
+msgstr "برای افزودن پیوست به این رکورد، به مجوزهای نوشتن نیاز دارید."
 
 #: frappe/client.py:480
 msgid "You need {0} permission to fetch values from {1} {2}"
@@ -33627,7 +33627,7 @@ msgstr "فیلد {} نمی‌تواند خالی باشد."
 #: frappe/email/doctype/email_account/email_account.py:198
 #: frappe/email/doctype/email_account/email_account.py:206
 msgid "{} has been disabled. It can only be enabled if {} is checked."
-msgstr "{} غیر فعال شده است. فقط در صورتی می‌توان آن را فعال کرد که {} علامت زده شود."
+msgstr "{} غیرفعال شده است. فقط در صورتی می‌توان آن را فعال کرد که {} علامت زده شود."
 
 #: frappe/utils/data.py:105
 msgid "{} is not a valid date string."

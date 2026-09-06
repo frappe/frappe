@@ -1,8 +1,13 @@
 function setup_list_filters() {
 	const { web_form_doctype, web_form_name } = web_form_settings;
+	const web_form_request_key =
+		frappe.web_form_doc?.web_form_request_key ||
+		frappe.utils.get_query_params().web_form_request_key;
 
 	frappe.call('frappe.website.doctype.web_form.web_form.get_form_data', {
-		doctype: web_form_doctype, web_form_name
+		doctype: web_form_doctype,
+		web_form_name,
+		web_form_request_key,
 	})
 	.then((r) => {
 		if (!r.message) return;
