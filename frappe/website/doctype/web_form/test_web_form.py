@@ -1218,6 +1218,37 @@ class TestWebForm(IntegrationTestCase):
 		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
 		self.assertEqual(link_field.fieldtype, "Autocomplete")
 
+	def test_get_form_data_child_table_link_inherits_allow_read_on_all_link_options(self):
+		"""A Link inside a child Table has no Web Form Field row of its own, so it
+		inherits `allow_read_on_all_link_options` from the parent Table's Web Form
+		Field. Without this, the owner-scoping guard in `get_link_options` fires
+		unconditionally for every child-table Link even when the form designer opted
+		out at the parent Table level (regression against #42341)."""
+		self.set_web_form_settings(login_required=1)
+		self.add_web_form_child_table_field(allow_read_on_all_link_options=1)
+
+		result = get_form_data(doctype="Event", web_form_name="manage-events")
+
+		table_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "event_participants")
+		self.assertEqual(table_field.fieldtype, "Table")
+
+		child_link = next(f for f in table_field.fields if f["fieldname"] == "reference_doctype")
+		self.assertEqual(child_link["fieldtype"], "Autocomplete")
+		self.assertEqual(child_link.get("allow_read_on_all_link_options"), 1)
+
+	def test_get_form_data_child_table_link_defaults_to_owner_filter(self):
+		"""When the parent Table's `allow_read_on_all_link_options` is 0 (the
+		default), child-table Links stay owner-scoped so existing Web Forms that
+		never touched the flag see no behaviour change."""
+		self.set_web_form_settings(login_required=1)
+		self.add_web_form_child_table_field(allow_read_on_all_link_options=0)
+
+		result = get_form_data(doctype="Event", web_form_name="manage-events")
+
+		table_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "event_participants")
+		child_link = next(f for f in table_field.fields if f["fieldname"] == "reference_doctype")
+		self.assertFalse(child_link.get("allow_read_on_all_link_options"))
+
 	def test_guest_key_web_form_rejects_unauthorized_link_field_on_save(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
 		web_form = frappe.get_doc("Web Form", "manage-events")
@@ -1299,6 +1330,33 @@ class TestWebForm(IntegrationTestCase):
 				"User",
 				web_form_request_key=web_form_request.key,
 			)
+
+	def add_web_form_child_table_field(self, allow_read_on_all_link_options=0):
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		original_fields = [field.as_dict() for field in web_form.web_form_fields]
+
+		def restore_fields():
+			restore_form = frappe.get_doc("Web Form", "manage-events")
+			restore_form.web_form_fields = []
+			for field in original_fields:
+				restore_form.append("web_form_fields", field)
+			restore_form.save(ignore_permissions=True)
+			frappe.clear_document_cache("Web Form", "manage-events")
+
+		self.addCleanup(restore_fields)
+
+		web_form.append(
+			"web_form_fields",
+			{
+				"fieldname": "event_participants",
+				"fieldtype": "Table",
+				"label": "Participants",
+				"options": "Event Participants",
+				"allow_read_on_all_link_options": allow_read_on_all_link_options,
+			},
+		)
+		web_form.save(ignore_permissions=True)
+		frappe.clear_document_cache("Web Form", "manage-events")
 
 	def add_web_form_link_field(self):
 		link_doctype = "Salutation"

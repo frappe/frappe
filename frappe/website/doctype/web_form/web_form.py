@@ -562,7 +562,11 @@ def get_context(context):
 		for field in context.web_form_doc.web_form_fields:
 			if field.fieldtype == "Table":
 				field.fields = get_in_list_view_fields(
-					field.options, self.name, web_form_request_key, docname
+					field.options,
+					self.name,
+					web_form_request_key,
+					docname,
+					parent_field=field,
 				)
 
 			if field.fieldtype == "Link":
@@ -1137,7 +1141,11 @@ def get_form_data(
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
 			field.fields = get_in_list_view_fields(
-				field.options, web_form_name, web_form_request_key, docname
+				field.options,
+				web_form_name,
+				web_form_request_key,
+				docname,
+				parent_field=field,
 			)
 			out.update({field.fieldname: field.fields})
 
@@ -1162,7 +1170,13 @@ def get_web_form_list_fields(web_form_doc: "WebForm", web_form_request_key: str 
 	return fields
 
 
-def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=None, docname=None):
+def get_in_list_view_fields(
+	doctype,
+	web_form_name=None,
+	web_form_request_key=None,
+	docname=None,
+	parent_field=None,
+):
 	meta = frappe.get_meta(doctype)
 	fields = []
 
@@ -1182,6 +1196,15 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
+			# A Link inside a child Table has no Web Form Field row of its own,
+			# so inherit `allow_read_on_all_link_options` from the parent Table's
+			# Web Form Field. Without this, `get_link_options` always applies the
+			# owner filter on child-table Links even when the form designer has
+			# opted out of it at the parent Table level.
+			if parent_field is not None:
+				df["allow_read_on_all_link_options"] = getattr(
+					parent_field, "allow_read_on_all_link_options", 0
+				)
 			process_link_field(df, web_form_name, web_form_request_key, docname)
 		return df
 
