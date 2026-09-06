@@ -178,7 +178,11 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 				// Field): typing on the field opens the panel and continues in
 				// its search box; Enter picks the highlighted row
 				cy.wrap($input).clear().type(value, { delay: 100 });
-				cy.get(".es-combobox__panel[data-state='open']").as("dropdown");
+				// the panel is mounted in <body>, outside any .within() scope
+				cy.document()
+					.its("body")
+					.find(".es-combobox__panel[data-state='open']")
+					.as("dropdown");
 				cy.get("@dropdown")
 					.find(".es-combobox__list [role='option']")
 					.first()

@@ -24,17 +24,26 @@ context("Control Link (combobox)", () => {
 	});
 
 	function get_dialog_with_link() {
-		return cy.dialog({
-			title: "Link",
-			fields: [
-				{
-					label: "Select ToDo",
-					fieldname: "link",
-					fieldtype: "Link",
-					options: "ToDo",
-				},
-			],
-		});
+		return cy
+			.dialog({
+				title: "Link",
+				fields: [
+					{
+						label: "Select ToDo",
+						fieldname: "link",
+						fieldtype: "Link",
+						options: "ToDo",
+					},
+				],
+			})
+			.then((dialog) => {
+				// cy.dialog returns before the modal has faded in, and until
+				// its shown handler runs Bootstrap pulls focus back into the
+				// modal from anything outside it (the panel lives in <body>):
+				// type only once the dialog is shown, as a user would
+				cy.window().its("cur_dialog.display").should("eq", true);
+				return cy.wrap(dialog, { log: false });
+			});
 	}
 
 	// the field's own input (inside the trigger), the open panel, its search box
@@ -103,9 +112,13 @@ context("Control Link (combobox)", () => {
 	it("should be possible set empty value explicitly", () => {
 		get_dialog_with_link().as("dialog");
 
+		cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
 		field_input().type("todo for link", { delay: 100 });
 		search().type("{enter}");
 		panel().should("not.exist");
+		// a change while the pick is still being validated is dropped (the
+		// control is inside its change event), so let the pick settle first
+		cy.wait("@validate_link");
 		cy.get("@dialog").then((dialog) => {
 			cy.get("@todos").then((todos) => expect(dialog.get_value("link")).to.eq(todos[0]));
 		});
@@ -178,6 +191,9 @@ context("Control Link (combobox)", () => {
 			cy.window().then((win) => win.localStorage.setItem("combobox_link_field", "1"));
 			cy.reload();
 			cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
+			// custom fields on a site can push the field below the fold, where
+			// Cypress counts it as hidden
+			cy.get(".frappe-control[data-fieldname=assigned_by]").scrollIntoView();
 
 			cy.fill_field("assigned_by", cy.config("testUser"), "Link");
 			cy.wait("@validate_link");
