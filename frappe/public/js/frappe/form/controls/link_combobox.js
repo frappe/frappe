@@ -21,7 +21,7 @@ import { describe_link_filters } from "./link_filter_description.js";
 frappe.ui.form.is_combobox_link_enabled = function () {
 	// desk only: the component and the boot data live in desk.bundle.js, so
 	// web forms (controls.bundle.js on the website) keep the classic control
-	if (!frappe.ui.Combobox || !frappe.defaults?.is_enabled) return false;
+	if (!frappe.ui.Combobox || !frappe.defaults?.is_enabled || !frappe.sys_defaults) return false;
 	try {
 		const override = window.localStorage?.getItem("combobox_link_field");
 		if (override === "1") return true;
@@ -335,9 +335,15 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		if (!this.open_args) return [];
 		if (this.open_mode !== "Search") return this.preload_options();
 
-		// a fresh copy per request: the filters get stringified for GET below
-		const args = { ...this.open_args, txt: query, keep_order: 1 };
-		if (start) args.start = start;
+		// a fresh copy per request: the filters get stringified for GET below.
+		// The first page is re-sorted by relevance like the classic dropdown
+		// (prefix matches first); later pages must stay in database order,
+		// or scrolling would reshuffle rows the user already looked at
+		const args = { ...this.open_args, txt: query };
+		if (start) {
+			args.start = start;
+			args.keep_order = 1;
+		}
 		return this.search(args, { use_get: !query, paged: true });
 	}
 
