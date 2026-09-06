@@ -33,6 +33,14 @@
 	display: inline-flex;
 }
 
+.grid {
+	display: grid;
+}
+
+.block {
+	display: block;
+}
+
 .hidden {
 	display: none;
 }
@@ -83,6 +91,18 @@
 	align-items: baseline;
 }
 
+.items-stretch {
+	align-items: stretch;
+}
+
+.self-start {
+	align-self: flex-start;
+}
+
+.self-end {
+	align-self: flex-end;
+}
+
 .justify-start {
 	justify-content: flex-start;
 }
@@ -118,6 +138,7 @@
    right-to-left languages. Prefer gap on the parent over margins. */
 
 $spacing-steps: (
+	"0": 0,
 	"0\\.5": 0.5,
 	"1": 1,
 	"1\\.5": 1.5,
@@ -220,19 +241,32 @@ $spacing-steps: (
 	margin-inline-end: auto;
 }
 
+.mt-auto {
+	margin-top: auto;
+}
+
 /* ---- sizing / overflow ---- */
 .w-full {
 	width: 100%;
+}
+
+.w-0 {
+	width: 0;
 }
 
 .min-w-0 {
 	min-width: 0;
 }
 
+/* Lets a flex child shrink and scroll instead of blowing out the parent. */
+.min-h-0 {
+	min-height: 0;
+}
+
 /* size-<n> sets width AND height together (Tailwind's size-*), reusing the
    spacing scale (1 step = 0.25rem) — for square boxes like icon wells and
    avatars. Add steps to the list as call sites need them. */
-$size-steps: 4, 5, 6, 8, 9, 10, 11, 12, 14, 16;
+$size-steps: 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16;
 
 @each $n in $size-steps {
 	.size-#{$n} {
@@ -246,13 +280,34 @@ $size-steps: 4, 5, 6, 8, 9, 10, 11, 12, 14, 16;
 	max-width: 20rem;
 }
 
+.max-w-sm {
+	max-width: 24rem;
+}
+
 .max-w-lg {
 	max-width: 32rem;
 }
 
+.max-w-4xl {
+	max-width: 56rem;
+}
+
+.max-w-6xl {
+	max-width: 72rem;
+}
+
+/* 1px height — stepper connectors, hairlines */
+.h-px {
+	height: 1px;
+}
+
+.min-w-2 {
+	min-width: spacing-step(2);
+}
+
 /* min-height steps (Tailwind's min-h-*, on the spacing scale) — e.g. giving
    an empty state room to breathe. Bootstrap has no min-h-*, so no collision. */
-$min-h-steps: 24, 32, 40, 48, 64, 80, 96;
+$min-h-steps: 6, 8, 20, 24, 32, 40, 48, 64, 80, 96;
 
 @each $n in $min-h-steps {
 	.min-h-#{$n} {
@@ -270,6 +325,10 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 	overflow: hidden;
 }
 
+.overflow-auto {
+	overflow: auto;
+}
+
 .overflow-x-auto {
 	overflow-x: auto;
 }
@@ -278,14 +337,43 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 	white-space: nowrap;
 }
 
-/* ---- cursor ---- */
+.whitespace-pre-wrap {
+	white-space: pre-wrap;
+}
+
+.break-words {
+	overflow-wrap: break-word;
+}
+
+/* ---- lists ---- */
+.list-none {
+	list-style: none;
+}
+
+/* ---- cursor / interaction ---- */
 .cursor-pointer {
 	cursor: pointer;
 }
 
-/* ---- text alignment ---- */
+.pointer-events-none {
+	pointer-events: none;
+}
+
+.appearance-none {
+	appearance: none;
+}
+
+.invisible {
+	visibility: hidden;
+}
+
+/* ---- text ---- */
 .text-center {
 	text-align: center;
+}
+
+.align-top {
+	vertical-align: top;
 }
 
 /* ---- borders (1px, outline-gray-2 by default; add a border-outline-*
@@ -370,6 +458,10 @@ $color-families: (
 	background-color: var(--surface-base);
 }
 
+.bg-transparent {
+	background-color: transparent;
+}
+
 @for $i from 1 through 3 {
 	.bg-surface-elevation-#{$i} {
 		background-color: var(--surface-elevation-#{$i});
@@ -405,6 +497,10 @@ $color-families: (
 
 .shadow-xl {
 	box-shadow: var(--elevation-xl);
+}
+
+.shadow-none {
+	box-shadow: none;
 }
 
 /* ---- focus rings ----

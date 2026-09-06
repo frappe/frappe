@@ -623,11 +623,21 @@ frappe.ui.Page = class Page {
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
-		// one submenu row per inner-button group, keyed by group label
+		// one submenu row per inner-button group, keyed by group label. Value is
+		// { row, segs }: row is the pushed option object, segs are the submenu's own
+		// segments (split by dividers tagged with data("menu_submenu_divider")).
 		const nested_groups = new Map();
 
 		$parent.children("li").each((_, li) => {
 			if (li.classList.contains("dropdown-divider")) {
+				// A divider tagged for a submenu group splits that submenu into
+				// separated sections instead of splitting this (parent) menu.
+				const sub_group = $(li).data("menu_submenu_divider");
+				if (sub_group && nested_groups.has(sub_group)) {
+					const entry = nested_groups.get(sub_group);
+					if (entry.segs[entry.segs.length - 1].length) entry.segs.push([]);
+					return;
+				}
 				if (!responsive_hidden(li) && segments[segments.length - 1].length) {
 					segments.push([]);
 				}
@@ -662,17 +672,14 @@ frappe.ui.Page = class Page {
 			// them as one "Group" row with a submenu instead
 			const nested = $li.data("menu_submenu");
 			if (nested) {
-				let submenu = nested_groups.get(nested.group);
-				if (!submenu) {
-					submenu = [];
-					nested_groups.set(nested.group, submenu);
-					segments[segments.length - 1].push({
-						label: nested.group,
-						css_class: css_class || undefined,
-						submenu,
-					});
+				let entry = nested_groups.get(nested.group);
+				if (!entry) {
+					const row = { label: nested.group, css_class: css_class || undefined };
+					entry = { row, segs: [[]] };
+					nested_groups.set(nested.group, entry);
+					segments[segments.length - 1].push(row);
 				}
-				submenu.push({
+				entry.segs[entry.segs.length - 1].push({
 					label: nested.label,
 					disabled: a.classList.contains("disabled"),
 					onclick,
@@ -689,6 +696,16 @@ frappe.ui.Page = class Page {
 				onclick,
 			});
 		});
+
+		// Finalize each nested group's submenu: a single section stays flat; multiple
+		// sections (split by a tagged divider) render as separated, unlabeled groups.
+		for (const { row, segs } of nested_groups.values()) {
+			const parts = segs.filter((s) => s.length);
+			row.submenu =
+				parts.length <= 1
+					? parts[0] || []
+					: parts.map((options) => ({ group: "", hide_label: true, options }));
+		}
 
 		const groups = segments.filter((segment) => segment.length);
 		if (groups.length <= 1) return groups[0] || [];
@@ -994,7 +1011,9 @@ frappe.ui.Page = class Page {
 			title = strip_html(title);
 		}
 		this.title = title;
-		frappe.utils.set_title(tab_title || title);
+		if (this.set_document_title) {
+			frappe.utils.set_title(tab_title || title);
+		}
 		if (icon) {
 			title = `${frappe.utils.icon(icon)} ${title}`;
 		}

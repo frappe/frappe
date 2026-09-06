@@ -204,6 +204,44 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_page_head();
 		this.set_primary_action();
 		this.set_actions_menu_items();
+		this.setup_import_menu();
+	}
+
+	/**
+	 * "Import" nested submenu inside the page (⋯) menu — same place the old flat "Import"
+	 * menu item lived, but expandable (like the Kanban view switcher). Holds "New Import"
+	 * (new import dialog) and "Show All" (filtered list). Gated on the same can_import meta.
+	 * The wizard/dialog bundle is loaded lazily, only when an item is clicked.
+	 *
+	 * A (⋯)-menu item whose <li> carries data("menu_submenu", {group, label}) is rendered
+	 * by Page.build_dropdown_options() as one "group" row with a submenu.
+	 */
+	setup_import_menu() {
+		if (!frappe.model.can_import(this.doctype, null, this.meta)) return;
+
+		const doctype = this.doctype;
+		const group = __("Import", null, "Button in list view menu");
+
+		const open_dialog = (args) => {
+			frappe.require("data_import_tools.bundle.js", () => {
+				frappe.data_import.open_data_import_dialog(args);
+			});
+		};
+
+		const add_sub_item = (label, click) => {
+			// Flat "Group > Label" keeps add_menu_item's dedup unique; the submenu
+			// rendering uses the menu_submenu data, not this flat label.
+			const $item = this.page.add_menu_item(`${group} > ${label}`, click, true, null, false);
+			$item.closest("li").data("menu_submenu", { group, label });
+			return $item;
+		};
+
+		add_sub_item(__("New Import"), () =>
+			open_dialog({ reference_doctype: doctype, import_type: "Insert New Records" })
+		);
+		add_sub_item(__("Show All"), () =>
+			frappe.set_route("list", "data-import", { reference_doctype: doctype })
+		);
 	}
 
 	set_actions_menu_items() {
@@ -2293,6 +2331,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
+			// When name is not provided (e.g., after bulk import), do a full list refresh
+			// instead of trying to fetch a specific document.
+			if (!data.name) {
+				this.refresh();
+				return;
+			}
+
 			this.pending_document_refreshes.push(data);
 			this.debounced_refresh();
 		});
@@ -2506,16 +2551,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = this.doctype;
 		const items = [];
 
-		if (frappe.model.can_import(doctype, null, this.meta)) {
-			items.push({
-				label: __("Import", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("list", "data-import", {
-						reference_doctype: doctype,
-					}),
-				standard: true,
-			});
-		}
+		// Import is surfaced as a toolbar dropdown (setup_import_dropdown), not a menu item,
+		// so users get recent imports + Create + Show All. Same can_import gate.
 
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({

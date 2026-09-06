@@ -1,46 +1,17 @@
-.warnings .warning {
-	margin-bottom: 25px;
-}
-
+/* Skipped warnings get a muted appearance — the skip action shows them struck-through. */
 .warnings .warning.skipped .body {
 	opacity: 0.6;
 }
 
-.warnings .warning-row-header {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.warnings .skip-row-btn {
-	text-transform: none;
-	font-weight: normal;
-	letter-spacing: normal;
-}
-
-/* Collapsible section headers with (count) before chevron. */
-.data-import-warnings-section .section-head.collapsible,
-.data-import-value-mappings-section .section-head.collapsible,
-.data-import-tree-preview-section .section-head.collapsible,
-.data-import-preview-section .section-head.collapsible {
-	display: flex;
-	align-items: center;
-}
-
-.data-import-warnings-section .section-head .import-warnings-count,
-.data-import-value-mappings-section .section-head .value-mappings-count,
-.data-import-tree-preview-section .section-head .import-tree-preview-count,
-.data-import-preview-section .section-head .import-preview-count {
-	margin-left: auto;
-	margin-right: 6px;
-}
-
-.data-import-tree-preview-section .section-body {
+/* Wizard preview shells (.diw-preview-field-shell) — full-width column layout. */
+.data-import-tree-preview-section .section-body,
+.data-import-preview-section .section-body {
 	display: block;
 	width: 100%;
 }
 
-.data-import-tree-preview-section .section-body .form-column {
+.data-import-tree-preview-section .section-body .form-column,
+.data-import-preview-section .section-body .form-column {
 	width: 100%;
 	max-width: 100%;
 }
@@ -49,32 +20,15 @@
 	display: none;
 }
 
-
-/* Preview section: full-width layout for datatable and import log. */
-.data-import-preview-section .section-body {
-	display: block;
-	width: 100%;
-}
-
-.data-import-preview-section .section-body .form-column {
-	width: 100%;
-	max-width: 100%;
-}
-
-.data-import-preview-section [data-fieldname="import_log_heading"] {
-	width: 100%;
-	margin-top: var(--margin-xl);
-	margin-bottom: 0;
-}
-
-.data-import-preview-section [data-fieldname="import_log_heading"] .section-head.import-log-title {
-	padding: 0 0 var(--padding-sm);
-	margin: 0;
-	cursor: default;
-}
-
-.data-import-preview-section [data-fieldname="show_failed_logs"] {
-	margin-bottom: var(--margin-sm);
+/* Wizard step DOM reparents import_log_heading into the Import step. */
+.diw-step-panel[data-step="3"]
+	.frappe-control[data-fieldname="import_log_heading"]
+	.section-head.import-log-title {
+	font-size: var(--text-md);
+	font-weight: 600;
+	line-height: 1.5;
+	color: var(--text-color);
+	padding-bottom: var(--padding-lg);
 }
 
 /* Hide duplicate field labels; section break is the collapsible header. */
@@ -88,11 +42,16 @@
 	display: none;
 }
 
-/* Let Link / Select dropdowns escape the scrollable grid container. */
-[data-fieldname="value_mappings"] .form-grid-container,
-[data-fieldname="value_mappings"] .column-limit-reached,
-[data-fieldname="value_mappings"] .form-grid,
-[data-fieldname="value_mappings"] .grid-body {
+/* Let Link / Select dropdowns escape the scrollable grid in the hidden std form. */
+body[data-route^="data-import"]
+	.data-import-std-form
+	[data-fieldname="value_mappings"]
+	.form-grid-container,
+body[data-route^="data-import"] .data-import-std-form [data-fieldname="value_mappings"] .form-grid,
+body[data-route^="data-import"]
+	.data-import-std-form
+	[data-fieldname="value_mappings"]
+	.grid-body {
 	overflow: visible !important;
 }
 
@@ -100,4 +59,16 @@
 	z-index: 1050;
 	max-height: 240px;
 	overflow-y: auto;
+}
+
+/* Tree editor: Actions shows on hover, focus, or while its menu is open. */
+.diw-preview-step .diw-tree-node-actions {
+	opacity: 0;
+	transition: opacity 0.1s ease;
+}
+
+.diw-preview-step .tree-node.hover-active > .diw-tree-row .diw-tree-node-actions,
+.diw-preview-step .diw-tree-node-actions:focus,
+.diw-preview-step .diw-tree-node-actions[aria-expanded="true"] {
+	opacity: 1;
 }

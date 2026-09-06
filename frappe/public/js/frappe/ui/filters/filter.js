@@ -704,7 +704,12 @@ frappe.ui.filter_utils = {
 		) {
 			df.fieldtype = "Data";
 		}
-		if (df.fieldtype === "Data" && (df.options || "").toLowerCase() === "email") {
+		// guard non-string options (e.g. Attach coerced to Data) before .toLowerCase()
+		if (
+			df.fieldtype === "Data" &&
+			typeof df.options === "string" &&
+			df.options.toLowerCase() === "email"
+		) {
 			df.options = null;
 		}
 		if (condition == "Between" && (df.fieldtype == "Date" || df.fieldtype == "Datetime")) {
