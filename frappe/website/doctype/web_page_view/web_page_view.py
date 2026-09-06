@@ -43,15 +43,15 @@ class WebPageView(Document):
 
 @frappe.whitelist(allow_guest=True)
 def make_view_log(
-	referrer=None,
-	browser=None,
-	version=None,
-	user_tz=None,
-	source=None,
-	campaign=None,
-	medium=None,
-	content=None,
-	visitor_id=None,
+	referrer: str | None = None,
+	browser: str | None = None,
+	version: str | None = None,
+	user_tz: str | None = None,
+	source: str | None = None,
+	campaign: str | None = None,
+	medium: str | None = None,
+	content: str | None = None,
+	visitor_id: str | None = None,
 ):
 	if not is_tracking_enabled():
 		return
@@ -100,7 +100,7 @@ def make_view_log(
 
 @frappe.whitelist()
 @redis_cache(ttl=5 * 60)
-def get_page_view_count(path):
+def get_page_view_count(path: str):
 	return frappe.db.count("Web Page View", filters={"path": path})
 
 

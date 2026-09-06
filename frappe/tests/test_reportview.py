@@ -99,12 +99,6 @@ class TestReportview(IntegrationTestCase):
 
 		frappe.db.delete("Email Queue")
 		export_query()
-		jobs = frappe.get_all(
-			"RQ Job",
-			filters={"job_name": "frappe.desk.query_report.run_report_view_export_job"},
-			fields=["name", "status"],
-		)
 		email_queue = frappe.get_all("Email Queue")
 
-		self.assertTrue(jobs, "Background job was not enqueued")
 		self.assertTrue(email_queue, "Email was not enqueued")

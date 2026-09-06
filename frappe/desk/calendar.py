@@ -2,15 +2,17 @@
 # License: MIT. See LICENSE
 
 import json
+from datetime import date
 
 import frappe
 from frappe import _
 from frappe.query_builder import functions
 from frappe.query_builder.terms import ValueWrapper
+from frappe.utils import get_datetime, getdate
 
 
 @frappe.whitelist()
-def update_event(args, field_map):
+def update_event(args: str, field_map: str):
 	"""Updates Event (called via calendar) based on passed `field_map`"""
 	args = frappe._dict(json.loads(args))
 	field_map = frappe._dict(json.loads(field_map))
@@ -31,7 +33,16 @@ def get_event_conditions(doctype, filters=None):
 
 
 @frappe.whitelist()
-def get_events(doctype, start, end, field_map, filters=None, fields=None):
+def get_events(
+	doctype: str,
+	start: str | date,
+	end: str | date,
+	field_map: str,
+	filters: str | None = None,
+	fields: str | list[str] | None = None,
+):
+	start, end = getdate(start), get_datetime(end)
+
 	field_map = frappe._dict(json.loads(field_map))
 	fields = frappe.parse_json(fields)
 

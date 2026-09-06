@@ -2,6 +2,7 @@
 # See license.txt
 
 import re
+from unittest.mock import patch
 
 import frappe
 import frappe.recorder
@@ -77,6 +78,128 @@ class TestRecorder(IntegrationTestCase):
 		requests = frappe.get_all("Recorder")
 		request_doc = get_recorder_data(requests[0].name)
 		self.assertIsInstance(serialize_request(request_doc), dict)
+
+	def test_recorder_doc_events_timeline(self):
+		# saving a document runs its lifecycle methods through Document.run_method,
+		# which the recorder should capture as a timeline of events.
+		# stop() -> post_process() left a read-only transaction open; end it before writing.
+		frappe.db.rollback()
+		frappe.get_doc(doctype="ToDo", description="recorder timeline test").insert()
+		self.stop_recorder()
+
+		requests = frappe.get_all("Recorder")
+		self.assertGreaterEqual(len(requests), 1)
+		request = frappe.get_doc("Recorder", requests[0].name)
+
+		self.assertGreaterEqual(len(request.timeline), 1)
+		self.assertEqual(request.number_of_events, len(request.timeline))
+
+		methods = {event.method for event in request.timeline}
+		lifecycle = {"before_insert", "validate", "before_save", "after_insert", "on_update"}
+		self.assertTrue(
+			methods & lifecycle,
+			msg=f"expected lifecycle methods in timeline, got: {methods}",
+		)
+
+		event = request.timeline[0]
+		self.assertTrue(event.method)
+		self.assertGreaterEqual(event.duration, 0)
+		self.assertGreaterEqual(event.queries, 0)
+
+	def test_timeline_can_be_disabled(self):
+		frappe.recorder.stop()
+		frappe.recorder.delete()
+		set_request(path="/api/method/ping")
+		frappe.recorder.start(capture_doc_events=False)
+		frappe.recorder.record()
+		frappe.db.rollback()  # end the read-only transaction left open by the previous stop()
+		frappe.get_doc(doctype="ToDo", description="no timeline").insert()
+		self.stop_recorder()
+
+		request = frappe.get_doc("Recorder", frappe.get_all("Recorder")[0].name)
+		self.assertEqual(len(request.timeline), 0)
+
+	def test_timeline_attributes_server_scripts_and_webhooks(self):
+		# run_method also runs DocType Event server scripts and webhooks; both should be
+		# attributed in the timeline, not just app doc_events hooks.
+		from frappe.recorder import _doc_event_contributors
+
+		# "*" (all doctypes) hooks are flagged so it's clear why an unrelated app ran
+		with patch.object(
+			frappe, "get_doc_hooks", return_value={"*": {"validate": ["demo_app.always_runs"]}}
+		):
+			_, handlers = _doc_event_contributors("ToDo", "validate")
+			self.assertIn("demo_app.always_runs  (all doctypes)", handlers)
+
+		frappe.client_cache.set_value("server_script_map", {"ToDo": {"Before Save": ["Demo Script"]}})
+		frappe.client_cache.set_value(
+			"webhooks", {"ToDo": [frappe._dict(name="Demo Webhook", webhook_docevent="on_update")]}
+		)
+		try:
+			apps, handlers = _doc_event_contributors("ToDo", "validate")  # -> "Before Save"
+			self.assertIn("server_script", apps)
+			self.assertIn("Server Script: Demo Script", handlers)
+
+			apps, handlers = _doc_event_contributors("ToDo", "on_update")
+			self.assertIn("webhook", apps)
+			self.assertIn("Webhook: Demo Webhook", handlers)
+
+			# a webhook whose condition is false for this doc won't run, so don't attribute it
+			frappe.client_cache.set_value(
+				"webhooks",
+				{
+					"ToDo": [
+						frappe._dict(
+							name="Cond Webhook",
+							webhook_docevent="on_update",
+							condition="doc.status == 'Cancelled'",
+						)
+					]
+				},
+			)
+			doc = frappe.new_doc("ToDo", description="cond")  # status defaults to Open -> condition false
+			apps, handlers = _doc_event_contributors("ToDo", "on_update", doc=doc)
+			self.assertNotIn("Webhook: Cond Webhook", handlers)
+
+			# on_change doesn't fire during insert
+			frappe.client_cache.set_value(
+				"webhooks", {"ToDo": [frappe._dict(name="Change Webhook", webhook_docevent="on_change")]}
+			)
+			doc.flags.in_insert = True
+			apps, handlers = _doc_event_contributors("ToDo", "on_change", doc=doc)
+			self.assertNotIn("Webhook: Change Webhook", handlers)
+			doc.flags.in_insert = False
+			apps, handlers = _doc_event_contributors("ToDo", "on_change", doc=doc)
+			self.assertIn("Webhook: Change Webhook", handlers)
+
+			# run_webhooks rejects events outside supported_events, so don't attribute them
+			frappe.client_cache.set_value(
+				"webhooks",
+				{
+					"ToDo": [
+						frappe._dict(name="Submit Webhook", webhook_docevent="before_update_after_submit")
+					]
+				},
+			)
+			apps, handlers = _doc_event_contributors("ToDo", "before_update_after_submit", doc=doc)
+			self.assertNotIn("Webhook: Submit Webhook", handlers)
+
+			frappe.client_cache.set_value(
+				"webhooks", {"ToDo": [frappe._dict(name="Demo Webhook", webhook_docevent="on_update")]}
+			)
+
+			# during migrate/install/etc. the dispatch paths skip these, so don't attribute them
+			frappe.flags.in_migrate = True
+			try:
+				apps, _ = _doc_event_contributors("ToDo", "validate")
+				self.assertNotIn("server_script", apps)
+				apps, _ = _doc_event_contributors("ToDo", "on_update")
+				self.assertNotIn("webhook", apps)
+			finally:
+				frappe.flags.in_migrate = False
+		finally:
+			frappe.client_cache.delete_value("server_script_map")
+			frappe.client_cache.delete_value("webhooks")
 
 
 class TestQueryOptimization(IntegrationTestCase):

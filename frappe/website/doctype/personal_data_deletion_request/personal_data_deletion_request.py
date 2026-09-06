@@ -382,7 +382,7 @@ def remove_unverified_record():
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_deletion(email, name, host_name):
+def confirm_deletion(email: str, name: str, host_name: str):
 	if not verify_request():
 		return
 

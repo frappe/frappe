@@ -48,7 +48,6 @@ class UserType(Document):
 		if self.is_standard:
 			return
 
-		self.validate_role()
 		self.add_role_permissions_for_user_doctypes()
 		self.add_role_permissions_for_select_doctypes()
 		self.add_role_permissions_for_file()
@@ -73,17 +72,6 @@ class UserType(Document):
 		self.set("user_type_modules", [])
 		for module in modules:
 			self.append("user_type_modules", {"module": module})
-
-	def validate_role(self):
-		if not self.role:
-			frappe.throw(_("The field {0} is mandatory").format(frappe.bold(_("Role"))))
-
-		if not frappe.db.get_value("Role", self.role, "is_custom"):
-			frappe.throw(
-				_("The role {0} should be a custom role.").format(
-					frappe.bold(get_link_to_form("Role", self.role))
-				)
-			)
 
 	def update_users(self):
 		for row in frappe.get_all("User", filters={"user_type": self.name}):
@@ -187,7 +175,9 @@ def get_non_standard_user_types():
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def get_user_linked_doctypes(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | list | str
+):
 	modules = [d.get("module_name") for d in get_modules_from_app("frappe")]
 
 	filters = [
@@ -223,7 +213,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 
 
 @frappe.whitelist()
-def get_user_id(parent):
+def get_user_id(parent: str):
 	data = (
 		frappe.get_all(
 			"DocField",

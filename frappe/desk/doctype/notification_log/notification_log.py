@@ -31,6 +31,8 @@ class NotificationLog(Document):
 		from_user: DF.Link | None
 		link: DF.SmallText | None
 		read: DF.Check
+		source_doctype: DF.Link | None
+		source_name: DF.DynamicLink | None
 		subject: DF.Text | None
 		title: DF.SmallText | None
 		type: DF.Link | None

@@ -219,6 +219,21 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		)
 		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
 
+	def test_db_get_value_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		value = frappe.db.get_value(self.dt, self.docname, "secret_data")
+		self.assertEqual(value, "top_secret_value")
+
+	def test_qb_get_query_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["secret_data"],
+			filters={"name": self.docname},
+			ignore_permissions=True,
+		).run(as_dict=True)
+		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
+
 	# ------------------------------------------------------------------
 	# Save: server hooks and permission checks see real values
 	# ------------------------------------------------------------------
@@ -406,6 +421,76 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 		saved = frappe.db.get_value(self.child_dt, self.row_name, ["rate", "public_qty"], as_dict=True)
 		self.assertEqual(flt(saved.rate), 1234.5)  # masked value restored, not overwritten
 		self.assertEqual(flt(saved.public_qty), 9)  # unmasked field still writable
+
+	def _grant_mask_permission(self):
+		update_permission_property(self.dt, self.TEST_ROLE, 0, "mask", 1)
+		frappe.clear_cache(doctype=self.dt)
+
+	def _revoke_mask_permission(self):
+		frappe.set_user("Administrator")
+		update_permission_property(self.dt, self.TEST_ROLE, 0, "mask", 0)
+		frappe.clear_cache(doctype=self.dt)
+
+	def test_child_fields_unmasked_with_parent_mask_permission(self):
+		"""The mask permission on the parent doctype must unmask child-table fields,
+		since child doctypes have no role permissions of their own (issue #40790)."""
+		self._grant_mask_permission()
+		try:
+			frappe.set_user(self.TEST_USER)
+			doc = frappe.get_doc(self.dt, self.docname)
+			doc.apply_fieldlevel_read_permissions()
+
+			self.assertEqual(doc.items[0].secret_note, "child_secret")
+			self.assertEqual(flt(doc.items[0].rate), 1234.5)
+		finally:
+			self._revoke_mask_permission()
+
+	def test_qb_child_query_masks_for_non_admin(self):
+		"""Child rows fetched via the query builder's child queries must be masked."""
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["name", {"items": ["secret_note", "rate"]}],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(as_dict=True)
+
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0]["items"][0]["secret_note"], "XXXXXXXX")
+		self.assertEqual(rows[0]["items"][0]["rate"], "XXXXXXXX")
+
+	def test_qb_child_query_unmasked_with_parent_mask_permission(self):
+		self._grant_mask_permission()
+		try:
+			frappe.set_user(self.TEST_USER)
+			rows = frappe.qb.get_query(
+				self.dt,
+				fields=["name", {"items": ["secret_note"]}],
+				filters={"name": self.docname},
+				ignore_permissions=False,
+			).run(as_dict=True)
+
+			self.assertEqual(rows[0]["items"][0]["secret_note"], "child_secret")
+		finally:
+			self._revoke_mask_permission()
+
+	def test_form_meta_child_masked_fields_respect_parent_permission(self):
+		"""masked_fields in the form meta bundle for a child doctype must follow the
+		parent doctype's mask permission."""
+		from frappe.desk.form.load import get_meta_bundle
+
+		frappe.set_user(self.TEST_USER)
+		child_meta_dict = next(d for d in get_meta_bundle(self.dt) if d["name"] == self.child_dt)
+		self.assertEqual(set(child_meta_dict["masked_fields"]), {"secret_note", "rate"})
+
+		frappe.set_user("Administrator")
+		self._grant_mask_permission()
+		try:
+			frappe.set_user(self.TEST_USER)
+			child_meta_dict = next(d for d in get_meta_bundle(self.dt) if d["name"] == self.child_dt)
+			self.assertEqual(child_meta_dict["masked_fields"], [])
+		finally:
+			self._revoke_mask_permission()
 
 
 class TestMaskFieldsWithUserPermissions(IntegrationTestCase):

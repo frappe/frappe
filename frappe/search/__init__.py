@@ -6,7 +6,7 @@ from frappe.utils import cint
 
 
 @frappe.whitelist(allow_guest=True)
-def web_search(query, scope=None, limit=20):
+def web_search(query: str, scope: str | None = None, limit: int = 20):
 	from frappe.search.website_search import WebsiteSearch
 
 	limit = cint(limit)

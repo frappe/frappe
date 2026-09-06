@@ -320,7 +320,7 @@ class Workspace(DeskViews):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_desktop_page(page):
+def get_desktop_page(page: str):
 	"""Apply permissions, customizations and return the configuration for a page on desk.
 
 	Args:

@@ -66,7 +66,7 @@ def has_permission(doc, ptype, user):
 
 
 @frappe.whitelist()
-def get_kanban_boards(doctype):
+def get_kanban_boards(doctype: str):
 	"""Get Kanban Boards for doctype to show in List View"""
 	return frappe.get_list(
 		"Kanban Board",
@@ -76,9 +76,10 @@ def get_kanban_boards(doctype):
 
 
 @frappe.whitelist()
-def add_column(board_name, column_title):
+def add_column(board_name: str, column_title: str):
 	"""Adds new column to Kanban Board"""
 	doc = frappe.get_doc("Kanban Board", board_name)
+	doc.check_permission("write")
 	for col in doc.columns:
 		if column_title == col.column_name:
 			frappe.throw(_("Column <b>{0}</b> already exist.").format(column_title))
@@ -89,9 +90,10 @@ def add_column(board_name, column_title):
 
 
 @frappe.whitelist()
-def archive_restore_column(board_name, column_title, status):
+def archive_restore_column(board_name: str, column_title: str, status: str):
 	"""Set column's status to status"""
 	doc = frappe.get_doc("Kanban Board", board_name)
+	doc.check_permission("write")
 	for col in doc.columns:
 		if column_title == col.column_name:
 			col.status = status
@@ -101,9 +103,13 @@ def archive_restore_column(board_name, column_title, status):
 
 
 @frappe.whitelist()
-def update_order(board_name, order):
+def update_order(board_name: str, order: str):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	# Card ordering only requires read access to the board plus write access to the
+	# underlying records, so teammates who aren't the board owner (write is if_owner)
+	# can still reorder cards on a shared board.
+	board.check_permission("read")
 	doctype = board.reference_doctype
 	updated_cards = []
 
@@ -129,9 +135,19 @@ def update_order(board_name, order):
 
 
 @frappe.whitelist()
-def update_order_for_single_card(board_name, docname, from_colname, to_colname, old_index, new_index):
+def update_order_for_single_card(
+	board_name: str,
+	docname: str,
+	from_colname: str,
+	to_colname: str,
+	old_index: str | int,
+	new_index: str | int,
+):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	# Card ordering only requires read access to the board plus write access to the
+	# underlying records; see update_order for why this isn't board-write.
+	board.check_permission("read")
 	doctype = board.reference_doctype
 
 	frappe.has_permission(doctype, "write", throw=True)
@@ -171,8 +187,11 @@ def get_kanban_column_order_and_index(board, colname):
 
 
 @frappe.whitelist()
-def add_card(board_name, docname, colname):
+def add_card(board_name: str, docname: str, colname: str):
 	board = frappe.get_doc("Kanban Board", board_name)
+	# Card ordering only requires read access to the board plus write access to the
+	# underlying records; see update_order for why this isn't board-write.
+	board.check_permission("read")
 
 	frappe.has_permission(board.reference_doctype, "write", throw=True)
 
@@ -185,7 +204,7 @@ def add_card(board_name, docname, colname):
 
 
 @frappe.whitelist()
-def quick_kanban_board(doctype, board_name, field_name, project=None):
+def quick_kanban_board(doctype: str, board_name: str, field_name: str, project: str | None = None):
 	"""Create new KanbanBoard quickly with default options"""
 
 	doc = frappe.new_doc("Kanban Board")
@@ -228,9 +247,10 @@ def get_order_for_column(board, colname):
 
 
 @frappe.whitelist()
-def update_column_order(board_name, order):
+def update_column_order(board_name: str, order: str):
 	"""Set the order of columns in Kanban Board"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	board.check_permission("write")
 	order = json.loads(order)
 	old_columns = board.columns
 	new_columns = []
@@ -260,9 +280,10 @@ def update_column_order(board_name, order):
 
 
 @frappe.whitelist()
-def set_indicator(board_name, column_name, indicator):
+def set_indicator(board_name: str, column_name: str, indicator: str):
 	"""Set the indicator color of column"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	board.check_permission("write")
 
 	for column in board.columns:
 		if column.column_name == column_name:
@@ -276,6 +297,7 @@ def set_indicator(board_name, column_name, indicator):
 def save_settings(board_name: str, settings: str) -> Document:
 	settings = json.loads(settings)
 	doc = frappe.get_doc("Kanban Board", board_name)
+	doc.check_permission("write")
 
 	fields = settings["fields"]
 	if not isinstance(fields, str):

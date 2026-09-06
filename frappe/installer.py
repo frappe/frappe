@@ -267,6 +267,30 @@ def parse_app_name(name: str) -> str:
 	return repo
 
 
+def parse_required_app_name(requirement: str) -> str:
+	"""Parse the app name out of a `required_apps` entry.
+
+	Entries can be `erpnext`, `frappe/erpnext`, a git URL or any of those with an `@branch`.
+	Unlike `parse_app_name`, this resolves the name locally, so it is safe to call for an app
+	that is not present on the bench.
+	"""
+	name = requirement.rstrip("/").split("#")[0]
+	name = name.rsplit("/", 1)[-1].rsplit(":", 1)[-1]
+	return name.split("@")[0].removesuffix(".git")
+
+
+def is_required_by(app_name: str, dependent_app: str) -> bool:
+	"""Check if `dependent_app` declares `app_name` in its `required_apps` hook.
+
+	Entries are parsed before comparing. Matching the raw string instead would flag any app whose
+	name happens to be a substring of a requirement, e.g. `appe` against `frappe/erpnext`.
+	"""
+	return any(
+		app_name == parse_required_app_name(required_app)
+		for required_app in frappe.get_hooks("required_apps", app_name=dependent_app)
+	)
+
+
 def install_app(name, verbose=False, set_as_patched=True, force=False):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
@@ -319,6 +343,10 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	if name != "frappe":
 		add_module_defs(name, ignore_if_duplicate=force)
+
+	if name not in (frappe.local.app_modules or {}):
+		frappe.cache.delete_value("app_modules")
+		frappe.setup_module_map(include_all_apps=True)
 
 	sync_for(name, force=force, reset_permissions=True)
 
@@ -392,11 +420,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	# Don't allow uninstalling if we have dependent apps installed
 	for app in frappe.get_installed_apps():
-		if app != app_name:
-			hooks = frappe.get_hooks(app_name=app)
-			if hooks.required_apps and any(app_name in required_app for required_app in hooks.required_apps):
-				click.secho(f"App {app_name} is a dependency of {app}. Uninstall {app} first.", fg="yellow")
-				return
+		if app != app_name and is_required_by(app_name, app):
+			click.secho(f"App {app_name} is a dependency of {app}. Uninstall {app} first.", fg="yellow")
+			return
 
 	print(f"Uninstalling App {app_name} from Site {site}...")
 

@@ -6,7 +6,7 @@
 		     `paginate` controller instead of useActivityTimeline(), so it runs with
 		     no backend. Toggles exercise the loading / empty / pagination branches
 		     and the item `#actions` + custom-type slots. -->
-		<h3 class="mb-3 text-xl-semibold text-ink-gray-9">ActivityTimeline</h3>
+		<h3 class="mb-3 text-lg-semibold text-ink-gray-9">ActivityTimeline</h3>
 
 		<div class="mb-4 flex flex-wrap items-center gap-4">
 			<Switch v-model="loading" label="Loading" />

@@ -417,6 +417,10 @@ frappe.views.Calendar = class Calendar {
 				d.end = frappe.datetime.add_days(d.start, 1);
 			}
 
+			if (d.allDay && d.end) {
+				d.end = frappe.datetime.add_days(d.end, 1);
+			}
+
 			me.prepare_colors(d);
 
 			d.title = frappe.utils.html2text(d.title);

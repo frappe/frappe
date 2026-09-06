@@ -26,11 +26,19 @@ class MentionBlot extends Embed {
 	}
 
 	static value(domNode) {
+		// mentions written by other editors (e.g. tiptap editor)
+		// stores in label with format
+		// '<p><span data-id="abc@g.com" data-label="RKL" class="mention" data-type="mention">@RKL</span> sdf</p>'
+		const denotationChar = domNode.dataset.denotationChar || "@";
+		const value =
+			domNode.dataset.value ||
+			domNode.dataset.label ||
+			domNode.textContent.replace(denotationChar, "").trim();
 		return {
 			id: domNode.dataset.id,
-			value: domNode.dataset.value,
+			value: value,
 			link: domNode.dataset.link || null,
-			denotationChar: domNode.dataset.denotationChar,
+			denotationChar: denotationChar,
 			isGroup: domNode.dataset.isGroup,
 		};
 	}

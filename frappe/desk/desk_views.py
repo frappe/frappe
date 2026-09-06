@@ -176,8 +176,11 @@ class DeskViews:
 		hasRole = DocType("Has Role")
 		parentTable = DocType(parent)
 
+		def exclude_disabled_reports(query):
+			return query.where(report.disabled == 0) if is_report else query
+
 		# get pages or reports set on custom role
-		pages_with_custom_roles = (
+		pages_with_custom_roles = exclude_disabled_reports(
 			frappe.qb.from_(customRole)
 			.from_(hasRole)
 			.from_(parentTable)
@@ -201,7 +204,7 @@ class DeskViews:
 			.where(customRole[parent.lower()].isnotnull())
 		)
 
-		pages_with_standard_roles = (
+		pages_with_standard_roles = exclude_disabled_reports(
 			frappe.qb.from_(hasRole)
 			.from_(parentTable)
 			.select(parentTable.name.as_("name"), parentTable.modified, *columns)
@@ -211,12 +214,7 @@ class DeskViews:
 				& (parentTable.name.notin(subq))
 			)
 			.distinct()
-		)
-
-		if is_report:
-			pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
-
-		pages_with_standard_roles = pages_with_standard_roles.run(as_dict=True)
+		).run(as_dict=True)
 
 		for p in pages_with_standard_roles:
 			if p.name not in has_role:
@@ -229,7 +227,7 @@ class DeskViews:
 		)
 
 		# pages and reports with no role are allowed
-		rows_with_no_roles = (
+		rows_with_no_roles = exclude_disabled_reports(
 			frappe.qb.from_(parentTable)
 			.select(parentTable.name, parentTable.modified, *columns)
 			.where(no_of_roles == 0)

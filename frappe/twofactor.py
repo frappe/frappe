@@ -111,9 +111,6 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 
 def two_factor_is_enabled_for_(user):
 	"""Check if 2factor is enabled for user."""
-	if user == "Administrator":
-		return False
-
 	if isinstance(user, str):
 		user = frappe.get_doc("User", user)
 	roles = [d.role for d in user.roles or []] + [ALL_USER_ROLE]
@@ -359,15 +356,16 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 	otp = hotp.at(int(token))
 	template_args = {"otp": otp, "otp_issuer": otp_issuer}
 
-	frappe.sendmail(
-		recipients=user_email,
-		subject=subject or get_email_subject_for_2fa(template_args),
-		message=message or get_email_body_for_2fa(template_args),
-		header=[_("Verification Code"), "blue"],
-		delayed=False,
-		retry=3,
+	return bool(
+		frappe.sendmail(
+			recipients=user_email,
+			subject=subject or get_email_subject_for_2fa(template_args),
+			message=message or get_email_body_for_2fa(template_args),
+			header=[_("Verification Code"), "blue"],
+			delayed=False,
+			retry=3,
+		)
 	)
-	return True
 
 
 def get_qr_svg_code(totp_uri):

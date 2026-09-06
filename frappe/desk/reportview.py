@@ -4,7 +4,9 @@
 """build query for doclistview and return results"""
 
 import json
+import re
 from functools import lru_cache
+from typing import Any
 
 from sql_metadata import Parser
 
@@ -20,6 +22,9 @@ from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
+DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
+_FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
 
 
 @frappe.whitelist()
@@ -207,6 +212,39 @@ def raise_invalid_field(fieldname):
 	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
+def _validate_group_by_field(raw: str, doctype: str):
+	"""Validate a single `tabDoctype`.`fieldname` expression from saved report JSON."""
+	if not isinstance(raw, str) or not raw:
+		raise_invalid_field(raw)
+	try:
+		field_doctype, fieldname = parse_field(raw)
+	except ValueError:
+		raise_invalid_field(raw)
+	field_doctype = field_doctype or doctype
+	if not _FIELDNAME_RE.match(fieldname):
+		raise_invalid_field(raw)
+	try:
+		has_col = frappe.db.has_column(field_doctype, fieldname)
+	except frappe.db.TableMissingError:
+		raise_invalid_field(raw)
+	if not has_col:
+		raise_invalid_field(raw)
+
+
+def _validate_group_by_args(group_by: dict, doctype: str):
+	raw_func = group_by.get("aggregate_function")
+	if not isinstance(raw_func, str):
+		frappe.throw(_("Invalid aggregate function: {0}").format(raw_func), frappe.DataError)
+	func = raw_func.lower()
+	if func not in SUPPORTED_AGGREGATE_FUNCTIONS:
+		frappe.throw(_("Invalid aggregate function: {0}").format(func), frappe.DataError)
+
+	_validate_group_by_field(group_by.get("group_by", ""), doctype)
+
+	if func != "count":
+		_validate_group_by_field(group_by.get("aggregate_on", ""), doctype)
+
+
 def is_standard(fieldname):
 	if "." in fieldname:
 		fieldname = fieldname.split(".")[1].strip("`")
@@ -322,7 +360,7 @@ def compress(data, args=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def save_report(name, doctype, report_settings):
+def save_report(name: str | int, doctype: str, report_settings: str):
 	"""Save reports of type Report Builder from Report View"""
 
 	if frappe.db.exists("Report", name):
@@ -347,6 +385,10 @@ def save_report(name, doctype, report_settings):
 		report.report_name = name
 		report.ref_doctype = doctype
 
+	settings = json.loads(report_settings)
+	if isinstance(settings, dict) and isinstance(group_by := settings.get("group_by"), dict):
+		_validate_group_by_args(group_by, report.ref_doctype)
+
 	report.report_type = "Report Builder"
 	report.json = report_settings
 	report.save(ignore_permissions=True)
@@ -359,7 +401,7 @@ def save_report(name, doctype, report_settings):
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])
-def delete_report(name):
+def delete_report(name: str | int):
 	"""Delete reports of type Report Builder from Report View"""
 
 	report = frappe.get_doc("Report", name)
@@ -714,7 +756,9 @@ def delete_bulk(doctype, items):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=None):
+def get_sidebar_stats(
+	stats: str | list[str], doctype: str, filters: str | list | dict[str, Any] | None = None
+):
 	if filters is None:
 		filters = []
 
@@ -730,7 +774,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats, doctype, filters=None):
+def get_stats(stats: str, doctype: str, filters: str | None = None):
 	"""get tag info"""
 	import json
 
@@ -743,7 +787,7 @@ def get_stats(stats, doctype, filters=None):
 
 	try:
 		db_columns = frappe.db.get_table_columns(doctype)
-	except frappe.db.InternalError, frappe.db.ProgrammingError:
+	except (frappe.db.InternalError, frappe.db.ProgrammingError):
 		# raised when _user_tags column is added on the fly
 		# raised if its a virtual doctype
 		db_columns = []
@@ -787,7 +831,7 @@ def get_stats(stats, doctype, filters=None):
 
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=None):
+def get_filter_dashboard_data(stats: str, doctype: str, filters: str | None = None):
 	"""get tags info"""
 	import json
 

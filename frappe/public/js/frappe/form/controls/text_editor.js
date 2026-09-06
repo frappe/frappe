@@ -153,6 +153,43 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		this.bind_events();
 		const toolbar = this.quill.getModule("toolbar");
 		toolbar.addHandler("table", this.handle_table_actions);
+		this.translate_toolbar_labels(toolbar);
+	}
+
+	translate_toolbar_labels(toolbar) {
+		// picker labels are rendered from CSS content rules, which can't be translated;
+		// quill renders data-label (set here) in place of its hardcoded CSS labels
+		const header_labels = {
+			"": __("Normal"),
+			1: __("Heading 1"),
+			2: __("Heading 2"),
+			3: __("Heading 3"),
+			4: __("Heading 4"),
+			5: __("Heading 5"),
+			6: __("Heading 6"),
+		};
+		const table_labels = {
+			"insert-table": __("Insert Table"),
+			"insert-row-above": __("Insert Row Above"),
+			"insert-row-below": __("Insert Row Below"),
+			"insert-column-right": __("Insert Column Right"),
+			"insert-column-left": __("Insert Column Left"),
+			"delete-row": __("Delete Row"),
+			"delete-column": __("Delete Column"),
+			"delete-table": __("Delete Table"),
+		};
+		toolbar.container.querySelectorAll(".ql-header .ql-picker-item").forEach((item) => {
+			item.setAttribute("data-label", header_labels[item.dataset.value || ""]);
+		});
+		toolbar.container.querySelectorAll(".ql-table .ql-picker-item").forEach((item) => {
+			item.setAttribute("data-label", table_labels[item.dataset.value]);
+		});
+		toolbar.container
+			.querySelector(".ql-header .ql-picker-label")
+			?.setAttribute("data-label", header_labels[""]);
+		toolbar.container
+			.querySelector(".ql-table .ql-picker-label")
+			?.setAttribute("data-title", __("Table"));
 	}
 
 	handle_table_actions(value) {

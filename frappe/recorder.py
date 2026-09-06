@@ -38,6 +38,7 @@ class RecorderConfig:
 	record_jobs: bool = True  # record background jobs
 	record_sql: bool = True  # Record SQL queries
 	capture_stack: bool = True  # Recod call stack of SQL queries
+	capture_doc_events: bool = True  # Record document lifecycle / doc_events timeline
 	profile: bool = False  # Run cProfile
 	explain: bool = True  # Provide explain output of SQL queries
 	request_filter: str = "/"  # Filter request paths
@@ -100,6 +101,129 @@ def get_current_stack_frames():
 				}
 	except Exception:
 		pass
+
+
+def _doc_event_contributors(doctype: str, method: str, doc=None) -> tuple[list[str], list[str]]:
+	"""Everything Document.run_method runs for (doctype, method): app `doc_events` hooks,
+	DocType Event server scripts, and webhooks. Returns (apps, handler_labels), where `apps`
+	tags the source (app name, "server_script", or "webhook"). All lookups are cached, and
+	any failure is swallowed so tracing can never break the actual request."""
+	handlers: list[str] = []
+	apps: set[str] = set()
+
+	try:
+		doc_hooks = frappe.get_doc_hooks()
+		for handler in doc_hooks.get(doctype, {}).get(method, []):
+			handlers.append(handler)
+			apps.add(handler.split(".")[0])
+		# "*" hooks fire on every doctype, so flag them — otherwise it's unclear why an
+		# unrelated app's handler ran on this document.
+		for handler in doc_hooks.get("*", {}).get(method, []):
+			handlers.append(f"{handler}  (all doctypes)")
+			apps.add(handler.split(".")[0])
+	except Exception:
+		pass
+
+	flags = frappe.flags
+
+	# server scripts are skipped by run_server_script_for_doc_event during install/migrate
+	try:
+		from frappe.core.doctype.server_script.server_script_utils import EVENT_MAP, get_server_script_map
+
+		if not (flags.in_install or flags.in_migrate) and (event := EVENT_MAP.get(method)):
+			for name in get_server_script_map().get(doctype, {}).get(event, None) or []:
+				handlers.append(f"Server Script: {name}")
+				apps.add("server_script")
+	except Exception:
+		pass
+
+	# Mirror every gate run_webhooks applies so we don't attribute a webhook that wouldn't
+	# run: the event must be webhook-supported; skipped during import/patch/install/migrate;
+	# on_change doesn't fire on insert; and each webhook's condition is evaluated per-document.
+	try:
+		from frappe.integrations.doctype.webhook import get_all_webhooks, supported_events
+		from frappe.integrations.doctype.webhook.webhook import get_context
+
+		if method in supported_events and not (
+			flags.in_import or flags.in_patch or flags.in_install or flags.in_migrate
+		):
+			skip_on_insert = (
+				doc is not None and getattr(doc.flags, "in_insert", False) and method == "on_change"
+			)
+			webhooks = frappe.client_cache.get_value("webhooks", generator=get_all_webhooks)
+			for webhook in webhooks.get(doctype, None) or []:
+				if webhook.get("webhook_docevent") != method or skip_on_insert:
+					continue
+				condition = webhook.get("condition")
+				if condition and doc is not None:
+					if not frappe.safe_eval(condition, eval_locals=get_context(doc)):
+						continue
+				handlers.append(f"Webhook: {webhook.get('name')}")
+				apps.add("webhook")
+	except Exception:
+		pass
+
+	return sorted(apps), handlers
+
+
+_run_method_traced = False
+
+
+def _install_run_method_tracer():
+	"""Wrap Document.run_method once per process so every lifecycle phase / doc_events
+	handler is recorded as a timed, nested span on the active recorder — attributed to
+	the app(s) that hook it. The wrapper is a cheap no-op unless recording is active with
+	`capture_doc_events`, so it is safe to leave installed."""
+	global _run_method_traced
+	if _run_method_traced:
+		return
+
+	from frappe.model.document import Document
+
+	original_run_method = Document.run_method
+
+	@functools.wraps(original_run_method)
+	def run_method(doc, method, *args, **kwargs):
+		recorder = getattr(frappe.local, "_recorder", None)
+		if (
+			recorder is None
+			or not getattr(recorder, "_recording", False)
+			or not recorder.config.capture_doc_events
+			or method.startswith("__")
+		):
+			return original_run_method(doc, method, *args, **kwargs)
+
+		seq = recorder._seq
+		depth = recorder._depth
+		recorder._seq += 1
+		recorder._depth += 1
+		queries_before = len(recorder.calls)
+		start_time = time.monotonic()
+		try:
+			return original_run_method(doc, method, *args, **kwargs)
+		finally:
+			recorder._depth -= 1
+			duration = float(f"{(time.monotonic() - start_time) * 1000:.3f}")
+			queries = len(recorder.calls) - queries_before
+			# compute contributors after the method ran: run_webhooks evaluates each
+			# webhook's condition against the post-execution doc, so we must too.
+			apps, handlers = _doc_event_contributors(doc.doctype, method, doc=doc)
+			recorder.register_event(
+				{
+					"seq": seq,
+					"depth": depth,
+					"method": method,
+					"ref_doctype": doc.doctype,
+					"ref_name": doc.name or "",
+					"duration": duration,
+					"queries": queries,
+					"apps": apps,
+					"handlers": handlers,
+				}
+			)
+
+	Document.run_method = run_method
+	_run_method_traced = True
 
 
 def post_process():
@@ -206,6 +330,9 @@ class Recorder:
 		self.headers = None
 		self.form_dict = None
 		self.patched_databases = []
+		self.events = []
+		self._depth = 0
+		self._seq = 0
 
 		if (
 			self.config.record_requests
@@ -235,6 +362,8 @@ class Recorder:
 		self.time = now_datetime()
 
 		self._patch_sql(frappe.db)
+		if self.config.capture_doc_events:
+			_install_run_method_tracer()
 
 		if self.config.profile:
 			self.profiler = cProfile.Profile()
@@ -242,6 +371,9 @@ class Recorder:
 
 	def register(self, data):
 		self.calls.append(data)
+
+	def register_event(self, data):
+		self.events.append(data)
 
 	def cleanup(self):
 		if self.profiler:
@@ -272,10 +404,13 @@ class Recorder:
 			"duration": float(f"{(now_datetime() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
 			"event_type": self.event_type,
+			"number_of_events": len(self.events),
+			"apps_involved": ", ".join(sorted({app for event in self.events for app in event["apps"]})),
 		}
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 
 		request_data["calls"] = self.calls
+		request_data["events"] = sorted(self.events, key=lambda event: event["seq"])
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
 		request_data["profile"] = profiler_output
@@ -333,6 +468,7 @@ def start(
 	record_sql: bool = True,
 	profile: bool = False,
 	capture_stack: bool = True,
+	capture_doc_events: bool = True,
 	explain: bool = True,
 	request_filter: str = "/",
 	jobs_filter: str = "",
@@ -345,6 +481,7 @@ def start(
 		record_sql=int(record_sql),
 		profile=int(profile),
 		capture_stack=int(capture_stack),
+		capture_doc_events=int(capture_doc_events),
 		explain=int(explain),
 		request_filter=request_filter,
 		jobs_filter=jobs_filter,
@@ -364,7 +501,7 @@ def stop(*args, **kwargs):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def get(uuid=None, *args, **kwargs):
+def get(uuid: str | None = None, *args, **kwargs):
 	if uuid:
 		result = frappe.cache.hget(RECORDER_REQUEST_HASH, uuid)
 	else:

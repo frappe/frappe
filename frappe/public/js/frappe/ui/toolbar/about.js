@@ -55,7 +55,15 @@ frappe.ui.misc.about = function () {
 				}
 			</div>
 
-			<div class="about-section-label">${__("Installed Apps")}</div>
+			<div class="about-section-header flex items-center justify-between w-full">
+				<div class="about-section-label text-2xs text-ink-gray-6 text-uppercase">${__(
+					"Installed Apps"
+				)}</div>
+				<button class="es-button hidden" data-variant="ghost" data-icon-button="true"
+					id="copy-apps-info" title="${__("Copy Apps Version")}" aria-label="${__("Copy Apps Version")}">
+					${frappe.utils.icon("clipboard", "sm", "", "", "", true)}
+				</button>
+			</div>
 
 			<div id="about-app-versions" class="about-app-list"></div>
 		</div>`
@@ -128,7 +136,7 @@ frappe.ui.misc.about = function () {
 			const version_text = get_version_text(app);
 			const title = `${app_name}: ${app.version}`;
 
-			$(`<div class="about-app-row" title="${title}">
+			$(`<div class="about-app-row flex items-center gap-3 cursor-pointer" role="button" tabindex="0" title="${title}">
 					${render_app_icon(app_name, app)}
 					<div class="about-app-info">
 						<div class="about-app-name">${__(app.title)}</div>
@@ -138,7 +146,41 @@ frappe.ui.misc.about = function () {
 		}
 
 		frappe.versions = versions;
+
+		if (frappe.versions) {
+			$(dialog.body).find("#copy-apps-info").removeClass("hidden");
+		}
 	};
+
+	const code_block = (snippet, lang = "") => "```" + lang + "\n" + snippet + "\n```";
+
+	// Listener for copying installed apps info
+	$(dialog.body).on("click", "#copy-apps-info", function () {
+		if (!frappe.versions) return;
+
+		const versions = Object.entries(frappe.versions).reduce((acc, [key, app]) => {
+			acc[key] = app.branch_version || app.version;
+			return acc;
+		}, {});
+
+		frappe.utils.copy_to_clipboard(code_block(JSON.stringify(versions, null, "\t"), "json"));
+	});
+
+	// Listener for copy app version
+	$(dialog.body).on("click", ".about-app-row", function () {
+		const title = $(this).attr("title");
+		if (title) {
+			frappe.utils.copy_to_clipboard(title);
+		}
+	});
+
+	// Keyboard support for copy app version (Enter / Space)
+	$(dialog.body).on("keydown", ".about-app-row", function (e) {
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			$(this).trigger("click");
+		}
+	});
 
 	frappe.ui.misc.about_dialog.show();
 };

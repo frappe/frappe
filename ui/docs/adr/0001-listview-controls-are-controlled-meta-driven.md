@@ -19,6 +19,6 @@ actually need it.
   Views concept into a shared library.
 - **Host passes options + state explicitly (fully presentational).** Rejected as
   the default: every consumer would rebuild the field list; deriving from Meta is
-  more plug-and-play and matches `useDoctypeLayout`.
+  more plug-and-play and matches the meta-driven layout builders.
 - **Shared composable from day one.** Rejected for now: premature abstraction;
   build controlled, let the composable emerge when sync forces it.

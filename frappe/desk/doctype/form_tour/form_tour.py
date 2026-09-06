@@ -89,7 +89,7 @@ def reset_tour(tour_name: str):
 
 
 @frappe.whitelist()
-def update_user_status(value, step):
+def update_user_status(value: str, step: str):
 	from frappe.utils.telemetry import capture
 
 	step = frappe.parse_json(step)

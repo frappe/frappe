@@ -225,6 +225,28 @@ $.extend(frappe.meta, {
 		}
 	},
 
+	get_translated_label: function (dt, fn, dn) {
+		if (
+			[
+				"name",
+				"creation",
+				"docstatus",
+				"idx",
+				"modified",
+				"modified_by",
+				"owner",
+				"_user_tags",
+				"_liked_by",
+				"_comments",
+				"_assign",
+			].includes(fn)
+		) {
+			return frappe.meta.get_label(dt, fn, dn);
+		}
+
+		return __(frappe.meta.get_label(dt, fn, dn), null, dt);
+	},
+
 	get_print_sizes: function () {
 		return [
 			"A0",
@@ -269,7 +291,7 @@ $.extend(frappe.meta, {
 			"Print Settings"
 		).enable_raw_printing;
 		var print_formats = frappe
-			.get_list("Print Format", { doc_type: doctype })
+			.get_list(":Print Format", { doc_type: doctype })
 			.sort(function (a, b) {
 				return a > b ? 1 : -1;
 			});
