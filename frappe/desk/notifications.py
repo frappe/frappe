@@ -3,8 +3,6 @@
 
 from typing import Literal
 
-from bs4 import BeautifulSoup
-
 import frappe
 from frappe import _
 from frappe.desk.doctype.notification_log.notification_log import (
@@ -400,7 +398,12 @@ def get_dynamic_link_filters(doctype, links, fieldname):
 	return {doctype_fieldname: doctype_value}
 
 
-def notify_mentions(ref_doctype, ref_name, content):
+def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_name=None):
+	"""Notify users mentioned in `content`.
+	`source_doctype` / `source_name` identify the record the mention was
+	written in (e.g. a Comment) when that is not the reference document
+	itself.
+	"""
 	if ref_doctype and ref_name and content:
 		mentions = extract_mentions(content)
 
@@ -427,6 +430,8 @@ def notify_mentions(ref_doctype, ref_name, content):
 			"type": "Mention",
 			"document_type": ref_doctype,
 			"document_name": ref_name,
+			"source_doctype": source_doctype,
+			"source_name": source_name,
 			"subject": notification_message,
 			"from_user": frappe.session.user,
 			"email_content": content,
@@ -437,6 +442,8 @@ def notify_mentions(ref_doctype, ref_name, content):
 
 def extract_mentions(txt):
 	"""Find all instances of @mentions in the html."""
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(txt, "html.parser")
 	emails = []
 	for mention in soup.find_all(class_="mention"):

@@ -427,6 +427,11 @@ def make_boilerplate(template: str, doc: "Document" | "frappe._dict", opts: dict
 		target.write(frappe.as_unicode(controller_file_content))
 
 
+# The app-level fixture helpers below are being retired entirely. The icon grid's fixtures are
+# their last caller: a sidebar exports per module now and uses the ordinary doc-files walk. They
+# go with the icon-grid batch, on one of the two triggers listed in `frappe/desk/RETIRING.md`.
+
+
 def create_directory_on_app_path(folder_name, app_name):
 	app_path = get_app_path(app_name)
 	folder_path = os.path.join(app_path, folder_name)
@@ -441,6 +446,15 @@ def get_app_level_directory_path(folder_name, app_name):
 	app_path = get_app_path(app_name)
 	path = os.path.join(app_path, folder_name)
 	return path
+
+
+def get_app_level_files(folder_name, app_name):
+	"""The document files `app_name` ships in its app-level `folder_name`, if any."""
+	path = get_app_level_directory_path(folder_name, app_name)
+	if not os.path.exists(path):
+		return []
+
+	return [os.path.join(path, filename) for filename in os.listdir(path)]
 
 
 def delete_app_level_folder(folder_name, app_name):

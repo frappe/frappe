@@ -500,7 +500,11 @@ def setup_tree_doctype():
 	if not frappe.db.exists("Custom Tree", "All Trees"):
 		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees", "is_group": 1}).insert()
 
-	for parent, child, is_group in (("All Trees", "Parent Node", 1), ("Parent Node", "Child Node", 0)):
+	for parent, child, is_group in (
+		("All Trees", "Parent Node", 1),
+		("Parent Node", "Child Node", 0),
+		("All Trees", "Second Parent Node", 1),
+	):
 		if not frappe.db.exists("Custom Tree", child):
 			frappe.get_doc(
 				{"doctype": "Custom Tree", "tree": child, "parent_custom_tree": parent, "is_group": is_group}

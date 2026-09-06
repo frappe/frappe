@@ -7,6 +7,7 @@ class WidgetDialog {
 	make() {
 		this.make_dialog();
 		this.setup_dialog_events();
+		this.setup_duplicate_label_warning();
 		this.dialog.show();
 
 		window.cur_dialog = this.dialog;
@@ -19,6 +20,7 @@ class WidgetDialog {
 			fields: this.get_fields(),
 			primary_action: (data) => {
 				data = this.process_data(data);
+				this.validate_duplicate_label(data);
 
 				if (!this.editing && !data.name) {
 					data.name = `${this.type}-${this.label}-${frappe.utils.get_random(20)}`;
@@ -87,6 +89,97 @@ class WidgetDialog {
 
 	setup_dialog_events() {
 		//
+	}
+
+	get_type_label() {
+		return (
+			{
+				chart: __("chart"),
+				shortcut: __("shortcut"),
+				links: __("card"),
+				onboarding: __("onboarding"),
+				quick_list: __("quick list"),
+				number_card: __("number card"),
+				custom_block: __("custom block"),
+			}[this.type] || __("widget")
+		);
+	}
+
+	// A workspace widget is joined to its content block by `label` (see `clean_up` in
+	// frappe/desk/desktop.py), so two widgets of the same type sharing a label collapse into a
+	// single child row on save and one of them silently loses its settings. Collect the labels
+	// currently on the page so we can refuse the duplicate while it is still an easy fix.
+	get_sibling_labels() {
+		const editor = document.getElementById("editorjs");
+		if (!editor) return [];
+
+		// blocks carry their widget's label in a `<type>_name` attribute; `links` blocks are
+		// called `card` everywhere except in the dialog registry
+		const attribute = `${this.type == "links" ? "card" : this.type}_name`;
+
+		// the widget being edited is still on the page under its old label — don't clash with it
+		const own_block = this.values?.name
+			? editor
+					.querySelector(`[data-widget-name="${CSS.escape(this.values.name)}"]`)
+					?.closest(`[${attribute}]`)
+			: null;
+
+		return Array.from(editor.querySelectorAll(`[${attribute}]`))
+			.filter((block) => block !== own_block)
+			.map((block) => frappe.utils.unescape_html(block.getAttribute(attribute)));
+	}
+
+	is_duplicate_label(label) {
+		if (!this.for_workspace || !label) return false;
+
+		const unescaped = frappe.utils.unescape_html(label);
+
+		// Mirror the server (`validate_duplicate_widget_labels`): only a clash *this* edit
+		// introduces is refused. A workspace saved before this check existed can already carry
+		// two widgets under one label, and editing either of them — without touching the label —
+		// has to stay possible, or the clash could never be cleaned up from the UI.
+		if (this.editing && unescaped == frappe.utils.unescape_html(this.values.label || "")) {
+			return false;
+		}
+
+		return this.get_sibling_labels().includes(unescaped);
+	}
+
+	validate_duplicate_label(data) {
+		if (!this.is_duplicate_label(data.label)) return;
+
+		frappe.throw({
+			message: __(
+				"Another {0} in this workspace is already labelled {1}. Labels are used to tell widgets apart when the workspace is saved, so the two would overwrite each other. Please pick a different label.",
+				[this.get_type_label(), frappe.utils.bold(data.label)]
+			),
+			title: __("Duplicate Label"),
+			indicator: "red",
+		});
+	}
+
+	// warn while typing, so the user doesn't only find out when they hit save. This writes to its
+	// own node instead of going through `set_df_property`, which refreshes the control on every
+	// keystroke and would wipe out what is being typed.
+	setup_duplicate_label_warning() {
+		const field = this.dialog.get_field("label");
+		if (!field?.$input || !this.for_workspace) return;
+
+		const $warning = $('<div class="help-box small text-danger hide"></div>').appendTo(
+			field.$wrapper.find(".control-input-wrapper")
+		);
+
+		field.$input.on("input", () => {
+			const duplicate = this.is_duplicate_label(field.$input.val());
+			if (duplicate) {
+				$warning.text(
+					__("This label is already used by another {0} in this workspace.", [
+						this.get_type_label(),
+					])
+				);
+			}
+			$warning.toggleClass("hide", !duplicate);
+		});
 	}
 
 	hide_field(fieldname) {

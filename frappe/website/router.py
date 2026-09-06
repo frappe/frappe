@@ -31,10 +31,16 @@ def get_page_info_from_web_page_with_dynamic_routes(path):
 
 def get_page_info_from_web_form(path):
 	"""Query published web forms and evaluate if the route matches"""
+	from frappe.app_state import get_disabled_modules
 	from frappe.website.doctype.web_form.web_form import get_published_web_forms
+
+	disabled_modules = get_disabled_modules()
 
 	for d in get_published_web_forms():
 		if not (path.startswith(f"{d.route}") or path.startswith(f"/{d.route}")):
+			continue
+
+		if d.module in disabled_modules:
 			continue
 
 		rules = []
@@ -89,7 +95,7 @@ def get_pages(app=None):
 		if app:
 			apps = [app]
 		else:
-			apps = frappe.get_installed_apps()
+			apps = frappe.get_active_apps()
 
 		for app in apps:
 			app_path = frappe.get_app_path(app)
@@ -290,7 +296,7 @@ def get_doctypes_with_web_view():
 	"""Return doctypes with Has Web View or set via hooks"""
 
 	def _get():
-		installed_apps = frappe.get_installed_apps()
+		installed_apps = frappe.get_active_apps()
 		doctypes = frappe.get_hooks("website_generators")
 		doctypes_with_web_view = frappe.get_all(
 			"DocType", fields=["name", "module"], filters=dict(has_web_view=1)

@@ -59,7 +59,7 @@ def is_item_allowed(name, item_type, ctx):
 	if item_type == "page":
 		return name in ctx.allowed_pages and name in ctx.restricted_pages
 	if item_type == "report":
-		return not frappe.db.get_value("Report", name, "disabled") and name in ctx.allowed_reports
+		return not frappe.db.get_value("Report", name, "disabled", cache=True) and name in ctx.allowed_reports
 	if item_type == "dashboard":
 		return name in (ctx.allowed_dashboards or [])
 	if item_type in ("help", "url"):
@@ -88,11 +88,13 @@ def get_csv_bytes(data: list[list], csv_params: dict) -> bytes:
 	from csv import writer
 	from io import StringIO
 
+	from frappe.utils.csvutils import escape_formula_injection
+
 	decimal_sep = csv_params.pop("decimal_sep", None)
 
-	_data = data.copy()
+	_data = [[escape_formula_injection(v) for v in row] for row in data]
 	if decimal_sep:
-		_data = apply_csv_decimal_sep(data, decimal_sep)
+		_data = apply_csv_decimal_sep(_data, decimal_sep)
 
 	file = StringIO()
 	csv_writer = writer(file, **csv_params)

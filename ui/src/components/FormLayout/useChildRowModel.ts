@@ -1,5 +1,7 @@
-import { computed } from "vue";
+import { computed, getCurrentInstance, inject } from "vue";
 import type { WritableComputedRef } from "vue";
+import { CommitKey, NO_COMMIT } from "../Fields/types";
+import { identify, rowKey } from "../Fields/rowIdentity";
 
 /**
  * Bridge a `Table MultiSelect` field's stored value (an array of child rows,
@@ -7,10 +9,15 @@ import type { WritableComputedRef } from "vue";
  * flat `string[]` of link values the `TableMultiSelect` control speaks.
  *
  * On write it reuses the existing row object for values that stay selected (so
- * `doctype`/`name` and any other cells survive) and mints `{ [linkFieldname]:
- * value }` for new ones — then emits both `update:modelValue` and `change`
- * (a selection is a commit for a picker). Shared by the lib field and any app
- * override field so neither re-implements the bridge.
+ * `doctype`/`name` and any other cells survive) and mints a fresh row for new
+ * ones — then emits both `update:modelValue` and `change` (a selection is a
+ * commit for a picker). Shared by the lib field and any app override field so
+ * neither re-implements the bridge.
+ *
+ * A minted row is seeded by `newRow`, the same way `Grid` takes its seed from
+ * whoever knows the whole child form: a picked row is otherwise the one row
+ * shape in the stack that carries a single key, where every other row — loaded,
+ * or added through the grid — carries every field.
  */
 /** The emit shape both field wrappers have (a subset of `FieldComponentEmits`).
  *  Overloaded form, not a union arg, so Vue's `defineEmits()` value is assignable. */
@@ -22,12 +29,24 @@ type ChildRowEmit = {
 export function useChildRowModel(
   modelValue: () => unknown,
   linkFieldname: () => string,
-  emit: ChildRowEmit
+  emit: ChildRowEmit,
+  parentfield?: () => string,
+  newRow?: () => Record<string, any>
 ): WritableComputedRef<string[]> {
   const rows = computed<Record<string, any>[]>(() => {
     const v = modelValue();
     return Array.isArray(v) ? v : [];
   });
+
+  // The second place in the stack that creates a child row, so it mints
+  // identity and signals the structural edit the same way the grid does.
+  const commit = getCurrentInstance() ? inject(CommitKey, NO_COMMIT) : NO_COMMIT;
+
+  function signal(row: Record<string, any>, change: "add" | "remove") {
+    const table = parentfield?.();
+    if (!table) return;
+    commit.rowChanged({ parentfield: table, key: rowKey(identify(row))! }, change);
+  }
 
   return computed<string[]>({
     get: () => rows.value.map((r) => r[linkFieldname()]).filter(Boolean),
@@ -37,9 +56,17 @@ export function useChildRowModel(
       // "" would corrupt the child table, so skip the write entirely.
       if (!fn) return;
       const byValue = new Map(rows.value.map((r) => [r[fn], r]));
-      const next = selected.map((v) => byValue.get(v) ?? { [fn]: v });
+      const kept = new Set(selected);
+      // The pick overwrites the seed's own empty for the link field.
+      const mint = (v: string) => identify({ ...newRow?.(), [fn]: v });
+      const next = selected.map((v) => byValue.get(v) ?? mint(v));
+      // Captured before the emit, which repoints `rows` at the new array.
+      const removed = rows.value.filter((row) => !kept.has(row[fn]));
+      const added = next.filter((row) => !byValue.has(row[fn]));
       emit("update:modelValue", next);
       emit("change", next);
+      for (const row of removed) signal(row, "remove");
+      for (const row of added) signal(row, "add");
     },
   });
 }

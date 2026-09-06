@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.model import display_fieldtypes, no_value_fields
+from frappe.model import display_fieldtypes, get_permitted_fields, no_value_fields
 from frappe.model import table_fields as table_fieldtypes
 from frappe.utils import flt, format_duration, groupby_metric
 from frappe.utils.csvutils import build_csv_response
@@ -52,7 +52,13 @@ class Exporter:
 		self.add_data()
 
 	def get_all_exportable_fields(self):
-		child_table_fields = [df.fieldname for df in self.meta.fields if df.fieldtype in table_fieldtypes]
+		permitted_levels = set(self.meta.get_permlevel_access("read"))
+		child_table_fields = [
+			df.fieldname
+			for df in self.meta.fields
+			if df.fieldtype in table_fieldtypes
+			and (not self.meta.get_permissions() or df.permlevel in permitted_levels)
+		]
 
 		meta = frappe.get_meta(self.doctype)
 		exportable_fields = frappe._dict({})
@@ -88,6 +94,9 @@ class Exporter:
 
 	def get_exportable_fields(self, doctype, fieldnames):
 		meta = frappe.get_meta(doctype)
+		permitted_fields = set(
+			get_permitted_fields(doctype, parenttype=self.doctype if meta.istable else None)
+		)
 
 		def is_exportable(df):
 			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
@@ -103,7 +112,7 @@ class Exporter:
 			}
 		)
 
-		fields = [meta.get_field(fieldname) for fieldname in fieldnames]
+		fields = [meta.get_field(fieldname) for fieldname in fieldnames if fieldname in permitted_fields]
 		fields = [df for df in fields if is_exportable(df)]
 
 		if "name" in fieldnames:
@@ -198,8 +207,9 @@ class Exporter:
 				"parentfield",
 				*list({format_column_name(df) for df in self.fields if df.parent == child_table_doctype}),
 			]
-			data = frappe.get_all(
+			data = frappe.get_list(
 				child_table_doctype,
+				parent_doctype=self.doctype,
 				filters={
 					"parent": ("in", parent_names),
 					"parentfield": child_table_df.fieldname,

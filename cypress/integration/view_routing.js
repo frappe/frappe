@@ -6,7 +6,7 @@ context("View", () => {
 
 	it("Route to ToDo List View", () => {
 		cy.visit("/desk/todo/view/list");
-		cy.wait(500);
+		cy.desk_ready();
 		cy.window()
 			.its("cur_list")
 			.then((list) => {
@@ -16,7 +16,7 @@ context("View", () => {
 
 	it("Route to ToDo Report View", () => {
 		cy.visit("/desk/todo/view/report");
-		cy.wait(500);
+		cy.desk_ready();
 		cy.window()
 			.its("cur_list")
 			.then((list) => {
@@ -26,7 +26,7 @@ context("View", () => {
 
 	it("Route to ToDo Dashboard View", () => {
 		cy.visit("/desk/todo/view/dashboard");
-		cy.wait(500);
+		cy.desk_ready();
 		cy.window()
 			.its("cur_list")
 			.then((list) => {
@@ -36,7 +36,7 @@ context("View", () => {
 
 	it("Route to ToDo Gantt View", () => {
 		cy.visit("/desk/todo/view/gantt");
-		cy.wait(500);
+		cy.desk_ready();
 		cy.window()
 			.its("cur_list")
 			.then((list) => {
@@ -47,7 +47,7 @@ context("View", () => {
 	it("Route to ToDo Kanban View", () => {
 		cy.call("frappe.tests.ui_test_helpers.create_kanban").then(() => {
 			cy.visit("/desk/note/view/kanban/_Note _Kanban");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -58,7 +58,7 @@ context("View", () => {
 
 	it("Route to ToDo Calendar View", () => {
 		cy.visit("/desk/todo/view/calendar");
-		cy.wait(500);
+		cy.desk_ready();
 		cy.window()
 			.its("cur_list")
 			.then((list) => {
@@ -69,7 +69,7 @@ context("View", () => {
 	it("Route to Custom Tree View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_tree_doctype").then(() => {
 			cy.visit("/desk/custom-tree/view/tree");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_tree")
 				.then((list) => {
@@ -81,7 +81,7 @@ context("View", () => {
 	it("Route to Custom Image View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_image_doctype").then(() => {
 			cy.visit("app/custom-image/view/image");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -93,7 +93,7 @@ context("View", () => {
 	it("Route to Communication Inbox View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_inbox").then(() => {
 			cy.visit("app/communication/view/inbox");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -126,7 +126,7 @@ context("View", () => {
 	it("Re-route to default view", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
 			cy.visit("app/event");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -138,7 +138,7 @@ context("View", () => {
 	it("Route to default view from app/{doctype}", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
 			cy.visit("/desk/event");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -150,7 +150,7 @@ context("View", () => {
 	it("Route to default view from app/{doctype}/view", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
 			cy.visit("/desk/event/view");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -165,7 +165,7 @@ context("View", () => {
 			force_reroute: true,
 		}).then(() => {
 			cy.visit("/desk/event");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -180,7 +180,7 @@ context("View", () => {
 			force_reroute: true,
 		}).then(() => {
 			cy.visit("/desk/event/view");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {
@@ -195,7 +195,7 @@ context("View", () => {
 			force_reroute: true,
 		}).then(() => {
 			cy.visit("/desk/event/view/list");
-			cy.wait(500);
+			cy.desk_ready();
 			cy.window()
 				.its("cur_list")
 				.then((list) => {

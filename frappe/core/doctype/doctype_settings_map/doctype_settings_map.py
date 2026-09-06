@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import os
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -25,39 +27,81 @@ class DocTypeSettingsMap(Document):
 		module: DF.Link | None
 	# end: auto-generated types
 
-	def autoname(self):
-		# Name the record after the doctype it applies to. A doctype may have both a custom
-		# and a standard map, which can't share a name — the custom (user-created) one keeps
-		# the plain doctype name; the standard one is suffixed to stay unique.
-		self.name = self.applies_to_doctype
-		if self.is_standard:
-			self.name = f"{self.applies_to_doctype} (Standard)"
+	def before_naming(self):
+		self._set_default_module()
 
-	def validate(self):
-		self._guard_standard()
-		self._validate_unique_per_doctype()
+	def _set_default_module(self):
 		# Standard maps ship with an app; default the owning module to the one that owns the
 		# doctype they apply to (the dev can override). Custom maps aren't exported.
 		if self.is_standard and not self.module:
 			self.module = frappe.db.get_value("DocType", self.applies_to_doctype, "module")
+
+	def autoname(self):
+		# Name the record after the doctype it applies to. A doctype may have both a custom
+		# and a standard map, which can't share a name — the custom (user-created) one keeps
+		# the plain doctype name; the standard one is keyed by its module.
+		self.name = self.applies_to_doctype
+		if self.is_standard:
+			self.name = f"{self.applies_to_doctype} - {self.module}"
+
+	def validate(self):
+		self._guard_standard()
+		self._set_default_module()
+		self._validate_unique_per_doctype()
 
 	def on_update(self):
 		self._enforce_single_active()
 		self.export_doc()
 
 	def export_doc(self):
-		"""Write standard maps to the app's module folder as JSON (developer mode only), so
-		they ship in code and sync to other sites on migrate — like standard Print Formats.
-		Custom maps (is_standard=0) are a no-op and stay in the site DB."""
-		from frappe.modules.utils import export_module_json
+		"""Write standard maps to `<module>/doctype_settings_map/<applies_to_doctype>.json`
+		(developer mode only) — one flat file per doctype, so they ship in code and sync on
+		migrate. Custom maps (is_standard=0) are a no-op and stay in the site DB."""
+		if frappe.flags.in_import or not self.is_standard or not frappe.conf.developer_mode:
+			return
 
-		return export_module_json(self, self.is_standard, self.module, create_init=False)
+		from frappe.modules.export_file import strip_default_fields
+
+		doc_export = self.as_dict(no_nulls=True, ignore_computed_child_tables=True)
+		self.run_method("before_export", doc_export)
+		doc_export = strip_default_fields(self, doc_export)
+
+		path = self.get_export_path()
+		frappe.create_folder(os.path.dirname(path))
+		with open(path, "w+") as f:  # nosemgrep
+			f.write(frappe.as_json(doc_export) + "\n")
+
+		return path
+
+	def get_export_path(self) -> str:
+		from frappe.modules.utils import get_module_path
+
+		return os.path.join(
+			get_module_path(self.module),
+			"doctype_settings_map",
+			f"{frappe.scrub(self.applies_to_doctype)}.json",
+		)
 
 	def on_trash(self):
 		self._guard_standard()
 		# If the active map is being deleted, promote the remaining one (prefer standard).
 		if self.is_active:
 			self._set_sibling_active()
+		# Drop the shipped JSON too, else the next migrate re-imports the deleted map. Never
+		# during migrate/install/patch: a cleanup patch deleting stale records must not take
+		# the app's shipped files with it.
+		if (
+			self.is_standard
+			and frappe.conf.developer_mode
+			and not frappe.flags.in_test
+			and not (frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_patch)
+		):
+			frappe.db.after_commit(self.delete_export_file)
+
+	def delete_export_file(self):
+		path = self.get_export_path()
+		if os.path.exists(path):
+			os.remove(path)
 
 	def _guard_standard(self):
 		"""Standard maps are shipped with an app — only editable in Developer Mode.
@@ -74,19 +118,23 @@ class DocTypeSettingsMap(Document):
 		)
 
 	def _validate_unique_per_doctype(self):
-		"""At most one standard and one custom map per doctype."""
-		if frappe.db.exists(
-			"DocType Settings Map",
-			{
-				"applies_to_doctype": self.applies_to_doctype,
-				"is_standard": self.is_standard,
-				"name": ("!=", self.name),
-			},
-		):
-			kind = _("standard") if self.is_standard else _("custom")
-			frappe.throw(
-				_("A {0} settings map already exists for {1}.").format(kind, self.applies_to_doctype)
-			)
+		"""One standard map per (module, doctype), and one custom map per doctype."""
+		filters = {
+			"applies_to_doctype": self.applies_to_doctype,
+			"is_standard": self.is_standard,
+			"name": ("!=", self.name),
+		}
+		if self.is_standard:
+			filters["module"] = self.module
+
+		if frappe.db.exists("DocType Settings Map", filters):
+			if self.is_standard:
+				frappe.throw(
+					_("A standard settings map already exists for {0} in {1}.").format(
+						self.applies_to_doctype, self.module
+					)
+				)
+			frappe.throw(_("A custom settings map already exists for {0}.").format(self.applies_to_doctype))
 
 	def _enforce_single_active(self):
 		"""Only one map per doctype may be active — standard or custom.

@@ -16,10 +16,13 @@ import click
 from semantic_version import Version
 
 import frappe
+from frappe import _
 from frappe.defaults import _clear_cache
-from frappe.utils import cint, is_git_url
+from frappe.utils import cint, comma_and, is_git_url
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
+
+APP_STATE_LOCK = "toggle_app_state"
 
 
 def _is_scheduler_enabled(site) -> bool:
@@ -268,6 +271,30 @@ def parse_app_name(name: str) -> str:
 	return repo
 
 
+def parse_required_app_name(requirement: str) -> str:
+	"""Parse the app name out of a `required_apps` entry.
+
+	Entries can be `erpnext`, `frappe/erpnext`, a git URL or any of those with an `@branch`.
+	Unlike `parse_app_name`, this resolves the name locally, so it is safe to call for an app
+	that is not present on the bench.
+	"""
+	name = requirement.rstrip("/").split("#")[0]
+	name = name.rsplit("/", 1)[-1].rsplit(":", 1)[-1]
+	return name.split("@")[0].removesuffix(".git")
+
+
+def is_required_by(app_name: str, dependent_app: str) -> bool:
+	"""Check if `dependent_app` declares `app_name` in its `required_apps` hook.
+
+	Entries are parsed before comparing. Matching the raw string instead would flag any app whose
+	name happens to be a substring of a requirement, e.g. `appe` against `frappe/erpnext`.
+	"""
+	return any(
+		app_name == parse_required_app_name(required_app)
+		for required_app in frappe.get_hooks("required_apps", app_name=dependent_app)
+	)
+
+
 def install_app(name, verbose=False, set_as_patched=True, force=False):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
@@ -294,7 +321,10 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		raise Exception(f"App {name} not in apps.txt")
 
 	if not force and name in installed_apps:
-		click.secho(f"App {name} already installed", fg="yellow")
+		if name in frappe.get_disabled_apps():
+			enable_app(name)
+		else:
+			click.secho(f"App {name} already installed", fg="yellow")
 		return
 
 	print(f"\nInstalling {name}...")
@@ -326,6 +356,19 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		frappe.setup_module_map(include_all_apps=True)
 
 	sync_for(name, force=force, reset_permissions=True)
+
+	if name == "frappe":
+		# The framework's own rows can only be written after the sync, because a bare site has no
+		# `tabModule Def` for them to go in, which is why the call above skips `frappe`.
+		#
+		# They used to arrive as a side effect of `make_module_and_roles`, which gives a module a
+		# row when one of its doctypes is synced, so a module shipping no doctype got none. That
+		# never mattered until the framework split its navigation, and a nav-only module carrying
+		# a workspace and a sidebar now falls through it. The fixtures still import, since
+		# `import_file` ignores links, but a module with no row does not exist as far as the site
+		# is concerned: it is absent from every module list the desk builds, so the module is
+		# missing from the dock on a fresh site and present on a migrated one.
+		add_module_defs(name, ignore_if_duplicate=True)
 
 	add_to_installed_apps(name)
 
@@ -376,11 +419,125 @@ def remove_from_installed_apps(app_name):
 		)
 		_clear_cache("__global")
 		frappe.local.doc_events_hooks = None
-		frappe.get_single("Installed Applications").update_versions()
-		frappe.db.commit()
+		with filelock(APP_STATE_LOCK):
+			if app_name in frappe.get_disabled_apps():
+				set_app_disabled(app_name, False)
+			frappe.get_single("Installed Applications").update_versions()
+			frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
 		_sync_installed_apps_to_site_config()
+
+
+def set_app_disabled(app_name, disabled):
+	"""Add the app to the `disabled_apps` global, or take it out again.
+
+	The caller holds the `APP_STATE_LOCK` and owns the commit, so that the read and
+	the write below cannot interleave with another toggle.
+	"""
+	# read the global directly: `get_disabled_apps` is request cached and may be stale here
+	disabled_apps = json.loads(frappe.db.get_global("disabled_apps") or "[]")
+
+	if disabled and app_name not in disabled_apps:
+		disabled_apps.append(app_name)
+	elif not disabled and app_name in disabled_apps:
+		disabled_apps.remove(app_name)
+
+	frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
+	frappe.local.request_cache and frappe.local.request_cache.clear()
+	frappe.get_single("Installed Applications").update_versions()
+
+
+def enable_app(app_name):
+	"""Bring back an app that was disabled, without re-syncing its schema."""
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {0} is not installed").format(app_name))
+
+	with filelock(APP_STATE_LOCK):
+		frappe.flags.in_app_toggle = True
+		try:
+			disabled_apps = frappe.get_disabled_apps()
+			for required_app in frappe.get_hooks("required_apps", app_name=app_name):
+				dependency = parse_required_app_name(required_app)
+				if dependency in disabled_apps:
+					frappe.throw(_("App {0} depends on {1}. Enable {1} first.").format(app_name, dependency))
+
+			for before_enable in frappe.get_hooks("before_enable", app_name=app_name):
+				frappe.get_attr(before_enable)()
+
+			set_app_disabled(app_name, False)
+
+			for after_enable in frappe.get_hooks("after_enable", app_name=app_name):
+				frappe.get_attr(after_enable)()
+
+			frappe.db.commit()  # nosemgrep
+		except Exception:
+			frappe.db.rollback()
+			raise
+		finally:
+			frappe.clear_cache()
+			frappe.client_cache.erase_persistent_caches()
+			frappe.flags.in_app_toggle = False
+
+	click.secho(f"App {app_name} enabled on Site {frappe.local.site}", fg="green")
+
+
+def disable_app(app_name):
+	"""Keep the app's schema and data, but stop it from taking effect on this site."""
+	if app_name == "frappe":
+		frappe.throw(_("App frappe cannot be disabled"))
+
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {0} is not installed").format(app_name))
+
+	with filelock(APP_STATE_LOCK):
+		frappe.flags.in_app_toggle = True
+		try:
+			for app in frappe.get_active_apps():
+				if app == app_name:
+					continue
+				if is_required_by(app_name, app):
+					frappe.throw(
+						_("App {0} is a dependency of {1}. Disable {1} first.").format(app_name, app)
+					)
+
+			for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
+				frappe.get_attr(before_disable)()
+
+			set_app_disabled(app_name, True)
+
+			for after_disable in frappe.get_hooks("after_disable", app_name=app_name):
+				frappe.get_attr(after_disable)()
+
+			frappe.db.commit()  # nosemgrep
+		except Exception:
+			frappe.db.rollback()
+			raise
+		finally:
+			frappe.clear_cache()
+			frappe.client_cache.erase_persistent_caches()
+			frappe.flags.in_app_toggle = False
+
+	click.secho(f"App {app_name} disabled on Site {frappe.local.site}", fg="green")
+
+
+def reapply_disabled_app_state():
+	"""Run the `before_disable` hooks again for each app that the site disables.
+
+	A migration can create the customizations that an app hid. These hooks run more than
+	once, so they must give the same result each time.
+	"""
+	disabled_apps = frappe.get_disabled_apps()
+	if not disabled_apps:
+		return
+
+	frappe.flags.in_app_toggle = True
+	try:
+		for app_name in disabled_apps:
+			for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
+				frappe.get_attr(before_disable)()
+	finally:
+		frappe.flags.in_app_toggle = False
 
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
@@ -397,18 +554,16 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	# Don't allow uninstalling if we have dependent apps installed
 	for app in frappe.get_installed_apps():
-		if app != app_name:
-			hooks = frappe.get_hooks(app_name=app)
-			if hooks.required_apps and any(app_name in required_app for required_app in hooks.required_apps):
-				click.secho(f"App {app_name} is a dependency of {app}. Uninstall {app} first.", fg="yellow")
-				return
+		if app != app_name and is_required_by(app_name, app):
+			click.secho(f"App {app_name} is a dependency of {app}. Uninstall {app} first.", fg="yellow")
+			return
 
 	print(f"Uninstalling App {app_name} from Site {site}...")
 
 	if not dry_run and not yes:
 		confirm = click.confirm(
-			"All doctypes (including custom), modules related to this app will be"
-			" deleted. Are you sure you want to continue?"
+			"All doctypes (including custom) and modules belonging to this app will be"
+			" deleted. This site's own custom modules are kept. Are you sure you want to continue?"
 		)
 		if not confirm:
 			return
@@ -427,10 +582,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	for fn in frappe.get_hooks("before_app_uninstall"):
 		frappe.get_attr(fn)(app_name)
 
-	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
-
-	drop_doctypes = _delete_modules(modules, dry_run=dry_run)
+	drop_doctypes = _delete_modules(get_app_owned_modules(app_name), dry_run=dry_run)
 	_delete_doctypes(drop_doctypes, dry_run=dry_run)
+	release_custom_module_placements(app_name, dry_run=dry_run)
 
 	if not dry_run:
 		remove_from_installed_apps(app_name)
@@ -539,7 +693,7 @@ def post_install(rebuild_website=False):
 		clear_website_cache()
 
 	init_singles()
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	frappe.clear_cache()
 
 
@@ -549,7 +703,7 @@ def set_all_patches_as_completed(app):
 	patches = get_patches_from_app(app)
 	for patch in patches:
 		frappe.get_doc({"doctype": "Patch Log", "patch": patch}).insert(ignore_permissions=True)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 
 
 def init_singles():
@@ -728,10 +882,192 @@ def make_site_dirs():
 def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
+		rename_conflicting_custom_module(module, app)
+
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
 		d.module_name = module
 		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)
+
+
+def sync_module_defs() -> list[str]:
+	"""Give every module an installed app declares a `Module Def` row. Returns what it added.
+
+	`add_module_defs` runs once, when an app is installed, so a module an app adds *later* never
+	reaches a site that already has that app -- and a module with no row does not exist as far as
+	the site is concerned. Nothing can link to it, which means the workspaces, dashboards and
+	`Sidebar` the app ships for it are skipped on import: `module` is a Link field. Every
+	app that ever split its navigation has had to carry a patch calling `add_module_defs` to
+	work around this. Running the sync on every migrate is what retires that patch, for every
+	app at once and for the ones that have not been written yet.
+
+	Only the missing rows are inserted, which is the difference from calling `add_module_defs`
+	here directly. That one re-inserts every module of every app and runs
+	`rename_conflicting_custom_module` over each -- fine as a one-shot at install, but on a
+	migrate it would put a site's custom module through a rename check on every run.
+
+	An existing row is changed in one case only: an app's own module with no `app_name` is given
+	one, because a row with no placement is a row no dock lists. This is insurance rather than a
+	live repair, since nothing clears a non-custom module's `app_name`, so on a healthy site the
+	branch never fires. It costs nothing: `app_name` is already in `existing`, and the write
+	happens only when it is empty. `ModuleDef.validate_placement` fills the same field on save;
+	this covers rows that are never saved. A repaired row is printed rather than returned, since
+	the return value is what the site gained, not what it fixed.
+
+	A row naming a different app is left alone: two apps claiming one module name is a conflict to
+	resolve deliberately, not by whichever app this loop reaches last.
+
+	It only adds. A module dropped from `modules.txt` keeps its row, because deleting one cascades
+	through `DocType.module` and every link to it, and an app temporarily renaming a module would
+	take the site's data with it. Removal stays something an app does explicitly, in a patch.
+
+	App-declared beats site-authored, as it does at install: a custom module holding a name an app
+	now ships is renamed out of the way (see `rename_conflicting_custom_module`), because the
+	namespace is flat and the app's module has nowhere else to go.
+	"""
+	existing = {row.name: row for row in frappe.get_all("Module Def", fields=["name", "app_name", "custom"])}
+
+	added, repaired = [], []
+	for app in frappe.get_installed_apps():
+		for module in frappe.get_module_list(app):
+			row = existing.get(module)
+			# an app's module already has its row; only a *custom* module holding the name is
+			# something to act on
+			if row and not row.custom:
+				# `db.set_value` skips `on_update`, so nothing clears the module cache here --
+				# safe only because migrate clears it once, at the end.
+				if not row.app_name:
+					frappe.db.set_value("Module Def", module, "app_name", app, update_modified=False)
+					row.app_name = app  # so a second app declaring the name does not take it
+					repaired.append(module)
+				continue
+
+			rename_conflicting_custom_module(module, app)
+
+			doc = frappe.new_doc("Module Def")
+			doc.app_name = app
+			doc.module_name = module
+			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+			# `existing` has to keep up: a second app declaring this same module must see the
+			# row it just gained, or it counts as added twice and renames against itself
+			existing[module] = doc
+			added.append(module)
+
+	if repaired:
+		print(f"Placed modules that had no app: {comma_and(repaired, add_quotes=False)}")
+
+	return added
+
+
+def rename_conflicting_custom_module(module: str, app: str) -> str | None:
+	"""Move a site's custom module out of the way of an app that ships `module`.
+
+	The module namespace is flat -- `Module Def` is named after `module_name`, and that name is
+	the foreign key everywhere (`DocType.module`, `scrub(module)`, every link) -- and it stays
+	flat. So when the two collide **the app wins**: an install must never be blocked by a
+	naming choice the site made months earlier, which is what failing here would do to a
+	customer mid-upgrade.
+
+	The site loses the name, not the module: the rename cascades through every link to it, so
+	its doctypes, workspaces and sidebar follow it across, and the admin is told what moved.
+
+	Return the module's new name, or `None` when nothing was in the way. An app's own module
+	re-declaring itself is not a conflict.
+	"""
+	# `None` when nothing holds the name, `0` when the app's own module already does
+	if not frappe.db.get_value("Module Def", module, "custom"):
+		return None
+
+	from frappe.model.rename_doc import rename_doc
+
+	new_name = available_module_name(module)
+	# `force`: the install is not a user edit, and whether to give up the name is not the site's
+	# decision, because the app already ships a module with it.
+	rename_doc(
+		doctype="Module Def",
+		old=module,
+		new=new_name,
+		force=True,
+		ignore_permissions=True,
+		show_alert=False,
+	)
+
+	# A `Sidebar` is named by its title (`autoname: field:title`), and the title defaults to the
+	# module's name, so the site's sidebar for this module is probably sitting on the name the
+	# app's own sidebar is about to be imported under. Renaming the module updated the sidebar's
+	# link to it but left its name alone, so the name has to move too.
+	#
+	# The collision is on the title, not the module. Two sidebars may share a module but cannot
+	# share a name, so a site sidebar titled "Leads" collides with an app's "Leads" whichever
+	# modules the two belong to.
+	if held := frappe.db.get_value("Sidebar", {"title": module}, "name"):
+		rename_doc(
+			doctype="Sidebar",
+			old=held,
+			new=new_name,
+			force=True,
+			ignore_permissions=True,
+			show_alert=False,
+		)
+
+	message = _("Module {0} is now shipped by {1}; this site's module of that name is now {2}.").format(
+		module, app, new_name
+	)
+	click.secho(f"* {message}", fg="yellow")
+	frappe.msgprint(message, title=_("Custom Module Renamed"), indicator="orange")
+
+	return new_name
+
+
+def reclaim_module_name_for_its_app(module: str) -> str | None:
+	"""`rename_conflicting_custom_module` for the paths that don't know the app.
+
+	An app can also reach a site's module name sideways: a doctype imported by `bench migrate`
+	brings its module with it, and the module is created on the spot if nothing holds the name.
+	`modules.txt` is what says the name is an app's rather than the site's, so that is what
+	decides -- and a module no app declares is the site's, left exactly where it is.
+	"""
+	app = frappe.local.module_app.get(frappe.scrub(module))
+	return rename_conflicting_custom_module(module, app) if app else None
+
+
+def available_module_name(module: str) -> str:
+	"""`<module> (Custom)`, counting up until the name is free."""
+	candidate = f"{module} (Custom)"
+	suffix = 1
+	while frappe.db.exists("Module Def", candidate):
+		suffix += 1
+		candidate = f"{module} (Custom {suffix})"
+	return candidate
+
+
+def get_app_owned_modules(app_name: str) -> list[str]:
+	"""The modules `app_name` brought with it, which are the ones its uninstall may take.
+
+	`custom = 0` is the whole of the guard, and it is a lifecycle question rather than a
+	placement one: a site's own module may well name this app -- that is how an admin puts
+	their module inside the app their team already works in -- but naming it does not hand the
+	app the right to delete it. See `Module Def.validate_placement` for the other half.
+	"""
+	return frappe.get_all("Module Def", filters={"app_name": app_name, "custom": 0}, pluck="name")
+
+
+def release_custom_module_placements(app_name: str, dry_run: bool = False) -> list[str]:
+	"""Clear the placement of every custom module that named `app_name`, and return them.
+
+	The dock they pointed at is going away with the app. Left set, the placement would name an
+	app that is no longer installed and the module would be listed nowhere at all -- so it is
+	dropped, and the module falls back to standing on its own. A custom module can never become
+	unreachable.
+	"""
+	modules = frappe.get_all("Module Def", filters={"app_name": app_name, "custom": 1}, pluck="name")
+
+	for module in modules:
+		print(f"* releasing custom Module Def '{module}' from '{app_name}'...")
+		if not dry_run:
+			frappe.db.set_value("Module Def", module, "app_name", None)
+
+	return modules
 
 
 def remove_missing_apps():

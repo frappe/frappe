@@ -1,0 +1,51 @@
+name: Download translations from Crowdin
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: crowdin-download
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  download-translations:
+    name: Download translations into ${{ matrix.branch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ["develop", "version-16-hotfix", "version-15-hotfix"]
+
+    steps:
+      - name: Checkout ${{ matrix.branch }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download translations and open PR
+        uses: crowdin/github-action@e4a6c1338b4063c77d46a81875265f9e8bd76f95 # v3.0.0
+        with:
+          config: crowdin.yml
+          upload_sources: false
+          upload_translations: false
+          download_translations: true
+          crowdin_branch_name: "[frappe.frappe] ${{ matrix.branch }}"
+          skip_ref_checkout: true
+          localization_branch_name: l10n_crowdin_${{ matrix.branch }}
+          create_pull_request: true
+          pull_request_base_branch_name: ${{ matrix.branch }}
+          commit_message: "fix: sync translations from crowdin"
+          pull_request_title: "fix: sync translations from crowdin (${{ matrix.branch }})"
+          pull_request_labels: "translation, skip-release-notes"
+          pull_request_reviewers: barredterra
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

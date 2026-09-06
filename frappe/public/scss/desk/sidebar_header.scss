@@ -4,13 +4,26 @@
 	align-items: center;
 	padding: 8px;
 	height: 36px;
+	cursor: pointer;
 	button {
 		margin-left: 8px;
 		@include truncate();
 	}
+
+	// The header's own menu opens from anywhere on it; the chevron is what says so.
+	.drop-icon {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		color: var(--ink-gray-6);
+	}
+
+	&:hover .drop-icon {
+		color: var(--ink-gray-8);
+	}
 }
 .header-logo-container {
-	border-radius: 8px;
+	border-radius: var(--radius);
 	background-color: var(--surface-gray-3);
 	&:has(img) {
 		background-color: unset;
@@ -21,11 +34,11 @@
 	height: 32px;
 	display: flex;
 	align-items: center;
-	background-color: var(--ink-gray-2);
+	background-color: var(--surface-gray-4);
 	border-radius: var(--radius-3);
 	& .icon-container {
 		padding: 4px;
-		border-radius: 10px;
+		border-radius: var(--radius-5);
 		width: 100%;
 		height: 100%;
 		display: flex;
@@ -52,7 +65,7 @@
 	line-height: 1.2;
 	@include truncate();
 	overflow: unset;
-	margin-left: calc(var(--margin-xs) - 3px);
+	margin-left: 2px;
 }
 
 .header-subtitle {

@@ -49,6 +49,7 @@ class ScheduledJobType(Document):
 		]
 		last_execution: DF.Datetime | None
 		method: DF.Data
+		queue: DF.Literal["", "default", "short", "long"]
 		scheduler_event: DF.Link | None
 		server_script: DF.Link | None
 		stopped: DF.Check
@@ -69,8 +70,18 @@ class ScheduledJobType(Document):
 					_("{0} is not a valid Cron expression.").format(f"<code>{self.cron_format}</code>"),
 					title=_("Bad Cron Expression"),
 				)
+		else:
+			self.queue = ""
+
+	@property
+	def is_app_disabled(self) -> bool:
+		"""True when this job belongs to an app that is disabled on this site."""
+		return bool(self.method) and self.method.split(".", 1)[0] in frappe.get_disabled_apps()
 
 	def enqueue(self, force=False) -> bool:
+		if self.is_app_disabled:
+			return False
+
 		# enqueue event if last execution is done
 		if self.is_event_due() or force:
 			if not self.is_job_in_queue():
@@ -143,6 +154,9 @@ class ScheduledJobType(Document):
 		return parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 
 	def execute(self):
+		if self.is_app_disabled:
+			return
+
 		if frappe.job:
 			frappe.job.frequency = self.frequency
 			frappe.job.cron_format = self.cron_format
@@ -187,6 +201,8 @@ class ScheduledJobType(Document):
 		frappe.db.commit()
 
 	def get_queue_name(self):
+		if self.queue:
+			return self.queue
 		return "long" if ("Long" in self.frequency or "Maintenance" in self.frequency) else "default"
 
 	def on_trash(self):
@@ -206,6 +222,9 @@ def skip_next_execution(doc: str | dict):
 	frappe.only_for("System Manager")
 	doc = frappe.parse_json(doc)
 	doc: ScheduledJobType = frappe.get_doc("Scheduled Job Type", doc.get("name"))
+	if doc.is_app_disabled:
+		frappe.throw(_("Cannot modify a job of a disabled app"))
+
 	doc.last_execution = doc.next_execution
 	return doc.save()
 
@@ -222,9 +241,26 @@ def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):
 
 def sync_jobs(hooks: dict | None = None):
 	frappe.reload_doc("core", "doctype", "scheduled_job_type")
-	scheduler_events = hooks or frappe.get_hooks("scheduler_events")
+	scheduler_events = hooks or get_scheduler_events()
 	insert_events(scheduler_events)
 	clear_events(scheduler_events)
+
+
+def _collect_scheduler_events(apps: list[str]) -> dict:
+	"""Collect merged `scheduler_events` hooks from the given app list."""
+	hooks = {}
+	for app in apps:
+		frappe.append_hook(hooks, "events", frappe.get_hooks("scheduler_events", {}, app_name=app))
+	return hooks.get("events", {})
+
+
+def get_scheduler_events() -> dict:
+	"""Collect `scheduler_events` from every installed app, disabled ones included.
+
+	Disabled apps are skipped at enqueue time instead, so that a toggle does not delete
+	their job rows along with `stopped` and `last_execution`.
+	"""
+	return _collect_scheduler_events(frappe.get_installed_apps())
 
 
 def insert_events(scheduler_events: dict) -> list:
@@ -312,6 +348,26 @@ def clear_events(scheduler_events: dict):
 	for event in frappe.get_all("Scheduled Job Type", fields=["*"]):
 		if not event_exists(event):
 			frappe.delete_doc("Scheduled Job Type", event.name)
+
+
+def get_disabled_app_job_methods() -> list[str]:
+	methods = []
+	for jobs in _collect_scheduler_events(frappe.get_disabled_apps()).values():
+		if isinstance(jobs, dict):
+			for method_list in jobs.values():
+				methods.extend(method_list)
+		else:
+			methods.extend(jobs)
+	return methods
+
+
+def get_permission_query_conditions(user):
+	"""Hide jobs belonging to apps that are disabled on this site."""
+	methods = get_disabled_app_job_methods()
+	if not methods:
+		return None
+
+	return frappe.qb.DocType("Scheduled Job Type").method.notin(methods)
 
 
 def on_doctype_update():

@@ -78,6 +78,7 @@ class ServerScript(Document):
 			"Cron",
 		]
 		module: DF.Link | None
+		queue: DF.Literal["", "default", "short", "long"]
 		rate_limit_count: DF.Int
 		rate_limit_seconds: DF.Int
 		reference_doctype: DF.Link | None
@@ -142,6 +143,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event" or not (
 			self.has_value_changed("event_frequency")
 			or self.has_value_changed("cron_format")
+			or self.has_value_changed("queue")
 			or self.has_value_changed("disabled")
 			or self.has_value_changed("script_type")
 		):
@@ -152,6 +154,7 @@ class ServerScript(Document):
 				"method": frappe.scrub(f"{self.name}-{self.event_frequency}"),
 				"frequency": self.event_frequency,
 				"cron_format": self.cron_format if self.event_frequency == "Cron" else "",
+				"queue": self.queue,
 				"stopped": self.disabled,
 			}
 		).save()
@@ -180,12 +183,11 @@ class ServerScript(Document):
 
 		if self.enable_rate_limit:
 			# Wrap in rate limiter, required for specifying custom limits for each script
-			# Note that rate limiter works on `cmd` which is script name
 			limit = self.rate_limit_count or 5
 			seconds = self.rate_limit_seconds or 24 * 60 * 60
 
 			_fn = partial(execute_api_server_script, script=self)
-			return rate_limit(limit=limit, seconds=seconds)(_fn)()
+			return rate_limit(limit=limit, seconds=seconds, endpoint=f"server_script:{self.name}")(_fn)()
 		else:
 			return execute_api_server_script(self)
 

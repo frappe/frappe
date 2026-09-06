@@ -32,7 +32,7 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
-from frappe.monitor import get_trace_id
+from frappe.monitor import TRACE_ID_PATTERN, get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
 from frappe.utils import (
@@ -280,7 +280,7 @@ class Database:
 
 		query, values = self._transform_query(query, values)
 
-		if trace_id := get_trace_id():
+		if (trace_id := get_trace_id()) and TRACE_ID_PATTERN.fullmatch(trace_id):
 			query += f" /* FRAPPE_TRACE_ID: {trace_id} */"
 
 		try:

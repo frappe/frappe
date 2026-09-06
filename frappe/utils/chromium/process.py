@@ -1,10 +1,11 @@
 import os
 import platform
 import subprocess
+import threading
 import time
 from pathlib import Path
-from typing import ClassVar
 
+import psutil
 import requests
 
 import frappe
@@ -15,8 +16,28 @@ from frappe.utils.data import cint
 
 class ChromiumManager:
 	_instance = None
+	# Serializes obtain/register/teardown under threaded serving: without it,
+	# one request's per-request teardown can terminate the chromium another
+	# request obtained but hasn't registered a browser on yet.
+	_lock = threading.RLock()
 
-	_browsers: ClassVar[list] = []
+	@classmethod
+	def acquire(cls):
+		"""Return (manager, token) with the token already registered, atomically.
+
+		Holding a registered token keeps _close_browser from tearing chromium
+		down while this request is using it."""
+		with cls._lock:
+			manager = cls()
+			token = frappe.utils.random_string(10)
+			manager.add_browser(token)
+			return manager, token
+
+	def release(self, token):
+		"""Deregister the token and tear chromium down if nobody else holds one."""
+		with ChromiumManager._lock:
+			self.remove_browser(token)
+			self._close_browser()
 
 	def add_browser(self, browser):
 		self._browsers.append(browser)
@@ -43,6 +64,7 @@ class ChromiumManager:
 			return
 		self._initialized = True  # Mark as initialized
 
+		self._browsers = []
 		self._chromium_process = None
 		self._chromium_path = None
 		self._devtools_url = None
@@ -59,7 +81,7 @@ class ChromiumManager:
 		# only when we want to chromium on separate docker / server ( not implemented/tested yet )
 		self.CHROMIUM_WEBSOCKET_URL = site_config.get("chromium_websocket_url", "")
 		if self.CHROMIUM_WEBSOCKET_URL:
-			frappe.warn("Using external chromium websocket url. Make sure it is accessible.")
+			frappe.logger("pdf").warning("Using external chromium websocket url. Make sure it is accessible.")
 			self._devtools_url = self.CHROMIUM_WEBSOCKET_URL
 			return
 
@@ -102,6 +124,7 @@ class ChromiumManager:
 		NOTE: dbus issue in docker
 		  https://source.chromium.org/chromium/chromium/src/+/main:content/app/content_main.cc;l=229-241?q=DBUS_SESSION_BUS_ADDRESS&ss=chromium
 		"""
+		self._reap_orphaned_chromium()
 		try:
 			if debug:
 				command_args = [
@@ -177,6 +200,8 @@ class ChromiumManager:
 	# from print_designer.pdf_generator.monitor_subprocess import monitor_subprocess_usage
 	# @monitor_subprocess_usage(interval=0.1)
 	def _start_chromium_process(self, command_args):
+		# stdout is never read, and an unread PIPE fills the OS buffer and blocks
+		# chromium on write; stderr is drained after the DevTools URL is captured.
 		if platform.system().lower() == "windows":
 			# hide cmd window
 			startupinfo = subprocess.STARTUPINFO()
@@ -184,16 +209,40 @@ class ChromiumManager:
 			startupinfo.wShowWindow = subprocess.SW_HIDE
 			self._chromium_process = subprocess.Popen(
 				command_args,
-				stdout=subprocess.PIPE,
+				stdout=subprocess.DEVNULL,
 				stderr=subprocess.PIPE,
+				errors="replace",
 				startupinfo=startupinfo,
 				text=True,
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+				command_args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace"
 			)
 		return self._chromium_process
+
+	def _reap_orphaned_chromium(self):
+		"""Kill chromium processes leaked by dead workers.
+
+		Cleanup normally happens in the caller's `finally`, but a worker killed
+		mid-render (dev auto-reload, SIGKILL, crash) never runs it and its
+		chromium survives forever. Such processes are reparented to init/launchd
+		(ppid 1), so kill anything running this bench's chromium binary whose
+		parent is gone before starting a new one.
+		"""
+		chromium_path = os.path.realpath(self._chromium_path)
+		for proc in psutil.process_iter(["exe", "ppid", "cmdline"]):
+			try:
+				if (
+					proc.info["ppid"] == 1
+					and proc.info["exe"] == chromium_path
+					and "--headless" in (proc.info["cmdline"] or [])
+				):
+					for child in proc.children(recursive=True):
+						child.kill()
+					proc.kill()
+			except (psutil.NoSuchProcess, psutil.AccessDenied):
+				continue
 
 	def _set_devtools_url(self):
 		"""
@@ -226,9 +275,18 @@ class ChromiumManager:
 					break
 
 		if self._devtools_url:
+			self._drain_stderr(stderr)
 			return
 
 		self._raise_start_failure(output)
+
+	def _drain_stderr(self, stderr):
+		"""Keep reading chromium's stderr for the rest of its lifetime.
+
+		Nothing consumes it after the DevTools URL line, and a chatty chromium
+		(GPU fallback spam, broken resources) blocks on write once the ~64KB
+		pipe buffer fills, hanging the render."""
+		threading.Thread(target=stderr.read, daemon=True).start()
 
 	def _raise_start_failure(self, output):
 		"""Report why Chromium never handed us a DevTools URL, quoting its own stderr.
@@ -259,11 +317,22 @@ class ChromiumManager:
 		"""
 		Close the headless Chromium browser.
 		"""
+		with ChromiumManager._lock:
+			self._close_browser_locked()
+
+	def _close_browser_locked(self):
 		if self._browsers:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
+		if getattr(self, "USE_PERSISTENT_CHROMIUM", False):
+			return
 		if self._chromium_process:
 			self._chromium_process.terminate()
+			try:
+				self._chromium_process.wait(timeout=5)
+			except subprocess.TimeoutExpired:
+				self._chromium_process.kill()
+				self._chromium_process.wait()
 		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None

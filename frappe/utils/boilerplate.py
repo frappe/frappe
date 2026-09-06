@@ -430,16 +430,14 @@ use_json_request_body = True
 # 	}}
 # ]
 
-# Companion apps that extend a host app (instead of taking their own apps-screen icon) can pin
-# their workspaces into the host app's workspace dock (rail) with this hook. Declaring it keeps
-# the app off the apps screen, so it takes precedence over any add_to_apps_screen above. Who can
-# see a pinned workspace is controlled by that workspace's own Roles table.
-# add_to_workspace_dock = [
-# 	{{
-# 		"app": "erpnext",
-# 		"workspace": "My Workspace",
-# 	}}
-# ]
+# The dock, the rail down the left of the desk, is a document rather than a hook. Author it in
+# Manage Dock on a developer-mode site and press Export to App, and it is written to
+# `{app_name}/dock/{app_name}/{app_name}.json` for git to carry. An app that ships none has no
+# rail: its sidebar gets a switcher in the header instead.
+#
+# A companion app, one that extends a host app rather than standing on its own, says so with
+# `mount_on` on that same record, and its entries are appended to the host's rail. Mounting keeps
+# the companion off the apps screen, so it takes precedence over any add_to_apps_screen above.
 
 # Includes in <head>
 # ------------------
@@ -522,6 +520,17 @@ use_json_request_body = True
 # before_uninstall = "{app_name}.uninstall.before_uninstall"
 # after_uninstall = "{app_name}.uninstall.after_uninstall"
 
+# Disable / Enable
+# ----------------
+# Called when this app is logically disabled or re-enabled on a site,
+# without uninstalling it. Use this to hide/restore fields this app adds
+# to other apps' doctypes.
+
+# before_disable = "{app_name}.uninstall.before_disable"
+# after_disable = "{app_name}.uninstall.after_disable"
+# before_enable = "{app_name}.install.before_enable"
+# after_enable = "{app_name}.install.after_enable"
+
 # Integration Setup
 # ------------------
 # To set up dependencies/integrations with other apps
@@ -544,11 +553,22 @@ use_json_request_body = True
 
 # after_build = "{app_name}.build.after_build"
 
+# To hook into the build process of other apps
+# The list of apps being built is passed as an argument
+
+# after_app_build = "{app_name}.build.after_app_build"
+
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
 # notification_config = "{app_name}.notifications.get_notification_config"
+
+# Awesome Bar
+# -----------
+# Extra search results: list of dicts with label, description, route, index.
+# route: ["List", "ToDo"], "/desk/docs/some/page", or "https://example.com"
+# awesomebar_search = ["{app_name}.search.awesomebar_results"]
 
 # Permissions
 # -----------
@@ -860,7 +880,11 @@ patches_template = """[pre_model_sync]
 # Read docs to understand patches: https://docs.frappe.io/framework/user/en/database-migrations
 
 [post_model_sync]
-# Patches added in this section will be executed after doctypes are migrated"""
+# Patches added in this section will be executed after doctypes are migrated
+
+[post_fixture_sync]
+# Patches added in this section will be executed after fixtures and customizations
+# (Custom Field, Property Setter, etc) are synced"""
 
 
 precommit_template = """exclude: 'node_modules|.git'

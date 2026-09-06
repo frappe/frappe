@@ -35,7 +35,6 @@ context("Dashboard links", () => {
 
 		//Adding a new contact
 		cy.get('.document-link-badge[data-doctype="Contact"]').click();
-		cy.wait(300);
 		cy.findByRole("button", { name: "Add Contact" }).should("be.visible");
 		cy.findByRole("button", { name: "Add Contact" }).click();
 		cy.get('[data-doctype="Contact"][data-fieldname="first_name"]').type("Admin");

@@ -3,13 +3,37 @@
 	color: var(--text-muted);
 	--icon-picker-width: 240px;
 	width: var(--icon-picker-width);
+	.icon-section {
+		// grouped sections scroll together, not one grid at a time
+		overflow-y: auto;
+		max-height: 210px;
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	.icon-group-label {
+		margin-top: 10px;
+		font-size: var(--text-xs);
+		color: var(--text-light);
+
+		+ .icons {
+			margin-top: 4px;
+		}
+	}
+
+	.emojis {
+		overflow-y: scroll;
+		max-height: 210px;
+	}
+
 	.icons,
 	.emojis {
 		margin-top: 10px;
 		display: flex;
 		flex-wrap: wrap;
-		overflow-y: scroll;
-		max-height: 210px;
 		cursor: pointer;
 
 		/* Hide scrollbar for IE, Edge and Firefox */

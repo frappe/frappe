@@ -410,9 +410,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
 
 	def describe(self, doctype: str) -> list | tuple:
-		table_name = get_table_name(doctype)
 		return self.sql(
-			f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}' and table_schema='{frappe.conf.get('db_schema', 'public')}'"
+			"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = %(table_name)s AND table_schema = %(schema)s",
+			{"table_name": get_table_name(doctype), "schema": self.db_schema},
 		)
 
 	def change_column_type(
@@ -520,7 +520,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		Cross-db counterpart of the MariaDB implementation (which uses ``SHOW INDEX`` with
 		``Seq_in_index = 1`` and a single-column constraint). Uses the PostgreSQL system
-		catalogs so callers stay db-agnostic.
+		catalogs so callers stay db-agnostic. Only full (non-partial) btree indexes count,
+		like the indexes SHOW INDEX reports on InnoDB -- a hash or partial index cannot
+		serve the ordering and unrestricted lookups callers are checking for.
 		"""
 		result = self.sql(
 			f"""
@@ -528,6 +530,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			FROM pg_index i
 			JOIN pg_class tc ON tc.oid = i.indrelid
 			JOIN pg_class ic ON ic.oid = i.indexrelid
+			JOIN pg_am am ON am.oid = ic.relam
 			JOIN pg_namespace n ON n.oid = tc.relnamespace
 			JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = i.indkey[0]
 			WHERE tc.relname = %(table_name)s
@@ -535,6 +538,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				AND a.attname = %(fieldname)s
 				AND i.indisunique = {"true" if unique else "false"}
 				AND i.indnkeyatts = 1
+				AND i.indisvalid
+				AND i.indisready
+				AND i.indislive
+				AND am.amname = 'btree'
+				AND i.indpred IS NULL
 			LIMIT 1
 			""",
 			{"table_name": table_name, "schema": self.db_schema, "fieldname": fieldname},
@@ -660,9 +668,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		# Only plain btree indexes count: a partial, covering or non-btree index cannot be the
 		# framework-managed search index, so reporting it here would both suppress creating the
 		# real one and mark a hand-made index as framework-owned and droppable.
-		# pylint: disable=W1401
 		return self.sql(
-			f"""
+			"""
 			SELECT a.column_name AS name,
 			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
@@ -687,15 +694,16 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				JOIN pg_am am ON am.oid = ic.relam
 				JOIN pg_namespace n ON n.oid = tc.relnamespace
 				JOIN pg_attribute att ON att.attrelid = tc.oid AND att.attnum = i.indkey[0]
-				WHERE tc.relname = '{table_name}' AND n.nspname = '{self.db_schema}'
+				WHERE tc.relname = %(table_name)s AND n.nspname = %(schema)s
 					AND am.amname = 'btree'
 					AND i.indpred IS NULL
 					AND i.indnatts = i.indnkeyatts
 			) b ON b.column_name = a.column_name
-			WHERE a.table_name = '{table_name}'
-				AND a.table_schema = '{self.db_schema}'
+			WHERE a.table_name = %(table_name)s
+				AND a.table_schema = %(schema)s
 			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale, a.datetime_precision;
 		""",
+			{"table_name": table_name, "schema": self.db_schema},
 			as_dict=1,
 		)
 
@@ -721,12 +729,13 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def _estimate_count(self, table: str) -> int:
 		from frappe.utils.data import cint
 
-		# Scope to current schema to avoid cross-site estimates
+		# Scope to current schema to avoid cross-site estimates.
+		# reltuples is -1 until the table has been vacuumed or analyzed.
 		count = self.sql(
 			"select c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relname = %s and n.nspname = %s and c.relkind = 'r'",
 			(table, self.db_schema),
 		)
-		return cint(count[0][0]) if count else 0
+		return max(cint(count[0][0]), 0) if count else 0
 
 	@contextmanager
 	def unbuffered_cursor(self):
@@ -893,6 +902,9 @@ def modify_values(values):
 	def modify_value(value):
 		if isinstance(value, list | tuple):
 			value = tuple(modify_values(value))
+
+		elif isinstance(value, bool):
+			value = str(int(value))
 
 		elif isinstance(value, int):
 			value = str(value)

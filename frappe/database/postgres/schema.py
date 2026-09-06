@@ -117,20 +117,31 @@ class PostgresTable(DBTable):
 		frappe.db.commit()
 
 	def create_indexes(self):
-		create_index_query = ""
-		for col in self.columns.values():
+		if self.meta.get("istable", default=0):
+			index_fields = ["parent"]
+		else:
+			index_fields = ["creation"]
+			if self.meta.sort_field == "modified":
+				index_fields.append("modified")
+
+		index_fields += [
+			col.fieldname
+			for col in self.columns.values()
 			if (
 				col.set_index
 				and col.fieldtype in frappe.db.type_map
 				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
-			):
-				index_name = get_single_column_index_name(self.table_name, col.fieldname)
-				create_index_query += (
-					f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
-				)
-		if create_index_query:
-			# nosemgrep
-			frappe.db.sql(create_index_query)
+			)
+		]
+
+		create_index_query = ""
+		for fieldname in index_fields:
+			index_name = get_single_column_index_name(self.table_name, fieldname)
+			create_index_query += (
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{fieldname}`);'
+			)
+		# nosemgrep
+		frappe.db.sql(create_index_query)
 
 	def alter(self):
 		for col in self.columns.values():
@@ -217,6 +228,14 @@ class PostgresTable(DBTable):
 			index_name = get_single_column_index_name(self.table_name, col.fieldname)
 			create_contraint_query += (
 				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
+			)
+
+		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
+			self.table_name, "modified", unique=False
+		):
+			index_name = get_single_column_index_name(self.table_name, "modified")
+			create_contraint_query += (
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`modified`);'
 			)
 
 		for col in self.add_unique:

@@ -8,17 +8,20 @@ from werkzeug.local import Local
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
 	create_job_id,
 	execute_job,
 	generate_qname,
+	get_queues_timeout,
 	get_redis_conn,
 )
 
 
 class TestBackgroundJobs(IntegrationTestCase):
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_remove_failed_jobs(self):
 		frappe.enqueue(method="frappe.tests.test_background_jobs.fail_function", queue="short")
 		# wait for enqueued job to execute
@@ -37,6 +40,22 @@ class TestBackgroundJobs(IntegrationTestCase):
 			if queue.name == generate_qname("short"):
 				fail_registry = queue.failed_job_registry
 				self.assertEqual(fail_registry.count, 0)
+
+	def test_get_queues_timeout_tolerates_invalid_workers_config(self):
+		builtin = {"short", "default", "long"}
+		self.addCleanup(get_queues_timeout.cache_clear)
+
+		with patch("frappe.get_conf", return_value={"workers": 8}):
+			get_queues_timeout.cache_clear()
+			timeouts = get_queues_timeout()
+		self.assertEqual(set(timeouts), builtin)
+
+		with patch("frappe.get_conf", return_value={"workers": {"long": 999, "custom": {"timeout": 5000}}}):
+			get_queues_timeout.cache_clear()
+			timeouts = get_queues_timeout()
+		self.assertEqual(timeouts["custom"], 5000)
+		self.assertEqual(timeouts["long"], 1500)
+		self.assertLessEqual(builtin, set(timeouts))
 
 	def test_enqueue_at_front(self):
 		kwargs = {
