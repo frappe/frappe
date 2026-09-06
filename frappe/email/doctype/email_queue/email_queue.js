@@ -4,7 +4,7 @@
 frappe.ui.form.on("Email Queue", {
 	refresh: function (frm) {
 		if (["Not Sent", "Partially Sent"].includes(frm.doc.status)) {
-			let button = frm.add_custom_button("Send Now", function () {
+			let button = frm.add_custom_button(__("Send Now"), function () {
 				frappe.call({
 					method: "frappe.email.doctype.email_queue.email_queue.send_now",
 					args: {
@@ -25,7 +25,7 @@ frappe.ui.form.on("Email Queue", {
 				});
 			});
 		} else if (frm.doc.status == "Error") {
-			frm.add_custom_button("Retry Sending", function () {
+			frm.add_custom_button(__("Retry Sending"), function () {
 				frm.call({
 					method: "frappe.email.doctype.email_queue.email_queue.retry_sending",
 					args: {
