@@ -12,6 +12,11 @@
 // stripe: the user button moves back to the body sidebar and the sidebar header carries a switcher
 // instead.
 frappe.ui.Dock = class Dock {
+	// Collapsed means icon-only: the rail keeps every row but drops the words, so it costs a
+	// glyph's width instead of a column's. Read here rather than on first render so the rail is
+	// drawn in the right shape once, with no visible widening on load.
+	static COLLAPSED_KEY = "dock-collapsed";
+
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.make();
@@ -36,6 +41,9 @@ frappe.ui.Dock = class Dock {
 			</div>
 			<div class="dock-shortcuts"></div>
 			<div class="dock-items"></div>
+			<button class="dock-collapse-toggle" aria-label="${__("Collapse rail")}">
+				${frappe.utils.icon("chevron-left", "sm")}
+			</button>
 			<button class="dock-user shell-header" aria-label="${__("User Menu")}"></button>
 		</div>`);
 
@@ -52,6 +60,11 @@ frappe.ui.Dock = class Dock {
 		let $resize = $(`<div class="dock-resize-handle" aria-hidden="true"></div>`);
 		$resize.on("click", () => this.sidebar.open());
 		this.$dock.append($resize);
+
+		this.$collapse_toggle = this.$dock.find(".dock-collapse-toggle");
+		this.$collapse_toggle.on("click", () => this.toggle_collapsed());
+		this.collapsed = localStorage.getItem(frappe.ui.Dock.COLLAPSED_KEY) === "true";
+		this.apply_collapsed();
 
 		// Built once and never replaced: the header's menu binds to this node, and render_logo
 		// rewrites what is inside it rather than the node itself.
@@ -181,6 +194,38 @@ frappe.ui.Dock = class Dock {
 
 	// User avatar pinned to the bottom of the rail, opening the same dropdown as the sidebar's user
 	// button. This runs once, from make(), so the menu is not re-bound on every refresh().
+	toggle_collapsed() {
+		this.collapsed = !this.collapsed;
+		localStorage.setItem(frappe.ui.Dock.COLLAPSED_KEY, String(this.collapsed));
+		this.apply_collapsed();
+	}
+
+	// One class on <body>, the same way the body sidebar states its own collapse, so the width and
+	// everything that keys off it live in dock.scss rather than in inline styles here.
+	apply_collapsed() {
+		$("body").toggleClass("dock-collapsed", this.collapsed);
+		this.$collapse_toggle
+			.attr("aria-expanded", String(!this.collapsed))
+			.attr("aria-label", this.collapsed ? __("Expand rail") : __("Collapse rail"));
+		this.sync_row_tooltips();
+	}
+
+	// Tooltips exist only while collapsed. The header of dock.scss records that labels are what
+	// retired them -- a row says what it is without being pointed at -- and that holds right up
+	// until the words are gone. With only a glyph left there is nothing else to name the row, so
+	// the tooltip comes back for exactly as long as the label is missing.
+	sync_row_tooltips() {
+		this.$dock.find(".dock-item, .dock-shortcuts button").each((_, el) => {
+			let $el = $(el);
+			let label = $el.attr("aria-label");
+			if (this.collapsed && label) {
+				$el.attr("title", label);
+			} else {
+				$el.removeAttr("title");
+			}
+		});
+	}
+
 	render_user() {
 		// The same two lines the header carries, in the same classes: who you are over how you are
 		// addressed, which is what the body sidebar's own user button has always shown.
@@ -284,6 +329,9 @@ frappe.ui.Dock = class Dock {
 			let $item = this.make_dock_item(entry);
 			if ($item) this.$items.append($item);
 		});
+
+		// The rows are new nodes, so whatever `apply_collapsed` put on the old ones is gone.
+		this.sync_row_tooltips();
 	}
 
 	// One rail button, for either kind of entry. A pinned workspace needs no markup of its own,

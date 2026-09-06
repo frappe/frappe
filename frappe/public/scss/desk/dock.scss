@@ -17,8 +17,17 @@
 	position: relative;
 	flex: 0 0 var(--dock-width);
 	width: var(--dock-width);
+	// Both, because the rail is a flex item: `flex-basis` is what the row lays out against and
+	// `width` is what it falls back to. Without this the collapse resolved in a single frame and
+	// the sidebar and the whole page beside it jumped 164px at once.
+	transition: flex-basis 0.18s ease, width 0.18s ease;
 	height: 100vh;
-	z-index: 1020;
+	// One above `.body-sidebar-container`, which is also 1020 and comes later in the DOM. Equal
+	// z-index means DOM order decides, so the sidebar used to paint over anything the rail hung
+	// past its right edge -- and a child could not climb out, because this z-index makes the rail
+	// a stacking context. The rail and the sidebar sit side by side rather than overlapping, so
+	// the only thing this changes is which of them owns that overhang.
+	z-index: 1021;
 
 	display: flex;
 	flex-direction: column;
@@ -177,6 +186,10 @@
 			flex: 1 1 auto;
 			margin-left: 8px;
 			font-size: var(--text-sm);
+			// Collapsed alongside the rail rather than switched off. `display: none` removed the
+			// words on the first frame and left a 220px rail of bare glyphs for the rest of the
+			// animation, which read as two separate movements.
+			transition: opacity 0.12s ease, margin-left 0.18s ease;
 		}
 
 		svg,
@@ -365,5 +378,121 @@ body.sidebar-collapsed .dock-resize-handle {
 @include media-breakpoint-down(sm) {
 	.dock {
 		display: none;
+	}
+}
+
+// ---------------------------------------------------------------------------------------------
+// Collapsed: the rail without its words
+//
+// The rail's default shape pairs a glyph with its label, and the header of this file records why:
+// a row says what it is without being pointed at. Collapsing trades that back the other way. It is
+// a per-user choice, stored under `dock-collapsed` and applied to <body> by frappe.ui.Dock, so the
+// width and everything keyed to it stay here rather than in inline styles.
+//
+// Nothing is removed from the rail, only narrowed: the same rows in the same order, so the muscle
+// memory of position survives the toggle. Tooltips come back with the words gone -- see
+// Dock.sync_row_tooltips.
+// ---------------------------------------------------------------------------------------------
+
+:root {
+	// 8px of rail padding either side of a 34px row, the square a 16px glyph is centred in.
+	--dock-width-collapsed: 50px;
+}
+
+// The toggle: an arrow on the rail's right edge. It rides `.dock`'s own `position: relative`, so
+// it needs no slot in the column and the rows keep the rhythm they had.
+//
+// Straddles the edge, half on the rail and half over the sidebar. That overhang is what the
+// rail's `z-index: 1021` buys: at 1020 the sidebar painted over it, and no z-index on this button
+// could have helped, since the rail's own z-index makes it a stacking context its children cannot
+// leave. `.dock-resize-handle` overhangs on the same edge but only shows while the sidebar is
+// collapsed, when nothing is there to cover it; this one has to work with the sidebar open.
+//
+// Revealed on hover of the rail rather than drawn always, because it is chrome rather than a row,
+// and kept reachable by keyboard through `:focus-visible`. Above `.dock-resize-handle` in z-order
+// so the two do not fight over the same edge while the sidebar is collapsed.
+.dock-collapse-toggle {
+	position: absolute;
+	top: 50%;
+	right: -11px;
+	transform: translateY(-50%);
+
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	z-index: 1023;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	border: 1px solid var(--outline-gray-2);
+	border-radius: 50%;
+	background: var(--surface-white);
+	color: var(--ink-gray-6);
+	cursor: pointer;
+
+	opacity: 0;
+	transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+
+	&:hover {
+		background: var(--surface-gray-2);
+		color: var(--ink-gray-8);
+	}
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+}
+
+.dock:hover .dock-collapse-toggle,
+.dock-collapse-toggle:focus-visible {
+	opacity: 1;
+}
+
+body.dock-collapsed {
+	--dock-width: var(--dock-width-collapsed);
+
+	.dock {
+		// The row's label folds to nothing and fades as the rail narrows, so the words and the
+		// width finish together.
+		.dock-item-label {
+			flex: 0 0 0;
+			width: 0;
+			margin-left: 0;
+			opacity: 0;
+		}
+
+		// The header's and the user button's two-line block. Switched off outright: both sit in a
+		// fixed-height band that never took part in the width change, so there is nothing here for
+		// an animation to keep in step with.
+		.title-container {
+			display: none;
+		}
+
+		// Nothing is re-aligned here, deliberately. Centring the glyph looks like the obvious
+		// thing to do once the label is gone, but the rule lands on the first frame while the
+		// rail is still 220px wide: the glyph jumped to the centre of a 220px row and then slid
+		// back left as the rail narrowed, which is a bigger movement than the collapse itself.
+		//
+		// It is unnecessary as well as harmful. The rows keep their 8px indent inside bands that
+		// already carry 8px, so at a 50px rail the glyph sits 8px from one edge and 10px from the
+		// other -- a pixel off centre, and nothing moves but the rail.
+
+		// Points the other way, because it now offers the opposite move.
+		.dock-collapse-toggle svg {
+			transform: rotate(180deg);
+		}
+	}
+}
+
+// Nothing here is load-bearing: the collapse is a width change and reads perfectly well as an
+// instant one.
+@media (prefers-reduced-motion: reduce) {
+	.dock,
+	.dock .dock-item-label,
+	.dock-collapse-toggle {
+		transition: none;
 	}
 }
