@@ -4,10 +4,10 @@ import httpx
 import litellm
 import pytest
 
-from flow.model.catalog import PROVIDERS, ModelInfo
-from flow.model.credentials import CredentialStore, OAuthCredential
-from flow.model.discovery import _codex_client_version, available_models
-from flow.model.providers.codex import DEFAULT_CODEX_CLIENT_VERSION
+from flow_harness.model.catalog import PROVIDERS, ModelInfo
+from flow_harness.model.credentials import CredentialStore, OAuthCredential
+from flow_harness.model.discovery import _codex_client_version, available_models
+from flow_harness.model.providers.codex import DEFAULT_CODEX_CLIENT_VERSION
 
 
 @pytest.fixture

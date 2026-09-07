@@ -11,7 +11,7 @@ from collections.abc import Callable
 
 from textual.widgets import OptionList
 
-from flow.events import ModelChanged, ReasoningEffort
+from flow_harness.events import ModelChanged, ReasoningEffort
 from flow_tui.app import FlowApp
 from flow_tui.client.api import FlowAPIError
 from flow_tui.client.state import Change, ConversationState, StatusChanged

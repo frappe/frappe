@@ -4,8 +4,8 @@ from typing import Annotated, Literal
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from flow.events import DisplaySegment
-from flow.tools.tool import Tool, ToolContext, build_schema, render_tool_display, tool
+from flow_harness.events import DisplaySegment
+from flow_harness.tools.tool import Tool, ToolContext, build_schema, render_tool_display, tool
 
 
 def test_primitives_and_required():

@@ -4,12 +4,12 @@ import asyncio
 
 from fastapi.testclient import TestClient
 
-from flow.model.auth import ResolvedModelAuth, resolve_model_auth
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.server.policy import DEPLOYED, ServerPolicy
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
+from flow_harness.model.auth import ResolvedModelAuth, resolve_model_auth
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.server.policy import DEPLOYED, ServerPolicy
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
 
 KEY = "sk-inline-secret"
 
@@ -126,7 +126,7 @@ def test_resolve_model_auth_prefers_inline(tmp_path):
 
 
 def test_run_path_passes_inline_credentials(tmp_path, monkeypatch):
-	from flow.agent import loop
+	from flow_harness.agent import loop
 
 	captured = {}
 

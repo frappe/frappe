@@ -5,7 +5,7 @@ Flow runs durable agent sessions. Use `Agent` when Python owns the process, or t
 ## Python
 
 ```python
-from flow.agent import Agent
+from flow_harness.agent import Agent
 
 agent = Agent(model="mock", cwd=".")
 

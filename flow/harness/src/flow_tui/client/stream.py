@@ -15,7 +15,7 @@ from collections.abc import AsyncIterator
 
 import httpx
 
-from flow.events import AnyEvent, parse_event
+from flow_harness.events import AnyEvent, parse_event
 from flow_tui.client.api import FlowAPIError, FlowClient
 
 

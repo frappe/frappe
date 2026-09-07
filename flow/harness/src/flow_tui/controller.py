@@ -13,10 +13,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from flow import settings
-from flow.events import ReasoningEffort, RunEnded, RunStarted, UserMessage
-from flow.session.config import SessionConfig
-from flow.session.skills import parse_skill_invocation
+from flow_harness import settings
+from flow_harness.events import ReasoningEffort, RunEnded, RunStarted, UserMessage
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.skills import parse_skill_invocation
 from flow_tui.client.api import FlowAPIError, FlowClient
 from flow_tui.client.state import (
 	Change,

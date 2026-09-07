@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from textual.containers import VerticalScroll
 
-from flow.events import ToolResult, TranscriptMessage
+from flow_harness.events import ToolResult, TranscriptMessage
 from flow_tui.client.state import PartialPart
 from flow_tui.widgets.messages import EntryView, PartialAssistantView, ThinkingBlock, ToolCallView
 

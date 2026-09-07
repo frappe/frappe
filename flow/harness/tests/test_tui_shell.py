@@ -15,7 +15,7 @@ from rich.console import Group
 from rich.syntax import Syntax
 from textual.widgets import Static
 
-from flow.events import (
+from flow_harness.events import (
 	AssistantMessage,
 	RunEnded,
 	RunStarted,
@@ -29,10 +29,10 @@ from flow.events import (
 	Usage,
 	UserMessage,
 )
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
 from flow_tui.app import SPINNER_FRAMES, FlowApp, Spinner
 from flow_tui.client.api import FlowClient
 from flow_tui.client.state import (

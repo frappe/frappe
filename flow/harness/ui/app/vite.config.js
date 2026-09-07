@@ -42,7 +42,7 @@ export default defineConfig({
 	server: { host: "127.0.0.1", proxy },
 	build: {
 		// `flow web` serves this from inside the package, same-origin with the API
-		outDir: fileURLToPath(new URL("../../src/flow/server/webui", import.meta.url)),
+		outDir: fileURLToPath(new URL("../../src/flow_harness/server/webui", import.meta.url)),
 		emptyOutDir: true,
 	},
 })

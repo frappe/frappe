@@ -8,7 +8,7 @@ import json
 import httpx
 import pytest
 
-from flow.events import (
+from flow_harness.events import (
 	AssistantMessage,
 	DisplaySegment,
 	TextContent,
@@ -17,10 +17,10 @@ from flow.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow.model import ModelRequest, ProviderError
-from flow.model.auth import AuthError, RuntimeAuth, get_auth_provider
-from flow.model.credentials import OAuthCredential
-from flow.model.providers.codex import (
+from flow_harness.model import ModelRequest, ProviderError
+from flow_harness.model.auth import AuthError, RuntimeAuth, get_auth_provider
+from flow_harness.model.credentials import OAuthCredential
+from flow_harness.model.providers.codex import (
 	CLIENT_ID,
 	DEFAULT_CODEX_CLIENT_VERSION,
 	CodexModel,
@@ -602,7 +602,7 @@ async def test_http_transient_failure_retries_in_stream(status):
 
 
 async def test_timeout_retries_in_stream(monkeypatch):
-	monkeypatch.setattr("flow.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
 	attempts = 0
 
 	def handler(request):

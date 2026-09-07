@@ -11,8 +11,8 @@ from typing import Literal
 
 import httpx
 
-from flow.events import ReasoningEffort
-from flow.session.config import SessionConfig
+from flow_harness.events import ReasoningEffort
+from flow_harness.session.config import SessionConfig
 
 # SSE reads block between events; keepalives arrive every 15 s while the session
 # idles, so a 60 s read timeout only fires when the peer is truly gone.

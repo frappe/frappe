@@ -16,7 +16,7 @@ Two packages (npm workspaces):
 Production-style — one command, UI served by the daemon itself (same origin):
 
 ```bash
-cd ui && npm install && npm run build -w app   # builds into src/flow/server/webui/
+cd ui && npm install && npm run build -w app   # builds into src/flow_harness/server/webui/
 flow web
 ```
 

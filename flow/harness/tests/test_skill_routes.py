@@ -4,11 +4,11 @@ import os
 
 from fastapi.testclient import TestClient
 
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.server.policy import DEPLOYED
-from flow.session import skills as skills_module
-from flow.session.store import SessionStore
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.server.policy import DEPLOYED
+from flow_harness.session import skills as skills_module
+from flow_harness.session.store import SessionStore
 
 SKILL = "---\nname: {name}\ndescription: Use for tests.\n---\n\n# Steps\nRun the tests.\n"
 

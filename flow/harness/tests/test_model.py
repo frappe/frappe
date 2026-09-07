@@ -3,7 +3,7 @@ import asyncio
 import httpx
 import pytest
 
-from flow.events import (
+from flow_harness.events import (
 	AssistantMessage,
 	DisplaySegment,
 	TextContent,
@@ -12,7 +12,7 @@ from flow.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow.model import (
+from flow_harness.model import (
 	_NATIVE_PROVIDERS,
 	LiteLLMModel,
 	MockModel,
@@ -21,7 +21,7 @@ from flow.model import (
 	get_model,
 	register_provider,
 )
-from flow.model.litellm import (
+from flow_harness.model.litellm import (
 	_build_tool_call,
 	_openai_messages,
 	_reasoning_blocks,
@@ -29,8 +29,8 @@ from flow.model.litellm import (
 	_stop_reason,
 	_usage_event,
 )
-from flow.model.providers.codex import CodexModel
-from flow.model.tool_display import (
+from flow_harness.model.providers.codex import CodexModel
+from flow_harness.model.tool_display import (
 	extract_tool_call_display_metadata,
 	tool_call_display_ready_event,
 )
@@ -194,7 +194,7 @@ async def test_litellm_cancellation_closes_active_stream(monkeypatch):
 
 async def test_litellm_disables_sdk_retries_and_owns_the_attempts(monkeypatch):
 	"""One acompletion call is one provider attempt; the retry budget lives in Flow."""
-	monkeypatch.setattr("flow.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
 	seen_kwargs = {}
 	attempts = 0
 

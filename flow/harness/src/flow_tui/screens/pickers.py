@@ -16,7 +16,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Input, OptionList
 from textual.widgets.option_list import Option
 
-from flow.events import ReasoningEffort
+from flow_harness.events import ReasoningEffort
 
 
 class FilterPicker(ModalScreen[str | None]):

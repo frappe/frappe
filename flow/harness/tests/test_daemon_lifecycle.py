@@ -8,8 +8,8 @@ import time
 import httpx
 import pytest
 
-from flow.cli.daemon import bind_unix, spawn_private, teardown
-from flow.config import UDS_URL
+from flow_harness.cli.daemon import bind_unix, spawn_private, teardown
+from flow_harness.config import UDS_URL
 
 
 @pytest.fixture
@@ -30,6 +30,24 @@ def test_private_daemon_requires_its_token(daemon):
 		authed = http.get("/sessions", headers={"Authorization": f"Bearer {daemon.token}"})
 		assert authed.status_code == 200
 		assert "sessions" in authed.json()
+
+
+def test_private_daemon_with_an_unrelated_flow_package(tmp_path, monkeypatch):
+	# A Frappe bench provides its own `flow`; the daemon must never import it,
+	# including when its CLI launches a fresh Python process.
+	package = tmp_path / "flow"
+	package.mkdir()
+	(package / "__init__.py").write_text('raise AssertionError("imported the other flow package")\n')
+	pythonpath = os.pathsep.join(filter(None, (str(tmp_path), os.environ.get("PYTHONPATH"))))
+	monkeypatch.setenv("PYTHONPATH", pythonpath)
+	d = spawn_private(str(tmp_path / "data"), timeout=15.0)
+	try:
+		with _client(d, timeout=5.0) as http:
+			response = http.get("/sessions", headers={"Authorization": f"Bearer {d.token}"})
+			assert response.status_code == 200
+			assert response.json() == {"sessions": []}
+	finally:
+		teardown(d)
 
 
 def test_teardown_stops_the_daemon(tmp_path):

@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from flow.agent.compaction import (
+from flow_harness.agent.compaction import (
 	ESTIMATED_IMAGE_TOKENS,
 	KEEP_RECENT_TOKENS,
 	MESSAGE_OVERHEAD_TOKENS,
@@ -22,7 +22,7 @@ from flow.agent.compaction import (
 	serialize_messages,
 	summarize,
 )
-from flow.events import (
+from flow_harness.events import (
 	AssistantMessage,
 	AttachmentContent,
 	Compaction,
@@ -31,8 +31,8 @@ from flow.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow.model.mock import MockModel
-from flow.session.transcript import compaction_summary_message
+from flow_harness.model.mock import MockModel
+from flow_harness.session.transcript import compaction_summary_message
 
 BIG = "x" * (KEEP_RECENT_TOKENS * 4)  # one message that alone overflows the kept tail
 

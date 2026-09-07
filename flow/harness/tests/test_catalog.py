@@ -3,8 +3,8 @@
 import litellm
 import pytest
 
-from flow.model.catalog import PROVIDERS, configured_providers, list_models
-from flow.model.credentials import CredentialStore, OAuthCredential
+from flow_harness.model.catalog import PROVIDERS, configured_providers, list_models
+from flow_harness.model.credentials import CredentialStore, OAuthCredential
 
 COST_TABLE = {
 	"sample_spec": {"mode": "one of: chat, embedding", "litellm_provider": "one of: openai, ..."},

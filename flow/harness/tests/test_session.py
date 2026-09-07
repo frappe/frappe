@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from flow.events import (
+from flow_harness.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	PendingCall,
@@ -21,11 +21,11 @@ from flow.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow.model.credentials import CredentialStore
-from flow.model.mock import MockModel
-from flow.session.config import SessionConfig
-from flow.session.session import SessionState
-from flow.session.store import SessionStore
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.model.mock import MockModel
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.session import SessionState
+from flow_harness.session.store import SessionStore
 
 
 def test_session_config_includes_all_builtin_tools_by_default():
@@ -138,7 +138,7 @@ async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, mo
 		resolved.append(name)
 		return MockModel()
 
-	monkeypatch.setattr("flow.agent.loop.get_model", spy)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", spy)
 	credentials = CredentialStore(str(tmp_path / "credentials.json"))  # keep auth offline
 	store = SessionStore(str(tmp_path), credential_store=credentials)
 	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
@@ -342,7 +342,7 @@ async def test_reconnecting_event_stream_replays_in_progress_deltas(tmp_path):
 
 
 async def test_slow_event_subscriber_is_dropped_and_can_reconnect(tmp_path, monkeypatch):
-	monkeypatch.setattr("flow.session.session._SUBSCRIBER_QUEUE_SIZE", 2)
+	monkeypatch.setattr("flow_harness.session.session._SUBSCRIBER_QUEUE_SIZE", 2)
 
 	class BurstyModel(MockModel):
 		def __init__(self):
@@ -415,7 +415,7 @@ async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
 
 
 async def test_rewind_while_running_is_a_conflict(tmp_path):
-	from flow.session.session import SessionConflict
+	from flow_harness.session.session import SessionConflict
 
 	class Blocking(MockModel):
 		def __init__(self):
@@ -443,7 +443,7 @@ async def test_rewind_while_running_is_a_conflict(tmp_path):
 
 
 async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
-	from flow.session.session import RewindError
+	from flow_harness.session.session import RewindError
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
@@ -464,7 +464,7 @@ async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
 
 
 async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
-	from flow.session.session import ResumeError
+	from flow_harness.session.session import ResumeError
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
@@ -489,7 +489,7 @@ async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
 
 
 async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
-	from flow.session.transcript import active_path
+	from flow_harness.session.transcript import active_path
 
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(cwd=str(tmp_path)))
@@ -517,7 +517,7 @@ async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
 async def test_rewinding_twice_lands_on_the_branch_the_first_marker_moved_to(tmp_path):
 	"""A client that rewinds "to just before the last user message" aims at the row
 	before its run_started — which, for the first run after a rewind, is the marker."""
-	from flow.session.transcript import active_path
+	from flow_harness.session.transcript import active_path
 
 	def target_before_last_user_message(session):
 		rows = active_path(session.log.read_since(0))
@@ -548,7 +548,7 @@ async def test_rewinding_twice_lands_on_the_branch_the_first_marker_moved_to(tmp
 
 
 async def test_set_model_is_rejected_while_running(tmp_path):
-	from flow.session.session import SessionConflict
+	from flow_harness.session.session import SessionConflict
 
 	class Blocking(MockModel):
 		def __init__(self):
@@ -649,7 +649,7 @@ async def test_compact_writes_a_durable_summary_and_survives_reload(tmp_path):
 
 
 async def test_compact_conflicts_while_running_paused_or_empty(tmp_path):
-	from flow.session.session import SessionConflict
+	from flow_harness.session.session import SessionConflict
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
@@ -730,7 +730,7 @@ class _BlockingSummarizer(MockModel):
 
 
 async def test_run_during_manual_compact_is_a_conflict_not_steering(tmp_path):
-	from flow.session.session import SessionConflict
+	from flow_harness.session.session import SessionConflict
 
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(cwd=str(tmp_path)))

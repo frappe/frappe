@@ -4,8 +4,8 @@ import os
 
 import pytest
 
-from flow.tools.builtins import BUILTIN_TOOLS, bash, edit, grep, read, write
-from flow.tools.tool import ToolContext, ToolResult
+from flow_harness.tools.builtins import BUILTIN_TOOLS, bash, edit, grep, read, write
+from flow_harness.tools.tool import ToolContext, ToolResult
 
 
 def _ctx(tmp_path, **kw) -> ToolContext:

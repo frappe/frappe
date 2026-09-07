@@ -1,6 +1,6 @@
 """Phase 4 client core: the ConversationState reducer (pure, no I/O)."""
 
-from flow.events import (
+from flow_harness.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	DisplaySegment,

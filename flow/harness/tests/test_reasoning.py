@@ -1,7 +1,7 @@
 """The effort-to-provider-params mapping."""
 
-from flow.model import reasoning
-from flow.model.reasoning import reasoning_params
+from flow_harness.model import reasoning
+from flow_harness.model.reasoning import reasoning_params
 
 
 def _catalog(monkeypatch, info):

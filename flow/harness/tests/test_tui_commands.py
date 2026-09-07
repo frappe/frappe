@@ -15,11 +15,11 @@ import uvicorn
 from textual.command import CommandPalette
 from textual.widgets import Input, Static
 
-from flow.events import AssistantMessage, ReasoningEffort, RunStarted, TextContent, UserMessage
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
+from flow_harness.events import AssistantMessage, ReasoningEffort, RunStarted, TextContent, UserMessage
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
 from flow_tui.app import FlowApp
 from flow_tui.client.api import FlowAPIError, FlowClient
 from flow_tui.client.state import Change, ConversationState, StatusChanged

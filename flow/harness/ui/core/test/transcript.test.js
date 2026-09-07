@@ -37,10 +37,10 @@ test("user content helpers support durable attachment blocks", () => {
 })
 
 test("code references appended by the composer split back out of the text", () => {
-	const { body, refs } = splitCodeRefs("hi\n\n@src/flow/agent/agent.py:10-15\n@/abs/config.py:17")
+	const { body, refs } = splitCodeRefs("hi\n\n@src/flow_harness/agent/agent.py:10-15\n@/abs/config.py:17")
 	assert.equal(body, "hi")
 	assert.deepEqual(refs, [
-		{ path: "src/flow/agent/agent.py", start: 10, end: 15 },
+		{ path: "src/flow_harness/agent/agent.py", start: 10, end: 15 },
 		{ path: "/abs/config.py", start: 17, end: 17 },
 	])
 	assert.equal(codeRefLabel(refs[0]), "agent.py (10-15)")
@@ -69,14 +69,14 @@ test("expanded skill messages render compactly like Pi and Tau", () => {
 test("declarative tool displays drive live labels", () => {
 	const display = [
 		{ text: "Reading file " },
-		{ text: "src/flow/model/base.py", arg: "path" },
+		{ text: "src/flow_harness/model/base.py", arg: "path" },
 	]
 	// the live line shortens read paths to the file name; the full path stays in displayText
 	assert.equal(
-		stepLiveLabel({ name: "read", arguments: { path: "src/flow/model/base.py" }, display }),
+		stepLiveLabel({ name: "read", arguments: { path: "src/flow_harness/model/base.py" }, display }),
 		"Reading file base.py",
 	)
-	assert.equal(displayText(display), "Reading file src/flow/model/base.py")
+	assert.equal(displayText(display), "Reading file src/flow_harness/model/base.py")
 })
 
 test("known tools retain generic fallbacks for older events", () => {
@@ -265,7 +265,7 @@ test("durable assistant call creates the first visible step and receives the res
 		type: "tool_call",
 		id: "call-1",
 		name: "read",
-		arguments: { path: "src/flow/events.py" },
+		arguments: { path: "src/flow_harness/events.py" },
 	}
 	applyEvent(conversation, {
 		type: "assistant_message",

@@ -11,13 +11,13 @@ import pytest
 import uvicorn
 from fastapi.testclient import TestClient
 
-from flow.events import AssistantMessage, ToolCall, Usage
-from flow.model import Model, ModelRequest
-from flow.model.credentials import CredentialStore
-from flow.model.mock import MockModel
-from flow.server import create_app
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
+from flow_harness.events import AssistantMessage, ToolCall, Usage
+from flow_harness.model import Model, ModelRequest
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.model.mock import MockModel
+from flow_harness.server import create_app
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
 
 
 def _client(tmp_path, **store_kw):
@@ -83,7 +83,7 @@ def test_wait_summary_includes_cache_usage(tmp_path, monkeypatch):
 				cache_write_tokens=10,
 			)
 
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: CacheUsageModel())
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: CacheUsageModel())
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 
@@ -108,9 +108,9 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 		resolved.append(name)
 		return MockModel()
 
-	monkeypatch.setattr("flow.agent.loop.get_model", spy)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", spy)
 	monkeypatch.setattr(
-		"flow.server.routes.sessions.context_window_for",
+		"flow_harness.server.routes.sessions.context_window_for",
 		lambda model: 1_000_000 if model == "mock/v2" else None,
 	)
 	c = _client(tmp_path)
@@ -143,7 +143,7 @@ def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_pat
 		captured.append(kwargs.get("params"))
 		return MockModel()
 
-	monkeypatch.setattr("flow.agent.loop.get_model", spy)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", spy)
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path), "reasoning_effort": "low"}).json()[
 		"session_id"
@@ -646,7 +646,7 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 			AssistantMessage(content="done"),
 		]
 	)
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: mock)
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
@@ -707,7 +707,7 @@ def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	mock = MockModel(
 		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
 	)
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: mock)
 	data_dir = tmp_path / "data"
 	store = SessionStore(
 		str(data_dir),
@@ -791,7 +791,7 @@ class _AbortBlockingModel(Model):
 
 async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -833,7 +833,7 @@ async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, mon
 
 async def test_abort_interrupts_stream_clears_steering_and_returns_session_to_idle(tmp_path, monkeypatch):
 	model = _AbortBlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -888,7 +888,7 @@ async def test_http_abort_kills_active_bash_process_tree_and_repairs_transcript(
 			AssistantMessage(content=[ToolCall(id="bash-1", name="bash", arguments={"command": command})])
 		]
 	)
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -940,7 +940,7 @@ async def test_http_abort_kills_active_bash_process_tree_and_repairs_transcript(
 async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp_path, monkeypatch):
 	(tmp_path / "a.txt").write_text("SECRET")
 	model = _ResumeBlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -988,7 +988,7 @@ async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp
 async def test_stream_reconnect_with_since_continues_a_live_run(tmp_path, monkeypatch):
 	# a live SSE stream needs a real server: httpx's ASGITransport buffers whole bodies
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -1050,7 +1050,7 @@ def test_cancel_pending_closes_a_paused_run(tmp_path, monkeypatch):
 			AssistantMessage(content="done"),
 		]
 	)
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: mock)
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
@@ -1084,7 +1084,7 @@ def test_cancel_pending_without_a_pause_is_a_noop(tmp_path):
 
 async def test_cancel_pending_while_running_is_rejected(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -1123,7 +1123,7 @@ def test_rewind_branches_the_conversation_over_http(tmp_path):
 
 async def test_rewind_while_running_is_rejected_over_http(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -1166,7 +1166,7 @@ def test_compact_verb_summarizes_and_conflicts(tmp_path, monkeypatch):
 			AssistantMessage(content="## Goal\nserver summary"),  # the summarizer's turn
 		]
 	)
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda name, **kw: mock)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kw: mock)
 	r = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hello"}).json()
 	assert r["reason"] == "done"
 
@@ -1185,8 +1185,8 @@ def test_compact_verb_summarizes_and_conflicts(tmp_path, monkeypatch):
 
 
 def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypatch):
-	from flow.model import discovery
-	from flow.model.catalog import PROVIDERS
+	from flow_harness.model import discovery
+	from flow_harness.model.catalog import PROVIDERS
 
 	for provider in PROVIDERS:
 		for name in provider.api_key_envs:
@@ -1243,7 +1243,7 @@ def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
 			AssistantMessage(content="done"),
 		]
 	)
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: mock)
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
@@ -1267,7 +1267,7 @@ def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
 
 
 async def test_stream_follow_stays_open_between_runs_with_keepalives(tmp_path, monkeypatch):
-	monkeypatch.setattr("flow.server.utils.sse.KEEPALIVE_SECONDS", 0.05)
+	monkeypatch.setattr("flow_harness.server.utils.sse.KEEPALIVE_SECONDS", 0.05)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),

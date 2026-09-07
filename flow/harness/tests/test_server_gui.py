@@ -6,13 +6,13 @@ import asyncio
 import httpx
 from fastapi.testclient import TestClient
 
-from flow.events import AssistantMessage, Usage
-from flow.model import Model, ModelRequest
-from flow.model.auth import resolve_model_auth
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.server.utils.fspick import PickerUnavailable
-from flow.session.store import SessionStore
+from flow_harness.events import AssistantMessage, Usage
+from flow_harness.model import Model, ModelRequest
+from flow_harness.model.auth import resolve_model_auth
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.server.utils.fspick import PickerUnavailable
+from flow_harness.session.store import SessionStore
 
 
 def _client(tmp_path, **app_kw):
@@ -173,16 +173,16 @@ async def test_oauth_flow_rejects_state_mismatch(tmp_path):
 
 def test_fs_pick_returns_path_and_maps_unavailable_to_501(tmp_path, monkeypatch):
 	c, _ = _client(tmp_path)
-	monkeypatch.setattr("flow.server.routes.fs.pick_folder", lambda: "/projects/demo")
+	monkeypatch.setattr("flow_harness.server.routes.fs.pick_folder", lambda: "/projects/demo")
 	assert c.post("/fs/pick").json() == {"path": "/projects/demo"}
 
-	monkeypatch.setattr("flow.server.routes.fs.pick_folder", lambda: None)  # user cancelled
+	monkeypatch.setattr("flow_harness.server.routes.fs.pick_folder", lambda: None)  # user cancelled
 	assert c.post("/fs/pick").json() == {"path": None}
 
 	def unavailable():
 		raise PickerUnavailable("headless")
 
-	monkeypatch.setattr("flow.server.routes.fs.pick_folder", unavailable)
+	monkeypatch.setattr("flow_harness.server.routes.fs.pick_folder", unavailable)
 	assert c.post("/fs/pick").status_code == 501
 	# a side-effectful dialog must never open off a plain GET (<img src=…>)
 	assert c.get("/fs/pick").status_code == 405
@@ -233,7 +233,7 @@ def test_patch_config_toggles_auto_approve_and_persists(tmp_path):
 
 async def test_patch_config_applies_during_active_run(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -282,7 +282,7 @@ class _BlockingModel(Model):
 
 async def test_delete_running_session_conflicts(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),

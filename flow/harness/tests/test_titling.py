@@ -5,11 +5,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from flow.events import AssistantMessage, TitleChanged
-from flow.model.mock import MockModel
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
-from flow.session.titling import generate_title, sanitize_title
+from flow_harness.events import AssistantMessage, TitleChanged
+from flow_harness.model.mock import MockModel
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
+from flow_harness.session.titling import generate_title, sanitize_title
 
 
 def test_sanitize_title_takes_first_line_unquoted_and_bounded():
@@ -57,8 +57,8 @@ def _titling_session(tmp_path, monkeypatch, replies):
 		calls.append(name)
 		return MockModel(replies=list(replies))
 
-	monkeypatch.setattr("flow.session.session.resolve_model_auth", fake_auth)
-	monkeypatch.setattr("flow.session.session.get_model", fake_get_model)
+	monkeypatch.setattr("flow_harness.session.session.resolve_model_auth", fake_auth)
+	monkeypatch.setattr("flow_harness.session.session.get_model", fake_get_model)
 	return store, session, calls
 
 
@@ -102,7 +102,7 @@ async def test_titling_failure_leaves_the_fallback(tmp_path, monkeypatch):
 	async def failing_auth(*_args, **_kwargs):
 		raise RuntimeError("no credentials")
 
-	monkeypatch.setattr("flow.session.session.resolve_model_auth", failing_auth)
+	monkeypatch.setattr("flow_harness.session.session.resolve_model_auth", failing_auth)
 	store = SessionStore(str(tmp_path / "state"))
 	session = store.create(SessionConfig(model="titled/model", cwd=str(tmp_path)))
 	handle = await session.run("fix the bug", model=MockModel())
@@ -150,7 +150,7 @@ async def test_delete_cancels_in_flight_titling(tmp_path, monkeypatch):
 		started.set()
 		await asyncio.Event().wait()
 
-	monkeypatch.setattr("flow.session.session.resolve_model_auth", hanging_auth)
+	monkeypatch.setattr("flow_harness.session.session.resolve_model_auth", hanging_auth)
 	store = SessionStore(str(tmp_path / "state"))
 	session = store.create(SessionConfig(model="titled/model", cwd=str(tmp_path)))
 	handle = await session.run("hi", model=MockModel())

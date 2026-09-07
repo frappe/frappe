@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING, cast, get_args
 
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 
-from flow.events import ReasoningEffort, UserMessage
-from flow.session.skills import parse_skill_invocation
+from flow_harness.events import ReasoningEffort, UserMessage
+from flow_harness.session.skills import parse_skill_invocation
 from flow_tui.client.api import FlowAPIError
 from flow_tui.screens.pickers import EffortPicker, ModelPicker, SessionPicker
 
