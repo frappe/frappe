@@ -105,6 +105,12 @@ class MariaDBTable(DBTable):
 				and col not in frappe.db.DEFAULT_COLUMNS
 				and col not in frappe.db.OPTIONAL_COLUMNS
 			):
+				# A generated column belongs to whoever wrote its expression, not to the meta.
+				# Dropping its constraint here only makes the owner's on_doctype_update put the
+				# index back, and the pair repeats on every migrate.
+				if self.current_columns.get(col, {}).get("is_generated"):
+					continue
+
 				has_unique = frappe.db.get_column_index(self.table_name, col, unique=True)
 
 				if not has_unique:

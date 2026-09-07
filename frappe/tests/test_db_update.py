@@ -424,6 +424,22 @@ class TestDBUpdateSanityChecks(IntegrationTestCase):
 				with self.assertQueryCount(0, query_type=("alter",)):
 					frappe.reload_doctype(doctype, force=True)
 
+	@skipIf(
+		(frappe.conf.db_type == "sqlite"),
+		"Not for SQLite for now",
+	)
+	def test_generated_columns_survive_a_sync(self):
+		"""A column the meta does not know about, carrying its own index, must not be rebuilt.
+
+		Automation Trigger Queue expresses "one waiting row per document" as a generated column
+		with a unique index on it. Treating that column as a deleted field drops the index, the
+		doctype's own on_doctype_update puts it back, and the pair repeats on every migrate.
+		"""
+		doctype = "Automation Trigger Queue"
+		frappe.reload_doctype(doctype, force=True)
+		with self.assertQueryCount(0, query_type=("alter",)):
+			frappe.reload_doctype(doctype, force=True)
+
 
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))

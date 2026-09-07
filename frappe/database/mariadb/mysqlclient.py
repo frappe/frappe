@@ -391,7 +391,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					limit 1
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique',
-			(is_nullable = 'NO') AS 'not_nullable'
+			(is_nullable = 'NO') AS 'not_nullable',
+			(extra like '%%GENERATED%%') AS 'is_generated'
 			from information_schema.columns as columns
 			where table_name = %(table_name)s
    			and table_schema = %(schema)s """,
