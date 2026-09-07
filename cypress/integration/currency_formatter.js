@@ -52,14 +52,11 @@ context("Currency Formatter", () => {
 
 context("Currency Formatter outside desk", () => {
 	before(() => {
-		// Any website page carries the web boot and frappe.format, but a signed-in user is
-		// redirected off /login and into desk, which boots frappe much later. Drop the session the
-		// first suite established - the spec does not isolate tests - then assert the page really
-		// is the portal one before reading anything off it.
-		Cypress.session.clearAllSavedSessions();
-		cy.clearCookies();
-		cy.visit("/login");
-		cy.location("pathname").should("eq", "/login");
+		// Any website page carries the web boot and frappe.format. This spec does not isolate its
+		// tests, so the session the first suite established is still here: visit a portal page that
+		// renders for a signed-in user rather than /login, which redirects one into desk.
+		cy.visit("/me");
+		cy.location("pathname").should("eq", "/me");
 	});
 
 	it("resolves precision from system defaults on portal pages", () => {
