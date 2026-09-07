@@ -6,6 +6,7 @@ import argparse
 import ipaddress
 import os
 import sys
+from typing import TypedDict
 
 from flow import config, settings
 from flow.cli.daemon import DaemonError
@@ -272,12 +273,13 @@ def _serve(args) -> None:
 		tenants=tenants,
 		tenants_file=config.TENANTS_FILE or None,
 		policy=policy,
+		lifespan=sink.lifespan if sink else None,
 	)
 	if args.parent_watch:
 		from flow.cli.daemon import watch_parent_stdin
 
 		watch_parent_stdin()
-	rinfo = f" · redis: {config.REDIS_URL}" if sink else ""
+	rinfo = " · redis" if sink else ""
 	ainfo = f" · auth: {len(tenants)} sites" if tenants else (" · auth: bearer" if auth_token else "")
 	pinfo = f" · profile: {policy.profile}" if policy.profile != "local" else ""
 
@@ -336,6 +338,7 @@ def _web(args) -> None:
 		auth_token=auth_token,
 		webui_dir=webui,
 		system_append=args.append_system_prompt,
+		lifespan=sink.lifespan if sink else None,
 	)
 	# 0.0.0.0 binds every interface but isn't itself browsable
 	browse_host = "127.0.0.1" if args.host in ("0.0.0.0", "::") else args.host
@@ -434,21 +437,34 @@ def _logout(args) -> None:
 	logout(CredentialStore(config.CREDENTIALS_PATH), args.provider)
 
 
+class _RedisQueueLimits(TypedDict, total=False):
+	max_pending: int
+	max_pending_per_site: int
+
+
 def _redis_sink():
-	"""Publish every event to Redis channel `harness:<sid>` (the wire contract shared with
-	Flow's bridge, kept as `harness:`) so an external relay can fan out to browsers."""
+	"""Create the configured Redis event sink."""
 	if not config.REDIS_URL:
 		return None
-	import json
+	from flow.server.redis_sink import RedisEventSink
 
-	import redis
-
-	client = redis.from_url(config.REDIS_URL)
-
-	def sink(session_id: str, event: dict) -> None:
-		client.publish(f"harness:{session_id}", json.dumps({"session_id": session_id, **event}))
-
-	return sink
+	limits: _RedisQueueLimits = {}
+	for name in ("max_pending", "max_pending_per_site"):
+		setting = f"REDIS_{name.upper()}"
+		raw = getattr(config, setting)
+		if raw is None:
+			continue
+		try:
+			value = int(raw)
+		except ValueError:
+			raise DaemonError(f"FLOW_{setting} must be a positive integer") from None
+		if value < 1:
+			raise DaemonError(f"FLOW_{setting} must be a positive integer")
+		limits[name] = value
+	try:
+		return RedisEventSink(config.REDIS_URL, **limits)
+	except ValueError:
+		raise DaemonError("invalid FLOW_REDIS_URL") from None
 
 
 if __name__ == "__main__":

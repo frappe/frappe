@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Lifespan
 
 from flow import config as server_config
 from flow.model.auth import AuthError
@@ -47,6 +48,7 @@ def create_app(
 	webui_dir: str | None = None,
 	system_append: str | None = None,
 	policy: ServerPolicy | None = None,
+	lifespan: Lifespan[FastAPI] | None = None,
 ) -> FastAPI:
 	"""`system_append` is text the operator adds to every session's system prompt
 	(`flow web --append-system-prompt`); it lands after whatever the client sends.
@@ -60,7 +62,14 @@ def create_app(
 	if policy.require_auth and not auth_token and not tenants:
 		raise ValueError("this server policy requires auth; pass auth_token or tenants")
 	# docs off: those routes would be reachable without a bearer beside the web UI
-	app = FastAPI(title="flow server", version="0.1.0", docs_url=None, redoc_url=None, openapi_url=None)
+	app = FastAPI(
+		title="flow server",
+		version="0.1.0",
+		docs_url=None,
+		redoc_url=None,
+		openapi_url=None,
+		lifespan=lifespan,
+	)
 	oauth = OAuthCoordinator(store.credential_store)
 
 	origins = cors_origins if cors_origins is not None else server_config.CORS_ORIGINS

@@ -100,7 +100,13 @@ Most invalid session states return `409`; unknown sessions return `404`.
 
 ## Entries and streaming
 
-`GET /sessions/{sid}/entries` returns durable log entries. `path=active` is the current branch and is a full snapshot only. `path=all` includes abandoned branches and accepts `since=N`.
+`GET /sessions/{sid}/entries` returns durable log entries and the current live `preview`. `path=active` is the current branch and is a full snapshot only. `path=all` includes abandoned branches and accepts `since=N`.
+
+The response also carries `stream_id` and `revision` for Redis catch-up. The revision advances for every event, including live deltas. The stream ID changes whenever the session is loaded again. These values are not durable log cursors; use `latest_seq` for `since`.
+
+Subscribe and buffer live messages before requesting a snapshot. Apply the returned entries, replace the preview (even when empty), then apply buffered messages from the same stream with revisions above the snapshot's revision. Ignore older revisions. Fetch another snapshot on a revision gap or a `resync_required` signal. On a stream ID change, fetch a full snapshot with `since=0` and discard buffered messages from other streams. Remove transport fields (`site`, `session_id`, `stream_id`, `revision`) before parsing a message as a Harness event.
+
+For resync signals, `session_ids` limits recovery to those tracked sessions within the scope named by the channel. When `session_ids` is absent, refresh all tracked sessions in that scope; a global signal covers all tracked sessions. Do not treat a session ID as unique across sites. Resync notices are transport messages, not Harness events. See [Redis channels](development.md#environment) for subscription details.
 
 `GET /sessions/{sid}/stream?since=N` is an SSE feed. It first replays durable entries after `N`, then streams live events. Reconnect with the last durable `seq`. Without `follow=true`, the stream closes at a run boundary. With `follow=true`, it stays open across idle periods and sends `: keepalive` comments. Slow streams close when their event queue fills and should reconnect from their last durable `seq`.
 

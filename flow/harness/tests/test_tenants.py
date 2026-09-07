@@ -142,6 +142,29 @@ def test_same_session_id_allowed_on_two_sites(tmp_path):
 	assert c.post("/sessions", json=body, headers=_auth("token-two")).status_code == 200
 
 
+@pytest.mark.parametrize("policy", [None, DEPLOYED], ids=["local", "deployed"])
+def test_sink_events_include_the_site(tmp_path, policy):
+	received = []
+	store = _store(tmp_path, event_sink=lambda sid, event: received.append((sid, event)))
+	c = TestClient(create_app(store, tenants=TENANTS, policy=policy))
+	for token in ("token-one", "token-two"):
+		sid = c.post(
+			"/sessions",
+			json={"model": "mock", "cwd": str(tmp_path), "session_id": "shared-id"},
+			headers=_auth(token),
+		).json()["session_id"]
+		response = c.post(
+			f"/sessions/{sid}/run",
+			params={"wait": "true"},
+			json={"message": "hello"},
+			headers=_auth(token),
+		)
+		assert response.status_code == 200
+
+	assert {event["site"] for _sid, event in received} == {"site1.localhost", "site2.localhost"}
+	assert {sid for sid, _event in received} == {"shared-id"}
+
+
 def test_per_site_allowed_roots(tmp_path):
 	fenced = tmp_path / "site1"
 	shared = tmp_path / "shared"

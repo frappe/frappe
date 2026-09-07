@@ -1,4 +1,8 @@
+import importlib
+import json
+
 import pytest
+from fastapi.testclient import TestClient
 
 from flow import config
 from flow.cli.daemon import DaemonError
@@ -83,3 +87,100 @@ def test_bare_invocation_defaults_to_web():
 		"--url",
 		"http://x",
 	]
+
+
+def test_redis_sink_is_optional(monkeypatch):
+	cli = importlib.import_module("flow.cli.main")
+	sink = object()
+	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
+	monkeypatch.setattr("flow.server.redis_sink.RedisEventSink", lambda _url, **_kwargs: sink)
+	assert cli._redis_sink() is sink
+
+	monkeypatch.setattr(config, "REDIS_URL", None)
+	assert cli._redis_sink() is None
+
+
+def test_redis_queue_limits_are_passed_to_the_sink(monkeypatch):
+	cli = importlib.import_module("flow.cli.main")
+	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
+	monkeypatch.setattr(config, "REDIS_MAX_PENDING", "8000")
+	monkeypatch.setattr(config, "REDIS_MAX_PENDING_PER_SITE", "1000")
+	monkeypatch.setattr("flow.server.redis_sink.RedisEventSink", lambda url, **kwargs: (url, kwargs))
+	assert cli._redis_sink() == (
+		"redis://unused",
+		{"max_pending": 8000, "max_pending_per_site": 1000},
+	)
+
+
+@pytest.mark.parametrize("name", ["MAX_PENDING", "MAX_PENDING_PER_SITE"])
+@pytest.mark.parametrize("value", ["0", "-1", "", "1.5", "invalid"])
+def test_invalid_redis_queue_limits_are_clean_config_errors(monkeypatch, name, value):
+	cli = importlib.import_module("flow.cli.main")
+	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
+	monkeypatch.setattr(config, f"REDIS_{name}", value)
+	with pytest.raises(DaemonError, match=f"FLOW_REDIS_{name} must be a positive integer"):
+		cli._redis_sink()
+	monkeypatch.setattr(config, "REDIS_URL", None)
+	assert cli._redis_sink() is None
+
+
+@pytest.mark.parametrize("url", ["https://secret:password@redis", "redis://secret:password@redis:bad"])
+def test_invalid_redis_urls_are_clean_config_errors(monkeypatch, url):
+	cli = importlib.import_module("flow.cli.main")
+	monkeypatch.setattr(config, "REDIS_URL", url)
+	with pytest.raises(DaemonError, match=r"^invalid FLOW_REDIS_URL$"):
+		cli._redis_sink()
+
+
+@pytest.mark.parametrize("command", ["serve", "web"])
+def test_cli_wires_redis_to_the_server_lifespan(tmp_path, monkeypatch, command):
+	cli = importlib.import_module("flow.cli.main")
+	redis = []
+	closed = []
+
+	class Client:
+		async def publish(self, _channel, message):
+			redis.append(json.loads(message))
+
+		async def aclose(self):
+			closed.append(True)
+
+	def run_server(app, **_kwargs):
+		with TestClient(app) as client:
+			sid = client.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+			assert (
+				client.post(
+					f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}
+				).status_code
+				== 200
+			)
+			assert closed == []
+
+	monkeypatch.setattr("redis.asyncio.from_url", lambda *_args, **_kwargs: Client())
+	monkeypatch.setattr("uvicorn.run", run_server)
+	monkeypatch.setattr("flow.server.logs.setup_terminal_logging", lambda: None)
+	monkeypatch.setattr(cli, "_warm_litellm", lambda: None)
+	monkeypatch.setattr(cli, "_resolve_auth_token", lambda: None)
+	monkeypatch.setattr(cli, "_webui_dist", lambda: str(tmp_path))
+	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
+	monkeypatch.setattr(config, "TENANTS_FILE", None)
+	monkeypatch.setattr(config, "POLICY", None)
+	monkeypatch.setattr(config, "ALLOWED_ROOTS", [])
+	monkeypatch.setattr(config, "CREDENTIALS_PATH", str(tmp_path / "credentials.json"))
+	options = ["--profile", "local"] if command == "serve" else ["--no-browser"]
+	monkeypatch.setattr(
+		"sys.argv",
+		[
+			"flow",
+			command,
+			"--host",
+			"127.0.0.1",
+			"--data-dir",
+			str(tmp_path / "data"),
+			"--no-extensions",
+			*options,
+		],
+	)
+	cli.main()
+	assert redis[-1]["type"] == "run_ended"
+	assert closed == [True]
