@@ -243,13 +243,60 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
+<<<<<<< HEAD
 	return frappe.get_all(
+=======
+
+	from frappe.model.utils.mask import mask_version_data
+
+	def filter_logs(logs, allowed_fields: list[str]):
+		if not logs:
+			return []
+		filtered_logs = []
+		for log in logs:
+			if log[0] in allowed_fields:
+				filtered_logs.append(log)
+		return filtered_logs
+
+	versions = frappe.get_all(
+>>>>>>> eb3c578 (refactor: Filter versions based on user's permitted fields)
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
 	)
+<<<<<<< HEAD
+=======
+
+	has_read_permission = doc.get_permlevel_access(permission_type="read")
+
+	if frappe.session.user == "Administrator" or not has_read_permission:
+		return mask_version_data(versions, doc.doctype)
+
+	allowed_fields = []
+
+	for field in doc.meta.fields:
+		if field.permlevel in has_read_permission:
+			allowed_fields.append(field.fieldname)
+
+	for table_field in doc.meta.get_table_fields():
+		nested_fields = frappe.get_meta(table_field.options).fields or []
+		for field in nested_fields:
+			if field.permlevel in has_read_permission:
+				allowed_fields.append(field.fieldname)
+
+	for version in versions:
+		data = frappe.parse_json(version.data)
+		# Iterate over logs and remove any fields that the user does not have permission to
+		data["changed"] = filter_logs(data.get("changed", []), allowed_fields)
+		data["added"] = filter_logs(data.get("added", []), allowed_fields)
+		data["removed"] = filter_logs(data.get("removed", []), allowed_fields)
+		data["row_changed"] = filter_logs(data.get("row_changed", []), allowed_fields)
+		version.data = frappe.utils.orjson_dumps(data)
+
+	return mask_version_data(versions, doc.doctype)
+>>>>>>> eb3c578 (refactor: Filter versions based on user's permitted fields)
 
 
 @frappe.whitelist()
