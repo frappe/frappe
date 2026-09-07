@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
@@ -11,6 +11,9 @@ from frappe.model.document import Document
 from frappe.utils import cint, now
 from frappe.utils.file_manager import get_file_path
 from frappe.utils.task_queue import enqueue_task
+
+if TYPE_CHECKING:
+	from frappe.query_builder import Criterion
 
 
 class UnsupportedExtractionFile(frappe.ValidationError):
@@ -65,6 +68,10 @@ class AttachmentQueue(Document):
 		if self.flags.skip_auto_extraction or self.flags.auto_extraction_enqueued or not self.source_file:
 			return
 
+		# A cancelled task leaves the row mid-flight, and the guard below is exactly what
+		# it then gets stuck behind. Settle that first, or the row blocks its own retry.
+		self.reconcile_cancelled_task()
+
 		# already in flight, or already finished
 		if self.status in {"Queued", "Processing", "Completed"}:
 			return
@@ -76,6 +83,29 @@ class AttachmentQueue(Document):
 
 		self.flags.auto_extraction_enqueued = True
 		self.enqueue_extraction()
+
+	def reconcile_cancelled_task(self) -> bool:
+		"""Move the row off Queued/Processing when the task behind it was cancelled.
+
+		Cancellation runs no callback on either path. A task stopped while still queued
+		never reaches the worker, and one stopped mid-run has its work horse killed, so
+		neither extract_attachment_queue_record nor the on_failure hook gets to write the
+		outcome. The row keeps whatever status it had, which reads as active work that
+		nothing is coming to finish. Asking the task is the only way to know.
+
+		Failed rather than a status of its own: the file is still there and still worth
+		keying in by hand, which is what Failed already means here (see
+		REVIEWABLE_STATUSES). It also puts the row back in front of a reviewer and lets
+		mark_queued clear the error on the next attempt.
+		"""
+		if self.status not in ("Queued", "Processing") or not self.task:
+			return False
+
+		if frappe.db.get_value("Background Task", self.task, "status") != "Cancelled":
+			return False
+
+		self.mark_failed(_("Extraction was cancelled. Retry to extract this file again."))
+		return True
 
 	def enqueue_extraction(self, *, queue: str = "default", enqueue_after_commit: bool = True) -> "Document":
 		# Deliberately no reload() here. after_insert/on_update call this halfway through a
@@ -112,10 +142,26 @@ class AttachmentQueue(Document):
 			update_modified=False,
 		)
 
+	def resolve_extraction_status(self, extraction_status: str) -> str:
+		"""Return the status extraction should end on.
+
+		A row that has already produced its document is Completed the moment extraction
+		ends, whatever the outcome: the document owns the source file and there is no
+		review left to offer. Read from the database rather than from `self`, because the
+		worker fetched this document before the slow part and a save taken during it links
+		the row in between. Locked, so the link cannot land between this read and the write
+		it decides — that would leave a linked row back on "Ready for Review", and back in
+		the review modal.
+		"""
+		created_document = frappe.db.get_value(
+			"Attachment Queue", self.name, "created_document", for_update=True
+		)
+		return "Completed" if created_document else extraction_status
+
 	def mark_completed(self, result: dict[str, Any]):
 		self.db_set(
 			{
-				"status": "Ready for Review",
+				"status": self.resolve_extraction_status("Ready for Review"),
 				"extraction_method": result.get("extraction_method"),
 				"extraction_completed_on": now(),
 				"extracted_text": result.get("extracted_text"),
@@ -129,7 +175,7 @@ class AttachmentQueue(Document):
 	def mark_failed(self, error_message: str, debug_output: str | None = None):
 		self.db_set(
 			{
-				"status": "Failed",
+				"status": self.resolve_extraction_status("Failed"),
 				"extraction_completed_on": now(),
 				"error_message": error_message,
 				"debug_output": debug_output,
@@ -138,14 +184,20 @@ class AttachmentQueue(Document):
 		)
 
 	def mark_review_completed(self, document_type: str, document_name: str):
-		self.db_set(
-			{
-				"status": "Completed",
-				"document_type": document_type,
-				"created_document": document_name,
-			},
-			update_modified=False,
-		)
+		values = {
+			"document_type": document_type,
+			"created_document": document_name,
+		}
+
+		# Extraction owns the status while it is still running. A save taken mid-extraction
+		# claims the row — the document exists and the source file moves onto it — but it
+		# does not end it: the worker's own terminal write is what reaches "Completed"
+		# (see resolve_extraction_status). Locked for the same reason it is there.
+		status = frappe.db.get_value("Attachment Queue", self.name, "status", for_update=True)
+		if status in REVIEWABLE_STATUSES:
+			values["status"] = "Completed"
+
+		self.db_set(values, update_modified=False)
 
 	def check_target_permission(self, ptype: str = "create", document_type: str | None = None):
 		"""Authorise an action that drives this queue row.
@@ -186,11 +238,18 @@ class AttachmentQueue(Document):
 	def clear_old_logs(days=30):
 		from frappe.utils import add_days, create_batch, now_datetime
 
-		# Route through delete_doc (not a raw table delete) so attached source files
-		# are cleaned up too, instead of being orphaned on disk. Batched, with a commit
-		# per batch, so a large backlog doesn't run as one long-held transaction.
+		# Only a Completed row is a log. Every other status is live intake that still owns
+		# its source file: Draft and Queued are waiting for a worker, Processing is
+		# mid-extraction, and REVIEWABLE_STATUSES are waiting for a reviewer. Age does not
+		# make any of those disposable - the queue row holds the only copy of the upload, and
+		# delete_doc takes the File with it. A Completed row has already handed its file to
+		# the document it produced, so it is the one state with nothing left to lose.
 		cutoff = add_days(now_datetime(), -cint(days))
-		names = frappe.get_all("Attachment Queue", filters={"creation": ["<", cutoff]}, pluck="name")
+		names = frappe.get_all(
+			"Attachment Queue",
+			filters={"creation": ["<", cutoff], "status": "Completed"},
+			pluck="name",
+		)
 		for batch in create_batch(names, 100):
 			for name in batch:
 				frappe.delete_doc("Attachment Queue", name, ignore_permissions=True, delete_permanently=True)
@@ -357,10 +416,20 @@ def link_to_document(attachment_queue: str, document_type: str, document_name: s
 
 	# Linking twice would strand the first document's attachment: the source file has
 	# already moved off the queue row by then, so the second link silently loses it.
-	if queue_doc.status not in REVIEWABLE_STATUSES:
+	# What rules that out is the row having produced a document, not what extraction is
+	# doing: a save taken while extraction is still running is the first link, not a
+	# second one, and refusing it leaves the document without its own source file.
+	# The lock is held to the end of the transaction, so
+	# the loser blocks here until the winner commits and then reads the claim it must refuse.
+	created_document = frappe.db.get_value(
+		"Attachment Queue", queue_doc.name, "created_document", for_update=True
+	)
+	if created_document:
 		frappe.throw(
-			_("Attachment Queue {0} is {1} and cannot be linked again.").format(
-				frappe.bold(queue_doc.name), frappe.bold(_(queue_doc.status))
+			_("Attachment Queue {0} has already produced {1} {2}.").format(
+				frappe.bold(queue_doc.name),
+				frappe.bold(_(queue_doc.document_type)),
+				frappe.bold(created_document),
 			)
 		)
 
@@ -374,17 +443,39 @@ def link_to_document(attachment_queue: str, document_type: str, document_name: s
 	target_doc = frappe.get_doc(document_type, document_name)
 	target_doc.check_permission("write")
 	queue_doc.mark_review_completed(target_doc.doctype, target_doc.name)
-	attach_source_file_to_document(queue_doc, target_doc)
+	attached = attach_source_file_to_document(queue_doc, target_doc)
+
+	if not attached:
+		# The row stays claimed: there is nothing left to review, and leaving it open would
+		# keep offering a review for a file that no longer exists. Refusing the link instead
+		# would wedge the reviewer, whose document is already saved and who has no way to
+		# bring the file back. So the row moves on and the reviewer is told, rather than
+		# being handed a success that moved nothing.
+		frappe.msgprint(
+			_("The source file for {0} could not be found and was not attached to {1} {2}.").format(
+				frappe.bold(queue_doc.name),
+				frappe.bold(_(target_doc.doctype)),
+				frappe.bold(target_doc.name),
+			),
+			indicator="orange",
+		)
 
 	return {
 		"ok": True,
+		"attached": attached,
 		"status": queue_doc.status,
 		"document_type": queue_doc.document_type,
 		"created_document": queue_doc.created_document,
 	}
 
 
-def attach_source_file_to_document(queue_doc: AttachmentQueue, target_doc: Document):
+def attach_source_file_to_document(queue_doc: AttachmentQueue, target_doc: Document) -> bool:
+	"""Move the queue row's source file onto the document it produced.
+
+	Return whether there was a file to move. A row whose File has been deleted since it was
+	created has nothing to hand over, and the caller must not report an attachment that did
+	not happen.
+	"""
 	file_doc_name = frappe.db.get_value(
 		"File",
 		{
@@ -395,7 +486,7 @@ def attach_source_file_to_document(queue_doc: AttachmentQueue, target_doc: Docum
 		"name",
 	)
 	if not file_doc_name:
-		return
+		return False
 
 	file_doc = frappe.get_doc("File", file_doc_name)
 	file_doc.db_set(
@@ -406,6 +497,7 @@ def attach_source_file_to_document(queue_doc: AttachmentQueue, target_doc: Docum
 		},
 		update_modified=False,
 	)
+	return True
 
 
 def validate_upload_first_workflow_doctype(document_type: str):
@@ -580,17 +672,23 @@ def has_permission(doc, ptype="read", user=None):
 	return frappe.has_permission(doc.document_type, ptype=ptype, user=user)
 
 
-def get_permission_query_conditions(user: str | None = None) -> str:
+def get_permission_query_conditions(user: str | None = None) -> "str | Criterion":
 	user = user or frappe.session.user
 
 	if user == "Administrator":
 		return ""
 
 	from frappe.permissions import get_doctypes_with_read
+	from frappe.query_builder import DocType
 
-	readable_doctypes = ", ".join(frappe.db.escape(dt) for dt in get_doctypes_with_read(user))
+	readable_doctypes = get_doctypes_with_read(user)
 
 	if not readable_doctypes:
 		return "1=0"
 
-	return f"`tabAttachment Queue`.`document_type` IN ({readable_doctypes})"
+	# A criterion rather than an assembled string. Both callers of this hook take a pypika
+	# term as well as raw SQL (frappe/model/db_query.py and frappe/database/query.py), and
+	# each renders it through frappe.db.escape - the same escaping the string form reached
+	# for by hand. Handing over the term instead means this hook no longer quotes the
+	# identifiers or builds the IN list itself.
+	return DocType("Attachment Queue").document_type.isin(readable_doctypes)

@@ -493,6 +493,7 @@ ignore_links_on_delete = [
 	"Sidebar",
 	"Custom Sidebar",
 	"Dock",
+	"Attachment Queue",
 ]
 
 # Request Hooks

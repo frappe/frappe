@@ -73,6 +73,29 @@ class TestAttachmentQueue(IntegrationTestCase):
 		)
 		return queue_doc
 
+	def make_task_for(self, queue_doc, status, task_status):
+		"""Put a queue row mid-flight behind a Background Task in a given state."""
+		task = frappe.get_doc(
+			{
+				"doctype": "Background Task",
+				"task_id": uuid4().hex,
+				"job_id": f"attachment_queue_extract:{queue_doc.name}",
+				"task_name": f"Extract document {queue_doc.name}",
+				"method": (
+					"frappe.core.doctype.attachment_queue.attachment_queue.extract_attachment_queue_record"
+				),
+				"status": task_status,
+				"user": frappe.session.user,
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(
+			lambda: frappe.delete_doc("Background Task", task.name, force=True, ignore_permissions=True)
+		)
+		queue_doc.db_set({"status": status, "task": task.name})
+		# make_queue leaves skip_auto_extraction on the doc it returns; enqueue_extraction_if_needed
+		# checks that flag first, so the caller needs a doc without it.
+		return frappe.get_doc("Attachment Queue", queue_doc.name)
+
 	def make_desk_user(self):
 		email = f"attachment-queue-user-{uuid4().hex}@example.com"
 		user = frappe.get_doc(
@@ -170,6 +193,54 @@ class TestAttachmentQueue(IntegrationTestCase):
 				reloaded.save()
 
 			enqueue_document_extraction.assert_not_called()
+
+	def test_cancelled_extraction_does_not_strand_the_queue_row(self):
+		"""A cancelled task must leave the row recoverable, not mid-flight.
+
+		Cancellation runs no callback on either path: the job is dropped before the worker
+		sees it, or the work horse is killed mid-extraction. Nothing on this side gets to
+		write, so the row keeps its status - and Queued/Processing are exactly the two
+		statuses that then refuse to re-enqueue it.
+		"""
+		from frappe.core.doctype.attachment_queue.attachment_queue import REVIEWABLE_STATUSES
+
+		for status in ("Queued", "Processing"):
+			with self.subTest(status=status):
+				queue_doc = self.make_task_for(self.make_queue(), status, "Cancelled")
+
+				with patch(
+					"frappe.core.doctype.attachment_queue.attachment_queue.enqueue_document_extraction"
+				) as enqueue_document_extraction:
+					queue_doc.enqueue_extraction_if_needed(force=True)
+
+				# Failed, not a status of its own, and not still reading as active work. The
+				# file is intact, so the intake goes back in front of a reviewer.
+				queue_doc.reload()
+				self.assertEqual(queue_doc.status, "Failed")
+				self.assertIn(queue_doc.status, REVIEWABLE_STATUSES)
+				self.assertIn("cancel", queue_doc.error_message.lower())
+
+				# ... and the row no longer blocks its own retry.
+				enqueue_document_extraction.assert_called_once()
+
+	def test_live_extraction_task_still_blocks_re_enqueue(self):
+		"""Only a cancelled task releases the guard.
+
+		The Queued/Processing check is what stops a second save from extracting the same
+		file twice. Recovery must not fire on a task that is merely still in flight.
+		"""
+		for status, task_status in (("Queued", "Queued"), ("Processing", "Running")):
+			with self.subTest(status=status):
+				queue_doc = self.make_task_for(self.make_queue(), status, task_status)
+
+				with patch(
+					"frappe.core.doctype.attachment_queue.attachment_queue.enqueue_document_extraction"
+				) as enqueue_document_extraction:
+					queue_doc.enqueue_extraction_if_needed(force=True)
+
+				queue_doc.reload()
+				self.assertEqual(queue_doc.status, status)
+				enqueue_document_extraction.assert_not_called()
 
 	def test_extracts_pdf_and_marks_ready_for_review(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
@@ -526,6 +597,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 
 		queue_doc.reload()
 		self.assertTrue(result["ok"])
+		self.assertTrue(result["attached"])
 		self.assertEqual(queue_doc.status, "Completed")
 		self.assertEqual(queue_doc.document_type, "File")
 		self.assertEqual(queue_doc.created_document, target_file.name)
@@ -533,6 +605,41 @@ class TestAttachmentQueue(IntegrationTestCase):
 		source_file = frappe.get_doc("File", frappe.db.get_value("File", {"file_url": queue_doc.source_file}))
 		self.assertEqual(source_file.attached_to_doctype, "File")
 		self.assertEqual(source_file.attached_to_name, target_file.name)
+
+	def test_link_to_document_reports_when_the_source_file_is_gone(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
+
+		# A row whose File has been deleted since it was created has nothing to hand over.
+		# Refusing the link would wedge the reviewer — their document is already saved and
+		# the file cannot be brought back — so the row moves on, and the one thing that must
+		# not happen is reporting an attachment that did not happen.
+		queue_doc = self.make_queue()
+		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
+		queue_doc.db_set(
+			{
+				"document_type": "File",
+				"status": "Ready for Review",
+				"source_file": f"/private/files/gone-{uuid4().hex}.pdf",
+			}
+		)
+
+		result = link_to_document(queue_doc.name, "File", target_file.name)
+
+		self.assertTrue(result["ok"])
+		self.assertFalse(result["attached"])
+
+		# The row is still claimed: there is nothing left to review, and leaving it open
+		# would keep offering a review for a file that no longer exists.
+		queue_doc.reload()
+		self.assertEqual(queue_doc.status, "Completed")
+		self.assertEqual(queue_doc.created_document, target_file.name)
+
+		self.assertFalse(
+			frappe.db.exists("File", {"attached_to_doctype": "File", "attached_to_name": target_file.name})
+		)
+
+		messages = " ".join(str(message) for message in frappe.get_message_log())
+		self.assertIn(queue_doc.name, messages)
 
 	def test_link_to_document_rejects_mismatched_document_type(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
@@ -562,11 +669,235 @@ class TestAttachmentQueue(IntegrationTestCase):
 
 		# Re-linking moves the row on but not the source file, which is already attached to
 		# the first document — the row and the file would end up pointing at different docs.
+		# created_document is what refuses it, not the row's status: the status guard would
+		# also refuse a first link taken while extraction was still running.
 		with self.assertRaises(frappe.ValidationError):
 			link_to_document(queue_doc.name, "File", second_target.name)
 
 		queue_doc.reload()
 		self.assertEqual(queue_doc.created_document, first_target.name)
+
+	def test_link_to_document_rejects_a_claim_taken_before_the_winner_committed(self):
+		"""Two concurrent links must not both pass the created_document check.
+
+		Both requests snapshot the row before either writes, so both snapshots say
+		unclaimed. This is the loser: its snapshot is that stale read, while the winner's
+		claim is already in the database. Only a locked read of the live row refuses it -
+		checking the snapshot would overwrite created_document and leave the row pointing
+		at one document while the source file sat on the other.
+		"""
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
+
+		queue_doc = self.make_queue()
+		winner = self.make_file(file_name=f"winner-{uuid4().hex}.pdf")
+		loser = self.make_file(file_name=f"loser-{uuid4().hex}.pdf")
+		queue_doc.db_set({"document_type": "File", "status": "Ready for Review"})
+
+		link_to_document(queue_doc.name, "File", winner.name)
+
+		real_get_doc = frappe.get_doc
+
+		def stale_snapshot(*args, **kwargs):
+			doc = real_get_doc(*args, **kwargs)
+			if doc.doctype == "Attachment Queue" and doc.name == queue_doc.name:
+				# The read the loser took before the winner's claim landed.
+				doc.created_document = None
+			return doc
+
+		with patch.object(frappe, "get_doc", side_effect=stale_snapshot):
+			with self.assertRaises(frappe.ValidationError):
+				link_to_document(queue_doc.name, "File", loser.name)
+
+		queue_doc.reload()
+		self.assertEqual(queue_doc.created_document, winner.name)
+
+		# The winner keeps the source file: the refused claim moved nothing.
+		source_file = frappe.get_doc("File", frappe.db.get_value("File", {"file_url": queue_doc.source_file}))
+		self.assertEqual(source_file.attached_to_doctype, "File")
+		self.assertEqual(source_file.attached_to_name, winner.name)
+
+	def test_upload_first_save_while_queued_puts_the_file_on_the_document(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import (
+			create_upload_first_queue,
+			link_to_document,
+		)
+		from frappe.desk.form.load import get_attachments
+
+		# The production entry point, end to end: the upload-first banner creates the row,
+		# extraction is still Queued, and the reviewer saves before it finishes. The other
+		# tests build their queue row by hand; this one goes through the flow a reviewer
+		# actually drives, and asserts the thing they actually see — the source file in the
+		# target document's Attachments section, which is what get_attachments feeds.
+		target_doctype = self.make_target_doctype(read=1, write=1, create=1)
+		file_doc = self.make_file()
+
+		context = create_upload_first_queue(file_doc.name, target_doctype)
+		self.addCleanup(
+			lambda: frappe.delete_doc(
+				"Attachment Queue", context["queue_name"], force=True, ignore_permissions=True
+			)
+		)
+		self.assertEqual(context["status"], "Queued")
+
+		target_doc = frappe.new_doc(target_doctype).insert(ignore_permissions=True)
+		result = link_to_document(context["queue_name"], target_doctype, target_doc.name)
+
+		self.assertTrue(result["attached"])
+		# The save claims the row without ending it: extraction still owns the status.
+		self.assertEqual(result["status"], "Queued")
+
+		attachments = get_attachments(target_doctype, target_doc.name)
+		self.assertEqual([row.file_url for row in attachments], [file_doc.file_url])
+
+	def test_link_to_document_claims_a_row_that_is_still_extracting(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
+
+		# The upload-first flow knows the target DocType from the moment the file is
+		# uploaded, so a reviewer can save the document before extraction finishes. That
+		# save has to put the source file on the document it produced; refusing it left the
+		# document with an empty Attachments section and the row back in the review modal.
+		queue_doc = self.make_queue()
+		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
+		queue_doc.db_set({"document_type": "File", "status": "Processing"})
+
+		result = link_to_document(queue_doc.name, "File", target_file.name)
+
+		queue_doc.reload()
+		self.assertTrue(result["ok"])
+		self.assertEqual(queue_doc.created_document, target_file.name)
+		# Extraction owns the status until it ends. Claiming the row does not end it.
+		self.assertEqual(queue_doc.status, "Processing")
+
+		source_file = frappe.get_doc("File", frappe.db.get_value("File", {"file_url": queue_doc.source_file}))
+		self.assertEqual(source_file.attached_to_doctype, "File")
+		self.assertEqual(source_file.attached_to_name, target_file.name)
+
+	def test_link_to_document_rejects_a_second_link_while_still_extracting(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
+
+		# The guard moved from the status to created_document; this is what proves it moved
+		# rather than went away. A mid-extraction row is linkable exactly once.
+		queue_doc = self.make_queue()
+		first_target = self.make_file(file_name=f"first-{uuid4().hex}.pdf")
+		second_target = self.make_file(file_name=f"second-{uuid4().hex}.pdf")
+		queue_doc.db_set({"document_type": "File", "status": "Queued"})
+
+		link_to_document(queue_doc.name, "File", first_target.name)
+
+		with self.assertRaises(frappe.ValidationError):
+			link_to_document(queue_doc.name, "File", second_target.name)
+
+		queue_doc.reload()
+		self.assertEqual(queue_doc.created_document, first_target.name)
+
+	def test_extraction_completing_after_a_link_does_not_reopen_the_row(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import (
+			extract_attachment_queue_record,
+			link_to_document,
+		)
+
+		# The worker fetches the row before the slow part and writes its terminal status
+		# after it, so a link taken in between is invisible to it. Writing "Ready for
+		# Review" unconditionally would put a row that has already produced its document
+		# back into the review modal — the symptom this whole change exists to fix.
+		queue_doc = self.make_queue()
+		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
+		queue_doc.db_set({"document_type": "File", "status": "Processing"})
+		link_to_document(queue_doc.name, "File", target_file.name)
+
+		pdfplumber = FakePDFPlumber([FakePDFPage(text="Invoice", layout_text="Invoice")])
+		with patch(
+			"frappe.core.doctype.attachment_queue.attachment_queue._get_pdfplumber", return_value=pdfplumber
+		):
+			extract_attachment_queue_record(queue_doc.name)
+
+		queue_doc.reload()
+		self.assertEqual(queue_doc.status, "Completed")
+		self.assertEqual(queue_doc.created_document, target_file.name)
+		# The extraction still lands in full — the reviewer is watching for it.
+		self.assertIn("Invoice", queue_doc.extracted_text)
+		self.assertEqual(queue_doc.extraction_method, "pdfplumber")
+		self.assertTrue(queue_doc.extraction_completed_on)
+
+	def test_extraction_failing_after_a_link_does_not_reopen_the_row(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import (
+			extract_attachment_queue_record,
+			link_to_document,
+		)
+
+		# Failed is a reviewable status, so a failure has to be held to the same rule:
+		# the document exists and owns the source file, and there is no review left to
+		# offer. The reason is still recorded on the row.
+		queue_doc = self.make_queue()
+		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
+		queue_doc.db_set({"document_type": "File", "status": "Processing"})
+		link_to_document(queue_doc.name, "File", target_file.name)
+
+		with patch(
+			"frappe.core.doctype.attachment_queue.attachment_queue._get_pdfplumber",
+			return_value=FakeCorruptPDFPlumber(),
+		):
+			with self.assertRaises(Exception):
+				extract_attachment_queue_record(queue_doc.name)
+
+		queue_doc.reload()
+		self.assertEqual(queue_doc.status, "Completed")
+		self.assertEqual(queue_doc.created_document, target_file.name)
+		self.assertIn("corrupt pdf structure", queue_doc.error_message)
+
+	def test_ready_for_review_count_excludes_a_row_linked_while_extracting(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import (
+			extract_attachment_queue_record,
+			get_ready_for_review_count,
+			link_to_document,
+		)
+
+		queue_doc = self.make_queue()
+		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
+		self.enable_upload_first_workflow("File")
+		queue_doc.db_set({"document_type": "File", "status": "Processing"})
+
+		link_to_document(queue_doc.name, "File", target_file.name)
+
+		# Before extraction settles the row is still Processing, which the count never
+		# included; after it settles it is Completed, which is the half that used to break.
+		self.assertEqual(get_ready_for_review_count("File"), 0)
+
+		pdfplumber = FakePDFPlumber([FakePDFPage(text="Invoice", layout_text="Invoice")])
+		with patch(
+			"frappe.core.doctype.attachment_queue.attachment_queue._get_pdfplumber", return_value=pdfplumber
+		):
+			extract_attachment_queue_record(queue_doc.name)
+
+		self.assertEqual(get_ready_for_review_count("File"), 0)
+
+	def test_target_document_can_be_deleted_while_queue_row_survives(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
+
+		# A queue row records work that was done; it is not a business reference to the
+		# document it produced. Registering the DocType in ignore_links_on_delete is what
+		# keeps created_document out of the link check, the way Email Queue and
+		# Integration Request keep theirs out.
+		# read=1 only because a DocPerm row with no rights at all fails DocType validation;
+		# this test runs as Administrator and does not exercise Desk User permissions.
+		target_doctype = self.make_target_doctype(read=1)
+		target_doc = frappe.new_doc(target_doctype).insert(ignore_permissions=True)
+		queue_doc = self.make_queue(document_type=target_doctype)
+		queue_doc.db_set("status", "Ready for Review")
+
+		link_to_document(queue_doc.name, target_doctype, target_doc.name)
+
+		# No force: that flag skips the link check this test exists to cover.
+		frappe.delete_doc(target_doctype, target_doc.name)
+
+		self.assertFalse(frappe.db.exists(target_doctype, target_doc.name))
+
+		# The row stays as it was. document_type in particular is load-bearing: has_permission
+		# and get_permission_query_conditions both read it.
+		queue_doc.reload()
+		self.assertEqual(queue_doc.status, "Completed")
+		self.assertEqual(queue_doc.document_type, target_doctype)
+		self.assertEqual(queue_doc.created_document, target_doc.name)
 
 	def test_review_context_withholds_debug_output_from_non_privileged_owner(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import get_document_review_context
@@ -602,6 +933,11 @@ class TestAttachmentQueue(IntegrationTestCase):
 		queue_doc = self.make_queue()
 		file_name = frappe.db.get_value("File", {"file_url": queue_doc.source_file}, "name")
 
+		# Completed because that is the only status cleanup touches. The file is still on the
+		# row here, which is what the assertion needs: delete_doc has to take it along rather
+		# than orphan it on disk.
+		queue_doc.db_set("status", "Completed")
+
 		# Backdate past the retention window instead of using the default 30 days.
 		frappe.db.set_value("Attachment Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
 
@@ -615,6 +951,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		from frappe.utils import add_days, now_datetime
 
 		queue_doc = self.make_queue()
+		queue_doc.db_set("status", "Completed")
 		frappe.db.set_value("Attachment Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
 
 		# A large backlog must not run as one long-held transaction; each batch should commit.
@@ -622,6 +959,45 @@ class TestAttachmentQueue(IntegrationTestCase):
 			AttachmentQueue.clear_old_logs(days=30)
 
 		commit.assert_called()
+
+	def test_clear_old_logs_keeps_intake_that_is_not_finished(self):
+		"""Cleanup is a log purge, not an intake purge.
+
+		A row is disposable only once it has produced its document. Anything still
+		extracting, or still waiting for a reviewer, owns its source file - that upload is
+		the only copy of it, and delete_doc takes the File along with the row. Age alone
+		must not decide this.
+		"""
+		from frappe.core.doctype.attachment_queue.attachment_queue import (
+			REVIEWABLE_STATUSES,
+			AttachmentQueue,
+		)
+		from frappe.utils import add_days, now_datetime
+
+		def backdated_queue(status):
+			queue_doc = self.make_queue()
+			queue_doc.db_set("status", status)
+			frappe.db.set_value("Attachment Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
+			file_name = frappe.db.get_value("File", {"file_url": queue_doc.source_file}, "name")
+			return queue_doc.name, file_name
+
+		# Draft and Queued are waiting for a worker, Processing is mid-extraction, and
+		# REVIEWABLE_STATUSES are waiting for a reviewer. None of them has handed its file over.
+		retained = {
+			status: backdated_queue(status)
+			for status in ("Draft", "Queued", "Processing", *REVIEWABLE_STATUSES)
+		}
+		finished_name, finished_file = backdated_queue("Completed")
+
+		AttachmentQueue.clear_old_logs(days=30)
+
+		for status, (name, file_name) in retained.items():
+			self.assertTrue(frappe.db.exists("Attachment Queue", name), f"{status} row was deleted")
+			self.assertTrue(frappe.db.exists("File", file_name), f"{status} source file was deleted")
+
+		# The row that produced its document is finished, and is still purged.
+		self.assertFalse(frappe.db.exists("Attachment Queue", finished_name))
+		self.assertFalse(frappe.db.exists("File", finished_file))
 
 	def test_ready_for_review_count_requires_enabled_doctype(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import get_ready_for_review_count
@@ -653,6 +1029,32 @@ class TestAttachmentQueue(IntegrationTestCase):
 
 		with self.set_user(user.name):
 			self.assertEqual(get_ready_for_review_count("File"), 1)
+
+	def test_queue_list_excludes_rows_for_unreadable_doctypes(self):
+		"""get_permission_query_conditions scopes the list to readable target DocTypes.
+
+		A queue row exists only to feed a document, so it is exactly as reachable as the
+		DocType it targets. Both rows here are owned by the same user, so the if_owner
+		DocPerm cannot account for the difference - the target DocType is the only thing
+		separating them.
+		"""
+		user = self.make_desk_user()
+		readable = self.make_target_doctype(read=1)
+		# create without read: a valid DocPerm row (DocType validation rejects an empty one)
+		# that still leaves the DocType outside get_doctypes_with_read.
+		unreadable = self.make_target_doctype(create=1)
+
+		visible = self.make_queue(document_type=readable)
+		hidden = self.make_queue(document_type=unreadable)
+		visible.db_set("owner", user.name)
+		hidden.db_set("owner", user.name)
+
+		with self.set_user(user.name):
+			# get_list, not get_all: get_all passes ignore_permissions and would skip the hook.
+			names = frappe.get_list("Attachment Queue", pluck="name")
+
+		self.assertIn(visible.name, names)
+		self.assertNotIn(hidden.name, names)
 
 	def test_desk_user_can_link_document(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
