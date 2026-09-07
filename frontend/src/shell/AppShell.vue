@@ -40,7 +40,7 @@
 		<!-- The overlay slot: one hash, one overlay, above any page. `#arrange/...` is its first tenant. -->
 		<ArrangementEditor
 			v-if="arranging"
-			:key="arranging.address"
+			:key="`${arranging.container}:${arranging.address}`"
 			class="absolute inset-y-0 right-0 z-20 shadow-2xl"
 			:container="arranging.container"
 			:address="arranging.address"
@@ -210,7 +210,7 @@ const arranging = computed<{ container: Container; address: string; title: strin
 	const [what, address] = arrange.segments.value;
 	if (what === "rail" && boot.app)
 		return { container: "Rail", address: boot.app, title: "Arrange this rail" };
-	if (what === "sidebar" && address)
+	if (what === "sidebar" && address && navigation.value.sidebars[address])
 		return { container: "Sidebar", address, title: "Arrange this sidebar" };
 	return null;
 });

@@ -54,7 +54,7 @@ export type Boot = {
 	app: string | null;
 	// The rail's app tile, present on an app's own prefix only.
 	app_title?: string;
-	app_logo?: string;
+	app_logo?: string | null;
 
 	// Every active app, not just this one: a link into a foreign app needs that app's shape.
 	prefixes: Record<string, { app: string; modular: boolean }>;

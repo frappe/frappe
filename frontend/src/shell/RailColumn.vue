@@ -24,46 +24,54 @@
 			</Dropdown>
 		</div>
 
-		<nav
-			class="flex w-full flex-1 flex-col items-center gap-3 overflow-y-auto"
-			:aria-label="appTitle"
-		>
-			<!-- `RailItem`'s `Tooltip` drops attributes, so the test hooks sit on a wrapper. -->
-			<div
-				v-for="cell in cells"
-				:key="cell.key"
-				:data-key="cell.key"
-				:data-sidebar="cell.sidebar"
-			>
-				<RailItem
-					v-if="'to' in cell"
-					:to="cell.to"
-					:label="cell.label"
-					:active="cell.key === current"
+		<!-- Stretched over `Rail`'s own padding, so the scrollbar sits on the rail's edge. -->
+		<ScrollArea class="-mx-[11px] min-h-0 flex-1 self-stretch" viewportClass="px-[11px]">
+			<nav class="flex flex-col items-center gap-3" :aria-label="appTitle">
+				<!-- `RailItem`'s `Tooltip` drops attributes, so the test hooks sit on a wrapper. -->
+				<div
+					v-for="cell in cells"
+					:key="cell.key"
+					:data-key="cell.key"
+					:data-sidebar="cell.sidebar"
 				>
-					<Icon v-if="cell.icon" :name="cell.icon" />
-					<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
-				</RailItem>
+					<RailItem
+						v-if="'to' in cell"
+						:to="cell.to"
+						:label="cell.label"
+						:active="cell.key === current"
+					>
+						<Icon v-if="cell.icon" :name="cell.icon" />
+						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
+					</RailItem>
 
-				<!-- Off this prefix: a full document load. `RailItem` has no anchor form, so a button. -->
-				<RailItem
-					v-else
-					:label="cell.label"
-					:active="cell.key === current"
-					@click="leave(cell.href)"
-				>
-					<Icon v-if="cell.icon" :name="cell.icon" />
-					<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
-				</RailItem>
-			</div>
-		</nav>
+					<!-- Off this prefix: a full document load. `RailItem` has no anchor form, so a button. -->
+					<RailItem
+						v-else
+						:label="cell.label"
+						:active="cell.key === current"
+						@click="leave(cell.href)"
+					>
+						<Icon v-if="cell.icon" :name="cell.icon" />
+						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
+					</RailItem>
+				</div>
+			</nav>
+		</ScrollArea>
 	</Rail>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import type { RouteLocationRaw } from "vue-router";
-import { Dropdown, Rail, RailItem, toast, useColorScheme, type DropdownOptions } from "frappe-ui";
+import {
+	Dropdown,
+	Rail,
+	RailItem,
+	ScrollArea,
+	toast,
+	useColorScheme,
+	type DropdownOptions,
+} from "frappe-ui";
 import type { Boot, NavigationItem } from "@/boot";
 import Icon from "@/icons/Icon.vue";
 import { labelOf, renderingOf } from "@/navigation/registry";

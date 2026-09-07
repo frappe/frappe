@@ -28,6 +28,8 @@
 </template>
 
 <script setup lang="ts">
+import { onUnmounted } from "vue";
+
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ toggle: [] }>();
 
@@ -61,6 +63,9 @@ function passesThreshold(distance: number) {
 function stopDrag() {
 	window.removeEventListener("pointermove", onPointerMove);
 }
+
+// The panel remounts per address, and a drag can outlive it.
+onUnmounted(stopDrag);
 
 // A drag that already toggled must not toggle again on its closing click.
 function onClick() {

@@ -11,6 +11,7 @@
 			width="14rem"
 			collapsedWidth="0px"
 			:class="collapsed ? 'border-0' : 'border-l border-outline-gray-1'"
+			:inert="collapsed"
 		>
 			<div class="flex shrink-0 items-center py-2 pl-4 pr-2">
 				<p v-if="title" class="truncate text-base font-medium text-ink-gray-8">
@@ -26,7 +27,7 @@
 				/>
 			</div>
 
-			<div class="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+			<ScrollArea class="min-h-0 flex-1" viewportClass="px-2 pb-2">
 				<nav class="flex flex-col gap-0.5" :aria-label="title">
 					<SidebarRow
 						v-for="node in tree"
@@ -38,7 +39,7 @@
 						:sections="sections"
 					/>
 				</nav>
-			</div>
+			</ScrollArea>
 		</Sidebar>
 
 		<SidebarEdge :open="!collapsed" @toggle="collapsed = !collapsed" />
@@ -47,7 +48,7 @@
 
 <script setup lang="ts">
 import { useLocalStorage } from "@vueuse/core";
-import { Button, Sidebar } from "frappe-ui";
+import { Button, ScrollArea, Sidebar } from "frappe-ui";
 import type { NavigationItem } from "@/boot";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";

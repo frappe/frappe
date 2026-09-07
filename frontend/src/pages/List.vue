@@ -1,5 +1,5 @@
 <template>
-	<div class="overflow-y-auto p-8">
+	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
 		<h1 class="text-lg font-semibold">{{ doctype ?? "Unknown" }}</h1>
 
 		<p v-if="!doctype" class="mt-2 text-sm text-ink-gray-6">
@@ -25,10 +25,11 @@
 				</tr>
 			</tbody>
 		</table>
-	</div>
+	</ScrollArea>
 </template>
 
 <script setup lang="ts">
+import { ScrollArea } from "frappe-ui";
 import { computed, inject, ref, watchEffect } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import type { Addresses } from "@/addresses";

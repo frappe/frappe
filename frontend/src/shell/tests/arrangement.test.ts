@@ -1,7 +1,7 @@
 // The arrangement editor and the list operations under it. Mounted with Vue's own
 // `createApp`: this package has no `@vue/test-utils`.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { createApp, h, nextTick, type VNode } from "vue";
 
 // The real barrel drags the icon plugins in. `Button` is stubbed as the element it renders,
 // keeping `aria-label` and `@click`, which is all these tests reach for.
@@ -14,6 +14,10 @@ vi.mock("frappe-ui", () => ({
     emits: ["click"],
     setup: (props: { label?: string }, { emit }: { emit: (event: string) => void }) => () =>
       h("button", { onClick: () => emit("click") }, props.label ?? ""),
+  },
+  ScrollArea: {
+    setup: (_: unknown, { slots }: { slots: { default?: () => VNode[] } }) => () =>
+      h("div", slots.default?.()),
   },
 }));
 

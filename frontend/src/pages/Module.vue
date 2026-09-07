@@ -3,7 +3,7 @@
   address space.
 -->
 <template>
-	<div class="overflow-y-auto p-8">
+	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
 		<h1 class="text-xl font-semibold">{{ title }}</h1>
 		<p class="mt-1 text-sm text-ink-gray-6">
 			<!-- "0 doctypes you can read" is a real answer, so it must not also be what a pending fetch looks like. -->
@@ -24,10 +24,11 @@
 				</RouterLink>
 			</li>
 		</ul>
-	</div>
+	</ScrollArea>
 </template>
 
 <script setup lang="ts">
+import { ScrollArea } from "frappe-ui";
 import { computed, inject } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import type { Boot } from "@/boot";
