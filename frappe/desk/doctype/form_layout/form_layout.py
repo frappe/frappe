@@ -63,8 +63,7 @@ class FormLayout(Document):
 
 @frappe.whitelist()
 def get_form_layouts(dt: str, type: str):
-	if type not in FORM_LAYOUT_TYPES:
-		frappe.throw(_("Invalid Form Layout type: {0}").format(type))
+	validate_target(dt, type)
 	frappe.has_permission(dt, "read", throw=True)
 
 	rows = frappe.get_all(
@@ -81,6 +80,9 @@ def get_form_layouts(dt: str, type: str):
 
 @frappe.whitelist()
 def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, condition: str | None = None):
+	validate_target(dt, type)
+	if name is not None and not isinstance(name, str):
+		frappe.throw(_("Form Layout name must be a string"))
 	frappe.has_permission("Form Layout", "write", throw=True)
 	doc = find_layout_doc(dt, type, name)
 	doc.update({"dt": dt, "type": type, "layout": layout, "condition": condition})
@@ -88,9 +90,24 @@ def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, c
 	return doc.name
 
 
+def validate_target(dt: str, type: str) -> None:
+	# A non-str `dt` would reach `get_all` as a filter operator and read every doctype's layouts.
+	if not isinstance(dt, str):
+		frappe.throw(_("Document Type must be a name"))
+	if type not in FORM_LAYOUT_TYPES:
+		frappe.throw(_("Invalid Form Layout type: {0}").format(type))
+
+
 def find_layout_doc(dt: str, type: str, name: str | None):
 	if name:
-		return frappe.get_doc("Form Layout", name)
+		doc = frappe.get_doc("Form Layout", name)
+		if doc.dt != dt or doc.type != type:
+			frappe.throw(
+				_("Form Layout {0} belongs to {1} ({2}), not {3} ({4})").format(
+					name, doc.dt, doc.type, dt, type
+				)
+			)
+		return doc
 	default = frappe.get_all(
 		"Form Layout", filters={"dt": dt, "type": type, "condition": ("is", "not set")}, limit=1
 	)

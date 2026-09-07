@@ -8,6 +8,7 @@ from frappe.desk.doctype.form_layout.form_layout import (
 	deduplicate_names,
 	get_form_layouts,
 	parse_layout,
+	save_form_layout,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -129,6 +130,16 @@ class TestFormLayout(IntegrationTestCase):
 		for tab in tabs:
 			section_names = [section["name"] for section in tab["sections"]]
 			self.assertEqual(len(section_names), len(set(section_names)))
+
+	def test_saving_under_another_doctypes_name_is_refused(self):
+		note_layout = make_layout().insert()
+		with self.assertRaises(frappe.ValidationError):
+			save_form_layout("ToDo", "Details", "[]", name=str(note_layout.name))
+		self.assertEqual(frappe.db.get_value("Form Layout", note_layout.name, "dt"), "Note")
+
+	def test_rejects_a_doctype_filter_posing_as_a_name(self):
+		self.assertRaises(frappe.FrappeTypeError, get_form_layouts, ["!=", ""], "Details")
+		self.assertRaises(frappe.FrappeTypeError, save_form_layout, "Note", "Details", "[]", name=["!=", ""])
 
 	def test_rows_come_back_as_authored(self):
 		tree = [{"name": "main", "sections": [{"name": "who", "columns": [{"fields": ["title"]}]}]}]
