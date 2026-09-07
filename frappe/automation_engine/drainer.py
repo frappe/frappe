@@ -133,9 +133,11 @@ def _fail_delivered_row(name):
 	The rollback took the run's database half back, but not the webhook it sent or the mail its
 	script posted. Replaying the row from the top would repeat those, so it is failed for someone
 	to look at rather than retried.
+
+	The mark stays until this Failed state is committed: the commit around it can fail too, and a
+	row whose failure was rolled back has to still look delivered to the run that comes next.
 	"""
 	frappe.db.set_value(QUEUE, name, "status", "Failed", update_modified=False)
-	clear_effects(name)
 	frappe.log_error(
 		title=f"Automation run not retried: {name}",
 		message="The run had already sent something outside the database when it failed, so it was "
@@ -162,6 +164,7 @@ def execute_claimed(executor, name):
 		_fail_delivered_row(name)
 		# The row is settled on its own, the way every other outcome in this function is.
 		frappe.db.commit()  # nosemgrep
+		clear_effects(name)
 		return
 	try:
 		executor(name)
@@ -172,6 +175,7 @@ def execute_claimed(executor, name):
 		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())
 		_settle_escaped_row(name)
 		frappe.db.commit()
+		clear_effects(name)
 
 
 def promote_due_scheduled():
