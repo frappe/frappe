@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import itertools
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import frappe
 import frappe.desk.form.load
@@ -404,6 +404,61 @@ def cancel_linked_doc(docinfo):
 		doc.cancel()
 
 
+MAX_LINKED_DELETE_DOCUMENTS = 500
+
+
+@frappe.whitelist()
+def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
+	"""Get the documents blocking deletion of the given document, recursively,
+	deepest first; unreadable ones are neither returned nor traversed. Past
+	MAX_LINKED_DELETE_DOCUMENTS the result is empty and marked truncated."""
+	from frappe.model.delete_doc import get_dynamic_linked_docs
+	from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
+
+	frappe.has_permission(doctype, doc=name, throw=True)
+
+	root_key = (doctype, name)
+	depth_by_document = {root_key: 0}
+	queue = deque([root_key])
+	while queue:
+		parent_key = queue.popleft()
+		# lightweight stand-in; a full get_doc per node is too expensive
+		parent = frappe._dict(doctype=parent_key[0], name=parent_key[1])
+		links = get_statically_linked_docs(parent, method="Delete") + get_dynamic_linked_docs(
+			parent, method="Delete"
+		)
+		for link in links:
+			key = (link["reference_doctype"], link["reference_docname"])
+			if key in depth_by_document:
+				continue
+			if len(depth_by_document) > MAX_LINKED_DELETE_DOCUMENTS:
+				return {"docs": [], "count": 0, "truncated": True}
+			if not frappe.has_permission(key[0], doc=key[1]):
+				continue
+			depth_by_document[key] = depth_by_document[parent_key] + 1
+			queue.append(key)
+
+	docs = [
+		{"doctype": dt, "name": docname} for dt, docname in depth_by_document if (dt, docname) != root_key
+	]
+	docs.sort(key=lambda doc: depth_by_document[doc["doctype"], doc["name"]], reverse=True)
+	return {"docs": docs, "count": len(docs), "truncated": False}
+
+
+@frappe.whitelist()
+def delete_all_linked_docs(docs: str | list):
+	"""Delete the given documents in dependency order; a blocked one fails the whole request."""
+	to_delete = deduplicated(frappe.parse_json(docs))
+
+	# no realtime progress: late events strand the dialog; the freeze overlay suffices
+	process_linked_docs_in_dependency_order(to_delete, delete_linked_doc)
+
+
+def delete_linked_doc(docinfo):
+	"""Delete a document; one already removed by another document's on_trash hook is ignored."""
+	frappe.delete_doc(docinfo.get("doctype"), docinfo.get("name"))
+
+
 def deduplicated(docs):
 	"""Preserve order, dropping repeated (doctype, name) entries."""
 	seen = set()
@@ -416,12 +471,19 @@ def deduplicated(docs):
 	return unique
 
 
-def process_linked_docs_in_dependency_order(docs, process, progress_title):
-	"""Run process over docs, deferring a document blocked by a linked document
-	to a later pass, until a full pass makes no progress."""
+def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
+	"""Run process over docs, deferring blocked ones to later passes until a
+	pass makes no progress, then raise the first blocker's error."""
 	total = len(docs)
 	processed = 0
 	save_point = "process_linked_doc"
+
+	def mark_processed():
+		nonlocal processed
+		processed += 1
+		if progress_title:
+			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+
 	while docs:
 		deferred = []
 		for doc in docs:
@@ -429,19 +491,21 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-			except frappe.LinkExistsError:
-				# hooks ran before the link check; undo their writes and side effects
+			except (frappe.ValidationError, frappe.PermissionError, frappe.QueryTimeoutError):
+				# hooks ran before the failing check; undo their writes and side effects
+				# (not on a deadlock: the database has already rolled the whole transaction back)
 				frappe.db.rollback(save_point=save_point)
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
 				continue
 			frappe.db.release_savepoint(save_point)
-			processed += 1
-			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+			mark_processed()
 
 		if len(deferred) == len(docs):
-			# nothing progressed: a document outside the set blocks it; surface the error
+			# surface the blocker's error; a success means the block was transient
 			process(deferred[0])
+			mark_processed()
+			deferred = deferred[1:]
 		docs = deferred
 
 
