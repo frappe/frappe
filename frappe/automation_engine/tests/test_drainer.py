@@ -234,6 +234,33 @@ class TestDrainer(IntegrationTestCase):
 
 		self.assertEqual(runs, [name])
 
+	def test_a_delivered_row_keeps_its_mark_when_the_group_that_failed_it_rolls_back(self):
+		"""Failing the row is itself a database write. If the group commit takes that write back,
+		the row has to still look delivered, or the serial re-run sends the webhook again."""
+		name = self.add_row("failed_then_rolled_back")
+		claimed = claim_batch(1)
+		runs = []
+
+		def executor(row_name):
+			runs.append(row_name)
+			mark_effects_delivered(row_name)
+			raise ValueError("the run threw after its webhook went out")
+
+		original_commit = frappe.db.commit
+		calls = []
+
+		def failing_commit(*args, **kwargs):
+			calls.append(1)
+			if len(calls) == 1:
+				raise frappe.db.SQLError("group commit failed")
+			return original_commit(*args, **kwargs)
+
+		with patch.object(frappe.db, "commit", failing_commit):
+			drainer.execute_batch(executor, claimed)
+
+		self.assertEqual(runs, [name])
+		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Failed")
+
 	def test_the_mark_is_dropped_once_the_outcome_is_committed(self):
 		name = self.add_row("delivered_then_committed")
 		claimed = claim_batch(1)
