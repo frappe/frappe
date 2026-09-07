@@ -38,6 +38,11 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 				this.list.refresh();
 			}
 		});
+
+		// Hiding is what ends a review session. The dialog keeps its DOM between visits, so
+		// without this the next open comes up on the previous review's PDF — with a Start
+		// Review button still armed with a row that may have been reviewed since.
+		this.dialog.$wrapper.on("hidden.bs.modal", () => this._end_session());
 	}
 
 	show() {
@@ -289,6 +294,14 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 		}
 	}
 
+	// The selection and the preview are per-visit state, so hiding the dialog and turning
+	// down a row that is no longer reviewable both end the session the same way.
+	_end_session() {
+		this.selected_row = null;
+		this._update_active_row();
+		this._clear_preview();
+	}
+
 	_update_active_row() {
 		if (!this.$list_wrapper) return;
 		this.$list_wrapper.find("table.embedded-list-table tbody tr").removeClass("active-row");
@@ -364,19 +377,35 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 	async _start_review(row) {
 		if (!row) return;
 
-		this.dialog.hide();
 		const queue_name = row.name;
+		let context = null;
 
 		try {
-			const context = await frappe.attachment_queue_review.fetch_context(queue_name);
-			if (context && context.document_type) {
-				// Same routing the Attachment Queue form's "Start Review" performs,
-				// so both entry points stay in step.
-				frappe.attachment_queue_review.route_to_new_document(context);
-				return;
-			}
+			context = await frappe.attachment_queue_review.fetch_context(queue_name);
 		} catch (e) {
 			console.error("Failed to fetch document review context", e);
+		}
+
+		// `row` is a snapshot from the last list fetch, so it can still claim "Ready for
+		// Review" long after someone reviewed it. The context just fetched is the authority,
+		// and this is the same check the Attachment Queue form's Start Review makes.
+		const statuses = frappe.attachment_queue_review.reviewable_statuses;
+		if (context && !statuses.includes(context.status)) {
+			frappe.msgprint(__("Only documents that are ready for review can be reviewed."));
+			// Left open on purpose: the row went out from under the reviewer, so show them
+			// what the list holds now rather than routing them anywhere.
+			this._end_session();
+			this.list?.refresh();
+			return;
+		}
+
+		this.dialog.hide();
+
+		if (context && context.document_type) {
+			// Same routing the Attachment Queue form's "Start Review" performs,
+			// so both entry points stay in step.
+			frappe.attachment_queue_review.route_to_new_document(context);
+			return;
 		}
 
 		// Fallback to Attachment Queue form

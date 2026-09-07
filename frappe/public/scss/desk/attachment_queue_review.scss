@@ -2,14 +2,6 @@
 // the list-view "ready for review" banner.
 // Behaviour lives in frappe/public/js/frappe/attachment_queue_review.js.
 
-.attachment-queue-freeze-body {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-}
-
 .attachment-queue-review-json-pre {
 	background-color: var(--control-bg);
 	border: 1px solid var(--border-color);
@@ -67,16 +59,51 @@
 	}
 }
 
+// The preview track is an absolute length, the way desk sizes its own resizable
+// sidebar (--sidebar-width). A percentage would be a percentage of .std-form-layout,
+// and that box moves on its own: page.scss gives .layout-main-section-wrapper 80% in
+// general but calc(100% - var(--form-sidebar-width)) under body[data-route^="Form"],
+// and body.full-width changes what the form column inside it may occupy. The same
+// stored percentage therefore rendered a different preview width on each of those,
+// which read as the panel resizing itself while the reviewer navigated. The bounds
+// are keyed to the viewport rather than the container for the same reason; the form
+// column takes whatever is left.
 .std-form-layout.attachment-queue-review-layout {
 	display: grid;
-	grid-template-columns: minmax(320px, var(--attachment-queue-review-width, 38%)) minmax(0, 1fr);
+	grid-template-columns:
+		clamp(320px, var(--attachment-queue-review-width, 480px), 60vw)
+		minmax(0, 1fr);
 	gap: 0;
-	align-items: start;
+	// Stretch, so the form column fills the row the preview defines. With `start` a form
+	// shorter than the preview left the page background showing beside it; the column
+	// filling that space is what keeps the two sides level without the preview having to
+	// shrink to the form.
+	align-items: stretch;
+
+	// The form column takes the rest of the row as well as the rest of the width, so the
+	// card ends where the preview does instead of leaving a band under it. flex-basis
+	// auto with no shrink: a form taller than the viewport still sizes itself, and the
+	// hidden second .form-page (display: none) is not a flex item at all.
+	> .form-layout {
+		display: flex;
+		flex-direction: column;
+
+		> .form-page {
+			flex: 1 0 auto;
+		}
+	}
 }
 
 .attachment-queue-review-panel {
 	position: sticky;
 	top: var(--page-head-height);
+	// A definite height, so the preview is a function of the viewport and nothing else.
+	// A grid row is sized by the tallest item in it, so an item that only caps its height
+	// (max-height + align-self: stretch) contributes nothing and then inherits whatever
+	// the *form* column made the row — which meant the preview grew and shrank with the
+	// form's tab, its collapsed sections and its doctype, and the PDF viewer rescaled its
+	// page to match. `start` keeps this height from being stretched back to the row.
+	align-self: start;
 	height: calc(100vh - var(--page-head-height));
 	margin-top: 0;
 	overflow: visible;
@@ -95,11 +122,29 @@
 	flex-direction: column;
 }
 
-// Sits above the tab bar inside the flex column, so a failed extraction is stated
-// once for the whole panel instead of hiding inside one tab.
+// The tab strip reuses Frappe's .form-tabs-list so it matches every other tab strip in
+// desk — which also brings core's `position: sticky` and the `form-tabs-sticky-up` /
+// `form-tabs-sticky-down` classes that layout.js stamps on *every* .form-tabs-list on the
+// page each time a form tab is clicked. Their `top` is measured against the page's
+// scrollport; applied inside this panel's own scroll box it pushes the strip down and
+// leaves a band of empty space above it. Reset the way core resets the same class inside
+// a grid row form (common/grid.scss).
+.attachment-queue-review-panel .form-tabs-list {
+	position: relative;
+	top: auto;
+}
+
+// Sits above the tab bar inside the flex column, so extraction's state is reported
+// once for the whole panel instead of hiding inside one tab. Always present in the
+// markup and emptied rather than removed, so update_status never has to rebuild the
+// shell — :empty is what keeps it from taking up space when there is nothing to say.
 .attachment-queue-review-alert {
 	flex: none;
 	padding: var(--padding-md) var(--padding-md) 0;
+
+	&:empty {
+		display: none;
+	}
 }
 
 .attachment-queue-review-body {
