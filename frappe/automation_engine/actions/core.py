@@ -11,6 +11,8 @@ from frappe.automation_engine.actions.base import (
 	USER_CONTROL,
 	AutomationAction,
 	AutomationParamError,
+	render_context,
+	render_value,
 )
 from frappe.utils import cint, flt
 
@@ -23,28 +25,6 @@ MAX_REDIRECTS = 5
 WEBHOOK_RESPONSE_LIMIT = 2000
 # The one Server Script type written to be called rather than bound to its own trigger.
 SCRIPT_TYPE = "API"
-
-
-def _render(value, doc, context=None):
-	"""Render a Jinja-templated string against the document; pass through non-templates."""
-	if isinstance(value, str) and "{{" in value:
-		# nosemgrep: the template is an action parameter, authored by the System Manager who
-		# configured the flow - the same trust model as Notification and Email Template.
-		return frappe.render_template(value, _render_context(doc, context))
-	return value
-
-
-def _render_context(doc, context=None):
-	context = context or {}
-	return {
-		# `doc` is the step's target; `trigger` is what started the run, which is the same
-		# document unless the step aims at a relationship alias or an earlier step's output.
-		"doc": doc,
-		"target": doc,
-		"trigger": context.get("trigger_doc") or doc,
-		"payload": context.get("payload") or {},
-		"context": context,
-	}
 
 
 def _require_doc(doc, action_type):
@@ -94,7 +74,7 @@ class SetFieldValue(AutomationAction):
 		_require_doc(doc, self.label)
 		pairs = self._pairs(params)
 		for field, value in pairs.items():
-			doc.set(field, _render(value, doc, context))
+			doc.set(field, render_value(value, doc, context))
 		doc.save()
 		return _("Set {0}").format(", ".join(pairs))
 
@@ -145,7 +125,7 @@ class CreateDocument(AutomationAction):
 		if isinstance(values, str):
 			values = frappe.parse_json(values)
 		for field, value in (values or {}).items():
-			target.set(field, _render(value, doc, context))
+			target.set(field, render_value(value, doc, context))
 		target.insert()
 		return {
 			"detail": _("Created {0} {1}").format(params["doctype"], target.name),
@@ -181,7 +161,7 @@ class IncrementFieldValue(AutomationAction):
 	def execute(self, doc, params, context):
 		_require_doc(doc, self.label)
 		field = params["field"]
-		amount = flt(_render(params.get("amount"), doc, context))
+		amount = flt(render_value(params.get("amount"), doc, context))
 		# Lock the row first, then re-read: two runs incrementing the same document serialize
 		# here instead of both adding to the same stale value.
 		self._lock(doc)
@@ -289,12 +269,12 @@ class SendNotification(AutomationAction):
 			template = frappe.get_doc("Email Template", params["email_template"])
 			return (
 				# nosemgrep: the template body is an Email Template, already an authored artefact.
-				frappe.render_template(template.subject, _render_context(doc, context)),
+				frappe.render_template(template.subject, render_context(doc, context)),
 				frappe.render_template(  # nosemgrep
-					template.response or template.response_html or "", _render_context(doc, context)
+					template.response or template.response_html or "", render_context(doc, context)
 				),
 			)
-		return _render(params.get("subject") or "", doc, context), _render(
+		return render_value(params.get("subject") or "", doc, context), render_value(
 			params.get("message") or "", doc, context
 		)
 
@@ -345,7 +325,7 @@ class AssignToUser(AutomationAction):
 				"doctype": doc.doctype,
 				"name": doc.name,
 				"assign_to": users,
-				"description": _render(params.get("description"), doc, context) or doc.doctype,
+				"description": render_value(params.get("description"), doc, context) or doc.doctype,
 			}
 		)
 		return _("Assigned to {0}").format(", ".join(users))
@@ -388,7 +368,7 @@ class CallWebhook(AutomationAction):
 		_json_param(params.get("payload"), "payload")
 
 	def execute(self, doc, params, context):
-		url = _render(params.get("url"), doc, context)
+		url = render_value(params.get("url"), doc, context)
 		method = (params.get("method") or "POST").upper()
 		headers = _rendered_json(params.get("headers"), doc, context, "headers")
 		payload = _rendered_json(params.get("payload"), doc, context, "payload")
@@ -486,7 +466,7 @@ class RunScript(AutomationAction):
 	def execute(self, doc, params, context):
 		from frappe.utils.safe_exec import safe_exec
 
-		scope = _render_context(doc, context)
+		scope = render_context(doc, context)
 		scope["result"] = frappe._dict()
 		script, filename = self._source(params, context)
 		safe_exec(
@@ -577,7 +557,7 @@ def _json_param(value, fieldname):
 
 
 def _rendered_json(value, doc, context, fieldname):
-	return {key: _render(item, doc, context) for key, item in _json_param(value, fieldname).items()}
+	return {key: render_value(item, doc, context) for key, item in _json_param(value, fieldname).items()}
 
 
 def _compile_script(script):
