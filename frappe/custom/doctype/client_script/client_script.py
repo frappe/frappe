@@ -77,9 +77,9 @@ def reorder(dt: str, view: str, names: list[str]) -> None:
 	frappe.has_permission("Client Script", "write", throw=True)
 	reject_foreign_names(dt, view, names)
 
-	for position, name in enumerate(names, start=1):
-		# `modified` stays put: the editor's lock on it means "this script's text changed".
-		frappe.db.set_value("Client Script", name, "run_order", position, update_modified=False)
+	# `modified` stays put: the editor's lock on it means "this script's text changed".
+	positions = {name: {"run_order": position} for position, name in enumerate(names, start=1)}
+	frappe.db.bulk_update("Client Script", positions, update_modified=False)
 
 	frappe.publish_realtime(CLIENT_SCRIPT_CHANGED, {"dt": dt, "view": view}, after_commit=True)  # nosemgrep
 
