@@ -1,7 +1,21 @@
 [project]
 name = "frappe-flow"
 version = "0.1.0"
-description = "A standalone, client-server agent harness (the brain). Frappe/Flow is one client among many."
+description = "An open-source agent harness."
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Shrihari Mahabal", email = "shriharimahabal08@gmail.com" },
+]
+keywords = ["ai", "agents", "cli", "coding-agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.115",
@@ -32,17 +46,17 @@ flow = "flow_harness.cli.main:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatch.build]
-# built by the hook below, and gitignored, but ships in the package
-artifacts = ["src/flow_harness/server/webui/"]
-# only ui/.gitignore lists these, and hatchling reads the root one
-exclude = ["**/node_modules"]
-
 [tool.hatch.build.hooks.custom]
 path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/flow_harness", "src/flow_tui"]
+artifacts = ["src/flow_harness/server/webui/**"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "ui", "hatch_build.py", "README.md", "LICENSE", "pyproject.toml"]
+exclude = ["ui/node_modules", "ui/**/dist"]
+artifacts = ["src/flow_harness/server/webui/**"]
 
 [tool.ty.src]
 exclude = ["tests"]

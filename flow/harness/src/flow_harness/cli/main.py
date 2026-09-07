@@ -8,7 +8,7 @@ import os
 import sys
 from typing import TypedDict
 
-from flow_harness import config, settings
+from flow_harness import __version__, config, settings
 from flow_harness.cli.daemon import DaemonError
 from flow_harness.model.auth import AuthError
 from flow_harness.model.credentials import CredentialStore, CredentialStoreError
@@ -20,6 +20,7 @@ RESET = "\033[0m"
 
 def main() -> None:
 	parser = argparse.ArgumentParser(prog="flow")
+	parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 	sub = parser.add_subparsers(dest="cmd")
 
 	p_tui = sub.add_parser("tui", help="start a private daemon and open the TUI")
@@ -149,7 +150,7 @@ def _report_extension_diagnostics(store) -> None:
 
 def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
 	"""Bare `flow` opens the web UI, so the common case needs no verb."""
-	if argv and (argv[0] in commands or argv[0] in ("-h", "--help")):
+	if argv and (argv[0] in commands or argv[0] in ("-h", "--help", "--version")):
 		return argv
 	return ["web", *argv]
 
