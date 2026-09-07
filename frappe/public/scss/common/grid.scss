@@ -1037,8 +1037,20 @@ body.grid-col-resizing {
 .bulk-edit-preview-head {
 	display: flex;
 	justify-content: space-between;
+	// the Refresh button is taller than the text opposite it, which would
+	// otherwise stretch to match and sit against the top of the row
+	align-items: center;
 	gap: var(--padding-md);
 	margin-bottom: var(--padding-sm);
+}
+
+// the row count and, when the rows came from a sheet, the button that re-reads
+// it — one group so both stay at the right end of the mapping line
+.bulk-edit-preview-head-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--padding-sm);
+	flex: 0 0 auto;
 }
 
 // One line of gap, always held open whether or not there's a message in it —
