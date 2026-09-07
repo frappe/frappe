@@ -92,14 +92,20 @@ And a fuller one, touching both zones:
 ```js
 export default {
   onRefresh(page) {
-    // A parent crumb before the record's, linking to the organization
+    // A crumb before the record's, linking to the deals of the same organization.
+    // Resolve paths through the router: a hand-built one is wrong under a modular prefix.
+    const { name, params } = page.router.currentRoute.value
     page.header.add(
       {
         name: 'organization',
         label: page.doc.organization,
         zone: 'left',
         display: 'crumb',
-        href: `/crm-organization/${page.doc.organization}`,
+        href: page.router.resolve({
+          name: 'list',
+          params,
+          query: { organization: page.doc.organization },
+        }).path,
       },
       { before: 'record' },
     )

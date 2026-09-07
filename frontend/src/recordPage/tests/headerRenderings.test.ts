@@ -781,7 +781,7 @@ describe("the two zones", () => {
     expect(bandNames(items)).toEqual(["archive[archive]", "actions[delete]"]);
   });
 
-  it("relocates an item by patching its zone, and by nothing else", () => {
+  it("relocates an item by patching its zone", () => {
     const built = new HeaderSurface();
     built.provideBuiltins(() => [
       crumb("record"),
@@ -794,6 +794,21 @@ describe("the two zones", () => {
     expect(projected.controls.map((control) => control.item.name)).toEqual([
       "favourite",
       "save",
+    ]);
+  });
+
+  it("keeps a crumb's href, and at budget 0 keeps the left zone and demotes the right", () => {
+    const items = [
+      crumb("doctype", { href: "/crm-deal" }),
+      crumb("record"),
+      button("save"),
+    ];
+    const projected = projectHeader(resolved(items), 0);
+    expect(projected.left[0].item.href).toBe("/crm-deal");
+    expect(leftNames(items)).toEqual(["crumb:doctype", "crumb:record"]);
+    expect(projected.controls).toEqual([]);
+    expect(projected.bands.map((band) => band.items.map(rendered))).toEqual([
+      ["save"],
     ]);
   });
 

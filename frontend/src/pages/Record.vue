@@ -121,6 +121,7 @@ function headerBuiltins(): HeaderItem[] {
 
 // Not through `runAction`: a failed save must keep the draft on screen, not reload over it.
 async function saveFromHeader() {
+	if (!dirty.value) return;
 	actionError.value = "";
 	try {
 		await save();
@@ -198,6 +199,8 @@ async function save() {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
 
+	// One request at a time: a script's `page.save()` can land while the button's is in flight.
+	if (saving.value) return;
 	const mine = generation;
 	saving.value = true;
 	try {

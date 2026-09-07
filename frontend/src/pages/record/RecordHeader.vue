@@ -1,4 +1,4 @@
-<!-- The record's header row, drawn from `page.header`: crumbs and buttons on the left, controls, `⋯` and Save on the right. -->
+<!-- The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right. -->
 <template>
 	<header class="flex items-center justify-between gap-3">
 		<nav class="flex min-w-0 items-center gap-1 text-base">
@@ -112,7 +112,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { Button, Dropdown, Tooltip } from "frappe-ui";
 import type { HeaderControl, HeaderItem, HeaderProjection } from "@/recordPage";
 import { bandRows, menuContent } from "./headerMenuOptions";
@@ -124,6 +124,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ run: [item: HeaderItem] }>();
+const router = useRouter();
 
 // Bands are `MenuGroupOption`s, and a band shows a heading only when its container was declared.
 const bands = computed(() =>
@@ -138,7 +139,12 @@ function isCrumb(control?: HeaderControl) {
 	return control?.kind === "crumb";
 }
 
+// `run` wins over `href`; an item with only an `href` is a link wherever it renders.
 function run(item: HeaderItem) {
+	if (!item.run && item.href) {
+		router.push(item.href);
+		return;
+	}
 	emit("run", item);
 }
 </script>

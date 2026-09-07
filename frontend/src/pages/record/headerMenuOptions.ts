@@ -26,6 +26,9 @@ function row(node: HeaderNode, run: Run) {
       icon: node.item.icon,
       submenu: menuContent(node.members, run),
     };
+  // `run` wins over `href`, as the item type promises.
+  if (!node.item.run && node.item.href)
+    return { label: node.item.label, icon: node.item.icon, route: node.item.href };
   return {
     label: node.item.label,
     icon: node.item.icon,
