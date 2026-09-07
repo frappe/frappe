@@ -98,6 +98,7 @@ async def test_rest_roundtrip(tmp_path, monkeypatch):
 		rows = await client.entries(sid)
 		types = [row["type"] for row in rows["entries"]]
 		assert types[0] == "run_started" and types[-1] == "run_ended"
+		assert rows["preview"] == []
 
 		assert (await client.list_sessions())[0]["session_id"] == sid
 		assert await client.list_models() == {"models": [], "errors": []}
@@ -114,6 +115,51 @@ async def test_rest_roundtrip(tmp_path, monkeypatch):
 		assert (await client.rewind(sid, rows["entries"][0]["seq"]))["status"] == "rewound"
 		assert (await client.abort(sid))["status"] == "idle"
 		assert (await client.cancel_pending(sid))["status"] == "idle"
+
+
+async def test_entries_restore_an_active_preview(tmp_path, monkeypatch):
+	model = _BlockingModel()
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	forwarded = []
+	store = _store(tmp_path)
+	store.event_sink = lambda _sid, event: forwarded.append(event)
+	app = create_app(store)
+	transport = httpx.ASGITransport(app=app)
+	async with FlowClient("http://test", transport=transport) as client:
+		sid = await client.create_session(SessionConfig(cwd=str(tmp_path)))
+		await client.run(sid, "go")
+		await model.started.wait()
+
+		first = await client.entries(sid, path="all")
+		assert [event["type"] for event in first["entries"]] == ["run_started", "user_message"]
+		assert first["preview"] == [{"type": "text_delta", "text": "prefix"}]
+		assert first["state"] == "running"
+		assert first["running"] is True
+		assert first["stream_id"] == forwarded[-1]["stream_id"]
+		assert first["revision"] == forwarded[-1]["revision"]
+
+		model.release.set()
+		await model.suffix_sent.wait()
+		continued = await client.entries(sid, since=first["latest_seq"], path="all")
+		assert continued["entries"] == []
+		assert continued["preview"] == [{"type": "text_delta", "text": "prefix suffix"}]
+		assert continued["stream_id"] == first["stream_id"]
+		assert continued["latest_seq"] == first["latest_seq"]
+		assert continued["revision"] == first["revision"] + 1
+		buffered = [event for event in forwarded if event["revision"] > first["revision"]]
+		assert [event["text"] for event in buffered] == [" suffix"]
+		assert first["preview"][0]["text"] + buffered[0]["text"] == "prefix suffix"
+
+		model.finish.set()
+		async with asyncio.timeout(5):
+			while (await client.get_session(sid))["running"]:
+				await asyncio.sleep(0.01)
+		finished = await client.entries(sid, since=first["latest_seq"], path="all")
+		assert finished["preview"] == []
+		assert finished["entries"][-1]["type"] == "run_ended"
+		assert finished["revision"] == forwarded[-1]["revision"]
+		assert [event["revision"] for event in forwarded] == list(range(1, len(forwarded) + 1))
+		assert all("revision" not in event for event in finished["entries"])
 
 
 async def test_rest_errors_carry_status_and_detail(tmp_path):

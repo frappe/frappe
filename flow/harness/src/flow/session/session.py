@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
 from collections import deque
 from collections.abc import AsyncGenerator, AsyncIterator, Callable
 from dataclasses import dataclass, field
@@ -187,7 +188,7 @@ class Session:
 		config: SessionConfig,
 		log: SessionLog,
 		*,
-		event_sink=None,  # optional (session_id, event_dict) callback, e.g. Redis
+		event_sink: Callable[[str, dict], None] | None = None,
 		credential_store: CredentialStore | None = None,
 		allowed_roots: tuple[str, ...] = (),
 		attachment_store: AttachmentStore | None = None,
@@ -220,6 +221,8 @@ class Session:
 		self._steering_queue: deque[_QueuedSteering] = deque()
 		self._subscribers: set[asyncio.Queue[AnyEvent | None]] = set()
 		self._preview_replay: list[AnyEvent] = []
+		self._stream_id = uuid.uuid4().hex
+		self._revision = 0
 		# a run this process never settled (daemon crash) left open calls; close them
 		# now, before anything newer can be admitted
 		for repair in self.transcript.missing_results():
@@ -435,6 +438,18 @@ class Session:
 		finally:
 			self.unsubscribe(queue)
 
+	def event_snapshot(self, since: int = 0) -> dict:
+		"""Return durable events and the current preview."""
+		return {
+			"entries": self.log.read_since(since),
+			"preview": [event.model_dump(exclude_none=True) for event in self._preview_replay],
+			"latest_seq": self.log.latest_seq,
+			"state": self.state,
+			"running": self.is_running,
+			"stream_id": self._stream_id,
+			"revision": self._revision,
+		}
+
 	# --- the one writer ---------------------------------------------------
 
 	def _commit(self, event: AnyEvent) -> None:
@@ -469,9 +484,17 @@ class Session:
 				while not queue.empty():
 					queue.get_nowait()
 				queue.put_nowait(None)
+		self._revision += 1
 		if self.event_sink is not None:
 			try:
-				self.event_sink(self.id, event.model_dump(exclude_none=True))
+				self.event_sink(
+					self.id,
+					{
+						**event.model_dump(exclude_none=True),
+						"stream_id": self._stream_id,
+						"revision": self._revision,
+					},
+				)
 			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
 

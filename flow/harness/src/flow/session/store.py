@@ -10,7 +10,7 @@ import json
 import os
 import re
 import uuid
-from collections.abc import Collection, Iterator
+from collections.abc import Callable, Collection, Iterator
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -84,7 +84,7 @@ class SessionStore:
 	def __init__(
 		self,
 		data_dir: str,
-		event_sink=None,
+		event_sink: Callable[[str, dict], None] | None = None,
 		allowed_roots: builtins.list[str] | None = None,
 		credential_store: CredentialStore | None = None,
 		extension_paths: builtins.list[str] | None = None,
@@ -143,9 +143,15 @@ class SessionStore:
 		if not _SITE_RE.match(site):
 			raise ValueError(f"invalid site name {site!r}")
 		partition_dir = os.path.join(self.data_dir, "tenants", site)
+		sink = self.event_sink
+
+		def site_sink(sid: str, event: dict) -> None:
+			if sink is not None:
+				sink(sid, {**event, "site": site})
+
 		return SessionStore(
 			partition_dir,
-			event_sink=self.event_sink,
+			event_sink=site_sink if sink is not None else None,
 			allowed_roots=list(allowed_roots if allowed_roots is not None else self.allowed_roots),
 			credential_store=CredentialStore(os.path.join(partition_dir, "credentials.json")),
 			extension_paths=list(self._extension_paths),

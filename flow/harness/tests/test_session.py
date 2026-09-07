@@ -285,6 +285,20 @@ async def test_events_replays_then_stays_live_without_duplicates(tmp_path):
 	assert [event.content for event in seen if event.type == "user_message"] == ["one", "two"]
 
 
+async def test_live_cursor_changes_when_a_session_is_reloaded(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="hello")]))
+	await handle.task
+	before = session.event_snapshot()
+	after = SessionStore(str(tmp_path)).get(session.id).event_snapshot()
+	assert after["stream_id"] != before["stream_id"]
+	assert after["revision"] == 0
+	assert before["revision"] > 0
+	assert after["entries"] == before["entries"]
+	assert after["latest_seq"] == before["latest_seq"]
+
+
 async def test_reconnecting_event_stream_replays_in_progress_deltas(tmp_path):
 	class StreamingModel(MockModel):
 		def __init__(self):

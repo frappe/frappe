@@ -37,8 +37,10 @@ CALLBACK_HOSTS = [h.strip() for h in os.environ.get("FLOW_CALLBACK_HOSTS", "").s
 # JSON object overriding individual ServerPolicy fields of the chosen profile (`flow serve` only)
 POLICY = os.environ.get("FLOW_POLICY") or None
 
-# also publish events to Redis channel `harness:<sid>` (prefix is the Flow bridge wire contract)
+# Publish events to Redis for external relays.
 REDIS_URL = os.environ.get("FLOW_REDIS_URL") or None
+REDIS_MAX_PENDING = os.environ.get("FLOW_REDIS_MAX_PENDING")
+REDIS_MAX_PENDING_PER_SITE = os.environ.get("FLOW_REDIS_MAX_PENDING_PER_SITE")
 
 # path fence for session cwds and path-taking tools; empty = unrestricted (never sandboxes bash)
 ALLOWED_ROOTS = [p for p in os.environ.get("FLOW_ALLOWED_ROOTS", "").split(os.pathsep) if p]

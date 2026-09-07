@@ -382,21 +382,15 @@ def create_sessions_router(
 	@router.get("/sessions/{sid}/entries")
 	async def entries(request: Request, sid: str, since: int = 0, path: Literal["active", "all"] = "active"):
 		session = _get(resolve_store(request), sid)
-		if path == "all":  # the raw log, including branches a rewind abandoned
-			rows = session.log.read_since(since)
-		else:
-			if since:  # a rewind can retract rows before the cursor, so no cursor here
-				raise HTTPException(
-					status_code=422,
-					detail="the active view is a snapshot; catch up over /stream or path=all",
-				)
-			rows = active_path(session.log.read_since(0))
-		return {
-			"entries": rows,
-			"latest_seq": session.log.latest_seq,
-			"state": session.state,
-			"running": session.is_running,
-		}
+		if path == "active" and since:
+			raise HTTPException(
+				status_code=422,
+				detail="the active view is a snapshot; catch up over /stream or path=all",
+			)
+		snapshot = session.event_snapshot(since)
+		if path == "active":
+			snapshot["entries"] = active_path(snapshot["entries"])
+		return snapshot
 
 	@router.get("/sessions/{sid}/file/diff", dependencies=gate(policy.fs_api))
 	async def file_diff(request: Request, sid: str, path: str):
