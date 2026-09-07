@@ -512,6 +512,13 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 	total = len(docs)
 	processed = 0
 	save_point = "process_linked_doc"
+
+	def mark_processed():
+		nonlocal processed
+		processed += 1
+		if progress_title:
+			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+
 	while docs:
 		deferred = []
 		for doc in docs:
@@ -531,15 +538,15 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 				deferred.append(doc)
 				continue
 			frappe.db.release_savepoint(save_point)
-			processed += 1
-			if progress_title:
-				frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+			mark_processed()
 
 		if len(deferred) == len(docs):
-			if raise_when_stuck:
-				# nothing progressed: a document outside the set blocks it; surface the error
-				process(deferred[0])
-			return deferred
+			if not raise_when_stuck:
+				return deferred
+			# surface the blocker's error; a success means the block was transient
+			process(deferred[0])
+			mark_processed()
+			deferred = deferred[1:]
 		docs = deferred
 	return []
 
