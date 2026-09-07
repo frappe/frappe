@@ -432,31 +432,29 @@ def cancel_all_linked_docs(
 	"""Cancel the linked documents in dependency order, then the root, all or
 	nothing; sets larger than MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None past
 	the listing cap, move to a job instead."""
-	if ignore_doctypes_on_cancel_all is None:
-		ignore_doctypes_on_cancel_all = []
-
+	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
 	if docs is None:
-		if not (root_doctype and root_name):
-			frappe.throw(_("Either the documents to cancel or a root document is required"))
-		frappe.has_permission(root_doctype, doc=root_name, throw=True)
-		return enqueue_linked_docs_processing(
-			[], "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all, discover=True
-		)
+		return enqueue_discovery("cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all)
 
-	docs = frappe.parse_json(docs)
-	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
-
-	to_cancel = [doc for doc in deduplicated(docs) if validate_linked_doc(doc, ignore_doctypes_on_cancel_all)]
+	docs = deduplicated(frappe.parse_json(docs))
+	to_cancel = [doc for doc in docs if validate_linked_doc(doc, ignore_doctypes_on_cancel_all)]
 	if len(to_cancel) > MAX_SYNCHRONOUS_LINKED_DOCS:
 		return enqueue_linked_docs_processing(
 			to_cancel, "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all
 		)
 
 	if root_doctype and root_name:
-		# the list was built by an earlier request; drop what is no longer linked
-		to_cancel = keep_currently_linked(
-			to_cancel, "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all
-		)
+		try:
+			to_cancel = keep_currently_linked(
+				to_cancel,
+				"cancel",
+				root_doctype,
+				root_name,
+				ignore_doctypes_on_cancel_all,
+				limit=MAX_LINKED_DOCUMENTS_LISTED,
+			)
+		except LinkedDocumentsOverflow:
+			return enqueue_discovery("cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all)
 		# the root goes last, in the same transaction as its links
 		to_cancel = [*to_cancel, frappe._dict(doctype=root_doctype, name=root_name)]
 	process_linked_docs_in_dependency_order(to_cancel, cancel_linked_doc, _("Cancelling documents"))
@@ -524,20 +522,19 @@ def delete_all_linked_docs(
 	nothing; sets larger than MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None past
 	the listing cap, move to a job instead."""
 	if docs is None:
-		if not (root_doctype and root_name):
-			frappe.throw(_("Either the documents to delete or a root document is required"))
-		frappe.has_permission(root_doctype, doc=root_name, throw=True)
-		return enqueue_linked_docs_processing([], "delete", root_doctype, root_name, discover=True)
+		return enqueue_discovery("delete", root_doctype, root_name)
 
 	to_delete = deduplicated(frappe.parse_json(docs))
 	if len(to_delete) > MAX_SYNCHRONOUS_LINKED_DOCS:
 		return enqueue_linked_docs_processing(to_delete, "delete", root_doctype, root_name)
 
 	if root_doctype and root_name:
-		# the list was built by an earlier request; drop what is no longer linked
-		to_delete = keep_currently_linked(
-			to_delete, "delete", root_doctype, root_name, limit=MAX_LINKED_DOCUMENTS_LISTED
-		)
+		try:
+			to_delete = keep_currently_linked(
+				to_delete, "delete", root_doctype, root_name, limit=MAX_LINKED_DOCUMENTS_LISTED
+			)
+		except LinkedDocumentsOverflow:
+			return enqueue_discovery("delete", root_doctype, root_name)
 		# the root goes last: its on_trash may remove blockers nothing else can
 		to_delete = [*to_delete, frappe._dict(doctype=root_doctype, name=root_name)]
 
@@ -548,8 +545,8 @@ def delete_all_linked_docs(
 def keep_currently_linked(
 	docs, action, root_doctype, root_name, ignore_doctypes_on_cancel_all=None, limit=None
 ):
-	"""Drop entries that are no longer linked to the root: the list was built in
-	an earlier request and may be stale by the time it is processed."""
+	"""Drop entries no longer linked to the root: the list was built in an earlier
+	request and may be stale; raise LinkedDocumentsOverflow past `limit`."""
 	if action == "cancel":
 		current_docs, truncated = collect_cancellation_blockers(
 			root_doctype, root_name, ignore_doctypes_on_cancel_all, limit=limit
@@ -557,8 +554,7 @@ def keep_currently_linked(
 	else:
 		current_docs, truncated = collect_deletion_blockers(root_doctype, root_name, limit=limit)
 	if truncated:
-		# the graph outgrew the cap since it was listed; process nothing
-		return []
+		raise LinkedDocumentsOverflow
 
 	current = {(doc["doctype"], doc["name"]) for doc in current_docs}
 	return [doc for doc in docs if (doc.get("doctype"), doc.get("name")) in current]
@@ -567,6 +563,16 @@ def keep_currently_linked(
 def delete_linked_doc(docinfo):
 	"""Delete a document; one already removed by another document's on_trash hook is ignored."""
 	frappe.delete_doc(docinfo.get("doctype"), docinfo.get("name"))
+
+
+def enqueue_discovery(action, root_doctype, root_name, ignore_doctypes_on_cancel_all=None):
+	"""Queue a job that discovers the root's graph itself, uncapped, and processes it."""
+	if not (root_doctype and root_name):
+		frappe.throw(_("Either the documents to process or a root document is required"))
+	frappe.has_permission(root_doctype, doc=root_name, throw=True)
+	return enqueue_linked_docs_processing(
+		[], action, root_doctype, root_name, ignore_doctypes_on_cancel_all, discover=True
+	)
 
 
 def enqueue_linked_docs_processing(
