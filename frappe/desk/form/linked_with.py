@@ -409,18 +409,9 @@ MAX_LINKED_DELETE_DOCUMENTS = 500
 
 @frappe.whitelist()
 def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
-	"""Get all documents that block deletion of the given document, including
-	documents that block deletion of those documents, and so on.
-
-	Documents the user cannot read are neither returned nor traversed, so their
-	identities stay hidden and their deletion fails with the regular link error.
-
-	Deepest documents come first, so deleting in list order resolves the links.
-
-	Traversal stops once MAX_LINKED_DELETE_DOCUMENTS is exceeded and returns no
-	documents, so deleting a heavily referenced document falls back to a plain
-	delete instead of tying up the worker walking its graph.
-	"""
+	"""Get the documents blocking deletion of the given document, recursively,
+	deepest first; unreadable ones are neither returned nor traversed. Past
+	MAX_LINKED_DELETE_DOCUMENTS the result is empty and marked truncated."""
 	from frappe.model.delete_doc import get_dynamic_linked_docs
 	from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
 
@@ -431,8 +422,7 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 	queue = deque([root_key])
 	while queue:
 		parent_key = queue.popleft()
-		# a lightweight stand-in is enough for the link lookups; loading the
-		# full document of every node is too expensive on this request path
+		# lightweight stand-in; a full get_doc per node is too expensive
 		parent = frappe._dict(doctype=parent_key[0], name=parent_key[1])
 		links = get_statically_linked_docs(parent, method="Delete") + get_dynamic_linked_docs(
 			parent, method="Delete"
@@ -457,22 +447,11 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 
 @frappe.whitelist()
 def delete_all_linked_docs(docs: str | list) -> dict:
-	"""
-	Delete as many of the given documents as their links allow.
-
-	A document that other documents still reference is deferred and retried
-	after the rest, so callers need not pass docs in dependency order. A
-	document that stays undeletable is skipped without undoing the rest.
-	Return the deleted and the skipped documents.
-
-	Arguments:
-	        docs (json str) - It contains list of dictionaries of the documents to delete.
-	"""
+	"""Delete the given documents best effort, deferring blocked ones; returns
+	the deleted and the skipped documents."""
 	to_delete = deduplicated(frappe.parse_json(docs))
 
-	# No realtime progress here: the events race the requests and navigation
-	# that follow deletion and can strand the progress dialog; the freeze
-	# overlay of the call covers the feedback.
+	# no realtime progress: late events strand the dialog; the freeze overlay suffices
 	skipped = process_linked_docs_in_dependency_order(to_delete, delete_linked_doc, raise_when_stuck=False)
 	return {"deleted": [doc for doc in to_delete if doc not in skipped], "skipped": skipped}
 
@@ -495,20 +474,9 @@ def deduplicated(docs):
 
 
 def process_linked_docs_in_dependency_order(docs, process, progress_title=None, raise_when_stuck=True):
-	"""Run process over docs, deferring a document blocked by another document
-	to a later pass, until a full pass makes no progress.
-
-	Any validation or permission failure defers, not just link errors: a
-	controller may block cancellation until a referencing document is cancelled
-	first, and some documents cannot be processed directly but stop being in
-	the way as a side effect of processing a document near them (e.g. ledger
-	entries that only the on_trash hook of their voucher removes). A document
-	locked by another session or caught in a deadlock defers too, since the
-	lock may be gone by the retry pass.
-
-	Once stuck, either surface the error of the first blocked document or, with
-	raise_when_stuck disabled, keep the progress made and return the blocked
-	documents."""
+	"""Run process over docs, deferring blocked ones to later passes until a
+	pass makes no progress; then raise the first blocker's error, or with
+	raise_when_stuck disabled return the blocked docs."""
 	total = len(docs)
 	processed = 0
 	save_point = "process_linked_doc"
