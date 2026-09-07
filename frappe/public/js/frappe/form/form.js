@@ -1122,27 +1122,7 @@ frappe.ui.form.Form = class FrappeForm {
 				"{0} {1} is linked with too many submitted documents to list. Cancel all of them in the background along with {1}? You will be notified when it completes.",
 				[__(me.doc.doctype).bold(), cstr(me.doc.name).bold()]
 			),
-			() => {
-				frappe.call({
-					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
-					args: {
-						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
-						root_doctype: me.doc.doctype,
-						root_name: me.doc.name,
-					},
-					freeze: true,
-					callback: (resp) => {
-						if (!resp.exc) {
-							frappe.show_alert({
-								message: __(
-									"Cancellation queued. You will be notified when it completes."
-								),
-								indicator: "blue",
-							});
-						}
-					},
-				});
-			},
+			() => me._cancel_with_linked_docs(null, btn, null, on_error),
 			__("Cancel All")
 		);
 		d.onhide = () => {
@@ -1203,6 +1183,15 @@ frappe.ui.form.Form = class FrappeForm {
 
 	_cancel_with_linked_docs(links, btn, callback, on_error) {
 		const me = this;
+		const args = {
+			ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
+			root_doctype: me.doc.doctype,
+			root_name: cstr(me.doc.name),
+		};
+		if (links) {
+			// without a list the server discovers the graph in a background job
+			args.docs = links;
+		}
 		frappe.validated = true;
 		me.script_manager.trigger("before_cancel").then(() => {
 			if (!frappe.validated) {
@@ -1210,12 +1199,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 			frappe.call({
 				method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
-				args: {
-					docs: links,
-					ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
-					root_doctype: me.doc.doctype,
-					root_name: me.doc.name,
-				},
+				args: args,
 				freeze: true,
 				callback: (resp) => {
 					if (resp.exc) {
@@ -1224,7 +1208,7 @@ frappe.ui.form.Form = class FrappeForm {
 					if (resp.message && resp.message.queued) {
 						frappe.msgprint(
 							__(
-								"There are too many linked documents to cancel right away, so they will be cancelled in the background along with {0}. You will be notified when it completes.",
+								"The linked documents will be cancelled in the background along with {0}. You will be notified when it completes.",
 								[cstr(me.doc.name).bold()]
 							)
 						);
@@ -1370,28 +1354,42 @@ frappe.ui.form.Form = class FrappeForm {
 				"{0} {1} is linked with too many documents to list. Delete all of them in the background along with {1}? You will be notified when it completes.",
 				[__(me.doctype).bold(), cstr(me.docname).bold()]
 			),
-			() => {
-				frappe.call({
-					method: "frappe.desk.form.linked_with.delete_all_linked_docs",
-					args: {
-						root_doctype: me.doctype,
-						root_name: cstr(me.docname),
-					},
-					freeze: true,
-					callback: (resp) => {
-						if (!resp.exc) {
-							frappe.show_alert({
-								message: __(
-									"Deletion queued. You will be notified when it completes."
-								),
-								indicator: "blue",
-							});
-						}
-					},
-				});
-			},
+			() => me._delete_with_linked_docs(null),
 			__("Delete All")
 		);
+	}
+
+	_delete_with_linked_docs(links) {
+		const me = this;
+		const args = { root_doctype: me.doctype, root_name: cstr(me.docname) };
+		if (links) {
+			// without a list the server discovers the graph in a background job
+			args.docs = links;
+		}
+		frappe.call({
+			method: "frappe.desk.form.linked_with.delete_all_linked_docs",
+			args: args,
+			freeze: true,
+			freeze_message: __("Deleting documents..."),
+			callback: (resp) => {
+				if (resp.exc) {
+					return;
+				}
+				if (resp.message && resp.message.queued) {
+					frappe.msgprint(
+						__(
+							"The linked documents will be deleted in the background along with {0}. You will be notified when it completes.",
+							[cstr(me.docname).bold()]
+						)
+					);
+					return;
+				}
+				// the server deleted the root along with its links
+				frappe.utils.play_sound("delete");
+				frappe.model.delete_from_locals(me.doctype, me.docname);
+				window.history.back();
+			},
+		});
 	}
 
 	_delete_all(r) {
@@ -1418,34 +1416,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		d.set_primary_action(__("Delete All"), () => {
 			d.hide();
-			frappe.call({
-				method: "frappe.desk.form.linked_with.delete_all_linked_docs",
-				args: {
-					docs: links,
-					root_doctype: me.doctype,
-					root_name: cstr(me.docname),
-				},
-				freeze: true,
-				freeze_message: __("Deleting documents..."),
-				callback: (resp) => {
-					if (resp.exc) {
-						return;
-					}
-					if (resp.message && resp.message.queued) {
-						frappe.msgprint(
-							__(
-								"There are too many linked documents to delete right away, so they will be deleted in the background along with {0}. You will be notified when it completes.",
-								[cstr(me.docname).bold()]
-							)
-						);
-						return;
-					}
-					// the server deleted the root along with its links
-					frappe.utils.play_sound("delete");
-					frappe.model.delete_from_locals(me.doctype, me.docname);
-					window.history.back();
-				},
-			});
+			me._delete_with_linked_docs(links);
 		});
 
 		d.show();
