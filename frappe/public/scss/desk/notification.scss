@@ -62,7 +62,7 @@ $notification-dot-size: 8px;
 		padding: 0;
 		border-radius: 50%;
 		border: 1px solid var(--bg-color);
-		background-color: var(--surface-blue-5);
+		background-color: var(--ink-gray-9);
 		// dot only — hide the count text the shared notifications view sets on it
 		font-size: 0;
 		color: transparent;
@@ -159,9 +159,9 @@ $notification-dot-size: 8px;
 	}
 
 	&.unread {
-		// reads off the same blue the bell's unread dot uses
+		// reads off the same ink the bell's unread dot uses
 		&::before {
-			background: var(--surface-blue-5);
+			background: var(--ink-gray-9);
 		}
 
 		// Unread rows read a step heavier than the ones already seen -- "medium" is

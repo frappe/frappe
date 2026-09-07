@@ -8,11 +8,11 @@
 .sidebar-panel {
 	position: absolute;
 	top: 0;
-	// The mount point is .body-sidebar-container, whose width is the placeholder's:
-	// 220px expanded, 0 collapsed, 0 on mobile. So this one rule opens the panel flush
-	// against the sidebar's right edge when it is out, and against the dock's edge when
-	// it is away, with nothing to override per state.
-	left: 100%;
+	// The mount point is .body-sidebar-container, which is 0 wide in every state now that the
+	// sidebar is an overlay -- so this is the rail's right edge, which is where the panel belongs
+	// while the sidebar is away. Where it belongs when the sidebar is out is below: the offset has
+	// to be named, because it no longer falls out of the box's own width.
+	left: 0;
 	z-index: 1000;
 
 	width: min(360px, 100vw);
@@ -25,6 +25,20 @@
 
 	background-color: var(--surface-base);
 	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
+}
+
+// With the sidebar out, the panel opens past it rather than over it: the two are siblings in the
+// same 0-width box, so one would otherwise be drawn on top of the other.
+.body-sidebar-container.expanded .sidebar-panel {
+	left: var(--sidebar-width);
+}
+
+// Not on mobile, where the sidebar is a drawer over the page rather than a column beside it, and a
+// panel pushed past its width would open off the screen.
+@include media-breakpoint-down(sm) {
+	.body-sidebar-container.expanded .sidebar-panel {
+		left: 0;
+	}
 }
 
 // The heading. Not scoped under .sidebar-panel: the desktop screen puts this same

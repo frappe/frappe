@@ -281,6 +281,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			if (e.originalEvent.isTrusted) {
 				me.save_section_break_state();
 			}
+			// Docking the sidebar is how a collapsed one shows the group that was just
+			// expanded, since the group itself is off screen while collapsed.
 			if (!frappe.app.sidebar.sidebar_expanded) {
 				frappe.app.sidebar.open();
 				this.open();
