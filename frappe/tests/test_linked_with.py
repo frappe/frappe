@@ -389,6 +389,21 @@ class TestLinkedWith(IntegrationTestCase):
 				[{"doctype": "Parent DocType", "name": "deadlocked"}], process
 			)
 
+	def test_delete_doc_keeps_a_deadlock_a_deadlock(self):
+		"""The lock query's deadlock must not come out as a lock timeout, or the
+		run would defer it and roll back to a savepoint the database discarded."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		get_value = frappe.db.get_value
+
+		def deadlock_on_lock(*args, **kwargs):
+			if kwargs.get("for_update"):
+				raise frappe.QueryDeadlockError("deadlock")
+			return get_value(*args, **kwargs)
+
+		with patch.object(frappe.db, "get_value", deadlock_on_lock):
+			with self.assertRaises(frappe.QueryDeadlockError):
+				frappe.delete_doc("Parent DocType", parent.name)
+
 	def test_stuck_pass_continues_when_the_retry_succeeds(self):
 		"""If the surfacing attempt succeeds (a lock cleared), the rest must still
 		be processed instead of being abandoned."""
