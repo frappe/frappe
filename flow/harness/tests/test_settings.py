@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from flow import settings
+from flow_harness import settings
 
 
 @pytest.fixture

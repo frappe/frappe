@@ -27,7 +27,7 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Markdown, Static
 
-from flow.events import (
+from flow_harness.events import (
 	AssistantMessage,
 	DisplaySegment,
 	TextContent,
@@ -37,7 +37,7 @@ from flow.events import (
 	TranscriptMessage,
 	UserMessage,
 )
-from flow.session.skills import parse_skill_invocation
+from flow_harness.session.skills import parse_skill_invocation
 from flow_tui.client.state import PartialPart, PartialText, PartialThinking, PartialToolCall
 from flow_tui.theme import (
 	STYLE_ERROR,

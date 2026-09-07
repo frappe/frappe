@@ -7,12 +7,12 @@ from argparse import Namespace
 import pytest
 from fastapi.testclient import TestClient
 
-from flow.cli.daemon import DaemonError
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.server.policy import DEPLOYED
-from flow.server.tenants import Tenant, load_tenants
-from flow.session.store import SessionStore
+from flow_harness.cli.daemon import DaemonError
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.server.policy import DEPLOYED
+from flow_harness.server.tenants import Tenant, load_tenants
+from flow_harness.session.store import SessionStore
 
 TENANTS = [
 	Tenant(site="site1.localhost", token="token-one"),
@@ -333,9 +333,9 @@ def _serve_args(tmp_path) -> Namespace:
 
 
 def test_serve_refuses_token_and_tenants_together(tmp_path, monkeypatch):
-	from flow import config
+	from flow_harness import config
 
-	cli_main = importlib.import_module("flow.cli.main")
+	cli_main = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "AUTH_TOKEN", "secret")
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
 	monkeypatch.setattr(config, "TENANTS_FILE", str(tmp_path / "tenants.json"))
@@ -344,9 +344,9 @@ def test_serve_refuses_token_and_tenants_together(tmp_path, monkeypatch):
 
 
 def test_serve_wraps_tenants_file_errors(tmp_path, monkeypatch):
-	from flow import config
+	from flow_harness import config
 
-	cli_main = importlib.import_module("flow.cli.main")
+	cli_main = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "AUTH_TOKEN", None)
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
 	monkeypatch.setattr(config, "TENANTS_FILE", str(tmp_path / "missing.json"))

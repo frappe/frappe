@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from flow.events import (
+from flow_harness.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	DisplaySegment,

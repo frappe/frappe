@@ -21,7 +21,7 @@ The loop owns model calls, tool execution, confirmation pauses, steering, retrie
 
 ## Events and state
 
-`flow.events` is the shared wire contract.
+`flow_harness.events` is the shared wire contract.
 
 - Durable events are append-only JSONL rows with a monotonic `seq`: messages, tool results, approval requests, model changes, compactions, run endings, errors, and rewinds.
 - Live-only events are display hints: text/thinking deltas, tool-start notifications, retry progress, compaction progress, and generated titles. While a run is active, `Session` retains its provisional assistant events in memory so a newly attached client can rebuild the preview; the terminal durable assistant message supersedes them.

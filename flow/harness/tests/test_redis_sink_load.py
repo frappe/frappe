@@ -11,7 +11,7 @@ import pytest
 import redis.asyncio as redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from flow.server.redis_sink import RedisEventSink
+from flow_harness.server.redis_sink import RedisEventSink
 
 pytestmark = pytest.mark.skipif(
 	os.environ.get("FLOW_RUN_REDIS_LOAD_TESTS") != "1", reason="set FLOW_RUN_REDIS_LOAD_TESTS=1"

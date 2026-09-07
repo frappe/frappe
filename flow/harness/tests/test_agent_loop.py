@@ -5,16 +5,16 @@ import asyncio
 
 import pytest
 
-from flow.agent.loop import HookDecision
-from flow.events import AssistantMessage, ToolCall, Usage
-from flow.model import Model, ModelRequest, ProviderError, run_with_retries
-from flow.model.auth import ResolvedModelAuth
-from flow.model.mock import MockModel
-from flow.session.config import SessionConfig
-from flow.session.session import ResumeError, SessionConflict
-from flow.session.store import SessionStore
-from flow.tools import BUILTIN_TOOLS, tool
-from flow.tools.tool import ToolResult as RuntimeToolResult
+from flow_harness.agent.loop import HookDecision
+from flow_harness.events import AssistantMessage, ToolCall, Usage
+from flow_harness.model import Model, ModelRequest, ProviderError, run_with_retries
+from flow_harness.model.auth import ResolvedModelAuth
+from flow_harness.model.mock import MockModel
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.session import ResumeError, SessionConflict
+from flow_harness.session.store import SessionStore
+from flow_harness.tools import BUILTIN_TOOLS, tool
+from flow_harness.tools.tool import ToolResult as RuntimeToolResult
 
 
 def _session(tmp_path, **cfg):
@@ -363,7 +363,7 @@ async def test_setup_failure_emits_one_terminal_error(tmp_path, monkeypatch):
 	async def fail_auth(*args, **kwargs):
 		raise RuntimeError("auth setup failed")
 
-	monkeypatch.setattr("flow.agent.loop.resolve_model_auth", fail_auth)
+	monkeypatch.setattr("flow_harness.agent.loop.resolve_model_auth", fail_auth)
 	await _run(session, "hi")
 
 	assert _of(events, "run_error")[0]["message"] == "RuntimeError: auth setup failed"
@@ -384,8 +384,8 @@ async def test_run_wires_the_resolved_refresh_hook_into_the_model(tmp_path, monk
 		captured.update(kwargs)
 		return MockModel(replies=[AssistantMessage(content="ok")])
 
-	monkeypatch.setattr("flow.agent.loop.resolve_model_auth", fake_resolve)
-	monkeypatch.setattr("flow.agent.loop.get_model", fake_get_model)
+	monkeypatch.setattr("flow_harness.agent.loop.resolve_model_auth", fake_resolve)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", fake_get_model)
 	session, events = _session(tmp_path, model="codex/test")
 
 	await _run(session, "hello")
@@ -403,7 +403,7 @@ async def test_reasoning_effort_reaches_the_model_as_params(tmp_path, monkeypatc
 		captured.update(kwargs)
 		return MockModel(replies=[AssistantMessage(content="ok")])
 
-	monkeypatch.setattr("flow.agent.loop.get_model", fake_get_model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", fake_get_model)
 	session, _ = _session(tmp_path, reasoning_effort="high")
 
 	await _run(session, "hello")
@@ -418,7 +418,7 @@ async def test_no_reasoning_effort_sends_no_params(tmp_path, monkeypatch):
 		captured.update(kwargs)
 		return MockModel(replies=[AssistantMessage(content="ok")])
 
-	monkeypatch.setattr("flow.agent.loop.get_model", fake_get_model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", fake_get_model)
 	session, _ = _session(tmp_path)
 
 	await _run(session, "hello")
@@ -671,7 +671,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 
 			return Response()
 
-	monkeypatch.setattr("flow.agent.client_tools.httpx.AsyncClient", RecordingClient)
+	monkeypatch.setattr("flow_harness.agent.client_tools.httpx.AsyncClient", RecordingClient)
 	session, events = _session(
 		tmp_path,
 		tools=[],
@@ -736,7 +736,7 @@ async def test_abort_cancels_client_callback_request(tmp_path, monkeypatch):
 			finally:
 				callback_cancelled.set()
 
-	monkeypatch.setattr("flow.agent.client_tools.httpx.AsyncClient", BlockingClient)
+	monkeypatch.setattr("flow_harness.agent.client_tools.httpx.AsyncClient", BlockingClient)
 	session, events = _session(
 		tmp_path,
 		tools=[],
@@ -1010,7 +1010,7 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 				yield Usage()
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "count_once", count_once)
-	monkeypatch.setattr("flow.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
 	session, events = _session(tmp_path, tools=["count_once"], auto_approve=True)
 
 	await _run(session, "go", model=ToolThenFlakyModel())

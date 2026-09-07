@@ -3,7 +3,7 @@
 import logging
 import re
 
-from flow.server.logs import _TerminalFormatter, setup_terminal_logging
+from flow_harness.server.logs import _TerminalFormatter, setup_terminal_logging
 
 
 def _record(level: int, msg: str, args: tuple = ()) -> logging.LogRecord:

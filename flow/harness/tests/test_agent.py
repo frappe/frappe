@@ -4,8 +4,8 @@ import asyncio
 
 import pytest
 
-from flow.agent.agent import Agent
-from flow.events import (
+from flow_harness.agent.agent import Agent
+from flow_harness.events import (
 	AssistantMessage,
 	RunEnded,
 	TextDelta,
@@ -14,8 +14,8 @@ from flow.events import (
 	ToolCall,
 	Usage,
 )
-from flow.model import Model, ModelRequest
-from flow.model.mock import MockModel
+from flow_harness.model import Model, ModelRequest
+from flow_harness.model.mock import MockModel
 
 
 async def test_run_streams_a_full_turn(tmp_path):
@@ -28,7 +28,7 @@ async def test_run_streams_a_full_turn(tmp_path):
 
 
 async def test_slow_embedded_subscriber_fails_cleanly(tmp_path, monkeypatch):
-	monkeypatch.setattr("flow.session.session._SUBSCRIBER_QUEUE_SIZE", 2)
+	monkeypatch.setattr("flow_harness.session.session._SUBSCRIBER_QUEUE_SIZE", 2)
 
 	class BurstyModel(Model):
 		name = "bursty"

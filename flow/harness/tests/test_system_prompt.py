@@ -2,10 +2,10 @@ import json
 
 from fastapi.testclient import TestClient
 
-from flow.server import create_app
-from flow.session.config import SessionConfig
-from flow.session.prompt import DEFAULT_INTRO, build_system_prompt
-from flow.session.store import SessionStore
+from flow_harness.server import create_app
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.prompt import DEFAULT_INTRO, build_system_prompt
+from flow_harness.session.store import SessionStore
 
 
 def _home(tmp_path):

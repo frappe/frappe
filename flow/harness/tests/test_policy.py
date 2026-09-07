@@ -5,14 +5,14 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.server.policy import DEPLOYED, ServerPolicy, resolve_policy
-from flow.session.config import SessionConfig
-from flow.session.store import PolicyError, SessionStore
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.server.policy import DEPLOYED, ServerPolicy, resolve_policy
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import PolicyError, SessionStore
 
 HELLO_EXTENSION = """
-from flow.tools import ToolResult, tool
+from flow_harness.tools import ToolResult, tool
 
 @tool()
 async def hello(who: str = "world", *, ctx):
@@ -243,10 +243,10 @@ def test_serve_refuses_deployed_without_token(tmp_path, monkeypatch):
 	import importlib
 	from argparse import Namespace
 
-	from flow import config
-	from flow.model.auth import AuthError
+	from flow_harness import config
+	from flow_harness.model.auth import AuthError
 
-	cli_main = importlib.import_module("flow.cli.main")
+	cli_main = importlib.import_module("flow_harness.cli.main")
 
 	monkeypatch.setattr(config, "AUTH_TOKEN", None)
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)

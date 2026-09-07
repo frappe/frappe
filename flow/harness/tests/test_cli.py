@@ -4,11 +4,11 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from flow import config
-from flow.cli.daemon import DaemonError
-from flow.cli.login import _parse_callback, login, logout, show_providers
-from flow.cli.main import _is_loopback, _resolve_auth_token, _with_default_command
-from flow.model.credentials import CredentialStore
+from flow_harness import config
+from flow_harness.cli.daemon import DaemonError
+from flow_harness.cli.login import _parse_callback, login, logout, show_providers
+from flow_harness.cli.main import _is_loopback, _resolve_auth_token, _with_default_command
+from flow_harness.model.credentials import CredentialStore
 
 
 def test_api_key_login_status_and_logout(tmp_path, monkeypatch, capsys):
@@ -90,10 +90,10 @@ def test_bare_invocation_defaults_to_web():
 
 
 def test_redis_sink_is_optional(monkeypatch):
-	cli = importlib.import_module("flow.cli.main")
+	cli = importlib.import_module("flow_harness.cli.main")
 	sink = object()
 	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
-	monkeypatch.setattr("flow.server.redis_sink.RedisEventSink", lambda _url, **_kwargs: sink)
+	monkeypatch.setattr("flow_harness.server.redis_sink.RedisEventSink", lambda _url, **_kwargs: sink)
 	assert cli._redis_sink() is sink
 
 	monkeypatch.setattr(config, "REDIS_URL", None)
@@ -101,11 +101,11 @@ def test_redis_sink_is_optional(monkeypatch):
 
 
 def test_redis_queue_limits_are_passed_to_the_sink(monkeypatch):
-	cli = importlib.import_module("flow.cli.main")
+	cli = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
 	monkeypatch.setattr(config, "REDIS_MAX_PENDING", "8000")
 	monkeypatch.setattr(config, "REDIS_MAX_PENDING_PER_SITE", "1000")
-	monkeypatch.setattr("flow.server.redis_sink.RedisEventSink", lambda url, **kwargs: (url, kwargs))
+	monkeypatch.setattr("flow_harness.server.redis_sink.RedisEventSink", lambda url, **kwargs: (url, kwargs))
 	assert cli._redis_sink() == (
 		"redis://unused",
 		{"max_pending": 8000, "max_pending_per_site": 1000},
@@ -115,7 +115,7 @@ def test_redis_queue_limits_are_passed_to_the_sink(monkeypatch):
 @pytest.mark.parametrize("name", ["MAX_PENDING", "MAX_PENDING_PER_SITE"])
 @pytest.mark.parametrize("value", ["0", "-1", "", "1.5", "invalid"])
 def test_invalid_redis_queue_limits_are_clean_config_errors(monkeypatch, name, value):
-	cli = importlib.import_module("flow.cli.main")
+	cli = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
 	monkeypatch.setattr(config, f"REDIS_{name}", value)
 	with pytest.raises(DaemonError, match=f"FLOW_REDIS_{name} must be a positive integer"):
@@ -126,7 +126,7 @@ def test_invalid_redis_queue_limits_are_clean_config_errors(monkeypatch, name, v
 
 @pytest.mark.parametrize("url", ["https://secret:password@redis", "redis://secret:password@redis:bad"])
 def test_invalid_redis_urls_are_clean_config_errors(monkeypatch, url):
-	cli = importlib.import_module("flow.cli.main")
+	cli = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "REDIS_URL", url)
 	with pytest.raises(DaemonError, match=r"^invalid FLOW_REDIS_URL$"):
 		cli._redis_sink()
@@ -134,7 +134,7 @@ def test_invalid_redis_urls_are_clean_config_errors(monkeypatch, url):
 
 @pytest.mark.parametrize("command", ["serve", "web"])
 def test_cli_wires_redis_to_the_server_lifespan(tmp_path, monkeypatch, command):
-	cli = importlib.import_module("flow.cli.main")
+	cli = importlib.import_module("flow_harness.cli.main")
 	redis = []
 	closed = []
 
@@ -158,7 +158,7 @@ def test_cli_wires_redis_to_the_server_lifespan(tmp_path, monkeypatch, command):
 
 	monkeypatch.setattr("redis.asyncio.from_url", lambda *_args, **_kwargs: Client())
 	monkeypatch.setattr("uvicorn.run", run_server)
-	monkeypatch.setattr("flow.server.logs.setup_terminal_logging", lambda: None)
+	monkeypatch.setattr("flow_harness.server.logs.setup_terminal_logging", lambda: None)
 	monkeypatch.setattr(cli, "_warm_litellm", lambda: None)
 	monkeypatch.setattr(cli, "_resolve_auth_token", lambda: None)
 	monkeypatch.setattr(cli, "_webui_dist", lambda: str(tmp_path))

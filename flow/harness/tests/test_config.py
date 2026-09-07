@@ -1,7 +1,7 @@
 import os
 import runpy
 
-from flow import config
+from flow_harness import config
 
 
 def test_server_state_defaults_are_user_global():

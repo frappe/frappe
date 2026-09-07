@@ -6,12 +6,12 @@ import os
 
 from fastapi.testclient import TestClient
 
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.server.policy import DEPLOYED, ServerPolicy
-from flow.server.request_limits import REFUSAL
-from flow.server.tenants import Tenant
-from flow.session.store import SessionStore
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.server.policy import DEPLOYED, ServerPolicy
+from flow_harness.server.request_limits import REFUSAL
+from flow_harness.server.tenants import Tenant
+from flow_harness.session.store import SessionStore
 
 
 def _store(tmp_path, **store_kw) -> SessionStore:
@@ -71,9 +71,9 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 
 	import uvicorn
 
-	from flow import config
+	from flow_harness import config
 
-	cli_main = importlib.import_module("flow.cli.main")
+	cli_main = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "AUTH_TOKEN", "tok")
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
 	monkeypatch.setattr(config, "TENANTS_FILE", None)
@@ -93,7 +93,7 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 			data_dir, credential_store=CredentialStore(str(tmp_path / "credentials.json")), **kwargs
 		)
 
-	monkeypatch.setattr("flow.session.store.SessionStore", capturing_store)
+	monkeypatch.setattr("flow_harness.session.store.SessionStore", capturing_store)
 
 	def serve(profile: str) -> dict:
 		cli_main._serve(
@@ -124,7 +124,7 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 def test_spawn_private_scrubs_daemon_env(tmp_path, monkeypatch):
 	"""Stray FLOW_POLICY/FLOW_TENANTS_FILE in the shell must not reach the TUI's own
 	daemon — a tenants file would even refuse startup beside the injected token."""
-	from flow.cli import daemon as cli_daemon
+	from flow_harness.cli import daemon as cli_daemon
 
 	captured: dict = {}
 

@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-from flow.events import (
+from flow_harness.events import (
 	AnyEvent,
 	ApprovalRequired,
 	AssistantMessage,

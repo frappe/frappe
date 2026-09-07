@@ -1,6 +1,6 @@
 import httpx
 
-from flow.model.errors import (
+from flow_harness.model.errors import (
 	normalize_litellm_error,
 	normalize_provider_error,
 	provider_error_from_http,

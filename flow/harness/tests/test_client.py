@@ -8,12 +8,12 @@ import httpx
 import pytest
 import uvicorn
 
-from flow.events import AssistantMessage, TextDelta, Usage
-from flow.model import Model, ModelRequest
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
+from flow_harness.events import AssistantMessage, TextDelta, Usage
+from flow_harness.model import Model, ModelRequest
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
 from flow_tui.client import EventStream, FlowAPIError, FlowClient
 from flow_tui.client.state import ConversationState, PartialText
 
@@ -76,7 +76,7 @@ class _BlockingModel(Model):
 
 
 async def test_rest_roundtrip(tmp_path, monkeypatch):
-	from flow.model.catalog import PROVIDERS
+	from flow_harness.model.catalog import PROVIDERS
 
 	# no developer API key may leak in, or /models would query providers live
 	for provider in PROVIDERS:
@@ -119,7 +119,7 @@ async def test_rest_roundtrip(tmp_path, monkeypatch):
 
 async def test_entries_restore_an_active_preview(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	forwarded = []
 	store = _store(tmp_path)
 	store.event_sink = lambda _sid, event: forwarded.append(event)
@@ -190,7 +190,7 @@ async def test_bearer_token_is_sent(tmp_path):
 
 async def test_follow_stream_spans_runs_and_ignores_keepalives(tmp_path, monkeypatch):
 	# a fast cadence proves keepalives really flow between the runs below
-	monkeypatch.setattr("flow.server.utils.sse.KEEPALIVE_SECONDS", 0.05)
+	monkeypatch.setattr("flow_harness.server.utils.sse.KEEPALIVE_SECONDS", 0.05)
 	app = create_app(_store(tmp_path))
 	async with _live_server(app) as url, FlowClient(url) as client:
 		sid = await client.create_session(SessionConfig(model="mock", cwd=str(tmp_path)))
@@ -214,7 +214,7 @@ async def test_follow_stream_spans_runs_and_ignores_keepalives(tmp_path, monkeyp
 
 async def test_reconnect_mid_run_resumes_from_cursor_without_duplicates(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
 	app = create_app(_store(tmp_path))
 	async with _live_server(app) as url, FlowClient(url) as client:
 		sid = await client.create_session(SessionConfig(cwd=str(tmp_path)))

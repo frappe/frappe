@@ -23,9 +23,9 @@ from textual.command import CommandPalette
 from textual.containers import Horizontal
 from textual.widgets import Static
 
-from flow.config import UDS_URL
-from flow.events import ReasoningEffort
-from flow.session.config import SessionConfig
+from flow_harness.config import UDS_URL
+from flow_harness.events import ReasoningEffort
+from flow_harness.session.config import SessionConfig
 from flow_tui.client.api import FlowAPIError, FlowClient
 from flow_tui.client.state import (
 	ApprovalChanged,

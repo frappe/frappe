@@ -26,7 +26,7 @@ dev = [
 ]
 
 [project.scripts]
-flow = "flow.cli.main:main"
+flow = "flow_harness.cli.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -34,7 +34,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build]
 # built by the hook below, and gitignored, but ships in the package
-artifacts = ["src/flow/server/webui/"]
+artifacts = ["src/flow_harness/server/webui/"]
 # only ui/.gitignore lists these, and hatchling reads the root one
 exclude = ["**/node_modules"]
 
@@ -42,7 +42,7 @@ exclude = ["**/node_modules"]
 path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/flow", "src/flow_tui"]
+packages = ["src/flow_harness", "src/flow_tui"]
 
 [tool.ty.src]
 exclude = ["tests"]

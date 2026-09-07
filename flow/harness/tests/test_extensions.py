@@ -5,19 +5,19 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from flow import config as server_config
-from flow.events import AssistantMessage, ToolCall
-from flow.extensions import ExtensionRuntime
-from flow.extensions.loader import discover_extensions
-from flow.model.mock import MockModel
-from flow.server import create_app
-from flow.server.policy import ServerPolicy
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
-from flow.tools import ToolContext
+from flow_harness import config as server_config
+from flow_harness.events import AssistantMessage, ToolCall
+from flow_harness.extensions import ExtensionRuntime
+from flow_harness.extensions.loader import discover_extensions
+from flow_harness.model.mock import MockModel
+from flow_harness.server import create_app
+from flow_harness.server.policy import ServerPolicy
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
+from flow_harness.tools import ToolContext
 
 HELLO_EXTENSION = """
-from flow.tools import ToolResult, tool
+from flow_harness.tools import ToolResult, tool
 
 @tool(prompt_snippet="Greet someone by name.", display_template="Greeting {{ who }}")
 async def hello(who: str = "world", *, ctx):
@@ -65,7 +65,7 @@ def test_directory_extension_uses_relative_imports(tmp_path):
 	(package / "helper.py").write_text("GREETING = 'Hi'\n")
 	(package / "extension.py").write_text(
 		"from .helper import GREETING\n"
-		"from flow.tools import ToolResult, tool\n"
+		"from flow_harness.tools import ToolResult, tool\n"
 		"\n"
 		"@tool\n"
 		"async def greet(*, ctx):\n"
@@ -201,7 +201,7 @@ def test_extension_can_override_builtin(tmp_path):
 		tmp_path / "extensions",
 		"override",
 		"""
-from flow.tools import ToolResult, tool
+from flow_harness.tools import ToolResult, tool
 
 @tool
 async def read(path: str, *, ctx):
@@ -218,7 +218,7 @@ def setup(flow):
 
 
 def test_cli_reports_extension_diagnostics_on_stderr(tmp_path, capsys):
-	from flow.cli.main import _report_extension_diagnostics
+	from flow_harness.cli.main import _report_extension_diagnostics
 
 	missing = tmp_path / "missing.py"
 	broken = _write_extension(tmp_path / "extensions", "broken", "raise RuntimeError('boom')\n")
@@ -263,7 +263,7 @@ async def test_tool_call_hook_blocks_a_call(tmp_path):
 	store, session = _hook_session(
 		tmp_path,
 		"""
-from flow.extensions import PreToolUseDecision
+from flow_harness.extensions import PreToolUseDecision
 
 def gate(event):
     if event.tool_name == "hello":
@@ -286,7 +286,7 @@ async def test_tool_call_hook_rewrites_arguments(tmp_path):
 	_, session = _hook_session(
 		tmp_path,
 		"""
-from flow.extensions import PreToolUseDecision
+from flow_harness.extensions import PreToolUseDecision
 
 def rewrite(event):
     return PreToolUseDecision(arguments={**event.arguments, "who": "Rewritten"})
@@ -309,7 +309,7 @@ async def test_tool_result_hook_rewrites_content_and_details(tmp_path):
 	_, session = _hook_session(
 		tmp_path,
 		"""
-from flow.extensions import PostToolUseOverride
+from flow_harness.extensions import PostToolUseOverride
 
 async def redact(event):
     return PostToolUseOverride(content=event.result.content.replace("Flow", "[name]"), details={"redacted": True})
@@ -361,7 +361,7 @@ async def test_malformed_decision_fields_are_ignored_with_warnings(tmp_path):
 	store, session = _hook_session(
 		tmp_path,
 		"""
-from flow.extensions import PreToolUseDecision, PostToolUseOverride
+from flow_harness.extensions import PreToolUseDecision, PostToolUseOverride
 
 def bad_arguments(event):
     return PreToolUseDecision(arguments=42)
@@ -453,7 +453,7 @@ async def test_blocking_hook_preempts_the_confirm_gate(tmp_path):
 	_, session = _hook_session(
 		tmp_path,
 		"""
-from flow.extensions import PreToolUseDecision
+from flow_harness.extensions import PreToolUseDecision
 
 def gate(event):
     return PreToolUseDecision(block=True, reason="never reaches approval")
@@ -476,7 +476,7 @@ async def test_rewritten_arguments_reach_the_approval_prompt(tmp_path):
 	_, session = _hook_session(
 		tmp_path,
 		"""
-from flow.extensions import PreToolUseDecision
+from flow_harness.extensions import PreToolUseDecision
 
 def rewrite(event):
     return PreToolUseDecision(arguments={"who": "Rewritten"})
@@ -510,7 +510,7 @@ async def test_resume_re_checks_blocking(tmp_path):
 		tmp_path,
 		f"""
 from pathlib import Path
-from flow.extensions import PreToolUseDecision
+from flow_harness.extensions import PreToolUseDecision
 
 def gate(event):
     if Path({str(flag)!r}).exists():

@@ -4,6 +4,13 @@
 
 Flow requires Python 3.14 or newer.
 
+The PyPI distribution is `frappe-flow`, the Python import package is `flow_harness`,
+and the command is `flow`. The separate import name lets the harness coexist with
+the Frappe app's `flow` package in one environment. Extensions and Python clients
+using the former `flow` imports must update them to `flow_harness` and reinstall
+the harness. There is no `flow` compatibility package, because it would collide
+with the Frappe app again.
+
 ```bash
 uv sync --extra dev
 uvx pre-commit install

@@ -1,6 +1,6 @@
 import pytest
 
-from flow.events import (
+from flow_harness.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	Compaction,
@@ -15,8 +15,8 @@ from flow.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow.session.log import SessionLog
-from flow.session.transcript import COMPACTION_SUMMARY_PREFIX, Transcript, active_path
+from flow_harness.session.log import SessionLog
+from flow_harness.session.transcript import COMPACTION_SUMMARY_PREFIX, Transcript, active_path
 
 INTERRUPTED = "Tool call interrupted before completion."
 

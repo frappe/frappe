@@ -11,7 +11,7 @@ from threading import Event
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from flow.events import (
+from flow_harness.events import (
 	AssistantMessage,
 	AttachmentContent,
 	TextContent,
@@ -20,20 +20,20 @@ from flow.events import (
 	Usage,
 	UserMessage,
 )
-from flow.model.base import Model
-from flow.model.catalog import model_supports_images
-from flow.model.content import NON_VISION_IMAGE_PLACEHOLDER, resolve_tool_images, resolve_user_content
-from flow.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
-from flow.model.mock import MockModel
-from flow.model.providers.codex import CodexModel, _responses_input
-from flow.model.providers.opencode import opencode_go_model
-from flow.server import create_app
-from flow.session import attachments as attachment_module
-from flow.session.attachments import AttachmentError, AttachmentStore
-from flow.session.config import SessionConfig
-from flow.session.store import SessionStore
-from flow.tools.builtins.read import read
-from flow.tools.tool import ToolContext
+from flow_harness.model.base import Model
+from flow_harness.model.catalog import model_supports_images
+from flow_harness.model.content import NON_VISION_IMAGE_PLACEHOLDER, resolve_tool_images, resolve_user_content
+from flow_harness.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
+from flow_harness.model.mock import MockModel
+from flow_harness.model.providers.codex import CodexModel, _responses_input
+from flow_harness.model.providers.opencode import opencode_go_model
+from flow_harness.server import create_app
+from flow_harness.session import attachments as attachment_module
+from flow_harness.session.attachments import AttachmentError, AttachmentStore
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.store import SessionStore
+from flow_harness.tools.builtins.read import read
+from flow_harness.tools.tool import ToolContext
 
 
 def _png(width: int = 8, height: int = 6) -> bytes:

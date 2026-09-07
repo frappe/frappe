@@ -3,7 +3,7 @@
 Tools are async Python functions exposed to the model as function schemas. They return text for the model plus optional structured data for clients.
 
 ```python
-from flow.tools import ToolContext, ToolResult, tool
+from flow_harness.tools import ToolContext, ToolResult, tool
 
 @tool(
     requires_confirmation=True,
@@ -49,7 +49,7 @@ The CLI can load server extensions from `~/.flow/extensions/` or explicit `-e/--
 An extension is a `.py` file, or a directory with `extension.py`, exposing a synchronous `setup(flow)` function:
 
 ```python
-from flow.tools import ToolContext, ToolResult, tool
+from flow_harness.tools import ToolContext, ToolResult, tool
 
 @tool(prompt_snippet="Greet a person", display_template="Greeting {{ name }}")
 async def hello(name: str, *, ctx: ToolContext) -> ToolResult:
@@ -59,10 +59,10 @@ def setup(flow) -> None:
     flow.register_tool(hello)
 ```
 
-An extension can also hook tool execution with `flow.on(event, handler)`. A `tool_call` handler runs before a tool executes — ahead of any approval gate, so approval prompts show the effective arguments, and a rewrite is recorded in the result's `details.effective_arguments` — and can return `PreToolUseDecision(block=True, reason=...)` to stop the call or `PreToolUseDecision(arguments=...)` to rewrite it; a `tool_result` handler runs after and can return `PostToolUseOverride(content=..., details=...)` to rewrite what the model sees (`details` replaces the tool's whole dict — spread `event.result.details` to keep existing keys). A resumed approval re-checks blocking only; approved arguments run as approved. Handlers may be sync or async and return `None` to pass. A raising `tool_call` handler blocks the call (fail-safe); a raising `tool_result` handler is skipped and the result stands. A `tool_call` handler can run more than once for the same call — a gated call is checked before the approval prompt and again when it resumes — so keep handlers side-effect free. Payload types live in `flow.extensions.hooks`.
+An extension can also hook tool execution with `flow.on(event, handler)`. A `tool_call` handler runs before a tool executes — ahead of any approval gate, so approval prompts show the effective arguments, and a rewrite is recorded in the result's `details.effective_arguments` — and can return `PreToolUseDecision(block=True, reason=...)` to stop the call or `PreToolUseDecision(arguments=...)` to rewrite it; a `tool_result` handler runs after and can return `PostToolUseOverride(content=..., details=...)` to rewrite what the model sees (`details` replaces the tool's whole dict — spread `event.result.details` to keep existing keys). A resumed approval re-checks blocking only; approved arguments run as approved. Handlers may be sync or async and return `None` to pass. A raising `tool_call` handler blocks the call (fail-safe); a raising `tool_result` handler is skipped and the result stands. A `tool_call` handler can run more than once for the same call — a gated call is checked before the approval prompt and again when it resumes — so keep handlers side-effect free. Payload types live in `flow_harness.extensions.hooks`.
 
 ```python
-from flow.extensions import PreToolUseDecision
+from flow_harness.extensions import PreToolUseDecision
 
 def gate(event):
     if event.tool_name == "bash" and "rm -rf" in str(event.arguments):

@@ -6,12 +6,12 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from flow.events import AssistantMessage, ToolCall, ToolResult, Usage, UserMessage, parse_event
-from flow.model import Model
-from flow.server import create_app
-from flow.session.config import SessionConfig
-from flow.session.prompt import build_system_prompt
-from flow.session.skills import (
+from flow_harness.events import AssistantMessage, ToolCall, ToolResult, Usage, UserMessage, parse_event
+from flow_harness.model import Model
+from flow_harness.server import create_app
+from flow_harness.session.config import SessionConfig
+from flow_harness.session.prompt import build_system_prompt
+from flow_harness.session.skills import (
 	MAX_SKILL_INDEX_BYTES,
 	MAX_SKILLS,
 	Skill,
@@ -22,9 +22,9 @@ from flow.session.skills import (
 	parse_skill_command,
 	parse_skill_invocation,
 )
-from flow.session.store import SessionStore
-from flow.tools import BUILTIN_TOOLS
-from flow.tools.tool import ToolContext
+from flow_harness.session.store import SessionStore
+from flow_harness.tools import BUILTIN_TOOLS
+from flow_harness.tools.tool import ToolContext
 
 
 def _skill(root, name, description="Use for tests.", body="# Instructions\nRun the focused tests."):

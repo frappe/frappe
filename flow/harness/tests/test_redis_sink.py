@@ -5,12 +5,12 @@ from fnmatch import fnmatchcase
 import pytest
 from fastapi.testclient import TestClient
 
-from flow.model.credentials import CredentialStore
-from flow.server import create_app
-from flow.server.policy import DEPLOYED
-from flow.server.redis_sink import RedisEventSink
-from flow.server.tenants import Tenant
-from flow.session.store import SessionStore
+from flow_harness.model.credentials import CredentialStore
+from flow_harness.server import create_app
+from flow_harness.server.policy import DEPLOYED
+from flow_harness.server.redis_sink import RedisEventSink
+from flow_harness.server.tenants import Tenant
+from flow_harness.session.store import SessionStore
 
 
 class RecordingRedis:
@@ -220,7 +220,7 @@ async def test_overflow_does_not_block_the_loop_and_signals_a_dropped_terminal_e
 	],
 )
 async def test_redis_sink_retries_resync_without_new_events(monkeypatch, caplog, site, channel):
-	monkeypatch.setattr("flow.server.redis_sink._RETRY_SECONDS", 0.01)
+	monkeypatch.setattr("flow_harness.server.redis_sink._RETRY_SECONDS", 0.01)
 
 	class OfflineRedis(RecordingRedis):
 		def __init__(self):
@@ -277,7 +277,7 @@ async def test_serialization_errors_do_not_stop_publishing_or_mark_redis_offline
 
 @pytest.mark.parametrize("site_count", [2, 3])
 async def test_resync_targets_affected_sites_and_falls_back_at_the_limit(monkeypatch, site_count):
-	monkeypatch.setattr("flow.server.redis_sink._MAX_RESYNC_SITES", 2)
+	monkeypatch.setattr("flow_harness.server.redis_sink._MAX_RESYNC_SITES", 2)
 	client = BlockingRedis()
 	sink = RedisEventSink("redis://unused", max_pending=1, client=client)
 	async with sink.lifespan(None):
@@ -312,7 +312,7 @@ async def test_resync_targets_affected_sites_and_falls_back_at_the_limit(monkeyp
 async def test_resync_deduplicates_sessions_and_falls_back_only_for_their_site(
 	monkeypatch, site, session_count
 ):
-	monkeypatch.setattr("flow.server.redis_sink._MAX_RESYNC_SESSIONS", 2)
+	monkeypatch.setattr("flow_harness.server.redis_sink._MAX_RESYNC_SESSIONS", 2)
 	client = RecordingRedis()
 	sink = RedisEventSink("redis://unused", max_pending=1, client=client)
 	async with sink.lifespan(None):
@@ -361,7 +361,7 @@ async def test_resync_names_do_not_collide_with_sites_or_session_channels():
 
 
 async def test_resync_retries_the_unsent_sites_after_a_partial_failure(monkeypatch):
-	monkeypatch.setattr("flow.server.redis_sink._RETRY_SECONDS", 0.01)
+	monkeypatch.setattr("flow_harness.server.redis_sink._RETRY_SECONDS", 0.01)
 
 	class RecoveringRedis(BlockingRedis):
 		def __init__(self):
@@ -399,8 +399,8 @@ async def test_resync_retries_the_unsent_sites_after_a_partial_failure(monkeypat
 
 
 async def test_failed_resync_merges_new_sessions_and_keeps_the_site_fallback(monkeypatch):
-	monkeypatch.setattr("flow.server.redis_sink._MAX_RESYNC_SESSIONS", 2)
-	monkeypatch.setattr("flow.server.redis_sink._RETRY_SECONDS", 0.01)
+	monkeypatch.setattr("flow_harness.server.redis_sink._MAX_RESYNC_SESSIONS", 2)
+	monkeypatch.setattr("flow_harness.server.redis_sink._RETRY_SECONDS", 0.01)
 
 	class FailingResyncRedis(RecordingRedis):
 		def __init__(self):
@@ -435,7 +435,7 @@ async def test_failed_resync_merges_new_sessions_and_keeps_the_site_fallback(mon
 
 
 async def test_new_drop_during_resync_gets_another_notification(monkeypatch):
-	monkeypatch.setattr("flow.server.redis_sink._RETRY_SECONDS", 0.01)
+	monkeypatch.setattr("flow_harness.server.redis_sink._RETRY_SECONDS", 0.01)
 
 	class PausedResyncRedis(BlockingRedis):
 		def __init__(self):
@@ -475,7 +475,7 @@ async def test_new_drop_during_resync_gets_another_notification(monkeypatch):
 
 
 async def test_shutdown_cancels_a_stalled_publish_and_closes_redis(monkeypatch):
-	monkeypatch.setattr("flow.server.redis_sink._SHUTDOWN_SECONDS", 0.05)
+	monkeypatch.setattr("flow_harness.server.redis_sink._SHUTDOWN_SECONDS", 0.05)
 	client = BlockingRedis()
 	sink = RedisEventSink("redis://unused", client=client)
 	async with asyncio.timeout(0.5):
@@ -487,7 +487,7 @@ async def test_shutdown_cancels_a_stalled_publish_and_closes_redis(monkeypatch):
 
 
 async def test_connection_cleanup_has_a_deadline(monkeypatch, caplog):
-	monkeypatch.setattr("flow.server.redis_sink._CLOSE_SECONDS", 0.01)
+	monkeypatch.setattr("flow_harness.server.redis_sink._CLOSE_SECONDS", 0.01)
 
 	class StalledCloseRedis(RecordingRedis):
 		async def aclose(self):
@@ -514,7 +514,7 @@ async def test_lifespan_closes_redis_when_the_server_fails():
 
 
 async def test_lifespan_cancellation_leaves_no_publisher_running(monkeypatch):
-	monkeypatch.setattr("flow.server.redis_sink._SHUTDOWN_SECONDS", 0.01)
+	monkeypatch.setattr("flow_harness.server.redis_sink._SHUTDOWN_SECONDS", 0.01)
 	client = BlockingRedis()
 	sink = RedisEventSink("redis://unused", client=client)
 
