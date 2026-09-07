@@ -18,13 +18,7 @@ class FormLayout(Document):
 		self.name_layout()
 
 	def name_layout(self):
-		"""Fix every container's name *here*, at write time, and store it.
-
-		A name is a container's identity: a script addresses a tab by it, and the form
-		remembers the reader's tab by it. Derived at read time from the label slug, that
-		identity is renamed by a label edit and a stored script stops resolving — so the
-		layout is named once, when it is saved, and read back as authored.
-		"""
+		"""Name every container at write time, so a label edit cannot rename what a script addresses."""
 		if not self.layout:
 			return
 		tree = self.layout_tree()
@@ -106,13 +100,7 @@ def find_layout_doc(dt: str, type: str, name: str | None):
 
 
 def parse_layout(layout: str | None) -> list:
-	"""Read a stored layout, filling in anything `FormLayout.validate` would have written.
-
-	For a row saved through `validate` this is a no-op — every container is already named
-	and unique. It stays because a row can reach the table without passing that door
-	(a fixture import, a raw `db_insert`), and because it is what names the tabless case
-	and the pre-migration rows. It does *not* de-duplicate: the form resolves that itself.
-	"""
+	"""Read a stored layout, naming any container a fixture or a raw insert left unnamed."""
 	tree = json.loads(layout) if layout else []
 	if not isinstance(tree, list):
 		return []
@@ -155,28 +143,19 @@ def assign_names(nodes: list, kind: str):
 
 
 def validate_unique_names(tabs: list):
-	"""A container's name must be unique among its siblings, or one of them is unaddressable.
-
-	`assign_names` only keeps the names it *generates* apart; two hand-written ones may
-	still collide, and nothing used to object.
-	"""
+	"""Refuse a layout where two siblings share a name; one of them would be unaddressable."""
 	for node, kind, _taken in duplicate_names(tabs):
 		frappe.throw(duplicate_message(kind, node["name"]), title=_("Duplicate Layout Name"))
 
 
 def deduplicate_names(tabs: list):
-	"""The same rule applied where there is nobody to tell — a migration, or a layout
-	nobody authored. Renames the loser rather than refusing the data."""
+	"""Rename a duplicate sibling instead of refusing, for a layout nobody authored."""
 	for node, _kind, taken in duplicate_names(tabs):
 		node["name"] = free_name(node["name"], taken)
 
 
 def duplicate_names(tabs: list):
-	"""Yield every container whose name a sibling already took, with the names taken so far.
-
-	Yields *before* recording the name, so a caller may rename the node in place and have
-	the new one recorded instead.
-	"""
+	"""Yield each container whose name a sibling took, before recording it, so a caller can rename it."""
 	for nodes, kind in sibling_groups(tabs):
 		taken = set()
 		for node in nodes:
@@ -195,13 +174,7 @@ def sibling_groups(tabs: list):
 
 
 def free_name(name: str, taken: set) -> str:
-	"""`details`, `details-2`, `details-3` — the spelling `identifyTabs` (`tabIdentity.ts`)
-	already uses at render time.
-
-	Deliberately not `assign_names`' own `_{index}`: the form is *already* showing a
-	duplicated tab under the hyphenated name, so this is the one spelling that renames a
-	stored duplicate without moving the identity its reader is standing on.
-	"""
+	"""`details`, `details-2`: the spelling `identifyTabs` already gives a duplicated tab at render time."""
 	suffix = 2
 	while f"{name}-{suffix}" in taken:
 		suffix += 1
@@ -240,9 +213,8 @@ def get_meta_layout(dt: str) -> list:
 			ensure_section(tabs)["columns"].append(new_container(field, "fields"))
 		else:
 			ensure_column(tabs)["fields"].append(field.fieldname)
-	# Names here are Tab/Section/Column Break fieldnames, which Frappe already keeps
-	# unique — except against the synthesized `first_tab` / `section_1` / `column_1`,
-	# which a real fieldname can shadow. Nobody authored this layout, so repair silently.
+	# Break fieldnames are unique already; only the synthesized `first_tab`, `section_1`
+	# and `column_1` can collide with a real fieldname, so repair silently.
 	deduplicate_names(tabs)
 	return tabs
 

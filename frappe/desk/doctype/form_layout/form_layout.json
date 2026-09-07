@@ -41,7 +41,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "JavaScript expression over the loaded document, in the depends_on dialect (e.g. doc.lead_type == 'Enterprise'). Leave empty to mark this row as the default layout.",
+   "description": "A depends_on expression over the document, e.g. doc.lead_type == 'Enterprise'. Empty marks the default layout.",
    "fieldname": "condition",
    "fieldtype": "Code",
    "label": "Condition",
