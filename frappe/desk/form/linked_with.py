@@ -431,9 +431,9 @@ def cancel_all_linked_docs(
 	root_doctype: str | None = None,
 	root_name: str | None = None,
 ):
-	"""Cancel the linked documents in dependency order; sets larger than
-	MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None past the listing cap, move to
-	a job that also cancels the root."""
+	"""Cancel the linked documents in dependency order, then the root, all or
+	nothing; sets larger than MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None past
+	the listing cap, move to a job instead."""
 	if ignore_doctypes_on_cancel_all is None:
 		ignore_doctypes_on_cancel_all = []
 
@@ -459,6 +459,8 @@ def cancel_all_linked_docs(
 		to_cancel = keep_currently_linked(
 			to_cancel, "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all
 		)
+		# the root goes last, in the same transaction as its links
+		to_cancel = [*to_cancel, frappe._dict(doctype=root_doctype, name=root_name)]
 	process_linked_docs_in_dependency_order(to_cancel, cancel_linked_doc, _("Cancelling documents"))
 
 
@@ -523,9 +525,9 @@ def collect_deletion_blockers(doctype: str, name: str, limit: int | None = None)
 def delete_all_linked_docs(
 	docs: str | list | None = None, root_doctype: str | None = None, root_name: str | None = None
 ) -> dict | None:
-	"""Delete the given documents in dependency order, failing the request if one
-	stays blocked; sets larger than MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None
-	past the listing cap, move to a job that also deletes the root."""
+	"""Delete the linked documents in dependency order, then the root, all or
+	nothing; sets larger than MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None past
+	the listing cap, move to a job instead."""
 	if docs is None:
 		if not (root_doctype and root_name):
 			frappe.throw(_("Either the documents to delete or a root document is required"))

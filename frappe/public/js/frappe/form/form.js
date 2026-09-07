@@ -1194,36 +1194,51 @@ frappe.ui.form.Form = class FrappeForm {
 		if (can_cancel) {
 			d.set_primary_action(__("Cancel All"), () => {
 				d.hide();
-				frappe.call({
-					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
-					args: {
-						docs: links,
-						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
-						root_doctype: me.doc.doctype,
-						root_name: me.doc.name,
-					},
-					freeze: true,
-					callback: (resp) => {
-						if (resp.exc) {
-							return;
-						}
-						if (resp.message && resp.message.queued) {
-							frappe.msgprint(
-								__(
-									"There are too many linked documents to cancel right away, so they will be cancelled in the background along with {0}. You will be notified when it completes.",
-									[cstr(me.doc.name).bold()]
-								)
-							);
-							return;
-						}
-						me.reload_doc();
-						me._cancel(btn, callback, on_error, true);
-					},
-				});
+				me._cancel_with_linked_docs(links, btn, callback, on_error);
 			});
 		}
 
 		d.show();
+	}
+
+	_cancel_with_linked_docs(links, btn, callback, on_error) {
+		const me = this;
+		frappe.validated = true;
+		me.script_manager.trigger("before_cancel").then(() => {
+			if (!frappe.validated) {
+				return me.handle_save_fail(btn, on_error);
+			}
+			frappe.call({
+				method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
+				args: {
+					docs: links,
+					ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
+					root_doctype: me.doc.doctype,
+					root_name: me.doc.name,
+				},
+				freeze: true,
+				callback: (resp) => {
+					if (resp.exc) {
+						return me.handle_save_fail(btn, on_error);
+					}
+					if (resp.message && resp.message.queued) {
+						frappe.msgprint(
+							__(
+								"There are too many linked documents to cancel right away, so they will be cancelled in the background along with {0}. You will be notified when it completes.",
+								[cstr(me.doc.name).bold()]
+							)
+						);
+						return;
+					}
+					// the server cancelled the root along with its links
+					me.reload_doc().then(() => {
+						frappe.utils.play_sound("cancel");
+						callback && callback();
+						me.script_manager.trigger("after_cancel");
+					});
+				},
+			});
+		});
 	}
 
 	_cancel(btn, callback, on_error, skip_confirm) {
@@ -1341,15 +1356,10 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 	}
 
-	_delete(skip_confirm) {
-		frappe.model.delete_doc(
-			this.doctype,
-			this.docname,
-			function () {
-				window.history.back();
-			},
-			skip_confirm
-		);
+	_delete() {
+		frappe.model.delete_doc(this.doctype, this.docname, function () {
+			window.history.back();
+		});
 	}
 
 	_delete_all_in_background() {
