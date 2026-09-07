@@ -222,6 +222,41 @@ class TestDrainer(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Pending")
 
+	def test_the_mark_is_dropped_once_the_outcome_is_committed(self):
+		name = self.add_row("delivered_then_committed")
+		claimed = claim_batch(1)
+
+		drainer.execute_batch(mark_effects_delivered, claimed)
+
+		self.assertFalse(effects_delivered(name))
+
+	def test_a_delivered_row_is_not_re_run_when_its_group_commit_fails(self):
+		"""End to end: the row sends its webhook, the group commit fails and takes the database
+		half back, and the serial re-run must not send it again."""
+		name = self.add_row("delivered_then_commit_failed")
+		claimed = claim_batch(1)
+		runs = []
+
+		def executor(row_name):
+			runs.append(row_name)
+			mark_effects_delivered(row_name)
+			frappe.db.set_value(QUEUE, row_name, "status", "Done")
+
+		original_commit = frappe.db.commit
+		calls = []
+
+		def failing_commit(*args, **kwargs):
+			calls.append(1)
+			if len(calls) == 1:
+				raise frappe.db.SQLError("group commit failed")
+			return original_commit(*args, **kwargs)
+
+		with patch.object(frappe.db, "commit", failing_commit):
+			drainer.execute_batch(executor, claimed)
+
+		self.assertEqual(runs, [name])
+		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Failed")
+
 	def test_a_delivered_row_is_not_re_run_when_the_group_commit_fails(self):
 		"""The group rollback takes back the database half of a run whose webhook already left.
 		Re-running the group serially must skip that row rather than send it again."""

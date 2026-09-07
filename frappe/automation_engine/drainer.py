@@ -80,6 +80,9 @@ def _execute_group(executor, names):
 		_execute_in_savepoint(executor, name, position)
 	try:
 		frappe.db.commit()
+		# The outcomes are durable now, so nothing will replay these rows.
+		for name in names:
+			clear_effects(name)
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title="Automation batch commit failed", message=frappe.get_traceback())
@@ -160,6 +163,7 @@ def execute_claimed(executor, name):
 	try:
 		executor(name)
 		frappe.db.commit()
+		clear_effects(name)
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())

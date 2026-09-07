@@ -521,9 +521,9 @@ def _finalize(run, rule, row, status, steps, error=None, context=None):
 		_reset_failures(rule)
 
 	_publish_update(run, rule, status)
-	# Last, deliberately: everything above can throw, and until the outcome is safely recorded the
-	# mark is what stops the drainer replaying a row that has already acted on the outside world.
-	clear_effects(row.name)
+	# The mark is deliberately left standing. This outcome is not durable until the drainer commits
+	# it, and a commit that fails re-runs the whole group; the drainer clears the mark once the row
+	# is safely recorded.
 
 
 def _publish_update(run, rule, status):
