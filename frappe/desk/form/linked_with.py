@@ -491,13 +491,9 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-			except (
-				frappe.ValidationError,
-				frappe.PermissionError,
-				frappe.QueryTimeoutError,
-				frappe.QueryDeadlockError,
-			):
+			except (frappe.ValidationError, frappe.PermissionError, frappe.QueryTimeoutError):
 				# hooks ran before the failing check; undo their writes and side effects
+				# (not on a deadlock: the database has already rolled the whole transaction back)
 				frappe.db.rollback(save_point=save_point)
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
