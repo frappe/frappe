@@ -517,6 +517,25 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertTrue(child1.reload().docstatus.is_submitted())
 		self.assertTrue(parent.reload().docstatus.is_submitted())
 
+	def test_background_delete_is_all_or_nothing(self):
+		"""When a document outside the set blocks the run, the job must undo its
+		deletions instead of leaving the root with some dependents gone."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		# blocks child1 but is not part of the set, so the run can never finish
+		frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+
+		with patch.object(linked_with, "MAX_SYNCHRONOUS_LINKED_DOCS", 0):
+			result = linked_with.delete_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertTrue(frappe.db.exists("Child DocType1", child1.name))
+		self.assertTrue(frappe.db.exists("Parent DocType", parent.name))
+
 	def test_delete_all_linked_docs_queues_large_sets(self):
 		"""A set above the synchronous limit moves to a background job that also
 		deletes the root document, which the caller skips when queued."""
@@ -548,6 +567,41 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
 		self.assertFalse(frappe.db.exists("Parent DocType", parent.name))
 
+	def test_cancel_all_linked_docs_cancels_the_root_last(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+
+		linked_with.cancel_all_linked_docs(
+			docs=[{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1}],
+			root_doctype=parent.doctype,
+			root_name=parent.name,
+		)
+
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(parent.reload().docstatus.is_cancelled())
+
+	def test_cancel_all_linked_docs_fails_when_a_doc_stays_blocked(self):
+		"""A blocker outside the set must fail the run with its error and leave
+		the root and its links submitted."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+
+		with savepoint(frappe.LinkExistsError):
+			linked_with.cancel_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+			self.fail("a blocked document should have failed the run")
+
+		self.assertTrue(child1.reload().docstatus.is_submitted())
+		self.assertTrue(parent.reload().docstatus.is_submitted())
+
 	def test_cancel_all_linked_docs_drops_stale_entries(self):
 		"""The confirmed list comes from an earlier request; a document unlinked
 		since then must not be cancelled."""
@@ -577,7 +631,7 @@ class TestLinkedWith(IntegrationTestCase):
 		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
 		unrelated = frappe.get_doc({"doctype": "Child DocType1"}).insert()
 
-		result = linked_with.delete_all_linked_docs(
+		linked_with.delete_all_linked_docs(
 			docs=[
 				{"doctype": "Child DocType1", "name": child1.name},
 				{"doctype": "Child DocType1", "name": unrelated.name},
@@ -586,14 +640,8 @@ class TestLinkedWith(IntegrationTestCase):
 			root_name=parent.name,
 		)
 
-		self.assertEqual(
-			result["deleted"],
-			[
-				{"doctype": "Child DocType1", "name": child1.name},
-				{"doctype": "Parent DocType", "name": parent.name},
-			],
-		)
 		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
+		self.assertFalse(frappe.db.exists("Parent DocType", parent.name))
 		self.assertTrue(frappe.db.exists("Child DocType1", unrelated.name))
 
 	def test_delete_all_linked_docs_lets_the_root_clean_up_blockers(self):
@@ -608,13 +656,12 @@ class TestLinkedWith(IntegrationTestCase):
 		self.addCleanup(setattr, frappe.local, "doc_events_hooks", None)
 		with self.patch_hooks({"doc_events": {"Child DocType1": {"on_trash": [hook]}}}):
 			frappe.local.doc_events_hooks = None
-			result = linked_with.delete_all_linked_docs(
+			linked_with.delete_all_linked_docs(
 				docs=[{"doctype": "Child DocType2", "name": child2.name}],
 				root_doctype="Child DocType1",
 				root_name=child1.name,
 			)
 
-		self.assertIn({"doctype": "Child DocType1", "name": child1.name}, result["deleted"])
 		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
 		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
 
