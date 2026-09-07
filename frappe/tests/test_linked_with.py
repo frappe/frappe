@@ -6,6 +6,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
+from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
 from frappe.tests import IntegrationTestCase
 
 
@@ -681,6 +682,77 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertFalse(truncated)
 		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": live.name}])
+		# the table outlives the fixture doctype; leftover references break the dlink test
+		frappe.db.delete("Child DocType1", {"reference_name": parent.name})
+
+	def test_bounded_static_lookup_counts_the_rows_it_drops(self):
+		"""Rows the lookup drops after the query still count towards its limit,
+		or they could hide blockers beyond it."""
+		new_doctype(
+			"Self Linked DocType",
+			fields=[{"fieldname": "previous", "fieldtype": "Link", "options": "Self Linked DocType"}],
+		).insert()
+		self.addCleanup(frappe.delete_doc, "DocType", "Self Linked DocType")
+		doc = frappe.get_doc({"doctype": "Self Linked DocType"}).insert()
+		# a self link, which the lookup drops
+		doc.previous = doc.name
+		doc.save()
+
+		with self.assertRaises(LinkedDocumentsOverflow):
+			get_linked_docs(doc, method="Delete", limit=1)
+		doc.delete()
+
+	def test_background_run_rolls_back_outright_on_a_deadlock(self):
+		"""A deadlock discards the whole transaction, savepoint included, so the
+		job must roll back outright and still notify."""
+		notifications = []
+		with (
+			patch.object(linked_with, "cancel_linked_doc", side_effect=frappe.QueryDeadlockError("deadlock")),
+			patch.object(frappe.db, "rollback") as rollback,
+			patch.object(linked_with, "notify_linked_docs_processed", notifications.append),
+		):
+			linked_with.process_linked_docs_in_background(
+				[{"doctype": "Parent DocType", "name": "deadlocked"}], "cancel"
+			)
+
+		rollback.assert_called_once_with()
+		self.assertEqual(notifications, ["Could not cancel 1 linked documents: deadlock"])
+
+	def test_cancel_all_linked_docs_discovers_in_background_past_the_cap(self):
+		"""Revalidating the list must not walk a graph that outgrew the listing
+		cap since the list was built; the job discovers it instead."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		frappe.get_doc({"doctype": "Child DocType2", "parent_doctype": parent.name}).insert().submit()
+
+		with patch.object(linked_with, "MAX_LINKED_DOCUMENTS_LISTED", 1):
+			result = linked_with.cancel_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertTrue(parent.reload().docstatus.is_cancelled())
+
+	def test_delete_all_linked_docs_discovers_in_background_past_the_cap(self):
+		"""Revalidating the list must not walk a graph that outgrew the listing
+		cap since the list was built; the job discovers it instead."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		child1 = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
+		frappe.get_doc({"doctype": "Child DocType2", "parent_doctype": parent.name}).insert()
+
+		with patch.object(linked_with, "MAX_LINKED_DOCUMENTS_LISTED", 1):
+			result = linked_with.delete_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertFalse(frappe.db.exists("Parent DocType", parent.name))
 
 	def test_get_linked_docs_to_delete_deepest_first(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
