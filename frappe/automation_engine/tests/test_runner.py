@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.automation_engine.actions.base import AutomationAction, get_action_registry
+from frappe.automation_engine.queue import clear_effects, effects_delivered
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import (
 	TASK_METHOD,
@@ -491,6 +492,39 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 
 		self.assertEqual(self.run_status(auto), "Success")
 		self.assertEqual(frappe.parse_json(request.call_args.kwargs["data"]), {"note": "ping"})
+
+	def test_a_sent_webhook_marks_the_row_so_a_failure_cannot_replay_it(self):
+		"""The run publishes its outcome after the webhook has gone out. If that throws, the
+		drainer must see that the row already acted outside the database."""
+		todo = make_todo()
+		auto = make_automation(
+			[{"action_type": "CallWebhook", "params": json.dumps({"url": "https://example.com/hook"})}]
+		)
+		name = self.queue_row(auto, todo.name)
+		try:
+			with (
+				public_dns({"example.com": "93.184.216.34"}),
+				patch("requests.request", return_value=FakeResponse(text="ok")) as request,
+				patch(
+					"frappe.automation_engine.runner._publish_update",
+					side_effect=ValueError("realtime is down"),
+				),
+			):
+				self.assertRaises(ValueError, execute_automation, name)
+
+			self.assertEqual(request.call_count, 1)
+			self.assertTrue(effects_delivered(name))
+		finally:
+			clear_effects(name)
+
+	def test_a_run_that_stays_in_the_database_leaves_no_mark(self):
+		todo = make_todo()
+		auto = make_automation([set_field("priority", "High")])
+		name = self.queue_row(auto, todo.name)
+
+		execute_automation(name)
+
+		self.assertFalse(effects_delivered(name))
 
 	def test_webhook_step_pointed_at_an_internal_address_fails_the_run(self):
 		todo = make_todo()

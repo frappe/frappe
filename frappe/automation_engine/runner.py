@@ -11,7 +11,13 @@ from frappe.automation_engine.actions.base import StopAutomation, get_action_reg
 from frappe.automation_engine.conditions import condition_values, evaluate_related_condition
 from frappe.automation_engine.dispatch import matches_rule
 from frappe.automation_engine.events import get_wait_outcome, schedule_event_wait
-from frappe.automation_engine.queue import QUEUE, WAITING_STATES, queue_status
+from frappe.automation_engine.queue import (
+	QUEUE,
+	WAITING_STATES,
+	clear_effects,
+	mark_effects_delivered,
+	queue_status,
+)
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.relationships import load_record, resolve_relationships
 from frappe.utils import add_to_date, cint, now
@@ -371,7 +377,12 @@ def _try_action(handler, step, doc, context, params, savepoint, idx, started):
 		if not handler:
 			raise ValueError(f"Unknown action type: {step.get('action_type')}")
 		handler.validate(params, target.doctype if target else None)
-		return "Success", handler.execute(target, params, context), _ms(started)
+		result = handler.execute(target, params, context)
+		if not handler.transactional:
+			# The step has acted outside the database. Nothing below - not this savepoint, not the
+			# drainer's rollback - can take that back, so the row must never be replayed.
+			mark_effects_delivered(context["queue_row"].name)
+		return "Success", result, _ms(started)
 	except StopAutomation as error:
 		schedule_wait(context, error.resume_after, idx + 1)
 		return "Waiting", str(error) or _("Automation paused"), _ms(started)
@@ -501,6 +512,7 @@ def _finalize(run, rule, row, status, steps, error=None, context=None):
 	# Neither of the things below is in the transaction a trial rolls back: the breaker counter
 	# lives in Redis, and a realtime event has already left.
 	if frappe.flags.get("in_automation_trial"):
+		clear_effects(row.name)
 		return
 
 	if status == "Failed":
@@ -509,6 +521,9 @@ def _finalize(run, rule, row, status, steps, error=None, context=None):
 		_reset_failures(rule)
 
 	_publish_update(run, rule, status)
+	# Last, deliberately: everything above can throw, and until the outcome is safely recorded the
+	# mark is what stops the drainer replaying a row that has already acted on the outside world.
+	clear_effects(row.name)
 
 
 def _publish_update(run, rule, status):

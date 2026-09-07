@@ -7,7 +7,13 @@ import time
 import frappe
 from frappe.automation_engine import runner, settings
 from frappe.automation_engine.dispatch import kick_drainer
-from frappe.automation_engine.queue import DRAIN_QUEUE, QUEUE, WAITING_STATES
+from frappe.automation_engine.queue import (
+	DRAIN_QUEUE,
+	QUEUE,
+	WAITING_STATES,
+	clear_effects,
+	effects_delivered,
+)
 from frappe.utils import add_days, add_to_date, cint, now
 from frappe.utils.background_jobs import get_queues_timeout
 
@@ -102,6 +108,9 @@ def _settle_escaped_row(name):
 	Retried a few times because the usual causes are transient, then failed: a row that throws on
 	every claim would otherwise be reclaimed by every drain, forever.
 	"""
+	if effects_delivered(name):
+		return _fail_delivered_row(name)
+
 	attempt = cint(frappe.db.get_value(QUEUE, name, "attempt")) + 1
 	exhausted = attempt >= cint(settings.get("max_attempts"))
 	frappe.db.set_value(
@@ -109,6 +118,22 @@ def _settle_escaped_row(name):
 		name,
 		{"attempt": attempt, "status": "Failed" if exhausted else "Pending"},
 		update_modified=False,
+	)
+
+
+def _fail_delivered_row(name):
+	"""Fail a row that already acted outside the database instead of queueing it again.
+
+	The rollback took the run's database half back, but not the webhook it sent or the mail its
+	script posted. Replaying the row from the top would repeat those, so it is failed for someone
+	to look at rather than retried.
+	"""
+	frappe.db.set_value(QUEUE, name, "status", "Failed", update_modified=False)
+	clear_effects(name)
+	frappe.log_error(
+		title=f"Automation run not retried: {name}",
+		message="The run had already sent something outside the database when it failed, so it was "
+		"failed rather than queued again.",
 	)
 
 
@@ -125,6 +150,13 @@ def _execute_serially(executor, names):
 
 def execute_claimed(executor, name):
 	"""Run one claimed row in a transaction of its own."""
+	if effects_delivered(name):
+		# A group attempt already ran this row far enough to reach outside the database; only its
+		# database half was rolled back with the group.
+		_fail_delivered_row(name)
+		# The row is settled on its own, the way every other outcome in this function is.
+		frappe.db.commit()  # nosemgrep
+		return
 	try:
 		executor(name)
 		frappe.db.commit()
