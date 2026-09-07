@@ -13,7 +13,13 @@ from frappe.automation_engine.drainer import (
 	promote_due_scheduled,
 	requeue_stale_running,
 )
-from frappe.automation_engine.queue import QUEUE, queue_status
+from frappe.automation_engine.queue import (
+	QUEUE,
+	clear_effects,
+	effects_delivered,
+	mark_effects_delivered,
+	queue_status,
+)
 from frappe.tests import IntegrationTestCase
 
 
@@ -40,6 +46,8 @@ class TestDrainer(IntegrationTestCase):
 		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
+		for name in frappe.get_all(QUEUE, pluck="name"):
+			clear_effects(name)
 		frappe.db.delete(QUEUE)
 		frappe.db.delete("Automation Flow")
 		frappe.db.commit()  # nosemgrep
@@ -185,6 +193,47 @@ class TestDrainer(IntegrationTestCase):
 		row = frappe.db.get_value(QUEUE, name, ["status", "attempt"], as_dict=True)
 		self.assertEqual(row.status, "Failed")
 		self.assertEqual(row.attempt, settings.get("max_attempts"))
+
+	def test_a_row_that_reached_outside_is_failed_rather_than_queued_again(self):
+		"""A webhook cannot be un-sent. If the run throws after one goes out, replaying the row
+		from the top would send it twice, so the row is failed instead."""
+		name = self.add_row("delivered")
+		claimed = claim_batch(1)
+
+		def executor(row_name):
+			mark_effects_delivered(row_name)
+			raise ValueError("finalize blew up after the webhook went out")
+
+		drainer.execute_batch(executor, claimed)
+		frappe.db.commit()  # nosemgrep
+
+		row = frappe.db.get_value(QUEUE, name, ["status", "attempt"], as_dict=True)
+		self.assertEqual(row.status, "Failed")
+		self.assertEqual(row.attempt, 0)
+		self.assertFalse(effects_delivered(name))
+
+	def test_a_row_that_only_touched_the_database_is_still_retried(self):
+		"""The mark is what makes a failure final; without it, failures retry as before."""
+		name = self.add_row("db_only")
+		claimed = claim_batch(1)
+
+		drainer.execute_batch(lambda _name: 1 / 0, claimed)
+		frappe.db.commit()  # nosemgrep
+
+		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Pending")
+
+	def test_a_delivered_row_is_not_re_run_when_the_group_commit_fails(self):
+		"""The group rollback takes back the database half of a run whose webhook already left.
+		Re-running the group serially must skip that row rather than send it again."""
+		name = self.add_row("delivered_in_group")
+		claim_batch(1)
+		mark_effects_delivered(name)
+		runs = []
+
+		drainer.execute_claimed(runs.append, name)
+
+		self.assertEqual(runs, [])
+		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Failed")
 
 	def test_group_commit_failure_reruns_the_group_one_row_at_a_time(self):
 		names = [self.add_row(f"T{i}") for i in range(3)]

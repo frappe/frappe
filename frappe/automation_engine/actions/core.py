@@ -336,6 +336,7 @@ class CallWebhook(AutomationAction):
 	label = "Call Webhook"
 	description = "Send an HTTP request to an external URL."
 	requires_document = False
+	transactional = False
 	params_schema: ClassVar[list] = [
 		{"fieldname": "url", "label": "URL", "fieldtype": "Data", "reqd": 1},
 		{
@@ -396,6 +397,8 @@ class RunScript(AutomationAction):
 	label = "Run Script"
 	description = "Run a server script."
 	requires_document = False
+	# A script is arbitrary code: it may send mail or call out, and nothing here can tell.
+	transactional = False
 	params_schema: ClassVar[list] = [
 		{
 			"fieldname": "server_script",

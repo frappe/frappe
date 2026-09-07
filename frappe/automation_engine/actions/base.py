@@ -68,6 +68,9 @@ class AutomationAction:
 	description: str = ""
 	applicable_doctypes: list | None = None  # None = all doctypes
 	requires_document: bool = True
+	# False when executing reaches past the database, so a rollback cannot undo what the step did
+	# and the run must never be replayed from the top. See queue.mark_effects_delivered.
+	transactional: bool = True
 	supported_trigger_types: list | None = None
 	params_schema: ClassVar[list] = []
 	output_schema: ClassVar[dict | None] = None
@@ -104,6 +107,7 @@ class AutomationAction:
 			"description": self.description,
 			"applicable_doctypes": self.applicable_doctypes,
 			"requires_document": self.requires_document,
+			"transactional": self.transactional,
 			"supported_trigger_types": self.supported_trigger_types,
 			"params_schema": self.params_schema,
 			"output_schema": self.output_schema,
