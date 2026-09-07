@@ -222,6 +222,18 @@ class TestDrainer(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Pending")
 
+	def test_a_failed_cache_cleanup_does_not_re_run_a_committed_group(self):
+		"""Clearing the mark is bookkeeping after the fact. If it throws, the group has already
+		been committed, and running it again would repeat every external action in it."""
+		name = self.add_row("committed_then_cleanup_failed")
+		claimed = claim_batch(1)
+		runs = []
+
+		with patch("frappe.automation_engine.drainer.clear_effects", side_effect=ValueError("redis is down")):
+			self.assertRaises(ValueError, drainer.execute_batch, runs.append, claimed)
+
+		self.assertEqual(runs, [name])
+
 	def test_the_mark_is_dropped_once_the_outcome_is_committed(self):
 		name = self.add_row("delivered_then_committed")
 		claimed = claim_batch(1)

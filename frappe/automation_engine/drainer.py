@@ -80,13 +80,16 @@ def _execute_group(executor, names):
 		_execute_in_savepoint(executor, name, position)
 	try:
 		frappe.db.commit()
-		# The outcomes are durable now, so nothing will replay these rows.
-		for name in names:
-			clear_effects(name)
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title="Automation batch commit failed", message=frappe.get_traceback())
 		_execute_serially(executor, names)
+		return
+
+	# Outside the try, and only once the commit stands: a cache delete that throws must not be
+	# mistaken for a failed commit and send the whole group through again.
+	for name in names:
+		clear_effects(name)
 
 
 def _execute_in_savepoint(executor, name, position):

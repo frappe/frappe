@@ -56,6 +56,15 @@ class TestOutbox(IntegrationTestCase):
 		# Depth guards recursion, so the deepest of the collapsed triggers wins, not the newest.
 		self.assertEqual(row.depth, 2)
 
+	def test_dedup_replaces_a_payload_with_an_empty_one_the_later_trigger_carries(self):
+		"""An empty payload is data: the trigger says it has none, which is not the same as a doc
+		event that carries no payload at all."""
+		queue_trigger(self.automation, "ToDo", "TODO-EMPTY", payload={"n": 1})
+		name = queue_trigger(self.automation, "ToDo", "TODO-EMPTY", payload={})
+
+		payload = frappe.db.get_value("Automation Trigger Queue", name, "event_payload")
+		self.assertEqual(frappe.parse_json(payload), {})
+
 	def test_dedup_keeps_a_payload_the_later_trigger_does_not_carry(self):
 		queue_trigger(self.automation, "ToDo", "TODO-2", payload={"n": 1})
 		name = queue_trigger(self.automation, "ToDo", "TODO-2")
