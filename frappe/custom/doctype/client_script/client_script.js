@@ -84,17 +84,26 @@ frappe.ui.form.on("Client Script", {
 	},
 
 	view(frm) {
-		let has_form_boilerplate = frm.doc.script.includes("frappe.ui.form.on");
-		if (frm.doc.view === "List" && has_form_boilerplate) {
+		const script = frm.doc.script || "";
+		const has_form_boilerplate = script.includes("frappe.ui.form.on");
+		const has_record_boilerplate = script.includes("export default");
+		if (frm.doc.view === "List" && (has_form_boilerplate || has_record_boilerplate)) {
 			frm.set_value("script", "");
 		}
 		if (frm.doc.view === "Form" && !has_form_boilerplate) {
 			frm.trigger("dt");
 		}
+		if (frm.doc.view === "Record" && !has_record_boilerplate) {
+			frm.set_value("script", RECORD_BOILERPLATE);
+		}
 	},
 
 	add_script_for_doctype(frm, doctype) {
 		if (!doctype) return;
+		if (frm.doc.view === "Record") {
+			frm.set_value("script", RECORD_BOILERPLATE);
+			return;
+		}
 		let boilerplate = `
 frappe.ui.form.on('${doctype}', {
 	refresh(frm) {
@@ -109,6 +118,13 @@ frappe.ui.form.on('${doctype}', {
 		frm.set_value("script", script + boilerplate);
 	},
 });
+
+const RECORD_BOILERPLATE = `export default {
+	onRefresh(page) {
+		// your code here
+	},
+};
+`;
 
 const SAMPLE_HTML = `<h3>Client Script Help</h3>
 <p>Client Scripts are executed only on the client-side (i.e. in Forms). Here are some examples to get you started</p>
