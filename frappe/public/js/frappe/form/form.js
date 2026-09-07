@@ -1090,7 +1090,7 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 	}
 
-	_linked_docs_list_html(links, as_links = true) {
+	_linked_docs_list_html(links) {
 		// never render an absurdly long list; the count carries the scale
 		const max_names_per_doctype = 10;
 		let links_text = "";
@@ -1100,11 +1100,7 @@ frappe.ui.form.Form = class FrappeForm {
 			const of_doctype = links.filter((link) => link.doctype == doctype);
 			let docnames = of_doctype
 				.slice(0, max_names_per_doctype)
-				.map((link) =>
-					as_links
-						? frappe.utils.get_form_link(link.doctype, link.name, true)
-						: frappe.utils.escape_html(cstr(link.name))
-				)
+				.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
 				.join(", ");
 			if (of_doctype.length > max_names_per_doctype) {
 				docnames += ", " + __("and {0} more", [of_doctype.length - max_names_per_doctype]);
@@ -1331,34 +1327,9 @@ frappe.ui.form.Form = class FrappeForm {
 				freeze: true,
 				freeze_message: __("Deleting documents..."),
 				callback: (resp) => {
-					if (resp.exc) {
-						return;
+					if (!resp.exc) {
+						me._delete(true);
 					}
-					const skipped = resp.message.skipped || [];
-					if (!skipped.length) {
-						return me._delete(true);
-					}
-					me.reload_doc();
-					const deleted = resp.message.deleted || [];
-					let message = "";
-					if (deleted.length) {
-						message += __("The following documents were deleted: {0}", [
-							me._linked_docs_list_html(deleted, false),
-						]);
-					}
-					message += __(
-						"{0} {1} was kept because the following documents could not be deleted: {2}",
-						[
-							__(me.doctype),
-							cstr(me.docname).bold(),
-							me._linked_docs_list_html(skipped),
-						]
-					);
-					frappe.msgprint({
-						title: __("Partially Deleted"),
-						indicator: "orange",
-						message: message,
-					});
 				},
 			});
 		});

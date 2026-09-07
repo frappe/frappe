@@ -446,14 +446,12 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 
 
 @frappe.whitelist()
-def delete_all_linked_docs(docs: str | list) -> dict:
-	"""Delete the given documents best effort, deferring blocked ones; returns
-	the deleted and the skipped documents."""
+def delete_all_linked_docs(docs: str | list):
+	"""Delete the given documents in dependency order; a blocked one fails the whole request."""
 	to_delete = deduplicated(frappe.parse_json(docs))
 
 	# no realtime progress: late events strand the dialog; the freeze overlay suffices
-	skipped = process_linked_docs_in_dependency_order(to_delete, delete_linked_doc, raise_when_stuck=False)
-	return {"deleted": [doc for doc in to_delete if doc not in skipped], "skipped": skipped}
+	process_linked_docs_in_dependency_order(to_delete, delete_linked_doc)
 
 
 def delete_linked_doc(docinfo):
@@ -473,10 +471,9 @@ def deduplicated(docs):
 	return unique
 
 
-def process_linked_docs_in_dependency_order(docs, process, progress_title=None, raise_when_stuck=True):
+def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 	"""Run process over docs, deferring blocked ones to later passes until a
-	pass makes no progress; then raise the first blocker's error, or with
-	raise_when_stuck disabled return the blocked docs."""
+	pass makes no progress, then raise the first blocker's error."""
 	total = len(docs)
 	processed = 0
 	save_point = "process_linked_doc"
@@ -509,14 +506,11 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None, 
 			mark_processed()
 
 		if len(deferred) == len(docs):
-			if not raise_when_stuck:
-				return deferred
 			# surface the blocker's error; a success means the block was transient
 			process(deferred[0])
 			mark_processed()
 			deferred = deferred[1:]
 		docs = deferred
-	return []
 
 
 def capture_pending_side_effects() -> dict:
