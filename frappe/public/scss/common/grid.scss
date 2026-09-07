@@ -1165,6 +1165,14 @@ body.grid-col-resizing {
 	&[data-mapped="1"]::before {
 		background: var(--green-500);
 	}
+
+	// something wrong with the column itself — mapped by two columns at once,
+	// or matching no field at all. Red on the dot, the way the Data Import
+	// preview marks its own columns; the picker below carries the sentence.
+	// After the mapped rule, which it has to win against at equal specificity.
+	&.has-error::before {
+		background: var(--red-500);
+	}
 }
 
 // an unmapped column is along for the ride; its values read as context only

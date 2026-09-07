@@ -538,6 +538,9 @@ export default class BulkEdit {
 			// this list is every field of the child doctype, so it is long and
 			// has to scroll; unpinned it is clipped by the table's own overflow
 			this.pin_dropdown(control);
+			// same as a flagged cell: clicking the thing that is wrong puts what
+			// is wrong with it in the footer
+			control.$input?.on("focus click", () => this.show_cell_message(control));
 			control.set_value(this.state.column_map[i] || BULK_EDIT_DONT_IMPORT);
 			return control;
 		});
@@ -712,6 +715,28 @@ export default class BulkEdit {
 		});
 	}
 
+	/**
+	 * A warning about a column rather than about a value in it has no row, so
+	 * there is no cell to turn red. It goes on the column's own dot and on its
+	 * picker, which reads the message out in the footer when clicked — the same
+	 * pairing the Data Import preview uses, where a red indicator on the header
+	 * stands next to the sentence that explains it.
+	 */
+	sync_column_errors($table, warnings) {
+		const by_column = {};
+		warnings.forEach((w) => {
+			if (w.row === undefined && w.col !== undefined) by_column[w.col] = w;
+		});
+
+		this.mapping_controls.forEach((control, i) => {
+			const warning = by_column[i];
+			control._warning = warning;
+			$table
+				.find(`th[data-col="${i}"], .bulk-edit-mapping-row td[data-col="${i}"]`)
+				.toggleClass("has-error", Boolean(warning));
+		});
+	}
+
 	sync_preview_errors(warnings) {
 		const by_cell = {};
 		warnings.forEach((w) => {
@@ -720,6 +745,7 @@ export default class BulkEdit {
 
 		const $table = this.preview_form.get_field("table").$wrapper;
 		this.render_skip_buttons($table, warnings);
+		this.sync_column_errors($table, warnings);
 
 		// tr[data-row] scopes this to the data rows: the mapping row carries
 		// td[data-col] cells of its own, and they hold pickers, not values
@@ -794,7 +820,9 @@ export default class BulkEdit {
 		// with it has to go too. Focus doesn't move when a value is picked, so
 		// the handler above won't fire again to clear it.
 		this.show_cell_message(
-			Object.values(this.cell_controls).find((c) => c.$input?.is(":focus")),
+			[...Object.values(this.cell_controls), ...this.mapping_controls].find((c) =>
+				c.$input?.is(":focus"),
+			),
 		);
 	}
 
@@ -1166,16 +1194,60 @@ export default class BulkEdit {
 		return warnings;
 	}
 
-	/** A column the mapping never claimed carries its values nowhere. */
+	/**
+	 * What is wrong with a column rather than with a value in it: one going
+	 * nowhere, and two going to the same place. These carry a col and no row,
+	 * which is what puts them on the column itself rather than on a cell.
+	 */
 	get_header_warnings(headers, column_map) {
 		const warnings = [];
 		headers.forEach((header, i) => {
 			if (header && column_map[i] === undefined) {
 				warnings.push({
-					col: i + 1,
+					col: i,
 					message: __('"{0}" does not match a field and will be ignored.', [header]),
 				});
 			}
+		});
+		warnings.push(...this.get_duplicate_mapping_warnings(column_map));
+		return warnings;
+	}
+
+	/**
+	 * Two columns feeding one field. apply_rows walks the columns in order and
+	 * writes each into the field it is mapped to, so the later column silently
+	 * wins and the earlier one's values are lost with nothing to show for it —
+	 * which is why this blocks rather than advises. One warning per column
+	 * involved, so each of them says so on its own.
+	 */
+	get_duplicate_mapping_warnings(column_map) {
+		const columns_by_field = {};
+		Object.entries(column_map).forEach(([index, fieldname]) => {
+			(columns_by_field[fieldname] ??= []).push(cint(index));
+		});
+		const duplicated = Object.entries(columns_by_field).filter(
+			([, columns]) => columns.length > 1,
+		);
+		if (!duplicated.length) return [];
+
+		// the labels the picker offered, so the message names the field the way
+		// it was chosen rather than by fieldname
+		const label_of = Object.fromEntries(
+			this.get_docfields().map((df) => [
+				df.fieldname,
+				__(df.label || df.fieldname, null, df.parent),
+			]),
+		);
+
+		const warnings = [];
+		duplicated.forEach(([fieldname, columns]) => {
+			// names every column involved rather than the others, so the one
+			// sentence stays grammatical whether two of them clash or five
+			const message = __("Columns {0} map to {1}. Only one column can fill a field.", [
+				columns.map((i) => i + 1).join(", "),
+				label_of[fieldname] || fieldname,
+			]);
+			columns.forEach((i) => warnings.push({ blocking: true, col: i, message }));
 		});
 		return warnings;
 	}
