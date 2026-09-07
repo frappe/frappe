@@ -209,8 +209,8 @@ reads only the `Form` and `List` rows of the same table, so neither side sees th
 _Avoid_: Page Script (the tier's old name), Form Script (CRM v1's).
 
 **Tier**:
-The Client Script tier is the **last** in run order, after the host's file scripts and app
-extensions, because it runs at page mount. A script that fails to load is skipped whole
+The Client Script tier is the **last** in run order, after the file scripts every app
+contributes, because it runs at page mount. A script that fails to load is skipped whole
 and the rest of the tier still runs; a tier that could not be fetched is distinct from an
 empty one.
 

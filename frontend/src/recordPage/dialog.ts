@@ -122,7 +122,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
       else
         warn(
           verb,
-          `with '${key}'${where}, which it does not forward — dropped. See COMPATIBILITY.md.`,
+          `with '${key}'${where}, which it does not forward — dropped. See frontend/COMPATIBILITY.md.`,
         );
     }
     return kept;
