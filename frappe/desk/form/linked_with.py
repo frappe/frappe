@@ -13,6 +13,7 @@ from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_
 from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
 from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
+from frappe.utils.scheduler import is_scheduler_inactive
 
 
 @frappe.whitelist()
@@ -430,15 +431,15 @@ def cancel_all_linked_docs(
 	root_name: str | None = None,
 ):
 	"""Cancel the linked documents in dependency order, then the root, all or
-	nothing; sets larger than MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None past
-	the listing cap, move to a job instead."""
+	nothing; large sets, roots that queue their cancellations, and docs=None
+	past the listing cap move to a job instead."""
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
 	if docs is None:
 		return enqueue_discovery("cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all)
 
 	docs = deduplicated(frappe.parse_json(docs))
 	to_cancel = [doc for doc in docs if validate_linked_doc(doc, ignore_doctypes_on_cancel_all)]
-	if len(to_cancel) > MAX_SYNCHRONOUS_LINKED_DOCS:
+	if len(to_cancel) > MAX_SYNCHRONOUS_LINKED_DOCS or is_cancelled_in_background(root_doctype):
 		return enqueue_linked_docs_processing(
 			to_cancel, "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all
 		)
@@ -465,6 +466,11 @@ def cancel_linked_doc(docinfo):
 	doc = frappe.get_doc(docinfo.get("doctype"), docinfo.get("name"))
 	if doc.docstatus.is_submitted():
 		doc.cancel()
+
+
+def is_cancelled_in_background(doctype):
+	"""Whether the doctype queues its cancellations, as the form's own Cancel honours."""
+	return bool(doctype and frappe.get_meta(doctype).queue_in_background and not is_scheduler_inactive())
 
 
 MAX_LINKED_DOCUMENTS_LISTED = 500
