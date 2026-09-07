@@ -1,7 +1,11 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+import json
 from unittest.mock import MagicMock, patch
 
+import jwt
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from rauth import OAuth2Service
 
 import frappe
@@ -9,9 +13,17 @@ from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
-from frappe.utils.oauth import consume_oauth_state, create_oauth_state, get_info_via_oauth, login_via_oauth2
+from frappe.utils.oauth import (
+	consume_oauth_state,
+	create_oauth_state,
+	enforce_office_365_tenant,
+	get_info_via_oauth,
+	get_verified_office_365_claims,
+	login_via_oauth2,
+)
 
 TEST_GITHUB_USER = "githublogin@example.com"
+TEST_OFFICE_365_USER = "user@office365test.example"
 
 
 class TestSocialLoginKey(IntegrationTestCase):
@@ -181,6 +193,158 @@ class TestSocialLoginKey(IntegrationTestCase):
 		)
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			self.assertRaises(frappe.ValidationError, get_info_via_oauth, key.name, "iwriu")
+
+	def test_office_365_rejects_unpinned_tenant_by_default(self):
+		"""A newly configured Office 365 key with no Tenant ID and no opt-in must not log anyone in."""
+		office_365_social_login_setup()
+
+		with (
+			patch.object(OAuth2Service, "get_auth_session", return_value=make_office_365_session("tenant-a")),
+			patch(
+				"frappe.utils.oauth.get_verified_office_365_claims",
+				return_value=office_365_claims("tenant-a"),
+			),
+		):
+			self.assertRaises(
+				frappe.ValidationError, get_info_via_oauth, "office_365", "iwriu", id_token=True
+			)
+
+	def test_office_365_rejects_mismatched_tenant(self):
+		"""A token issued by a tenant other than the configured one must be rejected."""
+		office_365_social_login_setup(tenant_id="tenant-a")
+
+		with (
+			patch.object(OAuth2Service, "get_auth_session", return_value=make_office_365_session("tenant-b")),
+			patch(
+				"frappe.utils.oauth.get_verified_office_365_claims",
+				return_value=office_365_claims("tenant-b"),
+			),
+		):
+			self.assertRaises(
+				frappe.ValidationError, get_info_via_oauth, "office_365", "iwriu", id_token=True
+			)
+
+	def test_office_365_allows_matching_tenant(self):
+		office_365_social_login_setup(tenant_id="tenant-a")
+
+		with (
+			patch.object(OAuth2Service, "get_auth_session", return_value=make_office_365_session("tenant-a")),
+			patch(
+				"frappe.utils.oauth.get_verified_office_365_claims",
+				return_value=office_365_claims("tenant-a"),
+			),
+		):
+			info = get_info_via_oauth("office_365", "iwriu", id_token=True)
+		self.assertEqual(info["upn"], TEST_OFFICE_365_USER)
+		self.assertTrue(info["email_verified"])
+
+	def test_office_365_trust_any_tenant_bypasses_pinning(self):
+		"""The explicit insecure opt-in must keep working for admins who ask for it."""
+		office_365_social_login_setup(trust_any_tenant=1)
+
+		with (
+			patch.object(OAuth2Service, "get_auth_session", return_value=make_office_365_session("tenant-c")),
+			patch(
+				"frappe.utils.oauth.get_verified_office_365_claims",
+				return_value=office_365_claims("tenant-c"),
+			),
+		):
+			info = get_info_via_oauth("office_365", "iwriu", id_token=True)
+		self.assertEqual(info["upn"], TEST_OFFICE_365_USER)
+
+	def test_enforce_office_365_tenant_directly(self):
+		office_365_social_login_setup(tenant_id="tenant-a")
+
+		enforce_office_365_tenant({"tid": "tenant-a"}, "office_365")  # does not raise
+		self.assertRaises(
+			frappe.ValidationError, enforce_office_365_tenant, {"tid": "tenant-b"}, "office_365"
+		)
+		self.assertRaises(frappe.ValidationError, enforce_office_365_tenant, {}, "office_365")
+
+	def test_office_365_id_token_signature_is_verified(self):
+		"""A token not signed by the key Microsoft's JWKS endpoint actually vends must be rejected."""
+		office_365_social_login_setup(tenant_id="tenant-a")
+
+		signing_key, other_key = make_rsa_keypair(), make_rsa_keypair()
+		claims = office_365_claims("tenant-a")
+		claims["aud"] = "client-x"
+		token = jwt.encode(claims, signing_key, algorithm="RS256", headers={"kid": "test-kid"})
+
+		fake_jwks_client = MagicMock()
+		fake_jwks_client.get_signing_key_from_jwt.return_value = MagicMock(
+			key=serialization.load_pem_private_key(other_key, password=None).public_key()
+		)
+		with patch("frappe.utils.oauth._get_office_365_jwks_client", return_value=fake_jwks_client):
+			self.assertRaises(jwt.InvalidTokenError, get_verified_office_365_claims, token, "client-x")
+
+	def test_office_365_id_token_valid_signature_decodes(self):
+		office_365_social_login_setup(tenant_id="tenant-a")
+
+		signing_key = make_rsa_keypair()
+		claims = office_365_claims("tenant-a")
+		claims["aud"] = "client-x"
+		token = jwt.encode(claims, signing_key, algorithm="RS256", headers={"kid": "test-kid"})
+
+		fake_jwks_client = MagicMock()
+		fake_jwks_client.get_signing_key_from_jwt.return_value = MagicMock(
+			key=serialization.load_pem_private_key(signing_key, password=None).public_key()
+		)
+		with patch("frappe.utils.oauth._get_office_365_jwks_client", return_value=fake_jwks_client):
+			info = get_verified_office_365_claims(token, "client-x")
+		self.assertEqual(info["tid"], "tenant-a")
+
+
+def office_365_social_login_setup(tenant_id: str | None = None, trust_any_tenant: int = 0):
+	set_request(path="/random")
+	frappe.local.cookie_manager = CookieManager()
+	frappe.local.login_manager = LoginManager()
+
+	if frappe.db.exists("Social Login Key", "office_365"):
+		key = frappe.get_doc("Social Login Key", "office_365")
+	else:
+		key = frappe.get_doc(
+			doctype="Social Login Key",
+			social_login_provider="Office 365",
+			provider_name="Office 365",
+			client_id="client-x",
+			client_secret="secret",
+			base_url="https://login.microsoftonline.com",
+			authorize_url="https://login.microsoftonline.com/common/oauth2/authorize",
+			access_token_url="https://login.microsoftonline.com/common/oauth2/token",
+			redirect_url="/api/method/frappe.integrations.oauth2_logins.login_via_office365",
+			custom_base_url=0,
+			enable_social_login=1,
+		).insert(ignore_permissions=True)
+
+	key.tenant_id = tenant_id
+	key.trust_any_tenant = trust_any_tenant
+	key.save(ignore_permissions=True)
+	return key
+
+
+def make_office_365_session(tenant_id: str):
+	"""A rauth session stub whose access_token_response carries a placeholder id_token.
+
+	The token's contents don't matter in tests that mock get_verified_office_365_claims
+	directly; only its presence in the access_token_response JSON is exercised here.
+	"""
+	mock_session = MagicMock()
+	mock_session.access_token_response.text = json.dumps({"id_token": f"dummy.token.for.{tenant_id}"})
+	return mock_session
+
+
+def office_365_claims(tenant_id: str) -> dict:
+	return {"tid": tenant_id, "upn": TEST_OFFICE_365_USER, "sub": "test-oid"}
+
+
+def make_rsa_keypair() -> bytes:
+	"""Return a fresh RSA private key, PEM-encoded, for signing test JWTs."""
+	key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+	return key.private_bytes(
+		encoding=serialization.Encoding.PEM,
+		format=serialization.PrivateFormat.PKCS8,
+		encryption_algorithm=serialization.NoEncryption(),
+	)
 
 
 def custom_social_login_setup(provider_name: str):

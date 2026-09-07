@@ -69,6 +69,8 @@ class SocialLoginKey(Document):
 			"fairlogin",
 			"Keycloak",
 		]
+		tenant_id: DF.Data | None
+		trust_any_tenant: DF.Check
 		trust_email_without_verified_claim: DF.Check
 		user_id_property: DF.Data | None
 	# end: auto-generated types
