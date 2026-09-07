@@ -620,14 +620,18 @@ def process_linked_docs_in_background(
 	process = cancel_linked_doc if action == "cancel" else delete_linked_doc
 	side_effect_counts = capture_pending_side_effects()
 	frappe.db.savepoint("linked_docs_job")
+	error = None
 	try:
 		process_linked_docs_in_dependency_order(docs, process)
-	except DEFERRABLE_ERRORS as error:
+	except DEFERRABLE_ERRORS as blocker:
 		frappe.db.rollback(save_point="linked_docs_job")
 		discard_side_effects_since(side_effect_counts)
-		notify_linked_docs_processed(linked_docs_job_message(action, len(docs), error))
-		return
-	notify_linked_docs_processed(linked_docs_job_message(action, len(docs)))
+		error = blocker
+	except frappe.QueryDeadlockError as deadlock:
+		# the database has already discarded the whole transaction, savepoint included
+		frappe.db.rollback()
+		error = deadlock
+	notify_linked_docs_processed(linked_docs_job_message(action, len(docs), error))
 
 
 def linked_docs_job_message(action, count, error=None):
@@ -662,13 +666,9 @@ def deduplicated(docs):
 	return unique
 
 
-# a document blocked by another one, or by a lock, may go through on a later pass
-DEFERRABLE_ERRORS = (
-	frappe.ValidationError,
-	frappe.PermissionError,
-	frappe.QueryTimeoutError,
-	frappe.QueryDeadlockError,
-)
+# a document blocked by another one, or by a lock, may go through on a later pass;
+# not a deadlocked one: the database has already rolled the whole transaction back
+DEFERRABLE_ERRORS = (frappe.ValidationError, frappe.PermissionError, frappe.QueryTimeoutError)
 
 
 def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
@@ -693,7 +693,6 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 				process(doc)
 			except DEFERRABLE_ERRORS:
 				# hooks ran before the failing check; undo their writes and side effects
-				# (not on a deadlock: the database has already rolled the whole transaction back)
 				frappe.db.rollback(save_point=save_point)
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
