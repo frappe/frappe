@@ -1,8 +1,7 @@
 // The arrangement editor and the list operations under it. Mounted with Vue's own
 // `createApp`: this package has no `@vue/test-utils`.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { createApp, h, nextTick, type VNode } from "vue";
 
 // The real barrel drags the icon plugins in. `Button` is stubbed as the element it renders,
 // keeping `aria-label` and `@click`, which is all these tests reach for.
@@ -16,11 +15,13 @@ vi.mock("frappe-ui", () => ({
     setup: (props: { label?: string }, { emit }: { emit: (event: string) => void }) => () =>
       h("button", { onClick: () => emit("click") }, props.label ?? ""),
   },
+  ScrollArea: {
+    setup: (_: unknown, { slots }: { slots: { default?: () => VNode[] } }) => () =>
+      h("div", slots.default?.()),
+  },
 }));
 
 import { call as mockedCall } from "frappe-ui";
-import AppRail from "../AppRail.vue";
-import type { ItemContext } from "@/navigation/types";
 import ArrangementEditor from "../ArrangementEditor.vue";
 import { dropOn, move, saveArrangement, type ArrangedItem } from "@/arrangement";
 
@@ -258,37 +259,5 @@ describe("the editor", () => {
 
     expect(host.textContent).toContain("Could not load this arrangement");
     expect(host.querySelector("[data-testid='arrangement']")).toBeNull();
-  });
-});
-
-describe("the rail's way in", () => {
-  function rail(arrangeable: boolean) {
-    const host = document.createElement("div");
-    const app = createApp({
-      // An empty rail draws no rows, so the context is never asked anything here.
-      render: () =>
-        h(AppRail, { items: [], context: {} as unknown as ItemContext, arrangeable }),
-    });
-    app.provide("boot", { app: arrangeable ? "frappe" : null });
-    // A real router, because the rail's home link is a real `RouterLink` and resolves through
-    // the injections a router provides. A memory history keeps it out of happy-dom's URL.
-    app.use(
-      createRouter({
-        history: createMemoryHistory(),
-        routes: [{ path: "/", name: "home", component: { render: () => null } }],
-      })
-    );
-    app.mount(host);
-    return host;
-  }
-
-  it("offers Arrange inside an app", () => {
-    expect(rail(true).textContent).toContain("Arrange");
-  });
-
-  it("does not offer it on the index, which belongs to no app", () => {
-    // `/apps` has no rail to arrange and no address to name one by: `boot.app` is null there
-    // and `boot.navigation` is absent, so the button would open an editor addressed at nothing.
-    expect(rail(false).textContent).not.toContain("Arrange");
   });
 });

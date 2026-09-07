@@ -52,6 +52,9 @@ export type Boot = {
 	// in JS. It is `/apps` itself on the index, which belongs to no app.
 	shell_base: string;
 	app: string | null;
+	// The rail's app tile, present on an app's own prefix only.
+	app_title?: string;
+	app_logo?: string | null;
 
 	// Every active app, not just this one: a link into a foreign app needs that app's shape.
 	prefixes: Record<string, { app: string; modular: boolean }>;

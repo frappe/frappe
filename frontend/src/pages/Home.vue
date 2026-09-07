@@ -2,7 +2,7 @@
   Three things behind one route: the index at `/apps`, an app's home, and a modular app's module list.
 -->
 <template>
-	<div class="overflow-y-auto p-8">
+	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
 		<template v-if="boot.app">
 			<h1 class="text-xl font-semibold">{{ boot.app }}</h1>
 			<p class="mt-1 text-sm text-ink-gray-6">
@@ -54,10 +54,11 @@
 				</li>
 			</ul>
 		</template>
-	</div>
+	</ScrollArea>
 </template>
 
 <script setup lang="ts">
+import { ScrollArea } from "frappe-ui";
 import { computed, inject } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot } from "@/boot";

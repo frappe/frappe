@@ -3,7 +3,7 @@
   record-page engine with a real header row, and no form layout, tabs or panel yet.
 -->
 <template>
-	<div class="overflow-y-auto p-8">
+	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
 		<p v-if="!doctype" class="text-sm text-ink-gray-6">
 			No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
 		</p>
@@ -41,13 +41,13 @@
 				</template>
 			</dl>
 		</template>
-	</div>
+	</ScrollArea>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, ref, shallowRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Button } from "frappe-ui";
+import { Button, ScrollArea } from "frappe-ui";
 import {
 	createRecordPage,
 	loadClientScripts,

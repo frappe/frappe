@@ -64,6 +64,15 @@ def app_boot(app: str) -> dict:
 		return {}
 
 
+def app_screen(app: str) -> dict:
+	"""The app's title and logo; `add_to_apps_screen` is read for presentation only, never membership."""
+	screen = (frappe.get_hooks("add_to_apps_screen", app_name=app) or [{}])[0]
+	return {
+		"title": screen.get("title") or app.replace("_", " ").title(),
+		"logo": screen.get("logo"),
+	}
+
+
 def index_boot() -> dict:
 	"""Boot for `/apps` itself, the index, which belongs to no app; the app list lives only here."""
 	# `@frappe.whitelist()` only excludes Guest; a Website User must not read core boot.
@@ -78,14 +87,11 @@ def index_boot() -> dict:
 			# A tile that 403s on click is worse than one that is absent.
 			continue
 
-		# `add_to_apps_screen` is read for presentation only, never membership.
-		screen = (frappe.get_hooks("add_to_apps_screen", app_name=app) or [{}])[0]
 		apps.append(
 			{
 				"app": app,
 				"prefix": prefix,
-				"title": screen.get("title") or app.replace("_", " ").title(),
-				"logo": screen.get("logo"),
+				**app_screen(app),
 				"route": shell_base(prefix),
 			}
 		)
@@ -152,12 +158,16 @@ def get_boot(path: str | None = None) -> dict:
 		if not has_app_permission(app):
 			frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
+		screen = app_screen(app)
 		# Core LAST, so a contributed key cannot overwrite `csrf_token`, `user` or `shell_base`.
 		boot = {
 			**app_boot(app),
 			**core_boot(),
 			"shell_base": shell_base(prefix),
 			"app": app,
+			# The rail's app tile; the index has these per app under `apps`.
+			"app_title": screen["title"],
+			"app_logo": screen["logo"],
 			# A framework key, not an `app_boot` contribution: apps shape navigation through the rows
 			# they ship. It rides boot because boot is already a blocking pre-mount fetch.
 			"navigation": resolve_navigation(app),

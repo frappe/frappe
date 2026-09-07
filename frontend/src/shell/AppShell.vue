@@ -1,47 +1,62 @@
 <!--
-  The shell's own surface: rail, panel, routed view and the arrangement editor. Navigation lives
-  here because a save replaces the whole `{rail, sidebars}`, and the open sidebar is a fact about the address.
+  The shell's own surface: rail, panel, routed view and the overlay slot. Navigation lives here
+  because a save replaces the whole `{rail, sidebars}`, and the open sidebar is a fact about the address.
 -->
 <template>
-	<div class="flex h-screen w-screen bg-surface-base text-ink-gray-9">
-		<AppRail
-			:items="navigation.rail"
-			:context="contexts.rail"
-			:current="current.railKey"
-			:sections="sections.rail"
-			:arrangeable="!!boot.app"
-			:share-link="shareLink"
-			@arrange="arrangeRail"
-		/>
-		<AppSidebar
-			v-if="panel"
-			:key="panel.address"
-			:address="panel.address"
-			:items="panel.items"
-			:context="panel.context"
-			:title="panel.title"
-			:current="current.rowKey"
-			:sections="sections.sidebars[panel.address]"
-			arrangeable
-			@arrange="arrangeSidebar"
-		/>
-		<main class="flex min-w-0 flex-1 flex-col">
+	<DesktopShell
+		:scroll="false"
+		class="desk-shell relative h-screen w-screen bg-surface-base text-ink-gray-9"
+	>
+		<template #rail>
+			<RailColumn
+				:items="navigation.rail"
+				:context="contexts.rail"
+				:current="current.railKey"
+				:arrangeable="!!boot.app"
+				:share-link="shareLink"
+				@arrange="arrange.write('rail')"
+			/>
+		</template>
+
+		<template #sidebar>
+			<SidebarPanel
+				v-if="panel"
+				:key="panel.address"
+				:address="panel.address"
+				:items="panel.items"
+				:context="panel.context"
+				:title="panel.title"
+				:current="current.rowKey"
+				:sections="sections[panel.address]"
+				arrangeable
+				@arrange="arrange.write('sidebar', panel.address)"
+			/>
+		</template>
+
+		<main class="flex min-h-0 flex-1 flex-col [&>*]:min-h-0 [&>*]:flex-1">
 			<RouterView />
 		</main>
+
+		<!-- The overlay slot: one hash, one overlay, above any page. `#arrange/...` is its first tenant. -->
 		<ArrangementEditor
 			v-if="arranging"
+			:key="`${arranging.container}:${arranging.address}`"
+			class="absolute inset-y-0 right-0 z-20 shadow-2xl"
 			:container="arranging.container"
 			:address="arranging.address"
 			:title="arranging.title"
 			@saved="replace"
-			@close="arranging = null"
+			@close="arrange.close()"
 		/>
-	</div>
+
+		<ToastProvider />
+	</DesktopShell>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
+import { DesktopShell, ToastProvider } from "frappe-ui";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import type { Container } from "@/arrangement";
@@ -54,17 +69,16 @@ import {
 } from "@/navigation/current";
 import { recallSidebar, rememberSidebar } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
-import AppRail from "./AppRail.vue";
-import AppSidebar from "./AppSidebar.vue";
 import ArrangementEditor from "./ArrangementEditor.vue";
+import RailColumn from "./RailColumn.vue";
+import SidebarPanel from "./SidebarPanel.vue";
+import { useHashDialog } from "./useHashDialog";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 const router = useRouter();
 const route = useRoute();
 
-// One editor for both containers; the endpoints take the container as an argument.
-const arranging = ref<{ container: Container; address: string; title: string } | null>(null);
 const navigation = ref<Navigation>(boot.navigation ?? { rail: [], sidebars: {} });
 
 // One context per container: `Module Contents` measures against `context.items`, so a
@@ -84,18 +98,15 @@ const contexts = computed<NavigationContexts>(() => {
 	};
 });
 
-// A reader's own disclosures, one store per container: the rail by its app, a panel by its address.
-const sections = computed(() => ({
-	rail: boot.app
-		? sectionMemory(boot.user.name, `Rail:${boot.app}`, navigation.value.rail)
-		: undefined,
-	sidebars: Object.fromEntries(
+// A reader's own disclosures, one store per panel by its address. The rail draws no sections.
+const sections = computed(() =>
+	Object.fromEntries(
 		Object.entries(navigation.value.sidebars).map(([address, rows]) => [
 			address,
 			sectionMemory(boot.user.name, `Sidebar:${address}`, rows),
 		])
-	),
-}));
+	)
+);
 
 // Off the payload, not per navigation: it costs a route resolution per row.
 const destinations = computed(() =>
@@ -191,25 +202,28 @@ const panel = computed(() => {
 	};
 });
 
-function arrangeRail() {
-	arranging.value = {
-		container: "Rail",
-		address: boot.app!,
-		title: "Arrange this rail",
-	};
-}
+// One editor for both containers; the endpoints take the container as an argument.
+const arrange = useHashDialog("arrange");
 
-function arrangeSidebar() {
-	if (!panel.value) return;
-	arranging.value = {
-		container: "Sidebar",
-		address: panel.value.address,
-		title: "Arrange this sidebar",
-	};
-}
+// `#arrange/rail` or `#arrange/sidebar/<address>`; anything else under the root is nothing.
+const arranging = computed<{ container: Container; address: string; title: string } | null>(() => {
+	const [what, address] = arrange.segments.value;
+	if (what === "rail" && boot.app)
+		return { container: "Rail", address: boot.app, title: "Arrange this rail" };
+	if (what === "sidebar" && address && navigation.value.sidebars[address])
+		return { container: "Sidebar", address, title: "Arrange this sidebar" };
+	return null;
+});
 
 function replace(next: Navigation) {
 	navigation.value = next;
 	boot.navigation = next;
 }
 </script>
+
+<style scoped>
+/* The content's left edge; the panel draws the other one, and drops it while collapsed. */
+.desk-shell :deep([data-slot="desktop-shell-content"]) {
+	@apply border-l border-outline-gray-1 bg-surface-base;
+}
+</style>

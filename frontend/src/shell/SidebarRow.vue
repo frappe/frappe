@@ -1,63 +1,19 @@
 <!--
-  One row of navigation and whatever hangs under it, shared by the rail and the panel.
-  A row with no rendering is skipped but its children still draw, as the server does for orphans.
+  One panel row on frappe-ui's `SidebarItem` and `SidebarSection`. The section the address is in
+  opens itself and offers no control; a reader's toggle is remembered.
 -->
 <template>
-	<li>
-		<!-- A destination in this prefix. -->
-		<RouterLink
-			v-if="destination && 'to' in destination"
-			:to="destination.to"
-			:data-key="item.key"
-			:data-sidebar="destination.sidebar"
-			:aria-current="isCurrent ? 'page' : undefined"
-			:class="[ROW, isCurrent && CURRENT]"
-		>
-			<Icon :name="item.icon" :reserve="reserve" />
-			<span class="truncate">{{ label }}</span>
-		</RouterLink>
-
-		<!-- A destination outside this prefix: a full document load, so an `<a>`, never a `RouterLink`. -->
-		<a
-			v-else-if="destination && 'href' in destination"
-			:href="destination.href"
-			:data-key="item.key"
-			:data-sidebar="destination.sidebar"
-			:aria-current="isCurrent ? 'page' : undefined"
-			:class="[ROW, isCurrent && CURRENT]"
-		>
-			<Icon :name="item.icon" :reserve="reserve" />
-			<span class="truncate">{{ label }}</span>
-		</a>
-
-		<!-- Rows fetched on demand. A button, not a link: it goes nowhere. -->
-		<button
-			v-else-if="expander"
-			type="button"
-			:data-key="item.key"
-			:aria-expanded="String(expanded)"
-			:class="ROW"
-			@click="expand"
-		>
-			<Icon :name="item.icon" :reserve="reserve" />
-			<span class="truncate">{{ label }}</span>
-		</button>
-
-		<!-- A heading; a collapsible one is a control, so a button. -->
-		<component
-			v-else-if="heading"
-			:is="collapsible ? 'button' : 'p'"
-			:type="collapsible ? 'button' : undefined"
-			:data-key="item.key"
-			:aria-expanded="collapsible ? String(open) : undefined"
-			:class="HEADING"
-			@click="collapsible ? toggle() : undefined"
-		>
-			{{ label }}
-		</component>
-
-		<ul v-if="node.children.length && open" class="ml-2 border-l border-outline-gray-2 pl-1">
-			<NavigationRow
+	<!-- A heading with no destination: a section. Children mount only while it is open. -->
+	<SidebarSection
+		v-if="heading && !destination"
+		:label="label"
+		:collapsible="collapsible"
+		:collapsed="!open"
+		:data-key="item.key"
+		@update:collapsed="toggle"
+	>
+		<template v-if="open">
+			<SidebarRow
 				v-for="child in node.children"
 				:key="child.item.key"
 				:node="child"
@@ -66,11 +22,59 @@
 				:reserve="reserve"
 				:sections="sections"
 			/>
-		</ul>
+		</template>
+	</SidebarSection>
 
-		<!-- Expanded rows sit at this row's own level: an overflow of the list, not its children.
-					 No `sections`: fetched rows are not in the payload, so a toggle against one would be pruned. -->
-		<NavigationRow
+	<template v-else>
+		<!-- A destination in this prefix. -->
+		<SidebarItem
+			v-if="destination && 'to' in destination"
+			:to="destination.to"
+			:label="label"
+			:active="isCurrent"
+			:data-key="item.key"
+			:data-sidebar="destination.sidebar"
+		>
+			<template #prefix><Icon :name="item.icon" :reserve="reserve" /></template>
+		</SidebarItem>
+
+		<!-- Outside this prefix: a full document load, so an `<a>`, which `SidebarItem` has no form for. -->
+		<div v-else-if="destination && 'href' in destination" :data-key="item.key" :class="ROW">
+			<a :href="destination.href" :class="ROW_TARGET">
+				<span class="grid shrink-0 place-items-center">
+					<Icon :name="item.icon" :reserve="reserve" />
+				</span>
+				<span class="ml-2 min-w-0 flex-1 truncate text-sm">{{ label }}</span>
+			</a>
+		</div>
+
+		<!-- Rows fetched on demand; they land at this row's own level. -->
+		<div v-else-if="expander" :data-key="item.key" :class="ROW">
+			<button type="button" :class="ROW_TARGET" :aria-expanded="expanded" @click="expand">
+				<span class="grid shrink-0 place-items-center">
+					<Icon :name="item.icon" :reserve="reserve" />
+				</span>
+				<span class="ml-2 min-w-0 flex-1 truncate text-sm">{{ label }}</span>
+			</button>
+		</div>
+
+		<!-- A heading with a destination: its children indent under it by hand. -->
+		<div
+			v-if="node.children.length && open"
+			class="ml-3 flex flex-col gap-0.5 border-l border-outline-gray-2 pl-1"
+		>
+			<SidebarRow
+				v-for="child in node.children"
+				:key="child.item.key"
+				:node="child"
+				:context="context"
+				:current="current"
+				:reserve="reserve"
+				:sections="sections"
+			/>
+		</div>
+
+		<SidebarRow
 			v-for="child in expandedNodes"
 			:key="child.item.key"
 			:node="child"
@@ -78,25 +82,22 @@
 			:current="current"
 			:reserve="reserve"
 		/>
-	</li>
+	</template>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { RouterLink } from "vue-router";
+import { SidebarItem, SidebarSection } from "frappe-ui";
 import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { labelOf, renderingOf } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
 import type { ItemContext } from "@/navigation/types";
 
-const ROW =
-	"flex w-full items-center gap-2 truncate rounded px-2 py-1 text-left text-sm text-ink-gray-7 hover:bg-surface-gray-2";
-// A step past the hover shade, or the current row and the hovered row look the same. Bound
-// explicitly so `RouterLink`'s own `aria-current` is suppressed and only one row is marked.
-const CURRENT = "bg-surface-gray-3 font-medium text-ink-gray-9";
-const HEADING =
-	"w-full truncate px-2 pb-0.5 pt-3 text-left text-xs font-medium uppercase text-ink-gray-5";
+// `SidebarItem`'s own classes, for the two rows it has no form for. Neither is ever current.
+const ROW = "flex h-7 items-center rounded-4 text-ink-gray-6 transition hover:bg-surface-gray-2";
+const ROW_TARGET =
+	"flex h-full min-w-0 flex-1 items-center rounded-4 pl-2 text-left focus-visible:ring-0 focus-visible:focus-ring";
 
 // `current` is passed down: one row wins across the rail and the open panel together.
 // `reserve` is decided once per container.
@@ -142,8 +143,7 @@ function settled(): boolean {
 
 const open = ref(holdsCurrent.value || settled());
 
-// Re-derived, not assigned: a save returns the app's own layer, so the same key can come
-// back with a different `keep_closed` while this component survives.
+// Re-derived, not assigned: a save can bring the same key back with a different `keep_closed`.
 watch([() => item.value.keep_closed, holdsCurrent], () => {
 	open.value = holdsCurrent.value || settled();
 });
@@ -157,8 +157,8 @@ function toggle() {
 const expanded = ref(false);
 const expandedNodes = ref<ItemNode[]>([]);
 
-// A new context is a new list, and what an expansion showed was measured against the old
-// one, so it collapses; `generation` keeps a fetch left in flight from putting rows back.
+// A new context is a new list, so an expansion measured against the old one collapses;
+// `generation` keeps a fetch left in flight from putting rows back.
 let generation = 0;
 
 watch(

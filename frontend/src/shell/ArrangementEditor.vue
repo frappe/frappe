@@ -13,50 +13,52 @@
 			{{ failed }}
 		</p>
 
-		<ul v-else class="flex-1 overflow-y-auto p-2" data-testid="arrangement">
-			<li
-				v-for="item in items"
-				:key="item.key"
-				:data-key="item.key"
-				:class="[
-					'flex items-center gap-1 rounded px-1 py-1',
-					item.parent_key ? 'ml-4' : '',
-					item.hidden ? 'opacity-50' : '',
-				]"
-				draggable="true"
-				@dragstart="dragging = item.key"
-				@dragover.prevent
-				@drop.prevent="drop(item.key)"
-			>
-				<input
-					class="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus:bg-surface-gray-2"
-					:value="item.label ?? ''"
-					:placeholder="item.link_to ?? item.key"
-					:aria-label="`Name of ${item.key}`"
-					@input="rename(item.key, ($event.target as HTMLInputElement).value)"
-				/>
-				<!-- `lucide-` prefixed: frappe-ui's Button takes a CSS class, and a bare name
+		<ScrollArea v-else class="min-h-0 flex-1" viewportClass="p-2">
+			<ul data-testid="arrangement">
+				<li
+					v-for="item in items"
+					:key="item.key"
+					:data-key="item.key"
+					:class="[
+						'flex items-center gap-1 rounded px-1 py-1',
+						item.parent_key ? 'ml-4' : '',
+						item.hidden ? 'opacity-50' : '',
+					]"
+					draggable="true"
+					@dragstart="dragging = item.key"
+					@dragover.prevent
+					@drop.prevent="drop(item.key)"
+				>
+					<input
+						class="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus:bg-surface-gray-2"
+						:value="item.label ?? ''"
+						:placeholder="item.link_to ?? item.key"
+						:aria-label="`Name of ${item.key}`"
+						@input="rename(item.key, ($event.target as HTMLInputElement).value)"
+					/>
+					<!-- `lucide-` prefixed: frappe-ui's Button takes a CSS class, and a bare name
 						 draws nothing. Literal here, so Tailwind's JIT emits the class. -->
-				<Button
-					variant="ghost"
-					icon="lucide-chevron-up"
-					:aria-label="`Move ${item.key} up`"
-					@click="items = move(items, item.key, -1)"
-				/>
-				<Button
-					variant="ghost"
-					icon="lucide-chevron-down"
-					:aria-label="`Move ${item.key} down`"
-					@click="items = move(items, item.key, 1)"
-				/>
-				<Button
-					variant="ghost"
-					:icon="item.hidden ? 'lucide-eye-off' : 'lucide-eye'"
-					:aria-label="`${item.hidden ? 'Show' : 'Hide'} ${item.key}`"
-					@click="toggleHidden(item.key)"
-				/>
-			</li>
-		</ul>
+					<Button
+						variant="ghost"
+						icon="lucide-chevron-up"
+						:aria-label="`Move ${item.key} up`"
+						@click="items = move(items, item.key, -1)"
+					/>
+					<Button
+						variant="ghost"
+						icon="lucide-chevron-down"
+						:aria-label="`Move ${item.key} down`"
+						@click="items = move(items, item.key, 1)"
+					/>
+					<Button
+						variant="ghost"
+						:icon="item.hidden ? 'lucide-eye-off' : 'lucide-eye'"
+						:aria-label="`${item.hidden ? 'Show' : 'Hide'} ${item.key}`"
+						@click="toggleHidden(item.key)"
+					/>
+				</li>
+			</ul>
+		</ScrollArea>
 
 		<footer class="flex items-center gap-2 border-t border-outline-gray-2 p-3">
 			<Button variant="solid" label="Save" :loading="busy" @click="save" />
@@ -67,7 +69,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { Button } from "frappe-ui";
+import { Button, ScrollArea } from "frappe-ui";
 import type { Navigation } from "@/boot";
 import {
 	type ArrangedItem,

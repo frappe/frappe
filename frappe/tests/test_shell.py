@@ -385,6 +385,19 @@ class TestShellBoot(IntegrationTestCase):
 		# The declaring app's contribution, merged under core.
 		self.assertEqual(boot["default_route"], "/deals")
 
+	def test_boot_names_the_app_tile(self):
+		"""The rail's tile reads the app's own screen entry, and falls back to the app's name."""
+		from frappe.shell.boot import get_boot
+
+		boot = get_boot("/apps/desk")
+		self.assertEqual(boot["app_title"], "Framework")
+		self.assertTrue(boot["app_logo"])
+
+		with a_second_app() as (app, prefix):
+			boot = get_boot(f"/apps/{prefix}")
+		self.assertEqual(boot["app_title"], app.replace("_", " ").title())
+		self.assertIsNone(boot["app_logo"])
+
 	def test_boot_is_small(self):
 		"""A total, tighter than the per-key budget: fails loudly if v1's furniture creeps back in."""
 		import json
