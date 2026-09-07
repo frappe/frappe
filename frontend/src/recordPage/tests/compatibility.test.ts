@@ -18,7 +18,7 @@ import {
   withRemovals,
   type Removal,
 } from "../pageCompatibility";
-import { loadPageScripts, resetPageScripts } from "../pageScripts";
+import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { resetCustomizationErrorReports } from "../reportError";
 
 const REPORT_METHOD =
@@ -49,14 +49,14 @@ function makePage() {
 /** The tier's fetch is what carries whether this session may write scripts. */
 async function withEditorPermission(canWrite: boolean) {
   call.mockResolvedValue({ scripts: [], can_write: canWrite });
-  await loadPageScripts("CRM Deal");
+  await loadClientScripts("CRM Deal");
   call.mockClear();
 }
 
 describe("removals", () => {
   beforeEach(() => {
     resetRemovalNotices();
-    resetPageScripts();
+    resetClientScripts();
     resetCustomizationErrorReports();
     call.mockReset();
     call.mockResolvedValue({});

@@ -164,7 +164,7 @@ describe("the handle re-finds its row on every access (ticket 43 §2)", () => {
 
   it("attributes the refusal to the source whose handler held the row", async () => {
     const errors = vi.spyOn(console, "error").mockImplementation(() => {});
-    await withRegisteringSource("page-script:C22", async () => {
+    await withRegisteringSource("client-script:C22", async () => {
       registerRecordPage("CRM Deal", {
         products: {
           onAdd: (page: RecordPageApi, row: PageRow) => {
@@ -179,7 +179,7 @@ describe("the handle re-finds its row on every access (ticket 43 §2)", () => {
       parentfield: "products",
       key: "name:row-a",
     });
-    expect(String(errors.mock.calls[0][0])).toContain("page-script:C22 reached");
+    expect(String(errors.mock.calls[0][0])).toContain("client-script:C22 reached");
     errors.mockRestore();
   });
 

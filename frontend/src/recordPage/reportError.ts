@@ -9,7 +9,7 @@ const REPORT_METHOD =
 const MESSAGE_LIMIT = 1000;
 const STACK_LIMIT = 4000;
 
-export type CustomizationTier = "page_script" | "extension" | "file_script";
+export type CustomizationTier = "client_script" | "extension" | "file_script";
 
 // One report per (source, event) per page session, which kills a replay storm before a request is made.
 const reported = new Set<string>();
@@ -18,7 +18,7 @@ const reported = new Set<string>();
 const filed = new WeakSet<object>();
 
 export interface CustomizationErrorContext {
-  /** `page-script:<name>`, an app name, or `host` — the attribution already carried. */
+  /** `client-script:<name>`, an app name, or `host` — the attribution already carried. */
   source: string;
   /** A handler key, or `load` for a failure to arrive at all. */
   event: string;
@@ -31,7 +31,7 @@ export interface CustomizationErrorContext {
 
 /** `host` is the app's own bundled code; everything else unprefixed is an app. */
 export function tierOf(source: string): CustomizationTier {
-  if (source.startsWith("page-script:")) return "page_script";
+  if (source.startsWith("client-script:")) return "client_script";
   return source === HOST_SOURCE ? "file_script" : "extension";
 }
 

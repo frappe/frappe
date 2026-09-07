@@ -36,7 +36,7 @@ exist to prevent. This doc adds only the `DP*` principles specific to the desk l
 - **`CLAUDE.md`** is *operational* — the traps, the formatting, the commands. The design
   rules live here, not there.
 - **`CONTEXT.md`** is the *vocabulary* — what a **Record page**, a **contribution**, a
-  **surface**, a **Page Script** mean. PHILOSOPHY is the *rules* that use the vocabulary.
+  **surface**, a **Client Script** mean. PHILOSOPHY is the *rules* that use the vocabulary.
   Not yet written.
 - **`docs/adr/`** are *decisions* — specific applications of a principle to a specific
   question. **ADRs cite principles; principles never cite ADRs.** That direction is what
@@ -83,7 +83,7 @@ point.
 composables. The record-page engine (`src/recordPage/`) is desk layer and lives here.
 
 Two components are **classified** desk layer but have not landed yet, and are named here
-because the classification is what the rule is for: `PanelLayout` and the Page Script
+because the classification is what the rule is for: `PanelLayout` and the Client Script
 editor. Both exist today only on the `feat/saved-view-sidebar` prototype branch. When they
 come across they come *here*, not into `@framework/ui`.
 
@@ -124,7 +124,7 @@ slipping is a growing list of things the framework can do that a contribution ca
 ## DP3. Judge the API by reading what an author would write
 
 **Rule:** Before settling any customization API, write out the artifact a real author
-would author against it — the Page Script, the `hooks.py` entry, the seeded rows, the
+would author against it — the Client Script, the `hooks.py` entry, the seeded rows, the
 `record.js`. Judge the design from that artifact, not from the type signature or the
 implementation. If the authored form reads badly, the API is wrong however clean the
 internals are.

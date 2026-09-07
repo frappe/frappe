@@ -365,7 +365,7 @@ describe("unknown handler keys", () => {
   });
 
   it("reports a handler throw, but never a beforeSave veto (ticket 19 §1)", async () => {
-    withRegisteringSource("page-script:A", async () =>
+    withRegisteringSource("client-script:A", async () =>
       registerRecordPage("CRM Deal", {
         onRefresh: () => {
           throw new Error("boom");
@@ -381,8 +381,8 @@ describe("unknown handler keys", () => {
     await controller.fireEvent("onRefresh");
     await expect(controller.fireEvent("beforeSave")).rejects.toThrow("veto");
 
-    expect(reportedFailures()).toContain("page-script:A.onRefresh");
-    expect(reportedFailures()).not.toContain("page-script:A.beforeSave");
+    expect(reportedFailures()).toContain("client-script:A.onRefresh");
+    expect(reportedFailures()).not.toContain("client-script:A.beforeSave");
   });
 });
 

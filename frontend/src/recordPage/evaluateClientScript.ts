@@ -1,10 +1,10 @@
 // A stored script is evaluated as a real ES module through a blob URL, so `export
 // default {…}` is the same text as a file script and bare imports resolve through the import map.
-import type { PageScriptRow } from "./pageScriptTypes";
+import type { ClientScriptRow } from "./clientScriptTypes";
 import type { AuthoredHandlers } from "./types";
 
-export async function evaluatePageScript(
-  row: PageScriptRow,
+export async function evaluateClientScript(
+  row: ClientScriptRow,
 ): Promise<AuthoredHandlers> {
   const url = URL.createObjectURL(
     new Blob([named(row)], { type: "text/javascript" }),
@@ -20,8 +20,8 @@ export async function evaluatePageScript(
 }
 
 /** Names the module so stack traces and devtools show the script, not a blob id. */
-function named(row: PageScriptRow) {
-  return `${row.script}\n//# sourceURL=page-script/${row.name}.js\n`;
+function named(row: ClientScriptRow) {
+  return `${row.script}\n//# sourceURL=client-script/${row.name}.js\n`;
 }
 
 function handlersOf(handlers: unknown): AuthoredHandlers {

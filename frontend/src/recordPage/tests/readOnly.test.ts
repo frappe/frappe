@@ -23,7 +23,7 @@ vi.mock("frappe-ui", () => ({
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { withRunningSource } from "../context";
-import { loadPageScripts, resetPageScripts } from "../pageScripts";
+import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { readOnly } from "../readOnly";
 import { resetRegistry } from "../registry";
 import { resetCustomizationErrorReports } from "../reportError";
@@ -64,7 +64,7 @@ function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
 /** The tier's fetch is what carries whether this session may write scripts. */
 async function withEditorPermission(canWrite: boolean) {
   (mockedCall as any).mockResolvedValue({ scripts: [], can_write: canWrite });
-  await loadPageScripts("CRM Deal");
+  await loadClientScripts("CRM Deal");
   (mockedCall as any).mockClear();
 }
 
@@ -72,7 +72,7 @@ function reset() {
   state.roles = null;
   resetRegistry();
   resetUserRoles();
-  resetPageScripts();
+  resetClientScripts();
   resetCustomizationErrorReports();
   (mockedCall as any).mockReset();
   (mockedCall as any).mockResolvedValue({});
@@ -289,7 +289,7 @@ describe("the refusal reports on the tombstone channel", () => {
     await withEditorPermission(true);
     const { page } = createRecordPage(makeHost());
 
-    await withRunningSource("page-script:products", async () => {
+    await withRunningSource("client-script:products", async () => {
       expect(() => {
         page.meta.fields[0].hidden = 1;
       }).toThrow();
@@ -297,7 +297,7 @@ describe("the refusal reports on the tombstone channel", () => {
 
     expect(mockedCall).toHaveBeenCalledWith(REPORT_METHOD, expect.anything());
     const payload = (mockedCall as any).mock.calls[0][1];
-    expect(payload.source).toBe("page-script:products");
+    expect(payload.source).toBe("client-script:products");
     expect(payload.event).toBe("readonly:page.meta");
     expect(payload.message).toContain("page.meta.fields[0].hidden");
     expect((mockedToast as any).error).toHaveBeenCalledWith(
@@ -309,7 +309,7 @@ describe("the refusal reports on the tombstone channel", () => {
     await withEditorPermission(true);
     const { page } = createRecordPage(makeHost());
 
-    await withRunningSource("page-script:products", async () => {
+    await withRunningSource("client-script:products", async () => {
       for (const field of page.meta.fields)
         expect(() => {
           field.hidden = 1;

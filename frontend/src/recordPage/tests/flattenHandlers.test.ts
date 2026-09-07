@@ -34,13 +34,13 @@ describe("flattenHandlers", () => {
     const warnings = vi.spyOn(console, "warn").mockImplementation(() => {});
     const flat = flattenHandlers(
       { products: { qty: 3 } as any, totals: "yes" as any },
-      "page-script:A",
+      "client-script:A",
       "CRM Deal",
     );
     expect(Object.keys(flat)).toEqual([]);
     expect(warnings).toHaveBeenCalledTimes(2);
     expect(String(warnings.mock.calls[0][0])).toContain(
-      "page-script:A.products on CRM Deal",
+      "client-script:A.products on CRM Deal",
     );
     warnings.mockRestore();
   });

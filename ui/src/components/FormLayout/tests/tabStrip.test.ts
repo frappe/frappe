@@ -320,7 +320,7 @@ describe("the reader keeps their place", () => {
 /**
  * The per-render override: plain data on the tab, applied where the strip is
  * drawn. `FormLayout` knows nothing about who wrote it — on the Record page it
- * is a Page Script's `page.formTabs`, which is what makes these two rules load
+ * is a Client Script's `page.formTabs`, which is what makes these two rules load
  * bearing rather than incidental.
  */
 describe("a per-render tab override", () => {
