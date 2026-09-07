@@ -95,6 +95,9 @@ def get_data(filters: dict) -> list[list]:
 			continue
 
 		dt = perm["parent"]
+		if dt is None:
+			continue
+
 		if_owner = perm["if_owner"]
 		role = perm["role"]
 
