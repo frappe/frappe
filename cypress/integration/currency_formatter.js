@@ -52,8 +52,9 @@ context("Currency Formatter", () => {
 
 context("Currency Formatter outside desk", () => {
 	before(() => {
-		cy.login();
-		cy.visit("/me");
+		// Any website page carries the web boot and frappe.format; /login is the one that needs
+		// no session, so the suite tests formatting rather than portal permissions.
+		cy.visit("/login");
 	});
 
 	it("resolves precision from system defaults on portal pages", () => {
