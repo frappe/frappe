@@ -379,7 +379,7 @@ class TestLinkedWith(IntegrationTestCase):
 
 	def test_stuck_pass_continues_when_the_retry_succeeds(self):
 		"""If the surfacing attempt succeeds (a lock cleared), the rest must still
-		be processed instead of being abandoned as skipped."""
+		be processed instead of being abandoned."""
 		attempts = []
 
 		def process(docinfo):
@@ -387,7 +387,7 @@ class TestLinkedWith(IntegrationTestCase):
 			if attempts.count(docinfo["name"]) == 1:
 				raise frappe.QueryTimeoutError
 
-		skipped = linked_with.process_linked_docs_in_dependency_order(
+		linked_with.process_linked_docs_in_dependency_order(
 			[
 				{"doctype": "Parent DocType", "name": "first"},
 				{"doctype": "Parent DocType", "name": "second"},
@@ -396,7 +396,6 @@ class TestLinkedWith(IntegrationTestCase):
 		)
 
 		self.assertEqual(attempts, ["first", "second", "first", "second"])
-		self.assertEqual(skipped, [])
 
 	def test_cancel_all_linked_docs_defers_controller_blocked_docs(self):
 		"""A controller check that wants a referencing document cancelled first
@@ -467,23 +466,13 @@ class TestLinkedWith(IntegrationTestCase):
 
 		# child1 is blocked by child2 and passed first; it must get deferred
 		# and deleted on a later pass instead of failing
-		result = linked_with.delete_all_linked_docs(
+		linked_with.delete_all_linked_docs(
 			docs=[
 				{"doctype": "Child DocType1", "name": child1.name},
 				{"doctype": "Child DocType2", "name": child2.name},
 			]
 		)
 
-		self.assertEqual(
-			result,
-			{
-				"deleted": [
-					{"doctype": "Child DocType1", "name": child1.name},
-					{"doctype": "Child DocType2", "name": child2.name},
-				],
-				"skipped": [],
-			},
-		)
 		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
 		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
 		parent.delete()
@@ -510,25 +499,25 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
 		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
 
-	def test_delete_all_linked_docs_skips_undeletable_docs(self):
-		"""A document that stays undeletable must get skipped and reported without
-		undoing the deleted documents or leaking messages of failed attempts."""
+	def test_delete_all_linked_docs_fails_when_a_doc_stays_undeletable(self):
+		"""A document nothing in the run can delete must fail the run with its
+		own error, once, instead of leaving the other documents deleted."""
 		child1 = frappe.get_doc({"doctype": "Child DocType1"}).insert().submit()
 		child2 = frappe.get_doc({"doctype": "Child DocType2"}).insert()
 		message_count = len(frappe.local.message_log)
 
-		result = linked_with.delete_all_linked_docs(
-			docs=[
-				{"doctype": "Child DocType1", "name": child1.name},
-				{"doctype": "Child DocType2", "name": child2.name},
-			]
-		)
+		with savepoint(frappe.ValidationError):
+			linked_with.delete_all_linked_docs(
+				docs=[
+					{"doctype": "Child DocType1", "name": child1.name},
+					{"doctype": "Child DocType2", "name": child2.name},
+				]
+			)
+			self.fail("a submitted document should have failed the run")
 
-		self.assertEqual(result["deleted"], [{"doctype": "Child DocType2", "name": child2.name}])
-		self.assertEqual(result["skipped"], [{"doctype": "Child DocType1", "name": child1.name}])
 		self.assertTrue(frappe.db.exists("Child DocType1", child1.name))
-		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
-		self.assertEqual(len(frappe.local.message_log), message_count)
+		self.assertTrue(frappe.db.exists("Child DocType2", child2.name))
+		self.assertEqual(len(frappe.local.message_log), message_count + 1)
 		child1.reload().cancel()
 
 	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
