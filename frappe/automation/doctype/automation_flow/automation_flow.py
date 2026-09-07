@@ -90,9 +90,19 @@ class AutomationFlow(Document):
 				continue
 			action = get_action(row.action_type)
 			self.validate_action_context(action)
-			params = frappe.parse_json(row.params) if row.params else {}
+			self.validate_action_params(action, row, targets)
+
+	def validate_action_params(self, action, row, targets):
+		"""An action reports a bad param by raising, which reaches the user as a bare 500;
+		rethrowing it names the row and reads like every other save error."""
+		from frappe.automation_engine.actions.base import AutomationParamError
+
+		params = frappe.parse_json(row.params) if row.params else {}
+		try:
 			action.validate(params, targets.get(row.target))
-			targets.update(action.output_targets(params, row.output_alias))
+		except AutomationParamError as e:
+			frappe.throw(_("Row {0}: {1}").format(row.idx, e))
+		targets.update(action.output_targets(params, row.output_alias))
 
 	def get_action_targets(self):
 		from frappe.automation_engine.relationships import get_relationship_targets

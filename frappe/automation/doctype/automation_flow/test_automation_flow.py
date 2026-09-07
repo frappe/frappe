@@ -40,6 +40,16 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc.insert()
 		self.assertTrue(doc.name)
 
+	def test_action_param_error_reaches_the_user(self):
+		"""An action's own validation must read like every other save error, not a bare raise."""
+		doc = make_automation(actions=[set_field("not_a_todo_field", "Low")])
+		frappe.clear_messages()
+
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+		messages = " ".join(str(message) for message in frappe.get_message_log())
+		self.assertIn("not_a_todo_field", messages)
+
 	def test_enable_requires_at_least_one_action(self):
 		doc = make_automation(enabled=1, actions=[])
 		self.assertRaises(frappe.ValidationError, doc.insert)
