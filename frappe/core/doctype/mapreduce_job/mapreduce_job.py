@@ -184,6 +184,25 @@ def start_execution(job: str | int):
 
 
 @frappe.whitelist()
+def force_retry(job: str | int):
+	job = int(job) if isinstance(job, str) else job
+	frappe.has_permission("MapReduce Job", ptype="write", doc=job, throw=True)
+
+	mpt = qb.DocType("MapReduce Task")
+	if running := (
+		qb.from_(mpt)
+		.select(mpt.name)
+		.where(mpt.status.eq("Running") & mpt.master.eq(job))
+		.orderby(mpt.name)
+		.for_update()
+		.run(as_dict=True, pluck="name")
+	):
+		qb.update(mpt).set("status", "Queued").where(mpt.name.isin(running)).run()
+
+	atomically_schedule_tasks(job, 4)
+
+
+@frappe.whitelist()
 def pause_execution(job: str | int):
 	job = int(job) if isinstance(job, str) else job
 	frappe.has_permission("MapReduce Job", ptype="write", doc=job, throw=True)
