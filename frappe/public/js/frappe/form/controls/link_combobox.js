@@ -1,7 +1,7 @@
 // Link field rendered with frappe.ui.Combobox: a trigger styled like the
 // input it replaces, and a panel with the search box inside, two-line rows
-// (title over docname), optional avatars, filter chips, and the Create /
-// Advanced Search rows in the footer.
+// (title over docname), optional avatars, filter chips, and the Create row
+// (plus any app hook rows) in the footer.
 //
 // Picked by make_control for Link fields when System Settings > "Enable
 // Combobox Link Field" is on, or when a developer sets
@@ -197,7 +197,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		return this.$input ? this.$input.val() : "";
 	}
 
-	// seeded with what the user typed, not the value already picked
+	// kept for scripts that call it on the classic control; the footer no
+	// longer offers it. Seeded with what the user typed, not the value picked
 	open_advanced_search() {
 		const doctype = this.get_link_doctype();
 		if (!doctype) return;
@@ -522,15 +523,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			});
 		}
 
-		// not applicable in web forms
-		if (typeof locals !== "undefined" && locals["DocType"]) {
-			rows.push({
-				type: "custom",
-				icon: "search",
-				label: __("Advanced Search"),
-				onclick: () => this.open_advanced_search(),
-			});
-		}
+		// no Advanced Search row: the panel searches, pages on scroll and shows
+		// descriptions itself; grids bulk-add rows through "Add Multiple"
 		return rows;
 	}
 

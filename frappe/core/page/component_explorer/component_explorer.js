@@ -135,10 +135,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								},
 								{
 									type: "custom",
-									label: "Advanced Search",
+									label: "Browse all Customers",
 									icon: "search",
 									condition: ({ query }) => !query,
-									onclick: () => frappe.ui.toast({ message: "Advanced search" }),
+									onclick: () => frappe.ui.toast({ message: "Browse all" }),
 								},
 							],
 						},

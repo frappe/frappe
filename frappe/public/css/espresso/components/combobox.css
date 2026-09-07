@@ -255,7 +255,7 @@ input.es-combobox__value:disabled {
     color: var(--ink-gray-7);
 }
 
-/* footer: custom rows (Create new, Advanced search) */
+/* footer: custom rows (Create new, app hook rows) */
 .es-combobox__footer {
     flex-shrink: 0;
     display: flex;

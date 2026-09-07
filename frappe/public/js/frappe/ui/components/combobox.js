@@ -47,7 +47,7 @@ frappe.provide("frappe.ui");
  * @property {boolean} [disabled=false]
  * @property {string} [empty_text="No results"] Shown when nothing matches.
  * @property {string[]|string|function} [filters] Filters the list is restricted by, shown as chips under the list ("Customer Group: Commercial"). A plain string is shown as one line of text. A function is called on every open and may return the value or a Promise of it. Rendered as text, never HTML.
- * @property {ComboboxCustomOption[]} [footer] Custom rows pinned under the list (Create new, Advanced search).
+ * @property {ComboboxCustomOption[]} [footer] Custom rows pinned under the list (Create new, app-specific actions).
  * @property {boolean} [match_trigger_width=true] Panel takes the trigger's width (never narrower than 240px, never wider than the viewport).
  * @property {"top"|"bottom"} [side="bottom"]
  * @property {"start"|"center"|"end"} [align="start"]

@@ -399,7 +399,7 @@ context("Espresso components", () => {
 			trigger("Custom rows").click();
 			cy.focused().type("zebra");
 			cy.get(".es-combobox__panel .es-menu__empty").should("contain", "zebra");
-			// Advanced Search hides itself while there is a query; Create stays
+			// the conditional Browse row hides itself while there is a query; Create stays
 			cy.get(".es-combobox__footer [role='option']").should("have.length", 1);
 			cy.get(".es-combobox__footer [role='option'][data-highlighted]").should(
 				"contain",
