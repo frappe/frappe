@@ -354,6 +354,7 @@ const props = defineProps({
 })
 
 const flow = inject("flow")
+const skillsEnabled = computed(() => flow.options.skillsEnabled !== false)
 
 const text = ref("")
 const box = ref(null)
@@ -520,7 +521,7 @@ function closePalettes() {
 
 function openCommands() {
 	paletteView.value = "commands"
-	void flow.loadSkills?.()
+	if (skillsEnabled.value) void flow.loadSkills?.()
 	nextTick(() => box.value?.focus())
 }
 
@@ -528,7 +529,7 @@ function openCommands() {
 watch(text, (value) => {
 	if (paletteView.value === "commands" && value && !value.startsWith("/")) paletteView.value = null
 	// Load the invocable skills; without a session this previews without creating one.
-	if (value.startsWith("/")) void flow.loadSkills?.()
+	if (skillsEnabled.value && value.startsWith("/")) void flow.loadSkills?.()
 })
 
 // grow with content (wrapped lines included) up to the CSS max-height, then scroll
@@ -609,7 +610,7 @@ const enabledCommands = computed(() =>
 const has = (name) => enabledCommands.value.some((c) => c.name === name)
 
 const skillCommands = computed(() =>
-	(flow.state.skills ?? []).map((skill) => ({
+	(skillsEnabled.value ? flow.state.skills ?? [] : []).map((skill) => ({
 		name: `skill:${skill.name}`,
 		label: skill.name,
 		icon: "book-open",
@@ -618,6 +619,7 @@ const skillCommands = computed(() =>
 	})),
 )
 const skillPrompt = computed(() => {
+	if (!skillsEnabled.value) return null
 	const match = text.value.match(/^\/skill:([^\s]+)(?=\s|$)/)
 	if (!match || !(flow.state.skills ?? []).some((skill) => skill.name === match[1])) return null
 	return { prefix: match[0], rest: text.value.slice(match[0].length) }

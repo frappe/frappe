@@ -32,13 +32,15 @@ function readJSON(key, fallback) {
 //   requireCwd     false lets a host without a filesystem send without a folder
 //   storageKey     localStorage prefix, so a host can scope saved state per user
 //   maxAttachments per-message cap enforced by the host's upload path
-//   presentTool    (name, args) => { icon, label, subject, title, body }, any
+//   skillsEnabled  false disables skill catalog requests and composer suggestions
+//   presentTool    (name, args) => { icon, label, subject, title, body, argsComponent }, any
 //                  subset, describing the host's own tools in rows and approvals
 export function createFlowStore(client, options = {}) {
 	options = {
 		requireCwd: true,
 		storageKey: "flow.ui",
 		maxAttachments: MAX_ATTACHMENTS,
+		skillsEnabled: true,
 		presentTool: null,
 		...options,
 	}
@@ -249,7 +251,7 @@ export function createFlowStore(client, options = {}) {
 		state.loading = true
 		const [info, catalog] = await Promise.all([
 			guard(() => client.session(sid)),
-			typeof client.skills === "function"
+			options.skillsEnabled && typeof client.skills === "function"
 				? guard(() => client.skills(sid))
 				: Promise.resolve({ skills: [] }),
 		])
@@ -411,6 +413,7 @@ export function createFlowStore(client, options = {}) {
 
 	// `force` refetches after a skill is written or deleted.
 	async function loadSkills({ force = false } = {}) {
+		if (!options.skillsEnabled) return
 		const sid = state.sessionId
 		const cwd = state.prefs.cwd
 		// a live session reports what it can invoke; before one exists, preview the folder

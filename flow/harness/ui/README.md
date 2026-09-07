@@ -36,8 +36,17 @@ filesystem must change, so it can reuse the components instead of copying them:
 - `requireCwd` — `false` sends without a project folder.
 - `storageKey` — localStorage prefix (`flow.ui`), scoped per user by the host.
 - `maxAttachments` — per-message cap of the host's upload path.
-- `presentTool(name, args)` — `{ icon, label, subject, title, body }`, any
+- `skillsEnabled` — `false` skips skill catalog requests and hides skill
+  suggestions/highlighting in the composer; defaults to `true`.
+- `presentTool(name, args)` — `{ icon, label, subject, title, body, argsComponent }`, any
   subset, for the host's own tools in transcript rows and approval cards.
+
+`argsComponent` is a Vue component receiving an `arguments` prop. It renders in
+expanded tool rows (including rows inside `ToolGroup`) and replaces the default
+argument body in approval cards. For example, a host can return
+`{ argsComponent: ArgsView }` for its document tools. Omit it to keep the built-in
+command text, edit diffs and tool output presentation. Tool results and approval
+actions remain available when a custom argument component is supplied.
 
 `Composer` props: `commands` (slash commands offered, by name; default all),
 `mentions` (`@` file mentions), `imagesOnly` (`false` lets the picker take any

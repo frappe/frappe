@@ -719,6 +719,22 @@ function hostClient(calls) {
 	}
 }
 
+test("a host can disable all skill catalog requests", async () => {
+	const client = hostClient([])
+	let requests = 0
+	client.skills = client.previewSkills = async () => {
+		requests++
+		return { skills: [{ name: "review" }] }
+	}
+	const flow = createFlowStore(client, { skillsEnabled: false })
+	await flow.loadSkills()
+	await flow.openSession("s1")
+	await flow.loadSkills({ force: true })
+	assert.equal(requests, 0)
+	assert.deepEqual(flow.state.skills, [])
+	flow.detach()
+})
+
 test("a host without a filesystem sends without choosing a folder", async () => {
 	const calls = []
 	const flow = createFlowStore(hostClient(calls), { requireCwd: false })
@@ -760,6 +776,7 @@ test("saved state lives under the host's storage key", () => {
 			requireCwd: true,
 			storageKey: "flow.ui",
 			maxAttachments: MAX_ATTACHMENTS,
+			skillsEnabled: true,
 			presentTool: null,
 		})
 	} finally {

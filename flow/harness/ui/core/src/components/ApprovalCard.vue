@@ -1,18 +1,21 @@
 <template>
 	<div class="flex flex-col gap-3">
 		<div
-			v-for="call in calls"
+			v-for="{ call, presentation } in presentedCalls"
 			:key="call.id"
 			class="overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
 		>
 			<div class="px-3.5 py-2.5">
-				<div class="text-base leading-snug text-ink-gray-9">{{ title(call) }}</div>
+				<div class="text-base leading-snug text-ink-gray-9">{{ title(call, presentation) }}</div>
 			</div>
 
+			<div v-if="presentation.argsComponent" class="border-y border-outline-gray-1 px-3.5 py-2">
+				<component :is="presentation.argsComponent" :arguments="args(call)" />
+			</div>
 			<pre
-				v-if="body(call)"
+				v-else-if="body(call, presentation)"
 				class="m-0 max-h-[260px] overflow-auto border-y border-outline-gray-1 bg-surface-gray-1 px-3.5 py-2 font-mono text-2xs leading-[1.7] text-ink-gray-6"
-			>{{ body(call) }}</pre>
+			>{{ body(call, presentation) }}</pre>
 			<div v-else-if="edits(call)" class="border-y border-outline-gray-1 bg-surface-gray-1">
 				<div v-for="(r, i) in edits(call)" :key="i" :class="i > 0 ? 'border-t border-outline-gray-1' : ''">
 					<pre
@@ -58,7 +61,7 @@
 </template>
 
 <script setup>
-import { inject, ref } from "vue"
+import { computed, inject, ref } from "vue"
 
 const props = defineProps({
 	calls: { type: Array, required: true },
@@ -78,13 +81,16 @@ function args(call) {
 }
 
 // a host's own tools may name the action better than the server prompt does
-function present(call) {
-	return flow.options?.presentTool?.(call.name, args(call)) ?? {}
-}
+const presentedCalls = computed(() =>
+	props.calls.map((call) => ({
+		call,
+		presentation: flow.options?.presentTool?.(call.name, args(call)) ?? {},
+	})),
+)
 
-function title(call) {
+function title(call, presentation) {
 	const a = args(call)
-	const custom = present(call).title
+	const custom = presentation.title
 	if (custom != null) return custom
 	switch (call.name) {
 		case "bash":
@@ -107,9 +113,9 @@ function edits(call) {
 	return list.map((r) => ({ old: r.old ?? "", new: r.new ?? "" }))
 }
 
-function body(call) {
+function body(call, presentation) {
 	const a = args(call)
-	const custom = present(call).body
+	const custom = presentation.body
 	if (custom != null) return custom
 	if (call.name === "bash") return a.command ?? ""
 	if (call.name === "write") return a.content ?? ""
