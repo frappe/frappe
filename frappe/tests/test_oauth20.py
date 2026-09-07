@@ -13,6 +13,7 @@ from frappe.oauth import OAuthWebRequestValidator
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.oauth import build_oauth_url
 
 if TYPE_CHECKING:
@@ -132,7 +133,7 @@ class TestOAuth20(FrappeRequestTestCase):
 	def test_openid_profile_post_body_token(self):
 		access_token, _token = self._make_bearer_token()
 		# The HTTP request runs in another thread and only sees committed fixtures.
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		frappe.db.commit()  # nosemgrep
 
 		openid_response = self.post(
 			"/api/method/frappe.integrations.oauth2.openid_profile",
@@ -142,6 +143,164 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		self.assertEqual(openid_response.status_code, 200)
 		self.assertEqual(openid_response.json.get("email"), "test@example.com")
+
+	def test_introspect_token_rejects_unauthenticated_caller(self):
+		access_token, _token = self._make_bearer_token()
+		frappe.db.commit()  # nosemgrep
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={"token": access_token},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json, {"active": False})
+
+	def test_introspect_token_rejects_wrong_client_secret(self):
+		access_token, _token = self._make_bearer_token()
+		frappe.db.commit()  # nosemgrep
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={"token": access_token, "client_id": self.client_id, "client_secret": "wrong-secret"},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json, {"active": False})
+
+	def test_introspect_token_rejects_mismatched_client(self):
+		"""A different, correctly-authenticated client must not introspect someone else's token."""
+		access_token, _token = self._make_bearer_token()
+
+		other_client = frappe.get_doc(
+			doctype="OAuth Client",
+			app_name="_Test Other OAuth Client",
+			client_secret="other_client_secret",
+			default_redirect_uri="http://localhost",
+			grant_type="Authorization Code",
+			redirect_uris="http://localhost",
+			response_type="Code",
+			scopes="all openid",
+			skip_authorization=1,
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+		try:
+			response = self.post(
+				"/api/method/frappe.integrations.oauth2.introspect_token",
+				headers=self.form_header,
+				data={
+					"token": access_token,
+					"client_id": other_client.client_id,
+					"client_secret": "other_client_secret",
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response.json, {"active": False})
+		finally:
+			other_client.delete(force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_introspect_token_succeeds_with_post_body_credentials(self):
+		access_token, _token = self._make_bearer_token()
+		frappe.db.commit()  # nosemgrep
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={"token": access_token, "client_id": self.client_id, "client_secret": self.client_secret},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json.get("active"))
+		self.assertEqual(response.json.get("client_id"), self.client_id)
+		# scope includes "openid" (see setUp) - userinfo should be merged in
+		self.assertEqual(response.json.get("email"), "test@example.com")
+		self.assertTrue(response.json.get("sub"))
+
+	def test_introspect_token_owning_client_sees_revoked_token_status(self):
+		"""Auth gate must not block the legitimate owning client from checking its
+		own token's real status - only from seeing OTHER clients' tokens."""
+		access_token, token = self._make_bearer_token()
+		token.db_set("status", "Revoked")
+		frappe.db.commit()  # nosemgrep
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={"token": access_token, "client_id": self.client_id, "client_secret": self.client_secret},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertFalse(response.json.get("active"))
+		self.assertEqual(response.json.get("client_id"), self.client_id)
+
+	def test_introspect_refresh_token_hint_requires_client_auth(self):
+		refresh_token = frappe.generate_hash()
+		frappe.get_doc(
+			doctype="OAuth Bearer Token",
+			access_token=frappe.generate_hash(),
+			refresh_token=refresh_token,
+			client=self.client_id,
+			expires_in=3600,
+			scopes=self.scope,
+			status="Active",
+			user="test@example.com",
+		).insert(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+
+		unauthenticated = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={"token": refresh_token, "token_type_hint": "refresh_token"},
+		)
+		self.assertEqual(unauthenticated.json, {"active": False})
+
+		authenticated = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={
+				"token": refresh_token,
+				"token_type_hint": "refresh_token",
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+			},
+		)
+		self.assertTrue(authenticated.json.get("active"))
+
+	def test_introspect_token_unknown_token_returns_inactive_for_authenticated_client(self):
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={
+				"token": "this-token-does-not-exist",
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+			},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json, {"active": False})
+
+	def test_introspect_token_rejects_non_string_credentials_from_json_body(self):
+		"""A JSON body preserves non-string types in form_dict (unlike form-encoded data);
+		a non-string client_secret must not reach hmac.compare_digest and crash the request."""
+		access_token, _token = self._make_bearer_token()
+		frappe.db.commit()  # nosemgrep
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers={"content-type": "application/json"},
+			data=frappe.as_json(
+				{"token": access_token, "client_id": self.client_id, "client_secret": {"a": 1}}
+			),
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json, {"active": False})
 
 	def test_invalid_login(self):
 		with suppress_stdout():
@@ -214,6 +373,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 				"scope": self.scope,
 			},
 		)
@@ -265,6 +425,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 				"scope": self.scope,
 				"code_verifier": "420",
 			},
@@ -312,6 +473,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 			},
 		)
 
@@ -322,7 +484,11 @@ class TestOAuth20(FrappeRequestTestCase):
 		revoke_token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.revoke_token",
 			headers=self.form_header,
-			data={"token": bearer_token.get("access_token")},
+			data={
+				"token": bearer_token.get("access_token"),
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+			},
 		)
 
 		self.assertTrue(revoke_token_response.status_code == 200)
@@ -332,14 +498,14 @@ class TestOAuth20(FrappeRequestTestCase):
 			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
 		)
 
-	def test_resource_owner_password_credentials_grant(self):
+	def test_resource_owner_password_credentials_grant_is_rejected(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
 		client.save()
 		frappe.db.commit()
 
-		# Request for bearer token
+		# Request for bearer token, no client_secret: rejected at client authentication
 		token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
 			data={
@@ -352,14 +518,27 @@ class TestOAuth20(FrappeRequestTestCase):
 			headers=self.form_header,
 		)
 
-		# Parse bearer token json
-		bearer_token = token_response.json
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_client")
 
-		# Check token for valid response
-		self.assertTrue(
-			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
+		# Even with a valid client_secret, credentials are never checked and no token is issued
+		token_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			data={
+				"grant_type": "password",
+				"username": "test@example.com",
+				"password": "Eastern_43A1W",
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+				"scope": self.scope,
+			},
+			headers=self.form_header,
 		)
 
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_grant")
+
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_using_implicit_token(self):
 		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
 		oauth_client.grant_type = "Implicit"
@@ -432,6 +611,7 @@ class TestOAuth20(FrappeRequestTestCase):
 					"code": auth_code,
 					"redirect_uri": self.redirect_uri,
 					"client_id": self.client_id,
+					"client_secret": self.client_secret,
 					"scope": self.scope,
 				}
 			),

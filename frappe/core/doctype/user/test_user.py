@@ -26,6 +26,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_url
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
@@ -285,6 +286,7 @@ class TestUser(IntegrationTestCase):
 		"""
 		self.assertListEqual(extract_mentions(comment), ["test@example.com", "test1@example.com"])
 
+	@requires_test_service(TestService.WEB_SERVER)
 	@IntegrationTestCase.change_settings("System Settings", commit=True, password_reset_limit=1)
 	def test_rate_limiting_for_reset_password(self):
 		url = get_url()

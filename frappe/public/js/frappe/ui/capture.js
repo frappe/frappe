@@ -193,10 +193,17 @@ frappe.ui.Capture = class {
 		this.images.forEach((image, idx) => {
 			images += `
 				<div class="mt-1 p-1 rounded col-md-3 col-sm-4 col-xs-4" data-idx="${idx}">
-					<span class="capture-remove-btn" data-idx="${idx}">
-						${frappe.utils.icon("x", "lg")}
-					</span>
-					<img class="rounded" src="${image}" data-idx="${idx}">
+					<button
+						class="es-button capture-remove-btn"
+						data-size="xs"
+						data-variant="outline"
+						data-icon-button="true"
+						data-idx="${idx}"
+						title="${__("Remove")}"
+					>
+						${frappe.utils.icon("x", "sm")}
+					</button>
+					<img class="rounded img-fluid" src="${image}" data-idx="${idx}">
 				</div>
 			`;
 		});

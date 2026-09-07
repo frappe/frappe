@@ -134,6 +134,7 @@ permission_query_conditions = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
+	"Comment": "frappe.core.doctype.comment.comment.get_permission_query_conditions",
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
@@ -168,6 +169,7 @@ has_permission = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.has_permission",
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
+	"Comment": "frappe.core.doctype.comment.comment.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
 	"File": "frappe.core.doctype.file.file.has_permission",
@@ -590,6 +592,17 @@ user_invitation = {
 # Expose method source code through the API discovery endpoints. Safe for open
 # source apps and helps API clients understand what a method does.
 expose_discovery_source = True
+
+# An island draws a desk Dashboard or Dashboard Chart whose `__onload.island` is
+# {"name": <a name in ui_islands>, "props": {...}}. Desk draws the document
+# itself while the key is absent. An app sets the key from its own onload
+# handler, so it decides how it recognizes its documents:
+#
+# doc_events = {"Dashboard": {"onload": "someapp.desk.island.dashboard"}}
+#
+# def dashboard(doc, method=None):
+# 	if doc.someapp_dashboard:
+# 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
 
 
 add_to_apps_screen = [

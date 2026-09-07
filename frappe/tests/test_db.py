@@ -569,6 +569,11 @@ class TestDB(IntegrationTestCase):
 	def test_estimated_count(self):
 		self.assertGreater(frappe.db.estimate_count("DocField"), 100)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_estimated_count_clamps_unanalyzed_table(self):
+		with patch.object(frappe.db, "sql", return_value=((-1.0,),)):
+			self.assertEqual(frappe.db._estimate_count("tabUser"), 0)
+
 	def test_datetime_serialization(self):
 		dt = now_datetime()
 		dt = dt.replace(microsecond=0)
@@ -703,6 +708,11 @@ class TestDB(IntegrationTestCase):
 
 		# data-type should be list
 		self.assertIsInstance(note_docs, tuple)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_column_metadata_queries_bind_table_name(self):
+		self.assertFalse(frappe.db.get_table_columns_description("tabUser' OR TRUE --"))
+		self.assertFalse(frappe.db.describe("User' OR TRUE --"))
 
 	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_query(self):

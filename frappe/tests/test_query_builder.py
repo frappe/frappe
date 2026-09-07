@@ -3,6 +3,7 @@ from collections.abc import Callable
 from datetime import time
 
 from pypika.functions import Cast
+from pypika.terms import ValueWrapper
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -632,16 +633,27 @@ class TestParameterization(IntegrationTestCase):
 		self.assertEqual(params["param1"], "some_value")
 
 	def test_bool_conditions(self):
-		# bools go out as 1/0: postgres does not cast `true` to smallint (Check fields)
+		# bools go out as '1'/'0': quoted, so they work as a value and as a condition
 		DocType = frappe.qb.DocType("DocType")
 		query, params = frappe.qb.update(DocType).set(DocType.is_submittable, True).walk()
 
-		self.assertIn("=1", query)
+		self.assertIn("='1'", query)
 		self.assertNotIn("true", query)
 		self.assertEqual(params, {})
 
 		query, _ = frappe.qb.update(DocType).set(DocType.is_submittable, False).walk()
-		self.assertIn("=0", query)
+		self.assertIn("='0'", query)
+
+		# a bool as a condition, not as a value: it must stay a quoted literal, since
+		# postgres accepts neither a bare 1 nor `true` as an operand of OR
+		user = frappe.qb.DocType("User")
+		condition = frappe.qb.from_(user).select(user.name).where((user.enabled == 1) | ValueWrapper(False))
+
+		query, _ = condition.walk()
+		self.assertIn("OR '0'", query)
+		self.assertNotIn("OR 0", query)
+		self.assertNotIn("OR false", query)
+		condition.run()  # and the database accepts it
 
 	def test_where_conditions_functions(self):
 		DocType = frappe.qb.DocType("DocType")

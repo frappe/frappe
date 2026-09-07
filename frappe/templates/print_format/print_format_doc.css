@@ -483,7 +483,8 @@
    classic formats. Builder layouts space the letterhead through their own
    section margins, so neutralise it here. body. outranks the print style's
    .print-format .letter-head, which is injected after this bundle. */
-body.print-format-doc .letter-head {
+body.print-format-doc .letter-head,
+.wrapper.print-format-doc .letter-head {
 	margin-bottom: 0;
 }
 
