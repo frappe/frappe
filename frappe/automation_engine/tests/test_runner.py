@@ -534,8 +534,9 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 				execute_automation(name)
 
 			self.assertEqual(self.run_result(auto)["steps"][0]["status"], "Failed")
-			# The run finished and settled its own outcome, so the mark has served its purpose.
-			self.assertFalse(effects_delivered(name))
+			# The mark stands until the drainer commits the outcome: a failed group commit would
+			# otherwise re-run the row and send the request a second time.
+			self.assertTrue(effects_delivered(name))
 		finally:
 			clear_effects(name)
 
