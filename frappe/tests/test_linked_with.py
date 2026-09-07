@@ -583,6 +583,27 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertTrue(child1.reload().docstatus.is_cancelled())
 		self.assertTrue(parent.reload().docstatus.is_cancelled())
 
+	def test_cancel_all_linked_docs_queues_when_the_root_cancels_in_background(self):
+		"""A root whose doctype queues cancellation must not be cancelled inside
+		the request, however small its set."""
+		frappe.db.set_value("DocType", "Parent DocType", "queue_in_background", 1)
+		frappe.clear_cache(doctype="Parent DocType")
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+
+		with patch.object(linked_with, "is_scheduler_inactive", return_value=False):
+			result = linked_with.cancel_all_linked_docs(
+				docs=[{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1}],
+				root_doctype=parent.doctype,
+				root_name=parent.name,
+			)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(parent.reload().docstatus.is_cancelled())
+
 	def test_cancel_all_linked_docs_fails_when_a_doc_stays_blocked(self):
 		"""A blocker outside the set must fail the run with its error and leave
 		the root and its links submitted."""
