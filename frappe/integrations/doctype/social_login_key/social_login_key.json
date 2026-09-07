@@ -24,7 +24,12 @@
 =======
   "show_in_resource_metadata",
   "trust_email_without_verified_claim",
+<<<<<<< HEAD
 >>>>>>> c959da8 (feat(oauth): add config. to social login key doctype)
+=======
+  "trust_any_tenant",
+  "tenant_id",
+>>>>>>> 69ee9ca (fix(oauth): restrict Office 365 sign-in to a pinned Entra tenant and also add config. for otherwise)
   "client_urls",
   "authorize_url",
   "access_token_url",
@@ -189,20 +194,42 @@
   },
   {
    "default": "0",
-   "description": "Only enable this if you trust this provider's user accounts to be legitimate even when it omits the <code>email_verified</code> claim entirely (e.g. a self-hosted identity provider where email verification isn't enforced). This does not override a provider that explicitly sends <code>email_verified: false</code> — that login is always rejected.",
+   "description": "Only enable this if you trust this provider's user accounts to be legitimate even when it omits the <code>email_verified</code> claim entirely (e.g. a self-hosted identity provider where email verification isn't enforced). This does not override a provider that explicitly sends <code>email_verified: false</code> \u2014 that login is always rejected.",
    "fieldname": "trust_email_without_verified_claim",
    "fieldtype": "Check",
    "label": "Trust Email Without Verified Claim"
+<<<<<<< HEAD
 >>>>>>> c959da8 (feat(oauth): add config. to social login key doctype)
+=======
+  },
+  {
+   "depends_on": "eval:doc.social_login_provider===\"Office 365\"",
+   "description": "Restrict Office 365 sign-in to this Entra tenant ID. Required unless \"Trust Any Tenant\" is checked.",
+   "fieldname": "tenant_id",
+   "fieldtype": "Data",
+   "label": "Tenant ID"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.social_login_provider===\"Office 365\"",
+   "description": "Allow sign-in from any Entra tenant, not just Tenant ID. Only enable this if you trust every Entra tenant to accurately identify its users.",
+   "fieldname": "trust_any_tenant",
+   "fieldtype": "Check",
+   "label": "Trust Any Tenant (Insecure)"
+>>>>>>> 69ee9ca (fix(oauth): restrict Office 365 sign-in to a pinned Entra tenant and also add config. for otherwise)
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2024-09-06 15:22:46.342392",
 =======
  "modified": "2026-09-02 15:59:29.520731",
 >>>>>>> c959da8 (feat(oauth): add config. to social login key doctype)
+=======
+ "modified": "2026-09-07 20:16:36.820751",
+>>>>>>> 69ee9ca (fix(oauth): restrict Office 365 sign-in to a pinned Entra tenant and also add config. for otherwise)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",
