@@ -116,10 +116,20 @@ export default class BulkEdit {
 			headers: [],
 			rows: [],
 			row_numbers: [],
+			// what the header matcher made of the columns, with column_overrides
+			// laid over it — the mapping the preview and the import both read
 			column_map: {},
+			// the picks made by hand in the preview, "Don't Import" included,
+			// keyed by column index. Kept apart from column_map so a re-read can
+			// match every other column afresh, the way the Data Import doctype
+			// overlays template_options.column_to_field_map on its own matching.
+			column_overrides: {},
 			warnings: [],
 			// row numbers left out of the import by their own checkbox in the preview
 			skipped_rows: new Set(),
+			// set while the rows on screen came from a sheet rather than a file,
+			// which is what the preview's Refresh button re-reads
+			google_sheets_url: "",
 		};
 
 		this.panels = {
@@ -410,7 +420,7 @@ export default class BulkEdit {
 					description: __("Must be a publicly accessible Google Sheets URL"),
 					change: () => {
 						const url = sheet_form.get_value("google_sheets_url");
-						if (url) this.read_google_sheet(url, (rows) => this.on_file(rows));
+						if (url) this.read_google_sheet(url);
 					},
 				},
 			],
@@ -420,7 +430,12 @@ export default class BulkEdit {
 		return this.panels.upload[0];
 	}
 
+	/**
+	 * A file taken back out of the uploader takes its parsed rows with it. Rows
+	 * read from a Google Sheet have no file behind them, so they stay.
+	 */
 	sync_uploaded_file() {
+		if (this.state.google_sheets_url) return;
 		if (!this.file_uploader || this.uploaded_file_count() || !this.state.rows.length) return;
 		this.state.headers = [];
 		this.state.rows = [];
@@ -467,11 +482,12 @@ export default class BulkEdit {
 		];
 	}
 
-	build_preview() {
+	/** @param {boolean} [keep_skipped_rows] carry the skipped rows over the rebuild */
+	build_preview(keep_skipped_rows = false) {
 		this.discard_cell_controls();
 		this.panels.preview.empty();
 		this.cell_controls = {};
-		this.state.skipped_rows = new Set();
+		if (!keep_skipped_rows) this.state.skipped_rows = new Set();
 		this.preview_form = new frappe.ui.FieldGroup({
 			body: this.panels.preview[0],
 			no_submit_on_enter: true,
@@ -483,6 +499,7 @@ export default class BulkEdit {
 		$table.html(
 			this.get_preview_html(this.state.headers, this.state.rows, this.state.row_numbers),
 		);
+		$table.find(".bulk-edit-refresh-sheet").on("click", () => this.refresh_google_sheet());
 		// FieldGroup nests the field several levels below the panel, and each level
 		// sits at its content height by default — so the table would stop short and
 		// leave the rest of the step empty. Walked rather than named, since the
@@ -504,7 +521,15 @@ export default class BulkEdit {
 					placeholder: header || __("Column {0}", [i + 1]),
 					max_items: Infinity,
 					options,
-					change: () => this.refresh_preview(),
+					change: () => {
+						// building_preview marks the seeding pass below, which
+						// fires change on every control; only a pick made by
+						// hand is an override worth carrying to the next read
+						if (!this.building_preview) {
+							this.state.column_overrides[i] = control.get_value();
+						}
+						this.refresh_preview();
+					},
 				},
 				parent: $table.find(`.bulk-edit-mapping-row td[data-col="${i}"]`).get(0),
 				render_input: true,
@@ -816,11 +841,17 @@ export default class BulkEdit {
 		this.set_footer();
 	}
 
-	async on_file(data) {
+	/**
+	 * Take the rows a file or a sheet parsed to and open the preview on them.
+	 * @param {string} [google_sheets_url] the sheet they came from, if they did
+	 * @param {boolean} [is_refresh] a re-read of the sheet already on screen
+	 */
+	async on_file(data, google_sheets_url = "", is_refresh = false) {
 		if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > BULK_EDIT_MAX_ROWS) {
 			frappe.throw(__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS]));
 		}
 
+		this.state.google_sheets_url = google_sheets_url;
 		this.state.headers = data[0] || [];
 		this.state.rows = [];
 		// kept alongside rows so a warning can name the line in the file
@@ -840,8 +871,15 @@ export default class BulkEdit {
 			return;
 		}
 
-		this.state.column_map = await this.get_column_map(this.state.headers);
-		this.build_preview();
+		// a new file or sheet brings its own columns, so the picks made over the
+		// last one no longer mean anything — the same change of source that
+		// clears template_options in the Data Import doctype (data_import.py
+		// validate). A refresh is the one read that keeps them.
+		if (!is_refresh) this.state.column_overrides = {};
+		this.state.column_map = this.apply_column_overrides(
+			await this.get_column_map(this.state.headers),
+		);
+		this.build_preview(is_refresh);
 		this.tabs.set_disabled(TAB_PREVIEW, false);
 		this.tabs.set_active(TAB_PREVIEW);
 	}
@@ -991,17 +1029,32 @@ export default class BulkEdit {
 		});
 	}
 
+	/**
+	 * Read the sheet again, for one edited after the preview was built. The picks
+	 * made by hand and the skipped rows survive it, the way the Data Import
+	 * doctype's Refresh keeps template_options and skipped_rows — those are
+	 * cleared only by a change of source (data_import.py validate). Every other
+	 * column is matched again, so one added to the sheet arrives mapped. The
+	 * cells come back as the sheet now has them, so a value corrected here by
+	 * hand is replaced by whatever the sheet says.
+	 */
+	refresh_google_sheet() {
+		if (!this.state.google_sheets_url) return;
+		this.read_google_sheet(this.state.google_sheets_url, true);
+	}
+
 	// Same server-side fetch Data Import uses for a Google Sheets URL
 	// (frappe.utils.csvutils.get_csv_content_from_google_sheets), returning
-	// rows in the same shape read_file does.
-	read_google_sheet(url, on_parsed) {
+	// rows in the same shape read_file does. Also what the preview's Refresh
+	// button calls, so a sheet edited after loading is read again in place.
+	read_google_sheet(url, is_refresh = false) {
 		frappe.call({
 			method: "frappe.desk.form.bulk_edit.parse_bulk_edit_google_sheet",
 			args: { doctype: this.grid.frm.doctype, url },
 			freeze: true,
 			freeze_message: __("Reading Google Sheet"),
 			callback: (r) => {
-				if (r.message) on_parsed(r.message);
+				if (r.message) this.on_file(r.message, url, is_refresh);
 			},
 		});
 	}
@@ -1049,11 +1102,25 @@ export default class BulkEdit {
 				<span class="text-muted small">${__(
 					"Map each column of the file to a field. Anything left unmapped is ignored.",
 				)}</span>
-				<span class="text-muted small">${
-					rows.length > shown.length
-						? __("Showing first {0} of {1} rows", [shown.length, rows.length])
-						: __("Showing all {0} rows", [rows.length])
-				}</span>
+				<div class="bulk-edit-preview-head-actions">
+					<span class="text-muted small">${
+						rows.length > shown.length
+							? __("Showing first {0} of {1} rows", [shown.length, rows.length])
+							: __("Showing all {0} rows", [rows.length])
+					}</span>
+					${
+						// only a sheet can change under a loaded preview; a file is
+						// re-read by uploading it again. Same label as the Data
+						// Import doctype's own button, so the string is translated.
+						this.state.google_sheets_url
+							? frappe.ui.button.html({
+									label: __("Refresh Google Sheet"),
+									icon: "refresh-cw",
+									css_class: "bulk-edit-refresh-sheet",
+								})
+							: ""
+					}
+				</div>
 			</div>
 			<div class="bulk-edit-preview-hint text-muted small">${__(
 				"Fix the highlighted cells. Click one to see and resolve its error.",
@@ -1316,6 +1383,24 @@ export default class BulkEdit {
 			fieldname: this.grid.df.fieldname,
 			headers: JSON.stringify(headers),
 		});
+	}
+
+	/**
+	 * The matched columns with the picks made by hand laid over them. A column
+	 * nobody touched keeps whatever the matcher makes of it on this read, so one
+	 * added to the sheet since the last read is mapped without being asked for;
+	 * an explicit "Don't Import" drops its column instead, and holds. Mirrors
+	 * Column.parse in importer.py, which falls back to matching the header
+	 * whenever column_to_field_map has nothing to say about that index.
+	 * @param {Object<string, string>} auto_mapped column index to fieldname
+	 */
+	apply_column_overrides(auto_mapped) {
+		const map = { ...auto_mapped };
+		Object.entries(this.state.column_overrides).forEach(([index, fieldname]) => {
+			if (fieldname === BULK_EDIT_DONT_IMPORT) delete map[index];
+			else map[index] = fieldname;
+		});
+		return map;
 	}
 
 	get_row_by_id(id) {
