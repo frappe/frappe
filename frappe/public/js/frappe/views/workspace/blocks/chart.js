@@ -45,6 +45,12 @@ export default class Chart extends Block {
 		return this.wrapper;
 	}
 
+	// Editor.js calls this when it removes a block, and on every `editor.render`,
+	// which clears the blocks before it draws them again.
+	destroy() {
+		this.block_widget && this.block_widget.destroy();
+	}
+
 	validate(savedData) {
 		if (!savedData.chart_name) {
 			return false;

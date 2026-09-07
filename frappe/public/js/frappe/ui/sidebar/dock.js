@@ -109,6 +109,21 @@ frappe.ui.Dock = class Dock {
 					);
 				},
 			},
+			{
+				name: "background-tasks",
+				icon: "server",
+				label: __("Background Tasks"),
+				// Same class as the sidebar's button. BackgroundTasks shows and hides every
+				// trigger from it, and it is the panel's trigger_selector, so the rail's
+				// button needs no wiring of its own.
+				css_class: "sidebar-background-tasks hidden",
+				on_click: () => frappe.ui.sidebar_panels.toggle("background-tasks"),
+				setup: ($item) => {
+					// Starts hidden, like the sidebar's. Seed it from what the view has
+					// already fetched, since the rail may be built after that call returned.
+					$item.toggleClass("hidden", !this.sidebar.background_tasks?.db_tasks?.length);
+				},
+			},
 		];
 	}
 
@@ -154,15 +169,10 @@ frappe.ui.Dock = class Dock {
 		$bell.find(".notification-count").toggleClass("hidden", count <= 0);
 	}
 
-	// Toggle the shared notifications panel (lives in the sidebar), mirroring the sidebar bell.
+	// Same panel the sidebar bell opens. The registry owns it, so the rail does not have
+	// to know where it lives or what else might be open.
 	toggle_notifications() {
-		let $wrapper = this.sidebar.wrapper;
-		let $dropdown = $wrapper.find(".dropdown-notifications");
-		$dropdown.toggleClass("hidden");
-		if (!$dropdown.hasClass("hidden")) {
-			$dropdown.trigger("show.bs.dropdown");
-		}
-		$wrapper.find(".dropdown-background-tasks").addClass("hidden");
+		frappe.ui.sidebar_panels.toggle("notifications");
 	}
 
 	// User avatar pinned to the bottom of the rail, opening the same dropdown as the sidebar's user

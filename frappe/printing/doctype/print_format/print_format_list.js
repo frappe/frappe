@@ -48,6 +48,7 @@ frappe.listview_settings["Print Format"] = {
 				fieldname: "report",
 				fieldtype: "Link",
 				options: "Report",
+				default: active.report || "",
 				depends_on: 'eval:doc.print_format_for === "Report"',
 				mandatory_depends_on: 'eval:doc.print_format_for === "Report"',
 			},

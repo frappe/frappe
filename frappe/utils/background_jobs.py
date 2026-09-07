@@ -663,6 +663,9 @@ def create_job_id(job_id: str | None = None) -> str:
 	"""
 	Generate unique job id for deduplication
 
+	Idempotent: an id already namespaced for the current site is returned unchanged, so a
+	round-tripped id (e.g. `rq.job.Job.id`) can be passed straight back in.
+
 	:param job_id: Optional job id, if not provided, a UUID is generated for it
 	:return: Unique job id, namespaced by site
 	"""
@@ -671,7 +674,8 @@ def create_job_id(job_id: str | None = None) -> str:
 		job_id = str(uuid4())
 	else:
 		job_id = job_id.replace(":", "|")
-	namespaced_id = f"{frappe.local.site}||{job_id}"
+	site_prefix = f"{frappe.local.site}||"
+	namespaced_id = job_id if job_id.startswith(site_prefix) else site_prefix + job_id
 	assert "||" in namespaced_id, "namespaced job id must contain site separator '||'"
 	return namespaced_id
 

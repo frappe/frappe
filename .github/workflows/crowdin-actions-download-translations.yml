@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout ${{ matrix.branch }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ matrix.branch }}
           fetch-depth: 0

@@ -160,30 +160,50 @@
 
 	.result.has-assign-to {
 		.list-row .level-right {
-			flex: 0 0 180px;
-			width: 180px;
+			flex: 0 0 auto;
+			min-width: 180px;
 		}
 
 		&.assign-to-length-1 {
 			.list-row .level-right {
-				flex: 0 0 165px;
-				width: 165px;
+				min-width: 165px;
 			}
 		}
 
 		&.assign-to-length-3 {
 			.list-row .level-right {
-				flex: 0 0 200px;
-				width: 200px;
+				min-width: 200px;
 			}
 		}
 	}
 
 	.result.no-assign-to {
 		.list-row .level-right {
-			flex: 0 0 130px;
-			width: 130px;
+			flex: 0 0 auto;
+			min-width: 130px;
 		}
+	}
+
+	// Fixed-width slots for avatars and comment counts so rows don't shift sideways.
+	.result.has-assign-to .list-assignments-container {
+		flex: none;
+		width: 56px;
+	}
+
+	.result.assign-to-length-1 .list-assignments-container {
+		width: 38px;
+	}
+
+	.result.assign-to-length-3 .list-assignments-container {
+		width: 74px;
+	}
+
+	.result[data-comment-count-length="2"] .comment-count .count {
+		min-width: 1.4em;
+	}
+
+	.result[data-comment-count-length="3"] .comment-count .count {
+		min-width: 2.1em;
 	}
 }
 
@@ -233,6 +253,7 @@
 	.list-row-activity {
 		justify-content: flex-end;
 		// min-width: 120px;
+		font-variant-numeric: tabular-nums;
 
 		& > span {
 			display: inline-block;
@@ -240,11 +261,17 @@
 
 		.modified {
 			margin-right: var(--margin-sm);
-			min-width: 1.5rem;
+			min-width: 2.7em; // fits the widest short timestamp, "11 M"
+			text-align: right;
 		}
 
 		.comment-count {
 			min-width: 35px;
+			gap: var(--margin-xs);
+
+			.count {
+				min-width: 0.7em;
+			}
 		}
 
 		.frappe-timestamp {
@@ -252,7 +279,10 @@
 			white-space: nowrap;
 		}
 
-		.list-assignments,
+		.list-assignments {
+			margin-right: var(--margin-sm);
+		}
+
 		.list-actions {
 			margin-right: var(--margin-md);
 		}

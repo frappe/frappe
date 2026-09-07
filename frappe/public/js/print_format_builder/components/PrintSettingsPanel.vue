@@ -118,10 +118,16 @@ let { typst_blockers, has_typst_block } = store;
 
 // ── custom css ─────────────────────────────────────────────
 let css_enabled = ref(!!print_format.value.css);
-// a discarded draft or re-fetch replaces the doc — the toggle follows it
+// a discarded draft or re-fetch replaces the doc — the toggle follows it,
+// except a toggle the user opened themselves stays open through a doc swap
+// (a save with an empty box must not close the panel under them)
+let css_manual = false;
 watch(
 	() => print_format.value,
-	(pf) => (css_enabled.value = !!pf?.css)
+	(pf) => {
+		if (pf?.css) css_enabled.value = true;
+		else if (!css_manual) css_enabled.value = false;
+	}
 );
 watch(
 	() => print_format.value?.css,
@@ -134,6 +140,7 @@ watch(
 let stashed_css = "";
 
 function toggle_css(on) {
+	css_manual = on;
 	css_enabled.value = on;
 	if (on) {
 		if (stashed_css && !print_format.value.css) {

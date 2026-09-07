@@ -13,6 +13,7 @@ from frappe.oauth import OAuthWebRequestValidator
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.oauth import build_oauth_url
 
 if TYPE_CHECKING:
@@ -214,6 +215,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 				"scope": self.scope,
 			},
 		)
@@ -265,6 +267,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 				"scope": self.scope,
 				"code_verifier": "420",
 			},
@@ -312,6 +315,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
+				"client_secret": self.client_secret,
 			},
 		)
 
@@ -322,7 +326,11 @@ class TestOAuth20(FrappeRequestTestCase):
 		revoke_token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.revoke_token",
 			headers=self.form_header,
-			data={"token": bearer_token.get("access_token")},
+			data={
+				"token": bearer_token.get("access_token"),
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+			},
 		)
 
 		self.assertTrue(revoke_token_response.status_code == 200)
@@ -332,14 +340,14 @@ class TestOAuth20(FrappeRequestTestCase):
 			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
 		)
 
-	def test_resource_owner_password_credentials_grant(self):
+	def test_resource_owner_password_credentials_grant_is_rejected(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
 		client.save()
 		frappe.db.commit()
 
-		# Request for bearer token
+		# Request for bearer token, no client_secret: rejected at client authentication
 		token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
 			data={
@@ -352,14 +360,27 @@ class TestOAuth20(FrappeRequestTestCase):
 			headers=self.form_header,
 		)
 
-		# Parse bearer token json
-		bearer_token = token_response.json
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_client")
 
-		# Check token for valid response
-		self.assertTrue(
-			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
+		# Even with a valid client_secret, credentials are never checked and no token is issued
+		token_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			data={
+				"grant_type": "password",
+				"username": "test@example.com",
+				"password": "Eastern_43A1W",
+				"client_id": self.client_id,
+				"client_secret": self.client_secret,
+				"scope": self.scope,
+			},
+			headers=self.form_header,
 		)
 
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_grant")
+
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_using_implicit_token(self):
 		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
 		oauth_client.grant_type = "Implicit"
@@ -432,6 +453,7 @@ class TestOAuth20(FrappeRequestTestCase):
 					"code": auth_code,
 					"redirect_uri": self.redirect_uri,
 					"client_id": self.client_id,
+					"client_secret": self.client_secret,
 					"scope": self.scope,
 				}
 			),

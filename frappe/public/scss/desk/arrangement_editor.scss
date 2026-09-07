@@ -156,6 +156,13 @@
 				color: var(--text-color);
 			}
 		}
+
+		// The one control here that cannot be undone. On the app's layer it sits beside the eye,
+		// where the two mean a row switched off and a row deleted, so hover has to tell them
+		// apart before the click rather than after it.
+		.ws-item-remove:hover {
+			color: var(--red-500);
+		}
 	}
 
 	// An entry the eye has taken off: still here, still where it was left, plainly not on the
