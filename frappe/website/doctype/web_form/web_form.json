@@ -9,6 +9,7 @@
   "form_tab",
   "title",
   "route",
+  "banner_image",
   "published",
   "column_break_vdhm",
   "doc_type",
@@ -53,7 +54,6 @@
   "website_sidebar",
   "customization_tab",
   "button_label",
-  "banner_image",
   "column_break_3",
   "breadcrumbs",
   "section_break_5",
@@ -180,7 +180,8 @@
    "fieldname": "introduction_text",
    "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
-   "label": "Introduction"
+   "label": "Description",
+   "placeholder": "Add a short description to tell users what this form is for..."
   },
   {
    "fieldname": "web_form_fields",
@@ -455,7 +456,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-06-18 15:58:18.453845",
+ "modified": "2026-09-07 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
