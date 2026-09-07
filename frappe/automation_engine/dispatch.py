@@ -157,8 +157,9 @@ def _touch_row(row, run_after, payload=None, depth=0):
 	an earlier user's identity.
 
 	Depth is the exception: it guards recursion, so the deepest of the collapsed triggers wins
-	rather than the newest. The payload is only replaced when the new trigger actually carries one,
-	so a plain doc event folding onto an emitted one cannot erase it.
+	rather than the newest. The payload is replaced whenever the new trigger brought one at all,
+	including an empty one: a doc event carries no payload (None) and so cannot erase an emitted
+	one, but a caller that passes {} is saying this trigger has no data, not "keep the old data".
 	"""
 	values = {
 		"triggered_at": now(),
@@ -167,7 +168,7 @@ def _touch_row(row, run_after, payload=None, depth=0):
 		"status": queue_status(run_after),
 		"depth": max(cint(row.depth), cint(depth)),
 	}
-	if payload:
+	if payload is not None:
 		values["event_payload"] = frappe.as_json(payload)
 	frappe.db.set_value(QUEUE, row.name, values, update_modified=False)
 	return row.name
