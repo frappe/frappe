@@ -444,6 +444,11 @@ def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> l
 				.where(RefDoc[df.options] == doc.doctype)
 				.where(RefDoc[df.fieldname] == doc.name)
 			)
+			# filter before limiting, or irrelevant rows could fill the limit
+			if method == "Delete":
+				query = query.where(RefDoc.docstatus != DocStatus.cancelled())
+			elif method == "Cancel":
+				query = query.where(RefDoc.docstatus == DocStatus.submitted())
 			if limit:
 				query = query.limit(limit)
 			for refdoc in query.run(as_dict=True):
