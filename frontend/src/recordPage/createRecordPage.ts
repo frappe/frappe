@@ -14,7 +14,7 @@ import { holdsChildRows } from "@framework/ui/components/Fields/rowIdentity";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
 import { FieldsSurface, LAYOUT_BREAKS } from "./fields";
 import { FormTabsSurface } from "./formTabs";
-import { HeaderActionsSurface } from "./headerRenderings";
+import { HeaderSurface } from "./headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { withRemovals } from "./pageCompatibility";
 import { createPagePermissions } from "./pagePermissions";
@@ -106,7 +106,7 @@ export interface RecordPageHost {
 export interface RecordPageController {
   page: RecordPageApi;
   quickActions: Surface<QuickAction>;
-  headerActions: HeaderActionsSurface;
+  header: HeaderSurface;
   tabs: Surface<TabItem>;
   panelSections: Surface<PanelSectionItem>;
   /** Field property overrides; the host feeds `resolve()` to its layout source. */
@@ -129,7 +129,7 @@ export interface RecordPageController {
 
 export function createRecordPage(host: RecordPageHost): RecordPageController {
   const quickActions = new Surface<QuickAction>();
-  const headerActions = new HeaderActionsSurface();
+  const header = new HeaderSurface();
   const tabs = new Surface<TabItem>();
   const panelSections = new Surface<PanelSectionItem>();
   const permissions = createPagePermissions(host);
@@ -152,7 +152,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // Every overlay a replay stages; `fields` and `formTabs` are not `Surface`s but stage here.
   const surfaces: { beginReplay: () => void; commitReplay: () => void }[] = [
     quickActions,
-    headerActions,
+    header,
     tabs,
     panelSections,
     fields,
@@ -208,7 +208,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       return host.isDirty();
     },
     quickActions,
-    headerActions,
+    header,
     tabs: tabs as unknown as TabsApi,
     panelSections,
     fields,
@@ -415,7 +415,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   return {
     page,
     quickActions,
-    headerActions,
+    header,
     tabs,
     panelSections,
     fields,

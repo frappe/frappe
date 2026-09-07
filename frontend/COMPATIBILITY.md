@@ -11,6 +11,9 @@ different risk:
   `view = Record`. Nobody rebuilds them. They survive every upgrade, on sites with no
   developer watching. The audience that pays for a break.
 
+What `page` offers, verb by verb and region by region, is in [`SCRIPTING.md`](./SCRIPTING.md);
+this document says what of it survives an upgrade.
+
 ## Start with the version reality
 
 The engine lives in `frontend/src/recordPage/` on the `desk-v2` branch, which is not yet
@@ -26,7 +29,7 @@ in that voice.
 
 What `page` is _for_ is a small, closed vocabulary:
 
-- **Four surfaces** — `quickActions`, `headerActions`, `tabs`, `panelSections` — each
+- **Four surfaces** — `quickActions`, `header`, `tabs`, `panelSections` — each
   speaking the same **seven verbs**: `add`, `hide`, `show`, `update`, `move`, `has`,
   `order`.
 - **Two more, `fields` and `formTabs`**, speaking a strict subset of them — `hide`,
@@ -77,10 +80,20 @@ What `page` is _for_ is a small, closed vocabulary:
   `onFormTabChange` fire on any cause; `activate` is the first verb that lets a handler
   cause the event it is handling, so activating from inside one is yours to make
   terminate.
-- **The header's renderings come from one flat list.** A `headerActions` item carries
-  `display`: `'button'` gives it a top-level button of its own, `'dropdown'` gives it a
-  top-level dropdown button of its own, `'section'` gives it a titled band, and omitting it
-  — the default — leaves it an ordinary entry in the shared `⋯`.
+- **The whole header row is one flat list.** A `header` item carries `zone`: `'left'`
+  puts it among the crumbs, and omitting it — the default — puts it on the right, with
+  the controls and `⋯`. The crumbs and `Save` are ordinary built-in items on that list,
+  named `doctype`, `record` and `save`, so `update('record', { label })` renames the
+  title crumb and `hide('save')` removes the button, as desk v1's `disable_save` does.
+  An item's place within its zone is its place in the one list; `zone` is a patchable
+  key like any other, so `update('favourite', { zone: 'right' })` relocates an item.
+
+  A `header` item also carries `display`. On the right, `'button'` gives it a top-level
+  button of its own, `'dropdown'` gives it a top-level dropdown button of its own,
+  `'section'` gives it a titled band, and omitting it leaves it an ordinary entry in the
+  shared `⋯`. On the left, `'crumb'` draws it as a breadcrumb — linking to `href` when
+  one is given, running `run` when that is — and omitting it gives a button, since the
+  left has no menu to default into. `zone` and `display` are orthogonal.
 
   A `dropdown` and a `section` are **containers**: ordinary, addressable items that carry
   the label and the icon, differing only in when their members are visible — a dropdown
@@ -95,8 +108,8 @@ What `page` is _for_ is a small, closed vocabulary:
   container is declared**, and a script that never declared one never grows headings.
 
   ```js
-  page.headerActions.add({ name: 'refresh_quote', label: 'Refresh Quote', display: 'button' })
-  page.headerActions.add([
+  page.header.add({ name: 'refresh_quote', label: 'Refresh Quote', display: 'button' })
+  page.header.add([
     { name: 'telephony', label: 'Telephony', display: 'dropdown' },
     { name: 'call', label: 'Call customer', group: 'telephony' },
     { name: 'danger', label: 'Danger', display: 'section', group: 'telephony' },
@@ -123,7 +136,8 @@ What `page` is _for_ is a small, closed vocabulary:
   **Position orders items only within one rendering.** An anchor naming an item that
   renders somewhere else still splices exactly where it always did — and warns in a
   development build, because the author asked for "after Refresh Quote" and the reader got
-  "below Delete".
+  "below Delete". The left zone is a rendering of its own, so an anchor across the two
+  zones warns the same way.
 - **How many top-level controls fit is the host's business, and a script cannot observe
   it.** An item that does not fit is **demoted into `⋯`**, keeping its own band ahead of
   the built-ins and in the order it asked for; a dropdown collapses whole, under its label.
@@ -137,9 +151,10 @@ What `page` is _for_ is a small, closed vocabulary:
   priority knob and there is no `priority` key. A promoted built-in
   (`update('delete', { display: 'button' })` is allowed, like any other update) is ordered
   and demoted by that same rule, with no exception for where it came from.
-- **`Save` is not on this surface and never will be.** It is not an item on
-  `headerActions`, so it cannot be hidden, relabelled, reordered or demoted, and
-  `hide('save')` reaches nothing. It is the one control the reader must always find.
+- **`Save` is an item like any other, and the last built-in on the list.** A new item
+  with no anchor appends after it; `add(item, { before: 'save' })` is how a button sits
+  to its left. It is ordered and demoted by the fitting rule with no exception, and the
+  host alone decides that it is disabled while nothing has changed.
 - **A closed event list** — `onRefresh`, `beforeSave`, `afterSave`, `onTabChange`,
   `onFormTabChange`, `<fieldname>`, and a child table's own family, written **nested under
   the table's fieldname**: a handler per child field, plus `onAdd` and `onRemove`.

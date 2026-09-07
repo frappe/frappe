@@ -167,7 +167,7 @@ _Avoid_: form, frm, context.
 **Surface**:
 One customizable **region** of a Record page, whose verbs *record ops*; the rendered list
 is those ops replayed over the host's built-ins. Four are true surfaces —
-`quickActions`, `headerActions`, `tabs`, `panelSections` — sharing the verb set `add`,
+`quickActions`, `header`, `tabs`, `panelSections` — sharing the verb set `add`,
 `hide`, `show`, `update`, `move`, `has`, `order`. Two more, `fields` and `formTabs`, are
 counted as surfaces and stage with them but are **not** `Surface`s: they override
 properties rather than arrange items, and speak a strict subset with no `add`, `move` or
@@ -278,11 +278,10 @@ reach for the unambiguous alternative.
 - **`prefix`** and **`claim`** — a URL prefix an app claims, versus a dotted-path prefix in
   the compatibility guard, versus a header item's recorded anchor claim.
 
-**One live inconsistency, not a collision:** the header surface is `page.headerActions` in
-code, while "header" unqualified names the *rendered* region (`HeaderControl`, `HeaderBand`,
-`HeaderProjection`). A decision to rename the surface to **`page.header`** and its item type
-to `HeaderItem`, adding a `zone: 'left' | 'right'` key, is settled but **not implemented**
-— see frappe/frappe#42271. Until it lands, write `headerActions` for the surface.
+**Header**: both the surface, `page.header`, and the rendered row it projects to
+(`HeaderControl`, `HeaderBand`, `HeaderProjection`). One flat list of `HeaderItem`s in two
+**zones**, `left` and `right`; the crumbs, `Save` and every control are items on it.
+_Avoid_: headerActions (the surface's old name), toolbar.
 
 ## Example dialogue
 

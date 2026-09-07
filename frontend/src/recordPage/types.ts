@@ -20,15 +20,22 @@ export interface QuickAction extends SurfaceItem {
   run?: (page: RecordPageApi) => any;
 }
 
+/** Which half of the header row an item sits in; omitted means `right`. */
+export type HeaderZone = "left" | "right";
+
 /**
- * An action in the record's header. A `dropdown` or a `section` is a container:
- * its members point at it with `group`, and containers nest two deep.
+ * One item of the header row: a crumb, a button, a menu entry or `Save`. A `dropdown`
+ * or a `section` is a container: its members point at it with `group`, two deep.
  */
-export interface HeaderAction extends SurfaceItem {
+export interface HeaderItem extends SurfaceItem {
   label: string;
-  display?: "button" | "dropdown" | "section";
+  zone?: HeaderZone;
+  /** Omitted: an entry in `⋯` on the right, a button on the left. */
+  display?: "button" | "dropdown" | "section" | "crumb";
   /** The container this sits in; an undeclared name gets an anonymous one inside `⋯`. */
   group?: string;
+  /** A path this item links to; `run` wins when both are given. */
+  href?: string;
   run?: (page: RecordPageApi) => any;
 }
 
@@ -337,7 +344,7 @@ export interface RecordPageApi {
   fieldAccess(fieldname: string): FieldAccess;
   isDirty: boolean;
   quickActions: SurfaceVerbs<QuickAction>;
-  headerActions: SurfaceVerbs<HeaderAction>;
+  header: SurfaceVerbs<HeaderItem>;
   tabs: TabsApi;
   panelSections: SurfaceVerbs<PanelSectionItem>;
   fields: PageFields;

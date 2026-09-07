@@ -1,7 +1,7 @@
-// How the header's one flat list becomes its renderings, and what happens when
-// it asks for more top-level controls than fit.
+// How the header's one flat list becomes its two zones, and what happens when the
+// right zone asks for more top-level controls than fit.
 import { Surface, type ResolvedItem } from "./surface";
-import type { HeaderAction, Position } from "./types";
+import type { HeaderItem, HeaderZone, Position } from "./types";
 
 /** The displays that hold other items, as against `button` and the default. */
 export type ContainerDisplay = "dropdown" | "section";
@@ -14,7 +14,7 @@ export const MAX_CONTAINER_DEPTH = 2;
 
 /** One row of a rendered list: an action, or a container holding more rows. */
 export interface HeaderNode {
-  item: HeaderAction;
+  item: HeaderItem;
   /** Set when this row holds others; absent on a plain action row. */
   container?: ContainerDisplay;
   /** Set when this container could not render where declared; it is then a band of `⋯`, never a control. */
@@ -22,10 +22,11 @@ export interface HeaderNode {
   members: HeaderNode[];
 }
 
-/** A control the host draws in the header itself, left of `⋯ │ Save`. */
+/** A control the host draws in the row itself: a crumb, a button, or a dropdown. */
 export type HeaderControl =
-  | { kind: "button"; item: HeaderAction }
-  | { kind: "dropdown"; item: HeaderAction; members: HeaderNode[] };
+  | { kind: "crumb"; item: HeaderItem }
+  | { kind: "button"; item: HeaderItem }
+  | { kind: "dropdown"; item: HeaderItem; members: HeaderNode[] };
 
 /** One band of the `⋯` menu; it shows a heading iff its container was declared. */
 export interface HeaderBand {
@@ -35,54 +36,71 @@ export interface HeaderBand {
 }
 
 export interface HeaderProjection {
+  /** The left zone in order; it has no menu, so nothing in it is demoted. */
+  left: HeaderControl[];
   controls: HeaderControl[];
   bands: HeaderBand[];
 }
 
-/**
- * Projects the resolved items into the header's controls and the `⋯` menu's bands.
- * Takes the resolved list, not the visible one: a hidden container takes its members with it.
- */
-export function projectHeaderActions(
-  resolved: ResolvedItem<HeaderAction>[],
+/** An item's zone, with the default applied; a member sits wherever its container does. */
+export function zoneOf(item: HeaderItem): HeaderZone {
+  return item.zone === "left" ? "left" : "right";
+}
+
+/** Both zones from the resolved list, not the visible one: a hidden container takes its members with it. */
+export function projectHeader(
+  resolved: ResolvedItem<HeaderItem>[],
   budget: number
 ): HeaderProjection {
   if (import.meta.env.DEV) for (const entry of resolved) warnItem(entry.item);
   const items = surviving(resolved);
   const containers = containersOf(items);
   const tree = prune(build(items, containers));
+  const right = tree.filter((node) => zoneOf(node.item) === "right");
   // An empty dropdown is a button that opens nothing, so it is dropped before the budget applies.
-  const controls = tree
+  const controls = right
     .filter(isControl)
     .map(asControl)
     .filter((control) => control.kind === "button" || control.members.length);
   const kept = Math.max(budget, 0);
   return {
+    left: leftControls(tree.filter((node) => zoneOf(node.item) === "left")),
     controls: controls.slice(0, kept),
-    bands: [...demotedBands(controls.slice(kept)), ...menuBands(tree)],
+    bands: [...demotedBands(controls.slice(kept)), ...menuBands(right)],
   };
 }
 
-function containerDisplay(item: HeaderAction): ContainerDisplay | undefined {
+// A section has no band to title on the left, so its members render in its place.
+function leftControls(nodes: HeaderNode[]): HeaderControl[] {
+  return nodes.flatMap((node): HeaderControl[] => {
+    if (node.container === "section") return leftControls(node.members);
+    if (node.container === "dropdown")
+      return [{ kind: "dropdown", item: node.item, members: node.members }];
+    if (node.item.display === "crumb") return [{ kind: "crumb", item: node.item }];
+    return [{ kind: "button", item: node.item }];
+  });
+}
+
+function containerDisplay(item: HeaderItem): ContainerDisplay | undefined {
   if (item.display === "dropdown" || item.display === "section")
     return item.display;
   return undefined;
 }
 
-function containersOf(items: HeaderAction[]) {
-  const containers = new Map<string, HeaderAction>();
+function containersOf(items: HeaderItem[]) {
+  const containers = new Map<string, HeaderItem>();
   for (const item of items)
     if (containerDisplay(item)) containers.set(item.name, item);
   return containers;
 }
 
 /** The items a hidden container has not taken with it; a `group` naming a plain item is no floor. */
-function surviving(resolved: ResolvedItem<HeaderAction>[]): HeaderAction[] {
+function surviving(resolved: ResolvedItem<HeaderItem>[]): HeaderItem[] {
   const containers = containersOf(resolved.map((entry) => entry.item));
   const hidden = new Set(
     resolved.filter((entry) => entry.hidden).map((entry) => entry.item.name)
   );
-  const buried = (item: HeaderAction) => {
+  const buried = (item: HeaderItem) => {
     const seen = new Set<string>();
     let group = item.group;
     while (group && containers.has(group) && !seen.has(group)) {
@@ -101,7 +119,7 @@ function surviving(resolved: ResolvedItem<HeaderAction>[]): HeaderAction[] {
  * How many containers deep a container sits, counting itself. `Infinity` when
  * its `group` chain cycles, which has no depth at all.
  */
-function depthOf(name: string, containers: Map<string, HeaderAction>): number {
+function depthOf(name: string, containers: Map<string, HeaderItem>): number {
   const seen = new Set<string>([name]);
   let depth = 1;
   let group = containers.get(name)!.group;
@@ -119,8 +137,8 @@ function depthOf(name: string, containers: Map<string, HeaderAction>): number {
  * it can reach, never promoted to a control; a cycle lands in `⋯` as a band of its own.
  */
 function placeContainer(
-  item: HeaderAction,
-  containers: Map<string, HeaderAction>
+  item: HeaderItem,
+  containers: Map<string, HeaderItem>
 ) {
   const depth = depthOf(item.name, containers);
   if (depth <= MAX_CONTAINER_DEPTH) {
@@ -129,7 +147,7 @@ function placeContainer(
     if (group && containerDisplay(item) === "section")
       if (containers.get(group)!.display === "section")
         warnOnce(
-          `headerActions: the section '${item.name}' is inside the section ` +
+          `header: the section '${item.name}' is inside the section ` +
             `'${group}', which cannot hold a titled band — its members render ` +
             `under '${group}' and its own title is dropped.`
         );
@@ -145,14 +163,14 @@ function placeContainer(
 
 /** The container an item's `group` names, if one was declared. */
 function declaredGroup(
-  item: HeaderAction,
-  containers: Map<string, HeaderAction>
+  item: HeaderItem,
+  containers: Map<string, HeaderItem>
 ) {
   return item.group && containers.has(item.group) ? item.group : undefined;
 }
 
 /** `group: 'x'` puts an item inside the item named `x`; an undeclared `x` synthesises an anonymous container. */
-function build(items: HeaderAction[], containers: Map<string, HeaderAction>) {
+function build(items: HeaderItem[], containers: Map<string, HeaderItem>) {
   const nodes = new Map<string, HeaderNode>();
   const top: HeaderNode[] = [];
   const parents: (string | undefined)[] = [];
@@ -220,7 +238,7 @@ function demotedBands(controls: HeaderControl[]): HeaderBand[] {
   );
 }
 
-function row(item: HeaderAction): HeaderNode {
+function row(item: HeaderItem): HeaderNode {
   return { item, members: [] };
 }
 
@@ -259,10 +277,11 @@ function menuBands(top: HeaderNode[]): HeaderBand[] {
  * Which list an item is ordered within. Read off the declared `display`, never
  * the effective one, so nothing computed from it can become width-dependent.
  */
-export function renderingOf(item: HeaderAction, items: HeaderAction[]): string {
+export function renderingOf(item: HeaderItem, items: HeaderItem[]): string {
   const containers = containersOf(items);
   const group = declaredGroup(item, containers);
   if (group) return `container:${group}`;
+  if (zoneOf(item) === "left") return "left";
   if (item.display === "button" || item.display === "dropdown") return "row";
   return "menu";
 }
@@ -273,12 +292,12 @@ type AnchorClaim = { verb: string; name: string; anchor: string };
  * An ordinary `Surface` plus one warning: an anchor naming an item in a different
  * rendering. Checked over the resolved list, since a member can be added before its container.
  */
-export class HeaderActionsSurface extends Surface<HeaderAction> {
+export class HeaderSurface extends Surface<HeaderItem> {
   private claims: AnchorClaim[] = [];
   private said = new Set<string>();
 
   // One claim per block: a block splices as a unit, so only its head is anchored.
-  add(item: HeaderAction | HeaderAction[], position?: Position) {
+  add(item: HeaderItem | HeaderItem[], position?: Position) {
     const block = Array.isArray(item) ? item : [item];
     if (block.length) this.claim("add", block[0].name, position);
     super.add(item, position);
@@ -307,7 +326,7 @@ export class HeaderActionsSurface extends Surface<HeaderAction> {
     if (anchor) this.claims.push({ verb, name, anchor });
   }
 
-  private warnCrossRendering(items: HeaderAction[]) {
+  private warnCrossRendering(items: HeaderItem[]) {
     for (const claim of this.claims) {
       const item = items.find((one) => one.name === claim.name);
       const anchor = items.find((one) => one.name === claim.anchor);
@@ -317,7 +336,7 @@ export class HeaderActionsSurface extends Surface<HeaderAction> {
       if (renderingOf(item, items) === `container:${claim.anchor}`) continue;
       if (renderingOf(anchor, items) === `container:${claim.name}`) continue;
       const message =
-        `[record-page] headerActions.${claim.verb}('${claim.name}'): anchor ` +
+        `[record-page] header.${claim.verb}('${claim.name}'): anchor ` +
         `'${claim.anchor}' renders as ${describe(anchor, items)}, but ` +
         `'${claim.name}' renders as ${describe(
           item,
@@ -331,7 +350,7 @@ export class HeaderActionsSurface extends Surface<HeaderAction> {
   }
 }
 
-function describe(item: HeaderAction, items: HeaderAction[]) {
+function describe(item: HeaderItem, items: HeaderItem[]) {
   const containers = containersOf(items);
   const group = declaredGroup(item, containers);
   if (group) {
@@ -339,6 +358,7 @@ function describe(item: HeaderAction, items: HeaderAction[]) {
     const kind = container.display === "section" ? "section" : "dropdown";
     return `an entry in the “${container.label}” ${kind}`;
   }
+  if (zoneOf(item) === "left") return "an item in the left zone";
   if (item.display === "button") return "a top-level button";
   if (item.display === "dropdown") return `the “${item.label}” dropdown button`;
   return "an entry in the ⋯ menu";
@@ -358,35 +378,52 @@ export function resetHeaderWarnings(): void {
   warned.clear();
 }
 
-function warnClamp(item: HeaderAction, depth: number) {
+function warnClamp(item: HeaderItem, depth: number) {
   const where =
     depth === Infinity
       ? "sits in a `group` cycle, which reaches no level at all"
       : `nests ${depth} containers deep, and only ${MAX_CONTAINER_DEPTH} render`;
   warnOnce(
-    `headerActions: '${item.name}' ${where} — ` +
+    `header: '${item.name}' ${where} — ` +
       `rendered at the deepest level it can reach.`
   );
 }
 
 // Checked before anything is placed, hidden items included. `display` type-checks
 // anything (`SurfaceItem` has an index signature), so an unknown value is silently the default.
-function warnItem(item: HeaderAction) {
+function warnItem(item: HeaderItem) {
   const display = item.display;
-  if (display && !containerDisplay(item) && display !== "button")
+  // Read as a string: the index signature lets any value through the type.
+  const zone = item.zone as string | undefined;
+  if (display && !containerDisplay(item) && display !== "button" && display !== "crumb")
     warnOnce(
-      `headerActions: '${item.name}' has display: '${display}' — expected ` +
-        `'button', 'dropdown' or 'section'; rendered as an entry in the ⋯ menu.`
+      `header: '${item.name}' has display: '${display}' — expected 'button', ` +
+        `'dropdown', 'section' or 'crumb'; rendered as the zone's default.`
+    );
+  if (zone && zone !== "left" && zone !== "right")
+    warnOnce(
+      `header: '${item.name}' has zone: '${zone}' — expected 'left' or 'right'; ` +
+        `rendered on the right.`
+    );
+  if (display === "crumb" && zoneOf(item) === "right")
+    warnOnce(
+      `header: '${item.name}' is a crumb on the right, which draws no crumbs — ` +
+        `add zone: 'left'; rendered as an entry in the ⋯ menu.`
+    );
+  if (display === "section" && zoneOf(item) === "left")
+    warnOnce(
+      `header: '${item.name}' is a section on the left, which has no menu to ` +
+        `title a band in — its members render in its place.`
     );
   if (item.run && containerDisplay(item))
     warnOnce(
-      `headerActions: '${item.name}' is a ${display}, a container, so its ` +
+      `header: '${item.name}' is a ${display}, a container, so its ` +
         `\`run\` never fires; the items inside it run.`
     );
   // `group` decides where an item goes; `display` only what it looks like once there.
   if (display === "button" && item.group)
     warnOnce(
-      `headerActions: '${item.name}' is a button inside '${item.group}', and a ` +
+      `header: '${item.name}' is a button inside '${item.group}', and a ` +
         `container holds rows, not buttons — if it should stand on its own, drop its \`group\`.`
     );
 }

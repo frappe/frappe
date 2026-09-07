@@ -56,8 +56,11 @@ field's design belongs in its ticket.
 
 ## Before you close a ticket
 
-Run `/quality-code-review`, and read your diff against the comment rule above. For a
-change that is comments only, `.github/helper/comment_equivalence.py` proves it: it strips
+Run `/quality-code-review` **in a fresh subagent**, never in the session that wrote the
+diff. Give it only the diff range, the checklist, this file, the layer's `CLAUDE.md`, and
+the ticket's question with the rulings it must not re-open; not the session's reasoning.
+Answer every finding, and close one that contradicts a ruling with the ruling. Then read
+your diff against the comment rule above. For a change that is comments only, `.github/helper/comment_equivalence.py` proves it: it strips
 comments from both revisions and asserts the remaining code is identical.
 
 ```bash
