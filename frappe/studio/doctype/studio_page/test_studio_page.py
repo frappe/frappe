@@ -23,6 +23,19 @@ def component_ref(component) -> dict:
 	return {"componentName": component.name, "isStudioComponent": True, "children": []}
 
 
+class TestStudioPage(IntegrationTestCase):
+	def test_block_lists_round_trip(self):
+		app = make_studio_app(app_name="serialization-" + frappe.generate_hash(length=10))
+		blocks = [{"componentName": "div", "children": [{"componentName": "span"}]}]
+		page = frappe.get_doc(
+			doctype="Studio Page", studio_app=app.name, blocks=blocks, draft_blocks=blocks
+		).insert()
+		page.reload()
+		self.assertEqual(page.blocks, frappe.as_json(blocks, indent=None))
+		self.assertEqual(frappe.parse_json(page.blocks), blocks)
+		self.assertEqual(frappe.parse_json(page.draft_blocks), blocks)
+
+
 class TestGuestRendering(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
