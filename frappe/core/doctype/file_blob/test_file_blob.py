@@ -70,9 +70,14 @@ class TestFileBlobSize(IntegrationTestCase):
 	"""`file_size` must describe an object of any size the driver can hold.
 
 	An S3 object goes up to 5 TB and the Drive migration copies such objects
-	into blobs, so a signed 32-bit column is too narrow: a strict `sql_mode`
-	refuses the insert and a permissive one clamps the value, which would
-	then lie to ranged serving, to relocation, and to every byte count.
+	into blobs, so a signed 32-bit column is too narrow. `_validate_length`
+	(`frappe/model/base_document.py`) reads the same `length > 11` rule the
+	schema does, so a narrow declaration made every document insert above
+	2,147,483,647 raise `CharacterLengthExceededError` before any SQL ran,
+	in either `sql_mode`. Paths that skip document validation, `db_insert`
+	and `db.set_value`, reached the column instead and clamped there, and a
+	clamped size lies to ranged serving, to relocation, and to every byte
+	count.
 
 	The field is `Int` with `length: 20`. Schema sync promotes that to the
 	`Long Int` column type (`frappe/database/schema.py:437`), which is the
