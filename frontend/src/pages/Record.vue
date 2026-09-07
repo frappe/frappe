@@ -1,6 +1,6 @@
 <!--
-  The generated record page every app gets at /apps/<prefix>/<slug>/<name>: a minimal host for
-  the record-page engine, with no form layout, tabs or panel.
+  The generated record page every app gets at /apps/<prefix>/<slug>/<name>: a host for the
+  record-page engine with a real header row, and no form layout, tabs or panel yet.
 -->
 <template>
 	<div class="overflow-y-auto p-8">
@@ -9,20 +9,27 @@
 		</p>
 
 		<template v-else>
-			<header class="flex items-center gap-3">
+			<RecordHeader
+				v-if="controller"
+				:projection="header"
+				:dirty="dirty"
+				:saving="saving"
+				@run="runAction"
+			/>
+			<header v-else class="flex items-center gap-3">
 				<h1 class="text-lg font-semibold">{{ route.params.name }}</h1>
 				<span class="text-sm text-ink-gray-5">{{ doctype }}</span>
-
-				<!-- Contributed quick actions, in the run order the registry decided. -->
-				<div class="ml-auto flex gap-2">
-					<Button
-						v-for="action in quickActions"
-						:key="action.name"
-						:label="action.label"
-						@click="runAction(action)"
-					/>
-				</div>
 			</header>
+
+			<!-- Contributed quick actions, in the run order the registry decided. -->
+			<div v-if="quickActions.length" class="mt-4 flex gap-2">
+				<Button
+					v-for="action in quickActions"
+					:key="action.name"
+					:label="action.label"
+					@click="runAction(action)"
+				/>
+			</div>
 
 			<p v-if="actionError" class="mt-4 text-sm text-ink-red-4">{{ actionError }}</p>
 			<p v-if="error" class="mt-4 text-sm text-ink-red-4">{{ error }}</p>
@@ -41,7 +48,15 @@
 import { computed, inject, ref, shallowRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Button } from "frappe-ui";
-import { createRecordPage, type RecordPageController } from "@/recordPage";
+import {
+	createRecordPage,
+	loadClientScripts,
+	projectHeader,
+	type HeaderItem,
+	type RecordPageController,
+} from "@/recordPage";
+import { routeFor } from "@/router/routeFor";
+import RecordHeader from "./record/RecordHeader.vue";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 
@@ -58,6 +73,10 @@ const error = ref("");
 const actionError = ref("");
 const controller = shallowRef<RecordPageController | null>(null);
 const actionsVersion = ref(0);
+const saving = ref(false);
+
+// The right zone keeps this many top-level controls; the rest demote into `⋯`.
+const HEADER_BUDGET = 3;
 
 // The slower of two in-flight loads must not win: `save()` would then POST the wrong record.
 let generation = 0;
@@ -75,6 +94,40 @@ const quickActions = computed(() => {
 	actionsVersion.value; // re-read after each replay
 	return controller.value?.quickActions.visible() ?? [];
 });
+
+const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
+
+const header = computed(() => {
+	actionsVersion.value;
+	const resolved = controller.value?.header.resolve() ?? [];
+	return projectHeader(resolved, HEADER_BUDGET);
+});
+
+// The row's built-ins, re-read on every resolve so the title crumb tracks the draft.
+function headerBuiltins(): HeaderItem[] {
+	const title = doc.value[meta.value?.title_field] || docname.value;
+	return [
+		{
+			name: "doctype",
+			label: doctype.value ?? "",
+			zone: "left",
+			display: "crumb",
+			href: router.resolve(routeFor(doctype.value!)).path,
+		},
+		{ name: "record", label: String(title), zone: "left", display: "crumb" },
+		{ name: "save", label: "Save", display: "button", run: saveFromHeader },
+	];
+}
+
+// Not through `runAction`: a failed save must keep the draft on screen, not reload over it.
+async function saveFromHeader() {
+	actionError.value = "";
+	try {
+		await save();
+	} catch (e) {
+		actionError.value = String((e as Error)?.message ?? e);
+	}
+}
 
 async function call(method: string, params: Record<string, string>) {
 	const res = await fetch(`/api/method/${method}?${new URLSearchParams(params)}`);
@@ -113,23 +166,26 @@ async function load() {
 		return;
 	}
 
-	controller.value = createRecordPage({
+	const created = createRecordPage({
 		doctype: target.doctype,
 		docname: target.name,
 		doc,
 		saved,
 		meta,
 		perms: () => ({}),
-		isDirty: () => JSON.stringify(doc.value) !== JSON.stringify(saved.value),
+		isDirty: () => dirty.value,
 		// No tab strip on this page, so activation is a no-op.
 		activeTab: () => "",
 		activateTab: () => {},
 		save,
 		reload: load,
 		router,
+		sourcesReady: () => loadClientScripts(target.doctype),
 	});
+	created.header.provideBuiltins(headerBuiltins);
+	controller.value = created;
 
-	await controller.value.refresh();
+	await created.refresh();
 	if (mine !== generation) return;
 	// A reload triggered by a failed action must not wipe the message explaining it.
 	actionError.value = carriedActionError;
@@ -143,27 +199,35 @@ async function save() {
 	}
 
 	const mine = generation;
-	const res = await fetch("/api/method/frappe.client.save", {
-		method: "POST",
-		headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": boot.csrf_token },
-		body: JSON.stringify({ doc: { ...doc.value, doctype: doctype.value } }),
-	});
-	if (!res.ok) throw new Error(`Save failed with ${res.status}`);
+	saving.value = true;
+	try {
+		const res = await fetch("/api/method/frappe.client.save", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Frappe-CSRF-Token": boot.csrf_token,
+			},
+			body: JSON.stringify({ doc: { ...doc.value, doctype: doctype.value } }),
+		});
+		if (!res.ok) throw new Error(`Save failed with ${res.status}`);
 
-	const document = (await res.json()).message;
-	if (mine !== generation) return;
-	saved.value = { ...document };
-	doc.value = JSON.parse(JSON.stringify(document));
+		const document = (await res.json()).message;
+		if (mine !== generation) return;
+		saved.value = { ...document };
+		doc.value = JSON.parse(JSON.stringify(document));
+	} finally {
+		saving.value = false;
+	}
 	await controller.value?.refresh();
 	actionsVersion.value++;
 }
 
-async function runAction(action: { run: (page: unknown) => unknown }) {
+async function runAction(action: { run?: (page: unknown) => unknown }) {
 	// Awaited and caught: a failing action would otherwise leave the draft mutated on screen
 	// with no error. Reloading discards the rejected draft.
 	actionError.value = "";
 	try {
-		await action.run(controller.value?.page);
+		await action.run?.(controller.value?.page);
 	} catch (e) {
 		actionError.value = String((e as Error)?.message ?? e);
 		await load();

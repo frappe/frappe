@@ -38,6 +38,8 @@ exist to prevent. This doc adds only the `DP*` principles specific to the desk l
 - **`CONTEXT.md`** is the *vocabulary* — what a **Record page**, a **contribution**, a
   **surface**, a **Client Script** mean. PHILOSOPHY is the *rules* that use the vocabulary.
   Not yet written.
+- **`SCRIPTING.md`** is the *reference* — what `page` offers a Client Script, region by
+  region, with the script each region's design was judged by as its worked example.
 - **`COMPATIBILITY.md`** is the *promise* — what a script author can rely on across an
   upgrade of the host: which `page` verbs and events are meant to outlive the
   implementation, which are not, and how a removal announces itself.
