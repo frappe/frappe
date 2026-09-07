@@ -93,6 +93,12 @@ def _execute_group(executor, names):
 
 
 def _execute_in_savepoint(executor, name, position):
+	if effects_delivered(name):
+		# A previous attempt reached outside the database and never committed an outcome - the
+		# worker was killed, or its commit was rolled back. Whatever it sent cannot be sent again.
+		_fail_delivered_row(name)
+		return
+
 	savepoint = f"auto_row_{position}"
 	frappe.db.savepoint(savepoint)
 	try:
