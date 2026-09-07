@@ -47,7 +47,7 @@
 			</span>
 
 			<button
-				v-if="!workspaceOpen"
+				v-if="workspace && !workspaceOpen"
 				class="flow-icon-btn"
 				title="Open panel"
 				@click="flow.setWorkspaceOpen(true)"
@@ -64,7 +64,10 @@ import FeatherIcon from "./FeatherIcon.vue"
 
 import { conversationTitle, formatTokens } from "../transcript.js"
 
-defineProps({ sidebarOpen: { type: Boolean, default: true } })
+defineProps({
+	sidebarOpen: { type: Boolean, default: true },
+	workspace: { type: Boolean, default: true }, // false: the host mounts no file panel
+})
 const emit = defineEmits(["open-sidebar"])
 const flow = inject("flow")
 

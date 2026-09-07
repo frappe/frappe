@@ -55,6 +55,9 @@
 			ref="payloadEl"
 			class="mb-1.5 mt-1 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-base"
 		>
+			<div v-if="meta.argsComponent" class="border-b border-outline-gray-1 px-3 py-2.5">
+				<component :is="meta.argsComponent" :arguments="args" />
+			</div>
 			<!-- a call the user denied, cancelled, or redirected -->
 			<div v-if="decision" class="px-3 py-2.5">
 				<div class="text-xs font-medium" :class="statClass">{{ decisionTitle }}</div>
@@ -63,7 +66,7 @@
 				</div>
 			</div>
 
-			<template v-else>
+			<template v-else-if="step.result">
 				<div class="flex items-center gap-2 border-b border-outline-gray-1 px-3 py-1.5">
 					<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-4">{{ panelNote }}</span>
 					<span v-if="duration" class="flex-none font-mono text-2xs text-ink-gray-5">{{ duration }}</span>
@@ -119,9 +122,17 @@ const displaySegments = computed(() =>
 	),
 )
 
-const icon = computed(() => stepIcon(props.step.call.name))
-const label = computed(() => stepLabel(props.step.call.name))
-const subject = computed(() => compactDisplayText(stepSubject(props.step.call), cwd.value))
+// a host describes its own tools; the daemon's have display segments or defaults
+const args = computed(() => props.step.call.arguments ?? props.step.call.args ?? {})
+const meta = computed(() => {
+	const call = props.step.call
+	return flow?.options?.presentTool?.(call.name, args.value) ?? {}
+})
+const icon = computed(() => meta.value.icon ?? stepIcon(props.step.call.name))
+const label = computed(() => meta.value.label ?? stepLabel(props.step.call.name))
+const subject = computed(() =>
+	compactDisplayText(meta.value.subject ?? stepSubject(props.step.call), cwd.value),
+)
 const failed = computed(() => props.step.result?.is_error === true)
 const details = computed(() => props.step.result?.details ?? {})
 const output = computed(() => props.step.result?.content ?? "")
@@ -165,6 +176,7 @@ const payloadEl = ref(null)
 watch(payloadEl, (el) => el?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
 
 const expandable = computed(() => {
+	if (meta.value.argsComponent) return true
 	if (!props.step.result) return false
 	if (decision.value) return true
 	if (diffLines.value) return true

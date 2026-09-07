@@ -13,12 +13,6 @@ import {
 // learn it from, so it is restated here and enforced before anything is staged
 export const MAX_ATTACHMENTS = 10
 
-const PREFS_KEY = "flow.ui.prefs"
-const TITLES_KEY = "flow.ui.titles"
-const SESSION_PRESETS_KEY = "flow.ui.sessionPresets"
-const WORKSPACE_KEY = "flow.ui.workspace"
-const PRESETS_KEY = "flow.ui.presets"
-
 function sameArray(left, right) {
 	return left.length === right.length && left.every((value, index) => value === right[index])
 }
@@ -33,7 +27,30 @@ function readJSON(key, fallback) {
 
 // One store per connected daemon. `client` implements the DaemonClient surface;
 // Flow's Frappe shell passes a proxy-backed client instead.
-export function createFlowStore(client) {
+//
+// Host options:
+//   requireCwd     false lets a host without a filesystem send without a folder
+//   storageKey     localStorage prefix, so a host can scope saved state per user
+//   maxAttachments per-message cap enforced by the host's upload path
+//   skillsEnabled  false disables skill catalog requests and composer suggestions
+//   presentTool    (name, args) => { icon, label, subject, title, body, argsComponent }, any
+//                  subset, describing the host's own tools in rows and approvals
+export function createFlowStore(client, options = {}) {
+	options = {
+		requireCwd: true,
+		storageKey: "flow.ui",
+		maxAttachments: MAX_ATTACHMENTS,
+		skillsEnabled: true,
+		presentTool: null,
+		...options,
+	}
+	const keys = {
+		prefs: `${options.storageKey}.prefs`,
+		titles: `${options.storageKey}.titles`,
+		sessionPresets: `${options.storageKey}.sessionPresets`,
+		workspace: `${options.storageKey}.workspace`,
+		presets: `${options.storageKey}.presets`,
+	}
 	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here
 	const prefs = {
 		mode: "ask", // "ask" | "auto" — applied at session create
@@ -46,7 +63,7 @@ export function createFlowStore(client) {
 		sidebarWidth: 288,
 		workspaceWidth: 460,
 		explorerWidth: 220,
-		...readJSON(PREFS_KEY, {}),
+		...readJSON(keys.prefs, {}),
 	}
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
 
@@ -71,11 +88,11 @@ export function createFlowStore(client) {
 		settingsOpen: false,
 		prefs,
 		// agent presets: { id, name, tools, extensionTools, promptMode, prompt }
-		presets: [].concat(readJSON(PRESETS_KEY, [])).filter(
+		presets: [].concat(readJSON(keys.presets, [])).filter(
 			(p) => p && typeof p.id === "string" && Array.isArray(p.tools),
 		),
-		titles: readJSON(TITLES_KEY, {}),
-		sessionPresets: readJSON(SESSION_PRESETS_KEY, {}), // session id -> the preset it was created with
+		titles: readJSON(keys.titles, {}),
+		sessionPresets: readJSON(keys.sessionPresets, {}), // session id -> the preset it was created with
 	})
 
 	let stream = null
@@ -85,7 +102,7 @@ export function createFlowStore(client) {
 	let loadedSkillsFor = null // key of the list in state.skills
 
 	function savePrefs() {
-		localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs))
+		localStorage.setItem(keys.prefs, JSON.stringify(state.prefs))
 	}
 
 	// the theme used to live in prefs; frappe-ui's useColorScheme keeps it under "theme"
@@ -115,7 +132,7 @@ export function createFlowStore(client) {
 		const title = conversationTitle(state.conversation)
 		if (!title) return
 		state.titles[sid] = title
-		localStorage.setItem(TITLES_KEY, JSON.stringify(state.titles))
+		localStorage.setItem(keys.titles, JSON.stringify(state.titles))
 	}
 
 	function sessionTitle(info) {
@@ -135,7 +152,7 @@ export function createFlowStore(client) {
 		const stale = Object.keys(workspaceBySession).filter((sid) => !known.has(sid))
 		if (stale.length) {
 			for (const sid of stale) delete workspaceBySession[sid]
-			localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
+			localStorage.setItem(keys.workspace, JSON.stringify(workspaceBySession))
 		}
 	}
 
@@ -168,7 +185,7 @@ export function createFlowStore(client) {
 
 	// Open tabs and panel visibility survive refreshes and session switches:
 	// persisted per session (paths only — unsaved edits are not kept).
-	let workspaceBySession = readJSON(WORKSPACE_KEY, {})
+	let workspaceBySession = readJSON(keys.workspace, {})
 
 	function persistWorkspace() {
 		const sid = state.sessionId
@@ -185,7 +202,7 @@ export function createFlowStore(client) {
 		} else {
 			delete workspaceBySession[sid]
 		}
-		localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
+		localStorage.setItem(keys.workspace, JSON.stringify(workspaceBySession))
 	}
 
 	function restoreWorkspace(sid) {
@@ -234,7 +251,7 @@ export function createFlowStore(client) {
 		state.loading = true
 		const [info, catalog] = await Promise.all([
 			guard(() => client.session(sid)),
-			typeof client.skills === "function"
+			options.skillsEnabled && typeof client.skills === "function"
 				? guard(() => client.skills(sid))
 				: Promise.resolve({ skills: [] }),
 		])
@@ -373,7 +390,7 @@ export function createFlowStore(client) {
 		if (!data) return null
 		if (preset) {
 			state.sessionPresets[data.session_id] = preset.id
-			localStorage.setItem(SESSION_PRESETS_KEY, JSON.stringify(state.sessionPresets))
+			localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
 		}
 		const effort = state.prefs.lastEffort
 		if (effort) {
@@ -396,6 +413,7 @@ export function createFlowStore(client) {
 
 	// `force` refetches after a skill is written or deleted.
 	async function loadSkills({ force = false } = {}) {
+		if (!options.skillsEnabled) return
 		const sid = state.sessionId
 		const cwd = state.prefs.cwd
 		// a live session reports what it can invoke; before one exists, preview the folder
@@ -430,12 +448,12 @@ export function createFlowStore(client) {
 		// uploads and @-mentions stage through separate endpoints that each cap at
 		// MAX_ATTACHMENTS; only their sum rides the run, so check it before staging
 		// anything — otherwise both succeed and the run is rejected as oversized.
-		if (attachments.length > MAX_ATTACHMENTS) {
-			notify(`A message can carry at most ${MAX_ATTACHMENTS} attachments.`, "error")
+		if (attachments.length > options.maxAttachments) {
+			notify(`A message can carry at most ${options.maxAttachments} attachments.`, "error")
 			return false
 		}
 		if (!state.sessionId) {
-			if (!state.prefs.cwd) {
+			if (options.requireCwd && !state.prefs.cwd) {
 				notify("Choose a project folder before sending a message.", "error")
 				return false
 			}
@@ -904,7 +922,7 @@ export function createFlowStore(client) {
 	}
 
 	function savePresets() {
-		localStorage.setItem(PRESETS_KEY, JSON.stringify(state.presets))
+		localStorage.setItem(keys.presets, JSON.stringify(state.presets))
 	}
 
 	function activePreset() {
@@ -929,7 +947,7 @@ export function createFlowStore(client) {
 		for (const [sid, presetId] of Object.entries(state.sessionPresets)) {
 			if (presetId === id) delete state.sessionPresets[sid]
 		}
-		localStorage.setItem(SESSION_PRESETS_KEY, JSON.stringify(state.sessionPresets))
+		localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
 	}
 
 	function setActivePreset(id) {
@@ -952,15 +970,15 @@ export function createFlowStore(client) {
 		state.sessions = state.sessions.filter((s) => s.session_id !== sid)
 		if (state.titles[sid]) {
 			delete state.titles[sid]
-			localStorage.setItem(TITLES_KEY, JSON.stringify(state.titles))
+			localStorage.setItem(keys.titles, JSON.stringify(state.titles))
 		}
 		if (workspaceBySession[sid]) {
 			delete workspaceBySession[sid]
-			localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspaceBySession))
+			localStorage.setItem(keys.workspace, JSON.stringify(workspaceBySession))
 		}
 		if (state.sessionPresets[sid]) {
 			delete state.sessionPresets[sid]
-			localStorage.setItem(SESSION_PRESETS_KEY, JSON.stringify(state.sessionPresets))
+			localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
 		}
 		if (state.sessionId === sid) startNewChat()
 		notify("Chat deleted")
@@ -979,6 +997,17 @@ export function createFlowStore(client) {
 		}
 	}
 
+	// Object URL for a stored image attachment, null when the host keeps none or
+	// the file is gone (the badge falls back to the filename); the caller revokes it.
+	async function attachmentPreview(sid, attachmentId) {
+		if (typeof client.attachmentBlob !== "function") return null
+		try {
+			return URL.createObjectURL(await client.attachmentBlob(sid, attachmentId))
+		} catch {
+			return null
+		}
+	}
+
 	function detach() {
 		closeStream()
 	}
@@ -986,6 +1015,7 @@ export function createFlowStore(client) {
 	return {
 		state,
 		client,
+		options,
 		refreshSessions,
 		refreshModels,
 		refreshTools,
@@ -1037,6 +1067,7 @@ export function createFlowStore(client) {
 		renameSession,
 		deleteSession,
 		pickFolder,
+		attachmentPreview,
 		sessionTitle,
 		notify,
 		detach,
