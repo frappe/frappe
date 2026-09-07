@@ -424,6 +424,36 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertEqual(attempts, ["first", "second", "first", "second"])
 
+	def test_get_submitted_linked_docs_truncates_large_graphs(self):
+		"""A graph larger than the cap returns no documents marked truncated, so
+		the caller offers background cancellation instead of walking everything."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		frappe.get_doc({"doctype": "Child DocType2", "parent_doctype": parent.name}).insert().submit()
+
+		with patch.object(linked_with, "MAX_LINKED_DOCUMENTS_LISTED", 1):
+			result = linked_with.get_submitted_linked_docs(parent.doctype, parent.name)
+
+		self.assertEqual(result, {"docs": [], "count": 0, "truncated": True})
+
+	def test_cancel_all_linked_docs_discovers_in_background_without_docs(self):
+		"""Without docs the graph was too large to list; the background job must
+		discover and cancel it itself, root included."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		child2 = (
+			frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+		)
+
+		result = linked_with.cancel_all_linked_docs(root_doctype=parent.doctype, root_name=parent.name)
+
+		self.assertEqual(result, {"queued": True})
+		self.assertTrue(child2.reload().docstatus.is_cancelled())
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(parent.reload().docstatus.is_cancelled())
+
 	def test_cancel_all_linked_docs_defers_controller_blocked_docs(self):
 		"""A controller check that wants a referencing document cancelled first
 		raises a plain ValidationError; the document must get deferred, not fail
@@ -581,7 +611,19 @@ class TestLinkedWith(IntegrationTestCase):
 		add_permission("Parent DocType", "All")
 		add_permission("Child DocType1", "All")
 
-		with self.set_user("test1@example.com"):
+		# a fresh user with no roles beyond the defaults, since fixture users
+		# accumulate roles on long-lived sites
+		restricted_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": f"restricted-{frappe.generate_hash(length=8)}@example.com",
+				"first_name": "Restricted",
+				"user_type": "System User",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(restricted_user.name):
 			docs = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)["docs"]
 
 		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name}])
@@ -593,7 +635,7 @@ class TestLinkedWith(IntegrationTestCase):
 		frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert()
 		frappe.get_doc({"doctype": "Child DocType2", "parent_doctype": parent.name}).insert()
 
-		with patch.object(linked_with, "MAX_LINKED_DELETE_DOCUMENTS", 1):
+		with patch.object(linked_with, "MAX_LINKED_DOCUMENTS_LISTED", 1):
 			result = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)
 
 		self.assertEqual(result, {"docs": [], "count": 0, "truncated": True})
