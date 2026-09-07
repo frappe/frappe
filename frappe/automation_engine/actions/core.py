@@ -268,8 +268,8 @@ class SendNotification(AutomationAction):
 		if params.get("email_template"):
 			template = frappe.get_doc("Email Template", params["email_template"])
 			return (
-				# nosemgrep: the template body is an Email Template, already an authored artefact.
-				frappe.render_template(template.subject, render_context(doc, context)),
+				# The template body is an Email Template, already an authored artefact.
+				frappe.render_template(template.subject, render_context(doc, context)),  # nosemgrep
 				frappe.render_template(  # nosemgrep
 					template.response or template.response_html or "", render_context(doc, context)
 				),
@@ -469,6 +469,9 @@ class RunScript(AutomationAction):
 		scope = render_context(doc, context)
 		scope["result"] = frappe._dict()
 		script, filename = self._source(params, context)
+		# Running the author's code is the action; validate() gates the step on
+		# server_script_enabled and a System Manager author, and safe_exec re-checks the flag.
+		# nosemgrep
 		safe_exec(
 			script,
 			_locals=scope,

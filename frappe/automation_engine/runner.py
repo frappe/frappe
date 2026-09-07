@@ -168,9 +168,9 @@ def _execution_identity(rule, row, doc):
 	# which the request writes back to tabSessions on the way out. Restoring the user alone
 	# would persist an emptied session and log the caller out; the whole session has to go back.
 	previous = frappe._dict(frappe.session)
-	# nosemgrep: switching identity is the point - the flow's run_as policy, validated on save,
-	# decides the user, and every step still runs its own permission checks.
-	frappe.set_user(_execution_user(rule, row, doc))
+	# Switching identity is the point - the flow's run_as policy, validated on save, decides the
+	# user, and every step still runs its own permission checks.
+	frappe.set_user(_execution_user(rule, row, doc))  # nosemgrep
 	try:
 		yield
 	finally:

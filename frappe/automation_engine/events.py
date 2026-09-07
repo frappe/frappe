@@ -234,7 +234,8 @@ def _timeout_seconds(params) -> int:
 def _render(value, context):
 	if not isinstance(value, str) or "{{" not in value:
 		return value
-	# nosemgrep: the template is the flow's correlation key, authored with the Wait step.
+	# The template is the flow's correlation key, authored with the Wait step.
+	# nosemgrep
 	return frappe.render_template(
 		value,
 		{
