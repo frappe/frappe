@@ -774,17 +774,7 @@ frappe.ui.Sidebar = class Sidebar {
 			type: "Button",
 			class: "sidebar-notification hidden",
 			suffix: "<span class='notification-count hidden' aria-live='polite'></span>",
-			onClick: () => {
-				const $dropdown = this.wrapper.find(".dropdown-notifications");
-				$dropdown.toggleClass("hidden");
-				if (!$dropdown.hasClass("hidden")) {
-					$dropdown.trigger("show.bs.dropdown");
-				}
-				this.wrapper.find(".dropdown-background-tasks").addClass("hidden");
-				if (frappe.is_mobile()) {
-					this.wrapper.removeClass("expanded");
-				}
-			},
+			onClick: () => frappe.ui.sidebar_panels.toggle("notifications"),
 		});
 		this.standard_items.push({
 			label: __("Background Tasks"),
@@ -792,13 +782,7 @@ frappe.ui.Sidebar = class Sidebar {
 			standard: true,
 			type: "Button",
 			class: "sidebar-background-tasks hidden",
-			onClick: () => {
-				this.wrapper.find(".dropdown-notifications").addClass("hidden");
-				this.wrapper.find(".dropdown-background-tasks").toggleClass("hidden");
-				if (frappe.is_mobile()) {
-					this.wrapper.removeClass("expanded");
-				}
-			},
+			onClick: () => frappe.ui.sidebar_panels.toggle("background-tasks"),
 		});
 		this.$standard_items_band = this.wrapper.find(".standard-items-band");
 		this.standard_items.forEach((w) => {
@@ -816,7 +800,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_background_tasks() {
 		if (frappe.session.user !== "Guest") {
-			this.background_tasks = new frappe.ui.BackgroundTasks({ full_height: true });
+			this.background_tasks = new frappe.ui.BackgroundTasks();
 		}
 	}
 	add_item(container, item) {

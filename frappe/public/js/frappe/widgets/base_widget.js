@@ -109,6 +109,8 @@ export default class Widget {
 	}
 
 	delete(animate = true, dismissed = false) {
+		this.destroy();
+
 		let remove_widget = (setup_new) => {
 			this.widget.remove();
 			!dismissed && this.options.on_delete && this.options.on_delete(this.name, setup_new);
@@ -196,6 +198,12 @@ export default class Widget {
 	}
 
 	set_footer() {
+		//
+	}
+
+	// Runs before the widget's node goes, for a widget that holds something the
+	// node alone does not release. Whoever removes a widget calls it.
+	destroy() {
 		//
 	}
 

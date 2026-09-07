@@ -699,7 +699,10 @@ class TestDockSiteLayer(DockTestCase):
 
 		duplicate = frappe.new_doc("Dock")
 		duplicate.app = APP
+		# postgres aborts the transaction on a failed statement, so recover to a savepoint
+		frappe.db.savepoint("duplicate_layer")
 		self.assertRaises(frappe.UniqueValidationError, duplicate.insert)
+		frappe.db.rollback(save_point="duplicate_layer")
 
 
 class TestTheAppLayer(DockTestCase):

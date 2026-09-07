@@ -342,6 +342,11 @@ async function build_or_watch(options) {
 	return result;
 }
 
+// The `@framework/ui` package, as an app's frontend imports it. It ships raw
+// source and lives inside this repo, so desk code reaches it by the same
+// specifier instead of counting `../` up out of a bundle directory.
+const FRAMEWORK_UI_PATH = path.resolve(__dirname, "..", "ui");
+
 function get_build_options(files, outdir, plugins) {
 	return {
 		entryPoints: files,
@@ -353,6 +358,9 @@ function get_build_options(files, outdir, plugins) {
 		metafile: true,
 		minify: PRODUCTION,
 		nodePaths: NODE_PATHS,
+		alias: {
+			"@framework/ui": FRAMEWORK_UI_PATH,
+		},
 		define: {
 			"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
 			__VUE_OPTIONS_API__: JSON.stringify(true),

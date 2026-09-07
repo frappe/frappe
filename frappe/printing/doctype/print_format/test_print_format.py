@@ -932,6 +932,15 @@ class TestPrintFormatDraft(IntegrationTestCase):
 		self.assertEqual(live.margin_top, 30)
 		self.assertEqual(live.disabled, 0)
 
+	def test_css_rides_the_draft_pipeline(self):
+		from frappe.printing.doctype.print_format.print_format import apply_draft, save_draft
+
+		save_draft(self.pf.name, {"css": ".print-format p { margin: 0; }"}, self.stamp())
+		self.assertIn("css", frappe.parse_json(self.live("draft_data").draft_data))
+
+		apply_draft(self.pf.name, self.stamp(), {"css": ".print-format p { margin: 0; }"})
+		self.assertEqual(self.live("css").css, ".print-format p { margin: 0; }")
+
 	def test_a_stale_write_cannot_clobber_a_newer_draft(self):
 		"""db_set skips the timestamp check save() runs, so the endpoints do it."""
 		from frappe.printing.doctype.print_format.print_format import (

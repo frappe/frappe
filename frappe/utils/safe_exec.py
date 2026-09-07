@@ -600,9 +600,7 @@ def exec_safe_globals():
 			),
 		),
 	)
-	result = _update_namespace(render_safe, exec_safe)
-	result["frappe"]["request"] = getattr(frappe.local, "request", {})
-	return result
+	return _update_namespace(render_safe, exec_safe)
 
 
 def get_keys_for_autocomplete(
