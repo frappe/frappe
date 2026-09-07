@@ -44,16 +44,21 @@
 						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
 					</RailItem>
 
-					<!-- Off this prefix: a full document load. `RailItem` has no anchor form, so a button. -->
-					<RailItem
-						v-else
-						:label="cell.label"
-						:active="cell.key === current"
-						@click="leave(cell.href)"
-					>
-						<Icon v-if="cell.icon" :name="cell.icon" />
-						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
-					</RailItem>
+					<!-- Off this prefix: a full document load, so an `<a>` with `RailItem`'s classes,
+					     which has no anchor form of its own. Never current: `current` is a route. -->
+					<Tooltip v-else :text="cell.label" side="right">
+						<a
+							:href="cell.href"
+							data-slot="rail-item"
+							:class="CELL"
+							:aria-label="cell.label"
+						>
+							<Icon v-if="cell.icon" :name="cell.icon" />
+							<span v-else class="text-sm font-medium">{{
+								cell.label.charAt(0)
+							}}</span>
+						</a>
+					</Tooltip>
 				</div>
 			</nav>
 		</ScrollArea>
@@ -68,6 +73,7 @@ import {
 	Rail,
 	RailItem,
 	ScrollArea,
+	Tooltip,
 	toast,
 	useColorScheme,
 	type DropdownOptions,
@@ -88,6 +94,9 @@ const TILE =
 	"flex size-7 items-center justify-center rounded-[7px] transition focus-visible:ring-0 focus-visible:focus-ring";
 const LETTER_TILE =
 	"bg-surface-gray-3 text-sm font-medium text-ink-gray-8 hover:bg-surface-gray-4";
+// `RailItem`'s own inactive tile.
+const CELL =
+	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 
 // The shell decides `arrangeable` (off on the index), `current` (one row across rail and panel)
 // and `shareLink` (it knows whether the panel needs naming); a context is composed once per list.

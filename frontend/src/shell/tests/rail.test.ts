@@ -152,17 +152,13 @@ describe("the kinds the rail draws", () => {
 		expect(link.getAttribute("href")).toBe("/crm-deal");
 	});
 
-	it("makes a Link a button that loads the document it points at", () => {
-		// `RailItem` has no anchor form, so leaving the prefix is a click that assigns the location.
-		const assign = vi.fn();
-		vi.stubGlobal("location", { ...window.location, assign });
-
+	it("makes a Link a plain anchor, so middle-click and copy-address survive", () => {
+		// A full document load the router cannot resolve, and one `RailItem` cannot draw.
 		const host = rail([{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" }]);
-		const button = target(host, "docs") as HTMLButtonElement;
+		const anchor = target(host, "docs") as HTMLAnchorElement;
 
-		expect(button.tagName).toBe("BUTTON");
-		button.click();
-		expect(assign).toHaveBeenCalledWith("https://docs.frappe.io");
+		expect(anchor.tagName).toBe("A");
+		expect(anchor.getAttribute("href")).toBe("https://docs.frappe.io");
 	});
 });
 
