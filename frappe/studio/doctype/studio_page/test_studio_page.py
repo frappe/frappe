@@ -1,12 +1,25 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and Contributors
 # See license.txt
 
+import os
+import tempfile
+from contextlib import contextmanager
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from studio.studio.doctype.studio_app.studio_app import StudioAppRenderer
+from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
-from studio.studio.doctype.studio_page.studio_page import get_page
+from studio.studio.doctype.studio_page.studio_page import duplicate_page, get_page, paste_page
+
+PAGE_SCRIPT = "export function setup() { return { greeting: 'hi' } }"
+TODO_RESOURCE = {
+	"resource_type": "Document List",
+	"resource_name": "todos",
+	"document_type": "ToDo",
+	"fields": '["name"]',
+}
 
 
 def make_component(component_name: str, block: dict | None = None, inputs: list[dict] | None = None):
@@ -23,8 +36,30 @@ def component_ref(component) -> dict:
 	return {"componentName": component.name, "isStudioComponent": True, "children": []}
 
 
+def make_page_with_data(app_name: str):
+	page = make_studio_page(app_name, page_title="Board", route="/board", published=0)
+	page.append("resources", TODO_RESOURCE)
+	page.append("variables", {"variable_name": "count", "variable_type": "Number"})
+	page.script = PAGE_SCRIPT
+	page.save()
+	return page
+
+
+@contextmanager
+def exports_in_tempdir():
+	with (
+		tempfile.TemporaryDirectory() as tmpdir,
+		patch("frappe.get_app_source_path", side_effect=lambda app, *path: os.path.join(tmpdir, app, *path)),
+		patch.dict(frappe.conf, {"developer_mode": 1}),
+		patch.object(StudioApp, "add_to_studio_apps_txt"),
+	):
+		yield
+
+
 class TestStudioPage(IntegrationTestCase):
-	def test_block_lists_round_trip(self):
+	BLOCKS = [{"componentName": "div", "children": [{"componentName": "span"}]}]
+
+	def test_block_parsing(self):
 		app = make_studio_app(app_name="serialization-" + frappe.generate_hash(length=10))
 		blocks = [{"componentName": "div", "children": [{"componentName": "span"}]}]
 		page = frappe.get_doc(
@@ -34,6 +69,48 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual(page.blocks, frappe.as_json(blocks, indent=None))
 		self.assertEqual(frappe.parse_json(page.blocks), blocks)
 		self.assertEqual(frappe.parse_json(page.draft_blocks), blocks)
+
+	def test_duplicate_page(self):
+		app = make_studio_app(app_name="dup-" + frappe.generate_hash(length=10))
+		page = make_page_with_data(app.name)
+
+		copy = duplicate_page(page.name, app.name)
+
+		self.assertEqual(copy.page_title, "Board Copy")
+		self.assertNotEqual(copy.route, page.route)
+		self.assertFalse(copy.published)
+		self.assertEqual([r.resource_name for r in copy.resources], ["todos"])
+		self.assertEqual([v.variable_name for v in copy.variables], ["count"])
+		self.assertEqual(copy.script, PAGE_SCRIPT)
+
+	def test_paste_replaces_page_contents_but_keeps_its_identity(self):
+		app = make_studio_app(app_name="paste-" + frappe.generate_hash(length=10))
+		source = make_page_with_data(app.name)
+		target = make_studio_page(app.name, page_title="Target", route="/target")
+
+		paste_page(app.name, {**source.get_copy(), "blocks": self.BLOCKS}, target_page=target.name)
+
+		target.reload()
+		self.assertEqual(target.page_title, "Target")
+		self.assertEqual(target.route, "/target")
+		self.assertEqual(frappe.parse_json(target.draft_blocks), self.BLOCKS)
+		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
+		self.assertEqual(target.script, PAGE_SCRIPT)
+
+	def test_standard_page_script_is_copied_as_file(self):
+		with exports_in_tempdir():
+			app = make_studio_app(app_name="dup-" + frappe.generate_hash(length=10))
+			page = make_page_with_data(app.name)
+			app.reload()
+			app.enable_app_export("studio")
+			page.reload()
+			self.assertFalse(page.script)
+
+			copy = duplicate_page(page.name, app.name)
+
+			self.assertTrue(copy.is_standard)
+			self.assertFalse(copy.script)
+			self.assertEqual(frappe.read_file(copy.get_script_file_path()), PAGE_SCRIPT)
 
 
 class TestGuestRendering(IntegrationTestCase):
