@@ -13,10 +13,35 @@ from frappe import _
 # editor never has to infer one from `options_source`, which names a data source.
 USER_CONTROL = "users"
 
-# Two more hints an editor reads off a param, both optional:
+# Three more hints an editor reads off a param, all optional:
 # `link_filters` narrows what a Link param may point at, and `exclusive_with` names the param
 # this one stands in for, declared on both, so an editor showing either knows to clear the
 # other and to show whichever of the pair is in use.
+# `templatable` marks a param whose value may be a Jinja template rather than a literal, so an
+# editor offers field tokens for it; a Link param needs the hint because its picker only
+# offers names that already exist.
+
+
+def render_value(value, doc, context=None):
+	"""Render a Jinja-templated string against the document; pass through non-templates."""
+	if isinstance(value, str) and "{{" in value:
+		# nosemgrep: the template is an action parameter, authored by the System Manager who
+		# configured the flow - the same trust model as Notification and Email Template.
+		return frappe.render_template(value, render_context(doc, context))
+	return value
+
+
+def render_context(doc, context=None):
+	context = context or {}
+	return {
+		# `doc` is the step's target; `trigger` is what started the run, which is the same
+		# document unless the step aims at a relationship alias or an earlier step's output.
+		"doc": doc,
+		"target": doc,
+		"trigger": context.get("trigger_doc") or doc,
+		"payload": context.get("payload") or {},
+		"context": context,
+	}
 
 
 class AutomationParamError(frappe.ValidationError):
@@ -64,10 +89,17 @@ class AutomationAction:
 		"""Run the action against `doc`. Return a short detail string for the run log."""
 		raise NotImplementedError
 
+	@property
+	def app(self) -> str:
+		"""The app that registered this action, taken from the module it is defined in."""
+		return type(self).__module__.split(".")[0]
+
 	def as_dict(self) -> dict:
 		return {
 			"action_type": self.action_type,
 			"label": self.label,
+			"app": self.app,
+			"app_title": _app_title(self.app),
 			"description": self.description,
 			"applicable_doctypes": self.applicable_doctypes,
 			"requires_document": self.requires_document,
@@ -75,6 +107,10 @@ class AutomationAction:
 			"params_schema": self.params_schema,
 			"output_schema": self.output_schema,
 		}
+
+
+def _app_title(app: str) -> str:
+	return (frappe.get_hooks("app_title", app_name=app) or [app])[0]
 
 
 def get_action_registry() -> dict:
