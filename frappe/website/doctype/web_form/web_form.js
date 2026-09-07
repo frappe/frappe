@@ -24,8 +24,10 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	refresh: function (frm) {
+		frm.embed_link && frm.embed_link.remove();
+
 		// get iframe url for web form
-		frm.sidebar
+		frm.embed_link = frm.sidebar
 			.add_user_action(__("Copy embed code"))
 			.attr("href", "#")
 			.on("click", () => {
