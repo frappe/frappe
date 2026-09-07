@@ -183,9 +183,8 @@ class UserPermissions:
 							self.allow_modules.append(dtp.get("module"))
 
 				if p.get("export"):
-					if p.get("export_non_owner"):
-						self.can_export.append(dt)
-					else:
+					self.can_export.append(dt)
+					if not p.get("export_non_owner"):
 						self.can_export_owner_only.append(dt)
 
 		self.can_write += self.can_create

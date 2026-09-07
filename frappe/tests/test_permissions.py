@@ -28,6 +28,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.utils import make_test_records_for_doctype
 from frappe.utils.data import now_datetime
+from frappe.utils.user import UserPermissions
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Contact", "Salutation"]
 
@@ -102,6 +103,48 @@ class TestPermissions(IntegrationTestCase):
 		full_record = frappe.get_all("Test Blog Post", fields="*", limit=1)[0]
 		self.assertNotEqual(permitted_record, full_record)
 		self.assertSequenceSubset(post.meta.default_fields + post.meta.get_search_fields(), permitted_record)
+
+	def test_owner_only_export_stays_in_can_export(self):
+		role_name = "Test Export Boot Role"
+		user_name = "test_export_boot@example.com"
+		owner_only_dt = "Test Owner Only Export Boot"
+		shared_dt = "Test Shared Export Boot"
+
+		frappe.set_user("Administrator")
+		frappe.delete_doc("User", user_name, ignore_missing=True, force=True)
+		for name in (owner_only_dt, shared_dt):
+			frappe.delete_doc("DocType", name, ignore_missing=True, force=True)
+		frappe.delete_doc("Role", role_name, ignore_missing=True, force=True)
+
+		frappe.get_doc(doctype="Role", role_name=role_name, desk_access=1).insert()
+
+		for name, if_owner in ((owner_only_dt, 1), (shared_dt, 0)):
+			new_doctype(
+				name,
+				fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+				permissions=[{"role": role_name, "read": 1, "export": 1, "if_owner": if_owner}],
+			).insert()
+
+		user = frappe.get_doc(
+			doctype="User", email=user_name, first_name="Export Boot", send_welcome_email=0
+		).insert()
+		user.add_roles(role_name)
+
+		frappe.clear_cache(user=user_name)
+		frappe.set_user(user_name)
+		perms = UserPermissions()
+		perms.build_permissions()
+		frappe.set_user("Administrator")
+
+		self.assertIn(owner_only_dt, perms.can_export)
+		self.assertIn(owner_only_dt, perms.can_export_owner_only)
+		self.assertIn(shared_dt, perms.can_export)
+		self.assertNotIn(shared_dt, perms.can_export_owner_only)
+
+		frappe.delete_doc("User", user_name, force=True)
+		for name in (owner_only_dt, shared_dt):
+			frappe.delete_doc("DocType", name, force=True)
+		frappe.delete_doc("Role", role_name, force=True)
 
 	def test_user_permissions_in_doc(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
