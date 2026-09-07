@@ -19,6 +19,7 @@ Bowrna
 cogk
 Copilot
 dafrose
+dankgarlic1
 dependabot[bot]
 frappe-pr-bot
 gajjug004
