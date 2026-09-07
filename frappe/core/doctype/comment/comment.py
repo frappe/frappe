@@ -114,19 +114,18 @@ class Comment(Document):
 		update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
 
 
-MAX_COMMENT_CHAIN_DEPTH = 10
-
-
 def on_doctype_update():
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
 
 
-def has_permission(doc, ptype="read", user=None, debug=False):
-	"""A comment is readable as far as the document it was written on is.
+MAX_COMMENT_CHAIN_DEPTH = 10
+# a comment's reference can be another Comment, so read access comes from the real
+# document at the end of the chain: Comment -> Comment -> ToDo checks read on the ToDo.
+# a chain that never reaches a document is refused
 
-	A comment can be written on a comment, so the reference is followed to the document the
-	thread ends on. A chain that reaches none is refused.
-	"""
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""A comment is readable as far as the document it was written on is."""
 	if ptype != "read":
 		return True
 
