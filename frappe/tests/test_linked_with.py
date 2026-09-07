@@ -151,6 +151,199 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
 		doc.reload().delete()
 
+	def test_get_submitted_linked_docs_deepest_first(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		child2 = (
+			frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+		)
+
+		docs = linked_with.get_submitted_linked_docs(parent.doctype, parent.name)["docs"]
+
+		# child2 references child1, so it must come first to be cancellable in list order
+		self.assertEqual([doc["name"] for doc in docs], [child2.name, child1.name])
+
+	def test_get_submitted_linked_docs_has_no_duplicates(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		frappe.get_doc(
+			{"doctype": "Child DocType2", "parent_doctype": parent.name, "child_doctype1": child1.name}
+		).insert().submit()
+
+		result = linked_with.get_submitted_linked_docs(parent.doctype, parent.name)
+
+		keys = [(doc["doctype"], doc["name"]) for doc in result["docs"]]
+		self.assertEqual(len(keys), len(set(keys)))
+		self.assertEqual(result["count"], 2)
+
+	def test_cancel_all_linked_docs_defers_blocked_docs(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child1 = (
+			frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		)
+		child2 = (
+			frappe.get_doc(
+				{"doctype": "Child DocType2", "parent_doctype": parent.name, "child_doctype1": child1.name}
+			)
+			.insert()
+			.submit()
+		)
+
+		# child1 is blocked by child2 and passed first (with a duplicate); it must
+		# get deferred and cancelled on a later pass instead of failing
+		message_count = len(frappe.local.message_log)
+		linked_with.cancel_all_linked_docs(
+			docs=[
+				{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
+				{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
+				{"doctype": "Child DocType2", "name": child2.name, "docstatus": 1},
+			]
+		)
+
+		self.assertTrue(child1.reload().docstatus.is_cancelled())
+		self.assertTrue(child2.reload().docstatus.is_cancelled())
+		# the link error of the deferred attempt must not leak to the user
+		self.assertEqual(len(frappe.local.message_log), message_count)
+
+	def test_deferred_attempts_drop_queued_commit_hooks(self):
+		"""A rolled-back attempt must not leave its commit or rollback hooks
+		queued, or a later commit or rollback runs side effects of work that
+		never happened."""
+		attempts = []
+
+		def process(docinfo):
+			frappe.db.after_commit.add(lambda: None)
+			frappe.db.after_rollback.add(lambda: None)
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				raise frappe.LinkExistsError
+
+		after_commit_count = len(frappe.db.after_commit)
+		after_rollback_count = len(frappe.db.after_rollback)
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		# three attempts, two successful: only their hooks survive
+		self.assertEqual(attempts, ["blocked", "free", "blocked"])
+		self.assertEqual(len(frappe.db.after_commit), after_commit_count + 2)
+		self.assertEqual(len(frappe.db.after_rollback), after_rollback_count + 2)
+
+	def test_deferred_attempts_drop_queued_realtime_events(self):
+		"""Realtime events queued by a rolled-back attempt must not stay in the
+		log that gets flushed on commit."""
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			frappe.publish_realtime(
+				"test_dependency_order",
+				{"attempt": len(attempts)},
+				user=frappe.session.user,
+				after_commit=True,
+			)
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				raise frappe.LinkExistsError
+
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		events = [
+			message for event, message, room in frappe.local._realtime_log if event == "test_dependency_order"
+		]
+		# only the events of the two successful attempts survive
+		self.assertEqual(events, [{"attempt": 2}, {"attempt": 3}])
+
+	def test_deferred_attempts_run_their_rollback_callbacks(self):
+		"""A rolled-back attempt's rollback watchers must run, or the effects they
+		compensate for (files written, caches primed) stay behind."""
+		compensated = []
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				frappe.db.after_rollback.add(lambda: compensated.append("blocked"))
+				raise frappe.LinkExistsError
+
+		after_rollback_count = len(frappe.db.after_rollback)
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		self.assertEqual(compensated, ["blocked"])
+		self.assertEqual(len(frappe.db.after_rollback), after_rollback_count)
+
+	def test_deferred_attempts_restore_currently_saving(self):
+		"""Document saves append to frappe.flags.currently_saving and pop only on
+		success, so a deferred failure must not leak its entry."""
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			frappe.flags.currently_saving.append(("Parent DocType", docinfo["name"]))
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				raise frappe.LinkExistsError
+			frappe.flags.currently_saving.remove(("Parent DocType", docinfo["name"]))
+
+		before = list(frappe.flags.currently_saving)
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "blocked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
+
+		self.assertEqual(list(frappe.flags.currently_saving), before)
+
+	def test_deferred_attempts_restore_replaced_message_log(self):
+		"""Some permission checks swap the message log out and do not put it back
+		when they raise; the snapshot must survive the replacement."""
+		original = frappe.local.message_log
+		frappe.local.message_log = ["kept"]
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "blocked" and attempts.count("blocked") == 1:
+				frappe.local.message_log = ["from the failed attempt"]
+				raise frappe.LinkExistsError
+
+		try:
+			linked_with.process_linked_docs_in_dependency_order(
+				[
+					{"doctype": "Parent DocType", "name": "blocked"},
+					{"doctype": "Parent DocType", "name": "free"},
+				],
+				process,
+				"Processing",
+			)
+			self.assertEqual(frappe.local.message_log, ["kept"])
+		finally:
+			frappe.local.message_log = original
+
 	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
