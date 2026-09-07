@@ -1078,6 +1078,10 @@ frappe.ui.form.Form = class FrappeForm {
 			})
 			.then((r) => {
 				if (!r.exc) {
+					if (r.message.truncated) {
+						return me._cancel_all_in_background(btn, on_error);
+					}
+
 					let doctypes_to_cancel = (r.message.docs || []).map((value) => {
 						return value.doctype;
 					});
@@ -1108,6 +1112,44 @@ frappe.ui.form.Form = class FrappeForm {
 			links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
 		}
 		return `<ul>${links_text}</ul>`;
+	}
+
+	_cancel_all_in_background(btn, on_error) {
+		const me = this;
+		const d = frappe.warn(
+			__("Confirm"),
+			__(
+				"{0} {1} is linked with too many submitted documents to list. Cancel all of them in the background along with {1}? You will be notified when it completes.",
+				[__(me.doc.doctype).bold(), cstr(me.doc.name).bold()]
+			),
+			() => {
+				frappe.call({
+					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
+					args: {
+						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
+						root_doctype: me.doc.doctype,
+						root_name: me.doc.name,
+					},
+					freeze: true,
+					callback: (resp) => {
+						if (!resp.exc) {
+							frappe.show_alert({
+								message: __(
+									"Cancellation queued. You will be notified when it completes."
+								),
+								indicator: "blue",
+							});
+						}
+					},
+				});
+			},
+			__("Cancel All")
+		);
+		d.onhide = () => {
+			if (!d.primary_action_fulfilled) {
+				me.handle_save_fail(btn, on_error);
+			}
+		};
 	}
 
 	_cancel_all(r, btn, callback, on_error) {

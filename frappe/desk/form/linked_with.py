@@ -39,22 +39,39 @@ def get_submitted_linked_docs(
 	        finding the relationships(Foreign key references) across submittable doctypes.
 	3. Searching for links is going to be a tree like structure where at every level,
 	        you will be finding documents using parent document and parent document links.
+
+	Traversal stops once MAX_LINKED_DOCUMENTS_LISTED is exceeded and returns no
+	documents marked truncated; cancellation can still proceed through
+	cancel_all_linked_docs without docs, which discovers the graph in a
+	background job where the cap does not apply.
 	"""
 
+	frappe.has_permission(doctype, doc=name, throw=True)
+	docs, truncated = collect_cancellation_blockers(
+		doctype, name, ignore_doctypes_on_cancel_all, limit=MAX_LINKED_DOCUMENTS_LISTED
+	)
+	return {"docs": docs, "count": len(docs), "truncated": truncated}
+
+
+def collect_cancellation_blockers(
+	doctype: str, name: str, ignore_doctypes_on_cancel_all=None, limit: int | None = None
+) -> tuple[list, bool]:
+	"""Walk the submitted linked documents, deepest documents first in the
+	result; past `limit` discovered documents, give up and report truncated."""
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
 
-	frappe.has_permission(doctype, doc=name, throw=True)
 	tree = SubmittableDocumentTree(doctype, name)
-	visited_documents = tree.get_all_children(ignore_doctypes_on_cancel_all)
-	docs = []
+	visited_documents = tree.get_all_children(ignore_doctypes_on_cancel_all, limit=limit)
+	if tree.truncated:
+		return [], True
 
+	docs = []
 	for dt, names in visited_documents.items():
-		docs.extend([{"doctype": dt, "name": name, "docstatus": 1} for name in names])
+		docs.extend([{"doctype": dt, "name": docname, "docstatus": 1} for docname in names])
 
 	# deepest first, so referencing documents get cancelled before the referenced
 	docs.sort(key=lambda doc: tree.depth_by_document[doc["doctype"], doc["name"]], reverse=True)
-
-	return {"docs": docs, "count": len(docs)}
+	return docs, False
 
 
 class SubmittableDocumentTree:
@@ -74,13 +91,18 @@ class SubmittableDocumentTree:
 		self.to_be_visited_documents = {doctype: [name]}
 		self.visited_documents = defaultdict(list)
 		self.depth_by_document = {(doctype, name): 0}
+		self.truncated = False
 
 		self._submittable_doctypes = None  # All submittable doctypes in the system
 		self._references_across_doctypes = None  # doctype wise links/references
 
-	def get_all_children(self, ignore_doctypes_on_cancel_all):
+	def get_all_children(self, ignore_doctypes_on_cancel_all, limit=None):
 		"""Get all nodes of a tree except the root node (all the nested submitted
 		documents those are present in referencing tables dependent tables).
+
+		Past `limit` discovered documents, stop walking, mark the tree truncated
+		and return nothing: the walk is checked per level, so a single very wide
+		level can still overshoot before the check.
 		"""
 		depth = 0
 		while self.to_be_visited_documents:
@@ -100,6 +122,9 @@ class SubmittableDocumentTree:
 						self.depth_by_document[(linked_dt, linked_name)] = depth
 
 			self.to_be_visited_documents = next_level_children
+			if limit and len(self.depth_by_document) - 1 > limit:
+				self.truncated = True
+				return defaultdict(list)
 
 		# Remove root node from visited documents
 		if self.root_docname in self.visited_documents.get(self.root_doctype, []):
@@ -389,15 +414,24 @@ MAX_SYNCHRONOUS_LINKED_DOCS = 50
 
 @frappe.whitelist()
 def cancel_all_linked_docs(
-	docs: str | list,
+	docs: str | list | None = None,
 	ignore_doctypes_on_cancel_all: str | list[str] | None = None,
 	root_doctype: str | None = None,
 	root_name: str | None = None,
 ):
 	"""Cancel the linked documents in dependency order; sets larger than
-	MAX_SYNCHRONOUS_LINKED_DOCS move to a job that also cancels the root."""
+	MAX_SYNCHRONOUS_LINKED_DOCS, or docs=None past the listing cap, move to
+	a job that also cancels the root."""
 	if ignore_doctypes_on_cancel_all is None:
 		ignore_doctypes_on_cancel_all = []
+
+	if docs is None:
+		if not (root_doctype and root_name):
+			frappe.throw(_("Either the documents to cancel or a root document is required"))
+		frappe.has_permission(root_doctype, doc=root_name, throw=True)
+		return enqueue_linked_docs_processing(
+			[], "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all, discover=True
+		)
 
 	docs = frappe.parse_json(docs)
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all)
@@ -423,16 +457,16 @@ def cancel_linked_doc(docinfo):
 		doc.cancel()
 
 
-MAX_LINKED_DELETE_DOCUMENTS = 500
+MAX_LINKED_DOCUMENTS_LISTED = 500
 
 
 @frappe.whitelist()
 def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 	"""Get the documents blocking deletion of the given document, recursively,
 	deepest first; unreadable ones are neither returned nor traversed. Past
-	MAX_LINKED_DELETE_DOCUMENTS the result is empty and marked truncated."""
+	MAX_LINKED_DOCUMENTS_LISTED the result is empty and marked truncated."""
 	frappe.has_permission(doctype, doc=name, throw=True)
-	docs, truncated = collect_deletion_blockers(doctype, name, limit=MAX_LINKED_DELETE_DOCUMENTS)
+	docs, truncated = collect_deletion_blockers(doctype, name, limit=MAX_LINKED_DOCUMENTS_LISTED)
 	return {"docs": docs, "count": len(docs), "truncated": truncated}
 
 
@@ -494,7 +528,7 @@ def delete_all_linked_docs(
 	if root_doctype and root_name:
 		# the list was built by an earlier request; drop what is no longer linked
 		to_delete = keep_currently_linked(
-			to_delete, "delete", root_doctype, root_name, limit=MAX_LINKED_DELETE_DOCUMENTS
+			to_delete, "delete", root_doctype, root_name, limit=MAX_LINKED_DOCUMENTS_LISTED
 		)
 
 	# no realtime progress: late events strand the dialog; the freeze overlay suffices
@@ -507,16 +541,16 @@ def keep_currently_linked(
 	"""Drop entries that are no longer linked to the root: the list was built in
 	an earlier request and may be stale by the time it is processed."""
 	if action == "cancel":
-		tree = SubmittableDocumentTree(root_doctype, root_name)
-		visited = tree.get_all_children(frappe.parse_json(ignore_doctypes_on_cancel_all) or [])
-		current = {(dt, docname) for dt, names in visited.items() for docname in names}
+		current_docs, truncated = collect_cancellation_blockers(
+			root_doctype, root_name, ignore_doctypes_on_cancel_all, limit=limit
+		)
 	else:
 		current_docs, truncated = collect_deletion_blockers(root_doctype, root_name, limit=limit)
-		if truncated:
-			# the graph outgrew the cap since it was listed; process nothing
-			return []
-		current = {(doc["doctype"], doc["name"]) for doc in current_docs}
+	if truncated:
+		# the graph outgrew the cap since it was listed; process nothing
+		return []
 
+	current = {(doc["doctype"], doc["name"]) for doc in current_docs}
 	return [doc for doc in docs if (doc.get("doctype"), doc.get("name")) in current]
 
 
@@ -572,7 +606,9 @@ def process_linked_docs_in_background(
 		return
 
 	if root:
-		if discover:
+		if discover and action == "cancel":
+			docs, _truncated = collect_cancellation_blockers(*root, ignore_doctypes_on_cancel_all)
+		elif discover:
 			docs, _truncated = collect_deletion_blockers(*root)
 		else:
 			docs = keep_currently_linked(docs, action, *root, ignore_doctypes_on_cancel_all)
