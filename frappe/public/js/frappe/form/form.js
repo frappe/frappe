@@ -1430,7 +1430,10 @@ frappe.ui.form.Form = class FrappeForm {
 						);
 						return;
 					}
-					me._delete(true);
+					// the server deleted the root along with its links
+					frappe.utils.play_sound("delete");
+					frappe.model.delete_from_locals(me.doctype, me.docname);
+					window.history.back();
 				},
 			});
 		});

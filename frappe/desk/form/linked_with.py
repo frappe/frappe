@@ -72,6 +72,10 @@ def collect_cancellation_blockers(
 	return docs, False
 
 
+class LinkedDocumentsOverflow(Exception):
+	"""A bounded reference lookup returned as many rows as its limit allowed."""
+
+
 class SubmittableDocumentTree:
 	def __init__(self, doctype: str, name: str):
 		"""Construct a tree for the submitable linked documents.
@@ -90,6 +94,7 @@ class SubmittableDocumentTree:
 		self.visited_documents = defaultdict(list)
 		self.depth_by_document = {(doctype, name): 0}
 		self.truncated = False
+		self.fetch_limit = None
 
 		self._submittable_doctypes = None  # All submittable doctypes in the system
 		self._references_across_doctypes = None  # doctype wise links/references
@@ -100,13 +105,18 @@ class SubmittableDocumentTree:
 
 		Past `limit` documents (checked per level), mark truncated and return nothing.
 		"""
+		self.fetch_limit = limit + 1 if limit else None
 		depth = 0
 		while self.to_be_visited_documents:
 			depth += 1
 			current_level = self.visit_current_level(ignore_doctypes_on_cancel_all)
 			next_level_children = defaultdict(list)
 			for parent_dt, parent_docs in current_level.items():
-				child_docs = self.get_next_level_children(parent_dt, parent_docs)
+				try:
+					child_docs = self.get_next_level_children(parent_dt, parent_docs)
+				except LinkedDocumentsOverflow:
+					self.truncated = True
+					return defaultdict(list)
 				for linked_dt, linked_names in child_docs.items():
 					new_child_docs = (
 						set(linked_names)
@@ -162,6 +172,7 @@ class SubmittableDocumentTree:
 					get_parent_if_child_table_doc=True,
 					parent_filters=[("docstatus", "=", 1)],
 					allowed_parents=self.get_link_sources(),
+					limit=self.fetch_limit,
 				)
 				or {}
 			)
@@ -370,6 +381,7 @@ def get_referencing_documents(
 	parent_filters: list[list] | None = None,
 	child_filters=None,
 	allowed_parents=None,
+	limit: int | None = None,
 ):
 	"""Get linked documents based on link_info.
 
@@ -391,10 +403,17 @@ def get_referencing_documents(
 
 	if not link_info.get("is_child"):
 		filters.extend(parent_filters or [])
-		return {from_table: frappe.get_all(from_table, filters, pluck="name", order_by=None)}
+		names = frappe.get_all(from_table, filters, pluck="name", order_by=None, limit=limit)
+		if limit and len(names) >= limit:
+			raise LinkedDocumentsOverflow
+		return {from_table: names}
 
 	filters.extend(child_filters or [])
-	res = frappe.get_all(from_table, filters=filters, fields=["name", "parenttype", "parent"], order_by=None)
+	res = frappe.get_all(
+		from_table, filters=filters, fields=["name", "parenttype", "parent"], order_by=None, limit=limit
+	)
+	if limit and len(res) >= limit:
+		raise LinkedDocumentsOverflow
 	documents = defaultdict(list)
 
 	for parent, rows in itertools.groupby(res, key=lambda row: row["parenttype"]):
@@ -525,6 +544,8 @@ def delete_all_linked_docs(
 		to_delete = keep_currently_linked(
 			to_delete, "delete", root_doctype, root_name, limit=MAX_LINKED_DOCUMENTS_LISTED
 		)
+		# the root goes last: its on_trash may remove blockers nothing else can
+		to_delete = [*to_delete, frappe._dict(doctype=root_doctype, name=root_name)]
 
 	# no realtime progress: late events strand the dialog; the freeze overlay suffices
 	process_linked_docs_in_dependency_order(to_delete, delete_linked_doc)
