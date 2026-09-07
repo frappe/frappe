@@ -59,10 +59,6 @@ class StudioPage(Document):
 			self.name = f"page-{frappe.generate_hash(length=8)}"
 
 	def before_insert(self):
-		if isinstance(self.blocks, list):
-			self.blocks = frappe.as_json(self.blocks, indent=None)
-		if isinstance(self.draft_blocks, list):
-			self.draft_blocks = frappe.as_json(self.draft_blocks, indent=None)
 		if not self.blocks:
 			self.blocks = "[]"
 		if not self.page_title:
@@ -84,6 +80,10 @@ class StudioPage(Document):
 			frappe.db.set_value("Studio App", self.studio_app, "app_home", self.name)
 
 	def before_validate(self):
+		if isinstance(self.blocks, list):
+			self.blocks = frappe.as_json(self.blocks, indent=None)
+		if isinstance(self.draft_blocks, list):
+			self.draft_blocks = frappe.as_json(self.draft_blocks, indent=None)
 		# vue router needs a leading slash
 		if not self.route.startswith("/"):
 			self.route = f"/{self.route}"

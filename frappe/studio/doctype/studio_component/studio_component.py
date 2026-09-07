@@ -39,7 +39,7 @@ class StudioComponent(Document):
 	def before_export(self, doc):
 		doc.block = parse_json(doc.block)
 
-	def validate(self):
+	def before_validate(self):
 		if isinstance(self.block, dict):
 			self.block = frappe.as_json(self.block, indent=None)
 
