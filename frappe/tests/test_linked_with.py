@@ -586,9 +586,54 @@ class TestLinkedWith(IntegrationTestCase):
 			root_name=parent.name,
 		)
 
-		self.assertEqual(result["deleted"], [{"doctype": "Child DocType1", "name": child1.name}])
+		self.assertEqual(
+			result["deleted"],
+			[
+				{"doctype": "Child DocType1", "name": child1.name},
+				{"doctype": "Parent DocType", "name": parent.name},
+			],
+		)
 		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
 		self.assertTrue(frappe.db.exists("Child DocType1", unrelated.name))
+
+	def test_delete_all_linked_docs_lets_the_root_clean_up_blockers(self):
+		"""A blocker only the root's on_trash can remove must not stop the run
+		from attempting the root."""
+		child1 = frappe.get_doc({"doctype": "Child DocType1"}).insert()
+		child2 = (
+			frappe.get_doc({"doctype": "Child DocType2", "child_doctype1": child1.name}).insert().submit()
+		)
+
+		hook = f"{__name__}.hard_delete_referencing_child2_records"
+		self.addCleanup(setattr, frappe.local, "doc_events_hooks", None)
+		with self.patch_hooks({"doc_events": {"Child DocType1": {"on_trash": [hook]}}}):
+			frappe.local.doc_events_hooks = None
+			result = linked_with.delete_all_linked_docs(
+				docs=[{"doctype": "Child DocType2", "name": child2.name}],
+				root_doctype="Child DocType1",
+				root_name=child1.name,
+			)
+
+		self.assertIn({"doctype": "Child DocType1", "name": child1.name}, result["deleted"])
+		self.assertFalse(frappe.db.exists("Child DocType1", child1.name))
+		self.assertFalse(frappe.db.exists("Child DocType2", child2.name))
+
+	def test_bounded_dynamic_link_lookup_ignores_cancelled_rows(self):
+		"""Cancelled references must not fill the bounded lookup and hide a live one."""
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		reference = {
+			"doctype": "Child DocType1",
+			"reference_doctype": "Parent DocType",
+			"reference_name": parent.name,
+		}
+		for _ in range(3):
+			frappe.get_doc(reference).insert().submit().cancel()
+		live = frappe.get_doc(reference).insert()
+
+		docs, truncated = linked_with.collect_deletion_blockers(parent.doctype, parent.name, limit=1)
+
+		self.assertFalse(truncated)
+		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": live.name}])
 
 	def test_get_linked_docs_to_delete_deepest_first(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert()
