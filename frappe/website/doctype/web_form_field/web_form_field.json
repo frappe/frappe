@@ -51,7 +51,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype === 'Link' && parent.login_required",
+   "depends_on": "eval:(doc.fieldtype === 'Link' || doc.fieldtype === 'Table') && parent.login_required",
    "fieldname": "allow_read_on_all_link_options",
    "fieldtype": "Check",
    "label": "Allow Read On All Link Options"

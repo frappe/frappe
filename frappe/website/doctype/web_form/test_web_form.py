@@ -54,6 +54,12 @@ class TestWebForm(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "Web Form", web_form.name, force=True, ignore_permissions=True)
 		return web_form
 
+	def _get_link_option_values(self, field):
+		options = field.get("options")
+		if isinstance(options, str):
+			return options.splitlines()
+		return [option["value"] for option in options]
+
 	def test_web_form_mandatory_is_enforced_on_server(self):
 		"""A field mandatory only on the Web Form must not pass just because the
 		browser was skipped."""
@@ -1259,6 +1265,88 @@ class TestWebForm(IntegrationTestCase):
 		with self.assertQueryCount(6):
 			for _ in range(5):
 				process_link_field(link_field(), "manage-events")
+
+	def test_child_table_link_options_respect_table_allow_read_setting(self):
+		user = self.create_website_user("_test_web_form_child_link@example.com")
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+				},
+				{
+					"fieldname": "reference_doctype",
+					"fieldtype": "Link",
+					"label": "Reference Document Type",
+					"options": "DocType",
+				},
+			]
+		)
+		self.assertNotEqual(frappe.db.get_value("DocType", "Event", "owner"), user)
+
+		frappe.set_user(user)
+		restricted = get_form_data(doctype="Event", web_form_name=web_form.name)
+		table_field = next(
+			f for f in restricted.web_form.web_form_fields if f.fieldname == "event_participants"
+		)
+		child_link = next(f for f in table_field.fields if f.get("fieldname") == "reference_doctype")
+		top_level_link = next(
+			f for f in restricted.web_form.web_form_fields if f.fieldname == "reference_doctype"
+		)
+		self.assertNotIn("Event", self._get_link_option_values(child_link))
+		self.assertNotIn("Event", self._get_link_option_values(top_level_link))
+
+		frappe.set_user("Administrator")
+		web_form.reload()
+		table_field = next(f for f in web_form.web_form_fields if f.fieldname == "event_participants")
+		table_field.allow_read_on_all_link_options = 1
+		web_form.save(ignore_permissions=True)
+		frappe.clear_document_cache("Web Form", web_form.name)
+
+		frappe.set_user(user)
+		unrestricted = get_form_data(doctype="Event", web_form_name=web_form.name)
+		table_field = next(
+			f for f in unrestricted.web_form.web_form_fields if f.fieldname == "event_participants"
+		)
+		child_link = next(f for f in table_field.fields if f.get("fieldname") == "reference_doctype")
+		top_level_link = next(
+			f for f in unrestricted.web_form.web_form_fields if f.fieldname == "reference_doctype"
+		)
+		self.assertIn("Event", self._get_link_option_values(child_link))
+		self.assertNotIn("Event", self._get_link_option_values(top_level_link))
+
+	def test_load_form_data_applies_table_allow_read_setting(self):
+		user = self.create_website_user("_test_web_form_child_link_render@example.com")
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+					"allow_read_on_all_link_options": 1,
+				}
+			]
+		)
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.local.form_dict = frappe._dict(is_new=1)
+
+		frappe.set_user(user)
+		context = frappe._dict(
+			web_form_doc=web_form.as_dict(no_nulls=True),
+			success_message=None,
+			max_attachment_size=1,
+			title=web_form.title,
+		)
+		web_form.load_form_data(context)
+
+		table_field = next(
+			f for f in context.web_form_doc.web_form_fields if f.fieldname == "event_participants"
+		)
+		child_link = next(f for f in table_field.fields if f.get("fieldname") == "reference_doctype")
+		self.assertIn("Event", self._get_link_option_values(child_link))
 
 	def test_get_link_options_blocked_for_unauthorized_link_on_guest_key_form(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
