@@ -602,8 +602,8 @@ def enqueue_linked_docs_processing(
 def process_linked_docs_in_background(
 	docs, action, root=None, discover=False, ignore_doctypes_on_cancel_all=None
 ):
-	"""Process the docs, root last, and notify the user; the queued list is
-	refreshed or discovered uncapped, cancel all-or-nothing, delete best effort."""
+	"""Process the docs, root last, all or nothing, and notify the user; the
+	queued list is refreshed, or discovered uncapped, before processing."""
 	if not frappe.db.get_value("User", frappe.session.user, "enabled"):
 		# the initiating account was disabled after this job was queued
 		return
@@ -617,34 +617,27 @@ def process_linked_docs_in_background(
 			docs = keep_currently_linked(docs, action, *root, ignore_doctypes_on_cancel_all)
 		docs = [*docs, frappe._dict(doctype=root[0], name=root[1])]
 
-	if action == "cancel":
-		side_effect_counts = capture_pending_side_effects()
-		frappe.db.savepoint("cancel_linked_docs_job")
-		try:
-			process_linked_docs_in_dependency_order(docs, cancel_linked_doc)
-		except (
-			frappe.ValidationError,
-			frappe.PermissionError,
-			frappe.QueryTimeoutError,
-			frappe.QueryDeadlockError,
-		) as error:
-			frappe.db.rollback(save_point="cancel_linked_docs_job")
-			discard_side_effects_since(side_effect_counts)
-			notify_linked_docs_processed(
-				_("Could not cancel {0} linked documents: {1}").format(len(docs), str(error))
-			)
-			return
-		notify_linked_docs_processed(_("Cancelled {0} linked documents.").format(len(docs)))
+	process = cancel_linked_doc if action == "cancel" else delete_linked_doc
+	side_effect_counts = capture_pending_side_effects()
+	frappe.db.savepoint("linked_docs_job")
+	try:
+		process_linked_docs_in_dependency_order(docs, process)
+	except DEFERRABLE_ERRORS as error:
+		frappe.db.rollback(save_point="linked_docs_job")
+		discard_side_effects_since(side_effect_counts)
+		notify_linked_docs_processed(linked_docs_job_message(action, len(docs), error))
 		return
+	notify_linked_docs_processed(linked_docs_job_message(action, len(docs)))
 
-	skipped = process_linked_docs_in_dependency_order(docs, delete_linked_doc, raise_when_stuck=False)
-	done = len(docs) - len(skipped)
-	message = (
-		_("Deleted {0} linked documents; {1} could not be deleted.").format(done, len(skipped))
-		if skipped
-		else _("Deleted {0} linked documents.").format(done)
-	)
-	notify_linked_docs_processed(message)
+
+def linked_docs_job_message(action, count, error=None):
+	"""The notification text for a finished or failed job."""
+	messages = {
+		"cancel": (_("Cancelled {0} linked documents."), _("Could not cancel {0} linked documents: {1}")),
+		"delete": (_("Deleted {0} linked documents."), _("Could not delete {0} linked documents: {1}")),
+	}
+	done, failed = messages[action]
+	return failed.format(count, error) if error else done.format(count)
 
 
 def notify_linked_docs_processed(message):
@@ -669,6 +662,15 @@ def deduplicated(docs):
 	return unique
 
 
+# a document blocked by another one, or by a lock, may go through on a later pass
+DEFERRABLE_ERRORS = (
+	frappe.ValidationError,
+	frappe.PermissionError,
+	frappe.QueryTimeoutError,
+	frappe.QueryDeadlockError,
+)
+
+
 def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 	"""Run process over docs, deferring blocked ones to later passes until a
 	pass makes no progress, then raise the first blocker's error."""
@@ -689,7 +691,7 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-			except (frappe.ValidationError, frappe.PermissionError, frappe.QueryTimeoutError):
+			except DEFERRABLE_ERRORS:
 				# hooks ran before the failing check; undo their writes and side effects
 				# (not on a deadlock: the database has already rolled the whole transaction back)
 				frappe.db.rollback(save_point=save_point)
