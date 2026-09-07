@@ -240,7 +240,7 @@ export interface PageDialogFormOptions {
   fields?: PageDialogField[];
   /** Full `tabs > sections > columns > fields` layout. */
   tabs?: PageDialogTab[];
-  /** Renders the doctype's `Quick Entry` Form Layout, meta-derived if none. */
+  /** With `fieldnames`: those fields, in that order, straight from the doctype's meta. */
   doctype?: string;
   /** With `doctype`: only these fields, in this order. */
   fieldnames?: string[];
