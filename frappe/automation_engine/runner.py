@@ -377,12 +377,12 @@ def _try_action(handler, step, doc, context, params, savepoint, idx, started):
 		if not handler:
 			raise ValueError(f"Unknown action type: {step.get('action_type')}")
 		handler.validate(params, target.doctype if target else None)
-		result = handler.execute(target, params, context)
 		if not handler.transactional:
-			# The step has acted outside the database. Nothing below - not this savepoint, not the
-			# drainer's rollback - can take that back, so the row must never be replayed.
+			# Before the call, not after: a webhook that answers 500, or times out, has still left
+			# this process, and nothing here can tell whether it arrived. Marking a step that turns
+			# out to fail early costs a retry; marking one too late repeats the request.
 			mark_effects_delivered(context["queue_row"].name)
-		return "Success", result, _ms(started)
+		return "Success", handler.execute(target, params, context), _ms(started)
 	except StopAutomation as error:
 		schedule_wait(context, error.resume_after, idx + 1)
 		return "Waiting", str(error) or _("Automation paused"), _ms(started)

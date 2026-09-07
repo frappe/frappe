@@ -517,6 +517,50 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 		finally:
 			clear_effects(name)
 
+	def test_a_webhook_that_answers_with_an_error_still_marks_the_row(self):
+		"""The request left the process. Whether the far end answered 500 or nothing at all, it
+		cannot be assumed undelivered, so the row must not be replayed either."""
+		todo = make_todo()
+		auto = make_automation(
+			[{"action_type": "CallWebhook", "params": json.dumps({"url": "https://example.com/hook"})}],
+			stop_on_error=0,
+		)
+		name = self.queue_row(auto, todo.name)
+		try:
+			with (
+				public_dns({"example.com": "93.184.216.34"}),
+				patch("requests.request", return_value=FakeResponse(status_code=500, text="boom")),
+			):
+				execute_automation(name)
+
+			self.assertEqual(self.run_result(auto)["steps"][0]["status"], "Failed")
+			# The run finished and settled its own outcome, so the mark has served its purpose.
+			self.assertFalse(effects_delivered(name))
+		finally:
+			clear_effects(name)
+
+	def test_a_webhook_error_leaves_the_mark_when_the_run_cannot_finish(self):
+		todo = make_todo()
+		auto = make_automation(
+			[{"action_type": "CallWebhook", "params": json.dumps({"url": "https://example.com/hook"})}],
+			stop_on_error=0,
+		)
+		name = self.queue_row(auto, todo.name)
+		try:
+			with (
+				public_dns({"example.com": "93.184.216.34"}),
+				patch("requests.request", return_value=FakeResponse(status_code=500, text="boom")),
+				patch(
+					"frappe.automation_engine.runner._publish_update",
+					side_effect=ValueError("realtime is down"),
+				),
+			):
+				self.assertRaises(ValueError, execute_automation, name)
+
+			self.assertTrue(effects_delivered(name))
+		finally:
+			clear_effects(name)
+
 	def test_a_run_that_stays_in_the_database_leaves_no_mark(self):
 		todo = make_todo()
 		auto = make_automation([set_field("priority", "High")])
