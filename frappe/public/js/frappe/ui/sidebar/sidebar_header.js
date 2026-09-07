@@ -2,6 +2,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
+		// Every element this header's menu hangs on. The rail's header adds itself through
+		// attach_menu, and refresh_menu keeps them all in step.
+		this.menus = [];
 		this.make();
 		this.setup_menu();
 	}
@@ -16,6 +19,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.title = this.get_display_title();
 		this.set_header_icon();
 		this.$header_title.text(__(this.title));
+		// The mark is replaced along with the title. Before the header drew one, set_header_icon's
+		// result was only ever read by the onboarding widget and a stale icon here could not be
+		// seen. Which mark it is depends on whether there is a rail (see get_header_logo), and
+		// that can change from one module to the next, so it is re-resolved here too.
+		this.$header_logo.html(this.get_header_logo());
 		this.refresh_menu();
 	}
 
@@ -28,7 +36,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// listener, which is what keeping one header for the life of the desk avoids. Replacing the
 	// array does neither.
 	refresh_menu() {
-		if (this.menu) this.menu.menu_items = this.menu_items();
+		this.menus.forEach((menu) => (menu.menu_items = this.menu_items()));
 	}
 
 	// What the header's own menu offers.
@@ -197,21 +205,42 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 
 	setup_menu() {
-		this.menu = frappe.ui.create_menu({
-			parent: this.wrapper,
+		this.menu = this.attach_menu(this.wrapper);
+	}
+
+	// Hang this header's menu on an element. The rail's header calls it for a copy of its own,
+	// because while the rail is up the panel's header is hidden (see dock.scss) and its menu -- the
+	// switcher, Edit Sidebar, the system items -- would go with it.
+	//
+	// Each element gets its own menu, created once and never rebuilt: `frappe.ui.create_menu` binds
+	// to the node it is given and registers a document-level listener per call, so a second call for
+	// the same element would leave a listener behind on every navigation.
+	attach_menu(wrapper) {
+		const menu = frappe.ui.create_menu({
+			parent: wrapper,
 			menu_items: this.menu_items(),
 			onShow: this.toggle_active,
 			onHide: this.toggle_active,
 			onItemClick: this.toggle_active,
 		});
+		this.menus.push(menu);
+		return menu;
 	}
 
-	// The header shows the open state while its menu is up, except when the sidebar is collapsed
-	// to icons, where there is no header to highlight.
+	// The header shows the open state while its menu is up. The rail's header is always on screen
+	// and simply toggles; the panel's is only there when the panel is, and a highlight left on a
+	// header that has gone would be waiting on it when it came back.
 	toggle_active(wrapper) {
-		$(wrapper).toggleClass("active-sidebar");
-		if (!frappe.app.sidebar.sidebar_expanded) {
-			$(wrapper).removeClass("active-sidebar");
+		// The panel's menu opens from the whole header, the rail's from its chevron alone -- the
+		// rest of that one is a link to the apps screen. Either way it is the header that shows the
+		// open state, so resolve up to it: `closest` returns the header itself when that is what
+		// was passed.
+		const $wrapper = $(wrapper).closest(".shell-header").length
+			? $(wrapper).closest(".shell-header")
+			: $(wrapper);
+		$wrapper.toggleClass("active-sidebar");
+		if ($wrapper.closest(".body-sidebar").length && !frappe.app.sidebar.sidebar_expanded) {
+			$wrapper.removeClass("active-sidebar");
 		}
 	}
 	// What goes under the header's "Help" row: the help links registered for the page you are on,
@@ -274,10 +303,17 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		$(
 			frappe.render_template("sidebar_header", {
 				workspace_title: this.title,
+				header_icon: this.get_header_logo(),
+				// Which site you are on, under what you are inside. `boot.sitename` is the site's
+				// own name, which is its domain on any real deployment; the hostname stands in
+				// where boot carries none. Who you are is the user row's to say, at the foot of
+				// the rail, and it says it there in full.
+				subtitle: frappe.boot.sitename || window.location.hostname,
 			})
 		).prependTo(this.sidebar_wrapper);
 		this.wrapper = $(".sidebar-header");
 		this.$header_title = this.wrapper.find(".header-title");
+		this.$header_logo = this.wrapper.find(".header-logo");
 		this.$drop_icon = this.wrapper.find(".drop-icon");
 		this.toggle_width(this.sidebar.sidebar_expanded);
 	}
@@ -307,6 +343,25 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			: frappe.utils.desktop_icon(this.title || "", "gray", "sm");
 	}
 
+	// The mark the header draws.
+	//
+	// On a docked app the rail carries the app's logo one column to the left, so the header is
+	// free to mark the module its title names, and two logos side by side would say the same
+	// thing twice.
+	//
+	// A dock-less app has no rail, so nothing on screen says which app you are in -- the header
+	// title names the module, and the title bar names the page. There the header takes the mark
+	// the rail would have carried, which is the app's own logo. The module keeps the title, so
+	// between the two the header still says both.
+	//
+	// `header_icon` is left alone either way: it is the module's icon, and the onboarding widget
+	// reads it as one.
+	get_header_logo() {
+		if (this.sidebar.dock_enabled()) return this.header_icon;
+		const app = frappe.utils.app_logo(this.sidebar.get_sidebar_app());
+		return app ? app.icon : this.header_icon;
+	}
+
 	setup_hover() {
 		$(".sidebar-header").on("mouseover", function (event) {
 			if ($(this).parent().hasClass("active-sidebar")) return;
@@ -318,16 +373,16 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		});
 	}
 
+	// Bind or drop the header's hover, following whether the panel is on screen. The padding this
+	// used to set from here is the stylesheet's now: it was there to pull the title flush while the
+	// collapsed sidebar was a narrow strip, and a collapsed sidebar has not been on screen at all
+	// since the rail took that job.
 	toggle_width(expand) {
 		if (!expand) {
 			$(this.wrapper[0]).off("mouseleave");
 			$(this.wrapper[0]).off("mouseover");
-			this.wrapper.css("padding-left", "0px");
-			this.wrapper.css("padding-right", "0px");
 		} else {
 			this.setup_hover();
-			this.wrapper.css("padding-left", "8px");
-			this.wrapper.css("padding-right", "8px");
 		}
 	}
 };
