@@ -40,8 +40,7 @@ def get_submitted_linked_docs(
 	3. Searching for links is going to be a tree like structure where at every level,
 	        you will be finding documents using parent document and parent document links.
 
-	Past MAX_LINKED_DOCUMENTS_LISTED the result is empty and marked truncated;
-	cancel_all_linked_docs without docs then discovers the graph in a job.
+	Past MAX_LINKED_DOCUMENTS_LISTED the result is empty and marked truncated.
 	"""
 
 	frappe.has_permission(doctype, doc=name, throw=True)
@@ -101,10 +100,8 @@ class SubmittableDocumentTree:
 
 	def get_all_children(self, ignore_doctypes_on_cancel_all, limit=None):
 		"""Get all nodes of a tree except the root node (all the nested submitted
-		documents those are present in referencing tables dependent tables).
-
-		Past `limit` documents (checked per level), mark truncated and return nothing.
-		"""
+		documents those are present in referencing tables dependent tables); past
+		`limit` documents, mark the tree truncated and return nothing."""
 		self.fetch_limit = limit + 1 if limit else None
 		depth = 0
 		while self.to_be_visited_documents:
@@ -603,11 +600,8 @@ def enqueue_linked_docs_processing(
 def process_linked_docs_in_background(
 	docs, action, root=None, discover=False, ignore_doctypes_on_cancel_all=None
 ):
-	"""Process the docs and notify the user of the outcome.
-
-	The queued list is refreshed against the current graph (or discovered here,
-	uncapped), the root goes last, cancel is all-or-nothing, delete best-effort.
-	"""
+	"""Process the docs, root last, and notify the user; the queued list is
+	refreshed or discovered uncapped, cancel all-or-nothing, delete best effort."""
 	if not frappe.db.get_value("User", frappe.session.user, "enabled"):
 		# the initiating account was disabled after this job was queued
 		return

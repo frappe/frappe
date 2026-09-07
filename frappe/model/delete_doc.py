@@ -301,11 +301,7 @@ def check_permission_and_not_submitted(doc):
 
 
 def get_linked_docs(doc, method="Delete", limit: int | None = None) -> list[dict]:
-	"""
-	Return a list of documents that are statically linked to the given document.
-
-	With limit, stop collecting once that many links are found.
-	"""
+	"""Return the documents statically linked to the given document, at most `limit` of them."""
 	from frappe.model.rename_doc import get_link_fields
 
 	link_fields = get_link_fields(doc.doctype)
@@ -392,11 +388,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 
 def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> list[dict]:
-	"""
-	Return a list of documents that are dynamically linked to the given document.
-
-	With limit, stop collecting once that many links are found.
-	"""
+	"""Return the documents dynamically linked to the given document, at most `limit` of them."""
 	linked_docs = []
 
 	for df in get_dynamic_link_map().get(doc.doctype, []):
