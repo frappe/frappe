@@ -328,7 +328,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
 		)
 
-		if not otoken or otoken.client != client.client_id:
+		if not otoken or not client or otoken.client != client.client_id:
 			return False
 
 		# Set request.user to the user associated with the refresh token
