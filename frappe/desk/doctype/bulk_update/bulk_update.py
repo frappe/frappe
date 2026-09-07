@@ -109,6 +109,10 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 				if child_table_updates:
 					table_fields = doc.meta.get_table_fields()
 					for child_doctype, field_updates in child_table_updates.items():
+						if hasattr(doc, "handle_bulk_child_updates"):
+							handled = doc.handle_bulk_child_updates(child_doctype, field_updates)
+							if handled:
+								continue
 						# Find the table field that contains this child doctype
 						table_fieldname = next(
 							(field.fieldname for field in table_fields if field.options == child_doctype),
