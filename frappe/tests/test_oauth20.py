@@ -379,7 +379,6 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		self.assertEqual(token_response.status_code, 400)
 		self.assertEqual(token_response.json.get("error"), "invalid_grant")
-    
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_using_implicit_token(self):
