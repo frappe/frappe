@@ -1,10 +1,6 @@
 import "./sidebar_item";
 import "./dock";
 
-// The query parameter that carries the shell. Named `sidebar` because that is what the desk
-// already read here before anything wrote it.
-const SHELL_PARAM = "sidebar";
-
 // Route prefixes that name an entity of another kind rather than being one themselves:
 // `/desk/query-report/Balance Sheet` is about the Report, not about "query-report". Both the
 // entity and its link type are read from the prefix, which is why they live in one table.
@@ -305,11 +301,10 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function () {
-			// One path, because the URL's shell is an input to resolution now rather than a
-			// short-circuit around it (`shell_from_url`). The branch this replaces called
-			// `select_module` and then cleared `frappe.route_options` wholesale, throwing away
-			// every other parameter in the URL -- so a link carrying both a shell and list
-			// filters arrived with the filters silently gone.
+			// One path for every navigation. The branch this replaces read the shell out of the
+			// URL, called `select_module`, and then cleared `frappe.route_options` wholesale,
+			// throwing away every other parameter in the URL -- so a link carrying both a shell
+			// and list filters arrived with the filters silently gone.
 			frappe.app.sidebar.set_workspace_sidebar();
 			// The sidebar's setup() rebuilds the header, but it's skipped when the sidebar didn't
 			// change (e.g. navigating within the same workspace). Refresh the header here so it
@@ -433,6 +428,17 @@ frappe.ui.Sidebar = class Sidebar {
 		return !!page && !page.hide_sidebar;
 	}
 
+	// Whether the panel is allowed to close at all.
+	//
+	// Closing takes it off screen entirely rather than shrinking it to a strip, and the way back in
+	// is the rail: its rows open the panel, and its edge handle reopens it. A dock-less app has no
+	// rail, and the panel's own collapse chevron is gone, so closing one there would leave its only
+	// navigation unreachable. Where there is nothing to reopen it, it does not close -- and it is
+	// this same question that decides where the panel starts (see load_sidebar_state).
+	panel_can_close() {
+		return this.dock_enabled() && this.page_allows_dock();
+	}
+
 	// The dock is displayed unless the page opts out with `hide_dock`. That and
 	// `hide_sidebar` are both standard frappe.ui.Page options, and a page picks either shell on
 	// its own: the print format builder keeps the dock while hiding the body sidebar, and the
@@ -447,8 +453,19 @@ frappe.ui.Sidebar = class Sidebar {
 	// re-evaluates them.
 	apply_page_visibility() {
 		if (!this.wrapper) return;
-		this.wrapper.toggle(this.page_allows_sidebar());
+		let allowed = this.page_allows_sidebar();
+		this.wrapper.toggle(allowed);
 		this.refresh_dock();
+		// This is also the first moment the panel's start state can be decided honestly: it is
+		// read off the rail, and a cold load into a document resolves its module and builds its
+		// page after the sidebar was constructed (see load_sidebar_state). Settle it once, so a
+		// panel the user opened by hand is not shut again by the next page change.
+		//
+		// Only once the sidebar has been built for a module, since a half-built one has no rail
+		// to read and no header for expand_sidebar to lay out.
+		if (!this.sidebar_state_settled && this.current_module && this.sidebar_header) {
+			this.set_sidebar_state();
+		}
 	}
 
 	// Explicit override for callers that want the body sidebar hidden or shown regardless of the
@@ -478,13 +495,17 @@ frappe.ui.Sidebar = class Sidebar {
 			this.toggle_width();
 		});
 
-		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
-			this.toggle_width();
-		});
-
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
 		});
+		// Any row that goes somewhere takes the panel down behind it: the panel is an overlay over
+		// the page it just navigated, so leaving it up would cover the thing that was asked for.
+		// Rows that only toggle a group carry no href and are left alone, since expanding a group
+		// is a request to see more of this list rather than to leave it.
+		this.wrapper.on("click", ".body-sidebar a.item-anchor[href]", () => {
+			if (this.panel_can_close()) this.close();
+		});
+		this.setup_click_away();
 		this.setup_user_menu();
 	}
 
@@ -689,11 +710,25 @@ frappe.ui.Sidebar = class Sidebar {
 		this.expand_sidebar();
 	}
 
+	// Where the panel starts, which is decided by whether the app has a rail rather than by anything
+	// the user left behind.
+	//
+	// A docked app opens with the rail alone and the panel at nothing: the panel is an overlay you
+	// call up from a rail row, it covers the page while it is out, and it closes again on the next
+	// click elsewhere -- so it starts closed on every load rather than restoring where it was left.
+	// A dock-less app has no rail, so the panel is the whole of its navigation and is always out.
+	//
+	// Between those two there is no per-user state left to keep, which is why `sidebar-expanded` is
+	// no longer read or written.
+	//
+	// The rail is only knowable once the module has resolved and a page is on screen to allow it,
+	// and on a cold load into a document neither is true yet: `panel_can_close` answers "no rail",
+	// which opens the panel over the form that is about to render. So the answer counts as settled
+	// only when both were there to ask, and apply_page_visibility takes another pass when they
+	// were not.
 	load_sidebar_state() {
-		this.sidebar_expanded = true;
-		if (localStorage.getItem("sidebar-expanded") !== null) {
-			this.sidebar_expanded = JSON.parse(localStorage.getItem("sidebar-expanded"));
-		}
+		this.sidebar_state_settled = !!this.current_page() && !!this.current_module;
+		this.sidebar_expanded = !this.panel_can_close();
 
 		if (frappe.is_mobile()) {
 			this.sidebar_expanded = false;
@@ -707,7 +742,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
-		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
 		this.create_sidebar(this.sidebar_items);
 
 		// Scroll sidebar to selected page if it is not in viewport.
@@ -729,7 +763,6 @@ frappe.ui.Sidebar = class Sidebar {
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
 			this.wrapper.find(".sidebar-items").append(no_items_message);
-			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
 		}
 	}
 	// Search, notifications and background tasks, as full-width rows in their own band.
@@ -820,6 +853,34 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
+	// Close the panel when the click lands anywhere else. It reserves no space in the layout any
+	// more, so everything it covers is still there underneath and a click on it is a click on the
+	// page, not on the sidebar.
+	//
+	// Three things are not "elsewhere". The panel itself, plainly. The rail, because that is what
+	// opens the panel and a row there asks to keep it open on a different module -- without this
+	// the panel would close on the same click that opened it, since the handler runs after. And the
+	// page header's own toggle, for the same reason.
+	setup_click_away() {
+		$(document)
+			// The panel is rebuilt on some navigations; drop the previous instance's handler rather
+			// than stacking another on the document.
+			.off(".sidebar-click-away")
+			.on("click.sidebar-click-away", (e) => {
+				if (!this.sidebar_expanded || !this.panel_can_close()) return;
+				// A sidebar panel -- notifications, background tasks -- is mounted beside the
+				// panel rather than inside it, but a click in one is still a click on the
+				// sidebar's own furniture.
+				if (
+					$(e.target).closest(
+						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel"
+					).length
+				)
+					return;
+				this.close();
+			});
+	}
+
 	toggle_width() {
 		if (!this.sidebar_expanded) {
 			this.open();
@@ -829,7 +890,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
-		const is_rtl = frappe.utils.is_rtl();
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
 			this.wrapper.find(".avatar-name-email").show();
@@ -842,18 +902,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
-		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
-		const chevron_icon = this.sidebar_expanded
-			? is_rtl
-				? "chevron-right"
-				: "chevron-left"
-			: is_rtl
-			? "chevron-left"
-			: "chevron-right";
-		this.wrapper
-			.find(".body-sidebar .collapse-sidebar-link")
-			.find("use")
-			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		// While collapsed, the body sidebar is hidden and only the dock (rail) shows.
 		// This gates the rail's edge handle that reopens the sidebar (see dock.scss).
@@ -910,9 +958,8 @@ frappe.ui.Sidebar = class Sidebar {
 				// before selecting.
 				const name = route[route.length - 1];
 				const module = this.module_for_workspace(name);
-				// Not pinned: a workspace route names its own shell, so the parameter would
-				// repeat what the path already says. Leaving here is what writes it -- the shell
-				// is then on screen, which pins it for the next navigation.
+				// Leaving here is what states the shell for the next navigation: it is then the
+				// one on screen.
 				if (module) this.select_module(module);
 			} else {
 				// Resolution never looks at which app the route belongs to. A sidebar may link
@@ -930,8 +977,6 @@ frappe.ui.Sidebar = class Sidebar {
 					if (target && target !== this.current_module) {
 						frappe.app.sidebar.setup(target);
 					}
-					// Not pinned: this pass resolves with no sticky at all, so whatever it picks
-					// is what an unaided resolution gives and the URL need not say it.
 				} else {
 					// One ladder, whether the user navigated here or arrived cold. The only
 					// difference is what counts as the shell you are in: the sidebar on screen
@@ -941,20 +986,18 @@ frappe.ui.Sidebar = class Sidebar {
 					// to the first sidebar linking the entity and skipped the step that prefers
 					// the entity's own module, so deep-linking to a document and navigating to it
 					// could land in different shells.
-					// The shell can be stated three ways, strongest first: the URL names it, it
-					// is the one on screen, or it is the last one picked. The first two are
-					// pinned -- somebody chose this shell for this navigation -- so they hold
-					// across a link into another module. The third is only a memory of an older
-					// choice and still has to prove it can show the entity.
-					const from_url = this.shell_from_url();
+					// The shell can be stated two ways, strongest first: it is the one on screen,
+					// or it is the last one picked. The first is stated -- somebody chose this
+					// shell and is standing in it -- so it holds across a link into another
+					// module. The second is only a memory of an older choice and still has to
+					// prove it can show the entity.
 					const on_screen = this.current_module;
-					const sticky =
-						from_url || on_screen || localStorage.getItem("selected_module");
-					const {
-						sidebar: target,
-						provisional,
-						held_by_pin,
-					} = this.resolve_sidebar_for(route, sticky, !!(from_url || on_screen));
+					const sticky = on_screen || localStorage.getItem("selected_module");
+					const { sidebar: target, provisional } = this.resolve_sidebar_for(
+						route,
+						sticky,
+						!!on_screen
+					);
 
 					// Remember a guess made without the meta, so the branch above re-resolves it
 					// once the meta arrives. Set on both paths: a doctype visited for the first
@@ -965,17 +1008,6 @@ frappe.ui.Sidebar = class Sidebar {
 						if (this.current_module) this.select_module(target);
 						else frappe.app.sidebar.setup(target);
 					}
-
-					// Written back only when the pin is what held the shell, so the address bar
-					// stays clean everywhere else. Writing it on every navigation put a
-					// `sidebar=` on every desk URL, including ones where resolution would have
-					// reached the same shell unaided -- noise in every shared link, and it broke
-					// the round trip `cypress/integration/routing.js` checks, where a list URL
-					// must come back byte-for-byte as it went in.
-					//
-					// Skipped while provisional: the answer is still a guess and the second pass
-					// is about to correct it.
-					if (held_by_pin && !provisional) this.pin_shell_in_url(target);
 				}
 			}
 		} catch (e) {
@@ -983,44 +1015,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		this.set_active_workspace_item();
-	}
-
-	// The shell the URL names, or null. Read straight off `location.search` rather than from
-	// `frappe.route_options`, which the router merges without ever clearing, so a shell from an
-	// earlier navigation could still be sitting in it.
-	//
-	// It is also deleted from `route_options` here, because everything else that reads that
-	// object treats an unrecognised key as a list filter -- so a shell left in it would be
-	// applied as `sidebar = <shell>` against whatever doctype was opened.
-	shell_from_url() {
-		let named = null;
-		try {
-			named = new URLSearchParams(window.location.search).get(SHELL_PARAM);
-		} catch (e) {
-			return null;
-		}
-		if (frappe.route_options) delete frappe.route_options[SHELL_PARAM];
-
-		const all = frappe.boot.module_sidebars || {};
-		// A shell missing from the payload was renamed, uninstalled, or belongs to somebody with
-		// different permissions. Falling through to resolution beats rendering nothing.
-		return named && all[named] ? named : null;
-	}
-
-	// Put the resolved shell in the URL, so a reload or a shared link reproduces it.
-	//
-	// `replaceState`, not `pushState`: the shell is a property of where you already are, and a
-	// history entry would make Back undo the shell rather than the navigation.
-	pin_shell_in_url(shell) {
-		if (!shell) return;
-		try {
-			const url = new URL(window.location.href);
-			if (url.searchParams.get(SHELL_PARAM) === shell) return;
-			url.searchParams.set(SHELL_PARAM, shell);
-			history.replaceState(history.state, "", url.pathname + url.search + url.hash);
-		} catch (e) {
-			// A URL the browser will not parse is not worth failing navigation over.
-		}
 	}
 
 	// Switch to a workspace's sidebar and remember it so the choice survives navigation and
@@ -1165,16 +1159,24 @@ frappe.ui.Sidebar = class Sidebar {
 	open_dock_entry(entry) {
 		if (!entry) return;
 
-		// A shell entry has no page of its own, so it opens the shell's landing route. That route
-		// is resolved from the sidebar this user actually has, so it moves when they reorder it.
+		// A shell entry names a sidebar, not a page. Clicking it swaps the panel to that shell and
+		// opens the panel; where to go from there is the user's to pick from the rows it now shows.
+		// It used to route to the shell's landing page as well, which is to say it opened the
+		// sidebar's first link on their behalf -- the rail's own row for a module and the first row
+		// of that module's sidebar are not the same destination, and only one of them was asked
+		// for. The switcher menu still lands on it (see `open_module`), because picking a module
+		// out of a menu is a request to go there.
 		if (entry.link_type === "Sidebar") {
-			this.open_module(entry.module);
+			this.select_module(entry.module);
+			this.open();
 			return;
 		}
 
-		// Select the shell first, so the sidebar is correct when the route lands. A URL row
-		// selects nothing, because it has no shell.
+		// A pinned row is a destination of its own, so it still travels. Select the shell first, so
+		// the sidebar is correct when the route lands. A URL row selects nothing, because it has no
+		// shell.
 		if (entry.module) this.select_module(entry.module);
+		this.open();
 		const route = frappe.ui.sidebar_item.get_route({
 			type: "Link",
 			link_type: entry.link_type,
@@ -1353,7 +1355,7 @@ frappe.ui.Sidebar = class Sidebar {
 	//
 	// Everything below step 1 is the same for all three, which is the point: where a document
 	// opens must not depend on how you got there.
-	resolve_sidebar_for(route, sticky, pinned = false) {
+	resolve_sidebar_for(route, sticky, on_screen = false) {
 		const all = frappe.boot.module_sidebars || {};
 		const exists = (name) => (name && all[name] ? name : null);
 
@@ -1365,19 +1367,14 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// 1. The shell you are in, or the last one selected when it can show the entity.
 		//
-		// `pinned` says the shell is a stated fact rather than a leftover: the URL names it, or
-		// it is on screen and you got here by following a link out of it. A stated shell holds
-		// whatever the route is, which is what stops a link into another module moving the shell
-		// underneath you. An unpinned sticky is only a memory, so it still has to prove it can
-		// show the entity.
-		if (persisted && (pinned || candidates.includes(persisted))) {
+		// `on_screen` says the shell is a stated fact rather than a leftover: it is the sidebar
+		// you are standing in, and you got here by following a link out of it. A shell stated
+		// that way holds whatever the route is, which is what stops a link into another module
+		// moving the shell underneath you. A sticky read from localStorage is only a memory, so
+		// it still has to prove it can show the entity.
+		if (persisted && (on_screen || candidates.includes(persisted))) {
 			return {
 				sidebar: persisted,
-				// True only when the pin is what held it -- the shell does not list the entity,
-				// so without the pin this would have resolved elsewhere. That is exactly when
-				// the shell carries information the URL does not already imply, and it is the
-				// only case worth writing to the address bar.
-				held_by_pin: !candidates.includes(persisted),
 				reason: `last selected sidebar "${persisted}" — route entity "${entity}" is linked in it, so the selection is kept over the entity's owner and its module`,
 				provisional: false,
 			};
