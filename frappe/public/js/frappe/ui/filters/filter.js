@@ -303,6 +303,8 @@ frappe.ui.Filter = class {
 		df.hidden = 0;
 		df.is_filter = true;
 		delete df.hidden_due_to_dependency;
+		// Form selection constraints can exclude valid filter values, such as tree parents.
+		delete df.link_filters;
 
 		let c = condition ? condition : this.utils.get_default_condition(df);
 		this.set_condition(c);
