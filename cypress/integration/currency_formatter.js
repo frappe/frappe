@@ -54,8 +54,8 @@ context("Currency Formatter outside desk", () => {
 	before(() => {
 		// Any website page carries the web boot and frappe.format, but a signed-in user is
 		// redirected off /login and into desk, which boots frappe much later. Drop the session the
-		// first suite established, then assert the page is the portal one before reading from it.
-		cy.request("/api/method/logout");
+		// first suite established - the spec does not isolate tests - then assert the page really
+		// is the portal one before reading anything off it.
 		Cypress.session.clearAllSavedSessions();
 		cy.clearCookies();
 		cy.visit("/login");
