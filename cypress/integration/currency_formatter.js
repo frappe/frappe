@@ -52,10 +52,14 @@ context("Currency Formatter", () => {
 
 context("Currency Formatter outside desk", () => {
 	before(() => {
-		// Any website page carries the web boot and frappe.format. Visit one as a visitor: a
-		// logged-in user is redirected off /login and into desk, which boots frappe far later.
+		// Any website page carries the web boot and frappe.format, but a signed-in user is
+		// redirected off /login and into desk, which boots frappe much later. Drop the session the
+		// first suite established, then assert the page is the portal one before reading from it.
+		cy.request("/api/method/logout");
+		Cypress.session.clearAllSavedSessions();
 		cy.clearCookies();
 		cy.visit("/login");
+		cy.location("pathname").should("eq", "/login");
 	});
 
 	it("resolves precision from system defaults on portal pages", () => {
