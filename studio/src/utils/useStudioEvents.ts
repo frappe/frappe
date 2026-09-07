@@ -2,8 +2,9 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
-import { isCtrlOrCmd, isTargetEditable, setClipboardData, numberToPx, isHTML } from "@/utils/helpers"
-import { getBlockCopy, getBlockCopyWithoutParent, getComponentBlock, isJSONString } from "@/utils/serializer"
+import { isCtrlOrCmd, isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
+import { getComponentBlock } from "@/utils/serializer"
+import { copyBlocks, copySelectedBlocks, pasteBlocks } from "@/utils/blockCopyPaste"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 import { toast } from "frappe-ui"
@@ -13,12 +14,13 @@ const canvasStore = useCanvasStore()
 
 export function useStudioEvents(saveFragmentMode: () => void) {
 	useEventListener(document, "copy", (e) => {
-		copySelectedBlocksToClipboard(e)
+		if (isTargetEditable(e) || window.getSelection()?.toString()) return
+		copyBlocks(e)
 	})
 
 	useEventListener(document, "cut", (e) => {
 		if (isTargetEditable(e)) return
-		copySelectedBlocksToClipboard(e)
+		copySelectedBlocks(e)
 		if (canvasStore.activeCanvas?.selectedBlocks.length) {
 			for (const block of canvasStore.activeCanvas?.selectedBlocks) {
 				canvasStore.activeCanvas?.removeBlock(block, true)
@@ -31,31 +33,7 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 		if (isTargetEditable(e)) return
 		e.stopPropagation()
 
-		const data = e.clipboardData?.getData("studio-copied-blocks") as string
-		// paste blocks directly
-		if (data && isJSONString(data)) {
-			const dataObj = JSON.parse(data) as { blocks: Block[] }
-
-			if (canvasStore.activeCanvas?.selectedBlocks.length && dataObj.blocks[0].componentId !== "root") {
-				let parentBlock = canvasStore.activeCanvas.selectedBlocks[0]
-				let slotName = canvasStore.activeCanvas.selectedSlot?.slotName
-				while (parentBlock && !parentBlock.canHaveChildren()) {
-					parentBlock = parentBlock.getParentBlock() as Block
-				}
-				dataObj.blocks.forEach((block: BlockOptions) => {
-					if (slotName) {
-						block.parentSlotName = slotName
-					} else {
-						delete block.parentSlotName
-					}
-					parentBlock.addChild(getBlockCopy(block), null)
-				})
-			} else {
-				canvasStore.pushBlocks(dataObj.blocks)
-			}
-
-			return
-		}
+		if (pasteBlocks(e)) return
 
 		let text = e.clipboardData?.getData("text/plain") as string
 		if (!text) {
@@ -178,20 +156,6 @@ const clearSelection = () => {
 	blockController.clearSelection()
 	if (document.activeElement instanceof HTMLElement) {
 		document.activeElement.blur()
-	}
-}
-
-const copySelectedBlocksToClipboard = (e: ClipboardEvent) => {
-	if (isTargetEditable(e)) return
-	if (canvasStore.activeCanvas?.selectedBlocks.length) {
-		e.preventDefault()
-
-		const blocksToCopy = canvasStore.activeCanvas?.selectedBlocks.map((block) => {
-			return getBlockCopyWithoutParent(block)
-		})
-
-		const dataToCopy = { blocks: blocksToCopy }
-		setClipboardData(dataToCopy, e, "studio-copied-blocks")
 	}
 }
 

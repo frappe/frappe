@@ -12,6 +12,7 @@ from frappe.utils import get_datetime
 
 from studio.export import (
 	can_export,
+	delete_file,
 	delete_folder,
 	parse_json,
 	remove_null_fields,
@@ -111,19 +112,54 @@ class StudioPage(Document):
 		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
 		if not self.script:
 			return
-		folder = self.get_folder_path()
-		frappe.create_folder(folder)
-		stem = self.get_export_docname()
-		if not os.path.exists(os.path.join(folder, f"{stem}.ts")):
-			write_code_file(self, folder, code_field="script", extension="ts", filename=stem)
+		if os.path.exists(self.get_script_file_path()):
+			self.db_set("script", None, update_modified=False)
+		else:
+			self.write_script_file()
+
+	def write_script_file(self):
+		"""Write the page script to its companion <page>.ts and clear the DB field."""
+		if self.script:
+			frappe.create_folder(self.get_folder_path())
+			write_code_file(
+				self,
+				self.get_folder_path(),
+				code_field="script",
+				extension="ts",
+				filename=self.get_export_docname(),
+			)
+		else:
+			delete_file(self.get_script_file_path())
 		self.db_set("script", None, update_modified=False)
 
 	def restore_script_from_file(self):
 		"""Load the exported <page>.ts back into the `script` field, so the code survives in DB-only
 		mode (called before the export folder is deleted on un-export)."""
-		ts_path = os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
-		if os.path.exists(ts_path):
-			self.db_set("script", frappe.read_file(ts_path), update_modified=False)
+		if self.has_script_file():
+			self.db_set("script", frappe.read_file(self.get_script_file_path()), update_modified=False)
+
+	@frappe.whitelist()
+	def get_copy(self) -> dict:
+		"""Page settings, data sources, variables and script for copy-paste."""
+		return {
+			"page_title": self.page_title,
+			"allow_guest": self.allow_guest,
+			"resources": [
+				{field: row.get(field) for field in PAGE_RESOURCE_FIELDS} for row in self.resources
+			],
+			"variables": [
+				{field: row.get(field) for field in PAGE_VARIABLE_FIELDS} for row in self.variables
+			],
+			"script": self.get_script_source(),
+		}
+
+	def get_script_source(self) -> str:
+		if self.has_script_file():
+			return frappe.read_file(self.get_script_file_path())
+		return self.script or ""
+
+	def has_script_file(self) -> bool:
+		return bool(self.is_standard and self.frappe_app and os.path.exists(self.get_script_file_path()))
 
 	def relocate_on_retitle(self):
 		"""The page folder and its files are named after the page title, so a retitle relocates them.
@@ -141,9 +177,7 @@ class StudioPage(Document):
 		)
 		old_page_script = os.path.join(old_folder, f"{old_stem}.ts")
 		if os.path.exists(old_page_script):
-			os.rename(
-				old_page_script, os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
-			)
+			os.rename(old_page_script, self.get_script_file_path())
 		delete_folder(old_folder)
 
 	def export_components(self):
@@ -365,6 +399,9 @@ class StudioPage(Document):
 	def get_file_name(self):
 		return f"{self.get_export_docname()}.json"
 
+	def get_script_file_path(self) -> str:
+		return os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+
 
 @frappe.whitelist()
 def find_page_with_route(app_name: str, page_route: str) -> str | None:
@@ -456,11 +493,48 @@ def duplicate_page(page_name: str, app_name: str | None):
 		frappe.throw(_("You do not have permission to duplicate a page."))
 
 	page = frappe.get_doc("Studio Page", page_name)
-	new_page = frappe.copy_doc(page)
-	del new_page.page_name
-	new_page.page_title = f"{new_page.page_title} Copy"
-	new_page.route = None
-	new_page.studio_app = app_name
-	new_page.insert()
+	blocks = parse_json(page.draft_blocks or page.blocks) or []
+	return paste_page(app_name, {**page.get_copy(), "blocks": blocks})
 
-	return new_page
+
+@frappe.whitelist()
+def paste_page(app_name: str, page: dict | str, target_page: str | None = None) -> StudioPage:
+	"""Create a page from a copy, or replace the contents of `target_page` with it."""
+	if not frappe.has_permission("Studio Page", ptype="write"):
+		frappe.throw(_("You do not have permission to paste a page."))
+
+	copy = frappe.parse_json(page)
+	doc = frappe.get_doc("Studio Page", target_page) if target_page else new_page_from_copy(app_name, copy)
+	doc.draft_blocks = copy.get("blocks") or []
+	doc.set(
+		"resources",
+		[{field: row.get(field) for field in PAGE_RESOURCE_FIELDS} for row in copy.get("resources") or []],
+	)
+	doc.set(
+		"variables",
+		[{field: row.get(field) for field in PAGE_VARIABLE_FIELDS} for row in copy.get("variables") or []],
+	)
+	doc.script = copy.get("script")
+	doc.save()
+	if can_export(doc):
+		doc.write_script_file()
+	return doc
+
+
+def new_page_from_copy(app_name: str, copy: dict) -> StudioPage:
+	app = frappe.db.get_value("Studio App", app_name, ["is_standard", "frappe_app"], as_dict=True)
+	if not app:
+		frappe.throw(_("Studio App {0} not found").format(app_name), frappe.DoesNotExistError)
+
+	title = copy.get("page_title")
+	if title and frappe.db.exists("Studio Page", {"studio_app": app_name, "page_title": title}):
+		title = f"{title} Copy"
+
+	return frappe.get_doc(
+		doctype="Studio Page",
+		studio_app=app_name,
+		page_title=title,
+		allow_guest=copy.get("allow_guest"),
+		is_standard=app.is_standard,
+		frappe_app=app.frappe_app,
+	)

@@ -28,7 +28,8 @@ import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
+import type { PageCopy } from "@/utils/blockCopyPaste"
+import type { BlockOptions, LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
@@ -172,6 +173,23 @@ const useStudioStore = defineStore("store", () => {
 				},
 			},
 		)
+	}
+
+	async function pastePage(copy: PageCopy & { blocks: BlockOptions[] }, targetPage?: string) {
+		const appName = activeApp.value!.name
+		const page: StudioPage = await call("studio.studio.doctype.studio_page.studio_page.paste_page", {
+			app_name: appName,
+			page: copy,
+			target_page: targetPage,
+		})
+		if (targetPage) {
+			await setupPageScripts()
+			await setPage(targetPage)
+			toast.success("Page replaced")
+		} else {
+			router.push({ name: "StudioPage", params: { appID: appName, pageID: page.name } })
+			toast.success("Page created")
+		}
 	}
 
 	function getAppPageRoute(pageName: string) {
@@ -710,6 +728,7 @@ const useStudioStore = defineStore("store", () => {
 		updateActiveApp,
 		deleteAppPage,
 		duplicateAppPage,
+		pastePage,
 		appPages,
 		setAppPages,
 		getAppPageRoute,
