@@ -12,15 +12,21 @@ class WebUIBuildHook(BuildHookInterface):
 
 	def initialize(self, version, build_data):
 		root = Path(self.root)
-		# editable installs are for development; an sdist already carries the built assets
-		if version == "editable" or (root / "PKG-INFO").is_file():
+		webui_index = root / "src" / "flow_harness" / "server" / "webui" / "index.html"
+		if version == "editable":
 			return
+		if (root / "PKG-INFO").is_file():
+			if not webui_index.is_file():
+				raise RuntimeError(f"source distribution does not contain {webui_index}")
+			return
+
 		npm = shutil.which("npm")
 		if npm is None:
 			raise RuntimeError(
-				"npm is required to package the web UI (ui/app -> src/flow_harness/server/webui)"
+				"npm is required to package the web UI; install Node.js and npm, then run the build again"
 			)
-		subprocess.run(
-			[npm, "install", "--prefer-offline", "--no-audit", "--no-fund"], cwd=root / "ui", check=True
-		)
+		subprocess.run([npm, "ci"], cwd=root / "ui", check=True)
 		subprocess.run([npm, "run", "build", "-w", "app"], cwd=root / "ui", check=True)
+
+		if not webui_index.is_file():
+			raise RuntimeError(f"web UI build completed without producing {webui_index}")

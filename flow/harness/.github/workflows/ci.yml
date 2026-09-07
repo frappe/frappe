@@ -35,20 +35,48 @@ jobs:
       - name: Run pre-commit
         run: uvx pre-commit run --all-files --show-diff-on-failure
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
+        with:
+          python-version: "3.14"
+
+      - name: Build distribution
+        run: uv build
+
+      - name: Smoke-test wheel
+        run: |
+          uvx --from ./dist/frappe_flow-*.whl flow --version
+          python -c "import glob, zipfile; wheel = glob.glob('dist/frappe_flow-*.whl')[0]; archive = zipfile.ZipFile(wheel); assert any(name.endswith('flow_harness/server/webui/index.html') for name in archive.namelist())"
+          uv tool install ./dist/frappe_flow-*.whl
+          "$(uv tool dir --bin)/flow" --version
+
   # Single roll-up status check — make THIS the only required check in the
   # ruleset. It aggregates the individual jobs so the required-checks list never
   # has to be maintained.
   ci:
     name: ci
     runs-on: ubuntu-latest
-    needs: [test, pre-commit]
+    needs: [test, pre-commit, build]
     if: ${{ !cancelled() }}
     steps:
       - name: Verify all checks passed
         run: |
-          echo "test=${{ needs.test.result }} pre-commit=${{ needs['pre-commit'].result }}"
+          echo "test=${{ needs.test.result }} pre-commit=${{ needs['pre-commit'].result }} build=${{ needs.build.result }}"
 
           [ "${{ needs.test.result }}" = "success" ] || { echo "::error::unit tests failed"; exit 1; }
           [ "${{ needs['pre-commit'].result }}" = "success" ] || { echo "::error::pre-commit failed"; exit 1; }
+          [ "${{ needs.build.result }}" = "success" ] || { echo "::error::package build failed"; exit 1; }
 
           echo "All required checks passed."

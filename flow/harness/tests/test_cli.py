@@ -4,7 +4,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from flow_harness import config
+from flow_harness import __version__, config
 from flow_harness.cli.daemon import DaemonError
 from flow_harness.cli.login import _parse_callback, login, logout, show_providers
 from flow_harness.cli.main import _is_loopback, _resolve_auth_token, _with_default_command
@@ -82,11 +82,21 @@ def test_bare_invocation_defaults_to_web():
 	assert _with_default_command(["serve", "--port", "9001"], commands) == ["serve", "--port", "9001"]
 	assert _with_default_command(["login", "openai"], commands) == ["login", "openai"]
 	assert _with_default_command(["--help"], commands) == ["--help"]
+	assert _with_default_command(["--version"], commands) == ["--version"]
 	assert _with_default_command(["attach", "--url", "http://x"], commands) == [
 		"attach",
 		"--url",
 		"http://x",
 	]
+
+
+def test_version_flag(monkeypatch, capsys):
+	cli = importlib.import_module("flow_harness.cli.main")
+	monkeypatch.setattr("sys.argv", ["flow", "--version"])
+	with pytest.raises(SystemExit) as exc:
+		cli.main()
+	assert exc.value.code == 0
+	assert capsys.readouterr().out.strip() == f"flow {__version__}"
 
 
 def test_redis_sink_is_optional(monkeypatch):
