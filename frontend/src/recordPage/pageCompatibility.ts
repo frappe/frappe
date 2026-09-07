@@ -1,7 +1,7 @@
 // What happens to a script that reaches for a removed `page` name: a tombstone
 // throws naming the replacement, a gone name warns once on read.
 import { runningSource } from "./context";
-import { toastScriptError } from "./pageScripts";
+import { toastScriptError } from "./clientScripts";
 import { reportCustomizationError } from "./reportError";
 
 export interface Removal {

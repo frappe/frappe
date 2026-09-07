@@ -2,7 +2,7 @@
 // Not deep-freeze: a frozen object is non-extensible, so Vue's `reactive()` hands
 // back the raw object and `meta` stops being deeply reactive.
 import { runningSource } from "./context";
-import { toastScriptError } from "./pageScripts";
+import { toastScriptError } from "./clientScripts";
 import { reportCustomizationError } from "./reportError";
 
 /** What to write instead, per wrapped member. */

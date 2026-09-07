@@ -11,7 +11,7 @@ import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
-import { toastScriptError } from "./pageScripts";
+import { toastScriptError } from "./clientScripts";
 import { reportCustomizationError } from "./reportError";
 import type { PageRow } from "./types";
 

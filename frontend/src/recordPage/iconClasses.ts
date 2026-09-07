@@ -1,5 +1,5 @@
 // Script-named icons bridged to CSS classes at runtime: `lucide-*` classes are built
-// at build time and a Page Script can never ship a file, so the rule is built from the sprite.
+// at build time and a Client Script can never ship a file, so the rule is built from the sprite.
 import type { SurfaceItem } from "./types";
 
 const PREFIX = "lucide-";

@@ -1,11 +1,11 @@
-// The Page Script tier: the doctype's stored scripts, fetched once per doctype,
+// The Client Script tier: the doctype's stored scripts, fetched once per doctype,
 // evaluated as modules and registered as sources after file scripts and extensions.
 import { readonly, ref } from "vue";
 import { call, toast } from "frappe-ui";
 import { withRegisteringSource } from "./context";
-import { evaluatePageScript } from "./evaluatePageScript";
-import { GET_PAGE_SCRIPTS } from "./pageScriptTypes";
-import type { PageScriptRow, PageScriptsResponse } from "./pageScriptTypes";
+import { evaluateClientScript } from "./evaluateClientScript";
+import { GET_CLIENT_SCRIPTS } from "./clientScriptTypes";
+import type { ClientScriptRow, ClientScriptsResponse } from "./clientScriptTypes";
 import { registerRecordPage, unregisterSource } from "./registry";
 import {
   reportCustomizationError,
@@ -13,7 +13,7 @@ import {
 } from "./reportError";
 
 // The tier's own fetch has no script to blame, so it reports under its own name.
-const TIER_SOURCE = "page-scripts";
+const TIER_SOURCE = "client-scripts";
 
 const tiers = new Map<string, Promise<void>>();
 const sources = new Map<string, string[]>();
@@ -23,11 +23,11 @@ const notified = new Set<string>();
 // Two saves in quick succession overlap: the later build must win, and the
 // earlier one must not register its now-stale scripts behind it.
 const builds = new Map<string, number>();
-// Whether this session may write Page Scripts; the permission is on the doctype,
+// Whether this session may write Client Scripts; the permission is on the doctype,
 // so it is one answer for every doctype. Gates the failure toast and the editor.
 const writable = ref(false);
 
-export const canWritePageScripts = readonly(writable);
+export const canWriteClientScripts = readonly(writable);
 
 /** Tells a script author, and only a script author, about a customization failure, once per key. */
 export function toastScriptError(key: string, message: string) {
@@ -37,19 +37,19 @@ export function toastScriptError(key: string, message: string) {
 }
 
 /** Resolves when the doctype's tier has registered; one fetch per doctype. */
-export function loadPageScripts(doctype: string): Promise<void> {
+export function loadClientScripts(doctype: string): Promise<void> {
   const loading = tiers.get(doctype) ?? buildTier(doctype);
   tiers.set(doctype, loading);
   return loading;
 }
 
 /** Drops the cached tier and builds it again — a saved or deleted script. */
-export function reloadPageScripts(doctype: string): Promise<void> {
+export function reloadClientScripts(doctype: string): Promise<void> {
   tiers.delete(doctype);
-  return loadPageScripts(doctype);
+  return loadClientScripts(doctype);
 }
 
-export function resetPageScripts() {
+export function resetClientScripts() {
   for (const doctype of sources.keys()) clearTier(doctype);
   tiers.clear();
   builds.clear();
@@ -78,14 +78,14 @@ async function buildTier(doctype: string) {
 /** Null when the tier could not be fetched — distinct from an empty tier. */
 async function fetchScripts(
   doctype: string,
-): Promise<PageScriptsResponse | null> {
+): Promise<ClientScriptsResponse | null> {
   try {
-    return await call(GET_PAGE_SCRIPTS, { dt: doctype, view: "Record" });
+    return await call(GET_CLIENT_SCRIPTS, { dt: doctype, view: "Record" });
   } catch (error) {
-    console.error(`[page-script] could not load scripts for ${doctype}`, error);
+    console.error(`[client-script] could not load scripts for ${doctype}`, error);
     reportCustomizationError(error, {
       source: TIER_SOURCE,
-      tier: "page_script",
+      tier: "client_script",
       event: "load",
       doctype,
     });
@@ -96,12 +96,12 @@ async function fetchScripts(
 // A script that fails to load is skipped whole; the rest of the tier still runs.
 async function addScript(
   doctype: string,
-  row: PageScriptRow,
+  row: ClientScriptRow,
   canWrite: boolean,
 ) {
   const source = sourceName(row.name);
   try {
-    const handlers = await evaluatePageScript(row);
+    const handlers = await evaluateClientScript(row);
     await withRegisteringSource(source, async () =>
       registerRecordPage(doctype, handlers),
     );
@@ -117,7 +117,7 @@ function reportFailure(
   error: unknown,
   canWrite: boolean,
 ) {
-  console.error(`[page-script] ${name} failed to load, skipped`, error);
+  console.error(`[client-script] ${name} failed to load, skipped`, error);
   reportCustomizationError(error, {
     source: sourceName(name),
     event: "load",
@@ -125,7 +125,7 @@ function reportFailure(
   });
   if (!canWrite || toasted.has(name)) return;
   toasted.add(name);
-  toast.error(`Page Script '${name}' failed to load`);
+  toast.error(`Client Script '${name}' failed to load`);
 }
 
 function clearTier(doctype: string) {
@@ -134,5 +134,5 @@ function clearTier(doctype: string) {
 }
 
 function sourceName(name: string) {
-  return `page-script:${name}`;
+  return `client-script:${name}`;
 }

@@ -145,7 +145,7 @@ Per doctype: the owning app first, then every other app in `app_order`. The rule
 
 **Source**:
 Who is speaking, for attribution and for removal. `host` is the app's own bundled code;
-otherwise an app name, or `page-script:<name>`, or `builtin` for what the host seeded. A
+otherwise an app name, or `client-script:<name>`, or `builtin` for what the host seeded. A
 source is the unit `unregisterSource` drops.
 _Avoid_: `source_dir` (an app's on-disk path — unrelated), "layout source" (the object a
 host feeds field overrides to — also unrelated). See **Words that collide**.
@@ -201,14 +201,15 @@ determined by its key: a top-level key gets `(page)`, one nested under a child t
 a child fieldname or one of the two lifecycle events. Flattened at registration to a
 **dotted key** (`products.qty`), unambiguous because a fieldname cannot contain a dot.
 
-**Page Script**:
-A browser-authored customization stored in the `Page Script` doctype, evaluated as a real
-ES module through a blob URL — so `export default {…}` is the same text as in a file
-script, and bare imports resolve through the page's import map.
-_Avoid_: Client Script (desk v1's doctype), Form Script (CRM v1's).
+**Client Script**:
+A browser-authored customization stored as a `Client Script` row with `view = Record`,
+evaluated as a real ES module through a blob URL — so `export default {…}` is the same
+text as in a file script, and bare imports resolve through the page's import map. Desk v1
+reads only the `Form` and `List` rows of the same table, so neither side sees the other's.
+_Avoid_: Page Script (the tier's old name), Form Script (CRM v1's).
 
 **Tier**:
-The Page Script tier is the **last** in run order, after the host's file scripts and app
+The Client Script tier is the **last** in run order, after the host's file scripts and app
 extensions, because it runs at page mount. A script that fails to load is skipped whole
 and the rest of the tier still runs; a tier that could not be fetched is distinct from an
 empty one.
@@ -259,7 +260,7 @@ reach for the unambiguous alternative.
 - **`surface`** — (a) the `Surface` class, one customizable region; (b) the six members
   that stage together, two of which are not `Surface`s; (c) the loose sense in "the
   contribution surface", "the shell's own surface". Only (a) is a type.
-- **`page`** — the curated `RecordPageApi`; a contributed standalone page; a Page Script;
+- **`page`** — the curated `RecordPageApi`; a contributed standalone page; a Client Script;
   `ShellPage`, the server renderer; and desk v1's `Page` doctype. Qualify it always.
 - **`sidebar`** — (a) the panel a linked rail item opens, and desk v1's `Sidebar` doctype
   behind it; (b) `Sidebar`, one of the navigation item types, named for that destination;
@@ -268,9 +269,9 @@ reach for the unambiguous alternative.
 - **`record`** — the page kind; the contribution kind and filename; a docname field in the
   error reporter; **and a verb** (`Surface.record`, private, "verbs record ops"). No
   *exported* API may use it as a verb — say `push` or `append`.
-- **`tier`** — a customization tier (`page_script | extension | file_script`); the
-  per-doctype set of loaded Page Scripts; and "the declarative tier" for `page.dialog.form`.
-- **`name`** — a `SurfaceItem`'s address; a route param meaning docname; a `PageScriptRow`
+- **`tier`** — a customization tier (`client_script | extension | file_script`); the
+  per-doctype set of loaded Client Scripts; and "the declarative tier" for `page.dialog.form`.
+- **`name`** — a `SurfaceItem`'s address; a route param meaning docname; a `ClientScriptRow`
   name; and `PageFormTab.name`, which is explicitly *not* the address — that is `identity`.
 - **`actions`** — the contribution type's bag of `{name, label, run}`; dialog buttons; the
   default group a header item lands in; and, loosely, quick actions.

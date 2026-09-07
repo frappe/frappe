@@ -27,7 +27,7 @@ describe("the customization error reporter", () => {
   });
 
   it("reads the tier off the source, because attribution already carries it", () => {
-    expect(tierOf("page-script:Refund Button")).toBe("page_script");
+    expect(tierOf("client-script:Refund Button")).toBe("client_script");
     expect(tierOf("host")).toBe("file_script");
     expect(tierOf("audit")).toBe("extension");
   });
@@ -54,7 +54,7 @@ describe("the customization error reporter", () => {
   it("reports a source's event once per page session, killing the replay storm", () => {
     for (let attempt = 0; attempt < 5; attempt++)
       reportCustomizationError(new Error("boom"), {
-        source: "page-script:A",
+        source: "client-script:A",
         event: "onRefresh",
       });
 
@@ -64,7 +64,7 @@ describe("the customization error reporter", () => {
   it("still reports the same source's other events", () => {
     for (const event of ["onRefresh", "afterSave"])
       reportCustomizationError(new Error("boom"), {
-        source: "page-script:A",
+        source: "client-script:A",
         event,
       });
 
@@ -74,7 +74,7 @@ describe("the customization error reporter", () => {
   it("reports afresh once the session is reset", () => {
     const report = () =>
       reportCustomizationError(new Error("boom"), {
-        source: "page-script:A",
+        source: "client-script:A",
         event: "onRefresh",
       });
     report();
@@ -122,13 +122,13 @@ describe("the customization error reporter", () => {
 
   it("takes an explicit tier, because the tier's own fetch has no script", () => {
     reportCustomizationError(new Error("boom"), {
-      source: "page-scripts",
-      tier: "page_script",
+      source: "client-scripts",
+      tier: "client_script",
       event: "load",
       doctype: "CRM Deal",
     });
 
-    expect(payload().tier).toBe("page_script");
+    expect(payload().tier).toBe("client_script");
     expect(payload().doctype).toBe("CRM Deal");
   });
 
@@ -137,11 +137,11 @@ describe("the customization error reporter", () => {
     // would otherwise file the same failure again under a duller name.
     const error = new Error("page.dialog.prompt was removed in 0.3.0");
     reportCustomizationError(error, {
-      source: "page-script:A",
+      source: "client-script:A",
       event: "removed:dialog.prompt",
     });
     reportCustomizationError(error, {
-      source: "page-script:A",
+      source: "client-script:A",
       event: "onRefresh",
     });
 

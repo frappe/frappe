@@ -1,15 +1,15 @@
-/** One Page Script row as `get_page_scripts` returns it. */
-export interface PageScriptRow {
+/** One Client Script row: a `Client Script` with `view = Record`, as `get_client_scripts` returns it. */
+export interface ClientScriptRow {
   name: string;
   script: string;
 }
 
-export interface PageScriptsResponse {
-  scripts: PageScriptRow[];
-  /** Whether this user may write Page Scripts — the gate on failure toasts. */
+export interface ClientScriptsResponse {
+  scripts: ClientScriptRow[];
+  /** Whether this user may write Client Scripts — the gate on failure toasts. */
   can_write: boolean;
 }
 
-export const PAGE_SCRIPT_CHANGED = "page_script_changed";
-export const GET_PAGE_SCRIPTS =
-  "frappe.desk.doctype.page_script.page_script.get_page_scripts";
+export const CLIENT_SCRIPT_CHANGED = "client_script_changed";
+export const GET_CLIENT_SCRIPTS =
+  "frappe.custom.doctype.client_script.client_script.get_client_scripts";

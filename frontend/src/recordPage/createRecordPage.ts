@@ -99,7 +99,7 @@ export interface RecordPageHost {
   decorate?: Decorator;
   /** A child doctype's meta fields, by doctype name; absent while the metas load. */
   childFields?: (doctype: string) => RawMetaField[] | undefined;
-  /** Resolves when sources that register after mount (Page Scripts) are in. */
+  /** Resolves when sources that register after mount (Client Scripts) are in. */
   sourcesReady?: () => Promise<void>;
 }
 

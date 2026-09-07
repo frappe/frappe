@@ -1,23 +1,23 @@
-// The Page Script tier as executable claims.
+// The Client Script tier as executable claims.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { call, toast, evaluatePageScript } = vi.hoisted(() => ({
+const { call, toast, evaluateClientScript } = vi.hoisted(() => ({
   call: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn() },
   // Blob-URL modules are the real mechanism, but node cannot import one; the
   // evaluator's own contract is the browser verification's job.
-  evaluatePageScript: vi.fn(),
+  evaluateClientScript: vi.fn(),
 }));
 
 vi.mock("frappe-ui", () => ({ call, toast }));
-vi.mock("../evaluatePageScript", () => ({ evaluatePageScript }));
+vi.mock("../evaluateClientScript", () => ({ evaluateClientScript }));
 
 import {
-  canWritePageScripts,
-  loadPageScripts,
-  reloadPageScripts,
-  resetPageScripts,
-} from "../pageScripts";
+  canWriteClientScripts,
+  loadClientScripts,
+  reloadClientScripts,
+  resetClientScripts,
+} from "../clientScripts";
 import { registrationsFor, resetRegistry } from "../registry";
 
 function respond(scripts: string[], canWrite = true) {
@@ -31,105 +31,105 @@ function sources(doctype = "CRM Deal") {
   return registrationsFor(doctype).map((registration) => registration.source);
 }
 
-describe("the Page Script tier", () => {
+describe("the Client Script tier", () => {
   beforeEach(() => {
     resetRegistry();
-    resetPageScripts();
+    resetClientScripts();
     call.mockReset();
     toast.error.mockReset();
-    evaluatePageScript.mockReset();
-    evaluatePageScript.mockImplementation(async () => ({ onRefresh: () => {} }));
+    evaluateClientScript.mockReset();
+    evaluateClientScript.mockImplementation(async () => ({ onRefresh: () => {} }));
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   it("registers the doctype's scripts as sources, in the order served", async () => {
     respond(["oldest", "newest"]);
-    await loadPageScripts("CRM Deal");
-    expect(sources()).toEqual(["page-script:oldest", "page-script:newest"]);
+    await loadClientScripts("CRM Deal");
+    expect(sources()).toEqual(["client-script:oldest", "client-script:newest"]);
   });
 
   it("fetches once per doctype", async () => {
     respond(["only"]);
-    await loadPageScripts("CRM Deal");
-    await loadPageScripts("CRM Deal");
+    await loadClientScripts("CRM Deal");
+    await loadClientScripts("CRM Deal");
     expect(call).toHaveBeenCalledTimes(1);
   });
 
   it("skips a script that fails to load, keeping the rest of the tier", async () => {
     respond(["broken", "fine"]);
-    evaluatePageScript.mockImplementation(async (row: { name: string }) => {
+    evaluateClientScript.mockImplementation(async (row: { name: string }) => {
       if (row.name === "broken") throw new SyntaxError("Unexpected token");
       return { onRefresh: () => {} };
     });
-    await loadPageScripts("CRM Deal");
-    expect(sources()).toEqual(["page-script:fine"]);
+    await loadClientScripts("CRM Deal");
+    expect(sources()).toEqual(["client-script:fine"]);
   });
 
   it("toasts a failure once per script, only for script editors", async () => {
     respond(["broken"], false);
-    evaluatePageScript.mockRejectedValue(new SyntaxError("Unexpected token"));
-    await loadPageScripts("CRM Deal");
+    evaluateClientScript.mockRejectedValue(new SyntaxError("Unexpected token"));
+    await loadClientScripts("CRM Deal");
     expect(toast.error).not.toHaveBeenCalled();
 
     respond(["broken"], true);
-    await reloadPageScripts("CRM Deal");
-    await reloadPageScripts("CRM Deal");
+    await reloadClientScripts("CRM Deal");
+    await reloadClientScripts("CRM Deal");
     expect(toast.error).toHaveBeenCalledTimes(1);
   });
 
   it("re-registers the whole tier on reload, so creation order survives a save", async () => {
     respond(["oldest", "newest"]);
-    await loadPageScripts("CRM Deal");
-    await reloadPageScripts("CRM Deal");
-    expect(sources()).toEqual(["page-script:oldest", "page-script:newest"]);
+    await loadClientScripts("CRM Deal");
+    await reloadClientScripts("CRM Deal");
+    expect(sources()).toEqual(["client-script:oldest", "client-script:newest"]);
   });
 
   it("drops a deleted script's source on reload", async () => {
     respond(["kept", "deleted"]);
-    await loadPageScripts("CRM Deal");
+    await loadClientScripts("CRM Deal");
     respond(["kept"]);
-    await reloadPageScripts("CRM Deal");
-    expect(sources()).toEqual(["page-script:kept"]);
+    await reloadClientScripts("CRM Deal");
+    expect(sources()).toEqual(["client-script:kept"]);
   });
 
   it("lets the later of two overlapping reloads win, with no doubled source", async () => {
     respond(["stale"]);
-    await loadPageScripts("CRM Deal");
+    await loadClientScripts("CRM Deal");
 
     let releaseStale = (_: unknown) => {};
     call.mockReturnValueOnce(
       new Promise((resolve) => (releaseStale = resolve)),
     );
-    const slow = reloadPageScripts("CRM Deal");
+    const slow = reloadClientScripts("CRM Deal");
 
     respond(["fresh"]);
-    await reloadPageScripts("CRM Deal");
+    await reloadClientScripts("CRM Deal");
     releaseStale({
       scripts: [{ name: "stale", script: "export default {}" }],
       can_write: true,
     });
     await slow;
 
-    expect(sources()).toEqual(["page-script:fresh"]);
+    expect(sources()).toEqual(["client-script:fresh"]);
   });
 
   // The editor's entry affordance is gated on this, and the tier's fetch is the
   // only thing that asks the server the question.
-  it("publishes whether the session may write Page Scripts", async () => {
-    expect(canWritePageScripts.value).toBe(false);
+  it("publishes whether the session may write Client Scripts", async () => {
+    expect(canWriteClientScripts.value).toBe(false);
 
     respond(["one"], true);
-    await loadPageScripts("CRM Deal");
-    expect(canWritePageScripts.value).toBe(true);
+    await loadClientScripts("CRM Deal");
+    expect(canWriteClientScripts.value).toBe(true);
 
     respond(["one"], false);
-    await reloadPageScripts("CRM Deal");
-    expect(canWritePageScripts.value).toBe(false);
+    await reloadClientScripts("CRM Deal");
+    expect(canWriteClientScripts.value).toBe(false);
   });
 
-  it("leaves the page scriptless when the fetch fails", async () => {
+  it("leaves the client scriptless when the fetch fails", async () => {
     call.mockRejectedValue(new Error("offline"));
-    await loadPageScripts("CRM Deal");
+    await loadClientScripts("CRM Deal");
     expect(sources()).toEqual([]);
   });
 });
