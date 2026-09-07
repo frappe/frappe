@@ -97,7 +97,6 @@ def task_execution_flow(current_task: str):
 	frappe.db.commit()
 	# transaction boundary
 
-	# chain call
 	atomically_schedule_tasks(master, 1)
 
 
@@ -143,3 +142,60 @@ def atomically_schedule_tasks(job, count):
 					frappe.db.set_value("MapReduce Job", job, "callback_executed", True)
 
 	frappe.db.commit()
+
+
+def pause_tasks(job: str):
+	mpt = qb.DocType("MapReduce Task")
+	if queued := (
+		qb.from_(mpt)
+		.select(mpt.name)
+		.where(mpt.status.eq("Queued") & mpt.master.eq(job))
+		.orderby(mpt.name)
+		.for_update(skip_locked=True)
+		.run(as_dict=True, pluck="name")
+	):
+		qb.update(mpt).set("status", "Paused").where(mpt.name.isin(queued)).run()
+
+
+@frappe.whitelist()
+def start_execution(job: str | int):
+	job = int(job) if isinstance(job, str) else job
+	frappe.has_permission("MapReduce Job", ptype="write", doc=job, throw=True)
+
+	mpt = qb.DocType("MapReduce Task")
+	if paused := (
+		qb.from_(mpt)
+		.select(mpt.name)
+		.where(mpt.status.eq("Paused") & mpt.master.eq(job))
+		.orderby(mpt.name)
+		.for_update(skip_locked=True)
+		.run(as_dict=True, pluck="name")
+	):
+		qb.update(mpt).set("status", "Queued").where(mpt.name.isin(paused)).run()
+
+	atomically_schedule_tasks(job, 4)
+
+
+@frappe.whitelist()
+def pause_execution(job: str | int):
+	job = int(job) if isinstance(job, str) else job
+	frappe.has_permission("MapReduce Job", ptype="write", doc=job, throw=True)
+	pause_tasks(job)
+
+
+@frappe.whitelist()
+def get_progress(job: str | int):
+	job = int(job) if isinstance(job, str) else job
+	frappe.has_permission("MapReduce Job", ptype="write", doc=job, throw=True)
+
+	tasks = frappe.db.get_all("MapReduce Task", filters={"master": job}, fields=["status"], pluck="status")
+	job_status = frappe._dict()
+
+	if "Paused" in tasks:
+		job_status.status = "Paused"
+	elif "Queued" in tasks:
+		job_status.status = "Queued"
+
+	# progress
+	job_status.progress = (len([x for x in tasks if x == "Completed"]) / len(tasks)) * 100
+	return job_status

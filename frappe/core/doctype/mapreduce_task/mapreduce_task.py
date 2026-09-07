@@ -20,7 +20,7 @@ class MapReduceTask(Document):
 		master: DF.Link | None
 		name: DF.Int | None
 		reduce: DF.Data | None
-		status: DF.Literal["Queued", "Running", "Completed"]
+		status: DF.Literal["Queued", "Running", "Paused", "Completed"]
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "MapReduce Task"
