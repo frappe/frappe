@@ -9,6 +9,8 @@ import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
+from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_docs
+from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
 from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
 
@@ -69,10 +71,6 @@ def collect_cancellation_blockers(
 	# deepest first, so referencing documents get cancelled before the referenced
 	docs.sort(key=lambda doc: tree.depth_by_document[doc["doctype"], doc["name"]], reverse=True)
 	return docs, False
-
-
-class LinkedDocumentsOverflow(Exception):
-	"""A bounded reference lookup returned as many rows as its limit allowed."""
 
 
 class SubmittableDocumentTree:
@@ -487,9 +485,6 @@ def get_linked_docs_to_delete(doctype: str, name: str) -> dict:
 def collect_deletion_blockers(doctype: str, name: str, limit: int | None = None) -> tuple[list, bool]:
 	"""Walk the delete-blocking graph breadth first, deepest documents first in
 	the result; past `limit` discovered documents, give up and report truncated."""
-	from frappe.model.delete_doc import get_dynamic_linked_docs
-	from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
-
 	root_key = (doctype, name)
 	depth_by_document = {root_key: 0}
 	queue = deque([root_key])
@@ -498,10 +493,10 @@ def collect_deletion_blockers(doctype: str, name: str, limit: int | None = None)
 		parent_key = queue.popleft()
 		# lightweight stand-in; a full get_doc per node is too expensive
 		parent = frappe._dict(doctype=parent_key[0], name=parent_key[1])
-		links = get_statically_linked_docs(parent, method="Delete", limit=fetch_limit)
-		dynamic_links = get_dynamic_linked_docs(parent, method="Delete", limit=fetch_limit)
-		if fetch_limit and (len(links) >= fetch_limit or len(dynamic_links) >= fetch_limit):
-			# one document saturated the bounded lookup; give up early
+		try:
+			links = get_statically_linked_docs(parent, method="Delete", limit=fetch_limit)
+			dynamic_links = get_dynamic_linked_docs(parent, method="Delete", limit=fetch_limit)
+		except LinkedDocumentsOverflow:
 			return [], True
 		for link in [*links, *dynamic_links]:
 			key = (link["reference_doctype"], link["reference_docname"])
