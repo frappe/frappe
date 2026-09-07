@@ -75,12 +75,17 @@ async function shell(
 }
 
 function panel(host: HTMLElement) {
-	return host.querySelector("aside");
+	return host.querySelector("[data-slot='sidebar']");
 }
 
+function rail(host: HTMLElement) {
+	return host.querySelector("[data-slot='rail']");
+}
+
+/** The keys marked current: the ARIA state sits one element under the `data-key` hook. */
 function marked(scope: Element | null) {
 	return Array.from(scope?.querySelectorAll("[aria-current='page']") ?? []).map((node) =>
-		node.getAttribute("data-key")
+		node.closest("[data-key]")?.getAttribute("data-key")
 	);
 }
 
@@ -166,7 +171,7 @@ describe("what is marked current", () => {
 	it("marks the row you are on and the rail item that opens it", async () => {
 		const { host } = await shell([accounts], sidebars, "/crm-lead");
 
-		expect(marked(host.querySelector("nav"))).toEqual(["accounts"]);
+		expect(marked(rail(host))).toEqual(["accounts"]);
 		expect(marked(panel(host))).toEqual(["lead"]);
 	});
 
@@ -174,7 +179,7 @@ describe("what is marked current", () => {
 		// The rail item's own link points at the sidebar's FIRST row, so `router-link-active`
 		// would go out here and the reader would lose the only sign of where they are.
 		const { host } = await shell([accounts], sidebars, "/crm-lead");
-		const railItem = host.querySelector("nav [data-key='accounts']");
+		const railItem = rail(host)?.querySelector("[data-key='accounts'] [aria-current]");
 		expect(railItem?.getAttribute("aria-current")).toBe("page");
 	});
 
@@ -185,9 +190,7 @@ describe("what is marked current", () => {
 		expect(marked(panel(host))).toEqual(["lead"]);
 		// The rail's own `lead` points exactly here, so `RouterLink` would mark it by itself.
 		// Binding `aria-current` explicitly is what suppresses that and keeps the count at one.
-		expect(
-			host.querySelector("nav [data-key='lead']")?.getAttribute("aria-current")
-		).toBeNull();
+		expect(rail(host)?.querySelector("[data-key='lead'] [aria-current='page']")).toBeNull();
 	});
 
 	it("keeps the list marked while a record of it is open", async () => {
@@ -206,7 +209,7 @@ describe("two containers, one key", () => {
 			"/crm-lead"
 		);
 
-		expect(marked(host.querySelector("nav"))).toEqual(["accounts"]);
+		expect(marked(rail(host))).toEqual(["accounts"]);
 		expect(marked(panel(host))).toEqual(["lead"]);
 	});
 });
@@ -216,7 +219,7 @@ describe("the panel is a container, not a view of the rail", () => {
 		// The arrangement endpoints take the container as an argument, so the panel arranges on
 		// the rail's terms.
 		const { host } = await shell([accounts], sidebars, "/sales-invoice");
-		expect(panel(host)?.textContent).toContain("Arrange");
+		expect(panel(host)?.querySelector("[aria-label='Arrange this sidebar']")).not.toBeNull();
 	});
 });
 
@@ -227,17 +230,17 @@ describe("what the panel draws", () => {
 	it("draws sections and what nests under them", async () => {
 		const { host } = await shell([accounts], { module_def_accounts: [section, nested] }, "/sales-invoice");
 
-		const heading = panel(host)?.querySelector("[data-key='billing']");
-		expect(heading?.textContent?.trim()).toBe("Billing");
-		// The row is inside the section's list, not beside it.
-		expect(heading?.parentElement?.querySelector("[data-key='invoice']")).not.toBeNull();
+		const billing = panel(host)?.querySelector("[data-key='billing']");
+		expect(billing?.querySelector("h3")?.textContent?.trim()).toBe("Billing");
+		// The row is inside the section, not beside it.
+		expect(billing?.querySelector("[data-key='invoice']")).not.toBeNull();
 	});
 
 	it("marks a nested row, and the rail item above it", async () => {
 		const { host } = await shell([accounts], { module_def_accounts: [section, nested] }, "/sales-invoice");
 
 		expect(marked(panel(host))).toEqual(["invoice"]);
-		expect(marked(host.querySelector("nav"))).toEqual(["accounts"]);
+		expect(marked(rail(host))).toEqual(["accounts"]);
 	});
 
 	it("reports a cycle in each container it happens in", async () => {
@@ -289,7 +292,7 @@ describe("the panel's own context", () => {
 			"/crm-lead"
 		);
 
-		const more = panel(host)?.querySelector<HTMLElement>("[data-key='rest']");
+		const more = panel(host)?.querySelector<HTMLElement>("[data-key='rest'] button");
 		more?.click();
 		await flush();
 		await flush();

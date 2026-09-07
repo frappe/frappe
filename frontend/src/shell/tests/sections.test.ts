@@ -72,12 +72,17 @@ async function shell(
 }
 
 function row(host: HTMLElement, key: string) {
-	return host.querySelector(`aside [data-key="${CSS.escape(key)}"]`);
+	return host.querySelector(`[data-slot="sidebar"] [data-key="${CSS.escape(key)}"]`);
+}
+
+/** A section's disclosure control, absent when the section offers none. */
+function control(host: HTMLElement, key: string) {
+	return row(host, key)?.querySelector("button[aria-expanded]") ?? null;
 }
 
 function marked(host: HTMLElement) {
-	return Array.from(host.querySelectorAll("aside [aria-current='page']")).map((node) =>
-		node.getAttribute("data-key")
+	return Array.from(host.querySelectorAll("[data-slot='sidebar'] [aria-current='page']")).map(
+		(node) => node.closest("[data-key]")?.getAttribute("data-key")
 	);
 }
 
@@ -142,19 +147,20 @@ describe("the address opens the section it is standing in", () => {
 		const { host: shut } = await shell("/crm-deal");
 
 		expect(row(host, "lead-statuses")).not.toBeNull();
-		expect(row(shut, "deals-configure")?.getAttribute("aria-expanded")).toBe("false");
+		expect(control(shut, "deals-configure")?.getAttribute("aria-expanded")).toBe("false");
 		expect(row(shut, "deal-statuses")).toBeNull();
 	});
 
 	it("offers no control to shut it over the row you are on", async () => {
 		const { host } = await shell("/crm-lead-status");
-		const heading = row(host, "leads-configure")!;
 
 		// A plain heading, not a button reporting a state a click would not change.
-		expect(heading.tagName).toBe("P");
-		expect(heading.getAttribute("aria-expanded")).toBeNull();
+		expect(control(host, "leads-configure")).toBeNull();
+		expect(row(host, "leads-configure")?.querySelector("h3")?.textContent?.trim()).toBe(
+			"Configure"
+		);
 
-		await click(heading);
+		await click(row(host, "leads-configure")!.querySelector("h3"));
 		expect(row(host, "lead-statuses")).not.toBeNull();
 		expect(localStorage.getItem("frappe:desk:sections")).toBeNull();
 	});
@@ -165,7 +171,7 @@ describe("the address opens the section it is standing in", () => {
 		await router.push("/crm-lead");
 		await flush();
 
-		expect(row(host, "leads-configure")!.tagName).toBe("BUTTON");
+		expect(control(host, "leads-configure")).not.toBeNull();
 	});
 
 	it("shuts it again on the way out, and records nothing", async () => {
@@ -174,7 +180,7 @@ describe("the address opens the section it is standing in", () => {
 		await router.push("/crm-lead");
 		await flush();
 
-		expect(row(host, "leads-configure")?.getAttribute("aria-expanded")).toBe("false");
+		expect(control(host, "leads-configure")?.getAttribute("aria-expanded")).toBe("false");
 		expect(row(host, "lead-statuses")).toBeNull();
 		expect(localStorage.getItem("frappe:desk:sections")).toBeNull();
 	});
@@ -183,28 +189,28 @@ describe("the address opens the section it is standing in", () => {
 describe("a reader's own toggle", () => {
 	it("survives a reload", async () => {
 		const { host } = await shell("/crm-lead");
-		await click(row(host, "leads-configure"));
+		await click(control(host, "leads-configure"));
 		expect(row(host, "lead-statuses")).not.toBeNull();
 
 		const { host: again } = await shell("/crm-lead");
-		expect(again.querySelector('aside [data-key="lead-statuses"]')).not.toBeNull();
+		expect(row(again, "lead-statuses")).not.toBeNull();
 	});
 
 	it("does not reach another user on the same browser", async () => {
 		const { host } = await shell("/crm-lead");
-		await click(row(host, "leads-configure"));
+		await click(control(host, "leads-configure"));
 
 		const { host: colleague } = await shell("/crm-lead", "colleague@example.com");
-		expect(row(colleague, "leads-configure")?.getAttribute("aria-expanded")).toBe("false");
+		expect(control(colleague, "leads-configure")?.getAttribute("aria-expanded")).toBe("false");
 	});
 
 	it("is cleared by toggling it back", async () => {
 		const { host } = await shell("/crm-lead");
-		await click(row(host, "leads-configure"));
-		await click(row(host, "leads-configure"));
+		await click(control(host, "leads-configure"));
+		await click(control(host, "leads-configure"));
 
 		const { host: again } = await shell("/crm-lead");
-		expect(row(again, "leads-configure")?.getAttribute("aria-expanded")).toBe("false");
+		expect(control(again, "leads-configure")?.getAttribute("aria-expanded")).toBe("false");
 	});
 });
 
@@ -232,10 +238,10 @@ describe("shutting a section the app ships open", () => {
 		const { host } = await shell("/crm-lead", READER, shippedOpen);
 		expect(row(host, "sources")).not.toBeNull();
 
-		await click(row(host, "more"));
+		await click(control(host, "more"));
 
 		const { host: again } = await shell("/crm-lead", READER, shippedOpen);
-		expect(row(again, "more")?.getAttribute("aria-expanded")).toBe("false");
+		expect(control(again, "more")?.getAttribute("aria-expanded")).toBe("false");
 		expect(row(again, "sources")).toBeNull();
 	});
 });

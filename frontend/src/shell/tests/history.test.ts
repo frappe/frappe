@@ -101,15 +101,15 @@ async function shell(path: string): Promise<{ host: HTMLElement; router: Router;
 	return { host, router, app };
 }
 
-/** The sidebar open now, read off the rail row the shell marks current. */
+/** The sidebar open now, read off the rail cell the shell marks current. */
 function open(host: HTMLElement): string | null | undefined {
-	const marked = host.querySelector("nav [aria-current='page']");
-	return marked?.getAttribute("data-sidebar");
+	const marked = host.querySelector("[data-slot='rail'] [aria-current='page']");
+	return marked?.closest("[data-key]")?.getAttribute("data-sidebar");
 }
 
 /** Follow a row the way a reader does: the href it drew, pushed. */
-async function follow(host: HTMLElement, router: Router, key: string) {
-	const link = host.querySelector<HTMLAnchorElement>(`[data-key='${key}']`);
+async function follow(host: Element, router: Router, key: string) {
+	const link = host.querySelector<HTMLAnchorElement>(`[data-key='${key}'] a`);
 	await router.push(link!.getAttribute("href")!);
 	await settle();
 }
@@ -132,10 +132,10 @@ beforeEach(async () => {
 /** `Item` read in Stock, then `Item` read in Buying. */
 async function walk() {
 	const { host, router, app } = await shell("/stock-entry?sidebar=module_def_stock");
-	const panel = () => host.querySelector("aside")!;
+	const panel = () => host.querySelector("[data-slot='sidebar']")!;
 
 	await follow(panel(), router, "item");
-	await follow(host.querySelector("nav")!, router, "buying");
+	await follow(host.querySelector("[data-slot='rail']")!, router, "buying");
 
 	return { host, router, app };
 }
@@ -226,7 +226,7 @@ describe("what the address-keyed record is left holding", () => {
 	it("answers a push arriving from an independent rail item", async () => {
 		const { host, router } = await walk();
 
-		await follow(host.querySelector("nav")!, router, "note");
+		await follow(host.querySelector("[data-slot='rail']")!, router, "note");
 		expect(open(host)).toBe(null);
 
 		// A fresh entry, so no stamp, and nothing open to carry: the record is all there is.
