@@ -193,14 +193,19 @@ async function load() {
 	actionsVersion.value++;
 }
 
-async function save() {
+// One request at a time: a `page.save()` that lands mid-flight awaits the one in flight.
+let inFlight: Promise<void> | null = null;
+
+function save() {
 	// Refuse to write the wrong record if the route moved while an action ran.
 	if (doc.value.name !== docname.value || doctype.value === null) {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
+	if (!inFlight) inFlight = write().finally(() => (inFlight = null));
+	return inFlight;
+}
 
-	// One request at a time: a script's `page.save()` can land while the button's is in flight.
-	if (saving.value) return;
+async function write() {
 	const mine = generation;
 	saving.value = true;
 	try {
