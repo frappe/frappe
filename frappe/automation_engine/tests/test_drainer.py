@@ -261,6 +261,19 @@ class TestDrainer(IntegrationTestCase):
 		self.assertEqual(runs, [name])
 		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Failed")
 
+	def test_a_row_reclaimed_after_a_crash_does_not_run_its_flow_again(self):
+		"""A worker killed between sending a webhook and committing leaves the row Running with its
+		mark standing. The stale sweep returns it to Pending; the next drain must not replay it."""
+		name = self.add_row("crashed_after_delivery")
+		mark_effects_delivered(name)
+		runs = []
+
+		drain(executor=runs.append)
+
+		self.assertEqual(runs, [])
+		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Failed")
+		self.assertFalse(effects_delivered(name))
+
 	def test_the_mark_is_dropped_once_the_outcome_is_committed(self):
 		name = self.add_row("delivered_then_committed")
 		claimed = claim_batch(1)
