@@ -50,8 +50,7 @@ def get_submitted_linked_docs(
 	for dt, names in visited_documents.items():
 		docs.extend([{"doctype": dt, "name": name, "docstatus": 1} for name in names])
 
-	# Deepest documents first, so referencing documents get cancelled before
-	# the documents they reference.
+	# deepest first, so referencing documents get cancelled before the referenced
 	docs.sort(key=lambda doc: tree.depth_by_document[doc["doctype"], doc["name"]], reverse=True)
 
 	return {"docs": docs, "count": len(docs)}
@@ -386,16 +385,8 @@ def get_referencing_documents(
 
 @frappe.whitelist()
 def cancel_all_linked_docs(docs: str | list, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
-	"""
-	Cancel all linked doctype, optionally ignore doctypes specified in a list.
-
-	A document that other submitted documents still reference is deferred and
-	retried after the rest, so callers need not pass docs in dependency order.
-
-	Arguments:
-	        docs (json str) - It contains list of dictionaries of a linked documents.
-	        ignore_doctypes_on_cancel_all (list) - List of doctypes to ignore while cancelling.
-	"""
+	"""Cancel the linked documents, deferring blocked ones so callers need not
+	order them; doctypes in ignore_doctypes_on_cancel_all are skipped."""
 	if ignore_doctypes_on_cancel_all is None:
 		ignore_doctypes_on_cancel_all = []
 
@@ -439,9 +430,7 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 			try:
 				process(doc)
 			except frappe.LinkExistsError:
-				# cancel and delete both run their hooks before the link check, so
-				# roll back the writes of the failed attempt before deferring, and
-				# drop the side effects it queued, which savepoints cannot undo
+				# hooks ran before the link check; undo their writes and side effects
 				frappe.db.rollback(save_point=save_point)
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
@@ -451,18 +440,13 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title):
 			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
 
 		if len(deferred) == len(docs):
-			# A full pass processed nothing, so a document outside `docs` blocks
-			# it. Process without catching to surface the link error.
+			# nothing progressed: a document outside the set blocks it; surface the error
 			process(deferred[0])
 		docs = deferred
 
 
 def capture_pending_side_effects() -> dict:
-	"""The pending side-effect queues, which savepoints cannot restore.
-
-	The message log and currently_saving are captured as copies, not lengths:
-	some permission checks swap the message log out without restoring it when
-	they raise, and a failed document save leaks its currently_saving entry."""
+	"""Snapshot the side-effect queues that savepoints cannot restore."""
 	return {
 		"message_log": list(frappe.local.message_log),
 		"currently_saving": list(frappe.flags.currently_saving or []),
@@ -476,13 +460,8 @@ def capture_pending_side_effects() -> dict:
 
 
 def discard_side_effects_since(counts: dict):
-	"""Drop side effects queued after capture: the messages, commit hooks,
-	realtime events and webhook executions of a rolled-back attempt would
-	otherwise still run.
-
-	Rollback watchers the attempt registered are executed rather than dropped:
-	a savepoint rollback does not run them, yet the work they compensate for
-	(files written, caches primed) is being undone right here."""
+	"""Drop what a rolled-back attempt queued; its rollback watchers are run,
+	not dropped, since they compensate effects the savepoint cannot undo."""
 	frappe.local.message_log = counts["message_log"]
 	frappe.flags.currently_saving = counts["currently_saving"]
 	frappe.db.before_commit.truncate(counts["before_commit"])
@@ -496,8 +475,7 @@ def discard_side_effects_since(counts: dict):
 
 	if counts["realtime_log"] is None:
 		if hasattr(frappe.local, "_realtime_log"):
-			# the attempt created the log and its flush hook, which the truncation
-			# above removed; drop the log so the next event re-registers the flush
+			# its flush hook was truncated above; drop the log so it re-registers
 			del frappe.local._realtime_log
 	elif hasattr(frappe.local, "_realtime_log"):
 		frappe.local._realtime_log = frappe.local._realtime_log[: counts["realtime_log"]]
