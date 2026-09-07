@@ -32,7 +32,7 @@ export function layoutMode(options: PageDialogFormOptions): LayoutMode {
   return LAYOUT_MODES.find((mode) => options[mode] != null) ?? "none";
 }
 
-/** Warns, once per open, about the two layout requests that render nothing. */
+/** Warns about the two layout requests that render nothing. */
 export function warnAmbiguousLayout(options: PageDialogFormOptions): void {
   if (!import.meta.env.DEV) return;
   const given = LAYOUT_MODES.filter((mode) => options[mode] != null);

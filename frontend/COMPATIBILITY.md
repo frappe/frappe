@@ -207,7 +207,7 @@ frappe-ui adds does **not** reach your script for free — somebody has to add i
 events, on purpose.
 
 What we bought for that cost is the thing a script author cannot otherwise see: an
-option whose _meaning_ a dependency changes cannot silently change what a stored Page
+option whose _meaning_ a dependency changes cannot silently change what a stored Client
 Script does on an upgrade nobody reviewed. If `page` accepted the object and passed it
 on, every such change would arrive invisibly, and the author holding the script would
 have no way to tell which of their options were safe and which were borrowed.
@@ -311,7 +311,7 @@ if (typeof page.dialog.form === "function") {
 ```
 
 Feature detection is the supported way, and it is the only tool a Client Script has — it
-cannot pin a host version the way a file script or an extension can.
+cannot pin a host version the way a file script can.
 
 ## When something is removed
 

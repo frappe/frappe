@@ -28,7 +28,10 @@ import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import {
   applyRequired,
+  formData,
+  initialDoc,
   layoutFromFields,
+  layoutFromTabs,
   layoutMode,
   missingRequired,
   pickMetaFields,
@@ -183,9 +186,7 @@ describe("page.dialog.confirm and danger", () => {
   });
 
   it("resolves true when confirmed and null when cancelled", async () => {
-    confirmSpy.mockImplementation(() => {
-      close: vi.fn();
-    });
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
     const { page } = createRecordPage(makeHost());
 
     const confirmed = page.dialog.confirm({ title: "Sure?" });
@@ -328,6 +329,35 @@ describe("form layout modes", () => {
       expect.stringContaining("fieldnames without a doctype"),
     );
     warn.mockRestore();
+  });
+
+  it("builds a tabs tree with sections open unless told otherwise", () => {
+    const layout = layoutFromTabs([
+      {
+        name: "main",
+        depends_on: "eval:doc.kind",
+        sections: [
+          {
+            name: "open",
+            columns: [{ fields: [{ fieldname: "a", fieldtype: "Data" }] }],
+          },
+          { name: "shut", opened: false, columns: [] },
+        ],
+      },
+    ]);
+    expect(layout[0].dependsOn).toBe("eval:doc.kind");
+    const [open, shut] = layout[0].sections;
+    expect(open.opened).toBe(true);
+    expect(open.columns[0].fields[0].fieldname).toBe("a");
+    expect(shut.opened).toBe(false);
+  });
+
+  it("seeds every rendered field and returns only rendered fields", () => {
+    const layout = layoutFromFields([
+      { fieldname: "email", fieldtype: "Data" },
+    ]);
+    expect(initialDoc(layout, { email: "a@b" })).toEqual({ email: "a@b" });
+    expect(formData(layout, { email: "x", stray: 1 })).toEqual({ email: "x" });
   });
 
   it("reads DocField vocabulary, not FieldMeta's", () => {

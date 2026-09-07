@@ -15,8 +15,7 @@ export interface SectionSpec {
   dependsOn?: string;
 }
 
-/** The one `Section` constructor for the stored-layout paths. */
-// Open unless `opened: false` is explicit, matching `buildLayoutFromMeta`'s `newSection`.
+/** The one `Section` constructor for the stored-layout paths; open unless `opened: false`. */
 export function buildSection(spec: SectionSpec, columns: Column[]): Section {
   return {
     name: spec.name,

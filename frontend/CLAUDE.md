@@ -38,7 +38,7 @@ yarn --cwd frontend test:run
 That is exactly what CI does (`.github/workflows/frontend-tests.yml`). The **base** file
 is the correct input, not a `bench build`-generated one: `yarn.lock` was resolved from
 `package.base.json` alone, and no test needs anything an app contributes. Baseline is
-**28 files / 471 tests**, under `recordPage/tests/`, `shell/tests/` and
+**28 files / 473 tests**, under `recordPage/tests/`, `shell/tests/` and
 `navigation/tests/`.
 
 **`vitest.config.js` runs with `css: { postcss: {} }`, and that is not cosmetic.**
