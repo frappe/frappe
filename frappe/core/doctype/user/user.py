@@ -729,6 +729,20 @@ class User(Document):
 				continue
 			self.append("roles", {"role": role})
 
+	def handle_bulk_child_updates(self, child_doctype, field_updates):
+		if child_doctype == "Has Role":
+			roles_to_add = field_updates.get("role")
+			if not roles_to_add:
+				return True
+			if isinstance(roles_to_add, str):
+				roles_to_add = [roles_to_add]
+
+			self.append_roles(*roles_to_add)
+
+			return True
+
+		return False
+
 	def add_roles(self, *roles):
 		"""Add roles to user and save"""
 		self.append_roles(*roles)

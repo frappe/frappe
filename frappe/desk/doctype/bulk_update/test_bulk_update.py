@@ -149,3 +149,84 @@ class TestBulkUpdate(IntegrationTestCase):
 			for name in todo_names:
 				frappe.delete_doc("ToDo", name)
 			frappe.db.commit()
+
+	def test_bulk_update_user_roles_single_append(self):
+		"""Test adding a single role via bulk update appends rather than overwrites"""
+		test_user = "test_single_role@example.com"
+
+		for role_name in ["Accounts User", "Accounts Manager"]:
+			if not frappe.db.exists("Role", role_name):
+				frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("User", test_user):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test",
+					"roles": [{"role": "Accounts User"}],
+				}
+			).insert(ignore_permissions=True)
+		else:
+			user = frappe.get_doc("User", test_user)
+			user.roles = []
+			user.append("roles", {"role": "Accounts User"})
+			user.save(ignore_permissions=True)
+
+		frappe.db.commit()
+
+		update_data = {"child_table_updates": {"Has Role": {"role": "Accounts Manager"}}}
+
+		failed = submit_cancel_or_update_docs("User", [test_user], action="update", data=update_data)
+		self.assertEqual(failed, [])
+
+		user.reload()
+		current_roles = [d.role for d in user.roles]
+
+		self.assertIn("Accounts User", current_roles)
+		self.assertIn("Accounts Manager", current_roles)
+		self.assertEqual(len(current_roles), 2)
+
+		frappe.delete_doc("User", test_user, ignore_permissions=True)
+		frappe.db.commit()
+
+	def test_bulk_update_user_roles_multiple_append(self):
+		"""Test adding multiple roles at once appends rather than overwrites"""
+		test_user = "test_multi_role@example.com"
+
+		for role_name in ["Accounts User", "Accounts Manager", "System Manager"]:
+			if not frappe.db.exists("Role", role_name):
+				frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("User", test_user):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test",
+					"roles": [{"role": "Accounts User"}],
+				}
+			).insert(ignore_permissions=True)
+		else:
+			user = frappe.get_doc("User", test_user)
+			user.roles = []
+			user.append("roles", {"role": "Accounts User"})
+			user.save(ignore_permissions=True)
+
+		frappe.db.commit()
+
+		update_data = {"child_table_updates": {"Has Role": {"role": ["Accounts Manager", "System Manager"]}}}
+
+		failed = submit_cancel_or_update_docs("User", [test_user], action="update", data=update_data)
+		self.assertEqual(failed, [])
+
+		user.reload()
+		current_roles = [d.role for d in user.roles]
+
+		self.assertIn("Accounts User", current_roles)
+		self.assertIn("Accounts Manager", current_roles)
+		self.assertIn("System Manager", current_roles)
+		self.assertEqual(len(current_roles), 3)
+
+		frappe.delete_doc("User", test_user, ignore_permissions=True)
+		frappe.db.commit()
