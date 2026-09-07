@@ -11,7 +11,10 @@ import frappe
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
-from frappe.utils.data import cstr, get_system_timezone, now_datetime
+from frappe.utils.data import add_to_date, cstr, get_system_timezone, now_datetime
+
+# RFC 6749 §4.1.2 recommends a maximum authorization code lifetime of 10 minutes.
+AUTHORIZATION_CODE_EXPIRY_SECONDS = 600
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -83,6 +86,9 @@ class OAuthWebRequestValidator(RequestValidator):
 		oac.client = client_id
 		oac.user = frappe.session.user
 		oac.authorization_code = code["code"]
+		oac.expiration_time = add_to_date(
+			now_datetime(), seconds=AUTHORIZATION_CODE_EXPIRY_SECONDS, as_datetime=True
+		)
 
 		if request.nonce:
 			oac.nonce = request.nonce
@@ -139,11 +145,16 @@ class OAuthWebRequestValidator(RequestValidator):
 		code_details = frappe.db.get_value(
 			"OAuth Authorization Code",
 			{"name": code, "client": client_id, "validity": "Valid"},
-			("scopes", "user", "code_challenge_method", "code_challenge"),
+			("scopes", "user", "code_challenge_method", "code_challenge", "expiration_time"),
 			as_dict=True,
 		)
 
 		if code_details:
+			if code_details.expiration_time and now_datetime() > code_details.expiration_time:
+				frappe.db.set_value("OAuth Authorization Code", code, "validity", "Invalid")
+				frappe.db.commit()
+				return False
+
 			request.scopes = code_details.scopes.split(get_url_delimiter())
 			request.user = code_details.user
 			code_challenge_method = code_details.code_challenge_method
@@ -171,17 +182,13 @@ class OAuthWebRequestValidator(RequestValidator):
 		return False
 
 	def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
-		client_redirects = frappe.get_cached_value(
-			"OAuth Client", client_id, ("default_redirect_uri", "redirect_uris"), as_dict=True
+		# The redirect_uri presented at the token endpoint must match the exact
+		# redirect_uri the authorization code was issued for (RFC 6749 §4.1.3),
+		# not merely be one of the client's registered redirect_uris.
+		bound_redirect_uri = frappe.db.get_value(
+			"OAuth Authorization Code", code, "redirect_uri_bound_to_authorization_code"
 		)
-		saved_redirect_uri = client_redirects.default_redirect_uri
-		redirect_uris = client_redirects.redirect_uris
-
-		if redirect_uris:
-			redirect_uris = redirect_uris.split(get_url_delimiter())
-			return redirect_uri in redirect_uris
-
-		return saved_redirect_uri == redirect_uri
+		return bool(bound_redirect_uri) and bound_redirect_uri == redirect_uri
 
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
@@ -562,6 +569,9 @@ def calculate_at_hash(access_token, hash_alg):
 
 def delete_oauth2_data():
 	frappe.db.delete("OAuth Authorization Code", {"validity": "Invalid"})
+	frappe.db.delete(
+		"OAuth Authorization Code", {"validity": "Valid", "expiration_time": ("<", now_datetime())}
+	)
 	frappe.db.delete("OAuth Bearer Token", {"status": "Revoked"})
 
 
