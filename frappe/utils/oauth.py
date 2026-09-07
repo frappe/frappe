@@ -3,6 +3,7 @@
 
 import json
 from collections.abc import Callable
+from functools import lru_cache
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
@@ -18,6 +19,61 @@ if TYPE_CHECKING:
 
 
 class SignupDisabledError(frappe.PermissionError): ...
+
+
+# Microsoft signs Office 365 id_tokens (both v1.0 and v2.0) with keys published here,
+# regardless of which tenant issued the token.
+OFFICE_365_JWKS_URI = "https://login.microsoftonline.com/common/discovery/keys"
+
+
+@lru_cache(maxsize=1)
+def _get_office_365_jwks_client():
+	from jwt import PyJWKClient
+
+	return PyJWKClient(OFFICE_365_JWKS_URI, cache_keys=True)
+
+
+def get_verified_office_365_claims(token: str, client_id: str) -> dict:
+	"""Decode an Office 365 id_token, verifying its Microsoft-issued signature and audience.
+
+	Unlike a same-tenant assumption, this does NOT verify that the token came from any
+	particular organization's Entra tenant, since the token could legitimately come from any
+	tenant (the /common endpoint is inherently multi-tenant). Tenant restriction is enforced
+	separately, by checking the returned "tid" claim against the Social Login Key's
+	configured Tenant ID.
+	"""
+	import jwt
+
+	signing_key = _get_office_365_jwks_client().get_signing_key_from_jwt(token)
+	return jwt.decode(token, signing_key.key, algorithms=["RS256"], audience=client_id)
+
+
+def enforce_office_365_tenant(info: dict, provider: str) -> None:
+	"""Reject the login unless it comes from a tenant this Social Login Key trusts.
+
+	Office 365's default endpoint (/common) is multi-tenant: a validly-signed token can
+	legitimately come from any Entra tenant, not just this organization's. The token's
+	signature and audience don't distinguish one tenant from another, so the "tid" claim
+	is checked separately against the Social Login Key's configured Tenant ID.
+	"""
+	tenant_id, trust_any_tenant = frappe.db.get_value(
+		"Social Login Key", provider, ["tenant_id", "trust_any_tenant"]
+	)
+
+	if trust_any_tenant:
+		return
+
+	if not tenant_id:
+		frappe.throw(
+			_(
+				"This Office 365 Social Login Key is not restricted to a specific tenant. "
+				"Set a Tenant ID, or enable 'Trust Any Tenant' if you intend to allow sign-in "
+				"from any organization."
+			)
+		)
+
+	if info.get("tid") != tenant_id:
+		frappe.throw(_("This Microsoft account does not belong to the expected organization."))
 
 
 def build_oauth_url(base_url: str, url: str | None = None) -> str:
@@ -197,12 +253,19 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 	if id_token:
 		parsed_access = json.loads(session.access_token_response.text)
 		token = parsed_access["id_token"]
-		info = jwt.decode(token, flow.client_secret, options={"verify_signature": False})
 
-		if provider == "office_365" and "email_verified" not in info:
-			# Azure AD's id_token doesn't emit this claim; base_url/authorize_url for this
-			# provider are hardcoded (not attacker-registrable), so the identity is trusted.
-			info["email_verified"] = True
+		if provider == "office_365":
+			client_id = get_oauth_keys(provider)["client_id"]
+			info = get_verified_office_365_claims(token, client_id)
+			enforce_office_365_tenant(info, provider)
+
+			if "email_verified" not in info:
+				# Azure AD's id_token doesn't emit this claim; having verified the signature
+				# and pinned the issuing tenant above, this organization's own directory data
+				# is trusted.
+				info["email_verified"] = True
+		else:
+			info = jwt.decode(token, flow.client_secret, options={"verify_signature": False})
 
 	else:
 		api_endpoint = oauth2_providers[provider].get("api_endpoint")
