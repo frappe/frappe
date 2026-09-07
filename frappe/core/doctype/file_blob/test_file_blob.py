@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.database.schema import get_definition
 from frappe.tests import IntegrationTestCase
 
 TEST_CHECKSUM = "ab" * 32  # 64 hex chars, sha256-shaped
@@ -63,3 +64,52 @@ class TestFileBlob(IntegrationTestCase):
 		frappe.set_user("Guest")
 
 		self.assertRaises(frappe.PermissionError, make_blob_doc().insert)
+
+
+class TestFileBlobSize(IntegrationTestCase):
+	"""`file_size` must describe an object of any size the driver can hold.
+
+	An S3 object goes up to 5 TB and the Drive migration copies such objects
+	into blobs, so a signed 32-bit column is too narrow: a strict `sql_mode`
+	refuses the insert and a permissive one clamps the value, which would
+	then lie to ranged serving, to relocation, and to every byte count.
+
+	The field is `Int` with `length: 20`. Schema sync promotes that to the
+	`Long Int` column type (`frappe/database/schema.py:437`), which is the
+	declaration `File.file_size` already carries.
+
+	Every size below is declared. No bytes are written.
+	"""
+
+	ABOVE_INT32 = 2**31  # one byte past a signed int(11)
+	ABOVE_5GB = 5 * 1024**3 + 1  # one byte past the S3 single-part copy limit
+
+	def tearDown(self):
+		frappe.db.rollback()
+		super().tearDown()
+
+	def test_the_field_is_declared_as_a_bigint(self):
+		field = frappe.get_meta("File Blob").get_field("file_size")
+
+		self.assertEqual(field.fieldtype, "Int")
+		# Pinned against the type map, not against a literal, so the test
+		# holds on every backend the framework builds a schema for.
+		self.assertEqual(get_definition("Int", length=field.length), get_definition("Long Int"))
+
+	def test_a_size_above_the_signed_int_ceiling_round_trips(self):
+		doc = make_blob_doc(file_size=self.ABOVE_INT32).insert()
+
+		self.assertEqual(frappe.db.get_value("File Blob", doc.name, "file_size"), self.ABOVE_INT32)
+
+	def test_a_size_above_five_gb_round_trips(self):
+		doc = make_blob_doc(file_size=self.ABOVE_5GB).insert()
+
+		# Through the database and through the document, since a clamp on
+		# either side would be invisible to the other.
+		self.assertEqual(frappe.db.get_value("File Blob", doc.name, "file_size"), self.ABOVE_5GB)
+		self.assertEqual(frappe.get_doc("File Blob", doc.name).file_size, self.ABOVE_5GB)
+
+	def test_a_size_above_the_bigint_ceiling_is_still_refused(self):
+		# The column is wider, not unbounded. A number no column can hold is
+		# still a validation error, not a silent truncation.
+		self.assertRaises(frappe.CharacterLengthExceededError, make_blob_doc(file_size=2**63).insert)

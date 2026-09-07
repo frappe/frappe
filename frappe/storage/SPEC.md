@@ -49,7 +49,7 @@ HTTP                       signed URLs, serve route, direct upload
 |---|---|---|
 | `key` | Data | driver-scoped object key, unique |
 | `checksum` | Data | sha256 hex, indexed |
-| `file_size` | Int | bytes |
+| `file_size` | Int, `length: 20` | bytes; a bigint, so a 5 TB object fits |
 | `mime_type` | Data | sniffed from content, not from filename |
 | `driver` | Data | driver name, e.g. `local`, `s3` |
 | `is_private` | Check | decides local dir and URL policy |
