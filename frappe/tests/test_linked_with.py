@@ -377,6 +377,27 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertEqual(attempts, ["locked", "free", "locked"])
 
+	def test_stuck_pass_continues_when_the_retry_succeeds(self):
+		"""If the surfacing attempt succeeds (a lock cleared), the rest must still
+		be processed instead of being abandoned as skipped."""
+		attempts = []
+
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			if attempts.count(docinfo["name"]) == 1:
+				raise frappe.QueryTimeoutError
+
+		skipped = linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "first"},
+				{"doctype": "Parent DocType", "name": "second"},
+			],
+			process,
+		)
+
+		self.assertEqual(attempts, ["first", "second", "first", "second"])
+		self.assertEqual(skipped, [])
+
 	def test_cancel_all_linked_docs_defers_controller_blocked_docs(self):
 		"""A controller check that wants a referencing document cancelled first
 		raises a plain ValidationError; the document must get deferred, not fail
