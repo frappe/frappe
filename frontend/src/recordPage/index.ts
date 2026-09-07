@@ -17,6 +17,16 @@ export {
 } from "./context";
 
 export { createRecordPage } from "./createRecordPage";
+export { loadClientScripts, reloadClientScripts } from "./clientScripts";
 export type { RecordPageController } from "./createRecordPage";
 
 export type { AuthoredHandlers, Handler, RecordPageHandlers } from "./types";
+
+export { projectHeader, zoneOf } from "./headerRenderings";
+export type {
+  HeaderBand,
+  HeaderControl,
+  HeaderNode,
+  HeaderProjection,
+} from "./headerRenderings";
+export type { HeaderItem, RecordPageApi } from "./types";

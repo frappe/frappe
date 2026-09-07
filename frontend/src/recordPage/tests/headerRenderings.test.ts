@@ -1,13 +1,14 @@
 // The three header renderings and the fitting rule as executable claims.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  HeaderActionsSurface,
-  projectHeaderActions,
+  HeaderSurface,
+  projectHeader,
   renderingOf,
   resetHeaderWarnings,
+  zoneOf,
   type HeaderNode,
 } from "../headerRenderings";
-import type { HeaderAction } from "../types";
+import type { HeaderItem } from "../types";
 
 const BUDGET = 2;
 
@@ -23,18 +24,18 @@ beforeEach(() => {
   resetHeaderWarnings();
 });
 
-function action(name: string, extra: Partial<HeaderAction> = {}): HeaderAction {
+function action(name: string, extra: Partial<HeaderItem> = {}): HeaderItem {
   return { name, label: name, ...extra };
 }
 
-const button = (name: string, extra: Partial<HeaderAction> = {}) =>
+const button = (name: string, extra: Partial<HeaderItem> = {}) =>
   action(name, { display: "button", ...extra });
 
-const dropdown = (name: string, extra: Partial<HeaderAction> = {}) =>
+const dropdown = (name: string, extra: Partial<HeaderItem> = {}) =>
   action(name, { display: "dropdown", ...extra });
 
 /** The surface's own shape: what `resolve()` hands the host. */
-function resolved(items: HeaderAction[], ...hidden: string[]) {
+function resolved(items: HeaderItem[], ...hidden: string[]) {
   return items.map((item) => ({
     item,
     source: "test",
@@ -42,17 +43,17 @@ function resolved(items: HeaderAction[], ...hidden: string[]) {
   }));
 }
 
-function project(items: HeaderAction[], budget = BUDGET) {
-  return projectHeaderActions(resolved(items), budget);
+function project(items: HeaderItem[], budget = BUDGET) {
+  return projectHeader(resolved(items), budget);
 }
 
-function controlNames(items: HeaderAction[], budget = BUDGET) {
+function controlNames(items: HeaderItem[], budget = BUDGET) {
   return project(items, budget).controls.map(
     (control) => `${control.kind}:${control.item.name}`
   );
 }
 
-function bandNames(items: HeaderAction[], budget = BUDGET) {
+function bandNames(items: HeaderItem[], budget = BUDGET) {
   return project(items, budget).bands.map(
     (band) => `${band.group}[${band.items.map(rendered).join(",")}]`
   );
@@ -220,7 +221,7 @@ describe("the fitting rule", () => {
       action("sms", { group: "telephony" }),
       action("copy_url"),
     ];
-    const projection = projectHeaderActions(
+    const projection = projectHeader(
       resolved(items, "telephony"),
       BUDGET
     );
@@ -245,7 +246,7 @@ describe("the fitting rule", () => {
 // A section is a container spelled the way a dropdown is, and a submenu is a
 // container inside a container; both fall out of one rule.
 describe("sections and submenus", () => {
-  const section = (name: string, extra: Partial<HeaderAction> = {}) =>
+  const section = (name: string, extra: Partial<HeaderItem> = {}) =>
     action(name, { display: "section", ...extra });
 
   it("titles a band with a top-level section, and charges it no budget", () => {
@@ -329,7 +330,7 @@ describe("sections and submenus", () => {
       action("delete", { group: "danger" }),
       action("copy_url"),
     ];
-    const projection = projectHeaderActions(resolved(items, "tools"), BUDGET);
+    const projection = projectHeader(resolved(items, "tools"), BUDGET);
     expect(projection.controls).toEqual([]);
     expect(projection.bands.map((band) => band.group)).toEqual(["actions"]);
   });
@@ -362,7 +363,7 @@ describe("sections and submenus", () => {
 
 // Clamped, never ignored: ignoring `group` would promote the container to a top-level control.
 describe("the depth cap", () => {
-  const section = (name: string, extra: Partial<HeaderAction> = {}) =>
+  const section = (name: string, extra: Partial<HeaderItem> = {}) =>
     action(name, { display: "section", ...extra });
 
   it("moves a third-level container up to the deepest level it can reach", () => {
@@ -439,7 +440,7 @@ describe("the depth cap", () => {
 // A block splices as a unit, the same shape `order(names[])` set.
 describe("add takes a block", () => {
   it("splices the block as a unit at the anchor, in list order", () => {
-    const built = new HeaderActionsSurface();
+    const built = new HeaderSurface();
     built.provideBuiltins(() => [action("copy_url"), action("delete")]);
     built.add(
       [
@@ -459,7 +460,7 @@ describe("add takes a block", () => {
   });
 
   it("appends the block when the anchor names nothing", () => {
-    const built = new HeaderActionsSurface();
+    const built = new HeaderSurface();
     built.provideBuiltins(() => [action("copy_url")]);
     built.add([action("a"), action("b")], { after: "nowhere" });
     expect(built.visible().map((item) => item.name)).toEqual([
@@ -472,7 +473,7 @@ describe("add takes a block", () => {
   // The block is spliced one item at a time, so an anchor naming an item the
   // same block adds must still leave the block contiguous and in order.
   it("stays contiguous when the anchor is inside the block", () => {
-    const built = new HeaderActionsSurface();
+    const built = new HeaderSurface();
     built.provideBuiltins(() => [action("copy_url"), action("delete")]);
     built.add([action("a"), action("b"), action("c")], { before: "b" });
     expect(built.visible().map((item) => item.name)).toEqual([
@@ -486,7 +487,7 @@ describe("add takes a block", () => {
 
   // The icon bridge and the raw-component guard run per item, or only the head of a block gets them.
   it("bridges every item's icon, not just the head's", () => {
-    const built = new HeaderActionsSurface();
+    const built = new HeaderSurface();
     built.provideBuiltins(() => []);
     built.add([
       action("a", { icon: "lucide-circle" }),
@@ -499,7 +500,7 @@ describe("add takes a block", () => {
   });
 
   it("does nothing with an empty block", () => {
-    const built = new HeaderActionsSurface();
+    const built = new HeaderSurface();
     built.provideBuiltins(() => [action("copy_url")]);
     built.add([]);
     expect(built.visible().map((item) => item.name)).toEqual(["copy_url"]);
@@ -509,7 +510,7 @@ describe("add takes a block", () => {
   // every item would report an anchor the tail was never given.
   it("warns about the block's anchor once, for its head", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const built = new HeaderActionsSurface();
+    const built = new HeaderSurface();
     built.provideBuiltins(() => [button("refresh_quote"), action("delete")]);
     built.add(
       [
@@ -521,13 +522,13 @@ describe("add takes a block", () => {
     );
     built.visible();
     expect(warn.mock.calls.map((call) => call[0])).toEqual([
-      expect.stringContaining("headerActions.add('tools')"),
+      expect.stringContaining("header.add('tools')"),
     ]);
     warn.mockRestore();
   });
 
   it("stages a block in a replay and swaps it in whole", () => {
-    const built = new HeaderActionsSurface();
+    const built = new HeaderSurface();
     built.provideBuiltins(() => [action("copy_url")]);
     built.beginReplay();
     built.add([action("a"), action("b")]);
@@ -575,15 +576,15 @@ describe("group beats display", () => {
       action("leaf", { group: "middle" }),
       action("copy_url"),
     ];
-    const projection = projectHeaderActions(resolved(items, "outer"), BUDGET);
+    const projection = projectHeader(resolved(items, "outer"), BUDGET);
     expect(projection.controls).toEqual([]);
     expect(projection.bands.map((band) => band.group)).toEqual(["actions"]);
   });
 });
 
 describe("the cross-rendering anchor warning", () => {
-  function surface(items: HeaderAction[]) {
-    const built = new HeaderActionsSurface();
+  function surface(items: HeaderItem[]) {
+    const built = new HeaderSurface();
     built.provideBuiltins(() => items);
     return built;
   }
@@ -731,5 +732,127 @@ describe("renderingOf", () => {
   it("leaves a group that names no dropdown in the menu", () => {
     const items = [action("call", { group: "elsewhere" })];
     expect(renderingOf(items[0], items)).toBe("menu");
+  });
+});
+
+describe("the two zones", () => {
+  const crumb = (name: string, extra: Partial<HeaderItem> = {}) =>
+    action(name, { zone: "left", display: "crumb", ...extra });
+
+  function leftNames(items: HeaderItem[]) {
+    return project(items).left.map(
+      (control) => `${control.kind}:${control.item.name}`
+    );
+  }
+
+  it("defaults an item to the right, and a member to its container's zone", () => {
+    expect(zoneOf(action("delete"))).toBe("right");
+    expect(zoneOf(action("favourite", { zone: "left" }))).toBe("left");
+    const items = [
+      dropdown("tools", { zone: "left" }),
+      action("audit", { group: "tools", zone: "right" }),
+    ];
+    expect(leftNames(items)).toEqual(["dropdown:tools"]);
+    expect(project(items).left[0]).toMatchObject({
+      members: [expect.objectContaining({ item: items[1] })],
+    });
+    expect(bandNames(items)).toEqual([]);
+  });
+
+  it("keeps the left zone out of the controls, the bands and the budget", () => {
+    const items = [
+      crumb("doctype"),
+      crumb("record"),
+      action("favourite", { zone: "left" }),
+      button("refresh_quote"),
+      button("escalate"),
+      button("archive"),
+      action("delete"),
+    ];
+    expect(leftNames(items)).toEqual([
+      "crumb:doctype",
+      "crumb:record",
+      "button:favourite",
+    ]);
+    expect(controlNames(items)).toEqual([
+      "button:refresh_quote",
+      "button:escalate",
+    ]);
+    expect(bandNames(items)).toEqual(["archive[archive]", "actions[delete]"]);
+  });
+
+  it("relocates an item by patching its zone, and by nothing else", () => {
+    const built = new HeaderSurface();
+    built.provideBuiltins(() => [
+      crumb("record"),
+      action("favourite", { zone: "left" }),
+      button("save"),
+    ]);
+    built.update("favourite", { zone: "right", display: "button" });
+    const projected = projectHeader(built.resolve(), BUDGET);
+    expect(projected.left.map((control) => control.item.name)).toEqual(["record"]);
+    expect(projected.controls.map((control) => control.item.name)).toEqual([
+      "favourite",
+      "save",
+    ]);
+  });
+
+  it("takes a hidden left container's members with it, wherever they sit", () => {
+    const items = [
+      dropdown("tools", { zone: "left" }),
+      action("audit", { group: "tools" }),
+      action("delete"),
+    ];
+    const projected = projectHeader(resolved(items, "tools"), BUDGET);
+    expect(projected.left).toEqual([]);
+    expect(projected.bands.map((band) => band.items.map(rendered))).toEqual([
+      ["delete"],
+    ]);
+  });
+
+  it("flattens a section on the left into its place, and says so", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const items = [
+      crumb("record"),
+      action("more", { zone: "left", display: "section" }),
+      action("star", { group: "more" }),
+      action("watch", { group: "more" }),
+    ];
+    expect(leftNames(items)).toEqual([
+      "crumb:record",
+      "button:star",
+      "button:watch",
+    ]);
+    expect(warn.mock.calls[0][0]).toContain("has no menu");
+  });
+
+  it("warns about a crumb on the right and leaves it in the menu", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const items = [action("parent", { display: "crumb" })];
+    expect(leftNames(items)).toEqual([]);
+    expect(bandNames(items)).toEqual(["actions[parent]"]);
+    expect(warn.mock.calls[0][0]).toContain("add zone: 'left'");
+  });
+
+  it("warns about an unknown zone and renders on the right", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const items = [button("escalate", { zone: "middle" as any })];
+    expect(leftNames(items)).toEqual([]);
+    expect(controlNames(items)).toEqual(["button:escalate"]);
+    expect(warn.mock.calls[0][0]).toContain("expected 'left' or 'right'");
+  });
+
+  it("is a rendering of its own, so a cross-zone anchor warns and appends", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const built = new HeaderSurface();
+    built.provideBuiltins(() => [crumb("record"), button("save")]);
+    built.add(action("watch", { zone: "left" }), { before: "save" });
+    expect(renderingOf(built.visible()[1], built.visible())).toBe("left");
+    expect(built.visible().map((item) => item.name)).toEqual([
+      "record",
+      "watch",
+      "save",
+    ]);
+    expect(warn.mock.calls[0][0]).toContain("an item in the left zone");
   });
 });
