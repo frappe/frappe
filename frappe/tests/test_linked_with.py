@@ -377,6 +377,18 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertEqual(attempts, ["locked", "free", "locked"])
 
+	def test_deadlocks_are_not_deferred(self):
+		"""A deadlock has already rolled the whole transaction back, savepoints
+		included, so the run must surface it instead of retrying."""
+
+		def process(docinfo):
+			raise frappe.QueryDeadlockError
+
+		with self.assertRaises(frappe.QueryDeadlockError):
+			linked_with.process_linked_docs_in_dependency_order(
+				[{"doctype": "Parent DocType", "name": "deadlocked"}], process
+			)
+
 	def test_stuck_pass_continues_when_the_retry_succeeds(self):
 		"""If the surfacing attempt succeeds (a lock cleared), the rest must still
 		be processed instead of being abandoned."""
