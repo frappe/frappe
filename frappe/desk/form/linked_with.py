@@ -40,10 +40,8 @@ def get_submitted_linked_docs(
 	3. Searching for links is going to be a tree like structure where at every level,
 	        you will be finding documents using parent document and parent document links.
 
-	Traversal stops once MAX_LINKED_DOCUMENTS_LISTED is exceeded and returns no
-	documents marked truncated; cancellation can still proceed through
-	cancel_all_linked_docs without docs, which discovers the graph in a
-	background job where the cap does not apply.
+	Past MAX_LINKED_DOCUMENTS_LISTED the result is empty and marked truncated;
+	cancel_all_linked_docs without docs then discovers the graph in a job.
 	"""
 
 	frappe.has_permission(doctype, doc=name, throw=True)
@@ -100,9 +98,7 @@ class SubmittableDocumentTree:
 		"""Get all nodes of a tree except the root node (all the nested submitted
 		documents those are present in referencing tables dependent tables).
 
-		Past `limit` discovered documents, stop walking, mark the tree truncated
-		and return nothing: the walk is checked per level, so a single very wide
-		level can still overshoot before the check.
+		Past `limit` documents (checked per level), mark truncated and return nothing.
 		"""
 		depth = 0
 		while self.to_be_visited_documents:
@@ -487,8 +483,7 @@ def collect_deletion_blockers(doctype: str, name: str, limit: int | None = None)
 		links = get_statically_linked_docs(parent, method="Delete", limit=fetch_limit)
 		dynamic_links = get_dynamic_linked_docs(parent, method="Delete", limit=fetch_limit)
 		if fetch_limit and (len(links) >= fetch_limit or len(dynamic_links) >= fetch_limit):
-			# a single document with more direct references than the whole cap;
-			# the bounded queries cannot even tell how many, so give up early
+			# one document saturated the bounded lookup; give up early
 			return [], True
 		for link in [*links, *dynamic_links]:
 			key = (link["reference_doctype"], link["reference_docname"])
@@ -562,9 +557,7 @@ def delete_linked_doc(docinfo):
 def enqueue_linked_docs_processing(
 	docs, action, root_doctype, root_name, ignore_doctypes_on_cancel_all=None, discover=False
 ):
-	"""Queue processing of a large set together with the root document, which
-	the caller must not touch before the job has processed its links. With
-	discover, the job walks the graph itself instead of receiving it."""
+	"""Queue processing of a large set; the job handles the root too."""
 	root = (root_doctype, root_name) if root_doctype and root_name else None
 	job_kwargs = {}
 	if root:
@@ -589,18 +582,11 @@ def enqueue_linked_docs_processing(
 def process_linked_docs_in_background(
 	docs, action, root=None, discover=False, ignore_doctypes_on_cancel_all=None
 ):
-	"""Process the docs and notify the user of the outcome, since a background
-	job has no response to report through. With discover, walk the graph here,
-	where the listing cap does not apply.
+	"""Process the docs and notify the user of the outcome.
 
-	The queued list can be stale by the time the job runs, so it is filtered
-	against the current graph, and the root document is processed last, since
-	the caller could not touch it before its links were gone.
-
-	Cancellation is all or nothing, matching the synchronous behaviour, since a
-	half-cancelled tree cannot be uncancelled. Deletion is best effort: some
-	blockers are permanently undeletable yet harmless, so the rest proceeds and
-	the leftovers are counted."""
+	The queued list is refreshed against the current graph (or discovered here,
+	uncapped), the root goes last, cancel is all-or-nothing, delete best-effort.
+	"""
 	if not frappe.db.get_value("User", frappe.session.user, "enabled"):
 		# the initiating account was disabled after this job was queued
 		return
@@ -645,10 +631,7 @@ def process_linked_docs_in_background(
 
 
 def notify_linked_docs_processed(message):
-	"""Tell the user live when they are still around, and durably via a notification.
-
-	Both wait for commit: reporting an outcome the transaction then fails to
-	commit would be a lie."""
+	"""Notify live and via Notification Log, both after commit."""
 	from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
 	frappe.publish_realtime(

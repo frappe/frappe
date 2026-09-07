@@ -304,8 +304,7 @@ def get_linked_docs(doc, method="Delete", limit: int | None = None) -> list[dict
 	"""
 	Return a list of documents that are statically linked to the given document.
 
-	With limit, stop collecting once that many links are found, so callers that
-	only need to detect "too many" do not materialize every referencing row.
+	With limit, stop collecting once that many links are found.
 	"""
 	from frappe.model.rename_doc import get_link_fields
 
@@ -396,8 +395,7 @@ def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> l
 	"""
 	Return a list of documents that are dynamically linked to the given document.
 
-	With limit, stop collecting once that many links are found, so callers that
-	only need to detect "too many" do not materialize every referencing row.
+	With limit, stop collecting once that many links are found.
 	"""
 	linked_docs = []
 
