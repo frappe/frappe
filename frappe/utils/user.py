@@ -205,6 +205,7 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
+			self.can_export_owner_only = []
 			self.can_import += frappe.get_all("DocType", {"allow_import": 1}, pluck="name")
 			self.can_import += frappe.get_all(
 				"Property Setter",
