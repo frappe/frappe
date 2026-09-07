@@ -155,8 +155,9 @@ class TestBulkUpdate(IntegrationTestCase):
 		test_user = "test_single_role@example.com"
 
 		for role_name in ["Accounts User", "Accounts Manager"]:
-			if not frappe.db.exists("Role", role_name):
-				frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+			frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
 
 		if not frappe.db.exists("User", test_user):
 			user = frappe.get_doc(
@@ -195,8 +196,9 @@ class TestBulkUpdate(IntegrationTestCase):
 		test_user = "test_multi_role@example.com"
 
 		for role_name in ["Accounts User", "Accounts Manager", "System Manager"]:
-			if not frappe.db.exists("Role", role_name):
-				frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+			frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
 
 		if not frappe.db.exists("User", test_user):
 			user = frappe.get_doc(

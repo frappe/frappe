@@ -729,7 +729,13 @@ class User(Document):
 				continue
 			self.append("roles", {"role": role})
 
-	def handle_bulk_child_updates(self, child_doctype, field_updates):
+	def handle_bulk_child_updates(self, child_doctype: str, field_updates: dict) -> bool:
+		"""
+		Custom hook to process child table bulk updates safely.
+		Returns True if the update was handled customly (bypassing the framework's default
+		destructive overwrite behavior), else False.
+		"""
+
 		if child_doctype == "Has Role":
 			roles_to_add = field_updates.get("role")
 			if not roles_to_add:
@@ -988,10 +994,10 @@ def update_password(
 	"""Update password for the current user.
 
 	Args:
-	    new_password (str): New password.
-	    logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
-	    key (str, optional): Password reset key. Defaults to None.
-	    old_password (str, optional): Old password. Defaults to None.
+		new_password (str): New password.
+		logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
+		key (str, optional): Password reset key. Defaults to None.
+		old_password (str, optional): Old password. Defaults to None.
 	"""
 
 	if len(new_password) > MAX_PASSWORD_SIZE:
@@ -1340,8 +1346,8 @@ def get_active_website_users():
 	"""Return number of website users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
-        where enabled = 1 and user_type = 'Website User'
-        and hour(timediff(now(), last_active)) < 72"""
+		where enabled = 1 and user_type = 'Website User'
+		and hour(timediff(now(), last_active)) < 72"""
 	)[0][0]
 
 
