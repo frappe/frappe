@@ -693,3 +693,112 @@ test("reloading extensions refetches the tool list", async () => {
 	await flow.reloadExtensions()
 	assert.deepEqual(flow.state.tools, [{ name: "hello", description: "Say hi", extension: "hello" }])
 })
+
+function hostClient(calls) {
+	return {
+		async createSession(config) {
+			calls.push(["create", config])
+			return { session_id: "s1", config: { model: "mock" } }
+		},
+		async sessions() {
+			return { sessions: [] }
+		},
+		async session() {
+			return { session_id: "s1", model: "mock", latest_seq: 0 }
+		},
+		async entries() {
+			return { entries: [], latest_seq: 0 }
+		},
+		async run(sid, message) {
+			calls.push(["run", message])
+			return { status: "ok" }
+		},
+		stream() {
+			return { close() {}, async *[Symbol.asyncIterator]() {} }
+		},
+	}
+}
+
+test("a host without a filesystem sends without choosing a folder", async () => {
+	const calls = []
+	const flow = createFlowStore(hostClient(calls), { requireCwd: false })
+
+	assert.equal(await flow.send("hello"), true)
+
+	assert.equal("cwd" in calls[0][1], false)
+	assert.deepEqual(calls[1], ["run", "hello"])
+	flow.detach()
+})
+
+test("the default store still refuses to send without a folder", async () => {
+	const calls = []
+	const flow = createFlowStore(hostClient(calls))
+
+	assert.equal(await flow.send("hello"), false)
+
+	assert.deepEqual(calls, [])
+	assert.match(flow.state.toast.message, /project folder/)
+})
+
+test("saved state lives under the host's storage key", () => {
+	const backing = new Map()
+	const previousStorage = globalThis.localStorage
+	globalThis.localStorage = {
+		getItem: (key) => backing.get(key) ?? null,
+		setItem: (key, value) => backing.set(key, value),
+	}
+	try {
+		const flow = createFlowStore({}, { storageKey: "flow.ui:site:user" })
+		flow.setSidebarOpen(false)
+		assert.equal(JSON.parse(backing.get("flow.ui:site:user.prefs")).sidebarOpen, false)
+		assert.equal(backing.has("flow.ui.prefs"), false)
+
+		const defaults = createFlowStore({})
+		defaults.setSidebarOpen(false)
+		assert.equal(backing.has("flow.ui.prefs"), true)
+		assert.deepEqual(defaults.options, {
+			requireCwd: true,
+			storageKey: "flow.ui",
+			maxAttachments: MAX_ATTACHMENTS,
+			presentTool: null,
+		})
+	} finally {
+		globalThis.localStorage = previousStorage
+	}
+})
+
+test("the attachment cap follows the host's option", async () => {
+	const calls = []
+	const flow = createFlowStore(hostClient(calls), { maxAttachments: 2 })
+	flow.state.sessionId = "s1"
+
+	const attachments = Array.from({ length: 3 }, (_, i) => ({ key: `local:${i}`, kind: "image", file: {} }))
+	assert.equal(await flow.send("too many", attachments), false)
+
+	assert.deepEqual(calls, [])
+	assert.match(flow.state.toast.message, /at most 2 attachments/)
+})
+
+test("attachment previews come from the client when it serves them", async () => {
+	const withBlobs = createFlowStore({
+		async attachmentBlob(sid, id) {
+			assert.equal(sid, "s1")
+			assert.equal(id, "att-1")
+			return new Blob(["png"])
+		},
+	})
+	const url = await withBlobs.attachmentPreview("s1", "att-1")
+	assert.match(url, /^blob:/)
+	URL.revokeObjectURL(url)
+
+	const failing = createFlowStore({
+		async attachmentBlob() {
+			throw new Error("gone")
+		},
+	})
+	assert.equal(await failing.attachmentPreview("s1", "att-1"), null)
+	assert.equal(failing.state.toast, null)
+
+	const without = createFlowStore({})
+	assert.equal(await without.attachmentPreview("s1", "att-1"), null)
+})

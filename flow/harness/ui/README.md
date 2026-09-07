@@ -28,6 +28,22 @@ flow serve            # daemon on 127.0.0.1:8787 (or FLOW_DAEMON_URL)
 npm run dev -w app
 ```
 
+## Host options
+
+`createFlowStore(client, options)` takes what a host without a daemon
+filesystem must change, so it can reuse the components instead of copying them:
+
+- `requireCwd` — `false` sends without a project folder.
+- `storageKey` — localStorage prefix (`flow.ui`), scoped per user by the host.
+- `maxAttachments` — per-message cap of the host's upload path.
+- `presentTool(name, args)` — `{ icon, label, subject, title, body }`, any
+  subset, for the host's own tools in transcript rows and approval cards.
+
+`Composer` props: `commands` (slash commands offered, by name; default all),
+`mentions` (`@` file mentions), `imagesOnly` (`false` lets the picker take any
+file when the host stages uploads itself). `ChatHeader` takes `workspace`
+(`false` when the host mounts no file panel).
+
 ## Notes / gaps against the daemon API
 
 - Session titles, delete, the context meter, provider setup (API keys + OAuth),

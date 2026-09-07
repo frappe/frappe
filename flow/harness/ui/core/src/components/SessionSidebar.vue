@@ -63,7 +63,7 @@
 			class="flex items-center justify-between px-5 pb-1 pt-2 text-2xs font-medium text-ink-gray-5"
 		>
 			<span>Sessions</span>
-			<div class="relative min-w-0">
+			<div v-if="projects.length" class="relative min-w-0">
 				<button
 					class="flex max-w-[128px] items-center gap-1 rounded-5 px-1.5 py-1 font-normal text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					title="Filter sessions by project"

@@ -102,16 +102,11 @@ onMounted(() => {
 	if (!sid) return
 	for (const item of attachments.value) {
 		if (item.kind !== "image" || !item.id) continue
-		flow.client
-			.attachmentBlob(sid, item.id)
-			.then((blob) => {
-				const url = URL.createObjectURL(blob)
-				if (disposed) URL.revokeObjectURL(url)
-				else previews.value[item.id] = url
-			})
-			.catch(() => {
-				// A missing historical attachment falls back to its filename badge.
-			})
+		flow.attachmentPreview(sid, item.id).then((url) => {
+			if (!url) return
+			if (disposed) URL.revokeObjectURL(url)
+			else previews.value[item.id] = url
+		})
 	}
 })
 onBeforeUnmount(() => {

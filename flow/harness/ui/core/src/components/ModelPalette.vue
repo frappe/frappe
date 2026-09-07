@@ -42,8 +42,11 @@
 				/>
 			</button>
 			<div v-if="!options.length" class="flex flex-col items-center gap-2 px-3 py-8 text-center">
-				<span class="text-xs text-ink-gray-5">No models yet — connect a provider to get started.</span>
+				<span class="text-xs text-ink-gray-5">
+					{{ providers ? "No models yet — connect a provider to get started." : "No models available." }}
+				</span>
 				<button
+					v-if="providers"
 					class="flex h-7 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-2.5 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1"
 					@click="emit('providers')"
 				>
@@ -64,6 +67,8 @@ import PalettePanel from "./PalettePanel.vue"
 import PaletteSearch from "./PaletteSearch.vue"
 import ProviderIcon from "./ProviderIcon.vue"
 
+// hosts that manage providers elsewhere hide the setup link
+defineProps({ providers: { type: Boolean, default: true } })
 const emit = defineEmits(["close", "back", "providers"])
 const flow = inject("flow")
 

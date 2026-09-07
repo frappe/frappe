@@ -119,9 +119,16 @@ const displaySegments = computed(() =>
 	),
 )
 
-const icon = computed(() => stepIcon(props.step.call.name))
-const label = computed(() => stepLabel(props.step.call.name))
-const subject = computed(() => compactDisplayText(stepSubject(props.step.call), cwd.value))
+// a host describes its own tools; the daemon's have display segments or defaults
+const meta = computed(() => {
+	const call = props.step.call
+	return flow?.options?.presentTool?.(call.name, call.arguments ?? call.args ?? {}) ?? {}
+})
+const icon = computed(() => meta.value.icon ?? stepIcon(props.step.call.name))
+const label = computed(() => meta.value.label ?? stepLabel(props.step.call.name))
+const subject = computed(() =>
+	compactDisplayText(meta.value.subject ?? stepSubject(props.step.call), cwd.value),
+)
 const failed = computed(() => props.step.result?.is_error === true)
 const details = computed(() => props.step.result?.details ?? {})
 const output = computed(() => props.step.result?.content ?? "")

@@ -3,6 +3,7 @@
 		<div class="pointer-events-auto relative mx-auto max-w-[800px]">
 			<ModelPalette
 				v-if="paletteView === 'models'"
+				:providers="has('providers')"
 				@close="closePalettes"
 				@back="openCommands"
 				@providers="paletteView = 'providers'"
@@ -165,7 +166,7 @@
 					ref="fileInput"
 					type="file"
 					multiple
-					accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,image/png,image/jpeg,image/gif,image/webp,image/bmp"
+					:accept="imagesOnly ? IMAGE_ACCEPT : undefined"
 					class="hidden"
 					@change="onFilesPicked"
 				/>
@@ -188,6 +189,7 @@
 						</button>
 						<PopMenu :open="plusMenu" label="Add context" :width="266" @close="plusMenu = false">
 							<button
+								v-if="has('cwd')"
 								role="menuitem"
 								class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
 								@click="chooseFolder"
@@ -207,8 +209,12 @@
 							>
 								<FeatherIcon name="paperclip" class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5" />
 								<span class="min-w-0 flex-1">
-									<span class="block text-xs font-medium leading-4 text-ink-gray-9">Attach images</span>
-									<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">PNG, JPEG, GIF, WebP, or BMP</span>
+									<span class="block text-xs font-medium leading-4 text-ink-gray-9">
+										{{ imagesOnly ? "Attach images" : "Attach files" }}
+									</span>
+									<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">
+										{{ imagesOnly ? "PNG, JPEG, GIF, WebP, or BMP" : "Images and documents" }}
+									</span>
 								</span>
 							</button>
 						</PopMenu>
@@ -330,7 +336,6 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
-import { MAX_ATTACHMENTS } from "../store.js"
 import { EFFORT_LABELS, codeRefLabel } from "../transcript.js"
 import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
@@ -339,6 +344,14 @@ import PalettePanel from "./PalettePanel.vue"
 import PopMenu from "./PopMenu.vue"
 import ProvidersDialog from "./ProvidersDialog.vue"
 import ThinkingPalette from "./ThinkingPalette.vue"
+
+// Hosts without a filesystem trim the composer to what their client serves.
+const props = defineProps({
+	commands: { type: Array, default: null }, // slash commands offered, by name; null = all
+	mentions: { type: Boolean, default: true }, // "@" file mentions
+	// the daemon stores images only; a host that stages uploads itself takes any file
+	imagesOnly: { type: Boolean, default: true },
+})
 
 const flow = inject("flow")
 
@@ -355,11 +368,13 @@ let attachmentKey = 0
 let previewGeneration = 0
 
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
+const IMAGE_ACCEPT = ".png,.jpg,.jpeg,.gif,.webp,.bmp,image/png,image/jpeg,image/gif,image/webp,image/bmp"
 
 // the store owns the cap; blocking here just makes it visible before send time
 function atAttachmentLimit() {
-	if (attachments.value.length < MAX_ATTACHMENTS) return false
-	flow.notify(`A message can carry at most ${MAX_ATTACHMENTS} attachments.`, "error")
+	const { maxAttachments } = flow.options
+	if (attachments.value.length < maxAttachments) return false
+	flow.notify(`A message can carry at most ${maxAttachments} attachments.`, "error")
 	return true
 }
 
@@ -371,7 +386,8 @@ function isSupportedImage(file) {
 function addLocalFiles(files) {
 	for (const file of files) {
 		if (atAttachmentLimit()) return
-		if (!isSupportedImage(file)) {
+		const image = isSupportedImage(file)
+		if (props.imagesOnly && !image) {
 			flow.notify("Flow currently supports PNG, JPEG, GIF, WebP, and BMP images only.", "error")
 			continue
 		}
@@ -379,9 +395,9 @@ function addLocalFiles(files) {
 		attachments.value.push({
 			key: `local:${attachmentKey++}`,
 			name: file.name,
-			kind: "image",
+			kind: image ? "image" : "file",
 			file,
-			previewUrl: URL.createObjectURL(file),
+			previewUrl: image ? URL.createObjectURL(file) : null,
 		})
 	}
 }
@@ -401,18 +417,14 @@ async function loadStoredPreviews(items, sessionId, generation) {
 	await Promise.all(
 		items.map(async (item) => {
 			if (item.kind !== "image" || !item.id) return
-			try {
-				const blob = await flow.client.attachmentBlob(sessionId, item.id)
-				const previewUrl = URL.createObjectURL(blob)
-				const current = attachments.value.find((candidate) => candidate.key === item.key)
-				if (generation !== previewGeneration || flow.state.sessionId !== sessionId || !current) {
-					URL.revokeObjectURL(previewUrl)
-					return
-				}
-				current.previewUrl = previewUrl
-			} catch {
-				// A missing historical attachment falls back to its compact filename badge.
+			const previewUrl = await flow.attachmentPreview(sessionId, item.id)
+			if (!previewUrl) return
+			const current = attachments.value.find((candidate) => candidate.key === item.key)
+			if (generation !== previewGeneration || flow.state.sessionId !== sessionId || !current) {
+				URL.revokeObjectURL(previewUrl)
+				return
 			}
+			current.previewUrl = previewUrl
 		}),
 	)
 }
@@ -455,6 +467,7 @@ function syncCaret() {
 // (line/word start, or preceded by whitespace) with no whitespace between it and
 // the caret. Unlike `slash` below this isn't anchored to the start of the message.
 const mention = computed(() => {
+	if (!props.mentions) return null
 	const head = text.value.slice(0, caretPos.value)
 	const at = head.lastIndexOf("@")
 	if (at === -1) return null
@@ -590,6 +603,10 @@ const COMMANDS = [
 	{ name: "abort", label: "Abort", icon: "square", hint: "interrupt the running turn", run: () => flow.abort() },
 	{ name: "cwd", label: "Working directory", icon: "folder", hint: "new session in a folder: /cwd [path]", run: cwdCommand, takesArg: true },
 ]
+const enabledCommands = computed(() =>
+	props.commands ? COMMANDS.filter((c) => props.commands.includes(c.name)) : COMMANDS,
+)
+const has = (name) => enabledCommands.value.some((c) => c.name === name)
 
 const skillCommands = computed(() =>
 	(flow.state.skills ?? []).map((skill) => ({
@@ -625,7 +642,7 @@ const chipIconClass = "grid h-6 w-6 flex-none place-items-center rounded-5 bg-su
 const chipRemoveClass =
 	"grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 // an existing session's cwd is frozen in its config; only new chats need one picked
-const needsCwd = computed(() => !flow.state.sessionId && !flow.state.prefs.cwd)
+const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
 const canSend = computed(
 	() =>
 		!submitting.value &&
@@ -656,8 +673,12 @@ const currentImageSupport = computed(() => {
 	if (flow.state.sessionId && flow.state.session) return flow.state.session.supports_images
 	return flow.state.models.find((item) => item.name === currentModel.value)?.supports_images
 })
+// a host staging its own uploads decides what a text-only model gets for an image
 const visionWarning = computed(
-	() => attachments.value.some((item) => item.kind === "image") && currentImageSupport.value === false,
+	() =>
+		props.imagesOnly &&
+		attachments.value.some((item) => item.kind === "image") &&
+		currentImageSupport.value === false,
 )
 
 // the model button fronts these two palettes; /model and /thinking open the same pages
@@ -682,7 +703,7 @@ const menuOpen = computed(
 const menuItems = computed(() => {
 	if (!menuOpen.value) return []
 	const q = (slash.value?.query ?? "").toLowerCase()
-	const commands = COMMANDS.filter((c) => c.name.startsWith(q))
+	const commands = enabledCommands.value.filter((c) => c.name.startsWith(q))
 	// skills match with or without the "skill:" prefix, and sit in their own section
 	const skills = skillCommands.value.filter(
 		(c) => c.name.startsWith(q) || c.label.startsWith(q),
@@ -752,7 +773,7 @@ async function submit() {
 	if (!value && !attachments.value.length && !codeRefs.value.length) return
 	if (value.startsWith("/")) {
 		const [name, ...rest] = value.slice(1).split(" ")
-		const command = COMMANDS.find((c) => c.name === name)
+		const command = enabledCommands.value.find((c) => c.name === name)
 		if (command) {
 			text.value = ""
 			command.run(rest.join(" ").trim())

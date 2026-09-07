@@ -77,8 +77,15 @@ function args(call) {
 	return call.args ?? call.arguments ?? {}
 }
 
+// a host's own tools may name the action better than the server prompt does
+function present(call) {
+	return flow.options?.presentTool?.(call.name, args(call)) ?? {}
+}
+
 function title(call) {
 	const a = args(call)
+	const custom = present(call).title
+	if (custom != null) return custom
 	switch (call.name) {
 		case "bash":
 			return "Run this command?"
@@ -102,6 +109,8 @@ function edits(call) {
 
 function body(call) {
 	const a = args(call)
+	const custom = present(call).body
+	if (custom != null) return custom
 	if (call.name === "bash") return a.command ?? ""
 	if (call.name === "write") return a.content ?? ""
 	if (call.name === "edit") return null
