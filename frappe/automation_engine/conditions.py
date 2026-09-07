@@ -173,8 +173,8 @@ def _template_context(context, templates) -> dict:
 
 def _render_value(value, render_context):
 	if isinstance(value, str) and "{{" in value:
-		# nosemgrep: the template is a saved related-condition filter value, authored with the flow.
-		return frappe.render_template(value, render_context)
+		# The template is a saved related-condition filter value, authored with the flow.
+		return frappe.render_template(value, render_context)  # nosemgrep
 	if isinstance(value, list):
 		return [_render_value(item, render_context) for item in value]
 	if isinstance(value, dict):

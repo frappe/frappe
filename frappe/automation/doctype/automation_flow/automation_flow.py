@@ -101,7 +101,7 @@ class AutomationFlow(Document):
 		try:
 			action.validate(params, targets.get(row.target))
 		except AutomationParamError as e:
-			frappe.throw(_("Row {0}: {1}").format(row.idx, e))
+			frappe.throw(_("Row {0}: {1}").format(row.idx, str(e)))
 		targets.update(action.output_targets(params, row.output_alias))
 
 	def get_action_targets(self):

@@ -25,8 +25,9 @@ USER_CONTROL = "users"
 def render_value(value, doc, context=None):
 	"""Render a Jinja-templated string against the document; pass through non-templates."""
 	if isinstance(value, str) and "{{" in value:
-		# nosemgrep: the template is an action parameter, authored by the System Manager who
-		# configured the flow - the same trust model as Notification and Email Template.
+		# The template is an action parameter, authored by the System Manager who configured the
+		# flow - the same trust model as Notification and Email Template.
+		# nosemgrep
 		return frappe.render_template(value, render_context(doc, context))
 	return value
 

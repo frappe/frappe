@@ -36,7 +36,7 @@ class TestDrainer(IntegrationTestCase):
 		frappe.db.delete(QUEUE)
 		frappe.db.delete("Automation Flow")
 		self.automation = make_automation()
-		# nosemgrep: claim_batch commits, so these tests cannot rely on the harness rollback.
+		# claim_batch commits, so these tests cannot rely on the harness rollback.
 		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
