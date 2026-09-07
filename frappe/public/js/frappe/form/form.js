@@ -1143,14 +1143,13 @@ frappe.ui.form.Form = class FrappeForm {
 		let d = new frappe.ui.Dialog(
 			{
 				title: __("Cancel All Documents"),
-				fields: [
-					{
-						fieldtype: "HTML",
-						options: `<p class="frappe-confirm-message">${confirm_message}</p>`,
-					},
-				],
+				fields: [{ fieldtype: "HTML", fieldname: "message" }],
 			},
 			() => me.handle_save_fail(btn, on_error)
+		);
+		// set directly: HTML field options get template-rendered, and names are user input
+		d.fields_dict.message.$wrapper.html(
+			`<p class="frappe-confirm-message">${confirm_message}</p>`
 		);
 
 		// if user can cancel all linked docs, add action to the dialog
@@ -1315,13 +1314,12 @@ frappe.ui.form.Form = class FrappeForm {
 
 		const d = new frappe.ui.Dialog({
 			title: __("Delete All Documents"),
-			fields: [
-				{
-					fieldtype: "HTML",
-					options: `<p class="frappe-confirm-message">${confirm_message}</p>`,
-				},
-			],
+			fields: [{ fieldtype: "HTML", fieldname: "message" }],
 		});
+		// set directly: HTML field options get template-rendered, and names are user input
+		d.fields_dict.message.$wrapper.html(
+			`<p class="frappe-confirm-message">${confirm_message}</p>`
+		);
 
 		d.set_primary_action(__("Delete All"), () => {
 			d.hide();
