@@ -150,6 +150,7 @@ class TestBulkUpdate(IntegrationTestCase):
 			# bulk_update can commit, so its durable fixtures need durable cleanup.
 			frappe.db.commit()  # nosemgrep
 			frappe.db.commit()
+<<<<<<< HEAD
 
 	def test_bulk_update_user_roles_single_append(self):
 		"""Test adding a single role via bulk update appends rather than overwrites"""
@@ -234,3 +235,5 @@ class TestBulkUpdate(IntegrationTestCase):
 		frappe.delete_doc("User", test_user, ignore_permissions=True)
 		frappe.db.commit()
 >>>>>>> ea1172b (fix(user): prevent destructive overwrite in bulk role update)
+=======
+>>>>>>> ea5475c (refactor(user): pivot to standalone bulk role assignment action)
