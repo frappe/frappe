@@ -2,10 +2,9 @@
   Three things behind one route: the index at `/apps`, an app's home, and a modular app's module list.
 -->
 <template>
-	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
-		<template v-if="boot.app">
-			<h1 class="text-xl font-semibold">{{ boot.app }}</h1>
-			<p class="mt-1 text-sm text-ink-gray-6">
+	<PageFrame :title="boot.app ?? 'Apps'">
+		<div v-if="boot.app" class="py-5">
+			<p class="text-sm text-ink-gray-6">
 				Served by the framework shell at <code>{{ boot.shell_base }}</code
 				>.
 			</p>
@@ -36,11 +35,10 @@
 					</RouterLink>
 				</li>
 			</ul>
-		</template>
+		</div>
 
-		<template v-else>
-			<h1 class="text-xl font-semibold">Apps</h1>
-			<ul class="mt-6 grid max-w-2xl grid-cols-2 gap-2">
+		<div v-else class="py-5">
+			<ul class="grid max-w-2xl grid-cols-2 gap-2">
 				<li v-for="app in boot.apps ?? []" :key="app.app">
 					<!-- A real navigation, not a `router.push`: crossing a prefix needs a boot re-fetch. -->
 					<a
@@ -53,18 +51,18 @@
 					</a>
 				</li>
 			</ul>
-		</template>
-	</ScrollArea>
+		</div>
+	</PageFrame>
 </template>
 
 <script setup lang="ts">
-import { ScrollArea } from "frappe-ui";
 import { computed, inject } from "vue";
 import { RouterLink } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 import { routeFor, routeForModule, isModular } from "@/router/routeFor";
 import { useContents } from "@/contents";
+import PageFrame from "@/shell/PageFrame.vue";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;

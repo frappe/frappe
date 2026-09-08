@@ -13,7 +13,8 @@
 			:class="collapsed ? 'border-0' : 'border-l border-outline-gray-1'"
 			:inert="collapsed"
 		>
-			<div class="flex shrink-0 items-center py-2 pl-4 pr-2">
+			<!-- 48px, no border: level with the page's header row, whose border stops at this panel's edge. -->
+			<div class="flex h-12 shrink-0 items-center pl-4 pr-2">
 				<p v-if="title" class="truncate text-base font-medium text-ink-gray-8">
 					{{ title }}
 				</p>
