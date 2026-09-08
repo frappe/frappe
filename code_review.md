@@ -83,7 +83,7 @@ Check these first. Ask for the missing piece before reading the code.
 
 ### UI
 
-- Colours, weights and spacing come from design tokens. Reuse existing CSS classes; delete rules with no user. No inline styles or `!important`.
+- Any CSS property that has a token (colour, font size and weight, spacing, radius, shadow, border, z-index) uses the `var(--*)` token, never a literal value. Reuse existing CSS classes; delete rules with no user. No inline styles or `!important`.
 - Use `es-button` and `es-badge`, icons from `frappe.utils.icon()`, gray accents. New controls follow the sibling control.
 - Defaults serve non-technical users. Labels say what happens, in short plain words, with no internal terms like "DocType".
 - Bundle size is a budget. Features used by a minority load on first use.
