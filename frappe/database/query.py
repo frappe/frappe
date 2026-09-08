@@ -415,8 +415,7 @@ class Engine:
 				self.query = self.query.select(field)
 				has_select_field = True
 
-				output_key = getattr(field, "alias", None) or getattr(field, "name", None)
-				if output_key == "name" or isinstance(field, Star):
+				if getattr(field, "name", None) == "name" or isinstance(field, Star):
 					has_name_field = True
 
 		if not has_select_field:
