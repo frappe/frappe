@@ -9,7 +9,6 @@ Read [code_review.md](code_review.md) first and follow its Workflow section in o
 - No before/after screenshot or video for a UI change: ask for one before reviewing anything else.
 - PR not based on `develop`: close it, unless the bug exists only on the stable branch.
 - Any real ask means `REQUEST_CHANGES`. Do not hide a real finding under an approve.
-- Questions listed under Unsettled are for a maintainer, not you.
 
 ## Writing code
 

@@ -47,7 +47,7 @@ Before reporting any finding, grep the exact symbol, string or class you name, i
 
 ### Verdict
 
-Any real ask means changes requested. Ready with nits is only for things you would not actually ask to change. Send to a maintainer when the answer is in the Unsettled section or is a product call.
+Any real ask means changes requested. Ready with nits is only for things you would not actually ask to change. Send to a maintainer when it is a product call.
 
 Blocking, not a nit: a new crash, blank screen or uncaught exception; leftover no-op code; a sibling file with the same bug; a missing `modified` bump; a missing permission check on a new endpoint; a stuck status; a breaking change without `!` and a migration path.
 
@@ -497,22 +497,3 @@ A PR generated without manual review, that references code not in the diff, hide
 Why: reviewer time is the scarcest resource in the project.
 Exception: maintainers may run automated changes themselves after an issue is agreed.
 
----
-
-## Unsettled
-
-Maintainers disagree on these. State both positions and tag a maintainer.
-
-1. Docstrings: required on every new function, or stripped along with comments.
-2. `# nosemgrep`: never in core, or fine with a stated reason.
-3. Settings toggles: how strictly R4's exception applies.
-4. Explicit `commit()`: never in doc events is agreed; GET-reachable helpers and long patches are not.
-5. `get_list` vs `get_all`: where "user-facing" ends and "internal" begins.
-6. MariaDB parity vs Postgres strictness for query semantics.
-7. Hotfix-branch PRs: always re-raise on develop, or accept when the develop fix no longer applies.
-8. Backport soak time: one week, two, three, or "once stable".
-9. Docs as a merge gate, or a non-blocking check.
-10. Tests for small fixes: always, or manual verification is enough.
-11. Duplication vs coupling: no written test for "weird coupling".
-12. Admin-authored expressions: Jinja and `visible_if` are trusted, `autoname` expressions were rejected.
-13. Deprecation ladder: warn one major and remove the next, or drop internal symbols without warning. "Internal" is not defined.
