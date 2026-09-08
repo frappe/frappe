@@ -262,6 +262,29 @@ class TestAutoRepeat(FrappeTestCase):
 
 		self.assertFalse(frappe.db.get_value("ToDo", todo.name, "auto_repeat"))
 
+	def test_deleted_reference_does_not_stop_the_scheduler(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
+		).insert()
+		owner = "test_auto_repeat_owner@example.com"
+		if not frappe.db.exists("User", owner):
+			frappe.get_doc(
+				doctype="User",
+				email=owner,
+				first_name="Auto Repeat Owner",
+				send_welcome_email=0,
+				roles=[{"role": "System Manager"}],
+			).insert(ignore_permissions=True)
+
+		doc = make_auto_repeat(reference_document=todo.name)
+		frappe.db.set_value("Auto Repeat", doc.name, "owner", owner)
+		doc.reload()
+		frappe.delete_doc("ToDo", todo.name, force=True, ignore_permissions=True)
+
+		doc.create_documents()
+
+		self.assertTrue(frappe.db.get_value("Auto Repeat", doc.name, "disabled"))
+
 	def test_auto_repeat_stays_active_when_owner_loses_reference_access(self):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
