@@ -11,11 +11,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.tests import IntegrationTestCase
-<<<<<<< HEAD
-=======
 from frappe.tests.test_model_utils import set_user
-from frappe.tests.utils.test_capabilities import TestService, requires_test_service
->>>>>>> a09cd97 (test(automation): cover auto repeat reference permission checks)
 from frappe.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
