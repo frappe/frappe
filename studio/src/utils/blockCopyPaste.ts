@@ -3,7 +3,8 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { studioPages } from "@/data/studioPages"
-import { getBlockCopy, getBlockCopyWithoutParent, isJSONString } from "@/utils/serializer"
+import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
+import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
@@ -26,9 +27,17 @@ interface Dependencies {
 	variables: Record<string, any>[]
 }
 
+interface ClipboardSource {
+	origin: string
+	app: string
+	page: string
+	hasPageScript: boolean
+}
+
 interface ClipboardPayload extends Partial<Dependencies> {
 	blocks: BlockOptions[]
 	page?: PageCopy
+	source?: ClipboardSource
 }
 
 export function copyEntirePage() {
@@ -53,13 +62,16 @@ export function copyBlocks(e: ClipboardEvent) {
 	e.preventDefault()
 	dialog.confirm({
 		title: "Copy entire page?",
-		message: "Do you want to copy the entire page including its data sources, variables and script along with its blocks?",
+		message:
+			"Do you want to copy the entire page including its data sources, variables and script along with its blocks?",
 		actions: [
 			{
 				label: "No, just blocks",
 				onClick: ({ close }) => {
 					close()
-					return writeClipboardPayload(Promise.resolve({ blocks: getSelectedBlockCopies() }))
+					return writeClipboardPayload(
+						Promise.resolve({ blocks: getSelectedBlockCopies(), source: getClipboardSource() }),
+					)
 				},
 			},
 			{
@@ -78,12 +90,15 @@ export function copySelectedBlocks(e: ClipboardEvent) {
 	const blocks = getSelectedBlockCopies()
 	if (!blocks.length) return
 	e.preventDefault()
+	const source = getClipboardSource()
 
 	if (!usesComponents(blocks) && !usesPageData(blocks)) {
-		setClipboardData({ blocks }, e, CLIPBOARD_FORMAT)
+		setClipboardData({ blocks, source }, e, CLIPBOARD_FORMAT)
 		return
 	}
-	void writeClipboardPayload(fetchDependencies(blocks).then((dependencies) => ({ blocks, ...dependencies })))
+	void writeClipboardPayload(
+		fetchDependencies(blocks).then((dependencies) => ({ blocks, source, ...dependencies })),
+	)
 }
 
 export function pasteBlocks(e: ClipboardEvent): boolean {
@@ -93,9 +108,44 @@ export function pasteBlocks(e: ClipboardEvent): boolean {
 	if (payload.page) {
 		handlePastePage(payload)
 	} else {
-		createMissingDependencies(payload).then(() => insertBlocks(payload.blocks))
+		void pasteCopiedBlocks(payload)
 	}
 	return true
+}
+
+function getClipboardSource(): ClipboardSource {
+	const store = useStudioStore()
+	const page = store.activePage!
+	return {
+		origin: window.location.origin,
+		app: store.activeApp!.name,
+		page: page.name,
+		hasPageScript: Boolean(page.script?.trim()) || hasCompiledPageScript(page.name),
+	}
+}
+
+function shouldWarnAboutExcludedPageScript(source?: ClipboardSource): boolean {
+	if (source?.hasPageScript !== true) return false
+	const store = useStudioStore()
+	const isSamePage =
+		source.origin === window.location.origin &&
+		source.app === store.activeApp?.name &&
+		source.page === store.activePage?.name
+	return !isSamePage
+}
+
+async function pasteCopiedBlocks(payload: ClipboardPayload) {
+	await createMissingDependencies(payload)
+	const undoPaste = insertBlocks(payload.blocks)
+	if (!undoPaste || !shouldWarnAboutExcludedPageScript(payload.source)) return
+
+	toast.warning("Page script wasn't included", {
+		duration: Infinity,
+		action: {
+			label: "Undo Paste",
+			onClick: undoPaste,
+		},
+	})
 }
 
 function getSelectedBlockCopies(): BlockOptions[] {
@@ -217,15 +267,20 @@ function handlePastePage(payload: ClipboardPayload) {
 			"You are about to paste a page with data sources, variables, and scripts. Do you want to create a new page, or update the current one?",
 		actions: [
 			{ label: "Create new page", onClick: () => store.pastePage(copy) },
-			{ label: "Replace current page", variant: "solid", onClick: () => store.pastePage(copy, store.activePage?.name) },
+			{
+				label: "Replace current page",
+				variant: "solid",
+				onClick: () => store.pastePage(copy, store.activePage?.name),
+			},
 		],
 	})
 }
 
-function insertBlocks(blocks: BlockOptions[]) {
+function insertBlocks(blocks: BlockOptions[]): (() => void) | undefined {
 	const canvasStore = useCanvasStore()
 	const canvas = canvasStore.activeCanvas
 	if (!canvas) return
+	let insertedBlocks: Block[] = []
 
 	if (canvas.selectedBlocks.length && blocks[0].componentId !== "root") {
 		let parentBlock = canvas.selectedBlocks[0]
@@ -233,15 +288,31 @@ function insertBlocks(blocks: BlockOptions[]) {
 		while (parentBlock && !parentBlock.canHaveChildren()) {
 			parentBlock = parentBlock.getParentBlock() as Block
 		}
-		blocks.forEach((block) => {
+		insertedBlocks = blocks.map((block) => {
 			if (slotName) {
 				block.parentSlotName = slotName
 			} else {
 				delete block.parentSlotName
 			}
-			parentBlock.addChild(getBlockCopy(block), null)
+			return parentBlock.addChild(getBlockCopy(block), null)
 		})
 	} else {
-		canvasStore.pushBlocks(blocks)
+		const parentBlock = canvas.getRootBlock()
+		const firstBlock = getBlockInstance(blocks[0])
+		if (canvasStore.editingMode === "page" && firstBlock.isRoot() && canvas.rootComponent) {
+			canvas.setRootBlock(firstBlock)
+			return () => {
+				if (useCanvasStore().activeCanvas === canvas && canvas.getRootBlock() === firstBlock) {
+					canvas.setRootBlock(parentBlock)
+				}
+			}
+		}
+		insertedBlocks = blocks.map((block) => parentBlock.addChild(block))
+	}
+
+	return () => {
+		if (useCanvasStore().activeCanvas !== canvas) return
+		insertedBlocks.forEach((block) => block.deleteBlock())
+		canvas.clearSelection()
 	}
 }
