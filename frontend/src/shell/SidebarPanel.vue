@@ -19,12 +19,12 @@
 					{{ title }}
 				</p>
 				<Button
-					v-if="arrangeable"
+					v-if="customizable"
 					class="ml-auto"
 					variant="ghost"
 					icon="lucide-settings-2"
-					label="Arrange this sidebar"
-					@click="emit('arrange')"
+					label="Customize this sidebar"
+					@click="emit('customize')"
 				/>
 			</div>
 
@@ -66,9 +66,9 @@ const props = defineProps<{
 	title?: string;
 	current?: string;
 	sections?: SectionMemory;
-	arrangeable?: boolean;
+	customizable?: boolean;
 }>();
-const emit = defineEmits<{ arrange: [] }>();
+const emit = defineEmits<{ customize: [] }>();
 
 const collapsed = useLocalStorage("frappe:desk:sidebar-collapsed", false);
 

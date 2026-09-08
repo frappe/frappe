@@ -12,9 +12,9 @@
 				:items="navigation.rail"
 				:context="contexts.rail"
 				:current="current.railKey"
-				:arrangeable="!!boot.app"
+				:customizable="!!boot.app"
 				:share-link="shareLink"
-				@arrange="arrange.write('rail')"
+				@customize="customize.write('rail')"
 			/>
 		</template>
 
@@ -28,8 +28,8 @@
 				:title="panel.title"
 				:current="current.rowKey"
 				:sections="sections[panel.address]"
-				arrangeable
-				@arrange="arrange.write('sidebar', panel.address)"
+				customizable
+				@customize="customize.write('sidebar', panel.address)"
 			/>
 		</template>
 
@@ -37,16 +37,11 @@
 			<RouterView />
 		</main>
 
-		<!-- The overlay slot: one hash, one overlay, above any page. `#arrange/...` is its first tenant. -->
-		<ArrangementEditor
-			v-if="arranging"
-			:key="`${arranging.container}:${arranging.address}`"
-			class="absolute inset-y-0 right-0 z-20 shadow-2xl"
-			:container="arranging.container"
-			:address="arranging.address"
-			:title="arranging.title"
+		<!-- The overlay host: one hash, one Dialog, above any page. `#customize/...` is its first tenant. -->
+		<CustomizeSidebarDialog
+			:target="customizing"
 			@saved="replace"
-			@close="arrange.close()"
+			@close="customize.close()"
 		/>
 
 		<ToastProvider />
@@ -59,7 +54,6 @@ import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, ToastProvider } from "frappe-ui";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
-import type { Container } from "@/arrangement";
 import { itemContext } from "@/navigation/context";
 import {
 	currentFrom,
@@ -69,7 +63,7 @@ import {
 } from "@/navigation/current";
 import { recallSidebar, rememberSidebar } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
-import ArrangementEditor from "./ArrangementEditor.vue";
+import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
@@ -202,16 +196,16 @@ const panel = computed(() => {
 	};
 });
 
-// One editor for both containers; the endpoints take the container as an argument.
-const arrange = useHashDialog("arrange");
+// One dialog for both containers; the endpoints take the container as an argument.
+const customize = useHashDialog("customize");
 
-// `#arrange/rail` or `#arrange/sidebar/<address>`; anything else under the root is nothing.
-const arranging = computed<{ container: Container; address: string; title: string } | null>(() => {
-	const [what, address] = arrange.segments.value;
+// `#customize/rail` or `#customize/sidebar/<address>`; anything else under the root is nothing.
+const customizing = computed<CustomizeTarget | null>(() => {
+	const [what, address] = customize.segments.value;
 	if (what === "rail" && boot.app)
-		return { container: "Rail", address: boot.app, title: "Arrange this rail" };
+		return { container: "Rail", address: boot.app, title: "Customize sidebar" };
 	if (what === "sidebar" && address && navigation.value.sidebars[address])
-		return { container: "Sidebar", address, title: "Arrange this sidebar" };
+		return { container: "Sidebar", address, title: "Customize this sidebar" };
 	return null;
 });
 

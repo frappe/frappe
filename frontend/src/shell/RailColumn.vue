@@ -98,16 +98,16 @@ const LETTER_TILE =
 const CELL =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 
-// The shell decides `arrangeable` (off on the index), `current` (one row across rail and panel)
+// The shell decides `customizable` (off on the index), `current` (one row across rail and panel)
 // and `shareLink` (it knows whether the panel needs naming); a context is composed once per list.
 const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
-	arrangeable?: boolean;
+	customizable?: boolean;
 	shareLink?: string;
 }>();
-const emit = defineEmits<{ arrange: [] }>();
+const emit = defineEmits<{ customize: [] }>();
 
 const boot = inject<Boot>("boot")!;
 
@@ -158,12 +158,12 @@ const menu = computed<DropdownOptions>(() => [
 			onClick: () => setColorScheme(scheme.value),
 		})),
 	},
-	...(props.arrangeable
+	...(props.customizable
 		? [
 				{
 					label: "Customize sidebar",
 					icon: "lucide-settings-2",
-					onClick: () => emit("arrange"),
+					onClick: () => emit("customize"),
 				},
 		  ]
 		: []),
