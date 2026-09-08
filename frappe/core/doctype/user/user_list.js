@@ -36,7 +36,6 @@ frappe.listview_settings["User"] = {
 						callback() {
 							dialog.hide();
 							listview.refresh();
-							frappe.show_alert(__("Roles added successfully"));
 						},
 					});
 				},
