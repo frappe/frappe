@@ -1000,6 +1000,21 @@ class PrintFormatGenerator:
 			return
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
 
+	def readable_snapshot(self, doc):
+		"""The document as plain dicts holding only the fields this user may read —
+		what user-authored expressions get instead of the live document."""
+		from frappe.model import table_fields
+
+		out = frappe._dict(doctype=doc.doctype, name=doc.name)
+		for f in doc.meta.fields:
+			if not self.has_field_access(doc, doc.meta, f.fieldname):
+				continue
+			if f.fieldtype in table_fields:
+				out[f.fieldname] = [self.readable_snapshot(row) for row in doc.get(f.fieldname) or []]
+			else:
+				out[f.fieldname] = doc.get(f.fieldname)
+		return out
+
 	def prepare_summary_table(self, df):
 		"""Group a child table's rows and evaluate per-group column expressions.
 
@@ -1012,22 +1027,26 @@ class PrintFormatGenerator:
 		if not rows:
 			return
 		child_meta = rows[0].meta
+		group_by = df.get("group_by")
+		if group_by and not self.has_field_access(rows[0], child_meta, group_by):
+			return
 		numeric_fields = [
 			f.fieldname
 			for f in child_meta.fields
 			if f.fieldtype in ("Currency", "Float", "Int")
 			and self.has_field_access(rows[0], child_meta, f.fieldname)
 		]
+		expr_doc = self.readable_snapshot(self.doc)
 
 		def tax_rate(pattern):
-			for tax in self.doc.get("taxes") or []:
-				if pattern.lower() in (tax.description or "").lower():
-					return tax.rate or 0
+			for tax in expr_doc.get("taxes") or []:
+				if pattern.lower() in (tax.get("description") or "").lower():
+					return tax.get("rate") or 0
 			return 0
 
 		groups = {}
 		for row in rows:
-			key = row.get(df.get("group_by")) or ""
+			key = row.get(group_by) or ""
 			g = groups.setdefault(key, frappe._dict({f: 0 for f in numeric_fields}))
 			for f in numeric_fields:
 				g[f] += row.get(f) or 0
@@ -1043,7 +1062,7 @@ class PrintFormatGenerator:
 			for column in df["columns"]:
 				value = self.eval_logged(
 					column.get("expr") or "''",
-					{"key": key, "g": g, "doc": self.doc, "tax_rate": tax_rate},
+					{"key": key, "g": g, "doc": expr_doc, "tax_rate": tax_rate},
 					f"summary column {column.get('label') or ''}",
 					default="",
 				)
