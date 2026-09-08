@@ -193,6 +193,27 @@ def run_after_request_hooks(request, response):
 		frappe.call(after_request_task, response=response, request=request)
 
 
+def canonical_request_path(path: str) -> str:
+	"""Strip a versioned ``/api/vN`` mount so hooks can match one canonical path.
+
+	``/api/method/x``, ``/api/v1/method/x`` and ``/api/v2/method/x`` all reach
+	the same whitelisted method (frappe.api.__init__: v1 rules are mounted at
+	both ``/api`` and ``/api/v1``), but only the first form is unversioned.
+	frappe.hooks.streaming_request_paths declares the unversioned form, so a
+	versioned request has to be normalised before matching it, or a hook
+	entry would silently miss every versioned mount.
+	"""
+	from frappe.api import ApiVersion
+
+	for version in ApiVersion:
+		prefix = f"/api/{version.value}"
+		if path == prefix:
+			return "/api"
+		if path.startswith(f"{prefix}/"):
+			return "/api" + path[len(prefix) :]
+	return path
+
+
 def init_request(request):
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
 	try:
@@ -215,8 +236,9 @@ def init_request(request):
 	streaming_paths = {
 		path.rstrip("/") for path in frappe.get_hooks("streaming_request_paths") if path.rstrip("/")
 	}
+	canonical_path = canonical_request_path(request.path)
 	streaming_request = request.method == "PUT" and any(
-		request.path == path or request.path.startswith(f"{path}/") for path in streaming_paths
+		canonical_path == path or canonical_path.startswith(f"{path}/") for path in streaming_paths
 	)
 	if streaming_request:
 		request.max_content_length = None
