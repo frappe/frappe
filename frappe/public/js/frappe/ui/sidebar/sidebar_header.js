@@ -2,17 +2,16 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
-		// Every element this header's menu hangs on. The rail's header adds itself through
-		// attach_menu, and refresh_menu keeps them all in step.
+		// Every element this header's menu hangs on, as frappe.ui.Dropdown instances. Each reads
+		// its rows fresh on every open, so nothing has to be pushed into them on a refresh.
 		this.menus = [];
 		this.make();
 		this.setup_menu();
 	}
 
 	// The module on screen changed, so the header names a different one. The node stays put and
-	// only its text is rewritten: `frappe.ui.create_menu` binds to the element it is given and
-	// registers a document-level listener per call, so a header rebuilt on every navigation would
-	// leave its menu pointing at a detached node and add a listener each time.
+	// only its text is rewritten: the dropdown binds to the element it is given, so a header
+	// rebuilt on every navigation would leave its menu pointing at a detached node.
 	// `Sidebar.refresh_header` keeps one header for the life of the desk, and this is all it has
 	// to change between modules.
 	refresh() {
@@ -24,19 +23,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		// seen. Which mark it is depends on whether there is a rail (see get_header_logo), and
 		// that can change from one module to the next, so it is re-resolved here too.
 		this.$header_logo.html(this.get_header_logo());
-		this.refresh_menu();
-	}
-
-	// The menu's rows are replaced rather than the menu rebuilt.
-	//
-	// `frappe.ui.menu` re-runs each row's `condition` on every open, but the list is the array it
-	// was given at construction, so the switcher's rows, and the modules and apps nested under
-	// them, would be whichever app was on screen when the desk booted. Rebuilding the menu would
-	// bind a second click handler to the same header and register another document-level
-	// listener, which is what keeping one header for the life of the desk avoids. Replacing the
-	// array does neither.
-	refresh_menu() {
-		this.menus.forEach((menu) => (menu.menu_items = this.menu_items()));
 	}
 
 	// What the header's own menu offers.
@@ -58,60 +44,80 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	//     Help     >   this page's help links, then the site's help items
 	//
 	// Nesting both axes keeps it short: the menu stays four rows tall whether the app has two
-	// modules or twenty-two. Nothing new was added to the menu primitive for it, since nesting,
-	// dividers and group headings all existed.
+	// modules or twenty-two. Nothing new was added to the menu component for it, since nesting
+	// and sections both existed.
+	//
+	// The rules between the three blocks are the sections' own: `frappe.ui.Dropdown` draws one
+	// between neighbouring groups and drops a group whose rows are all hidden, rule included, so
+	// nothing here has to count what is left before placing a divider.
 	menu_items() {
-		const switching = this.switcher_items();
-		const system = this.system_items();
 		return [
-			...switching,
-			...(switching.length ? [{ is_divider: true }] : []),
+			{ group: "", options: this.switcher_items() },
 			{
-				name: "edit-sidebar",
-				label: __("Edit Sidebar"),
-				icon: "pencil",
-				// Re-run on every open, so it tracks the sidebar you are looking at rather than
-				// the one the menu was built in, which is why the header keeps one menu instead
-				// of one per module.
-				condition: () => !!this.sidebar.current_module,
-				// The editor is not in the desk bundle, so load it on click and then open
-				// this module's sidebar in it.
-				onClick: () =>
-					frappe
-						.require("arrangement_editor.bundle.js")
-						.then(() => new frappe.ui.SidebarManager())
-						.catch((e) => {
-							console.error(
-								"SidebarHeader: failed to load arrangement_editor.bundle.js",
-								e
-							);
-							frappe.ui.toast({
-								message: __(
-									"Could not open the sidebar editor. Please refresh the page."
-								),
-								type: "error",
-							});
-						}),
+				group: "",
+				options: [
+					{
+						name: "edit-sidebar",
+						label: __("Edit Sidebar"),
+						icon: "pencil",
+						// Re-run on every open, so it tracks the sidebar you are looking at
+						// rather than the one the menu was built in, which is why the header
+						// keeps one menu instead of one per module.
+						condition: () => !!this.sidebar.current_module,
+						// The editor is not in the desk bundle, so load it on click and then
+						// open this module's sidebar in it.
+						onclick: () =>
+							frappe
+								.require("arrangement_editor.bundle.js")
+								.then(() => new frappe.ui.SidebarManager())
+								.catch((e) => {
+									console.error(
+										"SidebarHeader: failed to load arrangement_editor.bundle.js",
+										e
+									);
+									frappe.ui.toast({
+										message: __(
+											"Could not open the sidebar editor. Please refresh the page."
+										),
+										type: "error",
+									});
+								}),
+					},
+				],
 			},
-			...(system.length ? [{ is_divider: true }, ...system] : []),
+			{ group: "", options: this.system_items() },
 		];
 	}
 
-	// Everything Navbar Settings contributes: its settings rows flat in the menu, and its help
-	// rows nested under one "Help" row, the shape the old header dropdown had. The whole block
-	// is absent, divider included, when a site has neither.
+	// Where a Navbar Settings row or a help link points, as menu-row fields.
 	//
-	// The help row is rebuilt with the rest of the menu because part of it is the help links for
-	// the page you are on, and `Sidebar.refresh_header` runs on every navigation.
+	// Both kinds are rows the site authored, and either may name a page inside the site or a page
+	// outside it. An in-site path stays a plain link: the panel's rows are real anchors, and the
+	// desk's own click handler turns a desk path into a route without a reload. Anything on
+	// another origin opens in a new tab, which is where these rows have always sent you, and
+	// leaves the desk where it was.
+	link_fields(url) {
+		const external = /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(url);
+		return external ? { href: url, target: "_blank" } : { href: url };
+	}
+
+	// Everything Navbar Settings contributes: its settings rows flat in the menu, and its help
+	// rows nested under one "Help" row, the shape the old header dropdown had. The whole block,
+	// and the rule above it, is absent when a site has neither.
+	//
+	// The help row is read afresh on every open because part of it is the help links for the page
+	// you are on, and those change with every navigation.
 	system_items() {
 		const navbar = this.navbar_items();
+		// Two sections, either of which may be empty; the row is worth offering only if something
+		// is under it.
 		const help = this.get_help_siblings();
-		if (help.length) {
+		if (help.some((section) => section.options.length)) {
 			navbar.push({
 				name: "help",
 				label: __("Help"),
 				icon: "info",
-				items: help,
+				submenu: help,
 			});
 		}
 		return navbar;
@@ -122,9 +128,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// added by hand. This is where they used to sit, before the header lost its dropdown; for a
 	// while after that they hung off the user menu at the foot of the sidebar instead.
 	//
-	// An item is a route or an action, the two kinds Navbar Settings offers. Its `condition` is
-	// passed through untouched, so `frappe.ui.menu` re-runs it on every open and an item that
-	// only applies to some sites stays hidden on the rest.
+	// An item is a route or an action, the two kinds Navbar Settings offers. Its `condition` is a
+	// stored expression rather than a function, so it is wrapped in one the menu can call: the
+	// menu re-reads conditions on every open, and an item that only applies to some sites stays
+	// hidden on the rest.
 	navbar_items() {
 		return (frappe.boot.navbar_settings?.settings_dropdown || [])
 			.filter((item) => !item.hidden)
@@ -133,12 +140,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					name: item.name,
 					label: __(item.item_label),
 					icon: item.icon,
-					condition: item.condition,
 				};
+				if (item.condition) {
+					row.condition = () => frappe.utils.eval(item.condition);
+				}
 				if (item.item_type === "Route") {
-					row.url = item.route;
+					Object.assign(row, this.link_fields(item.route));
 				} else if (item.item_type === "Action") {
-					row.onClick = () => frappe.utils.eval(item.action);
+					row.onclick = () => frappe.utils.eval(item.action);
 				}
 				return row;
 			});
@@ -164,11 +173,11 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				name: "switch-module",
 				label: __("Modules"),
 				icon: "layout-grid",
-				items: modules.map((shell) => ({
+				submenu: modules.map((shell) => ({
 					name: `module-${shell}`,
-					label: frappe.boot.module_sidebars[shell]?.label || shell,
+					label: __(frappe.boot.module_sidebars[shell]?.label || shell),
 					icon: frappe.boot.module_sidebars[shell]?.header_icon,
-					onClick: () => sidebar.open_module(shell),
+					onclick: () => sidebar.open_module(shell),
 				})),
 			});
 		}
@@ -178,26 +187,40 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			label: __("Apps"),
 			icon: "layout-dashboard",
 			// Every app on the desktop screen, docked ones included. Excluding them would strand
-			// a user on a dock-less app with no route to ERPNext.
-			items: [
-				...(frappe.boot.app_data || [])
-					.filter((app) => app.on_apps_screen)
-					.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100))
-					.map((app) => ({
-						name: `app-${app.app_name}`,
-						label: app.app_title || app.app_name,
-						icon_url: Array.isArray(app.app_logo_url)
-							? app.app_logo_url[0]
-							: app.app_logo_url,
-						onClick: () => {
-							const route = sidebar.app_landing_route(app) || "/desk";
-							route.startsWith("http")
-								? window.open(route, "_blank")
-								: frappe.set_route(route);
+			// a user on a dock-less app with no route to ERPNext. Two sections, so the way out to
+			// the apps screen sits under a rule of the panel's own drawing.
+			submenu: [
+				{
+					group: "",
+					options: (frappe.boot.app_data || [])
+						.filter((app) => app.on_apps_screen)
+						.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100))
+						.map((app) => ({
+							name: `app-${app.app_name}`,
+							label: __(app.app_title || app.app_name),
+							// An app's mark is its own logo, which no icon name stands in for.
+							image: Array.isArray(app.app_logo_url)
+								? app.app_logo_url[0]
+								: app.app_logo_url,
+							onclick: () => {
+								const route = sidebar.app_landing_route(app) || "/desk";
+								route.startsWith("http")
+									? window.open(route, "_blank")
+									: frappe.set_route(route);
+							},
+						})),
+				},
+				{
+					group: "",
+					options: [
+						{
+							name: "all-apps",
+							label: __("All apps"),
+							icon: "grid-2x2",
+							href: "/desk",
 						},
-					})),
-				{ is_divider: true },
-				{ name: "all-apps", label: __("All apps"), icon: "grid-2x2", url: "/desk" },
+					],
+				},
 			],
 		});
 
@@ -212,16 +235,16 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// because while the rail is up the panel's header is hidden (see dock.scss) and its menu -- the
 	// switcher, Edit Sidebar, the system items -- would go with it.
 	//
-	// Each element gets its own menu, created once and never rebuilt: `frappe.ui.create_menu` binds
-	// to the node it is given and registers a document-level listener per call, so a second call for
-	// the same element would leave a listener behind on every navigation.
+	// Each element gets its own dropdown, created once and never rebuilt: it binds to the node it
+	// is given, and takes its rows from a function it calls on every open, so one dropdown per
+	// element covers every module the desk goes on to show.
 	attach_menu(wrapper) {
-		const menu = frappe.ui.create_menu({
-			parent: wrapper,
-			menu_items: this.menu_items(),
-			onShow: this.toggle_active,
-			onHide: this.toggle_active,
-			onItemClick: this.toggle_active,
+		const $wrapper = $(wrapper);
+		const menu = new frappe.ui.Dropdown({
+			trigger: $wrapper,
+			options: () => this.menu_items(),
+			on_open: () => this.toggle_active($wrapper, true),
+			on_close: () => this.toggle_active($wrapper, false),
 		});
 		this.menus.push(menu);
 		return menu;
@@ -230,7 +253,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// The header shows the open state while its menu is up. The rail's header is always on screen
 	// and simply toggles; the panel's is only there when the panel is, and a highlight left on a
 	// header that has gone would be waiting on it when it came back.
-	toggle_active(wrapper) {
+	toggle_active(wrapper, active) {
 		// The panel's menu opens from the whole header, the rail's from its chevron alone -- the
 		// rest of that one is a link to the apps screen. Either way it is the header that shows the
 		// open state, so resolve up to it: `closest` returns the header itself when that is what
@@ -238,45 +261,38 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		const $wrapper = $(wrapper).closest(".shell-header").length
 			? $(wrapper).closest(".shell-header")
 			: $(wrapper);
-		$wrapper.toggleClass("active-sidebar");
-		if ($wrapper.closest(".body-sidebar").length && !frappe.app.sidebar.sidebar_expanded) {
+		$wrapper.toggleClass("active-sidebar", active);
+		if ($wrapper.closest(".body-sidebar").length && !this.sidebar.sidebar_expanded) {
 			$wrapper.removeClass("active-sidebar");
 		}
 	}
 	// What goes under the header's "Help" row: the help links registered for the page you are on,
-	// then a divider, then the site's own help items from `Navbar Settings.help_dropdown`.
+	// then the site's own help items from `Navbar Settings.help_dropdown`.
+	//
+	// The two are sections rather than a list with a divider row in it. The panel rules between
+	// them, and drops the rule along with whichever section is empty -- so a page that carries
+	// links on a site that carries none no longer ends the menu in a rule, which the divider row
+	// had to be trimmed by hand to avoid.
 	get_help_siblings() {
-		let help_dropdown_items = [];
+		const site_items = (frappe.boot.navbar_settings?.help_dropdown || [])
+			.filter((element) => !element.hidden)
+			.filter((element) => !element.action?.includes("frappe.ui.toolbar.show_shortcuts"))
+			.filter((element) => !element.condition || frappe.utils.eval(element.condition))
+			.map((element) => {
+				const row = { name: element.name, label: __(element.item_label) };
+				if (element.item_type === "Route") {
+					Object.assign(row, this.link_fields(element.route));
+				}
+				if (element.item_type === "Action") {
+					row.onclick = () => frappe.utils.eval(element.action);
+				}
+				return row;
+			});
 
-		let custom_help_links = this.get_custom_help_links();
-
-		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
-
-		(frappe.boot.navbar_settings?.help_dropdown || []).forEach((element) => {
-			if (element.hidden) return;
-			if (element.action?.includes("frappe.ui.toolbar.show_shortcuts")) return;
-			if (element.condition && !frappe.utils.eval(element.condition)) return;
-			let dropdown_children = {
-				name: element.name,
-				label: element.item_label,
-			};
-			if (element.item_type === "Route") {
-				dropdown_children.url = element.route;
-			}
-			if (element.item_type === "Action") {
-				dropdown_children.onClick = function () {
-					frappe.utils.eval(element.action);
-				};
-			}
-			help_dropdown_items.push(dropdown_children);
-		});
-
-		// The divider `get_custom_help_links` leaves behind separates the page's links from the
-		// site's items. With nothing after it there is nothing to separate, and a menu ending in
-		// a rule looks like it lost its last row.
-		if (help_dropdown_items.at(-1)?.is_divider) help_dropdown_items.pop();
-
-		return help_dropdown_items;
+		return [
+			{ group: "", options: this.get_custom_help_links() },
+			{ group: "", options: site_items },
+		];
 	}
 
 	get_custom_help_links() {
@@ -290,10 +306,12 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			let help_links = frappe.help.help_links[key] || [];
 			links = $.merge(links, help_links);
 		}
-		if (links.length) {
-			links.push({ is_divider: true });
-		}
-		return links;
+		// Registered links are `{ label, url }` pairs, and every one of them points outside the
+		// site, at the docs.
+		return links.map((link) => ({
+			label: __(link.label),
+			...this.link_fields(link.url),
+		}));
 	}
 
 	make() {
