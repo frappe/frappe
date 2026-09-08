@@ -11,7 +11,11 @@ from frappe.tests import IntegrationTestCase
 
 from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
-from studio.studio.doctype.studio_page.studio_page import duplicate_page, get_page, paste_page
+from studio.studio.doctype.studio_page.studio_page import (
+	duplicate_page,
+	get_page,
+	paste_page,
+)
 
 PAGE_SCRIPT = "export function setup() { return { greeting: 'hi' } }"
 TODO_RESOURCE = {
@@ -111,6 +115,29 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual(pasted.component_name, "Card")
 		self.assertEqual(pasted.block, component.block)
 		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
+
+	def test_paste_carries_files_the_script_imports(self):
+		with exports_in_tempdir():
+			source_app = make_studio_app(
+				app_name="src-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+			)
+			target_app = make_studio_app(
+				app_name="dst-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+			)
+			page = make_studio_page(source_app.name)
+			page.get_app().write_files([{"path": "stores/settings.ts", "content": "export const x = 1"}])
+			page.script = 'import { x } from "@app/stores/settings"\nexport default function setup() {}'
+			page.save()
+
+			copy = page.get_copy()
+			self.assertEqual([f["path"] for f in copy["files"]], ["stores/settings.ts"])
+
+			pasted = paste_page(target_app.name, {**copy, "blocks": []})
+
+			self.assertEqual(
+				frappe.read_file(os.path.join(pasted.get_app().get_folder_path(), "stores/settings.ts")),
+				"export const x = 1",
+			)
 
 	def test_standard_page_script_is_copied_as_file(self):
 		with exports_in_tempdir():

@@ -142,18 +142,30 @@ class StudioPage(Document):
 	def get_copy(self, blocks=None) -> dict:
 		"""Page settings, data sources, variables, script and the components `blocks` use, for copy-paste."""
 		blocks = frappe.parse_json(blocks) or parse_json(self.draft_blocks or self.blocks) or []
+		script = self.get_script_source()
 		return {
 			"page_title": self.page_title,
 			"allow_guest": self.allow_guest,
 			"components": get_components_for_blocks(blocks),
+			"files": self.get_app_files(script, blocks),
 			"resources": [
 				{field: row.get(field) for field in PAGE_RESOURCE_FIELDS} for row in self.resources
 			],
 			"variables": [
 				{field: row.get(field) for field in PAGE_VARIABLE_FIELDS} for row in self.variables
 			],
-			"script": self.get_script_source(),
+			"script": script,
 		}
+
+	def get_app_files(self, script: str, blocks) -> list[dict]:
+		if not (self.is_standard and self.frappe_app):
+			return []
+		app = self.get_app()
+		script_dir = os.path.relpath(self.get_folder_path(), app.get_folder_path())
+		return app.collect_files(script, script_dir, blocks)
+
+	def get_app(self):
+		return frappe.get_cached_doc("Studio App", self.studio_app)
 
 	def get_script_source(self) -> str:
 		if self.has_script_file():
@@ -520,6 +532,7 @@ def paste_page(app_name: str, page: dict | str, target_page: str | None = None) 
 	doc.script = copy.get("script")
 	doc.save()
 	if can_export(doc):
+		doc.get_app().write_files(copy.get("files") or [])
 		doc.write_script_file()
 	return doc
 

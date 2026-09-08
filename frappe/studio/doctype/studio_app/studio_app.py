@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 import json
 import os
+import re
 from urllib.parse import quote
 
 import frappe
@@ -12,6 +13,10 @@ from frappe.website.website_generator import WebsiteGenerator
 
 from studio.export import can_export, delete_folder, remove_null_fields, write_document_file
 from studio.realtime import publish_doc_change
+from studio.utils import walk_blocks
+
+IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
+EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
 
 
 class StudioAppRenderer(DocumentPage):
@@ -356,8 +361,74 @@ class StudioApp(WebsiteGenerator):
 				with open(frappe.get_app_path("studio", "studio_apps.txt"), "w") as f:
 					f.write("\n".join(apps))
 
+	def collect_files(self, script: str, script_dir: str, blocks) -> list[dict]:
+		"""The custom Vue components `blocks` use and everything the script and those files import."""
+		files = {}
+		pending = [
+			path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
+		]
+		pending += self.resolve_imports(script, script_dir)
+
+		while pending:
+			path = pending.pop()
+			if path in files:
+				continue
+			with open(os.path.join(self.get_folder_path(), path), encoding="utf-8") as f:
+				files[path] = f.read()
+			pending += self.resolve_imports(files[path], os.path.dirname(path))
+
+		return [{"path": path, "content": content} for path, content in files.items()]
+
+	def write_files(self, files: list[dict]):
+		"""Add copied files to the app folder; files already there are left alone."""
+		for file in files:
+			target = os.path.realpath(os.path.join(self.get_folder_path(), file["path"]))
+			if not target.startswith(os.path.realpath(self.get_folder_path()) + os.sep):
+				frappe.throw(_("Invalid file path: {0}").format(file["path"]), frappe.PermissionError)
+			if not target.endswith(EXTENSIONS) or os.path.exists(target):
+				continue
+			os.makedirs(os.path.dirname(target), exist_ok=True)
+			with open(target, "w", encoding="utf-8") as f:
+				f.write(file["content"])
+
+	def find_vue_component(self, name: str) -> str | None:
+		for dirpath, _dirnames, filenames in os.walk(self.get_folder_path()):
+			if f"{name}.vue" in filenames:
+				return os.path.relpath(os.path.join(dirpath, f"{name}.vue"), self.get_folder_path())
+		return None
+
+	def resolve_imports(self, source: str, from_dir: str) -> list[str]:
+		paths = []
+		for spec in IMPORT_RE.findall(source or ""):
+			base = spec[len("@app/") :] if spec.startswith("@app/") else os.path.join(from_dir, spec)
+			if path := self.resolve_module(os.path.normpath(base)):
+				paths.append(path)
+		return paths
+
+	def resolve_module(self, base: str) -> str | None:
+		"""Vite's lookup: the path itself, then with an extension, then an index file."""
+		if base.startswith(".."):
+			return None
+		candidates = [
+			base,
+			*(base + ext for ext in EXTENSIONS),
+			*(os.path.join(base, f"index{ext}") for ext in (".ts", ".js")),
+		]
+		for candidate in candidates:
+			if os.path.isfile(os.path.join(self.get_folder_path(), candidate)):
+				return candidate
+		return None
+
 	def get_folder_path(self, name: str | None = None):
 		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)
+
+
+def custom_vue_component_names(blocks) -> set[str]:
+	return {
+		block["componentName"]
+		for block in walk_blocks(blocks)
+		if block.get("isCustomVueComponent") and block.get("componentName")
+	}
 
 
 def get_vite_dev_server_port():

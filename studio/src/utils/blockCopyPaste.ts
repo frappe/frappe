@@ -16,6 +16,7 @@ export interface PageCopy {
 	variables: Record<string, any>[]
 	script: string
 	components: Record<string, any>[]
+	files: { path: string; content: string }[]
 }
 
 interface ClipboardPayload {
