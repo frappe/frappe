@@ -131,6 +131,7 @@ Conversations run on a bench-local daemon provided by the `frappe-flow` package,
 - Durable data and `tenants.json` live under `<bench>/sites/flow-server/` so they survive deployments. The socket and PID are runtime files under `<bench>/flow-server/`, and logs go to `<bench>/logs/flow-server.log`.
 - Sessions have no file access: the daemon's own read and grep tools are switched off for every session. The only path in a site's fence is its public files folder, which sessions use as their working directory.
 - Each site gets a `flow_server_secret` in its site config. The daemon calls the site back for tool calls at `flow_server_url` if set, otherwise at the site URL Frappe computes (`host_name`, `http_port`, or `webserver_port` in developer mode). Set that before the first chat: changing it later invalidates the callback URLs of existing sessions.
+- `flow_callback_timeout` in site config caps how many seconds the daemon waits for a tool call to answer (the daemon's default is 120).
 - Events are published to the bench's `redis_queue`, or `flow_redis_url` from `common_site_config.json`.
 - The scheduler restarts a dead daemon within five minutes, and `bench migrate` restarts it so updates ship. Uninstalling the app from a site removes its token and session data; removing the last site stops the daemon.
 
