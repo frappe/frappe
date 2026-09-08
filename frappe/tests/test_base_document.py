@@ -232,7 +232,7 @@ class TestBaseDocument(IntegrationTestCase):
 
 	def test_get_valid_dict_json_field_with_list(self):
 		"""Test that get_valid_dict properly handles and serializes JSON fields with list values."""
-		from frappe._dict import _dict
+		from frappe import _dict
 
 		doc = BaseDocument(
 			{"doctype": "DocField", "fieldname": "test_json_field", "link_filters": [{"key": "val"}]}
@@ -243,6 +243,7 @@ class TestBaseDocument(IntegrationTestCase):
 			get_table_fields=lambda **kwargs: (),
 		)
 		doc.meta = meta
+		doc.flags = _dict()
 		valid_dict = doc.get_valid_dict()
 		self.assertEqual(valid_dict["link_filters"], '[{"key":"val"}]')
 
@@ -257,6 +258,7 @@ class TestBaseDocument(IntegrationTestCase):
 			get_valid_fields=lambda: ["description"],
 			get_table_fields=lambda **kwargs: (),
 		)
+		doc_invalid.flags = _dict()
 		with self.assertRaises(frappe.ValidationError):
 			doc_invalid.get_valid_dict()
 
