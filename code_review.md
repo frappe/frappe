@@ -88,7 +88,7 @@ Check these first. Ask for the missing piece before reading the code.
 - Defaults serve non-technical users. Labels say what happens, in short plain words, with no internal terms like "DocType".
 - Bundle size is a budget. Features used by a minority load on first use.
 - A button and dialog on the existing doctype beats a new doctype. A permission beats a setting.
-- Confirm destructive actions. Secondary actions are not primary buttons. Keyboard keeps working. Any change marks the form dirty. Console stays clean.
+- Confirm destructive actions. Only one primary button is visible on a page or dialog; secondary actions are not primary buttons. Keyboard keeps working. Any change marks the form dirty. Console stays clean.
 - Client work is scoped to the instance, runs once, and cleans up its listeners. Client checks also work when the value is set programmatically.
 
 ### Code
