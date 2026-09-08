@@ -166,6 +166,7 @@ class TestVersion(IntegrationTestCase):
 
 		color_field = new_doc.meta.get_field("color")
 		color_field.ignore_versioning = 1
+		self.addCleanup(setattr, color_field, "ignore_versioning", 0)
 
 		old_doc.color = None
 		new_doc.color = "#fafafa"
@@ -189,6 +190,7 @@ class TestVersion(IntegrationTestCase):
 
 		email_field = frappe.get_meta("Event Participants").get_field("email")
 		email_field.ignore_versioning = 1
+		self.addCleanup(setattr, email_field, "ignore_versioning", 0)
 
 		# unsaved row has no name, so get_diff cannot match it against an old row
 		doc_with_row.append(
