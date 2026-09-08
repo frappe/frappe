@@ -1048,9 +1048,12 @@ export default class GridRow {
 						$wrapper.append($dropdown);
 
 						let element_position = event.target.getBoundingClientRect();
+						// both rects are viewport relative; jQuery's offset() is document
+						// relative, and mixing the two shifts the dropdown by the page scroll
+						let grid_field_position = $grid_field[0].getBoundingClientRect();
 
-						let left_difference = element_position.left - $grid_field.offset().left;
-						let top_difference = element_position.top - $grid_field.offset().top + 30;
+						let left_difference = element_position.left - grid_field_position.left;
+						let top_difference = element_position.top - grid_field_position.top + 30;
 						$wrapper.css({
 							position: "absolute",
 							top: `${top_difference + 10}px`,
