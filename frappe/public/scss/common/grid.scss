@@ -966,8 +966,8 @@ body.grid-col-resizing {
 
 // The wizard's panels scroll inside the modal, so the scrollbar lands right
 // beside the fields. Keep it thin and hold a gutter open next to it. The
-// panel now sits inside .bulk-edit-card (white), so it also carries the
-// card's own inner padding on every other side.
+// panel sits inside .bulk-edit-card, so it also carries that box's own inner
+// padding on every other side.
 .bulk-edit-tabs .es-tabs__panel {
 	padding: var(--padding-md);
 	padding-right: var(--padding-sm);
@@ -994,7 +994,7 @@ body.grid-col-resizing {
 
 // The step row is a real frappe.ui.Stepper (same component as the Data
 // Import wizard's dialog — ported in from Doctype-PR-changes), sitting
-// directly on the modal's grey body. Tabs still drives the panels; its own
+// directly on the modal body. Tabs still drives the panels; its own
 // bar is hidden (the direct-child selector below, not a descendant one —
 // the Upload step nests its own File upload / Google Sheet tabs, whose list
 // must stay visible) and the Stepper's on_step_click calls tabs.set_active().
@@ -1006,30 +1006,16 @@ body.grid-col-resizing {
 	display: none;
 }
 
-// Grey modal body (the step row reads directly on it), with the tab panel
-// and the dialog's own footer actions boxed together in one white card —
-// dialog.footer is moved into that card in grid.js, not rebuilt, so this is
-// styling only. The modal-body's existing padding is what gives the card its
-// margin on every side; the card only adds the gap under the step row.
-.bulk-edit-dialog .modal-body {
-	background: var(--subtle-fg);
-	// the footer moved into the card, so the body is the last thing in the modal
-	// and carries its bottom corners — square ones read as a seam against the
-	// rounded card sitting on them
-	border-bottom-left-radius: var(--radius-md);
-	border-bottom-right-radius: var(--radius-md);
-	// overflow-y left alone here too, and for the same reason as the panel
-	// above: toggling it moves the layout under the click that triggered it
-}
-
+// The tab panel and the dialog's own footer actions sit together in one box —
+// dialog.footer is moved into it in grid.js, not rebuilt, so this is styling
+// only. The modal-body's own padding is what gives the box its margin on every
+// side; the box only adds the gap under the step row.
 .bulk-edit-card {
 	flex: 1 1 auto;
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
 	margin-top: var(--padding-sm);
-	background: var(--fg-color);
-	border-radius: var(--radius-md);
 }
 
 // ---- the bulk edit preview, which doubles as the mapping step ----

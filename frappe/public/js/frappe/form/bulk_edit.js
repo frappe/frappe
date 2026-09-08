@@ -221,11 +221,10 @@ export default class BulkEdit {
 			this.stepper.refresh();
 		};
 
-		// The step row reads on the modal's grey body; the panel it governs and
-		// the dialog's own footer actions live together in one white card
-		// underneath it — same shape as the Data Import wizard's dialog. Moving
-		// dialog.footer's actual node (not rebuilding it) means set_footer()'s
-		// primary/secondary action calls below need no changes.
+		// The panel the step row governs and the dialog's own footer actions live
+		// together underneath it — same shape as the Data Import wizard's dialog.
+		// Moving dialog.footer's actual node (not rebuilding it) means
+		// set_footer()'s primary/secondary action calls below need no changes.
 		const $card = $('<div class="bulk-edit-card"></div>');
 		this.dialog.$body.append(this.stepper.$el, $card);
 		$card.append(this.tabs.$el, this.dialog.footer);
