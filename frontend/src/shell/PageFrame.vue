@@ -3,9 +3,10 @@
   The page owns the row's contents, its top and bottom padding, and its max width.
 -->
 <template>
-	<!-- The header is declared inside the viewport, so its click-to-top finds this page's scroll. -->
+	<!-- Read in the template, not a computed: the slots object is not reactive, and a page can
+	     supply its header after mount. Without a `PageHeader` the shell's target keeps no height. -->
 	<ScrollArea v-if="scroll" class="min-h-0 flex-1" :viewportClass="pageGutter">
-		<PageHeader v-if="headed">
+		<PageHeader v-if="title || $slots.header">
 			<slot name="header"><PageHeaderTitle :title="title" /></slot>
 		</PageHeader>
 		<slot />
@@ -13,7 +14,7 @@
 
 	<!-- No padding here: a pane that scrolls both ways puts the gutter on its own viewport. -->
 	<div v-else class="flex min-h-0 flex-1 flex-col overflow-hidden">
-		<PageHeader v-if="headed">
+		<PageHeader v-if="title || $slots.header">
 			<slot name="header"><PageHeaderTitle :title="title" /></slot>
 		</PageHeader>
 		<slot />
@@ -26,10 +27,9 @@ export const pageGutter = "px-3 sm:px-5";
 </script>
 
 <script setup lang="ts">
-import { computed, useSlots } from "vue";
 import { PageHeader, PageHeaderTitle, ScrollArea } from "frappe-ui";
 
-const props = withDefaults(
+withDefaults(
 	defineProps<{
 		/** Rendered as the row's title; the `header` slot replaces the row's whole content. */
 		title?: string;
@@ -43,9 +43,4 @@ defineSlots<{
 	header?: () => unknown;
 	default?: () => unknown;
 }>();
-
-const slots = useSlots();
-
-// Without a `PageHeader` the shell's target keeps no height.
-const headed = computed(() => !!props.title || !!slots.header);
 </script>
