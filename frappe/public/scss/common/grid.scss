@@ -256,7 +256,8 @@
 }
 
 // Error indicator: inset shadow on the control (editable rows) or the cell (idle rows).
-.grid-body .editable-row .has-error .form-control {
+.grid-body .editable-row .has-error .form-control,
+.grid-body .editable-row .has-error .es-combobox {
 	box-shadow: inset 0 0 0 1px var(--error-border);
 }
 
@@ -376,6 +377,39 @@
 		// Drop the clippable error border; the box-shadow above is the indicator.
 		.has-error input.form-control {
 			border: 0 !important;
+		}
+
+		// Combobox Link field: the same flat cell as .form-control above —
+		// square, white, the cell's full height (10 + 21 + 12 = 43px like a
+		// Data input), the same focus ring, and its chevron and buttons only
+		// while hovered, focused or open, like the classic link buttons.
+		.es-combobox {
+			height: auto;
+			padding: 10px 8px 12px;
+			line-height: 21px;
+			border-radius: 0;
+			background: var(--control-bg);
+
+			// the value input sizes to 100% of the trigger elsewhere; here the
+			// trigger takes its height from the input, so give it the line
+			> .es-combobox__value {
+				height: 21px;
+			}
+		}
+
+		.es-combobox:focus-visible,
+		.es-combobox:focus-within {
+			outline: none;
+			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
+		}
+
+		.es-combobox[data-state="open"] {
+			background: var(--control-bg);
+		}
+
+		.es-combobox:not(:hover):not(:focus-within):not([data-state="open"])
+			.es-combobox__chevron {
+			display: none;
 		}
 
 		input.form-control.invalid {

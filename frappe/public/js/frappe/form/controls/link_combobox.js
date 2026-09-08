@@ -4,8 +4,7 @@
 // (plus any app hook rows) in the footer.
 //
 // Picked by make_control for Link fields when System Settings > "Enable
-// Combobox Link Field" is on, or when a developer sets
-// localStorage.combobox_link_field = "1" for their own browser.
+// Combobox Link Field" is on.
 //
 // Compatibility: this class extends the classic ControlLink and keeps its
 // public surface — set_value / get_value / get_input_value / get_label_value,
@@ -20,19 +19,14 @@ import { describe_link_filters } from "./link_filter_description.js";
 
 frappe.ui.form.is_combobox_link_enabled = function () {
 	// desk only: the component and the boot data live in desk.bundle.js, so
-	// web forms (controls.bundle.js on the website) keep the classic control
+	// web forms (controls.bundle.js on the website) keep the classic control.
+	// The site setting is boot data; a control made before the desk has
+	// booted stays classic
 	if (!frappe.ui.Combobox || !frappe.defaults?.is_enabled || !frappe.sys_defaults) return false;
-	try {
-		const override = window.localStorage?.getItem("combobox_link_field");
-		if (override === "1") return true;
-		if (override === "0") return false;
-	} catch (e) {
-		// storage blocked: fall through to the site setting
-	}
 	return frappe.defaults.is_enabled("enable_combobox_link_field");
 };
 
-// Preload / Select modes fetch this many rows at most; a list that turns
+// Select mode fetches this many rows at most; a list that turns
 // out longer is searched on the server instead
 const PRELOAD_LIMIT = 1000;
 
@@ -49,7 +43,7 @@ const search_cache = new Map(); // key -> { result, time }
 const SEARCH_CACHE_MS = 60 * 1000;
 const SEARCH_CACHE_MAX = 200;
 
-// Preload / Select: the whole list per doctype + filters, with the record
+// Select: the whole list per doctype + filters, with the record
 // count and latest modification it was built from. A cheap check of those on
 // every open says whether it must be rebuilt. (A push channel would be
 // fragile here: list views drop every list_update listener and the doctype
@@ -98,6 +92,14 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 
 		this.combobox = new frappe.ui.Combobox({
 			value_input: true,
+			// focus from a grid cell click, Tab or a dialog opens the panel
+			// with the search box focused, as the classic dropdown did
+			open_on_focus: true,
+			// in a grid row the arrow keys move between rows
+			arrow_keys_open: !this.grid_row,
+			// a searching field reads like an input: no chevron, the value
+			// gets the whole width. Select mode keeps it (it reads like a select)
+			chevron: this.display_mode() === "Select",
 			filterable: false, // search_link does the filtering
 			// always clearable: the cross only shows on hover / focus / open,
 			// so the "Allow Clearing Link Fields" setting (meant for the
@@ -106,7 +108,13 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			options: (query, { start }) => this.fetch_options(query, start),
 			filters: () => this.get_filter_chips(),
 			actions: [
-				{ icon: "arrow-right", title: __("Open Link"), href: "#", css_class: "btn-open" },
+				{
+					icon: "arrow-right",
+					title: __("Open Link") + " (Ctrl+Enter)",
+					href: "#",
+					css_class: "btn-open",
+					shortcut: "ctrl+enter",
+				},
 			],
 			before_open: () => this.before_open(),
 			// grid_row.js reads this flag to leave arrow keys to the dropdown
@@ -116,6 +124,9 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		});
 
 		this.$input_area = $(this.input_area);
+		// the same handle the frappe.ui.combobox helper leaves on its trigger,
+		// for scripts and tests that reach the widget from the DOM
+		this.combobox.$trigger.data("es-combobox", this.combobox);
 		this.combobox.$trigger.prependTo(this.input_area);
 		this.$input = $(this.combobox.input_el);
 		// same hooks as the classic input: .input-with-feedback is what
@@ -226,6 +237,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		super.refresh_input();
 		if (this.combobox && this.$input) {
 			this.combobox.set_disabled(this.$input.prop("disabled"));
+			// a Dynamic Link's target (and so its mode) can change with the doc
+			this.combobox.set_chevron(this.display_mode() === "Select");
 		}
 	}
 
@@ -299,8 +312,7 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	// ---- panel content ----
 
 	// "Search" (the default): the server filters per keystroke and pages on
-	// scroll. "Preload": the whole list once, filtered on the client.
-	// "Select": Preload without the search box, for short lists.
+	// scroll. "Select": the whole list once, no search box, for short lists.
 	display_mode() {
 		return this.link_settings().display_mode || "Search";
 	}
@@ -388,7 +400,11 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 				rows = this.merge_duplicates(rows || []);
 				this.toggle_href(doctype);
 				for (const row of rows) {
-					frappe.utils.add_link_title(doctype, row.value, row.label);
+					// only a real title: a bare name must not pre-empt the
+					// title fetch that set_link_title does for title links
+					if (row.label && row.label !== row.value) {
+						frappe.utils.add_link_title(doctype, row.value, row.label);
+					}
 				}
 				const options = rows.map((row) => this.to_option(row));
 				// has_more from the server's own count: merging duplicate rows
@@ -401,7 +417,7 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			});
 	}
 
-	// Preload / Select: the whole list for this doctype + filters, rebuilt
+	// Select: the whole list for this doctype + filters, rebuilt
 	// only when the record count or latest modification changed. The cached
 	// list shows at once; a rebuild replaces it when it lands.
 	preload_options() {

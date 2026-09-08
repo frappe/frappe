@@ -175,21 +175,31 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 		cy.get("@input").then(($input) => {
 			if ($input.closest(".es-combobox").length) {
 				// combobox Link field (System Settings > Enable Combobox Link
-				// Field): typing on the field opens the panel and continues in
-				// its search box; Enter picks the highlighted row
-				cy.wrap($input).clear().type(value, { delay: 100 });
+				// Field): focus opens the panel with its search box focused;
+				// type there and pick the highlighted row with Enter
+				cy.wrap($input).focus();
 				// the panel is mounted in <body>, outside any .within() scope
 				cy.document()
 					.its("body")
 					.find(".es-combobox__panel[data-state='open']")
 					.as("dropdown");
 				cy.get("@dropdown")
+					.find(".es-combobox__input")
+					.clear()
+					.type(value, { delay: 100 });
+				cy.get("@dropdown")
 					.find(".es-combobox__list [role='option']")
 					.first()
 					.should("include.text", value);
 				cy.get("@dropdown").find(".es-combobox__input").type("{enter}");
 				cy.get("@dropdown").should("not.exist");
-				cy.get("@input").should("have.value", value);
+				// the input shows the title for title-link doctypes: check the
+				// picked value on the widget itself
+				cy.get("@input")
+					.closest(".es-combobox")
+					.should(($trigger) => {
+						expect($trigger.data("es-combobox").value).to.eq(value);
+					});
 				return;
 			}
 			cy.wrap($input).clear().focus();

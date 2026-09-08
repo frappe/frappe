@@ -1,29 +1,42 @@
 // The Link field with System Settings > "Enable Combobox Link Field" on:
 // the same scenarios as control_link.js, driven through the combobox
 // panel (search box inside, rows in <body>) instead of the classic
-// dropdown next to the input. The per-browser override in localStorage
-// turns the control on for this spec without touching the site setting.
+// dropdown next to the input. The spec turns the site setting on for its
+// run and off again after, so the classic Link specs keep their control.
+
+function set_combobox_setting(on) {
+	cy.call("frappe.client.set_value", {
+		doctype: "System Settings",
+		name: "System Settings",
+		fieldname: "enable_combobox_link_field",
+		value: on ? 1 : 0,
+	});
+}
 
 context("Control Link (combobox)", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/desk/website");
+		set_combobox_setting(true);
+	});
+
+	after(() => {
+		cy.visit("/desk/website");
+		set_combobox_setting(false);
 	});
 
 	beforeEach(() => {
 		cy.visit("/desk/website");
-		cy.window().then((win) => win.localStorage.setItem("combobox_link_field", "1"));
 		cy.create_records({
 			doctype: "ToDo",
 			description: "this is a test todo for link",
 		}).as("todos");
 	});
 
-	afterEach(() => {
-		cy.window().then((win) => win.localStorage.removeItem("combobox_link_field"));
-	});
-
 	function get_dialog_with_link() {
+		// a control made before the desk has booted stays classic: wait for
+		// the boot data (the site setting lives there) before making the dialog
+		cy.window().its("frappe.sys_defaults").should("exist");
 		return cy
 			.dialog({
 				title: "Link",
@@ -62,19 +75,6 @@ context("Control Link (combobox)", () => {
 
 	it("should set the valid value", () => {
 		get_dialog_with_link().as("dialog");
-
-		cy.insert_doc(
-			"Property Setter",
-			{
-				doctype: "Property Setter",
-				doc_type: "ToDo",
-				property: "show_title_field_in_link",
-				property_type: "Check",
-				doctype_or_field: "DocType",
-				value: "0",
-			},
-			true
-		);
 
 		// typing on the field opens the panel with the text as the query
 		field_input().type("todo for link", { delay: 100 });
@@ -123,9 +123,15 @@ context("Control Link (combobox)", () => {
 			cy.get("@todos").then((todos) => expect(dialog.get_value("link")).to.eq(todos[0]));
 		});
 
-		// Backspace on the field clears it (the × button is hover-only)
+		// Backspace on the field clears it (Tab lands here with the value
+		// shown selected, so this is the key a user reaches for) and opens
+		// the panel for the next pick. The form only hears about the empty
+		// value once the panel closes without a pick
 		field_input().focus().type("{backspace}");
 		field_input().should("have.value", "");
+		panel().should("be.visible");
+		search().type("{esc}");
+		panel().should("not.exist");
 		cy.get("@dialog").then((dialog) => {
 			expect(dialog.get_value("link")).to.equal("");
 		});
@@ -143,6 +149,9 @@ context("Control Link (combobox)", () => {
 			cy.get(".frappe-control[data-fieldname=link] .btn-open")
 				.should("be.visible")
 				.should("have.attr", "href", `/desk/todo/${todos[0]}`);
+			// Ctrl+Enter on the field opens the record too
+			field_input().type("{ctrl}{enter}");
+			cy.location("pathname").should("eq", `/desk/todo/${todos[0]}`);
 		});
 	});
 
@@ -160,8 +169,28 @@ context("Control Link (combobox)", () => {
 			true
 		);
 
+		// the classic spec flips this setter off and on across its tests; a
+		// server that reads the two states in one search answers with bare
+		// names, so this spec only ever sets it on, and checks it took
+		cy.call("frappe.client.get_value", {
+			doctype: "Property Setter",
+			filters: { doc_type: "ToDo", property: "show_title_field_in_link" },
+			fieldname: "value",
+		}).then((r) => {
+			if (r.message.value !== "1") {
+				cy.call("frappe.client.set_value", {
+					doctype: "Property Setter",
+					name: "ToDo-main-show_title_field_in_link",
+					fieldname: "value",
+					value: "1",
+				});
+			}
+		});
+
+		// and that no server process still holds the old ToDo meta
+		cy.call("frappe.sessions.clear");
+
 		cy.reload();
-		cy.window().then((win) => win.localStorage.setItem("combobox_link_field", "1"));
 
 		get_dialog_with_link().as("dialog");
 		cy.window()
@@ -176,6 +205,8 @@ context("Control Link (combobox)", () => {
 			.should("contain", "this is a test todo for link");
 		search().type("{enter}");
 		panel().should("not.exist");
+		// the title is looked up after the pick lands: wait for it to show
+		field_input().should("have.value", "this is a test todo for link");
 		cy.get("@dialog").then((dialog) => {
 			cy.get("@todos").then((todos) => {
 				const field = dialog.get_field("link");
@@ -188,7 +219,6 @@ context("Control Link (combobox)", () => {
 	it("should update dependant fields (via fetch_from)", () => {
 		cy.get("@todos").then((todos) => {
 			cy.visit(`/desk/todo/${todos[0]}`);
-			cy.window().then((win) => win.localStorage.setItem("combobox_link_field", "1"));
 			cy.reload();
 			cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
 			// custom fields on a site can push the field below the fold, where
@@ -224,8 +254,12 @@ context("Control Link (combobox)", () => {
 			cy.wait("@validate_link");
 			cy.window().its("cur_frm.doc.assigned_by").should("eq", cy.config("testUser"));
 
-			// clear with the keyboard
-			cy.get_field("assigned_by").focus().type("{backspace}");
+			// clear with the × button: the panel opens for the next pick, and
+			// the empty value reaches the form once it closes without one
+			cy.get(".frappe-control[data-fieldname=assigned_by] [data-role='clear']").click({
+				force: true,
+			});
+			cy.get(".es-combobox__panel[data-state='open'] .es-combobox__input").type("{esc}");
 			cy.window().its("cur_frm.doc.assigned_by").should("eq", "");
 			cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
 				"contain",
@@ -254,6 +288,167 @@ context("Control Link (combobox)", () => {
 					.find(".es-combobox__footer [role='option']")
 					.should("contain", "Custom Link Option");
 			});
+	});
+
+	describe("in a child table", () => {
+		before(() => {
+			cy.visit("/desk/website");
+			cy.window()
+				.its("frappe")
+				.then((frappe) =>
+					frappe.xcall("frappe.tests.ui_test_helpers.create_child_doctype", {
+						name: "Child Test Link Combobox",
+						fields: [
+							{
+								label: "Todo",
+								fieldname: "todo",
+								fieldtype: "Link",
+								options: "ToDo",
+								in_list_view: 1,
+							},
+							{
+								label: "Note",
+								fieldname: "note",
+								fieldtype: "Data",
+								in_list_view: 1,
+							},
+						],
+					})
+				)
+				.then((frappe) =>
+					frappe.xcall("frappe.tests.ui_test_helpers.create_doctype", {
+						name: "Test Link Combobox Grid",
+						fields: [
+							{
+								label: "Items",
+								fieldname: "items",
+								fieldtype: "Table",
+								options: "Child Test Link Combobox",
+							},
+						],
+					})
+				);
+		});
+
+		it("opens on a cell click with the search focused; keys and the × clear", () => {
+			cy.new_form("Test Link Combobox Grid");
+			cy.get("@todos").then((todos) => {
+				cy.window()
+					.its("cur_frm")
+					.then((frm) => {
+						frm.add_child("items", { todo: todos[0] });
+						frm.refresh_field("items");
+					});
+
+				// clicking the filled cell makes the row editable and opens the
+				// panel straight away, with the search box focused
+				cy.get(
+					'.frappe-control[data-fieldname="items"] .grid-body .grid-row [data-fieldname="todo"] .static-area'
+				)
+					.should("contain", todos[0])
+					.click();
+				panel().should("be.visible");
+				search().should("have.focus");
+
+				// Escape hands focus back to the cell, which keeps its value
+				search().type("{esc}");
+				panel().should("not.exist");
+				cy.get('.editable-row [data-fieldname="todo"] .es-combobox input')
+					.as("cell")
+					.should("have.focus");
+				cy.window().its("cur_frm.doc.items.0.todo").should("eq", todos[0]);
+
+				// Backspace on the cell clears it and reopens the panel for the
+				// next pick; the row keeps its value until the panel closes
+				// without a pick
+				cy.get("@cell").type("{backspace}");
+				panel().should("be.visible");
+				cy.window().its("cur_frm.doc.items.0.todo").should("eq", todos[0]);
+				search().type("{esc}");
+				cy.window().its("cur_frm.doc.items.0.todo").should("eq", "");
+				cy.get("@cell").should("have.value", "");
+
+				// the × button clears the same way
+				cy.window().then((win) => {
+					const row = win.cur_frm.doc.items[0];
+					return win.frappe.model.set_value(row.doctype, row.name, "todo", todos[0]);
+				});
+				cy.get("@cell").invoke("val").should("not.be.empty");
+				cy.get('.editable-row [data-fieldname="todo"] [data-role="clear"]').click({
+					force: true,
+				});
+				cy.get("@cell").should("have.value", "");
+				panel().should("be.visible");
+				search().type("{esc}");
+				cy.window().its("cur_frm.doc.items.0.todo").should("eq", "");
+			});
+		});
+
+		it("keeps keyboard row navigation and tab-through data entry", () => {
+			cy.new_form("Test Link Combobox Grid");
+			cy.get("@todos").then((todos) => {
+				cy.window()
+					.its("cur_frm")
+					.then((frm) => {
+						frm.add_child("items", { todo: todos[0], note: "one" });
+						frm.add_child("items", { todo: todos[0], note: "two" });
+						frm.refresh_field("items");
+					});
+				const cell = (idx) =>
+					`.frappe-control[data-fieldname="items"] .grid-body .grid-row[data-idx="${idx}"] [data-fieldname="todo"]`;
+
+				// a click on a filled cell opens; Escape closes and the arrow
+				// keys then move between rows instead of reopening
+				cy.get(`${cell(1)} .static-area`).click();
+				panel().should("be.visible");
+				search().type("{esc}");
+				panel().should("not.exist");
+				cy.get(`${cell(1)} .es-combobox input`).should("have.focus");
+				cy.realPress("ArrowDown");
+				cy.window().its("frappe.ui.form.editable_row.doc.idx").should("eq", 2);
+				// the arrow landed the focus on row 2's filled cell without a panel
+				cy.get(`${cell(2)} .es-combobox input`).should("have.focus");
+				panel().should("not.exist");
+
+				// Tab into the next column; Shift+Tab back onto the filled
+				// Link cell doesn't pop the panel either
+				cy.realPress("Tab");
+				cy.get('.editable-row [data-fieldname="note"] input').should("have.focus");
+				cy.realPress(["Shift", "Tab"]);
+				cy.get(`${cell(2)} .es-combobox input`).should("have.focus");
+				panel().should("not.exist");
+
+				// a new row: focus opens (empty value); typed text + Tab picks
+				// the match and moves on to the next column in one keystroke
+				cy.get('.frappe-control[data-fieldname="items"] .grid-add-row').click();
+				panel().should("be.visible");
+				search().type("todo for link", { delay: 100 });
+				panel()
+					.find(".es-combobox__list [role='option'][data-highlighted]")
+					.should("contain", todos[0]);
+				cy.realPress("Tab");
+				panel().should("not.exist");
+				cy.window().its("cur_frm.doc.items.2.todo").should("eq", todos[0]);
+				cy.get('.editable-row [data-fieldname="note"] input').should("have.focus");
+			});
+		});
+	});
+
+	it("pages a long list on scroll, translated doctypes included", () => {
+		// DocType is a translated doctype: its rows are matched in Python after
+		// an unlimited query, so the server has to page them itself
+		cy.window().its("frappe.sys_defaults").should("exist");
+		cy.dialog({
+			title: "Link",
+			fields: [{ label: "DocType", fieldname: "dt", fieldtype: "Link", options: "DocType" }],
+		}).as("dialog");
+		cy.window().its("cur_dialog.display").should("eq", true);
+		cy.get(".frappe-control[data-fieldname=dt] .es-combobox input").focus();
+		panel().should("be.visible");
+		panel().find(".es-combobox__list [role='option']").should("have.length", 10);
+		panel().find(".es-combobox__list").scrollTo("bottom");
+		panel().find(".es-combobox__list [role='option']").should("have.length.gt", 10);
+		search().type("{esc}");
 	});
 
 	it("keeps the panel keyboard-driven", () => {

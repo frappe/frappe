@@ -417,6 +417,33 @@ context("Espresso components", () => {
 			cy.get(".es-combobox__panel [role='option']").first().should("contain", "Item 001");
 		});
 
+		it("keeps the filters to one line and expands to all of them on click", () => {
+			// "Every operator" has many filters: the band shows the first + a count
+			cy.contains(".explorer-group", "Applied filters").find(".es-combobox").eq(1).click();
+			cy.get(".es-combobox__panel[data-state='open'] .es-combobox__filters")
+				.as("band")
+				.should("contain", "Filtered by")
+				.find(".es-badge")
+				.should("have.length", 2);
+			cy.get("@band")
+				.find(".es-badge")
+				.eq(1)
+				.invoke("text")
+				.should("match", /^\+\d+$/);
+			cy.get("@band").click();
+			cy.get("@band").should("have.attr", "data-expanded");
+			cy.get("@band").find(".es-badge").its("length").should("be.gt", 2);
+			// the search box kept focus through the click
+			cy.get(".es-combobox__panel[data-state='open'] .es-combobox__input").should(
+				"have.focus"
+			);
+			// and back to one line
+			cy.get("@band").click();
+			cy.get("@band").should("not.have.attr", "data-expanded");
+			cy.get("@band").find(".es-badge").should("have.length", 2);
+			cy.get(".es-combobox__panel[data-state='open'] .es-combobox__input").type("{esc}");
+		});
+
 		it("has no search row when hide_search is set and clears via the × button", () => {
 			trigger("No search row").as("trigger");
 			cy.get("@trigger").should("contain", "Frappe Technologies");
@@ -430,6 +457,11 @@ context("Espresso components", () => {
 
 			cy.get("@trigger").find("[data-role='clear']").click({ force: true });
 			cy.get("@trigger").find(".es-combobox__value").should("have.attr", "data-placeholder");
+			// clearing reopens the panel for the next pick
+			cy.get(".es-combobox__panel[data-state='open']")
+				.should("exist")
+				.trigger("keydown", { key: "Escape" });
+			cy.get(".es-combobox__panel[data-state='open']").should("not.exist");
 		});
 	});
 });
