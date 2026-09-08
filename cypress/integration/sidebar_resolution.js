@@ -18,21 +18,29 @@ context("Cold-entry sidebar resolution", () => {
 
 	// An entity's home is decided against this payload; `items` only ever needs `link_to` here.
 	//
-	// A shell maps to its links, or to `{ links, computed }` when the test needs to say the
-	// sidebar was built from the module's contents rather than shipped by an app. These shells are
-	// all named after their module, which is the ordinary case: the payload is keyed by shell
-	// identity and every entry carries both its own `name` and the module it belongs to.
+	// A shell maps to its links, or to `{ links, computed, app }` when the test needs to say the
+	// sidebar was built from the module's contents rather than shipped by an app, or which app
+	// owns it. These shells are all named after their module, which is the ordinary case: the
+	// payload is keyed by shell identity and every entry carries both its own `name` and the
+	// module it belongs to.
+	//
+	// `app` is left undefined unless a test sets it, so every case that says nothing about apps
+	// resolves as it did before app boundaries were a step: a shell with no app crosses no
+	// boundary.
 	const payload = (sidebars) =>
 		Object.fromEntries(
 			Object.entries(sidebars).map(([module, value]) => {
-				const { links = [], computed = 0 } = Array.isArray(value)
-					? { links: value }
-					: value;
+				const {
+					links = [],
+					computed = 0,
+					app,
+				} = Array.isArray(value) ? { links: value } : value;
 				return [
 					module,
 					{
 						name: module,
 						module,
+						app,
 						computed,
 						items: links.map((link_to) => ({ link_to })),
 					},
@@ -51,8 +59,10 @@ context("Cold-entry sidebar resolution", () => {
 			pages = {},
 			dashboards = [],
 			heirs = {},
+			rail_hosts = {},
 			persisted,
 			sticky,
+			on_screen = false,
 			route,
 		},
 		then
@@ -66,6 +76,7 @@ context("Cold-entry sidebar resolution", () => {
 				page_info: frappe.boot.page_info,
 				dashboards: frappe.boot.dashboards,
 				code_only_module_heirs: frappe.boot.code_only_module_heirs,
+				app_rail_host: frappe.boot.app_rail_host,
 				get_meta: frappe.get_meta,
 				selected_module: win.localStorage.getItem("selected_module"),
 			};
@@ -76,6 +87,7 @@ context("Cold-entry sidebar resolution", () => {
 			frappe.boot.page_info = pages;
 			frappe.boot.dashboards = dashboards;
 			frappe.boot.code_only_module_heirs = heirs;
+			frappe.boot.app_rail_host = rail_hosts;
 			frappe.get_meta = (name) => metas[name] || null;
 			if (persisted) win.localStorage.setItem("selected_module", persisted);
 			else win.localStorage.removeItem("selected_module");
@@ -89,7 +101,7 @@ context("Cold-entry sidebar resolution", () => {
 				resolved =
 					sticky === undefined
 						? sidebar.resolve_initial_sidebar(route)
-						: sidebar.resolve_sidebar_for(route, sticky);
+						: sidebar.resolve_sidebar_for(route, sticky, on_screen);
 			} finally {
 				frappe.boot.module_sidebars = real.module_sidebars;
 				frappe.boot.entity_module = real.entity_module;
@@ -97,6 +109,7 @@ context("Cold-entry sidebar resolution", () => {
 				frappe.boot.page_info = real.page_info;
 				frappe.boot.dashboards = real.dashboards;
 				frappe.boot.code_only_module_heirs = real.code_only_module_heirs;
+				frappe.boot.app_rail_host = real.app_rail_host;
 				frappe.get_meta = real.get_meta;
 				if (real.selected_module) {
 					win.localStorage.setItem("selected_module", real.selected_module);
@@ -493,6 +506,125 @@ context("Cold-entry sidebar resolution", () => {
 			resolve({ ...world, sticky: null }, (resolved) => {
 				expect(resolved.sidebar).to.equal("HR");
 			});
+		});
+	});
+
+	// Step 1 holds the shell you are standing in whatever the route is, so a curated cross-app link
+	// does not move it. The one thing it does not survive is leaving the app: the dock is the app
+	// that owns the shell, so a shell held across an app boundary leaves the rail naming an app the
+	// page has nothing to do with.
+	context("the shell on screen holds inside its app, and only inside it", () => {
+		// The shape measured on a site with erpnext and hrms installed. Accounts is where you are;
+		// Job Applicant belongs to HR, which hrms owns.
+		const cross_app = {
+			sidebars: {
+				Accounts: { links: ["Journal Entry", "Sales Order"], app: "erpnext" },
+				HR: { links: ["Job Applicant"], app: "hrms" },
+			},
+			metas: {
+				"Journal Entry": { module: "Accounts" },
+				"Sales Order": { module: "Accounts" },
+				"Job Applicant": { module: "HR" },
+			},
+		};
+
+		it("keeps the shell for a route inside the same app", () => {
+			resolve(
+				{
+					...cross_app,
+					route: ["List", "Sales Order"],
+					sticky: "Accounts",
+					on_screen: true,
+				},
+				(resolved) => {
+					expect(resolved.sidebar).to.equal("Accounts");
+				}
+			);
+		});
+
+		it("moves the shell for a route that belongs to another app", () => {
+			resolve(
+				{
+					...cross_app,
+					route: ["List", "Job Applicant"],
+					sticky: "Accounts",
+					on_screen: true,
+				},
+				(resolved) => {
+					expect(resolved.sidebar).to.equal("HR");
+				}
+			);
+		});
+
+		it("keeps a cross-app entity the shell on screen curates a link to", () => {
+			// The reason the boundary is not simply "the entity's app wins": a sidebar that lists
+			// a foreign entity said it belongs here, and that outranks where it was authored.
+			const curated = {
+				...cross_app,
+				sidebars: {
+					...cross_app.sidebars,
+					Accounts: {
+						links: ["Journal Entry", "Sales Order", "Job Applicant"],
+						app: "erpnext",
+					},
+				},
+			};
+			resolve(
+				{
+					...curated,
+					route: ["List", "Job Applicant"],
+					sticky: "Accounts",
+					on_screen: true,
+				},
+				(resolved) => {
+					expect(resolved.sidebar).to.equal("Accounts");
+				}
+			);
+		});
+
+		it("keeps the shell when a companion app mounts on the same rail", () => {
+			// india_payroll has no rail of its own; its entries live on hrms's. Both sides of the
+			// boundary resolve through the host, so there is no boundary to cross.
+			const companion = {
+				sidebars: {
+					HR: { links: ["Job Applicant"], app: "hrms" },
+					"India Payroll": { links: ["Salary Slip"], app: "india_payroll" },
+				},
+				metas: {
+					"Job Applicant": { module: "HR" },
+					"Salary Slip": { module: "India Payroll" },
+				},
+				rail_hosts: { india_payroll: "hrms" },
+			};
+			resolve(
+				{
+					...companion,
+					route: ["List", "Salary Slip"],
+					sticky: "HR",
+					on_screen: true,
+				},
+				(resolved) => {
+					expect(resolved.sidebar).to.equal("HR");
+				}
+			);
+		});
+
+		it("keeps the shell when the entity belongs to no app", () => {
+			// An unplaced custom module carries no app, and a null app crosses nothing, so it
+			// neither holds a shell nor moves one.
+			const unplaced = {
+				sidebars: {
+					Accounts: { links: ["Journal Entry"], app: "erpnext" },
+					Bookings: ["Booking"],
+				},
+				metas: { Booking: { module: "Bookings" } },
+			};
+			resolve(
+				{ ...unplaced, route: ["List", "Booking"], sticky: "Accounts", on_screen: true },
+				(resolved) => {
+					expect(resolved.sidebar).to.equal("Accounts");
+				}
+			);
 		});
 	});
 
