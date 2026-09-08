@@ -6,7 +6,7 @@ import base64
 import json
 
 import frappe
-from frappe.utils.data import cstr
+from frappe.utils.data import cstr, strip_html
 
 
 class AuthError(Exception):
@@ -385,20 +385,19 @@ class FrappeClient:
 			raise
 
 		if rjson and (rjson.get("exc") or rjson.get("exc_type") or rjson.get("errors")):
+			exception = cstr(rjson.get("exc_type"))  # Only the type is available outside developer mode
 			try:
-				exception = ""
 				if rjson.get("exc"):
 					exception = json.loads(rjson["exc"])[0]
-				elif rjson.get("exc_type"):  # Just have type available
-					exception = json.loads(rjson["exc_type"])[0]
-				elif errors := rjson.get("errrors"):
+				elif errors := rjson.get("errors"):
 					exception = errors[0].get("exception") or errors[0].get("type")
 
-				exc = "FrappeClient Request Failed\n\n" + exception
+				for message in json.loads(rjson.get("_server_messages") or "[]"):
+					exception += "\n" + strip_html(json.loads(message).get("message", ""))
 			except Exception:
-				exc = rjson.get("exc")
+				pass
 
-			raise FrappeException(exc)
+			raise FrappeException("FrappeClient Request Failed\n\n" + exception)
 		if "message" in rjson:
 			return rjson["message"]
 		elif "data" in rjson:
