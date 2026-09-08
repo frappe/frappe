@@ -215,11 +215,11 @@ describe("two containers, one key", () => {
 });
 
 describe("the panel is a container, not a view of the rail", () => {
-	it("offers its own Arrange, addressed at the sidebar", async () => {
+	it("offers its own Customize, addressed at the sidebar", async () => {
 		// The arrangement endpoints take the container as an argument, so the panel arranges on
 		// the rail's terms.
 		const { host } = await shell([accounts], sidebars, "/sales-invoice");
-		expect(panel(host)?.querySelector("[aria-label='Arrange this sidebar']")).not.toBeNull();
+		expect(panel(host)?.querySelector("[aria-label='Customize this sidebar']")).not.toBeNull();
 	});
 });
 

@@ -1,7 +1,7 @@
-// The arrangement editor and the list operations under it. Mounted with Vue's own
+// The customize dialog and the list operations under it. Mounted with Vue's own
 // `createApp`: this package has no `@vue/test-utils`.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, type VNode } from "vue";
+import { createApp, h, nextTick, ref, type VNode } from "vue";
 
 // The real barrel drags the icon plugins in. `Button` is stubbed as the element it renders,
 // keeping `aria-label` and `@click`, which is all these tests reach for.
@@ -12,17 +12,36 @@ vi.mock("frappe-ui", () => ({
   Button: {
     props: ["label", "icon", "variant", "loading"],
     emits: ["click"],
-    setup: (props: { label?: string }, { emit }: { emit: (event: string) => void }) => () =>
-      h("button", { onClick: () => emit("click") }, props.label ?? ""),
+    setup:
+      (props: { label?: string; loading?: boolean }, { emit }: { emit: (event: string) => void }) =>
+      () =>
+      h(
+        "button",
+        { onClick: () => emit("click"), "data-loading": props.loading ? "true" : undefined },
+        props.label ?? ""
+      ),
   },
-  ScrollArea: {
-    setup: (_: unknown, { slots }: { slots: { default?: () => VNode[] } }) => () =>
-      h("div", slots.default?.()),
+  // Rendered in place, not portaled, and only while open: what the shell's hash decides.
+  Dialog: {
+    props: ["modelValue", "title", "size"],
+    setup:
+      (
+        props: { modelValue: boolean; title?: string },
+        { slots }: { slots: { default?: () => VNode[]; actions?: () => VNode[] } }
+      ) =>
+      () =>
+        props.modelValue
+          ? h("div", { role: "dialog" }, [
+              h("h3", props.title),
+              ...(slots.default?.() ?? []),
+              ...(slots.actions?.() ?? []),
+            ])
+          : null,
   },
 }));
 
 import { call as mockedCall } from "frappe-ui";
-import ArrangementEditor from "../ArrangementEditor.vue";
+import CustomizeSidebarDialog, { type CustomizeTarget } from "../CustomizeSidebarDialog.vue";
 import { dropOn, move, saveArrangement, type ArrangedItem } from "@/arrangement";
 
 const call = mockedCall as unknown as ReturnType<typeof vi.fn>;
@@ -160,10 +179,8 @@ async function editor(rows: ArrangedItem[]) {
   const saved: unknown[] = [];
   const app = createApp({
     render: () =>
-      h(ArrangementEditor, {
-        container: "Rail",
-        address: "frappe",
-        title: "Arrange this rail",
+      h(CustomizeSidebarDialog, {
+        target: { container: "Rail", address: "frappe", title: "Customize sidebar" },
         onSaved: (navigation: unknown) => saved.push(navigation),
       }),
   });
@@ -192,7 +209,77 @@ async function editor(rows: ArrangedItem[]) {
   };
 }
 
-describe("the editor", () => {
+
+function rowKeys(host: HTMLElement): (string | null)[] {
+  return [...host.querySelectorAll("[data-key]")].map((row) => row.getAttribute("data-key"));
+}
+
+/** A live host whose target is a ref; every fetch after the first waits in `resolvers`, in order. */
+async function switching(first: ArrangedItem[]) {
+  call.mockReset();
+  const resolvers: ((rows: ArrangedItem[]) => void)[] = [];
+  call.mockResolvedValueOnce(first).mockImplementation(
+    () => new Promise((resolve) => resolvers.push(resolve))
+  );
+
+  const target = ref<CustomizeTarget | null>({
+    container: "Rail",
+    address: "frappe",
+    title: "Customize sidebar",
+  });
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  createApp({ render: () => h(CustomizeSidebarDialog, { target: target.value }) }).mount(host);
+  await flush();
+
+  return { host, target, resolvers };
+}
+
+describe("the dialog", () => {
+  it("drops the old list the moment the target changes, and shows the new one when it lands", async () => {
+    const { host, target, resolvers } = await switching([item("rail-row")]);
+    expect(rowKeys(host)).toEqual(["rail-row"]);
+
+    target.value = { container: "Sidebar", address: "sales", title: "Customize this sidebar" };
+    await flush();
+    expect(rowKeys(host)).toEqual([]);
+
+    resolvers[0]([item("sidebar-row")]);
+    await flush();
+    expect(rowKeys(host)).toEqual(["sidebar-row"]);
+  });
+
+  it("keeps Save held while a new target loads, even when the old target's save lands", async () => {
+    const { host, target, resolvers } = await switching([item("rail-row")]);
+    [...host.querySelectorAll("button")].find((button) => button.textContent === "Save")!.click();
+    await flush();
+
+    target.value = { container: "Sidebar", address: "sales", title: "Customize this sidebar" };
+    await flush();
+    resolvers[0]({ rail: [], sidebars: {} } as unknown as ArrangedItem[]);
+    await flush();
+
+    const save = [...host.querySelectorAll("button")].find((b) => b.textContent === "Save")!;
+    expect(save.getAttribute("data-loading")).toBe("true");
+
+    resolvers[1]([item("sidebar-row")]);
+    await flush();
+    expect(save.getAttribute("data-loading")).toBeNull();
+  });
+
+  it("ignores a fetch that lands after its target was left", async () => {
+    const { host, target, resolvers } = await switching([]);
+    target.value = { container: "Sidebar", address: "sales", title: "Customize this sidebar" };
+    await flush();
+    target.value = { container: "Sidebar", address: "support", title: "Customize this sidebar" };
+    await flush();
+
+    resolvers[0]([item("stale")]);
+    await flush();
+
+    expect(rowKeys(host)).toEqual([]);
+  });
+
   it("shows what a person hid, or a hide would be a one-way door", async () => {
     const { rowKeys } = await editor([item("a"), item("b", { hidden: 1 })]);
 
@@ -253,11 +340,13 @@ describe("the editor", () => {
     const host = document.createElement("div");
     createApp({
       render: () =>
-        h(ArrangementEditor, { container: "Rail", address: "frappe", title: "Arrange" }),
+        h(CustomizeSidebarDialog, {
+          target: { container: "Rail", address: "frappe", title: "Customize sidebar" },
+        }),
     }).mount(host);
     await flush();
 
-    expect(host.textContent).toContain("Could not load this arrangement");
-    expect(host.querySelector("[data-testid='arrangement']")).toBeNull();
+    expect(host.textContent).toContain("Could not load this list");
+    expect(host.querySelector("[data-testid='customize']")).toBeNull();
   });
 });

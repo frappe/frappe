@@ -1,4 +1,4 @@
-// The overlay slot: the arrangement editor addressed by the hash, and the helper under it.
+// The overlay host: the customize dialog addressed by the hash, and the helper under it.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
@@ -12,7 +12,7 @@ import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
 import { useHashDialog } from "../useHashDialog";
 
-// The editor loads its list on mount; an empty one is enough to prove it mounted.
+// The dialog loads its list when the hash names one; an empty list is enough to prove it opened.
 vi.mock("@/arrangement", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@/arrangement")>()),
 	fetchArrangement: vi.fn().mockResolvedValue([]),
@@ -88,12 +88,17 @@ async function shell(path: string): Promise<{ host: HTMLElement; router: Router 
 	return { host, router };
 }
 
-function editor(host: HTMLElement) {
-	return host.querySelector("[data-testid='arrangement']");
+// The dialog portals to `document.body`, so it is looked for there, never under the host.
+function dialog() {
+	return document.body.querySelector("[role='dialog']");
 }
 
-function editorTitle(host: HTMLElement) {
-	return host.querySelector("h2")?.textContent?.trim();
+function list() {
+	return document.body.querySelector("[data-testid='customize']");
+}
+
+function dialogTitle() {
+	return dialog()?.querySelector("h3")?.textContent?.trim();
 }
 
 beforeAll(async () => {
@@ -108,61 +113,61 @@ beforeEach(() => {
 	vi.unstubAllGlobals();
 });
 
-describe("the editor, addressed by the hash", () => {
-	it("opens the rail's editor over the page at #arrange/rail", async () => {
-		const { host } = await shell("/sales-invoice#arrange/rail");
+describe("the dialog, addressed by the hash", () => {
+	it("opens the rail's list over the page at #customize/rail", async () => {
+		const { host } = await shell("/sales-invoice#customize/rail");
 
-		expect(editor(host)).not.toBeNull();
-		expect(editorTitle(host)).toBe("Arrange this rail");
+		expect(list()).not.toBeNull();
+		expect(dialogTitle()).toBe("Customize sidebar");
 		// The page is still under it: the panel the address opens is drawn.
 		expect(host.querySelector("[data-slot='sidebar']")).not.toBeNull();
 	});
 
-	it("opens a panel's editor at #arrange/sidebar/<address>", async () => {
-		const { host } = await shell("/sales-invoice#arrange/sidebar/module_def_accounts");
+	it("opens a panel's list at #customize/sidebar/<address>", async () => {
+		await shell("/sales-invoice#customize/sidebar/module_def_accounts");
 
-		expect(editor(host)).not.toBeNull();
-		expect(editorTitle(host)).toBe("Arrange this sidebar");
+		expect(list()).not.toBeNull();
+		expect(dialogTitle()).toBe("Customize this sidebar");
 	});
 
 	it("opens nothing for a sidebar this prefix does not have", async () => {
-		const { host } = await shell("/sales-invoice#arrange/sidebar/module_def_nowhere");
-		expect(editor(host)).toBeNull();
+		await shell("/sales-invoice#customize/sidebar/module_def_nowhere");
+		expect(dialog()).toBeNull();
 	});
 
 	it("opens nothing for a hash that is not its own", async () => {
-		const { host } = await shell("/sales-invoice#settings/crm");
-		expect(editor(host)).toBeNull();
+		await shell("/sales-invoice#settings/crm");
+		expect(dialog()).toBeNull();
 	});
 
 	it("is opened by the panel's own control, and Close drops only the hash", async () => {
 		const { host, router } = await shell("/sales-invoice?from=here");
 
-		host.querySelector<HTMLElement>("[aria-label='Arrange this sidebar']")!.click();
+		host.querySelector<HTMLElement>("[aria-label='Customize this sidebar']")!.click();
 		await settle();
 
-		expect(router.currentRoute.value.hash).toBe("#arrange/sidebar/module_def_accounts");
-		expect(editor(host)).not.toBeNull();
+		expect(router.currentRoute.value.hash).toBe("#customize/sidebar/module_def_accounts");
+		expect(list()).not.toBeNull();
 
-		[...host.querySelectorAll("button")].find((b) => b.textContent === "Close")!.click();
+		dialog()!.querySelector<HTMLElement>("[aria-label='Close']")!.click();
 		await settle();
 
 		expect(router.currentRoute.value.fullPath).toBe("/sales-invoice?from=here");
-		expect(editor(host)).toBeNull();
+		expect(dialog()).toBeNull();
 	});
 
 	it("is dismissed by Back, because opening it pushed", async () => {
 		const { host, router } = await shell("/sales-invoice");
 
-		host.querySelector<HTMLElement>("[aria-label='Arrange this sidebar']")!.click();
+		host.querySelector<HTMLElement>("[aria-label='Customize this sidebar']")!.click();
 		await settle();
-		expect(editor(host)).not.toBeNull();
+		expect(list()).not.toBeNull();
 
 		router.go(-1);
 		await settle();
 
 		expect(router.currentRoute.value.fullPath).toBe("/sales-invoice");
-		expect(editor(host)).toBeNull();
+		expect(dialog()).toBeNull();
 	});
 });
 
@@ -173,7 +178,7 @@ describe("useHashDialog", () => {
 		let dialog!: ReturnType<typeof useHashDialog>;
 		const Host = defineComponent({
 			setup() {
-				dialog = useHashDialog("arrange");
+				dialog = useHashDialog("customize");
 				return () => h("div");
 			},
 		});
@@ -186,7 +191,7 @@ describe("useHashDialog", () => {
 	}
 
 	it("reads its own segments and nothing else's", async () => {
-		const own = await mount("/x#arrange/sidebar/a");
+		const own = await mount("/x#customize/sidebar/a");
 		expect(own.dialog.open.value).toBe(true);
 		expect(own.dialog.segments.value).toEqual(["sidebar", "a"]);
 
@@ -202,7 +207,7 @@ describe("useHashDialog", () => {
 		await settle();
 		dialog.write("sidebar", "a");
 		await settle();
-		expect(router.currentRoute.value.fullPath).toBe("/x?q=1#arrange/sidebar/a");
+		expect(router.currentRoute.value.fullPath).toBe("/x?q=1#customize/sidebar/a");
 
 		router.go(-1);
 		await settle();
@@ -210,7 +215,7 @@ describe("useHashDialog", () => {
 	});
 
 	it("closes only its own hash", async () => {
-		const own = await mount("/x?q=1#arrange/rail");
+		const own = await mount("/x?q=1#customize/rail");
 		own.dialog.close();
 		await settle();
 		expect(own.router.currentRoute.value.fullPath).toBe("/x?q=1");

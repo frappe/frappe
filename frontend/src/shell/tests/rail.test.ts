@@ -38,7 +38,7 @@ async function flush() {
 type Options = {
 	sidebars?: Record<string, NavigationItem[]>;
 	current?: string;
-	arrangeable?: boolean;
+	customizable?: boolean;
 	shareLink?: string;
 	boot?: Boot;
 };
@@ -69,7 +69,7 @@ function mount(
 				items: items.value,
 				context: itemContext(boot, addresses, router, items.value, options.sidebars ?? {}),
 				current: options.current,
-				arrangeable: options.arrangeable,
+				customizable: options.customizable,
 				shareLink: options.shareLink,
 			}),
 	});
@@ -328,11 +328,11 @@ describe("the app menu", () => {
 	});
 
 	it("offers Customize sidebar inside an app", async () => {
-		expect(await opened({ arrangeable: true })).toContain("Customize sidebar");
+		expect(await opened({ customizable: true })).toContain("Customize sidebar");
 	});
 
-	it("does not offer it on the index, which has no rail to arrange", async () => {
-		expect(await opened({ arrangeable: false })).not.toContain("Customize sidebar");
+	it("does not offer it on the index, which has no rail to customize", async () => {
+		expect(await opened({ customizable: false })).not.toContain("Customize sidebar");
 	});
 
 	it("offers Copy link only when the shell handed it one", async () => {
