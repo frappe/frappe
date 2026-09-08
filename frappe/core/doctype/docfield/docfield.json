@@ -69,6 +69,7 @@
   "constraints_section",
   "unique",
   "no_copy",
+  "ignore_versioning",
   "set_only_once",
   "remember_last_selected_value",
   "column_break_38",
@@ -412,6 +413,13 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: (parent.track_changes || parent.istable) && !doc.is_virtual",
+   "fieldname": "ignore_versioning",
+   "fieldtype": "Check",
+   "label": "Ignore Versioning"
+  },
+  {
+   "default": "0",
    "depends_on": "eval:doc.fieldtype !== 'Attachment Gallery'",
    "fieldname": "print_hide",
    "fieldtype": "Check",
@@ -690,7 +698,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-15 19:53:20.478827",
+ "modified": "2026-09-08 12:02:37.773502",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
