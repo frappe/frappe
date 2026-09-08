@@ -684,12 +684,11 @@ def slow_task(duration, title, doctype, docname):
 
 
 @whitelist_for_tests()
-<<<<<<< HEAD
 def empty_my_workspaces():
 	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
 	my_workspaces.items = []
 	my_workspaces.save()
-=======
+	
 def clear_list_layout_test_layouts():
 	"""Remove saved layouts created by Cypress saved-layout tests."""
 	frappe.db.delete("List Filter", {"filter_name": ["like", f"{LIST_LAYOUT_TEST_PREFIX}%"]})
