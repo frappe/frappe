@@ -110,37 +110,6 @@ class TestFlowModelBaseURL(IntegrationTestCase):
 					doc.insert()
 
 
-class TestFlowModelParams(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def test_valid_params_json_accepted(self):
-		doc = frappe.get_doc(_model(params='{"temperature": 0.2, "max_tokens": 500}')).insert()
-
-		import json
-
-		self.assertEqual(json.loads(doc.params), {"temperature": 0.2, "max_tokens": 500})
-
-	def test_invalid_json_rejected(self):
-		doc = frappe.get_doc(_model(params="{not json"))
-
-		with self.assertRaisesRegex(frappe.ValidationError, "Params"):
-			doc.insert()
-
-	def test_non_object_json_rejected(self):
-		doc = frappe.get_doc(_model(params="[1, 2, 3]"))
-
-		with self.assertRaisesRegex(frappe.ValidationError, "Params"):
-			doc.insert()
-
-	def test_reserved_params_rejected(self):
-		for reserved in ("model", "api_key", "messages", "stream", "tools"):
-			with self.subTest(key=reserved):
-				doc = frappe.get_doc(_model(params=f'{{"{reserved}": "x"}}'))
-				with self.assertRaisesRegex(frappe.ValidationError, "reserved keys"):
-					doc.insert()
-
-
 class TestContextWindow(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()

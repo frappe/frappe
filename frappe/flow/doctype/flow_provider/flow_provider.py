@@ -1,17 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
 from urllib.parse import urlparse
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-
-# Keys litellm derives itself or that have dedicated fields — not allowed in extra_params.
-RESERVED_PARAM_KEYS = frozenset(
-	{"model", "api_key", "api_base", "base_url", "messages", "stream", "tools", "tool_choice"}
-)
 
 
 class FlowProvider(Document):
@@ -26,7 +20,6 @@ class FlowProvider(Document):
 		api_key: DF.Password | None
 		base_url: DF.Data | None
 		enabled: DF.Check
-		extra_params: DF.JSON | None
 		provider: DF.Data
 	# end: auto-generated types
 
@@ -40,7 +33,6 @@ class FlowProvider(Document):
 		self._normalize()
 		self._validate_provider_known()
 		self._validate_base_url()
-		self._validate_extra_params()
 
 	def _normalize(self):
 		self.provider = (self.provider or "").strip().lower()
@@ -69,19 +61,3 @@ class FlowProvider(Document):
 		parsed = urlparse(self.base_url)
 		if parsed.scheme not in ("http", "https") or not parsed.netloc:
 			frappe.throw(_("Base URL must be an absolute http(s) URL."), title=_("Invalid Base URL"))
-
-	def _validate_extra_params(self):
-		if not self.extra_params:
-			return
-		try:
-			parsed = json.loads(self.extra_params)
-		except (TypeError, ValueError):
-			frappe.throw(_("Extra Params must be valid JSON."), title=_("Invalid Params"))
-		if not isinstance(parsed, dict):
-			frappe.throw(_("Extra Params must be a JSON object."), title=_("Invalid Params"))
-		conflicting = sorted(RESERVED_PARAM_KEYS.intersection(parsed))
-		if conflicting:
-			frappe.throw(
-				_("Extra Params may not include reserved keys: {0}.").format(", ".join(conflicting)),
-				title=_("Reserved Params"),
-			)

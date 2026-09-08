@@ -13,9 +13,7 @@
   "model_id",
   "context_window",
   "api_key",
-  "base_url",
-  "section_break_params",
-  "params"
+  "base_url"
  ],
  "fields": [
   {
@@ -71,18 +69,6 @@
    "fieldname": "base_url",
    "fieldtype": "Data",
    "label": "Base URL"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_params",
-   "fieldtype": "Section Break",
-   "label": "Parameters"
-  },
-  {
-   "description": "Optional JSON object passed to the model (e.g. <code>{\"temperature\": 0.2, \"max_tokens\": 1024}</code>)",
-   "fieldname": "params",
-   "fieldtype": "JSON",
-   "label": "Params"
   }
  ],
  "links": [],

@@ -57,7 +57,6 @@ class TestModel(UnitTestCase):
 			enabled=1,
 			model_id="anthropic/claude-sonnet-4-6",
 			base_url=None,
-			params='{"temperature": 0.3}',
 			get_password=lambda field, raise_exception=False: "sk-stored",
 		)
 		mock_get_doc.return_value = mock_doc
@@ -67,7 +66,6 @@ class TestModel(UnitTestCase):
 		mock_get_doc.assert_called_once_with("Flow Model", "Claude Sonnet 4.6")
 		self.assertEqual(m.model_id, "anthropic/claude-sonnet-4-6")
 		self.assertEqual(m._api_key, "sk-stored")
-		self.assertEqual(m.params, {"temperature": 0.3})
 
 	@patch("frappe.get_doc")
 	def test_init_rejects_disabled_doc(self, mock_get_doc):
@@ -75,7 +73,6 @@ class TestModel(UnitTestCase):
 			enabled=0,
 			model_id="anthropic/claude-sonnet-4-6",
 			base_url=None,
-			params=None,
 			get_password=lambda field, raise_exception=False: "sk-stored",
 		)
 		with self.assertRaises(ValueError):
@@ -217,7 +214,7 @@ class TestModel(UnitTestCase):
 		self.assertIn("Invalid JSON", call.error)
 
 	@patch("litellm.completion")
-	def test_chat_forwards_params_tools_and_base_url(self, mock_completion):
+	def test_chat_forwards_tools_and_base_url(self, mock_completion):
 		mock_completion.return_value = _fake_response(content="ok")
 
 		tools = [{"type": "function", "function": {"name": "ping", "parameters": {}}}]
@@ -225,7 +222,6 @@ class TestModel(UnitTestCase):
 			model_id="anthropic/claude-sonnet-4-6",
 			api_key="sk-test",
 			base_url="http://localhost:11434",
-			params={"temperature": 0.2, "max_tokens": 100},
 		)
 		m.chat([{"role": "user", "content": "hi"}], tools=tools)
 
@@ -233,7 +229,5 @@ class TestModel(UnitTestCase):
 		self.assertEqual(kwargs["model"], "anthropic/claude-sonnet-4-6")
 		self.assertEqual(kwargs["api_key"], "sk-test")
 		self.assertEqual(kwargs["api_base"], "http://localhost:11434")
-		self.assertEqual(kwargs["temperature"], 0.2)
-		self.assertEqual(kwargs["max_tokens"], 100)
 		self.assertEqual(kwargs["tools"], tools)
 		self.assertEqual(kwargs["timeout"], 60)

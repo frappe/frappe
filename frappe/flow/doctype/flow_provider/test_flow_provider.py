@@ -48,16 +48,6 @@ class TestFlowProviderValidation(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Base URL"):
 			doc.insert()
 
-	def test_extra_params_reserved_key_rejected(self):
-		doc = frappe.get_doc(_provider(extra_params='{"api_key": "x"}'))
-		with self.assertRaisesRegex(frappe.ValidationError, "reserved"):
-			doc.insert()
-
-	def test_extra_params_invalid_json_rejected(self):
-		doc = frappe.get_doc(_provider(extra_params="{not json"))
-		with self.assertRaisesRegex(frappe.ValidationError, "valid JSON"):
-			doc.insert()
-
 
 class TestProviderCredentialResolution(IntegrationTestCase):
 	def tearDown(self):
@@ -86,10 +76,3 @@ class TestProviderCredentialResolution(IntegrationTestCase):
 		frappe.get_doc(_provider(base_url="http://gateway.local")).insert()
 		m = frappe.get_doc(_model()).insert()
 		self.assertEqual(Model(m.name).base_url, "http://gateway.local")
-
-	def test_provider_extra_params_merged_model_wins(self):
-		frappe.get_doc(_provider(extra_params='{"api_version": "v1", "temperature": 0.1}')).insert()
-		m = frappe.get_doc(_model(params='{"temperature": 0.9}')).insert()
-		model = Model(m.name)
-		self.assertEqual(model.params["api_version"], "v1")
-		self.assertEqual(model.params["temperature"], 0.9)

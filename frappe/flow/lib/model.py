@@ -48,11 +48,10 @@ class Model:
 		model_id: str | None = None,
 		api_key: str | None = None,
 		base_url: str | None = None,
-		params: dict[str, Any] | None = None,
 		timeout: int = DEFAULT_TIMEOUT,
 	):
 		if name is not None:
-			if model_id or api_key or base_url or params:
+			if model_id or api_key or base_url:
 				raise ValueError("Pass either a Flow Model doc name or explicit kwargs, not both.")
 			doc = frappe.get_doc("Flow Model", name)
 			if not doc.enabled:
@@ -60,7 +59,6 @@ class Model:
 			model_id = doc.model_id
 			api_key = doc.get_password("api_key", raise_exception=False)
 			base_url = doc.base_url or None
-			params = json.loads(doc.params) if doc.params else {}
 
 		if not model_id:
 			raise ValueError("model_id is required")
@@ -69,13 +67,10 @@ class Model:
 		provider_creds = resolve_provider_credentials(model_id)
 		api_key = api_key or provider_creds.get("api_key")
 		base_url = base_url or provider_creds.get("base_url")
-		if provider_creds.get("extra_params"):
-			params = {**provider_creds["extra_params"], **(params or {})}
 
 		self.model_id = model_id
 		self._api_key = api_key or None
 		self.base_url = base_url
-		self.params = params or {}
 		self.timeout = timeout
 
 	def chat(
@@ -97,7 +92,6 @@ class Model:
 			"api_key": self._api_key,
 			"messages": messages,
 			"timeout": self.timeout,
-			**self.params,
 		}
 		if self.base_url:
 			kwargs["api_base"] = self.base_url
@@ -131,7 +125,6 @@ def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 	return {
 		"api_key": doc.get_password("api_key", raise_exception=False) or None,
 		"base_url": doc.base_url or None,
-		"extra_params": json.loads(doc.extra_params) if doc.extra_params else {},
 	}
 
 
@@ -215,7 +208,7 @@ def _build_tool_call(call_id: str, name: str, raw_args: str) -> ToolCall:
 		return ToolCall(id=call_id, name=name, arguments={})
 	try:
 		arguments = json.loads(raw_args)
-	except (TypeError, ValueError):
+	except TypeError, ValueError:
 		return ToolCall(
 			id=call_id,
 			name=name,

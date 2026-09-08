@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
 import re
 from urllib.parse import urlparse
 
@@ -10,10 +9,6 @@ from frappe import _
 from frappe.model.document import Document
 
 MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/[A-Za-z0-9][A-Za-z0-9_\-:.\/]*$")
-
-RESERVED_PARAM_KEYS = frozenset(
-	{"model", "api_key", "api_base", "base_url", "messages", "stream", "tools", "tool_choice"}
-)
 
 
 class FlowModel(Document):
@@ -30,7 +25,6 @@ class FlowModel(Document):
 		context_window: DF.Int
 		enabled: DF.Check
 		model_id: DF.Data
-		params: DF.JSON | None
 		provider: DF.Link | None
 		title: DF.Data
 	# end: auto-generated types
@@ -40,7 +34,6 @@ class FlowModel(Document):
 		self._apply_provider()
 		self._validate_model_id()
 		self._validate_base_url()
-		self._validate_params()
 		self._validate_provider_known()
 		self._resolve_context_window()
 
@@ -85,22 +78,6 @@ class FlowModel(Document):
 			frappe.throw(
 				_("Base URL must be an absolute http(s) URL."),
 				title=_("Invalid Base URL"),
-			)
-
-	def _validate_params(self):
-		if not self.params:
-			return
-		try:
-			parsed = json.loads(self.params)
-		except (TypeError, ValueError):
-			frappe.throw(_("Params must be valid JSON."), title=_("Invalid Params"))
-		if not isinstance(parsed, dict):
-			frappe.throw(_("Params must be a JSON object."), title=_("Invalid Params"))
-		conflicting = sorted(RESERVED_PARAM_KEYS.intersection(parsed))
-		if conflicting:
-			frappe.throw(
-				_("Params may not include reserved keys: {0}.").format(", ".join(conflicting)),
-				title=_("Reserved Params"),
 			)
 
 	def _resolve_context_window(self):

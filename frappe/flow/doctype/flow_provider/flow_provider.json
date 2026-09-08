@@ -10,9 +10,7 @@
   "enabled",
   "section_break_config",
   "api_key",
-  "base_url",
-  "section_break_params",
-  "extra_params"
+  "base_url"
  ],
  "fields": [
   {
@@ -46,18 +44,6 @@
    "fieldname": "base_url",
    "fieldtype": "Data",
    "label": "Base URL"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_params",
-   "fieldtype": "Section Break",
-   "label": "Extra Parameters"
-  },
-  {
-   "description": "Optional JSON object of provider-specific kwargs merged into every call (e.g. <code>{\"api_version\": \"2024-02-01\"}</code> for Azure). A model's own params take precedence.",
-   "fieldname": "extra_params",
-   "fieldtype": "JSON",
-   "label": "Extra Params"
   }
  ],
  "links": [],
