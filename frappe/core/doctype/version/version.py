@@ -119,6 +119,18 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 	if not new:
 		return None
 
+	def row_data(row) -> dict:
+		"""
+		Row data for the version log, without fields set to `Ignore Versioning`.
+		"""
+		data = row.as_dict()
+
+		for row_df in row.meta.fields:
+			if row_df.get("ignore_versioning"):
+				data.pop(row_df.fieldname, None)
+
+		return data
+
 	blacklisted_fields = ["Markdown Editor", "Text Editor", "Code", "HTML Editor"]
 
 	# capture data import if set
@@ -172,12 +184,12 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 					if diff and diff.changed:
 						out.row_changed.append((df.fieldname, i, d.name, diff.changed))
 				else:
-					out.added.append([df.fieldname, _get_tracked_row_data(d)])
+					out.added.append([df.fieldname, row_data(d)])
 
 			# check for deletions
 			for d in old_value:
 				if d.name not in found_rows:
-					out.removed.append([df.fieldname, _get_tracked_row_data(d)])
+					out.removed.append([df.fieldname, row_data(d)])
 
 		elif old_value != new_value:
 			if df.fieldtype not in blacklisted_fields:
@@ -225,19 +237,6 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 	else:
 		return None
-
-
-def _get_tracked_row_data(row) -> dict:
-	"""
-	Row data for the version log, without fields set to `Ignore Versioning`.
-	"""
-	data = row.as_dict()
-
-	for df in row.meta.fields:
-		if df.get("ignore_versioning"):
-			data.pop(df.fieldname, None)
-
-	return data
 
 
 def on_doctype_update():
