@@ -38,7 +38,9 @@
 	align-items: stretch;
 	padding: 0 0 12px 0;
 
-	background: var(--surface-sidebar);
+	// The panel's surface, not `--surface-sidebar` directly: that token is transparent in dark
+	// and the rail would show the page through it. See sidebar.scss for why the two share it.
+	background: var(--desk-sidebar-bg);
 	border-right: 1px solid var(--outline-gray-1);
 
 	&.hidden {
@@ -225,7 +227,10 @@
 			height: 8px;
 			padding: 0;
 			border-radius: 50%;
-			border: 1px solid var(--surface-base);
+			// A halo that holds the dot off whatever is under it, so it has to be the colour of
+			// the surface it actually sits on -- the rail's, not the page's. The two are the same
+			// thing in light and differ by a step in dark.
+			border: 1px solid var(--desk-sidebar-bg);
 			background: var(--ink-gray-9);
 			// dot only — hide any count text the shared notifications view sets on it
 			font-size: 0;
@@ -428,7 +433,11 @@ body.sidebar-collapsed .dock-resize-handle {
 
 	border: 1px solid var(--outline-gray-2);
 	border-radius: 50%;
-	background: var(--surface-white);
+	// `--surface-white` used to sit here and is defined nowhere, so the declaration was
+	// invalid and the circle painted nothing in either theme -- a ring with the rail showing
+	// through it. Elevation-2 is what the token was reaching for: white over the light rail,
+	// and a step above the rail in dark rather than a hole in it.
+	background: var(--surface-elevation-2);
 	color: var(--ink-gray-6);
 	cursor: pointer;
 
