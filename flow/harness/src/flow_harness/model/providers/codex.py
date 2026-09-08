@@ -65,7 +65,7 @@ SCOPE = "openid profile email offline_access"
 ORIGINATOR = "flow"
 API_BASE = "https://chatgpt.com/backend-api"
 DEFAULT_EXPIRES_S = 3600
-DEFAULT_CODEX_CLIENT_VERSION = "0.145.0"
+DEFAULT_CODEX_CLIENT_VERSION = "0.153.4"
 MODEL_CATALOG_TIMEOUT_SECONDS = 5.0
 DEFAULT_CODEX_MAX_OUTPUT_TOKENS = 128_000
 DEFAULT_AUTO_COMPACT_PERCENT = 90
@@ -73,6 +73,7 @@ DEFAULT_AUTO_COMPACT_PERCENT = 90
 # The authenticated catalog overrides these conservative subscription fallbacks.
 # They deliberately describe the ChatGPT Codex serving surface, not the public API.
 _CODEX_FALLBACK_CONTEXT_WINDOWS = {
+	"gpt-6-astra": 272_000,
 	"gpt-5.6-sol": 272_000,
 	"gpt-5.6-terra": 272_000,
 	"gpt-5.6-luna": 272_000,
