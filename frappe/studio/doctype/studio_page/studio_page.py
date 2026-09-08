@@ -21,6 +21,14 @@ from studio.export import (
 )
 from studio.realtime import publish_doc_change
 from studio.studio.doctype.studio_component.studio_component import get_components_for_blocks
+from studio.studio.doctype.studio_page.copy_paste import (
+	PAGE_RESOURCE_FIELDS,
+	PAGE_VARIABLE_FIELDS,
+	create_missing_dependencies,
+	duplicate_page,
+	paste_page,
+	pick,
+)
 from studio.utils import camel_case_to_kebab_case, has_page_write_perm
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -441,30 +449,6 @@ def find_page_with_route(app_name: str, page_route: str) -> str | None:
 		pass
 
 
-PAGE_RESOURCE_FIELDS = (
-	"resource_type",
-	"resource_name",
-	"auto",
-	"fields",
-	"filters",
-	"limit",
-	"sort_field",
-	"sort_order",
-	"document_type",
-	"document_name",
-	"fetch_document_using_filters",
-	"url",
-	"method",
-	"params",
-	"whitelisted_methods",
-	"transform",
-	"on_success",
-	"on_error",
-)
-
-PAGE_VARIABLE_FIELDS = ("variable_name", "variable_type", "initial_value")
-
-
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 	"""Serve a page definition to the app renderer in a single call.
@@ -511,99 +495,3 @@ def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 			for row in page.variables
 		],
 	}
-
-
-@frappe.whitelist()
-def duplicate_page(page_name: str, app_name: str | None):
-	if not frappe.has_permission("Studio Page", ptype="write"):
-		frappe.throw(_("You do not have permission to duplicate a page."))
-
-	page = frappe.get_doc("Studio Page", page_name)
-	blocks = parse_json(page.draft_blocks or page.blocks) or []
-	return paste_page(app_name, {**page.get_copy(blocks), "blocks": blocks})
-
-
-@frappe.whitelist()
-def paste_page(app_name: str, page: dict | str, target_page: str | None = None) -> StudioPage:
-	"""Create a page from a copy, or replace the contents of `target_page` with it."""
-	if not frappe.has_permission("Studio Page", ptype="write"):
-		frappe.throw(_("You do not have permission to paste a page."))
-
-	copy = frappe.parse_json(page)
-	create_missing_dependencies(app_name, copy.get("components"), copy.get("files"))
-	doc = frappe.get_doc("Studio Page", target_page) if target_page else new_page_from_copy(app_name, copy)
-	doc.draft_blocks = copy.get("blocks") or []
-	doc.set("resources", [pick(row, PAGE_RESOURCE_FIELDS) for row in copy.get("resources") or []])
-	doc.set("variables", [pick(row, PAGE_VARIABLE_FIELDS) for row in copy.get("variables") or []])
-	doc.script = copy.get("script")
-	doc.save()
-	if can_export(doc):
-		doc.write_script_file()
-	return doc
-
-
-@frappe.whitelist()
-def create_missing_dependencies(
-	app_name: str, components=None, files=None, page_name: str | None = None, resources=None, variables=None
-):
-	"""Give the app (and, for pasted blocks, the page) what a paste needs and doesn't have yet."""
-	if not frappe.has_permission("Studio Page", ptype="write"):
-		frappe.throw(_("You do not have permission to paste into this app."))
-
-	create_missing_components(frappe.parse_json(components) or [])
-	app = frappe.get_cached_doc("Studio App", app_name)
-	if can_export(app):
-		app.write_files(frappe.parse_json(files) or [])
-	if page_name:
-		add_page_data(page_name, frappe.parse_json(resources) or [], frappe.parse_json(variables) or [])
-
-
-def add_page_data(page_name: str, resources: list[dict], variables: list[dict]):
-	page = frappe.get_doc("Studio Page", page_name)
-	existing_resources = {row.resource_name for row in page.resources}
-	existing_variables = {row.variable_name for row in page.variables}
-	for row in resources:
-		if row["resource_name"] not in existing_resources:
-			page.append("resources", pick(row, PAGE_RESOURCE_FIELDS))
-	for row in variables:
-		if row["variable_name"] not in existing_variables:
-			page.append("variables", pick(row, PAGE_VARIABLE_FIELDS))
-	if page.has_value_changed("resources") or page.has_value_changed("variables"):
-		page.save()
-
-
-def pick(row, fields) -> dict:
-	return {field: row.get(field) for field in fields}
-
-
-def create_missing_components(components: list[dict]):
-	for component in components:
-		if frappe.db.exists("Studio Component", component["name"]):
-			continue
-		frappe.get_doc(
-			doctype="Studio Component",
-			component_id=component["component_id"],
-			component_name=component["component_name"],
-			block=component["block"],
-			is_disabled=component.get("is_disabled"),
-			inputs=[{**row, "name": None} for row in component.get("inputs") or []],
-		).insert()
-
-
-def new_page_from_copy(app_name: str, copy: dict) -> StudioPage:
-	app = frappe.db.get_value("Studio App", app_name, ["is_standard", "frappe_app"], as_dict=True)
-	if not app:
-		frappe.throw(_("Studio App {0} not found").format(app_name), frappe.DoesNotExistError)
-
-	title = copy.get("page_title")
-	if title and frappe.db.exists("Studio Page", {"studio_app": app_name, "page_title": title}):
-		title = f"{title} Copy"
-
-	return frappe.get_doc(
-		doctype="Studio Page",
-		studio_app=app_name,
-		page_title=title,
-		allow_guest=copy.get("allow_guest"),
-		is_standard=app.is_standard,
-		frappe_app=app.frappe_app,
-	)

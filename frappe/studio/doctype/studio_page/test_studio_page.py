@@ -88,6 +88,9 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([v.variable_name for v in copy.variables], ["count"])
 		self.assertEqual(copy.script, PAGE_SCRIPT)
 
+		second_copy = duplicate_page(page.name, app.name)
+		self.assertEqual(second_copy.page_title, "Board Copy 1")
+
 	def test_paste_replaces_page_contents_but_keeps_its_identity(self):
 		app = make_studio_app(app_name="paste-" + frappe.generate_hash(length=10))
 		source = make_page_with_data(app.name)
@@ -116,6 +119,48 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual(pasted.component_name, "Card")
 		self.assertEqual(pasted.block, component.block)
 		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
+		create_missing_dependencies(app.name, copy["components"])
+
+	def test_paste_rejects_conflicting_component(self):
+		app = make_studio_app(app_name="conflict-" + frappe.generate_hash(length=10))
+		component = make_component("Card")
+		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
+		copy["block"] = frappe.as_json({"componentName": "button", "children": []}, indent=None)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "different definition"):
+			create_missing_dependencies(app.name, [copy])
+
+		component.reload()
+		self.assertEqual(frappe.parse_json(component.block)["componentName"], "div")
+
+	def test_concurrent_component_creation_reuses_matching_definition(self):
+		app = make_studio_app(app_name="race-" + frappe.generate_hash(length=10))
+		component = make_component("Card")
+		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
+		real_exists = frappe.db.exists
+		missed_once = False
+
+		def miss_component_once(doctype, filters=None, *args, **kwargs):
+			nonlocal missed_once
+			if doctype == "Studio Component" and filters == component.name and not missed_once:
+				missed_once = True
+				return None
+			return real_exists(doctype, filters, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=miss_component_once):
+			create_missing_dependencies(app.name, [copy])
+
+		self.assertTrue(missed_once)
+		self.assertEqual(frappe.db.count("Studio Component", {"name": component.name}), 1)
+
+	def test_paste_requires_write_permission_on_target_app(self):
+		app = make_studio_app(app_name="permission-" + frappe.generate_hash(length=10))
+
+		with (
+			patch.object(StudioApp, "check_permission", side_effect=frappe.PermissionError),
+			self.assertRaises(frappe.PermissionError),
+		):
+			create_missing_dependencies(app.name)
 
 	def test_paste_carries_files_the_script_imports(self):
 		with exports_in_tempdir():
@@ -140,6 +185,56 @@ class TestStudioPage(IntegrationTestCase):
 				"export const x = 1",
 			)
 
+	def test_paste_rejects_conflicting_files_before_writing(self):
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+			)
+			app.write_files([{"path": "stores/settings.ts", "content": "export const x = 1"}])
+
+			with self.assertRaisesRegex(frappe.ValidationError, "different content"):
+				app.write_files(
+					[
+						{"path": "stores/new.ts", "content": "export const y = 1"},
+						{"path": "stores/settings.ts", "content": "export const x = 2"},
+					]
+				)
+
+			self.assertFalse(os.path.exists(os.path.join(app.get_folder_path(), "stores/new.ts")))
+			self.assertEqual(
+				frappe.read_file(os.path.join(app.get_folder_path(), "stores/settings.ts")),
+				"export const x = 1",
+			)
+
+	def test_copy_rejects_ambiguous_custom_component(self):
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+			)
+			app.write_files(
+				[
+					{"path": "components/Hero.vue", "content": "<template><h1 /></template>"},
+					{"path": "views/Hero.vue", "content": "<template><h2 /></template>"},
+				]
+			)
+
+			with self.assertRaisesRegex(frappe.ValidationError, "ambiguous"):
+				app.find_vue_component("Hero")
+
+	def test_copy_does_not_follow_file_links_outside_the_app(self):
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+			)
+			outside = os.path.join(os.path.dirname(app.get_folder_path()), "secret.ts")
+			with open(outside, "w") as f:
+				f.write("export const secret = true")
+			os.makedirs(os.path.join(app.get_folder_path(), "stores"))
+			os.symlink(outside, os.path.join(app.get_folder_path(), "stores/secret.ts"))
+
+			with self.assertRaises(frappe.PermissionError):
+				app.collect_files('import "@app/stores/secret.ts"', "", [])
+
 	def test_pasted_blocks_install_their_dependencies(self):
 		with exports_in_tempdir():
 			app = make_studio_app(
@@ -154,6 +249,7 @@ class TestStudioPage(IntegrationTestCase):
 
 			frappe.delete_doc("Studio Component", component.name)
 			os.remove(os.path.join(app.get_folder_path(), "components/Hero.vue"))
+			create_missing_dependencies(app.name, deps["components"], deps["files"])
 			create_missing_dependencies(app.name, deps["components"], deps["files"])
 
 			self.assertTrue(frappe.db.exists("Studio Component", component.name))
@@ -177,6 +273,25 @@ class TestStudioPage(IntegrationTestCase):
 		target.reload()
 		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
 		self.assertEqual([v.variable_name for v in target.variables], ["count"])
+
+	def test_pasted_blocks_reject_conflicting_page_data(self):
+		app = make_studio_app(app_name="deps-" + frappe.generate_hash(length=10))
+		source = make_page_with_data(app.name)
+		target = make_studio_page(app.name, page_title="Target", route="/target")
+		target.append("resources", {**TODO_RESOURCE, "fields": '["description"]'})
+		target.save()
+		resources = source.get_dependencies([{"innerHTML": "{{ todos.data }}"}])["resources"]
+
+		with self.assertRaisesRegex(frappe.ValidationError, "different definition"):
+			create_missing_dependencies(app.name, page_name=target.name, resources=resources)
+
+	def test_paste_rejects_target_page_from_another_app(self):
+		app = make_studio_app(app_name="target-" + frappe.generate_hash(length=10))
+		other_app = make_studio_app(app_name="other-" + frappe.generate_hash(length=10))
+		target = make_studio_page(other_app.name)
+
+		with self.assertRaisesRegex(frappe.PermissionError, "does not belong"):
+			paste_page(app.name, {"blocks": []}, target_page=target.name)
 
 	def test_standard_page_script_is_copied_as_file(self):
 		with exports_in_tempdir():

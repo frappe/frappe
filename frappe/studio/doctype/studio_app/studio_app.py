@@ -373,29 +373,67 @@ class StudioApp(WebsiteGenerator):
 			path = pending.pop()
 			if path in files:
 				continue
-			with open(os.path.join(self.get_folder_path(), path), encoding="utf-8") as f:
+			with open(self.resolve_file_path(path), encoding="utf-8") as f:
 				files[path] = f.read()
 			pending += self.resolve_imports(files[path], os.path.dirname(path))
 
-		return [{"path": path, "content": content} for path, content in files.items()]
+		return [{"path": path, "content": files[path]} for path in sorted(files)]
 
 	def write_files(self, files: list[dict]):
-		"""Add copied files to the app folder; files already there are left alone."""
+		"""Add copied files without replacing incompatible files already in the app."""
+		targets = {}
 		for file in files:
-			target = os.path.realpath(os.path.join(self.get_folder_path(), file["path"]))
-			if not target.startswith(os.path.realpath(self.get_folder_path()) + os.sep):
-				frappe.throw(_("Invalid file path: {0}").format(file["path"]), frappe.PermissionError)
-			if not target.endswith(EXTENSIONS) or os.path.exists(target):
+			if (
+				not isinstance(file, dict)
+				or not isinstance(file.get("path"), str)
+				or not isinstance(file.get("content"), str)
+			):
+				frappe.throw(_("Invalid copied file."))
+			path = file["path"]
+			target = self.resolve_file_path(path)
+			if not target.lower().endswith(EXTENSIONS):
+				frappe.throw(_("Unsupported copied file: {0}").format(path))
+			if target in targets and targets[target]["content"] != file["content"]:
+				frappe.throw(_("The copy contains conflicting versions of {0}.").format(path))
+			targets[target] = file
+
+		for target, file in targets.items():
+			if not os.path.exists(target):
+				continue
+			if os.path.isfile(target) and frappe.read_file(target) == file["content"]:
+				continue
+			frappe.throw(
+				_("{0} already exists with different content. Rename it before pasting.").format(
+					file["path"]
+				),
+				title=_("File conflict"),
+			)
+
+		for target, file in targets.items():
+			if os.path.exists(target):
 				continue
 			os.makedirs(os.path.dirname(target), exist_ok=True)
-			with open(target, "w", encoding="utf-8") as f:
-				f.write(file["content"])
+			try:
+				with open(target, "x", encoding="utf-8") as f:
+					f.write(file["content"])
+			except FileExistsError:
+				if not os.path.isfile(target) or frappe.read_file(target) != file["content"]:
+					frappe.throw(
+						_("{0} was created with different content while pasting.").format(file["path"]),
+						title=_("File conflict"),
+					)
 
 	def find_vue_component(self, name: str) -> str | None:
+		matches = []
 		for dirpath, _dirnames, filenames in os.walk(self.get_folder_path()):
 			if f"{name}.vue" in filenames:
-				return os.path.relpath(os.path.join(dirpath, f"{name}.vue"), self.get_folder_path())
-		return None
+				matches.append(os.path.relpath(os.path.join(dirpath, f"{name}.vue"), self.get_folder_path()))
+		if len(matches) > 1:
+			frappe.throw(
+				_("Custom component {0} is ambiguous: {1}").format(name, ", ".join(sorted(matches))),
+				title=_("Duplicate component name"),
+			)
+		return matches[0] if matches else None
 
 	def resolve_imports(self, source: str, from_dir: str) -> list[str]:
 		paths = []
@@ -407,7 +445,7 @@ class StudioApp(WebsiteGenerator):
 
 	def resolve_module(self, base: str) -> str | None:
 		"""Vite's lookup: the path itself, then with an extension, then an index file."""
-		if base.startswith(".."):
+		if os.path.isabs(base) or base == ".." or base.startswith(f"..{os.sep}"):
 			return None
 		candidates = [
 			base,
@@ -415,9 +453,16 @@ class StudioApp(WebsiteGenerator):
 			*(os.path.join(base, f"index{ext}") for ext in (".ts", ".js")),
 		]
 		for candidate in candidates:
-			if os.path.isfile(os.path.join(self.get_folder_path(), candidate)):
+			if os.path.isfile(self.resolve_file_path(candidate)):
 				return candidate
 		return None
+
+	def resolve_file_path(self, path: str) -> str:
+		root = os.path.realpath(self.get_folder_path())
+		target = os.path.realpath(os.path.join(root, path))
+		if target == root or not target.startswith(root + os.sep):
+			frappe.throw(_("Invalid file path: {0}").format(path), frappe.PermissionError)
+		return target
 
 	def get_folder_path(self, name: str | None = None):
 		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)

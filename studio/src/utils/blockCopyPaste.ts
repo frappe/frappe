@@ -9,6 +9,7 @@ import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 
 const CLIPBOARD_FORMAT = "studio-copied-blocks"
+const CLIPBOARD_PREFIX = `${CLIPBOARD_FORMAT}:`
 
 export interface PageCopy {
 	page_title?: string
@@ -30,21 +31,22 @@ interface ClipboardPayload extends Partial<Dependencies> {
 	page?: PageCopy
 }
 
-let pending: ClipboardPayload | null = null
-let blocksOnly = false
-
-export async function copyEntirePage() {
+export function copyEntirePage() {
 	const page = useStudioStore().activePage
 	const root = useCanvasStore().activeCanvas?.getRootBlock()
 	if (!page || !root) return
 	const blocks = [getBlockCopyWithoutParent(root)]
-	const response = await studioPages.runDocMethod.submit({ name: page.name, method: "get_copy", blocks })
-	const { components, files, ...pageCopy } = response.message as PageCopy & Dependencies
-	writePending({ blocks, components, files, page: pageCopy })
+	const payload = studioPages.runDocMethod
+		.submit({ name: page.name, method: "get_copy", blocks })
+		.then((response: any) => {
+			const { components, files, ...pageCopy } = response.message as PageCopy & Dependencies
+			return { blocks, components, files, page: pageCopy }
+		})
+	return writeClipboardPayload(payload, "Page copied")
 }
 
 export function copyBlocks(e: ClipboardEvent) {
-	if (pending || blocksOnly || !isRootSelected()) {
+	if (!isRootSelected()) {
 		copySelectedBlocks(e)
 		return
 	}
@@ -57,7 +59,7 @@ export function copyBlocks(e: ClipboardEvent) {
 				label: "Just the blocks",
 				onClick: ({ close }) => {
 					close()
-					copyBlocksOnly()
+					return writeClipboardPayload(Promise.resolve({ blocks: getSelectedBlockCopies() }))
 				},
 			},
 			{
@@ -73,15 +75,7 @@ export function copyBlocks(e: ClipboardEvent) {
 }
 
 export function copySelectedBlocks(e: ClipboardEvent) {
-	if (pending) {
-		e.preventDefault()
-		setClipboardData(pending, e, CLIPBOARD_FORMAT)
-		if (pending.page) toast.success("Page copied")
-		return
-	}
-
-	const canvas = useCanvasStore().activeCanvas
-	const blocks = canvas?.selectedBlocks.map((block) => getBlockCopyWithoutParent(block)) || []
+	const blocks = getSelectedBlockCopies()
 	if (!blocks.length) return
 	e.preventDefault()
 
@@ -89,14 +83,13 @@ export function copySelectedBlocks(e: ClipboardEvent) {
 		setClipboardData({ blocks }, e, CLIPBOARD_FORMAT)
 		return
 	}
-	fetchDependencies(blocks).then((dependencies) => writePending({ blocks, ...dependencies }))
+	void writeClipboardPayload(fetchDependencies(blocks).then((dependencies) => ({ blocks, ...dependencies })))
 }
 
 export function pasteBlocks(e: ClipboardEvent): boolean {
-	const data = e.clipboardData?.getData(CLIPBOARD_FORMAT)
-	if (!data || !isJSONString(data)) return false
-
-	const payload = JSON.parse(data) as ClipboardPayload
+	const payload = getClipboardPayload(e)
+	if (!payload) return false
+	e.preventDefault()
 	if (payload.page) {
 		handlePastePage(payload)
 	} else {
@@ -105,16 +98,58 @@ export function pasteBlocks(e: ClipboardEvent): boolean {
 	return true
 }
 
-function writePending(payload: ClipboardPayload) {
-	pending = payload
-	document.execCommand("copy")
-	pending = null
+function getSelectedBlockCopies(): BlockOptions[] {
+	return useCanvasStore().activeCanvas?.selectedBlocks.map((block) => getBlockCopyWithoutParent(block)) || []
 }
 
-function copyBlocksOnly() {
-	blocksOnly = true
-	document.execCommand("copy")
-	blocksOnly = false
+function getClipboardPayload(e: ClipboardEvent): ClipboardPayload | null {
+	let data = e.clipboardData?.getData(CLIPBOARD_FORMAT) || ""
+	if (!data) {
+		const text = e.clipboardData?.getData("text/plain") || ""
+		if (!text.startsWith(CLIPBOARD_PREFIX)) return null
+		data = text.slice(CLIPBOARD_PREFIX.length)
+	}
+	if (!isJSONString(data)) return null
+
+	const payload = JSON.parse(data)
+	return payload && Array.isArray(payload.blocks) && payload.blocks.length ? payload : null
+}
+
+function writeClipboardPayload(payload: Promise<ClipboardPayload>, successMessage?: string): Promise<void> {
+	const text = payload.then((value) => CLIPBOARD_PREFIX + JSON.stringify(value))
+	let write: Promise<void>
+
+	try {
+		if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+			write = text.then(writeClipboardTextFallback)
+		} else {
+			const blob = text.then((value) => new Blob([value], { type: "text/plain" }))
+			write = navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })])
+		}
+	} catch (error) {
+		write = Promise.reject(error)
+	}
+
+	return write
+		.then(() => {
+			if (successMessage) toast.success(successMessage)
+		})
+		.catch((error) => {
+			console.error("Failed to copy Studio blocks", error)
+			toast.error("Could not copy to the clipboard")
+		})
+}
+
+function writeClipboardTextFallback(text: string) {
+	const textarea = document.createElement("textarea")
+	textarea.value = text
+	textarea.style.position = "fixed"
+	textarea.style.opacity = "0"
+	document.body.appendChild(textarea)
+	textarea.select()
+	const copied = document.execCommand("copy")
+	textarea.remove()
+	if (!copied) throw new Error("The browser denied clipboard access")
 }
 
 function isRootSelected() {
@@ -141,7 +176,11 @@ function usesPageData(blocks: BlockOptions[]): boolean {
 
 async function fetchDependencies(blocks: BlockOptions[]): Promise<Dependencies> {
 	const page = useStudioStore().activePage!
-	const response = await studioPages.runDocMethod.submit({ name: page.name, method: "get_dependencies", blocks })
+	const response = await studioPages.runDocMethod.submit({
+		name: page.name,
+		method: "get_dependencies",
+		blocks,
+	})
 	return response.message
 }
 
@@ -166,7 +205,12 @@ async function createMissingDependencies(payload: ClipboardPayload) {
 
 function handlePastePage(payload: ClipboardPayload) {
 	const store = useStudioStore()
-	const copy = { ...payload.page!, blocks: payload.blocks, components: payload.components, files: payload.files }
+	const copy = {
+		...payload.page!,
+		blocks: payload.blocks,
+		components: payload.components,
+		files: payload.files,
+	}
 	dialog.confirm({
 		title: "Paste page",
 		message:
