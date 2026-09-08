@@ -537,7 +537,7 @@
 
 	// for left aligned currency symbol
 	.grid-currency-input.grid-currency-has-value:not(.grid-currency-symbol-right) .form-control {
-		padding-left: calc(4px + 1em);
+		padding-left: calc(12px + 1em);
 		position: relative;
 		z-index: 1;
 		text-align: left;

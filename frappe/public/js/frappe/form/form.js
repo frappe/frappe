@@ -302,6 +302,18 @@ frappe.ui.form.Form = class FrappeForm {
 					let field = me.fields_dict[fieldname];
 					field && field.refresh(fieldname);
 
+					table_fields.forEach((table_df) => {
+						const child_fields = frappe.get_meta(table_df.options).fields;
+						const has_dependent_currency_field = child_fields.some(
+							(child_df) =>
+								child_df.fieldtype === "Currency" && child_df.options === fieldname
+						);
+
+						if (has_dependent_currency_field) {
+							me.fields_dict[table_df.fieldname]?.grid.refresh();
+						}
+					});
+
 					// Validate value for link field explicitly
 					field &&
 						["Link", "Dynamic Link"].includes(field.df.fieldtype) &&
