@@ -97,6 +97,21 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
 		self.assertEqual(target.script, PAGE_SCRIPT)
 
+	def test_paste_creates_missing_components(self):
+		app = make_studio_app(app_name="paste-" + frappe.generate_hash(length=10))
+		component = make_component("Card", inputs=[{"input_name": "title", "type": "String"}])
+		blocks = [{"componentName": "div", "children": [component_ref(component)]}]
+		copy = {**make_studio_page(app.name).get_copy(blocks), "blocks": blocks}
+		self.assertEqual([c["name"] for c in copy["components"]], [component.name])
+		frappe.delete_doc("Studio Component", component.name)
+
+		paste_page(app.name, copy)
+
+		pasted = frappe.get_doc("Studio Component", component.name)
+		self.assertEqual(pasted.component_name, "Card")
+		self.assertEqual(pasted.block, component.block)
+		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
+
 	def test_standard_page_script_is_copied_as_file(self):
 		with exports_in_tempdir():
 			app = make_studio_app(app_name="dup-" + frappe.generate_hash(length=10))

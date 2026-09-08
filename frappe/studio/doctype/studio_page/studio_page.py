@@ -139,11 +139,13 @@ class StudioPage(Document):
 			self.db_set("script", frappe.read_file(self.get_script_file_path()), update_modified=False)
 
 	@frappe.whitelist()
-	def get_copy(self) -> dict:
-		"""Page settings, data sources, variables and script for copy-paste."""
+	def get_copy(self, blocks=None) -> dict:
+		"""Page settings, data sources, variables, script and the components `blocks` use, for copy-paste."""
+		blocks = frappe.parse_json(blocks) or parse_json(self.draft_blocks or self.blocks) or []
 		return {
 			"page_title": self.page_title,
 			"allow_guest": self.allow_guest,
+			"components": get_components_for_blocks(blocks),
 			"resources": [
 				{field: row.get(field) for field in PAGE_RESOURCE_FIELDS} for row in self.resources
 			],
@@ -494,7 +496,7 @@ def duplicate_page(page_name: str, app_name: str | None):
 
 	page = frappe.get_doc("Studio Page", page_name)
 	blocks = parse_json(page.draft_blocks or page.blocks) or []
-	return paste_page(app_name, {**page.get_copy(), "blocks": blocks})
+	return paste_page(app_name, {**page.get_copy(blocks), "blocks": blocks})
 
 
 @frappe.whitelist()
@@ -504,6 +506,7 @@ def paste_page(app_name: str, page: dict | str, target_page: str | None = None) 
 		frappe.throw(_("You do not have permission to paste a page."))
 
 	copy = frappe.parse_json(page)
+	create_missing_components(copy.get("components") or [])
 	doc = frappe.get_doc("Studio Page", target_page) if target_page else new_page_from_copy(app_name, copy)
 	doc.draft_blocks = copy.get("blocks") or []
 	doc.set(
@@ -519,6 +522,20 @@ def paste_page(app_name: str, page: dict | str, target_page: str | None = None) 
 	if can_export(doc):
 		doc.write_script_file()
 	return doc
+
+
+def create_missing_components(components: list[dict]):
+	for component in components:
+		if frappe.db.exists("Studio Component", component["name"]):
+			continue
+		frappe.get_doc(
+			doctype="Studio Component",
+			component_id=component["component_id"],
+			component_name=component["component_name"],
+			block=component["block"],
+			is_disabled=component.get("is_disabled"),
+			inputs=[{**row, "name": None} for row in component.get("inputs") or []],
+		).insert()
 
 
 def new_page_from_copy(app_name: str, copy: dict) -> StudioPage:

@@ -15,6 +15,7 @@ export interface PageCopy {
 	resources: Record<string, any>[]
 	variables: Record<string, any>[]
 	script: string
+	components: Record<string, any>[]
 }
 
 interface ClipboardPayload {
@@ -27,8 +28,13 @@ let blocksOnly = false
 
 export async function copyEntirePage() {
 	const page = useStudioStore().activePage
-	if (!page) return
-	const response = await studioPages.runDocMethod.submit({ name: page.name, method: "get_copy" })
+	const root = useCanvasStore().activeCanvas?.getRootBlock()
+	if (!page || !root) return
+	const response = await studioPages.runDocMethod.submit({
+		name: page.name,
+		method: "get_copy",
+		blocks: [getBlockCopyWithoutParent(root)],
+	})
 	pendingPageCopy = response.message as PageCopy
 	document.execCommand("copy")
 	pendingPageCopy = null
