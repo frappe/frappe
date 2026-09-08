@@ -36,26 +36,43 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 
 
 @frappe.whitelist()
-def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
-	attachment_folder = frappe.db.get_value(
-		"File",
-		"Home/Attachments",
-		["name", "file_name", "file_url", "is_folder", "modified"],
-		as_dict=1,
-	)
+def get_files_in_folder(
+	folder: str, start: int = 0, page_length: int = 20, seen_files: list | str | None = None
+) -> dict:
+	fields = ["name", "file_name", "file_url", "is_folder", "modified", "is_private"]
 
 	files = frappe.get_list(
 		"File",
 		{"folder": folder},
-		["name", "file_name", "file_url", "is_folder", "modified"],
-		start=start,
-		page_length=page_length + 1,
+		fields,
+		offset=start,
+		limit=page_length + 1,
 	)
 
-	if folder == "Home" and attachment_folder not in files:
-		files.insert(0, attachment_folder)
+	seen_files = {tuple(file_tuple) for file_tuple in frappe.parse_json(seen_files or "[]")}
+	deduped = []
+	for file in files[:page_length]:
+		file_tuple = (file.file_url, file.file_name)
+		if file_tuple not in seen_files and file.name != "Home/Attachments":
+			seen_files.add(file_tuple)
+			deduped.append(file)
 
-	return {"files": files[:page_length], "has_more": len(files) > page_length}
+	attachment_folder = None
+	if folder == "Home" and start == 0:
+		attachment_folder = frappe.db.get_value(
+			"File",
+			"Home/Attachments",
+			fields,
+			as_dict=1,
+		)
+		if attachment_folder:
+			deduped.insert(0, attachment_folder)
+	limit = page_length + 1 if attachment_folder else page_length
+	return {
+		"files": deduped[:limit],
+		"has_more": len(files) > page_length,
+		"seen_files": [list(file_tuple) for file_tuple in seen_files],
+	}
 
 
 @frappe.whitelist()
@@ -63,19 +80,30 @@ def get_files_by_search_text(text: str) -> list[dict]:
 	if not text:
 		return []
 
-	text = "%" + cstr(text).lower() + "%"
-	return frappe.get_list(
+	text = cstr(text).lower()
+	like_text = f"%{text}%"
+	files = frappe.get_list(
 		"File",
-		fields=["name", "file_name", "file_url", "is_folder", "modified"],
+		fields=["name", "file_name", "file_url", "is_folder", "modified", "is_private"],
 		filters={"is_folder": False},
 		or_filters={
-			"file_name": ("like", text),
-			"file_url": text,
-			"name": ("like", text),
+			"file_name": ("like", like_text),
+			"file_url": ("=", text),
+			"name": ("like", like_text),
 		},
 		order_by="creation desc",
 		limit=20,
 	)
+
+	seen_files = set()
+	deduped = []
+	for file in files:
+		file_tuple = (file.file_url, file.file_name)
+		if file_tuple not in seen_files:
+			seen_files.add(file_tuple)
+			deduped.append(file)
+
+	return deduped
 
 
 @frappe.whitelist(allow_guest=True)
