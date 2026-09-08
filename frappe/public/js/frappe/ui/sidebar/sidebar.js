@@ -325,9 +325,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// setup() was not re-run.
 	//
 	// There is one header for the life of the desk, refreshed rather than rebuilt. Its menu is
-	// bound to the element it was given, and `frappe.ui.create_menu` registers a document-level
-	// listener per call, so building a header per navigation would strand the menu on a detached
-	// node and leak a listener on every navigation.
+	// bound to the element it was given, so building a header per navigation would strand the
+	// menu on a detached node. The rows themselves need no refreshing: the dropdown reads them
+	// from a function it calls on every open.
 	refresh_header() {
 		if (!this.current_module) return;
 
@@ -552,91 +552,97 @@ frappe.ui.Sidebar = class Sidebar {
 		const $btn = button;
 		const $container = parent;
 
-		frappe.ui.create_menu({
-			parent: $container,
-			open_on_top: true,
-			menu_items: [
+		new frappe.ui.Dropdown({
+			trigger: $container,
+			// The button sits at the foot of the sidebar, so the menu goes up from it.
+			side: "top",
+			options: [
 				{
-					name: "settings",
-					label: __("Settings"),
-					icon: "settings",
-					onClick: function () {
-						// The Settings dialog is not in the desk bundle, so load it on
-						// click and then open it.
-						frappe
-							.require("user_settings_dialog.bundle.js")
-							.then(() => frappe.ui.show_user_settings("profile"))
-							.catch((e) => {
-								console.error(
-									"Sidebar: failed to load user_settings_dialog.bundle.js",
-									e
-								);
-								frappe.ui.toast({
-									message: __(
-										"Could not open Settings. Please refresh the page."
-									),
-									type: "error",
-								});
-							});
-					},
+					group: "",
+					options: [
+						{
+							name: "settings",
+							label: __("Settings"),
+							icon: "settings",
+							onclick: function () {
+								// The Settings dialog is not in the desk bundle, so load it on
+								// click and then open it.
+								frappe
+									.require("user_settings_dialog.bundle.js")
+									.then(() => frappe.ui.show_user_settings("profile"))
+									.catch((e) => {
+										console.error(
+											"Sidebar: failed to load user_settings_dialog.bundle.js",
+											e
+										);
+										frappe.ui.toast({
+											message: __(
+												"Could not open Settings. Please refresh the page."
+											),
+											type: "error",
+										});
+									});
+							},
+						},
+						{
+							name: "workspace-selector",
+							label: __("Manage Dock"),
+							icon: "monitor",
+							// The dock holds an app's own modules, so a module in no app has no
+							// dock to arrange and its items region is always empty. Offering the
+							// picker there would ask the user to curate nothing. This is evaluated
+							// on every open, because the menu re-reads conditions each time it
+							// comes up, so it tracks the shell you are in rather than the one the
+							// menu was built in.
+							condition: () => !!me.get_sidebar_app(),
+							onclick: function () {
+								// The editor is not in the desk bundle, so load it on click and
+								// then open the dock's manager.
+								frappe
+									.require("arrangement_editor.bundle.js")
+									.then(() => new frappe.ui.DockManager())
+									.catch((e) => {
+										console.error(
+											"Sidebar: failed to load arrangement_editor.bundle.js",
+											e
+										);
+										frappe.ui.toast({
+											message: __(
+												"Could not open the dock manager. Please refresh the page."
+											),
+											type: "error",
+										});
+									});
+							},
+						},
+						{
+							name: "reload",
+							label: __("Reload"),
+							icon: "rotate-ccw",
+							onclick: function () {
+								frappe.ui.toolbar.clear_cache();
+							},
+						},
+					],
 				},
+				// Logout is a section of its own, which is the rule the divider row here used to
+				// draw by hand.
 				{
-					name: "workspace-selector",
-					label: __("Manage Dock"),
-					icon: "monitor",
-					// The dock holds an app's own modules, so a module in no app has no dock
-					// to arrange and its items region is always empty. Offering the picker
-					// there would ask the user to curate nothing. This is evaluated on every
-					// open, because frappe.ui.menu re-runs conditions in make(), so it tracks
-					// the shell you are in rather than the one the menu was built in.
-					condition: () => !!me.get_sidebar_app(),
-					onClick: function () {
-						// The editor is not in the desk bundle, so load it on click and
-						// then open the dock's manager.
-						frappe
-							.require("arrangement_editor.bundle.js")
-							.then(() => new frappe.ui.DockManager())
-							.catch((e) => {
-								console.error(
-									"Sidebar: failed to load arrangement_editor.bundle.js",
-									e
-								);
-								frappe.ui.toast({
-									message: __(
-										"Could not open the dock manager. Please refresh the page."
-									),
-									type: "error",
-								});
-							});
-					},
-				},
-				{
-					name: "reload",
-					label: __("Reload"),
-					icon: "rotate-ccw",
-					onClick: function () {
-						frappe.ui.toolbar.clear_cache();
-					},
-				},
-				{ is_divider: true },
-				{
-					name: "logout",
-					label: __("Logout"),
-					icon: "log-out",
-					onClick: function () {
-						frappe.app.logout();
-					},
+					group: "",
+					options: [
+						{
+							name: "logout",
+							label: __("Logout"),
+							icon: "log-out",
+							onclick: function () {
+								frappe.app.logout();
+							},
+						},
+					],
 				},
 			],
-			onShow: function () {
-				$btn.addClass("user-menu-active");
-			},
-			onHide: function () {
-				$btn.removeClass("user-menu-active");
-			},
-			onItemClick: function () {
-				$btn.removeClass("user-menu-active");
-			},
+			on_open: () => $btn.addClass("user-menu-active"),
+			on_close: () => $btn.removeClass("user-menu-active"),
 		});
 	}
 
