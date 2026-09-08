@@ -155,40 +155,55 @@ def get_orphan_blobs(cutoff, limit: int, *, predicate: str | None = None) -> lis
 def delete_blob(blob, cutoff, logger, stats: dict, *, predicate: str | None = None) -> bool:
 	"""Delete one blob's bytes, then its row. Return True when the row is gone.
 
-	Re-verifies the orphan status under a row lock first: ``put_blob``'s
-	dedup can revive a selected orphan concurrently (it locks the row and
-	bumps ``modified``), and a new File row may have appeared since
-	``get_orphan_blobs`` ran. Drivers treat a missing object as a no-op
-	delete. On a driver error the row is kept so the next run retries."""
-	if not is_still_orphan(blob.name, cutoff, predicate=predicate):
+	Re-verifies the orphan status under a row lock first, and re-reads
+	``key``/``driver``/``is_private`` under that same lock rather than trusting
+	``blob``'s scan-time values: a concurrent ``relocate_blobs()`` run can move
+	the blob to a new location between ``get_orphan_blobs`` and this call.
+	Deleting bytes at the stale location would leave the blob's *current*
+	bytes behind with no row left to ever find them, once this deletes the
+	row. ``put_blob``'s dedup can revive a selected orphan concurrently (it
+	locks the row and bumps ``modified``), and a new File row may have
+	appeared since ``get_orphan_blobs`` ran. Drivers treat a missing object as
+	a no-op delete. On a driver error the row is kept so the next run
+	retries."""
+	current = is_still_orphan(blob.name, cutoff, predicate=predicate)
+	if not current:
 		return False
 
 	try:
-		driver = frappe.storage.get_driver(blob.driver)
-		driver.delete(blob.key, is_private=bool(blob.is_private))
+		driver = frappe.storage.get_driver(current.driver)
+		driver.delete(current.key, is_private=bool(current.is_private))
 	except Exception:
 		stats["bytes_delete_errors"] += 1
 		logger.warning(
-			f"storage gc: could not delete bytes of blob {blob.name} (key {blob.key})", exc_info=True
+			f"storage gc: could not delete bytes of blob {blob.name} (key {current.key})", exc_info=True
 		)
 		return False
 
 	try:
 		frappe.delete_doc("File Blob", blob.name, force=1, ignore_permissions=True, ignore_missing=True)
-		logger.info(f"storage gc: deleted blob {blob.name} (key {blob.key}, driver {blob.driver})")
+		logger.info(f"storage gc: deleted blob {blob.name} (key {current.key}, driver {current.driver})")
 		return True
 	except Exception:
 		logger.warning(f"storage gc: could not delete File Blob row {blob.name}", exc_info=True)
 		return False
 
 
-def is_still_orphan(blob_name: str, cutoff, *, predicate: str | None = None) -> bool:
-	"""Lock the blob row and re-check that it is still unreferenced and stale."""
-	modified = frappe.db.get_value("File Blob", blob_name, "modified", for_update=True)
-	if not modified or get_datetime(modified) >= get_datetime(cutoff):
-		return False
+def is_still_orphan(blob_name: str, cutoff, *, predicate: str | None = None):
+	"""Lock the blob row; return its current fields if still unreferenced and stale.
+
+	Returns ``None`` when the row is gone, was touched since ``cutoff``, or is
+	referenced again. Otherwise returns a ``_dict`` with the row's current
+	``key``, ``driver``, and ``is_private``, read under the same lock, so a
+	caller always deletes bytes at the blob's up-to-date location even when a
+	concurrent ``relocate_blobs()`` run moved it after the candidate scan."""
+	row = frappe.db.get_value(
+		"File Blob", blob_name, ["modified", "key", "driver", "is_private"], for_update=True, as_dict=True
+	)
+	if not row or get_datetime(row.modified) >= get_datetime(cutoff):
+		return None
 	predicate = orphan_predicate() if predicate is None else predicate
-	return bool(
+	still_orphan = bool(
 		frappe.db.sql(
 			f"""
 			select b.name
@@ -199,6 +214,7 @@ def is_still_orphan(blob_name: str, cutoff, *, predicate: str | None = None) -> 
 			{"blob_name": blob_name},
 		)
 	)
+	return row if still_orphan else None
 
 
 def expire_upload_sessions(logger) -> int:
