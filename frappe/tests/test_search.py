@@ -118,6 +118,15 @@ class TestSearch(IntegrationTestCase):
 		# past the end: empty, not an error
 		self.assertEqual(search_link(doctype=doctype.name, txt="", page_length=5, start=50), [])
 
+	def test_search_link_pages_translated_doctypes(self):
+		# DocType is a translated doctype: its rows are matched in Python after
+		# an unlimited query, so paging has to happen there too
+		first = search_link("DocType", "", page_length=10)
+		second = search_link("DocType", "", page_length=10, start=10)
+		self.assertEqual(len(first), 10)
+		self.assertEqual(len(second), 10)
+		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
+
 	def test_search_link_include_image(self):
 		# User's image_field is user_image; a row carries it as `image`
 		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")

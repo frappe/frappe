@@ -613,11 +613,11 @@
   },
   {
    "default": "Search",
-   "description": "How Link fields to this DocType load their options. Search: fetch matches as the user types. Preload: fetch the whole list once and filter on the client. Select: preload and hide the search box (for short lists).",
+   "description": "How Link fields to this DocType load their options. Search: fetch matches as the user types. Select: load the whole list once, without a search box (for short lists).",
    "fieldname": "link_display_mode",
    "fieldtype": "Select",
    "label": "Link Display Mode",
-   "options": "Search\nPreload\nSelect"
+   "options": "Search\nSelect"
   },
   {
    "default": "0",

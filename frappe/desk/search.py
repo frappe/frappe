@@ -247,7 +247,8 @@ def search_widget(
 				values = filter_translated(values, txt, as_dict)
 				if not keep_order:
 					values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-				values = values[:page_length]
+				# the query got the whole list (see query_page_length): page it here
+				values = values[start : start + page_length]
 
 		return values
 
@@ -363,6 +364,12 @@ def search_widget(
 		# Then it will bring the rest of the elements and sort them in lexicographical order
 		if not keep_order:
 			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+
+		if meta.translated_doctype:
+			# the SQL ran without a limit (translated values are matched in
+			# Python): page here, so a translated doctype answers with
+			# page_length rows from start like any other
+			values = values[start : start + page_length]
 
 		# remove _relevance from results
 		if add_relevance:

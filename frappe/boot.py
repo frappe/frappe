@@ -569,7 +569,7 @@ def get_link_title_doctypes():
 
 def get_link_settings() -> dict[str, dict]:
 	"""Per-DocType Link field behaviour that differs from the default, for the
-	combobox Link control: {doctype: {"display_mode": "Preload"|"Select",
+	combobox Link control: {doctype: {"display_mode": "Select",
 	"show_image": 1, "image_field": "user_image"}}. Only non-default entries ship, so this stays small.
 	Customize Form values (Property Setters) override the DocType's own."""
 	from frappe.utils import cint
@@ -578,7 +578,7 @@ def get_link_settings() -> dict[str, dict]:
 
 	for d in frappe.get_all(
 		"DocType",
-		filters={"link_display_mode": ["in", ["Preload", "Select"]]},
+		filters={"link_display_mode": "Select"},
 		fields=["name", "link_display_mode"],
 	):
 		settings.setdefault(d.name, {})["display_mode"] = d.link_display_mode
@@ -596,7 +596,7 @@ def get_link_settings() -> dict[str, dict]:
 	):
 		entry = settings.setdefault(ps.doc_type, {})
 		if ps.property == "link_display_mode":
-			if ps.value in ("Preload", "Select"):
+			if ps.value == "Select":
 				entry["display_mode"] = ps.value
 			else:
 				entry.pop("display_mode", None)
