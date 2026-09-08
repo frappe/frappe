@@ -974,10 +974,10 @@ def update_password(
 	"""Update password for the current user.
 
 	Args:
-		new_password (str): New password.
-		logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
-		key (str, optional): Password reset key. Defaults to None.
-		old_password (str, optional): Old password. Defaults to None.
+	    new_password (str): New password.
+	    logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
+	    key (str, optional): Password reset key. Defaults to None.
+	    old_password (str, optional): Old password. Defaults to None.
 	"""
 
 	if len(new_password) > MAX_PASSWORD_SIZE:
@@ -1326,8 +1326,8 @@ def get_active_website_users():
 	"""Return number of website users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
-		where enabled = 1 and user_type = 'Website User'
-		and hour(timediff(now(), last_active)) < 72"""
+        where enabled = 1 and user_type = 'Website User'
+        and hour(timediff(now(), last_active)) < 72"""
 	)[0][0]
 
 
@@ -1577,7 +1577,6 @@ def clear_session(sid_hash: str):
 			frappe.toast(_("Successfully signed out"))
 			return
 
-
 @frappe.whitelist(methods=["POST"])
 def bulk_add_roles(users: str | list, roles: str | list) -> None:
 	"""Bulk assign roles to multiple users without overwriting existing roles."""
@@ -1588,9 +1587,36 @@ def bulk_add_roles(users: str | list, roles: str | list) -> None:
 	if isinstance(roles, str):
 		roles = frappe.parse_json(roles)
 
+	if not isinstance(users, list) or not all(isinstance(u, str) for u in users):
+		frappe.throw(frappe._("Users must be a list of string identifiers."))
+
+	if not isinstance(roles, list) or not all(isinstance(r, str) for r in roles):
+		frappe.throw(frappe._("Roles must be a list of string identifiers."))
+
 	if not users or not roles:
 		return
 
+	if len(users) > 500:
+		frappe.throw(_("Bulk role assignment is limited to 500 users at a time."))
+
+	if len(users) > 20:
+		frappe.enqueue(
+			"frappe.core.doctype.user.user._assign_roles",
+			users=users,
+			roles=roles,
+			queue="default",
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(
+			_("Role assignment for {0} users has been queued in the background.").format(len(users)),
+			alert=True,
+		)
+	else:
+		_assign_roles(users, roles)
+
+
+def _assign_roles(users: list, roles: list) -> None:
+	"""Internal method to handle the DB loop, either synchronously or via background job."""
 	for user_id in users:
 		user_doc = frappe.get_doc("User", user_id)
 		user_doc.add_roles(*roles)
