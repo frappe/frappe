@@ -667,7 +667,7 @@ const currentEffort = computed(
 // namespace segments (for example openrouter/openai/gpt).
 const modelLabel = computed(() => {
 	const model = currentModel.value
-	if (!model) return "choose model"
+	if (!model) return "Choose Model"
 	return model.split("/").filter(Boolean).pop() || model
 })
 const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
