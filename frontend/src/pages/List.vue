@@ -1,31 +1,35 @@
+<!--
+  The generated list page, a plain table for now. It owns its scroll, since the list surface that
+  replaces the table scrolls both ways under a sticky column header.
+-->
 <template>
-	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
-		<h1 class="text-lg font-semibold">{{ doctype ?? "Unknown" }}</h1>
+	<PageFrame :title="doctype ?? 'Unknown'" :scroll="false">
+		<ScrollArea class="min-h-0 flex-1" :viewportClass="[pageGutter, 'py-5']">
+			<p v-if="!doctype" class="text-sm text-ink-gray-6">
+				No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
+			</p>
 
-		<p v-if="!doctype" class="mt-2 text-sm text-ink-gray-6">
-			No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
-		</p>
-
-		<table v-else class="mt-4 w-full max-w-3xl text-sm">
-			<tbody>
-				<tr v-for="row in rows" :key="row.name" class="border-b border-outline-gray-1">
-					<td class="py-1.5">
-						<!-- `routeFor`, never a template literal: under a modular prefix the hand-built form
+			<table v-else class="w-full max-w-3xl text-sm">
+				<tbody>
+					<tr v-for="row in rows" :key="row.name" class="border-b border-outline-gray-1">
+						<td class="py-1.5">
+							<!-- `routeFor`, never a template literal: under a modular prefix the hand-built form
 													resolves to the wrong page. -->
-						<RouterLink
-							:to="routeFor(doctype!, row.name)"
-							class="text-ink-blue-3 hover:underline"
-						>
-							{{ row.name }}
-						</RouterLink>
-					</td>
-					<td v-for="column in columns" :key="column" class="py-1.5 text-ink-gray-7">
-						{{ row[column] }}
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</ScrollArea>
+							<RouterLink
+								:to="routeFor(doctype!, row.name)"
+								class="text-ink-blue-3 hover:underline"
+							>
+								{{ row.name }}
+							</RouterLink>
+						</td>
+						<td v-for="column in columns" :key="column" class="py-1.5 text-ink-gray-7">
+							{{ row[column] }}
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</ScrollArea>
+	</PageFrame>
 </template>
 
 <script setup lang="ts">
@@ -35,6 +39,7 @@ import { RouterLink, useRoute } from "vue-router";
 import type { Addresses } from "@/addresses";
 import { routeFor } from "@/router/routeFor";
 import { listHandlersFor } from "@/contributions/registry";
+import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 
 const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();

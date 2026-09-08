@@ -3,9 +3,8 @@
   address space.
 -->
 <template>
-	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
-		<h1 class="text-xl font-semibold">{{ title }}</h1>
-		<p class="mt-1 text-sm text-ink-gray-6">
+	<PageFrame :title="title">
+		<p class="pt-5 text-sm text-ink-gray-6">
 			<!-- "0 doctypes you can read" is a real answer, so it must not also be what a pending fetch looks like. -->
 			<template v-if="loading">Loading…</template>
 			<template v-else-if="failed"> Could not load this module's doctypes. </template>
@@ -14,7 +13,7 @@
 			</template>
 		</p>
 
-		<ul class="mt-6 grid max-w-2xl grid-cols-2 gap-2">
+		<ul class="my-6 grid max-w-2xl grid-cols-2 gap-2">
 			<li v-for="entry in entries" :key="entry.doctype">
 				<RouterLink
 					:to="routeFor(entry.doctype)"
@@ -24,17 +23,17 @@
 				</RouterLink>
 			</li>
 		</ul>
-	</ScrollArea>
+	</PageFrame>
 </template>
 
 <script setup lang="ts">
-import { ScrollArea } from "frappe-ui";
 import { computed, inject } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 import { routeFor } from "@/router/routeFor";
 import { useContents } from "@/contents";
+import PageFrame from "@/shell/PageFrame.vue";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
