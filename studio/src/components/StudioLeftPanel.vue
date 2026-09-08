@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-row overflow-auto border-r border-outline-gray-2">
+	<div class="flex flex-row overflow-hidden border-r border-outline-gray-2">
 		<!-- Primary Menu -->
 		<div
 			class="flex h-full w-12 flex-col items-center space-y-2 border-r border-outline-elevation-2 bg-surface-base p-3"
@@ -26,7 +26,7 @@
 			<div
 				v-show="store.studioLayout.showLeftPanel"
 				:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-				class="flex flex-col overflow-auto border-r-[1px] hide-scrollbar"
+				class="flex min-h-0 shrink-0 flex-col overflow-auto border-r-[1px] hide-scrollbar"
 			>
 				<PanelResizer
 					:dimension="store.studioLayout.leftPanelWidth"
