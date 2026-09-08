@@ -1,14 +1,10 @@
 <!--
   The generated record page every app gets at /apps/<prefix>/<slug>/<name>: a host for the
-  record-page engine with a real header row, and no form layout, tabs or panel yet.
+  record-page engine with a real header row, no form layout yet, and its own scroll (it will split into panes).
 -->
 <template>
-	<ScrollArea class="min-h-0 flex-1" viewportClass="p-8">
-		<p v-if="!doctype" class="text-sm text-ink-gray-6">
-			No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
-		</p>
-
-		<template v-else>
+	<PageFrame :scroll="false">
+		<template v-if="doctype" #header>
 			<RecordHeader
 				v-if="controller"
 				:projection="header"
@@ -16,32 +12,40 @@
 				:saving="saving"
 				@run="runAction"
 			/>
-			<header v-else class="flex items-center gap-3">
+			<div v-else class="flex items-center gap-3">
 				<h1 class="text-lg font-semibold">{{ route.params.name }}</h1>
 				<span class="text-sm text-ink-gray-5">{{ doctype }}</span>
-			</header>
-
-			<!-- Contributed quick actions, in the run order the registry decided. -->
-			<div v-if="quickActions.length" class="mt-4 flex gap-2">
-				<Button
-					v-for="action in quickActions"
-					:key="action.name"
-					:label="action.label"
-					@click="runAction(action)"
-				/>
 			</div>
-
-			<p v-if="actionError" class="mt-4 text-sm text-ink-red-4">{{ actionError }}</p>
-			<p v-if="error" class="mt-4 text-sm text-ink-red-4">{{ error }}</p>
-
-			<dl v-else class="mt-6 grid max-w-2xl grid-cols-[12rem_1fr] gap-y-1.5 text-sm">
-				<template v-for="[field, value] in fields" :key="field">
-					<dt class="text-ink-gray-6">{{ field }}</dt>
-					<dd class="text-ink-gray-8">{{ value }}</dd>
-				</template>
-			</dl>
 		</template>
-	</ScrollArea>
+
+		<ScrollArea class="min-h-0 flex-1" :viewportClass="[pageGutter, 'py-5']">
+			<p v-if="!doctype" class="text-sm text-ink-gray-6">
+				No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
+			</p>
+
+			<template v-else>
+				<!-- Contributed quick actions, in the run order the registry decided. -->
+				<div v-if="quickActions.length" class="flex gap-2">
+					<Button
+						v-for="action in quickActions"
+						:key="action.name"
+						:label="action.label"
+						@click="runAction(action)"
+					/>
+				</div>
+
+				<p v-if="actionError" class="mt-4 text-sm text-ink-red-4">{{ actionError }}</p>
+				<p v-if="error" class="mt-4 text-sm text-ink-red-4">{{ error }}</p>
+
+				<dl v-else class="mt-6 grid max-w-2xl grid-cols-[12rem_1fr] gap-y-1.5 text-sm">
+					<template v-for="[field, value] in fields" :key="field">
+						<dt class="text-ink-gray-6">{{ field }}</dt>
+						<dd class="text-ink-gray-8">{{ value }}</dd>
+					</template>
+				</dl>
+			</template>
+		</ScrollArea>
+	</PageFrame>
 </template>
 
 <script setup lang="ts">
@@ -57,6 +61,7 @@ import {
 } from "@/recordPage";
 import { routeFor } from "@/router/routeFor";
 import RecordHeader from "./record/RecordHeader.vue";
+import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 

@@ -1,6 +1,9 @@
-<!-- The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right. -->
+<!--
+  The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right.
+  A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
+-->
 <template>
-	<header class="flex items-center justify-between gap-3">
+	<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
 		<nav class="flex min-w-0 items-center gap-1 text-base">
 			<template v-for="(control, index) in projection.left" :key="control.item.name">
 				<span
@@ -107,7 +110,7 @@
 				</div>
 			</Dropdown>
 		</div>
-	</header>
+	</div>
 </template>
 
 <script setup lang="ts">
