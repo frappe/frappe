@@ -4,11 +4,11 @@ Frappe is a web framework: Python backend, JavaScript desk UI, MariaDB or Postgr
 
 ## Reviewing a PR
 
-Read [code_review.md](code_review.md) first and follow its Workflow section in order. Point to rules by number (`R11`).
+Read [code_review.md](code_review.md) first and follow it in order: the checks before reviewing, what to look for, the verdict.
 
 - No before/after screenshot or video for a UI change: ask for one before reviewing anything else.
 - PR not based on `develop`: close it, unless the bug exists only on the stable branch.
-- Any real ask means `REQUEST_CHANGES`. Do not hide a real finding under an approve.
+- Any real ask means request changes. Do not hide a real finding under an approve.
 
 ## Writing code
 
