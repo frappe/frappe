@@ -183,22 +183,14 @@ class TestServeUpload(IntegrationTestCase):
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
 
-	def send_chunk_as_file(self, upload_id: str, offset: int, data: bytes):
-		"""Send a chunk as a multipart "file" field instead of a raw body."""
-		set_request(method="POST", path="/", data={"file": (io.BytesIO(data), "chunk.bin")})
-		try:
-			return upload_chunk(upload_id, offset)
-		finally:
-			if hasattr(frappe.local, "request"):
-				del frappe.local.request
-
 	def backdate(self, *paths: str, hours: float = 25):
 		stamp = time.time() - hours * 3600
 		for path in paths:
 			os.utime(path, (stamp, stamp))
 
 	def send_chunk(self, upload_id: str, offset: int, data: bytes):
-		set_request(method="POST", path="/", data=data)
+		# upload_chunk is PUT-only, raw body: see test_chunk_upload_route_is_put_only
+		set_request(method="PUT", path="/", data=data)
 		try:
 			return upload_chunk(upload_id, offset)
 		finally:
@@ -1127,23 +1119,41 @@ class TestServeUpload(IntegrationTestCase):
 			with self.assertRaises(frappe.ValidationError):
 				self.send_chunk(upload_id, 4, b"x")
 
-	def test_chunk_accepts_a_multipart_file_field(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"multipart chunk " + frappe.generate_hash(length=16).encode()
-			upload_id = self.open_session("multi.txt", len(content))
+	def test_chunk_refuses_form_encoded_bodies_without_buffering_them(self):
+		# get_request_bytes must refuse by Content-Type alone, before Werkzeug's
+		# form parser ever reads the socket: touching request.form/request.files
+		# on a streaming request path (max_content_length lifted to None by
+		# frappe/app.py:init_request) would otherwise spool an attacker-chosen
+		# body of any size before the declared-size limit below is ever checked.
+		huge_part = b"x" * (256 * 1024)
+		cases = [
+			("multipart/form-data", {"file": (io.BytesIO(huge_part), "huge.bin")}),
+			("application/x-www-form-urlencoded", {"a": "x" * (256 * 1024)}),
+		]
+		for mimetype, data in cases:
+			with self.subTest(mimetype=mimetype):
+				set_request(method="PUT", path="/", data=data)
+				frappe.local.request.max_content_length = None
+				raw_input = frappe.local.request.environ["wsgi.input"]
+				try:
+					with self.assertRaises(frappe.ValidationError):
+						get_request_bytes(limit=4)
+					# never read: refused by the Content-Type header alone
+					self.assertEqual(raw_input.tell(), 0)
+				finally:
+					del frappe.local.request
 
-			result = self.send_chunk_as_file(upload_id, 0, content)
-			self.assertEqual(result["received"], len(content))
-
-			file = finish_upload(
-				upload_id,
-				checksum=hashlib.sha256(content).hexdigest(),
-				file_name="multi.txt",
-			)
-			self.addCleanup(
-				frappe.delete_doc, "File", file.name, force=1, ignore_permissions=True, ignore_missing=True
-			)
-			self.assertEqual(frappe.get_doc("File Blob", file.blob).file_size, len(content))
+	def test_chunk_upload_route_is_put_only(self):
+		# POST was dropped: init_request (frappe/app.py) only lifts the
+		# make_form_dict/max_content_length treatment for a streaming request
+		# path on a PUT (frappe.hooks.streaming_request_paths). A POST here
+		# would still run make_form_dict first, which decodes the whole body
+		# as text before the handler ever sees it - corrupting or crashing on
+		# binary chunk data - and caps it at the generic upload size, not the
+		# session's declared size. PUT is also the only contract the spec
+		# documents for this route (frappe-file-storage-v2-spec.md: "PUT
+		# /api/method/...upload_chunk").
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[upload_chunk], ("PUT",))
 
 	def test_get_request_bytes_stops_reading_at_the_limit(self):
 		# streaming request paths lift the generic per-request byte cap
