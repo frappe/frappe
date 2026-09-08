@@ -336,6 +336,11 @@ class Engine:
 				)
 
 		self.add_permission_conditions()
+		# Child queries need the parent document name internally
+		# to associate child rows with their parent.
+		if getattr(self, "_child_query_needs_name", False):
+			self.query = self.query.select(self.table.name)
+			self.query._child_query_internal_name = True
 
 		if self.apply_permissions:
 			# Store metadata for masked field processing during execution.
@@ -360,20 +365,41 @@ class Engine:
 		if not self.fields:
 			self.fields = [self.table.name]
 
-		self.query._child_queries = []
+		child_queries = []
 		has_select_field = False
+		has_name_field = False
+
 		for field in self.fields:
+
 			if isinstance(field, DynamicTableField):
 				self.query = field.apply_select(self.query, engine=self)
 				has_select_field = True
+
 			elif isinstance(field, ChildQuery):
-				self.query._child_queries.append(field)
+				child_queries.append(field)
+
 			else:
 				self.query = self.query.select(field)
 				has_select_field = True
 
+				# Check whether the parent `name` was explicitly selected.
+				if isinstance(field, Field) and field.name == "name":
+					has_name_field = True
+
+		# If no fields were selected, select name by default.
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
+			has_name_field = True
+
+		# Store child queries on the Engine because PyPika may create
+		# new query objects during query construction.
+		self._child_queries = child_queries
+
+		# Child queries need the parent document name internally
+		# to associate child rows with their parent.
+		self._child_query_needs_name = bool(
+			child_queries and not has_name_field
+		)
 
 	def apply_filters(
 		self,

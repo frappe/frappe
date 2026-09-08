@@ -925,6 +925,28 @@ class TestQuery(IntegrationTestCase):
 		note1.delete()
 		note2.delete()
 
+	def test_child_query_without_parent_name(self):
+		note = frappe.get_doc(
+			doctype="Note",
+			title="Note 3",
+			seen_by=[{"user": "Administrator"}, {"user": "Guest"}],
+		).insert()
+		self.addCleanup(note.delete)
+
+		result = frappe.qb.get_query(
+			"Note",
+			filters={"name": note.name},
+			fields=[
+				"title as note_title",
+				{"seen_by": ["user"]},
+			],
+		).run(as_dict=1)
+		self.assertEqual(result[0].note_title, "Note 3")
+		self.assertNotIn("name", result[0])
+		self.assertEqual(len(result[0].seen_by), 2)
+		self.assertEqual(result[0].seen_by[0].user, "Administrator")
+		self.assertEqual(result[0].seen_by[1].user, "Guest")
+
 	def test_build_match_conditions(self):
 		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 

@@ -135,6 +135,7 @@ def execute_query(query, *args, **kwargs):
 	parent_dt = query.__dict__.get("_parent_doctype")
 	fields = query.__dict__.get("_fields_list", [])
 	child_queries = query._child_queries
+	internal_name = query.__dict__.get("_child_query_internal_name", False)
 	query, params = prepare_query(query)
 	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
 
@@ -148,6 +149,10 @@ def execute_query(query, *args, **kwargs):
 		result = mask_fields(
 			dt, fields, result, as_dict=as_dict, pluck=kwargs.get("pluck", False), parent_doctype=parent_dt
 		)
+	# Remove the internally added parent name.
+	if internal_name and result and isinstance(result[0], dict):
+		for row in result:
+			row.pop("name", None)
 
 	return result
 
