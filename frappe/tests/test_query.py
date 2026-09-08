@@ -3094,6 +3094,162 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn(todo.name, [r.name for r in rows])
 
 
+class TestJSONFilters(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.value_doctype = "Test Query JSON Value"
+		cls.child_doctype = "Test Query JSON Child"
+		cls.source_doctype = "Test Query JSON Source"
+		for name, fields, options in (
+			(
+				cls.value_doctype,
+				[
+					{"fieldname": "some_fieldname", "label": "Label", "fieldtype": "Data"},
+					{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"},
+				],
+				{"autoname": "field:some_fieldname"},
+			),
+			(
+				cls.child_doctype,
+				[{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"}],
+				{"istable": 1},
+			),
+			(
+				cls.source_doctype,
+				[
+					{"fieldname": "some_fieldname", "label": "Label", "fieldtype": "Data"},
+					{"fieldname": "payload", "label": "Payload", "fieldtype": "Data"},
+					{"fieldname": "link", "label": "Link", "fieldtype": "Link", "options": cls.value_doctype},
+					{
+						"fieldname": "rows",
+						"label": "Rows",
+						"fieldtype": "Table",
+						"options": cls.child_doctype,
+					},
+				],
+				{"autoname": "field:some_fieldname"},
+			),
+		):
+			new_doctype(name, fields=fields, **options).insert(ignore_if_duplicate=True)
+
+		cls.samples = {
+			"sql_null": None,
+			"empty_array": "[]",
+			"empty_object": "{}",
+			"json_null": "null",
+			"json_empty_string": '""',
+			"populated": '["x"]',
+			"compact": '{"a":1,"b":2}',
+			"spaced": '{"a": 1, "b": 2}',
+			"reordered": '{"b":2,"a":1}',
+		}
+		for label, payload in cls.samples.items():
+			frappe.get_doc(doctype=cls.value_doctype, some_fieldname=label, payload=payload).insert()
+			if label in ("sql_null", "empty_array"):
+				frappe.get_doc(
+					doctype=cls.source_doctype,
+					some_fieldname=label,
+					payload="parent text",
+					link=label,
+					rows=[{"payload": payload}],
+				).insert()
+
+	def test_json_filter_operators(self):
+		all_names = set(self.samples)
+		set_names = all_names - {"sql_null"}
+		for compat in (False, True):
+			null_names = {"sql_null"} if compat else set()
+			cases = [
+				("is", "not set", {"sql_null"}),
+				("is", "set", set_names),
+				("=", "[]", {"empty_array"}),
+				("!=", "[]", (set_names - {"empty_array"}) | null_names),
+				("in", ["[]"], {"empty_array"}),
+				("not in", ["[]"], (set_names - {"empty_array"}) | null_names),
+				("like", "%x%", {"populated"}),
+				("not like", "%x%", (set_names - {"populated"}) | null_names),
+				("=", None, {"sql_null"}),
+				("!=", None, set_names),
+				("=", "", null_names),
+				("!=", "", set_names),
+				("in", ["", "[]"], {"sql_null", "empty_array"}),
+				("not in", ["", "[]"], set_names - {"empty_array"}),
+				("in", [], set()),
+				("not in", [], all_names),
+			]
+			for label in ("compact", "spaced", "reordered"):
+				cases.append(("=", self.samples[label], {label}))
+
+			for operator, value, expected in cases:
+				with self.subTest(compat=compat, operator=operator, value=value):
+					query = frappe.qb.get_query(
+						self.value_doctype, filters={"payload": [operator, value]}, db_query_compat=compat
+					)
+					self.assertEqual(set(query.run(pluck=True)), expected)
+
+	def test_json_filters_on_related_fields(self):
+		for compat in (False, True):
+			for field in ("link.payload", "rows.payload"):
+				for operator, value, expected in (
+					("=", "[]", {"empty_array"}),
+					("is", "not set", {"sql_null"}),
+					("!=", "[]", {"sql_null"} if compat else set()),
+				):
+					with self.subTest(compat=compat, field=field, operator=operator):
+						query = frappe.qb.get_query(
+							self.source_doctype, filters={field: [operator, value]}, db_query_compat=compat
+						)
+						self.assertEqual(set(query.run(pluck=True)), expected)
+
+		query = frappe.qb.get_query(self.source_doctype, filters=[[self.child_doctype, "payload", "=", "[]"]])
+		self.assertEqual(query.run(pluck=True), ["empty_array"])
+
+	def test_json_filter_field_references(self):
+		table = frappe.qb.DocType(self.value_doctype)
+		for field in (Field("payload"), table.payload, f"`tab{self.value_doctype}`.`payload`"):
+			with self.subTest(field=str(field)):
+				query = frappe.qb.get_query(self.value_doctype, filters={field: "[]"})
+				self.assertEqual(query.run(pluck=True), ["empty_array"])
+
+	def test_json_cast_precedes_null_fallback(self):
+		for operator in ("!=", "not in", "not like"):
+			value = ["[]"] if operator == "not in" else "[]"
+			query = frappe.qb.get_query(
+				self.value_doctype, filters={"payload": [operator, value]}, db_query_compat=True
+			)
+			sql = query.get_sql().upper()
+			if frappe.db.db_type == "postgres":
+				self.assertIn('IFNULL(CAST("PAYLOAD" AS VARCHAR),', sql)
+				self.assertEqual(sql.count("CAST("), 1)
+			else:
+				self.assertNotIn("CAST(", sql)
+
+	def test_custom_field_list_json_filters(self):
+		rows = frappe.get_list("Custom Field", fields=["name", "link_filters"], limit=0)
+		for value in ("set", "not set"):
+			with self.subTest(value=value):
+				expected = {row.name for row in rows if bool(row.link_filters) == (value == "set")}
+				result = frappe.get_list(
+					"Custom Field", filters={"link_filters": ["is", value]}, pluck="name", limit=0
+				)
+				self.assertEqual(set(result), expected)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_json_filters_with_cold_metadata(self):
+		for doctype in ("DocType", "Custom Field", "Property Setter", self.value_doctype):
+			frappe.clear_cache(doctype=doctype)
+			frappe.clear_document_cache("DocType", doctype)
+
+		# Loading this metadata reads Custom Field and Property Setter through the same filter builder.
+		query = frappe.qb.get_query(self.value_doctype, filters={"payload": "[]"})
+		self.assertEqual(query.run(pluck=True), ["empty_array"])
+		rows = frappe.get_list(
+			"Custom Field", fields=["link_filters"], filters={"link_filters": ["is", "not set"]}, limit=0
+		)
+		self.assertTrue(all(row.link_filters is None for row in rows))
+
+
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):
 	return "`tabDashboard Settings`.`name` = 'Administrator'"

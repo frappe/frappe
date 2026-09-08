@@ -699,6 +699,19 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
+		filter_field_name = (
+			_field.name
+			if isinstance(_field, Field)
+			else (field if isinstance(field, str) else getattr(_field, "name", str(_field))).split(".")[-1]
+		)
+		is_json_field = (
+			self.is_postgres
+			and isinstance(_field, Field)
+			and self._is_json_field(filter_doctype, filter_field_name)
+		)
+		# JSON has no comparison operators. Cast before NULL fallbacks, which use an empty string.
+		comparison_field = functions.Cast(_field, "varchar") if is_json_field else _field
+
 		# The `is` ("set"/"not set") operator compares against an empty string (`= ''`).
 		# MariaDB silently coerces `''` to the column's type (e.g. `0` for an int), but
 		# postgres rejects `date/numeric = ''` outright. Compare against the
@@ -708,15 +721,7 @@ class Engine:
 		if self.is_postgres and _operator.casefold() == "is" and isinstance(_field, Field):
 			value_token = str(_value).strip().lower()
 			if value_token in ("set", "not set"):
-				is_field_name = (
-					field
-					if isinstance(field, str)
-					else (_field.name if hasattr(_field, "name") else str(_field))
-				)
-				if "." in is_field_name:
-					is_field_name = is_field_name.split(".")[-1]
-
-				fallback_sql = self._get_ifnull_fallback(filter_doctype, is_field_name)
+				fallback_sql = self._get_ifnull_fallback(filter_doctype, filter_field_name)
 				if fallback_sql == "''":
 					fallback_value = ""
 				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
@@ -728,8 +733,8 @@ class Engine:
 						fallback_value = fallback_sql
 
 				if value_token == "set":
-					return _field != fallback_value
-				return _field.isnull() | (_field == fallback_value)
+					return comparison_field != fallback_value
+				return _field.isnull() | (comparison_field == fallback_value)
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
@@ -739,14 +744,6 @@ class Engine:
 			operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
 			if operator_fn == builtin_operator.ne:
-				filter_field_name = (
-					field
-					if isinstance(field, str)
-					else (_field.name if hasattr(_field, "name") else str(_field))
-				)
-				if "." in filter_field_name:
-					filter_field_name = filter_field_name.split(".")[-1]
-
 				target_doctype = filter_doctype
 				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
 
@@ -760,17 +757,10 @@ class Engine:
 					except (ValueError, TypeError):
 						fallback_value = fallback_sql
 
-				return operator_fn(_field, ValueWrapper(fallback_value))
+				return operator_fn(comparison_field, ValueWrapper(fallback_value))
 			else:
 				return _field.isnull()
 		else:
-			filter_field_name = (
-				field if isinstance(field, str) else (_field.name if hasattr(_field, "name") else str(_field))
-			)
-
-			if "." in filter_field_name:
-				filter_field_name = filter_field_name.split(".")[-1]
-
 			target_doctype = filter_doctype
 
 			# Skip applying ifnull if field already has null-handling function
@@ -790,20 +780,41 @@ class Engine:
 
 				if fallback_value == _value:
 					if _operator == "=":
-						return _field.isnull() | _field.eq(_value)
+						return _field.isnull() | comparison_field.eq(_value)
 					elif _operator == "!=":
-						return operator_fn(_field, _value)
+						return operator_fn(comparison_field, _value)
 
-				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
+				comparison_field = functions.IfNull(comparison_field, ValueWrapper(fallback_value))
 
 			if (
 				self.is_postgres
+				and not is_json_field
 				and _operator.casefold() in ("like", "not like", "ilike")
 				and is_non_text_field(target_doctype, filter_field_name)
 			):
-				_field = functions.Cast(_field, "varchar")
+				comparison_field = functions.Cast(comparison_field, "varchar")
 
-			return operator_fn(_field, _value)
+			return operator_fn(comparison_field, _value)
+
+	def _is_json_field(self, doctype: str, fieldname: str) -> bool:
+		from frappe.model.meta import get_default_df
+
+		if get_default_df(fieldname) or fieldname in OPTIONAL_FIELDS:
+			return False
+		if doctype.startswith("__") or doctype in ("Singles", "Sessions", "Series"):
+			return False
+
+		try:
+			if doctype in CORE_DOCTYPES:
+				# Processing core metadata queries these same tables before their metadata is cached.
+				meta = frappe.get_cached_doc("DocType", doctype)
+				df = next((df for df in meta.fields if df.fieldname == fieldname), None)
+			else:
+				df = frappe.get_meta(doctype).get_field(fieldname)
+		except frappe.DoesNotExistError:
+			return False
+
+		return bool(df and df.fieldtype == "JSON")
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""
