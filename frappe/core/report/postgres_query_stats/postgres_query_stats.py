@@ -3,6 +3,8 @@
 
 import re
 
+from psycopg2.errors import ObjectNotInPrerequisiteState
+
 import frappe
 from frappe import _
 from frappe.modules.utils import get_doctype_app_map
@@ -50,6 +52,15 @@ def execute(filters=None):
 			""",
 			{"limit": limit},
 			as_dict=True,
+		)
+	except ObjectNotInPrerequisiteState:
+		frappe.db.rollback()
+		frappe.throw(
+			_(
+				"pg_stat_statements is enabled in this site's database but not loaded on the server. "
+				"A PostgreSQL administrator must add 'pg_stat_statements' to shared_preload_libraries "
+				"and restart PostgreSQL."
+			)
 		)
 	except Exception as e:
 		frappe.db.rollback()
