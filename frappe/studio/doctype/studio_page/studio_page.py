@@ -144,17 +144,29 @@ class StudioPage(Document):
 		blocks = frappe.parse_json(blocks) or parse_json(self.draft_blocks or self.blocks) or []
 		script = self.get_script_source()
 		return {
+			**self.get_dependencies(blocks, script),
 			"page_title": self.page_title,
 			"allow_guest": self.allow_guest,
+			"resources": [pick(row, PAGE_RESOURCE_FIELDS) for row in self.resources],
+			"variables": [pick(row, PAGE_VARIABLE_FIELDS) for row in self.variables],
+			"script": script,
+		}
+
+	@frappe.whitelist()
+	def get_dependencies(self, blocks, script: str = "") -> dict:
+		"""What `blocks` (and `script`) need from outside themselves, for copy-paste: Studio components,
+		app files, and this page's data sources and variables they reference."""
+		blocks = frappe.parse_json(blocks) or []
+		text = frappe.as_json(blocks)
+
+		def used(name):
+			return bool(name) and re.search(rf"\b{re.escape(name)}\b", text)
+
+		return {
 			"components": get_components_for_blocks(blocks),
 			"files": self.get_app_files(script, blocks),
-			"resources": [
-				{field: row.get(field) for field in PAGE_RESOURCE_FIELDS} for row in self.resources
-			],
-			"variables": [
-				{field: row.get(field) for field in PAGE_VARIABLE_FIELDS} for row in self.variables
-			],
-			"script": script,
+			"resources": [pick(r, PAGE_RESOURCE_FIELDS) for r in self.resources if used(r.resource_name)],
+			"variables": [pick(v, PAGE_VARIABLE_FIELDS) for v in self.variables if used(v.variable_name)],
 		}
 
 	def get_app_files(self, script: str, blocks) -> list[dict]:
@@ -518,23 +530,50 @@ def paste_page(app_name: str, page: dict | str, target_page: str | None = None) 
 		frappe.throw(_("You do not have permission to paste a page."))
 
 	copy = frappe.parse_json(page)
-	create_missing_components(copy.get("components") or [])
+	create_missing_dependencies(app_name, copy.get("components"), copy.get("files"))
 	doc = frappe.get_doc("Studio Page", target_page) if target_page else new_page_from_copy(app_name, copy)
 	doc.draft_blocks = copy.get("blocks") or []
-	doc.set(
-		"resources",
-		[{field: row.get(field) for field in PAGE_RESOURCE_FIELDS} for row in copy.get("resources") or []],
-	)
-	doc.set(
-		"variables",
-		[{field: row.get(field) for field in PAGE_VARIABLE_FIELDS} for row in copy.get("variables") or []],
-	)
+	doc.set("resources", [pick(row, PAGE_RESOURCE_FIELDS) for row in copy.get("resources") or []])
+	doc.set("variables", [pick(row, PAGE_VARIABLE_FIELDS) for row in copy.get("variables") or []])
 	doc.script = copy.get("script")
 	doc.save()
 	if can_export(doc):
-		doc.get_app().write_files(copy.get("files") or [])
 		doc.write_script_file()
 	return doc
+
+
+@frappe.whitelist()
+def create_missing_dependencies(
+	app_name: str, components=None, files=None, page_name: str | None = None, resources=None, variables=None
+):
+	"""Give the app (and, for pasted blocks, the page) what a paste needs and doesn't have yet."""
+	if not frappe.has_permission("Studio Page", ptype="write"):
+		frappe.throw(_("You do not have permission to paste into this app."))
+
+	create_missing_components(frappe.parse_json(components) or [])
+	app = frappe.get_cached_doc("Studio App", app_name)
+	if can_export(app):
+		app.write_files(frappe.parse_json(files) or [])
+	if page_name:
+		add_page_data(page_name, frappe.parse_json(resources) or [], frappe.parse_json(variables) or [])
+
+
+def add_page_data(page_name: str, resources: list[dict], variables: list[dict]):
+	page = frappe.get_doc("Studio Page", page_name)
+	existing_resources = {row.resource_name for row in page.resources}
+	existing_variables = {row.variable_name for row in page.variables}
+	for row in resources:
+		if row["resource_name"] not in existing_resources:
+			page.append("resources", pick(row, PAGE_RESOURCE_FIELDS))
+	for row in variables:
+		if row["variable_name"] not in existing_variables:
+			page.append("variables", pick(row, PAGE_VARIABLE_FIELDS))
+	if page.has_value_changed("resources") or page.has_value_changed("variables"):
+		page.save()
+
+
+def pick(row, fields) -> dict:
+	return {field: row.get(field) for field in fields}
 
 
 def create_missing_components(components: list[dict]):

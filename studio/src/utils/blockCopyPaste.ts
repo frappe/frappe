@@ -1,6 +1,7 @@
-import { dialog, toast } from "frappe-ui"
+import { dialog, toast, call } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useCodeStore from "@/stores/codeStore"
 import { studioPages } from "@/data/studioPages"
 import { getBlockCopy, getBlockCopyWithoutParent, isJSONString } from "@/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
@@ -15,34 +16,35 @@ export interface PageCopy {
 	resources: Record<string, any>[]
 	variables: Record<string, any>[]
 	script: string
-	components: Record<string, any>[]
-	files: { path: string; content: string }[]
 }
 
-interface ClipboardPayload {
+interface Dependencies {
+	components: Record<string, any>[]
+	files: { path: string; content: string }[]
+	resources: Record<string, any>[]
+	variables: Record<string, any>[]
+}
+
+interface ClipboardPayload extends Partial<Dependencies> {
 	blocks: BlockOptions[]
 	page?: PageCopy
 }
 
-let pendingPageCopy: PageCopy | null = null
+let pending: ClipboardPayload | null = null
 let blocksOnly = false
 
 export async function copyEntirePage() {
 	const page = useStudioStore().activePage
 	const root = useCanvasStore().activeCanvas?.getRootBlock()
 	if (!page || !root) return
-	const response = await studioPages.runDocMethod.submit({
-		name: page.name,
-		method: "get_copy",
-		blocks: [getBlockCopyWithoutParent(root)],
-	})
-	pendingPageCopy = response.message as PageCopy
-	document.execCommand("copy")
-	pendingPageCopy = null
+	const blocks = [getBlockCopyWithoutParent(root)]
+	const response = await studioPages.runDocMethod.submit({ name: page.name, method: "get_copy", blocks })
+	const { components, files, ...pageCopy } = response.message as PageCopy & Dependencies
+	writePending({ blocks, components, files, page: pageCopy })
 }
 
 export function copyBlocks(e: ClipboardEvent) {
-	if (pendingPageCopy || blocksOnly || !isRootSelected()) {
+	if (pending || blocksOnly || !isRootSelected()) {
 		copySelectedBlocks(e)
 		return
 	}
@@ -71,18 +73,23 @@ export function copyBlocks(e: ClipboardEvent) {
 }
 
 export function copySelectedBlocks(e: ClipboardEvent) {
+	if (pending) {
+		e.preventDefault()
+		setClipboardData(pending, e, CLIPBOARD_FORMAT)
+		if (pending.page) toast.success("Page copied")
+		return
+	}
+
 	const canvas = useCanvasStore().activeCanvas
-	if (!canvas) return
-	const blocks = pendingPageCopy ? [canvas.getRootBlock()] : canvas.selectedBlocks
+	const blocks = canvas?.selectedBlocks.map((block) => getBlockCopyWithoutParent(block)) || []
 	if (!blocks.length) return
 	e.preventDefault()
 
-	const payload: ClipboardPayload = { blocks: blocks.map((block) => getBlockCopyWithoutParent(block)) }
-	if (pendingPageCopy) {
-		payload.page = pendingPageCopy
-		toast.success("Page copied")
+	if (!usesComponents(blocks) && !usesPageData(blocks)) {
+		setClipboardData({ blocks }, e, CLIPBOARD_FORMAT)
+		return
 	}
-	setClipboardData(payload, e, CLIPBOARD_FORMAT)
+	fetchDependencies(blocks).then((dependencies) => writePending({ blocks, ...dependencies }))
 }
 
 export function pasteBlocks(e: ClipboardEvent): boolean {
@@ -91,16 +98,75 @@ export function pasteBlocks(e: ClipboardEvent): boolean {
 
 	const payload = JSON.parse(data) as ClipboardPayload
 	if (payload.page) {
-		askWhereToPastePage(payload.page, payload.blocks)
+		handlePastePage(payload)
 	} else {
-		insertBlocks(payload.blocks)
+		createMissingDependencies(payload).then(() => insertBlocks(payload.blocks))
 	}
 	return true
 }
 
-function askWhereToPastePage(page: PageCopy, blocks: BlockOptions[]) {
+function writePending(payload: ClipboardPayload) {
+	pending = payload
+	document.execCommand("copy")
+	pending = null
+}
+
+function copyBlocksOnly() {
+	blocksOnly = true
+	document.execCommand("copy")
+	blocksOnly = false
+}
+
+function isRootSelected() {
+	const selected = useCanvasStore().activeCanvas?.selectedBlocks || []
+	return selected.length === 1 && selected[0].isRoot()
+}
+
+function usesComponents(blocks: BlockOptions[]): boolean {
+	return blocks.some(
+		(block) =>
+			block.isStudioComponent ||
+			block.isCustomVueComponent ||
+			usesComponents(block.children || []) ||
+			Object.values(block.componentSlots || {}).some((slot) => usesComponents(slot.slotContent || [])),
+	)
+}
+
+function usesPageData(blocks: BlockOptions[]): boolean {
+	const codeStore = useCodeStore()
+	const names = [...Object.keys(codeStore.resources), ...Object.keys(codeStore.variables)]
+	const text = JSON.stringify(blocks)
+	return names.some((name) => new RegExp(`\\b${name}\\b`).test(text))
+}
+
+async function fetchDependencies(blocks: BlockOptions[]): Promise<Dependencies> {
+	const page = useStudioStore().activePage!
+	const response = await studioPages.runDocMethod.submit({ name: page.name, method: "get_dependencies", blocks })
+	return response.message
+}
+
+async function createMissingDependencies(payload: ClipboardPayload) {
+	const { components, files, resources, variables } = payload
+	if (![components, files, resources, variables].some((list) => list?.length)) return
 	const store = useStudioStore()
-	const copy = { ...page, blocks }
+	await call("studio.studio.doctype.studio_page.studio_page.create_missing_dependencies", {
+		app_name: store.activeApp!.name,
+		page_name: store.activePage!.name,
+		components,
+		files,
+		resources,
+		variables,
+	})
+	if (files?.length) await store.setCustomComponents()
+	if (resources?.length || variables?.length) {
+		await store.refreshActivePageModified()
+		await store.setPageData(store.activePage!)
+	}
+}
+
+function handlePastePage(payload: ClipboardPayload) {
+	const store = useStudioStore()
+	const copy = { ...payload.page!, blocks: payload.blocks, components: payload.components, files: payload.files }
 	dialog.confirm({
 		title: "Paste page",
 		message:
@@ -134,15 +200,4 @@ function insertBlocks(blocks: BlockOptions[]) {
 	} else {
 		canvasStore.pushBlocks(blocks)
 	}
-}
-
-function copyBlocksOnly() {
-	blocksOnly = true
-	document.execCommand("copy")
-	blocksOnly = false
-}
-
-function isRootSelected() {
-	const selected = useCanvasStore().activeCanvas?.selectedBlocks || []
-	return selected.length === 1 && selected[0].isRoot()
 }

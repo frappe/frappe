@@ -12,6 +12,7 @@ from frappe.tests import IntegrationTestCase
 from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
 from studio.studio.doctype.studio_page.studio_page import (
+	create_missing_dependencies,
 	duplicate_page,
 	get_page,
 	paste_page,
@@ -138,6 +139,44 @@ class TestStudioPage(IntegrationTestCase):
 				frappe.read_file(os.path.join(pasted.get_app().get_folder_path(), "stores/settings.ts")),
 				"export const x = 1",
 			)
+
+	def test_pasted_blocks_install_their_dependencies(self):
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_name="deps-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+			)
+			component = make_component("Card")
+			blocks = [component_ref(component), {"componentName": "Hero", "isCustomVueComponent": True}]
+			app.write_files([{"path": "components/Hero.vue", "content": "<template><h1 /></template>"}])
+			deps = make_studio_page(app.name).get_dependencies(blocks)
+			self.assertEqual([c["name"] for c in deps["components"]], [component.name])
+			self.assertEqual([f["path"] for f in deps["files"]], ["components/Hero.vue"])
+
+			frappe.delete_doc("Studio Component", component.name)
+			os.remove(os.path.join(app.get_folder_path(), "components/Hero.vue"))
+			create_missing_dependencies(app.name, deps["components"], deps["files"])
+
+			self.assertTrue(frappe.db.exists("Studio Component", component.name))
+			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "components/Hero.vue")))
+
+	def test_pasted_blocks_bring_the_data_sources_and_variables_they_use(self):
+		app = make_studio_app(app_name="deps-" + frappe.generate_hash(length=10))
+		source = make_page_with_data(app.name)
+		target = make_studio_page(app.name, page_title="Target", route="/target")
+		blocks = [{"componentName": "div", "innerHTML": "{{ todos.data.length }} / {{ count }}"}]
+
+		deps = source.get_dependencies(blocks)
+		self.assertEqual([r["resource_name"] for r in deps["resources"]], ["todos"])
+		self.assertEqual([v["variable_name"] for v in deps["variables"]], ["count"])
+
+		for _ in range(2):
+			create_missing_dependencies(
+				app.name, page_name=target.name, resources=deps["resources"], variables=deps["variables"]
+			)
+
+		target.reload()
+		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
+		self.assertEqual([v.variable_name for v in target.variables], ["count"])
 
 	def test_standard_page_script_is_copied_as_file(self):
 		with exports_in_tempdir():

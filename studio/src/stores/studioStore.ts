@@ -175,7 +175,7 @@ const useStudioStore = defineStore("store", () => {
 		)
 	}
 
-	async function pastePage(copy: PageCopy & { blocks: BlockOptions[] }, targetPage?: string) {
+	async function pastePage(copy: PageCopy & { blocks: BlockOptions[] } & Record<string, any>, targetPage?: string) {
 		const appName = activeApp.value!.name
 		const page: StudioPage = await call("studio.studio.doctype.studio_page.studio_page.paste_page", {
 			app_name: appName,
@@ -183,6 +183,7 @@ const useStudioStore = defineStore("store", () => {
 			target_page: targetPage,
 		})
 		if (targetPage) {
+			await setCustomComponents()
 			await setupPageScripts()
 			await setPage(targetPage)
 			toast.success("Page replaced")
