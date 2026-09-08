@@ -73,7 +73,6 @@ Repro: snippet that shows the bug on develop, or "UI-only"
 - Cite the rule ID. Link the issue or docs when they exist.
 - No preamble, praise, thanks, summary, signature or emoji.
 - `REQUEST_CHANGES` when asks exist, `APPROVE` when none. `COMMENT` only on a PR you created yourself, because GitHub blocks the other two there.
-- No AI attribution in reviews, commits or PR bodies.
 - Answer every bot finding: confirm with a line reference or reject with a reason.
 
 Example:
@@ -420,8 +419,8 @@ this.wrapper.off("click.sidebar").on("click.sidebar", ".sidebar-toggle", () => t
 
 ## Code hygiene
 
-### R46. No comments that say what, no debug noise, no AI attribution
-Comments that narrate the code are removed. Issue numbers never go in code. Docstrings that restate the name are dropped; the reasoning goes in the PR. Strip `console.log`, `print`, commented-out code, unused imports, TODOs for another PR. Use `let`/`const`, `??`, `?.`, `.includes()`. Keep methods on the class, not on `frappe.provide` namespaces. `Co-Authored-By: <AI>` and "Generated with …" lines are removed. No `# nosemgrep` in core.
+### R46. No comments that say what, no debug noise
+Comments that narrate the code are removed. Issue numbers never go in code. Docstrings that restate the name are dropped; the reasoning goes in the PR. Strip `console.log`, `print`, commented-out code, unused imports, TODOs for another PR. Use `let`/`const`, `??`, `?.`, `.includes()`. Keep methods on the class, not on `frappe.provide` namespaces. No `# nosemgrep` in core.
 Why: comments rot; two of them are already wrong.
 Exception: a non-obvious workaround gets one comment saying why.
 
