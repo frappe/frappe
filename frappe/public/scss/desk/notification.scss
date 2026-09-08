@@ -31,8 +31,11 @@ $notification-dot-size: 8px;
 // is no room for a number, so the same element is drawn as a dot on the icon's corner.
 .notification-count {
 	padding: 1px 7px;
-	background-color: var(--bg-gray-100);
-	color: var(--text-muted);
+	// `--bg-gray-100` is defined nowhere, so this declaration was invalid and the pill drew no
+	// chip at all in either theme -- a bare number against the row. Surface-gray-2 is the fill
+	// the rest of the sidebar's chips use, and it tracks the theme.
+	background-color: var(--surface-gray-2);
+	color: var(--ink-gray-7);
 	font-size: var(--text-sm);
 	line-height: 1.2;
 	text-align: center;
