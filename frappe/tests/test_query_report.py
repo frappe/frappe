@@ -1,9 +1,11 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
+
 import frappe
 import frappe.utils
-from frappe.desk.query_report import build_xlsx_data, export_query, run
+from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -96,6 +98,37 @@ class TestQueryReport(FrappeTestCase):
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
 			self.assertEqual(type(row[1]), str)
+
+	def test_xlsx_export_preserves_date_objects(self):
+		"""Date/Datetime columns must reach Excel as real date objects, while CSV keeps strings"""
+
+		posting_date = datetime.date(2026, 6, 1)
+		created_on = datetime.datetime(2026, 6, 1, 9, 30)
+
+		def make_data():
+			return frappe._dict(
+				columns=[
+					{"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date"},
+					{"label": "Created On", "fieldname": "created_on", "fieldtype": "Datetime"},
+				],
+				result=[{"posting_date": posting_date, "created_on": created_on}],
+			)
+
+		# Excel: date objects are preserved so make_xlsx can write real date cells
+		excel_data = make_data()
+		format_fields(excel_data, "Excel")
+		self.assertEqual(excel_data.result[0]["posting_date"], posting_date)
+		self.assertIsInstance(excel_data.result[0]["created_on"], datetime.datetime)
+
+		xlsx_data, _column_widths = build_xlsx_data(excel_data, [0], include_indentation=0)
+		self.assertIsInstance(xlsx_data[1][0], datetime.date)
+		self.assertIsInstance(xlsx_data[1][1], datetime.datetime)
+
+		# CSV (default, no file_format_type): dates are stringified for display
+		csv_data = make_data()
+		format_fields(csv_data)
+		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
+		self.assertIsInstance(csv_data.result[0]["created_on"], str)
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader

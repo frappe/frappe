@@ -555,7 +555,6 @@ def exec_safe_globals():
 			render_template=frappe.render_template,
 			enqueue=safe_enqueue,
 			is_job_queued=is_job_queued,
-			request=getattr(frappe.local, "request", {}),
 		)
 	)
 	out.frappe.db.update(
