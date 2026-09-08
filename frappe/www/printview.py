@@ -365,11 +365,10 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 
 
 def validate_print_permission(doc):
-	for ptype in ("read", "print"):
-		if frappe.has_permission(doc.doctype, ptype, doc):
-			return
+	if frappe.has_permission(doc.doctype, "print", doc):
+		return
 
-	if frappe.has_website_permission(doc):
+	if frappe.has_website_permission(doc, ptype="print"):
 		return
 
 	if (key := frappe.form_dict.key) and isinstance(key, str) and validate_key(key, doc) is not False:

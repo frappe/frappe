@@ -60,6 +60,15 @@ def get(
 
 		if not list_context.get_list and not isinstance(new_context.doc, Document):
 			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
+
+		# `get_list_context` implementations and the `get_doc` above both return whole
+		# documents, bypassing the field level permissions that `frappe.get_list` applies.
+		# Strip them here so permlevel restricted values never reach the row template or
+		# the serialized `raw_result`.
+		if isinstance(new_context.doc, Document):
+			new_context.doc.apply_fieldlevel_read_permissions()
+
+		if not list_context.get_list and not isinstance(doc, Document):
 			new_context.update(new_context.doc.as_dict())
 
 		if not frappe.flags.in_test:
