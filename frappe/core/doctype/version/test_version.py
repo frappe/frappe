@@ -157,6 +157,61 @@ class TestVersion(IntegrationTestCase):
 		self.assertEqual(get_old_values(diff)[1], "01-01-2014 00:00:00")
 		self.assertEqual(get_new_values(diff)[1], "07-20-2017 00:00:00")
 
+	def test_get_diff_skips_ignore_versioning_field(self):
+		"""Test fields with ignore_versioning are left out of the diff."""
+		frappe.set_user("Administrator")
+		test_records = make_test_objects("Event", reset=True)
+		old_doc = frappe.get_doc("Event", test_records[0])
+		new_doc = copy.deepcopy(old_doc)
+
+		color_field = new_doc.meta.get_field("color")
+		color_field.ignore_versioning = 1
+
+		try:
+			old_doc.color = None
+			new_doc.color = "#fafafa"
+
+			# color is the only change, so there is nothing to version
+			self.assertIsNone(get_diff(old_doc, new_doc))
+
+			new_doc.subject = "changed subject"
+			diff = get_diff(old_doc, new_doc)["changed"]
+
+			self.assertNotIn("color", get_fieldnames(diff))
+			self.assertIn("subject", get_fieldnames(diff))
+		finally:
+			color_field.ignore_versioning = 0
+
+	def test_get_diff_skips_ignore_versioning_field_in_child_rows(self):
+		"""Test ignored fields are left out of added and removed child rows."""
+		frappe.set_user("Administrator")
+		test_records = make_test_objects("Event", reset=True)
+		doc_without_row = frappe.get_doc("Event", test_records[0])
+		doc_with_row = copy.deepcopy(doc_without_row)
+
+		email_field = frappe.get_meta("Event Participants").get_field("email")
+		email_field.ignore_versioning = 1
+
+		try:
+			doc_with_row.append(
+				"event_participants",
+				{
+					"reference_doctype": "Contact",
+					"reference_docname": "_Test Contact",
+					"email": "a@example.com",
+				},
+			)
+
+			added_row = get_diff(doc_without_row, doc_with_row)["added"][0][1]
+			self.assertNotIn("email", added_row)
+			self.assertIn("reference_doctype", added_row)
+
+			removed_row = get_diff(doc_with_row, doc_without_row)["removed"][0][1]
+			self.assertNotIn("email", removed_row)
+			self.assertIn("reference_doctype", removed_row)
+		finally:
+			email_field.ignore_versioning = 0
+
 	def test_no_version_on_new_doc(self):
 		from frappe.desk.form.load import get_versions
 
