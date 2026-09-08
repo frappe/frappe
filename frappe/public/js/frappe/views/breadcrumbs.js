@@ -57,10 +57,11 @@ frappe.breadcrumbs = {
 						.find("li")
 						.get($(container).find("li").length - 1);
 					$(last_element).find("a").attr("href", "");
-					frappe.ui.create_menu({
-						parent: $(last_element),
-						menu_items: breadcrumbs.menu_items,
-						size: "fit-content",
+					// `menu_items` follow frappe.ui.Dropdown's row shape: label, icon,
+					// onclick / href, condition, submenu.
+					new frappe.ui.Dropdown({
+						trigger: $(last_element),
+						options: breadcrumbs.menu_items,
 					});
 				});
 			}
