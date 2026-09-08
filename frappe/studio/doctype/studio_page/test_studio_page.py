@@ -121,19 +121,18 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
 		create_missing_dependencies(app.name, copy["components"])
 
-	def test_paste_rejects_conflicting_component(self):
+	def test_paste_reuses_existing_component(self):
 		app = make_studio_app(app_name="conflict-" + frappe.generate_hash(length=10))
 		component = make_component("Card")
 		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
 		copy["block"] = frappe.as_json({"componentName": "button", "children": []}, indent=None)
 
-		with self.assertRaisesRegex(frappe.ValidationError, "different definition"):
-			create_missing_dependencies(app.name, [copy])
+		create_missing_dependencies(app.name, [copy])
 
 		component.reload()
 		self.assertEqual(frappe.parse_json(component.block)["componentName"], "div")
 
-	def test_concurrent_component_creation_reuses_matching_definition(self):
+	def test_concurrent_component_creation_reuses_component(self):
 		app = make_studio_app(app_name="race-" + frappe.generate_hash(length=10))
 		component = make_component("Card")
 		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
@@ -274,7 +273,7 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
 		self.assertEqual([v.variable_name for v in target.variables], ["count"])
 
-	def test_pasted_blocks_reject_conflicting_page_data(self):
+	def test_pasted_blocks_reuse_existing_page_data(self):
 		app = make_studio_app(app_name="deps-" + frappe.generate_hash(length=10))
 		source = make_page_with_data(app.name)
 		target = make_studio_page(app.name, page_title="Target", route="/target")
@@ -282,8 +281,11 @@ class TestStudioPage(IntegrationTestCase):
 		target.save()
 		resources = source.get_dependencies([{"innerHTML": "{{ todos.data }}"}])["resources"]
 
-		with self.assertRaisesRegex(frappe.ValidationError, "different definition"):
-			create_missing_dependencies(app.name, page_name=target.name, resources=resources)
+		create_missing_dependencies(app.name, page_name=target.name, resources=resources)
+
+		target.reload()
+		self.assertEqual(len(target.resources), 1)
+		self.assertEqual(target.resources[0].fields, '["description"]')
 
 	def test_paste_rejects_target_page_from_another_app(self):
 		app = make_studio_app(app_name="target-" + frappe.generate_hash(length=10))

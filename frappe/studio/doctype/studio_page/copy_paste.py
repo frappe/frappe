@@ -30,8 +30,6 @@ PAGE_RESOURCE_FIELDS = (
 	"on_error",
 )
 PAGE_VARIABLE_FIELDS = ("variable_name", "variable_type", "initial_value")
-PAGE_RESOURCE_INT_FIELDS = {"auto", "limit", "fetch_document_using_filters"}
-PAGE_RESOURCE_JSON_FIELDS = {"fields", "filters", "params", "whitelisted_methods"}
 
 
 @frappe.whitelist()
@@ -140,61 +138,36 @@ def add_page_data(page, resources: list[dict], variables: list[dict]):
 		resources,
 		"resource_name",
 		PAGE_RESOURCE_FIELDS,
-		int_fields=PAGE_RESOURCE_INT_FIELDS,
-		json_fields=PAGE_RESOURCE_JSON_FIELDS,
 	)
 	append_missing_rows(page, "variables", variables, "variable_name", PAGE_VARIABLE_FIELDS)
 	if page.has_value_changed("resources") or page.has_value_changed("variables"):
 		page.save()
 
 
-def append_missing_rows(page, table_field, rows, key_field, fields, int_fields=None, json_fields=None):
+def append_missing_rows(page, table_field, rows, key_field, fields):
 	existing = {row.get(key_field): row for row in page.get(table_field)}
 	for row in rows:
 		if not isinstance(row, dict) or not isinstance(row.get(key_field), str):
 			frappe.throw(_("Invalid {0} in copied content.").format(key_field.replace("_", " ")))
 		key = row[key_field]
-		values = pick(row, fields)
 		if key in existing:
-			if row_signature(existing[key], fields, int_fields, json_fields) != row_signature(
-				row, fields, int_fields, json_fields
-			):
-				frappe.throw(
-					_("{0} already exists with a different definition.").format(key),
-					title=_("Page data conflict"),
-				)
 			continue
-		existing[key] = page.append(table_field, values)
+		existing[key] = page.append(table_field, pick(row, fields))
 
 
 def pick(row, fields) -> dict:
 	return {field: row.get(field) for field in fields}
 
 
-def row_signature(row, fields, int_fields=None, json_fields=None) -> dict:
-	values = pick(row, fields)
-	for field in int_fields or ():
-		values[field] = cint(values[field])
-	for field in json_fields or ():
-		if values[field]:
-			values[field] = frappe.parse_json(values[field])
-	return values
-
-
 def create_missing_components(components: list[dict]):
 	for component in components:
 		validate_component_copy(component)
 		if frappe.db.exists("Studio Component", component["name"]):
-			ensure_component_matches(component)
 			continue
 
-		created = False
-		# The unique component ID resolves a concurrent paste after the optimistic read.
+		# A concurrent paste can create the same component after the optimistic read.
 		with savepoint(frappe.DuplicateEntryError):
 			new_component_from_copy(component).insert()
-			created = True
-		if not created:
-			ensure_component_matches(component)
 
 
 def validate_component_copy(component):
@@ -222,30 +195,6 @@ def new_component_from_copy(component):
 		is_disabled=component.get("is_disabled"),
 		inputs=[{**row, "name": None} for row in component.get("inputs") or []],
 	)
-
-
-def ensure_component_matches(component):
-	existing = frappe.get_doc("Studio Component", component["name"])
-	existing.check_permission("read")
-	if component_signature(existing) != component_signature(component):
-		frappe.throw(
-			_("Component {0} already exists with a different definition.").format(component["name"]),
-			title=_("Component conflict"),
-		)
-
-
-def component_signature(component) -> dict:
-	block = component.get("block")
-	if isinstance(block, str):
-		block = frappe.parse_json(block)
-	input_fields = ("input_name", "type", "description", "options", "required", "default")
-	return {
-		"component_id": component.get("component_id"),
-		"component_name": component.get("component_name"),
-		"block": block,
-		"is_disabled": cint(component.get("is_disabled")),
-		"inputs": [row_signature(row, input_fields, {"required"}) for row in component.get("inputs") or []],
-	}
 
 
 def new_page_from_copy(app, copy: dict):
