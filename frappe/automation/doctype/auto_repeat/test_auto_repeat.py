@@ -6,10 +6,17 @@ import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	create_repeated_entries,
 	get_auto_repeat_entries,
+	update_reference,
 	week_map,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.test_model_utils import set_user
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+>>>>>>> a09cd97 (test(automation): cover auto repeat reference permission checks)
 from frappe.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
@@ -231,6 +238,147 @@ class TestAutoRepeat(FrappeTestCase):
 		)
 		self.assertEqual(docnames[0].docstatus, 1)
 
+<<<<<<< HEAD
+=======
+	def test_reference_document_write_permission_on_create(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
+		).insert()
+		user = create_user_without_reference_access()
+
+		self.assertFalse(frappe.has_permission("ToDo", "write", todo.name, user=user))
+
+		with set_user(user):
+			auto_repeat = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=todo.name,
+				frequency="Daily",
+				start_date=today(),
+			)
+			auto_repeat.validate_reference_doctype()
+			self.assertRaises(frappe.PermissionError, auto_repeat.validate_reference_permission)
+			self.assertRaises(frappe.PermissionError, auto_repeat.insert)
+
+		self.assertFalse(frappe.db.get_value("ToDo", todo.name, "auto_repeat"))
+
+	def test_reference_document_read_permission_before_generating(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
+		).insert()
+		user = create_user_without_reference_access()
+
+		doc = make_auto_repeat(reference_document=todo.name)
+		frappe.db.set_value("Auto Repeat", doc.name, "owner", user)
+		doc.reload()
+
+		self.assertRaises(frappe.PermissionError, doc.make_new_document)
+		self.assertFalse(frappe.db.exists("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}))
+
+	def test_auto_repeat_stays_active_when_owner_loses_reference_access(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
+		).insert()
+		user = create_user_without_reference_access()
+
+		doc = make_auto_repeat(reference_document=todo.name)
+		frappe.db.set_value("Auto Repeat", doc.name, "owner", user)
+		doc.reload()
+
+		doc.create_documents()
+
+		self.assertFalse(frappe.db.exists("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}))
+		self.assertFalse(frappe.db.get_value("Auto Repeat", doc.name, "disabled"))
+
+	def test_reference_document_write_permission_on_update_reference(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
+		).insert()
+		user = create_user_without_reference_access()
+
+		own_todo = frappe.get_doc(
+			doctype="ToDo", description="test reference permission", allocated_to=user, owner=user
+		).insert()
+		doc = make_auto_repeat(reference_document=own_todo.name)
+		frappe.db.set_value("Auto Repeat", doc.name, "owner", user)
+
+		with set_user(user):
+			self.assertRaises(frappe.PermissionError, update_reference, doc.name, todo.name)
+
+		self.assertNotEqual(frappe.db.get_value("Auto Repeat", doc.name, "reference_document"), todo.name)
+
+	def test_auto_repeat_assignee(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="test assignee todo", assigned_by="Administrator"
+		).insert()
+
+		doc = make_auto_repeat(reference_document=todo.name)
+		doc.update(
+			{
+				"assignee": [
+					{"user": "Administrator"},
+					{"user": "Guest"},
+				]
+			}
+		)
+		doc.save()
+		self.assertEqual(doc.next_schedule_date, today())
+		data = get_auto_repeat_entries(getdate(today()))
+		create_repeated_entries(data)
+		frappe.db.commit()
+
+		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
+		self.assertEqual(todo.auto_repeat, doc.name)
+
+		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
+
+		new_todo = frappe.get_doc("ToDo", new_todo)
+		self.assertEqual(todo.get("description"), new_todo.get("description"))
+		self.assertListEqual(
+			sorted(list(new_todo.get_assigned_users())),
+			sorted(["Administrator", "Guest"]),
+		)
+
+	def test_auto_repeat_assignee_with_separate_documents(self):
+		todo = frappe.get_doc(
+			doctype="ToDo",
+			description="test assignee todo with multiple doc",
+			assigned_by="Administrator",
+		).insert()
+
+		doc = make_auto_repeat(reference_document=todo.name)
+		doc.update(
+			{
+				"assignee": [
+					{"user": "Administrator"},
+					{"user": "Guest"},
+				],
+				"generate_separate_documents_for_each_assignee": 1,
+			}
+		)
+		doc.save()
+		self.assertEqual(doc.next_schedule_date, today())
+		data = get_auto_repeat_entries(getdate(today()))
+		create_repeated_entries(data)
+		frappe.db.commit()
+
+		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
+		self.assertEqual(todo.auto_repeat, doc.name)
+
+		new_todo_count = frappe.db.count("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
+
+		self.assertEqual(new_todo_count, 2)
+
+	def tearDown(self):
+		# every test here commits, so IntegrationTestCase's per-test rollback can't
+		# undo them. The assignee tests assign generated ToDos to Guest, which shares
+		# those ToDos with Guest; left behind, that lets anonymous API reads succeed
+		# in unrelated tests later in the same shard. Drop the committed artifacts.
+		frappe.db.delete("DocShare", {"share_doctype": "ToDo", "user": "Guest"})
+		# the leaked shares were committed, so the cleanup must be committed too
+		frappe.db.commit()  # nosemgrep
+
+>>>>>>> a09cd97 (test(automation): cover auto repeat reference permission checks)
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)
@@ -250,6 +398,22 @@ def make_auto_repeat(**args):
 			"repeat_on_days": args.days or [],
 		}
 	).insert(ignore_permissions=True)
+
+
+def create_user_without_reference_access():
+	"""Return a user who can create an Auto Repeat but cannot access another user's ToDo."""
+	email = "test_auto_repeat_reference@example.com"
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			doctype="User",
+			email=email,
+			first_name="Auto Repeat Reference",
+			send_welcome_email=0,
+			roles=[{"role": "Accounts User"}],
+		).insert(ignore_permissions=True)
+		frappe.clear_cache(user=email)
+
+	return email
 
 
 def create_submittable_doctype(doctype, submit_perms=1):
