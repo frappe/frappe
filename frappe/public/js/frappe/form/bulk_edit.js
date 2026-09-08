@@ -298,11 +298,10 @@ export default class BulkEdit {
 						(this.grid.frm.doc[this.grid.df.fieldname] || []).length,
 					]),
 				},
-				{ fieldtype: "Section Break" },
+				{ fieldtype: "Section Break", label: __("Fields"), collapsible: 1 },
 				{
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
-					label: __("Fields"),
 					columns: 2,
 					select_all: true,
 					select_mandatory: true,
@@ -322,6 +321,7 @@ export default class BulkEdit {
 			],
 		});
 		this.setup_form.make();
+		this.setup_form.fields_dict.fields.section.collapse(true);
 	}
 
 	/** Cell pickers mount on the body, so closing them is the dialog's job. */
