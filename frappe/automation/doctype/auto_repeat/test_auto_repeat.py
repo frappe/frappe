@@ -237,7 +237,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		user = create_user_without_reference_access()
+		user = user_without_reference_access()
 
 		self.assertFalse(frappe.has_permission("ToDo", "write", todo.name, user=user))
 
@@ -272,7 +272,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		user = create_user_without_reference_access()
+		user = user_without_reference_access()
 
 		doc = make_auto_repeat(reference_document=todo.name)
 		frappe.db.set_value("Auto Repeat", doc.name, "owner", user)
@@ -287,7 +287,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		user = create_user_without_reference_access()
+		user = user_without_reference_access()
 
 		own_todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", allocated_to=user, owner=user
@@ -321,20 +321,13 @@ def make_auto_repeat(**args):
 	).insert(ignore_permissions=True)
 
 
-def create_user_without_reference_access():
+def user_without_reference_access():
 	"""Return a user who can create an Auto Repeat but cannot access another user's ToDo."""
-	email = "test_auto_repeat_reference@example.com"
-	if not frappe.db.exists("User", email):
-		frappe.get_doc(
-			doctype="User",
-			email=email,
-			first_name="Auto Repeat Reference",
-			send_welcome_email=0,
-			roles=[{"role": "Accounts User"}],
-		).insert(ignore_permissions=True)
-		frappe.clear_cache(user=email)
+	user = frappe.get_doc("User", "test2@example.com")
+	user.add_roles("Accounts User")
+	frappe.clear_cache(user=user.name)
 
-	return email
+	return user.name
 
 
 def create_submittable_doctype(doctype, submit_perms=1):
