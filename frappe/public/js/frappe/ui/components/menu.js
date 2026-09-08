@@ -35,6 +35,7 @@ import { place } from "./position.js";
  * @typedef {Object} MenuItem
  * @property {string} label Row text. Rendered as text, never HTML.
  * @property {string} [icon] Lucide icon name shown before the label.
+ * @property {string} [image] Image URL shown before the label, for a mark no lucide icon can stand in for (an app's logo). Ignored when `icon` is set; refused on code-running schemes, like `href`.
  * @property {string} [description] Smaller second line under the label.
  * @property {"gray"|"red"} [theme="gray"] "red" for destructive rows.
  * @property {boolean} [selected] Marks the current choice (visual only).
@@ -42,6 +43,7 @@ import { place } from "./position.js";
  * @property {string|string[]} [shortcut] Keyboard hint, display only — pass the raw combo ("ctrl+p") and each key becomes its OS form (⌘P on Mac, Ctrl+P elsewhere), or an array of already-formatted keys. Binding the keys stays the caller's job (frappe.ui.keys.add_shortcut).
  * @property {function} [onclick] Called with the click event. The menu closes after.
  * @property {string} [href] Renders the row as a link. Code-running schemes are refused.
+ * @property {string} [target] Browsing context for an `href` row, e.g. "_blank" to open in a new tab. Ignored without `href`.
  * @property {function} [condition] Checked on every open; return false to hide the row.
  * @property {string} [css_class] Extra classes on the row element (responsive visibility hooks like visible-xs).
  * @property {MenuItem[]|function} [submenu] Nested rows — the row opens a side panel instead of acting. A function runs at hover-start (once per menu open, result cached) and may return the rows or a Promise of them; the panel shows a loading state until it settles.
@@ -170,6 +172,11 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	el.setAttribute("tabindex", "-1");
 	if (href) el.href = href;
 	else el.type = "button";
+	if (href && item.target) {
+		el.target = item.target;
+		// a new context must not get a handle back to the page that opened it
+		if (item.target === "_blank") el.rel = "noopener noreferrer";
+	}
 
 	if (item.disabled) {
 		el.setAttribute("data-disabled", "");
@@ -181,8 +188,17 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 		el.setAttribute("data-theme", "red");
 	}
 
+	// an icon wins over an image when a row carries both
+	const image = safe_href(item.image, component);
 	if (item.icon) {
 		el.insertAdjacentHTML("beforeend", icon_html(item.icon, "", component));
+	} else if (image) {
+		const img = document.createElement("img");
+		img.className = "es-menu__image";
+		img.src = image;
+		// the label right beside it already names the thing, so the mark is decorative
+		img.alt = "";
+		el.appendChild(img);
 	} else if (reserve_icon_space) {
 		const space = document.createElement("span");
 		space.className = "es-menu__icon-space";
@@ -265,7 +281,7 @@ function render_content(panel, groups, { empty_text, component }) {
 
 		// when any row in a group has an icon, iconless rows reserve the
 		// same space so the labels line up
-		const reserve_icon_space = group.options.some((item) => item.icon);
+		const reserve_icon_space = group.options.some((item) => item.icon || item.image);
 
 		for (const item of group.options) {
 			const { el, mnemonic } = build_item(item, {
