@@ -1030,15 +1030,6 @@ body.grid-col-resizing {
 	margin-bottom: var(--padding-sm);
 }
 
-// the row count and, when the rows came from a sheet, the button that re-reads
-// it — one group so both stay at the right end of the mapping line
-.bulk-edit-preview-head-actions {
-	display: flex;
-	align-items: center;
-	gap: var(--padding-sm);
-	flex: 0 0 auto;
-}
-
 // One line of gap, always held open whether or not there's a message in it —
 // height, not min-height, and clipped to the one line: a message long enough
 // to wrap (a Select naming all its allowed options, say) would otherwise push

@@ -1129,25 +1129,17 @@ export default class BulkEdit {
 				<span class="text-muted small">${__(
 					"Map each column of the file to a field. Anything left unmapped is ignored.",
 				)}</span>
-				<div class="bulk-edit-preview-head-actions">
-					<span class="text-muted small">${
-						rows.length > shown.length
-							? __("Showing first {0} of {1} rows", [shown.length, rows.length])
-							: __("Showing all {0} rows", [rows.length])
-					}</span>
-					${
-						// only a sheet can change under a loaded preview; a file is
-						// re-read by uploading it again. Same label as the Data
-						// Import doctype's own button, so the string is translated.
-						this.state.google_sheets_url
-							? frappe.ui.button.html({
-									label: __("Refresh Google Sheet"),
-									icon: "refresh-cw",
-									css_class: "bulk-edit-refresh-sheet",
-								})
-							: ""
-					}
-				</div>
+				${
+					// only a sheet can change under a loaded preview; a file is
+					// re-read by uploading it again.
+					this.state.google_sheets_url
+						? frappe.ui.button.html({
+								label: __("Refresh"),
+								icon: "refresh-cw",
+								css_class: "bulk-edit-refresh-sheet",
+							})
+						: ""
+				}
 			</div>
 			<div class="bulk-edit-preview-hint text-muted small">${__(
 				"Fix the highlighted cells. Click one to see and resolve its error.",
