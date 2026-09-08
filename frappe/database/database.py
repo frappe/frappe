@@ -1210,7 +1210,20 @@ class Database:
 			self.begin()
 
 		self.value_cache.clear()
-		self.after_commit.run()
+		self.run_after_commit_callbacks()
+
+	def run_after_commit_callbacks(self):
+		"""Run the callbacks queued for after the commit, logging the ones that fail.
+
+		The transaction is durable by now and these callbacks are side effects that can not
+		undo it, so raising here would only destroy the response of a request that succeeded.
+		"""
+		while len(self.after_commit):
+			try:
+				# the failing callback is already off the queue, so this resumes at the next one
+				self.after_commit.run()
+			except Exception:
+				frappe.log_error("Failed to run after commit callback", defer_insert=True)
 
 	def rollback(self, *, save_point=None, chain=False):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
