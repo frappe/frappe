@@ -328,16 +328,45 @@ def update_communication_as_read(name):
 	if not name or not isinstance(name, str):
 		return
 
-	communication = frappe.db.get_value("Communication", name, "read_by_recipient", as_dict=True)
+	communication = frappe.db.get_value(
+		"Communication",
+		name,
+		["read_by_recipient", "reference_doctype", "reference_name"],
+		as_dict=True,
+	)
 
 	if not communication or communication.read_by_recipient:
 		return
 
+	read_by_recipient_on = get_datetime()
 	frappe.db.set_value(
 		"Communication",
 		name,
-		{"read_by_recipient": 1, "delivery_status": "Read", "read_by_recipient_on": get_datetime()},
+		{"read_by_recipient": 1, "delivery_status": "Read", "read_by_recipient_on": read_by_recipient_on},
 	)
+
+	# Notify anyone viewing the linked document (e.g. a CRM Lead/Deal timeline)
+	# that this email was just read, so a read-receipt indicator can update
+	# live instead of only after a manual page reload.
+	if communication.reference_doctype and communication.reference_name:
+		frappe.publish_realtime(
+			"docinfo_update",
+			{
+				"doc": {
+					"name": name,
+					"reference_doctype": communication.reference_doctype,
+					"reference_name": communication.reference_name,
+					"read_by_recipient": 1,
+					"delivery_status": "Read",
+					"read_by_recipient_on": read_by_recipient_on,
+				},
+				"key": "communications",
+				"action": "update",
+			},
+			doctype=communication.reference_doctype,
+			docname=communication.reference_name,
+			after_commit=True,
+		)
 
 
 @frappe.whitelist()
