@@ -358,6 +358,37 @@ frappe.ui.Sidebar = class Sidebar {
 			: null;
 	}
 
+	// The app a shell belongs to, as the rail names it, or null. `get_sidebar_app` answers the
+	// same question for the shell on screen and returns the app_data entry the rail renders from;
+	// this answers it for any shell and returns just the name, which is all a comparison needs.
+	//
+	// A shell belonging to no app answers null, and null is never equal to an app, so an unplaced
+	// or orphaned module neither holds a shell nor moves one.
+	app_for_sidebar(shell) {
+		const sidebar = shell && frappe.boot.module_sidebars?.[shell];
+		const app_name = sidebar && sidebar.app;
+		return app_name ? this.rail_host_app(app_name) : null;
+	}
+
+	// Whether moving to `entity_shell` leaves the app `shell` belongs to.
+	//
+	// This is the one thing the shell on screen does not survive (see resolve_sidebar_for step 1).
+	// App context in the desk means only what supplies the rail, so a shell kept across an app
+	// boundary is a rail whose logo and rows belong to an app the page is not in: reaching Job
+	// Applicant from a Journal Entry left erpnext's rail on screen over an hrms document.
+	//
+	// It asks about the entity's own shell and nothing else, so it says nothing while the module
+	// is unreadable, and an unreadable module holds the shell rather than moving it. A doctype
+	// route reached through the router is readable by then, since router.route() awaits
+	// `with_doctype` before firing the `change` this resolves on; anything still unreadable is
+	// already flagged provisional below and re-resolved on the second pass.
+	crosses_app(shell, entity_shell) {
+		if (!entity_shell || entity_shell === shell) return false;
+		const here = this.app_for_sidebar(shell);
+		const there = this.app_for_sidebar(entity_shell);
+		return !!here && !!there && here !== there;
+	}
+
 	// The module the shell on screen belongs to.
 	//
 	// `current_module` is a shell identity, the key `frappe.boot.module_sidebars` is built on.
@@ -1410,18 +1441,32 @@ frappe.ui.Sidebar = class Sidebar {
 		// Resolved up front rather than at step 4, because steps 1 and 3 are both membership
 		// tests against it: whether the sidebar links the entity is the same question either way.
 		const candidates = this.get_modules_linking(entity);
+		// The entity's own shell, resolved once here and reused by steps 1, 3 and 3b. Step 1 asks
+		// only which app it belongs to; the later steps take the shell itself.
+		const from_module = this.sidebar_from_module(entity, route, candidates);
 
 		// 1. The shell you are in, or the last one selected when it can show the entity.
 		//
 		// `on_screen` says the shell is a stated fact rather than a leftover: it is the sidebar
 		// you are standing in, and you got here by following a link out of it. A shell stated
-		// that way holds whatever the route is, which is what stops a link into another module
-		// moving the shell underneath you. A sticky read from localStorage is only a memory, so
-		// it still has to prove it can show the entity.
-		if (persisted && (on_screen || candidates.includes(persisted))) {
+		// that way holds across the app it belongs to, whatever the route is, which is what stops
+		// a link into another module moving the shell underneath you. A sticky read from
+		// localStorage is only a memory, so it still has to prove it can show the entity.
+		//
+		// What it does not survive is leaving the app (see crosses_app): the rail is the app that
+		// owns the shell, so holding erpnext's shell while standing on an hrms document leaves the
+		// rail naming an app the page has nothing to do with. A shell that lists the entity is
+		// exempt, since curating a cross-app link is how a sidebar says the entity belongs here.
+		if (
+			persisted &&
+			(candidates.includes(persisted) ||
+				(on_screen && !this.crosses_app(persisted, from_module)))
+		) {
 			return {
 				sidebar: persisted,
-				reason: `last selected sidebar "${persisted}" — route entity "${entity}" is linked in it, so the selection is kept over the entity's owner and its module`,
+				reason: candidates.includes(persisted)
+					? `last selected sidebar "${persisted}" — route entity "${entity}" is linked in it, so the selection is kept over the entity's owner and its module`
+					: `sidebar "${persisted}" is the shell on screen and "${entity}" does not leave its app, so the shell is kept`,
 				provisional: false,
 			};
 		}
@@ -1448,7 +1493,6 @@ frappe.ui.Sidebar = class Sidebar {
 		//    past a display limit. Reading that as a decision would hand the entity to whichever
 		//    other sidebar happens to link it. A module always contains its own entities, so for
 		//    a computed sidebar the module answers regardless.
-		const from_module = this.sidebar_from_module(entity, route, candidates);
 		if (from_module && (candidates.includes(from_module) || this.is_computed(from_module))) {
 			return {
 				sidebar: from_module,
