@@ -12,7 +12,7 @@ Contributor-side rules live in the [Pull Request Checklist](https://github.com/f
 
 ### Read first
 
-- Read the PR body and every comment. Maintainers often raise PRs on behalf of contributors ("raised on behalf of @x"). That person is the author you talk to.
+- Read the PR body and every comment. If the PR was raised on behalf of someone else, that person is the author you talk to.
 - Read other maintainers' comments. Do not repeat them. Check whether earlier asks were addressed.
 - Read the linked issue and check the PR fixes what it describes.
 
@@ -66,23 +66,11 @@ Repro: snippet that shows the bug on develop, or "UI-only"
 
 ### Writing the review
 
-- Inline comments on the exact line, with a ` ```suggestion ` block when the fix is one line. The body is only for asks with no line (add tests, fix the title, add a video). Never write "see inline".
-- `@handle` once, in the first comment, then ask: "@user, could you please …".
-- One concern per comment. One to three short sentences. Plain words a non-native speaker reads once.
-- For "do X instead", show X as a one-line code example.
-- Cite the rule ID. Link the issue or docs when they exist.
-- No preamble, praise, thanks, summary, signature or emoji.
-- `REQUEST_CHANGES` when asks exist, `APPROVE` when none. `COMMENT` only on a PR you created yourself, because GitHub blocks the other two there.
-- Answer every bot finding: confirm with a line reference or reject with a reason.
-
-Example:
-
-> @author, could you please move this check into `validate()`? List view bulk delete and `frappe.client.delete` skip it right now (R12).
->
-> ```suggestion
-> def validate(self):
->     self.validate_unique_route()
-> ```
+- Comment on the exact line. Use a suggestion block when the fix is a one-liner. Keep the review body for asks that have no line, such as missing tests or a wrong title.
+- One concern per comment, in short plain sentences. Say what is wrong and what to do instead. Show code when that is clearer than words.
+- Back the ask with the rule number, the issue or the docs.
+- Request changes when there is a real ask. Approve when there is none.
+- Answer bot findings with evidence: confirm with a line reference or reject with a reason.
 
 ---
 
@@ -145,7 +133,7 @@ def get_list(doctype, order_by="modified desc"):
 ```
 
 ### R9. Reuse before reimplementing
-Use `@redis_cache`, `cached_property`, `frappe.generate_hash`, `frappe.db.set_value(update_modified=False)`, `frappe.ui.keys.add_shortcut`, `frappe.ui.freeze`, `frappe.utils.icon`, `str.join` and library defaults before writing new code. One implementation per piece of logic; extract a helper at the second or third repeat.
+Check `frappe.utils`, `frappe.ui`, the database API and the standard library before writing a helper; most of what a PR needs (caching, hashing, icons, shortcuts, freezing the UI) already exists. One implementation per piece of logic; extract a helper at the second or third repeat.
 Why: copies drift, and custom apps copy whatever core does.
 Exception: a little duplication beats coupling unrelated modules.
 
@@ -390,7 +378,7 @@ $(`<button class="es-button" data-variant="subtle" data-size="sm">${frappe.utils
 ```
 
 ### R41. Defaults serve non-technical users; copy is short
-Default filter operator is `=`, not `%`. No "Property Setter" or "DocType" in labels. No icon-only buttons in dialogs. Labels say what happens ("Export all matching rows?", "3 rows updated"). Messages name things the user can find (row number, not a hash). Errors are red; non-fatal messages are warnings. `PermissionError` only for permission problems. Short plain sentences, as brief as the sibling labels.
+Defaults are the safe, obvious choice (a filter defaults to `=`, not `%`). No internal terms like "DocType" or "Property Setter" in labels. No icon-only buttons in dialogs. Labels say what happens ("Export all matching rows?", "3 rows updated"). Messages name things the user can find (row number, not a hash). Errors are red; non-fatal messages are warnings. `PermissionError` only for permission problems. Short plain sentences, as brief as the sibling labels.
 Why: regular users over power users.
 
 ### R42. Bundle size is a budget
@@ -406,7 +394,7 @@ Confirm destructive and bulk actions. Secondary actions are not primary buttons.
 Exception: skip the confirm where the label already says it ("Send now").
 
 ### R45. Client work is scoped, runs once, cleans up
-`this.wrapper.find()`, not global `$()`. No work per row render or animation frame. `.off()` namespaced listeners before `.on()`. Dialogs are singletons. No `setTimeout` or `MutationObserver` when a lifecycle hook exists. No unscoped `localStorage` keys. JS validation must not depend on the awesomplete list, `.grid`, `:visible` or `frm`; think of `set_value`, paste, quick entry and grid rows.
+`this.wrapper.find()`, not global `$()`. No work per row render or animation frame. `.off()` namespaced listeners before `.on()`. Dialogs are singletons. No `setTimeout` or `MutationObserver` when a lifecycle hook exists. No unscoped `localStorage` keys. Client-side checks must also work when the value is set programmatically (`set_value`, paste, quick entry, grid rows) and when the control is used outside a form.
 Why: a check per animation frame runs sixty times a second.
 
 ```javascript
@@ -486,7 +474,7 @@ Why: a disabled test comes back to haunt you.
 ## PR process
 
 ### R55. Develop first, backport later
-Fix develop, then `@mergify backport version-N-hotfix` so authorship is kept. A manual port matches the develop diff exactly and carries its dependencies; check the target branch has the prerequisite APIs. Features and behaviour changes wait one to three weeks on develop, or are not backported. A v15 label usually needs v16 too. Breaking changes stay on develop. Retargeting a PR does not work; open a new one.
+Fix develop, then `@mergify backport version-N-hotfix` so authorship is kept. A manual port matches the develop diff exactly and carries its dependencies; check the target branch has the prerequisite APIs. Features and behaviour changes wait one to three weeks on develop, or are not backported. Breaking changes stay on develop. Retargeting a PR does not work; open a new one.
 Why: stable branches are where customers are.
 Exception: security and dependency fixes go to stable quickly. A fix that no longer applies on develop may target the hotfix branch. A customer-blocking fix may skip the soak.
 
