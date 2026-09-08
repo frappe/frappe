@@ -10,13 +10,8 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	week_map,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-<<<<<<< HEAD
-from frappe.tests.utils import FrappeTestCase
-=======
-from frappe.tests import IntegrationTestCase
 from frappe.tests.test_model_utils import set_user
-from frappe.tests.utils.test_capabilities import TestService, requires_test_service
->>>>>>> a09cd97 (test(automation): cover auto repeat reference permission checks)
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
@@ -238,8 +233,6 @@ class TestAutoRepeat(FrappeTestCase):
 		)
 		self.assertEqual(docnames[0].docstatus, 1)
 
-<<<<<<< HEAD
-=======
 	def test_reference_document_write_permission_on_create(self):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
@@ -317,78 +310,6 @@ class TestAutoRepeat(FrappeTestCase):
 
 		self.assertNotEqual(frappe.db.get_value("Auto Repeat", doc.name, "reference_document"), todo.name)
 
-	def test_auto_repeat_assignee(self):
-		todo = frappe.get_doc(
-			doctype="ToDo", description="test assignee todo", assigned_by="Administrator"
-		).insert()
-
-		doc = make_auto_repeat(reference_document=todo.name)
-		doc.update(
-			{
-				"assignee": [
-					{"user": "Administrator"},
-					{"user": "Guest"},
-				]
-			}
-		)
-		doc.save()
-		self.assertEqual(doc.next_schedule_date, today())
-		data = get_auto_repeat_entries(getdate(today()))
-		create_repeated_entries(data)
-		frappe.db.commit()
-
-		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
-		self.assertEqual(todo.auto_repeat, doc.name)
-
-		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
-
-		new_todo = frappe.get_doc("ToDo", new_todo)
-		self.assertEqual(todo.get("description"), new_todo.get("description"))
-		self.assertListEqual(
-			sorted(list(new_todo.get_assigned_users())),
-			sorted(["Administrator", "Guest"]),
-		)
-
-	def test_auto_repeat_assignee_with_separate_documents(self):
-		todo = frappe.get_doc(
-			doctype="ToDo",
-			description="test assignee todo with multiple doc",
-			assigned_by="Administrator",
-		).insert()
-
-		doc = make_auto_repeat(reference_document=todo.name)
-		doc.update(
-			{
-				"assignee": [
-					{"user": "Administrator"},
-					{"user": "Guest"},
-				],
-				"generate_separate_documents_for_each_assignee": 1,
-			}
-		)
-		doc.save()
-		self.assertEqual(doc.next_schedule_date, today())
-		data = get_auto_repeat_entries(getdate(today()))
-		create_repeated_entries(data)
-		frappe.db.commit()
-
-		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
-		self.assertEqual(todo.auto_repeat, doc.name)
-
-		new_todo_count = frappe.db.count("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
-
-		self.assertEqual(new_todo_count, 2)
-
-	def tearDown(self):
-		# every test here commits, so IntegrationTestCase's per-test rollback can't
-		# undo them. The assignee tests assign generated ToDos to Guest, which shares
-		# those ToDos with Guest; left behind, that lets anonymous API reads succeed
-		# in unrelated tests later in the same shard. Drop the committed artifacts.
-		frappe.db.delete("DocShare", {"share_doctype": "ToDo", "user": "Guest"})
-		# the leaked shares were committed, so the cleanup must be committed too
-		frappe.db.commit()  # nosemgrep
-
->>>>>>> a09cd97 (test(automation): cover auto repeat reference permission checks)
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)
