@@ -1810,10 +1810,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters.prepared_report_name = this.prepared_report_name;
 				}
 
-				// excluding total row index
-				const ignore_visible_idx =
-					visible_idx.length ===
-					this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				// visible_idx is a list of ORIGINAL row indices in DISPLAY order
+				// having both search-filter narrowing AND column sort. Only skip sending it
+				// when it exactly matches the default identity order [0, 1, ..., N-1]
+				// (i.e. neither sorted nor filtered), otherwise the server-side
+				// export would silently drop the user's UI sort direction.
+				const totalRows = this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				const isIdentityOrder =
+					visible_idx.length === totalRows && visible_idx.every((idx, i) => idx === i);
+				const ignore_visible_idx = isIdentityOrder;
 				visible_idx = ignore_visible_idx ? [] : visible_idx;
 
 				const args = {
@@ -1966,7 +1971,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.report_doc.letter_head,
 						this.get_visible_columns(),
 						true,
-						"PDF Settings"
+						"PDF Settings",
+						this.report_doc.default_print_format
 					);
 					this.add_portrait_warning(dialog);
 				},
