@@ -23,10 +23,11 @@ from urllib.parse import urlsplit
 
 import click
 import frappe
-import httpx
 from frappe.installer import update_site_config
 from frappe.utils import get_bench_path, get_url
 from frappe.utils.synchronization import filelock
+
+from flow.daemon.client import DaemonClient, DaemonError
 
 START_TIMEOUT = 30
 STOP_TIMEOUT = 5
@@ -113,12 +114,10 @@ def reload_tenants(token: str) -> bool:
 	if not healthy():
 		return False
 	try:
-		response = _request("POST", "/tenants/reload", token)
-		error = None if response.is_success else response.text
-	except httpx.HTTPError as exc:
-		error = str(exc)
-	if error:
-		click.secho(f"flow server did not reload its tenants: {error}", fg="yellow")
+		with DaemonClient(str(socket_path()), token) as client:
+			client.reload_tenants()
+	except DaemonError as exc:
+		click.secho(f"flow server did not reload its tenants: {exc.detail}", fg="yellow")
 		return False
 	return True
 
@@ -275,19 +274,14 @@ def status() -> str:
 
 def healthy() -> bool:
 	try:
-		return _request("GET", "/healthz").is_success
-	except httpx.HTTPError:
+		with DaemonClient(str(socket_path())) as client:
+			client.healthz()
+	except DaemonError:
 		return False
+	return True
 
 
 # --- helpers and paths --------------------------------------------------
-
-
-def _request(method: str, path: str, token: str | None = None) -> httpx.Response:
-	headers = {"Authorization": f"Bearer {token}"} if token else {}
-	transport = httpx.HTTPTransport(uds=str(socket_path()))
-	with httpx.Client(transport=transport, base_url="http://flow-server", timeout=5) as http:
-		return http.request(method, path, headers=headers)
 
 
 def _redis_url() -> str | None:
