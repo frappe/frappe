@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-=======
-import datetime
 import hmac
->>>>>>> 26c399c (fix(oauth2): require client authentication on token introspection endpoint)
 import json
 from urllib.parse import quote, urlencode
 
