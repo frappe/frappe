@@ -16,8 +16,9 @@
 {% macro header_buttons() %}
 	{% block header_buttons %}
 	{% if allow_edit and in_view_mode %}
+		{% set request_query = "?web_form_request_key=" + web_form_request_key if web_form_request_key else "" %}
 		<!-- edit button -->
-		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit", context="Button in web form") }}</a>
+		<a href="/{{ route }}/{{ doc_name }}/edit{{ request_query }}" class="edit-button btn btn-default btn-sm">{{ _("Edit", context="Button in web form") }}</a>
 	{% endif %}
 
 	{% if allow_print and in_view_mode %}
@@ -58,7 +59,7 @@
 	<!-- web form container -->
 	<div class="web-form-container">
 		<!-- breadcrumb -->
-		{% if not webform_banner_image and has_header and login_required and show_list %}
+		{% if not webform_banner_image and has_header and show_list and not allows_public_access %}
 			{% include "templates/includes/breadcrumbs.html" %}
 			{% else %}
 				<div style="height: 3rem"></div>
@@ -66,7 +67,7 @@
 
 		<!-- header -->
 		<div class="web-form-header">
-			{% if webform_banner_image and has_header and login_required and show_list %}
+			{% if webform_banner_image and has_header and show_list and not allows_public_access %}
 				{% include "templates/includes/breadcrumbs.html" %}
 			{% endif %}
 			<div class="web-form-head">
@@ -133,6 +134,7 @@
 
 	<!-- success page -->
 	<div class="success-page hide">
+		{% set request_query = "?web_form_request_key=" + web_form_request_key if web_form_request_key else "" %}
 		<div class="success-header">
 			<svg class="success-icon icon">
 				<use href="#icon-solid-success"></use>
@@ -154,10 +156,10 @@
 				</div>
 			{% else %}
 				{% if show_list %}
-					<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
+					<a href="/{{ route }}/list{{ request_query }}" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
 				{% endif %}
-				{% if not login_required or allow_multiple %}
-					<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
+				{% if allows_public_access or allow_multiple %}
+					<a href="/{{ route }}/new{{ request_query }}" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
 				{% endif %}
 			{% endif %}
 		</div>

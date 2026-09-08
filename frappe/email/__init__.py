@@ -11,7 +11,7 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20, extra_filters: str | None = None) -> list[dict]:
+def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
 	if extra_filters:
 		extra_filters = frappe.parse_json(extra_filters)
@@ -55,7 +55,7 @@ def get_system_managers():
 
 
 @frappe.whitelist()
-def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
+def relink(name: str, reference_doctype: str | None = None, reference_name: str | int | None = None):
 	frappe.has_permission("Communication", "write", name, throw=True)
 	frappe.db.sql(
 		"""update
@@ -73,35 +73,16 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
-	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
-	user_perms.build_permissions()
-	can_read = user_perms.can_read
-	from frappe import _
-	from frappe.modules import load_doctype_module
+def get_communication_doctype(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict
+):
+	can_read = frappe.get_user().get_can_read()
 
-	com_doctypes = []
-	if len(txt) < 2:
-		for name in frappe.get_hooks("communication_doctypes"):
-			try:
-				module = load_doctype_module(name, suffix="_dashboard")
-				if hasattr(module, "get_data"):
-					for i in module.get_data()["transactions"]:
-						com_doctypes += i["items"]
-			except ImportError:
-				pass
-	else:
-		com_doctypes = [
-			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
-		]
+	com_doctypes = frappe.db.get_values(
+		"DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0}, pluck="name"
+	)
 
-	results = []
-	txt_lower = txt.lower().replace("%", "")
-
-	for dt in list(set(com_doctypes)):
-		if dt in can_read:
-			if txt_lower in dt.lower() or txt_lower in _(dt).lower():
-				results.append([dt])
+	results = [[dt] for dt in list(set(com_doctypes)) if dt in can_read]
 
 	return results
 

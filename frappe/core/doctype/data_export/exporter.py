@@ -4,6 +4,7 @@
 import csv
 import os
 import re
+from typing import Any
 
 import frappe
 import frappe.permissions
@@ -30,15 +31,15 @@ def get_data_keys():
 
 @frappe.whitelist()
 def export_data(
-	doctype=None,
-	parent_doctype=None,
-	all_doctypes=True,
-	with_data=False,
-	select_columns=None,
-	file_type="CSV",
-	template=False,
-	filters=None,
-	export_without_column_meta=False,
+	doctype: str | list[str | dict[str, Any]] | None = None,
+	parent_doctype: str | None = None,
+	all_doctypes: bool | int | str = True,
+	with_data: bool | int | str = False,
+	select_columns: str | dict[str, list[str]] | None = None,
+	file_type: str = "CSV",
+	template: bool | str = False,
+	filters: str | dict[str, Any] | list | None = None,
+	export_without_column_meta: bool | str = False,
 ):
 	_doctype = doctype
 	if isinstance(_doctype, list):

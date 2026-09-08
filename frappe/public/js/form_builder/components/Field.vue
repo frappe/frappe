@@ -85,14 +85,13 @@ function make_dialog(frm) {
 			},
 		],
 		primary_action: () => {
-			let fieldname = props.field.df.fieldname;
-			let field_option = props.field.df.options;
+			let filter_doctype = get_filter_doctype();
 			let filters = frm.filter_group.get_filters().map((filter) => {
 				// last element is a boolean which hides the filter hence not required to store in meta
 				filter.pop();
 
 				// filter_group component requires options and frm.set_query requires fieldname so storing both
-				filter[0] = field_option;
+				filter[0] = filter_doctype;
 				return filter;
 			});
 
@@ -153,8 +152,12 @@ function add_existing_filter(frm, df) {
 	}
 }
 
+function get_filter_doctype() {
+	return props.field.df.fieldtype === "Attachment Gallery" ? "File" : props.field.df.options;
+}
+
 function edit_filters() {
-	const field_doctype = props.field.df.options;
+	const field_doctype = get_filter_doctype();
 
 	if (!field_doctype) {
 		frappe.throw({
@@ -222,7 +225,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
 					<button
-						v-if="field.df.fieldtype === 'Link'"
+						v-if="['Attachment Gallery', 'Link'].includes(field.df.fieldtype)"
 						class="btn btn-xs btn-icon"
 						:class="is_filter_applied()"
 						@click="edit_filters"

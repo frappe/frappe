@@ -72,15 +72,25 @@ def approve(*args, **kwargs):
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def authorize(**kwargs):
+	request_data = frappe.request.get_data(as_text=True) if frappe.request.method == "POST" else ""
+	if request_data and frappe.request.mimetype != "application/x-www-form-urlencoded":
+		frappe.throw(
+			frappe._("Authorization POST requests must use application/x-www-form-urlencoded"),
+			frappe.UnsupportedMediaType,
+		)
+
 	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(sanitize_kwargs(kwargs))
 	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied"
 
 	if frappe.session.user == "Guest":
 		# Force login, redirect to preauth again.
+		redirect_to = frappe.request.url
+		if request_data:
+			redirect_to += ("&" if "?" in redirect_to else "?") + request_data
 		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = "/login?" + encode_params({"redirect-to": frappe.request.url})
+		frappe.local.response["location"] = "/login?" + encode_params({"redirect-to": redirect_to})
 	else:
 		try:
 			r = frappe.request
@@ -136,7 +146,7 @@ def authorize(**kwargs):
 			return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def get_token(*args, **kwargs):
 	try:
 		r = frappe.request
@@ -157,7 +167,7 @@ def get_token(*args, **kwargs):
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def revoke_token(*args, **kwargs):
 	try:
 		r = frappe.request
@@ -176,7 +186,7 @@ def revoke_token(*args, **kwargs):
 	return
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def openid_profile(*args, **kwargs):
 	try:
 		r = frappe.request
@@ -218,8 +228,8 @@ def openid_configuration():
 	)
 
 
-@frappe.whitelist(allow_guest=True)
-def introspect_token(token: str, token_type_hint=None):
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def introspect_token(token: str, token_type_hint: str | None = None):
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:

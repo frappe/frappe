@@ -354,6 +354,7 @@ def _get_traceback_sanitizer():
 		"token",
 		"key",
 		"pwd",
+		"client_secret",
 	]
 
 	placeholder = "********"

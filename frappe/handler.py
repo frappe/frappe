@@ -246,6 +246,7 @@ def upload_file():
 	if method:
 		method = frappe.get_attr(method)
 		is_whitelisted(method)
+		is_valid_http_method(method)
 		return method()
 	else:
 		return frappe.get_doc(

@@ -523,7 +523,7 @@ download only after 24 hours."""
 
 
 @frappe.whitelist()
-def fetch_latest_backups(partial=False):
+def fetch_latest_backups(partial: bool = False):
 	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
 

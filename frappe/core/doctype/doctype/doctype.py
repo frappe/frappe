@@ -1658,7 +1658,7 @@ def validate_fields(meta: Meta):
 			link_filters = json.loads(link_filters_value)
 		except (TypeError, ValueError):
 			frappe.throw(
-				_("Invalid Link Filters for field {0}. Link Filters must be valid JSON.").format(
+				_("Invalid Filters for field {0}. Filters must be valid JSON.").format(
 					frappe.bold(docfield.label or docfield.fieldname)
 				)
 			)
@@ -1668,9 +1668,14 @@ def validate_fields(meta: Meta):
 		):
 			frappe.throw(
 				_(
-					"Invalid Link Filters for field {0}. Link Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
+					"Invalid Filters for field {0}. Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
 				).format(frappe.bold(docfield.label or docfield.fieldname))
 			)
+
+		if docfield.fieldtype == "Attachment Gallery" and any(
+			filter_row[0] != "File" for filter_row in link_filters
+		):
+			frappe.throw(_("Attachment Gallery filters must target File."))
 
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]

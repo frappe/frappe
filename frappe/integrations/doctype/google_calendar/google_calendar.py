@@ -192,7 +192,7 @@ def get_authentication_url(client_id=None, redirect_uri=None):
 
 
 @frappe.whitelist()
-def google_callback(code=None):
+def google_callback(code: str | None = None):
 	"""
 	Authorization code is sent to callback as per the API configuration
 	"""

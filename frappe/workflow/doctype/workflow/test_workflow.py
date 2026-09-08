@@ -126,6 +126,62 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(workflow_actions[0].status, "Completed")
 		frappe.set_user("Administrator")
 
+	def add_approver(self):
+		"""Give the workflow a mail recipient other than the document owner."""
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Test Approver", "System Manager")
+		self.addCleanup(user.remove_roles, "Test Approver", "System Manager")
+
+	def test_workflow_action_recreated_when_state_is_re_entered(self):
+		"""A document coming back to a state it already left needs a fresh action and notification."""
+		self.add_approver()
+
+		def open_states():
+			return frappe.get_all(
+				"Workflow Action",
+				filters={"reference_doctype": "ToDo", "reference_name": todo.name, "status": "Open"},
+				pluck="workflow_state",
+			)
+
+		with patch("frappe.sendmail") as sendmail:
+			todo = create_new_todo()
+			self.assertEqual(open_states(), ["Pending"])
+			self.assertTrue(sendmail.called)
+
+			apply_workflow(todo, "Reject")
+			self.assertEqual(open_states(), ["Rejected"])
+
+			sendmail.reset_mock()
+			apply_workflow(todo, "Review")
+			self.assertEqual(open_states(), ["Pending"])
+			self.assertTrue(sendmail.called)
+
+		actions = frappe.get_all(
+			"Workflow Action",
+			filters={"reference_doctype": "ToDo", "reference_name": todo.name, "workflow_state": "Pending"},
+			pluck="status",
+			order_by="creation asc",
+		)
+		self.assertEqual(actions, ["Completed", "Open"])
+
+	def test_workflow_action_not_duplicated_on_resave(self):
+		"""Saving without leaving the state must not create another action or resend the email."""
+		self.add_approver()
+
+		with patch("frappe.sendmail") as sendmail:
+			todo = create_new_todo()
+			sendmail.reset_mock()
+
+			todo.description = "edited " + random_string(10)
+			todo.save()
+
+			self.assertFalse(sendmail.called)
+
+		actions = frappe.get_all(
+			"Workflow Action", filters={"reference_doctype": "ToDo", "reference_name": todo.name}
+		)
+		self.assertEqual(len(actions), 1)
+
 	def test_if_workflow_set_on_action(self):
 		self.workflow._update_state_docstatus = True
 		self.workflow.states[1].doc_status = 1

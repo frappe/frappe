@@ -31,7 +31,7 @@ frappe.ui.form.on("Dashboard Chart", {
 		}
 
 		if (!frm.is_new()) {
-			frm.add_custom_button("Add Chart to Dashboard", () => {
+			frm.add_custom_button(__("Add Chart to Dashboard"), () => {
 				const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
 					frm.doc.name,
 					"Dashboard Chart",
@@ -341,9 +341,9 @@ frappe.ui.form.on("Dashboard Chart", {
 			if (filters.length > 0) {
 				filters.forEach((filter) => {
 					const filter_row = $(`<tr>
-							<td>${filter[1]}</td>
-							<td>${filter[2] || ""}</td>
-							<td>${filter[3]}</td>
+							<td>${frappe.utils.escape_html(filter[1])}</td>
+							<td>${frappe.utils.escape_html(filter[2] || "")}</td>
+							<td>${frappe.utils.escape_html(filter[3])}</td>
 						</tr>`);
 
 					table.find("tbody").append(filter_row);
@@ -357,9 +357,9 @@ frappe.ui.form.on("Dashboard Chart", {
 				if (filters[f.fieldname]) {
 					let condition = "=";
 					const filter_row = $(`<tr>
-							<td>${f.label}</td>
-							<td>${condition}</td>
-							<td>${filters[f.fieldname] || ""}</td>
+							<td>${frappe.utils.escape_html(f.label)}</td>
+							<td>${frappe.utils.escape_html(condition)}</td>
+							<td>${frappe.utils.escape_html(filters[f.fieldname] || "")}</td>
 						</tr>`);
 
 					table.find("tbody").append(filter_row);
@@ -507,18 +507,18 @@ frappe.ui.form.on("Dashboard Chart", {
 			if ($.isArray(frm.dynamic_filters)) {
 				frm.dynamic_filters.forEach((filter) => {
 					filter_rows += `<tr>
-							<td>${filter[1]}</td>
-							<td>${filter[2] || ""}</td>
-							<td>${filter[3]}</td>
+							<td>${frappe.utils.escape_html(filter[1])}</td>
+							<td>${frappe.utils.escape_html(filter[2] || "")}</td>
+							<td>${frappe.utils.escape_html(filter[3])}</td>
 						</tr>`;
 				});
 			} else {
 				let condition = "=";
 				for (let [key, val] of Object.entries(frm.dynamic_filters)) {
 					filter_rows += `<tr>
-							<td>${key}</td>
-							<td>${condition}</td>
-							<td>${val || ""}</td>
+							<td>${frappe.utils.escape_html(key)}</td>
+							<td>${frappe.utils.escape_html(condition)}</td>
+							<td>${frappe.utils.escape_html(val || "")}</td>
 						</tr>`;
 				}
 			}

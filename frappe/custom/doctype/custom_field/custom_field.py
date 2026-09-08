@@ -38,6 +38,7 @@ class CustomField(Document):
 			"Autocomplete",
 			"Attach",
 			"Attach Image",
+			"Attachment Gallery",
 			"Barcode",
 			"Button",
 			"Check",
@@ -189,7 +190,9 @@ class CustomField(Document):
 			and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype)
 		):
 			frappe.throw(
-				_("Fieldtype cannot be changed from {0} to {1}").format(old_fieldtype, self.fieldtype)
+				_("Fieldtype of {0} in {1} cannot be changed from {2} to {3}").format(
+					frappe.bold(self.fieldname), self.dt, old_fieldtype, self.fieldtype
+				)
 			)
 
 		if not self.fieldname:
@@ -251,7 +254,7 @@ class CustomField(Document):
 
 
 @frappe.whitelist()
-def get_fields_label(doctype=None):
+def get_fields_label(doctype: str | None = None):
 	meta = frappe.get_meta(doctype)
 
 	if doctype in core_doctypes_list:
@@ -377,7 +380,7 @@ def get_existing_custom_fields(custom_fields):
 	return {(field.dt, field.fieldname): field for field in existing_fields}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def rename_fieldname(custom_field: str, fieldname: str):
 	frappe.only_for("System Manager")
 
