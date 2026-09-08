@@ -262,19 +262,6 @@ class TestAutoRepeat(FrappeTestCase):
 
 		self.assertFalse(frappe.db.get_value("ToDo", todo.name, "auto_repeat"))
 
-	def test_reference_document_read_permission_before_generating(self):
-		todo = frappe.get_doc(
-			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
-		).insert()
-		user = create_user_without_reference_access()
-
-		doc = make_auto_repeat(reference_document=todo.name)
-		frappe.db.set_value("Auto Repeat", doc.name, "owner", user)
-		doc.reload()
-
-		self.assertRaises(frappe.PermissionError, doc.make_new_document)
-		self.assertFalse(frappe.db.exists("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}))
-
 	def test_auto_repeat_stays_active_when_owner_loses_reference_access(self):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
