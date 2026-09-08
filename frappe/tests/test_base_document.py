@@ -234,7 +234,9 @@ class TestBaseDocument(IntegrationTestCase):
 		"""Test that get_valid_dict properly handles and serializes JSON fields with list values."""
 		from frappe._dict import _dict
 
-		doc = BaseDocument({"doctype": "DocField", "fieldname": "test_json_field", "link_filters": [{"key": "val"}]})
+		doc = BaseDocument(
+			{"doctype": "DocField", "fieldname": "test_json_field", "link_filters": [{"key": "val"}]}
+		)
 		meta = _dict(
 			_fields={"link_filters": _dict(fieldname="link_filters", fieldtype="JSON", label="Link Filters")},
 			get_valid_fields=lambda: ["link_filters"],
@@ -245,9 +247,13 @@ class TestBaseDocument(IntegrationTestCase):
 		self.assertEqual(valid_dict["link_filters"], '[{"key":"val"}]')
 
 		# Non-JSON non-table fields should still reject list values
-		doc_invalid = BaseDocument({"doctype": "DocField", "label": "Invalid List", "description": ["item1", "item2"]})
+		doc_invalid = BaseDocument(
+			{"doctype": "DocField", "label": "Invalid List", "description": ["item1", "item2"]}
+		)
 		doc_invalid.meta = _dict(
-			_fields={"description": _dict(fieldname="description", fieldtype="Small Text", label="Description")},
+			_fields={
+				"description": _dict(fieldname="description", fieldtype="Small Text", label="Description")
+			},
 			get_valid_fields=lambda: ["description"],
 			get_table_fields=lambda **kwargs: (),
 		)
