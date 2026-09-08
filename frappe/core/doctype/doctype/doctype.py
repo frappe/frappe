@@ -1124,14 +1124,28 @@ def validate_series(dt, autoname=None, name=None):
 	# validate field name if autoname field:fieldname is used
 	# Create unique index on autoname field automatically.
 	if autoname and autoname.startswith("field:"):
-		field = autoname.split(":")[1]
-		if not field or field not in [df.fieldname for df in dt.fields]:
-			frappe.throw(_("Invalid fieldname '{0}' in autoname").format(field))
-		else:
-			for df in dt.fields:
-				if df.fieldname == field:
-					df.unique = 1
-					break
+			field = autoname.split(":")[1]
+			if not field or field not in [df.fieldname for df in dt.fields]:
+					frappe.throw(_("Invalid fieldname '{0}' in autoname").format(field))
+			else:
+					previous_autoname = getattr(dt.get_doc_before_save(), "autoname", "")
+
+					for df in dt.fields:
+							if df.fieldname == field:
+									df.unique = 1
+							elif previous_autoname == f"field:{df.fieldname}":
+									df.unique = 0
+
+	elif dt.get_doc_before_save():
+			previous_autoname = getattr(dt.get_doc_before_save(), "autoname", "")
+
+			if previous_autoname and previous_autoname.startswith("field:"):
+					previous_field = previous_autoname.split(":", 1)[1]
+
+					for df in dt.fields:
+							if df.fieldname == previous_field:
+									df.unique = 0
+									break
 
 	if (
 		autoname

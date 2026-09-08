@@ -49,6 +49,23 @@ class TestDocType(IntegrationTestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	    def test_field_autoname_unique_removed_when_autoname_changed(self):
+            dt = new_doctype(self._testMethodName, autoname="field:some_fieldname")  
+            dt.insert(ignore_permissions=True)                                       
+
+            self.assertEqual(
+                    dt.get("fields", {"fieldname": "some_fieldname"})[0].unique,
+                    1,
+            )
+
+            dt.autoname = "hash"
+            dt.save(ignore_permissions=True)
+
+            self.assertEqual(
+                    dt.get("fields", {"fieldname": "some_fieldname"})[0].unique,
+                    0,
+            )
+
 	@skipIf(
 		frappe.conf and frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
