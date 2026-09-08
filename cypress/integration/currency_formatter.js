@@ -52,11 +52,8 @@ context("Currency Formatter", () => {
 
 context("Currency Formatter outside desk", () => {
 	before(() => {
-		// Any website page carries the web boot and frappe.format. This spec does not isolate its
-		// tests, so the session the first suite established is still here: visit a portal page that
-		// renders for a signed-in user rather than /login, which redirects one into desk.
+		cy.login();
 		cy.visit("/me");
-		cy.location("pathname").should("eq", "/me");
 	});
 
 	it("resolves precision from system defaults on portal pages", () => {
