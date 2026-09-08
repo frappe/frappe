@@ -18,8 +18,14 @@ def _fake_domain_callback(code=None, **kwargs):
 
 
 class TestGoogleOAuth(FrappeTestCase):
-	def test_callback_uses_server_side_state(self):
+	def setUp(self):
+		self._original_response = frappe.local.response
 		frappe.local.response = frappe._dict()
+
+	def tearDown(self):
+		frappe.local.response = self._original_response
+
+	def test_callback_uses_server_side_state(self):
 		state_token = create_google_oauth_state({"redirect": "/app/todo", "failure_query_param": "failed=1"})
 		# an error short-circuits the domain dispatch and just redirects back
 		callback(state=state_token, error="access_denied")
@@ -29,7 +35,6 @@ class TestGoogleOAuth(FrappeTestCase):
 	def test_callback_success_dispatches_domain_and_redirects(self):
 		"""The normal, non-error flow: domain callback is invoked and the success redirect fires."""
 		_dispatched_calls.clear()
-		frappe.local.response = frappe._dict()
 		state_token = create_google_oauth_state(
 			{
 				"domain": "test-domain",
@@ -47,14 +52,12 @@ class TestGoogleOAuth(FrappeTestCase):
 		self.assertEqual(frappe.local.response["location"], "/app/todo?connected=1")
 
 	def test_callback_rejects_unknown_state(self):
-		frappe.local.response = frappe._dict()
 		callback(state="not-a-real-token", error="access_denied")
 		self.assertEqual(frappe.local.response["type"], "page")
 		self.assertEqual(frappe.local.response["http_status_code"], 417)
 
 	def test_callback_rejects_client_supplied_state(self):
 		"""A caller can no longer smuggle a redirect target in via the `state` param itself."""
-		frappe.local.response = frappe._dict()
 		forged = json.dumps({"redirect": "https://evil.example.com", "domain": "contacts"})
 		callback(state=forged, error="access_denied")
 		self.assertEqual(frappe.local.response["type"], "page")
