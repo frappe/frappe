@@ -124,7 +124,11 @@ class AutoRepeat(Document):
 	def validate_reference_permission(self):
 		if frappe.flags.in_patch or self.flags.ignore_permissions:
 			return
-		if self.is_new() or self.has_value_changed("reference_document"):
+		if (
+			self.is_new()
+			or self.has_value_changed("reference_doctype")
+			or self.has_value_changed("reference_document")
+		):
 			frappe.has_permission(self.reference_doctype, "write", self.reference_document, throw=True)
 
 	def validate_submit_on_creation(self):
@@ -228,6 +232,12 @@ class AutoRepeat(Document):
 		return schedule_details
 
 	def create_documents(self):
+		if not frappe.has_permission(
+			self.reference_doctype, "read", self.reference_document, user=self.owner
+		):
+			self.log_error(_("Auto repeat skipped. The owner cannot access the reference document."))
+			return
+
 		try:
 			new_doc = self.make_new_document()
 			if self.notify_by_email and self.recipients:
@@ -239,9 +249,12 @@ class AutoRepeat(Document):
 						self.send_notification(new_doc)
 				else:
 					self.send_notification(new_docs)
+<<<<<<< HEAD
 		except frappe.PermissionError:
 			self.log_error(_("Auto repeat skipped. The owner cannot access the reference document."))
 >>>>>>> 8c80577 (fix(automation): check reference document permission in auto repeat)
+=======
+>>>>>>> 22cbbb3 (fix(automation): scope auto repeat permission checks to the reference)
 		except Exception:
 			error_log = self.log_error(
 				_("Auto repeat failed. Please enable auto repeat after fixing the issues.")
