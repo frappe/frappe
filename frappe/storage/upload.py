@@ -128,7 +128,12 @@ def upload_chunk(upload_id: str, offset: int | str = 0):
 	# the request that opened it, and every guest is the same session user,
 	# so the owner check in load_session does not gate guests on its own
 	check_upload_permission(meta.get("doctype"), meta.get("docname"))
-	return _write_upload_chunk(upload_id, offset, get_request_bytes(), meta, meta_path, part_path)
+	# bounded by the session's own declared size: this route is a streaming
+	# request path (frappe.hooks.streaming_request_paths), so init_request lifts
+	# the generic per-request byte cap for it, and nothing upstream bounds the
+	# body otherwise
+	data = get_request_bytes(limit=cint(meta.get("size")))
+	return _write_upload_chunk(upload_id, offset, data, meta, meta_path, part_path)
 
 
 def upload_blob_chunk(upload_id: str, offset: int, data: bytes) -> dict:
@@ -564,8 +569,14 @@ def delete_session(*paths: str):
 			pass
 
 
-def get_request_bytes() -> bytes:
+def get_request_bytes(limit: int | None = None) -> bytes:
+	"""Read the request body.
+
+	With ``limit`` set, reads at most ``limit + 1`` bytes: enough for the
+	caller to detect an oversized body without ever buffering more than one
+	declared session's worth of it in memory. Streaming request paths (see
+	``frappe.hooks.streaming_request_paths``) lift the generic per-request
+	byte cap, so a chunk route must bound its own read."""
 	request = frappe.local.request
-	if request.files and "file" in request.files:
-		return request.files["file"].stream.read()
-	return request.get_data(cache=False)
+	stream = request.files["file"].stream if request.files and "file" in request.files else request.stream
+	return stream.read() if limit is None else stream.read(limit + 1)

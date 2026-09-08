@@ -32,6 +32,7 @@ from frappe.storage.upload import (
 	expire_stale_upload_sessions,
 	finish_upload,
 	finish_upload_to_blob,
+	get_request_bytes,
 	get_session_paths,
 	get_uploads_dir,
 	load_session,
@@ -1143,6 +1144,28 @@ class TestServeUpload(IntegrationTestCase):
 				frappe.delete_doc, "File", file.name, force=1, ignore_permissions=True, ignore_missing=True
 			)
 			self.assertEqual(frappe.get_doc("File Blob", file.blob).file_size, len(content))
+
+	def test_get_request_bytes_stops_reading_at_the_limit(self):
+		# streaming request paths lift the generic per-request byte cap
+		# (frappe/app.py:init_request), so get_request_bytes must bound its own
+		# read: a limit must never let the full body land in memory.
+		huge_body = b"x" * (64 * 1024)
+		set_request(method="PUT", path="/", data=huge_body)
+		try:
+			data = get_request_bytes(limit=4)
+		finally:
+			del frappe.local.request
+
+		self.assertEqual(data, b"xxxxx")  # limit + 1 bytes, never the full 64 KiB body
+
+	def test_chunk_upload_route_is_a_registered_streaming_request_path(self):
+		# frappe.storage.upload.upload_chunk must skip make_form_dict's
+		# full-body buffering and the generic upload cap, or every chunk is
+		# double-buffered and capped far below a session's declared size.
+		self.assertIn(
+			"/api/method/frappe.storage.upload.upload_chunk",
+			frappe.get_hooks("streaming_request_paths"),
+		)
 
 	def test_finish_without_a_part_file_fails_and_keeps_the_session(self):
 		with flag_on(), frappe.storage.fake():
