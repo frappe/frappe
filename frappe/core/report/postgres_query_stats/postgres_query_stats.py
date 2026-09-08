@@ -54,7 +54,6 @@ def execute(filters=None):
 			as_dict=True,
 		)
 	except ObjectNotInPrerequisiteState:
-		frappe.db.rollback()
 		frappe.throw(
 			_(
 				"pg_stat_statements is enabled in this site's database but not loaded on the server. "
