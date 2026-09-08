@@ -87,7 +87,15 @@ async function render() {
 				body: JSON.stringify(params),
 			}
 		);
-		if (!res.ok) throw new Error(res.statusText);
+		if (!res.ok) {
+			let message = "";
+			try {
+				const data = await res.json();
+				message =
+					JSON.parse(JSON.parse(data._server_messages || "[]")[0] || "{}").message || "";
+			} catch {}
+			throw new Error(strip_html(message));
+		}
 		const blob = await res.blob();
 		if (seq !== render_seq) return;
 		// keep the browser's own PDF toolbar — page nav, zoom and download come free
@@ -95,7 +103,10 @@ async function render() {
 	} catch (e) {
 		if (seq !== render_seq) return;
 		set_pdf_url(null);
-		frappe.show_alert({ message: __("Could not render the preview"), indicator: "red" });
+		frappe.show_alert({
+			message: e.message || __("Could not render the preview"),
+			indicator: "red",
+		});
 	}
 	preview_loaded.value = true;
 }
