@@ -5,7 +5,8 @@
 1. ``create_upload``: permission and size checks, then a driver-native
    direct-upload target or a server-side chunked session.
 2. ``upload_chunk``: append request bytes at an offset; cumulative size
-   is enforced against the declared size on every chunk.
+   is enforced against the declared size on every chunk. PUT only, raw
+   body: no form-encoded content type is accepted (see get_request_bytes).
 3. ``finish_upload``: spool the parts into a blob, verify the checksum,
    validate content, create the File row, drop the session.
 
@@ -36,6 +37,12 @@ UPLOAD_ID_PATTERN = re.compile(r"[A-Za-z0-9]+")
 FINISHING_SUFFIX = ".finishing"
 FILE_SESSION = "file"
 BLOB_SESSION = "blob"
+# mimetypes Werkzeug's form parser recognises: touching request.form/request.files
+# with one of these set makes it read and spool the whole body, bounded only by
+# request.max_content_length - None on a streaming request path - rather than by
+# the session's declared size. get_request_bytes refuses these before that parse
+# ever starts, since this route's only wire contract is a raw byte stream.
+FORM_ENCODED_MIMETYPES = frozenset({"multipart/form-data", "application/x-www-form-urlencoded"})
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
@@ -114,7 +121,7 @@ def _create_upload(
 	return {"mode": "chunked", "upload_id": upload_id}
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST", "PUT"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["PUT"])  # nosemgrep: guest-whitelisted-method
 def upload_chunk(upload_id: str, offset: int | str = 0):
 	"""Write the request body into the session's part file at ``offset``.
 
@@ -128,7 +135,12 @@ def upload_chunk(upload_id: str, offset: int | str = 0):
 	# the request that opened it, and every guest is the same session user,
 	# so the owner check in load_session does not gate guests on its own
 	check_upload_permission(meta.get("doctype"), meta.get("docname"))
-	return _write_upload_chunk(upload_id, offset, get_request_bytes(), meta, meta_path, part_path)
+	# bounded by the session's own declared size: this route is a streaming
+	# request path (frappe.hooks.streaming_request_paths), so init_request lifts
+	# the generic per-request byte cap for it, and nothing upstream bounds the
+	# body otherwise
+	data = get_request_bytes(limit=cint(meta.get("size")))
+	return _write_upload_chunk(upload_id, offset, data, meta, meta_path, part_path)
 
 
 def upload_blob_chunk(upload_id: str, offset: int, data: bytes) -> dict:
@@ -564,8 +576,25 @@ def delete_session(*paths: str):
 			pass
 
 
-def get_request_bytes() -> bytes:
+def get_request_bytes(limit: int | None = None) -> bytes:
+	"""Read the request body as raw bytes.
+
+	Refuses a form-encoded body outright, checked by Content-Type alone
+	(``request.mimetype`` only reads that header) before anything touches
+	``request.form``/``request.files``. Accessing either would make
+	Werkzeug parse and spool the whole body regardless, bounded only by
+	``request.max_content_length`` - which a streaming request path (see
+	``frappe.hooks.streaming_request_paths``) sets to ``None`` - not by the
+	``limit`` below. This route's only wire contract is a raw byte stream,
+	so refusing the alternative outright costs no legitimate caller
+	anything, and never risks buffering an attacker-declared multipart
+	body without limit.
+
+	With ``limit`` set, reads at most ``limit + 1`` bytes: enough for the
+	caller to detect an oversized body without ever buffering more than one
+	declared session's worth of it in memory."""
 	request = frappe.local.request
-	if request.files and "file" in request.files:
-		return request.files["file"].stream.read()
-	return request.get_data(cache=False)
+	if request.mimetype in FORM_ENCODED_MIMETYPES:
+		frappe.throw(_("This endpoint accepts a raw request body, not form-encoded data"))
+	stream = request.stream
+	return stream.read() if limit is None else stream.read(limit + 1)
