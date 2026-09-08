@@ -8,7 +8,6 @@ Contributor-side rules live in the [Pull Request Checklist](https://github.com/f
 
 Check these first. Ask for the missing piece before reading the code.
 
-- Base branch is `develop`. Hotfix branches only get bugs that do not exist on develop.
 - UI changes have before/after screenshots or a video. Ask again after every UI push.
 - The bug reproduces on latest develop with the steps in the PR. If there are no steps, ask for a traceback or a minimal repro. If it cannot be reproduced, close for now.
 - Branch is rebased with no merge commits or unrelated commits.
@@ -107,15 +106,6 @@ Check these first. Ask for the missing piece before reading the code.
 - New behaviour and bug fixes ship with a test that fails without the fix. A test that only checks nothing raised, or asserts on generated SQL, proves nothing.
 - Test through public interfaces as a real user, not Administrator. Permission tests use `get_list`, not `get_all`. Fixtures use `example.com`.
 - Flaky tests are fixed, not disabled. Changed behaviour updates the existing tests.
-
-### Process
-
-- Fix develop first, then backport via Mergify. Features wait on develop before reaching a stable branch. Breaking changes are never backported.
-- One concern per PR. Unrelated refactors, formatting and independent bugs go in their own PR.
-- New hooks, config keys and public utilities are documented on docs.frappe.io. Translations go to Crowdin.
-- A merged change that causes regressions is reverted first and fixed later.
-- Stale or half-done PRs are closed with an offer to reopen.
-- PRs generated without manual review, scripted typo sweeps and vendored-library edits are closed. Code taken from an issue or another PR keeps its original author.
 
 ## Verdict
 
