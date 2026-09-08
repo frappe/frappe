@@ -118,6 +118,8 @@ class File(Document):
 		self.validate_private_file_access()
 
 		if self.is_folder:
+			if self.file_url:
+				frappe.throw(_("A folder cannot have a File URL"))
 			return
 
 		if self.flags.copy_from_existing_file:
@@ -168,6 +170,8 @@ class File(Document):
 
 	def validate(self):
 		if self.is_folder:
+			if self.file_url:
+				frappe.throw(_("A folder cannot have a File URL"))
 			return
 
 		self.validate_attachment_references()
