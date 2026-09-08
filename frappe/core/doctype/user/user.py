@@ -1577,6 +1577,7 @@ def clear_session(sid_hash: str):
 			frappe.toast(_("Successfully signed out"))
 			return
 
+
 @frappe.whitelist(methods=["POST"])
 def bulk_add_roles(users: str | list, roles: str | list) -> None:
 	"""Bulk assign roles to multiple users without overwriting existing roles."""
@@ -1613,6 +1614,9 @@ def bulk_add_roles(users: str | list, roles: str | list) -> None:
 		)
 	else:
 		_assign_roles(users, roles)
+		frappe.msgprint(
+			_("Roles successfully added to {0} users.").format(len(users)), alert=True, indicator="green"
+		)
 
 
 def _assign_roles(users: list, roles: list) -> None:
