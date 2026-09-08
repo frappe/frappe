@@ -11,8 +11,10 @@ from contextlib import contextmanager
 from contextvars import copy_context
 from threading import Barrier
 from unittest.mock import patch
+from urllib.parse import urlencode
 
 from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.test import TestResponse
 
 import frappe
 import frappe.storage
@@ -41,6 +43,7 @@ from frappe.storage.upload import (
 )
 from frappe.storage.url import make_signature
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_api import FrappeAPITestCase, make_request
 from frappe.utils import set_request
 
 
@@ -1283,3 +1286,79 @@ class TestServeUpload(IntegrationTestCase):
 
 			self.assertGreaterEqual(removed, 1)
 			self.assertFalse(os.path.exists(meta_path))
+
+
+class TestUploadChunkRouting(FrappeAPITestCase):
+	"""PUT .../upload_chunk through the real WSGI pipeline (frappe.app.application).
+
+	TestServeUpload.send_chunk calls upload_chunk() directly via set_request,
+	which never runs frappe.app.init_request. That hides exactly the bug this
+	guards against: init_request's streaming_request_paths match runs against
+	the routed request path, and /api/v2/method/... reaches upload_chunk
+	through a different Werkzeug Rule (frappe/api/v2.py) than the unversioned
+	form the hook declares (frappe/hooks.py). A path-matching regression here
+	does not raise - make_form_dict drains request.stream before upload_chunk
+	ever reads it, so the chunk write silently receives zero bytes.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		self._sessions = []
+
+	def tearDown(self):
+		for upload_id in self._sessions:
+			delete_session(*get_session_paths(upload_id))
+		super().tearDown()
+
+	def open_session(self, filename: str, size: int) -> str:
+		with flag_on():
+			frappe.set_user("Administrator")
+			result = create_upload(filename, size)
+		self.assertEqual(result["mode"], "chunked")
+		upload_id = result["upload_id"]
+		self._sessions.append(upload_id)
+		return upload_id
+
+	def put_chunk(self, endpoint: str, upload_id: str, offset: int, data: bytes) -> TestResponse:
+		query = urlencode({"upload_id": upload_id, "offset": offset, "sid": self.sid})
+		# storage_v2 must read as enabled inside the request's own thread: it
+		# calls frappe.init() fresh (frappe/app.py:init_request), which loads
+		# frappe.local.conf from frappe.config.get_site_config, not from the
+		# flag_on() override this test set in its own thread's frappe.local.
+		configured = frappe._dict({**frappe.get_site_config(), "storage_v2": 1})
+		with patch("frappe.config.get_site_config", return_value=configured):
+			return make_request(
+				target=self.TEST_CLIENT.open,
+				args=(f"{endpoint}?{query}",),
+				kwargs={"method": "PUT", "data": data, "content_type": "application/octet-stream"},
+			)
+
+	def test_v2_route_receives_the_full_chunk_body(self):
+		upload_id = self.open_session("v2-route.bin", 10)
+		response = self.put_chunk(
+			"/api/v2/method/frappe.storage.upload.upload_chunk", upload_id, 0, b"abcdefghij"
+		)
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
+		# frappe.api.v2.handle_rpc_call returns its value directly, so
+		# frappe.api.handle stores it under "data", not "message" (v1's key,
+		# used below - it goes through frappe.handler.handle() instead).
+		self.assertEqual(response.json["data"]["received"], 10)
+
+	def test_v1_route_receives_the_full_chunk_body(self):
+		upload_id = self.open_session("v1-route.bin", 10)
+		response = self.put_chunk(
+			"/api/v1/method/frappe.storage.upload.upload_chunk", upload_id, 0, b"abcdefghij"
+		)
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
+		self.assertEqual(response.json["message"]["received"], 10)
+
+	def test_v2_route_bounds_the_chunk_at_the_declared_session_size(self):
+		# get_request_bytes(limit=meta["size"]) must be the read limit here,
+		# not the generic per-request cap: init_request lifts that cap to None
+		# for a streaming path, so only the session's own declared size can
+		# still catch an oversized chunk.
+		upload_id = self.open_session("v2-cap.bin", 4)
+		response = self.put_chunk(
+			"/api/v2/method/frappe.storage.upload.upload_chunk", upload_id, 0, b"too-long-a-chunk"
+		)
+		self.assertEqual(response.status_code, 417, response.get_data(as_text=True))

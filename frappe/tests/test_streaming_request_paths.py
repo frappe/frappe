@@ -134,6 +134,73 @@ class TestStreamingRequestPaths(FrappeAPITestCase):
 			},
 		)
 
+	def test_v2_mounted_route_still_matches_the_unversioned_hook_entry(self):
+		# frappe.hooks.streaming_request_paths declares the unversioned form
+		# ("/api/method/..."), but /api/v2/method/<same method> reaches the
+		# same whitelisted function through a different Werkzeug Rule
+		# (frappe/api/v2.py). Without canonical_request_path stripping the
+		# /api/v2 mount before matching, this request would silently fall
+		# through to make_form_dict, which reads and caches the body before
+		# the handler ever sees frappe.local.request.stream.
+		v2_endpoint = f"/api/v2/method/{self.endpoint.removeprefix('/api/method/')}"
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "streaming_request_paths":
+				return [self.endpoint]
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			response: TestResponse = make_request(
+				target=self.TEST_CLIENT.open,
+				args=(v2_endpoint,),
+				kwargs={"method": "PUT", "data": b"stream", "content_type": "application/octet-stream"},
+			)
+
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
+		# frappe.api.v2.handle_rpc_call returns its value directly, so
+		# frappe.api.handle stores it under "data" - v1's handle_rpc_call
+		# instead calls frappe.handler.handle(), which stores it under
+		# "message" (see the v1 assertion below).
+		self.assertEqual(
+			response.json["data"],
+			{
+				"data_cached": False,
+				"form_cached": False,
+				"max_content_length": None,
+				"body": "stream",
+			},
+		)
+
+	def test_v1_mounted_route_still_matches_the_unversioned_hook_entry(self):
+		# Same normalisation, for the /api/v1 alias mount (frappe/api/__init__.py
+		# submounts v1_rules at both /api and /api/v1).
+		v1_endpoint = f"/api/v1/method/{self.endpoint.removeprefix('/api/method/')}"
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "streaming_request_paths":
+				return [self.endpoint]
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			response: TestResponse = make_request(
+				target=self.TEST_CLIENT.open,
+				args=(v1_endpoint,),
+				kwargs={"method": "PUT", "data": b"stream", "content_type": "application/octet-stream"},
+			)
+
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
+		self.assertEqual(
+			response.json["message"],
+			{
+				"data_cached": False,
+				"form_cached": False,
+				"max_content_length": None,
+				"body": "stream",
+			},
+		)
+
 	def test_configured_prefix_does_not_match_a_sibling_route(self):
 		configured = frappe._dict({**frappe.get_site_config(), "max_file_size": 8})
 		real_get_hooks = frappe.get_hooks
