@@ -6,6 +6,22 @@
 // it is layout, not a design token, and the resize handle writes to it.
 :root {
 	--sidebar-width: 220px;
+
+	// The surface the panel and the rail are painted with.
+	//
+	// It is not `--surface-sidebar` directly, because that token is `transparent` in dark:
+	// frappe-ui draws its sidebar *on* the app background, so it can afford to paint nothing
+	// and let the page show through. The desk's panel is drawn *over* the page instead -- a
+	// docked app gives it `position: absolute` (see dock.scss) -- and a see-through overlay
+	// showed the page's own text straight through the rows sitting on top of it.
+	//
+	// Light is `--surface-sidebar` unchanged. Dark is the same relationship rebuilt with an
+	// opaque colour: one step off the page, the way gray-50 sits one step off white.
+	--desk-sidebar-bg: var(--surface-sidebar);
+}
+
+[data-theme="dark"] {
+	--desk-sidebar-bg: var(--surface-gray-1);
 }
 
 // sidebar-item states -- mirrors <SidebarItem>'s `hover:bg-surface-gray-2` on a
@@ -40,7 +56,7 @@
 	// the full width underneath. That one declaration is the whole difference between the modes.
 	position: relative;
 	width: var(--sidebar-width);
-	background: var(--surface-sidebar);
+	background: var(--desk-sidebar-bg);
 	border-right: 1px solid var(--outline-gray-1);
 	// the panel's own chrome fades with its contents when collapsing / expanding
 	transition: background 0.2s ease, border-color 0.2s ease;
@@ -271,7 +287,10 @@
 			z-index: 1021;
 			left: var(--sidebar-width);
 			overflow: auto;
-			background-color: rgba(128, 128, 128, 0.5);
+			// A scrim dims the page behind the drawer, so it has to be dark in both themes.
+			// A mid-grey at half opacity only dims a light page; over a dark one it lifted the
+			// page towards the drawer instead of pushing it back.
+			background-color: rgba(0, 0, 0, 0.5);
 		}
 	}
 }
