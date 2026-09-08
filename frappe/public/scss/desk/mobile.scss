@@ -36,10 +36,6 @@ body {
 			margin-top: var(--margin-sm);
 			margin-right: var(--margin-xs);
 		}
-
-		.page-head .sub-heading {
-			font-size: var(--text-xs);
-		}
 	}
 
 	// navbar & breadcrumbs
@@ -141,6 +137,22 @@ body {
 		.page-title {
 			.title-text {
 				@include get_textstyle("lg", "regular");
+			}
+
+			.sub-heading {
+				display: block;
+			}
+
+			// the title block is two lines tall here, so its siblings top-align
+			// against the first line instead of centering across both
+			&,
+			.title-area {
+				align-items: flex-start;
+			}
+
+			.sidebar-toggle-btn,
+			.page-indicator-pill {
+				margin-top: 2px;
 			}
 
 			.indicator {
