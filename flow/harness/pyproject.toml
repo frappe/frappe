@@ -8,14 +8,6 @@ authors = [
     { name = "Shrihari Mahabal", email = "shriharimahabal08@gmail.com" },
 ]
 keywords = ["ai", "agents", "cli", "coding-agent"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Environment :: Console",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.14",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-]
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.115",
