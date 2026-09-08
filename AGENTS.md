@@ -17,7 +17,7 @@ Read [code_review.md](code_review.md) first and follow its Workflow section in o
 - Conventional Commits on the title and every commit.
 - Business logic and validation on the server.
 - Change DocType JSON through the UI, never by hand.
-- No explanatory comments. No AI attribution in commits or PR text.
+- No comments that narrate the code. One short comment is fine for a non-obvious workaround. No AI attribution in commits or PR text.
 - Run `pre-commit run --all-files` before pushing.
 - Smallest correct change. Remove dead code and dead CSS you leave behind.
 - Desk UI: `frappe.utils.icon()`, `es-button`, `es-badge`, design tokens, gray accents.

@@ -2,7 +2,7 @@
 
 What maintainers check when they review a pull request to `frappe/frappe`, collected from their review comments. For reviewers, contributors and AI agents.
 
-Read the Workflow section before every review. Rules are numbered so you can point to them in a comment (`R11`). If a rule gives a wrong answer in a real case, change the rule here instead of ignoring it.
+Read the Workflow section before every review. Rules are numbered so you can point to them in a comment (`R8`). If a rule gives a wrong answer in a real case, change the rule here instead of ignoring it.
 
 Contributor-side rules live in the [Pull Request Checklist](https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist) and [Coding Standards](https://github.com/frappe/erpnext/wiki/Coding-Standards).
 
@@ -78,7 +78,7 @@ Repro: snippet that shows the bug on develop, or "UI-only"
 
 Example:
 
-> @author, could you please move this check into `validate()`? List view bulk delete and `frappe.client.delete` skip it right now (R16).
+> @author, could you please move this check into `validate()`? List view bulk delete and `frappe.client.delete` skip it right now (R12).
 >
 > ```suggestion
 > def validate(self):
@@ -119,33 +119,21 @@ Why: every toggle doubles the test matrix and stays forever.
 Exception: when users would legitimately disagree about a visible behaviour, make it configurable per user or per DocType.
 
 ### R5. Direction beats local utility
-Do not extend surfaces the project is leaving: the website module (Builder replaces it), report-view aggregation (Insights), legacy client JS, `frappe.call` where API v2 is the target.
+Do not extend surfaces the project is leaving: the website module (Builder replaces it), report-view aggregation (Insights), legacy client JS, `frappe.call` where API v2 is the target. Ask a maintainer when unsure.
 Why: every addition to a legacy surface has to be migrated or dropped later.
 
 ### R6. Change size matches the problem
-A small ask arriving as a large diff is pushed back. If an existing doctype, page, library or API does most of the job, add the missing part there. A "new X" next to an existing X needs a stated limitation of the current one.
+A small ask arriving as a large diff is pushed back. If an existing doctype, page, library or API does most of the job, add the missing part there. A "new X" next to an existing X needs a stated limitation of the current one. Half-done PRs are closed, not merged to iterate later.
 Why: parallel implementations drift and double the maintenance.
-
-### R7. Unfinished or experimental work is closed or gated
-Half-done PRs are closed. Experimental capabilities (new database backend, integer primary keys) ship opt-in or marked beta. Unused features and promotional banners are removed, not fixed.
-Why: users install what is merged.
 
 ## Root cause
 
-### R8. Fix the root cause where it lives
-A fix that makes an error go away without explaining why it happened is rejected. Fix it in the layer that owns it (ORM, util, datatable, shared control), not at one call site.
+### R7. Fix the root cause where it lives
+A fix that makes an error go away without explaining why it happened is rejected. Fix it in the layer that owns it (ORM, util, datatable, shared control), not at one call site. Deleting a guard, condition, style or method to make a symptom disappear is not a fix; the check was protecting something. Read the commit that introduced the behaviour before changing it; odd code is often intentional.
 Why: a symptom patch leaves the bug for the next caller.
 Exception: a harmless shallow fix may merge under release pressure, with the deep fix noted in the PR.
 
-### R9. Removing a check is not a fix
-Deleting a guard, condition, style or method to make a symptom disappear is rejected.
-Why: the check was protecting something. The PR has to say what, and why that no longer applies.
-
-### R10. Understand the original design first
-Read the commit that introduced the behaviour. Search callers and blame. Odd code is often intentional.
-Why: "you are making a new assumption; this is not what the original design was."
-
-### R11. Do not add what already exists
+### R8. Do not add what already exists
 Before adding a field, flag, param, endpoint, setting or patch, check whether an existing value, argument, default or `None` already carries the meaning. Make an existing flag tri-state before adding a second one. No patch for things `migrate` already syncs.
 Why: two mechanisms for one meaning can disagree, and every new surface is API forever.
 
@@ -157,24 +145,20 @@ def get_list(doctype, order_by="modified desc", no_order=False):
 def get_list(doctype, order_by="modified desc"):
 ```
 
-### R12. Reuse before reimplementing
+### R9. Reuse before reimplementing
 Use `@redis_cache`, `cached_property`, `frappe.generate_hash`, `frappe.db.set_value(update_modified=False)`, `frappe.ui.keys.add_shortcut`, `frappe.ui.freeze`, `frappe.utils.icon`, `str.join` and library defaults before writing new code. One implementation per piece of logic; extract a helper at the second or third repeat.
 Why: copies drift, and custom apps copy whatever core does.
 Exception: a little duplication beats coupling unrelated modules.
 
-### R13. Smallest correct change, no residue
-Prefer the one-line fix. Remove unused boot data, unreachable branches, single-use wrappers, params only ever passed one value, properties nothing reads, commented-out code, stale docstrings, no-op CSS. Residue is blocking.
-Why: dead code is read by everyone who comes after, and a no-op rule looks like it does something.
+### R10. Smallest correct change, simplest mechanism, no residue
+Prefer the one-line fix. Plain functions and `if` blocks; no inheritance towers, monkey-patching, global mutable state, threads or Lua scripts unless proven necessary. Remove unused boot data, unreachable branches, single-use wrappers, params only ever passed one value, properties nothing reads, commented-out code, no-op CSS. Residue is blocking.
+Why: complexity and dead code are paid on every read.
 
-### R14. Simplest mechanism wins
-Plain functions and `if` blocks. No inheritance towers, monkey-patching, global mutable state, threads, savepoints or Lua scripts unless proven necessary.
-Why: complexity is paid on every read.
-
-### R15. Finish the sweep, keep every surface consistent
+### R11. Finish the sweep, keep every surface consistent
 A change to one of a parallel set (DocField / Custom Field / Customize Form Field; Link / Dynamic Link; wkhtmltopdf / Chrome; form / grid / list / report / print) is incomplete until the siblings are done. A display or behaviour change applies everywhere the value appears, or not at all.
 Why: two surfaces that disagree are a new bug.
 
-### R16. Put the check at the choke point
+### R12. Put the check at the choke point
 Validation goes in `validate`, `on_trash` or `on_update`, not in one whitelisted caller.
 Why: list view bulk actions, `frappe.client.*`, the REST API and `doc.save()` all skip a check that lives in one endpoint.
 
@@ -191,66 +175,54 @@ class WebPage(Document):
         self.validate_unique_route()
 ```
 
-### R17. Do not hardcode what the framework knows
+### R13. Do not hardcode what the framework knows
 No hardcoded doctype names, `Administrator` checks, naming series, countries, logos, hosts or binary paths. Read hooks, defaults and config. Per-doctype behaviour goes on a DocType or DocField checkbox exposed in Customize Form.
 Why: hardcoded values are the branches nobody finds until a site differs.
 
-### R18. Explicit arguments, one return shape
+### R14. Explicit arguments, one return shape
 Functions and hooks take named parameters (`doctype`, `name`, `doc`), not dict or kwargs bags. State goes on `doc.flags`, not `frappe.flags`. No sentinel strings. A function returns one shape. Rename on the client, not in the server response.
 Why: callers can read a signature; they cannot read a bag.
 Exception: hook callbacks may take kwargs so the signature can grow.
 
-### R19. Cover the edge cases, and leave the user a way out
+### R15. Cover the edge cases, and leave the user a way out
 For every new branch ask what happens on `None`, duplicates, the user's own record, a queued job, a submitted document, a deleted doctype, `[Select]`. A new guard must not make the flow that resolves it also throw.
 Why: "clearing the field then throws `UpdateAfterSubmitError`; there is no way out."
 Exception: no fallbacks for states that cannot happen.
 
-### R20. Keep extension points
-Do not move or remove a hook without checking what depends on its timing. Core checks must not throw before app hooks run. Add a hook to the existing function, not a parallel one.
-Why: apps depend on hook order.
-
 ## Backward compatibility
 
-### R21. Break only when not breaking costs more
-Established behaviour (select values, ordering defaults, signatures, lifecycle semantics, exception classes) is not changed for one use case. List who depends on it across frappe, erpnext, hrms and the other apps. Take the non-breaking variant when there is one. Internal symbols can be dropped; public ones need a compatibility path. Unreleased code owes nothing.
+### R16. Break only when not breaking costs more
+Established behaviour (select values, ordering defaults, signatures, lifecycle semantics, exception classes, hook timing, export and report columns) is not changed for one use case. List who depends on it across frappe, erpnext, hrms and the other apps. Take the non-breaking variant when there is one. Internal symbols can be dropped; public ones need a compatibility path. Unreleased code owes nothing.
 Why: every app on every site pays for a break.
 Exception: behaviour that never worked, or hurts most users, may change.
 
-### R22. Deprecate one major before removing
+### R17. Deprecate one major before removing
 Public functions, paths and params get a `deprecation_warning` in place, one major for apps to migrate, then removal. No proxy classes or inspect-based machinery. Prefer fixing over deleting.
 Why: before a major, grep `deprecation_warning` and remove that code. Nothing else to remember.
 
-### R23. Defaults never flip
-A new option ships with the old behaviour as default. A rejected default may live on as an opt-in setting.
+### R18. Defaults never flip
+A new option ships with the old behaviour as default. Experimental capabilities ship opt-in or marked beta. A rejected default may live on as an opt-in setting.
 Why: people do not notice a new checkbox. They notice their site changed.
 
-### R24. Add new, migrate, hide old
+### R19. Add new, migrate, hide old
 Never repurpose or retype a field, and never change what `modified` or `creation` mean. Add a new field, migrate on save plus a patch, hide the old one, remove next major. Do not rename or remove CLI flags, kwargs, argument order, module paths or icons apps may use. New arguments go last with a default.
 Why: existing rows and calls must survive `bench migrate`.
 
-### R25. Exports and reports are an API
-Changing what CSV or Excel exports and report rows contain is breaking. Make it opt-in at export time or add columns. Never backport it.
-Why: exports get re-imported and parsed by other systems.
-
-### R26. Constraint changes ship with a patch
+### R20. Constraint changes ship with a patch
 A new unique constraint, validation or default that existing rows would violate blocks `bench migrate`. Ship a patch that repairs the data, or drop the constraint. A patch that needs new schema calls `frappe.reload_doctype` first.
 Why: sites with old data cannot update otherwise.
 
-### R27. Breaking changes carry `!` and stay on develop
+### R21. Breaking changes carry `!` and stay on develop
 Use `fix!:` or `feat!:`. Do not backport them. A framework change that needs an ERPNext change lands after the ERPNext PR, with an ERPNext CI run linked. Query builder, permission and core-model changes get that run too.
 Why: release notes and the migration guide come from the prefix.
 
-### R28. Working as designed closes the PR
-`on_update` runs after insert (use `after_insert`). User timezone is display-only. `Link` is a string. Prepared reports are owner-scoped. Several client scripts per doctype is a feature. A PR that "fixes" one of these is closed with the reason.
-Why: apps are built on these semantics.
-
-### R29. Do not take features away from regular users
+### R22. Do not take features away from regular users
 A change that makes a common workflow harder for non-technical users, or quietly disables a feature (data import mapping, URL attachments, saved filters), is reverted. Put the burden on system managers.
 Why: users use templates; system managers create them.
 
 ## Server side and security
 
-### R30. Business logic lives on the server, completely
+### R23. Business logic lives on the server, completely
 A rule enforced in JS (mandatory-depends-on, `set_query` filters, computed values) is also enforced in the controller. Params a check depends on are mandatory. Settings that gate a user are permlevel > 0. Search and validate agree.
 Why: the REST API, data import and server scripts never run client code.
 Exception: a purely cosmetic client-side permission (hiding a print button) needs no server check.
@@ -262,8 +234,8 @@ class Event(Document):
             frappe.throw(_("End date is required"), title=_("Missing Value"))
 ```
 
-### R31. Never punch holes in permissions
-`ignore_permissions=True`, blanket role grants and permission-less endpoints are not fixes. Use `doc.check_permission()`, `frappe.has_permission` and `frappe.only_for` so Is Owner and User Permissions apply, and give the user the right permission instead. Check before `get_doc` or any return, on every branch. Identity comes from `frappe.session.user`, never from the client.
+### R24. Never punch holes in permissions
+`ignore_permissions=True`, blanket role grants and permission-less endpoints are not fixes. Use `doc.check_permission()`, `frappe.has_permission` and `frappe.only_for` so Is Owner and User Permissions apply, and give the user the right permission instead. Prefer permlevels over ad-hoc code. Check before `get_doc` or any return, on every branch. Identity comes from `frappe.session.user`, never from the client.
 Why: better to give the user the right permission than to create a hole.
 
 ```python
@@ -280,12 +252,7 @@ def get_report(name):
     return doc
 ```
 
-### R32. The right permission primitive in the right place
-Internal code uses `frappe.get_all`; user-facing results use `frappe.get_list`. Permlevels over ad-hoc code. If custom DocPerms exist, only they apply. API v2 endpoints check manually. Logs need only `read`.
-Why: a permission check in internal code is a bug; a missing one in user-facing code is a hole.
-Exception: `get_list` does not work on child tables.
-
-### R33. Whitelisted endpoints are public URLs
+### R25. Whitelisted endpoints are public URLs
 Set `methods=[...]` on security-critical and guest endpoints. Store only hashes of keys and tokens. Never return `site_config` secrets. Website users can call whitelisted methods too. No `allow_guest` on flows that need login.
 
 ```python
@@ -294,7 +261,7 @@ def subscribe(email):
     ...
 ```
 
-### R34. Escape at render, never at storage
+### R26. Escape at render, never at storage
 Do not sanitise on store or globally in a formatter. Escape where the value goes into HTML, per fieldtype. Escape rather than strip. Use `|e` in Jinja.
 Why: storing anything is safe; injecting it as HTML is not. Stripping loses data.
 
@@ -306,12 +273,12 @@ $wrapper.html(`<div>${doc.title}</div>`);
 $wrapper.html(`<div>${frappe.utils.escape_html(doc.title)}</div>`);
 ```
 
-### R35. A security claim needs a demonstrated bypass
+### R27. A security claim needs a demonstrated bypass
 Ask where exactly permissions are bypassed; close if it cannot be shown. Reject rate limits and information hiding that cost more than they protect. Harden once in the shared layer, not per input. But any path that lets a normal user gain admin is blocked whatever the UX cost. Do not widen `safe_exec` or Jinja globals, read files from user input, or allow expressions in `autoname`.
 Why: there is no end to designing for stupidity, but privilege escalation beats UX.
 Exception: System Manager-authored Jinja and HTML is trusted. Other holes do not justify a new one.
 
-### R36. Fail loudly, catch the specific exception
+### R28. Fail loudly, catch the specific exception
 Permission failures raise `frappe.PermissionError`. No blanket `try/except`, no `log_error` without a traceback, chain with `raise ... from exc`. Promises get `.catch`. Background jobs already log. A friendly catch is scoped to exactly its condition.
 Why: failing is better than silently ignoring.
 
@@ -330,13 +297,13 @@ except frappe.ValidationError:
     raise
 ```
 
-### R37. Never destroy data silently
+### R29. Never destroy data silently
 No `ELSE NULL` in update queries, no sanitisers that drop content, no defaults that overwrite `creation`, `owner` or `name`. Disable instead of delete. Confirm bulk and destructive actions. Audit tables are immutable.
 Why: bad UX beats irrecoverable data loss.
 
 ## Performance
 
-### R38. Nothing lands in the hot path for everyone
+### R30. Nothing lands in the hot path for everyone
 Anything that runs on every request, document load, save or desk boot is opt-in or free. The common case never pays for the edge case. No API calls or queries on page load; read from `frappe.boot`. Anything added to boot is cached.
 Why: per-request overhead multiplies across every site.
 Exception: a few bytes in boot beat a separate request.
@@ -349,7 +316,7 @@ frappe.db.get_single_value("System Settings", "float_precision").then(...)
 const precision = frappe.boot.sysdefaults.float_precision;
 ```
 
-### R39. Think in 100k rows
+### R31. Think in 100k rows
 No `get_doc` in loops or to update one field, no unindexed filters, no full-table sorts, no `limit: 0`, no O(N) Redis scans. Hoist meta lookups and hooks out of loops. Batch link fetches. Cap `IN (...)` near 1000.
 Why: users import lakhs of records.
 
@@ -364,45 +331,41 @@ for name in names:
 frappe.db.set_value("Item", {"name": ("in", names)}, "disabled", 1)
 ```
 
-### R40. Slow or external work goes to a background job
-Work over about ten seconds, third-party API calls, bulk PDFs, renames and notification emails are enqueued, never run in a request or `validate`. Heavy work uses `queue="long"`. In patches, use an `update` query or `bulk_insert` and commit in batches, never one row at a time.
+### R32. Slow or external work goes to a background job
+Work over about ten seconds, third-party API calls, bulk PDFs, renames and notification emails are enqueued, never run in a request or `validate`. Heavy work uses `queue="long"`. Jobs are idempotent because hooks run on every retry. Files a job writes on a schedule get a retention window and cleanup. In patches, use an `update` query or `bulk_insert` and commit in batches, never one row at a time.
 Why: a worker blocked for a minute is a site down for everyone on that worker.
 
-### R41. Performance changes need numbers
+### R33. Performance changes need numbers
 Show profiler output, `EXPLAIN`, benchmarks or bundle deltas at production scale, measured as a real user, not Administrator. A perf change names the cost it removes. No caches that cannot hit, no cache on top of `get_meta` or settings (already cached), no micro-optimisation that adds code for a tiny gain.
 Why: a cache is a key, a TTL, invalidation sites and tests, all to skip one indexed query.
 Exception: do not optimise paths that run once in a blue moon.
 
 ## Database
 
-### R42. Use the highest-level API that does the job
-ORM (`frappe.db.get_value`, `set_value`, `get_list`) when it expresses the query; query builder when the ORM cannot; never hand-written dialect SQL. Do not bypass `delete_doc` and controller hooks with `frappe.db.delete` without a stated reason.
+### R34. Use the highest-level API that does the job
+ORM (`frappe.db.get_value`, `set_value`, `get_list`) when it expresses the query; query builder when the ORM cannot; never hand-written dialect SQL. Do not bypass `delete_doc` and controller hooks with `frappe.db.delete` without a stated reason. Let the schema enforce invariants: mandatory fields become `NOT NULL`, a unique constraint beats app-level dedup.
 Why: lower-level APIs skip caching, permissions, hooks and portability.
 
-### R43. No `commit()` in document events
+### R35. No `commit()` in document events
 Doc-event code never commits; requests commit at the end. Side effects that must survive run `after_commit`. Every state transition calls `check_if_latest`, with no bypass flag.
 Why: a commit inside `validate` persists a half-saved document.
 Exception: a helper reachable from a GET may commit, and patches commit in batches.
 
-### R44. Parse, don't validate; MariaDB is the reference
-Turn known inputs into query builder objects and let it emit SQL. Never regex-check or rewrite generated SQL. When drivers disagree, MariaDB is canonical and Postgres adapts; DB-specific code lives in `frappe/database/<db>/`. Permission filters go in `WHERE`, not `JOIN`. Do not add columns to `DISTINCT` or `GROUP BY` to satisfy Postgres. Pass `order_by=None` when order does not matter; tie-break paginated sorts with a unique column. Avoid `ifnull` and `coalesce`, never on `name`.
+### R36. Parse, don't validate; MariaDB is the reference
+Turn known inputs into query builder objects and let it emit SQL. Never regex-check or rewrite generated SQL. When drivers disagree, MariaDB is canonical and Postgres adapts; DB-specific code lives in `frappe/database/<db>/`. Permission filters go in `WHERE`, not `JOIN`. Pass `order_by=None` when order does not matter; tie-break paginated sorts with a unique column. Avoid `ifnull` and `coalesce`, never on `name`.
 Why: non-deterministic order makes pagination wrong.
 
-### R45. Pick the right cache and prove invalidation
+### R37. Pick the right cache and prove invalidation
 `@site_cache` is per process and never invalidated; use `@request_cache` for permission-dependent data. Single values use `frappe.cache.get_value`, not a hash. Keys are stable and prefixed. Invalidation covers every mutation; clear and recompute rather than maintain by hand.
 Why: a stale permission cache is a security bug.
 
-### R46. Patches only when data moves; DocType JSON only through the UI
+### R38. Patches only when data moves; DocType JSON only through the UI
 No patch for what `migrate` already syncs (doctypes, workspaces, module defs, new-field defaults). DocType JSON is changed through the DocType form or Customize Form and the export committed with its bumped `modified`, child tables included. A hand-edited JSON is sent back. A `modified`-only bump with no field change is reverted. Index changes need a patch or a `modified` bump so `on_doctype_update` runs.
 Why: DocType JSON is generated by code; humans and agents should not touch it directly.
 
-### R47. Let the schema enforce invariants; jobs are idempotent
-Mandatory fields become `NOT NULL`. A unique constraint beats app-level dedup. Hooks run on every retry, so jobs are idempotent and take context from `frappe.job`. New log-like doctypes register `clear_old_logs`. Files written on a schedule get a retention window and cleanup that cannot hit user data.
-Why: otherwise they are persisted forever.
-
 ## UI
 
-### R48. Design tokens, no CSS duplication, right file
+### R39. Design tokens, no CSS duplication, right file
 Every colour, weight and spacing is a token or CSS variable; check both themes. Reuse existing classes. Repeated rules go on a parent class. Delete rules with no user. View-specific CSS lives in that view's file. No inline styles, `!important`, `position: fixed` or fixed-height hacks.
 Why: more CSS means a larger bundle and more to maintain.
 Exception: print CSS stays light; no dark-mode tokens in PDFs.
@@ -415,7 +378,7 @@ Exception: print CSS stays light; no dark-mode tokens in PDFs.
 .sidebar-item { color: var(--text-color); font-weight: var(--weight-medium); }
 ```
 
-### R49. Espresso components, sprite icons, gray accents
+### R40. Espresso components, sprite icons, gray accents
 New desk UI uses `es-button` and `es-badge` with data attributes, not bootstrap `btn` and `badge`. Icons come from `frappe.utils.icon()` with names in the sprite; no hand-written SVG, no emoji. Accents are gray, not blue. A new control follows the sibling control; match avatars, indicators, labels, column order and empty states.
 Why: keep the design consistent with existing components.
 
@@ -427,23 +390,23 @@ $(`<button class="btn btn-primary btn-sm"><svg …></svg> Add</button>`)
 $(`<button class="es-button" data-variant="subtle" data-size="sm">${frappe.utils.icon("add", "sm")} ${__("Add")}</button>`)
 ```
 
-### R50. Defaults serve non-technical users; copy is short
+### R41. Defaults serve non-technical users; copy is short
 Default filter operator is `=`, not `%`. No "Property Setter" or "DocType" in labels. No icon-only buttons in dialogs. Labels say what happens ("Export all matching rows?", "3 rows updated"). Messages name things the user can find (row number, not a hash). Errors are red; non-fatal messages are warnings. `PermissionError` only for permission problems. Short plain sentences, as brief as the sibling labels.
 Why: regular users over power users.
 
-### R51. Bundle size is a budget
+### R42. Bundle size is a budget
 The bundle-size check must pass or be justified. New dialogs and panels load on first use via `frappe.require`. Libraries used by a minority stay out of the default bundle. No second frontend framework. No new dependency for trivial things.
 Why: bundles grow a few KB at a time until it is 300 KB.
 
-### R52. A dialog beats a new doctype; a permission beats a setting
-No doctype for a one-off action or dev-only report; use a button and dialog on the existing doctype, a virtual doctype, or an existing control. Prefer a permission over a setting. A justified setting lives in System Settings with a User-level override that wins. Desk branding lives in Navbar Settings. New DocType or DocField properties are exposed in Customize Form.
+### R43. A dialog beats a new doctype; a permission beats a setting
+No doctype for a one-off action or dev-only report; use a button and dialog on the existing doctype, a virtual doctype, or an existing control. Prefer a permission over a setting. A justified setting lives in System Settings with a User-level override that wins. New DocType or DocField properties are exposed in Customize Form.
 Why: do not create new UI when you do not need it.
 
-### R53. UX guardrails
-Confirm destructive and bulk actions. Secondary actions are not primary buttons. Dropdowns close on select. Success toast only when nothing failed; failures name the records. Disabled pages 404. Tab, Enter and Escape keep working. Any control change marks the form dirty. Console stays clean. No forced refresh, no extra scrollbars, no dangerous one-click control next to a frequent action.
+### R44. UX guardrails
+Confirm destructive and bulk actions. Secondary actions are not primary buttons. Success toast only when nothing failed; failures name the records. Tab, Enter and Escape keep working. Any control change marks the form dirty. Console stays clean. No forced refresh, no extra scrollbars, no dangerous one-click control next to a frequent action.
 Exception: skip the confirm where the label already says it ("Send now").
 
-### R54. Client work is scoped, runs once, cleans up
+### R45. Client work is scoped, runs once, cleans up
 `this.wrapper.find()`, not global `$()`. No work per row render or animation frame. `.off()` namespaced listeners before `.on()`. Dialogs are singletons. No `setTimeout` or `MutationObserver` when a lifecycle hook exists. No unscoped `localStorage` keys. JS validation must not depend on the awesomplete list, `.grid`, `:visible` or `frm`; think of `set_value`, paste, quick entry and grid rows.
 Why: a check per animation frame runs sixty times a second.
 
@@ -457,16 +420,16 @@ this.wrapper.off("click.sidebar").on("click.sidebar", ".sidebar-toggle", () => t
 
 ## Code hygiene
 
-### R55. No comments that say what, no debug noise, no AI attribution
+### R46. No comments that say what, no debug noise, no AI attribution
 Comments that narrate the code are removed. Issue numbers never go in code. Docstrings that restate the name are dropped; the reasoning goes in the PR. Strip `console.log`, `print`, commented-out code, unused imports, TODOs for another PR. Use `let`/`const`, `??`, `?.`, `.includes()`. Keep methods on the class, not on `frappe.provide` namespaces. `Co-Authored-By: <AI>` and "Generated with …" lines are removed. No `# nosemgrep` in core.
 Why: comments rot; two of them are already wrong.
 Exception: a non-obvious workaround gets one comment saying why.
 
-### R56. Names say what the thing does
+### R47. Names say what the thing does
 Fieldname mirrors label. Checkbox fieldnames are positive ("Allow X"). No abbreviations or `d`. Plural names return plurals. No `decorators.py` or `functions.py` grab-bags. `snake_case`; `DocType` and `JSON` casing.
 Why: it should at least resemble what it does.
 
-### R57. Type discipline
+### R48. Type discipline
 Annotate all params and the return type, or none. Hints must be true (`str | int` for docnames on whitelisted methods; a `Document` cannot cross the API boundary). Lazy imports go behind `if TYPE_CHECKING`. Compare dates with `getdate()`, not strings. `None`, `""` and `0` are different. Compare checkbox and boot values with `cint`, never `=== "1"`. Raise `NotImplementedError` instead of returning a wrong result.
 
 ```python
@@ -477,7 +440,7 @@ if doc.posting_date > today():
 if getdate(doc.posting_date) > getdate():
 ```
 
-### R58. Translate whole sentences, and only sentences
+### R49. Translate whole sentences, and only sentences
 Wrap the full sentence in `_()` / `__()` with `{0}` placeholders. Never build it from f-strings, `+`, ternaries or template literals. Format after translating. No HTML inside the source string; use `frappe.bold()` or a placeholder. Do not translate `"{0}"`, empty strings, fieldnames, file names, user-authored labels, `df.label` or link values.
 Why: constructed strings never get a translation.
 
@@ -489,21 +452,21 @@ frappe.throw(_("Cannot delete " + doc.name + " because it is submitted"))
 frappe.throw(_("Cannot delete {0} because it is submitted").format(frappe.bold(doc.name)))
 ```
 
-### R59. Flat functions, no guards for impossible states
+### R50. Flat functions, no guards for impossible states
 Short functions, early return, `if x := ...:`, `a or default`. Inline a two-line helper used once. No `and`/`or` chaining tricks, nested ternaries, `True if … else False`, redundant casts. `.replace()` and `startswith` over regex. No `getattr`, `hasattr`, `isinstance` or empty-list guards for values that are always set. No `None` defaults on API args that cannot be handled.
 Why: guards for impossible states hide real bugs.
 
-### R60. Tests never leak into production code
+### R51. Tests never leak into production code
 No `if frappe.in_test`, no `in_import` or `in_patch` escape hatches, no edge case added to make a test pass. `assert` is for invariants and is not blocked by lint.
 Why: if you have to do this, you broke something.
 
 ## Tests
 
-### R61. New behaviour and bug fixes ship with a test that can fail
+### R52. New behaviour and bug fixes ship with a test that can fail
 Permissions, backups, schema, docstatus transitions, number parsing and anything touching every list view get a test for every promised case. A test that passes without the fix, only checks that nothing raised, swallows the exception, or asserts on generated SQL is rejected. Use `assertQueryCount` for caching claims. Confirm the test fails with the fix reverted.
 Exception: a trivial one-liner, a small UI change with a video, or a race the harness cannot reproduce. Say so.
 
-### R62. Test through interfaces, as a real user, with clean fixtures
+### R53. Test through interfaces, as a real user, with clean fixtures
 Assert via public interfaces, not cache internals. Use `new_doctype`, `freeze_time`, `set_request`. Tests set their own preconditions and rely on auto-rollback; no manual commit, no leftover Redis state. A feature that only works as Administrator is a bug: switch user. A permission test that calls `get_all` proves nothing; use `get_list`. Fixtures use `example.com`, never real domains, companies, emails or keys, and stay tiny. No issue numbers in test names.
 
 ```python
@@ -517,35 +480,32 @@ def test_permission(self):
     self.assertFalse(frappe.get_list("Note"))
 ```
 
-### R63. Flaky tests are fixed, not disabled
+### R54. Flaky tests are fixed, not disabled
 The author investigates red CI: run locally, remove the new test to isolate, rebase. A related failure blocks; an unrelated one is named per check and re-run. Never skip a test to get green. If a test expects the old behaviour, update it. UI behaviour changes get a Cypress test when the repro is deterministic.
 Why: a disabled test comes back to haunt you.
 
-### R64. The reviewer runs the branch
-Check out the PR and follow the author's own steps. A fix that fails on its own steps goes back. Ask the author to confirm the final state before merging. Claims are backed by a bench console repro or measured numbers.
-
 ## PR process
 
-### R65. Develop first, backport later
+### R55. Develop first, backport later
 Fix develop, then `@mergify backport version-N-hotfix` so authorship is kept. A manual port matches the develop diff exactly and carries its dependencies; check the target branch has the prerequisite APIs. Features and behaviour changes wait one to three weeks on develop, or are not backported. A v15 label usually needs v16 too. Breaking changes stay on develop. Retargeting a PR does not work; open a new one.
 Why: stable branches are where customers are.
 Exception: security and dependency fixes go to stable quickly. A fix that no longer applies on develop may target the hotfix branch. A customer-blocking fix may skip the soak.
 
-### R66. One concern per PR
+### R56. One concern per PR
 Unrelated refactors, renames, formatting, `yarn.lock` churn, `.po` hunks and independent bugs go in their own PR so they can be backported and blamed separately. A targeted fix does not touch the surrounding flow. But do not split a six-line change into four PRs, or open a second PR for a tweak to an open one.
 Why: unrelated changes in one commit make it hard to find and backport anything.
 
-### R67. Docs for new APIs; translations and docs never in the repo
-Hooks, config keys, settings and public utilities land with docs on docs.frappe.io; internal helpers do not. "Why `no-docs`?" is a fair question. `.po` and `.pot` edits go to Crowdin. No documentation files in the repository.
+### R57. User-facing docs live on docs.frappe.io; translations on Crowdin
+Hooks, config keys, settings and public utilities land with user-facing docs on docs.frappe.io; internal helpers do not. "Why `no-docs`?" is a fair question. `.po` and `.pot` edits go to Crowdin, never into the repository.
 
-### R68. Revert first, fix later
+### R58. Revert first, fix later
 A merged change that causes support tickets, crashes, performance regressions, bundle-size failures or broken defaults is reverted immediately, before the cause is understood. The revert says why. The author re-raises with the fix.
 Why: every hour a regression stays on develop it reaches more sites.
 
-### R69. Stale or unfinished PRs are closed with an open door
+### R59. Stale or unfinished PRs are closed with an open door
 Not-ready work goes to Draft; draft means not mergeable. After a nudge, inactive PRs or PRs with too many open issues are closed "for now" with an offer to reopen.
 
-### R70. No automated or AI-generated changesets
+### R60. No automated or AI-generated changesets
 A PR generated without manual review, that references code not in the diff, hides the real cause or reimplements an existing component is closed. Suspected AI code needs a video and a plain explanation before further review. No scripted typo sweeps, vendored-library edits or typo-in-comment PRs. Code lifted from an issue, another PR or another app carries the original author (`git commit --author=`); backport the original PR rather than re-author it.
 Why: reviewer time is the scarcest resource in the project.
 Exception: maintainers may run automated changes themselves after an issue is agreed.
