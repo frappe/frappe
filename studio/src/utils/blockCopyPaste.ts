@@ -53,17 +53,17 @@ export function copyBlocks(e: ClipboardEvent) {
 	e.preventDefault()
 	dialog.confirm({
 		title: "Copy entire page?",
-		message: "Copy the page's data sources, variables and script along with its blocks?",
+		message: "Do you want to copy the entire page including its data sources, variables and script along with its blocks?",
 		actions: [
 			{
-				label: "Just the blocks",
+				label: "No, just blocks",
 				onClick: ({ close }) => {
 					close()
 					return writeClipboardPayload(Promise.resolve({ blocks: getSelectedBlockCopies() }))
 				},
 			},
 			{
-				label: "Copy page",
+				label: "Yes",
 				variant: "solid",
 				onClick: ({ close }) => {
 					close()
@@ -212,12 +212,12 @@ function handlePastePage(payload: ClipboardPayload) {
 		files: payload.files,
 	}
 	dialog.confirm({
-		title: "Paste page",
+		title: "Pasting a page!",
 		message:
-			"This copy includes the page's data sources, variables and script. Create a new page from it, or replace the contents of the current page?",
+			"You are about to paste a page with data sources, variables, and scripts. Do you want to create a new page, or update the current one?",
 		actions: [
-			{ label: "Replace current page", onClick: () => store.pastePage(copy, store.activePage?.name) },
-			{ label: "Create new page", variant: "solid", onClick: () => store.pastePage(copy) },
+			{ label: "Create new page", onClick: () => store.pastePage(copy) },
+			{ label: "Replace current page", variant: "solid", onClick: () => store.pastePage(copy, store.activePage?.name) },
 		],
 	})
 }
