@@ -4,6 +4,7 @@
 import json
 import os
 import subprocess
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -162,6 +163,72 @@ class TestDaemonLifecycle(UnitTestCase):
 		with self.assertRaisesRegex(RuntimeError, "no site is provisioned"):
 			lifecycle.start()
 
+	def test_ensure_running_checks_health_inside_the_global_lock(self):
+		events = []
+
+		@contextmanager
+		def locked(name, *, is_global):
+			events.append(("enter", name, is_global))
+			yield
+			events.append(("exit", name, is_global))
+
+		def healthy():
+			events.append("healthy")
+			return True
+
+		with (
+			patch.object(lifecycle, "filelock", side_effect=locked),
+			patch.object(lifecycle, "healthy", side_effect=healthy),
+		):
+			lifecycle.ensure_running()
+
+		self.assertEqual(
+			events,
+			[("enter", lifecycle.LOCK, True), "healthy", ("exit", lifecycle.LOCK, True)],
+		)
+
+	def test_mutating_lifecycle_entry_points_take_the_global_lock(self):
+		for entrypoint, operation in (("start", "_start"), ("stop", "_stop"), ("restart", "_restart")):
+			with self.subTest(entrypoint=entrypoint):
+				events = []
+
+				@contextmanager
+				def locked(name, *, is_global):
+					events.append(("enter", name, is_global))
+					yield
+					events.append(("exit", name, is_global))
+
+				def run_operation():
+					events.append(operation)
+
+				with (
+					patch.object(lifecycle, "filelock", side_effect=locked),
+					patch.object(lifecycle, operation, side_effect=run_operation),
+				):
+					getattr(lifecycle, entrypoint)()
+
+				self.assertEqual(
+					events,
+					[("enter", lifecycle.LOCK, True), operation, ("exit", lifecycle.LOCK, True)],
+				)
+
+	def test_start_cleans_up_a_process_that_never_becomes_healthy(self):
+		self.install_flow_bin()
+		lifecycle.provision_site()
+		process = FakeProcess()
+		with (
+			patch.object(lifecycle, "START_TIMEOUT", 0),
+			patch.object(lifecycle, "healthy", return_value=False),
+			patch.object(lifecycle, "_redis_url", return_value=None),
+			patch.object(subprocess, "Popen", return_value=process),
+			self.assertRaisesRegex(RuntimeError, "did not start"),
+		):
+			lifecycle.start()
+
+		self.assertTrue(process.terminated)
+		self.assertTrue(process.waited)
+		self.assertFalse(lifecycle.pid_file().exists())
+
 	def test_stop_ignores_a_pid_that_is_not_the_daemon(self):
 		self.runtime.mkdir(parents=True)
 		lifecycle.pid_file().write_text(str(os.getpid()))
@@ -171,12 +238,12 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertFalse(lifecycle.pid_file().exists())
 
 	def test_keep_alive_restarts_a_dead_daemon_only_once_the_harness_is_installed(self):
-		with patch.object(lifecycle, "restart") as restart:
+		with patch.object(lifecycle, "ensure_running") as ensure_running:
 			lifecycle.keep_alive()
-			restart.assert_not_called()
+			ensure_running.assert_not_called()
 			self.install_flow_bin()
 			lifecycle.keep_alive()
-			restart.assert_called_once()
+			ensure_running.assert_called_once()
 
 	def install_flow_bin(self) -> None:
 		self.flow_bin.parent.mkdir(parents=True)
@@ -189,5 +256,16 @@ class TestDaemonLifecycle(UnitTestCase):
 class FakeProcess:
 	pid = 4242
 
+	def __init__(self):
+		self.terminated = False
+		self.waited = False
+
 	def poll(self):
 		return None
+
+	def terminate(self):
+		self.terminated = True
+
+	def wait(self, timeout=None):
+		self.waited = True
+		return 0

@@ -68,9 +68,7 @@ def keep_alive() -> None:
 	"""Scheduler: restart a daemon that died."""
 	if not _flow_bin().exists():
 		return
-	with filelock(LOCK, is_global=True):
-		if not healthy():
-			restart()
+	ensure_running()
 
 
 def _run_or_warn(step: Callable[[], None]) -> None:
@@ -165,17 +163,33 @@ def _edit_tenants(change: Callable[[dict], object]) -> dict:
 
 
 def ensure_running() -> None:
-	if not healthy():
-		restart()
+	with filelock(LOCK, is_global=True):
+		if not healthy():
+			_restart()
 
 
 def restart() -> None:
-	stop()
-	start()
+	with filelock(LOCK, is_global=True):
+		_restart()
 
 
 def start() -> None:
 	"""Launch the daemon detached and wait until it answers on the socket."""
+	with filelock(LOCK, is_global=True):
+		_start()
+
+
+def stop() -> None:
+	with filelock(LOCK, is_global=True):
+		_stop()
+
+
+def _restart() -> None:
+	_stop()
+	_start()
+
+
+def _start() -> None:
 	if not _flow_bin().exists():
 		raise RuntimeError("flow server is missing from the bench environment; reinstall the Flow app")
 	if not _read_tenants():
@@ -208,16 +222,24 @@ def start() -> None:
 			start_new_session=True,
 			umask=0o077,  # session transcripts and the socket are the bench user's alone
 		)
-	pid_file().write_text(str(process.pid))
-	deadline = time.monotonic() + START_TIMEOUT
-	while time.monotonic() < deadline and process.poll() is None:
-		if healthy():
-			return
-		time.sleep(0.2)
-	raise RuntimeError(f"flow server did not start, see {log}:\n{_log_tail(log)}")
+	try:
+		pid_file().write_text(str(process.pid))
+		deadline = time.monotonic() + START_TIMEOUT
+		while time.monotonic() < deadline and process.poll() is None:
+			if healthy():
+				return
+			time.sleep(0.2)
+		raise RuntimeError(f"flow server did not start, see {log}:\n{_log_tail(log)}")
+	except BaseException:
+		try:
+			_terminate_process(process)
+		finally:
+			pid_file().unlink(missing_ok=True)
+			socket_path().unlink(missing_ok=True)
+		raise
 
 
-def stop() -> None:
+def _stop() -> None:
 	pid = pid_file()
 	try:
 		process_id = int(pid.read_text())
@@ -231,6 +253,18 @@ def stop() -> None:
 		if _alive(process_id):
 			os.kill(process_id, signal.SIGKILL)
 	pid.unlink(missing_ok=True)
+
+
+def _terminate_process(process: subprocess.Popen) -> None:
+	"""Stop and reap a child that did not complete startup."""
+	if process.poll() is not None:
+		return
+	process.terminate()
+	try:
+		process.wait(timeout=STOP_TIMEOUT)
+	except subprocess.TimeoutExpired:
+		process.kill()
+		process.wait(timeout=STOP_TIMEOUT)
 
 
 def status() -> str:
