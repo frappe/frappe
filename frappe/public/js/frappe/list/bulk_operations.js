@@ -364,9 +364,6 @@ export default class BulkOperations {
 				const { fieldname, is_child_field, child_doctype } = selected_field;
 				dialog.disable_primary_action();
 				let update_data = {};
-				if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object") {
-					value = value.map((d) => d[fieldname]);
-				}
 				if (is_child_field) {
 					// For child table fields, we need to update all rows in the child table
 					update_data = {
@@ -433,10 +430,6 @@ export default class BulkOperations {
 			}
 			new_df.label = __("Value");
 			new_df.onchange = show_help_text;
-			if (new_df.child_doctype === "Has Role" && new_df.fieldname === "role") {
-				new_df.fieldtype = "TableMultiSelect";
-				new_df.options = "Has Role";
-			}
 
 			delete new_df.depends_on;
 			delete new_df.is_child_field;
