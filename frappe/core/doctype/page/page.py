@@ -33,6 +33,7 @@ class Page(Document):
 		standard: DF.Literal["Yes", "No"]
 		system_page: DF.Check
 		title: DF.Data | None
+		type: DF.Literal["", "Frappe UI"]
 	# end: auto-generated types
 
 	def autoname(self):
@@ -66,6 +67,33 @@ class Page(Document):
 		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
 
+		self.validate_island()
+
+	def validate_island(self):
+		"""The two things a Frappe UI page needs before it can be built at all."""
+		if self.type != "Frappe UI":
+			return
+
+		if self.standard != "Yes":
+			frappe.throw(
+				_("A Frappe UI page has to be Standard. Its Vue source lives in the app's page folder.")
+			)
+
+		# The page script stops running the moment the type changes, so a page
+		# switched over would quietly lose whatever that file did.
+		page_name = frappe.scrub(self.name)
+		if not self.is_new() and os.path.exists(os.path.join(self.get_folder_path(), f"{page_name}.js")):
+			frappe.msgprint(
+				_("{0}.js will no longer run. A Frappe UI page is drawn by its island.").format(
+					f"{page_name}.js"
+				),
+				indicator="orange",
+			)
+
+	def get_folder_path(self) -> str:
+		"""The folder holding this page's files: `<module>/page/<page_name>/`."""
+		return os.path.join(get_module_path(self.module), "page", frappe.scrub(self.name))
+
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
 
@@ -86,25 +114,58 @@ class Page(Document):
 
 		path = export_module_json(self, self.standard == "Yes", self.module)
 
-		if path:
+		if not path:
+			return
+
+		if self.type == "Frappe UI":
+			self.write_island_boilerplate(path)
+		elif not os.path.exists(path + ".js"):
 			# js
-			if not os.path.exists(path + ".js"):
-				with open(path + ".js", "w") as f:
-					f.write(
-						f"""frappe.pages['{self.name}'].on_page_load = function(wrapper) {{
+			with open(path + ".js", "w") as f:
+				f.write(
+					f"""frappe.pages['{self.name}'].on_page_load = function(wrapper) {{
 	var page = frappe.ui.make_app_page({{
 		parent: wrapper,
 		title: '{self.title}',
 		single_column: true
 	}});
 }}"""
-					)
+				)
+
+	def write_island_boilerplate(self, path: str):
+		"""The starter a Frappe UI page begins life with.
+
+		Two files beside the page's json: the entry desk loads, and the component
+		it renders. Neither is overwritten, so a page that already has them keeps
+		what its developer wrote.
+		"""
+		if not os.path.exists(path + ".island.js"):
+			with open(path + ".island.js", "w") as f:
+				f.write(ISLAND_ENTRY.replace("__VUE_FILE__", os.path.basename(path) + ".vue"))
+
+		if not os.path.exists(path + ".vue"):
+			with open(path + ".vue", "w") as f:
+				f.write(ISLAND_COMPONENT.replace("__TITLE__", self.title or self.name))
 
 	def as_dict(self, **kwargs):
 		d = super().as_dict(**kwargs)
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
+
+		# Like the three above, this is loaded rather than stored, so it is here
+		# and not a field. `load_assets` derives it, and only for a Frappe UI
+		# page, so an export carries no key at all.
+		if self.get("island"):
+			d["island"] = self.island
+
 		return d
+
+	def get_island_name(self) -> str | None:
+		"""The island that draws this page. `None` if its app is not installed."""
+		from frappe.utils.island import page_island_name
+
+		app = frappe.local.module_app.get(frappe.scrub(self.module))
+		return page_island_name(app, self.name) if app else None
 
 	def clear_cache(self):
 		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
@@ -155,6 +216,16 @@ class Page(Document):
 		from frappe.modules import get_module_path, scrub
 
 		self.script = ""
+
+		# An island draws the whole page, so none of the desk assets below are
+		# read. The page script in particular is never shipped to the client,
+		# where it would be eval'd as a classic script.
+		#
+		# Desk mounts by name, and only this side knows which app the page's
+		# module belongs to.
+		if self.type == "Frappe UI":
+			self.island = self.get_island_name()
+			return
 
 		page_name = scrub(self.name)
 
@@ -210,3 +281,75 @@ def delete_custom_role(field, docname):
 	name = frappe.db.get_value("Custom Role", {field: docname}, "name")
 	if name:
 		frappe.delete_doc("Custom Role", name)
+
+
+# The starter files a Frappe UI page is created with. Written once, never
+# overwritten. `__VUE_FILE__` and `__TITLE__` are filled in by
+# `Page.write_island_boilerplate`, by replacement rather than `format`,
+# because a Vue template is full of braces.
+ISLAND_ENTRY = """// The island entry for this page. Desk imports this module and calls `mount`.
+//
+// `mountVueIsland` opens the shadow root, adopts this app's stylesheet, mirrors
+// desk's theme and gives frappe-ui's overlays a portal target inside the root.
+import { mountVueIsland } from "@framework/ui/island";
+
+import Page from "./__VUE_FILE__";
+
+export const mount = (el, context) => mountVueIsland(el, { ...context, component: Page });
+"""
+
+ISLAND_COMPONENT = """<script setup>
+import { onMounted } from "vue";
+import { useHost } from "@framework/ui/island";
+
+// Desk hands these down and updates them in place. `route` is the URL segments
+// after the page name, and `query` its parameters. A route change re-renders
+// this component instead of re-mounting the island.
+defineProps({
+	route: { type: Array, default: () => [] },
+	query: { type: Object, default: () => ({}) },
+});
+
+// The page header belongs to the host, and the island reports what it should
+// say. Desk writes `title` into the breadcrumb and the browser tab, and turns
+// each action into a page menu row. An action is { label, icon? } plus either
+// an onClick or an href.
+// See ui/island/decisions/0010-a-page-island-reports-title-and-actions.md
+const emit = defineEmits(["title", "actions"]);
+
+// Desk's ambient context: locale, timezone, user, theme, and `navigate` for a
+// desk route. Every field is optional, so this component still renders where
+// nothing provides it, such as in a unit test.
+const host = useHost();
+
+onMounted(() => {
+	emit("title", "__TITLE__");
+	emit("actions", []);
+});
+
+// Data needs no bootstrapping. frappe-ui resources work here as long as each is
+// given the fetcher, the way every @framework/ui component does it:
+//
+//   import { createResource, frappeRequest } from "frappe-ui";
+//
+//   const users = createResource({
+//       url: "frappe.client.get_list",
+//       params: { doctype: "User", fields: ["name"] },
+//       resourceFetcher: frappeRequest,
+//       auto: true,
+//   });
+</script>
+
+<template>
+	<div class="h-full overflow-y-auto p-5">
+		<h1 class="text-lg font-semibold text-ink-gray-9">__TITLE__</h1>
+		<p class="mt-2 text-sm text-ink-gray-7">
+			This page is drawn by an island. Edit this file, save, and it reloads.
+		</p>
+		<p v-if="route.length" class="mt-2 text-sm text-ink-gray-6">
+			Route below the page: {{ route.join("/") }}
+		</p>
+		<p v-if="host.user" class="mt-2 text-sm text-ink-gray-6">Signed in as {{ host.user }}</p>
+	</div>
+</template>
+"""
