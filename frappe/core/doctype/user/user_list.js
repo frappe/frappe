@@ -6,6 +6,43 @@ frappe.listview_settings["User"] = {
 	filters: [["enabled", "=", 1]],
 	onload(listview) {
 		this.set_default_app_options(listview);
+
+		listview.page.add_actions_menu_item(__("Add Roles"), () => {
+			const selected_users = listview.get_checked_items(true);
+			if (!selected_users.length) {
+				frappe.msgprint(__("Please select at least one user."));
+				return;
+			}
+
+			const dialog = new frappe.ui.Dialog({
+				title: __("Add Roles"),
+				fields: [
+					{
+						fieldtype: "TableMultiSelect",
+						fieldname: "roles",
+						label: __("Roles"),
+						reqd: 1,
+						options: "Has Role",
+					},
+				],
+				primary_action_label: __("Add"),
+				primary_action(values) {
+					if (!values.roles?.length) return;
+					const roles = values.roles.map((r) => r.role).filter(Boolean);
+					frappe.call({
+						method: "frappe.core.doctype.user.user.bulk_add_roles",
+						args: { users: selected_users, roles: roles },
+						freeze: true,
+						callback() {
+							dialog.hide();
+							listview.refresh();
+							frappe.show_alert(__("Roles added successfully"));
+						},
+					});
+				},
+			});
+			dialog.show();
+		});
 	},
 	prepare_data: function (data) {
 		data["user_for_avatar"] = data["name"];

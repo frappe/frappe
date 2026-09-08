@@ -729,26 +729,6 @@ class User(Document):
 				continue
 			self.append("roles", {"role": role})
 
-	def handle_bulk_child_updates(self, child_doctype: str, field_updates: dict) -> bool:
-		"""
-		Custom hook to process child table bulk updates safely.
-		Returns True if the update was handled customly (bypassing the framework's default
-		destructive overwrite behavior), else False.
-		"""
-
-		if child_doctype == "Has Role":
-			roles_to_add = field_updates.get("role")
-			if not roles_to_add:
-				return True
-			if isinstance(roles_to_add, str):
-				roles_to_add = [roles_to_add]
-
-			self.append_roles(*roles_to_add)
-
-			return True
-
-		return False
-
 	def add_roles(self, *roles):
 		"""Add roles to user and save"""
 		self.append_roles(*roles)
@@ -1596,3 +1576,21 @@ def clear_session(sid_hash: str):
 			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
 			frappe.toast(_("Successfully signed out"))
 			return
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_add_roles(users: str | list, roles: str | list) -> None:
+	"""Bulk assign roles to multiple users without overwriting existing roles."""
+	frappe.has_permission("User", "write", throw=True)
+
+	if isinstance(users, str):
+		users = frappe.parse_json(users)
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
+	if not users or not roles:
+		return
+
+	for user_id in users:
+		user_doc = frappe.get_doc("User", user_id)
+		user_doc.add_roles(*roles)
