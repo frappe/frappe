@@ -497,6 +497,20 @@ after_request = [
 	"frappe.monitor.stop",
 ]
 
+# Routes whose PUT body init_request must not buffer through make_form_dict or
+# cap at the generic upload size: frappe.storage.upload.upload_chunk reads and
+# bounds its own body against the session's declared size (frappe.storage.upload
+# .get_request_bytes), so double-buffering it here would only waste memory, and
+# the generic cap does not know that per-session size.
+#
+# Declare only the unversioned form: init_request (frappe/app.py:
+# canonical_request_path) strips a leading /api/v1 or /api/v2 mount before
+# matching, so this one entry also covers /api/v1/method/... and
+# /api/v2/method/... without enumerating every API version here.
+streaming_request_paths = [
+	"/api/method/frappe.storage.upload.upload_chunk",
+]
+
 # Background Job Hooks
 before_job = [
 	"frappe.recorder.record",

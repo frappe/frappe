@@ -408,6 +408,41 @@ class TestCollectGarbage(IntegrationTestCase):
 	def test_is_still_orphan_is_false_for_a_missing_row(self):
 		self.assertFalse(gc.is_still_orphan(frappe.generate_hash(length=20), self.gc_cutoff()))
 
+	def test_delete_blob_frees_bytes_at_a_relocated_blobs_current_location(self):
+		# get_orphan_blobs may capture a blob's key/driver before a concurrent
+		# relocate_blobs() run commits it to a new location. delete_blob must
+		# delete bytes at the blob's *current* location (re-read under the same
+		# lock is_still_orphan takes), or the row disappears while the
+		# relocated bytes are stranded with no row left to ever find them.
+		with flag_on(), fake() as store:
+			blob = self.put()
+			backdate(blob.name)
+			stale = self.blob_row(blob)  # as if scanned before the relocation below
+
+			relocated_key = "relocated/" + blob.key
+			store.write(relocated_key, io.BytesIO(b"moved"))
+			frappe.db.set_value(
+				"File Blob", blob.name, {"key": relocated_key, "driver": store.name}, update_modified=False
+			)
+			stats = self.empty_stats()
+
+			deleted = gc.delete_blob(stale, self.gc_cutoff(), frappe.logger("storage"), stats)
+
+			self.assertTrue(deleted)
+			self.assertFalse(frappe.db.exists("File Blob", blob.name))
+			self.assertFalse(store.exists(relocated_key))
+
+	def test_is_still_orphan_returns_current_fields_under_the_lock(self):
+		with flag_on(), fake():
+			blob = self.put()
+			backdate(blob.name)
+
+			current = gc.is_still_orphan(blob.name, self.gc_cutoff())
+
+			self.assertEqual(current.key, blob.key)
+			self.assertEqual(current.driver, blob.driver)
+			self.assertEqual(int(current.is_private), int(blob.is_private))
+
 	def test_gc_is_registered_as_daily_scheduler_event(self):
 		daily = frappe.get_hooks("scheduler_events").get("daily", [])
 		self.assertIn("frappe.storage.gc.collect_garbage", daily)
