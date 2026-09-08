@@ -149,6 +149,7 @@ class StudioPage(Document):
 	@frappe.whitelist()
 	def get_copy(self, blocks=None) -> dict:
 		"""Page settings, data sources, variables, script and the components `blocks` use, for copy-paste."""
+		self.check_permission("read")
 		blocks = frappe.parse_json(blocks) or parse_json(self.draft_blocks or self.blocks) or []
 		script = self.get_script_source()
 		return {
@@ -164,6 +165,7 @@ class StudioPage(Document):
 	def get_dependencies(self, blocks, script: str = "") -> dict:
 		"""What `blocks` (and `script`) need from outside themselves, for copy-paste: Studio components,
 		app files, and this page's data sources and variables they reference."""
+		self.check_permission("read")
 		blocks = frappe.parse_json(blocks) or []
 		text = frappe.as_json(blocks)
 
