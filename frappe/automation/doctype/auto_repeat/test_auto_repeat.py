@@ -259,18 +259,8 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		owner = "test_auto_repeat_owner@example.com"
-		if not frappe.db.exists("User", owner):
-			frappe.get_doc(
-				doctype="User",
-				email=owner,
-				first_name="Auto Repeat Owner",
-				send_welcome_email=0,
-				roles=[{"role": "System Manager"}],
-			).insert(ignore_permissions=True)
-
 		doc = make_auto_repeat(reference_document=todo.name)
-		frappe.db.set_value("Auto Repeat", doc.name, "owner", owner)
+		frappe.db.set_value("Auto Repeat", doc.name, "owner", "test@example.com")
 		doc.reload()
 		frappe.delete_doc("ToDo", todo.name, force=True, ignore_permissions=True)
 
