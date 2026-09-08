@@ -369,6 +369,18 @@ class Engine:
 			self.query._parent_doctype = self.parent_doctype
 			self.query._fields_list = getattr(self, "fields", [])
 
+		if getattr(self.query, "_name_field_injected", False) and (distinct or self.is_aggregate_query):
+			frappe.throw(
+				_(
+					"Cannot use distinct=True with child table fields unless the "
+					"parent 'name' field is also explicitly included in `fields`. "
+					"'name' must be selected internally to fetch child rows, which "
+					"would otherwise silently change what distinct treats as a duplicate."
+				),
+				title=_("Ambiguous Distinct Query"),
+				exc=frappe.ValidationError,
+			)
+
 		self.query.immutable = True
 		return self.query
 
@@ -387,19 +399,33 @@ class Engine:
 			self.fields = [self.table.name]
 
 		self.query._child_queries = []
+		self.query._name_field_injected = False
 		has_select_field = False
+		has_child_queries = False
+		has_name_field = False
+
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
 				self.query = field.apply_select(self.query, engine=self)
 				has_select_field = True
 			elif isinstance(field, ChildQuery):
 				self.query._child_queries.append(field)
+				has_child_queries = True
 			else:
 				self.query = self.query.select(field)
 				has_select_field = True
 
+				output_key = getattr(field, "alias", None) or getattr(field, "name", None)
+				if output_key == "name" or isinstance(field, Star):
+					has_name_field = True
+
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
+			has_name_field = True
+
+		if has_child_queries and not has_name_field:
+			self.query = self.query.select(self.table.name)
+			self.query._name_field_injected = True
 
 	def apply_filters(
 		self,
