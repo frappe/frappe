@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
 import os
 import shutil
 
@@ -139,13 +140,17 @@ class Page(Document):
 		it renders. Neither is overwritten, so a page that already has them keeps
 		what its developer wrote.
 		"""
+		title = self.title or self.name
+
+		# Both files go where `export_module_json` just wrote the page's own json,
+		# which is where the page script below is written too.
 		if not os.path.exists(path + ".island.js"):
-			with open(path + ".island.js", "w") as f:
+			with open(path + ".island.js", "w") as f:  # nosemgrep
 				f.write(ISLAND_ENTRY.replace("__VUE_FILE__", os.path.basename(path) + ".vue"))
 
 		if not os.path.exists(path + ".vue"):
-			with open(path + ".vue", "w") as f:
-				f.write(ISLAND_COMPONENT.replace("__TITLE__", self.title or self.name))
+			with open(path + ".vue", "w") as f:  # nosemgrep
+				f.write(ISLAND_COMPONENT.replace("__TITLE__", as_js_string(title)))
 
 	def as_dict(self, **kwargs):
 		d = super().as_dict(**kwargs)
@@ -283,6 +288,18 @@ def delete_custom_role(field, docname):
 		frappe.delete_doc("Custom Role", name)
 
 
+def as_js_string(value: str) -> str:
+	"""`value` as a JS string literal, to be written into source.
+
+	A title is data, and the scaffold writes it into a `.vue` file. `json.dumps`
+	writes the whole literal, quotes included, so a quote in the title cannot end
+	the string early. `<` is escaped on top of that: the literal sits inside a
+	`<script setup>` block, and the SFC parser ends that block at the first
+	`</script>` it sees, wherever that is.
+	"""
+	return json.dumps(value).replace("<", "\\u003c")
+
+
 # The starter files a Frappe UI page is created with. Written once, never
 # overwritten. `__VUE_FILE__` and `__TITLE__` are filled in by
 # `Page.write_island_boilerplate`, by replacement rather than `format`,
@@ -322,8 +339,12 @@ const emit = defineEmits(["title", "actions"]);
 // nothing provides it, such as in a unit test.
 const host = useHost();
 
+// The page's title when it was created. It is a plain string, and `{{ }}` below
+// renders it as text, so it stays data wherever it is used.
+const title = __TITLE__;
+
 onMounted(() => {
-	emit("title", "__TITLE__");
+	emit("title", title);
 	emit("actions", []);
 });
 
@@ -342,7 +363,7 @@ onMounted(() => {
 
 <template>
 	<div class="h-full overflow-y-auto p-5">
-		<h1 class="text-lg font-semibold text-ink-gray-9">__TITLE__</h1>
+		<h1 class="text-lg font-semibold text-ink-gray-9">{{ title }}</h1>
 		<p class="mt-2 text-sm text-ink-gray-7">
 			This page is drawn by an island. Edit this file, save, and it reloads.
 		</p>

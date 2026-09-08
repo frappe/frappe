@@ -1,7 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 import os
+import re
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import frappe
@@ -86,6 +89,28 @@ class TestPage(IntegrationTestCase):
 		page.load_assets()
 		self.assertEqual(page.script, "")
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_title_is_encoded_for_the_scaffold_it_lands_in(self):
+		# A title is data, and the scaffold writes it into source. Substituted
+		# raw, the quote ends the JS string early and the page does not build.
+		page = self.make_page(type="Frappe UI", title='Q1 "Sales" </script> <b>& co</b>')
+		source = Path(page.get_folder_path(), f"{frappe.scrub(page.name)}.vue").read_text()
+
+		literal = re.search(r"const title = (.+);", source).group(1)
+		self.assertEqual(json.loads(literal), page.title)
+
+		# It appears once, and the template renders it as text rather than markup.
+		self.assertEqual(source.count(literal), 1)
+		self.assertIn("{{ title }}", source)
+
+		# The literal sits in a `<script setup>` block, which the SFC parser ends
+		# at the first `</script>` it reads.
+		self.assertEqual(source.count("<script"), 1)
+		self.assertEqual(source.count("</script>"), 1)
+
 	def make_page(self, **values):
 		"""A standard Page, written to disk and removed when the case ends."""
 		page = frappe.new_doc(
@@ -95,7 +120,12 @@ class TestPage(IntegrationTestCase):
 		def remove():
 			with patch.dict(frappe.conf, {"developer_mode": 1}):
 				frappe.delete_doc("Page", page.name, force=True)
-				frappe.db.commit()
+
+			# `on_trash` queues the folder removal with `after_commit`, and a test
+			# rolls back rather than commits, so the hook never fires. These cases
+			# write real files into the app, so remove the folder directly instead
+			# of committing the whole transaction to make the hook run.
+			page.delete_folder_with_contents()
 
 		self.addCleanup(remove)
 		return page

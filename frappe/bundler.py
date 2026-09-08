@@ -150,7 +150,7 @@ def page_island_build_command(production: bool = False, watch: bool = False) -> 
 	needs neither an app frontend nor the bench's node_modules. A bench with no
 	Frappe UI page exits before it touches either.
 	"""
-	script = os.path.join(frappe.get_app_source_path("frappe"), "ui", "vite", "island", "build-pages.mjs")
+	script = os.path.join(frappe.get_app_source_path("frappe"), "ui", "vite", "island", "build-pages.js")
 	command = f"node {shlex.quote(script)}"
 	if production:
 		command += " --production"

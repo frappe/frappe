@@ -71,7 +71,14 @@ class TestPageIslands(IntegrationTestCase):
 		)
 		page.flags.do_not_update_json = True
 		page.insert()
-		self.addCleanup(frappe.delete_doc, "Page", page.name, force=True)
+
+		# A cleanup runs after the decorator's patch is undone, and deleting a
+		# Page is developer-mode only, so it carries its own.
+		def remove():
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				frappe.delete_doc("Page", page.name, force=True)
+
+		self.addCleanup(remove)
 		return page
 
 	def test_the_name_carries_the_app_and_the_page(self):
