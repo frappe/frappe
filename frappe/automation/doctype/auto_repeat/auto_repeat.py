@@ -237,13 +237,13 @@ class AutoRepeat(Document):
 		return schedule_details
 
 	def create_documents(self):
-		if not frappe.has_permission(
-			self.reference_doctype, "read", self.reference_document, user=self.owner
-		):
-			self.log_error(_("Auto repeat skipped. The owner cannot access the reference document."))
-			return
-
 		try:
+			if not frappe.has_permission(
+				self.reference_doctype, "read", self.reference_document, user=self.owner
+			):
+				self.log_error(_("Auto repeat skipped. The owner cannot access the reference document."))
+				return
+
 			if self.generate_separate_documents_for_each_assignee and self.assignee:
 				new_docs = self.make_new_documents()
 			else:
