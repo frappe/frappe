@@ -167,20 +167,18 @@ class TestVersion(IntegrationTestCase):
 		color_field = new_doc.meta.get_field("color")
 		color_field.ignore_versioning = 1
 
-		try:
-			old_doc.color = None
-			new_doc.color = "#fafafa"
+		old_doc.color = None
+		new_doc.color = "#fafafa"
 
-			# color is the only change, so there is nothing to version
-			self.assertIsNone(get_diff(old_doc, new_doc))
+		# color is the only change and it is ignored, so there is no Version to save
+		self.assertIsNone(get_diff(old_doc, new_doc))
 
-			new_doc.subject = "changed subject"
-			diff = get_diff(old_doc, new_doc)["changed"]
+		new_doc.subject = "changed subject"
+		diff = get_diff(old_doc, new_doc)["changed"]
 
-			self.assertNotIn("color", get_fieldnames(diff))
-			self.assertIn("subject", get_fieldnames(diff))
-		finally:
-			color_field.ignore_versioning = 0
+		# subject is versioned as usual, color is left out
+		self.assertNotIn("color", get_fieldnames(diff))
+		self.assertIn("subject", get_fieldnames(diff))
 
 	def test_get_diff_skips_ignore_versioning_field_in_child_rows(self):
 		"""Test ignored fields are left out of added and removed child rows."""
@@ -192,25 +190,28 @@ class TestVersion(IntegrationTestCase):
 		email_field = frappe.get_meta("Event Participants").get_field("email")
 		email_field.ignore_versioning = 1
 
-		try:
-			doc_with_row.append(
-				"event_participants",
-				{
-					"reference_doctype": "Contact",
-					"reference_docname": "_Test Contact",
-					"email": "a@example.com",
-				},
-			)
+		# unsaved row has no name, so get_diff cannot match it against an old row
+		doc_with_row.append(
+			"event_participants",
+			{
+				"reference_doctype": "Contact",
+				"reference_docname": "_Test Contact",
+				"email": "a@example.com",
+			},
+		)
 
-			added_row = get_diff(doc_without_row, doc_with_row)["added"][0][1]
-			self.assertNotIn("email", added_row)
-			self.assertIn("reference_doctype", added_row)
+		# get_diff(old, new): row is only in new, so it is reported as added.
+		# every entry is [table_fieldname, row_data], so [0] is the first entry and [1] its row data
+		added_row = get_diff(doc_without_row, doc_with_row)["added"][0][1]
 
-			removed_row = get_diff(doc_with_row, doc_without_row)["removed"][0][1]
-			self.assertNotIn("email", removed_row)
-			self.assertIn("reference_doctype", removed_row)
-		finally:
-			email_field.ignore_versioning = 0
+		# arguments flipped: row is only in old now, so the same row is reported as removed
+		removed_row = get_diff(doc_with_row, doc_without_row)["removed"][0][1]
+
+		# email is dropped from the row data, the other fields are kept
+		self.assertNotIn("email", added_row)
+		self.assertIn("reference_doctype", added_row)
+		self.assertNotIn("email", removed_row)
+		self.assertIn("reference_doctype", removed_row)
 
 	def test_no_version_on_new_doc(self):
 		from frappe.desk.form.load import get_versions
