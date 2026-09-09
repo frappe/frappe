@@ -23,6 +23,9 @@ export const useStore = defineStore("form-builder-store", () => {
 	let read_only = ref(false);
 	let is_customize_form = ref(false);
 	let is_layout_form = ref(false);
+	let is_web_form = ref(false);
+	// tab hosting the builder, null for callers that do not set one
+	let tab_fieldname = ref(null);
 	let source_doctype_fields = ref([]);
 	let preview = ref(false);
 	let drag = ref(false);
@@ -45,6 +48,31 @@ export const useStore = defineStore("form-builder-store", () => {
 		"in_list_view",
 		"in_standard_filter",
 		"translatable",
+	];
+
+	// structural rows name no source field, so they carry no fieldname and no options
+	const WEB_FORM_STRUCTURAL_FIELDTYPES = ["Section Break", "Column Break", "Page Break"];
+
+	const WEB_FORM_FIELD_PROPS = [
+		"fieldname",
+		"label",
+		"fieldtype",
+		"options",
+		"reqd",
+		"default",
+		"read_only",
+		"precision",
+		"depends_on",
+		"placeholder",
+		"max_length",
+		"description",
+		"mandatory_depends_on",
+		"read_only_depends_on",
+		// not seeded by Desk, but must round-trip or the builder zeroes them on save
+		"hidden",
+		"max_value",
+		"show_in_filter",
+		"allow_read_on_all_link_options",
 	];
 
 	// Getters
@@ -103,14 +131,46 @@ export const useStore = defineStore("form-builder-store", () => {
 		return cint(field.df.is_custom_field && !field.df.is_system_generated);
 	}
 
+	// by index, not name, since tab names can change after save
+	function get_active_tab_index() {
+		if (!form.value.layout?.tabs || !form.value.active_tab) return null;
+		return form.value.layout.tabs.findIndex((tab) => tab.df.name === form.value.active_tab);
+	}
+
+	// restore the previously active tab by index if it still exists
+	function restore_active_tab(previous_index) {
+		let tabs = form.value.layout.tabs;
+		if (previous_index !== null && previous_index >= 0 && previous_index < tabs.length) {
+			form.value.active_tab = tabs[previous_index].df.name;
+		} else if (tabs.length > 0) {
+			form.value.active_tab = tabs[0].df.name;
+		} else {
+			form.value.active_tab = null;
+		}
+	}
+
+	// deferred to nextTick so it lands after FormBuilder.vue's layout watcher sets dirty
+	function finish_fetch() {
+		// Capture dirty state before nextTick so a concurrent frm.dirty() call
+		// (e.g. from sync_fields) is not erased by the post-fetch cleanup.
+		const was_frm_dirty = !!frm.value.doc.__unsaved;
+		nextTick(() => {
+			dirty.value = false;
+			if (!was_frm_dirty) {
+				frm.value.doc.__unsaved = 0;
+				frm.value.page.clear_indicator();
+			}
+			read_only.value = false;
+			preview.value = false;
+		});
+	}
+
 	async function fetch_for_layout() {
 		// Populate DocField meta for the properties panel
-		if (!docfields.value.length) {
-			if (!frappe.get_meta("DocField")) {
-				await load_doctype_model("DocField");
-			}
-			docfields.value = frappe.get_meta("DocField").fields;
+		if (!frappe.get_meta("DocField")) {
+			await load_doctype_model("DocField");
 		}
+		docfields.value = frappe.get_meta("DocField").fields;
 
 		// Load source DocType meta
 		let source_dt = doctype.value;
@@ -143,51 +203,110 @@ export const useStore = defineStore("form-builder-store", () => {
 			merged_fields = JSON.parse(JSON.stringify(source_doctype_fields.value));
 		}
 
-		// Preserve active tab index
-		let previous_active_tab_index = null;
-		if (form.value.layout?.tabs && form.value.active_tab) {
-			previous_active_tab_index = form.value.layout.tabs.findIndex(
-				(tab) => tab.df.name === form.value.active_tab
-			);
-		}
+		let previous_active_tab_index = get_active_tab_index();
 
 		doc.value = { fields: merged_fields, custom: 1, istable: 0 };
 		form.value.layout = get_layout();
 
-		if (
-			previous_active_tab_index !== null &&
-			previous_active_tab_index >= 0 &&
-			previous_active_tab_index < form.value.layout.tabs.length
-		) {
-			form.value.active_tab = form.value.layout.tabs[previous_active_tab_index].df.name;
-		} else if (form.value.layout.tabs.length > 0) {
-			form.value.active_tab = form.value.layout.tabs[0].df.name;
-		} else {
-			form.value.active_tab = null;
-		}
-
+		restore_active_tab(previous_active_tab_index);
 		form.value.selected_field = null;
 
-		// Capture dirty state before nextTick so a concurrent frm.dirty() call
-		// (e.g. from sync_fields) is not erased by the post-fetch cleanup.
-		const was_frm_dirty = !!frm.value.doc.__unsaved;
-		nextTick(() => {
-			dirty.value = false;
-			if (!was_frm_dirty) {
-				frm.value.doc.__unsaved = 0;
-				frm.value.page.clear_indicator();
-			}
-			read_only.value = false;
-			preview.value = false;
-		});
+		finish_fetch();
 
 		setup_undo_redo();
 	}
 
-	async function fetch() {
-		if (is_layout_form.value) {
-			return fetch_for_layout();
+	async function fetch_for_web_form() {
+		await load_web_form_meta();
+
+		let merged_fields = web_form_rows_to_fields();
+		let previous_active_tab_index = get_active_tab_index();
+
+		doc.value = { fields: merged_fields, custom: 1, istable: 0 };
+		form.value.layout = get_layout();
+		setup_web_form_pages();
+
+		restore_active_tab(previous_active_tab_index);
+		form.value.selected_field = null;
+
+		finish_fetch();
+
+		setup_undo_redo();
+	}
+
+	async function load_web_form_meta() {
+		if (!frappe.get_meta("Web Form Field")) {
+			await load_doctype_model("Web Form Field");
 		}
+		docfields.value = frappe.get_meta("Web Form Field").fields;
+
+		// not for the properties panel — get_df() builds layout nodes from DocField meta
+		if (!frappe.get_meta("DocField")) {
+			await load_doctype_model("DocField");
+		}
+
+		// not used to build the layout, only so the picker can offer unplaced fields
+		let source_dt = frm.value.doc.doc_type;
+		if (source_dt && !frappe.get_meta(source_dt)) {
+			await load_doctype_model(source_dt);
+		}
+		// same predicate as get_fields_for_doctype() in web_form.js, which feeds the grid
+		source_doctype_fields.value = source_dt
+			? frappe.get_meta(source_dt).fields.filter(
+					(df) =>
+						(frappe.model.is_value_type(df.fieldtype) &&
+							!["lft", "rgt"].includes(df.fieldname)) ||
+						// casing mirrors web_form.js — do not fix it without fixing that too
+						["Table", "Table Multiselect"].includes(df.fieldtype) ||
+						frappe.model.layout_fields.includes(df.fieldtype)
+			  )
+			: [];
+	}
+
+	// read direction: web_form_fields rows to layout nodes
+	function web_form_rows_to_fields() {
+		// a row added from the grid has no fieldtype yet, so it has no layout node
+		let rows = (frm.value.doc.web_form_fields || []).filter((row) => row.fieldtype);
+
+		let fields = rows.map((row) => {
+			let df = get_df(row.fieldtype, row.fieldname, row.label);
+
+			for (let prop of WEB_FORM_FIELD_PROPS) {
+				if (row[prop] !== undefined) {
+					df[prop] = row[prop];
+				}
+			}
+
+			// a Page Break in a Web Form is a tab boundary
+			if (df.fieldtype === "Page Break") {
+				df.fieldtype = "Tab Break";
+			}
+
+			return df;
+		});
+
+		// page 1 is implicit — N pages are stored as N-1 Page Break rows, so prepend its tab
+		fields.unshift(get_df("Tab Break"));
+
+		return fields;
+	}
+
+	function setup_web_form_pages() {
+		// mark page 1 as the tab with no backing row, the way create_layout() does
+		form.value.layout.tabs[0].is_first = true;
+
+		form.value.layout.tabs.forEach((tab, i) => {
+			// a Page Break row carries no label, so number the pages by position
+			tab.df.label = __("Page {0}", [i + 1]);
+
+			// create_layout() prunes empty sections, leaving a page with no drop target
+			if (!tab.sections.length) tab.sections.push(section_boilerplate());
+		});
+	}
+
+	async function fetch() {
+		if (is_layout_form.value) return fetch_for_layout();
+		if (is_web_form.value) return fetch_for_web_form();
 
 		doc.value = frm.value.doc;
 		if (doctype.value.startsWith("new-doctype-") && !doc.value.fields?.length) {
@@ -212,30 +331,11 @@ export const useStore = defineStore("form-builder-store", () => {
 			}
 		}
 
-		// Preserve the currently active tab index before regenerating layout
-		// This is more reliable than tracking by name since tab names can change after save
-		let previous_active_tab_index = null;
-		if (form.value.layout?.tabs && form.value.active_tab) {
-			previous_active_tab_index = form.value.layout.tabs.findIndex(
-				(tab) => tab.df.name === form.value.active_tab
-			);
-		}
+		let previous_active_tab_index = get_active_tab_index();
 
 		form.value.layout = get_layout();
 
-		// Try to restore the previously active tab by index if it still exists
-		if (
-			previous_active_tab_index !== null &&
-			previous_active_tab_index >= 0 &&
-			previous_active_tab_index < form.value.layout.tabs.length
-		) {
-			form.value.active_tab = form.value.layout.tabs[previous_active_tab_index].df.name;
-		} else if (form.value.layout.tabs.length > 0) {
-			// If previous tab doesn't exist or no previous tab, default to first tab
-			form.value.active_tab = form.value.layout.tabs[0].df.name;
-		} else {
-			form.value.active_tab = null;
-		}
+		restore_active_tab(previous_active_tab_index);
 
 		form.value.selected_field = null;
 
@@ -253,9 +353,19 @@ export const useStore = defineStore("form-builder-store", () => {
 		setup_undo_redo();
 	}
 
+	function is_on_builder_tab() {
+		let active_tab = frm.value?.get_active_tab();
+
+		if (!active_tab) return false;
+
+		if (tab_fieldname.value) return active_tab.df.fieldname === tab_fieldname.value;
+
+		return active_tab.label == "Form";
+	}
+
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
 		if (!ref_history.value) return;
-		if (frm.value.get_active_tab().label == "Form" && (e.ctrlKey || e.metaKey)) {
+		if (is_on_builder_tab() && (e.ctrlKey || e.metaKey)) {
 			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
 				ref_history.value.undo();
 			} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
@@ -355,6 +465,15 @@ export const useStore = defineStore("form-builder-store", () => {
 		return error_message;
 	}
 
+	// callers throw on a string return — returning undefined would save the old fields
+	function write_back_error(e) {
+		console.error(e);
+		return __(
+			"Form Builder could not apply the layout: {0}. The save was cancelled, so your changes are not lost. See the browser console for details.",
+			[frappe.utils.escape_html(e.message || e)]
+		);
+	}
+
 	function update_layout_fields() {
 		if (!dirty.value && !frm.value.is_new()) return;
 
@@ -377,15 +496,68 @@ export const useStore = defineStore("form-builder-store", () => {
 			frm.value.set_value("fields", layout_rows);
 			return layout_rows;
 		} catch (e) {
-			console.error(e);
+			return write_back_error(e);
 		} finally {
 			frappe.dom.unfreeze();
 		}
 	}
 
+	function update_web_form_fields() {
+		// no `|| frm.is_new()` here — the grid also writes web_form_fields, so a clean
+		// builder must not overwrite rows "Get Fields" added behind its back
+		if (!dirty.value) return;
+
+		frappe.dom.freeze(__("Saving..."));
+
+		try {
+			let rows = web_form_fields_to_rows(get_updated_fields());
+			frm.value.set_value("web_form_fields", rows);
+			return rows;
+		} catch (e) {
+			return write_back_error(e);
+		} finally {
+			frappe.dom.unfreeze();
+		}
+	}
+
+	// write direction: layout nodes back to web_form_fields rows
+	function web_form_fields_to_rows(fields) {
+		// page 1 is implicit, so drop tab 0 — but only if get_updated_fields() kept it,
+		// or we would eat page 2's break instead
+		let tab_count = fields.filter((df) => df.fieldtype === "Tab Break").length;
+		let rows = tab_count === form.value.layout.tabs.length ? fields.slice(1) : fields;
+
+		return rows.map((df, i) => {
+			let row = { idx: i + 1 };
+			for (let prop of WEB_FORM_FIELD_PROPS) {
+				row[prop] = df[prop] !== undefined ? df[prop] : null;
+			}
+			// a tab boundary is a Page Break in a Web Form
+			if (row.fieldtype === "Tab Break") {
+				row.fieldtype = "Page Break";
+			}
+
+			if (WEB_FORM_STRUCTURAL_FIELDTYPES.includes(row.fieldtype)) {
+				row.fieldname = "";
+				row.options = "";
+			}
+
+			// pages are named by position on read, so the label is never stored
+			if (row.fieldtype === "Page Break") {
+				row.label = "";
+			}
+
+			return row;
+		});
+	}
+
 	function update_fields() {
 		if (is_layout_form.value) {
 			return update_layout_fields();
+		}
+
+		if (is_web_form.value) {
+			return update_web_form_fields();
 		}
 
 		if (!dirty.value && !frm.value.is_new()) return;
@@ -399,7 +571,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			frm.value.set_value("fields", fields);
 			return fields;
 		} catch (e) {
-			console.error(e);
+			return write_back_error(e);
 		} finally {
 			frappe.dom.unfreeze();
 		}
@@ -494,8 +666,17 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	// Tab actions
 	function add_new_tab() {
+		// page 1 is implicit, so 10 tabs is the 9 Page Breaks web_form.js validate() allows
+		if (is_web_form.value && form.value.layout.tabs.length >= 10) {
+			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+		}
+
+		// match the numbering fetch_for_web_form() applies on the next read
+		let position = form.value.layout.tabs.length + 1;
+		let label = is_web_form.value ? __("Page {0}", [position]) : "Tab " + position;
+
 		let tab = {
-			df: get_df("Tab Break", "", "Tab " + (form.value.layout.tabs.length + 1)),
+			df: get_df("Tab Break", "", label),
 			sections: [section_boilerplate()],
 		};
 
@@ -526,6 +707,8 @@ export const useStore = defineStore("form-builder-store", () => {
 		read_only,
 		is_customize_form,
 		is_layout_form,
+		is_web_form,
+		tab_fieldname,
 		source_doctype_fields,
 		preview,
 		drag,

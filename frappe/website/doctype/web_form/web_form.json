@@ -17,7 +17,8 @@
   "is_standard",
   "section_break_1",
   "introduction_text",
-  "web_form_fields",
+  "form_builder_tab",
+  "form_builder",
   "settings_tab",
   "access_control_section",
   "key_required",
@@ -52,6 +53,8 @@
   "section_break_4",
   "show_sidebar",
   "website_sidebar",
+  "web_form_fields_section",
+  "web_form_fields",
   "customization_tab",
   "button_label",
   "column_break_3",
@@ -184,10 +187,26 @@
    "placeholder": "Add a short description to tell users what this form is for..."
   },
   {
+   "collapsible": 1,
+   "fieldname": "web_form_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
+  },
+  {
    "fieldname": "web_form_fields",
    "fieldtype": "Table",
    "label": "Web Form Fields",
    "options": "Web Form Field"
+  },
+  {
+   "fieldname": "form_builder_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "form_builder",
+   "fieldtype": "HTML",
+   "label": "Form Builder"
   },
   {
    "description": "Set size in MB",
@@ -294,7 +313,7 @@
   {
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
-   "label": "Form"
+   "label": "Details"
   },
   {
    "fieldname": "section_break_1",
@@ -456,7 +475,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-09-07 12:00:00.000000",
+ "modified": "2026-09-09 10:15:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

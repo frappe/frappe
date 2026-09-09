@@ -49,6 +49,17 @@ frappe.ui.form.on("Web Form", {
 		frm.trigger("add_publish_button");
 		frm.trigger("render_condition_table");
 		frm.trigger("render_dynamic_filters_table");
+		render_form_builder(frm);
+	},
+
+	on_tab_change: function (frm) {
+		// the builder is a full-bleed canvas, so the desk chrome steps aside
+		const on_builder_tab = frm.get_active_tab()?.df?.fieldname === "form_builder_tab";
+
+		frm.footer?.wrapper.toggle(!on_builder_tab);
+		frm.form_wrapper.find(".form-message").toggle(!on_builder_tab);
+		frm.form_wrapper.toggleClass("mb-1", on_builder_tab);
+		toggle_form_sidebar(frm, !on_builder_tab);
 	},
 
 	login_required: on_controlled_access_change,
@@ -62,14 +73,26 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	validate: function (frm) {
+		// first, and not in before_save: validate runs ahead of it in the save chain, so
+		// every check below would otherwise read the grid as it was before the builder
+		// wrote to it — an empty one on a form laid out only on the canvas
+		flush_form_builder(frm);
+
 		// allow_delete is hidden (depends_on allow_multiple) and would otherwise
 		// retain a stale value while server-side checks read it directly.
 		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 
-		if (!frm.doc.web_form_fields) {
-			frm.scroll_to_field("web_form_fields");
-			frappe.throw(__("At least one field is required in Web Form Fields Table"));
+		// the flush ran first, so an empty array now means both editors are empty
+		if (!frm.doc.web_form_fields?.length) {
+			// doc_type is reqd and check_mandatory reports it after this hook, so bail
+			// rather than blame the fields on a form with nothing to draw them from
+			if (!frm.doc.doc_type) return;
+
+			// the grid is a tab away and builder-first users never open it, so name
+			// neither editor and land them where adding a field is one click
+			frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab")?.set_active();
+			frappe.throw(__("Add at least one field to the Web Form"));
 		}
 
 		let page_break_count = frm.doc.web_form_fields.filter(
@@ -93,6 +116,9 @@ frappe.ui.form.on("Web Form", {
 			let webform_fieldtypes = frappe.meta
 				.get_field("Web Form Field", "fieldtype")
 				.options.split("\n");
+
+			// flush first, or fields only on the canvas get offered and appended twice
+			flush_form_builder(frm);
 
 			let added_fields = (frm.doc.web_form_fields || []).map((d) => d.fieldname);
 
@@ -127,6 +153,9 @@ frappe.ui.form.on("Web Form", {
 				}
 				frm.refresh_field("web_form_fields");
 				frm.scroll_to_field("web_form_fields");
+
+				// read the new rows back — no grid edit reaches the builder on its own
+				refresh_form_builder(frm);
 			});
 		});
 	},
@@ -195,6 +224,8 @@ frappe.ui.form.on("Web Form", {
 
 	doc_type: function (frm) {
 		frm.trigger("set_fields");
+		// so the add-field picker offers the new doctype's fields
+		render_form_builder(frm);
 	},
 
 	allow_multiple: function (frm) {
@@ -211,6 +242,10 @@ frappe.ui.form.on("Web Form", {
 		frm.set_value("condition_json", JSON.stringify(static_filters));
 		frm.trigger("render_condition_table");
 		frm.trigger("render_dynamic_filters_table");
+	},
+
+	after_save: function (frm) {
+		refresh_form_builder(frm);
 	},
 
 	render_condition_table: function (frm) {
@@ -490,6 +525,122 @@ function on_controlled_access_change(frm) {
 		frm.set_value("show_list", 0);
 	}
 	render_list_settings_message(frm);
+}
+
+// the builder and the web_form_fields grid both edit one child table and neither watches
+// the other, so rows travel builder-to-grid only here, on save
+function flush_form_builder(frm) {
+	const builder = get_form_builder(frm);
+	if (!builder) return;
+
+	const result = builder.store.update_fields();
+	if (typeof result === "string") {
+		frappe.throw(result);
+	}
+}
+
+// the return trip: only called where the rows changed under the builder
+function refresh_form_builder(frm) {
+	get_form_builder(frm)?.store.fetch();
+}
+
+function render_form_builder(frm) {
+	const builder = frappe.web_form_builder;
+	const mounted_here = !!get_form_builder(frm);
+
+	// a mounted builder falls through, so clearing doc_type blanks its field picker
+	if (!frm.doc.doc_type && !mounted_here) return;
+
+	// not init(true), which re-runs watch_changes() and stacks a duplicate watchEffect
+	if (mounted_here) {
+		builder.docname = frm.doc.name;
+		builder.doctype = frm.doc.doc_type;
+		builder.update_store();
+		builder.setup_page_actions();
+		builder.store.fetch();
+		return;
+	}
+
+	// a client with meta cached from before the migrate will not have the field
+	if (!frm.fields_dict.form_builder) {
+		console.warn("Web Form: form_builder field missing, skipping builder mount.");
+		return;
+	}
+
+	const wrapper = $(frm.fields_dict["form_builder"].wrapper).closest(".tab-pane");
+
+	// mounted against a different frm — repoint it, and init(true) reuses the Vue app
+	if (builder) {
+		builder.$wrapper = wrapper;
+		builder.frm = frm;
+		builder.page = frm.page;
+		builder.docname = frm.doc.name;
+		builder.doctype = frm.doc.doc_type;
+		builder.is_web_form = true;
+		builder.init(true);
+		keep_builder_tab_visible(frm);
+		builder.store.fetch();
+		return;
+	}
+
+	// `refresh` can fire again before the bundle loads, mounting a second builder
+	if (frm._web_form_builder_loading) return;
+	frm._web_form_builder_loading = true;
+
+	frappe.require("form_builder.bundle.js").then(() => {
+		frappe.web_form_builder = new frappe.ui.FormBuilder({
+			wrapper: wrapper,
+			frm: frm,
+			doctype: frm.doc.doc_type,
+			customize: false,
+			is_web_form: true,
+			tab_fieldname: "form_builder_tab",
+		});
+		frappe.web_form_builder.docname = frm.doc.name;
+		frm._web_form_builder_loading = false;
+
+		keep_builder_tab_visible(frm);
+	});
+}
+
+// refresh_tabs() hides a tab whose sections scan as empty, which this one always does —
+// and it re-runs on every layout.refresh(), so a one-off toggle does not hold
+function keep_builder_tab_visible(frm) {
+	const builder_tab = frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab");
+	if (!builder_tab) return;
+
+	// called from every mount path, but frm.layout outlives them all
+	if (!builder_tab._web_form_builder_patched) {
+		builder_tab._web_form_builder_patched = true;
+		const _orig_tab_refresh = builder_tab.refresh.bind(builder_tab);
+		builder_tab.refresh = function () {
+			_orig_tab_refresh();
+			if (frappe.web_form_builder) this.toggle(true);
+		};
+	}
+
+	builder_tab.toggle(true);
+}
+
+// page.scss pins the main column width for every Form route, so hiding the sidebar also
+// has to clear the inline widths — Sidebar.refresh() strips classes but not inline styles
+function toggle_form_sidebar(frm, show) {
+	// form.js already hid the sidebar, and showing it here would override that setting
+	if (!frm.page?.sidebar || frm.page.hide_sidebar || !frappe.boot.desk_settings?.form_sidebar) {
+		return;
+	}
+
+	frm.page.sidebar.toggle(show);
+	frm.page.wrapper.find(".layout-main-section-wrapper").css({
+		width: show ? "" : "100%",
+		flex: show ? "" : "1 0 100%",
+	});
+}
+
+// the builder is a singleton, so it can still point at the Web Form the user just left
+function get_form_builder(frm) {
+	const builder = frappe.web_form_builder;
+	return builder?.store && builder.frm === frm ? builder : null;
 }
 
 function render_list_settings_message(frm) {
