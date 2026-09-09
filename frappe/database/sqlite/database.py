@@ -1,28 +1,39 @@
 import re
 import sqlite3
 import warnings
-from datetime import date, datetime, time
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import sqlglot
-import sqlparse
 from pypika.queries import QueryBuilder
 from sqlglot import expressions as exp
 from sqlglot.errors import ErrorLevel, SqlglotError
-from sqlparse import tokens as sqlparse_tokens
 
 import frappe
 from frappe.database.database import (
 	TRANSACTION_DISABLED_MSG,
 	Database,
 )
+from frappe.database.sqlite.compatibility import (
+	combine_date_with_time_duration,
+	convert_datetime_to_unix_timestamp,
+	convert_sqlite_date,
+	convert_sqlite_time,
+	format_datetime_with_mariadb_tokens,
+	json_contains_mariadb_value,
+)
+from frappe.database.sqlite.query_parameters import (
+	convert_frappe_query_parameters,
+	mask_query_parameters,
+	render_query_with_bound_values,
+	restore_transpiled_query_parameters,
+)
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.database.utils import convert_backtick_identifiers
 from frappe.utils import get_table_name, now
 
-# matches both bare `%s` and named `%(param)s` DB-API placeholders
-_PARAM_COMP = re.compile(r"%\(\w+\)s|%s")
 _TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
 
@@ -123,10 +134,18 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	def get_connection(self, read_only: bool = False):
+		if not hasattr(self, "_session_time_zone"):
+			self._session_time_zone = ZoneInfo("UTC")
 		conn = self.create_connection(read_only)
 		conn.create_function("regexp", 2, regexp)
 		conn.create_function("regexp_replace", 3, regexp_replace)
 		conn.create_function("regexp_like", 2, regexp_like)
+		conn.create_function(
+			"frappe_combine_datetime", 2, combine_date_with_time_duration, deterministic=True
+		)
+		conn.create_function("frappe_date_format", 2, format_datetime_with_mariadb_tokens, deterministic=True)
+		conn.create_function("frappe_json_contains", 2, json_contains_mariadb_value, deterministic=True)
+		conn.create_function("frappe_unix_timestamp", 1, self._convert_to_unix_timestamp)
 		conn.create_function("now", 0, now)
 		pragmas = {
 			"journal_mode": "WAL",
@@ -142,8 +161,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def create_connection(self, read_only: bool = False):
 		db_path = self.get_db_path()
 		sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
-		sqlite3.register_converter("date", lambda x: date.fromisoformat(x.decode()))
-		sqlite3.register_converter("time", lambda x: time.fromisoformat(x.decode()))
+		sqlite3.register_converter("date", convert_sqlite_date)
+		sqlite3.register_converter("time", convert_sqlite_time)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",
@@ -160,7 +179,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
 
 	def set_session_time_zone(self, timezone: str):
-		pass
+		self._session_time_zone = ZoneInfo(timezone)
+
+	def _convert_to_unix_timestamp(self, value):
+		return convert_datetime_to_unix_timestamp(value, self._session_time_zone)
 
 	def setup_type_map(self):
 		self.db_type = "sqlite"
@@ -213,6 +235,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	@staticmethod
 	def escape(s, percent=True):
 		"""Escape quotes and percent in given string."""
+		s = frappe.as_unicode(s)
 		s = s.replace("'", "''")
 		if percent:
 			s = s.replace("%", "%%")
@@ -464,19 +487,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
-		query = query.replace("%s", "?")
-		try:
-			if isinstance(values, dict):
-				for k, v in values.items():
-					if isinstance(v, str) and "'" in v:
-						values[k] = self.escape(v)
-					else:
-						values[k] = f"'{v}'"
-				query = query % values
-		except TypeError:
-			pass
+		return self._cursor.execute(query, values)
 
-		return self._cursor.execute(query, values or ())
+	def _transform_query(self, query, values):
+		return convert_frappe_query_parameters(query, values)
+
+	def mogrify(self, query, values):
+		return render_query_with_bound_values(query, values)
 
 	def log_query(self, query, query_type, values, debug):
 		# sqlite3 cursors expose no equivalent of the executed statement, so the
@@ -498,14 +515,18 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			args = list(args)
 			args[0], positional_parameter_order = _modify_query(args[0])
 			if len(args) > 1:
-				args[1] = _reorder_positional_values(args[1], positional_parameter_order)
+				args[1] = _reorder_positional_parameters(args[1], positional_parameter_order)
 			elif "values" in kwargs:
-				kwargs["values"] = _reorder_positional_values(kwargs["values"], positional_parameter_order)
+				kwargs["values"] = _reorder_positional_parameters(
+					kwargs["values"], positional_parameter_order
+				)
 			args = tuple(args)
 		elif kwargs.get("query") and not skip_transpilation:
 			kwargs["query"], positional_parameter_order = _modify_query(kwargs["query"])
 			if "values" in kwargs:
-				kwargs["values"] = _reorder_positional_values(kwargs["values"], positional_parameter_order)
+				kwargs["values"] = _reorder_positional_parameters(
+					kwargs["values"], positional_parameter_order
+				)
 
 		return super().sql(*args, **kwargs)
 
@@ -629,7 +650,7 @@ def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
 	`%s` / `%(name)s` DB-API placeholders aren't valid MySQL expressions on their own. They are replaced only when they are SQL placeholder tokens, so identical text inside strings and comments remains the same.
 	"""
 	try:
-		masked_query, parameters = _mask_query_parameters(query)
+		masked_query, parameters = mask_query_parameters(query)
 		parsed_queries = sqlglot.parse(masked_query, read="mysql")
 		if len(parsed_queries) != 1 or parsed_queries[0] is None:
 			return None
@@ -638,63 +659,27 @@ def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
 		if not isinstance(parsed, _TRANSPILABLE_STATEMENTS):
 			return None
 
+		# MariaDB permits COALESCE(x), but SQLite requires at least two arguments.
+		parsed = parsed.transform(_unwrap_single_argument_coalesce)
+
 		# SQLite has no row-level locks. Remove only this known incompatibility;
 		# any other unsupported construct must take the safe fallback below.
 		for select in parsed.find_all(exp.Select):
 			select.set("locks", None)
 
 		rewritten = parsed.sql(dialect="sqlite", unsupported_level=ErrorLevel.RAISE)
-		return _restore_query_parameters(rewritten, parameters)
+		return restore_transpiled_query_parameters(rewritten, parameters)
 	except (SqlglotError, ValueError):
 		return None
 
 
-def _mask_query_parameters(query: str) -> tuple[str, dict[str, tuple[str, int | None]]]:
-	parameters = {}
-	parts = []
-	marker_prefix = "__frappe_sql_parameter_"
-	while marker_prefix in query:
-		marker_prefix = f"_{marker_prefix}"
-	positional_index = 0
-
-	for statement in sqlparse.parse(query):
-		for token in statement.flatten():
-			if token.ttype in sqlparse_tokens.Name.Placeholder and _PARAM_COMP.fullmatch(token.value):
-				marker = f":{marker_prefix}{len(parameters)}"
-				position = positional_index if token.value == "%s" else None
-				parameters[marker] = (token.value, position)
-				parts.append(marker)
-				if position is not None:
-					positional_index += 1
-			else:
-				parts.append(token.value)
-	return "".join(parts), parameters
+def _unwrap_single_argument_coalesce(node):
+	while isinstance(node, exp.Coalesce) and not node.expressions:
+		node = node.this.copy()
+	return node
 
 
-def _restore_query_parameters(
-	query: str, parameters: dict[str, tuple[str, int | None]]
-) -> tuple[str, tuple[int, ...]]:
-	parts = []
-	restored_markers = set()
-	positional_parameter_order = []
-
-	for statement in sqlparse.parse(query):
-		for token in statement.flatten():
-			if token.ttype in sqlparse_tokens.Name.Placeholder and token.value in parameters:
-				marker = token.value
-				placeholder, position = parameters[marker]
-				token.value = placeholder
-				restored_markers.add(marker)
-				if position is not None:
-					positional_parameter_order.append(position)
-			parts.append(token.value)
-
-	if restored_markers != set(parameters):
-		raise ValueError("SQLGlot removed a query placeholder")
-	return "".join(parts), tuple(positional_parameter_order)
-
-
-def _reorder_positional_values(values, positional_parameter_order: tuple[int, ...]):
+def _reorder_positional_parameters(values, positional_parameter_order: tuple[int, ...]):
 	if (
 		not isinstance(values, list | tuple)
 		or not positional_parameter_order
