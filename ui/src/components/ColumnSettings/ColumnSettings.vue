@@ -2,7 +2,7 @@
   ColumnSettings — a controlled, meta-driven list-view control. Its `v-model` is
   an ordered list of Columns (`{ fieldname, label, width? }[]`): presence means
   shown, array order is display order, and `width` is the slice a column resize
-  co-writes (the host wires that sync via `useListView`, see ADR-0006). The
+  co-writes (the host wires that sync, see ADR-0006). The
   control owns no data resource and never persists — changes go live into the
   model with no apply button; reset / reset-to-defaults are host concerns.
 
