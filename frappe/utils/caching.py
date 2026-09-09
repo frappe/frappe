@@ -135,6 +135,7 @@ def redis_cache(
 	return wrapper
 
 
+# NOTE: since by default `redis_cache` would have shared = False, it would be site-specific as expected.
 site_cache = redis_cache
 
 
