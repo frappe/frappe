@@ -112,22 +112,24 @@ def task_execution_flow(current_task: str):
 
 
 def execute_callback(job: str | int):
-	if callback := frappe.db.get_value("MapReduce Job", filters={"name": job}, fieldname="callback"):
-		callback_executed = frappe.db.get_value(
-			"MapReduce Job", job, "callback_executed", for_update=True, skip_locked=True
-		)
-		if not isinstance(callback_executed, NoneType) and callback_executed == 0:
-			result, ref_dt, ref_dn = frappe.db.get_value(
-				"MapReduce Job",
-				filters={"name": job},
-				fieldname=["result", "document_type", "document_name"],
+	# Ensure job is not cancelled
+	if frappe.db.get_value("MapReduce Job", job, "docstatus") == 1:
+		if callback := frappe.db.get_value("MapReduce Job", filters={"name": job}, fieldname="callback"):
+			callback_executed = frappe.db.get_value(
+				"MapReduce Job", job, "callback_executed", for_update=True, skip_locked=True
 			)
-			result = frappe.parse_json(result)
+			if not isinstance(callback_executed, NoneType) and callback_executed == 0:
+				result, ref_dt, ref_dn = frappe.db.get_value(
+					"MapReduce Job",
+					filters={"name": job},
+					fieldname=["result", "document_type", "document_name"],
+				)
+				result = frappe.parse_json(result)
 
-			frappe.call(callback, result, ref_dt, ref_dn) if ref_dt and ref_dn else frappe.call(
-				callback, result
-			)
-			frappe.db.set_value("MapReduce Job", job, "callback_executed", True)
+				frappe.call(callback, result, ref_dt, ref_dn) if ref_dt and ref_dn else frappe.call(
+					callback, result
+				)
+				frappe.db.set_value("MapReduce Job", job, "callback_executed", True)
 
 
 def atomically_schedule_tasks(job, count):
@@ -150,14 +152,15 @@ def atomically_schedule_tasks(job, count):
 				current_task=x,
 			)
 	else:
-		total = frappe.db.count("MapReduce Task", {"master": job})
-		completed = frappe.db.count("MapReduce Task", {"master": job, "status": "Completed"})
-		if total == completed:
-			frappe.enqueue(
-				method="frappe.core.doctype.mapreduce_job.mapreduce_job.execute_callback",
-				enqueue_after_commit=True,
-				job=job,
-			)
+		if frappe.db.get_value("MapReduce Job", job, "docstatus", for_update=True) == 1:
+			total = frappe.db.count("MapReduce Task", {"master": job})
+			completed = frappe.db.count("MapReduce Task", {"master": job, "status": "Completed"})
+			if total == completed:
+				frappe.enqueue(
+					method="frappe.core.doctype.mapreduce_job.mapreduce_job.execute_callback",
+					enqueue_after_commit=True,
+					job=job,
+				)
 
 	frappe.db.commit()
 
