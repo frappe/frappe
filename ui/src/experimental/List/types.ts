@@ -1,5 +1,5 @@
 import type { RouteLocationRaw } from "vue-router";
-import type { Column } from "../ColumnSettings/types";
+import type { Column } from "../../components/ColumnSettings/types";
 
 /** A shown column: the Column Settings shape plus the alignment a host derives from Meta. */
 export interface ListColumn extends Column {

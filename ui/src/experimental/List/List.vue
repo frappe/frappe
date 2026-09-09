@@ -128,7 +128,7 @@ import {
 	useVirtualRows,
 } from "frappe-ui/list";
 import { computed, getCurrentInstance, ref, toRef } from "vue";
-import type { Sort } from "../SortBy/types";
+import type { Sort } from "../../components/SortBy/types";
 import { columnTracks } from "./columnTracks";
 import { directionFor, nextSort } from "./headerSort";
 import { useColumnResize } from "./useColumnResize";

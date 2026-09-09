@@ -1,4 +1,4 @@
-import type { Sort } from "../SortBy/types";
+import type { Sort } from "../../components/SortBy/types";
 
 /** The direction a header shows for its column, or null when the column is not in the sort. */
 export function directionFor(
