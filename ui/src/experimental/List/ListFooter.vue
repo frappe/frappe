@@ -10,7 +10,7 @@
 				@update:modelValue="choosePageSize"
 			/>
 			<Button
-				v-if="hasCounts && rowCount < totalCount"
+				v-if="hasNextPage ?? (hasCounts && rowCount < totalCount)"
 				variant="subtle"
 				label="Load More"
 				@click="emit('load-more')"
@@ -18,7 +18,7 @@
 		</div>
 		<div class="flex items-center gap-2">
 			<span v-if="hasCounts" class="text-sm text-ink-gray-5">
-				{{ rowCount }} of {{ totalCount }}
+				{{ rowCount }} of {{ totalCount }}{{ totalCapped ? "+" : "" }}
 			</span>
 			<Skeleton v-else class="h-3 w-16 rounded-1" />
 		</div>
@@ -35,12 +35,19 @@ const props = withDefaults(
 		totalCount?: number;
 		/** False until the first answer lands, which shows a placeholder instead of "0 of 0". */
 		hasCounts?: boolean;
+		/** The total is a floor, shown with a trailing "+". */
+		totalCapped?: boolean;
+		/** Whether Load More shows; unset, the counts decide. */
+		hasNextPage?: boolean;
 		pageSizeOptions?: number[];
 	}>(),
 	{
 		rowCount: 0,
 		totalCount: 0,
 		hasCounts: false,
+		totalCapped: false,
+		// An explicit default keeps an absent prop undefined; Vue would cast it to false otherwise.
+		hasNextPage: undefined,
 		pageSizeOptions: () => [20, 100, 500, 2500],
 	}
 );

@@ -42,7 +42,7 @@
 							@toggle="onQuoteToggle"
 						>
 							<summary
-								class="w-fit cursor-pointer select-none rounded px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
+								class="w-fit cursor-pointer select-none rounded-4 px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
 							>
 								•••
 							</summary>
