@@ -129,6 +129,7 @@ class DocField(Document):
 		sticky: DF.Check
 		translatable: DF.Check
 		unique: DF.Check
+		unique_auto_generated: DF.Check
 		width: DF.Data | None
 	# end: auto-generated types
 

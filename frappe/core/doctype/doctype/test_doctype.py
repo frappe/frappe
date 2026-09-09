@@ -126,6 +126,96 @@ class TestDocType(IntegrationTestCase):
 		doc1.delete()
 		doc2.delete()
 
+	def test_autoname_field_unique_removed(self):
+		frappe.delete_doc_if_exists("DocType", self._testMethodName)
+
+		dt = new_doctype(
+				self._testMethodName,
+				fields=[
+						{
+								"label": "Student Code",
+								"fieldname": "student_code",
+								"fieldtype": "Data",
+							}
+				],
+				autoname="field:student_code",
+			)
+		dt.insert()
+
+		student_code_field = next(df for df in dt.fields if df.fieldname == "student_code")
+		self.assertEqual(student_code_field.unique, 1)
+		self.assertEqual(student_code_field.unique_auto_generated, 1)
+
+		dt.autoname = ""
+		dt.save()
+
+		student_code_field = next(df for df in dt.fields if df.fieldname == "student_code")
+		self.assertEqual(student_code_field.unique, 0)
+		self.assertEqual(student_code_field.unique_auto_generated, 0)
+
+	def test_autoname_field_preserves_existing_unique(self):
+		frappe.delete_doc_if_exists("DocType", self._testMethodName)
+
+		dt = new_doctype(
+				self._testMethodName,
+				fields=[
+						{
+								"label": "Student Code",
+								"fieldname": "student_code",
+								"fieldtype": "Data",
+								"unique": 1,
+							}
+				],
+				autoname="field:student_code",
+			)
+		dt.insert()
+
+		student_code_field = next(df for df in dt.fields if df.fieldname == "student_code")
+		self.assertEqual(student_code_field.unique, 1)
+		self.assertEqual(student_code_field.unique_auto_generated, 0)
+
+		dt.autoname = ""
+		dt.save()
+
+		student_code_field = next(df for df in dt.fields if df.fieldname == "student_code")
+		self.assertEqual(student_code_field.unique, 1)
+		self.assertEqual(student_code_field.unique_auto_generated, 0)
+
+
+	def test_autoname_field_switch(self):
+		frappe.delete_doc_if_exists("DocType", self._testMethodName)
+
+		dt = new_doctype(
+				self._testMethodName,
+				fields=[
+						{
+								"label": "Student Code",
+								"fieldname": "student_code",
+								"fieldtype": "Data",
+							},
+						{
+								"label": "Employee Code",
+								"fieldname": "employee_code",
+								"fieldtype": "Data",
+							},
+				],
+				autoname="field:student_code",
+			)
+		dt.insert()
+
+		dt.autoname = "field:employee_code"
+		dt.save()
+
+		student_code_field = next(df for df in dt.fields if df.fieldname == "student_code")
+		employee_code_field = next(df for df in dt.fields if df.fieldname == "employee_code")
+
+		self.assertEqual(student_code_field.unique, 0)
+		self.assertEqual(student_code_field.unique_auto_generated, 0)
+		self.assertEqual(employee_code_field.unique, 1)
+		self.assertEqual(employee_code_field.unique_auto_generated, 1)
+
+		dt.delete()
+
 	def test_change_field_type_with_incompatible_values(self):
 		if frappe.db.exists("DocType", "Test Field Type Change"):
 			frappe.delete_doc("DocType", "Test Field Type Change")

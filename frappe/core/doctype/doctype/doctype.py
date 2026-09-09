@@ -1185,16 +1185,31 @@ def validate_series(dt, autoname=None, name=None):
 				title=_("Field Missing"),
 			)
 
-	# validate field name if autoname field:fieldname is used
+	# Remove automatically added unique property when field-based autonaming is removed or changed.
+	previous_doc = dt.get_doc_before_save()
+
+	if previous_doc and previous_doc.autoname and previous_doc.autoname.startswith("field:"):
+		previous_field = previous_doc.autoname.split(":", 1)[1]
+
+		if not autoname or not autoname.startswith("field:") or previous_field != autoname.split(":", 1)[1]:
+			for df in dt.fields:
+				if df.fieldname == previous_field and df.unique_auto_generated:
+					df.unique = 0
+					df.unique_auto_generated = 0
+					break
+
+	# Validate field name if autoname field:fieldname is used.
 	# Create unique index on autoname field automatically.
 	if autoname and autoname.startswith("field:"):
-		field = autoname.split(":")[1]
+		field = autoname.split(":", 1)[1]
 		if not field or field not in [df.fieldname for df in dt.fields]:
 			frappe.throw(_("Invalid fieldname '{0}' in autoname").format(field))
 		else:
 			for df in dt.fields:
 				if df.fieldname == field:
-					df.unique = 1
+					if not df.unique:
+						df.unique = 1
+						df.unique_auto_generated = 1
 					break
 
 	if (

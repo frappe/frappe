@@ -312,6 +312,13 @@
   },
   {
    "default": "0",
+   "fieldname": "unique_auto_generated",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Unique Auto Generated"
+  },
+  {
+   "default": "0",
    "depends_on": "eval:doc.fieldtype !== 'Attachment Gallery'",
    "fieldname": "set_only_once",
    "fieldtype": "Check",
