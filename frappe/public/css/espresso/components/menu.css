@@ -16,7 +16,7 @@
  *         <span class="es-menu__label">La<span class="es-menu__mnemonic">b</span>el
  *           <span class="es-menu__description">optional line</span>
  *         </span>
- *         <span class="es-menu__shortcut"><kbd>⌘</kbd><kbd>D</kbd></span>
+ *         <span class="es-menu__shortcut"><kbd>⌘</kbd>+<kbd>D</kbd></span>
  *         <svg class="es-menu__chevron">...</svg>    (submenu rows)
  *       </button>
  *     </div>
@@ -213,6 +213,7 @@
     align-items: center;
     gap: 1px;
     margin-inline-start: auto;
+    color: var(--ink-gray-6);
 }
 
 .es-menu__shortcut kbd {

@@ -60,6 +60,24 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 											onclick: () =>
 												frappe.ui.toast({ message: "Print clicked" }),
 										},
+										{
+											label: "Duplicate",
+											shortcut: "shift+d",
+											onclick: () =>
+												frappe.ui.toast({ message: "Duplicate clicked" }),
+										},
+										{
+											label: "Delete",
+											shortcut: "shift+ctrl+d",
+											onclick: () =>
+												frappe.ui.toast({ message: "Delete clicked" }),
+										},
+										{
+											label: "Preferences",
+											shortcut: "ctrl+alt+p",
+											onclick: () =>
+												frappe.ui.toast({ message: "Preferences clicked" }),
+										},
 									],
 								},
 								{

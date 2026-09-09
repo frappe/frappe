@@ -97,6 +97,98 @@ context("Espresso components", () => {
 			cy.contains(".es-menu__item", "Archive").should("match", "button").and("be.disabled");
 		});
 
+		it("renders shortcuts with + separators between <kbd> elements (single modifier)", () => {
+			cy.contains(".explorer-group", "Groups, shortcuts and disabled rows")
+				.find('[aria-haspopup="menu"]')
+				.first()
+				.click();
+
+			cy.get(".es-menu[data-state='open']").should("exist");
+
+			// "Rename" has shortcut "ctrl+r" — should render as <kbd>Ctrl</kbd>+<kbd>R</kbd>
+			cy.contains(".es-menu__item", "Rename")
+				.find(".es-menu__shortcut")
+				.should("exist")
+				.within(() => {
+					cy.get("kbd").should("have.length", 2);
+					cy.get("kbd").eq(0).should("have.text", "Ctrl");
+					cy.get("kbd").eq(1).should("have.text", "R");
+					// verify the "+" separator text node exists between the kbd elements
+					cy.get("kbd")
+						.eq(0)
+						.invoke("next")
+						.should("have.text", "+");
+				});
+		});
+
+		it("renders shortcuts with shift-only modifier correctly", () => {
+			cy.contains(".explorer-group", "Groups, shortcuts and disabled rows")
+				.find('[aria-haspopup="menu"]')
+				.first()
+				.click();
+
+			cy.get(".es-menu[data-state='open']").should("exist");
+
+			// "Duplicate" has shortcut "shift+d" — should render as <kbd>Shift</kbd>+<kbd>D</kbd>
+			cy.contains(".es-menu__item", "Duplicate")
+				.find(".es-menu__shortcut")
+				.should("exist")
+				.within(() => {
+					cy.get("kbd").should("have.length", 2);
+					cy.get("kbd").eq(0).should("have.text", "Shift");
+					cy.get("kbd").eq(1).should("have.text", "D");
+					cy.get("kbd")
+						.eq(0)
+						.invoke("next")
+						.should("have.text", "+");
+				});
+		});
+
+		it("renders shortcuts with multiple modifiers correctly", () => {
+			cy.contains(".explorer-group", "Groups, shortcuts and disabled rows")
+				.find('[aria-haspopup="menu"]')
+				.first()
+				.click();
+
+			cy.get(".es-menu[data-state='open']").should("exist");
+
+			// "Delete" has shortcut "shift+ctrl+d" — should render as <kbd>Shift</kbd>+<kbd>Ctrl</kbd>+<kbd>D</kbd>
+			cy.contains(".es-menu__item", "Delete")
+				.find(".es-menu__shortcut")
+				.should("exist")
+				.within(() => {
+					cy.get("kbd").should("have.length", 3);
+					cy.get("kbd").eq(0).should("have.text", "Shift");
+					cy.get("kbd").eq(1).should("have.text", "Ctrl");
+					cy.get("kbd").eq(2).should("have.text", "D");
+					// both separators should be "+"
+					cy.get("kbd").eq(0).invoke("next").should("have.text", "+");
+					cy.get("kbd").eq(1).invoke("next").should("have.text", "+");
+				});
+		});
+
+		it("renders shortcuts with three modifiers correctly", () => {
+			cy.contains(".explorer-group", "Groups, shortcuts and disabled rows")
+				.find('[aria-haspopup="menu"]')
+				.first()
+				.click();
+
+			cy.get(".es-menu[data-state='open']").should("exist");
+
+			// "Preferences" has shortcut "ctrl+alt+p" — should render as <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>
+			cy.contains(".es-menu__item", "Preferences")
+				.find(".es-menu__shortcut")
+				.should("exist")
+				.within(() => {
+					cy.get("kbd").should("have.length", 3);
+					cy.get("kbd").eq(0).should("have.text", "Ctrl");
+					cy.get("kbd").eq(1).should("have.text", "Alt");
+					cy.get("kbd").eq(2).should("have.text", "P");
+					cy.get("kbd").eq(0).invoke("next").should("have.text", "+");
+					cy.get("kbd").eq(1).invoke("next").should("have.text", "+");
+				});
+		});
+
 		it("async options open in a loading state, then fill in when the promise settles", () => {
 			cy.contains(".explorer-group", "Async items")
 				.find('[aria-haspopup="menu"]')

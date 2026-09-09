@@ -115,9 +115,13 @@ frappe.ui.Tooltip = class Tooltip {
 			// symbols like ⌘ read poorly; the label alone stays the
 			// accessible description (same call as the menu shortcuts)
 			hint.setAttribute("aria-hidden", "true");
-			for (const key of shortcut_keys(this.shortcut)) {
+			const keys = shortcut_keys(this.shortcut);
+			for (let i = 0; i < keys.length; i++) {
+				if (i > 0) {
+					hint.appendChild(document.createTextNode("+"));
+				}
 				const kbd = document.createElement("kbd");
-				kbd.textContent = key;
+				kbd.textContent = keys[i];
 				hint.appendChild(kbd);
 			}
 			bubble.appendChild(hint);

@@ -230,9 +230,13 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 		const shortcut = document.createElement("span");
 		shortcut.className = "es-menu__shortcut";
 		shortcut.setAttribute("aria-hidden", "true");
-		for (const key of shortcut_keys(item.shortcut)) {
+		const keys = shortcut_keys(item.shortcut);
+		for (let i = 0; i < keys.length; i++) {
+			if (i > 0) {
+				shortcut.appendChild(document.createTextNode("+"));
+			}
 			const kbd = document.createElement("kbd");
-			kbd.textContent = key;
+			kbd.textContent = keys[i];
 			shortcut.appendChild(kbd);
 		}
 		el.appendChild(shortcut);
