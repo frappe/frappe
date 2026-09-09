@@ -121,6 +121,9 @@ class TestSearch(IntegrationTestCase):
 		self.assertEqual(len(first), 10)
 		self.assertEqual(len(second), 10)
 		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
+		# later pages ask to keep order; the list is sorted once, so they still match
+		self.assertEqual(search_link("DocType", "", page_length=10, start=10, keep_order=True), second)
+		self.assertEqual(search_link("DocType", "", page_length=20)[10:], second)
 
 	def test_search_link_include_image(self):
 		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")

@@ -234,7 +234,7 @@ def search_widget(
 			frappe.flags.ignore_user_permissions_for_doctype = None
 
 		if not for_link_validation and meta.translated_doctype:
-			values = page_translated(values, txt, as_dict, start, page_length, keep_order)
+			values = page_translated(values, txt, as_dict, start, page_length)
 
 		return values
 
@@ -341,7 +341,7 @@ def search_widget(
 
 	if not for_link_validation:
 		if meta.translated_doctype:
-			values = page_translated(values, txt, as_dict, start, page_length, keep_order)
+			values = page_translated(values, txt, as_dict, start, page_length)
 		elif not keep_order:
 			# Sorting the values array so that relevant results always come first
 			# This will first bring elements on top in which query is a prefix of element
@@ -359,11 +359,11 @@ def search_widget(
 	return values
 
 
-def page_translated(values, txt, as_dict, start, page_length, keep_order):
-	"""Translated doctypes are matched in Python, so filter, sort and page them here."""
+def page_translated(values, txt, as_dict, start, page_length):
+	"""Translated doctypes are matched in Python: filter, sort and page here.
+	Always sorted, so every page slices the same order."""
 	values = filter_translated(values, txt, as_dict)
-	if not keep_order:
-		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+	values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 	return values[start : start + page_length]
 
 
