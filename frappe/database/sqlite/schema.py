@@ -1,6 +1,41 @@
 import frappe
-from frappe.database.schema import DBTable
+from frappe import _
+from frappe.database.schema import DBTable, get_definition
+from frappe.utils import cint, flt
 from frappe.utils.defaults import get_not_null_defaults
+
+
+def get_type_affinity(declared_type: str) -> str:
+	"""Return the storage affinity SQLite assigns to a declared type."""
+	declared_type = declared_type.upper()
+	if "INT" in declared_type:
+		return "integer"
+	if any(token in declared_type for token in ("CHAR", "CLOB", "TEXT")):
+		return "text"
+	if "BLOB" in declared_type or not declared_type:
+		return "blob"
+	if any(token in declared_type for token in ("REAL", "FLOA", "DOUB")):
+		return "real"
+	return "numeric"
+
+
+def types_are_compatible(current_type: str, target_type: str) -> bool:
+	"""Return whether two declarations are safe to treat as the same SQLite type.
+
+	Only known legacy aliases are accepted here. Length changes such as varchar(140) to varchar(255) remain real schema changes.
+	"""
+	current_type = current_type.strip().lower()
+	target_type = target_type.strip().lower()
+	if current_type == target_type:
+		return True
+
+	current_base = current_type.partition("(")[0].strip()
+	target_base = target_type.partition("(")[0].strip()
+	aliases = frozenset((current_base, target_base))
+	return aliases in (
+		frozenset(("text", "varchar")),
+		frozenset(("datetime", "timestamp")),
+	) and get_type_affinity(current_type) == get_type_affinity(target_type)
 
 
 class SQLiteTable(DBTable):
@@ -76,7 +111,18 @@ class SQLiteTable(DBTable):
 		from frappe.database.sqlite.database import get_column_definition, rebuild_table
 
 		for col in self.columns.values():
-			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
+			current_definition = self.current_columns.get(col.fieldname.lower())
+			if current_definition:
+				target_type = get_definition(
+					col.fieldtype,
+					precision=col.precision,
+					length=col.length,
+					options=col.options,
+				)
+				if target_type and types_are_compatible(current_definition.type, target_type):
+					current_definition = frappe._dict(current_definition.copy())
+					current_definition.type = target_type
+			col.build_for_alter_table(current_definition)
 
 		primary_key_type = self.alter_primary_key()
 		new_column_names = {col.fieldname for col in self.add_column}
@@ -100,6 +146,9 @@ class SQLiteTable(DBTable):
 			self.run_schema_queries(queries)
 			return
 
+		for col in self.change_type:
+			self.validate_type_change(col)
+
 		current_columns = frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
 		column_names = [column.name for column in current_columns]
 		column_definitions = [get_column_definition(column) for column in current_columns]
@@ -122,6 +171,16 @@ class SQLiteTable(DBTable):
 		column_definitions.extend(f"`{col.fieldname}` {col.get_definition()}" for col in self.add_column)
 
 		pre_rebuild_queries = []
+		for col in self.change_type:
+			if col.fieldtype not in frappe.model.numeric_fieldtypes:
+				continue
+			default = col.default or get_not_null_defaults(col.fieldtype)
+			default = cint(default) if col.fieldtype in ("Check", "Int", "Long Int") else flt(default)
+			pre_rebuild_queries.append(
+				f"UPDATE `{self.table_name}` SET `{col.fieldname}` = {default} "
+				f"WHERE `{col.fieldname}` IS NOT NULL "
+				f"AND TRIM(CAST(`{col.fieldname}` AS TEXT)) = ''"
+			)
 		for col in self.change_nullability:
 			if not col.not_nullable:
 				continue
@@ -200,3 +259,73 @@ class SQLiteTable(DBTable):
 
 		if autoname != "UUID" and current_base_type == "uuid":
 			return f"varchar({frappe.db.VARCHAR_LEN})"
+
+	def validate_type_change(self, column) -> None:
+		"""Reject values SQLite cannot safely store as the requested numeric type."""
+		if column.fieldtype not in frappe.model.numeric_fieldtypes:
+			return
+
+		value = f"TRIM(CAST(`{column.fieldname}` AS TEXT))"
+		if column.fieldtype in ("Int", "Long Int", "Check"):
+			pattern = r"^[+-]?[0-9]+$"
+		else:
+			pattern = r"^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+
+		invalid = frappe.db.sql(
+			f"""SELECT 1 FROM `{self.table_name}`
+			WHERE `{column.fieldname}` IS NOT NULL
+				AND {value} != ''
+				AND regexp(%s, {value}) = 0
+			LIMIT 1""",
+			(pattern,),
+			_skip_sqlite_transpilation=True,
+		)
+
+		if not invalid and column.fieldtype in ("Int", "Long Int"):
+			is_bigint = column.fieldtype == "Long Int" or (column.length and column.length > 11)
+			positive_limit = "9223372036854775807" if is_bigint else "2147483647"
+			negative_limit = "9223372036854775808" if is_bigint else "2147483648"
+			magnitude = f"LTRIM(LTRIM({value}, '+-'), '0')"
+			invalid = frappe.db.sql(
+				f"""SELECT 1 FROM `{self.table_name}`
+				WHERE `{column.fieldname}` IS NOT NULL
+					AND {value} != ''
+					AND (
+						(SUBSTR({value}, 1, 1) = '-' AND (
+							LENGTH({magnitude}) > {len(negative_limit)}
+							OR (LENGTH({magnitude}) = {len(negative_limit)} AND {magnitude} > %s)
+						))
+						OR (SUBSTR({value}, 1, 1) != '-' AND (
+							LENGTH({magnitude}) > {len(positive_limit)}
+							OR (LENGTH({magnitude}) = {len(positive_limit)} AND {magnitude} > %s)
+						))
+					)
+				LIMIT 1""",
+				(negative_limit, positive_limit),
+				_skip_sqlite_transpilation=True,
+			)
+
+		if not invalid and column.fieldtype in ("Currency", "Float", "Percent"):
+			exponent_position = f"INSTR(LOWER({value}), 'e')"
+			mantissa = (
+				f"CASE WHEN {exponent_position} > 0 "
+				f"THEN SUBSTR({value}, 1, {exponent_position} - 1) ELSE {value} END"
+			)
+			invalid = frappe.db.sql(
+				f"""SELECT 1 FROM `{self.table_name}`
+				WHERE `{column.fieldname}` IS NOT NULL
+					AND {value} != ''
+					AND (
+						ABS(CAST({value} AS REAL)) >= 9e999
+						OR (CAST({value} AS REAL) = 0 AND regexp('[1-9]', {mantissa}) = 1)
+					)
+				LIMIT 1""",
+				_skip_sqlite_transpilation=True,
+			)
+
+		if invalid:
+			frappe.throw(
+				_(
+					"Cannot change field type in {0}: some existing values cannot be converted to the new type"
+				).format(self.doctype)
+			)

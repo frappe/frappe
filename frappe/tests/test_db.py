@@ -1118,6 +1118,123 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		for table_name in [self.table_name, self.audit_table, *self.other_tables]:
 			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{table_name}`")
 
+	def create_doctype_table(self, field_definition: str) -> None:
+		frappe.db.sql_ddl(
+			f"""CREATE TABLE `{self.table_name}` (
+				`name` varchar(140) PRIMARY KEY,
+				`creation` timestamp,
+				`modified` timestamp,
+				`modified_by` varchar(140),
+				`owner` varchar(140),
+				`docstatus` INTEGER NOT NULL DEFAULT 0,
+				`idx` INTEGER NOT NULL DEFAULT 0,
+				{field_definition}
+			)"""
+		)
+
+	def get_test_meta(self, field: frappe._dict):
+		class TestMeta(frappe._dict):
+			def get(self, key, default=None):
+				return super().get(key) if key in self else default
+
+			def get_fieldnames_with_value(self, **kwargs):
+				return self.fields
+
+		return TestMeta(
+			istable=1,
+			issingle=0,
+			autoname="hash",
+			sort_field="creation",
+			track_seen=0,
+			is_virtual=0,
+			fields=[field],
+		)
+
+	def test_only_known_equivalent_types_skip_a_rebuild(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable, types_are_compatible
+
+		self.assertTrue(types_are_compatible("TEXT", "varchar(140)"))
+		self.assertTrue(types_are_compatible("DATETIME", "timestamp"))
+		self.assertFalse(types_are_compatible("varchar(140)", "varchar(255)"))
+		self.assertFalse(types_are_compatible("DATE", "timestamp"))
+		self.assertFalse(types_are_compatible("TEXT", "uuid"))
+		self.assertFalse(types_are_compatible("INT", "bigint"))
+
+		self.create_doctype_table("`payload` TEXT")
+		table = SQLiteTable(
+			self.doctype,
+			self.get_test_meta(frappe._dict(fieldname="payload", fieldtype="Data")),
+		)
+		table.validate()
+		with patch("frappe.database.sqlite.database.rebuild_table") as rebuild_table:
+			table.alter()
+		rebuild_table.assert_not_called()
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "payload"), "text")
+
+	def test_numeric_type_change_validates_syntax_and_range(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		self.create_doctype_table("`amount` TEXT")
+		table = SQLiteTable.__new__(SQLiteTable)
+		table.doctype = self.doctype
+		table.table_name = self.table_name
+
+		invalid_values = (
+			("Int", None, "not-a-number"),
+			("Int", None, str(2**31)),
+			("Long Int", None, str(2**63)),
+			("Float", None, "1e999"),
+			("Float", None, "1e-999"),
+		)
+		for fieldtype, length, value in invalid_values:
+			with self.subTest(fieldtype=fieldtype, value=value):
+				frappe.db.sql(f"DELETE FROM `{self.table_name}`")
+				frappe.db.sql(
+					f"INSERT INTO `{self.table_name}` (`name`, `amount`) VALUES ('row', %s)",
+					(value,),
+				)
+				column = frappe._dict(fieldname="amount", fieldtype=fieldtype, length=length)
+				with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+					table.validate_type_change(column)
+
+		valid_values = (
+			("Int", None, str(-(2**31))),
+			("Int", None, str(2**31 - 1)),
+			("Long Int", None, str(-(2**63))),
+			("Long Int", None, str(2**63 - 1)),
+			("Float", None, "1.25e100"),
+		)
+		for fieldtype, length, value in valid_values:
+			with self.subTest(fieldtype=fieldtype, value=value):
+				frappe.db.sql(f"DELETE FROM `{self.table_name}`")
+				frappe.db.sql(
+					f"INSERT INTO `{self.table_name}` (`name`, `amount`) VALUES ('row', %s)",
+					(value,),
+				)
+				column = frappe._dict(fieldname="amount", fieldtype=fieldtype, length=length)
+				table.validate_type_change(column)
+
+	def test_numeric_type_change_replaces_blanks_with_the_default(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		self.create_doctype_table("`amount` TEXT")
+		frappe.db.sql(
+			f"INSERT INTO `{self.table_name}` (`name`, `amount`) VALUES (%s, %s), (%s, %s)",
+			("blank", "", "number", "12.5"),
+		)
+		table = SQLiteTable(
+			self.doctype,
+			self.get_test_meta(frappe._dict(fieldname="amount", fieldtype="Currency", default="7.5")),
+		)
+		table.validate()
+		table.alter()
+
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "amount"), "real")
+		self.assertEqual(
+			frappe.db.sql(f"SELECT `name`, `amount` FROM `{self.table_name}` ORDER BY `name`"),
+			[("blank", 7.5), ("number", 12.5)],
+		)
+
 	def test_rename_column_uses_the_column_name_from_pragma(self) -> None:
 		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `old_name` TEXT)")
 		frappe.db.sql(
