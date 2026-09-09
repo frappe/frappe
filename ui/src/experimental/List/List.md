@@ -68,3 +68,10 @@ selection; the clear button empties it.
 The three together, as a list page lays them out.
 
 <ComponentPreview name="List-Composed" />
+
+## With the filter controls
+
+`Filter` and `QuickFilter` bind one `FilterCondition[]`, and the host fetches with its
+wire form and the header sort. Against a live doctype.
+
+<ComponentPreview name="List-Filtered" />
