@@ -17,6 +17,8 @@ from frappe.utils import add_days, add_months, getdate, today
 if TYPE_CHECKING:
 	from frappe.custom.doctype.custom_field.custom_field import CustomField
 
+REFERENCE_USER = "test_auto_repeat_reference@example.com"
+
 
 def add_custom_fields() -> "CustomField":
 	df = dict(
@@ -39,6 +41,7 @@ class TestAutoRepeat(FrappeTestCase):
 	def setUpClass(cls):
 		cls.custom_field = add_custom_fields()
 		cls.addClassCleanup(cls.custom_field.delete)
+		cls.addClassCleanup(delete_reference_user)
 		return super().setUpClass()
 
 	def test_daily_auto_repeat(self):
@@ -237,7 +240,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		user = user_without_reference_access()
+		user = create_user_without_reference_access()
 
 		self.assertFalse(frappe.has_permission("ToDo", "write", todo.name, user=user))
 
@@ -272,7 +275,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		user = user_without_reference_access()
+		user = create_user_without_reference_access()
 
 		doc = make_auto_repeat(reference_document=todo.name)
 		frappe.db.set_value("Auto Repeat", doc.name, "owner", user)
@@ -287,7 +290,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
 		).insert()
-		user = user_without_reference_access()
+		user = create_user_without_reference_access()
 
 		own_todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", allocated_to=user, owner=user
@@ -321,13 +324,29 @@ def make_auto_repeat(**args):
 	).insert(ignore_permissions=True)
 
 
-def user_without_reference_access():
+def create_user_without_reference_access():
 	"""Return a user who can create an Auto Repeat but cannot access another user's ToDo."""
-	user = frappe.get_doc("User", "test2@example.com")
-	user.add_roles("Accounts User")
-	frappe.clear_cache(user=user.name)
+	if not frappe.db.exists("User", REFERENCE_USER):
+		frappe.get_doc(
+			doctype="User",
+			email=REFERENCE_USER,
+			first_name="Auto Repeat Reference",
+			send_welcome_email=0,
+			roles=[{"role": "Accounts User"}],
+		).insert(ignore_permissions=True)
+		frappe.clear_cache(user=REFERENCE_USER)
 
-	return user.name
+	return REFERENCE_USER
+
+
+def delete_reference_user():
+	if not frappe.db.exists("User", REFERENCE_USER):
+		return
+
+	frappe.delete_doc("User", REFERENCE_USER, force=True, ignore_permissions=True)
+	# tests here commit, so the user outlives the class rollback and would keep
+	# counting against throttle_user_creation for every module that runs later
+	frappe.db.commit()  # nosemgrep
 
 
 def create_submittable_doctype(doctype, submit_perms=1):
