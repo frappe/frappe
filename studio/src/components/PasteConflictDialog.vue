@@ -3,7 +3,8 @@
 		:model-value="state.open"
 		title="Pasted block conflicts"
 		size="2xl"
-		@update:model-value="(open: boolean) => !open && dismissPasteConflictDialog()"
+		:dismissible="false"
+		:show-close-button="false"
 	>
 		<template #default>
 			<div class="flex flex-col gap-4">
@@ -134,11 +135,6 @@ async function applyPasteConflictChoices() {
 	} finally {
 		state.applying = false
 	}
-}
-
-function dismissPasteConflictDialog() {
-	if (!state.open || state.applying) return
-	closePasteConflictDialog()
 }
 
 function removePastedBlocks() {
