@@ -43,7 +43,7 @@
 					<ListHeaderCell v-else class="min-w-0">{{ column.label }}</ListHeaderCell>
 					<span
 						class="absolute inset-y-0 -right-1 flex w-2 cursor-col-resize justify-center"
-						@mousedown.stop.prevent="startResize(column, $event)"
+						@pointerdown.stop.prevent="startResize(column, $event)"
 						@dblclick.stop.prevent="resetColumn(column)"
 					>
 						<span
@@ -66,7 +66,7 @@
 					<ListCell class="justify-center">
 						<div
 							role="checkbox"
-							:aria-checked="selection.includes(rowValue(row))"
+							:aria-checked="isSelected(rowValue(row))"
 							:aria-label="`Select ${rowValue(row)}`"
 							tabindex="0"
 							@click.stop.prevent="toggle(rowValue(row))"
@@ -74,7 +74,7 @@
 							@keydown.space.stop.prevent="toggle(rowValue(row))"
 						>
 							<Checkbox
-								:modelValue="selection.includes(rowValue(row))"
+								:modelValue="isSelected(rowValue(row))"
 								class="pointer-events-none"
 								tabindex="-1"
 								aria-hidden="true"
@@ -101,7 +101,7 @@
 			</div>
 			<template v-else-if="loading">
 				<ListRow v-for="index in SKELETON_ROW_COUNT" :key="index">
-					<div />
+					<ListCell />
 					<ListCell v-for="column in skeletonColumns" :key="column.fieldname">
 						<Skeleton class="h-3 w-full rounded" />
 					</ListCell>
@@ -169,7 +169,8 @@ defineExpose({
 });
 
 // Binding the sort model at mount is what makes the headers sortable, as the molecule's `active`.
-const sortable = "onUpdate:sort" in (getCurrentInstance()?.vnode.props ?? {});
+const instance = getCurrentInstance();
+const sortable = computed(() => "onUpdate:sort" in (instance?.vnode.props ?? {}));
 
 const rows = toRef(props, "rows");
 const columns = toRef(props, "columns");
@@ -189,7 +190,7 @@ function rowValue(row: ListRowData) {
 	return String(row[props.rowKey]);
 }
 
-const { selectAllState, toggle, toggleSelectAll } = useRowSelection(
+const { selectAllState, isSelected, toggle, toggleSelectAll } = useRowSelection(
 	selection,
 	rows,
 	toRef(props, "rowKey")

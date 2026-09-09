@@ -10,7 +10,8 @@ interface Drag {
   startWidth: number;
 }
 
-/** Drag-resize on a header cell: a draft width while dragging, the final width on release. */
+/** Drag-resize on a header cell: a draft width while dragging, the final width on release.
+ *  The draft clears as `onResize` fires, so the host writes the width into its columns synchronously. */
 export function useColumnResize(handlers: {
   onResize: (fieldname: string, width: string) => void;
   onReset: (fieldname: string) => void;
@@ -19,7 +20,7 @@ export function useColumnResize(handlers: {
   const resizingFieldname = ref<string | null>(null);
   let drag: Drag | null = null;
 
-  function startResize(column: ListColumn, event: MouseEvent) {
+  function startResize(column: ListColumn, event: PointerEvent) {
     const cell = (event.currentTarget as HTMLElement).parentElement;
     if (!cell) return;
     drag = {
@@ -28,11 +29,11 @@ export function useColumnResize(handlers: {
       startWidth: cell.getBoundingClientRect().width,
     };
     resizingFieldname.value = column.fieldname;
-    window.addEventListener("mousemove", onDrag);
-    window.addEventListener("mouseup", endDrag);
+    window.addEventListener("pointermove", onDrag);
+    window.addEventListener("pointerup", endDrag);
   }
 
-  function onDrag(event: MouseEvent) {
+  function onDrag(event: PointerEvent) {
     if (!drag) return;
     if (Math.abs(event.clientX - drag.startX) < DRAG_THRESHOLD) return;
     const width = Math.max(
@@ -59,8 +60,8 @@ export function useColumnResize(handlers: {
   }
 
   function stopListening() {
-    window.removeEventListener("mousemove", onDrag);
-    window.removeEventListener("mouseup", endDrag);
+    window.removeEventListener("pointermove", onDrag);
+    window.removeEventListener("pointerup", endDrag);
   }
 
   onScopeDispose(stopListening);

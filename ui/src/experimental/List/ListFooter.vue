@@ -1,4 +1,4 @@
-<!-- The list footer: page-size tabs, Load More, and "N of M". The host sets its horizontal padding. -->
+<!-- The list footer: page-size tabs, Load More, and "N of M". The host sets its padding. -->
 <template>
 	<div
 		class="flex shrink-0 items-center justify-between gap-2 border-t border-outline-gray-1 py-2"

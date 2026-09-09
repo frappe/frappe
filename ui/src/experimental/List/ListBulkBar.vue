@@ -10,12 +10,12 @@
 			<div
 				class="flex items-center gap-3 rounded-lg bg-surface-base px-4 py-2 text-base shadow-2xl"
 			>
-				<Checkbox :modelValue="true" :disabled="true" />
+				<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
 				<span class="text-ink-gray-9">{{ selection.length }} selected</span>
 				<div class="flex items-center gap-1 border-l border-outline-gray-2 ps-3">
 					<Button
-						v-for="(action, index) in actions"
-						:key="index"
+						v-for="action in actions"
+						:key="action.label"
 						:label="action.label"
 						:theme="action.theme"
 						variant="ghost"
