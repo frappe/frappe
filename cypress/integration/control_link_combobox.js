@@ -6,11 +6,14 @@ context("Control Link (combobox)", () => {
 		cy.login();
 		cy.visit("/desk/website");
 		cy.set_combobox_setting(true);
+		// the × button follows this setting
+		cy.set_system_setting("allow_clearing_link_fields", 1);
 	});
 
 	after(() => {
 		cy.visit("/desk/website");
 		cy.set_combobox_setting(false);
+		cy.set_system_setting("allow_clearing_link_fields", 0);
 	});
 
 	beforeEach(() => {
@@ -75,18 +78,109 @@ context("Control Link (combobox)", () => {
 		});
 	});
 
-	it("should unset invalid value", () => {
+	it("drops typed text that matches nothing", () => {
 		get_dialog_with_link().as("dialog");
 
-		cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
 		field_input().type("invalid value", { delay: 100 });
 		panel().find(".es-menu__empty").should("contain", "invalid value");
 		cy.get(".modal-title").click();
-		cy.wait("@validate_link");
+		panel().should("not.exist");
 		field_input().should("have.value", "");
 		cy.get("@dialog").then((dialog) => {
 			expect(dialog.get_value("link")).to.equal("");
 		});
+	});
+
+	it("picks a row typed exactly on a click away, drops text that matches nothing", () => {
+		cy.get("@todos").then((todos) => {
+			get_dialog_with_link().as("dialog");
+
+			// the full name of a listed row picks it
+			field_input().type(todos[0], { delay: 100 });
+			panel().find(".es-combobox__list [role='option']").should("contain", todos[0]);
+			cy.get(".modal-title").click();
+			panel().should("not.exist");
+			cy.get("@dialog").should((dialog) => expect(dialog.get_value("link")).to.eq(todos[0]));
+
+			// a partial query left behind keeps the value
+			field_input().type("zzz", { delay: 100 });
+			panel().find(".es-menu__empty").should("exist");
+			cy.get(".modal-title").click();
+			panel().should("not.exist");
+			cy.get("@dialog").should((dialog) => expect(dialog.get_value("link")).to.eq(todos[0]));
+		});
+	});
+
+	it("opens with pasted text", () => {
+		get_dialog_with_link();
+		search().type("{esc}");
+		panel().should("not.exist");
+		field_input().then(($input) => {
+			const data = new DataTransfer();
+			data.setData("text/plain", "pasted name\nsecond line");
+			$input[0].dispatchEvent(
+				new InputEvent("beforeinput", {
+					inputType: "insertFromPaste",
+					dataTransfer: data,
+					bubbles: true,
+					cancelable: true,
+				})
+			);
+		});
+		panel().should("be.visible");
+		search().should("have.value", "pasted name");
+		search().type("{esc}");
+	});
+
+	it("map_options re-ranks rows and adds a group that later pages continue", () => {
+		cy.window().its("frappe.sys_defaults").should("exist");
+		cy.dialog({
+			title: "Link",
+			fields: [{ label: "DocType", fieldname: "dt", fieldtype: "Link", options: "DocType" }],
+		}).as("dialog");
+		cy.window().its("cur_dialog.display").should("eq", true);
+		cy.get("@dialog").then((dialog) => {
+			const field = dialog.get_field("dt");
+			field.combobox.close("owner");
+			// every page returns both groups: later rows join the group with that label
+			field.map_options = (rows) => [
+				{ group: "Recently used", options: [rows[0]] },
+				{ group: "All", options: rows },
+			];
+		});
+		cy.get(".frappe-control[data-fieldname=dt] .es-combobox input").focus();
+		panel().find(".es-menu__group-label").should("have.length", 2);
+		panel().find(".es-menu__group-label").first().should("contain", "Recently used");
+		panel().find(".es-combobox__list").scrollTo("bottom");
+		panel().find(".es-combobox__list [role='option']").should("have.length.gt", 11);
+		// page 2 continued the "All" group instead of adding a header
+		panel().find(".es-menu__group-label").should("have.length", 2);
+		search().type("{esc}");
+	});
+
+	it("falls back to Search on the next open when a Select list is too long", () => {
+		cy.window().its("frappe.sys_defaults").should("exist");
+		cy.window().then((win) => {
+			win.frappe.boot.link_settings = {
+				...(win.frappe.boot.link_settings || {}),
+				DocType: { display_mode: "Select" },
+			};
+		});
+		cy.dialog({
+			title: "Link",
+			fields: [{ label: "DocType", fieldname: "dt", fieldtype: "Link", options: "DocType" }],
+		}).as("dialog");
+		cy.window().its("cur_dialog.display").should("eq", true);
+		// the Select preload finds too many rows: the panel reopens as a search
+		panel().find(".es-combobox__input").should("exist");
+		panel().find(".es-combobox__list [role='option']").should("have.length", 10);
+		search().type("{esc}");
+		panel().should("not.exist");
+		// and stays a search from now on
+		cy.get(".frappe-control[data-fieldname=dt] .es-combobox input").focus();
+		panel().find(".es-combobox__input").should("exist");
+		panel().find(".es-combobox__list [role='option']").should("have.length", 10);
+		search().type("{esc}");
 	});
 
 	it("should be possible set empty value explicitly", () => {
@@ -208,19 +302,15 @@ context("Control Link (combobox)", () => {
 			});
 			cy.window().its("cur_frm.doc.assigned_by").should("eq", cy.config("testUser"));
 
+			// a partial query left behind keeps the value and its fetched fields
 			cy.get_field("assigned_by").type("invalid input", { delay: 100 });
 			cy.get(".es-combobox__panel[data-state='open'] .es-menu__empty").should("exist");
 			cy.get(".page-title").click();
-			cy.wait("@validate_link");
-			cy.window().its("cur_frm.doc.assigned_by").should("eq", undefined);
-			cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
-				"contain",
-				""
-			);
-
-			cy.fill_field("assigned_by", cy.config("testUser"), "Link");
-			cy.wait("@validate_link");
+			cy.get(".es-combobox__panel[data-state='open']").should("not.exist");
 			cy.window().its("cur_frm.doc.assigned_by").should("eq", cy.config("testUser"));
+			cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
+				"not.be.empty"
+			);
 
 			cy.get(".frappe-control[data-fieldname=assigned_by] [data-role='clear']").click({
 				force: true,

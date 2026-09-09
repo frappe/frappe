@@ -199,19 +199,19 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 					});
 				return;
 			}
-			cy.get("@input").clear().focus();
+			cy.wrap($input).clear().focus();
 			// Wait for dropdown to appear (request might be cached, so don't wait for network)
-			cy.get("@input").parent().findByRole("listbox").as("dropdown");
+			cy.wrap($input).parent().findByRole("listbox").as("dropdown");
 			cy.get("@dropdown").should("be.visible");
-			cy.get("@input").type(value, { delay: 100 });
+			cy.wrap($input).type(value, { delay: 100 });
 			// Wait for dropdown to update with search results
 			cy.get("@dropdown")
 				.should("be.visible")
 				.find("div[role='option']")
 				.first()
 				.should("include.text", value);
-			cy.get("@input").type("{enter}");
-			cy.get("@input").blur();
+			cy.wrap($input).type("{enter}");
+			cy.wrap($input).blur();
 			cy.get("@dropdown").should("not.exist");
 			cy.get("@input").should("have.value", value);
 		});
@@ -577,11 +577,15 @@ Cypress.Commands.add("compare_document", (expected_document) => {
 		});
 });
 
-Cypress.Commands.add("set_combobox_setting", (on) => {
+Cypress.Commands.add("set_system_setting", (fieldname, value) => {
 	cy.call("frappe.client.set_value", {
 		doctype: "System Settings",
 		name: "System Settings",
-		fieldname: "enable_combobox_link_field",
-		value: on ? 1 : 0,
+		fieldname,
+		value,
 	});
+});
+
+Cypress.Commands.add("set_combobox_setting", (on) => {
+	cy.set_system_setting("enable_combobox_link_field", on ? 1 : 0);
 });

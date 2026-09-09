@@ -117,12 +117,45 @@ context("Control Autocomplete (combobox)", () => {
 		cy.window().its("cur_dialog.display").should("eq", true);
 		panel().should("exist");
 		cy.focused().should("have.class", "es-combobox__input");
-		search().type("Bet{enter}");
+		// click first: Cypress drops the caret of an input focused by script
+		search().click().type("Bet{enter}");
 		panel().should("not.exist");
 		cy.focused().should("have.class", "es-combobox__value");
 		cy.focused().type("{enter}");
 		cy.window().its("__picked").should("eq", "Beta");
 		cy.get(".modal:visible").should("not.exist");
+	});
+
+	it("fires a native change on a pick", () => {
+		make_dialog("ac7", ["Alpha", "Beta"]).as("dialog");
+		cy.get("@dialog").then((dialog) => {
+			dialog.__changed = 0;
+			dialog.get_input("ac7").on("change", () => dialog.__changed++);
+		});
+		field_input("ac7").type("Bet");
+		search().type("{enter}");
+		cy.get("@dialog").its("__changed").should("eq", 1);
+		cy.get("@dialog").then((dialog) => expect(dialog.get_value("ac7")).to.eq("Beta"));
+	});
+
+	it("uses get_query for the rows even when options are set", () => {
+		make_dialog("ac8", ["Alpha", "Beta"], {
+			get_query: () => ({
+				query: "frappe.client.get_list",
+				params: {
+					doctype: "Role",
+					fields: ["name as value", "name as label"],
+					filters: { name: "System Manager" },
+				},
+			}),
+		}).as("dialog");
+		field_input("ac8").type("sys");
+		panel().find(".es-combobox__list [role='option']").should("contain", "System Manager");
+		panel().find(".es-combobox__list [role='option']").should("not.contain", "Alpha");
+		search().type("{enter}");
+		cy.get("@dialog").should((dialog) =>
+			expect(dialog.get_value("ac8")).to.eq("System Manager")
+		);
 	});
 
 	it("takes a new list from set_data", () => {
