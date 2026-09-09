@@ -18,6 +18,8 @@ export interface ListProps {
   rowHeight?: number;
   /** The route a row opens; with it, every row renders as a link. */
   rowLink?: (row: ListRowData) => RouteLocationRaw;
+  /** Where the checkbox and the last cell's text land, as a CSS length; the row bleeds past it. */
+  gutter?: string;
 }
 
 /** A drag-resize result: the column and the fixed width it now has. */

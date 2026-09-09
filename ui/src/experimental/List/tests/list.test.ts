@@ -76,6 +76,19 @@ describe("List rows", () => {
   });
 });
 
+describe("List gutter", () => {
+  it("pads the table by the gutter less the row inset, and by nothing without one", async () => {
+    const bare = await mount(List, { columns, rows });
+    expect(bare.root.querySelector<HTMLElement>("[data-slot='list']")!.style.paddingInline).toBe(
+      ""
+    );
+    const padded = await mount(List, { columns, rows, gutter: "var(--page-gutter)" });
+    expect(
+      padded.root.querySelector<HTMLElement>("[data-slot='list']")!.style.paddingInline
+    ).toBe("calc(var(--page-gutter) - 0.5rem)");
+  });
+});
+
 describe("List selection", () => {
   it("a checkbox click toggles the row and does not navigate", async () => {
     const state = reactive({ selection: [] as string[] });

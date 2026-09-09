@@ -102,7 +102,7 @@
     "@vitejs/plugin-vue": ">=4",
     "@vueuse/core": ">=10.4.1",
     "autoprefixer": "^10.4.0",
-    "frappe-ui": ">=1.0.0-beta.16",
+    "frappe-ui": ">=1.0.0-beta.55",
     "tailwindcss": "^3.4.0",
     "typescript": ">=5",
     "vite": ">=4",
