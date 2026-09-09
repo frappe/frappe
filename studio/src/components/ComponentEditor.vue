@@ -87,6 +87,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
 import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
+import { isMovable, startBlockMove } from "@/utils/useBlockMove"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 
@@ -169,6 +170,9 @@ const getStyleClasses = computed(() => {
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack
 		classes.push("!z-[19]")
+		if (isMovable(props.block)) {
+			classes.push("cursor-grab")
+		}
 	}
 	return classes
 })
@@ -192,14 +196,16 @@ const componentLabelClasses = computed(() => {
 })
 
 // The selected block's overlay sits above the block itself, so it has to start
-// the reorder drag; the resize/spacing handlers stop their own mousedown.
+// the drag (reorder for in-flow blocks, free move for absolutely positioned
+// ones); the resize/spacing handlers stop their own mousedown.
 const handleMouseDown = (ev: MouseEvent) => {
 	if (ev.button !== 0 || store.mode !== "select") return
 	if ((ev.target as HTMLElement).closest("button")) return
-	if (!isReorderable(props.block)) return
+	const start = isReorderable(props.block) ? startBlockReorder : isMovable(props.block) ? startBlockMove : null
+	if (!start) return
 	ev.preventDefault()
 	ev.stopPropagation()
-	startBlockReorder(ev, props.block, props.breakpoint)
+	start(ev, props.block, props.breakpoint)
 }
 
 const handleClick = (ev: MouseEvent) => {

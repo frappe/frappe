@@ -30,7 +30,7 @@ function leaf(componentId: string, extraStyles: Record<string, string> = {}) {
 	return container(componentId, { height: "60px", width: "100%", flexShrink: "0", ...extraStyles })
 }
 
-// root > column [A, B, C, empty, row [X, Y]]
+// root > column [A, B, C, empty, row [X, Y], positioned [pinned (absolute)]]
 function buildTree() {
 	return container(
 		"column",
@@ -43,6 +43,15 @@ function buildTree() {
 			container("row", { display: "flex", flexDirection: "row", gap: "8px", height: "80px", width: "100%" }, [
 				leaf("X", { width: "200px", height: "100%" }),
 				leaf("Y", { width: "200px", height: "100%" }),
+			]),
+			container("positioned", { position: "relative", height: "160px", width: "100%", flexShrink: "0" }, [
+				container("pinned", {
+					position: "absolute",
+					top: "10px",
+					left: "10px",
+					width: "80px",
+					height: "40px",
+				}),
 			]),
 		],
 	)
@@ -130,7 +139,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		cy.get("#reorder-ghost").should("not.exist")
 		cy.get(blockSelector("A")).should("have.css", "visibility", "visible")
 		cy.then(() => {
-			expect(childIds("column")).to.deep.equal(["B", "C", "A", "empty", "row"])
+			expect(childIds("column")).to.deep.equal(["B", "C", "A", "empty", "row", "positioned"])
 			expect([...canvas.selectedBlockIds]).to.deep.equal(["A"])
 		})
 		cy.wait(HISTORY_DEBOUNCE)
@@ -151,7 +160,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			expect(childIds("row")).to.deep.equal(["X", "A", "Y"])
-			expect(childIds("column")).to.deep.equal(["B", "C", "empty", "row"])
+			expect(childIds("column")).to.deep.equal(["B", "C", "empty", "row", "positioned"])
 			expect(canvas.findBlock("A").getParentBlock().componentId).to.equal("row")
 		})
 	})
@@ -161,7 +170,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			expect(childIds("empty")).to.deep.equal(["B"])
-			expect(childIds("column")).to.deep.equal(["A", "C", "empty", "row"])
+			expect(childIds("column")).to.deep.equal(["A", "C", "empty", "row", "positioned"])
 		})
 
 		// the (now apparently empty) parent is a no-op target, so its edge lands beside it
@@ -172,7 +181,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			expect(childIds("empty")).to.deep.equal([])
-			expect(childIds("column")).to.deep.equal(["A", "C", "B", "empty", "row"])
+			expect(childIds("column")).to.deep.equal(["A", "C", "B", "empty", "row", "positioned"])
 		})
 	})
 
@@ -182,7 +191,33 @@ describe("reordering blocks on the canvas by dragging", () => {
 		cy.get("body").trigger("keydown", { key: "Escape", force: true })
 		cy.get("#reorder-ghost").should("not.exist")
 		release()
-		cy.then(() => expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row"]))
+		cy.then(() => expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned"]))
+	})
+
+	it("moves an absolutely positioned block freely instead of reordering it", () => {
+		let undoEntries = 0
+		cy.then(() => (undoEntries = canvas.history.undoStack.length))
+
+		startDrag("pinned", () => {
+			const { x, y } = center(document.querySelector(blockSelector("pinned"))!)
+			return { x: x + 100, y: y + 50 }
+		})
+		cy.get("#reorder-ghost").should("not.exist")
+		cy.then(() => {
+			const pinned = canvas.findBlock("pinned")
+			expect(pinned.getStyle("left")).to.equal("110px")
+			expect(pinned.getStyle("top")).to.equal("60px")
+			expect([...canvas.selectedBlockIds]).to.deep.equal(["pinned"])
+		})
+		release()
+		cy.then(() => {
+			expect(childIds("positioned")).to.deep.equal(["pinned"])
+			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned"])
+		})
+		cy.wait(HISTORY_DEBOUNCE)
+		cy.then(() => {
+			expect(canvas.history.undoStack.length).to.equal(undoEntries + 1)
+		})
 	})
 
 	it("does not start a drag on a plain click", () => {
@@ -196,7 +231,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		cy.get(blockSelector("B")).click({ force: true })
 		cy.then(() => {
 			expect([...canvas.selectedBlockIds]).to.deep.equal(["B"])
-			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row"])
+			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned"])
 		})
 	})
 })
