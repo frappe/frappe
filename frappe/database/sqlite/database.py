@@ -19,7 +19,7 @@ from frappe.database.database import (
 )
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.database.utils import convert_backtick_identifiers
-from frappe.utils import get_datetime, get_table_name, now
+from frappe.utils import get_table_name, now
 
 # matches both bare `%s` and named `%(param)s` DB-API placeholders
 _PARAM_COMP = re.compile(r"%\(\w+\)s|%s")
@@ -201,13 +201,6 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			"JSON": ("text", None),
 		}
 
-	@staticmethod
-	def format_datetime(value):
-		if not value:
-			return "0001-01-01 00:00:00.000000"
-		value = get_datetime(value)
-		return value.strftime("%Y-%m-%d %H:%M:%S.%f").removesuffix(".000000")
-
 	def get_database_size(self):
 		"""Return database size in MB."""
 		import os
@@ -268,7 +261,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
 		"""Rename a column with SQLite's native schema-preserving operation."""
 		table_name = get_table_name(doctype)
-		column_names = self.sql(f"PRAGMA table_info(`{table_name}`)", pluck=True)
+		column_names = [
+			column["name"] for column in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=True)
+		]
 		if old_column_name not in column_names:
 			raise frappe.InvalidColumnName(f"Column {old_column_name} does not exist in table {table_name}")
 		self.sql_ddl(f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`")
@@ -421,11 +416,14 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		"""Creates unique constraint on fields."""
 		if isinstance(fields, str):
 			fields = [fields]
-		if not constraint_name:
-			constraint_name = f"unique_{'_'.join(fields)}"
+		for field in fields:
+			if not re.fullmatch(r"\w+", field):
+				frappe.throw(f"Invalid unique column: {field}")
 		table_name = get_table_name(doctype)
+		if not constraint_name:
+			constraint_name = f"{table_name}_unique_{'_'.join(fields)}"
 
-		columns = ", ".join(fields)
+		columns = ", ".join(f"`{field}`" for field in fields)
 		sql_create_unique = (
 			f"CREATE UNIQUE INDEX IF NOT EXISTS `{constraint_name}` ON `{table_name}` ({columns})"
 		)
@@ -864,10 +862,14 @@ def rebuild_table(
 	*,
 	drop_index_fields: set[str] | None = None,
 	drop_unique_fields: set[str] | None = None,
+	pre_rebuild_queries: list[str] | None = None,
+	post_rebuild_queries: list[str] | None = None,
 ) -> set[tuple[bool, tuple[str, ...]]]:
 	"""Rebuild a SQLite table without discarding its schema-owned behavior."""
 	drop_index_fields = drop_index_fields or set()
 	drop_unique_fields = drop_unique_fields or set()
+	pre_rebuild_queries = pre_rebuild_queries or []
+	post_rebuild_queries = post_rebuild_queries or []
 	indexes = get_table_indexes(table_name)
 	triggers = _get_table_triggers(table_name)
 	autoincrement_sequence = _get_autoincrement_sequence(table_name)
@@ -875,13 +877,14 @@ def rebuild_table(
 	_append_primary_key(column_definitions, table_name)
 	preserved = _append_unique_constraints(column_definitions, indexes, drop_unique_fields)
 
-	temp_table = f"{table_name}_new"
+	temp_table = f"{table_name}__rebuild_{frappe.generate_hash(length=10)}"
 	quoted_columns = ", ".join(f"`{column}`" for column in column_names)
 
 	# Keep the entire replacement in one transaction so a failed copy or index recreation cannot strand a partial schema or discard the original table.
 	frappe.db.commit()
 	try:
-		frappe.db.sql(f"DROP TABLE IF EXISTS `{temp_table}`")
+		for query in pre_rebuild_queries:
+			frappe.db.sql(query)
 		frappe.db.sql(f"CREATE TABLE `{temp_table}` (\n{','.join(column_definitions)}\n)")
 		frappe.db.sql(
 			f"INSERT INTO `{temp_table}` ({quoted_columns}) SELECT {quoted_columns} FROM `{table_name}`"
@@ -898,22 +901,13 @@ def rebuild_table(
 		for trigger in triggers:
 			frappe.db.sql(trigger)
 		_restore_autoincrement_sequence(table_name, autoincrement_sequence)
+		for query in post_rebuild_queries:
+			frappe.db.sql(query)
 		frappe.db.commit()
 	except Exception:
 		frappe.db.rollback()
 		raise
 	return preserved
-
-
-def drop_single_column_indexes(table_name: str, fields: set[str], *, unique: bool) -> None:
-	"""Drop complete, non-partial single-column indexes for the requested fields."""
-	for index in get_table_indexes(table_name):
-		if index["origin"] == "pk" or index["partial"] or index["unique"] != unique:
-			continue
-		if len(index["columns"]) == 1 and index["columns"][0] in fields:
-			if index["origin"] == "u":
-				raise RuntimeError("SQLite table rebuild required to drop a UNIQUE constraint")
-			frappe.db.sql_ddl(f"DROP INDEX `{index['name']}`")
 
 
 def replace_locate_with_instr(query: str) -> str:
