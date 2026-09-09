@@ -5,6 +5,7 @@
 		:selected="isBlockSelected"
 		:data-component-id="block.componentId"
 		:class="getStyleClasses"
+		@mousedown="handleMouseDown"
 		@click.stop="handleClick"
 	>
 		<!-- Component name label -->
@@ -85,6 +86,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
+import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 
@@ -189,12 +191,19 @@ const componentLabelClasses = computed(() => {
 	}
 })
 
-const preventClick = ref(false)
+// The selected block's overlay sits above the block itself, so it has to start
+// the reorder drag; the resize/spacing handlers stop their own mousedown.
+const handleMouseDown = (ev: MouseEvent) => {
+	if (ev.button !== 0 || store.mode !== "select") return
+	if ((ev.target as HTMLElement).closest("button")) return
+	if (!isReorderable(props.block)) return
+	ev.preventDefault()
+	ev.stopPropagation()
+	startBlockReorder(ev, props.block, props.breakpoint)
+}
+
 const handleClick = (ev: MouseEvent) => {
-	if (preventClick.value) {
-		preventClick.value = false
-		return
-	}
+	if (canvasStore.preventClick) return
 	const editorWrapper = editor.value
 	editorWrapper.classList.add("pointer-events-none")
 	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement

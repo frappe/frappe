@@ -6,6 +6,7 @@ import { confirm } from "@/utils/helpers"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
 import type { EditingMode, BlockOptions } from "@/types"
+import type { ReorderTarget } from "@/types/StudioCanvas"
 
 const useCanvasStore = defineStore("canvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -106,6 +107,31 @@ const useCanvasStore = defineStore("canvasStore", () => {
 
 		isDragging.value = false
 	}
+
+	// On-canvas block reordering (pointer-based). Separate from dropTarget
+	// (panel → canvas drops). The overlay DropIndicator reads this; nothing here
+	// touches the canvas DOM, so the layout stays frozen during a drag.
+	const reorderTarget = reactive<ReorderTarget>({
+		active: false,
+		line: null,
+		containerRect: null,
+		isSlotTarget: false,
+		isSameContainer: false,
+	})
+
+	function clearReorderTarget() {
+		Object.assign(reorderTarget, {
+			active: false,
+			line: null,
+			containerRect: null,
+			isSlotTarget: false,
+			isSameContainer: false,
+		})
+	}
+
+	// swallow the click that trails a reorder drag so it doesn't re-select
+	// whatever the pointer was released over
+	const preventClick = ref(false)
 
 	// fragment mode
 	type FragmentData = {
@@ -281,6 +307,10 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		layerDraggingOverSlot,
 		handleDragStart,
 		handleDragEnd,
+		// on-canvas reorder
+		reorderTarget,
+		clearReorderTarget,
+		preventClick,
 		// fragment mode
 		editingMode,
 		showFragmentCanvas,
