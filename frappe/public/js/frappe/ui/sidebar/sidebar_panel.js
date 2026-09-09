@@ -105,12 +105,6 @@ frappe.ui.SidebarPanel = class SidebarPanel {
 		this.is_open = true;
 		this.sync_trigger_state();
 
-		// On mobile the sidebar is an overlay covering the screen, so it has to get out
-		// of the way for the panel to be visible at all.
-		if (frappe.is_mobile()) {
-			$(MOUNT_SELECTOR).removeClass("expanded");
-		}
-
 		this.opts.on_open?.();
 	}
 
@@ -199,9 +193,28 @@ frappe.ui.sidebar_panels = new (class SidebarPanelRegistry {
 		if (this.open_panel && this.open_panel !== panel) {
 			this.open_panel._hide();
 		}
+		this.close_sidebar_flyout();
 		this.open_panel = panel;
 		panel._show();
 		this.bind_dismissal();
+	}
+
+	// A panel opens on the same edge as the sidebar's flyout, so the flyout closes as it opens.
+	// They are two overlays over one edge: side by side, the panel was pushed out past 220px of
+	// rows that had nothing to do with what was in front of them, and on mobile, where the flyout
+	// covers the screen, the panel could not be seen at all.
+	//
+	// Where there is no rail the flyout stays, for the reason Sidebar.panel_can_close gives:
+	// nothing would bring it back. On mobile the class comes off the mount rather than the sidebar
+	// being closed, because the sidebar there is a drawer of its own and its state is not a panel's
+	// to change.
+	close_sidebar_flyout() {
+		if (frappe.is_mobile()) {
+			$(MOUNT_SELECTOR).removeClass("expanded");
+			return;
+		}
+		const sidebar = frappe.app?.sidebar;
+		if (sidebar?.sidebar_expanded && sidebar.panel_can_close()) sidebar.close();
 	}
 
 	hide(name) {
