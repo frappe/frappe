@@ -73,24 +73,16 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	validate: function (frm) {
-		// first, and not in before_save: validate runs ahead of it in the save chain, so
-		// every check below would otherwise read the grid as it was before the builder
-		// wrote to it — an empty one on a form laid out only on the canvas
+		// must run before the checks below, which read web_form_fields
 		flush_form_builder(frm);
 
-		// allow_delete is hidden (depends_on allow_multiple) and would otherwise
-		// retain a stale value while server-side checks read it directly.
 		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 
-		// the flush ran first, so an empty array now means both editors are empty
 		if (!frm.doc.web_form_fields?.length) {
-			// doc_type is reqd and check_mandatory reports it after this hook, so bail
-			// rather than blame the fields on a form with nothing to draw them from
+			// check_mandatory reports the missing doc_type after this hook
 			if (!frm.doc.doc_type) return;
 
-			// the grid is a tab away and builder-first users never open it, so name
-			// neither editor and land them where adding a field is one click
 			frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab")?.set_active();
 			frappe.throw(__("Add at least one field to the Web Form"));
 		}
@@ -527,8 +519,8 @@ function on_controlled_access_change(frm) {
 	render_list_settings_message(frm);
 }
 
-// the builder and the web_form_fields grid both edit one child table and neither watches
-// the other, so rows travel builder-to-grid only here, on save
+// the builder and the web_form_fields grid edit one child table without watching each
+// other, so builder rows reach the grid only here
 function flush_form_builder(frm) {
 	const builder = get_form_builder(frm);
 	if (!builder) return;
@@ -539,7 +531,6 @@ function flush_form_builder(frm) {
 	}
 }
 
-// the return trip: only called where the rows changed under the builder
 function refresh_form_builder(frm) {
 	get_form_builder(frm)?.store.fetch();
 }
@@ -551,7 +542,7 @@ function render_form_builder(frm) {
 	// a mounted builder falls through, so clearing doc_type blanks its field picker
 	if (!frm.doc.doc_type && !mounted_here) return;
 
-	// not init(true), which re-runs watch_changes() and stacks a duplicate watchEffect
+	// not init(true) here: it re-runs watch_changes() and stacks a duplicate watchEffect
 	if (mounted_here) {
 		builder.docname = frm.doc.name;
 		builder.doctype = frm.doc.doc_type;
@@ -561,7 +552,7 @@ function render_form_builder(frm) {
 		return;
 	}
 
-	// a client with meta cached from before the migrate will not have the field
+	// meta cached from before the migrate will not have the field
 	if (!frm.fields_dict.form_builder) {
 		console.warn("Web Form: form_builder field missing, skipping builder mount.");
 		return;
@@ -569,7 +560,7 @@ function render_form_builder(frm) {
 
 	const wrapper = $(frm.fields_dict["form_builder"].wrapper).closest(".tab-pane");
 
-	// mounted against a different frm — repoint it, and init(true) reuses the Vue app
+	// mounted against another frm: repoint it, init(true) reuses the Vue app
 	if (builder) {
 		builder.$wrapper = wrapper;
 		builder.frm = frm;
@@ -603,13 +594,12 @@ function render_form_builder(frm) {
 	});
 }
 
-// refresh_tabs() hides a tab whose sections scan as empty, which this one always does —
-// and it re-runs on every layout.refresh(), so a one-off toggle does not hold
+// refresh_tabs() hides tabs whose sections scan as empty, which this one always does, and
+// it re-runs on every layout.refresh(), so a one-off toggle does not hold
 function keep_builder_tab_visible(frm) {
 	const builder_tab = frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab");
 	if (!builder_tab) return;
 
-	// called from every mount path, but frm.layout outlives them all
 	if (!builder_tab._web_form_builder_patched) {
 		builder_tab._web_form_builder_patched = true;
 		const _orig_tab_refresh = builder_tab.refresh.bind(builder_tab);
@@ -622,10 +612,9 @@ function keep_builder_tab_visible(frm) {
 	builder_tab.toggle(true);
 }
 
-// page.scss pins the main column width for every Form route, so hiding the sidebar also
-// has to clear the inline widths — Sidebar.refresh() strips classes but not inline styles
+// page.scss pins the main column width for every Form route, so hiding the sidebar has to
+// clear the inline widths too
 function toggle_form_sidebar(frm, show) {
-	// form.js already hid the sidebar, and showing it here would override that setting
 	if (!frm.page?.sidebar || frm.page.hide_sidebar || !frappe.boot.desk_settings?.form_sidebar) {
 		return;
 	}
