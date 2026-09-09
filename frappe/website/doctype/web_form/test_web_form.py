@@ -1115,6 +1115,13 @@ class TestWebForm(IntegrationTestCase):
 			self.assertEqual(set(row.keys()), allowed_fields)
 			self.assertNotIn("description", row)
 
+	def test_child_table_fields_mark_name_read_only(self):
+		"""The same dfs back the editable Table grid, where name is not user settable."""
+		from frappe.website.doctype.web_form.web_form import get_in_list_view_fields
+
+		fields = {df["fieldname"]: df for df in get_in_list_view_fields("Contact Phone")}
+		self.assertTrue(fields["name"].get("read_only"))
+
 	def test_guest_still_requires_login_without_web_form_request(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.ValidationError):
