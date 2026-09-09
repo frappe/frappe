@@ -58,91 +58,130 @@ class SQLiteTable(DBTable):
 			frappe.db.sql_ddl(index_query)
 
 	def alter(self):
+		from frappe.database.sqlite.database import get_column_definition, rebuild_table
+
 		for col in self.columns.values():
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
-		for col in self.add_column:
-			frappe.db.sql_ddl(
-				f"ALTER TABLE `{self.table_name}` ADD COLUMN `{col.fieldname}` {col.get_definition()}"
-			)
-
-		if not (
+		primary_key_type = self.alter_primary_key()
+		new_column_names = {col.fieldname for col in self.add_column}
+		requires_rebuild = bool(
 			self.change_type
 			or self.set_default
 			or self.change_nullability
-			or self.add_index
-			or self.add_unique
-			or self.drop_index
 			or self.drop_unique
-		):
+			or primary_key_type
+			or any(col.unique for col in self.add_column)
+		)
+
+		index_queries = self.get_index_queries(new_column_names)
+		if not requires_rebuild:
+			queries = [
+				f"ALTER TABLE `{self.table_name}` ADD COLUMN `{col.fieldname}` {col.get_definition()}"
+				for col in self.add_column
+			]
+			queries.extend(self.get_drop_index_queries())
+			queries.extend(index_queries)
+			self.run_schema_queries(queries)
 			return
 
-		# Get current table column definitions
-		existing_columns = []
-		for column in frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=1):
-			existing_columns.append(f"`{column.name}` {column.type}")
+		current_columns = frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
+		column_names = [column.name for column in current_columns]
+		column_definitions = [get_column_definition(column) for column in current_columns]
 
-		columns = existing_columns.copy()
-
-		# Modify existing columns
 		columns_to_modify = set(self.change_type + self.set_default + self.change_nullability)
 		for col in columns_to_modify:
-			# Replace the old column definition with the new one
-			for i, column in enumerate(columns):
-				if column.startswith(f"`{col.fieldname}`"):
-					columns[i] = f"`{col.fieldname}` {col.get_definition(for_modification=True)}"
+			for index, column in enumerate(current_columns):
+				if column.name == col.fieldname:
+					column_definitions[index] = (
+						f"`{col.fieldname}` {col.get_definition(for_modification=True)}"
+					)
 					break
 
-		# Create new table
-		temp_table = f"{self.table_name}_new"
-		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
-		frappe.db.sql_ddl(create_table)
+		if primary_key_type:
+			for index, column in enumerate(current_columns):
+				if column.name == "name":
+					column_definitions[index] = f"`name` {primary_key_type}"
+					break
 
-		# Copy data
-		existing_columns = [col.split()[0] for col in existing_columns]
-		column_list = ", ".join(existing_columns)
-		frappe.db.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {column_list} FROM `{self.table_name}`")
+		column_definitions.extend(f"`{col.fieldname}` {col.get_definition()}" for col in self.add_column)
 
-		# Drop old table
-		frappe.db.sql_ddl(f"DROP TABLE `{self.table_name}`")
-
-		# Rename new table
-		frappe.db.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{self.table_name}`")
-
-		# Recreate indexes
-		index_queries = []
-		if self.add_unique:
-			index_queries.extend(
-				f"CREATE UNIQUE INDEX IF NOT EXISTS `{col.fieldname}` ON `{self.table_name}` (`{col.fieldname}`)"
-				for col in self.add_unique
+		pre_rebuild_queries = []
+		for col in self.change_nullability:
+			if not col.not_nullable:
+				continue
+			default = col.default or get_not_null_defaults(col.fieldtype)
+			if isinstance(default, str):
+				default = frappe.db.escape(default)
+			pre_rebuild_queries.append(
+				f"UPDATE `{self.table_name}` SET `{col.fieldname}` = {default} "
+				f"WHERE `{col.fieldname}` IS NULL"
 			)
-		if self.add_index:
-			index_queries.extend(
-				f"CREATE INDEX IF NOT EXISTS `{col.fieldname}_index` ON `{self.table_name}` (`{col.fieldname}`)"
-				for col in self.add_index
-				if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
-			)
+
+		rebuild_table(
+			self.table_name,
+			column_definitions,
+			column_names,
+			drop_index_fields={col.fieldname for col in self.drop_index},
+			drop_unique_fields={col.fieldname for col in self.drop_unique},
+			pre_rebuild_queries=pre_rebuild_queries,
+			post_rebuild_queries=index_queries,
+		)
+
+	def get_index_queries(self, new_column_names: set[str]) -> list[str]:
+		queries = [
+			f"CREATE UNIQUE INDEX IF NOT EXISTS `{self.table_name}_{col.fieldname}_unique` "
+			f"ON `{self.table_name}` (`{col.fieldname}`)"
+			for col in self.add_unique
+			if col.fieldname not in new_column_names
+		]
+		queries.extend(
+			f"CREATE INDEX IF NOT EXISTS `{self.table_name}_{col.fieldname}_index` "
+			f"ON `{self.table_name}` (`{col.fieldname}`)"
+			for col in self.add_index
+			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
+		)
 		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
 			self.table_name, "modified", unique=False
 		):
-			index_queries.append(f"CREATE INDEX IF NOT EXISTS `modified` ON `{self.table_name}` (`modified`)")
+			queries.append(
+				f"CREATE INDEX IF NOT EXISTS `{self.table_name}_modified_idx` "
+				f"ON `{self.table_name}` (`modified`)"
+			)
+		return queries
 
-		for query in index_queries:
-			frappe.db.sql_ddl(query)
+	def get_drop_index_queries(self) -> list[str]:
+		queries = []
+		for col in self.drop_index:
+			if col.fieldname == "name":
+				continue
+			for index in frappe.db.sql(f"PRAGMA index_list(`{self.table_name}`)", as_dict=True):
+				if index.origin == "pk" or index.partial or index.unique:
+					continue
+				index_columns = frappe.db.sql(f"PRAGMA index_info(`{index.name}`)", as_dict=True)
+				if len(index_columns) == 1 and index_columns[0].name == col.fieldname:
+					queries.append(f"DROP INDEX `{index.name}`")
+		return list(dict.fromkeys(queries))
+
+	@staticmethod
+	def run_schema_queries(queries: list[str]) -> None:
+		if not queries:
+			return
+		frappe.db.commit()
+		try:
+			for query in queries:
+				frappe.db.sql(query)
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			raise
 
 	def alter_primary_key(self) -> str | None:
-		# If there are no values in table allow migrating to UUID from TEXT
 		autoname = self.meta.autoname
-		if autoname == "UUID" and frappe.db.get_column_type(self.doctype, "name") != "TEXT":
-			if not frappe.db.get_value(self.doctype, {}, order_by=None):
-				return "ALTER COLUMN name TEXT"
-			else:
-				frappe.throw(
-					_("Primary key of doctype {0} can not be changed as there are existing values.").format(
-						self.doctype
-					)
-				)
+		current_type = frappe.db.get_column_type(self.doctype, "name") or ""
+		current_base_type = current_type.partition("(")[0]
+		if autoname == "UUID" and current_base_type != "uuid":
+			return "uuid"
 
-		# Reverting from UUID to TEXT
-		if autoname != "UUID" and frappe.db.get_column_type(self.doctype, "name") == "TEXT":
-			return "ALTER COLUMN name TEXT"
+		if autoname != "UUID" and current_base_type == "uuid":
+			return f"varchar({frappe.db.VARCHAR_LEN})"
