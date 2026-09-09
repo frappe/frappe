@@ -216,6 +216,53 @@ class TestDocType(IntegrationTestCase):
 
 		dt.delete()
 
+	def test_backfill_autoname_field_unique(self):
+		from frappe.patches.v16_0.backfill_autoname_field_unique import execute
+
+		frappe.delete_doc_if_exists("DocType", self._testMethodName)
+
+		dt = new_doctype(
+			self._testMethodName,
+			fields=[
+				{
+					"label": "Student Code",
+					"fieldname": "student_code",
+					"fieldtype": "Data",
+				}
+			],
+			autoname="field:student_code",
+		)
+		dt.insert()
+
+		frappe.db.set_value(
+			"DocField",
+			{"parent": self._testMethodName, "fieldname": "student_code"},
+			{"unique": 1, "unique_auto_generated": 0},
+			update_modified=False,
+		)
+
+		execute()
+
+		df = frappe.db.get_value(
+			"DocField",
+			{"parent": self._testMethodName, "fieldname": "student_code"},
+			["unique", "unique_auto_generated"],
+			as_dict=True,
+		)
+
+		self.assertEqual(df.unique, 1)
+		self.assertEqual(df.unique_auto_generated, 1)
+
+		dt.reload()
+		dt.autoname = ""
+		dt.save()
+
+		df = next(df for df in dt.fields if df.fieldname == "student_code")
+		self.assertEqual(df.unique, 0)
+		self.assertEqual(df.unique_auto_generated, 0)
+
+		dt.delete()
+
 	def test_change_field_type_with_incompatible_values(self):
 		if frappe.db.exists("DocType", "Test Field Type Change"):
 			frappe.delete_doc("DocType", "Test Field Type Change")
