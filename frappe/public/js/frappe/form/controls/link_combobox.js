@@ -1,6 +1,13 @@
 // Link field backed by frappe.ui.Combobox.
 // Picked by make_control for Link fields when "Enable Combobox Link and
 // Autocomplete Fields" is on in System Settings.
+//
+// Extension points, same as the classic control plus one:
+//   frm.set_query / df.get_query      filters, or a custom server `query` method
+//   df.change, fetch_from, df.only_select, df.filter_description, link_options
+//   field.map_options(rows, { query, start })  rows before they show: re-rank,
+//     drop, or return groups ([{ group, options }]); for later pages return
+//     rows under the same group so they continue it. Also as df.map_options.
 
 import { describe_link_filters } from "./link_filter_description.js";
 import { mount_combobox, awesomplete_shim } from "./combobox_control.js";
@@ -62,8 +69,9 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			// no chevron while searching: the value gets the whole width
 			chevron: this.display_mode() === "Select",
 			filterable: false, // search_link does the filtering
-			// "Allow Clearing Link Fields" doesn't apply: the cross only shows on hover
+			// the × follows the "Allow Clearing Link Fields" setting; keys still clear
 			clearable: true,
+			clear_button: this.is_clear_button_enabled(),
 			options: (query, { start }) => this.fetch_options(query, start),
 			filters: () => this.get_filter_chips(),
 			actions: [
@@ -243,16 +251,37 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 
 	fetch_options(query, start = 0) {
 		if (!this.open_args) return [];
-		if (this.open_mode !== "Search") return this.preload_options();
-
-		// fresh copy (filters get stringified for GET); later pages keep database
-		// order so scrolling doesn't reshuffle rows the user already saw
-		const args = { ...this.open_args, txt: query };
-		if (start) {
-			args.start = start;
-			args.keep_order = 1;
+		let result;
+		if (this.open_mode !== "Search") {
+			result = this.preload_options();
+		} else {
+			// fresh copy (filters get stringified for GET); later pages keep
+			// database order so scrolling doesn't reshuffle rows already seen
+			const args = { ...this.open_args, txt: query };
+			if (start) {
+				args.start = start;
+				args.keep_order = 1;
+			}
+			result = this.search(args, { use_get: !query, paged: true });
 		}
-		return this.search(args, { use_get: !query, paged: true });
+		return this.apply_map(result, { query, start });
+	}
+
+	// the field's map_options hook, on plain rows or a { rows, has_more } page;
+	// a synchronous result stays synchronous (a cached list renders at once)
+	apply_map(result, context) {
+		const hook = this.map_options || this.df.map_options;
+		if (!hook) return result;
+		const thenable = (v) => v && typeof v.then === "function";
+		const map = (r) => {
+			const paged = r && !Array.isArray(r) && "rows" in r;
+			const wrap = (rows) => (paged ? { ...r, rows } : rows);
+			const mapped = hook.call(this, paged ? r.rows : r, context);
+			return thenable(mapped)
+				? mapped.then((m) => wrap(m || (paged ? r.rows : r)))
+				: wrap(mapped || (paged ? r.rows : r));
+		};
+		return thenable(result) ? result.then(map) : map(result);
 	}
 
 	// `paged` answers { rows, has_more } so the combobox can fetch more
@@ -325,16 +354,19 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 				return Promise.resolve(this.search(args, { use_get: false, no_cache: true })).then(
 					(options) => {
 						if (options.length > PRELOAD_LIMIT) {
-							// too long for the client: this and later opens search the server
+							// too long for the client: search the server from now on,
+							// this open included (it reopens with a search box)
 							console.warn(
 								`Link field: ${this.open_args.doctype} has more than ${PRELOAD_LIMIT} records, ` +
 									`falling back to Search mode (set its Link Display Mode to Search)`
 							);
 							preload_fallback.add(key);
 							preload_cache.delete(key);
-							this.open_mode = "Search";
-							this.combobox.opts.page_size = this.open_args.page_length;
-							return this.fetch_options(this.combobox.query || "");
+							if (this.combobox.is_open) {
+								this.combobox.close("owner");
+								this.combobox.open({ motion: "instant" });
+							}
+							return options.slice(0, PRELOAD_LIMIT);
 						}
 						remember(preload_cache, key, { options, stamp }, PRELOAD_CACHE_MAX);
 						return options;
@@ -342,8 +374,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 				);
 			})
 			.catch((error) => {
-				// a failed fetch must not be served again on the next open
-				preload_cache.delete(key);
+				// a failed fetch must not be served again; a good cached list stays
+				if (!cached) preload_cache.delete(key);
 				throw error;
 			});
 		if (!cached) {
@@ -351,9 +383,11 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			return pending;
 		}
 		// show the cached list now; reload the open panel if the rebuild differs
-		pending.then((options) => {
-			if (options !== cached.options && this.combobox.is_open) this.combobox.load();
-		});
+		pending
+			.then((options) => {
+				if (options !== cached.options && this.combobox.is_open) this.combobox.load();
+			})
+			.catch(() => {});
 		return cached.options;
 	}
 
@@ -451,13 +485,26 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		this.$input.trigger("awesomplete-selectcomplete");
 	}
 
-	// text left by clicking away or tabbing is set as a docname (Escape
-	// cancels); an exact name the list didn't show still gets set
+	// text left by clicking away or tabbing picks the listed row it names
+	// exactly; anything else is dropped and the value stays
 	on_close(reason) {
 		this.autocomplete_open = false;
 		const query = this.combobox.query;
 		if (!query || (reason !== "outside" && reason !== "tab")) return;
-		if (query === this.$input.val() || query === this.get_input_value()) return;
-		this.parse_validate_and_set_in_model(query, null);
+		const commit = (match) => {
+			if (!match || match.value === this.get_input_value()) return;
+			this.combobox.set_value(match.value, { label: match.label, image: match.image });
+			this.on_pick(match.value, match);
+		};
+		const match = this.combobox.match_option(query);
+		if (match || !this.combobox.rows_pending) return commit(match);
+		// the rows for the text hadn't arrived (a scanner, paste + Tab): look it up
+		Promise.resolve(this.fetch_options(query))
+			.then((r) => {
+				const rows = Array.isArray(r) ? r : r.rows;
+				const wanted = query.toLowerCase();
+				commit(rows.find((o) => String(o.value).toLowerCase() === wanted));
+			})
+			.catch(() => {});
 	}
 };

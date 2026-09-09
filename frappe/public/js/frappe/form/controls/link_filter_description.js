@@ -66,9 +66,6 @@ export async function describe_link_filters(doctype, filters) {
 		const operator = filter[2];
 		let value = filter[3];
 
-		// Ensure metadata is loaded for this doctype before accessing docfield
-		await frappe.model.with_doctype(_doctype, () => {});
-
 		const docfield = frappe.meta.get_docfield(_doctype, fieldname);
 		const label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
 		const fieldtype = docfield ? docfield.fieldtype : null;
@@ -178,5 +175,9 @@ export async function describe_link_filters(doctype, filters) {
 		}
 	}
 
+	// load each doctype's meta once, not once per filter
+	for (const dt of new Set(filter_array.map((f) => f[0]))) {
+		await frappe.model.with_doctype(dt, () => {});
+	}
 	return Promise.all(filter_array.map((filter) => describe_filter(filter)));
 }

@@ -37,10 +37,10 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		}));
 	}
 
+	// the rows stay behind the options function, so a get_query keeps working
 	set_data(data) {
-		data = this.parse_options(data);
-		this._data = data;
-		if (this.combobox) this.combobox.set_options(this.to_options(data));
+		this._data = this.parse_options(data);
+		if (this.combobox?.is_open) this.combobox.load();
 	}
 
 	refresh_input() {
@@ -133,19 +133,16 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 
 	commit_free_text(text) {
 		this.combobox.set_value(text, { label: text });
-		this.parse_validate_and_set_in_model(text);
-		this.$input.trigger("awesomplete-selectcomplete");
+		this.on_pick(text);
 	}
 
 	// ---- picking ----
 
+	// a native change sets the model (see bind_change_event) and reaches
+	// .on("change") listeners, as the classic control did after a pick
 	on_pick(value) {
-		if (value == null) {
-			this.$input.trigger("change");
-			return;
-		}
-		this.parse_validate_and_set_in_model(value);
-		this.$input.trigger("awesomplete-selectcomplete");
+		this.$input.trigger("change");
+		if (value != null) this.$input.trigger("awesomplete-selectcomplete");
 	}
 
 	// text left by clicking away or tabbing: a label picks it, free text commits
@@ -153,6 +150,8 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		this.autocomplete_open = false;
 		const query = this.combobox.query;
 		if (!query || (reason !== "outside" && reason !== "tab")) return;
+		// the rows for the text hadn't arrived: the list can't be judged yet
+		if (this.combobox.rows_pending) return;
 		const match = this.get_data().find(
 			(d) => d.label.toLowerCase() === query.toLowerCase() || d.value === query
 		);
