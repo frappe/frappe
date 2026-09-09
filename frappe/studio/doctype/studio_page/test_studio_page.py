@@ -11,6 +11,7 @@ from frappe.tests import IntegrationTestCase
 
 from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from studio.studio.doctype.studio_page import copy_paste
 from studio.studio.doctype.studio_page.studio_page import (
 	create_missing_dependencies,
 	duplicate_page,
@@ -149,21 +150,33 @@ class TestStudioPage(IntegrationTestCase):
 		app = make_studio_app(app_name="race-" + frappe.generate_hash(length=10))
 		component = make_component("Card")
 		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
-		real_exists = frappe.db.exists
+		real_fetch_component_batch = copy_paste.fetch_component_batch
 		missed_once = False
 
-		def miss_component_once(doctype, filters=None, *args, **kwargs):
+		def miss_component_once(names, **kwargs):
 			nonlocal missed_once
-			if doctype == "Studio Component" and filters == component.name and not missed_once:
+			if component.name in names and not missed_once:
 				missed_once = True
-				return None
-			return real_exists(doctype, filters, *args, **kwargs)
+				return []
+			return real_fetch_component_batch(names, **kwargs)
 
-		with patch.object(frappe.db, "exists", side_effect=miss_component_once):
+		with patch.object(copy_paste, "fetch_component_batch", side_effect=miss_component_once):
 			create_missing_dependencies(app.name, [copy])
 
 		self.assertTrue(missed_once)
 		self.assertEqual(frappe.db.count("Studio Component", {"name": component.name}), 1)
+
+	def test_existing_components_do_not_use_per_component_exists_queries(self):
+		app = make_studio_app(app_name="batch-" + frappe.generate_hash(length=10))
+		components = [make_component("Card"), make_component("Button")]
+		copies = make_studio_page(app.name).get_dependencies(
+			[component_ref(component) for component in components]
+		)["components"]
+
+		with patch.object(frappe.db, "exists", side_effect=AssertionError("unexpected exists query")):
+			result = create_missing_dependencies(app.name, copies)
+
+		self.assertEqual(result["conflicts"]["components"], [])
 
 	def test_paste_requires_write_permission_on_target_app(self):
 		app = make_studio_app(app_name="permission-" + frappe.generate_hash(length=10))

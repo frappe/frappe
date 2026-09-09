@@ -8,6 +8,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import cint
 
 from studio.export import can_export, parse_json
+from studio.studio.doctype.studio_component.studio_component import fetch_component_batch
 
 PAGE_RESOURCE_FIELDS = (
 	"resource_type",
@@ -221,42 +222,43 @@ def pick(row, fields) -> dict:
 
 
 def create_missing_components(components: list[dict], *, overwrite_conflicts=False):
-	conflicts = []
 	for component in components:
 		validate_component_copy(component)
-		if frappe.db.exists("Studio Component", component["name"]):
-			existing = frappe.get_doc("Studio Component", component["name"])
-			existing.check_permission("read")
-			if component_signature(existing) != component_signature(component):
-				conflicts.append(
-					{
-						"name": component["component_name"],
-						"existing": get_component_copy(existing),
-						"copied": get_component_copy(component),
-					}
-				)
-				if overwrite_conflicts:
-					update_component_from_copy(existing, component).save()
-			continue
+	if not components:
+		return []
 
-		# A concurrent paste can create the same component after the optimistic read.
-		created = False
-		with savepoint(frappe.DuplicateEntryError):
-			new_component_from_copy(component).insert()
-			created = True
-		if not created:
+	frappe.has_permission("Studio Component", ptype="read", throw=True)
+	existing_by_name = {
+		component.name: component
+		for component in fetch_component_batch({component["name"] for component in components})
+	}
+	conflicts = []
+	for component in components:
+		existing = existing_by_name.get(component["name"])
+
+		if not existing:
+			# A concurrent paste can create the same component after the bulk lookup.
+			created = False
+			with savepoint(frappe.DuplicateEntryError):
+				new_component_from_copy(component).insert()
+				created = True
+			if created:
+				continue
 			existing = frappe.get_doc("Studio Component", component["name"])
 			existing.check_permission("read")
-			if component_signature(existing) != component_signature(component):
-				conflicts.append(
-					{
-						"name": component["component_name"],
-						"existing": get_component_copy(existing),
-						"copied": get_component_copy(component),
-					}
-				)
-				if overwrite_conflicts:
-					update_component_from_copy(existing, component).save()
+
+		if component_signature(existing) == component_signature(component):
+			continue
+		conflicts.append(
+			{
+				"name": component["component_name"],
+				"existing": get_component_copy(existing),
+				"copied": get_component_copy(component),
+			}
+		)
+		if overwrite_conflicts:
+			existing = frappe.get_doc("Studio Component", component["name"])
+			update_component_from_copy(existing, component).save()
 	return conflicts
 
 
