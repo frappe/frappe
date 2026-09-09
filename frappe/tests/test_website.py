@@ -268,6 +268,7 @@ class TestWebsite(IntegrationTestCase):
 		content = get_response_content("/Language/ru")
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn("<div>Language</div>", content)
+		self.assertNotIn("&no_letterhead=None", content)
 
 	def test_custom_base_template_path(self):
 		content = get_response_content("/_test/_test_folder/_test_page")

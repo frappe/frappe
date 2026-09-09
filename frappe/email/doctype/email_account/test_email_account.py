@@ -473,8 +473,8 @@ class TestEmailAccount(IntegrationTestCase):
 	def test_email_sync_rule_ignores_reindexed_uids(self):
 		email_account = frappe.get_doc(
 			doctype="Email Account",
-			email_account_name="Test IMAP Account",
-			email_id="test@example.com",
+			email_account_name="Test IMAP Sync Account",
+			email_id="test_imap_sync@example.com",
 			use_imap=1,
 			email_sync_option="ALL",
 			initial_sync_count=100,
