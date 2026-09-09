@@ -180,9 +180,15 @@ def execute_query(query, *args, **kwargs):
 			dt, fields, result, as_dict=as_dict, pluck=kwargs.get("pluck", False), parent_doctype=parent_dt
 		)
 
-	if name_field_injected and result and isinstance(result[0], dict):
-		for row in result:
-			row.pop("name", None)
+	if name_field_injected and result and not kwargs.get("pluck"):
+		if isinstance(result[0], dict):
+			for row in result:
+				row.pop("name", None)
+		else:
+			if isinstance(result, tuple):
+				result = tuple(row[:-1] for row in result)
+			else:
+				result = [row[:-1] for row in result]
 
 	return result
 

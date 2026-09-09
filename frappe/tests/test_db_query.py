@@ -1862,6 +1862,16 @@ class TestDBQuery(IntegrationTestCase):
 		).run(as_dict=True)
 		self.assertTrue(result)
 
+	def test_child_query_with_aliased_name_still_injects(self):
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name as pk", "first_name", {"roles": ["role"]}],
+			filters={"name": "Administrator"},
+		).run(as_dict=True)
+		self.assertIn("pk", result[0])
+		self.assertIn("roles", result[0])
+		self.assertTrue(result[0]["roles"])
+
 
 class TestReportView(IntegrationTestCase):
 	def test_get_count(self):
