@@ -10,6 +10,7 @@ import {
 	type PasteConflictChoice,
 	type PasteConflictKind,
 } from "@/components/PasteConflictDialog.vue"
+import PasteWarningToast from "@/components/PasteWarningToast.vue"
 import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
 import Block from "@/utils/block"
@@ -172,10 +173,7 @@ async function pasteCopiedBlocks(payload: ClipboardPayload) {
 	}
 
 	if (shouldWarnAboutExcludedPageScript(payload.source)) {
-		showPasteToast("Page script wasn't included", removePastedBlocks, {
-			description: "These blocks may use page-level functions or variables from the source page.",
-			warning: true,
-		})
+		showPasteWarningToast(removePastedBlocks)
 	}
 }
 
@@ -189,14 +187,6 @@ function reviewPasteConflicts(
 	removePastedBlocks: () => void,
 ) {
 	const pageScriptExcluded = shouldWarnAboutExcludedPageScript(payload.source)
-	const showResultToast = () => {
-		showPasteToast(pageScriptExcluded ? "Pasted without page script" : "Blocks pasted", removePastedBlocks, {
-			description: pageScriptExcluded
-				? "The source page script wasn't included. Page-level references may not work."
-				: undefined,
-			warning: pageScriptExcluded,
-		})
-	}
 
 	showPasteConflictDialog(getPasteConflictChoices(conflicts), {
 		onApply: async (choices) => {
@@ -204,10 +194,11 @@ function reviewPasteConflicts(
 			if (copiedChoices.length) {
 				await createMissingDependencies(getCopiedDependencies(copiedChoices), true)
 			}
-			showResultToast()
 		},
-		onDismiss: showResultToast,
 		onRemove: removePastedBlocks,
+		warning: pageScriptExcluded
+			? "The page script wasn't copied, so some references in these blocks may not work yet. Add required references from the source manually."
+			: undefined,
 	})
 }
 
@@ -231,24 +222,16 @@ function getCopiedDependencies(choices: PasteConflictChoice[]): Partial<Dependen
 	}
 }
 
-function showPasteToast(
-	title: string,
-	removePastedBlocks: () => void,
-	options: {
-		description?: string
-		warning?: boolean
-	} = {},
-) {
-	const toastOptions = {
-		description: options.description,
+function showPasteWarningToast(removePastedBlocks: () => void) {
+	toast.custom(PasteWarningToast, {
 		duration: 10000,
-		action: { label: "Revert pasted blocks", onClick: removePastedBlocks },
-	}
-	if (options.warning) {
-		toast.warning(title, toastOptions)
-	} else {
-		toast.success(title, toastOptions)
-	}
+		componentProps: {
+			onRevert: removePastedBlocks,
+		},
+		classes: {
+			toast: "!w-auto !bg-transparent !p-0 !shadow-none",
+		},
+	})
 }
 
 function getSelectedBlockCopies(): BlockOptions[] {

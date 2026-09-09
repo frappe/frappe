@@ -1,15 +1,15 @@
 <template>
 	<Dialog
 		:model-value="state.open"
-		title="Review dependency conflicts"
+		title="Pasted block conflicts"
 		size="2xl"
 		@update:model-value="(open: boolean) => !open && dismissPasteConflictDialog()"
 	>
 		<template #default>
 			<div class="flex flex-col gap-4">
 				<p class="text-p-base text-ink-gray-7">
-					The copied items have the same names as items on this page, but different definitions. Choose which
-					version to use for each one.
+					The pasted blocks include items that already exist on this page with different definitions. Choose
+					which version to keep.
 				</p>
 
 				<div class="max-h-[420px] overflow-auto rounded-lg border border-outline-gray-2">
@@ -46,6 +46,16 @@
 					</List>
 				</div>
 
+				<div
+					class="flex items-start gap-2 rounded-md bg-surface-gray-1 px-3 py-2 text-p-base text-ink-gray-6"
+					v-if="state.warning"
+				>
+					<span class="lucide-info mt-1"></span>
+					<p>
+						{{ state.warning }}
+					</p>
+				</div>
+
 				<p v-if="hasComponentConflict" class="text-sm text-ink-gray-6">
 					Using a copied component can affect blocks on other pages.
 				</p>
@@ -57,7 +67,6 @@
 			<div class="flex w-full items-center justify-end gap-3">
 				<Button
 					label="Revert pasted blocks"
-					theme="red"
 					variant="subtle"
 					:disabled="state.applying"
 					@click="removePastedBlocks"
@@ -83,40 +92,42 @@ export interface PasteConflictChoice {
 	resolution: PasteConflictResolution
 }
 
-interface PasteConflictCallbacks {
+interface PasteConflictOptions {
 	onApply: (choices: PasteConflictChoice[]) => void | Promise<void>
-	onDismiss: () => void
 	onRemove: () => void
+	warning?: string
 }
 
 const state = reactive({
 	open: false,
 	applying: false,
 	error: "",
+	warning: "",
 	choices: [] as PasteConflictChoice[],
 })
 
-let callbacks: PasteConflictCallbacks | undefined
+let options: PasteConflictOptions | undefined
 
 export function showPasteConflictDialog(
 	choices: Omit<PasteConflictChoice, "resolution">[],
-	nextCallbacks: PasteConflictCallbacks,
+	nextOptions: PasteConflictOptions,
 ) {
-	callbacks = nextCallbacks
+	options = nextOptions
 	state.choices = choices.map((choice) => ({
 		...choice,
 		resolution: "existing",
 	}))
 	state.error = ""
+	state.warning = nextOptions.warning || ""
 	state.open = true
 }
 
 async function applyPasteConflictChoices() {
-	if (!callbacks || state.applying) return
+	if (!options || state.applying) return
 	state.applying = true
 	state.error = ""
 	try {
-		await callbacks.onApply(state.choices)
+		await options.onApply(state.choices)
 		closePasteConflictDialog()
 	} catch (error: any) {
 		state.error = error?.messages?.[0] || error?.message || "Could not apply the selected versions."
@@ -127,19 +138,18 @@ async function applyPasteConflictChoices() {
 
 function dismissPasteConflictDialog() {
 	if (!state.open || state.applying) return
-	callbacks?.onDismiss()
 	closePasteConflictDialog()
 }
 
 function removePastedBlocks() {
 	if (!state.open || state.applying) return
-	callbacks?.onRemove()
+	options?.onRemove()
 	closePasteConflictDialog()
 }
 
 function closePasteConflictDialog() {
 	state.open = false
-	callbacks = undefined
+	options = undefined
 }
 </script>
 
