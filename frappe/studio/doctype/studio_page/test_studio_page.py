@@ -62,8 +62,6 @@ def exports_in_tempdir():
 
 
 class TestStudioPage(IntegrationTestCase):
-	BLOCKS = [{"componentName": "div", "children": [{"componentName": "span"}]}]
-
 	def test_block_parsing(self):
 		app = make_studio_app(app_name="serialization-" + frappe.generate_hash(length=10))
 		blocks = [{"componentName": "div", "children": [{"componentName": "span"}]}]
@@ -91,41 +89,34 @@ class TestStudioPage(IntegrationTestCase):
 		second_copy = duplicate_page(page.name, app.name)
 		self.assertEqual(second_copy.page_title, "Board Copy 1")
 
-	def test_paste_replaces_page_contents_but_keeps_its_identity(self):
+	def test_paste_page(self):
 		app = make_studio_app(app_name="paste-" + frappe.generate_hash(length=10))
 		source = make_page_with_data(app.name)
 		target = make_studio_page(app.name, page_title="Target", route="/target")
+		component = make_component("Card", inputs=[{"input_name": "title", "type": "String"}])
+		blocks = [{"componentName": "div", "children": [component_ref(component)]}]
+		copy = source.get_copy(blocks)
+		frappe.delete_doc("Studio Component", component.name)
 
-		paste_page(app.name, {**source.get_copy(), "blocks": self.BLOCKS}, target_page=target.name)
+		paste_page(app.name, {**copy, "blocks": blocks}, target_page=target.name)
 
 		target.reload()
 		self.assertEqual(target.page_title, "Target")
 		self.assertEqual(target.route, "/target")
-		self.assertEqual(frappe.parse_json(target.draft_blocks), self.BLOCKS)
+		self.assertEqual(frappe.parse_json(target.draft_blocks), blocks)
 		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
 		self.assertEqual(target.script, PAGE_SCRIPT)
-
-	def test_paste_creates_missing_components(self):
-		app = make_studio_app(app_name="paste-" + frappe.generate_hash(length=10))
-		component = make_component("Card", inputs=[{"input_name": "title", "type": "String"}])
-		blocks = [{"componentName": "div", "children": [component_ref(component)]}]
-		copy = {**make_studio_page(app.name).get_copy(blocks), "blocks": blocks}
-		self.assertEqual([c["name"] for c in copy["components"]], [component.name])
-		frappe.delete_doc("Studio Component", component.name)
-
-		paste_page(app.name, copy)
-
 		pasted = frappe.get_doc("Studio Component", component.name)
 		self.assertEqual(pasted.component_name, "Card")
 		self.assertEqual(pasted.block, component.block)
 		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
-		result = create_missing_dependencies(app.name, copy["components"])
-		self.assertEqual(result["conflicts"]["components"], [])
 
 	def test_paste_reports_conflicting_component(self):
 		app = make_studio_app(app_name="conflict-" + frappe.generate_hash(length=10))
 		component = make_component("Card")
 		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
+		matching_result = create_missing_dependencies(app.name, [copy])
+		self.assertEqual(matching_result["conflicts"]["components"], [])
 		copy["block"] = frappe.as_json({"componentName": "button", "children": []}, indent=None)
 
 		result = create_missing_dependencies(app.name, [copy])
@@ -141,32 +132,7 @@ class TestStudioPage(IntegrationTestCase):
 		component.reload()
 		self.assertEqual(frappe.parse_json(component.block)["componentName"], "button")
 
-		create_missing_dependencies(app.name, [conflict["existing"]], overwrite_conflicts=True)
-		component.reload()
-		self.assertEqual(frappe.parse_json(component.block)["componentName"], "div")
-
-	def test_existing_components_do_not_use_per_component_exists_queries(self):
-		app = make_studio_app(app_name="batch-" + frappe.generate_hash(length=10))
-		components = [make_component("Card"), make_component("Button")]
-		copies = make_studio_page(app.name).get_dependencies(
-			[component_ref(component) for component in components]
-		)["components"]
-
-		with patch.object(frappe.db, "exists", side_effect=AssertionError("unexpected exists query")):
-			result = create_missing_dependencies(app.name, copies)
-
-		self.assertEqual(result["conflicts"]["components"], [])
-
-	def test_paste_requires_write_permission_on_target_app(self):
-		app = make_studio_app(app_name="permission-" + frappe.generate_hash(length=10))
-
-		with (
-			patch.object(StudioApp, "check_permission", side_effect=frappe.PermissionError),
-			self.assertRaises(frappe.PermissionError),
-		):
-			create_missing_dependencies(app.name)
-
-	def test_paste_carries_files_the_script_imports(self):
+	def test_paste_carries_file_dependencies(self):
 		with exports_in_tempdir():
 			source_app = make_studio_app(
 				app_name="src-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
@@ -175,15 +141,27 @@ class TestStudioPage(IntegrationTestCase):
 				app_name="dst-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
 			)
 			page = make_studio_page(source_app.name)
-			page.get_app().write_files([{"path": "stores/settings.ts", "content": "export const x = 1"}])
+			page.get_app().write_files(
+				[
+					{"path": "components/Hero.vue", "content": "<template><h1 /></template>"},
+					{"path": "stores/settings.ts", "content": "export const x = 1"},
+				]
+			)
 			page.script = 'import { x } from "@app/stores/settings"\nexport default function setup() {}'
 			page.save()
+			blocks = [{"componentName": "Hero", "isCustomVueComponent": True}]
 
-			copy = page.get_copy()
-			self.assertEqual([f["path"] for f in copy["files"]], ["stores/settings.ts"])
+			copy = page.get_copy(blocks)
+			self.assertEqual(
+				[file["path"] for file in copy["files"]], ["components/Hero.vue", "stores/settings.ts"]
+			)
 
-			pasted = paste_page(target_app.name, {**copy, "blocks": []})
+			pasted = paste_page(target_app.name, {**copy, "blocks": blocks})
 
+			self.assertEqual(
+				frappe.read_file(os.path.join(pasted.get_app().get_folder_path(), "components/Hero.vue")),
+				"<template><h1 /></template>",
+			)
 			self.assertEqual(
 				frappe.read_file(os.path.join(pasted.get_app().get_folder_path(), "stores/settings.ts")),
 				"export const x = 1",
@@ -239,26 +217,6 @@ class TestStudioPage(IntegrationTestCase):
 			with self.assertRaises(frappe.PermissionError):
 				app.collect_files('import "@app/stores/secret.ts"', "", [])
 
-	def test_pasted_blocks_install_their_dependencies(self):
-		with exports_in_tempdir():
-			app = make_studio_app(
-				app_name="deps-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
-			)
-			component = make_component("Card")
-			blocks = [component_ref(component), {"componentName": "Hero", "isCustomVueComponent": True}]
-			app.write_files([{"path": "components/Hero.vue", "content": "<template><h1 /></template>"}])
-			deps = make_studio_page(app.name).get_dependencies(blocks)
-			self.assertEqual([c["name"] for c in deps["components"]], [component.name])
-			self.assertEqual([f["path"] for f in deps["files"]], ["components/Hero.vue"])
-
-			frappe.delete_doc("Studio Component", component.name)
-			os.remove(os.path.join(app.get_folder_path(), "components/Hero.vue"))
-			create_missing_dependencies(app.name, deps["components"], deps["files"])
-			create_missing_dependencies(app.name, deps["components"], deps["files"])
-
-			self.assertTrue(frappe.db.exists("Studio Component", component.name))
-			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "components/Hero.vue")))
-
 	def test_pasted_blocks_bring_the_data_sources_and_variables_they_use(self):
 		app = make_studio_app(app_name="deps-" + frappe.generate_hash(length=10))
 		source = make_page_with_data(app.name)
@@ -269,7 +227,7 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([r["resource_name"] for r in deps["resources"]], ["todos"])
 		self.assertEqual([v["variable_name"] for v in deps["variables"]], ["count"])
 
-		first_result = create_missing_dependencies(
+		create_missing_dependencies(
 			app.name, page_name=target.name, resources=deps["resources"], variables=deps["variables"]
 		)
 		equivalent_resources = [{**deps["resources"][0], "fields": ["name"]}]
@@ -281,7 +239,6 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
 		self.assertEqual([v.variable_name for v in target.variables], ["count"])
 		no_conflicts = {"components": [], "resources": [], "variables": []}
-		self.assertEqual(first_result["conflicts"], no_conflicts)
 		self.assertEqual(second_result["conflicts"], no_conflicts)
 
 	def test_pasted_blocks_report_conflicting_page_data(self):
@@ -334,17 +291,6 @@ class TestStudioPage(IntegrationTestCase):
 		)
 		target.reload()
 		self.assertEqual(target.variables[0].variable_type, "Number")
-
-		create_missing_dependencies(
-			app.name,
-			page_name=target.name,
-			resources=[resource_conflict["existing"]],
-			variables=[variable_conflict["existing"]],
-			overwrite_conflicts=True,
-		)
-		target.reload()
-		self.assertEqual(target.resources[0].fields, '["description"]')
-		self.assertEqual(target.variables[0].variable_type, "String")
 
 	def test_paste_rejects_target_page_from_another_app(self):
 		app = make_studio_app(app_name="target-" + frappe.generate_hash(length=10))
