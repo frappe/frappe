@@ -30,7 +30,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Queued\nRunning\nPaused\nCompleted",
+   "options": "Queued\nRunning\nPaused\nCompleted\nCanceled",
    "read_only": 1
   },
   {
@@ -72,7 +72,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-04 15:37:26.512991",
+ "modified": "2026-09-09 12:12:06.586905",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Task",
