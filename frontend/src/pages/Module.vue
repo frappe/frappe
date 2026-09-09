@@ -17,7 +17,7 @@
 			<li v-for="entry in entries" :key="entry.doctype">
 				<RouterLink
 					:to="routeFor(entry.doctype)"
-					class="block rounded border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
+					class="block rounded-4 border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
 				>
 					{{ entry.doctype }}
 				</RouterLink>

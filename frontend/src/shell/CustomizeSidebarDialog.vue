@@ -14,7 +14,7 @@
 				:key="item.key"
 				:data-key="item.key"
 				:class="[
-					'flex items-center gap-1 rounded px-1 py-1',
+					'flex items-center gap-1 rounded-4 px-1 py-1',
 					item.parent_key ? 'ml-4' : '',
 					item.hidden ? 'opacity-50' : '',
 				]"
@@ -24,7 +24,7 @@
 				@drop.prevent="drop(item.key)"
 			>
 				<input
-					class="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus:bg-surface-gray-2"
+					class="min-w-0 flex-1 rounded-4 bg-transparent px-1 py-0.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus:bg-surface-gray-2"
 					:value="item.label ?? ''"
 					:placeholder="item.link_to ?? item.key"
 					:aria-label="`Name of ${item.key}`"
