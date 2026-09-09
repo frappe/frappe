@@ -389,8 +389,17 @@ frappe.ui.Filter = class {
 		// combobox Link field's own panel (the pick is still in progress)
 		this.field.$input.on("focusout", (e) => {
 			if (e.relatedTarget && e.relatedTarget.closest(".es-combobox__panel")) return;
+			// a combobox pick already applied this value
+			if (this.field.combobox && this.field.get_value() === this.applied_value) return;
 			this.on_change();
 		});
+		// a combobox pick (Enter happens in its panel, outside the wrapper)
+		if (this.field.combobox) {
+			this.field.$input.on("awesomplete-selectcomplete", () => {
+				this.applied_value = this.field.get_value();
+				this.on_change();
+			});
+		}
 
 		// run on enter
 		$(this.field.wrapper)
