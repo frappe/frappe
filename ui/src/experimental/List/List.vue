@@ -103,7 +103,7 @@
 				<ListRow v-for="index in SKELETON_ROW_COUNT" :key="index">
 					<ListCell />
 					<ListCell v-for="column in skeletonColumns" :key="column.fieldname">
-						<Skeleton class="h-3 w-full rounded" />
+						<Skeleton class="h-3 w-full rounded-1" />
 					</ListCell>
 				</ListRow>
 			</template>

@@ -8,7 +8,7 @@
 	>
 		<div v-if="selection.length" class="absolute inset-x-0 bottom-16 mx-auto w-max">
 			<div
-				class="flex items-center gap-3 rounded-lg bg-surface-base px-4 py-2 text-base shadow-2xl"
+				class="flex items-center gap-3 rounded-5 bg-surface-base px-4 py-2 text-base shadow-2xl"
 			>
 				<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
 				<span class="text-ink-gray-9">{{ selection.length }} selected</span>

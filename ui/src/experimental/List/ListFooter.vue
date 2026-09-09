@@ -20,7 +20,7 @@
 			<span v-if="hasCounts" class="text-sm text-ink-gray-5">
 				{{ rowCount }} of {{ totalCount }}
 			</span>
-			<Skeleton v-else class="h-3 w-16 rounded" />
+			<Skeleton v-else class="h-3 w-16 rounded-1" />
 		</div>
 	</div>
 </template>
