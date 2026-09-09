@@ -231,6 +231,75 @@ def test_patch_config_toggles_auto_approve_and_persists(tmp_path):
 	assert c.patch("/sessions/nope/config", json={"auto_approve": True}).status_code == 404
 
 
+def test_patch_config_replaces_client_tools_and_confirmation_together(tmp_path):
+	c, store = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={
+			"model": "mock",
+			"cwd": str(tmp_path),
+			"client_tools": [{"type": "function", "function": {"name": "old"}}],
+			"confirm_tools": ["old"],
+		},
+	).json()["session_id"]
+	tools = [{"type": "function", "function": {"name": "new"}}]
+
+	data = c.patch(f"/sessions/{sid}/config", json={"client_tools": tools, "confirm_tools": ["new"]}).json()
+	assert data["config"]["client_tools"] == tools
+	assert data["config"]["confirm_tools"] == ["new"]
+	assert store.get(sid).config.client_tools == tools
+
+	fresh = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	assert fresh.get(sid).config.client_tools == tools
+	assert fresh.get(sid).config.confirm_tools == ["new"]
+	assert c.patch(f"/sessions/{sid}/config", json={"client_tools": tools}).status_code == 400
+
+
+def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
+	c, store = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path), "title": "Before"}).json()[
+		"session_id"
+	]
+	before = store.get(sid).config.model_dump()
+	tools = [{"type": "function", "function": {"name": "new"}}]
+	patch = {"client_tools": tools, "confirm_tools": ["new"], "auto_approve": True, "title": "After"}
+
+	def fail(session):
+		raise OSError("disk full")
+
+	# one write for the whole patch: when it fails, nothing changed in memory either
+	monkeypatch.setattr(store, "save_meta", fail)
+	assert c.patch(f"/sessions/{sid}/config", json=patch).status_code == 500
+	assert store.get(sid).config.model_dump() == before
+
+	monkeypatch.undo()
+	data = c.patch(f"/sessions/{sid}/config", json=patch).json()["config"]
+	assert (data["client_tools"], data["confirm_tools"], data["auto_approve"], data["title"]) == (
+		tools,
+		["new"],
+		True,
+		"After",
+	)
+	fresh = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	config = fresh.get(sid).config
+	assert (config.client_tools, config.confirm_tools, config.auto_approve, config.title) == (
+		tools,
+		["new"],
+		True,
+		"After",
+	)
+
+	# an invalid field is refused before anything is applied
+	assert c.patch(f"/sessions/{sid}/config", json={"auto_approve": False, "title": " "}).status_code == 400
+	assert store.get(sid).config.auto_approve is True
+
+
 async def test_patch_config_applies_during_active_run(tmp_path, monkeypatch):
 	model = _BlockingModel()
 	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)

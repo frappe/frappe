@@ -361,10 +361,6 @@ class Session:
 				ModelChanged(model=model, credential_id=credential_id, reasoning_effort=reasoning_effort)
 			)
 
-	def set_auto_approve(self, enabled: bool) -> None:
-		"""Flip approval mode. Safe mid-run: the loop reads this config at each tool gate."""
-		self.config.auto_approve = enabled
-
 	async def compact(
 		self,
 		instructions: str | None = None,
