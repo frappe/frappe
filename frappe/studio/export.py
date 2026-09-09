@@ -76,32 +76,21 @@ def parse_json(field):
 
 
 def remove_empty_values(docdict):
-	"""Recursively remove null and empty fields"""
+	"""Remove empty fields from documents, child rows, and block children."""
 	to_remove = []
 	for attr, value in docdict.items():
 		if attr in PRESERVED_EMPTY_PROPERTIES:
 			continue
 
 		if isinstance(value, list):
+			for item in value:
+				if isinstance(item, dict):
+					remove_empty_values(item)
 			if not value:
 				to_remove.append(attr)
-			else:
-				for v in value:
-					if isinstance(v, dict):
-						remove_empty_values(v)
-
-				value[:] = [v for v in value if not (isinstance(v, dict) and not v)]
-
-				if not value:
-					to_remove.append(attr)
-
 		elif isinstance(value, dict):
 			if not value:
 				to_remove.append(attr)
-			else:
-				remove_empty_values(value)
-				if not value:
-					to_remove.append(attr)
 		elif value is None or value == "":
 			to_remove.append(attr)
 

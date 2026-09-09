@@ -15,16 +15,19 @@ class TestStudioPage(FrappeTestCase):
 			"keep_zero": 0,
 			"remove_this_null": None,
 			"remove_this_empty_list": [],
-			"remove_this_empty_dict": {"some_dict": {"some_more_dict": {}}},
-			"nested_dict": {"keep_nested": 123, "remove_nested_null": None, "empty_nested_dict": {}},
-			"block": {
-				"componentProps": {"empty_value": "", "false_value": False},
-				"componentSlots": {},
-			},
-			"nested_list": [{"keep_list_dict": "", "remove_list_null": None}, {}],
-			"new_nested_list": [
+			"remove_this_empty_dict": {},
+			"nested_config": {"empty_value": "", "empty_dict": {}},
+			"blocks": [
 				{
-					"new_nested_list": [{"new_nested_list_again": []}],
+					"componentName": "Button",
+					"remove_empty_string": "",
+					"remove_empty_list": [],
+					"remove_empty_dict": {},
+					"componentProps": {"empty_value": "", "false_value": False},
+					"componentSlots": {},
+					"children": [
+						{"componentName": "TextBlock", "remove_empty_string": ""},
+					],
 				}
 			],
 		}
@@ -35,10 +38,14 @@ class TestStudioPage(FrappeTestCase):
 				"keep_this": "value",
 				"keep_false": False,
 				"keep_zero": 0,
-				"nested_dict": {"keep_nested": 123},
-				"block": {
-					"componentProps": {"empty_value": "", "false_value": False},
-					"componentSlots": {},
-				},
+				"nested_config": {"empty_value": "", "empty_dict": {}},
+				"blocks": [
+					{
+						"componentName": "Button",
+						"componentProps": {"empty_value": "", "false_value": False},
+						"componentSlots": {},
+						"children": [{"componentName": "TextBlock"}],
+					}
+				],
 			},
 		)
