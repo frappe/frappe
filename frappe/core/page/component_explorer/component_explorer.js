@@ -8,6 +8,14 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	// Examples are grouped (all variants together, all sizes together...).
 	// Each item's opts object is both the displayed code and the real input
 	// for the live preview — what you see is exactly what runs.
+	// a footer row two Combobox demos share
+	const CREATE_CUSTOMER_ROW = {
+		type: "custom",
+		label: "Create a new Customer",
+		icon: "plus",
+		onclick: ({ query }) => frappe.ui.toast({ message: `Create "${query || "new"}"` }),
+	};
+
 	const COMPONENTS = {
 		Combobox: {
 			helper: "frappe.ui.combobox",
@@ -126,13 +134,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							placeholder: "Select customer",
 							options: ["Acme Industries", "Ace Hardware Ltd"],
 							footer: [
-								{
-									type: "custom",
-									label: "Create a new Customer",
-									icon: "plus",
-									onclick: ({ query }) =>
-										frappe.ui.toast({ message: `Create "${query || "new"}"` }),
-								},
+								CREATE_CUSTOMER_ROW,
 								{
 									type: "custom",
 									label: "Browse all Customers",
@@ -164,15 +166,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								"Enabled",
 								"Account Group descendant of Current Assets - FT",
 							],
-							footer: [
-								{
-									type: "custom",
-									label: "Create a new Customer",
-									icon: "plus",
-									onclick: ({ query }) =>
-										frappe.ui.toast({ message: `Create "${query || "new"}"` }),
-								},
-							],
+							footer: [CREATE_CUSTOMER_ROW],
 							options: ["Acme Industries", "Pacific Traders"],
 						},
 						{

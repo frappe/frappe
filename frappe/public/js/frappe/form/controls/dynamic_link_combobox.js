@@ -1,5 +1,5 @@
-// Dynamic Link on top of ControlLinkCombobox: same target-doctype resolution
-// as ControlDynamicLink, applied to the combobox-backed control.
+// Dynamic Link on top of ControlLinkCombobox.
+// Picked by make_control for Dynamic Link fields under the same setting.
 
 frappe.ui.form.ControlDynamicLinkCombobox = class ControlDynamicLinkCombobox extends (
 	frappe.ui.form.ControlLinkCombobox

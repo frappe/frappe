@@ -1,26 +1,16 @@
-// The Autocomplete field with System Settings > "Enable Combobox Link and
-// Autocomplete Fields" on: the same scenarios as control_autocomplete.js,
-// driven through the combobox panel, plus free text and set_data.
-
-function set_combobox_setting(on) {
-	cy.call("frappe.client.set_value", {
-		doctype: "System Settings",
-		name: "System Settings",
-		fieldname: "enable_combobox_link_field",
-		value: on ? 1 : 0,
-	});
-}
+// The Autocomplete field with the combobox setting on: control_autocomplete.js
+// scenarios through the combobox panel, plus free text and set_data.
 
 context("Control Autocomplete (combobox)", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/desk/website");
-		set_combobox_setting(true);
+		cy.set_combobox_setting(true);
 	});
 
 	after(() => {
 		cy.visit("/desk/website");
-		set_combobox_setting(false);
+		cy.set_combobox_setting(false);
 	});
 
 	beforeEach(() => {
@@ -91,15 +81,48 @@ context("Control Autocomplete (combobox)", () => {
 	it("offers typed text as a value when free text is allowed", () => {
 		make_dialog("ac4", ["Option 1", "Option 2"], { ignore_validation: 1 }).as("dialog");
 		field_input("ac4").type("Custom");
-		// the "Use" row is the only match, so Enter picks it
 		panel().find(".es-combobox__footer [role='option']").should("contain", 'Use "Custom"');
 		search().type("{enter}");
 		panel().should("not.exist");
 		cy.get("@dialog").then((dialog) => expect(dialog.get_value("ac4")).to.eq("Custom"));
-		// clicking away commits typed text too
 		field_input("ac4").type("Other");
 		cy.get(".modal-title").click();
 		cy.get("@dialog").then((dialog) => expect(dialog.get_value("ac4")).to.eq("Other"));
+	});
+
+	it("opens with the search focused as a dialog's first field, and Enter after a pick runs the primary action", () => {
+		cy.window().its("frappe.sys_defaults").should("exist");
+		cy.window().then((win) => {
+			win.__picked = null;
+			const dialog = new win.frappe.ui.Dialog({
+				title: "Jump",
+				fields: [
+					{
+						label: "Field",
+						fieldname: "ac6",
+						fieldtype: "Autocomplete",
+						options: ["Alpha", "Beta"],
+						reqd: 1,
+					},
+				],
+				primary_action_label: "Go",
+				primary_action: ({ ac6 }) => {
+					win.__picked = ac6;
+					dialog.hide();
+				},
+				animate: false,
+			});
+			dialog.show();
+		});
+		cy.window().its("cur_dialog.display").should("eq", true);
+		panel().should("exist");
+		cy.focused().should("have.class", "es-combobox__input");
+		search().type("Bet{enter}");
+		panel().should("not.exist");
+		cy.focused().should("have.class", "es-combobox__value");
+		cy.focused().type("{enter}");
+		cy.window().its("__picked").should("eq", "Beta");
+		cy.get(".modal:visible").should("not.exist");
 	});
 
 	it("takes a new list from set_data", () => {

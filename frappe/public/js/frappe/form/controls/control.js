@@ -48,8 +48,7 @@ import "./icon";
 import "./phone";
 import "./json";
 
-// fieldtypes that have a combobox-backed variant behind the
-// "Enable Combobox Link Field" system setting
+// fieldtypes with a combobox variant behind the System Settings toggle
 const COMBOBOX_FIELDTYPES = new Set(["Link", "Dynamic Link", "Autocomplete"]);
 
 frappe.ui.form.make_control = function (opts) {

@@ -96,8 +96,7 @@ class TestSearch(IntegrationTestCase):
 		frappe.delete_doc("User", email)
 
 	def test_search_link_start_paginates(self):
-		# a plain (non-translated) doctype: translated doctypes return every
-		# row on purpose, since their filtering happens on the client
+		# a plain doctype; translated ones are paged differently (see below)
 		doctype = new_doctype(autoname="field:some_fieldname").insert()
 		self.addCleanup(doctype.delete)
 		for i in range(12):
@@ -109,18 +108,14 @@ class TestSearch(IntegrationTestCase):
 		self.assertEqual(len(second), 5)
 		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
 
-		# two pages cover exactly what one bigger page does, so scrolling never
-		# skips or repeats (each page is relevance-sorted on its own, so only
-		# the membership is compared, not the order)
+		# only membership: each page is relevance-sorted on its own
 		both = search_link(doctype=doctype.name, txt="", page_length=10)
 		self.assertEqual({r["value"] for r in both}, {r["value"] for r in first + second})
 
-		# past the end: empty, not an error
 		self.assertEqual(search_link(doctype=doctype.name, txt="", page_length=5, start=50), [])
 
 	def test_search_link_pages_translated_doctypes(self):
-		# DocType is a translated doctype: its rows are matched in Python after
-		# an unlimited query, so paging has to happen there too
+		# DocType is a translated doctype, paged in Python after an unlimited query
 		first = search_link("DocType", "", page_length=10)
 		second = search_link("DocType", "", page_length=10, start=10)
 		self.assertEqual(len(first), 10)
@@ -128,22 +123,19 @@ class TestSearch(IntegrationTestCase):
 		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
 
 	def test_search_link_include_image(self):
-		# User's image_field is user_image; a row carries it as `image`
 		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
 		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", None)
 
 		rows = search_link(doctype="User", txt="Administrator", include_image=True)
 		admin = next(r for r in rows if r["value"] == "Administrator")
 		self.assertEqual(admin["image"], "/files/admin.png")
-		# the image never leaks into the description
 		self.assertNotIn("admin.png", admin["description"])
 
-		# off by default, and the shape is unchanged
 		rows = search_link(doctype="User", txt="Administrator")
 		admin = next(r for r in rows if r["value"] == "Administrator")
 		self.assertNotIn("image", admin)
 
-		# a DocType without an image_field ignores the flag
+		# Role has no image_field
 		rows = search_link(doctype="Role", txt="System Manager", include_image=True)
 		self.assertTrue(rows)
 		self.assertNotIn("image", rows[0])
@@ -174,11 +166,10 @@ class TestSearch(IntegrationTestCase):
 		self.addCleanup(ps.delete)
 		self.assertNotIn("Role", get_link_settings())
 
-		# show_image ships the image field's name; a DocType without one
-		# can't show images, so the flag is dropped
+		# Role has no image_field, so its flag is dropped
 		frappe.db.set_value("DocType", "User", "show_image_in_link", 1)
 		self.addCleanup(frappe.db.set_value, "DocType", "User", "show_image_in_link", 0)
-		self.assertEqual(get_link_settings()["User"], {"show_image": 1, "image_field": "user_image"})
+		self.assertEqual(get_link_settings()["User"], {"image_field": "user_image"})
 		frappe.db.set_value("DocType", "Role", "show_image_in_link", 1)
 		self.addCleanup(frappe.db.set_value, "DocType", "Role", "show_image_in_link", 0)
 		self.assertNotIn("Role", get_link_settings())

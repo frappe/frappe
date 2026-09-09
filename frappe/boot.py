@@ -568,23 +568,21 @@ def get_link_title_doctypes():
 
 
 def get_link_settings() -> dict[str, dict]:
-	"""Per-DocType Link field behaviour that differs from the default, for the
-	combobox Link control: {doctype: {"display_mode": "Select",
-	"show_image": 1, "image_field": "user_image"}}. Only non-default entries ship, so this stays small.
-	Customize Form values (Property Setters) override the DocType's own."""
+	"""Non-default Link field settings per DocType; Property Setters override."""
+	from frappe.desk.search import get_image_field
 	from frappe.utils import cint
 
-	settings: dict[str, dict] = {}
+	flags: dict[str, dict] = {}
 
 	for d in frappe.get_all(
 		"DocType",
-		filters={"link_display_mode": "Select"},
-		fields=["name", "link_display_mode"],
+		or_filters={"link_display_mode": "Select", "show_image_in_link": 1},
+		fields=["name", "link_display_mode", "show_image_in_link"],
 	):
-		settings.setdefault(d.name, {})["display_mode"] = d.link_display_mode
-
-	for d in frappe.get_all("DocType", filters={"show_image_in_link": 1}, pluck="name"):
-		settings.setdefault(d, {})["show_image"] = 1
+		flags[d.name] = {
+			"select": d.link_display_mode == "Select",
+			"image": bool(cint(d.show_image_in_link)),
+		}
 
 	for ps in frappe.get_all(
 		"Property Setter",
@@ -594,35 +592,30 @@ def get_link_settings() -> dict[str, dict]:
 		},
 		fields=["doc_type", "property", "value"],
 	):
-		entry = settings.setdefault(ps.doc_type, {})
+		entry = flags.setdefault(ps.doc_type, {"select": False, "image": False})
 		if ps.property == "link_display_mode":
-			if ps.value == "Select":
-				entry["display_mode"] = ps.value
-			else:
-				entry.pop("display_mode", None)
+			entry["select"] = ps.value == "Select"
 		else:
-			if cint(ps.value):
-				entry["show_image"] = 1
-			else:
-				entry.pop("show_image", None)
+			entry["image"] = bool(cint(ps.value))
 
-	# the client fetches avatars by name with this field, so it doesn't need
-	# the DocType's meta loaded; a DocType without an image field can't show
-	# images at all
-	# Property Setters outlive a deleted DocType; drop those before touching meta
-	enabled = filter_out_disabled_doctypes(list(settings))
-	existing = set(frappe.get_all("DocType", filters={"name": ["in", enabled]}, pluck="name"))
-	settings = {dt: v for dt, v in settings.items() if v and dt in existing}
-	for dt, entry in settings.items():
-		if not entry.get("show_image"):
+	# Property Setters outlive a deleted DocType: drop those before touching meta
+	names = filter_out_disabled_doctypes([dt for dt, f in flags.items() if f["select"] or f["image"]])
+	existing = set(frappe.get_all("DocType", filters={"name": ["in", names]}, pluck="name"))
+
+	settings: dict[str, dict] = {}
+	for dt in names:
+		if dt not in existing:
 			continue
-		image_field = frappe.get_meta(dt).image_field
-		if image_field:
+		entry = {}
+		if flags[dt]["select"]:
+			entry["display_mode"] = "Select"
+		# the client needs the field name to fetch avatars without loading meta
+		if flags[dt]["image"] and (image_field := get_image_field(dt)):
 			entry["image_field"] = image_field
-		else:
-			entry.pop("show_image", None)
+		if entry:
+			settings[dt] = entry
 
-	return {dt: v for dt, v in settings.items() if v}
+	return settings
 
 
 def set_time_zone(bootinfo):

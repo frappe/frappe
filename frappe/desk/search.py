@@ -76,14 +76,7 @@ def search_link(
 	include_image: bool = False,
 	keep_order: bool = False,
 ) -> list[LinkSearchResults]:
-	"""Rows for a Link field's dropdown.
-
-	`start` pages through results (the combobox loads more on scroll).
-	`include_image` adds the DocType's `image_field` value as `image`.
-	`keep_order` returns rows in the database order (most referenced, then
-	most recent, then a `name` tiebreaker) instead of re-sorting each page by
-	relevance — a paged list must not re-sort every page on its own.
-	"""
+	"""Rows for a Link field's dropdown, one page from `start`."""
 	results = search_widget(
 		doctype,
 		txt.strip(),
@@ -115,10 +108,7 @@ def get_image_field(doctype: str) -> str | None:
 
 
 def add_images(rows: list[LinkSearchResults], doctype: str) -> None:
-	"""Attach each row's image_field value as `image`. A separate by-name
-	lookup rather than an extra search column, so it works the same for the
-	standard search and for custom `query` methods (which return their own
-	column layout)."""
+	"""Set `image` on each row via a by-name lookup, so custom queries work too."""
 	image_field = get_image_field(doctype)
 	if not image_field or not rows:
 		return
@@ -167,7 +157,7 @@ def search_widget(
 	for_link_validation: bool = False,
 	# this param has been added temporarily for compatibility - may be removed later
 	query_filters_as_dict: bool = False,
-	# skip the per-page relevance re-sort (rows come in database order)
+	# skip the relevance re-sort so paged results keep one order
 	keep_order: bool = False,
 ):
 	if ignore_user_permissions:
@@ -220,7 +210,8 @@ def search_widget(
 				doctype,
 				query_txt,
 				searchfield,
-				start,
+				# a translated doctype is paged below, on the whole list
+				0 if meta.translated_doctype else start,
 				query_page_length,
 				filters,
 				as_dict=as_dict,
@@ -242,13 +233,8 @@ def search_widget(
 		finally:
 			frappe.flags.ignore_user_permissions_for_doctype = None
 
-		if not for_link_validation:
-			if meta.translated_doctype:
-				values = filter_translated(values, txt, as_dict)
-				if not keep_order:
-					values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-				# the query got the whole list (see query_page_length): page it here
-				values = values[start : start + page_length]
+		if not for_link_validation and meta.translated_doctype:
+			values = page_translated(values, txt, as_dict, start, page_length, keep_order)
 
 		return values
 
@@ -312,10 +298,8 @@ def search_widget(
 		formatted_fields.insert(1, f"{meta.title_field} as label")
 
 	order_by_based_on_meta = get_order_by(doctype, meta)
-	# `idx` is number of times a document is referred, check link_count.py.
-	# `name` last as a tiebreaker: rows that share idx and modified (bulk
-	# inserts) would otherwise come back in arbitrary order, and a paged
-	# search (start > 0) could repeat or skip them.
+	# `idx` is number of times a document is referred, check link_count.py
+	# `name` last as a tiebreaker, so paging never repeats or skips equal rows
 	order_by = f"idx desc, {order_by_based_on_meta}, `tab{doctype}`.`name` asc"
 
 	# With an empty `txt`, LOCATE always returns 1, so `_relevance` is the same constant for
@@ -357,19 +341,12 @@ def search_widget(
 
 	if not for_link_validation:
 		if meta.translated_doctype:
-			values = filter_translated(values, txt, as_dict)
-
-		# Sorting the values array so that relevant results always come first
-		# This will first bring elements on top in which query is a prefix of element
-		# Then it will bring the rest of the elements and sort them in lexicographical order
-		if not keep_order:
+			values = page_translated(values, txt, as_dict, start, page_length, keep_order)
+		elif not keep_order:
+			# Sorting the values array so that relevant results always come first
+			# This will first bring elements on top in which query is a prefix of element
+			# Then it will bring the rest of the elements and sort them in lexicographical order
 			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-
-		if meta.translated_doctype:
-			# the SQL ran without a limit (translated values are matched in
-			# Python): page here, so a translated doctype answers with
-			# page_length rows from start like any other
-			values = values[start : start + page_length]
 
 		# remove _relevance from results
 		if add_relevance:
@@ -380,6 +357,14 @@ def search_widget(
 				values = [r[:-1] for r in values]
 
 	return values
+
+
+def page_translated(values, txt, as_dict, start, page_length, keep_order):
+	"""Translated doctypes are matched in Python, so filter, sort and page them here."""
+	values = filter_translated(values, txt, as_dict)
+	if not keep_order:
+		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+	return values[start : start + page_length]
 
 
 def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype):

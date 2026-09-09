@@ -1,35 +1,10 @@
-/* Espresso Combobox — pick one value from a searchable list.
- *
- * Two parts: a trigger styled like a form control, and a panel that is an
- * .es-menu (see menu.css) with role="listbox", so rows, groups, highlight /
- * selected states, empty and loading rows, motion and dark mode all come
- * from there — and match frappe-ui's Combobox row for row. Layout and
- * colour on the combobox's own elements come from the utility classes the
- * JS puts on them (flex, gap-2, px-3, text-ink-gray-5 ...); this file adds
- * only what a class can't say: the trigger's states, the input reset, the
- * scrollbar, the fade, the chevron flip and a few typography sizes.
- *
- *   <div class="es-combobox" role="combobox" aria-haspopup="listbox"
- *        aria-expanded="false" tabindex="0" data-state="open">
- *     <span class="es-combobox__prefix">(avatar / icon)</span>
- *     <input class="es-combobox__value"> (or a span)
- *     <span class="es-combobox__actions"><button class="es-button" data-role="clear">…</button></span>
- *     <svg class="es-combobox__chevron">…</svg>
- *   </div>
- *
- *   <div class="es-menu es-combobox__panel" role="listbox" data-state="open">
- *     <div class="es-combobox__search"><svg/><input class="es-combobox__input"></div>
- *     <div class="es-combobox__list"> .es-menu__group > .es-menu__item[role=option] … </div>
- *     <div class="es-combobox__filters">Filtered by <span class="es-badge">Company: FT</span></div>
- *     <div class="es-combobox__footer"> custom .es-menu__item rows </div>
- *   </div>
- *
- * Trigger attributes: data-state="open" while the panel is up,
- * data-disabled / aria-disabled, aria-invalid="true" for a bad value. */
+/* Espresso Combobox: a trigger styled like a form control, plus a panel.
+ * The panel is an .es-menu (menu.css) with role="listbox", so rows, states,
+ * motion and dark mode come from there. Layout comes from the utility
+ * classes the JS puts on the elements; this file adds only what a class
+ * can't say. The form control's error state is painted by controls.scss. */
 
-/* ---- trigger: the desk's form-control box (same height, radius and
-   ground as the inputs beside it); frappe-ui's button trigger has the same
-   28px / 8px-radius / gray-2 recipe ---- */
+/* ---- trigger ---- */
 .es-combobox {
     width: 100%;
     box-sizing: border-box;
@@ -45,7 +20,6 @@
     outline: none;
 }
 
-/* the focus ring while focused or open, as frappe-ui does */
 .es-combobox:focus-visible,
 .es-combobox:has(> .es-combobox__value:focus),
 .es-combobox[data-state="open"] {
@@ -58,19 +32,13 @@
     cursor: not-allowed;
 }
 
-.es-combobox[aria-invalid="true"] {
-    box-shadow: inset 0 0 0 1px var(--outline-red-3);
-}
-
 .es-combobox__value[data-placeholder] {
     color: var(--ink-gray-4);
 }
 
-/* the value_input form: an input (edits refused) that looks like the span. The
-   trigger owns the look (background, radius, focus ring), so the input is
-   bare — !important beats the desk's .form-control / has-error input rules */
+/* the trigger owns the look; !important beats the desk's .form-control rules */
 input.es-combobox__value {
-    /* never editable, so never a caret: focus shows as the trigger's ring */
+    /* never editable, so never a caret */
     caret-color: transparent;
     height: 100%;
     padding: 0;
@@ -95,7 +63,6 @@ input.es-combobox__value:disabled {
     cursor: not-allowed;
 }
 
-/* clear (and any owner-added action) buttons: only on hover / focus / open */
 .es-combobox__actions .es-button {
     --es-bt-h: calc(var(--spacing) * 5);
     --es-bt-icon: calc(var(--spacing) * 3.5);
@@ -106,7 +73,6 @@ input.es-combobox__value:disabled {
     display: none;
 }
 
-/* one chevron, flips while open */
 .es-combobox__chevron {
     transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -117,32 +83,22 @@ input.es-combobox__value:disabled {
 
 /* ---- panel ---- */
 .es-combobox__panel {
-    /* reposition() sets the width inline to match the trigger */
-    /* room for ~6 rows on a laptop; never past 60% of the viewport, and
-       never under 240px (place() flips the panel above when short of room) */
+    /* reposition() sets the width inline */
     max-height: max(calc(var(--spacing) * 60), min(calc(var(--spacing) * 105), 60vh));
 }
 
-/* only the option list scrolls; search + footer stay put. The list carries
-   frappe-ui's p-1 inset (the class on it); the groups inside add none */
 .es-combobox__list {
     overflow-y: auto;
-    /* the desk sets scrollbar-width / scrollbar-color on every element, and
-       Chrome then ignores the ::-webkit-scrollbar rules below it, leaving the
-       platform's overlay scrollbar — invisible on macOS until you scroll. Put
-       the standard properties back to auto here so the styled, always-shown
-       thin scrollbar applies to the list */
+    /* the desk's scrollbar-width / scrollbar-color make Chrome ignore the
+       ::-webkit-scrollbar rules below; reset them so the thin bar shows */
     scrollbar-width: auto;
     scrollbar-color: auto;
-    /* the scrollbar lives in a gutter as wide as the inset (the list has
-       ps-1, no end padding), so rows sit the same distance from both edges;
-       reserved even when the list is short */
+    /* gutter as wide as the ps-1 inset, so rows sit evenly from both edges */
     scrollbar-gutter: stable;
 }
 
 .es-combobox__list::-webkit-scrollbar {
-    /* !important: the desk's *:not(#page-form-builder *)::-webkit-scrollbar
-       rule carries an id's specificity and would keep its 6px otherwise */
+    /* !important: the desk's ::-webkit-scrollbar rule carries an id's specificity */
     width: calc(var(--spacing) * 1) !important;
 }
 
@@ -160,25 +116,13 @@ input.es-combobox__value:disabled {
     gap: 0;
 }
 
-/* frappe-ui's group label: 28px tall, px-2 */
-.es-combobox__panel .es-menu__group-label {
-    padding-inline: calc(var(--spacing) * 2);
-}
-
-/* more rows below the fold: fade the bottom edge (overlay scrollbars don't
-   show until the user scrolls, and a list of exactly N rows looks complete) */
+/* overlay scrollbars give no hint that more rows follow: fade the edge */
 .es-combobox__list[data-more-below] {
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
 }
 
-/* ---- search row (frappe-ui: px-3, border-b, input py-2 text-base) ---- */
-.es-combobox__search > svg {
-    width: calc(var(--spacing) * 4);
-    height: calc(var(--spacing) * 4);
-    flex-shrink: 0;
-}
-
+/* ---- search row ---- */
 .es-combobox__search > .es-spinner {
     width: 14px;
     height: 14px;
@@ -198,8 +142,7 @@ input.es-combobox__value:disabled {
     color: var(--ink-gray-4);
 }
 
-/* ---- applied filters: one line under the list — icon, "Filtered by", the
-   first chip, "+N"; a click expands the band to every chip ---- */
+/* ---- filters ---- */
 .es-combobox__filters {
     font-size: var(--text-sm);
 }
@@ -209,7 +152,6 @@ input.es-combobox__value:disabled {
 }
 
 .es-combobox__filters-body {
-    /* the band's own min height, so the collapsed line centres */
     min-height: calc(var(--spacing) * 5);
 }
 
@@ -223,20 +165,12 @@ input.es-combobox__value:disabled {
     flex-shrink: 0;
 }
 
-.es-combobox__filters-label {
-    flex-shrink: 0;
-    margin-inline-end: calc(var(--spacing) * 0.5);
-}
-
-/* the first chip gives way first; the +N never shrinks */
 .es-combobox__filters-body > .es-badge {
-    /* a shade darker than the badge default: on the band's gray-1 ground a
-       gray-2 chip barely reads (the tokens flip with the theme) */
+    /* darker than the badge default: gray-2 barely reads on the gray-1 band */
     --c-fill: var(--surface-gray-3);
     --c-fg: var(--ink-gray-7);
-    /* inline-block (not the badge's inline-flex) so text-overflow applies;
-       line-height = the sm badge height keeps the text vertically centred */
-    display: inline-block;
+    /* block, not inline-flex, so text-overflow applies */
+    display: block;
     flex: 0 1 auto;
     max-width: 100%;
     min-width: 0;
@@ -250,8 +184,6 @@ input.es-combobox__value:disabled {
     flex: none;
 }
 
-/* expanded: every chip shows its whole text, wrapping onto more lines when
-   a value is long (the sm badge is a fixed-height single line otherwise) */
 .es-combobox__filters[data-expanded] .es-combobox__filters-body > .es-badge,
 .es-combobox__filters[data-expanded] .es-combobox__filters-text {
     height: auto;
@@ -264,34 +196,21 @@ input.es-combobox__value:disabled {
     border-radius: var(--radius-md);
 }
 
-/* a narrow panel (a grid cell): the icon alone says "filtered" */
 .es-combobox__panel--narrow .es-combobox__filters-label {
     display: none;
 }
 
-/* the plain-text form: one line, expanding shows the rest */
-.es-combobox__filters-text {
-    color: var(--ink-gray-7);
-}
-
 /* ---- row affixes ---- */
-/* frappe.utils.icon() emits .icon, and the desk's .icon rule gives it auto
-   side margins; in a flex row without a growing child (the filter band, a
-   footer row) that floats the icon into the free space */
+/* the desk's .icon rule gives auto side margins, which float the icon in a flex row */
 .es-combobox svg.icon,
 .es-combobox__panel svg.icon {
     margin: 0;
 }
 
-/* the badge sits on the title line, right after the text (same column on
-   every row); only the check is pushed to the end */
 .es-combobox__badge {
-    margin-inline-start: calc(var(--spacing) * 2);
     vertical-align: 1px;
 }
 
-/* the typed query inside a label */
 .es-combobox__match {
     font-weight: var(--font-weight-medium);
-    color: var(--ink-gray-9);
 }

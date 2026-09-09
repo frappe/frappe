@@ -1,34 +1,21 @@
-// The Autocomplete field rendered with frappe.ui.Combobox, the same widget
-// the Link field uses under the same System Setting. The list comes from
-// df.options (a newline list, JSON, an array of {label, value, description})
-// or a get_query method; set_data() swaps it at runtime as before.
-//
-// Free text: the classic control accepts any typed text when
-// df.ignore_validation is set or the list is empty — otherwise a value not
-// in the list validates to "". Here the panel offers the typed text as a
-// "Use …" row in that case, and tabbing or clicking away commits it; a
-// list-only field just drops text that matches nothing.
-//
-// Compatibility: extends the classic ControlAutocomplete and keeps its
-// surface — set_data / get_data / parse_options / format_for_input /
-// get_input_value / validate, translate_values, and the awesomplete /
-// autocomplete_open handles grid rows and dialogs read.
+// Autocomplete field backed by frappe.ui.Combobox.
+// Picked by make_control for Autocomplete fields when "Enable Combobox Link
+// and Autocomplete Fields" is on in System Settings.
+
+import { mount_combobox, awesomplete_shim } from "./combobox_control.js";
 
 frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox extends (
 	frappe.ui.form.ControlAutocomplete
 ) {
-	static trigger_change_on_input_event = false;
-
 	make_input() {
 		if (this.$input) return;
 
-		this.combobox = new frappe.ui.Combobox({
+		const combobox = new frappe.ui.Combobox({
 			value_input: true,
 			open_on_focus: true,
 			arrow_keys_open: !this.grid_row,
 			clearable: true,
-			// the rows are the field's own list: filtered on the client, unless
-			// a get_query method does the searching (see before_open)
+			// client-side filtering, unless a get_query method searches (see before_open)
 			filterable: true,
 			options: (query) => this.fetch_options(query),
 			before_open: () => this.before_open(),
@@ -37,40 +24,17 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 			on_change: (value, option) => this.on_pick(value, option),
 		});
 
-		this.$input_area = $(this.input_area);
-		this.combobox.$trigger.data("es-combobox", this.combobox);
-		this.combobox.$trigger.prependTo(this.input_area);
-		this.$input = $(this.combobox.input_el);
-		this.$input.addClass("input-with-feedback");
-		this.set_input_attributes();
-		this.input = this.$input.get(0);
-		this.has_input = true;
-		this.bind_change_event();
-
+		mount_combobox(this, combobox);
 		this.set_options();
 	}
 
 	// ---- classic-control surface ----
 
 	get awesomplete() {
-		if (!this._awesomplete_shim) {
-			const me = this;
-			this._awesomplete_shim = {
-				open: () => me.combobox && me.combobox.open(),
-				close: () => me.combobox && me.combobox.close("owner"),
-				get opened() {
-					return !!(me.combobox && me.combobox.is_open);
-				},
-				get ul() {
-					return (me.combobox && me.combobox.list_el) || document.createElement("ul");
-				},
-				// validate() on the classic control reads the list from here
-				get _list() {
-					return me.get_data();
-				},
-			};
-		}
-		return this._awesomplete_shim;
+		// the classic validate() reads the list from _list
+		return (this._awesomplete_shim ||= awesomplete_shim(this, {
+			_list: { get: () => this.get_data() },
+		}));
 	}
 
 	set_data(data) {
@@ -91,19 +55,10 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		this.combobox.set_value(value, { label: this.format_for_input(value) });
 	}
 
-	// the picked value itself (free text included); the classic control had
-	// to map the input's label back to a value
 	get_input_value() {
 		if (!this.combobox) return "";
 		const value = this.combobox.value;
 		return value == null ? "" : value;
-	}
-
-	validate(value) {
-		if (this.df.ignore_validation) return value || "";
-		const valid = this.get_data().map((d) => d.value);
-		if (!valid.length) return value;
-		return valid.includes(value) ? value : "";
 	}
 
 	// ---- rows ----
@@ -137,7 +92,6 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		});
 	}
 
-	// the classic execute_query_if_exists, as a promise of parsed rows
 	query(term) {
 		const args = { txt: term };
 		const get_query = this.query_method;
@@ -161,8 +115,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		return frappe.xcall(args.query, args).then((rows) => this.parse_options(rows || []));
 	}
 
-	// the "Use …" row names the typed text: its label is a function of the
-	// query, so it follows every keystroke
+	// the label is a function of the query so it follows every keystroke
 	get_footer_rows() {
 		if (!this.allows_free_text()) return [];
 		return [
@@ -186,7 +139,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 
 	// ---- picking ----
 
-	on_pick(value, option) {
+	on_pick(value) {
 		if (value == null) {
 			this.$input.trigger("change");
 			return;
@@ -195,9 +148,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		this.$input.trigger("awesomplete-selectcomplete");
 	}
 
-	// typed text left behind by clicking away or tabbing on: an option's
-	// exact label picks it, free text is committed where allowed, anything
-	// else is dropped (the field keeps its value)
+	// text left by clicking away or tabbing: a label picks it, free text commits
 	on_close(reason) {
 		this.autocomplete_open = false;
 		const query = this.combobox.query;
@@ -208,7 +159,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		if (match) {
 			if (match.value !== this.get_input_value()) {
 				this.combobox.set_value(match.value, { label: match.label });
-				this.on_pick(match.value, match);
+				this.on_pick(match.value);
 			}
 			return;
 		}

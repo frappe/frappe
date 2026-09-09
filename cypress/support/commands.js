@@ -174,10 +174,8 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	if (["Link", "Dynamic Link"].includes(fieldtype)) {
 		cy.get("@input").then(($input) => {
 			if ($input.closest(".es-combobox").length) {
-				// combobox Link field (System Settings > Enable Combobox Link
-				// Field): focus opens the panel with its search box focused;
-				// type there and pick the highlighted row with Enter
-				cy.wrap($input).focus();
+				// combobox Link field: focus opens a panel; type in its search box
+				cy.get("@input").focus();
 				// the panel is mounted in <body>, outside any .within() scope
 				cy.document()
 					.its("body")
@@ -193,8 +191,7 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 					.should("include.text", value);
 				cy.get("@dropdown").find(".es-combobox__input").type("{enter}");
 				cy.get("@dropdown").should("not.exist");
-				// the input shows the title for title-link doctypes: check the
-				// picked value on the widget itself
+				// the input may show a title, so check the value on the widget
 				cy.get("@input")
 					.closest(".es-combobox")
 					.should(($trigger) => {
@@ -202,19 +199,19 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 					});
 				return;
 			}
-			cy.wrap($input).clear().focus();
+			cy.get("@input").clear().focus();
 			// Wait for dropdown to appear (request might be cached, so don't wait for network)
-			cy.wrap($input).parent().findByRole("listbox").as("dropdown");
+			cy.get("@input").parent().findByRole("listbox").as("dropdown");
 			cy.get("@dropdown").should("be.visible");
-			cy.wrap($input).type(value, { delay: 100 });
+			cy.get("@input").type(value, { delay: 100 });
 			// Wait for dropdown to update with search results
 			cy.get("@dropdown")
 				.should("be.visible")
 				.find("div[role='option']")
 				.first()
 				.should("include.text", value);
-			cy.wrap($input).type("{enter}");
-			cy.wrap($input).blur();
+			cy.get("@input").type("{enter}");
+			cy.get("@input").blur();
 			cy.get("@dropdown").should("not.exist");
 			cy.get("@input").should("have.value", value);
 		});
@@ -578,4 +575,13 @@ Cypress.Commands.add("compare_document", (expected_document) => {
 			cy.wait(1000);
 			compare_document(expected_document, frm.doc);
 		});
+});
+
+Cypress.Commands.add("set_combobox_setting", (on) => {
+	cy.call("frappe.client.set_value", {
+		doctype: "System Settings",
+		name: "System Settings",
+		fieldname: "enable_combobox_link_field",
+		value: on ? 1 : 0,
+	});
 });
