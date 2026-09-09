@@ -1,77 +1,25 @@
 <!--
-  The generated list page, a plain table for now. It owns its scroll, since the list surface that
-  replaces the table scrolls both ways under a sticky column header.
+  The generated list page every app gets at /apps/<prefix>/<slug>. The doctype is the key: a
+  new doctype is a new list, with its own state and its own controls.
 -->
 <template>
-	<PageFrame :title="doctype ?? 'Unknown'" :scroll="false">
-		<ScrollArea class="min-h-0 flex-1" :viewportClass="[pageGutter, 'py-5']">
-			<p v-if="!doctype" class="text-sm text-ink-gray-6">
-				No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
-			</p>
-
-			<table v-else class="w-full max-w-3xl text-sm">
-				<tbody>
-					<tr v-for="row in rows" :key="row.name" class="border-b border-outline-gray-1">
-						<td class="py-1.5">
-							<!-- `routeFor`, never a template literal: under a modular prefix the hand-built form
-													resolves to the wrong page. -->
-							<RouterLink
-								:to="routeFor(doctype!, row.name)"
-								class="text-ink-blue-3 hover:underline"
-							>
-								{{ row.name }}
-							</RouterLink>
-						</td>
-						<td v-for="column in columns" :key="column" class="py-1.5 text-ink-gray-7">
-							{{ row[column] }}
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</ScrollArea>
+	<DoctypeList v-if="doctype" :key="doctype" :doctype="doctype" />
+	<PageFrame v-else title="Unknown">
+		<p class="py-5 text-sm text-ink-gray-6">
+			No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
+		</p>
 	</PageFrame>
 </template>
 
 <script setup lang="ts">
-import { ScrollArea } from "frappe-ui";
-import { computed, inject, ref, watchEffect } from "vue";
-import { RouterLink, useRoute } from "vue-router";
+import { computed, inject } from "vue";
+import { useRoute } from "vue-router";
 import type { Addresses } from "@/addresses";
-import { routeFor } from "@/router/routeFor";
-import { listHandlersFor } from "@/contributions/registry";
-import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
+import PageFrame from "@/shell/PageFrame.vue";
+import DoctypeList from "./list/DoctypeList.vue";
 
 const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
-const rows = ref<Record<string, string>[]>([]);
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
-
-// A contributed `list.js` is read here and nowhere else; it shapes the view, never adds a route.
-const columns = computed(() => {
-	if (!doctype.value) return [];
-	return listHandlersFor(doctype.value).flatMap(({ handlers }) =>
-		(handlers.columns ?? []).map((column) => column.fieldname)
-	);
-});
-
-// The slower of two in-flight fetches must not repaint the list the reader left.
-let generation = 0;
-
-watchEffect(async () => {
-	if (!doctype.value) return;
-	const mine = ++generation;
-	// Cleared before the fetch: the heading switches synchronously. Writing `rows` does not
-	// re-trigger this effect, since nothing here reads it.
-	rows.value = [];
-	const params = new URLSearchParams({
-		doctype: doctype.value,
-		fields: JSON.stringify(["name", ...columns.value]),
-		limit_page_length: "20",
-	});
-	const res = await fetch(`/api/method/frappe.client.get_list?${params}`);
-	const body = res.ok ? (await res.json()).message ?? [] : [];
-	if (mine !== generation) return;
-	rows.value = body;
-});
 </script>
