@@ -848,6 +848,122 @@ class TestDB(IntegrationTestCase):
 		self.assertIn('"name" = %s', translated)
 		self.assertIn("%(ignored)s", translated)
 
+		# SQLGlot changes MySQL's LIMIT offset,count into LIMIT count OFFSET offset.
+		self.assertEqual(
+			'SELECT "name" FROM "tabUser" ORDER BY "name" LIMIT %(count)s OFFSET %(offset)s',
+			modify_query("select `name` from `tabUser` order by `name` limit %(offset)s, %(count)s"),
+		)
+
+		# MariaDB accepts COALESCE(x), but SQLite requires at least two arguments.
+		self.assertEqual(
+			"SELECT 'Stock Entry' AS \"voucher_type\"",
+			modify_query("select coalesce('Stock Entry') as `voucher_type`"),
+		)
+		self.assertEqual(
+			frappe.db.sql("select coalesce(coalesce(name)) from `tabDocType` where name = %s", ("DocType",))[
+				0
+			][0],
+			"DocType",
+		)
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_binds_named_sequence_parameters(self):
+		values = {"names": ["Administrator", "Guest"], "suffix": "O'Reilly", "optional": None}
+		original = {key: value.copy() if isinstance(value, list) else value for key, value in values.items()}
+
+		rows = frappe.db.sql(
+			"select name, %(suffix)s, %(optional)s from `tabUser` where name in %(names)s order by name",
+			values,
+		)
+
+		self.assertEqual([row[0] for row in rows], ["Administrator", "Guest"])
+		self.assertTrue(all(row[1:] == ("O'Reilly", None) for row in rows))
+		self.assertEqual(values, original, "binding must not mutate the caller's dictionary")
+		self.assertEqual(
+			frappe.db.sql("select name from `tabUser` where name in (%(names)s)", {"names": ["Guest"]}),
+			[("Guest",)],
+		)
+		self.assertEqual(
+			frappe.db.sql("select name from `tabUser` where name in %(names)s", {"names": []}),
+			[],
+		)
+
+		frappe.db.sql("select '100%', name from `tabUser` where name in %(names)s", {"names": ["Guest"]})
+		logged_query = str(frappe.db.last_query)
+		self.assertIn("'100%'", logged_query)
+		self.assertIn("IN ('Guest')", logged_query)
+		self.assertNotIn("%(names)s", logged_query)
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_only_rewrites_real_query_parameters(self):
+		self.assertEqual(
+			frappe.db.sql("select '%(literal)s', %(value)s, %(value)s -- %(comment)s\n", {"value": "safe"})[
+				0
+			],
+			("%(literal)s", "safe", "safe"),
+		)
+		self.assertEqual(
+			frappe.db.sql("select %s where %s in %s", ("bound", "Guest", ["Administrator", "Guest"]))[0][0],
+			"bound",
+		)
+		self.assertEqual(
+			frappe.db.sql("select 10%score, %(value)s from (select 3 as score)", {"value": "safe"})[0],
+			(1, "safe"),
+		)
+
+		expected = frappe.db.sql("select name from `tabUser` order by name limit 1 offset 0")
+		self.assertEqual(
+			frappe.db.sql(
+				"select name from `tabUser` order by name limit %(offset)s, %(count)s",
+				{"offset": 0, "count": 1},
+			),
+			expected,
+		)
+		self.assertEqual(
+			frappe.db.sql("select name from `tabUser` order by name limit %s, %s", (0, 1)),
+			expected,
+		)
+		self.assertIn("LIMIT 1 OFFSET 0", str(frappe.db.last_query))
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_time_columns_return_timedelta(self):
+		table = "__sqlite_time_converter_test"
+		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{table}`")
+		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `{table}`")
+		frappe.db.sql_ddl(f"CREATE TABLE `{table}` (`value` TIME)")
+
+		for raw, expected in (
+			("09:45:10.123456", datetime.timedelta(hours=9, minutes=45, seconds=10, microseconds=123456)),
+			("25:03:00", datetime.timedelta(hours=25, minutes=3)),
+			("-03:55:00", -datetime.timedelta(hours=3, minutes=55)),
+		):
+			frappe.db.sql(f"DELETE FROM `{table}`")
+			frappe.db.sql(f"INSERT INTO `{table}` (`value`) VALUES (%s)", (raw,))
+			self.assertEqual(frappe.db.sql(f"SELECT `value` FROM `{table}`")[0][0], expected)
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_compatibility_functions(self):
+		original_timezone = str(frappe.db._session_time_zone)
+		try:
+			frappe.db.set_session_time_zone("Asia/Kolkata")
+			combined, formatted, contains, timestamp = frappe.db.sql(
+				"""SELECT
+					frappe_combine_datetime('2024-02-03', '25:00:00'),
+					frappe_date_format('2024-02-03 04:05:06', '%M %e, %Y %r'),
+					frappe_json_contains('{"nested":{"enabled":true}}', '{"nested":{"enabled":true}}'),
+					frappe_unix_timestamp('1970-01-02 00:00:00')"""
+			)[0]
+
+			self.assertEqual(combined, "2024-02-04 01:00:00")
+			self.assertEqual(formatted, "February 3, 2024 04:05:06 AM")
+			self.assertEqual(contains, 1)
+			self.assertEqual(
+				timestamp,
+				int(datetime.datetime(1970, 1, 2, tzinfo=ZoneInfo("Asia/Kolkata")).timestamp()),
+			)
+		finally:
+			frappe.db.set_session_time_zone(original_timezone)
+
 	@run_only_if(db_type_is.SQLITE)
 	def test_query_builder_sql_skips_mariadb_transpilation(self):
 		user = frappe.qb.DocType("User")
