@@ -14,7 +14,7 @@
 			     distinct zone from the add-menu below (same row styling otherwise). -->
 			<div
 				v-if="uploader.items.length && !composing"
-				class="mb-1.5 rounded-lg border border-outline-gray-1 bg-surface-gray-2 p-1"
+				class="mb-1.5 rounded-6 border border-outline-gray-1 bg-surface-gray-2 p-1"
 			>
 				<!-- mini-header: count + bulk Set-all privacy. Optimize is image-only,
 				     so it lives on each image row (below), not here. -->
@@ -23,7 +23,7 @@
 					<Dropdown :options="bulkPrivacyOptions">
 						<button
 							type="button"
-							class="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-ink-gray-6 hover:bg-surface-gray-3"
+							class="flex items-center gap-1 rounded-4 px-1.5 py-0.5 text-xs text-ink-gray-6 hover:bg-surface-gray-3"
 						>
 							<span :class="[bulkPrivacyIcon, 'size-3']" />
 							{{ bulkPrivacyLabel }}
@@ -35,11 +35,11 @@
 				<div
 					v-for="item in uploader.items"
 					:key="item.id"
-					class="group flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-surface-gray-3"
+					class="group flex items-center gap-2.5 rounded-5 px-2 py-1.5 hover:bg-surface-gray-3"
 				>
 					<!-- thumbnail / kind icon -->
 					<div
-						class="flex size-8 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-surface-gray-2"
+						class="flex size-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-4 bg-surface-gray-2"
 					>
 						<img
 							v-if="thumbUrl(item)"
@@ -211,7 +211,7 @@
 						v-for="option in menu"
 						:key="option.key"
 						type="button"
-						class="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-surface-gray-2"
+						class="flex w-full items-center gap-2.5 rounded-5 px-2 py-1.5 text-left hover:bg-surface-gray-2"
 						@click="onMenu(option.key)"
 					>
 						<span :class="[option.icon, 'size-4 text-ink-gray-6']" />
@@ -255,7 +255,7 @@
 			<!-- drop overlay — only while dragging files over this popover -->
 			<div
 				v-if="dragging"
-				class="absolute inset-1 z-10 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-outline-gray-4 bg-surface-gray-1/90 text-ink-gray-7"
+				class="absolute inset-1 z-10 flex flex-col items-center justify-center gap-1.5 rounded-6 border-2 border-dashed border-outline-gray-4 bg-surface-gray-1/90 text-ink-gray-7"
 			>
 				<span class="lucide-cloud-upload size-7" />
 				<p class="text-p-sm font-medium">Drop files here</p>

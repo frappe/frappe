@@ -14,7 +14,7 @@
 				<Avatar size="xs" :image="option?.image" :label="option?.label || value" />
 				<span class="mb-0.5 leading-4 truncate">{{ option?.label || value }}</span>
 				<button
-					class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-4"
+					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-4"
 					@click.stop="removeTag"
 				>
 					<FeatherIcon name="x" class="size-3" />
