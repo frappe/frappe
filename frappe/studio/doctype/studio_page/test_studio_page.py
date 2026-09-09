@@ -11,7 +11,6 @@ from frappe.tests import IntegrationTestCase
 
 from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
-from studio.studio.doctype.studio_page import copy_paste
 from studio.studio.doctype.studio_page.studio_page import (
 	create_missing_dependencies,
 	duplicate_page,
@@ -145,26 +144,6 @@ class TestStudioPage(IntegrationTestCase):
 		create_missing_dependencies(app.name, [conflict["existing"]], overwrite_conflicts=True)
 		component.reload()
 		self.assertEqual(frappe.parse_json(component.block)["componentName"], "div")
-
-	def test_concurrent_component_creation_reuses_component(self):
-		app = make_studio_app(app_name="race-" + frappe.generate_hash(length=10))
-		component = make_component("Card")
-		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
-		real_fetch_component_batch = copy_paste.fetch_component_batch
-		missed_once = False
-
-		def miss_component_once(names, **kwargs):
-			nonlocal missed_once
-			if component.name in names and not missed_once:
-				missed_once = True
-				return []
-			return real_fetch_component_batch(names, **kwargs)
-
-		with patch.object(copy_paste, "fetch_component_batch", side_effect=miss_component_once):
-			create_missing_dependencies(app.name, [copy])
-
-		self.assertTrue(missed_once)
-		self.assertEqual(frappe.db.count("Studio Component", {"name": component.name}), 1)
 
 	def test_existing_components_do_not_use_per_component_exists_queries(self):
 		app = make_studio_app(app_name="batch-" + frappe.generate_hash(length=10))

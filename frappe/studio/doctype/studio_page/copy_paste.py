@@ -3,7 +3,6 @@
 
 import frappe
 from frappe import _
-from frappe.database import savepoint
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import cint
 
@@ -237,15 +236,8 @@ def create_missing_components(components: list[dict], *, overwrite_conflicts=Fal
 		existing = existing_by_name.get(component["name"])
 
 		if not existing:
-			# A concurrent paste can create the same component after the bulk lookup.
-			created = False
-			with savepoint(frappe.DuplicateEntryError):
-				new_component_from_copy(component).insert()
-				created = True
-			if created:
-				continue
-			existing = frappe.get_doc("Studio Component", component["name"])
-			existing.check_permission("read")
+			new_component_from_copy(component).insert()
+			continue
 
 		if component_signature(existing) == component_signature(component):
 			continue

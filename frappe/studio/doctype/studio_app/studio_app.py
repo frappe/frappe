@@ -413,15 +413,8 @@ class StudioApp(WebsiteGenerator):
 			if os.path.exists(target):
 				continue
 			os.makedirs(os.path.dirname(target), exist_ok=True)
-			try:
-				with open(target, "x", encoding="utf-8") as f:
-					f.write(file["content"])
-			except FileExistsError:
-				if not os.path.isfile(target) or frappe.read_file(target) != file["content"]:
-					frappe.throw(
-						_("{0} was created with different content while pasting.").format(file["path"]),
-						title=_("File conflict"),
-					)
+			with open(target, "x", encoding="utf-8") as f:
+				f.write(file["content"])
 
 	def find_vue_component(self, name: str) -> str | None:
 		matches = []
