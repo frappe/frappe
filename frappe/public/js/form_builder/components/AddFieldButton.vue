@@ -16,7 +16,9 @@
 						:value="autocomplete_value"
 						:options="fields"
 						@change="add_new_field"
-						:placeholder="__('Search fieldtypes...')"
+						:placeholder="
+							store.is_web_form ? __('Search fields...') : __('Search fieldtypes...')
+						"
 					/>
 				</div>
 			</div>
@@ -59,6 +61,9 @@ const selected = computed(() => {
 const show = ref(false);
 const autocomplete_value = ref("");
 const fields = computed(() => {
+	// a Web Form offers the source doctype's own fields, every other builder offers fieldtypes
+	if (store.is_web_form) return unplaced_source_fields();
+
 	let fields = frappe.model.all_fieldtypes
 		.filter((df) => {
 			if (in_list(frappe.model.layout_fields, df)) {
@@ -104,12 +109,26 @@ function toggle_fieldtype_options() {
 }
 
 function add_new_field(field) {
-	fieldtype = field?.value;
+	let value = field?.value;
 
-	if (!fieldtype) return;
+	if (!value) return;
+
+	let df;
+	if (store.is_web_form) {
+		// the picker offers the source doctype's own fields, so `value` is a fieldname
+		let source_df = store.source_doctype_fields.find((f) => f.fieldname === value);
+		if (!source_df) return;
+
+		df = store.get_df(source_df.fieldtype, source_df.fieldname, source_df.label);
+		// Link/Select/Table are unusable without options
+		df.options = source_df.options;
+		df.reqd = source_df.reqd;
+	} else {
+		df = store.get_df(value);
+	}
 
 	let new_field = {
-		df: store.get_df(fieldtype),
+		df,
 		table_columns: [],
 	};
 
@@ -123,6 +142,27 @@ function add_new_field(field) {
 	props.column.fields.splice(index + 1, 0, cloned_field);
 	store.form.selected_field = cloned_field.df;
 	show.value = false;
+}
+
+// the source doctype's fields that are not on the canvas yet
+function unplaced_source_fields() {
+	let placed = new Set(
+		store.form.layout.tabs.flatMap((t) =>
+			t.sections.flatMap((s) =>
+				s.columns.flatMap((c) => c.fields.map((f) => f.df.fieldname))
+			)
+		)
+	);
+
+	return store.source_doctype_fields
+		.filter(
+			(df) => !frappe.model.layout_fields.includes(df.fieldtype) && !placed.has(df.fieldname)
+		)
+		.map((df) => ({
+			// Autocomplete sorts on label, and a doctype's fields need not have one
+			label: __(df.label) || frappe.unscrub(df.fieldname),
+			value: df.fieldname,
+		}));
 }
 
 watch(selected, (val) => {
