@@ -1,5 +1,5 @@
 import frappe
-from frappe.desk.doctype.tag.tag import add_tag
+from frappe.desk.doctype.tag.tag import DocTags, add_tag
 from frappe.desk.reportview import get_stats
 from frappe.tests import IntegrationTestCase
 
@@ -32,3 +32,29 @@ class TestTag(IntegrationTestCase):
 			),
 			{"_user_tags": [["Standard", 1], ["No Tags", 0]]},
 		)
+
+	def test_get_tags(self):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "tag test"}).insert()
+		doctags = DocTags(doc.doctype)
+
+		# no tags
+		self.assertEqual(doc.get_tags(), [])
+
+		doctags.add(doc.name, "tag1")
+		doc.reload()
+		self.assertEqual(doc.get_tags(), ["tag1"])
+
+		doctags.add(doc.name, "tag2")
+		doctags.add(doc.name, "tag3")
+		doc.reload()
+		self.assertEqual(doc.get_tags(), ["tag1", "tag2", "tag3"])
+
+	def test_get_tags_legacy_leading_comma_format(self):
+		"""Pre-v16 sites stored _user_tags with a leading comma
+		(',tag1,tag2'). Untouched old documents can still carry that
+		format after upgrading -- get_tags() must handle both without
+		a data patch."""
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "legacy tag test"}).insert()
+		frappe.db.set_value(doc.doctype, doc.name, "_user_tags", ",tag1,tag2,tag3", update_modified=False)
+		doc.reload()
+		self.assertEqual(doc.get_tags(), ["tag1", "tag2", "tag3"])
