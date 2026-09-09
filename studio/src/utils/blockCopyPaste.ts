@@ -86,8 +86,7 @@ export function copyBlocks(e: ClipboardEvent) {
 		actions: [
 			{
 				label: "No, just blocks",
-				onClick: ({ close }) => {
-					close()
+				onClick: () => {
 					return writeClipboardPayload(
 						Promise.resolve({ blocks: getSelectedBlockCopies(), source: getClipboardSource() }),
 					)
@@ -96,8 +95,7 @@ export function copyBlocks(e: ClipboardEvent) {
 			{
 				label: "Yes",
 				variant: "solid",
-				onClick: ({ close }) => {
-					close()
+				onClick: () => {
 					return copyEntirePage()
 				},
 			},
@@ -143,7 +141,7 @@ function getClipboardSource(): ClipboardSource {
 	}
 }
 
-function shouldWarnAboutExcludedPageScript(source?: ClipboardSource): boolean {
+function isPageScriptExcluded(source?: ClipboardSource): boolean {
 	if (source?.hasPageScript !== true) return false
 	const store = useStudioStore()
 	const isSamePage =
@@ -172,7 +170,7 @@ async function pasteCopiedBlocks(payload: ClipboardPayload) {
 		return
 	}
 
-	if (shouldWarnAboutExcludedPageScript(payload.source)) {
+	if (isPageScriptExcluded(payload.source)) {
 		showPasteWarningToast(removePastedBlocks)
 	}
 }
@@ -186,7 +184,7 @@ function reviewPasteConflicts(
 	conflicts: PasteConflicts,
 	removePastedBlocks: () => void,
 ) {
-	const pageScriptExcluded = shouldWarnAboutExcludedPageScript(payload.source)
+	const pageScriptExcluded = isPageScriptExcluded(payload.source)
 
 	showPasteConflictDialog(getPasteConflictChoices(conflicts), {
 		onApply: async (choices) => {
