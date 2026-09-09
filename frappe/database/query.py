@@ -371,13 +371,7 @@ class Engine:
 
 		if getattr(self.query, "_name_field_injected", False) and (distinct or self.is_aggregate_query):
 			frappe.throw(
-				_(
-					"Cannot use distinct=True with child table fields unless the "
-					"parent 'name' field is also explicitly included in `fields`. "
-					"'name' must be selected internally to fetch child rows, which "
-					"would otherwise silently change what distinct treats as a duplicate."
-				),
-				title=_("Ambiguous Distinct Query"),
+				_("Child table fields need 'name' in `fields` when using distinct or aggregate queries."),
 				exc=frappe.ValidationError,
 			)
 
