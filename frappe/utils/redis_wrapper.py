@@ -75,7 +75,11 @@ class RedisWrapper(redis.Redis):
 		key = self.make_key(key, user, shared)
 
 		frappe.local.cache[key] = val
-		serialized = pickle.dumps(val, protocol=DEFAULT_PICKLE_PROTOCOL)
+		try:
+			serialized = pickle.dumps(val, protocol=DEFAULT_PICKLE_PROTOCOL)
+		except Exception:
+			# TODO: warning ?
+			return 0
 
 		with suppress(redis.exceptions.ConnectionError):
 			self.set(name=key, value=serialized, ex=expires_in_sec)
@@ -213,14 +217,15 @@ class RedisWrapper(redis.Redis):
 	def hset(
 		self,
 		name: str,
-		key: str,
+		key: str | None,
 		value,
 		shared: bool = False,
 		*args,
 		**kwargs,
-	):
+	) -> bool:
+		status = True  # can only be set to False on any error/exception.
 		if key is None:
-			return
+			return False
 
 		_name = self.make_key(name, shared=shared)
 
@@ -229,9 +234,17 @@ class RedisWrapper(redis.Redis):
 
 		# set in redis
 		try:
-			super().hset(_name, key, pickle.dumps(value, protocol=DEFAULT_PICKLE_PROTOCOL), *args, **kwargs)
+			serialized = pickle.dumps(value, protocol=DEFAULT_PICKLE_PROTOCOL)
+		except Exception:
+			# TODO: Warning ?
+			status = False
+			return status
+
+		try:
+			super().hset(_name, key, serialized, *args, **kwargs)
 		except redis.exceptions.ConnectionError:
-			pass
+			status = False
+		return status
 
 	def hexists(self, name: str, key: str, shared: bool = False) -> bool:
 		if key is None:
@@ -250,8 +263,8 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return False
 
-	def hgetall(self, name):
-		value = super().hgetall(self.make_key(name))
+	def hgetall(self, name, shared: bool = False):
+		value = super().hgetall(self.make_key(name, shared=shared))
 		return {key: pickle.loads(value) for key, value in value.items()}
 
 	def hget(self, name, key, generator=None, shared=False):
@@ -287,7 +300,7 @@ class RedisWrapper(redis.Redis):
 		keys: str | list | tuple,
 		shared=False,
 		pipeline: redis.client.Pipeline | None = None,
-	):
+	) -> bool:
 		"""
 		A wrapper around redis' HDEL command
 
@@ -296,6 +309,7 @@ class RedisWrapper(redis.Redis):
 		:param shared: shared frappe key or not
 		:param pipeline: A redis.client.Pipeline object, if this transaction is to be run in a pipeline
 		"""
+		status = True  # can only be set to False on any error/exception.
 		_name = self.make_key(name, shared=shared)
 
 		name_in_local_cache = _name in frappe.local.cache
@@ -303,14 +317,14 @@ class RedisWrapper(redis.Redis):
 		if not isinstance(keys, list | tuple):
 			if name_in_local_cache and keys in frappe.local.cache[_name]:
 				del frappe.local.cache[_name][keys]
-			if pipeline:
-				pipeline.hdel(_name, keys)
-			else:
-				try:
+			try:
+				if pipeline:
+					pipeline.hdel(_name, keys)
+				else:
 					super().hdel(_name, keys)
-				except redis.exceptions.ConnectionError:
-					pass
-			return
+			except redis.exceptions.ConnectionError:
+				status = False
+			return status
 
 		local_pipeline = False
 
@@ -322,13 +336,17 @@ class RedisWrapper(redis.Redis):
 			if name_in_local_cache:
 				if key in frappe.local.cache[_name]:
 					del frappe.local.cache[_name][key]
-			pipeline.hdel(_name, key)
+			try:
+				pipeline.hdel(_name, key)
+			except redis.exceptions.ConnectionError:
+				status = False
 
 		if local_pipeline:
 			try:
 				pipeline.execute()
 			except redis.exceptions.ConnectionError:
-				pass
+				status = False
+		return status
 
 	def hdel_names(self, names: list | tuple, key: str):
 		"""
@@ -356,9 +374,9 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
-	def hkeys(self, name):
+	def hkeys(self, name, shared: bool = False):
 		try:
-			return super().hkeys(self.make_key(name))
+			return super().hkeys(self.make_key(name, shared=shared))
 		except redis.exceptions.ConnectionError:
 			return []
 
