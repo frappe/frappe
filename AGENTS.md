@@ -1,4 +1,39 @@
-# Writing code in this repository
+# Agent instructions
+
+Frappe is a web framework: Python backend, JavaScript desk UI, MariaDB or Postgres. ERPNext, HRMS, CRM and other apps are built on it, so every change here affects them.
+
+## Reviewing a PR
+
+Read [code_review.md](code_review.md) first and follow it in order: the checks before reviewing, what to look for, the verdict.
+
+- No before/after screenshot or video for a UI change: ask for one before reviewing anything else.
+- PR not based on `develop`: close it, unless the bug exists only on the stable branch.
+- Any real ask means request changes. Do not hide a real finding under an approve.
+
+## Writing code
+
+- Target `develop`. Backports go through Mergify.
+- Conventional Commits on the title and every commit.
+- Business logic and validation on the server.
+- Change DocType JSON through the UI, never by hand.
+- No comments that narrate the code; keep comments that explain non-obvious workarounds.
+- Run `pre-commit run --all-files` before pushing.
+- Smallest correct change. Remove dead code and dead CSS you leave behind.
+- Desk UI: `frappe.utils.icon()`, `es-button`, `es-badge`, design tokens, gray accents.
+- Every user-facing string goes through `_()` or `__()`.
+- New behaviour and bug fixes come with a test that runs as a normal user, with `example.com` test data.
+
+## Never
+
+- Add a field, flag, setting or endpoint when an existing one already does the job.
+- Put ERPNext, CRM or Drive logic inside the framework.
+- Use `ignore_permissions=True` or a blanket role grant to fix a workflow.
+- Commit inside document events.
+- Add work to every request or desk boot for a rare case.
+- Refactor across the repo unless asked.
+- Send automated or AI-generated changes without reviewing them yourself.
+
+## Desk v2 work
 
 These are the standards for **desk v2 work** — `frontend/`, `ui/`, `frappe/shell/` and the
 DocTypes those add. They are not a claim over the rest of `frappe`, whose code was written
@@ -9,7 +44,7 @@ Layer-specific rules live next to the layer and take precedence on their own gro
 [`ui/PHILOSOPHY.md`](./ui/PHILOSOPHY.md) (`FP1`-`FP3`), and the operational notes in
 [`frontend/CLAUDE.md`](./frontend/CLAUDE.md) and [`ui/CLAUDE.md`](./ui/CLAUDE.md).
 
-## Comments
+### Comments
 
 **A comment earns its place only where the code cannot speak for itself**: a one-line note
 on what the file does, and a constraint a reader would otherwise undo — a framework quirk,
@@ -38,14 +73,14 @@ to the constraint and drop the history around it.
 **Where a constraint is already written in a layer's `CLAUDE.md`**, the code does not
 repeat it. One line naming the behaviour is enough.
 
-## DocType field descriptions
+### DocType field descriptions
 
 A field's `description` is rendered as a paragraph under the input in the desk form, so it
 is user-facing text. **One line, roughly 80 characters**, saying what the field holds and
 any constraint on its value. Blank where the label already says it. The reasoning behind a
 field's design belongs in its ticket.
 
-## Shape
+### Shape
 
 - Clean over clever. Object-oriented where the domain has objects.
 - Functions small, around 10 lines. Main function first, helpers below it in call order.
@@ -54,7 +89,7 @@ field's design belongs in its ticket.
 - Logic two pages share belongs in a module under `composables/` or `data/`, not in both.
 - Build the minimum that works, then iterate. Add a dependency only when it is required.
 
-## Before you close a ticket
+### Before you close a ticket
 
 Run `/quality-code-review` **in a fresh subagent**, never in the session that wrote the
 diff. Give it only the diff range, the checklist, this file, the layer's `CLAUDE.md`, and
