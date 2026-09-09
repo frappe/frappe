@@ -9,7 +9,8 @@ writes into assets.json, without the `.island.js` suffix:
 
 assets.json is bench-wide, so the registry keeps only the islands of the apps
 installed on the site. An island's app is the one its URL is served from,
-`/assets/<app>/dist/...`.
+`/assets/<app>/dist/...`, except for a page island, which framework builds into
+its own dist and which carries its app in its name, `<app>.page.<page name>`.
 
 Two hosts resolve a name against the registry. The desk loader,
 `frappe.ui.mount_island`, reads it from boot on the client. A page without desk
@@ -28,7 +29,16 @@ from frappe.utils import get_assets_json
 ISLAND_JS_SUFFIX = ".island.js"
 ISLAND_CSS_SUFFIX = ".island.css"
 
+# Sits between the app and the page name, so a page island and an island an app
+# builds itself can never claim the same name.
+PAGE_ISLAND_INFIX = "page"
+
 ASSET_APP = re.compile(r"^/assets/([^/]+)/")
+
+
+def page_island_name(app: str, page: str) -> str:
+	"""The one name a page island is known by, on both sides of the build."""
+	return f"{app}.{PAGE_ISLAND_INFIX}.{page}"
 
 
 def get_ui_islands() -> list[str]:
@@ -38,7 +48,7 @@ def get_ui_islands() -> list[str]:
 	return sorted(
 		name
 		for key, url in get_assets_json().items()
-		if (name := island_name(key)) and island_app(url) in installed
+		if (name := island_name(key)) and island_app(name, url) in installed
 	)
 
 
@@ -48,8 +58,16 @@ def island_name(asset_key: str) -> str | None:
 		return asset_key.removesuffix(ISLAND_JS_SUFFIX)
 
 
-def island_app(url: str) -> str | None:
-	"""The app an island belongs to, which is what decides it is on this site."""
+def island_app(name: str, url: str) -> str | None:
+	"""The app an island belongs to, which is what decides it is on this site.
+
+	Framework builds every page island, into framework's own dist, so a page
+	island's URL names framework and its name names the app whose page it draws.
+	"""
+	app, infix, _page = name.partition(f".{PAGE_ISLAND_INFIX}.")
+	if infix:
+		return app
+
 	if match := ASSET_APP.match(url):
 		return match.group(1)
 

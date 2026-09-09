@@ -576,6 +576,11 @@ user_invitation = {
 # source apps and helps API clients understand what a method does.
 expose_discovery_source = True
 
+# A `Page` of type "Frappe UI" is drawn by an island too, and needs no line of
+# Python. Framework builds those islands for every app on the bench, in one
+# build, after any app's assets are built.
+after_app_build = "frappe.bundler.build_page_islands"
+
 
 add_to_apps_screen = [
 	{

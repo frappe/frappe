@@ -1,8 +1,9 @@
 /**
- * The bounded page shell for a desk page that fills the viewport.
+ * The bounded page shell for a desk page an island draws.
  *
- * `dashboard_view.js` puts `island-page` on <body> while its island renderer
- * is on screen.
+ * `pageview.js` puts `island-page` on <body> while a Frappe UI page is on
+ * screen, and `dashboard_view.js` puts it there while its island renderer is.
+ * Both need the same box, so the reasoning below lives once.
  *
  * The island scrolls its own body, which needs a definite height to scroll in.
  * Against desk's document-scrolled page its `height: 100%` resolves to auto.
@@ -45,7 +46,9 @@ body.island-page {
 		min-height: 0;
 	}
 
-	// The element the page mounts into.
+	// The element the island mounts into. One class per host: a Frappe UI page
+	// and the dashboard page each build their own container.
+	.island-page-body,
 	.dashboard-view-island {
 		height: 100%;
 	}
