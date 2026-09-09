@@ -168,7 +168,7 @@
 				/>
 			</template>
 		</Dialog>
-		<DependencyConflictDialog />
+		<PasteConflictDialog />
 	</div>
 </template>
 
@@ -186,7 +186,7 @@ import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
 import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
-import DependencyConflictDialog from "@/components/DependencyConflictDialog.vue"
+import PasteConflictDialog from "@/components/PasteConflictDialog.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"

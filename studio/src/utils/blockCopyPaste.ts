@@ -6,10 +6,10 @@ import useComponentStore from "@/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
 import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
 import {
-	showDependencyConflictDialog,
-	type DependencyConflictChoice,
-	type DependencyKind,
-} from "@/utils/dependencyConflictDialog"
+	showPasteConflictDialog,
+	type PasteConflictChoice,
+	type PasteConflictKind,
+} from "@/components/PasteConflictDialog.vue"
 import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
 import Block from "@/utils/block"
@@ -46,16 +46,16 @@ interface ClipboardPayload extends Partial<Dependencies> {
 	source?: ClipboardSource
 }
 
-interface DependencyConflict {
+interface PasteConflict {
 	name: string
 	existing: Record<string, any>
 	copied: Record<string, any>
 }
 
-interface DependencyConflicts {
-	components?: DependencyConflict[]
-	resources?: DependencyConflict[]
-	variables?: DependencyConflict[]
+interface PasteConflicts {
+	components?: PasteConflict[]
+	resources?: PasteConflict[]
+	variables?: PasteConflict[]
 }
 
 export function copyEntirePage() {
@@ -157,8 +157,8 @@ async function pasteCopiedBlocks(payload: ClipboardPayload) {
 	const undoPaste = insertBlocks(payload.blocks)
 	if (!undoPaste) return
 
-	if (hasDependencyConflicts(conflicts)) {
-		showConflictDialog(payload, conflicts, undoPaste)
+	if (hasPasteConflicts(conflicts)) {
+		reviewPasteConflicts(payload, conflicts, undoPaste)
 		return
 	}
 
@@ -170,15 +170,11 @@ async function pasteCopiedBlocks(payload: ClipboardPayload) {
 	}
 }
 
-function hasDependencyConflicts(conflicts: DependencyConflicts): boolean {
+function hasPasteConflicts(conflicts: PasteConflicts): boolean {
 	return [conflicts.resources, conflicts.variables, conflicts.components].some((items) => items?.length)
 }
 
-function showConflictDialog(
-	payload: ClipboardPayload,
-	conflicts: DependencyConflicts,
-	undoPaste: () => void,
-) {
+function reviewPasteConflicts(payload: ClipboardPayload, conflicts: PasteConflicts, undoPaste: () => void) {
 	const pageScriptExcluded = shouldWarnAboutExcludedPageScript(payload.source)
 	const showResult = (
 		resolution: "existing" | "copied" | "mixed",
@@ -198,7 +194,7 @@ function showConflictDialog(
 		})
 	}
 
-	showDependencyConflictDialog(getConflictChoices(conflicts), {
+	showPasteConflictDialog(getPasteConflictChoices(conflicts), {
 		onApply: async (choices) => {
 			const copiedChoices = choices.filter(({ resolution }) => resolution === "copied")
 			if (copiedChoices.length) {
@@ -216,9 +212,9 @@ function showConflictDialog(
 	})
 }
 
-function getConflictChoices(conflicts: DependencyConflicts): Omit<DependencyConflictChoice, "resolution">[] {
-	const choices: Omit<DependencyConflictChoice, "resolution">[] = []
-	for (const kind of ["resources", "variables", "components"] as DependencyKind[]) {
+function getPasteConflictChoices(conflicts: PasteConflicts): Omit<PasteConflictChoice, "resolution">[] {
+	const choices: Omit<PasteConflictChoice, "resolution">[] = []
+	for (const kind of ["resources", "variables", "components"] as PasteConflictKind[]) {
 		for (const [index, conflict] of (conflicts[kind] || []).entries()) {
 			choices.push({ id: `${kind}:${conflict.name}:${index}`, kind, ...conflict })
 		}
@@ -227,10 +223,10 @@ function getConflictChoices(conflicts: DependencyConflicts): Omit<DependencyConf
 }
 
 function getChoiceDependencies(
-	choices: DependencyConflictChoice[],
+	choices: PasteConflictChoice[],
 	definition: "existing" | "copied",
 ): Partial<Dependencies> {
-	const definitionsFor = (kind: DependencyKind) =>
+	const definitionsFor = (kind: PasteConflictKind) =>
 		choices.filter((choice) => choice.kind === kind).map((choice) => choice[definition])
 	return {
 		components: definitionsFor("components"),
@@ -355,7 +351,7 @@ async function fetchDependencies(blocks: BlockOptions[]): Promise<Dependencies> 
 async function createMissingDependencies(
 	payload: Partial<Dependencies>,
 	overwriteConflicts = false,
-): Promise<DependencyConflicts> {
+): Promise<PasteConflicts> {
 	const { components, files, resources, variables } = payload
 	if (![components, files, resources, variables].some((list) => list?.length)) return {}
 	const store = useStudioStore()

@@ -3,7 +3,7 @@
 		:model-value="state.open"
 		title="Review dependency conflicts"
 		size="2xl"
-		@update:model-value="(open: boolean) => !open && dismissDependencyConflictDialog()"
+		@update:model-value="(open: boolean) => !open && dismissPasteConflictDialog()"
 	>
 		<template #default>
 			<div class="flex flex-col gap-4">
@@ -60,32 +60,100 @@
 					theme="red"
 					variant="subtle"
 					:disabled="state.applying"
-					@click="undoDependencyConflictPaste"
+					@click="undoPaste"
 				/>
 				<Button
 					label="Apply choices"
 					variant="solid"
 					:loading="state.applying"
-					@click="applyDependencyConflictChoices"
+					@click="applyPasteConflictChoices"
 				/>
 			</div>
 		</template>
 	</Dialog>
 </template>
 
+<script lang="ts">
+import { reactive } from "vue"
+
+export type PasteConflictKind = "components" | "resources" | "variables"
+export type PasteConflictResolution = "existing" | "copied"
+
+export interface PasteConflictChoice {
+	id: string
+	kind: PasteConflictKind
+	name: string
+	existing: Record<string, any>
+	copied: Record<string, any>
+	resolution: PasteConflictResolution
+}
+
+interface PasteConflictCallbacks {
+	onApply: (choices: PasteConflictChoice[]) => void | Promise<void>
+	onDismiss: () => void
+	onUndo: () => void
+}
+
+const state = reactive({
+	open: false,
+	applying: false,
+	error: "",
+	choices: [] as PasteConflictChoice[],
+})
+
+let callbacks: PasteConflictCallbacks | undefined
+
+export function showPasteConflictDialog(
+	choices: Omit<PasteConflictChoice, "resolution">[],
+	nextCallbacks: PasteConflictCallbacks,
+) {
+	callbacks = nextCallbacks
+	state.choices = choices.map((choice) => ({
+		...choice,
+		resolution: "existing",
+	}))
+	state.error = ""
+	state.open = true
+}
+
+async function applyPasteConflictChoices() {
+	if (!callbacks || state.applying) return
+	state.applying = true
+	state.error = ""
+	try {
+		await callbacks.onApply(state.choices)
+		closePasteConflictDialog()
+	} catch (error: any) {
+		state.error = error?.messages?.[0] || error?.message || "Could not apply the selected versions."
+	} finally {
+		state.applying = false
+	}
+}
+
+function dismissPasteConflictDialog() {
+	if (!state.open || state.applying) return
+	callbacks?.onDismiss()
+	closePasteConflictDialog()
+}
+
+function undoPaste() {
+	if (!state.open || state.applying) return
+	callbacks?.onUndo()
+	closePasteConflictDialog()
+}
+
+function closePasteConflictDialog() {
+	state.open = false
+	callbacks = undefined
+}
+</script>
+
 <script setup lang="ts">
 import { computed } from "vue"
 import { Button, Dialog, ErrorMessage, TabButtons } from "frappe-ui"
 import { List, ListCell, ListHeader, ListHeaderCell, ListRow, ListRows } from "frappe-ui/list"
-import {
-	applyDependencyConflictChoices,
-	dependencyConflictDialog as state,
-	dismissDependencyConflictDialog,
-	undoDependencyConflictPaste,
-	type DependencyKind,
-} from "@/utils/dependencyConflictDialog"
 
-const typeLabels: Record<DependencyKind, string> = {
+const typeLabels: Record<PasteConflictKind, string> = {
 	components: "Component",
 	resources: "Data source",
 	variables: "Variable",
