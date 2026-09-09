@@ -431,7 +431,7 @@ class TestDBQuery(IntegrationTestCase):
 			or_filters=[["Has Role", "role", "=", "Guest"], ["User", "enabled", "=", 1]],
 			fields=["name", "modified", "language.language_name as language_title"],
 			group_by="`tabUser`.`name`",
-			order_by="modified desc",
+			order_by="`tabUser`.modified desc",
 		)
 		self.assertIn("Administrator", [r.name for r in result])
 
