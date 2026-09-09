@@ -219,7 +219,10 @@ class SQLiteConflictQueryBuilderMixin:
 
 
 class RecursiveSQLLiteQueryBuilder(RecursiveCTEMixin, SQLiteConflictQueryBuilderMixin, SQLLiteQueryBuilder):
-	pass
+	def __init__(self, *args, **kwargs):
+		# SQLite rejects parentheses around the individual SELECT statements in a compound query.
+		kwargs["wrap_set_operation_queries"] = False
+		super().__init__(*args, **kwargs)
 
 
 class MariaDB(Base, MySQLQuery):
