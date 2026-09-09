@@ -159,12 +159,13 @@ def delete_doc(
 			# Lock the doc without waiting
 			try:
 				frappe.db.get_value(doctype, name, for_update=True, wait=False)
-			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError):
+			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError) as error:
+				# keep the type: a deadlock has already rolled the transaction back
 				frappe.throw(
 					_(
 						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
 					),
-					exc=frappe.QueryTimeoutError,
+					exc=type(error),
 				)
 			doc = frappe.get_doc(doctype, name)
 
@@ -310,10 +311,13 @@ def check_permission_and_not_submitted(doc):
 		)
 
 
-def get_linked_docs(doc, method="Delete") -> list[dict]:
-	"""
-	Return a list of documents that are statically linked to the given document.
-	"""
+class LinkedDocumentsOverflow(Exception):
+	"""A bounded link lookup reached its limit, so the linked set may be larger than it shows."""
+
+
+def get_linked_docs(doc, method="Delete", limit: int | None = None) -> list[dict]:
+	"""Return the documents statically linked to the given document; with `limit`,
+	raise LinkedDocumentsOverflow once a lookup reaches it."""
 	from frappe.model.rename_doc import get_link_fields
 
 	link_fields = get_link_fields(doc.doctype)
@@ -351,13 +355,22 @@ def get_linked_docs(doc, method="Delete") -> list[dict]:
 		if meta.istable:
 			fields.extend(["parent", "parenttype"])
 
-		for item in frappe.db.get_values(
+		if limit and len(linked_docs) >= limit:
+			raise LinkedDocumentsOverflow
+
+		rows = frappe.db.get_values(
 			link_dt,
 			{link_field: doc.name},
 			fields,
 			as_dict=True,
 			order_by=None,
-		):
+			limit=limit,
+		)
+		if limit and len(rows) >= limit:
+			# rows dropped below could hide blockers beyond the limit
+			raise LinkedDocumentsOverflow
+
+		for item in rows:
 			# available only in child table cases
 			item_parent = getattr(item, "parent", None)
 			linked_parent_doctype = item.parenttype if item_parent else link_dt
@@ -395,13 +408,14 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		raise_link_exists_exception(doc, link["reference_doctype"], link["reference_docname"])
 
 
-def get_dynamic_linked_docs(doc, method="Delete") -> list[dict]:
-	"""
-	Return a list of documents that are dynamically linked to the given document.
-	"""
+def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> list[dict]:
+	"""Return the documents dynamically linked to the given document; with `limit`,
+	raise LinkedDocumentsOverflow once a lookup reaches it."""
 	linked_docs = []
 
 	for df in get_dynamic_link_map().get(doc.doctype, []):
+		if limit and len(linked_docs) >= limit:
+			raise LinkedDocumentsOverflow
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
 
 		if df.parent in frappe.get_hooks("ignore_links_on_delete") or (
@@ -444,7 +458,18 @@ def get_dynamic_linked_docs(doc, method="Delete") -> list[dict]:
 				.where(RefDoc[df.options] == doc.doctype)
 				.where(RefDoc[df.fieldname] == doc.name)
 			)
-			for refdoc in query.run(as_dict=True):
+			# filter before limiting, or irrelevant rows could fill the limit
+			if method == "Delete":
+				query = query.where(RefDoc.docstatus != DocStatus.cancelled())
+			elif method == "Cancel":
+				query = query.where(RefDoc.docstatus == DocStatus.submitted())
+			if limit:
+				query = query.limit(limit)
+			rows = query.run(as_dict=True)
+			if limit and len(rows) >= limit:
+				# rows dropped below could hide blockers beyond the limit
+				raise LinkedDocumentsOverflow
+			for refdoc in rows:
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
 				if (method == "Delete" and not DocStatus(refdoc.docstatus).is_cancelled()) or (

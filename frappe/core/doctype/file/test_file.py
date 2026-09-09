@@ -1422,6 +1422,19 @@ class TestChildTableAttachments(IntegrationTestCase):
 		self.assertTrue(frappe.has_permission(self.parent_doctype, doc=doc, ptype="read"))
 		self.assertTrue(frappe.has_permission("File", doc=reloaded, ptype="read"))
 
+	def test_child_table_does_not_adopt_another_users_private_orphan(self):
+		frappe.set_user("test@example.com")
+		victim_file = self.make_unattached_file(b"victim-bytes", is_private=1)
+
+		frappe.set_user("test4@example.com")
+		self.make_parent_doc(cards=[{"image": victim_file.file_url}])
+
+		reloaded_victim = frappe.get_doc("File", victim_file.name)
+		self.assertIsNone(reloaded_victim.attached_to_doctype)
+		self.assertIsNone(reloaded_victim.attached_to_name)
+
+		self.assertFalse(frappe.has_permission("File", doc=reloaded_victim, ptype="read"))
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])

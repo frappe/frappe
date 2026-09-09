@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.island import get_island_assets, get_ui_islands
+from frappe.utils.island import get_island_assets, get_ui_islands, page_island_name
 
 # The handlers the cases below declare. A `doc_events` handler is a dotted path,
 # so these reach `run_method` the way an app's own does.
@@ -53,6 +53,79 @@ class TestUiIslandsRegistry(IntegrationTestCase):
 		# The desk loader resolves island names on the client, so boot must carry them.
 		with patch.object(frappe.local, "request", None, create=True):
 			self.assertIn("ui_islands", frappe.sessions.get())
+
+
+class TestPageIslands(IntegrationTestCase):
+	"""A `Page` of type "Frappe UI" registers its own island, with no hook."""
+
+	def make_page(self, **values):
+		"""A Page row, and nothing on disk.
+
+		`do_not_update_json` keeps `on_update` from exporting the document, which
+		is what writes the page folder. These cases are about the registry, and
+		the scaffold has its own tests in the Page's own suite.
+		"""
+		page = frappe.new_doc(
+			"Page",
+			**{"page_name": frappe.generate_hash(), "module": "Core", "standard": "Yes", **values},
+		)
+		page.flags.do_not_update_json = True
+		page.insert()
+
+		# A cleanup runs after the decorator's patch is undone, and deleting a
+		# Page is developer-mode only, so it carries its own.
+		def remove():
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				frappe.delete_doc("Page", page.name, force=True)
+
+		self.addCleanup(remove)
+		return page
+
+	def test_the_name_carries_the_app_and_the_page(self):
+		self.assertEqual(page_island_name("insights", "sales-dashboard"), "insights.page.sales-dashboard")
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_frappe_ui_page_registers_itself(self):
+		page = self.make_page(type="Frappe UI")
+
+		with self.patch_hooks({"ui_islands": {}}):
+			self.assertEqual(get_ui_islands().get(f"frappe.page.{page.name}"), f"frappe.page.{page.name}")
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_of_no_type_registers_nothing(self):
+		page = self.make_page()
+
+		with self.patch_hooks({"ui_islands": {}}):
+			self.assertNotIn(f"frappe.page.{page.name}", get_ui_islands())
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_island_resolves_to_its_bundle(self):
+		page = self.make_page(type="Frappe UI")
+		name = f"frappe.page.{page.name}"
+
+		with self.patch_hooks({"ui_islands": {}}):
+			with patch(
+				"frappe.utils.island.get_assets_json",
+				return_value={f"{name}.island.js": "/assets/frappe/dist/page-island/x.js"},
+			):
+				self.assertEqual(
+					get_island_assets(name),
+					{"js": "/assets/frappe/dist/page-island/x.js", "css": None},
+				)
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_island_reaches_the_browser_through_boot(self):
+		page = self.make_page(type="Frappe UI")
+
+		with patch.object(frappe.local, "request", None, create=True):
+			self.assertIn(f"frappe.page.{page.name}", frappe.sessions.get()["ui_islands"])
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_frappe_ui_page_has_to_be_standard(self):
+		# Its Vue source lives in the app's page folder, and a non-standard page
+		# has no folder to live in.
+		with self.assertRaises(frappe.ValidationError):
+			self.make_page(type="Frappe UI", standard="No")
 
 
 class TestIslandAssets(IntegrationTestCase):
