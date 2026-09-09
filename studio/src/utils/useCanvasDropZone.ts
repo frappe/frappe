@@ -6,9 +6,9 @@ import { useDropZone } from "@vueuse/core"
 import { toast } from "frappe-ui"
 import { Ref } from "vue"
 import { FrappeUIComponent } from "@/types"
+import { getLayoutDirection, type LayoutDirection } from "@/utils/dropGeometry"
 
 const canvasStore = useCanvasStore()
-type LayoutDirection = "row" | "column"
 
 export function useCanvasDropZone(
 	canvasContainer: Ref<HTMLElement>,
@@ -90,7 +90,7 @@ export function useCanvasDropZone(
 
 			if (parentComponent) {
 				const parentElement = getBlockElement(parentComponent)
-				layoutDirection = getLayoutDirection(parentElement)
+				layoutDirection = getLayoutDirection(window.getComputedStyle(parentElement))
 				index = findDropIndex(ev, parentElement, layoutDirection)
 				if (canvasStore.activeCanvas?.selectedSlot?.parentBlockId === parentComponent.componentId) {
 					slotName = canvasStore.activeCanvas.selectedSlot?.slotName
@@ -130,17 +130,6 @@ export function useCanvasDropZone(
 		// Determine if we should insert before or after the closest child
 		// if mouse is closer to left/top side of the child, insert before, else after
 		return mousePos <= childPositions[closestIndex].midPoint ? closestIndex : closestIndex + 1
-	}
-
-	const getLayoutDirection = (element: HTMLElement): LayoutDirection => {
-		const style = window.getComputedStyle(element)
-		const display = style.display
-		if (display === "flex" || display === "inline-flex") {
-			return style.flexDirection.includes("row") ? "row" : "column"
-		} else if (display === "grid" || display == "inline-grid") {
-			return style.gridAutoFlow.includes("row") ? "row" : "column"
-		}
-		return "column"
 	}
 
 	const updateDropTarget = (
