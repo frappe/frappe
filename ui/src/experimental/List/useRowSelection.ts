@@ -14,16 +14,22 @@ export function useRowSelection(
     rows.value.map((row) => String(row[rowKey.value]))
   );
 
+  const selected = computed(() => new Set(selection.value));
+
   const selectAllState = computed<SelectAllState>(() => {
     const selected = allKeys.value.filter((key) =>
-      selection.value.includes(key)
+      isSelected(key)
     ).length;
     if (!selected) return "none";
     return selected === allKeys.value.length ? "all" : "some";
   });
 
+  function isSelected(value: string) {
+    return selected.value.has(value);
+  }
+
   function toggle(value: string) {
-    selection.value = selection.value.includes(value)
+    selection.value = isSelected(value)
       ? selection.value.filter((key) => key !== value)
       : [...selection.value, value];
   }
@@ -38,5 +44,5 @@ export function useRowSelection(
     }
   }
 
-  return { selectAllState, toggle, toggleSelectAll };
+  return { selectAllState, isSelected, toggle, toggleSelectAll };
 }

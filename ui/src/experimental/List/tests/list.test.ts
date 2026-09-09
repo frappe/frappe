@@ -219,13 +219,13 @@ describe("List column resize", () => {
       ({ width: 120 } as DOMRect);
 
     handle.dispatchEvent(
-      new MouseEvent("mousedown", { bubbles: true, clientX: 100 })
+      new MouseEvent("pointerdown", { bubbles: true, clientX: 100 })
     );
-    window.dispatchEvent(new MouseEvent("mousemove", { clientX: 180 }));
+    window.dispatchEvent(new MouseEvent("pointermove", { clientX: 180 }));
     await flush();
     expect(list.getAttribute("style")).toContain("200px");
 
-    window.dispatchEvent(new MouseEvent("mouseup"));
+    window.dispatchEvent(new MouseEvent("pointerup"));
     await flush();
     expect(resizes).toEqual([{ fieldname: "name", width: "200px" }]);
     expect(list.getAttribute("style")).not.toContain("200px");
