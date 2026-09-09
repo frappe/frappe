@@ -157,6 +157,15 @@ class TestVersion(IntegrationTestCase):
 		self.assertEqual(get_old_values(diff)[1], "01-01-2014 00:00:00")
 		self.assertEqual(get_new_values(diff)[1], "07-20-2017 00:00:00")
 
+	def set_ignore_versioning(self, meta, fieldname):
+		"""Turn on ignore_versioning for a field and drop the cached set built from it."""
+		df = meta.get_field(fieldname)
+		df.ignore_versioning = 1
+		meta.__dict__.pop("_ignore_versioning_fields", None)
+
+		self.addCleanup(meta.__dict__.pop, "_ignore_versioning_fields", None)
+		self.addCleanup(setattr, df, "ignore_versioning", 0)
+
 	def test_get_diff_skips_ignore_versioning_field(self):
 		"""Test fields with ignore_versioning are left out of the diff."""
 		frappe.set_user("Administrator")
@@ -164,18 +173,19 @@ class TestVersion(IntegrationTestCase):
 		old_doc = frappe.get_doc("Event", test_records[0])
 		new_doc = copy.deepcopy(old_doc)
 
-		color_field = new_doc.meta.get_field("color")
-		color_field.ignore_versioning = 1
-		self.addCleanup(setattr, color_field, "ignore_versioning", 0)
+		self.set_ignore_versioning(new_doc.meta, "color")
 
 		old_doc.color = None
 		new_doc.color = "#fafafa"
 
+		# the flag is opt-in, so every other caller of get_diff still sees color
+		self.assertIn("color", get_fieldnames(get_diff(old_doc, new_doc)["changed"]))
+
 		# color is the only change and it is ignored, so there is no Version to save
-		self.assertIsNone(get_diff(old_doc, new_doc))
+		self.assertIsNone(get_diff(old_doc, new_doc, include_ignored_fields=False))
 
 		new_doc.subject = "changed subject"
-		diff = get_diff(old_doc, new_doc)["changed"]
+		diff = get_diff(old_doc, new_doc, include_ignored_fields=False)["changed"]
 
 		# subject is versioned as usual, color is left out
 		self.assertNotIn("color", get_fieldnames(diff))
@@ -188,9 +198,7 @@ class TestVersion(IntegrationTestCase):
 		doc_without_row = frappe.get_doc("Event", test_records[0])
 		doc_with_row = copy.deepcopy(doc_without_row)
 
-		email_field = frappe.get_meta("Event Participants").get_field("email")
-		email_field.ignore_versioning = 1
-		self.addCleanup(setattr, email_field, "ignore_versioning", 0)
+		self.set_ignore_versioning(frappe.get_meta("Event Participants"), "email")
 
 		# unsaved row has no name, so get_diff cannot match it against an old row
 		doc_with_row.append(
@@ -204,16 +212,19 @@ class TestVersion(IntegrationTestCase):
 
 		# get_diff(old, new): row is only in new, so it is reported as added.
 		# every entry is [table_fieldname, row_data], so [0] is the first entry and [1] its row data
-		added_row = get_diff(doc_without_row, doc_with_row)["added"][0][1]
+		added_row = get_diff(doc_without_row, doc_with_row, include_ignored_fields=False)["added"][0][1]
 
 		# arguments flipped: row is only in old now, so the same row is reported as removed
-		removed_row = get_diff(doc_with_row, doc_without_row)["removed"][0][1]
+		removed_row = get_diff(doc_with_row, doc_without_row, include_ignored_fields=False)["removed"][0][1]
 
 		# email is dropped from the row data, the other fields are kept
 		self.assertNotIn("email", added_row)
 		self.assertIn("reference_doctype", added_row)
 		self.assertNotIn("email", removed_row)
 		self.assertIn("reference_doctype", removed_row)
+
+		# the flag is opt-in, so the row data is untouched by default
+		self.assertIn("email", get_diff(doc_without_row, doc_with_row)["added"][0][1])
 
 	def test_no_version_on_new_doc(self):
 		from frappe.desk.form.load import get_versions
