@@ -316,37 +316,27 @@ def create_sessions_router(
 			raise HTTPException(
 				status_code=400, detail="client_tools and confirm_tools must be patched together"
 			)
+		changes: dict[str, object] = {}
 		if req.client_tools is not None:
-			previous_tools = session.config.client_tools
-			previous_confirm = session.config.confirm_tools
-			session.config.client_tools = req.client_tools
-			session.config.confirm_tools = req.confirm_tools or []
-			try:
-				store.save_meta(session)
-			except OSError:
-				session.config.client_tools = previous_tools
-				session.config.confirm_tools = previous_confirm
-				raise HTTPException(status_code=500, detail="failed to persist config") from None
+			changes["client_tools"] = req.client_tools
+			changes["confirm_tools"] = req.confirm_tools or []
 		if req.auto_approve is not None:
-			previous = session.config.auto_approve
-			session.set_auto_approve(req.auto_approve)
-			try:
-				store.save_meta(session)
-			except OSError:
-				# memory and disk must agree, or the flag resurfaces after restart
-				session.set_auto_approve(previous)
-				raise HTTPException(status_code=500, detail="failed to persist config") from None
+			changes["auto_approve"] = req.auto_approve
 		if req.title is not None:
-			title = req.title.strip()
-			if not title:
+			changes["title"] = req.title.strip()
+			if not changes["title"]:
 				raise HTTPException(status_code=400, detail="title cannot be empty")
-			previous_title = session.config.title
-			session.config.title = title
-			try:
-				store.save_meta(session)
-			except OSError:
-				session.config.title = previous_title
-				raise HTTPException(status_code=500, detail="failed to persist config") from None
+		if not changes:
+			return {"config": session.config.redacted()}
+		previous = {field: getattr(session.config, field) for field in changes}
+		for field, value in changes.items():
+			setattr(session.config, field, value)
+		try:
+			store.save_meta(session)
+		except OSError:
+			for field, value in previous.items():
+				setattr(session.config, field, value)
+			raise HTTPException(status_code=500, detail="failed to persist config") from None
 		return {"config": session.config.redacted()}
 
 	@router.post("/sessions/{sid}/model")
