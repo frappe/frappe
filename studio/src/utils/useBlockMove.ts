@@ -1,3 +1,4 @@
+// Ported from Builder, modified later
 import { nextTick } from "vue"
 import type Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"

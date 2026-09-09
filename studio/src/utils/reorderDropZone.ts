@@ -1,3 +1,4 @@
+// Ported from Builder, modified later
 import type Block from "@/utils/block"
 import { getLayoutDirection } from "@/utils/dropGeometry"
 

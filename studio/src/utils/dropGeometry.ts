@@ -1,3 +1,4 @@
+// Ported from Builder, modified later
 // Layout-aware drop geometry shared by the on-canvas reorder engine and the
 // panel drop zone. All coordinates are in client (screen) space so callers can
 // position fixed overlays directly and mix live getBoundingClientRect values

@@ -1,3 +1,4 @@
+<!-- Ported from Builder, modified later -->
 <template>
 	<div v-if="target.active" ref="rootEl" class="pointer-events-none fixed inset-0 z-[250]" :style="clipStyle">
 		<!-- container outline only when moving into a DIFFERENT container, so an
