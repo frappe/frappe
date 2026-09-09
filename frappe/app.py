@@ -19,6 +19,7 @@ import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
+import frappe.storage.serve
 import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
@@ -139,6 +140,11 @@ def application(request: Request):
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
 
+		elif request.path.startswith("/f/"):
+			# not gated on storage_v2: /f/ URLs stored while the flag was on
+			# must keep working after it is turned off
+			response = frappe.storage.serve.serve_file(request.path)
+
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":
 			if request.scheme != "https":
 				raise NotFound
@@ -187,6 +193,27 @@ def run_after_request_hooks(request, response):
 		frappe.call(after_request_task, response=response, request=request)
 
 
+def canonical_request_path(path: str) -> str:
+	"""Strip a versioned ``/api/vN`` mount so hooks can match one canonical path.
+
+	``/api/method/x``, ``/api/v1/method/x`` and ``/api/v2/method/x`` all reach
+	the same whitelisted method (frappe.api.__init__: v1 rules are mounted at
+	both ``/api`` and ``/api/v1``), but only the first form is unversioned.
+	frappe.hooks.streaming_request_paths declares the unversioned form, so a
+	versioned request has to be normalised before matching it, or a hook
+	entry would silently miss every versioned mount.
+	"""
+	from frappe.api import ApiVersion
+
+	for version in ApiVersion:
+		prefix = f"/api/{version.value}"
+		if path == prefix:
+			return "/api"
+		if path.startswith(f"{prefix}/"):
+			return "/api" + path[len(prefix) :]
+	return path
+
+
 def init_request(request):
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
 	try:
@@ -206,13 +233,28 @@ def init_request(request):
 		else:
 			raise frappe.SessionStopped("Session Stopped")
 
-	if request.path.startswith("/api/method/upload_file"):
+	streaming_paths = {
+		path.rstrip("/") for path in frappe.get_hooks("streaming_request_paths") if path.rstrip("/")
+	}
+	canonical_path = canonical_request_path(request.path)
+	streaming_request = request.method == "PUT" and any(
+		canonical_path == path or canonical_path.startswith(f"{path}/") for path in streaming_paths
+	)
+	if streaming_request:
+		request.max_content_length = None
+		args = {}
+		args.update(request.args or {})
+		frappe.local.form_dict = frappe._dict(args)
+		# Keep query handling consistent with make_form_dict without reading the body.
+		frappe.local.form_dict.pop("_", None)
+	elif request.path.startswith("/api/method/upload_file"):
 		from frappe.core.api.file import get_max_file_size
 
 		request.max_content_length = get_max_file_size()
 	else:
 		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
-	make_form_dict(request)
+	if not streaming_request:
+		make_form_dict(request)
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = HTTPRequest()
