@@ -602,6 +602,11 @@
 
 #freeze.grid-form {
 	z-index: 1020;
+	background-color: var(--gray-800);
+
+	.freeze-message-container {
+		background-color: transparent;
+	}
 }
 
 .recorder-form-in-grid {
