@@ -22,7 +22,7 @@
 				v-if="showFileSelector && !importFile"
 				@dragover.prevent
 				@drop.prevent="(e) => uploadFile(e)"
-				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-md"
+				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-5"
 			>
 				<div v-if="showFileSelector && !uploading" class="w-4/5 lg:w-2/5 text-center">
 					<FeatherIcon
@@ -54,7 +54,7 @@
 				</div>
 				<div
 					v-else-if="showFileSelector && uploading"
-					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-md p-2"
+					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-5 p-2"
 				>
 					<div class="space-y-2">
 						<div class="font-medium">
@@ -74,10 +74,10 @@
 			</div>
 			<div
 				v-else-if="importFile"
-				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-md"
+				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-5"
 			>
 				<div
-					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-md p-2 flex items-center justify-between items-center"
+					class="w-4/5 lg:w-2/5 bg-surface-base border rounded-5 p-2 flex items-center justify-between items-center"
 				>
 					<div class="space-y-2">
 						<div class="font-medium leading-5 text-ink-gray-9">
@@ -97,7 +97,7 @@
 
 			<div
 				v-else-if="showSheetSelector"
-				class="flex flex-col h-[300px] p-4 border border-dashed border-outline-gray-3 rounded-md"
+				class="flex flex-col h-[300px] p-4 border border-dashed border-outline-gray-3 rounded-5"
 			>
 				<div class="flex items-center space-x-2 text-ink-gray-7">
 					<FeatherIcon
@@ -113,7 +113,7 @@
 					<input
 						v-model="googleSheet"
 						type="text"
-						class="w-full border border-outline-gray-2 rounded-md px-2.5 text-base"
+						class="w-full border border-outline-gray-2 rounded-5 px-2.5 text-base"
 						placeholder="Add Google Sheets Link"
 					/>
 					<div class="text-ink-gray-5">

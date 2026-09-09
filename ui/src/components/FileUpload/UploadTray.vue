@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-if="batches.length"
-		class="fixed z-50 w-80 overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-base shadow-lg"
+		class="fixed z-50 w-80 overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-lg"
 		:class="positionClass"
 		@mouseenter="onEnter"
 	>
@@ -28,7 +28,7 @@
 			<button
 				type="button"
 				aria-label="Toggle"
-				class="grid size-5 place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-2"
+				class="grid size-5 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2"
 				@click="expanded = !expanded"
 			>
 				<span
@@ -39,7 +39,7 @@
 			<button
 				type="button"
 				aria-label="Close"
-				class="grid size-5 place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-2"
+				class="grid size-5 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2"
 				@click="dismiss"
 			>
 				<span class="lucide-x size-4" />
@@ -73,7 +73,7 @@
 						v-if="item.status === 'uploading' && batch.cancel"
 						type="button"
 						aria-label="Cancel"
-						class="grid size-4 place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-2"
+						class="grid size-4 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2"
 						@click="batch.cancel(item.id)"
 					>
 						<span class="lucide-x size-3" />
@@ -82,7 +82,7 @@
 						v-if="item.status === 'error' && batch.retry"
 						type="button"
 						aria-label="Retry"
-						class="grid size-4 place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-2"
+						class="grid size-4 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2"
 						@click="batch.retry(item.id)"
 					>
 						<span class="lucide-rotate-cw size-3" />
