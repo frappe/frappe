@@ -1178,7 +1178,8 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 
 	def get_field_df(fieldname):
 		if fieldname == "name":
-			return {"label": "Name", "fieldname": "name", "fieldtype": "Data"}
+			# these dfs also back the editable Table child-row grids, where name is not user-settable
+			return {"label": "Name", "fieldname": "name", "fieldtype": "Data", "read_only": 1}
 
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
