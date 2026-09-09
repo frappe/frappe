@@ -277,11 +277,21 @@ body:not(.dock-active) .body-sidebar .sidebar-resize-handle {
 			display: none;
 		}
 
+		// A label for the sidebar under it rather than a control: the menu it used to open hangs
+		// on the rail's header while there is a rail (see SidebarHeader.menu_on_rail), so the
+		// chevron goes with it and nothing here reacts to a pointer.
 		.sidebar-header {
 			height: 36px;
+			cursor: default;
+
+			&:hover,
+			&.hover,
+			&.active-sidebar {
+				background: none;
+			}
 
 			.header-logo,
-			.header-subtitle {
+			.drop-icon {
 				display: none;
 			}
 
@@ -478,6 +488,21 @@ body.dock-collapsed {
 		// an animation to keep in step with.
 		.title-container {
 			display: none;
+		}
+
+		// The header's chevron goes with them. At 50px there is room for the mark and nothing
+		// else, and the menu still opens from the mark.
+		.dock-logo .drop-icon {
+			display: none;
+		}
+
+		// The surface the header wears while its menu is open goes too, shadow and all. It is a
+		// row's state, and with the words gone the header is down to its mark: a lit box around a
+		// lone logo reads as the mark having been picked rather than as a menu being open. Only the
+		// paint is dropped -- the menu opens, and the header still says so through aria-expanded.
+		.dock-logo .shell-header.active-sidebar {
+			background: none;
+			box-shadow: none;
 		}
 
 		// Nothing is re-aligned here, deliberately. Centring the glyph looks like the obvious

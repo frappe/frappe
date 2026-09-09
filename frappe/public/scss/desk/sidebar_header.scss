@@ -1,8 +1,9 @@
-// The header both shells wear: a mark, the name of what you are inside, a second line under it,
-// and whatever control the shell hangs on the end -- the panel's opens a menu and shows a chevron,
-// the rail's is a link out to the apps screen and shows none. Everything about how the two are
-// drawn lives in this one class, which is the point: two classes that merely looked alike would
-// drift the first time either was touched.
+// The header both shells wear: a mark, the name of what you are inside, and a chevron saying the
+// row opens a menu. Only one of them opens it at a time -- the rail's while there is a rail, the
+// panel's otherwise (see SidebarHeader.menu_on_rail) -- and dock.scss takes the chevron off the
+// panel's header for as long as the rail has it. Everything about how the two are drawn lives in
+// this one class, which is the point: two classes that merely looked alike would drift the first
+// time either was touched.
 .shell-header {
 	position: relative;
 	display: flex;
@@ -90,15 +91,16 @@
 	}
 
 	// `mt-0.5 leading-none` around `text-sm text-ink-gray-6`: a step down in ink rather than the
-	// fade a caption usually takes, because it is a second fact about where you are and not a
-	// footnote to the first
+	// fade a caption usually takes, because it is a second fact and not a footnote to the first.
+	// Worn only by the rail's user button now, where the email sits under the name.
 	.header-subtitle {
 		color: var(--ink-gray-6);
 		line-height: 1;
 		margin-top: 2px;
 	}
 
-	// The header's own menu opens from anywhere on it; the chevron is what says so.
+	// The header's own menu opens from anywhere on it; the chevron is what says so. A <button> on
+	// the panel's header and a <span> on the rail's, which is a button itself.
 	// `lucide-chevron-down size-4 text-ink-gray-7`.
 	.drop-icon {
 		flex-shrink: 0;
