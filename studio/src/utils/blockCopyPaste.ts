@@ -2,8 +2,14 @@ import { dialog, toast, call } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
+import useComponentStore from "@/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
 import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
+import {
+	showDependencyConflictDialog,
+	type DependencyConflictChoice,
+	type DependencyKind,
+} from "@/utils/dependencyConflictDialog"
 import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
 import Block from "@/utils/block"
@@ -38,6 +44,18 @@ interface ClipboardPayload extends Partial<Dependencies> {
 	blocks: BlockOptions[]
 	page?: PageCopy
 	source?: ClipboardSource
+}
+
+interface DependencyConflict {
+	name: string
+	existing: Record<string, any>
+	copied: Record<string, any>
+}
+
+interface DependencyConflicts {
+	components?: DependencyConflict[]
+	resources?: DependencyConflict[]
+	variables?: DependencyConflict[]
 }
 
 export function copyEntirePage() {
@@ -135,17 +153,117 @@ function shouldWarnAboutExcludedPageScript(source?: ClipboardSource): boolean {
 }
 
 async function pasteCopiedBlocks(payload: ClipboardPayload) {
-	await createMissingDependencies(payload)
+	const conflicts = await createMissingDependencies(payload)
 	const undoPaste = insertBlocks(payload.blocks)
-	if (!undoPaste || !shouldWarnAboutExcludedPageScript(payload.source)) return
+	if (!undoPaste) return
 
-	toast.warning("Page script wasn't included", {
-		duration: Infinity,
-		action: {
-			label: "Undo Paste",
-			onClick: undoPaste,
+	if (hasDependencyConflicts(conflicts)) {
+		showConflictDialog(payload, conflicts, undoPaste)
+		return
+	}
+
+	if (shouldWarnAboutExcludedPageScript(payload.source)) {
+		showPasteToast("Page script wasn't included", undoPaste, {
+			description: "These blocks may use page-level functions or variables from the source page.",
+			warning: true,
+		})
+	}
+}
+
+function hasDependencyConflicts(conflicts: DependencyConflicts): boolean {
+	return [conflicts.resources, conflicts.variables, conflicts.components].some((items) => items?.length)
+}
+
+function showConflictDialog(
+	payload: ClipboardPayload,
+	conflicts: DependencyConflicts,
+	undoPaste: () => void,
+) {
+	const pageScriptExcluded = shouldWarnAboutExcludedPageScript(payload.source)
+	const showResult = (
+		resolution: "existing" | "copied" | "mixed",
+		restoreDependencies?: Partial<Dependencies>,
+	) => {
+		const title = pageScriptExcluded
+			? "Pasted without page script"
+			: resolution === "mixed"
+				? "Pasted with selected dependencies"
+				: `Pasted using ${resolution} dependencies`
+		showPasteToast(title, undoPaste, {
+			description: pageScriptExcluded
+				? "The source page script wasn't included. Page-level references may not work."
+				: undefined,
+			warning: pageScriptExcluded,
+			restoreDependencies,
+		})
+	}
+
+	showDependencyConflictDialog(getConflictChoices(conflicts), {
+		onApply: async (choices) => {
+			const copiedChoices = choices.filter(({ resolution }) => resolution === "copied")
+			if (copiedChoices.length) {
+				await createMissingDependencies(getChoiceDependencies(copiedChoices, "copied"), true)
+			}
+			const resolution =
+				copiedChoices.length === 0 ? "existing" : copiedChoices.length === choices.length ? "copied" : "mixed"
+			showResult(
+				resolution,
+				copiedChoices.length ? getChoiceDependencies(copiedChoices, "existing") : undefined,
+			)
 		},
+		onDismiss: () => showResult("existing"),
+		onUndo: undoPaste,
 	})
+}
+
+function getConflictChoices(conflicts: DependencyConflicts): Omit<DependencyConflictChoice, "resolution">[] {
+	const choices: Omit<DependencyConflictChoice, "resolution">[] = []
+	for (const kind of ["resources", "variables", "components"] as DependencyKind[]) {
+		for (const [index, conflict] of (conflicts[kind] || []).entries()) {
+			choices.push({ id: `${kind}:${conflict.name}:${index}`, kind, ...conflict })
+		}
+	}
+	return choices
+}
+
+function getChoiceDependencies(
+	choices: DependencyConflictChoice[],
+	definition: "existing" | "copied",
+): Partial<Dependencies> {
+	const definitionsFor = (kind: DependencyKind) =>
+		choices.filter((choice) => choice.kind === kind).map((choice) => choice[definition])
+	return {
+		components: definitionsFor("components"),
+		resources: definitionsFor("resources"),
+		variables: definitionsFor("variables"),
+	}
+}
+
+function showPasteToast(
+	title: string,
+	undoPaste: () => void,
+	options: {
+		description?: string
+		warning?: boolean
+		restoreDependencies?: Partial<Dependencies>
+	} = {},
+) {
+	const onUndo = async () => {
+		undoPaste()
+		if (options.restoreDependencies) {
+			await createMissingDependencies(options.restoreDependencies, true)
+		}
+	}
+	const toastOptions = {
+		description: options.description,
+		duration: 10000,
+		action: { label: "Undo Paste", onClick: onUndo },
+	}
+	if (options.warning) {
+		toast.warning(title, toastOptions)
+	} else {
+		toast.success(title, toastOptions)
+	}
 }
 
 function getSelectedBlockCopies(): BlockOptions[] {
@@ -234,23 +352,31 @@ async function fetchDependencies(blocks: BlockOptions[]): Promise<Dependencies> 
 	return response.message
 }
 
-async function createMissingDependencies(payload: ClipboardPayload) {
+async function createMissingDependencies(
+	payload: Partial<Dependencies>,
+	overwriteConflicts = false,
+): Promise<DependencyConflicts> {
 	const { components, files, resources, variables } = payload
-	if (![components, files, resources, variables].some((list) => list?.length)) return
+	if (![components, files, resources, variables].some((list) => list?.length)) return {}
 	const store = useStudioStore()
-	await call("studio.studio.doctype.studio_page.studio_page.create_missing_dependencies", {
+	const result = await call("studio.studio.doctype.studio_page.studio_page.create_missing_dependencies", {
 		app_name: store.activeApp!.name,
 		page_name: store.activePage!.name,
 		components,
 		files,
 		resources,
 		variables,
+		overwrite_conflicts: overwriteConflicts,
 	})
+	if (components?.length && overwriteConflicts) {
+		await Promise.all(components.map(({ name }) => useComponentStore().reloadComponent(name)))
+	}
 	if (files?.length) await store.setCustomComponents()
 	if (resources?.length || variables?.length) {
 		await store.refreshActivePageModified()
 		await store.setPageData(store.activePage!)
 	}
+	return result?.conflicts || {}
 }
 
 function handlePastePage(payload: ClipboardPayload) {

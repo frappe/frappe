@@ -119,16 +119,29 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual(pasted.component_name, "Card")
 		self.assertEqual(pasted.block, component.block)
 		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
-		create_missing_dependencies(app.name, copy["components"])
+		result = create_missing_dependencies(app.name, copy["components"])
+		self.assertEqual(result["conflicts"]["components"], [])
 
-	def test_paste_reuses_existing_component(self):
+	def test_paste_reports_conflicting_component(self):
 		app = make_studio_app(app_name="conflict-" + frappe.generate_hash(length=10))
 		component = make_component("Card")
 		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
 		copy["block"] = frappe.as_json({"componentName": "button", "children": []}, indent=None)
 
-		create_missing_dependencies(app.name, [copy])
+		result = create_missing_dependencies(app.name, [copy])
 
+		component.reload()
+		self.assertEqual(frappe.parse_json(component.block)["componentName"], "div")
+		conflict = result["conflicts"]["components"][0]
+		self.assertEqual(conflict["name"], "Card")
+		self.assertEqual(frappe.parse_json(conflict["existing"]["block"])["componentName"], "div")
+		self.assertEqual(frappe.parse_json(conflict["copied"]["block"])["componentName"], "button")
+
+		create_missing_dependencies(app.name, [copy], overwrite_conflicts=True)
+		component.reload()
+		self.assertEqual(frappe.parse_json(component.block)["componentName"], "button")
+
+		create_missing_dependencies(app.name, [conflict["existing"]], overwrite_conflicts=True)
 		component.reload()
 		self.assertEqual(frappe.parse_json(component.block)["componentName"], "div")
 
@@ -264,28 +277,82 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([r["resource_name"] for r in deps["resources"]], ["todos"])
 		self.assertEqual([v["variable_name"] for v in deps["variables"]], ["count"])
 
-		for _ in range(2):
-			create_missing_dependencies(
-				app.name, page_name=target.name, resources=deps["resources"], variables=deps["variables"]
-			)
+		first_result = create_missing_dependencies(
+			app.name, page_name=target.name, resources=deps["resources"], variables=deps["variables"]
+		)
+		equivalent_resources = [{**deps["resources"][0], "fields": ["name"]}]
+		second_result = create_missing_dependencies(
+			app.name, page_name=target.name, resources=equivalent_resources, variables=deps["variables"]
+		)
 
 		target.reload()
 		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
 		self.assertEqual([v.variable_name for v in target.variables], ["count"])
+		no_conflicts = {"components": [], "resources": [], "variables": []}
+		self.assertEqual(first_result["conflicts"], no_conflicts)
+		self.assertEqual(second_result["conflicts"], no_conflicts)
 
-	def test_pasted_blocks_reuse_existing_page_data(self):
+	def test_pasted_blocks_report_conflicting_page_data(self):
 		app = make_studio_app(app_name="deps-" + frappe.generate_hash(length=10))
 		source = make_page_with_data(app.name)
 		target = make_studio_page(app.name, page_title="Target", route="/target")
 		target.append("resources", {**TODO_RESOURCE, "fields": '["description"]'})
+		target.append(
+			"variables", {"variable_name": "count", "variable_type": "String", "initial_value": "zero"}
+		)
 		target.save()
-		resources = source.get_dependencies([{"innerHTML": "{{ todos.data }}"}])["resources"]
+		dependencies = source.get_dependencies([{"innerHTML": "{{ todos.data }} {{ count }}"}])
 
-		create_missing_dependencies(app.name, page_name=target.name, resources=resources)
+		result = create_missing_dependencies(
+			app.name,
+			page_name=target.name,
+			resources=dependencies["resources"],
+			variables=dependencies["variables"],
+		)
 
 		target.reload()
 		self.assertEqual(len(target.resources), 1)
 		self.assertEqual(target.resources[0].fields, '["description"]')
+		self.assertEqual(len(target.variables), 1)
+		self.assertEqual(target.variables[0].variable_type, "String")
+		resource_conflict = result["conflicts"]["resources"][0]
+		variable_conflict = result["conflicts"]["variables"][0]
+		self.assertEqual(resource_conflict["name"], "todos")
+		self.assertEqual(resource_conflict["existing"]["fields"], '["description"]')
+		self.assertEqual(resource_conflict["copied"]["fields"], '["name"]')
+		self.assertEqual(variable_conflict["name"], "count")
+		self.assertEqual(variable_conflict["existing"]["variable_type"], "String")
+		self.assertEqual(variable_conflict["copied"]["variable_type"], "Number")
+
+		create_missing_dependencies(
+			app.name,
+			page_name=target.name,
+			resources=dependencies["resources"],
+			overwrite_conflicts=True,
+		)
+		target.reload()
+		self.assertEqual(target.resources[0].fields, '["name"]')
+		self.assertEqual(target.variables[0].variable_type, "String")
+
+		create_missing_dependencies(
+			app.name,
+			page_name=target.name,
+			variables=dependencies["variables"],
+			overwrite_conflicts=True,
+		)
+		target.reload()
+		self.assertEqual(target.variables[0].variable_type, "Number")
+
+		create_missing_dependencies(
+			app.name,
+			page_name=target.name,
+			resources=[resource_conflict["existing"]],
+			variables=[variable_conflict["existing"]],
+			overwrite_conflicts=True,
+		)
+		target.reload()
+		self.assertEqual(target.resources[0].fields, '["description"]')
+		self.assertEqual(target.variables[0].variable_type, "String")
 
 	def test_paste_rejects_target_page_from_another_app(self):
 		app = make_studio_app(app_name="target-" + frappe.generate_hash(length=10))
