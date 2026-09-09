@@ -1,7 +1,8 @@
 # List View module layout: one module per control + a composite module
 
-> Superseded: the composite `ListView/` module is gone; the table, footer and bulk bar are the
-> `List` module (see `CONTEXT.md`, "List module").
+> Note (2026-09-09): the table, footer and bulk bar landed as a separate `List` module (see
+> `CONTEXT.md`, "List module"), not inside the composite. The composite `ListView/` module is
+> kept for now and is not the desk list page's host.
 
 Each extracted control gets its own `@framework/ui` module folder (`SortBy/`,
 `Filter/`, `ColumnSettings/`, `QuickFilter/`), mirroring `FileUpload/` and
