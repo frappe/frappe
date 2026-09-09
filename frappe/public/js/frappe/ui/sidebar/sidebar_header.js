@@ -1,11 +1,17 @@
+// Where the rail starts being drawn: `media-breakpoint-up(md)` in dock.scss, in the one place JS
+// has to know the same number. Below it there is no rail, and the panel's header is the only
+// header on screen.
+const RAIL_BREAKPOINT = "(min-width: 768px)";
+
 frappe.ui.SidebarHeader = class SidebarHeader {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
-		// Every element this header's menu hangs on, as frappe.ui.Dropdown instances. Each reads
-		// its rows fresh on every open, so nothing has to be pushed into them on a refresh.
-		this.menus = [];
 		this.make();
+		// A resize can move the menu between the two headers, so follow the query rather than
+		// reading it once. `change` fires only when it flips, not on every pixel.
+		this.rail_query = window.matchMedia(RAIL_BREAKPOINT);
+		this.rail_query.addEventListener("change", () => this.setup_menu());
 		this.setup_menu();
 	}
 
@@ -23,14 +29,17 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		// seen. Which mark it is depends on whether there is a rail (see get_header_logo), and
 		// that can change from one module to the next, so it is re-resolved here too.
 		this.$header_logo.html(this.get_header_logo());
+		// Whether the app on screen has a rail changes from one module to the next, and with it
+		// which header the menu belongs to.
+		this.setup_menu();
 	}
 
 	// What the header's own menu offers.
 	//
-	// On a docked app it offers only what concerns the sidebar in front of you. Switching between
-	// sidebars belongs to the rail while there is one, and arranging the rail belongs to the user
-	// menu, so the menu is one item long and both switcher rows are absent. A docked app's header
-	// is unchanged.
+	// On a docked app it opens from the rail's header (see menu_on_rail) and offers what concerns
+	// the sidebar in front of you, over the way out to the apps screen. Switching between sidebars
+	// belongs to the rail while there is one, and arranging the rail belongs to the user menu, so
+	// both switcher rows are absent.
 	//
 	// On a dock-less app there is no rail to switch with, so the header carries the switcher. Two
 	// nested rows and nothing more:
@@ -159,7 +168,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// you are reads as a status line, and a menu row is something you press.
 	switcher_items() {
 		const sidebar = this.sidebar;
-		if (sidebar.dock_enabled()) return [];
+		// The rail switches on a docked app, so the menu carries no switcher there. The one row it
+		// keeps is the way out to the apps screen, because on a docked app this menu opens from the
+		// rail's header -- which was that link before the menu moved onto it.
+		if (sidebar.dock_enabled()) return [this.all_apps_item()];
 
 		const items = [];
 		const modules = sidebar.app_modules(sidebar.get_sidebar_app());
@@ -212,14 +224,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				},
 				{
 					group: "",
-					options: [
-						{
-							name: "all-apps",
-							label: __("All apps"),
-							icon: "grid-2x2",
-							href: "/desk",
-						},
-					],
+					options: [this.all_apps_item()],
 				},
 			],
 		});
@@ -227,13 +232,52 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		return items;
 	}
 
-	setup_menu() {
-		this.menu = this.attach_menu(this.wrapper);
+	// The apps screen, which is where both shells' headers have always pointed.
+	all_apps_item() {
+		return {
+			name: "all-apps",
+			label: __("All apps"),
+			icon: "grid-2x2",
+			href: "/desk",
+		};
 	}
 
-	// Hang this header's menu on an element. The rail's header calls it for a copy of its own,
-	// because while the rail is up the panel's header is hidden (see dock.scss) and its menu -- the
-	// switcher, Edit Sidebar, the system items -- would go with it.
+	// Which header opens the menu: the rail's while there is a rail, the panel's otherwise.
+	//
+	// A docked app's menu belongs to the rail. The rail is the app-level shell there and the panel
+	// under it is one sidebar's worth of rows, so one menu with a trigger on each of them offered
+	// the same rows twice, one directly above the other.
+	//
+	// Below md no rail is drawn at all (dock.scss), so the panel's header takes the menu back the
+	// same way it keeps the user button and the standard items band. `dock_enabled` alone is not
+	// enough for the same reason: a page may keep the panel and suppress the rail, and this is the
+	// pair Dock.refresh tests before drawing one.
+	menu_on_rail() {
+		return (
+			this.sidebar.dock_enabled() &&
+			this.sidebar.page_allows_dock() &&
+			this.rail_query.matches
+		);
+	}
+
+	// Put the menu on the panel's header, or take it off, to match menu_on_rail(). The rail hangs
+	// its own copy on its header (see Dock.setup_header_menu); this owns the panel's, and creating
+	// and destroying it is what keeps a header that opens nothing from opening something.
+	setup_menu() {
+		const on_panel = !this.menu_on_rail();
+		if (on_panel === !!this.menu) return;
+		if (on_panel) {
+			this.menu = this.attach_menu(this.wrapper);
+		} else {
+			this.menu.destroy();
+			this.menu = null;
+			// destroy() takes the listeners off but leaves the menu-button attributes it set, and
+			// a row that no longer opens anything must not still say it does.
+			this.wrapper.removeAttr("aria-haspopup aria-expanded");
+		}
+	}
+
+	// Hang this header's menu on an element. The rail's header calls it for a copy of its own.
 	//
 	// Each element gets its own dropdown, created once and never rebuilt: it binds to the node it
 	// is given, and takes its rows from a function it calls on every open, so one dropdown per
@@ -246,7 +290,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			on_open: () => this.toggle_active($wrapper, true),
 			on_close: () => this.toggle_active($wrapper, false),
 		});
-		this.menus.push(menu);
 		return menu;
 	}
 
@@ -254,10 +297,8 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// and simply toggles; the panel's is only there when the panel is, and a highlight left on a
 	// header that has gone would be waiting on it when it came back.
 	toggle_active(wrapper, active) {
-		// The panel's menu opens from the whole header, the rail's from its chevron alone -- the
-		// rest of that one is a link to the apps screen. Either way it is the header that shows the
-		// open state, so resolve up to it: `closest` returns the header itself when that is what
-		// was passed.
+		// Either header opens from its whole row, and it is the header that shows the open state,
+		// so resolve up to it: `closest` returns the header itself when that is what was passed.
 		const $wrapper = $(wrapper).closest(".shell-header").length
 			? $(wrapper).closest(".shell-header")
 			: $(wrapper);
@@ -322,11 +363,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			frappe.render_template("sidebar_header", {
 				workspace_title: this.title,
 				header_icon: this.get_header_logo(),
-				// Which site you are on, under what you are inside. `boot.sitename` is the site's
-				// own name, which is its domain on any real deployment; the hostname stands in
-				// where boot carries none. Who you are is the user row's to say, at the foot of
-				// the rail, and it says it there in full.
-				subtitle: frappe.boot.sitename || window.location.hostname,
 			})
 		).prependTo(this.sidebar_wrapper);
 		this.wrapper = $(".sidebar-header");
