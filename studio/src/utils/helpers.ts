@@ -320,24 +320,35 @@ function getAutocompleteValues(data: SelectOption[]) {
 	return (data || []).map((d) => d["value"])
 }
 
-function getParamsObj(params: { key: string; value: string }[]) {
-	const paramsObj: { [key: string]: string } = {}
+type EditableParam = { key: string; value: string; name?: string; isJSONValue?: boolean }
+function getParamsObj(params: EditableParam[]) {
+	const paramsObj: Record<string, unknown> = {}
 	params.forEach((param) => {
 		if (param.key) {
-			paramsObj[param.key] = param.value
+			paramsObj[param.key] = getStoredParamValue(param)
 		}
 	})
 	return paramsObj
 }
 
-function getParamsArray(params?: string | { [key: string]: string }) {
+function getStoredParamValue(param: EditableParam) {
+	if (!param.isJSONValue) return param.value
+	try {
+		return JSON.parse(param.value)
+	} catch {
+		return param.value
+	}
+}
+
+function getParamsArray(params?: string | Record<string, unknown>) {
 	if (!params) return []
 	if (typeof params == "string") {
 		params = JSON.parse(params || "{}")
 	}
-	const paramsArray: { key: string; value: string; name: string }[] = []
+	const paramsArray: EditableParam[] = []
 	Object.entries(params!).forEach(([key, value]) => {
-		paramsArray.push({ key, value, name: key })
+		const _value = typeof value === "string" ? value : JSON.stringify(value)
+		paramsArray.push({ key, value: _value ?? "", name: key, isJSONValue: typeof value !== "string" })
 	})
 	return paramsArray
 }
