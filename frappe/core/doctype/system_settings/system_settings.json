@@ -807,10 +807,10 @@
   },
   {
    "default": "0",
-   "description": "Renders Link fields with the new Combobox control (search inside the dropdown, avatars, paging). Turn off to keep the classic control.",
+   "description": "Renders Link, Dynamic Link and Autocomplete fields with the new Combobox control (search inside the dropdown, avatars, paging). Turn off to keep the classic controls.",
    "fieldname": "enable_combobox_link_field",
    "fieldtype": "Check",
-   "label": "Enable Combobox Link Field (Beta)"
+   "label": "Enable Combobox Link and Autocomplete Fields (Beta)"
   },
   {
    "depends_on": "eval:doc.allow_guests_to_upload_files == 1",

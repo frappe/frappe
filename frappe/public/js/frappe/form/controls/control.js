@@ -34,6 +34,7 @@ import "./markdown_editor";
 import "./html_editor";
 import "./heading";
 import "./autocomplete";
+import "./autocomplete_combobox";
 import "./barcode";
 import "./geolocation";
 import "./multiselect";
@@ -49,7 +50,7 @@ import "./json";
 
 // fieldtypes that have a combobox-backed variant behind the
 // "Enable Combobox Link Field" system setting
-const COMBOBOX_FIELDTYPES = new Set(["Link", "Dynamic Link"]);
+const COMBOBOX_FIELDTYPES = new Set(["Link", "Dynamic Link", "Autocomplete"]);
 
 frappe.ui.form.make_control = function (opts) {
 	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");

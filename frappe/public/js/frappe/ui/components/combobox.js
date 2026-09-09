@@ -26,7 +26,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} ComboboxCustomOption
  * @property {"custom"} type
- * @property {string} label Row text.
+ * @property {string|function} label Row text, or a function of { query } called on every render (a "Use \"…\"" / "Create …" row that names the typed text).
  * @property {string} [icon] Lucide icon name.
  * @property {function} onclick Called with { query, close, combobox }. The panel closes after unless keep_open is set.
  * @property {boolean} [keep_open]
@@ -1161,7 +1161,13 @@ frappe.ui.Combobox = class Combobox {
 
 	// build one row element and register it in this.rows
 	add_row(row, { reserve, query } = {}) {
-		const option = row.option || { label: row.custom.label, icon: row.custom.icon };
+		const option = row.option || {
+			label:
+				typeof row.custom.label === "function"
+					? row.custom.label({ query: query || "" })
+					: row.custom.label,
+			icon: row.custom.icon,
+		};
 		const el = document.createElement("button");
 		el.type = "button";
 		el.className = "es-menu__item";
