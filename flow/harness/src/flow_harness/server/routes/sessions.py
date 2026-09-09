@@ -79,6 +79,8 @@ class ConfigPatchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
 	auto_approve: bool | None = None
+	client_tools: list[dict] | None = None
+	confirm_tools: list[str] | None = None
 	title: str | None = Field(default=None, min_length=1, max_length=200)
 
 
@@ -307,9 +309,24 @@ def create_sessions_router(
 
 	@router.patch("/sessions/{sid}/config")
 	async def patch_config(request: Request, sid: str, req: ConfigPatchRequest):
-		# safe mid-run: the loop reads config at each tool gate
+		# Confirmation changes apply at the next tool gate; schemas apply to later runs.
 		store = resolve_store(request)
 		session = _get(store, sid)
+		if (req.client_tools is None) != (req.confirm_tools is None):
+			raise HTTPException(
+				status_code=400, detail="client_tools and confirm_tools must be patched together"
+			)
+		if req.client_tools is not None:
+			previous_tools = session.config.client_tools
+			previous_confirm = session.config.confirm_tools
+			session.config.client_tools = req.client_tools
+			session.config.confirm_tools = req.confirm_tools or []
+			try:
+				store.save_meta(session)
+			except OSError:
+				session.config.client_tools = previous_tools
+				session.config.confirm_tools = previous_confirm
+				raise HTTPException(status_code=500, detail="failed to persist config") from None
 		if req.auto_approve is not None:
 			previous = session.config.auto_approve
 			session.set_auto_approve(req.auto_approve)
