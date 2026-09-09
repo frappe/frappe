@@ -18,7 +18,7 @@
 				<li v-for="module in modules" :key="module.slug">
 					<RouterLink
 						:to="routeForModule(module.slug)"
-						class="block rounded border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
+						class="block rounded-4 border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
 					>
 						{{ module.name }}
 					</RouterLink>
@@ -29,7 +29,7 @@
 				<li v-for="entry in entries" :key="entry.doctype">
 					<RouterLink
 						:to="routeFor(entry.doctype)"
-						class="block rounded border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
+						class="block rounded-4 border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
 					>
 						{{ entry.doctype }}
 					</RouterLink>
@@ -43,7 +43,7 @@
 					<!-- A real navigation, not a `router.push`: crossing a prefix needs a boot re-fetch. -->
 					<a
 						:href="app.route"
-						class="flex items-center gap-2 rounded border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
+						class="flex items-center gap-2 rounded-4 border border-outline-gray-2 px-3 py-2 text-sm hover:bg-surface-gray-2"
 					>
 						<img v-if="app.logo" :src="app.logo" class="size-5" alt="" />
 						<span>{{ app.title }}</span>

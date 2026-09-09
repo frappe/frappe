@@ -15,7 +15,7 @@
 		:aria-describedby="describedBy || undefined"
 		:aria-invalid="invalid || undefined"
 		class="flex w-full min-w-0 flex-col gap-4"
-		:class="hasCard && 'rounded-lg border border-outline-gray-2 bg-surface-base p-3'"
+		:class="hasCard && 'rounded-6 border border-outline-gray-2 bg-surface-base p-3'"
 	>
 		<legend v-if="rootTag === 'fieldset'" :id="legendId" class="sr-only">
 			{{ groupName }}
@@ -42,7 +42,7 @@
 			role="list"
 			:data-group-path="path.join('.')"
 			:data-condition-builder="builderId"
-			class="flex w-full min-w-0 list-none flex-col gap-4 rounded-md"
+			class="flex w-full min-w-0 list-none flex-col gap-4 rounded-5"
 			:class="canTakeDrag && 'bg-surface-gray-2'"
 			ghost-class="opacity-40"
 			chosen-class="cursor-grabbing"

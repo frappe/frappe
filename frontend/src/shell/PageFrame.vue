@@ -5,7 +5,12 @@
 <template>
 	<!-- Read in the template, not a computed: the slots object is not reactive, and a page can
 	     supply its header after mount. Without a `PageHeader` the shell's target keeps no height. -->
-	<ScrollArea v-if="scroll" class="min-h-0 flex-1" :viewportClass="pageGutter">
+	<ScrollArea
+		v-if="scroll"
+		class="min-h-0 flex-1"
+		:class="gutterVar"
+		:viewportClass="pageGutter"
+	>
 		<PageHeader v-if="title || $slots.header">
 			<slot name="header"><PageHeaderTitle :title="title" /></slot>
 		</PageHeader>
@@ -13,7 +18,7 @@
 	</ScrollArea>
 
 	<!-- No padding here: a pane that scrolls both ways puts the gutter on its own viewport. -->
-	<div v-else class="flex min-h-0 flex-1 flex-col overflow-hidden">
+	<div v-else class="flex min-h-0 flex-1 flex-col overflow-hidden" :class="gutterVar">
 		<PageHeader v-if="title || $slots.header">
 			<slot name="header"><PageHeaderTitle :title="title" /></slot>
 		</PageHeader>
@@ -22,8 +27,9 @@
 </template>
 
 <script lang="ts">
-/** The side padding a page's content shares with the header row: `PageHeader`'s own classes. */
-export const pageGutter = "px-3 sm:px-5";
+/** The side padding a page's content shares with the header row; the frame root sets `--page-gutter`. */
+export const pageGutter = "px-[--page-gutter]";
+const gutterVar = "[--page-gutter:0.75rem] sm:[--page-gutter:1.25rem]";
 </script>
 
 <script setup lang="ts">
