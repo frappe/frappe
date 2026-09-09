@@ -46,6 +46,17 @@ class MapReduceJob(Document):
 		for doc in frappe.db.get_all("MapReduce Task", {"master": self.name}, pluck="name"):
 			frappe.delete_doc("MapReduce Task", doc)
 
+	def on_cancel(self):
+		mrt = qb.DocType("MapReduce Task")
+		if (
+			to_cancel := qb.from_(mrt)
+			.select(mrt.name)
+			.where(mrt.master.eq(self.name) & mrt.status.isin(["Queued", "Paused"]))
+			.for_update(skip_locked=True)
+			.run(as_dict=True, pluck="name")
+		):
+			qb.update(mrt).set(mrt.status, "Canceled").where(mrt.name.isin(to_cancel)).run()
+
 
 def create_tasks(job: str):
 	doc = frappe.get_doc("MapReduce Job", job)
