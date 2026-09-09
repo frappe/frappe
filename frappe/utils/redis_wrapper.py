@@ -70,7 +70,7 @@ class RedisWrapper(redis.Redis):
 		:param user: Prepends key with User
 		:param expires_in_sec: Expire value of this key in X seconds
 
-		Return the size of the serialized value in bytes.
+		Return the size of the serialized value in bytes. Zero would mean fail to set value in redis.
 		"""
 		key = self.make_key(key, user, shared)
 
