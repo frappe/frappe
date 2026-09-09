@@ -226,7 +226,7 @@ def get_permitted_fields(
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
 
-	if doctype in CORE_DOCTYPES:
+	if doctype in CORE_DOCTYPES and doctype != "User":
 		return valid_columns
 
 	# DocType has only fields of type Table (Table, Table MultiSelect)

@@ -50,9 +50,13 @@ def get_csv_bytes(data: list[list], csv_params: dict) -> bytes:
 	from csv import writer
 	from io import StringIO
 
+	from frappe.utils.csvutils import escape_formula_injection
+
+	_data = [[escape_formula_injection(v) for v in row] for row in data]
+
 	file = StringIO()
 	csv_writer = writer(file, **csv_params)
-	csv_writer.writerows(data)
+	csv_writer.writerows(_data)
 
 	return file.getvalue().encode("utf-8")
 

@@ -3,7 +3,9 @@ frappe.ui.get_print_settings = function (
 	callback,
 	letter_head,
 	pick_columns,
-	has_filters = false
+	is_query_report = false,
+	title = null,
+	default_print_format = null
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -26,20 +28,6 @@ frappe.ui.get_print_settings = function (
 			default: "Landscape",
 		},
 		{
-			fieldtype: "Link",
-			fieldname: "print_format",
-			label: __("Print Format"),
-			options: "Print Format",
-			get_query: () => ({
-				filters: {
-					print_format_for: "Report",
-					print_format_type: "JS",
-					report: frappe.query_report ? frappe.query_report.report_name : "",
-					disabled: 0,
-				},
-			}),
-		},
-		{
 			fieldtype: "Check",
 			fieldname: "with_letter_head",
 			label: __("With Letter head"),
@@ -54,7 +42,34 @@ frappe.ui.get_print_settings = function (
 		},
 	];
 
-	if (has_filters) {
+	// Print format and include-filters only apply to query/script reports.
+	if (is_query_report) {
+		columns.splice(1, 0, {
+			fieldtype: "Link",
+			fieldname: "print_format",
+			label: __("Print Format"),
+			options: "Print Format",
+			default: default_print_format,
+			description: __(
+				"If no Print Format is selected, the default template for this report will be used."
+			),
+			get_query: () => ({
+				filters: {
+					print_format_for: "Report",
+					print_format_type: "JS",
+					report: frappe.query_report ? frappe.query_report.report_name : "",
+					disabled: 0,
+				},
+			}),
+			onchange: function () {
+				dialog.set_value("include_filters", this.get_value() ? 0 : 1);
+				dialog.set_value("pick_columns", 0);
+				dialog.fields_dict.columns?.select_all(true);
+			},
+		});
+	}
+
+	if (is_query_report) {
 		columns.push({
 			label: __("Include filters"),
 			fieldtype: "Check",
@@ -75,7 +90,7 @@ frappe.ui.get_print_settings = function (
 				label: __("Select Columns"),
 				fieldtype: "MultiCheck",
 				fieldname: "columns",
-				depends_on: "pick_columns",
+				depends_on: "eval: doc.pick_columns && !doc.print_format",
 				columns: 2,
 				select_all: true,
 				options: pick_columns.map((df) => ({
@@ -86,7 +101,7 @@ frappe.ui.get_print_settings = function (
 		);
 	}
 
-	return frappe.prompt(
+	const dialog = frappe.prompt(
 		columns,
 		function (settings) {
 			settings = $.extend(print_settings, settings);
@@ -107,6 +122,10 @@ frappe.ui.get_print_settings = function (
 
 			if (settings.print_format) {
 				settings.pick_columns = 0;
+				settings.include_filters = 0;
+			}
+
+			if (!settings.pick_columns) {
 				settings.columns = null;
 			}
 
@@ -114,6 +133,8 @@ frappe.ui.get_print_settings = function (
 		},
 		__("Print Settings")
 	);
+
+	return dialog;
 };
 
 // qz tray connection wrapper

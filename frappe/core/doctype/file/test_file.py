@@ -424,6 +424,26 @@ class TestFile(FrappeTestCase):
 		d.save()
 		self.assertEqual(d.folder, "Home")
 
+	def test_folder_file_url_is_always_empty(self):
+		folder = self.get_folder("Test Folder URL", "Home")
+		self.assertFalse(folder.file_url)
+
+		folder.file_url = "/private/files/somewhere.txt"
+		self.assertRaises(ValidationError, folder.save)
+
+		self.assertRaises(
+			ValidationError,
+			frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "another_folder",
+					"is_folder": 1,
+					"folder": "Home",
+					"file_url": "/private/files/somewhere_else.txt",
+				}
+			).insert,
+		)
+
 	def test_on_delete(self):
 		file = frappe.get_doc("File", {"file_name": "file_copy.txt"})
 		file.delete()
@@ -1065,6 +1085,45 @@ class TestFileUtils(FrappeTestCase):
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
+
+	def test_resolved_file_path_stays_within_files_directory(self):
+		from frappe.utils.file_manager import get_file_path
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "within_bounds.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			self.assertTrue(get_file_path(normal.name).endswith("within_bounds.txt"))
+
+			normal.db_set("file_url", "/private/files/../../../../outside_bounds.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+
+			normal.db_set("file_url", "/private/files/../../site_level_file.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+
+	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
+		from frappe.utils.file_manager import get_file_path
+
+		sibling_dir = get_files_path(is_private=1) + "_lookalike"
+		os.makedirs(sibling_dir, exist_ok=True)
+		with open(os.path.join(sibling_dir, "neighbour.txt"), "w") as f:
+			f.write("outside the intended directory")
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "sibling_check.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			normal.db_set("file_url", "/private/files/../files_lookalike/neighbour.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+			shutil.rmtree(sibling_dir)
 
 
 class TestFileOptimization(FrappeTestCase):
