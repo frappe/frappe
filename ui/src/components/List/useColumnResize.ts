@@ -2,6 +2,7 @@ import { onScopeDispose, reactive, ref } from "vue";
 import type { ListColumn } from "./types";
 
 const MIN_COLUMN_WIDTH = 60;
+const DRAG_THRESHOLD = 3;
 
 interface Drag {
   fieldname: string;
@@ -33,6 +34,7 @@ export function useColumnResize(handlers: {
 
   function onDrag(event: MouseEvent) {
     if (!drag) return;
+    if (Math.abs(event.clientX - drag.startX) < DRAG_THRESHOLD) return;
     const width = Math.max(
       MIN_COLUMN_WIDTH,
       drag.startWidth + (event.clientX - drag.startX)

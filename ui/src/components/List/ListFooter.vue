@@ -6,7 +6,7 @@
 		<div class="flex items-center gap-2">
 			<TabButtons
 				:modelValue="pageSize"
-				:options="pageSizeOptions"
+				:options="tabs"
 				@update:modelValue="choosePageSize"
 			/>
 			<Button
@@ -35,13 +35,13 @@ const props = withDefaults(
 		totalCount?: number;
 		/** False until the first answer lands, which shows a placeholder instead of "0 of 0". */
 		hasCounts?: boolean;
-		pageLengthOptions?: number[];
+		pageSizeOptions?: number[];
 	}>(),
 	{
 		rowCount: 0,
 		totalCount: 0,
 		hasCounts: false,
-		pageLengthOptions: () => [20, 100, 500, 2500],
+		pageSizeOptions: () => [20, 100, 500, 2500],
 	}
 );
 
@@ -52,8 +52,8 @@ const emit = defineEmits<{
 	"page-size": [size: number];
 }>();
 
-const pageSizeOptions = computed(() =>
-	props.pageLengthOptions.map((size) => ({ label: String(size), value: size }))
+const tabs = computed(() =>
+	props.pageSizeOptions.map((size) => ({ label: String(size), value: size }))
 );
 
 // The tabs emit only for a click, which tells a person's choice apart from a restored value.

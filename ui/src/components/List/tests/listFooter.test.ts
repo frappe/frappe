@@ -68,7 +68,7 @@ describe("ListFooter page size", () => {
   it("a restored page size emits nothing", async () => {
     const state = reactive({ pageSize: 20 });
     const chosen: number[] = [];
-    await mount(ListFooter, {
+    const { root } = await mount(ListFooter, {
       hasCounts: true,
       get pageSize() {
         return state.pageSize;
@@ -79,5 +79,10 @@ describe("ListFooter page size", () => {
     state.pageSize = 500;
     await flush();
     expect(chosen).toEqual([]);
+    expect(
+      root
+        .querySelector("[role='radio'][aria-checked='true']")
+        ?.textContent?.trim()
+    ).toBe("500");
   });
 });

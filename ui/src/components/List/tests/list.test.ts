@@ -17,6 +17,12 @@ const rowLink = (row: ListRowData) => `/lead/${row.name}`;
 
 afterEach(unmountAll);
 
+/** A router navigation lands a macrotask later than a render. */
+async function settle() {
+  await new Promise((resolve) => setTimeout(resolve));
+  await flush();
+}
+
 function rowsOf(root: HTMLElement) {
   return root.querySelectorAll<HTMLElement>("[data-slot='list-row']");
 }
@@ -36,6 +42,17 @@ describe("List rows", () => {
     expect(links[0].getAttribute("href")).toBe("/lead/A");
   });
 
+  it("mounts only a window of a long list", async () => {
+    const many = Array.from({ length: 30 }, (_, index) => ({
+      name: `R${index}`,
+    }));
+    const { root } = await mount(List, { columns, rows: many });
+    await flush();
+    const mounted = rowsOf(root).length;
+    expect(mounted).toBeGreaterThan(0);
+    expect(mounted).toBeLessThan(30);
+  });
+
   it("renders a plain row without rowLink", async () => {
     const { root } = await mount(List, { columns, rows });
     expect(rowsOf(root)[0].tagName).toBe("DIV");
@@ -44,8 +61,8 @@ describe("List rows", () => {
   it("reads an object cell's label and right-aligns a right column", async () => {
     const { root } = await mount(List, { columns, rows });
     const cells = rowsOf(root)[1].querySelectorAll("[data-slot='list-cell']");
-    expect(cells[1].textContent).toContain("Closed");
-    expect(cells[2].className).toContain("justify-end");
+    expect(cells[2].textContent).toContain("Closed");
+    expect(cells[3].className).toContain("justify-end");
   });
 
   it("renders the cell slot in place of the text", async () => {
@@ -73,7 +90,7 @@ describe("List selection", () => {
     });
 
     rowsOf(root)[0].querySelector<HTMLElement>("[role='checkbox']")!.click();
-    await flush();
+    await settle();
 
     expect(state.selection).toEqual(["A"]);
     expect(router.currentRoute.value.path).toBe("/");
@@ -82,6 +99,15 @@ describe("List selection", () => {
         .querySelector("[role='checkbox']")
         ?.getAttribute("aria-checked")
     ).toBe("true");
+  });
+
+  it("a click on the row itself does navigate", async () => {
+    const { root, router } = await mount(List, { columns, rows, rowLink });
+
+    rowsOf(root)[1].click();
+    await settle();
+
+    expect(router.currentRoute.value.path).toBe("/lead/B");
   });
 
   it("the header checkbox selects every shown row", async () => {
@@ -189,17 +215,19 @@ describe("List column resize", () => {
     });
     const handle = root.querySelector<HTMLElement>(".cursor-col-resize")!;
     const list = root.querySelector<HTMLElement>("[data-slot='list']")!;
+    handle.parentElement!.getBoundingClientRect = () =>
+      ({ width: 120 } as DOMRect);
 
     handle.dispatchEvent(
       new MouseEvent("mousedown", { bubbles: true, clientX: 100 })
     );
     window.dispatchEvent(new MouseEvent("mousemove", { clientX: 180 }));
     await flush();
-    expect(list.getAttribute("style")).toContain("80px");
+    expect(list.getAttribute("style")).toContain("200px");
 
     window.dispatchEvent(new MouseEvent("mouseup"));
     await flush();
-    expect(resizes).toEqual([{ fieldname: "name", width: "80px" }]);
-    expect(list.getAttribute("style")).not.toContain("80px");
+    expect(resizes).toEqual([{ fieldname: "name", width: "200px" }]);
+    expect(list.getAttribute("style")).not.toContain("200px");
   });
 });

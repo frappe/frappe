@@ -1,5 +1,8 @@
 # List View module layout: one module per control + a composite module
 
+> Superseded: the composite `ListView/` module is gone; the table, footer and bulk bar are the
+> `List` module (see `CONTEXT.md`, "List module").
+
 Each extracted control gets its own `@framework/ui` module folder (`SortBy/`,
 `Filter/`, `ColumnSettings/`, `QuickFilter/`), mirroring `FileUpload/` and
 `FormLayout/`: an `index.ts` with its own export subpath, the `.vue`, pure

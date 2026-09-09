@@ -17,7 +17,7 @@
 			class="flex w-max min-w-full flex-col"
 		>
 			<ListHeader class="group sticky top-0 z-10 bg-surface-base">
-				<div class="flex items-center justify-center">
+				<div class="flex items-center justify-center" role="columnheader">
 					<Checkbox
 						:modelValue="selectAllState === 'all'"
 						:indeterminate="selectAllState === 'some'"
@@ -63,22 +63,24 @@
 				>
 					<!-- The molecule's own `selectable` turns a row click into a toggle; the row must stay
 						a link, so the checkbox is drawn here (frappe/frappe-ui#1131). -->
-					<div
-						class="flex items-center justify-center"
-						role="checkbox"
-						:aria-checked="selection.includes(rowValue(row))"
-						tabindex="0"
-						@click.stop.prevent="toggle(rowValue(row))"
-						@keydown.enter.stop.prevent="toggle(rowValue(row))"
-						@keydown.space.stop.prevent="toggle(rowValue(row))"
-					>
-						<Checkbox
-							:modelValue="selection.includes(rowValue(row))"
-							class="pointer-events-none"
-							tabindex="-1"
-							aria-hidden="true"
-						/>
-					</div>
+					<ListCell class="justify-center">
+						<div
+							role="checkbox"
+							:aria-checked="selection.includes(rowValue(row))"
+							:aria-label="`Select ${rowValue(row)}`"
+							tabindex="0"
+							@click.stop.prevent="toggle(rowValue(row))"
+							@keydown.enter.stop.prevent="toggle(rowValue(row))"
+							@keydown.space.stop.prevent="toggle(rowValue(row))"
+						>
+							<Checkbox
+								:modelValue="selection.includes(rowValue(row))"
+								class="pointer-events-none"
+								tabindex="-1"
+								aria-hidden="true"
+							/>
+						</div>
+					</ListCell>
 					<ListCell
 						v-for="column in columns"
 						:key="column.fieldname"
@@ -161,12 +163,13 @@ const SKELETON_COLUMN_COUNT = 4;
 const scroller = ref<{ viewportElement: HTMLElement | null }>();
 
 defineExpose({
-	viewportElement: computed(() => scroller.value?.viewportElement ?? null),
+	get viewportElement() {
+		return scroller.value?.viewportElement ?? null;
+	},
 });
 
-// Binding the sort model is what makes the headers sortable, as the molecule's `active` works.
-const instance = getCurrentInstance();
-const sortable = computed(() => "onUpdate:sort" in (instance?.vnode.props ?? {}));
+// Binding the sort model at mount is what makes the headers sortable, as the molecule's `active`.
+const sortable = "onUpdate:sort" in (getCurrentInstance()?.vnode.props ?? {});
 
 const rows = toRef(props, "rows");
 const columns = toRef(props, "columns");
