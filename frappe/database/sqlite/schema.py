@@ -1,26 +1,40 @@
 import frappe
-from frappe import _
 from frappe.database.schema import DBTable
 from frappe.utils.defaults import get_not_null_defaults
 
 
 class SQLiteTable(DBTable):
 	def create(self):
-		# First prepare the basic table creation without indexes
 		additional_definitions = []
-		name_column = "name TEXT PRIMARY KEY"
+		varchar_len = frappe.db.VARCHAR_LEN
+		name_column = f"name varchar({varchar_len}) PRIMARY KEY"
 
 		# columns
 		column_defs = self.get_column_definitions()
 		if column_defs:
 			additional_definitions += column_defs
 
-		index_defs = []  # Store index definitions separately
+		index_defs = []
+		for fieldname, column in self.columns.items():
+			column_type = frappe.db.type_map.get(column.fieldtype, (None,))[0]
+			if column.set_index and not column.unique and column_type not in (None, "text", "longtext"):
+				index_defs.append(
+					f"CREATE INDEX `{self.table_name}_{fieldname}_index` "
+					f"ON `{self.table_name}` (`{fieldname}`)"
+				)
 
 		# child table columns
 		if self.meta.get("istable", default=0):
-			additional_definitions.extend(["parent TEXT", "parentfield TEXT", "parenttype TEXT"])
-			index_defs.append(f"CREATE INDEX `{self.table_name}_parent_idx` ON `{self.table_name}`(parent)")
+			additional_definitions.extend(
+				[
+					f"parent varchar({varchar_len})",
+					f"parentfield varchar({varchar_len})",
+					f"parenttype varchar({varchar_len})",
+				]
+			)
+			index_defs.append(
+				f"CREATE INDEX `{self.table_name}_parent_idx` ON `{self.table_name}` (`parent`)"
+			)
 		else:
 			# parent types
 			index_defs.append(
@@ -35,20 +49,21 @@ class SQLiteTable(DBTable):
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":
 			name_column = "name INTEGER PRIMARY KEY AUTOINCREMENT"
 		elif not self.meta.issingle and self.meta.autoname == "UUID":
-			name_column = "name TEXT PRIMARY KEY"
+			name_column = "name uuid PRIMARY KEY"
 
-		additional_definitions = ",\n".join(additional_definitions)
-
-		# create table
-		create_table_query = f"""CREATE TABLE `{self.table_name}` (
-			{name_column},
-			creation DATETIME,
-			modified DATETIME,
-			modified_by TEXT,
-			owner TEXT,
-			docstatus INTEGER NOT NULL DEFAULT 0,
-			idx INTEGER NOT NULL DEFAULT 0,
-			{additional_definitions})"""
+		definitions = ",\n".join(
+			[
+				name_column,
+				"creation timestamp",
+				"modified timestamp",
+				f"modified_by varchar({varchar_len})",
+				f"owner varchar({varchar_len})",
+				"docstatus INTEGER NOT NULL DEFAULT 0",
+				"idx INTEGER NOT NULL DEFAULT 0",
+				*additional_definitions,
+			]
+		)
+		create_table_query = f"CREATE TABLE `{self.table_name}` (\n{definitions}\n)"
 
 		# Execute table creation
 		frappe.db.sql_ddl(create_table_query)
