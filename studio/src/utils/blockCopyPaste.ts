@@ -153,7 +153,16 @@ function shouldWarnAboutExcludedPageScript(source?: ClipboardSource): boolean {
 }
 
 async function pasteCopiedBlocks(payload: ClipboardPayload) {
-	const conflicts = await createMissingDependencies(payload)
+	let conflicts: PasteConflicts
+	try {
+		conflicts = await createMissingDependencies(payload)
+	} catch (error: any) {
+		toast.error("Could not paste blocks", {
+			description: error?.messages?.join(", ") || error?.message,
+			duration: 8000,
+		})
+		return
+	}
 	const removePastedBlocks = insertBlocks(payload.blocks)
 	if (!removePastedBlocks) return
 
