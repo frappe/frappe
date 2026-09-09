@@ -24,7 +24,7 @@ function leadingColumn(fields: RawMetaField[], titleField?: string): Column {
  * shape with the leading column prepended. The leading column is the doctype's
  * `title_field` when set, else `name`; the title field is then dropped from the
  * `in_list_view` tail so it isn't listed twice. `width` is left unset so it
- * falls back to the default at serialize time. Used by the host as the seed
+ * falls back to the default at serialize time. Used by `useListView` as the seed
  * the ColumnSettings control customizes; not a CRM columns endpoint.
  */
 export function getDefaultColumns(

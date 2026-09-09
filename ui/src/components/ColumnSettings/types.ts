@@ -21,7 +21,7 @@ export interface Column {
  *  state (dynamic, user-owned) stay disjoint: the persisted {@link Column} shape does not
  *  change — a synthetic column rides the `fieldname` slot with its `key` (reserved leading
  *  `_`, e.g. `_indicator`, so it can never collide with a docfield). Passed to
- *  `useColumns(doctype, { synthetic })` by the host. */
+ *  `useColumns(doctype, { synthetic })` (threaded from `useListView`). */
 export interface SyntheticColumn {
   /** The reserved identity (leading `_`), matched against `shown` at serialize time. */
   key: string;

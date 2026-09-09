@@ -65,6 +65,17 @@ never owns a saved **View** entity; the host wires _when_ and _where_ to save it
 ([ADR-0007](docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md)).
 _Avoid_: view, saved view, view settings (all carry CRM's Views concept).
 
+**Composite List View**:
+The shared module (`ListView/`) that assembles the controls into a full list view
+behind a `useListView` state composable. The home of the integration "shell" story
+used to chase pixel parity with CRM. Kept for now; the desk list page composes the
+**List module** and the controls directly instead.
+
+**Shell story**:
+The combined story in the Composite List View module that mounts the controls
+together against a real doctype to verify pixel parity with CRM's list view.
+Distinct from each control's own isolated story.
+
 **List module**:
 The shared module that holds the table (`List`), the footer (`ListFooter`) and the
 selection bar (`ListBulkBar`) a doctype list page composes beside the controls. The
