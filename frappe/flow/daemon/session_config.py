@@ -16,6 +16,7 @@ from flow.lib.model import resolve_provider_credentials
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_agent.flow_agent import FlowAgent
+	from flow.lib.tool import Tool
 
 CALLBACK_METHOD = "flow.daemon.callback.tool_callback"
 
@@ -34,7 +35,7 @@ def build(
 	titles the session from its first message."""
 	if not agent.enabled:
 		frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
-	tools = agent._resolve_tools()
+	tool_config = client_tool_config(agent)
 	config = {
 		"session_id": session_id,
 		"title": title,
@@ -43,8 +44,7 @@ def build(
 		"tools": [],
 		"extension_tools": [],
 		"skills_enabled": False,
-		"client_tools": [tool.to_dict() for tool in tools],
-		"confirm_tools": [tool.name for tool in tools if tool.requires_confirmation],
+		**tool_config,
 		"auto_approve": auto_approve,
 		"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
 		"auto_compact": True,
@@ -75,4 +75,20 @@ def model_config(model: str) -> dict[str, Any]:
 		"model": doc.model_id,
 		"api_key": doc.get_password("api_key", raise_exception=False) or provider.get("api_key"),
 		"api_base": doc.base_url or provider.get("base_url"),
+	}
+
+
+def client_tools(agent: FlowAgent) -> list[Tool]:
+	"""The agent's tools as the daemon sees them: all of them except update_memory. No
+	memory travels to the daemon until the new memory system lands."""
+	from flow.memory.memory import MEMORY_TOOL_SLUG
+
+	return [tool for tool in agent._resolve_tools() if tool.name != MEMORY_TOOL_SLUG]
+
+
+def client_tool_config(agent: FlowAgent) -> dict[str, list[Any]]:
+	tools = client_tools(agent)
+	return {
+		"client_tools": [tool.to_dict() for tool in tools],
+		"confirm_tools": [tool.name for tool in tools if tool.requires_confirmation],
 	}
