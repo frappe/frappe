@@ -7,8 +7,8 @@
     • normal mode  → `QuickFilterInputs`    (one value input per surfaced field)
     • customize    → `QuickFilterCustomize` (draggable field chips + "Add Filter")
 
-  Three `v-model`s: `filters` (the shared Filter[] — the SoT `useListView` hands
-  both controls), `fields` (the surfaced inputs, optional; defaults to the
+  Three `v-model`s: `filters` (the shared Filter[] the host hands both
+  controls), `fields` (the surfaced inputs, optional; defaults to the
   doctype's `in_standard_filter` fields from Meta via `getQuickFilterFields`, and a
   host may bind it to persist the user's customized + reordered set), and
   `customizing` (the edit-mode toggle, owned by the host so a trigger beside Sort

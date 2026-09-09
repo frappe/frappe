@@ -109,7 +109,7 @@ const props = defineProps<{
 	fields: FilterField[];
 }>();
 
-// The shared Filter[] — the SoT `useListView` hands both controls. This component
+// The shared Filter[] the host hands both controls. This component
 // only reads and re-emits it; it never owns a data resource.
 const filters = defineModel<Filter[]>("filters", { default: () => [] });
 
