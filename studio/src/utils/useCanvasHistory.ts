@@ -55,9 +55,13 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 	const dirty = ref(false);
 
 	function commit() {
+		const record = createHistoryRecord();
+		// a batch that resumes with an immediate commit can be followed by the
+		// debounced watcher firing for the same change — never record a no-op
+		if (record.block === last.value.block) return;
 		dirty.value = true;
 		undoStack.value.unshift(last.value);
-		last.value = createHistoryRecord();
+		last.value = record;
 		if (undoStack.value.length > CAPACITY) {
 			undoStack.value.splice(CAPACITY, Number.POSITIVE_INFINITY);
 		}
