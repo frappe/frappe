@@ -56,18 +56,13 @@
 		<template #actions>
 			<div class="flex w-full items-center justify-end gap-3">
 				<Button
-					label="Undo paste"
+					label="Revert pasted blocks"
 					theme="red"
 					variant="subtle"
 					:disabled="state.applying"
-					@click="undoPaste"
+					@click="removePastedBlocks"
 				/>
-				<Button
-					label="Apply choices"
-					variant="solid"
-					:loading="state.applying"
-					@click="applyPasteConflictChoices"
-				/>
+				<Button label="Apply" variant="solid" :loading="state.applying" @click="applyPasteConflictChoices" />
 			</div>
 		</template>
 	</Dialog>
@@ -91,7 +86,7 @@ export interface PasteConflictChoice {
 interface PasteConflictCallbacks {
 	onApply: (choices: PasteConflictChoice[]) => void | Promise<void>
 	onDismiss: () => void
-	onUndo: () => void
+	onRemove: () => void
 }
 
 const state = reactive({
@@ -136,9 +131,9 @@ function dismissPasteConflictDialog() {
 	closePasteConflictDialog()
 }
 
-function undoPaste() {
+function removePastedBlocks() {
 	if (!state.open || state.applying) return
-	callbacks?.onUndo()
+	callbacks?.onRemove()
 	closePasteConflictDialog()
 }
 

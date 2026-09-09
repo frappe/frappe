@@ -154,16 +154,16 @@ function shouldWarnAboutExcludedPageScript(source?: ClipboardSource): boolean {
 
 async function pasteCopiedBlocks(payload: ClipboardPayload) {
 	const conflicts = await createMissingDependencies(payload)
-	const undoPaste = insertBlocks(payload.blocks)
-	if (!undoPaste) return
+	const removePastedBlocks = insertBlocks(payload.blocks)
+	if (!removePastedBlocks) return
 
 	if (hasPasteConflicts(conflicts)) {
-		reviewPasteConflicts(payload, conflicts, undoPaste)
+		reviewPasteConflicts(payload, conflicts, removePastedBlocks)
 		return
 	}
 
 	if (shouldWarnAboutExcludedPageScript(payload.source)) {
-		showPasteToast("Page script wasn't included", undoPaste, {
+		showPasteToast("Page script wasn't included", removePastedBlocks, {
 			description: "These blocks may use page-level functions or variables from the source page.",
 			warning: true,
 		})
@@ -174,23 +174,18 @@ function hasPasteConflicts(conflicts: PasteConflicts): boolean {
 	return [conflicts.resources, conflicts.variables, conflicts.components].some((items) => items?.length)
 }
 
-function reviewPasteConflicts(payload: ClipboardPayload, conflicts: PasteConflicts, undoPaste: () => void) {
+function reviewPasteConflicts(
+	payload: ClipboardPayload,
+	conflicts: PasteConflicts,
+	removePastedBlocks: () => void,
+) {
 	const pageScriptExcluded = shouldWarnAboutExcludedPageScript(payload.source)
-	const showResult = (
-		resolution: "existing" | "copied" | "mixed",
-		restoreDependencies?: Partial<Dependencies>,
-	) => {
-		const title = pageScriptExcluded
-			? "Pasted without page script"
-			: resolution === "mixed"
-				? "Pasted with selected dependencies"
-				: `Pasted using ${resolution} dependencies`
-		showPasteToast(title, undoPaste, {
+	const showResultToast = () => {
+		showPasteToast(pageScriptExcluded ? "Pasted without page script" : "Blocks pasted", removePastedBlocks, {
 			description: pageScriptExcluded
 				? "The source page script wasn't included. Page-level references may not work."
 				: undefined,
 			warning: pageScriptExcluded,
-			restoreDependencies,
 		})
 	}
 
@@ -198,17 +193,12 @@ function reviewPasteConflicts(payload: ClipboardPayload, conflicts: PasteConflic
 		onApply: async (choices) => {
 			const copiedChoices = choices.filter(({ resolution }) => resolution === "copied")
 			if (copiedChoices.length) {
-				await createMissingDependencies(getChoiceDependencies(copiedChoices, "copied"), true)
+				await createMissingDependencies(getCopiedDependencies(copiedChoices), true)
 			}
-			const resolution =
-				copiedChoices.length === 0 ? "existing" : copiedChoices.length === choices.length ? "copied" : "mixed"
-			showResult(
-				resolution,
-				copiedChoices.length ? getChoiceDependencies(copiedChoices, "existing") : undefined,
-			)
+			showResultToast()
 		},
-		onDismiss: () => showResult("existing"),
-		onUndo: undoPaste,
+		onDismiss: showResultToast,
+		onRemove: removePastedBlocks,
 	})
 }
 
@@ -222,12 +212,9 @@ function getPasteConflictChoices(conflicts: PasteConflicts): Omit<PasteConflictC
 	return choices
 }
 
-function getChoiceDependencies(
-	choices: PasteConflictChoice[],
-	definition: "existing" | "copied",
-): Partial<Dependencies> {
+function getCopiedDependencies(choices: PasteConflictChoice[]): Partial<Dependencies> {
 	const definitionsFor = (kind: PasteConflictKind) =>
-		choices.filter((choice) => choice.kind === kind).map((choice) => choice[definition])
+		choices.filter((choice) => choice.kind === kind).map((choice) => choice.copied)
 	return {
 		components: definitionsFor("components"),
 		resources: definitionsFor("resources"),
@@ -237,23 +224,16 @@ function getChoiceDependencies(
 
 function showPasteToast(
 	title: string,
-	undoPaste: () => void,
+	removePastedBlocks: () => void,
 	options: {
 		description?: string
 		warning?: boolean
-		restoreDependencies?: Partial<Dependencies>
 	} = {},
 ) {
-	const onUndo = async () => {
-		undoPaste()
-		if (options.restoreDependencies) {
-			await createMissingDependencies(options.restoreDependencies, true)
-		}
-	}
 	const toastOptions = {
 		description: options.description,
 		duration: 10000,
-		action: { label: "Undo Paste", onClick: onUndo },
+		action: { label: "Revert pasted blocks", onClick: removePastedBlocks },
 	}
 	if (options.warning) {
 		toast.warning(title, toastOptions)
