@@ -26,6 +26,7 @@ from studio.studio.doctype.studio_page.copy_paste import (
 	PAGE_VARIABLE_FIELDS,
 	create_missing_dependencies,
 	duplicate_page,
+	parse_list,
 	paste_page,
 	pick,
 )
@@ -150,7 +151,7 @@ class StudioPage(Document):
 	def get_copy(self, blocks=None) -> dict:
 		"""Page settings, data sources, variables, script and the components `blocks` use, for copy-paste."""
 		self.check_permission("read")
-		blocks = frappe.parse_json(blocks) or parse_json(self.draft_blocks or self.blocks) or []
+		blocks = parse_list(blocks if blocks is not None else self.draft_blocks or self.blocks, "blocks")
 		script = self.get_script_source()
 		return {
 			**self.get_dependencies(blocks, script),
@@ -166,7 +167,7 @@ class StudioPage(Document):
 		"""What `blocks` (and `script`) need from outside themselves, for copy-paste: Studio components,
 		app files, and this page's data sources and variables they reference."""
 		self.check_permission("read")
-		blocks = frappe.parse_json(blocks) or []
+		blocks = parse_list(blocks, "blocks")
 		text = frappe.as_json(blocks)
 
 		def used(name):
