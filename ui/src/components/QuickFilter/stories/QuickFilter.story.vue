@@ -1,10 +1,6 @@
 <!--
-  Isolated QuickFilter demo. The QuickFilter strip and the Filter control both `v-model`
-  the SAME `filters` ref, so setting a quick input updates the matching filter condition
-  and the dialog reflects it (and vice versa) with no wiring — the headline
-  Filter↔QuickFilter sync, visible in one story. The Switch flips the `customizing` flag
-  to reveal the field-customize affordance. Story chrome uses frappe-ui components per
-  the workspace convention.
+  Isolated QuickFilter demo. The strip and the Filter control bind the SAME `filters` ref,
+  so a quick input and its matching condition stay in sync with no wiring.
 -->
 <template>
 	<div class="flex flex-col gap-4 p-6">

@@ -14,8 +14,8 @@
 				<span class="text-ink-gray-9">{{ selection.length }} selected</span>
 				<div class="flex items-center gap-1 border-l border-outline-gray-2 ps-3">
 					<Button
-						v-for="action in actions"
-						:key="action.label"
+						v-for="(action, index) in actions"
+						:key="index"
 						:label="action.label"
 						:theme="action.theme"
 						variant="ghost"
