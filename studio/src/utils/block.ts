@@ -179,11 +179,39 @@ class Block implements BlockOptions {
 	}
 
 	getChildIndex(child: Block) {
+		return this.getChildList(child).findIndex((block) => block.componentId === child.componentId)
+	}
+
+	// the list a child lives in: a named slot's content, or the regular children
+	getChildList(child: Block): Block[] {
 		if (child.parentSlotName) {
-			return this.getSlotContent(child.parentSlotName)
-				?.findIndex((block) => block.componentId === child.componentId)
+			return this.getSlotContent(child.parentSlotName) || []
 		}
-		return this.children.findIndex((block) => block.componentId === child.componentId)
+		return this.children
+	}
+
+	// Reorder an existing child within the list it already lives in.
+	// `index` is the position among the OTHER children (remove, then insert).
+	moveChild(child: Block, index: number) {
+		const siblings = this.getChildList(child)
+		const childIndex = siblings.findIndex((block) => block.componentId === child.componentId)
+		if (childIndex === -1) return
+		siblings.splice(childIndex, 1)
+		siblings.splice(this.getValidIndex(index, siblings.length), 0, child)
+	}
+
+	// Attach an existing (already detached) block instance, keeping its identity —
+	// addChild would clone it into a new Block.
+	insertChild(child: Block, index?: number | null, slotName?: string | null) {
+		const siblings = slotName ? this.getSlotContent(slotName) : this.children
+		if (!siblings) return
+		child.parentBlock = this
+		if (slotName) {
+			child.parentSlotName = slotName
+		} else {
+			delete child.parentSlotName
+		}
+		siblings.splice(this.getValidIndex(index, siblings.length), 0, child)
 	}
 
 	// Find a direct child by id, searching the regular children AND every named slot's content.
@@ -274,9 +302,7 @@ class Block implements BlockOptions {
 	getSiblingBlock(direction: "next" | "previous") {
 		const parentBlock = this.getParentBlock();
 		if (!parentBlock) return null;
-		const siblings = this.parentSlotName
-			? (parentBlock.getSlotContent(this.parentSlotName) as Block[])
-			: parentBlock.children;
+		const siblings = parentBlock.getChildList(this);
 		const index = parentBlock.getChildIndex(this);
 		const sibling = direction === "next" ? siblings[index + 1] : siblings[index - 1];
 		return sibling || null;
