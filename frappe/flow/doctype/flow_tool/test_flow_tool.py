@@ -2,6 +2,7 @@
 # See license.txt
 
 from typing import Any
+from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -143,3 +144,14 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 		tool.description = "Updated description."
 		tool.save()
 		self.assertEqual(frappe.db.get_value("Flow Tool", tool.name, "description"), "Updated description.")
+
+	def test_saving_a_tool_refreshes_daemon_sessions_after_commit(self):
+		tool = self._tool()
+		before = len(frappe.db.after_commit._functions)
+		with patch("flow.daemon.session_config.sync_tool_sessions") as sync:
+			tool.description = "Updated description."
+			tool.save()
+			for callback in list(frappe.db.after_commit._functions)[before:]:
+				callback()
+
+		sync.assert_called_once_with(tool.name)

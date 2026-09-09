@@ -92,3 +92,33 @@ def client_tool_config(agent: FlowAgent) -> dict[str, list[Any]]:
 		"client_tools": [tool.to_dict() for tool in tools],
 		"confirm_tools": [tool.name for tool in tools if tool.requires_confirmation],
 	}
+
+
+def sync_tool_sessions(tool_name: str) -> None:
+	"""Refresh the daemon config of sessions whose agent uses this tool."""
+	from flow.daemon.client import DaemonClient, DaemonError
+
+	agents = set(frappe.get_all("Flow Agent Tool", filters={"tool": tool_name}, pluck="parent"))
+	if not agents:
+		return
+	try:
+		client = DaemonClient.for_site()
+	except DaemonError as exc:
+		frappe.log_error(title=f"Flow Tool {tool_name!r}: could not reach the flow server", message=str(exc))
+		return
+	with client:
+		for agent_name in agents:
+			config = client_tool_config(frappe.get_doc("Flow Agent", agent_name))
+			sessions = frappe.get_all("Flow Session", filters={"agent": agent_name}, pluck="name")
+			for session in sessions:
+				try:
+					client.patch_config(session, **config)
+				except DaemonError as exc:
+					if exc.status == 404:
+						continue
+					frappe.log_error(
+						title=f"Flow Tool {tool_name!r}: could not refresh daemon session {session!r}",
+						message=str(exc),
+					)
+					if exc.status is None:
+						return

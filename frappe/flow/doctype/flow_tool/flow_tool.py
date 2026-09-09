@@ -46,6 +46,12 @@ class FlowTool(Document):
 			self._validate_code()
 		validate_immutable(self, ("type", "import_path"))
 
+	def on_update(self):
+		from flow.daemon.session_config import sync_tool_sessions
+
+		tool_name = self.name
+		frappe.db.after_commit.add(lambda: sync_tool_sessions(tool_name))
+
 	def on_trash(self):
 		block_delete(self, always=True)
 

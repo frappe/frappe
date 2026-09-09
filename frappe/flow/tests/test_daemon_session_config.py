@@ -84,6 +84,18 @@ class TestSessionConfig(IntegrationTestCase):
 		self.assertFalse(config["auto_approve"])
 		self.assertTrue(config["auto_compact"])
 
+	def test_a_tool_change_refreshes_every_daemon_session_using_its_agent(self):
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
+		with patch("flow.daemon.client.DaemonClient.for_site") as factory:
+			session_config.sync_tool_sessions("read")
+
+		client = factory.return_value
+		calls = [call for call in client.patch_config.call_args_list if call.args == (session.name,)]
+		self.assertEqual(len(calls), 1)
+		kwargs = calls[0].kwargs
+		self.assertEqual([tool["function"]["name"] for tool in kwargs["client_tools"]], ["read", "execute"])
+		self.assertEqual(kwargs["confirm_tools"], ["execute"])
+
 	def test_an_empty_prompt_is_still_verbatim(self):
 		self.agent.instructions = ""
 		self.assertEqual(self.config()["system_prompt"], "")

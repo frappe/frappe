@@ -117,8 +117,20 @@ class DaemonClient:
 		}
 		return self._call("POST", f"/sessions/{sid}/model", json=body)
 
-	def patch_config(self, sid: str, *, title: str | None = None, auto_approve: bool | None = None) -> dict:
+	def patch_config(
+		self,
+		sid: str,
+		*,
+		title: str | None = None,
+		auto_approve: bool | None = None,
+		client_tools: list[dict] | None = None,
+		confirm_tools: list[str] | None = None,
+	) -> dict:
 		body = {"title": title, "auto_approve": auto_approve}
+		if client_tools is not None:
+			body["client_tools"] = client_tools
+		if confirm_tools is not None:
+			body["confirm_tools"] = confirm_tools
 		return self._call("PATCH", f"/sessions/{sid}/config", json=body)
 
 	def entries(self, sid: str, *, since: int = 0, path: str = "active") -> dict:
