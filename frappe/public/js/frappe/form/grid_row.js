@@ -1432,9 +1432,7 @@ export default class GridRow {
 		let cannot_add_rows =
 			this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows);
 		this.wrapper
-			.find(
-				".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row"
-			)
+			.find(".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row")
 			.toggle(!cannot_add_rows);
 
 		this.wrapper
