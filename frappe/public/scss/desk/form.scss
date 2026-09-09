@@ -107,6 +107,16 @@ body.full-width {
 	max-width: 100% !important;
 }
 
+#web-form-form_builder_tab .section-body {
+	max-width: 100% !important;
+}
+
+// the tab pane lacks the padding that .form-builder-container's negative margins offset
+#web-form-form_builder_tab {
+	padding-inline: 30px; // 15px section + 15px column
+	padding-top: 12px; // .form-section > .section-body:first-child
+}
+
 .form-column {
 	.form-column-description {
 		margin-bottom: 10px;
