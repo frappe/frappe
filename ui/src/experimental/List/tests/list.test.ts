@@ -230,4 +230,32 @@ describe("List column resize", () => {
     expect(resizes).toEqual([{ fieldname: "name", width: "200px" }]);
     expect(list.getAttribute("style")).not.toContain("200px");
   });
+
+  it("a cancelled drag drops the draft and emits nothing", async () => {
+    const resizes: unknown[] = [];
+    const { root } = await mount(List, {
+      columns,
+      rows,
+      "onColumn-resize": (payload: unknown) => resizes.push(payload),
+    });
+    const handle = root.querySelector<HTMLElement>(".cursor-col-resize")!;
+    const list = root.querySelector<HTMLElement>("[data-slot='list']")!;
+    handle.parentElement!.getBoundingClientRect = () =>
+      ({ width: 120 } as DOMRect);
+
+    handle.dispatchEvent(
+      new MouseEvent("pointerdown", { bubbles: true, clientX: 100 })
+    );
+    window.dispatchEvent(new MouseEvent("pointermove", { clientX: 180 }));
+    await flush();
+    expect(list.getAttribute("style")).toContain("200px");
+
+    window.dispatchEvent(new Event("pointercancel"));
+    await flush();
+    expect(list.getAttribute("style")).not.toContain("200px");
+    window.dispatchEvent(new MouseEvent("pointermove", { clientX: 260 }));
+    await flush();
+    expect(list.getAttribute("style")).not.toContain("260px");
+    expect(resizes).toEqual([]);
+  });
 });

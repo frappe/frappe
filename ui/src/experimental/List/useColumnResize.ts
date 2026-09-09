@@ -31,6 +31,7 @@ export function useColumnResize(handlers: {
     resizingFieldname.value = column.fieldname;
     window.addEventListener("pointermove", onDrag);
     window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", cancelDrag);
   }
 
   function onDrag(event: PointerEvent) {
@@ -54,6 +55,14 @@ export function useColumnResize(handlers: {
     if (width) handlers.onResize(fieldname, width);
   }
 
+  // A cancelled pointer (a touch the browser took for a scroll) discards the draft.
+  function cancelDrag() {
+    stopListening();
+    resizingFieldname.value = null;
+    if (drag) delete drafts[drag.fieldname];
+    drag = null;
+  }
+
   function resetColumn(column: ListColumn) {
     delete drafts[column.fieldname];
     handlers.onReset(column.fieldname);
@@ -62,6 +71,7 @@ export function useColumnResize(handlers: {
   function stopListening() {
     window.removeEventListener("pointermove", onDrag);
     window.removeEventListener("pointerup", endDrag);
+    window.removeEventListener("pointercancel", cancelDrag);
   }
 
   onScopeDispose(stopListening);
