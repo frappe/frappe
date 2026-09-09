@@ -1,4 +1,5 @@
 import doctype_with_child_table from "../fixtures/doctype_with_child_table";
+import doctype_with_link_and_child_table from "../fixtures/doctype_with_link_and_child_table";
 import child_table_doctype from "../fixtures/child_table_doctype";
 import child_table_doctype_1 from "../fixtures/child_table_doctype_1";
 import doctype_to_link from "../fixtures/doctype_to_link";
@@ -12,6 +13,7 @@ context("Dashboard links", () => {
 		cy.insert_doc("DocType", child_table_doctype, true);
 		cy.insert_doc("DocType", child_table_doctype_1, true);
 		cy.insert_doc("DocType", doctype_with_child_table, true);
+		cy.insert_doc("DocType", doctype_with_link_and_child_table, true);
 		cy.insert_doc("DocType", doctype_to_link, true);
 		return cy
 			.window()
@@ -84,9 +86,22 @@ context("Dashboard links", () => {
 		cy.fill_field("title", "Test Linking");
 		cy.findByRole("button", { name: "Save" }).click();
 
-		cy.get(".document-link .btn-new").click();
+		cy.get('.btn-new[data-doctype="Doctype With Child Table"]').click();
 		cy.get(
 			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
 		).should("contain.text", "Test Linking");
+	});
+
+	it("check if child table is left empty when the link field is on the parent", () => {
+		cy.new_form(doctype_to_link_name);
+		cy.fill_field("title", "Test Parent Linking");
+		cy.findByRole("button", { name: "Save" }).click();
+
+		cy.get('.btn-new[data-doctype="Doctype With Link And Child Table"]').click();
+
+		cy.get_field("doctype_to_link", "Link").should("have.value", "Test Parent Linking");
+		cy.get(
+			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
+		).should("not.contain.text", "Test Parent Linking");
 	});
 });

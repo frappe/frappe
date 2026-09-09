@@ -1,8 +1,7 @@
 export default {
-	name: "Doctype to Link",
+	name: "Doctype With Link And Child Table",
 	actions: [],
 	custom: 1,
-	naming_rule: "By fieldname",
 	autoname: "field:title",
 	creation: "2022-02-09 20:15:21.242213",
 	doctype: "DocType",
@@ -15,22 +14,25 @@ export default {
 			label: "Title",
 			unique: 1,
 		},
-	],
-	links: [
 		{
-			group: "Child Doctype",
-			link_doctype: "Doctype With Child Table",
-			link_fieldname: "title",
+			fieldname: "doctype_to_link",
+			fieldtype: "Link",
+			label: "Doctype to Link",
+			options: "Doctype to Link",
 		},
 		{
-			group: "Child Doctype",
-			link_doctype: "Doctype With Link And Child Table",
-			link_fieldname: "doctype_to_link",
+			fieldname: "child_table",
+			fieldtype: "Table",
+			label: "Child Table",
+			options: "Child Table Doctype",
+			reqd: 1,
 		},
 	],
+	links: [],
 	modified: "2022-02-10 12:03:12.603763",
 	modified_by: "Administrator",
 	module: "Custom",
+	naming_rule: "By fieldname",
 	owner: "Administrator",
 	permissions: [
 		{
