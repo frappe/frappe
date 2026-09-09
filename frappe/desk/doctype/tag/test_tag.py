@@ -37,7 +37,6 @@ class TestTag(IntegrationTestCase):
 		doc = frappe.get_doc({"doctype": "ToDo", "description": "tag test"}).insert()
 		doctags = DocTags(doc.doctype)
 
-		# no tags
 		self.assertEqual(doc.get_tags(), [])
 
 		doctags.add(doc.name, "tag1")
