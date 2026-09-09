@@ -94,8 +94,9 @@ def redis_cache(
 		func_key = f"{func.__module__}.{func.__qualname__}"
 
 		def clear_cache():
-			frappe.cache.delete_keys(func_key, user=user, shared=shared)
-			func.cached_values_counter = 0
+			if frappe.cache:  # In case called during boot-straping itself, frappe.cache won't be available.
+				frappe.cache.delete_keys(func_key, user=user, shared=shared)
+				func.cached_values_counter = 0
 
 		func.clear_cache = clear_cache
 		func.ttl = ttl if not callable(ttl) else 3600
@@ -124,8 +125,11 @@ def redis_cache(
 				return val
 
 			ttl = getattr(func, "ttl", 3600)
-			frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user, shared=shared)
-			func.cached_values_counter += 1
+			serialized_val_size = frappe.cache.set_value(
+				func_call_key, val, expires_in_sec=ttl, user=user, shared=shared
+			)
+			if serialized_val_size > 0:
+				func.cached_values_counter += 1
 			return val
 
 		return redis_cache_wrapper
