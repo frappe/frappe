@@ -20,11 +20,12 @@
 frappe.provide("frappe.dashboards");
 frappe.provide("frappe.dashboards.chart_sources");
 
-// Set on <body> while an island is on screen. `dashboard_view.scss` keys the
-// bounded page off this class. The comment there says why the island gets a
-// fixed box instead of the page scroll. The legacy renderer grows with its
-// widgets and keeps the page scroll, so the route alone cannot decide this.
-const ISLAND_PAGE_CLASS = "dashboard-view-island-page";
+// Set on <body> while an island is on screen. `island_page.scss` keys the
+// bounded page off this class, and says why the island gets a fixed box
+// instead of the page scroll. Every desk page an island draws shares it. The
+// legacy renderer grows with its widgets and keeps the page scroll, so the
+// route alone cannot decide this.
+const ISLAND_PAGE_CLASS = "island-page";
 
 frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({

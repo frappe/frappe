@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
@@ -20,7 +20,11 @@ class MapReduceTask(Document):
 		master: DF.Link | None
 		name: DF.Int | None
 		reduce: DF.Data | None
-		status: DF.Literal["Queued", "Running", "Paused", "Completed"]
+		status: DF.Literal["Queued", "Running", "Paused", "Completed", "Canceled"]
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "MapReduce Task"
+
+
+def on_doctype_update():
+	frappe.db.add_index("MapReduce Task", ["master", "status"])

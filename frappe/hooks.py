@@ -604,6 +604,11 @@ expose_discovery_source = True
 # 	if doc.someapp_dashboard:
 # 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
 
+# A `Page` of type "Frappe UI" is drawn by an island too, and registers itself:
+# no hook, and no entry in `ui_islands`. Framework builds those islands for
+# every app on the bench, in one build, after any app's assets are built.
+after_app_build = "frappe.bundler.build_page_islands"
+
 
 add_to_apps_screen = [
 	{
