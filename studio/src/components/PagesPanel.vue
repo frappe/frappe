@@ -58,6 +58,7 @@
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
+import { copyEntirePage } from "@/utils/blockCopyPaste"
 import { useRouter } from "vue-router"
 import { Dropdown, Button, Badge, Tooltip, FeatherIcon } from "frappe-ui"
 
@@ -102,6 +103,12 @@ const getPageMenu = (page: StudioPage) => {
 			group: "Actions",
 			hideLabel: true,
 			options: [
+				{
+					label: "Copy Page",
+					icon: "lucide-clipboard",
+					condition: () => isPageActive(page),
+					onClick: () => copyEntirePage(),
+				},
 				{
 					label: "Duplicate",
 					icon: "lucide-copy",

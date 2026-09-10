@@ -5,7 +5,7 @@
 	  "strict": true,
 	  "jsx": "preserve",
 	  "importHelpers": true,
-	  "moduleResolution": "node",
+	  "moduleResolution": "bundler",
 	  "experimentalDecorators": true,
 	  "skipLibCheck": true,
 	  "noErrorTruncation": true,
