@@ -57,9 +57,13 @@
 					</p>
 				</div>
 
-				<p v-if="hasComponentConflict" class="text-sm text-ink-gray-6">
-					Using a copied component can affect blocks on other pages.
-				</p>
+				<div
+					v-if="hasComponentOverwrite"
+					class="flex items-start gap-2 rounded-md bg-surface-gray-1 px-3 py-2 text-p-base text-ink-gray-6"
+				>
+					<span class="lucide-info mt-1"></span>
+					<p>"Use copied" overwrites a shared component and can affect blocks on other pages.</p>
+				</div>
 				<ErrorMessage v-if="state.error" :message="state.error" />
 			</div>
 		</template>
@@ -165,5 +169,7 @@ const resolutionOptions = [
 	{ label: "Use copied", value: "copied" },
 ]
 
-const hasComponentConflict = computed(() => state.choices.some(({ kind }) => kind === "components"))
+const hasComponentOverwrite = computed(() =>
+	state.choices.some(({ kind, resolution }) => kind === "components" && resolution === "copied"),
+)
 </script>
