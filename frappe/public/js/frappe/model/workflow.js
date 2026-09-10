@@ -3,6 +3,15 @@
 
 frappe.provide("frappe.workflow");
 
+const NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
+
+function cast_condition_value(value, fieldtype) {
+	if (fieldtype === "Check") return cint(value);
+	if (NUMERIC_FIELDTYPES.includes(fieldtype)) return flt(value);
+
+	return value;
+}
+
 const CONDITION_OPERATORS = {
 	"=": (a, b) => a === b,
 	"!=": (a, b) => a !== b,
@@ -44,9 +53,13 @@ frappe.workflow = {
 		);
 	},
 	applies_to: function (workflow, doc) {
-		return (workflow.conditions || []).every(({ field, condition, value }) =>
-			CONDITION_OPERATORS[condition](doc[field], value)
-		);
+		return (workflow.conditions || []).every(({ field, condition, value }) => {
+			const fieldtype = frappe.meta.get_docfield(workflow.document_type, field)?.fieldtype;
+			return CONDITION_OPERATORS[condition](
+				cast_condition_value(doc[field], fieldtype),
+				cast_condition_value(value, fieldtype)
+			);
+		});
 	},
 	get_workflow: function (doc) {
 		if (!doc) return null;
