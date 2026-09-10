@@ -321,7 +321,6 @@ export default class BulkEdit {
 			],
 		});
 		this.setup_form.make();
-		this.setup_form.fields_dict.fields.section.collapse(true);
 	}
 
 	/** Cell pickers mount on the body, so closing them is the dialog's job. */
