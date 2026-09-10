@@ -10,7 +10,11 @@ from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
 
 import frappe
+<<<<<<< HEAD
 from frappe.auth import LoginManager
+=======
+from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
+>>>>>>> 51d08b4 (fix(oauth): disable Resource Owner Password Credentials Grant)
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
 from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
@@ -184,7 +188,17 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
-		return grant_type in ["authorization_code", "refresh_token", "password"]
+		return grant_type in ["authorization_code", "refresh_token"]
+
+	def validate_user(self, username, password, client, request, *args, **kwargs):
+		"""Resource Owner Password Credentials Grant is not supported.
+
+		oauthlib's ResourceOwnerPasswordCredentialsGrant handler calls this
+		unconditionally regardless of validate_grant_type, so this must
+		exist and reject cleanly rather than fall through to the base
+		RequestValidator's NotImplementedError.
+		"""
+		return False
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
@@ -485,21 +499,6 @@ class OAuthWebRequestValidator(RequestValidator):
 			return True
 
 		return False
-
-	def validate_user(self, username, password, client, request, *args, **kwargs):
-		"""Ensure the username and password is valid.
-
-		Method is used by:
-		- Resource Owner Password Credentials Grant
-		"""
-		login_manager = LoginManager()
-		login_manager.authenticate(username, password)
-
-		if login_manager.user == "Guest":
-			return False
-
-		request.user = login_manager.user
-		return True
 
 
 def calculate_at_hash(access_token, hash_alg):
