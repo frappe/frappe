@@ -1157,7 +1157,7 @@ class Engine:
 			if cache_key not in self.permitted_fields_cache:
 				if doctype in PERMITTED_CORE_DOCTYPES and doctype != "User":
 					# no restrictions - return all valid columns
-					self.permitted_fields_cache[cache_key] = set(meta.get_valid_columns()) - {"_comments"}
+					self.permitted_fields_cache[cache_key] = set(meta.get_valid_columns())
 				else:
 					permlevel_0_fields = set(meta.default_fields) | OPTIONAL_FIELDS
 					for df in meta.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=False):

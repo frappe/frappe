@@ -806,9 +806,10 @@ class TestDBQuery(IntegrationTestCase):
 			with self.assertRaises(frappe.PermissionError):
 				frappe.get_list("Test Blog Post", filters={"_comments": ("like", "%a%")})
 
-		# core doctypes skip field permissions but must not expose the blob either
+		# core doctypes skip field permissions; the blob must still not be a valid column there
 		frappe.set_user("Administrator")
-		self.assertIn("_comments", frappe.get_meta("DocType").get_valid_columns())
+		self.assertIn("_comments", frappe.db.get_table_columns("DocType"))
+		self.assertNotIn("_comments", frappe.get_meta("DocType").get_valid_columns())
 		self.assertNotIn("_comments", get_permitted_fields("DocType"))
 
 	def test_ignore_permissions_for_get_filters_cond(self):

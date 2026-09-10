@@ -261,7 +261,8 @@ class Meta(Document):
 	def _valid_columns(self):
 		table_exists = frappe.db.table_exists(self.name)
 		if self.name in self.special_doctypes and table_exists:
-			valid_columns = get_table_columns(self.name)
+			# `_comments` is an internal cache, never a document field
+			valid_columns = [c for c in get_table_columns(self.name) if c != "_comments"]
 		else:
 			valid_columns = self.default_fields + [
 				df.fieldname
