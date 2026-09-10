@@ -583,9 +583,11 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 	:return: Array of result objects
 	"""
 
+	from frappe.query_builder.custom import build_fts5_prefix_query
+
 	results = []
 	texts = text.split("&")
-	for text in texts:
+	for search_text in texts:
 		common_query = """ SELECT `doctype`, `name`, `content`, `title`, `route`
 			FROM `__global_search`
 			WHERE {conditions}
@@ -593,22 +595,28 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 
 		scope_condition = "`route` like %(scope)s AND " if scope else ""
 		published_condition = "`published` = 1 AND "
-		mariadb_conditions = postgres_conditions = " ".join([published_condition, scope_condition])
+		base_conditions = " ".join([published_condition, scope_condition])
+		mariadb_conditions = postgres_conditions = sqlite_conditions = base_conditions
 
 		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
 		mariadb_conditions += "MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)".format(
-			frappe.db.escape("+" + text + "*")
+			frappe.db.escape("+" + search_text + "*")
 		)
-		postgres_conditions += (
-			f"to_tsvector('english', \"content\") @@ plainto_tsquery('english', {frappe.db.escape(text)})"
-		)
+		postgres_conditions += f"to_tsvector('english', \"content\") @@ plainto_tsquery('english', {frappe.db.escape(search_text)})"
+		sqlite_conditions += "`content` MATCH %(sqlite_search_query)s"
 
-		values = {"scope": "".join([scope, "%"]) if scope else "", "limit": limit, "start": start}
+		values = {
+			"scope": "".join([scope, "%"]) if scope else "",
+			"limit": limit,
+			"start": start,
+			"sqlite_search_query": build_fts5_prefix_query(search_text),
+		}
 
 		result = frappe.db.multisql(
 			{
 				"mariadb": common_query.format(conditions=mariadb_conditions),
 				"postgres": common_query.format(conditions=postgres_conditions),
+				"sqlite": common_query.format(conditions=sqlite_conditions),
 			},
 			values=values,
 			as_dict=True,
