@@ -130,6 +130,9 @@ export default class BulkEdit {
 			// set while the rows on screen came from a sheet rather than a file,
 			// which is what the preview's Refresh button re-reads
 			google_sheets_url: "",
+			// set while the rows on screen came from a file already in the
+			// library, which the uploader itself holds nothing for
+			library_file_url: "",
 		};
 
 		this.panels = {
@@ -359,6 +362,22 @@ export default class BulkEdit {
 		return this.file_uploader?.uploader?.files?.length || 0;
 	}
 
+	/**
+	 * A file chosen in the library browser, which FileUploader keeps to itself —
+	 * its component exposes files and upload_files but not the browser's own
+	 * selection, so the selected node is read off the tree. `.file-doc-link`
+	 * only renders on a leaf (TreeNode.vue), which is what tells a file apart
+	 * from the folder it sits in.
+	 */
+	has_library_selection() {
+		return Boolean(this.panels.upload.find(".tree-link.active .file-doc-link").length);
+	}
+
+	/** A file waiting to be read, whichever of the two ways it was chosen. */
+	has_file_selection() {
+		return Boolean(this.uploaded_file_count() || this.has_library_selection());
+	}
+
 	make_upload_panel() {
 		this.panels.upload.css({ height: "100%", display: "flex", "flex-direction": "column" });
 
@@ -451,10 +470,11 @@ export default class BulkEdit {
 
 	/**
 	 * A file taken back out of the uploader takes its parsed rows with it. Rows
-	 * read from a Google Sheet have no file behind them, so they stay.
+	 * read from a Google Sheet or from a file already in the library have no
+	 * file in the uploader behind them, so they stay.
 	 */
 	sync_uploaded_file() {
-		if (this.state.google_sheets_url) return;
+		if (this.state.google_sheets_url || this.state.library_file_url) return;
 		if (!this.file_uploader || this.uploaded_file_count() || !this.state.rows.length) return;
 		this.state.headers = [];
 		this.state.rows = [];
@@ -899,6 +919,9 @@ export default class BulkEdit {
 		}
 
 		this.state.google_sheets_url = google_sheets_url;
+		// one source at a time: a sheet read replaces whatever file was behind
+		// the last one (read_file sets this marker on its way in)
+		if (google_sheets_url) this.state.library_file_url = "";
 		this.state.headers = data[0] || [];
 		this.state.rows = [];
 		// kept alongside rows so a warning can name the line in the file
@@ -1002,7 +1025,7 @@ export default class BulkEdit {
 		});
 		this.dialog
 			.get_primary_btn()
-			.prop("disabled", !this.uploaded_file_count() && this.tab_defs[TAB_PREVIEW].disabled);
+			.prop("disabled", !this.has_file_selection() && this.tab_defs[TAB_PREVIEW].disabled);
 	}
 
 	download_template(file_type, fieldnames, export_records) {
@@ -1059,17 +1082,28 @@ export default class BulkEdit {
 	}
 
 	read_file(file, on_parsed) {
+		// a dropped file is read here and posted as a dataurl; one picked from
+		// the library was uploaded already, so it comes back as a File doc whose
+		// own name is the record's, not the file's, and is read server-side
+		const filename = file?.file_url ? file.file_name : file?.name;
+		if (!file || (!file.dataurl && !file.file_url)) return;
+		// remembered for the same reason the sheet's url is: a library file
+		// leaves the uploader empty, and empty is how sync_uploaded_file knows
+		// a file was taken back out
+		this.state.library_file_url = file.file_url || "";
+
 		// xlsx and xls need a reader the desk bundle does not have, and routing csv
 		// through the same call keeps every format producing identical rows
 		frappe.call({
 			method: "frappe.desk.form.bulk_edit.parse_bulk_edit_file",
 			args: {
 				doctype: this.grid.frm.doctype,
-				filename: file.name,
+				filename,
 				dataurl: file.dataurl,
+				file_url: file.file_url,
 			},
 			freeze: true,
-			freeze_message: __("Reading {0}", [file.name]),
+			freeze_message: __("Reading {0}", [filename]),
 			callback: (r) => {
 				if (r.message) on_parsed(r.message);
 			},
