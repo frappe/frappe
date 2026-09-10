@@ -18,7 +18,9 @@ export function awesomplete_shim(control, extra = {}) {
 	return Object.defineProperties(
 		{
 			open: () => combobox() && combobox().open(),
-			close: () => combobox() && combobox().close("owner"),
+			// the grid closes the classic dropdown on scroll; this panel follows
+			// its trigger, so a scroll only needs a reposition
+			close: () => combobox() && combobox().reposition(),
 			evaluate: () => {},
 			destroy: () => {},
 		},
