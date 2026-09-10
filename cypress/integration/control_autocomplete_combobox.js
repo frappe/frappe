@@ -5,12 +5,12 @@ context("Control Autocomplete (combobox)", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/desk/website");
-		cy.set_combobox_setting(true);
+		cy.set_value("System Settings", "System Settings", { enable_combobox_link_field: 1 });
 	});
 
 	after(() => {
 		cy.visit("/desk/website");
-		cy.set_combobox_setting(false);
+		cy.set_value("System Settings", "System Settings", { enable_combobox_link_field: 0 });
 	});
 
 	beforeEach(() => {
@@ -19,7 +19,7 @@ context("Control Autocomplete (combobox)", () => {
 
 	const make_dialog = (fieldname, options, extra = {}) => {
 		cy.window().its("frappe.sys_defaults").should("exist");
-		const dialog = cy.dialog({
+		return cy.dialog({
 			title: "Autocomplete",
 			fields: [
 				{
@@ -31,8 +31,6 @@ context("Control Autocomplete (combobox)", () => {
 				},
 			],
 		});
-		cy.window().its("cur_dialog.display").should("eq", true);
-		return dialog;
 	};
 	const field_input = (fieldname) =>
 		cy.get(`.frappe-control[data-fieldname=${fieldname}] .es-combobox input`);
@@ -88,6 +86,15 @@ context("Control Autocomplete (combobox)", () => {
 		field_input("ac4").type("Other");
 		cy.get(".modal-title").click();
 		cy.get("@dialog").then((dialog) => expect(dialog.get_value("ac4")).to.eq("Other"));
+		// Tab keeps the text, unless the arrow keys moved to a row
+		field_input("ac4").type("Opt");
+		search().type("{downArrow}");
+		panel()
+			.find(".es-combobox__list [role='option'][data-highlighted]")
+			.should("contain", "Option 2");
+		cy.realPress("Tab");
+		panel().should("not.exist");
+		cy.get("@dialog").then((dialog) => expect(dialog.get_value("ac4")).to.eq("Option 2"));
 	});
 
 	it("opens with the search focused as a dialog's first field, and Enter after a pick runs the primary action", () => {

@@ -5,15 +5,19 @@ context("Control Link (combobox)", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/desk/website");
-		cy.set_combobox_setting(true);
-		// the × button follows this setting
-		cy.set_system_setting("allow_clearing_link_fields", 1);
+		// the × button follows the second setting
+		cy.set_value("System Settings", "System Settings", {
+			enable_combobox_link_field: 1,
+			allow_clearing_link_fields: 1,
+		});
 	});
 
 	after(() => {
 		cy.visit("/desk/website");
-		cy.set_combobox_setting(false);
-		cy.set_system_setting("allow_clearing_link_fields", 0);
+		cy.set_value("System Settings", "System Settings", {
+			enable_combobox_link_field: 0,
+			allow_clearing_link_fields: 0,
+		});
 	});
 
 	beforeEach(() => {
@@ -108,6 +112,125 @@ context("Control Link (combobox)", () => {
 			cy.get(".modal-title").click();
 			panel().should("not.exist");
 			cy.get("@dialog").should((dialog) => expect(dialog.get_value("link")).to.eq(todos[0]));
+		});
+	});
+
+	it("keeps any typed text with ignore_link_validation", () => {
+		cy.window().its("frappe.sys_defaults").should("exist");
+		cy.dialog({
+			title: "Link",
+			fields: [
+				{
+					label: "Campaign",
+					fieldname: "campaign",
+					fieldtype: "Link",
+					options: "ToDo",
+					ignore_link_validation: 1,
+				},
+			],
+		}).as("dialog");
+		cy.get(".frappe-control[data-fieldname=campaign] .es-combobox input").type("summer-sale");
+		panel().find(".es-menu__empty").should("exist");
+		cy.get(".modal-title").click();
+		panel().should("not.exist");
+		cy.get("@dialog").should((dialog) =>
+			expect(dialog.get_value("campaign")).to.eq("summer-sale")
+		);
+	});
+
+	it("commits a name pasted and tabbed away before the rows arrived", () => {
+		cy.get("@todos").then((todos) => {
+			get_dialog_with_link().as("dialog");
+			search().type("{esc}");
+			panel().should("not.exist");
+			field_input().then(($input) => {
+				const data = new DataTransfer();
+				data.setData("text/plain", todos[0]);
+				$input[0].dispatchEvent(
+					new InputEvent("beforeinput", {
+						inputType: "insertFromPaste",
+						dataTransfer: data,
+						bubbles: true,
+						cancelable: true,
+					})
+				);
+			});
+			panel().should("be.visible");
+			// Tab at once, while the search for the pasted name is still out
+			cy.realPress("Tab");
+			panel().should("not.exist");
+			// the looked-up row, not just the text: the widget holds the value
+			cy.get("@dialog").should((dialog) =>
+				expect(dialog.get_field("link").combobox.get_value()).to.eq(todos[0])
+			);
+			cy.get("@dialog").should((dialog) => expect(dialog.get_value("link")).to.eq(todos[0]));
+		});
+	});
+
+	it("Select mode: typing jumps to a row from the first letter and Tab picks it", () => {
+		cy.window().its("frappe.sys_defaults").should("exist");
+		cy.window().then((win) => {
+			win.frappe.boot.link_settings = {
+				...(win.frappe.boot.link_settings || {}),
+				Role: { display_mode: "Select" },
+			};
+		});
+		cy.dialog({
+			title: "Link",
+			fields: [{ label: "Role", fieldname: "role", fieldtype: "Link", options: "Role" }],
+		}).as("dialog");
+		panel().find(".es-combobox__input").should("not.exist");
+		panel().type("{esc}");
+		panel().should("not.exist");
+		// the first letter opens the panel and already jumps to a row
+		cy.get(".frappe-control[data-fieldname=role] .es-combobox input").type("sys");
+		panel().find("[role='option'][data-highlighted]").should("contain", "System Manager");
+		cy.realPress("Tab");
+		panel().should("not.exist");
+		cy.get("@dialog").should((dialog) =>
+			expect(dialog.get_value("role")).to.eq("System Manager")
+		);
+	});
+
+	it("Tab picks a row moved to with the arrows; a script's value wins over a pending clear", () => {
+		cy.get("@todos").then((todos) => {
+			get_dialog_with_link().as("dialog");
+			panel().find(".es-combobox__list [role='option']").should("have.length.gt", 1);
+			cy.realPress("ArrowDown");
+			cy.window().then((win) => {
+				const field = win.cur_dialog.get_field("link");
+				const moved_to = field.combobox.highlighted.option.value;
+				cy.realPress("Tab");
+				panel().should("not.exist");
+				cy.get("@dialog").should((dialog) =>
+					expect(dialog.get_value("link")).to.eq(moved_to)
+				);
+			});
+
+			// Backspace clears; a set_value from a script while the panel is up wins
+			field_input().focus().type("{backspace}");
+			panel().should("be.visible");
+			cy.get("@dialog").then((dialog) => dialog.set_value("link", todos[0]));
+			search().type("{esc}");
+			panel().should("not.exist");
+			cy.get("@dialog").should((dialog) => expect(dialog.get_value("link")).to.eq(todos[0]));
+			field_input().invoke("val").should("not.be.empty");
+		});
+	});
+
+	it("keeps a value cleared and typed back before clicking away", () => {
+		cy.get("@todos").then((todos) => {
+			get_dialog_with_link().as("dialog");
+			cy.get("@dialog").then((dialog) => dialog.set_value("link", todos[0]));
+			cy.get("@dialog").should((dialog) => expect(dialog.get_value("link")).to.eq(todos[0]));
+			field_input().focus().type("{backspace}");
+			panel().should("be.visible");
+			search().type(todos[0]);
+			panel().find(".es-combobox__list [role='option']").should("contain", todos[0]);
+			cy.get(".modal-title").click();
+			panel().should("not.exist");
+			cy.get("@dialog").should((dialog) => expect(dialog.get_value("link")).to.eq(todos[0]));
+			field_input().invoke("val").should("not.be.empty");
 		});
 	});
 
@@ -283,6 +406,8 @@ context("Control Link (combobox)", () => {
 
 	it("should update dependant fields (via fetch_from)", () => {
 		cy.get("@todos").then((todos) => {
+			// a site default for the field would make the pick below a no-op
+			cy.set_value("ToDo", todos[0], { assigned_by: "" });
 			cy.visit(`/desk/todo/${todos[0]}`);
 			cy.reload();
 			cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
@@ -480,6 +605,31 @@ context("Control Link (combobox)", () => {
 				panel().should("not.exist");
 				cy.window().its("cur_frm.doc.items.2.todo").should("eq", todos[0]);
 				cy.get('.editable-row [data-fieldname="note"] input').should("have.focus");
+			});
+		});
+
+		it("adds the next row on Tab from a last-column link picked in the panel", () => {
+			cy.new_form("Test Link Combobox Grid");
+			cy.get("@todos").then((todos) => {
+				// the link as the grid's last column
+				cy.window()
+					.its("cur_frm")
+					.then((frm) => {
+						const grid = frm.fields_dict.items.grid;
+						grid.docfields.find((df) => df.fieldname === "note").in_list_view = 0;
+						grid.reset_grid();
+					});
+				cy.get('.frappe-control[data-fieldname="items"] .grid-add-row').click();
+				panel().should("be.visible");
+				search().type("todo for link", { delay: 100 });
+				panel()
+					.find(".es-combobox__list [role='option'][data-highlighted]")
+					.should("contain", todos[0]);
+				cy.realPress("Tab");
+				panel().should("not.exist");
+				cy.window().its("cur_frm.doc.items.0.todo").should("eq", todos[0]);
+				cy.window().its("cur_frm.doc.items.length").should("eq", 2);
+				cy.window().its("frappe.ui.form.editable_row.doc.idx").should("eq", 2);
 			});
 		});
 	});

@@ -174,8 +174,12 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	if (["Link", "Dynamic Link"].includes(fieldtype)) {
 		cy.get("@input").then(($input) => {
 			if ($input.closest(".es-combobox").length) {
-				// combobox Link field: focus opens a panel; type in its search box
-				cy.get("@input").focus();
+				// combobox Link field: a click opens the panel even on a filled
+				// value (a click on an open one would close it); type in its search box
+				cy.get("@input").then(($i) => {
+					if ($i.closest(".es-combobox").attr("data-state") !== "open")
+						cy.wrap($i).click();
+				});
 				// the panel is mounted in <body>, outside any .within() scope
 				cy.document()
 					.its("body")
@@ -344,6 +348,13 @@ Cypress.Commands.add("dialog", (opts) => {
 			var d = new frappe.ui.Dialog(opts);
 			d.show();
 			return d;
+		})
+		.then((d) => {
+			// wait for shown: until then the modal pulls focus from anything in <body>
+			cy.window({ log: false }).should((win) =>
+				expect(win.cur_dialog === d && d.display).to.eq(true)
+			);
+			return cy.wrap(d, { log: false });
 		});
 });
 
@@ -575,17 +586,4 @@ Cypress.Commands.add("compare_document", (expected_document) => {
 			cy.wait(1000);
 			compare_document(expected_document, frm.doc);
 		});
-});
-
-Cypress.Commands.add("set_system_setting", (fieldname, value) => {
-	cy.call("frappe.client.set_value", {
-		doctype: "System Settings",
-		name: "System Settings",
-		fieldname,
-		value,
-	});
-});
-
-Cypress.Commands.add("set_combobox_setting", (on) => {
-	cy.set_system_setting("enable_combobox_link_field", on ? 1 : 0);
 });
