@@ -331,13 +331,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.render_report_links();
 
 		// bind links
-		transactions_area_body.find(".badge-link").on("click", function () {
-			me.open_document_list($(this).closest(".document-link"));
+		transactions_area_body.find(".badge-link").on("click", function (e) {
+			me.open_document_list($(this).closest(".document-link"), false, e);
 		});
 
 		// bind open notifications
-		transactions_area_body.find(".open-notification").on("click", function () {
-			me.open_document_list($(this).parent(), true);
+		transactions_area_body.find(".open-notification").on("click", function (e) {
+			me.open_document_list($(this).parent(), true, e);
 		});
 
 		// bind new
@@ -356,12 +356,12 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			$(frappe.render_template("report_links", this.data)).appendTo(parent);
 			// bind reports
 			parent.find(".report-link").on("click", (e) => {
-				this.open_report($(e.target).parent());
+				this.open_report($(e.target).parent(), e);
 			});
 		}
 	}
 
-	open_report($link) {
+	open_report($link, event) {
 		let report = $link.attr("data-report");
 
 		let fieldname = this.data.non_standard_fieldnames
@@ -370,10 +370,11 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		frappe.provide("frappe.route_options");
 		frappe.route_options[fieldname] = this.frm.doc.name;
+		this.set_open_in_new_tab(event);
 		frappe.set_route("query-report", report);
 	}
 
-	open_document_list($link, show_open) {
+	open_document_list($link, show_open, event) {
 		// show document list with filters
 		let doctype = $link.attr("data-doctype"),
 			names = $link.attr("data-names") || [];
@@ -399,7 +400,18 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			}
 		}
 
+		this.set_open_in_new_tab(event);
 		frappe.set_route("List", doctype, "List");
+	}
+
+	set_open_in_new_tab(event) {
+		// Cmd/Ctrl+click on a dashboard link (transaction count, report link, etc.)
+		// should open the route in a new tab instead of navigating away from the
+		// current form. Mirrors the same modifier-key check used elsewhere for
+		// JS-driven navigation (e.g. quick_list_widget.js, awesome_bar.js).
+		if (event && (event.ctrlKey || event.metaKey)) {
+			frappe.open_in_new_tab = true;
+		}
 	}
 
 	get_document_filter(doctype, fieldname) {
