@@ -3,6 +3,8 @@
 
 import operator
 
+from pypika.terms import Criterion, Not
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -77,10 +79,17 @@ class Workflow(Document):
 
 	def update_default_workflow_status(self):
 		"""Seed the state field of documents this workflow governs, leaving the rest untouched."""
+		outranking = self.get_higher_priority_workflows()
+		if any(not workflow.conditions for workflow in outranking):
+			return
+
 		docstatus_map = {}
 		TargetDocType = frappe.qb.DocType(self.document_type)
 		state_field = getattr(TargetDocType, self.workflow_state_field)
 		criteria = self.get_condition_criteria(TargetDocType)
+		criteria += [
+			Not(Criterion.all(workflow.get_condition_criteria(TargetDocType))) for workflow in outranking
+		]
 
 		for d in self.get("states"):
 			if d.doc_status in docstatus_map:
@@ -97,6 +106,19 @@ class Workflow(Document):
 
 			query.run()
 			docstatus_map[d.doc_status] = d.state
+
+	def get_higher_priority_workflows(self) -> list["Workflow"]:
+		"""Active workflows of this doctype that claim a document before this one gets to."""
+		workflows = []
+		for name in get_workflow_names(self.document_type):
+			if name == self.name:
+				continue
+
+			other = frappe.get_cached_doc("Workflow", name)
+			if cint(other.priority) > cint(self.priority):
+				workflows.append(other)
+
+		return workflows
 
 	def get_condition_criteria(self, table) -> list:
 		comparators = {

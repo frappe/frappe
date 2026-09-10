@@ -284,6 +284,15 @@ def can_cancel_document(doctype: str, docname: str | None = None):
 	return True
 
 
+def get_state_for_docstatus(workflow: "Workflow", docstatus) -> str:
+	"""The state a document of this docstatus enters the workflow at."""
+	for state in workflow.states:
+		if cint(state.doc_status) == cint(docstatus):
+			return state.state
+
+	return workflow.states[0].state
+
+
 def validate_workflow(doc):
 	"""Validate Workflow State and Transition for the current user.
 
@@ -295,6 +304,11 @@ def validate_workflow(doc):
 	current_state = None
 	if getattr(doc, "_doc_before_save", None):
 		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
+
+	if current_state and not any(d.state == current_state for d in workflow.states):
+		current_state = get_state_for_docstatus(workflow, doc.docstatus)
+		doc.set(workflow.workflow_state_field, current_state)
+
 	next_state = doc.get(workflow.workflow_state_field)
 
 	if not next_state:
