@@ -104,7 +104,7 @@ def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
 		func.cached_values_counter = 0
 
 		@wraps(func)
-		def redis_cache_wrapper(*args, **kwargs):
+		def site_cache_wrapper(*args, **kwargs):
 			# NOTE: reason for both checks is to support `site_cache` functionality too, but by default it would create
 			# a `boot-strapping` problem, as internally `redis_wrapper` depends on `local.conf`. We also wait for `frappe.client_cache` to be available.
 			if not (frappe.client_cache) or not (hasattr(frappe.local, "conf")):
@@ -128,7 +128,7 @@ def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
 			func.cached_values_counter += 1
 			return val
 
-		return redis_cache_wrapper
+		return site_cache_wrapper
 
 	if callable(ttl):
 		return wrapper(ttl)
