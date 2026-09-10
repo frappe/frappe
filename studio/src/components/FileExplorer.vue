@@ -146,12 +146,12 @@
 	>
 		<template #title>
 			<span
-				class="mt-1 shrink-0 font-mono text-[10px] font-bold leading-none"
+				class="mt-0.5 shrink-0 font-mono text-[10px] font-bold leading-none"
 				:class="getFileBadge(openFile!.path).colorClass"
 			>
 				{{ getFileBadge(openFile!.path).label }}
 			</span>
-			<span class="text-sm text-ink-gray-8" :title="openFile!.path">
+			<span class="truncate text-sm text-ink-gray-8" :title="openFile!.path">
 				{{ openFile!.path }}
 				<span v-if="dirty" class="text-ink-amber-6">•</span>
 			</span>
