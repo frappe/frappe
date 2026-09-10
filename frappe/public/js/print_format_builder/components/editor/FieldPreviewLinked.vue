@@ -20,6 +20,7 @@ let pending_key = null;
 
 watchEffect(() => {
 	value.value = "";
+	pending_key = null;
 	const path = props.df.link_path;
 	const preview_doc = store.preview_doc.value;
 	if (!path || !path.includes(".")) return;
