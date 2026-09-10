@@ -6,16 +6,15 @@
 
 /* ---- trigger ---- */
 .es-combobox {
-    width: 100%;
     box-sizing: border-box;
     height: var(--input-height);
-    padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 2);
     background: var(--control-bg);
+    /* not the .rounded utility: bootstrap also defines it, with !important,
+       which would beat the square corners the grid asks for */
     border-radius: var(--radius);
     font-size: var(--text-base);
     line-height: 1.4;
     text-align: start;
-    cursor: pointer;
     user-select: none;
     outline: none;
 }
@@ -43,15 +42,12 @@ input.es-combobox__value {
     height: 100%;
     padding: 0;
     margin: 0;
-    border: 0 !important;
     box-shadow: none !important;
     background: transparent !important;
     color: inherit;
     font: inherit;
     line-height: inherit;
-    cursor: pointer;
     outline: none;
-    text-overflow: ellipsis;
 }
 
 input.es-combobox__value::placeholder {
@@ -130,7 +126,6 @@ input.es-combobox__value:disabled {
 
 .es-combobox__input {
     padding-inline: 0;
-    border: 0;
     background: transparent;
     font: inherit;
     font-size: var(--text-base);

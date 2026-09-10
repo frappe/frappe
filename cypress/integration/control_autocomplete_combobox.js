@@ -39,7 +39,7 @@ context("Control Autocomplete (combobox)", () => {
 	// one dialog at a time: a stale panel would answer the shared selectors
 	const close_dialog = () => {
 		cy.window().then((win) => win.cur_dialog && win.cur_dialog.hide());
-		cy.get(".modal:visible").should("not.exist");
+		cy.get(".modal.show").should("not.exist");
 	};
 
 	it("picks a typed match, maps its label to a value, and fires one native change", () => {
@@ -89,7 +89,7 @@ context("Control Autocomplete (combobox)", () => {
 		field_input("ac3").type("zzz");
 		panel().find(".es-menu__empty").should("exist");
 		panel().find(".es-combobox__footer").should("not.be.visible");
-		cy.get(".modal:visible .modal-title").click();
+		cy.get(".modal.show .modal-title").click();
 		panel().should("not.exist");
 		cy.get("@dialog").then((dialog) => expect(dialog.get_value("ac3")).to.eq("Option 2"));
 		close_dialog();
@@ -102,7 +102,7 @@ context("Control Autocomplete (combobox)", () => {
 		panel().should("not.exist");
 		cy.get("@free").then((dialog) => expect(dialog.get_value("ac4")).to.eq("Custom"));
 		field_input("ac4").type("Other");
-		cy.get(".modal:visible .modal-title").click();
+		cy.get(".modal.show .modal-title").click();
 		cy.get("@free").then((dialog) => expect(dialog.get_value("ac4")).to.eq("Other"));
 
 		// Tab keeps the text, unless the arrow keys moved to a row
@@ -182,6 +182,6 @@ context("Control Autocomplete (combobox)", () => {
 		cy.focused().should("have.class", "es-combobox__value");
 		cy.focused().type("{enter}");
 		cy.window().its("__picked").should("eq", "Beta");
-		cy.get(".modal:visible").should("not.exist");
+		cy.get(".modal.show").should("not.exist");
 	});
 });

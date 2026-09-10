@@ -229,7 +229,8 @@ frappe.ui.Combobox = class Combobox {
 
 	make_trigger() {
 		this.trigger_el = document.createElement("div");
-		this.trigger_el.className = "es-combobox flex items-center gap-2 text-ink-gray-8";
+		this.trigger_el.className =
+			"es-combobox w-full flex items-center gap-2 ps-2 pe-1.5 cursor-pointer text-ink-gray-8";
 		this.$trigger = $(this.trigger_el);
 		const t = this.trigger_el;
 		t.setAttribute("role", "combobox");
@@ -278,7 +279,8 @@ frappe.ui.Combobox = class Combobox {
 		} else {
 			this.value_el = document.createElement("span");
 		}
-		this.value_el.className = "es-combobox__value flex-1 min-w-0 truncate";
+		this.value_el.className =
+			"es-combobox__value flex-1 min-w-0 truncate border-0 cursor-pointer";
 
 		this.actions_el = document.createElement("span");
 		this.actions_el.className = "es-combobox__actions flex items-center gap-0.5 shrink-0";
@@ -622,7 +624,8 @@ frappe.ui.Combobox = class Combobox {
 				"es-combobox__search flex items-center gap-2 shrink-0 px-3 border-b border-outline-gray-1 text-ink-gray-5";
 			search.insertAdjacentHTML("beforeend", icon_html("search", "shrink-0", COMPONENT));
 			this.input = document.createElement("input");
-			this.input.className = "es-combobox__input flex-1 min-w-0 py-2 text-ink-gray-8";
+			this.input.className =
+				"es-combobox__input flex-1 min-w-0 py-2 border-0 text-ink-gray-8";
 			this.input.type = "text";
 			this.input.setAttribute("role", "searchbox");
 			this.input.setAttribute("aria-autocomplete", "list");

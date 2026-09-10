@@ -151,6 +151,31 @@ class TestSearch(IntegrationTestCase):
 		self.assertTrue(rows)
 		self.assertNotIn("image", rows[0])
 
+	def test_image_field_behind_a_permlevel_is_not_returned(self):
+		from frappe.desk.search import get_image_field
+
+		frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocField",
+				"doc_type": "User",
+				"field_name": "user_image",
+				"property": "permlevel",
+				"property_type": "Int",
+				"value": "1",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		self.addCleanup(frappe.clear_cache, doctype="User")
+		self.addCleanup(frappe.delete_doc, "Property Setter", "User-user_image-permlevel", force=True)
+		frappe.clear_cache(doctype="User")
+
+		# rows are read with permissions off, so the field itself is the gate
+		with self.set_user("Guest"):
+			self.assertEqual(frappe.get_meta("User").get_permlevel_access("read"), set())
+			self.assertIsNone(get_image_field("User"))
+
+		self.assertEqual(get_image_field("User"), "user_image")
+
 	def test_boot_link_settings(self):
 		from frappe.boot import get_link_settings
 

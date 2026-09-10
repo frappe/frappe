@@ -609,7 +609,10 @@ def get_link_settings() -> dict[str, dict]:
 		entry = {}
 		if flags[dt]["select"]:
 			entry["display_mode"] = "Select"
-		# the client needs the field name to fetch avatars without loading meta
+		# The client needs the field name to fetch avatars without loading meta.
+		# This reads meta (cached) rather than the DocType column, because the
+		# answer depends on Property Setters, Custom Fields and this user's
+		# permlevel access; only DocTypes that asked for images get here.
 		if flags[dt]["image"] and (image_field := get_image_field(dt)):
 			entry["image_field"] = image_field
 		if entry:

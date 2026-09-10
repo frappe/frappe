@@ -97,12 +97,16 @@ def search_link(
 
 
 def get_image_field(doctype: str) -> str | None:
-	"""The DocType's image_field, if it is a real (non-virtual) column."""
+	"""The DocType's image_field, if it is a real column this user may read."""
 	meta = frappe.get_meta(doctype)
 	if not meta.image_field:
 		return None
 	df = meta.get_field(meta.image_field)
 	if not df or getattr(df, "is_virtual", False):
+		return None
+	# a customised image_field can sit behind a permlevel: rows are read with
+	# permissions off, so refuse the field rather than hand its value out
+	if df.permlevel and df.permlevel not in meta.get_permlevel_access("read"):
 		return None
 	return meta.image_field
 

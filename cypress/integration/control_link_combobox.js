@@ -52,14 +52,14 @@ context("Control Link (combobox)", () => {
 
 	// scoped to the live modal: a hidden dialog keeps its own copy of the field
 	const field_input = () =>
-		cy.get(".modal:visible .frappe-control[data-fieldname=link] .es-combobox input");
+		cy.get(".modal.show .frappe-control[data-fieldname=link] .es-combobox input");
 	const panel = () => cy.get(".es-combobox__panel[data-state='open']");
 	const search = () => panel().find(".es-combobox__input");
 	// a hidden dialog keeps its markup, so clicks and panels stay scoped to the live one
-	const click_away = () => cy.get(".modal:visible .modal-title").click();
+	const click_away = () => cy.get(".modal.show .modal-title").click();
 	const close_dialog = () => {
 		cy.window().then((win) => win.cur_dialog && win.cur_dialog.hide());
-		cy.get(".modal:visible").should("not.exist");
+		cy.get(".modal.show").should("not.exist");
 	};
 	// a paste arrives as a beforeinput carrying a dataTransfer
 	const paste = (text) =>
