@@ -1010,6 +1010,14 @@ body.grid-col-resizing {
 // dialog.footer is moved into it in grid.js, not rebuilt, so this is styling
 // only. The modal-body's own padding is what gives the box its margin on every
 // side; the box only adds the gap under the step row.
+// The footer was moved inside the card, so the modal body's own bottom padding
+// now sits under it as well as the footer's — 15px above the buttons against
+// 15 + 15 below, which reads as the row having sunk. Dropping the footer's own
+// leaves one padding on each side of it.
+.bulk-edit-dialog .modal-footer {
+	padding-bottom: 0;
+}
+
 .bulk-edit-card {
 	flex: 1 1 auto;
 	min-height: 0;
