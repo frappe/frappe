@@ -492,8 +492,11 @@ class GetFieldsDialog {
 			],
 			primary_action_label: __("Update"),
 			primary_action: () => this.update(),
-			on_page_show: () =>
-				frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area"),
+			on_page_show: () => {
+				frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
+				// only on a form without fields, or it would re-tick fields removed on purpose
+				!this.existing_rows.length && this.select_mandatory();
+			},
 		});
 		this.make_header();
 		// fixed height, so the dialog does not resize while the search filters rows
@@ -514,6 +517,9 @@ class GetFieldsDialog {
 			</h6>
 			<div class="mb-3">
 				<button class="btn btn-default btn-sm" data-action="select_all">${__("Select All")}</button>
+				<button class="btn btn-default btn-sm" data-action="select_mandatory">
+					${__("Select Mandatory")}
+				</button>
 				<button class="btn btn-default btn-sm" data-action="unselect_all">${__("Unselect All")}</button>
 			</div>
 		`);
@@ -537,7 +543,7 @@ class GetFieldsDialog {
 				value: fieldname,
 				checked: this.existing_fieldnames.includes(fieldname),
 				description: df?.fieldtype,
-				danger: !!df?.reqd,
+				danger: this.is_field_mandatory(df),
 				warning: !!condition,
 				warning_title: condition ? __("Depends on: {0}", [condition]) : "",
 			};
@@ -555,8 +561,22 @@ class GetFieldsDialog {
 		this.set_all_checked(true);
 	}
 
+	// unlike the exporter, never unticks: an untick deletes that row on Update
+	select_mandatory() {
+		const checkboxes = this.dialog
+			.get_field("fields")
+			.options.filter((option) => option.danger)
+			.map((option) => option.$checkbox.find(":checkbox").get(0));
+		$(checkboxes).prop("checked", true).trigger("change");
+	}
+
 	unselect_all() {
 		this.set_all_checked(false);
+	}
+
+	// df is undefined for a row whose docfield was deleted
+	is_field_mandatory(df) {
+		return !!df?.reqd;
 	}
 
 	// MultiCheck listens for "change", so its get_value() stays in sync
