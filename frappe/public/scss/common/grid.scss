@@ -1033,11 +1033,21 @@ body.grid-col-resizing {
 		// the library's own rule for this element is position: absolute
 		position: fixed;
 		min-width: 0;
-		// same cap the list has inside the table, for the same reason: the
-		// field list of a wide child doctype is long enough to fill the screen
-		max-height: 30vh;
-		overflow-y: auto;
 	}
+}
+
+// Every list this dialog opens, wherever it is standing: a mapping picker's and
+// a Link cell's have moved to the host by now, an Autocomplete cell's is still
+// in the table. Bounded so a long one stays a sensible size, and in vh rather
+// than px because the dialog's own height is vh-based (BULK_EDIT_DIALOG_HEIGHT)
+// — a fixed cap reads as arbitrarily short on a tall screen and still too tall
+// on a short one. Awesomplete caps how many results it renders (max_items), but
+// the mapping picker deliberately sets that to Infinity: the user needs every
+// field of the child doctype, so the height is this rule's job.
+.bulk-edit-dropdown-host > ul,
+.bulk-edit-preview-table .awesomplete > ul {
+	max-height: 30vh;
+	overflow-y: auto;
 }
 
 .bulk-edit-card {
@@ -1112,15 +1122,6 @@ body.grid-col-resizing {
 		margin-bottom: 0;
 	}
 
-	// Bounded so a long list stays a sensible size. vh, not a fixed px cap —
-	// the dialog's own height is itself vh-based (BULK_EDIT_DIALOG_HEIGHT), so
-	// a fixed cap reads as arbitrarily short on a tall screen and still too
-	// tall on a short one. This is the list of a cell's own control, which
-	// stays in the table; a mapping picker's leaves it (.bulk-edit-dropdown-host).
-	.awesomplete > ul {
-		max-height: 30vh;
-		overflow-y: auto;
-	}
 }
 
 // NOTHING here may switch a container's overflow while a dropdown is open.
