@@ -90,6 +90,10 @@ LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters")
 # sidebar would fail on every customer site.
 SYSTEM_WRITE_FLAGS = ("in_import", "in_fixtures", "in_migrate", "in_install", "in_patch")
 
+# What a sidebar's title may not contain, because the title is the name, the name is the shell
+# identity, and a shell identity is a segment of the desk URL. See validate_title_is_routable.
+UNROUTABLE_IN_A_TITLE = "/?#%\\"
+
 
 class Sidebar(Document, DeskViews):
 	_DOCTYPE_NAME = "Sidebar"
@@ -120,6 +124,7 @@ class Sidebar(Document, DeskViews):
 		self.validate_app_content()
 		self.set_default_title()
 		self.validate_title_is_its_own()
+		self.validate_title_is_routable()
 		self.validate_standard()
 		self.clear_stored_keys()
 
@@ -159,6 +164,41 @@ class Sidebar(Document, DeskViews):
 				),
 				title=_("Pick another title"),
 			)
+
+	def validate_title_is_routable(self):
+		"""Refuse a title that cannot be half of a desk URL.
+
+		A sidebar's name is its shell identity, and a shell identity is a segment of the desk
+		URL: `/desk/stock/item` names the Stock shell and the Item list. `frappe.router.slug`
+		lowercases the name and turns spaces into dashes, and whatever survives that has to read
+		as one path segment.
+
+		Only the characters that break a path segment are refused: `/` ends the segment early,
+		`?` and `#` end the path, `%` opens an escape, and `\\` is read as a separator by some
+		servers. Careful encoding would carry all five, but not every caller encodes -- the
+		sidebar's own item links build a path by concatenation -- so they are refused at the
+		source instead.
+
+		Everything else stays allowed, and `&` deliberately so. hrms named two shells with one
+		because a module folder is a Python package and cannot hold it, and an `&` in a path is
+		legal. Reading `Shift & Attendance` as `shift-and-attendance` is the slug's job, not this
+		one's. Non-ASCII stays allowed too: it percent-encodes, round-trips, and a browser shows
+		it as it was written. A sidebar titled in Hindi is a perfectly good shell.
+
+		This says nothing about the module. A module may own several sidebars, and the one
+		titled after it is the one that answers for it (see `get_sidebar_bases`). A second shell
+		called something else is fine and now has a URL of its own.
+		"""
+		bad = sorted({character for character in UNROUTABLE_IN_A_TITLE if character in (self.title or "")})
+		if not bad:
+			return
+
+		frappe.throw(
+			_("A sidebar's name is part of its desk URL, so it cannot contain {0}.").format(
+				frappe.bold(" ".join(bad))
+			),
+			title=_("Pick another title"),
+		)
 
 	def rename_to_title(self):
 		"""Rename the document when the title changes, because the name is the title.

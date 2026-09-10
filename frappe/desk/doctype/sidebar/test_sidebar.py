@@ -10,6 +10,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
 	SYSTEM_WRITE_FLAGS,
+	UNROUTABLE_IN_A_TITLE,
 	clear_computed_base_cache,
 	filter_sidebar_items,
 	get_app_sidebar_layer,
@@ -645,6 +646,77 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 			frappe.get_doc("Sidebar", "Build").exported_file_path(),
 			os.path.join(frappe.get_module_path("Build"), "sidebar", "build", "build.json"),
 		)
+
+
+class TestSidebarTitleIsRoutable(IntegrationTestCase):
+	"""A sidebar's name is a segment of the desk URL, so it has to survive being one.
+
+	`/desk/stock/item` names the Stock shell and the Item list. The name reaches the URL through
+	`frappe.router.slug`, which only lowercases and turns spaces into dashes, so anything else in
+	the title lands in the path as it was written.
+
+	The rule is only about characters a path cannot carry. It says nothing about the module: a
+	module may still own several sidebars, and the second one is a shell with a URL of its own.
+	"""
+
+	MODULE = "Test Sidebar Routing Module"
+	SECOND = "Test Sidebar Second Shell"
+
+	def setUp(self):
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": self.MODULE, "app_name": "frappe"}
+			).insert()
+
+	def tearDown(self):
+		for name in frappe.get_all("Sidebar", filters={"module": self.MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
+
+	def test_a_title_the_url_cannot_carry_is_refused(self):
+		"""One case per character, because each breaks the path differently: `/` ends the segment,
+		`?` and `#` end the path, `%` opens an escape, and `\\` is a separator to some servers.
+		"""
+		for title in ("Pay/Benefits", "Why?", "100% Club", "A#B", "C\\D"):
+			with self.subTest(title=title):
+				# postgres aborts the transaction on a failed statement, so recover to a savepoint
+				frappe.db.savepoint("unroutable_title")
+				with self.assertRaises(frappe.ValidationError):
+					make_sidebar(self.MODULE, title=title)
+				frappe.db.rollback(save_point="unroutable_title")
+
+	def test_an_ampersand_is_allowed_because_the_slug_spells_it_out(self):
+		"""hrms named two shells with an `&` on purpose, since a module folder is a Python package
+		and cannot hold one. `&` is legal in a path, so the name stands and the slug is what
+		turns it into `shift-and-attendance`.
+		"""
+		self.assertEqual(make_sidebar(self.MODULE, title="Shift & Attendance").name, "Shift & Attendance")
+
+	def test_a_title_in_another_script_is_allowed(self):
+		"""Non-ASCII percent-encodes, round-trips, and a browser shows it as it was written.
+		Refusing it would say a shell can only be named in English.
+		"""
+		self.assertEqual(make_sidebar(self.MODULE, title="कर्मचारी").name, "कर्मचारी")
+
+	def test_a_second_shell_under_one_module_keeps_its_own_name(self):
+		"""The rule is about the URL, not the module.
+
+		This is here to catch a tightening that would tie the title back to its module. That would
+		read as tidier, and it would delete the second shell, since two sidebars cannot share a
+		title. A second shell now has a URL of its own, which is the reason to keep it.
+		"""
+		own = make_sidebar(self.MODULE)
+		second = make_sidebar(self.MODULE, title=self.SECOND)
+
+		self.assertEqual(second.module, own.module)
+		self.assertEqual(own.name, self.MODULE)
+		self.assertEqual(second.name, self.SECOND)
+
+	def test_the_sidebars_frappe_ships_all_survive_a_url(self):
+		for name in frappe.get_all("Sidebar", filters={"standard": 1, "app": "frappe"}, pluck="name"):
+			with self.subTest(name=name):
+				self.assertEqual([c for c in UNROUTABLE_IN_A_TITLE if c in name], [])
 
 
 class TestSidebarStandard(IntegrationTestCase):
