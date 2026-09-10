@@ -23,10 +23,16 @@ def execute():
 
 
 def rules_by_doctype():
+	"""Group rules per doctype, enabled ones first, then by priority.
+
+	set_new_name only ever offers a name to enabled rules, so a disabled rule
+	must not claim one ahead of them. It still gets a turn afterwards, for the
+	names it minted before it was switched off.
+	"""
 	rules = frappe.get_all(
 		"Document Naming Rule",
 		fields=["document_type", "prefix", "prefix_digits"],
-		order_by="priority desc",
+		order_by="disabled asc, priority desc",
 	)
 
 	grouped = {}
@@ -36,7 +42,7 @@ def rules_by_doctype():
 
 
 def seed_doctype(doctype, rules):
-	"""Attribute each name to one rule, in the order set_new_name applies them.
+	"""Attribute each name to one rule, in the order rules_by_doctype sets.
 
 	A prefix built only from variables compiles to a pattern that matches any
 	name ending in the right number of digits, and splits foreign names at the
