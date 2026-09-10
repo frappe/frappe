@@ -656,6 +656,19 @@ frappe.ui.Sidebar = class Sidebar {
 						},
 					],
 				},
+				// The way over to desk v2, mirroring the "Desk v1" row its user menu offers. A full
+				// link, since the two desks are separate documents.
+				{
+					group: "",
+					options: [
+						{
+							name: "desk-v2",
+							label: __("Desk v2"),
+							icon: "arrow-left-right",
+							href: "/apps",
+						},
+					],
+				},
 				// Logout is a section of its own, which is the rule the divider row here used to
 				// draw by hand.
 				{

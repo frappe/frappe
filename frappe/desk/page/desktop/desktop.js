@@ -270,6 +270,13 @@ class DesktopPage {
 				},
 				order: 40,
 			},
+			// The way over to desk v2, mirroring the "Desk v1" row its user menu offers.
+			{
+				icon: "arrow-left-right",
+				label: "Desk v2",
+				url: "/apps",
+				order: 45,
+			},
 		];
 		// sort() is stable, so items sharing an `order` keep the order they were added in.
 		menu_items = [...menu_items, ...this.desktop_menu_items].sort(
@@ -292,7 +299,7 @@ class DesktopPage {
 		});
 	}
 	// `item.order` is optional; lower sorts higher up the menu. Built-ins occupy
-	// 10-40, so omitting it drops the item below them (see DEFAULT_MENU_ITEM_ORDER).
+	// 10-45, so omitting it drops the item below them (see DEFAULT_MENU_ITEM_ORDER).
 	// Logout is always last and can't be displaced.
 	add_menu_item(item) {
 		if (this.desktop_menu_items.find((i) => i.label === item.label)) return;
