@@ -213,6 +213,10 @@ def consume_oauth_state(state: str) -> str | None:
 	Returns None if `state` doesn't reference a known, unused login attempt, or if the
 	request completing the callback doesn't carry the binding cookie set for it -
 	i.e. it isn't the browser that started this login attempt.
+
+	Single use belongs to the state, which is deleted here. The binding cookie is
+	deliberately not: it identifies the browser rather than one attempt, is shared by
+	every attempt that browser has in flight, and expires on its own.
 	"""
 	if not state:
 		return None
@@ -231,11 +235,6 @@ def consume_oauth_state(state: str) -> str | None:
 		frappe.utils.sha256_hash(presented_secret), data.get("binding_hash") or ""
 	):
 		return None
-
-	# Retire the binding only now that this browser is confirmed as the one that started
-	# the attempt. Clearing it any earlier would let a callback that fails validation take
-	# down the browser's other pending login attempts along with it.
-	frappe.local.cookie_manager.delete_cookie(OAUTH_LOGIN_BINDING_COOKIE)
 
 	return data.get("redirect_to")
 

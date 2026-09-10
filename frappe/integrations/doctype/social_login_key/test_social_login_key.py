@@ -139,6 +139,26 @@ class TestSocialLoginKey(IntegrationTestCase):
 		simulate_new_request(None if browser_dropped_cookie else issued_secret)
 		self.assertEqual(consume_oauth_state(flow_b), "/app/flow-b")
 
+	def test_completed_login_leaves_other_pending_states_usable(self):
+		"""Completing one attempt must not retire the browser's binding cookie either: the
+		cookie is shared by every attempt that browser has in flight, so doing so would
+		break the ones still pending."""
+		github_social_login_setup()
+
+		simulate_new_request()
+		flow_a = create_oauth_state("/app/flow-a")
+		flow_b = create_oauth_state("/app/flow-b")
+		issued_secret = current_binding_secret()
+
+		# Flow A completes successfully.
+		simulate_new_request(issued_secret)
+		self.assertEqual(consume_oauth_state(flow_a), "/app/flow-a")
+		browser_dropped_cookie = OAUTH_LOGIN_BINDING_COOKIE in frappe.local.cookie_manager.to_delete
+
+		# Flow B, still pending in that same browser, must remain redeemable.
+		simulate_new_request(None if browser_dropped_cookie else issued_secret)
+		self.assertEqual(consume_oauth_state(flow_b), "/app/flow-b")
+
 	def test_forged_oauth_state_is_rejected_end_to_end(self):
 		"""A state value that wasn't issued via create_oauth_state() must not log anyone in
 		or produce a redirect, regardless of what it contains."""
