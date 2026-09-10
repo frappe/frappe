@@ -9,7 +9,7 @@ from pypika.terms import ValueWrapper
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.operator_map import func_in
-from frappe.query_builder import Case
+from frappe.query_builder import Case, Interval
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import (
@@ -27,6 +27,7 @@ from frappe.query_builder.functions import (
 	Match,
 	Month,
 	MonthName,
+	Now,
 	Quarter,
 	Round,
 	Timestamp,
@@ -105,6 +106,9 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 	def test_constant_column(self):
 		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`")
+
+	def test_now_interval_keeps_native_arithmetic(self):
+		self.assertEqual("NOW()-INTERVAL '30 DAY'", (Now() - Interval(days=30)).get_sql())
 
 	def test_timestamp(self):
 		note = frappe.qb.DocType("Note")
@@ -335,6 +339,9 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 	def test_constant_column(self):
 		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"')
+
+	def test_now_interval_keeps_native_arithmetic(self):
+		self.assertEqual("NOW()-INTERVAL '30 DAY'", (Now() - Interval(days=30)).get_sql())
 
 	def test_timestamp(self):
 		note = frappe.qb.DocType("Note")
@@ -610,6 +617,30 @@ class TestCustomFunctionsSQLite(IntegrationTestCase):
 		self.assertIn('-BM25("__global_search") "rank"', sql)
 		self.assertIn('"content" MATCH %(param1)s', sql)
 		self.assertEqual(parameters, {"param1": '"company ""docs"""*'})
+
+	def test_now_interval_uses_sqlite_datetime_modifiers(self):
+		doctype = frappe.qb.DocType("DocType")
+		cases = (
+			(Now() - Interval(days=30), ["-30 days"]),
+			(Now() + Interval(weeks=-1), ["-7 days"]),
+			(Now() - Interval(quarters=2), ["-6 months"]),
+			(
+				Now() + Interval(months=2, days=3, microseconds=500_000),
+				["+2 months", "+3 days", "+0.5 seconds"],
+			),
+		)
+
+		for expression, expected_modifiers in cases:
+			with self.subTest(modifiers=expected_modifiers):
+				query = frappe.qb.from_(doctype).select(expression).limit(1)
+				sql, parameters = query.walk()
+
+				# SQLite's registered NOW() compatibility function follows Frappe's
+				# site timezone; CURRENT_TIMESTAMP would always use UTC.
+				self.assertIn("DATETIME(NOW()", sql)
+				self.assertNotIn("INTERVAL", sql)
+				self.assertEqual(list(parameters.values()), expected_modifiers)
+				self.assertIsNotNone(query.run(pluck=True)[0])
 
 	def test_datetime_functions_match_mariadb_results(self):
 		(

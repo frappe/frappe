@@ -5,7 +5,9 @@ from enum import Enum
 from pypika.enums import Arithmetic
 from pypika.functions import *
 from pypika.functions import Coalesce as PypikaCoalesce
+from pypika.functions import Now as PypikaNow
 from pypika.terms import ArithmeticExpression, CustomFunction, Function, Term
+from pypika.terms import Interval as PypikaInterval
 from pypika.utils import format_alias_sql
 
 import frappe
@@ -23,6 +25,55 @@ from frappe.query_builder.custom import (
 from frappe.query_builder.utils import ImportMapper, db_type_is
 
 from .utils import PseudoColumn
+
+
+class Interval(PypikaInterval):
+	"""An interval that can be rendered as SQLite ``DATETIME`` modifiers."""
+
+	def sqlite_datetime_modifiers(self, operation_sign: int) -> list[str]:
+		"""Return modifiers for adding (1) or subtracting (-1) this interval."""
+		if hasattr(self, "quarters"):
+			components = [(abs(self.quarters) * 3, "months", -1 if self.quarters < 0 else 1)]
+		elif hasattr(self, "weeks"):
+			components = [(abs(self.weeks) * 7, "days", -1 if self.weeks < 0 else 1)]
+		else:
+			interval_sign = -1 if self.is_negative else 1
+			components = [
+				(getattr(self, unit), unit, interval_sign) for unit in self.units if getattr(self, unit, 0)
+			]
+
+		modifiers = []
+		for value, unit, interval_sign in components:
+			if unit == "microseconds":
+				whole_seconds, remaining_microseconds = divmod(value, 1_000_000)
+				value = f"{whole_seconds}.{remaining_microseconds:06d}".rstrip("0").rstrip(".")
+				unit = "seconds"
+
+			sign = "+" if operation_sign * interval_sign > 0 else "-"
+			modifiers.append(f"{sign}{value} {unit}")
+
+		return modifiers
+
+
+class Now(PypikaNow):
+	"""Current timestamp with SQLite-compatible interval arithmetic."""
+
+	def get_function_sql(self, **kwargs):
+		if getattr(frappe.conf, "db_type", None) == "sqlite":
+			# Frappe registers NOW() on SQLite so it follows the site's timezone.
+			# SQLite's native CURRENT_TIMESTAMP is always UTC.
+			return "NOW()"
+		return super().get_function_sql(**kwargs)
+
+	def __add__(self, other):
+		if getattr(frappe.conf, "db_type", None) == "sqlite" and isinstance(other, Interval):
+			return Function("DATETIME", self, *other.sqlite_datetime_modifiers(operation_sign=1))
+		return super().__add__(other)
+
+	def __sub__(self, other):
+		if getattr(frappe.conf, "db_type", None) == "sqlite" and isinstance(other, Interval):
+			return Function("DATETIME", self, *other.sqlite_datetime_modifiers(operation_sign=-1))
+		return super().__sub__(other)
 
 
 class Concat_ws(Function):

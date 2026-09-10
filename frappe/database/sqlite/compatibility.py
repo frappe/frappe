@@ -87,6 +87,30 @@ def combine_date_with_time_duration(date_value, time_value):
 	)
 
 
+def difference_in_calendar_days(first_value, second_value):
+	"""Return MariaDB DATEDIFF semantics, ignoring the time portion."""
+	if first_value is None or second_value is None:
+		return None
+
+	try:
+		first_date = _parse_calendar_date(first_value)
+		second_date = _parse_calendar_date(second_value)
+	except (TypeError, ValueError, OverflowError):
+		return None
+
+	return (first_date - second_date).days
+
+
+def _parse_calendar_date(value) -> date:
+	if isinstance(value, bytes):
+		value = value.decode()
+	if isinstance(value, datetime):
+		return value.date()
+	if isinstance(value, date):
+		return value
+	return datetime.fromisoformat(str(value)).date()
+
+
 def _get_sunday_first_week(value: datetime) -> tuple[int, int]:
 	"""Return MySQL mode-2 week-year/week: Sunday first, range 1..53."""
 	week = int(value.strftime("%U"))
