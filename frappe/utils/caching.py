@@ -102,7 +102,6 @@ def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
 		func.ttl = ttl if not callable(ttl) else 3600
 		func.maxsize = maxsize
 		func.cached_values_counter = 0
-		func.expiry = time.monotonic() + func.ttl
 
 		@wraps(func)
 		def site_cache_wrapper(*args, **kwargs):
@@ -114,10 +113,6 @@ def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
 			func_call_key = f"{func_key}::{hash(__generate_request_cache_key(args, kwargs))}"
 			cached_val = frappe.client_cache.get_value(func_call_key, shared=False, ttl=func.ttl)
 			if cached_val is not None:
-				if time.monotonic() > func.expiry:
-					# expired. We do it again, since `client_cache.get_value` returns the cached_value only for now. Updating that API is cumbersome.
-					func.cached_values_counter -= 1
-					assert func.cached_values_counter >= 0
 				return cached_val
 
 			val = func(*args, **kwargs)
