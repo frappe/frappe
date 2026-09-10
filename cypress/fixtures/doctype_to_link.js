@@ -22,11 +22,6 @@ export default {
 			link_doctype: "Doctype With Child Table",
 			link_fieldname: "title",
 		},
-		{
-			group: "Child Doctype",
-			link_doctype: "Doctype With Link And Child Table",
-			link_fieldname: "doctype_to_link",
-		},
 	],
 	modified: "2022-02-10 12:03:12.603763",
 	modified_by: "Administrator",
