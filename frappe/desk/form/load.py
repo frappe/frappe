@@ -266,28 +266,60 @@ def get_versions(doc: "Document") -> list[dict]:
 
 	has_read_permission = doc.get_permlevel_access(permission_type="read")
 
-	if frappe.session.user == "Administrator" or not has_read_permission:
+	if 0 not in has_read_permission and frappe.share.get_shared(
+		doc.doctype,
+		frappe.session.user,
+		rights=["read"],
+		filters=[["share_name", "=", str(doc.name)]],
+		limit=1,
+	):
+		has_read_permission = [*has_read_permission, 0]
+
+	if frappe.session.user == "Administrator":
 		return mask_version_data(versions, doc.doctype)
 
-	allowed_fields = []
-
-	for field in doc.meta.fields:
-		if field.permlevel in has_read_permission:
-			allowed_fields.append(field.fieldname)
-
+	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in has_read_permission}
+	allowed_child_fields = {}
 	for table_field in doc.meta.get_table_fields():
-		nested_fields = frappe.get_meta(table_field.options).fields or []
-		for field in nested_fields:
-			if field.permlevel in has_read_permission:
-				allowed_fields.append(field.fieldname)
+		allowed_child_fields[table_field.fieldname] = {
+			df.fieldname
+			for df in (frappe.get_meta(table_field.options).fields or [])
+			if df.permlevel in has_read_permission
+		}
+
+	def filter_changed(logs):
+		return [log for log in logs or [] if log and log[0] in allowed_parent_fields]
+
+	def filter_row_changed(logs):
+		out = []
+		for log in logs or []:
+			if len(log) < 4:
+				continue
+			allowed = allowed_child_fields.get(log[0])
+			if allowed is None:
+				continue
+			nested = [entry for entry in (log[3] or []) if entry and entry[0] in allowed]
+			if nested:
+				out.append([log[0], log[1], log[2], nested])
+		return out
+
+	def filter_rows(logs):
+		out = []
+		for log in logs or []:
+			if len(log) < 2:
+				continue
+			allowed = allowed_child_fields.get(log[0])
+			if allowed is None or not isinstance(log[1], dict):
+				continue
+			out.append([log[0], {k: v for k, v in log[1].items() if k in allowed}])
+		return out
 
 	for version in versions:
 		data = frappe.parse_json(version.data)
-		# Iterate over logs and remove any fields that the user does not have permission to
-		data["changed"] = filter_logs(data.get("changed", []), allowed_fields)
-		data["added"] = filter_logs(data.get("added", []), allowed_fields)
-		data["removed"] = filter_logs(data.get("removed", []), allowed_fields)
-		data["row_changed"] = filter_logs(data.get("row_changed", []), allowed_fields)
+		data["changed"] = filter_changed(data.get("changed"))
+		data["added"] = filter_rows(data.get("added"))
+		data["removed"] = filter_rows(data.get("removed"))
+		data["row_changed"] = filter_row_changed(data.get("row_changed"))
 		version.data = frappe.utils.orjson_dumps(data)
 
 	return mask_version_data(versions, doc.doctype)
