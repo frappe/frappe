@@ -30,19 +30,11 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		# below rather than let Function.get_sql place it before the clause exists.
 		query_alias = self.alias
 		self.alias = None
-<<<<<<< HEAD
-		sql = super().get_sql(**kwargs)
-		if self._separator:
-=======
 		try:
 			sql = super().get_sql(**kwargs)
 		finally:
 			self.alias = query_alias
-		# an explicit "" is a real request for no delimiter, not "use the default": dropping the
-		# clause would silently fall back to MariaDB's comma while STRING_AGG concatenates bare.
-		if self._separator is not None:
-			assert sql.endswith(")"), "GROUP_CONCAT SQL must end with ')' before injecting SEPARATOR"
->>>>>>> 6b0ed98 (fix: render GROUP_CONCAT alias through format_alias_sql)
+		if self._separator:
 			sql = f"{sql[:-1]} SEPARATOR {frappe.db.escape(self._separator)})"
 
 		# Re-attach through format_alias_sql, the same path every other term uses: it escapes the
