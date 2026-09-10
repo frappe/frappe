@@ -193,7 +193,9 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 
 	get_select_buttons() {
 		const select_mandatory_button = this.df.select_mandatory
-			? `<button class="btn btn-xs btn-default select-mandatory">${__("Select Mandatory")}</button>`
+			? `<button class="btn btn-xs btn-default select-mandatory">${__(
+					"Select Mandatory"
+			  )}</button>`
 			: "";
 		return $(`
 		<div class="bulk-select-options">

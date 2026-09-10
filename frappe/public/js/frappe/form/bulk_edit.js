@@ -203,7 +203,7 @@ export default class BulkEdit {
 						content: () => this.panels.preview[0],
 						disabled: true,
 					},
-				]
+			  ]
 			: [{ label: __("Setup"), content: () => this.panels.setup[0] }];
 
 		this.tabs = new frappe.ui.Tabs({
@@ -259,7 +259,7 @@ export default class BulkEdit {
 		// preview marks its own errored columns the same way. The text sits in a
 		// child so it can be clipped; .indicator itself is a flex row.
 		this.$message = $(
-			'<div class="bulk-edit-footer-message indicator red small hide"><span></span></div>',
+			'<div class="bulk-edit-footer-message indicator red small hide"><span></span></div>'
 		).appendTo(this.dialog.custom_actions);
 
 		// standard-actions is static markup that set_primary_action and its
@@ -305,7 +305,7 @@ export default class BulkEdit {
 							"export_records",
 							value === BULK_EDIT_INSERT
 								? BULK_EDIT_BLANK_TEMPLATE
-								: BULK_EDIT_ALL_RECORDS,
+								: BULK_EDIT_ALL_RECORDS
 						);
 						this.tabs.set_disabled(TAB_UPLOAD, !value);
 						this.refresh_field_options();
@@ -473,7 +473,7 @@ export default class BulkEdit {
 				$file_pane.toggleClass("has-file", Boolean(this.uploaded_file_count()));
 				this.sync_uploaded_file();
 				this.set_footer();
-			}, 0),
+			}, 0)
 		);
 
 		// No separate Import button — same as the PR: entering a URL and
@@ -663,9 +663,7 @@ export default class BulkEdit {
 				// same as a flagged cell: clicking the thing that is wrong puts
 				// what is wrong with it in the footer
 				control.$input?.on("focus click", () => this.show_cell_message(control));
-				seeded.push(
-					control.set_value(this.state.column_map[i] || BULK_EDIT_DONT_IMPORT),
-				);
+				seeded.push(control.set_value(this.state.column_map[i] || BULK_EDIT_DONT_IMPORT));
 				this.mapping_controls[i] = control;
 			});
 
@@ -870,7 +868,7 @@ export default class BulkEdit {
 
 	render_skip_buttons($table, warnings) {
 		const rows_with_warnings = new Set(
-			warnings.filter((w) => w.row !== undefined).map((w) => cint(w.row)),
+			warnings.filter((w) => w.row !== undefined).map((w) => cint(w.row))
 		);
 		$table.find("tr[data-row]").each((_, tr) => {
 			const row = cint(tr.dataset.row);
@@ -992,7 +990,7 @@ export default class BulkEdit {
 				r,
 				col,
 				warning || { field: mapped_df },
-				fieldname,
+				fieldname
 			);
 		});
 
@@ -1004,8 +1002,8 @@ export default class BulkEdit {
 			// mapping_controls is sparse where a view leaves a column out, and
 			// spreading it fills those places with undefined
 			[...Object.values(this.cell_controls), ...this.mapping_controls].find((c) =>
-				c?.$input?.is(":focus"),
-			),
+				c?.$input?.is(":focus")
+			)
 		);
 	}
 
@@ -1043,10 +1041,10 @@ export default class BulkEdit {
 			this.state.rows,
 			this.state.row_numbers,
 			this.state.import_type,
-			map,
+			map
 		);
 		warnings.push(
-			...(await this.get_link_warnings(this.state.rows, this.state.row_numbers, map)),
+			...(await this.get_link_warnings(this.state.rows, this.state.row_numbers, map))
 		);
 		// a later mapping change already started its own refresh; let that one win
 		if (request_id !== this.preview_request_id) return;
@@ -1076,7 +1074,7 @@ export default class BulkEdit {
 		// doctype applies (value_mapping.py: "Row warnings for user-skipped rows
 		// are ignored"). A column warning has no row, so it always counts.
 		return this.state.warnings.some(
-			(w) => w.blocking && !this.state.skipped_rows.has(cint(w.row)),
+			(w) => w.blocking && !this.state.skipped_rows.has(cint(w.row))
 		);
 	}
 
@@ -1106,9 +1104,9 @@ export default class BulkEdit {
 					(w) =>
 						w.blocking &&
 						w.row !== undefined &&
-						!this.state.skipped_rows.has(cint(w.row)),
+						!this.state.skipped_rows.has(cint(w.row))
 				)
-				.map((w) => cint(w.row)),
+				.map((w) => cint(w.row))
 		);
 	}
 
@@ -1167,7 +1165,7 @@ export default class BulkEdit {
 				: __("{0} rows found, {1} need fixing. Fix them, or skip them to move on.", [
 						total,
 						pending,
-					]);
+				  ]);
 		}
 		return skipped
 			? __("{0} rows found, {1} skipped. Nothing left to fix.", [total, skipped])
@@ -1213,7 +1211,7 @@ export default class BulkEdit {
 		// validate). A refresh is the one read that keeps them.
 		if (!is_refresh) this.state.column_overrides = {};
 		this.state.column_map = this.apply_column_overrides(
-			await this.get_column_map(this.state.headers),
+			await this.get_column_map(this.state.headers)
 		);
 		// the build settles the mapping and runs the first refresh, so what is
 		// wrong with the file is known before it is decided which step to open.
@@ -1268,7 +1266,7 @@ export default class BulkEdit {
 						this.tabs.set_disabled(TAB_UPLOAD, false);
 						this.tabs.set_active(TAB_UPLOAD);
 					},
-					{ solid: true },
+					{ solid: true }
 				);
 				// nothing on this tab should ever block moving on
 				this.dialog.get_primary_btn().prop("disabled", false);
@@ -1293,11 +1291,11 @@ export default class BulkEdit {
 				() => {
 					this.dialog.hide();
 					const rows = this.state.rows.filter(
-						(_, r) => !this.state.skipped_rows.has(this.state.row_numbers[r]),
+						(_, r) => !this.state.skipped_rows.has(this.state.row_numbers[r])
 					);
 					this.apply_rows(rows, this.state.import_type, this.state.column_map);
 				},
-				{ solid: true },
+				{ solid: true }
 			);
 			this.dialog.get_primary_btn().prop("disabled", this.has_issues());
 			return;
@@ -1352,7 +1350,7 @@ export default class BulkEdit {
 		const header = docfields.map((df) =>
 			df.fieldname === BULK_EDIT_ID_FIELDNAME
 				? __("ID")
-				: `${__(df.label || df.fieldname)} (${df.fieldname})`,
+				: `${__(df.label || df.fieldname)} (${df.fieldname})`
 		);
 		const data = [header];
 
@@ -1366,7 +1364,7 @@ export default class BulkEdit {
 					const value = d[df.fieldname];
 					if (!value) return "";
 					return df.fieldtype === "Date" ? frappe.datetime.str_to_user(value) : value;
-				}),
+				})
 			);
 		});
 
@@ -1446,7 +1444,7 @@ export default class BulkEdit {
 		// data-col carries the column's place in the file, not in the table, so a
 		// view that leaves columns out still lines its cells up with the warnings
 		const head = columns.map(
-			(i) => `<th data-col="${i}" data-mapped="0">${escape(cstr(headers[i]))}</th>`,
+			(i) => `<th data-col="${i}" data-mapped="0">${escape(cstr(headers[i]))}</th>`
 		);
 		// trailing column: the per-row Skip button, mounted by sync_preview_errors
 		// on the rows that need one. Header and mapping row carry an empty cell
@@ -1464,15 +1462,10 @@ export default class BulkEdit {
 			(row, r) => `
 				<tr data-row="${cint(row_numbers[r])}">
 					<td class="bulk-edit-preview-row">${cint(row_numbers[r])}</td>
-					${columns
-						.map(
-							(i) =>
-								`<td data-col="${i}" data-mapped="0">${escape(cstr(row[i]))}</td>`,
-						)
-						.join("")}
+					${columns.map((i) => `<td data-col="${i}" data-mapped="0">${escape(cstr(row[i]))}</td>`).join("")}
 					<td class="bulk-edit-skip-cell"></td>
 				</tr>
-			`,
+			`
 		);
 
 		return `
@@ -1480,8 +1473,8 @@ export default class BulkEdit {
 				<span class="text-muted small">${
 					mapping
 						? __(
-								"Map each column of the file to a field. Anything left unmapped is ignored.",
-							)
+								"Map each column of the file to a field. Anything left unmapped is ignored."
+						  )
 						: __("These rows will be added to the table when you apply.")
 				}</span>
 				<div class="bulk-edit-preview-head-actions">
@@ -1493,7 +1486,7 @@ export default class BulkEdit {
 									label: __("Refresh"),
 									icon: "refresh-cw",
 									css_class: "bulk-edit-refresh-sheet",
-								})
+							  })
 							: ""
 					}
 					${
@@ -1509,13 +1502,13 @@ export default class BulkEdit {
 									// still left to skip
 									disabled: true,
 									css_class: "bulk-edit-skip-all",
-								})
+							  })
 							: ""
 					}
 				</div>
 			</div>
 			<div class="bulk-edit-preview-hint text-muted small">${__(
-				"Fix the highlighted cells. Click one to see and resolve its error.",
+				"Fix the highlighted cells. Click one to see and resolve its error."
 			)}</div>
 			<div class="bulk-edit-preview-table">
 				<table class="table table-bordered">
@@ -1552,7 +1545,7 @@ export default class BulkEdit {
 				...this.get_row_warnings(row, row_numbers[r], headers, columns, column_map, {
 					import_type,
 					id_index,
-				}),
+				})
 			);
 		});
 		return warnings;
@@ -1590,7 +1583,7 @@ export default class BulkEdit {
 			(columns_by_field[fieldname] ??= []).push(cint(index));
 		});
 		const duplicated = Object.entries(columns_by_field).filter(
-			([, columns]) => columns.length > 1,
+			([, columns]) => columns.length > 1
 		);
 		if (!duplicated.length) return [];
 
@@ -1600,7 +1593,7 @@ export default class BulkEdit {
 			this.get_docfields().map((df) => [
 				df.fieldname,
 				__(df.label || df.fieldname, null, df.parent),
-			]),
+			])
 		);
 
 		const warnings = [];
@@ -1625,7 +1618,7 @@ export default class BulkEdit {
 				warnings.push({
 					blocking: true,
 					message: __(
-						"No ID column is mapped, so no row can be matched. Every row will be skipped.",
+						"No ID column is mapped, so no row can be matched. Every row will be skipped."
 					),
 				});
 			}
@@ -1727,7 +1720,7 @@ export default class BulkEdit {
 					: __('"{0}" is not a valid datetime. Use {1}', [
 							value,
 							`${date_fmt} ${time_fmt}`,
-						]);
+					  ]);
 			}
 		}
 
@@ -1783,8 +1776,8 @@ export default class BulkEdit {
 					Object.entries(values_by_doctype).map(([doctype, values]) => [
 						doctype,
 						[...values],
-					]),
-				),
+					])
+				)
 			),
 		});
 
