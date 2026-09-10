@@ -223,7 +223,8 @@ def get_permitted_fields(
 	ignore_virtual=False,
 ) -> list[str]:
 	meta = frappe.get_meta(doctype)
-	valid_columns = meta.get_valid_columns()
+	# `_comments` is internal, never a permitted field
+	valid_columns = [c for c in meta.get_valid_columns() if c != "_comments"]
 
 	# note: any change here should also be made in _get_filterable_fields in query.py
 	if doctype in CORE_DOCTYPES:

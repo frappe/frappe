@@ -11,6 +11,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Field
@@ -683,6 +684,11 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertNotIn("_comments", row)
 			with self.assertRaises(frappe.PermissionError):
 				frappe.get_list("Test Blog Post", filters={"_comments": ("like", "%a%")})
+
+		# core doctypes skip field permissions but must not expose the blob either
+		frappe.set_user("Administrator")
+		self.assertIn("_comments", frappe.get_meta("DocType").get_valid_columns())
+		self.assertNotIn("_comments", get_permitted_fields("DocType"))
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
