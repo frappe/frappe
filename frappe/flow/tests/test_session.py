@@ -14,8 +14,6 @@ from frappe.tests import IntegrationTestCase
 from flow.daemon import lifecycle
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_session.flow_session import FlowSession
-from flow.lib.agent import Agent
-from flow.lib.model import Model
 from flow.lib.session import load_session, new_session
 from flow.tests.fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
@@ -93,11 +91,6 @@ class TestNewSession(ServerCase):
 		session = new_session()
 		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
 		self.assertIn(session.name, self.daemon.configs)
-
-	def test_code_agents_are_not_on_the_server_yet(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Code agents"):
-			new_session(Agent(model=Model(model_id="openai/gpt-4o-mini")))
-		self.assertEqual(self.daemon.calls, [])
 
 	def test_a_server_refusal_is_a_validation_error(self):
 		with patch.object(

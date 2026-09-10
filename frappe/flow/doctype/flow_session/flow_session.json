@@ -26,13 +26,14 @@
    "length": 200
   },
   {
-   "description": "Saved Flow Agent driving this conversation. Empty for sessions driven by a code-defined agent.",
+   "description": "Saved Flow Agent driving this conversation.",
    "fieldname": "agent",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Agent",
-   "options": "Flow Agent"
+   "options": "Flow Agent",
+   "reqd": 1
   },
   {
    "description": "Override the agent's default model for this conversation. Empty falls back to the agent's model.",
@@ -106,7 +107,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-09-09 12:00:00",
+ "modified": "2026-09-10 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",

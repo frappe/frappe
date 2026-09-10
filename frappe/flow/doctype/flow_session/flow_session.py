@@ -31,7 +31,7 @@ class FlowSession(Document):
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import FlowSessionAttachment
 		from flow.flow.doctype.flow_session_message.flow_session_message import FlowSessionMessage
 
-		agent: DF.Link | None
+		agent: DF.Link
 		attachments: DF.Table[FlowSessionAttachment]
 		auto_approve: DF.Check
 		last_synced_seq: DF.Int
@@ -69,7 +69,7 @@ class FlowSession(Document):
 		if self.is_new():
 			return
 		db_agent = frappe.db.get_value("Flow Session", self.name, "agent")
-		if (db_agent or None) != (self.agent or None):
+		if db_agent != self.agent:
 			frappe.throw(
 				_("Cannot change the agent on an existing session."),
 				title=_("Agent Locked"),
@@ -197,9 +197,6 @@ class FlowSession(Document):
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""
 		from flow.lib.model import model_config
-
-		if not self.agent:
-			frappe.throw(_(READ_ONLY), title=_("Flow Server"))
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:

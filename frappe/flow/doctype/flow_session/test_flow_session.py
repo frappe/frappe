@@ -18,6 +18,16 @@ from flow.tools.builtins import sync_builtin_tools
 DELETE = "flow.flow.doctype.flow_session.flow_session._delete_server_session"
 
 
+def _insert_agent() -> str:
+	model = frappe.get_doc(
+		{"doctype": "Flow Model", "title": "Purge Test Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+	).insert()
+	agent = frappe.get_doc(
+		{"doctype": "Flow Agent", "title": "Purge Test Agent", "model": model.name, "instructions": "x"}
+	).insert()
+	return agent.name
+
+
 class TestFlowSession(IntegrationTestCase):
 	def setUp(self):
 		self.model = frappe.get_doc(
@@ -40,12 +50,6 @@ class TestFlowSession(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
-
-	def test_session_can_be_created_without_agent(self):
-		# Code-defined agents drive sessions without a doctype agent link.
-		doc = frappe.get_doc({"doctype": "Flow Session", "title": "chat 1"}).insert(ignore_permissions=True)
-
-		self.assertIsNone(doc.agent)
 
 	def test_session_can_be_created_without_title(self):
 		doc = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert(
@@ -76,6 +80,7 @@ class TestFlowSession(IntegrationTestCase):
 class TestClearOldLogs(IntegrationTestCase):
 	def setUp(self):
 		self.server_delete = self.enterContext(patch(DELETE))
+		self.agent = _insert_agent()
 
 	def tearDown(self):
 		frappe.db.rollback()
@@ -84,7 +89,7 @@ class TestClearOldLogs(IntegrationTestCase):
 		f = frappe.get_doc({"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}).insert(
 			ignore_permissions=True
 		)
-		session = frappe.get_doc({"doctype": "Flow Session", "title": "chat"})
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent, "title": "chat"})
 		session.append("messages", {"role": "user", "content": "hi"})
 		session.append("attachments", {"file": f.name, "file_name": "f.txt", "file_size": 1})
 		session.insert(ignore_permissions=True)
@@ -129,31 +134,32 @@ class TestClearOldLogs(IntegrationTestCase):
 class TestAttachmentCleanup(IntegrationTestCase):
 	def setUp(self):
 		self.server_delete = self.enterContext(patch(DELETE))
+		self.agent = _insert_agent()
 
 	def tearDown(self):
 		frappe.db.rollback()
 
 	def test_on_trash_needs_the_flow_servers_consent(self):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
+		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent}).insert(ignore_permissions=True)
 		self.server_delete.side_effect = DaemonError(409, "cannot delete a session with an active run")
 		with self.assertRaisesRegex(frappe.ValidationError, "409"):
 			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
 		self.assertTrue(frappe.db.exists("Flow Session", s.name))
 
 	def test_on_trash_purges_session_chunks(self):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
+		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent}).insert(ignore_permissions=True)
 		with patch("flow.knowledge.attachment_store.delete") as delete:
 			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
 		delete.assert_called_once_with(session=s.name)
 
 	def test_cleanup_failure_does_not_block_delete(self):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
+		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent}).insert(ignore_permissions=True)
 		with patch("flow.knowledge.attachment_store.delete", side_effect=RuntimeError("store down")):
 			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
 		self.assertFalse(frappe.db.exists("Flow Session", s.name))
 
 	def test_on_trash_deletes_linked_runs(self):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
+		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent}).insert(ignore_permissions=True)
 		run = frappe.get_doc(
 			{"doctype": "Flow Run", "session": s.name, "source": "Manual", "status": "Completed"}
 		).insert(ignore_permissions=True)
@@ -162,7 +168,9 @@ class TestAttachmentCleanup(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Flow Run", run.name))
 
 	def test_clear_old_logs_purges_chunks_for_batch(self):
-		s = frappe.get_doc({"doctype": "Flow Session", "title": "old"}).insert(ignore_permissions=True)
+		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent, "title": "old"}).insert(
+			ignore_permissions=True
+		)
 		old = frappe.utils.add_days(frappe.utils.now(), -100)
 		frappe.db.set_value("Flow Session", s.name, "modified", old, update_modified=False)
 		with patch("flow.knowledge.attachment_store.delete") as delete:
@@ -368,12 +376,6 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 			with self.assertRaisesRegex(frappe.ValidationError, "read-only history"):
 				self.session.chat("hello")
 		self.assertEqual(self.runs(), 0)
-
-	def test_a_legacy_code_session_is_read_only_history(self):
-		session = frappe.get_doc({"doctype": "Flow Session"}).insert()
-
-		with self.assertRaisesRegex(frappe.ValidationError, "read-only history"):
-			session.chat("hello")
 
 	def test_deleting_a_session_drops_the_server_copy_first(self):
 		self.daemon.running = True

@@ -53,10 +53,6 @@ def new_session(
 	auto_approve: bool = False,
 ) -> FlowSession:
 	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant."""
-	from flow.lib.agent import Agent
-
-	if isinstance(agent, Agent):
-		frappe.throw(_("Code agents are not available on the flow server yet."), title=_("Flow Server"))
 	if agent is None:
 		# The default Assistant is shared; no per-user read check (matches the desk default).
 		agent_doc = frappe.get_doc("Flow Agent", _default_agent_name())
@@ -85,7 +81,7 @@ def load_session(name: str, *, agent: str | None = None, model: str | None = Non
 	"""Continue a session by id; `model` switches its model first."""
 	doc = frappe.get_doc("Flow Session", name)
 	_assert_session_owner(doc)
-	if agent and doc.agent and agent != doc.agent:
+	if agent and agent != doc.agent:
 		frappe.throw(
 			_("This session is bound to agent {0} and cannot be switched.").format(doc.agent),
 			title=_("Agent Mismatch"),
