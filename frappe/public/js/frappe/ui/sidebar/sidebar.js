@@ -1196,11 +1196,11 @@ frappe.ui.Sidebar = class Sidebar {
 		const shell = this.get_modules_linking(name)[0];
 		if (shell) this.select_module(shell);
 
-		const route = frappe.ui.sidebar_item.get_route({
-			type: "Link",
-			link_type: "Workspace",
-			link_to: name,
-		});
+		const route = frappe.ui.sidebar_item.get_route(
+			{ type: "Link", link_type: "Workspace", link_to: name },
+			false,
+			shell
+		);
 		if (route) frappe.set_route(route);
 	}
 
@@ -1317,12 +1317,16 @@ frappe.ui.Sidebar = class Sidebar {
 		// shell.
 		if (entry.module) this.select_module(entry.module);
 		this.open();
-		const route = frappe.ui.sidebar_item.get_route({
-			type: "Link",
-			link_type: entry.link_type,
-			link_to: entry.link_to,
-			url: entry.url,
-		});
+		const route = frappe.ui.sidebar_item.get_route(
+			{
+				type: "Link",
+				link_type: entry.link_type,
+				link_to: entry.link_to,
+				url: entry.url,
+			},
+			false,
+			entry.module
+		);
 		if (route) frappe.set_route(route);
 	}
 
@@ -1362,12 +1366,16 @@ frappe.ui.Sidebar = class Sidebar {
 	dock_entry_route(entry) {
 		if (!entry) return null;
 		if (entry.link_type === "Sidebar") return this.module_landing_route(entry.module);
-		return frappe.ui.sidebar_item.get_route({
-			type: "Link",
-			link_type: entry.link_type,
-			link_to: entry.link_to,
-			url: entry.url,
-		});
+		return frappe.ui.sidebar_item.get_route(
+			{
+				type: "Link",
+				link_type: entry.link_type,
+				link_to: entry.link_to,
+				url: entry.url,
+			},
+			false,
+			entry.module
+		);
 	}
 
 	// The last step above, and the switcher's own list: the app's modules this user can navigate
@@ -1401,7 +1409,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!sidebar) return null;
 
 		for (const item of sidebar.items || []) {
-			const route = frappe.ui.sidebar_item.get_route(item);
+			const route = frappe.ui.sidebar_item.get_route(item, false, module);
 			if (route) return route;
 		}
 		return null;

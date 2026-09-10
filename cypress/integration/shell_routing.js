@@ -164,4 +164,36 @@ describe("Desk URL shell segment", () => {
 		cy.location("pathname").should("eq", "/desk/build/todo");
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
 	});
+
+	it("highlights the sidebar item you are looking at", () => {
+		// The active item is found by comparing each item's href against the URL, as strings. Once
+		// the URL carried a shell and the hrefs did not, nothing matched and nothing was ever
+		// highlighted, on every sidebar at once.
+		cy.visit("/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+		cy.get(".standard-sidebar-item.active-sidebar").should("have.length", 1);
+	});
+
+	it("builds sidebar links that already name their shell", () => {
+		// The other half of the same thing: a link that arrives correct needs no rewriting, so
+		// clicking one does not change the URL out from under itself.
+		cy.visit("/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+		cy.window().then((win) => {
+			const path = frappe_route(win, { link_type: "DocType", link_to: "ToDo" }, "Build");
+			expect(path).to.eq("/desk/build/todo");
+
+			// A URL item points wherever its author said, desk or not, so it is left alone.
+			const external = frappe_route(
+				win,
+				{ link_type: "URL", url: "https://frappe.io" },
+				"Build"
+			);
+			expect(external).to.eq("https://frappe.io");
+		});
+	});
 });
+
+function frappe_route(win, item, shell) {
+	return win.frappe.ui.sidebar_item.get_route({ type: "Link", ...item }, false, shell);
+}
