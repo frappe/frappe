@@ -10,13 +10,15 @@ CHUNK_SIZE = 20000
 def execute():
 	"""Seed `tabSeries` from names already minted by Document Naming Rules.
 
+	Disabled rules are seeded too. A rule that minted names before being
+	disabled would otherwise restart at 1 whenever it is switched back on.
+
 	Rules used to keep a single counter on the rule itself. They now share the
 	per-prefix counters in `tabSeries`, which start at 1 and would collide with
 	existing names unless seeded here.
 	"""
 	rules = frappe.get_all(
 		"Document Naming Rule",
-		filters={"disabled": 0},
 		fields=["document_type", "prefix", "prefix_digits"],
 	)
 	for rule in rules:
@@ -48,11 +50,11 @@ def part_pattern(part, meta):
 	if part.startswith("#"):
 		return rf"\d{{{len(part)}}}"
 	if frappe.get_hooks("naming_series_variables", {}).get(part):
-		return ".+?"
+		return ".*?"
 	if part in FIXED_WIDTH_PARTS:
 		return rf"\d{{{FIXED_WIDTH_PARTS[part]}}}"
 	if part == "timestamp" or part.startswith("{") or meta.has_field(part.strip("{}")):
-		return ".+?"
+		return ".*?"
 	return re.escape(part)
 
 
@@ -61,9 +63,7 @@ def collect_counters(doctype, pattern):
 	start = 0
 
 	while True:
-		names = frappe.get_all(
-			doctype, pluck="name", order_by="name", limit_start=start, limit_page_length=CHUNK_SIZE
-		)
+		names = frappe.get_all(doctype, pluck="name", order_by="name", offset=start, limit=CHUNK_SIZE)
 		if not names:
 			return counters
 
