@@ -25,6 +25,10 @@
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"
     },
+    "./experimental/List": {
+      "import": "./src/experimental/List/index.ts",
+      "types": "./src/experimental/List/index.ts"
+    },
     "./ListView": {
       "import": "./src/components/ListView/index.ts",
       "types": "./src/components/ListView/index.ts"
@@ -57,8 +61,18 @@
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"
     },
+    "./island": {
+      "import": "./island/index.js"
+    },
+    "./island/host": {
+      "import": "./island/host.js"
+    },
+    "./island/Island.vue": "./island/Island.vue",
     "./vite": {
       "import": "./vite/index.js"
+    },
+    "./vite/island": {
+      "import": "./vite/island/index.js"
     },
     "./*": {
       "import": "./src/*"
@@ -66,6 +80,8 @@
   },
   "files": [
     "src",
+    "island",
+    "patches",
     "vite"
   ],
   "repository": {
@@ -83,9 +99,31 @@
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
+    "@vitejs/plugin-vue": ">=4",
     "@vueuse/core": ">=10.4.1",
-    "frappe-ui": ">=1.0.0-beta.16",
+    "autoprefixer": "^10.4.0",
+    "frappe-ui": ">=1.0.0-beta.55",
+    "tailwindcss": "^3.4.0",
+    "typescript": ">=5",
+    "vite": ">=4",
     "vue": ">=3.3.0",
     "vue-router": "^4.1.5"
+  },
+  "peerDependenciesMeta": {
+    "@vitejs/plugin-vue": {
+      "optional": true
+    },
+    "autoprefixer": {
+      "optional": true
+    },
+    "tailwindcss": {
+      "optional": true
+    },
+    "typescript": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
   }
 }

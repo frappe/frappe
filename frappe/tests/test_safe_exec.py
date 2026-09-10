@@ -1,6 +1,9 @@
 import types
+from unittest.mock import patch
 
 import frappe
+import frappe.integrations.utils
+import frappe.utils.safe_exec as safe_exec_utils
 from frappe.tests import IntegrationTestCase
 from frappe.utils.jinja import get_jenv, render_template
 from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
@@ -133,6 +136,109 @@ class TestSafeExec(IntegrationTestCase):
 		test_str = frappe.generate_hash()
 		safe_exec(f"print('{test_str}')")
 		self.assertEqual(frappe.local.debug_log[-1], test_str)
+
+
+class TestSSRFGuard(IntegrationTestCase):
+	def start_server(self, handler_cls):
+		import http.server
+		import threading
+
+		server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler_cls)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.shutdown)
+		return server.server_address[1]
+
+	def get_handler_class(self):
+		import http.server
+
+		test = self
+
+		class Handler(http.server.BaseHTTPRequestHandler):
+			def do_GET(self):
+				if self.path == "/redirect":
+					self.send_response(302)
+					self.send_header("Location", f"http://127.0.0.1:{test.port}/internal")
+				elif self.path == "/loop":
+					self.send_response(302)
+					self.send_header("Location", f"http://127.0.0.1:{test.port}/loop")
+				else:
+					self.send_response(200)
+					self.send_header("Content-Length", "2")
+				self.end_headers()
+				if self.path not in ("/redirect", "/loop"):
+					self.wfile.write(b"ok")
+
+			def log_message(self, *args):
+				pass
+
+		return Handler
+
+	def setUp(self):
+		self.port = self.start_server(self.get_handler_class())
+		self.session = safe_exec_utils.get_safe_request_session()
+
+	def test_blocked_urls(self):
+		blocked = [
+			"http://127.0.0.1/",
+			"http://localhost/",
+			"http://169.254.169.254/latest/meta-data/",
+			"http://[::1]/",
+			"file:///etc/passwd",
+			"ftp://example.com/",
+		]
+		for url in blocked:
+			with self.subTest(url=url):
+				self.assertRaises(safe_exec_utils.BlockedRequest, safe_exec_utils.validate_request_url, url)
+
+	def test_every_redirect_hop_is_validated(self):
+		hops = []
+		with (
+			patch.object(safe_exec_utils, "validate_request_url", hops.append),
+			patch.object(safe_exec_utils, "validate_request_address", lambda ip: None),
+		):
+			self.session.get(f"http://127.0.0.1:{self.port}/redirect")
+
+		self.assertEqual(len(hops), 2)
+		self.assertTrue(hops[1].endswith("/internal"))
+		self.assertRaises(safe_exec_utils.BlockedRequest, safe_exec_utils.validate_request_url, hops[1])
+
+	def test_connection_to_internal_peer_is_blocked(self):
+		# A hostname that passes pre-flight and then resolves to a private address
+		# (DNS rebinding) is still caught, because the peer address is checked too.
+		with patch.object(safe_exec_utils, "validate_request_url", lambda url: None):
+			self.assertRaises(
+				safe_exec_utils.BlockedRequest, self.session.get, f"http://127.0.0.1:{self.port}/ok"
+			)
+
+	def test_redirect_budget(self):
+		from requests.exceptions import TooManyRedirects
+
+		self.assertEqual(self.session.max_redirects, frappe.utils.DEFAULT_MAX_REDIRECTS)
+		with (
+			patch.object(safe_exec_utils, "validate_request_url", lambda url: None),
+			patch.object(safe_exec_utils, "validate_request_address", lambda ip: None),
+		):
+			self.assertRaises(TooManyRedirects, self.session.get, f"http://127.0.0.1:{self.port}/loop")
+
+	def test_all_verbs_are_guarded_in_sandbox(self):
+		verbs = ["get", "post", "put", "patch", "delete"]
+		sandbox_globals = get_safe_globals()["frappe"]
+		for verb in verbs:
+			with self.subTest(verb=verb):
+				self.assertIs(
+					sandbox_globals[f"make_{verb}_request"],
+					getattr(safe_exec_utils, f"make_safe_{verb}_request"),
+				)
+
+	def test_request_has_a_timeout(self):
+		captured = {}
+		with (
+			patch.object(safe_exec_utils, "validate_request_url", lambda url: None),
+			patch.object(frappe.integrations.utils, "make_request", lambda *a, **kw: captured.update(kw)),
+		):
+			safe_exec_utils.make_safe_get_request("http://example.com/")
+
+		self.assertEqual(captured["timeout"], safe_exec_utils.SAFE_REQUEST_TIMEOUT)
 
 
 class TestSafeDoc(IntegrationTestCase):

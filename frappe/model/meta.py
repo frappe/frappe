@@ -744,12 +744,11 @@ class Meta(Document):
 		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
-		has_access_to = []
+		has_access_to = set()
 		roles = set(frappe.get_roles(user))
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
-				if perm.permlevel not in has_access_to:
-					has_access_to.append(perm.permlevel)
+				has_access_to.add(perm.permlevel)
 
 		return has_access_to
 

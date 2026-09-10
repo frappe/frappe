@@ -57,10 +57,11 @@ frappe.breadcrumbs = {
 						.find("li")
 						.get($(container).find("li").length - 1);
 					$(last_element).find("a").attr("href", "");
-					frappe.ui.create_menu({
-						parent: $(last_element),
-						menu_items: breadcrumbs.menu_items,
-						size: "fit-content",
+					// `menu_items` follow frappe.ui.Dropdown's row shape: label, icon,
+					// onclick / href, condition, submenu.
+					new frappe.ui.Dropdown({
+						trigger: $(last_element),
+						options: breadcrumbs.menu_items,
 					});
 				});
 			}
@@ -190,11 +191,16 @@ frappe.breadcrumbs = {
 
 	set_dashboard_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
-		const docname = frappe.get_route()[1];
+		// The page names the document it drew. The route segment is only a
+		// fallback, because it carries whatever casing the link used. The label is
+		// what the reader sees. An island may title a document differently from
+		// its name, and the route must still reach the document.
+		const docname = breadcrumbs.docname || frappe.get_route()[1];
+		const label = breadcrumbs.label || docname;
 		let dashboard_route = `/desk/${frappe.router.slug(doctype)}/${docname}`;
 		$(
 			`<li><a href="${frappe.utils.escape_html(dashboard_route)}">${frappe.utils.escape_html(
-				__(docname)
+				__(label)
 			)}</a></li>`
 		).appendTo(this.$breadcrumbs);
 	},

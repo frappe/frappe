@@ -281,7 +281,19 @@ def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]
 	than rendered as hidden the way the dock renders one."""
 	resolved, hidden = resolve_arrangement(items, layers)
 
-	return [item for item in resolved if not hidden.get(item_key(item))]
+	kept = []
+	for item in resolved:
+		if hidden.get(item_key(item)):
+			continue
+
+		# The base's own flag has already done its work, in the seed `resolve_arrangement`
+		# builds. Leaving it behind would put `hidden` on an item the payload is about to
+		# render, which happens whenever a layer above brings back something the app ships off
+		# by default. Popping is safe because every item here is a dict the merge just built.
+		item.pop("hidden", None)
+		kept.append(item)
+
+	return kept
 
 
 def apply_sidebar_row(row, item: dict | None) -> dict | None:

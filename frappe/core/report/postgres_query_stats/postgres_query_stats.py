@@ -3,6 +3,8 @@
 
 import re
 
+from psycopg2.errors import ObjectNotInPrerequisiteState
+
 import frappe
 from frappe import _
 from frappe.modules.utils import get_doctype_app_map
@@ -10,6 +12,7 @@ from frappe.utils import cint
 
 # frappe quotes table identifiers, so tables appear as "tabDoctype Name" in the normalized query text
 TABLE_IN_QUERY = re.compile(r'"tab([^"]+)"')
+SAVE_POINT = "postgres_query_stats"
 
 
 def get_columns():
@@ -29,7 +32,24 @@ def execute(filters=None):
 	if frappe.db.db_type != "postgres":
 		frappe.throw(_("This report is only available on PostgreSQL sites."))
 
-	limit = cint((filters or {}).get("limit")) or 50
+	data = get_query_stats(cint((filters or {}).get("limit")) or 50)
+
+	app_map = get_doctype_app_map()
+	for row in data:
+		# pg_stat_statements returns "<insufficient privilege>" for queries run by other roles
+		# (grant pg_read_all_stats to see them), or NULL if the text was evicted. The datatable
+		# eats the angle brackets as an HTML tag, so relabel those so the cell is never blank.
+		text = row.get("query") or ""
+		row["app"] = _apps_in_query(text, app_map)
+		if not text or (text.startswith("<") and text.endswith(">")):
+			row["query"] = text.strip("<>") or "(query text unavailable)"
+
+	return get_columns(), data
+
+
+def get_query_stats(limit: int) -> list[dict]:
+	"""Top queries by total execution time, or a message naming the missing setup step."""
+	frappe.db.savepoint(SAVE_POINT)
 	try:
 		# scope to current_database() so a shared cluster only shows this site's queries
 		data = frappe.db.sql(
@@ -51,43 +71,52 @@ def execute(filters=None):
 			{"limit": limit},
 			as_dict=True,
 		)
-	except Exception as e:
-		frappe.db.rollback()
-		# Only a missing pg_stat_statements view means the extension isn't enabled. Re-raise
-		# anything else (privilege error, connection drop, a future column rename) so it is not
-		# misreported as "extension not installed".
-		if not frappe.db.is_table_missing(e):
-			raise
-		# CREATE EXTENSION is per-database, so a cluster can have the library preloaded yet the
-		# view missing on this site's DB. Point the admin at the exact missing step.
-		preloaded = "pg_stat_statements" in (frappe.db.sql("SHOW shared_preload_libraries")[0][0] or "")
-		if preloaded:
-			frappe.throw(
-				_(
-					"pg_stat_statements is loaded on the server but not enabled in this site's "
-					"database. A PostgreSQL superuser must run, connected to THIS database:"
-				)
-				+ "\n\n    CREATE EXTENSION pg_stat_statements;"
-			)
+	except Exception as exception:
+		# postgres aborts the whole transaction on a failed statement. Undo just this query so
+		# the checks below, and the caller's error reporting, still have a usable connection --
+		# a plain rollback would also discard unrelated work done earlier in the request.
+		frappe.db.rollback(save_point=SAVE_POINT)
+		_throw_missing_setup_step(exception)
+	else:
+		frappe.db.release_savepoint(SAVE_POINT)
+		return data
+
+
+def _throw_missing_setup_step(exception: Exception) -> None:
+	"""Name the exact pg_stat_statements setup step the administrator is missing."""
+	if isinstance(exception, ObjectNotInPrerequisiteState):
 		frappe.throw(
 			_(
-				"pg_stat_statements is not enabled. A PostgreSQL superuser must add "
-				"'pg_stat_statements' to shared_preload_libraries, restart PostgreSQL, then run "
-				"CREATE EXTENSION pg_stat_statements; in this site's database."
+				"pg_stat_statements is enabled in this site's database but not loaded on the server. "
+				"A PostgreSQL administrator must add 'pg_stat_statements' to shared_preload_libraries "
+				"and restart PostgreSQL."
 			)
 		)
 
-	app_map = get_doctype_app_map()
-	for row in data:
-		# pg_stat_statements returns "<insufficient privilege>" for queries run by other roles
-		# (grant pg_read_all_stats to see them), or NULL if the text was evicted. The datatable
-		# eats the angle brackets as an HTML tag, so relabel those so the cell is never blank.
-		text = row.get("query") or ""
-		row["app"] = _apps_in_query(text, app_map)
-		if not text or (text.startswith("<") and text.endswith(">")):
-			row["query"] = text.strip("<>") or "(query text unavailable)"
+	# Only a missing pg_stat_statements view means the extension isn't enabled. Re-raise
+	# anything else (privilege error, connection drop, a future column rename) so it is not
+	# misreported as "extension not installed".
+	if not frappe.db.is_table_missing(exception):
+		raise exception
 
-	return get_columns(), data
+	# CREATE EXTENSION is per-database, so a cluster can have the library preloaded yet the
+	# view missing on this site's DB. Point the admin at the exact missing step.
+	if "pg_stat_statements" in (frappe.db.sql("SHOW shared_preload_libraries")[0][0] or ""):
+		frappe.throw(
+			_(
+				"pg_stat_statements is loaded on the server but not enabled in this site's "
+				"database. A PostgreSQL superuser must run, connected to THIS database:"
+			)
+			+ "\n\n    CREATE EXTENSION pg_stat_statements;"
+		)
+
+	frappe.throw(
+		_(
+			"pg_stat_statements is not enabled. A PostgreSQL superuser must add "
+			"'pg_stat_statements' to shared_preload_libraries, restart PostgreSQL, then run "
+			"CREATE EXTENSION pg_stat_statements; in this site's database."
+		)
+	)
 
 
 def _apps_in_query(query: str, app_map: dict) -> str:

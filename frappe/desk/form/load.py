@@ -11,6 +11,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
+from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
@@ -149,10 +150,10 @@ def add_comments(doc, docinfo):
 	docinfo.like_logs = []
 	docinfo.workflow_logs = []
 
-	comments = frappe.get_all(
-		"Comment",
+	comments = get_document_comments(
+		doc.doctype,
+		doc.name,
 		fields=["name", "creation", "content", "owner", "comment_type", "published"],
-		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
 
 	for c in comments:
@@ -190,7 +191,7 @@ def get_milestones(doctype, name, start=0, limit=20):
 
 
 def get_attachments(dt, dn):
-	return frappe.get_all(
+	files = frappe.get_all(
 		"File",
 		fields=[
 			"name",
@@ -204,6 +205,40 @@ def get_attachments(dt, dn):
 		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
+	restricted = get_permlevel_restricted_fieldnames(dt)
+	if not restricted:
+		return files
+	return [f for f in files if f.attached_to_field not in restricted]
+
+
+def get_permlevel_restricted_fieldnames(dt) -> set:
+	"""Fieldnames (top-level and child table) whose permlevel the current user can't read."""
+	from frappe.desk.form.activity import readable_permlevels
+
+	if frappe.session.user == "Administrator":
+		return set()
+
+	meta = frappe.get_meta(dt)
+	all_fields = meta.fields.copy()
+	for table_field in meta.get_table_fields(include_computed=True):
+		all_fields += frappe.get_meta(table_field.options).fields or []
+
+	if all(df.permlevel == 0 for df in all_fields):
+		return set()
+
+	def restricted_fieldnames(field_meta, permitted):
+		if permitted is None:
+			return set()
+		return {df.fieldname for df in field_meta.fields or [] if df.permlevel not in permitted}
+
+	# a fieldname restricted in any table it appears in fails closed (dropped everywhere), since
+	# attached_to_field alone can't identify which table a given file's field actually came from
+	restricted = restricted_fieldnames(meta, readable_permlevels(meta))
+	for table_field in meta.get_table_fields(include_computed=True):
+		child_meta = frappe.get_meta(table_field.options)
+		restricted |= restricted_fieldnames(child_meta, readable_permlevels(child_meta, parenttype=dt))
+
+	return restricted
 
 
 @frappe.whitelist()
@@ -282,14 +317,11 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	else:
 		comment_types = [comment_type]
 
-	comments = frappe.get_all(
-		"Comment",
+	comments = get_document_comments(
+		doctype,
+		name,
 		fields=["name", "creation", "content", "owner", "comment_type"],
-		filters={
-			"reference_doctype": doctype,
-			"reference_name": name,
-			"comment_type": ["in", comment_types],
-		},
+		comment_types=comment_types,
 	)
 
 	# convert to markdown (legacy ?)

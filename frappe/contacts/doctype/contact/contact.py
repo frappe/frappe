@@ -9,7 +9,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-from frappe.query_builder.functions import Coalesce
+from frappe.query_builder.functions import Coalesce, Locate, NullIf
 from frappe.utils import cstr
 
 
@@ -74,11 +74,62 @@ class Contact(Document):
 		self.set_user()
 
 		set_link_title(self)
+		deduplicate_dynamic_links(self)
+		self.validate_primary_contact()
 
 		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
 			frappe.throw(_("Select Google Contacts to which contact should be synced."))
 
-		deduplicate_dynamic_links(self)
+	def validate_primary_contact(self) -> None:
+		if not self.is_primary_contact:
+			return
+
+		links = {(link.link_doctype, link.link_name) for link in self.links}
+		if not links:
+			return
+
+		self._lock_linked_documents(links)
+		primary_contacts = self._get_linked_primary_contacts(links)
+
+		if primary_contacts:
+			frappe.db.set_value("Contact", {"name": ["in", primary_contacts]}, "is_primary_contact", 0)
+
+	def _lock_linked_documents(self, links: set[tuple[str, str]]) -> None:
+		links_by_doctype = {}
+		for doctype, name in links:
+			links_by_doctype.setdefault(doctype, set()).add(name)
+
+		# Lock in a stable order so concurrent primary-contact updates serialize without deadlocking.
+		for doctype, names in sorted(links_by_doctype.items()):
+			frappe.qb.get_query(
+				doctype,
+				fields=["name"],
+				filters={"name": ["in", sorted(names)]},
+				order_by="name",
+				for_update=True,
+			).run()
+
+	def _get_linked_primary_contacts(self, links: set[tuple[str, str]]) -> list[str]:
+		Contact = frappe.qb.DocType("Contact")
+		DynamicLink = frappe.qb.DocType("Dynamic Link")
+
+		link_filter = None
+		for doctype, name in links:
+			condition = (DynamicLink.link_doctype == doctype) & (DynamicLink.link_name == name)
+			link_filter = condition if link_filter is None else link_filter | condition
+
+		return (
+			frappe.qb.from_(Contact)
+			.join(DynamicLink)
+			.on(DynamicLink.parent == Contact.name)
+			.select(Contact.name)
+			.distinct()
+			.where(Contact.is_primary_contact == 1)
+			.where(Contact.name != self.name)
+			.where(DynamicLink.parenttype == "Contact")
+			.where(DynamicLink.parentfield == "links")
+			.where(link_filter)
+		).run(pluck=True)
 
 	def set_user(self):
 		if not self.user and self.email_id:
@@ -349,40 +400,38 @@ def update_contact(doc, method):
 def contact_query(
 	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
 ):
-	from frappe.desk.reportview import get_match_cond
-
 	doctype = "Contact"
 	if not frappe.get_meta(doctype).get_field(searchfield) and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
-	link_doctype = filters.pop("link_doctype", None)
-	link_name = filters.pop("link_name", None)
-
-	return frappe.db.sql(
-		f"""select
-			`tabContact`.name, `tabContact`.full_name, `tabContact`.company_name
-		from
-			`tabContact`, `tabDynamic Link`
-		where
-			`tabDynamic Link`.parent = `tabContact`.name and
-			`tabDynamic Link`.parenttype = 'Contact' and
-			`tabDynamic Link`.link_doctype = %(link_doctype)s and
-			`tabDynamic Link`.link_name = %(link_name)s and
-			`tabContact`.`{searchfield}` like %(txt)s
-			{get_match_cond(doctype)}
-		order by
-			if(locate(%(_txt)s, `tabContact`.full_name), locate(%(_txt)s, `tabContact`.company_name), 99999),
-			`tabContact`.idx desc, `tabContact`.full_name
-		limit %(page_len)s offset %(start)s """,
-		{
-			"txt": "%" + txt + "%",
-			"_txt": txt.replace("%", ""),
-			"start": start,
-			"page_len": page_len,
-			"link_name": link_name,
-			"link_doctype": link_doctype,
-		},
+	Contact = frappe.qb.DocType(doctype)
+	query = frappe.qb.get_query(
+		Contact,
+		fields=[Contact.name, Contact.full_name, Contact.company_name],
+		filters=[
+			[Contact[searchfield], "like", f"%{txt}%"],
+			["Dynamic Link", "link_doctype", "=", filters.get("link_doctype")],
+			["Dynamic Link", "link_name", "=", filters.get("link_name")],
+		],
+		limit=page_len,
+		offset=start,
+		ignore_permissions=False,
 	)
+
+	if txt:
+		search_text = txt.replace("%", "")
+		full_name_position = NullIf(Locate(search_text, Contact.full_name), 0)
+		company_name_position = NullIf(Locate(search_text, Contact.company_name), 0)
+		relevance = (
+			frappe.qb.terms.Case()
+			.when(full_name_position.isnull(), Coalesce(company_name_position, 99999))
+			.when(company_name_position.isnull(), full_name_position)
+			.when(full_name_position <= company_name_position, full_name_position)
+			.else_(company_name_position)
+		)
+		query = query.orderby(relevance)
+
+	return query.orderby(Contact.idx, order=frappe.qb.desc).orderby(Contact.full_name).run()
 
 
 @frappe.whitelist()

@@ -40,8 +40,9 @@ def get_report_doc(report_name):
 				doc.custom_filters = data.get("filters")
 		doc.is_custom_report = True
 
-		# Follow whatever the custom report has set for prepared report field
+		# Follow whatever the custom report has set for prepared report fields
 		doc.prepared_report = custom_report_doc.prepared_report
+		doc.disable_prepared_report_automation = custom_report_doc.disable_prepared_report_automation
 
 	if not doc.is_permitted():
 		frappe.throw(
@@ -158,6 +159,8 @@ def generate_report_result(
 	if isinstance(filters, dict) and filters.get("translate_data"):
 		result = translate_report_data(result, has_total_row)
 
+	execution_time = frappe.cache.hget("report_execution_time", report.get("custom_report") or report.name)
+
 	return_dict = {
 		"result": result,
 		"columns": columns,
@@ -166,7 +169,7 @@ def generate_report_result(
 		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
-		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
+		"execution_time": execution_time or 0,
 	}
 
 	if report.snapshot_report and report.doctype_to_sync:

@@ -36,7 +36,7 @@ from frappe.deprecation_dumpster import (
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from frappe.utils.html_utils import sanitize_html
+from frappe.utils.html_utils import sanitize_html, sanitize_html_payload
 
 if TYPE_CHECKING:
 	from werkzeug.test import Client
@@ -355,6 +355,7 @@ def _get_traceback_sanitizer():
 		"token",
 		"key",
 		"pwd",
+		"client_secret",
 	]
 
 	placeholder = "********"
@@ -708,12 +709,16 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 
-def get_request_session(max_retries=5):
+DEFAULT_MAX_REDIRECTS = 5
+
+
+def get_request_session(max_retries=5, max_redirects=DEFAULT_MAX_REDIRECTS, adapter=None):
 	import requests
 	from requests.adapters import HTTPAdapter, Retry
 
 	session = requests.Session()
-	http_adapter = HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
+	session.max_redirects = max_redirects
+	http_adapter = adapter or HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
 
 	session.mount("http://", http_adapter)
 	session.mount("https://", http_adapter)
@@ -1157,6 +1162,25 @@ class CallbackManager:
 
 	def reset(self):
 		self._functions.clear()
+
+	def __len__(self) -> int:
+		return len(self._functions)
+
+	def __bool__(self) -> bool:
+		# stay truthy when empty; callers use `if callbacks:` as a None check
+		return True
+
+	def cut(self, count: int) -> list:
+		"""Detach and return the functions queued after the first `count`."""
+		detached = []
+		while len(self._functions) > count:
+			detached.append(self._functions.pop())
+		detached.reverse()
+		return detached
+
+	def truncate(self, count: int) -> None:
+		"""Drop functions queued after the first `count`."""
+		self.cut(count)
 
 
 def safe_eval(code, eval_globals=None, eval_locals=None):

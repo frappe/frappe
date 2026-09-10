@@ -58,8 +58,11 @@ def get_queues_timeout() -> dict[str, int]:
 	:return: Dictionary of queue name to timeout
 	"""
 	common_site_config = frappe.get_conf()
-	custom_workers_config = common_site_config.get("workers", {})
+	custom_workers_config = common_site_config.get("workers") or {}
 	default_timeout = 300
+
+	if not isinstance(custom_workers_config, dict):
+		custom_workers_config = {}
 
 	# Note: Order matters here
 	# If no queues are specified then RQ prioritizes queues in specified order
@@ -68,7 +71,9 @@ def get_queues_timeout() -> dict[str, int]:
 		"default": default_timeout,
 		"long": 1500,
 		**{
-			worker: config.get("timeout", default_timeout) for worker, config in custom_workers_config.items()
+			worker: config.get("timeout", default_timeout)
+			for worker, config in custom_workers_config.items()
+			if isinstance(config, dict)
 		},
 	}
 	# The three built-in queues must always be present; queue validation relies on this.
@@ -658,6 +663,9 @@ def create_job_id(job_id: str | None = None) -> str:
 	"""
 	Generate unique job id for deduplication
 
+	Idempotent: an id already namespaced for the current site is returned unchanged, so a
+	round-tripped id (e.g. `rq.job.Job.id`) can be passed straight back in.
+
 	:param job_id: Optional job id, if not provided, a UUID is generated for it
 	:return: Unique job id, namespaced by site
 	"""
@@ -666,7 +674,8 @@ def create_job_id(job_id: str | None = None) -> str:
 		job_id = str(uuid4())
 	else:
 		job_id = job_id.replace(":", "|")
-	namespaced_id = f"{frappe.local.site}||{job_id}"
+	site_prefix = f"{frappe.local.site}||"
+	namespaced_id = job_id if job_id.startswith(site_prefix) else site_prefix + job_id
 	assert "||" in namespaced_id, "namespaced job id must contain site separator '||'"
 	return namespaced_id
 
@@ -792,3 +801,41 @@ def _start_sentry():
 		integrations=integrations,
 		**kwargs,
 	)
+
+
+def mapreduce(
+	map_method: str | Callable,
+	reduce_method: str | Callable,
+	callback_method: str | Callable,
+	data: str,
+	document_type: str,
+	document_name: str,
+):
+	doc = frappe.new_doc("MapReduce Job")
+	doc.map = map_method
+	doc.reduce = reduce_method
+	doc.callback = callback_method
+	doc.data = frappe.json.dumps(data)
+	doc.document_type = document_type
+	doc.document_name = document_name
+	doc.insert().submit()
+	return doc
+
+
+def cancel_mapreduce_job(document_type: str, document_name: str):
+	jobs = frappe.db.get_all(
+		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
+	)
+	for j in jobs:
+		frappe.get_doc("MapReduce Job", j.name).cancel()
+
+
+def remove_mapreduce_job(document_type: str, document_name: str):
+	jobs = frappe.db.get_all(
+		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
+	)
+	for j in jobs:
+		doc = frappe.get_doc("MapReduce Job", j.name)
+		if not doc.docstatus.is_cancelled():
+			doc.cancel()
+		frappe.delete_doc("MapReduce Job", j.name, force=True, ignore_permissions=True)

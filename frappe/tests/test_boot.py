@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
@@ -70,6 +72,46 @@ class TestBootData(IntegrationTestCase):
 
 			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
 			self.assertEqual(build.call_count, 1)
+
+	def test_disabled_reports_are_not_allowed(self):
+		frappe.set_user("Administrator")
+
+		# role wiring decides which branch of the allowed-reports query a report comes from
+		with_custom_role = self._make_report("Test Disabled Custom Role Report", disabled=1)
+		frappe.get_doc(
+			{
+				"doctype": "Custom Role",
+				"report": with_custom_role,
+				"ref_doctype": "ToDo",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		without_roles = self._make_report("Test Disabled Roleless Report", disabled=1)
+		frappe.db.delete("Has Role", {"parent": without_roles, "parenttype": "Report"})
+
+		enabled = self._make_report("Test Enabled Report")
+
+		allowed_reports = DeskViews.get_allowed_reports()
+		self.assertNotIn(with_custom_role, allowed_reports)
+		self.assertNotIn(without_roles, allowed_reports)
+		self.assertIn(enabled, allowed_reports)
+
+	def _make_report(self, report_name, disabled=0):
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"ref_doctype": "ToDo",
+					"report_name": report_name,
+					"report_type": "Report Builder",
+					"is_standard": "No",
+					"disabled": disabled,
+				}
+			)
+			.insert()
+			.name
+		)
 
 
 class TestDeskViewModules(IntegrationTestCase):
@@ -170,6 +212,39 @@ class TestDeskViewModules(IntegrationTestCase):
 
 		row = next(d for d in rows if d["name"] == dashboard.name)
 		self.assertEqual(row["module"], "Desk")
+
+
+class TestAllowedDashboards(IntegrationTestCase):
+	"""`get_allowed_dashboards` reads the child tables, not a document per dashboard."""
+
+	def dashboard(self, **kwargs):
+		return frappe.get_doc(doctype="Dashboard", dashboard_name=frappe.generate_hash(), **kwargs).insert()
+
+	def allowed(self):
+		return {d["name"] for d in DeskViews.get_allowed_dashboards()}
+
+	def test_a_dashboard_holding_neither_charts_nor_cards_is_allowed(self):
+		frappe.set_user("Administrator")
+		self.assertIn(self.dashboard().name, self.allowed())
+
+	def test_a_dashboard_whose_charts_are_all_out_of_reach_is_not_allowed(self):
+		frappe.set_user("Administrator")
+		chart = frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name=frappe.generate_hash(),
+			chart_type="Count",
+			document_type="ToDo",
+			based_on="creation",
+			filters_json="[]",
+		).insert()
+		empty = self.dashboard()
+		filled = self.dashboard(charts=[{"chart": chart.name}])
+
+		with patch("frappe.desk.doctype.dashboard.dashboard.get_permitted_charts", return_value=[]):
+			allowed = self.allowed()
+
+		self.assertIn(empty.name, allowed)
+		self.assertNotIn(filled.name, allowed)
 
 
 class TestPermissionQueries(IntegrationTestCase):

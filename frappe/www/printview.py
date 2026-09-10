@@ -97,6 +97,7 @@ def get_context(context) -> PrintContext:
 		body = get_html(
 			doctype=frappe.form_dict.doctype,
 			name=frappe.form_dict.name,
+			doc=doc,
 			print_format=print_format,
 			letterhead=letterhead,
 			no_letterhead=frappe.form_dict.no_letterhead,
