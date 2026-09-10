@@ -33,7 +33,7 @@
 					type="button"
 					data-slot="country"
 					:data-state="open ? 'open' : 'closed'"
-					class="flex min-w-[50px] items-center justify-center gap-1 self-stretch rounded-l px-2 focus:outline-none"
+					class="flex min-w-[50px] items-center justify-center gap-1 self-stretch rounded-l-4 px-2 focus:outline-none"
 					:class="disabled && 'cursor-not-allowed'"
 					:disabled="disabled"
 					:aria-label="
@@ -48,7 +48,7 @@
 						v-if="phoneDetails.country"
 						:src="getFlagUrl(phoneDetails.country)"
 						:alt="phoneDetails.country.name"
-						class="h-3 w-4 rounded-sm object-cover"
+						class="h-3 w-4 rounded-1 object-cover"
 					/>
 					<!-- Same-size placeholder so the chevron never shifts. -->
 					<span v-else class="lucide-globe size-4 shrink-0 text-ink-gray-6" />
@@ -110,7 +110,7 @@
 						<img
 							:src="getFlagUrl(item.country)"
 							alt=""
-							class="h-3 w-4 rounded-sm object-cover"
+							class="h-3 w-4 rounded-1 object-cover"
 							loading="lazy"
 							decoding="async"
 						/>
@@ -218,10 +218,9 @@ const numberInputClasses = computed(() => [
 
 const inputClasses = computed(() => {
 	const sizeClasses = {
-		sm: "h-7 rounded",
-		md: "h-8 rounded",
-		lg: "h-10 rounded-md",
-		xl: "h-10 rounded-md",
+		sm: "h-7 rounded-4",
+		md: "h-8 rounded-4",
+		lg: "h-10 rounded-5",
 	}[props.size];
 
 	const variantClasses = props.disabled

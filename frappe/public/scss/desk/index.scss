@@ -33,6 +33,7 @@
 @import "../common/awesomeplete";
 @import "main";
 @import "sidebar";
+@import "sidebar_panel";
 @import "dock";
 @import "list_sidebar";
 @import "form_sidebar";
@@ -47,6 +48,7 @@
 @import "kanban";
 @import "calendar";
 @import "dashboard_view";
+@import "island_page";
 @import "tree";
 @import "../common/controls";
 @import "data_import";
@@ -59,7 +61,6 @@
 @import "../common/quill";
 @import "plyr";
 @import "version";
-@import "menu";
 @import "sidebar_header";
 @import "card";
 @import "arrangement_editor";

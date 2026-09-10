@@ -801,3 +801,41 @@ def _start_sentry():
 		integrations=integrations,
 		**kwargs,
 	)
+
+
+def mapreduce(
+	map_method: str | Callable,
+	reduce_method: str | Callable,
+	callback_method: str | Callable,
+	data: str,
+	document_type: str,
+	document_name: str,
+):
+	doc = frappe.new_doc("MapReduce Job")
+	doc.map = map_method
+	doc.reduce = reduce_method
+	doc.callback = callback_method
+	doc.data = frappe.json.dumps(data)
+	doc.document_type = document_type
+	doc.document_name = document_name
+	doc.insert().submit()
+	return doc
+
+
+def cancel_mapreduce_job(document_type: str, document_name: str):
+	jobs = frappe.db.get_all(
+		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
+	)
+	for j in jobs:
+		frappe.get_doc("MapReduce Job", j.name).cancel()
+
+
+def remove_mapreduce_job(document_type: str, document_name: str):
+	jobs = frappe.db.get_all(
+		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
+	)
+	for j in jobs:
+		doc = frappe.get_doc("MapReduce Job", j.name)
+		if not doc.docstatus.is_cancelled():
+			doc.cancel()
+		frappe.delete_doc("MapReduce Job", j.name, force=True, ignore_permissions=True)

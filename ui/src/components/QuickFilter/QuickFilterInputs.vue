@@ -34,29 +34,37 @@
 				@update:modelValue="(v: boolean) => setValue(field, v)"
 			/>
 			<!-- The fieldtype's value control. Free-text fields (and name) carry a
-			     ≈/= operator toggle as a prefix inside the input; clicking it flips
-			     like ↔ equals in place (and, for name, swaps text box ↔ Link pick). -->
-			<component
-				v-else
-				:is="valueControl(field).is"
-				v-bind="valueControl(field).props"
-				class="w-full"
-				:modelValue="displayValue(field)"
-				@update:modelValue="(v: FilterValue) => setValue(field, v)"
-			>
-				<template v-if="hasOperatorToggle(field)" #prefix>
+			     ≈/= operator toggle over the input's start; clicking it flips
+			     like ↔ equals in place (and, for name, swaps text box ↔ Link pick).
+			     The toggle sits outside the control, so the swap neither moves nor
+			     remounts it; the control gets a spacer where the toggle shows. -->
+			<div v-else class="relative flex">
+				<component
+					:is="valueControl(field).is"
+					v-bind="valueControl(field).props"
+					class="w-full"
+					:modelValue="displayValue(field)"
+					@update:modelValue="(v: FilterValue) => setValue(field, v)"
+				>
+					<template v-if="hasOperatorToggle(field)" #prefix>
+						<span class="block w-3.5 shrink-0" aria-hidden="true" />
+					</template>
+				</component>
+				<Tooltip
+					v-if="hasOperatorToggle(field)"
+					:text="operatorLabel(activeOperator(field))"
+				>
 					<button
 						type="button"
-						class="grid size-5 place-items-center rounded text-xs font-medium text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
-						:title="operatorLabel(activeOperator(field))"
+						class="absolute start-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-3 text-xs font-medium text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
 						:aria-label="operatorLabel(activeOperator(field))"
 						@pointerdown.stop
 						@click.stop="toggleOperator(field)"
 					>
 						{{ operatorSymbol(activeOperator(field)) }}
 					</button>
-				</template>
-			</component>
+				</Tooltip>
+			</div>
 		</div>
 		<!-- Overflow affordance: collapsed inputs hide behind a count; expanding
 		     shows all and lets them wrap. A `subtle` pill (not bare ghost text) so it
@@ -82,7 +90,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import { Button, Checkbox, TextInput, debounce } from "frappe-ui";
+import { Button, Checkbox, TextInput, Tooltip, debounce } from "frappe-ui";
 import {
 	applyQuick,
 	hasOperatorToggle,
@@ -301,9 +309,14 @@ function bareField(field: FilterField, overrides: Partial<FieldMeta> = {}): Fiel
 function valueControl(field: FilterField): ValueControl {
 	const fieldtype = field.fieldtype;
 	if (isNameField(field)) {
+		// The picker's input fills its trigger, so its text centres like the text box's and the
+		// placeholder stays still when the toggle swaps them.
 		return activeOperator(field) === "equals"
-			? { is: LinkField, props: { field: bareField(field) } }
-			: { is: TextInput, props: { type: "text", placeholder: field.label } };
+			? {
+					is: LinkField,
+					props: { field: bareField(field), class: "[&_input]:h-full" },
+			  }
+			: textControl(field);
 	}
 	if (fieldtype === "Link") {
 		return { is: LinkField, props: { field: bareField(field) } };
@@ -318,6 +331,12 @@ function valueControl(field: FilterField): ValueControl {
 	if (fieldtype === "Date") return { is: DateField, props: { field: bareField(field) } };
 	if (fieldtype === "Datetime") return { is: DatetimeField, props: { field: bareField(field) } };
 	if (fieldtype === "Duration") return { is: DurationField, props: { field: bareField(field) } };
-	return { is: TextInput, props: { type: "text", placeholder: field.label } };
+	return textControl(field);
+}
+
+/** With the toggle over its start, the text box keeps 2px between the toggle and the text. */
+function textControl(field: FilterField): ValueControl {
+	const inset = hasOperatorToggle(field) ? "[&_input]:ps-[26px]" : undefined;
+	return { is: TextInput, props: { type: "text", placeholder: field.label, class: inset } };
 }
 </script>

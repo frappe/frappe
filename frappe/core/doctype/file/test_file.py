@@ -23,6 +23,7 @@ from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extensio
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -532,6 +533,26 @@ class TestFile(IntegrationTestCase):
 		d.save()
 		self.assertEqual(d.folder, "Home")
 
+	def test_folder_file_url_is_always_empty(self):
+		folder = self.get_folder("Test Folder URL", "Home")
+		self.assertFalse(folder.file_url)
+
+		folder.file_url = "/private/files/somewhere.txt"
+		self.assertRaises(ValidationError, folder.save)
+
+		self.assertRaises(
+			ValidationError,
+			frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "another_folder",
+					"is_folder": 1,
+					"folder": "Home",
+					"file_url": "/private/files/somewhere_else.txt",
+				}
+			).insert,
+		)
+
 	def test_on_delete(self):
 		file = frappe.get_doc("File", {"file_name": "file_copy.txt"})
 		file.delete()
@@ -645,6 +666,7 @@ class TestFile(IntegrationTestCase):
 		test_file.file_name = "/private/files/_file"
 		self.assertRaisesRegex(ValidationError, "File name cannot have", test_file.validate)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_make_thumbnail(self):
 		# test web image
 		test_file: File = frappe.get_doc(
@@ -1400,6 +1422,19 @@ class TestChildTableAttachments(IntegrationTestCase):
 		self.assertTrue(frappe.has_permission(self.parent_doctype, doc=doc, ptype="read"))
 		self.assertTrue(frappe.has_permission("File", doc=reloaded, ptype="read"))
 
+	def test_child_table_does_not_adopt_another_users_private_orphan(self):
+		frappe.set_user("test@example.com")
+		victim_file = self.make_unattached_file(b"victim-bytes", is_private=1)
+
+		frappe.set_user("test4@example.com")
+		self.make_parent_doc(cards=[{"image": victim_file.file_url}])
+
+		reloaded_victim = frappe.get_doc("File", victim_file.name)
+		self.assertIsNone(reloaded_victim.attached_to_doctype)
+		self.assertIsNone(reloaded_victim.attached_to_name)
+
+		self.assertFalse(frappe.has_permission("File", doc=reloaded_victim, ptype="read"))
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
@@ -1754,6 +1789,45 @@ class TestFileUtils(IntegrationTestCase):
 
 		self.assertEqual(mock_get.call_count, 2)
 		self.assertEqual(extn, "jpg")
+
+	def test_resolved_file_path_stays_within_files_directory(self):
+		from frappe.utils.file_manager import get_file_path
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "within_bounds.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			self.assertTrue(get_file_path(normal.name).endswith("within_bounds.txt"))
+
+			normal.db_set("file_url", "/private/files/../../../../outside_bounds.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+
+			normal.db_set("file_url", "/private/files/../../site_level_file.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+
+	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
+		from frappe.utils.file_manager import get_file_path
+
+		sibling_dir = get_files_path(is_private=1) + "_lookalike"
+		os.makedirs(sibling_dir, exist_ok=True)
+		with open(os.path.join(sibling_dir, "neighbour.txt"), "w") as f:
+			f.write("outside the intended directory")
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "sibling_check.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			normal.db_set("file_url", "/private/files/../files_lookalike/neighbour.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+			shutil.rmtree(sibling_dir)
 
 	def test_get_web_image_rejects_redirect_to_restricted_address(self):
 		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
