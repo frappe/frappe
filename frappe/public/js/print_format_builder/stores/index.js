@@ -133,11 +133,29 @@ export function getStore(print_format_name) {
 						selected_lh_footer.value = false;
 
 						const lh_name = layout.value?.letter_head;
-						const load_lh = lh_name
-							? frappe.db
-									.get_doc("Letter Head", lh_name)
-									.then((doc) => (letterhead.value = doc))
-							: Promise.resolve((letterhead.value = null));
+						// mirrors the server's get_letterhead: a named letter head loads,
+						// "" is an explicit removal, and an absent key falls back to the
+						// system default — the canvas must show what the print will use
+						let load_lh;
+						if (lh_name) {
+							load_lh = frappe.db
+								.get_doc("Letter Head", lh_name)
+								.then((doc) => (letterhead.value = doc))
+								.catch(() => (letterhead.value = null));
+						} else if (lh_name === "") {
+							load_lh = Promise.resolve((letterhead.value = null));
+						} else {
+							load_lh = frappe.db
+								.get_value("Letter Head", { is_default: 1 }, "name")
+								.then((r) => {
+									const name = r?.message?.name;
+									if (!name) return (letterhead.value = null);
+									return frappe.db
+										.get_doc("Letter Head", name)
+										.then((doc) => (letterhead.value = doc));
+								})
+								.catch(() => (letterhead.value = null));
+						}
 
 						load_lh.then(() => {
 							reset_history();

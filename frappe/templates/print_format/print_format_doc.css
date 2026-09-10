@@ -526,7 +526,7 @@ body.print-format-doc .letter-head,
 	--pfb-pad-right: 0px;
 	--pfb-pad-bottom: 0px;
 	--pfb-pad-left: 0px;
-	border: 1px solid var(--gray-300);
+	border: 1px solid var(--pfb-grid-border, var(--gray-300));
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
@@ -534,7 +534,7 @@ body.print-format-doc .letter-head,
 .print-format-doc .section--grid .section-label {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
-	border-bottom: 1px solid var(--gray-300);
+	border-bottom: 1px solid var(--pfb-grid-border, var(--gray-300));
 }
 .print-format-doc .section--grid .section-columns {
 	padding: 0;
@@ -545,11 +545,11 @@ body.print-format-doc .letter-head,
 	padding: 0;
 }
 .print-format-doc .section--grid .col:not(:last-child) {
-	border-right: 1px solid var(--gray-300);
+	border-right: 1px solid var(--pfb-grid-border, var(--gray-300));
 }
 .print-format-doc .section--grid .field {
 	padding: var(--pfb-cell-pad, 8px);
-	border-bottom: 1px solid var(--gray-300);
+	border-bottom: 1px solid var(--pfb-grid-border, var(--gray-300));
 }
 .print-format-doc .section--grid .field + .field {
 	margin-top: 0;
@@ -580,4 +580,8 @@ body.print-format-doc .letter-head,
 .print-format-doc .custom-html .row {
 	margin-left: 0;
 	margin-right: 0;
+}
+
+.print-format-doc .field .label.label--no-colon::after {
+	content: none;
 }

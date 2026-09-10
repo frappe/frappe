@@ -393,6 +393,7 @@ import {
 	get_table_columns,
 	pluck,
 	setDragging,
+	FIELD_PLUCK_KEYS,
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import { useStore } from "../stores";
@@ -501,6 +502,37 @@ const draggable_blocks = computed(() => [
 			{ template: [], align: "right" },
 		],
 	},
+	{
+		label: __("Text"),
+		fieldname: "static_text",
+		fieldtype: "Static Text",
+		custom: 1,
+		icon: "type",
+		desc: __("Fixed text like a title or a note"),
+		text: "",
+	},
+	{
+		label: __("Linked Field"),
+		fieldname: "linked_field",
+		fieldtype: "Linked Field",
+		custom: 1,
+		icon: "link",
+		desc: __("A value from a linked document"),
+		link_path: "",
+		show_label: "inline",
+	},
+	{
+		label: __("Summary Table"),
+		fieldname: "summary_table",
+		fieldtype: "Summary Table",
+		custom: 1,
+		icon: "sigma",
+		desc: __("Group child rows and total them"),
+		source: "",
+		group_by: "",
+		show_totals: 1,
+		columns: [],
+	},
 ]);
 
 function confirm_delete_snippet(name) {
@@ -509,26 +541,7 @@ function confirm_delete_snippet(name) {
 
 // ── helpers ────────────────────────────────────────────────
 function clone_field(df) {
-	let cloned = pluck(df, [
-		"label",
-		"fieldname",
-		"fieldtype",
-		"options",
-		"table_columns",
-		"html",
-		"typst",
-		"field_template",
-		"source",
-		"repeater_columns",
-		"custom",
-		"image_url",
-		"width",
-		"height",
-		"barcode_field",
-		"barcode_value",
-		"barcode_format",
-		"show_text",
-	]);
+	let cloned = pluck(df, FIELD_PLUCK_KEYS);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
 	}
@@ -618,6 +631,9 @@ function field_broken(f) {
 
 const FIELD_ICONS = {
 	Table: "table",
+	"Static Text": "type",
+	"Linked Field": "link",
+	"Summary Table": "sigma",
 	Repeater: "rows-3",
 	Image: "image",
 	"Attach Image": "image",

@@ -1,4 +1,4 @@
-{% if value %}
+{% if value or df.show_empty %}
 {%- set _show_label = df.show_label if df.show_label else 'show' -%}
 {%- set _align = df.align if df.align else '' -%}
 {%- set _orientation = df.section.field_orientation or '' -%}
@@ -10,11 +10,11 @@
 <div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}{% if _justify and _orientation == 'left-right' and _align not in ('center', 'right') %} field-justify-{{ _justify }}{% endif %}{% if df.allow_page_break %} field--breakable{% endif %}" {% if _fstyle %}style="{{ _fstyle|e }}"{% endif %} {{ field_attributes(df) }}>
 	{%- block label -%}
 	{%- if _show_label != 'hide' -%}
-	<div class="label"{% if _lbl_style %} style="{{ _lbl_style|e }}"{% endif %}>{{ _(df.label)|e }}</div>
+	<div class="label{% if df.hide_colon %} label--no-colon{% endif %}"{% if _lbl_style %} style="{{ _lbl_style|e }}"{% endif %}>{{ _(df.label)|e }}</div>
 	{%- endif -%}
 	{%- endblock -%}
 	{%- block value -%}
-	<div class="value"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>{{ doc.get_formatted(df.fieldname) }}</div>
+	<div class="value"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>{{ df.get("_value") or doc.get_formatted(df.fieldname) }}</div>
 	{%- endblock -%}
 </div>
 {% endif %}

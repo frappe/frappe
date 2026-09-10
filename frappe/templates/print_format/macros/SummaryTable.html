@@ -1,0 +1,44 @@
+{%- set _summary = df.get('_summary') -%}
+{% if _summary and _summary.rows %}
+{%- set _cell_style = table_cell_style(df) | trim -%}
+{%- set _frame_style = table_frame_style(df) | trim -%}
+<div class="child-table child-table--plain child-table--bordered pfb-summary-table"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+	{%- set _show_label = df.show_label if df.show_label else 'show' -%}
+	{% if df.label and _show_label != 'hide' %}
+	<div class="label">{{ _(df.label)|e }}</div>
+	{% endif %}
+	<table class="table"{% if _frame_style %} style="{{ _frame_style|e }}"{% endif %}>
+		<thead>
+			<tr class="table-row">
+				{% for cell in _summary.head1 %}
+				<th class="column-header" {% if cell.colspan > 1 %}colspan="{{ cell.colspan }}"{% endif %} {% if cell.rowspan > 1 %}rowspan="{{ cell.rowspan }}"{% endif %}{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %}>{{ _(cell.label)|e }}</th>
+				{% endfor %}
+			</tr>
+			{% if _summary.head2 %}
+			<tr class="table-row">
+				{% for cell in _summary.head2 %}
+				<th class="column-header"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %}>{{ _(cell.label)|e }}</th>
+				{% endfor %}
+			</tr>
+			{% endif %}
+		</thead>
+		<tbody>
+			{% for row in _summary.rows %}
+			<tr class="table-row">
+				{% for cell in row %}
+				<td class="column-value" style="text-align: {{ cell.align }};{{ _cell_style|e }}">{{ cell.value|e }}</td>
+				{% endfor %}
+			</tr>
+			{% endfor %}
+			{% if _summary.totals %}
+			<tr class="table-row pfb-summary-total">
+				{% for cell in _summary.totals %}
+				<td class="column-value" style="text-align: {{ cell.align }}; font-weight:700;{{ _cell_style|e }}">{{ cell.value|e }}</td>
+				{% endfor %}
+			</tr>
+			{% endif %}
+		</tbody>
+		{{ table_foot_cap(df.columns) }}
+	</table>
+</div>
+{% endif %}
