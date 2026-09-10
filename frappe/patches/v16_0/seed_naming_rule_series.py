@@ -42,44 +42,58 @@ def rules_by_doctype():
 
 
 def seed_doctype(doctype, rules):
-	"""Attribute each name to one rule, in the order rules_by_doctype sets.
+	"""Attribute each name to one rule, most specific pattern first.
 
 	A prefix built only from variables compiles to a pattern that matches any
 	name ending in the right number of digits, and splits foreign names at the
-	wrong boundary. Letting the first matching rule claim a name keeps those
-	patterns away from names a more specific rule already accounts for.
+	wrong boundary. Ranking by the number of literal characters a pattern pins
+	down keeps such a pattern away from any name a narrower rule accounts for,
+	whichever of the two is enabled. Rules that pin down the same amount keep
+	the order they were read in, enabled ahead of disabled.
 	"""
-	patterns = []
-	for rule in rules:
-		pattern = build_name_pattern(rule)
-		if pattern:
-			patterns.append(pattern)
+	ranked = []
+	for position, rule in enumerate(rules):
+		built = build_name_pattern(rule)
+		if built:
+			pattern, literals = built
+			ranked.append((-literals, position, pattern))
+
+	ranked.sort()
+	patterns = [pattern for _, _, pattern in ranked]
 
 	for prefix, current in collect_counters(doctype, patterns).items():
 		raise_series(prefix, current)
 
 
 def build_name_pattern(rule):
-	"""Regex for names this rule can mint, capturing the resolved prefix."""
+	"""Regex for names this rule can mint, plus the literal characters it pins."""
 	if not rule.prefix_digits or not rule.prefix:
 		return None
 
 	meta = frappe.get_meta(rule.document_type)
-	body = "".join(part_pattern(part, meta) for part in rule.prefix.split(".") if part)
-	return re.compile(rf"^({body})(\d{{{rule.prefix_digits}}})$")
+	body = ""
+	literals = 0
+	for part in rule.prefix.split("."):
+		if not part:
+			continue
+		fragment, pinned = part_pattern(part, meta)
+		body += fragment
+		literals += pinned
+
+	return re.compile(rf"^({body})(\d{{{rule.prefix_digits}}})$"), literals
 
 
 def part_pattern(part, meta):
 	"""Mirror the precedence in parse_naming_series, custom parsers included."""
 	if part.startswith("#"):
-		return rf"\d{{{len(part)}}}"
+		return rf"\d{{{len(part)}}}", 0
 	if frappe.get_hooks("naming_series_variables", {}).get(part):
-		return ".*?"
+		return ".*?", 0
 	if part in FIXED_WIDTH_PARTS:
-		return rf"\d{{{FIXED_WIDTH_PARTS[part]}}}"
+		return rf"\d{{{FIXED_WIDTH_PARTS[part]}}}", 0
 	if part == "timestamp" or part.startswith("{") or meta.has_field(part.strip("{}")):
-		return ".*?"
-	return re.escape(part)
+		return ".*?", 0
+	return re.escape(part), len(part)
 
 
 def collect_counters(doctype, patterns):
