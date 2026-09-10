@@ -214,13 +214,7 @@ class Workflow(Document):
 		if not cint(self.is_active):
 			return
 
-		names = [name for name in get_workflow_names(self.document_type) if name != self.name]
-		if not names:
-			return
-
-		others = frappe.get_all(
-			"Workflow", filters={"name": ("in", names)}, fields=["name", "workflow_state_field"]
-		)
+		others = self.get_other_active_workflows(["name", "workflow_state_field"])
 		for other in others:
 			if other.workflow_state_field != self.workflow_state_field:
 				frappe.throw(
@@ -238,9 +232,37 @@ class Workflow(Document):
 		if not cint(self.is_active) or self.conditions:
 			return
 
-		for name in get_workflow_names(self.document_type):
-			if name != self.name and not frappe.get_cached_doc("Workflow", name).conditions:
+		names = [other.name for other in self.get_other_active_workflows(["name"])]
+		if not names:
+			return
+
+		conditional = set(
+			frappe.get_all(
+				"Workflow Condition",
+				filters={"parenttype": "Workflow", "parent": ("in", names)},
+				pluck="parent",
+			)
+		)
+		for name in names:
+			if name not in conditional:
 				frappe.db.set_value("Workflow", name, "is_active", 0)
+
+	def get_other_active_workflows(self, fields: list[str]) -> list:
+		"""Read the peers straight from the table.
+
+		This runs during validate, before this workflow's own row exists. Going through the
+		cached name list would store an answer taken from that gap and hand it to every document
+		saved afterwards.
+		"""
+		return frappe.get_all(
+			"Workflow",
+			filters={
+				"document_type": self.document_type,
+				"is_active": 1,
+				"name": ("!=", self.name),
+			},
+			fields=fields,
+		)
 
 
 @frappe.whitelist()
