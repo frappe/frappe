@@ -55,6 +55,8 @@ context("Web Form Builder", () => {
 		cy.fill_field("module", "Website", "Link");
 
 		cy.click_custom_action_button("Get Fields");
+		cy.get_open_dialog().find('[data-action="select_all"]').click();
+		cy.click_modal_primary_button("Update");
 		cy.get('[data-fieldname="web_form_fields"] .grid-row').should(
 			"have.length.greaterThan",
 			0

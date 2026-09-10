@@ -83,7 +83,7 @@ frappe.ui.form.on("Web Form", {
 			// check_mandatory reports the missing doc_type after this hook
 			if (!frm.doc.doc_type) return;
 
-			frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab")?.set_active();
+			get_builder_tab(frm)?.set_active();
 			frappe.throw(__("Add at least one field to the Web Form"));
 		}
 
@@ -105,50 +105,12 @@ frappe.ui.form.on("Web Form", {
 
 	add_get_fields_button(frm) {
 		frm.add_custom_button(__("Get Fields"), () => {
-			let webform_fieldtypes = frappe.meta
-				.get_field("Web Form Field", "fieldtype")
-				.options.split("\n");
-
-			// flush first, or fields only on the canvas get offered and appended twice
+			// flush first, or fields only on the canvas show unticked and get added twice
 			flush_form_builder(frm);
 
-			let added_fields = (frm.doc.web_form_fields || []).map((d) => d.fieldname);
-
-			get_fields_for_doctype(frm.doc.doc_type).then((fields) => {
-				for (let df of fields) {
-					let fieldtype = df.fieldtype;
-					if (fieldtype == "Tab Break") {
-						fieldtype = "Page Break";
-					}
-					if (
-						webform_fieldtypes.includes(fieldtype) &&
-						!added_fields.includes(df.fieldname) &&
-						!df.hidden
-					) {
-						frm.add_child("web_form_fields", {
-							fieldname: df.fieldname,
-							label: df.label,
-							fieldtype: fieldtype,
-							options: df.options,
-							reqd: df.reqd,
-							default: df.default,
-							read_only: df.read_only,
-							precision: df.precision,
-							depends_on: df.depends_on,
-							placeholder: df.placeholder,
-							max_length: df.length,
-							description: df.description,
-							mandatory_depends_on: df.mandatory_depends_on,
-							read_only_depends_on: df.read_only_depends_on,
-						});
-					}
-				}
-				frm.refresh_field("web_form_fields");
-				frm.scroll_to_field("web_form_fields");
-
-				// read the new rows back — no grid edit reaches the builder on its own
-				refresh_form_builder(frm);
-			});
+			get_fields_for_doctype(frm.doc.doc_type).then(
+				(fields) => new GetFieldsDialog(frm, fields)
+			);
 		});
 	},
 
@@ -491,6 +453,157 @@ frappe.ui.form.on("Web Form Field", {
 	},
 });
 
+// one list of the doctype's fields, rows already on the form pre-ticked;
+// Update adds what was ticked and removes the rows that were unticked
+class GetFieldsDialog {
+	constructor(frm, fields) {
+		this.frm = frm;
+		const fieldtypes = frappe.meta
+			.get_field("Web Form Field", "fieldtype")
+			.options.split("\n");
+		this.fields = fields.filter(
+			(df) => fieldtypes.includes(get_web_form_fieldtype(df)) && !df.hidden
+		);
+		this.fields_by_name = Object.fromEntries(this.fields.map((df) => [df.fieldname, df]));
+		// layout rows have no fieldname, so they can not be told apart; leave them alone
+		this.existing_rows = (frm.doc.web_form_fields || []).filter((d) => d.fieldname);
+		this.existing_fieldnames = this.existing_rows.map((d) => d.fieldname);
+
+		if (!this.fields.length && !this.existing_rows.length) {
+			frappe.msgprint(__("No fields are available from {0}.", [frm.doc.doc_type]));
+			return;
+		}
+		this.make_dialog();
+	}
+
+	make_dialog() {
+		this.dialog = new frappe.ui.Dialog({
+			title: __("Get Fields from {0}", [this.frm.doc.doc_type]),
+			fields: [
+				// a sibling of the MultiCheck, which scrolls and would clip the search focus ring
+				{ fieldtype: "HTML", fieldname: "picker_header" },
+				{
+					fieldname: "fields",
+					fieldtype: "MultiCheck",
+					columns: 2,
+					sort_options: false,
+					options: this.get_options(),
+				},
+			],
+			primary_action_label: __("Update"),
+			primary_action: () => this.update(),
+			on_page_show: () =>
+				frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area"),
+		});
+		this.make_header();
+		// fixed height, so the dialog does not resize while the search filters rows
+		this.dialog.get_field("fields").$wrapper.addClass("h-80 overflow-y-auto");
+		this.dialog.show();
+	}
+
+	make_header() {
+		const $header = $(`
+			<div class="filters-search">
+				<input type="text" placeholder="${__("Search")}" data-element="search" class="form-control">
+			</div>
+			<h6
+				class="form-section-heading"
+				style="font-weight: normal; font-size: var(--text-base); margin-bottom: var(--margin-sm); color: var(--text-muted);"
+			>
+				${__("Select Fields To Update")}
+			</h6>
+			<div class="mb-3">
+				<button class="btn btn-default btn-sm" data-action="select_all">${__("Select All")}</button>
+				<button class="btn btn-default btn-sm" data-action="unselect_all">${__("Unselect All")}</button>
+			</div>
+		`);
+		frappe.utils.bind_actions_with_object($header, this);
+		this.dialog.get_field("picker_header").$wrapper.html($header);
+	}
+
+	// rows whose docfield was deleted stay listed, so they can still be unticked
+	get_options() {
+		const fieldnames = new Set([
+			...this.existing_fieldnames,
+			...this.fields.map((df) => df.fieldname),
+		]);
+		return [...fieldnames].map((fieldname) => {
+			const df = this.fields_by_name[fieldname];
+			const condition =
+				df?.depends_on || df?.mandatory_depends_on || df?.read_only_depends_on;
+			return {
+				// MultiCheck renders the label as HTML, and a row label is user input
+				label: frappe.utils.escape_html(this.get_label(fieldname)),
+				value: fieldname,
+				checked: this.existing_fieldnames.includes(fieldname),
+				description: df?.fieldtype,
+				danger: !!df?.reqd,
+				warning: !!condition,
+				warning_title: condition ? __("Depends on: {0}", [condition]) : "",
+			};
+		});
+	}
+
+	// a DocType often leaves the label blank, while the row may carry a custom one
+	get_label(fieldname) {
+		const row = this.existing_rows.find((d) => d.fieldname === fieldname);
+		const label = row?.label || this.fields_by_name[fieldname]?.label;
+		return label ? __(label) : frappe.unscrub(fieldname);
+	}
+
+	select_all() {
+		this.set_all_checked(true);
+	}
+
+	unselect_all() {
+		this.set_all_checked(false);
+	}
+
+	// MultiCheck listens for "change", so its get_value() stays in sync
+	set_all_checked(checked) {
+		this.dialog.$wrapper.find(":checkbox").prop("checked", checked).trigger("change");
+	}
+
+	update() {
+		const selected = this.dialog.get_value("fields");
+		const removed = this.existing_rows.filter((d) => !selected.includes(d.fieldname));
+
+		// clear_doc also renumbers idx, which filtering the array would not
+		removed.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
+		// ticked rows are kept as they are, so edits made on them survive
+		selected
+			.filter((fieldname) => !this.existing_fieldnames.includes(fieldname))
+			.forEach((fieldname) => this.add_row(this.fields_by_name[fieldname], selected));
+
+		// add_child marks the form dirty but clear_doc does not, and the fetch below
+		// would then reset __unsaved
+		removed.length && this.frm.dirty();
+		this.frm.refresh_field("web_form_fields");
+		refresh_form_builder(this.frm);
+
+		// not scroll_to_field: its highlight glow wraps the whole builder tab
+		get_builder_tab(this.frm)?.set_active();
+		this.dialog.hide();
+	}
+
+	add_row(df, selected) {
+		this.frm.add_child("web_form_fields", {
+			fieldname: df.fieldname,
+			label: df.label,
+			fieldtype: get_web_form_fieldtype(df),
+			options: df.options,
+			reqd: df.reqd,
+			default: df.default,
+			read_only: df.read_only,
+			precision: df.precision,
+			placeholder: df.placeholder,
+			max_length: df.length,
+			description: df.description,
+			...resolve_field_dependencies(df, selected),
+		});
+	}
+}
+
 function get_fields_for_doctype(doctype) {
 	return new Promise((resolve) => frappe.model.with_doctype(doctype, resolve)).then(() => {
 		return frappe.meta.get_docfields(doctype).filter((df) => {
@@ -593,7 +706,7 @@ function render_form_builder(frm) {
 // refresh_tabs() hides tabs whose sections scan as empty, which this one always does, and
 // it re-runs on every layout.refresh(), so a one-off toggle does not hold
 function keep_builder_tab_visible(frm) {
-	const builder_tab = frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab");
+	const builder_tab = get_builder_tab(frm);
 	if (!builder_tab) return;
 
 	if (!builder_tab._web_form_builder_patched) {
@@ -626,6 +739,37 @@ function toggle_form_sidebar(frm, show) {
 function get_form_builder(frm) {
 	const builder = frappe.web_form_builder;
 	return builder?.store && builder.frm === frm ? builder : null;
+}
+
+function get_builder_tab(frm) {
+	return frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab");
+}
+
+function get_web_form_fieldtype(df) {
+	return df.fieldtype == "Tab Break" ? "Page Break" : df.fieldtype;
+}
+
+// a condition on a field the form does not carry never sees that field's value
+function resolve_field_dependencies(df, selected_fieldnames) {
+	const result = {};
+	for (const key of ["depends_on", "mandatory_depends_on", "read_only_depends_on"]) {
+		if (condition_survives(df[key], selected_fieldnames)) {
+			result[key] = df[key];
+		}
+	}
+	return result;
+}
+
+// fn: runs a Desk form script method, which a portal page does not have
+function condition_survives(condition, selected_fieldnames) {
+	if (!condition || condition.startsWith("fn:")) return false;
+	return get_referenced_fieldnames(condition).every((f) => selected_fieldnames.includes(f));
+}
+
+// same prefixes as layout.js evaluate_depends_on_value, where a bare condition is doc[condition]
+function get_referenced_fieldnames(condition) {
+	if (!condition.startsWith("eval:")) return [condition];
+	return [...condition.matchAll(/\bdoc\.(\w+)/g)].map((m) => m[1]);
 }
 
 function render_list_settings_message(frm) {
