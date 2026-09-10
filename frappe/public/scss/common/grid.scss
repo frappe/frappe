@@ -1108,12 +1108,23 @@ body.grid-col-resizing {
 	white-space: nowrap;
 	text-align: right;
 	vertical-align: middle;
+
+	// the same button says Skip and then Restore, and the cell hugs it, so the
+	// column — and every column after it — would step sideways on each click.
+	// A floor the longer of the two words fits holds it still; a longer word in
+	// another language still grows the button, it just cannot shrink it.
+	.es-button {
+		min-width: 72px;
+	}
 }
 
 // left out of the import: muted, so it reads as "won't be touched" without
 // needing a warning of its own to say so — its cells keep their own red,
-// since the values in them are still what they were
-.bulk-edit-skipped-row {
+// since the values in them are still what they were.
+// The values are muted, not the row: opacity applies to a whole subtree and
+// cannot be won back by a child, so fading the tr would take Restore down with
+// it and leave the one live control on the row looking disabled.
+.bulk-edit-skipped-row td:not(.bulk-edit-skip-cell) {
 	opacity: 0.5;
 }
 
