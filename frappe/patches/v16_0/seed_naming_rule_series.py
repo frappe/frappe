@@ -17,21 +17,35 @@ def execute():
 	per-prefix counters in `tabSeries`, which start at 1 and would collide with
 	existing names unless seeded here.
 	"""
+	for doctype, rules in rules_by_doctype().items():
+		if frappe.db.table_exists(doctype):
+			seed_doctype(doctype, rules)
+
+
+def rules_by_doctype():
 	rules = frappe.get_all(
 		"Document Naming Rule",
 		fields=["document_type", "prefix", "prefix_digits"],
+		order_by="priority desc",
 	)
+
+	grouped = {}
 	for rule in rules:
-		if frappe.db.table_exists(rule.document_type):
-			seed_series_for_rule(rule)
+		grouped.setdefault(rule.document_type, []).append(rule)
+	return grouped
 
 
-def seed_series_for_rule(rule):
-	pattern = build_name_pattern(rule)
-	if not pattern:
-		return
+def seed_doctype(doctype, rules):
+	"""Attribute each name to one rule, in the order set_new_name applies them.
 
-	for prefix, current in collect_counters(rule.document_type, pattern).items():
+	A prefix built only from variables compiles to a pattern that matches any
+	name ending in the right number of digits, and splits foreign names at the
+	wrong boundary. Letting the first matching rule claim a name keeps those
+	patterns away from names a more specific rule already accounts for.
+	"""
+	patterns = [pattern for pattern in map(build_name_pattern, rules) if pattern]
+
+	for prefix, current in collect_counters(doctype, patterns).items():
 		raise_series(prefix, current)
 
 
@@ -58,7 +72,7 @@ def part_pattern(part, meta):
 	return re.escape(part)
 
 
-def collect_counters(doctype, pattern):
+def collect_counters(doctype, patterns):
 	counters = {}
 	start = 0
 
@@ -68,17 +82,17 @@ def collect_counters(doctype, pattern):
 			return counters
 
 		for name in names:
-			record_counter(counters, pattern, name)
+			record_counter(counters, patterns, name)
 		start += CHUNK_SIZE
 
 
-def record_counter(counters, pattern, name):
-	match = pattern.match(name)
+def record_counter(counters, patterns, name):
+	match = next(filter(None, (pattern.match(name) for pattern in patterns)), None)
 	if not match:
 		return
 
 	prefix, suffix = match.group(1), int(match.group(2))
-	if suffix > counters.get(prefix, 0):
+	if prefix and suffix > counters.get(prefix, 0):
 		counters[prefix] = suffix
 
 
