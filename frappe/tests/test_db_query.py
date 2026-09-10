@@ -669,6 +669,21 @@ class TestDBQuery(IntegrationTestCase):
 		cond = get_between_date_filter([start, end], datetime_df)
 		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
 
+	def test_comments_blob_not_readable(self):
+		with setup_test_user(set_user=True):
+			row = frappe.get_list(
+				"Test Blog Post", fields=["name", "_comments"], with_comment_count=1, limit=1
+			)[0]
+			self.assertNotIn("_comments", row)
+			self.assertIn("_comment_count", row)
+			# legacy engine, row without name
+			row = DatabaseQuery("Test Blog Post").execute(
+				fields=["title"], with_comment_count=1, limit_page_length=1
+			)[0]
+			self.assertNotIn("_comments", row)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Test Blog Post", filters={"_comments": ("like", "%a%")})
+
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, get_filters_cond, "DocType", dict(istable=1), [])

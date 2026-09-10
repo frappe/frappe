@@ -59,7 +59,6 @@ DEFAULT_FIELD_LABELS = {
 	"owner": N_("Created By"),
 	"_user_tags": N_("Tags"),
 	"_liked_by": N_("Liked By"),
-	"_comments": N_("Comments"),
 	"_assign": N_("Assigned To"),
 }
 

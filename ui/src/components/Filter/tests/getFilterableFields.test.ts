@@ -52,13 +52,12 @@ describe("getFilterableFields", () => {
       "Lead"
     );
     const names = result.map((f) => f.fieldname);
-    expect(names.slice(0, 9)).toEqual([
+    expect(names.slice(0, 8)).toEqual([
       "name",
       "owner",
       "modified_by",
       "_user_tags",
       "_liked_by",
-      "_comments",
       "_assign",
       "creation",
       "modified",

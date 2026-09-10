@@ -229,6 +229,7 @@ class DatabaseQuery:
 			} | self.__dict__
 			return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
+		self.with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
 		self.columns = self.get_table_columns()
 
 		# no table & ignore_ddl, return
@@ -237,7 +238,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if sbool(with_comment_count) and not as_list and self.doctype:
+		if self.with_comment_count:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -362,6 +363,9 @@ from {tables}
 		# decided before cast_name_fields wraps name columns in cast() on postgres
 		drop_dedup_group_by = self._is_redundant_dedup_group_by()
 		self.apply_fieldlevel_read_permissions()
+		# selected after the permission check: never user-requestable, popped in add_comment_count
+		if self.with_comment_count and "_comments" in self.columns:
+			self.fields.append(f"`tab{self.doctype}`.`_comments`")
 
 		args = frappe._dict()
 
@@ -1482,13 +1486,12 @@ from {tables}
 
 	def add_comment_count(self, result):
 		for r in result:
+			comments = r.pop("_comments", None)
 			if not r.name:
 				continue
 
-			r._comment_count = 0
-			if "_comments" in r and r._comments:
-				# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
-				r._comment_count = r._comments.count('"comment"')
+			# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
+			r._comment_count = comments.count('"comment"') if comments else 0
 
 	def update_user_settings(self):
 		# update user settings if new search

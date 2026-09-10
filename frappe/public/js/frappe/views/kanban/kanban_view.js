@@ -419,7 +419,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this._add_field("_assign");
 		this._add_field("_user_tags");
 		this._add_field("_liked_by");
-		this._add_field("_comments");
 		this._add_field("owner");
 		// Kanban Board document's configured fields (card body content)
 		if (this.board.fields && Array.isArray(this.board.fields)) {
