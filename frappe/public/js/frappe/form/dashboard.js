@@ -383,15 +383,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			(this.data.non_standard_fieldnames && this.data.non_standard_fieldnames[doctype]) ||
 			this.data.fieldname;
 
-		if (
+		if (names.length) {
+			frappe.route_options = { name: ["in", names] };
+		} else if (
 			this.internal_links_found &&
 			this.internal_links_found.find((d) => d.doctype === doctype)
 		) {
-			if (names.length) {
-				frappe.route_options = { name: ["in", names] };
-			} else {
-				return false;
-			}
+			return false;
 		} else if (fieldname) {
 			frappe.route_options = this.get_document_filter(doctype, fieldname);
 			if (show_open && frappe.ui.notifications) {
@@ -475,16 +473,22 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 
 		$.each(count.external_links_found, function (i, d) {
-			me.frm.dashboard.set_badge_count_for_external_link(d.doctype, d.open_count, d.count);
+			me.frm.dashboard.set_badge_count_for_external_link(
+				d.doctype,
+				d.open_count,
+				d.count,
+				d.names
+			);
 		});
 	}
 
-	set_badge_count_for_external_link(doctype, open_count, count) {
+	set_badge_count_for_external_link(doctype, open_count, count, names) {
 		let $link = $(this.transactions_area).find(
 			'.document-link[data-doctype="' + doctype + '"]'
 		);
 
 		this.set_badge_count_common(open_count, count, $link);
+		$link.attr("data-names", names ? names.join(",") : "");
 	}
 
 	set_badge_count_for_internal_link(doctype, open_count, count, names) {
