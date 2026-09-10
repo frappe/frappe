@@ -29,15 +29,15 @@ frappe.ui.Dock = class Dock {
 			"Workspaces"
 		)}">
 			<div class="dock-logo">
-				<a class="shell-header" href="/desk" aria-label="${__("Apps")}">
+				<button class="btn-reset shell-header">
 					<div class="header-logo"></div>
 					<div class="title-container">
 						<div class="header-title"></div>
-						<div class="header-subtitle">${frappe.utils.escape_html(
-							frappe.boot.sitename || window.location.hostname
-						)}</div>
 					</div>
-				</a>
+					<span class="drop-icon" aria-hidden="true">
+						${frappe.utils.icon("chevron-down", "sm", "", "", "", true)}
+					</span>
+				</button>
 			</div>
 			<div class="dock-shortcuts"></div>
 			<div class="dock-items"></div>
@@ -71,12 +71,6 @@ frappe.ui.Dock = class Dock {
 		this.$header = this.$dock.find(".dock-logo .shell-header");
 		this.$header_logo = this.$header.find(".header-logo");
 		this.$header_title = this.$header.find(".header-title");
-		// The whole header is the link now: with no chevron there is no second thing in it to aim
-		// at, so it needs no inner anchor to keep the two apart.
-		this.$header.on("click", (e) => {
-			e.preventDefault();
-			frappe.set_route("/desk");
-		});
 		this.$shortcuts = this.$dock.find(".dock-shortcuts");
 		this.$items = this.$dock.find(".dock-items");
 		this.$user = this.$dock.find(".dock-user");
@@ -227,8 +221,9 @@ frappe.ui.Dock = class Dock {
 	}
 
 	render_user() {
-		// The same two lines the header carries, in the same classes: who you are over how you are
-		// addressed, which is what the body sidebar's own user button has always shown.
+		// Two lines in the header's own classes: who you are over how you are addressed, which is
+		// what the body sidebar's own user button has always shown. The only two-line header left,
+		// now that neither the rail's logo nor the body sidebar's header names the site.
 		this.$user.html(
 			`${frappe.avatar(frappe.session.user, "avatar-medium")}
 			<div class="title-container">
@@ -239,7 +234,21 @@ frappe.ui.Dock = class Dock {
 		this.sidebar.create_user_menu({ parent: this.$user, button: this.$user });
 	}
 
+	// The menu the panel's header used to open hangs on this header while the rail is up, and only
+	// here: the two are stacked one above the other, and one menu with a trigger on each offered
+	// the same rows twice. SidebarHeader owns which one that is (see menu_on_rail) and drops its
+	// own trigger whenever this one has it.
+	//
+	// Done from refresh() rather than make() because the rail can be built before the header it
+	// borrows the menu from. The node is built once, so this is too: the dropdown binds to the
+	// element and reads its rows fresh on every open.
+	setup_header_menu() {
+		if (this.header_menu || !this.sidebar.sidebar_header) return;
+		this.header_menu = this.sidebar.sidebar_header.attach_menu(this.$header);
+	}
+
 	refresh() {
+		this.setup_header_menu();
 		// The dock belongs to the app whose body sidebar is on screen.
 		this.app = this.sidebar.get_sidebar_app();
 		// It is drawn only if it has entries and the page on screen allows it. The desktop or apps
@@ -294,6 +303,9 @@ frappe.ui.Dock = class Dock {
 		// "All apps" row now, so the header is a menu trigger rather than the link it used to be.
 		this.$header_logo.html(icon);
 		this.$header_title.text(title);
+		// The header is a menu button, and a collapsed rail takes its title off screen, so the name
+		// it is read out by is set here rather than left to the text to supply.
+		this.$header.attr("aria-label", title);
 	}
 
 	// A module belonging to an app shows that app's logo. The dock-less sidebar's header draws

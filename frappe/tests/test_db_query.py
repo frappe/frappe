@@ -1824,6 +1824,54 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertNotIn("0", query)
 		self.assertNotIn("ifnull", query)
 
+	def test_child_query_without_explicit_name_field(self):
+		q = frappe.qb.get_query(
+			"User",
+			fields=["first_name", {"roles": ["role"]}],
+			filters={"name": "Administrator"},
+		)
+		result = q.run(as_dict=True)
+
+		self.assertEqual(len(result), 1)
+		self.assertIn("roles", result[0], "Child table data is missing when parent name is omitted")
+		self.assertTrue(len(result[0]["roles"]) > 0, "Child table is empty")
+		self.assertNotIn("name", result[0], "Injected 'name' field leaked into the final output")
+
+	def test_distinct_with_injected_name_raises(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.qb.get_query(
+				"User",
+				fields=["first_name", {"roles": ["role"]}],
+				distinct=True,
+			).run(as_dict=True)
+
+	def test_group_by_with_injected_name_raises(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.qb.get_query(
+				"User",
+				fields=["first_name", {"roles": ["role"]}],
+				group_by="first_name",
+			).run(as_dict=True)
+
+	def test_distinct_with_explicit_name_does_not_raise(self):
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name", "first_name", {"roles": ["role"]}],
+			distinct=True,
+			filters={"name": "Administrator"},
+		).run(as_dict=True)
+		self.assertTrue(result)
+
+	def test_child_query_with_aliased_name_still_injects(self):
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name as pk", "first_name", {"roles": ["role"]}],
+			filters={"name": "Administrator"},
+		).run(as_dict=True)
+		self.assertIn("pk", result[0])
+		self.assertIn("roles", result[0])
+		self.assertTrue(result[0]["roles"])
+
 
 class TestReportView(IntegrationTestCase):
 	def test_get_count(self):

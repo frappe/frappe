@@ -33,7 +33,7 @@
 						{{ map[0] }}
 					</div>
 					<div class="flex justify-end">
-						<FeatherIcon name="arrow-right" class="inline size-4 text-ink-gray-5" />
+						<LucideArrowRight class="inline size-4 text-ink-gray-5" />
 					</div>
 					<div>
 						{{ map[1] }}
@@ -46,7 +46,7 @@
 			<div class="text-ink-gray-5 text-sm">Warnings</div>
 			<div class="rounded-5 bg-surface-amber-2 p-2 space-y-2 text-xs">
 				<div v-for="warning in warnings" class="flex items-center space-x-2">
-					<FeatherIcon name="alert-circle" class="size-3 text-ink-amber-6" />
+					<LucideCircleAlert class="size-3 text-ink-amber-6" />
 					<div v-html="warning.message" class="text-ink-amber-6"></div>
 				</div>
 			</div>
@@ -153,7 +153,7 @@
 							>
 								<HoverCard v-if="row.exception" side="left" align="start">
 									<template #trigger>
-										<FeatherIcon name="info" class="size-4" />
+										<LucideInfo class="size-4" />
 									</template>
 									<div class="w-[500px] p-2 text-xs leading-5 font-mono">
 										{{ row.exception }}
@@ -172,7 +172,10 @@
 import { getPreviewData, getBadgeColor } from "./dataImport";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { DataImport, DataImports, DataImportSocket } from "./types";
-import { Badge, Button, FeatherIcon, HoverCard, TabButtons, call } from "frappe-ui";
+import { Badge, Button, HoverCard, TabButtons, call } from "frappe-ui";
+import LucideArrowRight from "~icons/lucide/arrow-right";
+import LucideCircleAlert from "~icons/lucide/circle-alert";
+import LucideInfo from "~icons/lucide/info";
 
 const preview = ref<any>(null);
 const emit = defineEmits(["updateStep"]);

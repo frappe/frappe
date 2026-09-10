@@ -64,6 +64,8 @@
   {
    "fieldname": "document_type",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Document Type",
    "no_copy": 1,
    "options": "DocType",
@@ -72,6 +74,8 @@
   {
    "fieldname": "document_name",
    "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Document Name",
    "no_copy": 1,
    "options": "document_type",
@@ -104,7 +108,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-03 14:31:34.711409",
+ "modified": "2026-09-10 09:39:40.310473",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Job",
@@ -129,5 +133,6 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "document_name"
 }

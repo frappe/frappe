@@ -1432,16 +1432,14 @@ export default class GridRow {
 		let cannot_add_rows =
 			this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows);
 		this.wrapper
-			.find(
-				".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row"
-			)
+			.find(".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row")
 			.toggle(!cannot_add_rows);
 
 		this.wrapper
 			.find(".grid-delete-row")
 			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
 
-		frappe.dom.freeze("", "dark grid-form");
+		frappe.dom.freeze("", "grid-form");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if (
