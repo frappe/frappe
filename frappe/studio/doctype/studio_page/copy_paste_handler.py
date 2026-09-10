@@ -94,6 +94,26 @@ def create_missing_dependencies(
 	return {"conflicts": conflicts, "modified": page.modified if page else None}
 
 
+@frappe.whitelist(methods=["POST"])
+def paste_data_source(app_name: str, page_name: str, resource: dict | str):
+	"""Add one copied data source to a page, failing when its name is already in use."""
+	app = get_writable_app(app_name)
+	page = get_writable_page(page_name, app.name)
+	resource = frappe.parse_json(resource)
+	if not isinstance(resource, dict):
+		frappe.throw(_("Invalid data source copy."))
+
+	resource_name = resource.get("resource_name")
+	if not isinstance(resource_name, str) or not resource_name:
+		frappe.throw(_("Invalid data source name in copied content."))
+	if any(row.resource_name == resource_name for row in page.resources):
+		frappe.throw(_("Data source {0} already exists on this page.").format(resource_name))
+
+	page.append("resources", pick(resource, PAGE_RESOURCE_FIELDS))
+	page.save()
+	return {"modified": page.modified}
+
+
 def get_writable_app(app_name: str):
 	if not isinstance(app_name, str) or not app_name:
 		frappe.throw(_("Invalid Studio App."))

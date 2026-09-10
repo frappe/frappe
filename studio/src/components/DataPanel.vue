@@ -15,7 +15,7 @@
 					</div>
 					<ItemActions
 						class="-mt-1 self-start"
-						:menuOptions="getResourceMenu(resource, resource_name)"
+						:menuOptions="getResourceMenu(resource_name)"
 						@edit="openResource(resource_name)"
 					/>
 				</div>
@@ -154,6 +154,7 @@ import { studioVariables } from "@/data/studioVariables"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { Resource } from "@/types/Studio/StudioResource"
 import { toast } from "frappe-ui"
+import { copyDataSource } from "@/utils/blockCopyPaste"
 
 /**
  * Insert resource into DB
@@ -253,7 +254,16 @@ const getStoredResource = async (resource_name: string) => {
 	return studioPageResources.data[0]
 }
 
-const getResourceMenu = (resource: Resource, resource_name: string) => {
+const copyResource = async (resource_name: string) => {
+	const resource = await getStoredResource(resource_name)
+	if (!resource) {
+		toast.error(`Could not find data source ${resource_name}`)
+		return
+	}
+	copyDataSource(resource)
+}
+
+const getResourceMenu = (resource_name: string) => {
 	return [
 		{
 			label: "Delete",
@@ -262,11 +272,9 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 			onClick: () => deleteResource(resource_name),
 		},
 		{
-			label: "Copy Object",
+			label: "Copy",
 			icon: "lucide-copy",
-			onClick: () => {
-				copyToClipboard(resource)
-			},
+			onClick: () => copyResource(resource_name),
 		},
 	]
 }

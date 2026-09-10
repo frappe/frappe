@@ -4,7 +4,7 @@ import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
 import { isCtrlOrCmd, isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
 import { getComponentBlock } from "@/utils/serializer"
-import { copyBlocks, copySelectedBlocks, pasteBlocks } from "@/utils/blockCopyPaste"
+import { copyBlocks, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 import { toast } from "frappe-ui"
@@ -33,7 +33,7 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 		if (isTargetEditable(e)) return
 		e.stopPropagation()
 
-		if (pasteBlocks(e)) return
+		if (pasteBlocks(e) || pasteDataSource(e)) return
 
 		let text = e.clipboardData?.getData("text/plain") as string
 		if (!text) {

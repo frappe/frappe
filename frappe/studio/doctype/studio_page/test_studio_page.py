@@ -14,6 +14,7 @@ from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, ma
 from studio.studio.doctype.studio_page.copy_paste_handler import (
 	create_missing_dependencies,
 	duplicate_page,
+	paste_data_source,
 	paste_page,
 )
 from studio.studio.doctype.studio_page.studio_page import get_page
@@ -110,6 +111,17 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual(pasted.component_name, "Card")
 		self.assertEqual(pasted.block, component.block)
 		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
+
+	def test_paste_data_source(self):
+		app = make_studio_app(app_name="resource-" + frappe.generate_hash(length=10))
+		page = make_studio_page(app.name)
+
+		paste_data_source(app.name, page.name, TODO_RESOURCE)
+
+		page.reload()
+		self.assertEqual([resource.resource_name for resource in page.resources], ["todos"])
+		with self.assertRaisesRegex(frappe.ValidationError, "already exists"):
+			paste_data_source(app.name, page.name, TODO_RESOURCE)
 
 	def test_paste_reports_conflicting_component(self):
 		app = make_studio_app(app_name="conflict-" + frappe.generate_hash(length=10))

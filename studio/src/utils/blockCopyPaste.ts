@@ -12,12 +12,13 @@ import {
 } from "@/components/PasteConflictDialog.vue"
 import PasteWarningToast from "@/components/PasteWarningToast.vue"
 import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
-import { setClipboardData } from "@/utils/helpers"
+import { copyToClipboard, setClipboardData } from "@/utils/helpers"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 
 const CLIPBOARD_FORMAT = "studio-copied-blocks"
 const CLIPBOARD_PREFIX = `${CLIPBOARD_FORMAT}:`
+const DATA_SOURCE_DOCTYPE = "Studio Page Resource"
 
 export interface PageCopy {
 	page_title?: string
@@ -47,6 +48,12 @@ interface ClipboardPayload extends Partial<Dependencies> {
 	source?: ClipboardSource
 }
 
+interface DataSourceClipboardPayload {
+	doctype: typeof DATA_SOURCE_DOCTYPE
+	resource_name: string
+	[key: string]: any
+}
+
 interface PasteConflict {
 	name: string
 	existing: Record<string, any>
@@ -57,11 +64,6 @@ interface PasteConflicts {
 	components?: PasteConflict[]
 	resources?: PasteConflict[]
 	variables?: PasteConflict[]
-}
-
-interface PasteDependenciesResult {
-	conflicts?: PasteConflicts
-	modified?: string
 }
 
 export function copyEntirePage() {
@@ -133,6 +135,45 @@ export function pasteBlocks(e: ClipboardEvent): boolean {
 		void pasteCopiedBlocks(payload)
 	}
 	return true
+}
+
+export function copyDataSource(resource: Record<string, any>) {
+	const definition = { ...resource }
+	delete definition.resource_id
+	copyToClipboard({ ...definition, doctype: DATA_SOURCE_DOCTYPE })
+}
+
+export function pasteDataSource(e: ClipboardEvent): boolean {
+	const resource = getCopiedDataSource(e)
+	if (!resource) return false
+	e.preventDefault()
+	void createDataSource(resource)
+	return true
+}
+
+async function createDataSource(resource: DataSourceClipboardPayload) {
+	const store = useStudioStore()
+	const page = store.activePage
+	if (!page) return
+
+	try {
+		const result = await call(
+			"studio.studio.doctype.studio_page.copy_paste_handler.paste_data_source",
+			{
+				app_name: store.activeApp!.name,
+				page_name: page.name,
+				resource,
+			},
+		)
+		if (store.activePage?.name !== page.name) return
+		store.syncPageModified(result)
+		await store.setPageData(page)
+		toast.success(`Data source "${resource.resource_name}" created`)
+	} catch (error: any) {
+		toast.error(`Failed to create Data source "${resource.resource_name}"`, {
+			description: error?.messages?.join(", ") || error?.message
+		})
+	}
 }
 
 function getClipboardSource(): ClipboardSource {
@@ -254,6 +295,21 @@ function getClipboardPayload(e: ClipboardEvent): ClipboardPayload | null {
 	return payload && Array.isArray(payload.blocks) && payload.blocks.length ? payload : null
 }
 
+function getCopiedDataSource(e: ClipboardEvent): DataSourceClipboardPayload | null {
+	const text = e.clipboardData?.getData("text/plain") || ""
+	if (!isJSONString(text)) return null
+	const resource = JSON.parse(text)
+	if (
+		resource?.doctype !== DATA_SOURCE_DOCTYPE ||
+		typeof resource !== "object" ||
+		Array.isArray(resource) ||
+		typeof resource.resource_name !== "string"
+	) {
+		return null
+	}
+	return resource
+}
+
 function writeClipboardPayload(payload: Promise<ClipboardPayload>, successMessage?: string): Promise<void> {
 	const text = payload.then((value) => CLIPBOARD_PREFIX + JSON.stringify(value))
 	let write: Promise<void>
@@ -331,7 +387,7 @@ async function createMissingDependencies(
 	if (![components, files, resources, variables].some((list) => list?.length)) return {}
 	const store = useStudioStore()
 	const pageName = store.activePage!.name
-	const result = await call<PasteDependenciesResult>(
+	const result = await call(
 		"studio.studio.doctype.studio_page.copy_paste_handler.create_missing_dependencies",
 		{
 			app_name: store.activeApp!.name,
