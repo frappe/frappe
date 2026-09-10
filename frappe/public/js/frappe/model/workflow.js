@@ -61,11 +61,13 @@ frappe.workflow = {
 			);
 		});
 	},
-	get_workflow: function (doc) {
-		if (!doc) return null;
-		frappe.workflow.setup(doc.doctype);
+	get_workflow: function (doc, doctype) {
+		doctype = doctype || doc?.doctype;
+		if (!doc || !doctype) return null;
+
+		frappe.workflow.setup(doctype);
 		return (
-			(frappe.workflow.candidates[doc.doctype] || []).find((workflow) =>
+			(frappe.workflow.candidates[doctype] || []).find((workflow) =>
 				frappe.workflow.applies_to(workflow, doc)
 			) || null
 		);
