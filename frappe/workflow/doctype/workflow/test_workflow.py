@@ -521,20 +521,27 @@ def create_new_webhook():
 
 
 class TestConditionalWorkflow(IntegrationTestCase):
-	WORKFLOW_NAMES = ("Test Any ToDo", "Test High ToDo", "Test Low ToDo", "Test Old ToDo")
-
 	def setUp(self):
 		frappe.db.delete("Workflow Action")
+		self.pre_existing = frappe.get_all("Workflow", {"document_type": "ToDo"}, pluck="name")
 		self.suspended = frappe.get_all("Workflow", {"document_type": "ToDo", "is_active": 1}, pluck="name")
 		for name in self.suspended:
 			frappe.db.set_value("Workflow", name, "is_active", 0)
 		frappe.clear_cache(doctype="ToDo")
 
 	def tearDown(self):
-		for name in self.WORKFLOW_NAMES:
-			frappe.delete_doc("Workflow", name, force=True, ignore_missing=True)
+		"""Leave the doctype exactly as it was found.
+
+		Creating a Workflow writes a Custom Field, which commits, so a workflow made here outlives
+		the transaction rollback and would otherwise resolve for the tests that follow.
+		"""
+		for name in frappe.get_all("Workflow", {"document_type": "ToDo"}, pluck="name"):
+			if name not in self.pre_existing:
+				frappe.delete_doc("Workflow", name, force=True, ignore_missing=True)
+
 		for name in self.suspended:
 			frappe.db.set_value("Workflow", name, "is_active", 1)
+
 		frappe.clear_cache(doctype="ToDo")
 
 	def test_conditional_workflow_skips_documents_it_does_not_match(self):
