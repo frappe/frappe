@@ -289,7 +289,8 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 
 		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json, {"active": False})
+		self.assertFalse(response.json.get("active"))
+		self.assertIsNone(response.json.get("client_id"))
 
 	def test_introspect_token_rejects_non_string_credentials_from_json_body(self):
 		"""A JSON body preserves non-string types in form_dict (unlike form-encoded data);

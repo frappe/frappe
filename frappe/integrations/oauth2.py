@@ -330,9 +330,6 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 		frappe.local.response = token_response
 
 	except Exception:
-		# Drop any queued "not found" message so every failure answers identically and the
-		# response does not disclose why introspection failed.
-		frappe.clear_messages()
 		frappe.local.response = frappe._dict({"active": False})
 
 
