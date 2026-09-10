@@ -42,7 +42,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.caching import site_cache
-from frappe.utils.data import add_to_date, get_datetime
+from frappe.utils.data import add_to_date, get_currency_precision, get_datetime
 
 ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
@@ -963,11 +963,9 @@ def get_field_precision(df, doc=None, currency=None):
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
-		currency_precision = frappe.db.get_default("currency_precision")
-		if currency_precision not in (None, ""):
-			# an explicit precision of 0 must be honoured, not treated the same
-			# as "not set" (cint(0) is falsy, so `... or fallback` would discard it)
-			precision = cint(currency_precision)
+		currency_precision = get_currency_precision()
+		if currency_precision is not None:
+			precision = currency_precision
 		else:
 			precision = get_precision_from_currency_format(currency or get_field_currency(df, doc))
 	else:
