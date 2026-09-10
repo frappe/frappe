@@ -9,7 +9,19 @@ from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import set_request
+<<<<<<< HEAD
 from frappe.utils.oauth import consume_oauth_state, create_oauth_state, login_via_oauth2
+=======
+from frappe.utils.oauth import (
+	OAUTH_LOGIN_BINDING_COOKIE,
+	consume_oauth_state,
+	create_oauth_state,
+	enforce_office_365_tenant,
+	get_info_via_oauth,
+	get_verified_office_365_claims,
+	login_via_oauth2,
+)
+>>>>>>> 70b8159 (fix(oauth): bind social-login state to the initiating browser)
 
 TEST_GITHUB_USER = "githublogin@example.com"
 
@@ -34,8 +46,10 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session = MagicMock()
 		mock_session.get.side_effect = github_response_for_private_email
 
+		state = create_oauth_state(None)  # Dummy code, real state token
+		simulate_oauth_browser_roundtrip()
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", create_oauth_state(None))  # Dummy code, real state token
+			login_via_oauth2("github", "iwriu", state)
 
 	def test_github_login_with_public_email(self):
 		github_social_login_setup()
@@ -43,8 +57,10 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session = MagicMock()
 		mock_session.get.side_effect = github_response_for_public_email
 
+		state = create_oauth_state(None)  # Dummy code, real state token
+		simulate_oauth_browser_roundtrip()
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", create_oauth_state(None))  # Dummy code, real state token
+			login_via_oauth2("github", "iwriu", state)
 
 	def test_normal_signup_and_github_login(self):
 		github_social_login_setup()
@@ -56,18 +72,34 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session = MagicMock()
 		mock_session.get.side_effect = github_response_for_login
 
+		state = create_oauth_state(None)
+		simulate_oauth_browser_roundtrip()
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", create_oauth_state(None))
+			login_via_oauth2("github", "iwriu", state)
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
 
 	def test_oauth_state_helpers_reject_unknown_and_reused_tokens(self):
 		"""consume_oauth_state must only resolve tokens it minted itself, and only once."""
+		github_social_login_setup()
 		self.assertIsNone(consume_oauth_state("attacker-forged-token"))
 		self.assertIsNone(consume_oauth_state(""))
 
 		state = create_oauth_state("/app/some-page")
+		simulate_oauth_browser_roundtrip()
 		self.assertEqual(consume_oauth_state(state), "/app/some-page")
 		# same token can't be redeemed twice
+		self.assertIsNone(consume_oauth_state(state))
+
+	def test_oauth_state_without_binding_cookie_is_rejected(self):
+		"""A `state` that is valid and unused must still be rejected if the request
+		completing the callback doesn't carry the cookie set when the flow started -
+		i.e. it isn't the same browser."""
+		github_social_login_setup()
+
+		state = create_oauth_state("/app/some-page")
+		# NOTE: no simulate_oauth_browser_roundtrip() here - the callback arrives
+		# without the binding cookie, as it would from a browser that never started
+		# this login attempt.
 		self.assertIsNone(consume_oauth_state(state))
 
 	def test_forged_oauth_state_is_rejected_end_to_end(self):
@@ -93,6 +125,7 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session.get.side_effect = github_response_for_login
 
 		state = create_oauth_state("/app/some-legit-page")
+		simulate_oauth_browser_roundtrip()
 
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
 			login_via_oauth2("github", "iwriu", state)
@@ -116,8 +149,10 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session = MagicMock()
 		mock_session.get.side_effect = github_response_for_login
 
+		state = create_oauth_state(None)
+		simulate_oauth_browser_roundtrip()
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", create_oauth_state(None))
+			login_via_oauth2("github", "iwriu", state)
 		self.assertEqual(frappe.session.user, "Guest")
 
 	def test_disabled_social_login_key_is_refused(self):
@@ -146,8 +181,10 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session = MagicMock()
 		mock_session.get.side_effect = github_response_for_login
 
+		state = create_oauth_state(None)
+		simulate_oauth_browser_roundtrip()
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", create_oauth_state(None))
+			login_via_oauth2("github", "iwriu", state)
 
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
 
@@ -234,3 +271,10 @@ def github_social_login_setup():
 	frappe.local.login_manager = LoginManager()
 
 	return create_github_social_login_key()
+
+
+def simulate_oauth_browser_roundtrip():
+	"""Re-issue the current request carrying the binding cookie `create_oauth_state`
+	just set on `frappe.local.cookie_manager`, as a real browser would on callback."""
+	binding_secret = frappe.local.cookie_manager.cookies[OAUTH_LOGIN_BINDING_COOKIE]["value"]
+	set_request(path="/random", headers=[("Cookie", f"{OAUTH_LOGIN_BINDING_COOKIE}={binding_secret}")])
