@@ -845,7 +845,21 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		if (this.df.link_filters && !!this.df.link_filters.length) {
-			args.filters = { ...(args.filters || {}), ...this.apply_link_field_filters() };
+			const link_filters = this.apply_link_field_filters();
+
+			if (Array.isArray(args.filters)) {
+				const fieldnames = Object.keys(link_filters);
+				args.filters = args.filters
+					.filter(
+						(filter) =>
+							!fieldnames.includes(filter.length >= 4 ? filter[1] : filter[0])
+					)
+					.concat(
+						fieldnames.map((fieldname) => [fieldname, ...link_filters[fieldname]])
+					);
+			} else {
+				args.filters = { ...(args.filters || {}), ...link_filters };
+			}
 		}
 	}
 
