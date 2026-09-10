@@ -39,12 +39,14 @@ class TestModelUtils(IntegrationTestCase):
 			guest_permitted_fields = get_permitted_fields("ToDo")
 			self.assertNotIn("description", guest_permitted_fields)
 
-		# everyone should have access to all fields of core doctypes
+		# everyone should have access to all fields of core doctypes, except the internal _comments cache
 		with set_user("Guest"):
 			picked_doctype = choice(core_doctypes_list)
 			core_permitted_fields = get_permitted_fields(picked_doctype)
 			picked_doctype_all_columns = frappe.get_meta(picked_doctype).get_valid_columns()
-			self.assertSequenceEqual(core_permitted_fields, picked_doctype_all_columns)
+			self.assertSequenceEqual(
+				core_permitted_fields, [c for c in picked_doctype_all_columns if c != "_comments"]
+			)
 
 		# access to child tables' fields is restricted to no fields unless parent is passed & permitted
 		with set_user("Administrator"):
