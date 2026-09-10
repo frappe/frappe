@@ -253,6 +253,18 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 			self.session.chat("   ")
 		self.assertEqual(self.calls("run"), [])
 
+	def test_chat_refuses_an_existing_session_when_its_agent_is_disabled(self):
+		self.agent.db_set("enabled", 0)
+		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
+			self.session.chat("hello")
+		self.assertEqual(self.calls("run"), [])
+
+	def test_chat_refuses_an_existing_session_when_its_model_is_disabled(self):
+		self.model.db_set("enabled", 0)
+		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
+			self.session.chat("hello")
+		self.assertEqual(self.calls("run"), [])
+
 	def test_resume_answers_the_batch_the_recorder_names(self):
 		self.daemon.answer = pause
 		run = self.session.chat("delete it")
@@ -356,6 +368,12 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 			with self.assertRaisesRegex(frappe.ValidationError, "read-only history"):
 				self.session.chat("hello")
 		self.assertEqual(self.runs(), 0)
+
+	def test_a_legacy_code_session_is_read_only_history(self):
+		session = frappe.get_doc({"doctype": "Flow Session"}).insert()
+
+		with self.assertRaisesRegex(frappe.ValidationError, "read-only history"):
+			session.chat("hello")
 
 	def test_deleting_a_session_drops_the_server_copy_first(self):
 		self.daemon.running = True
@@ -583,3 +601,11 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 		session = self.session()
 		self.assertEqual(session.model, self.allowed.name)
 		self.assertEqual(session.server_config()["model"], "openai/gpt-4o-mini")
+
+	def test_chat_rechecks_model_permission_for_an_existing_session(self):
+		session = self.session(model=self.restricted.name)
+		session.db_set("owner", self.user.name)
+		self.restrict_to(self.allowed.name)
+		frappe.set_user(self.user.name)
+		with self.assertRaises(frappe.PermissionError):
+			session.chat("hello")

@@ -146,6 +146,7 @@ class FlowSession(Document):
 		"""Start a turn and return its Running Flow Run, or the active run it joined."""
 		if not (input or "").strip():
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
+		self._assert_can_run()
 		self.sync()
 		try:
 			with DaemonClient.for_site() as client:
@@ -193,6 +194,18 @@ class FlowSession(Document):
 			self.sync()
 			self._paused_run().mark_failed(STOPPED)
 		return status
+	def _assert_can_run(self) -> None:
+		"""Enforce current agent and model access before the daemon uses its stored config."""
+		from flow.lib.model import model_config
+
+		if not self.agent:
+			frappe.throw(_(READ_ONLY), title=_("Flow Server"))
+
+		agent = frappe.get_doc("Flow Agent", self.agent)
+		if not agent.enabled:
+			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
+		model_config(self.model or agent.model)
+
 
 	def set_model(self, model: str) -> None:
 		from flow.lib.model import model_config
