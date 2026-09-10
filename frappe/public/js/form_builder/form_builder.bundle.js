@@ -40,6 +40,9 @@ class FormBuilder {
 
 	setup_page_actions() {
 		this.preview_btn?.remove();
+		// web forms preview through the sidebar's "See on Website" link
+		if (this.is_web_form) return;
+
 		this.preview_btn = this.page.add_button(__("Show Preview"), () => {
 			this.get_host_tab()?.set_active();
 			this.store.preview = !this.store.preview;
