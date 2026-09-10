@@ -34,6 +34,8 @@ interface Entry {
 	tiers: Ref<Tiers>;
 	loaded: Ref<boolean>;
 	pending: ListSettings | null;
+	/** How many times each key was reset; a failed patch comes back only for keys reset no further. */
+	resets: Partial<Record<ListSettingsKey, number>>;
 	timer: ReturnType<typeof setTimeout> | null;
 	/** Writes go out one after another, so a late response cannot overwrite a later one. */
 	queue: Promise<void>;
@@ -51,7 +53,10 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		if (entry.timer) clearTimeout(entry.timer);
 		entry.timer = null;
 		if (!patch) return entry.queue;
-		return write(entry, () => call(`${API}.save`, { ...address, scope: "user", settings: patch }), patch);
+		const marks = { ...entry.resets };
+		return write(entry, () => call(`${API}.save`, { ...address, scope: "user", settings: patch }), () =>
+			restore(entry, patch, marks)
+		);
 	}
 
 	function save(patch: ListSettings) {
@@ -62,6 +67,7 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 
 	async function reset(key: ListSettingsKey) {
 		if (entry.pending) delete entry.pending[key];
+		entry.resets[key] = (entry.resets[key] ?? 0) + 1;
 		await flush();
 		await write(entry, () => call(`${API}.reset`, { ...address, scope: "user", key }));
 	}
@@ -105,6 +111,7 @@ function entryFor(doctype: string): Entry {
 		tiers: ref({ site: null, user: null }),
 		loaded: ref(false),
 		pending: null,
+		resets: {},
 		timer: null,
 		queue: Promise.resolve(),
 	};
@@ -122,17 +129,25 @@ async function load(entry: Entry, doctype: string) {
 	entry.loaded.value = true;
 }
 
-/** A patch that fails waits for the next flush, under whatever was saved since. */
-function write(entry: Entry, send: () => Promise<unknown>, patch?: ListSettings): Promise<void> {
+function write(entry: Entry, send: () => Promise<unknown>, onFailure?: () => void): Promise<void> {
 	entry.queue = entry.queue.then(async () => {
 		try {
 			entry.tiers.value = tiersOf(await send());
 		} catch (failure) {
-			if (patch) entry.pending = { ...patch, ...entry.pending };
+			onFailure?.();
 			console.warn("[list] settings were not saved", failure);
 		}
 	});
 	return entry.queue;
+}
+
+/** A patch that failed waits for the next flush, under whatever was saved since, minus any key reset since. */
+function restore(entry: Entry, patch: ListSettings, marks: Entry["resets"]) {
+	const kept: ListSettings = {};
+	for (const key of Object.keys(patch) as ListSettingsKey[]) {
+		if ((entry.resets[key] ?? 0) === (marks[key] ?? 0)) Object.assign(kept, { [key]: patch[key] });
+	}
+	entry.pending = { ...kept, ...entry.pending };
 }
 
 function tiersOf(response: unknown): Tiers {

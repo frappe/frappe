@@ -125,6 +125,27 @@ describe("writing", () => {
 		warn.mockRestore();
 	});
 
+	it("does not bring back a key the person reset while its failed write was in flight", async () => {
+		const handle = useListSettings("Lead");
+		await settle();
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		fake.call.mockRejectedValueOnce(new Error("down"));
+		handle.save({ columns: [{ fieldname: "title" }], sort: [] });
+		const failing = handle.flush();
+		const resetting = handle.reset("columns");
+		await Promise.all([failing, resetting]);
+		expect(handle.has("user", "columns")).toBe(false);
+		expect(handle.has("user", "sort")).toBe(true);
+		handle.save({ quick_filter_fields: [] });
+		await handle.flush();
+		expect(fake.call).toHaveBeenLastCalledWith(`${API}.save`, {
+			...ADDRESS,
+			scope: "user",
+			settings: { sort: [], quick_filter_fields: [] },
+		});
+		warn.mockRestore();
+	});
+
 	it("writes the site scope at once, by name", async () => {
 		const handle = useListSettings("Lead");
 		await settle();
