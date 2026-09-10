@@ -49,3 +49,36 @@ context("Currency Formatter", () => {
 		format_amount(97.646, "BHD", { currency_precision: 2 }).should("eq", "BD 97.65");
 	});
 });
+
+context("Currency Formatter outside desk", () => {
+	before(() => {
+		cy.login();
+		cy.visit("/me");
+	});
+
+	it("resolves precision from system defaults on portal pages", () => {
+		cy.window().then((win) => {
+			Object.assign(win.frappe.sys_defaults, {
+				currency: "USD",
+				number_format: "#,###.##",
+				currency_precision: 3,
+				float_precision: 4,
+			});
+
+			expect(
+				win.frappe.format(
+					97.646,
+					{ fieldtype: "Currency", fieldname: "amount" },
+					{ only_value: true }
+				)
+			).to.eq("USD 97.646");
+			expect(
+				win.frappe.format(
+					97.64646,
+					{ fieldtype: "Float", fieldname: "qty" },
+					{ only_value: true }
+				)
+			).to.eq("97.6465");
+		});
+	});
+});

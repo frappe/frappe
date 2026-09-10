@@ -4,8 +4,6 @@
 
 from urllib.parse import quote
 
-from googleapiclient.errors import HttpError
-
 import frappe
 from frappe import _
 from frappe.integrations.google_oauth import GoogleOAuth
@@ -107,6 +105,8 @@ def sync_contacts_from_google_contacts(g_contact):
 	Syncs Contacts from Google Contacts.
 	https://developers.google.com/people/api/rest/v1/people.connections/list
 	"""
+	from googleapiclient.errors import HttpError
+
 	google_contacts, account = get_google_contacts_object(g_contact)
 
 	if not account.pull_from_google_contacts:
@@ -203,6 +203,8 @@ def insert_contacts_to_google_contacts(doc, method=None):
 	Syncs Contacts from Google Contacts.
 	https://developers.google.com/people/api/rest/v1/people/createContact
 	"""
+	from googleapiclient.errors import HttpError
+
 	if (
 		not frappe.db.exists("Google Contacts", {"name": doc.google_contacts})
 		or doc.pulled_from_google_contacts
@@ -242,6 +244,8 @@ def update_contacts_to_google_contacts(doc, method=None):
 	Syncs Contacts from Google Contacts.
 	https://developers.google.com/people/api/rest/v1/people/updateContact
 	"""
+	from googleapiclient.errors import HttpError
+
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
 	if (

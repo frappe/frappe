@@ -55,7 +55,8 @@ def print_has_permission_check_logs(func):
 		# print only if access denied
 		# and if user is checking their own permission
 		if not result and self_perm_check and print_logs:
-			msgprint(("<br>").join(frappe.flags.get("has_permission_check_logs", [])))
+			if logs := frappe.flags.get("has_permission_check_logs"):
+				msgprint(("<br>").join(logs))
 
 		if print_logs:
 			frappe.flags.pop("has_permission_check_logs", None)
@@ -148,12 +149,13 @@ def has_permission(
 			debug and _debug_log(
 				"Permission check failed from role permission system. Check if user's role grant them permission to the document."
 			)
-			msg = _("User {0} does not have access to this document").format(frappe.bold(user))
-			if meta.issingle:
-				msg += f": {_(doc.doctype)}"
-			elif has_permission(doc.doctype):
-				msg += f": {_(doc.doctype)} - {doc.name}"
-			push_perm_check_log(msg, debug=debug)
+			if not frappe.flags.get("has_permission_check_logs"):
+				msg = _("User {0} does not have access to this document").format(frappe.bold(user))
+				if meta.issingle:
+					msg += f": {_(doc.doctype)}"
+				elif has_permission(doc.doctype, print_logs=False):
+					msg += f": {_(doc.doctype)} - {doc.name}"
+				push_perm_check_log(msg, debug=debug)
 	else:
 		if ptype == "submit" and not cint(meta.is_submittable):
 			push_perm_check_log(_("Document Type is not submittable"), debug=debug)

@@ -289,10 +289,36 @@
 	pointer-events: none;
 }
 
+/* One header area: with a letterhead present, an EMPTY header zone doesn't
+   render at all (display beats the section's data-driven inline margins), and
+   surfaces as a drop target the moment a drag starts. Fields dropped there
+   render right under the letterhead — same region. */
+.pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
+	display: none;
+}
+body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
+	display: block;
+}
+
+/* panel rows dragged onto the canvas: the clone lives on <body>, outside the
+   panel's scoped styles, so restate the row's look as a proper card */
+.pfb-field-row.pfb-drag-fallback {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: auto !important;
+	padding: 8px 12px !important;
+	font-size: var(--text-sm);
+	background: var(--fg-color, #fff) !important;
+	border: 1px solid var(--gray-300) !important;
+}
+
 .pfb-drag-ghost {
 	height: 0 !important;
 	min-height: 0 !important;
-	margin: 4px 0 !important;
+	/* zero flow impact: any height the ghost adds moves the container boundary
+	   under a pointer resting near it, which re-targets the drop and oscillates */
+	margin: 0 !important;
 	padding: 0 !important;
 	border: none !important;
 	overflow: visible !important;

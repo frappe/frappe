@@ -20,7 +20,15 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
+from frappe.database.utils import (
+	DefaultOrderBy,
+	FallBackDateTimeStr,
+	NestedSetHierarchy,
+	get_doctype_name,
+	is_non_text_field,
+	is_order_by_in_select,
+	unquote_identifier,
+)
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -267,7 +275,7 @@ class DatabaseQuery:
 			for idx, field in enumerate(self.fields):
 				# handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
 				if " as " in field.lower():
-					alias = field.split(" as ")[1].strip(" '")
+					alias = re.split(r"\s+as\s+", field, flags=re.IGNORECASE)[1].strip(" '`")
 					field_index_map[alias] = idx
 				else:
 					# extract last part after `.`
@@ -329,7 +337,7 @@ class DatabaseQuery:
 
 		if self.distinct:
 			args.fields = "distinct " + args.fields
-			if frappe.db.db_type == "postgres":
+			if frappe.db.db_type == "postgres" and not self._can_apply_distinct_order_by(args.order_by):
 				# PostgreSQL requires ORDER BY expressions to appear in SELECT list when using DISTINCT
 				args.order_by = ""
 
@@ -372,7 +380,7 @@ from {tables}
 		if self.with_childnames:
 			for t in self.tables:
 				if t != f"`tab{self.doctype}`":
-					self.fields.append(f"{t}.name as '{t[4:-1]}:name'")
+					self.fields.append(f"{t}.name as `{t[4:-1]}:name`")
 
 		# query dict
 		assert self.tables, "extract_tables must have populated at least the primary table"
@@ -384,7 +392,8 @@ from {tables}
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			link_name = cast_name(f"{link.table_alias}.`name`")
+			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link_name} = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -474,6 +483,39 @@ from {tables}
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
+
+	def _can_apply_distinct_order_by(self, order_by: str) -> bool:
+		if not order_by:
+			return True
+
+		selected_fields = set()
+		has_joins = len(self.tables) > 1 or bool(self.link_tables)
+		for field in self.fields:
+			if field is None:
+				continue
+			field, *alias = re.split(r"\s+as\s+", field, maxsplit=1, flags=re.IGNORECASE)
+			field = unquote_identifier(field)
+			if field == "*" or field.endswith(".*"):
+				selected_fields.update(self._get_star_columns(field))
+			elif "(" not in field:
+				selected_fields.add(field)
+				# An unqualified sort can use the output name, but an alias replaces that name.
+				if not alias or not has_joins:
+					selected_fields.add(field.rsplit(".", 1)[-1])
+				if "." not in field:
+					selected_fields.add(f"tab{self.doctype}.{field}")
+			if alias:
+				selected_fields.add(unquote_identifier(alias[0]))
+
+		return is_order_by_in_select(order_by, selected_fields, len(self.fields))
+
+	def _get_star_columns(self, field: str) -> set[str]:
+		doctype = self.doctype if field == "*" else get_doctype_name(field[:-2])
+		columns = set()
+		for column in get_table_columns(doctype):
+			columns.add(column)
+			columns.add(f"tab{doctype}.{column}")
+		return columns
 
 	def parse_args(self):
 		"""Convert fields and filters from strings to list, dicts."""
@@ -980,6 +1022,13 @@ from {tables}
 		meta = self.get_meta(f.doctype)
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
+		if (
+			frappe.db.db_type == "postgres"
+			and f.operator.lower() in ("like", "not like")
+			and is_non_text_field(f.doctype, f.fieldname, df)
+			and "cast(" not in column_name.lower()
+		):
+			column_name = f"cast({column_name} as varchar)"
 
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.

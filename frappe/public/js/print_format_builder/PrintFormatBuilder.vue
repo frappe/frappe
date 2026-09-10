@@ -4,10 +4,10 @@
 		class="builder-root"
 		:class="{ 'pfb-multi-select': $store.is_multi_select.value }"
 	>
-		<PrintFormatControls />
+		<PrintFormatControls v-if="!$store.needs_setup.value" />
 		<div class="canvas-area">
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
-			<div class="canvas-toolbar">
+			<div class="canvas-toolbar" v-if="!$store.needs_setup.value">
 				<div class="canvas-toolbar-left">
 					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
@@ -55,7 +55,7 @@
 				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<FieldInspector />
+		<FieldInspector v-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
 		<ContextMenu />
 		<Teleport to="body">
@@ -82,7 +82,7 @@ import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
@@ -158,6 +158,8 @@ function clear_selection() {
 	}
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
+	$store.value.selected_letterhead.value = false;
+	$store.value.selected_lh_footer.value = false;
 }
 
 // ── Marquee (rubber-band) selection ──────────────────────────
@@ -397,6 +399,11 @@ function handle_keydown(e) {
 		// Navigate up: section → canvas (clear all)
 		$store.value.selected_section.value = null;
 		e.stopPropagation();
+	} else if ($store.value.selected_letterhead.value || $store.value.selected_lh_footer.value) {
+		// letter head zones have no parent — Escape just deselects them
+		$store.value.selected_letterhead.value = false;
+		$store.value.selected_lh_footer.value = false;
+		e.stopPropagation();
 	}
 }
 
@@ -472,10 +479,21 @@ function init_doc_picker() {
 	}
 }
 
+watch(
+	() => $store.value.needs_setup.value,
+	(needs_setup) => {
+		if (!needs_setup && !doc_picker_ctrl.value) nextTick(init_doc_picker);
+	}
+);
+
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
 
 	$store.value.fetch().then(() => {
+		if ($store.value.print_format.value?.custom_format) {
+			frappe.set_route("Form", "Print Format", props.print_format_name);
+			return;
+		}
 		if (!$store.value.layout.value) {
 			$store.value.layout.value = $store.value.get_default_layout();
 			$store.value.save_changes();

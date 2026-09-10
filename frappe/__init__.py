@@ -628,7 +628,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 
 
 def is_whitelisted(method):
-	from frappe.utils import sanitize_html
+	from frappe.utils import sanitize_html_payload
 
 	app_name = (method.__module__ or "").split(".", 1)[0]
 	from frappe.apps import get_disabled_apps
@@ -649,9 +649,11 @@ def is_whitelisted(method):
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
 		# escapes html characters like <> except for predefined tags like a, b, ul etc.
+		# an argument that arrived as JSON is sanitized inside the payload, so the
+		# payload still parses on the other side
 		for key, value in form_dict.items():
 			if isinstance(value, str):
-				form_dict[key] = sanitize_html(value)
+				form_dict[key] = sanitize_html_payload(value)
 
 
 def read_only():

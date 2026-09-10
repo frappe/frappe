@@ -2,10 +2,24 @@
 // `Desktop Icons` (folders, drag-to-reorder, edit mode). The default `Apps` mode uses the
 // hook-driven grid in desktop.js instead.
 //
-// Loaded lazily by frappe/desk/page/desktop/desktop.js, because Page.load_assets reads
-// exactly one `<page_name>.js` per page -- a second file in that folder would never be
-// served. Keeping it out of desk.bundle also keeps ~1200 lines off every desk page load.
+// Loaded lazily by frappe/desk/page/desktop/desktop.js, because Page.load_assets reads exactly
+// one `<page_name>.js` per page, so a second file in that folder would never be served. Keeping
+// it out of desk.bundle also keeps about 1200 lines off every desk page load.
 import "./frappe/ui/desktop_icons_item.html";
+
+// One menu entry as a frappe.ui.Dropdown / frappe.ui.ContextMenu row.
+//
+// Rows apps contribute through `add_menu_item()` were written against the menu this page's menus
+// replaced, so its key names are still accepted alongside the component's own: `onClick` for
+// `onclick`, `url` for `href`. Labels arrive untranslated here, as they always have.
+function menu_row(item) {
+	const row = { label: __(item.label), icon: item.icon, condition: item.condition };
+	const href = item.href || item.url;
+	if (href) row.href = href;
+	const onclick = item.onclick || item.onClick;
+	if (onclick) row.onclick = onclick;
+	return row;
+}
 
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
@@ -27,11 +41,18 @@ $.extend(frappe.desktop_utils, {
 		}
 	},
 });
+// The workspaces on an app's rail, read from the one list `app_data` carries. This is a
+// behaviour change: that list holds the workspaces the app's `Dock` record names, its own plus
+// the ones companions mount onto it, rather than every workspace whose module belongs to the app.
+// The icon grid is a retired surface an Apps-mode site never renders.
 function get_workspaces_from_app_name(app_name) {
 	const app = frappe.boot.app_data.filter((a) => {
 		return a.app_title === app_name;
 	});
-	if (app.length > 0) return app[0].workspaces;
+	if (app.length > 0)
+		return (app[0].dock || [])
+			.filter((row) => row.link_type === "Workspace")
+			.map((row) => row.link_to);
 }
 
 function get_route(desktop_icon) {
@@ -44,7 +65,7 @@ function get_route(desktop_icon) {
 			route = desktop_icon.link;
 		}
 	} else {
-		let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+		let sidebar = frappe.utils.sidebar_for_module(desktop_icon.module || desktop_icon.label);
 		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
 			let first_link = sidebar.items.find((i) => i.type == "Link");
 			if (first_link) {
@@ -289,32 +310,32 @@ class DesktopPage {
 	}
 	setup_context_menu() {
 		const me = this;
-		let menu_items = [
-			{
-				label: "Edit Layout",
-				icon: "edit",
-				condition: function () {
-					return !me.edit_mode;
+		new frappe.ui.ContextMenu({
+			target: this.wrapper,
+			options: [
+				{
+					label: __("Edit Layout"),
+					icon: "edit",
+					condition: function () {
+						return !me.edit_mode;
+					},
+					onclick: function () {
+						me.$desktop_edit_button.hide();
+						frappe.new_desktop_icons = JSON.parse(
+							JSON.stringify(frappe.desktop_icons)
+						);
+						me.start_editing_layout();
+					},
 				},
-				onClick: function () {
-					me.$desktop_edit_button.hide();
-					frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
-					me.start_editing_layout();
+				{
+					label: __("Reset Layout"),
+					icon: "rotate-ccw",
+					onclick: function () {
+						reset_to_default();
+						me.update();
+					},
 				},
-			},
-			{
-				label: "Reset Layout",
-				icon: "rotate-ccw",
-				onClick: function () {
-					reset_to_default();
-					me.update();
-				},
-			},
-		];
-		frappe.ui.create_menu({
-			parent: this.wrapper,
-			menu_items: menu_items,
-			right_click: true,
+			],
 		});
 	}
 	stop_editing_layout(action) {
@@ -442,28 +463,28 @@ class DesktopPage {
 			{
 				icon: is_dark ? "sun" : "moon",
 				label: "Toggle Theme",
-				onClick: function () {
+				onclick: function () {
 					new frappe.ui.ThemeSwitcher().show();
 				},
 			},
 			{
 				icon: "info",
 				label: "About",
-				onClick: function () {
+				onclick: function () {
 					return frappe.ui.toolbar.show_about();
 				},
 			},
 			{
 				icon: "life-buoy",
 				label: "Frappe Support",
-				onClick: function () {
+				onclick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
 				},
 			},
 			{
 				icon: "rotate-ccw",
 				label: "Reset Desktop Layout",
-				onClick: function () {
+				onclick: function () {
 					reset_to_default();
 					window.location.reload();
 				},
@@ -471,19 +492,19 @@ class DesktopPage {
 			{
 				icon: "log-out",
 				label: "Logout",
-				onClick: function () {
+				onclick: function () {
 					frappe.app.logout();
 				},
 			},
 		];
 		if (this.desktop_menu_items && this.desktop_menu_items.length)
 			menu_items = [...menu_items, ...this.desktop_menu_items];
-		frappe.ui.create_menu({
-			parent: $(".desktop-avatar"),
-			menu_items: menu_items,
-			// If it's RTL, we want it to open on the right (false);
-			// if it's LTR, we want it to open on the left (true).
-			open_on_left: !frappe.utils.is_rtl(),
+		new frappe.ui.Dropdown({
+			trigger: $(".desktop-avatar"),
+			// The avatar sits at the end of the header, so the menu hangs back under it.
+			// "end" is the logical edge, which the component mirrors under RTL.
+			align: "end",
+			options: menu_items.map(menu_row),
 		});
 	}
 	add_menu_item(item) {
@@ -547,11 +568,11 @@ class DesktopIconGrid {
 	init() {
 		this.icons = [];
 		this.icons_html = [];
-		// Only a grid given a `page_size` paginates: `.icons` is a fixed columns x rows CSS
+		// Only a grid given a `page_size` paginates: `.icons` is a fixed columns-by-rows CSS
 		// grid, so anything past one screenful has nowhere to go. The folder thumbnail, the
-		// folder modal and the hidden-icons pane pass none -- each clips or scrolls its own
-		// overflow -- and stay on a single page. Mobile renders 3 columns (see make()), so
-		// the page has to shrink with it or the last rows spill off screen again.
+		// folder modal and the hidden-icons pane pass none, each clipping or scrolling its own
+		// overflow, and stay on a single page. Mobile renders 3 columns (see make()), so the
+		// page size has to shrink with it or the last rows spill off screen.
 		if (this.page_size) {
 			this.icons_per_page =
 				(frappe.is_mobile() ? 3 : this.page_size.columns) * this.page_size.rows;
@@ -757,8 +778,8 @@ class DesktopIconGrid {
 		this.hoverTarget = null;
 		this.hoverTimer = null;
 		if (!frappe.is_mobile()) {
-			// one Sortable per page, kept in `sortables` -- `idx` is numbered across the whole
-			// grid, so a drop has to read every page's order, not just the page it landed on
+			// One Sortable per page, kept in `sortables`. `idx` is numbered across the whole
+			// grid, so a drop has to read every page's order, not just the page it landed on.
 			this.sortable = new Sortable($(grid).get(0), {
 				swapThreshold: 0.09,
 				desktop: true,
@@ -826,7 +847,8 @@ class DesktopIconGrid {
 		}
 	}
 	get_ordered_labels() {
-		// every page's icon labels, in page order -- what `reorder_icons` renumbers `idx` from
+		// Every page's icon labels, in page order, which is what `reorder_icons` renumbers `idx`
+		// from.
 		return this.sortables.flatMap((sortable) => sortable.toArray());
 	}
 	update_grid(icons) {
@@ -936,11 +958,6 @@ class DesktopIcon {
 		});
 	}
 	validate_icon() {
-		// validate if my workspaces are empty
-		if (this.icon_data.label == "My Workspaces") {
-			if (frappe.boot.workspace_sidebar_item["my workspaces"].items.length == 0)
-				return false;
-		}
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
@@ -956,17 +973,16 @@ class DesktopIcon {
 		const me = frappe.pages["desktop"].desktop_page;
 		let icon_data = this.icon_data;
 		const icon = this;
-		frappe.ui.create_menu({
-			parent: this.icon,
-			right_click: true,
-			menu_items: [
+		new frappe.ui.ContextMenu({
+			target: this.icon,
+			options: [
 				{
-					label: "Edit",
+					label: __("Edit"),
 					icon: "edit",
 					condition: function () {
 						return icon_data.standard != 1;
 					},
-					onClick: function () {
+					onclick: function () {
 						frappe.ui.form.make_quick_entry(
 							"Desktop Icon",
 							function (icon) {
@@ -993,27 +1009,29 @@ class DesktopIcon {
 					},
 				},
 				{
-					label: "Create Folder",
+					label: __("Create Folder"),
 					icon: "folder",
-					onClick: function () {
+					onclick: function () {
 						let folder = me.icon_grid.add_folder();
 						add_icons_to_folder(folder.label, [icon_data.label]);
 					},
 				},
 				{
-					label: "Add To Folder",
+					label: __("Add To Folder"),
 					icon: "folder-open",
 					condition: function () {
 						return me.folders.length > 0;
 					},
-					items: me.folders.map((name) => {
-						return {
+					// Read at hover, so the list is the folders that exist when the menu is
+					// opened rather than the ones that existed when the icon was drawn.
+					// The folder each row adds to is the one it closes over: a row handler is
+					// called with no receiver, so the `this.label` this used to read was never
+					// the row.
+					submenu: () =>
+						me.folders.map((name) => ({
 							label: name,
-							onClick: function () {
-								add_icons_to_folder(this.label, [icon_data.label]);
-							},
-						};
-					}),
+							onclick: () => add_icons_to_folder(name, [icon_data.label]),
+						})),
 				},
 			],
 		});

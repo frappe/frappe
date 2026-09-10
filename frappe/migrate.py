@@ -120,7 +120,15 @@ class SiteMigration:
 
 	@atomic
 	def pre_schema_updates(self):
-		"""Executes `before_migrate` hooks"""
+		"""Registers modules declared since the last migrate, then executes `before_migrate` hooks"""
+		from frappe.installer import sync_module_defs
+
+		# This runs before the hooks and before either patch pass, because everything downstream
+		# that names a module, such as a patch, a workspace or a module sidebar, needs the row to
+		# exist first. A module an app added after it was installed has no row until this runs.
+		if added := sync_module_defs():
+			print(f"Registered new modules: {comma_and(added, add_quotes=False)}")
+
 		overrides = defaultdict(list)
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("before_migrate", app_name=app):
@@ -155,6 +163,7 @@ class SiteMigration:
 		* Sync fixtures & custom scripts
 		* Sync in-Desk Module Dashboards
 		* Sync customizations: Custom Fields, Property Setters, Custom Permissions
+		* Run post_fixture_sync patches
 		* Sync Frappe's internal language master
 		* Flush deferred inserts made during maintenance mode.
 		* Sync Portal Menu Items
@@ -181,6 +190,12 @@ class SiteMigration:
 
 		print("Syncing customizations...")
 		sync_customizations()
+
+		print("Running post fixture sync patches...")
+		frappe.clear_cache()
+		frappe.modules.patch_handler.run_all(
+			skip_failing=self.skip_failing, patch_type=PatchType.post_fixture_sync
+		)
 
 		print("Syncing languages...")
 		sync_languages()

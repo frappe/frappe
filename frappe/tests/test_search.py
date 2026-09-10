@@ -66,6 +66,35 @@ class TestSearch(IntegrationTestCase):
 		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
 		self.assertNotIn(email, names_for_mention)
 
+	def test_allowed_in_mentions_cache_invalidation(self):
+		email = "test_allowed_in_mentions@example.com"
+		frappe.delete_doc("User", email, ignore_missing=True)
+
+		user = frappe.new_doc("User")
+		user.update(
+			{
+				"email": email,
+				"first_name": email.split("@", 1)[0],
+				"enabled": True,
+				"allowed_in_mentions": True,
+			}
+		)
+		# saved when roles are added
+		user.add_roles("System Manager")
+
+		# Populate the users_for_mentions cache.
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		self.assertIn(email, names_for_mention)
+
+		# Changing Allowed In Mentions should invalidate the cache.
+		user.allowed_in_mentions = False
+		user.save()
+
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		self.assertNotIn(email, names_for_mention)
+
+		frappe.delete_doc("User", email)
+
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
 		results = search_link(
@@ -118,6 +147,46 @@ class TestSearch(IntegrationTestCase):
 				do_search("nutzer"),
 				"Search results for 'nutzer' in German should include 'User' ('Nutzer')",
 			)
+
+	def test_translated_doctype_search_pagination(self):
+		doctype = "Test Translated Search Paging"
+		if frappe.db.exists("DocType", doctype):
+			frappe.delete_doc("DocType", doctype, force=True)
+		new_doctype(
+			name=doctype,
+			translated_doctype=1,
+			autoname="field:title",
+			sort_field="sequence",
+			sort_order="ASC",
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Sequence", "fieldname": "sequence", "fieldtype": "Int"},
+			],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True))
+
+		# non matching records are stored first, so an offset applied before the translated
+		# filtering would eat into them instead of into the matches
+		titles = [f"Harbour Freight Terminal {i:02d}" for i in range(1, 7)]
+		titles += [f"Northwind Depot {i:02d}" for i in range(1, 10)]
+		for sequence, title in enumerate(titles, start=1):
+			frappe.get_doc({"doctype": doctype, "title": title, "sequence": sequence}).insert()
+
+		expected = [title for title in titles if "Depot" in title]
+
+		for query in (None, "frappe.tests.test_search.paginated_query"):
+			with self.subTest(query=query):
+				pages = [
+					[
+						result[0]
+						for result in search_widget(
+							doctype=doctype, txt="Depot", query=query, start=start, page_length=3
+						)
+					]
+					for start in (0, 3, 6, 9)
+				]
+
+				self.assertEqual(pages, [expected[0:3], expected[3:6], expected[6:9], []])
 
 	def test_validate_and_sanitize_search_inputs(self):
 		# should raise error if searchfield is injectable
@@ -179,6 +248,39 @@ class TestSearch(IntegrationTestCase):
 		# Assume that "es" is used at least 10 times, it should now be first
 		frappe.db.set_value("Language", "es", "idx", 10)
 		self.assertEqual("es", search(txt="es")[0]["value"])
+
+	def test_relevance_skipped_without_txt(self):
+		"""`_relevance` is a constant when txt is empty, so it must not be selected or sorted on."""
+
+		def search_and_capture(txt):
+			captured = []
+			orig_sql = frappe.db.__class__.sql
+
+			def _capture(*args, **kwargs):
+				result = orig_sql(*args, **kwargs)
+				captured.append(str(args[0].last_query))
+				return result
+
+			with patch.object(frappe.db.__class__, "sql", _capture):
+				values = search_widget(doctype="Language", txt=txt, page_length=5)
+
+			return values, "\n".join(captured)
+
+		empty, empty_sql = search_and_capture("")
+		typed, typed_sql = search_and_capture("e")
+
+		self.assertNotIn("_relevance", empty_sql)
+		self.assertIn("_relevance", typed_sql)
+
+		# the result shape must not change: a mismatched strip would drop a real column
+		self.assertEqual(len(empty[0]), len(typed[0]))
+
+	def test_empty_search_still_orders_by_idx(self):
+		"""Dropping the constant relevance key must not change the order of an empty search."""
+		frappe.db.set_value("Language", "es", {"enabled": 1, "idx": 500})
+
+		# page_length=1 leaves the python relevance_sorter no second row to reorder
+		self.assertEqual("es", search_link("Language", "", page_length=1)[0]["value"])
 
 	def test_search_with_paren(self):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
@@ -710,6 +812,27 @@ def query_by_title(
 	filters: str | list | dict[str, Any],
 ):
 	return frappe.get_list(doctype, filters={"title": ("like", f"%{txt}%")}, as_list=True)
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def paginated_query(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	return frappe.get_all(
+		doctype,
+		fields=["name"],
+		filters={"name": ["like", f"%{txt}%"]} if txt else None,
+		order_by="sequence asc",
+		limit_start=start,
+		limit_page_length=page_len,
+		as_list=True,
+	)
 
 
 def setup_test_link_field_order(TestCase):

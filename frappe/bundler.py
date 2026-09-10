@@ -1,0 +1,355 @@
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+import os
+import re
+import shlex
+import shutil
+import subprocess
+from contextlib import suppress
+
+import click
+from semantic_version import Version
+
+import frappe
+
+timestamps = {}
+app_paths = None
+sites_path = os.path.abspath(os.getcwd())
+WHITESPACE_PATTERN = re.compile(r"\s+")
+HTML_COMMENT_PATTERN = re.compile(r"(<!--.*?-->)")
+
+
+def symlink(target, link_name, overwrite=False):
+	"""
+	Create a symbolic link named link_name pointing to target.
+	If link_name exists then FileExistsError is raised, unless overwrite=True.
+	When trying to overwrite a directory, IsADirectoryError is raised.
+
+	Source: https://stackoverflow.com/a/55742015/10309266
+	"""
+
+	if not overwrite:
+		return os.symlink(target, link_name)
+
+	# Create link to target with temporary filename
+	while True:
+		temp_link_name = f"tmp{frappe.generate_hash()}"
+
+		# os.* functions mimic as closely as possible system functions
+		# The POSIX symlink() returns EEXIST if link_name already exists
+		# https://pubs.opengroup.org/onlinepubs/9699919799/functions/symlink.html
+		try:
+			os.symlink(target, temp_link_name)
+			break
+		except FileExistsError:
+			pass
+
+	# Replace link_name with temp_link_name
+	try:
+		# Pre-empt os.replace on a directory with a nicer message
+		if os.path.isdir(link_name):
+			raise IsADirectoryError(f"Cannot symlink over existing directory: '{link_name}'")
+		try:
+			shutil.move(temp_link_name, link_name)
+		except AttributeError:
+			os.renames(temp_link_name, link_name)
+	except Exception:
+		if os.path.islink(temp_link_name):
+			os.remove(temp_link_name)
+		raise
+
+
+def setup():
+	global app_paths, assets_path
+
+	pymodules = []
+	for app in frappe.get_all_apps(True):
+		try:
+			pymodules.append(frappe.get_module(app))
+		except ImportError:
+			pass
+	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
+	assets_path = os.path.join(frappe.local.sites_path, "assets")
+
+
+def bundle(
+	mode,
+	apps=None,
+	hard_link=False,
+	verbose=False,
+	files=None,
+	save_metafiles=False,
+	using_cached=False,
+	esbuild_target=None,
+):
+	"""concat / minify js files"""
+	setup()
+	make_asset_dirs(hard_link=hard_link, verbose=verbose)
+
+	mode = "production" if mode == "production" else "build"
+	command = f"yarn run {mode}"
+
+	if apps:
+		command += f" --apps {apps}"
+
+	if esbuild_target:
+		command += f" --esbuild-target {esbuild_target}"
+
+	if files:
+		command += " --files {files}".format(files=",".join(files))
+
+	if using_cached:
+		command += " --using-cached"
+	else:
+		command += " --run-build-command"
+
+	if save_metafiles:
+		command += " --save-metafiles"
+
+	if verbose:
+		command += " --verbose"
+
+	check_node_executable()
+	frappe_app_path = frappe.get_app_source_path("frappe")
+	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
+
+	with suppress(Exception):
+		frappe.cache.flushdb()
+
+
+def watch(apps=None):
+	"""watch and rebuild if necessary"""
+	setup()
+
+	command = "yarn run watch"
+	if apps:
+		command += f" --apps {apps}"
+
+	live_reload = frappe.utils.cint(os.environ.get("LIVE_RELOAD", frappe.conf.live_reload))
+
+	if live_reload:
+		command += " --live-reload"
+
+	check_node_executable()
+	frappe_app_path = frappe.get_app_source_path("frappe")
+
+	# A second watcher, on its own tooling, beside esbuild rather than inside it.
+	# It lives exactly as long as the esbuild watcher below, which blocks.
+	page_islands = watch_page_islands()
+	try:
+		frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	finally:
+		if page_islands:
+			page_islands.terminate()
+
+
+def page_island_build_command(production: bool = False, watch: bool = False) -> str:
+	"""The framework page-island build, as a shell command.
+
+	It runs on framework's own toolchain, installed beside the preset, so it
+	needs neither an app frontend nor the bench's node_modules. A bench with no
+	Frappe UI page exits before it touches either.
+	"""
+	script = os.path.join(frappe.get_app_source_path("frappe"), "ui", "vite", "island", "build-pages.js")
+	command = f"node {shlex.quote(script)}"
+	if production:
+		command += " --production"
+	if watch:
+		command += " --watch"
+	return command
+
+
+def build_page_islands(built_apps: list[str] | None = None):
+	"""Build every Frappe UI page's island. Runs from the `after_app_build` hook.
+
+	One build takes the whole bench, so which app was just built does not change
+	what it compiles. A failure is reported and does not stop `bench build`: a
+	page island is additive, and an unbuilt one already says so on its own page.
+	"""
+	# The same reading `bench build` uses to pick its own mode.
+	development = frappe.local.conf.developer_mode or frappe._dev_server
+	command = page_island_build_command(production=not development)
+
+	if frappe.commands.popen(command, cwd=frappe.get_app_source_path("frappe"), env=get_node_env()):
+		click.secho(
+			f"The page-island build failed ({command}). "
+			"Every Frappe UI page shows its unbuilt state until this passes.",
+			fg="red",
+		)
+
+
+def watch_page_islands():
+	"""Start the page-island watcher, or `None` if it cannot start.
+
+	`frappe.commands.popen` waits, and this one has to run beside the esbuild
+	watcher, so it starts its own process. The environment is merged the same
+	way, or node is not on the PATH the build inherits.
+	"""
+	command = page_island_build_command(watch=True)
+
+	try:
+		return subprocess.Popen(
+			command,
+			shell=True,
+			cwd=frappe.get_app_source_path("frappe"),
+			env=dict(os.environ, **get_node_env()),
+		)
+	except OSError as e:
+		click.secho(f"Could not watch page islands: {e}", fg="yellow")
+		return None
+
+
+def check_node_executable():
+	node_version = Version(subprocess.getoutput("node -v")[1:])
+	warn = "⚠️ "
+	if node_version.major < 18:
+		click.echo(f"{warn} Please update your node version to 18")
+	if not shutil.which("yarn"):
+		click.echo(f"{warn} Please install yarn using below command and try again.\nnpm install -g yarn")
+	click.echo()
+
+
+def get_node_env():
+	return {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
+
+
+def get_safe_max_old_space_size():
+	import psutil
+
+	safe_max_old_space_size = 0
+	try:
+		total_memory = psutil.virtual_memory().total / (1024 * 1024)
+		# reference for the safe limit assumption
+		# https://nodejs.org/api/cli.html#cli_max_old_space_size_size_in_megabytes
+		# set minimum value 1GB
+		safe_max_old_space_size = max(1024, int(total_memory * 0.75))
+	except Exception:
+		pass
+
+	return safe_max_old_space_size
+
+
+def generate_assets_map():
+	symlinks = {}
+
+	for app_name in frappe.get_all_apps():
+		app_doc_path = None
+
+		pymodule = frappe.get_module(app_name)
+		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
+		app_public_path = os.path.join(app_base_path, "public")
+		app_node_modules_path = os.path.join(app_base_path, "..", "node_modules")
+		app_docs_path = os.path.join(app_base_path, "docs")
+		app_www_docs_path = os.path.join(app_base_path, "www", "docs")
+
+		app_assets = os.path.abspath(app_public_path)
+		app_node_modules = os.path.abspath(app_node_modules_path)
+
+		# {app}/public > assets/{app}
+		if os.path.isdir(app_assets):
+			symlinks[app_assets] = os.path.join(assets_path, app_name)
+
+		# {app}/node_modules > assets/{app}/node_modules
+		if os.path.isdir(app_node_modules):
+			symlinks[app_node_modules] = os.path.join(assets_path, app_name, "node_modules")
+
+		# {app}/docs > assets/{app}_docs
+		if os.path.isdir(app_docs_path):
+			app_doc_path = os.path.join(app_base_path, "docs")
+		elif os.path.isdir(app_www_docs_path):
+			app_doc_path = os.path.join(app_base_path, "www", "docs")
+		if app_doc_path:
+			app_docs = os.path.abspath(app_doc_path)
+			symlinks[app_docs] = os.path.join(assets_path, app_name + "_docs")
+
+	return symlinks
+
+
+def setup_assets_dirs():
+	for dir_path in (os.path.join(assets_path, x) for x in ("js", "css")):
+		os.makedirs(dir_path, exist_ok=True)
+
+
+def clear_broken_symlinks():
+	for path in os.listdir(assets_path):
+		path = os.path.join(assets_path, path)
+		if os.path.islink(path) and not os.path.exists(path):
+			os.remove(path)
+
+
+def unstrip(message: str) -> str:
+	"""Pads input string on the right side until the last available column in the terminal"""
+	_len = len(message)
+	try:
+		max_str = os.get_terminal_size().columns
+	except Exception:
+		max_str = 80
+
+	if _len < max_str:
+		_rem = max_str - _len
+	else:
+		_rem = max_str % _len
+
+	return f"{message}{' ' * _rem}"
+
+
+def make_asset_dirs(hard_link=False, verbose=True):
+	setup_assets_dirs()
+	clear_broken_symlinks()
+	symlinks = generate_assets_map()
+
+	for source, target in symlinks.items():
+		start_message = (
+			unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
+			if verbose
+			else None
+		)
+		fail_message = f"Cannot {'copy' if hard_link else 'link'} {source} to {target}"
+
+		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes
+		try:
+			if verbose:
+				print(start_message, end="\r")
+			link_assets_dir(source, target, hard_link=hard_link)
+		except Exception as e:
+			print(e)
+			print(unstrip(fail_message) if verbose else fail_message)
+
+	if verbose:
+		click.echo(unstrip(click.style("✔", fg="green") + " Application Assets Linked") + "\n")
+	else:
+		click.echo(click.style("✔", fg="green") + " Application Assets Linked")
+
+
+def link_assets_dir(source, target, hard_link=False):
+	if not os.path.exists(source):
+		return
+
+	if os.path.exists(target):
+		if os.path.islink(target):
+			os.unlink(target)
+		else:
+			shutil.rmtree(target)
+
+	if hard_link:
+		shutil.copytree(source, target, dirs_exist_ok=True)
+	else:
+		symlink(source, target, overwrite=True)
+
+
+def scrub_html_template(content):
+	"""Return HTML content with removed whitespace and comments."""
+	# remove whitespace to a single space
+	content = WHITESPACE_PATTERN.sub(" ", content)
+
+	# strip comments
+	content = HTML_COMMENT_PATTERN.sub("", content)
+
+	return content.replace("'", "'")
+
+
+def html_to_js_template(path, content):
+	"""Return HTML template content as Javascript code, by adding it to `frappe.templates`."""
+	return """frappe.templates["{key}"] = '{content}';\n""".format(
+		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content)
+	)

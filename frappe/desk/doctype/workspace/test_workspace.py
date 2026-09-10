@@ -3,6 +3,7 @@
 import json
 
 import frappe
+from frappe.desk.doctype.sidebar.test_sidebar import sidebarless_module
 from frappe.tests import IntegrationTestCase
 
 
@@ -48,6 +49,8 @@ class TestWorkspace(IntegrationTestCase):
 		workspace.title = "New Widget Test Workspace"
 		workspace.public = 0
 		workspace.for_user = frappe.session.user
+		# mandatory now: the dock is module-shaped, so a workspace with no module belongs nowhere
+		workspace.module = "Test Module"
 		workspace.content = "[]"
 		workspace.insert()
 
@@ -75,6 +78,7 @@ class TestWorkspace(IntegrationTestCase):
 		workspace.title = "Duplicate Shortcut Workspace"
 		workspace.public = 0
 		workspace.for_user = frappe.session.user
+		workspace.module = "Test Module"
 		workspace.content = "[]"
 
 		for stats_filter in (
@@ -99,6 +103,7 @@ class TestWorkspace(IntegrationTestCase):
 		workspace.title = "Legacy Duplicate Workspace"
 		workspace.public = 0
 		workspace.for_user = frappe.session.user
+		workspace.module = "Test Module"
 		workspace.content = "[]"
 		workspace.insert()
 
@@ -125,8 +130,8 @@ class TestWorkspace(IntegrationTestCase):
 			workspace.title = "Legacy Duplicate Workspace Renamed"
 			workspace.save()
 
-			# deepening the existing clash -- a *third* row under the grandfathered label -- is a
-			# new duplicate all the same, so it is still refused
+			# Deepening the existing clash with a third row under the grandfathered label is
+			# still a new duplicate, so it is refused.
 			workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Tasks"})
 			with self.assertRaises(frappe.ValidationError):
 				workspace.save()
@@ -166,6 +171,107 @@ class TestWorkspace(IntegrationTestCase):
 			self.assertIn("Role Test Workspace", workspace_titles)
 		finally:
 			frappe.db.delete("Workspace", {"name": workspace.name})
+
+
+class TestWorkspaceAccessLevels(IntegrationTestCase):
+	"""All three levels survive, and only a Workspace Manager may reach past the first.
+
+	`public` decides whether a page is in anybody's navigation but its owner's, so it is the level a
+	plain Desk User is never offered: nobody publishes a page into everyone's navigation by accident.
+	The dialog offers them "Only to you" and nothing else, and this asserts the same answer where it
+	is enforced.
+
+	"""
+
+	MODULE = "Test Access Level Module"
+	DESK_USER = "test-workspace-desk-user@example.com"
+	MANAGER = "test-workspace-page-manager@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		# not `create_module`: in developer mode a `Module Def` writes itself into modules.txt
+		# and only undoes that on commit, which a rolled-back test never reaches
+		self.enterContext(sidebarless_module(self.MODULE))
+		self.make_user(self.DESK_USER, ["Desk User"])
+		self.make_user(self.MANAGER, ["Desk User", "Workspace Manager"])
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.db.delete, "Workspace", {"module": self.MODULE})
+
+	def make_user(self, email, roles):
+		if frappe.db.exists("User", email):
+			frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+				"roles": [{"role": role} for role in roles],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+
+	def page(self, title, **extra):
+		return {
+			"title": title,
+			"label": title,
+			"content": "[]",
+			"module": self.MODULE,
+			"type": "Workspace",
+			"public": 0,
+			"for_user": "",
+			**extra,
+		}
+
+	def test_a_desk_user_creates_a_private_page(self):
+		from frappe.desk.doctype.workspace.workspace import new_page
+
+		frappe.set_user(self.DESK_USER)
+		# The label carries the owner, which is what keeps two users' pages of the same name
+		# apart, and `Workspace` is named after it.
+		name = f"Test Desk User Private Page-{self.DESK_USER}"
+		new_page(self.page("Test Desk User Private Page", label=name, for_user=self.DESK_USER))
+
+		self.assertEqual(frappe.db.get_value("Workspace", name, "for_user"), self.DESK_USER)
+
+	def test_a_desk_user_cannot_create_a_page_anybody_else_can_see(self):
+		from frappe.desk.doctype.workspace.workspace import new_page
+
+		frappe.set_user(self.DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			new_page(self.page("Test Desk User Public Page", public=1))
+
+		self.assertFalse(frappe.db.exists("Workspace", "Test Desk User Public Page"))
+
+	def test_a_workspace_manager_creates_both_shared_levels(self):
+		"""Group and public are one field apart: a shared page with roles is the group, a
+		shared page without them is everyone."""
+		from frappe.desk.doctype.workspace.workspace import new_page
+
+		frappe.set_user(self.MANAGER)
+		new_page(self.page("Test Manager Public Page", public=1))
+		new_page(self.page("Test Manager Group Page", public=1, roles=[{"role": "System Manager"}]))
+
+		self.assertEqual(frappe.db.get_value("Workspace", "Test Manager Public Page", "public"), 1)
+		self.assertEqual(
+			frappe.get_all(
+				"Has Role",
+				filters={"parenttype": "Workspace", "parent": "Test Manager Group Page"},
+				pluck="role",
+			),
+			["System Manager"],
+		)
+
+	def test_creating_a_workspace_cannot_create_a_module(self):
+		"""The dialog offers a list of modules rather than a Link that could mint one, and the
+		endpoint behind it agrees: a workspace names a module that exists or it is not saved."""
+		from frappe.desk.doctype.workspace.workspace import new_page
+
+		frappe.set_user(self.MANAGER)
+		with self.assertRaises(frappe.ValidationError):
+			new_page(self.page("Test Inventing A Module", module="Test No Such Module At All"))
+
+		self.assertFalse(frappe.db.exists("Module Def", "Test No Such Module At All"))
 
 
 def create_module(module_name):
@@ -237,3 +343,92 @@ def create_doctype(doctype_name, module):
 			"permissions": [{"role": "System Manager"}],
 		}
 	).insert(ignore_if_duplicate=True)
+
+
+class TestBothDoorsToTheModule(IntegrationTestCase):
+	"""`Workspace.module` decides which dock lists a workspace, and two endpoints set it.
+
+	They have to agree. `set_workspace_module` checked the module against the assignable list;
+	`update_workspace_settings` took a `module` and wrote it straight through, so the same
+	operation was validated or not depending on which one the client called.
+	"""
+
+	MODULE = "Test Both Doors Module"
+	BLOCKED = "Test Both Doors Blocked Module"
+	USER = "test-both-doors@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.enterContext(sidebarless_module(self.MODULE))
+		self.enterContext(sidebarless_module(self.BLOCKED))
+
+		if frappe.db.exists("User", self.USER):
+			frappe.delete_doc("User", self.USER, force=True, ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": self.USER,
+				"first_name": "Both Doors",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Desk User"}, {"role": "Workspace Manager"}],
+				# the module is real, and this user simply may not see it
+				"block_modules": [{"module": self.BLOCKED}],
+			}
+		).insert(ignore_permissions=True)
+
+		# Registration order matters: addCleanup runs LIFO, so the user has to be deleted as
+		# Administrator rather than as themselves.
+		self.addCleanup(frappe.delete_doc, "User", self.USER, force=True, ignore_missing=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.db.delete, "Workspace", {"module": self.MODULE})
+
+	def make_page(self):
+		from frappe.desk.doctype.workspace.workspace import new_page
+
+		frappe.set_user(self.USER)
+		title = "Test Both Doors Page"
+		name = f"{title}-{self.USER}"
+		new_page(
+			{
+				"title": title,
+				"label": name,
+				"content": "[]",
+				"module": self.MODULE,
+				"type": "Workspace",
+				"public": 0,
+				"for_user": self.USER,
+			}
+		)
+		return name
+
+	def test_the_move_endpoint_refuses_a_module_the_user_cannot_see(self):
+		from frappe.desk.doctype.workspace.workspace import set_workspace_module
+
+		name = self.make_page()
+
+		with self.assertRaises(frappe.ValidationError):
+			set_workspace_module(name, self.BLOCKED)
+
+		self.assertEqual(frappe.db.get_value("Workspace", name, "module"), self.MODULE)
+
+	def test_the_settings_endpoint_refuses_it_too(self):
+		"""The door that used to let it through. A workspace filed under a module the user cannot see
+		is one nothing can navigate to, because `get_navigable_modules` drops the module before its
+		sidebar is built.
+		"""
+		from frappe.desk.doctype.workspace.workspace import update_workspace_settings
+
+		name = self.make_page()
+
+		with self.assertRaises(frappe.ValidationError):
+			update_workspace_settings(name, access="private", module=self.BLOCKED)
+
+		self.assertEqual(frappe.db.get_value("Workspace", name, "module"), self.MODULE)
+
+	def test_a_module_the_user_can_see_still_goes_through(self):
+		from frappe.desk.doctype.workspace.workspace import update_workspace_settings
+
+		name = self.make_page()
+		update_workspace_settings(name, access="private", module=self.MODULE)
+
+		self.assertEqual(frappe.db.get_value("Workspace", name, "module"), self.MODULE)

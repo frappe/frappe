@@ -105,7 +105,12 @@ $.extend(frappe, {
 							data = xhr.responseText;
 						}
 					}
-					if (opts.callback) opts.callback(data);
+					// 417 means the server threw, so only the error handler runs.
+					// This used to call opts.callback too, which made success
+					// handlers fire on a failed request: a caller that guards on
+					// `r.exc` saw nothing to guard against, because the traceback is
+					// only sent to a dev server or a system user. A guest posting a
+					// web form got the "Submitted" page for a rejected submission.
 					if (opts.error) opts.error(data);
 				},
 				200: function (data) {

@@ -180,7 +180,7 @@ export default class LayoutDialog {
 		if (fieldname === "idx") {
 			return __("Most Used");
 		}
-		return __(frappe.meta.get_label(this.doctype, fieldname), null, this.doctype);
+		return frappe.meta.get_translated_label(this.doctype, fieldname);
 	}
 
 	get_initial_sorting() {

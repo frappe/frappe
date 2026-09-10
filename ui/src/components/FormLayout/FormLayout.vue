@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="flex flex-col"
-		:class="{ 'border border-outline-gray-1 border-outline-elevation-2 rounded-lg': hasTabs }"
+		:class="{ 'border border-outline-gray-1 border-outline-elevation-2 rounded-6': hasTabs }"
 	>
 		<Tabs
 			:model-value="activeIndex"

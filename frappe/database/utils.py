@@ -25,8 +25,11 @@ NestedSetHierarchy = (
 	"not descendants of",
 	"descendants of (inclusive)",
 )
+TEXT_SQL_TYPES = frozenset(("varchar", "text", "longtext", "smalltext"))
 # split when non-alphabetical character is found
 QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
+ORDER_BY_PREFIX_PATTERN = re.compile(r"^\s*order\s+by\s+", flags=re.IGNORECASE)
+ORDER_DIRECTION_PATTERN = re.compile(r"\s+(asc|desc)\s*$", flags=re.IGNORECASE)
 
 
 def convert_to_value(o: FilterValue):
@@ -37,6 +40,26 @@ def convert_to_value(o: FilterValue):
 	elif isinstance(o, (KeysView, ValuesView)):
 		return tuple(convert_to_value(item) for item in o)
 	return o
+
+
+def is_non_text_field(doctype: str, fieldname: str, df=None) -> bool:
+	"""Return whether a DocField is stored in a non-text database column."""
+	from frappe.model.meta import get_default_df
+
+	try:
+		meta = frappe.get_meta(doctype)
+	except frappe.DoesNotExistError:
+		return False
+
+	if fieldname == "name":
+		return meta.autoname == "autoincrement"
+
+	df = df or meta.get_field(fieldname) or get_default_df(fieldname)
+	if not df:
+		return False
+
+	db_type = frappe.db.type_map.get(df.fieldtype)
+	return bool(db_type) and db_type[0].lower() not in TEXT_SQL_TYPES
 
 
 def get_query_type(query: str) -> str:
@@ -78,6 +101,31 @@ def get_doctype_sort_info(doctype: str) -> tuple[str, str]:
 		return meta.sort_field or "creation", meta.sort_order or "DESC"
 	except frappe.DoesNotExistError:
 		return "creation", "DESC"
+
+
+def unquote_identifier(identifier: str) -> str:
+	return identifier.replace("`", "").replace('"', "").strip()
+
+
+def get_order_by_fields(order_by: str) -> list[str]:
+	"""Return the unquoted field references of an ORDER BY clause without directions."""
+	order_by = ORDER_BY_PREFIX_PATTERN.sub("", order_by)
+	fields = []
+	for order_field in order_by.split(","):
+		order_field = ORDER_DIRECTION_PATTERN.sub("", order_field)
+		fields.append(unquote_identifier(order_field))
+	return fields
+
+
+def is_order_by_in_select(order_by: str, selected_fields: set[str], selected_field_count: int) -> bool:
+	"""Return whether every ORDER BY field is a selected field, alias or valid result position."""
+	for order_field in get_order_by_fields(order_by):
+		if order_field.isdigit():
+			if not 0 < int(order_field) <= selected_field_count:
+				return False
+		elif order_field not in selected_fields:
+			return False
+	return True
 
 
 class LazyString:

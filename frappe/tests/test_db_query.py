@@ -50,6 +50,80 @@ def setup_patched_blog_post():
 	yield
 
 
+@contextmanager
+def setup_autoincrement_link_doctypes():
+	target_dt_name = "Test Auto Link Target"
+	source_dt_name = "Test Auto Link Source"
+
+	frappe.delete_doc_if_exists("DocType", source_dt_name, force=True)
+	frappe.delete_doc_if_exists("DocType", target_dt_name, force=True)
+
+	try:
+		new_doctype(
+			target_dt_name,
+			autoname="autoincrement",
+			fields=[{"label": "Target Title", "fieldname": "target_title", "fieldtype": "Data"}],
+		).insert(ignore_permissions=True)
+		new_doctype(
+			source_dt_name,
+			fields=[
+				{
+					"label": "Link Field",
+					"fieldname": "link_field",
+					"fieldtype": "Link",
+					"options": target_dt_name,
+				}
+			],
+		).insert(ignore_permissions=True)
+
+		target_doc = frappe.get_doc(doctype=target_dt_name, target_title="Target").insert(
+			ignore_permissions=True
+		)
+		source_doc = frappe.get_doc(doctype=source_dt_name, link_field=target_doc.name).insert(
+			ignore_permissions=True
+		)
+		yield target_dt_name, source_dt_name, target_doc, source_doc
+	finally:
+		frappe.delete_doc_if_exists("DocType", source_dt_name, force=True)
+		frappe.delete_doc_if_exists("DocType", target_dt_name, force=True)
+
+
+@contextmanager
+def setup_autoincrement_parent_doctypes():
+	child_dt_name = "Test Auto Parent Child"
+	parent_dt_name = "Test Auto Parent"
+
+	frappe.delete_doc_if_exists("DocType", parent_dt_name, force=True)
+	frappe.delete_doc_if_exists("DocType", child_dt_name, force=True)
+
+	try:
+		new_doctype(
+			child_dt_name,
+			istable=1,
+			fields=[{"label": "Child Value", "fieldname": "child_value", "fieldtype": "Data"}],
+		).insert(ignore_permissions=True)
+		new_doctype(
+			parent_dt_name,
+			autoname="autoincrement",
+			fields=[
+				{
+					"label": "Child Table",
+					"fieldname": "child_table",
+					"fieldtype": "Table",
+					"options": child_dt_name,
+				}
+			],
+		).insert(ignore_permissions=True)
+
+		parent_doc = frappe.get_doc(doctype=parent_dt_name, child_table=[{"child_value": "Child"}]).insert(
+			ignore_permissions=True
+		)
+		yield parent_dt_name, child_dt_name, parent_doc
+	finally:
+		frappe.delete_doc_if_exists("DocType", parent_dt_name, force=True)
+		frappe.delete_doc_if_exists("DocType", child_dt_name, force=True)
+
+
 class TestDBQuery(IntegrationTestCase):
 	def setUp(self):
 		setup_for_tests()
@@ -468,6 +542,42 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertEqual(result[0].allocated_user_email, "admin@example.com")
 		todo.delete()
 
+	def test_autoincrement_link_field_join(self):
+		with setup_autoincrement_link_doctypes() as (
+			_target_dt_name,
+			source_dt_name,
+			target_doc,
+			source_doc,
+		):
+			query = DatabaseQuery(source_dt_name).execute(
+				fields=["name", "link_field.target_title"],
+				filters={"name": source_doc.name},
+				run=False,
+			)
+			result = DatabaseQuery(source_dt_name).execute(
+				fields=["name", "link_field.target_title"],
+				filters={"name": source_doc.name},
+			)
+
+			self.assertEqual(result[0].target_title, target_doc.target_title)
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO LINK TARGET_1"."NAME" AS VARCHAR)', query.upper())
+			else:
+				self.assertNotIn("CAST(", query.upper())
+
+	def test_autoincrement_child_table_join(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, child_dt_name, parent_doc):
+			result = DatabaseQuery(parent_dt_name).execute(
+				fields=["name", f"`tab{child_dt_name}`.child_value"],
+				filters=[
+					[parent_dt_name, "name", "=", parent_doc.name],
+					[child_dt_name, "child_value", "=", "Child"],
+				],
+			)
+
+			self.assertEqual(len(result), 1)
+			self.assertEqual(result[0].child_value, "Child")
+
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
 
@@ -524,6 +634,17 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertFalse(
 			{"name": "DocType"} in DatabaseQuery("DocType").execute(filters={"name": ["like", "J%"]})
 		)
+
+	def test_like_filter_on_non_text_field(self):
+		filters = {"docstatus": ["like", "0"]}
+		query = DatabaseQuery("DocType").execute(fields=["name"], filters=filters, run=False)
+		names = DatabaseQuery("DocType").execute(filters=filters, pluck="name")
+
+		self.assertIn("DocType", names)
+		if frappe.db.db_type == "postgres":
+			self.assertIn('CAST("TABDOCTYPE"."DOCSTATUS" AS VARCHAR) ILIKE', query.upper())
+		else:
+			self.assertNotIn("CAST(", query.upper())
 
 	def test_filters_4(self):
 		self.assertTrue(
@@ -1172,6 +1293,59 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
+	def test_distinct_keeps_valid_order_by(self):
+		for field, order_by in (
+			("user_type", "user_type asc"),
+			("user_type as type", "type asc"),
+			("user_type", "`tabUser`.`user_type` asc"),
+		):
+			with self.subTest(field=field, order_by=order_by):
+				query = DatabaseQuery("User").execute(
+					fields=[field], distinct=True, order_by=order_by, run=False
+				)
+				result = DatabaseQuery("User").execute(
+					fields=[field], distinct=True, order_by=order_by, as_list=True
+				)
+
+				self.assertIn("order by", query.lower())
+				self.assertEqual(list(result), sorted(result))
+
+	def test_distinct_drops_unselected_order_by_on_postgres(self):
+		query = DatabaseQuery("User").execute(
+			fields=["user_type"], distinct=True, order_by="creation desc", run=False
+		)
+
+		if frappe.db.db_type == "postgres":
+			self.assertNotIn("order by", query.lower())
+		else:
+			self.assertIn("order by", query.lower())
+
+	def test_distinct_keeps_order_by_on_star_column(self):
+		query = DatabaseQuery("User").execute(
+			fields=["*"], distinct=True, order_by="user_type asc", run=False
+		)
+		result = DatabaseQuery("User").execute(fields=["*"], distinct=True, order_by="user_type asc")
+
+		self.assertIn("order by", query.lower())
+		self.assertEqual([row.user_type for row in result], sorted(row.user_type for row in result))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_order_by_preserves_link_table_identity(self):
+		for order_by, keeps_order in (
+			("creation desc", False),
+			("`tabUser`.`creation` desc", False),
+			("language_creation asc", True),
+		):
+			with self.subTest(order_by=order_by):
+				query = DatabaseQuery("User").execute(
+					fields=["language.creation as language_creation"],
+					distinct=True,
+					order_by=order_by,
+					run=False,
+				)
+				self.assertEqual("order by" in query.lower(), keeps_order)
+				frappe.db.sql(query)
+
 	def test_field_comparison(self):
 		"""Test DatabaseQuery.execute to test field comparison"""
 		users_unedited = frappe.get_all(
@@ -1670,6 +1844,54 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn("''", query)
 		self.assertNotIn("0", query)
 		self.assertNotIn("ifnull", query)
+
+	def test_child_query_without_explicit_name_field(self):
+		q = frappe.qb.get_query(
+			"User",
+			fields=["first_name", {"roles": ["role"]}],
+			filters={"name": "Administrator"},
+		)
+		result = q.run(as_dict=True)
+
+		self.assertEqual(len(result), 1)
+		self.assertIn("roles", result[0], "Child table data is missing when parent name is omitted")
+		self.assertTrue(len(result[0]["roles"]) > 0, "Child table is empty")
+		self.assertNotIn("name", result[0], "Injected 'name' field leaked into the final output")
+
+	def test_distinct_with_injected_name_raises(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.qb.get_query(
+				"User",
+				fields=["first_name", {"roles": ["role"]}],
+				distinct=True,
+			).run(as_dict=True)
+
+	def test_group_by_with_injected_name_raises(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.qb.get_query(
+				"User",
+				fields=["first_name", {"roles": ["role"]}],
+				group_by="first_name",
+			).run(as_dict=True)
+
+	def test_distinct_with_explicit_name_does_not_raise(self):
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name", "first_name", {"roles": ["role"]}],
+			distinct=True,
+			filters={"name": "Administrator"},
+		).run(as_dict=True)
+		self.assertTrue(result)
+
+	def test_child_query_with_aliased_name_still_injects(self):
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name as pk", "first_name", {"roles": ["role"]}],
+			filters={"name": "Administrator"},
+		).run(as_dict=True)
+		self.assertIn("pk", result[0])
+		self.assertIn("roles", result[0])
+		self.assertTrue(result[0]["roles"])
 
 
 class TestReportView(IntegrationTestCase):
