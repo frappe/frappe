@@ -850,6 +850,14 @@ class BaseDocument:
 				# above, SQLite says the secondary index and arrives here. `ignore_if_duplicate`
 				# has to mean the same thing in both places.
 				if not ignore_if_duplicate:
+					if frappe.db.db_type == "sqlite" and frappe.db.exists(self.doctype, self.name):
+						frappe.msgprint(
+							_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
+							title=_("Duplicate Name"),
+							indicator="red",
+						)
+						raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+
 					# unique constraint
 					self.show_unique_validation_message(e)
 
