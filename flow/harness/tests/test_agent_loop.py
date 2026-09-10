@@ -704,6 +704,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 	assert seen["headers"]["X-Harness-Token"] == "shared-secret"
 	assert seen["timeout"] == 7
 	assert seen["payload"] == {
+		"callback_type": "tool",
 		"session_id": session.id,
 		"tool": "check_mail",
 		"args": {},
