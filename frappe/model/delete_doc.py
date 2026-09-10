@@ -461,6 +461,8 @@ def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> l
 			# filter before limiting, or irrelevant rows could fill the limit
 			if method == "Delete":
 				query = query.where(RefDoc.docstatus != DocStatus.cancelled())
+				if df.parent == "Submission Queue":
+					query = query.where(RefDoc.status == "Queued")
 			elif method == "Cancel":
 				query = query.where(RefDoc.docstatus == DocStatus.submitted())
 			if limit:
@@ -525,6 +527,7 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 
 
 def delete_dynamic_links(doctype, name):
+	delete_references("Submission Queue", doctype, name, "ref_doctype", "ref_docname")
 	delete_references("ToDo", doctype, name, "reference_type")
 	delete_references("Email Unsubscribe", doctype, name)
 	delete_references("DocShare", doctype, name, "share_doctype", "share_name")
