@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.patches.v16_0.seed_naming_rule_series import execute as seed_naming_rule_series
 from frappe.patches.v16_0.seed_naming_rule_series import seed_series_for_rule
 from frappe.query_builder import DocType
 from frappe.tests import IntegrationTestCase
@@ -115,6 +116,43 @@ class TestDocumentNamingRule(IntegrationTestCase):
 
 		self.assertEqual(self.series_current(prefix), 3)
 		self.assertEqual(self.make_todo().name, prefix + "00004")
+
+	def test_patch_seeds_a_name_with_an_empty_prefix_part(self):
+		naming_rule = self.make_rule("test-empty-.role.-")
+
+		prefix = self.make_todo().name[:-5]
+		self.assertEqual(prefix, "test-empty--")
+		self.drop_series(prefix)
+
+		seed_series_for_rule(frappe._dict(document_type="ToDo", prefix=naming_rule.prefix, prefix_digits=5))
+
+		self.assertEqual(self.series_current(prefix), 1)
+
+	def test_patch_seeds_disabled_rules(self):
+		naming_rule = self.make_rule("test-disabled-")
+
+		prefix = self.make_todo().name[:-5]
+		naming_rule.disabled = 1
+		naming_rule.save()
+		self.drop_series(prefix)
+
+		seed_naming_rule_series()
+
+		self.assertEqual(self.series_current(prefix), 1)
+
+	def make_rule(self, prefix):
+		naming_rule = frappe.get_doc(
+			doctype="Document Naming Rule",
+			document_type="ToDo",
+			prefix=prefix,
+			prefix_digits=5,
+		).insert()
+		self.addCleanup(naming_rule.delete)
+		return naming_rule
+
+	def drop_series(self, prefix):
+		series = DocType("Series")
+		frappe.qb.from_(series).delete().where(series.name == prefix).run()
 
 	def make_todo(self, priority="Medium"):
 		todo = frappe.get_doc(
