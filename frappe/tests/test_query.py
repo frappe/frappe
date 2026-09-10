@@ -3107,6 +3107,13 @@ class TestJSONFilters(IntegrationTestCase):
 				[
 					{"fieldname": "some_fieldname", "label": "Label", "fieldtype": "Data"},
 					{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"},
+					{"fieldname": "quantity", "label": "Quantity", "fieldtype": "Int"},
+					{
+						"fieldname": "secret_payload",
+						"label": "Secret Payload",
+						"fieldtype": "JSON",
+						"permlevel": 1,
+					},
 				],
 				{"autoname": "field:some_fieldname"},
 			),
@@ -3225,21 +3232,91 @@ class TestJSONFilters(IntegrationTestCase):
 			else:
 				self.assertNotIn("CAST(", sql)
 
-	def test_custom_field_list_json_filters(self):
-		rows = frappe.get_list("Custom Field", fields=["name", "link_filters"], limit=0)
-		for value in ("set", "not set"):
+	def test_json_filters_on_core_doctype(self):
+		docfield = frappe.db.get_value(
+			"DocField", {"parent": self.value_doctype, "fieldname": "payload"}, "name"
+		)
+		frappe.db.set_value("DocField", docfield, "link_filters", '[["User", "enabled", "=", 1]]')
+		for value, matches in (("set", True), ("not set", False)):
 			with self.subTest(value=value):
-				expected = {row.name for row in rows if bool(row.link_filters) == (value == "set")}
-				result = frappe.get_list(
-					"Custom Field", filters={"link_filters": ["is", value]}, pluck="name", limit=0
+				names = frappe.get_all(
+					"DocField", filters={"link_filters": ["is", value]}, pluck="name", limit=0
 				)
-				self.assertEqual(set(result), expected)
+				self.assertIs(docfield in names, matches)
+
+	def test_json_field_sorting_and_grouping(self):
+		"""List views sort, dedupe and group by a column; postgres `json` supports none of them."""
+		from frappe.desk.listview import get_group_by_count
+
+		self.assertTrue(frappe.get_all(self.value_doctype, order_by="payload asc", limit=1))
+		self.assertTrue(frappe.get_all(self.value_doctype, fields=["payload"], distinct=True, limit=1))
+		self.assertTrue(get_group_by_count(self.value_doctype, "[]", "payload"))
+
+	def test_permlevel_json_field_with_distinct(self):
+		"""The cast must run after the permission pass, which lets any Term through unchecked."""
+		test_role = "JSONFilterPermTestRole"
+		test_user = "test2@example.com"
+
+		frappe.get_doc({"doctype": "Role", "role_name": test_role}).insert(ignore_if_duplicate=True)
+		add_permission(self.value_doctype, test_role, 0, ptype="read")
+		update_permission_property(self.value_doctype, test_role, 1, "read", 0, validate=False)
+		add_permission(self.value_doctype, "System Manager", 1, ptype="read")
+
+		user = frappe.get_doc("User", test_user)
+		user.add_roles(test_role)
+		self.addCleanup(user.remove_roles, test_role)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		fields = ["some_fieldname", "secret_payload"]
+		frappe.set_user(test_user)
+		restricted = frappe.qb.get_query(
+			self.value_doctype, fields=fields, distinct=True, ignore_permissions=False
+		).get_sql()
+		self.assertNotIn("secret_payload", restricted)
+
+		frappe.set_user("Administrator")
+		permitted = frappe.qb.get_query(
+			self.value_doctype, fields=fields, distinct=True, ignore_permissions=False
+		).get_sql()
+		self.assertIn("secret_payload", permitted)
+
+	def test_json_filter_on_aliased_table(self):
+		table = frappe.qb.DocType(self.value_doctype).as_("alias")
+		sql = frappe.qb.get_query(self.value_doctype, filters={table.payload: "[]"}).get_sql()
+		if frappe.db.db_type == "postgres":
+			self.assertIn("CAST(", sql)
+		else:
+			self.assertNotIn("CAST(", sql)
+
+	def test_backtick_field_reference_types_null_fallback(self):
+		"""A fully quoted key must resolve the same field, and so the same fallback, as a bare one."""
+		frappe.get_meta(self.value_doctype)
+		for fieldname, expects_ifnull in (("quantity", False), ("payload", True)):
+			plain = frappe.qb.get_query(
+				self.value_doctype, filters={fieldname: ["!=", "x"]}, db_query_compat=True
+			).get_sql()
+			quoted = frappe.qb.get_query(
+				self.value_doctype,
+				filters={f"`tab{self.value_doctype}`.`{fieldname}`": ["!=", "x"]},
+				db_query_compat=True,
+			).get_sql()
+			with self.subTest(fieldname=fieldname):
+				self.assertEqual("IFNULL" in plain.upper(), expects_ifnull)
+				self.assertEqual("IFNULL" in quoted.upper(), expects_ifnull)
+
+	def test_type_probe_stays_silent_for_unknown_doctypes(self):
+		from frappe.database.query import Engine
+
+		message_log = frappe.local.message_log
+		frappe.local.message_log = []
+		self.addCleanup(setattr, frappe.local, "message_log", message_log)
+
+		self.assertIsNone(Engine()._get_filter_docfield("Test Query JSON Missing", "payload"))
+		self.assertEqual(frappe.local.message_log, [])
 
 	@run_only_if(db_type_is.POSTGRES)
 	def test_json_filters_with_cold_metadata(self):
-		for doctype in ("DocType", "Custom Field", "Property Setter", self.value_doctype):
-			frappe.clear_cache(doctype=doctype)
-			frappe.clear_document_cache("DocType", doctype)
+		frappe.clear_cache()
 
 		# Loading this metadata reads Custom Field and Property Setter through the same filter builder.
 		query = frappe.qb.get_query(self.value_doctype, filters={"payload": "[]"})
