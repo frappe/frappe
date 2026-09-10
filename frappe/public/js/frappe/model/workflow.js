@@ -42,6 +42,8 @@ frappe.workflow = {
 
 		if (!workflows.length) {
 			frappe.workflow.state_fields[doctype] = null;
+			delete frappe.workflow.candidates[doctype];
+			delete frappe.workflow.workflows[doctype];
 			return;
 		}
 
