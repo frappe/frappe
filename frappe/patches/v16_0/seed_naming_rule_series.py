@@ -42,8 +42,14 @@ def seed_doctype(doctype, rules):
 	wrong and leaving the real series unseeded, which mints a duplicate. Every
 	rule that matches records its own reading instead: a rule always reads its
 	own names correctly, because the trailing digit count fixes where the
-	counter starts. A reading that belonged to no rule leaves a series nothing
-	resolves to, which costs a row and nothing else.
+	counter starts, so every live series is seeded whoever else matched.
+
+	A reading no rule minted usually seeds a series nothing resolves to, which
+	costs a row. Where another rule does resolve to that exact prefix, reading
+	test-claim-000100 as test-claim-0 and 00100 for instance, its series moves
+	forward and it skips numbers. That is the accepted cost: suppressing such
+	a reading means judging which rule owns a name, and a wrong judgement
+	there leaves a live series unseeded and mints a duplicate instead.
 	"""
 	patterns = []
 	for rule in rules:
