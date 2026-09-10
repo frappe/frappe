@@ -583,6 +583,17 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		todo.reload()
 		self.assertEqual(todo.workflow_state, "Pending")
 
+	def test_seeding_respects_the_tie_break_between_equal_priorities(self):
+		todo = create_new_todo(priority="High")
+		self.assertIsNone(todo.workflow_state)
+
+		create_conditional_todo_workflow("Test Any ToDo", states=("Rejected", "Approved"))
+		create_conditional_todo_workflow("Test High ToDo", priority="High")
+
+		todo.reload()
+		self.assertEqual(get_workflow_name("ToDo", todo), "Test High ToDo")
+		self.assertEqual(todo.workflow_state, "Pending")
+
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow("Test High ToDo")
 		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
