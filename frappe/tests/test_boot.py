@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.boot import get_app_data
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.desk.doctype.sidebar.test_sidebar import developer_mode
@@ -294,3 +295,34 @@ class TestPermissionQueries(IntegrationTestCase):
 		# Test user must not see admin user's report
 		self.assertNotIn("Test Admin Report", allowed_reports)
 		self.assertIn("Test User Report", allowed_reports)
+
+
+class TestAppsScreenBlockedModules(IntegrationTestCase):
+	def setUp(self):
+		self.user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "blocked-modules@example.com",
+				"first_name": "Blocked Modules",
+				"send_welcome_email": 0,
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_if_duplicate=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def frappe_tile(self):
+		frappe.set_user(self.user.name)
+		try:
+			return next(app for app in get_app_data() if app["app_name"] == "frappe")
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_app_with_every_module_blocked_is_off_the_apps_screen(self):
+		self.assertTrue(self.frappe_tile()["on_apps_screen"])
+
+		for module in frappe.get_all("Module Def", filters={"app_name": "frappe"}, pluck="name"):
+			self.user.append("block_modules", {"module": module})
+		self.user.save()
+		frappe.clear_cache(user=self.user.name)
+
+		self.assertFalse(self.frappe_tile()["on_apps_screen"])

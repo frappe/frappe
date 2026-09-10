@@ -62,6 +62,13 @@ def get_visible_modules(modules: list[str], user: str | None = None) -> list[str
 	return [m for m in modules if m not in blocked]
 
 
+def is_app_visible(app: str, user: str | None = None) -> bool:
+	"""Whether `app` may appear in `user`'s desk navigation: it owns no modules, or at least one is visible."""
+	modules = frappe.get_all("Module Def", filters={"app_name": app}, pluck="name")
+
+	return not modules or bool(get_visible_modules(modules, user))
+
+
 def get_code_only_modules() -> set[str]:
 	"""Return the modules whose own app says they ship no navigation.
 

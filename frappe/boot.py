@@ -294,6 +294,7 @@ def get_app_data() -> list[dict]:
 	`get_app_entry_set`, which asks the same question about the same user.
 	"""
 	from frappe.desk.doctype.dock.dock import get_app_entry_set
+	from frappe.utils.modules import is_app_visible
 
 	app_data = []
 
@@ -341,8 +342,10 @@ def get_app_data() -> list[dict]:
 			dict(
 				# Whether the app opts into the apps screen via the add_to_apps_screen hook. An app
 				# that pins into a host app's dock never takes a slot of its own, even if it still
-				# declares add_to_apps_screen from before the dock existed: the pin wins.
-				on_apps_screen=bool(apps) and app_name not in app_rail_host,
+				# declares add_to_apps_screen from before the dock existed: the pin wins. An app
+				# whose every module this user blocked is off the screen too: the block is how
+				# they said they don't want it, and its tile would open an empty rail.
+				on_apps_screen=bool(apps) and app_name not in app_rail_host and is_app_visible(app_name),
 				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
 				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
 				sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
