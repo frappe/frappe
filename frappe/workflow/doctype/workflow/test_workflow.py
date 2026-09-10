@@ -11,6 +11,7 @@ from frappe.model.workflow import (
 	get_common_transition_actions,
 	get_transitions,
 	get_workflow_name,
+	get_workflow_names,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
@@ -593,6 +594,17 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		todo.reload()
 		self.assertEqual(get_workflow_name("ToDo", todo), "Test High ToDo")
 		self.assertEqual(todo.workflow_state, "Pending")
+
+	def test_deleting_a_workflow_drops_it_from_the_cache(self):
+		from frappe.desk.form.meta import get_meta
+
+		create_conditional_todo_workflow("Test Any ToDo")
+		self.assertEqual(get_workflow_names("ToDo"), ["Test Any ToDo"])
+
+		frappe.delete_doc("Workflow", "Test Any ToDo")
+
+		self.assertEqual(get_workflow_names("ToDo"), [])
+		self.assertEqual(get_meta("ToDo").get("__workflow_docs"), [])
 
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow("Test High ToDo")
