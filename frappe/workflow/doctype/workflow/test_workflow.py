@@ -9,6 +9,8 @@ from frappe.model.workflow import (
 	WorkflowTransitionError,
 	apply_workflow,
 	get_common_transition_actions,
+	get_transitions,
+	get_workflow_name,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
@@ -414,8 +416,12 @@ def create_domain_workflow():
 	return workflow
 
 
-def create_new_todo():
-	return frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10)).insert()
+def create_new_todo(priority=None):
+	todo = frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10))
+	if priority:
+		todo.priority = priority
+
+	return todo.insert()
 
 
 def create_new_submittable_doctype():
@@ -501,3 +507,94 @@ def create_new_webhook():
 	webhook.save()
 
 	return webhook
+
+
+class TestConditionalWorkflow(IntegrationTestCase):
+	WORKFLOW_NAMES = ("Test High ToDo", "Test Low ToDo", "Test Old ToDo", "Test Any ToDo")
+
+	def setUp(self):
+		frappe.db.delete("Workflow Action")
+		self.suspended = frappe.get_all("Workflow", {"document_type": "ToDo", "is_active": 1}, pluck="name")
+		for name in self.suspended:
+			frappe.db.set_value("Workflow", name, "is_active", 0)
+		frappe.clear_cache(doctype="ToDo")
+
+	def tearDown(self):
+		for name in self.WORKFLOW_NAMES:
+			frappe.delete_doc("Workflow", name, force=True, ignore_missing=True)
+		for name in self.suspended:
+			frappe.db.set_value("Workflow", name, "is_active", 1)
+		frappe.clear_cache(doctype="ToDo")
+
+	def test_conditional_workflow_skips_documents_it_does_not_match(self):
+		create_conditional_todo_workflow("Test High ToDo", priority="High")
+
+		high = create_new_todo(priority="High")
+		self.assertEqual(get_workflow_name("ToDo", high), "Test High ToDo")
+		self.assertEqual(high.workflow_state, "Pending")
+
+		low = create_new_todo(priority="Low")
+		self.assertIsNone(get_workflow_name("ToDo", low))
+		self.assertIsNone(low.workflow_state)
+		self.assertEqual(get_transitions(low), [])
+
+	def test_unconditional_workflow_governs_every_document(self):
+		create_conditional_todo_workflow("Test Any ToDo")
+
+		for priority in ("High", "Low"):
+			todo = create_new_todo(priority=priority)
+			self.assertEqual(get_workflow_name("ToDo", todo), "Test Any ToDo")
+
+	def test_highest_priority_matching_workflow_wins(self):
+		create_conditional_todo_workflow("Test Any ToDo", workflow_priority=0)
+		create_conditional_todo_workflow("Test High ToDo", priority="High", workflow_priority=10)
+
+		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="High")), "Test High ToDo")
+		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="Low")), "Test Any ToDo")
+
+	def test_catch_all_workflow_retires_only_the_other_catch_all(self):
+		create_conditional_todo_workflow("Test High ToDo", priority="High")
+		create_conditional_todo_workflow("Test Old ToDo")
+		create_conditional_todo_workflow("Test Any ToDo")
+
+		self.assertEqual(frappe.db.get_value("Workflow", "Test Old ToDo", "is_active"), 0)
+		self.assertEqual(frappe.db.get_value("Workflow", "Test High ToDo", "is_active"), 1)
+
+	def test_conditions_must_name_a_real_field(self):
+		workflow = build_todo_workflow("Test High ToDo")
+		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
+
+		self.assertRaises(frappe.ValidationError, workflow.insert)
+
+	def test_active_workflows_must_share_a_state_field(self):
+		create_conditional_todo_workflow("Test High ToDo", priority="High")
+
+		workflow = build_todo_workflow("Test Low ToDo")
+		workflow.workflow_state_field = "custom_state"
+		workflow.append("conditions", dict(field="priority", condition="=", value="Low"))
+
+		self.assertRaises(frappe.ValidationError, workflow.insert)
+
+
+def build_todo_workflow(name):
+	workflow = frappe.new_doc("Workflow")
+	workflow.workflow_name = name
+	workflow.document_type = "ToDo"
+	workflow.workflow_state_field = "workflow_state"
+	workflow.is_active = 1
+	workflow.append("states", dict(state="Pending", allow_edit="All"))
+	workflow.append("states", dict(state="Approved", allow_edit="All"))
+	workflow.append(
+		"transitions",
+		dict(state="Pending", action="Approve", next_state="Approved", allowed="All"),
+	)
+	return workflow
+
+
+def create_conditional_todo_workflow(name, priority=None, workflow_priority=0):
+	workflow = build_todo_workflow(name)
+	workflow.priority = workflow_priority
+	if priority:
+		workflow.append("conditions", dict(field="priority", condition="=", value=priority))
+
+	return workflow.insert()
