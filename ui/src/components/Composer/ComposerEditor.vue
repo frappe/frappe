@@ -101,9 +101,8 @@
 										:icon="LucidePaperclip"
 										aria-label="Attach file"
 										class="shrink-0"
-										:disabled="
-											isUploading || attachments.length >= maxAttachments
-										"
+										:loading="isUploading"
+										:disabled="attachments.length >= maxAttachments"
 										@click="attachInput?.click()"
 									/>
 									<input
