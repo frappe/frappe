@@ -8,6 +8,7 @@ const fake = vi.hoisted(() => ({
 	meta: null as Record<string, unknown> | null,
 	contributed: [] as { columns?: { fieldname: string; width?: number }[] }[],
 	lists: [] as any[],
+	tiers: { site: null, user: null } as { site: unknown; user: unknown },
 	useList: vi.fn(),
 	call: vi.fn(),
 	remove: vi.fn(),
@@ -17,8 +18,9 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 	...(await importOriginal<object>()),
 	call: fake.call,
 	useList: fake.useList,
-	createResource: () => ({
+	createResource: ({ url }: { url: string }) => ({
 		get data() {
+			if (url.endsWith("get_current_user_roles")) return ["Desk User"];
 			return fake.meta && { docs: [fake.meta] };
 		},
 		loading: false,
@@ -35,8 +37,12 @@ import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
 import { forgetRows, readListMemory, recallRows, writeListMemory } from "../pageState";
 import { useListPage, type ListPage } from "../useListPage";
+import { resetListSettings, useListSettings } from "../useListSettings";
+
+const SETTINGS_API = "frappe.desk.doctype.doctype_view.api";
 
 const FIELDS = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", in_list_view: 1 },
@@ -100,6 +106,25 @@ async function settle() {
 	}
 }
 
+/** The count answers 42; a settings call answers the tiers, a write patched in. */
+function answer(method: string, args: Record<string, any>) {
+	if (method === "frappe.client.get_count") return Promise.resolve(42);
+	if (method.endsWith(".save")) {
+		const row = (fake.tiers[args.scope as "site" | "user"] ?? {}) as Record<string, unknown>;
+		fake.tiers = { ...fake.tiers, [args.scope]: { ...row, ...args.settings } };
+	}
+	if (method.endsWith(".reset")) {
+		const row = { ...(fake.tiers[args.scope as "site" | "user"] as Record<string, unknown>) };
+		delete row[args.key];
+		fake.tiers = { ...fake.tiers, [args.scope]: Object.keys(row).length ? row : null };
+	}
+	return Promise.resolve(fake.tiers);
+}
+
+function writes() {
+	return fake.call.mock.calls.filter(([method]) => method.startsWith(SETTINGS_API) && !method.endsWith(".get"));
+}
+
 /** A changed query waits out the typing debounce before it builds a list. */
 async function settleQuery() {
 	await new Promise((resolve) => setTimeout(resolve, 350));
@@ -108,13 +133,16 @@ async function settleQuery() {
 
 beforeEach(() => {
 	resetDoctypeMeta();
+	resetUserRoles();
+	resetListSettings();
 	forgetRows("Lead");
 	history.replaceState(null, "");
 	fake.meta = { name: "Lead", title_field: "title", sort_field: "amount", sort_order: "ASC", fields: FIELDS };
 	fake.contributed = [];
 	fake.lists = [];
+	fake.tiers = { site: null, user: null };
 	fake.useList.mockReset().mockImplementation(fakeList);
-	fake.call.mockReset().mockResolvedValue(42);
+	fake.call.mockReset().mockImplementation(answer);
 	fake.remove.mockReset().mockResolvedValue("ok");
 });
 
@@ -157,6 +185,121 @@ describe("seeding", () => {
 		expect(fake.call).toHaveBeenCalledWith("frappe.client.get_count", { doctype: "Lead", filters: {}, limit: 1001 });
 		expect(page.totalCount.value).toBe(42);
 		expect(page.hasCounts.value).toBe(true);
+	});
+});
+
+describe("the tiers", () => {
+	it("fetches the rows beside meta and seeds the person's columns over the site's sort", async () => {
+		fake.tiers = {
+			site: { columns: [{ fieldname: "amount" }], sort: [{ fieldname: "title", direction: "desc" }] },
+			user: { columns: [{ fieldname: "status", width: "80px" }, { fieldname: "title" }] },
+		};
+		await mount("/lead");
+		expect(fake.call).toHaveBeenCalledWith(`${SETTINGS_API}.get`, { doctype: "Lead", type: "List" });
+		expect(page.columns.value).toEqual([
+			{ fieldname: "status", label: "Status", align: "left", width: "80px" },
+			{ fieldname: "title", label: "Title", align: "left" },
+		]);
+		expect(page.sort.value).toEqual([{ fieldname: "title", direction: "desc" }]);
+		expect(page.columnsCustomized.value).toBe(true);
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({});
+		expect(fake.useList.mock.calls[0][0]).toMatchObject({ fields: ["name", "status", "title"], orderBy: "title desc" });
+	});
+
+	it("drops a stored fieldname meta lacks or the person cannot read, and falls back when none is left", async () => {
+		fake.meta!.fields = [...FIELDS, { fieldname: "secret", label: "Secret", fieldtype: "Data", permlevel: 1 }];
+		fake.meta!.permissions = [{ role: "System Manager", permlevel: 1, read: 1 }];
+		fake.tiers = { site: null, user: { columns: [{ fieldname: "secret" }, { fieldname: "gone" }], sort: [{ fieldname: "secret", direction: "asc" }] } };
+		await mount("/lead");
+		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["title", "status", "amount"]);
+		expect(page.sort.value).toEqual([{ fieldname: "amount", direction: "asc" }]);
+	});
+
+	it("writes the person's column change after the debounce, without labels, and not a rename alone", async () => {
+		await mount("/lead");
+		await settle();
+		page.columns.value = page.columns.value.map((c) => (c.fieldname === "title" ? { ...c, label: "Mine" } : c));
+		await settle();
+		expect(writes()).toEqual([]);
+		page.resizeColumn("status", "70px");
+		await settle();
+		expect(writes()).toEqual([]);
+		await useListSettings("Lead").flush();
+		expect(writes()).toEqual([
+			[`${SETTINGS_API}.save`, { doctype: "Lead", type: "List", scope: "user", settings: { columns: [{ fieldname: "title" }, { fieldname: "status", width: "70px" }, { fieldname: "amount" }] } }],
+		]);
+		expect(page.columnsCustomized.value).toBe(true);
+	});
+
+	it("never writes a filter or a page size", async () => {
+		await mount("/lead");
+		await settle();
+		page.filters.value = [{ fieldname: "status", operator: "equals", value: "Open" } as never];
+		page.pageSize.value = 100;
+		await settleQuery();
+		await useListSettings("Lead").flush();
+		expect(writes()).toEqual([]);
+	});
+
+	it("drops _sort from the URL once the person's sort has landed as their default", async () => {
+		await mount("/lead");
+		await settle();
+		page.sort.value = [{ fieldname: "status", direction: "desc" }];
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({ _sort: "status desc" });
+		await useListSettings("Lead").flush();
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({});
+		expect(page.sort.value).toEqual([{ fieldname: "status", direction: "desc" }]);
+	});
+
+	it("writes the person's sort and never one the URL carried in", async () => {
+		await mount("/lead?_sort=status%20desc");
+		await settle();
+		await router.replace({ query: { _sort: "title asc" } });
+		await settle();
+		expect(page.sort.value).toEqual([{ fieldname: "title", direction: "asc" }]);
+		await useListSettings("Lead").flush();
+		expect(writes()).toEqual([]);
+		page.sort.value = [{ fieldname: "amount", direction: "desc" }];
+		await settle();
+		await useListSettings("Lead").flush();
+		expect(writes()[0][1]).toMatchObject({ scope: "user", settings: { sort: [{ fieldname: "amount", direction: "desc" }] } });
+	});
+
+	it("writes the quick filter's fields when customizing ends, not while it runs", async () => {
+		await mount("/lead");
+		await settle();
+		page.customizing.value = true;
+		page.quickFilterFields.value = [{ fieldname: "status", value: "status", label: "Status", fieldtype: "Select" }];
+		await settle();
+		await useListSettings("Lead").flush();
+		expect(writes()).toEqual([]);
+		page.customizing.value = false;
+		await settle();
+		await useListSettings("Lead").flush();
+		expect(writes()[0][1]).toMatchObject({ settings: { quick_filter_fields: ["status"] } });
+	});
+
+	it("resets the person's columns to the site's, and a site act reaches the page too", async () => {
+		fake.tiers = { site: { columns: [{ fieldname: "amount" }] }, user: { columns: [{ fieldname: "status" }] } };
+		await mount("/lead");
+		await settle();
+		page.filters.value = [{ fieldname: "status", operator: "equals", value: "" } as never];
+		await settle();
+		await page.resetColumns();
+		expect(page.filters.value).toHaveLength(1);
+		expect(writes()[0]).toEqual([`${SETTINGS_API}.reset`, { doctype: "Lead", type: "List", scope: "user", key: "columns" }]);
+		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["amount"]);
+		expect(page.columnsCustomized.value).toBe(false);
+		await page.saveForSite({ sort: [{ fieldname: "status", direction: "asc" }] });
+		expect(writes()[1][1]).toMatchObject({ scope: "site", settings: { sort: [{ fieldname: "status", direction: "asc" }] } });
+		expect(page.sort.value).toEqual([{ fieldname: "status", direction: "asc" }]);
+		await page.resetForSite("columns");
+		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["title", "status", "amount"]);
+		await useListSettings("Lead").flush();
+		expect(writes()).toHaveLength(3);
 	});
 });
 

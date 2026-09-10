@@ -1,6 +1,7 @@
-// One doctype's list: the state the controls edit, seeded from meta and a contributed `list.js`,
-// with filters and sort mirrored to the URL query. Every act is a model or a plain function.
+// One doctype's list: the state the controls edit, seeded from the app default under the site's
+// and the person's stored rows, mirrored to the URL query, and written back on the person's acts.
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
 import { applyColumnWidth, clearColumnWidth } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { serializeFilters, type FilterCondition, type FilterField } from "@framework/ui/Filter";
@@ -12,7 +13,17 @@ import { routeFor } from "@/router/routeFor";
 import { defaultColumns, defaultSort, fetchFields, sameSort, type ListMeta } from "./defaults";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
 import { addressFromQuery, completeFilters, ownedKeys, queryFromAddress, sameQuery } from "./query";
+import {
+	columnsFrom,
+	quickFilterFieldsFrom,
+	sortFrom,
+	toStoredColumns,
+	toStoredQuickFilterFields,
+	type ListSettings,
+	type ListSettingsKey,
+} from "./storedSettings";
 import { useListRows, type ListRow, type ListRows } from "./useListRows";
+import { useListSettings } from "./useListSettings";
 
 export interface DeleteOutcome {
 	deleted: string[];
@@ -22,10 +33,11 @@ export interface DeleteOutcome {
 export interface ListPage extends ListRows {
 	/** Written to the URL query. */
 	filters: Ref<FilterCondition[]>;
-	/** Written to the URL query; the header click edits the same list. */
+	/** Written to the URL query and, on the person's own change, to their row. */
 	sort: Ref<Sort[]>;
-	/** In memory for the visit. */
+	/** Written to the person's row. */
 	columns: Ref<ListColumn[]>;
+	/** Written to the person's row when customizing ends. */
 	quickFilterFields: Ref<FilterField[] | undefined>;
 	customizing: Ref<boolean>;
 	selection: Ref<string[]>;
@@ -34,10 +46,15 @@ export interface ListPage extends ListRows {
 	/** The filters and sort the rows belong to, as one string: the session memory's key. */
 	rowsKey: () => string;
 	metaError: ComputedRef<string | null>;
+	/** True when the person's own row holds columns. */
 	columnsCustomized: ComputedRef<boolean>;
-	resetColumns: () => void;
+	/** Clears the person's columns, so the site's or the app's show. */
+	resetColumns: () => Promise<void>;
 	resizeColumn: (fieldname: string, width: string) => void;
 	resetColumnWidth: (fieldname: string) => void;
+	/** The site's defaults, which everyone without their own inherits; a System Manager's act. */
+	saveForSite: (settings: ListSettings) => Promise<void>;
+	resetForSite: (key: ListSettingsKey) => Promise<void>;
 	rowLink: (row: ListRow) => RouteLocationRaw;
 	/** Deletes the selection one row at a time; the page confirms first. */
 	deleteSelection: () => Promise<DeleteOutcome>;
@@ -47,6 +64,8 @@ export function useListPage(doctype: string): ListPage {
 	const route = useRoute();
 	const router = useRouter();
 	const { meta, error } = useDoctypeMeta(doctype);
+	const permissions = useDocPermissions(doctype);
+	const settings = useListSettings(doctype);
 	const listMeta = computed(() => meta.value as ListMeta | null);
 	const fields = computed(() => listMeta.value?.fields ?? []);
 	const contributed = listHandlersFor(doctype).map(({ handlers }) => handlers);
@@ -59,27 +78,75 @@ export function useListPage(doctype: string): ListPage {
 	const selection = ref<string[]>([]);
 	const pageSize = ref(readListMemory().pageSize ?? 20);
 	const seeded = ref(false);
+	// What the page last set itself, per key: a change that matches it is not the person's act.
+	const applied: Partial<Record<ListSettingsKey, string>> = {};
 	// Set once meta lands: the rows an earlier visit to this query showed, by Back or a breadcrumb.
 	let remembered: ReturnType<typeof recallRows>;
 
+	const ready = computed(
+		() => Boolean(listMeta.value) && settings.loaded.value && !permissions.loading.value
+	);
+
+	const readable = (fieldname: string) => {
+		const field = fields.value.find((one) => one.fieldname === fieldname);
+		return !field || permissions.fieldAccess(field) !== "none";
+	};
+
+	const defaults = computed(() =>
+		listMeta.value ? defaultColumns(listMeta.value, contributed) : []
+	);
+
+	/** The columns the tiers resolve to: the person's, else the site's, else the app default. */
+	function resolvedColumns(): ListColumn[] {
+		const stored = columnsFrom(settings.stored.value.columns, fields.value, readable);
+		return stored.length ? stored : defaults.value;
+	}
+
+	function resolvedSort(): Sort[] {
+		const stored = sortFrom(settings.stored.value.sort, fields.value, readable);
+		return stored.length ? stored : defaultSort(listMeta.value!);
+	}
+
+	function resolvedQuickFilterFields(): FilterField[] | undefined {
+		const stored = settings.stored.value.quick_filter_fields;
+		if (!stored) return undefined;
+		return quickFilterFieldsFrom(stored, doctype, fields.value, readable);
+	}
+
+	function applyStored() {
+		columns.value = resolvedColumns();
+		applied.columns = JSON.stringify(toStoredColumns(columns.value));
+		quickFilterFields.value = resolvedQuickFilterFields();
+		applied.quick_filter_fields = JSON.stringify(
+			quickFilterFields.value && toStoredQuickFilterFields(quickFilterFields.value)
+		);
+	}
+
+	function readQuery(value: ListMeta) {
+		const address = addressFromQuery(route.query, doctype, value.fields ?? []);
+		filters.value = address.filters ?? [];
+		readSort();
+	}
+
+	/** After a row changed under the page: the sort follows, a filter still being typed stays. */
+	function readSort() {
+		const address = addressFromQuery(route.query, doctype, fields.value);
+		sort.value = address.sort ?? resolvedSort();
+		applied.sort = JSON.stringify(sort.value);
+	}
+
 	watch(
-		listMeta,
+		ready,
 		(value) => {
 			if (!value || seeded.value) return;
-			columns.value = defaultColumns(value, contributed);
-			readQuery(value);
+			applyStored();
+			readQuery(listMeta.value!);
 			remembered = recallRows(doctype, stateKey());
 			if (remembered && readListMemory().pageSize == null) pageSize.value = remembered.pageSize;
 			seeded.value = true;
 		},
 		{ immediate: true }
 	);
-
-	function readQuery(value: ListMeta) {
-		const address = addressFromQuery(route.query, doctype, value.fields ?? []);
-		filters.value = address.filters ?? [];
-		sort.value = address.sort ?? defaultSort(value);
-	}
 
 	// Only a query the page did not write itself is read back: Back, Forward, a pasted link.
 	watch(
@@ -89,26 +156,43 @@ export function useListPage(doctype: string): ListPage {
 		}
 	);
 
-	// A replace, so the tweak is not a step Back has to undo.
-	watch([filters, sort], writeQuery, { deep: true });
+	// A replace, so the tweak is not a step Back has to undo. A landed write moves the resolved
+	// sort, so the URL is spelled again and a `_sort` that became the default goes.
+	watch([filters, sort, settings.stored], writeQuery, { deep: true });
 
 	function writeQuery() {
 		if (!seeded.value || sameQuery(route.query, stateQuery())) return;
 		router.replace({ query: stateQuery(), hash: route.hash }).catch(() => {});
 	}
 
-	/** The query the state spells: foreign keys kept, the default sort left unwritten. */
+	/** The query the state spells: foreign keys kept, the resolved sort left unwritten. */
 	function stateQuery() {
 		const owned = ownedKeys(doctype, fields.value);
 		const kept = Object.fromEntries(
 			Object.entries(route.query).filter(([key]) => !owned.has(key))
 		);
-		const written = sameSort(sort.value, defaultSort(listMeta.value!)) ? [] : sort.value;
+		const written = sameSort(sort.value, resolvedSort()) ? [] : sort.value;
 		return { ...kept, ...queryFromAddress({ filters: filters.value, sort: written }) };
 	}
 
 	function stateKey() {
 		return JSON.stringify(queryFromAddress({ filters: filters.value, sort: sort.value }));
+	}
+
+	// The person's own acts write; a value the page set itself, from a row or the URL, does not.
+	watch(columns, (value) => persist("columns", toStoredColumns(value)), { deep: true });
+	watch(sort, (value) => persist("sort", value), { deep: true });
+	watch(customizing, (now, before) => {
+		if (before && !now && quickFilterFields.value) {
+			persist("quick_filter_fields", toStoredQuickFilterFields(quickFilterFields.value));
+		}
+	});
+
+	function persist<Key extends ListSettingsKey>(key: Key, value: ListSettings[Key]) {
+		const json = JSON.stringify(value);
+		if (!seeded.value || applied[key] === json) return;
+		applied[key] = json;
+		settings.save({ [key]: value });
 	}
 
 	const rows = useListRows(doctype, () => {
@@ -117,7 +201,7 @@ export function useListPage(doctype: string): ListPage {
 			key: stateKey(),
 			fields: fetchFields(columns.value),
 			filters: filtersDict(filters.value),
-			orderBy: serializeOrderBy(sort.value.length ? sort.value : defaultSort(listMeta.value!)),
+			orderBy: serializeOrderBy(sort.value.length ? sort.value : resolvedSort()),
 			limit: pageSize.value,
 			restore: remembered?.shown,
 		};
@@ -141,10 +225,6 @@ export function useListPage(doctype: string): ListPage {
 		const present = new Set(current.map((row) => row.name));
 		selection.value = selection.value.filter((name) => present.has(name));
 	});
-
-	const defaults = computed(() =>
-		listMeta.value ? defaultColumns(listMeta.value, contributed) : []
-	);
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
 		const outcome: DeleteOutcome = { deleted: [], failed: [] };
@@ -172,14 +252,26 @@ export function useListPage(doctype: string): ListPage {
 		pageSize,
 		rowsKey,
 		metaError: computed(() => (error.value ? messageOf(error.value) : null)),
-		columnsCustomized: computed(
-			() => JSON.stringify(columns.value) !== JSON.stringify(defaults.value)
-		),
-		resetColumns: () => (columns.value = defaults.value),
+		columnsCustomized: computed(() => settings.has("user", "columns")),
+		resetColumns: async () => {
+			await settings.reset("columns");
+			applyStored();
+			readSort();
+		},
 		resizeColumn: (fieldname, width) =>
 			(columns.value = applyColumnWidth(columns.value, fieldname, width) as ListColumn[]),
 		resetColumnWidth: (fieldname) =>
 			(columns.value = clearColumnWidth(columns.value, fieldname) as ListColumn[]),
+		saveForSite: async (value) => {
+			await settings.saveForSite(value);
+			applyStored();
+			readSort();
+		},
+		resetForSite: async (key) => {
+			await settings.resetForSite(key);
+			applyStored();
+			readSort();
+		},
 		rowLink: (row) => routeFor(doctype, row.name),
 		deleteSelection,
 	};
