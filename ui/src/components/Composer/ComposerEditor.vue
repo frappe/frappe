@@ -434,8 +434,10 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
+// The shortcut reaches here directly, so the in-flight guard has to live here
+// too, not only on the button.
 function submit() {
-	if (isDisabled.value) return;
+	if (isDisabled.value || props.submitting) return;
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
