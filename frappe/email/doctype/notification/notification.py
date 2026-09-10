@@ -864,13 +864,17 @@ def get_comments_for_context(doc):
 		"Comment",
 		fields=["name", "content", "comment_email as by", "owner", "creation"],
 		filters=reference | {"comment_type": "Comment"},
+		order_by="creation desc",
+		limit=100,
 	) + frappe.get_all(
 		"Communication",
 		fields=["name", "content", "sender as by", "owner", "creation"],
 		filters=reference,
+		order_by="creation desc",
+		limit=100,
 	)
 	comments.sort(key=lambda c: c.creation)
-	return [{"comment": c.content, "by": c.by or c.owner, "name": c.name} for c in comments] or None
+	return [{"comment": c.content, "by": c.by or c.owner, "name": c.name} for c in comments[-100:]] or None
 
 
 def get_context(doc):
