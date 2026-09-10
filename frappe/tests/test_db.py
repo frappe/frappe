@@ -946,17 +946,31 @@ class TestDB(IntegrationTestCase):
 		original_timezone = str(frappe.db._session_time_zone)
 		try:
 			frappe.db.set_session_time_zone("Asia/Kolkata")
-			combined, formatted, contains, timestamp = frappe.db.sql(
+			(
+				combined,
+				formatted,
+				contains,
+				timestamp,
+				date_difference,
+				null_date_difference,
+				invalid_date_difference,
+			) = frappe.db.sql(
 				"""SELECT
 					frappe_combine_datetime('2024-02-03', '25:00:00'),
 					frappe_date_format('2024-02-03 04:05:06', '%M %e, %Y %r'),
 					frappe_json_contains('{"nested":{"enabled":true}}', '{"nested":{"enabled":true}}'),
-					frappe_unix_timestamp('1970-01-02 00:00:00')"""
+					frappe_unix_timestamp('1970-01-02 00:00:00'),
+					datediff('2024-01-10 01:00:00', '2024-01-01 23:00:00'),
+					datediff(NULL, '2024-01-01'),
+					datediff('not-a-date', '2024-01-01')"""
 			)[0]
 
 			self.assertEqual(combined, "2024-02-04 01:00:00")
 			self.assertEqual(formatted, "February 3, 2024 04:05:06 AM")
 			self.assertEqual(contains, 1)
+			self.assertEqual(date_difference, 9)
+			self.assertIsNone(null_date_difference)
+			self.assertIsNone(invalid_date_difference)
 			self.assertEqual(
 				timestamp,
 				int(datetime.datetime(1970, 1, 2, tzinfo=ZoneInfo("Asia/Kolkata")).timestamp()),
