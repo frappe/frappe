@@ -1,6 +1,6 @@
 // What the rail draws. Mounted with Vue's own `createApp`: this package has no `@vue/test-utils`.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, ref, type Ref } from "vue";
+import { createApp, h, nextTick, ref, type App, type Ref } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
@@ -12,6 +12,13 @@ import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
+
+// `logout` posts through frappe-ui's `call`, and a toast needs a provider the rail lacks.
+vi.mock("frappe-ui", async (importOriginal) => ({
+	...(await importOriginal<typeof import("frappe-ui")>()),
+	call: vi.fn().mockResolvedValue(null),
+	toast: { success: vi.fn(), error: vi.fn() },
+}));
 
 const addresses = new Addresses({
 	doctypes: {
@@ -27,12 +34,21 @@ const crm = {
 	app_title: "CRM",
 	shell_base: "/apps/crm",
 	prefixes: { crm: { app: "crm", modular: false } },
+	user: { name: "jane@example.com", full_name: "Jane Doe" },
 } as unknown as Boot;
 
 async function flush() {
 	await Promise.resolve();
 	await Promise.resolve();
 	await nextTick();
+}
+
+// Every app mounted, unmounted before the body is wiped: a portal torn down after loses its nodes.
+const mounted: App[] = [];
+
+function unmountAll() {
+	mounted.splice(0).forEach((app) => app.unmount());
+	document.body.innerHTML = "";
 }
 
 type Options = {
@@ -77,6 +93,7 @@ function mount(
 	app.provide("addresses", addresses);
 	app.use(router);
 	app.mount(host);
+	mounted.push(app);
 
 	return { host, items, router };
 }
@@ -124,11 +141,13 @@ function withSprite() {
 }
 
 beforeEach(() => {
-	document.body.innerHTML = "";
+	unmountAll();
 	resetNavigationReports();
 	resetSprite();
 	vi.unstubAllGlobals();
 	vi.restoreAllMocks();
+	// `restoreAllMocks` leaves a `vi.fn()`'s call history alone.
+	vi.clearAllMocks();
 });
 
 describe("the kinds the rail draws", () => {
@@ -312,7 +331,7 @@ describe("the app tile", () => {
 describe("the app menu", () => {
 	/** The menu's text once opened from the keyboard; it renders in a portal on `body`. */
 	async function opened(options: Options) {
-		document.body.innerHTML = "";
+		unmountAll();
 		const host = rail([], options);
 		const tile = host.querySelector<HTMLElement>("[data-key='app-menu']")!;
 		tile.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
@@ -321,10 +340,10 @@ describe("the app menu", () => {
 		return document.body.textContent ?? "";
 	}
 
-	it("offers All apps and Theme everywhere", async () => {
+	it("offers All apps everywhere, and Theme no longer: a theme is the person's", async () => {
 		const text = await opened({});
 		expect(text).toContain("All apps");
-		expect(text).toContain("Theme");
+		expect(text).not.toContain("Theme");
 	});
 
 	it("offers Customize sidebar inside an app", async () => {
@@ -359,5 +378,143 @@ describe("an authored icon", () => {
 
 		expect(cell(host, "CRM Deal")?.querySelector("use")).toBeNull();
 		expect(target(host, "CRM Deal")?.textContent?.trim()).toBe("D");
+	});
+});
+
+describe("the person's cell", () => {
+	function userCell(host: HTMLElement) {
+		return host.querySelector<HTMLElement>("[data-key='user-menu']")!;
+	}
+
+	it("sits at the foot, named by the full name, with the initial as the fallback", () => {
+		const host = rail([doctype("CRM Deal")]);
+		const button = userCell(host);
+
+		expect(button.getAttribute("aria-label")).toBe("Jane Doe");
+		expect(button.textContent?.trim()).toBe("J");
+		expect(button.querySelector("img")).toBeNull();
+		// After the scrolling column, so the column's `flex-1` pins it to the foot.
+		const scroll = host.querySelector("[data-key='CRM Deal']")!.closest("[data-slot='scroll-area']");
+		expect(button.compareDocumentPosition(scroll!) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+	});
+
+	it("shows the person's image when boot carries one", () => {
+		const boot = { ...crm, user: { ...crm.user, user_image: "/files/jane.png" } } as Boot;
+		const image = userCell(rail([], { boot })).querySelector("img");
+		expect(image?.getAttribute("src")).toBe("/files/jane.png");
+	});
+});
+
+describe("the user menu", () => {
+	/** The menu once opened from the keyboard; it renders in a portal on `body`. */
+	async function opened(options: Options = {}) {
+		unmountAll();
+		const host = rail([], options);
+		const button = host.querySelector<HTMLElement>("[data-key='user-menu']")!;
+		button.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+		await flush();
+		await flush();
+		return document.body.querySelector<HTMLElement>("[role='menu']")!;
+	}
+
+	function rows(menu: HTMLElement) {
+		return Array.from(menu.querySelectorAll<HTMLElement>("[role='menuitem']")).map((row) =>
+			row.textContent?.trim()
+		);
+	}
+
+	function row(menu: HTMLElement, label: string) {
+		return Array.from(menu.querySelectorAll<HTMLElement>("[role='menuitem']")).find(
+			(node) => node.textContent?.trim() === label
+		)!;
+	}
+
+	it("carries no header: the name is the button's", async () => {
+		const menu = await opened();
+		expect(menu.querySelector("[data-slot='group-label']")).toBeNull();
+		expect(menu.textContent).not.toContain("Jane Doe");
+	});
+
+	it("offers the four rows in order, with Log out in red", async () => {
+		const menu = await opened();
+		expect(rows(menu)).toEqual(["My settings", "Theme", "Desk v1", "Log out"]);
+		expect(row(menu, "Log out").className).toContain("red");
+	});
+
+	it("separates the groups: the person's rows, Desk v1, Log out", async () => {
+		const menu = await opened();
+		const groups = Array.from(menu.querySelectorAll("[data-slot='group']")).map((group) =>
+			Array.from(group.querySelectorAll("[role='menuitem']")).length
+		);
+		expect(groups).toEqual([2, 1, 1]);
+	});
+
+	it("sends My settings to the person's v1 User form, and Desk v1 to v1's home", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+
+		row(await opened(), "My settings").click();
+		await flush();
+		expect(assign).toHaveBeenLastCalledWith("/app/user/jane%40example.com");
+
+		row(await opened(), "Desk v1").click();
+		await flush();
+		expect(assign).toHaveBeenLastCalledWith("/app");
+	});
+
+	it("asks before logging out, and Cancel keeps the session", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const { call } = await import("frappe-ui");
+
+		row(await opened(), "Log out").click();
+		await flush();
+
+		const dialog = document.body.querySelector<HTMLElement>("[role='dialog']")!;
+		expect(dialog.textContent).toContain("Log out?");
+		expect(dialog.textContent).toContain("You will need to sign in again.");
+
+		Array.from(dialog.querySelectorAll("button"))
+			.find((button) => button.textContent?.trim() === "Cancel")!
+			.click();
+		await flush();
+
+		expect(document.body.querySelector("[role='dialog']")).toBeNull();
+		expect(call).not.toHaveBeenCalled();
+		expect(assign).not.toHaveBeenCalled();
+	});
+
+	it("logs out on confirmation and goes to login with the way back, hash dropped", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const { call } = await import("frappe-ui");
+		window.history.replaceState(null, "", "/crm-deal?sidebar=fcrm#customize/rail");
+
+		row(await opened(), "Log out").click();
+		await flush();
+		Array.from(document.body.querySelector("[role='dialog']")!.querySelectorAll("button"))
+			.find((button) => button.textContent?.trim() === "Log out")!
+			.click();
+		await flush();
+		await flush();
+
+		expect(call).toHaveBeenCalledWith("logout");
+		expect(assign).toHaveBeenCalledWith("/login?redirect-to=%2Fcrm-deal%3Fsidebar%3Dfcrm");
+		window.history.replaceState(null, "", "/");
+	});
+
+	it("keeps the dialog and toasts when the log out fails", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const { call, toast } = await import("frappe-ui");
+		vi.mocked(call).mockRejectedValueOnce(new Error("offline"));
+
+		row(await opened(), "Log out").click();
+		await flush();
+		Array.from(document.body.querySelector("[role='dialog']")!.querySelectorAll("button"))
+			.find((button) => button.textContent?.trim() === "Log out")!
+			.click();
+		await flush();
+		await flush();
+
+		expect(document.body.querySelector("[role='dialog']")).not.toBeNull();
+		expect(toast.error).toHaveBeenCalledWith("Could not log out");
+		expect(assign).not.toHaveBeenCalled();
 	});
 });

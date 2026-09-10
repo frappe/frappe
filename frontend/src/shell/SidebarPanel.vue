@@ -28,7 +28,8 @@
 				/>
 			</div>
 
-			<ScrollArea class="min-h-0 flex-1" viewportClass="px-2 pb-2">
+			<!-- `pt-0.5`: the first row's shadow is otherwise clipped on the viewport's top edge. -->
+			<ScrollArea class="min-h-0 flex-1" viewportClass="px-2 pb-2 pt-0.5">
 				<nav class="flex flex-col gap-0.5" :aria-label="title">
 					<SidebarRow
 						v-for="node in tree"
