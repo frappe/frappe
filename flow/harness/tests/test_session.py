@@ -7,9 +7,11 @@ import os
 import re
 from pathlib import Path
 
+import httpx
 import pytest
 from pydantic import ValidationError
 
+from flow_harness.agent.client_tools import notify_run_ended
 from flow_harness.events import (
 	ApprovalRequired,
 	AssistantMessage,
@@ -256,6 +258,74 @@ async def test_commit_failure_fails_the_task_and_frees_the_session(tmp_path, mon
 	with pytest.raises(OSError, match="log unavailable"):
 		await handle.task
 	assert session.is_running is False
+
+
+async def test_run_ended_schedules_the_configured_client_notification(tmp_path, monkeypatch):
+	seen = []
+	delivered = asyncio.Event()
+
+	async def notify(config, session_id, event):
+		seen.append((config.callback_url, session_id, event.type, event.seq))
+		delivered.set()
+
+	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
+	session = SessionStore(str(tmp_path)).create(
+		SessionConfig(
+			model="mock",
+			callback_url="https://client.invalid/callback",
+			notify_run_ended=True,
+		)
+	)
+	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="ok")]))
+	assert handle.task is not None
+	await handle.task
+	await asyncio.wait_for(delivered.wait(), timeout=1)
+
+	assert seen == [("https://client.invalid/callback", session.id, "run_ended", session.log.latest_seq)]
+
+
+async def test_terminal_notification_retries_short_http_failures(monkeypatch):
+	attempts = []
+
+	class Client:
+		def __init__(self, *args, **kwargs):
+			pass
+
+		async def __aenter__(self):
+			return self
+
+		async def __aexit__(self, *args):
+			pass
+
+		async def post(self, url, *, json, headers):
+			attempts.append((url, json, headers))
+			if len(attempts) < 3:
+				raise httpx.ConnectError("not yet", request=httpx.Request("POST", url))
+			return httpx.Response(
+				200,
+				json={"message": {"synced_through": 7}},
+				request=httpx.Request("POST", url),
+			)
+
+	monkeypatch.setattr("flow_harness.agent.client_tools.httpx.AsyncClient", Client)
+	monkeypatch.setattr("flow_harness.agent.client_tools._TERMINAL_RETRY_DELAYS", (0, 0, 0))
+	config = SessionConfig(
+		callback_url="https://client.invalid/callback",
+		callback_token="secret",
+		notify_run_ended=True,
+	)
+	await notify_run_ended(config, "session-1", RunEnded(reason="done", seq=7))
+
+	assert len(attempts) == 3
+	assert attempts[-1] == (
+		"https://client.invalid/callback",
+		{
+			"callback_type": "run_ended",
+			"session_id": "session-1",
+			"terminal_seq": 7,
+		},
+		{"X-Harness-Token": "secret"},
+	)
 
 
 async def test_events_replays_then_stays_live_without_duplicates(tmp_path):

@@ -348,7 +348,7 @@ def create_sessions_router(
 		await session.set_model(
 			req.model, credential_id=req.credential_id, reasoning_effort=req.reasoning_effort
 		)
-		if req.api_key or req.api_base:
+		if {"api_key", "api_base"} & req.model_fields_set:
 			# the pair is replaced as a unit, so a stale endpoint never outlives its key
 			previous = (session.config.api_key, session.config.api_base)
 			session.config.api_key = req.api_key

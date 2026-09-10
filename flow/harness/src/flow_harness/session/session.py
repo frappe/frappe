@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Literal
 
 from flow_harness import config as server_config
 from flow_harness.agent import loop
+from flow_harness.agent.client_tools import notify_run_ended
 from flow_harness.agent.loop import AfterHook, BeforeHook
 from flow_harness.events import (
 	AnyEvent,
@@ -493,6 +494,9 @@ class Session:
 				)
 			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
+		if isinstance(event, RunEnded) and self.config.notify_run_ended:
+			task = asyncio.create_task(notify_run_ended(self.config, self.id, event))
+			task.add_done_callback(_mark_retrieved)
 
 	# --- driving one admitted operation -----------------------------------
 

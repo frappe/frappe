@@ -74,6 +74,14 @@ def test_set_model_replaces_the_inline_pair(tmp_path):
 	assert c.post(f"/sessions/{sid}/model", json={"model": "mock-b"}).status_code == 200
 	assert config.api_key == "sk-second"
 
+	# explicit nulls clear a previous pair (Flow sends both fields on every switch)
+	r = c.post(
+		f"/sessions/{sid}/model",
+		json={"model": "mock", "api_key": None, "api_base": None},
+	)
+	assert r.status_code == 200
+	assert (config.api_key, config.api_base) == (None, None)
+
 	# half a pair sent: both replaced, so a key never lands on a stale endpoint
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "api_base": "http://gw.localhost"})
 	assert r.status_code == 200
