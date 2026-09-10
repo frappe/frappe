@@ -67,7 +67,11 @@ class FakeDaemon:
 		self.rows = list(rows)
 		self.running = running
 		self.running_for = 0
-		self.paused = False
+		self.paused = bool(
+			self.rows
+			and self.rows[-1].get("type") == "run_ended"
+			and self.rows[-1].get("reason") == "paused"
+		)
 		self.title = title
 		self.missing = missing
 		self.broken = broken
@@ -101,9 +105,10 @@ class FakeDaemon:
 			raise DaemonError(500, "session_log_corrupt")
 		running = self.running or self.running_for > 0
 		self.running_for = max(0, self.running_for - 1)
+		state = "running" if running else "paused" if self.paused else "idle"
 		return {
 			"session_id": sid,
-			"state": "running" if running else "idle",
+			"state": state,
 			"running": running,
 			"latest_seq": self.rows[-1]["seq"] if self.rows else 0,
 			"title": self.title,
@@ -121,7 +126,11 @@ class FakeDaemon:
 		if self.running:
 			return {"status": "steered"}
 		self.turns += 1
-		self.rows += self.answer(self.next_seq(), f"r{self.turns}", message)
+		rows = self.answer(self.next_seq(), f"r{self.turns}", message)
+		self.rows += rows
+		self.paused = bool(
+			rows and rows[-1].get("type") == "run_ended" and rows[-1].get("reason") == "paused"
+		)
 		return {"status": "started"}
 
 	def resume(self, sid, answers, *, approval_seq):

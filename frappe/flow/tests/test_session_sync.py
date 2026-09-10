@@ -234,6 +234,23 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(run.status, "Paused")
 		self.assertEqual(self.messages()[-1], ("tool", cancelled, run.name))
 
+	def test_an_idle_server_closes_a_stale_pause_before_the_next_run(self):
+		old = self.placeholder(message="delete it")
+		daemon = self.sync(FakeDaemon(pause(1, "r1")))
+		old.reload()
+		self.assertEqual(old.status, "Paused")
+
+		daemon.paused = False
+		daemon.turns = 1
+		with patch.object(DaemonClient, "for_site", return_value=daemon):
+			new = self.session.chat("next")
+			self.session.sync()
+
+		old.reload()
+		new.reload()
+		self.assertEqual((old.status, old.error), ("Failed", sessions.STOPPED))
+		self.assertEqual((new.daemon_run_id, new.status, new.input), ("r2", "Completed", "next"))
+
 	def test_two_placeholders_are_matched_oldest_first(self):
 		first = self.placeholder(message="one")
 		second = self.placeholder(message="two")

@@ -192,8 +192,8 @@ class FlowSession(Document):
 			status = client.cancel_pending(self.name)["status"]
 		if status == "cancelled":
 			self.sync()
-			self._paused_run().mark_failed(STOPPED)
 		return status
+
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""
 		from flow.lib.model import model_config
@@ -205,7 +205,6 @@ class FlowSession(Document):
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
 		model_config(self.model or agent.model)
-
 
 	def set_model(self, model: str) -> None:
 		from flow.lib.model import model_config
@@ -254,6 +253,11 @@ class FlowSession(Document):
 			LogRecorder(self).record(rows)
 		if not info["running"]:
 			fail_running(self.name, ABANDONED)
+		if info["state"] == "idle":
+			for name in frappe.get_all(
+				"Flow Run", filters={"session": self.name, "status": "Paused"}, pluck="name"
+			):
+				frappe.db.set_value("Flow Run", name, {"status": "Failed", "error": STOPPED})
 		if info["title"] and info["title"] != self.title:
 			self.title = info["title"]
 		self.flags.ignore_validate = True
