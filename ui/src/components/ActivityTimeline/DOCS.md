@@ -385,8 +385,8 @@ import LucideReply from "~icons/lucide/reply";
     <template #item-comment="{ activity }">
       <CommentItem :comment="activity">
         <template #actions>
-          <Button variant="ghost" icon="edit-2" @click="onEdit(activity)" />
-          <Button variant="ghost" icon="trash-2" @click="onDelete(activity)" />
+          <Button variant="ghost" icon="lucide-pencil" @click="onEdit(activity)" />
+          <Button variant="ghost" icon="lucide-trash-2" @click="onDelete(activity)" />
         </template>
       </CommentItem>
     </template>
@@ -486,7 +486,7 @@ function onSave(activity, content: string) {
         <template #actions>
           <Button
             variant="ghost"
-            icon="edit-2"
+            icon="lucide-pencil"
             @click="editingKey = activity.key"
           />
         </template>
