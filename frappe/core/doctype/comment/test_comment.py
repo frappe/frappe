@@ -1,7 +1,5 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import json
-
 import frappe
 from frappe.core.doctype.comment.comment import (
 	MAX_COMMENT_CHAIN_DEPTH,
@@ -26,20 +24,15 @@ class TestComment(IntegrationTestCase):
 	def test_comment_creation(self):
 		test_doc = frappe.get_doc(doctype="ToDo", description="test")
 		test_doc.insert()
-		comment = test_doc.add_comment("Comment", "test comment")
+		test_doc.add_comment("Comment", "test comment")
 
 		test_doc.reload()
-
-		# check if updated in _comments cache
-		comments = json.loads(test_doc.get("_comments"))
-		self.assertEqual(comments[0].get("name"), comment.name)
-		self.assertEqual(comments[0].get("comment"), comment.content)
 
 		# Check comment count
 		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
 		self.assertEqual(counts[0]._comment_count, 1)
 
-		comment = test_doc.add_comment("Comment", "test comment")
+		test_doc.add_comment("Comment", "test comment")
 
 		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
 		self.assertEqual(counts[0]._comment_count, 2)
@@ -52,6 +45,44 @@ class TestComment(IntegrationTestCase):
 		)[0]
 
 		self.assertEqual(comment_1.content, "test comment")
+
+	def test_comment_count_is_maintained(self):
+		todo = frappe.get_doc(doctype="ToDo", description="count").insert()
+		other = frappe.get_doc(doctype="ToDo", description="count - other").insert()
+
+		def count(doc):
+			return frappe.db.get_value("ToDo", doc.name, "_comment_count")
+
+		first = todo.add_comment("Comment", "one")
+		second = todo.add_comment("Comment", "two")
+		todo.add_comment("Info", "not counted")
+		self.assertEqual(count(todo), 2)
+
+		email = frappe.get_doc(
+			doctype="Communication", content="counted", reference_doctype="ToDo", reference_name=todo.name
+		).insert()
+		self.assertEqual(count(todo), 3)
+
+		first.delete()
+		email.delete()
+		self.assertEqual(count(todo), 1)
+
+		second.reference_name = other.name
+		second.save()
+		self.assertEqual(count(todo), 0)
+		self.assertEqual(count(other), 1)
+
+	def test_backfill_comment_count(self):
+		from frappe.patches.v16_0.backfill_comment_count import execute as backfill
+
+		todo = frappe.get_doc(doctype="ToDo", description="backfill").insert()
+		todo.add_comment("Comment", "one")
+		todo.add_comment("Comment", "two")
+		frappe.db.sql("update `tabToDo` set `_comment_count` = 0 where name = %s", todo.name)
+
+		for _ in range(2):
+			backfill()
+			self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_comment_count"), 2)
 
 	# test via blog
 	def test_public_comment(self):

@@ -95,7 +95,7 @@ DEFAULT_FIELDS = frozenset(default_fields)
 
 child_table_fields = ("parent", "parentfield", "parenttype")
 
-optional_fields = ("_user_tags", "_assign", "_liked_by", "_seen")
+optional_fields = ("_user_tags", "_assign", "_liked_by", "_seen", "_comment_count")
 OPTIONAL_FIELDS = frozenset(optional_fields)
 
 table_fields = ("Table", "Table MultiSelect")
@@ -154,6 +154,7 @@ std_fields = [
 	{"fieldname": "_user_tags", "fieldtype": "Data", "label": "Tags"},
 	{"fieldname": "_liked_by", "fieldtype": "Data", "label": "Liked By"},
 	{"fieldname": "_assign", "fieldtype": "Text", "label": "Assigned To"},
+	{"fieldname": "_comment_count", "fieldtype": "Int", "label": "Comment Count"},
 	{"fieldname": "docstatus", "fieldtype": "Int", "label": "Document Status"},
 ]
 

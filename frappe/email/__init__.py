@@ -61,16 +61,11 @@ def get_system_managers():
 
 @frappe.whitelist()
 def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
-	from frappe.core.doctype.comment.comment import relink_comment_cache
-
 	frappe.has_permission("Communication", "write", name, throw=True)
 
 	comm = frappe.get_doc("Communication", name)
 	if comm.communication_type != "Communication":
 		return
-
-	old_reference_doctype = comm.reference_doctype
-	old_reference_name = comm.reference_name
 
 	frappe.db.sql(
 		"""update
@@ -84,9 +79,10 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 		(reference_doctype, reference_name, name),
 	)
 
-	comm.reference_doctype = reference_doctype
-	comm.reference_name = reference_name
-	relink_comment_cache(comm, old_reference_doctype, old_reference_name)
+	from frappe.core.doctype.comment.comment import refresh_comment_count
+
+	refresh_comment_count(comm.reference_doctype, comm.reference_name)
+	refresh_comment_count(reference_doctype, reference_name)
 
 
 @frappe.whitelist()

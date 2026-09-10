@@ -58,6 +58,7 @@ DEFAULT_FIELD_LABELS = {
 	"_user_tags": N_("Tags"),
 	"_liked_by": N_("Liked By"),
 	"_assign": N_("Assigned To"),
+	"_comment_count": N_("Comment Count"),
 }
 
 # When number of rows in a table exceeds this number, we disable certain features automatically.

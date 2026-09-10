@@ -134,6 +134,7 @@ $.extend(frappe.model, {
 		{ fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") },
 		{ fieldname: "_liked_by", fieldtype: "Data", label: __("Liked By") },
 		{ fieldname: "_assign", fieldtype: "Text", label: __("Assigned To") },
+		{ fieldname: "_comment_count", fieldtype: "Int", label: __("Comment Count") },
 		{ fieldname: "docstatus", fieldtype: "Int", label: __("Document Status") },
 	],
 

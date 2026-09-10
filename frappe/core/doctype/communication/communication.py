@@ -13,7 +13,7 @@ from frappe.automation.doctype.assignment_rule.assignment_rule import (
 	apply as apply_assignment_rule,
 )
 from frappe.contacts.doctype.contact.contact import get_contact_name
-from frappe.core.doctype.comment.comment import relink_comment_cache
+from frappe.core.doctype.comment.comment import refresh_comment_count
 from frappe.core.doctype.communication.email import validate_email
 from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
@@ -196,6 +196,7 @@ class Communication(Document, CommunicationEmailMixin):
 		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent":
 			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
 
+		refresh_comment_count(self.reference_doctype, self.reference_name)
 		self.notify_change("add")
 
 	def set_signature_in_email_content(self):
@@ -242,16 +243,13 @@ class Communication(Document, CommunicationEmailMixin):
 			self.set_signature_in_email_content()
 
 	def on_update(self):
-		"""
-		add to _comment property of the doctype, so it shows up in comments count for the list view;
-		also move the cached entry off the old parent if the reference changed (e.g. via Communication.save())
-		"""
-		before_save = self.get_doc_before_save()
-		relink_comment_cache(
-			self,
-			before_save.reference_doctype if before_save else None,
-			before_save.reference_name if before_save else None,
-		)
+		old_doc = self.get_doc_before_save()
+		if old_doc and (old_doc.reference_doctype, old_doc.reference_name) != (
+			self.reference_doctype,
+			self.reference_name,
+		):
+			refresh_comment_count(old_doc.reference_doctype, old_doc.reference_name)
+			refresh_comment_count(self.reference_doctype, self.reference_name)
 
 		parent = get_parent_doc(self)
 		if (method := getattr(parent, "on_communication_update", None)) and callable(method):
@@ -261,6 +259,9 @@ class Communication(Document, CommunicationEmailMixin):
 
 	def on_trash(self):
 		self.notify_change("delete")
+
+	def after_delete(self):
+		refresh_comment_count(self.reference_doctype, self.reference_name)
 
 	@property
 	def sender_mailid(self):

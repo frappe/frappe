@@ -113,9 +113,7 @@ class Notification(Document):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
+			context.update({"alert": self, "comments": get_comments_for_context(doc)})
 			if self.is_standard:
 				self.load_standard_properties(context)
 			msg = frappe.render_template(self.message, context, restrict_globals=True)
@@ -130,9 +128,7 @@ class Notification(Document):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
+			context.update({"alert": self, "comments": get_comments_for_context(doc)})
 			if self.is_standard:
 				self.load_standard_properties(context)
 			if not self.subject:
@@ -381,9 +377,7 @@ def get_context(context):
 		"""Build recipients and send Notification"""
 
 		context = get_context(doc)
-		context.update({"alert": self, "comments": None})
-		if doc.get("_comments"):
-			context["comments"] = json.loads(doc.get("_comments"))
+		context.update({"alert": self, "comments": get_comments_for_context(doc)})
 
 		if self.is_standard:
 			self.load_standard_properties(context)
@@ -858,6 +852,27 @@ def evaluate_alert(doc: Document, alert, event=None):
 		frappe.log_error(title=title, message=message)
 		msg = f"<details><summary>{title}</summary>{message}</details>"
 		frappe.throw(msg, title=_("Error in Notification"))
+
+
+def get_comments_for_context(doc):
+	"""`{{ comments }}` for notification templates, in the shape the old `_comments` cache had."""
+	if not doc.get("name"):
+		return None
+
+	comments = [
+		{"comment": c.content, "by": c.comment_email or c.owner, "name": c.name}
+		for c in frappe.get_all(
+			"Comment",
+			fields=["name", "content", "comment_email", "owner"],
+			filters={
+				"reference_doctype": doc.doctype,
+				"reference_name": doc.name,
+				"comment_type": "Comment",
+			},
+			order_by="creation",
+		)
+	]
+	return comments or None
 
 
 def get_context(doc):

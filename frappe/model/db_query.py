@@ -371,9 +371,10 @@ from {tables}
 		# decided before cast_name_fields wraps name columns in cast() on postgres
 		drop_dedup_group_by = self._is_redundant_dedup_group_by()
 		self.apply_fieldlevel_read_permissions()
-		# selected after the permission check: never user-requestable, popped in add_comment_count
-		if self.with_comment_count and "_comments" in self.columns:
-			self.fields.append(f"`tab{self.doctype}`.`_comments`")
+		if self.with_comment_count and "_comment_count" in self.columns:
+			field = f"`tab{self.doctype}`.`_comment_count`"
+			if field not in self.fields:
+				self.fields.append(field)
 
 		args = frappe._dict()
 
@@ -773,7 +774,7 @@ from {tables}
 				raise
 
 	def set_optional_columns(self):
-		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
+		"""Removes optional columns like `_user_tags`, `_assign` etc. if not in table"""
 
 		self.fields[:] = [f for f in self.fields if f not in OPTIONAL_FIELDS or f in self.columns]
 		self.filters[:] = [
@@ -1535,12 +1536,7 @@ from {tables}
 
 	def add_comment_count(self, result):
 		for r in result:
-			comments = r.pop("_comments", None)
-			if not r.name:
-				continue
-
-			# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
-			r._comment_count = comments.count('"comment"') if comments else 0
+			r._comment_count = r.get("_comment_count") or 0
 
 	def update_user_settings(self):
 		# update user settings if new search

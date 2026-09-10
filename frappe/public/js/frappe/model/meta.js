@@ -215,6 +215,7 @@ $.extend(frappe.meta, {
 			_user_tags: "Tags",
 			_liked_by: "Liked By",
 			_assign: "Assigned To",
+			_comment_count: "Comment Count",
 		};
 		if (standard[fn]) {
 			return standard[fn];

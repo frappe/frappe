@@ -1,7 +1,5 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-import json
-
 import frappe
 from frappe.database.schema import add_column
 from frappe.desk.notifications import notify_mentions
@@ -66,6 +64,7 @@ class Comment(Document):
 			source_doctype=self.doctype,
 			source_name=self.name,
 		)
+		self.refresh_count()
 		self.notify_change("add")
 
 	def validate(self):
@@ -76,13 +75,29 @@ class Comment(Document):
 		)
 
 	def on_update(self):
-		update_comment_in_doc(self)
+		old_doc = self.get_doc_before_save()
+		if old_doc and (old_doc.reference_doctype, old_doc.reference_name) != (
+			self.reference_doctype,
+			self.reference_name,
+		):
+			self.refresh_count(old_doc.reference_doctype, old_doc.reference_name)
+			self.refresh_count()
+
 		if not self.is_new():
 			self.notify_change("update")
 
 	def on_trash(self):
-		self.remove_comment_from_cache()
 		self.notify_change("delete")
+
+	def after_delete(self):
+		# after the row is gone, so the recount does not include it
+		self.refresh_count()
+
+	def refresh_count(self, reference_doctype=None, reference_name=None):
+		if self.comment_type == "Comment":
+			refresh_comment_count(
+				reference_doctype or self.reference_doctype, reference_name or self.reference_name
+			)
 
 	def notify_change(self, action):
 		key_map = {
@@ -104,14 +119,6 @@ class Comment(Document):
 			docname=self.reference_name,
 			after_commit=True,
 		)
-
-	def remove_comment_from_cache(self):
-		_comments = get_comments_from_parent(self)
-		for c in list(_comments):
-			if c.get("name") == self.name:
-				_comments.remove(c)
-
-		update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
 
 
 def on_doctype_update():
@@ -212,99 +219,8 @@ def get_document_comments(
 	return frappe.get_all("Comment", fields=fields, filters=filters, **kwargs)
 
 
-def update_comment_in_doc(doc):
-	"""Updates `_comments` (JSON) property in parent Document.
-	Creates a column `_comments` if property does not exist.
-
-	Only user created Communication or Comment of type Comment are saved.
-
-	`_comments` format
-
-	        {
-	                "comment": [String],
-	                "by": [user],
-	                "name": [Comment Document name]
-	        }"""
-
-	# only comments get updates, not likes, assignments etc.
-	if doc.doctype == "Comment" and doc.comment_type != "Comment":
-		return
-
-	def get_truncated(content):
-		return (content[:97] + "...") if len(content) > 100 else content
-
-	if doc.reference_doctype and doc.reference_name and doc.content:
-		_comments = get_comments_from_parent(doc)
-
-		updated = False
-		for c in _comments:
-			if c.get("name") == doc.name:
-				c["comment"] = get_truncated(doc.content)
-				updated = True
-
-		if not updated:
-			_comments.append(
-				{
-					"comment": get_truncated(doc.content),
-					# "comment_email" for Comment and "sender" for Communication
-					"by": getattr(doc, "comment_email", None) or getattr(doc, "sender", None) or doc.owner,
-					"name": doc.name,
-				}
-			)
-
-		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
-
-
-def relink_comment_cache(doc, old_reference_doctype, old_reference_name):
-	"""Move `doc`'s cached entry out of the old parent's `_comments` and into the new one.
-
-	Used both by ``Communication.on_update`` (old reference read from
-	``get_doc_before_save()``) and by ``frappe.email.relink`` (old reference captured
-	before the raw SQL update), so the cache stays in sync whichever way the
-	reference is changed.
-	"""
-	if (
-		old_reference_doctype
-		and old_reference_name
-		and (old_reference_doctype, old_reference_name) != (doc.reference_doctype, doc.reference_name)
-	):
-		_comments = get_comments_from_parent(
-			frappe._dict(reference_doctype=old_reference_doctype, reference_name=old_reference_name)
-		)
-		_comments = [c for c in _comments if c.get("name") != doc.name]
-		update_comments_in_parent(old_reference_doctype, old_reference_name, _comments)
-
-	update_comment_in_doc(doc)
-
-
-def get_comments_from_parent(doc):
-	"""
-	get the list of comments cached in the document record in the column
-	`_comments`
-	"""
-	try:
-		if is_virtual_doctype(doc.reference_doctype):
-			_comments = "[]"
-		else:
-			_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
-
-	except Exception as e:
-		if frappe.db.is_missing_table_or_column(e):
-			_comments = "[]"
-
-		else:
-			raise
-
-	try:
-		return json.loads(_comments)
-	except ValueError:
-		return []
-
-
-def update_comments_in_parent(reference_doctype, reference_name, _comments):
-	"""Updates `_comments` property in parent Document with given dict.
-
-	:param _comments: Dict of comments."""
+def refresh_comment_count(reference_doctype, reference_name):
+	"""Recount comments and communications on the referenced document into `_comment_count`."""
 	if (
 		not reference_doctype
 		or not reference_name
@@ -313,24 +229,25 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	):
 		return
 
+	reference = {"reference_doctype": reference_doctype, "reference_name": reference_name}
+	count = frappe.db.count("Comment", reference | {"comment_type": "Comment"}) + frappe.db.count(
+		"Communication", reference
+	)
+
 	try:
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql(
-			f"""update `tab{reference_doctype}` set `_comments`=%s where name=%s""",  # nosec
-			(json.dumps(_comments[-100:]), reference_name),
+			f"""update `tab{reference_doctype}` set `_comment_count`=%s where name=%s""",  # nosec
+			(count, reference_name),
 		)
-
 	except Exception as e:
 		if frappe.db.is_missing_column(e) and getattr(frappe.local, "request", None):
 			pass
-		elif frappe.db.is_data_too_long(e):
-			raise frappe.DataTooLongException
 		else:
 			raise
 	else:
 		if frappe.flags.in_patch:
 			return
 
-		# Clear route cache
 		if route := frappe.get_cached_value(reference_doctype, reference_name, "route"):
 			clear_cache(route)

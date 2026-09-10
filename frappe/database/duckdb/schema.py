@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 import frappe
-from frappe.database.schema import DbColumn, DBTable, get_definition
+from frappe.database.schema import OPTIONAL_COLUMN_TYPES, DbColumn, DBTable, get_definition
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
@@ -123,10 +123,12 @@ class DuckDBTable(DBTable):
 	def _get_docfields(self):
 		fields = self.meta.get_fieldnames_with_value(with_field_meta=True)
 
-		# optional fields like _comments
+		# optional fields like _assign
 		if not self.meta.get("istable"):
 			for fieldname in frappe.db.OPTIONAL_COLUMNS:
-				fields.append({"fieldname": fieldname, "fieldtype": "Text"})
+				fields.append(
+					{"fieldname": fieldname, "fieldtype": OPTIONAL_COLUMN_TYPES.get(fieldname, "Text")}
+				)
 
 			# add _seen column if track_seen
 			if self.meta.get("track_seen"):
