@@ -11,10 +11,10 @@ from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.database import savepoint
 from frappe.database.database import get_query_execution_timeout
-from frappe.database.utils import FallBackDateTimeStr
+from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifiers
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
-from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
 from frappe.tests.test_query_builder import db_type_is, run_only_if, unimplemented_for
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.data import now_datetime
@@ -1542,3 +1542,192 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		self.assertFalse(MariaDBExceptionUtil.is_statement_timeout(e))
 		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
 		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
+<<<<<<< HEAD
+=======
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_serialization_failure_is_treated_as_deadlock(self):
+		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
+		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
+		update under concurrency)."""
+		from psycopg2.errorcodes import DEADLOCK_DETECTED, SERIALIZATION_FAILURE
+
+		from frappe.database.postgres.database import PostgresExceptionUtil
+
+		class _E(Exception):
+			pass
+
+		for code in (SERIALIZATION_FAILURE, DEADLOCK_DETECTED):
+			e = _E()
+			e.pgcode = code
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(e))
+
+		unrelated = _E()
+		unrelated.pgcode = "12345"
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))
+
+
+class TestAdvisoryLockMariaDB(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_get_release(self):
+		# Exercises the MariaDB GET_LOCK / RELEASE_LOCK path (the Postgres test uses pg_locks).
+		import hashlib
+
+		name = hashlib.sha256(b"frappe-test-lock").hexdigest()
+
+		def held():
+			# IS_USED_LOCK returns the connection id holding the lock, or NULL when free.
+			return frappe.db.sql("SELECT IS_USED_LOCK(%s)", (name,))[0][0] is not None
+
+		self.assertFalse(held())
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertTrue(held())
+		self.assertFalse(held())
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_retries_on_transient_null(self):
+		# GET_LOCK returns NULL on a transient server error (e.g. a killed thread). The acquire loop
+		# must retry within the budget and self-heal, not fail the whole operation with a bare error.
+		from unittest.mock import patch
+
+		real_sql = frappe.db.sql
+		get_lock_calls = []
+
+		def fake_sql(query, values=(), **kwargs):
+			if isinstance(query, str) and "GET_LOCK" in query:
+				get_lock_calls.append(values)
+				return ((None,),) if len(get_lock_calls) < 3 else ((1,),)  # two blips, then acquire
+			return real_sql(query, values, **kwargs)
+
+		with patch.object(frappe.db, "sql", fake_sql):
+			with frappe.db.advisory_lock("frappe-test-null", timeout=5):
+				pass
+
+		self.assertGreaterEqual(len(get_lock_calls), 3)
+
+
+class TestBulkInsertCopy(IntegrationTestCase):
+	def test_bulk_insert_copy(self):
+		# postgres bulk_insert streams via COPY, other engines use multi-row INSERT; both must
+		# round-trip NULLs and tab/newline characters (the COPY text encoding escapes these).
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkLoadTest`")
+		frappe.db.sql("CREATE TABLE `tabBulkLoadTest` (`name` varchar(140), `qty` int, `note` text)")
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkLoadTest`")
+
+		rows = [("a", 1, "x"), ("b", 2, None), ("c\twith\ttabs", 3, "line\nbreak")]
+		frappe.db.bulk_insert("BulkLoadTest", ["name", "qty", "note"], rows)
+		frappe.db.commit()  # nosemgrep
+
+		got = frappe.db.sql("SELECT `name`, `qty`, `note` FROM `tabBulkLoadTest` ORDER BY `qty`")
+		self.assertEqual(len(got), 3)
+		self.assertIsNone(got[1][2])
+		self.assertEqual(got[2][0], "c\twith\ttabs")
+		self.assertEqual(got[2][2], "line\nbreak")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_time(self):
+		# COPY encodes Time (timedelta) values itself: a sub-24h value must round-trip rather than
+		# str()'s "H:MM:SS" formatting drifting or a days component becoming "1 day, ...".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkTimeTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkTimeTest" ("name" varchar(140), "at" time)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkTimeTest`")
+
+		value = datetime.timedelta(hours=2, minutes=30, seconds=15)
+		frappe.db.bulk_insert("BulkTimeTest", ["name", "at"], [("a", value)])
+		frappe.db.commit()  # nosemgrep
+
+		self.assertEqual(frappe.db.sql('SELECT "at" FROM "tabBulkTimeTest"')[0][0], value)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_check_field(self):
+		# Check fields are smallint; COPY must encode Python True/False as 1/0 -- smallint_in("true")
+		# would raise "invalid input syntax for type smallint".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkFlagTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkFlagTest" ("name" varchar(140), "flag" smallint)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkFlagTest`")
+
+		frappe.db.bulk_insert("BulkFlagTest", ["name", "flag"], [("a", True), ("b", False)])
+		frappe.db.commit()  # nosemgrep
+
+		got = dict(frappe.db.sql('SELECT "name", "flag" FROM "tabBulkFlagTest"'))
+		self.assertEqual(got["a"], 1)
+		self.assertEqual(got["b"], 0)
+
+
+class TestBacktickIdentifierConversion(UnitTestCase):
+	"""The postgres and sqlite drivers translate MySQL-style raw SQL into ANSI quoting.
+
+	Only backticks that delimit an identifier may be rewritten: one inside a string literal or a
+	``"..."`` identifier is content, and promoting it into a quote char ends the identifier early.
+	"""
+
+	def test_identifiers_are_translated(self):
+		for src, want in (
+			("select `name` from `tabUser`", 'select "name" from "tabUser"'),
+			("select `tabA`.`b` from `tabA`", 'select "tabA"."b" from "tabA"'),
+			("select `Note Seen By`.`user`", 'select "Note Seen By"."user"'),
+			("select `na``me` from t", 'select "na`me" from t'),
+			('select `na"me` from t', 'select "na""me" from t'),
+		):
+			with self.subTest(src=src):
+				self.assertEqual(want, convert_backtick_identifiers(src))
+
+	def test_query_without_backticks_is_untouched(self):
+		self.assertEqual("select 1", convert_backtick_identifiers("select 1"))
+
+	def test_string_literals_are_not_rewritten(self):
+		for src in (
+			"select * from t where c = 'a`b'",
+			"select * from t where c = 'it''s `x`'",
+			"select * from t where c = 'SELECT `x` FROM `y`'",
+		):
+			with self.subTest(src=src):
+				self.assertEqual(src, convert_backtick_identifiers(src))
+
+	def test_existing_ansi_identifiers_are_not_rewritten(self):
+		for src in (
+			'select "na`me" from t',
+			'select "a""b" from t',
+			'select "name` FROM `tabUser` -- " from "tabUser"',
+		):
+			with self.subTest(src=src):
+				self.assertEqual(src, convert_backtick_identifiers(src))
+
+	def test_comments_are_not_rewritten(self):
+		# a comment is data on both backends, so the shared pattern already steps over one
+		for src, want in (
+			("select `a` -- `b`", 'select "a" -- `b`'),
+			("select /* `b` */ `a`", 'select /* `b` */ "a"'),
+		):
+			with self.subTest(src=src):
+				self.assertEqual(want, convert_backtick_identifiers(src))
+
+	def test_apostrophe_in_a_comment_does_not_swallow_identifiers(self):
+		# An apostrophe inside a comment is not a string delimiter, so it must not pair with the
+		# next quote: everything between them -- real identifiers included -- would then read as
+		# one literal and go out untranslated.
+		for src in (
+			"/* it's */ select `tabUser`.`name` from `tabUser` where c = 'a'",
+			"-- it's\nselect `tabUser`.`name` from `tabUser` where c = 'a'",
+		):
+			with self.subTest(src=src):
+				out = convert_backtick_identifiers(src)
+				self.assertIn('"tabUser"."name"', out)
+				self.assertNotIn("`", out)
+
+	def test_injected_column_name_stays_one_identifier(self):
+		# as pypika renders `table[payload]` when the quote char is "
+		for payload in (
+			"name` FROM `tabUser` WHERE `name`='Administrator' -- ",
+			"name`=1 UNION SELECT `name` FROM `tabUser` -- ",
+			"` blah`",
+			'a`b"c',
+		):
+			with self.subTest(payload=payload):
+				rendered = '"{}"'.format(payload.replace('"', '""'))
+				out = convert_backtick_identifiers(f'SELECT {rendered} FROM "tabUser"')
+				body = out[len("SELECT ") : out.index(' FROM "tabUser"')]
+				self.assertTrue(body.startswith('"') and body.endswith('"'), body)
+				for run in body[1:-1].split('""'):  # every quote char must be in an escaped pair
+					self.assertNotIn('"', run, f"identifier closed early: {body}")
+>>>>>>> c980ac6 (fix: translate only backtick-delimited identifiers for postgres and sqlite)

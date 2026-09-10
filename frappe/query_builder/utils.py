@@ -19,7 +19,11 @@ class PseudoColumnMapper(PseudoColumn):
 
 	def get_sql(self, **kwargs):
 		if frappe.db.db_type == "postgres":
-			self.name = self.name.replace("`", '"')
+			# Returned, not assigned to `self.name`: rendering must not mutate the term, or a
+			# pseudo-column rendered once on postgres renders wrongly everywhere after.
+			from frappe.database.utils import convert_backtick_identifiers
+
+			return convert_backtick_identifiers(self.name)
 		return self.name
 
 
