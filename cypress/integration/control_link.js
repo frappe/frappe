@@ -372,6 +372,7 @@ context("Control Link", () => {
 						filters: [
 							["ToDo", "status", "=", "Open"],
 							["ToDo", "priority", "=", "High"],
+							["Communication", "status", "=", "Open"],
 							["description", "like", "%test todo%"],
 						],
 					}),
@@ -386,6 +387,7 @@ context("Control Link", () => {
 
 			expect(filters).to.deep.eq([
 				["ToDo", "priority", "=", "High"],
+				["Communication", "status", "=", "Open"],
 				["description", "like", "%test todo%"],
 				["status", "=", "Closed"],
 			]);
