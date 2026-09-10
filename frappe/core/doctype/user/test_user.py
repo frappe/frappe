@@ -14,6 +14,7 @@ from frappe.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
 	reset_password,
+	rewrite_owner_fields,
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -320,6 +321,39 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
+
+	def test_user_rename_defers_the_owner_sweep(self):
+		old_name = "test_user_rename_owner@example.com"
+		new_name = "test_user_rename_owner_new@example.com"
+		user = frappe.get_doc(
+			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a renamed user"}).insert()
+		frappe.db.set_value(
+			"ToDo", todo.name, {"owner": old_name, "modified_by": old_name}, update_modified=False
+		)
+
+		with patch("frappe.enqueue") as enqueue:
+			frappe.rename_doc("User", user.name, new_name)
+
+		enqueue.assert_any_call(
+			"frappe.core.doctype.user.user.rewrite_owner_fields",
+			old_name=old_name,
+			new_name=new_name,
+			commit=True,
+			queue="long",
+			timeout=36000,
+			enqueue_after_commit=True,
+			job_id=f"rewrite-owner-fields-{old_name}-{new_name}",
+			deduplicate=True,
+		)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
+
+		rewrite_owner_fields(old_name, new_name)
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
