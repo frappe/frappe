@@ -11,6 +11,8 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	MODULE_CONTENT_DOCTYPES,
 	SYSTEM_WRITE_FLAGS,
 	UNROUTABLE_IN_A_TITLE,
+	ShellIndex,
+	build_canonical_shells,
 	clear_computed_base_cache,
 	filter_sidebar_items,
 	get_app_sidebar_layer,
@@ -717,6 +719,158 @@ class TestSidebarTitleIsRoutable(IntegrationTestCase):
 		for name in frappe.get_all("Sidebar", filters={"standard": 1, "app": "frappe"}, pluck="name"):
 			with self.subTest(name=name):
 				self.assertEqual([c for c in UNROUTABLE_IN_A_TITLE if c in name], [])
+
+
+def shell_payload(spec: dict) -> dict:
+	"""A `bootinfo.module_sidebars` payload from a compact spelling, for the ladder's tests.
+
+	Each shell is given as `{"module": ..., "workspaces": [...], "lists": [(kind, entity), ...]}`,
+	and everything the ladder does not read is left out. Building the payload by hand rather than
+	from documents is what lets one test say one thing: the ladder's order is the subject, and
+	real sidebars would drag permissions, customizations and computed bases into it.
+	"""
+	return {
+		shell: {
+			"module": shell_spec.get("module", shell),
+			"workspaces": shell_spec.get("workspaces", []),
+			"items": [{"link_type": kind, "link_to": entity} for kind, entity in shell_spec.get("lists", [])],
+		}
+		for shell, shell_spec in spec.items()
+	}
+
+
+class TestCanonicalShell(IntegrationTestCase):
+	"""Where an entity opens when nothing else states a shell.
+
+	This is the desk's resolution ladder minus its two per-browser inputs, so what is left can be
+	worked out on the server and reads the same on every device. The tests below are the ladder's
+	steps, one each, in the order they run.
+	"""
+
+	def test_the_entitys_own_module_answers_when_its_shell_lists_it(self):
+		index = shell_payload({"Stock": {"lists": [("DocType", "Item")]}, "Selling": {}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Item", "Stock"), "Stock")
+
+	def test_a_shell_listing_the_entity_beats_a_module_that_does_not(self):
+		"""The step that must not be dropped.
+
+		It reads as redundant beside the last one, since a module usually has a shell of its own,
+		and removing it moved a hundred entities on an erpnext and hrms site. `Appraisal` is the
+		shape of it: its module is `HR`, `HR` has a shell, and hrms split its navigation out so
+		`Performance` is what lists it. Without this step every such entity lands back in the
+		module the split exists to empty.
+		"""
+		index = shell_payload({"HR": {}, "Performance": {"lists": [("DocType", "Appraisal")]}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Appraisal", "HR"), "Performance")
+
+	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
+		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Warehouse", "Stock"), "Stock")
+
+	def test_an_heir_that_lists_the_entity_answers_for_a_code_only_module(self):
+		"""`Core` ships no navigation and declares where it went. The heir that lists the entity
+		wins over the first heir declared, which is how `User` reaches `Users` rather than
+		`System`.
+		"""
+		index = shell_payload({"System": {}, "Build": {}, "Users": {"lists": [("DocType", "User")]}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "User", "Core"), "Users")
+
+	def test_the_first_heir_takes_what_none_of_them_lists(self):
+		"""`Core`'s heirs are declared `System, Build, Data, Users, Email`, and `System` leads on
+		purpose: it is the internals shell, so an unplaced `Core` doctype lands there rather than
+		turning the developer-tooling sidebar into the dumping ground.
+		"""
+		index = shell_payload({"Build": {}, "System": {}, "Users": {}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Tag Link", "Core"), "System")
+
+	def test_a_module_with_no_shell_and_no_heirs_answers_nothing(self):
+		index = shell_payload({"Stock": {}})
+
+		self.assertIsNone(ShellIndex(index).resolve("DocType", "Widget", "Some Vanished Module"))
+
+	def test_a_renamed_shell_still_answers_for_its_module(self):
+		"""A sidebar's name and its module are two different things, so the module is found
+		through the column the shell stores it in, not by assuming the two agree.
+		"""
+		index = shell_payload(
+			{"Quality": {"module": "Quality Management", "lists": [("DocType", "Quality Goal")]}}
+		)
+
+		self.assertEqual(
+			ShellIndex(index).resolve("DocType", "Quality Goal", "Quality Management"), "Quality"
+		)
+
+	def test_a_name_shared_across_kinds_resolves_apart(self):
+		"""Entity names are not unique across kinds. On an erpnext and hrms site `Attendance` is
+		both a DocType in `HR` and a Dashboard in `Shift & Attendance`, and `Project`, `Selling`
+		and `Stock` each name both a Dashboard and a doctype. A flat map answers one of each pair
+		wrong, whichever order it was built in.
+		"""
+		index = ShellIndex(
+			shell_payload(
+				{
+					"HR": {"lists": [("DocType", "Attendance")]},
+					"Shift & Attendance": {"lists": [("Dashboard", "Attendance")]},
+				}
+			)
+		)
+
+		self.assertEqual(index.resolve("DocType", "Attendance", "HR"), "HR")
+		self.assertEqual(index.resolve("Dashboard", "Attendance", "HR"), "Shift & Attendance")
+
+	def test_a_workspace_belongs_to_the_shell_that_lists_it(self):
+		"""Workspaces skip the ladder. Which shell a workspace belongs to is stored on the shell,
+		so there is nothing to resolve.
+		"""
+		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
+
+		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellPayload(IntegrationTestCase):
+	"""The whole map, against the site as it stands."""
+
+	@staticmethod
+	def build():
+		from frappe.boot import build_entity_module_map, get_module_sidebars
+		from frappe.desk.desk_views import DeskViews
+
+		desk_views = DeskViews()
+		desk_views.build_entities()
+		sidebars = get_module_sidebars()
+		return build_canonical_shells(sidebars, build_entity_module_map(sidebars), desk_views)
+
+	def test_every_doctype_the_user_can_read_lands_somewhere(self):
+		"""The ladder has to be total. A doctype with no shell has no prefix to put in its URL,
+		so it would be the one route shaped differently from every other.
+		"""
+		canonical = self.build()
+
+		self.assertTrue(canonical["DocType"], "the map is empty, so this test proves nothing")
+		self.assertEqual([name for name, shell in canonical["DocType"].items() if not shell], [])
+
+	def test_every_shell_named_is_one_the_user_can_see(self):
+		"""The map is built from an already-filtered payload, so it can only name a shell this
+		user has. A name outside it would be a shell the desk cannot render.
+		"""
+		from frappe.boot import get_module_sidebars
+
+		shells = set(get_module_sidebars())
+		named = {shell for found in self.build().values() for shell in found.values()}
+
+		self.assertEqual(named - shells, set())
+
+	def test_child_tables_are_absent(self):
+		"""A child table is never routed to, so carrying one would only make the payload bigger."""
+		canonical = self.build()
+		tables = frappe.get_all("DocType", filters={"istable": 1}, pluck="name", limit=200)
+
+		self.assertEqual([name for name in tables if name in canonical["DocType"]], [])
 
 
 class TestSidebarStandard(IntegrationTestCase):

@@ -40,7 +40,7 @@ from frappe.desk.desk_views import DeskViews
 from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
-from frappe.utils.modules import get_module_placement
+from frappe.utils.modules import get_code_only_module_heirs, get_module_placement
 
 # The fields copied unchanged from a source item row into a `Sidebar Item`.
 SIDEBAR_ITEM_FIELDS = (
@@ -2003,3 +2003,166 @@ def doctype_landing_route(item: dict) -> str | None:
 		route += f"#{item['tab']}"
 
 	return route
+
+
+# The kinds of thing a desk route can name, each a `Sidebar Item.link_type`. `URL` is absent
+# because a URL row points outside the desk and has no shell to open in.
+ROUTABLE_ENTITY_KINDS = ("DocType", "Report", "Page", "Dashboard", "Workspace")
+
+
+def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx: DeskViews) -> dict:
+	"""Map everything a desk route can name to the one shell it opens in.
+
+	A desk URL carries a shell: `/desk/stock/item`. Usually the shell comes from the URL itself,
+	or from the shell the user is already standing in. This answers the case where neither says
+	anything: a bare `/desk/item`, a URL naming a shell that cannot show the entity, and the
+	server's own URL builders, since a background job sending an email is standing nowhere.
+
+	It is the desk's resolution ladder with its two per-browser inputs taken out: the sidebar on
+	screen, and the last one the user picked. What is left depends only on the site and the user,
+	so it can be worked out once here and reads the same on every device.
+
+	The order is the ladder's own:
+
+	  owned          an item flagged `is_default_module` claims the entity
+	  module+listed  the entity's module has a shell, and that shell lists the entity
+	  heir+listed    the module ships no navigation, and an heir it declared lists the entity
+	  linked         some shell lists the entity
+	  heir+default   the module ships no navigation, so its first heir takes it
+	  module         the entity's module has a shell, which does not list it
+
+	Do not drop `linked`. It reads as redundant beside `module`, since a module usually has a
+	shell of its own, and taking it out moves a hundred entities on an erpnext and hrms site.
+	`Appraisal` is the shape of it: its module is `HR`, `HR` has a shell, but hrms split its
+	navigation into semantic modules and `Performance` is what lists `Appraisal`. Without this
+	step every one of those lands back in `HR`, which is the arrangement the split replaced.
+
+	Keyed by kind first, because entity names are not unique across kinds. `Attendance` is a
+	Dashboard and a DocType, and `Project`, `Selling` and `Stock` each name both a Dashboard and
+	a doctype. A flat map answers one of each pair wrong, whichever order it was built in.
+
+	Workspaces skip the ladder. A workspace belongs to the shell listing it in `workspaces`,
+	which is a stored fact rather than something to resolve.
+
+	Everything read here is already filtered for this user, so the map can only name a shell and
+	an entity they may see. Two users may correctly get different answers, and one who cannot see
+	the winning shell falls to the next claim rather than to nothing.
+
+	The shape is entity to shell, which is the question the router asks. Turning it inside out,
+	shell to a list of entities, was measured at 7.8KB gzipped against 9.3KB on a site with
+	erpnext and hrms, out of 72KB of boot. Two percent is not worth a payload the desk has to
+	invert before it can read it, and the router needs the answer while parsing a route.
+	"""
+	shells = ShellIndex(module_sidebars)
+	canonical = {kind: {} for kind in ROUTABLE_ENTITY_KINDS}
+
+	for name, shell in shells.workspace_owners():
+		canonical["Workspace"][name] = shell
+
+	for kind, entities in routable_entities(perm_ctx).items():
+		for name, module in entities.items():
+			# `entity_module` is the flat `is_default_module` map the desk already reads, so the
+			# owned step answers exactly what the client's does. It is flat rather than keyed by
+			# kind, so an entity sharing a name with one of another kind takes that claim too.
+			# One entity on an erpnext and hrms site is claimed at all, so this is noted rather
+			# than worked around; keying it would change a payload the desk reads today.
+			shell = entity_module.get(name) if entity_module.get(name) in shells.all else None
+			canonical[kind][name] = shell or shells.resolve(kind, name, module)
+
+	return {
+		kind: {name: shell for name, shell in found.items() if shell} for kind, found in canonical.items()
+	}
+
+
+class ShellIndex:
+	"""The three questions the ladder asks of the payload, each answered from one pass over it.
+
+	Built once per boot rather than per entity: the ladder runs for every doctype, report, page
+	and dashboard the user can see, and walking every shell's items inside that loop would be
+	quadratic on a site with seventy shells.
+	"""
+
+	def __init__(self, module_sidebars: dict):
+		self.all = module_sidebars
+		self.listing = {}
+		self.of_module = {}
+		self.of_workspace = {}
+
+		for shell, sidebar in module_sidebars.items():
+			for item in sidebar["items"]:
+				kind, entity = item.get("link_type"), item.get("link_to")
+				if kind and entity:
+					self.listing.setdefault((kind, entity), []).append(shell)
+			# A shell keyed by its module answers for that module; the naming rule makes that the
+			# usual case. A renamed shell is found through the column it stores its module in,
+			# and where a module owns several, the first in the payload's order answers, which is
+			# what `sidebar_for_module` does on the client.
+			module = sidebar.get("module")
+			if module:
+				self.of_module.setdefault(module, shell)
+			for workspace in sidebar.get("workspaces") or []:
+				self.of_workspace.setdefault(workspace, shell)
+
+	def workspace_owners(self):
+		return self.of_workspace.items()
+
+	def shell_of(self, module: str | None) -> str | None:
+		if not module:
+			return None
+		return module if module in self.all else self.of_module.get(module)
+
+	def listed_in(self, kind: str, entity: str) -> list[str]:
+		return self.listing.get((kind, entity), [])
+
+	def resolve(self, kind: str, entity: str, module: str | None) -> str | None:
+		"""The ladder itself, from `module+listed` down. The `owned` step is above this."""
+		listed = self.listed_in(kind, entity)
+		own = self.shell_of(module)
+
+		if own and own in listed:
+			return own
+
+		heirs = [shell for shell in map(self.shell_of, heirs_of(module)) if shell]
+		for heir in heirs:
+			if heir in listed:
+				return heir
+
+		if listed:
+			return listed[0]
+
+		# An heir with no claim still beats nothing: the module said where its navigation went,
+		# and landing an unlisted entity in a shell of that app is better than landing nowhere.
+		return heirs[0] if heirs else own
+
+
+def heirs_of(module: str | None) -> list[str]:
+	"""The modules a code-only module handed its navigation to, in the order its app declared."""
+	if not module:
+		return []
+	return get_code_only_module_heirs().get(module) or []
+
+
+def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:
+	"""Every entity of every kind this user can reach, mapped to the module it belongs to.
+
+	Each kind is read from what the boot already builds for it, so the set is filtered the same
+	way the desk filters it and nothing here has to repeat a permission rule. Doctypes are the
+	exception, having no such payload: they come from the user's own read list, minus child
+	tables, which are never routed to.
+	"""
+	# One read of the table, filtered in Python. Passing the read list as an `IN` would put over a
+	# thousand names into the statement on a site with everything installed, to select most of a
+	# table this size.
+	readable = set(perm_ctx.can_read or ())
+	doctypes = {
+		row.name: row.module
+		for row in frappe.get_all("DocType", filters={"istable": 0}, fields=["name", "module"])
+		if row.name in readable
+	}
+
+	return {
+		"DocType": doctypes,
+		"Report": {name: row.get("module") for name, row in (perm_ctx.allowed_reports or {}).items()},
+		"Page": {name: row.get("module") for name, row in (perm_ctx.allowed_pages or {}).items()},
+		"Dashboard": {row["name"]: row.get("module") for row in perm_ctx.get_allowed_dashboards(cache=True)},
+	}

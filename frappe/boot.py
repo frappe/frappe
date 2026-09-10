@@ -62,7 +62,7 @@ def get_bootinfo():
 	desk_views = DeskViews()
 	desk_views.build_entities()
 	desk_views.add_to_boot(bootinfo)
-	load_desktop_data(bootinfo)
+	load_desktop_data(bootinfo, desk_views)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
@@ -244,8 +244,16 @@ def get_app_rail_host_map():
 DEFAULT_APP_SEQUENCE_ID = 100
 
 
-def load_desktop_data(bootinfo):
+def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
+	"""`desk_views` is the instance the boot already built, passed in so the permission reads
+	`build_canonical_shells` needs are the ones already cached rather than a second set. It
+	defaults to a fresh one because those reads are lazy, so an outside caller that has none
+	still works and simply pays for them.
+	"""
 	from frappe.desk.doctype.dock.dock import resolve_dock
+	from frappe.desk.doctype.sidebar.sidebar import build_canonical_shells
+
+	desk_views = desk_views or DeskViews()
 
 	# A companion app's workspaces resolve their app context (rail and header) to the host app it
 	# mounts on, so the companion appears inside the host's rail rather than switching the desk to
@@ -267,6 +275,14 @@ def load_desktop_data(bootinfo):
 	# the desk reconcile four keyspaces for one identity.
 	bootinfo.module_sidebars = get_module_sidebars()
 	bootinfo.entity_module = build_entity_module_map(bootinfo.module_sidebars)
+	# Where each thing a desk route can name opens when nothing else states a shell: a bare
+	# `/desk/item`, a URL naming a shell that cannot show the entity, and the server's own URL
+	# builders. Keyed by kind, then by name, because entity names are not unique across kinds.
+	# See `build_canonical_shells` for the ladder and for why it is resolved here rather than in
+	# the desk.
+	bootinfo.canonical_shell = build_canonical_shells(
+		bootinfo.module_sidebars, bootinfo.entity_module, desk_views
+	)
 
 	# Only the Desktop Icon grid reads these; the default Apps screen builds itself from
 	# `app_data` below. Set after `module_sidebars`, which `is_icon_permitted` reads.
