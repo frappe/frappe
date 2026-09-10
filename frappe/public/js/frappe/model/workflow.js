@@ -22,13 +22,12 @@ frappe.workflow = {
 			.get_list("Workflow", { document_type: doctype })
 			.sort((a, b) => cint(b.priority) - cint(a.priority));
 
-		frappe.workflow.candidates[doctype] = workflows;
-
 		if (!workflows.length) {
 			frappe.workflow.state_fields[doctype] = null;
 			return;
 		}
 
+		frappe.workflow.candidates[doctype] = workflows;
 		frappe.workflow.workflows[doctype] = workflows[0];
 		frappe.workflow.state_fields[doctype] = workflows[0].workflow_state_field;
 		frappe.workflow.avoid_status_override[doctype] = workflows.flatMap((workflow) =>
