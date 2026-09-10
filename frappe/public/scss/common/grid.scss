@@ -1178,11 +1178,11 @@ body.grid-col-resizing {
 	}
 }
 
-// same has-error treatment as an idle row in the doctype's own editable grid
-// (.validated-form .grid-static-col.error above) — background plus an inset
-// border, Frappe's standard error red rather than a one-off colour here
+// an outline rather than a fill: the value in the cell is the thing being read,
+// and a wash behind it costs contrast on every one of them at once. Same inset
+// border an editable row in the doctype's own grid draws, and the same
+// --error-border it draws it in
 .bulk-edit-preview-table td.has-error {
-	background-color: var(--error-bg);
 	box-shadow: inset 0 0 0 1px var(--error-border);
 }
 
@@ -1227,12 +1227,18 @@ body.grid-col-resizing {
 }
 
 // The cell owns the error styling; the control inside it must not paint its
-// own, or a red-bordered box reads as a second error nested in the first.
-// base_input.js sets these on the control's wrapper from set_mandatory() and
-// set_invalid(), both of which run on every set_value — so clearing the class
-// in JS wouldn't hold, and the reset belongs here.
-// (`.frappe-control:not(...)` in controls.scss is what draws the border.)
-.bulk-edit-preview-table .bulk-edit-editable-cell .frappe-control.has-error input {
+// own, or a red rounded box reads as a second error nested in the first.
+// base_input.js sets has-error on the control's wrapper from set_mandatory()
+// and set_invalid(), both of which run on every set_value — so clearing the
+// class in JS wouldn't hold, and the reset belongs here.
+//
+// `.frappe-control:not(…):not(…).has-error input` in controls.scss is what
+// draws it, and that file opens with `@import "grid"` — so everything here is
+// emitted before it and loses any tie on source order. Both selectors below
+// carry one more element than it does to win outright; dropping the `td` or
+// the cell class puts the red border back.
+.bulk-edit-preview-table .bulk-edit-mapping-row td[data-col] .frappe-control.has-error input,
+.bulk-edit-preview-table td.bulk-edit-editable-cell .frappe-control.has-error input {
 	border: none;
 
 	&:focus {
