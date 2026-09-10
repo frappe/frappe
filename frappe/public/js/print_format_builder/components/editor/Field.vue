@@ -62,6 +62,7 @@
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
 					class="label"
+					:class="{ 'label--no-colon': df.hide_colon }"
 					:style="label_text_style(df)"
 				>
 					{{ df.label }}
@@ -90,6 +91,7 @@
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
 					class="label"
+					:class="{ 'label--no-colon': df.hide_colon }"
 					:style="label_text_style(df)"
 				>
 					{{ df.label }}
@@ -137,7 +139,7 @@
 						</svg>
 					</template>
 					<span v-else-if="preview_value_html" v-html="preview_value_html"></span>
-					<span v-else>{{ preview_value || "—" }}</span>
+					<span v-else>{{ preview_value || (df.show_empty ? "" : "—") }}</span>
 				</div>
 			</template>
 			<div class="field-preview-actions">
