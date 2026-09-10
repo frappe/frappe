@@ -103,6 +103,42 @@ class TestSocialLoginKey(IntegrationTestCase):
 		# this login attempt.
 		self.assertIsNone(consume_oauth_state(state))
 
+	def test_states_survive_a_second_login_render(self):
+		"""Re-rendering /login (a refresh, a second tab) must reuse the binding cookie the
+		browser already holds, or it orphans every state minted by the earlier render."""
+		github_social_login_setup()
+
+		simulate_new_request()
+		first_tab_state = create_oauth_state("/app/first-tab")
+		issued_secret = current_binding_secret()
+
+		# The browser loads /login again, sending the cookie it already holds.
+		simulate_new_request(issued_secret)
+		create_oauth_state("/app/second-tab")
+
+		# Whatever cookie that render left the browser with is what the callback carries.
+		simulate_new_request(current_binding_secret() or issued_secret)
+		self.assertEqual(consume_oauth_state(first_tab_state), "/app/first-tab")
+
+	def test_rejected_callback_leaves_other_pending_states_usable(self):
+		"""A callback that fails binding validation must not retire the browser's cookie,
+		which would take its other in-flight login attempts down with it."""
+		github_social_login_setup()
+
+		simulate_new_request()
+		flow_a = create_oauth_state("/app/flow-a")
+		flow_b = create_oauth_state("/app/flow-b")
+		issued_secret = current_binding_secret()
+
+		# A callback for flow A arrives without the binding cookie, and is rejected.
+		simulate_new_request()
+		self.assertIsNone(consume_oauth_state(flow_a))
+		browser_dropped_cookie = OAUTH_LOGIN_BINDING_COOKIE in frappe.local.cookie_manager.to_delete
+
+		# Flow B is still pending in that same browser and must remain redeemable.
+		simulate_new_request(None if browser_dropped_cookie else issued_secret)
+		self.assertEqual(consume_oauth_state(flow_b), "/app/flow-b")
+
 	def test_forged_oauth_state_is_rejected_end_to_end(self):
 		"""A state value that wasn't issued via create_oauth_state() must not log anyone in
 		or produce a redirect, regardless of what it contains."""
@@ -486,3 +522,17 @@ def simulate_oauth_browser_roundtrip():
 	just set on `frappe.local.cookie_manager`, as a real browser would on callback."""
 	binding_secret = frappe.local.cookie_manager.cookies[OAUTH_LOGIN_BINDING_COOKIE]["value"]
 	set_request(path="/random", headers=[("Cookie", f"{OAUTH_LOGIN_BINDING_COOKIE}={binding_secret}")])
+
+
+def simulate_new_request(binding_secret=None):
+	"""A fresh HTTP request, optionally carrying the binding cookie. Each request gets its
+	own CookieManager, so a cookie set on a previous response is not visible to this one."""
+	headers = [("Cookie", f"{OAUTH_LOGIN_BINDING_COOKIE}={binding_secret}")] if binding_secret else []
+	set_request(path="/random", headers=headers)
+	frappe.local.cookie_manager = CookieManager()
+
+
+def current_binding_secret():
+	"""The binding cookie this request's response would hand back, if any."""
+	cookie = frappe.local.cookie_manager.cookies.get(OAUTH_LOGIN_BINDING_COOKIE)
+	return cookie["value"] if cookie else None

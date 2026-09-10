@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import hashlib
 import hmac
 import json
 from collections.abc import Callable
@@ -154,18 +153,7 @@ OAUTH_LOGIN_FLOW_CACHE_PREFIX = "frappe_oauth_login"
 OAUTH_LOGIN_BINDING_COOKIE = "oauth_login_binding"
 
 
-def _get_or_create_oauth_binding_secret() -> str:
-	"""Return this request's browser-binding secret, minting and cookie-ing it on first use.
-
-	`/login` renders a button per enabled Social Login Key, each calling `create_oauth_state`
-	in the same request. They must all share one secret/cookie - if each call minted and
-	cookied its own, only the last one rendered would actually reach the browser, breaking
-	every other provider's button.
-	"""
-	if existing := frappe.local.cookie_manager.cookies.get(OAUTH_LOGIN_BINDING_COOKIE):
-		return existing["value"]
-
-	binding_secret = frappe.generate_hash(length=32)
+def _set_oauth_binding_cookie(binding_secret: str) -> None:
 	frappe.local.cookie_manager.set_cookie(
 		OAUTH_LOGIN_BINDING_COOKIE,
 		binding_secret,
@@ -173,6 +161,30 @@ def _get_or_create_oauth_binding_secret() -> str:
 		httponly=True,
 		samesite="Lax",
 	)
+
+
+def _get_or_create_oauth_binding_secret() -> str:
+	"""Return the browser-binding secret for this login attempt, minting one if needed.
+
+	Reuses an already-issued secret rather than replacing it, so that concurrent login
+	attempts from one browser stay redeemable:
+
+	- one already set earlier in this request: `/login` renders a button per enabled
+	  Social Login Key and each calls `create_oauth_state`, so minting per call would
+	  leave only the last provider's button working;
+	- one the browser already holds: re-rendering `/login` (a refresh, a second tab)
+	  would otherwise orphan the states from the earlier render.
+	"""
+	if pending := frappe.local.cookie_manager.cookies.get(OAUTH_LOGIN_BINDING_COOKIE):
+		return pending["value"]
+
+	if existing := frappe.local.request.cookies.get(OAUTH_LOGIN_BINDING_COOKIE):
+		# Re-set it so the cookie keeps outliving the states minted against it.
+		_set_oauth_binding_cookie(existing)
+		return existing
+
+	binding_secret = frappe.generate_hash(length=32)
+	_set_oauth_binding_cookie(binding_secret)
 	return binding_secret
 
 
@@ -185,7 +197,7 @@ def create_oauth_state(redirect_to: str | None) -> str:
 	completing the callback is the same one that started this login attempt.
 	"""
 	state = frappe.generate_hash(length=32)
-	binding_hash = hashlib.sha256(_get_or_create_oauth_binding_secret().encode()).hexdigest()
+	binding_hash = frappe.utils.sha256_hash(_get_or_create_oauth_binding_secret())
 
 	frappe.cache.set_value(
 		f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}",
@@ -207,7 +219,6 @@ def consume_oauth_state(state: str) -> str | None:
 	key = f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}"
 	data = frappe.cache.get_value(key)
 	frappe.cache.delete_value(key)
-	frappe.local.cookie_manager.delete_cookie(OAUTH_LOGIN_BINDING_COOKIE)
 
 	# A state minted before this binding shipped is a plain `redirect_to` string, and can
 	# still be in flight for its 600s lifetime across an upgrade. Treat it as expired
@@ -216,9 +227,15 @@ def consume_oauth_state(state: str) -> str | None:
 		return None
 
 	presented_secret = frappe.local.request.cookies.get(OAUTH_LOGIN_BINDING_COOKIE, "")
-	presented_hash = hashlib.sha256(presented_secret.encode()).hexdigest()
-	if not presented_secret or not hmac.compare_digest(presented_hash, data.get("binding_hash") or ""):
+	if not presented_secret or not hmac.compare_digest(
+		frappe.utils.sha256_hash(presented_secret), data.get("binding_hash") or ""
+	):
 		return None
+
+	# Retire the binding only now that this browser is confirmed as the one that started
+	# the attempt. Clearing it any earlier would let a callback that fails validation take
+	# down the browser's other pending login attempts along with it.
+	frappe.local.cookie_manager.delete_cookie(OAUTH_LOGIN_BINDING_COOKIE)
 
 	return data.get("redirect_to")
 
