@@ -568,7 +568,8 @@ class ClientCache:
 		)
 		self.invalidator_thread = self.run_invalidator_thread()
 
-	def get_value(self, key, *, shared=False, generator=None):
+	def get_value(self, key, *, shared=False, generator=None, ttl: int | None = None):
+		# NOTE: `ttl` has to be remembered. For now only used for `site_cache` which store ttl in closure scope.
 		if not self.healthy:
 			return self.redis.get_value(key, shared=shared, generator=generator)
 
@@ -606,8 +607,12 @@ class ClientCache:
 		with self.lock:
 			# Note: If our placeholder value is not present then it's possible that value we just
 			# got is invalidated, so we should not store it in local cache.
+			if ttl is not None:
+				assert isinstance(ttl, int)
+			else:
+				ttl = self.local_ttl
 			if key in self.cache:
-				self._put(key, val, time.monotonic() + self.local_ttl, size)
+				self._put(key, val, time.monotonic() + ttl, size)
 
 		return val
 
@@ -619,9 +624,10 @@ class ClientCache:
 		self.ensure_max_size()
 		if ttl is not None:
 			assert isinstance(ttl, int)
-			self.local_ttl = ttl
+		else:
+			ttl = self.local_ttl
 		with self.lock:
-			self._put(key, val, time.monotonic() + self.local_ttl, size)
+			self._put(key, val, time.monotonic() + ttl, size)
 		# XXX: We need to tell redis that we indeed read this key we just wrote
 		# This is an edge case:
 		# - Client A writes a key and reads it again from local cache
