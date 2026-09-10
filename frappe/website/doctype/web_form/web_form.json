@@ -104,6 +104,7 @@
   },
   {
    "default": "0",
+   "description": "If enabled, Frappe exports this web form to its module folder with .py and .js files.",
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is standard",
@@ -475,7 +476,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-09-09 10:15:00.000000",
+ "modified": "2026-09-11 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
