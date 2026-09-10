@@ -375,7 +375,13 @@ export const useStore = defineStore("form-builder-store", () => {
 	});
 
 	function setup_undo_redo() {
-		ref_history.value = useDebouncedRefHistory(form, { deep: true, debounce: 100 });
+		// every fetch() lands here; replacing the handle does not stop the old deep watcher
+		ref_history.value?.dispose();
+		ref_history.value = useDebouncedRefHistory(form, {
+			deep: true,
+			debounce: 100,
+			capacity: 50,
+		});
 
 		undo_redo_keyboard_event;
 	}
