@@ -844,7 +844,7 @@ frappe.ui.Page = class Page {
 		// .prop("disabled") pokes from outside still work (es-button styles
 		// :disabled) — this only changes what the page does on its own.
 		const busy = (on) => (on ? btn.attr("aria-busy", "true") : btn.removeAttr("aria-busy"));
-		if (response && response.then) {
+		if (response && response.finally) {
 			busy(true);
 			response.finally(() => busy(false));
 		} else if (response && response.always) {
