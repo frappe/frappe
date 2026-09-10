@@ -78,7 +78,12 @@ class Workflow(Document):
 			)
 
 	def update_default_workflow_status(self):
-		"""Seed the state field of documents this workflow governs, leaving the rest untouched."""
+		"""Seed the state field of documents this workflow governs, leaving the rest untouched.
+
+		A state this workflow does not define is treated as unset. A workflow that outranks a
+		peer has to correct what the peer seeded before it existed, the same way validate_workflow
+		re-enters a document whose stored state is foreign to the workflow that governs it.
+		"""
 		outranking = self.get_higher_priority_workflows()
 		if any(not workflow.conditions for workflow in outranking):
 			return
@@ -91,6 +96,8 @@ class Workflow(Document):
 			Not(Criterion.all(workflow.get_condition_criteria(TargetDocType))) for workflow in outranking
 		]
 
+		own_states = [d.state for d in self.states]
+
 		for d in self.get("states"):
 			if d.doc_status in docstatus_map:
 				continue
@@ -98,7 +105,7 @@ class Workflow(Document):
 			query = (
 				frappe.qb.update(TargetDocType)
 				.set(state_field, d.state)
-				.where(state_field.isnull() | (state_field == ""))
+				.where(state_field.isnull() | (state_field == "") | state_field.notin(own_states))
 				.where(TargetDocType.docstatus == d.doc_status)
 			)
 			for criterion in criteria:
@@ -108,17 +115,16 @@ class Workflow(Document):
 			docstatus_map[d.doc_status] = d.state
 
 	def get_higher_priority_workflows(self) -> list["Workflow"]:
-		"""Active workflows of this doctype that claim a document before this one gets to."""
-		workflows = []
-		for name in get_workflow_names(self.document_type):
-			if name == self.name:
-				continue
+		"""Active workflows of this doctype that resolve before this one.
 
-			other = frappe.get_cached_doc("Workflow", name)
-			if cint(other.priority) > cint(self.priority):
-				workflows.append(other)
+		Position, not priority: get_workflow_names breaks a tie by modification time, so comparing
+		priority alone would let an older peer seed the documents its newer peer governs.
+		"""
+		names = get_workflow_names(self.document_type)
+		if self.name not in names:
+			return []
 
-		return workflows
+		return [frappe.get_cached_doc("Workflow", name) for name in names[: names.index(self.name)]]
 
 	def get_condition_criteria(self, table) -> list:
 		comparators = {

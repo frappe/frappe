@@ -216,22 +216,10 @@ class FormMeta(Meta):
 
 	def load_workflows(self):
 		"""Ship every active workflow of the doctype; the desk picks the one that fits each document."""
-		workflow_docs = []
-		seen_states = set()
+		workflows = [frappe.get_doc("Workflow", name) for name in get_workflow_names(self.name)]
+		states = {state.state for workflow in workflows for state in workflow.get("states")}
 
-		for workflow_name in get_workflow_names(self.name):
-			if not frappe.db.exists("Workflow", workflow_name):
-				continue
-
-			workflow = frappe.get_doc("Workflow", workflow_name)
-			workflow_docs.append(workflow)
-
-			for state in workflow.get("states"):
-				if state.state not in seen_states:
-					seen_states.add(state.state)
-					workflow_docs.append(frappe.get_doc("Workflow State", state.state))
-
-		self.set("__workflow_docs", workflow_docs)
+		self.set("__workflow_docs", [*workflows, *get_workflow_state_docs(states)])
 
 	def load_templates(self):
 		if not self.custom:
@@ -262,6 +250,18 @@ class FormMeta(Meta):
 		except frappe.PermissionError:
 			# no access to kanban board
 			pass
+
+
+def get_workflow_state_docs(states: set[str]) -> list[dict]:
+	"""The Workflow State masters the desk needs to colour the states it was given."""
+	if not states:
+		return []
+
+	docs = frappe.get_all("Workflow State", filters={"name": ("in", sorted(states))}, fields=["*"])
+	for doc in docs:
+		doc["doctype"] = "Workflow State"
+
+	return docs
 
 
 def get_code_files_via_hooks(hook, name):
