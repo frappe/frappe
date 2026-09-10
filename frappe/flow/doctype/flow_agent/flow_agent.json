@@ -86,7 +86,7 @@
    "label": "Tools"
   },
   {
-   "description": "Flow Tools this agent can call. Defaults to the three primitives (describe, read, execute) on creation.",
+   "description": "Flow Tools this agent can call.",
    "fieldname": "tools",
    "fieldtype": "Table MultiSelect",
    "label": "Tools",
@@ -109,7 +109,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-10 12:00:00",
+ "modified": "2026-09-10 12:30:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

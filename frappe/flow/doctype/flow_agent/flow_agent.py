@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
 	from flow.lib.tool import Tool
 
-DEFAULT_TOOL_SLUGS = ("describe", "read", "execute")
 DEFAULT_MAX_ITERATIONS = 20
 
 
@@ -49,12 +48,6 @@ class FlowAgent(Document):
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
 		block_rename(self, old)
-
-	def before_insert(self):
-		if not self.tools:
-			for slug in DEFAULT_TOOL_SLUGS:
-				if frappe.db.exists("Flow Tool", slug):
-					self.append("tools", {"tool": slug})
 
 	def validate(self):
 		self._validate_max_iterations()

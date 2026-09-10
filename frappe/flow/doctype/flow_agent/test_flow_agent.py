@@ -44,15 +44,11 @@ class TestFlowAgentDefaults(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_default_tools_populated_on_insert(self):
-		doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
+	def test_tools_are_exactly_those_given(self):
+		bare = frappe.get_doc(_agent(self.model_doc.name)).insert()
+		reader = frappe.get_doc(_agent(self.model_doc.name, title="Reader", tools=[{"tool": "read"}])).insert()
 
-		self.assertEqual([row.tool for row in doc.tools], ["describe", "read", "execute"])
-
-	def test_explicit_tools_override_defaults(self):
-		doc = frappe.get_doc(_agent(self.model_doc.name, tools=[{"tool": "read"}])).insert()
-
-		self.assertEqual([row.tool for row in doc.tools], ["read"])
+		self.assertEqual(([row.tool for row in bare.tools], [row.tool for row in reader.tools]), ([], ["read"]))
 
 	def test_zero_max_iterations_rejected(self):
 		doc = frappe.get_doc(_agent(self.model_doc.name, max_iterations=0))
