@@ -310,7 +310,7 @@ function usesPageData(blocks: BlockOptions[]): boolean {
 	const codeStore = useCodeStore()
 	const names = [...Object.keys(codeStore.resources), ...Object.keys(codeStore.variables)]
 	const text = JSON.stringify(blocks)
-	return names.some((name) => new RegExp(`\\b${name}\\b`).test(text))
+	return names.some((name) => name && text.includes(name))
 }
 
 async function fetchDependencies(blocks: BlockOptions[]): Promise<Dependencies> {
