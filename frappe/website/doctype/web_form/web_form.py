@@ -565,6 +565,9 @@ def get_context(context):
 					field.options, self.name, web_form_request_key, docname
 				)
 
+			if field.fieldtype == "Table MultiSelect":
+				field.fields = get_table_multiselect_fields(field.options)
+
 			if field.fieldtype == "Link":
 				process_link_field(field, self.name, web_form_request_key, docname)
 
@@ -1141,6 +1144,9 @@ def get_form_data(
 			)
 			out.update({field.fieldname: field.fields})
 
+		if field.fieldtype == "Table MultiSelect":
+			field.fields = get_table_multiselect_fields(field.options)
+
 		if field.fieldtype == "Link":
 			process_link_field(field, web_form_name, web_form_request_key, docname)
 
@@ -1189,6 +1195,22 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 	return [get_field_df(f) for f in fields]
 
 
+def get_table_multiselect_fields(child_doctype):
+	"""Return the child table's Link docfield so the portal control can resolve it.
+
+	Not get_in_list_view_fields(): it drops non-list-view fields and turns Link into
+	Autocomplete, but the control needs the raw Link.
+	"""
+	try:
+		meta = frappe.get_meta(child_doctype)
+	except frappe.DoesNotExistError:
+		# A stale field whose child table was deleted must not take the whole form down.
+		return []
+
+	link_field = next((df for df in meta.fields if df.fieldtype == "Link"), None)
+	return [link_field.as_dict()] if link_field else []
+
+
 def is_guest_key_web_form(web_form):
 	return cint(web_form.key_required) and not cint(web_form.login_required)
 
@@ -1208,7 +1230,7 @@ def has_link_option(fields, doctype):
 	for f in fields:
 		if f.options == doctype:
 			return True
-		if f.fieldtype == "Table" and f.options:
+		if f.fieldtype in ("Table", "Table MultiSelect") and f.options:
 			child_doctype = f.options
 			if not isinstance(child_doctype, str) or not child_doctype.strip():
 				continue
@@ -1222,6 +1244,69 @@ def has_link_option(fields, doctype):
 	return False
 
 
+def allows_reading_all_link_options(web_form, doctype):
+	"""Whether a field on this form targeting `doctype` opts out of the owner filter.
+
+	A Table MultiSelect's own options hold the child table, so the searched doctype
+	is one hop away, on the child's Link field.
+	"""
+	for field in web_form.web_form_fields:
+		if field.fieldtype == "Table MultiSelect" and field.options:
+			link_fields = get_table_multiselect_fields(field.options)
+			target = link_fields[0].get("options") if link_fields else None
+		else:
+			target = field.options
+
+		if target == doctype and field.allow_read_on_all_link_options:
+			return True
+
+	return False
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@rate_limit(key="web_form_name", limit=60, seconds=60)
+@frappe.read_only()
+def search_web_form_link(
+	web_form_name: str,
+	doctype: str,
+	txt: str = "",
+	web_form_request_key: str | None = None,
+	page_length: int = 10,
+) -> list:
+	"""Search link options for a Table MultiSelect field on a published web form.
+
+	Portal visitors cannot reach frappe.desk.search.search_link, which is not
+	guest-allowed. This is the guest-safe equivalent: it authorises against the
+	web form, then queries with permissions ignored, because the gate below --
+	not the visitor's roles -- is what grants access.
+	"""
+	from frappe.desk.search import build_for_autosuggest
+
+	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
+	authorize_link_access(web_form, doctype, web_form_request_key)
+
+	meta = frappe.get_meta(doctype)
+	search_fields = ["name"]
+	if meta.title_field and meta.show_title_field_in_link:
+		search_fields.append(meta.title_field)
+
+	filters = {}
+	if web_form.login_required and not allows_reading_all_link_options(web_form, doctype):
+		filters["owner"] = frappe.session.user
+
+	results = frappe.get_all(
+		doctype,
+		filters=filters,
+		or_filters=[[f, "like", f"%{txt}%"] for f in search_fields] if txt else None,
+		fields=search_fields,
+		limit=min(cint(page_length) or 10, 50),
+		order_by="name asc",
+		as_list=True,
+		ignore_permissions=True,
+	)
+	return build_for_autosuggest(results, doctype=doctype)
+
+
 def get_link_options(
 	web_form_name,
 	doctype,
@@ -1230,24 +1315,7 @@ def get_link_options(
 	docname=None,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
-
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
-	if getattr(web_form, "key_required", False):
-		get_web_form_request(
-			web_form.name,
-			web_form_request_key,
-			required=True,
-			allow_used=True,
-		)
-
-	ensure_guest_key_link_doctype_allowed(web_form, doctype)
-
-	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
-		frappe.throw(
-			_("You don't have permission to access the {0} DocType.").format(doctype),
-			frappe.PermissionError,
-		)
+	authorize_link_access(web_form, doctype, web_form_request_key)
 
 	link_options, filters = [], {}
 	if web_form.login_required and not allow_read_on_all_link_options:
@@ -1276,6 +1344,30 @@ def get_link_options(
 
 		# Use the actual names as options without labels
 		return "\n".join([str(doc.value) for doc in link_options])
+
+
+def authorize_link_access(web_form, doctype, web_form_request_key=None):
+	"""Raise PermissionError unless this form may list records of `doctype`.
+
+	Callers query with permissions ignored, so this is the only gate.
+	"""
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
+	if getattr(web_form, "key_required", False):
+		get_web_form_request(
+			web_form.name,
+			web_form_request_key,
+			required=True,
+			allow_used=True,
+		)
+
+	ensure_guest_key_link_doctype_allowed(web_form, doctype)
+
+	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype),
+			frappe.PermissionError,
+		)
 
 
 @redis_cache(ttl=60 * 60)
