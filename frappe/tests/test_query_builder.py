@@ -1,6 +1,7 @@
 import unittest
 from collections.abc import Callable
-from datetime import time
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
 
 from pypika.functions import Cast
 from pypika.terms import ValueWrapper
@@ -18,19 +19,24 @@ from frappe.query_builder.functions import (
 	CurDate,
 	Date,
 	DateDiff,
+	DateFormat,
 	GroupConcat,
 	JSONContains,
 	JSONExtract,
 	JSONValue,
 	Match,
 	Month,
+	MonthName,
 	Quarter,
 	Round,
+	Timestamp,
 	Truncate,
 	UnixTimestamp,
+	Year,
 )
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_system_timezone
 
 
 def run_only_if(dbtype: db_type_is) -> Callable:
@@ -586,6 +592,110 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		# In a WHERE clause
 		query = frappe.qb.from_(note).select(note.name).where(JSONContains(note.content, "admin"))
 		self.assertIn("\"content\"@>'admin'", str(query))
+
+
+@run_only_if(db_type_is.SQLITE)
+class TestCustomFunctionsSQLite(IntegrationTestCase):
+	def select_literals(self, *expressions):
+		doctype = frappe.qb.DocType("DocType")
+		return frappe.qb.from_(doctype).select(*expressions).limit(1).run()[0]
+
+	def test_full_text_match_uses_fts5_ranking_and_a_bound_query(self):
+		search_table = frappe.qb.Table("__global_search")
+		rank = Match(search_table.content).Against('company "docs"')
+		query = frappe.qb.from_(search_table).select(rank.as_("rank")).where(rank)
+
+		sql, parameters = query.walk()
+
+		self.assertIn('-BM25("__global_search") "rank"', sql)
+		self.assertIn('"content" MATCH %(param1)s', sql)
+		self.assertEqual(parameters, {"param1": '"company ""docs"""*'})
+
+	def test_datetime_functions_match_mariadb_results(self):
+		(
+			converted,
+			combined,
+			overflow,
+			negative,
+			formatted,
+			verbose_format,
+			days,
+			month_name,
+			month,
+			quarter,
+			year,
+		) = self.select_literals(
+			Timestamp("2024-02-03 04:05:06"),
+			CombineDatetime("2024-02-03", "04:05:06"),
+			CombineDatetime("2024-02-03", "25:00:00"),
+			CombineDatetime("2024-02-03", "-01:00:00"),
+			DateFormat("2024-02-03 04:05:06", "%m-%Y"),
+			DateFormat("2024-02-03 04:05:06", "%M %e, %Y %r"),
+			DateDiff("2024-01-10 01:00:00", "2024-01-01 23:00:00"),
+			MonthName("2024-02-03"),
+			Month("2024-02-03"),
+			Quarter("2024-05-03"),
+			Year("2024-02-03"),
+		)
+
+		self.assertEqual(converted, "2024-02-03 04:05:06")
+		self.assertEqual(combined, "2024-02-03 04:05:06")
+		self.assertEqual(overflow, "2024-02-04 01:00:00")
+		self.assertEqual(negative, "2024-02-02 23:00:00")
+		self.assertEqual(formatted, "02-2024")
+		self.assertEqual(verbose_format, "February 3, 2024 04:05:06 AM")
+		self.assertEqual(days, 9)
+		self.assertEqual(month_name, "February")
+		self.assertEqual((month, quarter, year), (2, 2, 2024))
+		self.assertTrue(all(isinstance(value, int) for value in (month, quarter, year)))
+
+	def test_unix_timestamp_uses_the_sqlite_session_timezone(self):
+		original_timezone = get_system_timezone()
+		try:
+			for timezone, value in (
+				("Asia/Kolkata", "1970-01-02 00:00:00"),
+				("America/New_York", "2024-01-15 12:00:00"),
+				("America/New_York", "2024-07-15 12:00:00"),
+			):
+				frappe.db.set_session_time_zone(timezone)
+				actual = self.select_literals(UnixTimestamp(value))[0]
+				expected = int(datetime.fromisoformat(value).replace(tzinfo=ZoneInfo(timezone)).timestamp())
+				self.assertEqual(actual, expected)
+		finally:
+			frappe.db.set_session_time_zone(original_timezone)
+
+	def test_json_functions_match_mariadb_results(self):
+		document = '{"key":"value","roles":["admin","user"],"nested":{"enabled":true,"count":2}}'
+		(
+			extracted,
+			value,
+			scalar_contained,
+			object_contained,
+			missing,
+			object_value,
+		) = self.select_literals(
+			JSONExtract(document, "$.key"),
+			JSONValue(document, "$.key"),
+			JSONContains('["admin","user"]', "admin"),
+			JSONContains(document, {"nested": {"enabled": True}}),
+			JSONContains(document, "missing"),
+			JSONValue(document, "$.nested"),
+		)
+
+		self.assertEqual(extracted, '"value"')
+		self.assertEqual(value, "value")
+		self.assertEqual((scalar_contained, object_contained, missing), (1, 1, 0))
+		self.assertIsNone(object_value)
+		self.assertEqual(
+			self.select_literals(JSONExtract(None, "$.key"), JSONValue(None, "$.key")), (None, None)
+		)
+
+	def test_single_argument_coalesce_returns_its_argument(self):
+		expression = Coalesce("Stock Entry").as_("voucher_type")
+		query = frappe.qb.from_("DocType").select(expression).limit(1)
+
+		self.assertNotIn("COALESCE", query.get_sql().upper())
+		self.assertEqual(query.run()[0][0], "Stock Entry")
 
 
 class TestBuilderBase:
