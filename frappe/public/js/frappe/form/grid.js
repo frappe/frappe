@@ -822,9 +822,7 @@ export default class Grid {
 				}
 			}
 		} else if (
-			// grid_rows can still be unset here for a grid that hasn't been made
-			// yet (e.g. a hidden field's set_df_property runs before its own refresh)
-			(this.grid_rows?.length ?? 0) < this.grid_pagination.page_length &&
+			this.grid_rows.length < this.grid_pagination.page_length &&
 			!this.df.allow_bulk_edit
 		) {
 			this.wrapper.find(".grid-footer").addClass("hidden");
@@ -833,9 +831,7 @@ export default class Grid {
 		// don't be tempted to use the `.hidden` class here
 		// it is used in other logic for the same buttons and will cause conflicts
 		this.wrapper
-			// bulk edit stays visible when the grid is read only; it falls back to a
-			// download-only flow so a submitted document can still be exported
-			.find(".grid-add-row, .grid-add-multiple-rows")
+			.find(".grid-add-row, .grid-add-multiple-rows, .grid-upload")
 			.toggleClass("d-none", !is_editable);
 	}
 
