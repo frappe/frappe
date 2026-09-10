@@ -1,9 +1,11 @@
 import doctype_with_child_table from "../fixtures/doctype_with_child_table";
+import doctype_with_link_and_child_table from "../fixtures/doctype_with_link_and_child_table";
 import child_table_doctype from "../fixtures/child_table_doctype";
 import child_table_doctype_1 from "../fixtures/child_table_doctype_1";
 import doctype_to_link from "../fixtures/doctype_to_link";
 const doctype_to_link_name = doctype_to_link.name;
 const child_table_doctype_name = child_table_doctype.name;
+const doctype_with_link_name = doctype_with_link_and_child_table.name;
 
 context("Dashboard links", () => {
 	before(() => {
@@ -12,15 +14,23 @@ context("Dashboard links", () => {
 		cy.insert_doc("DocType", child_table_doctype, true);
 		cy.insert_doc("DocType", child_table_doctype_1, true);
 		cy.insert_doc("DocType", doctype_with_child_table, true);
+		cy.insert_doc("DocType", doctype_with_link_and_child_table, true);
 		cy.insert_doc("DocType", doctype_to_link, true);
 		return cy
 			.window()
 			.its("frappe")
-			.then((frappe) => {
-				frappe.call("frappe.tests.ui_test_helpers.update_child_table", {
-					name: child_table_doctype_name,
-				});
-			});
+			.then((frappe) =>
+				frappe
+					.call("frappe.tests.ui_test_helpers.update_child_table", {
+						name: child_table_doctype_name,
+					})
+					.then(() =>
+						frappe.call(
+							"frappe.tests.ui_test_helpers.add_link_field_and_dashboard_link",
+							{ name: doctype_with_link_name }
+						)
+					)
+			);
 	});
 
 	it("Adding a new contact, checking for the counter on the dashboard and deleting the created contact", () => {
@@ -84,9 +94,24 @@ context("Dashboard links", () => {
 		cy.fill_field("title", "Test Linking");
 		cy.findByRole("button", { name: "Save" }).click();
 
-		cy.get(".document-link .btn-new").click();
+		cy.get('.btn-new[data-doctype="Doctype With Child Table"]').click();
 		cy.get(
 			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
 		).should("contain.text", "Test Linking");
+	});
+
+	it("check if child table is left empty when the link field is on the parent", () => {
+		cy.new_form(doctype_to_link_name);
+		cy.fill_field("title", "Test Parent Linking");
+		cy.findByRole("button", { name: "Save" }).click();
+
+		cy.get(`.btn-new[data-doctype="${doctype_with_link_name}"]`).click();
+
+		cy.window().should((win) => {
+			const doc = win.cur_frm.doc;
+			expect(doc.doctype).to.eq(doctype_with_link_name);
+			expect(doc.doctype_to_link).to.eq("Test Parent Linking");
+			expect(doc.child_table[0].doctype_to_link).to.not.eq("Test Parent Linking");
+		});
 	});
 });
