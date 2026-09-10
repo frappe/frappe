@@ -1107,8 +1107,10 @@ body.grid-col-resizing {
 }
 
 .bulk-edit-preview-table {
-	// one row height, shared by the cells and by anything that has to fill one
-	--bulk-edit-row-height: 38px;
+	// one row height, shared by the cells and by anything that has to fill one.
+	// The same 43px .grid-static-col and .row-index give a row of the doctype's
+	// own grid, so a table of the same rows reads the same in both places.
+	--bulk-edit-row-height: 43px;
 	// takes the height the step has left instead of sitting at its content
 	// height with dead space under it; build_preview() stretches the wrappers
 	// FieldGroup puts between this and the panel
