@@ -126,7 +126,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.display = true;
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
-				// Drop Bootstrap's focus guard so combobox panels can move focus to <body>.
+				// Bootstrap's focus guard goes before the first focus, so a combobox
+				// panel (mounted in <body>) can take it
 				$(document).off("focusin.modal");
 				me.focus_on_first_input();
 				me.hide_scrollbar(true);

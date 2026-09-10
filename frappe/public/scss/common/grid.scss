@@ -406,6 +406,10 @@
 			background-color: var(--error-bg);
 		}
 
+		.es-combobox:has(> .es-combobox__value.invalid) {
+			background-color: var(--error-bg);
+		}
+
 		.col:last-child {
 			.field-area {
 				flex: 1;

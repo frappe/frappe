@@ -390,13 +390,15 @@ frappe.ui.Filter = class {
 		this.field.$input.on("focusout", (e) => {
 			if (e.relatedTarget && e.relatedTarget.closest(".es-combobox__panel")) return;
 			// a combobox pick already applied this value
-			if (this.field.combobox && this.field.get_value() === this.applied_value) return;
+			if (this.field.combobox && this.field.get_value() === this.field.applied_value) return;
 			this.on_change();
 		});
-		// a combobox pick (Enter happens in its panel, outside the wrapper)
+		// a combobox pick or clear reaches the input as a change (Enter happens
+		// in its panel, outside the wrapper)
 		if (this.field.combobox) {
-			this.field.$input.on("awesomplete-selectcomplete", () => {
-				this.applied_value = this.field.get_value();
+			this.field.$input.on("change", () => {
+				if (this.field.get_value() === this.field.applied_value) return;
+				this.field.applied_value = this.field.get_value();
 				this.on_change();
 			});
 		}

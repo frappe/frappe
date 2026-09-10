@@ -1,7 +1,6 @@
 // Human-readable descriptions of a Link field's applied filters, one per
-// filter, as HTML with the field label in <i> (for example
-// "<i>Customer Group</i> equals \"Commercial\""). Used by the combobox Link
-// field for its filter chips. Mirrors the describer inside the classic
+// filter, as plain text (for example "Customer Group equals \"Commercial\"").
+// Used by the combobox Link field for its filter chips. Mirrors the describer inside the classic
 // ControlLink (kept separate so that file stays untouched).
 
 export async function describe_link_filters(doctype, filters) {
@@ -70,7 +69,7 @@ export async function describe_link_filters(doctype, filters) {
 		const label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
 		const fieldtype = docfield ? docfield.fieldtype : null;
 
-		const labelDisplay = `<i>${String(__(label, null, _doctype))}</i>`;
+		const labelDisplay = String(__(label, null, _doctype));
 		const valueDisplay = formatValueForDisplay(docfield, value);
 		const is_time_like = ["Date", "Datetime", "Time"].includes(fieldtype);
 
