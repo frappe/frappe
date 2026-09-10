@@ -12,7 +12,7 @@ import {
 } from "@/components/PasteConflictDialog.vue"
 import PasteWarningToast from "@/components/PasteWarningToast.vue"
 import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
-import { copyToClipboard, setClipboardData } from "@/utils/helpers"
+import { setClipboardData } from "@/utils/helpers"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 
@@ -137,10 +137,14 @@ export function pasteBlocks(e: ClipboardEvent): boolean {
 	return true
 }
 
-export function copyDataSource(resource: Record<string, any>) {
-	const definition = { ...resource }
-	delete definition.resource_id
-	copyToClipboard({ ...definition, doctype: DATA_SOURCE_DOCTYPE })
+export function copyDataSource(resource: Promise<Record<string, any> | undefined>, resourceName: string) {
+	const text = resource.then((value) => {
+		if (!value) throw new Error(`Could not find data source "${resourceName}"`)
+		const definition = { ...value }
+		delete definition.resource_id
+		return JSON.stringify({ ...definition, doctype: DATA_SOURCE_DOCTYPE })
+	})
+	return writeClipboardText(text, `Data source "${resourceName}" copied`)
 }
 
 export function pasteDataSource(e: ClipboardEvent): boolean {
@@ -312,6 +316,10 @@ function getCopiedDataSource(e: ClipboardEvent): DataSourceClipboardPayload | nu
 
 function writeClipboardPayload(payload: Promise<ClipboardPayload>, successMessage?: string): Promise<void> {
 	const text = payload.then((value) => CLIPBOARD_PREFIX + JSON.stringify(value))
+	return writeClipboardText(text, successMessage)
+}
+
+function writeClipboardText(text: Promise<string>, successMessage?: string): Promise<void> {
 	let write: Promise<void>
 
 	try {
@@ -330,7 +338,7 @@ function writeClipboardPayload(payload: Promise<ClipboardPayload>, successMessag
 			if (successMessage) toast.success(successMessage)
 		})
 		.catch((error) => {
-			console.error("Failed to copy Studio blocks", error)
+			console.error("Failed to copy to clipboard", error)
 			toast.error("Could not copy to the clipboard")
 		})
 }

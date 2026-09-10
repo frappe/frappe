@@ -254,15 +254,6 @@ const getStoredResource = async (resource_name: string) => {
 	return studioPageResources.data[0]
 }
 
-const copyResource = async (resource_name: string) => {
-	const resource = await getStoredResource(resource_name)
-	if (!resource) {
-		toast.error(`Could not find data source ${resource_name}`)
-		return
-	}
-	copyDataSource(resource)
-}
-
 const getResourceMenu = (resource_name: string) => {
 	return [
 		{
@@ -274,7 +265,7 @@ const getResourceMenu = (resource_name: string) => {
 		{
 			label: "Copy",
 			icon: "lucide-copy",
-			onClick: () => copyResource(resource_name),
+			onClick: () => copyDataSource(getStoredResource(resource_name), resource_name),
 		},
 	]
 }
