@@ -55,14 +55,28 @@ def download_bulk_edit_template(doctype: str, title: str, data: str, file_type: 
 
 
 @frappe.whitelist(methods=["POST"])
-def parse_bulk_edit_file(doctype: str, filename: str, dataurl: str) -> list[list[str]]:
-	"""Read an uploaded CSV, XLSX or XLS file into rows of strings.
+def parse_bulk_edit_file(
+	doctype: str, filename: str | None = None, dataurl: str | None = None, file_url: str | None = None
+) -> list[list[str]]:
+	"""Read a CSV, XLSX or XLS file into rows of strings.
+
+	A file dropped on the uploader arrives as a dataurl; one picked from the
+	library is already stored, so it arrives as a url and is read back the way
+	the Data Import doctype reads its own (importer.py ImportFile.read_file).
 
 	Stringified so one set of per-fieldtype formatters serves every format: a
 	spreadsheet hands back real numbers and datetimes where a CSV hands back text.
 	"""
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
+
+	file_doc = None
+	if file_url:
+		file_doc = frappe.get_doc("File", {"file_url": file_url})
+		# the url comes from the client, so the file behind it is only readable
+		# here if the user could have read it anywhere else
+		file_doc.check_permission("read")
+		filename = filename or file_doc.file_name
 
 	extension = get_extension(filename)
 	if extension not in SUPPORTED_EXTENSIONS:
@@ -71,7 +85,7 @@ def parse_bulk_edit_file(doctype: str, filename: str, dataurl: str) -> list[list
 			title=_("Invalid File"),
 		)
 
-	content = decode_dataurl(dataurl)
+	content = file_doc.get_content() if file_doc else decode_dataurl(dataurl)
 
 	if extension == "csv":
 		rows = read_csv_content(content)
