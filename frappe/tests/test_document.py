@@ -622,7 +622,12 @@ class TestDocument(IntegrationTestCase):
 		# savepoint is for postgres: the failed insert aborts the transaction, so nothing
 		# after this test could read or write without it.
 		frappe.db.savepoint("test_ignore_if_duplicate")
-		with self.assertRaises((frappe.UniqueValidationError, frappe.DuplicateEntryError)):
+		expected_error = (
+			frappe.DuplicateEntryError
+			if frappe.db.db_type == "sqlite"
+			else (frappe.UniqueValidationError, frappe.DuplicateEntryError)
+		)
+		with self.assertRaises(expected_error):
 			frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
 		frappe.db.rollback(save_point="test_ignore_if_duplicate")
 
