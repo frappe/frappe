@@ -24,7 +24,7 @@
 					<EditorTableMenu />
 
 					<div
-						class="flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
+						class="composer-body flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
 					>
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-4 [&_p.reply-to-content]:hidden"
@@ -81,8 +81,14 @@
 							</Button>
 						</div>
 
+						<!-- Host content pinned above the utilities row, e.g. actions staged for send. -->
+						<slot name="footer" />
+
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<div class="relative -ml-1.5 overflow-hidden" style="max-width: 70%">
+							<!-- Starts 8px into the gutter: 6px is the sm icon inset, which puts
+							     the first glyph's box on the body text edge, and 2px absorb the
+							     glyph's own side bearing so its ink lines up with the text ink. -->
+							<div class="relative -ml-3.5 overflow-hidden" style="max-width: 70%">
 								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
 									ref="toolbarScroller"
@@ -95,9 +101,8 @@
 										:icon="LucidePaperclip"
 										aria-label="Attach file"
 										class="shrink-0"
-										:disabled="
-											isUploading || attachments.length >= maxAttachments
-										"
+										:loading="isUploading"
+										:disabled="attachments.length >= maxAttachments"
 										@click="attachInput?.click()"
 									/>
 									<input
@@ -147,6 +152,7 @@
 									variant="solid"
 									:label="submitLabel"
 									:disabled="isDisabled"
+									:loading="submitting"
 									@click="submit"
 								/>
 							</div>
@@ -428,8 +434,10 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
+// The shortcut reaches here directly, so the in-flight guard has to live here
+// too, not only on the button.
 function submit() {
-	if (isDisabled.value) return;
+	if (isDisabled.value || props.submitting) return;
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
@@ -450,3 +458,13 @@ function reset() {
 
 defineExpose({ editor, focus, reset, submit });
 </script>
+
+<style scoped>
+/* The body scrolls straight into the toolbar with no separator, so a scrolled
+   line would be sliced at the toolbar edge. Fade the bottom 18px instead; the
+   body's own bottom padding keeps the last line clear of it at the scroll end. */
+.composer-body {
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+}
+</style>
