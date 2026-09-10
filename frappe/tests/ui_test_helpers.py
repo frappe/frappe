@@ -328,22 +328,54 @@ def update_webform_to_multistep():
 		_doc.save()
 
 
+def _append_doctype_to_link_field(doc) -> bool:
+	if any(field.fieldname == "doctype_to_link" for field in doc.fields):
+		return False
+
+	doc.append(
+		"fields",
+		{
+			"fieldname": "doctype_to_link",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Doctype to Link",
+			"options": "Doctype to Link",
+		},
+	)
+	return True
+
+
 @whitelist_for_tests()
 def update_child_table(name: str | int):
 	doc = frappe.get_doc("DocType", name)
-	if len(doc.fields) == 1:
-		doc.append(
-			"fields",
-			{
-				"fieldname": "doctype_to_link",
-				"fieldtype": "Link",
-				"in_list_view": 1,
-				"label": "Doctype to Link",
-				"options": "Doctype to Link",
-			},
-		)
-
+	if _append_doctype_to_link_field(doc):
 		doc.save()
+
+
+@whitelist_for_tests()
+def add_link_field_and_dashboard_link(name: str | int):
+	"""Show `name` in the Connections tab of `Doctype to Link`, linked through a field on `name`.
+
+	Wired up here instead of in the fixtures because the two doctypes reference each other: the
+	Link field needs `Doctype to Link` to exist, and the Document Link row needs the field.
+	"""
+	doc = frappe.get_doc("DocType", name)
+	if _append_doctype_to_link_field(doc):
+		doc.save()
+
+	parent = frappe.get_doc("DocType", "Doctype to Link")
+	if any(link.link_doctype == name for link in parent.links):
+		return
+
+	parent.append(
+		"links",
+		{
+			"group": "Child Doctype",
+			"link_doctype": name,
+			"link_fieldname": "doctype_to_link",
+		},
+	)
+	parent.save()
 
 
 @whitelist_for_tests()
