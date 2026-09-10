@@ -355,7 +355,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 	letter_head = frappe._dict(
 		frappe.db.get_value(
 			"Letter Head",
-			letterhead or {"is_default": 1},
+			letterhead or {"letter_head_for": "Report", "is_default": 1},
 			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
