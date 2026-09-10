@@ -723,15 +723,21 @@ frappe.router = {
 	},
 
 	// Whether a segment names something the desk can route to by itself. This is the set
-	// `convert_to_standard_route` walks, plus pages, which it reaches through the page factory
-	// rather than by name.
+	// `convert_to_standard_route` walks, plus the two kinds of page.
+	//
+	// `standard_pages` is easy to forget and the reason `/desk/maintenance/query-report/<name>`
+	// went nowhere: `query-report` is not a `Page` record at all, so `page_info` has never heard
+	// of it, and it is registered in the desk itself. `pageview.with_page` looks there first, so
+	// this has to as well, or a view container that is not a document reads as naming nothing and
+	// the shell in front of it is never taken off.
 	route_names_something(segment) {
 		if (!segment) return false;
 		return !!(
 			frappe.workspaces?.[segment] ||
 			segment === "private" ||
 			this.routes[segment] ||
-			frappe.boot.page_info?.[segment]
+			frappe.boot.page_info?.[segment] ||
+			frappe.standard_pages?.[segment]
 		);
 	},
 

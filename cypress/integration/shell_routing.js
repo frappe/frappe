@@ -48,6 +48,14 @@ describe("Desk URL shell segment", () => {
 
 			// A shell nobody has is not a shell.
 			expect(read(["not-a-shell", "todo"])).to.deep.eq([["not-a-shell", "todo"], null]);
+
+			// A view container that is not a `Page` record. `query-report` lives in
+			// `frappe.standard_pages`, so `page_info` has never heard of it, and reading only
+			// `page_info` left `/desk/<shell>/query-report/<name>` going nowhere at all.
+			expect(read(["build", "query-report", "Permitted Documents For User"])).to.deep.eq([
+				["query-report", "Permitted Documents For User"],
+				"Build",
+			]);
 		});
 	});
 
@@ -163,6 +171,25 @@ describe("Desk URL shell segment", () => {
 
 		cy.location("pathname").should("eq", "/desk/build/todo");
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+	});
+
+	it("opens a report through a shell", () => {
+		// The whole failure this was found by: `/desk/maintenance/query-report/<name>` rendered
+		// nothing, because `query-report` is not a `Page` record and so read as naming nothing,
+		// which left the shell in front of it un-taken and the route unparseable.
+		cy.visit("/desk/build/query-report/Permitted%20Documents%20For%20User");
+		cy.location("pathname").should(
+			"match",
+			/\/query-report\/Permitted%20Documents%20For%20User$/
+		);
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				expect(frappe.get_route()).to.deep.eq([
+					"query-report",
+					"Permitted Documents For User",
+				]);
+			});
 	});
 
 	it("highlights the sidebar item you are looking at", () => {
