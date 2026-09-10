@@ -1,6 +1,10 @@
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+// the same engine menus, popovers and tooltips are placed by, so a picker in
+// this dialog flips and clamps the way every other floating panel does
+import { place } from "../ui/components/position.js";
+
 // one row of labels, same as the Data Import doctype's own template (exporter.py add_header)
 const BULK_EDIT_CSV_HEADER_ROWS = 1;
 const BULK_EDIT_MAX_ROWS = 5000;
@@ -687,35 +691,84 @@ export default class BulkEdit {
 		this.$message.children("span").text(message);
 	}
 
-	pin_dropdown(control) {
-		const list = () => control.$input.closest(".awesomplete").children("ul").get(0);
-		// The list is closed when the page moves under it, since a fixed element
-		// doesn't travel with the container it came from. Its own scrolling is
-		// not that: the list is taller than its max-height and scrolls inside
-		// itself, and closing on that would leave the last options reachable
-		// only by typing.
-		const close = (event) => {
-			if (event && list()?.contains(event.target)) return;
-			control.awesomplete?.close();
+	/**
+	 * Keep a cell's date or time picker on screen. Air-datepicker already hangs
+	 * it off <body> (.datepickers-container), so nothing clips it; what runs it
+	 * off the bottom is ControlDate.update_datepicker_position, which only flips
+	 * it above the input when the room up there is enough for the whole picker.
+	 * In a dialog on a short screen neither side has that much, so it stays
+	 * below and hangs past the viewport. place() picks the roomier side and
+	 * clamps what it puts there, which is the answer the rest of the framework's
+	 * floating panels already use.
+	 */
+	pin_datepicker(control) {
+		const picker = control.datepicker;
+		const panel = picker && $(picker.$datepicker).get(0);
+		if (!panel) return;
+
+		const reposition = () => {
+			// beats `.datepicker.active { position: absolute }`, which would
+			// otherwise resolve place()'s viewport coordinates against
+			// .datepickers-container at the top of the document
+			panel.style.position = "fixed";
+			place(panel, control.$input[0].getBoundingClientRect(), "bottom", "start", 4);
 		};
+
+		const original_show = picker.opts.onShow;
+		const original_hide = picker.opts.onHide;
+		picker.opts.onShow = (...args) => {
+			// after ControlDate's own handler, which sets the position this
+			// replaces, and only once it has laid the picker out at full size
+			original_show?.apply(picker, args);
+			reposition();
+			window.addEventListener("resize", reposition);
+			document.addEventListener("scroll", reposition, { capture: true, passive: true });
+		};
+		picker.opts.onHide = (...args) => {
+			window.removeEventListener("resize", reposition);
+			document.removeEventListener("scroll", reposition, { capture: true });
+			original_hide?.apply(picker, args);
+		};
+	}
+
+	pin_dropdown(control) {
+		const home = control.$input.closest(".awesomplete").get(0);
+		const list = home?.querySelector(":scope > ul");
+		if (!list) return;
+
+		// place() works in viewport coordinates and reads the panel's real
+		// size, so the panel has to be fixed and parented to <body>, out of
+		// every overflow: hidden ancestor. The list cannot go there bare: its
+		// whole appearance, and the [hidden] rule that closes it, are written
+		// as `.awesomplete > ul` and `.awesomplete [hidden]`. So a stand-in
+		// .awesomplete travels with it and is put back on close.
+		const host = document.createElement("div");
+		host.className = "awesomplete bulk-edit-dropdown-host";
+
+		const reposition = () =>
+			place(list, control.$input[0].getBoundingClientRect(), "bottom", "start", 2);
+
 		control.$input.on("awesomplete-open", () => {
-			const rect = control.$input[0].getBoundingClientRect();
-			$(list()).css({
-				position: "fixed",
-				top: `${rect.bottom}px`,
-				left: `${rect.left}px`,
-				width: `${rect.width}px`,
-				"min-width": 0,
-				// above the dialog and its sticky footer, which a fixed element
-				// is no longer stacked against by nesting alone
-				"z-index": 1050,
-			});
-			// capture: scroll doesn't bubble, and what scrolls here is an ancestor
-			document.addEventListener("scroll", close, true);
+			host.appendChild(list);
+			document.body.appendChild(host);
+			list.style.width = `${control.$input[0].offsetWidth}px`;
+			reposition();
+			// the anchor rides in a scrolling table, so the list follows it
+			// rather than being closed out from under the cursor. Capture,
+			// because scroll does not bubble and what scrolls is an ancestor.
+			window.addEventListener("resize", reposition);
+			document.addEventListener("scroll", reposition, { capture: true, passive: true });
 		});
-		control.$input.on("awesomplete-close", () =>
-			document.removeEventListener("scroll", close, true),
-		);
+
+		control.$input.on("awesomplete-close", () => {
+			window.removeEventListener("resize", reposition);
+			document.removeEventListener("scroll", reposition, { capture: true });
+			// back where Awesomplete expects it, so a later open, a rebuild of
+			// the table, or the control being discarded finds its own DOM whole
+			home.appendChild(list);
+			host.remove();
+			list.style.width = "";
+		});
 	}
 
 	make_cell_control(cell, r, col, warning, fieldname) {
@@ -766,6 +819,7 @@ export default class BulkEdit {
 		control._warning = warning;
 		// what the dropdown cue below positions itself against
 		control.$wrapper.css("position", "relative");
+		this.pin_datepicker(control);
 
 		if (df.fieldtype === "Link") {
 			// an invalid value has no record to fetch a title for, which would
