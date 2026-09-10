@@ -15,6 +15,9 @@
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
 		</template>
+		<template v-if="$slots.footer" #footer>
+			<slot name="footer" />
+		</template>
 	</ComposerEditor>
 </template>
 
