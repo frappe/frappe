@@ -114,6 +114,14 @@ class TestSearch(IntegrationTestCase):
 
 		self.assertEqual(search_link(doctype=doctype.name, txt="", page_length=5, start=50), [])
 
+		# keep_order: pages in database order, still disjoint and complete
+		kept = [
+			search_link(doctype=doctype.name, txt="", page_length=5, start=s, keep_order=True)
+			for s in (0, 5, 10)
+		]
+		self.assertEqual({r["value"] for r in kept[0] + kept[1] + kept[2]}, {r["value"] for r in both})
+		self.assertEqual(len({r["value"] for r in kept[0] + kept[1] + kept[2]}), 12)
+
 	def test_search_link_pages_translated_doctypes(self):
 		# DocType is a translated doctype, paged in Python after an unlimited query
 		first = search_link("DocType", "", page_length=10)
@@ -176,6 +184,34 @@ class TestSearch(IntegrationTestCase):
 		frappe.db.set_value("DocType", "Role", "show_image_in_link", 1)
 		self.addCleanup(frappe.db.set_value, "DocType", "Role", "show_image_in_link", 0)
 		self.assertNotIn("Role", get_link_settings())
+
+		# a Property Setter turning images off wins over the DocType flag
+		ps_image = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "User",
+				"property": "show_image_in_link",
+				"property_type": "Check",
+				"value": "0",
+			}
+		).insert()
+		self.addCleanup(ps_image.delete)
+		self.assertNotIn("User", get_link_settings())
+
+		# a Property Setter left behind by a deleted DocType is ignored
+		orphan = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "Gone DocType For Link Settings",
+				"property": "link_display_mode",
+				"property_type": "Select",
+				"value": "Select",
+			}
+		).insert(ignore_links=True)
+		self.addCleanup(orphan.delete)
+		self.assertNotIn("Gone DocType For Link Settings", get_link_settings())
 
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype

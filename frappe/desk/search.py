@@ -329,7 +329,8 @@ def search_widget(
 		filters=filters,
 		fields=formatted_fields,
 		or_filters=or_filters,
-		limit_start=start,
+		# a translated doctype is paged in Python, on the whole list
+		limit_start=0 if meta.translated_doctype else start,
 		limit_page_length=None if meta.translated_doctype else page_length,
 		order_by=order_by,
 		ignore_permissions=doctype == "DocType",
@@ -359,7 +360,7 @@ def search_widget(
 	return values
 
 
-def page_translated(values, txt, as_dict, start, page_length):
+def page_translated(values: list, txt: str, as_dict: bool, start: int, page_length: int) -> list:
 	"""Translated doctypes are matched in Python: filter, sort and page here.
 	Always sorted, so every page slices the same order."""
 	values = filter_translated(values, txt, as_dict)
