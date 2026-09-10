@@ -1033,15 +1033,8 @@ frappe.ui.Sidebar = class Sidebar {
 		this.set_active_workspace_item();
 	}
 
-	// The shell this route should show, including the two routes that name no entity.
+	// The shell this route should show, including the route that names nothing at all.
 	shell_for_current_route(route) {
-		// A workspace route names a workspace rather than an entity, and which shell holds one is
-		// stored on the shell rather than resolved. It keeps its one-segment URL, so the shell is
-		// read from the workspace instead of from the path.
-		if (route[0] === "Workspaces" && route.length >= 2) {
-			return this.module_for_workspace(route[route.length - 1]);
-		}
-
 		// `/desk` itself, which names nothing. The user's own default workspace answers, and its
 		// shell is what shows.
 		//
@@ -1132,6 +1125,12 @@ frappe.ui.Sidebar = class Sidebar {
 	// One rule, and both directions use it: building a URL asks what to write, and arriving at
 	// one asks whether what is written can stay.
 	shell_for_route(route) {
+		// A workspace route names a workspace rather than an entity, and which shell holds one is
+		// stored on the shell rather than resolved, so it is answered before the three below.
+		if (route[0] === "Workspaces" && route.length >= 2) {
+			return this.module_for_workspace(route[route.length - 1]);
+		}
+
 		const stated = this.shell_from_url(route);
 		if (stated) return stated;
 

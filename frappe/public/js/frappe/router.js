@@ -725,13 +725,6 @@ frappe.router = {
 	write_shell_into_url() {
 		if (!this.current_route?.length) return;
 
-		// A workspace keeps the one-segment URL it has always had. `/desk/stock` is a workspace
-		// route, and on a site with erpnext 31 workspace slugs are also shell slugs, so a shell
-		// in front of one would be read as the shell and the workspace as what it shows. The
-		// shell a workspace belongs to is on screen in the sidebar either way, and the rule that
-		// a first segment is never a shell is what keeps every workspace URL ever shared working.
-		if (this.current_route[0] === "Workspaces") return;
-
 		const shell = this.shell_for_route(this.current_route);
 		if (!shell || shell === this.current_shell) return;
 
@@ -739,6 +732,19 @@ frappe.router = {
 		// Drop the shell already there, which is a shell that cannot show this route.
 		if (this.current_shell) rest = rest.split("/").slice(1).join("/");
 		if (!rest) return;
+
+		// Nothing is gained by saying it twice. `/desk/build` is the Build workspace, and its
+		// shell is Build, so `/desk/build/build` would add a segment and no information. Most
+		// workspaces are named after the shell they live in -- 30 of 52 on a site with erpnext
+		// and hrms -- and the ones that are not, such as `Invoicing` under Accounts, are exactly
+		// the ones where the shell is worth saying.
+		//
+		// It falls out of the same rule for the reserved segment: `/desk/private/<workspace>`
+		// under the `Private` shell already begins with `private`, so it is left alone too,
+		// while a private workspace belonging to some other module still gets that module.
+		if (rest === this.shell_slug(shell) || rest.startsWith(this.shell_slug(shell) + "/")) {
+			return;
+		}
 
 		this.current_shell = shell;
 		const path = "/desk/" + this.shell_slug(shell) + "/" + rest;

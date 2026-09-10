@@ -192,6 +192,33 @@ describe("Desk URL shell segment", () => {
 			});
 	});
 
+	it("leaves a workspace alone when it is named after its own shell", () => {
+		// `/desk/build/build` would be a segment longer and no clearer, since `/desk/build`
+		// already names both. Every workspace frappe ships is like this, so on a site with
+		// nothing else installed the shell never appears on a workspace URL at all. It is with
+		// erpnext and hrms that it starts to say something: 22 of 52 workspaces there are not
+		// named after the shell they live in.
+		cy.visit("/desk/build");
+		cy.location("pathname").should("eq", "/desk/build");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+	});
+
+	it("names the shell when the workspace is not named after it", () => {
+		// The other half, which no frappe-only site can reach by navigating, so it is asked of the
+		// function that builds the link. `Invoicing` under `Accounts` is the real shape of it.
+		cy.window().then((win) => {
+			const workspace = (shell) =>
+				win.frappe.ui.sidebar_item.get_route(
+					{ type: "Link", link_type: "Workspace", link_to: "Build" },
+					false,
+					shell
+				);
+
+			expect(workspace("Build")).to.eq("/desk/build");
+			expect(workspace("Data")).to.eq("/desk/data/build");
+		});
+	});
+
 	it("highlights the sidebar item you are looking at", () => {
 		// The active item is found by comparing each item's href against the URL, as strings. Once
 		// the URL carried a shell and the hrefs did not, nothing matched and nothing was ever

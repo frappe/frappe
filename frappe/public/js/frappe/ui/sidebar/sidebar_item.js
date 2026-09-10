@@ -10,13 +10,25 @@ frappe.provide("frappe.ui.sidebar_item");
 // A `URL` item is left alone: it points wherever its author said, which need not be the desk at
 // all. So is anything that is not a desk path.
 //
-// Workspaces are left alone too, and have to be: `write_shell_into_url` does not put a shell on a
-// workspace route, so a prefixed href would stop matching the URL and break the very highlight
-// this exists to fix.
+// The rule has to be the one `write_shell_into_url` uses, character for character, because the
+// highlight is a string comparison between this href and the URL. That includes not saying the
+// shell twice: `/desk/build` is the Build workspace and its shell is Build, so the prefix would
+// add a segment and no information.
 function in_shell(path, shell) {
 	if (!shell || !path || !path.startsWith("/desk/")) return path;
 
-	return "/desk/" + frappe.router.shell_slug(shell) + path.slice("/desk".length);
+	// The query string is not part of what the shell goes in front of, and leaving it in would
+	// make `/desk/build?x=1` look unlike `/desk/build` and take a prefix it should not.
+	const [route, rest] = split_query(path.slice("/desk/".length));
+	const slug = frappe.router.shell_slug(shell);
+	if (route === slug || route.startsWith(slug + "/")) return path;
+
+	return "/desk/" + slug + "/" + route + rest;
+}
+
+function split_query(path) {
+	const at = path.search(/[?#]/);
+	return at === -1 ? [path, ""] : [path.slice(0, at), path.slice(at)];
 }
 
 // Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
@@ -106,7 +118,7 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 		}
 	}
 
-	return item.link_type === "Workspace" ? path : in_shell(path, shell);
+	return in_shell(path, shell);
 };
 
 frappe.ui.sidebar_item.TypeLink = class SidebarItem {
