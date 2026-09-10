@@ -60,13 +60,19 @@ const emails = computed<string[]>({
 	},
 });
 
-const options = computed<MultiEmailOption[]>(() =>
-	searchResults.value.map((recipient) => ({
+// Model recipients go in too: MultiEmailInput learns a chip's details from
+// options, so one seeded with a label is known before any search runs.
+const options = computed<MultiEmailOption[]>(() => {
+	const byEmail = new Map<string, Recipient>();
+	for (const recipient of [...searchResults.value, ...model.value]) {
+		if (!byEmail.has(recipient.email)) byEmail.set(recipient.email, recipient);
+	}
+	return [...byEmail.values()].map((recipient) => ({
 		label: recipient.label || recipient.email,
 		value: recipient.email,
 		image: recipient.image,
-	}))
-);
+	}));
+});
 
 // null until the user searches, so the composer doesn't fetch on mount.
 const query = ref<string | null>(null);
