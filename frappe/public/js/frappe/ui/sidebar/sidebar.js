@@ -656,8 +656,7 @@ frappe.ui.Sidebar = class Sidebar {
 						},
 					],
 				},
-				// The way over to desk v2, mirroring the "Desk v1" row its user menu offers. A full
-				// link, since the two desks are separate documents.
+				// A full-document link: desk v2 is a separate document, not a v1 route.
 				{
 					group: "",
 					options: [

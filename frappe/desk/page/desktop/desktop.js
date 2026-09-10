@@ -270,7 +270,7 @@ class DesktopPage {
 				},
 				order: 40,
 			},
-			// The way over to desk v2, mirroring the "Desk v1" row its user menu offers.
+			// A full-document link: desk v2 is a separate document, not a v1 route.
 			{
 				icon: "arrow-left-right",
 				label: "Desk v2",
