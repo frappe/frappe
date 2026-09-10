@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import unittest
+
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
@@ -249,6 +251,34 @@ class TestGlobalSearch(IntegrationTestCase):
 			text="company", scope='manufacturing" UNION ALL SELECT 1,2,3,4,doctype from __global_search'
 		)
 		self.assertTrue(results == [])
+
+	@unittest.skipUnless(frappe.conf.db_type == "sqlite", "SQLite FTS5-specific behavior")
+	def test_web_search_uses_sqlite_fts5_safely(self):
+		global_search.sync_values(
+			[
+				(
+					"Static Web Page",
+					"public-docs",
+					'release "candidate" documentation',
+					1,
+					"Release candidate",
+					"/docs/release",
+				),
+				(
+					"Static Web Page",
+					"private-docs",
+					'release "candidate" internal notes',
+					0,
+					"Private release candidate",
+					"/internal/release",
+				),
+			]
+		)
+
+		for search_text in ("release cand", 'release "candidate"'):
+			with self.subTest(search_text=search_text):
+				results = global_search.web_search(search_text, scope="/docs")
+				self.assertEqual([result.name for result in results], ["public-docs"])
 
 	def test_settings_validate_rejects_core_doctype_row(self):
 		core_dt = "File"
