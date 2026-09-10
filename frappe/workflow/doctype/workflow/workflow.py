@@ -40,6 +40,9 @@ class Workflow(Document):
 		self.create_custom_field_for_workflow_state()
 		self.update_default_workflow_status()
 
+	def on_trash(self):
+		frappe.clear_cache(doctype=self.document_type)
+
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.document_type)
 		meta = frappe.get_meta(self.document_type)
