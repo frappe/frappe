@@ -287,7 +287,11 @@ def authenticate_introspection_caller() -> str | None:
 def introspect_token(token: str, token_type_hint: str | None = None):
 	authenticated_client_id = authenticate_introspection_caller()
 	if not authenticated_client_id:
-		frappe.local.response = frappe._dict({"active": False})
+		# RFC 7662 §2.3: invalid client credentials are an authentication failure, not an
+		# inactive token. Keep it distinguishable so a caller with a bad secret does not
+		# silently read every token as inactive.
+		frappe.local.response = frappe._dict({"error": "invalid_client"})
+		frappe.local.response["http_status_code"] = 401
 		return
 
 	if token_type_hint not in ["access_token", "refresh_token"]:
@@ -326,6 +330,9 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 		frappe.local.response = token_response
 
 	except Exception:
+		# Drop any queued "not found" message so every failure answers identically and the
+		# response does not disclose why introspection failed.
+		frappe.clear_messages()
 		frappe.local.response = frappe._dict({"active": False})
 
 

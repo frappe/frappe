@@ -154,8 +154,8 @@ class TestOAuth20(FrappeRequestTestCase):
 			data={"token": access_token},
 		)
 
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json, {"active": False})
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json.get("error"), "invalid_client")
 
 	def test_introspect_token_rejects_wrong_client_secret(self):
 		access_token, _token = self._make_bearer_token()
@@ -167,8 +167,8 @@ class TestOAuth20(FrappeRequestTestCase):
 			data={"token": access_token, "client_id": self.client_id, "client_secret": "wrong-secret"},
 		)
 
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json, {"active": False})
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json.get("error"), "invalid_client")
 
 	def test_introspect_token_rejects_mismatched_client(self):
 		"""A different, correctly-authenticated client must not introspect someone else's token."""
@@ -257,7 +257,8 @@ class TestOAuth20(FrappeRequestTestCase):
 			headers=self.form_header,
 			data={"token": refresh_token, "token_type_hint": "refresh_token"},
 		)
-		self.assertEqual(unauthenticated.json, {"active": False})
+		self.assertEqual(unauthenticated.status_code, 401)
+		self.assertEqual(unauthenticated.json.get("error"), "invalid_client")
 
 		authenticated = self.post(
 			"/api/method/frappe.integrations.oauth2.introspect_token",
@@ -272,6 +273,11 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertTrue(authenticated.json.get("active"))
 
 	def test_introspect_token_unknown_token_returns_inactive_for_authenticated_client(self):
+		# The HTTP request runs in another thread and only sees committed fixtures; without
+		# this the client is invisible and the request fails client auth instead of
+		# exercising the unknown-token path.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
 		response = self.post(
 			"/api/method/frappe.integrations.oauth2.introspect_token",
 			headers=self.form_header,
@@ -299,8 +305,8 @@ class TestOAuth20(FrappeRequestTestCase):
 			),
 		)
 
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json, {"active": False})
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json.get("error"), "invalid_client")
 
 	def test_invalid_login(self):
 		with suppress_stdout():
