@@ -236,10 +236,6 @@ frappe.ui.form.on("Web Form", {
 		frm.trigger("render_dynamic_filters_table");
 	},
 
-	after_save: function (frm) {
-		refresh_form_builder(frm);
-	},
-
 	render_condition_table: function (frm) {
 		let wrapper = $(frm.get_field("condition_json").wrapper).empty();
 		let table = $(`
