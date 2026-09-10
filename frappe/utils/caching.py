@@ -78,7 +78,8 @@ def request_cache(func: Callable) -> Callable:
 
 
 def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
-	"""Decorator to cache method calls and its return values in Client_cache.
+	"""
+	Decorator to cache method calls and its return values in Client_cache.
 		# TODO: implement some policy to evict. Just set `maxsize` to be double or higher count for desired functions for now.
 		# NOTE: `shared = False` is used as cache is supposed to be site-specific.
 	args:
@@ -123,7 +124,7 @@ def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
 
 			ttl = getattr(func, "ttl", 3600)
 			frappe.client_cache.set_value(func_call_key, val, shared=False, ttl=ttl)
-			# NOTE: since `client_cache` is technically a dictionary, so assumed we would always be successful set_value (given no error occured), we increment the following counter)
+			# NOTE: since `client_cache` is technically a dictionary, so assumed we would always be successful in `set_value` call (given no error occured), we increment the following counter.
 			func.cached_values_counter += 1
 			return val
 
