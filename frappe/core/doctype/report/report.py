@@ -462,17 +462,11 @@ class Report(Document):
 		pf = frappe.db.get_value(
 			"Print Format",
 			self.default_print_format,
-			["report", "print_format_for", "print_format_type", "disabled"],
+			["report", "print_format_for", "disabled"],
 			as_dict=True,
 		)
 
-		if (
-			not pf
-			or pf.report != self.name
-			or pf.print_format_for != "Report"
-			or pf.print_format_type != "JS"
-			or pf.disabled
-		):
+		if not pf or pf.report != self.name or pf.print_format_for != "Report" or pf.disabled:
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
 	def validate_default_letter_head(self):
