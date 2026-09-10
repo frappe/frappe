@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
@@ -11,6 +12,9 @@ from frappe.model.workflow import get_workflow_names
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.utils import get_bench_path, get_html_format
 from frappe.utils.data import get_link_to_form
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 ASSET_KEYS = (
 	"__js",
@@ -252,16 +256,17 @@ class FormMeta(Meta):
 			pass
 
 
-def get_workflow_state_docs(states: set[str]) -> list[dict]:
-	"""The Workflow State masters the desk needs to colour the states it was given."""
+def get_workflow_state_docs(states: set[str]) -> list["Document"]:
+	"""The Workflow State masters the desk needs to colour the states it was given.
+
+	Read in one query but returned as Documents: the meta bundle is serialized through
+	Meta.as_dict, which walks __dict__ and cannot handle a plain dict.
+	"""
 	if not states:
 		return []
 
-	docs = frappe.get_all("Workflow State", filters={"name": ("in", sorted(states))}, fields=["*"])
-	for doc in docs:
-		doc["doctype"] = "Workflow State"
-
-	return docs
+	rows = frappe.get_all("Workflow State", filters={"name": ("in", sorted(states))}, fields=["*"])
+	return [frappe.get_doc({"doctype": "Workflow State", **row}) for row in rows]
 
 
 def get_code_files_via_hooks(hook, name):
