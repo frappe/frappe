@@ -224,10 +224,27 @@ class TestFlowAgentSystemGenerated(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
 			agent.save()
 
-	def test_instructions_stay_editable(self):
+	def test_definition_is_locked_for_the_desk(self):
 		agent = self._agent()
 		agent.instructions = "Be verbose."
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Instructions"):
+			agent.save()
+		agent.reload()
+		agent.append("tools", {"tool": "read"})
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Tools"):
+			agent.save()
+
+	def test_enabled_and_model_stay_editable(self):
+		agent = self._agent()
+		other = frappe.get_doc(_model(title="Other Agent Model")).insert()
+		agent.update({"enabled": 0, "model": other.name})
 		agent.save()
+		self.assertEqual(frappe.db.get_value("Flow Agent", agent.name, ["enabled", "model"]), (0, other.name))
+
+	def test_owning_app_can_change_the_definition(self):
+		agent = self._agent()
+		agent.instructions = "Be verbose."
+		agent.save(ignore_permissions=True)
 		self.assertEqual(frappe.db.get_value("Flow Agent", agent.name, "instructions"), "Be verbose.")
 
 

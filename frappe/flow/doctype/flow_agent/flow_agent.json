@@ -37,7 +37,7 @@
    "label": "Enabled"
   },
   {
-   "description": "Agents created by Frappe and protected from deletion.",
+   "description": "Defined in code and owned by it: the Desk can enable or disable the agent and switch its model, nothing else.",
    "fieldname": "is_system_generated",
    "fieldtype": "Check",
    "label": "System Generated",
@@ -63,7 +63,8 @@
    "fieldname": "max_iterations",
    "fieldtype": "Int",
    "label": "Max Iterations",
-   "non_negative": 1
+   "non_negative": 1,
+   "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
    "fieldname": "section_break_instructions",
@@ -76,6 +77,7 @@
    "fieldtype": "Long Text",
    "ignore_xss_filter": 1,
    "label": "Instructions",
+   "read_only_depends_on": "eval:doc.is_system_generated",
    "reqd": 1
   },
   {
@@ -88,7 +90,8 @@
    "fieldname": "tools",
    "fieldtype": "Table MultiSelect",
    "label": "Tools",
-   "options": "Flow Agent Tool"
+   "options": "Flow Agent Tool",
+   "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
    "fieldname": "section_break_knowledge",
@@ -100,12 +103,13 @@
    "fieldname": "knowledge_bases",
    "fieldtype": "Table MultiSelect",
    "label": "Knowledge Bases",
-   "options": "Flow Agent Knowledge Base"
+   "options": "Flow Agent Knowledge Base",
+   "read_only_depends_on": "eval:doc.is_system_generated"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-24 00:00:00",
+ "modified": "2026-09-10 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

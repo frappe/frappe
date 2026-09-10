@@ -59,7 +59,7 @@ class FlowAgent(Document):
 	def validate(self):
 		self._validate_max_iterations()
 		self._ensure_knowledge_search_tool()
-		validate_immutable(self)
+		validate_immutable(self, ("instructions", "max_iterations", "tools", "knowledge_bases"))
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:

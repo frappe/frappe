@@ -44,7 +44,7 @@ class FlowTool(Document):
 		self._validate_type_fields()
 		if self.type == "Script":
 			self._validate_code()
-		validate_immutable(self, ("type", "import_path"))
+		validate_immutable(self, ("type", "import_path", "description", "requires_confirmation"))
 
 	def on_update(self):
 		tool_name = self.name

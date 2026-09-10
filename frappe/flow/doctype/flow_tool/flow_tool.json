@@ -51,6 +51,7 @@
    "in_standard_filter": 1,
    "label": "Type",
    "options": "Imported\nScript",
+   "read_only_depends_on": "eval:doc.is_system_generated",
    "reqd": 1
   },
   {
@@ -63,10 +64,11 @@
    "description": "Pause the run and ask the user to approve each call before this tool executes.",
    "fieldname": "requires_confirmation",
    "fieldtype": "Check",
-   "label": "Requires Confirmation"
+   "label": "Requires Confirmation",
+   "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
-   "description": "Tools created by Frappe and protected from deletion.",
+   "description": "Defined in code and owned by it: the Desk can only enable or disable the tool.",
    "fieldname": "is_system_generated",
    "fieldtype": "Check",
    "label": "System Generated",
@@ -82,6 +84,7 @@
    "fieldname": "description",
    "fieldtype": "Long Text",
    "label": "Description (LLM-facing)",
+   "read_only_depends_on": "eval:doc.is_system_generated",
    "reqd": 1
   },
   {
@@ -102,7 +105,8 @@
    "fieldname": "import_path",
    "fieldtype": "Data",
    "label": "Import Path",
-   "mandatory_depends_on": "eval:doc.type === 'Imported'"
+   "mandatory_depends_on": "eval:doc.type === 'Imported'",
+   "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
    "depends_on": "eval:doc.type === 'Script'",
@@ -116,7 +120,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-22 00:00:00",
+ "modified": "2026-09-10 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Tool",

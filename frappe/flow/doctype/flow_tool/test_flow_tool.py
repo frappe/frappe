@@ -142,17 +142,21 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 			frappe.db.get_value("Flow Tool", tool.name, "import_path"), "flow.tools.builtins.execute"
 		)
 
-	def test_description_stays_editable(self):
+	def test_description_is_locked_but_enabled_stays_editable(self):
 		tool = self._tool()
 		tool.description = "Updated description."
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Description"):
+			tool.save()
+		tool.reload()
+		tool.enabled = 0
 		tool.save()
-		self.assertEqual(frappe.db.get_value("Flow Tool", tool.name, "description"), "Updated description.")
+		self.assertEqual(frappe.db.get_value("Flow Tool", tool.name, "enabled"), 0)
 
 	def test_saving_a_tool_refreshes_daemon_sessions_after_commit(self):
 		tool = self._tool()
 		before = len(frappe.db.after_commit._functions)
 		with patch("flow.flow.doctype.flow_tool.flow_tool.patch_session_config_tools") as refresh:
-			tool.description = "Updated description."
+			tool.enabled = 0
 			tool.save()
 			for callback in list(frappe.db.after_commit._functions)[before:]:
 				callback()
