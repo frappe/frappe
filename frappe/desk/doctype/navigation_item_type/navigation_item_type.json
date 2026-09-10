@@ -9,8 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "type_name",
-  "label",
-  "icon",
   "column_break_defn",
   "module",
   "target_doctype",
@@ -25,20 +23,6 @@
    "label": "Type Name",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "description": "Fallback label for an item of this kind that has none of its own.",
-   "fieldname": "label",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Label"
-  },
-  {
-   "description": "Fallback icon for an item of this kind.",
-   "fieldname": "icon",
-   "fieldtype": "Icon",
-   "label": "Icon",
-   "options": "Emojis"
   },
   {
    "fieldname": "column_break_defn",
@@ -72,7 +56,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-03 18:03:47.000000",
+ "modified": "2026-09-10 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Navigation Item Type",
