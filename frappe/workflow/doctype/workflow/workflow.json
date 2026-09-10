@@ -14,7 +14,7 @@
   "override_status",
   "send_email_alert",
   "enable_action_confirmation",
-  "applicability_section",
+  "conditions_section",
   "priority",
   "conditions",
   "states_head",
@@ -73,9 +73,9 @@
   },
   {
    "collapsible": 1,
-   "fieldname": "applicability_section",
+   "fieldname": "conditions_section",
    "fieldtype": "Section Break",
-   "label": "Applicability"
+   "label": "Conditions"
   },
   {
    "description": "Workflows with a higher priority are matched first.",
@@ -87,7 +87,6 @@
    "description": "Restrict this workflow to documents matching all of these conditions. Leave empty to apply it to every document of this type.",
    "fieldname": "conditions",
    "fieldtype": "Table",
-   "label": "Conditions",
    "options": "Workflow Condition"
   },
   {
@@ -134,7 +133,7 @@
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
- "modified": "2026-09-10 14:30:00.000000",
+ "modified": "2026-09-10 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
