@@ -43,7 +43,11 @@ def seed_doctype(doctype, rules):
 	wrong boundary. Letting the first matching rule claim a name keeps those
 	patterns away from names a more specific rule already accounts for.
 	"""
-	patterns = [pattern for pattern in map(build_name_pattern, rules) if pattern]
+	patterns = []
+	for rule in rules:
+		pattern = build_name_pattern(rule)
+		if pattern:
+			patterns.append(pattern)
 
 	for prefix, current in collect_counters(doctype, patterns).items():
 		raise_series(prefix, current)
@@ -87,13 +91,15 @@ def collect_counters(doctype, patterns):
 
 
 def record_counter(counters, patterns, name):
-	match = next(filter(None, (pattern.match(name) for pattern in patterns)), None)
-	if not match:
-		return
+	for pattern in patterns:
+		match = pattern.match(name)
+		if not match:
+			continue
 
-	prefix, suffix = match.group(1), int(match.group(2))
-	if prefix and suffix > counters.get(prefix, 0):
-		counters[prefix] = suffix
+		prefix, suffix = match.group(1), int(match.group(2))
+		if prefix and suffix > counters.get(prefix, 0):
+			counters[prefix] = suffix
+		return
 
 
 def raise_series(prefix, current):
