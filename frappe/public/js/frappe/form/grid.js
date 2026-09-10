@@ -230,7 +230,7 @@ export default class Grid {
 
 	set_doc_url() {
 		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
-			(x) => frappe.model.table_fields.indexOf(x) === -1,
+			(x) => frappe.model.table_fields.indexOf(x) === -1
 		);
 
 		if (
@@ -306,15 +306,15 @@ export default class Grid {
 			} else {
 				this.set_button_label(
 					this.remove_rows_button,
-					__("Delete {0} rows", [num_selected_rows]),
+					__("Delete {0} rows", [num_selected_rows])
 				);
 				this.set_button_label(
 					this.edit_rows_button,
-					__("Edit {0} rows", [num_selected_rows]),
+					__("Edit {0} rows", [num_selected_rows])
 				);
 				this.set_button_label(
 					this.duplicate_rows_button,
-					__("Duplicate {0} rows", [num_selected_rows]),
+					__("Duplicate {0} rows", [num_selected_rows])
 				);
 			}
 
@@ -433,7 +433,7 @@ export default class Grid {
 		this.remove_rows_button.toggleClass("hidden", !has_checked);
 		this.duplicate_rows_button.toggleClass(
 			"hidden",
-			!has_checked || this.cannot_add_rows || (this.df && this.df.cannot_add_rows),
+			!has_checked || this.cannot_add_rows || (this.df && this.df.cannot_add_rows)
 		);
 
 		const all_checked = !!this.wrapper.find(".grid-heading-row .grid-row-check:checked:first")
@@ -445,7 +445,7 @@ export default class Grid {
 		if (show_delete_all_btn) {
 			this.set_button_label(
 				this.remove_all_rows_button,
-				__("Delete all {0} rows", [this.data.length]),
+				__("Delete all {0} rows", [this.data.length])
 			);
 		}
 	}
@@ -467,7 +467,7 @@ export default class Grid {
 
 	debounced_refresh_remove_rows_button = frappe.utils.debounce(
 		this.refresh_remove_rows_button,
-		100,
+		100
 	);
 
 	refresh_duplicate_rows_button() {
@@ -480,7 +480,7 @@ export default class Grid {
 
 	debounced_duplicate_rows_button = frappe.utils.debounce(
 		this.refresh_duplicate_rows_button,
-		100,
+		100
 	);
 
 	get_selected() {
@@ -569,7 +569,7 @@ export default class Grid {
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
 						let width = me.clamp_column_width(
-							start_width + dir * (ev.pageX - start_x),
+							start_width + dir * (ev.pageX - start_x)
 						);
 						me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
 							width: `${width}px`,
@@ -581,10 +581,10 @@ export default class Grid {
 						$("body").removeClass("grid-col-resizing");
 						me.save_column_width(
 							fieldname,
-							me.clamp_column_width(start_width + dir * (ev.pageX - start_x)),
+							me.clamp_column_width(start_width + dir * (ev.pageX - start_x))
 						);
 					});
-			},
+			}
 		);
 	}
 
@@ -659,7 +659,7 @@ export default class Grid {
 			this.display_status = frappe.perm.get_field_display_status(
 				this.df,
 				this.frm.doc,
-				this.perm,
+				this.perm
 			);
 		} else if (this.df.is_web_form && this.control) {
 			this.display_status = this.control.get_status();
@@ -846,7 +846,7 @@ export default class Grid {
 			this.df = frappe.meta.get_docfield(
 				this.frm.doctype,
 				this.df.fieldname,
-				this.frm.docname,
+				this.frm.docname
 			);
 		} else {
 			// use non-doc specific docfield
@@ -980,7 +980,7 @@ export default class Grid {
 					this.frm.script_manager.trigger(
 						this.df.fieldname + "_move",
 						this.df.options,
-						doc.name,
+						doc.name
 					);
 				this.refresh();
 				this.frm && this.frm.dirty();
@@ -1069,7 +1069,7 @@ export default class Grid {
 					if (!this.deleted_docs || !this.deleted_docs.includes(data.name)) {
 						return data;
 					}
-				})
+			  })
 			: [];
 	}
 
@@ -1174,7 +1174,7 @@ export default class Grid {
 		return frappe.meta.get_docfield(
 			this.doctype,
 			fieldname,
-			this.frm ? this.frm.docname : null,
+			this.frm ? this.frm.docname : null
 		);
 	}
 
@@ -1232,7 +1232,7 @@ export default class Grid {
 					this.frm.doc,
 					this.df.options,
 					this.df.fieldname,
-					idx,
+					idx
 				);
 				if (copy_doc) {
 					d = this.duplicate_row(d, copy_doc);
@@ -1329,7 +1329,7 @@ export default class Grid {
 		const perm_reference_doc = parent_doc
 			? Object.assign({ doctype: this.doctype }, bulk_edit_reference_row, {
 					docstatus: parent_doc.docstatus,
-				})
+			  })
 			: null;
 
 		/** Match grid editability, including allow-on-submit fields after parent submit. */
@@ -1352,13 +1352,13 @@ export default class Grid {
 				frappe.perm.get_field_display_status(
 					field_doc,
 					perm_reference_doc,
-					this.frm.perm,
+					this.frm.perm
 				) === "Write"
 			);
 		};
 
 		const editable_fields = (this.docfields || []).filter((field_doc) =>
-			is_field_editable(field_doc),
+			is_field_editable(field_doc)
 		);
 		if (!editable_fields.length) {
 			frappe.msgprint(__("No editable fields available for bulk edit."));
@@ -1374,7 +1374,7 @@ export default class Grid {
 		});
 
 		const field_options = Object.keys(field_mappings).sort((a, b) =>
-			__(cstr(field_mappings[a].label)).localeCompare(cstr(__(field_mappings[b].label))),
+			__(cstr(field_mappings[a].label)).localeCompare(cstr(__(field_mappings[b].label)))
 		);
 		const field_autocomplete_options = field_options.map((key) => ({
 			label: __(cstr(field_mappings[key].label)),
@@ -1416,7 +1416,7 @@ export default class Grid {
 
 				const update_value = value || null;
 				const tasks = selected_children.map((doc) =>
-					frappe.model.set_value(doc.doctype, doc.name, fieldname, update_value),
+					frappe.model.set_value(doc.doctype, doc.name, fieldname, update_value)
 				);
 
 				Promise.all(tasks).then(() => {
@@ -1428,7 +1428,7 @@ export default class Grid {
 						__("Updated {0} selected {1}. Save the form to keep changes.", [
 							selected_children.length,
 							row_label,
-						]),
+						])
 					);
 				});
 			},
@@ -1488,7 +1488,7 @@ export default class Grid {
 				dialog.set_df_property(
 					"value",
 					"description",
-					__("You have not entered a value. The field will be set to empty."),
+					__("You have not entered a value. The field will be set to empty.")
 				);
 			} else {
 				dialog.set_df_property("value", "description", "");
