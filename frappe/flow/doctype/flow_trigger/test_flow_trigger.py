@@ -8,12 +8,9 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow import triggers
-from flow.lib.model import ChatResponse, Model
+from flow.daemon.client import DaemonClient
+from flow.tests.fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
-
-
-def _final(text: str = "done") -> ChatResponse:
-	return ChatResponse(content=text, tool_calls=[], finish_reason="stop", usage={})
 
 
 def _model(**overrides: Any) -> dict:
@@ -141,11 +138,18 @@ class TestFlowTriggerFiring(IntegrationTestCase):
 		sync_builtin_tools()
 
 	def setUp(self):
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.daemon = FakeDaemon()
+		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(_model()).insert()
 		self.agent = frappe.get_doc(_agent(self.model.name)).insert()
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def turns(self):
+		return [call for call in self.daemon.calls if call[0] == "run"]
 
 	# ── fire(): the worker that renders the prompt and runs the agent ──────────
 
@@ -153,50 +157,48 @@ class TestFlowTriggerFiring(IntegrationTestCase):
 		trig = frappe.get_doc(_trigger(self.agent.name)).insert()
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "trigger probe"}).insert()
 
-		with patch.object(Model, "chat", return_value=_final("acknowledged")):
-			run_name = triggers.fire(trig.name, target_doctype="ToDo", target_name=todo.name)
+		run_name = triggers.fire(trig.name, target_doctype="ToDo", target_name=todo.name)
 
 		self.assertIsNotNone(run_name)
 		run = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(run.source, "Trigger")
 		self.assertEqual(run.trigger, trig.name)
-		self.assertEqual(run.status, "Completed")
+		self.assertEqual(run.status, "Running")
+		self.assertTrue(frappe.db.get_value("Flow Session", run.session, "auto_approve"))
+		self.assertTrue(self.daemon.configs[run.session]["auto_approve"])
 
 	def test_fire_renders_doc_context_into_prompt(self):
 		trig = frappe.get_doc(_trigger(self.agent.name)).insert()
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "trigger probe"}).insert()
 
-		with patch.object(Model, "chat", return_value=_final()):
-			run_name = triggers.fire(trig.name, target_doctype="ToDo", target_name=todo.name)
+		run_name = triggers.fire(trig.name, target_doctype="ToDo", target_name=todo.name)
 
 		run = frappe.get_doc("Flow Run", run_name)
 		# template is "A new {{ doc.doctype }} '{{ doc.name }}' was created."
 		self.assertIn(todo.name, run.input)
 		self.assertIn("ToDo", run.input)
+		self.assertEqual(self.turns(), [("run", run.session, run.input)])
 
 	def test_fire_skips_disabled_trigger(self):
 		trig = frappe.get_doc(_trigger(self.agent.name, enabled=0)).insert()
-		with patch.object(Model, "chat", return_value=_final()) as chat:
-			result = triggers.fire(trig.name)
+		result = triggers.fire(trig.name)
 		self.assertIsNone(result)
-		chat.assert_not_called()
+		self.assertEqual(self.turns(), [])
 
 	def test_fire_skips_when_condition_false(self):
 		trig = frappe.get_doc(_trigger(self.agent.name, condition="doc.status == 'Cancelled'")).insert()
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "open todo"}).insert()
 
-		with patch.object(Model, "chat", return_value=_final()) as chat:
-			result = triggers.fire(trig.name, target_doctype="ToDo", target_name=todo.name)
+		result = triggers.fire(trig.name, target_doctype="ToDo", target_name=todo.name)
 
 		self.assertIsNone(result)
-		chat.assert_not_called()
+		self.assertEqual(self.turns(), [])
 
 	def test_fire_skips_when_target_deleted(self):
 		trig = frappe.get_doc(_trigger(self.agent.name)).insert()
-		with patch.object(Model, "chat", return_value=_final()) as chat:
-			result = triggers.fire(trig.name, target_doctype="ToDo", target_name="does-not-exist")
+		result = triggers.fire(trig.name, target_doctype="ToDo", target_name="does-not-exist")
 		self.assertIsNone(result)
-		chat.assert_not_called()
+		self.assertEqual(self.turns(), [])
 
 	# ── dispatch(): the doc_events hook that enqueues matching triggers ────────
 

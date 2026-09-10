@@ -11,7 +11,6 @@
   "column_break_meta",
   "agent",
   "event",
-  "auto_approve",
   "run_as",
   "section_break_when",
   "target_doctype",
@@ -65,13 +64,6 @@
    "label": "Event",
    "options": "DocType Event\nScheduled",
    "reqd": 1
-  },
-  {
-   "default": "0",
-   "description": "Run this trigger's tool calls without asking for approval. Required for unattended triggers — otherwise the run pauses waiting for a confirmation.",
-   "fieldname": "auto_approve",
-   "fieldtype": "Check",
-   "label": "Auto Approve Tool Calls"
   },
   {
    "description": "Run the agent as this user, so its tools act with a defined, least-privilege permission scope. Defaults to the trigger's owner when empty. Prefer a purpose-scoped service user over a full administrator.",

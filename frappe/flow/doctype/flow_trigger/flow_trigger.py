@@ -20,7 +20,6 @@ class FlowTrigger(Document):
 		from frappe.types import DF
 
 		agent: DF.Link
-		auto_approve: DF.Check
 		condition: DF.Code | None
 		cron_expression: DF.Data | None
 		doc_event: DF.Literal[None, "after_insert", "on_update", "on_submit", "on_cancel", "on_trash"]

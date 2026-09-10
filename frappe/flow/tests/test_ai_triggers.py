@@ -8,7 +8,8 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.lib.model import ChatResponse, Model
+from flow.daemon.client import DaemonClient
+from flow.tests.fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 from flow.triggers import dispatch, dispatch_scheduled, fire
 
@@ -49,14 +50,6 @@ def _trigger(agent_name: str, **overrides: Any) -> dict:
 	}
 	doc.update(overrides)
 	return doc
-
-
-def _final(text: str = "ok") -> ChatResponse:
-	return ChatResponse(
-		content=text,
-		finish_reason="stop",
-		usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
-	)
 
 
 class _Bag:
@@ -271,6 +264,8 @@ class TestDispatchScheduled(IntegrationTestCase):
 
 
 class TestFire(IntegrationTestCase):
+	"""fire() runs the agent on the flow server, here a scripted one."""
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -278,28 +273,36 @@ class TestFire(IntegrationTestCase):
 		cls.enterClassContext(cls.enable_safe_exec())
 
 	def setUp(self):
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.daemon = FakeDaemon()
+		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(_model()).insert()
 		self.agent = frappe.get_doc(_agent(self.model.name)).insert()
 		self.trigger = frappe.get_doc(_trigger(self.agent.name)).insert()
 
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
+
+	def turns(self):
+		return [call for call in self.daemon.calls if call[0] == "run"]
 
 	def test_fire_runs_agent_and_links_trigger(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "fire test"}).insert()
 
-		with patch.object(Model, "chat", return_value=_final("done")):
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
 		run = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(run.source, "Trigger")
 		self.assertEqual(run.trigger, self.trigger.name)
 		session = frappe.get_doc("Flow Session", run.session)
-		self.assertEqual(session.agent, self.agent.name)
-		self.assertEqual(run.status, "Completed")
+		self.assertEqual((session.agent, session.source), (self.agent.name, "Trigger"))
+		self.assertEqual((run.status, run.output), ("Running", None))
 		self.assertIn(todo.name, run.input)
 		self.assertEqual(run.reference_doctype, "ToDo")
 		self.assertEqual(run.reference_name, todo.name)
+		self.assertEqual(self.turns(), [("run", session.name, run.input)])
 
 	def test_fire_runs_as_trigger_owner_not_triggering_user(self):
 		# Helpdesk scenario: a low-privilege user (no Flow Agent access) fires the trigger by
@@ -320,16 +323,16 @@ class TestFire(IntegrationTestCase):
 
 		frappe.set_user(customer.name)
 		try:
-			with patch.object(Model, "chat", return_value=_final("done")):
-				run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 		finally:
 			frappe.set_user("Administrator")
 
 		self.assertIsNotNone(run_name)
 		run = frappe.get_doc("Flow Run", run_name)
-		self.assertEqual(run.status, "Completed")
+		self.assertEqual(run.status, "Running")
 		self.assertEqual(run.owner, owner.name)
 		self.assertEqual(frappe.get_doc("Flow Session", run.session).owner, owner.name)
+		self.assertEqual(self.daemon.configs[run.session]["user_context"]["user"], owner.name)
 
 	def test_fire_runs_as_configured_run_as_user(self):
 		# run_as overrides the owner: the agent runs with that user's scope.
@@ -345,12 +348,11 @@ class TestFire(IntegrationTestCase):
 		self.trigger.save()
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "run-as"}).insert()
 
-		with patch.object(Model, "chat", return_value=_final("done")):
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
 		run = frappe.get_doc("Flow Run", run_name)
 		self.assertEqual(run.owner, service_user.name)
-		self.assertEqual(run.status, "Completed")
+		self.assertEqual(run.status, "Running")
 
 	def test_run_as_disabled_user_rejected(self):
 		disabled = frappe.get_doc(
@@ -362,71 +364,46 @@ class TestFire(IntegrationTestCase):
 
 	def test_fire_restores_the_original_user(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "restore"}).insert()
-		with patch.object(Model, "chat", return_value=_final("done")):
-			fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 		self.assertEqual(frappe.session.user, "Administrator")
 
-	def _execute_then_final(self):
-		from flow.lib.model import ToolCall
-
-		return [
-			ChatResponse(
-				content=None,
-				tool_calls=[ToolCall(id="c1", name="execute", arguments={"code": "result = 1"})],
-				finish_reason="tool_calls",
-			),
-			_final("done"),
-		]
-
-	def test_fire_auto_approves_confirmation_tools_when_enabled(self):
-		# auto_approve trigger: the requires_confirmation tool (execute) runs unattended
-		# instead of parking the run in Paused.
-		self.trigger.auto_approve = 1
-		self.trigger.save()
+	def test_fire_auto_approves_confirmation_tools(self):
+		# Every trigger session runs unattended, so it cannot stop for human approval.
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "auto-approve"}).insert()
 
-		with patch.object(Model, "chat", side_effect=self._execute_then_final()):
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
-		self.assertEqual(frappe.get_doc("Flow Run", run_name).status, "Completed")
-
-	def test_fire_pauses_on_confirmation_tool_without_auto_approve(self):
-		# Default trigger (auto_approve off): a confirmation tool still pauses for approval.
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "needs approval"}).insert()
-
-		with patch.object(Model, "chat", side_effect=self._execute_then_final()):
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
-
-		self.assertEqual(frappe.get_doc("Flow Run", run_name).status, "Paused")
+		run = frappe.get_doc("Flow Run", run_name)
+		session = frappe.get_doc("Flow Session", run.session)
+		self.assertEqual(run.status, "Running")
+		self.assertTrue(session.auto_approve)
+		self.assertTrue(self.daemon.configs[run.session]["auto_approve"])
 
 	def test_fire_skips_disabled_trigger(self):
 		self.trigger.enabled = 0
 		self.trigger.save()
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "skip"}).insert()
 
-		with patch.object(Model, "chat", return_value=_final("done")) as chat:
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
 		self.assertIsNone(run_name)
-		chat.assert_not_called()
+		self.assertEqual(self.turns(), [])
 
 	def test_fire_skips_when_target_missing(self):
-		with patch.object(Model, "chat", return_value=_final("done")) as chat:
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name="does-not-exist")
+		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name="does-not-exist")
 
 		self.assertIsNone(run_name)
-		chat.assert_not_called()
+		self.assertEqual(self.turns(), [])
 
 	def test_fire_rechecks_condition_after_load(self):
 		self.trigger.condition = "doc.status == 'Closed'"
 		self.trigger.save()
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "open", "status": "Open"}).insert()
 
-		with patch.object(Model, "chat", return_value=_final("done")) as chat:
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
 
 		self.assertIsNone(run_name)
-		chat.assert_not_called()
+		self.assertEqual(self.turns(), [])
 
 	def test_fire_scheduled_trigger_without_target(self):
 		scheduled = frappe.get_doc(
@@ -441,11 +418,10 @@ class TestFire(IntegrationTestCase):
 			)
 		).insert()
 
-		with patch.object(Model, "chat", return_value=_final("done")):
-			run_name = fire(scheduled.name)
+		run_name = fire(scheduled.name)
 
 		run = frappe.get_doc("Flow Run", run_name)
-		self.assertEqual(run.status, "Completed")
+		self.assertEqual(run.status, "Running")
 		self.assertEqual(run.trigger, scheduled.name)
 		self.assertIsNone(run.reference_doctype)
 		self.assertIsNone(run.reference_name)
