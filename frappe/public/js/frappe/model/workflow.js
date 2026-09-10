@@ -110,7 +110,7 @@ frappe.workflow = {
 		const states = (frappe.workflow.candidates[doctype] || []).flatMap(
 			(workflow) => workflow.states || []
 		);
-		return $.unique(states.map((d) => d.update_field));
+		return [...new Set(states.map((d) => d.update_field).filter(Boolean))];
 	},
 	get_state(doc) {
 		const state_field = this.get_state_fieldname(doc.doctype);

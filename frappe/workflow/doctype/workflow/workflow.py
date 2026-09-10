@@ -214,16 +214,23 @@ class Workflow(Document):
 		if not cint(self.is_active):
 			return
 
-		for name in get_workflow_names(self.document_type):
-			if name == self.name:
-				continue
+		names = [name for name in get_workflow_names(self.document_type) if name != self.name]
+		if not names:
+			return
 
-			state_field = frappe.db.get_value("Workflow", name, "workflow_state_field")
-			if state_field != self.workflow_state_field:
+		others = frappe.get_all(
+			"Workflow", filters={"name": ("in", names)}, fields=["name", "workflow_state_field"]
+		)
+		for other in others:
+			if other.workflow_state_field != self.workflow_state_field:
 				frappe.throw(
 					_(
 						"Workflow {0} on {1} uses the state field {2}. Every active workflow of a doctype must use the same field."
-					).format(frappe.bold(name), frappe.bold(self.document_type), frappe.bold(state_field))
+					).format(
+						frappe.bold(other.name),
+						frappe.bold(self.document_type),
+						frappe.bold(other.workflow_state_field),
+					)
 				)
 
 	def set_active(self):
