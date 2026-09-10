@@ -95,7 +95,7 @@ def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
 			if (
 				frappe.client_cache
 			):  # In case called during boot-straping itself, frappe.client_cache won't be available.
-				frappe.client_cache.delete_keys(func_key, shared=False)
+				frappe.client_cache.delete_keys(func_key)
 				func.cached_values_counter = 0
 
 		func.clear_cache = clear_cache
