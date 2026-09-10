@@ -38,10 +38,11 @@ const BULK_EDIT_DIALOG_SIZE = "extra-large";
 const BULK_EDIT_DIALOG_HEIGHT = "calc(90vh - 104px)";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 
-// the three steps, in the order the dialog walks them
+// the four steps, in the order the dialog walks them
 const TAB_SETUP = 0;
 const TAB_UPLOAD = 1;
-const TAB_PREVIEW = 2;
+const TAB_FIX = 2;
+const TAB_PREVIEW = 3;
 // spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
 
@@ -138,8 +139,9 @@ export default class BulkEdit {
 		this.panels = {
 			setup: $('<div class="bulk-edit-panel"></div>'),
 			upload: $('<div class="bulk-edit-panel"></div>'),
-			// mapping and inline fixes both live here — one step, not a
-			// separate Preview/Fix Issues pair
+			// the same table as the preview, cut down to the rows that need
+			// attention — all of them, not just the page the preview shows
+			fix: $('<div class="bulk-edit-panel"></div>'),
 			preview: $('<div class="bulk-edit-panel"></div>'),
 		};
 		// mounted inline rather than in its own dialog, so nothing stacks
@@ -188,6 +190,11 @@ export default class BulkEdit {
 						disabled: true,
 					},
 					{
+						label: __("Fix Issues"),
+						content: () => this.panels.fix[0],
+						disabled: true,
+					},
+					{
 						label: __("Preview"),
 						content: () => this.panels.preview[0],
 						disabled: true,
@@ -200,6 +207,16 @@ export default class BulkEdit {
 			on_change: (index) => {
 				this.stepper.set_current(index);
 				this.sync_uploaded_file();
+				// the two table steps share one table over different rows, so
+				// arriving at one it was not built for rebuilds it against that
+				// step; arriving at the one it already holds leaves it alone
+				if (
+					[TAB_FIX, TAB_PREVIEW].includes(index) &&
+					this.state.rows.length &&
+					this._built_step !== index
+				) {
+					this.build_preview(true);
+				}
 				this.set_footer();
 			},
 		});
@@ -533,30 +550,73 @@ export default class BulkEdit {
 		];
 	}
 
+	/**
+	 * The step the table is built into. Fix Issues and Preview show the same
+	 * table over different rows, so only the active one ever holds it.
+	 */
+	step_panel() {
+		return this.tabs.get_active() === TAB_FIX ? this.panels.fix : this.panels.preview;
+	}
+
+	/**
+	 * The rows the active step puts on screen. Preview shows the head of the
+	 * file; Fix Issues shows every row that needs attention and nothing else,
+	 * so a warning on row 500 is reachable rather than only counted.
+	 */
+	step_view() {
+		const fixing = this.tabs.get_active() === TAB_FIX;
+		const issues = this.get_issue_rows();
+		// Fix Issues is where the file is worked on: every column, so one that
+		// matched nothing can still be mapped, and only the rows needing a hand.
+		// Preview is what the import will actually do: the columns going
+		// somewhere, and the rows going with them.
+		const columns = this.state.headers
+			.map((header, index) => index)
+			.filter((index) => fixing || this.state.column_map[index]);
+		const picked = this.state.row_numbers
+			.map((number, index) => index)
+			.filter((index) => {
+				const row = this.state.row_numbers[index];
+				return fixing
+					? issues.has(row)
+					: !issues.has(row) && !this.state.skipped_rows.has(row);
+			});
+		return {
+			headers: this.state.headers,
+			columns,
+			rows: picked.map((index) => this.state.rows[index]),
+			row_numbers: picked.map((index) => this.state.row_numbers[index]),
+			limit: fixing ? Infinity : BULK_EDIT_PREVIEW_ROWS,
+			mapping: fixing,
+		};
+	}
+
 	/** @param {boolean} [keep_skipped_rows] carry the skipped rows over the rebuild */
 	build_preview(keep_skipped_rows = false) {
 		this.discard_cell_controls();
+		this.panels.fix.empty();
 		this.panels.preview.empty();
 		this.cell_controls = {};
 		if (!keep_skipped_rows) this.state.skipped_rows = new Set();
+		const $panel = this.step_panel();
 		this.preview_form = new frappe.ui.FieldGroup({
-			body: this.panels.preview[0],
+			body: $panel[0],
 			no_submit_on_enter: true,
 			fields: [{ fieldtype: "HTML", fieldname: "table" }],
 		});
 		this.preview_form.make();
 
 		const $table = this.preview_form.get_field("table").$wrapper;
-		$table.html(
-			this.get_preview_html(this.state.headers, this.state.rows, this.state.row_numbers),
-		);
+		const view = this.step_view();
+		$table.html(this.get_preview_html(view));
 		$table.find(".bulk-edit-refresh-sheet").on("click", () => this.refresh_google_sheet());
+		$table.find(".bulk-edit-skip-all").on("click", () => this.skip_issue_rows());
 		// FieldGroup nests the field several levels below the panel, and each level
 		// sits at its content height by default — so the table would stop short and
 		// leave the rest of the step empty. Walked rather than named, since the
 		// depth is FieldGroup's business, not ours.
-		this.panels.preview.css({ height: "100%", display: "flex", "flex-direction": "column" });
-		$table.parentsUntil(this.panels.preview).addBack().css({
+		$panel.css({ height: "100%", display: "flex", "flex-direction": "column" });
+		$table.parentsUntil($panel).addBack().css({
 			display: "flex",
 			"flex-direction": "column",
 			flex: "1 1 auto",
@@ -564,40 +624,56 @@ export default class BulkEdit {
 		});
 		const options = this.mapping_options();
 		this.building_preview = true;
-		this.mapping_controls = this.state.headers.map((header, i) => {
-			const control = frappe.ui.form.make_control({
-				df: {
-					fieldtype: "Autocomplete",
-					fieldname: `map_${i}`,
-					placeholder: header || __("Column {0}", [i + 1]),
-					max_items: Infinity,
-					options,
-					change: () => {
-						// building_preview marks the seeding pass below, which
-						// fires change on every control; only a pick made by
-						// hand is an override worth carrying to the next read
-						if (!this.building_preview) {
-							this.state.column_overrides[i] = control.get_value();
-						}
-						this.refresh_preview();
+		const seeded = [];
+		// indexed by the column's place in the file, with holes where a view
+		// leaves a column out — forEach skips those, so every reader below still
+		// gets (control, column index) pairs without a lookup of its own
+		this.mapping_controls = [];
+		view.mapping &&
+			view.columns.forEach((i) => {
+				const header = this.state.headers[i];
+				const control = frappe.ui.form.make_control({
+					df: {
+						fieldtype: "Autocomplete",
+						fieldname: `map_${i}`,
+						placeholder: header || __("Column {0}", [i + 1]),
+						max_items: Infinity,
+						options,
+						change: () => {
+							// building_preview marks the seeding pass, which
+							// fires change on every control; only a pick made
+							// by hand is an override worth carrying over
+							if (!this.building_preview) {
+								this.state.column_overrides[i] = control.get_value();
+							}
+							this.refresh_preview();
+						},
 					},
-				},
-				parent: $table.find(`.bulk-edit-mapping-row td[data-col="${i}"]`).get(0),
-				render_input: true,
-				only_input: true,
+					parent: $table.find(`.bulk-edit-mapping-row td[data-col="${i}"]`).get(0),
+					render_input: true,
+					only_input: true,
+				});
+				// this list is every field of the child doctype, so it is long and
+				// has to scroll; unpinned it is clipped by the table's own overflow
+				this.pin_dropdown(control);
+				// same as a flagged cell: clicking the thing that is wrong puts
+				// what is wrong with it in the footer
+				control.$input?.on("focus click", () => this.show_cell_message(control));
+				seeded.push(
+					control.set_value(this.state.column_map[i] || BULK_EDIT_DONT_IMPORT),
+				);
+				this.mapping_controls[i] = control;
 			});
-			// this list is every field of the child doctype, so it is long and
-			// has to scroll; unpinned it is clipped by the table's own overflow
-			this.pin_dropdown(control);
-			// same as a flagged cell: clicking the thing that is wrong puts what
-			// is wrong with it in the footer
-			control.$input?.on("focus click", () => this.show_cell_message(control));
-			control.set_value(this.state.column_map[i] || BULK_EDIT_DONT_IMPORT);
-			return control;
-		});
-		this.building_preview = false;
 
-		this.refresh_preview();
+		// set_value writes through run_serially, so the controls are still empty
+		// when this returns. Closing the pass any earlier reads them as unmapped:
+		// the seeds then land as hand-made overrides, and column_map is rebuilt
+		// from nothing.
+		this._built_step = this.tabs.get_active() === TAB_FIX ? TAB_FIX : TAB_PREVIEW;
+		return Promise.all(seeded).then(() => {
+			this.building_preview = false;
+			return this.refresh_preview();
+		});
 	}
 
 	/**
@@ -871,8 +947,10 @@ export default class BulkEdit {
 		// with it has to go too. Focus doesn't move when a value is picked, so
 		// the handler above won't fire again to clear it.
 		this.show_cell_message(
+			// mapping_controls is sparse where a view leaves a column out, and
+			// spreading it fills those places with undefined
 			[...Object.values(this.cell_controls), ...this.mapping_controls].find((c) =>
-				c.$input?.is(":focus"),
+				c?.$input?.is(":focus"),
 			),
 		);
 	}
@@ -881,12 +959,18 @@ export default class BulkEdit {
 		if (this.building_preview) return;
 		const request_id = ++this.preview_request_id;
 
-		const map = {};
-		this.mapping_controls.forEach((control, i) => {
-			const value = control.get_value();
-			if (value && value !== BULK_EDIT_DONT_IMPORT) map[i] = value;
-		});
-		this.state.column_map = map;
+		// the pickers are the mapping while they are on screen. A step without
+		// them (Preview shows the result, not the controls) leaves the mapping
+		// exactly as the step that owns it left it.
+		if (this.mapping_controls.length) {
+			const picked = {};
+			this.mapping_controls.forEach((control, i) => {
+				const value = control.get_value();
+				if (value && value !== BULK_EDIT_DONT_IMPORT) picked[i] = value;
+			});
+			this.state.column_map = picked;
+		}
+		const map = this.state.column_map;
 
 		// a mapped column carries its values into the table, an unmapped one is
 		// along for the ride; the cells say so without a legend. The header
@@ -916,8 +1000,124 @@ export default class BulkEdit {
 		// no text summary — the red, editable cells are the only warning
 		// surface now; state.warnings still gates Apply below
 		this.sync_preview_errors(warnings);
+		this.settle_fix_step();
 
 		this.set_footer();
+	}
+
+	/**
+	 * The row numbers Fix Issues stands on: what counts as still needing a hand.
+	 * Read from state.warnings, whose entries carry {row, col, message, blocking};
+	 * a column warning has no row of its own.
+	 * @returns {Set<number>} row numbers, matching state.row_numbers
+	 */
+	/**
+	 * Whether anything still stands in the way of the import — a bad cell or a
+	 * bad mapping alike. The same test Apply is gated on, so Fix Issues completes
+	 * exactly when Apply becomes available and never a step before it.
+	 */
+	has_issues() {
+		// a skipped row isn't being imported, so what's wrong with it no longer
+		// stands in the way of the rest of the file — same rule the Data Import
+		// doctype applies (value_mapping.py: "Row warnings for user-skipped rows
+		// are ignored"). A column warning has no row, so it always counts.
+		return this.state.warnings.some(
+			(w) => w.blocking && !this.state.skipped_rows.has(cint(w.row)),
+		);
+	}
+
+	/**
+	 * A blocking warning with no row of its own: two columns feeding one field.
+	 * Nothing in the table can answer it — the mapping row above it has to.
+	 */
+	has_mapping_issues() {
+		return this.state.warnings.some((w) => w.blocking && w.row === undefined);
+	}
+
+	/** Leave every row that is still wrong out of the import, in one go. */
+	skip_issue_rows() {
+		this.get_issue_rows().forEach((row) => this.state.skipped_rows.add(row));
+		this.refresh_preview();
+	}
+
+	get_issue_rows() {
+		return new Set(
+			this.state.warnings
+				// blocking only, so the step stands on exactly what Apply stands
+				// on; a skipped row's problems no longer count, which is what
+				// makes Skip a way to clear the step as well as fix it. A column
+				// warning has no row to show — its picker is in the mapping row
+				// of both steps, so it is answered there rather than here.
+				.filter(
+					(w) =>
+						w.blocking &&
+						w.row !== undefined &&
+						!this.state.skipped_rows.has(cint(w.row)),
+				)
+				.map((w) => cint(w.row)),
+		);
+	}
+
+	/**
+	 * Fix Issues is only a step while there is something in it. It locks itself
+	 * once the last issue is resolved, and hands the user on to Preview if that
+	 * is where they were standing — so the step completes itself rather than
+	 * asking to be left.
+	 */
+	settle_fix_step() {
+		if (this.tab_defs.length <= TAB_PREVIEW) return;
+		// the step stays open while the user is standing in it, empty or not:
+		// Next is how they leave, and locking the active tab would send them
+		// back to Setup (Tabs falls back to the first open one)
+		if (this.tabs.get_active() !== TAB_FIX) {
+			this.tabs.set_disabled(TAB_FIX, !this.has_issues());
+		}
+		// the hint reads on whichever step the table is standing in, so it says
+		// what to do here rather than describing the flow in general
+		const $table = this.preview_form?.get_field("table").$wrapper;
+		$table?.find(".bulk-edit-preview-hint").text(this.preview_hint());
+		// disabled rather than hidden once there is nothing left to skip: the
+		// button is what the step offers, and a control that vanishes under the
+		// cursor reads as the page having moved. Nothing to leave behind until
+		// the mapping is settled either — remapping a column changes which rows
+		// are wrong under it.
+		$table
+			?.find(".bulk-edit-skip-all")
+			.prop("disabled", this.has_mapping_issues() || !this.get_issue_rows().size);
+	}
+
+	/**
+	 * The line above the table: what is in the way, and what to do about it.
+	 * A duplicate mapping comes first — until the columns are settled, which
+	 * rows are wrong is not yet a settled question either.
+	 */
+	preview_hint() {
+		// the mapping first: until the columns are settled, a count of the rows
+		// that are wrong is a number about to be contradicted
+		if (this.has_mapping_issues()) {
+			return __("Two columns map to the same field. Fix the mapping to continue.");
+		}
+		const total = this.state.rows.length;
+		const skipped = this.state.skipped_rows.size;
+
+		if (this.tabs.get_active() !== TAB_FIX) {
+			return __("{0} of {1} rows ready to import.", [total - skipped, total]);
+		}
+
+		// every line opens on the same fact and the same number in the same
+		// place, so only the clause after it has to be read again
+		const pending = this.get_issue_rows().size;
+		if (pending) {
+			return pending === 1
+				? __("{0} rows found, 1 needs fixing. Fix it, or skip it to move on.", [total])
+				: __("{0} rows found, {1} need fixing. Fix them, or skip them to move on.", [
+						total,
+						pending,
+					]);
+		}
+		return skipped
+			? __("{0} rows found, {1} skipped. Nothing left to fix.", [total, skipped])
+			: __("{0} rows found. Nothing to fix.", [total]);
 	}
 
 	/**
@@ -961,9 +1161,14 @@ export default class BulkEdit {
 		this.state.column_map = this.apply_column_overrides(
 			await this.get_column_map(this.state.headers),
 		);
-		this.build_preview(is_refresh);
+		// the build settles the mapping and runs the first refresh, so what is
+		// wrong with the file is known before it is decided which step to open.
+		// Skipped rows are never carried over a read, refresh included: they are
+		// held by line number, and a sheet that gained or lost a line above them
+		// would leave each skip sitting on a different row than it was put on.
+		await this.build_preview();
 		this.tabs.set_disabled(TAB_PREVIEW, false);
-		this.tabs.set_active(TAB_PREVIEW);
+		this.tabs.set_active(this.has_issues() ? TAB_FIX : TAB_PREVIEW);
 	}
 
 	download() {
@@ -1017,6 +1222,15 @@ export default class BulkEdit {
 			return;
 		}
 
+		if (active === TAB_FIX) {
+			// Next only ever means move on, and it cannot until nothing is left
+			// standing in the way — every row either fixed or skipped, and the
+			// mapping settled. Skip All, the other way out, is over the table.
+			this.set_action(__("Next"), () => this.tabs.set_active(TAB_PREVIEW));
+			this.dialog.get_primary_btn().prop("disabled", this.has_issues());
+			return;
+		}
+
 		if (active === TAB_PREVIEW) {
 			// mapping and the red/editable cells are both right here —
 			// Apply is the only action this step needs
@@ -1031,23 +1245,17 @@ export default class BulkEdit {
 				},
 				{ solid: true },
 			);
-			// a skipped row isn't being imported, so what's wrong with it no
-			// longer stands in the way of the rest of the file — same rule the
-			// Data Import doctype applies (value_mapping.py: "Row warnings for
-			// user-skipped rows are ignored")
-			this.dialog.get_primary_btn().prop(
-				"disabled",
-				this.state.warnings.some(
-					(w) => w.blocking && !this.state.skipped_rows.has(cint(w.row)),
-				),
-			);
+			this.dialog.get_primary_btn().prop("disabled", this.has_issues());
 			return;
 		}
 
 		// upload: a picked file needs uploading first; a parsed one (either
 		// source, via on_file) just moves on. Stays visible either way.
 		this.set_action(__("Next"), () => {
-			if (this.uploaded_file_count()) {
+			// upload_files() is the one entry point for both sources: it posts a
+			// dropped file and fetches a library one, and on_success lands in
+			// read_file either way
+			if (this.has_file_selection()) {
 				this.file_uploader.upload_files();
 				return;
 			}
@@ -1142,12 +1350,13 @@ export default class BulkEdit {
 
 	/**
 	 * Read the sheet again, for one edited after the preview was built. The picks
-	 * made by hand and the skipped rows survive it, the way the Data Import
-	 * doctype's Refresh keeps template_options and skipped_rows — those are
-	 * cleared only by a change of source (data_import.py validate). Every other
-	 * column is matched again, so one added to the sheet arrives mapped. The
-	 * cells come back as the sheet now has them, so a value corrected here by
-	 * hand is replaced by whatever the sheet says.
+	 * made by hand survive it, the way the Data Import doctype's Refresh keeps
+	 * template_options: those are about columns, which a re-read does not move.
+	 * Skipped rows do not, because they are held by line number and the sheet
+	 * may have gained or lost a line above them. Every other column is matched
+	 * again, so one added to the sheet arrives mapped. The cells come back as
+	 * the sheet now has them, so a value corrected here by hand is replaced by
+	 * whatever the sheet says.
 	 */
 	refresh_google_sheet() {
 		if (!this.state.google_sheets_url) return;
@@ -1176,30 +1385,34 @@ export default class BulkEdit {
 	 * picker naming the field it lands in. Two different things, one above the
 	 * other, neither standing in for the other.
 	 */
-	get_preview_html(headers, rows, row_numbers) {
+	get_preview_html({ headers, rows, row_numbers, columns, limit, mapping }) {
 		const escape = frappe.utils.escape_html;
-		const shown = rows.slice(0, BULK_EDIT_PREVIEW_ROWS);
+		const shown = rows.slice(0, limit);
 
-		const head = headers.map(
-			(header, i) => `<th data-col="${i}" data-mapped="0">${escape(cstr(header))}</th>`,
+		// data-col carries the column's place in the file, not in the table, so a
+		// view that leaves columns out still lines its cells up with the warnings
+		const head = columns.map(
+			(i) => `<th data-col="${i}" data-mapped="0">${escape(cstr(headers[i]))}</th>`,
 		);
 		// trailing column: the per-row Skip button, mounted by sync_preview_errors
 		// on the rows that need one. Header and mapping row carry an empty cell
 		// each so the columns stay aligned.
-		const mapping_row = `
+		const mapping_row = mapping
+			? `
 			<tr class="bulk-edit-mapping-row">
 				<td class="bulk-edit-preview-row"></td>
-				${headers.map((header, i) => `<td data-col="${i}"></td>`).join("")}
+				${columns.map((i) => `<td data-col="${i}"></td>`).join("")}
 				<td class="bulk-edit-skip-cell"></td>
 			</tr>
-		`;
+		`
+			: "";
 		const body = shown.map(
 			(row, r) => `
 				<tr data-row="${cint(row_numbers[r])}">
 					<td class="bulk-edit-preview-row">${cint(row_numbers[r])}</td>
-					${headers
+					${columns
 						.map(
-							(header, i) =>
+							(i) =>
 								`<td data-col="${i}" data-mapped="0">${escape(cstr(row[i]))}</td>`,
 						)
 						.join("")}
@@ -1210,20 +1423,42 @@ export default class BulkEdit {
 
 		return `
 			<div class="bulk-edit-preview-head">
-				<span class="text-muted small">${__(
-					"Map each column of the file to a field. Anything left unmapped is ignored.",
-				)}</span>
-				${
-					// only a sheet can change under a loaded preview; a file is
-					// re-read by uploading it again.
-					this.state.google_sheets_url
-						? frappe.ui.button.html({
-								label: __("Refresh"),
-								icon: "refresh-cw",
-								css_class: "bulk-edit-refresh-sheet",
-							})
-						: ""
-				}
+				<span class="text-muted small">${
+					mapping
+						? __(
+								"Map each column of the file to a field. Anything left unmapped is ignored.",
+							)
+						: __("These rows will be added to the table when you apply.")
+				}</span>
+				<div class="bulk-edit-preview-head-actions">
+					${
+						// only a sheet can change under a loaded preview; a file
+						// is re-read by uploading it again.
+						this.state.google_sheets_url
+							? frappe.ui.button.html({
+									label: __("Refresh"),
+									icon: "refresh-cw",
+									css_class: "bulk-edit-refresh-sheet",
+								})
+							: ""
+					}
+					${
+						// leaving rows behind is an action on the table, so it
+						// sits over the table rather than in the footer, where
+						// Next only ever means move on. Shown or hidden per
+						// refresh by settle_fix_step.
+						mapping
+							? frappe.ui.button.html({
+									label: __("Skip All"),
+									// starts dead and is woken by settle_fix_step,
+									// which is the only thing that knows what is
+									// still left to skip
+									disabled: true,
+									css_class: "bulk-edit-skip-all",
+								})
+							: ""
+					}
+				</div>
 			</div>
 			<div class="bulk-edit-preview-hint text-muted small">${__(
 				"Fix the highlighted cells. Click one to see and resolve its error.",
