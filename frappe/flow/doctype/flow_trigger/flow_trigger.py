@@ -40,11 +40,17 @@ class FlowTrigger(Document):
 		self._validate_run_as()
 
 	def _validate_run_as(self):
-		if not self.run_as:
-			return
-		if self.run_as == "Guest" or not frappe.db.get_value("User", self.run_as, "enabled"):
+		if self.run_as and (
+			self.run_as == "Guest" or not frappe.db.get_value("User", self.run_as, "enabled")
+		):
 			frappe.throw(
 				_("Run As must be an enabled user."),
+				title=_("Invalid Run As"),
+			)
+		account = self.run_as or self.owner
+		if not frappe.has_permission("Flow Agent", "read", self.agent, user=account):
+			frappe.throw(
+				_("{0} cannot use agent {1}.").format(account, self.agent),
 				title=_("Invalid Run As"),
 			)
 

@@ -9,6 +9,7 @@ from frappe.tests import IntegrationTestCase
 
 from flow import triggers
 from flow.daemon.client import DaemonClient
+from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 
@@ -51,6 +52,15 @@ def _trigger(agent_name: str, **overrides: Any) -> dict:
 	return doc
 
 
+def _user(email: str, *roles: str) -> str:
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+	frappe.get_doc("User", email).add_roles(*roles)
+	return email
+
+
 class TestFlowTriggerValidation(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -63,6 +73,22 @@ class TestFlowTriggerValidation(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_the_account_a_trigger_runs_as_must_be_able_to_read_the_agent(self):
+		outsider = _user("trigger-outsider@example.com")
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot use agent"):
+			frappe.get_doc(_trigger(self.agent.name, run_as=outsider)).insert()
+
+		doc = frappe.get_doc(_trigger(self.agent.name)).insert()  # owned by Administrator
+		frappe.db.set_value("Flow Trigger", doc.name, "owner", outsider)
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot use agent"):
+			frappe.get_doc("Flow Trigger", doc.name).save()
+
+		member = _user("trigger-member@example.com", "System Manager", FLOW_USER_ROLE)
+		self.assertEqual(
+			frappe.get_doc(_trigger(self.agent.name, title="Member Trigger", run_as=member)).insert().run_as,
+			member,
+		)
 
 	def test_doctype_event_trigger_inserts(self):
 		doc = frappe.get_doc(_trigger(self.agent.name)).insert()
