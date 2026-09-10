@@ -51,7 +51,7 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		if (entry.timer) clearTimeout(entry.timer);
 		entry.timer = null;
 		if (!patch) return entry.queue;
-		return write(entry, () => call(`${API}.save`, { ...address, scope: "user", settings: patch }));
+		return write(entry, () => call(`${API}.save`, { ...address, scope: "user", settings: patch }), patch);
 	}
 
 	function save(patch: ListSettings) {
@@ -122,11 +122,13 @@ async function load(entry: Entry, doctype: string) {
 	entry.loaded.value = true;
 }
 
-function write(entry: Entry, send: () => Promise<unknown>): Promise<void> {
+/** A patch that fails waits for the next flush, under whatever was saved since. */
+function write(entry: Entry, send: () => Promise<unknown>, patch?: ListSettings): Promise<void> {
 	entry.queue = entry.queue.then(async () => {
 		try {
 			entry.tiers.value = tiersOf(await send());
 		} catch (failure) {
+			if (patch) entry.pending = { ...patch, ...entry.pending };
 			console.warn("[list] settings were not saved", failure);
 		}
 	});

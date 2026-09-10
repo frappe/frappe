@@ -1,11 +1,9 @@
 # The three calls a view's settings go through: read both scopes, patch keys, clear one key.
 
-import json
-
 import frappe
 from frappe import _
 
-from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES, is_site_administrator
+from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES, DuplicateViewError, is_site_administrator
 
 SCOPES = ("user", "site")
 
@@ -19,14 +17,13 @@ def get(doctype: str, type: str = "List") -> dict:
 
 
 @frappe.whitelist()
-def save(doctype: str, type: str, scope: str, settings: str | dict) -> dict:
+def save(doctype: str, type: str, scope: str, settings: dict) -> dict:
 	"""Patch the keys given onto one scope's row, creating it, and hand back both scopes."""
 	_check(doctype, type, scope)
-	patch = _as_settings(settings)
+	if not isinstance(settings, dict):
+		frappe.throw(_("The settings of a view are one object."), title=_("Not Settings"))
 
-	address = _address(doctype, type, scope)
-	name, stored = _locked(address)
-	_write(address, name, {**stored, **patch})
+	_apply(_address(doctype, type, scope), lambda stored: {**stored, **settings})
 
 	return _rows(doctype, type)
 
@@ -38,10 +35,7 @@ def reset(doctype: str, type: str, scope: str, key: str) -> dict:
 	if not isinstance(key, str):
 		frappe.throw(_("A settings key is one name."))
 
-	address = _address(doctype, type, scope)
-	name, stored = _locked(address)
-	stored.pop(key, None)
-	_write(address, name, stored)
+	_apply(_address(doctype, type, scope), lambda stored: {k: v for k, v in stored.items() if k != key})
 
 	return _rows(doctype, type)
 
@@ -97,6 +91,16 @@ def _rows(doctype: str, type: str) -> dict:
 	return {"site": by_user.get(SITE_ROW), "user": by_user.get(frappe.session.user)}
 
 
+def _apply(address: dict, change):
+	"""Read, change and write under the row lock; a first write that loses the race to a twin runs again on the twin's row."""
+	frappe.db.savepoint("doctype_view_write")
+	try:
+		_write(address, change)
+	except (frappe.UniqueValidationError, DuplicateViewError):
+		frappe.db.rollback(save_point="doctype_view_write")
+		_write(address, change)
+
+
 def _locked(address: dict) -> tuple[str | None, dict]:
 	"""The row at this address, locked until the write lands so two tabs cannot drop each other's key."""
 	row = frappe.db.get_value("Doctype View", address, ["name", "settings"], as_dict=True, for_update=True)
@@ -110,23 +114,12 @@ def _parsed(settings) -> dict | None:
 	return parsed if isinstance(parsed, dict) else None
 
 
-def _as_settings(settings: str | dict) -> dict:
-	"""The caller's patch, whether the request carried it as an object or as a JSON string."""
-	if isinstance(settings, str):
-		try:
-			settings = json.loads(settings)
-		except ValueError:
-			settings = None
-
-	if not isinstance(settings, dict):
-		frappe.throw(_("The settings of a view are one object."), title=_("Not Settings"))
-
-	return settings
-
-
-def _write(address: dict, existing: str | None, settings: dict):
-	"""Put these settings at this address, and delete the row when there are none."""
+def _write(address: dict, change):
+	"""Put the changed settings at this address, and delete the row when there are none."""
 	# `ignore_permissions`: the gate is `_check`'s; a Desk User has no write on the doctype.
+	existing, stored = _locked(address)
+	settings = change(stored)
+
 	if not settings:
 		if existing:
 			frappe.delete_doc("Doctype View", existing, ignore_permissions=True, delete_permanently=True)

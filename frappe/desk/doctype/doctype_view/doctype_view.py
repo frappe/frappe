@@ -19,6 +19,10 @@ VIEW_TYPES = ("List",)
 SETTINGS_SIZE_LIMIT = 16 * 1024
 
 
+class DuplicateViewError(frappe.ValidationError):
+	pass
+
+
 class DoctypeView(Document):
 	"""One view of one doctype at one scope; `settings` is the view type's own shape."""
 
@@ -78,6 +82,7 @@ class DoctypeView(Document):
 					frappe.bold(self.reference_doctype), self.type, frappe.bold(existing)
 				),
 				title=_("Already Exists"),
+				exc=DuplicateViewError,
 			)
 
 	def address(self) -> dict:

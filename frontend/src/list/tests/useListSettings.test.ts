@@ -106,6 +106,25 @@ describe("writing", () => {
 		});
 	});
 
+	it("keeps a patch whose write failed for the next flush", async () => {
+		const handle = useListSettings("Lead");
+		await settle();
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		fake.call.mockRejectedValueOnce(new Error("down"));
+		handle.save({ columns: [{ fieldname: "title" }] });
+		await handle.flush();
+		expect(handle.stored.value).toEqual({ sort: [{ fieldname: "title", direction: "asc" }] });
+		expect(handle.has("user", "columns")).toBe(true);
+		handle.save({ sort: [] });
+		await handle.flush();
+		expect(fake.call).toHaveBeenLastCalledWith(`${API}.save`, {
+			...ADDRESS,
+			scope: "user",
+			settings: { columns: [{ fieldname: "title" }], sort: [] },
+		});
+		warn.mockRestore();
+	});
+
 	it("writes the site scope at once, by name", async () => {
 		const handle = useListSettings("Lead");
 		await settle();

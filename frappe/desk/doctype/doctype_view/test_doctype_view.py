@@ -1,7 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
+from frappe.desk.doctype.doctype_view import api
 from frappe.desk.doctype.doctype_view.api import get, reset, save
 from frappe.exceptions import FrappeTypeError
 from frappe.tests import IntegrationTestCase
@@ -111,11 +114,22 @@ class TestApi(DoctypeViewTestCase):
 			frappe.db.get_value("Doctype View", {"reference_doctype": DOCTYPE}, "user"), self.person
 		)
 
-	def test_a_save_takes_the_patch_as_a_json_string_too(self):
-		with set_user(self.person):
-			rows = save(DOCTYPE, "List", "user", '{"quick_filter_fields": ["title"]}')
+	def test_a_first_save_that_loses_the_race_lands_on_the_twin_s_row(self):
+		"""Two first saves can both see no row; the loser's insert hits the index and runs again."""
+		real = api._locked
+		reads = []
 
-		self.assertEqual(rows["user"], {"quick_filter_fields": ["title"]})
+		def racing(address):
+			reads.append(address)
+			return (None, {}) if len(reads) == 1 else real(address)
+
+		with set_user(self.person):
+			save(DOCTYPE, "List", "user", {"columns": []})
+			with patch.object(api, "_locked", side_effect=racing):
+				rows = save(DOCTYPE, "List", "user", {"sort": []})
+
+		self.assertEqual(len(reads), 2)
+		self.assertEqual(rows["user"], {"columns": [], "sort": []})
 
 	def test_a_reset_clears_one_key_and_drops_an_empty_row(self):
 		with set_user(self.person):
@@ -158,6 +172,6 @@ class TestApi(DoctypeViewTestCase):
 			self.assertRaises(frappe.ValidationError, get, "No Such Doctype")
 			self.assertRaises(frappe.ValidationError, get, DOCTYPE, "Kanban")
 			self.assertRaises(frappe.ValidationError, save, DOCTYPE, "List", "everyone", {})
-			self.assertRaises(frappe.ValidationError, save, DOCTYPE, "List", "user", "not json")
+			self.assertRaises(FrappeTypeError, save, DOCTYPE, "List", "user", "not json")
 			self.assertRaises(FrappeTypeError, save, DOCTYPE, "List", "user", ["a list"])
 			self.assertRaises(FrappeTypeError, reset, DOCTYPE, "List", "user", ["a list"])
