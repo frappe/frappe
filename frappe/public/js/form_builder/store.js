@@ -256,8 +256,8 @@ export const useStore = defineStore("form-builder-store", () => {
 					(df) =>
 						(frappe.model.is_value_type(df.fieldtype) &&
 							!["lft", "rgt"].includes(df.fieldname)) ||
-						// casing mirrors web_form.js — do not fix it without fixing that too
-						["Table", "Table Multiselect"].includes(df.fieldtype) ||
+						// capital S: "Table Multiselect" matches no field
+						["Table", "Table MultiSelect"].includes(df.fieldtype) ||
 						frappe.model.layout_fields.includes(df.fieldtype)
 			  )
 			: [];
