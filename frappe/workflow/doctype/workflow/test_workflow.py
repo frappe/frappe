@@ -606,6 +606,14 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		self.assertEqual(get_workflow_names("ToDo"), [])
 		self.assertEqual(get_meta("ToDo").get("__workflow_docs"), [])
 
+	def test_desk_metadata_serializes_with_a_workflow(self):
+		from frappe.desk.form.load import get_meta_bundle
+
+		create_conditional_todo_workflow("Test Any ToDo")
+
+		workflow_docs = get_meta_bundle("ToDo")[0]["__workflow_docs"]
+		self.assertIn("Workflow State", [doc.doctype for doc in workflow_docs])
+
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow("Test High ToDo")
 		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
