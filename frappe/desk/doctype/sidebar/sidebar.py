@@ -2026,6 +2026,7 @@ def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx:
 
 	  owned          an item flagged `is_default_module` claims the entity
 	  module+listed  the entity's module has a shell, and that shell lists the entity
+	  module+computed  its shell was computed, so not listing the entity decides nothing
 	  heir+listed    the module ships no navigation, and an heir it declared lists the entity
 	  linked         some shell lists the entity
 	  heir+default   the module ships no navigation, so its first heir takes it
@@ -2087,6 +2088,8 @@ class ShellIndex:
 		self.listing = {}
 		self.of_module = {}
 		self.of_workspace = {}
+		# Shells built from what their module holds rather than shipped by an app. See `resolve`.
+		self.computed = {shell for shell, sidebar in module_sidebars.items() if sidebar.get("computed")}
 
 		for shell, sidebar in module_sidebars.items():
 			for item in sidebar["items"]:
@@ -2120,6 +2123,18 @@ class ShellIndex:
 		own = self.shell_of(module)
 
 		if own and own in listed:
+			return own
+
+		# Not listing something only means something when someone chose what the sidebar lists. A
+		# computed sidebar lists what its module holds, capped at COMPUTED_DOCTYPE_LIMIT, so an
+		# entity missing from one was not left out, it fell past a display limit. Reading that as a
+		# decision would hand the entity to whichever other shell happens to link it. A module
+		# always contains its own entities, so a computed sidebar answers for them regardless.
+		#
+		# This matters for exactly the modules nobody wrote a sidebar for, which is every module a
+		# customer adds. A site whose apps all ship one has no computed shells at all, which is why
+		# leaving this out looked harmless.
+		if own and own in self.computed:
 			return own
 
 		heirs = [shell for shell in map(self.shell_of, heirs_of(module)) if shell]

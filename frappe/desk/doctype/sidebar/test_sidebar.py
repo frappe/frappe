@@ -733,6 +733,7 @@ def shell_payload(spec: dict) -> dict:
 		shell: {
 			"module": shell_spec.get("module", shell),
 			"workspaces": shell_spec.get("workspaces", []),
+			"computed": shell_spec.get("computed", 0),
 			"items": [{"link_type": kind, "link_to": entity} for kind, entity in shell_spec.get("lists", [])],
 		}
 		for shell, shell_spec in spec.items()
@@ -764,6 +765,37 @@ class TestCanonicalShell(IntegrationTestCase):
 		index = shell_payload({"HR": {}, "Performance": {"lists": [("DocType", "Appraisal")]}})
 
 		self.assertEqual(ShellIndex(index).resolve("DocType", "Appraisal", "HR"), "Performance")
+
+	def test_a_computed_sidebar_keeps_its_module_s_entities_anyway(self):
+		"""Not listing something only says something when someone chose what the sidebar lists.
+
+		A computed sidebar lists what its module holds, capped at a display limit, so an entity
+		missing from one was not left out. Reading that as a decision hands the entity to whichever
+		other shell happens to link it. This is the case for every module a customer adds, since
+		nobody shipped a sidebar for it, and a site whose apps all ship one has no computed shells
+		at all -- which is why leaving this out looks harmless.
+		"""
+		index = shell_payload(
+			{
+				"Widgets": {"computed": 1},
+				"Selling": {"lists": [("DocType", "Widget")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Widgets")
+
+	def test_a_shipped_sidebar_that_omits_the_entity_gives_it_away(self):
+		"""The other half. An app wrote this sidebar and left the entity out, so that is a
+		decision, and a shell that does list it wins.
+		"""
+		index = shell_payload(
+			{
+				"Widgets": {"computed": 0},
+				"Selling": {"lists": [("DocType", "Widget")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Selling")
 
 	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
 		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})
