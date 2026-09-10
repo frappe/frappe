@@ -698,17 +698,17 @@ class User(Document):
 		validate_email_address(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
-		tables = frappe.db.get_tables()
-		for tab in tables:
-			desc = frappe.db.get_table_columns_description(tab)
-			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
-			for field in has_fields:
-				frappe.db.sql(
-					"""UPDATE `{}`
-					SET `{}` = {}
-					WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
-					(new_name, old_name),
-				)
+		frappe.enqueue(
+			"frappe.core.doctype.user.user.rewrite_owner_fields",
+			old_name=old_name,
+			new_name=new_name,
+			commit=True,
+			queue="long",
+			timeout=36000,
+			enqueue_after_commit=True,
+			job_id=f"rewrite-owner-fields-{old_name}-{new_name}",
+			deduplicate=True,
+		)
 
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
@@ -1123,6 +1123,28 @@ def _get_user_for_update_password(key, old_password):
 		user = frappe.session.user
 		result.user = user
 	return result
+
+
+def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
+	"""Point `owner` and `modified_by` at a renamed user's new name in every table.
+
+	Neither column is indexed, so this runs for minutes on a large site; `commit` releases the
+	read view and its row locks one table at a time. Running it again is safe.
+	"""
+	tables = frappe.db.get_tables()
+	for tab in tables:
+		desc = frappe.db.get_table_columns_description(tab)
+		has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
+		for field in has_fields:
+			frappe.db.sql(
+				"""UPDATE `{}`
+				SET `{}` = {}
+				WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
+				(new_name, old_name),
+			)
+
+		if commit:
+			frappe.db.commit()
 
 
 def reset_user_data(user):
