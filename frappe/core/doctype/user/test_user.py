@@ -15,6 +15,7 @@ from frappe.core.doctype.user.user import (
 	get_roles,
 	handle_password_test_fail,
 	reset_password,
+	rewrite_owner_fields,
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -422,6 +423,100 @@ class TestUser(FrappeTestCase):
 
 		frappe.delete_doc("User", new_name)
 
+<<<<<<< HEAD
+=======
+	def test_user_rename_defers_the_owner_sweep(self):
+		old_name = "test_user_rename_owner@example.com"
+		new_name = "test_user_rename_owner_new@example.com"
+		user = frappe.get_doc(
+			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a renamed user"}).insert()
+		frappe.db.set_value(
+			"ToDo", todo.name, {"owner": old_name, "modified_by": old_name}, update_modified=False
+		)
+
+		with patch("frappe.enqueue") as enqueue:
+			frappe.rename_doc("User", user.name, new_name)
+
+		enqueue.assert_any_call(
+			"frappe.core.doctype.user.user.rewrite_owner_fields",
+			old_name=old_name,
+			new_name=new_name,
+			commit=True,
+			queue="long",
+			timeout=36000,
+			enqueue_after_commit=True,
+			job_id=f"rewrite-owner-fields-{old_name}-{new_name}",
+			deduplicate=True,
+		)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
+
+		rewrite_owner_fields(old_name, new_name)
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
+
+	def test_user_rename_updates_private_workspace(self):
+		old_name = "test_user_rename_ws@example.com"
+		new_name = "test_user_rename_ws_new@example.com"
+		actor_name = "test_user_rename_ws_actor@example.com"
+
+		old_workspace = f"Test Rename Workspace-{old_name}"
+		for email in (old_name, new_name, actor_name):
+			frappe.delete_doc("User", email, ignore_permissions=True, force=True)
+		if frappe.db.exists("Workspace", old_workspace):
+			frappe.delete_doc("Workspace", old_workspace, ignore_permissions=True, force=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": old_name,
+				"enabled": 1,
+				"first_name": "_Test",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": actor_name,
+				"enabled": 1,
+				"first_name": "_Test Actor",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Rename Workspace",
+				"label": old_workspace,
+				"type": "Workspace",
+				"for_user": old_name,
+				"public": 0,
+				# Mandatory now: a private workspace belongs to a module like any other.
+				"module": "Core",
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(actor_name):
+			frappe.rename_doc("User", old_name, new_name)
+
+		new_workspace = f"Test Rename Workspace-{new_name}"
+		self.assertTrue(frappe.db.exists("Workspace", new_workspace))
+		self.assertEqual(frappe.db.get_value("Workspace", new_workspace, "for_user"), new_name)
+
+		frappe.delete_doc("Workspace", new_workspace, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
+
+>>>>>>> cafa892 (test(user): cover the deferred owner sweep after a rename)
 	def test_signup(self):
 		import frappe.website.utils
 
