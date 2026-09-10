@@ -533,7 +533,8 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		"""Leave the doctype exactly as it was found.
 
 		Creating a Workflow writes a Custom Field, which commits, so a workflow made here outlives
-		the transaction rollback and would otherwise resolve for the tests that follow.
+		the transaction rollback. The cleanup has to be committed for the same reason, or it is
+		rolled back with the test and the workflow resolves for everything that follows.
 		"""
 		for name in frappe.get_all("Workflow", {"document_type": "ToDo"}, pluck="name"):
 			if name not in self.pre_existing:
@@ -542,6 +543,7 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		for name in self.suspended:
 			frappe.db.set_value("Workflow", name, "is_active", 1)
 
+		frappe.db.commit()
 		frappe.clear_cache(doctype="ToDo")
 
 	def test_conditional_workflow_skips_documents_it_does_not_match(self):
