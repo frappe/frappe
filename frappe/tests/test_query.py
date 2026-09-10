@@ -3280,6 +3280,16 @@ class TestJSONFilters(IntegrationTestCase):
 		).get_sql()
 		self.assertIn("secret_payload", permitted)
 
+	def test_json_distinct_with_qualified_order_by(self):
+		"""A qualified order-by must survive the DISTINCT check, which matches selected fields by name."""
+		for order_by in ("payload asc", f"`tab{self.value_doctype}`.`payload` asc"):
+			with self.subTest(order_by=order_by):
+				query = frappe.qb.get_query(
+					self.value_doctype, fields=["payload"], distinct=True, order_by=order_by, limit=2
+				)
+				self.assertIn("ORDER BY", query.get_sql())
+				self.assertTrue(query.run())
+
 	def test_json_filter_on_aliased_table(self):
 		table = frappe.qb.DocType(self.value_doctype).as_("alias")
 		sql = frappe.qb.get_query(self.value_doctype, filters={table.payload: "[]"}).get_sql()
