@@ -1035,6 +1035,8 @@ class PrintFormatGenerator:
 		the first doc.taxes row whose description contains the pattern."""
 		if df.get("fieldtype") != "Summary Table" or not df.get("source") or not df.get("columns"):
 			return
+		if not self.has_field_access(self.doc, self.doc.meta, df["source"]):
+			return
 		rows = self.doc.get(df["source"]) or []
 		if not rows:
 			return
