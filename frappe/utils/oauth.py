@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import hashlib
+import hmac
 import json
 from collections.abc import Callable
 from functools import lru_cache
@@ -149,29 +151,76 @@ def get_oauth_keys(provider: str) -> dict[str, str]:
 
 
 OAUTH_LOGIN_FLOW_CACHE_PREFIX = "frappe_oauth_login"
+OAUTH_LOGIN_BINDING_COOKIE = "oauth_login_binding"
+
+
+def _get_or_create_oauth_binding_secret() -> str:
+	"""Return this request's browser-binding secret, minting and cookie-ing it on first use.
+
+	`/login` renders a button per enabled Social Login Key, each calling `create_oauth_state`
+	in the same request. They must all share one secret/cookie - if each call minted and
+	cookied its own, only the last one rendered would actually reach the browser, breaking
+	every other provider's button.
+	"""
+	if existing := frappe.local.cookie_manager.cookies.get(OAUTH_LOGIN_BINDING_COOKIE):
+		return existing["value"]
+
+	binding_secret = frappe.generate_hash(length=32)
+	frappe.local.cookie_manager.set_cookie(
+		OAUTH_LOGIN_BINDING_COOKIE,
+		binding_secret,
+		max_age=600,
+		httponly=True,
+		samesite="Lax",
+	)
+	return binding_secret
 
 
 def create_oauth_state(redirect_to: str | None) -> str:
 	"""Create a single-use token referencing this login attempt's `redirect_to`.
 
-	The returned token is what gets sent to the OAuth provider as `state`.
+	The returned token is what gets sent to the OAuth provider as `state`. This request's
+	browser-binding secret is handed to the browser as an HttpOnly cookie and only its hash
+	is kept server-side, so `consume_oauth_state` can later tell whether the browser
+	completing the callback is the same one that started this login attempt.
 	"""
 	state = frappe.generate_hash(length=32)
-	frappe.cache.set_value(f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}", redirect_to or "", expires_in_sec=600)
+	binding_hash = hashlib.sha256(_get_or_create_oauth_binding_secret().encode()).hexdigest()
+
+	frappe.cache.set_value(
+		f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}",
+		{"redirect_to": redirect_to or "", "binding_hash": binding_hash},
+		expires_in_sec=600,
+	)
 	return state
 
 
 def consume_oauth_state(state: str) -> str | None:
 	"""Look up and invalidate the redirect_to stored for this login attempt.
 
-	Returns None if `state` doesn't reference a known, unused login attempt.
+	Returns None if `state` doesn't reference a known, unused login attempt, or if the
+	request completing the callback doesn't carry the binding cookie set for it -
+	i.e. it isn't the browser that started this login attempt.
 	"""
 	if not state:
 		return None
 	key = f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}"
-	redirect_to = frappe.cache.get_value(key)
+	data = frappe.cache.get_value(key)
 	frappe.cache.delete_value(key)
-	return redirect_to
+	frappe.local.cookie_manager.delete_cookie(OAUTH_LOGIN_BINDING_COOKIE)
+
+	# A state minted before this binding shipped is a plain `redirect_to` string, and can
+	# still be in flight for its 600s lifetime across an upgrade. Treat it as expired
+	# rather than indexing a string and raising.
+	if not isinstance(data, dict):
+		return None
+
+	presented_secret = frappe.local.request.cookies.get(OAUTH_LOGIN_BINDING_COOKIE, "")
+	presented_hash = hashlib.sha256(presented_secret.encode()).hexdigest()
+	if not presented_secret or not hmac.compare_digest(presented_hash, data.get("binding_hash") or ""):
+		return None
+
+	return data.get("redirect_to")
 
 
 def get_oauth2_authorize_url(provider: str, redirect_to: str) -> str:
