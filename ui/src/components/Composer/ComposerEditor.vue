@@ -147,6 +147,7 @@
 									variant="solid"
 									:label="submitLabel"
 									:disabled="isDisabled"
+									:loading="submitting"
 									@click="submit"
 								/>
 							</div>

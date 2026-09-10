@@ -6,6 +6,7 @@
 		:upload-function="uploadFunction"
 		:extensions="extensions"
 		:max-attachments="maxAttachments"
+		:submitting="submitting"
 		:mentions="mentions"
 		v-model:body="body"
 		@submit="emit('submit', $event)"
