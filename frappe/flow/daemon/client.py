@@ -10,8 +10,6 @@ from typing import Any
 import httpx
 
 TIMEOUT = 15
-# a waited run answers when the turn ends; the daemon caps it by max_turns, not time
-RUN_TIMEOUT = 3600
 
 
 class DaemonError(Exception):
@@ -83,16 +81,14 @@ class DaemonClient:
 	def delete_session(self, sid: str) -> dict:
 		return self._call("DELETE", f"/sessions/{sid}")
 
-	def run(
-		self, sid: str, message: str, *, attachments: list[str] | None = None, wait: bool = False
-	) -> dict:
-		"""Start a turn; with `wait` the answer is the turn's summary instead of `started`."""
+	def run(self, sid: str, message: str, *, attachments: list[str] | None = None) -> dict:
+		"""Start a turn and return as soon as the daemon accepts it."""
 		body = {"message": message, "attachments": attachments or []}
-		return self._call("POST", f"/sessions/{sid}/run", json=body, **_wait(wait))
+		return self._call("POST", f"/sessions/{sid}/run", json=body)
 
-	def resume(self, sid: str, answers: dict[str, str], *, approval_seq: int, wait: bool = False) -> dict:
+	def resume(self, sid: str, answers: dict[str, str], *, approval_seq: int) -> dict:
 		body = {"approval_seq": approval_seq, "answers": answers}
-		return self._call("POST", f"/sessions/{sid}/resume", json=body, **_wait(wait))
+		return self._call("POST", f"/sessions/{sid}/resume", json=body)
 
 	def abort(self, sid: str) -> dict:
 		return self._call("POST", f"/sessions/{sid}/abort")
@@ -144,11 +140,6 @@ class DaemonClient:
 	def cleanup_attachments(self, sid: str, attachment_ids: list[str]) -> dict:
 		body = {"attachments": attachment_ids}
 		return self._call("DELETE", f"/sessions/{sid}/attachments", json=body)
-
-
-def _wait(wait: bool) -> dict:
-	return {"params": {"wait": "true"}, "timeout": RUN_TIMEOUT} if wait else {}
-
 
 def _detail(response: httpx.Response) -> Any:
 	"""The daemon's own explanation. A validation error echoes the request, which may

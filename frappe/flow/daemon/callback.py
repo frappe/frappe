@@ -1,8 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Runs an agent's tools for the flow server: every client tool call in a daemon session
-comes back here and runs on this site as the Flow Session's owner."""
+"""Authenticated callbacks from the flow server."""
 
 from __future__ import annotations
 
@@ -13,8 +12,6 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 
-from flow.daemon import session_config
-
 if TYPE_CHECKING:
 	from flow.lib.tool import Tool
 
@@ -23,15 +20,26 @@ SAVEPOINT = "flow_tool"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+def callback(callback_type: str, **payload) -> dict:
+	"""Authenticate once, then hand the payload to its focused callback."""
+	_authenticate()
+	if callback_type == "tool":
+		return tool_callback(**payload)
+	if callback_type == "run_ended":
+		return run_ended_callback(**payload)
+	frappe.throw(_("Unknown callback type {0}.").format(callback_type))
+
+
 def tool_callback(
 	session_id: str,
 	tool: str,
 	args: dict | None = None,
 	mode: str = "execute",
+	user_context: dict | None = None,
 ) -> dict:
-	"""`execute` → {content, is_error}; `confirm` → {prompt}. The user is the session's
-	owner, never the daemon's user_context; failures are content for the model, not a 500."""
-	_authenticate()
+	"""Execute a client tool, or build its confirmation prompt, as the session owner."""
+	if mode not in ("execute", "confirm"):
+		frappe.throw(_("Unknown callback mode {0}.").format(mode))
 	session = frappe.db.get_value("Flow Session", session_id, ["owner", "agent"], as_dict=True)
 	if not session:
 		return _error(_("Unknown session {0}.").format(session_id))
@@ -51,6 +59,27 @@ def tool_callback(
 		frappe.set_user(user)
 
 
+def run_ended_callback(session_id: str, terminal_seq: int) -> dict:
+	"""Synchronize a durable run terminal into Flow. Duplicate delivery is safe."""
+	try:
+		terminal_seq = int(terminal_seq)
+	except (TypeError, ValueError):
+		terminal_seq = 0
+	if terminal_seq < 1:
+		frappe.throw(_("Terminal sequence is required."))
+	try:
+		session = frappe.get_doc("Flow Session", session_id)
+	except frappe.DoesNotExistError:
+		frappe.throw(_("Unknown session {0}.").format(session_id))
+	session.sync()
+	if session.last_synced_seq < terminal_seq:
+		frappe.throw(
+			_("The flow server did not expose terminal sequence {0}.").format(terminal_seq),
+			title=_("Flow Server"),
+		)
+	return {"synced_through": session.last_synced_seq}
+
+
 def _authenticate() -> None:
 	secret = frappe.conf.flow_server_secret or ""
 	given = frappe.request.headers.get("X-Harness-Token", "")
@@ -62,7 +91,7 @@ def _dispatch(agent: str, name: str, args: dict, mode: str) -> dict:
 	agent_doc = frappe.get_doc("Flow Agent", agent)
 	if not agent_doc.enabled:
 		return _error(_("The session's agent is disabled."))
-	tools = session_config.client_tools(agent_doc)
+	tools = agent_doc.client_tools()
 	tool = next((tool for tool in tools if tool.name == name), None)
 	if tool is None:
 		return _error(_("Unknown tool {0}.").format(name))

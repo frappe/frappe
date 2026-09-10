@@ -7,6 +7,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from flow.flow.doctype.flow_tool.flow_tool import patch_session_config_tools
+from flow.tools.builtins import sync_builtin_tools
+
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
 
@@ -148,10 +151,48 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 	def test_saving_a_tool_refreshes_daemon_sessions_after_commit(self):
 		tool = self._tool()
 		before = len(frappe.db.after_commit._functions)
-		with patch("flow.daemon.session_config.sync_tool_sessions") as sync:
+		with patch("flow.flow.doctype.flow_tool.flow_tool.patch_session_config_tools") as refresh:
 			tool.description = "Updated description."
 			tool.save()
 			for callback in list(frappe.db.after_commit._functions)[before:]:
 				callback()
 
-		sync.assert_called_once_with(tool.name)
+		refresh.assert_called_once_with(tool.name)
+
+
+class TestFlowToolSessionRefresh(IntegrationTestCase):
+	def setUp(self):
+		sync_builtin_tools()
+		model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Tool Refresh Model",
+				"model_id": "openai/gpt-4o-mini",
+				"enabled": 1,
+			}
+		).insert()
+		self.agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Tool Refresh Agent",
+				"model": model.name,
+				"instructions": "x",
+				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"enabled": 1,
+			}
+		).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_a_tool_change_refreshes_every_daemon_session_using_its_agent(self):
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
+		with patch("flow.daemon.client.DaemonClient.for_site") as factory:
+			patch_session_config_tools("read")
+
+		client = factory.return_value
+		calls = [call for call in client.patch_config.call_args_list if call.args == (session.name,)]
+		self.assertEqual(len(calls), 1)
+		kwargs = calls[0].kwargs
+		self.assertEqual([tool["function"]["name"] for tool in kwargs["client_tools"]], ["read", "execute"])
+		self.assertEqual(kwargs["confirm_tools"], ["execute"])

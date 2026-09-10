@@ -117,7 +117,7 @@ def _add(
 			"content": content,
 			"keywords": keywords,
 			"source": source,
-			# flow_run is set for the current run by FlowSession._set_active_run.
+			# flow_run is set for the current run by the tool callback.
 			"source_run": source_run or frappe.flags.get("flow_run"),
 			"status": "Active",
 		}

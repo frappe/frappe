@@ -24,7 +24,6 @@ frappe.ui.form.on("Flow Run", {
 		frm.get_field("detail_html").$wrapper.html(
 			frappe.render_template("flow_run_detail", {
 				usage: parse(frm.doc.usage),
-				config: parse(frm.doc.config_snapshot),
 				calls: parse(frm.doc.tool_calls),
 				questions: parse(frm.doc.questions),
 			})

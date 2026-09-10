@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -14,7 +13,7 @@ from flow.utils.system_generated import block_delete, block_rename, validate_imm
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
-	from flow.lib.agent import Agent, Event
+	from flow.flow.doctype.flow_session.flow_session import FlowSession
 	from flow.lib.tool import Tool
 
 DEFAULT_TOOL_SLUGS = ("describe", "read", "execute")
@@ -78,31 +77,19 @@ class FlowAgent(Document):
 		if frappe.db.exists("Flow Tool", KNOWLEDGE_SEARCH_SLUG):
 			self.append("tools", {"tool": KNOWLEDGE_SEARCH_SLUG})
 
-	def assemble(self, *, model: str | None = None) -> Agent:
-		"""Resolve this row into a runtime Agent. `model` overrides the saved agent's model for this build."""
-		from flow.lib.agent import Agent
-		from flow.lib.model import Model
+	def client_tool_config(self) -> dict[str, list[Any]]:
+		"""The tools' schemas, and which of them pause for approval."""
+		tools = self.client_tools()
+		return {
+			"client_tools": [tool.to_dict() for tool in tools],
+			"confirm_tools": [tool.name for tool in tools if tool.requires_confirmation],
+		}
 
-		if not self.enabled:
-			frappe.throw(_("Flow Agent {0} is disabled.").format(self.name), title=_("Disabled Agent"))
+	def client_tools(self) -> list[Tool]:
+		"""This agent's tools minus update_memory, which stays local until the new memory system."""
+		from flow.memory.memory import MEMORY_TOOL_SLUG
 
-		model_name = model or self.model
-		if not frappe.has_permission("Flow Model", "read", model_name):
-			frappe.throw(
-				_("You are not permitted to use Flow Model {0}.").format(model_name),
-				frappe.PermissionError,
-				title=_("Model Not Permitted"),
-			)
-		if not frappe.db.get_value("Flow Model", model_name, "enabled"):
-			frappe.throw(_("Flow Model {0} is disabled.").format(model_name), title=_("Disabled Model"))
-
-		return Agent(
-			model=Model(model_name),
-			name=self.name,
-			instructions=self.instructions,
-			tools=self._resolve_tools(),
-			max_iterations=self.max_iterations or DEFAULT_MAX_ITERATIONS,
-		)
+		return [tool for tool in self._resolve_tools() if tool.name != MEMORY_TOOL_SLUG]
 
 	def _resolve_tools(self) -> list[Tool]:
 		from flow.memory.memory import MEMORY_TOOL_SLUG
@@ -125,11 +112,18 @@ class FlowAgent(Document):
 				resolved.append(tool_doc.to_tool())
 		return resolved
 
-	def new_session(self, *, model: str | None = None, title: str | None = None):
-		"""Start a conversation driven by this agent. Returns an FlowSession doc with runtime attached."""
+	def new_session(
+		self,
+		*,
+		model: str | None = None,
+		title: str | None = None,
+		source: str = "Manual",
+		auto_approve: bool = False,
+	) -> FlowSession:
+		"""Start a conversation driven by this agent on the flow server."""
 		from flow.lib.session import new_session
 
-		return new_session(self, model=model, title=title)
+		return new_session(self, model=model, title=title, source=source, auto_approve=auto_approve)
 
 	def run(
 		self,
@@ -140,29 +134,18 @@ class FlowAgent(Document):
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
-		auto_approve: bool = False,
-		stream: bool = False,
-	) -> FlowRun | Generator[Event]:
-		"""Run `input` and persist as a Flow Run. Convenience wrapper over the session API:
-		starts a conversation (or continues `session`) and calls `chat()`."""
+	) -> FlowRun:
+		"""Start `input` and return its Running Flow Run, in a new or existing session."""
 		from flow.lib.session import load_session, new_session
 
-		convo = load_session(session, agent=self.name) if session else new_session(self, source=source)
+		if session:
+			convo = load_session(session, agent=self.name)
+		else:
+			convo = new_session(self, source=source)
 		return convo.chat(
 			input,
 			source=source,
 			trigger=trigger,
 			reference_doctype=reference_doctype,
 			reference_name=reference_name,
-			auto_approve=auto_approve,
-			stream=stream,
 		)
-
-	def _snapshot(self, *, model: str | None = None) -> dict[str, Any]:
-		return {
-			"title": self.title,
-			"model": model or self.model,
-			"instructions": self.instructions,
-			"tools": [row.tool for row in self.tools],
-			"max_iterations": self.max_iterations or DEFAULT_MAX_ITERATIONS,
-		}

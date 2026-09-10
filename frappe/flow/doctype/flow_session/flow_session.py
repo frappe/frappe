@@ -10,33 +10,13 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from flow.daemon.client import DaemonClient, DaemonError
+from flow.lib.session import ABANDONED, GONE, READ_ONLY, STOPPED, LogRecorder, fail_running, flow_server
+
 if TYPE_CHECKING:
-	from collections.abc import Generator
-
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
-	from flow.lib.agent import Event
 
-TITLE_MAX_LENGTH = 80
-# A "Running" run older than this is treated as abandoned and no longer blocks the session.
-RUNNING_STALE_SECONDS = 300
-
-# Attachment routing. A file whose text exceeds RETRIEVAL_FRACTION of the model's
-# context window is too big to inline every turn, so it is chunked and retrieved
-# instead. Tokens are estimated from characters (no per-turn tokenizer cost).
-DEFAULT_CONTEXT_WINDOW = 128000
-CHARS_PER_TOKEN = 4
-RETRIEVAL_FRACTION = 0.5
-# Chars reserved (as tokens) for the model's reply when budgeting file content.
-RESERVED_OUTPUT_TOKENS = 4096
-# How many retrieved chunks to inject for the current turn.
-RETRIEVAL_TOP_K = 8
-
-
-def _set_active_run(run: str | None) -> None:
-	"""Record which run is executing, so memories the update_memory tool creates during it
-	are stamped with this run as their source_run. flow.memory.memory reads this flag;
-	stream_with_persistence clears it when a streamed run ends."""
-	frappe.flags.flow_run = run
+CALLBACK_METHOD = "flow.daemon.callback.callback"
 
 
 class FlowSession(Document):
@@ -53,6 +33,8 @@ class FlowSession(Document):
 
 		agent: DF.Link | None
 		attachments: DF.Table[FlowSessionAttachment]
+		auto_approve: DF.Check
+		last_synced_seq: DF.Int
 		messages: DF.Table[FlowSessionMessage]
 		model: DF.Link | None
 		source: DF.Literal["Manual", "Trigger"]
@@ -62,8 +44,14 @@ class FlowSession(Document):
 	def validate(self):
 		self._validate_agent_unchanged()
 		self._validate_model_enabled()
+		if self.source == "Trigger":
+			self.auto_approve = 1
 
 	def on_trash(self):
+		try:
+			_delete_server_session(self.name)
+		except DaemonError as exc:
+			frappe.throw(str(exc), title=_("Flow Server"))
 		frappe.db.delete("Flow Run", {"session": self.name})
 		_purge_attachment_chunks(self.name)
 
@@ -89,11 +77,16 @@ class FlowSession(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		"""Delete sessions idle for `days`, along with their Flow Runs and transcript rows.
-		Age is last activity (modified), so an actively-used session is never purged."""
+		"""Delete sessions idle for `days` with their runs, transcript and server copies."""
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
 		sessions = frappe.get_all("Flow Session", filters={"modified": ["<", cutoff]}, pluck="name")
 		for batch in frappe.utils.create_batch(sessions, 100):
+			try:
+				for name in batch:
+					_delete_server_session(name)
+			except DaemonError:
+				frappe.log_error(title="Flow Session purge stopped: the flow server refused")
+				return
 			frappe.db.delete("Flow Run", {"session": ["in", batch]})
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
@@ -105,305 +98,186 @@ class FlowSession(Document):
 		"""Return the conversation history in OpenAI message format."""
 		return [_row_to_message(row) for row in self.messages]
 
-	def append_run_messages(self, new_messages: list[dict[str, Any]], run: str) -> None:
-		"""Append the messages produced by `run` to this session's transcript.
+	def server_config(self) -> dict[str, Any]:
+		"""This session's flow server config. Tools go as schemas; the server calls back to run them."""
+		from flow.daemon import lifecycle
+		from flow.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
+		from flow.lib.model import model_config
 
-		`new_messages` should be the delta — only messages this run added — not the
-		cumulative history. Each row is tagged with the producing run for traceability.
-		"""
-		for message in new_messages:
-			role = message.get("role")
-			tool_calls = message.get("tool_calls")
-			self.append(
-				"messages",
-				{
-					"role": role,
-					"content": message.get("content"),
-					"tool_call_id": message.get("tool_call_id"),
-					"tool_calls": json.dumps(tool_calls) if tool_calls else None,
-					"run": run,
-				},
-			)
-		self.save(ignore_permissions=True)
+		agent = frappe.get_doc("Flow Agent", self.agent)
+		if not agent.enabled:
+			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
+		config = {
+			"session_id": self.name,
+			"title": self.title,
+			**model_config(self.model or agent.model),
+			"system_prompt": agent.instructions or "",
+			"tools": [],
+			"extension_tools": [],
+			"skills_enabled": False,
+			**agent.client_tool_config(),
+			"auto_approve": bool(self.auto_approve),
+			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
+			"auto_compact": True,
+			"callback_url": f"{lifecycle.site_url()}/api/method/{CALLBACK_METHOD}",
+			"callback_token": frappe.conf.flow_server_secret,
+			"notify_run_ended": True,
+			"user_context": {
+				"site": frappe.local.site,
+				"user": frappe.session.user,
+				"agent": self.agent,
+				"session": self.name,
+			},
+			"cwd": str(lifecycle.session_root()),
+		}
+		if frappe.conf.flow_callback_timeout:
+			config["callback_timeout"] = frappe.conf.flow_callback_timeout
+		return config
 
 	def chat(
 		self,
 		input: str,
 		*,
-		attachments: list[str] | None = None,
 		source: str = "Manual",
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
-		auto_approve: bool = False,
-		stream: bool = False,
-	) -> FlowRun | Generator[Event]:
-		"""Run one turn and persist it as a Flow Run. `attachments` are File names whose text
-		is injected into this turn's prompt. With `stream=True`, returns an event generator.
-
-		Commits the current transaction before the model call (to release row locks). Do not
-		call with pending writes you may want to roll back on failure; commit-and-compensate
-		around it instead."""
-		from flow.flow.doctype.flow_run.flow_run import create_run, stream_with_persistence
-
-		self.reload()
-		self._assert_not_blocked()
-		attachment_data = self._load_attachments(attachments)
-		if not self.title:
-			self.db_set("title", derive_title(input))
-
-		run = create_run(
-			source=source,
-			input=input,
-			session=self.name,
-			trigger=trigger,
-			reference_doctype=reference_doctype,
-			reference_name=reference_name,
-			config_snapshot=self._snapshot,
-		)
-		self._persist_turn(input, attachment_data, run.name)
-		self._index_retrieval_attachments(run.name, {d["file"]: d["extracted_text"] for d in attachment_data})
-		run_input = self._build_prompt_messages()
-
-		# Release row locks and publish the Running run before the long model call, so a
-		# concurrent turn doesn't block on the Flow Session row until lock timeout (1205).
-		if not frappe.flags.in_test:
-			frappe.db.commit()
-
-		# Opt-in (set on the Flow Trigger): run confirmation tools without approval so unattended
-		# trigger runs don't park in Paused waiting for a confirmation no one can give.
-		self._runtime.auto_approve = auto_approve
-
-		# The update_memory tool reads this to stamp source_run. Scope tightly to the runtime
-		# call and clear after, so a stale run never leaks onto a later write in this request.
-		_set_active_run(run.name)
-		if stream:
-			return stream_with_persistence(lambda: self._runtime.run(run_input, stream=True), run)
-
+	) -> FlowRun:
+		"""Start a turn and return its Running Flow Run, or the active run it joined."""
+		if not (input or "").strip():
+			frappe.throw(_("Message is required."), title=_("Invalid Message"))
+		self.sync()
 		try:
-			result = self._runtime.run(run_input)
-		except Exception as e:
-			run.mark_failed(str(e))
-			# Persist Failed too; the Running run is already committed.
-			if not frappe.flags.in_test:
-				frappe.db.commit()
-			raise
-		finally:
-			_set_active_run(None)
-		run.apply_result(result)
+			with DaemonClient.for_site() as client:
+				reply = client.run(self.name, input)
+		except DaemonError as exc:
+			if exc.status == 404:
+				frappe.throw(_(READ_ONLY), title=_("Flow Server"))
+			frappe.throw(str(exc), title=_("Flow Server"))
+		if reply.get("status") == "steered":
+			run = self._active_run()
+		else:
+			run = frappe.get_doc(
+				{
+					"doctype": "Flow Run",
+					"session": self.name,
+					"source": source,
+					"input": input,
+					"trigger": trigger,
+					"reference_doctype": reference_doctype,
+					"reference_name": reference_name,
+					"status": "Running",
+				}
+			).insert(ignore_permissions=True)
 		return run
 
-	def _load_attachments(self, attachments: list[str] | None) -> list[dict[str, Any]]:
-		"""Validate and extract each attached file (errors surface before the run is created)."""
-		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import resolve_attachment
+	def resume(self, answers: dict[str, Any]) -> FlowRun:
+		"""Answer the paused run's approval batch, keyed by tool call id."""
+		self.sync()
+		run = self._paused_run()
+		with flow_server() as client:
+			client.resume(self.name, answers, approval_seq=run.approval_seq)
+		run.db_set({"status": "Running", "questions": None, "approval_seq": 0})
+		return run
 
-		seen: set[str] = set()
-		resolved: list[dict[str, Any]] = []
-		for file in attachments or []:
-			if file in seen:
-				continue
-			seen.add(file)
-			resolved.append(resolve_attachment(file))
-		return resolved
+	def abort(self) -> str:
+		"""Signal the active turn to stop; its terminal callback records the outcome."""
+		with flow_server() as client:
+			return client.abort(self.name)["status"]
 
-	def _persist_turn(self, input: str, attachment_data: list[dict[str, Any]], run: str) -> None:
-		"""Persist this turn's user message (and the system message on the first turn) plus its
-		attachment rows before the run executes. Stored ahead of the run so they fall in the
-		transcript prefix the run's own message-append skips — the run persists only its output."""
-		if not self.messages and self._runtime.instructions:
-			self.append("messages", {"role": "system", "content": self._runtime.instructions, "run": run})
-		self.append("messages", {"role": "user", "content": input, "run": run})
+	def cancel_pending(self) -> str:
+		"""Drop the paused run's approval batch: the run is over, stopped by the user."""
+		with flow_server() as client:
+			status = client.cancel_pending(self.name)["status"]
+		if status == "cancelled":
+			self.sync()
+			self._paused_run().mark_failed(STOPPED)
+		return status
 
-		threshold = self._attachment_inline_threshold()
-		embeddings_on = _embeddings_configured()
-		for data in attachment_data:
-			text = data["extracted_text"]
-			self.append(
-				"attachments",
-				{
-					"file": data["file"],
-					"file_name": data["file_name"],
-					"file_size": data["file_size"],
-					"extracted_text": text[:threshold],
-					"mode": _route_attachment(text, threshold, embeddings_on),
-					"run": run,
-				},
+	def set_model(self, model: str) -> None:
+		from flow.lib.model import model_config
+
+		config = model_config(model)
+		with flow_server() as client:
+			client.set_model(
+				self.name, config["model"], api_key=config["api_key"], api_base=config["api_base"]
 			)
+		self.db_set("model", model)
+
+	def set_title(self, title: str) -> None:
+		with flow_server() as client:
+			client.patch_config(self.name, title=title)
+		self.db_set("title", title)
+
+	def set_auto_approve(self, auto_approve: bool) -> None:
+		"""Whether confirmation tools run unattended; applies from the next tool call."""
+		auto_approve = bool(auto_approve)
+		if self.source == "Trigger" and not auto_approve:
+			frappe.throw(_("Trigger sessions always auto-approve tool calls."))
+		with flow_server() as client:
+			client.patch_config(self.name, auto_approve=auto_approve)
+		self.db_set("auto_approve", auto_approve)
+
+	def entries(self, *, since: int = 0, path: str = "active") -> dict[str, Any]:
+		"""The flow server's log: a snapshot of the active branch, or every row after `since`."""
+		with flow_server() as client:
+			return client.entries(self.name, since=since, path=path)
+
+	def sync(self) -> None:
+		"""Record the flow server's log since the last sync into Flow Runs and transcript rows."""
+		self._lock()
+		try:
+			with DaemonClient.for_site() as client:
+				info = client.get_session(self.name)
+				rows = []
+				if info["latest_seq"] > self.last_synced_seq:
+					rows = client.entries(self.name, since=self.last_synced_seq, path="all")["entries"]
+		except DaemonError as exc:
+			if exc.status != 404:
+				frappe.throw(str(exc), title=_("Flow Server"))
+			fail_running(self.name, GONE)
+			return
+		if rows:
+			LogRecorder(self).record(rows)
+		if not info["running"]:
+			fail_running(self.name, ABANDONED)
+		if info["title"] and info["title"] != self.title:
+			self.title = info["title"]
+		self.flags.ignore_validate = True
 		self.save(ignore_permissions=True)
 
-	def _context_window(self) -> int:
-		"""The effective model's context window in tokens (a default when unknown)."""
-		model = (self._snapshot or {}).get("model")
-		return (
-			model and frappe.db.get_value("Flow Model", model, "context_window")
-		) or DEFAULT_CONTEXT_WINDOW
-
-	def _attachment_inline_threshold(self) -> int:
-		"""Max characters of file text to inline before switching a file to retrieval."""
-		return int(self._context_window() * CHARS_PER_TOKEN * RETRIEVAL_FRACTION)
-
-	def _file_injection_budget(self) -> int:
-		"""Characters left for file content this turn: the context window minus the reply
-		reservation and the conversation text already in the transcript. Shrinks as the
-		conversation grows, so inline files yield to the dialogue rather than overflow it."""
-		window_chars = self._context_window() * CHARS_PER_TOKEN
-		reserved = RESERVED_OUTPUT_TOKENS * CHARS_PER_TOKEN
-		dialogue = sum(len(m.content or "") for m in self.messages)
-		return max(0, window_chars - reserved - dialogue)
-
-	def _index_retrieval_attachments(self, run: str, texts: dict[str, str] | None = None) -> None:
-		"""Chunk, embed, and store this run's retrieval-mode attachments, preferring the full
-		in-memory `texts` over the (capped) row text. Demotes to Inline on failure."""
-		rows = [a for a in self.attachments if a.run == run and a.mode == "Retrieval"]
-		if not rows:
-			return
-
-		from frappe.utils import cint
-
-		from flow.knowledge import attachment_store
-		from flow.knowledge.chunker import chunk_text
-		from flow.knowledge.embedder import embed_texts
-
-		texts = texts or {}
-		settings = frappe.get_cached_doc("Flow Knowledge Settings")
-		for row in rows:
-			try:
-				chunks = chunk_text(
-					texts.get(row.file) or row.extracted_text,
-					chunk_size=cint(settings.chunk_size),
-					overlap=cint(settings.chunk_overlap),
-				)
-				if not chunks:
-					row.db_set("mode", "Inline")
-					continue
-				vectors = embed_texts(chunks)
-				attachment_store.ensure_table(cint(settings.embedding_dimension))
-				attachment_store.add(self.name, row.name, chunks, vectors)
-			except Exception:
-				frappe.log_error(title="Chat attachment indexing failed")
-				row.db_set("mode", "Inline")
-
-	def resume(self, answers: dict[str, Any], *, stream: bool = False) -> FlowRun | Generator[Event]:
-		"""Resume this session's paused run with the user's answers."""
-		from flow.flow.doctype.flow_run.flow_run import stream_with_persistence
-
-		run_name = frappe.db.get_value(
-			"Flow Run",
-			{"session": self.name, "status": "Paused"},
-			"name",
-			order_by="creation desc",
-		)
-		if not run_name:
-			frappe.throw(_("This session has no paused run to resume."), title=_("Nothing to Resume"))
-		run = frappe.get_doc("Flow Run", run_name)
-
+	def _lock(self) -> None:
+		"""Lock this session's row for the transaction and re-read it."""
+		frappe.db.get_value("Flow Session", self.name, "name", for_update=True)
 		self.reload()
-		messages = self._build_prompt_messages()
-		if not messages:
-			frappe.throw(_("This session has no transcript to resume from."))
 
-		_set_active_run(run.name)
-		if stream:
-			return stream_with_persistence(lambda: self._runtime.resume(messages, answers, stream=True), run)
-
-		try:
-			result = self._runtime.resume(messages, answers)
-		except Exception as e:
-			run.mark_failed(str(e))
-			raise
-		finally:
-			_set_active_run(None)
-		run.apply_result(result)
-		return run
-
-	def _build_prompt_messages(self) -> list[dict[str, Any]]:
-		"""Transcript as sent to the model. Augmentation is ephemeral — stored messages stay
-		clean (file text lives only in the attachments child table):
-
-		- Inline files: full text re-injected on their turn, clamped to the remaining budget.
-		- Retrieval files: a short note marks where each was attached; for the latest user turn
-		  the most relevant chunks (by that turn's query) are injected in place of the full text.
-		- Agent memory: the agent's saved memories are appended to the system message.
-		"""
-		from flow.knowledge.retriever import retrieve_attachments
-		from flow.memory.memory import build_memory_block
-
-		attachments_by_run = self._group_attachments_by_run()
-		last_user_run = self._latest_user_run()
-		query = self._latest_user_content() if any(a.mode == "Retrieval" for a in self.attachments) else None
-		budget = self._file_injection_budget()
-
-		messages: list[dict[str, Any]] = []
-		for row in self.messages:
-			message = _row_to_message(row)
-			if row.role == "user":
-				content = message["content"]
-				attachments = attachments_by_run.get(row.run, [])
-				inline = [a for a in attachments if a.mode == "Inline"]
-				retrieval = [a for a in attachments if a.mode == "Retrieval"]
-				if inline:
-					content, budget = _inject_inline_files(content, inline, budget)
-				if retrieval:
-					content = _note_retrieval_files(content, retrieval)
-				if query and row.run == last_user_run:
-					chunks = retrieve_attachments(query, session=self.name, limit=RETRIEVAL_TOP_K)
-					content, budget = _inject_retrieved_chunks(content, chunks, budget)
-				message["content"] = content
-			messages.append(message)
-
-		memory_block = build_memory_block(self.agent, query=self._latest_user_content())
-		if memory_block:
-			if messages and messages[0]["role"] == "system":
-				messages[0]["content"] = f"{messages[0]['content']}\n\n{memory_block}"
-			else:
-				messages.insert(0, {"role": "system", "content": memory_block})
-		return messages
-
-	def _latest_user_run(self) -> str | None:
-		for row in reversed(self.messages):
-			if row.role == "user":
-				return row.run
-		return None
-
-	def _latest_user_content(self) -> str:
-		for row in reversed(self.messages):
-			if row.role == "user":
-				return row.content or ""
-		return ""
-
-	def _group_attachments_by_run(self) -> dict[str, list[Any]]:
-		grouped: dict[str, list[Any]] = {}
-		for attachment in self.attachments:
-			grouped.setdefault(attachment.run, []).append(attachment)
-		return grouped
-
-	def _assert_not_blocked(self) -> None:
-		blocking = frappe.db.get_value(
-			"Flow Run",
-			{"session": self.name, "status": ("in", ["Paused", "Running"])},
-			["name", "status", "creation"],
-			order_by="creation desc",
-			as_dict=True,
+	def _active_run(self) -> FlowRun:
+		name = frappe.db.get_value(
+			"Flow Run", {"session": self.name, "status": "Running"}, "name", order_by="creation desc"
 		)
-		if not blocking:
-			return
-		if blocking.status == "Paused":
+		if not name:
 			frappe.throw(
-				_("This session has a paused run. Resume it before starting a new turn."),
-				title=_("Run Paused"),
+				_("The flow server is running a turn this site has no record of."), title=_("Flow Server")
 			)
-		age = frappe.utils.time_diff_in_seconds(frappe.utils.now_datetime(), blocking.creation)
-		if age > RUNNING_STALE_SECONDS:
-			frappe.db.set_value(
-				"Flow Run",
-				blocking.name,
-				{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
-			)
-			return
-		frappe.throw(
-			_("This session already has a run in progress."),
-			title=_("Run In Progress"),
+		return frappe.get_doc("Flow Run", name)
+
+	def _paused_run(self) -> FlowRun:
+		name = frappe.db.get_value(
+			"Flow Run", {"session": self.name, "status": "Paused"}, "name", order_by="creation desc"
 		)
+		if not name:
+			frappe.throw(_("This session has no paused run."), title=_("Nothing to Resume"))
+		return frappe.get_doc("Flow Run", name)
+
+
+def _delete_server_session(name: str) -> None:
+	"""Drop the flow server's copy of a session; one it no longer has is fine."""
+	with DaemonClient.for_site() as client:
+		try:
+			client.delete_session(name)
+		except DaemonError as exc:
+			if exc.status != 404:
+				raise
 
 
 def _delete_attachment_files(sessions: list[str]) -> None:
@@ -429,21 +303,6 @@ def _purge_attachment_chunks(session: str | list[str]) -> None:
 		frappe.log_error(title="Chat attachment cleanup failed")
 
 
-def _embeddings_configured() -> bool:
-	"""Whether an embedding model is set, i.e. retrieval mode is available."""
-	return bool(
-		frappe.get_cached_value("Flow Knowledge Settings", "Flow Knowledge Settings", "embedding_model")
-	)
-
-
-def _route_attachment(text: str | None, threshold: int, embeddings_on: bool) -> str:
-	"""Inline a file that fits; route an oversized one to retrieval when embeddings are
-	available, else keep it Inline (it is truncated to fit at prompt-build time)."""
-	if len(text or "") <= threshold:
-		return "Inline"
-	return "Retrieval" if embeddings_on else "Inline"
-
-
 def _row_to_message(row) -> dict[str, Any]:
 	"""Convert a stored transcript row to an OpenAI-format message dict."""
 	if row.role == "tool":
@@ -452,58 +311,3 @@ def _row_to_message(row) -> dict[str, Any]:
 	if row.tool_calls:
 		message["tool_calls"] = json.loads(row.tool_calls)
 	return message
-
-
-def _inject_inline_files(content: str | None, attachments: list[Any], budget: int) -> tuple[str, int]:
-	"""Append inline files' full text to a user message, clamped to the shared `budget`.
-	Returns the augmented content and the remaining budget."""
-	blocks = []
-	for a in attachments:
-		text, truncated = _clamp(a.extracted_text or "", budget)
-		budget -= len(text)
-		marker = _("\n\n[File truncated to fit the context window.]") if truncated else ""
-		blocks.append(f"--- File: {a.file_name} ---\n{text}{marker}\n--- End of file: {a.file_name} ---")
-	body = f"{_('The user attached the following file(s):')}\n\n" + "\n\n".join(blocks)
-	return (f"{content}\n\n{body}" if content else body), budget
-
-
-def _note_retrieval_files(content: str | None, attachments: list[Any]) -> str:
-	"""Mark where large (retrieval-mode) files were attached, without their bulk. Their
-	relevant excerpts are injected on the latest turn rather than inline here."""
-	names = ", ".join(a.file_name for a in attachments)
-	note = _("The user attached file(s) (large; relevant excerpts shown below): {0}").format(names)
-	return f"{content}\n\n{note}" if content else note
-
-
-def _inject_retrieved_chunks(
-	content: str | None, chunks: list[dict[str, Any]], budget: int
-) -> tuple[str, int]:
-	"""Append retrieved excerpts to the latest user message, within the remaining budget."""
-	blocks = []
-	for chunk in chunks:
-		text, _truncated = _clamp(chunk["content"], budget)
-		if not text:
-			break
-		budget -= len(text)
-		blocks.append(text)
-	if not blocks:
-		return content or "", budget
-	body = f"{_('Relevant excerpts from the attached file(s):')}\n\n" + "\n\n---\n\n".join(blocks)
-	return (f"{content}\n\n{body}" if content else body), budget
-
-
-def _clamp(text: str, limit: int) -> tuple[str, bool]:
-	"""Return (text capped at `limit` chars, was_truncated)."""
-	if limit <= 0:
-		return "", bool(text)
-	if len(text) <= limit:
-		return text, False
-	return text[:limit], True
-
-
-def derive_title(text: str) -> str:
-	"""Pick a short title from a user message. Single line, capped at TITLE_MAX_LENGTH."""
-	cleaned = " ".join((text or "").split())
-	if len(cleaned) <= TITLE_MAX_LENGTH:
-		return cleaned
-	return cleaned[: TITLE_MAX_LENGTH - 1].rstrip() + "…"

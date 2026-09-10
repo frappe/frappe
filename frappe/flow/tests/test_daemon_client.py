@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import time
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -11,8 +12,8 @@ import frappe
 import httpx
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-from flow.daemon import lifecycle, session_config
-from flow.daemon.client import RUN_TIMEOUT, TIMEOUT, DaemonClient, DaemonError
+from flow.daemon import lifecycle
+from flow.daemon.client import DaemonClient, DaemonError
 from flow.tools.builtins import sync_builtin_tools
 
 TOKEN = "site-token-abc"
@@ -93,16 +94,6 @@ class TestDaemonClient(UnitTestCase):
 				if body is not None:
 					self.assertEqual(json.loads(request.content), body)
 		self.assertEqual(dict(self.requests[-2].url.params), {"since": "3", "path": "all"})
-
-	def test_waited_runs_ask_the_daemon_to_wait_and_wait_longer(self):
-		self.client.run("s1", "hi")
-		self.assertEqual(dict(self.requests[-1].url.params), {})
-		self.assertEqual(self.requests[-1].extensions["timeout"]["read"], TIMEOUT)
-		self.client.run("s1", "hi", wait=True)
-		self.assertEqual(dict(self.requests[-1].url.params), {"wait": "true"})
-		self.assertEqual(self.requests[-1].extensions["timeout"]["read"], RUN_TIMEOUT)
-		self.client.resume("s1", {}, approval_seq=1, wait=True)
-		self.assertEqual(dict(self.requests[-1].url.params), {"wait": "true"})
 
 	def test_uploads_send_multipart_files(self):
 		self.client.upload_attachments("s1", [("a.png", b"\x89PNG", "image/png")])
@@ -222,9 +213,12 @@ class TestLiveDaemon(IntegrationTestCase):
 
 	def config(self, session_id: str) -> dict:
 		"""The real config, pointed at the daemon's keyless mock model."""
-		with patch.object(session_config, "resolve_provider_credentials", return_value={}):
-			config = session_config.build(self.agent, session_id=session_id, title="Live test")
-		return {**config, "model": "mock"}
+		session = frappe.get_doc(
+			{"doctype": "Flow Session", "agent": self.agent.name, "title": "Live test"}
+		).insert()
+		with patch("flow.lib.model.resolve_provider_credentials", return_value={}):
+			config = session.server_config()
+		return {**config, "session_id": session_id, "model": "mock"}
 
 	def test_the_daemon_answers_and_serves_both_sites(self):
 		self.assertEqual(self.client.healthz(), {"ok": True})
@@ -269,15 +263,24 @@ class TestLiveDaemon(IntegrationTestCase):
 			self.other.get_session("partitioned")
 		self.assertEqual(caught.exception.status, 404)
 
-	def test_a_waited_run_returns_the_turns_summary(self):
+	def test_a_run_returns_immediately_and_finishes_in_the_log(self):
 		self.client.create_session(self.config("turns"))
-		summary = self.client.run("turns", "hello there", wait=True)
-		self.assertEqual(summary["reason"], "done")
-		self.assertEqual(summary["output"], "Mock reply to: hello there")
+		self.assertEqual(self.client.run("turns", "hello there"), {"status": "started"})
+		for _ in range(100):
+			if not self.client.get_session("turns")["running"]:
+				break
+			time.sleep(0.01)
+		else:
+			self.fail("daemon run did not finish")
 		self.assertEqual(self.client.get_session("turns")["title"], "Live test")
-		types = [entry["type"] for entry in self.client.entries("turns")["entries"]]
+		entries = self.client.entries("turns")["entries"]
+		types = [entry["type"] for entry in entries]
 		self.assertIn("user_message", types)
 		self.assertIn("assistant_message", types)
+		self.assertEqual(
+			next(row for row in entries if row["type"] == "assistant_message")["content"],
+			[{"type": "text", "text": "Mock reply to: hello there"}],
+		)
 		self.assertEqual(self.client.patch_config("turns", title="Renamed")["config"]["title"], "Renamed")
 		self.assertEqual(self.client.delete_session("turns"), {"status": "deleted"})
 		with self.assertRaises(DaemonError) as caught:

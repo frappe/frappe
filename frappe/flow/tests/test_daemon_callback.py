@@ -7,9 +7,10 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
-from flow.daemon import session_config
-from flow.daemon.callback import confirm_title, tool_callback
+from flow.daemon.callback import callback, confirm_title
+from flow.daemon.client import DaemonClient
 from flow.lib.tool import tool
+from flow.tests.fake_daemon import FakeDaemon, turn
 from flow.tools.builtins import sync_builtin_tools
 
 SECRET = "callback-secret"
@@ -103,6 +104,7 @@ class TestToolCallback(IntegrationTestCase):
 	) -> dict:
 		"""What the daemon posts. Identity comes from the session, not user_context."""
 		payload = {
+			"callback_type": "tool",
 			"session_id": session or self.session.name,
 			"tool": name,
 			"args": args or {},
@@ -112,7 +114,19 @@ class TestToolCallback(IntegrationTestCase):
 		headers = {"X-Harness-Token": token} if token is not None else {}
 		set_request(method="POST", json=payload, headers=headers)
 		try:
-			return frappe.call(tool_callback, **payload)
+			return frappe.call(callback, **payload)
+		finally:
+			del frappe.local.request
+
+	def call_terminal(self, seq: int, *, token=SECRET) -> dict:
+		payload = {
+			"callback_type": "run_ended",
+			"session_id": self.session.name,
+			"terminal_seq": seq,
+		}
+		set_request(method="POST", json=payload, headers={"X-Harness-Token": token})
+		try:
+			return frappe.call(callback, **payload)
 		finally:
 			del frappe.local.request
 
@@ -129,6 +143,20 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertEqual(self.call("whoami"), {"content": OWNER, "is_error": False})
 		self.assertEqual(frappe.session.user, "Administrator")
 
+	def test_terminal_callback_synchronizes_once_and_duplicate_delivery_is_safe(self):
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": self.session.name, "source": "Manual", "status": "Running"}
+		).insert()
+		daemon = FakeDaemon(rows=turn(1, "daemon-run", "hello"))
+		with patch.object(DaemonClient, "for_site", return_value=daemon):
+			self.assertEqual(self.call_terminal(8), {"synced_through": 8})
+			self.assertEqual(self.call_terminal(8), {"synced_through": 8})
+		run.reload()
+		self.assertEqual((run.status, run.daemon_run_id, run.output), ("Completed", "daemon-run", "done"))
+		self.session.reload()
+		self.assertEqual(self.session.last_synced_seq, 8)
+		self.assertEqual(len(self.session.messages), 4)
+
 	def test_the_owners_permissions_apply(self):
 		result = self.call("read", {"doctype": "Error Log"})
 		self.assertTrue(result["is_error"])
@@ -136,7 +164,7 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertEqual(frappe.session.user, "Administrator")
 
 	def test_update_memory_never_reaches_the_daemon_and_is_unknown_here(self):
-		names = [tool.name for tool in session_config.client_tools(self.agent)]
+		names = [tool.name for tool in self.agent.client_tools()]
 		self.assertNotIn("update_memory", names)
 		self.assertIn("whoami", names)
 		result = self.call("update_memory", {"content": "remember this", "scope": "agent"})

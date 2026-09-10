@@ -7,8 +7,8 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.lib.agent import Agent
-from flow.lib.model import ChatResponse, Model
+from flow.daemon.client import DaemonClient, DaemonError
+from flow.tests.fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 
 
@@ -34,14 +34,6 @@ def _agent(model_name: str, **overrides: Any) -> dict:
 	}
 	doc.update(overrides)
 	return doc
-
-
-def _final_response() -> ChatResponse:
-	return ChatResponse(
-		content="done",
-		finish_reason="stop",
-		usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
-	)
 
 
 class TestFlowAgentDefaults(IntegrationTestCase):
@@ -73,54 +65,6 @@ class TestFlowAgentDefaults(IntegrationTestCase):
 			doc.insert()
 
 
-class TestFlowAgentAssemble(IntegrationTestCase):
-	def setUp(self):
-		sync_builtin_tools()
-		self.model_doc = frappe.get_doc(_model()).insert()
-		self.agent_doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def test_assemble_returns_agent_with_resolved_tools(self):
-		runtime = self.agent_doc.assemble()
-
-		self.assertIsInstance(runtime, Agent)
-		self.assertEqual(runtime.name, self.agent_doc.name)
-		self.assertEqual(runtime.instructions, "Be terse.")
-		self.assertEqual(sorted(t.name for t in runtime.tools), ["describe", "execute", "read"])
-		self.assertEqual(runtime.max_iterations, 5)
-
-	def test_assemble_uses_default_iterations_when_unset(self):
-		self.agent_doc.max_iterations = None
-		self.agent_doc.save()
-
-		runtime = self.agent_doc.assemble()
-
-		self.assertEqual(runtime.max_iterations, 20)
-
-	def test_assemble_throws_when_agent_disabled(self):
-		self.agent_doc.enabled = 0
-		self.agent_doc.save()
-
-		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
-			self.agent_doc.assemble()
-
-	def test_assemble_throws_when_model_disabled(self):
-		self.model_doc.enabled = 0
-		self.model_doc.save()
-
-		with self.assertRaisesRegex(frappe.ValidationError, "Model"):
-			self.agent_doc.assemble()
-
-	def test_assemble_skips_disabled_tools(self):
-		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
-
-		runtime = self.agent_doc.assemble()
-
-		self.assertEqual(sorted(t.name for t in runtime.tools), ["describe", "execute"])
-
-
 class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
@@ -140,8 +84,7 @@ class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
 				knowledge_bases=[{"knowledge_base": kb} for kb in kbs],
 			)
 		).insert()
-		runtime = agent.assemble()
-		return next(t for t in runtime.tools if t.name == "search_knowledge")
+		return next(t for t in agent.client_tools() if t.name == "search_knowledge")
 
 	def test_schema_exposes_only_query(self):
 		tool = self._search_tool([self.kb.name])
@@ -189,103 +132,62 @@ class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
 
 
 class TestFlowAgentRun(IntegrationTestCase):
+	"""agent.run against a scripted flow server."""
+
 	def setUp(self):
 		sync_builtin_tools()
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.daemon = FakeDaemon()
+		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent_doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
 
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_run_produces_ai_run_linked_to_session_with_agent(self):
-		with patch.object(Model, "chat", return_value=_final_response()):
-			ai_run = self.agent_doc.run("hi")
+	def test_run_returns_a_running_run_in_a_session_with_the_agent(self):
+		run = self.agent_doc.run("hi")
 
-		session = frappe.get_doc("Flow Session", ai_run.session)
-		self.assertEqual(session.agent, self.agent_doc.name)
-		self.assertEqual(ai_run.status, "Completed")
-		self.assertEqual(ai_run.source, "Manual")
-		self.assertEqual(ai_run.output, "done")
-		self.assertEqual(ai_run.input, "hi")
+		session = frappe.get_doc("Flow Session", run.session)
+		self.assertEqual((session.agent, session.source), (self.agent_doc.name, "Manual"))
+		self.assertEqual((run.status, run.source, run.output, run.input), ("Running", "Manual", None, "hi"))
+		self.assertFalse(self.daemon.configs[session.name]["auto_approve"])
 
-	def test_run_records_config_snapshot(self):
-		import json
+	def test_trigger_run_creates_an_auto_approved_session(self):
+		run = self.agent_doc.run("hi", source="Trigger")
 
-		with patch.object(Model, "chat", return_value=_final_response()):
-			ai_run = self.agent_doc.run("hi")
+		self.assertEqual(run.source, "Trigger")
+		session = frappe.get_doc("Flow Session", run.session)
+		self.assertEqual((session.source, session.auto_approve), ("Trigger", 1))
+		self.assertTrue(self.daemon.configs[session.name]["auto_approve"])
 
-		snapshot = json.loads(ai_run.config_snapshot)
-		self.assertEqual(snapshot["title"], "Test Agent")
-		self.assertEqual(snapshot["model"], self.model_doc.name)
-		self.assertEqual(sorted(snapshot["tools"]), ["describe", "execute", "read"])
-		self.assertEqual(snapshot["max_iterations"], 5)
+	def test_run_continues_a_session_without_changing_its_approval_policy(self):
+		first = self.agent_doc.run("hi")
+		session = frappe.get_doc("Flow Session", first.session)
+		session.sync()
+		session.set_auto_approve(True)
+		self.daemon.calls.clear()
+		second = self.agent_doc.run("again", session=first.session)
 
-	def test_run_accepts_source_param(self):
-		with patch.object(Model, "chat", return_value=_final_response()):
-			ai_run = self.agent_doc.run("hi", source="Trigger")
+		self.assertEqual((second.session, second.status, second.input), (first.session, "Running", "again"))
+		self.assertEqual(frappe.db.count("Flow Run", {"session": first.session}), 2)
+		self.assertFalse(any(call[0] == "patch_config" for call in self.daemon.calls))
 
-		self.assertEqual(ai_run.source, "Trigger")
+	def test_run_refuses_another_agents_session(self):
+		other = frappe.get_doc(_agent(self.model_doc.name, title="Other Run Agent")).insert()
+		first = self.agent_doc.run("hi")
 
-	def test_run_marks_failed_and_reraises_on_exception(self):
-		with patch.object(Model, "chat", side_effect=RuntimeError("boom")):
-			with self.assertRaises(RuntimeError):
+		with self.assertRaisesRegex(frappe.ValidationError, "bound to agent"):
+			other.run("mine now", session=first.session)
+
+	def test_run_leaves_no_run_when_the_server_refuses(self):
+		before = frappe.db.count("Flow Run")
+		with patch.object(self.daemon, "run", side_effect=DaemonError(400, "attachment 'x' not found")):
+			with self.assertRaisesRegex(frappe.ValidationError, "400"):
 				self.agent_doc.run("hi")
 
-		failed = frappe.get_last_doc("Flow Run", filters={"status": "Failed"})
-		self.assertIn("boom", failed.error)
-
-
-class TestFlowAgentModelPermission(IntegrationTestCase):
-	def setUp(self):
-		sync_builtin_tools()
-		self.allowed = frappe.get_doc(_model(title="Allowed Model")).insert()
-		self.restricted = frappe.get_doc(_model(title="Restricted Model")).insert()
-		self.agent_doc = frappe.get_doc(_agent(self.restricted.name)).insert()
-		self.user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "model-perm@example.com",
-				"first_name": "Model Perm",
-				"send_welcome_email": 0,
-			}
-		).insert(ignore_permissions=True)
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.db.rollback()
-
-	def _restrict_to(self, model_name: str):
-		frappe.get_doc(
-			{
-				"doctype": "User Permission",
-				"user": self.user.name,
-				"allow": "Flow Model",
-				"for_value": model_name,
-			}
-		).insert(ignore_permissions=True)
-		frappe.clear_cache(user=self.user.name)
-
-	def test_user_restricted_to_other_model_is_blocked(self):
-		self._restrict_to(self.allowed.name)
-		frappe.set_user(self.user.name)
-
-		with self.assertRaises(frappe.PermissionError):
-			self.agent_doc.assemble()
-
-	def test_user_permitted_for_model_can_assemble(self):
-		self._restrict_to(self.restricted.name)
-		frappe.set_user(self.user.name)
-
-		self.assertIsInstance(self.agent_doc.assemble(), Agent)
-
-	def test_model_override_is_permission_checked(self):
-		self._restrict_to(self.allowed.name)
-		frappe.set_user(self.user.name)
-
-		# Overriding to a permitted model works; the agent's own restricted model stays blocked.
-		self.assertIsInstance(self.agent_doc.assemble(model=self.allowed.name), Agent)
-		with self.assertRaises(frappe.PermissionError):
-			self.agent_doc.assemble()
+		self.assertEqual(frappe.db.count("Flow Run"), before)
 
 
 class TestFlowAgentSystemGenerated(IntegrationTestCase):
@@ -327,3 +229,36 @@ class TestFlowAgentSystemGenerated(IntegrationTestCase):
 		agent.instructions = "Be verbose."
 		agent.save()
 		self.assertEqual(frappe.db.get_value("Flow Agent", agent.name, "instructions"), "Be verbose.")
+
+
+class TestFlowAgentClientTools(IntegrationTestCase):
+	"""The tools an agent sends to the flow server."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		self.model_doc = frappe.get_doc(_model()).insert()
+		self.agent_doc = frappe.get_doc(
+			_agent(self.model_doc.name, tools=[{"tool": "read"}, {"tool": "execute"}])
+		).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def names(self):
+		return [tool.name for tool in self.agent_doc.client_tools()]
+
+	def test_schemas_and_the_confirmation_list(self):
+		config = self.agent_doc.client_tool_config()
+		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
+		self.assertEqual(config["client_tools"][0]["type"], "function")
+		self.assertIn("properties", config["client_tools"][0]["function"]["parameters"])
+		self.assertEqual(config["confirm_tools"], ["execute"])
+
+	def test_update_memory_never_travels_to_the_server(self):
+		self.agent_doc.append("tools", {"tool": "update_memory"})
+		self.agent_doc.save()
+		self.assertEqual(self.names(), ["read", "execute"])
+
+	def test_disabled_tools_stay_home(self):
+		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
+		self.assertEqual(self.names(), ["execute"])

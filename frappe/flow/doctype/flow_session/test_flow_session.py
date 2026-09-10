@@ -1,26 +1,21 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # See license.txt
 
-from types import SimpleNamespace
+import json
+import re
 from unittest.mock import patch
 
 import frappe
+from flow_harness.session.config import SessionConfig
 from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_session.flow_session import (
-	CHARS_PER_TOKEN,
-	DEFAULT_CONTEXT_WINDOW,
-	RESERVED_OUTPUT_TOKENS,
-	RETRIEVAL_FRACTION,
-	FlowSession,
-	_clamp,
-	_embeddings_configured,
-	_inject_inline_files,
-	_inject_retrieved_chunks,
-	_note_retrieval_files,
-	_route_attachment,
-	derive_title,
-)
+from flow.daemon import lifecycle
+from flow.daemon.client import DaemonClient, DaemonError
+from flow.flow.doctype.flow_session.flow_session import FlowSession
+from flow.tests.fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
+from flow.tools.builtins import sync_builtin_tools
+
+DELETE = "flow.flow.doctype.flow_session.flow_session._delete_server_session"
 
 
 class TestFlowSession(IntegrationTestCase):
@@ -79,6 +74,9 @@ class TestFlowSession(IntegrationTestCase):
 
 
 class TestClearOldLogs(IntegrationTestCase):
+	def setUp(self):
+		self.server_delete = self.enterContext(patch(DELETE))
+
 	def tearDown(self):
 		frappe.db.rollback()
 
@@ -107,6 +105,16 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("Flow Session Message", {"parent": old_session}), 0)
 		self.assertEqual(frappe.db.count("Flow Session Attachment", {"parent": old_session}), 0)
 		self.assertFalse(frappe.db.exists("File", old_file))
+		self.server_delete.assert_called_once_with(old_session)
+
+	def test_purge_waits_when_the_flow_server_refuses(self):
+		old_session, old_run, _ = self._session_with_run(age_days=100)
+		self.server_delete.side_effect = DaemonError(None, "unreachable")
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertTrue(frappe.db.exists("Flow Session", old_session))
+		self.assertTrue(frappe.db.exists("Flow Run", old_run))
 
 	def test_recent_session_is_kept(self):
 		recent_session, recent_run, recent_file = self._session_with_run(age_days=1)
@@ -118,267 +126,19 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("File", recent_file))
 
 
-class TestDeriveTitle(IntegrationTestCase):
-	def test_short_text_returned_as_is(self):
-		self.assertEqual(derive_title("hello world"), "hello world")
-
-	def test_long_text_truncated_with_ellipsis(self):
-		long_input = "a" * 200
-		result = derive_title(long_input)
-
-		self.assertEqual(len(result), 80)
-		self.assertTrue(result.endswith("…"))
-
-	def test_whitespace_collapsed(self):
-		self.assertEqual(derive_title("hello   \n  world"), "hello world")
-
-	def test_empty_input_returns_empty_string(self):
-		self.assertEqual(derive_title(""), "")
-		self.assertEqual(derive_title(None), "")
-
-
-def _att(file_name="f.txt", extracted_text="", mode="Inline", run=None):
-	return SimpleNamespace(file_name=file_name, extracted_text=extracted_text, mode=mode, run=run)
-
-
-class TestAttachmentRouting(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def test_small_file_is_inline(self):
-		self.assertEqual(_route_attachment("x" * 100, threshold=1000, embeddings_on=True), "Inline")
-
-	def test_at_threshold_is_inline(self):
-		self.assertEqual(_route_attachment("x" * 1000, threshold=1000, embeddings_on=True), "Inline")
-
-	def test_oversized_with_embeddings_is_retrieval(self):
-		self.assertEqual(_route_attachment("x" * 2000, threshold=1000, embeddings_on=True), "Retrieval")
-
-	def test_oversized_without_embeddings_stays_inline(self):
-		self.assertEqual(_route_attachment("x" * 2000, threshold=1000, embeddings_on=False), "Inline")
-
-	def test_none_text_is_inline(self):
-		self.assertEqual(_route_attachment(None, threshold=1000, embeddings_on=True), "Inline")
-
-	def test_embeddings_configured_reflects_settings(self):
-		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", "")
-		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
-		self.assertFalse(_embeddings_configured())
-
-
-class TestAttachmentInjection(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def test_inline_injects_full_text_and_decrements_budget(self):
-		content, budget = _inject_inline_files("hi", [_att(extracted_text="FULLBODY")], 1000)
-		self.assertIn("FULLBODY", content)
-		self.assertIn("f.txt", content)
-		self.assertEqual(budget, 1000 - len("FULLBODY"))
-
-	def test_inline_truncates_over_budget_with_marker(self):
-		content, budget = _inject_inline_files("", [_att(extracted_text="X" * 100)], 10)
-		self.assertIn("truncated", content.lower())
-		self.assertEqual(budget, 0)
-
-	def test_note_names_files(self):
-		note = _note_retrieval_files("q", [_att(file_name="report.pdf")])
-		self.assertIn("report.pdf", note)
-
-	def test_chunks_injected_within_budget(self):
-		content, _ = _inject_retrieved_chunks("q", [{"content": "ALPHA"}, {"content": "BETA"}], 1000)
-		self.assertIn("ALPHA", content)
-		self.assertIn("BETA", content)
-
-	def test_chunks_stop_at_budget(self):
-		content, budget = _inject_retrieved_chunks("q", [{"content": "X" * 100}], 5)
-		self.assertEqual(budget, 0)
-		self.assertIn("Relevant", content)
-
-	def test_no_chunks_leaves_content_unchanged(self):
-		content, budget = _inject_retrieved_chunks("q", [], 1000)
-		self.assertEqual(content, "q")
-		self.assertEqual(budget, 1000)
-
-	def test_clamp_within_over_and_zero(self):
-		self.assertEqual(_clamp("hello", 10), ("hello", False))
-		self.assertEqual(_clamp("hello", 3), ("hel", True))
-		self.assertEqual(_clamp("hello", 0), ("", True))
-
-
-class TestAttachmentBudget(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def _session(self, snapshot=None):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
-		s._snapshot = snapshot if snapshot is not None else {"model": None}
-		return s
-
-	def test_context_window_defaults_when_model_unknown(self):
-		self.assertEqual(self._session()._context_window(), DEFAULT_CONTEXT_WINDOW)
-
-	def test_context_window_reads_model_field(self):
-		model = frappe.get_doc(
-			{
-				"doctype": "Flow Model",
-				"title": "CW Model",
-				"model_id": "openai/gpt-4o-mini",
-			}
-		).insert()
-		frappe.db.set_value("Flow Model", model.name, "context_window", 9000)
-		self.assertEqual(self._session({"model": model.name})._context_window(), 9000)
-
-	def test_inline_threshold_is_fraction_of_window(self):
-		expected = int(DEFAULT_CONTEXT_WINDOW * CHARS_PER_TOKEN * RETRIEVAL_FRACTION)
-		self.assertEqual(self._session()._attachment_inline_threshold(), expected)
-
-	def test_budget_shrinks_with_dialogue(self):
-		s = self._session()
-		base = DEFAULT_CONTEXT_WINDOW * CHARS_PER_TOKEN - RESERVED_OUTPUT_TOKENS * CHARS_PER_TOKEN
-		self.assertEqual(s._file_injection_budget(), base)  # no messages yet
-		s.append("messages", {"role": "user", "content": "x" * 500, "run": None})
-		s.save(ignore_permissions=True)
-		s._snapshot = {"model": None}
-		self.assertEqual(s._file_injection_budget(), base - 500)
-
-	def test_budget_floors_at_zero(self):
-		model = frappe.get_doc(
-			{"doctype": "Flow Model", "title": "Tiny", "model_id": "openai/gpt-4o-mini"}
-		).insert()
-		frappe.db.set_value("Flow Model", model.name, "context_window", 1)
-		s = self._session({"model": model.name})
-		s.append("messages", {"role": "user", "content": "x" * 10000, "run": None})
-		s.save(ignore_permissions=True)
-		s._snapshot = {"model": model.name}
-		self.assertEqual(s._file_injection_budget(), 0)
-
-
-class TestBuildPromptMessages(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def _file(self):
-		return frappe.get_doc(
-			{"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}
-		).insert(ignore_permissions=True)
-
-	def test_inline_full_text_injected_on_its_turn(self):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
-		s._snapshot = {"model": None}
-		f = self._file()
-		s.append("messages", {"role": "user", "content": "summarize", "run": None})
-		s.append(
-			"attachments",
-			{
-				"file": f.name,
-				"file_name": "f.txt",
-				"file_size": 3,
-				"extracted_text": "INLINEBODY",
-				"mode": "Inline",
-			},
-		)
-		s.save(ignore_permissions=True)
-		content = next(m for m in s._build_prompt_messages() if m["role"] == "user")["content"]
-		self.assertIn("INLINEBODY", content)
-
-	def test_retrieval_injects_chunks_not_full_text(self):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
-		s._snapshot = {"model": None}
-		f = self._file()
-		big = "SECRETFULLTEXT " * 50
-		s.append("messages", {"role": "user", "content": "what does it say", "run": None})
-		s.append(
-			"attachments",
-			{
-				"file": f.name,
-				"file_name": "big.txt",
-				"file_size": len(big),
-				"extracted_text": big,
-				"mode": "Retrieval",
-			},
-		)
-		s.save(ignore_permissions=True)
-		with patch(
-			"flow.knowledge.retriever.retrieve_attachments", return_value=[{"content": "CHUNKED_EXCERPT"}]
-		):
-			content = next(m for m in s._build_prompt_messages() if m["role"] == "user")["content"]
-		self.assertIn("big.txt", content)  # note marks the attachment
-		self.assertIn("CHUNKED_EXCERPT", content)  # excerpt injected
-		self.assertNotIn("SECRETFULLTEXT", content)  # full text NOT injected
-
-	def test_no_attachments_leaves_message_clean(self):
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
-		s._snapshot = {"model": None}
-		s.append("messages", {"role": "user", "content": "hello", "run": None})
-		s.save(ignore_permissions=True)
-		content = next(m for m in s._build_prompt_messages() if m["role"] == "user")["content"]
-		self.assertEqual(content, "hello")
-
-
-class TestIndexRetrievalAttachments(IntegrationTestCase):
-	def setUp(self):
-		frappe.db.set_single_value("Flow Knowledge Settings", "chunk_size", 200)
-		frappe.db.set_single_value("Flow Knowledge Settings", "chunk_overlap", 20)
-		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_dimension", 4)
-		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
-
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def _session_with_retrieval(self, text):
-		f = frappe.get_doc({"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}).insert(
-			ignore_permissions=True
-		)
-		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
-		s.append(
-			"attachments",
-			{
-				"file": f.name,
-				"file_name": "f.txt",
-				"file_size": len(text),
-				"extracted_text": text,
-				"mode": "Retrieval",
-				"run": None,
-			},
-		)
-		s.save(ignore_permissions=True)
-		return s
-
-	def test_indexes_chunks_and_keeps_retrieval_mode(self):
-		s = self._session_with_retrieval("Revenue grew twelve percent this quarter. " * 20)
-		with (
-			patch(
-				"flow.knowledge.embedder.embed_texts",
-				side_effect=lambda chunks: [[1.0, 0.0, 0.0, 0.0]] * len(chunks),
-			),
-			patch("flow.knowledge.attachment_store.ensure_table"),
-			patch("flow.knowledge.attachment_store.add") as add,
-		):
-			s._index_retrieval_attachments(None)
-		add.assert_called_once()
-		s.reload()
-		self.assertEqual(s.attachments[0].mode, "Retrieval")
-
-	def test_empty_text_demotes_to_inline(self):
-		s = self._session_with_retrieval("   ")
-		with patch("flow.knowledge.embedder.embed_texts") as embed:
-			s._index_retrieval_attachments(None)
-		embed.assert_not_called()  # nothing to chunk -> no embedding
-		s.reload()
-		self.assertEqual(s.attachments[0].mode, "Inline")
-
-	def test_embedding_failure_demotes_to_inline(self):
-		s = self._session_with_retrieval("Some content worth chunking. " * 20)
-		with patch("flow.knowledge.embedder.embed_texts", side_effect=RuntimeError("provider down")):
-			s._index_retrieval_attachments(None)
-		s.reload()
-		self.assertEqual(s.attachments[0].mode, "Inline")
-
-
 class TestAttachmentCleanup(IntegrationTestCase):
+	def setUp(self):
+		self.server_delete = self.enterContext(patch(DELETE))
+
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_on_trash_needs_the_flow_servers_consent(self):
+		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
+		self.server_delete.side_effect = DaemonError(409, "cannot delete a session with an active run")
+		with self.assertRaisesRegex(frappe.ValidationError, "409"):
+			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
+		self.assertTrue(frappe.db.exists("Flow Session", s.name))
 
 	def test_on_trash_purges_session_chunks(self):
 		s = frappe.get_doc({"doctype": "Flow Session"}).insert(ignore_permissions=True)
@@ -409,3 +169,417 @@ class TestAttachmentCleanup(IntegrationTestCase):
 			FlowSession.clear_old_logs(days=30)
 		batch = delete.call_args.kwargs["session"]
 		self.assertIn(s.name, batch)
+
+
+class TestFlowSessionOnTheServer(IntegrationTestCase):
+	"""The session's verbs, against a scripted flow server."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.daemon = FakeDaemon()
+		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
+		self.model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Server Session Model",
+				"model_id": "openai/gpt-4o-mini",
+				"api_key": "sk-model",
+				"base_url": "https://llm.example.com/v1",
+				"enabled": 1,
+			}
+		).insert()
+		self.agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Server Session Agent",
+				"model": self.model.name,
+				"instructions": "Be terse.",
+				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"enabled": 1,
+			}
+		).insert()
+		self.session = self.agent.new_session()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def runs(self):
+		return frappe.db.count("Flow Run", {"session": self.session.name})
+
+	def calls(self, kind):
+		return [call for call in self.daemon.calls if call[0] == kind]
+
+	def test_chat_starts_a_turn_and_returns_its_running_placeholder(self):
+		self.daemon.title = None
+		run = self.session.chat("hello")
+		self.assertEqual(
+			(run.session, run.input, run.source, run.status, run.output, run.iterations, run.daemon_run_id),
+			(self.session.name, "hello", "Manual", "Running", None, 0, None),
+		)
+		self.assertEqual(self.calls("run"), [("run", self.session.name, "hello")])
+		self.assertEqual(self.session.messages, [])
+		self.assertEqual((self.session.title, self.session.last_synced_seq), (None, 0))
+		self.assertEqual(self.calls("get_session"), [("get_session", self.session.name)])
+		self.assertEqual(self.runs(), 1)
+
+	def test_chat_records_where_a_run_came_from(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "trigger probe"}).insert()
+		run = self.session.chat(
+			"look", source="Trigger", reference_doctype="ToDo", reference_name=todo.name
+		)
+		self.assertEqual(
+			(run.source, run.reference_doctype, run.reference_name), ("Trigger", "ToDo", todo.name)
+		)
+
+	def test_chat_joins_the_active_run_when_a_turn_is_running(self):
+		self.daemon.answer = lambda seq, run_id, message: turn(seq, run_id, message)[:2]
+		first = self.session.chat("hello")
+		self.daemon.running = True
+		joined = self.session.chat("and this")
+		self.assertEqual(joined.name, first.name)
+		self.assertEqual(self.runs(), 1)
+		self.assertEqual(self.calls("run")[-1], ("run", self.session.name, "and this"))
+
+	def test_chat_refuses_a_paused_session(self):
+		self.daemon.paused = True
+		with self.assertRaisesRegex(frappe.ValidationError, "paused"):
+			self.session.chat("more")
+		self.assertEqual(self.runs(), 0)
+
+	def test_chat_needs_a_message(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Message is required"):
+			self.session.chat("   ")
+		self.assertEqual(self.calls("run"), [])
+
+	def test_resume_answers_the_batch_the_recorder_names(self):
+		self.daemon.answer = pause
+		run = self.session.chat("delete it")
+		self.session.sync()
+		run.reload()
+		self.assertEqual((run.status, run.approval_seq, json.loads(run.questions)), ("Paused", 4, [PENDING]))
+		self.daemon.paused = True
+		resumed = self.session.resume({"c9": "Approve"})
+		self.assertEqual(resumed.name, run.name)
+		self.assertEqual(
+			(resumed.status, resumed.output, resumed.daemon_run_id, resumed.approval_seq),
+			("Running", None, "r1", 0),
+		)
+		self.assertFalse(resumed.questions)
+		self.assertEqual(self.calls("resume"), [("resume", self.session.name, {"c9": "Approve"}, 4)])
+		self.assertEqual(self.runs(), 1)
+
+	def test_resume_needs_a_paused_run(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "no paused run"):
+			self.session.resume({"c1": "Approve"})
+		self.assertEqual(self.calls("resume"), [])
+
+	def test_cancel_pending_stops_the_paused_run(self):
+		self.daemon.answer = pause
+		run = self.session.chat("delete it")
+		self.session.sync()
+		run.reload()
+		self.daemon.paused = True
+		self.assertEqual(self.session.cancel_pending(), "cancelled")
+		run.reload()
+		self.assertEqual((run.status, run.error), ("Failed", "Stopped by user."))
+		self.assertEqual(self.session.cancel_pending(), "idle")
+
+	def test_abort_reports_the_servers_answer(self):
+		self.assertEqual(self.session.abort(), "idle")
+		self.daemon.running = True
+		self.assertEqual(self.session.abort(), "aborting")
+
+	def test_set_model_sends_the_models_credentials_and_records_the_choice(self):
+		other = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Other Model",
+				"model_id": "openai/gpt-4o",
+				"api_key": "sk-other",
+				"base_url": "https://other.example.com",
+				"enabled": 1,
+			}
+		).insert()
+		self.session.set_model(other.name)
+		self.assertEqual(
+			self.calls("set_model"),
+			[
+				(
+					"set_model",
+					self.session.name,
+					"openai/gpt-4o",
+					{"api_key": "sk-other", "api_base": "https://other.example.com"},
+				)
+			],
+		)
+		self.assertEqual(frappe.db.get_value("Flow Session", self.session.name, "model"), other.name)
+		other.db_set("enabled", 0)
+		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
+			self.session.set_model(other.name)
+		self.assertEqual(len(self.calls("set_model")), 1)
+
+	def test_set_title_renames_both_sides(self):
+		self.session.set_title("Renamed")
+		self.assertEqual(
+			self.calls("patch_config"), [("patch_config", self.session.name, {"title": "Renamed"})]
+		)
+		self.assertEqual(frappe.db.get_value("Flow Session", self.session.name, "title"), "Renamed")
+
+	def test_set_auto_approve_changes_the_servers_policy(self):
+		self.assertFalse(self.daemon.configs[self.session.name]["auto_approve"])
+		self.assertFalse(self.session.auto_approve)
+		self.session.set_auto_approve(True)
+		self.assertEqual(
+			self.calls("patch_config"), [("patch_config", self.session.name, {"auto_approve": True})]
+		)
+		self.assertTrue(self.daemon.configs[self.session.name]["auto_approve"])
+		self.assertTrue(frappe.db.get_value("Flow Session", self.session.name, "auto_approve"))
+
+	def test_entries_proxies_the_server(self):
+		self.daemon.rows = turn(1, "r1")
+		self.assertEqual(self.session.entries(since=6, path="all"), {"entries": turn(1, "r1")[6:]})
+		self.assertEqual(self.calls("entries"), [("entries", self.session.name, 6, "all")])
+
+	def test_a_server_refusal_is_a_validation_error(self):
+		with patch.object(self.daemon, "run", side_effect=DaemonError(400, "attachment 'x' not found")):
+			with self.assertRaisesRegex(frappe.ValidationError, "400.*not found"):
+				self.session.chat("hello")
+		with patch.object(self.daemon, "run", side_effect=DaemonError(None, "ConnectError")):
+			with self.assertRaisesRegex(frappe.ValidationError, "unreachable"):
+				self.session.chat("hello")
+		self.assertEqual(self.runs(), 0)
+
+	def test_a_session_without_a_server_twin_is_read_only_history(self):
+		with patch.object(self.daemon, "run", side_effect=DaemonError(404, "session not found")):
+			with self.assertRaisesRegex(frappe.ValidationError, "read-only history"):
+				self.session.chat("hello")
+		self.assertEqual(self.runs(), 0)
+
+	def test_deleting_a_session_drops_the_server_copy_first(self):
+		self.daemon.running = True
+		with patch("flow.knowledge.attachment_store.delete"):
+			with self.assertRaisesRegex(frappe.ValidationError, "409"):
+				self.session.delete()
+			self.assertTrue(frappe.db.exists("Flow Session", self.session.name))
+			self.daemon.running = False
+			self.daemon.missing = True
+			self.session.delete()
+		self.assertFalse(frappe.db.exists("Flow Session", self.session.name))
+
+
+class TestFlowSessionServerConfig(IntegrationTestCase):
+	"""The flow server session a Flow Session describes."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Config Model",
+				"model_id": "openai/gpt-4o-mini",
+				"api_key": "sk-model",
+				"base_url": "https://llm.example.com/v1",
+				"enabled": 1,
+			}
+		).insert()
+		self.agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Config Agent",
+				"model": self.model.name,
+				"instructions": "Be terse.",
+				"max_iterations": 7,
+				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"enabled": 1,
+			}
+		).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def session(self, **fields):
+		doc = {"doctype": "Flow Session", "agent": self.agent.name, "title": "Hello", **fields}
+		return frappe.get_doc(doc).insert()
+
+	def config(self, **fields):
+		return self.session(**fields).server_config()
+
+	def test_the_config_is_valid_for_the_server(self):
+		session = self.session()
+		config = session.server_config()
+		SessionConfig.model_validate(config)
+		self.assertEqual(config["session_id"], session.name)
+		self.assertRegex(session.name, re.compile(r"^[A-Za-z0-9_-]{1,64}$"))
+		self.assertEqual(config["title"], "Hello")
+		self.assertEqual(config["model"], "openai/gpt-4o-mini")
+		self.assertEqual(config["api_key"], "sk-model")
+		self.assertEqual(config["api_base"], "https://llm.example.com/v1")
+		self.assertEqual(config["system_prompt"], "Be terse.")
+		self.assertEqual(config["max_turns"], 7)
+		self.assertEqual(config["callback_token"], "site-token")
+		self.assertEqual(
+			config["callback_url"], f"{lifecycle.site_url()}/api/method/flow.daemon.callback.callback"
+		)
+		self.assertTrue(config["notify_run_ended"])
+		self.assertEqual(config["cwd"], str(lifecycle.session_root()))
+		self.assertEqual(
+			config["user_context"],
+			{
+				"site": frappe.local.site,
+				"user": "Administrator",
+				"agent": self.agent.name,
+				"session": session.name,
+			},
+		)
+		self.assertNotIn("callback_timeout", config)
+
+	def test_sessions_get_no_server_tools_or_skills_only_the_agents_schemas(self):
+		config = self.config()
+		self.assertEqual(config["tools"], [])
+		self.assertEqual(config["extension_tools"], [])
+		self.assertFalse(config["skills_enabled"])
+		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
+		self.assertEqual(config["confirm_tools"], ["execute"])
+		self.assertFalse(config["auto_approve"])
+		self.assertTrue(config["auto_compact"])
+
+	def test_an_empty_prompt_is_still_verbatim(self):
+		frappe.db.set_value("Flow Agent", self.agent.name, "instructions", "")
+		self.assertEqual(self.config()["system_prompt"], "")
+
+	def test_the_sessions_model_overrides_the_agents_and_takes_provider_credentials(self):
+		bare = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Bare Model", "model_id": "openai/gpt-4o", "enabled": 1}
+		).insert()
+		provider = {"api_key": "sk-provider", "base_url": "https://provider.example.com"}
+		with patch("flow.lib.model.resolve_provider_credentials", return_value=provider):
+			config = self.config(model=bare.name)
+			own = self.config()
+		self.assertEqual(
+			(config["model"], config["api_key"], config["api_base"]), ("openai/gpt-4o", *provider.values())
+		)
+		self.assertEqual((own["api_key"], own["api_base"]), ("sk-model", "https://llm.example.com/v1"))
+
+	def test_without_a_title_the_server_titles_the_session(self):
+		config = self.config(title=None)
+		SessionConfig.model_validate(config)
+		self.assertIsNone(config["title"])
+
+	def test_default_iterations_apply_when_unset(self):
+		self.agent.db_set("max_iterations", 0)
+		self.assertEqual(self.config()["max_turns"], 20)
+
+	def test_trigger_sessions_always_auto_approve(self):
+		session = self.session(source="Trigger", auto_approve=0)
+		self.assertTrue(session.auto_approve)
+		self.assertTrue(session.server_config()["auto_approve"])
+		with self.assertRaisesRegex(frappe.ValidationError, "always auto-approve"):
+			session.set_auto_approve(False)
+
+	def test_callback_timeout_comes_from_site_config(self):
+		with patch.dict(frappe.local.conf, {"flow_callback_timeout": 30}):
+			self.assertEqual(self.config()["callback_timeout"], 30)
+
+	def test_disabled_model_or_agent_is_refused(self):
+		session = self.session()
+		self.model.db_set("enabled", 0)
+		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
+			session.server_config()
+		self.model.db_set("enabled", 1)
+		self.agent.db_set("enabled", 0)
+		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
+			session.server_config()
+
+	def test_the_user_must_be_allowed_to_read_the_model(self):
+		session = self.session()
+		with patch.object(frappe, "has_permission", side_effect=frappe.PermissionError) as check:
+			with self.assertRaises(frappe.PermissionError):
+				session.server_config()
+		check.assert_called_once_with("Flow Model", "read", self.model.name, throw=True)
+
+
+class TestFlowSessionModelPermission(IntegrationTestCase):
+	"""A session runs only on a model its user may read."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.allowed = self.model("Allowed Model")
+		self.restricted = self.model("Restricted Model")
+		self.agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Permission Agent",
+				"model": self.restricted.name,
+				"instructions": "x",
+				"enabled": 1,
+			}
+		).insert()
+		self.user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "model-perm@example.com",
+				"first_name": "Model Perm",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def model(self, title):
+		return frappe.get_doc(
+			{"doctype": "Flow Model", "title": title, "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+
+	def session(self, **fields):
+		doc = {"doctype": "Flow Session", "agent": self.agent.name, **fields}
+		return frappe.get_doc(doc).insert(ignore_permissions=True)
+
+	def restrict_to(self, model_name):
+		frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": self.user.name,
+				"allow": "Flow Model",
+				"for_value": model_name,
+			}
+		).insert(ignore_permissions=True)
+		frappe.clear_cache(user=self.user.name)
+
+	def test_a_user_kept_from_the_agents_model_is_blocked(self):
+		session = self.session()
+		self.restrict_to(self.allowed.name)
+		frappe.set_user(self.user.name)
+		with self.assertRaises(frappe.PermissionError):
+			session.server_config()
+
+	def test_a_user_allowed_the_agents_model_may_start(self):
+		session = self.session()
+		self.restrict_to(self.restricted.name)
+		frappe.set_user(self.user.name)
+		self.assertEqual(session.server_config()["model"], "openai/gpt-4o-mini")
+
+	def test_the_sessions_model_override_is_checked_the_same_way(self):
+		permitted = self.session(model=self.allowed.name)
+		kept_out = self.session(model=self.restricted.name)
+		self.restrict_to(self.allowed.name)
+		frappe.set_user(self.user.name)
+		self.assertEqual(permitted.server_config()["model"], "openai/gpt-4o-mini")
+		with self.assertRaises(frappe.PermissionError):
+			kept_out.server_config()
+
+	def test_a_users_permitted_model_becomes_their_sessions_default(self):
+		# Frappe fills a Link from the user's User Permission, so their own sessions
+		# run on the model they may use even when the agent's model is off limits.
+		self.restrict_to(self.allowed.name)
+		frappe.set_user(self.user.name)
+		session = self.session()
+		self.assertEqual(session.model, self.allowed.name)
+		self.assertEqual(session.server_config()["model"], "openai/gpt-4o-mini")

@@ -13,6 +13,7 @@
   "column_break_meta",
   "status",
   "iterations",
+  "daemon_run_id",
   "section_break_io",
   "input",
   "output",
@@ -20,8 +21,8 @@
   "detail_html",
   "tool_calls",
   "questions",
+  "approval_seq",
   "usage",
-  "config_snapshot",
   "section_break_error",
   "error",
   "section_break_feedback",
@@ -87,7 +88,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Running\nPaused\nCompleted\nFailed",
+   "options": "Running\nPaused\nCompleted\nDenied\nFailed",
    "reqd": 1
   },
   {
@@ -96,6 +97,14 @@
    "fieldtype": "Int",
    "label": "Iterations",
    "non_negative": 1
+  },
+  {
+   "description": "The flow server's id of this run's latest segment (a resume starts a new one).",
+   "fieldname": "daemon_run_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Flow Server Run",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_io",
@@ -143,18 +152,19 @@
    "read_only": 1
   },
   {
+   "default": "0",
+   "description": "Log position of the approval batch the questions belong to.",
+   "fieldname": "approval_seq",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Approval Seq",
+   "read_only": 1
+  },
+  {
    "fieldname": "usage",
    "fieldtype": "JSON",
    "hidden": 1,
    "label": "Token Usage",
-   "read_only": 1
-  },
-  {
-   "description": "Agent configuration captured at run start (instructions + tool slugs).",
-   "fieldname": "config_snapshot",
-   "fieldtype": "JSON",
-   "hidden": 1,
-   "label": "Config Snapshot",
    "read_only": 1
   },
   {
@@ -195,7 +205,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-05-23 00:00:00",
+ "modified": "2026-09-09 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Run",

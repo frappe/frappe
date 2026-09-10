@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import frappe
+from frappe import _
 
 DEFAULT_TIMEOUT = 60
 
@@ -104,6 +105,20 @@ class Model:
 			return _consume_stream(litellm.completion(**kwargs))
 
 		return _normalize(litellm.completion(**kwargs))
+
+
+def model_config(model: str) -> dict[str, Any]:
+	"""The daemon's model, api_key and api_base for a Flow Model the user may use."""
+	frappe.has_permission("Flow Model", "read", model, throw=True)
+	doc = frappe.get_doc("Flow Model", model)
+	if not doc.enabled:
+		frappe.throw(_("Flow Model {0} is disabled.").format(model), title=_("Disabled Model"))
+	provider = resolve_provider_credentials(doc.model_id)
+	return {
+		"model": doc.model_id,
+		"api_key": doc.get_password("api_key", raise_exception=False) or provider.get("api_key"),
+		"api_base": doc.base_url or provider.get("base_url"),
+	}
 
 
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:

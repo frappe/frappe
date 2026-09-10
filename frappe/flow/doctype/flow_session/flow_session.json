@@ -9,6 +9,8 @@
   "agent",
   "model",
   "source",
+  "auto_approve",
+  "last_synced_seq",
   "section_break_transcript",
   "transcript_html",
   "messages",
@@ -16,7 +18,7 @@
  ],
  "fields": [
   {
-   "description": "Short label for this conversation. Auto-generated from the first user message if left blank.",
+   "description": "Short label for this conversation. The flow server titles it from the first message if left blank.",
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -48,6 +50,23 @@
    "in_standard_filter": 1,
    "label": "Source",
    "options": "Manual\nTrigger",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Run confirmation-gated tools without pausing. Always enabled for Trigger sessions.",
+   "fieldname": "auto_approve",
+   "fieldtype": "Check",
+   "label": "Auto Approve Tool Calls",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "How far the flow server's log has been mirrored into this session.",
+   "fieldname": "last_synced_seq",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Last Synced Seq",
    "read_only": 1
   },
   {
@@ -87,7 +106,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-05-26 00:00:00",
+ "modified": "2026-09-09 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",
