@@ -180,7 +180,7 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 
 		# a single colspan cap cell has no interior edges to carry the dividers
 		for source in (
-			APP_PATH / "templates" / "print_format" / "macros" / "Table.html",
+			APP_PATH / "templates" / "print_format" / "macros.html",
 			BUILDER_DIR / "components" / "editor" / "FieldPreviewTable.vue",
 		):
 			foot = re.search(r"<tfoot>(.*?)</tfoot>", source.read_text(), flags=re.S).group(1)
