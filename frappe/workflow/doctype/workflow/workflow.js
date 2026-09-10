@@ -111,20 +111,23 @@ frappe.ui.form.on("Workflow", {
 		frappe.model.with_doctype(doc.document_type, () => {
 			const meta = frappe.get_meta(doc.document_type);
 			const is_submittable = meta.is_submittable;
-			const fieldnames = meta.fields
-				.filter((field) => !frappe.model.no_value_type.includes(field.fieldtype))
-				.map((field) => field.fieldname);
+			const value_fields = meta.fields.filter(
+				(field) => !frappe.model.no_value_type.includes(field.fieldtype)
+			);
 
 			frm.fields_dict.states.grid.update_docfield_property(
 				"update_field",
 				"options",
-				[""].concat(fieldnames)
+				[""].concat(value_fields.map((field) => field.fieldname))
 			);
 
 			frm.fields_dict.conditions.grid.update_docfield_property(
 				"field",
 				"options",
-				fieldnames
+				value_fields.map((field) => ({
+					label: `${field.label} (${field.fieldname})`,
+					value: field.fieldname,
+				}))
 			);
 
 			frm.fields_dict.states.grid.update_docfield_property(
