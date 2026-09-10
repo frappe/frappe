@@ -6,6 +6,7 @@ import re
 
 import frappe
 from frappe import _
+from frappe.core.doctype.user.user import rewrite_owner_fields
 from frappe.core.utils import find
 from frappe.model.document import Document
 from frappe.utils import get_datetime, get_fullname, time_diff_in_hours
@@ -287,6 +288,8 @@ class PersonalDataDeletionRequest(Document):
 				frappe.db.commit()
 
 		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		# the rename only queues this; the address has to be gone before the status below
+		rewrite_owner_fields(email, anon, commit=commit)
 		self.db_set("status", "Deleted")
 
 		if commit:
