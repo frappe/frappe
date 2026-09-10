@@ -19,6 +19,20 @@ class TestBulkUpdate(IntegrationTestCase):
 		frappe.db.commit()
 		for _ in range(50):
 			frappe.new_doc(cls.doctype, some_fieldname=frappe.mock("name")).insert()
+		# Workers have their own database connections, so publish the fixtures
+		# and release SQLite's single writer slot before a job is enqueued.
+		frappe.db.commit()
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		# Committed fixtures cannot be removed by the test framework's rollback.
+		try:
+			for doctype in (cls.doctype, cls.child_doctype):
+				if frappe.db.exists("DocType", doctype):
+					frappe.delete_doc("DocType", doctype, force=True)
+			frappe.db.commit()
+		finally:
+			super().tearDownClass()
 
 	@timeout()
 	def wait_for_assertion(self, assertion):

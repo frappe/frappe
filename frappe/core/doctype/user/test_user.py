@@ -292,9 +292,11 @@ class TestUser(IntegrationTestCase):
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
 
-		# Clear rate limit tracker to start fresh
-		key = f"rl:{data['cmd']}:{data['user']}"
-		frappe.cache.delete(key)
+		# Password reset is limited by the request IP, not the submitted user.
+		# Clear all identities for this endpoint instead of guessing the IP key.
+		counter_prefix = f"rl:{data['cmd']}:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
 
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
@@ -562,10 +564,11 @@ class TestUser(IntegrationTestCase):
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"], commit=True) as user:
-			self.post(
+			response = self.post(
 				self.method("frappe.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
+			self.assertEqual(response.status_code, 200)
 			resp = self.get(self.method("frappe.auth.get_logged_user"))
 			self.assertEqual(resp.json["message"], user.name)
 
