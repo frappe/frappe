@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
+from frappe.utils.print_utils import postprocess_pdf
 
 
 @frappe.whitelist()
@@ -413,7 +414,7 @@ class PrintFormatGenerator:
 						pdf_generator=generator_name,
 					)
 					if pdf:
-						return pdf
+						return postprocess_pdf(self.doc.doctype, self.doc.name, pdf)
 			finally:
 				frappe.local.print_format_generator = previous
 		from frappe.utils.typst_emitter import has_typst_blocks
@@ -436,13 +437,14 @@ class PrintFormatGenerator:
 			options["header-includes-top-margin"] = True
 		if password:
 			options["password"] = password
-		return get_chrome_pdf(
+		pdf = get_chrome_pdf(
 			print_format=pf.name,
 			html=html,
 			options=options,
 			output=None,
 			pdf_generator="chrome",
 		)
+		return postprocess_pdf(self.doc.doctype, self.doc.name, pdf)
 
 	def render_typst_pdf(self, password=None):
 		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.

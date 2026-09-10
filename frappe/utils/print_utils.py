@@ -132,12 +132,12 @@ def get_print(
 					for page in reader.pages:
 						output.add_page(page)
 					return output
-				return pdf
+				return postprocess_pdf(doctype, name, pdf)
 
 	for hook in frappe.get_hooks("on_print_pdf"):
 		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
-	return get_pdf(html, options=pdf_options, output=output)
+	return postprocess_pdf(doctype, name, get_pdf(html, options=pdf_options, output=output))
 
 
 def attach_print(
@@ -191,7 +191,9 @@ def attach_print(
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"
 				if html:
-					content = get_pdf(html, options={"password": password} if password else None)
+					content = postprocess_pdf(
+						doctype, name, get_pdf(html, options={"password": password} if password else None)
+					)
 				elif render_via_generator:
 					from frappe.utils.print_format_generator import PrintFormatGenerator
 					from frappe.www.printview import validate_print_for_docstatus
@@ -279,3 +281,8 @@ def convert_uom(
 	if only_number:
 		return round(number * converstion_factor[0][f"from_{from_uom}"][0][f"to_{to_uom}"], 3)
 	return f"{round(number * converstion_factor[0][f'from_{from_uom}'][0][f'to_{to_uom}'], 3)}{to_uom}"
+
+
+def postprocess_pdf(doctype: str, name: str, pdf: bytes) -> bytes:
+	doc = frappe.get_cached_doc(doctype, name)
+	return doc.run_method("after_print", pdf=pdf) or pdf
