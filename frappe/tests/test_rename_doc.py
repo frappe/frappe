@@ -150,6 +150,7 @@ class TestRenameDoc(IntegrationTestCase):
 		second_todo_doc = frappe.get_doc(self.test_doctype, second_todo)
 		second_todo_doc.priority = "High"
 		second_todo_doc.save()
+		frappe.get_doc(self.test_doctype, first_todo).add_comment("Comment", "merged along")
 
 		merged_todo = frappe.rename_doc(self.test_doctype, first_todo, second_todo, merge=True, force=True)
 		merged_todo_doc = frappe.get_doc(self.test_doctype, merged_todo)
@@ -159,6 +160,7 @@ class TestRenameDoc(IntegrationTestCase):
 			frappe.get_doc(self.test_doctype, first_todo)
 
 		self.assertEqual(merged_todo_doc.priority, second_todo_doc.priority)
+		self.assertEqual(frappe.db.get_value(self.test_doctype, merged_todo, "_comment_count"), 1)
 
 	def test_rename_controllers(self):
 		"""Rename doctypes with controller code paths"""

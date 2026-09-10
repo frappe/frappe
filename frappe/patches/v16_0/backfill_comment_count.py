@@ -11,6 +11,7 @@ def execute():
 	"""Add `_comment_count` where missing and fill it from `tabComment`.
 
 	Custom doctypes are not re-synced by migrate, so the column has to be added here too.
+	Holds one row per commented document in memory; stream per doctype if that ever matters.
 	"""
 	for doctype in frappe.get_all("DocType", {"istable": 0, "issingle": 0, "is_virtual": 0}, pluck="name"):
 		if frappe.db.table_exists(doctype) and not frappe.db.has_column(doctype, "_comment_count"):

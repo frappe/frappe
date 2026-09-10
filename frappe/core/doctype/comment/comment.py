@@ -5,7 +5,6 @@ from frappe.database.schema import add_column
 from frappe.desk.notifications import notify_mentions
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
-from frappe.model.utils import is_virtual_doctype
 from frappe.permissions import get_doctypes_with_read, has_controller_permissions
 from frappe.website.utils import clear_cache
 
@@ -221,12 +220,12 @@ def get_document_comments(
 
 def refresh_comment_count(reference_doctype, reference_name):
 	"""Recount comments and communications on the referenced document into `_comment_count`."""
-	if (
-		not reference_doctype
-		or not reference_name
-		or frappe.db.get_value("DocType", reference_doctype, "issingle")
-		or is_virtual_doctype(reference_doctype)
-	):
+	if not reference_doctype or not reference_name:
+		return
+
+	# get_meta raises for an unknown doctype, so the table name below is always a real one
+	meta = frappe.get_meta(reference_doctype)
+	if meta.issingle or meta.get("is_virtual"):
 		return
 
 	reference = {"reference_doctype": reference_doctype, "reference_name": reference_name}

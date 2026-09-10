@@ -10,7 +10,7 @@ import frappe.utils.scheduler
 from frappe.desk.form import assign_to
 from frappe.tests import IntegrationTestCase
 
-from .notification import trigger_notifications
+from .notification import get_comments_for_context, trigger_notifications
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Notification"]
 
@@ -138,6 +138,16 @@ class TestNotification(IntegrationTestCase):
 		)
 
 		self.assertEqual(frappe.db.get_value("Communication", communication.name, "subject"), "__testing__")
+
+	def test_comments_in_context(self):
+		todo = frappe.get_doc(doctype="ToDo", description="comments context").insert()
+		self.assertIsNone(get_comments_for_context(todo))
+
+		comment = todo.add_comment("Comment", "hello")
+		self.assertEqual(
+			get_comments_for_context(todo),
+			[{"comment": "hello", "by": comment.comment_email, "name": comment.name}],
+		)
 
 	def test_condition(self):
 		"""Check notification is triggered based on a condition."""
