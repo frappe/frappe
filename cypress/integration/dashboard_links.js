@@ -5,6 +5,7 @@ import child_table_doctype_1 from "../fixtures/child_table_doctype_1";
 import doctype_to_link from "../fixtures/doctype_to_link";
 const doctype_to_link_name = doctype_to_link.name;
 const child_table_doctype_name = child_table_doctype.name;
+const doctype_with_link_name = doctype_with_link_and_child_table.name;
 
 context("Dashboard links", () => {
 	before(() => {
@@ -18,11 +19,18 @@ context("Dashboard links", () => {
 		return cy
 			.window()
 			.its("frappe")
-			.then((frappe) => {
-				frappe.call("frappe.tests.ui_test_helpers.update_child_table", {
-					name: child_table_doctype_name,
-				});
-			});
+			.then((frappe) =>
+				frappe
+					.call("frappe.tests.ui_test_helpers.update_child_table", {
+						name: child_table_doctype_name,
+					})
+					.then(() =>
+						frappe.call(
+							"frappe.tests.ui_test_helpers.add_link_field_and_dashboard_link",
+							{ name: doctype_with_link_name }
+						)
+					)
+			);
 	});
 
 	it("Adding a new contact, checking for the counter on the dashboard and deleting the created contact", () => {
@@ -97,11 +105,12 @@ context("Dashboard links", () => {
 		cy.fill_field("title", "Test Parent Linking");
 		cy.findByRole("button", { name: "Save" }).click();
 
-		cy.get('.btn-new[data-doctype="Doctype With Link And Child Table"]').click();
+		cy.get(`.btn-new[data-doctype="${doctype_with_link_name}"]`).click();
 
-		cy.get_field("doctype_to_link", "Link").should("have.value", "Test Parent Linking");
-		cy.get(
-			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
-		).should("not.contain.text", "Test Parent Linking");
+		cy.url().should("include", "doctype-with-link-and-child-table/new");
+		cy.window().then((win) => {
+			expect(win.cur_frm.doc.doctype_to_link).to.eq("Test Parent Linking");
+			expect(win.cur_frm.doc.child_table[0].doctype_to_link).to.be.undefined;
+		});
 	});
 });
