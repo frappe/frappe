@@ -1044,8 +1044,17 @@ frappe.ui.Sidebar = class Sidebar {
 				// is linked in erpnext's ERPNext Settings sidebar. Filtering by the entity's app
 				// would drop the sidebar you are standing in.
 				const entity = this.entity_from_route(route);
+				const stated = this.shell_from_url(route);
 
-				if (this.cold_entry_needs_recheck(route, entity)) {
+				if (stated) {
+					// The URL named a shell the route can be shown in, so there is nothing to
+					// resolve. Everything below is for a URL that names none.
+					this.pending_cold_entry = null;
+					if (stated !== this.current_module) {
+						if (this.current_module) this.select_module(stated);
+						else frappe.app.sidebar.setup(stated);
+					}
+				} else if (this.cold_entry_needs_recheck(route, entity)) {
 					// The previous pass ran before the doctype's meta existed and could only
 					// guess from the sidebars linking it. The module is readable now, so resolve
 					// again with no sticky, so the guess cannot keep its own place.
@@ -1092,6 +1101,51 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		this.set_active_workspace_item();
+	}
+
+	// The shell the URL names, when it names one this route can be shown in.
+	//
+	// A shell in the URL is a statement: somebody was standing in that sidebar when the link was
+	// made, and following the link should not move them out of it. It is honoured on two
+	// conditions, which are the two ways a shell can legitimately show an entity:
+	//
+	//   the shell lists the entity, which is somebody having put it there on purpose, or
+	//   the shell belongs to the same app as the entity's own, which is how the desk already
+	//   behaves while you navigate inside one app (see crosses_app).
+	//
+	// The first is what the whole segment exists for. Clicking `Customer` in the Accounts sidebar
+	// should leave you in Accounts, and on this site 190 of 605 doctype links in a sidebar point
+	// at an entity whose own shell is a different one. Without this test every one of those would
+	// throw you out of the sidebar you just clicked in.
+	//
+	// Anything else is a URL naming a shell that cannot show what it points at: a stale name
+	// after a doctype moved module, a hand-edited link, a shell this user cannot see. The ladder
+	// answers those instead, and the URL is corrected rather than obeyed.
+	shell_from_url(route) {
+		const shell = frappe.router.current_shell;
+		if (!shell || !frappe.boot.module_sidebars?.[shell]) return null;
+
+		const entity = this.entity_from_route(route);
+		if (!entity) return null;
+
+		if (this.get_modules_linking(entity).includes(shell)) return shell;
+
+		const canonical = this.canonical_shell_for(route, entity);
+		return canonical && !this.crosses_app(shell, canonical) ? shell : null;
+	}
+
+	// Where an entity opens when nothing states a shell, read straight out of the map the server
+	// resolved. It is the ladder's answer without the ladder, so it needs no meta and is final on
+	// the first pass.
+	//
+	// Keyed by kind before name, because entity names are not unique across kinds: `Attendance`
+	// is a DocType one shell lists and a Dashboard another lists, so the route has to say which
+	// it means.
+	canonical_shell_for(route, entity = null) {
+		entity = entity || this.entity_from_route(route);
+		if (!entity) return null;
+
+		return frappe.boot.canonical_shell?.[this.link_type_from_route(route)]?.[entity] || null;
 	}
 
 	// Switch to a workspace's sidebar and remember it so the choice survives navigation and

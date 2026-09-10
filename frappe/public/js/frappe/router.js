@@ -73,6 +73,10 @@ $("body").on("click", "a", function (e) {
 frappe.router = {
 	current_route: null,
 	routes: {},
+	// slug -> shell, and the shell the URL on screen names, or null when it names none. Nothing
+	// writes the shell into a URL yet, so `current_shell` is only ever set by a hand-typed one.
+	shell_routes: {},
+	current_shell: null,
 	factory_views: ["form", "list", "report", "tree", "print", "dashboard"],
 	list_views: [
 		"list",
@@ -117,6 +121,25 @@ frappe.router = {
 		for (let doctype of frappe.boot.user.can_read) {
 			this.routes[this.slug(doctype)] = { doctype: doctype };
 		}
+		this.setup_shell_routes();
+	},
+
+	// slug -> shell, over the shells this user has. Built here rather than on demand because the
+	// payload it comes from does not change during a session, and the parser reads it on every
+	// route.
+	setup_shell_routes() {
+		this.shell_routes = {};
+		for (let shell of Object.keys(frappe.boot.module_sidebars || {})) {
+			this.shell_routes[this.shell_slug(shell)] = shell;
+		}
+
+		// `private` is a segment the desk already spends: `/desk/private/<workspace>` names a
+		// user's own workspace. There is a `Private` module with a shell of its own, so its slug
+		// lands on the same segment, and reading that segment as a shell would turn
+		// `/desk/private/settings` from someone's private workspace into the public one of that
+		// name. The reserved word wins, and the `Private` shell is reached the way it always
+		// was.
+		delete this.shell_routes["private"];
 	},
 
 	async route() {
@@ -155,6 +178,7 @@ frappe.router = {
 		route = this.get_sub_path_string(route).split("/");
 		if (!route) return [];
 		route = $.map(route, this.decode_component);
+		route = this.take_shell_from(route);
 		this.set_route_options_from_url();
 		return await this.convert_to_standard_route(route);
 	},
@@ -597,6 +621,60 @@ frappe.router = {
 
 	slug(name) {
 		return name.toLowerCase().replace(/ /g, "-");
+	},
+
+	// A shell reaches the URL through this rather than through `slug`, because a shell may be
+	// named with an `&`. hrms named two that way deliberately: a module folder is an imported
+	// Python package and cannot hold one, so the sidebar's own name is the only place the
+	// ampersand can live. `&` is legal in a path, but `%26` is not something anyone types or
+	// reads, so it is spelled out here and `Shift & Attendance` becomes `shift-and-attendance`.
+	//
+	// This is deliberately not reversible, and does not need to be. A segment is turned back into
+	// a shell by looking it up in `shell_routes`, never by transforming it, so the only thing
+	// required of this is that two shells do not collide on one slug.
+	shell_slug(name) {
+		return name.toLowerCase().replace(/&/g, " and ").trim().replace(/\s+/g, "-");
+	},
+
+	// Take a leading shell off the route, when it is carrying one, and remember it.
+	//
+	// `/desk/stock/item` is the Item list in the Stock shell; `/desk/item/ITEM-0001` is a form.
+	// Both are two segments, so their shape cannot tell them apart, and the answer comes from
+	// what the segments name: the first has to be a shell this user has, and what follows it has
+	// to name something the desk can route to on its own. In the first, `stock` is a shell and
+	// `item` is a doctype, so the shell comes off. In the second, `item` is not a shell, so
+	// nothing does.
+	//
+	// It is what keeps the slugs that are both a shell and a doctype working. On a site with
+	// erpnext and hrms there are three: `Workflow`, `Newsletter` and `Raven Bot` each name a
+	// module with a sidebar and a doctype at once, so
+	// `/desk/workflow/WF-0001` starts with a shell slug -- but `WF-0001` names nothing, so the
+	// route is left whole and parses as the form it has always been.
+	//
+	// A one-segment route never carries a shell. `/desk/stock` stays the Stock workspace it has
+	// always been, and a shell is reached through the two-segment form instead.
+	take_shell_from(route) {
+		const shell = route.length > 1 && this.shell_routes?.[route[0]];
+		if (!shell || !this.route_names_something(route[1])) {
+			this.current_shell = null;
+			return route;
+		}
+
+		this.current_shell = shell;
+		return route.slice(1);
+	},
+
+	// Whether a segment names something the desk can route to by itself. This is the set
+	// `convert_to_standard_route` walks, plus pages, which it reaches through the page factory
+	// rather than by name.
+	route_names_something(segment) {
+		if (!segment) return false;
+		return !!(
+			frappe.workspaces?.[segment] ||
+			segment === "private" ||
+			this.routes[segment] ||
+			frappe.boot.page_info?.[segment]
+		);
 	},
 
 	show_external_link_warning_if_needed(/** @type {HTMLAnchorElement} */ aElement) {
