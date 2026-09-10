@@ -65,7 +65,9 @@ class TestSearch(FrappeTestCase):
 				"System Manager",
 			)
 
-		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		names_for_mention = [
+			user.get("id") for user in get_names_for_mentions("test_disabled_user_in_mentions")
+		]
 		self.assertNotIn(email, names_for_mention)
 
 	def test_allowed_in_mentions_cache_invalidation(self):
@@ -85,14 +87,14 @@ class TestSearch(FrappeTestCase):
 		user.add_roles("System Manager")
 
 		# Populate the users_for_mentions cache.
-		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("test_allowed_in_mentions")]
 		self.assertIn(email, names_for_mention)
 
 		# Changing Allowed In Mentions should invalidate the cache.
 		user.allowed_in_mentions = False
 		user.save()
 
-		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("test_allowed_in_mentions")]
 		self.assertNotIn(email, names_for_mention)
 
 		frappe.delete_doc("User", email)
