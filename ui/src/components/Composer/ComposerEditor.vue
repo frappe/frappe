@@ -81,6 +81,9 @@
 							</Button>
 						</div>
 
+						<!-- Host content pinned above the utilities row, e.g. actions staged for send. -->
+						<slot name="footer" />
+
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
 							<!-- Starts 8px into the gutter: 6px is the sm icon inset, which puts
 							     the first glyph's box on the body text edge, and 2px absorb the
