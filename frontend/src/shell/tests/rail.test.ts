@@ -109,7 +109,7 @@ function cell(host: HTMLElement, key: string) {
 
 /** The link or button inside a cell. */
 function target(host: HTMLElement, key: string) {
-	return cell(host, key)?.querySelector("[data-slot='rail-item']") ?? null;
+	return cell(host, key)?.querySelector("[data-slot='sidebar-rail-item']") ?? null;
 }
 
 function marked(host: HTMLElement) {
@@ -172,7 +172,7 @@ describe("the kinds the rail draws", () => {
 	});
 
 	it("makes a Link a plain anchor, so middle-click and copy-address survive", () => {
-		// A full document load the router cannot resolve, and one `RailItem` cannot draw.
+		// A full document load the router cannot resolve, and one `SidebarRailItem` cannot draw.
 		const host = rail([{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" }]);
 		const anchor = target(host, "docs") as HTMLAnchorElement;
 

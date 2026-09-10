@@ -103,7 +103,7 @@ async function shell(path: string): Promise<{ host: HTMLElement; router: Router;
 
 /** The sidebar open now, read off the rail cell the shell marks current. */
 function open(host: HTMLElement): string | null | undefined {
-	const marked = host.querySelector("[data-slot='rail'] [aria-current='page']");
+	const marked = host.querySelector("[data-slot='sidebar-rail'] [aria-current='page']");
 	return marked?.closest("[data-key]")?.getAttribute("data-sidebar");
 }
 
@@ -135,7 +135,7 @@ async function walk() {
 	const panel = () => host.querySelector("[data-slot='sidebar']")!;
 
 	await follow(panel(), router, "item");
-	await follow(host.querySelector("[data-slot='rail']")!, router, "buying");
+	await follow(host.querySelector("[data-slot='sidebar-rail']")!, router, "buying");
 
 	return { host, router, app };
 }
@@ -226,7 +226,7 @@ describe("what the address-keyed record is left holding", () => {
 	it("answers a push arriving from an independent rail item", async () => {
 		const { host, router } = await walk();
 
-		await follow(host.querySelector("[data-slot='rail']")!, router, "note");
+		await follow(host.querySelector("[data-slot='sidebar-rail']")!, router, "note");
 		expect(open(host)).toBe(null);
 
 		// A fresh entry, so no stamp, and nothing open to carry: the record is all there is.
