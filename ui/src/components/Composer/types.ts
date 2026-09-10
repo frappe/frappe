@@ -43,6 +43,8 @@ interface BaseComposerProps {
   extensions?: Extension[];
   /** Maximum number of attachments. Defaults to 10. */
   maxAttachments?: number;
+  /** Host is performing the send: the submit button shows a spinner and ignores clicks. */
+  submitting?: boolean;
 }
 
 export interface ComposerEditorProps extends BaseComposerProps {
