@@ -521,36 +521,28 @@ def create_new_webhook():
 
 
 class TestConditionalWorkflow(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		create_workflow_state_field("ToDo")
+
 	def setUp(self):
-		frappe.db.delete("Workflow Action")
-		self.pre_existing = frappe.get_all("Workflow", {"document_type": "ToDo"}, pluck="name")
-		self.suspended = frappe.get_all("Workflow", {"document_type": "ToDo", "is_active": 1}, pluck="name")
-		for name in self.suspended:
-			frappe.db.set_value("Workflow", name, "is_active", 0)
-		frappe.clear_cache(doctype="ToDo")
+		"""Start from a doctype no workflow governs.
 
-	def tearDown(self):
-		"""Leave the doctype exactly as it was found.
-
-		Creating a Workflow writes a Custom Field, which commits, so a workflow made here outlives
-		the transaction rollback. The cleanup has to be committed for the same reason, or it is
-		rolled back with the test and the workflow resolves for everything that follows.
+		IntegrationTestCase rolls back once the class is done, not between tests, so a workflow
+		made by an earlier test is still around. Retiring them here is enough: every workflow gets
+		a name of its own, so nothing collides.
 		"""
-		for name in frappe.get_all("Workflow", {"document_type": "ToDo"}, pluck="name"):
-			if name not in self.pre_existing:
-				frappe.delete_doc("Workflow", name, force=True, ignore_missing=True)
+		for name in frappe.get_all("Workflow", {"document_type": "ToDo", "is_active": 1}, pluck="name"):
+			frappe.db.set_value("Workflow", name, "is_active", 0)
 
-		for name in self.suspended:
-			frappe.db.set_value("Workflow", name, "is_active", 1)
-
-		frappe.db.commit()
 		frappe.clear_cache(doctype="ToDo")
 
 	def test_conditional_workflow_skips_documents_it_does_not_match(self):
-		create_conditional_todo_workflow("Test High ToDo", priority="High")
+		workflow = create_conditional_todo_workflow(priority="High")
 
 		high = create_new_todo(priority="High")
-		self.assertEqual(get_workflow_name("ToDo", high), "Test High ToDo")
+		self.assertEqual(get_workflow_name("ToDo", high), workflow.name)
 		self.assertEqual(high.workflow_state, "Pending")
 
 		low = create_new_todo(priority="Low")
@@ -559,30 +551,30 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		self.assertEqual(get_transitions(low), [])
 
 	def test_unconditional_workflow_governs_every_document(self):
-		create_conditional_todo_workflow("Test Any ToDo")
+		workflow = create_conditional_todo_workflow()
 
 		for priority in ("High", "Low"):
 			todo = create_new_todo(priority=priority)
-			self.assertEqual(get_workflow_name("ToDo", todo), "Test Any ToDo")
+			self.assertEqual(get_workflow_name("ToDo", todo), workflow.name)
 
 	def test_highest_priority_matching_workflow_wins(self):
-		create_conditional_todo_workflow("Test Any ToDo", workflow_priority=0)
-		create_conditional_todo_workflow("Test High ToDo", priority="High", workflow_priority=10)
+		catch_all = create_conditional_todo_workflow(workflow_priority=0)
+		high = create_conditional_todo_workflow(priority="High", workflow_priority=10)
 
-		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="High")), "Test High ToDo")
-		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="Low")), "Test Any ToDo")
+		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="High")), high.name)
+		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="Low")), catch_all.name)
 
 	def test_catch_all_workflow_retires_only_the_other_catch_all(self):
-		create_conditional_todo_workflow("Test High ToDo", priority="High")
-		create_conditional_todo_workflow("Test Old ToDo")
-		create_conditional_todo_workflow("Test Any ToDo")
+		conditional = create_conditional_todo_workflow(priority="High")
+		retired = create_conditional_todo_workflow()
+		create_conditional_todo_workflow()
 
-		self.assertEqual(frappe.db.get_value("Workflow", "Test Old ToDo", "is_active"), 0)
-		self.assertEqual(frappe.db.get_value("Workflow", "Test High ToDo", "is_active"), 1)
+		self.assertEqual(frappe.db.get_value("Workflow", retired.name, "is_active"), 0)
+		self.assertEqual(frappe.db.get_value("Workflow", conditional.name, "is_active"), 1)
 
 	def test_moving_between_workflows_re_enters_the_new_one(self):
-		create_conditional_todo_workflow("Test High ToDo", priority="High")
-		create_conditional_todo_workflow("Test Low ToDo", priority="Low", states=("Rejected", "Approved"))
+		create_conditional_todo_workflow(priority="High")
+		low = create_conditional_todo_workflow(priority="Low", states=("Rejected", "Approved"))
 
 		todo = create_new_todo(priority="High")
 		self.assertEqual(todo.workflow_state, "Pending")
@@ -590,15 +582,15 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		todo.priority = "Low"
 		todo.save()
 
-		self.assertEqual(get_workflow_name("ToDo", todo), "Test Low ToDo")
+		self.assertEqual(get_workflow_name("ToDo", todo), low.name)
 		self.assertEqual(todo.workflow_state, "Rejected")
 
 	def test_seeding_skips_documents_a_higher_priority_workflow_claims(self):
 		todo = create_new_todo(priority="High")
 		self.assertIsNone(todo.workflow_state)
 
-		create_conditional_todo_workflow("Test High ToDo", priority="High", workflow_priority=10)
-		create_conditional_todo_workflow("Test Any ToDo", workflow_priority=0)
+		create_conditional_todo_workflow(priority="High", workflow_priority=10)
+		create_conditional_todo_workflow(workflow_priority=0)
 
 		todo.reload()
 		self.assertEqual(todo.workflow_state, "Pending")
@@ -607,20 +599,20 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		todo = create_new_todo(priority="High")
 		self.assertIsNone(todo.workflow_state)
 
-		create_conditional_todo_workflow("Test Any ToDo", states=("Rejected", "Approved"))
-		create_conditional_todo_workflow("Test High ToDo", priority="High")
+		create_conditional_todo_workflow(states=("Rejected", "Approved"))
+		high = create_conditional_todo_workflow(priority="High")
 
 		todo.reload()
-		self.assertEqual(get_workflow_name("ToDo", todo), "Test High ToDo")
+		self.assertEqual(get_workflow_name("ToDo", todo), high.name)
 		self.assertEqual(todo.workflow_state, "Pending")
 
 	def test_deleting_a_workflow_drops_it_from_the_cache(self):
 		from frappe.desk.form.meta import get_meta
 
-		create_conditional_todo_workflow("Test Any ToDo")
-		self.assertEqual(get_workflow_names("ToDo"), ["Test Any ToDo"])
+		workflow = create_conditional_todo_workflow()
+		self.assertEqual(get_workflow_names("ToDo"), [workflow.name])
 
-		frappe.delete_doc("Workflow", "Test Any ToDo")
+		frappe.delete_doc("Workflow", workflow.name)
 
 		self.assertEqual(get_workflow_names("ToDo"), [])
 		self.assertEqual(get_meta("ToDo").get("__workflow_docs"), [])
@@ -628,30 +620,55 @@ class TestConditionalWorkflow(IntegrationTestCase):
 	def test_desk_metadata_serializes_with_a_workflow(self):
 		from frappe.desk.form.load import get_meta_bundle
 
-		create_conditional_todo_workflow("Test Any ToDo")
+		create_conditional_todo_workflow()
 
 		workflow_docs = get_meta_bundle("ToDo")[0]["__workflow_docs"]
 		self.assertIn("Workflow State", [doc.doctype for doc in workflow_docs])
 
 	def test_conditions_must_name_a_real_field(self):
-		workflow = build_todo_workflow("Test High ToDo")
+		workflow = build_todo_workflow()
 		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
 
 		self.assertRaises(frappe.ValidationError, workflow.insert)
 
 	def test_active_workflows_must_share_a_state_field(self):
-		create_conditional_todo_workflow("Test High ToDo", priority="High")
+		create_conditional_todo_workflow(priority="High")
 
-		workflow = build_todo_workflow("Test Low ToDo")
+		workflow = build_todo_workflow()
 		workflow.workflow_state_field = "custom_state"
 		workflow.append("conditions", dict(field="priority", condition="=", value="Low"))
 
 		self.assertRaises(frappe.ValidationError, workflow.insert)
 
 
-def build_todo_workflow(name, states=("Pending", "Approved")):
+def create_workflow_state_field(doctype):
+	"""Give the doctype its workflow state field before any test makes a workflow.
+
+	Saving a Workflow creates this field when it is missing, and creating a field is DDL, which
+	commits. The workflow saved alongside it would then outlive the test's rollback and resolve
+	for every test that follows.
+	"""
+	if frappe.get_meta(doctype).get_field("workflow_state"):
+		return
+
+	frappe.get_doc(
+		{
+			"doctype": "Custom Field",
+			"dt": doctype,
+			"fieldname": "workflow_state",
+			"label": "Workflow State",
+			"fieldtype": "Link",
+			"options": "Workflow State",
+			"hidden": 1,
+			"no_copy": 1,
+			"allow_on_submit": 1,
+		}
+	).insert(ignore_if_duplicate=True)
+
+
+def build_todo_workflow(states=("Pending", "Approved")):
 	workflow = frappe.new_doc("Workflow")
-	workflow.workflow_name = name
+	workflow.workflow_name = f"Test ToDo {frappe.generate_hash(length=8)}"
 	workflow.document_type = "ToDo"
 	workflow.workflow_state_field = "workflow_state"
 	workflow.is_active = 1
@@ -665,10 +682,8 @@ def build_todo_workflow(name, states=("Pending", "Approved")):
 	return workflow
 
 
-def create_conditional_todo_workflow(
-	name, priority=None, workflow_priority=0, states=("Pending", "Approved")
-):
-	workflow = build_todo_workflow(name, states)
+def create_conditional_todo_workflow(priority=None, workflow_priority=0, states=("Pending", "Approved")):
+	workflow = build_todo_workflow(states)
 	workflow.priority = workflow_priority
 	if priority:
 		workflow.append("conditions", dict(field="priority", condition="=", value=priority))
