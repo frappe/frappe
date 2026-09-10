@@ -12,6 +12,15 @@ const CONDITION_OPERATORS = {
 	"<=": (a, b) => a <= b,
 };
 
+function resolve_workflow(doc) {
+	if (typeof doc === "string") {
+		frappe.workflow.setup(doc);
+		return frappe.workflow.workflows[doc] || null;
+	}
+
+	return frappe.workflow.get_workflow(doc);
+}
+
 frappe.workflow = {
 	state_fields: {},
 	workflows: {},
@@ -58,7 +67,7 @@ frappe.workflow = {
 		return frappe.workflow.state_fields[doctype];
 	},
 	get_default_state: function (doc, docstatus) {
-		const workflow = frappe.workflow.get_workflow(doc);
+		const workflow = resolve_workflow(doc);
 		if (!workflow) return null;
 
 		const default_state = (workflow.states || []).find(
@@ -71,7 +80,7 @@ frappe.workflow = {
 		return frappe.xcall("frappe.model.workflow.get_transitions", { doc: doc });
 	},
 	get_document_state_roles: function (doc, state) {
-		const workflow = frappe.workflow.get_workflow(doc);
+		const workflow = resolve_workflow(doc);
 		if (!workflow) return [];
 
 		return (frappe.get_children(workflow, "states", { state: state }) || []).map(
@@ -79,7 +88,7 @@ frappe.workflow = {
 		);
 	},
 	is_self_approval_enabled: function (doc) {
-		return frappe.workflow.get_workflow(doc)?.allow_self_approval;
+		return resolve_workflow(doc)?.allow_self_approval;
 	},
 	is_read_only: function (doctype, name) {
 		var state_fieldname = frappe.workflow.get_state_fieldname(doctype);
