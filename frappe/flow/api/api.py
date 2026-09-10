@@ -1,8 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""The HTTP interface for the /flow page and other clients: thin, owner-checked wrappers
-over the Flow Session doc methods. Nothing here waits for a run."""
+"""The HTTP interface for the /flow page and other clients: thin wrappers over the Flow
+Session doc methods, each checking the doctype permission it needs. Nothing here waits for a run."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from flow.lib.session import _assert_session_owner, assert_run_owner, new_session
+from flow.lib.session import new_session
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
@@ -28,6 +28,7 @@ RUN_FIELDS = ["name", "daemon_run_id", "status", "error", "feedback_rating", "fe
 def boot() -> dict[str, Any]:
 	"""What a client needs before its first call: agents and models to pick from, the
 	default agent, and the file types it may attach."""
+	frappe.has_permission("Flow Session", "read", throw=True)
 	from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
 	from flow.knowledge.extract import FILE_EXTENSIONS
 
@@ -49,8 +50,12 @@ def create_session(
 	auto_approve: bool | int | str = False,
 ) -> dict[str, Any]:
 	"""Start a session with `agent` (the Assistant by default)."""
+	frappe.has_permission("Flow Session", "create", throw=True)
 	doc = new_session(
-		agent or None, model=model or None, title=(title or "").strip() or None, auto_approve=cint(auto_approve)
+		agent or None,
+		model=model or None,
+		title=(title or "").strip() or None,
+		auto_approve=cint(auto_approve),
 	)
 	return _session_payload(doc)
 
@@ -59,7 +64,7 @@ def create_session(
 def session(session: str) -> dict[str, Any]:
 	"""A session with its runs. One that still has an open run is synced first, which
 	repairs a terminal event the client missed; a settled one needs no server call."""
-	doc = _owned_session(session)
+	doc = _load_session(session, "read")
 	if frappe.db.exists("Flow Run", {"session": doc.name, "status": ("in", ("Running", "Paused"))}):
 		doc.sync()
 	return _session_payload(doc)
@@ -68,6 +73,7 @@ def session(session: str) -> dict[str, Any]:
 @frappe.whitelist()
 def list_sessions(query: str | None = None, limit: int | str = 20) -> list[dict[str, Any]]:
 	"""The user's own conversations, newest first; `query` narrows them by title."""
+	frappe.has_permission("Flow Session", "read", throw=True)
 	filters: dict[str, Any] = {"owner": frappe.session.user, "source": ("!=", "Trigger")}
 	if query and query.strip():
 		filters["title"] = ("like", f"%{_escape_like(query.strip())}%")
@@ -86,7 +92,7 @@ def run(session: str, message: str) -> dict[str, Any]:
 	active run the message joined."""
 	if not isinstance(message, str) or not message.strip():
 		frappe.throw(_("Message is required."), title=_("Invalid Message"))
-	doc = _owned_session(session)
+	doc = _load_session(session, "write")
 	active = frappe.db.get_value(
 		"Flow Run", {"session": doc.name, "status": "Running"}, "name", order_by="creation desc"
 	)
@@ -97,32 +103,32 @@ def run(session: str, message: str) -> dict[str, Any]:
 @frappe.whitelist()
 def resume(session: str, answers: dict[str, Any] | str) -> dict[str, Any]:
 	"""Answer the paused run's approval batch, keyed by tool call id."""
-	run = _owned_session(session).resume(_parse_answers(answers))
+	run = _load_session(session, "write").resume(_parse_answers(answers))
 	return {"run": run.name, "status": "started"}
 
 
 @frappe.whitelist()
 def abort(session: str) -> dict[str, str]:
-	return {"status": _owned_session(session).abort()}
+	return {"status": _load_session(session, "write").abort()}
 
 
 @frappe.whitelist()
 def cancel_pending(session: str) -> dict[str, str]:
-	return {"status": _owned_session(session).cancel_pending()}
+	return {"status": _load_session(session, "write").cancel_pending()}
 
 
 @frappe.whitelist()
 def entries(session: str, since: int | str = 0, path: str = "active") -> dict[str, Any]:
 	if path not in ("active", "all"):
 		frappe.throw(_("Path must be active or all."), title=_("Invalid Path"))
-	return _owned_session(session).entries(since=cint(since), path=path)
+	return _load_session(session, "read").entries(since=cint(since), path=path)
 
 
 @frappe.whitelist()
 def set_model(session: str, model: str) -> dict[str, str]:
 	if not isinstance(model, str) or not model.strip():
 		frappe.throw(_("Model is required."), title=_("Invalid Model"))
-	_owned_session(session).set_model(model.strip())
+	_load_session(session, "write").set_model(model.strip())
 	return {"model": model.strip()}
 
 
@@ -131,7 +137,7 @@ def set_title(session: str, title: str) -> dict[str, str]:
 	title = (title or "").strip()[:TITLE_LIMIT]
 	if not title:
 		frappe.throw(_("Title is required."), title=_("Invalid Title"))
-	_owned_session(session).set_title(title)
+	_load_session(session, "write").set_title(title)
 	return {"title": title}
 
 
@@ -139,13 +145,13 @@ def set_title(session: str, title: str) -> dict[str, str]:
 def set_auto_approve(session: str, auto_approve: bool | int | str) -> dict[str, bool]:
 	"""Whether confirmation tools run unattended; Trigger sessions cannot turn it off."""
 	flag = bool(cint(auto_approve))
-	_owned_session(session).set_auto_approve(flag)
+	_load_session(session, "write").set_auto_approve(flag)
 	return {"auto_approve": flag}
 
 
 @frappe.whitelist()
 def delete_session(session: str) -> dict[str, str]:
-	_owned_session(session).delete(ignore_permissions=True)
+	_load_session(session, "delete").delete()
 	return {"status": "deleted"}
 
 
@@ -153,7 +159,7 @@ def delete_session(session: str) -> dict[str, str]:
 def sync_session(session: str) -> dict[str, Any]:
 	"""Record the flow server's log into this session after a terminal event, or when a
 	client reconnects; never called on a schedule."""
-	doc = _owned_session(session)
+	doc = _load_session(session, "write")
 	doc.sync()
 	return _session_payload(doc)
 
@@ -177,7 +183,9 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 		)
 
 	run = frappe.get_doc("Flow Run", run_name.strip())
-	assert_run_owner(run)
+	frappe.has_permission("Flow Run", "read", run, throw=True)
+	if run.owner != frappe.session.user:
+		frappe.has_permission("Flow Run", "write", run, throw=True)
 	if run.status not in ("Completed", "Denied", "Failed"):
 		frappe.throw(
 			_("Feedback applies to finished runs only (this run is {0}).").format(run.status),
@@ -205,16 +213,17 @@ def attach_file(file: str) -> dict[str, Any]:
 	if not isinstance(file, str) or not file.strip():
 		frappe.throw(_("File is required."), title=_("Invalid Attachment"))
 
+	frappe.has_permission("Flow Session", "create", throw=True)
 	from flow.flow.doctype.flow_session_attachment.flow_session_attachment import stage_attachment
 
 	return stage_attachment(file.strip())
 
 
-def _owned_session(session: str) -> FlowSession:
+def _load_session(session: str, ptype: str) -> FlowSession:
 	if not isinstance(session, str) or not session.strip():
 		frappe.throw(_("Session is required."), title=_("Invalid Session"))
 	doc = frappe.get_doc("Flow Session", session.strip())
-	_assert_session_owner(doc)
+	frappe.has_permission("Flow Session", ptype, doc, throw=True)
 	return doc
 
 

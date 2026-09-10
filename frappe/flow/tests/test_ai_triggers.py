@@ -9,6 +9,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient
+from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 from flow.triggers import dispatch, dispatch_scheduled, fire
@@ -160,7 +161,7 @@ class TestDispatch(IntegrationTestCase):
 				"doctype": "User",
 				"email": "dispatch-service@example.com",
 				"first_name": "Svc",
-				"roles": [{"role": "System Manager"}],
+				"roles": [{"role": "System Manager"}, {"role": FLOW_USER_ROLE}],
 			}
 		).insert(ignore_permissions=True)
 		self.trigger.run_as = service.name
@@ -312,7 +313,7 @@ class TestFire(IntegrationTestCase):
 				"doctype": "User",
 				"email": "trigger-owner@example.com",
 				"first_name": "Owner",
-				"roles": [{"role": "System Manager"}],
+				"roles": [{"role": "System Manager"}, {"role": FLOW_USER_ROLE}],
 			}
 		).insert(ignore_permissions=True)
 		customer = frappe.get_doc(
@@ -341,7 +342,7 @@ class TestFire(IntegrationTestCase):
 				"doctype": "User",
 				"email": "trigger-service@example.com",
 				"first_name": "Service",
-				"roles": [{"role": "System Manager"}],
+				"roles": [{"role": "System Manager"}, {"role": FLOW_USER_ROLE}],
 			}
 		).insert(ignore_permissions=True)
 		self.trigger.run_as = service_user.name

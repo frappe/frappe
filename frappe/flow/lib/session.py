@@ -54,11 +54,10 @@ def new_session(
 ) -> FlowSession:
 	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant."""
 	if agent is None:
-		# The default Assistant is shared; no per-user read check (matches the desk default).
 		agent_doc = frappe.get_doc("Flow Agent", _default_agent_name())
 	else:
 		agent_doc = frappe.get_doc("Flow Agent", agent) if isinstance(agent, str) else agent
-		frappe.has_permission("Flow Agent", "read", agent_doc.name, throw=True)
+	frappe.has_permission("Flow Agent", "read", agent_doc.name, throw=True)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Flow Session",
@@ -80,7 +79,7 @@ def new_session(
 def load_session(name: str, *, agent: str | None = None, model: str | None = None) -> FlowSession:
 	"""Continue a session by id; `model` switches its model first."""
 	doc = frappe.get_doc("Flow Session", name)
-	_assert_session_owner(doc)
+	frappe.has_permission("Flow Session", "write", doc, throw=True)
 	if agent and agent != doc.agent:
 		frappe.throw(
 			_("This session is bound to agent {0} and cannot be switched.").format(doc.agent),
@@ -177,7 +176,9 @@ class LogRecorder:
 			self.run.iterations = (self.run.iterations or 0) + 1
 			self.run.output = text or self.run.output
 			self.run.tool_calls = _dump((_load(self.run.tool_calls) or []) + calls)
-		self.add_message("assistant", text or None, tool_calls=_dump(_to_openai_tool_calls(calls)) if calls else None)
+		self.add_message(
+			"assistant", text or None, tool_calls=_dump(_to_openai_tool_calls(calls)) if calls else None
+		)
 
 	def end_run(self, reason: str) -> None:
 		run = self.run
@@ -256,19 +257,3 @@ def _default_agent_name() -> str:
 			title=_("Missing Default Agent"),
 		)
 	return ASSISTANT_AGENT_TITLE
-
-
-def _assert_session_owner(doc: FlowSession) -> None:
-	if doc.owner == frappe.session.user:
-		return
-	if frappe.has_permission("Flow Session", "write", doc):
-		return
-	frappe.throw(_("Not permitted to use this session."), frappe.PermissionError)
-
-
-def assert_run_owner(run: FlowRun) -> None:
-	if run.owner == frappe.session.user:
-		return
-	if frappe.has_permission("Flow Run", "write", run):
-		return
-	frappe.throw(_("Not permitted to resume this run."), frappe.PermissionError)

@@ -9,11 +9,25 @@ from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.lib.session import load_session, new_session
+from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import FakeDaemon
 from flow.tests.test_live_server import LiveServerCase
 from flow.tools.builtins import sync_builtin_tools
 
 OTHER = "session-other@example.com"
+
+
+def _ensure_other() -> None:
+	if not frappe.db.exists("User", OTHER):
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": OTHER,
+				"first_name": "Other",
+				"send_welcome_email": 0,
+				"roles": [{"role": FLOW_USER_ROLE}],
+			}
+		).insert(ignore_permissions=True)
 
 
 class ServerCase(IntegrationTestCase):
@@ -53,7 +67,14 @@ class TestNewSession(ServerCase):
 	def test_new_session_inserts_the_session_and_its_server_twin(self):
 		session = new_session(self.agent.name, model=self.model.name, title="Hello", auto_approve=True)
 		self.assertEqual(
-			(session.agent, session.model, session.title, session.source, session.auto_approve, session.owner),
+			(
+				session.agent,
+				session.model,
+				session.title,
+				session.source,
+				session.auto_approve,
+				session.owner,
+			),
 			(self.agent.name, self.model.name, "Hello", "Manual", 1, "Administrator"),
 		)
 		config = self.daemon.configs[session.name]
@@ -86,6 +107,19 @@ class TestNewSession(ServerCase):
 		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
 		self.assertIn(session.name, self.daemon.configs)
 
+	def test_the_assistant_gets_the_same_read_check_as_a_named_agent(self):
+		from flow.assistant import sync_builtin_assistant
+
+		sync_builtin_assistant(self.model.name)
+		_ensure_other()
+		frappe.get_doc(
+			{"doctype": "User Permission", "user": OTHER, "allow": "Flow Agent", "for_value": self.agent.name}
+		).insert()
+		frappe.set_user(OTHER)
+		new_session(self.agent.name)
+		with self.assertRaises(frappe.PermissionError):
+			new_session()
+
 	def test_a_server_refusal_is_a_validation_error(self):
 		with patch.object(
 			self.daemon, "create_session", side_effect=DaemonError(400, "host 'x' is not allowed")
@@ -97,10 +131,7 @@ class TestNewSession(ServerCase):
 class TestLoadSession(ServerCase):
 	def setUp(self):
 		super().setUp()
-		if not frappe.db.exists("User", OTHER):
-			frappe.get_doc(
-				{"doctype": "User", "email": OTHER, "first_name": "Other", "send_welcome_email": 0}
-			).insert(ignore_permissions=True)
+		_ensure_other()
 		self.session = new_session(self.agent.name)
 
 	def test_load_session_is_for_the_owner(self):

@@ -12,6 +12,7 @@ from frappe.tests import IntegrationTestCase
 from flow.daemon import lifecycle
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_session.flow_session import FlowSession
+from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
 from flow.tools.builtins import sync_builtin_tools
 
@@ -234,9 +235,7 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 
 	def test_chat_records_where_a_run_came_from(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "trigger probe"}).insert()
-		run = self.session.chat(
-			"look", source="Trigger", reference_doctype="ToDo", reference_name=todo.name
-		)
+		run = self.session.chat("look", source="Trigger", reference_doctype="ToDo", reference_name=todo.name)
 		self.assertEqual(
 			(run.source, run.reference_doctype, run.reference_name), ("Trigger", "ToDo", todo.name)
 		)
@@ -529,6 +528,8 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
 		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.daemon = FakeDaemon()
+		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.allowed = self.model("Allowed Model")
 		self.restricted = self.model("Restricted Model")
 		self.agent = frappe.get_doc(
@@ -546,6 +547,7 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 				"email": "model-perm@example.com",
 				"first_name": "Model Perm",
 				"send_welcome_email": 0,
+				"roles": [{"role": FLOW_USER_ROLE}],
 			}
 		).insert(ignore_permissions=True)
 
@@ -569,6 +571,17 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 				"user": self.user.name,
 				"allow": "Flow Model",
 				"for_value": model_name,
+			}
+		).insert(ignore_permissions=True)
+		frappe.clear_cache(user=self.user.name)
+
+	def restrict_agents_to(self, agent_name):
+		frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": self.user.name,
+				"allow": "Flow Agent",
+				"for_value": agent_name,
 			}
 		).insert(ignore_permissions=True)
 		frappe.clear_cache(user=self.user.name)
@@ -611,3 +624,31 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 		frappe.set_user(self.user.name)
 		with self.assertRaises(frappe.PermissionError):
 			session.chat("hello")
+
+	def test_chat_rechecks_agent_permission_for_an_existing_session(self):
+		allowed = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Allowed Permission Agent",
+				"model": self.allowed.name,
+				"instructions": "x",
+				"enabled": 1,
+			}
+		).insert()
+		session = self.session(model=self.allowed.name)
+		session.db_set("owner", self.user.name)
+		self.restrict_agents_to(allowed.name)
+		frappe.set_user(self.user.name)
+		with self.assertRaises(frappe.PermissionError):
+			session.chat("hello")
+
+	def test_resume_rechecks_model_permission(self):
+		session = self.session(model=self.restricted.name)
+		session.db_set("owner", self.user.name)
+		self.daemon.rows = pause(1, "r1")
+		self.daemon.paused = True
+		session.sync()
+		self.restrict_to(self.allowed.name)
+		frappe.set_user(self.user.name)
+		with self.assertRaises(frappe.PermissionError):
+			session.resume({"c9": "approve"})

@@ -72,7 +72,7 @@
   }
  ],
  "links": [],
- "modified": "2026-07-04 00:00:00.000000",
+ "modified": "2026-09-10 20:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Model",
@@ -91,7 +91,7 @@
   },
   {
    "read": 1,
-   "role": "All"
+   "role": "Flow User"
   }
  ],
  "row_format": "Dynamic",

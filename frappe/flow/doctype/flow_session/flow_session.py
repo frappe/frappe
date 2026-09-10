@@ -174,6 +174,7 @@ class FlowSession(Document):
 
 	def resume(self, answers: dict[str, Any]) -> FlowRun:
 		"""Answer the paused run's approval batch, keyed by tool call id."""
+		self._assert_can_run()
 		self.sync()
 		run = self._paused_run()
 		with flow_server() as client:
@@ -199,6 +200,7 @@ class FlowSession(Document):
 		from flow.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
+		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
 		model_config(self.model or agent.model)

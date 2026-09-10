@@ -11,6 +11,7 @@ from flow import api
 from flow.api import attach_file, submit_feedback
 from flow.daemon.client import DaemonClient
 from flow.memory import store as memory_store
+from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import FakeDaemon, pause
 from flow.tests.test_live_server import LiveServerCase
 from flow.tools.builtins import sync_builtin_tools
@@ -81,18 +82,17 @@ class TestAttachFile(IntegrationTestCase):
 
 
 def _ensure_user(email: str) -> str:
-	if frappe.db.exists("User", email):
-		return email
-	user = frappe.get_doc(
-		{
-			"doctype": "User",
-			"email": email,
-			"first_name": email.split("@")[0],
-			"send_welcome_email": 0,
-			"enabled": 1,
-		}
-	)
-	user.insert(ignore_permissions=True)
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+				"enabled": 1,
+			}
+		).insert(ignore_permissions=True)
+	frappe.get_doc("User", email).add_roles(FLOW_USER_ROLE)
 	return email
 
 
@@ -162,6 +162,14 @@ class TestSubmitFeedback(IntegrationTestCase):
 	def test_rejects_other_users_run(self):
 		run = self._run()
 		frappe.set_user(_ensure_user("feedback-other-user@example.com"))
+		with self.assertRaises(frappe.PermissionError):
+			submit_feedback(run, "Up")
+
+	def test_read_only_share_cannot_change_feedback(self):
+		run = self._run()
+		other = _ensure_user("feedback-read-only@example.com")
+		frappe.share.add("Flow Run", run, other, read=1, write=0)
+		frappe.set_user(other)
 		with self.assertRaises(frappe.PermissionError):
 			submit_feedback(run, "Up")
 
@@ -300,7 +308,9 @@ class TestSessionEndpoints(ApiCase):
 		frappe.db.set_value("Flow Session", first, "modified", "2026-01-01 00:00:00", update_modified=False)
 		# the test site keeps older committed sessions, so only the newest position is fixed
 		frappe.set_user(_ensure_user(OTHER))
-		foreign = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name, "title": "Theirs"}).insert()
+		foreign = frappe.get_doc(
+			{"doctype": "Flow Session", "agent": self.agent.name, "title": "Theirs"}
+		).insert()
 		frappe.set_user("Administrator")
 
 		rows = api.list_sessions()
@@ -377,7 +387,9 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(self.daemon.configs[name]["auto_approve"], False)
 
 	def test_trigger_sessions_cannot_disable_auto_approve(self):
-		doc = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name, "source": "Trigger"}).insert()
+		doc = frappe.get_doc(
+			{"doctype": "Flow Session", "agent": self.agent.name, "source": "Trigger"}
+		).insert()
 		with self.assertRaisesRegex(frappe.ValidationError, "always auto-approve"):
 			api.set_auto_approve(doc.name, 0)
 		self.assertEqual(api.set_auto_approve(doc.name, 1), {"auto_approve": True})
@@ -414,4 +426,6 @@ class TestLiveEndpoints(LiveServerCase):
 		self.assertEqual([(run.name, run.status) for run in data["runs"]], [(started["run"], "Completed")])
 		self.assertEqual(data["title"], "hello there")
 		self.assertEqual(api.entries(name)["entries"][-1]["type"], "run_ended")
-		self.assertEqual(frappe.db.get_value("Flow Run", started["run"], "output"), "Mock reply to: hello there")
+		self.assertEqual(
+			frappe.db.get_value("Flow Run", started["run"], "output"), "Mock reply to: hello there"
+		)

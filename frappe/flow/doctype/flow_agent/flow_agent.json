@@ -109,7 +109,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-10 12:30:00",
+ "modified": "2026-09-10 20:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",
@@ -128,7 +128,7 @@
   },
   {
    "read": 1,
-   "role": "All"
+   "role": "Flow User"
   }
  ],
  "row_format": "Dynamic",
