@@ -42,6 +42,9 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	)
 )
 
+# Tables that carry no DocType record, so no DocField can be resolved for them.
+TABLES_WITHOUT_DOCTYPE = frozenset(("Singles", "Sessions", "Series"))
+
 
 def _cast_autoincrement_name(field: Field, doctype: str) -> Term:
 	if frappe.db.db_type == "postgres" and frappe.get_meta(doctype).autoname == "autoincrement":
@@ -306,7 +309,7 @@ class Engine:
 			self.query = qb.from_(self.table, immutable=False).delete()
 		else:
 			self.query = qb.from_(self.table, immutable=False)
-			self.apply_fields(fields)
+			self.apply_fields(fields, cast_json_columns=self.is_postgres and bool(distinct or group_by))
 			is_select = True
 
 		self.apply_filters(filters)
@@ -372,7 +375,7 @@ class Engine:
 		self.query.immutable = True
 		return self.query
 
-	def apply_fields(self, fields):
+	def apply_fields(self, fields, cast_json_columns: bool = False):
 		self.fields = self.parse_fields(fields)
 
 		# Track field aliases for use in group_by/order_by
@@ -385,6 +388,10 @@ class Engine:
 
 		if not self.fields:
 			self.fields = [self.table.name]
+
+		if cast_json_columns:
+			# After the permission pass: a Cast is a Term, which that pass lets through unchecked.
+			self.fields = [self._cast_json_select_field(field) for field in self.fields]
 
 		self.query._child_queries = []
 		has_select_field = False
@@ -599,13 +606,7 @@ class Engine:
 		# Child/link table fields live in a different doctype than the parent; NULL-fallback
 		# typing must resolve against the field's own doctype, else a numeric child field gets
 		# an empty-string fallback and postgres rejects `COALESCE(col, '') < 200`.
-		filter_doctype = doctype or self.doctype
-		field_table = getattr(_field, "table", None)
-		if field_table is not None:
-			try:
-				filter_doctype = get_doctype_name(field_table.get_sql())
-			except Exception:
-				pass
+		filter_doctype = self._get_field_doctype(_field, doctype or self.doctype)
 
 		if isinstance(value, Field):
 			_value = value
@@ -699,15 +700,11 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
-		filter_field_name = (
-			_field.name
-			if isinstance(_field, Field)
-			else (field if isinstance(field, str) else getattr(_field, "name", str(_field))).split(".")[-1]
-		)
+		filter_field_name = (_field.name if hasattr(_field, "name") else str(_field)).split(".")[-1]
+		# Only postgres needs the field's type here, so skip the lookup on other backends.
+		filter_df = self._get_filter_docfield(filter_doctype, filter_field_name) if self.is_postgres else None
 		is_json_field = (
-			self.is_postgres
-			and isinstance(_field, Field)
-			and self._is_json_field(filter_doctype, filter_field_name)
+			self.is_postgres and isinstance(_field, Field) and getattr(filter_df, "fieldtype", None) == "JSON"
 		)
 		# JSON has no comparison operators. Cast before NULL fallbacks, which use an empty string.
 		comparison_field = functions.Cast(_field, "varchar") if is_json_field else _field
@@ -721,17 +718,7 @@ class Engine:
 		if self.is_postgres and _operator.casefold() == "is" and isinstance(_field, Field):
 			value_token = str(_value).strip().lower()
 			if value_token in ("set", "not set"):
-				fallback_sql = self._get_ifnull_fallback(filter_doctype, filter_field_name)
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
+				fallback_value = self._get_ifnull_fallback_value(filter_doctype, filter_field_name)
 				if value_token == "set":
 					return comparison_field != fallback_value
 				return _field.isnull() | (comparison_field == fallback_value)
@@ -744,19 +731,7 @@ class Engine:
 			operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
 			if operator_fn == builtin_operator.ne:
-				target_doctype = filter_doctype
-				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
-
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
+				fallback_value = self._get_ifnull_fallback_value(filter_doctype, filter_field_name)
 				return operator_fn(comparison_field, ValueWrapper(fallback_value))
 			else:
 				return _field.isnull()
@@ -767,17 +742,7 @@ class Engine:
 			if not isinstance(_field, functions.IfNull | functions.Coalesce) and self._should_apply_ifnull(
 				target_doctype, filter_field_name, _operator, _value
 			):
-				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
+				fallback_value = self._get_ifnull_fallback_value(target_doctype, filter_field_name)
 				if fallback_value == _value:
 					if _operator == "=":
 						return _field.isnull() | comparison_field.eq(_value)
@@ -790,31 +755,69 @@ class Engine:
 				self.is_postgres
 				and not is_json_field
 				and _operator.casefold() in ("like", "not like", "ilike")
-				and is_non_text_field(target_doctype, filter_field_name)
+				and is_non_text_field(target_doctype, filter_field_name, df=filter_df)
 			):
 				comparison_field = functions.Cast(comparison_field, "varchar")
 
 			return operator_fn(comparison_field, _value)
 
-	def _is_json_field(self, doctype: str, fieldname: str) -> bool:
+	def _get_field_doctype(self, field: Term, default: str) -> str:
+		"""The doctype a parsed field belongs to, which is not the query's own for a joined table."""
+		table = getattr(field, "table", None)
+		if table is None:
+			return default
+		try:
+			# `get_sql()` renders the alias too, which is not part of the table name.
+			return get_doctype_name(getattr(table, "_table_name", None) or table.get_sql())
+		except Exception:
+			return default
+
+	def _cast_json_column(self, field: Term) -> Term:
+		"""postgres `json` has no equality or ordering operators, which every clause but SELECT needs."""
+		if not self.is_postgres or not isinstance(field, Field) or field.name == "*":
+			return field
+
+		df = self._get_filter_docfield(self._get_field_doctype(field, self.doctype), field.name)
+		if getattr(df, "fieldtype", None) != "JSON":
+			return field
+
+		return functions.Cast(field, "varchar")
+
+	def _get_filter_docfield(self, doctype: str, fieldname: str) -> "Document | frappe._dict | None":
+		"""Resolve the DocField a filter targets, without loading metadata that queries this engine."""
 		from frappe.model.meta import get_default_df
 
-		if get_default_df(fieldname) or fieldname in OPTIONAL_FIELDS:
-			return False
-		if doctype.startswith("__") or doctype in ("Singles", "Sessions", "Series"):
-			return False
+		if fieldname in OPTIONAL_FIELDS:
+			return None
+		if default_df := get_default_df(fieldname):
+			return default_df
+		if doctype.startswith("__") or doctype in TABLES_WITHOUT_DOCTYPE:
+			return None
 
+		# A cached meta cannot recurse and carries custom fields, so prefer it.
+		meta = frappe.client_cache.get_value(f"doctype_meta::{doctype}")
+		if meta is None:
+			meta = self._load_meta_quietly(doctype)
+		if meta is None:
+			return None
+
+		fields = meta.get("fields", {"fieldname": fieldname})
+		return fields[0] if fields else None
+
+	def _load_meta_quietly(self, doctype: str):
+		"""Load metadata for a type probe. A missing doctype is the query's problem, not the user's."""
+		mute_messages = frappe.flags.mute_messages
+		frappe.flags.mute_messages = True
 		try:
 			if doctype in CORE_DOCTYPES:
-				# Processing core metadata queries these same tables before their metadata is cached.
-				meta = frappe.get_cached_doc("DocType", doctype)
-				df = next((df for df in meta.fields if df.fieldname == fieldname), None)
-			else:
-				df = frappe.get_meta(doctype).get_field(fieldname)
+				# Loading core metadata queries these same tables before their metadata is cached,
+				# so read the stored DocType instead. Its custom fields stay invisible until then.
+				return frappe.get_cached_doc("DocType", doctype)
+			return frappe.get_meta(doctype)
 		except frappe.DoesNotExistError:
-			return False
-
-		return bool(df and df.fieldtype == "JSON")
+			return None
+		finally:
+			frappe.flags.mute_messages = mute_messages
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""
@@ -1306,6 +1309,11 @@ class Engine:
 			# Note: Comma handling is done in parse_fields before this method is called
 			return self.parse_string_field(field)
 
+	def _cast_json_select_field(self, field: Term) -> Term:
+		"""Keep the alias so the cast does not rename the column in the result."""
+		cast = self._cast_json_column(field)
+		return cast if cast is field else cast.as_(field.alias or field.name)
+
 	def _normalize_postgres_order_field(self, field):
 		"""In PostgreSQL order_by fields need to either be in group_by or be aggregated
 		when used with select and group_by"""
@@ -1480,7 +1488,7 @@ class Engine:
 			if parsed := self._parse_backtick_field_notation(field_name):
 				table_name, field_name = parsed
 				self.check_filter_field_permission(table_name, field_name)
-				return frappe.qb.DocType(table_name)[field_name]
+				return self._cast_json_column(frappe.qb.DocType(table_name)[field_name])
 
 			# If parsing failed, fall through to error handling below
 			frappe.throw(
@@ -1504,7 +1512,7 @@ class Engine:
 
 			# Apply join for the dynamic field
 			self.query = dynamic_field.apply_join(self.query, engine=self)
-			return dynamic_field.field
+			return self._cast_json_column(dynamic_field.field)
 		else:
 			# Validate as simple field name (alphanumeric + underscore only)
 			if not SIMPLE_FIELD_PATTERN.match(field_name):
@@ -1519,7 +1527,7 @@ class Engine:
 			self.check_filter_field_permission(self.doctype, field_name)
 
 			# Create Field object for simple field
-			return self.table[field_name]
+			return self._cast_json_column(self.table[field_name])
 
 	def _validate_group_by(self, group_by: str) -> list[Field]:
 		"""Validate the group_by string argument, apply joins for dynamic fields, and return parsed Field objects."""
@@ -2052,6 +2060,16 @@ class Engine:
 			pass
 
 		return "''"
+
+	def _get_ifnull_fallback_value(self, doctype: str, fieldname: str) -> str | int:
+		"""Python equivalent of the SQL literal `_get_ifnull_fallback` returns."""
+		fallback_sql = self._get_ifnull_fallback(doctype, fieldname)
+		if fallback_sql.startswith("'") and fallback_sql.endswith("'"):
+			return fallback_sql[1:-1]
+		try:
+			return int(fallback_sql)
+		except (ValueError, TypeError):
+			return fallback_sql
 
 	def _should_apply_ifnull(self, doctype: str, fieldname: str, operator: str, value: Any) -> bool:
 		"""Determine if IFNULL wrapping is needed for a filter condition."""
