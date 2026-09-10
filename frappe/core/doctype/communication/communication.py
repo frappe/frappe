@@ -13,7 +13,7 @@ from frappe.automation.doctype.assignment_rule.assignment_rule import (
 	apply as apply_assignment_rule,
 )
 from frappe.contacts.doctype.contact.contact import get_contact_name
-from frappe.core.doctype.comment.comment import refresh_comment_count
+from frappe.core.doctype.comment.comment import refresh_comment_count, refresh_comment_count_on_update
 from frappe.core.doctype.communication.email import validate_email
 from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
@@ -243,13 +243,7 @@ class Communication(Document, CommunicationEmailMixin):
 			self.set_signature_in_email_content()
 
 	def on_update(self):
-		old_doc = self.get_doc_before_save()
-		if old_doc and (old_doc.reference_doctype, old_doc.reference_name) != (
-			self.reference_doctype,
-			self.reference_name,
-		):
-			refresh_comment_count(old_doc.reference_doctype, old_doc.reference_name)
-			refresh_comment_count(self.reference_doctype, self.reference_name)
+		refresh_comment_count_on_update(self)
 
 		parent = get_parent_doc(self)
 		if (method := getattr(parent, "on_communication_update", None)) and callable(method):

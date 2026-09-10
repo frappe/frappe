@@ -74,15 +74,7 @@ class Comment(Document):
 		)
 
 	def on_update(self):
-		old_doc = self.get_doc_before_save()
-		if old_doc and (old_doc.reference_doctype, old_doc.reference_name, old_doc.comment_type) != (
-			self.reference_doctype,
-			self.reference_name,
-			self.comment_type,
-		):
-			refresh_comment_count(old_doc.reference_doctype, old_doc.reference_name)
-			refresh_comment_count(self.reference_doctype, self.reference_name)
-
+		refresh_comment_count_on_update(self)
 		if not self.is_new():
 			self.notify_change("update")
 
@@ -217,6 +209,19 @@ def get_document_comments(
 
 	filters.append(["comment_type", "in", allowed])
 	return frappe.get_all("Comment", fields=fields, filters=filters, **kwargs)
+
+
+def refresh_comment_count_on_update(doc):
+	"""Recount old and new parent when a Comment or Communication is moved or changes type."""
+	old_doc = doc.get_doc_before_save()
+	if not old_doc:
+		return
+
+	old = (old_doc.reference_doctype, old_doc.reference_name)
+	new = (doc.reference_doctype, doc.reference_name)
+	if old != new or old_doc.get("comment_type") != doc.get("comment_type"):
+		refresh_comment_count(*old)
+		refresh_comment_count(*new)
 
 
 def refresh_comment_count(reference_doctype, reference_name):
