@@ -332,7 +332,7 @@ async function createMissingDependencies(
 	const store = useStudioStore()
 	const pageName = store.activePage!.name
 	const result = await call<PasteDependenciesResult>(
-		"studio.studio.doctype.studio_page.studio_page.create_missing_dependencies",
+		"studio.studio.doctype.studio_page.copy_paste_handler.create_missing_dependencies",
 		{
 			app_name: store.activeApp!.name,
 			page_name: pageName,

@@ -21,16 +21,13 @@ from studio.export import (
 )
 from studio.realtime import publish_doc_change
 from studio.studio.doctype.studio_component.studio_component import get_components_for_blocks
-from studio.studio.doctype.studio_page.copy_paste import (
+from studio.studio.doctype.studio_page.copy_paste_handler import (
 	PAGE_RESOURCE_FIELDS,
 	PAGE_VARIABLE_FIELDS,
-	create_missing_dependencies,
-	duplicate_page,
 	parse_list,
-	paste_page,
 	pick,
 )
-from studio.utils import camel_case_to_kebab_case, has_page_write_perm
+from studio.utils import camel_case_to_kebab_case
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.

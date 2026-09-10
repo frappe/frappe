@@ -35,7 +35,7 @@ PAGE_RESOURCE_JSON_FIELDS = {"fields", "filters", "params", "whitelisted_methods
 COMPONENT_INPUT_FIELDS = ("input_name", "type", "required", "default", "description", "options")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def duplicate_page(page_name: str, app_name: str | None):
 	page = frappe.get_doc("Studio Page", page_name)
 	page.check_permission("read")
@@ -43,7 +43,7 @@ def duplicate_page(page_name: str, app_name: str | None):
 	return paste_page(app_name or page.studio_app, {**page.get_copy(blocks), "blocks": blocks})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def paste_page(app_name: str, page: dict | str, target_page: str | None = None):
 	"""Create a page from a copy, or replace the contents of `target_page` with it."""
 	copy = frappe.parse_json(page)
@@ -71,7 +71,7 @@ def paste_page(app_name: str, page: dict | str, target_page: str | None = None):
 	return doc
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def create_missing_dependencies(
 	app_name: str,
 	components=None,

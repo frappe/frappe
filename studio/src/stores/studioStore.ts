@@ -154,7 +154,7 @@ const useStudioStore = defineStore("store", () => {
 	async function duplicateAppPage(appName: string, page: StudioPage) {
 		toast.promise(
 			createResource({
-				url: "studio.studio.doctype.studio_page.studio_page.duplicate_page",
+				url: "studio.studio.doctype.studio_page.copy_paste_handler.duplicate_page",
 				method: "POST",
 				params: {
 					page_name: page.name,
@@ -177,7 +177,7 @@ const useStudioStore = defineStore("store", () => {
 
 	async function pastePage(copy: PageCopy & { blocks: BlockOptions[] } & Record<string, any>, targetPage?: string) {
 		const appName = activeApp.value!.name
-		const page: StudioPage = await call("studio.studio.doctype.studio_page.studio_page.paste_page", {
+		const page: StudioPage = await call("studio.studio.doctype.studio_page.copy_paste_handler.paste_page", {
 			app_name: appName,
 			page: copy,
 			target_page: targetPage,

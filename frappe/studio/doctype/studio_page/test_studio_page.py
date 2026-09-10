@@ -11,12 +11,12 @@ from frappe.tests import IntegrationTestCase
 
 from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
-from studio.studio.doctype.studio_page.studio_page import (
+from studio.studio.doctype.studio_page.copy_paste_handler import (
 	create_missing_dependencies,
 	duplicate_page,
-	get_page,
 	paste_page,
 )
+from studio.studio.doctype.studio_page.studio_page import get_page
 
 PAGE_SCRIPT = "export function setup() { return { greeting: 'hi' } }"
 TODO_RESOURCE = {
