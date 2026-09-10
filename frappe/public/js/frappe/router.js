@@ -193,30 +193,57 @@ frappe.router = {
 		// /desk/user/user-001 = ["Form", "User", "user-001"]
 		// /desk/user/user-001 = ["Form", "User", "user-001"]
 		// /desk/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
-		if (frappe.workspaces[route[0]]) {
-			// public workspace
-			route = ["Workspaces", frappe.workspaces[route[0]].name];
-		} else if (route[0] == "private") {
-			// private workspace
-			let private_workspace = route[1] && frappe.router.slug(`${route[1]}`);
-			if (!frappe.workspaces[private_workspace]) {
-				frappe.msgprint(
-					__("Workspace <b>{0}</b> does not exist", [
-						frappe.utils.xss_sanitise(route[1]),
-					])
-				);
-				return ["Workspaces"];
-			}
-			route = ["Workspaces", "private", frappe.workspaces[private_workspace].name];
-		} else if (this.routes[route[0]]) {
-			// route
-			route = await this.set_doctype_route(route);
-		} else {
-			// Clear stale layout — standard routes skip set_doctype_route where it's normally reset.
-			this.doctype_layout = null;
-		}
+		switch (this.segment_kind(route[0])) {
+			case "workspace":
+				return ["Workspaces", frappe.workspaces[route[0]].name];
 
-		return route;
+			case "private": {
+				let private_workspace = route[1] && frappe.router.slug(`${route[1]}`);
+				if (!frappe.workspaces[private_workspace]) {
+					frappe.msgprint(
+						__("Workspace <b>{0}</b> does not exist", [
+							frappe.utils.xss_sanitise(route[1]),
+						])
+					);
+					return ["Workspaces"];
+				}
+				return ["Workspaces", "private", frappe.workspaces[private_workspace].name];
+			}
+
+			case "doctype":
+				return await this.set_doctype_route(route);
+
+			default:
+				// A page, or a word the desk does not know: both are left for `render_page`.
+				// Clear stale layout -- standard routes skip set_doctype_route where it is
+				// normally reset.
+				this.doctype_layout = null;
+				return route;
+		}
+	},
+
+	// What the first segment of a route names, or null when the desk has never heard of it.
+	//
+	// One list, in one place, because two things need it and they must not drift apart:
+	// `convert_to_standard_route` turns a segment into a standard route, and `take_shell_from`
+	// decides whether a shell may be taken off the front of one. When they disagreed,
+	// `/desk/<shell>/query-report/<name>` rendered nothing at all.
+	//
+	// Ordered as the desk resolves: a workspace first, since a workspace slug and a doctype slug
+	// collide on 31 segments with erpnext installed and the workspace has always won.
+	segment_kind(segment) {
+		if (!segment) return null;
+		if (frappe.workspaces?.[segment]) return "workspace";
+		if (segment === "private") return "private";
+		if (this.routes[segment]) return "doctype";
+
+		// Two registries, because there are two kinds of page. `page_info` holds the `Page`
+		// documents this user may see; `standard_pages` holds the ones the desk registers in
+		// itself, which are documents nowhere. `query-report` is the second kind, and
+		// `pageview.with_page` reads both, so this does too.
+		if (frappe.boot.page_info?.[segment] || frappe.standard_pages?.[segment]) return "page";
+
+		return null;
 	},
 
 	doctype_route_exist(route) {
@@ -722,23 +749,10 @@ frappe.router = {
 		);
 	},
 
-	// Whether a segment names something the desk can route to by itself. This is the set
-	// `convert_to_standard_route` walks, plus the two kinds of page.
-	//
-	// `standard_pages` is easy to forget and the reason `/desk/maintenance/query-report/<name>`
-	// went nowhere: `query-report` is not a `Page` record at all, so `page_info` has never heard
-	// of it, and it is registered in the desk itself. `pageview.with_page` looks there first, so
-	// this has to as well, or a view container that is not a document reads as naming nothing and
-	// the shell in front of it is never taken off.
+	// Whether a segment names something the desk can route to on its own, which is what a shell
+	// has to be followed by before it may be taken off the front of a route.
 	route_names_something(segment) {
-		if (!segment) return false;
-		return !!(
-			frappe.workspaces?.[segment] ||
-			segment === "private" ||
-			this.routes[segment] ||
-			frappe.boot.page_info?.[segment] ||
-			frappe.standard_pages?.[segment]
-		);
+		return !!this.segment_kind(segment);
 	},
 
 	show_external_link_warning_if_needed(/** @type {HTMLAnchorElement} */ aElement) {
