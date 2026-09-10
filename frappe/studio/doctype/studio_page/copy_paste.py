@@ -91,7 +91,7 @@ def create_missing_dependencies(
 	}
 	if page_name:
 		conflicts.update(add_page_data(page, resources, variables, overwrite_conflicts=overwrite_conflicts))
-	return {"conflicts": conflicts}
+	return {"conflicts": conflicts, "modified": page.modified if page else None}
 
 
 def get_writable_app(app_name: str):
@@ -149,7 +149,7 @@ def validate_page_copy(copy: dict):
 
 def add_page_data(page, resources: list[dict], variables: list[dict], *, overwrite_conflicts=False):
 	conflicts = {}
-	conflicts["resources"] = append_missing_rows(
+	conflicts["resources"], resources_changed = append_missing_rows(
 		page,
 		"resources",
 		resources,
@@ -159,7 +159,7 @@ def add_page_data(page, resources: list[dict], variables: list[dict], *, overwri
 		json_fields=PAGE_RESOURCE_JSON_FIELDS,
 		overwrite_conflicts=overwrite_conflicts,
 	)
-	conflicts["variables"] = append_missing_rows(
+	conflicts["variables"], variables_changed = append_missing_rows(
 		page,
 		"variables",
 		variables,
@@ -167,7 +167,7 @@ def add_page_data(page, resources: list[dict], variables: list[dict], *, overwri
 		PAGE_VARIABLE_FIELDS,
 		overwrite_conflicts=overwrite_conflicts,
 	)
-	if page.has_value_changed("resources") or page.has_value_changed("variables"):
+	if resources_changed or variables_changed:
 		page.save()
 	return conflicts
 
@@ -186,6 +186,7 @@ def append_missing_rows(
 	"""Add absent rows and return different same-name definitions for conflict review."""
 	existing = {row.get(key_field): row for row in page.get(table_field)}
 	conflicts = []
+	changed = False
 	for row in rows:
 		if not isinstance(row, dict) or not isinstance(row.get(key_field), str):
 			frappe.throw(_("Invalid {0} in copied content.").format(key_field.replace("_", " ")))
@@ -199,9 +200,11 @@ def append_missing_rows(
 				)
 				if overwrite_conflicts:
 					existing[key].update(pick(row, fields))
+					changed = True
 			continue
 		existing[key] = page.append(table_field, pick(row, fields))
-	return conflicts
+		changed = True
+	return conflicts, changed
 
 
 def dependency_signature(row, fields, int_fields=(), json_fields=()):

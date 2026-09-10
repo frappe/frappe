@@ -59,6 +59,11 @@ interface PasteConflicts {
 	variables?: PasteConflict[]
 }
 
+interface PasteDependenciesResult {
+	conflicts?: PasteConflicts
+	modified?: string
+}
+
 export function copyEntirePage() {
 	const page = useStudioStore().activePage
 	const root = useCanvasStore().activeCanvas?.getRootBlock()
@@ -325,24 +330,28 @@ async function createMissingDependencies(
 	const { components, files, resources, variables } = payload
 	if (![components, files, resources, variables].some((list) => list?.length)) return {}
 	const store = useStudioStore()
-	const result = await call("studio.studio.doctype.studio_page.studio_page.create_missing_dependencies", {
-		app_name: store.activeApp!.name,
-		page_name: store.activePage!.name,
-		components,
-		files,
-		resources,
-		variables,
-		overwrite_conflicts: overwriteConflicts,
-	})
+	const pageName = store.activePage!.name
+	const result = await call<PasteDependenciesResult>(
+		"studio.studio.doctype.studio_page.studio_page.create_missing_dependencies",
+		{
+			app_name: store.activeApp!.name,
+			page_name: pageName,
+			components,
+			files,
+			resources,
+			variables,
+			overwrite_conflicts: overwriteConflicts,
+		},
+	)
+	if (store.activePage?.name === pageName) store.syncPageModified(result)
 	if (components?.length && overwriteConflicts) {
 		await Promise.all(components.map(({ name }) => useComponentStore().reloadComponent(name)))
 	}
 	if (files?.length) await store.setCustomComponents()
 	if (resources?.length || variables?.length) {
-		await store.refreshActivePageModified()
 		await store.setPageData(store.activePage!)
 	}
-	return result?.conflicts || {}
+	return result.conflicts || {}
 }
 
 function handlePastePage(payload: ClipboardPayload) {

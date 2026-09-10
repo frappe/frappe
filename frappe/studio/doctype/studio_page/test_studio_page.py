@@ -114,8 +114,13 @@ class TestStudioPage(IntegrationTestCase):
 	def test_paste_reports_conflicting_component(self):
 		app = make_studio_app(app_name="conflict-" + frappe.generate_hash(length=10))
 		component = make_component("Card")
-		copy = make_studio_page(app.name).get_dependencies([component_ref(component)])["components"][0]
-		matching_result = create_missing_dependencies(app.name, [copy])
+		page = make_studio_page(app.name)
+		copy = page.get_dependencies([component_ref(component)])["components"][0]
+		page.reload()
+		original_modified = page.modified
+		matching_result = create_missing_dependencies(app.name, [copy], page_name=page.name)
+		page.reload()
+		self.assertEqual(page.modified, original_modified)
 		self.assertEqual(matching_result["conflicts"]["components"], [])
 		copy["block"] = frappe.as_json({"componentName": "button", "children": []}, indent=None)
 
@@ -227,9 +232,12 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual([r["resource_name"] for r in deps["resources"]], ["todos"])
 		self.assertEqual([v["variable_name"] for v in deps["variables"]], ["count"])
 
-		create_missing_dependencies(
+		first_result = create_missing_dependencies(
 			app.name, page_name=target.name, resources=deps["resources"], variables=deps["variables"]
 		)
+		target.reload()
+		first_modified = target.modified
+		self.assertEqual(first_result["modified"], str(first_modified))
 		equivalent_resources = [{**deps["resources"][0], "fields": ["name"]}]
 		second_result = create_missing_dependencies(
 			app.name, page_name=target.name, resources=equivalent_resources, variables=deps["variables"]
@@ -238,6 +246,8 @@ class TestStudioPage(IntegrationTestCase):
 		target.reload()
 		self.assertEqual([r.resource_name for r in target.resources], ["todos"])
 		self.assertEqual([v.variable_name for v in target.variables], ["count"])
+		self.assertEqual(target.modified, first_modified)
+		self.assertEqual(str(second_result["modified"]), str(first_modified))
 		no_conflicts = {"components": [], "resources": [], "variables": []}
 		self.assertEqual(second_result["conflicts"], no_conflicts)
 
