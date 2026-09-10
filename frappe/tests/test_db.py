@@ -830,6 +830,22 @@ class TestDB(IntegrationTestCase):
 		log_error.assert_called_once()
 		self.assertEqual(len(frappe.db.after_commit), 0)
 
+	def test_failing_after_rollback_callback(self):
+		executed = []
+
+		def fail():
+			raise OSError("File on disk is gone")
+
+		frappe.db.after_rollback.add(fail)
+		frappe.db.after_rollback.add(lambda: executed.append("cache cleared"))
+
+		with patch("frappe.log_error") as log_error:
+			frappe.db.rollback()
+
+		self.assertEqual(executed, ["cache cleared"])
+		log_error.assert_called_once()
+		self.assertEqual(len(frappe.db.after_rollback), 0)
+
 	def test_db_explain(self):
 		frappe.db.sql("select 1", debug=1, explain=1)
 
