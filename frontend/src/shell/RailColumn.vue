@@ -1,11 +1,11 @@
 <!--
-  The rail on frappe-ui's `Rail`: an icon column with the app tile first, which opens the app menu.
+  The rail on frappe-ui's `SidebarRail`: an icon column with the app tile first, which opens the app menu.
   A heading has no icon form, so its children draw flat; rows fetched on demand are not drawn.
 -->
 <template>
-	<Rail>
+	<SidebarRail>
 		<div class="mb-3 flex shrink-0 items-center justify-center">
-			<!-- A raw button: `Dropdown` cannot reach a trigger through `RailItem`'s `Tooltip`. -->
+			<!-- A raw button: `Dropdown` cannot reach a trigger through `SidebarRailItem`'s `Tooltip`. -->
 			<Dropdown :options="menu" side="right" align="start">
 				<button
 					type="button"
@@ -24,17 +24,17 @@
 			</Dropdown>
 		</div>
 
-		<!-- Stretched over `Rail`'s own padding, so the scrollbar sits on the rail's edge. -->
+		<!-- Stretched over `SidebarRail`'s own padding, so the scrollbar sits on the rail's edge. -->
 		<ScrollArea class="-mx-[11px] min-h-0 flex-1 self-stretch" viewportClass="px-[11px]">
 			<nav class="flex flex-col items-center gap-3" :aria-label="appTitle">
-				<!-- `RailItem`'s `Tooltip` drops attributes, so the test hooks sit on a wrapper. -->
+				<!-- `SidebarRailItem`'s `Tooltip` drops attributes, so the test hooks sit on a wrapper. -->
 				<div
 					v-for="cell in cells"
 					:key="cell.key"
 					:data-key="cell.key"
 					:data-sidebar="cell.sidebar"
 				>
-					<RailItem
+					<SidebarRailItem
 						v-if="'to' in cell"
 						:to="cell.to"
 						:label="cell.label"
@@ -42,14 +42,14 @@
 					>
 						<Icon v-if="cell.icon" :name="cell.icon" />
 						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
-					</RailItem>
+					</SidebarRailItem>
 
-					<!-- Off this prefix: a full document load, so an `<a>` with `RailItem`'s classes,
+					<!-- Off this prefix: a full document load, so an `<a>` with `SidebarRailItem`'s classes,
 					     which has no anchor form of its own. Never current: `current` is a route. -->
 					<Tooltip v-else :text="cell.label" side="right">
 						<a
 							:href="cell.href"
-							data-slot="rail-item"
+							data-slot="sidebar-rail-item"
 							:class="CELL"
 							:aria-label="cell.label"
 						>
@@ -78,7 +78,7 @@
 		</div>
 
 		<LogoutDialog v-model="confirmingLogout" />
-	</Rail>
+	</SidebarRail>
 </template>
 
 <script setup lang="ts">
@@ -87,8 +87,8 @@ import type { RouteLocationRaw } from "vue-router";
 import {
 	Avatar,
 	Dropdown,
-	Rail,
-	RailItem,
+	SidebarRail,
+	SidebarRailItem,
 	ScrollArea,
 	Tooltip,
 	toast,
@@ -114,7 +114,7 @@ const LETTER_TILE =
 	"bg-surface-gray-3 text-sm font-medium text-ink-gray-8 hover:bg-surface-gray-4";
 const USER_CELL =
 	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
-// `RailItem`'s own inactive tile.
+// `SidebarRailItem`'s own inactive tile.
 const CELL =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 

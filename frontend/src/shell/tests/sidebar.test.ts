@@ -79,7 +79,7 @@ function panel(host: HTMLElement) {
 }
 
 function rail(host: HTMLElement) {
-	return host.querySelector("[data-slot='rail']");
+	return host.querySelector("[data-slot='sidebar-rail']");
 }
 
 /** The keys marked current: the ARIA state sits one element under the `data-key` hook. */
