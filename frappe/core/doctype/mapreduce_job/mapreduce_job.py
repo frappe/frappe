@@ -129,7 +129,7 @@ def execute_callback(job: str | int):
 				frappe.call(callback, result, ref_dt, ref_dn) if ref_dt and ref_dn else frappe.call(
 					callback, result
 				)
-				frappe.db.set_value("MapReduce Job", job, "callback_executed", True)
+				frappe.db.set_value("MapReduce Job", job, "callback_executed", 1)
 
 
 def atomically_schedule_tasks(job, count):
