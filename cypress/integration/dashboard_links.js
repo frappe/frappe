@@ -107,10 +107,11 @@ context("Dashboard links", () => {
 
 		cy.get(`.btn-new[data-doctype="${doctype_with_link_name}"]`).click();
 
-		cy.url().should("include", "doctype-with-link-and-child-table/new");
-		cy.window().then((win) => {
-			expect(win.cur_frm.doc.doctype_to_link).to.eq("Test Parent Linking");
-			expect(win.cur_frm.doc.child_table[0].doctype_to_link).to.be.undefined;
+		cy.window().should((win) => {
+			const doc = win.cur_frm.doc;
+			expect(doc.doctype).to.eq(doctype_with_link_name);
+			expect(doc.doctype_to_link).to.eq("Test Parent Linking");
+			expect(doc.child_table[0].doctype_to_link).to.not.eq("Test Parent Linking");
 		});
 	});
 });
