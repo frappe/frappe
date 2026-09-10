@@ -40,8 +40,8 @@ frappe.provide("frappe.ui");
  * @property {string} [search_placeholder="Search..."] Search row placeholder.
  * @property {boolean} [filterable=true] Filter rows on the client.
  * @property {boolean} [hide_search=false] No search row.
- * @property {boolean} [clearable=true] Clearing allowed (Backspace / Delete, and the × button).
- * @property {boolean} [clear_button=true] Show the × button.
+ * @property {boolean} [clear_button=true] Show the × button (Backspace / Delete always clear).
+ * @property {boolean|function} [tab_selects=true] Tab after typing (or moving to a row) picks it; off, Tab only closes. A function is asked at Tab time with {navigated, query}.
  * @property {boolean} [disabled=false]
  * @property {string[]|string|function} [filters] Filter chips under the list.
  * @property {ComboboxCustomOption[]} [footer] Custom rows under the list.
@@ -53,7 +53,7 @@ frappe.provide("frappe.ui");
  * @property {function} [before_open] Called with the instance before the panel is built.
  * @property {function} [on_change] Called with (value, option).
  * @property {function} [on_open]
- * @property {function} [on_close] Called with "select" | "escape" | "outside" | "tab" | "owner".
+ * @property {function} [on_close] Called with the reason: "select" | "escape" | "outside" | "tab" | "owner" (a click on the trigger, a host's close) | "disabled" | "hidden".
  */
 
 const EXIT_MS = 140; // keep in sync with es-menu-out in menu.css
@@ -69,19 +69,22 @@ const LOAD_MORE_THRESHOLD = 48;
 // `start`); a map hook may legitimately empty a page or two
 const MAX_EMPTY_PAGES = 3;
 // focus this soon after a pointer press came from that press
-const POINTER_FOCUS_MS = 500;
+const POINTER_FOCUS_MS = 200;
 // a click this soon after pointerdown is a mouse open; later, a keyboard one
 const CLICK_AFTER_PRESS_MS = 300;
 let last_pointerdown_at = 0;
-document.addEventListener(
-	"pointerdown",
-	(e) => {
-		// a press inside a panel picks a row; it isn't a press on a field
-		if (e.target.closest && e.target.closest(".es-combobox__panel")) return;
-		last_pointerdown_at = Date.now();
-	},
-	{ capture: true, passive: true }
-);
+// stamped on the press and again on the click, so a long press still counts
+for (const type of ["pointerdown", "click"]) {
+	document.addEventListener(
+		type,
+		(e) => {
+			// a press inside a panel picks a row; it isn't a press on a field
+			if (e.target.closest && e.target.closest(".es-combobox__panel")) return;
+			last_pointerdown_at = Date.now();
+		},
+		{ capture: true, passive: true }
+	);
+}
 // a key press means the next focus is the keyboard's
 document.addEventListener("keydown", () => (last_pointerdown_at = 0), {
 	capture: true,
@@ -202,7 +205,6 @@ frappe.ui.Combobox = class Combobox {
 	constructor(opts = {}) {
 		this.opts = opts;
 		this.filterable = opts.filterable !== false;
-		this.clearable = opts.clearable !== false;
 		this.options = opts.options || [];
 		this.value = opts.value == null ? null : opts.value;
 		this.selected = this.value == null ? null : this.find_option(this.value);
@@ -214,6 +216,7 @@ frappe.ui.Combobox = class Combobox {
 		this.rows = [];
 		this.footer_rows = [];
 		this.request_id = 0;
+		this.settled_request_id = 0; // the request whose rows are on screen
 		this.id = `es-combobox-${++id_counter}`;
 
 		this.make_trigger();
@@ -245,6 +248,17 @@ frappe.ui.Combobox = class Combobox {
 			this.value_el.setAttribute("autocomplete", "off");
 			this.value_el.setAttribute("aria-readonly", "true");
 			this.value_el.addEventListener("beforeinput", (e) => this.on_value_input(e));
+			this.value_el.addEventListener("input", (e) => {
+				// Firefox inserts the composed text after compositionend
+				if (e.inputType === "insertCompositionText" && !e.isComposing) this.set_display();
+			});
+			this.value_el.addEventListener("compositionend", (e) => {
+				// the composed text becomes the query; the trigger shows the value again
+				this.set_display();
+				const query = (e.data || "").split("\n")[0].trim();
+				if (query && !this.disabled && !this.is_open)
+					this.open({ motion: "instant", query });
+			});
 			if (this.opts.open_on_focus) {
 				this.value_el.addEventListener("focus", () => {
 					// not for the press about to click, nor focus returned on close
@@ -268,7 +282,7 @@ frappe.ui.Combobox = class Combobox {
 
 		this.actions_el = document.createElement("span");
 		this.actions_el.className = "es-combobox__actions flex items-center gap-0.5 shrink-0";
-		if (this.clearable && this.opts.clear_button !== false) {
+		if (this.opts.clear_button !== false) {
 			this.clear_btn = frappe.ui.button({
 				icon: "x",
 				variant: "ghost",
@@ -321,7 +335,7 @@ frappe.ui.Combobox = class Combobox {
 				});
 		};
 		this.onkeydown = (e) => {
-			if (this.disabled) return;
+			if (this.disabled || e.isComposing || e.keyCode === 229) return;
 			if (this.run_shortcut(e)) return;
 			if (this.is_open) {
 				// focus is on the trigger while open: hand navigation keys to the panel
@@ -329,6 +343,12 @@ frappe.ui.Combobox = class Combobox {
 					e.preventDefault();
 					(this.input || this.panel).focus({ preventScroll: true });
 					if (e.key !== "Enter") this.step(e.key === "ArrowDown" ? 1 : -1);
+				} else if (e.key === "Escape") {
+					e.preventDefault();
+					e.stopPropagation();
+					this.close("escape");
+				} else if (e.key === "Tab") {
+					this.close("tab");
 				}
 				return;
 			}
@@ -336,7 +356,7 @@ frappe.ui.Combobox = class Combobox {
 			if (arrow && this.opts.arrow_keys_open === false) return; // left to the host
 			if (e.key === "Backspace" || e.key === "Delete") {
 				// Tab shows the value selected; deleting that text clears the value
-				if (!this.clearable || this.value == null) return;
+				if (this.value == null) return;
 				e.preventDefault();
 				this.clear();
 			} else if (e.key === "Enter" && this.value != null) {
@@ -370,7 +390,8 @@ frappe.ui.Combobox = class Combobox {
 		if (e.key !== "Enter" || !(e.ctrlKey || e.metaKey)) return false;
 		const index = (this.opts.actions || []).findIndex((a) => a.shortcut === "ctrl+enter");
 		const el = index >= 0 && this.action_els[index];
-		if (!el || el.hidden) return false;
+		// a host may have taken the button out of the page
+		if (!el || el.hidden || !el.isConnected) return false;
 		e.preventDefault();
 		el.click();
 		return true;
@@ -378,16 +399,18 @@ frappe.ui.Combobox = class Combobox {
 
 	// covers input with no keydown: virtual keyboards, IME, paste, test drivers
 	on_value_input(e) {
+		// an IME is still composing: compositionend brings the text
+		if (e.isComposing || e.inputType === "insertCompositionText") return;
 		e.preventDefault();
 		if (this.disabled || this.is_open) return;
 		if (e.inputType.startsWith("delete")) {
-			if (this.clearable && this.value != null) this.clear();
+			if (this.value != null) this.clear();
 			return;
 		}
 		// a paste / drop carries its text in dataTransfer, not data
 		const text = e.data ?? (e.dataTransfer ? e.dataTransfer.getData("text") : "");
 		const query = (text || "").split("\n")[0].trim();
-		if (query && !this.opts.hide_search) this.open({ motion: "instant", query });
+		if (query) this.open({ motion: "instant", query });
 	}
 
 	// a link when it has an href, so middle-click / ctrl-click open a tab
@@ -415,7 +438,7 @@ frappe.ui.Combobox = class Combobox {
 			t.setAttribute("data-disabled", "");
 			t.setAttribute("tabindex", "-1");
 			if (this.input_el) this.input_el.tabIndex = -1;
-			this.close("owner");
+			this.close("disabled");
 		} else {
 			t.removeAttribute("aria-disabled");
 			t.removeAttribute("data-disabled");
@@ -466,6 +489,10 @@ frappe.ui.Combobox = class Combobox {
 	set_value(value, { label, image, avatar, silent = true } = {}) {
 		const next = value == null || value === "" ? null : value;
 		const changed = next !== this.value;
+		// a different value arriving while a clear is pending replaces the clear
+		if (next != null && this.pending_clear && next !== this.cleared_value) {
+			this.pending_clear = false;
+		}
 		this.value = next;
 		if (next == null) this.selected = null;
 		else if (label) this.selected = { label, value: next, image, avatar };
@@ -479,14 +506,30 @@ frappe.ui.Combobox = class Combobox {
 	// clearing opens the panel; on_change fires once: the pick, or null on close
 	clear() {
 		if (this.value == null) return;
+		this.cleared_value = this.value;
+		this.cleared_option = this.selected;
 		this.set_value(null, { silent: true });
 		this.pending_clear = true;
-		if (!this.is_open && !this.disabled) this.open({ motion: "instant" });
-		if (!this.is_open) this.flush_clear();
+		this.clear_held = false;
+		try {
+			if (!this.is_open && !this.disabled) this.open({ motion: "instant" });
+		} finally {
+			// no panel to pick from (or before_open threw): the clear settles now
+			if (!this.is_open) this.flush_clear();
+		}
+	}
+
+	// a host looking the typed text up at close holds the clear until it knows
+	hold_clear() {
+		this.clear_held = true;
+	}
+
+	release_clear() {
+		this.clear_held = false;
 	}
 
 	flush_clear() {
-		if (!this.pending_clear) return;
+		if (!this.pending_clear || this.clear_held) return;
 		this.pending_clear = false;
 		this.opts.on_change && this.opts.on_change(null, null);
 	}
@@ -508,26 +551,32 @@ frappe.ui.Combobox = class Combobox {
 
 	set_options(options) {
 		this.options = options || [];
-		if (this.selected == null && this.value != null)
-			this.selected = this.find_option(this.value);
+		if (this.value != null) this.selected = this.find_option(this.value) || this.selected;
 		this.set_display();
 		if (this.is_open) this.load();
 	}
 
-	/** The listed option the text names (case-insensitive): by value, else by a label only one row has. */
-	match_option(text) {
-		if (!this.normalized || !text) return null;
+	/** The option the text names (case-insensitive): by value, else by a label only one row has. */
+	static match_in(options, text) {
+		if (!text) return null;
 		const wanted = text.toLowerCase();
-		const options = this.normalized.groups.flatMap((group) => group.options);
-		const by_value = options.find((o) => String(o.value).toLowerCase() === wanted);
+		const flat = (options || [])
+			.flatMap((o) => (is_group(o) ? o.options : [o]))
+			.filter(Boolean);
+		const by_value = flat.find((o) => String(o.value).toLowerCase() === wanted);
 		if (by_value) return by_value;
-		const by_label = options.filter((o) => o.label.toLowerCase() === wanted);
+		const by_label = flat.filter((o) => String(o.label).toLowerCase() === wanted);
 		return by_label.length === 1 ? by_label[0] : null;
+	}
+
+	/** match_in over the rows last resolved for this panel. */
+	match_option(text) {
+		return this.normalized ? Combobox.match_in(this.normalized.groups, text) : null;
 	}
 
 	/** True while the rows on screen aren't the ones for the current query. */
 	get rows_pending() {
-		return !!(this.stale || this.loading);
+		return this.request_id !== this.settled_request_id;
 	}
 
 	// ---- panel ----
@@ -557,9 +606,14 @@ frappe.ui.Combobox = class Combobox {
 		if (this.trigger_el.id) panel.setAttribute("aria-labelledby", this.trigger_el.id);
 		// set now so async results below can check this.panel and drop stale ones
 		this.panel = panel;
-		// without a search row there is nowhere to see or clear the query
+		// without a search row the typed text jumps to a row instead
 		this.query = this.opts.hide_search ? "" : query;
-		this.stale = false;
+		this.pending_typeahead = this.opts.hide_search ? query : "";
+		// rows and filters of an earlier open must not answer for this one
+		this.normalized = null;
+		this.has_filters = false;
+		this.filters_items = null;
+		this.typeahead_buffer = "";
 		this.pending_activate = false;
 
 		if (!this.opts.hide_search) {
@@ -602,6 +656,10 @@ frappe.ui.Combobox = class Combobox {
 		// overlay scrollbars (macOS) give no hint that the list goes on
 		this.scroll_observer = new ResizeObserver(() => this.update_scroll_cue());
 		this.scroll_observer.observe(this.list_el);
+		// a trigger hidden (depends_on, a collapsed section) shrinks to nothing:
+		// reposition() then closes the panel
+		this.trigger_observer = new ResizeObserver(() => this.onreposition());
+		this.trigger_observer.observe(this.trigger_el);
 		panel.appendChild(this.list_el);
 
 		this.filters_el = document.createElement("div");
@@ -662,6 +720,8 @@ frappe.ui.Combobox = class Combobox {
 
 		this.load();
 		this.reposition();
+		// load or reposition may have closed it (a hidden trigger)
+		if (this.panel !== panel) return;
 		panel.setAttribute("data-state", "open");
 
 		if (this.input) {
@@ -676,22 +736,13 @@ frappe.ui.Combobox = class Combobox {
 
 	reposition() {
 		if (!this.panel) return;
-		// place() measures the panel as rendered: wait out the enter animation
-		const running = (this.panel.getAnimations?.() || []).filter(
-			(a) => a.playState === "running"
-		);
-		if (running.length) {
-			if (!this.reposition_pending) {
-				this.reposition_pending = Promise.all(running.map((a) => a.finished))
-					.catch(() => {})
-					.then(() => {
-						this.reposition_pending = null;
-						this.reposition();
-					});
-			}
+		const t = this.trigger_el;
+		const rect = t.getBoundingClientRect();
+		// the field was hidden or removed under the panel
+		if (!t.isConnected || (!rect.width && !rect.height)) {
+			this.close("hidden");
 			return;
 		}
-		const rect = this.trigger_el.getBoundingClientRect();
 		// trigger scrolled out of view: hide the panel, it returns with the trigger
 		const off_screen =
 			rect.bottom <= VIEWPORT_PAD ||
@@ -707,8 +758,9 @@ frappe.ui.Combobox = class Combobox {
 		this.panel.classList.toggle("es-combobox__panel--narrow", width < NARROW_PANEL_WIDTH);
 
 		// place() would slide a panel over the trigger: cap the height instead
+		// (offsetHeight: the layout size, untouched by the enter animation)
 		this.panel.style.maxHeight = "";
-		const natural = this.panel.getBoundingClientRect().height;
+		const natural = this.panel.offsetHeight;
 		const room = {
 			bottom: window.innerHeight - rect.bottom - VIEWPORT_PAD - PANEL_OFFSET,
 			top: rect.top - VIEWPORT_PAD - PANEL_OFFSET,
@@ -716,6 +768,21 @@ frappe.ui.Combobox = class Combobox {
 		const side = natural > room.bottom && room.top > room.bottom ? "top" : "bottom";
 		if (natural > room[side]) {
 			this.panel.style.maxHeight = `${Math.max(Math.round(room[side]), MIN_PANEL_HEIGHT)}px`;
+		}
+		// place() measures the panel as rendered: wait out the enter animation
+		const running = (this.panel.getAnimations?.() || []).filter(
+			(a) => a.playState === "running"
+		);
+		if (running.length) {
+			if (!this.reposition_pending) {
+				this.reposition_pending = Promise.all(running.map((a) => a.finished))
+					.catch(() => {})
+					.then(() => {
+						this.reposition_pending = null;
+						this.reposition();
+					});
+			}
+			return;
 		}
 		place(this.panel, rect, side, "start", PANEL_OFFSET);
 	}
@@ -732,11 +799,16 @@ frappe.ui.Combobox = class Combobox {
 		this.has_more = false;
 		this.loading_more = null;
 		this.source_rows = null;
+		this.set_display();
 		clearTimeout(this.debounce_timer);
 		cancelAnimationFrame(this.reposition_frame);
 		this.reposition_frame = null;
+		this.reposition_pending = null;
+		this.pending_typeahead = "";
 		this.scroll_observer && this.scroll_observer.disconnect();
-		this.scroll_observer = null;
+		this.trigger_observer && this.trigger_observer.disconnect();
+		this.scroll_observer = this.trigger_observer = null;
+		this.typeahead_buffer = "";
 
 		panel.removeEventListener("keydown", this.onpanelkeydown);
 		document.removeEventListener("pointerdown", this.onoutside, { capture: true });
@@ -747,8 +819,10 @@ frappe.ui.Combobox = class Combobox {
 		this.trigger_el.removeAttribute("aria-controls");
 		this.trigger_el.removeAttribute("data-state");
 
-		// a click elsewhere already moved focus; don't steal it back
-		if (reason === "escape" || reason === "tab" || reason === "select") {
+		// a click elsewhere already moved focus; don't steal it back. Focus
+		// still inside the panel would land on <body> when it's removed
+		const held_focus = reason !== "outside" && panel.contains(document.activeElement);
+		if (reason === "escape" || reason === "tab" || reason === "select" || held_focus) {
 			this.returning_focus = true;
 			this.focus_el.focus({ preventScroll: true });
 			this.returning_focus = false;
@@ -756,18 +830,34 @@ frappe.ui.Combobox = class Combobox {
 
 		panel.setAttribute("data-state", "closed");
 		setTimeout(() => panel.remove(), EXIT_MS + 50);
-		// a clear that opened the panel settles now: nothing was picked
-		if (reason !== "select") this.flush_clear();
-		this.opts.on_close && this.opts.on_close(reason);
+		// the owner may still commit typed text; then a clear waiting on a pick settles
+		// the owner may return a promise for a commit still being looked up
+		const committed = this.opts.on_close && this.opts.on_close(reason);
+		if (reason === "disabled" || reason === "hidden") {
+			// the field was taken away mid-clear: the clear is withdrawn
+			if (this.pending_clear) {
+				this.pending_clear = false;
+				const o = this.cleared_option;
+				this.set_value(
+					this.cleared_value,
+					o ? { label: o.label, image: o.image, avatar: o.avatar } : {}
+				);
+			}
+		} else if (reason !== "select") {
+			this.flush_clear();
+		}
+		return committed;
 	}
 
 	// ---- rows ----
 
 	on_query(query) {
 		this.query = query;
+		// an Enter armed while the old rows loaded was for those rows
+		this.pending_activate = false;
 		if (typeof this.options === "function" && !this.filterable) {
-			// stale rows must not be committed by Enter until the new ones land
-			this.stale = true;
+			// the rows on screen no longer answer this query: pending until load
+			this.request_id++;
 			this.highlight(null);
 			clearTimeout(this.debounce_timer);
 			this.debounce_timer = setTimeout(() => this.load(), DEBOUNCE_MS);
@@ -796,11 +886,13 @@ frappe.ui.Combobox = class Combobox {
 			value.then(
 				(result) => {
 					if (request_id !== this.request_id || !this.panel) return;
+					this.settled_request_id = request_id;
 					this.set_loading(false);
 					this.set_rows(result);
 				},
 				(error) => {
 					if (request_id !== this.request_id || !this.panel) return;
+					// the rows stay pending: typed text is still looked up at close
 					console.error(error);
 					this.set_loading(false);
 					this.set_rows([]);
@@ -809,6 +901,7 @@ frappe.ui.Combobox = class Combobox {
 			);
 			return;
 		}
+		this.settled_request_id = request_id;
 		this.set_rows(value);
 	}
 
@@ -885,6 +978,8 @@ frappe.ui.Combobox = class Combobox {
 
 	// append without rebuilding: scroll position and highlight stay put
 	append_rows(groups) {
+		// a later page under an empty first one replaces its message
+		if (groups.length) this.list_el.querySelector(".es-menu__empty")?.remove();
 		for (const group of groups) {
 			const last = this.group_els[this.group_els.length - 1];
 			let group_el = group.group
@@ -927,7 +1022,7 @@ frappe.ui.Combobox = class Combobox {
 			this.more_el.remove();
 			this.more_el = null;
 		}
-		if (!this.has_more || !this.rows.length) return;
+		if (!this.has_more) return;
 		const more = document.createElement("div");
 		more.className = "es-menu__loading";
 		more.setAttribute("aria-hidden", "true");
@@ -942,7 +1037,6 @@ frappe.ui.Combobox = class Combobox {
 
 	set_loading(loading) {
 		if (!this.panel) return;
-		this.loading = loading;
 		this.panel.setAttribute("aria-busy", loading ? "true" : "false");
 		if (this.spinner) this.spinner.hidden = !loading;
 		if (loading && !this.rows.length) {
@@ -966,13 +1060,15 @@ frappe.ui.Combobox = class Combobox {
 		if (typeof filters === "function") filters = filters(this);
 		if (is_thenable(filters)) {
 			const panel = this.panel;
-			filters.then((value) => {
-				if (this.panel !== panel) return;
-				this.render_filters_value(value);
-				// the empty-state text on screen mentions the filters: redraw it
-				if (this.normalized && !this.rows.length) this.render();
-				else this.reposition();
-			});
+			filters
+				.then((value) => {
+					if (this.panel !== panel) return;
+					this.render_filters_value(value);
+					// the empty-state text on screen mentions the filters: redraw it
+					if (!this.rows_pending && this.normalized && !this.rows.length) this.render();
+					else this.reposition();
+				})
+				.catch(() => {});
 			return;
 		}
 		this.render_filters_value(filters);
@@ -1071,12 +1167,19 @@ frappe.ui.Combobox = class Combobox {
 		}
 		this.footer_el.hidden = !shown.length;
 
-		// with nothing matching, the first custom row so Enter creates
-		const current = this.rows.find((r) => r.option.value === this.value);
+		// the current value only with nothing typed: typed text means the top
+		// match; with nothing matching, the first custom row so Enter creates
+		const current = query ? null : this.rows.find((r) => r.option.value === this.value);
 		this.highlight(
 			current || this.nav_rows.find((r) => !(r.option && r.option.disabled)) || null
 		);
-		this.stale = false;
+		this.navigated = false;
+		this.pointer_highlight = false;
+		if (this.pending_typeahead) {
+			const text = this.pending_typeahead;
+			this.pending_typeahead = "";
+			this.typeahead(text);
+		}
 		this.reposition();
 		this.update_scroll_cue();
 		this.update_more_row();
@@ -1156,7 +1259,10 @@ frappe.ui.Combobox = class Combobox {
 
 		// mousedown would blur the search input before click fires
 		el.addEventListener("pointerdown", (e) => e.preventDefault());
-		el.addEventListener("pointermove", () => this.highlight(row, { scroll: false }));
+		el.addEventListener("pointermove", () => {
+			this.pointer_highlight = true;
+			this.highlight(row, { scroll: false });
+		});
 		el.addEventListener("click", () => this.activate(row));
 
 		row.el = el;
@@ -1183,6 +1289,8 @@ frappe.ui.Combobox = class Combobox {
 	step(direction, edge) {
 		const rows = this.nav_rows.filter((r) => !(r.option && r.option.disabled));
 		if (!rows.length) return;
+		this.navigated = true;
+		this.pointer_highlight = false;
 		let index;
 		if (edge) {
 			index = direction > 0 ? 0 : rows.length - 1;
@@ -1202,7 +1310,11 @@ frappe.ui.Combobox = class Combobox {
 		if (!row) return;
 		if (row.custom) {
 			row.custom.onclick && row.custom.onclick({ query: this.query, combobox: this });
+			// the row set a value (a link_options value row): that is the pick
+			if (this.value != null) this.pending_clear = false;
 			this.close("select");
+			// a custom row that picked nothing settles a clear waiting on a pick
+			this.flush_clear();
 			return;
 		}
 		if (row.option.disabled) return;
@@ -1221,6 +1333,8 @@ frappe.ui.Combobox = class Combobox {
 	}
 
 	handle_keydown(e) {
+		// keys an IME is still composing with belong to it
+		if (e.isComposing || e.keyCode === 229) return;
 		const handled = () => {
 			e.preventDefault();
 			e.stopPropagation();
@@ -1251,44 +1365,101 @@ frappe.ui.Combobox = class Combobox {
 			case "Enter":
 				handled();
 				// rows for the query haven't arrived: commit when they do (see render)
-				if (this.stale) this.pending_activate = true;
+				if (this.rows_pending) this.pending_activate = true;
 				else this.activate(this.highlighted);
 				break;
 			case "Escape":
 				handled();
 				this.close("escape");
 				break;
-			case "Tab":
-				// don't trap focus; typed text plus Tab picks the highlighted match
-				if (this.query && !this.stale && this.highlighted && this.highlighted.option) {
-					this.select(this.highlighted.option);
+			case "Tab": {
+				// don't trap focus; typed text (or a row moved to) plus Tab picks it
+				const meant = this.navigated || !!this.query;
+				// a row the pointer happens to rest on isn't the one typed for
+				const chosen = this.pointer_highlight
+					? this.rows.find((r) => !r.option.disabled)
+					: this.highlighted;
+				const row = chosen && chosen.option && !chosen.option.disabled && chosen.option;
+				const selects =
+					typeof this.opts.tab_selects === "function"
+						? this.opts.tab_selects({ navigated: this.navigated, query: this.query })
+						: this.opts.tab_selects !== false;
+				if (selects && meant && !this.rows_pending && row) {
+					this.select(row);
 				} else {
 					this.close("tab");
 				}
+				this.replay_key(e);
 				break;
+			}
 			default:
 				if (!this.input && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-					// no search row: type-to-jump on the rows
+					// no search row: type-to-jump on the rows (queued while they load)
 					handled();
-					this.typeahead(e.key);
-				} else if (e.ctrlKey || e.metaKey || e.altKey) {
-					// keep Ctrl+S etc. from reaching frappe's global handler
+					if (this.pending_typeahead || this.rows_pending) {
+						this.pending_typeahead = (this.pending_typeahead || "") + e.key;
+					} else {
+						this.typeahead(e.key);
+					}
+				} else if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "s") {
+					// Ctrl+S saves: the typed text is committed first, as blur did;
+					// a commit still being looked up is waited for, then the desk saves
+					const committed = this.close("owner");
+					if (committed && typeof committed.then === "function") {
+						handled();
+						// the key goes on afterwards, to the same handlers it would have
+						// reached; a dialog closed meanwhile must not hand the save to
+						// the form behind it
+						const dialog = window.cur_dialog;
+						const save = (result) => {
+							// false: the commit was superseded by what the user did next
+							if (result === false || window.cur_dialog !== dialog) return;
+							this.replay_key(e);
+						};
+						committed.then(save, () => save());
+					}
+				} else if (!this.input && (e.ctrlKey || e.metaKey || e.altKey)) {
+					// no input has focus here: keep other shortcuts off, as an input would
 					e.stopPropagation();
 				}
 		}
 	}
 
-	typeahead(char) {
+	// the host's own handlers on the trigger input (a grid row adding the next
+	// row on Tab) see the key that was pressed in the panel
+	replay_key(e) {
+		// a trigger gone from the page still hands the key to the document
+		const el = this.input_el && this.input_el.isConnected ? this.input_el : document.body;
+		const copy = new KeyboardEvent("keydown", {
+			key: e.key,
+			code: e.code,
+			shiftKey: e.shiftKey,
+			ctrlKey: e.ctrlKey,
+			metaKey: e.metaKey,
+			altKey: e.altKey,
+			bubbles: true,
+			cancelable: true,
+		});
+		// jQuery handlers read the legacy code
+		for (const p of ["keyCode", "which"]) Object.defineProperty(copy, p, { value: e.keyCode });
+		el.dispatchEvent(copy);
+		if (copy.defaultPrevented) e.preventDefault();
+	}
+
+	typeahead(text) {
 		clearTimeout(this.typeahead_timer);
 		this.typeahead_timer = setTimeout(() => (this.typeahead_buffer = ""), 1000);
-		this.typeahead_buffer = (this.typeahead_buffer || "") + char.toLowerCase();
+		const fresh = !this.typeahead_buffer;
+		this.typeahead_buffer = (this.typeahead_buffer || "") + text.toLowerCase();
 		const rows = this.rows.filter((r) => !r.option.disabled);
 		const current = rows.indexOf(this.highlighted);
-		const start = current === -1 ? 0 : current + (this.typeahead_buffer.length === 1 ? 1 : 0);
+		const start = current === -1 ? 0 : current + (fresh ? 1 : 0);
 		for (let i = 0; i < rows.length; i++) {
 			const row = rows[(start + i) % rows.length];
 			if (row.option.label.toLowerCase().startsWith(this.typeahead_buffer)) {
 				this.highlight(row);
+				this.navigated = true;
+				this.pointer_highlight = false;
 				return;
 			}
 		}
