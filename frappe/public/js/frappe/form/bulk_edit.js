@@ -1003,10 +1003,14 @@ export default class BulkEdit {
 			this.dialog.set_secondary_action(() => this.download());
 			$secondary.prop("disabled", !this.setup_form.get_value("fields")?.length);
 			if (this.can_import) {
-				this.set_action(__("Next"), () => {
-					this.tabs.set_disabled(TAB_UPLOAD, false);
-					this.tabs.set_active(TAB_UPLOAD);
-				});
+				this.set_action(
+					__("Next"),
+					() => {
+						this.tabs.set_disabled(TAB_UPLOAD, false);
+						this.tabs.set_active(TAB_UPLOAD);
+					},
+					{ solid: true },
+				);
 				// nothing on this tab should ever block moving on
 				this.dialog.get_primary_btn().prop("disabled", false);
 			}
