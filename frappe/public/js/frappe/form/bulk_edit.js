@@ -241,6 +241,18 @@ export default class BulkEdit {
 			'<div class="bulk-edit-footer-message indicator red small hide"><span></span></div>',
 		).appendTo(this.dialog.custom_actions);
 
+		// standard-actions is static markup that set_primary_action and its
+		// siblings write into rather than rebuild, so one button prepended here
+		// outlives every set_footer() and stays left of whatever they put up
+		this.$back = frappe.ui
+			.button({
+				label: __("Back"),
+				size: "sm",
+				onclick: () => this.tabs.set_active(this.previous_step()),
+			})
+			.addClass("hide")
+			.prependTo(this.dialog.standard_actions);
+
 		this.tabs.$el.css({
 			flex: "1 1 auto",
 			"min-height": 0,
@@ -967,10 +979,24 @@ export default class BulkEdit {
 		}
 	}
 
+	/**
+	 * The step Back returns to: the nearest one before this that is still open.
+	 * Fix Issues locks itself once it is done, so leaving it out of the walk is
+	 * what stops Back landing on a step with nothing in it.
+	 * @returns {number|null} null on the first step, which has nowhere to go
+	 */
+	previous_step() {
+		for (let index = this.tabs.get_active() - 1; index >= 0; index--) {
+			if (!this.tab_defs[index].disabled) return index;
+		}
+		return null;
+	}
+
 	set_footer() {
 		const active = this.tabs.get_active();
 		this.dialog.get_primary_btn().addClass("hide").prop("disabled", false);
 		const $secondary = this.dialog.get_secondary_btn().addClass("hide");
+		this.$back.toggleClass("hide", this.previous_step() === null);
 
 		if (active === TAB_SETUP) {
 			this.dialog.set_secondary_action_label(__("Download Template"));
