@@ -272,6 +272,7 @@ export default class BulkEdit {
 								: BULK_EDIT_ALL_RECORDS,
 						);
 						this.tabs.set_disabled(TAB_UPLOAD, !value);
+						this.refresh_field_options();
 					},
 				},
 				{ fieldtype: "Section Break" },
@@ -306,21 +307,41 @@ export default class BulkEdit {
 					select_all: true,
 					select_mandatory: true,
 					sort_options: false,
-					options: this.get_docfields().map((df) => {
-						// ID and mandatory fields only; row-matching needs ID and the rest is opt-in
-						const mandatory = df.fieldname === BULK_EDIT_ID_FIELDNAME || !!df.reqd;
-						return {
-							label: __(df.label || df.fieldname, null, df.parent),
-							value: df.fieldname,
-							checked: mandatory ? 1 : 0,
-							danger: mandatory,
-						};
-					}),
+					options: this.get_field_options(),
 					on_change: () => this.set_footer(),
 				},
 			],
 		});
 		this.setup_form.make();
+	}
+
+	/**
+	 * The rows of the field picker. ID is only mandatory where the import matches
+	 * rows on it — an insert makes its own names, so ID is neither ticked nor
+	 * starred there. Everything else keeps whatever the user has picked, so
+	 * changing the import type moves ID alone.
+	 * @param {string[]} [selected] fieldnames to keep ticked, ID aside
+	 */
+	get_field_options(selected = []) {
+		const matches_on_id = this.state.import_type !== BULK_EDIT_INSERT;
+		return this.get_docfields().map((df) => {
+			const is_id = df.fieldname === BULK_EDIT_ID_FIELDNAME;
+			const mandatory = is_id ? matches_on_id : !!df.reqd;
+			return {
+				label: __(df.label || df.fieldname, null, df.parent),
+				value: df.fieldname,
+				checked: mandatory || (!is_id && selected.includes(df.fieldname)) ? 1 : 0,
+				danger: mandatory,
+			};
+		});
+	}
+
+	/** Rebuild the picker against the import type now chosen. */
+	refresh_field_options() {
+		const control = this.setup_form.fields_dict.fields;
+		control.df.options = this.get_field_options(control.get_value() || []);
+		control.set_options();
+		this.set_footer();
 	}
 
 	/** Cell pickers mount on the body, so closing them is the dialog's job. */
