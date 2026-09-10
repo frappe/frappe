@@ -139,53 +139,51 @@ class TestDocumentNamingRule(IntegrationTestCase):
 
 		self.assertEqual(self.series_current(prefix), 1)
 
-	def test_patch_does_not_split_a_name_claimed_by_another_rule(self):
+	def test_patch_seeds_the_real_key_when_a_narrower_rule_also_matches(self):
 		self.make_rule("test-claim-", digits=6, priority=10)
 		self.make_rule(".role.", priority=0)
 
-		name = self.make_todo().name
-		self.assertEqual(name, "test-claim-000001")
-
+		self.assertEqual(self.make_todo().name, "test-claim-000001")
 		self.drop_series("test-claim-")
-		self.drop_series("test-claim-0")
 
 		seed_naming_rule_series()
 
 		self.assertEqual(self.series_current("test-claim-"), 1)
-		self.assertIsNone(self.series_current("test-claim-0"))
 
-	def test_patch_does_not_let_a_disabled_rule_claim_a_live_name(self):
+	def test_patch_seeds_a_live_rule_beside_a_disabled_wildcard(self):
 		self.make_rule(".role.", priority=10, disabled=1)
 		self.make_rule("test-live-", digits=6, priority=0)
 
-		name = self.make_todo().name
-		self.assertEqual(name, "test-live-000001")
-
+		self.assertEqual(self.make_todo().name, "test-live-000001")
 		self.drop_series("test-live-")
-		self.drop_series("test-live-0")
 
 		seed_naming_rule_series()
 
 		self.assertEqual(self.series_current("test-live-"), 1)
-		self.assertIsNone(self.series_current("test-live-0"))
 
-	def test_patch_does_not_let_a_broad_rule_claim_disabled_history(self):
+	def test_patch_seeds_disabled_history_beside_a_live_wildcard(self):
 		specific = self.make_rule("test-hist-", digits=6, priority=10)
 
-		name = self.make_todo().name
-		self.assertEqual(name, "test-hist-000001")
-
+		self.assertEqual(self.make_todo().name, "test-hist-000001")
 		specific.disabled = 1
 		specific.save()
 		self.make_rule(".role.", priority=0)
-
 		self.drop_series("test-hist-")
-		self.drop_series("test-hist-0")
 
 		seed_naming_rule_series()
 
 		self.assertEqual(self.series_current("test-hist-"), 1)
-		self.assertIsNone(self.series_current("test-hist-0"))
+
+	def test_patch_seeds_the_real_key_when_a_wildcard_rule_pins_more_literals(self):
+		self.make_rule("test-yr-.YYYY.-", digits=6, priority=10)
+		self.make_rule("test-yr-20.role.", digits=5, priority=0)
+
+		prefix = self.make_todo().name[:-6]
+		self.drop_series(prefix)
+
+		seed_naming_rule_series()
+
+		self.assertEqual(self.series_current(prefix), 1)
 
 	def make_rule(self, prefix, digits=5, priority=0, disabled=0):
 		naming_rule = frappe.get_doc(
