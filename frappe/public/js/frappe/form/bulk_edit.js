@@ -1593,7 +1593,7 @@ export default class BulkEdit {
 
 		this.grid.frm.refresh_field(this.grid.df.fieldname);
 		frappe.show_alert({
-			message: __("{0} added, {1} updated, {2} skipped — save to apply", [
+			message: __("{0} added, {1} updated, {2} skipped, save to apply", [
 				counts.insert,
 				counts.update,
 				counts.skip,
