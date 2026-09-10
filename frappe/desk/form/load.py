@@ -281,6 +281,9 @@ def get_versions(doc: "Document") -> list[dict]:
 	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in has_read_permission}
 	allowed_child_fields = {}
 	for table_field in doc.meta.get_table_fields():
+		# The table field's own permlevel gates the whole table, same as apply_fieldlevel_read_permissions
+		if table_field.fieldname not in allowed_parent_fields:
+			continue
 		allowed_child_fields[table_field.fieldname] = {
 			df.fieldname
 			for df in (frappe.get_meta(table_field.options).fields or [])
