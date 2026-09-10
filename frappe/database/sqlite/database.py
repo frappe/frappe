@@ -21,6 +21,7 @@ from frappe.database.sqlite.compatibility import (
 	convert_datetime_to_unix_timestamp,
 	convert_sqlite_date,
 	convert_sqlite_time,
+	difference_in_calendar_days,
 	format_datetime_with_mariadb_tokens,
 	json_contains_mariadb_value,
 )
@@ -143,6 +144,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		conn.create_function(
 			"frappe_combine_datetime", 2, combine_date_with_time_duration, deterministic=True
 		)
+		conn.create_function("datediff", 2, difference_in_calendar_days, deterministic=True)
 		conn.create_function("frappe_date_format", 2, format_datetime_with_mariadb_tokens, deterministic=True)
 		conn.create_function("frappe_json_contains", 2, json_contains_mariadb_value, deterministic=True)
 		conn.create_function("frappe_unix_timestamp", 1, self._convert_to_unix_timestamp)
