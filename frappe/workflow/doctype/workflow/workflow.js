@@ -121,6 +121,12 @@ frappe.ui.form.on("Workflow", {
 				[""].concat(fieldnames)
 			);
 
+			frm.fields_dict.conditions.grid.update_docfield_property(
+				"field",
+				"options",
+				fieldnames
+			);
+
 			frm.fields_dict.states.grid.update_docfield_property(
 				"doc_status",
 				"read_only",
