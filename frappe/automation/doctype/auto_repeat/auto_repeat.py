@@ -131,12 +131,7 @@ class AutoRepeat(Document):
 	def validate_reference_permission(self):
 		if frappe.flags.in_patch or self.flags.ignore_permissions:
 			return
-		if (
-			self.is_new()
-			or self.has_value_changed("reference_doctype")
-			or self.has_value_changed("reference_document")
-		):
-			frappe.has_permission(self.reference_doctype, "write", self.reference_document, throw=True)
+		frappe.has_permission(self.reference_doctype, "write", self.reference_document, throw=True)
 
 	def validate_submit_on_creation(self):
 		if self.submit_on_creation and not frappe.get_meta(self.reference_doctype).is_submittable:
