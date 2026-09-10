@@ -15,6 +15,42 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		        alias (Optional[str], optional): [ is this an alias? ]. Defaults to None.
 		"""
 		super().__init__("GROUP_CONCAT", column, alias=alias)
+<<<<<<< HEAD
+=======
+		self._separator = separator
+
+	@builder
+	def separator(self, separator: str = ","):
+		"""Adds a separator to the GROUP_CONCAT function.
+		Args:
+				separator (str, optional): [separator to be used]. Defaults to ",".
+		"""
+		self._separator = separator
+
+	def get_sql(self, **kwargs):
+		# SEPARATOR goes inside the closing paren, so render without the alias and re-attach it
+		# below rather than let Function.get_sql place it before the clause exists.
+		query_alias = self.alias
+		self.alias = None
+		try:
+			sql = super().get_sql(**kwargs)
+		finally:
+			self.alias = query_alias
+		# an explicit "" is a real request for no delimiter, not "use the default": dropping the
+		# clause would silently fall back to MariaDB's comma while STRING_AGG concatenates bare.
+		if self._separator is not None:
+			assert sql.endswith(")"), "GROUP_CONCAT SQL must end with ')' before injecting SEPARATOR"
+			sql = f"{sql[:-1]} SEPARATOR {frappe.db.escape(self._separator)})"
+
+		# Re-attach through format_alias_sql, the same path every other term uses: it escapes the
+		# quote char in the alias, and honours `with_alias` so the alias is emitted in the SELECT
+		# clause only. Hand-rolling it quoted the alias raw -- disagreeing with the escaped alias
+		# pypika renders for the same term in GROUP BY / ORDER BY -- and appended it in operand
+		# position too, where `GROUP_CONCAT(...) `a` LIKE ...` is a syntax error.
+		if kwargs.get("with_alias"):
+			return format_alias_sql(sql, query_alias, **kwargs)
+		return sql
+>>>>>>> 6b0ed98 (fix: render GROUP_CONCAT alias through format_alias_sql)
 
 
 class STRING_AGG(DistinctOptionFunction):
