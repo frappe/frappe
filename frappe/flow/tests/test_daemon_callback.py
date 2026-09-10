@@ -157,6 +157,18 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertEqual(self.session.last_synced_seq, 8)
 		self.assertEqual(len(self.session.messages), 4)
 
+	def test_terminal_recovery_creates_the_run_as_the_session_owner(self):
+		daemon = FakeDaemon(rows=turn(1, "daemon-run", "hello"))
+		frappe.set_user("Guest")
+		try:
+			with patch.object(DaemonClient, "for_site", return_value=daemon):
+				self.assertEqual(self.call_terminal(8), {"synced_through": 8})
+			self.assertEqual(frappe.session.user, "Guest")
+		finally:
+			frappe.set_user("Administrator")
+		run = frappe.get_doc("Flow Run", {"session": self.session.name})
+		self.assertEqual(run.owner, OWNER)
+
 	def test_the_owners_permissions_apply(self):
 		result = self.call("read", {"doctype": "Error Log"})
 		self.assertTrue(result["is_error"])

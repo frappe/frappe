@@ -71,13 +71,18 @@ def run_ended_callback(session_id: str, terminal_seq: int) -> dict:
 		session = frappe.get_doc("Flow Session", session_id)
 	except frappe.DoesNotExistError:
 		frappe.throw(_("Unknown session {0}.").format(session_id))
-	session.sync()
-	if session.last_synced_seq < terminal_seq:
-		frappe.throw(
-			_("The flow server did not expose terminal sequence {0}.").format(terminal_seq),
-			title=_("Flow Server"),
-		)
-	return {"synced_through": session.last_synced_seq}
+	user = frappe.session.user
+	frappe.set_user(session.owner)
+	try:
+		session.sync()
+		if session.last_synced_seq < terminal_seq:
+			frappe.throw(
+				_("The flow server did not expose terminal sequence {0}.").format(terminal_seq),
+				title=_("Flow Server"),
+			)
+		return {"synced_through": session.last_synced_seq}
+	finally:
+		frappe.set_user(user)
 
 
 def _authenticate() -> None:
