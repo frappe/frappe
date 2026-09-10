@@ -59,7 +59,12 @@ scheduler_events = {
 }
 
 after_install = ["flow.daemon.lifecycle.after_install"]
-after_migrate = ["flow.assistant.sync_builtin_assistant", "flow.daemon.lifecycle.after_migrate"]
+after_migrate = [
+	"flow.assistant.sync_builtin_assistant",
+	"flow.lib.agent.sync_agents",
+	"flow.daemon.lifecycle.after_migrate",
+]
+after_app_install = ["flow.lib.agent.sync_agents"]
 before_uninstall = ["flow.daemon.lifecycle.remove_site"]
 
 extend_bootinfo = "flow.boot.boot_session"

@@ -1104,27 +1104,26 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 		ingest.assert_called_once_with(source_name)
 
 
-class TestAgentKnowledge(IntegrationTestCase):
+class TestKnowledgeSearchTool(IntegrationTestCase):
 	def setUp(self):
 		_set_settings(embedding_model=_make_model().name)
 
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _agent(self, knowledge):
-		from flow.lib.agent import Agent
-		from flow.lib.model import Model
+	def _search_tool(self, knowledge):
+		from flow.tools.builtins import bind_search_knowledge
 
-		agent = Agent(model=Model(model_id="openai/gpt-4o-mini"), knowledge=knowledge)
-		return next(t for t in agent.tools if t.name == "search_knowledge")
+		items = knowledge if isinstance(knowledge, list) else [knowledge]
+		return bind_search_knowledge([kb.name for kb in items])
 
 	def test_knowledge_binds_search_tool_exposing_only_query(self):
-		search = self._agent(Knowledge("Agent KB"))
+		search = self._search_tool(Knowledge("Agent KB"))
 		self.assertEqual(set(search.parameters["properties"]), {"query"})
 
 	def test_knowledge_scopes_search_to_given_bases(self):
 		kb = Knowledge("Scoped KB")
-		search = self._agent([kb])
+		search = self._search_tool([kb])
 		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
 			search(query="hi")
 		mock.assert_called_once_with("hi", kbs=[kb.name])
@@ -1132,19 +1131,19 @@ class TestAgentKnowledge(IntegrationTestCase):
 	def test_multiple_knowledge_bases_are_all_scoped(self):
 		first = Knowledge("KB One")
 		second = Knowledge("KB Two")
-		search = self._agent([first, second])
+		search = self._search_tool([first, second])
 		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
 			search(query="hi")
 		mock.assert_called_once_with("hi", kbs=[first.name, second.name])
 
 	def test_kb_descriptions_appear_in_tool_description(self):
 		kb = Knowledge("Travel KB", description="Company travel and reimbursement policy.")
-		search = self._agent([kb])
+		search = self._search_tool([kb])
 		self.assertIn("Travel KB", search.description)
 		self.assertIn("Company travel and reimbursement policy.", search.description)
 
 	def test_kb_without_description_leaves_base_description(self):
-		search = self._agent([Knowledge("Plain KB")])
+		search = self._search_tool([Knowledge("Plain KB")])
 		self.assertNotIn("This agent's knowledge bases:", search.description)
 
 

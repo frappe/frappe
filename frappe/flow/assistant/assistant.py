@@ -6,7 +6,7 @@ from __future__ import annotations
 import frappe
 
 ASSISTANT_AGENT_TITLE = "Flow"
-ASSISTANT_MAX_ITERATIONS = 40
+ASSISTANT_MAX_ITERATIONS = 50
 
 ASSISTANT_INSTRUCTIONS = (
 	"You are a Frappe assistant operating a live Frappe site through tools. Everything in Frappe "
@@ -63,6 +63,7 @@ ASSISTANT_INSTRUCTIONS = (
 
 def sync_builtin_assistant(model: str | None = None) -> None:
 	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate and FlowModel.after_insert."""
+	from flow.lib.agent import Agent
 	from flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
 	sync_builtin_tools()
@@ -71,30 +72,15 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 	if not model_name:
 		return
 
-	tool_slugs = [t.name for t in BUILTIN_TOOLS]
+	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
+		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		if not doc.is_system_generated:
+			return
 
-	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
-		frappe.get_doc(
-			{
-				"doctype": "Flow Agent",
-				"title": ASSISTANT_AGENT_TITLE,
-				"model": model_name,
-				"instructions": ASSISTANT_INSTRUCTIONS,
-				"max_iterations": ASSISTANT_MAX_ITERATIONS,
-				"tools": [{"tool": slug} for slug in tool_slugs],
-				"enabled": 1,
-				"is_system_generated": 1,
-			}
-		).insert(ignore_permissions=True)
-		return
-
-	doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
-	if not doc.is_system_generated:
-		return
-
-	doc.instructions = ASSISTANT_INSTRUCTIONS
-	existing = {row.tool for row in doc.tools}
-	for slug in tool_slugs:
-		if slug not in existing:
-			doc.append("tools", {"tool": slug})
-	doc.save(ignore_permissions=True)
+	Agent(
+		name=ASSISTANT_AGENT_TITLE,
+		model=model_name,
+		instructions=ASSISTANT_INSTRUCTIONS,
+		tools=BUILTIN_TOOLS,
+		max_iterations=ASSISTANT_MAX_ITERATIONS,
+	).sync()

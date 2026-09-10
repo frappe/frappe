@@ -75,14 +75,28 @@ def get_open_todos(allocated_to: str) -> list[dict]:
 from flow import Agent
 
 agent = Agent(
-	model="anthropic/claude-sonnet-4-6",
+	name="Todo Assistant",
+	model="Claude Sonnet 4.6",  # a Flow Model
 	instructions="You help with Frappe tasks.",
 	tools=[get_open_todos],
 )
 
-result = agent.run("List open ToDo items assigned to me")
-print(result.output)
+run = agent.run("List open ToDo items assigned to me")
 ```
+
+```python
+# myapp/ai.py
+def agents():
+	return [agent]
+
+
+# hooks.py
+flow_agents = ["myapp.ai.agents"]
+```
+
+The definition lives in code, and constructing an `Agent` touches nothing. On every migrate and app install, Flow writes each agent returned by the `flow_agents` hook to the site as a `Flow Agent` record plus an Imported `Flow Tool` for each `@tool` function (`agent.sync()` does the same by hand, say from the console). These records are system-generated: the Desk can enable or disable them and switch the agent's model (a site choice), nothing else. Tools must be module-level functions in an installed app, since the flow server calls them back by import path; they run on the site as the session's owner, with that user's permissions. Users need read access to the `Flow Agent` and its `Flow Model`.
+
+`run()` starts the turn on the flow server and returns the `Flow Run` while it is still `Running`; it never waits. The run is updated when the turn ends, so react to the outcome through `Flow Run` document events, or give the agent a tool that writes the result.
 
 ### Persist a conversation
 
@@ -93,7 +107,7 @@ session.chat("What tasks do I have open?")
 session.chat("Close the ones due before last Friday.")
 ```
 
-Every turn is saved as a `Flow Run` linked to the session — so conversation history, tool calls, and outputs are all in the database.
+Every turn is saved as a `Flow Run` linked to the session — so conversation history, tool calls, and outputs are all in the database. `chat()` returns the run immediately; a message sent while a turn is still running joins it. Answer a tool approval with `session.resume(answers)` and stop a turn with `session.abort()`.
 
 ### Built-in tools
 

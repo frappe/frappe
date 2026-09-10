@@ -6,7 +6,7 @@ from typing import Any
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.lib.model import Model
+from flow.lib.model import model_config
 
 
 def _provider(**overrides: Any) -> dict:
@@ -56,23 +56,23 @@ class TestProviderCredentialResolution(IntegrationTestCase):
 	def test_model_resolves_key_from_provider(self):
 		frappe.get_doc(_provider(api_key="sk-from-provider")).insert()
 		m = frappe.get_doc(_model()).insert()
-		self.assertEqual(Model(m.name)._api_key, "sk-from-provider")
+		self.assertEqual(model_config(m.name)["api_key"], "sk-from-provider")
 
 	def test_model_own_key_overrides_provider(self):
 		frappe.get_doc(_provider(api_key="sk-from-provider")).insert()
 		m = frappe.get_doc(_model(api_key="sk-on-model")).insert()
-		self.assertEqual(Model(m.name)._api_key, "sk-on-model")
+		self.assertEqual(model_config(m.name)["api_key"], "sk-on-model")
 
 	def test_disabled_provider_not_used(self):
 		frappe.get_doc(_provider(api_key="sk-from-provider", enabled=0)).insert()
 		m = frappe.get_doc(_model()).insert()
-		self.assertIsNone(Model(m.name)._api_key)
+		self.assertIsNone(model_config(m.name)["api_key"])
 
 	def test_no_provider_row_leaves_key_empty(self):
 		m = frappe.get_doc(_model()).insert()
-		self.assertIsNone(Model(m.name)._api_key)
+		self.assertIsNone(model_config(m.name)["api_key"])
 
 	def test_provider_base_url_used_when_model_has_none(self):
 		frappe.get_doc(_provider(base_url="http://gateway.local")).insert()
 		m = frappe.get_doc(_model()).insert()
-		self.assertEqual(Model(m.name).base_url, "http://gateway.local")
+		self.assertEqual(model_config(m.name)["api_base"], "http://gateway.local")

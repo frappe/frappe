@@ -9,6 +9,7 @@ from flow.assistant import (
 	ASSISTANT_INSTRUCTIONS,
 	sync_builtin_assistant,
 )
+from flow.assistant.assistant import ASSISTANT_MAX_ITERATIONS
 from flow.tools.builtins import BUILTIN_TOOLS
 
 
@@ -51,6 +52,42 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
+
+	def test_sync_restores_the_complete_definition_but_keeps_site_choices(self):
+		other_model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Other Assistant Model",
+				"model_id": "openai/gpt-4o",
+				"enabled": 1,
+			}
+		).insert()
+		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.model.name)
+		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
+		knowledge = frappe.get_doc(
+			{"doctype": "Flow Knowledge Base", "title": "Stale Assistant Knowledge"}
+		).insert()
+		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		doc.update(
+			{
+				"instructions": "stale instructions",
+				"max_iterations": 3,
+				"model": other_model.name,
+				"enabled": 0,
+			}
+		)
+		doc.set("tools", [{"tool": BUILTIN_TOOLS[0].name}])
+		doc.set("knowledge_bases", [{"knowledge_base": knowledge.name}])
+		doc.save(ignore_permissions=True)
+
+		sync_builtin_assistant(model=self.model.name)
+
+		doc.reload()
+		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
+		self.assertEqual(doc.max_iterations, ASSISTANT_MAX_ITERATIONS)
+		self.assertEqual([row.tool for row in doc.tools], [tool.name for tool in BUILTIN_TOOLS])
+		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [])
+		self.assertEqual((doc.model, doc.enabled), (other_model.name, 0))
 
 	def test_sync_is_noop_for_user_owned_agent(self):
 		# If is_system_generated was cleared (user took ownership), sync must not touch it.
