@@ -3,6 +3,7 @@
 
 from base64 import b64encode
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 from urllib.parse import parse_qs, urljoin, urlparse
 
 import requests
@@ -29,11 +30,12 @@ class FrappeRequestTestCase(IntegrationTestCase):
 			from frappe.auth import CookieManager, LoginManager
 			from frappe.utils import set_request
 
-			set_request(path="/")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as("test@example.com")
-			self._sid = frappe.session.sid
+			with patch.object(frappe.local, "request", None, create=True):
+				set_request(path="/")
+				frappe.local.cookie_manager = CookieManager()
+				frappe.local.login_manager = LoginManager()
+				frappe.local.login_manager.login_as("test@example.com")
+				self._sid = frappe.session.sid
 
 		return self._sid
 

@@ -45,6 +45,12 @@ def make_request(
 	kwargs: dict | None = None,
 	site: str | None = None,
 ) -> TestResponse:
+	# The WSGI request runs in another thread with its own connection. SQLite
+	# cannot let that connection write while this one retains an uncommitted
+	# fixture and its writer lock, so publish SQLite setup before starting it.
+	if getattr(frappe.local, "db", None) and frappe.db.db_type == "sqlite":
+		frappe.db.commit()
+
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
 	t.join()
@@ -70,9 +76,19 @@ class ThreadWithReturnValue(Thread):
 				header_patch = patch("frappe.get_request_header", new=patch_request_header)
 				if authorization_token:
 					header_patch.start()
-				self._return = self._target(*self._args, **self._kwargs)
-				if authorization_token:
-					header_patch.stop()
+				try:
+					response = self._target(*self._args, **self._kwargs)
+					try:
+						# Materialize the body before closing the WSGI iterator. Closing it
+						# runs Frappe's after-response callbacks and destroys this thread's
+						# database connection instead of leaking a SQLite transaction.
+						response.get_data()
+					finally:
+						response.close()
+					self._return = response
+				finally:
+					if authorization_token:
+						header_patch.stop()
 
 	def join(self, *args):
 		Thread.join(self, *args)
@@ -112,15 +128,12 @@ class FrappeAPITestCase(IntegrationTestCase):
 		from frappe.utils import set_request
 
 		# the fake request's "localhost" host changes what get_url() returns, restore afterwards
-		original_request = getattr(frappe.local, "request", None)
-		set_request(path="/")
-		try:
+		with patch.object(frappe.local, "request", None, create=True):
+			set_request(path="/")
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as("Administrator")
 			return frappe.session.sid
-		finally:
-			frappe.local.request = original_request
 
 	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"json": params, **kwargs})
