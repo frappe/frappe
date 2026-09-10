@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.patches.v16_0.seed_naming_rule_series import execute as seed_naming_rule_series
-from frappe.patches.v16_0.seed_naming_rule_series import seed_series_for_rule
 from frappe.query_builder import DocType
 from frappe.tests import IntegrationTestCase
 
@@ -112,19 +111,19 @@ class TestDocumentNamingRule(IntegrationTestCase):
 		series = DocType("Series")
 		frappe.qb.from_(series).delete().where(series.name == prefix).run()
 
-		seed_series_for_rule(frappe._dict(document_type="ToDo", prefix=naming_rule.prefix, prefix_digits=5))
+		seed_naming_rule_series()
 
 		self.assertEqual(self.series_current(prefix), 3)
 		self.assertEqual(self.make_todo().name, prefix + "00004")
 
 	def test_patch_seeds_a_name_with_an_empty_prefix_part(self):
-		naming_rule = self.make_rule("test-empty-.role.-")
+		self.make_rule("test-empty-.role.-")
 
 		prefix = self.make_todo().name[:-5]
 		self.assertEqual(prefix, "test-empty--")
 		self.drop_series(prefix)
 
-		seed_series_for_rule(frappe._dict(document_type="ToDo", prefix=naming_rule.prefix, prefix_digits=5))
+		seed_naming_rule_series()
 
 		self.assertEqual(self.series_current(prefix), 1)
 
@@ -140,12 +139,28 @@ class TestDocumentNamingRule(IntegrationTestCase):
 
 		self.assertEqual(self.series_current(prefix), 1)
 
-	def make_rule(self, prefix):
+	def test_patch_does_not_split_a_name_claimed_by_another_rule(self):
+		self.make_rule("test-claim-", digits=6, priority=10)
+		self.make_rule(".role.", priority=0)
+
+		name = self.make_todo().name
+		self.assertEqual(name, "test-claim-000001")
+
+		self.drop_series("test-claim-")
+		self.drop_series("test-claim-0")
+
+		seed_naming_rule_series()
+
+		self.assertEqual(self.series_current("test-claim-"), 1)
+		self.assertIsNone(self.series_current("test-claim-0"))
+
+	def make_rule(self, prefix, digits=5, priority=0):
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule",
 			document_type="ToDo",
 			prefix=prefix,
-			prefix_digits=5,
+			prefix_digits=digits,
+			priority=priority,
 		).insert()
 		self.addCleanup(naming_rule.delete)
 		return naming_rule
