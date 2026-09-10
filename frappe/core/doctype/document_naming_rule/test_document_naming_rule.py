@@ -154,13 +154,29 @@ class TestDocumentNamingRule(IntegrationTestCase):
 		self.assertEqual(self.series_current("test-claim-"), 1)
 		self.assertIsNone(self.series_current("test-claim-0"))
 
-	def make_rule(self, prefix, digits=5, priority=0):
+	def test_patch_does_not_let_a_disabled_rule_claim_a_live_name(self):
+		self.make_rule(".role.", priority=10, disabled=1)
+		self.make_rule("test-live-", digits=6, priority=0)
+
+		name = self.make_todo().name
+		self.assertEqual(name, "test-live-000001")
+
+		self.drop_series("test-live-")
+		self.drop_series("test-live-0")
+
+		seed_naming_rule_series()
+
+		self.assertEqual(self.series_current("test-live-"), 1)
+		self.assertIsNone(self.series_current("test-live-0"))
+
+	def make_rule(self, prefix, digits=5, priority=0, disabled=0):
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule",
 			document_type="ToDo",
 			prefix=prefix,
 			prefix_digits=digits,
 			priority=priority,
+			disabled=disabled,
 		).insert()
 		self.addCleanup(naming_rule.delete)
 		return naming_rule
