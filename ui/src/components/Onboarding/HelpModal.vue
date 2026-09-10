@@ -11,13 +11,13 @@
 			</div>
 			<div class="flex gap-1">
 				<Dropdown v-if="options.length" :options="options">
-					<Button variant="ghost" icon="more-horizontal" />
+					<Button variant="ghost" icon="lucide-ellipsis" />
 				</Dropdown>
 				<Button @click="minimize = !minimize" variant="ghost">
 					<component :is="minimize ? MaximizeIcon : MinimizeIcon" class="h-3.5" />
 				</Button>
 				<Button variant="ghost" @click="show = false">
-					<FeatherIcon name="x" class="h-3.5" />
+					<LucideX class="size-3.5" />
 				</Button>
 			</div>
 		</div>
@@ -46,7 +46,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, FeatherIcon } from "frappe-ui";
+import { Button, Dropdown } from "frappe-ui";
+import LucideX from "~icons/lucide/x";
 import { HelpIcon, MaximizeIcon, MinimizeIcon, StepsIcon } from "frappe-ui/icons";
 import OnboardingSteps from "./OnboardingSteps.vue";
 import HelpCenter from "./HelpCenter.vue";

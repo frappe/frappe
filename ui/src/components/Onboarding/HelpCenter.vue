@@ -8,14 +8,14 @@
 				:debounce="300"
 			>
 				<template #prefix>
-					<FeatherIcon name="search" class="h-4 text-ink-gray-5" />
+					<LucideSearch class="size-4 text-ink-gray-5" />
 				</template>
 			</TextInput>
 		</div>
 		<div class="flex justify-between items-center text-base text-ink-gray-5 mx-2">
 			<div>All articles</div>
 			<Button variant="ghost" @click="openDocs">
-				<FeatherIcon name="arrow-up-right" class="h-4 text-ink-gray-5" />
+				<LucideArrowUpRight class="size-4 text-ink-gray-5" />
 			</Button>
 		</div>
 		<div class="flex flex-col gap-1.5 overflow-y-auto">
@@ -25,9 +25,9 @@
 					@click="a.opened = !a.opened"
 				>
 					<div class="flex items-center gap-2">
-						<FeatherIcon
-							:name="a.opened ? 'chevron-down' : 'chevron-right'"
-							class="h-4 text-ink-gray-5"
+						<component
+							:is="a.opened ? LucideChevronDown : LucideChevronRight"
+							class="size-4 text-ink-gray-5"
 						/>
 						<div class="text-base text-ink-gray-8">{{ a.title }}</div>
 					</div>
@@ -40,14 +40,13 @@
 						@click="() => openDoc(subArticle.name)"
 					>
 						<div class="flex items-center gap-2">
-							<FeatherIcon name="file-text" class="h-4 text-ink-gray-5" />
+							<LucideFileText class="size-4 text-ink-gray-5" />
 							<div class="text-base text-ink-gray-8">
 								{{ subArticle.title }}
 							</div>
 						</div>
-						<FeatherIcon
-							name="arrow-up-right"
-							class="h-4 hidden group-hover:flex text-ink-gray-5"
+						<LucideArrowUpRight
+							class="size-4 hidden group-hover:flex text-ink-gray-5"
 						/>
 					</div>
 				</div>
@@ -56,7 +55,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { Button, FeatherIcon, TextInput } from "frappe-ui";
+import { Button, TextInput } from "frappe-ui";
+import LucideArrowUpRight from "~icons/lucide/arrow-up-right";
+import LucideChevronDown from "~icons/lucide/chevron-down";
+import LucideChevronRight from "~icons/lucide/chevron-right";
+import LucideFileText from "~icons/lucide/file-text";
+import LucideSearch from "~icons/lucide/search";
 import { ref, computed, onMounted } from "vue";
 import type { HelpArticle, HelpCenterProps } from "./types";
 
