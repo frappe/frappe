@@ -39,6 +39,8 @@ class TestSubmissionQueue(FrappeTestCase):
 
 		frappe.db.commit()
 		queue_submission(d, "submit")
+		with self.assertRaises(frappe.LinkExistsError):
+			d.delete()
 		frappe.db.commit()
 
 		# Waiting for execution
@@ -49,3 +51,27 @@ class TestSubmissionQueue(FrappeTestCase):
 		job = self.queue.fetch_job(submission_queue.job_id)
 		# Test completion
 		self.check_status(job, status="finished")
+
+		d.reload()
+		d.cancel()
+		d.delete()
+		self.assertFalse(frappe.db.exists("Submission Queue", submission_queue.name))
+
+	def test_force_delete_cleans_up_queued_submission(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		if not frappe.db.table_exists("Test Submission Queue", cached=False):
+			doc = new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True)
+			doc.insert()
+
+		d = frappe.get_doc(doctype="Test Submission Queue", some_fieldname="Random").insert()
+		submission_queue = frappe.get_doc(
+			doctype="Submission Queue",
+			ref_doctype=d.doctype,
+			ref_docname=d.name,
+			status="Queued",
+		)
+		submission_queue.db_insert()
+
+		d.delete(force=True)
+		self.assertFalse(frappe.db.exists("Submission Queue", submission_queue.name))
