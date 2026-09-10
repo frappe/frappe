@@ -11,6 +11,7 @@
 
 import { describe_link_filters } from "./link_filter_description.js";
 import { mount_combobox, awesomplete_shim } from "./combobox_control.js";
+import { is_thenable } from "../../ui/components/utils.js";
 
 frappe.ui.form.is_combobox_link_enabled = function () {
 	// desk only; a control made before boot has no setting, so it stays classic
@@ -22,6 +23,25 @@ frappe.ui.form.is_combobox_link_enabled = function () {
 const PRELOAD_LIMIT = 1000;
 
 // bounded caches: oldest entry evicted first, an overwrite counts as newest
+// the search's filters as a plain list query takes them
+function stamp_filters(filters) {
+	if (!filters || Array.isArray(filters)) return filters || {};
+	// search_widget's own switch, not a column
+	const { include_disabled, ...rest } = filters;
+	return rest;
+}
+
+// two option lists showing the same rows in the same order
+function same_values(a, b) {
+	return (
+		a.length === b.length &&
+		a.every((o, i) => {
+			const p = b[i];
+			return o.value === p.value && o.label === p.label && o.image === p.image;
+		})
+	);
+}
+
 function remember(map, key, value, max) {
 	if (map.has(key)) map.delete(key);
 	else if (map.size >= max) map.delete(map.keys().next().value);
@@ -36,24 +56,25 @@ const SEARCH_CACHE_MAX = 200;
 // stamp is rechecked on every open: list views drop push listeners on refresh
 const preload_cache = new Map(); // key -> { options, stamp } or a pending Promise
 const PRELOAD_CACHE_MAX = 20;
+const PRELOAD_FRESH_MS = 5 * 1000;
+// a stamp can't see a rename: the list is rebuilt anyway after this long
+const PRELOAD_STALE_MS = 5 * 60 * 1000;
 const preload_fallback = new Set(); // keys whose list exceeded PRELOAD_LIMIT
+const no_stamp = new Set(); // keys whose stamp request the server refused
 
 // one promise per doctype + name so concurrent fields share a request
 const image_promises = new Map();
 const IMAGE_CACHE_MAX = 500;
 
+// every argument the server sees (a get_query may add its own keys)
 function cache_key(args, extra = []) {
-	const filters = typeof args.filters === "string" ? args.filters : JSON.stringify(args.filters);
-	return JSON.stringify([
-		args.doctype,
-		filters,
-		args.query,
-		args.searchfield,
-		args.reference_doctype,
-		args.link_fieldname,
-		args.ignore_user_permissions,
-		...extra,
-	]);
+	const entries = Object.keys(args)
+		.sort()
+		.map((k) => [
+			k,
+			k === "filters" && typeof args[k] !== "string" ? JSON.stringify(args[k]) : args[k],
+		]);
+	return JSON.stringify([entries, ...extra]);
 }
 
 frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui.form.ControlLink {
@@ -70,7 +91,6 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			chevron: this.display_mode() === "Select",
 			filterable: false, // search_link does the filtering
 			// the × follows the "Allow Clearing Link Fields" setting; keys still clear
-			clearable: true,
 			clear_button: this.is_clear_button_enabled(),
 			options: (query, { start }) => this.fetch_options(query, start),
 			filters: () => this.get_filter_chips(),
@@ -121,16 +141,41 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	}
 
 	set_formatted_input(value) {
+		this.displayed_value = value || null;
 		if (!value) {
 			this.show_selected(null, "");
 			return;
 		}
+		// a title still to be fetched: the name now, the title when it lands
+		if (this.is_title_link() && !frappe.utils.get_link_title(this.get_link_doctype(), value)) {
+			this.show_selected(value, value);
+		}
 		this.set_link_title(value);
 	}
 
-	set_input_value(text) {
-		const value = text ? this.title_value_map[text] || text : null;
+	// set_link_title lands here, maybe after a fetch: only for the value still shown
+	translate_and_set_input_value(link_title, value) {
+		if (value !== this.displayed_value) return;
+		const text = this.get_translated(link_title || value);
+		// reachable before make_input (a hidden field set from a script)
+		this.title_value_map = this.title_value_map || {};
+		this.title_value_map[text] = value;
 		this.show_selected(value, text);
+	}
+
+	// the widget holds the value; the input text is only what it shows
+	get_input_value() {
+		if (!this.combobox) return super.get_input_value();
+		// text still being looked up after a close reads as the value, as it did
+		// in the classic input
+		if (this.pending_text != null) return this.pending_text;
+		const value = this.combobox.get_value();
+		return value == null ? "" : value;
+	}
+
+	set_input_value(text) {
+		if (!text) return;
+		this.show_selected(this.title_value_map[text] || text, text);
 	}
 
 	// the typed query while open: quick entry pre-fills the name with it
@@ -163,13 +208,18 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 
 	show_selected(value, text) {
 		if (!this.combobox) return;
+		// the value being cleared echoing back (a pick still validating) is dropped;
+		// a different value replaces the clear
+		if (this.combobox.pending_clear && value === this.combobox.cleared_value) return;
 		const avatar = this.show_image();
 		const label = text || (value == null ? undefined : String(value));
 		this.combobox.set_value(value, { label, avatar });
 		this.update_open_link();
 		if (value && avatar) {
+			// a later show (the title arriving) outranks this one's image callback
+			const shown = (this.shown = {});
 			this.get_image(value).then((image) => {
-				if (!image || this.combobox.get_value() !== value) return;
+				if (!image || this.shown !== shown || this.combobox.get_value() !== value) return;
 				this.combobox.set_value(value, { label, image, avatar });
 			});
 		}
@@ -246,6 +296,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	// Select unless the setting says Search or the list proved too long
 	resolve_mode() {
 		if (this.display_mode() === "Search" || !this.open_args) return "Search";
+		// a custom query caps its own page: only a search can reach every row
+		if (this.open_args.query) return "Search";
 		return preload_fallback.has(cache_key(this.open_args)) ? "Search" : "Select";
 	}
 
@@ -255,8 +307,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		if (this.open_mode !== "Search") {
 			result = this.preload_options();
 		} else {
-			// fresh copy (filters get stringified for GET); later pages keep
-			// database order so scrolling doesn't reshuffle rows already seen
+			// the server ranks the first page; later pages keep database order so
+			// scrolling doesn't reshuffle rows already seen
 			const args = { ...this.open_args, txt: query };
 			if (start) {
 				args.start = start;
@@ -272,16 +324,17 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	apply_map(result, context) {
 		const hook = this.map_options || this.df.map_options;
 		if (!hook) return result;
-		const thenable = (v) => v && typeof v.then === "function";
 		const map = (r) => {
 			const paged = r && !Array.isArray(r) && "rows" in r;
 			const wrap = (rows) => (paged ? { ...r, rows } : rows);
-			const mapped = hook.call(this, paged ? r.rows : r, context);
-			return thenable(mapped)
-				? mapped.then((m) => wrap(m || (paged ? r.rows : r)))
-				: wrap(mapped || (paged ? r.rows : r));
+			// the hook gets copies: the list and its rows may be cached and shared
+			const rows = (paged ? r.rows : r).map((row) => ({ ...row }));
+			const mapped = hook.call(this, rows, context);
+			return is_thenable(mapped)
+				? mapped.then((m) => wrap(m || rows))
+				: wrap(mapped || rows);
 		};
-		return thenable(result) ? result.then(map) : map(result);
+		return is_thenable(result) ? result.then(map) : map(result);
 	}
 
 	// `paged` answers { rows, has_more } so the combobox can fetch more
@@ -317,8 +370,11 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			})
 			.then((rows) => {
 				this.$input._created_new_doc = false;
-				const raw_count = (rows || []).length;
-				rows = this.merge_duplicates(rows || []);
+				rows = rows || [];
+				// a full page may have more (an exactly full last page costs one
+				// empty request); merged duplicates must not make it look short
+				const more = !!args.page_length && rows.length >= args.page_length;
+				rows = this.merge_duplicates(rows);
 				for (const row of rows) {
 					// a bare name must not pre-empt the title fetch for title links
 					if (row.label && row.label !== row.value) {
@@ -327,12 +383,7 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 				}
 				const options = rows.map((row) => this.to_option(row, context));
 				// use the raw count: merging duplicates can leave a full page short
-				const result = paged
-					? {
-							rows: options,
-							has_more: !!args.page_length && raw_count >= args.page_length,
-					  }
-					: options;
+				const result = paged ? { rows: options, has_more: more } : options;
 				if (!no_cache) {
 					remember(search_cache, key, { result, time: Date.now() }, SEARCH_CACHE_MAX);
 				}
@@ -346,66 +397,143 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		const cached = this.$input._created_new_doc ? null : preload_cache.get(key);
 		// a fetch already under way: share it
 		if (cached && typeof cached.then === "function") return cached;
+		// a list fetched moments ago (tabbing down a column) is served as is;
+		// older ones show at once and are revalidated in the background below
+		if (cached && Date.now() - cached.time < PRELOAD_FRESH_MS) return cached.options;
 
-		const pending = this.preload_stamp()
-			.then((stamp) => {
-				if (cached && cached.stamp === stamp) return cached.options;
-				const args = { ...this.open_args, txt: "", page_length: PRELOAD_LIMIT + 1 };
-				return Promise.resolve(this.search(args, { use_get: false, no_cache: true })).then(
-					(options) => {
-						if (options.length > PRELOAD_LIMIT) {
-							// too long for the client: search the server from now on,
-							// this open included (it reopens with a search box)
-							console.warn(
-								`Link field: ${this.open_args.doctype} has more than ${PRELOAD_LIMIT} records, ` +
-									`falling back to Search mode (set its Link Display Mode to Search)`
-							);
-							preload_fallback.add(key);
-							preload_cache.delete(key);
-							if (this.combobox.is_open) {
-								this.combobox.close("owner");
-								this.combobox.open({ motion: "instant" });
-							}
-							return options.slice(0, PRELOAD_LIMIT);
-						}
-						remember(preload_cache, key, { options, stamp }, PRELOAD_CACHE_MAX);
-						return options;
-					}
-				);
-			})
-			.catch((error) => {
-				// a failed fetch must not be served again; a good cached list stays
-				if (!cached) preload_cache.delete(key);
-				throw error;
-			});
+		// this open's arguments: another open may replace open_args meanwhile
+		const open_args = this.open_args;
+		// a rebuild already under way for a stale list is shared too
+		const pending =
+			cached?.pending ||
+			this.rebuild_preload(key, cached, open_args)
+				.catch((error) => {
+					// a failed fetch must not be served again; a good cached list stays
+					if (!cached) preload_cache.delete(key);
+					throw error;
+				})
+				.finally(() => {
+					if (cached) cached.pending = null;
+				});
 		if (!cached) {
 			remember(preload_cache, key, pending, PRELOAD_CACHE_MAX);
 			return pending;
 		}
+		cached.pending = pending;
 		// show the cached list now; reload the open panel if the rebuild differs
+		// and the user hasn't started moving through it
 		pending
 			.then((options) => {
-				if (options !== cached.options && this.combobox.is_open) this.combobox.load();
+				const cb = this.combobox;
+				if (options === cached.options || !cb.is_open || this.open_args !== open_args)
+					return;
+				if (!cb.navigated && !cb.typeahead_buffer) cb.load();
 			})
 			.catch(() => {});
 		return cached.options;
 	}
 
-	// one small request per open instead of a thousand-row refetch
-	preload_stamp() {
-		const { doctype, filters } = this.open_args;
-		return frappe
-			.xcall("frappe.client.get_list", {
-				doctype,
-				filters: filters || {},
-				fields: [
-					{ COUNT: "*", as: "n" },
-					{ MAX: "modified", as: "m" },
-				],
-				limit_page_length: 1,
+	// the cached list when the records' stamp still matches, else a fresh one
+	async rebuild_preload(key, cached, open_args) {
+		const stamp = await this.preload_stamp(open_args);
+		if (
+			cached &&
+			stamp &&
+			cached.stamp === stamp &&
+			Date.now() - cached.time < PRELOAD_STALE_MS
+		) {
+			return cached.options;
+		}
+		const args = { ...open_args, txt: "", page_length: PRELOAD_LIMIT + 1 };
+		// paged: has_more counts the rows before duplicates were merged
+		const page = await this.search(args, { use_get: false, no_cache: true, paged: true });
+		let options = page.rows;
+		if (page.has_more) {
+			this.fall_back_to_search(key, open_args);
+			return options.slice(0, PRELOAD_LIMIT);
+		}
+		// no stamp to compare: keep the cached array when the list is the same
+		if (cached && !stamp && same_values(options, cached.options)) options = cached.options;
+		remember(preload_cache, key, { options, stamp, time: Date.now() }, PRELOAD_CACHE_MAX);
+		return options;
+	}
+
+	// too long for the client: search the server from now on, this open included
+	fall_back_to_search(key, open_args) {
+		console.warn(
+			`Link field: ${open_args.doctype} has more than ${PRELOAD_LIMIT} records, ` +
+				`falling back to Search mode (set its Link Display Mode to Search)`
+		);
+		preload_fallback.add(key);
+		preload_cache.delete(key);
+		// the panel still showing this list reopens as a search
+		const cb = this.combobox;
+		if (cb.is_open && this.open_args === open_args && !cb.navigated && !cb.typeahead_buffer) {
+			// a clear waiting on a pick carries over to the reopened panel
+			const clearing = cb.pending_clear;
+			cb.pending_clear = false;
+			cb.close("owner");
+			cb.open({ motion: "instant" });
+			cb.pending_clear = clearing;
+			// nothing reopened (the field went away): the clear settles now
+			if (!cb.is_open) cb.flush_clear();
+		}
+	}
+
+	// count + latest change of the records, or null when it can't be read
+	// (select-only permission, a virtual doctype); silent: no error dialog
+	preload_stamp(open_args) {
+		const { doctype, filters, query, ignore_user_permissions } = open_args;
+		// no stamp can vouch for the list when the search sees other rows than a
+		// plain list does: a custom query, permissions ignored or restricted
+		if (
+			query ||
+			ignore_user_permissions ||
+			doctype === "DocType" ||
+			!(frappe.model.can_read(doctype) || frappe.model.can_select(doctype)) ||
+			frappe.defaults.get_user_permissions()?.[doctype]
+		) {
+			return Promise.resolve(null);
+		}
+		// a refused stamp (a server-side custom query's own filter keys) isn't asked again
+		const key = cache_key(open_args);
+		if (no_stamp.has(key)) return Promise.resolve(null);
+		// a plain request: a refusal here must not raise the desk's error dialogs
+		const call = (method, body) =>
+			fetch(`/api/method/${method}`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+					"X-Frappe-CSRF-Token": frappe.csrf_token,
+				},
+				body: JSON.stringify(body),
 			})
-			.then((rows) => JSON.stringify(rows && rows[0]))
-			.catch(() => String(Date.now()));
+				.then((res) => {
+					if (!res.ok) throw new Error(res.statusText);
+					return res.json();
+				})
+				.then((r) => r.message);
+		const stamp_filters_value = stamp_filters(filters);
+		// the count catches deletes, the latest modified catches edits and
+		// inserts; one aggregate per query keeps the list query's ordering out
+		return Promise.all([
+			call("frappe.client.get_count", { doctype, filters: stamp_filters_value }),
+			call("frappe.client.get_list", {
+				doctype,
+				filters: stamp_filters_value,
+				fields: [{ MAX: "modified", as: "m" }],
+				limit_page_length: 1,
+			}),
+		])
+			.then(([n, rows]) => {
+				const m = rows && rows[0] && rows[0].m;
+				return n != null && m !== undefined ? JSON.stringify({ n, m }) : null;
+			})
+			.catch(() => {
+				no_stamp.add(key);
+				return null;
+			});
 	}
 
 	to_option(row, { doctype, show_image, is_title_link }) {
@@ -434,7 +562,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			!filters || (Array.isArray(filters) ? !filters.length : !Object.keys(filters).length);
 		if (empty) return [];
 		const descriptions = await describe_link_filters(this.get_link_doctype(), filters);
-		return descriptions.map((html) => frappe.utils.html2text(html));
+		// a formatter may still return markup; chips are text
+		return descriptions.map((text) => frappe.utils.html2text(text));
 	}
 
 	get_footer_rows() {
@@ -456,10 +585,16 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			? frappe.ui.form.ControlLink.link_options(this)
 			: null;
 		for (const item of custom || []) {
+			const label = item.label || frappe.utils.html2text(item.html || "");
 			rows.push({
 				type: "custom",
-				label: item.label || frappe.utils.html2text(item.html || ""),
-				onclick: () => item.action && item.action.apply(this),
+				label,
+				// an entry without an action is a value to pick, as in the classic control
+				onclick: () => {
+					if (item.action) return item.action.apply(this);
+					this.combobox.set_value(item.value, { label });
+					this.on_pick(item.value, { label, value: item.value });
+				},
 			});
 		}
 
@@ -469,20 +604,42 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 
 	// ---- picking ----
 
+	// a lookup started at a close: the text reads as the value meanwhile, and
+	// a clear waiting on the pick is held until the lookup settles
+	drop_lookup() {
+		this.lookup = null;
+		this.pending_text = null;
+		this.combobox.release_clear();
+	}
+
+	// the model write's promise, for a save waiting on a commit
+	parse_validate_and_set_in_model(value, e) {
+		return (this.last_write = super.parse_validate_and_set_in_model(value, e));
+	}
+
 	on_pick(value, option) {
+		// a pick outranks text still being looked up
+		this.drop_lookup();
 		if (value == null) {
 			// clear is a native change: route through df.change / the model
 			this.$input.trigger("change");
 			this.update_open_link();
-			return;
+			return this.last_write;
 		}
 		if (this.df.remember_last_selected_value) {
 			frappe.boot.user.last_selected_values[this.df.options] = value;
 		}
 		this.title_value_map[option.label] = value;
-		this.parse_validate_and_set_in_model(value, null, option.label);
-		// dialogs refresh depends_on and MultiSelectDialog reloads on this event
+		this.label = this.get_translated(option.label);
+		// a real title only: free text (label = value) must not shadow a cached title
+		if (option.label && option.label !== value) {
+			frappe.utils.add_link_title(this.get_link_doctype(), value, option.label);
+		}
+		// one model write, through the change handler (get_input_value is the
+		// picked value); the classic event follows for dialogs and MultiSelectDialog
+		this.$input.trigger("change");
 		this.$input.trigger("awesomplete-selectcomplete");
+		return this.last_write;
 	}
 
 	// text left by clicking away or tabbing picks the listed row it names
@@ -490,21 +647,64 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	on_close(reason) {
 		this.autocomplete_open = false;
 		const query = this.combobox.query;
-		if (!query || (reason !== "outside" && reason !== "tab")) return;
+		// a pick, even of the same value, outranks a lookup still out
+		if (reason === "select") this.drop_lookup();
+		// Escape cancels, a field disabled or hidden under the panel drops the
+		// text; every other close commits what was typed, as blur did
+		if (!query || ["escape", "select", "disabled", "hidden"].includes(reason)) return;
+		// this close commits: it outranks the lookup an earlier one started
+		this.drop_lookup();
+		const value_at_close = this.combobox.get_value() ?? "";
+		if (this.df.ignore_link_validation) {
+			// any text is a value here, as in the classic control; a listed row
+			// (or a known title) it names still picks that row
+			this.combobox.pending_clear = false;
+			const row = this.combobox.match_option(query);
+			const title_value = this.title_value_map?.[query];
+			const value = row ? row.value : title_value || query;
+			if (value !== value_at_close) {
+				const option = row || { label: query, value };
+				this.combobox.set_value(value, { label: option.label, image: option.image });
+				this.on_pick(value, option);
+			}
+			return;
+		}
 		const commit = (match) => {
-			if (!match || match.value === this.get_input_value()) return;
+			if (!match) return;
+			// a pick, even of the value just cleared, ends the clear
+			this.combobox.pending_clear = false;
+			if (match.value === value_at_close) return;
 			this.combobox.set_value(match.value, { label: match.label, image: match.image });
-			this.on_pick(match.value, match);
+			return this.on_pick(match.value, match);
 		};
 		const match = this.combobox.match_option(query);
 		if (match || !this.combobox.rows_pending) return commit(match);
-		// the rows for the text hadn't arrived (a scanner, paste + Tab): look it up
-		Promise.resolve(this.fetch_options(query))
+		// the rows for the text hadn't arrived (a scanner, paste + Tab): look it
+		// up; a clear waiting on the pick is held back until the lookup settles
+		const cb = this.combobox;
+		cb.hold_clear();
+		this.pending_text = query;
+		// a later close starts its own lookup, which owns the text and the hold
+		const lookup = (this.lookup = {});
+		const current = () => cb.get_value() ?? "";
+		const settle = (found) => {
+			// superseded: a waiting save must not fire into whatever came next
+			if (this.lookup !== lookup) return false;
+			this.pending_text = null;
+			cb.release_clear();
+			if (found) return commit(found);
+			// reopened meanwhile: the next close settles the clear
+			if (!cb.is_open) cb.flush_clear();
+		};
+		// a hook throwing at once still settles
+		return new Promise((resolve) => resolve(this.fetch_options(query)))
 			.then((r) => {
-				const rows = Array.isArray(r) ? r : r.rows;
-				const wanted = query.toLowerCase();
-				commit(rows.find((o) => String(o.value).toLowerCase() === wanted));
+				// the field moved on meanwhile: changed or gone
+				if (current() !== value_at_close || !document.body.contains(this.$input[0])) {
+					return settle(null);
+				}
+				return settle(frappe.ui.Combobox.match_in(Array.isArray(r) ? r : r.rows, query));
 			})
-			.catch(() => {});
+			.catch(() => settle(null));
 	}
 };
