@@ -965,17 +965,13 @@ body.grid-col-resizing {
 }
 
 // The wizard's panels scroll inside the modal, so the scrollbar lands right
-// beside the fields. Keep it thin and hold a gutter open next to it. The
-// panel sits inside .bulk-edit-card, so it also carries that box's own inner
-// padding on every other side.
+// beside the fields. The gutter next to it is narrower than the padding on the
+// other three sides for that reason; the scrollbar itself is the modal's own.
+// The panel sits inside .bulk-edit-card, so it also carries that box's inner
+// padding everywhere else.
 .bulk-edit-tabs .es-tabs__panel {
 	padding: var(--padding-md);
 	padding-right: var(--padding-sm);
-
-	// beats the global `*:not(#page-form-builder *)` scrollbar width
-	&::-webkit-scrollbar {
-		width: 4px !important;
-	}
 
 	// NB: this panel's overflow-y is deliberately left alone while a dropdown
 	// is open. Turning it off frees the dropdown from being clipped, but this
