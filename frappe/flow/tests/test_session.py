@@ -2,24 +2,18 @@
 # License: MIT. See LICENSE
 
 import json
-import time
-import unittest
-from pathlib import Path
-from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.daemon import lifecycle
 from flow.daemon.client import DaemonClient, DaemonError
-from flow.flow.doctype.flow_session.flow_session import FlowSession
 from flow.lib.session import load_session, new_session
 from flow.tests.fake_daemon import FakeDaemon
+from flow.tests.test_live_server import LiveServerCase
 from flow.tools.builtins import sync_builtin_tools
 
 OTHER = "session-other@example.com"
-TOKEN = "site-token-live"
 
 
 class ServerCase(IntegrationTestCase):
@@ -143,71 +137,8 @@ class TestLoadSession(ServerCase):
 		self.assertEqual(len([call for call in self.daemon.calls if call[0] == "set_model"]), 1)
 
 
-class TestLiveSession(IntegrationTestCase):
+class TestLiveSession(LiveServerCase):
 	"""A conversation through a real flow server with the mock model."""
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		if not lifecycle._flow_bin().exists():
-			raise unittest.SkipTest("the flow server is not installed in this environment")
-		tmp = TemporaryDirectory()
-		cls.addClassCleanup(tmp.cleanup)
-		root = Path(tmp.name)
-		cls.enterClassContext(patch.object(lifecycle, "state_dir", return_value=root / "state"))
-		cls.enterClassContext(patch.object(lifecycle, "runtime_dir", return_value=root))
-		cls.enterClassContext(patch.object(lifecycle, "log_path", return_value=root / "flow-server.log"))
-		cls.enterClassContext(patch.object(lifecycle, "_redis_url", return_value=None))
-		cls.enterClassContext(patch.dict(frappe.local.conf, {"flow_server_secret": TOKEN}))
-		lifecycle.provision_site()
-		lifecycle.start()
-		cls.addClassCleanup(lifecycle.stop)
-
-	def setUp(self):
-		sync_builtin_tools()
-		self.client = DaemonClient.for_site()
-		self.addCleanup(self.client.close)
-		self.model = frappe.get_doc(
-			{
-				"doctype": "Flow Model",
-				"title": "Live Session Model",
-				"model_id": "openai/gpt-4o-mini",
-				"api_key": "sk-live",
-				"enabled": 1,
-			}
-		).insert()
-		self.agent = frappe.get_doc(
-			{
-				"doctype": "Flow Agent",
-				"title": "Live Session Agent",
-				"model": self.model.name,
-				"instructions": "Reply briefly.",
-				"tools": [{"tool": "read"}, {"tool": "execute"}],
-				"enabled": 1,
-			}
-		).insert()
-		original = FlowSession.server_config
-		# the server's keyless mock model answers every message with an echo
-		self.enterContext(
-			patch.object(
-				FlowSession, "server_config", lambda doc, **kw: {**original(doc, **kw), "model": "mock"}
-			)
-		)
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
-
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def settle(self, session, run):
-		for _ in range(100):
-			if not self.client.get_session(session.name)["running"]:
-				break
-			time.sleep(0.01)
-		else:
-			self.fail("daemon run did not finish")
-		session.sync()
-		session.reload()
-		run.reload()
 
 	def test_a_conversation_round_trips_through_the_server_into_flow(self):
 		session = self.agent.new_session()
