@@ -119,8 +119,12 @@ class TestSearch(IntegrationTestCase):
 			search_link(doctype=doctype.name, txt="", page_length=5, start=s, keep_order=True)
 			for s in (0, 5, 10)
 		]
-		self.assertEqual({r["value"] for r in kept[0] + kept[1] + kept[2]}, {r["value"] for r in both})
-		self.assertEqual(len({r["value"] for r in kept[0] + kept[1] + kept[2]}), 12)
+		self.assertEqual([len(page) for page in kept], [5, 5, 2])
+		# 12 distinct names across pages of 5 + 5 + 2: disjoint, and nothing missed
+		self.assertEqual(
+			{r["value"] for page in kept for r in page},
+			{f"Row {i:02d}" for i in range(12)},
+		)
 
 	def test_search_link_pages_translated_doctypes(self):
 		# DocType is a translated doctype, paged in Python after an unlimited query
