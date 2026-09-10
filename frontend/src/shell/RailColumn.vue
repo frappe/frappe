@@ -62,13 +62,30 @@
 				</div>
 			</nav>
 		</ScrollArea>
+
+		<!-- The person's cell, pinned to the foot by the `ScrollArea`'s `flex-1` above it. -->
+		<div class="mt-3 flex shrink-0 items-center justify-center">
+			<Dropdown :options="userMenu" side="right" align="end">
+				<button
+					type="button"
+					data-key="user-menu"
+					:class="USER_CELL"
+					:aria-label="boot.user.full_name"
+				>
+					<Avatar :image="boot.user.user_image" :label="boot.user.full_name" size="md" />
+				</button>
+			</Dropdown>
+		</div>
+
+		<LogoutDialog v-model="confirmingLogout" />
 	</Rail>
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import {
+	Avatar,
 	Dropdown,
 	Rail,
 	RailItem,
@@ -84,6 +101,7 @@ import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
+import LogoutDialog from "./LogoutDialog.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 	| { to: RouteLocationRaw }
@@ -94,6 +112,8 @@ const TILE =
 	"flex size-7 items-center justify-center rounded-[7px] transition focus-visible:ring-0 focus-visible:focus-ring";
 const LETTER_TILE =
 	"bg-surface-gray-3 text-sm font-medium text-ink-gray-8 hover:bg-surface-gray-4";
+const USER_CELL =
+	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
 // `RailItem`'s own inactive tile.
 const CELL =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
@@ -139,25 +159,8 @@ function cellOf(item: NavigationItem): Cell | null {
 		: { ...cell, href: rendering.href, sidebar: rendering.sidebar };
 }
 
-const { colorScheme, setColorScheme } = useColorScheme();
-const SCHEMES = [
-	{ label: "Light", value: "light", icon: "lucide-sun" },
-	{ label: "Dark", value: "dark", icon: "lucide-moon" },
-	{ label: "System", value: "system", icon: "lucide-monitor" },
-] as const;
-
 const menu = computed<DropdownOptions>(() => [
 	{ label: "All apps", icon: "lucide-layout-grid", onClick: () => leave("/apps") },
-	{
-		label: "Theme",
-		icon: "lucide-sun-moon",
-		submenu: SCHEMES.map((scheme) => ({
-			label: scheme.label,
-			icon: scheme.icon,
-			selected: colorScheme.value === scheme.value,
-			onClick: () => setColorScheme(scheme.value),
-		})),
-	},
 	...(props.customizable
 		? [
 				{
@@ -168,6 +171,59 @@ const menu = computed<DropdownOptions>(() => [
 		  ]
 		: []),
 	...(props.shareLink ? [{ label: "Copy link", icon: "lucide-link", onClick: copyLink }] : []),
+]);
+
+const { colorScheme, setColorScheme } = useColorScheme();
+const SCHEMES = [
+	{ label: "Light", value: "light", icon: "lucide-sun" },
+	{ label: "Dark", value: "dark", icon: "lucide-moon" },
+	{ label: "System", value: "system", icon: "lucide-monitor" },
+] as const;
+
+const confirmingLogout = ref(false);
+
+// Workaround: the settings dialog has no profile pane yet, so *My settings* opens v1's User form.
+const userMenu = computed<DropdownOptions>(() => [
+	{
+		group: "",
+		hideLabel: true,
+		options: [
+			{
+				label: "My settings",
+				icon: "lucide-circle-user",
+				onClick: () => leave(`/app/user/${encodeURIComponent(boot.user.name)}`),
+			},
+			{
+				label: "Theme",
+				icon: "lucide-sun-moon",
+				submenu: SCHEMES.map((scheme) => ({
+					label: scheme.label,
+					icon: scheme.icon,
+					selected: colorScheme.value === scheme.value,
+					onClick: () => setColorScheme(scheme.value),
+				})),
+			},
+		],
+	},
+	{
+		group: "",
+		hideLabel: true,
+		options: [
+			{ label: "Desk v1", icon: "lucide-arrow-left-right", onClick: () => leave("/app") },
+		],
+	},
+	{
+		group: "",
+		hideLabel: true,
+		options: [
+			{
+				label: "Log out",
+				icon: "lucide-log-out",
+				theme: "red",
+				onClick: () => (confirmingLogout.value = true),
+			},
+		],
+	},
 ]);
 
 function leave(href: string) {
