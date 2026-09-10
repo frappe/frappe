@@ -1309,6 +1309,12 @@ class Engine:
 			# Note: Comma handling is done in parse_fields before this method is called
 			return self.parse_string_field(field)
 
+	def _uncast_json_column(self, term: Term) -> Term:
+		"""The column a JSON cast wraps, for the checks that match a selected field by name."""
+		if isinstance(term, functions.Cast) and isinstance(term.args[0], Field):
+			return term.args[0]
+		return term
+
 	def _cast_json_select_field(self, field: Term) -> Term:
 		"""Keep the alias so the cast does not rename the column in the result."""
 		cast = self._cast_json_column(field)
@@ -1398,6 +1404,7 @@ class Engine:
 			terms = self._get_star_fields(term) if isinstance(term, Star) else [term]
 			selected_field_count += len(terms)
 			for term in terms:
+				term = self._uncast_json_column(term)
 				if not isinstance(term, Field):
 					continue
 				table = term.table if term.table is not None else self.table
