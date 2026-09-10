@@ -977,8 +977,8 @@ body.grid-col-resizing {
 	// is open. Turning it off frees the dropdown from being clipped, but this
 	// is the panel that owns the visible scrollbar — losing it reflows
 	// everything into the reclaimed width, so the whole grid jumps sideways on
-	// a cell click. An open list escapes by being pinned position: fixed in JS
-	// instead (see sync_preview_errors).
+	// a cell click. A mapping picker's list escapes by moving to <body> while
+	// it is open instead (see pin_dropdown).
 }
 
 // The wizard is sized against the window, so it keeps the same proportions
@@ -1012,6 +1012,32 @@ body.grid-col-resizing {
 // leaves one padding on each side of it.
 .bulk-edit-dialog .modal-footer {
 	padding-bottom: 0;
+}
+
+// While a mapping picker is open its list is moved to <body> (pin_dropdown), so
+// no overflow ancestor can clip it and place() can work in viewport
+// coordinates. It travels inside a stand-in .awesomplete because the library
+// writes the list's whole appearance, and the [hidden] rule that closes it, as
+// `.awesomplete > ul`. The host takes no room of its own and only exists to
+// stack the list above the dialog.
+.bulk-edit-dropdown-host {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 0;
+	z-index: 1050;
+
+	> ul {
+		// place() writes top and left only, and both are viewport coordinates;
+		// the library's own rule for this element is position: absolute
+		position: fixed;
+		min-width: 0;
+		// same cap the list has inside the table, for the same reason: the
+		// field list of a wide child doctype is long enough to fill the screen
+		max-height: 30vh;
+		overflow-y: auto;
+	}
 }
 
 .bulk-edit-card {
@@ -1089,8 +1115,8 @@ body.grid-col-resizing {
 	// Bounded so a long list stays a sensible size. vh, not a fixed px cap —
 	// the dialog's own height is itself vh-based (BULK_EDIT_DIALOG_HEIGHT), so
 	// a fixed cap reads as arbitrarily short on a tall screen and still too
-	// tall on a short one. Position and stacking are set inline when the list
-	// opens (sync_preview_errors pins it), not here.
+	// tall on a short one. This is the list of a cell's own control, which
+	// stays in the table; a mapping picker's leaves it (.bulk-edit-dropdown-host).
 	.awesomplete > ul {
 		max-height: 30vh;
 		overflow-y: auto;
