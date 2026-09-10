@@ -75,12 +75,13 @@ class Comment(Document):
 
 	def on_update(self):
 		old_doc = self.get_doc_before_save()
-		if old_doc and (old_doc.reference_doctype, old_doc.reference_name) != (
+		if old_doc and (old_doc.reference_doctype, old_doc.reference_name, old_doc.comment_type) != (
 			self.reference_doctype,
 			self.reference_name,
+			self.comment_type,
 		):
-			self.refresh_count(old_doc.reference_doctype, old_doc.reference_name)
-			self.refresh_count()
+			refresh_comment_count(old_doc.reference_doctype, old_doc.reference_name)
+			refresh_comment_count(self.reference_doctype, self.reference_name)
 
 		if not self.is_new():
 			self.notify_change("update")
@@ -223,7 +224,6 @@ def refresh_comment_count(reference_doctype, reference_name):
 	if not reference_doctype or not reference_name:
 		return
 
-	# get_meta raises for an unknown doctype, so the table name below is always a real one
 	meta = frappe.get_meta(reference_doctype)
 	if meta.issingle or meta.get("is_virtual"):
 		return
@@ -233,12 +233,10 @@ def refresh_comment_count(reference_doctype, reference_name):
 		"Communication", reference
 	)
 
+	table = frappe.qb.DocType(reference_doctype)
 	try:
-		# use sql, so that we do not mess with the timestamp
-		frappe.db.sql(
-			f"""update `tab{reference_doctype}` set `_comment_count`=%s where name=%s""",  # nosec
-			(count, reference_name),
-		)
+		# not set_value, so `modified` is untouched
+		frappe.qb.update(table).set(table._comment_count, count).where(table.name == reference_name).run()
 	except Exception as e:
 		if frappe.db.is_missing_column(e) and getattr(frappe.local, "request", None):
 			pass

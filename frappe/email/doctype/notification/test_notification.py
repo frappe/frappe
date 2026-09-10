@@ -144,9 +144,19 @@ class TestNotification(IntegrationTestCase):
 		self.assertIsNone(get_comments_for_context(todo))
 
 		comment = todo.add_comment("Comment", "hello")
+		email = frappe.get_doc(
+			doctype="Communication",
+			content="reply",
+			sender="a@example.com",
+			reference_doctype="ToDo",
+			reference_name=todo.name,
+		).insert()
 		self.assertEqual(
 			get_comments_for_context(todo),
-			[{"comment": "hello", "by": comment.comment_email, "name": comment.name}],
+			[
+				{"comment": "hello", "by": comment.comment_email, "name": comment.name},
+				{"comment": "reply", "by": "a@example.com", "name": email.name},
+			],
 		)
 
 	def test_condition(self):

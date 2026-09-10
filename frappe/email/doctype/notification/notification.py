@@ -859,20 +859,18 @@ def get_comments_for_context(doc):
 	if not doc.get("name"):
 		return None
 
-	comments = [
-		{"comment": c.content, "by": c.comment_email or c.owner, "name": c.name}
-		for c in frappe.get_all(
-			"Comment",
-			fields=["name", "content", "comment_email", "owner"],
-			filters={
-				"reference_doctype": doc.doctype,
-				"reference_name": doc.name,
-				"comment_type": "Comment",
-			},
-			order_by="creation",
-		)
-	]
-	return comments or None
+	reference = {"reference_doctype": doc.doctype, "reference_name": doc.name}
+	comments = frappe.get_all(
+		"Comment",
+		fields=["name", "content", "comment_email as by", "owner", "creation"],
+		filters=reference | {"comment_type": "Comment"},
+	) + frappe.get_all(
+		"Communication",
+		fields=["name", "content", "sender as by", "owner", "creation"],
+		filters=reference,
+	)
+	comments.sort(key=lambda c: c.creation)
+	return [{"comment": c.content, "by": c.by or c.owner, "name": c.name} for c in comments] or None
 
 
 def get_context(doc):

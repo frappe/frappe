@@ -36,6 +36,10 @@ class TestComment(IntegrationTestCase):
 
 		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
 		self.assertEqual(counts[0]._comment_count, 2)
+		counts = frappe.get_all(
+			"ToDo", {"name": test_doc.name}, ["name", "_comment_count"], with_comment_count=True
+		)
+		self.assertEqual(counts[0]._comment_count, 2)
 
 		# check document creation
 		comment_1 = frappe.get_all(
@@ -71,6 +75,10 @@ class TestComment(IntegrationTestCase):
 		second.save()
 		self.assertEqual(count(todo), 0)
 		self.assertEqual(count(other), 1)
+
+		second.comment_type = "Info"
+		second.save()
+		self.assertEqual(count(other), 0)
 
 	def test_backfill_comment_count(self):
 		from frappe.patches.v16_0.backfill_comment_count import execute as backfill
