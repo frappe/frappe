@@ -14,6 +14,10 @@
   "override_status",
   "send_email_alert",
   "enable_action_confirmation",
+  "applicability_section",
+  "conditions",
+  "column_break_conditions",
+  "priority",
   "states_head",
   "states",
   "transition_rules",
@@ -62,11 +66,34 @@
    "label": "Send Email Alert"
   },
   {
-    "default": "0",
-    "description": "If checked, a confirmation will be required before performing workflow actions.",
-    "fieldname": "enable_action_confirmation",
-    "fieldtype": "Check",
-    "label": "Enable Action Confirmation"
+   "default": "0",
+   "description": "If checked, a confirmation will be required before performing workflow actions.",
+   "fieldname": "enable_action_confirmation",
+   "fieldtype": "Check",
+   "label": "Enable Action Confirmation"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "applicability_section",
+   "fieldtype": "Section Break",
+   "label": "Applicability"
+  },
+  {
+   "description": "Restrict this workflow to documents matching all of these conditions. Leave empty to apply it to every document of this type.",
+   "fieldname": "conditions",
+   "fieldtype": "Table",
+   "label": "Conditions",
+   "options": "Workflow Condition"
+  },
+  {
+   "fieldname": "column_break_conditions",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Workflows with a higher priority are matched first.",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority"
   },
   {
    "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.",
@@ -112,7 +139,7 @@
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:04:04.849665",
+ "modified": "2026-09-10 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",

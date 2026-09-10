@@ -7,6 +7,7 @@ from frappe import _
 from frappe.app_state import get_disabled_modules
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
+from frappe.model.workflow import get_workflow_names
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.utils import get_bench_path, get_html_format
 from frappe.utils.data import get_link_to_form
@@ -214,15 +215,22 @@ class FormMeta(Meta):
 		self.set("__print_formats", print_formats)
 
 	def load_workflows(self):
-		# get active workflow
-		workflow_name = self.get_workflow()
+		"""Ship every active workflow of the doctype; the desk picks the one that fits each document."""
 		workflow_docs = []
+		seen_states = set()
 
-		if workflow_name and frappe.db.exists("Workflow", workflow_name):
+		for workflow_name in get_workflow_names(self.name):
+			if not frappe.db.exists("Workflow", workflow_name):
+				continue
+
 			workflow = frappe.get_doc("Workflow", workflow_name)
 			workflow_docs.append(workflow)
 
-			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
+			for state in workflow.get("states"):
+				if state.state not in seen_states:
+					seen_states.add(state.state)
+					workflow_docs.append(frappe.get_doc("Workflow State", state.state))
+
 		self.set("__workflow_docs", workflow_docs)
 
 	def load_templates(self):

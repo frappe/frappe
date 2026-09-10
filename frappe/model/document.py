@@ -1187,7 +1187,7 @@ class Document(BaseDocument):
 		"""Validate if the workflow transition is valid"""
 		if frappe.flags.in_install == "frappe":
 			return
-		workflow = self.meta.get_workflow()
+		workflow = self.meta.get_workflow(self)
 		if workflow:
 			validate_workflow(self)
 			if self._action != "save":

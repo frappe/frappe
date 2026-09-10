@@ -1,11 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import operator
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS
+from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS, get_workflow_names
 from frappe.utils import cint
+from frappe.utils.data import evaluate_filters
 
 
 class Workflow(Document):
@@ -18,14 +21,17 @@ class Workflow(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
+		from frappe.workflow.doctype.workflow_condition.workflow_condition import WorkflowCondition
 		from frappe.workflow.doctype.workflow_document_state.workflow_document_state import (
 			WorkflowDocumentState,
 		)
 		from frappe.workflow.doctype.workflow_transition.workflow_transition import WorkflowTransition
 
+		conditions: DF.Table[WorkflowCondition]
 		document_type: DF.Link
 		is_active: DF.Check
 		override_status: DF.Check
+		priority: DF.Int
 		send_email_alert: DF.Check
 		states: DF.Table[WorkflowDocumentState]
 		transitions: DF.Table[WorkflowTransition]
@@ -35,6 +41,8 @@ class Workflow(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_fields_in_conditions()
+		self.validate_shared_state_field()
 		self.set_active()
 		self.validate_docstatus()
 
@@ -68,22 +76,38 @@ class Workflow(Document):
 			)
 
 	def update_default_workflow_status(self):
+		"""Seed the state field of documents this workflow governs, leaving the rest untouched."""
 		docstatus_map = {}
-		states = self.get("states")
-
 		TargetDocType = frappe.qb.DocType(self.document_type)
 		state_field = getattr(TargetDocType, self.workflow_state_field)
+		criteria = self.get_condition_criteria(TargetDocType)
 
-		for d in states:
-			if d.doc_status not in docstatus_map:
-				(
-					frappe.qb.update(TargetDocType)
-					.set(state_field, d.state)
-					.where(state_field.isnull() | (state_field == ""))
-					.where(TargetDocType.docstatus == d.doc_status)
-				).run()
+		for d in self.get("states"):
+			if d.doc_status in docstatus_map:
+				continue
 
-				docstatus_map[d.doc_status] = d.state
+			query = (
+				frappe.qb.update(TargetDocType)
+				.set(state_field, d.state)
+				.where(state_field.isnull() | (state_field == ""))
+				.where(TargetDocType.docstatus == d.doc_status)
+			)
+			for criterion in criteria:
+				query = query.where(criterion)
+
+			query.run()
+			docstatus_map[d.doc_status] = d.state
+
+	def get_condition_criteria(self, table) -> list:
+		comparators = {
+			"=": operator.eq,
+			"!=": operator.ne,
+			">": operator.gt,
+			"<": operator.lt,
+			">=": operator.ge,
+			"<=": operator.le,
+		}
+		return [comparators[d.condition](getattr(table, d.field), d.value) for d in self.conditions]
 
 	def validate_docstatus(self):
 		def get_state(state):
@@ -127,14 +151,57 @@ class Workflow(Document):
 			if state_docstatus == 0 and next_state_docstatus == 2:
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
+	def applies_to(self, doc) -> bool:
+		"""Return True if this workflow governs `doc`. A workflow without conditions governs all."""
+		if not self.conditions:
+			return True
+
+		return evaluate_filters(
+			doc, [(self.document_type, d.field, d.condition, d.value) for d in self.conditions]
+		)
+
+	def validate_fields_in_conditions(self):
+		if not self.conditions:
+			return
+
+		docfields = {df.fieldname for df in frappe.get_meta(self.document_type).fields}
+		for condition in self.conditions:
+			if condition.field not in docfields:
+				frappe.throw(
+					_("{0} is not a field of doctype {1}").format(
+						frappe.bold(condition.field), frappe.bold(self.document_type)
+					)
+				)
+
+	def validate_shared_state_field(self):
+		"""Every workflow of a doctype has to read its state from the same field.
+
+		The desk resolves the state field per doctype, so two active workflows disagreeing on it
+		would leave documents rendering against the wrong field.
+		"""
+		if not cint(self.is_active):
+			return
+
+		for name in get_workflow_names(self.document_type):
+			if name == self.name:
+				continue
+
+			state_field = frappe.db.get_value("Workflow", name, "workflow_state_field")
+			if state_field != self.workflow_state_field:
+				frappe.throw(
+					_(
+						"Workflow {0} on {1} uses the state field {2}. Every active workflow of a doctype must use the same field."
+					).format(frappe.bold(name), frappe.bold(self.document_type), frappe.bold(state_field))
+				)
+
 	def set_active(self):
-		if cint(self.is_active):
-			Workflow = frappe.qb.DocType("Workflow")
-			(
-				frappe.qb.update(Workflow)
-				.set(Workflow.is_active, 0)
-				.where(Workflow.document_type == self.document_type)
-			).run()
+		"""Retire the other catch-all workflow of this doctype; conditional ones can coexist."""
+		if not cint(self.is_active) or self.conditions:
+			return
+
+		for name in get_workflow_names(self.document_type):
+			if name != self.name and not frappe.get_cached_doc("Workflow", name).conditions:
+				frappe.db.set_value("Workflow", name, "is_active", 0)
 
 
 @frappe.whitelist()
