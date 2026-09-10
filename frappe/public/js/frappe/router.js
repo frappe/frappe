@@ -167,6 +167,7 @@ frappe.router = {
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
+		this.write_shell_into_url();
 
 		this.set_history(sub_path);
 		this.render();
@@ -515,6 +516,11 @@ frappe.router = {
 		return route;
 	},
 
+	// This writes no shell into the path, and `write_shell_into_url` puts it there once the route
+	// has been parsed. Doing it here looks tidier and cannot be made correct: `set_route` also
+	// takes a path, `frappe.set_route("/desk/item/ITEM-0001")`, which arrives already slugged and
+	// no longer says which segment is the entity, so the shell would be picked by reading a
+	// document's name as one.
 	make_url(params) {
 		let path_string = $.map(params, function (a) {
 			if ($.isPlainObject(a)) {
@@ -662,6 +668,58 @@ frappe.router = {
 
 		this.current_shell = shell;
 		return route.slice(1);
+	},
+
+	// The shell a URL for this route should name, or null when the desk cannot say yet.
+	//
+	// The rule itself lives on the sidebar, which is what holds the payload it is decided from.
+	// This is only the way in, and it answers null before there is a sidebar to ask -- during the
+	// first route of a cold load, and on a site where setup is not complete.
+	shell_for_route(route) {
+		return frappe.app?.sidebar?.shell_for_route?.(route) || null;
+	},
+
+	// Put the shell into the URL on screen when it is missing or naming one that cannot show the
+	// route. `/desk/item` becomes `/desk/stock/item`; `/desk/geo/item` becomes it too.
+	//
+	// This is what makes every URL that reaches the desk carry a shell, whoever wrote it: a link
+	// in an email, a bookmark from before this existed, an href built by a part of the desk that
+	// never asked. `set_route` writes the shell in from the start, so a URL the desk itself
+	// produced arrives correct and this does nothing.
+	//
+	// `history.replaceState` rather than `set_route`: the page is already rendering the right
+	// thing and only the address bar is behind, so pushing would put a URL nobody visited into
+	// the back button. Replacing is also what makes this safe to call on every route, since it
+	// does not call `route()` and so cannot loop.
+	//
+	// The path is rebuilt by putting the shell in front of what is already there rather than by
+	// regenerating it from the route, so a document whose name needed encoding keeps the exact
+	// spelling it arrived with.
+	write_shell_into_url() {
+		if (!this.current_route?.length) return;
+
+		// A workspace keeps the one-segment URL it has always had. `/desk/stock` is a workspace
+		// route, and on a site with erpnext 31 workspace slugs are also shell slugs, so a shell
+		// in front of one would be read as the shell and the workspace as what it shows. The
+		// shell a workspace belongs to is on screen in the sidebar either way, and the rule that
+		// a first segment is never a shell is what keeps every workspace URL ever shared working.
+		if (this.current_route[0] === "Workspaces") return;
+
+		const shell = this.shell_for_route(this.current_route);
+		if (!shell || shell === this.current_shell) return;
+
+		let rest = this.strip_prefix(window.location.pathname);
+		// Drop the shell already there, which is a shell that cannot show this route.
+		if (this.current_shell) rest = rest.split("/").slice(1).join("/");
+		if (!rest) return;
+
+		this.current_shell = shell;
+		const path = "/desk/" + this.shell_slug(shell) + "/" + rest;
+		history.replaceState(
+			history.state,
+			"",
+			path + window.location.search + window.location.hash
+		);
 	},
 
 	// Whether a segment names something the desk can route to by itself. This is the set

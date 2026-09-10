@@ -103,7 +103,7 @@ context("Print Format Builder — create flow", () => {
 		cy.visit("/app/print-format-builder");
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/^\/(app|desk)\/print-format(\/view\/list)?$/
+			/^\/(app|desk)\/(?:[\w-]+\/)?print-format(\/view\/list)?$/
 		);
 	});
 
@@ -116,7 +116,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/\/(app|desk)\/print-format-builder\//
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format-builder\//
 		);
 		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
 	});
@@ -139,7 +139,7 @@ context("Print Format Builder — create flow", () => {
 		// of trusting the typed string (cy.type can drop characters)
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/\/(app|desk)\/print-format\/(?!view\/)/
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format\/(?!view\/)/
 		);
 		cy.location("pathname").then((path) => {
 			const created = decodeURIComponent(path.split("/").pop());
@@ -176,7 +176,7 @@ context("Print Format Builder — create flow", () => {
 		// of trusting the typed string (cy.type can drop characters)
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/\/(app|desk)\/print-format-builder\//
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format-builder\//
 		);
 		cy.location("pathname").then((path) => {
 			const created = decodeURIComponent(path.split("/").pop());

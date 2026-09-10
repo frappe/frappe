@@ -39,7 +39,9 @@ context("Awesome Bar", () => {
 		cy.get(".awesomplete").findByRole("listbox").should("be.visible");
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
-		cy.location("pathname").should("eq", "/desk/todo");
+		// Matched on the end rather than the whole path: a desk URL carries the shell it opened
+		// in, and which shell owns ToDo is not what this test is about.
+		cy.location("pathname").should("match", /\/todo$/);
 	});
 
 	// it("finds text in doctype list", () => {

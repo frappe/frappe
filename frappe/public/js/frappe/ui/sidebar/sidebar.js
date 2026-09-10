@@ -1123,15 +1123,59 @@ frappe.ui.Sidebar = class Sidebar {
 	// answers those instead, and the URL is corrected rather than obeyed.
 	shell_from_url(route) {
 		const shell = frappe.router.current_shell;
-		if (!shell || !frappe.boot.module_sidebars?.[shell]) return null;
+		if (!shell) return null;
+
+		return this.shell_can_show(shell, route) ? shell : null;
+	}
+
+	// Whether `shell` may be the one a URL for `route` names.
+	//
+	// Two ways, and they are the two ways a shell can legitimately show an entity:
+	//
+	//   the shell lists the entity, which is somebody having put it there on purpose, or
+	//   the shell belongs to the same app as the entity's own, which is how the desk already
+	//   behaves while you navigate inside one app (see crosses_app).
+	//
+	// The first is what the whole thing exists for. Clicking `Customer` in the Accounts sidebar
+	// should leave you in Accounts, and on a site with erpnext 190 of 605 doctype links in a
+	// sidebar point at an entity whose own shell is a different one. Without the listing test
+	// every one of those would throw you out of the sidebar you clicked them in.
+	//
+	// Everything else fails: a shell this user does not have, a stale name after a doctype moved
+	// module, a hand-edited link. Those are corrected rather than obeyed.
+	shell_can_show(shell, route) {
+		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
 		const entity = this.entity_from_route(route);
-		if (!entity) return null;
+		if (!entity) return false;
 
-		if (this.get_modules_linking(entity).includes(shell)) return shell;
+		if (this.get_modules_linking(entity).includes(shell)) return true;
 
 		const canonical = this.canonical_shell_for(route, entity);
-		return canonical && !this.crosses_app(shell, canonical) ? shell : null;
+		return !!canonical && !this.crosses_app(shell, canonical);
+	}
+
+	// The shell a URL for this route should name. Three answers, strongest first:
+	//
+	//   1. the shell the URL already names, when it can show the route. A URL is a statement, and
+	//      it has to outrank the sidebar on screen or the back button would rewrite history:
+	//      going back to `/desk/accounts/customer` while standing somewhere else would replace
+	//      that entry with wherever you happen to be.
+	//   2. the shell on screen, when it can show the route. This is what makes the sidebar
+	//      survive a navigation: you are in Accounts, you click something Accounts lists, and the
+	//      URL that gets written says Accounts.
+	//   3. where the route opens on its own, from the map the server resolved.
+	//
+	// One rule, and both directions use it: building a URL asks what to write, and arriving at
+	// one asks whether what is written can stay.
+	shell_for_route(route) {
+		const stated = this.shell_from_url(route);
+		if (stated) return stated;
+
+		const on_screen = this.current_module;
+		if (on_screen && this.shell_can_show(on_screen, route)) return on_screen;
+
+		return this.canonical_shell_for(route);
 	}
 
 	// Where an entity opens when nothing states a shell, read straight out of the map the server

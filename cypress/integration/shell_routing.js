@@ -121,4 +121,47 @@ describe("Desk URL shell segment", () => {
 		cy.visit("/desk/build/user");
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
 	});
+
+	it("writes the shell into a URL that arrived without one", () => {
+		// The whole point, from a user's side: a link written before any of this existed, or by
+		// hand, or by a part of the desk that never asked, still ends up naming where it opened.
+		cy.visit("/desk/todo");
+		cy.location("pathname").should("eq", "/desk/build/todo");
+	});
+
+	it("leaves the query string and the fragment alone while doing it", () => {
+		// The path is rebuilt by putting the shell in front of what is already there, so
+		// everything after it survives untouched, filters included.
+		cy.visit("/desk/todo?status=Open");
+		cy.location("pathname").should("eq", "/desk/build/todo");
+		cy.location("search").should("eq", "?status=Open");
+	});
+
+	it("keeps the shell you are standing in as you navigate", () => {
+		// `Users` does not list ToDo, but both belong to frappe, so the shell holds and the URL
+		// says so. This is what stops a link moving the sidebar underneath you, and it is now
+		// written down rather than remembered in the browser.
+		cy.visit("/desk/users/user");
+		// Wait for the sidebar itself, not just the URL. Standing in a shell is the precondition
+		// here, and the URL is correct a moment before the sidebar has read it.
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+
+		// Without the third argument, since `set_route("List", "ToDo", "List")` asks for the list
+		// view by name and writes `/desk/todo/view/list`.
+		cy.window().then((win) => win.frappe.set_route("List", "ToDo"));
+		cy.location("pathname").should("eq", "/desk/users/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+	});
+
+	it("does not rewrite history when you go back", () => {
+		// A URL outranks the sidebar on screen, or the back button would rewrite the entry it
+		// just returned to: going back to a ToDo opened in Build, while standing in Users, would
+		// replace it with Users.
+		cy.visit("/desk/build/todo");
+		cy.visit("/desk/users/user");
+		cy.go("back");
+
+		cy.location("pathname").should("eq", "/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+	});
 });
