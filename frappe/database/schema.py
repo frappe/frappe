@@ -266,9 +266,9 @@ class DbColumn:
 	def build_for_alter_table(self, current_def):
 		column_type = get_definition(
 			self.fieldtype,
-			self.precision,
-			self.length,
-			self.options,
+			precision=self.precision,
+			length=self.length,
+			options=self.options,
 		)
 
 		# no columns
