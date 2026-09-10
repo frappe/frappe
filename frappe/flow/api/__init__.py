@@ -1,4 +1,38 @@
 # Re-exported so whitelisted endpoints stay reachable at flow.api.<name>.
-from flow.api.api import attach_file, submit_feedback
+from flow.api.api import (
+	abort,
+	attach_file,
+	boot,
+	cancel_pending,
+	create_session,
+	delete_session,
+	entries,
+	list_sessions,
+	resume,
+	run,
+	session,
+	set_auto_approve,
+	set_model,
+	set_title,
+	submit_feedback,
+	sync_session,
+)
 
-__all__ = ["attach_file", "submit_feedback"]
+__all__ = [
+	"abort",
+	"attach_file",
+	"boot",
+	"cancel_pending",
+	"create_session",
+	"delete_session",
+	"entries",
+	"list_sessions",
+	"resume",
+	"run",
+	"session",
+	"set_auto_approve",
+	"set_model",
+	"set_title",
+	"submit_feedback",
+	"sync_session",
+]
