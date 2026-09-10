@@ -68,7 +68,6 @@ frappe.ui.get_print_settings = function (
 			get_query: () => ({
 				filters: {
 					print_format_for: "Report",
-					print_format_type: "JS",
 					report: frappe.query_report ? frappe.query_report.report_name : "",
 					disabled: 0,
 				},
