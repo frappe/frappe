@@ -212,10 +212,27 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	get_options() {
 		return (this.get_link_field() || {}).options;
 	}
+	get_search_method() {
+		// The desk search endpoint is not guest-allowed.
+		return this.df.is_web_form
+			? "frappe.website.doctype.web_form.web_form.search_web_form_link"
+			: super.get_search_method();
+	}
+	get_search_args(term) {
+		const args = super.get_search_args(term);
+		if (args && this.df.is_web_form) {
+			args.web_form_name = frappe.web_form_doc?.name;
+			args.web_form_request_key = frappe.web_form_doc?.web_form_request_key;
+		}
+		return args;
+	}
 	get_link_field() {
 		if (!this._link_field) {
+			// Web forms have no locals["DocType"], so the server ships the child
+			// docfields on df.fields instead.
 			const meta = frappe.get_meta(this.df.options);
-			this._link_field = meta?.fields?.find((df) => df.fieldtype === "Link");
+			const fields = meta?.fields?.length ? meta.fields : this.df.fields || [];
+			this._link_field = fields.find((df) => df.fieldtype === "Link");
 			if (!this._link_field) {
 				throw new Error("Table MultiSelect requires a Table with atleast one Link field");
 			}

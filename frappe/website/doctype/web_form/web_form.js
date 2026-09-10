@@ -501,7 +501,7 @@ function get_fields_for_doctype(doctype) {
 			return (
 				(frappe.model.is_value_type(df.fieldtype) &&
 					!["lft", "rgt"].includes(df.fieldname)) ||
-				["Table", "Table Multiselect"].includes(df.fieldtype) ||
+				["Table", "Table MultiSelect"].includes(df.fieldtype) ||
 				frappe.model.layout_fields.includes(df.fieldtype)
 			);
 		});
