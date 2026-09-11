@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 
 DEFAULT_MAX_ITERATIONS = 20
 
+# The index rides in every session's prompt. With each description capped at 1024
+# characters, this holds the block under ~33 KB however the skills are written.
+MAX_SKILLS = 30
+
 SKILL_INDEX_LEAD = (
 	"Specialized instructions for specific tasks. When a task matches a skill's description, "
 	"call load_skill with that name and follow what it returns."
@@ -59,12 +63,20 @@ class FlowAgent(Document):
 
 	def validate(self):
 		self._validate_max_iterations()
+		self._validate_skills()
 		self._ensure_knowledge_search_tool()
 		validate_immutable(self, ("instructions", "max_iterations", "tools", "knowledge_bases", "skills"))
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
 			frappe.throw(_("Max Iterations must be at least 1."), title=_("Invalid Max Iterations"))
+
+	def _validate_skills(self):
+		if len(self.skills) > MAX_SKILLS:
+			frappe.throw(
+				_("An agent can have at most {0} skills.").format(MAX_SKILLS),
+				title=_("Too Many Skills"),
+			)
 
 	def _ensure_knowledge_search_tool(self):
 		"""A bound knowledge base is inert without the search tool. Keep them consistent
@@ -131,8 +143,8 @@ class FlowAgent(Document):
 		if not rows:
 			return ""
 		entries = "\n".join(
-			f"  <skill>\n    <name>{escape(row.name)}</name>\n"
-			f"    <description>{escape(_one_line(row.description))}</description>\n  </skill>"
+			f"  <skill>\n    <name>{_escape(row.name)}</name>\n"
+			f"    <description>{_escape(_one_line(row.description))}</description>\n  </skill>"
 			for row in rows
 		)
 		return f"\n\n<available_skills>\n{SKILL_INDEX_LEAD}\n{entries}\n</available_skills>"
@@ -174,6 +186,11 @@ class FlowAgent(Document):
 			reference_doctype=reference_doctype,
 			reference_name=reference_name,
 		)
+
+
+def _escape(text: str) -> str:
+	"""Escape for element content only: quotes are literal text here, not delimiters."""
+	return escape(text, quote=False)
 
 
 def _one_line(text: str) -> str:

@@ -8,6 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient, DaemonError
+from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
 from flow.tests.fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 
@@ -387,3 +388,21 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 		index = self._bind("Expense Approval")
 		self.assertIn("&lt;/skill&gt; early &amp; opens &lt;skill&gt;", index)
 		self.assertEqual(index.count("</skill>"), 1)
+
+	def test_quotes_stay_literal_in_the_index(self):
+		_skill_row("Manager's Sign-off", description='Don\'t approve the "final" claim.')
+		index = self._bind("Manager's Sign-off")
+		self.assertIn("<name>Manager's Sign-off</name>", index)
+		self.assertIn("""<description>Don't approve the "final" claim.</description>""", index)
+
+	def test_an_agent_cannot_bind_more_skills_than_the_prompt_budget(self):
+		for i in range(MAX_SKILLS + 1):
+			_skill_row(f"Skill {i:03d}")
+		with self.assertRaisesRegex(frappe.ValidationError, "at most 30 skills"):
+			self._bind(*[f"Skill {i:03d}" for i in range(MAX_SKILLS + 1)])
+
+	def test_the_cap_itself_is_allowed(self):
+		for i in range(MAX_SKILLS):
+			_skill_row(f"Skill {i:03d}")
+		index = self._bind(*[f"Skill {i:03d}" for i in range(MAX_SKILLS)])
+		self.assertEqual(index.count("<skill>"), MAX_SKILLS)
