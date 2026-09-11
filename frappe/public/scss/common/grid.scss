@@ -1060,6 +1060,19 @@ body.grid-col-resizing {
 
 // ---- the bulk edit preview, which doubles as the mapping step ----
 
+.bulk-edit-preview-foot {
+	flex: 0 0 auto;
+	display: flex;
+	justify-content: center;
+	padding-top: var(--padding-sm);
+
+	.grid-pagination {
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--padding-xs);
+	}
+}
+
 // the table's own actions, held together at the right end of the line above it:
 // Refresh first where the rows came from a sheet, then Skip All
 .bulk-edit-preview-head-actions {

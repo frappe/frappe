@@ -4,6 +4,7 @@
 // the same engine menus, popovers and tooltips are placed by, so a picker in
 // this dialog flips and clamps the way every other floating panel does
 import { place } from "../ui/components/position.js";
+import GridPagination from "./grid_pagination";
 
 // one row of labels, same as the Data Import doctype's own template (exporter.py add_header)
 const BULK_EDIT_CSV_HEADER_ROWS = 1;
@@ -42,6 +43,7 @@ const BULK_EDIT_DEFERRED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", "
 const BULK_EDIT_DIALOG_SIZE = "extra-large";
 const BULK_EDIT_DIALOG_HEIGHT = "calc(90vh - 104px)";
 const BULK_EDIT_PREVIEW_ROWS = 10;
+const BULK_EDIT_FIX_PAGE_LENGTH = 50;
 
 // the four steps, in the order the dialog walks them
 const TAB_SETUP = 0;
@@ -140,6 +142,7 @@ export default class BulkEdit {
 			// set while the rows on screen came from a file already in the
 			// library, which the uploader itself holds nothing for
 			library_file_url: "",
+			fix_page: 1,
 		};
 
 		this.panels = {
@@ -585,18 +588,44 @@ export default class BulkEdit {
 			.map((number, index) => index)
 			.filter((index) => {
 				const row = this.state.row_numbers[index];
-				return fixing
-					? issues.has(row)
-					: !issues.has(row) && !this.state.skipped_rows.has(row);
+				const skipped = this.state.skipped_rows.has(row);
+				return fixing ? issues.has(row) || skipped : !issues.has(row) && !skipped;
 			});
+		const page = fixing ? this.paged(picked) : picked;
 		return {
 			headers: this.state.headers,
 			columns,
-			rows: picked.map((index) => this.state.rows[index]),
-			row_numbers: picked.map((index) => this.state.row_numbers[index]),
+			rows: page.map((index) => this.state.rows[index]),
+			row_numbers: page.map((index) => this.state.row_numbers[index]),
+			total_rows: picked.length,
 			limit: fixing ? Infinity : BULK_EDIT_PREVIEW_ROWS,
 			mapping: fixing,
 		};
+	}
+
+	make_pagination($table, view) {
+		if (!view.mapping || view.total_rows <= BULK_EDIT_FIX_PAGE_LENGTH) return;
+		this.pagination = new GridPagination({
+			wrapper: $table,
+			grid: {
+				data: new Array(view.total_rows),
+				meta: { grid_page_length: BULK_EDIT_FIX_PAGE_LENGTH },
+				render_result_rows: () => {
+					this.state.fix_page = this.pagination.page_index;
+					this.build_preview(true);
+				},
+				scroll_to_top: () => $table.find(".bulk-edit-preview-table").scrollTop(0),
+			},
+		});
+		this.pagination.page_index = this.state.fix_page;
+		this.pagination.render_pagination();
+	}
+
+	paged(rows) {
+		const pages = Math.ceil(rows.length / BULK_EDIT_FIX_PAGE_LENGTH) || 1;
+		this.state.fix_page = Math.min(this.state.fix_page, pages);
+		const start = (this.state.fix_page - 1) * BULK_EDIT_FIX_PAGE_LENGTH;
+		return rows.slice(start, start + BULK_EDIT_FIX_PAGE_LENGTH);
 	}
 
 	/** @param {boolean} [keep_skipped_rows] carry the skipped rows over the rebuild */
@@ -619,6 +648,7 @@ export default class BulkEdit {
 		$table.html(this.get_preview_html(view));
 		$table.find(".bulk-edit-refresh-sheet").on("click", () => this.refresh_google_sheet());
 		$table.find(".bulk-edit-skip-all").on("click", () => this.skip_issue_rows());
+		this.make_pagination($table, view);
 		// FieldGroup nests the field several levels below the panel, and each level
 		// sits at its content height by default — so the table would stop short and
 		// leave the rest of the step empty. Walked rather than named, since the
@@ -1455,7 +1485,7 @@ export default class BulkEdit {
 	 * picker naming the field it lands in. Two different things, one above the
 	 * other, neither standing in for the other.
 	 */
-	get_preview_html({ headers, rows, row_numbers, columns, limit, mapping }) {
+	get_preview_html({ headers, rows, row_numbers, columns, limit, mapping, total_rows }) {
 		const escape = frappe.utils.escape_html;
 		const shown = rows.slice(0, limit);
 
@@ -1540,6 +1570,11 @@ export default class BulkEdit {
 					<tbody>${mapping_row}${body.join("")}</tbody>
 				</table>
 			</div>
+			${
+				mapping && total_rows > BULK_EDIT_FIX_PAGE_LENGTH
+					? '<div class="bulk-edit-preview-foot"><div class="grid-pagination"></div></div>'
+					: ""
+			}
 		`;
 	}
 
