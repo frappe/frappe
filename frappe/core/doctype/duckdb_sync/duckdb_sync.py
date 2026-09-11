@@ -168,10 +168,14 @@ def sync_using_pyarrow(conn, dt, duck_tb):
 			del arrow_table
 
 
-def as_dsn_value(value):
-	"""Quote one connection string value, which escapes with a backslash."""
-	escaped = str(value).replace("\\", "\\\\").replace("'", "\\'")
-	return f"'{escaped}'"
+def as_dsn_value(value, quote):
+	"""Quote one connection string value, which escapes with a backslash.
+
+	The PostgreSQL scanner reads single quoted values and the MySQL scanner double quoted
+	ones. Either scanner passes the other character through untouched.
+	"""
+	escaped = str(value).replace("\\", "\\\\").replace(quote, f"\\{quote}")
+	return f"{quote}{escaped}{quote}"
 
 
 def as_sql_literal(value):
@@ -190,7 +194,8 @@ def get_attach_query():
 		"dbname" if is_postgres else "database": frappe.conf.db_name,
 		"port": frappe.conf.db_port or (5432 if is_postgres else 3306),
 	}
-	dsn = " ".join(f"{key}={as_dsn_value(value)}" for key, value in settings.items())
+	quote = "'" if is_postgres else '"'
+	dsn = " ".join(f"{key}={as_dsn_value(value, quote)}" for key, value in settings.items())
 
 	options = ["TYPE postgres" if is_postgres else "TYPE mysql"]
 	if is_postgres:
