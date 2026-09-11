@@ -111,6 +111,29 @@ describe("createCommitChannel", () => {
     expect(fired).toEqual(["qty"]);
   });
 
+  it("a second row committing the same value is not an echo of the first", () => {
+    const { commits, fired } = channel();
+    commits.commit("qty", 3, row);
+    commits.commit("qty", 3, { parentfield: "products", key: "row-2" });
+    expect(fired).toEqual(["products.qty", "products.qty"]);
+  });
+
+  it("flush waits for a commit's handler still running, so a save cannot outrun it", async () => {
+    const order: string[] = [];
+    let release!: () => void;
+    const commits = createCommitChannel({
+      dispatch: async (event) => {
+        await new Promise<void>((resolve) => (release = resolve));
+        order.push(event);
+      },
+    });
+    commits.commit("status", "Won");
+    const flushed = commits.flush().then(() => order.push("flushed"));
+    release();
+    await flushed;
+    expect(order).toEqual(["status", "flushed"]);
+  });
+
   it("awaits the handler it flushes, so the save cannot outrun it", async () => {
     const order: string[] = [];
     const commits = createCommitChannel({

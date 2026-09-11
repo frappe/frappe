@@ -316,16 +316,22 @@ async function load() {
 	actionsVersion.value++;
 }
 
-// One request at a time: a `page.save()` that lands mid-flight awaits the one in flight.
-let inFlight: Promise<void> | null = null;
+// One request per record at a time; a request the previous record left in flight is not joined.
+let inFlight: { generation: number; request: Promise<void> } | null = null;
 
 async function write() {
 	// Refuse to write the wrong record if the route moved while an action ran.
 	if (doc.value.name !== docname.value || doctype.value === null) {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
-	if (!inFlight) inFlight = send().finally(() => (inFlight = null));
-	await inFlight;
+	if (inFlight?.generation !== generation) {
+		const mine = generation;
+		const request = send().finally(() => {
+			if (inFlight?.request === request) inFlight = null;
+		});
+		inFlight = { generation: mine, request };
+	}
+	await inFlight.request;
 }
 
 async function send() {
