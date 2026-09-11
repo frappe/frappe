@@ -178,6 +178,27 @@ _Avoid_: sections (`panelSections` and `Section` both already claim the word).
 An item the host seeded rather than a script adding it, attributed to the source
 `builtin` and folded in first. A script addresses one by name like any other item.
 
+**Panel**:
+The record's right-hand column, drawn from `page.panelSections` as **one list**: the
+built-ins (`identity`, `quick_actions`, `people`) and the Side Panel layout's
+sections are items on it alike. A `label` gives an item a header; a built-in has none. The
+panel resizes and collapses to a strip, and those two are the reader's, kept in the browser.
+_Avoid_: sidebar (taken, see below), side panel (the Form Layout *type* is `Side Panel`; the
+region is the panel).
+
+**Disclosure**:
+The reader's view state of a section: open or shut. It lives in the browser through the
+shell's section memory, keyed by user and per doctype, never on the server. A script's
+`open()`/`close()` is an **act** on the same terms as `activate`, held until the replay
+commits, and it is the page's, not the reader's: it is not remembered, and a click outranks it
+until the next replay.
+_Avoid_: collapsed (the panel as a whole collapses to a strip; a section is shut), expanded.
+
+**Overlay** (per-user):
+A per-user customization of what the page holds, as a record on the server that enters the
+merge. Not built; the word is reserved so it is not confused with disclosure, which is view
+state, or with the **field overlay** below, which is a script's render-time override.
+
 **Op**:
 One recorded verb — `{verb, source, …}`. Ops are **recorded, not applied**; nothing is
 rendered until a replay commits.
@@ -275,6 +296,9 @@ reach for the unambiguous alternative.
   name; and `PageFormTab.name`, which is explicitly *not* the address — that is `identity`.
 - **`actions`** — the contribution type's bag of `{name, label, run}`; dialog buttons; the
   default group a header item lands in; and, loosely, quick actions.
+- **`overlay`** — (a) the **field overlay**, a script's render-time override of a field;
+  (b) the per-user **overlay**, a server record that customizes what the page holds. Say
+  which; neither is disclosure.
 - **`prefix`** and **`claim`** — a URL prefix an app claims, versus a dotted-path prefix in
   the compatibility guard, versus a header item's recorded anchor claim.
 

@@ -74,6 +74,8 @@ export interface FieldsSurfaceHost {
   fieldAccess: (fieldname: string) => FieldAccess;
   /** The host's per-field overlay hook; without it `get` would report a `component` the renderer disagrees with. */
   decorate?: Decorator;
+  /** Whether the panel carries this name, so a script reaching for a section here is told the verb that owns it. */
+  isSection?: (name: string) => boolean;
 }
 
 type Op =
@@ -187,6 +189,14 @@ export class FieldsSurface implements PageFields {
   private warnIfAbsent(fieldname: string, verb: string) {
     const fields = this.host.fields();
     if (!fields || this.raw(fieldname)) return;
+    // One name, one owner: `panelSections` speaks for a section's visibility.
+    if (this.host.isSection?.(fieldname)) {
+      const owner = verb === "get" ? "has" : verb;
+      warnOnce(
+        `page.fields.${verb}("${fieldname}") — a panel section, not a field; page.panelSections.${owner}("${fieldname}") is the verb.`,
+      );
+      return;
+    }
     warnOnce(`page.fields.${verb}("${fieldname}") — no such field.`);
   }
 }

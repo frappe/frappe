@@ -58,8 +58,9 @@ What `page` is _for_ is a small, closed vocabulary:
   identity rather than a name because `FormLayout` resolves it itself — it renders in
   dialogs too, where nothing has named the tabs — not because an administrator's tab might
   be nameless. It no longer can be.
-- **`activate(name)` moves the reader; it is the only verb that does.** Both tab surfaces
-  carry it, each addressing its own strip and no other — `page.tabs.activate('emails')`,
+- **`activate(name)` moves the reader; it and the panel's `open`/`close` are the only verbs
+  that act rather than arrange.** Both tab surfaces carry `activate`, each addressing its
+  own strip and no other — `page.tabs.activate('emails')`,
   `page.formTabs.activate('shipping')`. It is a **verb and not a writable `active`** on
   purpose: `active` is *derived* from what the strip can currently show, so a script that
   assigned a hidden or unknown name would read back something it never wrote. A verb can

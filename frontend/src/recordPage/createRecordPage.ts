@@ -25,6 +25,7 @@ import { createRows, warnRowIssue } from "./rows";
 import { Surface } from "./surface";
 import type {
   PanelSectionItem,
+  PanelSectionsApi,
   QuickAction,
   RecordPageApi,
   TabItem,
@@ -92,6 +93,8 @@ export interface RecordPageHost {
   activeFormTab?: () => string;
   /** Moves the reader to a tab of the form, by identity; absent for a host with no form. */
   activateFormTab?: (identity: string) => void;
+  /** Opens or shuts a panel section for the reader; the engine has already resolved the name. */
+  discloseSection?: (name: string, open: boolean) => void;
   save: () => Promise<void>;
   reload: () => Promise<void>;
   router: Router;
@@ -138,6 +141,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     doc: () => host.doc.value,
     fieldAccess: (fieldname) => permissions.fieldAccess(fieldname),
     decorate: host.decorate,
+    isSection: (name) => panelSections.has(name),
   });
   const formTabs = new FormTabsSurface({
     tabs: () => host.formLayout?.(),
@@ -180,6 +184,16 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     value: (identity: string) => activate("formTabs", identity),
   });
 
+  // Same terms as an activation: resolved now, delivered when the panel on screen is this replay's.
+  const heldDisclosures = new Map<string, boolean>();
+
+  Object.defineProperty(panelSections, "open", {
+    value: (name: string) => disclose(name, true),
+  });
+  Object.defineProperty(panelSections, "close", {
+    value: (name: string) => disclose(name, false),
+  });
+
   const dialogs = createPageDialogs({ isReplaying: () => isReplaying.value });
 
   const capabilities: RecordPageApi = {
@@ -210,7 +224,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     quickActions,
     header,
     tabs: tabs as unknown as TabsApi,
-    panelSections,
+    panelSections: panelSections as unknown as PanelSectionsApi,
     fields,
     formTabs,
     rows: rows.rows,
@@ -246,9 +260,71 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       replaying.value -= 1;
       // After the commit, so the strip the reader lands on is the one on screen;
       // inside the `finally`, so a throwing handler cannot strand a decided move.
-      if (!isReplaying.value) releaseActivations();
+      if (!isReplaying.value) {
+        releaseActivations();
+        releaseDisclosures();
+      }
     }
     ready.value = true;
+  }
+
+  function releaseDisclosures() {
+    const held = [...heldDisclosures];
+    heldDisclosures.clear();
+    for (const [name, open] of held) {
+      // Re-read, as a held activation is: a later source can hide or relabel the section.
+      if (!canDisclose(name, open, "it left the panel before the replay settled")) continue;
+      deliverDisclosure(name, open);
+    }
+  }
+
+  /** Both acts: a miss is said the way `activate` says one, and a hidden section is a miss. */
+  function disclose(name: string, open: boolean) {
+    if (!canDisclose(name, open)) return;
+    if (isReplaying.value) heldDisclosures.set(name, open);
+    else deliverDisclosure(name, open);
+  }
+
+  function canDisclose(name: string, open: boolean, gone = "no such section") {
+    const item = panelSections.find(name);
+    if (!item) {
+      warnDisclose(name, open, gone);
+      return false;
+    }
+    if (!panelSections.isVisible(name)) {
+      warnDisclose(name, open, "it is hidden — show() reveals a section");
+      return false;
+    }
+    // No label, no header, so there is nothing for the reader to open or shut.
+    if (!item.label) {
+      warnDisclose(name, open, "it has no header");
+      return false;
+    }
+    return true;
+  }
+
+  function deliverDisclosure(name: string, open: boolean) {
+    if (!host.discloseSection) {
+      warnDisclose(name, open, "this host cannot open or shut a section");
+      return;
+    }
+    try {
+      host.discloseSection(name, open);
+    } catch (error) {
+      // Reported, never rethrown, for the reason `move` gives.
+      console.error(
+        `[record-page] page.panelSections.${open ? "open" : "close"}("${name}") — the host threw`,
+        error,
+      );
+    }
+  }
+
+  function warnDisclose(name: string, open: boolean, because: string) {
+    if (!import.meta.env.DEV) return;
+    const verb = open ? "open" : "close";
+    console.warn(
+      `[record-page] page.panelSections.${verb}("${name}") — ${because}; nothing was ${open ? "opened" : "shut"}.`,
+    );
   }
 
   function releaseActivations() {

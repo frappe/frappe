@@ -41,7 +41,7 @@ function write(stored: Stored): void {
 export function sectionMemory(
 	user: string,
 	container: string,
-	items: NavigationItem[]
+	items: Pick<NavigationItem, "key" | "keep_closed">[]
 ): SectionMemory {
 	const shippedOpen = new Map(items.map((item) => [item.key, !item.keep_closed]));
 
