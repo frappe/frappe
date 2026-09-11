@@ -45,13 +45,15 @@
 		/>
 
 		<ToastProvider />
+		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
+		<Dialogs />
 	</DesktopShell>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
-import { DesktopShell, ToastProvider } from "frappe-ui";
+import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import { itemContext } from "@/navigation/context";
