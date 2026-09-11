@@ -1757,7 +1757,7 @@ class Engine:
 			restricted_child_query = (
 				frappe.qb.from_(child_table)
 				.select(1)
-				.where(child_table.parent == table.name)
+				.where(child_table.parent == _cast_autoincrement_name(table.name, doctype))
 				.where(child_table.parenttype == doctype)
 				.where(child_table.parentfield == table_field.fieldname)
 				.where(Criterion.any(restricted_value_conditions))
