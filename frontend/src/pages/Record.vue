@@ -71,6 +71,7 @@ import { routeFor } from "@/router/routeFor";
 import RecordHeader from "./record/RecordHeader.vue";
 import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
+import { quickActionBuiltins } from "./record/quickActionBuiltins";
 import type { DocInfo } from "./record/panel/context";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
@@ -229,6 +230,9 @@ async function load() {
 		sourcesReady: () => loadClientScripts(target.doctype),
 	});
 	created.header.provideBuiltins(headerBuiltins);
+	created.quickActions.provideBuiltins(() =>
+		quickActionBuiltins(docinfo.value?.permissions ?? {})
+	);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	// Against the saved document, so a keystroke cannot switch the layout under the reader.
 	const layoutSource = useFormLayout({

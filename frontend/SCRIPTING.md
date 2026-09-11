@@ -153,7 +153,7 @@ them under the names the Form Layout stores:
 | Name | What it is |
 | --- | --- |
 | `identity` | The title, subtitle, image and tags. |
-| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. |
+| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. The framework seeds `print`, `copy_link` and `delete` there, the first and last only with the right; a script hides or reorders them by name. |
 | `people` | Who the record is assigned to, and who it is shared with. |
 
 A doctype with no Side Panel row shows the three built-ins and nothing else. The panel never
