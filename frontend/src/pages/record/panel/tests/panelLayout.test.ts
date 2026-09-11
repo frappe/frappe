@@ -32,8 +32,8 @@ const LAYOUT: FormLayoutSchema = [
 	},
 ] as any;
 
-const Assignees = defineComponent({ render: () => h("div", { "data-builtin": "assignees" }) });
-const Shares = defineComponent({ render: () => h("div", { "data-builtin": "shares" }) });
+const Identity = defineComponent({ render: () => h("div", { "data-builtin": "identity" }) });
+const People = defineComponent({ render: () => h("div", { "data-builtin": "people" }) });
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -50,8 +50,8 @@ async function mount(surface: Surface<PanelSectionItem>, opened: Record<string, 
 	const doc = ref({ organization: "Frappe" });
 	const sections = layoutSections(LAYOUT, doc.value);
 	surface.provideBuiltins(() => [
-		{ name: "assignees", component: Assignees },
-		{ name: "shares", component: Shares },
+		{ name: "identity", component: Identity },
+		{ name: "people", component: People },
 		...layoutItems(sections),
 	]);
 	const toggled: string[] = [];
@@ -83,8 +83,8 @@ const names = (root: HTMLElement) =>
 describe("one list", () => {
 	it("draws the built-ins and the layout's sections in the surface's order", async () => {
 		const { root } = await mount(new Surface<PanelSectionItem>());
-		expect(names(root)).toEqual(["assignees", "shares", "organization_section"]);
-		expect(root.querySelector("[data-builtin='assignees']")).not.toBeNull();
+		expect(names(root)).toEqual(["identity", "people", "organization_section"]);
+		expect(root.querySelector("[data-builtin='identity']")).not.toBeNull();
 		expect(root.textContent).toContain("Organization");
 	});
 
@@ -96,10 +96,10 @@ describe("one list", () => {
 
 	it("hides one section by name and its neighbour stands", async () => {
 		const surface = new Surface<PanelSectionItem>();
-		surface.hide("shares");
+		surface.hide("people");
 		const { root } = await mount(surface);
-		expect(names(root)).toEqual(["assignees", "organization_section"]);
-		expect(surface.has("assignees")).toBe(true);
+		expect(names(root)).toEqual(["identity", "organization_section"]);
+		expect(surface.has("identity")).toBe(true);
 	});
 
 	it("moves a layout section among the built-ins, and a script's section renders its component", async () => {
@@ -116,11 +116,11 @@ describe("one list", () => {
 				}),
 				props: { text: "hi" },
 			},
-			{ before: "assignees" }
+			{ before: "identity" }
 		);
-		surface.move("organization_section", { before: "shares" });
+		surface.move("organization_section", { before: "people" });
 		const { root } = await mount(surface);
-		expect(names(root)).toEqual(["note", "assignees", "organization_section", "shares"]);
+		expect(names(root)).toEqual(["note", "identity", "organization_section", "people"]);
 		const note = root.querySelector<HTMLElement>("[data-note]")!;
 		expect(note.dataset.note).toBe("hi");
 		expect(note.textContent).toBe("Frappe");
@@ -147,7 +147,7 @@ describe("a header comes from a label", () => {
 
 	it("lets a script give a built-in a header by labelling it", async () => {
 		const surface = new Surface<PanelSectionItem>();
-		surface.update("shares", { label: "Shared with" });
+		surface.update("people", { label: "People" });
 		const { root } = await mount(surface);
 		expect(root.querySelectorAll("button[aria-expanded]")).toHaveLength(2);
 	});

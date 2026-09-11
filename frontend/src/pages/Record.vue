@@ -149,7 +149,7 @@ function headerBuiltins(): HeaderItem[] {
 	];
 }
 
-// Four built-ins first, then the Side Panel layout's sections, as they resolve now.
+// Three built-ins first, then the Side Panel layout's sections, as they resolve now.
 function panelBuiltins() {
 	return [...PANEL_BUILTINS, ...layoutItems(sections.value)];
 }

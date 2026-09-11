@@ -143,21 +143,20 @@ The surface speaks the seven verbs, and two **acts**: `open(name)` and `close(na
 
 A name the Side Panel layout carries renders that section's fields, one column, click to
 edit. Any other name renders its `component`. The header rule is derived, not declared: a
-`label` gives a header; `update('shares', { label: 'Shared with' })` gives a built-in one.
+`label` gives a header; `update('people', { label: 'People' })` gives a built-in one.
 
 ### The built-ins
 
-The generated page seeds four items, in this order, and then the layout's sections after
+The generated page seeds three items, in this order, and then the layout's sections after
 them under the names the Form Layout stores:
 
 | Name | What it is |
 | --- | --- |
 | `identity` | The title, subtitle, image and tags. |
 | `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. |
-| `assignees` | Who the record is assigned to. |
-| `shares` | Who it is shared with. |
+| `people` | Who the record is assigned to, and who it is shared with. |
 
-A doctype with no Side Panel row shows the four built-ins and nothing else. The panel never
+A doctype with no Side Panel row shows the three built-ins and nothing else. The panel never
 falls back to the Details layout, so no field shows twice; a doctype that wants fields in
 its panel ships a Side Panel row.
 
@@ -180,9 +179,9 @@ The second act of the map's proof walk: hide one section by name, and its neighb
 ```js
 export default {
   onRefresh(page) {
-    page.panelSections.hide('shares') // "Shared with" goes
-    // 'assignees' is still there, and so is 'organization_section'
-    console.log(page.panelSections.has('assignees'))
+    page.panelSections.hide('people') // "Assigned to" and "Shared with" go
+    // 'identity' is still there, and so is 'organization_section'
+    console.log(page.panelSections.has('identity'))
   },
 }
 ```
@@ -200,7 +199,7 @@ export default {
     // A section of its own, before the people rows; a label gives it a header.
     page.panelSections.add(
       { name: 'note', label: 'Note', component: Note, props: { text: 'Status' } },
-      { before: 'assignees' },
+      { before: 'people' },
     )
     // The layout's section, moved up and opened for a won deal.
     page.panelSections.move('organization_section', { after: 'identity' })

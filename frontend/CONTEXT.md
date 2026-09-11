@@ -180,7 +180,7 @@ An item the host seeded rather than a script adding it, attributed to the source
 
 **Panel**:
 The record's right-hand column, drawn from `page.panelSections` as **one list**: the
-built-ins (`identity`, `quick_actions`, `assignees`, `shares`) and the Side Panel layout's
+built-ins (`identity`, `quick_actions`, `people`) and the Side Panel layout's
 sections are items on it alike. A `label` gives an item a header; a built-in has none. The
 panel resizes and collapses to a strip, and those two are the reader's, kept in the browser.
 _Avoid_: sidebar (taken, see below), side panel (the Form Layout *type* is `Side Panel`; the
