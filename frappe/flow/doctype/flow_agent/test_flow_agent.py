@@ -271,10 +271,10 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		self.assertIn("properties", config["client_tools"][0]["function"]["parameters"])
 		self.assertEqual(config["confirm_tools"], ["execute"])
 
-	def test_update_memory_never_travels_to_the_server(self):
+	def test_update_memory_travels_to_the_server(self):
 		self.agent_doc.append("tools", {"tool": "update_memory"})
 		self.agent_doc.save()
-		self.assertEqual(self.names(), ["read", "execute"])
+		self.assertEqual(self.names(), ["read", "execute", "update_memory"])
 
 	def test_disabled_tools_stay_home(self):
 		frappe.db.set_value("Flow Tool", "read", "enabled", 0)

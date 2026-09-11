@@ -11,6 +11,7 @@ from frappe.utils import set_request
 from flow.daemon.callback import callback, confirm_title
 from flow.daemon.client import DaemonClient
 from flow.lib.tool import tool
+from flow.memory import store as memory_store
 from flow.tests.fake_daemon import FakeDaemon, turn
 from flow.tools.builtins import sync_builtin_tools
 
@@ -24,12 +25,6 @@ BOOM = "def main(reason: str) -> str:\n\traise ValueError(reason)\n"
 def whoami() -> str:
 	"""The user this tool runs as."""
 	return frappe.session.user
-
-
-@tool
-def current_run() -> str | None:
-	"""The run flag while a tool runs."""
-	return frappe.flags.flow_run
 
 
 @tool
@@ -52,7 +47,7 @@ class TestToolCallback(IntegrationTestCase):
 			frappe.get_doc(
 				{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
-		for slug in ("whoami", "current_run", "insert_then_fail"):
+		for slug in ("whoami", "insert_then_fail"):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
 		self.flow_tool("boom", type="Script", code=BOOM)
 		model = frappe.get_doc(
@@ -70,7 +65,6 @@ class TestToolCallback(IntegrationTestCase):
 			"update_memory",
 			"search_attachments",
 			"whoami",
-			"current_run",
 			"insert_then_fail",
 			"boom",
 		)
@@ -177,12 +171,18 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertIn("Permission", result["content"])
 		self.assertEqual(frappe.session.user, "Administrator")
 
-	def test_update_memory_never_reaches_the_daemon_and_is_unknown_here(self):
-		names = [tool.name for tool in self.agent.client_tools()]
-		self.assertNotIn("update_memory", names)
-		self.assertIn("whoami", names)
-		result = self.call("update_memory", {"content": "remember this", "scope": "agent"})
-		self.assertEqual(result, {"content": "Unknown tool update_memory.", "is_error": True})
+	def test_update_memory_runs_as_the_owner_and_names_the_running_run(self):
+		self.addCleanup(memory_store.drop_table)
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": self.session.name, "source": "Manual", "status": "Running"}
+		).insert()
+		result = self.call("update_memory", {"content": "Prefers INR.", "scope": "user"})
+		self.assertFalse(result["is_error"])
+		memory = frappe.get_doc("Flow Agent Memory", json.loads(result["content"])["memory_id"])
+		self.assertEqual(
+			(memory.agent, memory.scope, memory.user, memory.source_run),
+			(self.agent.name, "User", OWNER, run.name),
+		)
 
 	def test_search_attachments_is_bound_to_the_calling_session(self):
 		hit = {"attachment": "F1", "content": "refunds within thirty days", "score": 0.9}
@@ -223,14 +223,6 @@ class TestToolCallback(IntegrationTestCase):
 	def test_a_failed_tools_writes_are_rolled_back(self):
 		self.assertEqual(self.call("insert_then_fail"), {"content": "after insert", "is_error": True})
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "callback-rollback"}))
-
-	def test_the_run_flag_names_the_sessions_running_run_while_a_tool_runs(self):
-		self.assertEqual(self.call("current_run"), {"content": "", "is_error": False})
-		run = frappe.get_doc(
-			{"doctype": "Flow Run", "session": self.session.name, "source": "Manual", "status": "Running"}
-		).insert()
-		self.assertEqual(self.call("current_run"), {"content": run.name, "is_error": False})
-		self.assertIsNone(frappe.flags.flow_run)
 
 	def test_confirm_mode_names_the_action_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]

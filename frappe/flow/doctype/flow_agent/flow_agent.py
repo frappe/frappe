@@ -79,12 +79,7 @@ class FlowAgent(Document):
 		}
 
 	def client_tools(self, session: str | None = None) -> list[Tool]:
-		"""This agent's tools minus update_memory, which stays local until the new memory system."""
-		from flow.memory.memory import MEMORY_TOOL_SLUG
-
-		return [tool for tool in self._resolve_tools(session) if tool.name != MEMORY_TOOL_SLUG]
-
-	def _resolve_tools(self, session: str | None = None) -> list[Tool]:
+		"""This agent's enabled tools, bound to `session` where needed."""
 		from flow.memory.memory import MEMORY_TOOL_SLUG
 		from flow.tools.builtins import (
 			ATTACHMENT_SEARCH_SLUG,
@@ -108,7 +103,7 @@ class FlowAgent(Document):
 			elif tool_doc.name == ATTACHMENT_SEARCH_SLUG:
 				resolved.append(bind_search_attachments(session))
 			elif tool_doc.name == MEMORY_TOOL_SLUG:
-				resolved.append(bind_update_memory(self.name))
+				resolved.append(bind_update_memory(self.name, session))
 			else:
 				resolved.append(tool_doc.to_tool())
 		return resolved
