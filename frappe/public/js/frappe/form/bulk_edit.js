@@ -519,8 +519,7 @@ export default class BulkEdit {
 	handle_document_mousedown(event) {
 		Object.values(this.cell_controls).forEach((control) => {
 			const picker = picker_of(control);
-			// no picker, or the click is someone using it
-			if (!picker || picker.contains(event.target)) return;
+			if (!picker) return;
 
 			if (control.$wrapper.closest("td").get(0)?.contains(event.target)) {
 				// the cell toggles, since the control's own handler only ever opens
@@ -529,11 +528,13 @@ export default class BulkEdit {
 					return;
 				}
 				close_picker(control);
+				control._closed_by_cell = true;
 				// both pickers open on focus, and hide() blurs the input on its way
 				// out — so the focus this mousedown would deliver reopens it
 				event.preventDefault();
 				return;
 			}
+			if (picker.contains(event.target)) return;
 			if (picker_is_open(control)) close_picker(control);
 		});
 	}
@@ -861,7 +862,12 @@ export default class BulkEdit {
 		// searching on the value no record matches would list nothing.
 		control.$input?.on("focus click", () => {
 			this.show_cell_message(control);
-			if (df.fieldtype === "Link") control.on_input({ target: { value: "" } });
+			if (df.fieldtype !== "Link") return;
+			if (control._closed_by_cell) {
+				control._closed_by_cell = false;
+				return;
+			}
+			control.on_input({ target: { value: "" } });
 		});
 
 		return control;
@@ -1968,13 +1974,25 @@ const discard_cell_control = (control) => {
  * table when the same cell was clicked again, or the dialog around it was.
  */
 const picker_of = (control) =>
-	control?.$picker?.get(0) || control?.datepicker?.$datepicker?.get(0) || null;
+	control?.$picker?.get(0) ||
+	control?.datepicker?.$datepicker?.get(0) ||
+	control?.awesomplete?.ul ||
+	null;
 
-const picker_is_open = (control) =>
-	control.$picker ? control.$picker.is(":visible") : Boolean(control.datepicker?.visible);
+const picker_is_open = (control) => {
+	if (control.$picker) return control.$picker.is(":visible");
+	if (control.datepicker) return Boolean(control.datepicker.visible);
+	return Boolean(control.awesomplete?.opened);
+};
 
-const open_picker = (control) =>
-	control.$picker ? control.show_picker() : control.datepicker?.show();
+const open_picker = (control) => {
+	if (control.$picker) return control.show_picker();
+	if (control.datepicker) return control.datepicker.show();
+	return control.on_input?.({ target: { value: "" } });
+};
 
-const close_picker = (control) =>
-	control.$picker ? control.hide_picker() : control.datepicker?.hide();
+const close_picker = (control) => {
+	if (control.$picker) return control.hide_picker();
+	if (control.datepicker) return control.datepicker.hide();
+	return control.awesomplete?.close();
+};
