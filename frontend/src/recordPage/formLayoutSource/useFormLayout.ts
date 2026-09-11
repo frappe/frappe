@@ -1,4 +1,4 @@
-import { computed, toValue } from "vue";
+import { computed, toValue, watch } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
 import { createResource, frappeRequest } from "frappe-ui";
 import type {
@@ -39,6 +39,8 @@ export interface UseFormLayout {
 	error: ComputedRef<unknown>;
 	/** Re-fetch the layout rows (the meta reloads through `useDoctypeMeta`). */
 	reload: () => void;
+	/** Resolves once the rows and the meta have both landed or failed, so a first replay sees the layout. */
+	settled: () => Promise<void>;
 }
 
 /** One fetch per `(doctype, type)`, shared by every caller. */
@@ -85,12 +87,27 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		});
 	});
 
+	const busy = computed(() => loading.value || entry.value.loading);
+
 	return {
 		layout,
-		loading: computed(() => loading.value || entry.value.loading),
+		loading: busy,
 		error: computed(() => error.value ?? entry.value.error),
 		reload: () => entry.value.reload(),
+		settled: () => whenSettled(busy),
 	};
+}
+
+/** Answers now when nothing is loading; the resource raises its flag synchronously at fetch, so this cannot miss it. */
+export function whenSettled(loading: { value: boolean }): Promise<void> {
+	if (!loading.value) return Promise.resolve();
+	return new Promise((resolve) => {
+		const stop = watch(loading, (busy) => {
+			if (busy) return;
+			stop();
+			resolve();
+		});
+	});
 }
 
 /** Drops every memoised fetch, so one test's rows cannot reach the next. */

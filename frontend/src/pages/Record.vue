@@ -231,15 +231,19 @@ async function load() {
 	created.header.provideBuiltins(headerBuiltins);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	// Against the saved document, so a keystroke cannot switch the layout under the reader.
-	panelLayout.value = useFormLayout({
+	const layoutSource = useFormLayout({
 		doctype: target.doctype,
 		type: "Side Panel",
 		doc: saved,
 		fallback: "none",
 		overrides: () => created.fields.resolve(),
-	}).layout;
+	});
+	panelLayout.value = layoutSource.layout;
 	controller.value = created;
 
+	// The first replay must see the layout's sections, or a script's act on one is dropped as unknown.
+	await layoutSource.settled();
+	if (mine !== generation) return;
 	await created.refresh();
 	if (mine !== generation) return;
 	// A reload triggered by a failed action must not wipe the message explaining it.
