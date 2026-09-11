@@ -160,6 +160,7 @@ export default class BulkEdit {
 		this.building_preview = false;
 		// discards a stale link-check response if a newer mapping change started one first
 		this.preview_request_id = 0;
+		this.link_warnings = [];
 		// live edit controls mounted over a flagged cell, keyed "row:col"
 		this.cell_controls = {};
 
@@ -902,7 +903,7 @@ export default class BulkEdit {
 					size: "sm",
 					onclick: () => {
 						this.state.skipped_rows[skipped ? "delete" : "add"](row);
-						this.refresh_preview();
+						this.refresh_preview({ recheck_links: false });
 					},
 				})
 				.appendTo($cell);
@@ -1022,7 +1023,7 @@ export default class BulkEdit {
 		);
 	}
 
-	async refresh_preview() {
+	async refresh_preview({ recheck_links = true } = {}) {
 		if (this.building_preview) return;
 		const request_id = ++this.preview_request_id;
 
@@ -1058,11 +1059,13 @@ export default class BulkEdit {
 			this.state.import_type,
 			map
 		);
-		warnings.push(
-			...(await this.get_link_warnings(this.state.rows, this.state.row_numbers, map))
-		);
+		const link_warnings = recheck_links
+			? await this.get_link_warnings(this.state.rows, this.state.row_numbers, map)
+			: this.link_warnings;
 		// a later mapping change already started its own refresh; let that one win
 		if (request_id !== this.preview_request_id) return;
+		this.link_warnings = link_warnings;
+		warnings.push(...link_warnings);
 		this.state.warnings = warnings;
 		// no text summary — the red, editable cells are the only warning
 		// surface now; state.warnings still gates Apply below
@@ -1104,7 +1107,7 @@ export default class BulkEdit {
 	/** Leave every row that is still wrong out of the import, in one go. */
 	skip_issue_rows() {
 		this.get_issue_rows().forEach((row) => this.state.skipped_rows.add(row));
-		this.refresh_preview();
+		this.refresh_preview({ recheck_links: false });
 	}
 
 	get_issue_rows() {
