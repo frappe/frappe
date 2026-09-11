@@ -712,12 +712,13 @@ export default class BulkEdit {
 			place(panel, control.$input[0].getBoundingClientRect(), "bottom", "start", 4);
 		};
 
+		const call = (hook, args) => typeof hook === "function" && hook.apply(picker, args);
 		const original_show = picker.opts.onShow;
 		const original_hide = picker.opts.onHide;
 		picker.opts.onShow = (...args) => {
 			// after ControlDate's own handler, which sets the position this
 			// replaces, and only once it has laid the picker out at full size
-			original_show?.apply(picker, args);
+			call(original_show, args);
 			reposition();
 			window.addEventListener("resize", reposition);
 			document.addEventListener("scroll", reposition, { capture: true, passive: true });
@@ -725,7 +726,7 @@ export default class BulkEdit {
 		picker.opts.onHide = (...args) => {
 			window.removeEventListener("resize", reposition);
 			document.removeEventListener("scroll", reposition, { capture: true });
-			original_hide?.apply(picker, args);
+			call(original_hide, args);
 		};
 	}
 
