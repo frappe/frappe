@@ -168,19 +168,35 @@ def sync_using_pyarrow(conn, dt, duck_tb):
 			del arrow_table
 
 
+def as_dsn_value(value):
+	"""Quote one connection string value, which escapes with a backslash."""
+	escaped = str(value).replace("\\", "\\\\").replace("'", "\\'")
+	return f"'{escaped}'"
+
+
+def as_sql_literal(value):
+	"""Quote one SQL string literal, which escapes by doubling the quote."""
+	escaped = str(value).replace("'", "''")
+	return f"'{escaped}'"
+
+
 def get_attach_query():
 	"""Attach the site database through the DuckDB scanner that matches its engine."""
 	is_postgres = frappe.db.db_type == "postgres"
-	extension = "postgres" if is_postgres else "mysql"
-	database_key = "dbname" if is_postgres else "database"
-	dsn = (
-		f"user={frappe.conf.db_user or frappe.conf.db_name} "
-		f"password={frappe.conf.db_password} "
-		f"host={frappe.conf.db_host or '127.0.0.1'} "
-		f"{database_key}={frappe.conf.db_name} "
-		f"port={frappe.conf.db_port or (5432 if is_postgres else 3306)}"
-	)
-	return f"attach '{dsn}' as {SOURCE_DB_ALIAS} (TYPE {extension});"
+	settings = {
+		"user": frappe.conf.db_user or frappe.conf.db_name,
+		"password": frappe.conf.db_password,
+		"host": frappe.conf.db_host or "127.0.0.1",
+		"dbname" if is_postgres else "database": frappe.conf.db_name,
+		"port": frappe.conf.db_port or (5432 if is_postgres else 3306),
+	}
+	dsn = " ".join(f"{key}={as_dsn_value(value)}" for key, value in settings.items())
+
+	options = ["TYPE postgres" if is_postgres else "TYPE mysql"]
+	if is_postgres:
+		options.append(f"SCHEMA {as_sql_literal(frappe.db.db_schema)}")
+
+	return f"attach {as_sql_literal(dsn)} as {SOURCE_DB_ALIAS} ({', '.join(options)});"
 
 
 def sync_using_extension(conn, dt, duck_tb):
