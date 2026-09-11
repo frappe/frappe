@@ -23,15 +23,18 @@
 		</p>
 
 		<div v-else class="flex min-h-0 flex-1">
-			<ScrollArea class="min-h-0 flex-1" :viewportClass="[pageGutter, 'py-5']">
-				<p v-if="error" class="text-sm text-ink-red-4">{{ error }}</p>
+			<ScrollArea class="min-h-0 flex-1">
+				<p v-if="error" class="py-5 text-sm text-ink-red-4" :class="pageGutter">
+					{{ error }}
+				</p>
 
-				<div v-else-if="controller" ref="formRoot" class="max-w-4xl" data-record-form>
+				<div v-else-if="controller" ref="formRoot" data-record-form>
 					<FormLayout
 						v-if="form.length"
 						v-model:doc="doc"
 						:layout="form"
 						:tab="formTab"
+						:class="formClasses"
 						@update:tab="chooseFormTab"
 						@update:activeTab="activeFormTab = $event"
 					/>
@@ -131,6 +134,14 @@ const formRoot = ref<HTMLElement | null>(null);
 // The reader's intent and the strip's resolution, as `FormLayout` splits them.
 const formTab = ref("");
 const activeFormTab = ref("");
+
+// The form fills the column with no border of its own, and its strip stays put while the sections scroll.
+const formClasses = [
+	"!rounded-none !border-0",
+	"[&_[role='tablist']]:sticky [&_[role='tablist']]:top-0 [&_[role='tablist']]:z-10 [&_[role='tablist']]:bg-surface-base",
+	"[&_.sections]:mx-auto [&_.sections]:my-0 [&_.sections]:w-full [&_.sections]:max-w-3xl [&_.sections]:p-6",
+	"[&_.section-header]:!px-0 [&_.section-body]:!px-0",
+];
 
 // The right zone keeps this many top-level controls; the rest demote into `⋯`.
 const HEADER_BUDGET = 3;
