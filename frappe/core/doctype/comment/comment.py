@@ -229,7 +229,10 @@ def refresh_comment_count(reference_doctype, reference_name):
 	if not reference_doctype or not reference_name:
 		return
 
-	meta = frappe.get_meta(reference_doctype)
+	try:
+		meta = frappe.get_meta(reference_doctype)
+	except frappe.DoesNotExistError:
+		return
 	if meta.issingle or meta.get("is_virtual"):
 		return
 
