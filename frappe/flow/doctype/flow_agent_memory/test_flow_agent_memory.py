@@ -164,11 +164,12 @@ class TestSaveMemory(MemoryCase):
 			with self.assertRaises(frappe.ValidationError):
 				save_memory(self.agent.name, content="Second.", scope="agent")
 
-	def test_an_index_failure_never_blocks_a_write(self):
-		with patch("flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")):
-			result = save_memory(self.agent.name, content=ACME, scope="agent")
-		self.assertTrue(frappe.db.exists("Flow Agent Memory", result["memory_id"]))
-		self.assertTrue(frappe.db.exists("Error Log", {"method": "Agent memory index sync failed"}))
+	def test_an_index_failure_fails_the_write(self):
+		with (
+			patch("flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")),
+			self.assertRaises(RuntimeError),
+		):
+			save_memory(self.agent.name, content=ACME, scope="agent")
 
 
 class TestKeywordRetrieval(MemoryCase):
@@ -264,6 +265,16 @@ class TestHybridRetrieval(MemoryCase):
 			block = self.block("Bill Acme for the widgets.")
 		self.assertIn(acme["memory_id"], block)
 		self.assertNotIn(widget["memory_id"], block)
+
+	def test_a_failed_re_embed_keeps_the_memory_findable(self):
+		added = save_memory(self.agent.name, content=ACME, scope="agent")
+		self.embed.side_effect = RuntimeError("provider down")
+		with self.assertRaises(RuntimeError):
+			save_memory(
+				self.agent.name, content="Acme moved to Pune.", scope="agent", memory_id=added["memory_id"]
+			)
+		self.embed.side_effect = _embed
+		self.assertIn(added["memory_id"], self.block("Where do that customer's invoices go?"))
 
 	def test_another_users_memory_never_surfaces(self):
 		frappe.get_doc(_memory(self.agent.name, scope="User", user=OTHER_USER, content=ACME)).insert()

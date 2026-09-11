@@ -29,15 +29,13 @@ KEYWORD_BONUS = 0.1
 
 
 def sync(doc: FlowAgentMemory) -> None:
-	"""Upsert an Active memory; drop it for any other status."""
-	try:
-		table = ensure_table()
-		table.delete(f"id = {_quote(doc.name)}")
-		if doc.status == "Active":
-			table.add(_rows(table, [doc]))
-			_ensure_fts_index(table)
-	except Exception:
-		frappe.log_error(title="Agent memory index sync failed")
+	"""Upsert an Active memory; drop it for any other status. A failure fails the save."""
+	table = ensure_table()
+	rows = _rows(table, [doc]) if doc.status == "Active" else []
+	table.delete(f"id = {_quote(doc.name)}")
+	if rows:
+		table.add(rows)
+		_ensure_fts_index(table)
 
 
 def remove(name: str) -> None:
