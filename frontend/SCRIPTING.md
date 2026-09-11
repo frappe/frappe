@@ -63,6 +63,7 @@ The generated page seeds three items, in this order:
 | `doctype` | left | The doctype's crumb; links to the list. |
 | `record` | left | The record's crumb: its title field, or its name. |
 | `save` | right | The Save button. Disabled by the host while nothing has changed. |
+| `delete` | right | A row in `⋯`, only with the delete right. Confirms, deletes, and leaves for the list. |
 
 `Save` is an ordinary item. `hide('save')` removes it, as desk v1's `frm.disable_save()`
 does. A new item with no anchor lands **after** `Save`; to sit to its left, anchor it:
@@ -153,12 +154,53 @@ them under the names the Form Layout stores:
 | Name | What it is |
 | --- | --- |
 | `identity` | The title, subtitle, image and tags. |
-| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. The framework seeds `print`, `copy_link` and `delete` there, the first and last only with the right; a script hides or reorders them by name. |
+| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. The framework seeds `print`, `copy_link` and `tags` there: `print` with the right, `tags` with write and only while the record has none. The row names its buttons from the left while the width lasts, then shows icons, then folds the rest into a `⋯` menu. A script hides or reorders them by name. |
 | `people` | Who the record is assigned to, and who it is shared with. |
 
 A doctype with no Side Panel row shows the three built-ins and nothing else. The panel never
 falls back to the Details layout, so no field shows twice; a doctype that wants fields in
 its panel ships a Side Panel row.
+
+### The people
+
+`people` edits with the rights the record's `docinfo.permissions` carries: assign and tag
+with `write`, share with `share`. Without the right the row reads, and still names the
+people. Each pick is one server call, and the row re-reads the sidecar after it; nothing is
+painted from the answer, so the row never disagrees with the server.
+
+| Act | Endpoint |
+| --- | --- |
+| Assign, unassign | `frappe.desk.form.assign_to.add`, `remove` |
+| Share, unshare | `frappe.share.add`, `set_permission` with `read` set to `0` |
+| Tag, untag | `frappe.desk.doctype.tag.tag.add_tag`, `remove_tag`; searched with `get_tags` |
+
+The share editor is a dialog on the page's own stack, opened through `page.dialog.open`.
+The tags stay on `identity`: hiding `people` leaves them standing. The first tag comes from
+the `tags` quick action, which goes once the record has one; from then on the chips carry
+their own "+".
+
+The surface gains no verb for any of this. A script assigns the way the row does, through
+`page.call`, and reloads so the row reads the new sidecar:
+
+```js
+export default {
+  onRefresh(page) {
+    page.quickActions.add({
+      name: 'assign_owner',
+      label: 'Assign to owner',
+      icon: 'lucide-user-check',
+      run: async (p) => {
+        await p.call('frappe.desk.form.assign_to.add', {
+          doctype: p.doctype,
+          name: p.docname,
+          assign_to: [p.doc.owner],
+        })
+        await p.reload()
+      },
+    })
+  },
+}
+```
 
 ### Opening and shutting
 

@@ -15,6 +15,8 @@ export interface PanelEntry {
 	fields: FieldNode[];
 	component?: Component;
 	props?: Record<string, any>;
+	/** An item drawn inside this one's component instead of as a section of its own. */
+	embedded?: PanelEntry;
 }
 
 /** One section of the layout as the surface addresses it: named, and labelled only when it shows a label. */
@@ -72,6 +74,23 @@ export function panelEntries(items: PanelSectionItem[], sections: LayoutSection[
 			props: section ? undefined : item.props,
 		};
 	});
+}
+
+/**
+ * The quick actions right after the identity draw inside it, between its title and its
+ * tags: one block to the eye. Moved anywhere else, or given a header, they are a section
+ * like any other.
+ */
+export function embedQuickActions(entries: PanelEntry[]): PanelEntry[] {
+	return entries.flatMap((entry, index) => {
+		if (embeds(entry, entries[index + 1])) return [{ ...entry, embedded: entries[index + 1] }];
+		if (embeds(entries[index - 1], entry)) return [];
+		return [entry];
+	});
+}
+
+function embeds(host?: PanelEntry, next?: PanelEntry) {
+	return host?.name === "identity" && next?.name === "quick_actions" && !next.label;
 }
 
 // The panel is one column, so a section's columns flatten into one list.

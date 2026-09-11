@@ -1,5 +1,6 @@
 <!--
-  The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right.
+  The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right,
+  in the projection's order, with the menu slotted in at Save's left hand.
   A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
 -->
 <template>
@@ -59,9 +60,19 @@
 		</nav>
 
 		<div class="flex shrink-0 items-center gap-2">
-			<template v-for="control in projection.controls" :key="control.item.name">
+			<template v-for="control in rightHand" :key="control.item.name">
+				<Dropdown v-if="control === MENU" :options="bands" side="bottom" align="end">
+					<div class="flex shrink-0">
+						<Button
+							icon="lucide-more-horizontal"
+							variant="subtle"
+							label="More actions"
+						/>
+					</div>
+				</Dropdown>
+
 				<Dropdown
-					v-if="control.kind === 'dropdown'"
+					v-else-if="control.kind === 'dropdown'"
 					:options="menuContent(control.members, run)"
 					side="bottom"
 					align="end"
@@ -103,12 +114,6 @@
 					@click="run(control.item)"
 				/>
 			</template>
-
-			<Dropdown v-if="projection.bands.length" :options="bands" side="bottom" align="end">
-				<div class="flex shrink-0">
-					<Button icon="lucide-more-horizontal" variant="subtle" label="More actions" />
-				</div>
-			</Dropdown>
 		</div>
 	</div>
 </template>
@@ -137,6 +142,17 @@ const bands = computed(() =>
 		options: bandRows(band.items, run),
 	}))
 );
+
+// The menu's own row in the controls: at Save's left hand, or last when a script hid Save.
+const MENU = { kind: "button", item: { name: "more", label: "More actions" } } as HeaderControl;
+
+const rightHand = computed(() => {
+	const controls = props.projection.controls;
+	if (!props.projection.bands.length) return controls;
+	const at = controls.findIndex((control) => control.item.name === "save");
+	if (at < 0) return [...controls, MENU];
+	return [...controls.slice(0, at), MENU, ...controls.slice(at)];
+});
 
 function isCrumb(control?: HeaderControl) {
 	return control?.kind === "crumb";

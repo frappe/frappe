@@ -32,7 +32,14 @@ const LAYOUT: FormLayoutSchema = [
 	},
 ] as any;
 
-const Identity = defineComponent({ render: () => h("div", { "data-builtin": "identity" }) });
+const Identity = defineComponent({
+	render() {
+		return h("div", { "data-builtin": "identity" }, this.$slots.default?.());
+	},
+});
+const QuickActions = defineComponent({
+	render: () => h("div", { "data-builtin": "quick_actions" }),
+});
 const People = defineComponent({ render: () => h("div", { "data-builtin": "people" }) });
 
 const mounted: ReturnType<typeof createApp>[] = [];
@@ -51,6 +58,7 @@ async function mount(surface: Surface<PanelSectionItem>, opened: Record<string, 
 	const sections = layoutSections(LAYOUT, doc.value);
 	surface.provideBuiltins(() => [
 		{ name: "identity", component: Identity },
+		{ name: "quick_actions", component: QuickActions },
 		{ name: "people", component: People },
 		...layoutItems(sections),
 	]);
@@ -92,6 +100,35 @@ describe("one list", () => {
 		const { root } = await mount(new Surface<PanelSectionItem>());
 		const bodies = [...root.querySelectorAll<HTMLElement>("[data-section]")];
 		expect(bodies.map((el) => el.classList.contains("border-t"))).toEqual([false, true, true]);
+	});
+
+	it("draws the quick actions inside the identity, and apart once moved off it", async () => {
+		const embedded = await mount(new Surface<PanelSectionItem>());
+		expect(
+			embedded.root.querySelector("[data-builtin='identity'] [data-builtin='quick_actions']")
+		).not.toBeNull();
+
+		const surface = new Surface<PanelSectionItem>();
+		surface.move("quick_actions", { after: "people" });
+		const moved = await mount(surface);
+		expect(names(moved.root)).toEqual([
+			"identity",
+			"people",
+			"quick_actions",
+			"organization_section",
+		]);
+		const apart = moved.root.querySelector<HTMLElement>("[data-section='quick_actions']")!;
+		expect(apart.classList.contains("border-t")).toBe(true);
+		expect(apart.querySelector("[data-builtin='quick_actions']")).not.toBeNull();
+	});
+
+	it("keeps the quick actions a section of their own once a script gives them a header", async () => {
+		const surface = new Surface<PanelSectionItem>();
+		surface.update("quick_actions", { label: "Actions" });
+		const { root } = await mount(surface);
+		expect(root.querySelector("[data-builtin='identity'] [data-builtin='quick_actions']")).toBeNull();
+		expect(root.textContent).toContain("Actions");
+		expect(root.querySelector("[data-builtin='quick_actions']")).not.toBeNull();
 	});
 
 	it("hides one section by name and its neighbour stands", async () => {
