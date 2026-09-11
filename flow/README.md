@@ -109,7 +109,7 @@ session.chat("Close the ones due before last Friday.")
 
 Every turn is saved as a `Flow Run` linked to the session — so conversation history, tool calls, and outputs are all in the database. `chat()` returns the run immediately; a message sent while a turn is still running joins it. Answer a tool approval with `session.resume(answers)` and stop a turn with `session.abort()`.
 
-Files travel with the turn they are sent on: `session.chat("Summarize this", attachments=[file.name])` takes `File` names the user can read (text, PDF, Office, HTML and images; scans and images are read by OCR). Up to half of the model's total context is reserved for exact attachment text on each turn, independent of conversation length; only an attached set larger than that is chunked into a per-session index, with the largest files moved to retrieval first. The most relevant excerpts are appended to each later turn. Images go to a vision model as images.
+Files travel with the turn they are sent on: `session.chat("Summarize this", attachments=[file.name])` takes `File` names the user can read (text, PDF, Office, HTML and images; scans and images are read by OCR). Up to half of the model's total context is reserved for exact attachment text on each turn, independent of conversation length; only an attached set larger than that is chunked into a per-session index, with the largest files moved to retrieval first. The turn that attaches such a file gets its most relevant excerpts; later turns search it with the builtin `search_attachments` tool. Images go to a vision model as images.
 
 ### Built-in tools
 

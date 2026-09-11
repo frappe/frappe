@@ -73,9 +73,9 @@ class Turn:
 
 
 def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
-	"""Fold `files` into one turn. Text that fits is inlined; larger text is chunked into
-	the session's retrieval index and the best excerpts for `input` are appended. Images go
-	to the flow server as uploads when the model can see them, else as their OCR text."""
+	"""Fold `files` into one turn. Text that fits is inlined; larger text is indexed and
+	excerpted for `input`; later turns search it with `search_attachments`. Images go as
+	uploads when the model can see them, else as OCR text."""
 	files = list(dict.fromkeys(files))
 	if len(files) > MAX_ATTACHMENTS:
 		frappe.throw(
@@ -123,7 +123,7 @@ def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
 				remaining = max(0, remaining - len(text))
 			turn.attachment_rows.append({**row, "mode": mode, "extracted_text": text})
 
-		if retrieval or any(attachment.mode == "Retrieval" for attachment in session.attachments):
+		if retrieval:
 			turn.message += _excerpts(input, session.name)
 	except Exception:
 		cleanup_indexed_files(session.name, indexed)

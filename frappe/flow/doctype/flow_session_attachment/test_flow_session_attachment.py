@@ -270,28 +270,25 @@ class TestBuildTurn(IntegrationTestCase):
 		add.assert_not_called()
 		self.index_delete.assert_not_called()
 
-	def test_later_turns_get_excerpts_from_earlier_large_files(self):
+	def test_later_turns_leave_the_message_alone(self):
 		self.enable_embeddings()
 		self.session.append(
 			"attachments", {"file": _file().name, "file_name": "old.txt", "file_size": 1, "mode": "Retrieval"}
 		)
 		self.session.save(ignore_permissions=True)
-		turn = build_turn(self.session, "and now?", [])
-		self.assertEqual(
-			turn.message,
-			"and now?\nRelevant excerpts from the attached files:\n<excerpts>\nEXCERPT\n</excerpts>",
-		)
-		self.assertEqual(turn.attachment_rows, [])
+		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
+			turn = build_turn(self.session, "and now?", [])
+		retrieve.assert_not_called()
+		self.assertEqual((turn.message, turn.attachment_rows), ("and now?", []))
 
 	def test_a_search_failure_is_surfaced(self):
-		self.session.append(
-			"attachments", {"file": _file().name, "file_name": "old.txt", "file_size": 1, "mode": "Retrieval"}
-		)
+		self.shrink_window(10)
+		self.enable_embeddings()
 		with (
 			patch("flow.knowledge.retriever.retrieve_attachments", side_effect=RuntimeError("down")),
 			self.assertRaisesRegex(frappe.ValidationError, "Could not search"),
 		):
-			build_turn(self.session, "and now?", [])
+			build_turn(self.session, "hi", [_file(file_name="big.txt", content="A" * 30).name])
 
 	def test_images_go_to_the_server_for_a_vision_model(self):
 		data = png_bytes()
