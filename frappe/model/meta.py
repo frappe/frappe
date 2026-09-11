@@ -247,9 +247,6 @@ class Meta(Document):
 	def get_table_fields(self, include_computed=False):
 		return self._table_fields if include_computed else self._non_computed_table_fields
 
-	def get_ignore_versioning_fields(self):
-		return self._ignore_versioning_fields
-
 	def get_global_search_fields(self):
 		"""Return list of fields with `in_global_search` set and `name` if set."""
 		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", NO_VALUE_FIELDS]})
@@ -550,7 +547,7 @@ class Meta(Document):
 		return {field.fieldname: field.options for field in self._non_computed_table_fields}
 
 	@cached_property
-	def _ignore_versioning_fields(self) -> set[str]:
+	def ignore_versioning_fields(self) -> set[str]:
 		return {df.fieldname for df in self.fields if getattr(df, "ignore_versioning", False)}
 
 	def init_field_caches(self):

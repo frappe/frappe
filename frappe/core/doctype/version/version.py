@@ -126,7 +126,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False, include_ignored
 		if include_ignored_fields:
 			return data
 
-		for fieldname in row.meta.get_ignore_versioning_fields():
+		for fieldname in row.meta.ignore_versioning_fields:
 			data.pop(fieldname, None)
 
 		return data
@@ -134,7 +134,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False, include_ignored
 	if not new:
 		return None
 
-	ignored_fields = set() if include_ignored_fields else new.meta.get_ignore_versioning_fields()
+	ignored_fields = set() if include_ignored_fields else new.meta.ignore_versioning_fields
 
 	blacklisted_fields = ["Markdown Editor", "Text Editor", "Code", "HTML Editor"]
 

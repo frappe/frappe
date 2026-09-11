@@ -161,9 +161,9 @@ class TestVersion(IntegrationTestCase):
 		"""Turn on ignore_versioning for a field and drop the cached set built from it."""
 		df = meta.get_field(fieldname)
 		df.ignore_versioning = 1
-		meta.__dict__.pop("_ignore_versioning_fields", None)
+		meta.__dict__.pop("ignore_versioning_fields", None)
 
-		self.addCleanup(meta.__dict__.pop, "_ignore_versioning_fields", None)
+		self.addCleanup(meta.__dict__.pop, "ignore_versioning_fields", None)
 		self.addCleanup(setattr, df, "ignore_versioning", 0)
 
 	def test_get_diff_skips_ignore_versioning_field(self):
