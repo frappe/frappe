@@ -17,19 +17,23 @@ function print(page: RecordPageApi) {
   window.open(`/printview?${query}`, "_blank");
 }
 
+// No clipboard outside a secure context; a throw here would reload the record over an unsaved draft.
 async function copyLink(page: RecordPageApi) {
+  if (!navigator.clipboard) return page.toast.error("Copying needs a secure connection");
   await navigator.clipboard.writeText(window.location.href);
   page.toast.success("Link copied");
 }
 
-// Leaves for the list before anything could reload the record it just deleted.
+// The list route resolves before the call: a throw after a successful delete would reload
+// the record that no longer exists.
 async function remove(page: RecordPageApi) {
   const confirmed = await page.dialog.danger({
     title: "Delete this record?",
     message: `${page.docname} will be deleted.`,
   });
   if (!confirmed) return;
+  const list = routeFor(page.doctype);
   await page.call("frappe.client.delete", { doctype: page.doctype, name: page.docname });
   page.toast.success("Deleted");
-  await page.router.push(routeFor(page.doctype));
+  await page.router.push(list);
 }

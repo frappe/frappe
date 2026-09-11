@@ -18,7 +18,10 @@ function fakePage(confirmed: true | null) {
   } as any;
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+});
 
 describe("quickActionBuiltins", () => {
   it("seeds copy_link always, print and delete only with the right", () => {
@@ -41,6 +44,19 @@ describe("quickActionBuiltins", () => {
     await quickActionBuiltins({ delete: 1 })[1].run!(page);
     expect(page.call).not.toHaveBeenCalled();
     expect(page.router.push).not.toHaveBeenCalled();
+  });
+
+  it("refuses to copy without a clipboard, and keeps the page", async () => {
+    vi.spyOn(navigator, "clipboard", "get").mockReturnValue(undefined as any);
+    const page = fakePage(null);
+    await quickActionBuiltins({})[0].run!(page);
+    expect(page.toast.error).toHaveBeenCalledWith("Copying needs a secure connection");
+  });
+
+  it("opens desk v1's print view for the record", () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    quickActionBuiltins({ print: 1 })[0].run!(fakePage(null));
+    expect(open).toHaveBeenCalledWith("/printview?doctype=CRM+Deal&name=CRM-DEAL-1", "_blank");
   });
 
   it("copies the page address and says so", async () => {
