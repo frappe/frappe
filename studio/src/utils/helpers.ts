@@ -560,7 +560,7 @@ function scrub(txt: string | null | undefined) {
 }
 
 function sanitizeHTML(html?: string): string {
-	return DOMPurify.sanitize(html ?? "")
+	return DOMPurify.sanitize(html ?? "", { ADD_TAGS: ["use"] })
 }
 
 
