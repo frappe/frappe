@@ -41,18 +41,6 @@ You can open the global AI chat interface from anywhere in the Frappe Desk by pr
 
 Flow also ships as a Python framework for building agents in code.
 
-### DocTypes
-
-| DocType | Purpose |
-| --- | --- |
-| `Flow Provider` | Provider-level credentials and endpoint settings |
-| `Flow Model` | Model configuration — set a `model_id` like `anthropic/claude-sonnet-4-6` |
-| `Flow Tool` | Reusable tools, defined as a module path or inline script |
-| `Flow Agent` | Instructions, model, and tools — configurable from the Desk or in code |
-| `Flow Trigger` | Run an agent on a DocType event or a schedule |
-| `Flow Knowledge Base` / `Flow Knowledge Source` | Knowledge sources (files, URLs, DocTypes) for retrieval-augmented answers |
-| `Flow Session` / `Flow Run` | Persisted conversations and execution history |
-
 ### Define a tool
 
 ```python
@@ -113,18 +101,7 @@ Files travel with the turn they are sent on: `session.chat("Summarize this", att
 
 An agent with the builtin `update_memory` tool remembers: it saves short facts, shared by everyone who uses the agent or private to one user, and each message brings along only the saved facts relevant to it. Relevance is hybrid vector and keyword search with a score floor when Flow Knowledge Settings has an embedding model, keyword search otherwise. A thumbs-down comment on a run is saved the same way.
 
-### Built-in tools
-
-| Tool | What it does |
-| --- | --- |
-| `find_doctypes` | Search for DocTypes by name or module |
-| `describe` | Get the fields, filters, and available actions for a DocType or record |
-| `read` | Fetch records from any DocType |
-| `create` | Create one or more records |
-| `update` | Update fields across multiple records at once |
-| `delete` | Delete records |
-| `run_action` | Call a whitelisted method or workflow action on a record |
-| `execute` | Run arbitrary Python in a sandboxed context |
+An agent with the builtin `load_skill` tool sees the name and description of each skill bound to it, plus any skill marked available to all agents, and loads one when a task matches. Binding a skill attaches the tool; the built-in assistant always has it.
 
 Tool calls can require human confirmation before executing, and every run is persisted for audit.
 
