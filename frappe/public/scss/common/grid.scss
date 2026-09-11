@@ -969,6 +969,19 @@ body.grid-col-resizing {
 // other three sides for that reason; the scrollbar itself is the modal's own.
 // The panel sits inside .bulk-edit-card, so it also carries that box's inner
 // padding everywhere else.
+.bulk-edit-tabs > .es-tabs__panel[data-state="active"] {
+	display: flex;
+	flex-direction: column;
+}
+
+.bulk-edit-tabs > .es-tabs__panel {
+	overflow-y: auto;
+}
+
+.bulk-edit-tabs > .es-tabs__panel:has(.bulk-edit-preview-table) {
+	overflow-y: hidden;
+}
+
 .bulk-edit-tabs .es-tabs__panel {
 	padding: var(--padding-md);
 	padding-right: var(--padding-sm);
@@ -1116,7 +1129,7 @@ body.grid-col-resizing {
 // sits under the mapping line and stays put whether or not anything is flagged,
 // so the table below it never shifts
 .bulk-edit-preview-hint {
-	margin-bottom: var(--padding-sm);
+	margin-bottom: var(--margin-xs);
 }
 
 .bulk-edit-preview-table {
@@ -1129,9 +1142,7 @@ body.grid-col-resizing {
 	// FieldGroup puts between this and the panel
 	flex: 1 1 auto;
 	overflow: auto;
-	// a picker opens inside this box, so keep room for one even when the file
-	// has only a row or two
-	min-height: 260px;
+	min-height: 0;
 
 	table {
 		margin-bottom: 0;
@@ -1271,6 +1282,10 @@ body.grid-col-resizing {
 .bulk-edit-preview-table .bulk-edit-editable-cell .frappe-control {
 	position: relative;
 	margin-bottom: 0;
+
+	.help-box {
+		display: none;
+	}
 }
 
 // three classes deep on purpose: a Link's input is also matched by
@@ -1327,6 +1342,8 @@ body.grid-col-resizing {
 .bulk-edit-preview-table td.bulk-edit-pending-cell {
 	color: var(--error-color);
 	cursor: pointer;
+	padding: 0 var(--padding-sm);
+	line-height: var(--bulk-edit-row-height);
 }
 
 // ControlCheck strips .form-control from its input (check.js make_input), so the
