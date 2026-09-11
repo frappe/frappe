@@ -2,13 +2,14 @@
 # License: MIT. See LICENSE
 
 import io
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from pypdf import PdfReader, PdfWriter
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.print_utils import _finalize_pdf, run_after_print_hook
+from frappe.utils.print_format_generator import PrintFormatGenerator
+from frappe.utils.print_utils import _finalize_pdf, get_print, run_after_print_hook
 
 
 def blank_pdf(page_count=1) -> bytes:
@@ -75,3 +76,52 @@ class TestPrintUtils(IntegrationTestCase):
 		run_method.assert_called_once_with("after_print", pdf=original)
 		self.assertEqual(result, replacement)
 		self.assertEqual(len(PdfReader(io.BytesIO(result)).pages), 3)
+
+	def test_after_print_runs_for_all_pdf_backends(self):
+		"""after_print must run on wkhtmltopdf, Chrome, and Typst paths."""
+
+		todo = self._make_todo()
+		pdf = blank_pdf()
+
+		mock_hook = MagicMock(side_effect=lambda _d, _n, p: p)
+		with (
+			patch("frappe.utils.print_utils.run_after_print_hook", mock_hook),
+			patch("frappe.utils.print_format_generator.run_after_print_hook", mock_hook),
+		):
+			with (
+				patch(
+					"frappe.website.serve.get_response_without_exception_handling",
+					return_value=type("R", (), {"data": b"<html></html>"})(),
+				),
+				patch("frappe.utils.pdf.get_pdf", return_value=pdf),
+			):
+				get_print(todo.doctype, todo.name, as_pdf=True, pdf_generator="wkhtmltopdf")
+			mock_hook.assert_called_with(todo.doctype, todo.name, pdf)
+
+			self.assertEqual(mock_hook.call_count, 1)
+
+			pf = frappe.get_doc(
+				{
+					"doctype": "Print Format",
+					"name": f"_Test {frappe.generate_hash(length=6)}",
+					"doc_type": "ToDo",
+					"print_format_builder_beta": 1,
+					"format_data": '{"sections": [], "header": {"columns": []}, "footer": {"columns": []}}',
+				}
+			).insert(ignore_permissions=True)
+			self.addCleanup(pf.delete, ignore_permissions=True)
+
+			generator = PrintFormatGenerator(pf, todo)
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=pdf):
+				generator.render_pdf()
+			mock_hook.assert_called_with(todo.doctype, todo.name, pdf)
+
+			self.assertEqual(mock_hook.call_count, 2)
+
+			pf.db_set("pdf_generator", "Typst")
+			generator = PrintFormatGenerator(pf, todo)
+			with patch.object(generator, "render_typst_pdf", return_value=pdf):
+				generator.render_pdf()
+			mock_hook.assert_called_with(todo.doctype, todo.name, pdf)
+
+			self.assertEqual(mock_hook.call_count, 3)
