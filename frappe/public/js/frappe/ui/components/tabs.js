@@ -187,13 +187,6 @@ frappe.ui.Tabs = class Tabs {
 		return this.active;
 	}
 
-	/**
-	 * Lock or unlock a tab after construction — for a sequence where a step
-	 * only opens once the one before it is done. Locking the active tab moves
-	 * to the first usable one so the panel never shows behind a dead tab.
-	 * @param {number} index
-	 * @param {boolean} [disabled=true]
-	 */
 	set_disabled(index, disabled = true) {
 		const entry = this.tabs[index];
 		if (!entry) return;
