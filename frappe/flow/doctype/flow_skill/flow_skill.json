@@ -8,6 +8,7 @@
  "field_order": [
   "title",
   "enabled",
+  "is_global",
   "is_system_generated",
   "section_break_description",
   "description",
@@ -30,6 +31,15 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "description": "Every agent gets this skill without binding it. Use it for site-wide conventions, and to give the built-in assistant skills.",
+   "fieldname": "is_global",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Available to All Agents"
   },
   {
    "default": "0",
@@ -68,7 +78,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-11 12:00:00.000000",
+ "modified": "2026-09-11 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Skill",

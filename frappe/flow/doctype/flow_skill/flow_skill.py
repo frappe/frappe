@@ -11,6 +11,9 @@ from flow.utils.system_generated import block_delete, block_rename, validate_imm
 
 MAX_DESCRIPTION_LENGTH = 1024
 
+# A global skill lands in every agent's prompt, so it is capped tighter than a bound one.
+MAX_GLOBAL_SKILLS = 10
+
 
 class FlowSkill(Document):
 	# begin: auto-generated types
@@ -24,12 +27,14 @@ class FlowSkill(Document):
 		description: DF.SmallText
 		enabled: DF.Check
 		instructions: DF.LongText
+		is_global: DF.Check
 		is_system_generated: DF.Check
 		title: DF.Data
 	# end: auto-generated types
 
 	def validate(self):
 		self._validate_description()
+		self._validate_global_limit()
 		validate_immutable(self, ("description", "instructions"))
 
 	def on_trash(self):
@@ -44,4 +49,16 @@ class FlowSkill(Document):
 			frappe.throw(
 				_("Description must be at most {0} characters.").format(MAX_DESCRIPTION_LENGTH),
 				title=_("Description Too Long"),
+			)
+
+	def _validate_global_limit(self):
+		if not (self.is_global and self.enabled):
+			return
+		others = frappe.db.count(
+			"Flow Skill", {"is_global": 1, "enabled": 1, "name": ["!=", self.name or ""]}
+		)
+		if others >= MAX_GLOBAL_SKILLS:
+			frappe.throw(
+				_("At most {0} skills can be available to all agents.").format(MAX_GLOBAL_SKILLS),
+				title=_("Too Many Global Skills"),
 			)

@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 
 DEFAULT_MAX_ITERATIONS = 20
 
-# The index rides in every session's prompt. With each description capped at 1024
-# characters, this holds the block under ~33 KB however the skills are written.
+# Skills bound to this agent; global ones add MAX_GLOBAL_SKILLS more. The index rides in
+# every session's prompt, so both caps together bound it however the skills are written.
 MAX_SKILLS = 30
 
 SKILL_INDEX_LEAD = (
@@ -74,7 +74,7 @@ class FlowAgent(Document):
 	def _validate_skills(self):
 		if len(self.skills) > MAX_SKILLS:
 			frappe.throw(
-				_("An agent can have at most {0} skills.").format(MAX_SKILLS),
+				_("An agent can bind at most {0} skills.").format(MAX_SKILLS),
 				title=_("Too Many Skills"),
 			)
 
@@ -129,14 +129,14 @@ class FlowAgent(Document):
 		return resolved
 
 	def skill_index(self) -> str:
-		"""The `<available_skills>` block for this agent's enabled skills, "" when it has none.
-		It rides in the system prompt, so a session's skills are fixed when it starts."""
-		names = [row.skill for row in self.skills]
-		if not names:
-			return ""
+		"""The `<available_skills>` block: every global skill plus the ones bound to this agent,
+		"" when there are none. A skill that is both appears once. It rides in the system prompt,
+		so a session's skills are fixed when it starts."""
+		bound = [row.skill for row in self.skills]
 		rows = frappe.get_all(
 			"Flow Skill",
-			filters={"name": ["in", names], "enabled": 1},
+			filters={"enabled": 1},
+			or_filters=[["is_global", "=", 1], ["name", "in", bound]],
 			fields=["name", "description"],
 			order_by="name",
 		)

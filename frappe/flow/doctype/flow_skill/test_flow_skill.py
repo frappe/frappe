@@ -6,6 +6,8 @@ from typing import Any
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from flow.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS
+
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
 
@@ -92,3 +94,42 @@ class TestFlowSkillSystemGenerated(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Flow Skill", skill.name, "instructions"), "Rewritten by the app."
 		)
+
+
+class TestFlowSkillGlobalLimit(IntegrationTestCase):
+	"""A global skill lands in every agent's prompt, so it is capped tighter than a bound one."""
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _fill_the_cap(self):
+		for i in range(MAX_GLOBAL_SKILLS):
+			frappe.get_doc(_skill(title=f"Global {i:03d}", is_global=1)).insert()
+
+	def test_one_global_skill_too_many_is_refused(self):
+		self._fill_the_cap()
+		with self.assertRaisesRegex(frappe.ValidationError, "At most 10 skills"):
+			frappe.get_doc(_skill(title="One Too Many", is_global=1)).insert()
+
+	def test_an_existing_global_skill_can_still_be_saved_at_the_cap(self):
+		self._fill_the_cap()
+		doc = frappe.get_doc("Flow Skill", "Global 000")
+		doc.description = "Reworded."
+		doc.save()
+		self.assertEqual(frappe.db.get_value("Flow Skill", "Global 000", "description"), "Reworded.")
+
+	def test_disabling_a_global_skill_frees_a_slot(self):
+		self._fill_the_cap()
+		doc = frappe.get_doc("Flow Skill", "Global 000")
+		doc.enabled = 0
+		doc.save()
+		frappe.get_doc(_skill(title="Takes The Slot", is_global=1)).insert()
+		doc.reload()
+		doc.enabled = 1
+		with self.assertRaisesRegex(frappe.ValidationError, "At most 10 skills"):
+			doc.save()
+
+	def test_a_bound_only_skill_is_not_capped(self):
+		for i in range(MAX_GLOBAL_SKILLS + 5):
+			frappe.get_doc(_skill(title=f"Bound {i:03d}")).insert()
+		self.assertEqual(frappe.db.count("Flow Skill", {"is_global": 0}), MAX_GLOBAL_SKILLS + 5)

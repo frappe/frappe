@@ -406,3 +406,23 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 			_skill_row(f"Skill {i:03d}")
 		index = self._bind(*[f"Skill {i:03d}" for i in range(MAX_SKILLS)])
 		self.assertEqual(index.count("<skill>"), MAX_SKILLS)
+
+	def test_a_global_skill_reaches_an_agent_that_never_bound_it(self):
+		_skill_row("House Style", is_global=1)
+		self.assertIn("<name>House Style</name>", self.agent.skill_index())
+
+	def test_a_disabled_global_skill_stays_out(self):
+		_skill_row("House Style", is_global=1, enabled=0)
+		self.assertEqual(self.agent.skill_index(), "")
+
+	def test_a_skill_that_is_global_and_bound_appears_once(self):
+		_skill_row("House Style", is_global=1)
+		index = self._bind("House Style")
+		self.assertEqual(index.count("<name>House Style</name>"), 1)
+
+	def test_a_system_generated_agent_still_gets_global_skills(self):
+		"""Its skills table is locked, so global is the only way to reach the built-in assistant."""
+		_skill_row("House Style", is_global=1)
+		self.agent.is_system_generated = 1
+		self.agent.save(ignore_permissions=True)
+		self.assertIn("<name>House Style</name>", self.agent.skill_index())
