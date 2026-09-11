@@ -23,7 +23,7 @@
 				<span
 					v-if="assignees.length"
 					:class="[
-						'lucide-chevron-down size-4 text-ink-gray-5 transition-transform',
+						'lucide-chevron-down size-3.5 text-ink-gray-5 transition-transform',
 						open && 'rotate-180',
 					]"
 				/>

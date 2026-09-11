@@ -5,7 +5,7 @@
 		<span class="flex -space-x-1.5">
 			<Tooltip v-for="person in visible" :key="person.id" :text="person.name">
 				<Avatar
-					class="ring-2 ring-outline-base"
+					class="ring-2 ring-outline-base transition hover:z-10 hover:scale-110"
 					:label="person.name"
 					:image="person.image"
 					size="sm"

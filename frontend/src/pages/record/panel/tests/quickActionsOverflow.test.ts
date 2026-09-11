@@ -34,6 +34,7 @@ vi.mock("frappe-ui", () => {
 		}),
 		Button: Plain("button"),
 		Tooltip: Plain("span"),
+		TooltipProvider: Plain("div"),
 	};
 });
 

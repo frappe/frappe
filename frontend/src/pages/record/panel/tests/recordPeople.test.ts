@@ -34,6 +34,7 @@ vi.mock("frappe-ui", () => {
 			setup: (props) => () => h("span", { "data-avatar": props.label }),
 		}),
 		Tooltip: Plain("span"),
+		TooltipProvider: Plain("div"),
 		Dropdown: defineComponent({
 			props: ["options"],
 			setup: (props, { slots }) => () =>

@@ -2,10 +2,11 @@
      people the record is shared with. The list is live, so a share shows as soon as it is re-read. -->
 <template>
 	<div class="flex flex-col gap-3" data-share-dialog>
+		<!-- `''`, not `null`: unset, reka keeps the pick as its own value and writes the
+		     label back into the input. -->
 		<Combobox
 			autofocus
-			trigger="button"
-			:modelValue="null"
+			:modelValue="''"
 			:query="query"
 			:options="options"
 			:loading="loading"
@@ -75,7 +76,7 @@ const { options, loading, error, search, searchSoon } = useUserSearch(
 	pinned
 );
 
-// Listening to the query owns it, and a pick writes the label into it, so every open resets both.
+// Listening to the query owns it, so every open resets it and the list.
 const query = ref("");
 
 function onOpen(shown: boolean) {

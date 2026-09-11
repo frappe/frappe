@@ -1,5 +1,6 @@
 <!--
   The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right.
+  Save stays last wherever a script puts it, so the menu is always at its left hand.
   A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
 -->
 <template>
@@ -59,7 +60,7 @@
 		</nav>
 
 		<div class="flex shrink-0 items-center gap-2">
-			<template v-for="control in projection.controls" :key="control.item.name">
+			<template v-for="control in others" :key="control.item.name">
 				<Dropdown
 					v-if="control.kind === 'dropdown'"
 					:options="menuContent(control.members, run)"
@@ -77,24 +78,6 @@
 					</div>
 				</Dropdown>
 
-				<Tooltip
-					v-else-if="control.item.name === 'save'"
-					text="No changes to save"
-					:disabled="dirty"
-				>
-					<!-- A disabled button fires no pointer events, so the wrapper owns the box the tooltip hovers on. -->
-					<div class="flex shrink-0">
-						<Button
-							:label="control.item.label"
-							:icon-left="control.item.icon"
-							variant="solid"
-							:disabled="!dirty"
-							:loading="saving"
-							@click="run(control.item)"
-						/>
-					</div>
-				</Tooltip>
-
 				<Button
 					v-else
 					:label="control.item.label"
@@ -109,6 +92,20 @@
 					<Button icon="lucide-more-horizontal" variant="subtle" label="More actions" />
 				</div>
 			</Dropdown>
+
+			<Tooltip v-if="save" text="No changes to save" :disabled="dirty">
+				<!-- A disabled button fires no pointer events, so the wrapper owns the box the tooltip hovers on. -->
+				<div class="flex shrink-0">
+					<Button
+						:label="save.item.label"
+						:icon-left="save.item.icon"
+						variant="solid"
+						:disabled="!dirty"
+						:loading="saving"
+						@click="run(save.item)"
+					/>
+				</div>
+			</Tooltip>
 		</div>
 	</div>
 </template>
@@ -136,6 +133,14 @@ const bands = computed(() =>
 		hideLabel: !band.label,
 		options: bandRows(band.items, run),
 	}))
+);
+
+const save = computed(() =>
+	props.projection.controls.find((control) => control.item.name === "save")
+);
+
+const others = computed(() =>
+	props.projection.controls.filter((control) => control.item.name !== "save")
 );
 
 function isCrumb(control?: HeaderControl) {

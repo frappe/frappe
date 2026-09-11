@@ -15,6 +15,9 @@
 		</div>
 	</div>
 
+	<!-- The quick actions, when the layout embeds them here. -->
+	<slot />
+
 	<div v-if="tags.length" class="flex flex-wrap items-center gap-1.5" data-tags>
 		<span
 			v-for="tag in tags"

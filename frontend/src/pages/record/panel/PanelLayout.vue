@@ -14,11 +14,14 @@
 				@toggle="emit('toggle', entry.name)"
 				@expand="emit('expand', $event)"
 			>
-				<component
-					:is="entry.component"
-					v-if="entry.component"
-					v-bind="scripted.has(entry.name) ? { ...entry.props, page } : entry.props"
-				/>
+				<component :is="entry.component" v-if="entry.component" v-bind="bindings(entry)">
+					<template v-if="entry.embedded" #default>
+						<component
+							:is="entry.embedded.component"
+							v-bind="bindings(entry.embedded)"
+						/>
+					</template>
+				</component>
 			</PanelSection>
 		</template>
 	</div>
@@ -38,7 +41,12 @@ import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { BUILTIN, type Surface } from "@/recordPage/surface";
 import type { PanelSectionItem, RecordPageApi } from "@/recordPage";
 import PanelSection from "./PanelSection.vue";
-import { panelEntries, type LayoutSection } from "./panelEntries";
+import {
+	embedQuickActions,
+	panelEntries,
+	type LayoutSection,
+	type PanelEntry,
+} from "./panelEntries";
 
 const props = defineProps<{
 	surface: Surface<PanelSectionItem>;
@@ -53,7 +61,9 @@ const emit = defineEmits<{ toggle: [name: string]; expand: [field: FieldNode] }>
 
 const doc = defineModel<Record<string, any>>("doc", { required: true });
 
-const entries = computed(() => panelEntries(props.surface.visible(), props.sections));
+const entries = computed(() =>
+	embedQuickActions(panelEntries(props.surface.visible(), props.sections))
+);
 
 const scripted = computed(
 	() =>
@@ -75,6 +85,10 @@ const numbered = computed(() => {
 		divided: index > 0,
 	}));
 });
+
+function bindings(entry: PanelEntry) {
+	return scripted.value.has(entry.name) ? { ...entry.props, page: props.page } : entry.props;
+}
 
 function update(fieldname: string, value: any) {
 	doc.value[fieldname] = value;
