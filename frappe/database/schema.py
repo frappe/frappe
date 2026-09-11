@@ -10,8 +10,12 @@ SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
 
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
 
-# optional columns default to Text
-OPTIONAL_COLUMN_TYPES = {"_comment_count": "Int"}
+OPTIONAL_COLUMN_TYPES = {
+	"_user_tags": "Text",
+	"_comment_count": "Int",
+	"_assign": "Text",
+	"_liked_by": "Text",
+}
 
 CONFIGURABLE_DECIMAL_TYPES = ("Currency", "Float", "Percent")
 DEFAULT_DECIMAL_LENGTH = 21
@@ -89,9 +93,7 @@ class DBTable:
 		# optional fields like _assign
 		if not self.meta.get("istable"):
 			for fieldname in frappe.db.OPTIONAL_COLUMNS:
-				fields.append(
-					{"fieldname": fieldname, "fieldtype": OPTIONAL_COLUMN_TYPES.get(fieldname, "Text")}
-				)
+				fields.append({"fieldname": fieldname, "fieldtype": OPTIONAL_COLUMN_TYPES[fieldname]})
 
 			# add _seen column if track_seen
 			if self.meta.get("track_seen"):

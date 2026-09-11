@@ -126,9 +126,7 @@ class DuckDBTable(DBTable):
 		# optional fields like _assign
 		if not self.meta.get("istable"):
 			for fieldname in frappe.db.OPTIONAL_COLUMNS:
-				fields.append(
-					{"fieldname": fieldname, "fieldtype": OPTIONAL_COLUMN_TYPES.get(fieldname, "Text")}
-				)
+				fields.append({"fieldname": fieldname, "fieldtype": OPTIONAL_COLUMN_TYPES[fieldname]})
 
 			# add _seen column if track_seen
 			if self.meta.get("track_seen"):
