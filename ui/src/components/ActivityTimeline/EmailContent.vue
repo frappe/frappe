@@ -11,7 +11,7 @@
 <!-- sandboxed + CSP: scripts and external resources can't load -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { applyCssToIframe, stripEmailColors, useDataTheme } from "./utils";
+import { applyCssToIframe, bottomFade, stripEmailColors, useDataTheme } from "./utils";
 
 const props = defineProps<{
 	content: string;
@@ -194,11 +194,7 @@ watch(iframeRef, (iframe) => {
 			parent.setAttribute("data-theme", dataTheme.value);
 
 			// fade the bottom edge only while there's more email below it
-			const syncMask = () => {
-				const { scrollTop, clientHeight, scrollHeight } = parent;
-				const more = scrollTop + clientHeight < scrollHeight - 1;
-				iframe.style.setProperty("--fade", more ? "18px" : "0px");
-			};
+			const syncMask = () => iframe.style.setProperty("--fade", bottomFade(parent));
 
 			// measure content → set iframe height; max-height caps it, so the rest scrolls
 			const syncHeight = () => {
