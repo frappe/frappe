@@ -24,7 +24,6 @@
 
 		<div v-else class="flex min-h-0 flex-1">
 			<ScrollArea class="min-h-0 flex-1" :viewportClass="[pageGutter, 'py-5']">
-				<p v-if="actionError" class="mb-3 text-sm text-ink-red-4">{{ actionError }}</p>
 				<p v-if="error" class="text-sm text-ink-red-4">{{ error }}</p>
 
 				<div v-else-if="controller" ref="formRoot" class="max-w-4xl" data-record-form>
@@ -122,8 +121,6 @@ const meta = ref<any>(null);
 const docinfo = ref<DocInfo | null>(null);
 const linkTitles = ref<Record<string, string>>({});
 const error = ref("");
-// Apart from `error`: a failed action must not blank the record (the form is in its v-else).
-const actionError = ref("");
 const controller = shallowRef<RecordPageController | null>(null);
 // The doctype's Side Panel layout, or nothing: the panel never falls back to the Details layout.
 const panelLayout = shallowRef<UseFormLayout | null>(null);
@@ -225,7 +222,6 @@ async function load() {
 	const mine = ++generation;
 	const target = { doctype: doctype.value, name: docname.value };
 	error.value = "";
-	const carriedActionError = actionError.value;
 
 	// Blanked before the fetch: the heading changes synchronously, and the old controller's quick
 	// actions close over the previous page. `saved` goes with `doc` so `isDirty` stays false.
@@ -312,8 +308,6 @@ async function load() {
 	if (mine !== generation) return;
 	await created.refresh();
 	if (mine !== generation) return;
-	// A reload triggered by a failed action must not wipe the message explaining it.
-	actionError.value = carriedActionError;
 	actionsVersion.value++;
 }
 
@@ -389,24 +383,22 @@ async function resolveConflict() {
 
 // Not through `runAction`: a failed save must keep the draft on screen, not reload over it.
 async function runSave() {
-	actionError.value = "";
 	try {
 		await controller.value?.page.save();
 	} catch (e) {
-		if ((e as Error)?.name !== SAVE_CONFLICT) actionError.value = errorMessage(e);
+		if ((e as Error)?.name !== SAVE_CONFLICT) toast.error(errorMessage(e));
 	}
 }
 
 // A failing action would otherwise leave the draft mutated with no error, so it reloads;
 // a save the reader vetoed or must resolve keeps the draft, as the built-in Save does.
 async function runAction(action: QuickAction | HeaderItem) {
-	actionError.value = "";
 	try {
 		await action.run?.(controller.value!.page);
 	} catch (e) {
 		const name = (e as Error)?.name;
 		if (name === SAVE_CONFLICT) return;
-		actionError.value = errorMessage(e);
+		toast.error(errorMessage(e));
 		if (name !== SAVE_VETO) await load();
 	}
 }
