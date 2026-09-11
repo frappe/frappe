@@ -107,6 +107,7 @@ class WebForm(WebsiteGenerator):
 
 		if not frappe.flags.in_import:
 			self.validate_fields()
+			self.warn_about_empty_pages()
 
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
@@ -139,6 +140,36 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
+
+	def warn_about_empty_pages(self):
+		"""The portal skips a page with no visible fields and shows the rest of the form.
+		An empty page only surprises the author, so report it and do not block the save."""
+		if empty_pages := self.get_empty_pages():
+			frappe.msgprint(
+				_("The web form skips these pages, because they have no visible fields: {0}").format(
+					", ".join(frappe.bold(frappe.utils.escape_html(label)) for label in empty_pages)
+				)
+				+ "<br>"
+				# an orange dialog on save reads as a failure unless it says otherwise
+				+ _("The rest of the form is saved."),
+				title=_("Empty Page"),
+				indicator="orange",
+			)
+
+	def get_empty_pages(self):
+		"""Labels of the empty pages. The first page always shows, so it is not checked."""
+		pages = []
+		for df in self.web_form_fields:
+			if df.fieldtype == "Page Break":
+				pages.append({"label": df.label, "has_fields": False})
+			elif pages and not df.hidden and df.fieldtype not in ("Section Break", "Column Break"):
+				pages[-1]["has_fields"] = True
+
+		return [
+			page["label"] or _("Page {0}").format(i + 2)
+			for i, page in enumerate(pages)
+			if not page["has_fields"]
+		]
 
 	def validate_hidden_and_mandatory(self):
 		if self.allow_incomplete:
