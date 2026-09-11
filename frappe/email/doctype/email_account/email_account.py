@@ -760,6 +760,13 @@ class EmailAccount(Document):
 					for folder in self.imap_folder:
 						if email_server.select_imap_folder(folder.folder_name):
 							email_server.settings["uid_validity"] = folder.uidvalidity
+							# IMAP UIDs are only meaningful within their own folder, so the
+							# sync rule must be recomputed per folder - reusing the rule built
+							# above (scoped to the account's overall max UID) would silently
+							# miss any folder whose UID numbering is behind that watermark.
+							email_server.settings.email_sync_rule = self.build_email_sync_rule(
+								folder=folder.folder_name
+							)
 							messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
 							process_mail(messages, folder.append_to)
 				else:
@@ -854,12 +861,12 @@ class EmailAccount(Document):
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
-	def build_email_sync_rule(self):
+	def build_email_sync_rule(self, folder=None):
 		if not self.use_imap:
 			return "UNSEEN"
 
 		if self.email_sync_option == "ALL":
-			max_uid = get_max_email_uid(self.name)
+			max_uid = get_max_email_uid(self.name, folder=folder)
 			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
 			return f"UID {max_uid}:{last_uid}"
 		else:
@@ -1052,17 +1059,26 @@ def pull_from_email_account(email_account):
 	email_account.receive()
 
 
-def get_max_email_uid(email_account):
-	"""get maximum uid of emails"""
+def get_max_email_uid(email_account, folder=None):
+	"""get maximum uid of emails, optionally scoped to a single IMAP folder
+
+	IMAP UIDs are only comparable within the folder they were issued in, so a
+	max UID computed across the whole account (or from a different folder)
+	cannot be used to build a valid sync range for another folder.
+	"""
+
+	filters = {
+		"communication_medium": "Email",
+		"sent_or_received": "Received",
+		"email_account": email_account,
+		"uid": (">", 0),
+	}
+	if folder:
+		filters["imap_folder"] = folder
 
 	if result := frappe.get_all(
 		"Communication",
-		filters={
-			"communication_medium": "Email",
-			"sent_or_received": "Received",
-			"email_account": email_account,
-			"uid": (">", 0),
-		},
+		filters=filters,
 		fields=[{"MAX": "uid", "as": "uid"}],
 	):
 		return cint(result[0].get("uid", 0)) + 1
