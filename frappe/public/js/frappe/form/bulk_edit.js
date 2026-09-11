@@ -29,6 +29,7 @@ const BULK_EDIT_CHECK_TRUE = ["t", "true", "y", "yes"];
 const BULK_EDIT_CHECK_FALSE = ["f", "false", "n", "no"];
 const BULK_EDIT_CHECK_VALUES = ["0", "1", ...BULK_EDIT_CHECK_TRUE, ...BULK_EDIT_CHECK_FALSE];
 const BULK_EDIT_NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
+const BULK_EDIT_DATA_FORMATS = { Email: "email", Phone: "phone", Name: "name", URL: "url" };
 // Controls that paint their own widget state over the cell — "NaN:NaN:NaN" from a
 // datepicker, NaN boxes from a duration picker, no word at all from a checkbox. A
 // flagged cell of one keeps the file's text and builds its control on click.
@@ -70,6 +71,7 @@ const BULK_EDIT_VALUE_FORMATTERS = {
 	Float: (val) => flt(val),
 	Currency: (val) => flt(val),
 	Percent: (val) => flt(val),
+	Rating: (val) => flt(val),
 	Duration: (val) => bulk_edit_to_seconds(val),
 };
 
@@ -1761,6 +1763,15 @@ export default class BulkEdit {
 			return __('"{0}" is not valid. Use {1}', [value, "0, 1, Yes, No"]);
 		}
 
+		if (df.fieldtype === "Rating" && !bulk_edit_is_rating(value)) {
+			return __('"{0}" is not a valid rating. Use a number between 0 and 1.', [value]);
+		}
+
+		const format = bulk_edit_format_of(df);
+		if (format && !bulk_edit_matches_format(value, format)) {
+			return __('"{0}" is not a valid {1}.', [value, __(df.options || df.fieldtype)]);
+		}
+
 		return "";
 	}
 
@@ -1949,6 +1960,24 @@ function bulk_edit_to_system_time(value) {
  * Number() rejects both, which is the point — a value that only half parses is
  * the kind that imports quietly wrong.
  */
+function bulk_edit_is_rating(value) {
+	if (!bulk_edit_is_number(value)) return false;
+	const rating = flt(value);
+	return rating >= 0 && rating <= 1;
+}
+
+function bulk_edit_format_of(df) {
+	if (df.fieldtype === "Phone") return "phone";
+	return df.fieldtype === "Data" ? BULK_EDIT_DATA_FORMATS[df.options] : "";
+}
+
+function bulk_edit_matches_format(value, format) {
+	const parts = format === "email" ? frappe.utils.split_emails(value) : [value];
+	return (
+		Boolean(parts?.length) && parts.every((part) => frappe.utils.validate_type(part, format))
+	);
+}
+
 function bulk_edit_is_number(value) {
 	let text = cstr(value).trim();
 	if (!text) return false;
