@@ -551,6 +551,10 @@ class Meta(Document):
 	def _non_computed_table_doctypes(self):
 		return {field.fieldname: field.options for field in self._non_computed_table_fields}
 
+	@cached_property
+	def ignore_versioning_fields(self) -> set[str]:
+		return {df.fieldname for df in self.fields if getattr(df, "ignore_versioning", False)}
+
 	def init_field_caches(self):
 		self._fields
 		self._table_fields
