@@ -160,6 +160,8 @@ export interface PageFields {
   has(fieldname: string): boolean;
   /** The field as it currently resolves — post-override, post-`depends_on`. */
   get(fieldname: string): PageField | null;
+  /** Moves the reader to the field: tab, scroll, cursor; read-only gets no cursor, unknown or hidden warns. */
+  focus(fieldname: string): void;
 }
 
 /** What a script may override on one of the Form Layout's tabs. */

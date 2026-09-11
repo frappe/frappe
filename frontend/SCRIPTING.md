@@ -207,3 +207,95 @@ export default {
   },
 }
 ```
+
+## The field: `page.fields`
+
+The Details form is the main column of the record: the doctype's `Details` layout, or its
+fields in DocType order when no row applies. `page.fields` is an **overlay** on the fields
+authored there, cleared before every replay. It has no `add`, `move` or `order`, since
+ordering is the Form Layout's job; it speaks `hide`, `show`, `update`, `has` and `get`,
+and one **act**, `focus(fieldname)`.
+
+### What `update` takes
+
+| Key | What it does |
+| --- | --- |
+| `label`, `placeholder`, `description` | The text drawn. |
+| `hidden`, `read_only`, `reqd` | Booleans, or `0`/`1` as a DocField spells them. Win over `depends_on`; never lift a permission floor. |
+| `options` | A Link target, or a Select's newline-separated choices. |
+| `link_filters` | Search filters for a Link field. |
+| `precision` | Decimal places for a numeric field. |
+| `component`, `props` | Another control in the field's slot, and what to bind onto it. |
+
+A key not named here is dropped with a development warning. `get(fieldname)` answers the
+field as it resolves now, post-override and post-`depends_on`, and is read-only.
+
+### The act: `focus(fieldname)`
+
+`focus` switches the form to the field's tab, scrolls to it and puts the cursor in its
+control. A read-only field gets the tab and the scroll and no cursor. An unknown or a
+hidden field warns in a development build and moves nobody, since `show()` is the verb
+that reveals one. On `activate`'s terms: resolved at the call, and inside a replay
+delivered when the replay commits. The panel's own expand of a long row uses it.
+
+### Saving: `page.save()`
+
+`page.save()` is the one path; the Save button, `Ctrl+S` / `Cmd+S` and a script all call
+it. The order is fixed:
+
+1. The edit still pending in a focused control is flushed, so its field handler runs.
+2. `beforeSave` fires. A throw is a veto: nothing is sent, and the message shows.
+3. The whole document goes to the server.
+4. `afterSave` fires only when the server accepted.
+
+On a clean document it resolves at once, sends nothing and shows nothing. The Save button
+is disabled then, with the tooltip "No changes to save", and the shortcut shows that text
+as a toast. A record saved by someone else since it was opened opens a dialog naming them
+and the fields changed here, with "Reload and lose my changes" and "Keep editing"; nothing
+is re-applied silently, and Save fails the same way until a reload.
+
+A field handler runs when the reader commits that field: `status(page)` on a status
+change, before any save. A child table's fields are addressed by the table, `products.qty`.
+
+### The script this design was judged by
+
+The third act of the map's proof walk, on a CRM Deal whose `probability` is a Percent field.
+
+```js
+export default {
+  onRefresh(page) {
+    // Rename one field by name; its control keeps working.
+    page.fields.update('probability', { label: 'Win chance (%)' })
+  },
+
+  // A field handler: runs when the reader commits `status`, before any save.
+  status(page) {
+    if (page.doc.status === 'Won') page.doc.probability = 100
+  },
+
+  // The save channel: a throw here is a veto, and the record stays unsaved.
+  beforeSave(page) {
+    if (page.doc.probability > 100) throw new Error('Win chance is a percentage')
+  },
+}
+```
+
+The walk: the label reads "Win chance (%)". Set status to Won, and the probability control
+shows 100 with no other click. Press Save, and a reload shows 100. Set probability to 120
+and press Save: the error shows and the server still has 100.
+
+And the act, with its two misses:
+
+```js
+export default {
+  onRefresh(page) {
+    if (page.doc.status === 'Lost') page.fields.focus('lost_notes')
+    page.header.add({
+      name: 'focus_sla',
+      label: 'Focus SLA status',
+      display: 'button',
+      run: (p) => p.fields.focus('sla_status'), // read-only: tab and scroll, no cursor
+    })
+  },
+}
+```
