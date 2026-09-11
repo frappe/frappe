@@ -34,11 +34,15 @@ class TestComment(IntegrationTestCase):
 
 		test_doc.add_comment("Comment", "test comment")
 
-		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
-		self.assertEqual(counts[0]._comment_count, 2)
-		counts = frappe.get_all(
-			"ToDo", {"name": test_doc.name}, ["name", "_comment_count"], with_comment_count=True
+		filters = {"name": test_doc.name}
+		# flag adds the column to whatever fields were asked for
+		self.assertEqual(
+			frappe.get_all("ToDo", filters, ["name"], with_comment_count=True)[0]._comment_count, 2
 		)
+		# the column is a plain field, no flag needed
+		self.assertEqual(frappe.get_all("ToDo", filters, ["name", "_comment_count"])[0]._comment_count, 2)
+		# both, the column is selected once
+		counts = frappe.get_all("ToDo", filters, ["name", "_comment_count"], with_comment_count=True)
 		self.assertEqual(counts[0]._comment_count, 2)
 
 		# check document creation
