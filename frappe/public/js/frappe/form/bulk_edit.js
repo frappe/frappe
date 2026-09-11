@@ -807,6 +807,7 @@ export default class BulkEdit {
 			df: {
 				...df,
 				change: () => {
+					if (control._seeding) return;
 					this.state.rows[r][col] = control.get_value();
 					this.refresh_preview();
 				},
@@ -855,7 +856,12 @@ export default class BulkEdit {
 			control.validate = (value) => value;
 		}
 
-		control.set_value(bulk_edit_seed_value(df.fieldtype, original));
+		control._seeding = true;
+		Promise.resolve(control.set_value(bulk_edit_seed_value(df.fieldtype, original))).then(
+			() => {
+				control._seeding = false;
+			}
+		);
 
 		// click as well as focus, since focus fires once and the cell stays focused.
 		// The empty search term matters: link.js only opens on an empty input, and
