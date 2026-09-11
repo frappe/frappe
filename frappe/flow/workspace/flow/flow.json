@@ -18,7 +18,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Agents",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -39,6 +39,16 @@
    "label": "Flow Tool",
    "link_count": 0,
    "link_to": "Flow Tool",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Flow Skill",
+   "link_count": 0,
+   "link_to": "Flow Skill",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
