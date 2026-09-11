@@ -21,7 +21,6 @@ class FlowAgentMemory(Document):
 
 		agent: DF.Link
 		content: DF.SmallText
-		keywords: DF.SmallText | None
 		scope: DF.Literal["Agent", "User"]
 		source: DF.Literal["Agent", "Feedback", "Manual"]
 		source_run: DF.Link | None

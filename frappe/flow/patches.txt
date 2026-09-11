@@ -8,3 +8,4 @@ flow.patches.rename_ai_to_flow
 flow.patches.remove_frontend_tooling
 flow.patches.remove_agentless_sessions
 flow.patches.grant_flow_role
+flow.patches.drop_memory_keywords

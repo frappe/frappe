@@ -179,49 +179,31 @@ def bind_search_attachments(session: str | None) -> Tool:
 search_attachments = bind_search_attachments(None)
 
 
-_UPDATE_MEMORY_DESCRIPTION = """Save a durable fact to persistent memory, or edit one by passing its memory_id.
+_UPDATE_MEMORY_DESCRIPTION = """Save a durable fact to memory, or revise one by passing its memory_id.
 
-Saved memories appear in the <agent_memory> block of your system prompt on every turn, \
-including future conversations.
-
-When to save: stable, reusable facts learned during the conversation — mappings and \
-identifiers (e.g. an invoice item name to its ERP item code), business rules, corrections \
-the user gives you, and their preferences. Do not save transient conversation state, \
-secrets or credentials, or anything you can re-derive by reading records.
-
-How to write: one short, self-contained, third-person fact per memory. Before adding, \
-check <agent_memory> — if a related memory exists, pass its memory_id to revise or extend \
-it instead of adding a duplicate. When a fact changes, edit the existing memory to the new \
-value. Near the memory limit, consolidate related memories into one.
+Memories relevant to the user's message are shown with it in a <memory> block, with their ids, \
+in this and future conversations. Save stable, reusable facts: identifiers and mappings (e.g. an \
+invoice item name to its ERP item code), business rules, corrections the user gives you, and their \
+preferences. Do not save transient conversation state, secrets, or anything you can re-derive by \
+reading records. Write one short, self-contained, third-person fact per memory; when a fact \
+changes, revise the shown memory instead of adding another.
 
 scope:
 - "agent" — true for everyone who uses this agent (mappings, business rules, conventions).
-- "user" — specific to the current user (their preferences and defaults).
-Ask: is this about the organisation, or about this person?
-
-keywords: optional space-separated search terms that help this memory resurface later — \
-synonyms, alternate names, codes, or the words a user would ask with (e.g. for a fact about \
-stationery tax: "pens paper pencils office supplies GST"). They are used only for retrieval, \
-never shown as part of the fact. Add them when the fact's wording differs from how it will be \
-asked about."""
+- "user" — specific to the current user (their preferences and defaults)."""
 
 
-def bind_update_memory(agent: str | None) -> Tool:
-	"""Build an `update_memory` tool bound to `agent`. The binding comes from the agent's
-	config, never the model. The registered builtin binds None, so an unbound call
-	fails closed."""
+def bind_update_memory(agent: str | None, session: str | None = None) -> Tool:
+	"""An `update_memory` tool bound to `agent` and `session`. Unbound (None), it refuses."""
 
 	def update_memory(
-		content: str,
-		scope: Literal["agent", "user"],
-		memory_id: str | None = None,
-		keywords: str | None = None,
+		content: str, scope: Literal["agent", "user"], memory_id: str | None = None
 	) -> dict[str, Any]:
 		from flow.memory.memory import save_memory
 
 		if not agent:
 			frappe.throw(_("Memory is not configured for this agent."), title=_("Memory Unavailable"))
-		return save_memory(agent, content=content, scope=scope, memory_id=memory_id, keywords=keywords)
+		return save_memory(agent, content=content, scope=scope, memory_id=memory_id, session=session)
 
 	return tool(update_memory, description=_UPDATE_MEMORY_DESCRIPTION)
 

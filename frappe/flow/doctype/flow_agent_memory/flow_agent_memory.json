@@ -13,8 +13,7 @@
   "source",
   "source_run",
   "section_break_content",
-  "content",
-  "keywords"
+  "content"
  ],
  "fields": [
   {
@@ -83,16 +82,10 @@
    "in_list_view": 1,
    "label": "Content",
    "reqd": 1
-  },
-  {
-   "description": "Optional search aliases (synonyms, codes, alternate names) that improve retrieval. Used only for keyword matching, never shown to the agent as a fact.",
-   "fieldname": "keywords",
-   "fieldtype": "Small Text",
-   "label": "Keywords"
   }
  ],
  "links": [],
- "modified": "2026-07-19 00:00:00",
+ "modified": "2026-09-11 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent Memory",
