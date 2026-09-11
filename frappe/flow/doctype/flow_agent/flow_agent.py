@@ -66,6 +66,9 @@ class FlowAgent(Document):
 		self._validate_skills()
 		self._ensure_knowledge_search_tool()
 		validate_immutable(self, ("instructions", "max_iterations", "tools", "knowledge_bases", "skills"))
+		# After the guard: attaching the tool is our side effect of the skills the caller set,
+		# so a refused edit names the skills the caller actually changed, not our tools row.
+		self._ensure_skill_tool()
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
@@ -90,6 +93,18 @@ class FlowAgent(Document):
 		if frappe.db.exists("Flow Tool", KNOWLEDGE_SEARCH_SLUG):
 			self.append("tools", {"tool": KNOWLEDGE_SEARCH_SLUG})
 
+	def _ensure_skill_tool(self):
+		"""A bound skill is inert without the tool that loads it, same as a knowledge base
+		without its search tool."""
+		from flow.tools.builtins import SKILL_TOOL_SLUG
+
+		if not self.skills:
+			return
+		if any(row.tool == SKILL_TOOL_SLUG for row in self.tools):
+			return
+		if frappe.db.exists("Flow Tool", SKILL_TOOL_SLUG):
+			self.append("tools", {"tool": SKILL_TOOL_SLUG})
+
 	def client_tool_config(self, session: str | None = None) -> dict[str, list[Any]]:
 		"""The tools' schemas and which pause for approval. `session` binds attachment search."""
 		tools = self.client_tools(session)
@@ -104,6 +119,8 @@ class FlowAgent(Document):
 		from flow.tools.builtins import (
 			ATTACHMENT_SEARCH_SLUG,
 			KNOWLEDGE_SEARCH_SLUG,
+			SKILL_TOOL_SLUG,
+			bind_load_skill,
 			bind_search_attachments,
 			bind_search_knowledge,
 			bind_update_memory,
@@ -124,22 +141,16 @@ class FlowAgent(Document):
 				resolved.append(bind_search_attachments(session))
 			elif tool_doc.name == MEMORY_TOOL_SLUG:
 				resolved.append(bind_update_memory(self.name, session))
+			elif tool_doc.name == SKILL_TOOL_SLUG:
+				resolved.append(bind_load_skill(self.name))
 			else:
 				resolved.append(tool_doc.to_tool())
 		return resolved
 
 	def skill_index(self) -> str:
-		"""The `<available_skills>` block: every global skill plus the ones bound to this agent,
-		"" when there are none. A skill that is both appears once. It rides in the system prompt,
-		so a session's skills are fixed when it starts."""
-		bound = [row.skill for row in self.skills]
-		rows = frappe.get_all(
-			"Flow Skill",
-			filters={"enabled": 1},
-			or_filters=[["is_global", "=", 1], ["name", "in", bound]],
-			fields=["name", "description"],
-			order_by="name",
-		)
+		"""The `<available_skills>` block for this agent's visible skills, "" when there are none.
+		It rides in the system prompt, so a session's skills are fixed when it starts."""
+		rows = self.visible_skills("description")
 		if not rows:
 			return ""
 		entries = "\n".join(
@@ -148,6 +159,21 @@ class FlowAgent(Document):
 			for row in rows
 		)
 		return f"\n\n<available_skills>\n{SKILL_INDEX_LEAD}\n{entries}\n</available_skills>"
+
+	def visible_skills(self, *fields: str) -> list[dict[str, Any]]:
+		"""Enabled skills this agent can load, by name: every global one plus its own, and none
+		at all without the tool that loads them, so the index never advertises what it can't."""
+		from flow.tools.builtins import SKILL_TOOL_SLUG
+
+		if not any(row.tool == SKILL_TOOL_SLUG for row in self.tools):
+			return []
+		return frappe.get_all(
+			"Flow Skill",
+			filters={"enabled": 1},
+			or_filters=[["is_global", "=", 1], ["name", "in", [row.skill for row in self.skills]]],
+			fields=["name", *fields],
+			order_by="name",
+		)
 
 	def new_session(
 		self,

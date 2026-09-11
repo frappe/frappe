@@ -138,7 +138,9 @@ def _permissioned_count(doctype, filters=None) -> int:
 	return rows[0].get("total") if rows else 0
 
 
-_SKIP_BUILTINS = frozenset({"execute", "search_knowledge", "search_attachments", "update_memory"})
+_SKIP_BUILTINS = frozenset(
+	{"execute", "search_knowledge", "search_attachments", "update_memory", "load_skill"}
+)
 
 
 def _flow_builtins() -> dict[str, Any]:

@@ -211,6 +211,35 @@ def bind_update_memory(agent: str | None, session: str | None = None) -> Tool:
 update_memory = bind_update_memory(None)
 
 
+SKILL_TOOL_SLUG = "load_skill"
+
+_LOAD_SKILL_DESCRIPTION = """Load a skill's full instructions by name, then follow them.
+
+The skills you can load are listed in the <available_skills> block of your instructions, each with \
+a description of when it applies. When a task matches one, call this with that exact name before \
+starting the task, and treat what you get back as authoritative for it."""
+
+
+def bind_load_skill(agent: str | None) -> Tool:
+	"""A `load_skill` tool scoped to `agent`'s skills. Unbound (None), it refuses."""
+
+	def load_skill(name: str) -> str:
+		if not agent:
+			frappe.throw(_("Skills are not configured for this agent."), title=_("Skill Unavailable"))
+		available = {row.name for row in frappe.get_doc("Flow Agent", agent).visible_skills()}
+		if name not in available:
+			frappe.throw(
+				_("No skill named {0}. Available: {1}").format(name, ", ".join(sorted(available)) or "none"),
+				title=_("Unknown Skill"),
+			)
+		return frappe.db.get_value("Flow Skill", name, "instructions")
+
+	return tool(load_skill, description=_LOAD_SKILL_DESCRIPTION)
+
+
+load_skill = bind_load_skill(None)
+
+
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
@@ -489,6 +518,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	search_knowledge,
 	search_attachments,
 	update_memory,
+	load_skill,
 	create,
 	update,
 	delete,

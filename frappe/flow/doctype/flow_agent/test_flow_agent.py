@@ -350,6 +350,10 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 		self.agent.save()
 		return self.agent.skill_index()
 
+	def _carry_the_tool(self):
+		self.agent.append("tools", {"tool": "load_skill"})
+		self.agent.save()
+
 	def test_an_agent_without_skills_has_an_empty_index(self):
 		self.assertEqual(self.agent.skill_index(), "")
 
@@ -407,12 +411,18 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 		index = self._bind(*[f"Skill {i:03d}" for i in range(MAX_SKILLS)])
 		self.assertEqual(index.count("<skill>"), MAX_SKILLS)
 
-	def test_a_global_skill_reaches_an_agent_that_never_bound_it(self):
+	def test_a_global_skill_reaches_an_agent_that_carries_the_tool_but_never_bound_it(self):
 		_skill_row("House Style", is_global=1)
+		self._carry_the_tool()
 		self.assertIn("<name>House Style</name>", self.agent.skill_index())
+
+	def test_without_the_tool_a_global_skill_stays_out_of_the_index(self):
+		_skill_row("House Style", is_global=1)
+		self.assertEqual(self.agent.skill_index(), "")
 
 	def test_a_disabled_global_skill_stays_out(self):
 		_skill_row("House Style", is_global=1, enabled=0)
+		self._carry_the_tool()
 		self.assertEqual(self.agent.skill_index(), "")
 
 	def test_a_skill_that_is_global_and_bound_appears_once(self):
@@ -423,6 +433,80 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 	def test_a_system_generated_agent_still_gets_global_skills(self):
 		"""Its skills table is locked, so global is the only way to reach the built-in assistant."""
 		_skill_row("House Style", is_global=1)
+		self._carry_the_tool()
 		self.agent.is_system_generated = 1
 		self.agent.save(ignore_permissions=True)
 		self.assertIn("<name>House Style</name>", self.agent.skill_index())
+
+
+class TestFlowAgentLoadSkill(IntegrationTestCase):
+	def setUp(self):
+		sync_builtin_tools()
+		self.model_doc = frappe.get_doc(_model()).insert()
+		self.agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _tool(self, agent=None):
+		agent = agent or self.agent
+		return next((t for t in agent.client_tools() if t.name == "load_skill"), None)
+
+	def _bind(self, *titles: str):
+		self.agent.set("skills", [{"skill": t} for t in titles])
+		self.agent.save()
+
+	def test_binding_a_skill_attaches_the_tool_automatically(self):
+		_skill_row("Expense Approval")
+		self.assertIsNone(self._tool())
+		self._bind("Expense Approval")
+		self.assertIn("load_skill", [row.tool for row in self.agent.tools])
+
+	def test_a_bound_skill_loads_its_instructions(self):
+		_skill_row("Expense Approval")
+		self._bind("Expense Approval")
+		tool = self._tool()
+		self.assertEqual(set(tool.parameters["properties"]), {"name"})
+		self.assertEqual(tool(name="Expense Approval"), "Body of Expense Approval.")
+
+	def test_a_global_skill_is_loadable_by_an_agent_carrying_the_builtin(self):
+		_skill_row("House Style", is_global=1)
+		self.agent.append("tools", {"tool": "load_skill"})
+		self.agent.save()
+		self.assertEqual(self._tool()(name="House Style"), "Body of House Style.")
+
+	def test_another_agents_skill_is_refused_and_the_available_ones_are_named(self):
+		_skill_row("Mine")
+		_skill_row("Theirs")
+		self._bind("Mine")
+		self.agent.reload()
+		with self.assertRaisesRegex(frappe.ValidationError, "No skill named Theirs. Available: Mine"):
+			self._tool()(name="Theirs")
+
+	def test_a_disabled_skill_cannot_be_loaded(self):
+		_skill_row("Retired", enabled=0)
+		_skill_row("Live")
+		self._bind("Retired", "Live")
+		with self.assertRaisesRegex(frappe.ValidationError, "No skill named Retired"):
+			self._tool()(name="Retired")
+
+	def test_the_builtin_assistant_carries_the_tool_and_loads_a_global_skill(self):
+		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+
+		sync_builtin_assistant(self.model_doc.name)
+		assistant = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		self.assertIn("load_skill", [row.tool for row in assistant.tools])
+		_skill_row("House Style", is_global=1)
+		self.assertEqual(self._tool(assistant)(name="House Style"), "Body of House Style.")
+
+	def test_the_tool_travels_to_the_server_with_the_agents_schemas(self):
+		_skill_row("House Style")
+		self._bind("House Style")
+		names = [t["function"]["name"] for t in self.agent.client_tool_config()["client_tools"]]
+		self.assertIn("load_skill", names)
+
+	def test_an_unbound_tool_refuses(self):
+		from flow.tools.builtins import bind_load_skill
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Skills are not configured"):
+			bind_load_skill(None)(name="House Style")
