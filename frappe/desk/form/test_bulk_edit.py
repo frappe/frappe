@@ -50,9 +50,7 @@ class TestBulkEdit(IntegrationTestCase):
 	def test_xlsx_and_csv_uploads_agree(self):
 		rows = [*HEADER_ROWS, ["System Manager", "everything"]]
 
-		xlsx = parse_bulk_edit_file(
-			"User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue())
-		)
+		xlsx = parse_bulk_edit_file("User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue()))
 		csv_text = "\n".join(",".join(f'"{cell}"' for cell in row) for row in rows)
 		csv = parse_bulk_edit_file("User", "roles.csv", as_dataurl(csv_text.encode()))
 
@@ -71,9 +69,7 @@ class TestBulkEdit(IntegrationTestCase):
 
 	def test_dates_round_trip_through_a_spreadsheet(self):
 		rows = [*HEADER_ROWS, ["System Manager", datetime.date(2026, 8, 25)]]
-		parsed = parse_bulk_edit_file(
-			"User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue())
-		)
+		parsed = parse_bulk_edit_file("User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue()))
 		self.assertEqual(parsed[-1][1], "2026-08-25 00:00:00")
 
 	def test_stringify_renders_cells_for_the_grid(self):
@@ -93,9 +89,7 @@ class TestBulkEdit(IntegrationTestCase):
 		)
 		self.assertRaises(
 			frappe.PermissionError,
-			lambda: self.with_user(
-				"Guest", parse_bulk_edit_file, "User", "roles.csv", as_dataurl(b"role\n")
-			),
+			lambda: self.with_user("Guest", parse_bulk_edit_file, "User", "roles.csv", as_dataurl(b"role\n")),
 		)
 
 	def with_user(self, user, fn, *args, **kwargs):
