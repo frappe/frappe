@@ -34,6 +34,16 @@ vi.mock("frappe-ui", () => {
 			setup: (props) => () => h("span", { "data-avatar": props.label }),
 		}),
 		Tooltip: Plain("span"),
+		Dropdown: defineComponent({
+			props: ["options"],
+			setup: (props, { slots }) => () =>
+				h("div", { "data-dropdown": "" }, [
+					slots.default?.(),
+					...props.options.map((option: any) =>
+						h("button", { "data-menu-row": option.label, onClick: option.onClick })
+					),
+				]),
+		}),
 		Button: defineComponent({
 			props: ["label"],
 			setup: (props, { slots }) => () => h("button", slots.default?.() ?? props.label),
@@ -231,7 +241,7 @@ describe("tags", () => {
 
 		quickActions.push({ name: "tags", label: "Tags", icon: "lucide-tag", tagging: true });
 		const { root, page, reloadDocinfo } = setup({ permissions: { write: 1 } }, QuickActions);
-		expect(root.textContent).toContain("Tags");
+		await vi.waitFor(() => expect(root.textContent).toContain("Tags"));
 		await pick(root, ["first"], "first");
 		await vi.waitFor(() => expect(reloadDocinfo).toHaveBeenCalledTimes(1));
 		expect(page.call).toHaveBeenCalledWith("frappe.desk.doctype.tag.tag.add_tag", {

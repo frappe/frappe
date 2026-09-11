@@ -98,7 +98,7 @@ import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
-import { quickActionBuiltins } from "./record/quickActionBuiltins";
+import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { personOf, type DocInfo } from "./record/panel/context";
 import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
@@ -204,6 +204,7 @@ function headerBuiltins(): HeaderItem[] {
 		},
 		{ name: "record", label: String(title), zone: "left", display: "crumb" },
 		{ name: "save", label: "Save", display: "button", run: runSave },
+		...headerMenuBuiltins(docinfo.value?.permissions ?? {}),
 	];
 }
 
