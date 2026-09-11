@@ -111,6 +111,8 @@ Every turn is saved as a `Flow Run` linked to the session — so conversation hi
 
 Files travel with the turn they are sent on: `session.chat("Summarize this", attachments=[file.name])` takes `File` names the user can read (text, PDF, Office, HTML and images; scans and images are read by OCR). Up to half of the model's total context is reserved for exact attachment text on each turn, independent of conversation length; only an attached set larger than that is chunked into a per-session index, with the largest files moved to retrieval first. The turn that attaches such a file gets its most relevant excerpts; later turns search it with the builtin `search_attachments` tool. Images go to a vision model as images.
 
+An agent with the builtin `update_memory` tool remembers: it saves short facts, shared by everyone who uses the agent or private to one user, and each message brings along only the saved facts relevant to it. Relevance is hybrid vector and keyword search with a score floor when Flow Knowledge Settings has an embedding model, keyword search otherwise. A thumbs-down comment on a run is saved the same way.
+
 ### Built-in tools
 
 | Tool | What it does |

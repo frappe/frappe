@@ -151,12 +151,14 @@ class FlowSession(Document):
 			build_turn,
 			cleanup_indexed_files,
 		)
+		from flow.memory.memory import memory_block
 
 		if not (input or "").strip():
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
 		self._assert_can_run()
 		self.sync()
 		turn = build_turn(self, input, attachments or [])
+		turn.message += memory_block(self.agent, self.owner, input)
 		uploaded = []
 		try:
 			with DaemonClient.for_site() as client:
