@@ -7,7 +7,7 @@ import os
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
-from frappe.desk.query_report import add_total_row, run, save_report
+from frappe.desk.query_report import add_total_row, get_filtered_data, run, save_report
 from frappe.desk.reportview import delete_report
 from frappe.desk.reportview import save_report as _save_report
 from frappe.tests import IntegrationTestCase
@@ -295,6 +295,30 @@ class TestReport(IntegrationTestCase):
 			self.assertNotEqual(report.is_permitted(), True)
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
+	def test_report_rows_respect_child_user_permissions(self):
+		"""A restricted child Link value hides the whole document from report rows."""
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test@example.com"
+		suffix = frappe.generate_hash(length=6)
+		allowed_user = create_user(f"allowed-report-{suffix}@example.com", "Blogger")
+		mixed_user = create_user(f"mixed-report-{suffix}@example.com", "Blogger", "System Manager")
+
+		self.addCleanup(clear_user_permissions_for_doctype, "Role", test_user)
+		clear_user_permissions_for_doctype("Role", test_user)
+		add_user_permission("Role", "Blogger", test_user, ignore_permissions=True, applicable_for="User")
+
+		columns = [{"label": "User", "fieldname": "name", "fieldtype": "Link", "options": "User"}]
+		data = [{"name": allowed_user.name}, {"name": mixed_user.name}]
+
+		with self.set_user(test_user):
+			self.assertTrue(frappe.has_permission("User", doc=allowed_user.name))
+			self.assertFalse(frappe.has_permission("User", doc=mixed_user.name))
+
+			visible_rows = get_filtered_data("User", columns, data, test_user)
+
+		self.assertListEqual(visible_rows, [{"name": allowed_user.name}])
+
 	def test_format_method(self):
 		if frappe.db.exists("Report", "User Activity Report Without Sort"):
 			frappe.delete_doc("Report", "User Activity Report Without Sort")
