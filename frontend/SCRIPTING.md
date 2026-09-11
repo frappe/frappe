@@ -121,3 +121,90 @@ export default {
   },
 }
 ```
+
+## The panel: `page.panelSections`
+
+The panel is the column on the right of the record, and it is **one list**. The identity
+block, the quick actions, the people rows and the sections of the doctype's Side Panel
+layout are all items on it, so a script hides, moves or adds between any of them by name.
+Nothing above or beside the list is chrome the engine cannot name.
+
+The surface speaks the seven verbs, and two **acts**: `open(name)` and `close(name)`.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. One namespace for the whole panel. |
+| `label` | Gives the item a header and a chevron. Without one it is a bare block, as the built-ins are. |
+| `component` | Rendered for any name the layout does not carry, with `props` and a `page` prop. |
+| `props` | Bound onto `component`. |
+| `opened` | Whether a section with a header starts open. Meaningless without a `label`, and a dev warning there. |
+
+A name the Side Panel layout carries renders that section's fields, one column, click to
+edit. Any other name renders its `component`. The header rule is derived, not declared: a
+`label` gives a header; `update('shares', { label: 'Shared with' })` gives a built-in one.
+
+### The built-ins
+
+The generated page seeds four items, in this order, and then the layout's sections after
+them under the names the Form Layout stores:
+
+| Name | What it is |
+| --- | --- |
+| `identity` | The title, subtitle, image and tags. |
+| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. |
+| `assignees` | Who the record is assigned to. |
+| `shares` | Who it is shared with. |
+
+A doctype with no Side Panel row shows the four built-ins and nothing else. The panel never
+falls back to the Details layout, so no field shows twice; a doctype that wants fields in
+its panel ships a Side Panel row.
+
+### Opening and shutting
+
+`open(name)` and `close(name)` are in-page acts on a section that has a header, on
+`activate`'s terms: resolved at the call, delivered when the replay commits, and a miss
+warns in a development build and does nothing. A hidden section is a miss, since `show()`
+is the verb that reveals one. A script's act is the page's, not the reader's: the reader's
+own clicks are remembered per doctype in their browser, and a click outranks the act until the
+next replay re-issues it.
+
+`page.fields` speaks fieldnames only. Handed a section name, it warns and names the verb
+that owns it: `page.panelSections.hide(name)`.
+
+### The script this design was judged by
+
+The second act of the map's proof walk: hide one section by name, and its neighbour stands.
+
+```js
+export default {
+  onRefresh(page) {
+    page.panelSections.hide('shares') // "Shared with" goes
+    // 'assignees' is still there, and so is 'organization_section'
+    console.log(page.panelSections.has('assignees'))
+  },
+}
+```
+
+And a fuller one:
+
+```js
+const Note = {
+  props: { page: Object, text: String },
+  setup: (props) => () => `${props.text}: ${props.page.doc.status}`,
+}
+
+export default {
+  onRefresh(page) {
+    // A section of its own, before the people rows; a label gives it a header.
+    page.panelSections.add(
+      { name: 'note', label: 'Note', component: Note, props: { text: 'Status' } },
+      { before: 'assignees' },
+    )
+    // The layout's section, moved up and opened for a won deal.
+    page.panelSections.move('organization_section', { after: 'identity' })
+    if (page.doc.status === 'Won') page.panelSections.open('organization_section')
+  },
+}
+```

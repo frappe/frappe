@@ -75,6 +75,11 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		);
 	}
 
+	// Host side, reading the way `has` reads: the item as the replay in flight would render it.
+	find(name: string): Item | undefined {
+		return this.fold(this.pending ?? this.ops).find((entry) => entry.item.name === name)?.item;
+	}
+
 	// Host side, below: not part of what a script may call.
 
 	provideBuiltins(get: () => Item[]) {

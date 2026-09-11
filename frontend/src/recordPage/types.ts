@@ -53,10 +53,22 @@ export interface TabItem extends SurfaceItem {
   create?: TabCreateAction;
 }
 
+/** One item of the panel's single list; a `label` gives it a header, a layout name renders its fields. */
 export interface PanelSectionItem extends SurfaceItem {
   component?: Component;
   props?: Record<string, any>;
+  /** Whether a section with a header starts open; meaningless without one. */
   opened?: boolean;
+}
+
+/** The panel surface also opens and shuts a section for the reader. */
+export interface PanelSectionsApi extends SurfaceVerbs<PanelSectionItem> {
+  /**
+   * Opens a section that has a header, on `TabsApi.activate`'s terms: resolved at the
+   * call, delivered when the replay commits. In-page state, never an address.
+   */
+  open(name: string): void;
+  close(name: string): void;
 }
 
 export interface SurfaceVerbs<Item extends SurfaceItem = SurfaceItem> {
@@ -346,7 +358,7 @@ export interface RecordPageApi {
   quickActions: SurfaceVerbs<QuickAction>;
   header: SurfaceVerbs<HeaderItem>;
   tabs: TabsApi;
-  panelSections: SurfaceVerbs<PanelSectionItem>;
+  panelSections: PanelSectionsApi;
   fields: PageFields;
   /** The Form Layout's own tab strip, inside the Details form. */
   formTabs: PageFormTabs;

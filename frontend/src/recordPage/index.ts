@@ -29,4 +29,14 @@ export type {
   HeaderNode,
   HeaderProjection,
 } from "./headerRenderings";
-export type { HeaderItem, RecordPageApi } from "./types";
+export type {
+  HeaderItem,
+  PanelSectionItem,
+  PanelSectionsApi,
+  QuickAction,
+  RecordPageApi,
+} from "./types";
+
+export { useFormLayout, resetFormLayouts } from "./formLayoutSource/useFormLayout";
+export type { FormLayoutType } from "./formLayoutSource/types";
+export { sectionName } from "./formLayoutSource/sectionName";
