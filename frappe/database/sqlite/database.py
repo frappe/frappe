@@ -547,7 +547,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.transaction_writes = 0
 		self.begin()  # explicitly start a new transaction
 
-		self.after_commit.run()
+		self.run_after_transaction_callbacks(self.after_commit)
 
 	def rollback(self, *, save_point=None, chain=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
@@ -564,7 +564,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._conn.rollback()
 			self.begin()
 
-			self.after_rollback.run()
+			self.run_after_transaction_callbacks(self.after_rollback)
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
