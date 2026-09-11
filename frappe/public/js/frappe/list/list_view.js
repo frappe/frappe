@@ -997,7 +997,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}[col.type];
 		}
 
-		if (frappe.is_mobile() && col.type == "Subject") {
+		if (frappe.is_mobile() && col.type == "Subject" && this.get_seen_class(doc)) {
 			css_class += " bold";
 		}
 
