@@ -5,7 +5,8 @@ vi.mock("@/router/routeFor", () => ({ routeFor: (doctype: string) => ({ name: "l
 
 import { quickActionBuiltins } from "../quickActionBuiltins";
 
-const names = (perms: Record<string, any>) => quickActionBuiltins(perms).map((a) => a.name);
+const names = (perms: Record<string, any>, tagged = false) =>
+  quickActionBuiltins(perms, tagged).map((a) => a.name);
 
 function fakePage(confirmed: true | null) {
   return {
@@ -27,6 +28,13 @@ describe("quickActionBuiltins", () => {
   it("seeds copy_link always, print and delete only with the right", () => {
     expect(names({})).toEqual(["copy_link"]);
     expect(names({ print: 1, delete: 1 })).toEqual(["print", "copy_link", "delete"]);
+  });
+
+  it("seeds tags with write, only while the record has none", () => {
+    expect(names({ write: 1 })).toEqual(["copy_link", "tags"]);
+    expect(names({ write: 1 }, true)).toEqual(["copy_link"]);
+    expect(names({}, false)).toEqual(["copy_link"]);
+    expect(quickActionBuiltins({ write: 1 }).at(-1)).toMatchObject({ tagging: true });
   });
 
   it("deletes after a confirmed danger dialog, then leaves for the list", async () => {

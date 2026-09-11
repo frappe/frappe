@@ -55,6 +55,7 @@ const props = defineProps<{
 	sections: LayoutSection[];
 	disclosure: Disclosure;
 	run: (action: QuickAction) => void;
+	reloadDocinfo: () => Promise<void>;
 }>();
 
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -72,5 +73,6 @@ provide(PanelContextKey, {
 	docinfo: toRef(props, "docinfo"),
 	controller: props.controller,
 	run: props.run,
+	reloadDocinfo: props.reloadDocinfo,
 });
 </script>

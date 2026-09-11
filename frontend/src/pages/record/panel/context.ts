@@ -5,7 +5,7 @@ import type { QuickAction, RecordPageController } from "@/recordPage";
 /** `getdoc`'s sidecar, the parts the panel reads; the rest is not typed here. */
 export interface DocInfo {
 	assignments?: { owner: string; description?: string }[];
-	shared?: { user: string; everyone?: 0 | 1 }[];
+	shared?: { user: string; everyone?: 0 | 1; write?: 0 | 1 }[];
 	tags?: string;
 	user_info?: Record<string, { fullname?: string; image?: string }>;
 	permissions?: Record<string, any>;
@@ -19,6 +19,8 @@ export interface PanelContext {
 	docinfo: Ref<DocInfo | null>;
 	controller: RecordPageController;
 	run: (action: QuickAction) => void;
+	/** Re-reads the sidecar alone, after an assign, share or tag. */
+	reloadDocinfo: () => Promise<void>;
 }
 
 export const PanelContextKey: InjectionKey<PanelContext> = Symbol("record-panel");

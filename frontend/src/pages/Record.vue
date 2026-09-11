@@ -53,6 +53,7 @@
 				:sections="sections"
 				:disclosure="disclosure"
 				:run="runAction"
+				:reloadDocinfo="reloadDocinfo"
 				@expand="expand"
 			/>
 		</div>
@@ -99,6 +100,7 @@ import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { quickActionBuiltins } from "./record/quickActionBuiltins";
 import { personOf, type DocInfo } from "./record/panel/context";
+import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
 import RecordPanel from "./record/panel/RecordPanel.vue";
@@ -149,6 +151,8 @@ const HEADER_BUDGET = 3;
 
 // The slower of two in-flight loads must not win: `save()` would then POST the wrong record.
 let generation = 0;
+// Likewise for two sidecar re-reads: several picks in one gesture each fire one.
+let docinfoRead = 0;
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const docname = computed(() => String(route.params.name));
@@ -229,9 +233,28 @@ async function fetchDoc(target: { doctype: string; name: string }) {
 	};
 }
 
+/** `get_docinfo` alone: the sidecar after an assign, share or tag, with the draft untouched. */
+async function fetchDocinfo(target: { doctype: string; name: string }) {
+	const res = await fetch(
+		`/api/method/frappe.desk.form.load.get_docinfo?${new URLSearchParams(target)}`
+	);
+	if (!res.ok) throw new Error(String(res.status));
+	return (await res.json()).docinfo as DocInfo;
+}
+
+async function reloadDocinfo() {
+	if (!doctype.value) return;
+	const mine = generation;
+	const read = ++docinfoRead;
+	const fresh = await fetchDocinfo({ doctype: doctype.value, name: docname.value });
+	if (mine !== generation || read !== docinfoRead) return;
+	docinfo.value = fresh;
+}
+
 async function load() {
 	if (!doctype.value) return;
 	const mine = ++generation;
+	docinfoRead++;
 	const target = { doctype: doctype.value, name: docname.value };
 	error.value = "";
 
@@ -308,7 +331,7 @@ async function load() {
 	});
 	created.header.provideBuiltins(headerBuiltins);
 	created.quickActions.provideBuiltins(() =>
-		quickActionBuiltins(docinfo.value?.permissions ?? {})
+		quickActionBuiltins(docinfo.value?.permissions ?? {}, tagsOf(docinfo.value).length > 0)
 	);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	panelLayout.value = panel;
