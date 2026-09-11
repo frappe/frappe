@@ -16,6 +16,8 @@
   "instructions",
   "section_break_tools",
   "tools",
+  "section_break_skills",
+  "skills",
   "section_break_knowledge",
   "knowledge_bases"
  ],
@@ -94,6 +96,19 @@
    "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
+   "fieldname": "section_break_skills",
+   "fieldtype": "Section Break",
+   "label": "Skills"
+  },
+  {
+   "description": "Flow Skills this agent can load. Their names and descriptions are listed in its prompt; the agent loads one when a task matches.",
+   "fieldname": "skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Skills",
+   "options": "Flow Agent Skill",
+   "read_only_depends_on": "eval:doc.is_system_generated"
+  },
+  {
    "fieldname": "section_break_knowledge",
    "fieldtype": "Section Break",
    "label": "Knowledge"
@@ -109,7 +124,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-10 20:00:00",
+ "modified": "2026-09-11 00:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

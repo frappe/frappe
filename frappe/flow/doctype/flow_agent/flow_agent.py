@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from html import escape
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -18,6 +19,11 @@ if TYPE_CHECKING:
 
 DEFAULT_MAX_ITERATIONS = 20
 
+SKILL_INDEX_LEAD = (
+	"Specialized instructions for specific tasks. When a task matches a skill's description, "
+	"call load_skill with that name and follow what it returns."
+)
+
 
 class FlowAgent(Document):
 	# begin: auto-generated types
@@ -31,6 +37,7 @@ class FlowAgent(Document):
 		from flow.flow.doctype.flow_agent_knowledge_base.flow_agent_knowledge_base import (
 			FlowAgentKnowledgeBase,
 		)
+		from flow.flow.doctype.flow_agent_skill.flow_agent_skill import FlowAgentSkill
 		from flow.flow.doctype.flow_agent_tool.flow_agent_tool import FlowAgentTool
 
 		enabled: DF.Check
@@ -39,6 +46,7 @@ class FlowAgent(Document):
 		knowledge_bases: DF.TableMultiSelect[FlowAgentKnowledgeBase]
 		max_iterations: DF.Int
 		model: DF.Link
+		skills: DF.TableMultiSelect[FlowAgentSkill]
 		title: DF.Data
 		tools: DF.TableMultiSelect[FlowAgentTool]
 	# end: auto-generated types
@@ -52,7 +60,7 @@ class FlowAgent(Document):
 	def validate(self):
 		self._validate_max_iterations()
 		self._ensure_knowledge_search_tool()
-		validate_immutable(self, ("instructions", "max_iterations", "tools", "knowledge_bases"))
+		validate_immutable(self, ("instructions", "max_iterations", "tools", "knowledge_bases", "skills"))
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
@@ -108,6 +116,27 @@ class FlowAgent(Document):
 				resolved.append(tool_doc.to_tool())
 		return resolved
 
+	def skill_index(self) -> str:
+		"""The `<available_skills>` block for this agent's enabled skills, "" when it has none.
+		It rides in the system prompt, so a session's skills are fixed when it starts."""
+		names = [row.skill for row in self.skills]
+		if not names:
+			return ""
+		rows = frappe.get_all(
+			"Flow Skill",
+			filters={"name": ["in", names], "enabled": 1},
+			fields=["name", "description"],
+			order_by="name",
+		)
+		if not rows:
+			return ""
+		entries = "\n".join(
+			f"  <skill>\n    <name>{escape(row.name)}</name>\n"
+			f"    <description>{escape(_one_line(row.description))}</description>\n  </skill>"
+			for row in rows
+		)
+		return f"\n\n<available_skills>\n{SKILL_INDEX_LEAD}\n{entries}\n</available_skills>"
+
 	def new_session(
 		self,
 		*,
@@ -145,3 +174,8 @@ class FlowAgent(Document):
 			reference_doctype=reference_doctype,
 			reference_name=reference_name,
 		)
+
+
+def _one_line(text: str) -> str:
+	"""Descriptions are free text; the index gives each one a single line."""
+	return " ".join((text or "").split())

@@ -46,6 +46,7 @@
    "description": "Shown to the agent in its skill index: what this skill covers and when to load it. Keep it to one line.",
    "fieldname": "description",
    "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
    "label": "Description",
    "read_only_depends_on": "eval:doc.is_system_generated",
    "reqd": 1
@@ -67,7 +68,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-11 00:00:00.000000",
+ "modified": "2026-09-11 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Skill",

@@ -590,6 +590,25 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		)
 		self.assertNotIn("callback_timeout", config)
 
+	def test_the_agents_skills_are_indexed_after_its_instructions(self):
+		frappe.get_doc(
+			{
+				"doctype": "Flow Skill",
+				"title": "Expense Approval",
+				"description": "When to use Expense Approval.",
+				"instructions": "Body of Expense Approval.",
+			}
+		).insert()
+		self.agent.append("skills", {"skill": "Expense Approval"})
+		self.agent.save()
+
+		prompt = self.config()["system_prompt"]
+		self.assertTrue(prompt.startswith("Be terse."))
+		self.assertIn("<name>Expense Approval</name>", prompt)
+		self.assertIn("<description>When to use Expense Approval.</description>", prompt)
+		# the body stays out of the prompt; load_skill fetches it on demand
+		self.assertNotIn("Body of Expense Approval.", prompt)
+
 	def test_sessions_get_no_server_tools_or_skills_only_the_agents_schemas(self):
 		config = self.config()
 		self.assertEqual(config["tools"], [])

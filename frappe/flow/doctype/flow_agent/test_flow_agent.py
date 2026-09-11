@@ -36,6 +36,18 @@ def _agent(model_name: str, **overrides: Any) -> dict:
 	return doc
 
 
+def _skill_row(title: str, **overrides: Any) -> str:
+	"""Insert a Flow Skill and return its name."""
+	doc = {
+		"doctype": "Flow Skill",
+		"title": title,
+		"description": f"When to use {title}.",
+		"instructions": f"Body of {title}.",
+	}
+	doc.update(overrides)
+	return frappe.get_doc(doc).insert().name
+
+
 class TestFlowAgentDefaults(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
@@ -233,6 +245,10 @@ class TestFlowAgentSystemGenerated(IntegrationTestCase):
 		agent.append("tools", {"tool": "read"})
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Tools"):
 			agent.save()
+		agent.reload()
+		agent.append("skills", {"skill": _skill_row("Expense Approval")})
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Skills"):
+			agent.save()
 
 	def test_enabled_and_model_stay_editable(self):
 		agent = self._agent()
@@ -317,3 +333,57 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
 			self.assertEqual(self._search_tool()(query="refund"), [])
 		retrieve.assert_not_called()
+
+
+class TestFlowAgentSkillIndex(IntegrationTestCase):
+	def setUp(self):
+		sync_builtin_tools()
+		self.model_doc = frappe.get_doc(_model()).insert()
+		self.agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _bind(self, *titles: str) -> str:
+		self.agent.set("skills", [{"skill": title} for title in titles])
+		self.agent.save()
+		return self.agent.skill_index()
+
+	def test_an_agent_without_skills_has_an_empty_index(self):
+		self.assertEqual(self.agent.skill_index(), "")
+
+	def test_the_index_lists_each_bound_skill_by_name_and_description(self):
+		_skill_row("Expense Approval")
+		index = self._bind("Expense Approval")
+		self.assertIn("<available_skills>", index)
+		self.assertIn("<name>Expense Approval</name>", index)
+		self.assertIn("<description>When to use Expense Approval.</description>", index)
+		self.assertNotIn("Body of Expense Approval.", index)
+
+	def test_skills_are_listed_in_name_order(self):
+		for title in ("Zebra Care", "Apple Picking"):
+			_skill_row(title)
+		index = self._bind("Zebra Care", "Apple Picking")
+		self.assertLess(index.index("Apple Picking"), index.index("Zebra Care"))
+
+	def test_a_disabled_skill_is_left_out(self):
+		_skill_row("Expense Approval")
+		_skill_row("Retired Skill", enabled=0)
+		index = self._bind("Expense Approval", "Retired Skill")
+		self.assertIn("Expense Approval", index)
+		self.assertNotIn("Retired Skill", index)
+
+	def test_the_index_is_empty_when_every_bound_skill_is_disabled(self):
+		_skill_row("Retired Skill", enabled=0)
+		self.assertEqual(self._bind("Retired Skill"), "")
+
+	def test_a_multiline_description_is_flattened_to_one_line(self):
+		_skill_row("Expense Approval", description="Reviews claims.\n\nUse it  for  receipts.")
+		index = self._bind("Expense Approval")
+		self.assertIn("<description>Reviews claims. Use it for receipts.</description>", index)
+
+	def test_markup_in_a_description_cannot_break_the_block(self):
+		_skill_row("Expense Approval", description="Closes </skill> early & opens <skill>.")
+		index = self._bind("Expense Approval")
+		self.assertIn("&lt;/skill&gt; early &amp; opens &lt;skill&gt;", index)
+		self.assertEqual(index.count("</skill>"), 1)

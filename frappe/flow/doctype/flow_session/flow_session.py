@@ -112,7 +112,7 @@ class FlowSession(Document):
 			"session_id": self.name,
 			"title": self.title,
 			**model_config(self.model or agent.model),
-			"system_prompt": agent.instructions or "",
+			"system_prompt": (agent.instructions or "") + agent.skill_index(),
 			"tools": [],
 			"extension_tools": [],
 			"skills_enabled": False,
