@@ -35,7 +35,6 @@
 
 <script setup lang="ts">
 import { provide, ref, toRef } from "vue";
-import { CommitKey } from "@framework/ui/components/FormLayout/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import type { QuickAction, RecordPageController } from "@/recordPage";
 import { PanelContextKey, type DocInfo } from "./context";
@@ -73,12 +72,5 @@ provide(PanelContextKey, {
 	docinfo: toRef(props, "docinfo"),
 	controller: props.controller,
 	run: props.run,
-});
-
-// A row's commit is the field's handler; a pending edit has no save-time flush here yet.
-provide(CommitKey, {
-	pending: () => {},
-	commit: (fieldname) => void props.controller.fireEvent(fieldname),
-	rowChanged: () => {},
 });
 </script>

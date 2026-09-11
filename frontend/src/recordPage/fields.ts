@@ -91,6 +91,9 @@ export class FieldsSurface implements PageFields {
   private pending: Op[] | null = null;
   private replaying = 0;
 
+  /** Installed by `createRecordPage`, which holds the replay state a focus waits on. */
+  declare focus: (fieldname: string) => void;
+
   constructor(private host: FieldsSurfaceHost) {}
 
   hide(fieldname: string) {

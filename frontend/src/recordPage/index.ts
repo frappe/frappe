@@ -17,6 +17,9 @@ export {
 } from "./context";
 
 export { createRecordPage } from "./createRecordPage";
+export { createCommitChannel } from "./commitChannel";
+export type { RecordCommitChannel } from "./commitChannel";
+export { errorMessage } from "./errorMessage";
 export { loadClientScripts, reloadClientScripts } from "./clientScripts";
 export type { RecordPageController } from "./createRecordPage";
 

@@ -3,6 +3,7 @@
 import { computed, ref, type ComputedRef, type Ref } from "vue";
 import type { Router } from "vue-router";
 import { call, toast } from "frappe-ui";
+import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
@@ -95,6 +96,9 @@ export interface RecordPageHost {
   activateFormTab?: (identity: string) => void;
   /** Opens or shuts a panel section for the reader; the engine has already resolved the name. */
   discloseSection?: (name: string, open: boolean) => void;
+  /** Lands the reader on a field of the form; `cursor` is false for a read-only one. */
+  focusField?: (fieldname: string, cursor: boolean) => void;
+  /** Writes the draft; the engine flushes and fires `beforeSave` before it, `afterSave` after. */
   save: () => Promise<void>;
   reload: () => Promise<void>;
   router: Router;
@@ -116,6 +120,8 @@ export interface RecordPageController {
   fields: FieldsSurface;
   /** Form Layout tab overrides; fed to the same layout source alongside them. */
   formTabs: FormTabsSurface;
+  /** What the host provides as `CommitKey`: a field's commit fires its handler through it. */
+  commits: RecordCommitChannel;
   /** The replay: clears every surface, then runs every source's `refresh` in run order. */
   refresh: () => Promise<void>;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
@@ -194,6 +200,17 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     value: (name: string) => disclose(name, false),
   });
 
+  // Held on the same terms as an activation: the form on screen is the last replay's until commit.
+  let heldFocus: string | null = null;
+
+  Object.defineProperty(fields, "focus", {
+    value: (fieldname: string) => focusField(fieldname),
+  });
+
+  const commits = createCommitChannel({
+    dispatch: (event, row) => fireEvent(event, row),
+  });
+
   const dialogs = createPageDialogs({ isReplaying: () => isReplaying.value });
 
   const capabilities: RecordPageApi = {
@@ -228,7 +245,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     fields,
     formTabs,
     rows: rows.rows,
-    save: () => host.save(),
+    save: () => save(),
     reload: () => host.reload(),
     refresh: () => refresh(),
     toast: {
@@ -263,9 +280,66 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       if (!isReplaying.value) {
         releaseActivations();
         releaseDisclosures();
+        releaseFocus();
       }
     }
     ready.value = true;
+  }
+
+  /** The one save path: a clean doc resolves at once, and a `beforeSave` throw sends nothing. */
+  async function save() {
+    if (!host.isDirty()) return;
+    await commits.flush();
+    await fireEvent("beforeSave");
+    await host.save();
+    await fireEvent("afterSave");
+  }
+
+  function focusField(fieldname: string) {
+    if (!canFocus(fieldname)) return;
+    if (isReplaying.value) heldFocus = fieldname;
+    else deliverFocus(fieldname);
+  }
+
+  function releaseFocus() {
+    const held = heldFocus;
+    heldFocus = null;
+    if (held && canFocus(held, "it left the form before the replay settled"))
+      deliverFocus(held);
+  }
+
+  function canFocus(fieldname: string, gone = "no such field") {
+    if (!fields.has(fieldname)) {
+      warnFocus(fieldname, gone);
+      return false;
+    }
+    if (fields.get(fieldname)?.hidden) {
+      warnFocus(fieldname, "it is hidden — show() reveals a field");
+      return false;
+    }
+    return true;
+  }
+
+  function deliverFocus(fieldname: string) {
+    if (!host.focusField) {
+      warnFocus(fieldname, "this host draws no form");
+      return;
+    }
+    try {
+      host.focusField(fieldname, !fields.get(fieldname)?.read_only);
+    } catch (error) {
+      console.error(
+        `[record-page] page.fields.focus("${fieldname}") — the host threw`,
+        error,
+      );
+    }
+  }
+
+  function warnFocus(fieldname: string, because: string) {
+    if (!import.meta.env.DEV) return;
+    console.warn(
+      `[record-page] page.fields.focus("${fieldname}") — ${because}; the reader was not moved.`,
+    );
   }
 
   function releaseDisclosures() {
@@ -496,6 +570,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     panelSections,
     fields,
     formTabs,
+    commits,
     refresh,
     fireEvent,
     ready,
