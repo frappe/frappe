@@ -185,6 +185,17 @@ class TestDocumentNamingRule(IntegrationTestCase):
 
 		self.assertEqual(self.series_current(prefix), 1)
 
+	def test_patch_seeds_a_prefix_built_on_a_standard_field(self):
+		self.make_rule("test-std-.owner.-")
+
+		prefix = self.make_todo().name[:-5]
+		self.assertEqual(prefix, "test-std-Administrator-")
+		self.drop_series(prefix)
+
+		seed_naming_rule_series()
+
+		self.assertEqual(self.series_current(prefix), 1)
+
 	def make_rule(self, prefix, digits=5, priority=0, disabled=0):
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule",
