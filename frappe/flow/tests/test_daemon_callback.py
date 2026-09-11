@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import json
 from unittest.mock import patch
 
 import frappe
@@ -67,6 +68,7 @@ class TestToolCallback(IntegrationTestCase):
 			"delete",
 			"execute",
 			"update_memory",
+			"search_attachments",
 			"whoami",
 			"current_run",
 			"insert_then_fail",
@@ -181,6 +183,16 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertIn("whoami", names)
 		result = self.call("update_memory", {"content": "remember this", "scope": "agent"})
 		self.assertEqual(result, {"content": "Unknown tool update_memory.", "is_error": True})
+
+	def test_search_attachments_is_bound_to_the_calling_session(self):
+		hit = {"attachment": "F1", "content": "refunds within thirty days", "score": 0.9}
+		with patch("flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
+			result = self.call("search_attachments", {"query": "refund"})
+		self.assertEqual(retrieve.call_args.kwargs["session"], self.session.name)
+		self.assertEqual(
+			json.loads(result["content"]),
+			[{"file": None, "content": "refunds within thirty days", "score": 0.9}],
+		)
 
 	def test_an_unknown_session_or_a_disabled_owner_is_an_error(self):
 		result = self.call("whoami", session="nope")

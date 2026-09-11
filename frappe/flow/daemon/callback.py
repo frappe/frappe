@@ -50,7 +50,7 @@ def tool_callback(
 	frappe.flags.flow_run = frappe.db.get_value("Flow Run", {"session": session_id, "status": "Running"})
 	frappe.db.savepoint(SAVEPOINT)
 	try:
-		return _dispatch(session.agent, tool, args or {}, mode)
+		return _dispatch(session_id, session.agent, tool, args or {}, mode)
 	except Exception as exc:
 		frappe.db.rollback(save_point=SAVEPOINT)
 		return _error(str(exc).strip() or type(exc).__name__)
@@ -92,11 +92,11 @@ def _authenticate() -> None:
 		raise frappe.AuthenticationError
 
 
-def _dispatch(agent: str, name: str, args: dict, mode: str) -> dict:
+def _dispatch(session_id: str, agent: str, name: str, args: dict, mode: str) -> dict:
 	agent_doc = frappe.get_doc("Flow Agent", agent)
 	if not agent_doc.enabled:
 		return _error(_("The session's agent is disabled."))
-	tools = agent_doc.client_tools()
+	tools = agent_doc.client_tools(session_id)
 	tool = next((tool for tool in tools if tool.name == name), None)
 	if tool is None:
 		return _error(_("Unknown tool {0}.").format(name))

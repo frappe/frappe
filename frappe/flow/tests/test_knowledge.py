@@ -1200,7 +1200,9 @@ class TestAttachmentStore(IntegrationTestCase):
 	def test_search_excludes_other_sessions(self):
 		self._seed()
 		hits = attachment_store.search([0.9, 0.1, 0.0, 0.0], session="SES-b", limit=5)
-		self.assertEqual([h["content"] for h in hits], ["how to set up your laptop"])
+		self.assertEqual(
+			[(h["attachment"], h["content"]) for h in hits], [("ATT-2", "how to set up your laptop")]
+		)
 
 	def test_hybrid_search_surfaces_keyword(self):
 		self._seed()

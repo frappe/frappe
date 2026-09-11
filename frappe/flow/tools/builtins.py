@@ -144,6 +144,41 @@ def _knowledge_search_description(kbs: list[str]) -> str:
 search_knowledge = bind_search_knowledge([])
 
 
+ATTACHMENT_SEARCH_SLUG = "search_attachments"
+
+_ATTACHMENT_SEARCH_DESCRIPTION = """Search the files attached to this conversation for passages relevant to `query`.
+
+Use it when the user asks about an attached file that was too large to show in full. Returns the \
+most relevant chunks, each with its text, similarity score and file name."""
+
+
+def bind_search_attachments(session: str | None) -> Tool:
+	"""A `search_attachments` tool scoped to one session. Unbound (None), it finds nothing."""
+
+	def search_attachments(query: str) -> list[dict[str, Any]]:
+		from flow.knowledge.retriever import retrieve_attachments
+
+		if not session:
+			return []
+		names = dict(
+			frappe.get_all(
+				"Flow Session Attachment",
+				filters={"parent": session},
+				fields=["file", "file_name"],
+				as_list=True,
+			)
+		)
+		return [
+			{"file": names.get(hit["attachment"]), "content": hit["content"], "score": hit["score"]}
+			for hit in retrieve_attachments(query, session=session)
+		]
+
+	return tool(search_attachments, description=_ATTACHMENT_SEARCH_DESCRIPTION)
+
+
+search_attachments = bind_search_attachments(None)
+
+
 _UPDATE_MEMORY_DESCRIPTION = """Save a durable fact to persistent memory, or edit one by passing its memory_id.
 
 Saved memories appear in the <agent_memory> block of your system prompt on every turn, \
@@ -470,6 +505,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	describe,
 	read,
 	search_knowledge,
+	search_attachments,
 	update_memory,
 	create,
 	update,

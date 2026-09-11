@@ -46,9 +46,13 @@ class TestFlowAgentDefaults(IntegrationTestCase):
 
 	def test_tools_are_exactly_those_given(self):
 		bare = frappe.get_doc(_agent(self.model_doc.name)).insert()
-		reader = frappe.get_doc(_agent(self.model_doc.name, title="Reader", tools=[{"tool": "read"}])).insert()
+		reader = frappe.get_doc(
+			_agent(self.model_doc.name, title="Reader", tools=[{"tool": "read"}])
+		).insert()
 
-		self.assertEqual(([row.tool for row in bare.tools], [row.tool for row in reader.tools]), ([], ["read"]))
+		self.assertEqual(
+			([row.tool for row in bare.tools], [row.tool for row in reader.tools]), ([], ["read"])
+		)
 
 	def test_zero_max_iterations_rejected(self):
 		doc = frappe.get_doc(_agent(self.model_doc.name, max_iterations=0))
@@ -275,3 +279,41 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 	def test_disabled_tools_stay_home(self):
 		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
 		self.assertEqual(self.names(), ["execute"])
+
+
+class TestFlowAgentAttachmentSearch(IntegrationTestCase):
+	def setUp(self):
+		sync_builtin_tools()
+		self.model_doc = frappe.get_doc(_model()).insert()
+		self.agent = frappe.get_doc(
+			_agent(self.model_doc.name, tools=[{"tool": "search_attachments"}])
+		).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _search_tool(self, session=None):
+		return next(t for t in self.agent.client_tools(session) if t.name == "search_attachments")
+
+	def test_search_is_scoped_to_the_session_and_names_the_file(self):
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "old.txt", "content": "x", "is_private": 1}
+		).insert()
+		session.append(
+			"attachments",
+			{"file": file_doc.name, "file_name": "old.txt", "file_size": 1, "mode": "Retrieval"},
+		)
+		session.save()
+		tool = self._search_tool(session.name)
+		self.assertEqual(set(tool.parameters["properties"]), {"query"})
+		hit = {"attachment": file_doc.name, "content": "EXCERPT", "score": 0.5}
+		with patch("flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
+			hits = tool(query="refund")
+		retrieve.assert_called_once_with("refund", session=session.name)
+		self.assertEqual(hits, [{"file": "old.txt", "content": "EXCERPT", "score": 0.5}])
+
+	def test_search_without_a_session_finds_nothing(self):
+		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
+			self.assertEqual(self._search_tool()(query="refund"), [])
+		retrieve.assert_not_called()

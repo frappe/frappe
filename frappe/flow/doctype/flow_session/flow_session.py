@@ -116,7 +116,7 @@ class FlowSession(Document):
 			"tools": [],
 			"extension_tools": [],
 			"skills_enabled": False,
-			**agent.client_tool_config(),
+			**agent.client_tool_config(self.name),
 			"auto_approve": bool(self.auto_approve),
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
 			"auto_compact": True,

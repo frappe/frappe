@@ -36,6 +36,7 @@ const LABELS = {
 	describe: "Reading DocType Meta",
 	read: "Reading DocType Records",
 	search_knowledge: "Searching Knowledge",
+	search_attachments: "Searching Attachments",
 	execute: "Executing",
 	create: "Creating Records",
 	update: "Updating Records",

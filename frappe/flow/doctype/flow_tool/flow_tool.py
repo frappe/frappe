@@ -155,11 +155,11 @@ def patch_session_config_tools(tool_name: str) -> None:
 		return
 	with client:
 		for agent_name in agents:
-			config = frappe.get_doc("Flow Agent", agent_name).client_tool_config()
+			agent = frappe.get_doc("Flow Agent", agent_name)
 			sessions = frappe.get_all("Flow Session", filters={"agent": agent_name}, pluck="name")
 			for session in sessions:
 				try:
-					client.patch_config(session, **config)
+					client.patch_config(session, **agent.client_tool_config(session))
 				except DaemonError as exc:
 					if exc.status == 404:
 						continue

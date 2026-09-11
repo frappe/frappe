@@ -76,7 +76,7 @@ def search(
 	"""Best-matching chunks within one session, most relevant first.
 
 	With `text`, runs hybrid search (vector + full-text, rank-fused); otherwise
-	vector-only. Returns [{content, score}] with higher score = better match. Scoping
+	vector-only. Returns [{attachment, content, score}] with higher score = better match. Scoping
 	to `session` is mandatory — there is no unscoped search.
 	"""
 	if not session:
@@ -97,7 +97,11 @@ def search(
 		query = table.search(vector, vector_column_name="vector")
 	query = query.distance_type("cosine").where(f"session = {_quote(session)}", prefilter=True).limit(limit)
 	return [
-		{"content": row["content"], "score": row["_relevance_score"] if text else 1.0 - row["_distance"]}
+		{
+			"attachment": row["attachment"],
+			"content": row["content"],
+			"score": row["_relevance_score"] if text else 1.0 - row["_distance"],
+		}
 		for row in query.to_list()
 	]
 

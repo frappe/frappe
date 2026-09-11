@@ -70,23 +70,29 @@ class FlowAgent(Document):
 		if frappe.db.exists("Flow Tool", KNOWLEDGE_SEARCH_SLUG):
 			self.append("tools", {"tool": KNOWLEDGE_SEARCH_SLUG})
 
-	def client_tool_config(self) -> dict[str, list[Any]]:
-		"""The tools' schemas, and which of them pause for approval."""
-		tools = self.client_tools()
+	def client_tool_config(self, session: str | None = None) -> dict[str, list[Any]]:
+		"""The tools' schemas and which pause for approval. `session` binds attachment search."""
+		tools = self.client_tools(session)
 		return {
 			"client_tools": [tool.to_dict() for tool in tools],
 			"confirm_tools": [tool.name for tool in tools if tool.requires_confirmation],
 		}
 
-	def client_tools(self) -> list[Tool]:
+	def client_tools(self, session: str | None = None) -> list[Tool]:
 		"""This agent's tools minus update_memory, which stays local until the new memory system."""
 		from flow.memory.memory import MEMORY_TOOL_SLUG
 
-		return [tool for tool in self._resolve_tools() if tool.name != MEMORY_TOOL_SLUG]
+		return [tool for tool in self._resolve_tools(session) if tool.name != MEMORY_TOOL_SLUG]
 
-	def _resolve_tools(self) -> list[Tool]:
+	def _resolve_tools(self, session: str | None = None) -> list[Tool]:
 		from flow.memory.memory import MEMORY_TOOL_SLUG
-		from flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG, bind_search_knowledge, bind_update_memory
+		from flow.tools.builtins import (
+			ATTACHMENT_SEARCH_SLUG,
+			KNOWLEDGE_SEARCH_SLUG,
+			bind_search_attachments,
+			bind_search_knowledge,
+			bind_update_memory,
+		)
 
 		resolved: list[Tool] = []
 		for row in self.tools:
@@ -99,6 +105,8 @@ class FlowAgent(Document):
 				continue
 			if tool_doc.name == KNOWLEDGE_SEARCH_SLUG:
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
+			elif tool_doc.name == ATTACHMENT_SEARCH_SLUG:
+				resolved.append(bind_search_attachments(session))
 			elif tool_doc.name == MEMORY_TOOL_SLUG:
 				resolved.append(bind_update_memory(self.name))
 			else:

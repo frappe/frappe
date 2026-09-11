@@ -138,12 +138,12 @@ def _permissioned_count(doctype, filters=None) -> int:
 	return rows[0].get("total") if rows else 0
 
 
-_SKIP_BUILTINS = frozenset({"execute", "search_knowledge"})
+_SKIP_BUILTINS = frozenset({"execute", "search_knowledge", "search_attachments"})
 
 
 def _flow_builtins() -> dict[str, Any]:
 	"""The permission-checked builtins, callable as plain functions inside the sandbox.
-	`execute` (no recursion) and `search_knowledge` (needs a bound scope) are left out."""
+	`execute` (no recursion) and the search tools (need a bound scope) are left out."""
 	from flow.tools.builtins import BUILTIN_TOOLS
 
 	return {t.name: t.func for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}

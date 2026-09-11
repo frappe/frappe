@@ -32,7 +32,7 @@ def retrieve_attachments(query: str, *, session: str, limit: int = DEFAULT_LIMIT
 	"""Best-matching chunks from the files attached to `session`, most relevant first.
 
 	Scoping to `session` is the boundary (enforced upstream by the session-owner check).
-	Returns [{content, score}]; empty on a blank query or when nothing is indexed.
+	Returns [{attachment, content, score}]; empty on a blank query or when nothing is indexed.
 	"""
 	query = (query or "").strip()
 	if not query or not session:
