@@ -51,11 +51,7 @@ def has_permission(doc, ptype="read", user=None):
 
 @frappe.whitelist()
 def toggle_favourite(doctype: str, name: str, add: str | bool = False):
-	"""Add or remove the current user's favourite on the given record.
-
-	:param doctype: DocType of the record
-	:param name: Name of the record
-	:param add: Truthy to add; anything else removes."""
+	"""Add or remove the current user's favourite on the given record; `add` truthy adds."""
 	from frappe.utils.data import sbool
 
 	frappe.has_permission(doctype, "read", doc=name, throw=True)
@@ -67,11 +63,13 @@ def toggle_favourite(doctype: str, name: str, add: str | bool = False):
 
 	if frappe.db.exists("Favourite", key):
 		return
+	# A savepoint: on Postgres a failed insert would otherwise abort the whole transaction.
+	frappe.db.savepoint("favourite")
 	try:
 		frappe.get_doc(doctype="Favourite", **key).insert(ignore_permissions=True)
 	except frappe.UniqueValidationError:
 		# A second click landed between the check and the insert; the row is there.
-		pass
+		frappe.db.rollback(save_point="favourite")
 
 
 def get_favourites(doctype: str, name: str) -> list[dict]:

@@ -1,5 +1,5 @@
-<!-- The `favourite` built-in: a star that toggles the reader's like, over a card naming
-     everyone who has favourited the record. Desk v1's heart is the parity reference. -->
+<!-- The `favourite` built-in: a star that toggles the reader's favourite, over a card naming
+     everyone who favourited the record. -->
 <template>
 	<DefineStar>
 		<Button
@@ -34,7 +34,7 @@
 	<Tooltip v-if="!favourites.length" text="Add to favourites">
 		<Star />
 	</Tooltip>
-	<HoverCard v-else :hover-delay="0.2" :leave-delay="0.2" side="bottom" align="end">
+	<HoverCard v-else :hover-delay="0.2" :leave-delay="0.2" side="bottom" align="start">
 		<template #trigger>
 			<Star />
 		</template>

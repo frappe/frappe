@@ -214,6 +214,7 @@ function headerBuiltins(): HeaderItem[] {
 		{
 			name: "favourite",
 			label: "Favourite",
+			icon: "lucide-star",
 			zone: "left",
 			display: "button",
 			run: toggleFavourite,

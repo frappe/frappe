@@ -41,11 +41,11 @@ afterEach(() => {
 
 const control = (name: string) => ({ kind: "button" as const, item: { name, label: name } });
 
-type Likes = { favourites: { id: string; name: string }[]; favourited: boolean };
+type Favourites = { favourites: { id: string; name: string }[]; favourited: boolean };
 
 async function mount(
   projection: HeaderProjection,
-  likes: Likes = { favourites: [], favourited: false },
+  favourites: Favourites = { favourites: [], favourited: false },
   onRun: (item: any) => void = () => {},
 ) {
   const root = document.createElement("div");
@@ -53,7 +53,7 @@ async function mount(
   const app = createApp(
     defineComponent({
       render: () =>
-        h(RecordHeader, { projection, dirty: false, saving: false, ...likes, onRun }),
+        h(RecordHeader, { projection, dirty: false, saving: false, ...favourites, onRun }),
     }),
   );
   app.mount(root);
@@ -101,7 +101,7 @@ describe("the favourite built-in", () => {
     expect(root.querySelector("[data-favourites]")?.textContent).toContain("You");
   });
 
-  it("lists nobody without a like, and runs the item on click", async () => {
+  it("lists nobody without a favourite, and runs the item on click", async () => {
     const ran: string[] = [];
     const root = await mount(
       { left: [], controls: [control("favourite")], bands: [] },

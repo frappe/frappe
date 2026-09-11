@@ -33,7 +33,6 @@
 					{{ control.item.label }}
 				</span>
 
-				<!-- The star sits after the crumbs by default; a script may move it to either zone. -->
 				<RecordFavourite
 					v-else-if="control.item.name === 'favourite'"
 					:favourites="favourites"
@@ -79,6 +78,13 @@
 					</div>
 				</Dropdown>
 
+				<RecordFavourite
+					v-else-if="control.item.name === 'favourite'"
+					:favourites="favourites"
+					:favourited="favourited"
+					@toggle="run(control.item)"
+				/>
+
 				<Dropdown
 					v-else-if="control.kind === 'dropdown'"
 					:options="menuContent(control.members, run)"
@@ -95,13 +101,6 @@
 						/>
 					</div>
 				</Dropdown>
-
-				<RecordFavourite
-					v-else-if="control.item.name === 'favourite'"
-					:favourites="favourites"
-					:favourited="favourited"
-					@toggle="run(control.item)"
-				/>
 
 				<Tooltip
 					v-else-if="control.item.name === 'save'"

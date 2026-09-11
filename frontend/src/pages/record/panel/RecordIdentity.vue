@@ -1,6 +1,5 @@
-<!-- The `identity` built-in: who this record is. Title, subtitle, image and tags. The image
-     tile draws when the doctype names an `image_field`, and uploads into it with write; the
-     tags row draws once the record has one, and until then the `tags` quick action adds the first. -->
+<!-- The `identity` built-in: who this record is. Title, subtitle, image and tags; the tags
+     row draws once the record has one, and until then the `tags` quick action adds the first. -->
 <template>
 	<div class="flex items-start gap-3">
 		<RecordImage v-if="hasImage" :label="title" />

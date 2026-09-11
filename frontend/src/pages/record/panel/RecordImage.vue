@@ -1,8 +1,7 @@
-<!-- The record's picture on the `identity` built-in: click to upload or replace, hover to
-     clear it. The upload lands in `page.doc[image_field]` and the header's Save carries it.
-     With none set, the tile shows the record's initials and a camera to add one. -->
+<!-- The record's picture on the `identity` built-in; an upload lands in `page.doc[image_field]`
+     and the header's Save carries it. -->
 <template>
-	<Tooltip :text="field?.reason ?? ''" :disabled="editable || !field?.reason">
+	<Tooltip :text="field?.reason ?? ''" :disabled="!field?.reason">
 		<div class="group relative size-20 shrink-0" data-record-image>
 			<!-- The tile clips the picture itself, so it meets the rounded edge on every side. -->
 			<div
@@ -81,6 +80,7 @@
 				image-only
 				crop
 				progress-mode="field"
+				:transport="transport"
 				@uploading="onUploading"
 				@committed="onCommitted"
 			/>
@@ -90,14 +90,13 @@
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
-import { LoadingIndicator, Tooltip } from "frappe-ui";
+import { LoadingIndicator, Tooltip, useFileUpload } from "frappe-ui";
 import { CommitKey, LinkTitlesKey, NO_COMMIT } from "@framework/ui/components/Fields/types";
-import type { UploadResult } from "@framework/ui/components/FileUpload";
+import type { UploadResult, UploadTransport } from "@framework/ui/components/FileUpload";
 import { routeFor } from "@/router/routeFor";
 import { PanelContextKey } from "./context";
 import { imageFieldOf, initialsOf } from "./imageField";
 
-// Lazily mounted: the uploader and its cropper load only when attaching.
 const FileUploadDialog = defineAsyncComponent(
 	() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")
 );
@@ -116,7 +115,22 @@ const field = computed(() =>
 	)
 );
 
-// The field's own terms, and then the reader's right to write the record.
+// Attached to the record: a private File is readable by whoever can read what it hangs on,
+// where an unattached one is the uploader's alone and every other reader sees a broken tile.
+const transport: UploadTransport = (file, args, ctx) =>
+	useFileUpload().upload(file, {
+		doctype: context.doctype,
+		docname: context.docname,
+		fieldname: field.value?.fieldname,
+		private: args.isPrivate,
+		folder: args.folder,
+		optimize: args.optimize,
+		max_width: args.maxWidth,
+		max_height: args.maxHeight,
+		signal: ctx.signal,
+		onProgress: ({ loaded, total }) => ctx.onProgress(loaded, total),
+	});
+
 const editable = computed(
 	() => Boolean(field.value?.editable) && Boolean(context.docinfo.value?.permissions?.write)
 );
