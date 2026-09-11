@@ -281,7 +281,10 @@ class Meta(Document):
 	@cached_property
 	def _valid_fields(self):
 		if (frappe.flags.in_install or frappe.flags.in_migrate) and self.name in self.special_doctypes:
-			valid_fields = get_table_columns(self.name)
+			# optional columns are maintained outside the document and never inserted with it
+			valid_fields = [
+				c for c in get_table_columns(self.name) if c not in optional_fields and c != "_comments"
+			]
 		else:
 			valid_fields = self.default_fields + [
 				df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes
