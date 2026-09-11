@@ -120,7 +120,6 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 			this.select_all();
 		});
 		this.$select_buttons.find(".select-mandatory").on("click", () => {
-			// re-applies each option's original `checked`, set by the caller at build time
 			this.set_checked_options();
 			this.df.on_change && this.df.on_change();
 		});
