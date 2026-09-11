@@ -688,9 +688,6 @@ def validate_oauth(authorization_header):
 	uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
 	http_method = req.method
 	headers = req.headers
-	body = req.get_data()
-	if req.content_type and "multipart/form-data" in req.content_type:
-		body = None
 
 	try:
 		token_hash = get_oauth_token_hash(token)
@@ -700,6 +697,17 @@ def validate_oauth(authorization_header):
 		)
 		if not token_details:
 			return
+		# Read the body only after the token is known to exist — an unauthenticated request
+		# must never reach get_data(). On a path that claims the raw body the cap is disabled
+		# (max_content_length is None), so reading here would buffer an unbounded body and
+		# drain request.stream before the claiming app runs; bearer auth lives in the header,
+		# so the body is not needed for verification there.
+		if req.environ.get("frappe.claims_raw_body") or (
+			req.content_type and "multipart/form-data" in req.content_type
+		):
+			body = None
+		else:
+			body = req.get_data()
 		required_scopes = token_details.scopes.split(get_url_delimiter())
 		valid, _oauthlib_request = get_oauth_server().verify_request(
 			uri, http_method, body, headers, required_scopes
