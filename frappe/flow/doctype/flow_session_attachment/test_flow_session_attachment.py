@@ -283,6 +283,16 @@ class TestBuildTurn(IntegrationTestCase):
 		)
 		self.assertEqual(turn.attachment_rows, [])
 
+	def test_a_search_failure_is_surfaced(self):
+		self.session.append(
+			"attachments", {"file": _file().name, "file_name": "old.txt", "file_size": 1, "mode": "Retrieval"}
+		)
+		with (
+			patch("flow.knowledge.retriever.retrieve_attachments", side_effect=RuntimeError("down")),
+			self.assertRaisesRegex(frappe.ValidationError, "Could not search"),
+		):
+			build_turn(self.session, "and now?", [])
+
 	def test_images_go_to_the_server_for_a_vision_model(self):
 		data = png_bytes()
 		file_doc = _file(file_name="pic.png", content=data)

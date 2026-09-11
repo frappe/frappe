@@ -124,11 +124,7 @@ def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
 			turn.attachment_rows.append({**row, "mode": mode, "extracted_text": text})
 
 		if retrieval or any(attachment.mode == "Retrieval" for attachment in session.attachments):
-			from flow.knowledge.retriever import retrieve_attachments
-
-			excerpts = retrieve_attachments(input, session=session.name, limit=RETRIEVAL_TOP_K)
-			if excerpts:
-				turn.message += "\n" + _excerpts_block([hit["content"] for hit in excerpts])
+			turn.message += _excerpts(input, session.name)
 	except Exception:
 		cleanup_indexed_files(session.name, indexed)
 		raise
@@ -244,8 +240,6 @@ def _index(session: str, file: str, text: str) -> None:
 	settings = frappe.get_cached_doc("Flow Knowledge Settings")
 	try:
 		chunks = chunk_text(text, chunk_size=cint(settings.chunk_size), overlap=cint(settings.chunk_overlap))
-		if not chunks:
-			frappe.throw(_("No readable text found in this file."), title=_("Empty File"))
 		vectors = embed_texts(chunks)
 		attachment_store.ensure_table(cint(settings.embedding_dimension))
 		attachment_store.delete(session=session, attachment=file)
@@ -264,9 +258,22 @@ def _file_block(name: str, text: str, limit: int) -> str:
 	return f'<file name="{_xml_attr(name)}">\n{text}\n</file>'
 
 
-def _excerpts_block(excerpts: list[str]) -> str:
+def _excerpts(query: str, session: str) -> str:
+	"""The session's best-matching retrieval chunks as a message block; "" when none match."""
+	from flow.knowledge.retriever import retrieve_attachments
+
+	try:
+		hits = retrieve_attachments(query, session=session, limit=RETRIEVAL_TOP_K)
+	except Exception:
+		frappe.log_error(title="Chat attachment search failed")
+		frappe.throw(
+			_("Could not search the attached files. Please retry."), title=_("Attachment Search Failed")
+		)
+	if not hits:
+		return ""
 	lead = _("Relevant excerpts from the attached files:")
-	return f"{lead}\n<excerpts>\n" + "\n---\n".join(excerpts) + "\n</excerpts>"
+	body = "\n---\n".join(hit["content"] for hit in hits)
+	return f"\n{lead}\n<excerpts>\n{body}\n</excerpts>"
 
 
 def _xml_attr(value: str) -> str:
