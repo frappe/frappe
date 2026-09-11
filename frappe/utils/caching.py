@@ -118,7 +118,7 @@ def site_cache(ttl: int | None = 3600, maxsize: int = 16) -> Callable:
 			cached_val = frappe.client_cache.get_value(func_call_key, shared=False)
 			if cached_val is not None:
 				expected_expiry = cached_val[1]
-				if int(time.monotonic()) > expected_expiry:
+				if time.monotonic() > expected_expiry:
 					frappe.client_cache.delete_value(key=func_call_key, shared=False)
 					func.cached_values_counter -= 1
 				else:
