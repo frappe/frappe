@@ -161,6 +161,13 @@ describe("assigning", () => {
 		await vi.waitFor(() => expect(page.toast.error).toHaveBeenCalledWith("Not permitted"));
 		expect(reloadDocinfo).not.toHaveBeenCalled();
 	});
+
+	it("toasts a re-read that fails after the write landed, instead of rejecting", async () => {
+		const { root, page, reloadDocinfo } = setup(info({ write: 1 }));
+		reloadDocinfo.mockRejectedValueOnce(new Error("Sidecar down"));
+		await pick(root, ["ann@example.com", "cy@example.com"]);
+		await vi.waitFor(() => expect(page.toast.error).toHaveBeenCalledWith("Sidecar down"));
+	});
 });
 
 describe("sharing", () => {

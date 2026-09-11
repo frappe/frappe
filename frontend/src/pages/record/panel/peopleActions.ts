@@ -7,14 +7,14 @@ export function peopleActions(context: PanelContext) {
 	const page = controller.page;
 
 	// The answer is discarded: only the re-read paints, so the row never disagrees with the server.
+	// A failed re-read toasts too: the write landed, and the row is now stale.
 	async function send(method: string, params: Record<string, any>) {
 		try {
 			await page.call(method, params);
+			await reloadDocinfo();
 		} catch (caught) {
 			page.toast.error(errorMessage(caught));
-			return;
 		}
-		await reloadDocinfo();
 	}
 
 	return {

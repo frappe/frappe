@@ -55,18 +55,23 @@ const rightHand = (root: HTMLElement) =>
     .map((el) => el.dataset.label)
     .filter((label) => label !== "crumb");
 
+const band = { group: "actions", items: [{ item: { name: "delete", label: "Delete" } }] };
+
 describe("the right-hand order", () => {
-  it("draws the menu at Save's left, whatever the projection's order", async () => {
+  it("slots the menu in at Save's left and keeps the projection's order around it", async () => {
     const root = await mount({
       left: [],
       controls: [control("archive"), control("save"), control("export")],
-      bands: [{ group: "actions", items: [{ item: { name: "delete", label: "Delete" } }] }],
+      bands: [band],
     });
-    expect(rightHand(root)).toEqual(["archive", "export", "More actions", "save"]);
+    expect(rightHand(root)).toEqual(["archive", "More actions", "save", "export"]);
   });
 
-  it("draws no menu without a band, and no Save once a script hid it", async () => {
-    const root = await mount({ left: [], controls: [control("export")], bands: [] });
-    expect(rightHand(root)).toEqual(["export"]);
+  it("draws the menu last once a script hid Save, and none without a band", async () => {
+    const hidden = await mount({ left: [], controls: [control("export")], bands: [band] });
+    expect(rightHand(hidden)).toEqual(["export", "More actions"]);
+
+    const bare = await mount({ left: [], controls: [control("save")], bands: [] });
+    expect(rightHand(bare)).toEqual(["save"]);
   });
 });

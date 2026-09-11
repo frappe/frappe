@@ -1,6 +1,6 @@
 <!--
-  The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right.
-  Save stays last wherever a script puts it, so the menu is always at its left hand.
+  The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right,
+  in the projection's order, with the menu slotted in at Save's left hand.
   A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
 -->
 <template>
@@ -60,9 +60,19 @@
 		</nav>
 
 		<div class="flex shrink-0 items-center gap-2">
-			<template v-for="control in others" :key="control.item.name">
+			<template v-for="control in rightHand" :key="control.item.name">
+				<Dropdown v-if="control === MENU" :options="bands" side="bottom" align="end">
+					<div class="flex shrink-0">
+						<Button
+							icon="lucide-more-horizontal"
+							variant="subtle"
+							label="More actions"
+						/>
+					</div>
+				</Dropdown>
+
 				<Dropdown
-					v-if="control.kind === 'dropdown'"
+					v-else-if="control.kind === 'dropdown'"
 					:options="menuContent(control.members, run)"
 					side="bottom"
 					align="end"
@@ -78,6 +88,24 @@
 					</div>
 				</Dropdown>
 
+				<Tooltip
+					v-else-if="control.item.name === 'save'"
+					text="No changes to save"
+					:disabled="dirty"
+				>
+					<!-- A disabled button fires no pointer events, so the wrapper owns the box the tooltip hovers on. -->
+					<div class="flex shrink-0">
+						<Button
+							:label="control.item.label"
+							:icon-left="control.item.icon"
+							variant="solid"
+							:disabled="!dirty"
+							:loading="saving"
+							@click="run(control.item)"
+						/>
+					</div>
+				</Tooltip>
+
 				<Button
 					v-else
 					:label="control.item.label"
@@ -86,26 +114,6 @@
 					@click="run(control.item)"
 				/>
 			</template>
-
-			<Dropdown v-if="projection.bands.length" :options="bands" side="bottom" align="end">
-				<div class="flex shrink-0">
-					<Button icon="lucide-more-horizontal" variant="subtle" label="More actions" />
-				</div>
-			</Dropdown>
-
-			<Tooltip v-if="save" text="No changes to save" :disabled="dirty">
-				<!-- A disabled button fires no pointer events, so the wrapper owns the box the tooltip hovers on. -->
-				<div class="flex shrink-0">
-					<Button
-						:label="save.item.label"
-						:icon-left="save.item.icon"
-						variant="solid"
-						:disabled="!dirty"
-						:loading="saving"
-						@click="run(save.item)"
-					/>
-				</div>
-			</Tooltip>
 		</div>
 	</div>
 </template>
@@ -135,13 +143,16 @@ const bands = computed(() =>
 	}))
 );
 
-const save = computed(() =>
-	props.projection.controls.find((control) => control.item.name === "save")
-);
+// The menu's own row in the controls: at Save's left hand, or last when a script hid Save.
+const MENU = { kind: "button", item: { name: "more", label: "More actions" } } as HeaderControl;
 
-const others = computed(() =>
-	props.projection.controls.filter((control) => control.item.name !== "save")
-);
+const rightHand = computed(() => {
+	const controls = props.projection.controls;
+	if (!props.projection.bands.length) return controls;
+	const at = controls.findIndex((control) => control.item.name === "save");
+	if (at < 0) return [...controls, MENU];
+	return [...controls.slice(0, at), MENU, ...controls.slice(at)];
+});
 
 function isCrumb(control?: HeaderControl) {
 	return control?.kind === "crumb";
