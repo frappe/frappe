@@ -1,9 +1,11 @@
 import re
 
 import frappe
+from frappe.model import child_table_fields, default_fields, optional_fields
 from frappe.query_builder import DocType
 
 FIXED_WIDTH_PARTS = {"YY": 2, "MM": 2, "DD": 2, "WW": 2, "JJJ": 3, "YYYY": 4}
+STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_fields)
 CHUNK_SIZE = 20000
 
 
@@ -83,7 +85,9 @@ def part_pattern(part, meta):
 		return ".*?"
 	if part in FIXED_WIDTH_PARTS:
 		return rf"\d{{{FIXED_WIDTH_PARTS[part]}}}"
-	if part == "timestamp" or part.startswith("{") or meta.has_field(part.strip("{}")):
+	if part == "timestamp" or part.startswith("{"):
+		return ".*?"
+	if part in STANDARD_FIELDS or meta.has_field(part):
 		return ".*?"
 	return re.escape(part)
 
