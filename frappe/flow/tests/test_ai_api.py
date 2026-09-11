@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import json
 from typing import Any
 from unittest.mock import patch
 
@@ -10,6 +11,7 @@ from frappe.tests import IntegrationTestCase
 from flow import api
 from flow.api import attach_file, submit_feedback
 from flow.daemon.client import DaemonClient
+from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import FakeDaemon, pause
@@ -74,6 +76,13 @@ class TestAttachFile(IntegrationTestCase):
 	def test_attach_file_rejects_whitespace_input(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "File is required"):
 			attach_file("   ")
+
+	def test_attach_file_stages_an_image_unread(self):
+		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
+
+		file_doc = self._file(file_name="pic.png", content=png_bytes())
+		self.assertEqual(attach_file(file_doc.name)["file_name"], "pic.png")
+		self.assertIsNone(staged_attachment(file_doc.name)["extracted_text"])
 
 	def test_attach_file_unsupported_type_surfaces_at_upload(self):
 		file_doc = self._file(file_name="data.bin", content="x")
@@ -347,6 +356,24 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(again, data)
 		self.assertEqual(frappe.db.count("Flow Run", {"session": name}), 1)
 		self.assertEqual(frappe.db.count("Flow Session Message", {"parent": name}), 4)
+
+	def test_run_takes_attachments_as_a_json_list(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "notes.txt", "content": "the body", "is_private": 1}
+		).insert()
+		name = self.create()
+		api.run(name, "read", attachments=json.dumps([file_doc.name]))
+		self.assertEqual(
+			self.daemon.calls[-1], ("run", name, 'read\n<file name="notes.txt">\nthe body\n</file>')
+		)
+		self.assertEqual(frappe.db.count("Flow Session Attachment", {"parent": name}), 1)
+
+	def test_run_refuses_a_malformed_attachment_list(self):
+		name = self.create()
+		for bad in ("not json", json.dumps([1]), json.dumps({"a": 1}), json.dumps([""])):
+			with self.assertRaisesRegex(frappe.ValidationError, "Attachments must be a list"):
+				api.run(name, "hi", attachments=bad)
+		self.assertEqual([c for c in self.daemon.calls if c[0] == "run"], [])
 
 	def test_run_answers_steered_with_the_active_run(self):
 		self.daemon.answer = lambda seq, run_id, message: []

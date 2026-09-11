@@ -87,16 +87,16 @@ def list_sessions(query: str | None = None, limit: int | str = 20) -> list[dict[
 
 
 @frappe.whitelist()
-def run(session: str, message: str) -> dict[str, Any]:
+def run(session: str, message: str, attachments: list[str] | str | None = None) -> dict[str, Any]:
 	"""Start a turn and answer at once: "started" with its new run, or "steered" with the
-	active run the message joined."""
+	active run the message joined. `attachments` are File names staged with attach_file."""
 	if not isinstance(message, str) or not message.strip():
 		frappe.throw(_("Message is required."), title=_("Invalid Message"))
 	doc = _load_session(session, "write")
 	active = frappe.db.get_value(
 		"Flow Run", {"session": doc.name, "status": "Running"}, "name", order_by="creation desc"
 	)
-	run = doc.chat(message)
+	run = doc.chat(message, attachments=_parse_attachments(attachments))
 	return {"run": run.name, "status": "steered" if run.name == active else "started"}
 
 
@@ -243,6 +243,19 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 
 def _escape_like(text: str) -> str:
 	return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _parse_attachments(attachments: Any) -> list[str]:
+	if attachments in (None, ""):
+		return []
+	if isinstance(attachments, str):
+		try:
+			attachments = json.loads(attachments)
+		except ValueError:
+			attachments = None
+	if not isinstance(attachments, list) or not all(isinstance(f, str) and f.strip() for f in attachments):
+		frappe.throw(_("Attachments must be a list of File names."), title=_("Invalid Attachments"))
+	return [f.strip() for f in attachments]
 
 
 def _parse_answers(answers: Any) -> dict[str, Any]:
