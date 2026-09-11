@@ -1,6 +1,5 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
 import base64
 import datetime
 import json
@@ -37,11 +36,9 @@ class TestBulkEdit(IntegrationTestCase):
 
 		self.assertEqual(frappe.response["type"], "binary")
 		self.assertEqual(frappe.response["filename"], "Roles.xlsx")
-		# xlsx is a zip archive
 		self.assertTrue(frappe.response["filecontent"].startswith(b"PK"))
 
 	def test_download_rejects_csv(self):
-		# csv is written in the browser and must never reach the server
 		with self.assertRaises(frappe.ValidationError):
 			download_bulk_edit_template("User", "Roles", json.dumps(HEADER_ROWS), file_type="CSV")
 
@@ -59,8 +56,6 @@ class TestBulkEdit(IntegrationTestCase):
 		csv_text = "\n".join(",".join(f'"{cell}"' for cell in row) for row in rows)
 		csv = parse_bulk_edit_file("User", "roles.csv", as_dataurl(csv_text.encode()))
 
-		# the xlsx sheet is padded to a rectangle, the csv is not; the rows that
-		# carry data have to match cell for cell
 		self.assertEqual(xlsx[2][:2], ["role", "description"])
 		self.assertEqual(csv[2][:2], ["role", "description"])
 		self.assertEqual(xlsx[-1][:2], ["System Manager", "everything"])
@@ -75,8 +70,6 @@ class TestBulkEdit(IntegrationTestCase):
 			parse_bulk_edit_file("User", "roles.csv", "")
 
 	def test_dates_round_trip_through_a_spreadsheet(self):
-		# a spreadsheet has no date-only type, so a date cell reads back as a
-		# datetime; it must still come out in system format for the grid to trim
 		rows = [*HEADER_ROWS, ["System Manager", datetime.date(2026, 8, 25)]]
 		parsed = parse_bulk_edit_file(
 			"User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue())
@@ -90,7 +83,6 @@ class TestBulkEdit(IntegrationTestCase):
 		self.assertEqual(stringify(datetime.date(2026, 8, 25)), "2026-08-25")
 		self.assertEqual(stringify(datetime.datetime(2026, 8, 25, 10, 30)), "2026-08-25 10:30:00")
 		self.assertEqual(stringify(datetime.time(10, 30)), "10:30:00")
-		# openpyxl reads every number as a float
 		self.assertEqual(stringify(3.0), "3")
 		self.assertEqual(stringify(3.5), "3.5")
 

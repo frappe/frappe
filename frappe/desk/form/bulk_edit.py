@@ -1,11 +1,5 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
-"""Download and upload helpers for the in-grid bulk edit of child tables.
-
-Excel needs the server because the desk bundle has no spreadsheet reader or writer.
-"""
-
 import base64
 import datetime
 
@@ -23,17 +17,11 @@ from frappe.utils.xlsxutils import (
 
 SUPPORTED_EXTENSIONS = ("csv", "xlsx", "xls")
 
-# guards a whole spreadsheet being posted back as a form field
 MAX_TEMPLATE_ROWS = 10000
 
 
 @frappe.whitelist(methods=["POST"])
 def download_bulk_edit_template(doctype: str, title: str, data: str, file_type: str = "Excel"):
-	"""Render the grid's bulk edit template as an Excel file.
-
-	The sheet is built on the client and posted here because the grid may hold
-	unsaved rows that are not in the database yet. CSV is written in the browser.
-	"""
 	if not frappe.has_permission(doctype, "read"):
 		raise frappe.PermissionError
 
@@ -58,23 +46,12 @@ def download_bulk_edit_template(doctype: str, title: str, data: str, file_type: 
 def parse_bulk_edit_file(
 	doctype: str, filename: str | None = None, dataurl: str | None = None, file_url: str | None = None
 ) -> list[list[str]]:
-	"""Read a CSV, XLSX or XLS file into rows of strings.
-
-	A file dropped on the uploader arrives as a dataurl; one picked from the
-	library is already stored, so it arrives as a url and is read back the way
-	the Data Import doctype reads its own (importer.py ImportFile.read_file).
-
-	Stringified so one set of per-fieldtype formatters serves every format: a
-	spreadsheet hands back real numbers and datetimes where a CSV hands back text.
-	"""
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
 
 	file_doc = None
 	if file_url:
 		file_doc = frappe.get_doc("File", {"file_url": file_url})
-		# the url comes from the client, so the file behind it is only readable
-		# here if the user could have read it anywhere else
 		file_doc.check_permission("read")
 		filename = filename or file_doc.file_name
 
@@ -99,10 +76,6 @@ def parse_bulk_edit_file(
 
 @frappe.whitelist(methods=["POST"])
 def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
-	"""Read a public Google Sheet into the rows parse_bulk_edit_file returns.
-
-	Fetched and validated by the same helper the Data Import doctype uses.
-	"""
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
 
@@ -114,16 +87,6 @@ def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
 
 @frappe.whitelist(methods=["POST"])
 def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]:
-	"""Map a file's column headers onto fieldnames of the grid's child doctype.
-
-	Matching is the Data Import doctype's own, so a header may be a label, a
-	fieldname or "Label (fieldname)" — labels are why the template needs one
-	header row, fieldnames are why a hand-written file still maps.
-
-	:param doctype: the form's doctype, for the permission check
-	:param fieldname: its table field, which names the child doctype to match against
-	:param headers: JSON list of the file's header cells, in column order
-	"""
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
 
@@ -133,15 +96,11 @@ def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict
 
 	child_doctype = table_df.options
 
-	# The matcher also offers parent, parenttype, parentfield and idx for a child
-	# doctype, and read-only fields the document rewrites on save. Neither is
-	# something a spreadsheet should reach. Mirrors get_bulk_edit_docfields() in JS.
 	writable = {
 		df.fieldname
 		for df in frappe.get_meta(child_doctype).fields
 		if df.fieldtype not in no_value_fields and not df.read_only
 	}
-	# the ID is matched on, never written
 	writable.add("name")
 
 	column_map = {}
@@ -158,11 +117,6 @@ def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict
 
 @frappe.whitelist(methods=["POST"])
 def get_invalid_link_values(doctype: str, values_by_doctype: str) -> dict[str, list[str]]:
-	"""Report which Link column values do not exist, batched by target doctype.
-
-	:param doctype: the form's doctype, for the permission check
-	:param values_by_doctype: JSON ``{linked_doctype: [distinct values]}``
-	"""
 	if not frappe.has_permission(doctype, "read"):
 		raise frappe.PermissionError
 
@@ -179,7 +133,6 @@ def get_extension(filename: str) -> str:
 
 
 def decode_dataurl(dataurl: str) -> bytes:
-	"""Return the bytes carried by a ``data:...;base64,<payload>`` URL."""
 	if not dataurl:
 		frappe.throw(_("No file content received"), title=_("Invalid File"))
 
@@ -192,18 +145,12 @@ def decode_dataurl(dataurl: str) -> bytes:
 
 
 def stringify(value) -> str:
-	"""Render one spreadsheet cell as text the grid can hand to a field.
-
-	A spreadsheet has no date-only type, so a date cell always reads back as a
-	datetime; the grid knows the fieldtype and trims the time itself.
-	"""
 	if value is None:
 		return ""
 
 	if isinstance(value, bool):
 		return "1" if value else "0"
 
-	# datetime is a subclass of date, so it has to be checked first
 	if isinstance(value, datetime.datetime):
 		return value.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -213,7 +160,6 @@ def stringify(value) -> str:
 	if isinstance(value, datetime.time):
 		return value.strftime("%H:%M:%S")
 
-	# openpyxl reads every number as a float; 3.0 should not become "3.0" in a Data field
 	if isinstance(value, float) and value.is_integer():
 		return str(int(value))
 
