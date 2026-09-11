@@ -139,7 +139,7 @@ const activeFormTab = ref("");
 const formClasses = [
 	"!rounded-none !border-0",
 	"[&_[role='tablist']]:sticky [&_[role='tablist']]:top-0 [&_[role='tablist']]:z-10 [&_[role='tablist']]:bg-surface-base",
-	"[&_[role='tablist']]:gap-5 [&_[role='tablist']]:px-5 [&_[role='tab']]:py-2.5",
+	"[&_[role='tablist']]:gap-5 [&_[role='tablist']]:px-5 [&_[role='tab']]:py-2",
 	"[&_.sections]:mx-auto [&_.sections]:my-0 [&_.sections]:w-full [&_.sections]:max-w-3xl [&_.sections]:p-6",
 	"[&_.section-header]:!px-0 [&_.section-body]:!px-0",
 ];
