@@ -286,9 +286,7 @@ export default class BulkEdit {
 			display: "flex",
 			"flex-direction": "column",
 		});
-		this.tabs.$el
-			.find(".es-tabs__panel")
-			.css({ flex: "1 1 auto", "min-height": 0, "overflow-y": "auto" });
+		this.tabs.$el.find(".es-tabs__panel").css({ flex: "1 1 auto", "min-height": 0 });
 	}
 
 	make_setup_form() {
