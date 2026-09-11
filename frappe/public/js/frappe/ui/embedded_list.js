@@ -76,7 +76,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			  )}">`
 			: "";
 
-		if (!title && !description && !add) {
+		// Header shows when there's a title/description/Add, or a search box to offer.
+		if (!title && !description && !add && !this.show_search) {
 			this.$header.hide();
 			return;
 		}

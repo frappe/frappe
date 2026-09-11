@@ -84,9 +84,9 @@ function draw(panel, doctype, state) {
 
 	if (!state.included) return;
 
-	$(`<div class="text-base pb-3 font-medium">${__("Configure fields")}</div>`).appendTo($body);
+	$(`<div class="text-base-medium pb-3">${__("Configure fields")}</div>`).appendTo($body);
 
-	const $input = $('<input type="text" class="form-control input-sm dts-gs-search" />')
+	const $input = $('<input type="text" class="form-control input-sm max-w-xs mb-4" />')
 		.attr("placeholder", __("Search fields"))
 		.appendTo($body);
 
@@ -104,7 +104,7 @@ function draw(panel, doctype, state) {
 	$input.on("input", () => {
 		const q = ($input.val() || "").toLowerCase().trim();
 		$grid.find(".dts-gs-item").each((i, el) => {
-			$(el).toggleClass("hide", !!q && !$(el).attr("data-search").includes(q));
+			$(el).toggleClass("hidden", !!q && !$(el).attr("data-search").includes(q));
 		});
 	});
 }
@@ -122,11 +122,11 @@ function set_included(doctype, included) {
 			: rows.filter((r) => r.document_type !== doctype);
 
 		return frappe.call({ method: "frappe.client.save", args: { doc: settings } }).then(() => {
-			frappe.show_alert({
+			frappe.ui.toast({
 				message: included
 					? __("Added to global search")
 					: __("Removed from global search"),
-				indicator: "green",
+				type: "success",
 			});
 		});
 	});
@@ -141,7 +141,7 @@ function save(panel, doctype, state) {
 		freeze: true,
 		freeze_message: __("Updating global search"),
 		callback: () => {
-			frappe.show_alert({ message: __("Global search updated"), indicator: "green" });
+			frappe.ui.toast({ message: __("Global search updated"), type: "success" });
 			load(panel, doctype);
 		},
 	});
@@ -173,7 +173,7 @@ function make_switch(label, description, checked, onchange) {
 function make_check(label, checked, onchange) {
 	const $label = $(`<label class="dts-check">
 			<input type="checkbox" />
-			<span class="dts-check-label ellipsis"></span>
+			<span class="dts-check-label text-ink-gray-7 min-w-0 truncate"></span>
 		</label>`);
 	$label.find(".dts-check-label").text(label);
 	$label

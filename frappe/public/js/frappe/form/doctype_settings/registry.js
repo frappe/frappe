@@ -66,8 +66,12 @@ frappe.doctype_settings.overflow_menu = function (items) {
 };
 
 // Shared loading placeholder: a few skeleton lines instead of bare "Loading" text.
+// Layout via utility classes — no custom CSS.
 frappe.doctype_settings.render_loading = function ($container) {
-	const $wrap = $('<div class="dts-loading" aria-label="' + __("Loading") + '"></div>');
+	const $wrap = $('<div class="flex flex-col gap-3 py-4"></div>').attr(
+		"aria-label",
+		__("Loading")
+	);
 	["40%", "70%", "55%"].forEach((width) => {
 		$wrap.append(frappe.ui.skeleton({ width, height: "14px" }));
 	});
@@ -96,6 +100,24 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 	return $empty;
 };
 
+frappe.doctype_settings.section = function ($parent, { title, description } = {}) {
+	const $section = $('<div class="dts-section"></div>').appendTo($parent);
+	const $header = $(`
+		<div class="flex justify-between items-start gap-4 mb-4">
+			<div class="flex flex-col gap-1 w-full min-w-0">
+				<div class="dts-section-title text-xl-semibold"></div>
+				<div class="dts-section-description text-base text-ink-gray-6"></div>
+			</div>
+			<div class="dts-section-actions flex items-center gap-2 shrink-0"></div>
+		</div>
+	`).appendTo($section);
+	$header.find(".dts-section-title").text(title || "");
+	const $desc = $header.find(".dts-section-description");
+	description ? $desc.text(description) : $desc.remove();
+	const $body = $('<div class="dts-section-body"></div>').appendTo($section);
+	return { $section, $body, $actions: $header.find(".dts-section-actions") };
+};
+
 frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
 	if (frappe.doctype_settings.is_permission_error(err)) {
 		panel.body.empty();
@@ -107,7 +129,7 @@ frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
 		return;
 	}
 	const $err = panel.body.empty();
-	$('<div class="text-muted text-p-sm"></div>')
+	$('<div class="text-ink-gray-5 text-p-sm"></div>')
 		.text(__("Could not load this tab."))
 		.appendTo($err);
 	frappe.ui.button({ label: __("Retry"), size: "xs", onclick: () => retry_fn() }).appendTo($err);
@@ -135,7 +157,20 @@ frappe.doctype_settings.set_property = function (doctype, property, value) {
 			property_type: "Data",
 			value,
 		})
-		.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
+		.then(() => frappe.ui.toast({ message: __("Default updated"), type: "success" }));
+};
+
+frappe.doctype_settings.clear_property = function (doctype, property) {
+	return frappe.db
+		.get_list("Property Setter", {
+			filters: { doc_type: doctype, property },
+			fields: ["name"],
+			limit: 1,
+		})
+		.then((rows) =>
+			rows && rows.length ? frappe.db.delete_doc("Property Setter", rows[0].name) : null
+		)
+		.then(() => frappe.ui.toast({ message: __("Default removed"), type: "success" }));
 };
 
 // Each `condition` hides a tab the user could never load anyway (boot perms are a
@@ -158,17 +193,27 @@ frappe.doctype_settings.groups = [
 				condition: () => frappe.model.can_read("Workflow"),
 			},
 			{
-				id: "permissions",
-				label: __("Permissions"),
-				icon: "shield-check",
-				// Role permission APIs are System-Manager-only; hide the tab otherwise.
-				condition: () => frappe.user.has_role("System Manager"),
-			},
-			{
 				id: "print-format",
 				label: __("Print Formats"),
 				icon: "printer",
 				condition: () => frappe.model.can_read("Print Format"),
+			},
+		],
+	},
+	{
+		group: __("Permissions"),
+		items: [
+			{
+				id: "roles",
+				label: __("Roles"),
+				icon: "users",
+				condition: () => frappe.user.has_role("System Manager"),
+			},
+			{
+				id: "user-permissions",
+				label: __("User Permissions"),
+				icon: "user-lock",
+				condition: () => frappe.user.has_role("System Manager"),
 			},
 		],
 	},
