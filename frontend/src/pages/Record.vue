@@ -233,6 +233,7 @@ async function load() {
 	saved.value = {};
 	docinfo.value = null;
 	linkTitles.value = {};
+	saving.value = false;
 	controller.value = null;
 	panelLayout.value = null;
 	detailsLayout.value = null;
