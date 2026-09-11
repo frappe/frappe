@@ -927,35 +927,20 @@ body.grid-col-resizing {
 	}
 }
 
-// The bulk edit modal drives the file picker from the dialog footer, so the
-// uploader's own upload button underneath the file preview is a duplicate.
 .bulk-edit-panel .file-preview-container + .justify-content-end {
 	display: none;
 }
 
-// A picked CSV/Excel file reads as one line: name only. File size and the
-// Optimize/Private checkboxes (FilePreview.vue has no prop for hiding either
-// individually) are noise here — Optimize never even applies to these file
-// types anyway (image-only), so only Private actually disappears.
 .bulk-edit-file-pane .file-size,
 .bulk-edit-file-pane .config-area {
 	display: none;
 }
 
-// Both upload-source panes are flex columns, top-aligned — centring the
-// dropzone read better in principle, but when its content is taller than
-// the space available, centring makes it overflow equally in both
-// directions, so its own top edge (the icon/prompt) ends up scrolled out of
-// view above the tab bar. Top-aligned, both edges stay on screen.
 .bulk-edit-upload-pane {
 	display: flex;
 	flex-direction: column;
 }
 
-// The sliding indicator measures the active tab's pixel width itself
-// (ResizeObserver), which this pane's Upload step can catch mid-flight —
-// its own panel is still display:none at the moment these tabs are first
-// built. A static underline needs no measuring, so it's never wrong.
 .bulk-edit-upload-tabs .es-tabs__indicator {
 	display: none;
 }
@@ -964,11 +949,6 @@ body.grid-col-resizing {
 	box-shadow: inset 0 -2px 0 0 var(--ink-gray-9);
 }
 
-// The wizard's panels scroll inside the modal, so the scrollbar lands right
-// beside the fields. The gutter next to it is narrower than the padding on the
-// other three sides for that reason; the scrollbar itself is the modal's own.
-// The panel sits inside .bulk-edit-card, so it also carries that box's inner
-// padding everywhere else.
 .bulk-edit-tabs > .es-tabs__panel[data-state="active"] {
 	display: flex;
 	flex-direction: column;
@@ -985,28 +965,12 @@ body.grid-col-resizing {
 .bulk-edit-tabs .es-tabs__panel {
 	padding: var(--padding-md);
 	padding-right: var(--padding-sm);
-
-	// NB: this panel's overflow-y is deliberately left alone while a dropdown
-	// is open. Turning it off frees the dropdown from being clipped, but this
-	// is the panel that owns the visible scrollbar — losing it reflows
-	// everything into the reclaimed width, so the whole grid jumps sideways on
-	// a cell click. A mapping picker's list escapes by moving to <body> while
-	// it is open instead (see pin_dropdown).
 }
 
-// The wizard is sized against the window, so it keeps the same proportions
-// against the page on any screen. modal-xl's pixel max-width would cap the
-// width well short of that on a wide monitor.
 .modal-dialog.bulk-edit-dialog {
 	max-width: min(80vw, 1400px);
 }
 
-// The step row is a real frappe.ui.Stepper (same component as the Data
-// Import wizard's dialog — ported in from Doctype-PR-changes), sitting
-// directly on the modal body. Tabs still drives the panels; its own
-// bar is hidden (the direct-child selector below, not a descendant one —
-// the Upload step nests its own File upload / Google Sheet tabs, whose list
-// must stay visible) and the Stepper's on_step_click calls tabs.set_active().
 .bulk-edit-dialog .es-stepper {
 	padding-block: var(--padding-xs);
 }
@@ -1015,24 +979,10 @@ body.grid-col-resizing {
 	display: none;
 }
 
-// The tab panel and the dialog's own footer actions sit together in one box —
-// dialog.footer is moved into it in grid.js, not rebuilt, so this is styling
-// only. The modal-body's own padding is what gives the box its margin on every
-// side; the box only adds the gap under the step row.
-// The footer was moved inside the card, so the modal body's own bottom padding
-// now sits under it as well as the footer's — 15px above the buttons against
-// 15 + 15 below, which reads as the row having sunk. Dropping the footer's own
-// leaves one padding on each side of it.
 .bulk-edit-dialog .modal-footer {
 	padding-bottom: 0;
 }
 
-// While a mapping picker is open its list is moved to <body> (pin_dropdown), so
-// no overflow ancestor can clip it and place() can work in viewport
-// coordinates. It travels inside a stand-in .awesomplete because the library
-// writes the list's whole appearance, and the [hidden] rule that closes it, as
-// `.awesomplete > ul`. The host takes no room of its own and only exists to
-// stack the list above the dialog.
 .bulk-edit-dropdown-host {
 	position: fixed;
 	top: 0;
@@ -1042,21 +992,11 @@ body.grid-col-resizing {
 	z-index: 1050;
 
 	> ul {
-		// place() writes top and left only, and both are viewport coordinates;
-		// the library's own rule for this element is position: absolute
 		position: fixed;
 		min-width: 0;
 	}
 }
 
-// Every list this dialog opens, wherever it is standing: a mapping picker's and
-// a Link cell's have moved to the host by now, an Autocomplete cell's is still
-// in the table. Bounded so a long one stays a sensible size, and in vh rather
-// than px because the dialog's own height is vh-based (BULK_EDIT_DIALOG_HEIGHT)
-// — a fixed cap reads as arbitrarily short on a tall screen and still too tall
-// on a short one. Awesomplete caps how many results it renders (max_items), but
-// the mapping picker deliberately sets that to Infinity: the user needs every
-// field of the child doctype, so the height is this rule's job.
 .bulk-edit-dropdown-host > ul,
 .bulk-edit-preview-table .awesomplete > ul {
 	max-height: 30vh;
@@ -1071,8 +1011,6 @@ body.grid-col-resizing {
 	margin-top: var(--padding-sm);
 }
 
-// ---- the bulk edit preview, which doubles as the mapping step ----
-
 .bulk-edit-preview-foot {
 	flex: 0 0 auto;
 	display: flex;
@@ -1086,8 +1024,6 @@ body.grid-col-resizing {
 	}
 }
 
-// the table's own actions, held together at the right end of the line above it:
-// Refresh first where the rows came from a sheet, then Skip All
 .bulk-edit-preview-head-actions {
 	display: flex;
 	align-items: center;
@@ -1098,22 +1034,11 @@ body.grid-col-resizing {
 .bulk-edit-preview-head {
 	display: flex;
 	justify-content: space-between;
-	// the Refresh button is taller than the text opposite it, which would
-	// otherwise stretch to match and sit against the top of the row
 	align-items: center;
 	gap: var(--padding-md);
 	margin-bottom: var(--padding-sm);
 }
 
-// One line of gap, always held open whether or not there's a message in it —
-// height, not min-height, and clipped to the one line: a message long enough
-// to wrap (a Select naming all its allowed options, say) would otherwise push
-// the table down as it appears and pull it back as it clears, moving the very
-// cell that was just clicked. The full text stays available as the title.
-// what is wrong with the cell being edited, in the footer's left slot. The red
-// dot comes from .indicator; this adds the matching text colour and clips the
-// sentence to one line, with the whole of it on hover. The actions opposite set
-// the row height, so nothing moves as the message comes and goes.
 .bulk-edit-footer-message {
 	align-self: center;
 	max-width: 60ch;
@@ -1126,20 +1051,12 @@ body.grid-col-resizing {
 	}
 }
 
-// sits under the mapping line and stays put whether or not anything is flagged,
-// so the table below it never shifts
 .bulk-edit-preview-hint {
 	margin-bottom: var(--margin-xs);
 }
 
 .bulk-edit-preview-table {
-	// one row height, shared by the cells and by anything that has to fill one.
-	// The same 43px .grid-static-col and .row-index give a row of the doctype's
-	// own grid, so a table of the same rows reads the same in both places.
 	--bulk-edit-row-height: 43px;
-	// takes the height the step has left instead of sitting at its content
-	// height with dead space under it; build_preview() stretches the wrappers
-	// FieldGroup puts between this and the panel
 	flex: 1 1 auto;
 	overflow: auto;
 	min-height: 0;
@@ -1149,15 +1066,6 @@ body.grid-col-resizing {
 	}
 }
 
-// NOTHING here may switch a container's overflow while a dropdown is open.
-// It's tempting (it frees the list from being clipped) but it turns a scroll
-// container into a non-scroll one and back, so its scrollbar is dropped and
-// re-added and the whole grid shifts under the click that opened the list —
-// on open, and again on close. The list is freed in JS instead, by pinning it
-// with position: fixed once open (see sync_preview_errors), which takes it out
-// of every ancestor's flow and clipping without touching their overflow.
-
-// the file's own line number, so a warning naming a row can be found by eye
 .bulk-edit-preview-row {
 	width: 1%;
 	white-space: nowrap;
@@ -1165,37 +1073,21 @@ body.grid-col-resizing {
 	text-align: right;
 }
 
-// trailing column holding each row's Skip button. Only rows with something
-// wrong get one (see sync_preview_errors), so the column reads as empty on a
-// clean file — hugging its content keeps it from taking room from the data.
 .bulk-edit-skip-cell {
 	width: 1%;
 	white-space: nowrap;
 	text-align: right;
 	vertical-align: middle;
 
-	// the same button says Skip and then Restore, and the cell hugs it, so the
-	// column — and every column after it — would step sideways on each click.
-	// A floor the longer of the two words fits holds it still; a longer word in
-	// another language still grows the button, it just cannot shrink it.
 	.es-button {
 		min-width: 72px;
 	}
 }
 
-// left out of the import: muted, so it reads as "won't be touched" without
-// needing a warning of its own to say so — its cells keep their own red,
-// since the values in them are still what they were.
-// The values are muted, not the row: opacity applies to a whole subtree and
-// cannot be won back by a child, so fading the tr would take Restore down with
-// it and leave the one live control on the row looking disabled.
 .bulk-edit-skipped-row td:not(.bulk-edit-skip-cell) {
 	opacity: 0.5;
 }
 
-// the header just names the target field — plain text plus a dot carrying
-// whether the column is going anywhere. The picker itself is a row down
-// (.bulk-edit-mapping-row below), so this only needs read-only styling.
 .bulk-edit-preview-table th[data-col] {
 	position: relative;
 	min-width: 180px;
@@ -1219,25 +1111,16 @@ body.grid-col-resizing {
 		background: var(--green-500);
 	}
 
-	// something wrong with the column itself — mapped by two columns at once,
-	// or matching no field at all. Red on the dot, the way the Data Import
-	// preview marks its own columns; the picker below carries the sentence.
-	// After the mapped rule, which it has to win against at equal specificity.
 	&.has-error::before {
 		background: var(--red-500);
 	}
 }
 
-// an unmapped column is along for the ride; its values read as context only
 .bulk-edit-preview-table td[data-mapped="0"],
 .bulk-edit-preview-table th[data-mapped="0"] {
 	color: var(--text-muted);
 }
 
-// the actual mapping picker, one per column — reads as an input (background,
-// padding) rather than plain text, with the room a child doctype's longer
-// field names ("Only Allow Edit For") need to stay legible. Placeholder is
-// the file's own column name until it's mapped to something else.
 .bulk-edit-mapping-row td[data-col] {
 	.frappe-control {
 		margin-bottom: 0;
@@ -1254,28 +1137,13 @@ body.grid-col-resizing {
 	}
 }
 
-// an outline rather than a fill: the value in the cell is the thing being read,
-// and a wash behind it costs contrast on every one of them at once. Same inset
-// border an editable row in the doctype's own grid draws, and the same
-// --error-border it draws it in
 .bulk-edit-preview-table td.has-error {
 	box-shadow: inset 0 0 0 1px var(--error-border);
 }
 
-// A cell a warning ever named keeps its control even once valid again (not
-// just while has-error) — set once in sync_preview_errors and never removed
-// except by a remap to a different field, so this is keyed off that class,
-// not has-error. The control fills the cell (padding moves from the cell to
-// the input) rather than sitting inside it: a native <select> only reliably
-// opens its list on a genuine click, not a programmatic .focus(), so the
-// clickable surface has to BE the control, not just visually reach it.
 .bulk-edit-preview-table td.bulk-edit-editable-cell {
 	padding: 0;
 	cursor: pointer;
-	// the input below carries its own vertical padding rather than stretching
-	// to height: 100% — a percentage height doesn't resolve reliably against a
-	// table cell, which left the value sitting at the top of the cell. This
-	// centres it if the row is taller than the input (another cell's content).
 	vertical-align: middle;
 }
 
@@ -1288,17 +1156,9 @@ body.grid-col-resizing {
 	}
 }
 
-// three classes deep on purpose: a Link's input is also matched by
-// `.awesomplete .input-with-feedback` (controls.scss), which paints it
-// --control-bg grey at the same specificity this would otherwise have — and
-// wins on source order. One more class settles it without !important.
 .bulk-edit-preview-table .bulk-edit-editable-cell .form-control {
 	width: 100%;
 	height: auto;
-	// this padding is what gives the cell its height (the cell's own is zero),
-	// so the value sits centred in it rather than against the top edge. Left
-	// replaces the cell's padding; right clears the dropdown cue so the value
-	// never runs under it.
 	padding: var(--padding-xs) 28px var(--padding-xs) var(--padding-sm);
 	border: none;
 	background: transparent;
@@ -1306,17 +1166,6 @@ body.grid-col-resizing {
 	cursor: pointer;
 }
 
-// The cell owns the error styling; the control inside it must not paint its
-// own, or a red rounded box reads as a second error nested in the first.
-// base_input.js sets has-error on the control's wrapper from set_mandatory()
-// and set_invalid(), both of which run on every set_value — so clearing the
-// class in JS wouldn't hold, and the reset belongs here.
-//
-// `.frappe-control:not(…):not(…).has-error input` in controls.scss is what
-// draws it, and that file opens with `@import "grid"` — so everything here is
-// emitted before it and loses any tie on source order. Both selectors below
-// carry one more element than it does to win outright; dropping the `td` or
-// the cell class puts the red border back.
 .bulk-edit-preview-table .bulk-edit-mapping-row td[data-col] .frappe-control.has-error input,
 .bulk-edit-preview-table td.bulk-edit-editable-cell .frappe-control.has-error input {
 	border: none;
@@ -1326,19 +1175,10 @@ body.grid-col-resizing {
 	}
 }
 
-// Rows keep one height whether or not they currently hold a control or a Skip
-// button. Both come and go as values are fixed, and each is taller than the
-// plain text it replaces — without this the table reflows under the cursor
-// mid-edit, which is the same "grid moves" the overflow note above warns about.
 .bulk-edit-preview-table tbody td {
 	height: var(--bulk-edit-row-height);
 }
 
-// A cell whose control cannot draw the value — a checkbox, or a picker that
-// would write its own state over it — keeps the file's own word on show until
-// it is clicked. It is the word that is wrong, so it is the word that carries
-// the error colour; every other fieldtype shows its bad value inside a control,
-// with the red cell around it saying the same thing.
 .bulk-edit-preview-table td.bulk-edit-pending-cell {
 	color: var(--error-color);
 	cursor: pointer;
@@ -1346,10 +1186,6 @@ body.grid-col-resizing {
 	line-height: var(--bulk-edit-row-height);
 }
 
-// ControlCheck strips .form-control from its input (check.js make_input), so the
-// rule above never reaches it, and its label is inline-flex aligned to the start
-// (global.scss). A checkbox also carries none of the padding that gives every
-// other cell its height. Centre it in the row instead, both ways.
 .bulk-edit-preview-table .bulk-edit-editable-cell .checkbox {
 	margin-bottom: 0;
 

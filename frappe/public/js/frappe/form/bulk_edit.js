@@ -1,17 +1,13 @@
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// the same engine menus, popovers and tooltips are placed by, so a picker in
-// this dialog flips and clamps the way every other floating panel does
 import { place } from "../ui/components/position.js";
 import GridPagination from "./grid_pagination";
 
-// one row of labels, same as the Data Import doctype's own template (exporter.py add_header)
 const BULK_EDIT_CSV_HEADER_ROWS = 1;
 const BULK_EDIT_MAX_ROWS = 5000;
 const BULK_EDIT_FILE_TYPES = [".csv", ".xlsx", ".xls"];
 const BULK_EDIT_ID_FIELDNAME = "name";
-// same labels as Data Import, so the strings are already translated
 const BULK_EDIT_INSERT = "Insert New Records";
 const BULK_EDIT_UPDATE = "Update Existing Records";
 const BULK_EDIT_UPSERT = "Insert or Update Records";
@@ -20,42 +16,25 @@ const BULK_EDIT_DONT_IMPORT = "Don't Import";
 const BULK_EDIT_BLANK_TEMPLATE = "blank_template";
 const BULK_EDIT_ALL_RECORDS = "all";
 const BULK_EDIT_5_RECORDS = "5_records";
-// same pattern as DURATION_PATTERN in importer.py (frappe/core/doctype/data_import/importer.py)
 const BULK_EDIT_DURATION_PATTERN = /^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$/;
-// a Duration is stored as a number of seconds, which is what the template
-// exports, so a file coming back round-trip carries digits rather than "1h 30m"
 const BULK_EDIT_SECONDS_PATTERN = /^\d+$/;
-// the words importer.py's Row.parse_value accepts for a Check field, alongside 0/1
 const BULK_EDIT_CHECK_TRUE = ["t", "true", "y", "yes"];
 const BULK_EDIT_CHECK_FALSE = ["f", "false", "n", "no"];
 const BULK_EDIT_CHECK_VALUES = ["0", "1", ...BULK_EDIT_CHECK_TRUE, ...BULK_EDIT_CHECK_FALSE];
 const BULK_EDIT_NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
 const BULK_EDIT_DATA_FORMATS = { Email: "email", Phone: "phone", Name: "name", URL: "url" };
-// Controls that paint their own widget state over the cell — "NaN:NaN:NaN" from a
-// datepicker, NaN boxes from a duration picker, no word at all from a checkbox. A
-// flagged cell of one keeps the file's text and builds its control on click.
 const BULK_EDIT_DEFERRED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", "Check"];
-// every step shares one size, so switching tabs never resizes the modal.
-// the modal is sized against the window rather than in pixels: it takes 90%
-// of the height, less the header and footer the body sits between, so the
-// margin above and below stays even on any screen. the width comes with it,
-// from .bulk-edit-dialog in grid.scss
 const BULK_EDIT_DIALOG_SIZE = "extra-large";
 const BULK_EDIT_DIALOG_HEIGHT = "calc(90vh - 104px)";
 const BULK_EDIT_PREVIEW_ROWS = 10;
 const BULK_EDIT_FIX_PAGE_LENGTH = 50;
 
-// the four steps, in the order the dialog walks them
 const TAB_SETUP = 0;
 const TAB_UPLOAD = 1;
 const TAB_FIX = 2;
 const TAB_PREVIEW = 3;
-// spreadsheet cells come back in system format, csv cells in the user's date format
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
 
-// Every fieldtype whose stored value is not the string the file carries. These
-// mirror importer.py Row.parse_value — a value that passed validation still has
-// to be converted, or it reaches the doc as text and is silently wrong.
 const BULK_EDIT_VALUE_FORMATTERS = {
 	Date: (val) => {
 		if (!val) return val;
@@ -77,17 +56,11 @@ const BULK_EDIT_VALUE_FORMATTERS = {
 	Duration: (val) => bulk_edit_to_seconds(val),
 };
 
-/** The two time formats a file may carry: the user's own, and the stored one. */
 const BULK_EDIT_TIME_FORMATS = () => [
 	frappe.datetime.get_user_time_fmt(),
 	frappe.defaultTimeFormat,
 ];
 
-/**
- * The Upload dialog behind a child table's bulk edit: download a template, feed
- * a file or a Google Sheet back in, map its columns onto fields, fix what the
- * file got wrong in place, and apply the rows to the grid.
- */
 export default class BulkEdit {
 	constructor(grid) {
 		this.grid = grid;
@@ -97,11 +70,6 @@ export default class BulkEdit {
 		return this.grid.df.label || frappe.model.unscrub(this.grid.df.fieldname);
 	}
 
-	/**
-	 * Value fields of the child doctype, ID first so rows can be matched on it.
-	 * Read-only fields are left out — the document rewrites them on save. The one
-	 * gate for template and picker alike; its twin is in bulk_edit.py.
-	 */
 	get_docfields() {
 		return [
 			{ fieldname: BULK_EDIT_ID_FIELDNAME, label: __("ID"), fieldtype: "Data" },
@@ -111,36 +79,18 @@ export default class BulkEdit {
 		];
 	}
 
-	/**
-	 * One modal, one size, three steps: Setup, Upload, Preview. A step unlocks once
-	 * the one before it has produced what it needs and stays open afterwards, so
-	 * earlier choices can be revisited. Mapping, per-cell fixes and skipping all
-	 * happen in Preview, so nothing is corrected a step away from where it shows.
-	 */
 	show() {
-		// a read only grid cannot take rows back, so only the template step applies
 		this.can_import = this.grid.is_editable();
 		this.state = {
 			import_type: BULK_EDIT_INSERT,
 			headers: [],
 			rows: [],
 			row_numbers: [],
-			// what the header matcher made of the columns, with column_overrides
-			// laid over it — the mapping the preview and the import both read
 			column_map: {},
-			// the picks made by hand in the preview, "Don't Import" included,
-			// keyed by column index. Kept apart from column_map so a re-read can
-			// match every other column afresh, the way the Data Import doctype
-			// overlays template_options.column_to_field_map on its own matching.
 			column_overrides: {},
 			warnings: [],
-			// row numbers left out of the import by their own checkbox in the preview
 			skipped_rows: new Set(),
-			// set while the rows on screen came from a sheet rather than a file,
-			// which is what the preview's Refresh button re-reads
 			google_sheets_url: "",
-			// set while the rows on screen came from a file already in the
-			// library, which the uploader itself holds nothing for
 			library_file_url: "",
 			fix_page: 1,
 		};
@@ -148,23 +98,15 @@ export default class BulkEdit {
 		this.panels = {
 			setup: $('<div class="bulk-edit-panel"></div>'),
 			upload: $('<div class="bulk-edit-panel"></div>'),
-			// the same table as the preview, cut down to the rows that need
-			// attention — all of them, not just the page the preview shows
 			fix: $('<div class="bulk-edit-panel"></div>'),
 			preview: $('<div class="bulk-edit-panel"></div>'),
 		};
-		// mounted inline rather than in its own dialog, so nothing stacks
 		this.file_uploader = null;
 		this.preview_form = null;
 		this.mapping_controls = [];
-		// set_value fires the control's change hook, so the initial pass would
-		// redraw once per column before the last one exists. One redraw at the end
-		// of the build covers them all.
 		this.building_preview = false;
-		// discards a stale link-check response if a newer mapping change started one first
 		this.preview_request_id = 0;
 		this.link_warnings = [];
-		// live edit controls mounted over a flagged cell, keyed "row:col"
 		this.cell_controls = {};
 
 		this.make_dialog();
@@ -172,7 +114,6 @@ export default class BulkEdit {
 		this.watch_cell_pickers();
 
 		this.dialog.show();
-		// an import type is picked by default, so upload is reachable straight away
 		if (this.can_import) this.tabs.set_disabled(TAB_UPLOAD, false);
 		this.set_footer();
 	}
@@ -183,11 +124,7 @@ export default class BulkEdit {
 			size: BULK_EDIT_DIALOG_SIZE,
 			centered: true,
 		});
-		// the width is a share of the window too, so the modal keeps the same
-		// proportions against the page that the height does
 		$(this.dialog.wrapper).addClass("bulk-edit-dialog");
-		// the body owns the height and each panel fills what is left under the tab
-		// bar, so a tall panel scrolls inside itself instead of growing the modal
 		this.dialog.modal_body.css({ height: BULK_EDIT_DIALOG_HEIGHT, "overflow-y": "hidden" });
 		this.dialog.$body.css({ height: "100%", display: "flex", "flex-direction": "column" });
 
@@ -217,9 +154,6 @@ export default class BulkEdit {
 			on_change: (index) => {
 				this.stepper.set_current(index);
 				this.sync_uploaded_file();
-				// the two table steps share one table over different rows, so
-				// arriving at one it was not built for rebuilds it against that
-				// step; arriving at the one it already holds leaves it alone
 				if (
 					[TAB_FIX, TAB_PREVIEW].includes(index) &&
 					this.state.rows.length &&
@@ -231,9 +165,6 @@ export default class BulkEdit {
 			},
 		});
 		this.tabs.$el.addClass("bulk-edit-tabs");
-		// Tabs' own bar still exists (it drives the panels) but the Stepper
-		// below replaces it visually — same component the Data Import wizard
-		// uses for its step row, so the two dialogs read identically.
 		this.tabs.$el.find(".es-tabs__list").hide();
 
 		this.stepper = new frappe.ui.Stepper({
@@ -242,35 +173,20 @@ export default class BulkEdit {
 			on_step_click: (index) => this.tabs.set_active(index),
 		});
 
-		// tabs.set_disabled() is called from several places below to lock/unlock
-		// steps as the flow progresses; wrapping it here means the stepper's
-		// lock icons stay in sync everywhere, without touching each call site.
 		const set_disabled = this.tabs.set_disabled.bind(this.tabs);
 		this.tabs.set_disabled = (index, disabled) => {
 			set_disabled(index, disabled);
 			this.stepper.refresh();
 		};
 
-		// The panel the step row governs and the dialog's own footer actions live
-		// together underneath it — same shape as the Data Import wizard's dialog.
-		// Moving dialog.footer's actual node (not rebuilding it) means
-		// set_footer()'s primary/secondary action calls below need no changes.
 		const $card = $('<div class="bulk-edit-card"></div>');
 		this.dialog.$body.append(this.stepper.$el, $card);
 		$card.append(this.tabs.$el, this.dialog.footer);
 
-		// the cell message goes in the footer's own left slot, opposite the actions,
-		// so the preview keeps that line of height for the table instead
-		// .indicator red is how frappe marks a red status inline — the Data Import
-		// preview marks its own errored columns the same way. The text sits in a
-		// child so it can be clipped; .indicator itself is a flex row.
 		this.$message = $(
 			'<div class="bulk-edit-footer-message indicator red small hide"><span></span></div>'
 		).appendTo(this.dialog.custom_actions);
 
-		// standard-actions is static markup that set_primary_action and its
-		// siblings write into rather than rebuild, so one button prepended here
-		// outlives every set_footer() and stays left of whatever they put up
 		this.$back = frappe.ui
 			.button({
 				label: __("Back"),
@@ -301,7 +217,6 @@ export default class BulkEdit {
 					options: BULK_EDIT_IMPORT_TYPES.map((value) => ({ label: __(value), value })),
 					default: BULK_EDIT_INSERT,
 					reqd: 1,
-					// the export that suits the import, still free to change afterwards
 					change: () => {
 						const value = this.setup_form.get_value("import_type");
 						this.state.import_type = value;
@@ -355,13 +270,6 @@ export default class BulkEdit {
 		this.setup_form.make();
 	}
 
-	/**
-	 * The rows of the field picker. ID is only mandatory where the import matches
-	 * rows on it — an insert makes its own names, so ID is neither ticked nor
-	 * starred there. Everything else keeps whatever the user has picked, so
-	 * changing the import type moves ID alone.
-	 * @param {string[]} [selected] fieldnames to keep ticked, ID aside
-	 */
 	get_field_options(selected = []) {
 		const matches_on_id = this.state.import_type !== BULK_EDIT_INSERT;
 		return this.get_docfields().map((df) => {
@@ -376,7 +284,6 @@ export default class BulkEdit {
 		});
 	}
 
-	/** Rebuild the picker against the import type now chosen. */
 	refresh_field_options() {
 		const control = this.setup_form.fields_dict.fields;
 		control.df.options = this.get_field_options(control.get_value() || []);
@@ -384,9 +291,7 @@ export default class BulkEdit {
 		this.set_footer();
 	}
 
-	/** Cell pickers mount on the body, so closing them is the dialog's job. */
 	watch_cell_pickers() {
-		// capture, so it runs before the dialog or the table can swallow the click
 		this.on_document_mousedown = (event) => this.handle_document_mousedown(event);
 		document.addEventListener("mousedown", this.on_document_mousedown, true);
 		this.dialog.$wrapper.on("hidden.bs.modal", () => {
@@ -399,18 +304,10 @@ export default class BulkEdit {
 		return this.file_uploader?.uploader?.files?.length || 0;
 	}
 
-	/**
-	 * A file chosen in the library browser, which FileUploader keeps to itself —
-	 * its component exposes files and upload_files but not the browser's own
-	 * selection, so the selected node is read off the tree. `.file-doc-link`
-	 * only renders on a leaf (TreeNode.vue), which is what tells a file apart
-	 * from the folder it sits in.
-	 */
 	has_library_selection() {
 		return Boolean(this.panels.upload.find(".tree-link.active .file-doc-link").length);
 	}
 
-	/** A file waiting to be read, whichever of the two ways it was chosen. */
 	has_file_selection() {
 		return Boolean(this.uploaded_file_count() || this.has_library_selection());
 	}
@@ -435,23 +332,12 @@ export default class BulkEdit {
 			display: "flex",
 			"flex-direction": "column",
 		});
-		// the bar keeps its own height regardless of what the panel below it
-		// does — without this it's free to shrink (flex's default) and the
-		// growing panel squeezes the tab labels
 		upload_tabs.$el.find(".es-tabs__list").css({ flex: "0 0 auto" });
-		// sizing only, not display — .es-tabs__panel's own display is how the
-		// tab component hides the inactive pane ([data-state="inactive"]), and
-		// an inline display here would win over that and show both at once.
-		// overflow-y matters too: the file pane centres its content, and
-		// without a scroll container of its own, anything taller than the
-		// available space bleeds out both ways — up, over the tab bar, included
 		upload_tabs.$el.find(".es-tabs__panel").css({
 			flex: "1 1 auto",
 			"min-height": 0,
 			"overflow-y": "auto",
 		});
-		// centring (empty) vs. top-aligned (.has-file, toggled below) is in
-		// grid.scss; the Google Sheet pane is a plain field, so it's always top
 		$file_pane.css({ height: "100%" });
 		$sheet_pane.css({ height: "100%" });
 
@@ -459,19 +345,13 @@ export default class BulkEdit {
 			wrapper: $file_pane,
 			as_dataurl: true,
 			allow_multiple: false,
-			// none of these fit a CSV/Excel-only upload — Link duplicates the
-			// Google Sheet tab, and Camera/Google Drive don't produce spreadsheets.
-			// Library (the internal file browser) stays on, same as the PR.
 			allow_web_link: false,
 			allow_take_photo: false,
 			allow_google_drive: false,
 			restrictions: { allowed_file_types: BULK_EDIT_FILE_TYPES },
 			on_success: (file) => this.read_file(file, (rows) => this.on_file(rows)),
 		});
-		// keep it at its natural height so the centring above has room to work
 		$file_pane.children(".file-uploader").css({ flex: "0 0 auto" });
-		// dropping a file or clearing one changes what the later tabs describe,
-		// and whether the pane still reads as an empty drop target
 		$file_pane.on("click change drop", () =>
 			setTimeout(() => {
 				$file_pane.toggleClass("has-file", Boolean(this.uploaded_file_count()));
@@ -480,15 +360,11 @@ export default class BulkEdit {
 			}, 0)
 		);
 
-		// No separate Import button — same as the PR: entering a URL and
-		// leaving the field (change fires on blur/Enter) is the trigger.
 		const sheet_form = new frappe.ui.FieldGroup({
 			body: $sheet_pane[0],
 			no_submit_on_enter: true,
 			fields: [
 				{
-					// same label/description as the Data Import doctype's own
-					// google_sheets_url field, for the same reason it uses them
 					fieldtype: "Data",
 					fieldname: "google_sheets_url",
 					label: __("Import from Google Sheets"),
@@ -505,11 +381,6 @@ export default class BulkEdit {
 		return this.panels.upload[0];
 	}
 
-	/**
-	 * A file taken back out of the uploader takes its parsed rows with it. Rows
-	 * read from a Google Sheet or from a file already in the library have no
-	 * file in the uploader behind them, so they stay.
-	 */
 	sync_uploaded_file() {
 		if (this.state.google_sheets_url || this.state.library_file_url) return;
 		if (!this.file_uploader || this.uploaded_file_count() || !this.state.rows.length) return;
@@ -526,15 +397,12 @@ export default class BulkEdit {
 			if (!picker) return;
 
 			if (control.$wrapper.closest("td").get(0)?.contains(event.target)) {
-				// the cell toggles, since the control's own handler only ever opens
 				if (!picker_is_open(control)) {
 					open_picker(control);
 					return;
 				}
 				close_picker(control);
 				control._closed_by_cell = true;
-				// both pickers open on focus, and hide() blurs the input on its way
-				// out — so the focus this mousedown would deliver reopens it
 				event.preventDefault();
 				return;
 			}
@@ -553,32 +421,18 @@ export default class BulkEdit {
 			...this.get_docfields().map((df) => ({
 				label: __(df.label || df.fieldname, null, df.parent),
 				value: df.fieldname,
-				// the file speaks fieldnames, so the picker shows both names
 				description: df.fieldname,
 			})),
 		];
 	}
 
-	/**
-	 * The step the table is built into. Fix Issues and Preview show the same
-	 * table over different rows, so only the active one ever holds it.
-	 */
 	step_panel() {
 		return this.tabs.get_active() === TAB_FIX ? this.panels.fix : this.panels.preview;
 	}
 
-	/**
-	 * The rows the active step puts on screen. Preview shows the head of the
-	 * file; Fix Issues shows every row that needs attention and nothing else,
-	 * so a warning on row 500 is reachable rather than only counted.
-	 */
 	step_view() {
 		const fixing = this.tabs.get_active() === TAB_FIX;
 		const issues = this.get_issue_rows();
-		// Fix Issues is where the file is worked on: every column, so one that
-		// matched nothing can still be mapped, and only the rows needing a hand.
-		// Preview is what the import will actually do: the columns going
-		// somewhere, and the rows going with them.
 		const columns = this.state.headers
 			.map((header, index) => index)
 			.filter((index) => fixing || this.state.column_map[index]);
@@ -626,7 +480,6 @@ export default class BulkEdit {
 		return rows.slice(start, start + BULK_EDIT_FIX_PAGE_LENGTH);
 	}
 
-	/** @param {boolean} [keep_skipped_rows] carry the skipped rows over the rebuild */
 	build_preview(keep_skipped_rows = false) {
 		this.discard_cell_controls();
 		this.panels.fix.empty();
@@ -647,10 +500,6 @@ export default class BulkEdit {
 		$table.find(".bulk-edit-refresh-sheet").on("click", () => this.refresh_google_sheet());
 		$table.find(".bulk-edit-skip-all").on("click", () => this.skip_issue_rows());
 		this.make_pagination($table, view);
-		// FieldGroup nests the field several levels below the panel, and each level
-		// sits at its content height by default — so the table would stop short and
-		// leave the rest of the step empty. Walked rather than named, since the
-		// depth is FieldGroup's business, not ours.
 		$panel.css({ height: "100%", display: "flex", "flex-direction": "column" });
 		$table.parentsUntil($panel).addBack().css({
 			display: "flex",
@@ -661,9 +510,6 @@ export default class BulkEdit {
 		const options = this.mapping_options();
 		this.building_preview = true;
 		const seeded = [];
-		// indexed by the column's place in the file, with holes where a view
-		// leaves a column out — forEach skips those, so every reader below still
-		// gets (control, column index) pairs without a lookup of its own
 		this.mapping_controls = [];
 		view.mapping &&
 			view.columns.forEach((i) => {
@@ -676,9 +522,6 @@ export default class BulkEdit {
 						max_items: Infinity,
 						options,
 						change: () => {
-							// building_preview marks the seeding pass, which
-							// fires change on every control; only a pick made
-							// by hand is an override worth carrying over
 							if (!this.building_preview) {
 								this.state.column_overrides[i] = control.get_value();
 							}
@@ -689,20 +532,12 @@ export default class BulkEdit {
 					render_input: true,
 					only_input: true,
 				});
-				// this list is every field of the child doctype, so it is long and
-				// has to scroll; unpinned it is clipped by the table's own overflow
 				this.pin_dropdown(control);
-				// same as a flagged cell: clicking the thing that is wrong puts
-				// what is wrong with it in the footer
 				control.$input?.on("focus click", () => this.show_cell_message(control));
 				seeded.push(control.set_value(this.state.column_map[i] || BULK_EDIT_DONT_IMPORT));
 				this.mapping_controls[i] = control;
 			});
 
-		// set_value writes through run_serially, so the controls are still empty
-		// when this returns. Closing the pass any earlier reads them as unmapped:
-		// the seeds then land as hand-made overrides, and column_map is rebuilt
-		// from nothing.
 		this._built_step = this.tabs.get_active() === TAB_FIX ? TAB_FIX : TAB_PREVIEW;
 		return Promise.all(seeded).then(() => {
 			this.building_preview = false;
@@ -710,36 +545,18 @@ export default class BulkEdit {
 		});
 	}
 
-	/**
-	 * What is wrong with the cell being edited, in the footer's left slot. Reads
-	 * _warning live, so it says what is true now rather than when the control was
-	 * built; title as well as text, since one clipped line cannot hold a long one.
-	 */
 	show_cell_message(control) {
 		const message = control?._warning?.message || "";
 		this.$message.toggleClass("hide", !message).attr("title", message);
 		this.$message.children("span").text(message);
 	}
 
-	/**
-	 * Keep a cell's date or time picker on screen. Air-datepicker already hangs
-	 * it off <body> (.datepickers-container), so nothing clips it; what runs it
-	 * off the bottom is ControlDate.update_datepicker_position, which only flips
-	 * it above the input when the room up there is enough for the whole picker.
-	 * In a dialog on a short screen neither side has that much, so it stays
-	 * below and hangs past the viewport. place() picks the roomier side and
-	 * clamps what it puts there, which is the answer the rest of the framework's
-	 * floating panels already use.
-	 */
 	pin_datepicker(control) {
 		const picker = control.datepicker;
 		const panel = picker && $(picker.$datepicker).get(0);
 		if (!panel) return;
 
 		const reposition = () => {
-			// beats `.datepicker.active { position: absolute }`, which would
-			// otherwise resolve place()'s viewport coordinates against
-			// .datepickers-container at the top of the document
 			panel.style.position = "fixed";
 			place(panel, control.$input[0].getBoundingClientRect(), "bottom", "start", 4);
 		};
@@ -748,8 +565,6 @@ export default class BulkEdit {
 		const original_show = picker.opts.onShow;
 		const original_hide = picker.opts.onHide;
 		picker.opts.onShow = (...args) => {
-			// after ControlDate's own handler, which sets the position this
-			// replaces, and only once it has laid the picker out at full size
 			call(original_show, args);
 			reposition();
 			window.addEventListener("resize", reposition);
@@ -767,12 +582,6 @@ export default class BulkEdit {
 		const list = home?.querySelector(":scope > ul");
 		if (!list) return;
 
-		// place() works in viewport coordinates and reads the panel's real
-		// size, so the panel has to be fixed and parented to <body>, out of
-		// every overflow: hidden ancestor. The list cannot go there bare: its
-		// whole appearance, and the [hidden] rule that closes it, are written
-		// as `.awesomplete > ul` and `.awesomplete [hidden]`. So a stand-in
-		// .awesomplete travels with it and is put back on close.
 		const host = document.createElement("div");
 		host.className = "awesomplete bulk-edit-dropdown-host";
 
@@ -784,9 +593,6 @@ export default class BulkEdit {
 			document.body.appendChild(host);
 			list.style.width = `${control.$input[0].offsetWidth}px`;
 			reposition();
-			// the anchor rides in a scrolling table, so the list follows it
-			// rather than being closed out from under the cursor. Capture,
-			// because scroll does not bubble and what scrolls is an ancestor.
 			window.addEventListener("resize", reposition);
 			document.addEventListener("scroll", reposition, { capture: true, passive: true });
 		});
@@ -794,8 +600,6 @@ export default class BulkEdit {
 		control.$input.on("awesomplete-close", () => {
 			window.removeEventListener("resize", reposition);
 			document.removeEventListener("scroll", reposition, { capture: true });
-			// back where Awesomplete expects it, so a later open, a rebuild of
-			// the table, or the control being discarded finds its own DOM whole
 			home.appendChild(list);
 			host.remove();
 			list.style.width = "";
@@ -806,33 +610,18 @@ export default class BulkEdit {
 		const original = this.state.rows[r][col];
 		const df = { ...warning.field };
 
-		// A hidden field renders no control at all (base_control.js get_status
-		// returns "None"), which would leave the cell looking empty and dead.
-		// Hidden describes how the field behaves on a form; the value here is the
-		// file's, still being corrected on its way in, and the import writes it
-		// either way. Read-only needs no such reset — those fields are never
-		// offered for mapping (get_docfields), so no cell is ever one.
 		df.hidden = 0;
 		df.hidden_due_to_dependency = 0;
 
 		if (df.fieldtype === "Select") {
-			// a <select> can't display a value with no matching <option> — add
-			// the file's own value as one, so it shows instead of blank
 			const options = (df.options || "").split("\n").map((o) => o.trim());
 			if (original && !options.includes(cstr(original).trim())) {
 				df.options = [original, ...options].join("\n");
 			}
 		} else if (df.fieldtype === "Link") {
-			// ControlLink.validate() existence-checks against the server and
-			// returns empty when there's no such record — exactly our case. The
-			// value's invalidity is already reported by our own warning.
 			df.ignore_link_validation = true;
 		}
 
-		// the input fills the whole cell (grid.scss) rather than sitting inside
-		// it, so any click in the cell is a genuine click on the input — the
-		// only way a native <select> reliably opens its list across browsers is
-		// a real click, not a programmatic .focus()/.click()
 		$(cell).addClass("bulk-edit-editable-cell");
 		const control = frappe.ui.form.make_control({
 			df: {
@@ -849,20 +638,12 @@ export default class BulkEdit {
 		});
 		control._fieldname = fieldname;
 		control._warning = warning;
-		// what the dropdown cue below positions itself against
 		control.$wrapper.css("position", "relative");
 		this.pin_datepicker(control);
 
 		if (df.fieldtype === "Link") {
-			// an invalid value has no record to fetch a title for, which would
-			// otherwise blank the input — show it as plain text, same as every
-			// other fieldtype already does
 			control.set_link_title = async (value) =>
 				control.translate_and_set_input_value(value, value);
-			// Select gets a dropdown cue for free (ControlSelect.set_icon);
-			// Link's autocomplete input doesn't. Inline position, not a
-			// stylesheet rule: .select-icon's own CSS needs a positioned
-			// ancestor this cell's markup doesn't reliably give it.
 			$(`<div class="select-icon">${frappe.utils.icon("chevrons-up-down", "sm")}</div>`)
 				.css({
 					position: "absolute",
@@ -875,13 +656,6 @@ export default class BulkEdit {
 		}
 
 		if (BULK_EDIT_NUMERIC_FIELDTYPES.includes(df.fieldtype)) {
-			// ControlFloat.parse() returns null for what parseFloat cannot read and
-			// ControlInt.parse() turns "abc" into 0, blanking the very cell they are
-			// flagged for. Hold the text; converting it is the formatters' job, on
-			// apply. Only these: a deferred fieldtype is seeded empty, so it never
-			// holds a bad value, and overriding its parse breaks the picker — the
-			// datepicker feeds parse()'s result back through str_to_obj(), which
-			// reads system format, and a user-format string there renders NaN.
 			control.parse = (value) => value;
 			control.format_for_input = (value) => cstr(value);
 			control.validate = (value) => value;
@@ -894,9 +668,6 @@ export default class BulkEdit {
 			}
 		);
 
-		// click as well as focus, since focus fires once and the cell stays focused.
-		// The empty search term matters: link.js only opens on an empty input, and
-		// searching on the value no record matches would list nothing.
 		control.$input?.on("focus click", () => {
 			this.show_cell_message(control);
 			if (df.fieldtype !== "Link") return;
@@ -924,10 +695,6 @@ export default class BulkEdit {
 			frappe.ui
 				.button({
 					label: skipped ? __("Restore") : __("Skip"),
-					// same options this grid's own footer buttons use (Add row,
-					// Edit, Duplicate rows): default subtle variant, size sm, and
-					// no red theme — skipping a row is an ordinary action, not a
-					// destructive one
 					size: "sm",
 					onclick: () => {
 						this.state.skipped_rows[skipped ? "delete" : "add"](row);
@@ -938,13 +705,6 @@ export default class BulkEdit {
 		});
 	}
 
-	/**
-	 * A warning about a column rather than about a value in it has no row, so
-	 * there is no cell to turn red. It goes on the column's own dot and on its
-	 * picker, which reads the message out in the footer when clicked — the same
-	 * pairing the Data Import preview uses, where a red indicator on the header
-	 * stands next to the sentence that explains it.
-	 */
 	sync_column_errors($table, warnings) {
 		const by_column = {};
 		warnings.forEach((w) => {
@@ -970,8 +730,6 @@ export default class BulkEdit {
 		this.render_skip_buttons($table, warnings);
 		this.sync_column_errors($table, warnings);
 
-		// tr[data-row] scopes this to the data rows: the mapping row carries
-		// td[data-col] cells of its own, and they hold pickers, not values
 		$table.find("tr[data-row] td[data-col]").each((_, cell) => {
 			const row = cint(cell.closest("tr").dataset.row);
 			const col = cint(cell.dataset.col);
@@ -980,20 +738,13 @@ export default class BulkEdit {
 			const fieldname = this.state.column_map[col];
 			const existing = this.cell_controls[key];
 
-			// red only while the value is actually invalid — the control
-			// underneath stays put either way
 			$(cell).toggleClass("has-error", Boolean(warning));
 
 			if (existing) {
-				// still the same target field: keep the control and just keep its
-				// warning current, so re-editing is never a one-shot thing
 				if (existing._fieldname === fieldname) {
 					existing._warning = warning;
 					return;
 				}
-				// the column got remapped — this control is for the field that
-				// used to be here, so drop it and fall through to build a fresh
-				// one for what's mapped now
 				discard_cell_control(existing);
 				delete this.cell_controls[key];
 				$(cell)
@@ -1008,25 +759,17 @@ export default class BulkEdit {
 			const fieldtype = mapped_df?.fieldtype;
 			$(cell).removeClass("bulk-edit-pending-cell").off("click.bulk-edit-reveal");
 
-			// A picker or a checkbox cannot show a value it cannot read — it draws
-			// its own state over the input instead, which is where "NaN:NaN:NaN"
-			// came from. So the faulty value stays on show as the cell's own text,
-			// in the error colour, and the control is built by the click that goes
-			// to resolve it: seeded clean, so the picker opens on a real time.
 			if (warning?.field && BULK_EDIT_DEFERRED_FIELDTYPES.includes(fieldtype)) {
 				$(cell)
 					.addClass("bulk-edit-pending-cell")
 					.one("click.bulk-edit-reveal", () => {
 						const control = this.make_cell_control(cell, r, col, warning, fieldname);
 						this.cell_controls[key] = control;
-						// the click that revealed it landed on the cell, not on the control
 						control.$input?.trigger("focus");
 					});
 				return;
 			}
 
-			// a Check whose value the box can represent reads as the box itself:
-			// "Yes" and "1" both mean a tick, which is what will be imported
 			if (!warning?.field && fieldtype !== "Check") return;
 
 			this.cell_controls[key] = this.make_cell_control(
@@ -1038,13 +781,7 @@ export default class BulkEdit {
 			);
 		});
 
-		// the edit that prompted this recompute may well have fixed the very
-		// cell being edited, in which case the sentence saying what was wrong
-		// with it has to go too. Focus doesn't move when a value is picked, so
-		// the handler above won't fire again to clear it.
 		this.show_cell_message(
-			// mapping_controls is sparse where a view leaves a column out, and
-			// spreading it fills those places with undefined
 			[...Object.values(this.cell_controls), ...this.mapping_controls].find((c) =>
 				c?.$input?.is(":focus")
 			)
@@ -1055,9 +792,6 @@ export default class BulkEdit {
 		if (this.building_preview) return;
 		const request_id = ++this.preview_request_id;
 
-		// the pickers are the mapping while they are on screen. A step without
-		// them (Preview shows the result, not the controls) leaves the mapping
-		// exactly as the step that owns it left it.
 		if (this.mapping_controls.length) {
 			const picked = {};
 			this.mapping_controls.forEach((control, i) => {
@@ -1068,11 +802,6 @@ export default class BulkEdit {
 		}
 		const map = this.state.column_map;
 
-		// a mapped column carries its values into the table, an unmapped one is
-		// along for the ride; the cells say so without a legend. The header
-		// text itself is the file's own and never changes with the mapping —
-		// which field a column lands in is the picker's job to show, one row
-		// down, and a column stays recognisable by what the file called it.
 		this.preview_form
 			.get_field("table")
 			.$wrapper.find("[data-col]")
@@ -1090,49 +819,26 @@ export default class BulkEdit {
 		const link_warnings = recheck_links
 			? await this.get_link_warnings(this.state.rows, this.state.row_numbers, map)
 			: this.link_warnings;
-		// a later mapping change already started its own refresh; let that one win
 		if (request_id !== this.preview_request_id) return;
 		this.link_warnings = link_warnings;
 		warnings.push(...link_warnings);
 		this.state.warnings = warnings;
-		// no text summary — the red, editable cells are the only warning
-		// surface now; state.warnings still gates Apply below
 		this.sync_preview_errors(warnings);
 		this.settle_fix_step();
 
 		this.set_footer();
 	}
 
-	/**
-	 * The row numbers Fix Issues stands on: what counts as still needing a hand.
-	 * Read from state.warnings, whose entries carry {row, col, message, blocking};
-	 * a column warning has no row of its own.
-	 * @returns {Set<number>} row numbers, matching state.row_numbers
-	 */
-	/**
-	 * Whether anything still stands in the way of the import — a bad cell or a
-	 * bad mapping alike. The same test Apply is gated on, so Fix Issues completes
-	 * exactly when Apply becomes available and never a step before it.
-	 */
 	has_issues() {
-		// a skipped row isn't being imported, so what's wrong with it no longer
-		// stands in the way of the rest of the file — same rule the Data Import
-		// doctype applies (value_mapping.py: "Row warnings for user-skipped rows
-		// are ignored"). A column warning has no row, so it always counts.
 		return this.state.warnings.some(
 			(w) => w.blocking && !this.state.skipped_rows.has(cint(w.row))
 		);
 	}
 
-	/**
-	 * A blocking warning with no row of its own: two columns feeding one field.
-	 * Nothing in the table can answer it — the mapping row above it has to.
-	 */
 	has_mapping_issues() {
 		return this.state.warnings.some((w) => w.blocking && w.row === undefined);
 	}
 
-	/** Leave every row that is still wrong out of the import, in one go. */
 	skip_issue_rows() {
 		this.get_issue_rows().forEach((row) => this.state.skipped_rows.add(row));
 		this.refresh_preview({ recheck_links: false });
@@ -1141,11 +847,6 @@ export default class BulkEdit {
 	get_issue_rows() {
 		return new Set(
 			this.state.warnings
-				// blocking only, so the step stands on exactly what Apply stands
-				// on; a skipped row's problems no longer count, which is what
-				// makes Skip a way to clear the step as well as fix it. A column
-				// warning has no row to show — its picker is in the mapping row
-				// of both steps, so it is answered there rather than here.
 				.filter(
 					(w) =>
 						w.blocking &&
@@ -1156,42 +857,19 @@ export default class BulkEdit {
 		);
 	}
 
-	/**
-	 * Fix Issues is only a step while there is something in it. It locks itself
-	 * once the last issue is resolved, and hands the user on to Preview if that
-	 * is where they were standing — so the step completes itself rather than
-	 * asking to be left.
-	 */
 	settle_fix_step() {
 		if (this.tab_defs.length <= TAB_PREVIEW) return;
-		// the step stays open while the user is standing in it, empty or not:
-		// Next is how they leave, and locking the active tab would send them
-		// back to Setup (Tabs falls back to the first open one)
 		if (this.tabs.get_active() !== TAB_FIX) {
 			this.tabs.set_disabled(TAB_FIX, !this.has_issues());
 		}
-		// the hint reads on whichever step the table is standing in, so it says
-		// what to do here rather than describing the flow in general
 		const $table = this.preview_form?.get_field("table").$wrapper;
 		$table?.find(".bulk-edit-preview-hint").text(this.preview_hint());
-		// disabled rather than hidden once there is nothing left to skip: the
-		// button is what the step offers, and a control that vanishes under the
-		// cursor reads as the page having moved. Nothing to leave behind until
-		// the mapping is settled either — remapping a column changes which rows
-		// are wrong under it.
 		$table
 			?.find(".bulk-edit-skip-all")
 			.prop("disabled", this.has_mapping_issues() || !this.get_issue_rows().size);
 	}
 
-	/**
-	 * The line above the table: what is in the way, and what to do about it.
-	 * A duplicate mapping comes first — until the columns are settled, which
-	 * rows are wrong is not yet a settled question either.
-	 */
 	preview_hint() {
-		// the mapping first: until the columns are settled, a count of the rows
-		// that are wrong is a number about to be contradicted
 		if (this.has_mapping_issues()) {
 			return __("Two columns map to the same field. Fix the mapping to continue.");
 		}
@@ -1202,8 +880,6 @@ export default class BulkEdit {
 			return __("{0} of {1} rows ready to import.", [total - skipped, total]);
 		}
 
-		// every line opens on the same fact and the same number in the same
-		// place, so only the clause after it has to be read again
 		const pending = this.get_issue_rows().size;
 		if (pending) {
 			return pending === 1
@@ -1218,23 +894,15 @@ export default class BulkEdit {
 			: __("{0} rows found. Nothing to fix.", [total]);
 	}
 
-	/**
-	 * Take the rows a file or a sheet parsed to and open the preview on them.
-	 * @param {string} [google_sheets_url] the sheet they came from, if they did
-	 * @param {boolean} [is_refresh] a re-read of the sheet already on screen
-	 */
 	async on_file(data, google_sheets_url = "", is_refresh = false) {
 		if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > BULK_EDIT_MAX_ROWS) {
 			frappe.throw(__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS]));
 		}
 
 		this.state.google_sheets_url = google_sheets_url;
-		// one source at a time: a sheet read replaces whatever file was behind
-		// the last one (read_file sets this marker on its way in)
 		if (google_sheets_url) this.state.library_file_url = "";
 		this.state.headers = data[0] || [];
 		this.state.rows = [];
-		// kept alongside rows so a warning can name the line in the file
 		this.state.row_numbers = [];
 		data.slice(BULK_EDIT_CSV_HEADER_ROWS).forEach((row, i) => {
 			if (!row.some((v) => v)) return;
@@ -1251,19 +919,10 @@ export default class BulkEdit {
 			return;
 		}
 
-		// a new file or sheet brings its own columns, so the picks made over the
-		// last one no longer mean anything — the same change of source that
-		// clears template_options in the Data Import doctype (data_import.py
-		// validate). A refresh is the one read that keeps them.
 		if (!is_refresh) this.state.column_overrides = {};
 		this.state.column_map = this.apply_column_overrides(
 			await this.get_column_map(this.state.headers)
 		);
-		// the build settles the mapping and runs the first refresh, so what is
-		// wrong with the file is known before it is decided which step to open.
-		// Skipped rows are never carried over a read, refresh included: they are
-		// held by line number, and a sheet that gained or lost a line above them
-		// would leave each skip sitting on a different row than it was put on.
 		await this.build_preview();
 		this.tabs.set_disabled(TAB_PREVIEW, false);
 		this.tabs.set_active(this.has_issues() ? TAB_FIX : TAB_PREVIEW);
@@ -1282,12 +941,6 @@ export default class BulkEdit {
 		}
 	}
 
-	/**
-	 * The step Back returns to: the nearest one before this that is still open.
-	 * Fix Issues locks itself once it is done, so leaving it out of the walk is
-	 * what stops Back landing on a step with nothing in it.
-	 * @returns {number|null} null on the first step, which has nowhere to go
-	 */
 	previous_step() {
 		for (let index = this.tabs.get_active() - 1; index >= 0; index--) {
 			if (!this.tab_defs[index].disabled) return index;
@@ -1314,24 +967,18 @@ export default class BulkEdit {
 					},
 					{ solid: true }
 				);
-				// nothing on this tab should ever block moving on
 				this.dialog.get_primary_btn().prop("disabled", false);
 			}
 			return;
 		}
 
 		if (active === TAB_FIX) {
-			// Next only ever means move on, and it cannot until nothing is left
-			// standing in the way — every row either fixed or skipped, and the
-			// mapping settled. Skip All, the other way out, is over the table.
 			this.set_action(__("Next"), () => this.tabs.set_active(TAB_PREVIEW));
 			this.dialog.get_primary_btn().prop("disabled", this.has_issues());
 			return;
 		}
 
 		if (active === TAB_PREVIEW) {
-			// mapping and the red/editable cells are both right here —
-			// Apply is the only action this step needs
 			this.set_action(
 				__("Apply"),
 				() => {
@@ -1347,12 +994,7 @@ export default class BulkEdit {
 			return;
 		}
 
-		// upload: a picked file needs uploading first; a parsed one (either
-		// source, via on_file) just moves on. Stays visible either way.
 		this.set_action(__("Next"), () => {
-			// upload_files() is the one entry point for both sources: it posts a
-			// dropped file and fetches a library one, and on_success lands in
-			// read_file either way
 			if (this.has_file_selection()) {
 				this.file_uploader.upload_files();
 				return;
@@ -1373,7 +1015,6 @@ export default class BulkEdit {
 			return;
 		}
 
-		// the desk bundle cannot write xlsx, so the sheet is rendered on the server
 		open_url_post("/api/method/frappe.desk.form.bulk_edit.download_bulk_edit_template", {
 			doctype: this.grid.frm.doctype,
 			title: title,
@@ -1388,11 +1029,6 @@ export default class BulkEdit {
 			docfields = docfields.filter((df) => fieldnames.includes(df.fieldname));
 		}
 
-		// One header row of "Label (fieldname)". Data Import prints the fieldname
-		// only on a label clash; here always, because a spreadsheet has no picker to
-		// say which field a label feeds ("Item" vs "Item Name" on Sales Invoice
-		// Item). ID is the exception — the matcher knows "ID" and "name" but never
-		// "ID (name)", and an unresolvable ID silently stops matching rows.
 		const header = docfields.map((df) =>
 			df.fieldname === BULK_EDIT_ID_FIELDNAME
 				? __("ID")
@@ -1418,18 +1054,10 @@ export default class BulkEdit {
 	}
 
 	read_file(file, on_parsed) {
-		// a dropped file is read here and posted as a dataurl; one picked from
-		// the library was uploaded already, so it comes back as a File doc whose
-		// own name is the record's, not the file's, and is read server-side
 		const filename = file?.file_url ? file.file_name : file?.name;
 		if (!file || (!file.dataurl && !file.file_url)) return;
-		// remembered for the same reason the sheet's url is: a library file
-		// leaves the uploader empty, and empty is how sync_uploaded_file knows
-		// a file was taken back out
 		this.state.library_file_url = file.file_url || "";
 
-		// xlsx and xls need a reader the desk bundle does not have, and routing csv
-		// through the same call keeps every format producing identical rows
 		frappe.call({
 			method: "frappe.desk.form.bulk_edit.parse_bulk_edit_file",
 			args: {
@@ -1446,25 +1074,11 @@ export default class BulkEdit {
 		});
 	}
 
-	/**
-	 * Read the sheet again, for one edited after the preview was built. The picks
-	 * made by hand survive it, the way the Data Import doctype's Refresh keeps
-	 * template_options: those are about columns, which a re-read does not move.
-	 * Skipped rows do not, because they are held by line number and the sheet
-	 * may have gained or lost a line above them. Every other column is matched
-	 * again, so one added to the sheet arrives mapped. The cells come back as
-	 * the sheet now has them, so a value corrected here by hand is replaced by
-	 * whatever the sheet says.
-	 */
 	refresh_google_sheet() {
 		if (!this.state.google_sheets_url) return;
 		this.read_google_sheet(this.state.google_sheets_url, true);
 	}
 
-	// Same server-side fetch Data Import uses for a Google Sheets URL
-	// (frappe.utils.csvutils.get_csv_content_from_google_sheets), returning
-	// rows in the same shape read_file does. Also what the preview's Refresh
-	// button calls, so a sheet edited after loading is read again in place.
 	read_google_sheet(url, is_refresh = false) {
 		frappe.call({
 			method: "frappe.desk.form.bulk_edit.parse_bulk_edit_google_sheet",
@@ -1477,24 +1091,13 @@ export default class BulkEdit {
 		});
 	}
 
-	/**
-	 * The header keeps the file's own column name, so a column stays findable by
-	 * what the file calls it however it's mapped; the first body row is the
-	 * picker naming the field it lands in. Two different things, one above the
-	 * other, neither standing in for the other.
-	 */
 	get_preview_html({ headers, rows, row_numbers, columns, limit, mapping, total_rows }) {
 		const escape = frappe.utils.escape_html;
 		const shown = rows.slice(0, limit);
 
-		// data-col carries the column's place in the file, not in the table, so a
-		// view that leaves columns out still lines its cells up with the warnings
 		const head = columns.map(
 			(i) => `<th data-col="${i}" data-mapped="0">${escape(cstr(headers[i]))}</th>`
 		);
-		// trailing column: the per-row Skip button, mounted by sync_preview_errors
-		// on the rows that need one. Header and mapping row carry an empty cell
-		// each so the columns stay aligned.
 		const mapping_row = mapping
 			? `
 			<tr class="bulk-edit-mapping-row">
@@ -1525,8 +1128,6 @@ export default class BulkEdit {
 				}</span>
 				<div class="bulk-edit-preview-head-actions">
 					${
-						// only a sheet can change under a loaded preview; a file
-						// is re-read by uploading it again.
 						this.state.google_sheets_url
 							? frappe.ui.button.html({
 									label: __("Refresh"),
@@ -1536,16 +1137,9 @@ export default class BulkEdit {
 							: ""
 					}
 					${
-						// leaving rows behind is an action on the table, so it
-						// sits over the table rather than in the footer, where
-						// Next only ever means move on. Shown or hidden per
-						// refresh by settle_fix_step.
 						mapping
 							? frappe.ui.button.html({
 									label: __("Skip All"),
-									// starts dead and is woken by settle_fix_step,
-									// which is the only thing that knows what is
-									// still left to skip
 									disabled: true,
 									css_class: "bulk-edit-skip-all",
 							  })
@@ -1576,15 +1170,6 @@ export default class BulkEdit {
 		`;
 	}
 
-	/**
-	 * Everything questionable about the file that can be found without touching the
-	 * server. Link existence is checked separately, in {@link get_link_warnings}.
-	 */
-	/**
-	 * Everything wrong with the file under the current mapping. A warning naming
-	 * both a row and a column turns that cell red and editable; a blocking one
-	 * holds Apply until it is fixed or the row is skipped.
-	 */
 	get_warnings(headers, rows, row_numbers, import_type, column_map) {
 		const columns = Object.keys(column_map).map(cint);
 		const id_index = columns.find((i) => column_map[i] === BULK_EDIT_ID_FIELDNAME);
@@ -1602,11 +1187,6 @@ export default class BulkEdit {
 		return warnings;
 	}
 
-	/**
-	 * What is wrong with a column rather than with a value in it: one going
-	 * nowhere, and two going to the same place. These carry a col and no row,
-	 * which is what puts them on the column itself rather than on a cell.
-	 */
 	get_header_warnings(headers, column_map) {
 		const warnings = [];
 		headers.forEach((header, i) => {
@@ -1621,13 +1201,6 @@ export default class BulkEdit {
 		return warnings;
 	}
 
-	/**
-	 * Two columns feeding one field. apply_rows walks the columns in order and
-	 * writes each into the field it is mapped to, so the later column silently
-	 * wins and the earlier one's values are lost with nothing to show for it —
-	 * which is why this blocks rather than advises. One warning per column
-	 * involved, so each of them says so on its own.
-	 */
 	get_duplicate_mapping_warnings(column_map) {
 		const columns_by_field = {};
 		Object.entries(column_map).forEach(([index, fieldname]) => {
@@ -1638,8 +1211,6 @@ export default class BulkEdit {
 		);
 		if (!duplicated.length) return [];
 
-		// the labels the picker offered, so the message names the field the way
-		// it was chosen rather than by fieldname
 		const label_of = Object.fromEntries(
 			this.get_docfields().map((df) => [
 				df.fieldname,
@@ -1649,8 +1220,6 @@ export default class BulkEdit {
 
 		const warnings = [];
 		duplicated.forEach(([fieldname, columns]) => {
-			// names every column involved rather than the others, so the one
-			// sentence stays grammatical whether two of them clash or five
 			const message = __("Columns {0} map to {1}. Only one column can fill a field.", [
 				columns.map((i) => i + 1).join(", "),
 				label_of[fieldname] || fieldname,
@@ -1660,7 +1229,6 @@ export default class BulkEdit {
 		return warnings;
 	}
 
-	/** Rows are matched on ID, so a missing or repeated one decides what applies. */
 	get_id_warnings(rows, row_numbers, import_type, id_index) {
 		const warnings = [];
 
@@ -1676,7 +1244,6 @@ export default class BulkEdit {
 			return warnings;
 		}
 
-		// rows sharing an ID target the same row; the last one applied wins
 		const rows_by_id = {};
 		rows.forEach((row, r) => {
 			const id = cstr(row[id_index]).trim();
@@ -1736,14 +1303,7 @@ export default class BulkEdit {
 		return warnings;
 	}
 
-	/**
-	 * What is wrong with one cell's value, or "" if nothing is. The fieldtype
-	 * checks mirror importer.py Row.validate_value; the numeric and Check ones
-	 * additionally cover the blind spot it shares with flt() and cint(), where an
-	 * unreadable value becomes 0 with no warning at all.
-	 */
 	get_value_error(df, value, is_new) {
-		// a blank mandatory cell only matters on a row that is being created
 		if (!value) return df.reqd && is_new ? __("This field is mandatory and is blank.") : "";
 
 		if (df.fieldtype === "Select") {
@@ -1756,8 +1316,6 @@ export default class BulkEdit {
 			}
 		}
 
-		// Data Import guesses each column's own date format server-side; with no
-		// round trip here, the user's format and the system's are what we check
 		if (df.fieldtype === "Date" || df.fieldtype === "Datetime") {
 			const date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
 			const time_fmt = frappe.datetime.get_user_time_fmt();
@@ -1782,7 +1340,6 @@ export default class BulkEdit {
 			]);
 		}
 
-		// the template exports the stored seconds, so both forms have to pass
 		if (
 			df.fieldtype === "Duration" &&
 			!BULK_EDIT_DURATION_PATTERN.test(value) &&
@@ -1811,7 +1368,6 @@ export default class BulkEdit {
 		return "";
 	}
 
-	/** Existence-check every mapped Link column; batched into one call by target doctype. */
 	async get_link_warnings(rows, row_numbers, column_map) {
 		const link_columns = Object.keys(column_map)
 			.map(cint)
@@ -1861,11 +1417,6 @@ export default class BulkEdit {
 		return warnings;
 	}
 
-	/**
-	 * Column index to fieldname, for every header that names a field. Matched
-	 * server-side by the Data Import doctype's own header map, so a label, a
-	 * fieldname or "Label (fieldname)" all resolve — see bulk_edit.py.
-	 */
 	get_column_map(headers) {
 		return frappe.xcall("frappe.desk.form.bulk_edit.get_bulk_edit_column_map", {
 			doctype: this.grid.frm.doctype,
@@ -1874,15 +1425,6 @@ export default class BulkEdit {
 		});
 	}
 
-	/**
-	 * The matched columns with the picks made by hand laid over them. A column
-	 * nobody touched keeps whatever the matcher makes of it on this read, so one
-	 * added to the sheet since the last read is mapped without being asked for;
-	 * an explicit "Don't Import" drops its column instead, and holds. Mirrors
-	 * Column.parse in importer.py, which falls back to matching the header
-	 * whenever column_to_field_map has nothing to say about that index.
-	 * @param {Object<string, string>} auto_mapped column index to fieldname
-	 */
 	apply_column_overrides(auto_mapped) {
 		const map = { ...auto_mapped };
 		Object.entries(this.state.column_overrides).forEach(([index, fieldname]) => {
@@ -1922,7 +1464,6 @@ export default class BulkEdit {
 
 			columns.forEach((i) => {
 				const fieldname = column_map[i];
-				// the ID is what the row was matched on, never something to overwrite
 				if (fieldname === BULK_EDIT_ID_FIELDNAME) return;
 
 				const df = frappe.meta.get_docfield(this.grid.df.options, fieldname);
@@ -1943,59 +1484,31 @@ export default class BulkEdit {
 			indicator: "green",
 		});
 
-		// add_child() and assigning to target[fieldname] both write straight to
-		// the local doc without going through frappe.model.set_value, so the form
-		// is never marked changed. Without this the rows would exist only in this
-		// browser and be lost on reload with no unsaved-changes warning.
 		this.grid.frm.dirty();
 	}
 }
 
-/** "1d 2h 30m" to seconds, via the same helper the Duration control uses. */
 function bulk_edit_to_seconds(value) {
 	const text = cstr(value).trim();
 	if (!text) return 0;
-	// already seconds — the template exports the stored value, not a duration string
 	if (BULK_EDIT_SECONDS_PATTERN.test(text)) return cint(text);
 
 	const part = (unit) => cint((text.match(new RegExp(`(\\d+)${unit}`)) || [])[1]);
 	return frappe.utils.duration_to_seconds(part("d"), part("h"), part("m"), part("s"));
 }
 
-/**
- * What a freshly mounted cell control starts on. The file's own value goes in
- * unchanged wherever the control can hold it; where it cannot, the control is
- * seeded clean and the cell's own text is what keeps the faulty value on show.
- */
 function bulk_edit_seed_value(fieldtype, value) {
-	// ControlCheck.set_input() runs the value through cint(), reading "Yes" as 0
 	if (fieldtype === "Check") return BULK_EDIT_VALUE_FORMATTERS.Check(value);
-	// the rest of the deferred set is only ever mounted over a flagged cell, so the
-	// value here is one the widget cannot read; starting clean opens the picker on
-	// a real time rather than on nonsense, and the cell's own text is what kept the
-	// faulty value on show until this click
 	if (BULK_EDIT_DEFERRED_FIELDTYPES.includes(fieldtype)) return "";
 	return value;
 }
 
-/** A time in the user's format to the "HH:mm:ss" the doc stores. */
 function bulk_edit_to_system_time(value) {
 	if (!value) return value;
 	const parsed = moment(value, BULK_EDIT_TIME_FORMATS(), true);
 	return parsed.isValid() ? parsed.format(frappe.defaultTimeFormat) : value;
 }
 
-/**
- * Whether the whole value reads as a number. Written against flt()'s own steps —
- * the same currency strip and the same strip_number_groups — so the locale's
- * group and decimal separators are read here exactly as they will be when the
- * value is applied, which a regex of our own would not manage.
- *
- * The last step is deliberately stricter than flt: parseFloat stops at the first
- * character it cannot read, so flt turns "12abc" into 12 and "1.2.3" into 1.2.
- * Number() rejects both, which is the point — a value that only half parses is
- * the kind that imports quietly wrong.
- */
 function bulk_edit_is_rating(value) {
 	if (!bulk_edit_is_number(value)) return false;
 	const rating = flt(value);
@@ -2018,7 +1531,6 @@ function bulk_edit_is_number(value) {
 	let text = cstr(value).trim();
 	if (!text) return false;
 
-	// flt drops a currency symbol when a space separates it from the figure
 	if (text.includes(" ")) {
 		const parts = text.split(" ");
 		if (isNaN(parseFloat(parts[0]))) text = parts.slice(parts.length - 1).join(" ");
@@ -2028,22 +1540,11 @@ function bulk_edit_is_number(value) {
 	return text !== "" && !isNaN(Number(text));
 }
 
-/**
- * Drop a control's picker along with the control. air-datepicker mounts into a
- * container on the body, so one left behind outlives the cell it belonged to —
- * still on screen, with nothing left that could close it.
- */
 const discard_cell_control = (control) => {
 	control?.hide_picker?.();
 	control?.datepicker?.destroy?.();
 };
 
-/**
- * Date, Datetime and Time carry an air-datepicker, Duration its own box; both
- * mount in the body, open on focus, and leave closing to the input's blur —
- * which never comes while that input keeps focus. So the picker hung over the
- * table when the same cell was clicked again, or the dialog around it was.
- */
 const picker_of = (control) =>
 	control?.$picker?.get(0) ||
 	control?.datepicker?.$datepicker?.get(0) ||
