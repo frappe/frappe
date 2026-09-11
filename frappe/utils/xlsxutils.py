@@ -18,6 +18,7 @@ from frappe import _
 from frappe.core.utils import html2text
 from frappe.utils import cint
 from frappe.utils.csvutils import FORMULA_TRIGGER_CHARS
+from frappe.utils.data import get_currency_precision
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -404,7 +405,8 @@ class XLSXStyleBuilder:
 		precision = number_format.precision
 
 		if fieldtype == "Currency":
-			precision = cint(frappe.db.get_default("currency_precision")) or precision
+			currency_precision = get_currency_precision()
+			precision = currency_precision if currency_precision is not None else precision
 			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, precision)
 			currency_symbol, symbol_on_right = XLSXStyleBuilder._get_currency_symbol_info(currency)
 			return XLSXStyleBuilder._build_currency_format(format_str, currency_symbol, symbol_on_right)
