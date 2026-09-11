@@ -2770,6 +2770,58 @@ class TestQuery(IntegrationTestCase):
 			if restricted_link_note:
 				restricted_link_note.delete()
 
+	def test_autoincrement_parent_child_user_permissions(self):
+		"""The child permission subquery must compare a varchar parent against a cast name."""
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		parent_dt_name = "Test Auto Parent Permission"
+		child_dt_name = "Test Auto Parent Permission Child"
+		test_user = "test2@example.com"
+		self.ensure_system_manager(frappe.get_doc("User", test_user), should_have=True)
+
+		for doctype in (parent_dt_name, child_dt_name):
+			frappe.delete_doc_if_exists("DocType", doctype, force=True)
+			self.addCleanup(frappe.delete_doc_if_exists, "DocType", doctype, force=True)
+
+		new_doctype(
+			child_dt_name,
+			istable=1,
+			fields=[{"label": "Role", "fieldname": "role", "fieldtype": "Link", "options": "Role"}],
+		).insert(ignore_permissions=True)
+		new_doctype(
+			parent_dt_name,
+			autoname="autoincrement",
+			fields=[
+				{
+					"label": "Child Table",
+					"fieldname": "child_table",
+					"fieldtype": "Table",
+					"options": child_dt_name,
+				}
+			],
+		).insert(ignore_permissions=True)
+
+		allowed_doc = frappe.get_doc(doctype=parent_dt_name, child_table=[{"role": "Blogger"}]).insert(
+			ignore_permissions=True
+		)
+		restricted_doc = frappe.get_doc(
+			doctype=parent_dt_name, child_table=[{"role": "System Manager"}]
+		).insert(ignore_permissions=True)
+
+		self.addCleanup(clear_user_permissions_for_doctype, "Role", test_user)
+		clear_user_permissions_for_doctype("Role", test_user)
+		add_user_permission(
+			"Role", "Blogger", test_user, ignore_permissions=True, applicable_for=parent_dt_name
+		)
+
+		query = frappe.qb.get_query(parent_dt_name, fields=["name"], ignore_permissions=False, user=test_user)
+		if frappe.db.db_type == "postgres":
+			self.assertIn("CAST(", query.get_sql().upper())
+
+		visible_docs = query.run(pluck=True)
+		self.assertIn(str(allowed_doc.name), [str(name) for name in visible_docs])
+		self.assertNotIn(str(restricted_doc.name), [str(name) for name in visible_docs])
+
 	def test_autoincrement_parent_permission_join(self):
 		with setup_autoincrement_parent_doctypes() as (parent_dt_name, child_dt_name, parent_doc):
 			query = frappe.qb.get_query(
