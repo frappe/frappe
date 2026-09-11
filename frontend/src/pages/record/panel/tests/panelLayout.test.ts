@@ -88,6 +88,12 @@ describe("one list", () => {
 		expect(root.textContent).toContain("Organization");
 	});
 
+	it("draws a divider above every item after the first, headerless or not", async () => {
+		const { root } = await mount(new Surface<PanelSectionItem>());
+		const bodies = [...root.querySelectorAll<HTMLElement>("[data-section]")];
+		expect(bodies.map((el) => el.classList.contains("border-t"))).toEqual([false, true, true]);
+	});
+
 	it("hides one section by name and its neighbour stands", async () => {
 		const surface = new Surface<PanelSectionItem>();
 		surface.hide("shares");

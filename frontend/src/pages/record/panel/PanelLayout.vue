@@ -65,14 +65,14 @@ const scripted = computed(
 		)
 );
 
-// Headers pin against each other as if the headerless were not there, and two headerless
-// items in a row read as one block, with no divider between them.
+// Headers pin against each other as if the headerless were not there. Every item after
+// the first draws a divider: a headerless block is still its own section to the eye.
 const numbered = computed(() => {
 	let headerIndex = 0;
 	return entries.value.map((entry, index) => ({
 		...entry,
 		headerIndex: entry.label ? headerIndex++ : null,
-		divided: index > 0 && Boolean(entry.label || entries.value[index - 1].label),
+		divided: index > 0,
 	}));
 });
 
