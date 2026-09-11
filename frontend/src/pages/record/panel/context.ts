@@ -7,6 +7,7 @@ export interface DocInfo {
 	assignments?: { owner: string; description?: string }[];
 	shared?: { user: string; everyone?: 0 | 1; write?: 0 | 1 }[];
 	tags?: string;
+	favourites?: { user: string; creation?: string }[];
 	user_info?: Record<string, { fullname?: string; image?: string }>;
 	permissions?: Record<string, any>;
 }

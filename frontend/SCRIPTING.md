@@ -56,12 +56,13 @@ development build.
 
 ### The built-ins
 
-The generated page seeds three items, in this order:
+The generated page seeds these items, in this order:
 
 | Name | Zone | What it is |
 | --- | --- | --- |
 | `doctype` | left | The doctype's crumb; links to the list. |
 | `record` | left | The record's crumb: its title field, or its name. |
+| `favourite` | left | The star, after the crumbs: toggles the reader's favourite, and lists everyone who favourited the record on hover. A favourite is a `Favourite` row, read off `docinfo`; it is not desk v1's like and posts nothing on the timeline. |
 | `save` | right | The Save button. Disabled by the host while nothing has changed. |
 | `delete` | right | A row in `⋯`, only with the delete right. Confirms, deletes, and leaves for the list. |
 
@@ -153,7 +154,7 @@ them under the names the Form Layout stores:
 
 | Name | What it is |
 | --- | --- |
-| `identity` | The title, subtitle, image and tags. |
+| `identity` | The title, subtitle, image and tags. The image tile draws when the doctype names an `image_field`; with write, a click uploads into that field, and the header's Save carries it like any edit. A field fetched from a linked record links there instead. |
 | `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. The framework seeds `print`, `copy_link` and `tags` there: `print` with the right, `tags` with write and only while the record has none. The row names its buttons from the left while the width lasts, then shows icons, then folds the rest into a `⋯` menu. A script hides or reorders them by name. |
 | `people` | Who the record is assigned to, and who it is shared with. |
 

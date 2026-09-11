@@ -12,6 +12,7 @@ import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
 from frappe.core.doctype.comment.comment import get_document_comments
+from frappe.desk.doctype.favourite.favourite import get_favourites
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
@@ -131,6 +132,7 @@ def get_docinfo(
 			"milestones": get_milestones(doc.doctype, doc.name, limit=0),
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
+			"favourites": get_favourites(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
 		}
 	)
@@ -577,6 +579,7 @@ def update_user_info(docinfo, doc=None):
 	users.update(d.sender for d in docinfo.communications)
 	users.update(d.user for d in docinfo.shared)
 	users.update(d.owner for d in docinfo.assignments)
+	users.update(d.user for d in docinfo.favourites)
 	users.update(d.owner for d in docinfo.views)
 	users.update(d.owner for d in docinfo.workflow_logs)
 	users.update(d.owner for d in docinfo.like_logs)

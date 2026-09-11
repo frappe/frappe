@@ -481,6 +481,7 @@ ignore_links_on_delete = [
 	"File",
 	"Version",
 	"Document Follow",
+	"Favourite",
 	"Comment",
 	"View Log",
 	"Tag Link",

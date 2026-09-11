@@ -532,6 +532,7 @@ def delete_dynamic_links(doctype, name):
 	delete_references("Comment", doctype, name)
 	delete_references("View Log", doctype, name)
 	delete_references("Document Follow", doctype, name, "ref_doctype", "ref_docname")
+	delete_references("Favourite", doctype, name)
 	delete_references("Notification Log", doctype, name, "document_type", "document_name")
 
 	# unlink communications

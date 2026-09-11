@@ -10,6 +10,8 @@
 				:projection="header"
 				:dirty="dirty"
 				:saving="saving"
+				:favourites="favourites"
+				:favourited="favourited"
 				@run="runAction"
 			/>
 			<div v-else class="flex items-center gap-3">
@@ -89,6 +91,7 @@ import {
 	useFormLayout,
 	type HeaderItem,
 	type QuickAction,
+	type RecordPageApi,
 	type RecordPageController,
 } from "@/recordPage";
 import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
@@ -99,6 +102,7 @@ import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
+import { favouritesOf, hasFavourited } from "./record/favourites";
 import { personOf, type DocInfo } from "./record/panel/context";
 import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
@@ -159,6 +163,10 @@ const docname = computed(() => String(route.params.name));
 
 const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
 
+// Off the sidecar, like the people rows: a favourite is never part of the draft.
+const favourites = computed(() => favouritesOf(docinfo.value, boot.user.name));
+const favourited = computed(() => hasFavourited(docinfo.value, boot.user.name));
+
 const header = computed(() => {
 	actionsVersion.value;
 	const resolved = controller.value?.header.resolve() ?? [];
@@ -203,9 +211,31 @@ function headerBuiltins(): HeaderItem[] {
 			href: router.resolve(routeFor(doctype.value!)).path,
 		},
 		{ name: "record", label: String(title), zone: "left", display: "crumb" },
+		{
+			name: "favourite",
+			label: "Favourite",
+			zone: "left",
+			display: "button",
+			run: toggleFavourite,
+		},
 		{ name: "save", label: "Save", display: "button", run: runSave },
 		...headerMenuBuiltins(docinfo.value?.permissions ?? {}),
 	];
+}
+
+// The answer is discarded and the sidecar re-read, as the people rows do, so the star never
+// disagrees with the server. A failure toasts here: `runAction` would otherwise reload over the draft.
+async function toggleFavourite(page: RecordPageApi) {
+	try {
+		await page.call("frappe.desk.doctype.favourite.favourite.toggle_favourite", {
+			doctype: page.doctype,
+			name: page.docname,
+			add: !favourited.value,
+		});
+		await reloadDocinfo();
+	} catch (e) {
+		toast.error(errorMessage(e));
+	}
 }
 
 // Three built-ins first, then the Side Panel layout's sections, as they resolve now.
