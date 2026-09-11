@@ -132,6 +132,32 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Flow Run", recent_run))
 		self.assertTrue(frappe.db.exists("File", recent_file))
 
+	def test_purge_keeps_a_file_attached_to_a_business_document(self):
+		old_session, _old_run, old_file = self._session_with_run(age_days=100)
+		frappe.db.set_value(
+			"File",
+			old_file,
+			{"attached_to_doctype": "User", "attached_to_name": "Administrator"},
+			update_modified=False,
+		)
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("Flow Session", old_session))
+		self.assertTrue(frappe.db.exists("File", old_file))
+
+	def test_purge_keeps_an_orphan_file_used_by_a_recent_session(self):
+		old_session, _old_run, old_file = self._session_with_run(age_days=100)
+		recent = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent, "title": "recent"})
+		recent.append("attachments", {"file": old_file, "file_name": "f.txt", "file_size": 1})
+		recent.insert(ignore_permissions=True)
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("Flow Session", old_session))
+		self.assertTrue(frappe.db.exists("Flow Session", recent.name))
+		self.assertTrue(frappe.db.exists("File", old_file))
+
 
 class TestAttachmentCleanup(IntegrationTestCase):
 	def setUp(self):

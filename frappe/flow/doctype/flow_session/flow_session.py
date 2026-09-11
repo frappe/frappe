@@ -327,6 +327,10 @@ def _delete_attachment_files(sessions: list[str]) -> None:
 	never aborts the purge."""
 	files = frappe.get_all("Flow Session Attachment", filters={"parent": ["in", sessions]}, pluck="file")
 	for file in set(filter(None, files)):
+		if frappe.db.get_value("File", file, "attached_to_doctype"):
+			continue
+		if frappe.db.exists("Flow Session Attachment", {"file": file, "parent": ["not in", sessions]}):
+			continue
 		try:
 			frappe.delete_doc("File", file, ignore_permissions=True, force=True, delete_permanently=True)
 		except Exception:
