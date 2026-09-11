@@ -361,7 +361,8 @@ async function send() {
 		saved.value = { ...document };
 		doc.value = JSON.parse(JSON.stringify(document));
 	} finally {
-		saving.value = false;
+		// A request the previous record left behind must not clear this record's flag.
+		if (mine === generation) saving.value = false;
 	}
 	await controller.value?.refresh();
 	actionsVersion.value++;
