@@ -319,8 +319,16 @@ def filter_translated(values, txt: str, as_dict: bool) -> list:
 	]
 
 
+MAX_MENTIONS_PAGE_LENGTH = 20
+
+
 @frappe.whitelist()
-def get_names_for_mentions(search_term: str):
+def get_names_for_mentions(search_term: str, page_length: int = 10):
+	if not search_term or not search_term.strip():
+		return []
+
+	page_length = min(max(cint(page_length), 1), MAX_MENTIONS_PAGE_LENGTH)
+
 	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
 	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
@@ -335,7 +343,7 @@ def get_names_for_mentions(search_term: str):
 
 		filtered_mentions.append(mention_data)
 
-	return sorted(filtered_mentions, key=lambda d: d["value"])
+	return sorted(filtered_mentions, key=lambda d: d["value"])[:page_length]
 
 
 def get_users_for_mentions():
