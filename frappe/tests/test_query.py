@@ -10,6 +10,8 @@ from frappe.tests.classes.context_managers import enable_safe_exec
 from frappe.tests.test_db_query import (
 	create_nested_doctype,
 	create_nested_doctype_records,
+	setup_autoincrement_link_doctypes,
+	setup_autoincrement_parent_doctypes,
 	setup_patched_blog_post,
 	setup_test_user,
 )
@@ -92,6 +94,16 @@ class TestQuery(IntegrationTestCase):
 			).get_sql(),
 			query,
 		)
+
+	def test_like_filter_on_non_text_field(self):
+		query = frappe.qb.get_query("DocType", fields=["name"], filters={"docstatus": ["like", "0"]})
+		names = query.run(pluck=True)
+
+		self.assertIn("DocType", names)
+		if frappe.db.db_type == "postgres":
+			self.assertIn('CAST("DOCSTATUS" AS VARCHAR) ILIKE', query.get_sql().upper())
+		else:
+			self.assertNotIn("CAST(", query.get_sql().upper())
 
 	def test_string_fields(self):
 		self.assertEqual(
@@ -1471,6 +1483,53 @@ class TestQuery(IntegrationTestCase):
 		test_user_doc.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, force=True)
 
+	def test_autoincrement_link_field_join(self):
+		with setup_autoincrement_link_doctypes() as (
+			_target_dt_name,
+			source_dt_name,
+			target_doc,
+			source_doc,
+		):
+			query = frappe.qb.get_query(
+				source_dt_name,
+				fields=["name", "link_field.target_title"],
+				filters={"name": source_doc.name},
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(result[0].target_title, target_doc.target_title)
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO LINK TARGET"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
+
+	def test_autoincrement_child_table_join(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, _child_dt_name, parent_doc):
+			query = frappe.qb.get_query(
+				parent_dt_name,
+				fields=["name", "child_table.child_value"],
+				filters={"name": parent_doc.name, "child_table.child_value": "Child"},
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(len(result), 1)
+			self.assertEqual(result[0].child_value, "Child")
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO PARENT"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
+
+	def test_autoincrement_child_query(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, _child_dt_name, parent_doc):
+			result = frappe.qb.get_query(
+				parent_dt_name,
+				fields=["name", {"child_table": ["child_value"]}],
+				filters={"name": parent_doc.name},
+			).run(as_dict=True)
+
+			self.assertEqual(len(result), 1)
+			self.assertEqual(result[0].child_table[0].child_value, "Child")
+
 	def test_filter_direct_field_permission(self):
 		"""Test that filtering is only allowed on permitted direct fields."""
 		with setup_patched_blog_post(), setup_test_user(set_user=True) as user:
@@ -2215,6 +2274,116 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
+	def test_distinct_keeps_valid_order_by(self):
+		for field, order_by in (
+			("user_type", "user_type asc"),
+			("user_type as type", "type asc"),
+			("`tabUser`.`user_type`", "`tabUser`.`user_type` asc"),
+		):
+			with self.subTest(field=field, order_by=order_by):
+				query = frappe.qb.get_query("User", fields=[field], distinct=True, order_by=order_by)
+				result = query.run()
+
+				self.assertIn("order by", query.get_sql().lower())
+				self.assertEqual(list(result), sorted(result))
+
+	def test_distinct_drops_unselected_order_by_on_postgres(self):
+		if frappe.db.db_type == "postgres":
+			with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+				query = frappe.qb.get_query(
+					"User", fields=["user_type"], distinct=True, order_by="creation desc"
+				)
+			self.assertNotIn("order by", query.get_sql().lower())
+		else:
+			query = frappe.qb.get_query("User", fields=["user_type"], distinct=True, order_by="creation desc")
+			self.assertIn("order by", query.get_sql().lower())
+
+	def test_distinct_keeps_order_by_on_star_column(self):
+		query = frappe.qb.get_query("User", fields=["*"], distinct=True, order_by="user_type asc")
+		result = query.run(as_dict=True)
+
+		self.assertIn("order by", query.get_sql().lower())
+		self.assertEqual([row.user_type for row in result], sorted(row.user_type for row in result))
+
+	def test_distinct_keeps_order_by_on_link_field(self):
+		query = frappe.qb.get_query(
+			"User",
+			fields=["name", "language.language_name"],
+			distinct=True,
+			order_by="language.language_name asc",
+		)
+		query.run()
+
+		self.assertIn("order by", query.get_sql().lower())
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_order_by_preserves_link_table_identity(self):
+		for order_by in ("creation desc", "`tabUser`.`creation` desc"):
+			with self.subTest(order_by=order_by):
+				with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+					query = frappe.qb.get_query(
+						"User",
+						fields=["language.creation as language_creation"],
+						distinct=True,
+						order_by=order_by,
+					)
+				self.assertNotIn("order by", query.get_sql().lower())
+				query.run()
+
+		for order_by in ("language_creation asc", "language.creation asc"):
+			with self.subTest(order_by=order_by):
+				query = frappe.qb.get_query(
+					"User",
+					fields=["language.creation as language_creation"],
+					distinct=True,
+					order_by=order_by,
+				)
+				self.assertIn("order by", query.get_sql().lower())
+				query.run()
+
+	def test_distinct_order_by_result_position(self):
+		for group_by in (None, "user_type, enabled"):
+			for position, direction in ((1, "asc"), (2, "desc")):
+				with self.subTest(group_by=group_by, position=position):
+					query = frappe.qb.get_query(
+						"User",
+						fields=["user_type", "enabled"],
+						distinct=True,
+						group_by=group_by,
+						order_by=f"{position} {direction}",
+					)
+					values = [row[position - 1] for row in query.run()]
+					self.assertEqual(values, sorted(values, reverse=direction == "desc"))
+
+	def test_distinct_order_by_star_result_position(self):
+		query = frappe.qb.get_query("User", fields=["*"], distinct=True, order_by="2 asc")
+		self.assertIn("ORDER BY 2 ASC", query.get_sql())
+		query.run()
+
+	def test_distinct_order_by_selected_grouped_field(self):
+		for field in ("creation", "enabled"):
+			with self.subTest(field=field):
+				query = frappe.qb.get_query(
+					"User",
+					fields=["name", field],
+					group_by="name",
+					distinct=True,
+					order_by=f"{field} asc",
+				)
+				values = [row[1] for row in query.run()]
+				self.assertEqual(values, sorted(values))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_drops_invalid_result_position(self):
+		for position in (0, 2):
+			with self.subTest(position=position):
+				with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+					query = frappe.qb.get_query(
+						"User", fields=["user_type"], distinct=True, order_by=f"{position} asc"
+					)
+				self.assertNotIn("order by", query.get_sql().lower())
+				query.run()
+
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
 			"User",
@@ -2600,6 +2769,24 @@ class TestQuery(IntegrationTestCase):
 			clear_user_permissions_for_doctype("User", test_user)
 			if restricted_link_note:
 				restricted_link_note.delete()
+
+	def test_autoincrement_parent_permission_join(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, child_dt_name, parent_doc):
+			query = frappe.qb.get_query(
+				child_dt_name,
+				fields=["name", "child_value"],
+				filters={"parent": parent_doc.name},
+				parent_doctype=parent_dt_name,
+				ignore_permissions=False,
+				user="Administrator",
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(result[0].child_value, "Child")
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO PARENT"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
 
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""

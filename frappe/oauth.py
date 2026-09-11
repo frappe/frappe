@@ -328,12 +328,12 @@ class OAuthWebRequestValidator(RequestValidator):
 			{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
 		)
 
-		if not otoken:
+		if not otoken or not client or otoken.client != client.client_id:
 			return False
-		else:
-			# Set request.user to the user associated with the refresh token
-			request.user = otoken.user
-			return True
+
+		# Set request.user to the user associated with the refresh token
+		request.user = otoken.user
+		return True
 
 	# OpenID Connect
 
@@ -592,6 +592,7 @@ def get_userinfo(user):
 			"given_name": user.first_name,
 			"family_name": user.last_name,
 			"email": user.email,
+			"email_verified": True,
 			"picture": picture,
 			"roles": frappe.get_roles(user.name),
 			"iss": frappe_server_url,

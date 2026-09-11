@@ -3,6 +3,7 @@ from collections.abc import Callable
 from datetime import time
 
 from pypika.functions import Cast
+from pypika.terms import ValueWrapper
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -51,6 +52,27 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		sql = query.get_sql()
 		self.assertIn("SEPARATOR ' | '", sql)
 		self.assertIn("`user_list`", sql)
+
+	def test_concat_alias_escapes_the_quote_char(self):
+		# The alias goes through format_alias_sql like every other term, so the quote char inside
+		# it is doubled. Rendering it raw would close the identifier early, and would disagree
+		# with the escaped alias pypika emits for the same term in GROUP BY / ORDER BY.
+		user = frappe.qb.DocType("User")
+		gc = GroupConcat(user.email).as_("a`b")
+		sql = frappe.qb.from_(user).select(gc).groupby(gc).get_sql()
+		self.assertIn("`a``b`", sql)
+		self.assertNotIn("`a`b`", sql)
+		# the alias SELECT declares is the one GROUP BY refers to
+		self.assertEqual(2, sql.count("`a``b`"))
+
+	def test_concat_alias_only_in_select_position(self):
+		# an alias is part of the select clause, not of the expression: appending it in operand
+		# position produces `GROUP_CONCAT(...) `x` LIKE ...`, which is a syntax error
+		user = frappe.qb.DocType("User")
+		gc = GroupConcat(user.email).as_("user_list")
+		sql = frappe.qb.from_(user).select(user.name).where(gc.like("%admin%")).get_sql()
+		self.assertNotIn("`user_list`", sql)
+		self.assertIn("GROUP_CONCAT(`email` SEPARATOR ',') LIKE", sql)
 
 	def test_concat_with_explicit_empty_separator(self):
 		# "" means "no delimiter", not "use the default" -- dropping the clause would silently
@@ -632,16 +654,27 @@ class TestParameterization(IntegrationTestCase):
 		self.assertEqual(params["param1"], "some_value")
 
 	def test_bool_conditions(self):
-		# bools go out as 1/0: postgres does not cast `true` to smallint (Check fields)
+		# bools go out as '1'/'0': quoted, so they work as a value and as a condition
 		DocType = frappe.qb.DocType("DocType")
 		query, params = frappe.qb.update(DocType).set(DocType.is_submittable, True).walk()
 
-		self.assertIn("=1", query)
+		self.assertIn("='1'", query)
 		self.assertNotIn("true", query)
 		self.assertEqual(params, {})
 
 		query, _ = frappe.qb.update(DocType).set(DocType.is_submittable, False).walk()
-		self.assertIn("=0", query)
+		self.assertIn("='0'", query)
+
+		# a bool as a condition, not as a value: it must stay a quoted literal, since
+		# postgres accepts neither a bare 1 nor `true` as an operand of OR
+		user = frappe.qb.DocType("User")
+		condition = frappe.qb.from_(user).select(user.name).where((user.enabled == 1) | ValueWrapper(False))
+
+		query, _ = condition.walk()
+		self.assertIn("OR '0'", query)
+		self.assertNotIn("OR 0", query)
+		self.assertNotIn("OR false", query)
+		condition.run()  # and the database accepts it
 
 	def test_where_conditions_functions(self):
 		DocType = frappe.qb.DocType("DocType")

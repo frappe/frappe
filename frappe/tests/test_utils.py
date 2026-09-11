@@ -590,6 +590,56 @@ class TestHTMLUtils(IntegrationTestCase):
 		self.assertEqual(sanitize_html('[["name", "=", "x"]]'), '[["name", "=", "x"]]')
 		self.assertEqual(sanitize_html("plain text"), "plain text")
 
+	def test_sanitize_html_payload(self):
+		import json
+
+		from frappe.utils.html_utils import sanitize_html, sanitize_html_payload
+
+		# a web form submission: the Text Editor value carries a quoted attribute, and
+		# sanitizing the serialized payload would rewrite that quote as `&quot;` and
+		# leave the JSON unparseable
+		payload = json.dumps({"requirement": '<div class="ql-editor read-mode"><p>Hi</p></div>'})
+		self.assertEqual(sanitize_html_payload(payload), payload)
+		self.assertEqual(json.loads(sanitize_html_payload(payload)), json.loads(payload))
+
+		# markup inside a payload is still sanitized, at every depth
+		for unsafe in (
+			'"<script>alert(1)</script>"',
+			'["<script>alert(1)</script>"]',
+			'{"x": "<script>alert(1)</script>"}',
+			'{"a": {"b": ["<img src=x onerror=alert(1)>"]}}',
+		):
+			clean = sanitize_html_payload(unsafe)
+			self.assertNotIn("<script>", clean)
+			self.assertNotIn("onerror", clean)
+
+		# a payload nested inside another payload is handled too
+		nested = json.dumps({"args": json.dumps({"desc": "<script>alert(1)</script>"})})
+		self.assertNotIn("<script>", sanitize_html_payload(nested))
+		self.assertEqual(json.loads(json.loads(sanitize_html_payload(nested))["args"])["desc"], "")
+
+		# tag-free content is returned unchanged
+		for untouched in ('[["name", "=", "x"]]', "plain text", "1-10", "", "null"):
+			self.assertEqual(sanitize_html_payload(untouched), untouched)
+
+		# content that is not JSON is sanitized exactly as before
+		html = "<script>alert(1)</script><p>hi</p>"
+		self.assertEqual(sanitize_html_payload(html), sanitize_html(html))
+
+		# non-strings are left alone
+		self.assertEqual(sanitize_html_payload(None), None)
+
+		# a guest can post arbitrarily nested JSON cheaply (two bytes a level), so the
+		# walk is bounded; past the bound it sanitizes the text as one blob instead of
+		# running the interpreter out of stack
+		self.assertEqual(sanitize_html_payload("[" * 5000 + "]" * 5000), "[" * 5000 + "]" * 5000)
+		buried = json.dumps(json.loads("[" * 800 + '"<script>alert(1)</script>"' + "]" * 800))
+		self.assertNotIn("<script>", sanitize_html_payload(buried))
+
+		# a payload at a realistic depth is still walked, not treated as one blob
+		nested_doc = json.dumps({"doc": {"items": [{"description": '<div class="x"><p>hi</p></div>'}]}})
+		self.assertEqual(sanitize_html_payload(nested_doc), nested_doc)
+
 	def test_sanitize_svg(self):
 		from frappe.utils.html_utils import sanitize_svg
 

@@ -226,15 +226,16 @@ frappe.views.Workspace = class Workspace {
 
 				$(this.workspace_actions_button).removeAttr("data-original-title");
 				$(this.workspace_actions_button).removeClass("btn-default");
-				frappe.ui.create_menu({
-					parent: $(this.workspace_actions_button),
-					open_on_left: true,
-					size: "fit-content",
-					menu_items: [
+				new frappe.ui.Dropdown({
+					trigger: $(this.workspace_actions_button),
+					// The button sits at the end of the page header, so the menu hangs back
+					// under it rather than running off the edge.
+					align: "end",
+					options: [
 						{
-							label: "Edit",
+							label: __("Edit"),
 							icon: "pencil",
-							onClick: async () => {
+							onclick: async () => {
 								if (!this.editor || !this.editor.readOnly) return;
 								this.is_read_only = false;
 								await this.editor.readOnly.toggle();
@@ -248,17 +249,17 @@ frappe.views.Workspace = class Workspace {
 							},
 						},
 						{
-							label: "New",
+							label: __("New"),
 							icon: "plus",
-							onClick: () => this.initialize_new_page(),
+							onclick: () => this.initialize_new_page(),
 							condition: () => {
 								return this.has_create_access;
 							},
 						},
 						{
-							label: "Manage",
+							label: __("Manage"),
 							icon: "settings",
-							onClick: () => this.open_workspace_manager(current_page),
+							onclick: () => this.open_workspace_manager(current_page),
 							condition: () => {
 								// available whenever the user can manage at least one workspace
 								// (a Workspace Manager, or anyone with their own private pages)
@@ -266,9 +267,9 @@ frappe.views.Workspace = class Workspace {
 							},
 						},
 						{
-							label: "Reset to Standard",
+							label: __("Reset to Standard"),
 							icon: "rotate-ccw",
-							onClick: () => this.reset_workspace_customization(current_page),
+							onclick: () => this.reset_workspace_customization(current_page),
 							condition: () => {
 								return current_page.is_customized && this.has_access;
 							},
