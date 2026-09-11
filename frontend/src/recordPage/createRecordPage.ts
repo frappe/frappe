@@ -33,6 +33,16 @@ import type {
   TabsApi,
 } from "./types";
 
+/** The name a `beforeSave` veto rejects under, so a host keeps the draft instead of reloading. */
+export const SAVE_VETO = "SaveVeto";
+
+/** A veto keeps the script's message; a non-Error throw is wrapped so it can carry the name. */
+function asVeto(error: unknown): Error {
+  const veto = error instanceof Error ? error : new Error(String(error));
+  veto.name = SAVE_VETO;
+  return veto;
+}
+
 /** The closed event vocabulary; every other key is a fieldname. */
 export const RECORD_PAGE_EVENTS = [
   "onRefresh",
@@ -286,11 +296,23 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     ready.value = true;
   }
 
+  // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
+  let saving: Promise<void> | null = null;
+
   /** The one save path: a clean doc resolves at once, and a `beforeSave` throw sends nothing. */
-  async function save() {
-    if (!host.isDirty()) return;
+  function save() {
+    if (!host.isDirty()) return Promise.resolve();
+    if (!saving) saving = runSave().finally(() => (saving = null));
+    return saving;
+  }
+
+  async function runSave() {
     await commits.flush();
-    await fireEvent("beforeSave");
+    try {
+      await fireEvent("beforeSave");
+    } catch (error) {
+      throw asVeto(error);
+    }
     await host.save();
     await fireEvent("afterSave");
   }

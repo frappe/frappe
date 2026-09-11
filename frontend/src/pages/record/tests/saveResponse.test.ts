@@ -33,6 +33,15 @@ describe("serverMessage", () => {
     expect(serverMessage(body)).toBe("Amount is required");
   });
 
+  it("reads a msgprint's HTML as text", () => {
+    const body = {
+      _server_messages: JSON.stringify([
+        JSON.stringify({ message: "<b>Amount</b> is required<br>for a won deal" }),
+      ]),
+    };
+    expect(serverMessage(body)).toBe("Amount is required for a won deal");
+  });
+
   it("answers nothing for a body with no messages or a broken one", () => {
     expect(serverMessage({})).toBeUndefined();
     expect(serverMessage({ _server_messages: "nope" })).toBeUndefined();

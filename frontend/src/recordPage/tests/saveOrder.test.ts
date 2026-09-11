@@ -14,7 +14,7 @@ vi.mock("frappe-ui", () => ({
   frappeRequest: vi.fn(),
 }));
 
-import { createRecordPage, type RecordPageHost } from "../createRecordPage";
+import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 
 function makeHost(overrides: Partial<RecordPageHost> = {}) {
@@ -91,14 +91,55 @@ describe("page.save()", () => {
   it("a clean doc resolves at once: no flush, no handlers, no write", async () => {
     const { host, order } = makeHost({ isDirty: () => false });
     registerRecordPage("CRM Deal", {
+      status: () => void order.push("status"),
       beforeSave: () => void order.push("beforeSave"),
       afterSave: () => void order.push("afterSave"),
     });
     const controller = createRecordPage(host);
 
+    controller.commits.pending("status", "Won");
     await controller.page.save();
 
     expect(order).toEqual([]);
+  });
+
+  it("a veto rejects under its own name, keeping the script's message", async () => {
+    const { host } = makeHost();
+    registerRecordPage("CRM Deal", {
+      beforeSave: () => {
+        throw new Error("Win chance is a percentage");
+      },
+    });
+    const controller = createRecordPage(host);
+
+    const rejection = await controller.page.save().catch((e) => e);
+
+    expect(rejection.name).toBe(SAVE_VETO);
+    expect(rejection.message).toBe("Win chance is a percentage");
+  });
+
+  it("two saves mid-flight run the handlers and the write once", async () => {
+    let release!: () => void;
+    const { host, order } = makeHost({
+      save: async () => {
+        order.push("write");
+        await new Promise<void>((resolve) => (release = resolve));
+      },
+    });
+    registerRecordPage("CRM Deal", {
+      beforeSave: () => void order.push("beforeSave"),
+      afterSave: () => void order.push("afterSave"),
+    });
+    const controller = createRecordPage(host);
+
+    const first = controller.page.save();
+    while (!order.includes("write")) await Promise.resolve();
+    const second = controller.page.save();
+    expect(second).toBe(first);
+    release();
+    await Promise.all([first, second]);
+
+    expect(order).toEqual(["beforeSave", "write", "afterSave"]);
   });
 
   it("the flushed handler's own write lands before beforeSave reads the doc", async () => {

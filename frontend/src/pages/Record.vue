@@ -82,6 +82,7 @@ import {
 	errorMessage,
 	loadClientScripts,
 	projectHeader,
+	SAVE_VETO,
 	useFormLayout,
 	type HeaderItem,
 	type QuickAction,
@@ -231,6 +232,7 @@ async function load() {
 	doc.value = {};
 	saved.value = {};
 	docinfo.value = null;
+	linkTitles.value = {};
 	controller.value = null;
 	panelLayout.value = null;
 	detailsLayout.value = null;
@@ -341,6 +343,7 @@ async function send() {
 		const body = await res.json().catch(() => null);
 		if (!res.ok) {
 			if (isTimestampMismatch(body)) {
+				saving.value = false;
 				await resolveConflict();
 				throw conflictError();
 			}
@@ -386,15 +389,17 @@ async function runSave() {
 	}
 }
 
+// A failing action would otherwise leave the draft mutated with no error, so it reloads;
+// a save the reader vetoed or must resolve keeps the draft, as the built-in Save does.
 async function runAction(action: QuickAction | HeaderItem) {
-	// Awaited and caught: a failing action would otherwise leave the draft mutated on screen
-	// with no error. Reloading discards the rejected draft.
 	actionError.value = "";
 	try {
 		await action.run?.(controller.value!.page);
 	} catch (e) {
+		const name = (e as Error)?.name;
+		if (name === SAVE_CONFLICT) return;
 		actionError.value = errorMessage(e);
-		await load();
+		if (name !== SAVE_VETO) await load();
 	}
 }
 
@@ -422,6 +427,10 @@ async function landOn(fieldname: string, cursor: boolean) {
 		}
 		await new Promise(requestAnimationFrame);
 	}
+	if (import.meta.env.DEV)
+		console.warn(
+			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`
+		);
 }
 
 function expand(field: FieldNode) {
@@ -455,7 +464,7 @@ function onBeforeUnload(event: BeforeUnloadEvent) {
 function onKeydown(event: KeyboardEvent) {
 	if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
 	event.preventDefault();
-	if (!controller.value) return;
+	if (!controller.value || event.repeat) return;
 	if (!dirty.value) toast.info("No changes to save");
 	runSave();
 }
