@@ -100,6 +100,10 @@ export const DocKey: InjectionKey<Ref<Record<string, any>>> =
 export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
   Symbol("FormLayoutParentDoc");
 
+/** Titles a `Link` value shows before its options load, keyed `Doctype::name`. */
+export const LinkTitlesKey: InjectionKey<Ref<Record<string, string>>> =
+  Symbol("FormLayoutLinkTitles");
+
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");
