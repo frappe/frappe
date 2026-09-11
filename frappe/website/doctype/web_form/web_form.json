@@ -254,6 +254,7 @@
    "max_height": "140px"
   },
   {
+   "description": "For help see <a href=\"https://docs.frappe.io/framework/user/en/web-form/customization#custom-css\" target=\"_blank\" rel=\"noopener noreferrer\">Web Form Custom CSS</a>",
    "fieldname": "custom_css",
    "fieldtype": "Code",
    "label": "Custom CSS",
@@ -476,7 +477,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-09-11 12:00:00.000000",
+ "modified": "2026-09-11 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
