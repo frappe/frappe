@@ -249,6 +249,8 @@ Apply the reka-ui patch this package ships. Without it, a popover opened over a 
 
 See [decision 0007](island/decisions/0007-reka-ui-is-patched-to-read-the-shadow-root.md).
 
+Overlays render in the browser's top layer, above the host's chrome whatever stacking context the island sits in. The mount target must be in the document, and the browser needs the popover API: Safari 17, Chrome 114.
+
 ### Icons
 
 `~icons/lucide/<name>` works, through frappe-ui's resolver.

@@ -1418,6 +1418,12 @@ def parse_val(v):
 	return v
 
 
+def get_currency_precision() -> int | None:
+	"""Return the configured Currency Precision, or None if it isn't set."""
+	currency_precision = frappe.db.get_default("currency_precision")
+	return cint(currency_precision) if currency_precision not in (None, "") else None
+
+
 def fmt_money(
 	amount: str | float | int | None,
 	precision: int | None = None,
@@ -1428,7 +1434,7 @@ def fmt_money(
 	number_format = NumberFormat.from_string(format) if format else get_number_format()
 
 	if precision is None:
-		precision = cint(frappe.db.get_default("currency_precision")) or None
+		precision = get_currency_precision()
 
 	if precision is None:
 		precision = number_format.precision
