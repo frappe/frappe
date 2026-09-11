@@ -153,6 +153,7 @@ export default class BulkEdit {
 			tabs: this.tab_defs,
 			on_change: (index) => {
 				this.stepper.set_current(index);
+				this.show_cell_message();
 				this.sync_uploaded_file();
 				if (
 					[TAB_FIX, TAB_PREVIEW].includes(index) &&
