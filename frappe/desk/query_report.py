@@ -16,7 +16,13 @@ from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
-from frappe.permissions import get_role_permissions, get_roles, has_permission
+from frappe.permissions import (
+	get_child_restricted_docs,
+	get_role_permissions,
+	get_roles,
+	get_user_permissions,
+	has_permission,
+)
 from frappe.utils import cint, cstr, flt, format_datetime, format_duration, formatdate, get_html_format, sbool
 from frappe.utils.caching import request_cache
 
@@ -935,6 +941,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, user=user)
+	restricted_docs = get_restricted_docs(linked_doctypes, data, user)
 	shared = frappe.share.get_shared(ref_doctype, user)
 	columns_dict = get_columns_dict(columns)
 
@@ -952,30 +959,64 @@ def get_filtered_data(ref_doctype, columns, data, user):
 				val = row.get(field.fieldname)
 				row[field.fieldname] = mask_field_value(field, val)
 
-	if match_filters_per_doctype:
-		for row in data:
-			# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
-			if (
-				linked_doctypes.get(ref_doctype)
-				and shared
-				and row.get(linked_doctypes[ref_doctype]) in shared
-			):
-				result.append(row)
+	if not match_filters_per_doctype and not restricted_docs:
+		return list(data)
 
-			elif has_match(
-				row,
-				linked_doctypes,
-				match_filters_per_doctype,
-				ref_doctype,
-				if_owner,
-				columns_dict,
-				user,
-			):
-				result.append(row)
-	else:
-		result = list(data)
+	for row in data:
+		# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
+		if linked_doctypes.get(ref_doctype) and shared and row.get(linked_doctypes[ref_doctype]) in shared:
+			result.append(row)
+
+		elif has_restricted_doc(row, linked_doctypes, restricted_docs):
+			continue
+
+		elif has_match(
+			row,
+			linked_doctypes,
+			match_filters_per_doctype,
+			ref_doctype,
+			if_owner,
+			columns_dict,
+			user,
+		):
+			result.append(row)
 
 	return result
+
+
+def get_restricted_docs(linked_doctypes, data, user):
+	"""Return the documents per linked doctype that child table User Permissions deny."""
+	if not data or not get_user_permissions(user):
+		return {}
+
+	restricted_docs = {}
+	for doctype, key in linked_doctypes.items():
+		values = {get_cell_value(row, key) for row in data if row}
+		if denied_docs := get_child_restricted_docs(doctype, values, user):
+			restricted_docs[doctype] = denied_docs
+
+	return restricted_docs
+
+
+def has_restricted_doc(row, linked_doctypes, restricted_docs):
+	"""Return True if a cell in the row points at a document denied by child User Permissions."""
+	if not row:
+		return False
+
+	return any(
+		get_cell_value(row, linked_doctypes[doctype]) in denied_docs
+		for doctype, denied_docs in restricted_docs.items()
+	)
+
+
+def get_cell_value(row, key):
+	if isinstance(row, dict):
+		return row.get(key)
+
+	if isinstance(row, list | tuple):
+		return row[key] if key < len(row) else None
+
+	return None
 
 
 def has_match(
@@ -1021,11 +1062,7 @@ def has_match(
 					if dt == "User" and columns_dict[idx] == columns_dict.get("owner"):
 						continue
 
-					cell_value = None
-					if isinstance(row, dict):
-						cell_value = row.get(idx)
-					elif isinstance(row, list | tuple):
-						cell_value = row[idx]
+					cell_value = get_cell_value(row, idx)
 
 					if (
 						dt in match_filters

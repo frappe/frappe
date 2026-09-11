@@ -2,14 +2,15 @@
 # License: MIT. See LICENSE
 import copy
 import functools
+from collections.abc import Iterable
 
 import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.app_state import is_module_disabled
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
-from frappe.query_builder import DocType
-from frappe.utils import cint, cstr
+from frappe.query_builder import Criterion, DocType
+from frappe.utils import cint, create_batch, cstr
 
 std_rights = (
 	"select",
@@ -809,6 +810,39 @@ def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=
 				default_doc = doc.get("doc")
 
 	return (allowed_doc, default_doc) if with_default_doc else allowed_doc
+
+
+def get_child_restricted_docs(doctype: str, names: Iterable[str], user: str | None = None) -> set[str]:
+	"""Return the given names that are hidden by User Permissions on a child table Link field.
+
+	Queries apply this rule in SQL. Report rows are filtered after the query has run, so
+	they need the same rule as a plain set of denied names.
+	"""
+	from frappe.database.query import Engine
+
+	names = [name for name in dict.fromkeys(names) if name]
+	if not names:
+		return set()
+
+	engine = Engine()
+	engine.get_query(doctype, user=user)
+	table = frappe.qb.DocType(doctype)
+
+	conditions = engine.get_child_user_permission_conditions(doctype, table)
+	if not conditions:
+		return set()
+
+	permitted = set()
+	for batch in create_batch(names, 5000):
+		permitted.update(
+			frappe.qb.from_(table)
+			.select(table.name)
+			.where(table.name.isin(batch))
+			.where(Criterion.all(conditions))
+			.run(pluck=True)
+		)
+
+	return set(names) - permitted
 
 
 def push_perm_check_log(log, debug=False):
