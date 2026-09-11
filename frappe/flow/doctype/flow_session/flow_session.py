@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import suppress
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -138,20 +139,40 @@ class FlowSession(Document):
 		self,
 		input: str,
 		*,
+		attachments: list[str] | None = None,
 		source: str = "Manual",
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
 	) -> FlowRun:
-		"""Start a turn and return its Running Flow Run, or the active run it joined."""
+		"""Start a turn and return its Running Flow Run, or the active run it joined.
+		`attachments` are File names whose content travels with this turn."""
+		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
+			build_turn,
+			cleanup_indexed_files,
+		)
+
 		if not (input or "").strip():
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
 		self._assert_can_run()
 		self.sync()
+		turn = build_turn(self, input, attachments or [])
+		uploaded = []
 		try:
 			with DaemonClient.for_site() as client:
-				reply = client.run(self.name, input)
+				try:
+					if turn.images:
+						uploaded = [
+							a["id"] for a in client.upload_attachments(self.name, turn.images)["attachments"]
+						]
+					reply = client.run(self.name, turn.message, attachments=uploaded)
+				except DaemonError:
+					if uploaded:
+						with suppress(DaemonError):
+							client.cleanup_attachments(self.name, uploaded)
+					raise
 		except DaemonError as exc:
+			cleanup_indexed_files(self.name, turn.indexed_files)
 			if exc.status == 404:
 				frappe.throw(_(READ_ONLY), title=_("Flow Server"))
 			frappe.throw(str(exc), title=_("Flow Server"))
@@ -170,6 +191,10 @@ class FlowSession(Document):
 					"status": "Running",
 				}
 			).insert(ignore_permissions=True)
+		if turn.attachment_rows:
+			for row in turn.attachment_rows:
+				self.append("attachments", {**row, "run": run.name})
+			self.save(ignore_permissions=True)
 		return run
 
 	def resume(self, answers: dict[str, Any]) -> FlowRun:

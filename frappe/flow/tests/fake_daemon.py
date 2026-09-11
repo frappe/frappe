@@ -119,8 +119,17 @@ class FakeDaemon:
 		self.calls.append(("entries", sid, since, path))
 		return {"entries": [row for row in self.rows if row["seq"] > since]}
 
+	def upload_attachments(self, sid, files):
+		self.calls.append(("upload_attachments", sid, [(name, mime) for name, _data, mime in files]))
+		return {"attachments": [{"id": f"a{i}", "name": f[0], "kind": "image"} for i, f in enumerate(files)]}
+
+	def cleanup_attachments(self, sid, attachment_ids):
+		self.calls.append(("cleanup_attachments", sid, attachment_ids))
+		return {"removed": len(attachment_ids)}
+
 	def run(self, sid, message, *, attachments=None):
-		self.calls.append(("run", sid, message))
+		call = ("run", sid, message)
+		self.calls.append((*call, attachments) if attachments else call)
 		if self.paused:
 			raise DaemonError(409, "run is paused for approval; resolve it with resume")
 		if self.running:

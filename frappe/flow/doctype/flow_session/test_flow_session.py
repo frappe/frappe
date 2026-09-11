@@ -3,7 +3,7 @@
 
 import json
 import re
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import frappe
 from flow_harness.session.config import SessionConfig
@@ -12,6 +12,7 @@ from frappe.tests import IntegrationTestCase
 from flow.daemon import lifecycle
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_session.flow_session import FlowSession
+from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
 from flow.tools.builtins import sync_builtin_tools
@@ -248,6 +249,83 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 		self.assertEqual(joined.name, first.name)
 		self.assertEqual(self.runs(), 1)
 		self.assertEqual(self.calls("run")[-1], ("run", self.session.name, "and this"))
+
+	def test_chat_sends_file_text_with_the_turn_and_records_the_attachment(self):
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "notes.txt",
+				"content": "the secret code is 1234",
+				"is_private": 1,
+			}
+		).insert()
+		run = self.session.chat("summarize this", attachments=[file_doc.name])
+		self.assertEqual(
+			self.calls("run"),
+			[
+				(
+					"run",
+					self.session.name,
+					'summarize this\n<file name="notes.txt">\nthe secret code is 1234\n</file>',
+				)
+			],
+		)
+		self.assertEqual(run.input, "summarize this")
+		self.assertEqual(
+			[(a.file, a.file_name, a.run, a.mode, a.extracted_text) for a in self.session.attachments],
+			[(file_doc.name, "notes.txt", run.name, "Inline", "the secret code is 1234")],
+		)
+		self.assertEqual(frappe.db.count("Flow Session Attachment", {"parent": self.session.name}), 1)
+
+	def test_chat_uploads_images_for_a_vision_model(self):
+		data = png_bytes()
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "pic.png", "content": data, "is_private": 1}
+		).insert()
+		run = self.session.chat("what is this", attachments=[file_doc.name])
+		self.assertEqual(
+			self.daemon.calls[-2:],
+			[
+				("upload_attachments", self.session.name, [("pic.png", "image/png")]),
+				("run", self.session.name, "what is this", ["a0"]),
+			],
+		)
+		self.assertEqual([(a.run, a.mode) for a in self.session.attachments], [(run.name, "Image")])
+
+	def test_chat_drops_its_uploads_when_the_server_refuses_the_turn(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "pic.png", "content": png_bytes(), "is_private": 1}
+		).insert()
+		self.daemon.paused = True
+		with self.assertRaisesRegex(frappe.ValidationError, "paused"):
+			self.session.chat("look", attachments=[file_doc.name])
+		self.assertEqual(self.daemon.calls[-1], ("cleanup_attachments", self.session.name, ["a0"]))
+		self.assertEqual((self.runs(), self.session.attachments), (0, []))
+
+	def test_chat_drops_new_retrieval_chunks_when_the_server_refuses_the_turn(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "large.txt", "content": "A" * 30, "is_private": 1}
+		).insert()
+		frappe.db.set_value("Flow Model", self.model.name, "context_window", 10)
+		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.model.name)
+		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
+		self.daemon.paused = True
+		with (
+			patch("flow.knowledge.embedder.embed_texts", return_value=[[1.0, 0, 0, 0]]),
+			patch("flow.knowledge.attachment_store.ensure_table"),
+			patch("flow.knowledge.attachment_store.add"),
+			patch("flow.knowledge.attachment_store.delete") as delete,
+			patch("flow.knowledge.retriever.retrieve_attachments", return_value=[]),
+			self.assertRaisesRegex(frappe.ValidationError, "paused"),
+		):
+			self.session.chat("look", attachments=[file_doc.name])
+		self.assertEqual(
+			delete.call_args_list,
+			[
+				call(session=self.session.name, attachment=file_doc.name),
+				call(session=self.session.name, attachment=file_doc.name),
+			],
+		)
 
 	def test_chat_refuses_a_paused_session(self):
 		self.daemon.paused = True

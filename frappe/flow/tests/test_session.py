@@ -8,6 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient, DaemonError
+from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.lib.session import load_session, new_session
 from flow.permissions import FLOW_USER_ROLE
 from flow.tests.fake_daemon import FakeDaemon
@@ -208,3 +209,45 @@ class TestLiveSession(LiveServerCase):
 		with self.assertRaises(DaemonError) as caught:
 			self.client.get_session(session.name)
 		self.assertEqual(caught.exception.status, 404)
+
+	def test_attachments_reach_the_server(self):
+		"""A text file rides inside the message; an image is read by OCR for a text-only
+		model and uploaded for one that sees images (the mock model then gets a placeholder)."""
+		session = self.agent.new_session()
+		note = frappe.get_doc(
+			{"doctype": "File", "file_name": "note.txt", "content": "the code is 4711", "is_private": 1}
+		).insert()
+		run = session.chat("what is the code?", attachments=[note.name])
+		self.settle(session, run)
+		self.assertEqual(run.status, "Completed")
+		self.assertIn("the code is 4711", run.output)  # the mock model echoes the text it was given
+		self.assertEqual(
+			[(a.file, a.mode, a.run) for a in session.attachments], [(note.name, "Inline", run.name)]
+		)
+
+		picture = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "invoice.png",
+				"content": png_bytes("INVOICE 4711"),
+				"is_private": 1,
+			}
+		).insert()
+		with patch("flow_harness.model.catalog.model_supports_images", return_value=False):
+			run = session.chat("read the picture", attachments=[picture.name])
+		self.settle(session, run)
+		self.assertIn("INVOICE 4711", run.output)
+		self.assertEqual(session.attachments[-1].mode, "Inline")
+
+		run = session.chat("and as an image", attachments=[picture.name])  # gpt-4o-mini sees images
+		self.settle(session, run)
+		self.assertEqual((run.status, session.attachments[-1].mode), ("Completed", "Image"))
+		message = [
+			e for e in self.client.entries(session.name, path="all")["entries"] if e["type"] == "user_message"
+		][-1]
+		self.assertEqual(
+			[(b["type"], b.get("kind")) for b in message["content"]],
+			[("text", None), ("attachment", "image")],
+		)
+		with patch("flow.knowledge.attachment_store.delete"):
+			session.delete()
