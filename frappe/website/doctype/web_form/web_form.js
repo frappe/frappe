@@ -453,20 +453,24 @@ frappe.ui.form.on("Web Form Field", {
 	},
 });
 
-// one list of the doctype's fields, rows already on the form pre-ticked;
-// Update adds what was ticked and removes the rows that were unticked
+// one list of the doctype's fields (no breaks), rows already on the form pre-ticked.
+// Update adds what was ticked and removes the rows that were unticked. With everything
+// ticked, it rebuilds the table in doctype order, breaks included.
 class GetFieldsDialog {
 	constructor(frm, fields) {
 		this.frm = frm;
 		const fieldtypes = frappe.meta
 			.get_field("Web Form Field", "fieldtype")
 			.options.split("\n");
-		this.fields = fields.filter(
+		this.doctype_fields = fields.filter(
 			(df) => fieldtypes.includes(get_web_form_fieldtype(df)) && !df.hidden
 		);
+		this.fields = this.doctype_fields.filter((df) => !is_layout_field(df));
 		this.fields_by_name = Object.fromEntries(this.fields.map((df) => [df.fieldname, df]));
-		// layout rows have no fieldname, so they can not be told apart; leave them alone
-		this.existing_rows = (frm.doc.web_form_fields || []).filter((d) => d.fieldname);
+		// builder breaks have no fieldname, and older picker breaks do: skip both
+		this.existing_rows = (frm.doc.web_form_fields || []).filter(
+			(d) => d.fieldname && !is_layout_field(d)
+		);
 		this.existing_fieldnames = this.existing_rows.map((d) => d.fieldname);
 
 		if (!this.fields.length && !this.existing_rows.length) {
@@ -586,6 +590,19 @@ class GetFieldsDialog {
 
 	update() {
 		const selected = this.dialog.get_value("fields");
+		// checkbox state, not a Select All flag: Select All then one untick stays additive
+		const all_ticked = selected.length === this.dialog.get_field("fields").options.length;
+		all_ticked ? this.rebuild_layout(selected) : this.add_and_remove(selected);
+
+		this.frm.refresh_field("web_form_fields");
+		refresh_form_builder(this.frm);
+
+		// not scroll_to_field: its highlight glow wraps the whole builder tab
+		get_builder_tab(this.frm)?.set_active();
+		this.dialog.hide();
+	}
+
+	add_and_remove(selected) {
 		const removed = this.existing_rows.filter((d) => !selected.includes(d.fieldname));
 
 		// clear_doc also renumbers idx, which filtering the array would not
@@ -595,19 +612,37 @@ class GetFieldsDialog {
 			.filter((fieldname) => !this.existing_fieldnames.includes(fieldname))
 			.forEach((fieldname) => this.add_row(this.fields_by_name[fieldname], selected));
 
-		// add_child marks the form dirty but clear_doc does not, and the fetch below
+		// add_child marks the form dirty but clear_doc does not, and the fetch in update()
 		// would then reset __unsaved
 		removed.length && this.frm.dirty();
-		this.frm.refresh_field("web_form_fields");
-		refresh_form_builder(this.frm);
+	}
 
-		// not scroll_to_field: its highlight glow wraps the whole builder tab
-		get_builder_tab(this.frm)?.set_active();
-		this.dialog.hide();
+	rebuild_layout(selected) {
+		const ordered = this.get_ordered_rows(selected);
+
+		this.frm.doc.web_form_fields
+			.filter((d) => !ordered.includes(d))
+			.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
+		this.frm.doc.web_form_fields = ordered;
+		ordered.forEach((d, i) => (d.idx = i + 1));
+		this.frm.dirty();
+	}
+
+	// existing rows are reused, so their edits survive. Breaks are always new, and empty
+	// ones are kept: the portal hides empty sections and skips empty pages.
+	get_ordered_rows(selected) {
+		const rows = this.doctype_fields.map(
+			(df) =>
+				this.existing_rows.find((d) => d.fieldname === df.fieldname) ||
+				this.add_row(df, selected)
+		);
+		// rows whose docfield was deleted were ticked too, so keep them at the end
+		const orphans = this.existing_rows.filter((d) => !this.fields_by_name[d.fieldname]);
+		return [...rows, ...orphans];
 	}
 
 	add_row(df, selected) {
-		this.frm.add_child("web_form_fields", {
+		return this.frm.add_child("web_form_fields", {
 			fieldname: df.fieldname,
 			label: df.label,
 			fieldtype: get_web_form_fieldtype(df),
@@ -767,6 +802,10 @@ function get_builder_tab(frm) {
 
 function get_web_form_fieldtype(df) {
 	return df.fieldtype == "Tab Break" ? "Page Break" : df.fieldtype;
+}
+
+function is_layout_field(df) {
+	return ["Section Break", "Column Break", "Page Break"].includes(get_web_form_fieldtype(df));
 }
 
 // a condition on a field the form does not carry never sees that field's value

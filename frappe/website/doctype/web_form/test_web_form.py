@@ -76,6 +76,31 @@ class TestWebForm(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
 		self.assertFalse(frappe.db.exists("Event", {"subject": "_Test Event Without Description"}))
 
+	def test_page_without_visible_fields_blocks_save(self):
+		"""The portal skips such a page, so the Page Break would silently do nothing."""
+		self.assertRaises(
+			frappe.ValidationError,
+			self.make_temp_web_form,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "details", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "", "fieldtype": "Section Break"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "hidden": 1},
+			],
+		)
+
+	def test_first_page_may_be_empty(self):
+		"""The portal always shows the first page, so only later pages are checked."""
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "", "fieldtype": "Page Break", "label": "More"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+			]
+		)
+		self.assertEqual(len(web_form.web_form_fields), 4)
+
 	def test_web_form_data_field_options_are_enforced_on_server(self):
 		"""Email/Phone/URL set on a Web Form Field is not on the DocType, so the
 		document's own check never sees it."""
