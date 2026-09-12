@@ -239,15 +239,15 @@ function profileHeader() {
 					"div",
 					{
 						"data-key": "profile",
-						class: "flex items-center gap-2 px-2 py-1.5",
+						class: "flex items-center gap-1.5 px-2 py-1.5",
 						style: { cursor: "default" },
 					},
 					[
 						h(Avatar, { image: user_image, label: full_name, size: "xl" }),
-						h("div", { class: "min-w-0" }, [
+						h("div", { class: "flex flex-col gap-0.5 min-w-0" }, [
 							h(
 								"div",
-								{ class: "truncate text-base font-semibold text-ink-gray-9" },
+								{ class: "truncate text-sm font-semibold text-ink-gray-9" },
 								full_name
 							),
 							h("div", { class: "truncate text-xs text-ink-gray-5" }, email),
