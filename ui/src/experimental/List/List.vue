@@ -13,7 +13,11 @@
 			divider="inset"
 			:columns="tracks"
 			:rowHeight="rowHeight"
-			:style="{ '--list-row-padding-x': ROW_PADDING_X, paddingInline }"
+			:style="{
+				'--list-row-padding-x': ROW_PADDING_X,
+				'--list-gap': COLUMN_GAP,
+				paddingInline,
+			}"
 			class="flex w-max min-w-full flex-col"
 		>
 			<ListHeader class="group sticky top-0 z-10 bg-surface-base">
@@ -41,14 +45,14 @@
 						{{ column.label }}
 					</ListHeaderCellSort>
 					<ListHeaderCell v-else class="min-w-0">{{ column.label }}</ListHeaderCell>
-					<!-- The handle sits in the column gap, so a right-aligned label stays clear of it. -->
+					<!-- The handle sits mid-gap, so a right-aligned label stays clear of it. -->
 					<span
-						class="absolute inset-y-0 -right-2 flex w-2 cursor-col-resize items-center justify-center"
+						class="absolute inset-y-0 -right-3 flex w-2 cursor-col-resize items-center justify-center"
 						@pointerdown.stop.prevent="startResize(column, $event)"
 						@dblclick.stop.prevent="resetColumn(column)"
 					>
 						<span
-							class="h-4 border-l border-outline-gray-2 opacity-0 transition-opacity group-hover:opacity-100"
+							class="h-4 w-0.5 rounded-full bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
 							:class="{ 'opacity-100': resizingFieldname === column.fieldname }"
 						/>
 					</span>
@@ -160,6 +164,8 @@ defineSlots<{
 /** The row's own inset; the checkbox column and the last cell sit this far inside it. The checkbox
  *  takes one pixel more, so its box reads level with text, whose ink starts inside its box. */
 const ROW_PADDING_X = "0.5rem";
+// Wide enough for the resize handle to sit mid-gap and clear of both labels.
+const COLUMN_GAP = "1rem";
 const SKELETON_ROW_COUNT = 10;
 const SKELETON_COLUMN_COUNT = 4;
 
