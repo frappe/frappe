@@ -18,7 +18,7 @@ function stubFetch() {
 	);
 }
 
-function mount(props: { name?: string; reserve?: boolean }) {
+function mount(props: { name?: string }) {
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	createApp({ render: () => h(Icon, props) }).mount(host);
@@ -104,14 +104,8 @@ describe("a name the sprite does not hold", () => {
 	});
 });
 
-describe("the reserved slot", () => {
-	it("holds a row's indent open when there is nothing to draw", () => {
-		const host = mount({ reserve: true });
-
-		expect(host.querySelector("span")).not.toBeNull();
-	});
-
-	it("draws nothing at all without it", () => {
+describe("no name", () => {
+	it("draws nothing at all", () => {
 		const host = mount({});
 
 		expect(host.querySelector("span")).toBeNull();

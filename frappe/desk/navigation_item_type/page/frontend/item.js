@@ -13,6 +13,8 @@
 // not-found, one hop later and with the reason lost.
 
 export default {
+	icon: "layout-dashboard",
+
 	render(item, { boot, pages }) {
 		const page = pages.find((entry) => entry.slug === item.link_to);
 		return page ? { to: { name: `page:${boot.app}:${page.slug}` } } : null;

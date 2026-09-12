@@ -50,4 +50,6 @@ export type ItemContext = {
 export type ItemRenderer = {
 	render(item: NavigationItem, context: ItemContext): Rendering | null;
 	label?(item: NavigationItem, context: ItemContext): string | undefined;
+	/** The sprite symbol a row of this kind draws when its item names no icon. */
+	icon?: string;
 };

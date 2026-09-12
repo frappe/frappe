@@ -20,6 +20,8 @@
 // depend on a filter it does not run.
 
 export default {
+	icon: "panel-left",
+
 	render(item, { sidebars, renderingOf }) {
 		const rows = sidebars[item.link_to];
 		if (!rows?.length) return null;

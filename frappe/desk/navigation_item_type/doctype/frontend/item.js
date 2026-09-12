@@ -8,6 +8,8 @@
 import { routeFor } from "@shell";
 
 export default {
+	icon: "list",
+
 	// `routeFor` and never a hand-built path. The address gained a module segment when an
 	// app could declare `app_modular` (#42211), so `/${slug}` resolves under a modular
 	// prefix — to the MODULE route, showing a page that is not the list. A 404 would be

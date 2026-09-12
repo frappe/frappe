@@ -9,7 +9,7 @@ import { itemRenderers, registerContributions } from "@/contributions/registry";
 import { generatedRoutes } from "@/router/generated";
 import { registerShell } from "@/router/routeFor";
 import { itemContext } from "../context";
-import { renderingOf, labelOf, rendererFor, resetNavigationReports } from "../registry";
+import { iconOf, renderingOf, labelOf, rendererFor, resetNavigationReports } from "../registry";
 import type { ItemContext, ItemRenderer } from "../types";
 
 const addresses = new Addresses({
@@ -124,6 +124,12 @@ describe("DocType", () => {
 
 	it("renders an authored label literally, never translated", () => {
 		expect(labelOf({ ...item, label: "Deals" }, context([item]))).toBe("Deals");
+	});
+
+	it("draws the kind's icon when nobody chose one, an authored one first, and a dot for a kind with none", () => {
+		expect(iconOf(item)).toBe("list");
+		expect(iconOf({ ...item, icon: "users" })).toBe("users");
+		expect(iconOf({ key: "x", item_type: "Nobody" })).toBe("circle-dot");
 	});
 });
 

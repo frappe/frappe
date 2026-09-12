@@ -44,6 +44,8 @@ export interface ListRows {
 	hasNextPage: ComputedRef<boolean>;
 	/** How many rows the page asked to show; the rows fall short when the query has fewer. */
 	shown: ComputedRef<number>;
+	/** Shows exactly `size` rows: a chosen page size, even the one already chosen after a Load More. */
+	show(size: number): void;
 	/** The `key` of the query the rows belong to, which trails the state while a change waits. */
 	loadedKey: ComputedRef<string | null>;
 	next: () => void;
@@ -176,6 +178,11 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		hasNextPage,
 		shown: computed(() => shown.value),
 		loadedKey: computed(() => loadedKey.value),
+		show: (size) => {
+			if (!lastPage.value) return;
+			if (inFlight.value) return reload(size);
+			show(size);
+		},
 		next,
 		reload: () => reload(),
 		remove: (name) => firstPage.value!.delete.submit({ name }),

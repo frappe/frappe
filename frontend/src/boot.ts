@@ -41,7 +41,7 @@ export type Boot = {
 	setup_complete: boolean;
 	sysdefaults: Record<string, unknown>;
 	timezone: string;
-	user: { name: string; full_name: string; user_image?: string };
+	user: { name: string; full_name: string; email: string; user_image?: string };
 	lang: string;
 	translations_version: string;
 	app_order: string[];

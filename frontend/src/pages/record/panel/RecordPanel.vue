@@ -13,9 +13,10 @@
 		:class="dragging ? '' : 'transition-[width] duration-300 ease-in-out'"
 		:style="{ width: `${collapsed ? STRIP_WIDTH : width}px` }"
 		data-record-panel
+		@transitionend.self="onTransitionEnd"
 	>
 		<!-- A script that hid `quick_actions` leaves the strip with the expand control alone. -->
-		<div v-if="collapsed" class="flex flex-col items-center py-3">
+		<div v-if="collapsed && !closing" class="flex flex-col items-center py-3">
 			<QuickActions v-if="controller.panelSections.isVisible('quick_actions')" vertical />
 		</div>
 
@@ -34,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { provide, ref, toRef } from "vue";
+import { onBeforeUnmount, provide, ref, toRef, watch } from "vue";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import type { QuickAction, RecordPageController } from "@/recordPage";
 import { PanelContextKey, type DocInfo } from "./context";
@@ -64,6 +65,29 @@ const doc = defineModel<Record<string, any>>("doc", { required: true });
 
 const { width, collapsed } = usePanelGeometry(props.user);
 const dragging = ref(false);
+
+// The content stays mounted while the width shrinks over it, as it does when it grows.
+// The timer matches `duration-300`; the test DOM and a drag-toggle fire no transitionend.
+const CLOSE_DURATION = 300;
+const closing = ref(false);
+let settle: ReturnType<typeof setTimeout> | undefined;
+
+watch(collapsed, (value) => {
+	clearTimeout(settle);
+	closing.value = value;
+	if (value) settle = setTimeout(settled, dragging.value ? 0 : CLOSE_DURATION);
+});
+
+onBeforeUnmount(() => clearTimeout(settle));
+
+function onTransitionEnd(event: TransitionEvent) {
+	if (event.propertyName === "width") settled();
+}
+
+function settled() {
+	clearTimeout(settle);
+	closing.value = false;
+}
 
 provide(PanelContextKey, {
 	doctype: props.doctype,

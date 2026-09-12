@@ -1,11 +1,11 @@
 <!--
-  One doctype's list in the frame: the quick filter and the controls in one row under the title,
-  then the table with its bulk bar and footer. The composable holds the state; this lays it out.
+  One doctype's list in the frame: the crumbs, the quick filter and the controls in one row
+  under them, then the table with its bulk bar and footer. The composable holds the state; this lays it out.
 -->
 <template>
 	<PageFrame :scroll="false">
 		<template #header>
-			<PageHeaderTitle :title="doctype" />
+			<Breadcrumbs class="-ml-0.5" :items="crumbs" />
 		</template>
 
 		<p v-if="metaError" :class="pageGutter" class="py-5 text-sm text-ink-red-4">
@@ -69,6 +69,7 @@
 					:hasCounts="hasCounts"
 					:hasNextPage="hasNextPage"
 					@load-more="next"
+					@page-size="show"
 				/>
 			</div>
 		</template>
@@ -82,19 +83,39 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown, PageHeaderTitle } from "frappe-ui";
+import { Breadcrumbs, Button, Dropdown } from "frappe-ui";
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
-import { ref } from "vue";
+import { computed, inject, ref } from "vue";
+import { useRoute } from "vue-router";
+import type { Addresses } from "@/addresses";
+import { routeForModule } from "@/router/routeFor";
 import { useListPage } from "@/list/useListPage";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 
 const props = defineProps<{ doctype: string }>();
+
+const addresses = inject<Addresses>("addresses")!;
+const route = useRoute();
+
+// Under a modular prefix the address holds the module, so the crumbs walk down to the list.
+const crumbs = computed(() => {
+	const moduleSlug = route.params.module ? String(route.params.module) : "";
+	const doctype = { label: props.doctype };
+	if (!moduleSlug) return [doctype];
+	return [
+		{
+			label: addresses.moduleName(moduleSlug) ?? moduleSlug,
+			route: routeForModule(moduleSlug),
+		},
+		doctype,
+	];
+});
 
 const {
 	filters,
@@ -115,6 +136,7 @@ const {
 	hasCounts,
 	hasNextPage,
 	next,
+	show,
 	columnsCustomized,
 	resetColumns,
 	resizeColumn,

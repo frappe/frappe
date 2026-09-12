@@ -84,6 +84,23 @@ describe("ListFooter page size", () => {
     expect(chosen).toEqual([100]);
   });
 
+  it("a click on the chosen size emits it again", async () => {
+    const chosen: number[] = [];
+    const { root } = await mount(ListFooter, {
+      hasCounts: true,
+      pageSize: 20,
+      "onPage-size": (value: number) => chosen.push(value),
+    });
+
+    const tab = Array.from(
+      root.querySelectorAll<HTMLElement>("[role='radio']")
+    ).find((item) => item.textContent?.trim() === "20")!;
+    tab.click();
+    await flush();
+
+    expect(chosen).toEqual([20]);
+  });
+
   it("a restored page size emits nothing", async () => {
     const state = reactive({ pageSize: 20 });
     const chosen: number[] = [];

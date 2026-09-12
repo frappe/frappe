@@ -11,6 +11,15 @@ in full. Walk them before drafting or refactoring, and cite by ID in reviews (`D
 `FP2`, `P3`). The notes below are operational specifics — the design *rules* live in
 PHILOSOPHY.md, not here.
 
+## Components: frappe-ui and `@framework/ui` first
+
+Reach for a [frappe-ui](https://github.com/frappe/frappe-ui) component or an
+`@framework/ui` one before writing a new `.vue` here; list `frappe-ui/src/components`
+and `../ui/src/components` and check for a match (a crumb row is `Breadcrumbs`, a menu
+is `Dropdown`, a profile picture is `Avatar`). Nothing generic lives in `frontend/`:
+if a new piece could serve another app, build it in `@framework/ui` (or raise it for
+frappe-ui), and keep only the desk's use of it here.
+
 ## Comments and field descriptions — read `../AGENTS.md`
 
 [`../AGENTS.md`](../AGENTS.md) carries the comment rule for all desk v2 work: a comment
@@ -38,7 +47,7 @@ yarn --cwd frontend test:run
 That is exactly what CI does (`.github/workflows/frontend-tests.yml`). The **base** file
 is the correct input, not a `bench build`-generated one: `yarn.lock` was resolved from
 `package.base.json` alone, and no test needs anything an app contributes. Baseline is
-**65 files / 773 tests**, under `recordPage/tests/`, `pages/record/tests/`,
+**66 files / 782 tests**, under `recordPage/tests/`, `pages/record/tests/`,
 `pages/record/panel/tests/`, `shell/tests/` and `navigation/tests/`.
 
 **`vitest.config.js` runs with `css: { postcss: {} }`, and that is not cosmetic.**

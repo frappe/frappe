@@ -34,7 +34,7 @@ const crm = {
 	app_title: "CRM",
 	shell_base: "/apps/crm",
 	prefixes: { crm: { app: "crm", modular: false } },
-	user: { name: "jane@example.com", full_name: "Jane Doe" },
+	user: { name: "jane@example.com", full_name: "Jane Doe", email: "jane@example.com" },
 } as unknown as Boot;
 
 async function flush() {
@@ -393,6 +393,8 @@ describe("the person's cell", () => {
 		expect(button.getAttribute("aria-label")).toBe("Jane Doe");
 		expect(button.textContent?.trim()).toBe("J");
 		expect(button.querySelector("img")).toBeNull();
+		// The same 28px as the rail's icon tiles.
+		expect(button.firstElementChild?.className).toContain("w-7 h-7");
 		// After the scrolling column, so the column's `flex-1` pins it to the foot.
 		const scroll = host.querySelector("[data-key='CRM Deal']")!.closest("[data-slot='scroll-area']");
 		expect(button.compareDocumentPosition(scroll!) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
@@ -417,22 +419,34 @@ describe("the user menu", () => {
 		return document.body.querySelector<HTMLElement>("[role='menu']")!;
 	}
 
+	/** The command rows: the profile header is a menuitem too, but a disabled one. */
+	const COMMANDS = "[role='menuitem']:not([data-disabled])";
+
 	function rows(menu: HTMLElement) {
-		return Array.from(menu.querySelectorAll<HTMLElement>("[role='menuitem']")).map((row) =>
+		return Array.from(menu.querySelectorAll<HTMLElement>(COMMANDS)).map((row) =>
 			row.textContent?.trim()
 		);
 	}
 
 	function row(menu: HTMLElement, label: string) {
-		return Array.from(menu.querySelectorAll<HTMLElement>("[role='menuitem']")).find(
+		return Array.from(menu.querySelectorAll<HTMLElement>(COMMANDS)).find(
 			(node) => node.textContent?.trim() === label
 		)!;
 	}
 
-	it("carries no header: the name is the button's", async () => {
-		const menu = await opened();
-		expect(menu.querySelector("[data-slot='group-label']")).toBeNull();
-		expect(menu.textContent).not.toContain("Jane Doe");
+	it("opens on a profile header: avatar, full name and email, not a command", async () => {
+		const boot = { ...crm, user: { ...crm.user, user_image: "/files/jane.png" } } as Boot;
+		const menu = await opened({ boot });
+		const header = menu.querySelector<HTMLElement>("[data-key='profile']")!;
+
+		expect(header.getAttribute("role")).toBe("menuitem");
+		expect(header.hasAttribute("data-disabled")).toBe(true);
+		expect(header.querySelector("img")?.getAttribute("src")).toBe("/files/jane.png");
+		expect(header.textContent).toContain("Jane Doe");
+		expect(header.textContent).toContain("jane@example.com");
+		expect(rows(menu)).not.toContain("Jane Doe");
+		// First, above the command rows.
+		expect(menu.querySelector("[role='menuitem']")).toBe(header);
 	});
 
 	it("offers the four rows in order, with Log out in red", async () => {
@@ -444,9 +458,9 @@ describe("the user menu", () => {
 	it("separates the groups: the person's rows, Desk v1, Log out", async () => {
 		const menu = await opened();
 		const groups = Array.from(menu.querySelectorAll("[data-slot='group']")).map((group) =>
-			Array.from(group.querySelectorAll("[role='menuitem']")).length
+			Array.from(group.querySelectorAll(COMMANDS)).length
 		);
-		expect(groups).toEqual([2, 1, 1]);
+		expect(groups).toEqual([0, 2, 1, 1]);
 	});
 
 	it("sends My settings to the person's v1 User form, and Desk v1 to v1's home", async () => {
