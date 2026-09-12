@@ -71,6 +71,7 @@
 					<ListCell class="ps-[calc(0.5rem+1px)]">
 						<div
 							role="checkbox"
+							class="flex items-center"
 							:aria-checked="isSelected(rowValue(row))"
 							:aria-label="`Select ${rowValue(row)}`"
 							tabindex="0"

@@ -26,13 +26,16 @@
 		     input from growing on hover (e.g. a Link's clear button) — the label
 		     truncates instead. -->
 		<div v-for="field in visibleFields" :key="field.fieldname" class="w-40 shrink-0">
-			<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). -->
-			<Checkbox
-				v-if="field.fieldtype === 'Check'"
-				:label="field.label"
-				:modelValue="quickValue(filters, field) as boolean"
-				@update:modelValue="(v: boolean) => setValue(field, v)"
-			/>
+			<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). A flex box the height
+			     of the inputs: the checkbox's root is inline, and in a block it would sit on
+			     the baseline, a couple of pixels above the row's centre. -->
+			<div v-if="field.fieldtype === 'Check'" class="flex h-7 items-center">
+				<Checkbox
+					:label="field.label"
+					:modelValue="quickValue(filters, field) as boolean"
+					@update:modelValue="(v: boolean) => setValue(field, v)"
+				/>
+			</div>
 			<!-- The fieldtype's value control. Free-text fields (and name) carry a
 			     ≈/= operator toggle over the input's start; clicking it flips
 			     like ↔ equals in place (and, for name, swaps text box ↔ Link pick).
