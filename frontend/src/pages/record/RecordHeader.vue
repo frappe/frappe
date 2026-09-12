@@ -1,7 +1,7 @@
 <!--
-  The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right,
-  in the projection's order, with the menu slotted in at Save's left hand.
-  A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
+  The record's header row, drawn from `page.header`: crumbs and the favourite star left;
+  controls, `⋯` and Save right, in the projection's order, with the menu slotted in at Save's
+  left hand. A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
 -->
 <template>
 	<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
