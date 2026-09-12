@@ -165,6 +165,54 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 			}
 		}
 	},
+	fetch_email_template: function (frm, template_name) {
+		frappe.model.with_doc("Email Template", template_name, () => {
+			const template = frappe.get_doc("Email Template", template_name);
+			// `use_html` picks the column, but the other one holds the body when it is empty
+			const body = template.use_html
+				? template.response_html || template.response
+				: template.response || template.response_html;
+
+			if (!body) {
+				frappe.msgprint({
+					title: __("Empty Email Template"),
+					message: __("{0} has no message to copy.", [
+						frappe.utils.escape_html(template_name),
+					]),
+					indicator: "orange",
+				});
+				return;
+			}
+
+			const values = { subject: template.subject || "", message: body };
+			// a hidden field is not copied, so an SMS takes only a Message
+			const targets = Object.keys(values).filter((fieldname) => {
+				const field = frm.get_field(fieldname);
+				return field && field.get_status() !== "None";
+			});
+			const apply = () =>
+				targets.forEach((fieldname) => frm.set_value(fieldname, values[fieldname]));
+
+			const placeholder = frappe.meta.get_docfield("Notification", "message")?.default;
+			const authored = targets.some(
+				(fieldname) => frm.doc[fieldname] && frm.doc[fieldname] !== placeholder
+			);
+			if (!authored) {
+				apply();
+				return;
+			}
+
+			const labels = targets.map((fieldname) =>
+				__(frappe.meta.get_docfield("Notification", fieldname).label)
+			);
+			frappe.confirm(
+				__("Replace the current {0} with this template?", [
+					frappe.utils.comma_and(labels),
+				]),
+				apply
+			);
+		});
+	},
 };
 
 frappe.ui.form.on("Notification", {
@@ -225,6 +273,32 @@ frappe.ui.form.on("Notification", {
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
 		frm.trigger("set_up_filters_editor");
+	},
+	fetch_email_template: function (frm) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Fetch from Email Template"),
+			fields: [
+				{
+					fieldname: "email_template",
+					fieldtype: "Link",
+					label: __("Email Template"),
+					options: "Email Template",
+					reqd: 1,
+					get_query: () => {
+						return {
+							query: "frappe.email.doctype.email_template.email_template.get_email_templates",
+							filters: { reference_doctype: frm.doc.document_type },
+						};
+					},
+				},
+			],
+			primary_action_label: __("Fetch"),
+			primary_action: ({ email_template }) => {
+				dialog.hide();
+				frappe.notification.fetch_email_template(frm, email_template);
+			},
+		});
+		dialog.show();
 	},
 	view_properties: function (frm) {
 		frappe.route_options = { doc_type: frm.doc.document_type };

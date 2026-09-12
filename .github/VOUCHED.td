@@ -12,12 +12,15 @@
 #   - Optional details after a space following the handle.
 0xD0M1M0
 Abdeali099
+akurungadam
 Anish59312
+aryadharmadhikari
 barredterra
 Bowrna
 cogk
 Copilot
 dafrose
+dankgarlic1
 dependabot[bot]
 frappe-pr-bot
 gajjug004
@@ -25,6 +28,7 @@ gavindsouza
 g-sowani
 harshp4114
 HenningWendtland
+humedi
 karm1000
 kaulith
 KerollesFathy
@@ -40,7 +44,9 @@ Priyal208
 priyanshshah2442
 revant
 Rl0007
+ruchiigadgil
 SaiFi0102
 shubhdoshi21
+TANMAY2006-UX
 Vigneshsekar
 vorasmit

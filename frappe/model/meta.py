@@ -42,7 +42,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.caching import site_cache
-from frappe.utils.data import add_to_date, get_datetime
+from frappe.utils.data import add_to_date, get_currency_precision, get_datetime
 
 ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
@@ -546,6 +546,10 @@ class Meta(Document):
 	def _non_computed_table_doctypes(self):
 		return {field.fieldname: field.options for field in self._non_computed_table_fields}
 
+	@cached_property
+	def ignore_versioning_fields(self) -> set[str]:
+		return {df.fieldname for df in self.fields if getattr(df, "ignore_versioning", False)}
+
 	def init_field_caches(self):
 		self._fields
 		self._table_fields
@@ -963,8 +967,10 @@ def get_field_precision(df, doc=None, currency=None):
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
-		precision = cint(frappe.db.get_default("currency_precision"))
-		if not precision:
+		currency_precision = get_currency_precision()
+		if currency_precision is not None:
+			precision = currency_precision
+		else:
 			precision = get_precision_from_currency_format(currency or get_field_currency(df, doc))
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3

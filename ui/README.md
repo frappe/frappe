@@ -195,6 +195,44 @@ An `onClick` runs in the island. An `href` is a URL to a page outside the host a
 
 Both are plain events. A Vue host binds `@title` and `@actions`. A desk caller passes `onTitle` and `onActions`. An island that fills less than a page reports neither. See [decision 0010](island/decisions/0010-a-page-island-reports-title-and-actions.md).
 
+### A desk page drawn by an island
+
+The steps above are what an app does to put an island on a page it wrote itself. A desk **route** drawn by an island needs none of them. Set a `Page` to type **Frappe UI** and desk does the rest: it builds the page, mounts the island, and sets the head from what the island reports. There is no `hooks.py` line, no entry list and no frontend to set up. See [decision 0012](island/decisions/0012-a-desk-page-can-be-an-island.md).
+
+Saving the Page writes the starter beside its json, in place of the page script every other type gets:
+
+```
+insights/insights/insights/page/sales_dashboard/
+├── sales_dashboard.json          type: "Frappe UI"
+├── sales_dashboard.island.js     the entry, already written
+└── sales_dashboard.vue           the component, yours to edit
+```
+
+Then `bench build`, and `/app/sales-dashboard` is the page. `bench watch` rebuilds on save and re-mounts the island in place, with no reload.
+
+The component receives the part of the URL below the page, and reports its chrome:
+
+```vue
+<script setup>
+defineProps({ route: Array, query: Object });
+const emit = defineEmits(["title", "actions"]);
+</script>
+```
+
+`route` is the segments after the page name and `query` its parameters. Both update in place, so a route change re-renders the component instead of re-mounting the island. `useHost()` works as it does in any island.
+
+The island is named `<app>.page.<page name>`, derived from the Page on both sides, so `<Island name="insights.page.sales-dashboard">` hosts the same page inside a frappe-ui app.
+
+**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `vite/island/toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. A page that needs the app's components has outgrown the starter: move the entry and the component into the app's frontend and build it as an ordinary island, with the two steps above. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
+
+**One setup step, once per bench.** The toolchain's dependencies are not in any lockfile a bench installs:
+
+```bash
+yarn install --cwd apps/frappe/ui/vite/island/toolchain
+```
+
+A bench with no Frappe UI page never needs it. Without it, the build says so and names this command, and every Frappe UI page shows an unbuilt state that says the same.
+
 ### CSS
 
 The app ships one stylesheet for all its islands. Tailwind scans the modules the bundle is built from, so there is no `content` option. Under `watch` the scan list is fixed at start-up. A file imported after start-up **fails the build**. Restart the watch to scan it. See [decision 0003](island/decisions/0003-tailwind-scans-the-module-list-not-a-glob.md) and [decision 0004](island/decisions/0004-an-app-ships-one-island-stylesheet.md).
@@ -210,6 +248,8 @@ Apply the reka-ui patch this package ships. Without it, a popover opened over a 
 ```
 
 See [decision 0007](island/decisions/0007-reka-ui-is-patched-to-read-the-shadow-root.md).
+
+Overlays render in the browser's top layer, above the host's chrome whatever stacking context the island sits in. The mount target must be in the document, and the browser needs the popover API: Safari 17, Chrome 114.
 
 ### Icons
 

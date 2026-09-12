@@ -55,6 +55,9 @@ const TAILWIND_ENTRY = "virtual:island.css";
  * @param {string} options.app       frappe app the output belongs to, e.g. `insights`
  * @param {string} options.root      the app's frontend directory (the vite root)
  * @param {Object<string,string>} options.entries  bundle name → entry file
+ * @param {string} [options.subdir]  output directory under the app's dist. One
+ *        build owns everything under it, so a second build writing for the same
+ *        app passes its own. Defaults to `island`
  * @param {number} [options.budget]  bytes of JS + CSS one island may load. Over it, the build warns
  * @param {string[]} [options.tailwindPlugins]  the app's Tailwind plugins, by module specifier
  * @param {(string|RegExp)[]} [options.allowUnscanned]  bundled files that hold no
@@ -140,7 +143,7 @@ export async function islandContext(options) {
 		...options,
 		root,
 		entries,
-		paths: benchPaths(findBenchRoot(root), options.app),
+		paths: benchPaths(findBenchRoot(root), options.app, options.subdir),
 		mode: options.production ? "production" : "development",
 		budget: options.budget ?? DEFAULT_BUDGET,
 		tools: await loadTools(root),
@@ -316,7 +319,7 @@ function emitIslands(context) {
 			}
 
 			assertSheetScannedTheBundle(context, bundle, this);
-			notifyRebuild(await writeIslandAssets(paths, relMap));
+			await notifyRebuild(paths, await writeIslandAssets(paths, relMap), context.watch);
 		},
 	};
 }

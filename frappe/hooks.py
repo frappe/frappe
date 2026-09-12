@@ -134,6 +134,7 @@ permission_query_conditions = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
+	"Comment": "frappe.core.doctype.comment.comment.get_permission_query_conditions",
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
@@ -168,6 +169,7 @@ has_permission = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.has_permission",
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
+	"Comment": "frappe.core.doctype.comment.comment.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
 	"File": "frappe.core.doctype.file.file.has_permission",
@@ -601,6 +603,11 @@ expose_discovery_source = True
 # def dashboard(doc, method=None):
 # 	if doc.someapp_dashboard:
 # 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
+
+# A `Page` of type "Frappe UI" is drawn by an island too, and registers itself:
+# no hook, and no entry in `ui_islands`. Framework builds those islands for
+# every app on the bench, in one build, after any app's assets are built.
+after_app_build = "frappe.bundler.build_page_islands"
 
 
 add_to_apps_screen = [

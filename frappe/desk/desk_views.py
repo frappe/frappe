@@ -112,7 +112,14 @@ class DeskViews:
 			# `module` rides along so the client can resolve a dashboard's home sidebar; the row
 			# stays a dict in a list rather than becoming a name-keyed map, so search_utils'
 			# get_dashboards() is untouched.
-			dashboards = frappe.get_list("Dashboard", fields=["name", "module"])
+			try:
+				dashboards = frappe.get_list("Dashboard", fields=["name", "module"])
+			except frappe.PermissionError:
+				# a user with no read access to `Dashboard` simply has no dashboards. This runs
+				# during boot, so the error must not escape and take the desk down with it.
+				frappe.clear_last_message()
+				return []
+
 			if not dashboards:
 				return []
 
