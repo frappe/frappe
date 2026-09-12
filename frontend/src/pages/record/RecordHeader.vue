@@ -6,50 +6,31 @@
 <template>
 	<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
 		<nav class="flex min-w-0 items-center gap-1 text-base">
-			<template v-for="(control, index) in projection.left" :key="control.item.name">
-				<span
-					v-if="isCrumb(control) && isCrumb(projection.left[index - 1])"
-					class="text-ink-gray-4"
-				>
-					/
-				</span>
-
-				<RouterLink
-					v-if="isCrumb(control) && control.item.href && !control.item.run"
-					:to="control.item.href"
-					class="truncate text-ink-gray-5 hover:text-ink-gray-8"
-				>
-					{{ control.item.label }}
-				</RouterLink>
-				<button
-					v-else-if="isCrumb(control) && control.item.run"
-					type="button"
-					class="truncate text-ink-gray-5 hover:text-ink-gray-8"
-					@click="run(control.item)"
-				>
-					{{ control.item.label }}
-				</button>
-				<span v-else-if="isCrumb(control)" class="truncate font-medium text-ink-gray-9">
-					{{ control.item.label }}
-				</span>
+			<template v-for="segment in leftHand" :key="segmentKey(segment)">
+				<Breadcrumbs
+					class="-ml-0.5"
+					v-if="'crumbs' in segment"
+					:items="segment.crumbs"
+					data-crumbs
+				/>
 
 				<RecordFavourite
-					v-else-if="control.item.name === 'favourite'"
+					v-else-if="segment.item.name === 'favourite'"
 					:favourites="favourites"
 					:favourited="favourited"
-					@toggle="run(control.item)"
+					@toggle="run(segment.item)"
 				/>
 
 				<Dropdown
-					v-else-if="control.kind === 'dropdown'"
-					:options="menuContent(control.members, run)"
+					v-else-if="segment.kind === 'dropdown'"
+					:options="menuContent(segment.members, run)"
 					side="bottom"
 					align="start"
 				>
 					<div class="flex shrink-0">
 						<Button
-							:label="control.item.label"
-							:icon-left="control.item.icon"
+							:label="segment.item.label"
+							:icon-left="segment.item.icon"
 							icon-right="lucide-chevron-down"
 							variant="ghost"
 						/>
@@ -58,10 +39,10 @@
 
 				<Button
 					v-else
-					:label="control.item.label"
-					:icon-left="control.item.icon"
+					:label="segment.item.label"
+					:icon-left="segment.item.icon"
 					variant="ghost"
-					@click="run(control.item)"
+					@click="run(segment.item)"
 				/>
 			</template>
 		</nav>
@@ -134,8 +115,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { RouterLink, useRouter } from "vue-router";
-import { Button, Dropdown, Tooltip } from "frappe-ui";
+import { useRouter } from "vue-router";
+import { Breadcrumbs, Button, Dropdown, Tooltip } from "frappe-ui";
+import type { BreadcrumbsProps } from "frappe-ui";
 import type { HeaderControl, HeaderItem, HeaderProjection } from "@/recordPage";
 import { bandRows, menuContent } from "./headerMenuOptions";
 import type { Person } from "./panel/people";
@@ -152,6 +134,21 @@ const props = defineProps<{
 
 const emit = defineEmits<{ run: [item: HeaderItem] }>();
 const router = useRouter();
+
+// Consecutive crumbs fold into one Breadcrumbs; every other control keeps its place between runs.
+type BreadcrumbItem = BreadcrumbsProps["items"][number];
+type LeftSegment = { key: string; crumbs: BreadcrumbItem[] } | HeaderControl;
+
+const leftHand = computed(() => {
+	const segments: LeftSegment[] = [];
+	for (const control of props.projection.left) {
+		const last = segments.at(-1);
+		if (control.kind !== "crumb") segments.push(control);
+		else if (last && "crumbs" in last) last.crumbs.push(toCrumb(control.item));
+		else segments.push({ key: control.item.name, crumbs: [toCrumb(control.item)] });
+	}
+	return segments;
+});
 
 // Bands are `MenuGroupOption`s, and a band shows a heading only when its container was declared.
 const bands = computed(() =>
@@ -173,8 +170,14 @@ const rightHand = computed(() => {
 	return [...controls.slice(0, at), MENU, ...controls.slice(at)];
 });
 
-function isCrumb(control?: HeaderControl) {
-	return control?.kind === "crumb";
+function segmentKey(segment: LeftSegment) {
+	return "crumbs" in segment ? segment.key : segment.item.name;
+}
+
+function toCrumb(item: HeaderItem): BreadcrumbItem {
+	if (item.run) return { label: item.label, onClick: () => run(item) };
+	if (item.href) return { label: item.label, route: item.href };
+	return { label: item.label };
 }
 
 // `run` wins over `href`; an item with only an `href` is a link wherever it renders.
