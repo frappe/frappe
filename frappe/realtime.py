@@ -1,6 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+<<<<<<< HEAD:frappe/realtime.py
+=======
+
+import hmac
+>>>>>>> c119fb5 (fix: compare API and socket secrets in constant time (#41421)):frappe/realtime/__init__.py
 from contextlib import suppress
 
 import redis
@@ -134,6 +139,13 @@ def can_subscribe_doctype(doctype: str) -> bool:
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
 	user_type = frappe.session.data.user_type
+<<<<<<< HEAD:frappe/realtime.py
+=======
+	trusted_secret = get_socketio_secret()
+	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
+	if not provided_secret or not hmac.compare_digest(trusted_secret.encode(), provided_secret.encode()):
+		return {}
+>>>>>>> c119fb5 (fix: compare API and socket secrets in constant time (#41421)):frappe/realtime/__init__.py
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
 		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")
