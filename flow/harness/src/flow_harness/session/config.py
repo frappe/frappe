@@ -35,6 +35,7 @@ class SessionConfig(BaseModel):
 		client_tools: Schemas registered by a client.
 		callback_url: Where client tools and opted-in run terminals are dispatched.
 		callback_token: Shared secret sent as X-Harness-Token on callbacks.
+		callback_headers: Extra headers sent on every callback, for a host that routes by one.
 		callback_timeout: Seconds to wait for a callback to answer.
 		notify_run_ended: Report durable run terminals through callback_url.
 		user_context: Opaque context passed back on callbacks.
@@ -70,6 +71,7 @@ class SessionConfig(BaseModel):
 	client_tools: list[dict] = Field(default_factory=list)
 	callback_url: str | None = None
 	callback_token: str | None = None
+	callback_headers: dict[str, str] = Field(default_factory=dict)
 	callback_timeout: float = Field(default=120, gt=0)
 	notify_run_ended: bool = False
 	user_context: dict = Field(default_factory=dict)
