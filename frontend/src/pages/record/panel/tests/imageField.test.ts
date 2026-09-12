@@ -19,6 +19,7 @@ describe("imageFieldOf", () => {
 			editable: true,
 			reason: "",
 			source: null,
+			permlevel: 0,
 		});
 		expect(imageFieldOf(meta([]))?.editable).toBe(true);
 	});
@@ -27,6 +28,13 @@ describe("imageFieldOf", () => {
 		const field = imageFieldOf(meta([{ fieldname: "image", read_only: 1 }]));
 		expect(field?.editable).toBe(false);
 		expect(field?.reason).toBe("This image is read-only");
+	});
+
+	it("refuses a hidden field, and carries the permlevel for the reader's access", () => {
+		const field = imageFieldOf(meta([{ fieldname: "image", hidden: 1, permlevel: 2 }]));
+		expect(field?.editable).toBe(false);
+		expect(field?.reason).toBe("This image is hidden");
+		expect(field?.permlevel).toBe(2);
 	});
 
 	it("names the linked record a fetched image comes from", () => {
@@ -40,6 +48,7 @@ describe("imageFieldOf", () => {
 			editable: false,
 			reason: "This image comes from Ann (CONT-1), open it to change",
 			source: { doctype: "Contact", name: "CONT-1" },
+			permlevel: 0,
 		});
 
 		const unlinked = imageFieldOf(meta(fields), {});

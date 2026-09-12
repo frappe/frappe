@@ -93,6 +93,7 @@ import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { LoadingIndicator, Tooltip, useFileUpload } from "frappe-ui";
 import { CommitKey, LinkTitlesKey, NO_COMMIT } from "@framework/ui/components/Fields/types";
 import type { UploadResult, UploadTransport } from "@framework/ui/components/FileUpload";
+import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
 import { routeFor } from "@/router/routeFor";
 import { PanelContextKey } from "./context";
 import { imageFieldOf, initialsOf } from "./imageField";
@@ -131,8 +132,14 @@ const transport: UploadTransport = (file, args, ctx) =>
 		onProgress: ({ loaded, total }) => ctx.onProgress(loaded, total),
 	});
 
+// Display only, as the form's fields are: the server drops a permlevel the reader cannot write.
+const access = useDocPermissions(context.doctype, () => context.docinfo.value?.permissions);
+
 const editable = computed(
-	() => Boolean(field.value?.editable) && Boolean(context.docinfo.value?.permissions?.write)
+	() =>
+		Boolean(field.value?.editable) &&
+		Boolean(context.docinfo.value?.permissions?.write) &&
+		access.fieldAccess(field.value!) === "write"
 );
 
 const image = computed(() =>

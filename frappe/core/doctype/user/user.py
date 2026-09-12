@@ -626,6 +626,9 @@ class User(Document):
 
 		# delete shares
 		frappe.db.delete("DocShare", {"user": self.name})
+
+		# delete favourites
+		frappe.db.delete("Favourite", {"user": self.name})
 		# unlink contact
 		table = DocType("Contact")
 		frappe.qb.update(table).where(table.user == self.name).set(table.user, None).run()

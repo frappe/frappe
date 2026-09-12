@@ -8,9 +8,11 @@ export interface ImageSource {
 
 export interface ImageField {
 	fieldname: string;
-	/** False when the field is read-only or fetched from a linked record; `reason` says which. */
+	/** False when the field is hidden, read-only or fetched from a linked record; `reason` says which. */
 	editable: boolean;
 	reason: string;
+	/** The field's permlevel, for the reader's access to it; a field the meta does not list is 0. */
+	permlevel: number;
 	source: ImageSource | null;
 }
 
@@ -25,7 +27,7 @@ export function imageFieldOf(
 	const field = docfield(meta, fieldname);
 	const source = fetchSource(field, meta, doc);
 	const reason = uneditableReason(field, source, titleOf, linkLabel(field, meta));
-	return { fieldname, editable: !reason, reason, source };
+	return { fieldname, editable: !reason, reason, source, permlevel: field?.permlevel ?? 0 };
 }
 
 // A `fetch_from` without `fetch_if_empty` is rewritten from its source on every save,
@@ -37,6 +39,7 @@ function uneditableReason(
 	link: string
 ) {
 	if (!field) return "";
+	if (field.hidden) return "This image is hidden";
 	if (field.read_only) return "This image is read-only";
 	if (!field.fetch_from || field.fetch_if_empty) return "";
 	if (!source)

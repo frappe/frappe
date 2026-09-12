@@ -64,6 +64,23 @@ class TestFavourite(IntegrationTestCase):
 		todo.delete()
 		self.assertFalse(frappe.db.exists("Favourite", {"reference_doctype": "ToDo", "reference_name": name}))
 
+	def test_rows_go_with_their_user(self):
+		gone = "favourite-gone@example.com"
+		frappe.get_doc(
+			doctype="User",
+			email=gone,
+			first_name="Gone",
+			send_welcome_email=0,
+			roles=[{"role": "Desk User"}],
+		).insert(ignore_permissions=True)
+		todo = self._todo("favourited by a user about to go", allocated_to=gone)
+		with self.set_user(gone):
+			toggle_favourite("ToDo", todo.name, add=True)
+		self.assertTrue(frappe.db.exists("Favourite", {"user": gone}))
+
+		frappe.delete_doc("User", gone, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Favourite", {"user": gone}))
+
 	def test_needs_read_on_the_record(self):
 		# A ToDo is visible to its owner and its assignee; a plain user sees neither of these.
 		mine = self._todo("private to the admin")

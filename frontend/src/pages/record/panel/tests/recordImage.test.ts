@@ -19,6 +19,12 @@ vi.mock("frappe-ui", () => ({
 
 vi.mock("@/router/routeFor", () => ({ routeFor: () => ({ name: "record" }) }));
 
+// The reader's access to the field's permlevel; the real one needs meta and roles from the server.
+let fieldAccess = "write";
+vi.mock("@framework/ui/composables/useDocPermissions", () => ({
+	useDocPermissions: () => ({ fieldAccess: () => fieldAccess }),
+}));
+
 // The dialog stands in for itself: it exposes its transport and lets a test commit an upload.
 const dialogs: any[] = [];
 vi.mock("@framework/ui/components/FileUpload/FileUploadDialog.vue", () => ({
@@ -83,6 +89,16 @@ describe("the identity tile", () => {
 		expect(root.querySelector("img")).toBeNull();
 		expect(root.textContent?.trim()).toBe("AE");
 		expect(button(root, "Add image")).not.toBeNull();
+	});
+
+	it("offers nothing on a field whose permlevel the reader cannot write", async () => {
+		fieldAccess = "read";
+		try {
+			const { root } = await mount({});
+			expect(button(root, "Add image")).toBeNull();
+		} finally {
+			fieldAccess = "write";
+		}
 	});
 
 	it("offers nothing without write, even on a plain field", async () => {
