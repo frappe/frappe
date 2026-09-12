@@ -56,7 +56,6 @@ frappe.ui.form.on("Report", {
 				filters: {
 					print_format_for: "Report",
 					report: frm.doc.name,
-					print_format_type: "JS",
 					disabled: 0,
 				},
 			};

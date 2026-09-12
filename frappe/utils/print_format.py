@@ -8,8 +8,10 @@ from urllib.parse import urlparse
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.desk.query_report import get_report_doc
 from frappe.model.document import Document
 from frappe.translate import print_language
+from frappe.utils import cint
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -355,7 +357,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 	letter_head = frappe._dict(
 		frappe.db.get_value(
 			"Letter Head",
-			letterhead or {"is_default": 1},
+			letterhead or {"letter_head_for": "Report", "is_default": 1},
 			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
@@ -380,6 +382,78 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		rendered["footer"] = footer
 
 	return rendered
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def render_report_jinja(
+	report_name: str,
+	data: str | list | None = None,
+	columns: str | list | None = None,
+	filters: str | dict | None = None,
+	print_format: str | None = None,
+	letterhead: str | None = None,
+	no_letterhead: bool | int = 0,
+) -> dict:
+	"""Render a Report print format authored in Jinja, using client-supplied data."""
+	if not print_format:
+		frappe.throw(_("Print Format is required"))
+
+	# enforces the report's own permission model before rendering it
+	report = get_report_doc(report_name)
+
+	if not frappe.has_permission(report.ref_doctype, "print"):
+		frappe.throw(
+			_("You don't have permission to print: {0}").format(_(report.ref_doctype)),
+			frappe.PermissionError,
+		)
+
+	pf = frappe.db.get_value(
+		"Print Format",
+		print_format,
+		["print_format_for", "print_format_type", "report", "disabled", "html", "css"],
+		as_dict=True,
+	)
+	if not pf:
+		frappe.throw(_("Print Format {0} not found").format(print_format))
+	if pf.print_format_for != "Report" or pf.print_format_type != "Jinja" or pf.report != report_name:
+		frappe.throw(_("{0} is not a Jinja print format for report {1}").format(print_format, report_name))
+	if pf.disabled:
+		frappe.throw(_("Print Format {0} is disabled").format(print_format))
+	if not pf.html:
+		frappe.throw(_("Print Format {0} has no HTML body").format(print_format))
+
+	# parse_json passes non-strings through and returns dicts as _dict
+	filters = frappe.parse_json(filters or {})
+	rows = frappe.parse_json(data or [])
+	cols = frappe.parse_json(columns or [])
+
+	rows = [frappe._dict(row) if isinstance(row, dict) else row for row in rows]
+
+	context = {
+		"report": frappe._dict(name=report_name, report_name=report_name),
+		"filters": filters,
+		"columns": cols,
+		"data": rows,
+		"no_letterhead": cint(no_letterhead),
+		"print_settings": frappe.get_single("Print Settings").as_dict(),
+	}
+
+	# stored Print Format HTML, validated above; print-gated and sandboxed by safe_render
+	html = render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		pf.html, context, safe_render=True
+	)
+
+	# CSS comes only from the format, print window provides boot.print_css
+	body = f"<style>{pf.css or ''}</style>{html}"
+
+	letter_head = (
+		None
+		if cint(no_letterhead)
+		else (render_letterhead_for_print(letterhead=letterhead, doc=filters) or None)
+	)
+
+	return {"body": body, "letter_head": letter_head}
 
 
 @frappe.whitelist()

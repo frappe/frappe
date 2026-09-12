@@ -438,6 +438,39 @@ result = [
 		# Set user back to administrator
 		frappe.set_user("Administrator")
 
+	def test_default_print_format_accepts_jinja_and_js(self):
+		"""Report print formats may be authored in either templating language."""
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": "Test Default Print Format Report",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select name from `tabUser` limit 1",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		for print_format_type in ("Jinja", "JS"):
+			with self.subTest(print_format_type):
+				print_format = frappe.get_doc(
+					{
+						"doctype": "Print Format",
+						"name": f"Test Default {print_format_type} Format",
+						"print_format_for": "Report",
+						"report": report.name,
+						"print_format_type": print_format_type,
+						"standard": "No",
+						"custom_format": 1,
+						"html": "<p>body</p>",
+					}
+				).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+				report.default_print_format = print_format.name
+				report.save(ignore_permissions=True)
+
+		frappe.db.rollback()
+
 	def test_add_total_row_for_tree_reports(self):
 		report_settings = {"tree": True, "parent_field": "parent_value"}
 
