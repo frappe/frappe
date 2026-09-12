@@ -226,17 +226,23 @@ function headerBuiltins(): HeaderItem[] {
 
 // The answer is discarded and the sidecar re-read, as the people rows do, so the star never
 // disagrees with the server. A failure toasts here: `runAction` would otherwise reload over the draft.
-async function toggleFavourite(page: RecordPageApi) {
-	try {
-		await page.call("frappe.desk.doctype.favourite.favourite.toggle_favourite", {
-			doctype: page.doctype,
-			name: page.docname,
-			add: !favourited.value,
-		});
-		await reloadDocinfo();
-	} catch (e) {
-		toast.error(errorMessage(e));
-	}
+// Clicks queue: each one reads the state the one before it left, so two quick clicks toggle twice.
+let favouriteTurn: Promise<void> = Promise.resolve();
+
+function toggleFavourite(page: RecordPageApi) {
+	favouriteTurn = favouriteTurn.then(async () => {
+		try {
+			await page.call("frappe.desk.doctype.favourite.favourite.toggle_favourite", {
+				doctype: page.doctype,
+				name: page.docname,
+				add: !favourited.value,
+			});
+			await reloadDocinfo();
+		} catch (e) {
+			toast.error(errorMessage(e));
+		}
+	});
+	return favouriteTurn;
 }
 
 // Three built-ins first, then the Side Panel layout's sections, as they resolve now.
