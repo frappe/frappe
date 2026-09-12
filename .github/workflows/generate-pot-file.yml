@@ -12,7 +12,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: ["develop", "version-16-hotfix", "version-15-hotfix"]
+        include:
+          - branch: "develop"
+            python: "3.14"
+          - branch: "version-16-hotfix"
+            python: "3.14"
+          - branch: "version-15-hotfix"
+            python: "3.10"
     permissions:
       contents: write
 
@@ -25,7 +31,7 @@ jobs:
         - name: Setup Python
           uses: actions/setup-python@v7
           with:
-            python-version: "3.14"
+            python-version: ${{ matrix.python }}
 
         - name: Setup Node
           uses: actions/setup-node@v7
