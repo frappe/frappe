@@ -190,6 +190,32 @@ class TestSearch(IntegrationTestCase):
 
 				self.assertEqual(pages, [expected[0:3], expected[3:6], expected[6:9], []])
 
+	def test_page_length_zero_returns_all_options(self):
+		# `frappe.db.get_link_options()` (MultiSelectList filters) sends page_length=0 for "no limit"
+		titles = [f"Search Option {i:02d}" for i in range(1, 13)]
+
+		for translated_doctype in (0, 1):
+			doctype = f"Test Search No Limit {translated_doctype}"
+			if frappe.db.exists("DocType", doctype):
+				frappe.delete_doc("DocType", doctype, force=True)
+			new_doctype(
+				name=doctype,
+				translated_doctype=translated_doctype,
+				autoname="field:title",
+				fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			).insert()
+			self.addCleanup(partial(frappe.delete_doc, "DocType", doctype, force=True, ignore_missing=True))
+
+			# creating the doctype implicitly commits, so rows can outlive a previous run
+			frappe.db.delete(doctype)
+			for title in titles:
+				frappe.get_doc({"doctype": doctype, "title": title}).insert()
+
+			for query in (None, "frappe.tests.test_search.limited_query"):
+				with self.subTest(translated_doctype=translated_doctype, query=query):
+					results = search_widget(doctype=doctype, txt="", query=query, page_length=0)
+					self.assertEqual(len(results), len(titles))
+
 	def test_validate_and_sanitize_search_inputs(self):
 		# should raise error if searchfield is injectable
 		self.assertRaises(
@@ -835,6 +861,21 @@ def paginated_query(
 		limit_page_length=page_len,
 		as_list=True,
 	)
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def limited_query(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	# app level link queries push page_len straight into the SQL limit, where 0 means "no rows"
+	table = frappe.qb.DocType(doctype)
+	return frappe.qb.from_(table).select(table.name).offset(start).limit(page_len).run()
 
 
 def setup_test_link_field_order(TestCase):
