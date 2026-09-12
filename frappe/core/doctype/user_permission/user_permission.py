@@ -83,13 +83,13 @@ def send_user_permissions(bootinfo):
 
 
 @frappe.whitelist()
+def get_current_user_permissions():
+	"""Return the permissions of the logged in user."""
+	return get_user_permissions(frappe.session.user)
+
+
 def get_user_permissions(user: str | None = None):
 	"""Get all users permissions for the user as a dict of doctype"""
-	# if this is called from client-side,
-	# user can access only his/her user permissions
-	if frappe.request and frappe.local.form_dict.cmd == "get_user_permissions":
-		user = frappe.session.user
-
 	if not user:
 		user = frappe.session.user
 
