@@ -66,7 +66,7 @@ async function shell(path: string): Promise<{ host: HTMLElement; router: Router 
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		navigation: { rail: [accounts], sidebars },
-		user: { name: "reader@example.com", full_name: "Reader" },
+		user: { name: "reader@example.com", full_name: "Reader", email: "reader@example.com" },
 	} as unknown as Boot;
 
 	const router = makeRouter();

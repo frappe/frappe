@@ -36,6 +36,7 @@ def core_boot() -> dict:
 		"user": {
 			"name": user.name,
 			"full_name": user.full_name,
+			"email": user.email,
 			"user_image": user.user_image,
 		},
 		"lang": frappe.local.lang or "en",

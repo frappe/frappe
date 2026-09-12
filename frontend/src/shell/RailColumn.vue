@@ -72,7 +72,7 @@
 					:class="USER_CELL"
 					:aria-label="boot.user.full_name"
 				>
-					<Avatar :image="boot.user.user_image" :label="boot.user.full_name" size="md" />
+					<Avatar :image="boot.user.user_image" :label="boot.user.full_name" size="lg" />
 				</button>
 			</Dropdown>
 		</div>
@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, h, inject, ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import {
 	Avatar,
@@ -184,6 +184,7 @@ const confirmingLogout = ref(false);
 
 // Workaround: the settings dialog has no profile pane yet, so *My settings* opens v1's User form.
 const userMenu = computed<DropdownOptions>(() => [
+	{ group: "", hideLabel: true, options: [profileHeader()] },
 	{
 		group: "",
 		hideLabel: true,
@@ -225,6 +226,37 @@ const userMenu = computed<DropdownOptions>(() => [
 		],
 	},
 ]);
+
+// A disabled row cannot be selected; the inline cursor beats the wrapper's `cursor-not-allowed`.
+function profileHeader() {
+	const { full_name, user_image, email } = boot.user;
+	return {
+		label: full_name,
+		disabled: true,
+		slots: {
+			item: () =>
+				h(
+					"div",
+					{
+						"data-key": "profile",
+						class: "flex items-center gap-2 px-2 py-1.5",
+						style: { cursor: "default" },
+					},
+					[
+						h(Avatar, { image: user_image, label: full_name, size: "xl" }),
+						h("div", { class: "min-w-0" }, [
+							h(
+								"div",
+								{ class: "truncate text-base font-semibold text-ink-gray-9" },
+								full_name
+							),
+							h("div", { class: "truncate text-xs text-ink-gray-5" }, email),
+						]),
+					]
+				),
+		},
+	};
+}
 
 function leave(href: string) {
 	window.location.assign(href);
