@@ -5,7 +5,8 @@ frappe.ui.get_print_settings = function (
 	pick_columns,
 	is_query_report = false,
 	title = null,
-	default_print_format = null
+	default_print_format = null,
+	show_include_filters = false
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -81,7 +82,7 @@ frappe.ui.get_print_settings = function (
 		});
 	}
 
-	if (is_query_report) {
+	if (is_query_report || show_include_filters) {
 		columns.push({
 			label: __("Include filters"),
 			fieldtype: "Check",
