@@ -81,6 +81,24 @@ class TestFavourite(IntegrationTestCase):
 		frappe.delete_doc("User", gone, ignore_permissions=True)
 		self.assertFalse(frappe.db.exists("Favourite", {"user": gone}))
 
+	def test_rows_follow_a_renamed_user(self):
+		# `user` is a Link, so the rename rewrites it as it does every Link to the record.
+		old, new = "favourite-old@example.com", "favourite-new@example.com"
+		frappe.get_doc(
+			doctype="User",
+			email=old,
+			first_name="Renamed",
+			send_welcome_email=0,
+			roles=[{"role": "Desk User"}],
+		).insert(ignore_permissions=True)
+		todo = self._todo("favourited by a user about to be renamed", allocated_to=old)
+		with self.set_user(old):
+			toggle_favourite("ToDo", todo.name, add=True)
+
+		frappe.rename_doc("User", old, new, force=True)
+		self.assertFalse(frappe.db.exists("Favourite", {"user": old}))
+		self.assertEqual(self._users(todo), [new])
+
 	def test_needs_read_on_the_record(self):
 		# A ToDo is visible to its owner and its assignee; a plain user sees neither of these.
 		mine = self._todo("private to the admin")
