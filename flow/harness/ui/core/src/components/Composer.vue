@@ -174,51 +174,15 @@
 					The selected model cannot view images. Switch to a vision-capable model before sending.
 				</div>
 				<div class="flex min-w-0 items-center gap-1">
-					<!-- add-context menu -->
-					<span class="relative flex-none">
-						<button
-							class="grid h-7 w-7 place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
-							:class="plusMenu ? 'bg-surface-gray-2' : ''"
-							title="Add context"
-							aria-haspopup="menu"
-							:aria-expanded="plusMenu"
-							:disabled="submitting"
-							@click="plusMenu = !plusMenu"
-						>
-							<FeatherIcon name="plus" class="h-4 w-4" />
-						</button>
-						<PopMenu :open="plusMenu" label="Add context" :width="266" @close="plusMenu = false">
-							<button
-								v-if="has('cwd')"
-								role="menuitem"
-								class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
-								@click="chooseFolder"
-							>
-								<FeatherIcon name="folder" class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5" />
-								<span class="min-w-0 flex-1">
-									<span class="block text-xs font-medium leading-4 text-ink-gray-9">Project folder</span>
-									<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5" :title="flow.state.prefs.cwd ?? ''">
-										{{ cwdLabel }}
-									</span>
-								</span>
-							</button>
-							<button
-								role="menuitem"
-								class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
-								@click="openFilePicker"
-							>
-								<FeatherIcon name="paperclip" class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5" />
-								<span class="min-w-0 flex-1">
-									<span class="block text-xs font-medium leading-4 text-ink-gray-9">
-										{{ imagesOnly ? "Attach images" : "Attach files" }}
-									</span>
-									<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">
-										{{ imagesOnly ? "PNG, JPEG, GIF, WebP, or BMP" : "Images and documents" }}
-									</span>
-								</span>
-							</button>
-						</PopMenu>
-					</span>
+					<!-- attach files -->
+					<button
+						class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
+						:title="imagesOnly ? 'Attach images' : 'Attach files'"
+						:disabled="submitting"
+						@click="openFilePicker"
+					>
+						<FeatherIcon name="plus" class="h-4 w-4" />
+					</button>
 
 					<!-- model picker: a menu of the two palettes it fronts -->
 					<span class="relative min-w-0">
@@ -431,7 +395,6 @@ async function loadStoredPreviews(items, sessionId, generation) {
 }
 
 function openFilePicker() {
-	plusMenu.value = false
 	fileInput.value?.click()
 }
 
@@ -565,7 +528,6 @@ watch(
 )
 
 const modeMenu = ref(false)
-const plusMenu = ref(false)
 const modelMenu = ref(false)
 
 function openPalette(view) {
@@ -573,13 +535,7 @@ function openPalette(view) {
 	paletteView.value = view
 }
 
-const cwdLabel = computed(() => {
-	const cwd = flow.state.prefs.cwd
-	return cwd ? (cwd.split("/").filter(Boolean).pop() ?? cwd) : "Pick where new chats run"
-})
-
 async function chooseFolder() {
-	plusMenu.value = false
 	const path = await flow.pickFolder()
 	if (!path) return
 	// a running session's cwd is frozen; the new folder applies from the next chat
@@ -726,7 +682,6 @@ function onKey(e) {
 		if (anyMenuOpen()) {
 			closePalettes()
 			modeMenu.value = false
-			plusMenu.value = false
 			modelMenu.value = false
 			mentionDismissed.value = true
 		} else if (running.value && !e.repeat) {
@@ -742,7 +697,6 @@ function anyMenuOpen() {
 		menuOpen.value ||
 		mentionActive.value ||
 		modeMenu.value ||
-		plusMenu.value ||
 		modelMenu.value ||
 		frappeDialogs.value.length
 	)
