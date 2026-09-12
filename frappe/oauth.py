@@ -255,7 +255,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		old_token_name = None
 		if incoming_refresh_token:
 			old_token_name = frappe.db.get_value(
-				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(incoming_refresh_token)}, "name"
+				"OAuth Bearer Token",
+				{
+					"refresh_token": get_oauth_token_hash(incoming_refresh_token),
+					"client": request.client["name"],
+				},
+				"name",
 			)
 
 		otoken = frappe.new_doc("OAuth Bearer Token")
@@ -316,7 +321,11 @@ class OAuthWebRequestValidator(RequestValidator):
 		# access token if the client did not specify a scope during the
 		# request.
 		obearer_token = frappe.get_doc(
-			"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(refresh_token)}
+			"OAuth Bearer Token",
+			{
+				"refresh_token": get_oauth_token_hash(refresh_token),
+				"client": request.client["name"],
+			},
 		)
 		return obearer_token.scopes
 

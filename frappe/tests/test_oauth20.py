@@ -9,6 +9,7 @@ import requests
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.oauth2 import encode_params
 from frappe.oauth import OAuthWebRequestValidator
 from frappe.tests import IntegrationTestCase
@@ -378,6 +379,62 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
+
+	def test_refresh_token_is_bound_to_client(self):
+		update_client_for_auth_code_grant(self.client_id)
+		bearer_token = self.get_bearer_token()
+
+		refresh_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "refresh_token",
+				"refresh_token": bearer_token["refresh_token"],
+			},
+		)
+		self.assertEqual(refresh_response.status_code, 200)
+		refreshed_token = refresh_response.json
+		self.assertNotEqual(refreshed_token["refresh_token"], bearer_token["refresh_token"])
+
+		other_client = frappe.copy_doc(self.oauth_client)
+		other_client.name = "other_test_client_id"
+		other_client.client_secret = "other_test_client_secret"
+		other_client.insert()
+		# The HTTP request runs in another thread and only sees committed fixtures.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		credentials = b64encode(f"{other_client.client_id}:{other_client.client_secret}".encode()).decode()
+
+		try:
+			with self.assertRaises(frappe.DoesNotExistError):
+				OAuthWebRequestValidator().get_original_scopes(
+					refreshed_token["refresh_token"],
+					frappe._dict(client={"name": other_client.name}),
+				)
+			response = self.post(
+				"/api/method/frappe.integrations.oauth2.get_token",
+				headers={**self.form_header, "Authorization": f"Basic {credentials}"},
+				data={
+					"grant_type": "refresh_token",
+					"refresh_token": refreshed_token["refresh_token"],
+				},
+			)
+		finally:
+			other_client.delete(force=True)
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.json.get("error"), "invalid_grant")
+		self.assertEqual(
+			frappe.db.get_value(
+				"OAuth Bearer Token",
+				{
+					"refresh_token": get_oauth_token_hash(refreshed_token["refresh_token"]),
+					"client": self.client_id,
+				},
+				"status",
+			),
+			"Active",
+		)
 
 	def test_login_using_authorization_code_with_pkce(self):
 		update_client_for_auth_code_grant(self.client_id)
