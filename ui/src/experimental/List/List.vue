@@ -21,7 +21,10 @@
 			class="flex w-max min-w-full flex-col"
 		>
 			<ListHeader class="group sticky top-0 z-10 bg-surface-base">
-				<div class="flex items-center ps-[calc(0.5rem+1px)]" role="columnheader">
+				<div
+					class="flex items-center ps-[calc(0.5rem+1px)] [&_input]:mt-0"
+					role="columnheader"
+				>
 					<Checkbox
 						:modelValue="selectAllState === 'all'"
 						:indeterminate="selectAllState === 'some'"
@@ -71,7 +74,7 @@
 					<ListCell class="ps-[calc(0.5rem+1px)]">
 						<div
 							role="checkbox"
-							class="flex items-center"
+							class="flex items-center [&_input]:mt-0"
 							:aria-checked="isSelected(rowValue(row))"
 							:aria-label="`Select ${rowValue(row)}`"
 							tabindex="0"

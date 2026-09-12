@@ -26,10 +26,9 @@
 		     input from growing on hover (e.g. a Link's clear button) — the label
 		     truncates instead. -->
 		<div v-for="field in visibleFields" :key="field.fieldname" class="w-40 shrink-0">
-			<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). A flex box the height
-			     of the inputs: the checkbox's root is inline, and in a block it would sit on
-			     the baseline, a couple of pixels above the row's centre. -->
-			<div v-if="field.fieldtype === 'Check'" class="flex h-7 items-center">
+			<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). The checkbox's root is inline,
+			     so an input-height flex box centres it; its input's 1px top margin would drop the box. -->
+			<div v-if="field.fieldtype === 'Check'" class="flex h-7 items-center [&_input]:mt-0">
 				<Checkbox
 					:label="field.label"
 					:modelValue="quickValue(filters, field) as boolean"
