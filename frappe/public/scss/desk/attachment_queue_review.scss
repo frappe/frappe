@@ -1,0 +1,300 @@
+// Styles for the inline Attachment Queue review panel, the upload-first banner and
+// the list-view "ready for review" banner.
+// Behaviour lives in frappe/public/js/frappe/attachment_queue_review.js.
+
+.attachment-queue-review-json-pre {
+	background-color: var(--control-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--text-sm);
+}
+
+.attachment-queue-upload-first {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--border-color);
+	background: var(--fg-color);
+}
+
+.attachment-queue-upload-first-title {
+	color: var(--text-color);
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.attachment-queue-upload-first-description {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	line-height: 1.4;
+}
+
+.attachment-queue-upload-first-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex: none;
+}
+
+.attachment-queue-ready-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 32px;
+	padding: 6px 12px;
+	margin-bottom: 8px;
+	border: 1px solid var(--border-color);
+	border-top: 0;
+	background: var(--fg-color);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	cursor: pointer;
+	transition: background-color 0.2s;
+
+	&:hover {
+		background-color: var(--control-bg);
+	}
+}
+
+// The preview track is an absolute length, the way desk sizes its own resizable
+// sidebar (--sidebar-width). A percentage would be a percentage of .std-form-layout,
+// and that box moves on its own: page.scss gives .layout-main-section-wrapper 80% in
+// general but calc(100% - var(--form-sidebar-width)) under body[data-route^="Form"],
+// and body.full-width changes what the form column inside it may occupy. The same
+// stored percentage therefore rendered a different preview width on each of those,
+// which read as the panel resizing itself while the reviewer navigated. The bounds
+// are keyed to the viewport rather than the container for the same reason; the form
+// column takes whatever is left.
+.std-form-layout.attachment-queue-review-layout {
+	display: grid;
+	grid-template-columns:
+		clamp(320px, var(--attachment-queue-review-width, 480px), 60vw)
+		minmax(0, 1fr);
+	gap: 0;
+	// Stretch, so the form column fills the row the preview defines. With `start` a form
+	// shorter than the preview left the page background showing beside it; the column
+	// filling that space is what keeps the two sides level without the preview having to
+	// shrink to the form.
+	align-items: stretch;
+
+	// The form column takes the rest of the row as well as the rest of the width, so the
+	// card ends where the preview does instead of leaving a band under it. flex-basis
+	// auto with no shrink: a form taller than the viewport still sizes itself, and the
+	// hidden second .form-page (display: none) is not a flex item at all.
+	> .form-layout {
+		display: flex;
+		flex-direction: column;
+
+		> .form-page {
+			flex: 1 0 auto;
+		}
+	}
+}
+
+.attachment-queue-review-panel {
+	position: sticky;
+	top: var(--page-head-height);
+	// A definite height, so the preview is a function of the viewport and nothing else.
+	// A grid row is sized by the tallest item in it, so an item that only caps its height
+	// (max-height + align-self: stretch) contributes nothing and then inherits whatever
+	// the *form* column made the row — which meant the preview grew and shrank with the
+	// form's tab, its collapsed sections and its doctype, and the PDF viewer rescaled its
+	// page to match. `start` keeps this height from being stretched back to the row.
+	align-self: start;
+	height: calc(100vh - var(--page-head-height));
+	margin-top: 0;
+	overflow: visible;
+	border: 1px solid var(--border-color);
+	border-width: 0 1px 1px 0;
+	border-radius: 0;
+	background: var(--fg-color);
+}
+
+.attachment-queue-review-shell {
+	display: flex;
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+	border-radius: 0;
+	flex-direction: column;
+}
+
+// The tab strip reuses Frappe's .form-tabs-list so it matches every other tab strip in
+// desk — which also brings core's `position: sticky` and the `form-tabs-sticky-up` /
+// `form-tabs-sticky-down` classes that layout.js stamps on *every* .form-tabs-list on the
+// page each time a form tab is clicked. Their `top` is measured against the page's
+// scrollport; applied inside this panel's own scroll box it pushes the strip down and
+// leaves a band of empty space above it. Reset the way core resets the same class inside
+// a grid row form (common/grid.scss).
+.attachment-queue-review-panel .form-tabs-list {
+	position: relative;
+	top: auto;
+}
+
+// Sits above the tab bar inside the flex column, so extraction's state is reported
+// once for the whole panel instead of hiding inside one tab. Always present in the
+// markup and emptied rather than removed, so update_status never has to rebuild the
+// shell — :empty is what keeps it from taking up space when there is nothing to say.
+.attachment-queue-review-alert {
+	flex: none;
+	padding: var(--padding-md) var(--padding-md) 0;
+
+	&:empty {
+		display: none;
+	}
+}
+
+.attachment-queue-review-body {
+	min-height: 0;
+	flex: 1;
+	overflow: auto;
+	padding: 12px;
+	margin-top: 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.attachment-queue-review-tab-panel {
+	display: none;
+	height: 100%;
+
+	&.active {
+		display: block;
+	}
+
+	&[data-panel="preview"] {
+		position: relative;
+	}
+}
+
+.attachment-queue-review-resize-overlay {
+	position: absolute;
+	display: none;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: var(--text-muted);
+	font-size: var(--text-base);
+	font-weight: 400;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.attachment-queue-review-preview {
+	width: 100%;
+	height: 100%;
+	border: 0;
+	border-radius: 0;
+	background: #fff;
+}
+
+.attachment-queue-review-preview-image {
+	width: 100%;
+	height: auto;
+	border-radius: 0;
+}
+
+// While dragging the resizer, hide the PDF iframe (it repaints poorly mid-drag)
+// and show the width overlay in its place.
+.attachment-queue-review-panel.attachment-queue-review-resizing-pdf {
+	.attachment-queue-review-preview {
+		visibility: hidden;
+	}
+
+	.attachment-queue-review-resize-overlay {
+		display: block;
+	}
+}
+
+.attachment-queue-review-sections {
+	display: flex;
+	flex-direction: column;
+}
+
+.attachment-queue-review-section {
+	padding: 0;
+	border: 0;
+	background: var(--fg-color);
+
+	// Core form CSS caps form sections at the page width. The panel is a side
+	// pane, not a form, so it needs the full width of its own column. Core's
+	// rule is more specific than this one, so !important is the only way out.
+	.section-head,
+	.section-body {
+		max-width: none !important;
+	}
+
+	.section-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--padding-md);
+		border-bottom: 0;
+		color: var(--text-color);
+		font-size: var(--text-md);
+		font-weight: var(--weight-medium);
+	}
+
+	.collapse-indicator {
+		margin-left: auto;
+	}
+
+	.section-body {
+		display: block;
+		padding: var(--padding-sm) var(--padding-md) 0;
+	}
+
+	.section-body.hide {
+		display: none;
+	}
+}
+
+.attachment-queue-review-panel pre {
+	margin: 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+	padding: var(--padding-md);
+	border-radius: 0;
+	border: 0;
+	background: var(--control-bg);
+	font-size: var(--text-sm);
+}
+
+.attachment-queue-review-resizer {
+	position: absolute;
+	top: 0;
+	right: -2px;
+	bottom: 0;
+	width: 5px;
+	cursor: col-resize;
+	z-index: 2;
+	background: transparent;
+	transition: background-color 120ms ease;
+
+	&:hover {
+		background: var(--border-color);
+	}
+}
+
+body.attachment-queue-review-is-resizing {
+	cursor: col-resize;
+	user-select: none;
+}
+
+@media (max-width: 991px) {
+	.std-form-layout.attachment-queue-review-layout {
+		display: block;
+	}
+
+	.attachment-queue-review-panel {
+		position: static;
+		height: calc(100vh - 96px);
+		margin-bottom: 16px;
+	}
+
+	.attachment-queue-review-resizer {
+		display: none;
+	}
+}

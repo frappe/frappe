@@ -59,6 +59,7 @@
   "allow_events_in_timeline",
   "allow_auto_repeat",
   "make_attachments_public",
+  "enable_upload_first_workflow",
   "view_settings",
   "show_title_field_in_link",
   "translated_doctype",
@@ -614,6 +615,14 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.istable",
+   "description": "Show an upload-first action on new forms and allow this DocType to be selected as an Attachment Queue target.",
+   "fieldname": "enable_upload_first_workflow",
+   "fieldtype": "Check",
+   "label": "Enable upload first workflow"
   },
   {
    "default": "0",
