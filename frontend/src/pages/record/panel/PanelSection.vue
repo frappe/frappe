@@ -26,8 +26,11 @@
 
 	<div
 		v-if="headerIndex === null || open"
-		class="flex flex-col gap-2.5 px-4 py-3 empty:hidden"
-		:class="headerIndex === null && divided ? 'border-t border-outline-gray-1' : ''"
+		class="flex flex-col gap-2.5 px-4 empty:hidden"
+		:class="[
+			headerIndex === null ? 'py-3' : 'pt-1 pb-3',
+			headerIndex === null && divided ? 'border-t border-outline-gray-1' : '',
+		]"
 		:data-section="headerIndex === null ? name : undefined"
 	>
 		<slot>

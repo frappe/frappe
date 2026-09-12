@@ -182,6 +182,16 @@ describe("a header comes from a label", () => {
 		expect(root.querySelector("[data-fieldname='organization']")).toBeNull();
 	});
 
+	it("pads a body less at the top under a header than without one", async () => {
+		const { root } = await mount(new Surface<PanelSectionItem>());
+		const headed = root.querySelector("[data-section='organization_section']")!.nextElementSibling!;
+		expect(headed.classList.contains("pt-1")).toBe(true);
+		expect(headed.classList.contains("pb-3")).toBe(true);
+		expect(headed.classList.contains("py-3")).toBe(false);
+		const headerless = root.querySelector("[data-section='people']")!;
+		expect(headerless.classList.contains("py-3")).toBe(true);
+	});
+
 	it("lets a script give a built-in a header by labelling it", async () => {
 		const surface = new Surface<PanelSectionItem>();
 		surface.update("people", { label: "People" });
