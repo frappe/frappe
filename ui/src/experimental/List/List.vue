@@ -52,7 +52,7 @@
 						@dblclick.stop.prevent="resetColumn(column)"
 					>
 						<span
-							class="h-4 w-px rounded-full bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
+							class="h-4 w-[1.5px] rounded-full bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
 							:class="{ 'opacity-100': resizingFieldname === column.fieldname }"
 						/>
 					</span>
