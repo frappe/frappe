@@ -194,7 +194,6 @@
 							:aria-expanded="modelMenu"
 							@click="modelMenu = !modelMenu"
 						>
-							<FeatherIcon name="cpu" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
 							<span class="min-w-0 truncate">{{ modelLabel }}</span>
 							<template v-if="currentEffort !== 'default'">
 								<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
@@ -212,7 +211,7 @@
 							>
 								<FeatherIcon
 									:name="entry.icon"
-									class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5"
+									class="h-3.5 w-3.5 flex-none self-center text-ink-gray-5"
 								/>
 								<span class="min-w-0 flex-1">
 									<span class="block text-xs font-medium leading-4 text-ink-gray-9">
