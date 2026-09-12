@@ -239,7 +239,7 @@ function profileHeader() {
 					"div",
 					{
 						"data-key": "profile",
-						class: "flex items-center gap-1.5 px-2 py-1.5",
+						class: "flex items-center gap-2 px-2 py-1.5",
 						style: { cursor: "default" },
 					},
 					[
