@@ -220,7 +220,10 @@ function headerBuiltins(): HeaderItem[] {
 			run: toggleFavourite,
 		},
 		{ name: "save", label: "Save", display: "button", run: runSave },
-		...headerMenuBuiltins(docinfo.value?.permissions ?? {}),
+		...headerMenuBuiltins(docinfo.value?.permissions ?? {}, {
+			favourited: favourited.value,
+			toggle: toggleFavourite,
+		}),
 	];
 }
 

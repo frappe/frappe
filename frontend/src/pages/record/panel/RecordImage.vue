@@ -16,7 +16,7 @@
 				/>
 				<div
 					v-else
-					class="grid size-full select-none place-items-center text-2xl uppercase text-ink-gray-4"
+					class="grid size-full select-none place-items-center text-8xl uppercase text-ink-gray-4"
 				>
 					{{ initials }}
 				</div>

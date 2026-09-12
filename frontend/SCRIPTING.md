@@ -46,7 +46,7 @@ The surface speaks the seven verbs: `add`, `hide`, `show`, `update`, `move`, `ha
 | `display` | On the right: `'button'`, `'dropdown'`, `'section'`, or omitted for an entry in `⋯`. On the left: `'crumb'`, `'dropdown'`, or omitted for a button. |
 | `href` | A path inside this app's prefix; a crumb with one is a link. |
 | `run` | `(page) => any`. A crumb or button with one runs it; `run` wins over `href`. |
-| `group` | The container this sits in. A member sits in its container's zone. |
+| `group` | The container this sits in. A member sits in its container's zone. A name no item declares forms a band of its own in `⋯`, with no heading. |
 | `icon` | A lucide name. |
 
 `zone` and `display` are orthogonal: a favourite star is `{ zone: 'left', display: 'button' }`.
@@ -64,7 +64,10 @@ The generated page seeds these items, in this order:
 | `record` | left | The record's crumb: its title field, or its name. |
 | `favourite` | left | The star, after the crumbs: toggles the reader's favourite, and lists everyone who favourited the record on hover. A favourite is a `Favourite` row, read off `docinfo`; it is not desk v1's like and posts nothing on the timeline. |
 | `save` | right | The Save button. Disabled by the host while nothing has changed. |
-| `delete` | right | A row in `⋯`, only with the delete right. Confirms, deletes, and leaves for the list. |
+| `favourite_row` | right | The star's row in `⋯`: *Add to favourites* or *Remove from favourites*, whichever the star would do next. Hiding the star keeps this row, and the other way round. |
+| `copy_url` | right | A row in `⋯`: copies the record's address, as the `copy_link` quick action does. |
+| `copy_id` | right | A row in `⋯`: copies the record's name. |
+| `delete` | right | A row in `⋯`, in a band of its own, only with the delete right. Confirms, deletes, and leaves for the list. |
 
 `Save` is an ordinary item. `hide('save')` removes it, as desk v1's `frm.disable_save()`
 does. A new item with no anchor lands **after** `Save`; to sit to its left, anchor it:
