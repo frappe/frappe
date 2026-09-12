@@ -94,7 +94,8 @@ class FormBuilder {
 			if (this.store.dirty || this.frm.is_dirty()) {
 				this.frm.dirty();
 			} else {
-				this.page.clear_indicator();
+				// redraw rather than clear, or the doc's own status (Published) goes too
+				this.frm.toolbar.set_indicator();
 			}
 
 			if (this.store.read_only) {

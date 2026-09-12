@@ -158,7 +158,8 @@ export const useStore = defineStore("form-builder-store", () => {
 			dirty.value = false;
 			if (!was_frm_dirty) {
 				frm.value.doc.__unsaved = 0;
-				frm.value.page.clear_indicator();
+				// redraw rather than clear, or the doc's own status (Published) goes too
+				frm.value.toolbar.set_indicator();
 			}
 			read_only.value = false;
 			preview.value = false;

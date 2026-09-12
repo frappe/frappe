@@ -168,14 +168,16 @@ context("Web Form Builder", () => {
 		});
 	});
 
-	it("Picks up rows removed from the Details tab", () => {
+	it("Picks up rows removed from the Settings tab", () => {
 		seed_web_form();
 		open_builder();
 
 		cy.get(".tab-header .tabs .tab:last").click();
 		cy.get(".tab-content.active [data-fieldname='content']").should("exist");
 
-		cy.findByRole("tab", { name: "Details" }).click();
+		// the grid sits in the collapsed Fields section on Settings
+		cy.findByRole("tab", { name: "Settings" }).click();
+		cy.click_form_section("Fields");
 		cy.get('[data-fieldname="web_form_fields"] .grid-row')
 			.contains("Content")
 			.parents(".grid-row")
