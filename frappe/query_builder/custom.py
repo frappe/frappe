@@ -1,7 +1,7 @@
 from typing import Any
 
-from pypika.functions import DistinctOptionFunction, Function
-from pypika.terms import Term
+from pypika.functions import DistinctOptionFunction
+from pypika.terms import Function, Term
 from pypika.utils import builder, format_alias_sql, format_quotes
 
 import frappe
