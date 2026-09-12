@@ -66,7 +66,7 @@
 					/>
 					<span v-else class="truncate text-xs text-ink-gray-5" :title="scope.root">{{ scope.hint }}</span>
 				</div>
-				<div v-if="scope.rows.length" class="mt-3 divide-y divide-outline-gray-1 rounded-6 border border-outline-gray-2">
+				<div v-if="scope.rows.length" class="mt-3 max-h-80 divide-y divide-outline-gray-1 overflow-y-auto rounded-6 border border-outline-gray-2">
 					<button
 						v-for="row in scope.rows"
 						:key="row.path"
