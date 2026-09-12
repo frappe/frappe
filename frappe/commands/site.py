@@ -930,6 +930,34 @@ def use(site, sites_path="."):
 	is_flag=True,
 	help="Ignore excludes/includes set in config",
 )
+@click.option(
+	"--stream",
+	default=False,
+	is_flag=True,
+	help=(
+		"Upload each artifact as it is produced instead of writing it to disk."
+		" Give the destination with the --s3-* options below, or leave them out to"
+		" use the `offsite_backup_config` key in site config."
+	),
+)
+@click.option("--s3-endpoint", default=None, help="S3 endpoint, e.g. https://s3.ap-south-1.amazonaws.com")
+@click.option("--s3-bucket", default=None, help="Bucket to upload the backup to")
+@click.option("--s3-path", default=None, help="Key prefix within the bucket")
+@click.option("--s3-region", default=None, help="Bucket region")
+@click.option("--s3-access-key", default=None, help="S3 access key ID")
+@click.option(
+	"--s3-session-token",
+	default=None,
+	help="Session token for temporary credentials (STS AssumeRole and equivalents)",
+)
+@click.option(
+	"--s3-secret-key",
+	default=None,
+	help=(
+		"S3 secret access key. Anything passed here is visible in `ps` to every user"
+		" on the machine; prefer the `offsite_backup_config` key in site config."
+	),
+)
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
 @click.option("--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata")
@@ -943,6 +971,14 @@ def backup(
 	backup_path_private_files=None,
 	backup_path_conf=None,
 	ignore_backup_conf=False,
+	stream=False,
+	s3_endpoint=None,
+	s3_bucket=None,
+	s3_path=None,
+	s3_region=None,
+	s3_access_key=None,
+	s3_secret_key=None,
+	s3_session_token=None,
 	verbose=False,
 	compress=False,
 	include="",
@@ -951,7 +987,38 @@ def backup(
 ):
 	"Backup"
 
+	from frappe.utils.backup_destination import get_backup_destination
 	from frappe.utils.backups import scheduled_backup
+
+	local_paths = (
+		backup_path,
+		backup_path_db,
+		backup_path_files,
+		backup_path_private_files,
+		backup_path_conf,
+	)
+
+	s3_options = (
+		s3_endpoint,
+		s3_bucket,
+		s3_path,
+		s3_region,
+		s3_access_key,
+		s3_secret_key,
+		s3_session_token,
+	)
+
+	if any(s3_options) and not stream:
+		click.secho("The --s3-* options describe where to stream to; they need --stream.", fg="red")
+		sys.exit(1)
+
+	if stream and any(local_paths):
+		click.secho(
+			"--stream uploads every artifact itself, so it can't be combined with"
+			" --backup-path or --backup-path-*.",
+			fg="red",
+		)
+		sys.exit(1)
 
 	verbose = verbose or context.verbose
 	exit_code = 0
@@ -962,6 +1029,24 @@ def backup(
 			frappe.init(site)
 			frappe.connect()
 			rollback_callback = CallbackManager()
+			# Resolved per site: whatever wasn't passed on the command line falls
+			# back to that site's own `offsite_backup_config`.
+			destination = (
+				get_backup_destination(
+					endpoint=s3_endpoint,
+					bucket=s3_bucket,
+					path=s3_path,
+					region=s3_region,
+					access_key=s3_access_key,
+					secret_key=s3_secret_key,
+					session_token=s3_session_token,
+				)
+				if stream
+				else None
+			)
+			if destination:
+				# Reach the bucket before spending an hour dumping into it.
+				destination.verify()
 			odb = scheduled_backup(
 				ignore_files=not with_files,
 				backup_path=backup_path,
@@ -970,6 +1055,7 @@ def backup(
 				backup_path_private_files=backup_path_private_files,
 				backup_path_conf=backup_path_conf,
 				ignore_conf=ignore_backup_conf,
+				destination=destination,
 				include_doctypes=include,
 				exclude_doctypes=exclude,
 				compress=compress,
