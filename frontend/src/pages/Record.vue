@@ -231,6 +231,8 @@ let favouriteTurn: Promise<void> = Promise.resolve();
 
 function toggleFavourite(page: RecordPageApi) {
 	favouriteTurn = favouriteTurn.then(async () => {
+		// A turn that outlived its record would read the next record's state; it does nothing.
+		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
 		try {
 			await page.call("frappe.desk.doctype.favourite.favourite.toggle_favourite", {
 				doctype: page.doctype,
