@@ -465,30 +465,28 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		let contents = ``;
 		this.get_datatable_columns().forEach(function (column) {
+			let column_label = frappe.utils.escape_html(__(frappe.model.unscrub(column)));
+			let value = frappe.utils.escape_html(__(result[column] || ""));
+			let id_href = frappe.utils.escape_html(
+				"/app/" + frappe.router.slug(me.doctype) + "/" + (result[column] || "")
+			);
 			contents += `<div class="list-item__content ellipsis">
 				${
 					head
-						? `<span class="ellipsis text-muted" title="${__(
-								frappe.model.unscrub(column)
-						  )}">${__(frappe.model.unscrub(column))}</span>`
+						? `<span class="ellipsis text-muted" title="${column_label}">${column_label}</span>`
 						: column !== "name"
-						? `<span class="ellipsis result-row" title="${__(
-								result[column] || ""
-						  )}">${__(result[column] || "")}</span>`
-						: `<a href="${
-								"/app/" + frappe.router.slug(me.doctype) + "/" + result[column] ||
-								""
-						  }" class="list-id ellipsis" title="${__(result[column] || "")}">
-							${__(result[column] || "")}</a>`
+						? `<span class="ellipsis result-row" title="${value}">${value}</span>`
+						: `<a href="${id_href}" class="list-id ellipsis" title="${value}">
+							${value}</a>`
 				}
 			</div>`;
 		});
 
 		let $row = $(`<div class="list-item">
 			<div class="list-item__content" style="flex: 0 0 10px;">
-				<input type="checkbox" class="list-row-check" data-item-name="${result.name}" ${
-			result.checked ? "checked" : ""
-		}>
+				<input type="checkbox" class="list-row-check" data-item-name="${frappe.utils.escape_html(
+					result.name
+				)}" ${result.checked ? "checked" : ""}>
 			</div>
 			${contents}
 		</div>`);
@@ -496,7 +494,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		head
 			? $row.addClass("list-item--head")
 			: ($row = $(
-					`<div class="list-item-container" data-item-name="${result.name}"></div>`
+					`<div class="list-item-container" data-item-name="${frappe.utils.escape_html(
+						result.name
+					)}"></div>`
 			  ).append($row));
 
 		return $row;
