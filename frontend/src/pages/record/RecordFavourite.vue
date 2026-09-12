@@ -13,7 +13,7 @@
 				<!-- Drawn here, not off a lucide mask, so the favourited stroke can thicken. -->
 				<svg
 					class="size-4"
-					:class="favourited ? 'fill-ink-amber-5 stroke-ink-amber-5' : 'text-ink-gray-7'"
+					:class="favourited ? 'fill-ink-amber-4 stroke-ink-amber-4' : 'text-ink-gray-7'"
 					viewBox="0 0 24 24"
 					fill="none"
 					stroke="currentColor"
