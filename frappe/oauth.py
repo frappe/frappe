@@ -166,6 +166,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			raise ValueError("Malformed Basic credentials") from None
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
+		# Unreachable while `client_authentication_required` is oauthlib's default (always True):
+		# public clients are authenticated in `authenticate_client` instead. Kept correct because
+		# the base class raises NotImplementedError.
 		try:
 			client = frappe.get_cached_doc("OAuth Client", client_id)
 		except frappe.DoesNotExistError:
