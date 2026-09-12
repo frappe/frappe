@@ -123,6 +123,7 @@
   "link_field_results_limit",
   "column_break_nebx",
   "allow_clearing_link_fields",
+  "enable_combobox_link_field",
   "api_logging_section",
   "log_api_requests"
  ],
@@ -805,6 +806,13 @@
    "label": "Allow Clearing Link Fields"
   },
   {
+   "default": "0",
+   "description": "Renders Link, Dynamic Link and Autocomplete fields with the new Combobox control (search inside the dropdown, avatars, paging). Turn off to keep the classic controls.",
+   "fieldname": "enable_combobox_link_field",
+   "fieldtype": "Check",
+   "label": "Enable Combobox Link and Autocomplete Fields (Beta)"
+  },
+  {
    "depends_on": "eval:doc.allow_guests_to_upload_files == 1",
    "description": "Provide a list of allowed Doctypes for file uploads. Each line should contain one allowed Doctype. If unset, uploads to all doctypes are allowed. Example: <br>User<br>Item<br>Quotation",
    "fieldname": "allowed_doctypes_for_guest_uploads",
@@ -855,7 +863,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-09-03 17:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

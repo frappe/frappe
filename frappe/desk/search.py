@@ -55,6 +55,7 @@ class LinkSearchResults(TypedDict):
 	value: str
 	description: str
 	label: NotRequired[str]
+	image: NotRequired[str]
 
 
 # this is called by the Link Field
@@ -71,19 +72,62 @@ def search_link(
 	ignore_user_permissions: bool = False,
 	*,
 	link_fieldname: str | None = None,
+	start: int = 0,
+	include_image: bool = False,
+	keep_order: bool = False,
 ) -> list[LinkSearchResults]:
+	"""Rows for a Link field's dropdown, one page from `start`."""
 	results = search_widget(
 		doctype,
 		txt.strip(),
 		query,
 		searchfield=searchfield,
+		start=cint(start),
 		page_length=page_length,
 		filters=filters,
 		reference_doctype=reference_doctype,
 		ignore_user_permissions=ignore_user_permissions,
 		link_fieldname=link_fieldname,
+		keep_order=sbool(keep_order),
 	)
-	return build_for_autosuggest(results, doctype=doctype)
+	rows = build_for_autosuggest(results, doctype=doctype)
+	if sbool(include_image):
+		add_images(rows, doctype)
+	return rows
+
+
+def get_image_field(doctype: str) -> str | None:
+	"""The DocType's image_field, if it is a real column this user may read."""
+	meta = frappe.get_meta(doctype)
+	if not meta.image_field:
+		return None
+	df = meta.get_field(meta.image_field)
+	if not df or getattr(df, "is_virtual", False):
+		return None
+	# a customised image_field can sit behind a permlevel: rows are read with
+	# permissions off, so refuse the field rather than hand its value out
+	if df.permlevel and df.permlevel not in meta.get_permlevel_access("read"):
+		return None
+	return meta.image_field
+
+
+def add_images(rows: list[LinkSearchResults], doctype: str) -> None:
+	"""Set `image` on each row via a by-name lookup, so custom queries work too."""
+	image_field = get_image_field(doctype)
+	if not image_field or not rows:
+		return
+	images = dict(
+		frappe.get_all(
+			doctype,
+			filters={"name": ["in", [r["value"] for r in rows]]},
+			fields=["name", image_field],
+			as_list=True,
+		)
+	)
+	for row in rows:
+		image = images.get(row["value"])
+		if image:
+			row["image"] = image
 
 
 def make_dict_from_filter_list(filters: list) -> dict:
@@ -117,6 +161,8 @@ def search_widget(
 	for_link_validation: bool = False,
 	# this param has been added temporarily for compatibility - may be removed later
 	query_filters_as_dict: bool = False,
+	# skip the relevance re-sort so paged results keep one order
+	keep_order: bool = False,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -198,11 +244,8 @@ def search_widget(
 		finally:
 			frappe.flags.ignore_user_permissions_for_doctype = None
 
-		if not for_link_validation:
-			if meta.translated_doctype:
-				values = filter_translated(values, txt, as_dict)
-				values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-				values = values[start : start + page_length]
+		if not for_link_validation and meta.translated_doctype:
+			values = page_translated(values, txt, as_dict, start, page_length)
 
 		return values
 
@@ -267,7 +310,8 @@ def search_widget(
 
 	order_by_based_on_meta = get_order_by(doctype, meta)
 	# `idx` is number of times a document is referred, check link_count.py
-	order_by = f"idx desc, {order_by_based_on_meta}"
+	# `name` last as a tiebreaker, so paging never repeats or skips equal rows
+	order_by = f"idx desc, {order_by_based_on_meta}, `tab{doctype}`.`name` asc"
 
 	# With an empty `txt`, LOCATE always returns 1, so `_relevance` is the same constant for
 	# every row. The sort key then changes no ordering, but is still evaluated per row and
@@ -309,15 +353,12 @@ def search_widget(
 
 	if not for_link_validation:
 		if meta.translated_doctype:
-			values = filter_translated(values, txt, as_dict)
-
-		# Sorting the values array so that relevant results always come first
-		# This will first bring elements on top in which query is a prefix of element
-		# Then it will bring the rest of the elements and sort them in lexicographical order
-		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-
-		if meta.translated_doctype:
-			values = values[start : start + page_length]
+			values = page_translated(values, txt, as_dict, start, page_length)
+		elif not keep_order:
+			# Sorting the values array so that relevant results always come first
+			# This will first bring elements on top in which query is a prefix of element
+			# Then it will bring the rest of the elements and sort them in lexicographical order
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 		# remove _relevance from results
 		if add_relevance:
@@ -328,6 +369,14 @@ def search_widget(
 				values = [r[:-1] for r in values]
 
 	return values
+
+
+def page_translated(values: list, txt: str, as_dict: bool, start: int, page_length: int) -> list:
+	"""Translated doctypes are matched in Python: filter, sort and page here.
+	Always sorted, so every page slices the same order."""
+	values = filter_translated(values, txt, as_dict)
+	values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+	return values[start : start + page_length]
 
 
 def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype):

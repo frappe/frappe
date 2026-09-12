@@ -8,7 +8,253 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	// Examples are grouped (all variants together, all sizes together...).
 	// Each item's opts object is both the displayed code and the real input
 	// for the live preview — what you see is exactly what runs.
+	// a footer row two Combobox demos share
+	const CREATE_CUSTOMER_ROW = {
+		type: "custom",
+		label: "Create a new Customer",
+		icon: "plus",
+		onclick: ({ query }) => frappe.ui.toast({ message: `Create "${query || "new"}"` }),
+	};
+
 	const COMPONENTS = {
+		Combobox: {
+			helper: "frappe.ui.combobox",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							placeholder: "Select status",
+							options: ["Open", "Working", "Pending Review", "Closed"],
+							on_change: (value) => frappe.ui.toast({ message: `Picked ${value}` }),
+						},
+						{
+							placeholder: "Select status",
+							value: "Working",
+							options: ["Open", "Working", "Closed"],
+						},
+						{
+							placeholder: "Disabled",
+							value: "Open",
+							disabled: true,
+							options: ["Open", "Closed"],
+						},
+					],
+				},
+				{
+					title: __("Rich rows: avatar, description, badge, disabled"),
+					items: [
+						{
+							placeholder: "Select customer",
+							search_placeholder: "Search customers...",
+							options: [
+								{
+									label: "Acme Industries",
+									value: "CUST-0001",
+									description: "CUST-0001, Mumbai",
+									image: "/assets/frappe/images/frappe-framework-logo.svg",
+									badge: { label: "Commercial", theme: "green" },
+								},
+								{
+									label: "Ace Hardware Ltd",
+									value: "CUST-0042",
+									description: "CUST-0042, Pune",
+									avatar: true,
+									badge: { label: "Individual", theme: "blue" },
+								},
+								{
+									label: "Pacific Traders",
+									value: "CUST-0107",
+									description: "CUST-0107, Chennai",
+									avatar: true,
+								},
+								{
+									label: "Acme Exports",
+									value: "CUST-0009",
+									description: "CUST-0009",
+									avatar: true,
+									disabled: true,
+								},
+							],
+							on_change: (value, option) =>
+								frappe.ui.toast({ message: `${option.label} (${value})` }),
+						},
+						{
+							placeholder: "Select priority",
+							options: [
+								{ label: "Urgent", value: "Urgent", icon: "flame" },
+								{ label: "High", value: "High", icon: "arrow-up" },
+								{ label: "Medium", value: "Medium", icon: "minus" },
+								{ label: "Low", value: "Low", icon: "arrow-down" },
+							],
+						},
+					],
+				},
+				{
+					title: __("Groups"),
+					items: [
+						{
+							placeholder: "Select account",
+							search_placeholder: "Search 412 accounts...",
+							options: [
+								{
+									group: "Receivable",
+									options: [
+										{
+											label: "Debtors - FT",
+											value: "Debtors - FT",
+											description: "Accounts Receivable",
+										},
+										{
+											label: "Debtors USD - FT",
+											value: "Debtors USD - FT",
+											description: "Accounts Receivable",
+										},
+									],
+								},
+								{
+									group: "Expenses",
+									options: [
+										{
+											label: "Bad Debts - FT",
+											value: "Bad Debts - FT",
+											description: "Indirect Expenses",
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Custom rows (footer) and empty state"),
+					items: [
+						{
+							placeholder: "Select customer",
+							options: ["Acme Industries", "Ace Hardware Ltd"],
+							footer: [
+								CREATE_CUSTOMER_ROW,
+								{
+									type: "custom",
+									label: "Browse all Customers",
+									icon: "search",
+									condition: ({ query }) => !query,
+									onclick: () => frappe.ui.toast({ message: "Browse all" }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Applied filters — every operator, many at once, long values"),
+					items: [
+						{
+							placeholder: "One filter",
+							filters: ["Customer Group: Commercial"],
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+						{
+							placeholder: "Every operator",
+							filters: [
+								"Customer Group: Commercial",
+								"Status ≠ Disabled",
+								"Territory in India, Nepal, Bhutan, Sri Lanka, Bangladesh…",
+								'Name contains "acme"',
+								"Creation between 01-01-2026 and 31-03-2026",
+								"Tax ID is set",
+								"Enabled",
+								"Account Group descendant of Current Assets - FT",
+							],
+							footer: [CREATE_CUSTOMER_ROW],
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+						{
+							placeholder: "Long values",
+							filters: [
+								"Company: Frappe Technologies Private Limited (Mumbai Head Office and Regional Branches)",
+								"Cost Center: Main - Frappe Technologies Private Limited - Mumbai - FT",
+							],
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+						{
+							placeholder: "Plain text form",
+							filters:
+								"Customer Group equals Commercial and Territory is one of India, Nepal, Bhutan and Status is not Disabled",
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+					],
+				},
+				{
+					title: __("No search row (short lists)"),
+					items: [
+						{
+							placeholder: "Select company",
+							hide_search: true,
+							value: "Frappe Technologies",
+							options: ["Frappe Technologies", "Frappe Cloud LLC", "Frappe UK Ltd"],
+						},
+					],
+				},
+				{
+					title: __("Load more on scroll (page_size)"),
+					items: [
+						{
+							placeholder: "Select item",
+							search_placeholder: "Search 143 items...",
+							filterable: false,
+							page_size: 20,
+							options: (query, { start }) =>
+								new Promise((resolve) =>
+									setTimeout(() => {
+										const all = Array.from({ length: 143 }, (_, i) => ({
+											label: `Item ${String(i + 1).padStart(3, "0")}`,
+											value: `ITEM-${String(i + 1).padStart(3, "0")}`,
+											description: i % 3 ? "Accessories" : "Electronics",
+										}));
+										const hits = all.filter((o) =>
+											o.label.toLowerCase().includes(query.toLowerCase())
+										);
+										resolve(hits.slice(start, start + 20));
+									}, 400)
+								),
+						},
+					],
+				},
+				{
+					title: __("Async options (server search)"),
+					items: [
+						{
+							placeholder: "Select user",
+							search_placeholder: "Search users...",
+							filterable: false,
+							options: (query) =>
+								new Promise((resolve) =>
+									setTimeout(() => {
+										const all = [
+											"Jane Doe",
+											"John Smith",
+											"Priya Shah",
+											"Ravi Kumar",
+										];
+										resolve(
+											all
+												.filter((n) =>
+													n.toLowerCase().includes(query.toLowerCase())
+												)
+												.map((n) => ({
+													label: n,
+													value: n,
+													avatar: true,
+												}))
+										);
+									}, 600)
+								),
+						},
+					],
+				},
+			],
+		},
 		Dropdown: {
 			helper: "frappe.ui.dropdown",
 			groups: [

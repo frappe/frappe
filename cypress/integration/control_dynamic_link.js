@@ -82,12 +82,9 @@ context("Dynamic Link", () => {
 		cy.fill_field("doc_type", "User", "Link");
 		cy.get_field("doc_id").click();
 
-		//Checking if the listbox have length greater than 0
-		cy.get('[data-fieldname="doc_id"]')
-			.find(".awesomplete")
-			.find("div")
-			.its("length")
-			.should("be.gte", 0);
+		// the options list opens (the classic dropdown next to the input, or
+		// the combobox panel in <body>)
+		cy.get("[role='listbox']:visible").should("exist");
 		cy.get(".btn-modal-close").click({ force: true });
 	});
 
@@ -98,12 +95,9 @@ context("Dynamic Link", () => {
 		cy.fill_field("doc_type", "User", "Link");
 		cy.get_field("doc_id").click();
 
-		//Checking if the listbox have length greater than 0
-		cy.get('[data-fieldname="doc_id"]')
-			.find(".awesomplete")
-			.find("div")
-			.its("length")
-			.should("be.gte", 0);
+		// the options list opens (the classic dropdown next to the input, or
+		// the combobox panel in <body>)
+		cy.get("[role='listbox']:visible").should("exist");
 		cy.get(".btn-modal-close").click({ force: true, multiple: true });
 	});
 
@@ -117,12 +111,9 @@ context("Dynamic Link", () => {
 		cy.fill_field("doc_type", "User", "Link", { delay: 500 });
 		cy.get_field("doc_id").click();
 
-		//Checking if the listbox have length greater than 0
-		cy.get('[data-fieldname="doc_id"]')
-			.find(".awesomplete")
-			.find("div")
-			.its("length")
-			.should("be.gte", 0);
+		// the options list opens (the classic dropdown next to the input, or
+		// the combobox panel in <body>)
+		cy.get("[role='listbox']:visible").should("exist");
 	});
 
 	it("Shows dynamic link options in new form", () => {
@@ -141,12 +132,9 @@ context("Dynamic Link", () => {
 
 		cy.get_field("doc_id").click();
 
-		//Checking if the listbox have length greater than 0
-		cy.get('[data-fieldname="doc_id"]')
-			.find(".awesomplete")
-			.find("div")
-			.its("length")
-			.should("be.gte", 0);
+		// the options list opens (the classic dropdown next to the input, or
+		// the combobox panel in <body>)
+		cy.get("[role='listbox']:visible").should("exist");
 		cy.get_field("doc_type").clear();
 	});
 

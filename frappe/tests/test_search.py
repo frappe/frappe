@@ -97,6 +97,153 @@ class TestSearch(IntegrationTestCase):
 
 		frappe.delete_doc("User", email)
 
+	def test_search_link_start_paginates(self):
+		# a plain doctype; translated ones are paged differently (see below)
+		doctype = new_doctype(autoname="field:some_fieldname").insert()
+		self.addCleanup(doctype.delete)
+		for i in range(12):
+			frappe.get_doc({"doctype": doctype.name, "some_fieldname": f"Row {i:02d}"}).insert()
+
+		first = search_link(doctype=doctype.name, txt="", page_length=5)
+		second = search_link(doctype=doctype.name, txt="", page_length=5, start=5)
+		self.assertEqual(len(first), 5)
+		self.assertEqual(len(second), 5)
+		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
+
+		# only membership: each page is relevance-sorted on its own
+		both = search_link(doctype=doctype.name, txt="", page_length=10)
+		self.assertEqual({r["value"] for r in both}, {r["value"] for r in first + second})
+
+		self.assertEqual(search_link(doctype=doctype.name, txt="", page_length=5, start=50), [])
+
+		# keep_order: pages in database order, still disjoint and complete
+		kept = [
+			search_link(doctype=doctype.name, txt="", page_length=5, start=s, keep_order=True)
+			for s in (0, 5, 10)
+		]
+		self.assertEqual([len(page) for page in kept], [5, 5, 2])
+		# 12 distinct names across pages of 5 + 5 + 2: disjoint, and nothing missed
+		self.assertEqual(
+			{r["value"] for page in kept for r in page},
+			{f"Row {i:02d}" for i in range(12)},
+		)
+
+	def test_search_link_pages_translated_doctypes(self):
+		# DocType is a translated doctype, paged in Python after an unlimited query
+		first = search_link("DocType", "", page_length=10)
+		second = search_link("DocType", "", page_length=10, start=10)
+		self.assertEqual(len(first), 10)
+		self.assertEqual(len(second), 10)
+		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
+		# later pages ask to keep order; the list is sorted once, so they still match
+		self.assertEqual(search_link("DocType", "", page_length=10, start=10, keep_order=True), second)
+		self.assertEqual(search_link("DocType", "", page_length=20)[10:], second)
+
+	def test_search_link_include_image(self):
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", None)
+
+		rows = search_link(doctype="User", txt="Administrator", include_image=True)
+		admin = next(r for r in rows if r["value"] == "Administrator")
+		self.assertEqual(admin["image"], "/files/admin.png")
+		self.assertNotIn("admin.png", admin["description"])
+
+		rows = search_link(doctype="User", txt="Administrator")
+		admin = next(r for r in rows if r["value"] == "Administrator")
+		self.assertNotIn("image", admin)
+
+		# Role has no image_field
+		rows = search_link(doctype="Role", txt="System Manager", include_image=True)
+		self.assertTrue(rows)
+		self.assertNotIn("image", rows[0])
+
+	def test_image_field_behind_a_permlevel_is_not_returned(self):
+		from frappe.desk.search import get_image_field
+
+		frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocField",
+				"doc_type": "User",
+				"field_name": "user_image",
+				"property": "permlevel",
+				"property_type": "Int",
+				"value": "1",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		self.addCleanup(frappe.clear_cache, doctype="User")
+		self.addCleanup(frappe.delete_doc, "Property Setter", "User-user_image-permlevel", force=True)
+		frappe.clear_cache(doctype="User")
+
+		# rows are read with permissions off, so the field itself is the gate
+		with self.set_user("Guest"):
+			self.assertEqual(frappe.get_meta("User").get_permlevel_access("read"), set())
+			self.assertIsNone(get_image_field("User"))
+
+		self.assertEqual(get_image_field("User"), "user_image")
+
+	def test_boot_link_settings(self):
+		from frappe.boot import get_link_settings
+
+		# start from the default whatever the site has set
+		original = frappe.db.get_value("DocType", "Role", "link_display_mode")
+		self.addCleanup(frappe.db.set_value, "DocType", "Role", "link_display_mode", original)
+		frappe.db.set_value("DocType", "Role", "link_display_mode", "Search")
+		self.assertNotIn("Role", get_link_settings())
+
+		frappe.db.set_value("DocType", "Role", "link_display_mode", "Select")
+		self.assertEqual(get_link_settings()["Role"], {"display_mode": "Select"})
+
+		# Customize Form (a Property Setter) wins over the DocType's own value
+		ps = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "Role",
+				"property": "link_display_mode",
+				"property_type": "Select",
+				"value": "Search",
+			}
+		).insert()
+		self.addCleanup(ps.delete)
+		self.assertNotIn("Role", get_link_settings())
+
+		# Role has no image_field, so its flag is dropped
+		frappe.db.set_value("DocType", "User", "show_image_in_link", 1)
+		self.addCleanup(frappe.db.set_value, "DocType", "User", "show_image_in_link", 0)
+		self.assertEqual(get_link_settings()["User"], {"image_field": "user_image"})
+		frappe.db.set_value("DocType", "Role", "show_image_in_link", 1)
+		self.addCleanup(frappe.db.set_value, "DocType", "Role", "show_image_in_link", 0)
+		self.assertNotIn("Role", get_link_settings())
+
+		# a Property Setter turning images off wins over the DocType flag
+		ps_image = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "User",
+				"property": "show_image_in_link",
+				"property_type": "Check",
+				"value": "0",
+			}
+		).insert()
+		self.addCleanup(ps_image.delete)
+		self.assertNotIn("User", get_link_settings())
+
+		# a Property Setter left behind by a deleted DocType is ignored
+		orphan = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "Gone DocType For Link Settings",
+				"property": "link_display_mode",
+				"property_type": "Select",
+				"value": "Select",
+			}
+		).insert(ignore_links=True)
+		self.addCleanup(orphan.delete)
+		self.assertNotIn("Gone DocType For Link Settings", get_link_settings())
+
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
 		results = search_link(

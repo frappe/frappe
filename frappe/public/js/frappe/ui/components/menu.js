@@ -1,4 +1,4 @@
-import { validated, safe_href, shortcut_keys } from "./utils.js";
+import { validated, safe_href, shortcut_keys, is_thenable, is_group, icon_html } from "./utils.js";
 import { place } from "./position.js";
 
 /**
@@ -58,10 +58,6 @@ import { place } from "./position.js";
 
 const THEMES = ["gray", "red"];
 
-function is_thenable(value) {
-	return !!value && typeof value.then === "function";
-}
-
 const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
 const EXIT_MS = 140;
@@ -85,10 +81,6 @@ function point_in_polygon(x, y, polygon) {
 		}
 	}
 	return inside;
-}
-
-function is_group(entry) {
-	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
 }
 
 // flatten the mixed list into explicit groups (loose items become unlabeled
@@ -126,15 +118,6 @@ export function normalize_options(options) {
 	// theme is validated later, once per row, in build_item — no second
 	// pass here or a bad theme would warn twice
 	return groups;
-}
-
-// icon names end up inside svg use hrefs, so only plain names pass
-function icon_html(name, svg_class, component) {
-	if (typeof name !== "string" || !/^[a-z0-9-]+$/i.test(name)) {
-		console.warn(`frappe.ui.${component}: icons take a lucide icon name, got "${name}"`);
-		return "";
-	}
-	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
 }
 
 // Underline the first free a-z letter of the label so Alt+letter can activate

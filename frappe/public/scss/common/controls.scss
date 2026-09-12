@@ -394,6 +394,11 @@ textarea.form-control {
 	z-index: inherit;
 }
 
+// the trigger stands in for the input, so the error state paints on it
+.frappe-control.has-error .es-combobox {
+	box-shadow: inset 0 0 0 1px var(--error-border);
+}
+
 // rating
 .rating {
 	cursor: pointer;

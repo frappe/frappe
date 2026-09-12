@@ -41,6 +41,8 @@
   "title_field",
   "show_title_field_in_link",
   "translated_doctype",
+  "link_display_mode",
+  "show_image_in_link",
   "default_print_format",
   "default_view",
   "force_re_route_to_default_view",
@@ -353,6 +355,22 @@
    "label": "Translate Link Fields"
   },
   {
+   "default": "Search",
+   "description": "How Link fields to this DocType load their options. Search: fetch matches as the user types. Select: load the whole list once, without a search box (for short lists).",
+   "fieldname": "link_display_mode",
+   "fieldtype": "Select",
+   "label": "Link Display Mode",
+   "options": "Search\nSelect"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.image_field",
+   "description": "Show the Image Field as an avatar in Link field dropdowns.",
+   "fieldname": "show_image_in_link",
+   "fieldtype": "Check",
+   "label": "Show Image in Link Fields"
+  },
+  {
    "collapsible": 1,
    "fieldname": "form_settings_section",
    "fieldtype": "Section Break",
@@ -461,7 +479,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-09-23 07:13:52.631903",
+ "modified": "2026-09-03 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
