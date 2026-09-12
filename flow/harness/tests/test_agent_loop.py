@@ -687,7 +687,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 		],
 		callback_url="https://client.invalid/tools",
 		callback_token="shared-secret",
-		callback_headers={"X-Site": "alpha"},
+		callback_headers={"X-Site": "alpha", "x-harness-token": "stale"},
 		callback_timeout=7,
 		user_context={"user": "alice"},
 		auto_approve=True,
@@ -702,7 +702,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 	await _run(session, "check my mail", model=model)
 
 	assert seen["url"] == "https://client.invalid/tools"
-	assert seen["headers"]["X-Harness-Token"] == "shared-secret"
+	assert seen["headers"].get_list("x-harness-token") == ["shared-secret"]
 	assert seen["headers"]["X-Site"] == "alpha"
 	assert seen["timeout"] == 7
 	assert seen["payload"] == {
