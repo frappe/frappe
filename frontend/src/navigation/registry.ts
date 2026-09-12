@@ -77,6 +77,11 @@ export function labelOf(item: NavigationItem, context: ItemContext): string {
 	return item.link_to ?? item.key;
 }
 
+/** An authored icon wins; then the kind's own; then a dot, so a row that leads somewhere always draws one. */
+export function iconOf(item: NavigationItem): string {
+	return item.icon || rendererFor(item.item_type)?.icon || "circle-dot";
+}
+
 function report(itemType: string, message: string, error?: unknown) {
 	if (reported.has(itemType)) return;
 	reported.add(itemType);

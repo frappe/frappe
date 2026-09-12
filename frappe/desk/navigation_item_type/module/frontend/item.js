@@ -14,6 +14,8 @@
 import { isModular, routeForModule } from "@shell";
 
 export default {
+	icon: "folder",
+
 	render(item, { addresses, boot }) {
 		if (!isModular(boot)) return null;
 

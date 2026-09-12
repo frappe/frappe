@@ -329,7 +329,7 @@ describe("icons in the panel", () => {
 				ok: true,
 				text: () =>
 					Promise.resolve(
-						'<svg id="frappe-symbols"><symbol id="icon-users"/></svg>'
+						'<svg id="frappe-symbols"><symbol id="icon-users"/><symbol id="icon-list"/></svg>'
 					),
 			})
 		);
@@ -350,8 +350,7 @@ describe("icons in the panel", () => {
 		).toBe("#icon-users");
 	});
 
-	it("holds the slot open on the rest of that panel", async () => {
-		// The mixed container is CRM's case, where one jutting row would read as a mistake.
+	it("draws the kind's icon on a row with none", async () => {
 		await withSprite();
 
 		const { host } = await shell(
@@ -361,7 +360,24 @@ describe("icons in the panel", () => {
 		);
 
 		expect(
-			panel(host)?.querySelector('[data-key="lead"] span[aria-hidden]')
-		).not.toBeNull();
+			panel(host)?.querySelector('[data-key="lead"] use')?.getAttribute("href")
+		).toBe("#icon-list");
+	});
+
+	it("draws none on a heading", async () => {
+		await withSprite();
+		const section: NavigationItem = { key: "billing", item_type: "Section", label: "Billing" };
+
+		const { host } = await shell(
+			[accounts],
+			{ module_def_accounts: [section, { ...invoice, parent_key: "billing" }] },
+			"/sales-invoice"
+		);
+
+		const billing = panel(host)?.querySelector("[data-key='billing']");
+		expect(billing?.querySelector("h3 use, h3 svg")).toBeNull();
+		expect(billing?.querySelector("[data-key='invoice'] use")?.getAttribute("href")).toBe(
+			"#icon-list"
+		);
 	});
 });

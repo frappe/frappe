@@ -19,7 +19,6 @@
 				:node="child"
 				:context="context"
 				:current="current"
-				:reserve="reserve"
 				:sections="sections"
 			/>
 		</template>
@@ -35,14 +34,14 @@
 			:data-key="item.key"
 			:data-sidebar="destination.sidebar"
 		>
-			<template #prefix><Icon :name="item.icon" :reserve="reserve" /></template>
+			<template #prefix><Icon :name="iconOf(item)" /></template>
 		</SidebarItem>
 
 		<!-- Outside this prefix: a full document load, so an `<a>`, which `SidebarItem` has no form for. -->
 		<div v-else-if="destination && 'href' in destination" :data-key="item.key" :class="ROW">
 			<a :href="destination.href" :class="ROW_TARGET">
 				<span class="grid shrink-0 place-items-center">
-					<Icon :name="item.icon" :reserve="reserve" />
+					<Icon :name="iconOf(item)" />
 				</span>
 				<span class="ml-2 min-w-0 flex-1 truncate text-sm">{{ label }}</span>
 			</a>
@@ -52,7 +51,7 @@
 		<div v-else-if="expander" :data-key="item.key" :class="ROW">
 			<button type="button" :class="ROW_TARGET" :aria-expanded="expanded" @click="expand">
 				<span class="grid shrink-0 place-items-center">
-					<Icon :name="item.icon" :reserve="reserve" />
+					<Icon :name="iconOf(item)" />
 				</span>
 				<span class="ml-2 min-w-0 flex-1 truncate text-sm">{{ label }}</span>
 			</button>
@@ -69,7 +68,6 @@
 				:node="child"
 				:context="context"
 				:current="current"
-				:reserve="reserve"
 				:sections="sections"
 			/>
 		</div>
@@ -80,7 +78,6 @@
 			:node="child"
 			:context="context"
 			:current="current"
-			:reserve="reserve"
 		/>
 	</template>
 </template>
@@ -90,7 +87,7 @@ import { computed, ref, watch } from "vue";
 import { SidebarItem, SidebarSection } from "frappe-ui";
 import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
-import { labelOf, renderingOf } from "@/navigation/registry";
+import { iconOf, labelOf, renderingOf } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
 import type { ItemContext } from "@/navigation/types";
 
@@ -100,12 +97,10 @@ const ROW_TARGET =
 	"flex h-full min-w-0 flex-1 items-center rounded-4 pl-2 text-left focus-visible:ring-0 focus-visible:focus-ring";
 
 // `current` is passed down: one row wins across the rail and the open panel together.
-// `reserve` is decided once per container.
 const props = defineProps<{
 	node: ItemNode;
 	context: ItemContext;
 	current?: string;
-	reserve?: boolean;
 	sections?: SectionMemory;
 }>();
 

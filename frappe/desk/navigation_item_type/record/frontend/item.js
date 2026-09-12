@@ -7,6 +7,8 @@
 import { routeFor } from "@shell";
 
 export default {
+	icon: "file-text",
+
 	render(item) {
 		return { to: routeFor(item.link_doctype, item.link_to) };
 	},

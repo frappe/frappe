@@ -18,8 +18,6 @@
 	>
 		<use :href="`#${symbolId(name!)}`" />
 	</svg>
-
-	<span v-else-if="reserve" :class="SLOT" aria-hidden="true" />
 </template>
 
 <script setup lang="ts">
@@ -33,8 +31,6 @@ const SLOT = "size-4 shrink-0 text-center leading-4";
 const props = defineProps<{
 	/** An emoji glyph, or a sprite symbol name. */
 	name?: string;
-	/** Hold the slot open when there is nothing to draw. */
-	reserve?: boolean;
 }>();
 
 const emoji = computed(() => !!props.name && isEmoji(props.name));

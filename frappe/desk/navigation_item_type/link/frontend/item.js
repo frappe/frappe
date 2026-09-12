@@ -7,6 +7,8 @@
 // goes (`navigation.py`'s `_switching_url`).
 
 export default {
+	icon: "link",
+
 	render(item) {
 		return item.url ? { href: item.url } : null;
 	},

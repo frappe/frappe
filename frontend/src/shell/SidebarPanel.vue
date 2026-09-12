@@ -37,7 +37,6 @@
 						:node="node"
 						:context="context"
 						:current="current"
-						:reserve="reserve"
 						:sections="sections"
 					/>
 				</nav>
@@ -54,7 +53,6 @@ import { Button, ScrollArea, Sidebar } from "frappe-ui";
 import type { NavigationItem } from "@/boot";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
-import { useIconSlot } from "@/navigation/iconSlot";
 import type { ItemContext } from "@/navigation/types";
 import SidebarEdge from "./SidebarEdge.vue";
 import SidebarRow from "./SidebarRow.vue";
@@ -76,10 +74,5 @@ const collapsed = useLocalStorage("frappe:desk:sidebar-collapsed", false);
 const tree = useItemTree(
 	() => props.items,
 	() => `the ${props.address} sidebar`
-);
-
-const reserve = useIconSlot(
-	() => props.items,
-	() => props.context
 );
 </script>

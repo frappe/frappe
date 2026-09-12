@@ -15,6 +15,8 @@
 // which those are.
 
 export default {
+	icon: "folder",
+
 	render(item, { addresses, items, contentsOf }) {
 		const slug = addresses.slugOfModule(item.link_to);
 		if (!slug) return null;
