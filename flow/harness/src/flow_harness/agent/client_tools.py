@@ -61,7 +61,9 @@ async def notify_run_ended(config: SessionConfig, session_id: str, event: RunEnd
 
 
 async def _post(config: SessionConfig, url: str, payload: dict) -> dict:
-	headers = {"X-Harness-Token": config.callback_token} if config.callback_token else {}
+	headers = dict(config.callback_headers)
+	if config.callback_token:
+		headers["X-Harness-Token"] = config.callback_token
 	async with httpx.AsyncClient(timeout=config.callback_timeout) as client:
 		response = await client.post(url, json=payload, headers=headers)
 		response.raise_for_status()
