@@ -113,10 +113,10 @@ class TestOAuth20(FrappeRequestTestCase):
 		query = parse_qs(resp.request.environ["QUERY_STRING"])
 		return query.get("code")[0]
 
-	def get_bearer_token(self, headers=None, **params):
+	def get_bearer_token(self, headers=None, path=None, **params):
 		auth_code = self.get_authorization_code()
 		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
+			path or "/api/method/frappe.integrations.oauth2.get_token",
 			headers=headers or self.get_client_auth_headers(),
 			data={
 				"grant_type": "authorization_code",
@@ -348,6 +348,18 @@ class TestOAuth20(FrappeRequestTestCase):
 		frappe.clear_document_cache("OAuth Client", self.client_id)
 
 		self.assertFalse(self.authenticate_client(headers=self.get_client_auth_headers()))
+
+	def test_basic_client_auth_on_every_route_form(self):
+		"""Basic client credentials must not be rejected as an API key/secret pair."""
+		update_client_for_auth_code_grant(self.client_id)
+
+		for path in (
+			"/api/method/frappe.integrations.oauth2.get_token",
+			"/api/v1/method/frappe.integrations.oauth2.get_token",
+			"/api/v2/method/frappe.integrations.oauth2.get_token",
+		):
+			with self.subTest(path=path):
+				self.assertTrue(self.get_bearer_token(path=path).get("access_token"))
 
 	def test_login_using_authorization_code(self):
 		update_client_for_auth_code_grant(self.client_id)
