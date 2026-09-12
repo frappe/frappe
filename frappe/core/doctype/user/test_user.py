@@ -558,6 +558,43 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
+	def test_bulk_add_roles_single_append(self):
+		from frappe.core.doctype.user.user import bulk_add_roles
+
+		for role_name in ["Accounts User", "Accounts Manager"]:
+			frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
+
+		with test_user(roles=["Accounts User"]) as user:
+			bulk_add_roles([user.name], ["Accounts Manager"])
+
+			user.reload()
+			current_roles = [d.role for d in user.roles]
+
+			self.assertIn("Accounts User", current_roles)
+			self.assertIn("Accounts Manager", current_roles)
+			self.assertEqual(len(current_roles), 2)
+
+	def test_bulk_add_roles_multiple_append(self):
+		from frappe.core.doctype.user.user import bulk_add_roles
+
+		for role_name in ["Accounts User", "Accounts Manager", "System Manager"]:
+			frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
+
+		with test_user(roles=["Accounts User"]) as user:
+			bulk_add_roles([user.name], ["Accounts Manager", "System Manager"])
+
+			user.reload()
+			current_roles = [d.role for d in user.roles]
+
+			self.assertIn("Accounts User", current_roles)
+			self.assertIn("Accounts Manager", current_roles)
+			self.assertIn("System Manager", current_roles)
+			self.assertEqual(len(current_roles), 3)
+
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
