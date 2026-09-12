@@ -443,6 +443,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return args;
 	}
 
+	get_search_method() {
+		return "frappe.desk.search.search_link";
+	}
+
 	on_input(e) {
 		const term = e ? e.target.value : this.$input.val();
 		const args = this.get_search_args(term);
@@ -470,7 +474,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 		frappe.call({
 			type: use_get ? "GET" : "POST",
-			method: "frappe.desk.search.search_link",
+			method: this.get_search_method(),
 			no_spinner: true,
 			cache: use_get,
 			args: args,

@@ -1042,8 +1042,12 @@ export default class GridRow {
 					let $grid_field = $dropdown.closest(".grid-field");
 
 					if ($grid_field.length) {
-						let $wrapper = $grid_field.find("div.awesomplete");
-						$wrapper = $(`<div class="awesomplete ${$dropdown.attr("id")}"></div>`);
+						// the cell clips the dropdown, so park it on the grid and place it
+						// by hand; $home is where it belongs once it closes again
+						let $home = $dropdown.parent();
+						let $wrapper = $(
+							`<div class="awesomplete ${$dropdown.attr("id")}"></div>`
+						);
 						$grid_field.append($wrapper);
 						$wrapper.append($dropdown);
 
@@ -1060,6 +1064,13 @@ export default class GridRow {
 							left: `${left_difference}px`,
 							minWidth: "250px",
 							width: `${element_position.width}px`,
+						});
+
+						$(event.target).one("awesomplete-close", () => {
+							$home.append($dropdown);
+							$wrapper.remove();
+							// let the next focus park and re-measure it
+							is_focused = false;
 						});
 					}
 				}

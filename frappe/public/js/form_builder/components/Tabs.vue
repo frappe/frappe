@@ -20,6 +20,12 @@ whenever(Backspace, (value) => {
 const dragged = ref(false);
 const selected = computed(() => store.selected(store.current_tab.df.name));
 const has_tabs = computed(() => store.form.layout.tabs.length > 1);
+
+// a DocType Layout only rearranges the tabs its source doctype already has
+const can_add_tab = computed(() => !store.read_only && !store.is_layout_form);
+
+// a Web Form with one page still needs the header, or page 2 could never be added
+const show_tab_header = computed(() => has_tabs.value || (store.is_web_form && can_add_tab.value));
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
@@ -52,6 +58,9 @@ function remove_tab(tab, event, force = false) {
 	// is remove_tab_btn is not visible then return
 	if (!event?.currentTarget?.offsetParent && !force) return;
 
+	// page 1 always exists — the header hides its delete button, but Backspace bypasses that
+	if (store.is_web_form && store.form.layout.tabs.length === 1) return;
+
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
@@ -62,11 +71,7 @@ function remove_tab(tab, event, force = false) {
 	} else {
 		confirm_dialog(
 			__("Delete Tab", null, "Title of confirmation dialog"),
-			__(
-				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.",
-				null,
-				"Confirmation dialog message"
-			),
+			delete_tab_message(tab),
 			() => delete_tab(tab),
 			__("Delete tab", null, "Button text"),
 			() => delete_tab(tab, true),
@@ -85,6 +90,12 @@ function delete_tab(tab, with_children) {
 			if (!is_tab_empty(tab)) {
 				// move all sections from current tab to previous tab
 				prev_tab.sections = [...prev_tab.sections, ...tab.sections];
+			}
+		} else if (store.is_web_form) {
+			// no previous page, so move the fields forward into page 2
+			let next_tab = tabs[1];
+			if (!is_tab_empty(tab)) {
+				next_tab.sections = [...tab.sections, ...next_tab.sections];
 			}
 		} else {
 			// create a new tab and push sections to it
@@ -105,10 +116,27 @@ function delete_tab(tab, with_children) {
 	store.form.active_tab = tabs[prev_tab_index].df.name;
 	store.form.selected_field = null;
 }
+
+// page 1 has no previous page, so its fields move forward instead (see delete_tab)
+function delete_tab_message(tab) {
+	let moves_forward = store.is_web_form && store.form.layout.tabs.indexOf(tab) === 0;
+
+	return moves_forward
+		? __(
+				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the next tab.",
+				null,
+				"Confirmation dialog message"
+		  )
+		: __(
+				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.",
+				null,
+				"Confirmation dialog message"
+		  );
+}
 </script>
 
 <template>
-	<div class="tab-header" v-if="store.form.layout.tabs.length > 1">
+	<div class="tab-header" v-if="show_tab_header">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"
@@ -147,7 +175,7 @@ function delete_tab(tab, with_children) {
 				</div>
 			</template>
 		</draggable>
-		<div class="tab-actions" :hidden="store.read_only || store.is_layout_form">
+		<div class="tab-actions" :hidden="!can_add_tab">
 			<button
 				class="new-tab-btn btn btn-xs"
 				:class="{ 'no-tabs': !has_tabs }"
