@@ -69,6 +69,7 @@
 					:hasCounts="hasCounts"
 					:hasNextPage="hasNextPage"
 					@load-more="next"
+					@page-size="show"
 				/>
 			</div>
 		</template>
@@ -135,6 +136,7 @@ const {
 	hasCounts,
 	hasNextPage,
 	next,
+	show,
 	columnsCustomized,
 	resetColumns,
 	resizeColumn,

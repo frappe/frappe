@@ -377,6 +377,28 @@ describe("the rows", () => {
 		expect(fake.useList.mock.calls[2][0]).toMatchObject({ start: 100, limit: 100 });
 	});
 
+	it("choosing the size already chosen after a Load More trims the list back to it", async () => {
+		await mount("/lead");
+		await settle();
+		fake.lists[0].data = rowsNamed(20);
+		await nextTick();
+		page.next();
+		fake.lists[1].data = rowsNamed(20, 20);
+		await nextTick();
+		expect(page.rows.value).toHaveLength(40);
+
+		page.show(20);
+		await nextTick();
+		expect(page.rows.value).toHaveLength(20);
+		expect(fake.useList).toHaveBeenCalledTimes(2);
+
+		// Nothing beyond the size is shown, so the same click again asks the server for nothing.
+		page.show(20);
+		await nextTick();
+		expect(page.rows.value).toHaveLength(20);
+		expect(fake.useList).toHaveBeenCalledTimes(2);
+	});
+
 	it("a bigger page size while the first page is in flight starts the list over", async () => {
 		await mount("/lead");
 		await settle();

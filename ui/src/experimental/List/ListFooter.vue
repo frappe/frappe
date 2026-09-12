@@ -4,11 +4,7 @@
 		class="flex shrink-0 items-center justify-between gap-2 border-t border-outline-gray-1 py-2"
 	>
 		<div class="flex items-center gap-2">
-			<TabButtons
-				:modelValue="pageSize"
-				:options="tabs"
-				@update:modelValue="choosePageSize"
-			/>
+			<TabButtons :modelValue="pageSize" :options="tabs" />
 			<Button
 				v-if="hasNextPage ?? (hasCounts && rowCount < totalCount)"
 				variant="subtle"
@@ -59,13 +55,17 @@ const emit = defineEmits<{
 	"page-size": [size: number];
 }>();
 
+// Each tab's own click, not the model: a click on the chosen size is still a choice, and
+// after a Load More it means "back to this many"; a restored value emits nothing.
 const tabs = computed(() =>
-	props.pageSizeOptions.map((size) => ({ label: String(size), value: size }))
+	props.pageSizeOptions.map((size) => ({
+		label: String(size),
+		value: size,
+		onClick: () => choosePageSize(size),
+	}))
 );
 
-// The tabs emit only for a click, which tells a person's choice apart from a restored value.
-function choosePageSize(value: unknown) {
-	const size = Number(value);
+function choosePageSize(size: number) {
 	pageSize.value = size;
 	emit("page-size", size);
 }
