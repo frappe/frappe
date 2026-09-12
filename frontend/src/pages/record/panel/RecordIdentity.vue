@@ -2,21 +2,21 @@
      row draws once the record has one, and until then the `tags` quick action adds the first. -->
 <template>
 	<div class="flex items-start gap-3">
-		<Avatar
-			v-if="image"
-			:image="image"
-			:label="title"
-			shape="square"
-			class="size-16 shrink-0"
-		/>
-		<div class="min-w-0 flex-1">
-			<p class="truncate text-lg font-semibold text-ink-gray-9">{{ title }}</p>
-			<p class="mt-0.5 truncate text-sm text-ink-gray-5">{{ subtitle }}</p>
+		<RecordImage v-if="hasImage" :label="title" />
+		<!-- Beside the tile the column spans its height, so the actions sit level with its foot. -->
+		<div
+			class="flex min-w-0 flex-1 flex-col"
+			:class="hasImage ? 'h-20 justify-between' : 'gap-2.5'"
+		>
+			<div class="min-w-0">
+				<p class="truncate text-lg font-semibold text-ink-gray-9">{{ title }}</p>
+				<p class="mt-0.5 truncate text-sm text-ink-gray-5">{{ subtitle }}</p>
+			</div>
+
+			<!-- The quick actions, when the layout embeds them here. -->
+			<slot />
 		</div>
 	</div>
-
-	<!-- The quick actions, when the layout embeds them here. -->
-	<slot />
 
 	<div v-if="tags.length" class="flex flex-wrap items-center gap-1.5" data-tags>
 		<span
@@ -55,10 +55,10 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { Avatar } from "frappe-ui";
 import { PanelContextKey } from "./context";
 import { tagColor, tagsOf } from "./people";
 import { peopleActions } from "./peopleActions";
+import RecordImage from "./RecordImage.vue";
 import TagPicker from "./TagPicker.vue";
 
 const context = inject(PanelContextKey)!;
@@ -74,10 +74,7 @@ const subtitle = computed(() =>
 	title.value === context.docname ? context.doctype : context.docname
 );
 
-const image = computed(() => {
-	const field = context.meta.value?.image_field;
-	return field ? (context.doc.value[field] as string | undefined) : undefined;
-});
+const hasImage = computed(() => Boolean(context.meta.value?.image_field));
 
 const tags = computed(() => tagsOf(context.docinfo.value));
 

@@ -3,10 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/router/routeFor", () => ({ routeFor: (doctype: string) => ({ name: "list", doctype }) }));
 
-import { headerMenuBuiltins, quickActionBuiltins } from "../builtinActions";
+import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState } from "../builtinActions";
 
 const names = (perms: Record<string, any>, tagged = false) =>
   quickActionBuiltins(perms, tagged).map((a) => a.name);
+
+const off: FavouriteState = { favourited: false, toggle: vi.fn() };
+const menu = (perms: Record<string, any>, favourite = off) => headerMenuBuiltins(perms, favourite);
+const menuRow = (perms: Record<string, any>, name: string) => menu(perms).find((item) => item.name === name)!;
 
 function fakePage(confirmed: true | null) {
   return {
@@ -28,10 +32,39 @@ describe("quickActionBuiltins", () => {
   it("seeds copy_link always and print only with the right; delete is the header's", () => {
     expect(names({})).toEqual(["copy_link"]);
     expect(names({ print: 1, delete: 1 })).toEqual(["print", "copy_link"]);
-    expect(headerMenuBuiltins({}).map((item) => item.name)).toEqual([]);
-    const [remove] = headerMenuBuiltins({ delete: 1 });
-    expect(remove).toMatchObject({ name: "delete", label: "Delete" });
+    expect(menu({}).map((item) => item.name)).toEqual(["favourite_row", "copy_url", "copy_id"]);
+    const remove = menuRow({ delete: 1 }, "delete");
+    expect(remove).toMatchObject({ name: "delete", label: "Delete", group: "danger" });
     expect(remove.display).toBeUndefined();
+  });
+
+  it("bands the menu: the favourite, the copies, then delete", () => {
+    expect(menu({ delete: 1 }).map((item) => item.group)).toEqual([
+      "favourite_band",
+      "copies",
+      "copies",
+      "danger",
+    ]);
+  });
+
+  it("names the favourite row for what the star would do next, and runs the same toggle", () => {
+    const toggle = vi.fn();
+    const page = fakePage(null);
+    const add = headerMenuBuiltins({}, { favourited: false, toggle })[0];
+    expect(add).toMatchObject({ label: "Add to favourites", icon: "lucide-star" });
+    const remove = headerMenuBuiltins({}, { favourited: true, toggle })[0];
+    expect(remove).toMatchObject({ label: "Remove from favourites", icon: "lucide-star-off" });
+    remove.run!(page);
+    expect(toggle).toHaveBeenCalledWith(page);
+  });
+
+  it("copies the record's name and says so", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator, "clipboard", "get").mockReturnValue({ writeText } as any);
+    const page = fakePage(null);
+    await menuRow({}, "copy_id").run!(page);
+    expect(writeText).toHaveBeenCalledWith("CRM-DEAL-1");
+    expect(page.toast.success).toHaveBeenCalledWith("ID copied");
   });
 
   it("seeds tags with write, only while the record has none", () => {
@@ -43,7 +76,7 @@ describe("quickActionBuiltins", () => {
 
   it("deletes after a confirmed danger dialog, then leaves for the list", async () => {
     const page = fakePage(true);
-    await headerMenuBuiltins({ delete: 1 })[0].run!(page);
+    await menuRow({ delete: 1 }, "delete").run!(page);
     expect(page.call).toHaveBeenCalledWith("frappe.client.delete", {
       doctype: "CRM Deal",
       name: "CRM-DEAL-1",
@@ -53,7 +86,7 @@ describe("quickActionBuiltins", () => {
 
   it("does nothing when the dialog is dismissed", async () => {
     const page = fakePage(null);
-    await headerMenuBuiltins({ delete: 1 })[0].run!(page);
+    await menuRow({ delete: 1 }, "delete").run!(page);
     expect(page.call).not.toHaveBeenCalled();
     expect(page.router.push).not.toHaveBeenCalled();
   });

@@ -1,5 +1,5 @@
 // The actions every record gets from the framework, gated by its rights: quick actions on
-// the panel, Delete in the header's menu. Each is an ordinary item a script hides or reorders by name.
+// the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import { routeFor } from "@/router/routeFor";
 
@@ -12,10 +12,30 @@ export function quickActionBuiltins(perms: Record<string, any>, tagged = false):
   return actions;
 }
 
-/** The header's `⋯` rows: no `display`, so the projection files them under the menu. */
-export function headerMenuBuiltins(perms: Record<string, any>): HeaderItem[] {
-  const items: HeaderItem[] = [];
-  if (perms.delete) items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", run: remove });
+/** The star's state and action, so the menu row can say the opposite and do the same. */
+export interface FavouriteState {
+  favourited: boolean;
+  toggle: (page: RecordPageApi) => any;
+}
+
+/**
+ * The header's `⋯` rows: no `display`, so the projection files them under the menu.
+ * Three bands by `group`: the favourite, the record's copies, then Delete.
+ */
+export function headerMenuBuiltins(perms: Record<string, any>, favourite: FavouriteState): HeaderItem[] {
+  const items: HeaderItem[] = [
+    {
+      name: "favourite_row",
+      group: "favourite_band",
+      run: favourite.toggle,
+      ...(favourite.favourited
+        ? { label: "Remove from favourites", icon: "lucide-star-off" }
+        : { label: "Add to favourites", icon: "lucide-star" }),
+    },
+    { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
+    { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId },
+  ];
+  if (perms.delete) items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
   return items;
 }
 
@@ -27,9 +47,17 @@ function print(page: RecordPageApi) {
 
 // No clipboard outside a secure context; a throw here would reload the record over an unsaved draft.
 async function copyLink(page: RecordPageApi) {
+  await copy(page, window.location.href, "Link copied");
+}
+
+async function copyId(page: RecordPageApi) {
+  await copy(page, page.docname, "ID copied");
+}
+
+async function copy(page: RecordPageApi, text: string, confirmation: string) {
   if (!navigator.clipboard) return page.toast.error("Copying needs a secure connection");
-  await navigator.clipboard.writeText(window.location.href);
-  page.toast.success("Link copied");
+  await navigator.clipboard.writeText(text);
+  page.toast.success(confirmation);
 }
 
 // The list route resolves before the call: a throw after a successful delete would reload

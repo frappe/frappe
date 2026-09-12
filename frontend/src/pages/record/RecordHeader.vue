@@ -1,7 +1,7 @@
 <!--
-  The record's header row, drawn from `page.header`: crumbs left; controls, `⋯` and Save right,
-  in the projection's order, with the menu slotted in at Save's left hand.
-  A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
+  The record's header row, drawn from `page.header`: crumbs and the favourite star left;
+  controls, `⋯` and Save right, in the projection's order, with the menu slotted in at Save's
+  left hand. A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
 -->
 <template>
 	<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
@@ -32,6 +32,13 @@
 				<span v-else-if="isCrumb(control)" class="truncate font-medium text-ink-gray-9">
 					{{ control.item.label }}
 				</span>
+
+				<RecordFavourite
+					v-else-if="control.item.name === 'favourite'"
+					:favourites="favourites"
+					:favourited="favourited"
+					@toggle="run(control.item)"
+				/>
 
 				<Dropdown
 					v-else-if="control.kind === 'dropdown'"
@@ -70,6 +77,13 @@
 						/>
 					</div>
 				</Dropdown>
+
+				<RecordFavourite
+					v-else-if="control.item.name === 'favourite'"
+					:favourites="favourites"
+					:favourited="favourited"
+					@toggle="run(control.item)"
+				/>
 
 				<Dropdown
 					v-else-if="control.kind === 'dropdown'"
@@ -124,11 +138,16 @@ import { RouterLink, useRouter } from "vue-router";
 import { Button, Dropdown, Tooltip } from "frappe-ui";
 import type { HeaderControl, HeaderItem, HeaderProjection } from "@/recordPage";
 import { bandRows, menuContent } from "./headerMenuOptions";
+import type { Person } from "./panel/people";
+import RecordFavourite from "./RecordFavourite.vue";
 
 const props = defineProps<{
 	projection: HeaderProjection;
 	dirty: boolean;
 	saving: boolean;
+	/** Who favourited the record and whether the reader did, for the `favourite` built-in. */
+	favourites: Person[];
+	favourited: boolean;
 }>();
 
 const emit = defineEmits<{ run: [item: HeaderItem] }>();

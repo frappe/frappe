@@ -17,6 +17,11 @@ vi.mock("frappe-ui", () => ({
   Button: Plain("button"),
   Dropdown: Plain("div"),
   Tooltip: Plain("span"),
+  HoverCard: defineComponent({
+    setup: (_, { slots }) => () => h("div", [slots.trigger?.(), slots.default?.()]),
+  }),
+  // No `data-label`: the order check reads that attribute off every button.
+  Avatar: defineComponent({ render: () => h("i") }),
 }));
 
 vi.mock("vue-router", () => ({
@@ -36,12 +41,19 @@ afterEach(() => {
 
 const control = (name: string) => ({ kind: "button" as const, item: { name, label: name } });
 
-async function mount(projection: HeaderProjection) {
+type Favourites = { favourites: { id: string; name: string }[]; favourited: boolean };
+
+async function mount(
+  projection: HeaderProjection,
+  favourites: Favourites = { favourites: [], favourited: false },
+  onRun: (item: any) => void = () => {},
+) {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const app = createApp(
     defineComponent({
-      render: () => h(RecordHeader, { projection, dirty: false, saving: false }),
+      render: () =>
+        h(RecordHeader, { projection, dirty: false, saving: false, ...favourites, onRun }),
     }),
   );
   app.mount(root);
@@ -73,5 +85,31 @@ describe("the right-hand order", () => {
 
     const bare = await mount({ left: [], controls: [control("save")], bands: [] });
     expect(rightHand(bare)).toEqual(["save"]);
+  });
+});
+
+describe("the favourite built-in", () => {
+  it("draws the star in the left zone, pressed when the reader favourited", async () => {
+    const root = await mount(
+      { left: [control("favourite")], controls: [control("save")], bands: [] },
+      { favourites: [{ id: "me", name: "You" }], favourited: true },
+    );
+    const star = root.querySelector<HTMLElement>("[data-favourite]")!;
+    expect(star.getAttribute("aria-pressed")).toBe("true");
+    expect(star.dataset.label).toBe("Remove from favourites");
+    expect(rightHand(root)).toEqual(["Remove from favourites", "save"]);
+    expect(root.querySelector("[data-favourites]")?.textContent).toContain("You");
+  });
+
+  it("lists nobody without a favourite, and runs the item on click", async () => {
+    const ran: string[] = [];
+    const root = await mount(
+      { left: [], controls: [control("favourite")], bands: [] },
+      { favourites: [], favourited: false },
+      (item) => ran.push(item.name),
+    );
+    expect(root.querySelector("[data-favourites]")).toBeNull();
+    root.querySelector<HTMLElement>("[data-favourite]")!.click();
+    expect(ran).toEqual(["favourite"]);
   });
 });
