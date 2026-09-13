@@ -25,6 +25,10 @@ export const EFFORT_LABELS = {
 export function initialConversation() {
 	return {
 		entries: [],
+		// messages the user has sent but the server has not echoed back yet: they
+		// show as bubbles from the moment of sending, and the server's own copy
+		// takes over when it lands in entries
+		sending: [],
 		// Ordered, presentation-only assistant blocks accumulated from streaming
 		// deltas. The terminal assistant_message atomically replaces this preview.
 		partial: [],
@@ -76,6 +80,8 @@ export function applyEvent(s, e) {
 		case "tool_result":
 			if (e.type === "user_message") {
 				s.liveLabel ??= "Working"
+				// the server's copy of the oldest unechoed message: its bubble is real now
+				s.sending.shift()
 			}
 			if (e.type === "assistant_message") {
 				s.partial = []
@@ -103,6 +109,10 @@ export function applyEvent(s, e) {
 			s.running = false
 			s.liveLabel = null
 			s.partial = []
+			// The server discards unconsumed steering on abort or error; no echo will
+			// arrive to remove these bubbles. Keep messages starting a separate turn.
+			if (["aborted", "error"].includes(e.reason))
+				s.sending = s.sending.filter((message) => !message.steering)
 			if (e.reason !== "paused") s.pendingApproval = null // a pause outlives its run
 			// abnormal endings leave a durable marker in the transcript flow
 			if (["aborted", "max_turns", "budget", "length", "denied"].includes(e.reason))
@@ -569,7 +579,11 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		})
 	}
 	const filtered = items.filter((i) => i.kind !== "group" || i.steps.some((s) => s.call))
-	const unsettledTurnKey = conversation.running || pending ? latestTurnKey : null
+	// A message in flight that opens a new turn settles the one before it right away:
+	// its run_started lands before the server's copy of the message, and reading that
+	// as the old turn resuming unfolds a finished turn for those frames.
+	const opensNewTurn = (conversation.sending ?? []).some((message) => !message.steering)
+	const unsettledTurnKey = !opensNewTurn && (conversation.running || pending) ? latestTurnKey : null
 
 	// Only the terminal assistant message is the response. Earlier assistant
 	// text is commentary and belongs inside the completed-work fold.
@@ -647,6 +661,9 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		}
 		if (foldableKeys.has(item.key) && !expandedTurnKeys.has(item.turnKey)) continue
 		result.push(item)
+	}
+	for (const message of conversation.sending ?? []) {
+		result.push({ kind: "user", key: message.key, turnKey: null, entry: message.entry })
 	}
 	return result
 }

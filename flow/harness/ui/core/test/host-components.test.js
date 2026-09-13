@@ -11,6 +11,7 @@ for (const name of ["window", "document", "Document", "Element", "SVGElement", "
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
 const { createApp, h, nextTick, reactive } = await import("vue")
 const { loadComponent } = await import("./helpers/components.js")
+const { applyEvent, initialConversation } = await import("../src/transcript.js")
 const Composer = await loadComponent("Composer")
 const ApprovalCard = await loadComponent("ApprovalCard")
 const ToolGroup = await loadComponent("ToolGroup")
@@ -93,6 +94,15 @@ test("host argument components preserve approval titles and actions", async (t) 
 	assert.deepEqual(answers, [["c1", "Approve"], ["c1", "Deny"]])
 })
 
+test("the ask-for-changes field takes focus when it opens", async (t) => {
+	const flow = { options: {}, state: { conversation: {} }, answerApproval() {} }
+	const { el } = mount(t, ApprovalCard, { seq: 1, calls: [{ id: "c1", name: "bash", args: { command: "pwd" } }] }, flow)
+	;[...el.querySelectorAll("button")].find((b) => b.textContent === "Ask for changes").click()
+	await nextTick()
+	await nextTick()
+	assert.equal(document.activeElement, el.querySelector("textarea"))
+})
+
 test("standalone approvals keep command text and edit diffs", (t) => {
 	const { el } = mount(t, ApprovalCard, { seq: 1, calls: [
 		{ id: "bash", name: "bash", args: { command: "pwd" } },
@@ -114,6 +124,69 @@ test("standalone tool groups keep display segments and result output", async (t)
 	await nextTick()
 	assert.equal(el.querySelector("pre").textContent, "/project")
 	assert.equal(el.querySelector("[data-test=args]"), null)
+})
+
+const ResultView = {
+	props: ["arguments", "result"],
+	setup: (props) => () => h("table", { "data-test": "result" }, [
+		h("tr", [h("td", props.arguments.fields.status), h("td", props.result.content)]),
+	]),
+}
+
+test("a host renders its own result and stat in place of the text dump", async (t) => {
+	const step = reactive({ call: { id: "c1", name: "update_document", arguments: args } })
+	const presentTool = (name, callArgs, result) => ({
+		argsComponent: ArgsView,
+		resultComponent: ResultView,
+		stat: result ? "3 updated" : "",
+	})
+	const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool }, state: {} })
+	el.querySelector("button").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=args] dd").textContent, "Paid")
+	step.result = { content: "3 records" }
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=result] td").textContent, "Paid")
+	assert.equal(el.querySelector("[data-test=args]"), null)
+	assert.equal(el.querySelector("pre"), null)
+	assert.ok(el.textContent.includes("3 updated"))
+})
+
+test("a host's stat beats the derived one, but not the user's decision", async (t) => {
+	const presentTool = () => ({ stat: "3 updated" })
+	const step = { call: { id: "c1", name: "update_document", arguments: args }, result: { content: "ok", details: { lines: 12 } } }
+	const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool }, state: {} })
+	await nextTick()
+	assert.ok(el.textContent.includes("3 updated"))
+	assert.ok(!el.textContent.includes("12 lines"))
+
+	const denied = { call: { id: "c2", name: "update_document", arguments: args }, result: { content: '{"status": "denied"}' } }
+	const card = mount(t, ToolGroup, { steps: [denied] }, { options: { presentTool }, state: {} })
+	await nextTick()
+	assert.ok(card.el.textContent.includes("denied"))
+	assert.ok(!card.el.textContent.includes("3 updated"))
+})
+
+test("a host's result view steps aside for an error, which always expands", async (t) => {
+	const step = { call: { id: "c1", name: "describe", arguments: args }, result: { content: "boom", is_error: true } }
+	const presentTool = () => ({ resultComponent: ResultView, expandable: false })
+	const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool }, state: {} })
+	el.querySelector("button").click()
+	await nextTick()
+	assert.equal(el.querySelector("pre").textContent, "boom")
+	assert.equal(el.querySelector("[data-test=result]"), null)
+})
+
+test("a host drops the dropdown for its own lookups, name clash or not", async (t) => {
+	for (const [name, presented, expanded] of [
+		["read", { resultComponent: ResultView }, true],
+		["read", {}, false],
+		["find_doctypes", { expandable: false }, false],
+	]) {
+		const step = { call: { id: "c1", name, arguments: args }, result: { content: "[]" } }
+		const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool: () => presented }, state: {} })
+		assert.equal(!!el.querySelector("button"), expanded, `${name} ${JSON.stringify(presented)}`)
+	}
 })
 
 test("a host's turn actions render after each finished turn", async (t) => {
@@ -200,7 +273,25 @@ test("the composer takes a host's placeholder and approval-mode copy", async (t)
 	for (const text of ["Ask first", "Pauses before documents change.", "Just do it", "Never asks."]) assert.ok(menu.includes(text), text)
 })
 
-test("the composer keeps the draft and spins the send button until sending succeeds", async (t) => {
+test("a sent message is a bubble before the server echoes it", async (t) => {
+	const conversation = reactive({
+		...initialConversation(),
+		sending: [{ key: "sending:1", entry: { type: "user_message", content: [{ type: "text", text: "count the todos" }], ts: 10 } }],
+	})
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	assert.ok(el.textContent.includes("count the todos"))
+	assert.ok(el.textContent.includes("Working"))
+
+	// the server's copy arrives: the same message, now a real entry
+	applyEvent(conversation, { type: "user_message", seq: 1, content: [{ type: "text", text: "count the todos" }], ts: 11 })
+	await nextTick()
+	assert.equal(conversation.sending.length, 0)
+	assert.equal(el.textContent.match(/count the todos/g).length, 1)
+})
+
+test("the composer empties at once and spins the send button until sending succeeds", async (t) => {
 	let finishSend
 	let sent
 	const flow = {
@@ -230,7 +321,8 @@ test("the composer keeps the draft and spins the send button until sending succe
 	el.querySelector("button[title='Send']").click()
 	await nextTick()
 
-	assert.equal(el.querySelector("textarea").value, "Review this")
+	// the message is already a bubble in the thread; its attachment stays staged here
+	assert.equal(el.querySelector("textarea").value, "")
 	assert.ok(el.textContent.includes("notes.pdf"))
 	assert.equal(el.querySelector('[role="status"]'), null)
 	const sendButton = el.querySelector("button[title='Send']")

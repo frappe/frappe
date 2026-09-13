@@ -113,7 +113,7 @@
 				class="py-2.5 text-sm font-medium"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
-				<span class="flow-shimmer">{{ conversation.liveLabel }}</span>
+				<span class="flow-shimmer">{{ liveLabel }}</span>
 			</div>
 
 		</div>
@@ -188,11 +188,12 @@ const lastIsOpenGroup = computed(
 const lastIsLiveThinking = computed(
 	() => lastItem.value?.kind === "thinking" && lastItem.value.live,
 )
+// a message in flight has no server status yet, but the work has started
+const liveLabel = computed(
+	() => conversation.value.liveLabel || (conversation.value.sending?.length ? "Working" : ""),
+)
 const showStandaloneStatus = computed(
-	() =>
-		!!conversation.value.liveLabel &&
-		!lastIsOpenGroup.value &&
-		!lastIsLiveThinking.value,
+	() => !!liveLabel.value && !lastIsOpenGroup.value && !lastIsLiveThinking.value,
 )
 
 const partialVersion = computed(() => {
@@ -303,9 +304,17 @@ function toggleTurn(turnKey) {
 	})
 }
 
+// your own message belongs at the live end of the thread, wherever the view was
+// when you sent it
+const sendingCount = computed(() => conversation.value.sending?.length ?? 0)
+watch(sendingCount, (count, before) => {
+	if (count > before) stick.value = true
+})
+
 watch(
 	() => [
 		conversation.value.entries.length,
+		sendingCount.value,
 		partialVersion.value,
 		conversation.value.liveLabel,
 		conversation.value.running,

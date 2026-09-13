@@ -747,6 +747,30 @@ test("a host can disable all skill catalog requests", async () => {
 	flow.detach()
 })
 
+test("the first message keeps its bubble while its session is created", async () => {
+	const client = hostClient([])
+	let seeding
+	const seeded = new Promise((resolve) => (seeding = resolve))
+	let release
+	const held = new Promise((resolve) => (release = resolve))
+	client.entries = async () => {
+		seeding()
+		await held
+		return { entries: [], latest_seq: 0 }
+	}
+	const flow = createFlowStore(client, { requireCwd: false })
+
+	const sent = flow.send("count the todos")
+	await seeded
+
+	// the new session's transcript is still loading behind the bubble
+	assert.equal(flow.state.conversation.sending.length, 1)
+	release()
+	assert.equal(await sent, true)
+	assert.equal(flow.state.conversation.sending.length, 1)
+	flow.detach()
+})
+
 test("a host without a filesystem sends without choosing a folder", async () => {
 	const calls = []
 	const flow = createFlowStore(hostClient(calls), { requireCwd: false })
@@ -853,6 +877,29 @@ function step(event) {
 	const done = new Promise((resolve) => (delivered = resolve))
 	return { gate, event, delivered, open, done }
 }
+
+test("aborting before steering is consumed removes its optimistic bubble", async () => {
+	const ended = step({ type: "run_ended", seq: 2, reason: "aborted" })
+	const client = hostClient([])
+	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.run = async () => ({ status: "steered" })
+	client.abort = async () => ({})
+	client.stream = () => pacedStream([ended])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.equal(await flow.send("Also check this"), true)
+	assert.equal(flow.state.conversation.sending.length, 1)
+	await flow.abort()
+	ended.open()
+	await ended.done
+
+	assert.equal(flow.state.conversation.sending.length, 0)
+	assert.equal(flow.state.conversation.running, false)
+	assert.equal(flow.state.conversation.liveLabel, null)
+	assert.deepEqual(flow.state.queued, [])
+	flow.detach()
+})
 
 test("a live run boundary moves the open session's row to the top without refetching the list", async () => {
 	const started = step({ type: "run_started", seq: 2, run_id: "r1" })
