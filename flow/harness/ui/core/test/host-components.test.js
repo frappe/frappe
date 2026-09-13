@@ -93,6 +93,15 @@ test("host argument components preserve approval titles and actions", async (t) 
 	assert.deepEqual(answers, [["c1", "Approve"], ["c1", "Deny"]])
 })
 
+test("the ask-for-changes field takes focus when it opens", async (t) => {
+	const flow = { options: {}, state: { conversation: {} }, answerApproval() {} }
+	const { el } = mount(t, ApprovalCard, { seq: 1, calls: [{ id: "c1", name: "bash", args: { command: "pwd" } }] }, flow)
+	;[...el.querySelectorAll("button")].find((b) => b.textContent === "Ask for changes").click()
+	await nextTick()
+	await nextTick()
+	assert.equal(document.activeElement, el.querySelector("textarea"))
+})
+
 test("standalone approvals keep command text and edit diffs", (t) => {
 	const { el } = mount(t, ApprovalCard, { seq: 1, calls: [
 		{ id: "bash", name: "bash", args: { command: "pwd" } },

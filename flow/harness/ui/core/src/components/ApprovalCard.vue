@@ -37,7 +37,7 @@
 				<!-- function ref: the field mounts only when this call is being asked
 				     about, so mount-time focus is exactly "form opened" -->
 				<textarea
-					:ref="(el) => el?.focus()"
+					:ref="focusAsk"
 					v-model="askText"
 					rows="2"
 					placeholder="Describe what you want instead…"
@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue"
+import { computed, inject, nextTick, ref } from "vue"
 
 const props = defineProps({
 	calls: { type: Array, required: true },
@@ -72,6 +72,12 @@ const flow = inject("flow")
 
 const asking = ref(null)
 const askText = ref("")
+
+// a ref fires before its node is in the document, where focus() is a no-op; the tick
+// after, the field exists and the typing lands in it
+function focusAsk(el) {
+	if (el) nextTick(() => el.focus())
+}
 
 function answered(call) {
 	return flow.state.conversation.pendingApproval?.answers[call.id] ?? null
