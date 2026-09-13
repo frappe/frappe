@@ -168,16 +168,11 @@ def _extract_pdf_page(page) -> str:
 	if prose:
 		parts.append(prose)
 
-	# No text layer → raw scan; OCR the full page. Otherwise OCR every image region
-	# individually (logos, stamps, embedded scans). Duplicated text on searchable PDFs
-	# is acceptable; missing text is not.
-	if page.images and not parts:
+	# OCR once per page, including embedded scans in otherwise searchable PDFs.
+	# A page can contain many small image objects; OCRing each separately repeats
+	# expensive inference and can turn a one-page attachment into a minute-long wait.
+	if page.images:
 		parts.append(_ocr_image(_render_page_png(page)))
-	elif page.images:
-		for image in page.images:
-			text = _ocr_region(page, image)
-			if text:
-				parts.append(text)
 
 	return "\n\n".join(part for part in parts if part)
 
@@ -193,18 +188,6 @@ def _table_to_markdown(table) -> str:
 		if i == 0:
 			lines.append("| " + " | ".join("---" for _ in cells) + " |")
 	return "\n".join(lines)
-
-
-def _ocr_region(page, image) -> str:
-	bbox = (
-		max(image["x0"], page.bbox[0]),
-		max(image["top"], page.bbox[1]),
-		min(image["x1"], page.bbox[2]),
-		min(image["bottom"], page.bbox[3]),
-	)
-	if bbox[2] <= bbox[0] or bbox[3] <= bbox[1]:
-		return ""
-	return _ocr_image(_render_page_png(page.crop(bbox)))
 
 
 def _render_page_png(page) -> bytes:

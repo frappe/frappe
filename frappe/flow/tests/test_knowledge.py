@@ -16,6 +16,7 @@ from flow.knowledge.extract import (
 	_extract_docx,
 	_extract_html,
 	_extract_pdf,
+	_extract_pdf_page,
 	_extract_xlsx,
 	_render_rich_text,
 	_validate_public_url,
@@ -525,6 +526,23 @@ class TestExtract(IntegrationTestCase):
 		buffer = io.BytesIO()
 		writer.write(buffer)
 		self.assertEqual(_extract_pdf(buffer.getvalue()), "")
+
+	def test_pdf_with_many_embedded_images_uses_one_ocr_pass(self):
+		page = SimpleNamespace(
+			images=[{"x0": 0, "top": 0, "x1": 100, "bottom": 100}] * 16,
+			bbox=(0, 0, 612, 792),
+			find_tables=lambda: [],
+			extract_text=lambda: "Searchable text",
+			crop=lambda bbox: object(),
+		)
+		with (
+			patch("flow.knowledge.extract._render_page_png", return_value=b"page"),
+			patch("flow.knowledge.extract._ocr_image", return_value="Text in images") as ocr,
+		):
+			text = _extract_pdf_page(page)
+		self.assertIn("Searchable text", text)
+		self.assertIn("Text in images", text)
+		self.assertEqual(ocr.call_count, 1)
 
 	def test_extract_image_file_via_ocr(self):
 		import io
