@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -102,3 +104,20 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 	def test_assistant_cannot_be_deleted(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "system-generated"):
 			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
+
+	def test_a_later_model_leaves_the_assistant_alone(self):
+		with patch("flow.assistant.assistant.sync_builtin_assistant") as sync:
+			self.insert_model("Second Model")
+		sync.assert_not_called()
+
+	def test_a_new_model_replaces_one_the_assistant_lost(self):
+		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model", "Gone Model")
+
+		second = self.insert_model("Second Model")
+
+		self.assertEqual(frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model"), second.name)
+
+	def insert_model(self, title: str):
+		return frappe.get_doc(
+			{"doctype": "Flow Model", "title": title, "model_id": "openai/gpt-4o", "enabled": 1}
+		).insert()

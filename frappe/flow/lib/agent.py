@@ -68,8 +68,8 @@ class Agent:
 		self.auto_approve = auto_approve
 
 	def sync(self) -> None:
-		"""Write this definition to the site. The model is set only when the doc is created:
-		switching it later is the site's choice."""
+		"""Write this definition to the site. The model is set only when the doc is created,
+		or when its model is gone: switching it otherwise is the site's choice."""
 		if frappe.db.exists("Flow Agent", self.name):
 			doc = frappe.get_doc("Flow Agent", self.name)
 			if not doc.is_system_generated:
@@ -77,6 +77,8 @@ class Agent:
 					_("Flow Agent {0} already exists and is not owned by code.").format(self.name),
 					title=_("Agent Conflict"),
 				)
+			if not frappe.db.exists("Flow Model", doc.model):
+				doc.model = self.model
 		else:
 			doc = frappe.get_doc({"doctype": "Flow Agent", "title": self.name, "model": self.model})
 		doc.instructions = self.instructions

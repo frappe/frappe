@@ -66,8 +66,17 @@ ASSISTANT_INSTRUCTIONS = (
 )
 
 
+def ensure_builtin_assistant(model: str) -> None:
+	"""Give the Assistant its first model, or a new one when its own is gone. Otherwise a
+	new model changes nothing: keeping the Assistant current is migrate's job."""
+	current = frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model")
+	if current and frappe.db.exists("Flow Model", current):
+		return
+	sync_builtin_assistant(model=model)
+
+
 def sync_builtin_assistant(model: str | None = None) -> None:
-	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate and FlowModel.after_insert."""
+	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate."""
 	from flow.lib.agent import Agent
 	from flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 

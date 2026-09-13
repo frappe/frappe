@@ -40,9 +40,9 @@ class FlowModel(Document):
 	def after_insert(self):
 		if not self.enabled:
 			return
-		from flow.assistant import sync_builtin_assistant
+		from flow.assistant import ensure_builtin_assistant
 
-		sync_builtin_assistant(model=self.name)
+		ensure_builtin_assistant(model=self.name)
 
 	def _normalize(self):
 		for field in ("title", "model_id", "base_url"):
