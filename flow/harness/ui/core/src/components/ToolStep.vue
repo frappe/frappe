@@ -151,7 +151,10 @@ const decisionTitle = computed(
 
 const stat = computed(() => {
 	if (props.step.aborted && !props.step.result) return "aborted"
-	return stepStat(props.step) || meta.value.stat || ""
+	// a host describes its own tool, like icon and label — but what the user decided
+	// about the call outranks anything the tool says about itself
+	if (decision.value) return stepStat(props.step)
+	return meta.value.stat || stepStat(props.step) || ""
 })
 const statClass = computed(() => {
 	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-6" : "text-ink-red-6"

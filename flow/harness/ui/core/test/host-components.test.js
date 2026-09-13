@@ -152,6 +152,21 @@ test("a host renders its own result and stat in place of the text dump", async (
 	assert.ok(el.textContent.includes("3 updated"))
 })
 
+test("a host's stat beats the derived one, but not the user's decision", async (t) => {
+	const presentTool = () => ({ stat: "3 updated" })
+	const step = { call: { id: "c1", name: "update_document", arguments: args }, result: { content: "ok", details: { lines: 12 } } }
+	const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool }, state: {} })
+	await nextTick()
+	assert.ok(el.textContent.includes("3 updated"))
+	assert.ok(!el.textContent.includes("12 lines"))
+
+	const denied = { call: { id: "c2", name: "update_document", arguments: args }, result: { content: '{"status": "denied"}' } }
+	const card = mount(t, ToolGroup, { steps: [denied] }, { options: { presentTool }, state: {} })
+	await nextTick()
+	assert.ok(card.el.textContent.includes("denied"))
+	assert.ok(!card.el.textContent.includes("3 updated"))
+})
+
 test("a host's result view steps aside for an error, which always expands", async (t) => {
 	const step = { call: { id: "c1", name: "describe", arguments: args }, result: { content: "boom", is_error: true } }
 	const presentTool = () => ({ resultComponent: ResultView, expandable: false })
