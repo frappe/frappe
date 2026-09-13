@@ -428,8 +428,8 @@ def create_domain_workflow():
 	return workflow
 
 
-def create_new_todo(priority=None):
-	todo = frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10))
+def create_new_todo(priority=None, **kwargs):
+	todo = frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10), **kwargs)
 	if priority:
 		todo.priority = priority
 
@@ -712,6 +712,18 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		with self.set_user(user):
 			self.assertRaises(frappe.PermissionError, can_cancel_document, "Workflow", workflow.name)
 			self.assertRaises(frappe.PermissionError, can_cancel_document, "Workflow", "no-such-workflow")
+
+	def test_a_document_without_a_value_matches_no_condition(self):
+		"""The seeding query reads NULL as no match, so a governed document would never be seeded."""
+		workflow = build_conditional_todo_workflow([("date", "<", "2026-01-01")]).insert()
+
+		dated = create_new_todo(date="2025-06-01")
+		self.assertEqual(get_workflow_name("ToDo", dated), workflow.name)
+		self.assertEqual(dated.workflow_state, "Pending")
+
+		undated = create_new_todo()
+		self.assertIsNone(get_workflow_name("ToDo", undated))
+		self.assertIsNone(undated.workflow_state)
 
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow()
