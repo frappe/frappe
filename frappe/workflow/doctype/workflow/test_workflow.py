@@ -8,6 +8,7 @@ import frappe
 from frappe.model.workflow import (
 	WorkflowTransitionError,
 	apply_workflow,
+	can_cancel_document,
 	get_common_transition_actions,
 	get_transitions,
 	get_workflow_name,
@@ -703,6 +704,15 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		dormant.is_active = 1
 		self.assertRaises(frappe.ValidationError, dormant.save)
 
+	def test_can_cancel_document_needs_read_access(self):
+		"""A missing name and a readable one have to fail alike, or the endpoint tells callers which exist."""
+		workflow = create_conditional_todo_workflow()
+		user = create_user_without_roles()
+
+		with self.set_user(user):
+			self.assertRaises(frappe.PermissionError, can_cancel_document, "Workflow", workflow.name)
+			self.assertRaises(frappe.PermissionError, can_cancel_document, "Workflow", "no-such-workflow")
+
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow()
 		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
@@ -742,6 +752,18 @@ def create_workflow_state_field(doctype):
 			"allow_on_submit": 1,
 		}
 	).insert(ignore_if_duplicate=True)
+
+
+def create_user_without_roles() -> str:
+	user = frappe.get_doc(
+		doctype="User",
+		email=f"workflow-{frappe.generate_hash(length=8)}@example.com",
+		first_name="Workflow Test",
+	)
+	user.insert(ignore_permissions=True)
+	user.remove_roles(*[d.role for d in user.roles])
+
+	return user.name
 
 
 def build_todo_workflow(states=("Pending", "Approved")):
