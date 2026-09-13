@@ -256,6 +256,26 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn("parent 1 child record 2", parent1_children)
 		self.assertEqual(results2[0].child_title, "parent 2 child record 1")
 
+	def make_note(self, seen_by=None):
+		note = frappe.get_doc(
+			doctype="Note",
+			title=f"test exists filter {frappe.generate_hash(length=8)}",
+			content="test",
+			seen_by=[{"user": user} for user in (seen_by or [])],
+		).insert()
+		self.addCleanup(note.delete)
+		return note
+
+	def assert_note_filter_results(self, filters, includes=(), excludes=(), or_filters=None):
+		for result in (
+			frappe.get_all("Note", filters=filters, or_filters=or_filters, pluck="name"),
+			DatabaseQuery("Note").execute(filters=filters, or_filters=or_filters, pluck="name"),
+		):
+			for name in includes:
+				self.assertIn(name, result)
+			for name in excludes:
+				self.assertNotIn(name, result)
+
 	def test_child_table_filter_with_link_field_fetch(self):
 		"""Full list view repro of GH-39851: child-table filter + link table column in
 		fields (show_title_field_in_link) + dedup group by. Raised GroupingError on
@@ -278,6 +298,81 @@ class TestDBQuery(IntegrationTestCase):
 			order_by="`tabUser`.`modified` desc",
 		)
 		self.assertIn("Administrator", [r.name for r in result])
+
+	def test_child_table_filter_matches_parents_without_child_rows(self):
+		"""Parents with no child rows must keep matching "empty" style filters,
+		exactly like the left join these filters used before."""
+		childless = self.make_note()
+		seen = self.make_note(seen_by=["Administrator"])
+
+		self.assert_note_filter_results(
+			[["Note Seen By", "user", "is", "not set"]], includes=[childless.name], excludes=[seen.name]
+		)
+		self.assert_note_filter_results(
+			[["Note Seen By", "user", "!=", "Administrator"]],
+			includes=[childless.name],
+			excludes=[seen.name],
+		)
+		self.assert_note_filter_results(
+			[["Note Seen By", "user", "=", "Administrator"]],
+			includes=[seen.name],
+			excludes=[childless.name],
+		)
+
+	def test_child_table_filters_match_same_child_row(self):
+		"""Multiple filters on one child table must all match the same child row,
+		like they did against a single joined table."""
+		note = self.make_note(seen_by=["Administrator", "Guest"])
+
+		# legacy engine not asserted here: Filters normalization coalesces the two
+		# `=` filters into one `in` filter before they reach the query
+		result = frappe.get_all(
+			"Note",
+			filters=[
+				["Note Seen By", "user", "=", "Administrator"],
+				["Note Seen By", "user", "=", "Guest"],
+			],
+			pluck="name",
+		)
+		self.assertNotIn(note.name, result)
+
+		self.assert_note_filter_results(
+			[
+				["Note Seen By", "user", "=", "Administrator"],
+				["Note Seen By", "user", "like", "Admin%"],
+			],
+			includes=[note.name],
+		)
+		self.assert_note_filter_results(
+			[
+				["Note Seen By", "user", "!=", "Guest"],
+				["Note Seen By", "user", "like", "Admin%"],
+			],
+			includes=[note.name],
+		)
+
+	def test_child_table_filter_keeps_join_for_child_column_order_by(self):
+		"""A child column in order_by resolves against the joined child table."""
+		query = DatabaseQuery("User")
+		result = query.execute(
+			filters=[["Has Role", "role", "=", "System Manager"]],
+			order_by="`role` asc",
+			pluck="name",
+		)
+		self.assertIn("`tabHas Role`", query.tables)
+		self.assertIn("Administrator", result)
+
+	def test_child_table_filter_returns_one_row_per_matching_child(self):
+		"""Without a group by, the join yields one parent row per matching child row."""
+		note = self.make_note(seen_by=["Administrator", "Guest"])
+		result = DatabaseQuery("Note").execute(
+			filters=[
+				["Note", "name", "=", note.name],
+				["Note Seen By", "user", "in", ["Administrator", "Guest"]],
+			],
+			pluck="name",
+		)
+		self.assertEqual(result, [note.name, note.name])
 
 	def test_link_field_syntax(self):
 		todo = frappe.get_doc(doctype="ToDo", description="Test ToDo", allocated_to="Administrator").insert()
