@@ -656,6 +656,53 @@ class TestConditionalWorkflow(IntegrationTestCase):
 
 		self.assertRaises(frappe.ValidationError, workflow.insert)
 
+	def test_repeated_conditions_on_one_field_must_all_hold(self):
+		build_conditional_todo_workflow([("priority", "=", "High"), ("priority", "=", "Low")]).insert()
+
+		for priority in ("High", "Medium", "Low"):
+			self.assertIsNone(get_workflow_name("ToDo", create_new_todo(priority=priority)))
+
+	def test_adjacent_strict_bounds_on_a_discrete_field_coexist(self):
+		build_conditional_todo_workflow([("date", ">", "2026-01-01")]).insert()
+		build_conditional_todo_workflow([("date", "<", "2026-01-02")]).insert()
+
+		self.assertEqual(len(get_workflow_names("ToDo")), 2)
+
+	def test_bounds_that_pin_a_value_contradict_an_exclusion(self):
+		build_conditional_todo_workflow([("date", ">=", "2026-01-01"), ("date", "<=", "2026-01-01")]).insert()
+		build_conditional_todo_workflow([("date", "!=", "2026-01-01")]).insert()
+
+		self.assertEqual(len(get_workflow_names("ToDo")), 2)
+
+	def test_touching_inclusive_bounds_are_rejected(self):
+		build_conditional_todo_workflow([("date", ">=", "2026-01-01")]).insert()
+		workflow = build_conditional_todo_workflow([("date", "<=", "2026-01-01")])
+
+		self.assertRaises(frappe.ValidationError, workflow.insert)
+
+	def test_every_peer_is_checked_not_only_the_first(self):
+		create_conditional_todo_workflow(priority="High")
+		create_conditional_todo_workflow(priority="Low")
+		workflow = build_conditional_todo_workflow([("priority", "=", "Low")])
+
+		self.assertRaises(frappe.ValidationError, workflow.insert)
+
+	def test_inactive_peers_do_not_block_a_workflow(self):
+		dormant = build_conditional_todo_workflow([("priority", "=", "High")])
+		dormant.is_active = 0
+		dormant.insert()
+
+		self.assertIsNotNone(create_conditional_todo_workflow(priority="High"))
+
+	def test_reactivating_a_workflow_rechecks_its_peers(self):
+		create_conditional_todo_workflow(priority="High")
+		dormant = build_conditional_todo_workflow([("priority", "=", "High")])
+		dormant.is_active = 0
+		dormant.insert()
+
+		dormant.is_active = 1
+		self.assertRaises(frappe.ValidationError, dormant.save)
+
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow()
 		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
