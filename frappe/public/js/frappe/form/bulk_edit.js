@@ -102,6 +102,7 @@ export default class BulkEdit {
 			preview: $('<div class="bulk-edit-panel"></div>'),
 		};
 		this.file_uploader = null;
+		this.sheet_form = null;
 		this.preview_form = null;
 		this.mapping_controls = [];
 		this.building_preview = false;
@@ -313,6 +314,10 @@ export default class BulkEdit {
 		return Boolean(this.uploaded_file_count() || this.has_library_selection());
 	}
 
+	sheet_url() {
+		return cstr(this.sheet_form?.get_value("google_sheets_url")).trim();
+	}
+
 	make_upload_panel() {
 		this.panels.upload.css({ height: "100%", display: "flex", "flex-direction": "column" });
 
@@ -361,7 +366,7 @@ export default class BulkEdit {
 			}, 0)
 		);
 
-		const sheet_form = new frappe.ui.FieldGroup({
+		this.sheet_form = new frappe.ui.FieldGroup({
 			body: $sheet_pane[0],
 			no_submit_on_enter: true,
 			fields: [
@@ -370,14 +375,11 @@ export default class BulkEdit {
 					fieldname: "google_sheets_url",
 					label: __("Import from Google Sheets"),
 					description: __("Must be a publicly accessible Google Sheets URL"),
-					change: () => {
-						const url = sheet_form.get_value("google_sheets_url");
-						if (url) this.read_google_sheet(url);
-					},
 				},
 			],
 		});
-		sheet_form.make();
+		this.sheet_form.make();
+		$sheet_pane.on("input change", () => this.set_footer());
 
 		return this.panels.upload[0];
 	}
@@ -1000,11 +1002,21 @@ export default class BulkEdit {
 				this.file_uploader.upload_files();
 				return;
 			}
+			const url = this.sheet_url();
+			if (url && !(url === this.state.google_sheets_url && this.state.rows.length)) {
+				this.read_google_sheet(url);
+				return;
+			}
 			this.tabs.set_active(TAB_PREVIEW);
 		});
 		this.dialog
 			.get_primary_btn()
-			.prop("disabled", !this.has_file_selection() && this.tab_defs[TAB_PREVIEW].disabled);
+			.prop(
+				"disabled",
+				!this.has_file_selection() &&
+					!this.sheet_url() &&
+					this.tab_defs[TAB_PREVIEW].disabled
+			);
 	}
 
 	download_template(file_type, fieldnames, export_records) {
