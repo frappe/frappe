@@ -878,6 +878,29 @@ function step(event) {
 	return { gate, event, delivered, open, done }
 }
 
+test("aborting before steering is consumed removes its optimistic bubble", async () => {
+	const ended = step({ type: "run_ended", seq: 2, reason: "aborted" })
+	const client = hostClient([])
+	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.run = async () => ({ status: "steered" })
+	client.abort = async () => ({})
+	client.stream = () => pacedStream([ended])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.equal(await flow.send("Also check this"), true)
+	assert.equal(flow.state.conversation.sending.length, 1)
+	await flow.abort()
+	ended.open()
+	await ended.done
+
+	assert.equal(flow.state.conversation.sending.length, 0)
+	assert.equal(flow.state.conversation.running, false)
+	assert.equal(flow.state.conversation.liveLabel, null)
+	assert.deepEqual(flow.state.queued, [])
+	flow.detach()
+})
+
 test("a live run boundary moves the open session's row to the top without refetching the list", async () => {
 	const started = step({ type: "run_started", seq: 2, run_id: "r1" })
 	const ended = step({ type: "run_ended", seq: 3, reason: "paused" })

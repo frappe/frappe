@@ -109,6 +109,10 @@ export function applyEvent(s, e) {
 			s.running = false
 			s.liveLabel = null
 			s.partial = []
+			// The server discards unconsumed steering on abort or error; no echo will
+			// arrive to remove these bubbles. Keep messages starting a separate turn.
+			if (["aborted", "error"].includes(e.reason))
+				s.sending = s.sending.filter((message) => !message.steering)
 			if (e.reason !== "paused") s.pendingApproval = null // a pause outlives its run
 			// abnormal endings leave a durable marker in the transcript flow
 			if (["aborted", "max_turns", "budget", "length", "denied"].includes(e.reason))

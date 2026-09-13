@@ -24,6 +24,24 @@ function toolGroups(conversation) {
 	return buildItems(conversation).filter((item) => item.kind === "group")
 }
 
+for (const reason of ["aborted", "error"]) {
+	test(`run_ended(${reason}) removes discarded steering but keeps a new message in flight`, () => {
+		const conversation = initialConversation()
+		applyEvent(conversation, { type: "run_started", seq: 1 })
+		conversation.sending.push({ key: "steering", steering: true, entry: { content: "Discarded" } })
+		applyEvent(conversation, { type: "run_ended", seq: 2, reason })
+		assert.equal(conversation.sending.length, 0)
+		assert.equal(conversation.liveLabel, null)
+		assert.equal(conversation.running, false)
+		assert.equal(buildItems(conversation).some((item) => item.key === "steering"), false)
+
+		const next = { key: "next", steering: false, entry: { content: "Next turn" } }
+		conversation.sending.push(next)
+		applyEvent(conversation, { type: "run_ended", seq: 3, reason })
+		assert.deepEqual(conversation.sending, [next])
+	})
+}
+
 test("a durable user message keeps the turn visibly working until it ends", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "Review this" })
