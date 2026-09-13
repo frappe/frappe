@@ -71,6 +71,16 @@ def save_feedback_memory(run: Any, comment: str) -> str | None:
 	return _add(agent, comment, "Agent", source="Feedback", source_run=run.name)["memory_id"]
 
 
+def forget_feedback_memory(run: Any) -> int:
+	"""Drop what a thumbs-down on `run` saved, once that feedback is withdrawn."""
+	names = frappe.get_all(
+		"Flow Agent Memory", filters={"source": "Feedback", "source_run": run.name}, pluck="name"
+	)
+	for name in names:
+		frappe.delete_doc("Flow Agent Memory", name, ignore_permissions=True)
+	return len(names)
+
+
 def _add(
 	agent: str, content: str, scope: str, *, source: str = "Agent", source_run: str | None = None
 ) -> dict[str, Any]:
