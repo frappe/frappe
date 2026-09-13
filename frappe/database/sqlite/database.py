@@ -31,7 +31,7 @@ from frappe.database.sqlite.query_parameters import (
 	render_query_with_bound_values,
 	restore_transpiled_query_parameters,
 )
-from frappe.database.sqlite.schema import SQLiteTable
+from frappe.database.sqlite.schema import SQLiteTable, quote_identifier
 from frappe.database.utils import convert_backtick_identifiers
 from frappe.utils import get_table_name, now
 
@@ -258,7 +258,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def describe(self, doctype: str) -> list | tuple:
 		table_name = get_table_name(doctype)
-		return self.sql(f"PRAGMA table_info(`{table_name}`)")
+		return self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			_skip_sqlite_transpilation=True,
+		)
 
 	def change_column_type(
 		self, doctype: str, column: str, type: str, nullable: bool = False
@@ -268,7 +272,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		column_definitions = []
 		column_names = []
 		column_exists = False
-		for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1):
+		for col in self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		):
 			column_names.append(col["name"])
 			if col["name"] == column:
 				column_exists = True
@@ -286,9 +295,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
 		"""Rename a column with SQLite's native schema-preserving operation."""
 		table_name = get_table_name(doctype)
-		column_names = [
-			column["name"] for column in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=True)
-		]
+		column_names = self.sql(
+			"SELECT name FROM pragma_table_info(%s)",
+			(table_name,),
+			pluck=True,
+			_skip_sqlite_transpilation=True,
+		)
 		if old_column_name not in column_names:
 			raise frappe.InvalidColumnName(f"Column {old_column_name} does not exist in table {table_name}")
 		self.sql_ddl(f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`")
@@ -354,7 +366,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with descriptions."""
-		columns = self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
+		columns = self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
 		unique_columns, indexed_columns = set(), set()
 		for index in get_table_indexes(table_name):
 			if index["origin"] == "pk" or index["partial"]:
@@ -375,7 +392,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_column_type(self, doctype, column):
 		"""Return column type from database."""
 		table_name = get_table_name(doctype)
-		result = self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
+		result = self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
 		for row in result:
 			if row["name"] == column:
 				return row["type"].lower()
@@ -386,11 +408,21 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
 		"""Check if column exists for a specific fields in specified order."""
-		indexes = self.sql(f"PRAGMA index_list(`{table_name}`)", as_dict=True)
+		indexes = self.sql(
+			"SELECT * FROM pragma_index_list(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
 		for index in indexes:
 			if bool(index["unique"]) != unique or index["partial"]:
 				continue
-			index_info = self.sql(f"PRAGMA index_info(`{index['name']}`)", as_dict=True)
+			index_info = self.sql(
+				"SELECT * FROM pragma_index_info(%s)",
+				(index["name"],),
+				as_dict=True,
+				_skip_sqlite_transpilation=True,
+			)
 			if index_info and index_info[0]["name"] == fieldname and (not unique or len(index_info) == 1):
 				return index
 
@@ -601,7 +633,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		key = f"table_columns::{table}"
 		columns = frappe.client_cache.get_value(key)
 		if columns is None:
-			columns = self.sql(f"PRAGMA table_info(`{table}`)", as_dict=True)
+			columns = self.sql(
+				"SELECT * FROM pragma_table_info(%s)",
+				(table,),
+				as_dict=True,
+				_skip_sqlite_transpilation=True,
+			)
 			columns = [col["name"] for col in columns]
 
 			if columns:
@@ -719,10 +756,21 @@ def get_column_definition(column: dict) -> str:
 def get_table_indexes(table_name: str) -> list[dict]:
 	"""Snapshot all indexes needed to reproduce a table's constraints."""
 	indexes = []
-	for index in frappe.db.sql(f"PRAGMA index_list(`{table_name}`)", as_dict=True):
+	index_list = frappe.db.sql(
+		"SELECT * FROM pragma_index_list(%s)",
+		(table_name,),
+		as_dict=True,
+		_skip_sqlite_transpilation=True,
+	)
+	for index in index_list:
 		columns = tuple(
 			column["name"]
-			for column in frappe.db.sql(f"PRAGMA index_info(`{index['name']}`)", as_dict=True)
+			for column in frappe.db.sql(
+				"SELECT * FROM pragma_index_info(%s)",
+				(index["name"],),
+				as_dict=True,
+				_skip_sqlite_transpilation=True,
+			)
 			if column["name"] is not None
 		)
 		definition = frappe.db.sql(
@@ -771,7 +819,12 @@ def _restore_autoincrement_sequence(table_name: str, sequence: int | None) -> No
 def _append_primary_key(column_definitions: list[str], table_name: str) -> None:
 	primary_key = sorted(
 		(column["pk"], column["name"])
-		for column in frappe.db.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=True)
+		for column in frappe.db.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
 		if column["pk"]
 	)
 	if not primary_key:
@@ -865,19 +918,30 @@ def rebuild_table(
 	preserved = _append_unique_constraints(column_definitions, indexes, drop_unique_fields)
 
 	temp_table = f"{table_name}__rebuild_{frappe.generate_hash(length=10)}"
-	quoted_columns = ", ".join(f"`{column}`" for column in column_names)
+	table_identifier = quote_identifier(table_name)
+	temp_table_identifier = quote_identifier(temp_table)
+	quoted_columns = ", ".join(quote_identifier(column) for column in column_names)
 
 	# Keep the entire replacement in one transaction so a failed copy or index recreation cannot strand a partial schema or discard the original table.
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	try:
 		for query in pre_rebuild_queries:
 			frappe.db.sql(query)
-		frappe.db.sql(f"CREATE TABLE `{temp_table}` (\n{','.join(column_definitions)}\n)")
+		# SQLite cannot bind schema identifiers or column definitions. Identifiers
+		# are quoted above and definitions are generated internally by the schema layer.
+		frappe.db.sql("CREATE TABLE " + temp_table_identifier + " (\n" + ",".join(column_definitions) + "\n)")
 		frappe.db.sql(
-			f"INSERT INTO `{temp_table}` ({quoted_columns}) SELECT {quoted_columns} FROM `{table_name}`"
+			"INSERT INTO "
+			+ temp_table_identifier
+			+ " ("
+			+ quoted_columns
+			+ ") SELECT "
+			+ quoted_columns
+			+ " FROM "
+			+ table_identifier
 		)
-		frappe.db.sql(f"DROP TABLE `{table_name}`")
-		frappe.db.sql(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
+		frappe.db.sql("DROP TABLE " + table_identifier)
+		frappe.db.sql("ALTER TABLE " + temp_table_identifier + " RENAME TO " + table_identifier)
 
 		preserved = _restore_explicit_indexes(
 			indexes,
