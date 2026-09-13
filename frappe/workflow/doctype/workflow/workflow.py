@@ -10,7 +10,18 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS, get_workflow_names
 from frappe.utils import cint
-from frappe.utils.data import evaluate_filters
+from frappe.utils.data import compare, evaluate_filters
+
+CONDITION_COMPARATORS = {
+	"=": operator.eq,
+	"!=": operator.ne,
+	">": operator.gt,
+	"<": operator.lt,
+	">=": operator.ge,
+	"<=": operator.le,
+}
+LOWER_BOUND_CONDITIONS = {">", ">="}
+UPPER_BOUND_CONDITIONS = {"<", "<="}
 
 
 class Workflow(Document):
@@ -46,6 +57,7 @@ class Workflow(Document):
 		self.validate_fields_in_conditions()
 		self.validate_shared_state_field()
 		self.set_active()
+		self.validate_no_ambiguous_peer()
 		self.validate_docstatus()
 
 	def on_update(self):
@@ -131,15 +143,7 @@ class Workflow(Document):
 		return [frappe.get_cached_doc("Workflow", name) for name in names[: names.index(self.name)]]
 
 	def get_condition_criteria(self, table) -> list:
-		comparators = {
-			"=": operator.eq,
-			"!=": operator.ne,
-			">": operator.gt,
-			"<": operator.lt,
-			">=": operator.ge,
-			"<=": operator.le,
-		}
-		return [comparators[d.condition](getattr(table, d.field), d.value) for d in self.conditions]
+		return [CONDITION_COMPARATORS[d.condition](getattr(table, d.field), d.value) for d in self.conditions]
 
 	def validate_docstatus(self):
 		def get_state(state):
@@ -227,6 +231,48 @@ class Workflow(Document):
 					)
 				)
 
+	def validate_no_ambiguous_peer(self):
+		"""Active workflows sharing a priority must not both be able to match one document.
+
+		Resolution takes the first match in priority order, so a tie is settled by modification
+		time, and the losing workflow is never reached.
+		"""
+		if not cint(self.is_active):
+			return
+
+		for peer in self.get_other_active_workflows(["name", "priority"]):
+			if cint(peer.priority) != cint(self.priority):
+				continue
+
+			if not self.is_disjoint_from(frappe.get_cached_doc("Workflow", peer.name)):
+				frappe.throw(
+					_(
+						"Workflow {0} has the same priority and can govern the same {1}. Narrow the conditions of either workflow, or give them different priorities."
+					).format(frappe.bold(peer.name), frappe.bold(self.document_type))
+				)
+
+	def is_disjoint_from(self, other: "Workflow") -> bool:
+		"""True when a field the two workflows share proves no document can match both."""
+		return any(
+			self.is_contradictory(own, their)
+			for own in self.conditions
+			for their in other.conditions
+			if own.field == their.field
+		)
+
+	def is_contradictory(self, first, second) -> bool:
+		"""True when no value of the field the two conditions share can satisfy both."""
+		docfield = frappe.get_meta(self.document_type).get_field(first.field)
+		fieldtype = docfield.fieldtype if docfield else None
+
+		if first.condition == "=":
+			return not compare(first.value, second.condition, second.value, fieldtype)
+
+		if second.condition == "=":
+			return not compare(second.value, first.condition, first.value, fieldtype)
+
+		return is_empty_range(first, second, fieldtype)
+
 	def set_active(self):
 		"""Retire the other catch-all workflow of this doctype; conditional ones can coexist."""
 		if not cint(self.is_active) or self.conditions:
@@ -263,6 +309,19 @@ class Workflow(Document):
 			},
 			fields=fields,
 		)
+
+
+def is_empty_range(first, second, fieldtype) -> bool:
+	"""True when a lower bound and an upper bound on the same field leave no value between them."""
+	lower, upper = first, second
+	if lower.condition in UPPER_BOUND_CONDITIONS:
+		lower, upper = upper, lower
+
+	if lower.condition not in LOWER_BOUND_CONDITIONS or upper.condition not in UPPER_BOUND_CONDITIONS:
+		return False
+
+	both_inclusive = lower.condition == ">=" and upper.condition == "<="
+	return compare(lower.value, ">" if both_inclusive else ">=", upper.value, fieldtype)
 
 
 @frappe.whitelist()
