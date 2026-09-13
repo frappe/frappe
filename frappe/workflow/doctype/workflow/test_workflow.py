@@ -625,6 +625,37 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		workflow_docs = get_meta_bundle("ToDo")[0]["__workflow_docs"]
 		self.assertIn("Workflow State", [doc.doctype for doc in workflow_docs])
 
+	def test_exclusive_conditions_coexist_at_the_same_priority(self):
+		high = create_conditional_todo_workflow(priority="High")
+		low = create_conditional_todo_workflow(priority="Low")
+
+		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="High")), high.name)
+		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="Low")), low.name)
+
+	def test_exclusive_ranges_coexist_at_the_same_priority(self):
+		build_conditional_todo_workflow([("date", ">=", "2026-01-01")]).insert()
+		build_conditional_todo_workflow([("date", "<", "2026-01-01")]).insert()
+
+		self.assertEqual(len(get_workflow_names("ToDo")), 2)
+
+	def test_overlapping_conditions_are_rejected_at_the_same_priority(self):
+		create_conditional_todo_workflow(priority="High")
+		workflow = build_conditional_todo_workflow([("priority", "=", "High")])
+
+		self.assertRaises(frappe.ValidationError, workflow.insert)
+
+	def test_conditions_on_different_fields_are_rejected_at_the_same_priority(self):
+		create_conditional_todo_workflow(priority="High")
+		workflow = build_conditional_todo_workflow([("status", "=", "Open")])
+
+		self.assertRaises(frappe.ValidationError, workflow.insert)
+
+	def test_catch_all_is_rejected_beside_a_conditional_workflow_of_equal_priority(self):
+		create_conditional_todo_workflow(priority="High")
+		workflow = build_conditional_todo_workflow([])
+
+		self.assertRaises(frappe.ValidationError, workflow.insert)
+
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow()
 		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
@@ -682,10 +713,15 @@ def build_todo_workflow(states=("Pending", "Approved")):
 	return workflow
 
 
-def create_conditional_todo_workflow(priority=None, workflow_priority=0, states=("Pending", "Approved")):
+def build_conditional_todo_workflow(conditions, workflow_priority=0, states=("Pending", "Approved")):
 	workflow = build_todo_workflow(states)
 	workflow.priority = workflow_priority
-	if priority:
-		workflow.append("conditions", dict(field="priority", condition="=", value=priority))
+	for field, condition, value in conditions:
+		workflow.append("conditions", dict(field=field, condition=condition, value=value))
 
-	return workflow.insert()
+	return workflow
+
+
+def create_conditional_todo_workflow(priority=None, workflow_priority=0, states=("Pending", "Approved")):
+	conditions = [("priority", "=", priority)] if priority else []
+	return build_conditional_todo_workflow(conditions, workflow_priority, states).insert()
