@@ -35,13 +35,15 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.enterContext(patch.object(lifecycle, "_flow_bin", return_value=self.flow_bin))
 		self.site = frappe.local.site
 
-	def test_site_url_prefers_the_explicit_override(self):
+	def test_callbacks_go_to_the_local_web_server_unless_overridden(self):
+		method = "/api/method/flow.daemon.callback.callback"
+		with patch.dict(frappe.local.conf, {"flow_server_url": None, "webserver_port": 8001}):
+			self.assertEqual(lifecycle.callback_url(), f"http://127.0.0.1:8001{method}")
+			self.assertEqual(lifecycle.callback_host(), "127.0.0.1:8001")
 		with patch.dict(frappe.local.conf, {"flow_server_url": "https://erp.example.com/"}):
-			self.assertEqual(lifecycle.site_url(), "https://erp.example.com")
+			self.assertEqual(lifecycle.callback_url(), f"https://erp.example.com{method}")
 			self.assertEqual(lifecycle.callback_host(), "erp.example.com")
-		with patch.dict(frappe.local.conf, {"flow_server_url": None, "host_name": "erp.example.com:8443"}):
-			self.assertEqual(lifecycle.site_url(), "http://erp.example.com:8443")
-			self.assertEqual(lifecycle.callback_host(), "erp.example.com:8443")
+		self.assertEqual(lifecycle.callback_headers(), {"X-Frappe-Site-Name": self.site})
 
 	def test_durable_state_uses_the_sites_directory(self):
 		bench = self.state.parents[1]

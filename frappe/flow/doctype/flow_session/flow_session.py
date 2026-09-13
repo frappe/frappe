@@ -17,8 +17,6 @@ from flow.lib.session import ABANDONED, GONE, READ_ONLY, STOPPED, LogRecorder, f
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
 
-CALLBACK_METHOD = "flow.daemon.callback.callback"
-
 
 class FlowSession(Document):
 	# begin: auto-generated types
@@ -120,7 +118,8 @@ class FlowSession(Document):
 			"auto_approve": bool(self.auto_approve),
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
 			"auto_compact": True,
-			"callback_url": f"{lifecycle.site_url()}/api/method/{CALLBACK_METHOD}",
+			"callback_url": lifecycle.callback_url(),
+			"callback_headers": lifecycle.callback_headers(),
 			"callback_token": frappe.conf.flow_server_secret,
 			"notify_run_ended": True,
 			"user_context": {
@@ -195,6 +194,7 @@ class FlowSession(Document):
 			).insert(ignore_permissions=True)
 		if turn.attachment_rows:
 			for row in turn.attachment_rows:
+				_claim_attachment_file(self.name, row["file"])
 				self.append("attachments", {**row, "run": run.name})
 			self.save(ignore_permissions=True)
 		return run
@@ -232,13 +232,17 @@ class FlowSession(Document):
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
 		model_config(self.model or agent.model)
 
-	def set_model(self, model: str) -> None:
+	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
 		from flow.lib.model import model_config
 
 		config = model_config(model)
 		with flow_server() as client:
 			client.set_model(
-				self.name, config["model"], api_key=config["api_key"], api_base=config["api_base"]
+				self.name,
+				config["model"],
+				api_key=config["api_key"],
+				api_base=config["api_base"],
+				reasoning_effort=reasoning_effort,
 			)
 		self.db_set("model", model)
 
@@ -293,6 +297,11 @@ class FlowSession(Document):
 		"""Lock this session's row for the transaction and re-read it."""
 		frappe.db.get_value("Flow Session", self.name, "name", for_update=True)
 		self.reload()
+		files = {row.file for row in self.attachments if row.file}
+		if files:
+			existing = set(frappe.get_all("File", filters={"name": ("in", files)}, pluck="name"))
+			if existing != files:
+				self.set("attachments", [row for row in self.attachments if row.file in existing])
 
 	def _active_run(self) -> FlowRun:
 		name = frappe.db.get_value(
@@ -323,13 +332,32 @@ def _delete_server_session(name: str) -> None:
 				raise
 
 
+def _claim_attachment_file(session: str, file: str) -> None:
+	"""Keep an accepted upload with its session so Frappe treats it as durable."""
+	if frappe.db.get_value("File", file, "attached_to_doctype"):
+		return
+	frappe.db.set_value(
+		"File",
+		file,
+		{
+			"attached_to_doctype": "Flow Session",
+			"attached_to_name": session,
+			"attached_to_field": "attachments",
+		},
+		update_modified=False,
+	)
+
+
 def _delete_attachment_files(sessions: list[str]) -> None:
 	"""Delete the uploaded File docs attached to these sessions. Per-doc (not bulk SQL)
 	so File.on_trash runs to remove the on-disk content, and best-effort so one failure
 	never aborts the purge."""
 	files = frappe.get_all("Flow Session Attachment", filters={"parent": ["in", sessions]}, pluck="file")
 	for file in set(filter(None, files)):
-		if frappe.db.get_value("File", file, "attached_to_doctype"):
+		attached = frappe.db.get_value(
+			"File", file, ["attached_to_doctype", "attached_to_name"], as_dict=True
+		)
+		if attached and attached.attached_to_doctype not in (None, "", "Flow Session"):
 			continue
 		if frappe.db.exists("Flow Session Attachment", {"file": file, "parent": ["not in", sessions]}):
 			continue

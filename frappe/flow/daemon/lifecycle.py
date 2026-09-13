@@ -24,7 +24,7 @@ from urllib.parse import urlsplit
 import click
 import frappe
 from frappe.installer import update_site_config
-from frappe.utils import get_bench_path, get_url
+from frappe.utils import get_bench_path
 from frappe.utils.synchronization import filelock
 
 from flow.daemon.client import DaemonClient, DaemonError
@@ -130,13 +130,19 @@ def session_root() -> Path:
 
 
 def callback_host() -> str:
-	return urlsplit(site_url()).netloc
+	return urlsplit(callback_url()).netloc
 
 
-def site_url() -> str:
-	"""Where the daemon reaches this site for tool callbacks. Never taken from a request:
-	the tenants entry and every session's callback_url must come from the same rule."""
-	return (frappe.conf.flow_server_url or get_url(allow_header_override=False)).rstrip("/")
+def callback_url() -> str:
+	"""The site's own web server on loopback, or flow_server_url from site config."""
+	local = f"http://127.0.0.1:{frappe.conf.webserver_port or 8000}"
+	base = (frappe.conf.flow_server_url or local).rstrip("/")
+	return f"{base}/api/method/flow.daemon.callback.callback"
+
+
+def callback_headers() -> dict[str, str]:
+	"""Frappe serves the site this header names, whatever host the request came to."""
+	return {"X-Frappe-Site-Name": frappe.local.site}
 
 
 def _edit_tenants(change: Callable[[dict], object]) -> dict:
@@ -242,7 +248,7 @@ def _stop() -> None:
 	pid = pid_file()
 	try:
 		process_id = int(pid.read_text())
-	except OSError, ValueError:
+	except (OSError, ValueError):
 		return
 	if _is_daemon(process_id):
 		os.kill(process_id, signal.SIGTERM)

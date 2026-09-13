@@ -463,7 +463,11 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 					"set_model",
 					self.session.name,
 					"openai/gpt-4o",
-					{"api_key": "sk-other", "api_base": "https://other.example.com"},
+					{
+						"api_key": "sk-other",
+						"api_base": "https://other.example.com",
+						"reasoning_effort": None,
+					},
 				)
 			],
 		)
@@ -574,9 +578,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertEqual(config["system_prompt"], "Be terse.")
 		self.assertEqual(config["max_turns"], 7)
 		self.assertEqual(config["callback_token"], "site-token")
-		self.assertEqual(
-			config["callback_url"], f"{lifecycle.site_url()}/api/method/flow.daemon.callback.callback"
-		)
+		self.assertEqual(config["callback_url"], lifecycle.callback_url())
 		self.assertTrue(config["notify_run_ended"])
 		self.assertEqual(config["cwd"], str(lifecycle.session_root()))
 		self.assertEqual(
