@@ -471,11 +471,9 @@ from {tables}
 		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
 
 		if order_field not in args.fields:
-			extracted_column = order_column = order_field.replace("`", "")
-			if "." in extracted_column:
-				extracted_column = extracted_column.split(".")[1]
-
-			args.fields += f", MAX({extracted_column}) as `{order_column}`"
+			order_column = order_field.replace("`", "")
+			qualified_column = ".".join(f"`{part}`" for part in order_column.split("."))
+			args.fields += f", MAX({qualified_column}) as `{order_column}`"
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
