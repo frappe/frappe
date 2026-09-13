@@ -55,7 +55,7 @@
 			ref="payloadEl"
 			class="mb-1.5 mt-1 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-base"
 		>
-			<div v-if="meta.argsComponent" class="border-b border-outline-gray-1 px-3 py-2.5">
+			<div v-if="meta.argsComponent && !resultView" class="border-b border-outline-gray-1">
 				<component :is="meta.argsComponent" :arguments="args" />
 			</div>
 			<!-- a call the user denied, cancelled, or redirected -->
@@ -65,6 +65,8 @@
 					“{{ decision.user_feedback }}”
 				</div>
 			</div>
+
+			<component :is="resultView" v-else-if="resultView" :arguments="args" :result="step.result" />
 
 			<template v-else-if="step.result">
 				<div class="flex items-center gap-2 border-b border-outline-gray-1 px-3 py-1.5">
@@ -126,7 +128,7 @@ const displaySegments = computed(() =>
 const args = computed(() => props.step.call.arguments ?? props.step.call.args ?? {})
 const meta = computed(() => {
 	const call = props.step.call
-	return flow?.options?.presentTool?.(call.name, args.value) ?? {}
+	return flow?.options?.presentTool?.(call.name, args.value, props.step.result) ?? {}
 })
 const icon = computed(() => meta.value.icon ?? stepIcon(props.step.call.name))
 const label = computed(() => meta.value.label ?? stepLabel(props.step.call.name))
@@ -149,12 +151,18 @@ const decisionTitle = computed(
 
 const stat = computed(() => {
 	if (props.step.aborted && !props.step.result) return "aborted"
-	return stepStat(props.step)
+	return stepStat(props.step) || meta.value.stat || ""
 })
 const statClass = computed(() => {
 	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-6" : "text-ink-red-6"
 	return failed.value ? "text-ink-red-6" : "text-ink-gray-4"
 })
+
+const resultView = computed(() =>
+	meta.value.resultComponent && props.step.result && !failed.value && !decision.value
+		? meta.value.resultComponent
+		: null,
+)
 
 const diffLines = computed(() =>
 	typeof details.value.diff === "string" && details.value.diff ? details.value.diff.split("\n") : null,
@@ -169,17 +177,19 @@ const diffStat = computed(() => {
 })
 
 // dumping file contents inline is noise; expand only where the payload is the
-// point (command output, search hits, diffs, custom tool results) or the user intervened
+// point (command output, search hits, diffs, custom tool results) or the user
+// intervened — a host describing its own tool decides for that tool instead
 // expanding near the bottom edge would reveal the payload off-screen;
 // nudge it into view (no-op when it is already visible)
 const payloadEl = ref(null)
 watch(payloadEl, (el) => el?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
 
 const expandable = computed(() => {
+	if (failed.value || decision.value) return true
+	if (meta.value.expandable === false) return false
 	if (meta.value.argsComponent) return true
 	if (!props.step.result) return false
-	if (decision.value) return true
-	if (diffLines.value) return true
+	if (diffLines.value || resultView.value) return true
 	if (["read", "write", "edit"].includes(props.step.call.name)) return false
 	return !!output.value
 })

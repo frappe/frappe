@@ -9,7 +9,8 @@
 				<div class="text-base leading-snug text-ink-gray-9">{{ title(call, presentation) }}</div>
 			</div>
 
-			<div v-if="presentation.argsComponent" class="border-y border-outline-gray-1 px-3.5 py-2">
+			<!-- the host's view fills the card body; its own padding, so a table can go edge to edge -->
+			<div v-if="presentation.argsComponent" class="border-y border-outline-gray-1">
 				<component :is="presentation.argsComponent" :arguments="args(call)" />
 			</div>
 			<pre

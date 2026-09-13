@@ -33,8 +33,11 @@ function readJSON(key, fallback) {
 //   storageKey     localStorage prefix, so a host can scope saved state per user
 //   maxAttachments per-message cap enforced by the host's upload path
 //   skillsEnabled  false disables skill catalog requests and composer suggestions
-//   presentTool    (name, args) => { icon, label, subject, title, body, argsComponent }, any
-//                  subset, describing the host's own tools in rows and approvals
+//   presentTool    (name, args, result) => { icon, label, subject, stat, expandable, title,
+//                  body, argsComponent, resultComponent }, any subset, describing the host's
+//                  own tools in rows, approvals and expanded output. Both components fill
+//                  their panel and carry their own padding; resultComponent takes the panel
+//                  over from the text dump, and expandable: false drops the dropdown
 //   turnActions    a component rendered after each finished turn's copy button, with
 //                  the turn's key, response text and timestamp as props
 export function createFlowStore(client, options = {}) {

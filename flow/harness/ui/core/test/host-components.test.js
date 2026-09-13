@@ -116,6 +116,54 @@ test("standalone tool groups keep display segments and result output", async (t)
 	assert.equal(el.querySelector("[data-test=args]"), null)
 })
 
+const ResultView = {
+	props: ["arguments", "result"],
+	setup: (props) => () => h("table", { "data-test": "result" }, [
+		h("tr", [h("td", props.arguments.fields.status), h("td", props.result.content)]),
+	]),
+}
+
+test("a host renders its own result and stat in place of the text dump", async (t) => {
+	const step = reactive({ call: { id: "c1", name: "update_document", arguments: args } })
+	const presentTool = (name, callArgs, result) => ({
+		argsComponent: ArgsView,
+		resultComponent: ResultView,
+		stat: result ? "3 updated" : "",
+	})
+	const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool }, state: {} })
+	el.querySelector("button").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=args] dd").textContent, "Paid")
+	step.result = { content: "3 records" }
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=result] td").textContent, "Paid")
+	assert.equal(el.querySelector("[data-test=args]"), null)
+	assert.equal(el.querySelector("pre"), null)
+	assert.ok(el.textContent.includes("3 updated"))
+})
+
+test("a host's result view steps aside for an error, which always expands", async (t) => {
+	const step = { call: { id: "c1", name: "describe", arguments: args }, result: { content: "boom", is_error: true } }
+	const presentTool = () => ({ resultComponent: ResultView, expandable: false })
+	const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool }, state: {} })
+	el.querySelector("button").click()
+	await nextTick()
+	assert.equal(el.querySelector("pre").textContent, "boom")
+	assert.equal(el.querySelector("[data-test=result]"), null)
+})
+
+test("a host drops the dropdown for its own lookups, name clash or not", async (t) => {
+	for (const [name, presented, expanded] of [
+		["read", { resultComponent: ResultView }, true],
+		["read", {}, false],
+		["find_doctypes", { expandable: false }, false],
+	]) {
+		const step = { call: { id: "c1", name, arguments: args }, result: { content: "[]" } }
+		const { el } = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool: () => presented }, state: {} })
+		assert.equal(!!el.querySelector("button"), expanded, `${name} ${JSON.stringify(presented)}`)
+	}
+})
+
 test("a host's turn actions render after each finished turn", async (t) => {
 	const TurnActions = {
 		props: ["turnKey", "text", "ts"],
