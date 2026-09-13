@@ -278,6 +278,7 @@ execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_
 frappe.patches.v16_0.seed_sms_settings_allowed_roles
 execute:frappe.db.set_single_value("Website Settings", "max_signups_per_minute", 500)
 frappe.patches.v16_0.backfill_social_login_key_trust_flags
+frappe.patches.v16_0.backfill_comment_count
 frappe.patches.v16_0.seed_naming_rule_series
 
 

@@ -11,6 +11,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Field
@@ -789,6 +790,34 @@ class TestDBQuery(IntegrationTestCase):
 		end = "2022-01-02 12:23:43"
 		cond = get_between_date_filter([start, end], datetime_df)
 		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
+
+	def test_comments_blob_not_readable(self):
+		with setup_test_user(set_user=True):
+			row = frappe.get_list(
+				"Test Blog Post", fields=["name", "_comments"], with_comment_count=1, limit=1
+			)[0]
+			self.assertNotIn("_comments", row)
+			self.assertIn("_comment_count", row)
+			# legacy engine, row without name
+			row = DatabaseQuery("Test Blog Post").execute(
+				fields=["title"], with_comment_count=1, limit_page_length=1
+			)[0]
+			self.assertNotIn("_comments", row)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Test Blog Post", filters={"_comments": ("like", "%a%")})
+			# the count column is a normal, sortable, filterable field
+			frappe.get_list(
+				"Test Blog Post",
+				fields=["name", "_comment_count"],
+				order_by="_comment_count desc",
+				limit=1,
+			)
+
+		# core doctypes skip field permissions; the blob must still not be a valid column there
+		frappe.set_user("Administrator")
+		if "_comments" in frappe.db.get_table_columns("DocType"):
+			self.assertNotIn("_comments", frappe.get_meta("DocType").get_valid_columns())
+			self.assertNotIn("_comments", get_permitted_fields("DocType"))
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")

@@ -215,7 +215,6 @@ export default class KanbanSettings {
 			"old_parent",
 			"_user_tags",
 			"_liked_by",
-			"_comments",
 			"_assign",
 			this.meta.title_field || "name",
 		];

@@ -10,6 +10,13 @@ SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
 
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
 
+OPTIONAL_COLUMN_TYPES = {
+	"_user_tags": "Text",
+	"_comment_count": "Int",
+	"_assign": "Text",
+	"_liked_by": "Text",
+}
+
 CONFIGURABLE_DECIMAL_TYPES = ("Currency", "Float", "Percent")
 DEFAULT_DECIMAL_LENGTH = 21
 DEFAULT_DECIMAL_PRECISION = 9
@@ -83,10 +90,10 @@ class DBTable:
 		"""
 		fields = self.meta.get_fieldnames_with_value(with_field_meta=True)
 
-		# optional fields like _comments
+		# optional fields like _assign
 		if not self.meta.get("istable"):
 			for fieldname in frappe.db.OPTIONAL_COLUMNS:
-				fields.append({"fieldname": fieldname, "fieldtype": "Text"})
+				fields.append({"fieldname": fieldname, "fieldtype": OPTIONAL_COLUMN_TYPES[fieldname]})
 
 			# add _seen column if track_seen
 			if self.meta.get("track_seen"):
@@ -492,3 +499,4 @@ def add_column(doctype, column_name, fieldtype, precision=None, length=None, def
 		query += f" default '{default}'"
 
 	frappe.db.sql(query)
+	frappe.client_cache.delete_value(f"table_columns::tab{doctype}")

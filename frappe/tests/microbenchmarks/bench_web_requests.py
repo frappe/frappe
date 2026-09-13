@@ -91,7 +91,7 @@ def bench_web_save_doc():
 def bench_list_view_query():
 	reportview_get_payload = {
 		"doctype": "Role",
-		"fields": '["`tabRole`.`name`","`tabRole`.`owner`","`tabRole`.`creation`","`tabRole`.`modified`","`tabRole`.`modified_by`" ,"`tabRole`.`_user_tags`","`tabRole`.`_comments`","`tabRole`.`_assign`","`tabRole`.`_liked_by`","`tabRole`.`docstatus`","`tabRole`.`idx`","`tabRole`.`disabled`"]',
+		"fields": '["`tabRole`.`name`","`tabRole`.`owner`","`tabRole`.`creation`","`tabRole`.`modified`","`tabRole`.`modified_by`" ,"`tabRole`.`_user_tags`","`tabRole`.`_assign`","`tabRole`.`_liked_by`","`tabRole`.`docstatus`","`tabRole`.`idx`","`tabRole`.`disabled`"]',
 		"filters": "[]",
 		"order_by": "`tabRole`.creation desc",
 		"start": "0",

@@ -237,6 +237,7 @@ class DatabaseQuery:
 			} | self.__dict__
 			return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
+		self.with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
 		self.columns = self.get_table_columns()
 
 		# no table & ignore_ddl, return
@@ -245,7 +246,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if sbool(with_comment_count) and not as_list and self.doctype:
+		if self.with_comment_count:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -370,6 +371,10 @@ from {tables}
 		# decided before cast_name_fields wraps name columns in cast() on postgres
 		drop_dedup_group_by = self._is_redundant_dedup_group_by()
 		self.apply_fieldlevel_read_permissions()
+		if self.with_comment_count and "_comment_count" in self.columns:
+			field = f"`tab{self.doctype}`.`_comment_count`"
+			if field not in self.fields:
+				self.fields.append(field)
 
 		args = frappe._dict()
 
@@ -769,7 +774,7 @@ from {tables}
 				raise
 
 	def set_optional_columns(self):
-		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
+		"""Removes optional columns like `_user_tags`, `_assign` etc. if not in table"""
 
 		self.fields[:] = [f for f in self.fields if f not in OPTIONAL_FIELDS or f in self.columns]
 		self.filters[:] = [
@@ -1531,13 +1536,7 @@ from {tables}
 
 	def add_comment_count(self, result):
 		for r in result:
-			if not r.name:
-				continue
-
-			r._comment_count = 0
-			if "_comments" in r and r._comments:
-				# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
-				r._comment_count = r._comments.count('"comment"')
+			r._comment_count = r.get("_comment_count") or 0
 
 	def update_user_settings(self):
 		# update user settings if new search

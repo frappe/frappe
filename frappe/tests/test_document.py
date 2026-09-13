@@ -648,6 +648,20 @@ class TestDocument(IntegrationTestCase):
 			frappe.db.get_value(doctype.name, first.name, "some_fieldname"), "_Test Unique Value 2"
 		)
 
+	def test_special_doctype_insert_during_migrate(self):
+		"""insert goes by table columns then; optional NOT NULL columns must not be sent as NULL"""
+		frappe.flags.in_migrate = True
+		frappe.clear_cache(doctype="Module Def")
+		try:
+			self.assertNotIn("_comment_count", frappe.get_meta("Module Def").get_valid_fields())
+			module = frappe.get_doc(
+				doctype="Module Def", module_name="_Test Migrate Module", app_name="frappe", custom=1
+			).insert()
+			frappe.db.delete("Module Def", module.name)
+		finally:
+			frappe.flags.in_migrate = False
+			frappe.clear_cache(doctype="Module Def")
+
 
 class TestDocumentWebView(IntegrationTestCase):
 	def get(self, path, user="Guest"):

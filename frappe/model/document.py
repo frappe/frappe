@@ -1107,7 +1107,7 @@ class Document(BaseDocument):
 			d._sanitize_content()
 			d._save_passwords()
 		if self.is_new():
-			# don't set fields like _assign, _comments for new doc
+			# don't set fields like _assign, _comment_count for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
 		else:

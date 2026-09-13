@@ -214,8 +214,8 @@ $.extend(frappe.meta, {
 			owner: "Created By",
 			_user_tags: "Tags",
 			_liked_by: "Liked By",
-			_comments: "Comments",
 			_assign: "Assigned To",
+			_comment_count: "Comment Count",
 		};
 		if (standard[fn]) {
 			return standard[fn];
