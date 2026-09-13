@@ -431,7 +431,7 @@ class TestDBQuery(IntegrationTestCase):
 			or_filters=[["Has Role", "role", "=", "Guest"], ["User", "enabled", "=", 1]],
 			fields=["name", "modified", "language.language_name as language_title"],
 			group_by="`tabUser`.`name`",
-			order_by="modified desc",
+			order_by="`tabUser`.modified desc",
 		)
 		self.assertIn("Administrator", [r.name for r in result])
 
@@ -603,7 +603,7 @@ class TestDBQuery(IntegrationTestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		if frappe.db.db_type == "mariadb":
+		if frappe.db.db_type in {"mariadb", "sqlite"}:
 			assertion_string = """(((ifnull(`tabTest Blog Post`.`name`, '')='' or `tabTest Blog Post`.`name` in ('_Test Blog Post 1', '_Test Blog Post'))))"""
 		elif frappe.db.db_type == "postgres":
 			assertion_string = """(((ifnull(cast(`tabTest Blog Post`.`name` as varchar), '')='' or cast(`tabTest Blog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""

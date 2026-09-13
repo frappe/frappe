@@ -1,9 +1,13 @@
+import json
 from datetime import time
 from enum import Enum
 
 from pypika.enums import Arithmetic
 from pypika.functions import *
+from pypika.functions import Coalesce as PypikaCoalesce
+from pypika.functions import Now as PypikaNow
 from pypika.terms import ArithmeticExpression, CustomFunction, Function, Term
+from pypika.terms import Interval as PypikaInterval
 from pypika.utils import format_alias_sql
 
 import frappe
@@ -15,11 +19,61 @@ from frappe.query_builder.custom import (
 	Month,
 	MonthName,
 	Quarter,
+	SQLiteFullTextMatch,
 	Year,
 )
 from frappe.query_builder.utils import ImportMapper, db_type_is
 
 from .utils import PseudoColumn
+
+
+class Interval(PypikaInterval):
+	"""An interval that can be rendered as SQLite ``DATETIME`` modifiers."""
+
+	def sqlite_datetime_modifiers(self, operation_sign: int) -> list[str]:
+		"""Return modifiers for adding (1) or subtracting (-1) this interval."""
+		if hasattr(self, "quarters"):
+			components = [(abs(self.quarters) * 3, "months", -1 if self.quarters < 0 else 1)]
+		elif hasattr(self, "weeks"):
+			components = [(abs(self.weeks) * 7, "days", -1 if self.weeks < 0 else 1)]
+		else:
+			interval_sign = -1 if self.is_negative else 1
+			components = [
+				(getattr(self, unit), unit, interval_sign) for unit in self.units if getattr(self, unit, 0)
+			]
+
+		modifiers = []
+		for value, unit, interval_sign in components:
+			if unit == "microseconds":
+				whole_seconds, remaining_microseconds = divmod(value, 1_000_000)
+				value = f"{whole_seconds}.{remaining_microseconds:06d}".rstrip("0").rstrip(".")
+				unit = "seconds"
+
+			sign = "+" if operation_sign * interval_sign > 0 else "-"
+			modifiers.append(f"{sign}{value} {unit}")
+
+		return modifiers
+
+
+class Now(PypikaNow):
+	"""Current timestamp with SQLite-compatible interval arithmetic."""
+
+	def get_function_sql(self, **kwargs):
+		if getattr(frappe.conf, "db_type", None) == "sqlite":
+			# Frappe registers NOW() on SQLite so it follows the site's timezone.
+			# SQLite's native CURRENT_TIMESTAMP is always UTC.
+			return "NOW()"
+		return super().get_function_sql(**kwargs)
+
+	def __add__(self, other):
+		if getattr(frappe.conf, "db_type", None) == "sqlite" and isinstance(other, Interval):
+			return Function("DATETIME", self, *other.sqlite_datetime_modifiers(operation_sign=1))
+		return super().__add__(other)
+
+	def __sub__(self, other):
+		if getattr(frappe.conf, "db_type", None) == "sqlite" and isinstance(other, Interval):
+			return Function("DATETIME", self, *other.sqlite_datetime_modifiers(operation_sign=-1))
+		return super().__sub__(other)
 
 
 class Concat_ws(Function):
@@ -49,9 +103,18 @@ Locate = ImportMapper({db_type_is.MARIADB: Locate, db_type_is.POSTGRES: Strpos, 
 Ifnull = IfNull
 
 
-class Timestamp(Function):
+class Coalesce(PypikaCoalesce):
+	"""Return the sole argument directly because SQLite rejects COALESCE with one argument."""
+
+	def get_function_sql(self, **kwargs):
+		if getattr(frappe.conf, "db_type", None) == "sqlite" and len(self.args) == 1:
+			return self.args[0].get_sql(with_alias=False, subquery=True, **kwargs)
+		return super().get_function_sql(**kwargs)
+
+
+class _StandardTimestamp(Function):
 	def __init__(self, term: str, time=None, alias=None):
-		if time:
+		if time is not None:
 			super().__init__("TIMESTAMP", term, time, alias=alias)
 		else:
 			super().__init__("TIMESTAMP", term, alias=alias)
@@ -96,7 +159,13 @@ class CurDate(Term):
 
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
 
-Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTOR})
+Match = ImportMapper(
+	{
+		db_type_is.MARIADB: MATCH,
+		db_type_is.POSTGRES: TO_TSVECTOR,
+		db_type_is.SQLITE: SQLiteFullTextMatch,
+	}
+)
 
 
 class _PostgresTimestamp(ArithmeticExpression):
@@ -112,17 +181,85 @@ class _PostgresTimestamp(ArithmeticExpression):
 		super().__init__(operator=Arithmetic.add, left=datepart, right=timepart, alias=alias)
 
 
+class _SQLiteTimestamp(Function):
+	"""Render timestamp conversion and date-plus-duration operations for SQLite."""
+
+	def __init__(self, datepart, timepart=None, alias=None):
+		if timepart is None:
+			super().__init__("DATETIME", datepart, alias=alias)
+		else:
+			super().__init__("FRAPPE_COMBINE_DATETIME", datepart, timepart, alias=alias)
+
+
+Timestamp = ImportMapper(
+	{
+		db_type_is.MARIADB: _StandardTimestamp,
+		db_type_is.POSTGRES: _StandardTimestamp,
+		db_type_is.SQLITE: _SQLiteTimestamp,
+	}
+)
+
+
 CombineDatetime = ImportMapper(
 	{
 		db_type_is.MARIADB: CustomFunction("TIMESTAMP", ["date", "time"]),
 		db_type_is.POSTGRES: _PostgresTimestamp,
+		db_type_is.SQLITE: _SQLiteTimestamp,
 	}
 )
+
+
+SQLITE_STRFTIME_TOKENS = {
+	"%%": "%%",
+	"%d": "%d",
+	"%H": "%H",
+	"%i": "%M",
+	"%j": "%j",
+	"%m": "%m",
+	"%S": "%S",
+	"%s": "%S",
+	"%T": "%H:%M:%S",
+	"%u": "%W",
+	"%w": "%w",
+	"%Y": "%Y",
+}
+
+
+def _translate_date_format_for_sqlite(format_string: str) -> str | None:
+	"""Translate only the MariaDB date tokens SQLite's native STRFTIME reproduces exactly."""
+	translated_parts = []
+	index = 0
+	while index < len(format_string):
+		if format_string[index] != "%":
+			translated_parts.append(format_string[index])
+			index += 1
+			continue
+
+		token = format_string[index : index + 2]
+		if len(token) != 2 or token not in SQLITE_STRFTIME_TOKENS:
+			return None
+		translated_parts.append(SQLITE_STRFTIME_TOKENS[token])
+		index += 2
+
+	return "".join(translated_parts)
+
+
+class _SQLiteDateFormat(Function):
+	def __init__(self, date_value, format_string, alias=None):
+		translated_format = (
+			_translate_date_format_for_sqlite(format_string) if isinstance(format_string, str) else None
+		)
+		if translated_format is not None:
+			super().__init__("STRFTIME", translated_format, date_value, alias=alias)
+		else:
+			super().__init__("FRAPPE_DATE_FORMAT", date_value, format_string, alias=alias)
+
 
 DateFormat = ImportMapper(
 	{
 		db_type_is.MARIADB: CustomFunction("DATE_FORMAT", ["date", "format"]),
 		db_type_is.POSTGRES: ToChar,
+		db_type_is.SQLITE: _SQLiteDateFormat,
 	}
 )
 
@@ -152,10 +289,16 @@ class _PostgresUnixTimestamp(Extract):
 		return sql
 
 
+class _SQLiteUnixTimestamp(Function):
+	def __init__(self, field, alias=None):
+		super().__init__("FRAPPE_UNIX_TIMESTAMP", field, alias=alias)
+
+
 UnixTimestamp = ImportMapper(
 	{
 		db_type_is.MARIADB: CustomFunction("unix_timestamp", ["date"]),
 		db_type_is.POSTGRES: _PostgresUnixTimestamp,
+		db_type_is.SQLITE: _SQLiteUnixTimestamp,
 	}
 )
 
@@ -175,10 +318,24 @@ class _PostgresDateDiff(ArithmeticExpression):
 		)
 
 
+class _SQLiteDateDiff(Function):
+	"""Return the difference between calendar dates, ignoring their times of day."""
+
+	def __init__(self, date1, date2, alias=None):
+		super().__init__("DATEDIFF", date1, date2, alias=alias)
+
+	def get_function_sql(self, **kwargs):
+		date1_sql, date2_sql = (
+			argument.get_sql(with_alias=False, subquery=True, **kwargs) for argument in self.args
+		)
+		return f"CAST(JULIANDAY(DATE({date1_sql})) - JULIANDAY(DATE({date2_sql})) AS INTEGER)"
+
+
 DateDiff = ImportMapper(
 	{
 		db_type_is.MARIADB: CustomFunction("DATEDIFF", ["date1", "date2"]),
 		db_type_is.POSTGRES: _PostgresDateDiff,
+		db_type_is.SQLITE: _SQLiteDateDiff,
 	}
 )
 
@@ -202,10 +359,56 @@ class _MariaDBJSONContains(Function):
 		super().__init__("JSON_CONTAINS", target, candidate, **kwargs)
 
 
+class _SQLiteJSONExtract(Function):
+	"""Return JSON text like MariaDB JSON_EXTRACT, including quotes around strings."""
+
+	def __init__(self, field, path, **kwargs):
+		super().__init__("JSON_EXTRACT", field, path, **kwargs)
+
+	def get_function_sql(self, **kwargs):
+		field_sql, path_sql = (
+			argument.get_sql(with_alias=False, subquery=True, **kwargs) for argument in self.args
+		)
+		extracted_value = f"JSON_EXTRACT({field_sql},{path_sql})"
+		json_type = f"JSON_TYPE({field_sql},{path_sql})"
+		return (
+			f"CASE WHEN {json_type} IS NULL THEN NULL "
+			f"WHEN {json_type} IN ('true','false','null') THEN {json_type} "
+			f"ELSE JSON_QUOTE({extracted_value}) END"
+		)
+
+
+class _SQLiteJSONValue(Function):
+	"""Return an unquoted JSON scalar like MariaDB JSON_VALUE."""
+
+	def __init__(self, field, path, **kwargs):
+		super().__init__("JSON_EXTRACT", field, path, **kwargs)
+
+	def get_function_sql(self, **kwargs):
+		field_sql, path_sql = (
+			argument.get_sql(with_alias=False, subquery=True, **kwargs) for argument in self.args
+		)
+		extracted_value = f"JSON_EXTRACT({field_sql},{path_sql})"
+		json_type = f"JSON_TYPE({field_sql},{path_sql})"
+		return (
+			f"CASE {json_type} WHEN 'object' THEN NULL WHEN 'array' THEN NULL "
+			f"WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' "
+			f"ELSE CAST({extracted_value} AS TEXT) END"
+		)
+
+
+class _SQLiteJSONContains(Function):
+	def __init__(self, target, candidate, **kwargs):
+		if candidate is not None and not isinstance(candidate, Term):
+			candidate = json.dumps(candidate, ensure_ascii=False, separators=(",", ":"))
+		super().__init__("FRAPPE_JSON_CONTAINS", target, candidate, **kwargs)
+
+
 JSONExtract = ImportMapper(
 	{
 		db_type_is.MARIADB: _MariaDBJSONExtract,
 		db_type_is.POSTGRES: lambda field, path, **kw: field.get_json_value(path),
+		db_type_is.SQLITE: _SQLiteJSONExtract,
 	}
 )
 
@@ -213,6 +416,7 @@ JSONValue = ImportMapper(
 	{
 		db_type_is.MARIADB: _MariaDBJSONValue,
 		db_type_is.POSTGRES: lambda field, path, **kw: field.get_text_value(path),
+		db_type_is.SQLITE: _SQLiteJSONValue,
 	}
 )
 
@@ -220,6 +424,7 @@ JSONContains = ImportMapper(
 	{
 		db_type_is.MARIADB: _MariaDBJSONContains,
 		db_type_is.POSTGRES: lambda target, candidate, **kw: target.contains(candidate),
+		db_type_is.SQLITE: _SQLiteJSONContains,
 	}
 )
 

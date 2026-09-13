@@ -1,6 +1,7 @@
 import unittest
 from collections.abc import Callable
-from datetime import time
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
 
 from pypika.functions import Cast
 from pypika.terms import ValueWrapper
@@ -8,7 +9,7 @@ from pypika.terms import ValueWrapper
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.operator_map import func_in
-from frappe.query_builder import Case
+from frappe.query_builder import Case, Interval
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import (
@@ -18,19 +19,25 @@ from frappe.query_builder.functions import (
 	CurDate,
 	Date,
 	DateDiff,
+	DateFormat,
 	GroupConcat,
 	JSONContains,
 	JSONExtract,
 	JSONValue,
 	Match,
 	Month,
+	MonthName,
+	Now,
 	Quarter,
 	Round,
+	Timestamp,
 	Truncate,
 	UnixTimestamp,
+	Year,
 )
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_system_timezone
 
 
 def run_only_if(dbtype: db_type_is) -> Callable:
@@ -99,6 +106,9 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 	def test_constant_column(self):
 		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`")
+
+	def test_now_interval_keeps_native_arithmetic(self):
+		self.assertEqual("NOW()-INTERVAL '30 DAY'", (Now() - Interval(days=30)).get_sql())
 
 	def test_timestamp(self):
 		note = frappe.qb.DocType("Note")
@@ -329,6 +339,9 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 	def test_constant_column(self):
 		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"')
+
+	def test_now_interval_keeps_native_arithmetic(self):
+		self.assertEqual("NOW()-INTERVAL '30 DAY'", (Now() - Interval(days=30)).get_sql())
 
 	def test_timestamp(self):
 		note = frappe.qb.DocType("Note")
@@ -588,6 +601,134 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		self.assertIn("\"content\"@>'admin'", str(query))
 
 
+@run_only_if(db_type_is.SQLITE)
+class TestCustomFunctionsSQLite(IntegrationTestCase):
+	def select_literals(self, *expressions):
+		doctype = frappe.qb.DocType("DocType")
+		return frappe.qb.from_(doctype).select(*expressions).limit(1).run()[0]
+
+	def test_full_text_match_uses_fts5_ranking_and_a_bound_query(self):
+		search_table = frappe.qb.Table("__global_search")
+		rank = Match(search_table.content).Against('company "docs"')
+		query = frappe.qb.from_(search_table).select(rank.as_("rank")).where(rank)
+
+		sql, parameters = query.walk()
+
+		self.assertIn('-BM25("__global_search") "rank"', sql)
+		self.assertIn('"content" MATCH %(param1)s', sql)
+		self.assertEqual(parameters, {"param1": '"company ""docs"""*'})
+
+	def test_now_interval_uses_sqlite_datetime_modifiers(self):
+		doctype = frappe.qb.DocType("DocType")
+		cases = (
+			(Now() - Interval(days=30), ["-30 days"]),
+			(Now() + Interval(weeks=-1), ["-7 days"]),
+			(Now() - Interval(quarters=2), ["-6 months"]),
+			(
+				Now() + Interval(months=2, days=3, microseconds=500_000),
+				["+2 months", "+3 days", "+0.5 seconds"],
+			),
+		)
+
+		for expression, expected_modifiers in cases:
+			with self.subTest(modifiers=expected_modifiers):
+				query = frappe.qb.from_(doctype).select(expression).limit(1)
+				sql, parameters = query.walk()
+
+				# SQLite's registered NOW() compatibility function follows Frappe's
+				# site timezone; CURRENT_TIMESTAMP would always use UTC.
+				self.assertIn("DATETIME(NOW()", sql)
+				self.assertNotIn("INTERVAL", sql)
+				self.assertEqual(list(parameters.values()), expected_modifiers)
+				self.assertIsNotNone(query.run(pluck=True)[0])
+
+	def test_datetime_functions_match_mariadb_results(self):
+		(
+			converted,
+			combined,
+			overflow,
+			negative,
+			formatted,
+			verbose_format,
+			days,
+			month_name,
+			month,
+			quarter,
+			year,
+		) = self.select_literals(
+			Timestamp("2024-02-03 04:05:06"),
+			CombineDatetime("2024-02-03", "04:05:06"),
+			CombineDatetime("2024-02-03", "25:00:00"),
+			CombineDatetime("2024-02-03", "-01:00:00"),
+			DateFormat("2024-02-03 04:05:06", "%m-%Y"),
+			DateFormat("2024-02-03 04:05:06", "%M %e, %Y %r"),
+			DateDiff("2024-01-10 01:00:00", "2024-01-01 23:00:00"),
+			MonthName("2024-02-03"),
+			Month("2024-02-03"),
+			Quarter("2024-05-03"),
+			Year("2024-02-03"),
+		)
+
+		self.assertEqual(converted, "2024-02-03 04:05:06")
+		self.assertEqual(combined, "2024-02-03 04:05:06")
+		self.assertEqual(overflow, "2024-02-04 01:00:00")
+		self.assertEqual(negative, "2024-02-02 23:00:00")
+		self.assertEqual(formatted, "02-2024")
+		self.assertEqual(verbose_format, "February 3, 2024 04:05:06 AM")
+		self.assertEqual(days, 9)
+		self.assertEqual(month_name, "February")
+		self.assertEqual((month, quarter, year), (2, 2, 2024))
+		self.assertTrue(all(isinstance(value, int) for value in (month, quarter, year)))
+
+	def test_unix_timestamp_uses_the_sqlite_session_timezone(self):
+		original_timezone = get_system_timezone()
+		try:
+			for timezone, value in (
+				("Asia/Kolkata", "1970-01-02 00:00:00"),
+				("America/New_York", "2024-01-15 12:00:00"),
+				("America/New_York", "2024-07-15 12:00:00"),
+			):
+				frappe.db.set_session_time_zone(timezone)
+				actual = self.select_literals(UnixTimestamp(value))[0]
+				expected = int(datetime.fromisoformat(value).replace(tzinfo=ZoneInfo(timezone)).timestamp())
+				self.assertEqual(actual, expected)
+		finally:
+			frappe.db.set_session_time_zone(original_timezone)
+
+	def test_json_functions_match_mariadb_results(self):
+		document = '{"key":"value","roles":["admin","user"],"nested":{"enabled":true,"count":2}}'
+		(
+			extracted,
+			value,
+			scalar_contained,
+			object_contained,
+			missing,
+			object_value,
+		) = self.select_literals(
+			JSONExtract(document, "$.key"),
+			JSONValue(document, "$.key"),
+			JSONContains('["admin","user"]', "admin"),
+			JSONContains(document, {"nested": {"enabled": True}}),
+			JSONContains(document, "missing"),
+			JSONValue(document, "$.nested"),
+		)
+
+		self.assertEqual(extracted, '"value"')
+		self.assertEqual(value, "value")
+		self.assertEqual((scalar_contained, object_contained, missing), (1, 1, 0))
+		self.assertIsNone(object_value)
+		self.assertEqual(
+			self.select_literals(JSONExtract(None, "$.key"), JSONValue(None, "$.key")), (None, None)
+		)
+
+	def test_single_argument_coalesce_returns_its_argument(self):
+		expression = Coalesce("Stock Entry").as_("voucher_type")
+		query = frappe.qb.from_("DocType").select(expression).limit(1)
+
+		self.assertNotIn("COALESCE", query.get_sql().upper())
+		self.assertEqual(query.run()[0][0], "Stock Entry")
+
+
 class TestBuilderBase:
 	def test_adding_tabs(self):
 		self.assertEqual("tabNotes", frappe.qb.DocType("Notes").get_sql())
@@ -778,6 +919,141 @@ class TestBuilderPostgres(IntegrationTestCase, TestBuilderBase):
 
 		qb = get_query_builder(frappe.db.db_type)
 		self.assertEqual('SELECT * FROM "tabDocType"', qb().from_("DocType").select("*").get_sql())
+
+
+@run_only_if(db_type_is.SQLITE)
+class TestBuilderSQLite(IntegrationTestCase, TestBuilderBase):
+	table_name = "__query_builder_upsert_test"
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.sql_ddl(f'DROP TABLE IF EXISTS "{self.table_name}"')
+		frappe.db.sql_ddl(
+			f"""CREATE TABLE "{self.table_name}" (
+				"identity" TEXT PRIMARY KEY,
+				"mutable" TEXT NOT NULL,
+				"immutable" TEXT NOT NULL,
+				"select" TEXT UNIQUE,
+				"order" TEXT
+			)"""
+		)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{self.table_name}"')
+
+	def test_on_conflict_updates_selected_columns(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		(
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "new", "discarded")
+			.on_conflict(table.identity)
+			.do_update(table.mutable)
+		).run()
+
+		self.assertEqual(
+			frappe.db.sql(
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
+				("row",),
+			)[0],
+			("new", "preserved"),
+		)
+
+	def test_on_conflict_do_nothing(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		(
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "discarded", "discarded")
+			.on_conflict(table.identity)
+			.do_nothing()
+		).run()
+
+		self.assertEqual(
+			frappe.db.sql(
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
+				("row",),
+			)[0],
+			("old", "preserved"),
+		)
+
+	def test_on_conflict_parameterizes_explicit_update_value(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		insert = (
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "discarded", "discarded")
+		)
+		query = insert.on_conflict("identity").do_update("mutable", "forced")
+		sql, parameters = query.walk()
+		self.assertNotIn("ON CONFLICT", insert.get_sql())
+		self.assertNotIn("forced", sql)
+		self.assertIn("forced", parameters.values())
+
+		query.run()
+		self.assertEqual(
+			frappe.db.sql(
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
+				("row",),
+			)[0],
+			("forced", "preserved"),
+		)
+
+	def test_on_conflict_update_where(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(table.identity, table.mutable, table.immutable).insert(
+			"row", "old", "preserved"
+		).run()
+
+		(
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable)
+			.insert("row", "new", "discarded")
+			.on_conflict(table.identity)
+			.do_update(table.mutable)
+			.where(table.immutable == "preserved")
+		).run()
+
+		self.assertEqual(
+			frappe.db.sql(
+				f"SELECT `mutable`, `immutable` FROM `{self.table_name}` WHERE `identity` = %s",
+				("row",),
+			)[0],
+			("new", "preserved"),
+		)
+
+	def test_on_conflict_quotes_identifiers(self):
+		table = frappe.qb.Table(self.table_name)
+		frappe.qb.into(table).columns(
+			table.identity, table.mutable, table.immutable, table["select"], table["order"]
+		).insert("row", "old", "preserved", "conflict", "old order").run()
+
+		query = (
+			frappe.qb.into(table)
+			.columns(table.identity, table.mutable, table.immutable, table["select"], table["order"])
+			.insert("discarded", "new", "discarded", "conflict", "new order")
+			.on_conflict(table["select"])
+			.do_update(table["order"])
+		)
+
+		self.assertIn('ON CONFLICT ("select")', query.get_sql())
+		self.assertIn('DO UPDATE SET "order"=EXCLUDED."order"', query.get_sql())
+		query.run()
+
+		self.assertEqual(
+			frappe.db.get_value(self.table_name, {"select": "conflict"}, ["identity", "order"]),
+			("row", "new order"),
+		)
 
 
 class TestMisc(IntegrationTestCase):

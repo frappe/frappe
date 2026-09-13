@@ -246,12 +246,21 @@ class TestCustomizeForm(IntegrationTestCase):
 			str(new_document_length),
 		)
 
-		length = frappe.db.sql(
-			"""SELECT character_maximum_length
-			FROM information_schema.columns
-			WHERE table_name = 'tabNotification Log'
-			AND column_name = 'document_name'"""
-		)[0][0]
+		if frappe.db.db_type == "sqlite":
+			from frappe.database.schema import VARCHAR_CAST_PATTERN
+
+			column_type = frappe.db.get_column_type("Notification Log", "document_name")
+			length_match = VARCHAR_CAST_PATTERN.search(column_type or "")
+			if length_match is None:
+				self.fail(f"Expected a varchar length in {column_type!r}")
+			length = int(length_match.group(1))
+		else:
+			length = frappe.db.sql(
+				"""SELECT character_maximum_length
+				FROM information_schema.columns
+				WHERE table_name = 'tabNotification Log'
+				AND column_name = 'document_name'"""
+			)[0][0]
 
 		self.assertEqual(length, new_document_length)
 

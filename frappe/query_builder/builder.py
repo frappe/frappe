@@ -1,11 +1,13 @@
 import re
 import types
 import typing
+from copy import copy
 
 from pypika import MySQLQuery, Order, PostgreSQLQuery, SQLLiteQuery, terms
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder, SQLLiteQueryBuilder
 from pypika.queries import QueryBuilder, Schema, Table
-from pypika.terms import Function
+from pypika.terms import Criterion, EmptyCriterion, Field, Function, Term
+from pypika.utils import QueryException, builder
 
 from frappe.query_builder.terms import ParameterizedValueWrapper, SQLiteParameterizedValueWrapper
 from frappe.utils import get_table_name
@@ -98,7 +100,124 @@ class RecursivePostgreSQLQueryBuilder(RecursiveCTEMixin, PostgreSQLQueryBuilder)
 
 
 class RecursiveSQLLiteQueryBuilder(RecursiveCTEMixin, SQLLiteQueryBuilder):
-	pass
+	def __init__(self, *args, **kwargs):
+		# SQLite rejects parentheses around the individual SELECT statements in a compound query.
+		kwargs["wrap_set_operation_queries"] = False
+		super().__init__(*args, **kwargs)
+		self._on_conflict = False
+		self._on_conflict_fields = []
+		self._on_conflict_do_nothing = False
+		self._on_conflict_do_updates = []
+		self._on_conflict_wheres = None
+		self._on_conflict_do_update_wheres = None
+
+	def __copy__(self):
+		newone = super().__copy__()
+		newone._on_conflict_fields = copy(self._on_conflict_fields)
+		newone._on_conflict_do_updates = copy(self._on_conflict_do_updates)
+		return newone
+
+	@builder
+	def on_conflict(self, *target_fields: str | Term):
+		if not self._insert_table:
+			raise QueryException("On conflict only applies to insert query")
+
+		self._on_conflict = True
+		for target_field in target_fields:
+			if isinstance(target_field, str):
+				self._on_conflict_fields.append(Field(target_field, table=self._insert_table))
+			elif isinstance(target_field, Term):
+				self._on_conflict_fields.append(target_field)
+			elif target_field is not None:
+				raise QueryException("Unsupported conflict target")
+
+	@builder
+	def do_nothing(self):
+		if self._on_conflict_do_updates:
+			raise QueryException("Can not have two conflict handlers")
+		self._on_conflict_do_nothing = True
+
+	@builder
+	def do_update(self, update_field: str | Field, update_value: typing.Any = None):
+		if self._on_conflict_do_nothing:
+			raise QueryException("Can not have two conflict handlers")
+
+		if isinstance(update_field, str):
+			field = Field(update_field, table=self._insert_table)
+		elif isinstance(update_field, Field):
+			field = update_field
+		else:
+			raise QueryException("Unsupported update field")
+
+		value = self.wrap_constant(update_value, self._wrapper_cls) if update_value is not None else None
+		self._on_conflict_do_updates.append((field, value))
+
+	@builder
+	def where(self, criterion: Criterion):
+		if not self._on_conflict:
+			return super().where(criterion)
+		if isinstance(criterion, EmptyCriterion):
+			return
+		if self._on_conflict_do_nothing:
+			raise QueryException("DO NOTHING does not support WHERE")
+
+		if self._on_conflict_fields and self._on_conflict_do_updates:
+			if self._on_conflict_do_update_wheres:
+				self._on_conflict_do_update_wheres &= criterion
+			else:
+				self._on_conflict_do_update_wheres = criterion
+		elif self._on_conflict_fields:
+			if self._on_conflict_wheres:
+				self._on_conflict_wheres &= criterion
+			else:
+				self._on_conflict_wheres = criterion
+		else:
+			raise QueryException("Can not have fieldless ON CONFLICT WHERE")
+
+	def _on_conflict_sql(self, **kwargs) -> str:
+		if not self._on_conflict_do_nothing and not self._on_conflict_do_updates:
+			if not self._on_conflict_fields:
+				return ""
+			raise QueryException("No handler defined for on conflict")
+		if self._on_conflict_do_updates and not self._on_conflict_fields:
+			raise QueryException("Can not have fieldless on conflict do update")
+
+		query = " ON CONFLICT"
+		field_kwargs = {**kwargs, "with_namespace": False}
+		if self._on_conflict_fields:
+			fields = ", ".join(
+				field.get_sql(with_alias=True, **field_kwargs) for field in self._on_conflict_fields
+			)
+			query += f" ({fields})"
+		if self._on_conflict_wheres:
+			query += f" WHERE {self._on_conflict_wheres.get_sql(subquery=True, **field_kwargs)}"
+		return query
+
+	def _on_conflict_action_sql(self, **kwargs) -> str:
+		if self._on_conflict_do_nothing:
+			return " DO NOTHING"
+		if not self._on_conflict_do_updates:
+			return ""
+
+		updates = []
+		field_kwargs = {**kwargs, "with_namespace": False}
+		for field, value in self._on_conflict_do_updates:
+			field_sql = field.get_sql(**field_kwargs)
+			value_sql = (
+				value.get_sql(with_namespace=True, **kwargs) if value is not None else f"EXCLUDED.{field_sql}"
+			)
+			updates.append(f"{field_sql}={value_sql}")
+
+		query = f" DO UPDATE SET {','.join(updates)}"
+		if self._on_conflict_do_update_wheres:
+			where = self._on_conflict_do_update_wheres.get_sql(subquery=True, with_namespace=True, **kwargs)
+			query += f" WHERE {where}"
+		return query
+
+	def get_sql(self, with_alias: bool = False, subquery: bool = False, **kwargs) -> str:
+		self._set_kwargs_defaults(kwargs)
+		query = super().get_sql(with_alias, subquery, **kwargs)
+		return query + self._on_conflict_sql(**kwargs) + self._on_conflict_action_sql(**kwargs)
 
 
 class MariaDB(Base, MySQLQuery):

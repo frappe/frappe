@@ -16,9 +16,24 @@ class TestBulkUpdate(IntegrationTestCase):
 		super().setUpClass()
 		cls.doctype = new_doctype(is_submittable=1, custom=1).insert().name
 		cls.child_doctype = new_doctype(istable=1, custom=1).insert().name
-		frappe.db.commit()
+		# Schema fixtures must exist before worker processes load their documents.
+		frappe.db.commit()  # nosemgrep
 		for _ in range(50):
 			frappe.new_doc(cls.doctype, some_fieldname=frappe.mock("name")).insert()
+		# Workers have their own database connections, so publish the fixtures
+		# and release SQLite's single writer slot before a job is enqueued.
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		# Committed fixtures cannot be removed by the test framework's rollback.
+		try:
+			for doctype in (cls.doctype, cls.child_doctype):
+				if frappe.db.exists("DocType", doctype):
+					frappe.delete_doc("DocType", doctype, force=True)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDownClass()
 
 	@timeout()
 	def wait_for_assertion(self, assertion):
@@ -77,14 +92,16 @@ class TestBulkUpdate(IntegrationTestCase):
 			"fields", {"fieldname": "child_table", "fieldtype": "Table", "options": self.child_doctype}
 		)
 		doctype_doc.save()
-		frappe.db.commit()
+		# The worker must see the child table added by this schema change.
+		frappe.db.commit()  # nosemgrep
 
 		existing_docs = frappe.get_all(self.doctype, {"docstatus": 0}, pluck="name")
 		for docname in existing_docs:
 			doc = frappe.get_doc(self.doctype, docname)
 			doc.append("child_table", {"some_fieldname": "_Test Child Value"})
 			doc.save()
-		frappe.db.commit()
+		# Publish child rows before the background update reads them.
+		frappe.db.commit()  # nosemgrep
 
 		update_data = {
 			"child_table_updates": {
@@ -148,4 +165,5 @@ class TestBulkUpdate(IntegrationTestCase):
 		finally:
 			for name in todo_names:
 				frappe.delete_doc("ToDo", name)
-			frappe.db.commit()
+			# bulk_update can commit, so its durable fixtures need durable cleanup.
+			frappe.db.commit()  # nosemgrep

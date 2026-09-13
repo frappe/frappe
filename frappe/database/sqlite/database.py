@@ -1,21 +1,41 @@
 import re
 import sqlite3
 import warnings
-from datetime import date, datetime, time
+from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import sqlglot
+from pypika.queries import QueryBuilder
+from sqlglot import expressions as exp
+from sqlglot.errors import ErrorLevel, SqlglotError
 
 import frappe
 from frappe.database.database import (
 	TRANSACTION_DISABLED_MSG,
 	Database,
-	ImplicitCommitError,
 )
-from frappe.database.sqlite.schema import SQLiteTable
+from frappe.database.sqlite.compatibility import (
+	combine_date_with_time_duration,
+	convert_datetime_to_unix_timestamp,
+	convert_sqlite_date,
+	convert_sqlite_time,
+	difference_in_calendar_days,
+	format_datetime_with_mariadb_tokens,
+	json_contains_mariadb_value,
+)
+from frappe.database.sqlite.query_parameters import (
+	convert_frappe_query_parameters,
+	mask_query_parameters,
+	render_query_with_bound_values,
+	restore_transpiled_query_parameters,
+)
+from frappe.database.sqlite.schema import SQLiteTable, quote_identifier
 from frappe.database.utils import convert_backtick_identifiers
-from frappe.utils import get_table_name
+from frappe.utils import get_table_name, now
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
-IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
+_TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
 
 class SequenceGeneratorLimitExceeded(sqlite3.Error):
@@ -115,9 +135,20 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	def get_connection(self, read_only: bool = False):
+		if not hasattr(self, "_session_time_zone"):
+			self._session_time_zone = ZoneInfo("UTC")
 		conn = self.create_connection(read_only)
 		conn.create_function("regexp", 2, regexp)
 		conn.create_function("regexp_replace", 3, regexp_replace)
+		conn.create_function("regexp_like", 2, regexp_like)
+		conn.create_function(
+			"frappe_combine_datetime", 2, combine_date_with_time_duration, deterministic=True
+		)
+		conn.create_function("datediff", 2, difference_in_calendar_days, deterministic=True)
+		conn.create_function("frappe_date_format", 2, format_datetime_with_mariadb_tokens, deterministic=True)
+		conn.create_function("frappe_json_contains", 2, json_contains_mariadb_value, deterministic=True)
+		conn.create_function("frappe_unix_timestamp", 1, self._convert_to_unix_timestamp)
+		conn.create_function("now", 0, now)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
@@ -132,8 +163,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def create_connection(self, read_only: bool = False):
 		db_path = self.get_db_path()
 		sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
-		sqlite3.register_converter("date", lambda x: date.fromisoformat(x.decode()))
-		sqlite3.register_converter("time", lambda x: time.fromisoformat(x.decode()))
+		sqlite3.register_converter("date", convert_sqlite_date)
+		sqlite3.register_converter("time", convert_sqlite_time)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",
@@ -150,45 +181,48 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
 
 	def set_session_time_zone(self, timezone: str):
-		pass
+		self._session_time_zone = ZoneInfo(timezone)
+
+	def _convert_to_unix_timestamp(self, value):
+		return convert_datetime_to_unix_timestamp(value, self._session_time_zone)
 
 	def setup_type_map(self):
 		self.db_type = "sqlite"
 		self.type_map = {
-			"Currency": ("REAL", None),
-			"Int": ("INTEGER", None),
-			"Long Int": ("INTEGER", None),
-			"Float": ("REAL", None),
-			"Percent": ("REAL", None),
-			"Check": ("INTEGER", None),
-			"Small Text": ("TEXT", None),
-			"Long Text": ("TEXT", None),
-			"Code": ("TEXT", None),
-			"Text Editor": ("TEXT", None),
-			"Markdown Editor": ("TEXT", None),
-			"HTML Editor": ("TEXT", None),
-			"Date": ("DATE", None),
-			"Datetime": ("TIMESTAMP", None),
-			"Time": ("TIME", None),
-			"Text": ("TEXT", None),
-			"Data": ("TEXT", None),
-			"Link": ("TEXT", None),
-			"Dynamic Link": ("TEXT", None),
-			"Password": ("TEXT", None),
-			"Select": ("TEXT", None),
-			"Rating": ("REAL", None),
-			"Read Only": ("TEXT", None),
-			"Attach": ("TEXT", None),
-			"Attach Image": ("TEXT", None),
-			"Signature": ("TEXT", None),
-			"Color": ("TEXT", None),
-			"Barcode": ("TEXT", None),
-			"Geolocation": ("TEXT", None),
-			"Duration": ("REAL", None),
-			"Icon": ("TEXT", None),
-			"Phone": ("TEXT", None),
-			"Autocomplete": ("TEXT", None),
-			"JSON": ("TEXT", None),
+			"Currency": ("real", None),
+			"Int": ("int", None),
+			"Long Int": ("bigint", None),
+			"Float": ("real", None),
+			"Percent": ("real", None),
+			"Check": ("integer", None),
+			"Small Text": ("text", None),
+			"Long Text": ("text", None),
+			"Code": ("text", None),
+			"Text Editor": ("text", None),
+			"Markdown Editor": ("text", None),
+			"HTML Editor": ("text", None),
+			"Date": ("date", None),
+			"Datetime": ("timestamp", None),
+			"Time": ("time", None),
+			"Text": ("text", None),
+			"Data": ("varchar", self.VARCHAR_LEN),
+			"Link": ("varchar", self.VARCHAR_LEN),
+			"Dynamic Link": ("varchar", self.VARCHAR_LEN),
+			"Password": ("text", None),
+			"Select": ("varchar", self.VARCHAR_LEN),
+			"Rating": ("real", None),
+			"Read Only": ("varchar", self.VARCHAR_LEN),
+			"Attach": ("text", None),
+			"Attach Image": ("text", None),
+			"Signature": ("text", None),
+			"Color": ("varchar", self.VARCHAR_LEN),
+			"Barcode": ("text", None),
+			"Geolocation": ("text", None),
+			"Duration": ("real", None),
+			"Icon": ("varchar", self.VARCHAR_LEN),
+			"Phone": ("varchar", self.VARCHAR_LEN),
+			"Autocomplete": ("varchar", self.VARCHAR_LEN),
+			"JSON": ("text", None),
 		}
 
 	def get_database_size(self):
@@ -203,6 +237,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	@staticmethod
 	def escape(s, percent=True):
 		"""Escape quotes and percent in given string."""
+		s = frappe.as_unicode(s)
 		s = s.replace("'", "''")
 		if percent:
 			s = s.replace("%", "%%")
@@ -223,85 +258,52 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def describe(self, doctype: str) -> list | tuple:
 		table_name = get_table_name(doctype)
-		return self.sql(f"PRAGMA table_info(`{table_name}`)")
+		return self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			_skip_sqlite_transpilation=True,
+		)
 
 	def change_column_type(
 		self, doctype: str, column: str, type: str, nullable: bool = False
 	) -> list | tuple:
-		"""Change column type by recreating the table"""
+		"""Change a column type while preserving the rest of the SQLite schema."""
 		table_name = get_table_name(doctype)
-		temp_table = f"{table_name}_new"
-
-		# Get current table column definitions
-		columns = []
+		column_definitions = []
+		column_names = []
 		column_exists = False
-		for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1):
+		for col in self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		):
+			column_names.append(col["name"])
 			if col["name"] == column:
 				column_exists = True
 				null_str = "" if nullable else " NOT NULL"
-				columns.append(f"`{col['name']}` {type}{null_str}")
+				default_str = "" if col["dflt_value"] is None else f" DEFAULT {col['dflt_value']}"
+				column_definitions.append(f"`{col['name']}` {type}{null_str}{default_str}")
 			else:
-				null_str = "" if col["notnull"] == 0 else " NOT NULL"
-				columns.append(f"`{col['name']}` {col['type']}{null_str}")
+				column_definitions.append(get_column_definition(col))
 
-		# Check that the column exists
 		if not column_exists:
 			raise frappe.InvalidColumnName(f"Column {column} does not exist in table {table_name}")
 
-		# Create new table
-		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
-		self.sql_ddl(create_table)
-
-		# Copy data
-		column_names = [
-			f"`{col['name']}`" for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
-		]
-		column_list = ", ".join(column_names)
-		self.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {column_list} FROM `{table_name}`")
-
-		# Drop old table and rename new table
-		self.sql_ddl(f"DROP TABLE `{table_name}`")
-		self.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
+		rebuild_table(table_name, column_definitions, column_names)
 
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
-		"""Rename column by recreating the table"""
+		"""Rename a column with SQLite's native schema-preserving operation."""
 		table_name = get_table_name(doctype)
-		temp_table = f"{table_name}_new"
-
-		# Get current table column definitions
-		columns = []
-		column_exists = False
-		for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1):
-			if col["name"] == old_column_name:
-				column_exists = True
-				null_str = "" if col["notnull"] == 0 else " NOT NULL"
-				columns.append(f"`{new_column_name}` {col['type']}{null_str}")
-			else:
-				null_str = "" if col["notnull"] == 0 else " NOT NULL"
-				columns.append(f"`{col['name']}` {col['type']}{null_str}")
-
-		if not column_exists:
+		column_names = self.sql(
+			"SELECT name FROM pragma_table_info(%s)",
+			(table_name,),
+			pluck=True,
+			_skip_sqlite_transpilation=True,
+		)
+		if old_column_name not in column_names:
 			raise frappe.InvalidColumnName(f"Column {old_column_name} does not exist in table {table_name}")
-
-		# Create new table
-		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
-		self.sql_ddl(create_table)
-
-		# Get list of columns for SELECT, replacing old name with new
-		column_names = []
-		for col in self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1):
-			if col["name"] == old_column_name:
-				column_names.append(f"`{old_column_name}` as `{new_column_name}`")
-			else:
-				column_names.append(f"`{col['name']}`")
-
-		# Copy data
-		column_list = ", ".join(column_names)
-		self.sql_ddl(f"INSERT INTO `{temp_table}` SELECT {column_list} FROM `{table_name}`")
-
-		# Drop old table and rename new table
-		self.sql_ddl(f"DROP TABLE `{table_name}`")
-		self.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{table_name}`")
+		self.sql_ddl(f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`")
 
 	def create_auth_table(self):
 		self.sql_ddl(
@@ -364,26 +366,64 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with descriptions."""
-		return self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
+		columns = self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
+		unique_columns, indexed_columns = set(), set()
+		for index in get_table_indexes(table_name):
+			if index["origin"] == "pk" or index["partial"]:
+				continue
+			if index["unique"] and len(index["columns"]) == 1:
+				unique_columns.add(index["columns"][0])
+			elif not index["unique"] and index["columns"]:
+				indexed_columns.add(index["columns"][0])
+
+		for column in columns:
+			column["type"] = column["type"].lower()
+			column["default"] = column["dflt_value"]
+			column["not_nullable"] = bool(column["notnull"])
+			column["unique"] = column["name"] in unique_columns
+			column["index"] = column["name"] in indexed_columns
+		return columns
 
 	def get_column_type(self, doctype, column):
 		"""Return column type from database."""
 		table_name = get_table_name(doctype)
-		result = self.sql(f"PRAGMA table_info(`{table_name}`)", as_dict=1)
+		result = self.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
 		for row in result:
 			if row["name"] == column:
-				return row["type"]
+				return row["type"].lower()
 		return None
 
 	def has_index(self, table_name, index_name):
-		return self.sql(f"SELECT * FROM pragma_index_list(`{table_name}`) WHERE name = '{index_name}'")
+		return self.sql(f"SELECT * FROM pragma_index_list(`{table_name}`) WHERE name = %s", (index_name,))
 
 	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
 		"""Check if column exists for a specific fields in specified order."""
-		indexes = self.sql(f"PRAGMA index_list(`{table_name}`)", as_dict=True)
+		indexes = self.sql(
+			"SELECT * FROM pragma_index_list(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
 		for index in indexes:
-			index_info = self.sql(f"PRAGMA index_info(`{index['name']}`)", as_dict=True)
-			if index_info and index_info[0]["name"] == fieldname:
+			if bool(index["unique"]) != unique or index["partial"]:
+				continue
+			index_info = self.sql(
+				"SELECT * FROM pragma_index_info(%s)",
+				(index["name"],),
+				as_dict=True,
+				_skip_sqlite_transpilation=True,
+			)
+			if index_info and index_info[0]["name"] == fieldname and (not unique or len(index_info) == 1):
 				return index
 
 	def add_index(
@@ -400,17 +440,26 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		if using:
 			return
-		# We can't specify the length of the index in SQLite
-		fields = [re.sub(r"\(.*?\)", "", field) for field in fields]
+		original_fields = fields
+		# SQLite indexes the complete value; a MariaDB prefix length is neither needed nor valid here.
+		fields = [re.sub(r"\(\d+\)$", "", field) for field in fields]
+		for field in fields:
+			if not re.fullmatch(r"\w+", field):
+				frappe.throw(f"Invalid index column: {field}")
 
-		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
+		index_name = index_name or f"{table_name}_{self.get_index_name(fields)}"
 		self.commit()
-		self.sql(f"CREATE INDEX IF NOT EXISTS `{index_name}` ON `{table_name}` ({', '.join(fields)})")
+		columns = ", ".join(f"`{field}`" for field in fields)
+		self.sql(f"CREATE INDEX IF NOT EXISTS `{index_name}` ON `{table_name}` ({columns})")
 
 		# Ensure that DB migration doesn't clear this index, assuming this is manually added
 		# via code or console.
-		if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
+		if (
+			len(fields) == 1
+			and original_fields == fields
+			and not (frappe.flags.in_install or frappe.flags.in_migrate)
+		):
 			make_property_setter(
 				doctype,
 				fields[0],
@@ -424,11 +473,14 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		"""Creates unique constraint on fields."""
 		if isinstance(fields, str):
 			fields = [fields]
-		if not constraint_name:
-			constraint_name = f"unique_{'_'.join(fields)}"
+		for field in fields:
+			if not re.fullmatch(r"\w+", field):
+				frappe.throw(f"Invalid unique column: {field}")
 		table_name = get_table_name(doctype)
+		if not constraint_name:
+			constraint_name = f"{table_name}_unique_{'_'.join(fields)}"
 
-		columns = ", ".join(fields)
+		columns = ", ".join(f"`{field}`" for field in fields)
 		sql_create_unique = (
 			f"CREATE UNIQUE INDEX IF NOT EXISTS `{constraint_name}` ON `{table_name}` ({columns})"
 		)
@@ -469,19 +521,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
-		query = query.replace("%s", "?")
-		try:
-			if isinstance(values, dict):
-				for k, v in values.items():
-					if isinstance(v, str) and "'" in v:
-						values[k] = self.escape(v)
-					else:
-						values[k] = f"'{v}'"
-				query = query % values
-		except TypeError:
-			pass
+		return self._cursor.execute(query, values)
 
-		return self._cursor.execute(query, values or ())
+	def _transform_query(self, query, values):
+		return convert_frappe_query_parameters(query, values)
+
+	def mogrify(self, query, values):
+		return render_query_with_bound_values(query, values)
 
 	def log_query(self, query, query_type, values, debug):
 		# sqlite3 cursors expose no equivalent of the executed statement, so the
@@ -494,13 +540,27 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return mogrified_query
 
 	def sql(self, *args, **kwargs):
-		if args:
+		query = args[0] if args else kwargs.get("query")
+		skip_transpilation = kwargs.pop("_skip_sqlite_transpilation", False) or isinstance(
+			query, QueryBuilder
+		)
+		if args and not skip_transpilation:
 			# since tuple is immutable
 			args = list(args)
-			args[0] = modify_query(args[0])
+			args[0], positional_parameter_order = _modify_query(args[0])
+			if len(args) > 1:
+				args[1] = _reorder_positional_parameters(args[1], positional_parameter_order)
+			elif "values" in kwargs:
+				kwargs["values"] = _reorder_positional_parameters(
+					kwargs["values"], positional_parameter_order
+				)
 			args = tuple(args)
-		elif kwargs.get("query"):
-			kwargs["query"] = modify_query(kwargs.get("query"))
+		elif kwargs.get("query") and not skip_transpilation:
+			kwargs["query"], positional_parameter_order = _modify_query(kwargs["query"])
+			if "values" in kwargs:
+				kwargs["values"] = _reorder_positional_parameters(
+					kwargs["values"], positional_parameter_order
+				)
 
 		return super().sql(*args, **kwargs)
 
@@ -573,7 +633,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		key = f"table_columns::{table}"
 		columns = frappe.client_cache.get_value(key)
 		if columns is None:
-			columns = self.sql(f"PRAGMA table_info(`{table}`)", as_dict=True)
+			columns = self.sql(
+				"SELECT * FROM pragma_table_info(%s)",
+				(table,),
+				as_dict=True,
+				_skip_sqlite_transpilation=True,
+			)
 			columns = [col["name"] for col in columns]
 
 			if columns:
@@ -601,24 +666,299 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql_ddl(f"DELETE FROM sqlite_sequence WHERE name='{table}'")
 
 	def check_implicit_commit(self, query: str, query_type: str):
-		if query_type in IMPLICIT_COMMIT_QUERY_TYPES and self.transaction_writes:
-			raise ImplicitCommitError("This statement can cause implicit commit", query)
+		# Unlike MariaDB, SQLite DDL participates in the current transaction. Either the complete replacement and all indexes/triggers succeed, or the original table remains untouched.
+		pass
 
 
 def modify_query(query):
-	"""
-	Modifies query according to the requirements of SQLite
-	"""
-	# Replace ` with " only where a backtick delimits an identifier
+	"""Translate raw MariaDB-style SQL into SQLite SQL."""
+	return _modify_query(query)[0]
+
+
+def _modify_query(query) -> tuple[str, tuple[int, ...]]:
 	query = str(query)
+	transpiled = _transpile_to_sqlite(query)
+	return transpiled if transpiled is not None else (_legacy_modify_query(query), ())
+
+
+@lru_cache(maxsize=1024)
+def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
+	"""Returns the query rewritten for SQLite, or None if sqlglot couldn't
+	parse it (as MariaDB SQL), or didn't parse it as one of _TRANSPILABLE_STATEMENTS.
+
+	`%s` / `%(name)s` DB-API placeholders aren't valid MySQL expressions on their own. They are replaced only when they are SQL placeholder tokens, so identical text inside strings and comments remains the same.
+	"""
+	try:
+		masked_query, parameters = mask_query_parameters(query)
+		parsed_queries = sqlglot.parse(masked_query, read="mysql")
+		if len(parsed_queries) != 1 or parsed_queries[0] is None:
+			return None
+
+		parsed = parsed_queries[0]
+		if not isinstance(parsed, _TRANSPILABLE_STATEMENTS):
+			return None
+
+		# MariaDB permits COALESCE(x), but SQLite requires at least two arguments.
+		parsed = parsed.transform(_unwrap_single_argument_coalesce)
+
+		# SQLite has no row-level locks. Remove only this known incompatibility;
+		# any other unsupported construct must take the safe fallback below.
+		for select in parsed.find_all(exp.Select):
+			select.set("locks", None)
+
+		rewritten = parsed.sql(dialect="sqlite", unsupported_level=ErrorLevel.RAISE)
+		return restore_transpiled_query_parameters(rewritten, parameters)
+	except (SqlglotError, ValueError):
+		return None
+
+
+def _unwrap_single_argument_coalesce(node):
+	while isinstance(node, exp.Coalesce) and not node.expressions:
+		node = node.this.copy()
+	return node
+
+
+def _reorder_positional_parameters(values, positional_parameter_order: tuple[int, ...]):
+	if (
+		not isinstance(values, list | tuple)
+		or not positional_parameter_order
+		or positional_parameter_order == tuple(range(len(positional_parameter_order)))
+	):
+		return values
+
+	reordered = (values[index] for index in positional_parameter_order)
+	return list(reordered) if isinstance(values, list) else tuple(reordered)
+
+
+def _legacy_modify_query(query: str) -> str:
+	"""Fallback for queries sqlglot can't parse"""
+	# Replace backticks only when they delimit identifiers. Literal backticks in
+	# strings and comments must survive the fallback translation unchanged.
 	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_instr(query)
 
-	# Select from requires ""
 	if re.search("from tab", query, flags=re.IGNORECASE):
 		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
 
 	return query
+
+
+def get_column_definition(column: dict) -> str:
+	"""Rebuild a column definition from SQLite's PRAGMA table_info output."""
+	definition = f"`{column['name']}` {column['type']}"
+	if column["notnull"]:
+		definition += " NOT NULL"
+	if column["dflt_value"] is not None:
+		definition += f" DEFAULT {column['dflt_value']}"
+	return definition
+
+
+def get_table_indexes(table_name: str) -> list[dict]:
+	"""Snapshot all indexes needed to reproduce a table's constraints."""
+	indexes = []
+	index_list = frappe.db.sql(
+		"SELECT * FROM pragma_index_list(%s)",
+		(table_name,),
+		as_dict=True,
+		_skip_sqlite_transpilation=True,
+	)
+	for index in index_list:
+		columns = tuple(
+			column["name"]
+			for column in frappe.db.sql(
+				"SELECT * FROM pragma_index_info(%s)",
+				(index["name"],),
+				as_dict=True,
+				_skip_sqlite_transpilation=True,
+			)
+			if column["name"] is not None
+		)
+		definition = frappe.db.sql(
+			"SELECT sql FROM sqlite_master WHERE type = 'index' AND name = %s",
+			(index["name"],),
+			pluck=True,
+		)
+		indexes.append(
+			{
+				"name": index["name"],
+				"unique": bool(index["unique"]),
+				"origin": index["origin"],
+				"partial": bool(index["partial"]),
+				"columns": columns,
+				"sql": definition[0] if definition else None,
+			}
+		)
+	return indexes
+
+
+def _table_uses_autoincrement(table_name: str) -> bool:
+	table_sql = frappe.db.sql(
+		"SELECT sql FROM sqlite_master WHERE type = 'table' AND name = %s", (table_name,), pluck=True
+	)
+	return bool(table_sql and table_sql[0] and re.search(r"\bAUTOINCREMENT\b", table_sql[0], re.I))
+
+
+def _get_autoincrement_sequence(table_name: str) -> int | None:
+	if not _table_uses_autoincrement(table_name):
+		return None
+	sequence = frappe.db.sql("SELECT seq FROM sqlite_sequence WHERE name = %s", (table_name,), pluck=True)
+	return sequence[0] if sequence else None
+
+
+def _restore_autoincrement_sequence(table_name: str, sequence: int | None) -> None:
+	if sequence is None or not _table_uses_autoincrement(table_name):
+		return
+	current_sequence = frappe.db.sql(
+		"SELECT seq FROM sqlite_sequence WHERE name = %s", (table_name,), pluck=True
+	)
+	sequence = max(sequence, current_sequence[0] if current_sequence else 0)
+	frappe.db.sql("DELETE FROM sqlite_sequence WHERE name = %s", (table_name,))
+	frappe.db.sql("INSERT INTO sqlite_sequence (name, seq) VALUES (%s, %s)", (table_name, sequence))
+
+
+def _append_primary_key(column_definitions: list[str], table_name: str) -> None:
+	primary_key = sorted(
+		(column["pk"], column["name"])
+		for column in frappe.db.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
+		if column["pk"]
+	)
+	if not primary_key:
+		return
+
+	if len(primary_key) == 1 and _table_uses_autoincrement(table_name):
+		primary_key_name = primary_key[0][1]
+		prefix = f"`{primary_key_name}` "
+		for index, definition in enumerate(column_definitions):
+			definition_parts = definition[len(prefix) :].split() if definition.startswith(prefix) else []
+			if definition_parts and definition_parts[0].upper() == "INTEGER":
+				column_definitions[index] += " PRIMARY KEY AUTOINCREMENT"
+				return
+
+	quoted_columns = ", ".join(f"`{name}`" for _, name in primary_key)
+	column_definitions.append(f"PRIMARY KEY ({quoted_columns})")
+
+
+def _should_drop_index(index: dict, drop_index_fields: set[str], drop_unique_fields: set[str]) -> bool:
+	if index["partial"] or len(index["columns"]) != 1:
+		return False
+	fieldname = index["columns"][0]
+	if index["unique"]:
+		return fieldname in drop_unique_fields
+	return fieldname in drop_index_fields
+
+
+def _append_unique_constraints(
+	column_definitions: list[str],
+	indexes: list[dict],
+	drop_unique_fields: set[str],
+) -> set[tuple[bool, tuple[str, ...]]]:
+	preserved = set()
+	for index in indexes:
+		if index["origin"] != "u" or _should_drop_index(index, set(), drop_unique_fields):
+			continue
+		if not index["columns"]:
+			raise RuntimeError(f"Cannot preserve SQLite unique constraint {index['name']}")
+		quoted_columns = ", ".join(f"`{column}`" for column in index["columns"])
+		column_definitions.append(f"UNIQUE ({quoted_columns})")
+		preserved.add((True, index["columns"]))
+	return preserved
+
+
+def _restore_explicit_indexes(
+	indexes: list[dict],
+	*,
+	drop_index_fields: set[str],
+	drop_unique_fields: set[str],
+	preserved: set[tuple[bool, tuple[str, ...]]],
+) -> set[tuple[bool, tuple[str, ...]]]:
+	for index in indexes:
+		if index["origin"] == "pk" or index["sql"] is None:
+			continue
+		if _should_drop_index(index, drop_index_fields, drop_unique_fields):
+			continue
+		index_sql = re.sub(r"\s*/\*\s*FRAPPE_TRACE_ID:.*?\*/\s*$", "", index["sql"], flags=re.S)
+		frappe.db.sql(index_sql)
+		preserved.add((index["unique"], index["columns"]))
+	return preserved
+
+
+def _get_table_triggers(table_name: str) -> list[str]:
+	return frappe.db.sql(
+		"SELECT sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = %s AND sql IS NOT NULL",
+		(table_name,),
+		pluck=True,
+	)
+
+
+def rebuild_table(
+	table_name: str,
+	column_definitions: list[str],
+	column_names: list[str],
+	*,
+	drop_index_fields: set[str] | None = None,
+	drop_unique_fields: set[str] | None = None,
+	pre_rebuild_queries: list[str] | None = None,
+	post_rebuild_queries: list[str] | None = None,
+) -> set[tuple[bool, tuple[str, ...]]]:
+	"""Rebuild a SQLite table without discarding its schema-owned behavior."""
+	drop_index_fields = drop_index_fields or set()
+	drop_unique_fields = drop_unique_fields or set()
+	pre_rebuild_queries = pre_rebuild_queries or []
+	post_rebuild_queries = post_rebuild_queries or []
+	indexes = get_table_indexes(table_name)
+	triggers = _get_table_triggers(table_name)
+	autoincrement_sequence = _get_autoincrement_sequence(table_name)
+
+	_append_primary_key(column_definitions, table_name)
+	preserved = _append_unique_constraints(column_definitions, indexes, drop_unique_fields)
+
+	temp_table = f"{table_name}__rebuild_{frappe.generate_hash(length=10)}"
+	table_identifier = quote_identifier(table_name)
+	temp_table_identifier = quote_identifier(temp_table)
+	quoted_columns = ", ".join(quote_identifier(column) for column in column_names)
+
+	# Keep the entire replacement in one transaction so a failed copy or index recreation cannot strand a partial schema or discard the original table.
+	frappe.db.commit()  # nosemgrep
+	try:
+		for query in pre_rebuild_queries:
+			frappe.db.sql(query)
+		# SQLite cannot bind schema identifiers or column definitions. Identifiers
+		# are quoted above and definitions are generated internally by the schema layer.
+		frappe.db.sql("CREATE TABLE " + temp_table_identifier + " (\n" + ",".join(column_definitions) + "\n)")
+		frappe.db.sql(
+			"INSERT INTO "
+			+ temp_table_identifier
+			+ " ("
+			+ quoted_columns
+			+ ") SELECT "
+			+ quoted_columns
+			+ " FROM "
+			+ table_identifier
+		)
+		frappe.db.sql("DROP TABLE " + table_identifier)
+		frappe.db.sql("ALTER TABLE " + temp_table_identifier + " RENAME TO " + table_identifier)
+
+		preserved = _restore_explicit_indexes(
+			indexes,
+			drop_index_fields=drop_index_fields,
+			drop_unique_fields=drop_unique_fields,
+			preserved=preserved,
+		)
+		for trigger in triggers:
+			frappe.db.sql(trigger)
+		_restore_autoincrement_sequence(table_name, autoincrement_sequence)
+		for query in post_rebuild_queries:
+			frappe.db.sql(query)
+		frappe.db.commit()
+	except Exception:
+		frappe.db.rollback()
+		raise
+	return preserved
 
 
 def replace_locate_with_instr(query: str) -> str:
@@ -628,12 +968,14 @@ def replace_locate_with_instr(query: str) -> str:
 	return query
 
 
-def regexp(expr: str, item: str) -> bool:
+def regexp(expr: str | None, item: str | None) -> bool | None:
 	"""
 	Define regexp implementation for SQLite manually
 
 	Although it works in the CLI - doesn't work through python
 	"""
+	if expr is None or item is None:
+		return None
 	return re.search(expr, item) is not None
 
 
@@ -642,3 +984,7 @@ def regexp_replace(item: str, pattern: str, repl: str) -> str:
 	Define regexp_replace implementation for SQLite
 	"""
 	return re.sub(pattern, repl, item)
+
+
+def regexp_like(item: str | None, expr: str | None) -> bool | None:
+	return regexp(expr, item)

@@ -54,6 +54,14 @@ def get_oauth_client():
 
 @requires_test_service(TestService.WEB_SERVER)
 class TestConnectedApp(IntegrationTestCase):
+	@staticmethod
+	def _start_fresh_database_write():
+		frappe.db.rollback()
+		if frappe.db.db_type == "sqlite":
+			# Acquire SQLite's one writer slot before validation reads can create a
+			# snapshot that an overlapping web request would invalidate.
+			frappe.db.sql("DELETE FROM `tabToken Cache` WHERE 1 = 0")
+
 	def setUp(self):
 		"""Set up a Connected App that connects to our own oAuth provider.
 
@@ -99,24 +107,31 @@ class TestConnectedApp(IntegrationTestCase):
 
 	def complete_web_application_flow(self):
 		"""Simulate a logged in user who opens the authorization URL and store the token."""
-		session = requests.Session()
+		with requests.Session() as session:
+			with session.get(
+				urljoin(self.base_url, "/api/method/login"),
+				params={"usr": self.user_name, "pwd": self.user_password},
+				timeout=30,
+			) as first_login:
+				self.assertEqual(first_login.status_code, 200)
 
-		first_login = session.get(
-			urljoin(self.base_url, "/api/method/login"),
-			params={"usr": self.user_name, "pwd": self.user_password},
-		)
-		self.assertEqual(first_login.status_code, 200)
+			self._start_fresh_database_write()
+			authorization_url = self.connected_app.initiate_web_application_flow(user=self.user_name)
+			# Save the committed Token Cache reference early so tearDown can remove
+			# it even when a following HTTP request fails.
+			self.token_cache = self.connected_app.get_token_cache(self.user_name)
+			# The callback runs in the web process and needs to update this row.
+			frappe.db.rollback()
 
-		authorization_url = self.connected_app.initiate_web_application_flow(user=self.user_name)
+			with session.get(authorization_url, timeout=30) as auth_response:
+				self.assertEqual(auth_response.status_code, 200)
+				callback_url = auth_response.url
 
-		auth_response = session.get(authorization_url)
-		self.assertEqual(auth_response.status_code, 200)
+			with session.get(callback_url, timeout=30) as callback_response:
+				self.assertEqual(callback_response.status_code, 200)
 
-		callback_response = session.get(auth_response.url)
-		self.assertEqual(callback_response.status_code, 200)
-
-		self.token_cache = self.connected_app.get_token_cache(self.user_name)
-		return session
+		frappe.db.rollback()
+		self.token_cache.reload()
 
 	def test_web_application_flow(self):
 		"""Simulate a logged in user who opens the authorization URL."""
@@ -125,14 +140,18 @@ class TestConnectedApp(IntegrationTestCase):
 		token = self.token_cache.get_password("access_token")
 		self.assertNotEqual(token, None)
 
-		oauth2_session = self.connected_app.get_oauth2_session(self.user_name)
-		resp = oauth2_session.get(urljoin(self.base_url, "/api/method/frappe.auth.get_logged_user"))
-		self.assertEqual(resp.json().get("message"), self.user_name)
+		with self.connected_app.get_oauth2_session(self.user_name) as oauth2_session:
+			frappe.db.rollback()
+			with oauth2_session.get(
+				urljoin(self.base_url, "/api/method/frappe.auth.get_logged_user"), timeout=30
+			) as response:
+				self.assertEqual(response.json().get("message"), self.user_name)
 
 	def test_concurrent_refresh_skips_redundant_call(self):
 		"""A refresh must be skipped if another worker already refreshed the token."""
 		self.complete_web_application_flow()
 
+		self._start_fresh_database_write()
 		self.token_cache.db_set("expires_in", -1)
 
 		# Stand in for a concurrent worker that refreshed first: the reload under the lock
@@ -160,7 +179,7 @@ class TestConnectedApp(IntegrationTestCase):
 			if doc:
 				doc.delete(force=True)
 
-		frappe.db.commit()  # Avoid snapshot violation issues
+		self._start_fresh_database_write()
 
 		delete_if_exists("token_cache")
 		delete_if_exists("connected_app")
@@ -178,6 +197,7 @@ class TestConnectedApp(IntegrationTestCase):
 
 		frappe.db.commit()
 
+		self._start_fresh_database_write()
 		delete_if_exists("user")
 		delete_if_exists("oauth_client")
 

@@ -1,6 +1,7 @@
 name: SQLite Individual
 
 on:
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -61,6 +62,7 @@ jobs:
           disable-socketio: true
           # SQLite permits only one writer. Tests run serially in this job, hence disabling workers that can write queued setup jobs.
           disable-workers: true
+          enable-server-scripts: false
       - name: Run Tests
         shell: bash
         run: |
@@ -93,6 +95,7 @@ jobs:
           db-root-password: db_root
           disable-socketio: true
           disable-workers: true
+          enable-server-scripts: true
       - name: Wait for web server
         shell: bash
         run: |

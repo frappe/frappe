@@ -23,3 +23,6 @@ pypika.queries.Selectable.field = pypika.terms.PseudoColumn("field")
 
 # run monkey patches
 patch_all()
+
+# Override PyPika's generic interval with Frappe's database-aware implementation.
+from frappe.query_builder.functions import Interval
