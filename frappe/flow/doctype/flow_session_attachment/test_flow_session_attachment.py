@@ -318,6 +318,20 @@ class TestBuildTurn(IntegrationTestCase):
 			("Inline", "OCR TEXT"),
 		)
 
+	def test_prepared_image_reuses_ocr_and_can_still_be_sent_to_a_vision_model(self):
+		file_doc = _file(file_name="pic.png", content=png_bytes())
+		with patch(f"{MODULE}.extract_file", return_value="OCR TEXT") as extract:
+			stage_attachment(file_doc.name)
+			extract.assert_called_once()
+		with patch(f"{MODULE}.extract_file", side_effect=AssertionError("OCR repeated")):
+			with patch(VISION, return_value=False):
+				text_turn = build_turn(self.session, "read it", [file_doc.name])
+			with patch(VISION, return_value=True):
+				image_turn = build_turn(self.session, "look", [file_doc.name])
+		self.assertIn("OCR TEXT", text_turn.message)
+		self.assertEqual(len(image_turn.images), 1)
+		self.assertEqual(image_turn.message, "look")
+
 	def test_an_image_without_text_is_refused_for_a_text_only_model(self):
 		file_doc = _file(file_name="pic.png", content=png_bytes())
 		with (

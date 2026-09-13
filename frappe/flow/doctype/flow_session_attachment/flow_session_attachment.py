@@ -96,7 +96,9 @@ def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
 				turn.images.append((data["file_name"], file_doc.get_content(), mime))
 				turn.attachment_rows.append({**row, "mode": "Image"})
 				continue
-			text = extract_file(file_doc)
+			text = data.get("ocr_text")
+			if text is None:
+				text = extract_file(file_doc)
 			if not text:
 				frappe.throw(
 					_("No readable text found in {0}.").format(data["file_name"]), title=_("Empty File")
@@ -135,7 +137,11 @@ def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
 def stage_attachment(file: str) -> dict[str, Any]:
 	"""Extract at upload time and cache the result, so send need not parse the file again.
 	Returns lightweight metadata for the composer chip."""
-	data, _file_doc = load_attachment(file)
+	data, file_doc = load_attachment(file)
+	# Keep image delivery independent of the selected model, which can change while
+	# composing. Cache OCR separately for models that need the text fallback.
+	if data["extracted_text"] is None and "ocr_text" not in data:
+		data["ocr_text"] = extract_file(file_doc)
 	frappe.cache.set_value(_cache_key(file), data, expires_in_sec=CACHE_TTL)
 	return {"file": data["file"], "file_name": data["file_name"], "file_size": data["file_size"]}
 
@@ -155,8 +161,8 @@ def cleanup_indexed_files(session: str, files: list[str]) -> None:
 
 def load_attachment(file: str) -> tuple[dict[str, Any], Document]:
 	"""A File the caller may read, with its extraction: the one staged at upload, else a
-	fresh one. Raises for an unreadable file or an unsupported type. Images are left
-	unread: whether they are shown to the model or OCRed is decided on send."""
+	fresh one. Raises for an unreadable file or an unsupported type. Whether images
+	are sent directly or use their cached OCR is decided on send."""
 	file_doc = _readable_file(file)
 	return staged_attachment(file) or _extract(file_doc), file_doc
 
