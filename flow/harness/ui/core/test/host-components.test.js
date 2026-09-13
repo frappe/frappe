@@ -11,6 +11,7 @@ for (const name of ["window", "document", "Document", "Element", "SVGElement", "
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
 const { createApp, h, nextTick, reactive } = await import("vue")
 const { loadComponent } = await import("./helpers/components.js")
+const { applyEvent, initialConversation } = await import("../src/transcript.js")
 const Composer = await loadComponent("Composer")
 const ApprovalCard = await loadComponent("ApprovalCard")
 const ToolGroup = await loadComponent("ToolGroup")
@@ -257,7 +258,25 @@ test("the composer takes a host's placeholder and approval-mode copy", async (t)
 	for (const text of ["Ask first", "Pauses before documents change.", "Just do it", "Never asks."]) assert.ok(menu.includes(text), text)
 })
 
-test("the composer keeps the draft and spins the send button until sending succeeds", async (t) => {
+test("a sent message is a bubble before the server echoes it", async (t) => {
+	const conversation = reactive({
+		...initialConversation(),
+		sending: [{ key: "sending:1", entry: { type: "user_message", content: [{ type: "text", text: "count the todos" }], ts: 10 } }],
+	})
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	assert.ok(el.textContent.includes("count the todos"))
+	assert.ok(el.textContent.includes("Working"))
+
+	// the server's copy arrives: the same message, now a real entry
+	applyEvent(conversation, { type: "user_message", seq: 1, content: [{ type: "text", text: "count the todos" }], ts: 11 })
+	await nextTick()
+	assert.equal(conversation.sending.length, 0)
+	assert.equal(el.textContent.match(/count the todos/g).length, 1)
+})
+
+test("the composer empties at once and spins the send button until sending succeeds", async (t) => {
 	let finishSend
 	let sent
 	const flow = {
@@ -287,7 +306,8 @@ test("the composer keeps the draft and spins the send button until sending succe
 	el.querySelector("button[title='Send']").click()
 	await nextTick()
 
-	assert.equal(el.querySelector("textarea").value, "Review this")
+	// the message is already a bubble in the thread; its attachment stays staged here
+	assert.equal(el.querySelector("textarea").value, "")
 	assert.ok(el.textContent.includes("notes.pdf"))
 	assert.equal(el.querySelector('[role="status"]'), null)
 	const sendButton = el.querySelector("button[title='Send']")

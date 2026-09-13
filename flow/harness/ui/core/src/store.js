@@ -104,6 +104,7 @@ export function createFlowStore(client, options = {}) {
 	let stream = null
 	let streamTask = null
 	let creating = null // in-flight lazy session creation; a double-send shares it
+	let sendCount = 0 // keys the bubbles waiting for the server to echo them
 	let loadingSkills = null // { key, promise }
 	let loadedSkillsFor = null // key of the list in state.skills
 
@@ -246,7 +247,7 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	async function openSession(sid) {
+	async function openSession(sid, { sending = [] } = {}) {
 		closeStream()
 		// a same-session reload (rewind) keeps the open file tabs as they are
 		const switching = state.sessionId !== sid
@@ -262,6 +263,9 @@ export function createFlowStore(client, options = {}) {
 		state.skills = []
 		loadedSkillsFor = null
 		state.conversation = initialConversation()
+		// a message sent before this session existed is still in flight: its bubble
+		// stays up instead of blinking out while the transcript loads
+		state.conversation.sending = sending
 		state.loading = true
 		const [info, catalog] = await Promise.all([
 			guard(() => client.session(sid)),
@@ -399,7 +403,7 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
-	async function newSession({ cwd = null, model = null } = {}) {
+	async function newSession({ cwd = null, model = null, sending = [] } = {}) {
 		const preset = activePreset()
 		const config = {
 			auto_approve: state.prefs.mode === "auto",
@@ -432,7 +436,7 @@ export function createFlowStore(client, options = {}) {
 			)
 		}
 		await refreshSessions()
-		await openSession(data.session_id)
+		await openSession(data.session_id, { sending })
 		return data.session_id
 	}
 
@@ -482,12 +486,43 @@ export function createFlowStore(client, options = {}) {
 			notify(`A message can carry at most ${options.maxAttachments} attachments.`, "error")
 			return false
 		}
+		// The bubble is up before the first round trip: creating the session, searching
+		// memory and reaching the daemon all happen behind it. A message sent into a
+		// running turn steers it; anything else opens the next one.
+		const pending = {
+			key: `sending:${++sendCount}`,
+			entry: userEntry(message, attachments),
+			steering: state.conversation.running,
+		}
+		state.conversation.sending.push(pending)
+		const sent = await deliver(message, attachments, pending)
+		if (!sent) {
+			// nothing was sent, so nothing will echo it back: take the bubble down
+			const at = state.conversation.sending.indexOf(pending)
+			if (at >= 0) state.conversation.sending.splice(at, 1)
+		}
+		return sent
+	}
+
+	// what a sent message looks like until the server has one of its own
+	function userEntry(message, attachments) {
+		const blocks = attachments.map((item) => ({
+			type: "attachment",
+			id: item.id ?? item.key,
+			name: item.name,
+			kind: item.kind,
+		}))
+		return { type: "user_message", content: [{ type: "text", text: message }, ...blocks], ts: Date.now() / 1000 }
+	}
+
+	// the round trips the bubble hides: the session, the attachments, the run
+	async function deliver(message, attachments, pending) {
 		if (!state.sessionId) {
 			if (options.requireCwd && !state.prefs.cwd) {
 				notify("Choose a project folder before sending a message.", "error")
 				return false
 			}
-			creating ??= newSession()
+			creating ??= newSession({ sending: state.conversation.sending })
 			try {
 				if (!(await creating)) return false
 			} finally {

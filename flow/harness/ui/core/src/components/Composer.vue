@@ -749,10 +749,15 @@ async function submit() {
 		if (pending.length) await Promise.all(pending)
 		if (flow.state.sessionId !== sendingSessionId) return
 		if (selectedAttachments.some((item) => item.error || !attachments.value.includes(item))) return
+		// the box empties as the bubble appears; a send that never lands hands the
+		// text back rather than losing it. Attachments keep their own staging state,
+		// so they stay put until the send settles.
+		text.value = ""
 		if (await flow.send(outgoing, selectedAttachments)) {
-			text.value = ""
 			clearAttachments(false)
 			flow.clearCodeRefs()
+		} else {
+			text.value = draftText
 		}
 	} finally {
 		submitting.value = false

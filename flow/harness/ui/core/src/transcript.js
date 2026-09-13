@@ -25,6 +25,10 @@ export const EFFORT_LABELS = {
 export function initialConversation() {
 	return {
 		entries: [],
+		// messages the user has sent but the server has not echoed back yet: they
+		// show as bubbles from the moment of sending, and the server's own copy
+		// takes over when it lands in entries
+		sending: [],
 		// Ordered, presentation-only assistant blocks accumulated from streaming
 		// deltas. The terminal assistant_message atomically replaces this preview.
 		partial: [],
@@ -76,6 +80,8 @@ export function applyEvent(s, e) {
 		case "tool_result":
 			if (e.type === "user_message") {
 				s.liveLabel ??= "Working"
+				// the server's copy of the oldest unechoed message: its bubble is real now
+				s.sending.shift()
 			}
 			if (e.type === "assistant_message") {
 				s.partial = []
@@ -647,6 +653,9 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		}
 		if (foldableKeys.has(item.key) && !expandedTurnKeys.has(item.turnKey)) continue
 		result.push(item)
+	}
+	for (const message of conversation.sending ?? []) {
+		result.push({ kind: "user", key: message.key, turnKey: null, entry: message.entry })
 	}
 	return result
 }
