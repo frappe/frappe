@@ -340,9 +340,10 @@
 	margin-bottom: 0;
 }
 
-/* CodeBlock.vue body: neutralize the generic .flow-md pre/code styling — the
-   component's container owns the border, radius, and background. */
-.flow-md .flow-code pre {
+/* CodeBlock.vue body: the component carries its own padding wherever it is used,
+   and inside markdown it also neutralizes the generic .flow-md pre/code styling —
+   the component's container owns the border, radius, and background. */
+.flow-code pre {
 	margin: 0;
 	padding: 10px 12px;
 	border: 0;
@@ -351,7 +352,7 @@
 	font-size: 0.85em;
 	line-height: 1.6;
 }
-.flow-md .flow-code pre code {
+.flow-code pre code {
 	font-size: 1em;
 	color: var(--ink-gray-8);
 }
