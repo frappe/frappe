@@ -22,6 +22,15 @@ const real = new Set([
 	"DocPanel.vue",
 	"FieldControl.vue",
 	"SettingsPage.vue",
+	"RecordTable.vue",
+	"ValueView.vue",
+	"CreateView.vue",
+	"ReadView.vue",
+	"NamesView.vue",
+	"CodeView.vue",
+	"SnippetView.vue",
+	"JsonView.vue",
+	"CodeBlock.vue",
 ]);
 const stubs = new Map();
 function stubURL(name) {
@@ -117,7 +126,8 @@ async function componentURL(url) {
 			resolved = real.has(name)
 				? await componentURL(targetURL(specifier, url))
 				: stubURL(name.slice(0, -4));
-		} else if (specifier === "./links.js")
+		} else if (specifier.startsWith("."))
+			// a relative module of this app: compile it too, so its own .vue imports resolve
 			resolved = await componentURL(targetURL(specifier, url));
 		else resolved = targetURL(specifier, url).href;
 		content =
@@ -134,6 +144,10 @@ const targetURL = (specifier, from) =>
 	specifier.startsWith(".") ? new URL(specifier, from) : new URL(import.meta.resolve(specifier));
 
 export async function loadComponent(path) {
+	return (await loadModule(path)).default;
+}
+
+export async function loadModule(path) {
 	const url = new URL(`../../src/${path}`, import.meta.url);
-	return (await import(await componentURL(url))).default;
+	return await import(await componentURL(url));
 }
