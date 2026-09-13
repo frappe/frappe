@@ -981,7 +981,7 @@ class TestRetriever(IntegrationTestCase):
 		results = self._retrieve("laptop", kbs=[self.kb.name])
 		self.assertTrue(results)
 		self.assertTrue(all("laptop" in r["content"] for r in results))
-		self.assertTrue(all(r["source"] == source.name for r in results))
+		self.assertTrue(all(r["source"] == source.title for r in results))
 
 	def test_retrieve_requires_a_knowledge_base(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -997,7 +997,7 @@ class TestRetriever(IntegrationTestCase):
 		self._text_source(other.name, "laptop onboarding steps. " * 4, title="Other Doc")
 		results = self._retrieve("laptop", kbs=[self.kb.name])
 		self.assertTrue(results)
-		self.assertTrue(all(r["source"] == mine.name for r in results))
+		self.assertTrue(all(r["source"] == mine.title for r in results))
 
 	def test_retrieve_skips_disabled_knowledge_base(self):
 		self._text_source(self.kb.name, "laptop setup guide. " * 4)
@@ -1010,7 +1010,7 @@ class TestRetriever(IntegrationTestCase):
 		mine = self._text_source(self.kb.name, "laptop setup guide. " * 4)
 		results = self._retrieve("laptop", kbs=[self.kb.name, "No Such KB"])
 		self.assertTrue(results)
-		self.assertTrue(all(r["source"] == mine.name for r in results))
+		self.assertTrue(all(r["source"] == mine.title for r in results))
 
 	def test_retrieve_vector_mode_omits_text(self):
 		self._text_source(self.kb.name, "laptop setup guide. " * 4)
@@ -1070,7 +1070,7 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 		with patch("litellm.embedding", side_effect=self._fake_embed):
 			results = retrieve("laptop", kbs=[kb.name])
 		self.assertTrue(results)
-		self.assertTrue(all(r["source"] == source_name for r in results))
+		self.assertTrue(all(r["source"] == source.title for r in results))
 
 	def test_add_local_file_reads_and_indexes_disk_file(self):
 		import os
@@ -1097,7 +1097,7 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 		with patch("litellm.embedding", side_effect=self._fake_embed):
 			results = retrieve("laptop", kbs=[kb.name])
 		self.assertTrue(results)
-		self.assertTrue(all(r["source"] == source_name for r in results))
+		self.assertTrue(all(r["source"] == source.title for r in results))
 
 	def test_add_text_does_not_enqueue_async_ingestion(self):
 		kb = Knowledge("Sync KB")
