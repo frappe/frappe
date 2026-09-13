@@ -1,0 +1,165 @@
+{
+ "actions": [],
+ "creation": "2026-08-15 21:48:23.635552",
+ "description": "Tuning for the automation engine: dispatch limits, drain behaviour, retention and payload limits.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "general_section",
+  "disable_automations",
+  "max_depth",
+  "reliability_section",
+  "failure_threshold",
+  "stale_running_minutes",
+  "max_attempts",
+  "column_break_reliability",
+  "drain_seconds",
+  "commit_every",
+  "retention_section",
+  "queue_retention_days",
+  "limits_section",
+  "step_output_limit",
+  "event_payload_limit",
+  "column_break_limits",
+  "allow_unregistered_events"
+ ],
+ "fields": [
+  {
+   "fieldname": "general_section",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "default": "0",
+   "description": "Stop dispatching automations site-wide. Queued rows are left untouched.",
+   "fieldname": "disable_automations",
+   "fieldtype": "Check",
+   "label": "Disable Automations"
+  },
+  {
+   "default": "3",
+   "description": "How many times an automation may trigger another before the chain is refused.",
+   "fieldname": "max_depth",
+   "fieldtype": "Int",
+   "label": "Maximum Recursion Depth",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "reliability_section",
+   "fieldtype": "Section Break",
+   "label": "Reliability"
+  },
+  {
+   "default": "10",
+   "description": "Consecutive failures after which a flow is auto-disabled and its owner notified.",
+   "fieldname": "failure_threshold",
+   "fieldtype": "Int",
+   "label": "Failure Threshold",
+   "non_negative": 1
+  },
+  {
+   "default": "30",
+   "description": "How long a claimed row may stay Running before it is assumed crashed and requeued.",
+   "fieldname": "stale_running_minutes",
+   "fieldtype": "Int",
+   "label": "Stale Running Minutes",
+   "non_negative": 1
+  },
+  {
+   "default": "3",
+   "description": "How many times a claimed row is retried when its run fails outside the flow's own steps, before the row is marked Failed.",
+   "fieldname": "max_attempts",
+   "fieldtype": "Int",
+   "label": "Maximum Attempts",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_reliability",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Seconds a drain may keep claiming batches. 0 derives it from the queue's own timeout.",
+   "fieldname": "drain_seconds",
+   "fieldtype": "Float",
+   "label": "Drain Seconds",
+   "non_negative": 1
+  },
+  {
+   "default": "50",
+   "description": "Rows a drain runs between commits.",
+   "fieldname": "commit_every",
+   "fieldtype": "Int",
+   "label": "Commit Every",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "retention_section",
+   "fieldtype": "Section Break",
+   "label": "Retention"
+  },
+  {
+   "default": "7",
+   "description": "Days a Failed or Skipped queue row is kept before the nightly sweep removes it.",
+   "fieldname": "queue_retention_days",
+   "fieldtype": "Int",
+   "label": "Queue Retention Days",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits"
+  },
+  {
+   "default": "65536",
+   "description": "Bytes of output a step may publish to later steps. Larger output is dropped, not failed.",
+   "fieldname": "step_output_limit",
+   "fieldtype": "Int",
+   "label": "Step Output Limit",
+   "non_negative": 1
+  },
+  {
+   "default": "65536",
+   "description": "Bytes an emitted event payload may carry.",
+   "fieldname": "event_payload_limit",
+   "fieldtype": "Int",
+   "label": "Event Payload Limit",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_limits",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Accept emit() calls for events no app registered through the automation_events hook.",
+   "fieldname": "allow_unregistered_events",
+   "fieldtype": "Check",
+   "label": "Allow Unregistered Events"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-08-18 18:52:57.661314",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Automation Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

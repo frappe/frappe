@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "creation": "2026-08-10 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "event_name",
+  "correlation_key",
+  "status",
+  "expires_at",
+  "column_break_references",
+  "run",
+  "step_key",
+  "resume_queue",
+  "event_payload"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Event Name",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "correlation_key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Correlation Key",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Waiting",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Waiting\nMatched\nTimed Out\nCancelled",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "expires_at",
+   "fieldtype": "Datetime",
+   "label": "Expires At",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_references",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "run",
+   "fieldtype": "Link",
+   "label": "Run",
+   "options": "Background Task",
+   "reqd": 1
+  },
+  {
+   "fieldname": "step_key",
+   "fieldtype": "Data",
+   "label": "Step Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "resume_queue",
+   "fieldtype": "Link",
+   "label": "Resume Queue",
+   "options": "Automation Trigger Queue",
+   "reqd": 1
+  },
+  {
+   "fieldname": "event_payload",
+   "fieldtype": "JSON",
+   "label": "Event Payload"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-08-10 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Automation Event Subscription",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
