@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 import operator
+from collections import defaultdict
+from datetime import timedelta
 
 from pypika.terms import Criterion, Not
 
@@ -10,7 +12,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS, get_workflow_names
 from frappe.utils import cint
-from frappe.utils.data import compare, evaluate_filters
+from frappe.utils.data import cast, compare, evaluate_filters
 
 CONDITION_COMPARATORS = {
 	"=": operator.eq,
@@ -22,6 +24,7 @@ CONDITION_COMPARATORS = {
 }
 LOWER_BOUND_CONDITIONS = {">", ">="}
 UPPER_BOUND_CONDITIONS = {"<", "<="}
+DISCRETE_STEPS = {"Int": 1, "Check": 1, "Date": timedelta(days=1)}
 
 
 class Workflow(Document):
@@ -254,26 +257,28 @@ class Workflow(Document):
 				)
 
 	def is_disjoint_from(self, other: "Workflow") -> bool:
-		"""True when a field the two workflows share proves no document can match both."""
+		"""True when a field both workflows constrain proves no document can match both."""
+		own = group_conditions_by_field(self.conditions)
+		their = group_conditions_by_field(other.conditions)
+
 		return any(
-			self.is_contradictory(own, their)
-			for own in self.conditions
-			for their in other.conditions
-			if own.field == their.field
+			self.is_contradictory(own[field], their[field], field) for field in own.keys() & their.keys()
 		)
 
-	def is_contradictory(self, first, second) -> bool:
-		"""True when no value of the field the two conditions share can satisfy both."""
-		docfield = frappe.get_meta(self.document_type).get_field(first.field)
+	def is_contradictory(self, own, their, field) -> bool:
+		"""True when the two sets of conditions on one field cannot hold for the same document."""
+		docfield = frappe.get_meta(self.document_type).get_field(field)
 		fieldtype = docfield.fieldtype if docfield else None
 
-		if first.condition == "=":
-			return not compare(first.value, second.condition, second.value, fieldtype)
+		own_value = get_pinned_value(own, fieldtype)
+		if own_value is not None:
+			return not is_allowed_by(own_value, their, fieldtype)
 
-		if second.condition == "=":
-			return not compare(second.value, first.condition, first.value, fieldtype)
+		their_value = get_pinned_value(their, fieldtype)
+		if their_value is not None:
+			return not is_allowed_by(their_value, own, fieldtype)
 
-		return is_empty_range(first, second, fieldtype)
+		return any(is_empty_range(a, b, fieldtype) for a in own for b in their)
 
 	def set_active(self):
 		"""Retire the other catch-all workflow of this doctype; conditional ones can coexist."""
@@ -313,6 +318,39 @@ class Workflow(Document):
 		)
 
 
+def group_conditions_by_field(conditions) -> dict[str, list]:
+	grouped = defaultdict(list)
+	for condition in conditions:
+		grouped[condition.field].append(condition)
+
+	return grouped
+
+
+def is_allowed_by(value, conditions, fieldtype) -> bool:
+	"""True when the value satisfies every one of the conditions."""
+	return all(compare(value, d.condition, d.value, fieldtype) for d in conditions)
+
+
+def get_pinned_value(conditions, fieldtype):
+	"""The single value these conditions force the field to, if they force one."""
+	values = {cast(fieldtype, d.value) for d in conditions if d.condition == "="}
+	bounds = {d.condition: cast(fieldtype, d.value) for d in conditions if d.condition in ("<=", ">=")}
+	if ">=" in bounds and bounds[">="] == bounds.get("<="):
+		values.add(bounds[">="])
+
+	return values.pop() if len(values) == 1 else None
+
+
+def to_inclusive_bound(condition, fieldtype) -> tuple[str, object]:
+	"""A strict bound on a field with discrete values is the inclusive bound one step in."""
+	value = cast(fieldtype, condition.value)
+	step = DISCRETE_STEPS.get(fieldtype)
+	if not step or condition.condition in ("<=", ">="):
+		return condition.condition, value
+
+	return (">=", value + step) if condition.condition == ">" else ("<=", value - step)
+
+
 def is_empty_range(first, second, fieldtype) -> bool:
 	"""True when a lower bound and an upper bound on the same field leave no value between them."""
 	lower, upper = first, second
@@ -322,8 +360,11 @@ def is_empty_range(first, second, fieldtype) -> bool:
 	if lower.condition not in LOWER_BOUND_CONDITIONS or upper.condition not in UPPER_BOUND_CONDITIONS:
 		return False
 
-	both_inclusive = lower.condition == ">=" and upper.condition == "<="
-	return compare(lower.value, ">" if both_inclusive else ">=", upper.value, fieldtype)
+	low_condition, low_value = to_inclusive_bound(lower, fieldtype)
+	high_condition, high_value = to_inclusive_bound(upper, fieldtype)
+	both_inclusive = low_condition == ">=" and high_condition == "<="
+
+	return compare(low_value, ">" if both_inclusive else ">=", high_value, fieldtype)
 
 
 @frappe.whitelist()
