@@ -15,6 +15,9 @@ REQUIRED_INPUT = {
 	"DocType": "reference_doctype",
 }
 
+# what the chunks are extracted from: changing any of these invalidates them
+EXTRACTION_INPUTS = ("content", "file", "url", "reference_doctype", "filters", "content_fields")
+
 
 class FlowKnowledgeSource(Document):
 	# begin: auto-generated types
@@ -78,6 +81,15 @@ class FlowKnowledgeSource(Document):
 		from flow.knowledge.ingest import enqueue_ingestion
 
 		enqueue_ingestion(self.name)
+
+	def on_update(self):
+		"""The chunks describe the source as it was defined. Redefine it and every chunk
+		is stale, and a plain resync would never revisit them: its sweep only visits rows
+		modified since the last one."""
+		if self.flags.in_insert or self.flags.skip_auto_ingest:
+			return
+		if any(self.has_value_changed(field) for field in EXTRACTION_INPUTS):
+			self.resync(rebuild=True)
 
 	def on_trash(self):
 		block_delete(self)

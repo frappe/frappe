@@ -783,6 +783,17 @@ class TestDoctypeSync(IntegrationTestCase):
 			ingest_source(source_name)
 		return mock
 
+	def _sync_rebuild(self, source_name):
+		def fake(input, **kwargs):
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("litellm.embedding", side_effect=fake),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+		):
+			ingest_source(source_name, rebuild=True)
+
 	def _chunks(self, source_name, reference_name=None):
 		filters = {"source": source_name}
 		if reference_name:
@@ -798,6 +809,34 @@ class TestDoctypeSync(IntegrationTestCase):
 		if not store.table_exists():
 			return set()
 		return set(store._open_table().to_arrow().column("id").to_pylist())
+
+	def _content(self, source_name, reference_name):
+		return frappe.get_all(
+			"Flow Knowledge Chunk",
+			filters={"source": source_name, "reference_name": reference_name},
+			pluck="content",
+		)
+
+	def test_redefining_the_content_fields_reindexes_unchanged_rows(self):
+		todo = self._todo("SYNCTEST alpha", status="Closed")
+		source = self._source()
+		self._sync(source.name)
+		self.assertNotIn("Status", " ".join(self._content(source.name, todo.name)))
+
+		source.content_fields = "description, status"
+		with patch("flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+			source.save()
+		enqueue.assert_called_once_with(source.name, rebuild=True)
+
+		self._sync_rebuild(source.name)
+		self.assertIn("Status: Closed", " ".join(self._content(source.name, todo.name)))
+
+	def test_saving_a_source_unchanged_does_not_reindex(self):
+		source = self._source()
+		source.title = "Renamed source"
+		with patch("flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+			source.save()
+		enqueue.assert_not_called()
 
 	def test_backfill_indexes_filtered_rows(self):
 		self._todo("SYNCTEST wifi keeps dropping on the office network")
