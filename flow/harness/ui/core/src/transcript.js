@@ -579,7 +579,11 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		})
 	}
 	const filtered = items.filter((i) => i.kind !== "group" || i.steps.some((s) => s.call))
-	const unsettledTurnKey = conversation.running || pending ? latestTurnKey : null
+	// A message in flight that opens a new turn settles the one before it right away:
+	// its run_started lands before the server's copy of the message, and reading that
+	// as the old turn resuming unfolds a finished turn for those frames.
+	const opensNewTurn = (conversation.sending ?? []).some((message) => !message.steering)
+	const unsettledTurnKey = !opensNewTurn && (conversation.running || pending) ? latestTurnKey : null
 
 	// Only the terminal assistant message is the response. Earlier assistant
 	// text is commentary and belongs inside the completed-work fold.

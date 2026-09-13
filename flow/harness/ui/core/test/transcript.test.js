@@ -582,6 +582,56 @@ test("the active turn never folds while previous settled turns remain collapsed"
 	assert.equal(items.at(-1).live, true)
 })
 
+test("a message in flight folds the turn before it, run_started or not", () => {
+	const conversation = initialConversation()
+	for (const entry of [
+		{ type: "user_message", seq: 1, ts: 10, content: "First" },
+		{
+			type: "assistant_message",
+			seq: 2,
+			ts: 12,
+			content: [
+				{ type: "thinking", thinking: "First thought" },
+				{ type: "text", text: "First answer" },
+			],
+			stop_reason: "stop",
+		},
+		{ type: "run_ended", seq: 3, ts: 13, reason: "done" },
+	]) applyEvent(conversation, entry)
+	const settled = buildItems(conversation).map((item) => item.kind)
+
+	conversation.sending.push({
+		key: "sending:1",
+		entry: { type: "user_message", content: "Second", ts: 20 },
+	})
+	// the run starts before the server's copy of the message that started it
+	applyEvent(conversation, { type: "run_started", seq: 4, ts: 20 })
+
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), [...settled, "user"])
+})
+
+test("steering keeps the running turn open", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "First" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 12,
+		content: [{ type: "thinking", thinking: "Still going" }],
+		stop_reason: "stop",
+	})
+	const running = buildItems(conversation).map((item) => item.kind)
+
+	conversation.sending.push({
+		key: "sending:1",
+		steering: true,
+		entry: { type: "user_message", content: "Also check this", ts: 14 },
+	})
+
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), [...running, "user"])
+})
+
 test("a paused approval turn stays fully visible until the user resolves it", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
