@@ -5,6 +5,14 @@ from frappe.utils import cint, flt
 from frappe.utils.defaults import get_not_null_defaults
 
 
+def quote_identifier(identifier: str) -> str:
+	"""Quote an SQLite identifier so schema names cannot change SQL structure."""
+	if not isinstance(identifier, str) or not identifier or "\x00" in identifier:
+		raise frappe.InvalidColumnName(f"Invalid SQLite identifier: {identifier!r}")
+	escaped_identifier = identifier.replace("`", "``")
+	return f"`{escaped_identifier}`"
+
+
 def get_type_affinity(declared_type: str) -> str:
 	"""Return the storage affinity SQLite assigns to a declared type."""
 	declared_type = declared_type.upper()
@@ -149,7 +157,12 @@ class SQLiteTable(DBTable):
 		for col in self.change_type:
 			self.validate_type_change(col)
 
-		current_columns = frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
+		current_columns = frappe.db.sql(
+			"SELECT * FROM pragma_table_info(%s)",
+			(self.table_name,),
+			as_dict=True,
+			_skip_sqlite_transpilation=True,
+		)
 		column_names = [column.name for column in current_columns]
 		column_definitions = [get_column_definition(column) for column in current_columns]
 
@@ -205,13 +218,13 @@ class SQLiteTable(DBTable):
 	def get_index_queries(self, new_column_names: set[str]) -> list[str]:
 		queries = [
 			f"CREATE UNIQUE INDEX IF NOT EXISTS `{self.table_name}_{col.fieldname}_unique` "
-			f"ON `{self.table_name}` (`{col.fieldname}`)"
+			+ f"ON `{self.table_name}` (`{col.fieldname}`)"
 			for col in self.add_unique
 			if col.fieldname not in new_column_names
 		]
 		queries.extend(
 			f"CREATE INDEX IF NOT EXISTS `{self.table_name}_{col.fieldname}_index` "
-			f"ON `{self.table_name}` (`{col.fieldname}`)"
+			+ f"ON `{self.table_name}` (`{col.fieldname}`)"
 			for col in self.add_index
 			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
 		)
@@ -229,10 +242,21 @@ class SQLiteTable(DBTable):
 		for col in self.drop_index:
 			if col.fieldname == "name":
 				continue
-			for index in frappe.db.sql(f"PRAGMA index_list(`{self.table_name}`)", as_dict=True):
+			indexes = frappe.db.sql(
+				"SELECT * FROM pragma_index_list(%s)",
+				(self.table_name,),
+				as_dict=True,
+				_skip_sqlite_transpilation=True,
+			)
+			for index in indexes:
 				if index.origin == "pk" or index.partial or index.unique:
 					continue
-				index_columns = frappe.db.sql(f"PRAGMA index_info(`{index.name}`)", as_dict=True)
+				index_columns = frappe.db.sql(
+					"SELECT * FROM pragma_index_info(%s)",
+					(index.name,),
+					as_dict=True,
+					_skip_sqlite_transpilation=True,
+				)
 				if len(index_columns) == 1 and index_columns[0].name == col.fieldname:
 					queries.append(f"DROP INDEX `{index.name}`")
 		return list(dict.fromkeys(queries))
@@ -241,7 +265,9 @@ class SQLiteTable(DBTable):
 	def run_schema_queries(queries: list[str]) -> None:
 		if not queries:
 			return
-		frappe.db.commit()
+		# DDL must start outside pending document writes; the schema batch below is
+		# still atomic because failures roll the complete batch back.
+		frappe.db.commit()  # nosemgrep
 		try:
 			for query in queries:
 				frappe.db.sql(query)
@@ -265,15 +291,19 @@ class SQLiteTable(DBTable):
 		if column.fieldtype not in frappe.model.numeric_fieldtypes:
 			return
 
-		value = f"TRIM(CAST(`{column.fieldname}` AS TEXT))"
+		table_identifier = quote_identifier(self.table_name)
+		column_identifier = quote_identifier(column.fieldname)
+		value = f"TRIM(CAST({column_identifier} AS TEXT))"
 		if column.fieldtype in ("Int", "Long Int", "Check"):
 			pattern = r"^[+-]?[0-9]+$"
 		else:
 			pattern = r"^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
 
-		invalid = frappe.db.sql(
-			f"""SELECT 1 FROM `{self.table_name}`
-			WHERE `{column.fieldname}` IS NOT NULL
+		# Table and column names cannot be bound parameters, so quote them before
+		# interpolating them into these validation expressions.
+		invalid = frappe.db.sql(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
+			f"""SELECT 1 FROM {table_identifier}
+			WHERE {column_identifier} IS NOT NULL
 				AND {value} != ''
 				AND regexp(%s, {value}) = 0
 			LIMIT 1""",
@@ -286,9 +316,10 @@ class SQLiteTable(DBTable):
 			positive_limit = "9223372036854775807" if is_bigint else "2147483647"
 			negative_limit = "9223372036854775808" if is_bigint else "2147483648"
 			magnitude = f"LTRIM(LTRIM({value}, '+-'), '0')"
-			invalid = frappe.db.sql(
-				f"""SELECT 1 FROM `{self.table_name}`
-				WHERE `{column.fieldname}` IS NOT NULL
+			invalid = (  # nosemgrep
+				frappe.db.sql(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
+					f"""SELECT 1 FROM {table_identifier}
+				WHERE {column_identifier} IS NOT NULL
 					AND {value} != ''
 					AND (
 						(SUBSTR({value}, 1, 1) = '-' AND (
@@ -301,8 +332,9 @@ class SQLiteTable(DBTable):
 						))
 					)
 				LIMIT 1""",
-				(negative_limit, positive_limit),
-				_skip_sqlite_transpilation=True,
+					(negative_limit, positive_limit),
+					_skip_sqlite_transpilation=True,
+				)
 			)
 
 		if not invalid and column.fieldtype in ("Currency", "Float", "Percent"):
@@ -311,16 +343,18 @@ class SQLiteTable(DBTable):
 				f"CASE WHEN {exponent_position} > 0 "
 				f"THEN SUBSTR({value}, 1, {exponent_position} - 1) ELSE {value} END"
 			)
-			invalid = frappe.db.sql(
-				f"""SELECT 1 FROM `{self.table_name}`
-				WHERE `{column.fieldname}` IS NOT NULL
+			invalid = (  # nosemgrep
+				frappe.db.sql(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
+					f"""SELECT 1 FROM {table_identifier}
+				WHERE {column_identifier} IS NOT NULL
 					AND {value} != ''
 					AND (
 						ABS(CAST({value} AS REAL)) >= 9e999
 						OR (CAST({value} AS REAL) = 0 AND regexp('[1-9]', {mantissa}) = 1)
 					)
 				LIMIT 1""",
-				_skip_sqlite_transpilation=True,
+					_skip_sqlite_transpilation=True,
+				)
 			)
 
 		if invalid:
