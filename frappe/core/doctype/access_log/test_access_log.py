@@ -34,7 +34,8 @@ class TestAccessLog(IntegrationTestCase):
 	def _flush_deferred_access_logs(cls):
 		cls._start_fresh_database_write()
 		flush_deferred_inserts(doctype="Access Log")
-		frappe.db.commit()
+		# Publish records drained from Redis before polling from a fresh snapshot.
+		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def _wait_for_access_log(cls, filters, timeout=5):
@@ -56,7 +57,8 @@ class TestAccessLog(IntegrationTestCase):
 	def setUp(self):
 		# generate keys for current user to send requests for the following tests
 		generate_keys(frappe.session.user)
-		frappe.db.commit()
+		# The external web process must be able to read these API credentials.
+		frappe.db.commit()  # nosemgrep
 		generated_secret = frappe.utils.password.get_decrypted_password(
 			"User", frappe.session.user, fieldname="api_secret"
 		)
@@ -189,7 +191,7 @@ class TestAccessLog(IntegrationTestCase):
 		new_private_file.insert()
 		# The web server has a separate database connection and can only see a
 		# committed fixture. Committing also releases SQLite's writer lock.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		access_log_filters = {
 			"export_from": new_private_file.doctype,
 			"reference_document": new_private_file.name,
@@ -216,7 +218,8 @@ class TestAccessLog(IntegrationTestCase):
 				self._start_fresh_database_write()
 				frappe.db.delete("Access Log", access_log_filters)
 				new_private_file.delete()
-				frappe.db.commit()
+				# This fixture was published for the web process, so persist its cleanup too.
+				frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
 		pass
