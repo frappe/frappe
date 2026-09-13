@@ -313,7 +313,7 @@ class Engine:
 			self.query = qb.from_(self.table, immutable=False).delete()
 		else:
 			self.query = qb.from_(self.table, immutable=False)
-			self.apply_fields(fields)
+			self.apply_fields(fields, cast_json_columns=self.is_postgres and bool(distinct or group_by))
 			is_select = True
 
 		self.apply_filters(filters)
@@ -385,7 +385,7 @@ class Engine:
 		self.query.immutable = True
 		return self.query
 
-	def apply_fields(self, fields):
+	def apply_fields(self, fields, cast_json_columns: bool = False):
 		self.fields = self.parse_fields(fields)
 
 		# Track field aliases for use in group_by/order_by
@@ -398,6 +398,11 @@ class Engine:
 
 		if not self.fields:
 			self.fields = [self.table.name]
+
+		if cast_json_columns:
+			# DISTINCT and GROUP BY need the selected expression to match the clause's. Runs
+			# after the permission pass, which only checks Field terms.
+			self.fields = [self._cast_json_select_field(field) for field in self.fields]
 
 		self.query._child_queries = []
 		self.query._name_field_injected = False
@@ -1385,6 +1390,8 @@ class Engine:
 			terms = self._get_star_fields(term) if isinstance(term, Star) else [term]
 			selected_field_count += len(terms)
 			for term in terms:
+				if isinstance(term, JSONColumnCast):
+					term = term.args[0]
 				if not isinstance(term, Field):
 					continue
 				table = term.table if term.table is not None else self.table
@@ -1475,7 +1482,7 @@ class Engine:
 			if parsed := self._parse_backtick_field_notation(field_name):
 				table_name, field_name = parsed
 				self.check_filter_field_permission(table_name, field_name)
-				return frappe.qb.DocType(table_name)[field_name]
+				return self._cast_json_column(frappe.qb.DocType(table_name)[field_name])
 
 			# If parsing failed, fall through to error handling below
 			frappe.throw(
@@ -1499,7 +1506,7 @@ class Engine:
 
 			# Apply join for the dynamic field
 			self.query = dynamic_field.apply_join(self.query, engine=self)
-			return dynamic_field.field
+			return self._cast_json_column(dynamic_field.field)
 		else:
 			# Validate as simple field name (alphanumeric + underscore only)
 			if not SIMPLE_FIELD_PATTERN.match(field_name):
@@ -1514,7 +1521,7 @@ class Engine:
 			self.check_filter_field_permission(self.doctype, field_name)
 
 			# Create Field object for simple field
-			return self.table[field_name]
+			return self._cast_json_column(self.table[field_name])
 
 	def _validate_group_by(self, group_by: str) -> list[Field]:
 		"""Validate the group_by string argument, apply joins for dynamic fields, and return parsed Field objects."""
@@ -1974,13 +1981,19 @@ class Engine:
 		except Exception:
 			return default
 
-	def _cast_json_column(self, field: Term, doctype: str) -> Term:
+	def _cast_json_column(self, field: Term, doctype: str | None = None) -> Term:
 		"""postgres `json` has no comparison or ordering operators, so use the column's text."""
 		if not self.is_postgres or not isinstance(field, Field) or field.name == "*":
 			return field
+		doctype = doctype or self._get_field_doctype(field, self.doctype)
 		if not self._is_json_field(doctype, field.name):
 			return field
 		return JSONColumnCast(field, "varchar")
+
+	def _cast_json_select_field(self, field: Term) -> Term:
+		"""Keep the alias so the cast does not rename the column in the result."""
+		cast = self._cast_json_column(field)
+		return cast if cast is field else cast.as_(field.alias or field.name)
 
 	def _is_json_field(self, doctype: str, fieldname: str) -> bool:
 		"""Core doctypes read the stored DocType: loading their meta queries Custom Field and
