@@ -4,7 +4,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.permissions import add_permission, update_permission_property
 from frappe.query_builder import Field
-from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
+from frappe.query_builder.functions import Abs, Cast, Count, Ifnull, Max, Now, Timestamp
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
 from frappe.tests.test_db_query import (
@@ -3100,7 +3100,11 @@ class TestJSONFieldQueries(IntegrationTestCase):
 		super().setUpClass()
 		cls.doctype = "Test JSON Field Query"
 		new_doctype(
-			cls.doctype, fields=[{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"}]
+			cls.doctype,
+			fields=[
+				{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"},
+				{"fieldname": "secret", "label": "Secret", "fieldtype": "JSON", "permlevel": 1},
+			],
 		).insert(ignore_if_duplicate=True)
 		cls.names = {
 			label: frappe.get_doc(doctype=cls.doctype, payload=payload).insert().name
@@ -3161,6 +3165,72 @@ class TestJSONFieldQueries(IntegrationTestCase):
 		frappe.get_all("Custom Field", filters={"link_filters": ["is", "not set"]}, limit=1)
 		self.assertEqual(self.get_names(["payload", "=", "[]"]), {self.names["empty"]})
 		self.assertEqual(frappe.local.message_log, [])
+
+	def test_json_field_sorting_and_grouping(self):
+		from frappe.desk.listview import get_group_by_count
+
+		own_docs = {"name": ["in", list(self.names.values())]}
+		for order_by in ("payload asc", f"`tab{self.doctype}`.`payload` asc"):
+			with self.subTest(order_by=order_by):
+				query = frappe.qb.get_query(
+					self.doctype, fields=["payload"], filters=own_docs, distinct=True, order_by=order_by
+				)
+				self.assertIn("ORDER BY", query.get_sql())
+				self.assertEqual(len(query.run()), 3)
+
+		grouped = frappe.get_all(
+			self.doctype,
+			fields=["payload", {"COUNT": "*", "as": "total"}],
+			filters=own_docs,
+			group_by="payload",
+		)
+		self.assertEqual({row.payload: row.total for row in grouped}, {None: 1, "[]": 1, '["x"]': 1})
+
+		counts = get_group_by_count(self.doctype, [["name", "in", list(self.names.values())]], "payload")
+		self.assertEqual({row["name"] for row in counts}, {None, "[]", '["x"]'})
+
+	def test_json_clause_sql_shape(self):
+		distinct = frappe.qb.get_query(self.doctype, fields=["payload as p"], distinct=True).get_sql()
+		ordered = frappe.qb.get_query(self.doctype, fields=["name"], order_by="payload asc").get_sql()
+
+		if frappe.db.db_type == "postgres":
+			self.assertIn('DISTINCT CAST("payload" AS VARCHAR) "p"', distinct)
+			self.assertIn('ORDER BY CAST("payload" AS VARCHAR)', ordered)
+
+			# a caller-supplied Cast is not looked through: its ORDER BY is still unselected
+			foreign_cast = frappe.qb.get_query(
+				self.doctype,
+				fields=[Cast(frappe.qb.DocType(self.doctype).payload, "varchar")],
+				distinct=True,
+				order_by="payload asc",
+			).get_sql()
+			self.assertNotIn("ORDER BY", foreign_cast)
+		else:
+			self.assertNotIn("CAST(", distinct)
+			self.assertNotIn("CAST(", ordered)
+
+	def test_permlevel_json_field_with_distinct(self):
+		"""The select cast runs after the permission pass, which only checks Field terms."""
+		role = "JSON Query Test Role"
+		user = "test2@example.com"
+		frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_if_duplicate=True)
+		add_permission(self.doctype, role, 0, ptype="read")
+		add_permission(self.doctype, "System Manager", 1, ptype="read")
+		frappe.get_doc("User", user).add_roles(role)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		fields = ["payload", "secret"]
+		frappe.set_user(user)
+		restricted = frappe.qb.get_query(
+			self.doctype, fields=fields, distinct=True, ignore_permissions=False
+		).get_sql()
+		frappe.set_user("Administrator")
+		permitted = frappe.qb.get_query(
+			self.doctype, fields=fields, distinct=True, ignore_permissions=False
+		).get_sql()
+
+		self.assertNotIn("secret", restricted)
+		self.assertIn("secret", permitted)
 
 
 # This function is used as a permission query condition hook
