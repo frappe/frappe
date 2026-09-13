@@ -19,6 +19,7 @@
 		</div>
 		<div
 			v-else
+			ref="thread"
 			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-10"
 			:style="{ paddingBottom: composerHeight + 40 + 'px' }"
 		>
@@ -128,7 +129,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, ref, watch } from "vue"
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildItems, formatTime, userAttachments, userText } from "../transcript.js"
@@ -209,6 +210,27 @@ function onScroll() {
 	else if (goingUp) stick.value = false
 	updateActivePrompt()
 }
+
+// collapsing a fold, a tool group or a thought can leave the view at the bottom
+// without any scroll event, so the thread's height is watched as well
+const thread = ref(null)
+let resizeObserver = null
+onMounted(() => {
+	if (typeof ResizeObserver === "undefined") return
+	resizeObserver = new ResizeObserver(() => {
+		const el = scroller.value
+		if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 4) stick.value = true
+	})
+	watch(
+		thread,
+		(el) => {
+			resizeObserver.disconnect()
+			if (el) resizeObserver.observe(el)
+		},
+		{ immediate: true },
+	)
+})
+onBeforeUnmount(() => resizeObserver?.disconnect())
 
 const prompts = computed(() =>
 	items.value
