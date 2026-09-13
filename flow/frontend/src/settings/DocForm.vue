@@ -144,6 +144,9 @@ function payload() {
 	const value = { ...doc.value, doctype: props.spec.doctype };
 	for (const field of multilinks.value)
 		value[field.name] = (doc.value[field.name] ?? []).map((name) => ({ [field.child]: name }));
+	// a JSON column rejects "": an empty editor means no value at all
+	for (const field of props.spec.fields)
+		if (field.language === "json" && !value[field.name]) value[field.name] = null;
 	return value;
 }
 

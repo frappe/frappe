@@ -74,6 +74,7 @@ const fakes = {
 			}
 		}
 		export const toast = { success() {}, error() {} }
+		export const dialog = { danger() {}, prompt() {} }
 		export function useColorScheme() {}
 	`),
 	"frappe-ui/experimental": moduleURL(`export const CodeEditor = { render() { return null } }`),

@@ -17,13 +17,14 @@ for (const name of [
 const { createApp, nextTick } = await import("vue");
 const { loadComponent, transport } = await import("./helpers/components.js");
 const DocPanel = await loadComponent("settings/DocPanel.vue");
+const DocForm = await loadComponent("settings/DocForm.vue");
 const FieldControl = await loadComponent("settings/FieldControl.vue");
 
 function mount(t, component, props) {
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(component, props);
-	app.provide("flowPage", { can: () => true, state: { boot: {} } });
+	app.provide("flowPage", { can: () => true, changed: () => {}, state: { boot: {} } });
 	app.mount(el);
 	t.after(() => {
 		app.unmount();
@@ -120,3 +121,56 @@ for (const typeName of ["link", "multilink"]) {
 		assert.equal(transport.calls.at(-1)[1].reference_doctype, "Flow Agent");
 	});
 }
+
+// a Frappe JSON column carries a json_valid check, which an empty string fails
+const sourceSpec = {
+	doctype: "Flow Knowledge Source",
+	label: "Knowledge",
+	singular: "source",
+	titleField: "title",
+	listFields: ["name", "title"],
+	fields: [
+		{ name: "title", label: "Title", type: "text" },
+		{ name: "filters", label: "Filters", type: "code", language: "json" },
+	],
+};
+
+async function saveSource(t, name, answers) {
+	transport.calls.length = 0;
+	Object.assign(transport.answers, answers);
+	const el = mount(t, DocForm, { spec: sourceSpec, name });
+	await until(() => el.querySelector("input"));
+	type(el, "ToDo");
+	await nextTick();
+	[...el.querySelectorAll("button")]
+		.find((b) => b.textContent.trim() === (name ? "Save" : "Create"))
+		.click();
+	await until(() =>
+		transport.calls.some(
+			([method]) => method.startsWith("frappe.client.") && method !== "frappe.client.get"
+		)
+	);
+	return transport.calls.find(([method]) =>
+		["frappe.client.insert", "frappe.client.save"].includes(method)
+	)[1].doc;
+}
+
+test("an untouched JSON field is saved as no value, not an empty string", async (t) => {
+	const sent = await saveSource(t, null, {
+		"frappe.client.insert": ({ doc }) => ({ ...doc, name: "source-1" }),
+	});
+	assert.equal(sent.filters, null);
+	assert.equal(sent.title, "ToDo");
+});
+
+test("a JSON field the user filled in is saved as written", async (t) => {
+	const sent = await saveSource(t, "source-1", {
+		"frappe.client.get": () => ({
+			name: "source-1",
+			title: "Old",
+			filters: '{"status": "Open"}',
+		}),
+		"frappe.client.save": ({ doc }) => doc,
+	});
+	assert.equal(sent.filters, '{"status": "Open"}');
+});
