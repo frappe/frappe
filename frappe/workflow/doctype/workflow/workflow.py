@@ -1,11 +1,30 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import operator
+from collections import defaultdict
+from datetime import timedelta
+
+from pypika.terms import Criterion, Not
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS
+from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS, get_workflow_names
 from frappe.utils import cint
+from frappe.utils.data import cast, compare, evaluate_filters
+
+CONDITION_COMPARATORS = {
+	"=": operator.eq,
+	"!=": operator.ne,
+	">": operator.gt,
+	"<": operator.lt,
+	">=": operator.ge,
+	"<=": operator.le,
+}
+LOWER_BOUND_CONDITIONS = {">", ">="}
+UPPER_BOUND_CONDITIONS = {"<", "<="}
+DISCRETE_STEPS = {"Int": 1, "Check": 1, "Date": timedelta(days=1)}
 
 
 class Workflow(Document):
@@ -18,14 +37,17 @@ class Workflow(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
+		from frappe.workflow.doctype.workflow_condition.workflow_condition import WorkflowCondition
 		from frappe.workflow.doctype.workflow_document_state.workflow_document_state import (
 			WorkflowDocumentState,
 		)
 		from frappe.workflow.doctype.workflow_transition.workflow_transition import WorkflowTransition
 
+		conditions: DF.Table[WorkflowCondition]
 		document_type: DF.Link
 		is_active: DF.Check
 		override_status: DF.Check
+		priority: DF.Int
 		send_email_alert: DF.Check
 		states: DF.Table[WorkflowDocumentState]
 		transitions: DF.Table[WorkflowTransition]
@@ -35,7 +57,10 @@ class Workflow(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_fields_in_conditions()
+		self.validate_shared_state_field()
 		self.set_active()
+		self.validate_no_ambiguous_peer()
 		self.validate_docstatus()
 
 	def on_update(self):
@@ -43,6 +68,7 @@ class Workflow(Document):
 		self.update_default_workflow_status()
 
 	def on_trash(self):
+		"""Drop this workflow's name from the doctype cache, which resolution reads without rechecking."""
 		frappe.clear_cache(doctype=self.document_type)
 
 	def create_custom_field_for_workflow_state(self):
@@ -71,22 +97,56 @@ class Workflow(Document):
 			)
 
 	def update_default_workflow_status(self):
-		docstatus_map = {}
-		states = self.get("states")
+		"""Seed the state field of documents this workflow governs, leaving the rest untouched.
 
+		A state this workflow does not define is treated as unset. A workflow that outranks a
+		peer has to correct what the peer seeded before it existed, the same way validate_workflow
+		re-enters a document whose stored state is foreign to the workflow that governs it.
+		"""
+		outranking = self.get_higher_priority_workflows()
+		if any(not workflow.conditions for workflow in outranking):
+			return
+
+		docstatus_map = {}
 		TargetDocType = frappe.qb.DocType(self.document_type)
 		state_field = getattr(TargetDocType, self.workflow_state_field)
+		criteria = self.get_condition_criteria(TargetDocType)
+		criteria += [
+			Not(Criterion.all(workflow.get_condition_criteria(TargetDocType))) for workflow in outranking
+		]
 
-		for d in states:
-			if d.doc_status not in docstatus_map:
-				(
-					frappe.qb.update(TargetDocType)
-					.set(state_field, d.state)
-					.where(state_field.isnull() | (state_field == ""))
-					.where(TargetDocType.docstatus == d.doc_status)
-				).run()
+		own_states = [d.state for d in self.states]
 
-				docstatus_map[d.doc_status] = d.state
+		for d in self.get("states"):
+			if d.doc_status in docstatus_map:
+				continue
+
+			query = (
+				frappe.qb.update(TargetDocType)
+				.set(state_field, d.state)
+				.where(state_field.isnull() | (state_field == "") | state_field.notin(own_states))
+				.where(TargetDocType.docstatus == d.doc_status)
+			)
+			for criterion in criteria:
+				query = query.where(criterion)
+
+			query.run()
+			docstatus_map[d.doc_status] = d.state
+
+	def get_higher_priority_workflows(self) -> list["Workflow"]:
+		"""Active workflows of this doctype that resolve before this one.
+
+		Position, not priority: get_workflow_names breaks a tie by modification time, so comparing
+		priority alone would let an older peer seed the documents its newer peer governs.
+		"""
+		names = get_workflow_names(self.document_type)
+		if self.name not in names:
+			return []
+
+		return [frappe.get_cached_doc("Workflow", name) for name in names[: names.index(self.name)]]
+
+	def get_condition_criteria(self, table) -> list:
+		return [CONDITION_COMPARATORS[d.condition](getattr(table, d.field), d.value) for d in self.conditions]
 
 	def validate_docstatus(self):
 		def get_state(state):
@@ -130,14 +190,181 @@ class Workflow(Document):
 			if state_docstatus == 0 and next_state_docstatus == 2:
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
+	def applies_to(self, doc) -> bool:
+		"""Return True if this workflow governs `doc`. A workflow without conditions governs all.
+
+		Conditions are evaluated one at a time: Filters.optimize collapses repeated equalities on a
+		field into an `in`, which would read the rows as alternatives rather than requirements.
+		"""
+		return all(
+			evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
+			for d in self.conditions
+		)
+
+	def validate_fields_in_conditions(self):
+		if not self.conditions:
+			return
+
+		docfields = {df.fieldname for df in frappe.get_meta(self.document_type).fields}
+		for condition in self.conditions:
+			if condition.field not in docfields:
+				frappe.throw(
+					_("{0} is not a field of doctype {1}").format(
+						frappe.bold(condition.field), frappe.bold(self.document_type)
+					)
+				)
+
+	def validate_shared_state_field(self):
+		"""Every workflow of a doctype has to read its state from the same field.
+
+		The desk resolves the state field per doctype, so two active workflows disagreeing on it
+		would leave documents rendering against the wrong field.
+		"""
+		if not cint(self.is_active):
+			return
+
+		others = self.get_other_active_workflows(["name", "workflow_state_field"])
+		for other in others:
+			if other.workflow_state_field != self.workflow_state_field:
+				frappe.throw(
+					_(
+						"Workflow {0} on {1} uses the state field {2}. Every active workflow of a doctype must use the same field."
+					).format(
+						frappe.bold(other.name),
+						frappe.bold(self.document_type),
+						frappe.bold(other.workflow_state_field),
+					)
+				)
+
+	def validate_no_ambiguous_peer(self):
+		"""Active workflows sharing a priority must not both be able to match one document.
+
+		Resolution takes the first match in priority order, so a tie is settled by modification
+		time, and the losing workflow is never reached.
+		"""
+		if not cint(self.is_active):
+			return
+
+		for peer in self.get_other_active_workflows(["name", "priority"]):
+			if cint(peer.priority) != cint(self.priority):
+				continue
+
+			if not self.is_disjoint_from(frappe.get_cached_doc("Workflow", peer.name)):
+				frappe.throw(
+					_(
+						"Workflow {0} has the same priority and can govern the same {1}. Narrow the conditions of either workflow, or give them different priorities."
+					).format(frappe.bold(peer.name), frappe.bold(self.document_type))
+				)
+
+	def is_disjoint_from(self, other: "Workflow") -> bool:
+		"""True when a field both workflows constrain proves no document can match both."""
+		own = group_conditions_by_field(self.conditions)
+		their = group_conditions_by_field(other.conditions)
+
+		return any(
+			self.is_contradictory(own[field], their[field], field) for field in own.keys() & their.keys()
+		)
+
+	def is_contradictory(self, own, their, field) -> bool:
+		"""True when the two sets of conditions on one field cannot hold for the same document."""
+		docfield = frappe.get_meta(self.document_type).get_field(field)
+		fieldtype = docfield.fieldtype if docfield else None
+
+		own_value = get_pinned_value(own, fieldtype)
+		if own_value is not None:
+			return not is_allowed_by(own_value, their, fieldtype)
+
+		their_value = get_pinned_value(their, fieldtype)
+		if their_value is not None:
+			return not is_allowed_by(their_value, own, fieldtype)
+
+		return any(is_empty_range(a, b, fieldtype) for a in own for b in their)
+
 	def set_active(self):
-		if cint(self.is_active):
-			Workflow = frappe.qb.DocType("Workflow")
-			(
-				frappe.qb.update(Workflow)
-				.set(Workflow.is_active, 0)
-				.where(Workflow.document_type == self.document_type)
-			).run()
+		"""Retire the other catch-all workflow of this doctype; conditional ones can coexist."""
+		if not cint(self.is_active) or self.conditions:
+			return
+
+		names = [other.name for other in self.get_other_active_workflows(["name"])]
+		if not names:
+			return
+
+		conditional = set(
+			frappe.get_all(
+				"Workflow Condition",
+				filters={"parenttype": "Workflow", "parent": ("in", names)},
+				pluck="parent",
+			)
+		)
+		for name in names:
+			if name not in conditional:
+				frappe.db.set_value("Workflow", name, "is_active", 0)
+
+	def get_other_active_workflows(self, fields: list[str]) -> list:
+		"""Read the peers straight from the table.
+
+		This runs during validate, before this workflow's own row exists. Going through the
+		cached name list would store an answer taken from that gap and hand it to every document
+		saved afterwards.
+		"""
+		return frappe.get_all(
+			"Workflow",
+			filters={
+				"document_type": self.document_type,
+				"is_active": 1,
+				"name": ("!=", self.name),
+			},
+			fields=fields,
+		)
+
+
+def group_conditions_by_field(conditions) -> dict[str, list]:
+	grouped = defaultdict(list)
+	for condition in conditions:
+		grouped[condition.field].append(condition)
+
+	return grouped
+
+
+def is_allowed_by(value, conditions, fieldtype) -> bool:
+	"""True when the value satisfies every one of the conditions."""
+	return all(compare(value, d.condition, d.value, fieldtype) for d in conditions)
+
+
+def get_pinned_value(conditions, fieldtype):
+	"""The single value these conditions force the field to, if they force one."""
+	values = {cast(fieldtype, d.value) for d in conditions if d.condition == "="}
+	bounds = {d.condition: cast(fieldtype, d.value) for d in conditions if d.condition in ("<=", ">=")}
+	if ">=" in bounds and bounds[">="] == bounds.get("<="):
+		values.add(bounds[">="])
+
+	return values.pop() if len(values) == 1 else None
+
+
+def to_inclusive_bound(condition, fieldtype) -> tuple[str, object]:
+	"""A strict bound on a field with discrete values is the inclusive bound one step in."""
+	value = cast(fieldtype, condition.value)
+	step = DISCRETE_STEPS.get(fieldtype)
+	if not step or condition.condition in ("<=", ">="):
+		return condition.condition, value
+
+	return (">=", value + step) if condition.condition == ">" else ("<=", value - step)
+
+
+def is_empty_range(first, second, fieldtype) -> bool:
+	"""True when a lower bound and an upper bound on the same field leave no value between them."""
+	lower, upper = first, second
+	if lower.condition in UPPER_BOUND_CONDITIONS:
+		lower, upper = upper, lower
+
+	if lower.condition not in LOWER_BOUND_CONDITIONS or upper.condition not in UPPER_BOUND_CONDITIONS:
+		return False
+
+	low_condition, low_value = to_inclusive_bound(lower, fieldtype)
+	high_condition, high_value = to_inclusive_bound(upper, fieldtype)
+	both_inclusive = low_condition == ">=" and high_condition == "<="
+
+	return compare(low_value, ">" if both_inclusive else ">=", high_value, fieldtype)
 
 
 @frappe.whitelist()

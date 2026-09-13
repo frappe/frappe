@@ -22,10 +22,9 @@ frappe.ui.form.States = class FormStates {
 		this.frm.page.add_action_item(
 			__("Help"),
 			function () {
-				frappe.workflow.setup(me.frm.doctype);
 				var state = me.get_state();
 				var d = new frappe.ui.Dialog({
-					title: "Workflow: " + frappe.workflow.workflows[me.frm.doctype].name,
+					title: "Workflow: " + frappe.workflow.get_workflow(me.frm.doc).name,
 				});
 
 				frappe.workflow.get_transitions(me.frm.doc).then((transitions) => {
@@ -36,7 +35,7 @@ frappe.ui.form.States = class FormStates {
 						).join(", ") || __("None: End of Workflow").bold();
 
 					const document_editable_by = frappe.workflow
-						.get_document_state_roles(me.frm.doctype, state)
+						.get_document_state_roles(me.frm.doc, state)
 						.map((role) => frappe.utils.bold(role))
 						.join(", ");
 
@@ -63,6 +62,8 @@ frappe.ui.form.States = class FormStates {
 		// workflow_state (it predates the workflow) never reaches
 		// show_actions, and would otherwise keep showing them
 		this.frm.page.clear_actions_menu();
+
+		if (!frappe.workflow.has_workflow(this.frm.doc)) return;
 
 		// hide if its not yet saved
 		if (this.frm.doc.__islocal) {
@@ -110,10 +111,7 @@ frappe.ui.form.States = class FormStates {
 				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function () {
-						if (
-							frappe.workflow?.workflows?.[me.frm.doctype]
-								?.enable_action_confirmation
-						) {
+						if (frappe.workflow.get_workflow(me.frm.doc)?.enable_action_confirmation) {
 							frappe.confirm(__("Are you sure you want to {0}?", [d.action]), () =>
 								me.handle_workflow_action(d)
 							);
@@ -162,7 +160,7 @@ frappe.ui.form.States = class FormStates {
 
 	set_default_state() {
 		var default_state = frappe.workflow.get_default_state(
-			this.frm.doctype,
+			this.frm.doc,
 			this.frm.doc.docstatus
 		);
 		if (default_state) {

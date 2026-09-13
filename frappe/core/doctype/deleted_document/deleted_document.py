@@ -68,7 +68,7 @@ def restore(name: str | int, alert: bool = True):
 	except frappe.DocstatusTransitionError:
 		frappe.msgprint(_("Cancelled Document restored as Draft"))
 		doc.docstatus = 0
-		active_workflow = get_workflow_name(doc.doctype)
+		active_workflow = get_workflow_name(doc.doctype, doc)
 		if active_workflow:
 			workflow_state_fieldname = frappe.get_value("Workflow", active_workflow, "workflow_state_field")
 			if doc.get(workflow_state_fieldname):

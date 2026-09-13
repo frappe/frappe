@@ -31,13 +31,44 @@ class WorkflowPermissionError(frappe.ValidationError):
 	pass
 
 
-def get_workflow_name(doctype):
-	workflow_name = frappe.cache.hget("workflow", doctype)
-	if workflow_name is None:
-		workflow_name = frappe.db.get_value("Workflow", {"document_type": doctype, "is_active": 1}, "name")
-		frappe.cache.hset("workflow", doctype, workflow_name or "")
+def get_workflow_names(doctype: str) -> list[str]:
+	"""Return every active workflow of a doctype, highest priority first.
 
-	return workflow_name
+	Priority is read off the cached doc rather than the query, because a site part way through a
+	migrate has the row but not yet the column, and every document save comes through here.
+	"""
+	names = frappe.cache.hget("workflows", doctype)
+	if names is None:
+		names = frappe.get_all(
+			"Workflow",
+			filters={"document_type": doctype, "is_active": 1},
+			order_by="modified desc",
+			pluck="name",
+		)
+		names.sort(key=lambda name: -cint(frappe.get_cached_doc("Workflow", name).get("priority")))
+		frappe.cache.hset("workflows", doctype, names)
+
+	return names
+
+
+def get_workflow_name(doctype: str, doc: "Document | dict | None" = None) -> str | None:
+	"""Return the workflow governing `doc`.
+
+	Without a doc, return the highest priority workflow of the doctype. A doc that matches no
+	workflow's conditions is not governed by any workflow and behaves as if none were configured.
+	"""
+	names = get_workflow_names(doctype)
+	if not names:
+		return None
+
+	if doc is None:
+		return names[0]
+
+	for name in names:
+		if frappe.get_cached_doc("Workflow", name).applies_to(doc):
+			return name
+
+	return None
 
 
 @frappe.whitelist()
@@ -56,7 +87,10 @@ def get_transitions(
 
 	doc.check_permission("read")
 
-	workflow = workflow or get_workflow(doc.doctype)
+	workflow = workflow or get_workflow(doc.doctype, doc)
+	if not workflow:
+		return []
+
 	current_state = doc.get(workflow.workflow_state_field)
 
 	if not current_state:
@@ -120,7 +154,10 @@ def apply_workflow(doc: Document | str | dict, action: str):
 	"""Allow workflow action on the current doc"""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.load_from_db()
-	workflow = get_workflow(doc.doctype)
+	workflow = get_workflow(doc.doctype, doc)
+	if not workflow:
+		frappe.throw(_("No Workflow applies to this document"), WorkflowTransitionError)
+
 	transitions = get_transitions(doc, workflow)
 	user = frappe.session.user
 
@@ -231,8 +268,18 @@ def apply_workflow(doc: Document | str | dict, action: str):
 
 
 @frappe.whitelist()
-def can_cancel_document(doctype: str):
-	workflow = get_workflow(doctype)
+def can_cancel_document(doctype: str, docname: str | None = None):
+	doc = None
+	if docname:
+		# doctype level first, so a caller without read access cannot probe for names
+		frappe.has_permission(doctype=doctype, ptype="read", throw=True)
+		doc = frappe.get_doc(doctype, docname)
+		doc.check_permission("read")
+
+	workflow = get_workflow(doctype, doc)
+	if not workflow:
+		return True
+
 	cancelling_states = [s.state for s in workflow.states if s.doc_status == "2"]
 	if not cancelling_states:
 		return True
@@ -243,17 +290,31 @@ def can_cancel_document(doctype: str):
 	return True
 
 
+def get_state_for_docstatus(workflow: "Workflow", docstatus) -> str:
+	"""The state a document of this docstatus enters the workflow at."""
+	for state in workflow.states:
+		if cint(state.doc_status) == cint(docstatus):
+			return state.state
+
+	return workflow.states[0].state
+
+
 def validate_workflow(doc):
 	"""Validate Workflow State and Transition for the current user.
 
 	- Check if user is allowed to edit in current state
 	- Check if user is allowed to transition to the next state (if changed)
 	"""
-	workflow = get_workflow(doc.doctype)
+	workflow = get_workflow(doc.doctype, doc)
 
 	current_state = None
 	if getattr(doc, "_doc_before_save", None):
 		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
+
+	if current_state and not any(d.state == current_state for d in workflow.states):
+		current_state = get_state_for_docstatus(workflow, doc.docstatus)
+		doc.set(workflow.workflow_state_field, current_state)
+
 	next_state = doc.get(workflow.workflow_state_field)
 
 	if not next_state:
@@ -294,8 +355,9 @@ def validate_workflow(doc):
 			)
 
 
-def get_workflow(doctype) -> "Workflow":
-	return frappe.get_cached_doc("Workflow", get_workflow_name(doctype))
+def get_workflow(doctype, doc: "Document | dict | None" = None) -> "Workflow | None":
+	name = get_workflow_name(doctype, doc)
+	return frappe.get_cached_doc("Workflow", name) if name else None
 
 
 def has_approval_access(user, doc, transition):
