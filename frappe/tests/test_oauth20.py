@@ -61,6 +61,14 @@ class FrappeRequestTestCase(IntegrationTestCase):
 class TestOAuth20(FrappeRequestTestCase):
 	site = frappe.local.site
 
+	@staticmethod
+	def _start_fresh_database_write():
+		frappe.db.rollback()
+		if frappe.db.db_type == "sqlite":
+			# Acquire SQLite's writer slot before delete validation opens a read
+			# snapshot that a finishing web request could invalidate.
+			frappe.db.sql("DELETE FROM `tabOAuth Client` WHERE 1 = 0")
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -160,6 +168,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		return OAuthWebRequestValidator().authenticate_client(request)
 
 	def tearDown(self):
+		self._start_fresh_database_write()
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
 
@@ -186,7 +195,7 @@ class TestOAuth20(FrappeRequestTestCase):
 	def test_openid_profile_post_body_token(self):
 		access_token, _token = self._make_bearer_token()
 		# The HTTP request runs in another thread and only sees committed fixtures.
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		frappe.db.commit()  # nosemgrep
 
 		openid_response = self.post(
 			"/api/method/frappe.integrations.oauth2.openid_profile",
@@ -570,26 +579,30 @@ class TestOAuth20(FrappeRequestTestCase):
 		oauth_client_before = oauth_client.get_doc_before_save()
 		frappe.db.commit()
 
-		session = requests.Session()
-		login(session)
-
 		redirect_destination = None
+		with requests.Session() as session:
+			login(session)
 
-		# Go to Authorize url
-		try:
-			session.get(
-				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
-				params=encode_params(
-					{
-						"client_id": self.client_id,
-						"scope": self.scope,
-						"response_type": "token",
-						"redirect_uri": self.redirect_uri,
-					}
-				),
-			)
-		except requests.exceptions.ConnectionError as ex:
-			redirect_destination = ex.request.url
+			# Go to Authorize url
+			try:
+				session.get(
+					get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
+					params=encode_params(
+						{
+							"client_id": self.client_id,
+							"scope": self.scope,
+							"response_type": "token",
+							"redirect_uri": self.redirect_uri,
+						}
+					),
+					timeout=30,
+				)
+			except requests.exceptions.ConnectionError as ex:
+				redirect_destination = ex.request.url
+
+		# The web requests committed the token using another connection. Release
+		# this process's older SQLite snapshot before reading and writing again.
+		frappe.db.rollback()
 
 		response_dict = parse_qs(urlparse(redirect_destination).fragment)
 
@@ -598,6 +611,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertTrue(response_dict.get("scope"))
 		self.assertTrue(response_dict.get("token_type"))
 		self.assertTrue(check_valid_openid_response(response_dict.get("access_token")[0]))
+		self._start_fresh_database_write()
 		oauth_client.delete(force=True)
 		oauth_client_before.insert()
 		frappe.db.commit()
@@ -693,10 +707,10 @@ def check_valid_openid_response(access_token=None, client: "FrappeRequestTestCas
 	# check openid for email test@example.com
 	if client:
 		openid_response = client.get(URL, headers=headers)
-	else:
-		openid_response = requests.get(get_full_url(URL), headers=headers)
+		return openid_response.status_code == 200
 
-	return openid_response.status_code == 200
+	with requests.get(get_full_url(URL), headers=headers, timeout=30) as openid_response:
+		return openid_response.status_code == 200
 
 
 def login(session):

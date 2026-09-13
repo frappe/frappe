@@ -49,7 +49,7 @@ def make_request(
 	# cannot let that connection write while this one retains an uncommitted
 	# fixture and its writer lock, so publish SQLite setup before starting it.
 	if getattr(frappe.local, "db", None) and frappe.db.db_type == "sqlite":
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
@@ -182,15 +182,17 @@ class TestResourceAPI(FrappeAPITestCase):
 				}
 			).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)
-		frappe.db.commit()
+		# API requests run on another connection and must see the class fixtures.
+		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.commit()
+		# End any request transaction before deleting fixtures it may have touched.
+		frappe.db.commit()  # nosemgrep
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.delete_doc_if_exists("User", cls.TEST_USER)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_unauthorized_call_v1(self):
@@ -438,13 +440,15 @@ class TestQueryMethod(FrappeAPITestCase):
 		cls.todo = frappe.get_doc(
 			{"doctype": "ToDo", "description": f"query method test {frappe.generate_hash()}"}
 		).insert()
-		frappe.db.commit()
+		# Publish the document before QUERY requests read it on another connection.
+		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc_if_exists("ToDo", cls.todo.name)
-		frappe.db.commit()
+		# The fixture was published for another connection, so persist cleanup.
+		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
 	def test_document_list_v1(self):
@@ -699,7 +703,8 @@ def generate_admin_keys():
 	from frappe.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-	frappe.db.commit()
+	# API requests authenticate on another connection and need these credentials.
+	frappe.db.commit()  # nosemgrep
 
 
 @whitelist_for_tests()
