@@ -2,7 +2,15 @@
 import { h, mergeProps } from 'vue'
 import feather from 'feather-icons'
 
-const validIcons = Object.keys(feather.icons)
+// icons feather lacks, drawn on its 24px grid
+const extraIcons = {
+  bot: {
+    attrs: { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', class: 'feather feather-bot' },
+    contents:
+      '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1"/><path d="M2 14h2M20 14h2M9 13v2M15 13v2"/>',
+  },
+}
+const validIcons = [...Object.keys(feather.icons), ...Object.keys(extraIcons)]
 
 export default {
   props: {
@@ -31,7 +39,7 @@ export default {
     },
   },
   render() {
-    let icon = feather.icons[this.name]
+    let icon = feather.icons[this.name] || extraIcons[this.name]
     if (!icon) {
       icon = feather.icons['circle']
     }

@@ -10,7 +10,12 @@
 
 		<!-- host for frappe-ui's imperative dialog.* stack (confirm/danger/prompt) -->
 		<Dialogs />
-		<SettingsDialog />
+		<SettingsDialog :groups="SETTINGS">
+			<template #general><SettingsGeneral /></template>
+			<template #appearance><SettingsAppearance /></template>
+			<template #presets><SettingsPresets /></template>
+			<template #skills><SettingsSkills /></template>
+		</SettingsDialog>
 
 		<Transition name="flow-toast">
 			<div
@@ -35,12 +40,29 @@ import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { installShortcuts } from "../shortcuts.js"
+import { provideComposerHeight } from "../composerHeight.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
 import MessageList from "./MessageList.vue"
 import SessionSidebar from "./SessionSidebar.vue"
+import SettingsAppearance from "./SettingsAppearance.vue"
 import SettingsDialog from "./SettingsDialog.vue"
+import SettingsGeneral from "./SettingsGeneral.vue"
+import SettingsPresets from "./SettingsPresets.vue"
+import SettingsSkills from "./SettingsSkills.vue"
 import WorkspacePanel from "./WorkspacePanel.vue"
+
+const SETTINGS = [
+	{
+		label: "Settings",
+		tabs: [
+			{ id: "general", label: "General", icon: "sliders" },
+			{ id: "appearance", label: "Appearance", icon: "sun" },
+			{ id: "presets", label: "Agent presets", icon: "layers" },
+			{ id: "skills", label: "Skills", icon: "book-open" },
+		],
+	},
+]
 
 const props = defineProps({
 	store: { type: Object, required: true },
@@ -52,23 +74,12 @@ useColorScheme() // restores the saved theme and applies data-theme
 const sidebarOpen = computed(() => props.store.state.prefs.sidebarOpen !== false)
 const composer = ref(null)
 
-// the composer floats over the list; the list pads by its measured height so
-// the last message is never hidden under it
-const composerHeight = ref(120)
-provide("composerHeight", composerHeight)
-let resizeObserver = null
+provideComposerHeight(composer)
 let uninstallShortcuts = null
 onMounted(() => {
 	uninstallShortcuts = installShortcuts(props.store)
-	const el = composer.value?.$el
-	if (!el || typeof ResizeObserver === "undefined") return
-	resizeObserver = new ResizeObserver(() => (composerHeight.value = el.offsetHeight))
-	resizeObserver.observe(el)
 })
-onBeforeUnmount(() => {
-	uninstallShortcuts?.()
-	resizeObserver?.disconnect()
-})
+onBeforeUnmount(() => uninstallShortcuts?.())
 
 const toast = ref(null)
 let toastTimer = null

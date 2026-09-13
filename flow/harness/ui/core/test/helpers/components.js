@@ -4,12 +4,37 @@ import { compileScript, parse } from "vue/compiler-sfc"
 
 const vue = import.meta.resolve("vue")
 const moduleURL = (code) => `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`
-const stub = moduleURL(`
+const stubs = new Map()
+// a stub carries its name so a test can see which widget the tree mounted
+function stubURL(name) {
+	if (!stubs.has(name))
+		stubs.set(name, moduleURL(`
+			import { h } from ${JSON.stringify(vue)}
+			export default { render() { return h('div', { 'data-stub': ${JSON.stringify(name)} }, this.$slots.default?.()) } }
+		`))
+	return stubs.get(name)
+}
+const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
+// frappe-ui's settings pieces as slot-rendering stubs that keep their tab value
+const settingsPieces = moduleURL(`
 	import { h } from ${JSON.stringify(vue)}
-	export default { render() { return h('div', this.$slots.default?.()) } }
+	const piece = (name, tag = "div") => ({
+		props: ["value", "open", "tab", "size", "shortcut"],
+		render() {
+			return h(tag, { "data-stub": name, "data-value": this.value }, [this.$slots.label?.(), this.$slots.prefix?.(), this.$slots.default?.()])
+		},
+	})
+	export const SettingsDialog = piece("SettingsDialog")
+	export const SettingsSidebar = piece("SettingsSidebar")
+	export const SettingsNavGroup = piece("SettingsNavGroup")
+	export const SettingsNavItem = piece("SettingsNavItem", "button")
+	export const SettingsContent = piece("SettingsContent")
+	export const SettingsPanel = piece("SettingsPanel")
 `)
-const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([])`)
-const components = new Set(["Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue"])
+const components = new Set([
+	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue", "PopMenu.vue",
+	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue",
+])
 const compiled = new Map()
 
 // Compile the real templates for DOM tests; unrelated child widgets are shallow
@@ -24,11 +49,12 @@ async function componentURL(url) {
 		const specifier = match[1]
 		let resolved
 		if (specifier.endsWith(".vue")) {
-			resolved = components.has(specifier.split("/").pop())
-				? await componentURL(new URL(specifier, url))
-				: stub
+			const name = specifier.split("/").pop()
+			resolved = components.has(name) ? await componentURL(new URL(specifier, url)) : stubURL(name.slice(0, -4))
 		} else if (specifier === "frappe-ui/src/utils/dialog") {
 			resolved = dialogs
+		} else if (specifier === "frappe-ui/src/components/SettingsDialog") {
+			resolved = settingsPieces
 		} else {
 			resolved = specifier.startsWith(".") ? new URL(specifier, url).href : import.meta.resolve(specifier)
 		}

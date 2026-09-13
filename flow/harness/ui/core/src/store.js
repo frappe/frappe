@@ -35,7 +35,10 @@ function readJSON(key, fallback) {
 //   skillsEnabled  false disables skill catalog requests and composer suggestions
 //   presentTool    (name, args) => { icon, label, subject, title, body, argsComponent }, any
 //                  subset, describing the host's own tools in rows and approvals
+//   turnActions    a component rendered after each finished turn's copy button, with
+//                  the turn's key, response text and timestamp as props
 export function createFlowStore(client, options = {}) {
+	const capabilities = { rewind: typeof client.rewind === "function" }
 	options = {
 		requireCwd: true,
 		storageKey: "flow.ui",
@@ -147,6 +150,13 @@ export function createFlowStore(client, options = {}) {
 		const data = await guard(() => client.sessions())
 		if (!data) return
 		state.sessions = data.sessions
+		// the open session's row mirrors its loaded detail: the live stream keeps that
+		// newer than a list served before an event landed
+		const open = state.sessions.find((info) => info.session_id === state.session?.session_id)
+		if (open) {
+			if (state.session.title != null) open.title = state.session.title
+			if (state.session.state != null) open.state = state.session.state
+		}
 		// drop stored panel state for sessions deleted outside this UI
 		const known = new Set(data.sessions.map((info) => info.session_id))
 		const stale = Object.keys(workspaceBySession).filter((sid) => !known.has(sid))
@@ -241,7 +251,8 @@ export function createFlowStore(client, options = {}) {
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
 		// seed cwd/title from the session list so the header doesn't flash empty
-		// while the full session loads
+		// while the full session loads; no session_id, so a list refresh doesn't take
+		// the seed's display title for the session's own
 		const listed = state.sessions.find((s) => s.session_id === sid)
 		state.session = listed ? { title: sessionTitle(listed), config: { cwd: listed.cwd } } : null
 		state.queued = []
@@ -342,13 +353,29 @@ export function createFlowStore(client, options = {}) {
 			if (queued !== -1) state.queued.splice(queued, 1)
 			rememberTitle(sid)
 		}
-		// refresh the picker only for live run boundaries, not replayed history
+		// only a live run boundary is picker activity, not replayed history
 		if (
 			(event.type === "run_started" || event.type === "run_ended") &&
 			event.seq > (state.session?.latest_seq ?? 0)
 		) {
-			refreshSessions()
+			let sessionState = "running"
+			if (event.type === "run_ended") sessionState = event.reason === "paused" ? "paused" : "idle"
+			recordRunBoundary(sid, sessionState)
 		}
+	}
+
+	// A run boundary is the open session's newest activity: its row takes the new state
+	// and the top of the picker. A session the picker doesn't list yet (the daemon lists
+	// one from its first durable row) is fetched instead.
+	function recordRunBoundary(sid, sessionState) {
+		if (state.session) state.session.state = sessionState
+		const row = state.sessions.find((info) => info.session_id === sid)
+		if (!row) {
+			refreshSessions()
+			return
+		}
+		row.state = sessionState
+		state.sessions = [row, ...state.sessions.filter((info) => info.session_id !== sid)]
 	}
 
 	// Reset to the blank "new chat" state, carrying the active project's cwd
@@ -469,7 +496,7 @@ export function createFlowStore(client, options = {}) {
 		const createdIds = []
 		let admitted = false
 		try {
-			const uploads = attachments.filter((item) => item.file).map((item) => item.file)
+			const uploads = attachments.filter((item) => item.file && !item.id).map((item) => item.file)
 			const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
 			// independent sources — resolve concurrently rather than paying two round trips
 			const [uploaded, attached] = await Promise.all([
@@ -553,6 +580,7 @@ export function createFlowStore(client, options = {}) {
 	// Rewind to just before a user message: everything after it leaves the
 	// active branch, and its text lands in the composer draft for rephrasing.
 	async function rewindToMessage(entry) {
+		if (!capabilities.rewind) return null
 		// the confirm dialog may outlive a session switch — this entry's seqs
 		// only mean anything in the conversation it came from
 		if (!state.conversation.entries.includes(entry)) return null
@@ -1015,7 +1043,11 @@ export function createFlowStore(client, options = {}) {
 	return {
 		state,
 		client,
+		capabilities,
 		options,
+		// Optional host staging before a session exists; the daemon uploads on send.
+		prepareAttachment: client.prepareAttachment?.bind(client),
+		discardAttachments: client.discardAttachments?.bind(client),
 		refreshSessions,
 		refreshModels,
 		refreshTools,

@@ -18,6 +18,8 @@
 				@close="closePalettes"
 				@back="openCommands"
 			/>
+			<!-- a host's own pages, opened by its commands or toolbar pickers -->
+			<slot name="palette" :view="paletteView" :close="closePalettes" :back="openCommands" />
 
 			<!-- slash-command palette -->
 			<PalettePanel v-if="menuOpen" title="Commands" :autofocus="false" @close="closePalettes">
@@ -72,8 +74,10 @@
 				}}</span>
 			</div>
 
-			<div
-				class="flow-composer-surface flex flex-col gap-2 rounded-7 border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
+			<!-- a fieldset: disabling it disables every control inside, a host's pickers included -->
+			<fieldset
+				:disabled="disabled"
+				class="flow-composer-surface flex min-w-0 flex-col gap-2 rounded-7 border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
 			>
 				<button
 					v-if="needsCwd"
@@ -103,6 +107,9 @@
 						>
 							<FeatherIcon name="x" class="h-3 w-3" />
 						</button>
+						<span v-if="item.preparing" class="pointer-events-none absolute bottom-1 left-1 rounded bg-surface-base/90 p-1" :aria-label="`Preparing ${item.name}`" role="status">
+							<FeatherIcon name="loader" class="h-3.5 w-3.5 animate-spin" />
+						</span>
 					</figure>
 				</div>
 				<div v-if="codeRefs.length || fileChips.length" class="flex flex-wrap items-center gap-1.5 px-1 pt-0.5">
@@ -119,7 +126,10 @@
 						</button>
 					</span>
 					<span v-for="{ item, i } in fileChips" :key="item.key" :class="chipClass" :title="item.name">
-						<span :class="chipIconClass">
+						<span v-if="item.preparing" :class="chipIconClass" :aria-label="`Preparing ${item.name}`" role="status">
+							<FeatherIcon name="loader" class="h-3.5 w-3.5 animate-spin" />
+						</span>
+						<span v-else :class="chipIconClass">
 							<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
 						</span>
 						<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
@@ -133,6 +143,10 @@
 							<FeatherIcon name="x" class="h-3 w-3" />
 						</button>
 					</span>
+				</div>
+				<div v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-xs text-ink-red-6">
+					Could not prepare {{ item.name }}: {{ item.error }}
+					<button class="underline" :disabled="submitting" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
 				<div class="relative">
 					<div
@@ -149,7 +163,7 @@
 						v-model="text"
 						rows="1"
 						:disabled="submitting"
-						placeholder="Ask flow…"
+						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
 						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0"
 						:class="skillPrompt ? 'text-transparent' : 'text-ink-gray-9'"
@@ -184,50 +198,10 @@
 						<FeatherIcon name="plus" class="h-4 w-4" />
 					</button>
 
-					<!-- model picker: a menu of the two palettes it fronts -->
-					<span class="relative min-w-0">
-						<button
-							class="flex h-7 min-w-0 max-w-[360px] items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-							:class="modelMenu ? 'bg-surface-gray-2' : ''"
-							:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
-							aria-haspopup="menu"
-							:aria-expanded="modelMenu"
-							@click="modelMenu = !modelMenu"
-						>
-							<span class="min-w-0 truncate">{{ modelLabel }}</span>
-							<template v-if="currentEffort !== 'default'">
-								<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
-								<span class="flex-none font-normal text-ink-gray-5">{{ effortLabel }}</span>
-							</template>
-							<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none text-ink-gray-4" />
-						</button>
-						<PopMenu :open="modelMenu" label="Model and thinking" :width="266" @close="modelMenu = false">
-							<button
-								v-for="entry in MODEL_MENU"
-								:key="entry.view"
-								role="menuitem"
-								class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
-								@click="openPalette(entry.view)"
-							>
-								<FeatherIcon
-									:name="entry.icon"
-									class="h-3.5 w-3.5 flex-none self-center text-ink-gray-5"
-								/>
-								<span class="min-w-0 flex-1">
-									<span class="block text-xs font-medium leading-4 text-ink-gray-9">
-										{{ entry.label }}
-									</span>
-									<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">
-										{{ entry.value }}
-									</span>
-								</span>
-								<FeatherIcon
-									name="chevron-right"
-									class="h-3.5 w-3.5 flex-none self-center text-ink-gray-4"
-								/>
-							</button>
-						</PopMenu>
-					</span>
+					<!-- the pickers; a host adds its own around the model button -->
+					<slot name="toolbar" :open-palette="openPalette">
+						<ModelButton @open="openPalette" />
+					</slot>
 
 					<span class="min-w-2 flex-1" />
 
@@ -241,12 +215,12 @@
 							:aria-expanded="modeMenu"
 							@click="modeMenu = !modeMenu"
 						>
-							{{ currentMode === "auto" ? "Auto-approve" : "Ask for approval" }}
+							{{ modeLabel }}
 							<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none text-ink-gray-4" />
 						</button>
 						<PopMenu :open="modeMenu" label="Approval mode" align="right" :width="266" @close="modeMenu = false">
 							<button
-								v-for="m in MODES"
+								v-for="m in modes"
 								:key="m.id"
 								role="menuitemradio"
 								:aria-checked="currentMode === m.id"
@@ -267,7 +241,7 @@
 					</span>
 
 					<button
-						v-if="running"
+						v-if="running && !submitting"
 						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base shadow-sm hover:opacity-90"
 						title="Stop"
 						@click="flow.abort()"
@@ -278,17 +252,20 @@
 						v-else
 						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 shadow-sm"
 						:class="
-							canSend
+							canSend || submitting
 								? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
 								: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4'
 						"
 						title="Send"
+						:disabled="!canSend"
+						:aria-busy="submitting"
 						@click="submit"
 					>
-						<FeatherIcon name="arrow-up" class="h-4 w-4" />
+						<FeatherIcon v-if="submitting" name="loader" class="h-4 w-4 animate-spin" />
+						<FeatherIcon v-else name="arrow-up" class="h-4 w-4" />
 					</button>
 				</div>
-			</div>
+			</fieldset>
 			<ImageViewer v-if="viewer" :src="viewer.previewUrl" :alt="viewer.name" @close="viewer = null" />
 		</div>
 	</div>
@@ -299,9 +276,10 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
-import { EFFORT_LABELS, codeRefLabel } from "../transcript.js"
+import { APPROVAL_MODES, codeRefLabel } from "../transcript.js"
 import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
+import ModelButton from "./ModelButton.vue"
 import ModelPalette from "./ModelPalette.vue"
 import PalettePanel from "./PalettePanel.vue"
 import PopMenu from "./PopMenu.vue"
@@ -310,10 +288,15 @@ import ThinkingPalette from "./ThinkingPalette.vue"
 
 // Hosts without a filesystem trim the composer to what their client serves.
 const props = defineProps({
-	commands: { type: Array, default: null }, // slash commands offered, by name; null = all
+	// slash commands offered, in order: names, or a host's own { name, label, icon, hint, view }
+	// that opens its palette slot on `view`; null = all built-ins
+	commands: { type: Array, default: null },
 	mentions: { type: Boolean, default: true }, // "@" file mentions
 	// the daemon stores images only; a host that stages uploads itself takes any file
 	imagesOnly: { type: Boolean, default: true },
+	placeholder: { type: String, default: "Ask flow…" },
+	modes: { type: Array, default: () => APPROVAL_MODES }, // [{ id, label, desc }] in the host's words
+	disabled: { type: Boolean, default: false }, // shown but inert, e.g. until the host's setup is done
 })
 
 const flow = inject("flow")
@@ -330,6 +313,8 @@ const caretPos = ref(0)
 const mentionDismissed = ref(false)
 let attachmentKey = 0
 let previewGeneration = 0
+const preparations = new Map()
+let preparationQueue = Promise.resolve()
 
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
 const IMAGE_ACCEPT = ".png,.jpg,.jpeg,.gif,.webp,.bmp,image/png,image/jpeg,image/gif,image/webp,image/bmp"
@@ -363,17 +348,50 @@ function addLocalFiles(files) {
 			file,
 			previewUrl: image ? URL.createObjectURL(file) : null,
 		})
+		if (flow.prepareAttachment) void prepareAttachment(attachments.value.at(-1))
 	}
+}
+
+function discardAttachment(item) {
+	if (item.id && item.file && flow.discardAttachments) {
+		void flow.discardAttachments([item.id]).catch(() => {})
+	}
+}
+
+function prepareAttachment(item) {
+	if (preparations.has(item.key)) return preparations.get(item.key)
+	item.preparing = true
+	item.error = null
+	// Avoid running OCR for a whole batch of large files at once.
+	const pending = preparationQueue.then(async () => {
+		try {
+			if (!attachments.value.includes(item)) return
+			const prepared = await flow.prepareAttachment(item.file)
+			Object.assign(item, prepared)
+			if (!attachments.value.includes(item)) discardAttachment(item)
+		} catch (error) {
+			item.error = error.message || "Please try again."
+		} finally {
+			item.preparing = false
+			preparations.delete(item.key)
+		}
+	})
+	preparationQueue = pending
+	preparations.set(item.key, pending)
+	return pending
 }
 
 function revokePreview(item) {
 	if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl)
 }
 
-function clearAttachments() {
+function clearAttachments(discard = true) {
 	previewGeneration++
 	viewer.value = null
-	for (const item of attachments.value) revokePreview(item)
+	for (const item of attachments.value) {
+		revokePreview(item)
+		if (discard) discardAttachment(item)
+	}
 	attachments.value = []
 }
 
@@ -417,6 +435,7 @@ function onPaste(event) {
 function removeAttachment(index) {
 	const [removed] = attachments.value.splice(index, 1)
 	revokePreview(removed)
+	discardAttachment(removed)
 	nextTick(() => box.value?.focus())
 }
 
@@ -513,7 +532,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
 	window.removeEventListener("keydown", onWindowKey)
-	clearAttachments()
+	clearAttachments(!submitting.value)
 })
 watch(
 	() => flow.state.sessionId,
@@ -527,10 +546,8 @@ watch(
 )
 
 const modeMenu = ref(false)
-const modelMenu = ref(false)
 
 function openPalette(view) {
-	modelMenu.value = false
 	paletteView.value = view
 }
 
@@ -541,11 +558,6 @@ async function chooseFolder() {
 	if (flow.state.sessionId) flow.startNewChat({ cwd: path })
 	else flow.setCwd(path)
 }
-
-const MODES = [
-	{ id: "ask", label: "Ask for approval", desc: "Pauses before writes, edits and commands." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs every tool without stopping to ask." },
-]
 
 const COMMANDS = [
 	{ name: "model", label: "Model", icon: "cpu", hint: "choose the model", stacked: true, run: () => (paletteView.value = "models") },
@@ -560,7 +572,15 @@ const COMMANDS = [
 	{ name: "cwd", label: "Working directory", icon: "folder", hint: "new session in a folder: /cwd [path]", run: cwdCommand, takesArg: true },
 ]
 const enabledCommands = computed(() =>
-	props.commands ? COMMANDS.filter((c) => props.commands.includes(c.name)) : COMMANDS,
+	(props.commands
+		? props.commands
+				.map((entry) =>
+					typeof entry === "string"
+						? COMMANDS.find((c) => c.name === entry)
+						: { ...entry, stacked: true, run: () => (paletteView.value = entry.view) },
+				)
+				.filter(Boolean)
+		: COMMANDS).filter((command) => command.name !== "rewind" || flow.capabilities?.rewind),
 )
 const has = (name) => enabledCommands.value.some((c) => c.name === name)
 
@@ -613,36 +633,19 @@ const currentMode = computed(() => {
 	if (!flow.state.sessionId) return flow.state.prefs.mode
 	return flow.state.session?.config?.auto_approve ? "auto" : "ask"
 })
+const modeLabel = computed(() => props.modes.find((m) => m.id === currentMode.value)?.label ?? currentMode.value)
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
-const currentEffort = computed(
-	() => flow.state.conversation.reasoningEffort ?? flow.state.prefs.lastEffort ?? "default",
-)
-// The button shows only the final model id; routed names can have multiple
-// namespace segments (for example openrouter/openai/gpt).
-const modelLabel = computed(() => {
-	const model = currentModel.value
-	if (!model) return "Choose Model"
-	return model.split("/").filter(Boolean).pop() || model
-})
-const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
 const currentImageSupport = computed(() => {
 	if (flow.state.sessionId && flow.state.session) return flow.state.session.supports_images
 	return flow.state.models.find((item) => item.name === currentModel.value)?.supports_images
 })
-// a host staging its own uploads decides what a text-only model gets for an image
 const visionWarning = computed(
 	() =>
 		props.imagesOnly &&
 		attachments.value.some((item) => item.kind === "image") &&
 		currentImageSupport.value === false,
 )
-
-// the model button fronts these two palettes; /model and /thinking open the same pages
-const MODEL_MENU = computed(() => [
-	{ view: "models", label: "Model", icon: "cpu", value: modelLabel.value },
-	{ view: "thinking", label: "Thinking", icon: "zap", value: effortLabel.value },
-])
 
 // slash palette: active while the draft starts with "/" and has no space yet,
 // or when a sub-page navigated back to the commands root. A trailing space
@@ -681,7 +684,6 @@ function onKey(e) {
 		if (anyMenuOpen()) {
 			closePalettes()
 			modeMenu.value = false
-			modelMenu.value = false
 			mentionDismissed.value = true
 		} else if (running.value && !e.repeat) {
 			flow.abort()
@@ -696,7 +698,6 @@ function anyMenuOpen() {
 		menuOpen.value ||
 		mentionActive.value ||
 		modeMenu.value ||
-		modelMenu.value ||
 		frappeDialogs.value.length
 	)
 }
@@ -724,7 +725,8 @@ function pick(command) {
 
 async function submit() {
 	if (submitting.value) return
-	const value = text.value.trim()
+	const draftText = text.value
+	const value = draftText.trim()
 	if (!value && !attachments.value.length && !codeRefs.value.length) return
 	if (value.startsWith("/")) {
 		const [name, ...rest] = value.slice(1).split(" ")
@@ -737,21 +739,26 @@ async function submit() {
 	}
 	if (needsCwd.value) return // the composer banner points at the fix
 	// code references travel as file:line tokens appended to the message
-	const outgoing = [value, codeRefs.value.map(refToken).join("\n")].filter(Boolean).join("\n\n")
-	const selectedAttachments = attachments.value.map((item) => ({ ...item }))
+	const selectedCodeRefs = codeRefs.value.map((ref) => ({ ...ref }))
+	const outgoing = [value, selectedCodeRefs.map(refToken).join("\n")].filter(Boolean).join("\n\n")
+	const selectedAttachments = [...attachments.value]
+	const sendingSessionId = flow.state.sessionId
 	submitting.value = true
-	let sent = false
 	try {
-		sent = await flow.send(outgoing, selectedAttachments)
+		const pending = selectedAttachments.map((item) => preparations.get(item.key)).filter(Boolean)
+		if (pending.length) await Promise.all(pending)
+		if (flow.state.sessionId !== sendingSessionId) return
+		if (selectedAttachments.some((item) => item.error || !attachments.value.includes(item))) return
+		if (await flow.send(outgoing, selectedAttachments)) {
+			text.value = ""
+			clearAttachments(false)
+			flow.clearCodeRefs()
+		}
 	} finally {
 		submitting.value = false
 		// re-enabling the disabled textarea does not restore focus on its own
 		nextTick(() => box.value?.focus())
 	}
-	if (!sent) return
-	text.value = ""
-	clearAttachments()
-	flow.clearCodeRefs()
 }
 
 // rewinds prefill via the store's draft channel (also fed by per-bubble rewind)

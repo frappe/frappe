@@ -109,8 +109,9 @@
 
 /* dialog.prompt renders the subtle input variant, whose border matches its own
    background — invisible against the dark modal until focused. Give dialog
-   inputs the app's outline field look; their own focus styles still apply. */
-.dialog-content input[type="text"]:not(:focus),
+   inputs the app's outline field look; their own focus styles still apply.
+   A combobox's inner input draws inside its own trigger and is left alone. */
+.dialog-content input[type="text"]:not(:focus):not([role="combobox"]),
 .dialog-content textarea:not(:focus) {
 	border-color: var(--outline-gray-2);
 	background: var(--surface-base);
