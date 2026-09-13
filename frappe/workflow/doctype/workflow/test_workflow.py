@@ -565,7 +565,7 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		self.assertEqual(get_workflow_name("ToDo", create_new_todo(priority="Low")), catch_all.name)
 
 	def test_catch_all_workflow_retires_only_the_other_catch_all(self):
-		conditional = create_conditional_todo_workflow(priority="High")
+		conditional = create_conditional_todo_workflow(priority="High", workflow_priority=10)
 		retired = create_conditional_todo_workflow()
 		create_conditional_todo_workflow()
 
@@ -595,11 +595,11 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		todo.reload()
 		self.assertEqual(todo.workflow_state, "Pending")
 
-	def test_seeding_respects_the_tie_break_between_equal_priorities(self):
+	def test_seeding_at_equal_priority_stays_within_conditions(self):
 		todo = create_new_todo(priority="High")
 		self.assertIsNone(todo.workflow_state)
 
-		create_conditional_todo_workflow(states=("Rejected", "Approved"))
+		create_conditional_todo_workflow(priority="Low", states=("Rejected", "Approved"))
 		high = create_conditional_todo_workflow(priority="High")
 
 		todo.reload()
