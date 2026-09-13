@@ -24,24 +24,6 @@ function toolGroups(conversation) {
 	return buildItems(conversation).filter((item) => item.kind === "group")
 }
 
-for (const reason of ["aborted", "error"]) {
-	test(`run_ended(${reason}) removes discarded steering but keeps a new message in flight`, () => {
-		const conversation = initialConversation()
-		applyEvent(conversation, { type: "run_started", seq: 1 })
-		conversation.sending.push({ key: "steering", steering: true, entry: { content: "Discarded" } })
-		applyEvent(conversation, { type: "run_ended", seq: 2, reason })
-		assert.equal(conversation.sending.length, 0)
-		assert.equal(conversation.liveLabel, null)
-		assert.equal(conversation.running, false)
-		assert.equal(buildItems(conversation).some((item) => item.key === "steering"), false)
-
-		const next = { key: "next", steering: false, entry: { content: "Next turn" } }
-		conversation.sending.push(next)
-		applyEvent(conversation, { type: "run_ended", seq: 3, reason })
-		assert.deepEqual(conversation.sending, [next])
-	})
-}
-
 test("a durable user message keeps the turn visibly working until it ends", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "Review this" })
@@ -608,28 +590,6 @@ test("a message in flight folds the turn before it, run_started or not", () => {
 	applyEvent(conversation, { type: "run_started", seq: 4, ts: 20 })
 
 	assert.deepEqual(buildItems(conversation).map((item) => item.kind), [...settled, "user"])
-})
-
-test("steering keeps the running turn open", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "First" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 12,
-		content: [{ type: "thinking", thinking: "Still going" }],
-		stop_reason: "stop",
-	})
-	const running = buildItems(conversation).map((item) => item.kind)
-
-	conversation.sending.push({
-		key: "sending:1",
-		steering: true,
-		entry: { type: "user_message", content: "Also check this", ts: 14 },
-	})
-
-	assert.deepEqual(buildItems(conversation).map((item) => item.kind), [...running, "user"])
 })
 
 test("a paused approval turn stays fully visible until the user resolves it", () => {

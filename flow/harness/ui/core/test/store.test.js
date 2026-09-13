@@ -878,25 +878,73 @@ function step(event) {
 	return { gate, event, delivered, open, done }
 }
 
-test("aborting before steering is consumed removes its optimistic bubble", async () => {
+test("steering queues in the composer instead of joining the thread", async () => {
 	const ended = step({ type: "run_ended", seq: 2, reason: "aborted" })
 	const client = hostClient([])
 	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
 	client.run = async () => ({ status: "steered" })
-	client.abort = async () => ({})
 	client.stream = () => pacedStream([ended])
 	const flow = createFlowStore(client)
 	await flow.openSession("s1")
 
 	assert.equal(await flow.send("Also check this"), true)
-	assert.equal(flow.state.conversation.sending.length, 1)
-	await flow.abort()
+	assert.equal(flow.state.conversation.sending.length, 0)
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Also check this"],
+	)
+
+	// the run is aborted before it ever asks for the steering it was handed
 	ended.open()
 	await ended.done
+	assert.deepEqual(flow.state.queued, [])
+	flow.detach()
+})
 
+test("a queued steer carries its attachments before the run answers", async () => {
+	const client = hostClient([])
+	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	let idsWhenAsked = null
+	client.run = async (sid, message, ids) => {
+		idsWhenAsked = [...(flow.state.queued[0]?.attachmentIds ?? [])]
+		assert.deepEqual(ids, ["F1"])
+		return { status: "steered" }
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.equal(await flow.send("Use this one", [{ id: "F1", name: "notes.pdf" }]), true)
+	// the turn can consume the steering before run() answers; the echo matches on these
+	assert.deepEqual(idsWhenAsked, ["F1"])
+	flow.detach()
+})
+
+test("a message waits in the box while an approval is unanswered", async () => {
+	const client = hostClient([])
+	client.entries = async () => ({
+		entries: [{ type: "run_started", seq: 1 }, { type: "run_ended", seq: 2, reason: "paused" }],
+		latest_seq: 2,
+	})
+	client.run = async () => assert.fail("a paused run refuses it anyway")
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	flow.state.conversation.pendingApproval = { seq: 2, calls: [{ id: "c1" }], answers: {} }
+
+	assert.equal(await flow.send("just use the create tool"), false)
+	assert.equal(flow.state.toast.kind, "error")
 	assert.equal(flow.state.conversation.sending.length, 0)
-	assert.equal(flow.state.conversation.running, false)
-	assert.equal(flow.state.conversation.liveLabel, null)
+	assert.deepEqual(flow.state.queued, [])
+	flow.detach()
+})
+
+test("a message the server did not steer keeps its bubble", async () => {
+	const client = hostClient([])
+	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.run = async () => ({ status: "ok" }) // the run had ended; this opens a turn
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.equal(await flow.send("Next question"), true)
 	assert.deepEqual(flow.state.queued, [])
 	flow.detach()
 })

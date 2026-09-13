@@ -360,6 +360,9 @@ export function createFlowStore(client, options = {}) {
 			if (queued !== -1) state.queued.splice(queued, 1)
 			rememberTitle(sid)
 		}
+		// the server discards steering it never consumed, and no echo will clear it
+		if (event.type === "run_ended" && ["aborted", "error"].includes(event.reason))
+			state.queued = []
 		// only a live run boundary is picker activity, not replayed history
 		if (
 			(event.type === "run_started" || event.type === "run_ended") &&
@@ -486,22 +489,46 @@ export function createFlowStore(client, options = {}) {
 			notify(`A message can carry at most ${options.maxAttachments} attachments.`, "error")
 			return false
 		}
-		// The bubble is up before the first round trip: creating the session, searching
-		// memory and reaching the daemon all happen behind it. A message sent into a
-		// running turn steers it; anything else opens the next one.
-		const pending = {
-			key: `sending:${++sendCount}`,
-			entry: userEntry(message, attachments),
-			steering: state.conversation.running,
+		// a paused run refuses every message until its approval is answered, so say that
+		// here instead of sending one and handing the text back with an error
+		if (state.conversation.pendingApproval) {
+			notify("Answer the approval before sending another message.", "error")
+			return false
 		}
-		state.conversation.sending.push(pending)
-		const sent = await deliver(message, attachments, pending)
+		// Steering waits for the turn it joins, so the composer shows it queued. Anything
+		// else opens the next turn, and its bubble is up before the first round trip:
+		// creating the session, searching memory and reaching the daemon happen behind it.
+		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
+		const queued = state.conversation.running ? queueMessage(message, attachments) : null
+		if (!queued) state.conversation.sending.push(pending)
+		const sent = await deliver(message, attachments, pending, queued)
 		if (!sent) {
-			// nothing was sent, so nothing will echo it back: take the bubble down
-			const at = state.conversation.sending.indexOf(pending)
-			if (at >= 0) state.conversation.sending.splice(at, 1)
+			// nothing was sent, so nothing will echo it back: take it down again
+			unsend(pending)
+			unqueue(queued)
 		}
 		return sent
+	}
+
+	// the composer's queue strip; `attachmentIds` is what the server's echo is matched on
+	function queueMessage(message, attachments, attachmentIds = []) {
+		const item = {
+			text: normalizeSkillCommand(message) ?? message,
+			attachmentIds,
+			label: message || `${attachments.length} attachment(s)`,
+		}
+		state.queued.push(item)
+		return item
+	}
+
+	function unqueue(item) {
+		const at = item ? state.queued.indexOf(item) : -1
+		if (at >= 0) state.queued.splice(at, 1)
+	}
+
+	function unsend(pending) {
+		const at = state.conversation.sending.indexOf(pending)
+		if (at >= 0) state.conversation.sending.splice(at, 1)
 	}
 
 	// what a sent message looks like until the server has one of its own
@@ -516,7 +543,7 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	// the round trips the bubble hides: the session, the attachments, the run
-	async function deliver(message, attachments, pending) {
+	async function deliver(message, attachments, pending, queued) {
 		if (!state.sessionId) {
 			if (options.requireCwd && !state.prefs.cwd) {
 				notify("Choose a project folder before sending a message.", "error")
@@ -548,15 +575,19 @@ export function createFlowStore(client, options = {}) {
 				createdIds.push(...ids)
 			}
 			if ((uploads.length && !uploaded) || (mentionPaths.length && !attached)) return false
+			// the echo that clears a queued message is matched on the attachments that rode
+			// with it, and the turn can consume it before this call answers
+			if (queued) queued.attachmentIds = attachmentIds
 			const result = await guard(() => client.run(sid, message, attachmentIds))
 			if (!result) return false
 			admitted = true
-			if (result.status === "steered" && state.sessionId === sid) {
-				state.queued.push({
-					text: normalizeSkillCommand(message) ?? message,
-					attachmentIds,
-					label: message || `${attachments.length} attachment(s)`,
-				})
+			if (state.sessionId !== sid) return true
+			// the server decides which it was; a client that guessed wrong moves it now
+			if (result.status === "steered") {
+				unsend(pending)
+				if (!queued) queueMessage(message, attachments, attachmentIds)
+			} else {
+				unqueue(queued) // it opened a turn of its own: its echo draws the bubble
 			}
 			return true
 		} finally {
