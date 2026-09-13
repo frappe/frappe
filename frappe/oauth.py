@@ -192,40 +192,21 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_code(self, client_id, code, client, request, *args, **kwargs):
 		# Validate the code belongs to the client. Add associated scopes,
 		# state and user to request.scopes and request.user.
+		# PKCE is validated by oauthlib via get_code_challenge / get_code_challenge_method.
 
 		code_details = frappe.db.get_value(
 			"OAuth Authorization Code",
 			{"name": code, "client": client_id, "validity": "Valid"},
-			("scopes", "user", "code_challenge_method", "code_challenge"),
+			("scopes", "user"),
 			as_dict=True,
 		)
 
-		if code_details:
-			request.scopes = code_details.scopes.split(get_url_delimiter())
-			request.user = code_details.user
-			code_challenge_method = code_details.code_challenge_method
-			code_challenge = code_details.code_challenge
+		if not code_details:
+			return False
 
-			if code_challenge and not request.code_verifier:
-				frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True, force=True)
-				frappe.db.commit()
-				return False
-
-			if code_challenge_method == "s256":
-				m = hashlib.sha256()
-				m.update(bytes(request.code_verifier, "utf-8"))
-				code_verifier = base64.b64encode(m.digest()).decode("utf-8")
-				code_verifier = re.sub(r"\+", "-", code_verifier)
-				code_verifier = re.sub(r"\/", "_", code_verifier)
-				code_verifier = re.sub(r"=", "", code_verifier)
-				return code_challenge == code_verifier
-
-			elif code_challenge_method == "plain":
-				return code_challenge == request.code_verifier
-
-			return True
-
-		return False
+		request.scopes = code_details.scopes.split(get_url_delimiter())
+		request.user = code_details.user
+		return True
 
 	def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
 		client_redirects = frappe.get_cached_value(

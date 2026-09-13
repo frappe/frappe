@@ -465,6 +465,12 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(response.status_code, 400)
 		self.assertEqual(response.json["error"], "invalid_grant")
 
+	def test_public_client_rejects_missing_pkce_verifier(self):
+		response = self.request_pkce_token(None)
+
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.json["error"], "invalid_request")
+
 	def test_public_client_accepts_valid_s256_pkce_verifier(self):
 		response = self.request_pkce_token(PKCE_CODE_VERIFIER)
 
@@ -498,7 +504,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
 				"scope": self.scope,
-				"code_verifier": code_verifier,
+				**({"code_verifier": code_verifier} if code_verifier else {}),
 			},
 		)
 
