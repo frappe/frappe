@@ -1272,6 +1272,24 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_prepare_select_args_keeps_table_qualifier(self):
+		"""A joined link table must not make the MAX() sort column ambiguous."""
+		for order_by, max_column in (
+			("`tabUser`.`modified` desc", 'MAX("tabUser"."modified")'),
+			("tabUser.modified desc", 'MAX("tabUser"."modified")'),
+			("lower(`tabUser`.`name`) asc", 'MAX(lower("tabUser"."name"))'),
+		):
+			with self.subTest(order_by=order_by):
+				sql = DatabaseQuery("User").execute(
+					fields=["name", "language.language_name as language_title"],
+					group_by="`tabUser`.`name`",
+					order_by=order_by,
+					run=False,
+				)
+				self.assertIn(max_column, sql)
+				self.assertIn("Administrator", [row.name for row in frappe.db.sql(sql, as_dict=True)])
+
 	def test_distinct_keeps_valid_order_by(self):
 		for field, order_by in (
 			("user_type", "user_type asc"),
