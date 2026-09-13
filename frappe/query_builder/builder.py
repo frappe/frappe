@@ -89,7 +89,33 @@ class RecursiveCTEMixin:
 		)
 
 
-class RecursiveMySQLQueryBuilder(RecursiveCTEMixin, MySQLQueryBuilder):
+class MultiTableUpdateMixin:
+	"""Qualifies assigned columns in a joined `UPDATE`, which MariaDB rejects as ambiguous otherwise.
+	MariaDB only: postgres and sqlite reject a qualified column on the left of `SET`."""
+
+	def _set_sql(self, **kwargs) -> str:
+		if not self._joins:
+			return super()._set_sql(**kwargs)
+
+		namespaced = dict(kwargs, with_namespace=True)
+
+		return " SET {set}".format(
+			set=",".join(
+				"{field}={value}".format(
+					field=self._qualify_update_field(field).get_sql(**namespaced),
+					value=value.get_sql(**kwargs),
+				)
+				for field, value in self._updates
+			)
+		)
+
+	def _qualify_update_field(self, field: terms.Field) -> terms.Field:
+		if field.table is not None:
+			return field
+		return terms.Field(field.name, alias=field.alias, table=self._update_table)
+
+
+class RecursiveMySQLQueryBuilder(RecursiveCTEMixin, MultiTableUpdateMixin, MySQLQueryBuilder):
 	pass
 
 
