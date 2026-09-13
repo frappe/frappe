@@ -56,6 +56,9 @@ frappe.workflow = {
 	},
 	applies_to: function (workflow, doc) {
 		return (workflow.conditions || []).every(({ field, condition, value }) => {
+			// an unset field matches nothing, the way the server reads NULL
+			if (doc[field] == null) return false;
+
 			const fieldtype = frappe.meta.get_docfield(workflow.document_type, field)?.fieldtype;
 			return CONDITION_OPERATORS[condition](
 				cast_condition_value(doc[field], fieldtype),

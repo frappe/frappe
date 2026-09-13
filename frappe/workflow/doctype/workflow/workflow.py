@@ -193,11 +193,13 @@ class Workflow(Document):
 	def applies_to(self, doc) -> bool:
 		"""Return True if this workflow governs `doc`. A workflow without conditions governs all.
 
-		Conditions are evaluated one at a time: Filters.optimize collapses repeated equalities on a
-		field into an `in`, which would read the rows as alternatives rather than requirements.
+		Each condition is evaluated alone, or Filters.optimize would read repeated equalities on a
+		field as alternatives. A field the document leaves unset matches nothing, the way the seeding
+		query reads NULL.
 		"""
 		return all(
-			evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
+			doc.get(d.field) is not None
+			and evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
 			for d in self.conditions
 		)
 
