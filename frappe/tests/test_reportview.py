@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.reportview import (
@@ -9,6 +10,7 @@ from frappe.desk.reportview import (
 	export_query,
 	extract_fieldnames,
 	get,
+	get_export_rows_with_link_titles,
 	get_field_info,
 	get_filter_dashboard_data,
 	get_stats,
@@ -17,6 +19,11 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestReportview(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		previous_form_dict = frappe.local.form_dict
+		self.addCleanup(setattr, frappe.local, "form_dict", previous_form_dict)
+
 	def test_get_field_info_translates_field_labels(self):
 		doctype = "Translation"
 		translations = {
@@ -212,3 +219,105 @@ class TestReportview(IntegrationTestCase):
 		email_queue = frappe.get_all("Email Queue")
 
 		self.assertTrue(email_queue, "Email was not enqueued")
+
+	def test_export_uses_link_titles(self):
+		self.enable_link_titles("User")
+		with self.set_user("test@example.com"):
+			todo = self.make_todo("Link title export task")
+			full_name = frappe.db.get_value("User", "test@example.com", "full_name")
+			for file_type in ("CSV", "Excel"):
+				with self.subTest(file_type=file_type):
+					rows = self.export_todos([todo.name], file_type)
+					self.assertEqual(rows[0]["Allocated To"], full_name)
+					self.assertEqual(rows[0]["ID"], todo.name)
+
+			self.assertEqual(todo.reload().allocated_to, "test@example.com")
+
+	def test_background_export_uses_link_titles(self):
+		from csv import DictReader
+		from io import StringIO
+
+		self.enable_link_titles("User")
+		with (
+			self.set_user("test@example.com"),
+			patch("frappe.desk.utils.send_report_email") as send_report_email,
+		):
+			todo = self.make_todo("Background link title task")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				fields=["name", "allocated_to"],
+				filters={"name": todo.name},
+				file_format_type="CSV",
+				export_in_background=1,
+			)
+			export_query()
+
+			send_report_email.assert_called_once()
+			content = send_report_email.call_args.args[3]
+			rows = list(DictReader(StringIO(content.decode("utf-8-sig"))))
+			self.assertEqual(
+				rows[0]["Allocated To"],
+				frappe.db.get_value("User", "test@example.com", "full_name"),
+			)
+
+	def test_export_preserves_ids_when_titles_are_disabled(self):
+		with self.set_user("test@example.com"):
+			todo = self.make_todo("Export without link titles")
+			rows = self.export_todos([todo.name], "CSV")
+			self.assertEqual(rows[0]["ID"], todo.name)
+			self.assertEqual(rows[0]["Allocated To"], "test@example.com")
+
+	def test_unreadable_missing_and_empty_links_keep_their_values(self):
+		self.enable_link_titles("ToDo")
+		with self.set_user("test@example.com"):
+			private = self.make_todo("Private export title")
+
+		with self.set_user("test2@example.com"):
+			readable = self.make_todo("Readable export title")
+			rows = [(private.name,), ("missing-export-link",), (None,), (readable.name,)]
+			exported = get_export_rows_with_link_titles(rows, [{"fieldtype": "Link", "options": "ToDo"}])
+
+			self.assertEqual(
+				exported,
+				[[private.name], ["missing-export-link"], [None], [readable.description]],
+			)
+
+	def enable_link_titles(self, doctype):
+		property_setter = frappe.get_doc(
+			doctype="Property Setter",
+			doc_type=doctype,
+			doctype_or_field="DocType",
+			property="show_title_field_in_link",
+			property_type="Check",
+			value="1",
+		).insert()
+		self.addCleanup(property_setter.delete)
+
+	def export_todos(self, names, file_type):
+		from csv import DictReader
+		from io import BytesIO, StringIO
+
+		from openpyxl import load_workbook
+
+		frappe.local.form_dict = frappe._dict(
+			doctype="ToDo",
+			fields=["name", "allocated_to"],
+			filters={"name": ("in", names)},
+			file_format_type=file_type,
+		)
+		export_query()
+
+		content = frappe.response["filecontent"]
+		if file_type == "CSV":
+			return list(DictReader(StringIO(content.decode("utf-8-sig"))))
+
+		rows = list(load_workbook(BytesIO(content)).active.values)
+		return [dict(zip(rows[0], row, strict=True)) for row in rows[1:]]
+
+	def make_todo(self, description):
+		return frappe.get_doc(
+			doctype="ToDo",
+			description=description,
+			allocated_to=frappe.session.user,
+			assigned_by=frappe.session.user,
+		).insert()
