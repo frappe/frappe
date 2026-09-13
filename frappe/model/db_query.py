@@ -472,8 +472,7 @@ from {tables}
 
 		if order_field not in args.fields:
 			order_column = order_field.replace("`", "")
-			qualified_column = ".".join(f"`{part}`" for part in order_column.split("."))
-			args.fields += f", MAX({qualified_column}) as `{order_column}`"
+			args.fields += f", MAX({order_field}) as `{order_column}`"
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
