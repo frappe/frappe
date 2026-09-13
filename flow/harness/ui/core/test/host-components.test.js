@@ -5,7 +5,7 @@ import { JSDOM } from "jsdom"
 
 // Vue's DOM runtime captures document at import time.
 const dom = new JSDOM("<body></body>", { url: "http://localhost" })
-for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement"]) {
+for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement", "Node"]) {
 	globalThis[name] = dom.window[name]
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
@@ -14,6 +14,10 @@ const { loadComponent } = await import("./helpers/components.js")
 const Composer = await loadComponent("Composer")
 const ApprovalCard = await loadComponent("ApprovalCard")
 const ToolGroup = await loadComponent("ToolGroup")
+const MessageList = await loadComponent("MessageList")
+const ModelButton = await loadComponent("ModelButton")
+const SettingsDialog = await loadComponent("SettingsDialog")
+const SettingsPage = await loadComponent("SettingsPage")
 
 function mount(t, component, props, flow) {
 	const el = document.createElement("div")
@@ -110,4 +114,381 @@ test("standalone tool groups keep display segments and result output", async (t)
 	await nextTick()
 	assert.equal(el.querySelector("pre").textContent, "/project")
 	assert.equal(el.querySelector("[data-test=args]"), null)
+})
+
+test("a host's turn actions render after each finished turn", async (t) => {
+	const TurnActions = {
+		props: ["turnKey", "text", "ts"],
+		setup: (props) => () => h("span", { "data-test": "actions" }, `${props.turnKey}:${props.text}`),
+	}
+	const conversation = reactive({
+		entries: [
+			{ type: "user_message", seq: 2, content: "hi", ts: 10 },
+			{ type: "assistant_message", seq: 3, content: [{ type: "text", text: "hello" }], ts: 11 },
+		],
+		partial: [], running: false, pendingApproval: null, liveLabel: null, liveErrorSeqs: [],
+	})
+	const flow = {
+		options: { turnActions: TurnActions },
+		state: reactive({ sessionId: "s1", loading: false, conversation }),
+	}
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=actions]")?.textContent, "turn:2:hello")
+	flow.options.turnActions = null
+	const bare = mount(t, MessageList, {}, { options: {}, state: flow.state })
+	await nextTick()
+	assert.equal(bare.el.querySelector("[data-test=actions]"), null)
+})
+
+test("the composer toolbar defaults to the model button and takes a host's pickers", async (t) => {
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: {}, draft: null,
+		}),
+	}
+	const bare = mount(t, Composer, { commands: [], mentions: false }, flow)
+	assert.ok(bare.el.querySelector("button[title^='Choose Model']"))
+
+	const host = mount(t, {
+		render: () => h(Composer, { commands: [], mentions: false }, {
+			toolbar: ({ openPalette }) => [
+				h("button", { "data-test": "agent", onClick: () => openPalette("thinking") }, "Agent"),
+				h(ModelButton, { onOpen: openPalette }),
+			],
+		}),
+	}, {}, flow)
+	const agent = host.el.querySelector("[data-test=agent]")
+	const model = host.el.querySelector("button[title^='Choose Model']")
+	assert.ok(agent.compareDocumentPosition(model) & Node.DOCUMENT_POSITION_FOLLOWING)
+	assert.equal(host.el.querySelector("[data-stub=ThinkingPalette]"), null)
+	agent.click()
+	await nextTick()
+	assert.ok(host.el.querySelector("[data-stub=ThinkingPalette]"))
+
+	model.click()
+	await nextTick()
+	const entries = [...host.el.querySelectorAll("[role=menuitem]")].map((entry) => entry.textContent.trim())
+	assert.deepEqual(entries, ["ModelChoose Model", "ThinkingDefault"])
+	host.el.querySelector("[role=menuitem]").click()
+	await nextTick()
+	assert.equal(host.el.querySelector("[role=menuitem]"), null)
+	assert.ok(host.el.querySelector("[data-stub=ModelPalette]"))
+})
+
+test("the composer takes a host's placeholder and approval-mode copy", async (t) => {
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: {}, draft: null,
+		}),
+	}
+	const modes = [
+		{ id: "ask", label: "Ask first", desc: "Pauses before documents change." },
+		{ id: "auto", label: "Just do it", desc: "Never asks." },
+	]
+	const { el } = mount(t, Composer, { commands: [], mentions: false, placeholder: "Ask Sales…", modes }, flow)
+	assert.equal(el.querySelector("textarea").placeholder, "Ask Sales…")
+	const button = el.querySelector("button[title='Approval mode']")
+	assert.equal(button.textContent.trim(), "Ask first")
+	button.click()
+	await nextTick()
+	const menu = el.querySelector("[role=menu]").textContent
+	for (const text of ["Ask first", "Pauses before documents change.", "Just do it", "Never asks."]) assert.ok(menu.includes(text), text)
+})
+
+test("the composer keeps the draft and spins the send button until sending succeeds", async (t) => {
+	let finishSend
+	let sent
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: { running: false }, draft: null,
+		}),
+		send(message, attachments) {
+			sent = { message, attachments }
+			return new Promise((resolve) => (finishSend = resolve))
+		},
+		clearCodeRefs() { this.state.codeRefs = [] },
+		notify() {},
+	}
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
+	vm.prefill("Review this")
+	const input = el.querySelector("input[type=file]")
+	Object.defineProperty(input, "files", {
+		configurable: true,
+		value: [new dom.window.File(["document"], "notes.pdf", { type: "application/pdf" })],
+	})
+	input.dispatchEvent(new dom.window.Event("change", { bubbles: true }))
+	await nextTick()
+	assert.ok(el.textContent.includes("notes.pdf"))
+
+	el.querySelector("button[title='Send']").click()
+	await nextTick()
+
+	assert.equal(el.querySelector("textarea").value, "Review this")
+	assert.ok(el.textContent.includes("notes.pdf"))
+	assert.equal(el.querySelector('[role="status"]'), null)
+	const sendButton = el.querySelector("button[title='Send']")
+	assert.equal(sendButton.disabled, true)
+	assert.equal(sendButton.getAttribute("aria-busy"), "true")
+	assert.ok(sendButton.querySelector(".animate-spin"))
+	assert.equal(sent.message, "Review this")
+	assert.equal(sent.attachments[0].name, "notes.pdf")
+	flow.state.conversation.running = true
+	await nextTick()
+	assert.ok(el.querySelector("button[title='Send'] .animate-spin"))
+	finishSend(true)
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.equal(el.querySelector("textarea").value, "")
+	assert.ok(!el.textContent.includes("notes.pdf"))
+	assert.equal(el.querySelector(".animate-spin"), null)
+	assert.ok(el.querySelector("button[title='Stop']"))
+})
+
+test("the composer retains an attachment draft when sending fails", async (t) => {
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: { running: false }, draft: null,
+		}),
+		async send() { return false },
+		clearCodeRefs() { this.state.codeRefs = [] },
+		notify() {},
+	}
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
+	vm.prefill("Review this")
+	const input = el.querySelector("input[type=file]")
+	Object.defineProperty(input, "files", {
+		configurable: true,
+		value: [new dom.window.File(["document"], "notes.pdf", { type: "application/pdf" })],
+	})
+	input.dispatchEvent(new dom.window.Event("change", { bubbles: true }))
+	await nextTick()
+	el.querySelector("button[title='Send']").click()
+	await new Promise((resolve) => setImmediate(resolve))
+
+	assert.equal(el.querySelector("textarea").value, "Review this")
+	assert.ok(el.textContent.includes("notes.pdf"))
+	assert.equal(el.querySelector("button[title='Send']").disabled, false)
+	assert.equal(el.querySelector(".animate-spin"), null)
+})
+
+function preparingComposer(t) {
+	const requests = []
+	const sent = []
+	const discarded = []
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: { running: false }, draft: null,
+		}),
+		prepareAttachment(file) {
+			return new Promise((resolve, reject) => requests.push({ file, resolve, reject }))
+		},
+		async discardAttachments(ids) { discarded.push(...ids) },
+		async send(text, items) { sent.push({ text, ids: items.map((item) => item.id) }); return true },
+		clearCodeRefs() { this.state.codeRefs = [] },
+		notify() {},
+	}
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
+	vm.prefill("Read this")
+	const input = el.querySelector("input[type=file]")
+	Object.defineProperty(input, "files", {
+		value: [new dom.window.File(["document"], "notes.pdf", { type: "application/pdf" })],
+	})
+	input.dispatchEvent(new dom.window.Event("change", { bubbles: true }))
+	return { el, flow, requests, sent, discarded }
+}
+
+test("attaching starts preparation before a session exists, and send waits for it", async (t) => {
+	const { el, flow, requests, sent, discarded } = preparingComposer(t)
+	await nextTick()
+	assert.equal(requests.length, 1)
+	assert.equal(flow.state.sessionId, null)
+	assert.equal(el.querySelector('[role="status"]').getAttribute("aria-label"), "Preparing notes.pdf")
+	el.querySelector("button[title='Send']").click()
+	await nextTick()
+	assert.equal(sent.length, 0)
+	assert.equal(el.querySelector("textarea").value, "Read this")
+	assert.ok(el.querySelector("button[title='Send'] .animate-spin"))
+	requests[0].resolve({ id: "F1", name: "notes.pdf", kind: "file" })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.deepEqual(sent, [{ text: "Read this", ids: ["F1"] }])
+	assert.equal(requests.length, 1)
+	assert.equal(el.querySelector("textarea").value, "")
+	assert.deepEqual(discarded, [])
+})
+
+test("removing an attachment during preparation discards it when upload completes", async (t) => {
+	const { el, requests, discarded, sent } = preparingComposer(t)
+	await nextTick()
+	el.querySelector("button[aria-label='Remove notes.pdf']").click()
+	requests[0].resolve({ id: "F1", name: "notes.pdf", kind: "file" })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.deepEqual(discarded, ["F1"])
+	assert.equal(sent.length, 0)
+	assert.ok(!el.textContent.includes("notes.pdf"))
+})
+
+test("failed preparation keeps the draft and can be retried before sending", async (t) => {
+	const { el, requests, sent } = preparingComposer(t)
+	await nextTick()
+	requests[0].reject(new Error("Upload failed"))
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.ok(el.textContent.includes("Upload failed"))
+	el.querySelector("button[title='Send']").click()
+	await nextTick()
+	assert.equal(sent.length, 0)
+	assert.equal(el.querySelector("textarea").value, "Read this")
+	el.querySelector("button[aria-label='Retry notes.pdf']").click()
+	await nextTick()
+	requests[1].resolve({ id: "F2", name: "notes.pdf", kind: "file" })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.equal(el.querySelector('[role="status"]'), null)
+	el.querySelector("button[title='Send']").click()
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.deepEqual(sent, [{ text: "Read this", ids: ["F2"] }])
+})
+
+test("switching sessions discards a prepared unsent file", async (t) => {
+	const { flow, requests, discarded } = preparingComposer(t)
+	await nextTick()
+	requests[0].resolve({ id: "F1", name: "notes.pdf", kind: "file" })
+	await new Promise((resolve) => setImmediate(resolve))
+	flow.state.sessionId = "other"
+	await nextTick()
+	assert.deepEqual(discarded, ["F1"])
+})
+
+test("switching sessions while send waits for preparation does not send to the new session", async (t) => {
+	const { el, flow, requests, sent } = preparingComposer(t)
+	await nextTick()
+	el.querySelector("button[title='Send']").click()
+	flow.state.sessionId = "other"
+	await nextTick()
+	requests[0].resolve({ id: "F1", name: "notes.pdf", kind: "file" })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.equal(sent.length, 0)
+	assert.equal(el.querySelector("textarea").value, "Read this")
+})
+
+test("the message list's empty state is a slot", (t) => {
+	const conversation = { entries: [], partial: [], running: false, pendingApproval: null, liveLabel: null, liveErrorSeqs: [] }
+	const flow = { options: {}, state: reactive({ sessionId: null, loading: false, conversation }) }
+	const bare = mount(t, MessageList, {}, flow)
+	assert.ok(bare.el.textContent.includes("What would you like to build?"))
+	const host = mount(t, {
+		render: () => h(MessageList, null, { empty: () => h("h2", { "data-test": "empty" }, "How can I help?") }),
+	}, {}, flow)
+	assert.equal(host.el.querySelector("[data-test=empty]").textContent, "How can I help?")
+	assert.ok(!host.el.textContent.includes("What would you like to build?"))
+})
+
+test("an existing session without saved messages shows the empty state after reload", (t) => {
+	const flow = {
+		options: {},
+		state: reactive({ sessionId: "empty-session", loading: false, conversation: {
+			entries: [], partial: [], running: false, pendingApproval: null, liveLabel: null, liveErrorSeqs: [],
+		} }),
+	}
+	const { el } = mount(t, MessageList, {}, flow)
+	assert.ok(el.textContent.includes("What would you like to build?"))
+})
+
+test("the settings shell renders a host's tabs and panels", (t) => {
+	const groups = [{ label: "Settings", tabs: [{ id: "alpha", label: "Alpha", icon: "x" }, { id: "beta", label: "Beta", icon: "y" }] }]
+	const flow = { state: reactive({ settingsOpen: true }), setSettingsOpen() {} }
+	const { el } = mount(t, {
+		render: () => h(SettingsDialog, { groups }, {
+			alpha: () => h("p", { "data-test": "alpha" }, "A"),
+			beta: () => h("p", { "data-test": "beta" }, "B"),
+		}),
+	}, {}, flow)
+	assert.deepEqual([...el.querySelectorAll("[data-stub=SettingsNavItem]")].map((b) => b.textContent.trim()), ["Alpha", "Beta"])
+	assert.deepEqual([...el.querySelectorAll("[data-stub=SettingsPanel]")].map((p) => `${p.dataset.value}:${p.textContent.trim()}`), ["alpha:A", "beta:B"])
+})
+
+test("a host's own command opens its palette slot", async (t) => {
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: {}, draft: null,
+		}),
+	}
+	const commands = [{ name: "agents", label: "Agent", icon: "user", hint: "choose the agent", view: "agents" }, "model"]
+	const { el, vm } = mount(t, {
+		render: () => h(Composer, { ref: "composer", commands, mentions: false }, {
+			palette: ({ view, close }) => (view === "agents" ? h("div", { "data-test": "host-palette", onClick: close }, view) : null),
+		}),
+	}, {}, flow)
+	vm.$refs.composer.prefill("/")
+	await nextTick()
+	assert.deepEqual([...el.querySelectorAll("[data-palette-item] code")].map((c) => c.textContent), ["/agents", "/model"])
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents")
+	el.querySelector("[data-test=host-palette]").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]"), null)
+})
+
+test("a disabled composer is shown but inert, its host pickers included", async (t) => {
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: {}, draft: null,
+		}),
+	}
+	const { el } = mount(t, {
+		render: () => h(Composer, { commands: [], mentions: false, disabled: true }, {
+			toolbar: () => h("button", { "data-test": "agent" }, "Agent"),
+		}),
+	}, {}, flow)
+	assert.ok(el.querySelector("textarea").matches(":disabled"))
+	assert.ok(el.querySelector("button[title='Send']").matches(":disabled"))
+	assert.ok(el.querySelector("[data-test=agent]").matches(":disabled"))
+})
+
+test("a settings page takes a way back and actions beside its heading", (t) => {
+	let backs = 0
+	const { el } = mount(t, {
+		render: () => h(SettingsPage, { title: "Edit agent", back: "Back to agents", onBack: () => backs++ }, {
+			actions: () => h("button", { "data-test": "toggle" }, "Enabled"),
+			default: () => h("p", "fields"),
+			footer: () => h("button", { "data-test": "save" }, "Save"),
+		}),
+	}, {}, {})
+	assert.equal(el.querySelector("h2").textContent, "Edit agent")
+	assert.ok(el.querySelector("[data-test=toggle]"))
+	assert.ok(el.querySelector(".border-t [data-test=save]"), "the footer sits outside the scrolling body")
+	el.querySelector("button[title='Back to agents']").click()
+	assert.equal(backs, 1)
+	const bare = mount(t, SettingsPage, { title: "General" }, {})
+	assert.equal(bare.el.querySelector(".flow-icon-btn"), null)
+	assert.equal(bare.el.querySelector(".border-t"), null)
+})
+
+
+test("rewind controls follow the host client's capability", async (t) => {
+	const { createFlowStore } = await import("../src/store.js")
+	const UserBubble = await loadComponent("UserBubble")
+	for (const supported of [false, true]) {
+		const client = supported ? { rewind() {} } : {}
+		const store = createFlowStore(client, { requireCwd: false, skillsEnabled: false })
+		const { el } = mount(t, UserBubble, { entry: { type: "user_message", seq: 2, content: "hello" } }, store)
+		assert.equal(!!el.querySelector('button[title="Rewind to this message"]'), supported)
+		const composer = mount(t, Composer, { mentions: false }, store)
+		composer.vm.prefill("/rewind")
+		await nextTick()
+		assert.equal(composer.el.textContent.includes("branch from before your last message"), supported)
+	}
 })

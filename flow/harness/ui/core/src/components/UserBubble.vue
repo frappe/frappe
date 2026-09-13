@@ -48,6 +48,7 @@
 				class="mr-1 text-2xs text-ink-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
 			>{{ time }}</span>
 			<button
+				v-if="flow.capabilities?.rewind"
 				title="Rewind to this message"
 				class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
 				@click="confirmRewind"

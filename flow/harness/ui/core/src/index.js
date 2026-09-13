@@ -1,6 +1,7 @@
 export { DaemonClient, EventStream, FlowAPIError } from "./client.js"
 export { createFlowStore } from "./store.js"
 export {
+	APPROVAL_MODES,
 	EFFORTS,
 	EFFORT_LABELS,
 	applyEvent,
@@ -34,10 +35,15 @@ export { default as CodeBlock } from "./components/CodeBlock.vue"
 export { default as ThinkingBlock } from "./components/ThinkingBlock.vue"
 export { default as PalettePanel } from "./components/PalettePanel.vue"
 export { default as PaletteSearch } from "./components/PaletteSearch.vue"
+export { default as ModelButton } from "./components/ModelButton.vue"
 export { default as ModelPalette } from "./components/ModelPalette.vue"
 export { default as ThinkingPalette } from "./components/ThinkingPalette.vue"
 export { default as ProvidersDialog } from "./components/ProvidersDialog.vue"
 export { default as SettingsDialog } from "./components/SettingsDialog.vue"
+export { default as SettingsPage } from "./components/SettingsPage.vue"
+export { default as SettingsRow } from "./components/SettingsRow.vue"
+export { default as SettingsGeneral } from "./components/SettingsGeneral.vue"
+export { default as SettingsAppearance } from "./components/SettingsAppearance.vue"
 export { default as SettingsSkills } from "./components/SettingsSkills.vue"
 export { default as SettingsPresets } from "./components/SettingsPresets.vue"
 export { default as ProviderIcon } from "./components/ProviderIcon.vue"

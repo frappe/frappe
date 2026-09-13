@@ -1,0 +1,34 @@
+<template>
+	<div class="min-h-0 flex-1 overflow-y-auto px-8 pb-6 pt-8">
+		<div class="flex items-center gap-2">
+			<button v-if="back" class="flow-icon-btn -my-1 -ml-1.5" :title="back" @click="emit('back')">
+				<FeatherIcon name="arrow-left" class="h-4 w-4" />
+			</button>
+			<h2 class="text-base font-semibold text-ink-gray-9">{{ title }}</h2>
+			<div class="ml-auto flex items-center gap-3"><slot name="actions" /></div>
+		</div>
+		<p v-if="description" class="mt-1 text-xs leading-5 text-ink-gray-6">{{ description }}</p>
+		<div class="pt-4"><slot /></div>
+	</div>
+	<div
+		v-if="$slots.footer"
+		class="flex shrink-0 flex-wrap items-center gap-3 border-t border-outline-gray-1 px-8 py-4"
+	>
+		<slot name="footer" />
+	</div>
+</template>
+
+<script setup>
+import FeatherIcon from "./FeatherIcon.vue"
+
+// A settings panel: a heading and its body in one scrolling column, at the dialog's type scale.
+// `back` (the button's title) puts a way back before the heading, for a page that
+// replaced another, like a record's form; `actions` sits at the heading's right and
+// `footer` is pinned under the body, for a form's buttons.
+defineProps({
+	title: { type: String, required: true },
+	description: { type: String, default: "" },
+	back: { type: String, default: "" },
+})
+const emit = defineEmits(["back"])
+</script>

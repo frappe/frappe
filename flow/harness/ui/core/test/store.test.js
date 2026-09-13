@@ -11,6 +11,18 @@ globalThis.localStorage = {
 	setItem() {},
 }
 
+test("a prepared attachment is sent by id without uploading it again", async () => {
+	const calls = []
+	const client = {
+		async run(sid, text, ids) { calls.push([sid, text, ids]); return {} },
+		async uploadAttachments() { assert.fail("Already prepared") },
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "s1"
+	assert.equal(await flow.send("Read this", [{ id: "F1", file: { name: "notes.pdf" } }]), true)
+	assert.deepEqual(calls, [["s1", "Read this", ["F1"]]])
+})
+
 test("skill completion previews the catalog without creating a session", async () => {
 	let previews = 0
 	const client = {
@@ -818,4 +830,130 @@ test("attachment previews come from the client when it serves them", async () =>
 
 	const without = createFlowStore({})
 	assert.equal(await without.attachmentPreview("s1", "att-1"), null)
+})
+
+// a stream that yields events one at a time when the test says so
+function pacedStream(steps) {
+	return {
+		close() {},
+		async *[Symbol.asyncIterator]() {
+			for (const { gate, event, delivered } of steps) {
+				await gate
+				yield event
+				delivered()
+			}
+		},
+	}
+}
+
+function step(event) {
+	let open
+	let delivered
+	const gate = new Promise((resolve) => (open = resolve))
+	const done = new Promise((resolve) => (delivered = resolve))
+	return { gate, event, delivered, open, done }
+}
+
+test("a live run boundary moves the open session's row to the top without refetching the list", async () => {
+	const started = step({ type: "run_started", seq: 2, run_id: "r1" })
+	const ended = step({ type: "run_ended", seq: 3, reason: "paused" })
+	const client = {
+		async sessions() {
+			assert.fail("the list is already known")
+		},
+		async session() {
+			return { session_id: "s2", model: "m", latest_seq: 1, state: "idle" }
+		},
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		stream() {
+			return pacedStream([started, ended])
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessions = [
+		{ session_id: "s1", title: "Older", state: "idle" },
+		{ session_id: "s2", title: "Open", state: "idle" },
+	]
+	await flow.openSession("s2")
+
+	started.open()
+	await started.done
+	assert.deepEqual(
+		flow.state.sessions.map((s) => [s.session_id, s.state]),
+		[["s2", "running"], ["s1", "idle"]],
+	)
+
+	ended.open()
+	await ended.done
+	assert.equal(flow.state.sessions[0].state, "paused")
+	flow.detach()
+})
+
+test("a session the list doesn't know yet is fetched on its first run boundary", async () => {
+	const started = step({ type: "run_started", seq: 1, run_id: "r1" })
+	let fetches = 0
+	const client = {
+		async sessions() {
+			fetches += 1
+			return { sessions: [{ session_id: "s1", title: "read this", state: "running" }] }
+		},
+		async session() {
+			return { session_id: "s1", model: "m", latest_seq: 0 }
+		},
+		async entries() {
+			return { entries: [], latest_seq: 0 }
+		},
+		stream() {
+			return pacedStream([started])
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	started.open()
+	await started.done
+	await new Promise((resolve) => setTimeout(resolve, 0)) // the fetch is not awaited
+	assert.equal(fetches, 1)
+	assert.deepEqual(flow.state.sessions.map((s) => [s.session_id, s.state]), [["s1", "running"]])
+	flow.detach()
+})
+
+test("a list served before live events landed doesn't undo them on the open session's row", async () => {
+	const ended = step({ type: "run_ended", seq: 2, reason: "done" })
+	const titled = step({ type: "title_changed", title: "Read Aadhaar PDF" })
+	let releaseList
+	const listServed = new Promise((resolve) => (releaseList = resolve))
+	const client = {
+		async sessions() {
+			await listServed
+			return { sessions: [{ session_id: "s1", title: "read this", state: "running" }] }
+		},
+		async session() {
+			return { session_id: "s1", model: "m", latest_seq: 1, title: "read this", state: "running" }
+		},
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		stream() {
+			return pacedStream([ended, titled])
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessions = [{ session_id: "s1", title: "read this", state: "running" }]
+	await flow.openSession("s1")
+
+	const refresh = flow.refreshSessions() // served now: no title yet, run still on
+	ended.open()
+	await ended.done
+	titled.open()
+	await titled.done
+	assert.equal(flow.state.session.title, "Read Aadhaar PDF")
+
+	releaseList()
+	await refresh
+	assert.equal(flow.sessionTitle(flow.state.sessions[0]), "Read Aadhaar PDF")
+	assert.equal(flow.state.sessions[0].state, "idle")
+	flow.detach()
 })

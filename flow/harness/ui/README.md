@@ -40,6 +40,18 @@ filesystem must change, so it can reuse the components instead of copying them:
   suggestions/highlighting in the composer; defaults to `true`.
 - `presentTool(name, args)` — `{ icon, label, subject, title, body, argsComponent }`, any
   subset, for the host's own tools in transcript rows and approval cards.
+- `turnActions` — a component rendered after each finished turn's copy button, with
+  `turnKey`, `text` and `ts` props (Flow's feedback thumbs).
+
+The store exposes `capabilities.rewind` when its client implements `rewind`.
+Both the message action and composer command follow that capability.
+
+A client can implement `prepareAttachment(file)` returning `{ id, name, kind }`
+and `discardAttachments(ids)` to prepare uploads before a session exists.
+The composer shows progress, waits on pending preparation when sending, and
+discards removed uploads. Prepared IDs are reused on send. Clients without
+these methods continue uploading on send; discard must preserve files already
+claimed by an accepted turn.
 
 `argsComponent` is a Vue component receiving an `arguments` prop. It renders in
 expanded tool rows (including rows inside `ToolGroup`) and replaces the default
@@ -48,10 +60,44 @@ argument body in approval cards. For example, a host can return
 command text, edit diffs and tool output presentation. Tool results and approval
 actions remain available when a custom argument component is supplied.
 
-`Composer` props: `commands` (slash commands offered, by name; default all),
+`Composer` props: `commands` (slash commands offered, in order: built-ins by name,
+or a host's own `{ name, label, icon, hint, view }`; default all built-ins),
 `mentions` (`@` file mentions), `imagesOnly` (`false` lets the picker take any
-file when the host stages uploads itself). `ChatHeader` takes `workspace`
-(`false` when the host mounts no file panel).
+file when the host stages uploads itself), `placeholder` (the textarea's hint),
+`modes` (the approval modes as `{ id, label, desc }`, worded for the host's
+tools), `disabled` (shown but inert, every control included). `ChatHeader` takes `workspace` (`false` when the host mounts no file
+panel). `MessageList` has an `empty` slot for the host's own empty state.
+
+`Composer` also has a `toolbar` slot: the pickers after the attach button. It
+defaults to `ModelButton`, and is scoped with `openPalette(view)` so a host's own
+pickers can sit beside it:
+
+```vue
+<template #toolbar="{ openPalette }">
+	<AgentPicker @open="openPalette" />
+	<ModelButton @open="openPalette" />
+</template>
+```
+
+A host's own command, or a picker calling `openPalette(view)`, opens the `palette`
+slot, scoped with `view`, `close()` and `back()` (to the commands list); the host
+renders its page above the composer when `view` is its own:
+
+```vue
+<template #palette="{ view, close, back }">
+	<AgentPalette v-if="view === 'agents'" @close="close" @back="back" />
+</template>
+```
+
+`SettingsDialog` is a shell: the dialog, its sidebar and its type scale are shared,
+while each host names its tabs in `groups` (`[{ label, tabs: [{ id, label, icon }] }]`)
+and fills one slot per tab id with its own panel, built from `SettingsPage` (a heading
+and body that scroll together; `back` adds a way back for a page that replaced another,
+the `actions` slot sits at the heading's right, and a `footer` slot is pinned under the
+body) and
+`SettingsRow` (a setting and its control). `v-model:tab`
+opens a given tab. The harness passes its four tabs from `FlowChat`; the Flow Frappe
+app passes its doctype panels.
 
 ## Notes / gaps against the daemon API
 

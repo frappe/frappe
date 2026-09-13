@@ -24,6 +24,16 @@ function toolGroups(conversation) {
 	return buildItems(conversation).filter((item) => item.kind === "group")
 }
 
+test("a durable user message keeps the turn visibly working until it ends", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "Review this" })
+	assert.equal(conversation.running, false)
+	assert.equal(conversation.liveLabel, "Working")
+	applyEvent(conversation, { type: "run_ended", seq: 3, reason: "done" })
+	assert.equal(conversation.running, false)
+	assert.equal(conversation.liveLabel, null)
+})
+
 test("user content helpers support durable attachment blocks", () => {
 	const entry = {
 		content: [
@@ -821,9 +831,9 @@ test("settled edit and write calls surface a changed-files section after the res
 	const items = buildItems(conversation)
 	assert.deepEqual(
 		items.map((item) => item.kind),
-		["user", "turn-fold", "text", "turn-copy", "turn-files"],
+		["user", "turn-fold", "text", "turn-files", "turn-copy"],
 	)
-	assert.deepEqual(items.at(-1).files, [
+	assert.deepEqual(items.find((item) => item.kind === "turn-files").files, [
 		{ path: "/proj/src/app.js", added: 5, removed: 3 },
 		{ path: "/proj/src/new.js", added: 12, removed: 0 },
 	])

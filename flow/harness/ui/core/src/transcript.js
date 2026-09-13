@@ -5,6 +5,12 @@
 export const EFFORTS = ["default", "off", "minimal", "low", "medium", "high", "xhigh", "max"]
 
 // display names for the wire-level effort ids
+// the two approval modes as the composer and the general settings present them
+export const APPROVAL_MODES = [
+	{ id: "ask", label: "Ask for approval", desc: "Pauses before writes, edits and commands." },
+	{ id: "auto", label: "Auto-approve", desc: "Runs every tool without stopping to ask." },
+]
+
 export const EFFORT_LABELS = {
 	default: "Default",
 	off: "Off",
@@ -68,6 +74,9 @@ export function applyEvent(s, e) {
 		case "user_message":
 		case "assistant_message":
 		case "tool_result":
+			if (e.type === "user_message") {
+				s.liveLabel ??= "Working"
+			}
 			if (e.type === "assistant_message") {
 				s.partial = []
 				// a text blob ends the tool phase; a tool-only message keeps the

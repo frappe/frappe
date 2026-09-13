@@ -14,8 +14,10 @@
 			class="flex h-full flex-col items-center justify-center gap-5 text-center"
 			:style="{ paddingBottom: composerHeight + 'px' }"
 		>
-			<BrandMark :size="48" />
-			<h2 class="text-5xl font-normal text-ink-gray-9">What would you like to build?</h2>
+			<slot name="empty">
+				<BrandMark :size="48" />
+				<h2 class="text-5xl font-normal text-ink-gray-9">What would you like to build?</h2>
+			</slot>
 		</div>
 		<div
 			v-else
@@ -65,6 +67,14 @@
 						:text="item.text"
 						title="Copy response"
 						class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+					/>
+					<!-- a host's own per-turn actions (Flow's feedback thumbs) -->
+					<component
+						:is="flow.options.turnActions"
+						v-if="flow.options?.turnActions"
+						:turn-key="item.turnKey"
+						:text="item.text"
+						:ts="item.ts"
 					/>
 					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
 				</div>
@@ -149,7 +159,9 @@ const conversation = computed(() => flow.state.conversation)
 const expandedTurnKeys = ref(new Set())
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value))
 
-const empty = computed(() => !flow.state.sessionId && !flow.state.loading)
+const empty = computed(
+	() => !flow.state.loading && !items.value.length && !conversation.value.running && !conversation.value.liveLabel,
+)
 const composerHeight = inject("composerHeight", ref(120))
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
