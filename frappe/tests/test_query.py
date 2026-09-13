@@ -3094,6 +3094,75 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn(todo.name, [r.name for r in rows])
 
 
+class TestJSONFieldQueries(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.doctype = "Test JSON Field Query"
+		new_doctype(
+			cls.doctype, fields=[{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"}]
+		).insert(ignore_if_duplicate=True)
+		cls.names = {
+			label: frappe.get_doc(doctype=cls.doctype, payload=payload).insert().name
+			for label, payload in (("null", None), ("empty", "[]"), ("filled", '["x"]'))
+		}
+
+	def get_names(self, *filters):
+		"""Names matching the filters among the docs this class created; the table persists between runs."""
+		filters = [*filters, ["name", "in", list(self.names.values())]]
+		return set(frappe.get_all(self.doctype, filters=filters, pluck="name"))
+
+	def test_json_filter_operators(self):
+		null, empty, filled = (self.names[label] for label in ("null", "empty", "filled"))
+		cases = [
+			(["is", "not set"], {null}),
+			(["is", "set"], {empty, filled}),
+			(["=", "[]"], {empty}),
+			(["!=", "[]"], {null, filled}),
+			(["in", ["[]"]], {empty}),
+			(["not in", ["[]"]], {null, filled}),
+			(["like", "%x%"], {filled}),
+			(["=", None], {null}),
+			(["!=", None], {empty, filled}),
+		]
+		for operator_and_value, expected in cases:
+			with self.subTest(filter=operator_and_value):
+				self.assertEqual(self.get_names(["payload", *operator_and_value]), expected)
+
+	def test_json_filter_field_references(self):
+		empty = self.names["empty"]
+		for key in (f"`tab{self.doctype}`.`payload`", Field("payload")):
+			with self.subTest(key=str(key)):
+				self.assertEqual(self.get_names([key, "=", "[]"]), {empty})
+
+		self.assertEqual(frappe.db.get_value(self.doctype, {"payload": "[]"}, "name"), empty)
+
+	def test_json_filter_sql_shape(self):
+		compat = frappe.qb.get_query(
+			self.doctype, filters={"payload": ["!=", "[]"]}, db_query_compat=True
+		).get_sql()
+		aliased = frappe.qb.get_query(
+			self.doctype, filters={frappe.qb.DocType(self.doctype).as_("x").payload: "[]"}
+		).get_sql()
+
+		if frappe.db.db_type == "postgres":
+			self.assertIn('IFNULL(CAST("payload" AS VARCHAR)', compat)
+			self.assertEqual(compat.count("CAST("), 1)
+			self.assertIn('CAST("x"."payload" AS VARCHAR)', aliased)
+		else:
+			self.assertNotIn("CAST(", compat)
+			self.assertNotIn("CAST(", aliased)
+
+	def test_json_filter_with_cold_metadata(self):
+		frappe.clear_cache()
+		frappe.clear_messages()
+
+		# Custom Field is a core doctype whose meta loads through this same filter builder
+		frappe.get_all("Custom Field", filters={"link_filters": ["is", "not set"]}, limit=1)
+		self.assertEqual(self.get_names(["payload", "=", "[]"]), {self.names["empty"]})
+		self.assertEqual(frappe.local.message_log, [])
+
+
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):
 	return "`tabDashboard Settings`.`name` = 'Administrator'"
