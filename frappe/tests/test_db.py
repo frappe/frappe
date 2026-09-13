@@ -709,7 +709,7 @@ class TestDB(IntegrationTestCase):
 		# data-type should be list
 		self.assertIsInstance(note_docs, tuple)
 
-	@run_only_if(db_type_is.POSTGRES)
+	@unimplemented_for(db_type_is.MARIADB)
 	def test_column_metadata_queries_bind_table_name(self):
 		self.assertFalse(frappe.db.get_table_columns_description("tabUser' OR TRUE --"))
 		self.assertFalse(frappe.db.describe("User' OR TRUE --"))
