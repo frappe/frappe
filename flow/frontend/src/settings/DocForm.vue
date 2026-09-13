@@ -26,7 +26,6 @@
 				:doc="doc"
 				:disabled="!canWrite || isLocked(field)"
 			/>
-			<ErrorMessage :message="error" />
 		</form>
 		<div v-else class="py-8 text-center text-xs text-ink-gray-5">
 			{{ error || "Loading…" }}
@@ -42,7 +41,7 @@
 				:title="dirty ? 'Save first' : ''"
 				@click="runAction(action)"
 			/>
-			<span class="flex-1" />
+			<span class="min-w-0 flex-1"><ErrorMessage :message="error" /></span>
 			<Button v-if="canDelete" variant="ghost" theme="red" label="Delete" @click="remove" />
 			<Button v-if="!spec.single" variant="outline" label="Cancel" @click="emit('close')" />
 			<Button
