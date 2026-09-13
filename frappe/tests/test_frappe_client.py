@@ -152,7 +152,9 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertTrue(doc["content"] == CONTENT)
 
 	def test_update_child_doc(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		# Earlier HTTP calls can advance the SQLite WAL while this process still
+		# holds an older read snapshot. Start cleanup from the latest snapshot.
+		frappe.db.rollback()
 		frappe.db.delete("Contact", {"first_name": "George", "last_name": "Steevens"})
 		frappe.db.delete("Contact", {"first_name": "William", "last_name": "Shakespeare"})
 		frappe.db.delete("Communication", {"reference_doctype": "Event"})
@@ -160,6 +162,7 @@ class TestFrappeClient(IntegrationTestCase):
 		frappe.db.delete("Event", {"subject": "Sing a song of sixpence"})
 		frappe.db.delete("Event Participants", {"reference_doctype": "Contact"})
 		frappe.db.commit()
+		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 
 		# create multiple contacts
 		server.insert_many(
@@ -208,11 +211,15 @@ class TestFrappeClient(IntegrationTestCase):
 		)
 
 		api_key = frappe.db.get_value("User", "Administrator", "api_key")
+		# The credentials are committed and held in Python values now. Release the
+		# local read snapshot before the web process opens its SQLite connection.
+		frappe.db.rollback()
 		header = {"Authorization": f"token {api_key}:{generated_secret}"}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
-
-		self.assertEqual(res.status_code, 200)
-		self.assertEqual("Administrator", res.json()["message"])
+		with requests.post(
+			get_url() + "/api/method/frappe.auth.get_logged_user", headers=header, timeout=30
+		) as response:
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual("Administrator", response.json()["message"])
 		self.assertEqual(keys["api_secret"], generated_secret)
 
 		header = {
@@ -220,19 +227,25 @@ class TestFrappeClient(IntegrationTestCase):
 				base64.b64encode(frappe.safe_encode(f"{api_key}:{generated_secret}")).decode()
 			)
 		}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
-		self.assertEqual(res.status_code, 200)
-		self.assertEqual("Administrator", res.json()["message"])
+		with requests.post(
+			get_url() + "/api/method/frappe.auth.get_logged_user", headers=header, timeout=30
+		) as response:
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual("Administrator", response.json()["message"])
 
 		# Valid api key, invalid api secret
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": f"token {api_key}:{api_secret}"}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
-		self.assertEqual(res.status_code, 401)
+		with requests.post(
+			get_url() + "/api/method/frappe.auth.get_logged_user", headers=header, timeout=30
+		) as response:
+			self.assertEqual(response.status_code, 401)
 
 		# random api key and api secret
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": f"token {api_key}:{api_secret}"}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
-		self.assertEqual(res.status_code, 401)
+		with requests.post(
+			get_url() + "/api/method/frappe.auth.get_logged_user", headers=header, timeout=30
+		) as response:
+			self.assertEqual(response.status_code, 401)
