@@ -459,7 +459,8 @@ class TestSafeDoc(IntegrationTestCase):
 
 class TestNoSafeExec(IntegrationTestCase):
 	def test_safe_exec_disabled_by_default(self):
-		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
+		with patch("frappe.get_common_site_config", return_value={}):
+			self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
 
 
 class TestJinjaGlobals(IntegrationTestCase):
