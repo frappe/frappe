@@ -29,11 +29,9 @@ Flow sets up the RAG pipeline, embeds and indexes the files, and keeps the DocTy
 
 ---
 
-## Quick Access
+## The Flow page
 
-You can open the global AI chat interface from anywhere in the Frappe Desk by pressing:
-
-<kbd>Cmd</kbd> + <kbd>I</kbd> *(or <kbd>Ctrl</kbd> + <kbd>I</kbd> on Windows)*
+Open `/flow` on your site (it is also listed in the Desk's apps menu). Conversations, agents, skills, tools, triggers, models, providers, knowledge and memories are all managed there; the Desk is never required.
 
 ---
 
@@ -117,18 +115,11 @@ bench get-app flow
 bench --site site-name install-app flow
 ```
 
-Then add a `Flow Provider` with your API key and a `Flow Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open the Desk Flow panel to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
+Then add a `Flow Provider` with your API key and a `Flow Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open `/flow` to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
 
 ### Flow server
 
-Conversations run on a bench-local daemon provided by the `frappe-flow` package, one per bench and shared by every site. The package is installed into the bench environment as a dependency of the Flow app. Installing the app on a site provisions the site and starts the daemon; `bench flow-server setup` does the same by hand, and `start`, `stop`, `restart` and `status` do what they say.
-
-- Durable data and `tenants.json` live under `<bench>/sites/flow-server/` so they survive deployments. The socket and PID are runtime files under `<bench>/flow-server/`, and logs go to `<bench>/logs/flow-server.log`.
-- Sessions have no file access: the daemon's own read and grep tools are switched off for every session. The only path in a site's fence is its public files folder, which sessions use as their working directory.
-- Each site gets a `flow_server_secret` in its site config. The daemon calls the site back for tool calls at `flow_server_url` if set, otherwise at the site URL Frappe computes (`host_name`, `http_port`, or `webserver_port` in developer mode). Set that before the first chat: changing it later invalidates the callback URLs of existing sessions.
-- `flow_callback_timeout` in site config caps how many seconds the daemon waits for a tool call to answer (the daemon's default is 120).
-- Events are published to the bench's `redis_queue`, or `flow_redis_url` from `common_site_config.json`.
-- The scheduler restarts a dead daemon within five minutes, and `bench migrate` restarts it so updates ship. Uninstalling the app from a site removes its token and session data; removing the last site stops the daemon.
+Conversations run on a bench-local daemon from the `frappe-flow` package, one per bench and shared by every site. Installing the app on a site provisions the site and starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its state lives under `<bench>/sites/flow-server/`, its log at `<bench>/logs/flow-server.log`. Callbacks reach the site through the bench's web server on loopback, naming the site in a header, so no DNS or proxy is involved; `flow_server_url` in site config sends them elsewhere, and `flow_callback_timeout` caps a tool call's seconds. Session events reach the browser through Redis and Frappe's socketio process; the daemon's log stays the record, so clients sync a session after each run.
 
 ## License
 

@@ -163,7 +163,14 @@ class TestLoadSession(ServerCase):
 		self.assertEqual(switched.model, other.name)
 		self.assertEqual(
 			[call for call in self.daemon.calls if call[0] == "set_model"],
-			[("set_model", self.session.name, "openai/gpt-4o", {"api_key": None, "api_base": None})],
+			[
+				(
+					"set_model",
+					self.session.name,
+					"openai/gpt-4o",
+					{"api_key": None, "api_base": None, "reasoning_effort": None},
+				)
+			],
 		)
 		load_session(self.session.name, model=other.name)
 		self.assertEqual(len([call for call in self.daemon.calls if call[0] == "set_model"]), 1)

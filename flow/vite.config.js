@@ -1,46 +1,36 @@
 import { fileURLToPath, URL } from "node:url";
+
 import vue from "@vitejs/plugin-vue";
+import frappeui from "frappe-ui/vite";
 import { defineConfig } from "vite";
 
-// Builds the AI panel as a single self-contained IIFE bundle + one CSS file,
-// emitted into the app's public dir so the desk can load it directly via
-// `app_include_js` / `app_include_css` (see flow/hooks.py). Real frappe-ui
-// components are pulled from source (`frappe-ui/src/...`) and tree-shaken.
+const here = (path) => fileURLToPath(new URL(path, import.meta.url));
+
+// The page is built from frontend/ into the app's public folder; its entry lands in
+// www/flow/index.html, where Frappe renders the boot data into it. In dev, frappe-ui's
+// proxy forwards API and asset paths to the bench (port 8000 → Vite on 8080).
 export default defineConfig({
-	define: {
-		"process.env.NODE_ENV": JSON.stringify("production"),
-		__VUE_OPTIONS_API__: "true",
-		__VUE_PROD_DEVTOOLS__: "false",
-		__VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false",
-	},
-	plugins: [vue()],
-	resolve: {
-		alias: [
-			{ find: "@", replacement: fileURLToPath(new URL("./frontend/src", import.meta.url)) },
-			// frappe-ui's package `exports` map hides its source; alias it so we can import
-			// individual components without dragging in the whole index (tiptap, echarts, …).
-			{
-				find: "frappe-ui/src",
-				replacement: fileURLToPath(
-					new URL("./node_modules/frappe-ui/src", import.meta.url)
-				),
+	root: here("./frontend"),
+	plugins: [
+		frappeui({
+			frappeProxy: true,
+			lucideIcons: true,
+			jinjaBootData: true,
+			buildConfig: {
+				outDir: here("./flow/public/frontend"),
+				emptyOutDir: true,
+				indexHtmlPath: here("./flow/www/flow/index.html"),
+				baseUrl: "/assets/flow/frontend/",
 			},
-		],
+		}),
+		vue(),
+	],
+	resolve: {
+		// frappe-ui's `exports` map hides its source; the core components import it by path
+		alias: [{ find: "frappe-ui/src", replacement: here("./node_modules/frappe-ui/src") }],
+		// @flow/ui-core is linked from harness/ui, which has its own node_modules: one Vue
+		dedupe: ["vue", "vue-router", "frappe-ui"],
 	},
-	build: {
-		outDir: fileURLToPath(new URL("./flow/public/flow_panel", import.meta.url)),
-		emptyOutDir: true,
-		cssCodeSplit: false,
-		sourcemap: false,
-		target: "es2017",
-		lib: {
-			entry: fileURLToPath(new URL("./frontend/src/main.js", import.meta.url)),
-			formats: ["iife"],
-			name: "FlowPanel",
-			fileName: () => "flow_panel.js",
-		},
-		rollupOptions: {
-			output: { assetFileNames: "flow_panel.[ext]" },
-		},
-	},
+	optimizeDeps: { exclude: ["frappe-ui", "@flow/ui-core"] },
+	server: { fs: { allow: [here("."), here("./harness/ui/core")] } },
 });

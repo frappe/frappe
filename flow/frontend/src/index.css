@@ -1,89 +1,59 @@
-@import "./styles/markdown.css";
+@import "@flow/ui-core/flow.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Authored rules are scoped to #flow-root by postcss-prefix-selector at build. */
-
+/* The same theme tuning as the harness web app, so the shared components look alike. */
 :root {
-	--text-xs: 13px;
-	--text-sm: 14px;
-	--text-base: 15px;
-	--text-lg: 17px;
+	--outline-gray-1: #e6e6e6;
+	--outline-gray-2: #d6d6d6;
+	--outline-gray-3: #bdbdbd;
 }
 
-/* frappe-ui forces `font-family: InterVar`, a face the desk doesn't load (it
-   ships "Inter"/"InterVariable"), so it falls back to the system font. Point
-   the panel at the desk's real fonts. */
-.flow-panel {
-	font-family: "Inter", "InterVariable", ui-sans-serif, system-ui, sans-serif;
-	font-weight: 400;
+[data-theme="dark"] {
+	--surface-base: #171717;
+	--surface-sidebar: #141414;
+	--surface-gray-1: #1f1f1f;
+	--surface-gray-2: #292929;
+	--surface-gray-3: #383838;
+	--surface-gray-4: #424242;
+	--surface-elevation-1: #1f1f1f;
+	--surface-elevation-2: #292929;
+	--surface-elevation-3: #383838;
+	--outline-base: #242424;
+	--outline-elevation-2: #383838;
+	--outline-gray-1: #242424;
+	--outline-gray-2: #383838;
+	--outline-gray-3: #424242;
 }
 
-/* Even vertical rhythm between an assistant message's blocks (text + tool cards).
-   Text carries line-height half-leading that cards don't, so the boundary next
-   to a text blob is tightened to keep all visual gaps equal. */
-.flow-parts > * + * {
-	margin-top: 10px;
-}
-/* a text blob followed by a tool/confirm card — extra breathing room below the text */
-.flow-parts > .md + * {
-	margin-top: calc(22px - 0.36em);
-}
-/* a card/element followed by a text blob */
-.flow-parts > * + .md {
-	margin-top: calc(10px - 0.36em);
-}
-.flow-parts > .md + .md {
-	margin-top: calc(16px - 0.72em);
+html,
+body,
+#app {
+	height: 100%;
+	margin: 0;
 }
 
-/* Sweeps a highlight across a label while its activity is live. */
-.flow-shimmer-text {
-	background: linear-gradient(
-		90deg,
-		var(--ink-gray-4) 0%,
-		var(--ink-gray-4) 35%,
-		var(--ink-gray-8) 50%,
-		var(--ink-gray-4) 65%,
-		var(--ink-gray-4) 100%
-	);
-	background-size: 200% 100%;
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	animation: flow-shimmer-text 1.6s linear infinite;
-}
-@keyframes flow-shimmer-text {
-	to {
-		background-position: -200% 0;
-	}
-}
-@media (prefers-reduced-motion: reduce) {
-	.flow-shimmer-text {
-		animation: none;
-	}
+body {
+	font-family: InterVariable, Inter, system-ui, sans-serif;
+	background: var(--surface-base);
+	-webkit-font-smoothing: antialiased;
 }
 
-/* Suppress the @tailwindcss/forms blue focus ring; the composer draws its own. */
-.flow-composer textarea:focus {
-	outline: none;
-	box-shadow: none;
-	border-color: transparent;
+/* frappe-ui's base asks Inter's variable face for its display cut ("opsz" 24) on these
+   elements; the harness web app loads a static Inter without that axis, so pin the text
+   cut to render the shared components alike (the display cut is ~5% narrower) */
+html,
+body,
+button,
+p,
+span,
+div {
+	font-variation-settings: "opsz" 14;
 }
-.flow-scrollbar {
+
+* {
 	scrollbar-width: thin;
 	scrollbar-color: var(--surface-gray-4) transparent;
-}
-.flow-scrollbar::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
-}
-.flow-scrollbar::-webkit-scrollbar-thumb {
-	background: var(--surface-gray-4);
-	border-radius: 999px;
-}
-.flow-scrollbar::-webkit-scrollbar-track {
-	background: transparent;
 }

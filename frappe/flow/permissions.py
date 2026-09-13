@@ -26,3 +26,8 @@ def ensure_flow_role() -> None:
 	frappe.get_doc({"doctype": "Role", "role_name": FLOW_USER_ROLE, "desk_access": 1}).insert(
 		ignore_permissions=True, ignore_if_duplicate=True
 	)
+
+
+def has_app_permission() -> bool:
+	"""Whether the apps screen lists Flow: anyone who may read sessions."""
+	return frappe.has_permission("Flow Session", "read")

@@ -22,23 +22,53 @@ FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
 LIST_LIMIT = 100
 RUN_FIELDS = ["name", "daemon_run_id", "status", "error", "feedback_rating", "feedback_comment"]
+REASONING_EFFORTS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
+# What the /flow page's settings manage; boot reports the caller's rights on each.
+SETTINGS_DOCTYPES = (
+	"Flow Provider",
+	"Flow Model",
+	"Flow Agent",
+	"Flow Skill",
+	"Flow Tool",
+	"Flow Trigger",
+	"Flow Knowledge Base",
+	"Flow Knowledge Source",
+	"Flow Knowledge Settings",
+	"Flow Agent Memory",
+)
 
 
 @frappe.whitelist()
 def boot() -> dict[str, Any]:
 	"""What a client needs before its first call: agents and models to pick from, the
-	default agent, and the file types it may attach."""
+	default agent, the file types it may attach, who is signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
 	from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
 	from flow.knowledge.extract import FILE_EXTENSIONS
 
-	fields = ["name", "title"]
-	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=fields, order_by="title")
+	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title"], order_by="title")
+	models = frappe.get_list(
+		"Flow Model",
+		filters={"enabled": 1},
+		fields=["name", "title", "model_id", "provider", "context_window"],
+		order_by="title",
+	)
 	return {
 		"agents": agents,
 		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_TITLE), None),
-		"models": frappe.get_list("Flow Model", filters={"enabled": 1}, fields=fields, order_by="title"),
+		"models": models,
 		"file_types": sorted(FILE_EXTENSIONS),
+		"user": frappe.db.get_value(
+			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True
+		),
+		"permissions": {
+			doctype: [
+				ptype
+				for ptype in ("read", "write", "create", "delete")
+				if frappe.has_permission(doctype, ptype)
+			]
+			for doctype in SETTINGS_DOCTYPES
+		},
 	}
 
 
@@ -125,11 +155,21 @@ def entries(session: str, since: int | str = 0, path: str = "active") -> dict[st
 
 
 @frappe.whitelist()
-def set_model(session: str, model: str) -> dict[str, str]:
+def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
+	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
 	if not isinstance(model, str) or not model.strip():
 		frappe.throw(_("Model is required."), title=_("Invalid Model"))
-	_load_session(session, "write").set_model(model.strip())
-	return {"model": model.strip()}
+	effort = (reasoning_effort or "").strip() or None
+	if effort is not None and effort not in REASONING_EFFORTS:
+		frappe.throw(
+			_("Reasoning effort must be one of {0}.").format(", ".join(REASONING_EFFORTS)),
+			title=_("Invalid Reasoning Effort"),
+		)
+	_load_session(session, "write").set_model(model.strip(), reasoning_effort=effort)
+	return {
+		"model": model.strip(),
+		"reasoning_effort": effort,
+	}
 
 
 @frappe.whitelist()
@@ -168,8 +208,8 @@ def sync_session(session: str) -> dict[str, Any]:
 def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> dict[str, Any]:
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
 	thumbs-down comment is stored as shared agent memory when the agent has memory
-	enabled (a no-op otherwise). Clearing the rating leaves any saved memory intact."""
-	from flow.memory.memory import save_feedback_memory
+	enabled (a no-op otherwise); clearing the rating drops that memory again."""
+	from flow.memory.memory import forget_feedback_memory, save_feedback_memory
 
 	if not isinstance(run_name, str) or not run_name.strip():
 		frappe.throw(_("Run is required."), title=_("Invalid Run"))
@@ -193,8 +233,9 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 		)
 
 	if rating == "None":
+		forgotten = forget_feedback_memory(run)
 		run.db_set({"feedback_rating": "", "feedback_comment": None})
-		return {"rating": None}
+		return {"rating": None, "forgotten": forgotten} if forgotten else {"rating": None}
 
 	memory = save_feedback_memory(run, comment) if rating == "Down" and comment else None
 	run.db_set({"feedback_rating": rating, "feedback_comment": comment or None})
@@ -219,6 +260,27 @@ def attach_file(file: str) -> dict[str, Any]:
 	return stage_attachment(file.strip())
 
 
+@frappe.whitelist()
+def cleanup_attachments(
+	session: str | None = None, attachments: list[str] | str | None = None
+) -> dict[str, list[str]]:
+	"""Discard staged uploads that no accepted turn references."""
+	if session:
+		_load_session(session, "write")
+	else:
+		frappe.has_permission("Flow Session", "create", throw=True)
+	removed = []
+	for file in _parse_attachments(attachments):
+		row = frappe.db.get_value("File", file, ["owner", "attached_to_doctype"], as_dict=True)
+		if not row or row.owner != frappe.session.user or row.attached_to_doctype:
+			continue
+		if frappe.db.exists("Flow Session Attachment", {"file": file}):
+			continue
+		frappe.delete_doc("File", file, ignore_permissions=True)
+		removed.append(file)
+	return {"removed": removed}
+
+
 def _load_session(session: str, ptype: str) -> FlowSession:
 	if not isinstance(session, str) or not session.strip():
 		frappe.throw(_("Session is required."), title=_("Invalid Session"))
@@ -228,11 +290,12 @@ def _load_session(session: str, ptype: str) -> FlowSession:
 
 
 def _session_payload(doc: FlowSession) -> dict[str, Any]:
+	model = doc.model or frappe.get_cached_value("Flow Agent", doc.agent, "model")
 	return {
 		"name": doc.name,
 		"title": doc.title,
 		"agent": doc.agent,
-		"model": doc.model,
+		"model": model,
 		"source": doc.source,
 		"auto_approve": bool(doc.auto_approve),
 		"runs": frappe.get_all(

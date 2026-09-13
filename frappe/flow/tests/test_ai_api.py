@@ -9,7 +9,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow import api
-from flow.api import attach_file, submit_feedback
+from flow.api import attach_file, cleanup_attachments, submit_feedback
 from flow.daemon.client import DaemonClient
 from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.memory import store as memory_store
@@ -77,12 +77,18 @@ class TestAttachFile(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "File is required"):
 			attach_file("   ")
 
-	def test_attach_file_stages_an_image_unread(self):
+	def test_attach_file_prepares_image_ocr_without_forcing_text_delivery(self):
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
 
 		file_doc = self._file(file_name="pic.png", content=png_bytes())
-		self.assertEqual(attach_file(file_doc.name)["file_name"], "pic.png")
-		self.assertIsNone(staged_attachment(file_doc.name)["extracted_text"])
+		with patch(
+			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file",
+			return_value="OCR",
+		):
+			self.assertEqual(attach_file(file_doc.name)["file_name"], "pic.png")
+		data = staged_attachment(file_doc.name)
+		self.assertIsNone(data["extracted_text"])
+		self.assertEqual(data["ocr_text"], "OCR")
 
 	def test_attach_file_unsupported_type_surfaces_at_upload(self):
 		file_doc = self._file(file_name="data.bin", content="x")
@@ -192,6 +198,12 @@ class TestSubmitFeedback(IntegrationTestCase):
 		self.assertEqual(memory.source_run, run)
 		self.assertEqual(memory.content, "Widget A maps to WGT-001.")
 
+	def test_withdrawing_a_thumbs_down_forgets_its_memory(self):
+		run = self._run()
+		memory = submit_feedback(run, "Down", comment="Wrong item code.")["memory"]
+		self.assertEqual(submit_feedback(run, "None"), {"rating": None, "forgotten": 1})
+		self.assertFalse(frappe.db.exists("Flow Agent Memory", memory))
+
 	def test_down_comment_without_memory_tool_records_but_skips_memory(self):
 		other = frappe.get_doc(_agent_doc(self.model.name, title="Feedback No Memory Agent")).insert()
 		run = self._run(agent=other.name)
@@ -212,17 +224,11 @@ class TestSubmitFeedback(IntegrationTestCase):
 
 	def test_none_clears_rating(self):
 		run = self._run()
-		submit_feedback(run, "Down", comment="Not quite.")
+		submit_feedback(run, "Up")
 		self.assertEqual(submit_feedback(run, "None"), {"rating": None})
 		doc = frappe.get_doc("Flow Run", run)
 		self.assertFalse(doc.feedback_rating)
 		self.assertIsNone(doc.feedback_comment)
-
-	def test_none_keeps_saved_memory(self):
-		run = self._run()
-		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")
-		submit_feedback(run, "None")
-		self.assertTrue(frappe.db.exists("Flow Agent Memory", result["memory"]))
 
 
 class ApiCase(IntegrationTestCase):
@@ -259,9 +265,22 @@ class TestSessionEndpoints(ApiCase):
 		names = [row.name for row in data["agents"]]
 		self.assertIn(self.agent.name, names)
 		self.assertNotIn(hidden.name, names)
-		self.assertIn(self.model.name, [row.name for row in data["models"]])
+		model = next(row for row in data["models"] if row.name == self.model.name)
+		self.assertEqual(model.model_id, "openai/gpt-4o-mini")
+		self.assertIn("context_window", model)
 		self.assertIn("txt", data["file_types"])
 		self.assertIn("default_agent", data)
+
+	def test_boot_names_the_user_and_their_settings_rights(self):
+		data = api.boot()
+		self.assertEqual(data["user"]["name"], "Administrator")
+		self.assertIn("full_name", data["user"])
+		self.assertEqual(data["permissions"]["Flow Provider"], ["read", "write", "create", "delete"])
+		frappe.set_user(_ensure_user(OTHER))
+		data = api.boot()
+		self.assertEqual(data["user"]["name"], OTHER)
+		self.assertEqual(data["permissions"]["Flow Provider"], [])
+		self.assertEqual(data["permissions"]["Flow Model"], ["read"])
 
 	def test_create_session_names_the_agent_and_keeps_auto_approve(self):
 		data = api.create_session(self.agent.name, model=self.model.name, title=" Hello ", auto_approve="1")
@@ -270,7 +289,72 @@ class TestSessionEndpoints(ApiCase):
 			(self.agent.name, self.model.name, "Hello", "Manual", True, []),
 		)
 		self.assertTrue(self.daemon.configs[data["name"]]["auto_approve"])
-		self.assertFalse(api.create_session(self.agent.name)["auto_approve"])
+		plain = api.create_session(self.agent.name)
+		self.assertFalse(plain["auto_approve"])
+		self.assertEqual(plain["model"], self.model.name)  # the agent's model, with no override
+		self.assertIsNone(frappe.db.get_value("Flow Session", plain["name"], "model"))
+
+	def test_cleanup_only_deletes_files_the_run_did_not_claim(self):
+		name = self.create()
+		unused = frappe.get_doc(
+			{"doctype": "File", "file_name": "unused.txt", "content": "unused", "is_private": 1}
+		).insert()
+		claimed = frappe.get_doc(
+			{"doctype": "File", "file_name": "claimed.txt", "content": "claimed", "is_private": 1}
+		).insert()
+		doc = frappe.get_doc("Flow Session", name)
+		doc.append(
+			"attachments",
+			{"file": claimed.name, "file_name": claimed.file_name, "file_size": claimed.file_size},
+		)
+		doc.save(ignore_permissions=True)
+
+		result = cleanup_attachments(name, [unused.name, claimed.name])
+
+		self.assertEqual(result, {"removed": [unused.name]})
+		self.assertFalse(frappe.db.exists("File", unused.name))
+		self.assertTrue(frappe.db.exists("File", claimed.name))
+
+	def test_cleanup_before_session_creation_keeps_other_users_files(self):
+		own = frappe.get_doc(
+			{"doctype": "File", "file_name": "draft.txt", "content": "draft", "is_private": 1}
+		).insert()
+		other = frappe.get_doc(
+			{"doctype": "File", "file_name": "other.txt", "content": "other", "is_private": 1}
+		).insert()
+		frappe.db.set_value("File", other.name, "owner", OTHER)
+		result = cleanup_attachments(attachments=[own.name, other.name])
+		self.assertEqual(result, {"removed": [own.name]})
+		self.assertTrue(frappe.db.exists("File", other.name))
+
+	def test_an_admitted_attachment_is_owned_by_its_session(self):
+		name = self.create()
+		file = frappe.get_doc(
+			{"doctype": "File", "file_name": "claimed.txt", "content": "claimed", "is_private": 1}
+		).insert()
+
+		api.run(name, "read it", [file.name])
+
+		self.assertEqual(
+			frappe.db.get_value(
+				"File",
+				file.name,
+				["attached_to_doctype", "attached_to_name", "attached_to_field"],
+			),
+			("Flow Session", name, "attachments"),
+		)
+
+	def test_sync_repairs_an_attachment_whose_file_was_deleted(self):
+		name = self.create()
+		file = frappe.get_doc(
+			{"doctype": "File", "file_name": "gone.txt", "content": "gone", "is_private": 1}
+		).insert()
+		api.run(name, "read it", [file.name])
+		frappe.db.delete("File", {"name": file.name})
+
+		api.sync_session(name)
+
+		self.assertFalse(frappe.db.exists("Flow Session Attachment", {"parent": name, "file": file.name}))
 
 	def test_create_session_defaults_to_the_assistant(self):
 		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
@@ -401,10 +485,25 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(api.entries(name, since="2")["entries"][0]["seq"], 3)
 		self.assertEqual(self.daemon.calls[-1], ("entries", name, 2, "active"))
 
+	def test_set_model_passes_the_reasoning_effort_to_the_flow_server(self):
+		name = self.create()
+		self.assertEqual(
+			api.set_model(name, self.model.name, reasoning_effort="high"),
+			{"model": self.model.name, "reasoning_effort": "high"},
+		)
+		self.assertEqual(self.daemon.calls[-1][3]["reasoning_effort"], "high")
+		self.assertEqual(api.set_model(name, self.model.name, reasoning_effort="")["reasoning_effort"], None)
+		self.assertIsNone(self.daemon.calls[-1][3]["reasoning_effort"])
+		with self.assertRaisesRegex(frappe.ValidationError, "Reasoning effort must be one of"):
+			api.set_model(name, self.model.name, reasoning_effort="extreme")
+
 	def test_settings_persist_on_the_session(self):
 		name = self.create()
 		other = frappe.get_doc(_model_doc(title="Endpoint Other Model")).insert()
-		self.assertEqual(api.set_model(name, f" {other.name} "), {"model": other.name})
+		self.assertEqual(
+			api.set_model(name, f" {other.name} "),
+			{"model": other.name, "reasoning_effort": None},
+		)
 		self.assertEqual(api.set_title(name, "  Renamed  "), {"title": "Renamed"})
 		self.assertEqual(api.set_auto_approve(name, "1"), {"auto_approve": True})
 		doc = frappe.get_doc("Flow Session", name)

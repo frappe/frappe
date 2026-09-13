@@ -1,0 +1,139 @@
+import { readFile } from "node:fs/promises";
+
+import { compileScript, parse } from "vue/compiler-sfc";
+
+// Compiles the page and the core screens it composes for DOM tests. Every other .vue
+// file is a shallow stub carrying its name, and the modules that reach the site are
+// fakes the tests drive. Run with --preserve-symlinks so the linked core resolves this
+// app's Vue rather than its own copy.
+const vue = import.meta.resolve("vue");
+const moduleURL = (code) => `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`;
+
+const real = new Set([
+	"FlowPage.vue",
+	"AgentPicker.vue",
+	"AgentPalette.vue",
+	"SessionSidebar.vue",
+	"ChatHeader.vue",
+	"MessageList.vue",
+	"Composer.vue",
+	"ModelButton.vue",
+	"PopMenu.vue",
+	"DocPanel.vue",
+	"FieldControl.vue",
+	"SettingsPage.vue",
+]);
+const stubs = new Map();
+function stubURL(name) {
+	if (!stubs.has(name))
+		stubs.set(
+			name,
+			moduleURL(`
+				import { h } from ${JSON.stringify(vue)}
+				export default { render() { return h("div", { "data-stub": ${JSON.stringify(
+					name
+				)} }, this.$slots.default?.()) } }
+			`)
+		);
+	return stubs.get(name);
+}
+
+const fakes = {
+	"frappe-ui": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		const stub = (name) => ({ render() { return h("div", { "data-stub": name }) } })
+		export const Dialogs = stub("Dialogs")
+		export const ToastProvider = stub("ToastProvider")
+		export const Badge = stub("Badge")
+		export const FormLabel = stub("FormLabel")
+		export const FileUploader = stub("FileUploader")
+		export const Switch = stub("Switch")
+		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
+		export const Button = {
+			props: ["label", "loading"],
+			render() { return h("button", { disabled: this.loading }, this.label) }
+		}
+		export const FormControl = {
+			props: ["modelValue", "options", "query", "type", "label", "filterable"],
+			emits: ["update:modelValue", "update:query"],
+			render() {
+				const remote = ["combobox", "multiselect"].includes(this.type)
+				return h("div", { "data-control": this.label || this.type }, [
+					h("input", { value: remote ? this.query : this.modelValue, onInput: e => this.$emit(remote ? "update:query" : "update:modelValue", e.target.value) }),
+					...(this.options || []).map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label)),
+				])
+			}
+		}
+		export const toast = { success() {}, error() {} }
+		export function useColorScheme() {}
+	`),
+	"frappe-ui/experimental": moduleURL(`export const CodeEditor = { render() { return null } }`),
+	"frappe-ui/src/utils/dialog": moduleURL(`
+		import { ref } from ${JSON.stringify(vue)}
+		export const dialogs = ref([])
+		export const dialog = {}
+	`),
+	"../api/frappe.js": moduleURL(`
+		export const calls = []
+		export const answers = {}
+		export async function call(method, args = {}) {
+			calls.push([method, args])
+			if (!(method in answers)) throw new Error("unexpected call: " + method)
+			const answer = answers[method]
+			return typeof answer === "function" ? answer(args) : answer
+		}
+		export async function uploadFile() { throw new Error("no uploads here") }
+		export function deleteFile() {}
+	`),
+	"../api/socket.js": moduleURL(`
+		export const socket = {
+			on() {}, off() {}, disconnect() {},
+			emit(name, ...args) {
+				const ack = args.at(-1)
+				if (name === "flow:subscribe" && typeof ack === "function") ack({ subscribed: true })
+			},
+		}
+		export function connectSocket() { return socket }
+	`),
+};
+export const transport = await import(fakes["../api/frappe.js"]);
+
+const compiled = new Map();
+async function componentURL(url) {
+	if (compiled.has(url.href)) return compiled.get(url.href);
+	const source = await readFile(url, "utf8");
+	let content = source;
+	if (url.pathname.endsWith(".vue")) {
+		const { descriptor } = parse(source, { filename: url.pathname });
+		content = compileScript(descriptor, { id: url.pathname, inlineTemplate: true }).content;
+	}
+	const imports = [...content.matchAll(/\bfrom\s+["']([^"']+)["']/g)];
+	for (const match of imports.reverse()) {
+		const specifier = match[1];
+		let resolved;
+		if (specifier in fakes) resolved = fakes[specifier];
+		else if (specifier.endsWith(".vue")) {
+			const name = specifier.split("/").pop();
+			resolved = real.has(name)
+				? await componentURL(targetURL(specifier, url))
+				: stubURL(name.slice(0, -4));
+		} else if (specifier === "./links.js")
+			resolved = await componentURL(targetURL(specifier, url));
+		else resolved = targetURL(specifier, url).href;
+		content =
+			content.slice(0, match.index) +
+			`from ${JSON.stringify(resolved)}` +
+			content.slice(match.index + match[0].length);
+	}
+	const result = moduleURL(content);
+	compiled.set(url.href, result);
+	return result;
+}
+
+const targetURL = (specifier, from) =>
+	specifier.startsWith(".") ? new URL(specifier, from) : new URL(import.meta.resolve(specifier));
+
+export async function loadComponent(path) {
+	const url = new URL(`../../src/${path}`, import.meta.url);
+	return (await import(await componentURL(url))).default;
+}
