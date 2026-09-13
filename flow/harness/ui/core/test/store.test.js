@@ -3,6 +3,7 @@ import test from "node:test"
 
 import { FlowAPIError } from "../src/client.js"
 import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
+import { applyEvent } from "../src/transcript.js"
 
 globalThis.localStorage = {
 	getItem() {
@@ -898,6 +899,34 @@ test("steering queues in the composer instead of joining the thread", async () =
 	ended.open()
 	await ended.done
 	assert.deepEqual(flow.state.queued, [])
+	flow.detach()
+})
+
+test("a steer the server turned into a turn of its own gets its bubble", async () => {
+	const client = hostClient([])
+	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.run = async () => ({ status: "started" }) // the run had ended; the client had not heard
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.equal(await flow.send("Next question"), true)
+	assert.deepEqual(flow.state.queued, [])
+	assert.equal(flow.state.conversation.sending.length, 1)
+	flow.detach()
+})
+
+test("no second bubble when the echo lands before the run answers", async () => {
+	const client = hostClient([])
+	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.run = async () => {
+		applyEvent(flow.state.conversation, { type: "user_message", seq: 2, content: "Next question" })
+		return { status: "started" }
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.equal(await flow.send("Next question"), true)
+	assert.equal(flow.state.conversation.sending.length, 0)
 	flow.detach()
 })
 

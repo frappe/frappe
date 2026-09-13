@@ -578,6 +578,7 @@ export function createFlowStore(client, options = {}) {
 			// the echo that clears a queued message is matched on the attachments that rode
 			// with it, and the turn can consume it before this call answers
 			if (queued) queued.attachmentIds = attachmentIds
+			const seen = state.conversation.entries.length
 			const result = await guard(() => client.run(sid, message, attachmentIds))
 			if (!result) return false
 			admitted = true
@@ -586,8 +587,14 @@ export function createFlowStore(client, options = {}) {
 			if (result.status === "steered") {
 				unsend(pending)
 				if (!queued) queueMessage(message, attachments, attachmentIds)
-			} else {
-				unqueue(queued) // it opened a turn of its own: its echo draws the bubble
+			} else if (queued) {
+				// it opened a turn of its own, so it needs its bubble — unless the echo
+				// arrived while this call was answering and drew one already
+				unqueue(queued)
+				const echoed = state.conversation.entries
+					.slice(seen)
+					.some((entry) => entry.type === "user_message")
+				if (!echoed) state.conversation.sending.push(pending)
 			}
 			return true
 		} finally {
