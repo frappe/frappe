@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
 	from flow.lib.tool import Tool
 
-DEFAULT_MAX_ITERATIONS = 20
+DEFAULT_MAX_ITERATIONS = 50
 
 # Skills bound to this agent; global ones add MAX_GLOBAL_SKILLS more. The index rides in
 # every session's prompt, so both caps together bound it however the skills are written.

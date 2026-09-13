@@ -60,7 +60,7 @@
    "reqd": 1
   },
   {
-   "default": "10",
+   "default": "50",
    "description": "Maximum number of think → tool → think loops before the run gives up.",
    "fieldname": "max_iterations",
    "fieldtype": "Int",
@@ -124,7 +124,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-11 00:00:00",
+ "modified": "2026-09-12 21:37:09.803489",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",
