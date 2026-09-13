@@ -23,6 +23,7 @@ SAVEPOINT = "flow_tool"
 def callback(callback_type: str, **payload) -> dict:
 	"""Authenticate once, then hand the payload to its focused callback."""
 	_authenticate()
+	payload.pop("cmd", None)  # frappe adds the method's name to every API call's arguments
 	if callback_type == "tool":
 		return tool_callback(**payload)
 	if callback_type == "run_ended":

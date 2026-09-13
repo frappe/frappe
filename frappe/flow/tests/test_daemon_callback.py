@@ -100,6 +100,7 @@ class TestToolCallback(IntegrationTestCase):
 	) -> dict:
 		"""What the daemon posts. Identity comes from the session, not user_context."""
 		payload = {
+			"cmd": "flow.daemon.callback.callback",  # frappe's API layer adds this to the arguments
 			"callback_type": "tool",
 			"session_id": session or self.session.name,
 			"tool": name,
