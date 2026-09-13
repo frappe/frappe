@@ -56,6 +56,15 @@ function askWhy() {
 		confirmLabel: "Submit",
 		onConfirm: ({ values }) => rate("Down", (values.comment ?? "").trim()),
 	});
+	focusComment();
+}
+
+// the prompt hands focus to the dialog's close button; the comment is what it is for,
+// so claim the field once it mounts
+function focusComment(tries = 20) {
+	const field = [...document.querySelectorAll("[role=dialog] textarea")].at(-1);
+	if (field) field.focus();
+	else if (tries) requestAnimationFrame(() => focusComment(tries - 1));
 }
 
 // a thumbs-down comment becomes agent memory server-side; the toast says so
