@@ -102,7 +102,6 @@ class DatabaseQuery:
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
-		self._child_filters_via_exists = False
 		self._metas = {}
 
 	@cached_property
@@ -367,8 +366,6 @@ from {tables}
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
-		# decided before cast_name_fields wraps name columns in cast() on postgres
-		drop_dedup_group_by = self._is_redundant_dedup_group_by()
 		self.apply_fieldlevel_read_permissions()
 
 		args = frappe._dict()
@@ -432,25 +429,10 @@ from {tables}
 		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = (args.order_by and (" order by " + args.order_by)) or ""
 
-		if drop_dedup_group_by:
-			# list views send group_by=parent primary key to dedup child-table join
-			# rows; once child filters use exists() nothing multiplies rows, and
-			# keeping it breaks postgres when fields include columns from joined
-			# link tables (show_title_field_in_link)
-			self.group_by = None
-
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = (self.group_by and (" group by " + self._group_by_with_link_table_pks())) or ""
 
 		return args
-
-	def _is_redundant_dedup_group_by(self) -> bool:
-		if not (self._child_filters_via_exists and len(self.tables) == 1):
-			return False
-		if any("(" in (field or "") for field in self.fields):
-			# aggregates change meaning without group by, keep it
-			return False
-		return self._is_dedup_group_by()
 
 	def _is_dedup_group_by(self) -> bool:
 		if not self.group_by:
@@ -471,11 +453,9 @@ from {tables}
 		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
 
 		if order_field not in args.fields:
-			extracted_column = order_column = order_field.replace("`", "")
-			if "." in extracted_column:
-				extracted_column = extracted_column.split(".")[1]
-
-			args.fields += f", MAX({extracted_column}) as `{order_column}`"
+			order_column = order_field.replace("`", "")
+			qualified_column = ".".join(f"`{part}`" for part in order_column.split("."))
+			args.fields += f", MAX({qualified_column}) as `{order_column}`"
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
@@ -779,99 +759,14 @@ from {tables}
 	def build_conditions(self):
 		self.conditions = []
 		self.grouped_or_conditions = []
-
-		filters, exists_groups = self._split_child_table_filters(self.filters)
-		or_filters, or_exists_groups = self._split_child_table_filters(self.or_filters)
-
-		# a child table filtered in both filters and or_filters keeps the legacy
-		# join: both groups must test the same joined child row
-		for doctype in exists_groups.keys() & or_exists_groups.keys():
-			filters.extend(exists_groups.pop(doctype))
-			or_filters.extend(or_exists_groups.pop(doctype))
-
-		self._child_filters_via_exists = bool(exists_groups or or_exists_groups)
-
-		for ft, parsed in filters:
-			self.conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
-		for doctype, group in exists_groups.items():
-			self.conditions.append(self.prepare_exists_condition(doctype, group))
-
-		for ft, parsed in or_filters:
-			self.grouped_or_conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
-		for doctype, group in or_exists_groups.items():
-			self.grouped_or_conditions.append(self.prepare_exists_condition(doctype, group, any_match=True))
+		self.build_filter_conditions(self.filters, self.conditions)
+		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
 
 		# match conditions
 		if not self.flags.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
 				self.conditions.append(f"({match_conditions})")
-
-	def _split_child_table_filters(self, filters: Filters) -> tuple[list, dict[str, list]]:
-		"""Separate filters on child tables that are not part of the query itself.
-
-		These filter through an exists() subquery instead of a join, so the outer
-		query needs no `group by` to deduplicate parents. Return the remaining
-		filters and the exists candidates grouped by child doctype, both as
-		(filter, parsed filter) pairs so no filter is parsed twice.
-		"""
-		from frappe.boot import get_additional_filters_from_hooks
-
-		joined: list = []
-		exists_groups: dict[str, list] = {}
-		if not filters:
-			return joined, exists_groups
-		if not self._can_filter_via_exists():
-			return [(ft, None) for ft in filters], exists_groups
-
-		additional_filters_config = get_additional_filters_from_hooks()
-		# quotes are stripped so `tabX`.`col`, "tabX".col and tabX.col forms all match
-		sort_group_references = f"{self.group_by or ''} {self.order_by or ''}".replace("`", "").replace(
-			'"', ""
-		)
-		for ft in filters:
-			f = get_filter(self.doctype, ft, additional_filters_config)
-			if (
-				f.doctype
-				and f.doctype != self.doctype
-				and f"`tab{f.doctype}`" not in self.tables
-				and f"tab{f.doctype}" not in sort_group_references
-				and self.get_meta(f.doctype).istable
-			):
-				exists_groups.setdefault(f.doctype, []).append((ft, f))
-			else:
-				joined.append((ft, f))
-		return joined, exists_groups
-
-	def _can_filter_via_exists(self) -> bool:
-		if self.join != "left join" or self.with_childnames:
-			return False
-		if any("(" in (field or "") for field in self.fields or []):
-			return False
-		if self.order_by and self.order_by != DefaultOrderBy and "(" in self.order_by:
-			return False
-		if self.flags.ignore_permissions:
-			return True
-		return not get_server_script_map().get("permission_query", {}).get(self.doctype)
-
-	def prepare_exists_condition(self, child_doctype: str, filters: list, any_match=False) -> str:
-		"""Return an exists() condition that filters by a child table without joining it.
-
-		The child table is left joined to a one-row derived table, so a parent with
-		no child rows is tested against a single all-NULL child row — exactly like
-		the outer left join this replaces (filters like "is not set" must match
-		parents without child rows).
-		"""
-		self.check_read_permission(child_doctype, parent_doctype=self.doctype)
-		child_table = f"`tab{child_doctype}`"
-		joiner = " or " if any_match else " and "
-		conditions = joiner.join(
-			self.prepare_filter_condition(ft, skip_join=True, parsed=parsed) for ft, parsed in filters
-		)
-		return (
-			f"exists (select 1 from (select 1) as `_one_row` "
-			f"left join {child_table} on ({self._child_join_condition(child_table)}) where {conditions})"
-		)
 
 	def _child_join_condition(self, child_table: str) -> str:
 		parent_name = cast_name(f"`tab{self.doctype}`.name")
@@ -991,7 +886,7 @@ from {tables}
 			else:
 				self.remove_field(i)
 
-	def prepare_filter_condition(self, ft: FilterTuple, *, skip_join: bool = False, parsed=None) -> str:
+	def prepare_filter_condition(self, ft: FilterTuple) -> str:
 		"""Return a filter condition in the format:
 
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
@@ -1002,12 +897,10 @@ from {tables}
 		from frappe.boot import get_additional_filters_from_hooks
 
 		additional_filters_config = get_additional_filters_from_hooks()
-		f: FilterTuple = (
-			parsed if parsed is not None else get_filter(self.doctype, ft, additional_filters_config)
-		)
+		f: FilterTuple = get_filter(self.doctype, ft, additional_filters_config)
 
 		tname = "`tab" + f.doctype + "`"
-		if not skip_join and tname not in self.tables:
+		if tname not in self.tables:
 			self.append_table(tname)
 
 		column_name = cast_name(f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`")
