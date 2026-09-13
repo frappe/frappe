@@ -4,13 +4,21 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, get_type_hints
 
-from pypika.queries import Column, QueryBuilder, _SetOperation
+# These PyPika classes are intentionally extended with Frappe's long-standing
+# run/walk adapters below; PyPika does not expose hooks for those entry points.
+from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
+	Column,
+	QueryBuilder,
+	_SetOperation,
+)
 from pypika.terms import PseudoColumn
 
 import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
 
-from .builder import Base, MariaDB, Postgres, SQLite
+# Frappe's public query-builder helpers are installed on Base below. This is the
+# existing framework extension mechanism rather than an app overriding Frappe.
+from .builder import Base, MariaDB, Postgres, SQLite  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 class PseudoColumnMapper(PseudoColumn):

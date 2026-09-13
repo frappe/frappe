@@ -99,8 +99,10 @@ class RecursivePostgreSQLQueryBuilder(RecursiveCTEMixin, PostgreSQLQueryBuilder)
 	pass
 
 
-class SQLiteConflictQueryBuilderMixin:
+class RecursiveSQLLiteQueryBuilder(RecursiveCTEMixin, SQLLiteQueryBuilder):
 	def __init__(self, *args, **kwargs):
+		# SQLite rejects parentheses around the individual SELECT statements in a compound query.
+		kwargs["wrap_set_operation_queries"] = False
 		super().__init__(*args, **kwargs)
 		self._on_conflict = False
 		self._on_conflict_fields = []
@@ -216,13 +218,6 @@ class SQLiteConflictQueryBuilderMixin:
 		self._set_kwargs_defaults(kwargs)
 		query = super().get_sql(with_alias, subquery, **kwargs)
 		return query + self._on_conflict_sql(**kwargs) + self._on_conflict_action_sql(**kwargs)
-
-
-class RecursiveSQLLiteQueryBuilder(RecursiveCTEMixin, SQLiteConflictQueryBuilderMixin, SQLLiteQueryBuilder):
-	def __init__(self, *args, **kwargs):
-		# SQLite rejects parentheses around the individual SELECT statements in a compound query.
-		kwargs["wrap_set_operation_queries"] = False
-		super().__init__(*args, **kwargs)
 
 
 class MariaDB(Base, MySQLQuery):
