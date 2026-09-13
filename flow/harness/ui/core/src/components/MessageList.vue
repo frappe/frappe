@@ -304,9 +304,17 @@ function toggleTurn(turnKey) {
 	})
 }
 
+// your own message belongs at the live end of the thread, wherever the view was
+// when you sent it
+const sendingCount = computed(() => conversation.value.sending?.length ?? 0)
+watch(sendingCount, (count, before) => {
+	if (count > before) stick.value = true
+})
+
 watch(
 	() => [
 		conversation.value.entries.length,
+		sendingCount.value,
 		partialVersion.value,
 		conversation.value.liveLabel,
 		conversation.value.running,
