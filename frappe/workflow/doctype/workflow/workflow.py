@@ -188,12 +188,14 @@ class Workflow(Document):
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
 	def applies_to(self, doc) -> bool:
-		"""Return True if this workflow governs `doc`. A workflow without conditions governs all."""
-		if not self.conditions:
-			return True
+		"""Return True if this workflow governs `doc`. A workflow without conditions governs all.
 
-		return evaluate_filters(
-			doc, [(self.document_type, d.field, d.condition, d.value) for d in self.conditions]
+		Conditions are evaluated one at a time: Filters.optimize collapses repeated equalities on a
+		field into an `in`, which would read the rows as alternatives rather than requirements.
+		"""
+		return all(
+			evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
+			for d in self.conditions
 		)
 
 	def validate_fields_in_conditions(self):
