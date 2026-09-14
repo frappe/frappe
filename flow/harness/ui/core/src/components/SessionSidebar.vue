@@ -172,6 +172,13 @@
 			<div v-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
 				{{ emptyMessage }}
 			</div>
+			<div
+				v-if="flow.state.sessionsMore"
+				ref="sentinel"
+				class="px-2.5 py-2 text-center text-2xs text-ink-gray-4"
+			>
+				Loading more…
+			</div>
 		</div>
 
 		<div
@@ -194,7 +201,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from "vue"
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
@@ -210,6 +217,23 @@ const flow = inject("flow")
 
 const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
+watch(debouncedQuery, (q) => flow.searchSessions(q))
+
+// the row under the last session: scrolling it into view asks for the next page
+const sentinel = ref(null)
+let observer = null
+onMounted(() => {
+	if (typeof IntersectionObserver === "undefined") return
+	observer = new IntersectionObserver((entries) => {
+		if (entries.some((entry) => entry.isIntersecting)) flow.loadMoreSessions()
+	})
+	if (sentinel.value) observer.observe(sentinel.value)
+})
+watch(sentinel, (el, old) => {
+	if (old) observer?.unobserve(old)
+	if (el) observer?.observe(el)
+})
+onBeforeUnmount(() => observer?.disconnect())
 const projectMenu = ref(false)
 const selectedProject = ref(null)
 const menuFor = ref(null)
