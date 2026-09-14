@@ -74,6 +74,8 @@
 						<tr
 							v-for="column in opened(i)"
 							:key="column"
+							ref="unfolded"
+							:data-key="key(i, column)"
 							class="border-t border-outline-gray-1"
 						>
 							<td :colspan="span" class="bg-surface-gray-1 px-3 py-2">
@@ -106,7 +108,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from "vue";
+import { computed, nextTick, reactive, ref } from "vue";
 import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 
 import ValueView from "./ValueView.vue";
@@ -116,7 +118,8 @@ import { cellText, columnsOf, deskUrl, humanize, isTable } from "./result.js";
 // something to say — the record a row created, or why it failed — and the view that
 // fills it names it. A child table stays a count in its cell; opened, it unfolds as a
 // table of its own in a row beneath, spanning the width, and the cap on the height
-// lifts so nothing scrolls inside a scroll. The table fills its panel edge to edge, so
+// lifts so nothing scrolls inside a scroll. Like a tool's dropdown, a row that unfolds
+// past the bottom edge is nudged into view. The table fills its panel edge to edge, so
 // the panel's own border frames it.
 const props = defineProps({
 	columns: { type: Array, required: true },
@@ -129,6 +132,7 @@ const props = defineProps({
 const PAGE_SIZE = 20;
 const visibleCount = ref(PAGE_SIZE);
 const open = reactive(new Set());
+const unfolded = ref([]);
 
 const withStatus = computed(() => props.rows.some((row) => row.status?.name || row.status?.error));
 const span = computed(() => props.columns.length + (withStatus.value ? 1 : 0));
@@ -137,8 +141,13 @@ const hidden = computed(() => props.rows.length - visible.value.length);
 
 const key = (i, column) => `${i}:${column}`;
 const opened = (i) => props.columns.filter((column) => open.has(key(i, column)));
-function toggle(i, column) {
+async function toggle(i, column) {
 	const k = key(i, column);
-	open.has(k) ? open.delete(k) : open.add(k);
+	if (open.has(k)) return open.delete(k);
+	open.add(k);
+	await nextTick();
+	unfolded.value
+		.find((el) => el.dataset.key === k)
+		?.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 </script>

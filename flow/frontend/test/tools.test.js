@@ -14,6 +14,10 @@ for (const name of [
 	"Event",
 ])
 	globalThis[name] = dom.window[name];
+const scrolled = [];
+dom.window.HTMLElement.prototype.scrollIntoView = function (options) {
+	scrolled.push([this, options]);
+};
 const { createApp, nextTick } = await import("vue");
 const { loadComponent, loadModule } = await import("./helpers/components.js");
 const { presentTool } = await loadModule("chat/toolMeta.js");
@@ -253,6 +257,10 @@ test("create and update approvals unfold child records as tables", async (t) => 
 	assert.equal(card.querySelector("td table"), null);
 	assert.equal(texts(card, "td button")[0], "1 row");
 	assert.deepEqual(await childTable(card), unfolded);
+	// unfolding past the bottom edge nudges the new row into view, as a tool's dropdown does
+	const [target, how] = scrolled.at(-1);
+	assert.equal(target, card.querySelector("td table").closest("tr"));
+	assert.equal(how.block, "nearest");
 	card.querySelector("td button").click();
 	await nextTick();
 	assert.equal(card.querySelector("td table"), null);
