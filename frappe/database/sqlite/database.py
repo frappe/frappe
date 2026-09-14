@@ -307,7 +307,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		)
 		if old_column_name not in column_names:
 			raise frappe.InvalidColumnName(f"Column {old_column_name} does not exist in table {table_name}")
-		self.sql_ddl(f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`")
+		self.sql(f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`")
 
 	def create_auth_table(self):
 		self.sql_ddl(
@@ -453,7 +453,6 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		table_name = get_table_name(doctype)
 		index_name = index_name or f"{table_name}_{self.get_index_name(fields)}"
-		self.commit()
 		columns = ", ".join(f"`{field}`" for field in fields)
 		self.sql(f"CREATE INDEX IF NOT EXISTS `{index_name}` ON `{table_name}` ({columns})")
 
@@ -488,7 +487,6 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		sql_create_unique = (
 			f"CREATE UNIQUE INDEX IF NOT EXISTS `{constraint_name}` ON `{table_name}` ({columns})"
 		)
-		self.commit()  # commit before creating index
 		self.sql(sql_create_unique)
 
 	def updatedb(self, doctype, meta=None):
@@ -501,7 +499,6 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			db_table = SQLiteTable(doctype, meta)
 			db_table.validate()
 			db_table.sync()
-			self.commit()
 
 	def get_database_list(self):
 		return [self.db_name]
@@ -900,6 +897,54 @@ def _get_table_triggers(table_name: str) -> list[str]:
 	)
 
 
+def _get_unsupported_rebuild_features(table_name: str) -> set[str]:
+	features = set()
+	table_xinfo = frappe.db.sql(
+		"SELECT * FROM pragma_table_xinfo(%s)",
+		(table_name,),
+		as_dict=True,
+		_skip_sqlite_transpilation=True,
+	)
+	if any(column.get("hidden") in (2, 3) for column in table_xinfo):
+		features.add("generated columns")
+
+	foreign_keys = frappe.db.sql(
+		"SELECT * FROM pragma_foreign_key_list(%s)",
+		(table_name,),
+		as_dict=True,
+		_skip_sqlite_transpilation=True,
+	)
+	if foreign_keys:
+		features.add("foreign keys")
+
+	table_sql = frappe.db.sql(
+		"SELECT sql FROM sqlite_master WHERE type = 'table' AND name = %s",
+		(table_name,),
+		pluck=True,
+	)
+	if not table_sql or not table_sql[0]:
+		return features
+
+	definition = table_sql[0]
+	table_options = definition.rpartition(")")[2]
+	if re.search(r"\bSTRICT\b", table_options, re.I):
+		features.add("STRICT table mode")
+	if re.search(r"\bWITHOUT\s+ROWID\b", table_options, re.I):
+		features.add("WITHOUT ROWID")
+
+	try:
+		parsed = sqlglot.parse_one(definition, read="sqlite")
+	except SqlglotError:
+		features.add("an unrecognized CREATE TABLE definition")
+	else:
+		if any(isinstance(node, exp.CheckColumnConstraint) for node in parsed.walk()):
+			features.add("CHECK constraints")
+		if any(isinstance(node, exp.CollateColumnConstraint) for node in parsed.walk()):
+			features.add("column collations")
+
+	return features
+
+
 def rebuild_table(
 	table_name: str,
 	column_definitions: list[str],
@@ -918,6 +963,11 @@ def rebuild_table(
 	indexes = get_table_indexes(table_name)
 	triggers = _get_table_triggers(table_name)
 	autoincrement_sequence = _get_autoincrement_sequence(table_name)
+	if unsupported_features := _get_unsupported_rebuild_features(table_name):
+		features = ", ".join(sorted(unsupported_features))
+		raise RuntimeError(
+			f"Cannot safely rebuild SQLite table {table_name}: unsupported schema features: {features}"
+		)
 
 	_append_primary_key(column_definitions, table_name)
 	preserved = _append_unique_constraints(column_definitions, indexes, drop_unique_fields)
@@ -927,8 +977,8 @@ def rebuild_table(
 	temp_table_identifier = quote_identifier(temp_table)
 	quoted_columns = ", ".join(quote_identifier(column) for column in column_names)
 
-	# Keep the entire replacement in one transaction so a failed copy or index recreation cannot strand a partial schema or discard the original table.
-	frappe.db.commit()  # nosemgrep
+	save_point = f"sqlite_rebuild_{frappe.generate_hash(length=10)}"
+	frappe.db.savepoint(save_point)
 	try:
 		for query in pre_rebuild_queries:
 			frappe.db.sql(query)
@@ -959,10 +1009,11 @@ def rebuild_table(
 		_restore_autoincrement_sequence(table_name, autoincrement_sequence)
 		for query in post_rebuild_queries:
 			frappe.db.sql(query)
-		frappe.db.commit()
 	except Exception:
-		frappe.db.rollback()
+		frappe.db.rollback(save_point=save_point)
+		frappe.db.release_savepoint(save_point)
 		raise
+	frappe.db.release_savepoint(save_point)
 	return preserved
 
 

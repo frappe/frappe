@@ -108,12 +108,7 @@ class SQLiteTable(DBTable):
 		)
 		create_table_query = f"CREATE TABLE `{self.table_name}` (\n{definitions}\n)"
 
-		# Execute table creation
-		frappe.db.sql_ddl(create_table_query)
-
-		# Create indexes separately
-		for index_query in index_defs:
-			frappe.db.sql_ddl(index_query)
+		self.run_schema_queries([create_table_query, *index_defs])
 
 	def alter(self):
 		from frappe.database.sqlite.database import get_column_definition, rebuild_table
@@ -265,16 +260,16 @@ class SQLiteTable(DBTable):
 	def run_schema_queries(queries: list[str]) -> None:
 		if not queries:
 			return
-		# DDL must start outside pending document writes; the schema batch below is
-		# still atomic because failures roll the complete batch back.
-		frappe.db.commit()  # nosemgrep
+		save_point = f"sqlite_schema_{frappe.generate_hash(length=10)}"
+		frappe.db.savepoint(save_point)
 		try:
 			for query in queries:
 				frappe.db.sql(query)
-			frappe.db.commit()
 		except Exception:
-			frappe.db.rollback()
+			frappe.db.rollback(save_point=save_point)
+			frappe.db.release_savepoint(save_point)
 			raise
+		frappe.db.release_savepoint(save_point)
 
 	def alter_primary_key(self) -> str | None:
 		autoname = self.meta.autoname
