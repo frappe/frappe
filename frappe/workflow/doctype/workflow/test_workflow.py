@@ -731,6 +731,11 @@ class TestConditionalWorkflow(IntegrationTestCase):
 
 		self.assertRaises(frappe.ValidationError, workflow.insert)
 
+	def test_conditions_may_name_a_standard_field(self):
+		workflow = build_conditional_todo_workflow([("owner", "=", "Administrator")]).insert()
+
+		self.assertEqual(get_workflow_name("ToDo", create_new_todo()), workflow.name)
+
 	def test_active_workflows_must_share_a_state_field(self):
 		create_conditional_todo_workflow(priority="High")
 
