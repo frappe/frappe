@@ -241,25 +241,30 @@ def has_app_update_notifications() -> bool:
 	return bool(frappe.cache.sismember("changelog-update-user-set", frappe.session.user))
 
 
-def parse_latest_non_beta_release(response: list, current_version: Version) -> list | None:
+def parse_latest_non_beta_release(response: list, current_version: Version) -> str | None:
 	"""Parse the response JSON for all the releases and return the latest non prerelease.
 
 	Args:
 
 	response (list): response object returned by github
 
-	Return a json object pertaining to the latest non-beta release
+	Return a string pertaining to the latest non-beta release
 	"""
-	version_list = [
-		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
-	]
+	version_list: list[Version] = []
+	for release in response:
+		if release.get("prerelease"):
+			continue
+		tag_name = (release.get("tag_name") or "").strip().lstrip("v")
+		try:
+			version_list.append(Version(tag_name))
+		except ValueError:
+			continue
 
-	def prioritize_minor_update(v: str) -> Version:
-		target = Version(v)
+	def prioritize_minor_update(target: Version) -> tuple[bool, Version]:
 		return (current_version.major == target.major, target)
 
 	if version_list:
-		return sorted(version_list, key=prioritize_minor_update, reverse=True)[0]
+		return str(sorted(version_list, key=prioritize_minor_update, reverse=True)[0])
 
 	return None
 
