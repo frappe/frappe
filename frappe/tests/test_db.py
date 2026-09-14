@@ -1262,6 +1262,20 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 			)"""
 		)
 
+	def test_connection_starts_an_enclosing_transaction(self) -> None:
+		from frappe.database import get_db
+
+		database = get_db(cur_db_name=frappe.conf.db_name)
+		self.addCleanup(database.close)
+		database.connect()
+
+		self.assertTrue(database._conn.in_transaction)
+		database.savepoint("nested_write")
+		database.sql(f"CREATE TABLE `{self.table_name}` (`name` TEXT)")
+		database.release_savepoint("nested_write")
+		database.rollback()
+		self.assertFalse(database.table_exists(self.doctype, cached=False))
+
 	def get_test_meta(self, field: frappe._dict):
 		class TestMeta(frappe._dict):
 			def get(self, key, default=None):
