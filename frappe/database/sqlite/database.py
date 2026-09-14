@@ -134,6 +134,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	MAX_ROW_SIZE_LIMIT = None
 	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
+	def connect(self):
+		super().connect()
+		self.begin()
+
 	def get_connection(self, read_only: bool = False):
 		if not hasattr(self, "_session_time_zone"):
 			self._session_time_zone = ZoneInfo("UTC")
@@ -606,7 +610,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self._conn.commit()
 		self.transaction_writes = 0
 		self.begin()  # explicitly start a new transaction
-
+		self.value_cache.clear()
 		self.run_after_transaction_callbacks(self.after_commit)
 
 	def rollback(self, *, save_point=None, chain=None):
@@ -615,6 +619,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self.connect()
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
+			self.value_cache.clear()
 		elif not self._disable_transaction_control:
 			self.before_commit.reset()
 			self.after_commit.reset()
@@ -623,7 +628,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 			self._conn.rollback()
 			self.begin()
-
+			self.value_cache.clear()
 			self.run_after_transaction_callbacks(self.after_rollback)
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
