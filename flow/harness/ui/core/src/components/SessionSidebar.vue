@@ -172,13 +172,16 @@
 			<div v-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
 				{{ emptyMessage }}
 			</div>
-			<div
+			<button
 				v-if="flow.state.sessionsMore"
 				ref="sentinel"
-				class="px-2.5 py-2 text-center text-2xs text-ink-gray-4"
+				type="button"
+				class="w-full px-2.5 py-2 text-center text-2xs text-ink-gray-4 hover:text-ink-gray-6"
+				:disabled="flow.state.sessionsLoading"
+				@click="flow.loadMoreSessions()"
 			>
-				Loading more…
-			</div>
+				{{ flow.state.sessionsLoading ? "Loading more…" : "Load more" }}
+			</button>
 		</div>
 
 		<div
@@ -219,7 +222,8 @@ const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
 watch(debouncedQuery, (q) => flow.searchSessions(q))
 
-// the row under the last session: scrolling it into view asks for the next page
+// the row under the last session: scrolling it into view asks for the next page, and a
+// click asks again after a page that failed
 const sentinel = ref(null)
 let observer = null
 onMounted(() => {
