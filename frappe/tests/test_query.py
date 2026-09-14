@@ -1510,8 +1510,8 @@ class TestQuery(IntegrationTestCase):
 		self.assertEqual(row.assigned_title, assigned_title)
 
 	def test_table_qualified_permission_hook_applies_to_aliased_link_join(self):
-		"""A raw permission condition naming the real table still resolves once that
-		table is joined under an alias."""
+		"""A permission condition naming the real table still resolves once that table
+		is joined under an alias, as raw SQL or as a query builder criterion."""
 		todo = frappe.get_doc(
 			doctype="ToDo",
 			description="Link join permission hook",
@@ -1520,27 +1520,28 @@ class TestQuery(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.addCleanup(todo.delete, ignore_permissions=True)
 
-		with self.patch_hooks(
-			{
-				"permission_query_conditions": {
-					"User": ["frappe.tests.test_query.test_single_user_permission_hook"]
-				}
-			}
-		):
-			row = frappe.qb.get_query(
-				"ToDo",
-				filters={"name": todo.name},
-				fields=[
-					"name",
-					"allocated_to.full_name as allocated_title",
-					"assigned_by.full_name as assigned_title",
-				],
-				ignore_permissions=False,
-			).run(as_dict=True)[0]
+		hooks = (
+			"frappe.tests.test_query.test_single_user_raw_permission_hook",
+			"frappe.tests.test_query.test_single_user_criterion_permission_hook",
+		)
+		for hook in hooks:
+			with self.subTest(hook=hook), self.patch_hooks({"permission_query_conditions": {"User": [hook]}}):
+				row = frappe.qb.get_query(
+					"ToDo",
+					filters={"name": todo.name},
+					fields=[
+						"name",
+						"allocated_to.full_name as allocated_title",
+						"assigned_by.full_name as assigned_title",
+					],
+					ignore_permissions=False,
+				).run(as_dict=True)[0]
 
-		self.assertEqual(row.name, todo.name)
-		self.assertEqual(row.allocated_title, frappe.db.get_value("User", "test@example.com", "full_name"))
-		self.assertIsNone(row.assigned_title)
+				self.assertEqual(row.name, todo.name)
+				self.assertEqual(
+					row.allocated_title, frappe.db.get_value("User", "test@example.com", "full_name")
+				)
+				self.assertIsNone(row.assigned_title)
 
 	def test_autoincrement_link_field_join(self):
 		with setup_autoincrement_link_doctypes() as (
@@ -3309,6 +3310,13 @@ def test_deny_all_permission_hook(user, doctype=None):
 	return "1=0"
 
 
-def test_single_user_permission_hook(user, doctype=None):
-	"""Raw condition that names the real table, as hooks in the wild do."""
-	return (frappe.qb.DocType("User").name == "test@example.com").get_sql()
+def test_single_user_raw_permission_hook(user, doctype=None):
+	"""Raw SQL naming the real table, one of the two forms hooks may return."""
+	condition = frappe.qb.DocType("User").name == "test@example.com"
+	quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+	return condition.get_sql(with_namespace=True, quote_char=quote_char)
+
+
+def test_single_user_criterion_permission_hook(user, doctype=None):
+	"""Query builder criterion naming the real table, the other form."""
+	return frappe.qb.DocType("User").name == "test@example.com"
