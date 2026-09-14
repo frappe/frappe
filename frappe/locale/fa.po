@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-07 04:19\n"
+"PO-Revision-Date: 2026-09-14 04:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -9142,7 +9142,7 @@ msgstr "راهنما پاسخ ایمیل"
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Email Retry Limit"
-msgstr "محدودیت تلاش مجدد ایمیل"
+msgstr "محدودیت تلاش دوباره ایمیل"
 
 #. Name of a DocType
 #: frappe/email/doctype/email_rule/email_rule.json
@@ -18813,7 +18813,7 @@ msgstr "باز کردن تنظیمات"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:12
 msgid "Open Source Applications for the Web"
-msgstr "برنامه‌های کاربردی منبع باز برای وب"
+msgstr "برنامه‌های متن‌باز برای وب"
 
 #: frappe/public/js/frappe/form/controls/base_control.js:166
 msgid "Open Translation"
@@ -22706,11 +22706,11 @@ msgstr "از سرگیری ارسال"
 #: frappe/desk/page/setup_wizard/setup_wizard.js:304
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Retry"
-msgstr "تلاش مجدد"
+msgstr "تلاش دوباره"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
-msgstr "تلاش مجدد برای ارسال"
+msgstr "تلاش دوباره برای ارسال"
 
 #: frappe/www/qrcode.html:15
 msgid "Return to the Verification screen and enter the code displayed by your authentication app"

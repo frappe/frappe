@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-07 04:19\n"
+"PO-Revision-Date: 2026-09-14 04:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -770,7 +770,7 @@ msgstr "Un campo con il nome {0} esiste già in {1}"
 
 #: frappe/core/doctype/file/file.py:289
 msgid "A file with same name {} already exists"
-msgstr "Un file con lo stesso nome {} esiste già"
+msgstr ""
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -2161,7 +2161,7 @@ msgstr ""
 
 #: frappe/core/doctype/user/user.py:997
 msgid "Already Registered"
-msgstr "Già registrato"
+msgstr ""
 
 #: frappe/public/js/frappe/form/toolbar.js:654
 msgid "Already amended as {0}"
@@ -21944,7 +21944,7 @@ msgstr "Aggiornamento..."
 
 #: frappe/core/doctype/user/user.py:999
 msgid "Registered but disabled"
-msgstr "Registrato ma disabilitato"
+msgstr ""
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Contribution Status' (Select) field in DocType 'Translation'
@@ -25304,7 +25304,7 @@ msgstr "Registrazione e conferma"
 
 #: frappe/core/doctype/user/user.py:992
 msgid "Sign Up is disabled"
-msgstr "La registrazione è disabilitata"
+msgstr ""
 
 #: frappe/templates/signup.html:16 frappe/www/login.html:139
 #: frappe/www/login.html:155 frappe/www/update-password.html:35
