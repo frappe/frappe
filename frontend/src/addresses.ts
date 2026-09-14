@@ -6,14 +6,18 @@ export type AddressPayload = {
 	doctypes: Record<string, [string, string]>;
 	/** `{moduleSlug: moduleName}`, display data. */
 	modules: Record<string, string>;
+	/** The doctypes with no list: their address opens the document itself. */
+	singles?: string[];
 };
 
 export class Addresses {
 	private readonly payload: AddressPayload;
 	private readonly bySlug: Record<string, string>;
+	private readonly singles: Set<string>;
 
 	constructor(payload: AddressPayload) {
 		this.payload = payload;
+		this.singles = new Set(payload.singles ?? []);
 		this.bySlug = {};
 		for (const [doctype, [slug]] of Object.entries(payload.doctypes)) {
 			this.bySlug[slug] = doctype;
@@ -32,6 +36,11 @@ export class Addresses {
 		return Object.hasOwn(this.payload.doctypes, doctype)
 			? this.payload.doctypes[doctype]
 			: null;
+	}
+
+	/** A single has no list; `routeFor` sends it to the document itself. */
+	isSingle(doctype: string): boolean {
+		return this.singles.has(doctype);
 	}
 
 	/** The slug a doctype name resolves to, case-insensitively. */

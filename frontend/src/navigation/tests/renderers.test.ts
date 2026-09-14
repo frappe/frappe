@@ -16,8 +16,10 @@ const addresses = new Addresses({
 	doctypes: {
 		"CRM Deal": ["crm-deal", "fcrm"],
 		"Sales Invoice": ["sales-invoice", "accounts"],
+		"Accounts Settings": ["accounts-settings", "accounts"],
 	},
 	modules: { fcrm: "FCRM", accounts: "Accounts" },
+	singles: ["Accounts Settings"],
 });
 
 function boot(overrides: Partial<Boot> = {}): Boot {
@@ -112,6 +114,22 @@ describe("DocType", () => {
 			to: {
 				name: "list",
 				params: { doctype: "crm-deal", module: "fcrm" },
+				query: undefined,
+			},
+		});
+	});
+
+	it("goes to the document itself for a single, which has no list", () => {
+		// The same kind, the same `link_to`: the address table knows the doctype is a single.
+		const single: NavigationItem = {
+			key: "Accounts Settings",
+			item_type: "DocType",
+			link_to: "Accounts Settings",
+		};
+		expect(renderingOf(single, context([single]))).toEqual({
+			to: {
+				name: "record",
+				params: { doctype: "accounts-settings", name: "Accounts Settings" },
 				query: undefined,
 			},
 		});

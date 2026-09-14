@@ -10,7 +10,7 @@ from frappe.cache_manager import reset_metadata_version
 from frappe.utils.caching import http_cache
 
 OWNER_CACHE_KEY = "shell_doctype_owners"
-ADDRESS_CACHE_KEY = "shell_address_table"
+ADDRESS_CACHE_KEY = "shell_address_table_v2"
 
 
 def slug(doctype: str) -> str:
@@ -59,22 +59,26 @@ def metadata_version() -> str:
 
 
 def build_address_table() -> dict:
-	"""`{doctype: [slug, module_slug]}` over the whole bench, plus the module names."""
+	"""`{doctype: [slug, module_slug]}` over the whole bench, the module names, and the singles."""
 	# Full-bench, so the table is byte-identical for every user and prefix and can leave boot.
 	# The module *slug*, so the client never re-implements `frappe.scrub`.
 	doctypes = {}
 	modules = {}
+	singles = []
 
-	for name, module in frappe.get_all(
-		"DocType", filters={"istable": 0}, fields=["name", "module"], as_list=True
+	for name, module, issingle in frappe.get_all(
+		"DocType", filters={"istable": 0}, fields=["name", "module", "issingle"], as_list=True
 	):
 		module = module or ""
 		module_slug = slug(module) if module else ""
 		if module_slug:
 			modules[module_slug] = module
 		doctypes[name] = [slug(name), module_slug]
+		# A single has no list: its address opens the document itself.
+		if issingle:
+			singles.append(name)
 
-	return {"doctypes": doctypes, "modules": modules}
+	return {"doctypes": doctypes, "modules": modules, "singles": singles}
 
 
 def get_address_table() -> dict:
