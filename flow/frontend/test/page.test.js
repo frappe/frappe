@@ -180,3 +180,37 @@ test("an explicit conversation URL opens even outside the recent session list", 
 	assert.equal(args("flow.api.session").session, "older");
 	assert.equal(router.currentRoute.value.path, "/s/older");
 });
+
+test("the chat list offers the next page on demand and asks for it past the last row", async (t) => {
+	const page = Array.from({ length: 100 }, (_, i) => ({
+		name: `P${i}`,
+		title: `Chat ${i}`,
+		agent: "reviewer",
+		model: "Sonnet",
+		modified: `t${100 - i}`,
+	}));
+	transport.answers["flow.api.list_sessions"] = (args) =>
+		args.before ? [{ ...page[0], name: "OLD", title: "Older chat", modified: "t0" }] : page;
+	t.after(() => (transport.answers["flow.api.list_sessions"] = []));
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(FlowPage, { boot }).use(router);
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	const loadMore = () =>
+		[...el.querySelectorAll("button")].find((b) => b.textContent.trim() === "Load more");
+	await until(() => loadMore());
+	loadMore().click();
+	await until(() => el.textContent.includes("Older chat"));
+	const paged = transport.calls.filter(
+		([name, a]) => name === "flow.api.list_sessions" && a.before
+	);
+	assert.deepEqual(
+		paged.map(([, a]) => a.before),
+		["t1"]
+	);
+	assert.equal(loadMore(), undefined, "a short page is the last");
+});
