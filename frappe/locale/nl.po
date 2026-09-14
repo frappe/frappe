@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-09-01 12:53+0000\n"
-"PO-Revision-Date: 2026-09-07 04:19\n"
+"POT-Creation-Date: 2026-09-06 09:32+0000\n"
+"PO-Revision-Date: 2026-09-14 04:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Dutch\n"
 "MIME-Version: 1.0\n"
@@ -44,7 +44,7 @@ msgstr "\"Bovenliggend\" betekent de bovenliggende tabel waarin deze rij moet wo
 msgid "\"Team Members\" or \"Management\""
 msgstr "\"Teamleden\" of \"Management\""
 
-#: frappe/public/js/frappe/form/form.js:1131
+#: frappe/public/js/frappe/form/form.js:1132
 msgid "\"amended_from\" field must be present to do an amendment."
 msgstr "&quot;modified_from&quot; veld moet aanwezig zijn om een wijziging uit te voeren."
 
@@ -70,7 +70,7 @@ msgstr "&copy; Frappe Technologies Pvt. Ltd. en bijdragers"
 msgid "&lt;head&gt; HTML"
 msgstr "&lt;head&gt; HTML"
 
-#: frappe/database/query.py:2379
+#: frappe/database/query.py:2383
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr "'*' is alleen toegestaan in {0} SQL-functie(s)"
 
@@ -1092,6 +1092,7 @@ msgstr "Het exacte aantal kan niet worden opgehaald. Klik hier om alle documente
 #. Label of the action (Link) field in DocType 'Workflow Transition'
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/navbar_item/navbar_item.json
+#: frappe/core/doctype/role/role.js:44
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 #: frappe/email/doctype/email_group/email_group.js:34
@@ -1291,8 +1292,8 @@ msgid "Add Child"
 msgstr "Onderliggende toevoegen"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
-#: frappe/public/js/frappe/views/reports/query_report.js:1989
-#: frappe/public/js/frappe/views/reports/query_report.js:1992
+#: frappe/public/js/frappe/views/reports/query_report.js:1990
+#: frappe/public/js/frappe/views/reports/query_report.js:1993
 #: frappe/public/js/frappe/views/reports/report_view.js:368
 #: frappe/public/js/frappe/views/reports/report_view.js:393
 #: frappe/public/js/print_format_builder/Field.vue:112
@@ -1451,19 +1452,19 @@ msgstr "Voeg een reactie toe"
 msgid "Add a new section"
 msgstr "Een nieuwe sectie toevoegen"
 
-#: frappe/public/js/frappe/form/form.js:194
+#: frappe/public/js/frappe/form/form.js:195
 msgid "Add a row above the current row"
 msgstr "Voeg een rij boven de huidige rij toe."
 
-#: frappe/public/js/frappe/form/form.js:206
+#: frappe/public/js/frappe/form/form.js:207
 msgid "Add a row at the bottom"
 msgstr "Voeg een rij toe aan de onderkant"
 
-#: frappe/public/js/frappe/form/form.js:202
+#: frappe/public/js/frappe/form/form.js:203
 msgid "Add a row at the top"
 msgstr "Voeg bovenaan een rij toe."
 
-#: frappe/public/js/frappe/form/form.js:198
+#: frappe/public/js/frappe/form/form.js:199
 msgid "Add a row below the current row"
 msgstr "Voeg een rij toe onder de huidige rij."
 
@@ -1800,7 +1801,7 @@ msgstr "Aggregatiefunctie gebaseerd op"
 msgid "Aggregate Function field is required to create a dashboard chart"
 msgstr "Het veld Aggregatiefunctie is vereist om een dashboarddiagram te maken"
 
-#: frappe/database/query.py:2428
+#: frappe/database/query.py:2432
 msgid "Alias must be a string"
 msgstr "Alias moet een tekenreeks zijn"
 
@@ -1878,7 +1879,7 @@ msgstr "Alle afbeeldingen die bij de website dia&#39;s zijn gekoppeld, moeten pu
 msgid "All Records"
 msgstr "Alle records"
 
-#: frappe/public/js/frappe/form/form.js:2329
+#: frappe/public/js/frappe/form/form.js:2336
 msgid "All Submissions"
 msgstr "Alle inzendingen"
 
@@ -2214,7 +2215,7 @@ msgstr "Toegestane inbeddingsdomeinen"
 msgid "Allowed special characters are '/' and '-'"
 msgstr ""
 
-#: frappe/public/js/frappe/form/form.js:1319
+#: frappe/public/js/frappe/form/form.js:1320
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "Het toestaan DocType , DocType . Wees voorzichtig !"
 
@@ -3136,11 +3137,11 @@ msgstr "Bijlage-instellingen"
 msgid "Attachments"
 msgstr "Toebehoren"
 
-#: frappe/public/js/frappe/form/print_utils.js:140
+#: frappe/public/js/frappe/form/print_utils.js:149
 msgid "Attempting Connection to QZ Tray..."
 msgstr "Poging tot verbinding met QZ-lade ..."
 
-#: frappe/public/js/frappe/form/print_utils.js:156
+#: frappe/public/js/frappe/form/print_utils.js:165
 msgid "Attempting to launch QZ Tray..."
 msgstr "Poging om QZ-lade te starten ..."
 
@@ -4270,7 +4271,7 @@ msgid "Callback Title"
 msgstr "Terugbeltitel"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:150
-#: frappe/public/js/frappe/ui/capture.js:335
+#: frappe/public/js/frappe/ui/capture.js:340
 msgid "Camera"
 msgstr "Camera"
 
@@ -4334,11 +4335,11 @@ msgctxt "Secondary button in warning dialog"
 msgid "Cancel"
 msgstr "Annuleren"
 
-#: frappe/public/js/frappe/form/form.js:1020
+#: frappe/public/js/frappe/form/form.js:1021
 msgid "Cancel All"
 msgstr "Alles annuleren"
 
-#: frappe/public/js/frappe/form/form.js:1007
+#: frappe/public/js/frappe/form/form.js:1008
 msgid "Cancel All Documents"
 msgstr "Annuleer alle documenten"
 
@@ -4502,7 +4503,7 @@ msgstr "Het systeemgegenereerde veld <strong>{0}</strong>kan niet worden verwijd
 msgid "Cannot delete {0}"
 msgstr "Kan {0} niet verwijderen"
 
-#: frappe/utils/nestedset.py:316
+#: frappe/utils/nestedset.py:318
 msgid "Cannot delete {0} as it has child nodes"
 msgstr "Kan {0} niet verwijderen omdat het onderliggende nodes heeft"
 
@@ -4620,7 +4621,7 @@ msgstr "Kan niet {0} {1}."
 msgid "Capitalization doesn't help very much."
 msgstr "Kapitalisatie helpt niet veel."
 
-#: frappe/public/js/frappe/ui/capture.js:295
+#: frappe/public/js/frappe/ui/capture.js:300
 msgid "Capture"
 msgstr "Vastlegging"
 
@@ -4901,7 +4902,7 @@ msgstr "Kind-tabel {0} voor veld {1} moet virtueel zijn"
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr "Onderliggende tabellen worden als raster weergegeven in andere DocTypes"
 
-#: frappe/database/query.py:1180
+#: frappe/database/query.py:1184
 msgid "Child query fields for '{0}' must be a list or tuple."
 msgstr "Onderliggende queryvelden voor '{0}' moeten een lijst of tuple zijn."
 
@@ -4999,7 +5000,7 @@ msgstr ""
 msgid "Clear the email message and add the template"
 msgstr "Wis het e-mailbericht en voeg de sjabloon toe."
 
-#: frappe/website/doctype/web_page/web_page.py:215
+#: frappe/website/doctype/web_page/web_page.py:217
 msgid "Clearing end date, as it cannot be in the past for published pages."
 msgstr "Einddatum wissen, omdat dit voor gepubliceerde pagina&#39;s niet in het verleden kan zijn."
 
@@ -5252,7 +5253,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "Ineenstorting"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2292
+#: frappe/public/js/frappe/views/reports/query_report.js:2293
 #: frappe/public/js/frappe/views/treeview.js:133
 msgid "Collapse All"
 msgstr "Alles inklappen"
@@ -5787,8 +5788,8 @@ msgstr "Verbonden app"
 msgid "Connected User"
 msgstr "Verbonden gebruiker"
 
-#: frappe/public/js/frappe/form/print_utils.js:146
-#: frappe/public/js/frappe/form/print_utils.js:170
+#: frappe/public/js/frappe/form/print_utils.js:155
+#: frappe/public/js/frappe/form/print_utils.js:179
 msgid "Connected to QZ Tray!"
 msgstr "Aangesloten op QZ-lade!"
 
@@ -6048,7 +6049,7 @@ msgstr "Kon {0} niet vinden"
 msgid "Could not map column {0} to field {1}"
 msgstr "Kan kolom {0} niet toewijzen aan veld {1}"
 
-#: frappe/database/query.py:1083
+#: frappe/database/query.py:1087
 msgid "Could not parse field: {0}"
 msgstr "Kan veld niet parseren: {0}"
 
@@ -7787,7 +7788,7 @@ msgstr "Bureaubladinstellingen"
 #: frappe/public/js/form_builder/components/Tabs.vue:92
 #: frappe/public/js/form_builder/store.js:259
 #: frappe/public/js/form_builder/utils.js:38
-#: frappe/public/js/frappe/form/layout.js:155
+#: frappe/public/js/frappe/form/layout.js:157
 #: frappe/public/js/frappe/views/treeview.js:310
 msgid "Details"
 msgstr "Details"
@@ -7823,7 +7824,7 @@ msgstr "Dit document kan zich in verschillende \"statussen\" bevinden, zoals \"O
 msgid "Digits"
 msgstr "Cijfers"
 
-#: frappe/utils/data.py:1567
+#: frappe/utils/data.py:1577
 msgctxt "Currency"
 msgid "Dinars"
 msgstr "Dinar"
@@ -7982,7 +7983,7 @@ msgctxt "Discard Email"
 msgid "Discard"
 msgstr "afdanken"
 
-#: frappe/public/js/frappe/form/form.js:889
+#: frappe/public/js/frappe/form/form.js:890
 msgid "Discard {0}"
 msgstr "{0} verwerpen"
 
@@ -8069,7 +8070,7 @@ msgstr "Waarschuw mij niet opnieuw over {0}"
 msgid "Do you still want to proceed?"
 msgstr "Wilt u toch doorgaan?"
 
-#: frappe/public/js/frappe/form/form.js:999
+#: frappe/public/js/frappe/form/form.js:1000
 msgid "Do you want to cancel all linked documents?"
 msgstr "Wilt u alle gekoppelde documenten annuleren?"
 
@@ -8872,7 +8873,7 @@ msgstr "Dubbele filternaam"
 msgid "Duplicate Name"
 msgstr "Dubbele naam"
 
-#: frappe/public/js/frappe/form/form.js:210
+#: frappe/public/js/frappe/form/form.js:211
 msgid "Duplicate current row"
 msgstr "Dupliceer de huidige rij"
 
@@ -9060,7 +9061,7 @@ msgstr "Filters bewerken"
 msgid "Edit Footer"
 msgstr "Voettekst bewerken"
 
-#: frappe/printing/doctype/print_format/print_format.js:29
+#: frappe/printing/doctype/print_format/print_format.js:28
 msgid "Edit Format"
 msgstr "Bewerken Formaat"
 
@@ -9562,7 +9563,7 @@ msgstr "Er worden e-mails verzonden met de volgende mogelijke workflowacties."
 msgid "Embed code copied"
 msgstr "Insluitcode gekopieerd"
 
-#: frappe/database/query.py:2432
+#: frappe/database/query.py:2436
 msgid "Empty alias is not allowed"
 msgstr "Een lege alias is niet toegestaan"
 
@@ -9570,7 +9571,7 @@ msgstr "Een lege alias is niet toegestaan"
 msgid "Empty column"
 msgstr "Lege kolom"
 
-#: frappe/database/query.py:2373
+#: frappe/database/query.py:2377
 msgid "Empty string arguments are not allowed"
 msgstr "Lege tekenreeksargumenten zijn niet toegestaan"
 
@@ -9806,7 +9807,7 @@ msgstr "Ingeschakeld"
 msgid "Enabled Scheduler"
 msgstr "Ingeschakelde planner"
 
-#: frappe/email/doctype/email_account/email_account.py:1116
+#: frappe/email/doctype/email_account/email_account.py:1117
 msgid "Enabled email inbox for user {0}"
 msgstr "Inbox voor e-mail ingeschakeld voor gebruiker {0}"
 
@@ -9876,7 +9877,7 @@ msgstr "Einddatum"
 msgid "End Date Field"
 msgstr "Einddatumveld"
 
-#: frappe/website/doctype/web_page/web_page.py:208
+#: frappe/website/doctype/web_page/web_page.py:210
 msgid "End Date cannot be before Start Date!"
 msgstr "Einddatum kan niet vóór startdatum zijn!"
 
@@ -10050,7 +10051,7 @@ msgstr "Foutlogboeken"
 msgid "Error Message"
 msgstr "Foutmelding"
 
-#: frappe/public/js/frappe/form/print_utils.js:177
+#: frappe/public/js/frappe/form/print_utils.js:186
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "Fout bij verbinding maken met QZ-ladetoepassing ... <br><br> De toepassing QZ-lade moet zijn geïnstalleerd en actief zijn om de functie Raw Print te kunnen gebruiken. <br><br> <a href=\"https://qz.io/download/\" target=\"_blank\">Klik hier om de QZ-lade te downloaden en te installeren</a> . <br> <a href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\" target=\"_blank\">Klik hier voor meer informatie over Raw Printing</a> ."
 
@@ -10096,7 +10097,7 @@ msgstr "Fout in {0}.get_list: {1}"
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr "Fout bij het verwerken van geneste filters: {0}. {1}"
 
-#: frappe/desk/search.py:290
+#: frappe/desk/search.py:297
 msgid "Error validating \"Ignore User Permissions\""
 msgstr ""
 
@@ -10285,7 +10286,7 @@ msgstr "Code wordt uitgevoerd"
 msgid "Executing..."
 msgstr "Bezig met uitvoeren..."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2308
+#: frappe/public/js/frappe/views/reports/query_report.js:2309
 msgid "Execution Time: {0} sec"
 msgstr "Uitvoeringstijd: {0} sec"
 
@@ -10302,11 +10303,6 @@ msgstr ""
 msgid "Existing Gravatar URLs may still be stored on User, Contact, and Lead records. Do you want to delete these URLs now?"
 msgstr ""
 
-#. Label of the existing_role (Link) field in DocType 'Role Replication'
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "Existing Role"
-msgstr ""
-
 #: frappe/public/js/frappe/views/treeview.js:125
 #: frappe/public/js/frappe/views/treeview.js:137
 #: frappe/public/js/frappe/views/treeview.js:147
@@ -10319,7 +10315,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "Uitbreiden"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2290
+#: frappe/public/js/frappe/views/reports/query_report.js:2291
 #: frappe/public/js/frappe/views/treeview.js:143
 msgid "Expand All"
 msgstr "Alles uitvouwen"
@@ -10396,7 +10392,7 @@ msgstr "Vervaldatum van de QR-code afbeeldingspagina"
 #: frappe/core/page/permission_manager/permission_manager_help.html:66
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
-#: frappe/public/js/frappe/views/reports/query_report.js:1977
+#: frappe/public/js/frappe/views/reports/query_report.js:1978
 #: frappe/public/js/frappe/views/reports/report_view.js:1733
 #: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
@@ -10786,7 +10782,7 @@ msgstr "Velden ophalen van {0}..."
 #: frappe/public/js/frappe/list/bulk_operations.js:346
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:3
 #: frappe/public/js/frappe/views/reports/query_report.js:237
-#: frappe/public/js/frappe/views/reports/query_report.js:2036
+#: frappe/public/js/frappe/views/reports/query_report.js:2037
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10804,7 +10800,7 @@ msgstr "Het veld \"title\" is verplicht als \"Website Search Field\" is ingestel
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr "Field &quot;waarde&quot; is verplicht. Gelieve te specificeren waarde worden bijgewerkt"
 
-#: frappe/desk/search.py:328
+#: frappe/desk/search.py:335
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr "Veld <code>{0}</code> niet gevonden in {1}"
 
@@ -10873,7 +10869,7 @@ msgstr "Veld {0} verwijst naar een niet-bestaand doctype {1}."
 msgid "Field {0} must be a virtual field to support virtual doctype."
 msgstr "Veld {0} moet een virtueel veld zijn om virtueel Doctype te ondersteunen."
 
-#: frappe/public/js/frappe/form/form.js:1852
+#: frappe/public/js/frappe/form/form.js:1859
 msgid "Field {0} not found."
 msgstr "Veld {0} niet gevonden."
 
@@ -10976,7 +10972,7 @@ msgstr "Voor het bestand moeten de velden `file_name` of `file_url` worden inges
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "Velden moeten een lijst of tuple zijn wanneer as_list is ingeschakeld"
 
-#: frappe/database/query.py:1129
+#: frappe/database/query.py:1133
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
 msgstr "Velden moeten een string, lijst, tuple, pypika Field of pypika Function zijn"
 
@@ -11628,7 +11624,7 @@ msgid "For comparison, use >5, <10 or =324.\n"
 msgstr "Gebruik voor vergelijking >5, <10 of =324.\n"
 "Gebruik voor bereiken 5:10 (voor waarden tussen 5 en 10)."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2305
+#: frappe/public/js/frappe/views/reports/query_report.js:2306
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "Gebruik voor vergelijking&gt; 5, &lt;10 of = 324. Gebruik 5:10 voor bereiken (voor waarden tussen 5 en 10)."
 
@@ -11925,7 +11921,7 @@ msgstr "Van Datum"
 msgid "From Date Field"
 msgstr "Van datumveld"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1997
+#: frappe/public/js/frappe/views/reports/query_report.js:1998
 msgid "From Document Type"
 msgstr "Van documenttype"
 
@@ -11996,7 +11992,7 @@ msgstr "Functie gebaseerd op"
 msgid "Function {0} is not whitelisted."
 msgstr "Functie {0} staat niet op de whitelist."
 
-#: frappe/database/query.py:2277
+#: frappe/database/query.py:2281
 msgid "Function {0} requires arguments but none were provided"
 msgstr "Functie {0} vereist argumenten, maar er zijn geen opgegeven"
 
@@ -12223,11 +12219,11 @@ msgstr "Ga naar de workflow"
 msgid "Go to Workspace"
 msgstr "Ga naar Werkruimte"
 
-#: frappe/public/js/frappe/form/form.js:145
+#: frappe/public/js/frappe/form/form.js:146
 msgid "Go to next record"
 msgstr "Ga naar het volgende record"
 
-#: frappe/public/js/frappe/form/form.js:155
+#: frappe/public/js/frappe/form/form.js:156
 msgid "Go to previous record"
 msgstr "Ga naar vorige record"
 
@@ -12510,7 +12506,7 @@ msgstr "Groeperen op type"
 msgid "Group By field is required to create a dashboard chart"
 msgstr "Groeperen op veld is vereist om een dashboarddiagram te maken"
 
-#: frappe/database/query.py:1317
+#: frappe/database/query.py:1321
 msgid "Group By must be a string"
 msgstr "Groeperen op moet een tekenreeks zijn"
 
@@ -13021,7 +13017,7 @@ msgstr "Weekends verbergen"
 msgid "Hide descendant records of <b>For Value</b>."
 msgstr "Verberg afstammelingsrecords van <b>voor waarde</b>."
 
-#: frappe/public/js/frappe/form/layout.js:296
+#: frappe/public/js/frappe/form/layout.js:298
 msgid "Hide details"
 msgstr "Verbergen Details"
 
@@ -13421,6 +13417,10 @@ msgstr "Indien ingeschakeld, ontvangen gebruikers een melding telkens wanneer ze
 #: frappe/core/doctype/user/user.json
 msgid "If left empty, the default workspace will be the last visited workspace"
 msgstr "Indien dit veld leeg wordt gelaten, zal de standaardwerkruimte de laatst bezochte werkruimte zijn."
+
+#: frappe/public/js/frappe/form/print_utils.js:53
+msgid "If no Print Format is selected, the default template for this report will be used."
+msgstr "Als geen Afdrukformaat is geselecteerd, wordt het standaardsjabloon voor dit rapport gebruikt."
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -13949,7 +13949,7 @@ msgstr "Inclusief thema van apps"
 msgid "Include Web View Link in Email"
 msgstr "Voeg de webview-link toe aan de e-mail."
 
-#: frappe/public/js/frappe/form/print_utils.js:60
+#: frappe/public/js/frappe/form/print_utils.js:69
 #: frappe/public/js/frappe/views/reports/query_report.js:1759
 msgid "Include filters"
 msgstr "Inclusief filters"
@@ -14117,11 +14117,6 @@ msgstr "Initiële synchronisatietelling"
 msgid "InnoDB"
 msgstr "InnoDB"
 
-#. Description of the 'New Role' (Data) field in DocType 'Role Replication'
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "Input existing role name if you would like to extend it with access of another role."
-msgstr ""
-
 #: frappe/core/doctype/data_import/data_import_list.js:35
 msgid "Insert"
 msgstr "Plaats"
@@ -14132,7 +14127,7 @@ msgstr "Boven invoegen"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2042
+#: frappe/public/js/frappe/views/reports/query_report.js:2043
 msgid "Insert After"
 msgstr "Invoegen na"
 
@@ -14218,7 +14213,7 @@ msgstr "Instructies"
 msgid "Insufficient Permission Level for {0}"
 msgstr "Onvoldoende toegangsrechten voor {0}"
 
-#: frappe/database/query.py:1377
+#: frappe/database/query.py:1381
 msgid "Insufficient Permission for {0}"
 msgstr "Onvoldoende Toestemming voor {0}"
 
@@ -14343,7 +14338,7 @@ msgstr "Ongeldig"
 
 #: frappe/public/js/form_builder/utils.js:218
 #: frappe/public/js/frappe/form/grid_row.js:883
-#: frappe/public/js/frappe/form/layout.js:806
+#: frappe/public/js/frappe/form/layout.js:808
 #: frappe/public/js/frappe/views/reports/report_view.js:818
 msgid "Invalid \"depends_on\" expression"
 msgstr "Ongeldige &quot;depends_on&quot; -uitdrukking"
@@ -14356,7 +14351,7 @@ msgstr "Ongeldige expressie &quot;afhankelijk_on&quot; ingesteld in filter {0}"
 msgid "Invalid \"mandatory_depends_on\" expression"
 msgstr "Ongeldige \"mandatory_depends_on\"-uitdrukking"
 
-#: frappe/utils/nestedset.py:178
+#: frappe/utils/nestedset.py:180
 msgid "Invalid Action"
 msgstr "Ongeldige actie"
 
@@ -14380,7 +14375,7 @@ msgstr "Ongeldige inloggegevens"
 msgid "Invalid Credentials for Email Account: {0}"
 msgstr "Ongeldige inloggegevens voor e-mailaccount: {0}"
 
-#: frappe/utils/data.py:146 frappe/utils/data.py:309
+#: frappe/utils/data.py:147 frappe/utils/data.py:310
 msgid "Invalid Date"
 msgstr "Ongeldige datum"
 
@@ -14550,7 +14545,7 @@ msgstr "Ongeldige aggregatiefunctie"
 msgid "Invalid aggregate function: {0}"
 msgstr ""
 
-#: frappe/database/query.py:2438
+#: frappe/database/query.py:2442
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "Ongeldig alias-formaat: {0}. Alias moet een eenvoudige identifier zijn."
 
@@ -14558,11 +14553,11 @@ msgstr "Ongeldig alias-formaat: {0}. Alias moet een eenvoudige identifier zijn."
 msgid "Invalid app"
 msgstr "Ongeldige app"
 
-#: frappe/database/query.py:2398 frappe/database/query.py:2414
+#: frappe/database/query.py:2402 frappe/database/query.py:2418
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr "Ongeldig argumentformaat: {0}. Alleen tekenreeksen tussen aanhalingstekens of eenvoudige veldnamen zijn toegestaan."
 
-#: frappe/database/query.py:2362
+#: frappe/database/query.py:2366
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Ongeldig argumenttype: {0}. Alleen strings, getallen, dicts en None zijn toegestaan."
 
@@ -14586,7 +14581,7 @@ msgstr "Ongeldig voorwaardetype in geneste filters: {0}"
 msgid "Invalid credentials, try again."
 msgstr ""
 
-#: frappe/database/query.py:1361
+#: frappe/database/query.py:1365
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "Ongeldige richting in Sorteren op: {0}. Moet 'ASC' of 'DESC' zijn."
 
@@ -14606,19 +14601,19 @@ msgstr "Ongeldige expressie ingesteld in filter {0}"
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "Ongeldige expressie ingesteld in filter {0} ({1})"
 
-#: frappe/database/query.py:2165
+#: frappe/database/query.py:2169
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr "Ongeldig veldformaat voor SELECTEREN: {0}. Veldnamen moeten eenvoudig, met backticks, tabelgekwalificeerd, met alias of '*' zijn."
 
-#: frappe/database/query.py:1302
+#: frappe/database/query.py:1306
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "Ongeldig veldformaat in {0}: {1}. Gebruik 'field', 'link_field.field' of 'child_table.field'."
 
-#: frappe/utils/data.py:2351
+#: frappe/utils/data.py:2361
 msgid "Invalid field name {0}"
 msgstr "Ongeldige veldnaam {0}"
 
-#: frappe/database/query.py:1188
+#: frappe/database/query.py:1192
 msgid "Invalid field type: {0}"
 msgstr "Ongeldig veldtype: {0}"
 
@@ -14646,7 +14641,7 @@ msgstr "Ongeldig filter: {0}"
 msgid "Invalid format. Supported formats are {0}"
 msgstr ""
 
-#: frappe/database/query.py:2282
+#: frappe/database/query.py:2286
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr "Ongeldig functieparametertype: {0}. Alleen strings, getallen, lijsten en None zijn toegestaan."
 
@@ -14671,7 +14666,7 @@ msgstr "Ongeldige naamgevingsreeks {}: punt (.) ontbreekt"
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr "Ongeldige naamgevingsreeks {}: punt (.) ontbreekt vóór de numerieke plaatsaanduidingen. Gebruik een formaat zoals <b>ABCD.#####</b>."
 
-#: frappe/database/query.py:2354
+#: frappe/database/query.py:2358
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr "Ongeldige geneste uitdrukking: woordenboek moet een functie of operator vertegenwoordigen"
 
@@ -14687,11 +14682,11 @@ msgstr ""
 msgid "Invalid redirect regex in row #{}: {}"
 msgstr "Ongeldige redirect-regex in rij #{}: {}"
 
-#: frappe/app.py:345
+#: frappe/app.py:382
 msgid "Invalid request arguments"
 msgstr "Ongeldige verzoekargumenten"
 
-#: frappe/app.py:332
+#: frappe/app.py:369
 msgid "Invalid request body"
 msgstr "Ongeldige verzoekinhoud"
 
@@ -14737,7 +14732,7 @@ msgstr "Ongeldige wkhtmltopdf-versie"
 msgid "Invalid {0} condition"
 msgstr "Ongeldige {0} voorwaarde"
 
-#: frappe/database/query.py:2243
+#: frappe/database/query.py:2247
 msgid "Invalid {0} dictionary format"
 msgstr "Ongeldig {0}-woordenboekformaat"
 
@@ -15078,7 +15073,7 @@ msgstr "Artikellabel"
 msgid "Item Type"
 msgstr "Artikeltype"
 
-#: frappe/utils/nestedset.py:233
+#: frappe/utils/nestedset.py:235
 msgid "Item cannot be added to its own descendants"
 msgstr "Artikel kan niet worden toegevoegd aan zijn eigen onderliggende artikelen."
 
@@ -15556,7 +15551,7 @@ msgstr "Label is verplicht"
 msgid "Landing Page"
 msgstr "Landingspagina"
 
-#: frappe/public/js/frappe/form/print_utils.js:24
+#: frappe/public/js/frappe/form/print_utils.js:25
 msgid "Landscape"
 msgstr "Landschap"
 
@@ -15899,7 +15894,7 @@ msgstr "Brief"
 #: frappe/core/doctype/report/report.json
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/printing/page/print/print.js:148
-#: frappe/public/js/frappe/form/print_utils.js:51
+#: frappe/public/js/frappe/form/print_utils.js:38
 #: frappe/public/js/frappe/form/templates/print_layout.html:16
 #: frappe/public/js/frappe/list/bulk_operations.js:52
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -17036,7 +17031,7 @@ msgstr "Menu"
 msgid "Merge with existing"
 msgstr "Samenvoegen met bestaande"
 
-#: frappe/utils/nestedset.py:324
+#: frappe/utils/nestedset.py:326
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
 msgstr "Samenvoegen is alleen mogelijk tussen de Groepen of tussen Blad Nodes."
 
@@ -17595,19 +17590,19 @@ msgstr "Verplaatsen naar prullenbak"
 msgid "Move current and all subsequent sections to a new tab"
 msgstr "Verplaats het huidige en alle volgende secties naar een nieuw tabblad."
 
-#: frappe/public/js/frappe/form/form.js:178
+#: frappe/public/js/frappe/form/form.js:179
 msgid "Move cursor to above row"
 msgstr "Verplaats de cursor naar de bovenstaande rij."
 
-#: frappe/public/js/frappe/form/form.js:182
+#: frappe/public/js/frappe/form/form.js:183
 msgid "Move cursor to below row"
 msgstr "Verplaats de cursor naar de onderstaande rij."
 
-#: frappe/public/js/frappe/form/form.js:186
+#: frappe/public/js/frappe/form/form.js:187
 msgid "Move cursor to next column"
 msgstr "Verplaats de cursor naar de volgende kolom."
 
-#: frappe/public/js/frappe/form/form.js:190
+#: frappe/public/js/frappe/form/form.js:191
 msgid "Move cursor to previous column"
 msgstr "Verplaats de cursor naar de vorige kolom."
 
@@ -17642,7 +17637,7 @@ msgstr "Mevrouw"
 msgid "Ms"
 msgstr "Mevrouw"
 
-#: frappe/utils/nestedset.py:348
+#: frappe/utils/nestedset.py:350
 msgid "Multiple root nodes not allowed."
 msgstr "Meerdere hoofdnodes niet toegestaan ."
 
@@ -18029,10 +18024,9 @@ msgstr "Nieuwe Snellijst"
 msgid "New Report name"
 msgstr "Nieuwe naam Report"
 
-#. Label of the new_role (Data) field in DocType 'Role Replication'
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "New Role"
-msgstr ""
+#: frappe/core/doctype/role/role.js:55
+msgid "New Role Name"
+msgstr "Nieuwe Rolnaam"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -18080,6 +18074,10 @@ msgstr "Lijst van tekenreeksen gescheiden door nieuwe regels die manieren verteg
 #: frappe/www/update-password.html:114
 msgid "New password cannot be same as old password"
 msgstr "Het nieuwe wachtwoord mag niet hetzelfde zijn als het oude wachtwoord."
+
+#: frappe/core/doctype/role/role.js:78
+msgid "New role created successfully."
+msgstr "Nieuwe rol succesvol aangemaakt."
 
 #: frappe/utils/change_log.py:405
 msgid "New updates are available"
@@ -18349,7 +18347,7 @@ msgstr "Geen Google Agenda-evenement om te synchroniseren."
 msgid "No IMAP folders were found on the server. Please verify the email account settings and ensure the mailbox contains folders."
 msgstr "Er zijn geen IMAP-mappen gevonden op de server. Controleer de instellingen van het e-mailaccount en zorg ervoor dat de mailbox mappen bevat."
 
-#: frappe/public/js/frappe/ui/capture.js:263
+#: frappe/public/js/frappe/ui/capture.js:268
 msgid "No Images"
 msgstr "Geen afbeeldingen"
 
@@ -18596,7 +18594,7 @@ msgstr ""
 msgid "No permission for {0}"
 msgstr "Geen toestemming voor {0}"
 
-#: frappe/public/js/frappe/form/form.js:1183
+#: frappe/public/js/frappe/form/form.js:1184
 msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
 msgstr "Geen toestemming om '{0}' {1}"
@@ -18745,7 +18743,7 @@ msgstr "Niet Nakomelingen van"
 msgid "Not Equals"
 msgstr "Ongelijk aan"
 
-#: frappe/app.py:395 frappe/www/404.html:3
+#: frappe/app.py:432 frappe/www/404.html:3
 msgid "Not Found"
 msgstr "Niet gevonden"
 
@@ -18771,7 +18769,7 @@ msgstr "Niet gekoppeld aan een record"
 msgid "Not Nullable"
 msgstr "Niet leeg toegestaan"
 
-#: frappe/__init__.py:570 frappe/app.py:388 frappe/desk/calendar.py:30
+#: frappe/__init__.py:570 frappe/app.py:425 frappe/desk/calendar.py:30
 #: frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:1033
 #: frappe/website/page_renderers/not_permitted_page.py:22
@@ -19747,11 +19745,11 @@ msgstr "Geopend"
 msgid "Operation"
 msgstr "Operatie"
 
-#: frappe/utils/data.py:2282
+#: frappe/utils/data.py:2292
 msgid "Operator must be one of {0}"
 msgstr "Operator moet een van {0} zijn"
 
-#: frappe/database/query.py:2310
+#: frappe/database/query.py:2314
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr "Operator {0} vereist precies 2 argumenten (linker- en rechteroperand)"
 
@@ -19866,7 +19864,7 @@ msgstr "Oranje"
 msgid "Order"
 msgstr "Volgorde"
 
-#: frappe/database/query.py:1333
+#: frappe/database/query.py:1337
 msgid "Order By must be a string"
 msgstr "Sorteren op moet een tekenreeks zijn"
 
@@ -19887,7 +19885,7 @@ msgstr "Organisatiegeschiedenis"
 msgid "Org History Heading"
 msgstr "Organisatiegeschiedenis Kop"
 
-#: frappe/public/js/frappe/form/print_utils.js:22
+#: frappe/public/js/frappe/form/print_utils.js:23
 msgid "Orientation"
 msgstr "oriëntering"
 
@@ -20552,15 +20550,15 @@ msgstr "Permanent niveau"
 msgid "Permanent"
 msgstr "Permanent"
 
-#: frappe/public/js/frappe/form/form.js:1069
+#: frappe/public/js/frappe/form/form.js:1070
 msgid "Permanently Cancel {0}?"
 msgstr "Definitief {0} annuleren?"
 
-#: frappe/public/js/frappe/form/form.js:1115
+#: frappe/public/js/frappe/form/form.js:1116
 msgid "Permanently Discard {0}?"
 msgstr "{0} permanent verwerpen?"
 
-#: frappe/public/js/frappe/form/form.js:902
+#: frappe/public/js/frappe/form/form.js:903
 msgid "Permanently Submit {0}?"
 msgstr "Definitief {0} invoeren?"
 
@@ -20572,7 +20570,7 @@ msgstr "Definitief {0} verwijderen?"
 msgid "Permission"
 msgstr "Toestemming"
 
-#: frappe/database/query.py:1001 frappe/database/query.py:1376
+#: frappe/database/query.py:1001 frappe/database/query.py:1380
 #: frappe/desk/doctype/workspace/workspace.py:109
 msgid "Permission Error"
 msgstr "Toelatingsfout"
@@ -20745,7 +20743,7 @@ msgstr "Telefoonnr."
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "Het telefoonnummer {0} dat in veld {1} is ingevoerd, is niet geldig."
 
-#: frappe/public/js/frappe/form/print_utils.js:70
+#: frappe/public/js/frappe/form/print_utils.js:79
 #: frappe/public/js/frappe/views/reports/report_view.js:1670
 #: frappe/public/js/frappe/views/reports/report_view.js:1673
 msgid "Pick Columns"
@@ -20918,7 +20916,7 @@ msgstr "Verwijder het veld uit {0} of voeg het vereiste doctype toe."
 msgid "Please do not change the template headings."
 msgstr "Gelieve niet de sjabloon rubrieken veranderen."
 
-#: frappe/printing/doctype/print_format/print_format.js:19
+#: frappe/printing/doctype/print_format/print_format.js:18
 msgid "Please duplicate this to make changes"
 msgstr "Gelieve een tweede om wijzigingen aan te brengen"
 
@@ -21037,7 +21035,7 @@ msgstr "Vernieuw om het nieuwste document te krijgen."
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "Verwijder de printertoewijzing in de printerinstellingen en probeer het opnieuw."
 
-#: frappe/public/js/frappe/form/form.js:359
+#: frappe/public/js/frappe/form/form.js:360
 msgid "Please save before attaching."
 msgstr "Gelieve opslaan voordat het bevestigen."
 
@@ -21061,7 +21059,7 @@ msgstr "Sla het rapport eerst"
 msgid "Please save to edit the template."
 msgstr "Sla op om de sjabloon te bewerken."
 
-#: frappe/printing/doctype/print_format/print_format.js:31
+#: frappe/printing/doctype/print_format/print_format.js:30
 msgid "Please select DocType first"
 msgstr "Selecteer DocType eerste"
 
@@ -21105,7 +21103,7 @@ msgstr ""
 msgid "Please select a valid csv file with data"
 msgstr "Selecteer een geldig CSV-bestand met gegevens"
 
-#: frappe/utils/data.py:309
+#: frappe/utils/data.py:310
 msgid "Please select a valid date filter"
 msgstr "Selecteer een geldig datumfilter"
 
@@ -21299,7 +21297,7 @@ msgstr "Portaalmenu-item"
 msgid "Portal Settings"
 msgstr "portal Instellingen"
 
-#: frappe/public/js/frappe/form/print_utils.js:25
+#: frappe/public/js/frappe/form/print_utils.js:26
 msgid "Portrait"
 msgstr "Portret"
 
@@ -21441,7 +21439,7 @@ msgstr "Druk op Enter om te bewaren"
 #: frappe/printing/doctype/print_style/print_style.json
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:17
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:31
-#: frappe/public/js/frappe/ui/capture.js:237
+#: frappe/public/js/frappe/ui/capture.js:242
 #: frappe/public/js/frappe/ui/naming_series.js:48
 msgid "Preview"
 msgstr "Voorbeeld"
@@ -21495,7 +21493,7 @@ msgstr "vorig"
 msgid "Previous Document"
 msgstr "Vorig document"
 
-#: frappe/public/js/frappe/form/form.js:2316
+#: frappe/public/js/frappe/form/form.js:2323
 msgid "Previous Submission"
 msgstr "Vorige inzending"
 
@@ -21582,7 +21580,7 @@ msgstr "Documenten afdrukken"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/page/print/print.js:115
 #: frappe/printing/page/print/print.js:903
-#: frappe/public/js/frappe/form/print_utils.js:32
+#: frappe/public/js/frappe/form/print_utils.js:50
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/workspace_sidebar/printing.json
@@ -21668,7 +21666,7 @@ msgstr "Afdrukken verbergen indien geen waarde"
 msgid "Print Language"
 msgstr "Gedrukte taal"
 
-#: frappe/public/js/frappe/form/print_utils.js:246
+#: frappe/public/js/frappe/form/print_utils.js:255
 msgid "Print Sent to the printer!"
 msgstr "Afdrukken Verzonden naar de printer!"
 
@@ -21683,7 +21681,7 @@ msgstr "Printserver"
 #: frappe/printing/doctype/print_settings/print_settings.json
 #: frappe/printing/doctype/print_style/print_style.js:6
 #: frappe/printing/page/print/print.js:181
-#: frappe/public/js/frappe/form/print_utils.js:120
+#: frappe/public/js/frappe/form/print_utils.js:129
 #: frappe/public/js/frappe/form/templates/print_layout.html:35
 #: frappe/workspace_sidebar/printing.json
 msgid "Print Settings"
@@ -21723,7 +21721,7 @@ msgstr "Printbreedte"
 msgid "Print Width of the field, if the field is a column in a table"
 msgstr "De breedte van het veld afdrukken, als het veld een kolom in een tabel is."
 
-#: frappe/public/js/frappe/form/form.js:171
+#: frappe/public/js/frappe/form/form.js:172
 msgid "Print document"
 msgstr "Document afdrukken"
 
@@ -22088,7 +22086,7 @@ msgstr "QR code"
 msgid "QR Code for Login Verification"
 msgstr "QR-code voor inloggen verificatie"
 
-#: frappe/public/js/frappe/form/print_utils.js:255
+#: frappe/public/js/frappe/form/print_utils.js:264
 msgid "QZ Tray Failed:"
 msgstr "QZ Tray Mislukt:"
 
@@ -22453,7 +22451,7 @@ msgstr "herbouwen"
 msgid "Rebuild Tree"
 msgstr "Herbouw de boom"
 
-#: frappe/utils/nestedset.py:177
+#: frappe/utils/nestedset.py:179
 msgid "Rebuilding of tree is not supported for {}"
 msgstr "Het opnieuw opbouwen van de boomstructuur wordt niet ondersteund voor {}."
 
@@ -22629,7 +22627,7 @@ msgstr "Redis cache server niet actief. Neem contact op met Administrator / Tech
 msgid "Redo"
 msgstr "Opnieuw doen"
 
-#: frappe/public/js/frappe/form/form.js:165
+#: frappe/public/js/frappe/form/form.js:166
 #: frappe/public/js/frappe/form/toolbar.js:582
 msgid "Redo last action"
 msgstr "Laatste actie opnieuw uitvoeren"
@@ -22856,7 +22854,7 @@ msgstr "Verwijzer"
 
 #: frappe/printing/page/print/print.js:92 frappe/public/js/frappe/desk.js:177
 #: frappe/public/js/frappe/desk.js:564
-#: frappe/public/js/frappe/form/form.js:1251
+#: frappe/public/js/frappe/form/form.js:1252
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:68
 #: frappe/public/js/frappe/views/reports/query_report.js:1930
@@ -23012,6 +23010,7 @@ msgid "Reminder set at {0}"
 msgstr "Herinnering ingesteld op {0}"
 
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:70
+#: frappe/public/js/frappe/ui/capture.js:200
 #: frappe/public/js/frappe/ui/filters/edit_filter.html:4
 #: frappe/public/js/frappe/ui/group_by/group_by.html:4
 msgid "Remove"
@@ -23165,18 +23164,17 @@ msgstr "Herhaalt {0}"
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
 msgstr ""
 
-#: frappe/core/doctype/role_replication/role_replication.js:7
-#: frappe/core/doctype/role_replication/role_replication.js:14
+#: frappe/core/doctype/role/role.js:64
 msgid "Replicate"
 msgstr "Repliceren"
 
-#: frappe/core/doctype/role_replication/role_replication.js:8
-msgid "Replicating..."
-msgstr ""
+#: frappe/core/doctype/role/role.js:40 frappe/core/doctype/role/role.js:52
+msgid "Replicate Role"
+msgstr "Rol repliceren"
 
-#: frappe/core/doctype/role_replication/role_replication.js:13
-msgid "Replication completed."
-msgstr ""
+#: frappe/core/doctype/role/role.js:63
+msgid "Replicating Role..."
+msgstr "Rol wordt gerepliceerd..."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -23327,7 +23325,7 @@ msgstr "Rapportbeheerder"
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:39
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2129
+#: frappe/public/js/frappe/views/reports/query_report.js:2130
 msgid "Report Name"
 msgstr "Rapportnaam"
 
@@ -23361,7 +23359,7 @@ msgstr "Rapporttype"
 msgid "Report View"
 msgstr "Rapportweergave"
 
-#: frappe/public/js/frappe/form/form.js:1290
+#: frappe/public/js/frappe/form/form.js:1291
 msgid "Report bug"
 msgstr "Bug melden"
 
@@ -23399,7 +23397,7 @@ msgstr "Rapport succesvol bijgewerkt"
 msgid "Report was not saved (there were errors)"
 msgstr "Rapport is niet opgeslagen (er waren fouten)"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2167
+#: frappe/public/js/frappe/views/reports/query_report.js:2168
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "Rapport met meer dan 10 kolommen ziet er beter uit in de liggende modus."
 
@@ -23894,6 +23892,7 @@ msgid "Role Permissions"
 msgstr "Rol Machtigingen"
 
 #. Label of a Link in the Users Workspace
+#: frappe/core/doctype/role/role.js:21
 #: frappe/core/page/permission_manager/permission_manager.js:4
 #: frappe/core/workspace/users/users.json
 msgid "Role Permissions Manager"
@@ -23917,11 +23916,6 @@ msgstr "Rolprofiel"
 #: frappe/core/doctype/user/user.json
 msgid "Role Profiles"
 msgstr "Rolprofielen"
-
-#. Name of a DocType
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "Role Replication"
-msgstr ""
 
 #. Label of the role_and_level (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -23990,7 +23984,7 @@ msgstr "Rollen HTML"
 msgid "Roles can be set for users from their User page."
 msgstr "Gebruikers kunnen via hun gebruikerspagina rollen toegewezen krijgen."
 
-#: frappe/utils/nestedset.py:297
+#: frappe/utils/nestedset.py:299
 msgid "Root {0} cannot be deleted"
 msgstr "Root {0} kan niet worden verwijderd"
 
@@ -24259,7 +24253,7 @@ msgstr "SQL-uitvoer"
 msgid "SQL Queries"
 msgstr "SQL-query's"
 
-#: frappe/database/query.py:2155
+#: frappe/database/query.py:2159
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr "SQL-functies zijn niet toegestaan als strings in SELECT: {0}. Gebruik in plaats daarvan dict-syntaxis zoals {{'COUNT': '*'}}."
 
@@ -24369,7 +24363,7 @@ msgstr "Zaterdag"
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
-#: frappe/public/js/frappe/views/reports/query_report.js:2121
+#: frappe/public/js/frappe/views/reports/query_report.js:2122
 #: frappe/public/js/frappe/views/reports/report_view.js:1839
 #: frappe/public/js/frappe/views/workspace/workspace.js:367
 #: frappe/public/js/frappe/widgets/base_widget.js:143
@@ -24392,7 +24386,7 @@ msgstr "Opslaan als"
 msgid "Save Customizations"
 msgstr "Aanpassingen opslaan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2124
+#: frappe/public/js/frappe/views/reports/query_report.js:2125
 msgid "Save Report"
 msgstr "Rapport opslaan"
 
@@ -24847,7 +24841,7 @@ msgstr "Security.txt verloopt binnenkort!"
 msgid "See all Activity"
 msgstr "Bekijk alle activiteiten"
 
-#: frappe/public/js/frappe/form/form.js:1298
+#: frappe/public/js/frappe/form/form.js:1299
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.js:4
 msgid "See on Website"
 msgstr "Zie op de website"
@@ -24934,7 +24928,7 @@ msgid "Select Column"
 msgstr "Selecteer Kolom"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:42
-#: frappe/public/js/frappe/form/print_utils.js:76
+#: frappe/public/js/frappe/form/print_utils.js:85
 msgid "Select Columns"
 msgstr "Kolommen selecteren"
 
@@ -25507,7 +25501,7 @@ msgstr "Reeks {0} al gebruikt in {1}"
 msgid "Server Action"
 msgstr "Serveractie"
 
-#: frappe/app.py:404 frappe/public/js/frappe/request.js:609
+#: frappe/app.py:441 frappe/public/js/frappe/request.js:609
 #: frappe/www/error.html:36 frappe/www/error.py:15
 msgid "Server Error"
 msgstr "Serverfout"
@@ -25586,7 +25580,7 @@ msgstr "Standaardwaarden sessie"
 msgid "Session Defaults Saved"
 msgstr "Standaardwaarden sessie opgeslagen"
 
-#: frappe/app.py:381
+#: frappe/app.py:418
 msgid "Session Expired"
 msgstr "Sessie verlopen"
 
@@ -25649,7 +25643,7 @@ msgstr "Stel filters in"
 msgid "Set Filters for {0}"
 msgstr "Filters instellen voor {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2288
+#: frappe/public/js/frappe/views/reports/query_report.js:2289
 msgid "Set Level"
 msgstr "Niveau instellen"
 
@@ -25718,7 +25712,7 @@ msgstr "Stel alles in op privé"
 msgid "Set all public"
 msgstr "Stel alle openbare instellingen in"
 
-#: frappe/printing/doctype/print_format/print_format.js:48
+#: frappe/printing/doctype/print_format/print_format.js:47
 msgid "Set as Default"
 msgstr "Instellen als standaard"
 
@@ -25891,7 +25885,7 @@ msgstr "Instellingen > Gebruiker"
 msgid "Setup > User Permissions"
 msgstr "Instellingen > Gebruikersrechten"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1983
+#: frappe/public/js/frappe/views/reports/query_report.js:1984
 #: frappe/public/js/frappe/views/reports/report_view.js:1817
 msgid "Setup Auto Email"
 msgstr "Setup Auto E-mail"
@@ -26045,7 +26039,7 @@ msgstr "Fout weergeven"
 msgid "Show External Link Warning"
 msgstr "Waarschuwing voor externe link weergeven"
 
-#: frappe/public/js/frappe/form/layout.js:597
+#: frappe/public/js/frappe/form/layout.js:599
 msgid "Show Fieldname (click to copy on clipboard)"
 msgstr "Toon veldnaam (klik om te kopiëren naar klembord)"
 
@@ -26193,6 +26187,10 @@ msgstr "Showtour"
 msgid "Show Traceback"
 msgstr "Toon traceerbaarheid"
 
+#: frappe/core/doctype/role/role.js:30
+msgid "Show Users"
+msgstr "Gebruikers tonen"
+
 #. Label of the show_values_over_chart (Check) field in DocType 'Dashboard
 #. Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -26277,8 +26275,8 @@ msgstr "Toon lijst"
 msgid "Show more"
 msgstr ""
 
-#: frappe/public/js/frappe/form/layout.js:286
-#: frappe/public/js/frappe/form/layout.js:301
+#: frappe/public/js/frappe/form/layout.js:288
+#: frappe/public/js/frappe/form/layout.js:303
 msgid "Show more details"
 msgstr "Toon meer details"
 
@@ -26902,11 +26900,11 @@ msgstr ""
 msgid "Standard rich text editor with controls"
 msgstr "Standaard teksteditor met bedieningselementen"
 
-#: frappe/core/doctype/role/role.py:46
+#: frappe/core/doctype/role/role.py:47
 msgid "Standard roles cannot be disabled"
 msgstr "Standard rollen kan niet worden uitgeschakeld"
 
-#: frappe/core/doctype/role/role.py:32
+#: frappe/core/doctype/role/role.py:33
 msgid "Standard roles cannot be renamed"
 msgstr "Standaard rollen kan niet worden hernoemd"
 
@@ -27275,7 +27273,7 @@ msgstr "Inzendingswachtrij"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/form/quick_entry.js:255
 #: frappe/public/js/frappe/form/templates/set_sharing.html:4
-#: frappe/public/js/frappe/ui/capture.js:308
+#: frappe/public/js/frappe/ui/capture.js:313
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "Submit"
 msgstr "Indienen"
@@ -27334,7 +27332,7 @@ msgstr "Indienen bij creatie"
 msgid "Submit this document to complete this step."
 msgstr "Dien dit document in om deze stap te voltooien."
 
-#: frappe/public/js/frappe/form/form.js:1271
+#: frappe/public/js/frappe/form/form.js:1272
 msgid "Submit this document to confirm"
 msgstr "Verzend dit document om te bevestigen"
 
@@ -27535,7 +27533,7 @@ msgstr ""
 msgid "Suspend Sending"
 msgstr "opschorten verzenden"
 
-#: frappe/public/js/frappe/ui/capture.js:277
+#: frappe/public/js/frappe/ui/capture.js:282
 msgid "Switch Camera"
 msgstr "Schakel de camera over"
 
@@ -27564,7 +27562,7 @@ msgstr "Overschakelen naar Frappe CRM"
 msgid "Switch to Helpdesk"
 msgstr "Overschakelen naar Helpdesk"
 
-#: frappe/public/js/frappe/ui/capture.js:282
+#: frappe/public/js/frappe/ui/capture.js:287
 msgid "Switching Camera"
 msgstr "Camera wisselen"
 
@@ -27647,7 +27645,7 @@ msgstr "synchroniseren"
 msgid "Syncing {0} of {1}"
 msgstr "Synchroniseren {0} van {1}"
 
-#: frappe/utils/data.py:2692
+#: frappe/utils/data.py:2702
 msgid "Syntax Error"
 msgstr "Syntaxfout"
 
@@ -27761,7 +27759,6 @@ msgstr "Systeemlogboeken"
 #: frappe/core/doctype/report/report.json frappe/core/doctype/role/role.json
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: frappe/core/doctype/role_profile/role_profile.json
-#: frappe/core/doctype/role_replication/role_replication.json
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/rq_worker/rq_worker.json
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
@@ -27979,7 +27976,7 @@ msgstr "Tabel HTML"
 msgid "Table MultiSelect"
 msgstr "Tabel MultiSelect"
 
-#: frappe/desk/search.py:341
+#: frappe/desk/search.py:348
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr "Tabel MultiSelect vereist een tabel met ten minste één Link-veld, maar er is geen gevonden in {0}"
 
@@ -28020,7 +28017,7 @@ msgstr "Taglink"
 msgid "Tags"
 msgstr "labels"
 
-#: frappe/public/js/frappe/ui/capture.js:221
+#: frappe/public/js/frappe/ui/capture.js:226
 msgid "Take Photo"
 msgstr "Neem foto"
 
@@ -28316,11 +28313,11 @@ msgstr "Het geselecteerde documenttype is een subtabel, dus het bovenliggende do
 msgid "The email button is enabled for the user in the document."
 msgstr "De e-mailknop is voor de gebruiker in het document ingeschakeld."
 
-#: frappe/desk/search.py:354
+#: frappe/desk/search.py:361
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr "Het veld {0} in {1} staat het negeren van gebruikersmachtigingen niet toe"
 
-#: frappe/desk/search.py:369
+#: frappe/desk/search.py:376
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "Het veld {0} in {1} linkt naar {2} en niet naar {3}"
 
@@ -28392,7 +28389,7 @@ msgstr "Het projectnummer is verkregen via de Google Cloud Console onder <a href
 "\"IAM &amp; Beheerder\" &gt; \"Instellingen\"\n"
 "</a>"
 
-#: frappe/desk/utils.py:110
+#: frappe/desk/utils.py:112
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "Het door u aangevraagde rapport is gegenereerd.<br><br>Klik hier om te downloaden:<br><a href='{0}'>{0}</a><br><br>Deze link verloopt over {1} uur."
 
@@ -28404,7 +28401,7 @@ msgstr "De link om het wachtwoord opnieuw in te stellen is verlopen."
 msgid "The reset password link has either been used before or is invalid"
 msgstr "De link voor het opnieuw instellen van het wachtwoord is al eerder gebruikt of is ongeldig."
 
-#: frappe/app.py:396 frappe/public/js/frappe/request.js:147
+#: frappe/app.py:433 frappe/public/js/frappe/request.js:147
 msgid "The resource you are looking for is not available"
 msgstr "De bron die u zoekt is niet beschikbaar"
 
@@ -28603,7 +28600,7 @@ msgstr "Apps van derden"
 msgid "Third Party Authentication"
 msgstr "Authenticatie door derden"
 
-#: frappe/geo/doctype/currency/currency.js:8
+#: frappe/geo/doctype/currency/currency.js:7
 msgid "This Currency is disabled. Enable to use in transactions"
 msgstr "Deze valuta is uitgeschakeld. Schakel het in om deze valuta te kunnen gebruiken in transacties."
 
@@ -28687,11 +28684,11 @@ msgstr "Dit document is al in de wachtrij geplaatst voor indiening. U kunt de vo
 msgid "This document has been modified after the email was sent."
 msgstr "Dit document is gewijzigd nadat de e-mail is verzonden."
 
-#: frappe/public/js/frappe/form/form.js:1372
+#: frappe/public/js/frappe/form/form.js:1373
 msgid "This document has unsaved changes which might not appear in final PDF. <br> Consider saving the document before printing."
 msgstr "Dit document bevat niet-opgeslagen wijzigingen die mogelijk niet in de uiteindelijke PDF verschijnen. <br> Overweeg het document op te slaan voordat u het afdrukt."
 
-#: frappe/public/js/frappe/form/form.js:1143
+#: frappe/public/js/frappe/form/form.js:1144
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "Dit document is al gewijzigd, u kunt het niet opnieuw wijzigen"
 
@@ -28737,11 +28734,11 @@ msgstr "Dit bestand is openbaar en kan door iedereen worden ingezien, zelfs zond
 msgid "This file is public. It can be accessed without authentication."
 msgstr "Dit bestand is openbaar. Het kan zonder authenticatie worden geopend."
 
-#: frappe/public/js/frappe/form/form.js:1249
+#: frappe/public/js/frappe/form/form.js:1250
 msgid "This form has been modified after you have loaded it"
 msgstr "Dit formulier is gewijzigd nadat u het hebt geladen"
 
-#: frappe/public/js/frappe/form/form.js:2359
+#: frappe/public/js/frappe/form/form.js:2366
 msgid "This form is not editable due to a Workflow."
 msgstr "Dit formulier kan niet worden bewerkt vanwege een workflow."
 
@@ -28760,7 +28757,7 @@ msgstr "Deze geolocatieprovider wordt nog niet ondersteund."
 msgid "This goes above the slideshow."
 msgstr "Dit komt boven de diavoorstelling."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2365
+#: frappe/public/js/frappe/views/reports/query_report.js:2366
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "Dit is een achtergrondrapport. Stel de juiste filters in en genereer vervolgens een nieuwe."
 
@@ -29447,7 +29444,7 @@ msgstr "Totaal aantal achtergrondmedewerkers"
 msgid "Total Errors (last 1 day)"
 msgstr "Totaal aantal fouten (afgelopen dag)"
 
-#: frappe/public/js/frappe/ui/capture.js:260
+#: frappe/public/js/frappe/ui/capture.js:265
 msgid "Total Images"
 msgstr "Totale afbeeldingen"
 
@@ -29589,7 +29586,7 @@ msgstr "Overgangen"
 msgid "Translatable"
 msgstr "Vertaalbaar"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2427
+#: frappe/public/js/frappe/views/reports/query_report.js:2428
 msgid "Translate Data"
 msgstr "Vertaal gegevens"
 
@@ -29949,7 +29946,7 @@ msgstr "Kon DocType {0} niet vinden"
 msgid "Unable to load attachments."
 msgstr ""
 
-#: frappe/public/js/frappe/ui/capture.js:339
+#: frappe/public/js/frappe/ui/capture.js:344
 msgid "Unable to load camera."
 msgstr "Kan de camera niet laden."
 
@@ -29982,7 +29979,7 @@ msgstr "Kan geen bestandsformaat schrijven voor {0}"
 msgid "Unassign Condition"
 msgstr "Voorwaarde ongedaan maken"
 
-#: frappe/app.py:404
+#: frappe/app.py:441
 msgid "Uncaught Exception"
 msgstr "Niet-afgevangen uitzondering"
 
@@ -30042,7 +30039,7 @@ msgstr "Onbekend"
 msgid "Unknown Column: {0}"
 msgstr "Onbekend Kolom : {0}"
 
-#: frappe/utils/data.py:1255
+#: frappe/utils/data.py:1256
 msgid "Unknown Rounding Method: {}"
 msgstr "Onbekende afrondingsmethode: {}"
 
@@ -30122,11 +30119,11 @@ msgstr "Uitgeschreven"
 msgid "Unsupported file format: {0}"
 msgstr ""
 
-#: frappe/database/query.py:1173
+#: frappe/database/query.py:1177
 msgid "Unsupported function or operator: {0}"
 msgstr "Niet-ondersteunde functie of operator: {0}"
 
-#: frappe/database/query.py:2246
+#: frappe/database/query.py:2250
 msgid "Unsupported {0}: {1}"
 msgstr "Niet-ondersteunde {0}: {1}"
 
@@ -30486,7 +30483,6 @@ msgstr "Gebruik gemaakt van OAuth"
 #. Label of the user (Link) field in DocType 'Dashboard Settings'
 #. Label of the user (Link) field in DocType 'Desktop Layout'
 #. Label of the user (Link) field in DocType 'Note Seen By'
-#. Label of the user (Link) field in DocType 'Notification Settings'
 #. Label of the user (Link) field in DocType 'Route History'
 #. Label of the user (Link) field in DocType 'Document Follow'
 #. Label of the user (Link) field in DocType 'Google Calendar'
@@ -30518,7 +30514,6 @@ msgstr "Gebruik gemaakt van OAuth"
 #: frappe/desk/doctype/dashboard_settings/dashboard_settings.json
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
 #: frappe/desk/doctype/note_seen_by/note_seen_by.json
-#: frappe/desk/doctype/notification_settings/notification_settings.json
 #: frappe/desk/doctype/route_history/route_history.json
 #: frappe/email/doctype/document_follow/document_follow.json
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
@@ -30669,7 +30664,7 @@ msgstr "Gebruikersmachtiging"
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2108
+#: frappe/public/js/frappe/views/reports/query_report.js:2109
 #: frappe/public/js/frappe/views/reports/report_view.js:1865
 msgid "User Permissions"
 msgstr "Gebruikersmachtigingen"
@@ -31030,7 +31025,7 @@ msgstr "Waarde te groot"
 msgid "Value {0} missing for {1}"
 msgstr "Waarde {0} ontbreekt voor {1}"
 
-#: frappe/core/doctype/data_import/importer.py:791 frappe/utils/data.py:868
+#: frappe/core/doctype/data_import/importer.py:791 frappe/utils/data.py:869
 msgid "Value {0} must be in the valid duration format: d h m s"
 msgstr "Waarde {0} moet de geldige notatie voor duur hebben: dhms"
 
@@ -31105,6 +31100,7 @@ msgid "Video URL"
 msgstr "Video-URL"
 
 #. Label of the view_name (Select) field in DocType 'Form Tour'
+#: frappe/core/doctype/role/role.js:26 frappe/core/doctype/role/role.js:35
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "View"
 msgstr "Uitzicht"
@@ -31854,7 +31850,7 @@ msgstr "Wordt alleen weergegeven als koppen zijn ingeschakeld"
 msgid "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler."
 msgstr "Voert geplande taken slechts één keer per dag uit voor inactieve sites. Stel deze waarde in op 0 om te voorkomen dat de planner automatisch wordt uitgeschakeld."
 
-#: frappe/public/js/frappe/form/print_utils.js:46
+#: frappe/public/js/frappe/form/print_utils.js:33
 msgid "With Letter head"
 msgstr "Met Brief hoofd"
 
@@ -32520,7 +32516,7 @@ msgstr ""
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
 msgstr "Je hoeft niet voldoende rechten om deze bron te hebben. Neem contact op met uw manager om toegang te krijgen."
 
-#: frappe/app.py:389
+#: frappe/app.py:426
 msgid "You do not have enough permissions to complete the action"
 msgstr "Je hebt niet genoeg rechten om de actie te voltooien"
 
@@ -32552,7 +32548,7 @@ msgstr ""
 msgid "You do not have permission to restore this document."
 msgstr ""
 
-#: frappe/public/js/frappe/form/form.js:1001
+#: frappe/public/js/frappe/form/form.js:1002
 msgid "You do not have permissions to cancel all linked documents."
 msgstr "U hebt geen rechten om alle gekoppelde documenten te annuleren."
 
@@ -32856,7 +32852,7 @@ msgstr "Uw verbindingsverzoek naar Google Agenda is met succes geaccepteerd"
 msgid "Your email address"
 msgstr "jouw e-mailadres"
 
-#: frappe/desk/utils.py:109
+#: frappe/desk/utils.py:111
 msgid "Your exported report: {0}"
 msgstr "Uw geëxporteerde rapport: {0}"
 
@@ -32910,11 +32906,11 @@ msgstr "Uw vraag is ontvangen. We zullen binnenkort antwoord terug. Als u aanvul
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr "Uw rapport wordt op de achtergrond gegenereerd. U ontvangt een e-mail op {0} met een downloadlink zodra het klaar is."
 
-#: frappe/app.py:382
+#: frappe/app.py:419
 msgid "Your session has expired, please login again to continue."
 msgstr "Uw sessie is verlopen, log opnieuw in om door te gaan."
 
-#: frappe/utils/data.py:1561
+#: frappe/utils/data.py:1571
 msgid "Zero"
 msgstr "Nul"
 
@@ -32959,7 +32955,7 @@ msgstr "na_invoeging"
 msgid "amend"
 msgstr "wijzigen"
 
-#: frappe/public/js/frappe/utils/utils.js:402 frappe/utils/data.py:1574
+#: frappe/public/js/frappe/utils/utils.js:402 frappe/utils/data.py:1584
 msgid "and"
 msgstr "en"
 
@@ -33875,7 +33871,7 @@ msgstr "{0} al afgemeld"
 msgid "{0} already unsubscribed for {1} {2}"
 msgstr "{0} al afgemeld voor {1} {2}"
 
-#: frappe/utils/data.py:1782
+#: frappe/utils/data.py:1792
 msgid "{0} and {1}"
 msgstr "{0} en {1}"
 
@@ -34024,7 +34020,7 @@ msgstr "{0} u"
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} heeft al een standaardwaarde toegewezen voor {1}."
 
-#: frappe/database/query.py:1277
+#: frappe/database/query.py:1281
 msgid "{0} has invalid backtick notation: {1}"
 msgstr "{0} heeft ongeldige backtick-notatie: {1}"
 
@@ -34385,12 +34381,12 @@ msgstr "{0} van {1} ({2} rijen met kinderen)"
 msgid "{0} of {1} records match (filtered on visible rows only)"
 msgstr "{0} van {1} records komen overeen (gefilterd op alleen zichtbare rijen)"
 
-#: frappe/utils/data.py:1583
+#: frappe/utils/data.py:1593
 msgctxt "Money in words"
 msgid "{0} only."
 msgstr "{0} exact."
 
-#: frappe/utils/data.py:1764
+#: frappe/utils/data.py:1774
 msgid "{0} or {1}"
 msgstr "{0} of {1}"
 
@@ -34570,7 +34566,7 @@ msgstr "{0} {1} bestaat al"
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr "{0} {1} kan niet \"{2}\" worden. Het moet één zijn van \"{3}\""
 
-#: frappe/utils/nestedset.py:357
+#: frappe/utils/nestedset.py:359
 msgid "{0} {1} cannot be a leaf node as it has children"
 msgstr "{0} {1} kan geen leaf node zijn, want hij is vertakt"
 
@@ -34578,7 +34574,7 @@ msgstr "{0} {1} kan geen leaf node zijn, want hij is vertakt"
 msgid "{0} {1} does not exist, select a new target to merge"
 msgstr "{0} {1} bestaat niet, kies een nieuw doel om samen te voegen"
 
-#: frappe/public/js/frappe/form/form.js:992
+#: frappe/public/js/frappe/form/form.js:993
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "{0} {1} is gekoppeld aan de volgende ingediende documenten: {2}"
 
@@ -34598,7 +34594,7 @@ msgstr "{0}, Rij {1}"
 msgid "{0}, list item {1} of {2}"
 msgstr ""
 
-#: frappe/utils/data.py:1582
+#: frappe/utils/data.py:1592
 msgctxt "Money in words"
 msgid "{0}."
 msgstr "{0}."
@@ -34749,15 +34745,15 @@ msgstr "{count} rijen geselecteerd"
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
 msgstr "{{{0}}} is een ongeldig veldnaampatroon. Gebruik {{field_name}}."
 
-#: frappe/public/js/frappe/form/form.js:524
+#: frappe/public/js/frappe/form/form.js:525
 msgid "{} Complete"
 msgstr "{} Compleet"
 
-#: frappe/utils/data.py:2686
+#: frappe/utils/data.py:2696
 msgid "{} Invalid python code on line {}"
 msgstr "{} Ongeldige Python-code op regel {}"
 
-#: frappe/utils/data.py:2695
+#: frappe/utils/data.py:2705
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr "{} Mogelijk ongeldige Python-code. <br>{}"
 
@@ -34774,7 +34770,7 @@ msgstr "Het veld {} mag niet leeg zijn."
 msgid "{} has been disabled. It can only be enabled if {} is checked."
 msgstr "{} is uitgeschakeld. Het kan alleen worden ingeschakeld als {} is aangevinkt."
 
-#: frappe/utils/data.py:145
+#: frappe/utils/data.py:146
 msgid "{} is not a valid date string."
 msgstr "{} is geen geldige datumtekenreeks."
 
