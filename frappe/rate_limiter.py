@@ -108,6 +108,7 @@ def rate_limit(
 	methods: str | list = "ALL",
 	ip_based: bool = True,
 	endpoint: str | None = None,
+	user_based: bool = False,
 ):
 	"""Decorator to rate limit an endpoint.
 
@@ -122,6 +123,7 @@ def rate_limit(
 	        `ALL` is a wildcard that applies rate limit on all methods.
 	:type methods: string or list or tuple
 	:param ip_based: flag to allow ip based rate-limiting
+	:param user_based: flag to allow authenticated user based rate-limiting
 	:type ip_based: Boolean
 	:param endpoint: name of the counter, required when the decorated callable has no stable
 	        dotted path of its own, e.g. a `functools.partial`.
@@ -145,18 +147,28 @@ def rate_limit(
 			_limit = limit() if callable(limit) else limit
 
 			ip = frappe.local.request_ip if ip_based is True else None
+			user_key = frappe.form_dict.get(key, "") if key else None
 
-			user_key = frappe.form_dict.get(key, "")
+			if user_based:
+				user = frappe.session.user
+				if user and user != "Guest":
+					identity = user
+				elif ip:
+					identity = ip
+				else:
+					identity = "Guest"
 
-			identity = None
+				if key and user_key:
+					identity = f"{identity}:{user_key}"
 
-			if key and ip_based:
-				identity = ":".join([ip, user_key])
-
-			identity = identity or ip or user_key
+			else:
+				identity = None
+				if key and ip_based:
+					identity = ":".join([ip, user_key])
+				identity = identity or ip or user_key
 
 			if not identity:
-				frappe.throw(_("Either key or IP flag is required."))
+				frappe.throw(_("Either key, IP flag, or User flag is required."))
 
 			cache_key = frappe.cache.make_key(f"rl:{counter}:{identity}")
 
@@ -179,3 +191,65 @@ def rate_limit(
 		return wrapper
 
 	return ratelimit_decorator
+
+
+def dynamic_rate_limit() -> callable:
+	"""Apply rate limits sourced from "Rate Limit" documents instead of the
+	arguments `rate_limit` takes at decoration time. A bare `@dynamic_rate_limit()`
+	is a no-op until a matching "Rate Limit" document exists; multiple documents
+	targeting the same method path are all enforced.
+	"""
+
+	def decorator(fn):
+		declared_method_path = f"{fn.__module__}.{fn.__qualname__}"
+
+		@wraps(fn)
+		def wrapper(*args, **kwargs):
+			if not getattr(frappe.local, "request", None):
+				return fn(*args, **kwargs)
+
+			from frappe.core.doctype.rate_limit.rate_limit import get_rate_limits
+
+			method_path = declared_method_path
+			rate_limits = get_rate_limits(method_path)
+			if not rate_limits:
+				return fn(*args, **kwargs)
+
+			request_ip = frappe.local.request_ip
+			wrapped_fn = fn
+
+			for rl in rate_limits:
+				if rl["ignore_in_developer_mode"] and frappe.conf.developer_mode:
+					continue
+
+				if rl["value"] and frappe.form_dict.get(rl["key"]) != rl["value"]:
+					continue
+
+				if request_ip:
+					if any(request_ip.startswith(prefix) for prefix in rl["allowed_ips"]):
+						continue
+					if any(request_ip.startswith(prefix) for prefix in rl["blocked_ips"]):
+						frappe.throw(
+							_(
+								"Access denied: Your IP address ({0}) is blocked due to explicit IP restrictions."
+							).format(request_ip),
+							frappe.RateLimitExceededError,
+						)
+				# endpoint=method_path passed explicitly on every stacked rule
+				# so all of them count against the same bucket no need to touch frappe.form_dict.cmd for this
+				wrapped_fn = rate_limit(
+					key=rl["key"],
+					limit=rl["limit"],
+					seconds=rl["seconds"],
+					methods=rl["methods"],
+					ip_based=rl["ip_based"],
+					user_based=rl["user_based"],
+					endpoint=method_path,
+				)(wrapped_fn)
+
+			return wrapped_fn(*args, **kwargs)
+
+		wrapper._is_dynamic_rate_limited = True
+		return wrapper
+
+	return decorator
