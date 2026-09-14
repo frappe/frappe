@@ -618,6 +618,27 @@ class TestCustomFunctionsSQLite(IntegrationTestCase):
 		self.assertIn('"content" MATCH %(param1)s', sql)
 		self.assertEqual(parameters, {"param1": '"company ""docs"""*'})
 
+	def test_group_concat_uses_sqlite_argument_syntax(self):
+		doctype = frappe.qb.DocType("DocType")
+		query = (
+			frappe.qb.from_(doctype)
+			.select(GroupConcat(doctype.name, " | "))
+			.where(doctype.name.isin(("DocType", "User")))
+		)
+
+		sql, parameters = query.walk()
+		self.assertIn('GROUP_CONCAT("name",%(param1)s)', sql)
+		self.assertEqual(parameters["param1"], " | ")
+		self.assertEqual(set(query.run(pluck=True)[0].split(" | ")), {"DocType", "User"})
+
+	def test_raw_and_builder_date_format_preserve_microseconds(self):
+		value = "2026-01-01 12:34:56.123456"
+		raw_result = frappe.db.sql("SELECT DATE_FORMAT(%s, '%f')", (value,))[0][0]
+		builder_result = self.select_literals(DateFormat(value, "%f"))[0]
+
+		self.assertEqual(raw_result, "123456")
+		self.assertEqual(builder_result, raw_result)
+
 	def test_now_interval_uses_sqlite_datetime_modifiers(self):
 		doctype = frappe.qb.DocType("DocType")
 		cases = (

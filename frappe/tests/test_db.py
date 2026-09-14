@@ -803,8 +803,12 @@ class TestDB(IntegrationTestCase):
 
 		# other common MariaDB functions with no direct SQLite equivalent
 		self.assertEqual(
-			"SELECT STRFTIME('%Y-%m-%d', creation) FROM \"tabItem\"",
+			"SELECT FRAPPE_DATE_FORMAT(creation, '%Y-%m-%d') FROM \"tabItem\"",
 			modify_query("select date_format(creation, '%Y-%m-%d') from `tabItem`"),
+		)
+		self.assertEqual(
+			frappe.db.sql("select date_format(%s, '%f')", ("2026-01-01 12:34:56.123456",))[0][0],
+			"123456",
 		)
 		self.assertEqual(
 			"SELECT IIF(a > 0, 'x', 'y') FROM \"tabItem\"",

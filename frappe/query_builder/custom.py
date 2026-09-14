@@ -72,6 +72,12 @@ class STRING_AGG(DistinctOptionFunction):
 		self.args[1] = self.wrap_constant(separator)
 
 
+class SQLITE_GROUP_CONCAT(STRING_AGG):
+	def __init__(self, column: str, separator: str = ",", alias: str | None = None):
+		super().__init__(column, separator, alias=alias)
+		self.name = "GROUP_CONCAT"
+
+
 class MATCH(DistinctOptionFunction):
 	def __init__(self, column: str, *args, **kwargs):
 		"""[ Implementation of Match Against read more about it https://dev.mysql.com/doc/refman/8.0/en/fulltext-search.html#function_match ]

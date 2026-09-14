@@ -14,6 +14,7 @@ import frappe
 from frappe.query_builder.custom import (
 	GROUP_CONCAT,
 	MATCH,
+	SQLITE_GROUP_CONCAT,
 	STRING_AGG,
 	TO_TSVECTOR,
 	Month,
@@ -157,7 +158,13 @@ class CurDate(Term):
 		return "CURRENT_DATE"
 
 
-GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
+GroupConcat = ImportMapper(
+	{
+		db_type_is.MARIADB: GROUP_CONCAT,
+		db_type_is.POSTGRES: STRING_AGG,
+		db_type_is.SQLITE: SQLITE_GROUP_CONCAT,
+	}
+)
 
 Match = ImportMapper(
 	{
