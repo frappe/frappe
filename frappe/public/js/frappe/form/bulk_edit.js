@@ -997,18 +997,22 @@ export default class BulkEdit {
 			return;
 		}
 
-		this.set_action(__("Next"), () => {
-			if (this.has_file_selection()) {
-				this.file_uploader.upload_files();
-				return;
-			}
-			const url = this.sheet_url();
-			if (url && !(url === this.state.google_sheets_url && this.state.rows.length)) {
-				this.read_google_sheet(url);
-				return;
-			}
-			this.tabs.set_active(TAB_PREVIEW);
-		});
+		this.set_action(
+			__("Upload"),
+			() => {
+				if (this.has_file_selection()) {
+					this.file_uploader.upload_files();
+					return;
+				}
+				const url = this.sheet_url();
+				if (url && !(url === this.state.google_sheets_url && this.state.rows.length)) {
+					this.read_google_sheet(url);
+					return;
+				}
+				this.tabs.set_active(TAB_PREVIEW);
+			},
+			{ solid: true }
+		);
 		this.dialog
 			.get_primary_btn()
 			.prop(
