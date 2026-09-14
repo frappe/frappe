@@ -1778,7 +1778,7 @@ class Engine:
 			self.query = self.query.where(condition)
 
 	def get_permission_conditions(
-		self, doctype: str, table: Table, *, scope_raw_conditions: bool = False
+		self, doctype: str, table: Table, *, scope_hook_conditions: bool = False
 	) -> Criterion | None:
 		role_permissions = frappe.permissions.get_role_permissions(doctype, user=self.user)
 		has_role_permission = role_permissions.get("read") or role_permissions.get("select")
@@ -1802,9 +1802,9 @@ class Engine:
 			conditions.extend(user_perm_conditions)
 
 		hook_conditions = self.get_permission_query_conditions(doctype)
-		if scope_raw_conditions:
+		if scope_hook_conditions:
 			hook_conditions = [
-				self._scope_raw_condition(condition, doctype, table) for condition in hook_conditions
+				self._scope_hook_condition(condition, doctype, table) for condition in hook_conditions
 			]
 		conditions.extend(hook_conditions)
 
@@ -1822,15 +1822,12 @@ class Engine:
 
 		return where_condition
 
-	def _scope_raw_condition(self, condition: "Criterion", doctype: str, table: Table) -> "Criterion":
-		"""Re-point a raw SQL condition at `table`.
+	def _scope_hook_condition(self, condition: "Criterion", doctype: str, table: Table) -> "Criterion":
+		"""Re-point a permission condition from hooks at `table`.
 
-		Hooks and server scripts return raw SQL naming the real table, which is out of
-		scope once that table is joined under an alias. Matching names in a subquery
-		evaluates the condition where the real name still resolves."""
-		if not isinstance(condition, RawCriterion):
-			return condition
-
+		Hooks and server scripts build their condition against the real table, as raw SQL
+		or as a query builder criterion. Either way that table is out of scope once it is
+		joined under an alias, so match names through a subquery, where it still resolves."""
 		source = frappe.qb.DocType(doctype)
 		return table.name.isin(frappe.qb.from_(source).select(source.name).where(condition))
 
@@ -2353,7 +2350,7 @@ class LinkTableField(DynamicTableField):
 
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(
-					self.doctype, self.table, scope_raw_conditions=True
+					self.doctype, self.table, scope_hook_conditions=True
 				):
 					clause &= condition
 
