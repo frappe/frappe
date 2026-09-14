@@ -38,6 +38,11 @@ describe("quickActionBuiltins", () => {
     expect(remove.display).toBeUndefined();
   });
 
+  it("never offers delete on a single, whatever the right says", () => {
+    const rows = headerMenuBuiltins({ delete: 1 }, off, { single: true }).map((item) => item.name);
+    expect(rows).toEqual(["favourite_row", "copy_url", "copy_id"]);
+  });
+
   it("bands the menu: the favourite, the copies, then delete", () => {
     expect(menu({ delete: 1 }).map((item) => item.group)).toEqual([
       "favourite_band",

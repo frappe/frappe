@@ -1,4 +1,4 @@
-// The `DocType` kind: a doctype's list.
+// The `DocType` kind: a doctype's list, or the document itself when the doctype is a single.
 //
 // `link_to` IS the doctype — this is the one kind whose destination needs no second
 // column, which is why `link_doctype` is filled by the schema rather than by a controller

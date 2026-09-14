@@ -39,8 +39,10 @@ export type RouteOptions = {
  *   routeFor('CRM Deal')                          -> /crm-deal
  *   routeFor('CRM Deal', 'CRM-DEAL-01')           -> /crm-deal/CRM-DEAL-01
  *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/open
+ *   routeFor('System Settings')                   -> /system-settings/System Settings
  *
- * Under a modular prefix each is one segment deeper, with the doctype's own module.
+ * A single has no list, so its list address is the document itself, whatever view was asked
+ * for. Under a modular prefix each is one segment deeper, with the doctype's own module.
  */
 export function routeFor(
 	doctype: string,
@@ -65,6 +67,7 @@ export function routeFor(
 		params.module = module;
 	}
 
+	if (!name && addresses.isSingle(doctype)) name = doctype;
 	if (name)
 		return {
 			name: "record",

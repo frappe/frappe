@@ -203,15 +203,20 @@ provide(CommitKey, {
 // The row's built-ins, re-read on every resolve so the title crumb tracks the draft.
 function headerBuiltins(): HeaderItem[] {
 	const title = doc.value[meta.value?.title_field] || docname.value;
-	return [
+	const single = addresses.isSingle(doctype.value!);
+	const items: HeaderItem[] = [
+		// A single is its own list: one crumb, no link.
 		{
 			name: "doctype",
 			label: doctype.value ?? "",
 			zone: "left",
 			display: "crumb",
-			href: router.resolve(routeFor(doctype.value!)).path,
+			href: single ? undefined : router.resolve(routeFor(doctype.value!)).path,
 		},
-		{ name: "record", label: String(title), zone: "left", display: "crumb" },
+	];
+	if (!single)
+		items.push({ name: "record", label: String(title), zone: "left", display: "crumb" });
+	items.push(
 		{
 			name: "favourite",
 			label: "Favourite",
@@ -221,11 +226,13 @@ function headerBuiltins(): HeaderItem[] {
 			run: toggleFavourite,
 		},
 		{ name: "save", label: "Save", display: "button", run: runSave },
-		...headerMenuBuiltins(docinfo.value?.permissions ?? {}, {
-			favourited: favourited.value,
-			toggle: toggleFavourite,
-		}),
-	];
+		...headerMenuBuiltins(
+			docinfo.value?.permissions ?? {},
+			{ favourited: favourited.value, toggle: toggleFavourite },
+			{ single }
+		)
+	);
+	return items;
 }
 
 // The answer is discarded and the sidecar re-read, as the people rows do, so the star never

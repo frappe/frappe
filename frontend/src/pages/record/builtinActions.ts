@@ -22,7 +22,11 @@ export interface FavouriteState {
  * The header's `⋯` rows: no `display`, so the projection files them under the menu.
  * Three bands by `group`: the favourite, the record's copies, then Delete.
  */
-export function headerMenuBuiltins(perms: Record<string, any>, favourite: FavouriteState): HeaderItem[] {
+export function headerMenuBuiltins(
+  perms: Record<string, any>,
+  favourite: FavouriteState,
+  options: { single?: boolean } = {}
+): HeaderItem[] {
   const items: HeaderItem[] = [
     {
       name: "favourite_row",
@@ -35,7 +39,9 @@ export function headerMenuBuiltins(perms: Record<string, any>, favourite: Favour
     { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
     { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId },
   ];
-  if (perms.delete) items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
+  // Deleting a single wipes its settings row and the page reloads it with defaults.
+  if (perms.delete && !options.single)
+    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
   return items;
 }
 
