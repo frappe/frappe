@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v7
       - id: set-tests
         run: |
-          tests=$(find . -path '*/doctype/*/test_*.py' | xargs grep -l 'def test_' | awk '{
+          tests=$(find frappe -type f -name 'test_*.py' -print0 | xargs -0 grep -l 'def test_' | awk '{
               gsub(/^\.\//, "", $0)
               gsub(/\.py$/, "", $0)
               gsub(/\//, ".", $0)
