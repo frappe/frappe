@@ -46,6 +46,7 @@ class TestDB(IntegrationTestCase):
 		with self.assertQueryCount(1):
 			frappe.db.get_tables(cached=False)
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
 		# Setting 0 means no timeout.
@@ -88,10 +89,13 @@ class TestDB(IntegrationTestCase):
 			frappe.db.get_value("User", {}, [{"MIN": "name"}], order_by=None),
 			frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0],
 		)
-		self.assertIn(
-			"for update",
-			frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower(),
-		)
+		locking_query = frappe.db.get_value(
+			"User", Field("name") == "Administrator", for_update=True, run=False
+		).lower()
+		if frappe.db.db_type == "sqlite":
+			self.assertNotIn("for update", locking_query)
+		else:
+			self.assertIn("for update", locking_query)
 		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
 			frappe.qb.from_(user_doctype).select(user_doctype.name, user_doctype.email).run(),
@@ -140,7 +144,7 @@ class TestDB(IntegrationTestCase):
 		)
 
 		# test multiple orderby's
-		delimiter = '"' if frappe.db.db_type == "postgres" else "`"
+		delimiter = "`" if frappe.db.db_type == "mariadb" else '"'
 		self.assertIn(
 			"ORDER BY {deli}creation{deli} DESC,{deli}modified{deli} ASC,{deli}name{deli} DESC".format(
 				deli=delimiter
@@ -233,6 +237,8 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(results, {"enable_telemetry": doc.enable_telemetry})
 
 	def test_log_touched_tables(self):
+		if frappe.db.has_column("ToDo", "todo_custom_field"):
+			frappe.db.sql_ddl("ALTER TABLE `tabToDo` DROP COLUMN `todo_custom_field`")
 		frappe.flags.in_migrate = True
 		frappe.flags.touched_tables = set()
 		frappe.db.set_single_value("System Settings", "backup_limit", 5)
@@ -263,7 +269,7 @@ class TestDB(IntegrationTestCase):
 		# deleting the Custom Field leaves its column on the table, so without dropping it the next
 		# run adds no column, logs no ALTER TABLE, and never sees tabToDo as touched
 		self.addCleanup(frappe.db.commit)
-		self.addCleanup(frappe.db.sql_ddl, "ALTER TABLE `tabToDo` DROP COLUMN IF EXISTS `todo_custom_field`")
+		self.addCleanup(frappe.db.sql_ddl, "ALTER TABLE `tabToDo` DROP COLUMN `todo_custom_field`")
 		if cf:
 			self.addCleanup(cf.delete)
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
@@ -276,6 +282,7 @@ class TestDB(IntegrationTestCase):
 		"""Tests if DB keywords work as docfield names. If they're wrapped with grave accents."""
 		# Using random.choices, picked out a list of 40 keywords for testing
 		all_keywords = {
+			"sqlite": ["SELECT"],
 			"mariadb": [
 				"CHARACTER",
 				"DELAYED",
@@ -424,10 +431,15 @@ class TestDB(IntegrationTestCase):
 			),
 			random_field,
 		)
-		self.assertEqual(
-			next(iter(frappe.get_all("ToDo", fields=[{"COUNT": random_field}], limit=1, order_by=None)[0])),
-			"count" if frappe.conf.db_type == "postgres" else f"COUNT(`{random_field}`)",
+		count_field = next(
+			iter(frappe.get_all("ToDo", fields=[{"COUNT": random_field}], limit=1, order_by=None)[0])
 		)
+		if frappe.conf.db_type == "postgres":
+			self.assertEqual(count_field, "count")
+		elif frappe.conf.db_type == "sqlite":
+			self.assertEqual(count_field, f'COUNT("{random_field}")')
+		else:
+			self.assertEqual(count_field, f"COUNT(`{random_field}`)")
 
 		# Testing update
 		frappe.db.set_value(test_doctype, random_doc, random_field, random_value)
@@ -706,8 +718,7 @@ class TestDB(IntegrationTestCase):
 		# should return both records
 		self.assertEqual(len(note_docs), 2)
 
-		# data-type should be list
-		self.assertIsInstance(note_docs, tuple)
+		self.assertIsInstance(note_docs, (list, tuple))
 
 	@unimplemented_for(db_type_is.MARIADB)
 	def test_column_metadata_queries_bind_table_name(self):
@@ -1489,6 +1500,8 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
 
 	def test_schema_batch_failure_does_not_commit_pending_writes(self) -> None:
+		import sqlite3
+
 		from frappe.database.sqlite.schema import SQLiteTable
 
 		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`value` TEXT)")
@@ -1498,12 +1511,12 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 			SQLiteTable.run_schema_queries(
 				[
 					f"CREATE TABLE `{self.table_name}` (`name` TEXT)",
-					f"CREATE INDEX `invalid_index` ON `{self.table_name}` (`missing`)",
+					f"CREATE TABLE `{self.table_name}` (`duplicate` TEXT)",
 				]
 			)
 
-		with self.secondary_connection():
-			self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+		with sqlite3.connect(frappe.db.get_db_path()) as observer:
+			self.assertEqual(observer.execute(f'SELECT * FROM "{self.audit_table}"').fetchall(), [])
 		self.assertFalse(frappe.db.table_exists(self.doctype, cached=False))
 
 	def test_rebuild_remains_in_the_caller_transaction(self) -> None:
@@ -1522,7 +1535,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		definitions: dict[str, str | None] = {
 			"check": "`name` TEXT PRIMARY KEY, `value` TEXT CHECK (`value` <> '')",
 			"collation": "`name` TEXT PRIMARY KEY, `value` TEXT COLLATE NOCASE",
-			"foreign key": "`name` TEXT PRIMARY KEY, `parent` TEXT REFERENCES `parent` (`name`)",
+			"foreign key": "`name` TEXT PRIMARY KEY, `value` TEXT REFERENCES `parent` (`name`)",
 			"generated": "`name` TEXT PRIMARY KEY, `value` TEXT, `normalized` TEXT AS (LOWER(`value`))",
 			"strict": None,
 			"without rowid": None,
@@ -2219,6 +2232,7 @@ class TestReplicaConnections(IntegrationTestCase):
 
 
 class TestConcurrency(IntegrationTestCase):
+	@unimplemented_for(db_type_is.SQLITE)
 	@timeout(5, "There shouldn't be any lock wait")
 	def test_skip_locking(self):
 		with self.primary_connection():
@@ -2229,6 +2243,7 @@ class TestConcurrency(IntegrationTestCase):
 			name = frappe.db.get_value("User", "Administrator", for_update=True, skip_locked=True)
 			self.assertFalse(name)
 
+	@unimplemented_for(db_type_is.SQLITE)
 	@timeout(5, "Lock timeout should have been 0")
 	def test_no_wait(self):
 		with self.primary_connection():
@@ -2253,7 +2268,32 @@ class TestConcurrency(IntegrationTestCase):
 			n1.save()
 
 		with self.secondary_connection():
-			self.assertRaises(frappe.QueryTimeoutError, frappe.delete_doc, note.doctype, note.name)
+			expected_error = (
+				frappe.QueryDeadlockError if frappe.db.db_type == "sqlite" else frappe.QueryTimeoutError
+			)
+			self.assertRaises(expected_error, frappe.delete_doc, note.doctype, note.name)
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_stale_sqlite_snapshot_cannot_overwrite_a_newer_value(self):
+		note = frappe.get_doc(doctype="Note", title=frappe.generate_hash(), content="original").insert()
+		frappe.db.commit()
+
+		with self.primary_connection():
+			stale_note = frappe.get_doc(note.doctype, note.name)
+
+		with self.secondary_connection():
+			newer_note = frappe.get_doc(note.doctype, note.name)
+			newer_note.content = "newer value"
+			newer_note.save()
+			frappe.db.commit()
+
+		with self.primary_connection():
+			stale_note.content = "stale value"
+			with self.assertRaises(frappe.QueryDeadlockError):
+				stale_note.save()
+			frappe.db.rollback()
+
+		self.assertEqual(frappe.db.get_value("Note", note.name, "content"), "newer value")
 
 	@timeout(5, "unexpected locking")
 	def test_value_cache_invalidation(self):
@@ -2555,6 +2595,7 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 		frappe.init(self.current_site, force=True)
 		frappe.connect()
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_connect_fails_with_wrong_credentials_by_env(self) -> None:
 		import contextlib
 		import os
