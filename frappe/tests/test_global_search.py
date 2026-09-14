@@ -119,7 +119,8 @@ class TestGlobalSearch(IntegrationTestCase):
 			for index in range(401)
 		]
 
-		with self.assertQueryCount(3, query_type=("delete", "insert")):
+		expected_query_count = 5 if frappe.db.db_type == "sqlite" else 1
+		with self.assertQueryCount(expected_query_count, query_type=("delete", "insert")):
 			global_search.sync_values(values)
 
 	def test_update_fields(self):
