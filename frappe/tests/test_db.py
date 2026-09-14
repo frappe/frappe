@@ -1473,6 +1473,75 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.table_name}`"), [("row-1", "value")])
 		self.assertTrue(frappe.db.has_index(self.table_name, f"{self.table_name}_value_idx"))
 
+	def test_schema_changes_remain_in_the_caller_transaction(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`value` TEXT)")
+		frappe.db.sql(f"INSERT INTO `{self.audit_table}` VALUES ('pending')")
+		SQLiteTable.run_schema_queries([f"CREATE TABLE `{self.table_name}` (`name` TEXT)"])
+
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.table_exists(self.doctype, cached=False))
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+
+	def test_schema_batch_failure_does_not_commit_pending_writes(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`value` TEXT)")
+		frappe.db.sql(f"INSERT INTO `{self.audit_table}` VALUES ('pending')")
+
+		with self.assertRaises(frappe.db.OperationalError):
+			SQLiteTable.run_schema_queries(
+				[
+					f"CREATE TABLE `{self.table_name}` (`name` TEXT)",
+					f"CREATE INDEX `invalid_index` ON `{self.table_name}` (`missing`)",
+				]
+			)
+
+		with self.secondary_connection():
+			self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+		self.assertFalse(frappe.db.table_exists(self.doctype, cached=False))
+
+	def test_rebuild_remains_in_the_caller_transaction(self) -> None:
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`value` TEXT)")
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT)")
+		frappe.db.sql(f"INSERT INTO `{self.audit_table}` VALUES ('pending')")
+
+		frappe.db.change_column_type(self.doctype, "value", "varchar(140)", nullable=True)
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "value"), "varchar(140)")
+
+		frappe.db.rollback()
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "value"), "text")
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+
+	def test_rebuild_rejects_schema_features_it_cannot_preserve(self) -> None:
+		definitions: dict[str, str | None] = {
+			"check": "`name` TEXT PRIMARY KEY, `value` TEXT CHECK (`value` <> '')",
+			"collation": "`name` TEXT PRIMARY KEY, `value` TEXT COLLATE NOCASE",
+			"foreign key": "`name` TEXT PRIMARY KEY, `parent` TEXT REFERENCES `parent` (`name`)",
+			"generated": "`name` TEXT PRIMARY KEY, `value` TEXT, `normalized` TEXT AS (LOWER(`value`))",
+			"strict": None,
+			"without rowid": None,
+		}
+
+		for feature, definition in definitions.items():
+			with self.subTest(feature=feature):
+				frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{self.table_name}`")
+				if feature == "strict":
+					frappe.db.sql_ddl(
+						f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT) STRICT"
+					)
+				elif feature == "without rowid":
+					frappe.db.sql_ddl(
+						f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT) WITHOUT ROWID"
+					)
+				else:
+					assert definition is not None
+					frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` ({definition})")
+
+				with self.assertRaisesRegex(RuntimeError, "unsupported schema features"):
+					frappe.db.change_column_type(self.doctype, "value", "varchar(140)", nullable=True)
+
 	def test_schema_alter_uses_the_preserving_rebuild(self) -> None:
 		from frappe.database.sqlite.schema import SQLiteTable
 
