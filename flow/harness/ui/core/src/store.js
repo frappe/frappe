@@ -75,6 +75,9 @@ export function createFlowStore(client, options = {}) {
 
 	const state = reactive({
 		sessions: [],
+		sessionsMore: false, // the host has pages past the last row
+		sessionsLoading: false,
+		sessionQuery: "", // the title search the list was loaded under
 		sessionId: null,
 		session: null, // GET /sessions/{sid} payload
 		conversation: initialConversation(),
@@ -150,10 +153,24 @@ export function createFlowStore(client, options = {}) {
 		)
 	}
 
-	async function refreshSessions() {
-		const data = await guard(() => client.sessions())
-		if (!data) return
-		state.sessions = data.sessions
+	// The list comes a page at a time: a refresh reloads the first page under the current
+	// query, `more` appends the page past the last row shown, a new query starts over. A
+	// host that lists everything at once reports no more. Only the newest request lands.
+	let listRequest = 0
+	async function refreshSessions({ query = state.sessionQuery, more = false } = {}) {
+		const own = ++listRequest
+		const before = more ? state.sessions.at(-1)?.modified : undefined
+		state.sessionsLoading = true
+		let data
+		try {
+			data = await guard(() => client.sessions({ query, before }))
+		} finally {
+			if (own === listRequest) state.sessionsLoading = false
+		}
+		if (!data || own !== listRequest) return
+		state.sessionQuery = query
+		state.sessionsMore = !!data.more
+		state.sessions = more ? [...state.sessions, ...data.sessions] : data.sessions
 		// the open session's row mirrors its loaded detail: the live stream keeps that
 		// newer than a list served before an event landed
 		const open = state.sessions.find((info) => info.session_id === state.session?.session_id)
@@ -161,13 +178,27 @@ export function createFlowStore(client, options = {}) {
 			if (state.session.title != null) open.title = state.session.title
 			if (state.session.state != null) open.state = state.session.state
 		}
-		// drop stored panel state for sessions deleted outside this UI
-		const known = new Set(data.sessions.map((info) => info.session_id))
+		// drop stored panel state for sessions deleted outside this UI — a session missing
+		// from a partial list may just be on a later page
+		if (query || state.sessionsMore) return
+		const known = new Set(state.sessions.map((info) => info.session_id))
 		const stale = Object.keys(workspaceBySession).filter((sid) => !known.has(sid))
 		if (stale.length) {
 			for (const sid of stale) delete workspaceBySession[sid]
 			localStorage.setItem(keys.workspace, JSON.stringify(workspaceBySession))
 		}
+	}
+
+	function loadMoreSessions() {
+		if (state.sessionsMore && !state.sessionsLoading) return refreshSessions({ more: true })
+	}
+
+	// Typing filters the loaded rows, which is exact only while every session is loaded;
+	// past a full page the host searches instead, and clearing the box reloads the list.
+	function searchSessions(query) {
+		if (query === state.sessionQuery) return
+		if (!state.sessionQuery && !state.sessionsMore) return
+		return refreshSessions({ query })
 	}
 
 	async function refreshModels() {
@@ -1125,6 +1156,8 @@ export function createFlowStore(client, options = {}) {
 		prepareAttachment: client.prepareAttachment?.bind(client),
 		discardAttachments: client.discardAttachments?.bind(client),
 		refreshSessions,
+		loadMoreSessions,
+		searchSessions,
 		refreshModels,
 		refreshTools,
 		openSession,

@@ -12,6 +12,43 @@ globalThis.localStorage = {
 	setItem() {},
 }
 
+test("the session list pages past the last row shown and searches through the host", async () => {
+	const calls = []
+	const rows = (from, n) =>
+		Array.from({ length: n }, (_, i) => ({ session_id: `s${from + i}`, modified: `t${from + i}` }))
+	const client = {
+		async sessions({ query, before }) {
+			calls.push([query, before])
+			if (query) return { sessions: rows(9, 1), more: false }
+			return before ? { sessions: rows(2, 1), more: false } : { sessions: rows(0, 2), more: true }
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.refreshSessions()
+	assert.equal(flow.state.sessionsMore, true)
+
+	// a full page: the search goes to the host, and clearing it reloads the list
+	await flow.searchSessions("read")
+	assert.deepEqual(flow.state.sessions.map((s) => s.session_id), ["s9"])
+	await flow.searchSessions("")
+	assert.deepEqual(flow.state.sessions.map((s) => s.session_id), ["s0", "s1"])
+
+	// the next page appends once, however often the sentinel asks
+	await Promise.all([flow.loadMoreSessions(), flow.loadMoreSessions()])
+	assert.deepEqual(flow.state.sessions.map((s) => s.session_id), ["s0", "s1", "s2"])
+	assert.equal(flow.state.sessionsMore, false)
+	assert.equal(flow.loadMoreSessions(), undefined)
+
+	// every session loaded: typing filters locally, no request
+	await flow.searchSessions("read")
+	assert.deepEqual(calls, [
+		["", undefined],
+		["read", undefined],
+		["", undefined],
+		["", "t1"],
+	])
+})
+
 test("a prepared attachment is sent by id without uploading it again", async () => {
 	const calls = []
 	const client = {
