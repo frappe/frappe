@@ -101,12 +101,17 @@ def session(session: str) -> dict[str, Any]:
 
 
 @frappe.whitelist()
-def list_sessions(query: str | None = None, limit: int | str = 20) -> list[dict[str, Any]]:
-	"""The user's own conversations, newest first; `query` narrows them by title."""
+def list_sessions(
+	query: str | None = None, limit: int | str = 20, before: str | None = None
+) -> list[dict[str, Any]]:
+	"""The user's own conversations, newest first; `query` narrows them by title, `before`
+	(the `modified` of the last row shown) continues past it."""
 	frappe.has_permission("Flow Session", "read", throw=True)
 	filters: dict[str, Any] = {"owner": frappe.session.user, "source": ("!=", "Trigger")}
 	if query and query.strip():
 		filters["title"] = ("like", f"%{_escape_like(query.strip())}%")
+	if before:
+		filters["modified"] = ("<", before)
 	return frappe.get_all(
 		"Flow Session",
 		filters=filters,

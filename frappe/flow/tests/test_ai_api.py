@@ -424,6 +424,17 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual([row.name for row in api.list_sessions("a_b")], [underscore])
 		self.assertEqual(len(api.list_sessions("done")), 2)
 
+	def test_list_sessions_continues_past_the_last_row_shown(self):
+		names = [self.create(title=f"Paged {i}") for i in range(3)]
+		for i, name in enumerate(names):
+			frappe.db.set_value(
+				"Flow Session", name, "modified", f"2026-02-0{i + 1} 00:00:00", update_modified=False
+			)
+		first = api.list_sessions("Paged", limit=2)
+		self.assertEqual([row.name for row in first], [names[2], names[1]])
+		rest = api.list_sessions("Paged", limit=2, before=first[-1].modified)
+		self.assertEqual([row.name for row in rest], [names[0]])
+
 	def test_run_answers_started_and_sync_session_completes_the_run(self):
 		name = self.create()
 		started = api.run(name, "hi")

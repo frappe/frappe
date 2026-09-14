@@ -2,6 +2,7 @@ import { presentEvent } from "./events.js";
 import { SessionStream } from "./stream.js";
 
 const IMAGE_FILE = /\.(png|jpe?g|gif|webp|bmp)$/i;
+const SESSION_PAGE = 100; // flow.api.LIST_LIMIT: a shorter page would never read as more
 
 // The store's client surface over flow.api. Sessions are Flow Session docs, models are
 // Flow Model docs (the daemon's provider ids are mapped back to them), attachments are
@@ -60,8 +61,13 @@ export class FrappeClient {
 
 	// --- sessions --------------------------------------------------------------
 
-	async sessions() {
-		const rows = await this.transport.call("flow.api.list_sessions", { limit: 100 });
+	// One page, newest first; `before` (the last row's modified) continues past it and
+	// `query` narrows by title. A full page means there may be more.
+	async sessions({ query = "", before = "" } = {}) {
+		const args = { limit: SESSION_PAGE };
+		if (query) args.query = query;
+		if (before) args.before = before;
+		const rows = await this.transport.call("flow.api.list_sessions", args);
 		return {
 			sessions: rows.map((row) => ({
 				session_id: row.name,
@@ -70,6 +76,7 @@ export class FrappeClient {
 				model: row.model,
 				modified: row.modified,
 			})),
+			more: rows.length === SESSION_PAGE,
 		};
 	}
 
