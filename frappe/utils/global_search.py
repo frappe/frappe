@@ -14,6 +14,8 @@ from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
 
 HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
+SQLITE_LEGACY_PARAMETER_LIMIT = 999
+GLOBAL_SEARCH_COLUMN_COUNT = 6
 
 
 def setup_global_search_table():
@@ -420,8 +422,9 @@ def sync_values(values: list):
 				.delete()
 				.where(Tuple(GlobalSearch.doctype, GlobalSearch.name).isin(keys))
 			).run()
-		if values:
-			frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values).run()
+		insert_batch_size = SQLITE_LEGACY_PARAMETER_LIMIT // GLOBAL_SEARCH_COLUMN_COUNT
+		for batch in frappe.utils.create_batch(values, insert_batch_size):
+			(frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*batch)).run()
 		return
 
 	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values)
