@@ -846,7 +846,8 @@ frappe.ui.Page = class Page {
 		const busy = (on) => (on ? btn.attr("aria-busy", "true") : btn.removeAttr("aria-busy"));
 		if (response && response.then) {
 			busy(true);
-			response.finally(() => busy(false));
+			const done = () => busy(false);
+			response.then(done, done);
 		} else if (response && response.always) {
 			busy(true);
 			response.always(() => busy(false));

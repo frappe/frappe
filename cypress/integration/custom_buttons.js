@@ -71,5 +71,21 @@ describe(
 				check_button_count(button_name);
 			});
 		});
+
+		it("Clears the busy state when the callback returns a jQuery deferred", () => {
+			const label = "Deferred Button";
+			cy.intercept("**/api/method/frappe.auth.get_logged_user").as("get_logged_user");
+			cy.window().then((win) => {
+				win.cur_frm.add_custom_button(label, () =>
+					win.frappe.call({ method: "frappe.auth.get_logged_user" })
+				);
+			});
+			cy.get(`button[data-label="${encodeURIComponent(label)}"]`).click();
+			cy.wait("@get_logged_user");
+			cy.get(`button[data-label="${encodeURIComponent(label)}"]`).should(
+				"not.have.attr",
+				"aria-busy"
+			);
+		});
 	}
 );
