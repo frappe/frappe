@@ -204,17 +204,16 @@ class Workflow(Document):
 		)
 
 	def validate_fields_in_conditions(self):
-		if not self.conditions:
-			return
-
-		docfields = {df.fieldname for df in frappe.get_meta(self.document_type).fields}
+		meta = frappe.get_meta(self.document_type)
 		for condition in self.conditions:
-			if condition.field not in docfields:
-				frappe.throw(
-					_("{0} is not a field of doctype {1}").format(
-						frappe.bold(condition.field), frappe.bold(self.document_type)
-					)
+			if meta.has_field(condition.field) or condition.field in meta.default_fields:
+				continue
+
+			frappe.throw(
+				_("{0} is not a field of doctype {1}").format(
+					frappe.bold(condition.field), frappe.bold(self.document_type)
 				)
+			)
 
 	def validate_shared_state_field(self):
 		"""Every workflow of a doctype has to read its state from the same field.
