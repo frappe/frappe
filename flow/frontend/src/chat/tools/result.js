@@ -45,11 +45,20 @@ function blank(value) {
 
 export function cellText(value) {
 	if (value == null) return "";
-	if (Array.isArray(value)) return `${value.length} rows`;
+	if (Array.isArray(value)) return `${value.length} ${value.length === 1 ? "row" : "rows"}`;
 	if (typeof value === "object") return JSON.stringify(value);
 	return String(value);
 }
 
 export function humanize(fieldname) {
 	return fieldname.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// A child table: rows of a record, never a list of scalars.
+export function isTable(value) {
+	return (
+		Array.isArray(value) &&
+		value.length > 0 &&
+		value.every((row) => row !== null && typeof row === "object" && !Array.isArray(row))
+	);
 }

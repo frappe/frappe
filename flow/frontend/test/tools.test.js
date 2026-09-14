@@ -197,6 +197,18 @@ async function openDetails(el) {
 	return JSON.parse(details.querySelector("pre").textContent);
 }
 
+// A child table unfolds under its row on a click; in a values list it is already open.
+async function childTable(el) {
+	const toggle = el.querySelector("td button");
+	if (toggle) {
+		toggle.click();
+		await nextTick();
+	}
+	const table = el.querySelector("td table");
+	assert.ok(table, "child rows must render as a table");
+	return { columns: texts(table, "th"), cells: texts(table, "td") };
+}
+
 test("bulk targets and failures beyond the first page can be revealed", async (t) => {
 	const names = Array.from({ length: 41 }, (_, i) => `INV-${i + 1}`);
 	const args = { doctype: "Sales Invoice", names };
@@ -222,27 +234,40 @@ test("bulk targets and failures beyond the first page can be revealed", async (t
 	}
 });
 
-test("create and update approvals expose complete child records", async (t) => {
+test("create and update approvals unfold child records as tables", async (t) => {
 	const items = [{ item_code: "ITEM-1", qty: 9, rate: 500 }];
+	const unfolded = { columns: ["Item Code", "Qty", "Rate"], cells: ["ITEM-1", "9", "500"] };
 	for (const [component, args] of [
 		[CreateView, { doctype: "Sales Invoice", records: [{ items }] }],
 		[NamesView, { doctype: "Sales Invoice", names: ["INV-1"], values: { items } }],
 		[NamesView, { doctype: "Sales Invoice", names: ["INV-1"], args: { items } }],
 	]) {
 		const el = mount(t, component, { arguments: args });
-		assert.deepEqual(await openDetails(el), items);
+		assert.equal(el.querySelector("pre"), null, "no JSON dump");
+		assert.deepEqual(await childTable(el), unfolded);
 	}
+
+	const card = mount(t, CreateView, {
+		arguments: { doctype: "Sales Invoice", records: [{ items }] },
+	});
+	assert.equal(card.querySelector("td table"), null);
+	assert.equal(texts(card, "td button")[0], "1 row");
+	assert.deepEqual(await childTable(card), unfolded);
+	card.querySelector("td button").click();
+	await nextTick();
+	assert.equal(card.querySelector("td table"), null);
 });
 
 test("document actions preserve structured returns", async (t) => {
-	for (const outcome of [
-		{ payment_entry: "PAY-1", amount: 123 },
-		[{ name: "PAY-1", amount: 123 }],
-	]) {
-		const el = mount(t, NamesView, {
+	const returning = (outcome) =>
+		mount(t, NamesView, {
 			arguments: { doctype: "Sales Invoice", names: ["INV-1"], action: "make_payment" },
 			result: json({ results: [{ name: "INV-1", result: outcome }] }),
 		});
-		assert.deepEqual(await openDetails(el), outcome);
-	}
+	const record = { payment_entry: "PAY-1", amount: 123 };
+	assert.deepEqual(await openDetails(returning(record)), record);
+	assert.deepEqual(await childTable(returning([{ name: "PAY-1", amount: 123 }])), {
+		columns: ["Name", "Amount"],
+		cells: ["PAY-1", "123"],
+	});
 });

@@ -1,7 +1,7 @@
 <template>
 	<div v-if="!rows.length" class="px-3 py-2.5 text-xs text-ink-gray-5">No records</div>
 	<div v-else>
-		<div class="max-h-[260px] overflow-auto">
+		<div class="overflow-auto" :class="open.size ? '' : 'max-h-[260px]'">
 			<table class="w-full border-collapse text-left text-xs">
 				<thead>
 					<tr>
@@ -21,42 +21,76 @@
 					</tr>
 				</thead>
 				<tbody class="text-ink-gray-7">
-					<tr
-						v-for="(row, i) in visible"
-						:key="i"
-						class="border-t border-outline-gray-1"
-					>
-						<td v-if="withStatus" class="max-w-[240px] truncate px-3 py-1.5 align-top">
-							<span
-								v-if="row.status?.error"
-								class="text-ink-red-6"
-								:title="row.status.error"
-								>{{ row.status.error }}</span
+					<template v-for="(row, i) in visible" :key="i">
+						<tr class="border-t border-outline-gray-1">
+							<td
+								v-if="withStatus"
+								class="max-w-[240px] truncate px-3 py-1.5 align-top"
 							>
-							<a
-								v-else-if="row.status?.name"
-								:href="deskUrl(doctype, row.status.name)"
-								target="_blank"
-								class="text-ink-gray-8 hover:underline"
-								>{{ row.status.name }}</a
+								<span
+									v-if="row.status?.error"
+									class="text-ink-red-6"
+									:title="row.status.error"
+									>{{ row.status.error }}</span
+								>
+								<a
+									v-else-if="row.status?.name"
+									:href="deskUrl(doctype, row.status.name)"
+									target="_blank"
+									class="text-ink-gray-8 hover:underline"
+									>{{ row.status.name }}</a
+								>
+							</td>
+							<td
+								v-for="column in columns"
+								:key="column"
+								class="max-w-[220px] truncate px-3 py-1.5 align-top"
+								:title="cellText(row.cells[column])"
 							>
-						</td>
-						<td
-							v-for="column in columns"
+								<a
+									v-if="column === linkColumn && doctype && row.cells[column]"
+									:href="deskUrl(doctype, row.cells[column])"
+									target="_blank"
+									class="text-ink-gray-8 hover:underline"
+									>{{ cellText(row.cells[column]) }}</a
+								>
+								<button
+									v-else-if="isTable(row.cells[column])"
+									type="button"
+									class="inline-flex items-center gap-1 text-ink-gray-6 hover:text-ink-gray-8"
+									:aria-expanded="open.has(key(i, column))"
+									@click="toggle(i, column)"
+								>
+									<FeatherIcon
+										name="chevron-right"
+										class="h-3 w-3 transition-transform"
+										:class="open.has(key(i, column)) ? 'rotate-90' : ''"
+									/>
+									{{ cellText(row.cells[column]) }}
+								</button>
+								<ValueView v-else :value="row.cells[column]" />
+							</td>
+						</tr>
+						<tr
+							v-for="column in opened(i)"
 							:key="column"
-							class="max-w-[220px] truncate px-3 py-1.5 align-top"
-							:title="cellText(row.cells[column])"
+							class="border-t border-outline-gray-1"
 						>
-							<a
-								v-if="column === linkColumn && doctype && row.cells[column]"
-								:href="deskUrl(doctype, row.cells[column])"
-								target="_blank"
-								class="text-ink-gray-8 hover:underline"
-								>{{ cellText(row.cells[column]) }}</a
-							>
-							<ValueView v-else :value="row.cells[column]" />
-						</td>
-					</tr>
+							<td :colspan="span" class="bg-surface-gray-1 px-3 py-2">
+								<div class="mb-1.5 text-2xs font-medium text-ink-gray-5">
+									{{ humanize(column) }}
+								</div>
+								<div
+									class="overflow-hidden rounded-[6px] border border-outline-gray-1 bg-surface-base"
+								>
+									<RecordTable
+										:columns="columnsOf(row.cells[column])"
+										:rows="row.cells[column].map((cells) => ({ cells }))"
+									/>
+								</div>
+							</td>
+						</tr>
+					</template>
 				</tbody>
 			</table>
 		</div>
@@ -72,15 +106,18 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, reactive, ref } from "vue";
+import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 
 import ValueView from "./ValueView.vue";
-import { cellText, deskUrl, humanize } from "./result.js";
+import { cellText, columnsOf, deskUrl, humanize, isTable } from "./result.js";
 
 // Rows are { cells, status? }; the leading column appears only where a status has
 // something to say — the record a row created, or why it failed — and the view that
-// fills it names it. The table fills its
-// panel edge to edge, so the panel's own border frames it.
+// fills it names it. A child table stays a count in its cell; opened, it unfolds as a
+// table of its own in a row beneath, spanning the width, and the cap on the height
+// lifts so nothing scrolls inside a scroll. The table fills its panel edge to edge, so
+// the panel's own border frames it.
 const props = defineProps({
 	columns: { type: Array, required: true },
 	rows: { type: Array, required: true },
@@ -91,8 +128,17 @@ const props = defineProps({
 
 const PAGE_SIZE = 20;
 const visibleCount = ref(PAGE_SIZE);
+const open = reactive(new Set());
 
 const withStatus = computed(() => props.rows.some((row) => row.status?.name || row.status?.error));
+const span = computed(() => props.columns.length + (withStatus.value ? 1 : 0));
 const visible = computed(() => props.rows.slice(0, visibleCount.value));
 const hidden = computed(() => props.rows.length - visible.value.length);
+
+const key = (i, column) => `${i}:${column}`;
+const opened = (i) => props.columns.filter((column) => open.has(key(i, column)));
+function toggle(i, column) {
+	const k = key(i, column);
+	open.has(k) ? open.delete(k) : open.add(k);
+}
 </script>
