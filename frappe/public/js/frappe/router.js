@@ -584,7 +584,7 @@ frappe.router = {
 	 * @returns {void}
 	 */
 	push_state(path, query_params = "") {
-		if (window.location.pathname !== path || window.location.search !== query_params) {
+		if (this.path_on_screen() !== path || window.location.search !== query_params) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
 			history[method](null, null, path + query_params);
@@ -592,6 +592,30 @@ frappe.router = {
 			// now process the route
 			this.route();
 		}
+	},
+
+	// The path on screen, spelled the way `make_url` would have spelled it: without the shell.
+	//
+	// `push_state` has to answer whether it is being asked for somewhere else, and it cannot
+	// compare the address bar against what it is handed, because the two describe the same place
+	// in two spellings. `set_route` writes no shell, since `make_url` is also given ready-made
+	// paths and cannot tell which segment is the entity, while `write_shell_into_url` always
+	// writes one. The path for the route already on screen therefore arrives here exactly one
+	// segment shorter than the URL it is being compared with.
+	//
+	// Compared literally it reads as a change every time, and a page that re-issues its own route
+	// while rendering never settles: `set_route` drops the shell, the router writes it back, the
+	// re-render calls `set_route` again. `permission-manager` does precisely that, from a Link
+	// field whose `change` fires on every render because a field with no document behind it has
+	// no old value to be equal to. It looped for as long as the tab was open, flickering and
+	// filling the back button with entries nobody had visited.
+	path_on_screen() {
+		const path = window.location.pathname;
+		if (!this.current_shell) return path;
+
+		// `current_shell` is only ever set by taking a shell off the front of the route or by
+		// writing one there, so whenever it is set there is a shell segment to drop.
+		return "/desk/" + this.strip_prefix(path).split("/").slice(1).join("/");
 	},
 
 	get_sub_path_string(route) {
