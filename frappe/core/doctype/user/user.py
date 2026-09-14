@@ -713,6 +713,23 @@ class User(Document):
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
+		for token_cache in frappe.get_all(
+			"Token Cache", filters={"user": new_name}, fields=["name", "connected_app"]
+		):
+			expected_name = f"{token_cache.connected_app}-{new_name}"
+			if token_cache.name != expected_name:
+				if frappe.db.exists("Token Cache", expected_name):
+					frappe.delete_doc("Token Cache", token_cache.name, ignore_permissions=True)
+				else:
+					frappe.rename_doc(
+						"Token Cache",
+						token_cache.name,
+						expected_name,
+						force=True,
+						show_alert=False,
+						ignore_permissions=True,
+					)
+
 		# set email
 		frappe.db.set_value("User", new_name, "email", new_name)
 

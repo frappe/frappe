@@ -379,6 +379,60 @@ class TestUser(IntegrationTestCase):
 		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
 		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
 
+	def test_user_rename_updates_token_cache(self):
+		old_name = "test_user_rename_tc@example.com"
+		new_name = "test_user_rename_tc_new@example.com"
+		actor_name = "test_user_rename_tc_actor@example.com"
+
+		for email in (old_name, new_name, actor_name):
+			frappe.delete_doc("User", email, ignore_permissions=True, force=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": old_name,
+				"enabled": 1,
+				"first_name": "_Test",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": actor_name,
+				"enabled": 1,
+				"first_name": "_Test Actor",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		connected_app = frappe.get_doc({"doctype": "Connected App", "provider_name": "frappe"}).insert(
+			ignore_permissions=True
+		)
+
+		token_cache = frappe.get_doc(
+			{"doctype": "Token Cache", "user": old_name, "connected_app": connected_app.name}
+		).insert(ignore_permissions=True)
+		old_cache_name = token_cache.name
+		self.assertEqual(old_cache_name, f"{connected_app.name}-{old_name}")
+
+		with self.set_user(actor_name):
+			frappe.rename_doc("User", old_name, new_name)
+
+		new_cache_name = f"{connected_app.name}-{new_name}"
+		self.assertTrue(frappe.db.exists("Token Cache", new_cache_name))
+		self.assertFalse(frappe.db.exists("Token Cache", old_cache_name))
+		self.assertEqual(frappe.db.get_value("Token Cache", new_cache_name, "user"), new_name)
+		self.assertIsNotNone(connected_app.get_token_cache(new_name))
+
+		frappe.delete_doc("Token Cache", new_cache_name, ignore_permissions=True, force=True)
+		frappe.delete_doc("Connected App", connected_app.name, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
+
 	def test_signup(self):
 		import frappe.website.utils
 
