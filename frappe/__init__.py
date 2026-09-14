@@ -713,24 +713,38 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 
 	:param roles: Permitted role(s)
 	"""
-
-	if local.session.user == "Administrator":
+	if has_role(roles):
 		return
+
+	if not message:
+		raise PermissionError
 
 	if isinstance(roles, str):
 		roles = (roles,)
 
-	if set(roles).isdisjoint(get_roles()):
-		if not message:
-			raise PermissionError
+	throw(
+		_("This action is only allowed for {}").format(
+			", ".join(bold(_(role)) for role in roles),
+		),
+		PermissionError,
+		_("Not Permitted"),
+	)
 
-		throw(
-			_("This action is only allowed for {}").format(
-				", ".join(bold(_(role)) for role in roles),
-			),
-			PermissionError,
-			_("Not Permitted"),
-		)
+
+def has_role(roles: list[str] | tuple[str] | str) -> bool:
+	"""
+	Returns True if the user has any of the permitted roles.
+
+	:param roles: Permitted role(s)
+	"""
+
+	if local.session.user == "Administrator":
+		return True
+
+	if isinstance(roles, str):
+		roles = (roles,)
+
+	return not set(roles).isdisjoint(get_roles())
 
 
 def get_domain_data(module):
