@@ -595,10 +595,16 @@ frappe.ui.Page = class Page {
 
 	btn_disable_enable(btn, response) {
 		if (response && response.then) {
+<<<<<<< HEAD
 			btn.prop("disabled", true);
 			response.finally(() => {
 				btn.prop("disabled", false);
 			});
+=======
+			busy(true);
+			const done = () => busy(false);
+			response.then(done, done);
+>>>>>>> 06ca4d2 (fix(page): clear button busy state when callback returns a jQuery deferred)
 		} else if (response && response.always) {
 			btn.prop("disabled", true);
 			response.always(() => {
