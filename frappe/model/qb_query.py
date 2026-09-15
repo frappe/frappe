@@ -184,7 +184,7 @@ class DatabaseQuery:
 		from frappe.model.meta import get_table_columns
 
 		try:
-			get_table_columns(self.doctype)
+			columns = get_table_columns(self.doctype)
 		except frappe.db.TableMissingError:
 			if ignore_ddl:
 				return []
@@ -215,14 +215,17 @@ class DatabaseQuery:
 		if not run:
 			return query
 
+		with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
+		if with_comment_count and "_comment_count" in columns and "_comment_count" not in (fields or []):
+			query = query.select(frappe.qb.DocType(self.doctype)._comment_count)
+
 		# Run the query
 		if pluck:
 			result = query.run(debug=debug, as_dict=True, pluck=pluck)
 		else:
 			result = query.run(debug=debug, as_dict=not as_list, update=update)
 
-		# Add comment count if requested and not as_list
-		if sbool(with_comment_count) and not as_list and self.doctype:
+		if with_comment_count:
 			self._add_comment_count(result)
 
 		# Save user settings if requested
@@ -237,26 +240,9 @@ class DatabaseQuery:
 		return result
 
 	def _add_comment_count(self, result: list[Any]) -> None:
-		"""Add comment count to each result row by parsing _comments field.
-
-		This method adds a _comment_count field to each row based on the _comments field content.
-		It parses the JSON structure to count the number of comments.
-
-		Args:
-			result: List of result dictionaries to modify
-		"""
-		if not result:
-			return
-
 		for row in result:
-			if isinstance(row, dict) and "_comments" in row:
-				try:
-					comments_data = json.loads(row["_comments"] or "[]")
-					row["_comment_count"] = len(comments_data) if isinstance(comments_data, list) else 0
-				except (json.JSONDecodeError, TypeError):
-					row["_comment_count"] = 0
-			elif isinstance(row, dict):
-				row["_comment_count"] = 0
+			if isinstance(row, dict):
+				row["_comment_count"] = row.get("_comment_count") or 0
 
 	def _save_user_settings(
 		self,

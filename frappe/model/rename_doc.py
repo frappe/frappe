@@ -207,7 +207,10 @@ def rename_doc(
 		new_doc.add_comment("Edit", _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
 
 	if merge:
+		from frappe.core.doctype.comment.comment import refresh_comment_count
+
 		frappe.delete_doc(doctype, old, ignore_permissions=ignore_permissions)
+		refresh_comment_count(doctype, new)
 
 	new_doc.clear_cache()
 	frappe.clear_cache()

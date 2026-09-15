@@ -10,6 +10,7 @@ from frappe.custom.doctype.property_setter.property_setter import (
 	make_property_setter,
 )
 from frappe.database import savepoint
+from frappe.database.schema import OPTIONAL_COLUMN_TYPES
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
@@ -28,7 +29,10 @@ class TestDBUpdate(IntegrationTestCase):
 		frappe.db.updatedb(doctype)
 
 		field_defs = get_field_defs(doctype)
-		table_columns = frappe.db.get_table_columns_description(f"tab{doctype}")
+		# `_comments` is dead but not dropped yet, so it survives on upgraded sites
+		table_columns = [
+			c for c in frappe.db.get_table_columns_description(f"tab{doctype}") if c.name != "_comments"
+		]
 
 		self.assertEqual(len(field_defs), len(table_columns))
 
@@ -451,7 +455,7 @@ def get_other_fields_meta(meta):
 		"docstatus": ("Check", 0),
 	}
 
-	optional_fields = frappe.db.OPTIONAL_COLUMNS
+	optional_fields = list(frappe.db.OPTIONAL_COLUMNS)
 	if meta.track_seen:
 		optional_fields.append("_seen")
 
@@ -459,7 +463,7 @@ def get_other_fields_meta(meta):
 	if meta.istable:
 		child_table_fields_map.update({field: ("Data", 0) for field in frappe.db.CHILD_TABLE_COLUMNS})
 
-	optional_fields_map = {field: ("Text", 0) for field in optional_fields}
+	optional_fields_map = {field: (OPTIONAL_COLUMN_TYPES.get(field, "Text"), 0) for field in optional_fields}
 	fields = dict(default_fields_map, **optional_fields_map, **child_table_fields_map)
 	return [
 		frappe._dict({"fieldname": field, "fieldtype": _type, "length": _length})
