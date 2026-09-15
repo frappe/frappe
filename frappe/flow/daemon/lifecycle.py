@@ -90,7 +90,8 @@ def provision_site() -> None:
 		update_site_config("flow_server_secret", frappe.generate_hash(length=48))
 	entry = {
 		"token": frappe.conf.flow_server_secret,
-		"allowed_roots": [str(session_root())],
+		"allowed_roots": [str(root) for root in allowed_roots()],
+		"ignore_hidden_files": True,
 		"callback_hosts": [callback_host()],
 	}
 	_edit_tenants(lambda tenants: tenants.__setitem__(frappe.local.site, entry))
@@ -123,10 +124,37 @@ def reload_tenants(token: str) -> bool:
 
 
 def session_root() -> Path:
-	"""The one path in a site's fence: its public files folder, public by design, which
-	sessions also use as their cwd. The daemon insists on a fence even though its file
-	tools are off (see start)."""
+	"""The site's public files folder, which sessions use as their cwd."""
 	return Path(frappe.get_site_path("public", "files")).resolve()
+
+
+def allowed_roots() -> tuple[Path, ...]:
+	return tuple(dict.fromkeys((session_root(), *(root for _app, root in app_sources()))))
+
+
+def app_source_prompt(tools: list[str]) -> str:
+	if not tools:
+		return ""
+	sources = app_sources()
+	if not sources:
+		return ""
+	paths = "\n".join(f"- {app}: {root}" for app, root in sources)
+	available = ", ".join(tools)
+	return f"\n\nAPP SOURCE CODE\nUse {available} to inspect these installed apps:\n{paths}"
+
+
+def app_sources() -> list[tuple[str, Path]]:
+	"""Outer source directories for the apps installed on this site."""
+	return [
+		(app, Path(frappe.get_app_path(app)).resolve().parent)
+		for app in frappe.get_installed_apps(_ensure_on_bench=True)
+	]
+
+
+def refresh_after_app_change(app: str) -> None:
+	"""Keep a site's source roots current when another app is installed or removed."""
+	if app != "flow":
+		provision_site()
 
 
 def callback_host() -> str:
@@ -203,8 +231,7 @@ def _start() -> None:
 		raise RuntimeError(f"a flow server already answers on {socket_path()}; stop it by hand")
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS_FILE"] = str(tenants_file())
-	# no read or grep: sessions never touch the bench filesystem
-	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": []})
+	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": ["read_file", "grep"]})
 	if redis_url := _redis_url():
 		env["FLOW_REDIS_URL"] = redis_url
 	command = [

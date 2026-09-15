@@ -90,6 +90,17 @@ def load_session(name: str, *, agent: str | None = None, model: str | None = Non
 	return doc
 
 
+def warn_existing_sessions(agents: list[str]) -> None:
+	"""A session's tools are fixed when the flow server creates it, so say so when a change
+	cannot reach the sessions those agents already have."""
+	if agents and frappe.db.exists("Flow Session", {"agent": ("in", agents)}):
+		frappe.msgprint(
+			_("Existing sessions keep the tools they started with. This applies to new sessions."),
+			indicator="orange",
+			alert=True,
+		)
+
+
 @contextmanager
 def flow_server() -> Generator[DaemonClient]:
 	"""This site's flow server client, whose refusals surface as validation errors."""

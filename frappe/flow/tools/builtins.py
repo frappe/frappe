@@ -17,6 +17,23 @@ LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HT
 _CONFIRM_STR_LIMIT = 120
 _ERROR_LIMIT = 300
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
+SERVER_TOOL_SLUGS = frozenset({"read_file", "grep"})
+
+
+def _server_only_tool() -> None:
+	raise RuntimeError("This tool runs on the Flow server")
+
+
+@tool
+def read_file(path: str, offset: int | None = None, limit: int | None = None) -> str:
+	"""Read a text or image file from the source of an app installed on this site."""
+	_server_only_tool()
+
+
+@tool
+def grep(pattern: str, path: str = ".") -> str:
+	"""Search installed app source files for a regular-expression pattern."""
+	_server_only_tool()
 
 
 def _summarize_values(values: dict) -> str:
@@ -515,6 +532,8 @@ BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
 	read,
+	read_file,
+	grep,
 	search_knowledge,
 	search_attachments,
 	update_memory,

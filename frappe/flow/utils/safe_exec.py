@@ -139,7 +139,15 @@ def _permissioned_count(doctype, filters=None) -> int:
 
 
 _SKIP_BUILTINS = frozenset(
-	{"execute", "search_knowledge", "search_attachments", "update_memory", "load_skill"}
+	{
+		"execute",
+		"grep",
+		"read_file",
+		"search_knowledge",
+		"search_attachments",
+		"update_memory",
+		"load_skill",
+	}
 )
 
 

@@ -121,6 +121,8 @@ Then add a `Flow Provider` with your API key and a `Flow Model` with a model ID 
 
 Conversations run on a bench-local daemon from the `frappe-flow` package, one per bench and shared by every site. Installing the app on a site provisions the site and starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its state lives under `<bench>/sites/flow-server/`, its log at `<bench>/logs/flow-server.log`. Callbacks reach the site through the bench's web server on loopback, naming the site in a header, so no DNS or proxy is involved; `flow_server_url` in site config sends them elsewhere, and `flow_callback_timeout` caps a tool call's seconds. Session events reach the browser through Redis and Frappe's socketio process; the daemon's log stays the record, so clients sync a session after each run.
 
+`Read File` and `Grep` are built-in Flow Tools for inspecting the source of apps installed on the site. A System Manager can disable either tool globally or select which agents receive it from Desk.
+
 ## License
 
 [GNU AGPLv3](license.txt)

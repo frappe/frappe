@@ -233,7 +233,12 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 				"title": "Server Session Agent",
 				"model": self.model.name,
 				"instructions": "Be terse.",
-				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"tools": [
+					{"tool": "read"},
+					{"tool": "execute"},
+					{"tool": "read_file"},
+					{"tool": "grep"},
+				],
 				"enabled": 1,
 			}
 		).insert()
@@ -575,7 +580,8 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertEqual(config["model"], "openai/gpt-4o-mini")
 		self.assertEqual(config["api_key"], "sk-model")
 		self.assertEqual(config["api_base"], "https://llm.example.com/v1")
-		self.assertEqual(config["system_prompt"], "Be terse.")
+		self.assertTrue(config["system_prompt"].startswith("Be terse."))
+		self.assertIn("APP SOURCE CODE", config["system_prompt"])
 		self.assertEqual(config["max_turns"], 7)
 		self.assertEqual(config["callback_token"], "site-token")
 		self.assertEqual(config["callback_url"], lifecycle.callback_url())
@@ -611,9 +617,9 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		# the body stays out of the prompt; load_skill fetches it on demand
 		self.assertNotIn("Body of Expense Approval.", prompt)
 
-	def test_sessions_get_no_server_tools_or_skills_only_the_agents_schemas(self):
+	def test_sessions_get_read_only_server_tools_and_the_agents_schemas(self):
 		config = self.config()
-		self.assertEqual(config["tools"], [])
+		self.assertEqual(config["tools"], ["read_file", "grep"])
 		self.assertEqual(config["extension_tools"], [])
 		self.assertFalse(config["skills_enabled"])
 		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
@@ -621,9 +627,16 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertFalse(config["auto_approve"])
 		self.assertTrue(config["auto_compact"])
 
+	def test_disabled_app_code_tools_are_not_exposed_to_the_session(self):
+		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
+		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
+		config = self.config()
+		self.assertEqual(config["tools"], [])
+		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
+
 	def test_an_empty_prompt_is_still_verbatim(self):
 		frappe.db.set_value("Flow Agent", self.agent.name, "instructions", "")
-		self.assertEqual(self.config()["system_prompt"], "")
+		self.assertEqual(self.config()["system_prompt"], lifecycle.app_source_prompt(["read_file", "grep"]))
 
 	def test_the_sessions_model_overrides_the_agents_and_takes_provider_credentials(self):
 		bare = frappe.get_doc(

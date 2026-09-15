@@ -55,6 +55,13 @@ class FlowAgent(Document):
 		tools: DF.TableMultiSelect[FlowAgentTool]
 	# end: auto-generated types
 
+	def on_update(self):
+		from flow.lib.session import warn_existing_sessions
+
+		before = self.get_doc_before_save()
+		if before and [row.tool for row in before.tools] != [row.tool for row in self.tools]:
+			warn_existing_sessions([self.name])
+
 	def on_trash(self):
 		block_delete(self, always=True)
 
@@ -119,6 +126,7 @@ class FlowAgent(Document):
 		from flow.tools.builtins import (
 			ATTACHMENT_SEARCH_SLUG,
 			KNOWLEDGE_SEARCH_SLUG,
+			SERVER_TOOL_SLUGS,
 			SKILL_TOOL_SLUG,
 			bind_load_skill,
 			bind_search_attachments,
@@ -127,13 +135,8 @@ class FlowAgent(Document):
 		)
 
 		resolved: list[Tool] = []
-		for row in self.tools:
-			try:
-				tool_doc = frappe.get_doc("Flow Tool", row.tool)
-			except frappe.DoesNotExistError:
-				frappe.log_error(title=f"Flow Agent {self.name!r}: tool {row.tool!r} not found, skipping")
-				continue
-			if not tool_doc.enabled:
+		for tool_doc in self._enabled_tool_docs():
+			if tool_doc.name in SERVER_TOOL_SLUGS:
 				continue
 			if tool_doc.name == KNOWLEDGE_SEARCH_SLUG:
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
@@ -146,6 +149,35 @@ class FlowAgent(Document):
 			else:
 				resolved.append(tool_doc.to_tool())
 		return resolved
+
+	def server_tools(self) -> list[str]:
+		"""Enabled daemon tools selected for this agent."""
+		from flow.tools.builtins import SERVER_TOOL_SLUGS
+
+		return [tool.name for tool in self._enabled_tool_docs() if tool.name in SERVER_TOOL_SLUGS]
+
+	def session_tool_config(self, session: str | None = None) -> dict[str, Any]:
+		"""Complete tool configuration for one daemon session."""
+		from flow.daemon import lifecycle
+
+		server_tools = self.server_tools()
+		return {
+			"system_prompt": (self.instructions or "")
+			+ self.skill_index()
+			+ lifecycle.app_source_prompt(server_tools),
+			"tools": server_tools,
+			**self.client_tool_config(session),
+		}
+
+	def _enabled_tool_docs(self):
+		for row in self.tools:
+			try:
+				tool_doc = frappe.get_doc("Flow Tool", row.tool)
+			except frappe.DoesNotExistError:
+				frappe.log_error(title=f"Flow Agent {self.name!r}: tool {row.tool!r} not found, skipping")
+				continue
+			if tool_doc.enabled:
+				yield tool_doc
 
 	def skill_index(self) -> str:
 		"""The `<available_skills>` block for this agent's visible skills, "" when there are none.

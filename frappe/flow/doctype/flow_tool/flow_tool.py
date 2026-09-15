@@ -47,8 +47,12 @@ class FlowTool(Document):
 		validate_immutable(self, ("type", "import_path", "description", "requires_confirmation"))
 
 	def on_update(self):
-		tool_name = self.name
-		frappe.db.after_commit.add(lambda: patch_session_config_tools(tool_name))
+		"""`enabled` and `code` are the two edits the flow server would have to be told about."""
+		from flow.lib.session import warn_existing_sessions
+
+		if self.has_value_changed("enabled") or self.has_value_changed("code"):
+			agents = frappe.get_all("Flow Agent Tool", filters={"tool": self.name}, pluck="parent")
+			warn_existing_sessions(agents)
 
 	def on_trash(self):
 		block_delete(self, always=True)
@@ -139,33 +143,3 @@ class FlowTool(Document):
 					_("Code must not call <code>main()</code> directly (line {0}).").format(node.lineno),
 					title=_("Invalid Code"),
 				)
-
-
-def patch_session_config_tools(tool_name: str) -> None:
-	"""Push fresh tool schemas to every daemon session whose agent uses this tool."""
-	from flow.daemon.client import DaemonClient, DaemonError
-
-	agents = set(frappe.get_all("Flow Agent Tool", filters={"tool": tool_name}, pluck="parent"))
-	if not agents:
-		return
-	try:
-		client = DaemonClient.for_site()
-	except DaemonError as exc:
-		frappe.log_error(title=f"Flow Tool {tool_name!r}: could not reach the flow server", message=str(exc))
-		return
-	with client:
-		for agent_name in agents:
-			agent = frappe.get_doc("Flow Agent", agent_name)
-			sessions = frappe.get_all("Flow Session", filters={"agent": agent_name}, pluck="name")
-			for session in sessions:
-				try:
-					client.patch_config(session, **agent.client_tool_config(session))
-				except DaemonError as exc:
-					if exc.status == 404:
-						continue
-					frappe.log_error(
-						title=f"Flow Tool {tool_name!r}: could not refresh daemon session {session!r}",
-						message=str(exc),
-					)
-					if exc.status is None:
-						return

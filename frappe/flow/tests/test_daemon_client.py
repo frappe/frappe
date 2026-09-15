@@ -77,6 +77,16 @@ class TestDaemonClient(UnitTestCase):
 					"confirm_tools": ["read"],
 				},
 			),
+			(
+				lambda: self.client.patch_config("s1", tools=["grep"]),
+				"PATCH",
+				"/sessions/s1/config",
+				{
+					"title": None,
+					"auto_approve": None,
+					"tools": ["grep"],
+				},
+			),
 			(lambda: self.client.entries("s1", since=3, path="all"), "GET", "/sessions/s1/entries", None),
 			(
 				lambda: self.client.cleanup_attachments("s1", ["a1", "a2"]),

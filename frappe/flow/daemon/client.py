@@ -119,10 +119,13 @@ class DaemonClient:
 		*,
 		title: str | None = None,
 		auto_approve: bool | None = None,
+		tools: list[str] | None = None,
 		client_tools: list[dict] | None = None,
 		confirm_tools: list[str] | None = None,
 	) -> dict:
 		body = {"title": title, "auto_approve": auto_approve}
+		if tools is not None:
+			body["tools"] = tools
 		if client_tools is not None:
 			body["client_tools"] = client_tools
 		if confirm_tools is not None:
@@ -140,6 +143,7 @@ class DaemonClient:
 	def cleanup_attachments(self, sid: str, attachment_ids: list[str]) -> dict:
 		body = {"attachments": attachment_ids}
 		return self._call("DELETE", f"/sessions/{sid}/attachments", json=body)
+
 
 def _detail(response: httpx.Response) -> Any:
 	"""The daemon's own explanation. A validation error echoes the request, which may

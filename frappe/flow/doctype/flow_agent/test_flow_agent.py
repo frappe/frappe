@@ -297,6 +297,43 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
 		self.assertEqual(self.names(), ["execute"])
 
+	def test_server_tools_are_selected_without_becoming_callback_tools(self):
+		self.agent_doc.append("tools", {"tool": "read_file"})
+		self.agent_doc.append("tools", {"tool": "grep"})
+		self.agent_doc.save()
+
+		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "grep"])
+		self.assertEqual(self.names(), ["read", "execute"])
+		config = self.agent_doc.session_tool_config()
+		self.assertEqual(config["tools"], ["read_file", "grep"])
+		self.assertIn("APP SOURCE CODE", config["system_prompt"])
+
+		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
+		self.assertEqual(self.agent_doc.server_tools(), ["read_file"])
+		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
+		config = self.agent_doc.session_tool_config()
+		self.assertEqual(config["tools"], [])
+		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
+
+	def test_changing_the_tool_list_warns_that_existing_sessions_keep_theirs(self):
+		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent_doc.name}).insert()
+		with patch("frappe.msgprint") as msgprint:
+			self.agent_doc.append("tools", {"tool": "grep"})
+			self.agent_doc.save()
+		self.assertIn("Existing sessions", msgprint.call_args.args[0])
+
+		# an edit that leaves the tool list alone has nothing to warn about
+		with patch("frappe.msgprint") as msgprint:
+			self.agent_doc.instructions = "Be verbose."
+			self.agent_doc.save()
+		msgprint.assert_not_called()
+
+	def test_an_agent_without_sessions_is_changed_quietly(self):
+		with patch("frappe.msgprint") as msgprint:
+			self.agent_doc.append("tools", {"tool": "grep"})
+			self.agent_doc.save()
+		msgprint.assert_not_called()
+
 
 class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 	def setUp(self):

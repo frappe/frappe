@@ -7,9 +7,6 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_tool.flow_tool import patch_session_config_tools
-from flow.tools.builtins import sync_builtin_tools
-
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
 
@@ -152,36 +149,27 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 		tool.save()
 		self.assertEqual(frappe.db.get_value("Flow Tool", tool.name, "enabled"), 0)
 
-	def test_saving_a_tool_refreshes_daemon_sessions_after_commit(self):
-		tool = self._tool()
-		before = len(frappe.db.after_commit._functions)
-		with patch("flow.flow.doctype.flow_tool.flow_tool.patch_session_config_tools") as refresh:
-			tool.enabled = 0
-			tool.save()
-			for callback in list(frappe.db.after_commit._functions)[before:]:
-				callback()
 
-		refresh.assert_called_once_with(tool.name)
+class TestFlowToolSessionWarning(IntegrationTestCase):
+	"""A tool change cannot reach the sessions the flow server already holds."""
 
-
-class TestFlowToolSessionRefresh(IntegrationTestCase):
 	def setUp(self):
-		sync_builtin_tools()
 		model = frappe.get_doc(
 			{
 				"doctype": "Flow Model",
-				"title": "Tool Refresh Model",
+				"title": "Tool Warning Model",
 				"model_id": "openai/gpt-4o-mini",
 				"enabled": 1,
 			}
 		).insert()
+		self.tool = frappe.get_doc(_module()).insert()
 		self.agent = frappe.get_doc(
 			{
 				"doctype": "Flow Agent",
-				"title": "Tool Refresh Agent",
+				"title": "Tool Warning Agent",
 				"model": model.name,
 				"instructions": "x",
-				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"tools": [{"tool": self.tool.name}],
 				"enabled": 1,
 			}
 		).insert()
@@ -189,14 +177,28 @@ class TestFlowToolSessionRefresh(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_a_tool_change_refreshes_every_daemon_session_using_its_agent(self):
-		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
-		with patch("flow.daemon.client.DaemonClient.for_site") as factory:
-			patch_session_config_tools("read")
+	def _session(self):
+		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
 
-		client = factory.return_value
-		calls = [call for call in client.patch_config.call_args_list if call.args == (session.name,)]
-		self.assertEqual(len(calls), 1)
-		kwargs = calls[0].kwargs
-		self.assertEqual([tool["function"]["name"] for tool in kwargs["client_tools"]], ["read", "execute"])
-		self.assertEqual(kwargs["confirm_tools"], ["execute"])
+	def test_disabling_a_tool_warns_that_existing_sessions_keep_theirs(self):
+		self._session()
+		with patch("frappe.msgprint") as msgprint:
+			self.tool.enabled = 0
+			self.tool.save()
+
+		self.assertIn("Existing sessions", msgprint.call_args.args[0])
+
+	def test_an_edit_the_flow_server_never_sees_is_quiet(self):
+		self._session()
+		with patch("frappe.msgprint") as msgprint:
+			self.tool.summary = "Weather, briefly."
+			self.tool.save()
+
+		msgprint.assert_not_called()
+
+	def test_a_tool_no_session_uses_is_quiet(self):
+		with patch("frappe.msgprint") as msgprint:
+			self.tool.enabled = 0
+			self.tool.save()
+
+		msgprint.assert_not_called()

@@ -66,7 +66,8 @@ class TestDaemonLifecycle(UnitTestCase):
 			self.tenants()[self.site],
 			{
 				"token": secret,
-				"allowed_roots": [str(lifecycle.session_root())],
+				"allowed_roots": [str(root) for root in lifecycle.allowed_roots()],
+				"ignore_hidden_files": True,
 				"callback_hosts": [lifecycle.callback_host()],
 			},
 		)
@@ -83,6 +84,39 @@ class TestDaemonLifecycle(UnitTestCase):
 		root = lifecycle.session_root()
 		self.assertEqual(root, Path(frappe.get_site_path("public", "files")).resolve())
 		self.assertTrue(root.is_absolute())
+
+	def test_allowed_roots_include_outer_directories_of_installed_apps(self):
+		apps = Path(self.state).parent / "apps"
+		with (
+			patch.object(frappe, "get_installed_apps", return_value=["frappe", "custom_app"]) as installed,
+			patch.object(
+				frappe,
+				"get_app_path",
+				side_effect=lambda app: str(apps / app / app),
+			),
+		):
+			self.assertEqual(
+				lifecycle.allowed_roots(),
+				(
+					lifecycle.session_root(),
+					(apps / "frappe").resolve(),
+					(apps / "custom_app").resolve(),
+				),
+			)
+		installed.assert_called_once_with(_ensure_on_bench=True)
+
+	def test_app_source_prompt_is_only_added_when_an_app_code_tool_is_selected(self):
+		self.assertEqual(lifecycle.app_source_prompt([]), "")
+		with patch.object(lifecycle, "app_sources", return_value=[("custom_app", Path("/apps/custom"))]):
+			prompt = lifecycle.app_source_prompt(["grep"])
+		self.assertIn("Use grep", prompt)
+		self.assertIn("custom_app: /apps/custom", prompt)
+
+	def test_app_changes_refresh_roots_except_when_flow_itself_is_removed(self):
+		with patch.object(lifecycle, "provision_site") as provision:
+			lifecycle.refresh_after_app_change("custom_app")
+			lifecycle.refresh_after_app_change("flow")
+		provision.assert_called_once_with()
 
 	def test_remove_site_drops_the_entry_and_the_daemon_data(self):
 		partition = self.state / "data" / "tenants" / self.site
@@ -152,7 +186,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			{
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS_FILE": str(self.state / "tenants.json"),
-				"FLOW_POLICY": '{"tool_allowlist": []}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read_file", "grep"]}',
 				"FLOW_REDIS_URL": "redis://q",
 			},
 		)
