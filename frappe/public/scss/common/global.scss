@@ -187,3 +187,27 @@ body {
 	}
 	min-width: calc(var(--sm-width) - 360px);
 }
+
+// freeze backdrop text — lives here, not in desk/global, so portal pages
+// (web forms) get the backdrop too
+#freeze {
+	z-index: 2000;
+	bottom: 0;
+	opacity: 0;
+	background-color: var(--bg-color);
+
+	.freeze-message-container {
+		inset: 0;
+		padding: 3rem;
+		background-color: var(--bg-light-gray);
+		color: var(--text-on-light-gray);
+		font-size: larger;
+		position: absolute;
+		display: grid;
+		place-content: center;
+	}
+}
+
+#freeze.in {
+	opacity: 0.8;
+}
